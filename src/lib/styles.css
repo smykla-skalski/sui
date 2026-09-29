@@ -1,0 +1,69 @@
+@font-face {
+  font-family: 'SUI Plus Jakarta Sans';
+  src: url('./assets/fonts/PlusJakartaSansLatinExtVF.woff2') format('woff2');
+  font-style: normal;
+  font-weight: 200 800;
+  font-display: swap;
+  unicode-range: U+0100-024F, U+1E00-1EFF;
+}
+
+@font-face {
+  font-family: 'SUI Plus Jakarta Sans';
+  src: url('./assets/fonts/PlusJakartaSansLatinVF.woff2') format('woff2');
+  font-style: normal;
+  font-weight: 200 800;
+  font-display: swap;
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+2000-206F, U+20AC, U+2122;
+}
+
+:root {
+  color-scheme: light;
+  --sui-font: 'SUI Plus Jakarta Sans', system-ui, sans-serif;
+  --sui-canvas: #f5f7f6;
+  --sui-foreground: #18211f;
+  --sui-muted: #4c5b57;
+  --sui-surface: #ffffff;
+  --sui-subtle: #f0f3f2;
+  --sui-border: #c4cec9;
+  --sui-primary: #0f766e;
+  --sui-primary-hover: #115e59;
+  --sui-primary-foreground: #ffffff;
+  --sui-danger: #a33a45;
+  --sui-danger-foreground: #ffffff;
+  --sui-danger-hover: #8b2f39;
+  --sui-success-subtle: #e7f5f2;
+  --sui-success-ink: #0f766e;
+  --sui-warning-subtle: #f8f0de;
+  --sui-warning-ink: #8a5d17;
+  --sui-danger-subtle: #faecee;
+  --sui-danger-ink: #a33a45;
+  --sui-focus: #0f766e;
+  --sui-radius: 0.5rem;
+  --sui-surface-radius: 0.625rem;
+  --sui-shadow: 0 1px 3px rgb(24 33 31 / 10%);
+}
+
+:root[data-sui-theme='dark'],
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  --sui-canvas: #0e1116;
+  --sui-foreground: #f3f6f7;
+  --sui-muted: #c4cdd4;
+  --sui-surface: #151a21;
+  --sui-subtle: #202833;
+  --sui-border: #3a4653;
+  --sui-primary: #2dd4bf;
+  --sui-primary-hover: #99f6e4;
+  --sui-primary-foreground: #103634;
+  --sui-danger: #f0a0a6;
+  --sui-danger-foreground: #3a2429;
+  --sui-danger-hover: #ffc1c5;
+  --sui-success-subtle: #173633;
+  --sui-success-ink: #71cabc;
+  --sui-warning-subtle: #382f20;
+  --sui-warning-ink: #e8c07a;
+  --sui-danger-subtle: #3a2429;
+  --sui-danger-ink: #f0a0a6;
+  --sui-focus: #2dd4bf;
+  --sui-shadow: 0 1px 3px rgb(0 0 0 / 20%);
+}

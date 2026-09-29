@@ -1,0 +1,57 @@
+{
+  "name": "@smykla-skalski/sui",
+  "version": "0.1.0",
+  "type": "module",
+  "license": "MIT",
+  "description": "Themeable Svelte UI primitives for Smykla projects",
+  "keywords": [
+    "svelte",
+    "svelte5",
+    "components",
+    "design-system"
+  ],
+  "homepage": "https://github.com/smykla-skalski/sui#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/smykla-skalski/sui.git"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "sideEffects": [
+    "**/*.css"
+  ],
+  "files": [
+    "dist"
+  ],
+  "svelte": "./dist/index.js",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "svelte": "./dist/index.js"
+    },
+    "./styles.css": "./dist/styles.css"
+  },
+  "scripts": {
+    "dev": "vite dev",
+    "build": "svelte-kit sync && svelte-package",
+    "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "prepack": "npm run build"
+  },
+  "peerDependencies": {
+    "svelte": "^5.0.0"
+  },
+  "devDependencies": {
+    "@sveltejs/kit": "^2.70.3",
+    "@sveltejs/package": "^2.5.0",
+    "@sveltejs/vite-plugin-svelte": "^7.3.1",
+    "prettier": "^3.9.6",
+    "prettier-plugin-svelte": "^4.1.1",
+    "svelte": "^5.57.1",
+    "svelte-check": "^4.7.6",
+    "typescript": "^6.0.2",
+    "vite": "^8.1.5"
+  }
+}
