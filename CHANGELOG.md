@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.1
+
+- Publish the first installable npm release through GitHub Actions OIDC.
+
 ## 0.2.0
 
 - Add generic line, scatter, range, and heatmap charts with data tables.

@@ -4,7 +4,7 @@ Reusable Svelte 5 components for Smykla projects. The shared look follows the [S
 
 ## Install
 
-The package is prepared for publishing as `@smykla-skalski/sui`. Until its first release, install a local tarball built with `npm pack` or use a workspace dependency.
+Install the public `@smykla-skalski/sui` package from npm:
 
 ```sh
 npm install @smykla-skalski/sui
