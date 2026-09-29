@@ -2,7 +2,7 @@
 
 ## 0.2.1
 
-- Publish the first installable npm release through GitHub Actions OIDC.
+- Publish through GitHub Actions OIDC with signed provenance.
 
 ## 0.2.0
 
