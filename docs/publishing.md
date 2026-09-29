@@ -1,6 +1,6 @@
 # Publishing to npm
 
-The npm organization `smykla-skalski` owns `@smykla-skalski/sui`. The package is public, and its GitHub Actions trusted publisher is connected to `smykla-skalski/sui` and `publish.yml` with direct publish permission. npm has reserved version `0.2.0`, so releases start with `0.2.1`.
+The npm organization `smykla-skalski` owns `@smykla-skalski/sui`. Version `0.2.0` was published with an npm account. Later versions use the GitHub Actions trusted publisher connected to `smykla-skalski/sui` and `publish.yml` with direct publish permission.
 
 ## Release
 
