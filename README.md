@@ -34,14 +34,20 @@ import '@smykla-skalski/sui/styles.css';
 
 ## Components
 
-| Component | Key props                                  | Notes                                                                             |
-| --------- | ------------------------------------------ | --------------------------------------------------------------------------------- |
-| `Button`  | `variant`, `size`, `loading`               | Native button attributes and `onclick` pass through; defaults to `type="button"`. |
-| `Field`   | `label`, `hint`, `error`, `bind:value`     | Text-like input; generates a stable ID and links help/error text.                 |
-| `Card`    | `heading`, `description`, `footer` snippet | Plain content surface; HTML div attributes pass through.                          |
-| `Badge`   | `tone`                                     | Inline status label; HTML span attributes pass through.                           |
+| Component      | Key props                                  | Notes                                                                             |
+| -------------- | ------------------------------------------ | --------------------------------------------------------------------------------- |
+| `Button`       | `variant`, `size`, `loading`               | Native button attributes and `onclick` pass through; defaults to `type="button"`. |
+| `Field`        | `label`, `hint`, `error`, `bind:value`     | Text-like input; generates a stable ID and links help/error text.                 |
+| `Card`         | `heading`, `description`, `footer` snippet | Plain content surface; HTML div attributes pass through.                          |
+| `Badge`        | `tone`                                     | Inline status label; HTML span attributes pass through.                           |
+| `LineChart`    | `series`, `xLabel`, `yLabel`               | Numeric X/Y series with paths, legend, and data table.                            |
+| `ScatterChart` | `series`, `xLabel`, `yLabel`               | Numeric X/Y points with legend and data table.                                    |
+| `RangeChart`   | `data`, `valueLabel`                       | Labeled intervals with optional markers.                                          |
+| `HeatmapChart` | `rows`, `columns`, `cells`                 | Matrix of numeric values with missing-cell support.                               |
 
 Use native links for navigation. Do not use a button as a link. Use `aria-label` for icon-only actions.
+
+Charts use generic numbers and labels. `LineChart` and `ScatterChart` accept `ChartSeries[]` (`id`, `label`, `points: { x, y }[]`, optional `color`). Map dates to numeric timestamps and supply `formatX` to display them. Every chart requires a short `description`; an expandable table provides the full values. Non-finite X/Y points are omitted. See [chart usage](docs/charts.md).
 
 ## Theming
 
@@ -64,6 +70,7 @@ Tokens are prefixed, and the package applies no global reset. It can be used in 
 mise install
 npm ci
 npm run check
+npm test
 npm run build
 npm run dev
 ```

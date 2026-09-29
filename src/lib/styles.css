@@ -41,6 +41,11 @@
   --sui-radius: 0.5rem;
   --sui-surface-radius: 0.625rem;
   --sui-shadow: 0 1px 3px rgb(24 33 31 / 10%);
+  --sui-chart-1: #0f766e;
+  --sui-chart-2: #526b7a;
+  --sui-chart-3: #8a5d17;
+  --sui-chart-4: #a33a45;
+  --sui-chart-5: #5b459f;
 }
 
 :root[data-sui-theme='dark'],
@@ -66,4 +71,9 @@
   --sui-danger-ink: #f0a0a6;
   --sui-focus: #2dd4bf;
   --sui-shadow: 0 1px 3px rgb(0 0 0 / 20%);
+  --sui-chart-1: #2dd4bf;
+  --sui-chart-2: #b6c5d1;
+  --sui-chart-3: #e8c07a;
+  --sui-chart-4: #f0a0a6;
+  --sui-chart-5: #b9a4ff;
 }

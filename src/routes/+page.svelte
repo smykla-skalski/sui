@@ -1,5 +1,50 @@
 <script lang="ts">
-  import { Badge, Button, Card, Field } from '$lib';
+  import {
+    Badge,
+    Button,
+    Card,
+    Field,
+    HeatmapChart,
+    LineChart,
+    RangeChart,
+    ScatterChart
+  } from '$lib';
+
+  const trend = [
+    {
+      id: 'north',
+      label: 'North',
+      points: [
+        { x: 1, y: 18 },
+        { x: 2, y: 25 },
+        { x: 3, y: 23 },
+        { x: 4, y: 34 }
+      ]
+    },
+    {
+      id: 'south',
+      label: 'South',
+      points: [
+        { x: 1, y: 12 },
+        { x: 2, y: 16 },
+        { x: 3, y: 22 },
+        { x: 4, y: 27 }
+      ]
+    }
+  ];
+  const ranges = [
+    { label: 'Planning', start: 12, end: 29, marker: 22 },
+    { label: 'Design', start: 19, end: 37, marker: 30 },
+    { label: 'Build', start: 25, end: 48, marker: 39 }
+  ];
+  const heatmap = [
+    { row: 'Morning', column: 'Mon', value: 12 },
+    { row: 'Morning', column: 'Tue', value: 19 },
+    { row: 'Morning', column: 'Wed', value: 24 },
+    { row: 'Afternoon', column: 'Mon', value: 20 },
+    { row: 'Afternoon', column: 'Tue', value: 31 },
+    { row: 'Afternoon', column: 'Wed', value: null }
+  ];
 
   let name = $state('');
   let dark = $state(false);
@@ -60,6 +105,47 @@
         />
         <p class="preview">Hello{name ? `, ${name}` : ''}.</p>
       </Card>
+    </div>
+  </section>
+
+  <section aria-labelledby="charts-heading">
+    <h2 id="charts-heading">Charts</h2>
+    <div class="cards">
+      <Card
+        ><LineChart
+          title="Weekly trend"
+          description="Both regions increased over four weeks."
+          series={trend}
+          xLabel="Week"
+          yLabel="Items"
+        /></Card
+      >
+      <Card
+        ><ScatterChart
+          title="Values by week"
+          description="The points show growth across four weeks."
+          series={trend}
+          xLabel="Week"
+          yLabel="Items"
+        /></Card
+      >
+      <Card
+        ><RangeChart
+          title="Work ranges"
+          description="The marker shows the selected point in each range."
+          data={ranges}
+          valueLabel="Hours"
+        /></Card
+      >
+      <Card
+        ><HeatmapChart
+          title="Activity"
+          description="Tuesday afternoon has the highest activity."
+          rows={['Morning', 'Afternoon']}
+          columns={['Mon', 'Tue', 'Wed']}
+          cells={heatmap}
+        /></Card
+      >
     </div>
   </section>
 </main>

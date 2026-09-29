@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.0
+
+- Add generic line, scatter, range, and heatmap charts with data tables.
+
 ## 0.1.0
 
 - Initial Svelte 5 package with Button, Field, Card, and Badge.
