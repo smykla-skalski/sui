@@ -79,13 +79,7 @@ npm run dev
 
 ## Release
 
-The package name is `@smykla-skalski/sui`. The first public release needs an npm account with access to the `@smykla-skalski` scope. After CI passes, update the version and changelog, then publish with npm provenance:
-
-```sh
-npm publish --provenance --access public
-```
-
-For automated releases, configure npm trusted publishing for this repository before adding a release workflow. Keep the package's public entry points and CSS token names stable within a major version.
+The package name is `@smykla-skalski/sui`. Follow [the publishing guide](docs/publishing.md) to create the npm organization, publish the initial version, and connect the GitHub Actions trusted publisher. Later releases publish from GitHub Releases with automatic npm provenance. Keep the package's public entry points and CSS token names stable within a major version.
 
 Add components in `src/lib/components`, export them from `src/lib/index.ts`, document their props here, and show a realistic use in `src/routes/+page.svelte`. Prefer native HTML behavior and Svelte 5 runes/snippets. Complex overlays should use an accessible headless primitive rather than hand-written focus management.
 
