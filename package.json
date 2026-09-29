@@ -36,7 +36,7 @@
   "scripts": {
     "dev": "vite dev",
     "build": "svelte-kit sync && svelte-package",
-    "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
+    "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --tsgo",
     "test": "node --test tests/*.test.mjs",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
@@ -49,11 +49,12 @@
     "@sveltejs/kit": "^2.70.3",
     "@sveltejs/package": "^2.5.0",
     "@sveltejs/vite-plugin-svelte": "^7.3.1",
+    "@typescript/native": "npm:typescript@^7.0.2",
     "prettier": "^3.9.6",
     "prettier-plugin-svelte": "^4.1.1",
     "svelte": "^5.57.1",
     "svelte-check": "^4.7.6",
-    "typescript": "^7.0.0",
+    "typescript": "^6.0.3",
     "vite": "^8.1.5"
   }
 }
