@@ -303,6 +303,13 @@ test('K9 a time writes its whole instant in the page language once the clock tic
   try {
     await page.clock.install();
     await page.reload({ waitUntil: 'networkidle' });
+    // The server's markup holds the time before the page is live; the clock starts only once the
+    // sink has mounted, which a busy runner may take a moment to do. The page's own timers are
+    // fake now, so the wait polls from here.
+    for (let wait = 0; wait < 100; wait++) {
+      if (await page.evaluate(() => '__suiAudit' in window)) break;
+      await new Promise((resolve) => setTimeout(resolve, 100));
+    }
     const time = page.locator('#relative-time time.sui-relative-time.exact').first();
     await time.waitFor();
     const before = await time.textContent();
