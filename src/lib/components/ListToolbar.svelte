@@ -71,7 +71,7 @@
     const choice =
       menu.querySelector<HTMLInputElement>('input:checked') ??
       menu.querySelector<HTMLInputElement>('input:enabled');
-    choice?.focus();
+    choice?.focus({ preventScroll: true });
   }
 </script>
 

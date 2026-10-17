@@ -95,13 +95,14 @@
   async function show(edge: 'first' | 'last'): Promise<void> {
     open = true;
     await tick();
+    // The menu takes its place on the next frame, so focus must not scroll to where it was.
     const found = menuItems();
-    (edge === 'first' ? found[0] : found.at(-1))?.focus();
+    (edge === 'first' ? found[0] : found.at(-1))?.focus({ preventScroll: true });
   }
 
   function close(): void {
     open = false;
-    trigger?.focus();
+    trigger?.focus({ preventScroll: true });
   }
 
   function activate(item: Extract<ActionMenuItem, { label: string }>): void {
@@ -159,7 +160,7 @@
       next = seek(found, at, event.key, event.timeStamp);
     else return;
     event.preventDefault();
-    found[next]?.focus();
+    found[next]?.focus({ preventScroll: true });
   }
 </script>
 
@@ -221,7 +222,7 @@ item opens then returns focus there too. Labels wrap rather than being cut short
             onclick={() => activate(item)}
             onpointermove={(event) => {
               if (!preview && !item.disabled && document.activeElement !== event.currentTarget)
-                event.currentTarget.focus();
+                event.currentTarget.focus({ preventScroll: true });
             }}
           >
             {#if iconic}
