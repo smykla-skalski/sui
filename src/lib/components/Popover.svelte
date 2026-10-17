@@ -14,6 +14,7 @@
     offset = 4,
     width = 'auto',
     dismiss = 'auto',
+    inline = false,
     element = $bindable(null),
     class: className = '',
     onclose,
@@ -34,6 +35,8 @@
     width?: 'auto' | 'min-trigger' | 'trigger';
     /** `auto` closes on Escape and on an outside press; `manual` closes only when told. */
     dismiss?: 'auto' | 'manual';
+    /** Draws the same box in the page's flow, with no top layer, placement or light dismiss, for a preview. */
+    inline?: boolean;
     element?: HTMLElement | null;
     class?: HTMLAttributes<HTMLDivElement>['class'];
     onclose?: () => void;
@@ -43,14 +46,14 @@
   const placement = $derived({ side, align, offset });
 
   $effect(() => {
-    if (!element) return;
+    if (!element || inline) return;
     const shown = element.matches(':popover-open');
     if (open && !shown) element.showPopover();
     else if (!open && shown) element.hidePopover();
   });
 
   $effect(() => {
-    if (!open || !element || !anchor) return;
+    if (!open || !element || !anchor || inline) return;
     place(element, anchor, placement);
     return follow(element, anchor, placement);
   });
@@ -82,14 +85,15 @@ of light dismiss and returns focus to it on close. `open` can also be driven dir
 
 The box is placed beside `anchor`, flips to the other side when that one has more room, and
 stays inside the viewport. It is as tall as the room it has and scrolls inside itself.
-Menus, listboxes and pickers put their own content and keyboard model inside it.
+Menus, listboxes and pickers put their own content and keyboard model inside it. With `inline`
+the same box sits in the page's flow instead, so a preview shows it without a click.
 -->
 
 <div
   bind:this={element}
   {id}
-  popover={dismiss}
-  class={['sui-popover', className]}
+  popover={inline ? undefined : dismiss}
+  class={['sui-popover', { inline }, className]}
   data-width={width}
   {onbeforetoggle}
   {ontoggle}
@@ -122,7 +126,7 @@ Menus, listboxes and pickers put their own content and keyboard model inside it.
     translate: 0 0;
   }
 
-  .sui-popover:not(:popover-open) {
+  .sui-popover[popover]:not(:popover-open) {
     opacity: 0;
     transition-duration: var(--sui-duration-press);
   }
@@ -132,6 +136,13 @@ Menus, listboxes and pickers put their own content and keyboard model inside it.
       opacity: 0;
       translate: 0 calc(-1 * var(--sui-space-1));
     }
+  }
+
+  /* In flow the room a list has is the viewport, so a listbox keeps its 20rem cap. */
+  .sui-popover.inline {
+    --sui-floating-available-block: 100dvh;
+    max-inline-size: 100%;
+    position: static;
   }
 
   .sui-popover[data-side='block-start'] {

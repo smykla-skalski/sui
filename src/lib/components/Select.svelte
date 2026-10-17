@@ -32,6 +32,7 @@
     name,
     form,
     disabled = false,
+    preview = false,
     element = $bindable(null),
     class: className = '',
     ...rest
@@ -44,6 +45,8 @@
     name?: string;
     form?: string;
     disabled?: boolean;
+    /** Draws the list open under the trigger in the page's flow, with the option after the value active and no keyboard. */
+    preview?: boolean;
     element?: HTMLButtonElement | null;
     class?: HTMLButtonAttributes['class'];
   } & Omit<
@@ -82,6 +85,8 @@
 
   let open = $state(false);
   let active = $state(-1);
+  const expanded = $derived(preview || open);
+  const current = $derived(preview ? step(selected, 1) : active);
   let list = $state<HTMLElement | null>(null);
   let typed = '';
   let typedAt = 0;
@@ -139,7 +144,7 @@
 
   function commit(index: number): void {
     const option = flat[index];
-    if (!option || option.disabled) return;
+    if (!option || option.disabled || preview) return;
     value = option.value;
     open = false;
   }
@@ -205,32 +210,6 @@ Space commits, and Escape closes without closing a surrounding dialog. Name it w
 pointing at its `id`, or with `aria-label`. `name` submits the value through a hidden input.
 -->
 
-<button
-  bind:this={element}
-  type="button"
-  {...rest}
-  class={['sui-select', className]}
-  role="combobox"
-  aria-haspopup="listbox"
-  aria-expanded={open}
-  aria-controls={listId}
-  aria-activedescendant={open && active >= 0 ? optionId(active) : undefined}
-  popovertarget={popupId}
-  {disabled}
-  {onclick}
-  {onkeydown}
-  {onkeyup}
-  onblur={() => (open = false)}
->
-  <span class={['sui-select-value', { placeholder: selected < 0 }]}>
-    {selected < 0 ? placeholder : flat[selected].label}
-  </span>
-  <Icon name="chevron-down" size="sm" />
-</button>
-{#if name}
-  <input type="hidden" {name} {form} {disabled} value={value ?? ''} />
-{/if}
-
 {#snippet row({ option, index }: Entry)}
   <!-- Keys are handled on the trigger, which keeps focus while an option is active. -->
   <!-- svelte-ignore a11y_click_events_have_key_events -->
@@ -238,7 +217,7 @@ pointing at its `id`, or with `aria-label`. `name` submits the value through a h
     id={optionId(index)}
     role="option"
     tabindex="-1"
-    class={['sui-select-option', { active: index === active }]}
+    class={['sui-select-option', { active: index === current }]}
     aria-selected={index === selected}
     aria-disabled={option.disabled || undefined}
     onclick={() => commit(index)}
@@ -254,36 +233,71 @@ pointing at its `id`, or with `aria-label`. `name` submits the value through a h
   </div>
 {/snippet}
 
-<Popover
-  id={popupId}
-  anchor={element}
-  bind:open
-  width="min-trigger"
-  onmousedown={(event: MouseEvent) => event.preventDefault()}
->
-  <div
-    bind:this={list}
-    id={listId}
-    role="listbox"
-    tabindex="-1"
-    class="sui-select-list"
-    aria-label={rest['aria-labelledby'] ? undefined : listLabel}
-    aria-labelledby={rest['aria-labelledby']}
+{#snippet control()}
+  <button
+    bind:this={element}
+    type="button"
+    {...rest}
+    class={['sui-select', className]}
+    role="combobox"
+    aria-haspopup={preview ? undefined : 'listbox'}
+    aria-expanded={expanded}
+    aria-controls={listId}
+    aria-activedescendant={expanded && current >= 0 ? optionId(current) : undefined}
+    popovertarget={preview ? undefined : popupId}
+    {disabled}
+    onclick={preview ? undefined : onclick}
+    onkeydown={preview ? undefined : onkeydown}
+    {onkeyup}
+    onblur={() => (open = false)}
   >
-    {#each sections as section (section.key)}
-      {#if section.heading === undefined}
-        {#each section.entries as entry (entry.index)}{@render row(entry)}{/each}
-      {:else}
-        <div role="group" class="sui-select-group" aria-labelledby={section.key}>
-          <div id={section.key} role="presentation" class="sui-select-heading">
-            {section.heading}
-          </div>
+    <span class={['sui-select-value', { placeholder: selected < 0 }]}>
+      {selected < 0 ? placeholder : flat[selected].label}
+    </span>
+    <Icon name="chevron-down" size="sm" />
+  </button>
+
+  <Popover
+    id={popupId}
+    anchor={element}
+    bind:open
+    inline={preview}
+    width="min-trigger"
+    onmousedown={(event: MouseEvent) => event.preventDefault()}
+  >
+    <div
+      bind:this={list}
+      id={listId}
+      role="listbox"
+      tabindex="-1"
+      class="sui-select-list"
+      aria-label={rest['aria-labelledby'] ? undefined : listLabel}
+      aria-labelledby={rest['aria-labelledby']}
+    >
+      {#each sections as section (section.key)}
+        {#if section.heading === undefined}
           {#each section.entries as entry (entry.index)}{@render row(entry)}{/each}
-        </div>
-      {/if}
-    {/each}
-  </div>
-</Popover>
+        {:else}
+          <div role="group" class="sui-select-group" aria-labelledby={section.key}>
+            <div id={section.key} role="presentation" class="sui-select-heading">
+              {section.heading}
+            </div>
+            {#each section.entries as entry (entry.index)}{@render row(entry)}{/each}
+          </div>
+        {/if}
+      {/each}
+    </div>
+  </Popover>
+{/snippet}
+
+{#if preview}
+  <div class="sui-select-preview">{@render control()}</div>
+{:else}
+  {@render control()}
+{/if}
+{#if name}
+  <input type="hidden" {name} {form} {disabled} value={value ?? ''} />
+{/if}
 
 <style>
   /* Registered so the state veil can interpolate, the same way `Button` does it. */
@@ -291,6 +305,14 @@ pointing at its `id`, or with `aria-label`. `name` submits the value through a h
     syntax: '<color>';
     inherits: false;
     initial-value: transparent;
+  }
+
+  .sui-select-preview {
+    display: inline-grid;
+    gap: var(--sui-space-1);
+    grid-template-columns: minmax(0, auto);
+    inline-size: fit-content;
+    max-inline-size: 100%;
   }
 
   .sui-select {
@@ -456,6 +478,11 @@ pointing at its `id`, or with `aria-label`. `name` submits the value through a h
     color: var(--sui-text-muted);
     flex: 1 1 0;
     font-weight: 400;
+  }
+
+  /* Muted ink drops under 4.5:1 on the active row's veil. */
+  .sui-select-option.active .sui-select-note {
+    color: var(--sui-text-secondary);
   }
 
   @media (prefers-reduced-motion: reduce) {

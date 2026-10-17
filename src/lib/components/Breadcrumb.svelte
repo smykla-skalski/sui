@@ -83,15 +83,13 @@ cap line of layout and fits the eyebrow's place in a `PageHeader`.
     box-sizing: border-box;
     color: var(--sui-text-secondary);
     display: inline-flex;
-    font: 600 var(--sui-font-size-micro) / var(--sui-leading-flat) var(--sui-sans);
+    font: 500 var(--sui-font-size-meta) / var(--sui-leading-flat) var(--sui-sans);
     gap: var(--sui-space-1);
-    letter-spacing: 0.07em;
     margin: calc((1cap - var(--sui-control-height-chip)) / 2) calc(var(--sui-space-2) * -1);
     min-block-size: var(--sui-control-height-chip);
     min-inline-size: 0;
     padding-inline: var(--sui-space-2);
     text-decoration: none;
-    text-transform: uppercase;
     transition:
       background-color var(--sui-duration-fast) var(--sui-ease-standard),
       color var(--sui-duration-fast) var(--sui-ease-standard);

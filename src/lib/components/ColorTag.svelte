@@ -24,7 +24,7 @@
   }
 
   /**
-   * The theme whose ink reads best on the caller's colour, and the fill: that colour, or the
+   * The theme whose ink reads best on the caller's color, and the fill: that color, or the
    * least step from it toward white or black that brings the ink to 4.5:1. Mid tones such as
    * GitHub's red `d73a4a` reach neither ink as they are.
    */
@@ -50,7 +50,7 @@
   }: {
     /** The tag's name. */
     label: string;
-    /** The caller's colour as three or six hex digits, with or without `#`, as GitHub stores a label's. */
+    /** The caller's color as three or six hex digits, with or without `#`, as GitHub stores a label's. */
     color: string;
     class?: HTMLAttributes<HTMLSpanElement>['class'];
   } & Omit<HTMLAttributes<HTMLSpanElement>, 'children' | 'color'> = $props();
@@ -61,13 +61,13 @@
 
 <!--
 @component
-A tag painted in a colour somebody else chose, such as a GitHub label, with its name. The
-colour is how a reader recognises the tag in a list, so it fills the whole tag, and its edge
-is the same colour pulled toward the ink so a white tag still has an outline on a white card.
+A tag painted in a color somebody else chose, such as a GitHub label, with its name. The
+color is how a reader recognises the tag in a list, so it fills the whole tag, and its edge
+is the same color pulled toward the ink so a white tag still has an outline on a white card.
 
 The ink is dark or light, whichever reads better on the fill, and a mid tone that neither
 reads 4.5:1 on is nudged toward white or black until one does. Anything but hex digits draws
-the neutral tag instead, so a stored value never writes a style declaration. The colour never
+the neutral tag instead, so a stored value never writes a style declaration. The color never
 says anything the name does not, and a tag of the product's own meaning is `Chip`.
 -->
 

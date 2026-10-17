@@ -76,6 +76,21 @@
 </Example>
 
 <Example
+  title="Open states"
+  note="The open list drawn in place, with the chosen value checked and the next option active"
+  layout="stack"
+>
+  <div class="field">
+    <label for="sink-select-open-region">Region</label>
+    <Select id="sink-select-open-region" options={regions} value="eu-central" preview />
+  </div>
+  <div class="field">
+    <label for="sink-select-open-plan">Plan</label>
+    <Select id="sink-select-open-plan" options={plans} value="team-month" preview />
+  </div>
+</Example>
+
+<Example
   title="Groups and notes"
   note="Headed groups, a note after each label and an option that cannot be chosen"
 >

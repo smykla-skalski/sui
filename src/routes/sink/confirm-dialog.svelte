@@ -18,6 +18,31 @@
   <span class="state">{answer}</span>
 </Example>
 
+<Example
+  title="Open states"
+  note="A destructive question and one with a reason, drawn in place so a review needs no click"
+  layout="stack"
+>
+  <ConfirmDialog
+    preview
+    title="Delete this repository?"
+    consequence="Its settings, history and webhooks are removed for good"
+    confirmLabel="Delete repository"
+    tone="stop"
+  />
+  <ConfirmDialog
+    preview
+    title="Archive this repository?"
+    consequence="It turns read-only for everyone until an owner restores it"
+    confirmLabel="Archive repository"
+  >
+    <div class="field">
+      <label for="sink-confirm-open-reason">Reason</label>
+      <TextInput id="sink-confirm-open-reason" placeholder="Moved to a new home" />
+    </div>
+  </ConfirmDialog>
+</Example>
+
 <Example title="Affirmative" note="An act that gives something confirms with the signal tone">
   <Button onclick={() => (publish = true)}>Publish release</Button>
 </Example>

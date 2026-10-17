@@ -175,7 +175,7 @@ the bar up with the reason, and the work is never dropped on its own.
 
   .subtitle {
     color: var(--sui-text-muted);
-    font: 400 var(--sui-font-size-compact) / var(--sui-row-copy-leading) var(--sui-sans);
+    font: 400 var(--sui-font-size-meta) / var(--sui-row-copy-leading) var(--sui-sans);
   }
 
   .subtitle.error {

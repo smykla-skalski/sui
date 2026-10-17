@@ -52,6 +52,6 @@
 
 <style>
   .narrow {
-    inline-size: min(100%, 18rem);
+    inline-size: min(100%, 16rem);
   }
 </style>

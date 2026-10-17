@@ -70,7 +70,7 @@ A surface can opt into the 40px control tier with `--sui-local-control-height: v
 
 [docs/laws.md](docs/laws.md) lists every law with its source and how it is held. [docs/authoring.md](docs/authoring.md) explains how to write a component that meets them.
 
-- `npm test` runs the source laws (`tests/laws.test.mjs`): the palette is the only place a colour is written, every token is declared and read, sizes, leading, spacing, radii, layers and durations come from tokens, every moving component has a reduced-motion fallback, and every component has a contract and a kitchen sink section.
+- `npm test` runs the source laws (`tests/laws.test.mjs`): the palette is the only place a color is written, every token is declared and read, sizes, leading, spacing, radii, layers and durations come from tokens, every moving component has a reduced-motion fallback, and every component has a contract and a kitchen sink section.
 - The kitchen sink runs the rendered laws in the page and shows each finding: contrast, palette bands, type faces and leading, copy rules, control heights, target sizes, centring, focus, names and sideways scroll.
 - `npm run test:browser` runs that audit in Chrome at 320, 375, 768 and 1440px in both themes. It also walks every keyboard stop, opens every menu, checks reduced motion, theme geometry and icon centring. It uses the installed Chrome through `playwright-core`; set `SUI_BROWSER_CHANNEL` to use another channel.
 

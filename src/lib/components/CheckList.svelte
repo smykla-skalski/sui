@@ -123,7 +123,7 @@ the text around the group, because each item's hover ground bleeds out into the 
 
   .sui-check-list-help {
     color: var(--sui-text-secondary);
-    font: 400 var(--sui-font-size-compact) / var(--sui-row-copy-leading) var(--sui-sans);
+    font: 400 var(--sui-font-size-meta) / var(--sui-row-copy-leading) var(--sui-sans);
   }
 
   .sui-check-list-error {

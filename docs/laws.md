@@ -12,7 +12,7 @@ A law that says "every" means every component, including the ones added after it
 
 ## Palette and color
 
-- **L-1** The palette (`src/lib/styles.css`) is the only place a colour is written. Component styles read `var(--sui-*)` and never a hex, `rgb()`, `hsl()` or named colour. `S-7` `source`
+- **L-1** The palette (`src/lib/styles.css`) is the only place a color is written. Component styles read `var(--sui-*)` and never a hex, `rgb()`, `hsl()` or named color. `S-7` `source`
 - **L-2** Every token a component reads is declared, and every declared token is read, directly or through another token. A scale is declared whole even when one step is unused. `S-8 S-9` `source`
 - **L-3** Components read semantic tokens, never `--sui-primitive-*`. `K-1` `source`
 - **L-4** A token derived with `var()` is restated in every palette block, so a dark subtree never keeps a light alias. `S-10` `source`
@@ -25,10 +25,10 @@ A law that says "every" means every component, including the ones added after it
 - **L-11** Hover is one state change and press is two, in one direction. Measured as CIEDE2000 from the ground: on a light ground hover is 4.4 to 5.4 and press 7.2 to 8.3, on a dark ground hover is 5.3 to 6.7 and press 9 to 10.5. Hover and press are alpha veils over the ground, never flat fills. `S-27 S-30` `audit`
 - **L-12** A row's hover step is about half a control's: 2 to 3 on light, 4.5 to 5.5 on dark. `S-31` `audit`
 - **L-13** The primary button walks one way along its ramp: rest, hover and press move lightness in one direction, and `--sui-on-brand-action` holds 4.5:1 on all three. Destructive hover deepens on light and brightens on dark. `S-19 S-29` `audit`
-- **L-14** The accent is restrained petrol and never a destructive colour. Information is blue-grey, success is green, warning is amber, danger is muted rose. A role wears violet (`--sui-role-tint`, `--sui-role-ink`), never an outcome tint. `S-3 S-4 S-21` `review`
-- **L-15** Colour never carries state alone: every state colour comes with a word or an icon. The budget is roughly 85% graphite, 10% petrol and at most 5% semantic colour. `S-5 S-6` `review`
+- **L-14** The accent is restrained petrol and never a destructive color. Information is blue-grey, success is green, warning is amber, danger is muted rose. A role wears violet (`--sui-role-tint`, `--sui-role-ink`), never an outcome tint. `S-3 S-4 S-21` `review`
+- **L-15** Color never carries state alone: every state color comes with a word or an icon. The budget is roughly 85% graphite, 10% petrol and at most 5% semantic color. `S-5 S-6` `review`
 - **L-16** Gold (`--sui-decision-accent`) belongs only to unsaved state and the action that resolves it. Pending edits use the `--sui-unsaved-*` surface and ink, never the accent washed over a neutral surface. `S-36 S-39 S-40` `review`
-- **L-17** No decorative gradients, glows, glass surfaces or left-edge accent strips. A surface carries state with its fill, words and marks, never a coloured edge on one side. `S-2 S-41` `audit`
+- **L-17** No decorative gradients, glows, glass surfaces or left-edge accent strips. A surface carries state with its fill, words and marks, never a colored edge on one side. `S-2 S-41` `audit`
 
 ## Fonts and type
 
@@ -60,18 +60,18 @@ A law that says "every" means every component, including the ones added after it
 
 ## Controls
 
-- **L-37** Standalone controls are 34px (`--sui-control-height-compact`). A surface may opt into the 40px tier through `--sui-local-control-height`, never through local padding. Every rendered control height is a whole pixel from the set 20, 24, 28, 34, 38 (rail tiles), 40, 44. `S-85 S-86` `audit`
+- **L-37** Standalone controls are 34px (`--sui-control-height-compact`), and 40px on phones (47.9375rem and narrower), where a finger needs more room than a pointer. A surface may opt into the 40px tier through `--sui-local-control-height`, never through local padding. Every rendered control height is a whole pixel from the set 20, 24, 28, 34, 38 (rail tiles), 40, 44. `S-85 S-86` `audit`
 - **L-38** Every pointer target is at least 24 by 24px, and a touch target (switch tap box, phone controls) at least 44 by 44px. A small control may extend its hit area with a pseudo-element. `S-87 S-215 K-125` `audit`
 - **L-39** Button tones are jobs: `default` an ordinary action, `signal` the one action a view exists for, `ghost` low emphasis, `stop` destructive, `stop-quiet` destructive and bordered, `brand` the brand fill, `quiet` a control only when wanted, `add` an optional addition. Disabled is a state, not a tone. `S-90` `review`
 - **L-40** A disabled control renders at 0.5 opacity with the default cursor and stays visible: disable an action whose precondition is unmet, do not hide it. `S-92 K-54` `audit`
-- **L-41** Focus draws one 2px `--sui-focus` outline, never a box shadow. A bordered control is flush (offset 0, its border takes the focus colour), a free-standing control is offset 2px, and anything inside a clipping container is inset 2px. `S-93 K-124` `audit`
+- **L-41** Focus draws one 2px `--sui-focus` outline, never a box shadow. A bordered control is flush (offset 0, its border takes the focus color), a free-standing control is offset 2px, and anything inside a clipping container is inset 2px. `S-93 K-124` `audit`
 - **L-42** Press feedback is the ground plus `--sui-pressed-inset` and a 1px sink (`translate: 0 1px`), with no scale. Hover and press never paint at the same time. `S-94` `review`
 - **L-43** A mark is as wide as what it says: buttons, chips, pills, links and switches are `fit-content`. `S-89` `audit`
 - **L-44** An icon-only button is square at its tier (34px, or 28px quiet), has an accessible name that doubles as its tooltip, and never takes a text button's padding. `S-96 S-128 S-175` `audit`
 - **L-45** The `add` tone (dashed, pill radius, leading plus, specific label) only starts an optional entry. It never submits, saves, cancels, resets, removes, navigates or picks an existing value. Cancel is a bordered default button at the trailing edge. `S-104 S-106 S-108` `review`
 - **L-46** A primitive owns its look. A parent never styles a child primitive's border, ground, type, focus or height, and no component overrides another's classes with `:global`. `S-109 S-110` `source`
 - **L-47** Text fields rest on `--sui-control-bg`, take `--sui-input-bg` on focus, and are symmetric about their line (top padding plus border equals bottom). `S-112 S-113` `audit`
-- **L-48** Pickers use the shared trigger and chevron, never a native `<select>`. A menu is themed, at least as wide as its trigger, inside the viewport, at most `min(20rem, available height)` tall, and every option is 34px. `S-97 S-98` `audit`
+- **L-48** Pickers use the shared trigger and chevron, never a native `<select>`. A menu is themed, at least as wide as its trigger, inside the viewport, at most `min(20rem, available height)` tall, and every option is one control height (34px, 40px on phones). `S-97 S-98` `audit`
 - **L-49** A boolean is a `Switch`: a 34 by 20px track with a 16px thumb travelling 14px and a 44px tap box. A multi-choice or consent is a checklist with a visible 18px box. Native checkbox paint never shows. `S-99 S-100` `audit`
 - **L-50** A segmented control holds 2 to 5 options, draws one solid thumb exactly the selected option's width, does not slide on first paint, travels 240ms between options, draws no thumb for `null`, and scrolls inside its own track when short of room. `S-114 S-115 S-116 S-117` `audit`
 - **L-51** A combobox or listbox follows the ARIA pattern: arrows move with wrap-around, Enter commits, Escape closes without closing a surrounding dialog, and `aria-activedescendant` is set only while options show. `S-120 K-66 K-67` `review`
@@ -94,8 +94,8 @@ A law that says "every" means every component, including the ones added after it
 - **L-62** A data table has one heading recipe, aligns numbers at the end with tabular figures, and scrolls inside its own frame. No cell draws outside its column. `S-160 S-161 K-93` `audit`
 - **L-63** Long collections load more on demand. No numbered pages and no page-size picker. `S-155` `review`
 - **L-64** Loading reserves the final geometry, keeps loaded rows during a refresh, and every placeholder shares one pulse. `S-156 S-208 S-234` `audit`
-- **L-65** Code colours belong to the language, hold 4.5:1 on their ground, and selected code is opaque. A copy control confirms with "Copied" for 1.6 seconds. `S-26 S-227 K-96` `audit`
-- **L-66** Charts have a title, a description and a table of their values. Series colours come from `--sui-chart-1` to `--sui-chart-5`, and every mark holds 3:1 against its surface. `S-222` `audit`
+- **L-65** Code colors belong to the language, hold 4.5:1 on their ground, and selected code is opaque. A copy control confirms with "Copied" for 1.6 seconds. `S-26 S-227 K-96` `audit`
+- **L-66** Charts have a title, a description and a table of their values. Series colors come from `--sui-chart-1` to `--sui-chart-5`, and every mark holds 3:1 against its surface. `S-222` `audit`
 
 ## Icons
 
@@ -122,7 +122,7 @@ A law that says "every" means every component, including the ones added after it
 - **L-78** Heading levels never skip, the page has one `main`, a title and a language. `S-197 S-215` `audit`
 - **L-79** Keyboard order follows visual order, and every custom widget works with the keyboard alone. `S-213 S-214` `review`
 - **L-80** A hover-only affordance also shows on focus and on devices without hover. `K-128` `review`
-- **L-81** Links use the shared treatment and never the browser's default colours. `S-242` `audit`
+- **L-81** Links use the shared treatment and never the browser's default colors. `S-242` `audit`
 
 ## Shell
 

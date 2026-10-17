@@ -1,6 +1,6 @@
 <script lang="ts">
   import ChartFrame from './ChartFrame.svelte';
-  import { chartColor, extent, plot, position, ticks } from './geometry.js';
+  import { axis, chartColor, position, xyPlot } from './geometry.js';
   import type { ChartPoint, XYChartProps } from './types.js';
 
   type Props = XYChartProps & { kind: 'line' | 'scatter' };
@@ -23,98 +23,92 @@
     }))
   );
   let points = $derived(validSeries.flatMap((item) => item.points));
-  let xDomain = $derived(extent(points.map((point) => point.x)));
-  let yDomain = $derived(
-    extent(
+  let xAxis = $derived(axis(points.map((point) => point.x)));
+  let yAxis = $derived(
+    axis(
       points.map((point) => point.y),
       true
     )
   );
-  let xTicks = $derived(ticks(xDomain));
-  let yTicks = $derived(ticks(yDomain));
 
-  function x(value: number): number {
-    return position(value, xDomain, plot.left, plot.width - plot.right);
+  function x(value: number, width: number): number {
+    return position(value, xAxis.domain, xyPlot.left, width - xyPlot.right);
   }
 
   function y(value: number): number {
-    return position(value, yDomain, plot.height - plot.bottom, plot.top);
+    return position(value, yAxis.domain, xyPlot.height - xyPlot.bottom, xyPlot.top);
   }
 
-  function path(seriesPoints: ChartPoint[]): string {
+  function path(seriesPoints: ChartPoint[], width: number): string {
     return seriesPoints
-      .map((point, index) => `${index === 0 ? 'M' : 'L'} ${x(point.x)} ${y(point.y)}`)
+      .map((point, index) => `${index === 0 ? 'M' : 'L'} ${x(point.x, width)} ${y(point.y)}`)
       .join(' ');
   }
 </script>
 
-<ChartFrame {title} {description}>
-  {#if points.length === 0}
-    <p class="sui-chart-empty">No chart data yet</p>
-  {:else}
-    <div class="plot-scroll">
-      <svg viewBox="0 0 {plot.width} {plot.height}" role="img" aria-label="{title}. {description}">
-        {#each yTicks as tick}
-          <line
-            x1={plot.left}
-            x2={plot.width - plot.right}
-            y1={y(tick)}
-            y2={y(tick)}
-            class="grid"
-          />
-          <text x={plot.left - 8} y={y(tick) + 4} class="axis" text-anchor="end"
-            >{formatY(tick)}</text
-          >
-        {/each}
-        {#each xTicks as tick}
-          <text x={x(tick)} y={plot.height - 22} class="axis" text-anchor="middle"
-            >{formatX(tick)}</text
-          >
-        {/each}
-        <text
-          x={(plot.left + plot.width - plot.right) / 2}
-          y={plot.height - 2}
-          class="label"
-          text-anchor="middle">{xLabel}</text
+<ChartFrame {title} {description} empty={points.length === 0}>
+  {#snippet plot(frameWidth: number)}
+    {@const width = Math.max(xyPlot.minWidth, frameWidth)}
+    <svg
+      {width}
+      height={xyPlot.height}
+      viewBox="0 0 {width} {xyPlot.height}"
+      role="img"
+      aria-label="{title}. {description}"
+    >
+      {#each yAxis.ticks as tick (tick)}
+        <line x1={xyPlot.left} x2={width - xyPlot.right} y1={y(tick)} y2={y(tick)} class="grid" />
+        <text x={xyPlot.left - 8} y={y(tick) + 4} class="axis" text-anchor="end"
+          >{formatY(tick)}</text
         >
-        <text
-          transform="translate(14 {(plot.top + plot.height - plot.bottom) / 2}) rotate(-90)"
-          class="label"
-          text-anchor="middle">{yLabel}</text
-        >
-        {#each validSeries as item, index (item.id)}
-          {#if kind === 'line' && item.points.length > 1}
-            <path
-              d={path(item.points)}
-              fill="none"
-              stroke={item.color ?? chartColor(index)}
-              stroke-width="2.5"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            />
-          {/if}
-          {#each item.points as point}
-            <circle
-              cx={x(point.x)}
-              cy={y(point.y)}
-              r={kind === 'scatter' ? 5 : 3.5}
-              fill={item.color ?? chartColor(index)}
-            >
-              <title>{item.label}: {formatX(point.x)}, {formatY(point.y)}</title>
-            </circle>
-          {/each}
-        {/each}
-      </svg>
-    </div>
-    <ul class="legend">
-      {#each validSeries as item, index (item.id)}
-        <li>
-          <span class="swatch" style:background={item.color ?? chartColor(index)}
-          ></span>{item.label}
-        </li>
       {/each}
-    </ul>
-  {/if}
+      {#each xAxis.ticks as tick (tick)}
+        <text x={x(tick, width)} y={xyPlot.height - 22} class="axis" text-anchor="middle"
+          >{formatX(tick)}</text
+        >
+      {/each}
+      <text
+        x={(xyPlot.left + width - xyPlot.right) / 2}
+        y={xyPlot.height - 2}
+        class="label"
+        text-anchor="middle">{xLabel}</text
+      >
+      <text
+        transform="translate(14 {(xyPlot.top + xyPlot.height - xyPlot.bottom) / 2}) rotate(-90)"
+        class="label"
+        text-anchor="middle">{yLabel}</text
+      >
+      {#each validSeries as item, index (item.id)}
+        {#if kind === 'line' && item.points.length > 1}
+          <path
+            d={path(item.points, width)}
+            fill="none"
+            stroke={item.color ?? chartColor(index)}
+            stroke-width="2.5"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+        {/if}
+        {#each item.points as point, pointIndex (pointIndex)}
+          <circle
+            cx={x(point.x, width)}
+            cy={y(point.y)}
+            r={kind === 'scatter' ? 5 : 3.5}
+            fill={item.color ?? chartColor(index)}
+          >
+            <title>{item.label}: {formatX(point.x)}, {formatY(point.y)}</title>
+          </circle>
+        {/each}
+      {/each}
+    </svg>
+  {/snippet}
+  <ul class="legend">
+    {#each validSeries as item, index (item.id)}
+      <li>
+        <span class="swatch" style:background={item.color ?? chartColor(index)}></span>{item.label}
+      </li>
+    {/each}
+  </ul>
   {#snippet table()}
     <table>
       <thead
@@ -124,7 +118,7 @@
       >
       <tbody>
         {#each validSeries as item (item.id)}
-          {#each item.points as point}
+          {#each item.points as point, pointIndex (pointIndex)}
             <tr
               ><th scope="row">{item.label}</th><td>{formatX(point.x)}</td><td
                 >{formatY(point.y)}</td
@@ -138,20 +132,8 @@
 </ChartFrame>
 
 <style>
-  .plot-scroll {
-    border-radius: var(--sui-radius-control);
-    overflow-x: auto;
-  }
-
-  .plot-scroll:focus-visible {
-    outline: var(--sui-focus-ring-width) solid var(--sui-focus);
-    outline-offset: var(--sui-focus-ring-inset);
-  }
   svg {
     display: block;
-    width: 100%;
-    min-width: 640px;
-    height: auto;
     overflow: visible;
   }
   .grid {
@@ -184,14 +166,5 @@
     width: var(--sui-icon-xs);
     height: var(--sui-icon-xs);
     border-radius: 50%;
-  }
-  .sui-chart-empty {
-    margin: 0;
-    padding: var(--sui-space-8);
-    border-radius: var(--sui-radius-control);
-    color: var(--sui-text-secondary);
-    font: 400 var(--sui-font-size-meta) / var(--sui-leading-meta) var(--sui-sans);
-    background: var(--sui-surface-inset);
-    text-align: center;
   }
 </style>

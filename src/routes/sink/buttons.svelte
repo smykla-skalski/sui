@@ -5,6 +5,7 @@
 <script lang="ts">
   import { Button, Icon } from '#lib';
   import Example from '../kit/Example.svelte';
+  import Specimen from '../kit/Specimen.svelte';
 
   const tones = [
     'default',
@@ -20,13 +21,15 @@
 
 <Example title="Tones" note="A tone names the job a button does, and a view has one signal">
   {#each tones as tone (tone)}
-    <Button {tone}>Save changes</Button>
+    <Specimen label={`tone="${tone}"`}><Button {tone}>Save changes</Button></Specimen>
   {/each}
 </Example>
 
 <Example title="Disabled" note="Every tone can be disabled, and a disabled action stays visible">
   {#each tones as tone (tone)}
-    <Button {tone} disabled>Save changes</Button>
+    <Specimen label={`tone="${tone}" disabled`}
+      ><Button {tone} disabled>Save changes</Button></Specimen
+    >
   {/each}
 </Example>
 

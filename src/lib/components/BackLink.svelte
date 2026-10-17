@@ -12,8 +12,8 @@
     href: string;
     label: string;
     /**
-     * `label` is capitals, tracked out, in the action ink. `quiet` is sentence case in the
-     * secondary ink, for a page whose tabs already carry the emphasis.
+     * `label` is the action ink at 600. `quiet` is the secondary ink at 400, for a page whose
+     * tabs already carry the emphasis. Both keep the destination's own case.
      */
     tone?: 'label' | 'quiet';
     /** Layout for the call site only, never the link's own paint. */
@@ -43,14 +43,12 @@ fits the eyebrow's place in a `PageHeader`.
     box-sizing: border-box;
     color: var(--sui-brand-action-text);
     display: inline-flex;
-    font: 700 var(--sui-font-size-micro) / var(--sui-leading-flat) var(--sui-sans);
+    font: 600 var(--sui-font-size-meta) / var(--sui-leading-flat) var(--sui-sans);
     gap: var(--sui-space-1);
     inline-size: fit-content;
-    letter-spacing: 0.08em;
     margin-block: calc((1cap - var(--sui-control-height-chip)) / 2);
     min-block-size: var(--sui-control-height-chip);
     text-decoration: none;
-    text-transform: uppercase;
     transition:
       color var(--sui-duration-fast) var(--sui-ease-standard),
       translate var(--sui-duration-press) var(--sui-ease-standard);
@@ -60,8 +58,6 @@ fits the eyebrow's place in a `PageHeader`.
     color: var(--sui-text-secondary);
     font: 400 var(--sui-font-size-meta) / var(--sui-leading-flat) var(--sui-sans);
     gap: var(--sui-space-1);
-    letter-spacing: normal;
-    text-transform: none;
   }
 
   .sui-back-link:hover {

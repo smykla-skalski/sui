@@ -88,8 +88,10 @@ in its corner. Beside a 34px field or in a toolbar it takes the control tier wit
     color: var(--sui-text-muted);
     cursor: pointer;
     display: inline-flex;
+    flex: none;
     font: 600 var(--sui-font-size-micro) / var(--sui-leading-flat) var(--sui-sans);
     inline-size: fit-content;
+    white-space: nowrap;
     margin: 0;
     padding: 0 var(--sui-space-2);
     touch-action: manipulation;

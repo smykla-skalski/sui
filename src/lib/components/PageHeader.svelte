@@ -100,7 +100,7 @@ sets `--sui-head-exit-gap` to that gap, and the header owes only the difference.
 
   .sui-page-header-description {
     color: var(--sui-text-muted);
-    font: 400 var(--sui-font-size-meta) / var(--sui-row-copy-leading) var(--sui-sans);
+    font: 400 var(--sui-font-size-body) / var(--sui-row-copy-leading) var(--sui-sans);
     margin: 0;
     text-box: trim-both cap alphabetic;
     text-wrap: pretty;

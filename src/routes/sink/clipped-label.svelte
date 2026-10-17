@@ -28,7 +28,7 @@
     color: var(--sui-text-primary);
     display: flex;
     font: 500 var(--sui-font-size-control) / var(--sui-leading-meta) var(--sui-sans);
-    inline-size: min(100%, 14rem);
+    inline-size: min(100%, 16rem);
   }
 
   .mono {

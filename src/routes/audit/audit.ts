@@ -10,6 +10,11 @@ export type Check = (root: Document) => Finding[];
 // Keyed by name so a hot reload of the checks replaces them instead of running both versions.
 const checks = new Map<string, Check>();
 
+/** How many checks the audit runs, for the panel's summary. */
+export function checkCount(): number {
+  return checks.size;
+}
+
 export function register(...more: Check[]): void {
   for (const check of more) checks.set(check.name, check);
 }

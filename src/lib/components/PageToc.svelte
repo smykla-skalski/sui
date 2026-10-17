@@ -3,6 +3,8 @@
   export interface TocEntry {
     id: string;
     label: string;
+    /** A heading the entry is listed under. Consecutive entries with one group share it. */
+    group?: string;
   }
 </script>
 
@@ -23,6 +25,29 @@
   } & Omit<HTMLAttributes<HTMLElement>, 'title'> = $props();
 
   let here = $state<string | null>(null);
+  let nav = $state<HTMLElement | null>(null);
+  const links = $state<Record<string, HTMLAnchorElement | null>>({});
+
+  const groups = $derived(
+    entries.reduce<{ label?: string; items: TocEntry[] }[]>((list, entry) => {
+      const last = list.at(-1);
+      if (last && last.label === entry.group) last.items.push(entry);
+      else list.push({ label: entry.group, items: [entry] });
+      return list;
+    }, [])
+  );
+
+  // A long index scrolls inside itself; the current entry is kept in its view without
+  // scrolling the page, which scrollIntoView would also do.
+  $effect(() => {
+    const link = here ? links[here] : null;
+    if (!nav || !link) return;
+    const pad = link.offsetHeight;
+    const top = link.offsetTop - nav.offsetTop;
+    if (top - pad < nav.scrollTop) nav.scrollTop = Math.max(0, top - pad);
+    else if (top + link.offsetHeight + pad > nav.scrollTop + nav.clientHeight)
+      nav.scrollTop = top + link.offsetHeight + pad - nav.clientHeight;
+  });
 
   /** The reader's place: the last section whose top has crossed the reading line. */
   function mark(): void {
@@ -103,29 +128,48 @@ scrolled to its end. The index is sticky inside whatever column it is given, and
 beside the content, or leaving it out on a phone, is the page's layout.
 -->
 
-<nav {...rest} class={['sui-page-toc', className]} aria-label={title}>
+<nav bind:this={nav} {...rest} class={['sui-page-toc', className]} aria-label={title}>
   <p class="sui-page-toc-title">{title}</p>
-  <ul class="sui-page-toc-list">
-    {#each entries as entry (entry.id)}
-      <li>
-        <a
-          class="sui-page-toc-link"
-          href="#{entry.id}"
-          aria-current={here === entry.id ? 'location' : undefined}
-          onclick={(event) => follow(event, entry.id)}
-          ><span class="sui-page-toc-label">{entry.label}</span></a
-        >
-      </li>
-    {/each}
-  </ul>
+  {#each groups as group, index (group.label ?? index)}
+    {#if group.label}<p class="sui-page-toc-group">{group.label}</p>{/if}
+    <ul class="sui-page-toc-list">
+      {#each group.items as entry (entry.id)}
+        <li>
+          <a
+            bind:this={links[entry.id]}
+            class="sui-page-toc-link"
+            href="#{entry.id}"
+            aria-current={here === entry.id ? 'location' : undefined}
+            onclick={(event) => follow(event, entry.id)}
+            ><span class="sui-page-toc-label">{entry.label}</span></a
+          >
+        </li>
+      {/each}
+    </ul>
+  {/each}
 </nav>
 
 <style>
   .sui-page-toc {
     align-self: start;
     inset-block-start: var(--sui-rhythm-pane-top-wide);
+    max-block-size: calc(100dvh - 2 * var(--sui-rhythm-pane-top-wide));
     min-inline-size: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
     position: sticky;
+    scrollbar-width: thin;
+  }
+
+  .sui-page-toc-title + .sui-page-toc-group {
+    margin-block-start: var(--sui-space-4);
+  }
+
+  .sui-page-toc-group {
+    color: var(--sui-text-secondary);
+    font: 600 var(--sui-font-size-compact) / var(--sui-leading-compact) var(--sui-sans);
+    margin: var(--sui-space-5) 0 var(--sui-space-2);
+    text-box: trim-both cap alphabetic;
   }
 
   .sui-page-toc-title {
@@ -153,7 +197,7 @@ beside the content, or leaving it out on a phone, is the page's layout.
     box-sizing: border-box;
     color: var(--sui-text-muted);
     display: flex;
-    font: 400 var(--sui-font-size-compact) / var(--sui-leading-compact) var(--sui-sans);
+    font: 400 var(--sui-font-size-meta) / var(--sui-leading-meta) var(--sui-sans);
     min-block-size: var(--sui-tier-quiet);
     overflow-wrap: anywhere;
     padding: var(--sui-space-1) var(--sui-space-3);
@@ -175,7 +219,7 @@ beside the content, or leaving it out on a phone, is the page's layout.
 
   .sui-page-toc-link:focus-visible {
     outline: var(--sui-focus-ring-width) solid var(--sui-focus);
-    outline-offset: var(--sui-focus-ring-flush);
+    outline-offset: var(--sui-focus-ring-inset);
   }
 
   .sui-page-toc-label {

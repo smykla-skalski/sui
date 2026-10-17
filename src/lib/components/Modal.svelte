@@ -12,6 +12,7 @@
     size = 'dialog',
     beforeClose,
     onclose,
+    preview = false,
     element = $bindable(null),
     class: className = '',
     children,
@@ -29,6 +30,8 @@
     beforeClose?: () => boolean;
     /** Runs once the dialog has closed, whatever closed it. */
     onclose?: () => void;
+    /** Draws the box in the page's flow at its width, capped to its container, with no scrim, focus trap or `open`. */
+    preview?: boolean;
     element?: HTMLDialogElement | null;
     class?: HTMLDialogAttributes['class'];
     children?: Snippet;
@@ -114,22 +117,11 @@ It is a native `<dialog>` opened with `showModal()`, so the browser traps focus,
 inert and keeps it in the top layer. Escape, a press outside the box and the close button ask
 `beforeClose` first, which can refuse; confirm there only when closing would discard work.
 Setting `open` to false always closes it. Focus returns to whatever had it when the dialog
-opened. The body scrolls and `footer` stays in view under it.
+opened. The body scrolls and `footer` stays in view under it. `preview` draws the same box in
+the page's flow instead, for a review that needs no click.
 -->
 
-<dialog
-  bind:this={element}
-  {...rest}
-  class={['sui-modal', className]}
-  data-size={size}
-  aria-labelledby={titleId}
-  aria-describedby={description ? descriptionId : undefined}
-  {onkeydown}
-  {oncancel}
-  {onpointerdown}
-  {onclick}
-  onclose={closed}
->
+{#snippet box()}
   <header class={['sui-modal-head', { alone: !children }]}>
     <div class="sui-modal-heading">
       <h2 id={titleId} class="sui-modal-title">{title}</h2>
@@ -141,7 +133,35 @@ opened. The body scrolls and `footer` stays in view under it.
   </header>
   {#if children}<div class="sui-modal-body">{@render children()}</div>{/if}
   {#if footer}<footer class="sui-modal-foot">{@render footer()}</footer>{/if}
-</dialog>
+{/snippet}
+
+{#if preview}
+  <div
+    role="dialog"
+    class={['sui-modal', 'preview', className]}
+    data-size={size}
+    aria-labelledby={titleId}
+    aria-describedby={description ? descriptionId : undefined}
+  >
+    {@render box()}
+  </div>
+{:else}
+  <dialog
+    bind:this={element}
+    {...rest}
+    class={['sui-modal', className]}
+    data-size={size}
+    aria-labelledby={titleId}
+    aria-describedby={description ? descriptionId : undefined}
+    {onkeydown}
+    {oncancel}
+    {onpointerdown}
+    {onclick}
+    onclose={closed}
+  >
+    {@render box()}
+  </dialog>
+{/if}
 
 <style>
   .sui-modal {
@@ -156,6 +176,13 @@ opened. The body scrolls and `footer` stays in view under it.
     max-inline-size: calc(100vw - 2 * var(--sui-space-4));
     overflow: hidden;
     padding: 0;
+  }
+
+  /* Open without the entry animation, which would replay on every page load. */
+  .sui-modal.preview {
+    display: flex;
+    flex-direction: column;
+    max-inline-size: 100%;
   }
 
   .sui-modal[open] {
@@ -173,7 +200,8 @@ opened. The body scrolls and `footer` stays in view under it.
     inline-size: 46rem;
   }
 
-  .sui-modal[data-size='inspector'] {
+  /* Docked to the edge only in the top layer; in flow an inspector keeps the whole frame. */
+  .sui-modal[data-size='inspector']:not(.preview) {
     block-size: 100dvh;
     border-block: 0;
     border-inline-end: 0;

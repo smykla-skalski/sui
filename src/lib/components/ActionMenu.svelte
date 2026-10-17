@@ -30,12 +30,15 @@
     tone = 'default',
     align = 'start',
     disabled = false,
+    preview = false,
     children
   }: {
     items: readonly ActionMenuItem[];
     /** `end` hangs the menu from the trigger's trailing edge, for a control at the end of a row. */
     align?: 'start' | 'end';
     disabled?: boolean;
+    /** Draws the menu open under the trigger in the page's flow, with its first item highlighted and no keyboard. */
+    preview?: boolean;
   } & (
     | {
         /** The accessible name and tooltip of the icon trigger. */
@@ -66,6 +69,22 @@
 
   const trigger = $derived(button ?? iconButton);
   const iconic = $derived(items.some((item) => 'label' in item && item.icon));
+  const highlighted = $derived(
+    preview ? items.findIndex((item) => 'label' in item && !item.disabled) : -1
+  );
+  // A preview trigger opens nothing, so it carries no popup wiring and no handlers.
+  const triggerProps = $derived(
+    preview
+      ? { 'aria-expanded': true, 'aria-controls': menuId }
+      : {
+          popovertarget: popupId,
+          'aria-haspopup': 'menu' as const,
+          'aria-expanded': open,
+          'aria-controls': menuId,
+          onclick,
+          onkeydown: ontriggerkeydown
+        }
+  );
 
   const enabledItems = () =>
     menu
@@ -85,7 +104,7 @@
   }
 
   function activate(item: Extract<ActionMenuItem, { label: string }>): void {
-    if (item.disabled) return;
+    if (item.disabled || preview) return;
     // Focus is back on the trigger before the act runs, so a dialog it opens returns there.
     close();
     item.onselect();
@@ -155,78 +174,82 @@ returns focus to the trigger. Choosing an item closes the menu and puts focus ba
 trigger before `onselect` runs, so a dialog the item opens returns focus there too.
 -->
 
-{#if children}
-  <Button
-    bind:element={button}
-    id={triggerId}
-    {tone}
-    {disabled}
-    popovertarget={popupId}
-    aria-haspopup="menu"
-    aria-expanded={open}
-    aria-controls={menuId}
-    {onclick}
-    onkeydown={ontriggerkeydown}
-  >
-    {@render children()}
-    {#snippet trailing()}<Icon name="chevron-down" size="sm" />{/snippet}
-  </Button>
-{:else if label && icon}
-  <IconButton
-    bind:element={iconButton}
-    id={triggerId}
-    {icon}
-    {label}
-    {disabled}
-    popovertarget={popupId}
-    aria-haspopup="menu"
-    aria-expanded={open}
-    aria-controls={menuId}
-    {onclick}
-    onkeydown={ontriggerkeydown}
-  />
+{#snippet control()}
+  {#if children}
+    <Button bind:element={button} id={triggerId} {tone} {disabled} {...triggerProps}>
+      {@render children()}
+      {#snippet trailing()}<Icon name="chevron-down" size="sm" />{/snippet}
+    </Button>
+  {:else if label && icon}
+    <IconButton
+      bind:element={iconButton}
+      id={triggerId}
+      {icon}
+      {label}
+      {disabled}
+      {...triggerProps}
+    />
+  {/if}
+
+  <Popover id={popupId} anchor={trigger} bind:open inline={preview} width="min-trigger" {align}>
+    <div
+      bind:this={menu}
+      id={menuId}
+      role="menu"
+      tabindex="-1"
+      class="sui-action-menu"
+      aria-labelledby={triggerId}
+      onkeydown={preview ? undefined : onmenukeydown}
+    >
+      {#each items as item, index (index)}
+        {#if 'separator' in item}
+          <div role="separator" class="sui-action-menu-separator"></div>
+        {:else}
+          <button
+            type="button"
+            role="menuitem"
+            tabindex="-1"
+            class={['sui-action-menu-item', { active: index === highlighted }]}
+            data-tone={item.tone ?? 'default'}
+            aria-disabled={item.disabled || undefined}
+            onclick={() => activate(item)}
+            onpointermove={(event) => {
+              if (!preview && !item.disabled && document.activeElement !== event.currentTarget)
+                event.currentTarget.focus();
+            }}
+          >
+            {#if iconic}
+              <span class="sui-action-menu-icon">
+                {#if item.icon}<Icon name={item.icon} size="base" />{/if}
+              </span>
+            {/if}
+            <span class="sui-action-menu-label">{item.label}</span>
+          </button>
+        {/if}
+      {/each}
+    </div>
+  </Popover>
+{/snippet}
+
+{#if preview}
+  <div class="sui-action-menu-preview" data-align={align}>{@render control()}</div>
+{:else}
+  {@render control()}
 {/if}
 
-<Popover id={popupId} anchor={trigger} bind:open width="min-trigger" {align}>
-  <div
-    bind:this={menu}
-    id={menuId}
-    role="menu"
-    tabindex="-1"
-    class="sui-action-menu"
-    aria-labelledby={triggerId}
-    onkeydown={onmenukeydown}
-  >
-    {#each items as item, index (index)}
-      {#if 'separator' in item}
-        <div role="separator" class="sui-action-menu-separator"></div>
-      {:else}
-        <button
-          type="button"
-          role="menuitem"
-          tabindex="-1"
-          class="sui-action-menu-item"
-          data-tone={item.tone ?? 'default'}
-          aria-disabled={item.disabled || undefined}
-          onclick={() => activate(item)}
-          onpointermove={(event) => {
-            if (!item.disabled && document.activeElement !== event.currentTarget)
-              event.currentTarget.focus();
-          }}
-        >
-          {#if iconic}
-            <span class="sui-action-menu-icon">
-              {#if item.icon}<Icon name={item.icon} size="base" />{/if}
-            </span>
-          {/if}
-          <span class="sui-action-menu-label">{item.label}</span>
-        </button>
-      {/if}
-    {/each}
-  </div>
-</Popover>
-
 <style>
+  .sui-action-menu-preview {
+    display: inline-grid;
+    gap: var(--sui-space-1);
+    grid-template-columns: minmax(0, auto);
+    inline-size: fit-content;
+    max-inline-size: 100%;
+  }
+
+  .sui-action-menu-preview[data-align='end'] {
+    justify-items: end;
+  }
+
   .sui-action-menu {
     box-sizing: border-box;
     display: grid;
@@ -261,7 +284,8 @@ trigger before `onselect` runs, so a dialog the item opens returns focus there t
   }
 
   /* Focus follows the pointer, so one highlight serves hover and the keyboard. */
-  .sui-action-menu-item:focus:not(:active):not([aria-disabled='true']) {
+  .sui-action-menu-item:focus:not(:active):not([aria-disabled='true']),
+  .sui-action-menu-item.active:not(:active) {
     background-color: var(--sui-interactive-hover-layer);
   }
 

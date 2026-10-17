@@ -33,12 +33,12 @@ Open the markup with an `@component` comment written as prose: what the componen
 - Pass native attributes through with `...rest` onto the element a caller would expect, and merge `class` as `class={['sui-name', className]}`.
 - Offer `element = $bindable(null)` when a caller may need to focus or anchor to the element.
 - Use `$props.id()` for generated ids, assigned to a `const` first.
-- Name tones after jobs, never colours (`signal`, `stop`, `quiet`), and keep tone names in step with `Button`.
+- Name tones after jobs, never colors (`signal`, `stop`, `quiet`), and keep tone names in step with `Button`.
 
 ## Styles
 
 - Styles are scoped in the component. Prefix the root class with `sui-`.
-- Read only `--sui-*` tokens from `src/lib/styles.css`. No hex, `rgb()`, named colours, and no `var()` fallbacks except `0px` for optional bearings. If a token is missing, use the nearest one and report it instead of adding one.
+- Read only `--sui-*` tokens from `src/lib/styles.css`. No hex, `rgb()`, named colors, and no `var()` fallbacks except `0px` for optional bearings. If a token is missing, use the nearest one and report it instead of adding one.
 - Sizes and leading: `font: <weight> var(--sui-font-size-*) / var(--sui-leading-*) var(--sui-sans)`. Mono (`--sui-mono`) only for technical values, with `font-variant-numeric: tabular-nums`, at weight 400 or 500.
 - Trim labels, titles and pills with `text-box: trim-both cap alphabetic`, and wrap a label in its own `span` inside flex containers so the trim reaches it.
 - Spacing from `--sui-space-*` and the rhythm tokens. Heights from `--sui-control-height-compact` (34px), `--sui-local-control-height` for the 40px tier, `--sui-tier-quiet` (28px), `--sui-control-height-chip` (24px) and `--sui-tier-mark` (20px).

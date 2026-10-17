@@ -29,6 +29,7 @@
   let domain = $derived(
     extent(rows.flatMap((row) => columns.map((column) => value(row, column) ?? NaN)))
   );
+  let empty = $derived(!rows.some((row) => columns.some((column) => value(row, column) !== null)));
   let width = $derived(left + columns.length * cellSize + 12);
   let height = $derived(top + rows.length * cellSize + 12);
 
@@ -48,68 +49,68 @@
 
 <!--
 @component
-A matrix of numbers, where a stronger colour means a higher value and a missing value
-stays neutral. Colour is never the only carrier: every cell has its value in its tooltip and in
-the table under the chart.
+A matrix of numbers, where a stronger color means a higher value and a missing value
+stays neutral. Color is never the only carrier: every cell has its value in its tooltip and in
+the table under the chart. Cells keep their size, so the matrix is as wide as its columns and
+scrolls sideways in a narrower container.
 -->
 
-<ChartFrame {title} {description}>
-  {#if rows.length === 0 || columns.length === 0}
-    <p class="sui-chart-empty">No chart data yet</p>
-  {:else}
-    <div class="plot-scroll">
-      <svg
-        viewBox="0 0 {width} {height}"
-        role="img"
-        aria-label="{title}. {description}"
-        style:min-width={`${Math.max(width, 400)}px`}
-      >
-        {#each columns as column, columnIndex}
-          <text
-            x={left + columnIndex * cellSize + cellSize / 2}
-            y={top - 12}
-            class="axis"
-            text-anchor="middle">{column.length > 7 ? `${column.slice(0, 6)}…` : column}</text
+<ChartFrame {title} {description} {empty}>
+  {#snippet plot()}
+    <svg
+      {width}
+      {height}
+      viewBox="0 0 {width} {height}"
+      role="img"
+      aria-label="{title}. {description}"
+    >
+      {#each columns as column, columnIndex (columnIndex)}
+        <text
+          x={left + columnIndex * cellSize + cellSize / 2}
+          y={top - 12}
+          class="axis"
+          text-anchor="middle">{column.length > 7 ? `${column.slice(0, 6)}…` : column}</text
+        >
+      {/each}
+      {#each rows as row, rowIndex (rowIndex)}
+        <text
+          x={left - 10}
+          y={top + rowIndex * cellSize + cellSize / 2 + 4}
+          class="axis"
+          text-anchor="end">{row.length > 18 ? `${row.slice(0, 17)}…` : row}</text
+        >
+        {#each columns as column, columnIndex (columnIndex)}
+          {@const cellValue = value(row, column)}
+          <rect
+            x={left + columnIndex * cellSize + 2}
+            y={top + rowIndex * cellSize + 2}
+            width={cellSize - 4}
+            height={cellSize - 4}
+            rx="5"
+            fill={color(cellValue)}
           >
-        {/each}
-        {#each rows as row, rowIndex}
-          <text
-            x={left - 10}
-            y={top + rowIndex * cellSize + cellSize / 2 + 4}
-            class="axis"
-            text-anchor="end">{row.length > 18 ? `${row.slice(0, 17)}…` : row}</text
-          >
-          {#each columns as column, columnIndex}
-            {@const cellValue = value(row, column)}
-            <rect
-              x={left + columnIndex * cellSize + 2}
-              y={top + rowIndex * cellSize + 2}
-              width={cellSize - 4}
-              height={cellSize - 4}
-              rx="5"
-              fill={color(cellValue)}
+            <title>{row}, {column}: {cellValue === null ? 'No data' : formatValue(cellValue)}</title
             >
-              <title
-                >{row}, {column}: {cellValue === null ? 'No data' : formatValue(cellValue)}</title
-              >
-            </rect>
-          {/each}
+          </rect>
         {/each}
-      </svg>
-    </div>
-    <p class="scale">Stronger color shows higher values. Missing values are neutral.</p>
-  {/if}
+      {/each}
+    </svg>
+  {/snippet}
+  <p class="scale">Stronger color shows higher values. Missing values are neutral.</p>
   {#snippet table()}
     <table>
       <thead
         ><tr
-          ><th scope="col">Row</th>{#each columns as column}<th scope="col">{column}</th>{/each}</tr
+          ><th scope="col">Row</th>{#each columns as column, columnIndex (columnIndex)}<th
+              scope="col">{column}</th
+            >{/each}</tr
         ></thead
       >
       <tbody>
-        {#each rows as row}
+        {#each rows as row, rowIndex (rowIndex)}
           <tr
-            ><th scope="row">{row}</th>{#each columns as column}{@const cellValue = value(
+            ><th scope="row">{row}</th
+            >{#each columns as column, columnIndex (columnIndex)}{@const cellValue = value(
                 row,
                 column
               )}<td>{cellValue === null ? '—' : formatValue(cellValue)}</td>{/each}</tr
@@ -121,19 +122,8 @@ the table under the chart.
 </ChartFrame>
 
 <style>
-  .plot-scroll {
-    border-radius: var(--sui-radius-control);
-    overflow-x: auto;
-  }
-
-  .plot-scroll:focus-visible {
-    outline: var(--sui-focus-ring-width) solid var(--sui-focus);
-    outline-offset: var(--sui-focus-ring-inset);
-  }
   svg {
     display: block;
-    width: 100%;
-    height: auto;
   }
   .axis {
     fill: var(--sui-text-muted);
@@ -143,14 +133,5 @@ the table under the chart.
     margin: 0;
     color: var(--sui-text-muted);
     font: 400 var(--sui-font-size-compact) / var(--sui-leading-compact) var(--sui-sans);
-  }
-  .sui-chart-empty {
-    margin: 0;
-    padding: var(--sui-space-8);
-    border-radius: var(--sui-radius-control);
-    color: var(--sui-text-secondary);
-    font: 400 var(--sui-font-size-meta) / var(--sui-leading-meta) var(--sui-sans);
-    background: var(--sui-surface-inset);
-    text-align: center;
   }
 </style>

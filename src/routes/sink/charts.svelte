@@ -80,6 +80,24 @@
   />
 </Example>
 
+<Example title="Narrow column" note="Chart text keeps its token size when the chart is narrow">
+  <div class="narrow">
+    <LineChart
+      title="Items by week"
+      description="North stayed ahead of south in every week"
+      series={trend}
+      xLabel="Week"
+      yLabel="Items"
+    />
+  </div>
+</Example>
+
 <Example title="No data" note="An empty chart says so in words">
   <LineChart title="New project" description="Nothing has been measured yet" series={[]} />
 </Example>
+
+<style>
+  .narrow {
+    inline-size: min(100%, 20rem);
+  }
+</style>

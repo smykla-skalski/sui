@@ -119,6 +119,8 @@ test('L-71 switching the theme moves nothing', async () => {
     const layout = () =>
       page.evaluate(() =>
         [...document.querySelectorAll('main *:not([data-audit-ignore] *, [data-audit-ignore])')]
+          // A theme switch shows the new theme by design, so its own section is left out.
+          .filter((element) => !element.closest('#theme-switch, .sui-segmented-thumb'))
           .filter((element) => element.getClientRects().length > 0)
           .map((element) => {
             const r = element.getBoundingClientRect();
@@ -227,7 +229,12 @@ for (const width of [375, 1440])
             narrower:
               element.getAttribute('aria-haspopup') === 'listbox' && box.width < anchor.width - 0.5,
             tall: box.height > 320.5,
-            heights: [...new Set(options.map((height) => Math.round(height * 100) / 100))]
+            heights: [...new Set(options.map((height) => Math.round(height * 100) / 100))],
+            tier: parseFloat(
+              getComputedStyle(document.documentElement).getPropertyValue(
+                '--sui-control-height-compact'
+              )
+            )
           };
         });
         const name = `trigger ${index} (${await trigger.getAttribute('aria-haspopup')})`;
@@ -236,8 +243,10 @@ for (const width of [375, 1440])
           if (!report.inside) problems.push(`${name}: the layer leaves the viewport`);
           if (report.narrower) problems.push(`${name}: the listbox is narrower than its trigger`);
           if (report.tall) problems.push(`${name}: the layer is taller than 20rem`);
-          if (report.heights?.some((height) => height !== 34))
-            problems.push(`${name}: option heights ${report.heights.join(', ')}, not 34`);
+          if (report.heights?.some((height) => height !== report.tier))
+            problems.push(
+              `${name}: option heights ${report.heights.join(', ')}, not ${report.tier}`
+            );
         }
         if ((await page.evaluate(() => scrollY)) !== before)
           problems.push(`${name}: opening scrolled the page`);

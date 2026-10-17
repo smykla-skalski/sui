@@ -4,14 +4,25 @@
   let {
     title,
     description,
+    empty,
+    plot,
     children,
     table
   }: {
     title: string;
     description: string;
-    children: Snippet;
+    /** With no values to show, an empty state takes the place of the plot and its table. */
+    empty: boolean;
+    /** Draws the plot for the frame's width in CSS pixels, one user unit to a pixel. */
+    plot: Snippet<[width: number]>;
+    /** Notes under the plot, such as a legend. */
+    children?: Snippet;
     table: Snippet;
   } = $props();
+
+  let frame = $state<DOMRectReadOnly | null>(null);
+  // A server render has nothing to measure, so it lays the plot out at a desktop width.
+  let width = $derived(Math.floor(frame?.width ?? 640));
 </script>
 
 <figure class="sui-chart">
@@ -19,11 +30,16 @@
     <h3>{title}</h3>
     <p>{description}</p>
   </figcaption>
-  {@render children()}
-  <details>
-    <summary>View chart data</summary>
-    <div class="sui-chart-table">{@render table()}</div>
-  </details>
+  {#if empty}
+    <p class="sui-chart-empty">No chart data yet</p>
+  {:else}
+    <div class="plot-scroll" bind:contentRect={frame}>{@render plot(width)}</div>
+    {@render children?.()}
+    <details>
+      <summary>View chart data</summary>
+      <div class="sui-chart-table">{@render table()}</div>
+    </details>
+  {/if}
 </figure>
 
 <style>
@@ -46,11 +62,34 @@
     text-box: trim-both cap alphabetic;
   }
 
-  p {
+  figcaption p {
     color: var(--sui-text-secondary);
     font: 400 var(--sui-font-size-meta) / var(--sui-row-copy-leading) var(--sui-sans);
     margin: 0;
     text-box: trim-both cap alphabetic;
+  }
+
+  /* Inline-size containment keeps the drawn width out of the frame's own sizing, so a measured
+     plot never holds its container open. */
+  .plot-scroll {
+    border-radius: var(--sui-radius-control);
+    contain: inline-size;
+    overflow-x: auto;
+  }
+
+  .plot-scroll:focus-visible {
+    outline: var(--sui-focus-ring-width) solid var(--sui-focus);
+    outline-offset: var(--sui-focus-ring-inset);
+  }
+
+  .sui-chart-empty {
+    margin: 0;
+    padding: var(--sui-space-8);
+    border-radius: var(--sui-radius-control);
+    color: var(--sui-text-secondary);
+    font: 400 var(--sui-font-size-meta) / var(--sui-leading-meta) var(--sui-sans);
+    background: var(--sui-surface-inset);
+    text-align: center;
   }
 
   summary {

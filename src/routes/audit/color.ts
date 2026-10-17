@@ -3,7 +3,7 @@ export type Rgba = { r: number; g: number; b: number; a: number };
 let context: CanvasRenderingContext2D | null = null;
 
 /**
- * Any CSS colour the browser can compute, as 8-bit sRGB. Painting one pixel is the one
+ * Any CSS color the browser can compute, as 8-bit sRGB. Painting one pixel is the one
  * conversion that handles `color-mix()`, `oklab()` and `color(srgb …)` the same way the page does.
  */
 export function rgba(css: string): Rgba {
@@ -55,7 +55,7 @@ export function lightness(color: Rgba): number {
   return lab(color)[0];
 }
 
-/** CIEDE2000 colour difference; 1.0 is about one just-noticeable step. */
+/** CIEDE2000 color difference; 1.0 is about one just-noticeable step. */
 export function deltaE(first: Rgba, second: Rgba): number {
   return deltaE2000(lab(first), lab(second));
 }

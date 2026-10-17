@@ -11,10 +11,12 @@
 </script>
 
 <Example title="States" note="Rest, filled, invalid and disabled at the 34px tier" layout="stack">
-  <TextInput aria-label="Project name" placeholder="your-project" bind:value={name} />
-  <TextInput aria-label="Image digest" mono bind:value={digest} />
-  <TextInput aria-label="Team name" value="Team with spaces" invalid />
-  <TextInput aria-label="Owner" value="smykla-skalski" disabled />
+  <div class="field">
+    <TextInput aria-label="Project name" placeholder="your-project" bind:value={name} />
+    <TextInput aria-label="Image digest" mono bind:value={digest} />
+    <TextInput aria-label="Team name" value="Team with spaces" invalid />
+    <TextInput aria-label="Owner" value="smykla-skalski" disabled />
+  </div>
 </Example>
 
 <Example title="Taller tier" note="A surface opts into 40px through one custom property">
@@ -24,8 +26,14 @@
 </Example>
 
 <style>
+  .field {
+    display: grid;
+    gap: var(--sui-space-3);
+    inline-size: min(100%, 24rem);
+  }
+
   .tall {
     --sui-local-control-height: var(--sui-control-height);
-    inline-size: min(100%, 20rem);
+    inline-size: min(100%, 24rem);
   }
 </style>

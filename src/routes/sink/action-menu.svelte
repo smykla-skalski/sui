@@ -36,6 +36,15 @@
   <span class="state">{last}</span>
 </Example>
 
+<Example
+  title="Open states"
+  note="The open menu drawn in place with its first item highlighted, so a review needs no click"
+  layout="stack"
+>
+  <ActionMenu label="Repository actions" icon="more" items={repository} align="end" preview />
+  <ActionMenu items={release} preview>Release actions</ActionMenu>
+</Example>
+
 <Example title="Button trigger" note="A worded trigger with a chevron, and a long item cut short">
   <ActionMenu items={release}>Release actions</ActionMenu>
   <ActionMenu items={release} tone="ghost">More</ActionMenu>

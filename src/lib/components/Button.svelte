@@ -42,7 +42,7 @@
 
 <!--
 @component
-A tone is a job, never a colour. `default` does a view's ordinary work, `signal` is the one
+A tone is a job, never a color. `default` does a view's ordinary work, `signal` is the one
 action a view exists for (one per view), `ghost` supports it quietly, `stop` is destructive,
 and `stop-quiet` is destructive but bordered, for a flow whose filled danger button is the
 final confirmation. `brand` takes the brand tint of wherever it is drawn. `quiet` does not

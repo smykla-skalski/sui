@@ -31,7 +31,7 @@ such as a label, a pattern or a count, and for `StatusPill` for a fact about the
 it stands on.
 
 `role` wears violet and belongs to the standing somebody holds over everyone else's. The
-outcome tones always come with their word, so colour never carries the state alone. A
+outcome tones always come with their word, so color never carries the state alone. A
 pill stays on one line and ends in an ellipsis rather than pushing its row wider.
 -->
 

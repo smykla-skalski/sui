@@ -29,7 +29,7 @@
           <span class="sum">Synced <RelativeTime value={synced} /> · 84 files in step</span>
         {/snippet}
         {#snippet side()}
-          <Chip tone="clear" label="In step" />
+          <Chip tone="success" label="In step" />
           <IconButton
             icon="refresh"
             label="Sync smykla-skalski/sui"

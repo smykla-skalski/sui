@@ -1,5 +1,5 @@
 <script module lang="ts">
-  export type ChipTone = 'neutral' | 'clear' | 'signal' | 'accent' | 'warning' | 'stop' | 'absent';
+  export type ChipTone = 'neutral' | 'info' | 'success' | 'brand' | 'warning' | 'danger' | 'absent';
 </script>
 
 <script lang="ts">
@@ -43,8 +43,8 @@ A value a row reports, drawn as a mark: a label name, a pattern, a count. Where 
 standing and `StatusPill` a fact about the surface, a chip carries one cell's value and takes
 its tone from what that value means, so the same word wears the same tone down a column.
 
-`clear` is a good outcome, `signal` informs, `accent` wears the brand tint, `warning` and
-`stop` need attention, and `absent` says there is nothing to show with a dashed keyline, in
+`success` is a good outcome, `info` informs, `brand` wears the brand tint, `warning` and
+`danger` need attention, and `absent` says there is nothing to show with a dashed keyline, in
 the shape itself. `onremove` adds a remove control with a 24px hit area. A long value ends in
 an ellipsis and shows in full in a tooltip.
 -->
@@ -163,17 +163,17 @@ an ellipsis and shows in full in a tooltip.
     outline-offset: var(--sui-focus-ring-flush);
   }
 
-  .sui-chip[data-tone='clear'] {
+  .sui-chip[data-tone='success'] {
     background: var(--sui-success-tint);
     color: var(--sui-success);
   }
 
-  .sui-chip[data-tone='signal'] {
+  .sui-chip[data-tone='info'] {
     background: var(--sui-info-tint);
     color: var(--sui-info);
   }
 
-  .sui-chip[data-tone='accent'] {
+  .sui-chip[data-tone='brand'] {
     background: var(--sui-brand-action-tint);
     color: var(--sui-brand-action-text);
   }
@@ -183,7 +183,7 @@ an ellipsis and shows in full in a tooltip.
     color: var(--sui-warning);
   }
 
-  .sui-chip[data-tone='stop'] {
+  .sui-chip[data-tone='danger'] {
     background: var(--sui-danger-tint);
     color: var(--sui-danger);
   }

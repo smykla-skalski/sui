@@ -55,7 +55,7 @@ const words = (text: string) =>
   [...segmenter('word').segment(text)].filter((part) => part.isWordLike).length;
 
 /**
- * The colour under an element's text: its own ground, then whatever positioned sibling paints
+ * The color under an element's text: its own ground, then whatever positioned sibling paints
  * beneath it (a segmented thumb, a row's hit layer), then each ancestor in turn.
  */
 function paintedGround(element: Element): Rgba {
@@ -595,7 +595,7 @@ function accessibility(root: Document): Finding[] {
   for (const link of audited(root, 'a[href]')) {
     const color = getComputedStyle(link).color.replace(/\s/g, '');
     if (color === 'rgb(0,0,238)' || color === 'rgb(85,26,139)')
-      found.push(finding('L-81', link, 'a link wears the browser default colour'));
+      found.push(finding('L-81', link, 'a link wears the browser default color'));
   }
   return found;
 }

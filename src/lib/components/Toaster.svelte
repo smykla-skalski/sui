@@ -1,11 +1,27 @@
 <script lang="ts">
   import type { TransitionConfig } from 'svelte/transition';
   import Icon from '../icons/Icon.svelte';
-  import { dismiss, toasts, type Toast } from '../internal/toasts.svelte.js';
+  import { dismiss, toasts, type Toast, type ToastOptions } from '../internal/toasts.svelte.js';
   import Button from './Button.svelte';
   import IconButton from './IconButton.svelte';
 
   const LINGER_MS = 5000;
+
+  let {
+    preview = false,
+    items = []
+  }: {
+    /** Draws `items` in the page's flow in place of the page's toasts, with no timers and no live region. */
+    preview?: boolean;
+    items?: readonly ToastOptions[];
+  } = $props();
+
+  // Negative ids never match a live toast, so Dismiss in a preview takes nothing back.
+  const shown = $derived<Toast[]>(
+    preview
+      ? items.map((item, index) => ({ ...item, tone: item.tone ?? 'neutral', id: -1 - index }))
+      : toasts
+  );
 
   let hovered = $state(false);
   let focused = $state(false);
@@ -13,7 +29,7 @@
   // A neutral toast's clock restarts in full once the reader stops hovering or focusing the stack.
   function linger(item: Toast) {
     return () => {
-      if (hovered || focused || item.tone === 'danger' || item.sticky) return;
+      if (preview || hovered || focused || item.tone === 'danger' || item.sticky) return;
       const timer = setTimeout(() => dismiss(item.id), LINGER_MS);
       return () => clearTimeout(timer);
     };
@@ -50,12 +66,13 @@ any dialog, and call `toast()` from anywhere; `dismiss(id)` takes one back.
 A toast says what just happened, with at most one way back such as Undo. A neutral toast leaves
 after five seconds, and the clock holds while the pointer or focus is on the stack. A `danger`
 toast reports a failure and stays, and so does a `sticky` one, for work not yet saved. The
-stack is a polite status region, and a failure is announced as an alert.
+stack is a polite status region, and a failure is announced as an alert. `preview` draws
+`items` in the page's flow instead, silent and still, for a review.
 -->
 
 <div
-  class="sui-toaster"
-  role="status"
+  class={['sui-toaster', { preview }]}
+  role={preview ? undefined : 'status'}
   aria-atomic="false"
   onpointerenter={() => (hovered = true)}
   onpointerleave={() => (hovered = false)}
@@ -65,10 +82,10 @@ stack is a polite status region, and a failure is announced as an alert.
       event.relatedTarget instanceof Node && event.currentTarget.contains(event.relatedTarget);
   }}
 >
-  {#each toasts as item (item.id)}
+  {#each shown as item (item.id)}
     <div
       class="sui-toast"
-      role={item.tone === 'danger' ? 'alert' : undefined}
+      role={item.tone === 'danger' && !preview ? 'alert' : undefined}
       {@attach linger(item)}
       out:leave
     >
@@ -99,6 +116,11 @@ stack is a polite status region, and a failure is announced as an alert.
     pointer-events: none;
     position: fixed;
     z-index: var(--sui-layer-toast);
+  }
+
+  .preview {
+    max-inline-size: 100%;
+    position: static;
   }
 
   .sui-toast {
@@ -156,6 +178,11 @@ stack is a polite status region, and a failure is announced as an alert.
 
   .sui-toast-description {
     color: var(--sui-text-secondary);
+  }
+
+  /* A preview is drawn once at load and never enters. */
+  .preview .sui-toast {
+    transition: none;
   }
 
   @media (prefers-reduced-motion: reduce) {

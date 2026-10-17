@@ -46,6 +46,13 @@
   <span class="state">{language || 'Nothing chosen'}</span>
 </Example>
 
+<Example title="Open" note="The open list drawn in place, with the current value as the active row">
+  <div class="field">
+    <label for="sink-combobox-open">Language</label>
+    <Combobox id="sink-combobox-open" options={languages} value="ts" preview />
+  </div>
+</Example>
+
 <Example title="Free entry" note="What was typed is offered as a value of its own">
   <div class="field">
     <label for="sink-combobox-label">Label</label>

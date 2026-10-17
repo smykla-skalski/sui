@@ -8,6 +8,7 @@
 
   let trigger = $state<HTMLButtonElement | HTMLAnchorElement | null>(null);
   let help = $state<HTMLButtonElement | null>(null);
+  let openHelp = $state<HTMLButtonElement | null>(null);
   let open = $state(false);
 </script>
 
@@ -23,6 +24,33 @@
     </div>
   </Popover>
   <span class="state">{open ? 'Open' : 'Closed'}</span>
+</Example>
+
+<Example
+  title="Open states"
+  note="The popover and a described tip drawn in place, so a review needs no click or hover"
+>
+  <div class="open">
+    <Button aria-expanded="true" aria-controls="sink-popover-open">
+      Show details
+      {#snippet trailing()}<Icon name="chevron-down" size="sm" />{/snippet}
+    </Button>
+    <Popover id="sink-popover-open" anchor={null} inline>
+      <div class="panel">
+        <p class="panel-title">Release 0.3.0</p>
+        <p class="panel-copy">Published to npm and tagged on GitHub</p>
+      </div>
+    </Popover>
+  </div>
+  <div class="open">
+    <button bind:this={openHelp} type="button" class="help">What is a signal button</button>
+    <Tooltip
+      anchor={openHelp}
+      describe
+      preview
+      text="The one action a view exists for, so a view has exactly one of them"
+    />
+  </div>
 </Example>
 
 <Example title="Tooltip" note="Hover pauses before it shows, keyboard focus shows it at once">
@@ -53,6 +81,15 @@
     font: 400 var(--sui-font-size-meta) / var(--sui-row-copy-leading) var(--sui-sans);
     margin: 0;
     text-box: trim-both cap alphabetic;
+  }
+
+  .open {
+    align-self: start;
+    display: grid;
+    gap: var(--sui-space-1);
+    justify-items: start;
+    max-inline-size: 100%;
+    min-inline-size: 0;
   }
 
   .state {

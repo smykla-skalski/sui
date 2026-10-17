@@ -1,5 +1,5 @@
 <script module lang="ts">
-  export const section = { title: 'Colour tag', order: 114 };
+  export const section = { title: 'Color tag', order: 114 };
 </script>
 
 <script lang="ts">
@@ -47,7 +47,7 @@
 </Example>
 
 <Example
-  title="Unreadable colour"
+  title="Unreadable color"
   note="Anything but hex digits draws the neutral tag, so a stored value never writes a style"
 >
   <ColorTag label="imported" color="var(--brand)" />
@@ -63,6 +63,6 @@
 <style>
   .narrow {
     display: flex;
-    inline-size: min(100%, 14rem);
+    inline-size: min(100%, 16rem);
   }
 </style>

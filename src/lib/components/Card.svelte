@@ -135,7 +135,7 @@ on its title line.
 
   .sui-card-note {
     color: var(--sui-text-muted);
-    font: 400 var(--sui-font-size-compact) / var(--sui-row-copy-leading) var(--sui-sans);
+    font: 400 var(--sui-font-size-meta) / var(--sui-row-copy-leading) var(--sui-sans);
     margin: var(--sui-row-copy-gap) 0 0;
     text-box: trim-both cap alphabetic;
     text-wrap: pretty;

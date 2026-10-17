@@ -8,7 +8,8 @@
     mono = false,
     side = 'block-start',
     align = 'center',
-    open = $bindable(false)
+    open = $bindable(false),
+    preview = false
   }: {
     /** The element the tip explains. It shows on hover after a short pause and at once on keyboard focus. */
     anchor: HTMLElement | null | undefined;
@@ -21,6 +22,8 @@
     align?: Placement['align'];
     /** Lets a caller open the tip itself, as a tap on a help mark does. */
     open?: boolean;
+    /** Draws the tip in the page's flow where the component sits, with no timers or placement. */
+    preview?: boolean;
   } = $props();
 
   const id = $props.id();
@@ -31,7 +34,7 @@
 
   $effect(() => {
     const target = anchor;
-    if (!target) return;
+    if (!target || preview) return;
     let showTimer = 0;
     let hideTimer = 0;
     const show = (delay: number) => {
@@ -94,7 +97,7 @@
   });
 
   $effect(() => {
-    if (!element) return;
+    if (!element || preview) return;
     const shown = element.matches(':popover-open');
     if (open && !shown) element.showPopover();
     else if (!open && shown) element.hidePopover();
@@ -119,10 +122,11 @@ points at it with `aria-describedby`.
 <div
   bind:this={element}
   {id}
-  popover="manual"
+  popover={preview ? undefined : 'manual'}
   role="tooltip"
   class="sui-tooltip"
   class:mono
+  class:preview
   aria-hidden={describe ? undefined : 'true'}
   onpointerenter={() => (open = true)}
   onpointerleave={() => (open = false)}
@@ -153,7 +157,7 @@ points at it with `aria-describedby`.
       display var(--sui-duration-fast) allow-discrete;
   }
 
-  .sui-tooltip:not(:popover-open) {
+  .sui-tooltip[popover]:not(:popover-open) {
     opacity: 0;
     transition-duration: var(--sui-duration-press);
   }
@@ -162,6 +166,11 @@ points at it with `aria-describedby`.
     .sui-tooltip:popover-open {
       opacity: 0;
     }
+  }
+
+  .preview {
+    max-inline-size: min(17rem, 100%);
+    position: static;
   }
 
   .mono {

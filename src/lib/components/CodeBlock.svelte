@@ -147,12 +147,12 @@
 
 <!--
 @component
-A read-only code window: mono at 13px on the inset ground, coloured by the language's own
+A read-only code window: mono at 13px on the inset ground, colored by the language's own
 tokens, with long lines scrolling sideways inside the block rather than widening the page.
 A block that scrolls can take keyboard focus, so it can be scrolled without a pointer.
 
 `lineNumbers` draws a gutter in the gutter ink at full opacity, which never selects or
-copies. Selected code is opaque, in the selection colours. `label` names the file above the
+copies. Selected code is opaque, in the selection colors. `label` names the file above the
 code. The copy control sits in the corner, shows on hover and on focus, and always shows on
 a device without hover. It copies `code` exactly as given.
 -->

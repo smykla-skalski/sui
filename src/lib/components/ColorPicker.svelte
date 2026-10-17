@@ -1,7 +1,7 @@
 <script module lang="ts">
   type Hsv = { h: number; s: number; v: number };
 
-  // These literals are the user's data and the colour space itself: the default swatches a
+  // These literals are the user's data and the color space itself: the default swatches a
   // caller can replace, and the gradients that draw hue, saturation and value. They are not
   // paint, so they live here and never in the palette or the style block.
   const DEFAULT_SWATCHES = [
@@ -86,11 +86,11 @@
     onclick,
     ...rest
   }: {
-    /** The colour as `#rrggbb`. It follows the picker live while the popover is open. */
+    /** The color as `#rrggbb`. It follows the picker live while the popover is open. */
     value: string;
     /** The one-press choices, in reading order. */
     swatches?: readonly string[];
-    /** Names the colour outside a `Field`. The trigger's name reads it before the hex. */
+    /** Names the color outside a `Field`. The trigger's name reads it before the hex. */
     label?: string;
     disabled?: boolean;
     element?: HTMLButtonElement | HTMLAnchorElement | null;
@@ -212,7 +212,7 @@
   function typeHex(event: Event & { currentTarget: HTMLInputElement }) {
     hexInvalid = false;
     // Only a whole six-digit value follows the typing, so "#0e8" on the way to "#0e8a16"
-    // never flashes a different colour.
+    // never flashes a different color.
     if (!/^#?[0-9a-f]{6}$/i.test(event.currentTarget.value.trim())) return;
     const hex = parseHex(event.currentTarget.value);
     if (hex && hex !== current) {
@@ -243,10 +243,10 @@
 
 <!--
 @component
-A colour as `#rrggbb`, picked from a trigger that shows the swatch and the hex. The popover
+A color as `#rrggbb`, picked from a trigger that shows the swatch and the hex. The popover
 offers the caller's swatches as a radio group, a saturation and brightness area, a hue rail
-and a hex field. Reach for it only when the colour is the user's own data, such as a label
-colour; a theme never needs one.
+and a hex field. Reach for it only when the color is the user's own data, such as a label
+color; a theme never needs one.
 
 The value follows the picker live, so `bind:value` sees every step of a drag. Arrows move
 the knob and the hue thumb (Shift for bigger steps) and walk the swatches. Enter commits and
@@ -281,7 +281,7 @@ Inside a `Field`, spread the field's `id` and `describedby` onto it and leave `l
   anchor={element}
   bind:open
   role="dialog"
-  aria-label="Pick a colour"
+  aria-label="Pick a color"
   onkeydown={commitOnEnter}
 >
   <div
@@ -364,7 +364,7 @@ Inside a `Field`, spread the field's `id` and `describedby` onto it and leave `l
       bind:element={hexInput}
       bind:value={hexField}
       mono
-      aria-label="Hex colour"
+      aria-label="Hex color"
       invalid={hexInvalid}
       aria-describedby={hexInvalid ? errorId : undefined}
       spellcheck="false"
@@ -376,7 +376,7 @@ Inside a `Field`, spread the field's `id` and `describedby` onto it and leave `l
     {#if hexInvalid}
       <p id={errorId} class="error">
         <Icon name="alert" size="xs" />
-        <span>Use a hex colour such as #0e8a16</span>
+        <span>Use a hex color such as #0e8a16</span>
       </p>
     {/if}
   </div>
@@ -498,7 +498,7 @@ Inside a `Field`, spread the field's `id` and `describedby` onto it and leave `l
   }
 
   /* Both knobs track the pointer raw: a knob that eases behind a drag reads as broken. The
-     two rings, the thumb material inside the strong border, hold on every colour. */
+     two rings, the thumb material inside the strong border, hold on every color. */
   .knob,
   .thumb {
     border: 2px solid var(--sui-switch-thumb);
@@ -540,7 +540,7 @@ Inside a `Field`, spread the field's `id` and `describedby` onto it and leave `l
     align-items: center;
     color: var(--sui-danger);
     display: flex;
-    font: 400 var(--sui-font-size-compact) / var(--sui-row-copy-leading) var(--sui-sans);
+    font: 400 var(--sui-font-size-meta) / var(--sui-row-copy-leading) var(--sui-sans);
     gap: var(--sui-space-1);
     margin: 0;
   }

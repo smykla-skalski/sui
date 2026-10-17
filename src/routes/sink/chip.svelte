@@ -5,14 +5,15 @@
 <script lang="ts">
   import { Chip } from '#lib';
   import Example from '../kit/Example.svelte';
+  import Specimen from '../kit/Specimen.svelte';
 
   const tones = [
     ['neutral', 'Scheduled'],
-    ['clear', 'Passing'],
-    ['signal', 'Syncing'],
-    ['accent', 'Managed'],
+    ['success', 'Passing'],
+    ['info', 'Syncing'],
+    ['brand', 'Managed'],
     ['warning', 'Drifted'],
-    ['stop', 'Failing'],
+    ['danger', 'Failing'],
     ['absent', 'No checks']
   ] as const;
 
@@ -24,20 +25,20 @@
   note="A tone says what a value means, so a column reads the same top to bottom"
 >
   {#each tones as [tone, label] (tone)}
-    <Chip {tone} {label} />
+    <Specimen label={`tone="${tone}"`}><Chip {tone} {label} /></Specimen>
   {/each}
 </Example>
 
 <Example title="Small and with an icon" note="A small chip sits inside a line of text">
-  <Chip tone="clear" icon="check" label="Merged" />
-  <Chip tone="stop" icon="failure" label="Rejected" />
+  <Chip tone="success" icon="check" label="Merged" />
+  <Chip tone="danger" icon="failure" label="Rejected" />
   <Chip small label="3 files" />
-  <Chip small tone="signal" label="Draft" />
+  <Chip small tone="info" label="Draft" />
 </Example>
 
 <Example title="Technical values" note="IDs, paths and versions are mono with tabular figures">
   <Chip mono label="sha256:9f86d081" />
-  <Chip mono tone="accent" label="refs/heads/main" />
+  <Chip mono tone="brand" label="refs/heads/main" />
   <Chip mono small label="v1.24.0" />
 </Example>
 

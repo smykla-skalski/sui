@@ -50,7 +50,7 @@
     align-items: center;
     display: flex;
     gap: var(--sui-space-3);
-    inline-size: min(100%, 20rem);
+    inline-size: min(100%, 24rem);
     justify-content: space-between;
   }
 
