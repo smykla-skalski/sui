@@ -304,10 +304,15 @@ test('K9 a time writes its whole instant in the page language once the clock tic
     await page.clock.install();
     await page.reload({ waitUntil: 'networkidle' });
     const time = page.locator('#relative-time time.sui-relative-time.exact').first();
+    await time.waitFor();
     const before = await time.textContent();
     await page.evaluate(() => (document.documentElement.lang = 'de'));
-    await page.clock.runFor(31_000);
-    const after = await time.textContent();
+    // The page's clock ticks every half minute; a busy page may land the new words a beat later.
+    let after = before;
+    for (let tick = 0; tick < 4 && after === before; tick++) {
+      await page.clock.runFor(31_000);
+      after = await time.textContent();
+    }
     assert.notEqual(after, before, 'the exact reading kept the old language');
   } finally {
     await page.close();

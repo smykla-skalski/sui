@@ -55,6 +55,8 @@
 
   $effect(() => {
     if (!closeOnLeave || !anchor) return;
+    // The anchor a binding held when this ran; by teardown the binding may already be null.
+    const target = anchor;
     // The press ends when the pointer lifts, so a later Tab or Shift+Tab onto the anchor is the
     // reader leaving again.
     const release = () => (pressingAnchor = false);
@@ -63,9 +65,9 @@
       addEventListener('pointerup', release, { capture: true, once: true });
       addEventListener('pointercancel', release, { capture: true, once: true });
     };
-    anchor.addEventListener('pointerdown', press);
+    target.addEventListener('pointerdown', press);
     return () => {
-      anchor.removeEventListener('pointerdown', press);
+      target.removeEventListener('pointerdown', press);
       removeEventListener('pointerup', release, { capture: true });
       removeEventListener('pointercancel', release, { capture: true });
     };

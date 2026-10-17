@@ -36,6 +36,13 @@ async function open(width, theme, options = {}) {
   await page.evaluate(async (name) => {
     document.documentElement.dataset.suiTheme = name;
     await document.fonts.ready;
+    // A theme switch eases every colour; a check that reads colours waits for them to land.
+    await Promise.all(
+      document
+        .getAnimations()
+        .filter((animation) => animation instanceof CSSTransition)
+        .map((animation) => animation.finished.catch(() => undefined))
+    );
   }, theme);
   await page.waitForFunction(() => '__suiAudit' in window);
   return page;

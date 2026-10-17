@@ -33,9 +33,12 @@ export const toasts = $state<Toast[]>([]);
  * The words and timing every `Toaster` uses, including the ones each `Modal` draws for itself.
  * The page's `Toaster` sets them from its props, so a dialog's toasts speak the page's language.
  */
-export const toaster = $state({
-  dismissLabel: 'Dismiss',
-  label: 'Notifications',
+export const toaster = $state<{
+  dismissLabel?: string;
+  label?: string;
+  linger: number;
+  hotkey: string;
+}>({
   linger: 5000,
   hotkey: 'F8'
 });

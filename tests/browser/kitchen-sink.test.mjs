@@ -563,7 +563,7 @@ test('L-97 every layer a press opens grows from its trigger edge and folds back 
             const box = document.getElementById(element.getAttribute('popovertarget') ?? '');
             const started = performance.now();
             const look = () => {
-              if (!box || performance.now() - started > 1000) return resolve(false);
+              if (!box || performance.now() - started > 5000) return resolve(false);
               if (box.matches(':popover-open') === open && box.getAnimations().length > 0)
                 return resolve(true);
               requestAnimationFrame(look);

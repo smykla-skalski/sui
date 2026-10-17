@@ -80,7 +80,7 @@
     group.options.find((option) => option.value === group.value)?.label;
   const current = $derived(filter ? (labelOf(filter) ?? '') : '');
   const chosen = $derived(
-    new Intl.ListFormat(pageLocale(), { style: 'narrow', type: 'unit' }).format(
+    new Intl.ListFormat(pageLocale(), { style: 'narrow', type: 'conjunction' }).format(
       tools.map(labelOf).filter((label) => label !== undefined)
     )
   );

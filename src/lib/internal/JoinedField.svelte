@@ -56,6 +56,7 @@ the end part draws its own inset ring while it has focus, so the two never look 
     border-radius: var(--sui-radius-control);
     box-sizing: border-box;
     display: flex;
+    flex-wrap: wrap;
     max-inline-size: 100%;
     min-inline-size: 0;
     /* The parts lie over the frame's edge to keep the full control height; the clip keeps
@@ -102,16 +103,23 @@ the end part draws its own inset ring while it has focus, so the two never look 
     opacity: var(--sui-disabled-opacity);
   }
 
+  /* The value keeps room for a few words; with less, as at a large text size on a phone, the
+     end moves to a line of its own under it rather than covering it. */
   .sui-joined-value {
     display: grid;
-    flex: 1 1 auto;
+    flex: 1 1 4rem;
     min-inline-size: 0;
   }
 
+  /* On a line of its own the end starts at the field's start edge (L-90), and its block inset
+     keeps a chip that wraps its words clear of the frame. */
   .sui-joined-end {
     align-items: center;
+    box-sizing: border-box;
     display: flex;
     flex: none;
+    max-inline-size: 100%;
+    padding-block: var(--sui-control-inset);
     padding-inline-end: var(--sui-control-inset);
   }
 

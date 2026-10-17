@@ -448,16 +448,33 @@ test('L-84 no nested :has() and no control characters', () => {
 });
 
 test('K9 every built-in word reads through word(), so setWords can replace it', () => {
+  // Words a reader sees, as against key names an event carries.
+  const sentence =
+    /(['`])(?!(?:Home|End|Escape|Tab|Enter|Delete|Backspace)\1)[A-Z][a-z]+(?: [A-Za-z]+)*[.…]?\1/;
   const found = [];
   for (const path of svelteFiles.filter((file) => file.startsWith('src/lib/'))) {
     const source = read(path);
     const props = /\n {2}let \{\n([\s\S]*?)\n {2}\}:/.exec(source)?.[1] ?? '';
-    for (const [, name, value] of props.matchAll(/^ {4}(\w+) = (.+)$/gm)) {
-      const literal = /^(['`])(.*)\1,?$/.exec(value)?.[2];
+    for (const [, name, value] of props.matchAll(/^ {4}(\w+) = ([\s\S]+?)(?=,?\n {4}\S|,?$)/gm)) {
+      if (value.startsWith('word(') || value.includes('word(')) continue;
+      const literal = /^(['`])(.*)\1$/.exec(value.trim())?.[2];
       const words = literal !== undefined && /[A-Z ·…]/.test(literal);
-      const sentence = value.startsWith('(') && /['`]/.test(value);
-      if ((words || sentence) && !value.startsWith('word(')) found.push(`${path}: ${name}`);
+      const spoken = /^[({]/.test(value) && /['`][^'`]*[A-Za-z][^'`]*['`]/.test(value);
+      // A default that names a local constant or function carries that one's words.
+      const named = /^[A-Za-z_]\w*$/.exec(value.trim())?.[0];
+      const body = named
+        ? new RegExp(
+            `(?:const ${named}\\s*(?::[^=]*)?=[^;]*;|function ${named}\\b[\\s\\S]*?\\n {2}\\})`
+          ).exec(source)?.[0]
+        : undefined;
+      if (words || spoken || (body !== undefined && sentence.test(body)))
+        found.push(`${path}: ${name}`);
     }
   }
+  for (const path of scriptFiles.filter(
+    (file) => file.startsWith('src/lib/') && !file.endsWith('words.ts')
+  ))
+    if (sentence.test(read(path).replace(/\/\*[\s\S]*?\*\/|\/\/[^\n]*/g, '')))
+      found.push(`${path}: a word outside word()`);
   assert.deepEqual(found, []);
 });

@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { word } from '../words.js';
   import type { TransitionConfig } from 'svelte/transition';
   import Icon from '../icons/Icon.svelte';
   import {
@@ -45,8 +46,8 @@
   });
 
   const words = $derived({
-    dismiss: dismissLabel ?? toaster.dismissLabel,
-    region: label ?? toaster.label,
+    dismiss: dismissLabel ?? toaster.dismissLabel ?? word('Toaster.dismissLabel', 'Dismiss'),
+    region: label ?? toaster.label ?? word('Toaster.label', 'Notifications'),
     linger: lingerMs ?? toaster.linger,
     hotkey: hotkey ?? toaster.hotkey
   });

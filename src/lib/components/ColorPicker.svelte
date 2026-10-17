@@ -111,13 +111,17 @@
 
   let {
     value = $bindable(),
-    swatches = DEFAULT_SWATCHES,
+    swatches = DEFAULT_SWATCHES.map((swatch) =>
+      typeof swatch === 'string'
+        ? swatch
+        : { ...swatch, label: word(`ColorPicker.swatch.${swatch.value}`, swatch.label) }
+    ),
     label,
     disabled = false,
     name,
     dialogLabel = word('ColorPicker.dialogLabel', 'Pick a color'),
     swatchesLabel = word('ColorPicker.swatchesLabel', 'Swatches'),
-    colorName = describeColor,
+    colorName = word('ColorPicker.colorName', describeColor),
     swatchName = word(
       'ColorPicker.swatchName',
       (hex: string, named?: string) => `${named ?? colorName(hex)}, ${hex}`

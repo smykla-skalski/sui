@@ -65,13 +65,12 @@
   let removed = $state<{ index: number; pattern: string } | null>(null);
   let said = $state('');
 
-  /* The other entries are judged against the list as it stood before the quiet entry was
-     typed into, so a half-typed pattern never makes another entry read as a duplicate, and
-     `validate` runs again only when that list changes, never at a keystroke in the quiet one. */
+  /* The other entries are judged against the list as it stood before the entry in hand was
+     typed into, so a half-typed pattern never changes another entry's verdict, and `validate`
+     runs for them again only when that list changes, never at a keystroke in the entry. The
+     entry in hand is quiet, or, when it showed a problem as focus came, follows each keystroke. */
   const judged = $derived(
-    JSON.stringify(
-      quiet !== null && held?.index === quiet ? value.toSpliced(quiet, 1, held.pattern) : value
-    )
+    JSON.stringify(held === null ? value : value.toSpliced(held.index, 1, held.pattern))
   );
   const verdicts = $derived.by(() => {
     const list: string[] = JSON.parse(judged);
@@ -80,9 +79,11 @@
     );
   });
   const problems = $derived(
-    value.map((pattern, index) =>
-      pattern.trim() === '' || index === quiet ? null : (verdicts[index] ?? null)
-    )
+    value.map((pattern, index) => {
+      if (pattern.trim() === '' || index === quiet) return null;
+      if (index === held?.index) return validate?.(pattern.trim(), index, value) ?? null;
+      return verdicts[index] ?? null;
+    })
   );
 
   const fields = () => [...(root?.querySelectorAll('input') ?? [])];

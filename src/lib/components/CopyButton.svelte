@@ -223,8 +223,17 @@ in its corner. Beside a 34px field or in a toolbar it takes the control tier wit
     }
   }
 
+  /* In a field narrower than its words, as at a large text size on a phone, the chip wraps
+     its words between them rather than reach past the field. */
   .sui-copy-button.bare {
     --sui-control-state-layer: var(--sui-row-hover);
+    block-size: auto;
+    flex: 0 1 auto;
+    max-inline-size: 100%;
+    min-block-size: var(--sui-tier-quiet);
+    min-inline-size: 0;
+    padding-block: var(--sui-space-1);
+    white-space: normal;
   }
 
   .sui-copy-button.bare:focus-visible:not(:active) {

@@ -116,8 +116,9 @@
   });
 
   /* Bars that would cover much of the screen, as with very large text on a phone, ride with
-     the content instead of sticking, so the content is never hidden under them (WCAG 1.4.10). */
-  const MOST = 0.4;
+     the content instead of sticking, so the content is never hidden under them (WCAG 1.4.10).
+     The screen is the window for a page shell and the shell's own box for a contained one. */
+  const MOST = 0.25;
   let flowing = $state(false);
   $effect(() => {
     if (mode !== 'drawer' || !topBar) {
@@ -127,7 +128,8 @@
     const head = topBar;
     const foot = places;
     const check = () => {
-      flowing = head.offsetHeight + (foot?.offsetHeight ?? 0) > innerHeight * MOST;
+      const room = contained && root ? root.clientHeight : innerHeight;
+      flowing = head.offsetHeight + (foot?.offsetHeight ?? 0) > room * MOST;
     };
     const observer = new ResizeObserver(check);
     observer.observe(head);
@@ -234,7 +236,7 @@ viewport. `landmark="none"` keeps the content from claiming the page's one `main
 - Keyboard: Tab reaches the menu button, the bars and the content in order; in the open drawer Tab and Shift+Tab stay inside and Escape closes it.
 - Pointer and touch: the menu button and every bottom bar tile are 44px; a press outside the open drawer closes it, and nothing needs a gesture.
 - Focus: opening the drawer moves focus to its first control, and closing it, by Escape, a press outside or a followed link, returns focus to the menu button.
-- Responsive: container queries on the shell's own width switch between full, folded, drawer and bottom bar, and the phone bar's title wraps instead of being cut; bars that would cover more than two fifths of the screen, as with very large text, ride with the content instead of sticking; a page shell pads the document's scroll by the bars' height so a focused control never hides behind them.
+- Responsive: container queries on the shell's own width switch between full, folded, drawer and bottom bar, and the phone bar's title wraps instead of being cut; bars that would cover more than a quarter of the screen (the shell's own box when contained), as with very large text, ride with the content instead of sticking; a page shell pads the document's scroll by the bars' height so a focused control never hides behind them.
 - Accessibility: while the drawer is open the bars and the content are inert; the menu button shows its word and reports `aria-expanded`.
 - Localization: `menuLabel` and `label` are props with English defaults; the drawer opens from the start edge and is placed by direction, so it lands on the right in a right-to-left page, and the sidebar glyph mirrors.
 - Performance: one width measure drives the mode; the fold snaps instead of animating the column's width, and placement work runs only while the drawer is open.
@@ -310,6 +312,8 @@ viewport. `landmark="none"` keeps the content from claiming the page's one `main
     overflow: hidden;
   }
 
+  /* A title with too little room beside the menu button takes a line of its own, so it breaks
+     between words, never inside one. */
   .sui-shell-bar {
     align-items: center;
     background: var(--sui-sidebar-bg);
@@ -318,6 +322,7 @@ viewport. `landmark="none"` keeps the content from claiming the page's one `main
     color: var(--sui-sidebar-text);
     display: none;
     flex: none;
+    flex-wrap: wrap;
     gap: var(--sui-space-2);
     inset-block-start: 0;
     min-block-size: var(--sui-top-bar-height);
@@ -381,12 +386,12 @@ viewport. `landmark="none"` keeps the content from claiming the page's one `main
 
   .sui-shell-title {
     block-size: var(--sui-block-snap);
-    flex: 1;
+    flex: 1 1 8rem;
     font: var(--sui-weight-semibold) var(--sui-font-size-title) / var(--sui-leading-title)
       var(--sui-sans);
     margin: 0;
     min-inline-size: 0;
-    overflow-wrap: anywhere;
+    overflow-wrap: break-word;
     text-box: trim-both cap alphabetic;
     text-wrap: balance;
   }
@@ -523,6 +528,21 @@ viewport. `landmark="none"` keeps the content from claiming the page's one `main
 
   .flowing :is(.sui-shell-bar, .sui-shell-places) {
     position: relative;
+  }
+
+  /* A contained shell scrolls only its pane, so its bars ride with the content only once the
+     whole shell scrolls instead. */
+  .contained.flowing {
+    overflow-y: auto;
+  }
+
+  .contained.flowing .sui-shell-grid {
+    flex: none;
+    min-block-size: auto;
+  }
+
+  .contained.flowing .sui-shell-pane {
+    overflow: visible;
   }
 
   @media (forced-colors: active) {

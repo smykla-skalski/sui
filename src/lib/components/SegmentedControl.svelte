@@ -125,11 +125,21 @@
     }
     const own = track.getBoundingClientRect();
     // A layer growing open scales the control: its boxes are read in the layout's own pixels,
-    // and read again each frame while the growth runs, so the thumb lands at full size.
-    // `offsetWidth` is rounded, so only a clear difference is a scale.
+    // and read again each frame until the growth ends, so the thumb lands at full size.
+    // `offsetWidth` is rounded, so only a difference past that rounding is a scale.
     const ratio = own.width / track.offsetWidth || 1;
-    const scale = Math.abs(ratio - 1) > 0.01 ? ratio : 1;
-    if (scale !== 1 && document.getAnimations().length > 0) requestAnimationFrame(measure);
+    const scale = Math.abs(own.width - track.offsetWidth) > 0.5 ? ratio : 1;
+    const node = track;
+    const growing = document
+      .getAnimations()
+      .some(
+        (animation) =>
+          animation.playState === 'running' &&
+          animation.effect instanceof KeyframeEffect &&
+          animation.effect.target instanceof Element &&
+          animation.effect.target.contains(node)
+      );
+    if (growing) requestAnimationFrame(measure);
     const rtl = getComputedStyle(track).direction === 'rtl';
     const next = {
       option: input.value,

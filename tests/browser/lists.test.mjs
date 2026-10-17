@@ -168,26 +168,44 @@ test('L-52 Tab out of the tools menu closes it', async () => {
 });
 
 test('the tools menu marks its chosen option across the whole option once it has grown', async () => {
-  const page = await open();
-  try {
-    const trigger = page.locator('#list-toolbar').getByRole('button', { name: 'Sort and filter' });
-    await trigger.first().scrollIntoViewIfNeeded();
-    await trigger.first().click();
-    const panel = page.locator(':popover-open .sui-list-toolbar-panel');
-    await panel.waitFor();
-    await page.waitForTimeout(600);
-    const marks = await panel.evaluate((element) =>
-      [...element.querySelectorAll('.sui-segmented-track:has(input:checked)')].map((track) => {
-        const option = track.querySelector('input:checked')?.closest('label');
-        const thumb = track.querySelector('.sui-segmented-thumb');
-        return [option?.getBoundingClientRect().width, thumb?.getBoundingClientRect().width];
-      })
-    );
-    assert.ok(marks.length > 0, 'the menu holds no segmented choice');
-    for (const [option, thumb] of marks)
-      assert.ok(Math.abs(Number(option) - Number(thumb)) <= 0.5, `${thumb}px marks ${option}px`);
-  } finally {
-    await page.close();
+  for (const width of [1440, 375]) {
+    const page = await open({ viewport: { width, height: 900 } });
+    try {
+      const triggers = page
+        .locator('#list-toolbar')
+        .getByRole('button', { name: 'Sort and filter' });
+      const count = await triggers.count();
+      for (let index = 0; index < count; index++) {
+        const trigger = triggers.nth(index);
+        await trigger.scrollIntoViewIfNeeded();
+        await trigger.click();
+        const panel = page.locator(':popover-open .sui-list-toolbar-panel');
+        await panel.waitFor();
+        await page.waitForFunction(
+          () => document.querySelector('.sui-popover:popover-open')?.getAnimations().length === 0
+        );
+        await page.waitForTimeout(100);
+        const marks = await panel.evaluate((element) =>
+          [...element.querySelectorAll('.sui-segmented-track:has(input:checked)')].map((track) => {
+            const option = track.querySelector('input:checked')?.closest('label');
+            const thumb = track.querySelector('.sui-segmented-thumb');
+            const [o, t] = [option?.getBoundingClientRect(), thumb?.getBoundingClientRect()];
+            return [o?.left, t?.left, o?.right, t?.right];
+          })
+        );
+        assert.ok(marks.length > 0, 'the menu holds no segmented choice');
+        for (const [start, from, end, to] of marks)
+          assert.ok(
+            Math.abs(Number(start) - Number(from)) <= 0.25 &&
+              Math.abs(Number(end) - Number(to)) <= 0.25,
+            `${width}px menu ${index}: the mark runs ${from}-${to} over the option at ${start}-${end}`
+          );
+        await page.keyboard.press('Escape');
+        await page.waitForTimeout(150);
+      }
+    } finally {
+      await page.close();
+    }
   }
 });
 
@@ -292,13 +310,27 @@ test('AC12 a removed chip and a removed pair are announced', async () => {
       );
     const chip = page.locator('#chip').getByRole('button', { name: 'Remove topology/zone' });
     await chip.scrollIntoViewIfNeeded();
+    // The status speaks once its words land, which a busy page may take a moment to do.
+    const spoken = (/** @type {string} */ words) =>
+      page
+        .waitForFunction(
+          (expected) =>
+            [...document.querySelectorAll('[role="status"]')].some(
+              (node) => node.textContent?.trim() === expected
+            ),
+          words,
+          { timeout: 5000 }
+        )
+        .then(
+          () => true,
+          () => false
+        );
     await chip.click();
-    await page.waitForTimeout(200);
-    assert.ok((await said()).includes('Removed topology/zone'), 'the chip removal was not said');
+    assert.ok(await spoken('Removed topology/zone'), 'the chip removal was not said');
 
     const pair = page.locator('#pair-entry').getByRole('button', { name: 'Remove ship' }).first();
     await pair.click();
-    assert.ok((await said()).includes('Removed ship'), 'the pair removal was not said');
+    assert.ok(await spoken('Removed ship'), 'the pair removal was not said');
   } finally {
     await page.close();
   }
@@ -414,6 +446,24 @@ test('S2 a setting list says when it loads, fails or has nothing to set', async 
       (await specimen('Nothing to set').textContent()) ?? '',
       /Settings show here once there are any/
     );
+  } finally {
+    await page.close();
+  }
+});
+
+test('P8 an entry that shows a problem follows its keystrokes', async () => {
+  const page = await open();
+  try {
+    const list = page.locator('#pattern-entries .sui-pattern-entries').first();
+    await list.scrollIntoViewIfNeeded();
+    const problems = () => list.locator('.sui-pattern-problem').count();
+    const before = await problems();
+    // The fourth entry repeats the second from the start, so it shows its problem on focus,
+    // and one keystroke that makes it unique clears that problem at once.
+    await list.getByRole('textbox', { name: 'Pattern 4' }).click();
+    await page.keyboard.press('End');
+    await page.keyboard.type('x');
+    assert.equal(await problems(), before - 1, 'the entry in hand did not follow its keystroke');
   } finally {
     await page.close();
   }

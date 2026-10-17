@@ -156,7 +156,7 @@
     labels,
     emptyLabel = word('DiffBlock.emptyLabel', 'No changes'),
     regionLabel = word('DiffBlock.regionLabel', 'Diff'),
-    opLabels = { '+': 'Added', '-': 'Removed', '~': 'Changed' },
+    opLabels = word('DiffBlock.opLabels', { '+': 'Added', '-': 'Removed', '~': 'Changed' }),
     class: className = '',
     ...rest
   }: {
