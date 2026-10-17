@@ -397,6 +397,16 @@
   --sui-segment-thumb: var(--sui-brand-action);
   --sui-segment-hover: var(--sui-interactive-hover-layer);
   --sui-segment-pressed: var(--sui-interactive-pressed);
+  --sui-segment-thumb-shadow: 0 1px 3px color-mix(in srgb, var(--sui-shadow-color) 72%, transparent);
+
+  /* A pressed segment sinks into the track: a deep top rim, shallower side rims and a lit
+     foot. Black and white on every palette, because a recess is darker on every ground. */
+  --sui-segment-well-head: rgb(0 0 0 / 16%);
+  --sui-segment-well-rim: rgb(0 0 0 / 10%);
+  --sui-segment-well-foot: rgb(255 255 255 / 8%);
+  --sui-segment-thumb-shadow-pressed:
+    inset 0 2px 4px rgb(0 0 0 / 26%), inset 0 0 3px 1px rgb(0 0 0 / 16%),
+    inset 0 -1px 0 rgb(255 255 255 / 10%);
 
   --sui-border-strong: color-mix(in srgb, var(--sui-text-primary) 53%, var(--sui-surface-base));
 
@@ -520,6 +530,7 @@
   --sui-segment-thumb: var(--sui-brand-action);
   --sui-segment-hover: var(--sui-interactive-hover-layer);
   --sui-segment-pressed: var(--sui-interactive-pressed);
+  --sui-segment-thumb-shadow: 0 1px 3px color-mix(in srgb, var(--sui-shadow-color) 72%, transparent);
 
   --sui-border-strong: color-mix(in srgb, var(--sui-text-primary) 40%, var(--sui-surface-base));
 

@@ -249,6 +249,8 @@ from a sibling.
     box-shadow: inset 0 0 0 1px var(--sui-border-subtle);
     box-sizing: border-box;
     display: flex;
+    /* Fills, thumb and words stack inside the track alone: fill, then thumb, then words. */
+    isolation: isolate;
     margin: 0;
     min-inline-size: 0;
     padding: var(--sui-control-inset);
@@ -269,13 +271,17 @@ from a sibling.
     white-space: nowrap;
   }
 
+  /* A plate seated on the track by a small drop shadow, rounded on all four wherever it
+     stands. */
   .sui-segmented-thumb {
     background: var(--sui-segment-thumb);
     border-radius: var(--sui-radius-control);
+    box-shadow: var(--sui-segment-thumb-shadow);
     inset-block: var(--sui-control-inset);
     left: 0;
     pointer-events: none;
     position: absolute;
+    z-index: 2;
   }
 
   .ready .sui-segmented-thumb {
@@ -291,10 +297,12 @@ from a sibling.
     background: var(--sui-brand-action-hover);
   }
 
+  /* The thumb takes the press without the 1px sink: inside a shared track a pixel down
+     reads as sliding in its well, so it darkens and settles into a crease instead. */
   .sui-segmented-track:has(.sui-segmented-option:active > input:checked:enabled)
     .sui-segmented-thumb {
     background: var(--sui-brand-action-pressed);
-    box-shadow: var(--sui-pressed-inset);
+    box-shadow: var(--sui-pressed-inset), var(--sui-segment-thumb-shadow-pressed);
   }
 
   .sui-segmented-option {
@@ -306,11 +314,21 @@ from a sibling.
     -webkit-tap-highlight-color: transparent;
   }
 
+  /* THE FILL IS ONE BOX AND THE WHOLE HOVERED OR PRESSED SURFACE. It keeps the thumb's
+     curve, concentric with the track, where it meets the track's end. Where it meets the
+     thumb it squares and runs one radius under it: the thumb is drawn over the fill, so
+     all that survives of the run is the wedge the thumb's curve leaves, and no sliver of
+     bare track shows at the join. Logical corners, so the rule holds right to left. */
   .sui-segmented-option::before {
+    --sui-local-bleed-start: 0px;
+    --sui-local-bleed-end: 0px;
+
     background: var(--sui-segment-hover);
     border-radius: var(--sui-radius-control);
     content: '';
-    inset: 0;
+    inset-block: 0;
+    inset-inline-end: calc(-1 * var(--sui-local-bleed-end));
+    inset-inline-start: calc(-1 * var(--sui-local-bleed-start));
     opacity: 0;
     pointer-events: none;
     position: absolute;
@@ -318,15 +336,37 @@ from a sibling.
       opacity var(--sui-duration-press) var(--sui-ease-standard),
       background-color var(--sui-duration-press) var(--sui-ease-standard),
       box-shadow var(--sui-duration-press) var(--sui-ease-standard);
+    z-index: 1;
   }
 
+  .selected + .sui-segmented-option::before {
+    --sui-local-bleed-start: var(--sui-radius-control);
+
+    border-end-start-radius: 0;
+    border-start-start-radius: 0;
+  }
+
+  .sui-segmented-option:has(+ .selected)::before {
+    --sui-local-bleed-end: var(--sui-radius-control);
+
+    border-end-end-radius: 0;
+    border-start-end-radius: 0;
+  }
+
+  /* The selected option draws no fill: the thumb is its ground and carries its states. */
   .sui-segmented-option:hover:not(:active, .selected, .disabled)::before {
     opacity: 1;
   }
 
+  /* The press is the hover one step deeper, sunk into the track. The side rims move out by
+     the run, so each lands on the edge a reader sees and not under the thumb. */
   .sui-segmented-option:active:not(.selected, .disabled)::before {
     background: var(--sui-segment-pressed);
-    box-shadow: var(--sui-pressed-inset);
+    box-shadow:
+      inset 0 2px 4px var(--sui-segment-well-head),
+      inset var(--sui-local-bleed-start) 0 3px var(--sui-segment-well-rim),
+      inset calc(-1 * var(--sui-local-bleed-end)) 0 3px var(--sui-segment-well-rim),
+      inset 0 -1px 0 var(--sui-segment-well-foot);
     opacity: 1;
   }
 
@@ -350,6 +390,7 @@ from a sibling.
     inset: 0;
     margin: 0;
     position: absolute;
+    z-index: 3;
   }
 
   .sui-segmented-input:focus-visible {
@@ -373,6 +414,7 @@ from a sibling.
     position: relative;
     transition: color var(--sui-duration-fast) var(--sui-ease-standard);
     white-space: nowrap;
+    z-index: 3;
   }
 
   .sui-segmented-label > :global(svg:first-child) {
@@ -384,7 +426,9 @@ from a sibling.
     text-box: trim-both cap alphabetic;
   }
 
-  .sui-segmented-option:hover:not(.selected, .disabled) .sui-segmented-label {
+  /* A keyboard press lands on the pressed surface with no hover before it, so press lifts
+     the ink as well. */
+  .sui-segmented-option:is(:hover, :active):not(.selected, .disabled) .sui-segmented-label {
     color: var(--sui-text-primary);
   }
 
