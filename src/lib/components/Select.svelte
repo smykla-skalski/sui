@@ -25,6 +25,7 @@
     options,
     placeholder,
     preview = false,
+    bare = false,
     element = $bindable(null),
     class: className = '',
     ...rest
@@ -35,6 +36,11 @@
     placeholder?: string;
     /** Draws a static copy of the open picker under the field, with the option after the value active. */
     preview?: boolean;
+    /**
+     * Drops the frame, for one part of a joined field whose host draws the frame, the focus
+     * ring and the error and disabled looks.
+     */
+    bare?: boolean;
     element?: HTMLSelectElement | null;
     /** Layout for the call site only, never the field's own paint. */
     class?: HTMLSelectAttributes['class'];
@@ -100,7 +106,7 @@ the field, hidden from assistive technology, because a native picker cannot be h
 {/snippet}
 
 {#snippet field()}
-  <span class={['sui-select', className]}>
+  <span class={['sui-select', { bare }, className]}>
     <select
       bind:this={element}
       {...rest}
@@ -212,6 +218,34 @@ the field, hidden from assistive technology, because a native picker cannot be h
     opacity: var(--sui-disabled-opacity);
   }
 
+  /* The end of a joined field: words that finish the value's phrase, such as the unit in
+     "90 seconds". No frame and no ground of its own; the ink rises when a pointer or the
+     keyboard is on it, and the host's ring covers the whole field. */
+  .bare .sui-select-control,
+  .bare .sui-select-control:is(:hover, :focus-visible, [aria-invalid='true'], :user-invalid) {
+    background-color: transparent;
+    border-color: transparent;
+    border-radius: 0;
+    color: var(--sui-text-secondary);
+    margin-block: -1px;
+    outline: none;
+    padding-inline-start: var(--sui-space-1);
+  }
+
+  .bare .sui-select-chevron {
+    transition: color var(--sui-duration-fast) var(--sui-ease-standard);
+  }
+
+  .bare:has(.sui-select-control:is(:hover, :focus-visible):not(:disabled)) .sui-select-control,
+  .bare:has(.sui-select-control:is(:hover, :focus-visible):not(:disabled)) .sui-select-chevron {
+    color: var(--sui-text-primary);
+  }
+
+  .bare .sui-select-control:disabled,
+  .bare .sui-select-control:disabled + .sui-select-chevron {
+    opacity: 1;
+  }
+
   .sui-select-chevron {
     align-self: center;
     color: var(--sui-text-muted);
@@ -239,7 +273,7 @@ the field, hidden from assistive technology, because a native picker cannot be h
         display: none;
       }
 
-      .sui-select-control:open:not(:focus-visible) {
+      .sui-select:not(.bare) .sui-select-control:open:not(:focus-visible) {
         border-color: var(--sui-field-border-hover);
       }
 
@@ -382,7 +416,8 @@ the field, hidden from assistive technology, because a native picker cannot be h
 
   @media (prefers-reduced-motion: reduce) {
     .sui-select-control,
-    .sui-select-option {
+    .sui-select-option,
+    .bare .sui-select-chevron {
       transition: none;
     }
 

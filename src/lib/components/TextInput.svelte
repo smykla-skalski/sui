@@ -6,6 +6,7 @@
     type = 'text',
     invalid = false,
     mono = false,
+    bare = false,
     element = $bindable(null),
     class: className = '',
     ...rest
@@ -16,6 +17,11 @@
     invalid?: boolean;
     /** For technical values: IDs, paths, versions, numbers. */
     mono?: boolean;
+    /**
+     * Drops the frame, for one part of a joined field whose host draws the frame, the focus
+     * ring and the error and disabled looks.
+     */
+    bare?: boolean;
     element?: HTMLInputElement | null;
     class?: HTMLInputAttributes['class'];
   } & Omit<HTMLInputAttributes, 'value' | 'type'> = $props();
@@ -40,6 +46,7 @@ tabular figures.
   {...rest}
   class={['sui-text-input', className]}
   class:mono
+  class:bare
   aria-invalid={invalid || undefined}
 />
 
@@ -66,7 +73,7 @@ tabular figures.
     opacity: 1;
   }
 
-  .sui-text-input:hover:not(:disabled):not(:focus) {
+  .sui-text-input:hover:not(:disabled, :focus, .bare) {
     border-color: var(--sui-field-border-hover);
   }
 
@@ -87,6 +94,21 @@ tabular figures.
   .sui-text-input:disabled {
     cursor: default;
     opacity: var(--sui-disabled-opacity);
+  }
+
+  /* Lies over the host's edge by its own transparent border, so it keeps the full height.
+     The ground, edge and ring are the host's. */
+  .sui-text-input.bare,
+  .sui-text-input.bare:is(:hover, :focus, :focus-visible, [aria-invalid='true']) {
+    background-color: transparent;
+    border-color: transparent;
+    border-radius: 0;
+    margin-block: -1px;
+    outline: none;
+  }
+
+  .sui-text-input.bare:disabled {
+    opacity: 1;
   }
 
   .mono {

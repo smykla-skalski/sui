@@ -5,6 +5,7 @@
     text,
     label = 'Copy',
     toolbar = false,
+    bare = false,
     class: className = '',
     ...rest
   }: {
@@ -14,6 +15,11 @@
     label?: string;
     /** Matches the 34px control tier of a field or toolbar beside it. */
     toolbar?: boolean;
+    /**
+     * Drops the frame and takes the field's height, for the end of a joined field whose host
+     * draws the frame and the focus ring.
+     */
+    bare?: boolean;
     /** Layout for the call site only, never the button's own paint. */
     class?: HTMLButtonAttributes['class'];
   } & Omit<HTMLButtonAttributes, 'children' | 'onclick'> = $props();
@@ -72,7 +78,7 @@ in its corner. Beside a 34px field or in a toolbar it takes the control tier wit
 <button
   type="button"
   {...rest}
-  class={['sui-copy-button', className, { toolbar }]}
+  class={['sui-copy-button', className, { toolbar, bare }]}
   data-copied={outcome === 'copied' || undefined}
   data-failed={outcome === 'failed' || undefined}
   onclick={copy}
@@ -146,6 +152,28 @@ in its corner. Beside a 34px field or in a toolbar it takes the control tier wit
     border-color: var(--sui-focus);
     outline: var(--sui-focus-ring-width) solid var(--sui-focus);
     outline-offset: var(--sui-focus-ring-flush);
+  }
+
+  /* A chip inside the end of a joined field: a quiet tinted button at the 28px tier, its
+     corners following the field's, with no frame and no sink. The host's ring says where
+     focus is, and the veil deepens for a pointer or the keyboard. */
+  .sui-copy-button.bare,
+  .sui-copy-button.bare:is(:hover, :active, :focus-visible) {
+    background-color: transparent;
+    border-color: transparent;
+    border-radius: var(--sui-r-chip);
+    color: var(--sui-text-secondary);
+    outline: none;
+    translate: none;
+  }
+
+  .sui-copy-button.bare {
+    --sui-control-state-layer: var(--sui-row-hover);
+  }
+
+  .sui-copy-button.bare:is(:hover, :focus-visible):not(:active) {
+    --sui-control-state-layer: var(--sui-interactive-hover-layer);
+    color: var(--sui-text-primary);
   }
 
   .sui-copy-button[data-failed] {

@@ -1,5 +1,6 @@
 <script lang="ts">
   import type { HTMLAttributes, HTMLInputAttributes } from 'svelte/elements';
+  import JoinedField from '../internal/JoinedField.svelte';
   import CopyButton from './CopyButton.svelte';
   import Field, { type FieldControl } from './Field.svelte';
   import TextInput from './TextInput.svelte';
@@ -32,23 +33,27 @@ copied by hand. The value sits in a read-only mono field, never a disabled one, 
 disabled field cannot be selected, and selecting it is the way out when the clipboard is not
 available. Tabbing into the field selects the whole value.
 
-The `CopyButton` stands beside the field and confirms with "Copied". A long value scrolls
-inside the field and never widens the row. With `label` the pair sits in a `Field`, and the
+The field and its `CopyButton` are one control: the copy action is a chip inside the field's end,
+under one frame and one focus ring. The copy part confirms with "Copied". A long value scrolls inside the field and
+never widens the row. With `label` the pair sits in a `Field`, and the
 label names the text field.
 -->
 
 {#snippet row(control?: FieldControl)}
-  <div class="sui-copyable-link-field-row">
-    <TextInput
-      {...rest}
-      id={control?.id ?? rest.id}
-      aria-describedby={control?.describedby ?? rest['aria-describedby']}
-      {value}
-      readonly
-      mono
-    />
-    <CopyButton text={value} label={copyLabel} toolbar />
-  </div>
+  <JoinedField>
+    {#snippet start()}
+      <TextInput
+        {...rest}
+        bare
+        id={control?.id ?? rest.id}
+        aria-describedby={control?.describedby ?? rest['aria-describedby']}
+        {value}
+        readonly
+        mono
+      />
+    {/snippet}
+    {#snippet end()}<CopyButton text={value} label={copyLabel} bare />{/snippet}
+  </JoinedField>
 {/snippet}
 
 <div class={['sui-copyable-link-field', className]}>
@@ -61,13 +66,6 @@ label names the text field.
 
 <style>
   .sui-copyable-link-field {
-    min-inline-size: 0;
-  }
-
-  .sui-copyable-link-field-row {
-    align-items: center;
-    display: flex;
-    gap: var(--sui-space-2);
     min-inline-size: 0;
   }
 </style>

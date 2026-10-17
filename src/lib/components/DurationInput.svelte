@@ -1,5 +1,6 @@
 <script lang="ts">
   import type { HTMLAttributes, HTMLInputAttributes } from 'svelte/elements';
+  import JoinedField from '../internal/JoinedField.svelte';
   import Select from './Select.svelte';
   import TextInput from './TextInput.svelte';
 
@@ -115,7 +116,9 @@
 <!--
 @component
 A duration stored in seconds and said as an amount and a unit: seconds, minutes or hours. The
-amount is a mono `TextInput` and the unit a `Select`, both 34px on one line. A value is shown in
+amount and the unit are one field that reads as one phrase, "90 seconds": the amount is typed
+at the start and the unit picker finishes it at the end, with one frame, one focus ring and one
+error edge. A value is shown in
 the largest unit that holds it whole, and picking another unit only changes how it is said, so
 90 seconds becomes 1.5 minutes without writing anything.
 
@@ -128,32 +131,38 @@ in the unit picked. `label` names both halves; other attributes, such as `id`, l
 -->
 
 <div class={['sui-duration-input', className]}>
-  <div class="sui-duration-controls">
-    <span class="sui-duration-amount">
-      <TextInput
-        {...rest}
-        mono
-        inputmode="decimal"
-        autocomplete="off"
-        spellcheck="false"
-        value={text}
+  <JoinedField invalid={invalid || problem !== null} {disabled}>
+    {#snippet start()}
+      <span class="sui-duration-amount">
+        <TextInput
+          {...rest}
+          bare
+          mono
+          inputmode="decimal"
+          autocomplete="off"
+          spellcheck="false"
+          value={text}
+          {disabled}
+          invalid={invalid || problem !== null}
+          aria-label="{label} amount"
+          aria-describedby={describedby}
+          oninput={type}
+        />
+      </span>
+    {/snippet}
+    {#snippet end()}
+      <!-- Named by reference, not `aria-label`: a name has to contain the words the trigger
+           shows, and those are the unit, not the field. -->
+      <Select
+        bare
+        options={unitOptions}
+        bind:value={() => unit, pick}
+        aria-labelledby="{uid}-unit"
         {disabled}
-        invalid={invalid || problem !== null}
-        aria-label="{label} amount"
-        aria-describedby={describedby}
-        oninput={type}
       />
-    </span>
-    <!-- Named by reference, not `aria-label`: a name has to contain the words the trigger
-         shows, and those are the unit, not the field. -->
-    <Select
-      options={unitOptions}
-      bind:value={() => unit, pick}
-      aria-labelledby="{uid}-unit"
-      {disabled}
-    />
-    <span id="{uid}-unit" hidden>{label} unit</span>
-  </div>
+    {/snippet}
+  </JoinedField>
+  <span id="{uid}-unit" hidden>{label} unit</span>
   {#if problem}<p id="{uid}-problem" class="sui-duration-problem">{problem}</p>{/if}
 </div>
 
@@ -167,16 +176,9 @@ in the unit picked. `label` names both halves; other attributes, such as `id`, l
     min-inline-size: 0;
   }
 
-  .sui-duration-controls {
-    align-items: center;
-    display: flex;
-    gap: var(--sui-space-2);
-  }
-
   .sui-duration-amount {
     display: grid;
-    flex: none;
-    inline-size: 6rem;
+    inline-size: 4.5rem;
   }
 
   /* Contained, so a long reason wraps under the controls instead of widening the field. */

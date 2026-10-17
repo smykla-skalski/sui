@@ -342,8 +342,8 @@ test('L-50 a dragged thumb chooses on release, and Escape puts it back', async (
     await track.scrollIntoViewIfNeeded();
     const state = () =>
       track.evaluate((node) => ({
-        checked: node.querySelector('input:checked')?.value,
-        shown: node.querySelector('.selected input')?.value
+        checked: node.querySelector('input:checked')?.getAttribute('value'),
+        shown: node.querySelector('.selected input')?.getAttribute('value')
       }));
     const options = track.locator('label');
     const at = await track.evaluate((node) =>
