@@ -48,9 +48,16 @@
   }
 </script>
 
+<!--
+@component
+Labelled intervals on one numeric axis, each with an optional marker inside it, such as a
+planned window and the moment work actually started. Long labels are cut with an ellipsis on
+the axis and stay whole in the table under the chart.
+-->
+
 <ChartFrame {title} {description}>
   {#if validData.length === 0}
-    <p class="sui-chart-empty">No chart data yet.</p>
+    <p class="sui-chart-empty">No chart data yet</p>
   {:else}
     <div class="plot-scroll">
       <svg viewBox="0 0 {width} {height}" role="img" aria-label="{title}. {description}">
@@ -108,7 +115,13 @@
 
 <style>
   .plot-scroll {
+    border-radius: var(--sui-radius-control);
     overflow-x: auto;
+  }
+
+  .plot-scroll:focus-visible {
+    outline: var(--sui-focus-ring-width) solid var(--sui-focus);
+    outline-offset: var(--sui-focus-ring-inset);
   }
   svg {
     display: block;
@@ -117,33 +130,36 @@
     height: auto;
   }
   .grid {
-    stroke: var(--sui-border, #c4cec9);
+    stroke: var(--sui-chart-grid);
     stroke-width: 1;
   }
   .axis {
-    fill: var(--sui-muted, #4c5b57);
-    font: 12px var(--sui-font, system-ui, sans-serif);
+    fill: var(--sui-text-muted);
+    font: 400 var(--sui-font-size-compact) / var(--sui-leading-flat) var(--sui-sans);
   }
   .label {
     font-weight: 600;
   }
   .range {
-    stroke: var(--sui-chart-1, #0f766e);
+    stroke: var(--sui-chart-1);
     stroke-width: 4;
     stroke-linecap: round;
   }
   .endpoint {
-    fill: var(--sui-chart-1, #0f766e);
+    fill: var(--sui-chart-1);
   }
   .marker {
-    fill: var(--sui-chart-4, #a33a45);
-    stroke: var(--sui-surface, #fff);
+    fill: var(--sui-chart-4);
+    stroke: var(--sui-surface-base);
     stroke-width: 2;
   }
   .sui-chart-empty {
     margin: 0;
-    padding: 2rem;
-    background: var(--sui-subtle, #f0f3f2);
+    padding: var(--sui-space-8);
+    border-radius: var(--sui-radius-control);
+    color: var(--sui-text-secondary);
+    font: 400 var(--sui-font-size-meta) / var(--sui-leading-meta) var(--sui-sans);
+    background: var(--sui-surface-inset);
     text-align: center;
   }
 </style>

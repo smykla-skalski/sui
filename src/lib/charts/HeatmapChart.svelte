@@ -40,15 +40,22 @@
   }
 
   function color(value: number | null): string {
-    if (value === null || !Number.isFinite(value)) return 'var(--sui-subtle, #f0f3f2)';
+    if (value === null || !Number.isFinite(value)) return 'var(--sui-surface-inset)';
     const fraction = (value - domain[0]) / (domain[1] - domain[0]);
-    return `color-mix(in srgb, var(--sui-chart-1, #0f766e) ${Math.round(20 + fraction * 80)}%, var(--sui-surface, #fff))`;
+    return `color-mix(in srgb, var(--sui-chart-1) ${Math.round(20 + fraction * 80)}%, var(--sui-surface-base))`;
   }
 </script>
 
+<!--
+@component
+A matrix of numbers, where a stronger colour means a higher value and a missing value
+stays neutral. Colour is never the only carrier: every cell has its value in its tooltip and in
+the table under the chart.
+-->
+
 <ChartFrame {title} {description}>
   {#if rows.length === 0 || columns.length === 0}
-    <p class="sui-chart-empty">No chart data yet.</p>
+    <p class="sui-chart-empty">No chart data yet</p>
   {:else}
     <div class="plot-scroll">
       <svg
@@ -115,7 +122,13 @@
 
 <style>
   .plot-scroll {
+    border-radius: var(--sui-radius-control);
     overflow-x: auto;
+  }
+
+  .plot-scroll:focus-visible {
+    outline: var(--sui-focus-ring-width) solid var(--sui-focus);
+    outline-offset: var(--sui-focus-ring-inset);
   }
   svg {
     display: block;
@@ -123,18 +136,21 @@
     height: auto;
   }
   .axis {
-    fill: var(--sui-muted, #4c5b57);
-    font: 12px var(--sui-font, system-ui, sans-serif);
+    fill: var(--sui-text-muted);
+    font: 400 var(--sui-font-size-compact) / var(--sui-leading-flat) var(--sui-sans);
   }
   .scale {
     margin: 0;
-    color: var(--sui-muted, #4c5b57);
-    font-size: 0.75rem;
+    color: var(--sui-text-muted);
+    font: 400 var(--sui-font-size-compact) / var(--sui-leading-compact) var(--sui-sans);
   }
   .sui-chart-empty {
     margin: 0;
-    padding: 2rem;
-    background: var(--sui-subtle, #f0f3f2);
+    padding: var(--sui-space-8);
+    border-radius: var(--sui-radius-control);
+    color: var(--sui-text-secondary);
+    font: 400 var(--sui-font-size-meta) / var(--sui-leading-meta) var(--sui-sans);
+    background: var(--sui-surface-inset);
     text-align: center;
   }
 </style>

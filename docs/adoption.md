@@ -37,4 +37,4 @@ The Svelte island imports components from `@smykla-skalski/sui` normally. Hydrat
 3. Move app colors into `--sui-*` overrides if necessary; keep the component API shared.
 4. Remove the old component only after checking each call site.
 
-Sybra, Baratie, and finance-buddy already use Svelte 5 and Tailwind 4. Smyklot uses Svelte 5 and its own CSS tokens. SUI's components work with both. Start with Button, Field, Card, and Badge. Modal, ConfirmDialog, Select, and Toast need a shared interaction contract and accessibility tests before extraction.
+Sybra, Baratie, and finance-buddy already use Svelte 5 and Tailwind 4. Smyklot uses Svelte 5 and its own CSS tokens. SUI's components work with both. Start with Button, Field, Card, and Pill, then move to the pickers and overlays once the theme import is in place. Every component is held to the [design laws](laws.md), so check a migrated screen against them rather than against the old app styles.

@@ -50,7 +50,7 @@
 
 <ChartFrame {title} {description}>
   {#if points.length === 0}
-    <p class="sui-chart-empty">No chart data yet.</p>
+    <p class="sui-chart-empty">No chart data yet</p>
   {:else}
     <div class="plot-scroll">
       <svg viewBox="0 0 {plot.width} {plot.height}" role="img" aria-label="{title}. {description}">
@@ -139,7 +139,13 @@
 
 <style>
   .plot-scroll {
+    border-radius: var(--sui-radius-control);
     overflow-x: auto;
+  }
+
+  .plot-scroll:focus-visible {
+    outline: var(--sui-focus-ring-width) solid var(--sui-focus);
+    outline-offset: var(--sui-focus-ring-inset);
   }
   svg {
     display: block;
@@ -149,13 +155,13 @@
     overflow: visible;
   }
   .grid {
-    stroke: var(--sui-border, #c4cec9);
+    stroke: var(--sui-chart-grid);
     stroke-width: 1;
   }
   .axis,
   .label {
-    fill: var(--sui-muted, #4c5b57);
-    font: 12px var(--sui-font, system-ui, sans-serif);
+    fill: var(--sui-text-muted);
+    font: 400 var(--sui-font-size-compact) / var(--sui-leading-flat) var(--sui-sans);
   }
   .label {
     font-weight: 600;
@@ -163,26 +169,29 @@
   .legend {
     display: flex;
     flex-wrap: wrap;
-    gap: 0.5rem 1rem;
+    gap: var(--sui-space-2) var(--sui-space-4);
     margin: 0;
     padding: 0;
     list-style: none;
-    font-size: 0.8125rem;
+    font: 400 var(--sui-font-size-meta) / var(--sui-leading-meta) var(--sui-sans);
   }
   .legend li {
     display: inline-flex;
     align-items: center;
-    gap: 0.375rem;
+    gap: var(--sui-space-2);
   }
   .swatch {
-    width: 0.75rem;
-    height: 0.75rem;
+    width: var(--sui-icon-xs);
+    height: var(--sui-icon-xs);
     border-radius: 50%;
   }
   .sui-chart-empty {
     margin: 0;
-    padding: 2rem;
-    background: var(--sui-subtle, #f0f3f2);
+    padding: var(--sui-space-8);
+    border-radius: var(--sui-radius-control);
+    color: var(--sui-text-secondary);
+    font: 400 var(--sui-font-size-meta) / var(--sui-leading-meta) var(--sui-sans);
+    background: var(--sui-surface-inset);
     text-align: center;
   }
 </style>

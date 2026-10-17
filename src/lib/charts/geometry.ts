@@ -36,8 +36,8 @@ export function ticks(domain: [number, number], count = 5): number[] {
   );
 }
 
+const CHART_SERIES = 5;
+
 export function chartColor(index: number): string {
-  const fallbacks = ['#0f766e', '#526b7a', '#8a5d17', '#a33a45', '#5b459f'];
-  const colorIndex = index % fallbacks.length;
-  return `var(--sui-chart-${colorIndex + 1}, ${fallbacks[colorIndex]})`;
+  return `var(--sui-chart-${(index % CHART_SERIES) + 1})`;
 }
