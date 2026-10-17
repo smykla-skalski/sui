@@ -8,7 +8,7 @@
     LineChart,
     RangeChart,
     ScatterChart
-  } from '$lib';
+  } from '../lib';
 
   const trend = [
     {
