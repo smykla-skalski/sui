@@ -7,9 +7,33 @@
   import Example from '../kit/Example.svelte';
 
   let trigger = $state<HTMLButtonElement | HTMLAnchorElement | null>(null);
-  let help = $state<HTMLButtonElement | null>(null);
-  let openHelp = $state<HTMLButtonElement | null>(null);
+  let sync = $state<HTMLButtonElement | HTMLAnchorElement | null>(null);
+  let openSync = $state<HTMLButtonElement | HTMLAnchorElement | null>(null);
   let open = $state(false);
+  let refreshes = $state(0);
+  let synced = $state(false);
+  let last = $state('Nothing done yet');
+
+  const syncHint = $derived(synced ? 'Last synced just now' : 'Last synced 4 minutes ago');
+
+  function refresh(): void {
+    refreshes += 1;
+    last = refreshes === 1 ? 'Refreshed once' : `Refreshed ${refreshes} times`;
+  }
+
+  async function copyLink(): Promise<void> {
+    try {
+      await navigator.clipboard.writeText('https://github.com/smykla-skalski/sui');
+      last = 'Link copied';
+    } catch {
+      last = 'The browser did not allow the copy';
+    }
+  }
+
+  function syncNow(): void {
+    synced = true;
+    last = 'Synced';
+  }
 </script>
 
 <Example title="Popover" note="The browser toggles it, keeps it in the top layer and returns focus">
@@ -43,24 +67,20 @@
     </Popover>
   </div>
   <div class="open">
-    <button bind:this={openHelp} type="button" class="help">What is a signal button</button>
-    <Tooltip
-      anchor={openHelp}
-      describe
-      preview
-      text="The one action a view exists for, so a view has exactly one of them"
-    />
+    <Button bind:element={openSync} onclick={syncNow}>Sync now</Button>
+    <Tooltip anchor={openSync} describe preview text={syncHint} />
   </div>
 </Example>
 
-<Example title="Tooltip" note="Hover pauses before it shows, keyboard focus shows it at once">
-  <IconButton icon="info" label="About this project" />
-  <button bind:this={help} type="button" class="help">What is a signal button</button>
-  <Tooltip
-    anchor={help}
-    describe
-    text="The one action a view exists for, so a view has exactly one of them"
-  />
+<Example
+  title="Tooltip"
+  note="Hover pauses before it shows, focus shows it at once, and a long press shows it on touch"
+>
+  <IconButton icon="refresh" label="Refresh the list" onclick={refresh} />
+  <IconButton icon="link" label="Copy the link" onclick={copyLink} />
+  <Button bind:element={sync} onclick={syncNow}>Sync now</Button>
+  <Tooltip anchor={sync} describe text={syncHint} />
+  <span class="state" role="status">{last}</span>
 </Example>
 
 <style>
@@ -95,23 +115,5 @@
   .state {
     color: var(--sui-text-muted);
     font: 400 var(--sui-font-size-meta) / var(--sui-leading-meta) var(--sui-sans);
-  }
-
-  .help {
-    background: none;
-    border: 0;
-    border-radius: var(--sui-radius-chip);
-    color: var(--sui-brand-action-text);
-    cursor: help;
-    font: 600 var(--sui-font-size-meta) / var(--sui-leading-meta) var(--sui-sans);
-    min-block-size: var(--sui-control-height-chip);
-    padding: 0;
-    text-decoration: underline dotted;
-    text-underline-offset: 0.2em;
-  }
-
-  .help:focus-visible {
-    outline: var(--sui-focus-ring-width) solid var(--sui-focus);
-    outline-offset: var(--sui-focus-ring-offset);
   }
 </style>

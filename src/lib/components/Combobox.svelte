@@ -13,6 +13,7 @@
   import type { HTMLInputAttributes } from 'svelte/elements';
   import Popover from './Popover.svelte';
   import TextInput from './TextInput.svelte';
+  import VisuallyHidden from './VisuallyHidden.svelte';
 
   const uid = $props.id();
   const SEARCH_PAUSE = 180;
@@ -47,6 +48,8 @@
   let typed = $state(false);
   let query = $state('');
   let active = $state(0);
+  /* Only an arrow key, or the pointer, lights an option: typing keeps the reader in the text. */
+  let navigated = $state(false);
   let found = $state.raw<readonly ComboboxOption[]>([]);
   let pending = $state(false);
   let list = $state<HTMLElement | null>(null);
@@ -72,14 +75,19 @@
   );
   const rows = $derived(hits.length + (offers ? 1 : 0));
   const empty = $derived(asked !== '' && rows === 0 && !pending);
-  const showing = $derived((preview || open) && (rows > 0 || empty));
+  const searching = $derived(pending && asked !== '');
+  const note = $derived(empty ? 'Nothing matches that' : searching ? 'Searching…' : '');
+  const showing = $derived((preview || open) && (rows > 0 || note !== ''));
+  const listed = $derived(showing && rows > 0);
   const current = $derived(
     preview
       ? Math.max(
           0,
           hits.findIndex((option) => option.value === value)
         )
-      : active
+      : navigated
+        ? active
+        : -1
   );
   const listLabel = $derived(
     rest['aria-label'] ??
@@ -92,15 +100,8 @@
 
   $effect(() => () => clearTimeout(timer));
 
-  const enabled = (index: number) => (index === hits.length ? offers : !hits[index]?.disabled);
-
-  function step(from: number, by: 1 | -1): number {
-    for (let distance = 1; distance <= rows; distance++) {
-      const at = (((from + by * distance) % rows) + rows) % rows;
-      if (enabled(at)) return at;
-    }
-    return -1;
-  }
+  /* Disabled options stay in the arrow path, so a reader hears they exist; `take` refuses them. */
+  const step = (from: number, by: 1 | -1) => (((from + by) % rows) + rows) % rows;
 
   // Scrolls the list alone: the box is fixed in the top layer, and scrollIntoView could move the page.
   function reveal(): void {
@@ -128,16 +129,18 @@
         const answer = await run(text);
         if (mine !== generation) return;
         found = answer;
-        active = Math.max(0, step(-1, 1));
+        active = 0;
+        navigated = false;
       } finally {
         if (mine === generation) pending = false;
       }
     }, SEARCH_PAUSE);
   }
 
-  function show(): void {
+  function show(byKey: boolean): void {
     typed = false;
     open = true;
+    navigated = byKey;
     active = Math.max(
       0,
       hits.findIndex((option) => option.value === value)
@@ -148,6 +151,7 @@
   function hide(): void {
     open = false;
     typed = false;
+    navigated = false;
   }
 
   function take(index: number): void {
@@ -165,19 +169,21 @@
     query = (event.currentTarget as HTMLInputElement).value;
     typed = true;
     open = true;
-    active = Math.max(0, step(-1, 1));
+    active = 0;
+    navigated = false;
     ask(query.trim());
   }
 
   function onkeydown(event: KeyboardEvent): void {
     if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
       event.preventDefault();
-      if (!open) return show();
-      const next = step(active, event.key === 'ArrowDown' ? 1 : -1);
-      if (next < 0) return;
-      active = next;
+      if (!open) return show(true);
+      if (rows === 0) return;
+      const by = event.key === 'ArrowDown' ? 1 : -1;
+      active = navigated ? step(active, by) : by === 1 ? 0 : rows - 1;
+      navigated = true;
       reveal();
-    } else if (event.key === 'Enter' && showing && rows > 0) {
+    } else if (event.key === 'Enter' && listed && navigated) {
       event.preventDefault();
       take(active);
     } else if (event.key === 'Escape' && open) {
@@ -197,14 +203,17 @@
 <!--
 @component
 A text field that suggests values as the reader types and commits one. It filters `options` by
-label, or asks `search` for suggestions, marks the matched characters, and says "Nothing
-matches that" when nothing does. `free` also offers what was typed as a value of its own. Reach
-for `Select` when the list is short enough to read whole.
+label, or asks `search` for suggestions, marks the matched characters, and says "Searching…"
+while an answer is on its way and "Nothing matches that" when nothing does. Both are announced
+through a polite status that is always in the page. `free` also offers what was typed as a
+value of its own. Reach for `Select` when the list is short enough to read whole.
 
-It follows the ARIA combobox pattern: focus stays in the field, arrows wrap through the
-suggestions, Enter commits the active one, and Escape closes the list without closing a
-surrounding dialog. Leaving the field puts the committed label back, unless the field was
-emptied or `free` keeps the typed text. Name it with a `<label>` or `aria-label`, as any field.
+It follows the ARIA list autocomplete pattern: focus stays in the field, and typing never
+lights an option. The arrows light one and wrap, Enter commits it, and Escape closes the list
+without closing a surrounding dialog. A disabled option is on the arrow path but cannot be
+chosen. `aria-expanded` is true only while options show. Leaving the field puts the committed
+label back, unless the field was emptied or `free` keeps the typed text. Name it with a
+`<label>` or `aria-label`, as any field.
 -->
 
 {#snippet marked(label: string)}
@@ -224,16 +233,17 @@ emptied or `free` keeps the typed text. Name it with a `<label>` or `aria-label`
     autocomplete="off"
     spellcheck="false"
     aria-autocomplete="list"
-    aria-expanded={showing}
+    aria-expanded={listed}
     aria-controls={listId}
-    aria-activedescendant={showing && rows > 0 ? optionId(current) : undefined}
+    aria-activedescendant={listed && current >= 0 ? optionId(current) : undefined}
     {oninput}
     onkeydown={preview ? undefined : onkeydown}
     {onblur}
     onclick={() => {
-      if (!open && !preview) show();
+      if (!open && !preview) show(false);
     }}
   />
+  <VisuallyHidden role="status">{note}</VisuallyHidden>
 
   <Popover
     anchor={element}
@@ -264,7 +274,9 @@ emptied or `free` keeps the typed text. Name it with a `<label>` or `aria-label`
           aria-disabled={option.disabled || undefined}
           onclick={() => take(index)}
           onpointermove={() => {
-            if (!option.disabled) active = index;
+            if (option.disabled) return;
+            active = index;
+            navigated = true;
           }}
         >
           <span class="sui-combobox-label">{@render marked(option.label)}</span>
@@ -282,13 +294,17 @@ emptied or `free` keeps the typed text. Name it with a `<label>` or `aria-label`
           class={['sui-combobox-option', { active: current === hits.length }]}
           aria-selected="false"
           onclick={() => take(hits.length)}
-          onpointermove={() => (active = hits.length)}
+          onpointermove={() => {
+            active = hits.length;
+            navigated = true;
+          }}
         >
           <span class="sui-combobox-label">Use “{asked}”</span>
         </div>
       {/if}
     </div>
-    {#if empty}<p class="sui-combobox-empty">Nothing matches that</p>{/if}
+    <!-- The status beside the field speaks this, so the drawn copy stays out of the tree. -->
+    {#if note}<p class="sui-combobox-empty" aria-hidden="true">{note}</p>{/if}
   </Popover>
 {/snippet}
 
@@ -340,7 +356,7 @@ emptied or `free` keeps the typed text. Name it with a `<label>` or `aria-label`
       translate var(--sui-duration-press) var(--sui-ease-standard);
   }
 
-  .sui-combobox-option.active:not([aria-disabled='true']):not(:active) {
+  .sui-combobox-option.active:not(:active) {
     background-color: var(--sui-interactive-hover-layer);
   }
 
@@ -352,7 +368,7 @@ emptied or `free` keeps the typed text. Name it with a `<label>` or `aria-label`
 
   .sui-combobox-option[aria-disabled='true'] {
     cursor: default;
-    opacity: 0.5;
+    opacity: var(--sui-disabled-opacity);
   }
 
   /* No cap trim: a name has descenders, and the row centres it on its own. */

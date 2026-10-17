@@ -16,7 +16,7 @@
 
 <Example
   title="Beside a long page"
-  note="The current entry turns its rule brand as the page scrolls, and a folded section opens on arrival"
+  note="The current entry turns its rule brand as the page scrolls, a folded section opens on arrival, and focus lands on its heading"
   layout="stack"
 >
   <div class="frame">

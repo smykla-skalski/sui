@@ -79,16 +79,29 @@
     return section;
   }
 
+  /** Moves focus to the section's heading, or the section, so the next Tab starts there. */
+  function land(section: HTMLElement): void {
+    const target = section.querySelector<HTMLElement>('h1, h2, h3, h4, h5, h6') ?? section;
+    if (!target.hasAttribute('tabindex')) {
+      target.tabIndex = -1;
+      target.addEventListener('blur', () => target.removeAttribute('tabindex'), { once: true });
+    }
+    target.focus({ preventScroll: true });
+  }
+
   function follow(event: MouseEvent, id: string): void {
     if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) {
       return;
     }
     const section = reveal(id);
-    if (!section || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-    event.preventDefault();
-    section.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    history.pushState(null, '', `#${id}`);
-    here = id;
+    if (!section) return;
+    if (!matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      event.preventDefault();
+      section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      history.pushState(null, '', `#${id}`);
+      here = id;
+    }
+    land(section);
   }
 
   function arrive(): void {
@@ -119,7 +132,8 @@
 The index beside a long page: where its sections are, and which one the reader is in. The
 entries are fragment links. Following one opens any native disclosure that holds its
 section. When the reader allows motion the index scrolls there smoothly and records the hash
-itself, and otherwise the browser follows the link as it would any other.
+itself, and otherwise the browser follows the link as it would any other. Either way focus
+moves to the section's first heading, or to the section, so the next Tab starts there.
 
 The current entry turns its rule to the brand ink and is announced with
 `aria-current="location"`. It follows the URL hash on arrival, then the last section whose

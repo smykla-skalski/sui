@@ -3,7 +3,7 @@
 </script>
 
 <script lang="ts">
-  import { AdditionPicker, Card, SettingList, SettingRow, Switch } from '#lib';
+  import { AdditionPicker, Card, Checkbox, SettingList, SettingRow } from '#lib';
   import Example from '../kit/Example.svelte';
 
   const behaviours = [
@@ -38,7 +38,7 @@
           onclear={() => delete overrides[value]}
         >
           {#snippet control({ id, describedby })}
-            <Switch {id} aria-describedby={describedby} bare bind:checked={overrides[value]} />
+            <Checkbox {id} aria-describedby={describedby} bare bind:checked={overrides[value]} />
           {/snippet}
         </SettingRow>
       {/each}
@@ -62,7 +62,7 @@
 
 <Example
   title="Everything added and disabled"
-  note="When every choice is in use the list says so instead of offering duplicates"
+  note="When every choice is in use the list says so, and a locked picker says why it is locked"
 >
   <AdditionPicker
     label="Add a check"
@@ -70,5 +70,23 @@
     added={behaviours.map((behaviour) => behaviour.value)}
     onadd={() => {}}
   />
-  <AdditionPicker label="Override a behaviour" choices={behaviours} disabled onadd={() => {}} />
+  <div class="locked">
+    <AdditionPicker label="Override a behaviour" choices={behaviours} disabled onadd={() => {}} />
+    <p class="reason">The workspace locks these behaviours for every repository</p>
+  </div>
 </Example>
+
+<style>
+  .locked {
+    display: grid;
+    gap: var(--sui-row-copy-gap);
+    justify-items: start;
+  }
+
+  .reason {
+    color: var(--sui-text-secondary);
+    font: 400 var(--sui-font-size-meta) / var(--sui-row-copy-leading) var(--sui-sans);
+    margin: 0;
+    text-box: trim-both cap alphabetic;
+  }
+</style>

@@ -49,9 +49,10 @@ without script. The current one wears a 2px brand underline and `aria-current="p
 count rides its label in tabular figures.
 
 For exclusive views inside one page, which swap content without changing the address, reach
-for `SegmentedControl` instead. A row short of room scrolls inside its own track and never
-widens the page, the current tab is brought into view, and keyboard focus scrolls the tab it
-reaches into view, with the ring inset so the track never clips it.
+for `SegmentedControl` instead. A row short of room scrolls inside its own track, with a thin
+scrollbar for a mouse without a wheel, and never widens the page. The current tab is brought
+into view, and keyboard focus scrolls the tab it reaches into view, with the ring inset so
+the track never clips it.
 -->
 
 <nav {...rest} class={['sui-tabs', className]} aria-label={label}>
@@ -87,11 +88,7 @@ reaches into view, with the ring inset so the track never clips it.
     overflow-x: auto;
     overflow-y: hidden;
     padding: 0;
-    scrollbar-width: none;
-  }
-
-  .sui-tabs-track::-webkit-scrollbar {
-    display: none;
+    scrollbar-width: thin;
   }
 
   .sui-tabs-item {

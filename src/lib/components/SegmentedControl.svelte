@@ -4,9 +4,9 @@
   export type SegmentOption = {
     value: string;
     label: string;
-    /** Drawn before the label, which stays visible. */
+    /** Drawn before the label, which stays visible. Dropped when the control falls back to a select. */
     icon?: IconName;
-    /** A count beside the label, set in mono. */
+    /** A count beside the label. The fallback select says it in brackets, such as "Users (24)". */
     count?: number | string;
     /** Keeps an unavailable option visible while the keyboard skips it. */
     disabled?: boolean;
@@ -15,8 +15,9 @@
 
 <script lang="ts">
   import { untrack } from 'svelte';
-  import type { FocusEventHandler, HTMLFieldsetAttributes } from 'svelte/elements';
+  import type { HTMLAttributes } from 'svelte/elements';
   import Icon from '../icons/Icon.svelte';
+  import Select from './Select.svelte';
 
   const id = $props.id();
 
@@ -27,29 +28,53 @@
     name = id,
     disabled = false,
     element = $bindable(null),
+    'aria-describedby': describedby,
     class: className = '',
     ...rest
   }: {
     /** Names the choice for assistive technology. It is never drawn. */
     label: string;
-    /** Two to five options. More belong in a picker. */
+    /** Two to five options. More belong in a `Select`. */
     options: ReadonlyArray<SegmentOption>;
     /** `null` selects nothing and draws no thumb. */
     value?: string | null;
     name?: string;
     disabled?: boolean;
-    element?: HTMLFieldSetElement | null;
+    /** The outer box, which holds the segments or, short of room, the select. */
+    element?: HTMLDivElement | null;
     /** Layout for the call site only, never the control's own paint. */
-    class?: HTMLFieldsetAttributes['class'];
-  } & Omit<HTMLFieldsetAttributes, 'children'> = $props();
+    class?: HTMLAttributes<HTMLDivElement>['class'];
+  } & Omit<HTMLAttributes<HTMLDivElement>, 'children'> = $props();
 
+  let track = $state<HTMLFieldSetElement | null>(null);
+  let fits = $state(true);
   let thumb = $state<{ option: string; left: number; width: number } | null>(null);
   let ready = $state(false);
+
+  const choices = $derived(
+    options.map((option) => ({
+      value: option.value,
+      label: option.count === undefined ? option.label : `${option.label} (${option.count})`,
+      disabled: option.disabled
+    }))
+  );
+
+  // The box is as wide as the copy's natural width or the room, whichever is less, and the
+  // select contributes no width, so swapping between the two never changes what is measured.
+  function fit(box: HTMLElement) {
+    const natural = box.querySelector('.sui-segmented-ruler');
+    if (!natural) return;
+    const observer = new ResizeObserver(() => {
+      fits = box.getBoundingClientRect().width + 0.5 >= natural.getBoundingClientRect().width;
+    });
+    observer.observe(box);
+    observer.observe(natural);
+    return () => observer.disconnect();
+  }
 
   // ponytail: ignores `zoom` and scale transforms on ancestors; multiply their factors into
   // the measurement if the control ever has to sit inside a scaled subtree.
   function measure() {
-    const track = element;
     if (!track) return;
     const input = track.querySelector<HTMLInputElement>('input:checked');
     const box = input?.closest('label')?.getBoundingClientRect();
@@ -62,7 +87,7 @@
     const own = track.getBoundingClientRect();
     const next = {
       option: input.value,
-      left: box.left - own.left - track.clientLeft + track.scrollLeft,
+      left: box.left - own.left - track.clientLeft,
       width: box.width
     };
     if (thumb?.left === next.left && thumb.width === next.width) return;
@@ -78,88 +103,144 @@
   });
 
   $effect(() => {
-    const track = element;
+    const node = track;
     void options;
-    if (!track) return;
+    if (!node) return;
     const observer = new ResizeObserver(() => measure());
-    observer.observe(track);
-    for (const option of track.querySelectorAll('label')) observer.observe(option);
-    return () => observer.disconnect();
+    observer.observe(node);
+    for (const option of node.querySelectorAll('label')) observer.observe(option);
+    return () => {
+      observer.disconnect();
+      // Segments that come back after the select land again, never slide in from an old place.
+      thumb = null;
+      ready = false;
+    };
   });
 
   $effect(() => {
     if (!thumb || ready) return;
     // Commit the placement before the transition switches on, so it lands instead of sliding.
-    element?.getBoundingClientRect();
+    track?.getBoundingClientRect();
     ready = true;
   });
-
-  const reveal: FocusEventHandler<HTMLInputElement> = (event) => {
-    const track = element;
-    const option = event.currentTarget.closest('label');
-    if (!track || !option) return;
-    const box = option.getBoundingClientRect();
-    const own = track.getBoundingClientRect();
-    if (box.left < own.left) track.scrollLeft += box.left - own.left;
-    else if (box.right > own.right) track.scrollLeft += box.right - own.right;
-  };
 </script>
 
 <!--
 @component
-One choice from two to five options a reader can see all at once. Past five the words stop
-fitting, and the choice belongs in a picker. Answers that each need a sentence are
-`ChoiceCards`.
+One choice from two to five options a reader can see all at once. Six or more belong in a
+`Select`, and answers that each need a sentence are `ChoiceCards`.
 
-The selection is one solid thumb exactly as wide as its option and held 2px inside the
-track. It lands without sliding on first paint, travels 240ms between options, and is not
-drawn at all for `null`, which is how a control says its value is inherited, not chosen. A
-control short of room scrolls inside its own track, and focus scrolls the focused option
-into view.
+The selection is one solid thumb exactly as wide as its option and held 2px inside the track. It
+lands without sliding on first paint, travels 240ms between options, and is not drawn at all for
+`null`, which is how a control says its value is inherited, not chosen.
 
-These are native radios under a hidden legend, so the arrow keys move the choice and skip
-disabled options. The thumb is measured from the checked option because CSS cannot size one
-box from a sibling; that is the only script here.
+Short of room, the control draws the same choice as a native `Select`, with icons dropped and
+counts in brackets, such as "Users (24)". An inert, hidden copy of the segments, with no inputs,
+measures their natural width against the room through a `ResizeObserver`. `aria-describedby`
+reaches the group or the select, and other attributes and events land on the outer box, so
+`onchange` hears a pick in either form.
+
+The segments are native radios under a hidden legend, so the arrow keys move the choice and skip
+disabled options. The thumb is measured from the checked option because CSS cannot size one box
+from a sibling.
 -->
 
-<fieldset bind:this={element} {...rest} class={['sui-segmented', className]} class:ready {disabled}>
-  <legend class="sui-segmented-legend">{label}</legend>
-  {#if thumb}
-    <span
-      class="sui-segmented-thumb"
-      style:translate="{thumb.left}px 0"
-      style:inline-size="{thumb.width}px"
-      aria-hidden="true"
-    ></span>
+{#snippet face(option: SegmentOption)}
+  {#if option.icon}<Icon name={option.icon} size="sm" />{/if}
+  <span class="sui-segmented-word">{option.label}</span>
+  {#if option.count !== undefined}
+    <span class="sui-segmented-count"><span>{option.count}</span></span>
   {/if}
-  {#each options as option (option.value)}
-    <label
-      class="sui-segmented-option"
-      class:selected={value === option.value}
-      class:disabled={option.disabled}
+{/snippet}
+
+<div bind:this={element} {...rest} class={['sui-segmented', className]} {@attach fit}>
+  <div class="sui-segmented-measure" aria-hidden="true" inert>
+    <div class="sui-segmented-track sui-segmented-ruler">
+      {#each options as option (option.value)}
+        <span class="sui-segmented-option">
+          <span class="sui-segmented-label">{@render face(option)}</span>
+        </span>
+      {/each}
+    </div>
+  </div>
+  {#if fits}
+    <fieldset
+      bind:this={track}
+      class={['sui-segmented-track', { ready }]}
+      {disabled}
+      aria-describedby={describedby}
     >
-      <input
-        type="radio"
-        class="sui-segmented-input"
+      <legend class="sui-segmented-legend">{label}</legend>
+      {#if thumb}
+        <span
+          class="sui-segmented-thumb"
+          style:translate="{thumb.left}px 0"
+          style:inline-size="{thumb.width}px"
+          aria-hidden="true"
+        ></span>
+      {/if}
+      {#each options as option (option.value)}
+        <label
+          class="sui-segmented-option"
+          class:selected={value === option.value}
+          class:disabled={option.disabled}
+        >
+          <input
+            type="radio"
+            class="sui-segmented-input"
+            {name}
+            value={option.value}
+            bind:group={value}
+            disabled={option.disabled}
+          />
+          <span class="sui-segmented-label">{@render face(option)}</span>
+        </label>
+      {/each}
+    </fieldset>
+  {:else}
+    <div class="sui-segmented-picker">
+      <Select
+        options={choices}
+        bind:value
+        aria-label={label}
+        aria-describedby={describedby}
         {name}
-        value={option.value}
-        bind:group={value}
-        disabled={option.disabled}
-        onfocus={reveal}
+        {disabled}
       />
-      <span class="sui-segmented-label">
-        {#if option.icon}<Icon name={option.icon} size="sm" />{/if}
-        <span class="sui-segmented-word">{option.label}</span>
-        {#if option.count !== undefined}
-          <span class="sui-segmented-count"><span>{option.count}</span></span>
-        {/if}
-      </span>
-    </label>
-  {/each}
-</fieldset>
+    </div>
+  {/if}
+</div>
 
 <style>
   .sui-segmented {
+    display: inline-grid;
+    grid-template-columns: minmax(0, max-content);
+    max-inline-size: 100%;
+    min-inline-size: 0;
+    vertical-align: middle;
+  }
+
+  .sui-segmented > * {
+    grid-area: 1 / 1;
+  }
+
+  .sui-segmented-measure {
+    block-size: 0;
+    overflow: hidden;
+    visibility: hidden;
+  }
+
+  .sui-segmented-ruler {
+    inline-size: max-content;
+  }
+
+  /* Holds no width of its own, so the select never widens the box it was measured against. */
+  .sui-segmented-picker {
+    contain: inline-size;
+    min-inline-size: 0;
+  }
+
+  .sui-segmented-track {
     background: var(--sui-segment-track);
     block-size: var(--sui-local-control-height, var(--sui-control-height-compact));
     border: 0;
@@ -167,25 +248,15 @@ box from a sibling; that is the only script here.
     border-radius: var(--sui-radius-surface);
     box-shadow: inset 0 0 0 1px var(--sui-border-subtle);
     box-sizing: border-box;
-    display: inline-flex;
-    flex: none;
-    inline-size: fit-content;
+    display: flex;
     margin: 0;
-    max-inline-size: 100%;
     min-inline-size: 0;
-    overflow-x: auto;
-    overflow-y: hidden;
     padding: var(--sui-control-inset);
     position: relative;
-    scrollbar-width: none;
   }
 
-  .sui-segmented::-webkit-scrollbar {
-    display: none;
-  }
-
-  .sui-segmented:disabled {
-    opacity: 0.5;
+  .sui-segmented-track:disabled {
+    opacity: var(--sui-disabled-opacity);
   }
 
   .sui-segmented-legend {
@@ -215,12 +286,13 @@ box from a sibling; that is the only script here.
       box-shadow var(--sui-duration-press) var(--sui-ease-standard);
   }
 
-  .sui-segmented:has(.sui-segmented-option:hover:not(:active) > input:checked:enabled)
+  .sui-segmented-track:has(.sui-segmented-option:hover:not(:active) > input:checked:enabled)
     .sui-segmented-thumb {
     background: var(--sui-brand-action-hover);
   }
 
-  .sui-segmented:has(.sui-segmented-option:active > input:checked:enabled) .sui-segmented-thumb {
+  .sui-segmented-track:has(.sui-segmented-option:active > input:checked:enabled)
+    .sui-segmented-thumb {
     background: var(--sui-brand-action-pressed);
     box-shadow: var(--sui-pressed-inset);
   }
@@ -258,12 +330,12 @@ box from a sibling; that is the only script here.
     opacity: 1;
   }
 
-  .sui-segmented:disabled .sui-segmented-option,
+  .sui-segmented-track:disabled .sui-segmented-option,
   .sui-segmented-option.disabled {
     cursor: default;
   }
 
-  .sui-segmented:disabled .sui-segmented-option::before {
+  .sui-segmented-track:disabled .sui-segmented-option::before {
     opacity: 0;
   }
 
@@ -321,7 +393,7 @@ box from a sibling; that is the only script here.
   }
 
   .disabled .sui-segmented-label {
-    opacity: 0.5;
+    opacity: var(--sui-disabled-opacity);
   }
 
   .sui-segmented-count {

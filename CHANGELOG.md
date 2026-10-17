@@ -8,6 +8,14 @@
 - Port the Smyklot palette and both font families. Breaking: tokens are renamed after Smyklot (`--sui-foreground` is `--sui-text-primary`, `--sui-muted` is `--sui-text-muted`, `--sui-surface` is `--sui-surface-base`, `--sui-subtle` is `--sui-surface-inset`, `--sui-border` is `--sui-border-subtle`, `--sui-primary*` is `--sui-brand-action*`, `--sui-*-subtle` is `--sui-*-tint`, `--sui-font` is `--sui-sans`, `--sui-radius` is `--sui-radius-control`), and components no longer carry fallback values.
 - Breaking: `Button` takes `tone` instead of `variant` and `size` (`primary` is `signal`, `secondary` is `default`, `danger` is `stop`), and controls are 34px with an opt-in 40px tier.
 - Breaking: `Badge` is replaced by `Pill`. `Card` prefers `title` and `note`; `heading` and `description` still work.
+- Rewrite the laws that went against WCAG 2.2, the APG and platform guidance. Field edges hold 3:1, phone controls are 44px, phone fields type at 16px, disabled controls draw at 0.7 opacity, and charts use their own categorical palette.
+- Breaking: `Select` is a native `<select>`, styled with customizable select where the browser has it. `element` is an `HTMLSelectElement`, and native attributes such as `required` and `name` pass through.
+- Breaking: `StatusPill` merges into `Pill`, and `ColorTag` merges into `Chip` (`color`). `Chip` has no status tones.
+- Breaking: `Button` drops the `brand` and `quiet` tones. A `loading` button keeps its focus.
+- Breaking: the `sticky` toast option is gone. A toast with an action stays until the reader acts, and toasts show above an open dialog.
+- Breaking: `LoadMore` is a button that announces new rows and needs `shown`. It no longer loads on scroll.
+- Breaking: `InheritControl` needs `label`. `RelativeTime` is no longer a tab stop. `SegmentedControl` turns into a select when its options do not fit.
+- Add `Field` `required`, `Checkbox` `bare`, `DataTable` `striped`, `Breadcrumb` `current`, `Modal` `role` and `ActionMenu` item descriptions.
 
 ## 0.2.1
 

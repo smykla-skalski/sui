@@ -42,7 +42,7 @@
     {#each days as day (day.key)}
       <div class="day">
         <DayHeading value={day.entries[0].at} level={4} />
-        <ul class="entries">
+        <ul class="entries" role="list">
           {#each day.entries as entry (entry.what)}
             <li>
               <span class="what">{entry.what}</span>

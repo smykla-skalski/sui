@@ -9,7 +9,7 @@
 
 <Example
   title="Tones"
-  note="Quiet states a consequence, and warning carries the tint for a hazardous one"
+  note="Quiet states a consequence, and warning carries the tint and a spoken name for a hazardous one"
   layout="stack"
 >
   <Callout title="Changes apply to new pull requests">
@@ -48,7 +48,7 @@
     Two settings changed since the last save
     {#snippet actions()}
       <Button>Discard</Button>
-      <Button tone="signal">Save changes</Button>
+      <Button tone="decision">Save changes</Button>
     {/snippet}
   </Callout>
 </Example>
@@ -71,7 +71,7 @@
       The sync stops when it expires
       {#snippet actions()}
         <Button>Remind me</Button>
-        <Button tone="signal">Renew</Button>
+        <Button>Renew</Button>
       {/snippet}
     </Callout>
     <Callout decision title="You have unsaved changes">
@@ -79,7 +79,7 @@
       Two settings changed since the last save
       {#snippet actions()}
         <Button>Discard</Button>
-        <Button tone="signal">Save changes</Button>
+        <Button tone="decision">Save changes</Button>
       {/snippet}
     </Callout>
   </div>

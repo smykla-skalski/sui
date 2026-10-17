@@ -11,11 +11,20 @@
   let card = $state(true);
 </script>
 
-<Example title="States" note="Off, on and disabled, each with its label and a 44px tap box">
+<Example title="States" note="Off and on, each with its label and a 44px tap box">
   <Switch label="Send notifications" bind:checked={notify} />
   <Switch label="Sync on push" bind:checked={sync} />
-  <Switch label="Archive old runs" disabled />
-  <Switch label="Keep audit log" checked disabled />
+</Example>
+
+<Example title="Disabled" note="A locked switch, off or on, says beside it why it is locked">
+  <div class="locked">
+    <Switch label="Archive old runs" aria-describedby="sink-switch-archive-reason" disabled />
+    <p id="sink-switch-archive-reason" class="reason">The workspace keeps every run for 90 days</p>
+  </div>
+  <div class="locked">
+    <Switch label="Keep audit log" aria-describedby="sink-switch-audit-reason" checked disabled />
+    <p id="sink-switch-audit-reason" class="reason">Every paid workspace keeps one</p>
+  </div>
 </Example>
 
 <Example
@@ -46,6 +55,19 @@
 </Example>
 
 <style>
+  .locked {
+    display: grid;
+    gap: var(--sui-row-copy-gap);
+    justify-items: start;
+  }
+
+  .reason {
+    color: var(--sui-text-secondary);
+    font: 400 var(--sui-font-size-meta) / var(--sui-row-copy-leading) var(--sui-sans);
+    margin: 0;
+    text-box: trim-both cap alphabetic;
+  }
+
   .head {
     align-items: center;
     display: flex;

@@ -30,12 +30,21 @@
   let level = $state<string | null>('warnings');
   let inherited = $state<string | null>(null);
   let narrow = $state<string | null>('info');
+  let narrowPeople = $state<string | null>('users');
 </script>
 
 <Example title="Options" note="Two to five options, with a thumb exactly as wide as the chosen one">
   <SegmentedControl label="Time range" options={range} bind:value={span} />
   <SegmentedControl label="People" options={people} bind:value={tab} />
-  <SegmentedControl label="Log level" options={levels} bind:value={level} />
+  <div class="with-reason">
+    <SegmentedControl
+      label="Log level"
+      options={levels}
+      bind:value={level}
+      aria-describedby="sink-segmented-debug"
+    />
+    <p id="sink-segmented-debug" class="reason">Debug needs a support plan</p>
+  </div>
 </Example>
 
 <Example
@@ -49,7 +58,16 @@
   title="Disabled"
   note="A disabled option stays visible and the arrow keys skip it, and the whole control can be disabled"
 >
-  <SegmentedControl label="Log level while saving" options={levels} value="errors" disabled />
+  <div class="with-reason">
+    <SegmentedControl
+      label="Log level while saving"
+      options={levels}
+      value="errors"
+      disabled
+      aria-describedby="sink-segmented-saving"
+    />
+    <p id="sink-segmented-saving" class="reason">Locked until the save finishes</p>
+  </div>
 </Example>
 
 <Example title="Taller tier" note="A surface opts into 40px through one custom property">
@@ -60,11 +78,14 @@
 
 <Example
   title="Narrow width"
-  note="Short of room, the track scrolls inside itself and focus brings the option into view"
+  note="Short of room, the same choice becomes a native select, with icons dropped and counts in brackets"
   layout="stack"
 >
   <div class="narrow">
     <SegmentedControl label="Log level in a narrow pane" options={levels} bind:value={narrow} />
+  </div>
+  <div class="narrow">
+    <SegmentedControl label="People in a narrow pane" options={people} bind:value={narrowPeople} />
   </div>
 </Example>
 
@@ -76,5 +97,19 @@
   .narrow {
     display: flex;
     inline-size: min(100%, 12rem);
+  }
+
+  .with-reason {
+    display: grid;
+    gap: var(--sui-row-copy-gap);
+    justify-items: start;
+    min-inline-size: 0;
+  }
+
+  .reason {
+    color: var(--sui-text-secondary);
+    font: 400 var(--sui-font-size-meta) / var(--sui-row-copy-leading) var(--sui-sans);
+    margin: 0;
+    text-box: trim-both cap alphabetic;
   }
 </style>

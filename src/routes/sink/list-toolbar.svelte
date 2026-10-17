@@ -3,7 +3,7 @@
 </script>
 
 <script lang="ts">
-  import { Button, Chip, ListToolbar, ObjectList, ObjectRow } from '#lib';
+  import { Button, ListToolbar, ObjectList, ObjectRow, Pill } from '#lib';
   import Example from '../kit/Example.svelte';
 
   const repositories = [
@@ -79,7 +79,7 @@
               <span class="sum">Updated {repository.updated} days ago</span>
             {/snippet}
             {#snippet side()}
-              {#if repository.state === 'archived'}<Chip label="Archived" />{/if}
+              {#if repository.state === 'archived'}<Pill>Archived</Pill>{/if}
             {/snippet}
           </ObjectRow>
         {:else}

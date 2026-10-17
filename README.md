@@ -44,7 +44,7 @@ Each component documents its contract in an `@component` comment, and the kitche
 - Pickers and editors: `Select`, `Combobox`, `ActionMenu`, `HelpTip`, `DurationInput`, `PairEntry`, `PatternEntries`, `InheritControl`, `AdditionPicker`, `SettingList`, `SettingRow`
 - Overlays: `Popover`, `Tooltip`, `Modal`, `ConfirmDialog`, `Toaster` with `toast()` and `dismiss()`, `SaveBar`
 - Surfaces and content: `Card`, `Plate`, `Callout`, `Disclosure`, `PageHeader`, `PageToc`, `CodeBlock`, `DiffBlock`, `DataTable`, `FactList`
-- Marks: `Pill`, `Chip`, `StatusPill`, `ColorTag`, `Avatar`, `IdentityRow`, `ClippedLabel`, `RelativeTime`, `DayHeading`, `Icon`, `VisuallyHidden`
+- Marks: `Pill`, `Chip`, `Avatar`, `IdentityRow`, `ClippedLabel`, `RelativeTime`, `DayHeading`, `Icon`, `VisuallyHidden`
 - Lists and states: `ObjectList`, `ObjectRow`, `ListToolbar`, `EmptyState`, `ErrorState`, `FormError`, `Skeleton`, `LoadMore`
 - Charts: `LineChart`, `ScatterChart`, `RangeChart`, `HeatmapChart` (see [chart usage](docs/charts.md))
 

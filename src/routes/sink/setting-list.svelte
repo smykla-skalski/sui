@@ -5,12 +5,12 @@
 <script lang="ts">
   import {
     Card,
+    Checkbox,
     DurationInput,
     PatternEntries,
-    Select,
+    SegmentedControl,
     SettingList,
     SettingRow,
-    Switch,
     TextInput
   } from '#lib';
   import Example from '../kit/Example.svelte';
@@ -48,7 +48,7 @@
         onclear={retry !== saved.retry ? () => (retry = saved.retry) : undefined}
       >
         {#snippet control({ id, describedby })}
-          <Switch {id} aria-describedby={describedby} bare bind:checked={retry} />
+          <Checkbox {id} aria-describedby={describedby} bare bind:checked={retry} />
         {/snippet}
       </SettingRow>
       <SettingRow
@@ -58,7 +58,12 @@
         onclear={level !== saved.level ? () => (level = saved.level) : undefined}
       >
         {#snippet control({ id, describedby })}
-          <Select {id} aria-describedby={describedby} options={levels} bind:value={level} />
+          <SegmentedControl
+            label="Log level"
+            aria-describedby={describedby}
+            options={levels}
+            bind:value={level}
+          />
         {/snippet}
       </SettingRow>
       <SettingRow
@@ -107,7 +112,7 @@
 
 <Example
   title="Rows"
-  note="A switch, a picker, a field, a duration and a list, with the two changed rows 1px apart"
+  note="A checkbox, a segmented control, a field, a duration and a list, with the two changed rows 1px apart"
   layout="stack"
 >
   {@render settings()}
@@ -115,7 +120,7 @@
 
 <Example
   title="Narrow width"
-  note="Below a readable copy width the controls take the next line, and the switch stays beside its copy"
+  note="Below a readable copy width the controls take the next line, and the checkbox stays beside its copy"
   layout="stack"
 >
   <div class="narrow">{@render settings()}</div>

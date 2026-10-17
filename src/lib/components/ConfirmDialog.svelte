@@ -53,15 +53,27 @@ A question asked before an act, and the two buttons that answer it. Ask only whe
 be taken back or would discard work; an act that can be undone should just happen and say so in
 a toast.
 
-The title is the question and `consequence` the one sentence that says what follows. Cancel is
-a bordered default button that opens focused, so Enter never confirms by accident, and it sits
-before the confirm action in the trailing group. Every way out other than the confirm action
+It is an `alertdialog`. The title is the question and `consequence` the one sentence that says
+what follows. Cancel is a bordered default button before the confirm action in the trailing
+group. With the `stop` tone Cancel opens focused, so Enter never takes something away by
+accident; with `signal` the confirm action does. Every way out other than the confirm action
 calls `oncancel`. Anything the answer needs, such as a reason, goes in the children.
 -->
 
 {#snippet footer()}
-  <Button autofocus={!preview} onclick={() => (open = false)}>{cancelLabel}</Button>
-  <Button {tone} onclick={confirm}>{confirmLabel}</Button>
+  <Button autofocus={!preview && tone === 'stop'} onclick={() => (open = false)}
+    >{cancelLabel}</Button
+  >
+  <Button {tone} autofocus={!preview && tone !== 'stop'} onclick={confirm}>{confirmLabel}</Button>
 {/snippet}
 
-<Modal bind:open {preview} {title} description={consequence} onclose={closed} {children} {footer} />
+<Modal
+  bind:open
+  {preview}
+  role="alertdialog"
+  {title}
+  description={consequence}
+  onclose={closed}
+  {children}
+  {footer}
+/>

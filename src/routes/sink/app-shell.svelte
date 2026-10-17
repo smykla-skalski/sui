@@ -28,7 +28,12 @@
       items: [
         { href: '#shell-labels', label: 'Labels', icon: 'tag' },
         { href: '#shell-rulesets', label: 'Rulesets', icon: 'shield' },
-        { href: '#shell-files', label: 'Files kept in step across every repository', icon: 'file' }
+        {
+          href: '#shell-files',
+          label: 'Files kept in step across every repository',
+          short: 'Files',
+          icon: 'file'
+        }
       ]
     },
     {
@@ -41,9 +46,9 @@
   ];
 
   const places: RailItem[] = [
-    { label: 'Smykla Skalski', icon: 'organization' },
+    { label: 'Smykla Skalski', short: 'Smykla', icon: 'organization' },
     { label: 'Personal', icon: 'user' },
-    { label: 'Root console', icon: 'server', badge: 4 }
+    { label: 'Root console', short: 'Console', icon: 'server', badge: 4 }
   ];
 
   const foot: RailItem[] = [{ label: 'Settings', icon: 'settings' }];
@@ -102,7 +107,7 @@
 
 <Example
   title="Collapsed on a wide screen"
-  note="Above 64rem the sidebar folds into icons, so this 66rem frame scrolls sideways inside its section"
+  note="Above 64rem the pages fold into icons over short labels beside the rail, so this 66rem frame scrolls sideways"
   layout="stack"
 >
   <div class="scroller">
@@ -134,13 +139,13 @@
 
 <Example
   title="Phone"
-  note="Below 48rem a bar names the page and the sidebar opens as a drawer over the content"
+  note="Below 48rem a bar names the page, and its button opens the rail and the pages as one drawer"
   layout="stack"
 >
   <div class="frame phone">
     <AppShell title={names[phone]} contained landmark="none" label="Workspace navigation">
       {#snippet rail()}
-        <Rail items={places} {foot} current={place} />
+        <Rail items={places} {foot} current={place} onpick={(item) => (place = item.label)} />
       {/snippet}
       {#snippet sidebar()}
         <SideNav

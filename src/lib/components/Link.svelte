@@ -2,6 +2,7 @@
   import type { Snippet } from 'svelte';
   import Icon from '../icons/Icon.svelte';
   import type { HTMLAnchorAttributes } from 'svelte/elements';
+  import VisuallyHidden from './VisuallyHidden.svelte';
 
   let {
     href,
@@ -21,6 +22,7 @@
   } & Omit<HTMLAnchorAttributes, 'href' | 'rel' | 'children'> = $props();
 
   const JOINER = '\u2060';
+  const OFFSITE = ' (opens another site)';
   const leaves = $derived(external ?? /^https?:\/\//i.test(href));
   const relation = $derived(
     [rel, leaves && !rel?.includes('noreferrer') ? 'noreferrer' : null].filter(Boolean).join(' ') ||
@@ -35,14 +37,17 @@ so it never shows the browser's blue or purple, and its underline is faint at re
 on hover, so two links close together do not read as ruled lines. Press is a color step,
 because moving a run of text inside a sentence would move the words around it.
 
-A link that leaves the product draws a north-east arrow after its words and is sent with
-`rel="noreferrer"`. Whether it opens a new tab is the caller's choice. A control that looks
-like a button is `Button` with `href`, and the way back from a page is `BackLink`.
+A link that leaves the product draws a north-east arrow after its words, says "(opens another
+site)" to a screen reader, and is sent with `rel="noreferrer"`. Whether it opens a new tab is
+the caller's choice. A control that looks like a button is `Button` with `href`, and the way
+back from a page is `BackLink`.
 -->
 
 <a {...rest} {href} rel={relation} class={['sui-link', className]}
   >{@render children()}{#if leaves}{JOINER}<span class="sui-link-external"
-      ><Icon name="arrow-up-right" size="micro" strokeWidth={2} /></span
+      ><Icon name="arrow-up-right" size="micro" strokeWidth={2} /><VisuallyHidden
+        >{OFFSITE}</VisuallyHidden
+      ></span
     >{/if}</a
 >
 

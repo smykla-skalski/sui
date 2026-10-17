@@ -57,20 +57,7 @@
         'fact-list'
       ]
     ],
-    [
-      'Marks',
-      [
-        'pill',
-        'chip',
-        'status-pill',
-        'color-tag',
-        'avatar',
-        'clipped-label',
-        'relative-time',
-        'day-heading',
-        'icons'
-      ]
-    ],
+    ['Marks', ['pill', 'chip', 'avatar', 'clipped-label', 'relative-time', 'day-heading', 'icons']],
     ['Lists and states', ['object-list', 'list-toolbar', 'skeleton', 'load-more', 'states']],
     ['Charts', ['charts']],
     ['Shell', ['app-shell']]
@@ -184,15 +171,15 @@
     outline: none;
   }
 
+  /* A section is a heading over a rule, not a card: the cards, callouts and previews inside
+     it are surfaces of their own, and a frame around them would nest surfaces (L-55). */
   section {
-    background: var(--sui-surface-base);
-    border: 1px solid var(--sui-border-subtle);
-    border-radius: var(--sui-radius-surface);
+    border-block-start: 1px solid var(--sui-border-subtle);
     box-sizing: border-box;
     display: grid;
     gap: var(--sui-space-6);
     min-inline-size: 0;
-    padding: var(--sui-rhythm-surface-pad);
+    padding-block: var(--sui-space-8) var(--sui-space-4);
     scroll-margin-block-start: var(--sui-space-4);
   }
 
@@ -213,12 +200,6 @@
     padding-block: var(--sui-space-2);
     position: sticky;
     z-index: var(--sui-layer-sticky);
-  }
-
-  @media (max-width: 36rem) {
-    section {
-      padding: var(--sui-rhythm-surface-pad-compact);
-    }
   }
 
   @media (min-width: 72rem) {

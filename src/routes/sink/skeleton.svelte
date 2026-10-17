@@ -18,7 +18,7 @@
 
 <Example
   title="First load"
-  note="Placeholder rows reserve the height the loaded rows take, and they share one pulse"
+  note="The region is busy while placeholder rows reserve the loaded height, and the rows take their place"
   layout="stack"
 >
   <div>
@@ -27,9 +27,7 @@
     </Button>
   </div>
   <div class="card">
-    {#if loading}
-      <Skeleton rows={3} label="Loading repositories…" />
-    {:else}
+    <Skeleton {loading} rows={3} label="Loading repositories…">
       <ObjectList>
         {#each names as name (name)}
           <ObjectRow>
@@ -40,7 +38,7 @@
           </ObjectRow>
         {/each}
       </ObjectList>
-    {/if}
+    </Skeleton>
   </div>
 </Example>
 

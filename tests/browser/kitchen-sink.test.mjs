@@ -193,7 +193,7 @@ test('L-69 every glyph is centred in its 24-unit box', async () => {
 });
 
 for (const width of [375, 1440])
-  test(`L-48 and L-52 every menu and listbox opens in place at ${width}px`, async () => {
+  test(`L-48 and L-52 every menu, listbox and select opens in place at ${width}px`, async () => {
     const page = await open(width, 'light');
     try {
       const triggers = page.locator(
@@ -243,9 +243,9 @@ for (const width of [375, 1440])
           if (!report.inside) problems.push(`${name}: the layer leaves the viewport`);
           if (report.narrower) problems.push(`${name}: the listbox is narrower than its trigger`);
           if (report.tall) problems.push(`${name}: the layer is taller than 20rem`);
-          if (report.heights?.some((height) => height !== report.tier))
+          if (report.heights?.some((height) => height < report.tier - 0.01))
             problems.push(
-              `${name}: option heights ${report.heights.join(', ')}, not ${report.tier}`
+              `${name}: option heights ${report.heights.join(', ')}, under ${report.tier}`
             );
         }
         if ((await page.evaluate(() => scrollY)) !== before)
@@ -254,6 +254,57 @@ for (const width of [375, 1440])
         await page.waitForTimeout(200);
         if (!(await trigger.evaluate((element) => document.activeElement === element)))
           problems.push(`${name}: focus did not return to the trigger`);
+      }
+
+      // A native select draws its picker as `::picker(select)`, which has no element to
+      // measure, so the picker is read through its computed style and its options' boxes.
+      const selects = page.locator(
+        'main > section select:not(:disabled):not([inert] *, [aria-hidden="true"] *)'
+      );
+      const total = await selects.count();
+      assert.ok(total > 3, `only ${total} selects were found`);
+      for (let index = 0; index < total; index++) {
+        const select = selects.nth(index);
+        if (!(await select.isVisible())) continue;
+        await select.scrollIntoViewIfNeeded();
+        const before = await page.evaluate(() => scrollY);
+        await select.click();
+        await page.waitForTimeout(250);
+        const report = await select.evaluate((element) => {
+          if (!(/** @type {HTMLSelectElement} */ (element).matches(':open')))
+            return { open: false };
+          const picker = getComputedStyle(element, '::picker(select)');
+          const options = [.../** @type {HTMLSelectElement} */ (element).options]
+            .filter((option) => option.getClientRects().length > 0)
+            .map((option) => option.getBoundingClientRect().height);
+          return {
+            open: true,
+            narrower: parseFloat(picker.width) < element.getBoundingClientRect().width - 0.5,
+            tall: parseFloat(picker.height) > 320.5,
+            heights: [...new Set(options.map((height) => Math.round(height * 100) / 100))],
+            tier: parseFloat(
+              getComputedStyle(document.documentElement).getPropertyValue(
+                '--sui-control-height-compact'
+              )
+            )
+          };
+        });
+        const name = `select ${index} (${(await select.getAttribute('aria-label')) ?? (await select.getAttribute('id'))})`;
+        if (!report.open) problems.push(`${name}: the picker did not open`);
+        else {
+          if (report.narrower) problems.push(`${name}: the picker is narrower than its field`);
+          if (report.tall) problems.push(`${name}: the picker is taller than 20rem`);
+          if (report.heights?.some((height) => height < report.tier - 0.01))
+            problems.push(
+              `${name}: option heights ${report.heights.join(', ')}, under ${report.tier}`
+            );
+        }
+        if ((await page.evaluate(() => scrollY)) !== before)
+          problems.push(`${name}: opening scrolled the page`);
+        await page.keyboard.press('Escape');
+        await page.waitForTimeout(200);
+        if (!(await select.evaluate((element) => document.activeElement === element)))
+          problems.push(`${name}: focus did not return to the field`);
       }
       assert.deepEqual(problems, []);
     } finally {

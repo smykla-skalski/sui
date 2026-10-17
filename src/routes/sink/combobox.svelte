@@ -11,7 +11,7 @@
     { value: 'rust', label: 'Rust' },
     { value: 'ts', label: 'TypeScript', description: 'Typed JavaScript' },
     { value: 'py', label: 'Python' },
-    { value: 'rb', label: 'Ruby', disabled: true },
+    { value: 'rb', label: 'Ruby', description: 'Retired', disabled: true },
     { value: 'kt', label: 'Kotlin' },
     { value: 'swift', label: 'Swift' }
   ];
@@ -37,7 +37,7 @@
 
 <Example
   title="Filtered options"
-  note="Type to narrow the list, and the matched letters are marked"
+  note="Type to narrow the list, then the arrows light an option, a retired one included"
 >
   <div class="field">
     <label for="sink-combobox-language">Language</label>
@@ -73,7 +73,7 @@
 
 <Example
   title="Search and empty result"
-  note="Suggestions come from a slow search, and a login nobody has says nothing matches"
+  note="A slow search says it is searching, and a login nobody has says nothing matches"
 >
   <div class="field">
     <label for="sink-combobox-reviewer">Reviewer</label>
@@ -87,10 +87,19 @@
   <span class="state">{reviewer || 'Nothing chosen'}</span>
 </Example>
 
-<Example title="Disabled" note="A disabled field keeps its value in view">
+<Example title="Disabled" note="A disabled field keeps its value in view and says why">
   <div class="field">
     <label for="sink-combobox-disabled">Language</label>
-    <Combobox id="sink-combobox-disabled" options={languages} value="go" disabled />
+    <Combobox
+      id="sink-combobox-disabled"
+      aria-describedby="sink-combobox-disabled-reason"
+      options={languages}
+      value="go"
+      disabled
+    />
+    <p id="sink-combobox-disabled-reason" class="reason">
+      The template sets the language for every new repository
+    </p>
   </div>
 </Example>
 
@@ -105,6 +114,13 @@
   label {
     color: var(--sui-text-primary);
     font: 600 var(--sui-font-size-control) / var(--sui-leading-flat) var(--sui-sans);
+    text-box: trim-both cap alphabetic;
+  }
+
+  .reason {
+    color: var(--sui-text-secondary);
+    font: 400 var(--sui-font-size-meta) / var(--sui-row-copy-leading) var(--sui-sans);
+    margin: 0;
     text-box: trim-both cap alphabetic;
   }
 

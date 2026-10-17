@@ -8,6 +8,8 @@
 
   let {
     overridden = $bindable(false),
+    label,
+    id,
     inherited,
     source,
     disabled = false,
@@ -17,6 +19,10 @@
   }: {
     /** True while this level sets its own value; false follows `source`. */
     overridden?: boolean;
+    /** The setting's name, such as "Log level", which each button's accessible name carries. */
+    label: string;
+    /** Lands on Override while the value is inherited, so a row's `<label for>` points at a control. */
+    id?: string;
     /** The value that applies while nothing is set here, said as a reader would say it. */
     inherited: string;
     /** Where the inherited value comes from, read after "from", such as "the workspace". */
@@ -26,14 +32,16 @@
     control: Snippet;
     /** Layout for the call site only, never the control's own paint. */
     class?: HTMLAttributes<HTMLDivElement>['class'];
-  } & Omit<HTMLAttributes<HTMLDivElement>, 'children' | 'class'> = $props();
+  } & Omit<HTMLAttributes<HTMLDivElement>, 'children' | 'class' | 'id'> = $props();
 
   let root = $state<HTMLElement | null>(null);
 
   async function override(): Promise<void> {
     overridden = true;
     await tick();
-    root?.querySelector<HTMLElement>(FOCUSABLE)?.focus({ preventScroll: true });
+    const choice =
+      root?.querySelector<HTMLElement>('input:checked') ?? root?.querySelector(FOCUSABLE);
+    choice?.focus({ preventScroll: true });
   }
 
   async function inherit(): Promise<void> {
@@ -49,6 +57,10 @@ A value that comes from somewhere else until this level overrides it, and the wa
 inherits, it says the value in muted ink and where it comes from, beside an `add` button named
 Override. Overriding draws the caller's `control` in its place and moves focus into it; "Use
 inherited value" takes it back and returns focus to Override. Both moves keep the page still.
+
+Both buttons add `label` to their accessible names, so a screen reader hears which setting they
+act on. Pass the row's `id` both here and to the control: it lands on Override while inheriting,
+so pressing the setting's name overrides, and on the control while overridden.
 
 An override is not a change by itself. Mark the row unsaved, with `SettingRow`'s `unsaved`,
 only when the setting differs from its saved value, never because it differs from the inherited
@@ -70,9 +82,14 @@ overriding writes nothing until the reader picks.
     {/if}
   </span>
   {#if overridden}
-    <Button tone="quiet" {disabled} onclick={inherit}>Use inherited value</Button>
+    <Button
+      tone="ghost"
+      {disabled}
+      aria-label={`Use inherited value for ${label}`}
+      onclick={inherit}>Use inherited value</Button
+    >
   {:else}
-    <Button tone="add" {disabled} onclick={override}>
+    <Button tone="add" {id} {disabled} aria-label={`Override ${label}`} onclick={override}>
       {#snippet icon()}<Icon name="plus" size="sm" />{/snippet}
       Override
     </Button>

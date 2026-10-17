@@ -11,7 +11,7 @@
     open = $bindable(false),
     preview = false
   }: {
-    /** The element the tip explains. It shows on hover after a short pause and at once on keyboard focus. */
+    /** The interactive element the tip explains. */
     anchor: HTMLElement | null | undefined;
     text: string;
     /** Link the tip to the anchor as its description. Leave off when the tip repeats the anchor's own name. */
@@ -29,59 +29,101 @@
   const id = $props.id();
   const SHOW_DELAY = 250;
   const LEAVE_GRACE = 120;
+  const PRESS_HOLD = 500;
+  const PRESS_LINGER = 1500;
 
   let element = $state<HTMLElement | null>(null);
+  let showTimer = 0;
+  let hideTimer = 0;
+  let pressTimer = 0;
+
+  function show(delay: number): void {
+    clearTimeout(hideTimer);
+    clearTimeout(showTimer);
+    showTimer = window.setTimeout(() => (open = true), delay);
+  }
+
+  function hide(delay: number): void {
+    clearTimeout(showTimer);
+    clearTimeout(hideTimer);
+    hideTimer = window.setTimeout(() => (open = false), delay);
+  }
+
+  function close(): void {
+    clearTimeout(showTimer);
+    clearTimeout(hideTimer);
+    clearTimeout(pressTimer);
+    open = false;
+  }
+
+  // Touch has no hover: its pointers enter and leave only around a press.
+  const hovers = (event: PointerEvent) => event.pointerType !== 'touch';
+
+  // A tip shown by keyboard focus stays while the anchor has it, wherever the pointer goes.
+  function leave(event: PointerEvent): void {
+    if (hovers(event) && !anchor?.matches(':focus-visible')) hide(LEAVE_GRACE);
+  }
 
   $effect(() => {
     const target = anchor;
     if (!target || preview) return;
-    let showTimer = 0;
-    let hideTimer = 0;
-    const show = (delay: number) => {
-      clearTimeout(hideTimer);
-      clearTimeout(showTimer);
-      showTimer = window.setTimeout(() => (open = true), delay);
-    };
-    const hide = () => {
-      clearTimeout(showTimer);
-      clearTimeout(hideTimer);
-      hideTimer = window.setTimeout(() => (open = false), LEAVE_GRACE);
+    const onenter = (event: PointerEvent) => {
+      if (hovers(event)) show(SHOW_DELAY);
     };
     const onfocus = () => {
       if (target.matches(':focus-visible')) show(0);
     };
-    const onkeydown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape' && open) {
-        clearTimeout(showTimer);
-        open = false;
-      }
+    // A tap shows nothing and its click lands as usual. A hold shows the tip, which stays a
+    // moment after the finger lifts.
+    const ondown = (event: PointerEvent) => {
+      close();
+      if (!hovers(event)) pressTimer = window.setTimeout(() => (open = true), PRESS_HOLD);
     };
-    const enter = () => show(SHOW_DELAY);
+    const onup = (event: PointerEvent) => {
+      if (hovers(event)) return;
+      clearTimeout(pressTimer);
+      if (open) hide(PRESS_LINGER);
+    };
+    // A tapped button takes no focus in Safari, so no blur would ever close a tip it opened.
+    const onpress = (event: PointerEvent) => {
+      const node = event.target as Node;
+      if (open && !target.contains(node) && !element?.contains(node)) close();
+    };
+    // The tip is the innermost layer, so the Escape that closes it never reaches a dialog.
+    const onkeydown = (event: KeyboardEvent) => {
+      if (event.key !== 'Escape' || !open) return;
+      event.preventDefault();
+      event.stopPropagation();
+      close();
+    };
     // A scroll moves the anchor out from under a still pointer without a pointerleave.
     const onscroll = () => {
       if (!target.matches(':focus-visible')) close();
     };
-    const close = () => {
-      clearTimeout(showTimer);
-      open = false;
-    };
-    target.addEventListener('pointerenter', enter);
-    target.addEventListener('pointerleave', hide);
+    target.addEventListener('pointerenter', onenter);
+    target.addEventListener('pointerleave', leave);
     target.addEventListener('focus', onfocus);
     target.addEventListener('blur', close);
-    target.addEventListener('pointerdown', close);
-    document.addEventListener('keydown', onkeydown);
+    target.addEventListener('pointerdown', ondown);
+    target.addEventListener('pointerup', onup);
+    target.addEventListener('pointercancel', onup);
+    document.addEventListener('pointerdown', onpress, { capture: true });
+    addEventListener('keydown', onkeydown, { capture: true });
     addEventListener('scroll', onscroll, { capture: true, passive: true });
     return () => {
-      removeEventListener('scroll', onscroll, { capture: true });
       clearTimeout(showTimer);
       clearTimeout(hideTimer);
-      target.removeEventListener('pointerenter', enter);
-      target.removeEventListener('pointerleave', hide);
+      clearTimeout(pressTimer);
+      target.removeEventListener('pointerenter', onenter);
+      target.removeEventListener('pointerleave', leave);
       target.removeEventListener('focus', onfocus);
       target.removeEventListener('blur', close);
-      target.removeEventListener('pointerdown', close);
-      document.removeEventListener('keydown', onkeydown);
+      target.removeEventListener('pointerdown', ondown);
+      target.removeEventListener('pointerup', onup);
+      target.removeEventListener('pointercancel', onup);
+      document.removeEventListener('pointerdown', onpress, { capture: true });
+      removeEventListener('keydown', onkeydown, { capture: true });
+      removeEventListener('scroll', onscroll, { capture: true });
     };
   });
 
@@ -110,12 +152,15 @@
 
 <!--
 @component
-The one tooltip. It opens after a short pause on hover and at once on keyboard focus, stays
-while the pointer moves onto it, and closes on Escape, on blur and on a press, which is what
-WCAG asks of content that appears on hover or focus.
+The one tooltip. It opens after a short pause on hover and at once on keyboard focus. On a touch
+screen a long press opens it, and it stays a moment after the finger lifts. It stays while the
+pointer moves onto it. It closes on Escape, on blur and on a press anywhere, as WCAG asks of
+content that appears on hover or focus. The Escape that closes it stops there, so a dialog
+around it stays open.
 
-A tip that repeats a control's accessible name, as an icon button's does, stays out of the
-accessibility tree. A tip that adds a description sets `describe`, and the anchor then
+Anchor it only to an interactive element, and never put the one copy of something the reader
+needs in it. A tip that repeats a control's accessible name, as an icon button's does, stays out
+of the accessibility tree. A tip that adds a description sets `describe`, and the anchor then
 points at it with `aria-describedby`.
 -->
 
@@ -128,8 +173,10 @@ points at it with `aria-describedby`.
   class:mono
   class:preview
   aria-hidden={describe ? undefined : 'true'}
-  onpointerenter={() => (open = true)}
-  onpointerleave={() => (open = false)}
+  onpointerenter={(event) => {
+    if (hovers(event)) clearTimeout(hideTimer);
+  }}
+  onpointerleave={leave}
 >
   {text}
 </div>

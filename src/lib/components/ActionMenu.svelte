@@ -7,7 +7,10 @@
         icon?: IconName;
         /** `stop` marks an act that takes something away, in the danger ink. */
         tone?: 'default' | 'stop';
+        /** Keeps the item in the arrow order while choosing it does nothing. */
         disabled?: boolean;
+        /** One short line under the label, such as why the item is disabled. */
+        description?: string;
         onselect: () => void;
       }
     | { separator: true };
@@ -86,15 +89,13 @@
         }
   );
 
-  const enabledItems = () =>
-    menu
-      ? [...menu.querySelectorAll<HTMLElement>('[role="menuitem"]:not([aria-disabled="true"])')]
-      : [];
+  // Disabled items stay focusable, as the menu pattern asks, so a reader can find them.
+  const menuItems = () => [...(menu?.querySelectorAll<HTMLElement>('[role="menuitem"]') ?? [])];
 
   async function show(edge: 'first' | 'last'): Promise<void> {
     open = true;
     await tick();
-    const found = enabledItems();
+    const found = menuItems();
     (edge === 'first' ? found[0] : found.at(-1))?.focus();
   }
 
@@ -137,7 +138,7 @@
   }
 
   function onmenukeydown(event: KeyboardEvent): void {
-    const found = enabledItems();
+    const found = menuItems();
     const at = found.indexOf(document.activeElement as HTMLElement);
     const count = found.length;
     let next = -1;
@@ -151,6 +152,7 @@
       close();
       return;
     } else if (event.key === 'Tab') {
+      // Focus moves on to the next control in the page's order, not back to the trigger.
       open = false;
       return;
     } else if (event.key.length === 1 && !event.ctrlKey && !event.metaKey && !event.altKey)
@@ -168,10 +170,12 @@ that happen; a place to go is a link on the page. Put a destructive act last wit
 tone, so it is never the row under the pointer by accident.
 
 The trigger is an `IconButton` when given `label` and `icon`, and a `Button` with a chevron
-when given its label as children. Opening moves focus to the first item, arrows wrap, Home and
-End jump, typing a letter jumps to the next item that starts with it, and Escape closes and
-returns focus to the trigger. Choosing an item closes the menu and puts focus back on the
-trigger before `onselect` runs, so a dialog the item opens returns focus there too.
+when given its label as children. Opening moves focus to the first item. Arrows wrap, Home and
+End jump, and typing a letter jumps to the next item that starts with it. Escape closes and
+returns focus to the trigger, and Tab closes it and moves on to the next control. A disabled
+item stays in the arrow order with its `description`, and choosing it does nothing. Choosing
+any other item closes the menu and focuses the trigger before `onselect` runs. A dialog the
+item opens then returns focus there too. Labels wrap rather than being cut short.
 -->
 
 {#snippet control()}
@@ -212,6 +216,8 @@ trigger before `onselect` runs, so a dialog the item opens returns focus there t
             class={['sui-action-menu-item', { active: index === highlighted }]}
             data-tone={item.tone ?? 'default'}
             aria-disabled={item.disabled || undefined}
+            aria-labelledby={item.description ? `${uid}-item-${index}` : undefined}
+            aria-describedby={item.description ? `${uid}-item-${index}-description` : undefined}
             onclick={() => activate(item)}
             onpointermove={(event) => {
               if (!preview && !item.disabled && document.activeElement !== event.currentTarget)
@@ -223,7 +229,14 @@ trigger before `onselect` runs, so a dialog the item opens returns focus there t
                 {#if item.icon}<Icon name={item.icon} size="base" />{/if}
               </span>
             {/if}
-            <span class="sui-action-menu-label">{item.label}</span>
+            <span class="sui-action-menu-text">
+              <span id="{uid}-item-{index}" class="sui-action-menu-label">{item.label}</span>
+              {#if item.description}
+                <span id="{uid}-item-{index}-description" class="sui-action-menu-description"
+                  >{item.description}</span
+                >
+              {/if}
+            </span>
           </button>
         {/if}
       {/each}
@@ -264,7 +277,7 @@ trigger before `onselect` runs, so a dialog the item opens returns focus there t
   .sui-action-menu-item {
     align-items: center;
     background-color: transparent;
-    block-size: var(--sui-control-height-compact);
+    min-block-size: var(--sui-control-height-compact);
     border: 0;
     border-radius: var(--sui-radius-control);
     box-sizing: border-box;
@@ -275,7 +288,7 @@ trigger before `onselect` runs, so a dialog the item opens returns focus there t
     gap: var(--sui-space-2);
     inline-size: 100%;
     margin: 0;
-    padding: 0 var(--sui-space-3);
+    padding: var(--sui-space-1) var(--sui-space-3);
     text-align: start;
     transition:
       background-color var(--sui-duration-fast) var(--sui-ease-standard),
@@ -306,7 +319,11 @@ trigger before `onselect` runs, so a dialog the item opens returns focus there t
 
   .sui-action-menu-item[aria-disabled='true'] {
     cursor: default;
-    opacity: 0.5;
+  }
+
+  /* The reason a disabled item gives stays at full contrast. */
+  .sui-action-menu-item[aria-disabled='true'] :is(.sui-action-menu-icon, .sui-action-menu-label) {
+    opacity: var(--sui-disabled-opacity);
   }
 
   .sui-action-menu-item[data-tone='stop'] {
@@ -325,12 +342,20 @@ trigger before `onselect` runs, so a dialog the item opens returns focus there t
     color: var(--sui-danger);
   }
 
+  .sui-action-menu-text {
+    display: grid;
+    min-inline-size: 0;
+  }
+
   /* No cap trim: a name has descenders, and the row centres it on its own. */
   .sui-action-menu-label {
-    min-inline-size: 0;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    overflow-wrap: anywhere;
+  }
+
+  .sui-action-menu-description {
+    color: var(--sui-text-secondary);
+    font: 400 var(--sui-font-size-meta) / var(--sui-leading-meta) var(--sui-sans);
+    overflow-wrap: anywhere;
   }
 
   .sui-action-menu-separator {

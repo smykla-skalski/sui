@@ -10,7 +10,7 @@
 </script>
 
 <Example title="Set" note="One outline family on a 24-unit grid with a 1.75 stroke">
-  <ul class="grid">
+  <ul class="grid" role="list">
     {#each iconNames as name (name)}
       <li>
         <Icon {name} size="md" />

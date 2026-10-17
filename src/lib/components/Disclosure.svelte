@@ -146,4 +146,11 @@ row for a settings column.
       translate: none;
     }
   }
+
+  /* A finger needs a 44px target (L-38). */
+  @media (pointer: coarse), (max-width: 47.9375rem) {
+    .sui-disclosure-summary {
+      min-block-size: var(--sui-touch-target);
+    }
+  }
 </style>

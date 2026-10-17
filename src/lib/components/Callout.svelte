@@ -6,6 +6,7 @@
 <script lang="ts">
   import type { Snippet } from 'svelte';
   import type { HTMLAttributes } from 'svelte/elements';
+  import VisuallyHidden from './VisuallyHidden.svelte';
 
   let {
     tone = 'quiet',
@@ -39,9 +40,10 @@ of it. An empty state stands where the work would have been; a callout says some
 what the reader is looking at.
 
 Two tones and no more. `quiet` states a consequence to take in before confirming, and
-`warning` is for the genuinely hazardous one and carries the tint. `decision` is the gold
-surface of an unsaved decision: opaque, with a 2px accent border, and a `signal` button in
-`actions` takes the accent as its fill.
+`warning` is for the genuinely hazardous one and carries the tint. A screen reader hears
+"Warning:" before its words, because the tint and the icon do not reach it. `decision` is
+the gold surface of an unsaved decision: opaque, with a 2px accent border. Its resolving
+action wears Button's `decision` tone, and every other action keeps the default tone.
 
 The icon centres on the first line's cap band at every wrap, the title and description
 stand 8px of ink apart, and the space above the first cap equals the space below the last
@@ -50,6 +52,11 @@ baseline. Actions sit in a row beside the message and stack in a column when the
 from its container rather than sizing it to its content.
 -->
 
+<!-- A no-break space, because Svelte trims a plain one at the end of the words. -->
+{#snippet named()}
+  {#if tone === 'warning'}<VisuallyHidden>Warning:&nbsp;</VisuallyHidden>{/if}
+{/snippet}
+
 <div {...rest} class={['sui-callout', className, { decision }]} data-tone={tone}>
   <div class="sui-callout-message">
     {#if icon}
@@ -57,10 +64,12 @@ from its container rather than sizing it to its content.
     {/if}
     <div class="sui-callout-copy">
       {#if title !== undefined}
-        <p class="sui-callout-title">{title}</p>
+        <p class="sui-callout-title">{@render named()}{title}</p>
       {/if}
       {#if children}
-        <p class="sui-callout-text">{@render children()}</p>
+        <p class="sui-callout-text">
+          {#if title === undefined}{@render named()}{/if}{@render children()}
+        </p>
       {/if}
     </div>
   </div>
@@ -92,13 +101,8 @@ from its container rather than sizing it to its content.
     gap: var(--sui-space-2);
   }
 
-  /* The accent is lent to the action that resolves the decision, and to nothing else.
-     Written after the tones and as specific as them, so it wins over either. */
+  /* Written after the tones and as specific as them, so it wins over either. */
   .sui-callout.decision {
-    --sui-brand-action: var(--sui-decision-accent);
-    --sui-brand-action-hover: var(--sui-decision-accent-hover);
-    --sui-brand-action-pressed: var(--sui-decision-accent-pressed);
-    --sui-on-brand-action: var(--sui-on-decision-accent);
     background: var(--sui-popover-bg);
     border: var(--sui-decision-border-width) solid var(--sui-decision-accent);
     box-shadow: var(--sui-shadow-plate);

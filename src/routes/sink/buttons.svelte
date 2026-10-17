@@ -7,16 +7,7 @@
   import Example from '../kit/Example.svelte';
   import Specimen from '../kit/Specimen.svelte';
 
-  const tones = [
-    'default',
-    'signal',
-    'ghost',
-    'stop',
-    'stop-quiet',
-    'brand',
-    'quiet',
-    'decision'
-  ] as const;
+  const tones = ['default', 'signal', 'ghost', 'stop', 'stop-quiet', 'decision'] as const;
 </script>
 
 <Example title="Tones" note="A tone names the job a button does, and a view has one signal">
@@ -52,7 +43,10 @@
   </Button>
 </Example>
 
-<Example title="Loading" note="A running action is disabled and announced as busy">
+<Example
+  title="Loading"
+  note="A running action ignores presses and is announced as busy, and it keeps its focus"
+>
   <Button loading>Saving</Button>
   <Button tone="signal" loading>Publishing</Button>
 </Example>

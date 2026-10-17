@@ -85,7 +85,8 @@
 
 <!--
 @component
-Light, dark or follow the system, all three visible at once. It owns the page's theme: it
+Light, dark or follow the system, all three visible at once, or a select with the same three
+when the room is too narrow, as every `SegmentedControl` does. It owns the page's theme: it
 sets `data-sui-theme` on the root element, keeps the choice in local storage under
 `sui:theme`, and reads it back on the next visit. System follows the operating system live,
 so a reader who switches the system to dark sees the page follow without a reload.

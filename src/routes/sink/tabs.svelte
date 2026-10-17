@@ -42,7 +42,7 @@
 
 <Example
   title="Overflowing row"
-  note="Short of room, the row scrolls inside its own track and starts with the current tab in view"
+  note="Short of room, the row scrolls inside its own track with a thin scrollbar and starts with the current tab in view"
   layout="stack"
 >
   <div class="narrow">

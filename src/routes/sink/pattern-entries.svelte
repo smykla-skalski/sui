@@ -31,10 +31,13 @@
 
 <Example
   title="Empty and disabled"
-  note="An empty list is only its add button, and a disabled list keeps every entry in view"
+  note="An empty list is only its add button, and a disabled list keeps every entry and its reason in view"
 >
   <PatternEntries bind:value={paths} />
-  <PatternEntries value={['docs/**', 'CHANGELOG.md']} disabled />
+  <div class="locked">
+    <PatternEntries value={['docs/**', 'CHANGELOG.md']} disabled />
+    <p class="reason">A parent workspace sets these patterns</p>
+  </div>
 </Example>
 
 <Example
@@ -48,6 +51,19 @@
 </Example>
 
 <style>
+  .locked {
+    display: grid;
+    gap: var(--sui-row-copy-gap);
+    justify-items: start;
+  }
+
+  .reason {
+    color: var(--sui-text-secondary);
+    font: 400 var(--sui-font-size-meta) / var(--sui-row-copy-leading) var(--sui-sans);
+    margin: 0;
+    text-box: trim-both cap alphabetic;
+  }
+
   .state {
     color: var(--sui-text-muted);
     font: 400 var(--sui-font-size-meta) / var(--sui-leading-meta) var(--sui-mono);

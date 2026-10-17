@@ -3,14 +3,29 @@
 </script>
 
 <script lang="ts">
-  import { Button, ConfirmDialog, TextInput } from '#lib';
+  import { Button, ConfirmDialog, TextInput, toast } from '#lib';
   import Example from '../kit/Example.svelte';
 
   let remove = $state(false);
   let publish = $state(false);
-  let archive = $state(false);
+  let revoke = $state(false);
+  let archived = $state(false);
   let reason = $state('');
   let answer = $state('No answer yet');
+
+  function archive(): void {
+    archived = true;
+    toast({
+      title: 'Repository archived',
+      description: 'It is read-only until an owner restores it',
+      action: { label: 'Undo', run: restore }
+    });
+  }
+
+  function restore(): void {
+    archived = false;
+    toast({ title: 'Repository restored' });
+  }
 </script>
 
 <Example title="Destructive" note="The confirm action wears the stop tone and Cancel opens focused">
@@ -32,18 +47,22 @@
   />
   <ConfirmDialog
     preview
-    title="Archive this repository?"
-    consequence="It turns read-only for everyone until an owner restores it"
-    confirmLabel="Archive repository"
+    title="Yank 0.2.1?"
+    consequence="Nobody can install 0.2.1 again, and the version number is never reused"
+    confirmLabel="Yank release"
+    tone="stop"
   >
     <div class="field">
       <label for="sink-confirm-open-reason">Reason</label>
-      <TextInput id="sink-confirm-open-reason" placeholder="Moved to a new home" />
+      <TextInput id="sink-confirm-open-reason" placeholder="Ships a broken migration" />
     </div>
   </ConfirmDialog>
 </Example>
 
-<Example title="Affirmative" note="An act that gives something confirms with the signal tone">
+<Example
+  title="Affirmative"
+  note="An act that gives something confirms with the signal tone, and its confirm action opens focused"
+>
   <Button onclick={() => (publish = true)}>Publish release</Button>
 </Example>
 
@@ -51,7 +70,17 @@
   title="With a reason"
   note="Anything the answer needs goes in the body under the consequence"
 >
-  <Button onclick={() => (archive = true)}>Archive repository</Button>
+  <Button tone="stop-quiet" onclick={() => (revoke = true)}>Revoke token</Button>
+</Example>
+
+<Example
+  title="No question"
+  note="An act that can be undone just happens and offers Undo in a toast"
+>
+  <Button onclick={archived ? restore : archive}
+    >{archived ? 'Restore repository' : 'Archive repository'}</Button
+  >
+  <span class="state">{archived ? 'Archived' : 'Active'}</span>
 </Example>
 
 <ConfirmDialog
@@ -74,16 +103,17 @@
 />
 
 <ConfirmDialog
-  bind:open={archive}
-  title="Archive this repository?"
-  consequence="It turns read-only for everyone until an owner restores it"
-  confirmLabel="Archive repository"
-  onconfirm={() => (answer = reason ? `Archived: ${reason}` : 'Archived')}
-  oncancel={() => (answer = 'Not archived')}
+  bind:open={revoke}
+  title="Revoke this token?"
+  consequence="Every script that signs in with it stops working at once, and it cannot be restored"
+  confirmLabel="Revoke token"
+  tone="stop"
+  onconfirm={() => (answer = reason ? `Revoked: ${reason}` : 'Revoked')}
+  oncancel={() => (answer = 'Not revoked')}
 >
   <div class="field">
     <label for="sink-confirm-reason">Reason</label>
-    <TextInput id="sink-confirm-reason" bind:value={reason} placeholder="Moved to a new home" />
+    <TextInput id="sink-confirm-reason" bind:value={reason} placeholder="Leaked in a build log" />
   </div>
 </ConfirmDialog>
 

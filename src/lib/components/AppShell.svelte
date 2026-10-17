@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { onMount, type Snippet } from 'svelte';
+  import { flushSync, onMount, type Snippet } from 'svelte';
   import type { HTMLAttributes } from 'svelte/elements';
   import Icon from '../icons/Icon.svelte';
   import { firstStop, setShell, trapTab, type ShellMode } from '../internal/shell.svelte.js';
@@ -20,7 +20,7 @@
   }: {
     /** The page the reader is on, named in the phone bar. */
     title: string;
-    /** The outermost navigation, such as a `Rail`. It leaves on a phone and in the collapsed strip. */
+    /** The outermost navigation, such as a `Rail`. On a phone it rides in the drawer beside the pages. */
     rail?: Snippet;
     /** The pages, usually a `SideNav`. It becomes a drawer on a phone. */
     sidebar: Snippet;
@@ -123,11 +123,11 @@
 
   function ontoggle(event: ToggleEvent) {
     drawerOpen = event.newState === 'open';
-    if (
-      !drawerOpen &&
-      (side?.contains(document.activeElement) || document.activeElement === document.body)
-    )
-      menu?.focus({ preventScroll: true });
+    if (drawerOpen) return;
+    const lost = side?.contains(document.activeElement) || document.activeElement === document.body;
+    // The bar stays inert until the closed state reaches the DOM, and an inert button takes no focus.
+    flushSync();
+    if (lost) menu?.focus({ preventScroll: true });
   }
 </script>
 
@@ -137,11 +137,14 @@ The frame of an application: an optional rail for the outermost choice, a sideba
 pages, and the content. The shell owns the layout and its states, and the navigation inside
 it reads them from context.
 
-On a wide screen `collapsed` folds the sidebar into a 72px strip of icons and the rail steps
-aside, so the chrome stays one column. On a phone, below 48rem of the shell's own width, the
-rail leaves, a 56px bar names the current page, and the sidebar opens over the content as a
-drawer: focus moves into it, Tab stays inside, Escape or a press outside closes it, and focus
-returns to the bar's button.
+On a wide screen `collapsed` folds the sidebar into a 72px strip of icons with short labels.
+The rail stays beside it, so every place is still one press away.
+
+On a phone, below 48rem of the shell's own width, a 56px bar names the current page. Its
+button opens the rail and the sidebar over the content as one drawer, and keeps its name
+while `aria-expanded` says whether the drawer is open. While the drawer is open the bar and
+the content are inert, focus moves into the drawer and Tab stays inside. Escape or a press
+outside closes it, and focus returns to the bar's button.
 
 The layout answers to the shell's own width through container queries, so a shell inside a
 narrow preview behaves as it would on a phone. `contained` fills a bounded box instead of the
@@ -154,14 +157,14 @@ viewport. `landmark="none"` keeps the content from claiming the page's one `main
   {...rest}
   class={['sui-shell', className, { contained, ready }]}
 >
-  <header bind:this={topBar} class="sui-shell-bar">
+  <header bind:this={topBar} class="sui-shell-bar" inert={drawerOpen}>
     <button
       bind:this={menu}
       type="button"
       class="sui-shell-menu"
       popovertarget={sideId}
       aria-expanded={drawerOpen}
-      aria-label="Open {label.toLowerCase()}"
+      aria-label={label}
     >
       <Icon name="sidebar-expand" size="md" />
     </button>
@@ -170,9 +173,6 @@ viewport. `landmark="none"` keeps the content from claiming the page's one `main
   </header>
 
   <div class="sui-shell-grid" data-collapsed={collapsed}>
-    {#if rail}
-      <div class="sui-shell-rail">{@render rail()}</div>
-    {/if}
     <aside
       bind:this={side}
       id={sideId}
@@ -182,9 +182,16 @@ viewport. `landmark="none"` keeps the content from claiming the page's one `main
       {onbeforetoggle}
       {ontoggle}
     >
-      {@render sidebar()}
+      {#if rail}
+        <div class="sui-shell-rail">{@render rail()}</div>
+      {/if}
+      <div class="sui-shell-pages">{@render sidebar()}</div>
     </aside>
-    <svelte:element this={landmark === 'main' ? 'main' : 'div'} class="sui-shell-pane">
+    <svelte:element
+      this={landmark === 'main' ? 'main' : 'div'}
+      class="sui-shell-pane"
+      inert={drawerOpen}
+    >
       {@render children()}
     </svelte:element>
   </div>
@@ -276,31 +283,21 @@ viewport. `landmark="none"` keeps the content from claiming the page's one `main
   .sui-shell-grid {
     display: grid;
     flex: 1;
-    grid-template-columns: auto auto minmax(0, 1fr);
+    grid-template-columns: auto minmax(0, 1fr);
     min-block-size: 0;
   }
 
-  .sui-shell-rail {
-    align-self: start;
-    block-size: 100dvh;
-    display: flex;
-    inset-block-start: 0;
-    position: sticky;
-  }
-
-  /* The sidebar carries a popover attribute for its phone drawer. Everywhere else it is in
-     flow, so the browser's own popover box is undone here. */
+  /* The chrome holds the rail and the pages side by side and carries a popover attribute for
+     its phone drawer. Everywhere else it is in flow, so the browser's own popover box is undone
+     here. Its fit-content width stays, so it follows the columns inside. */
   .sui-shell-side {
     align-self: start;
     background: var(--sui-sidebar-bg);
     block-size: 100dvh;
     border: 0;
-    border-inline-end: 1px solid var(--sui-sidebar-border);
     box-sizing: border-box;
     color: var(--sui-sidebar-text);
     display: flex;
-    flex-direction: column;
-    inline-size: var(--sui-sidebar-width);
     inset: auto;
     inset-block-start: 0;
     margin: 0;
@@ -309,13 +306,26 @@ viewport. `landmark="none"` keeps the content from claiming the page's one `main
     position: sticky;
   }
 
-  .contained .sui-shell-rail,
+  .sui-shell-rail {
+    display: flex;
+    flex: none;
+  }
+
+  .sui-shell-pages {
+    border-inline-end: 1px solid var(--sui-sidebar-border);
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    inline-size: var(--sui-sidebar-width);
+    min-inline-size: 0;
+  }
+
   .contained .sui-shell-side {
     align-self: stretch;
     block-size: auto;
   }
 
-  .ready .sui-shell-side {
+  .ready .sui-shell-pages {
     transition: inline-size var(--sui-duration-normal) var(--sui-ease-standard);
   }
 
@@ -328,15 +338,7 @@ viewport. `landmark="none"` keeps the content from claiming the page's one `main
   }
 
   @container sui-shell (min-width: 64.0625rem) {
-    .sui-shell-grid[data-collapsed='true'] {
-      grid-template-columns: auto minmax(0, 1fr);
-    }
-
-    .sui-shell-grid[data-collapsed='true'] .sui-shell-rail {
-      display: none;
-    }
-
-    .sui-shell-grid[data-collapsed='true'] .sui-shell-side {
+    .sui-shell-grid[data-collapsed='true'] .sui-shell-pages {
       inline-size: var(--sui-sidebar-width-collapsed);
     }
   }
@@ -350,10 +352,6 @@ viewport. `landmark="none"` keeps the content from claiming the page's one `main
       grid-template-columns: minmax(0, 1fr);
     }
 
-    .sui-shell-rail {
-      display: none;
-    }
-
     .sui-shell-side:not(:popover-open) {
       display: none;
     }
@@ -361,10 +359,16 @@ viewport. `landmark="none"` keeps the content from claiming the page's one `main
     .sui-shell-side:popover-open {
       block-size: var(--sui-drawer-height);
       box-shadow: var(--sui-shadow-popover);
-      inline-size: min(19rem, 86vw);
       inset-block-start: var(--sui-drawer-top);
       inset-inline-start: var(--sui-drawer-left);
+      max-inline-size: 86vw;
       position: fixed;
+    }
+
+    /* The pages give way first when the rail beside them leaves less room. */
+    .sui-shell-side:popover-open .sui-shell-pages {
+      border-inline-end: 0;
+      flex: 0 1 auto;
     }
 
     .sui-shell-side::backdrop {
@@ -373,7 +377,7 @@ viewport. `landmark="none"` keeps the content from claiming the page's one `main
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .ready .sui-shell-side,
+    .ready .sui-shell-pages,
     .sui-shell-menu {
       transition: none;
     }

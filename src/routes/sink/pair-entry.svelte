@@ -53,19 +53,23 @@
       >
         {#snippet control({ labelledby })}
           <div class="pairs" role="group" aria-labelledby={labelledby}>
-            {#each pairs as pair, index (index)}
-              <PairEntry
-                bind:key={pair.key}
-                bind:value={pair.value}
-                options={commands}
-                keyLabel="Alias {index + 1}"
-                valueLabel="Command for alias {index + 1}"
-                keyPlaceholder="alias"
-                valuePlaceholder="command"
-                error={problem(pair.key, index)}
-                onremove={() => pairs.splice(index, 1)}
-              />
-            {/each}
+            <div class="grid">
+              {#each pairs as pair, index (index)}
+                <PairEntry
+                  bind:key={pair.key}
+                  bind:value={pair.value}
+                  options={commands}
+                  keyLabel="Alias"
+                  valueLabel="Command"
+                  row={index + 1}
+                  heads={index === 0}
+                  keyPlaceholder="alias"
+                  valuePlaceholder="command"
+                  error={problem(pair.key, index)}
+                  onremove={() => pairs.splice(index, 1)}
+                />
+              {/each}
+            </div>
             <Button tone="add" onclick={() => pairs.push({ key: '', value: 'deploy' })}>
               {#snippet icon()}<Icon name="plus" size="sm" />{/snippet}
               Add an alias
@@ -79,7 +83,7 @@
 
 <Example
   title="Pairs"
-  note="Press or type in a command to see suggestions, then use the arrows, Enter to pick and Escape to put it back"
+  note="Headings name each half above the lane, and the arrows light a suggestion for Enter to pick"
 >
   <PairEntry
     bind:key={single.key}
@@ -94,25 +98,28 @@
     bind:key={wrong.key}
     bind:value={wrong.value}
     options={commands}
-    keyLabel="Alias with a problem"
-    valueLabel="Command for the alias with a problem"
+    keyLabel="New alias"
+    valueLabel="New command"
     error={problem(wrong.key)}
     onremove={() => {}}
   />
-  <PairEntry
-    key="hold"
-    value="merge"
-    options={commands}
-    keyLabel="Locked alias"
-    valueLabel="Command for the locked alias"
-    disabled
-    onremove={() => {}}
-  />
+  <div class="locked">
+    <PairEntry
+      key="hold"
+      value="merge"
+      options={commands}
+      keyLabel="Locked alias"
+      valueLabel="Locked command"
+      disabled
+      onremove={() => {}}
+    />
+    <p class="reason">Set by the organization, so only an owner can change it</p>
+  </div>
 </Example>
 
 <Example
   title="In a setting row"
-  note="Pairs wrap inside their half of the row, and the reset stays centred beside all of them"
+  note="Pairs stack under one set of headings, and the reset stays centred beside all of them"
   layout="stack"
 >
   {@render aliases()}
@@ -128,12 +135,34 @@
 
 <style>
   .pairs {
-    align-items: center;
-    display: flex;
-    flex-wrap: wrap;
+    display: grid;
     gap: var(--sui-space-2);
-    justify-content: inherit;
+    justify-items: start;
     min-inline-size: 0;
+  }
+
+  /* Four columns for each pair to subgrid, so the halves line up under the first pair's headings. */
+  .grid {
+    column-gap: 0;
+    display: grid;
+    grid-template-columns: minmax(0, auto) auto minmax(0, auto) auto;
+    max-inline-size: 100%;
+    min-inline-size: 0;
+    row-gap: var(--sui-space-2);
+  }
+
+  .locked {
+    display: grid;
+    gap: var(--sui-row-copy-gap);
+    justify-items: start;
+  }
+
+  .reason {
+    color: var(--sui-text-secondary);
+    font: 400 var(--sui-font-size-meta) / var(--sui-row-copy-leading) var(--sui-sans);
+    margin: 0;
+    max-inline-size: 18rem;
+    text-box: trim-both cap alphabetic;
   }
 
   .narrow {

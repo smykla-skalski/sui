@@ -71,6 +71,7 @@
   import type { HTMLButtonAttributes } from 'svelte/elements';
   import Icon from '../icons/Icon.svelte';
   import Button from './Button.svelte';
+  import Field, { type FieldControl } from './Field.svelte';
   import Popover from './Popover.svelte';
   import TextInput from './TextInput.svelte';
 
@@ -90,7 +91,7 @@
     value: string;
     /** The one-press choices, in reading order. */
     swatches?: readonly string[];
-    /** Names the color outside a `Field`. The trigger's name reads it before the hex. */
+    /** Draws a `Field` label over the trigger. Inside a `Field` of your own, leave it off. */
     label?: string;
     disabled?: boolean;
     element?: HTMLButtonElement | HTMLAnchorElement | null;
@@ -113,6 +114,15 @@
   let drag: { target: HTMLElement; kind: 'area' | 'hue' } | null = null;
 
   const current = $derived(parseHex(value) ?? value);
+  /* A `<label for>` would replace the trigger's words as its name, so the name is the
+     label's words and the hex together, and a reader hears which color it holds. */
+  const labelled = $derived(
+    [...(element && 'labels' in element ? element.labels : [])]
+      .map((node) => node.textContent?.trim())
+      .filter(Boolean)
+      .join(' ') || rest['aria-label']
+  );
+  const name = $derived(labelled ? `${labelled} ${current}` : undefined);
   const palette = $derived([...new Set(swatches.map((swatch) => swatch.toLowerCase()))]);
   const hueColor = $derived(hsvToHex({ h: hsv.h, s: 1, v: 1 }));
   const saturation = $derived(Math.round(hsv.s * 100));
@@ -193,6 +203,10 @@
   }
 
   function areaKeys(event: KeyboardEvent) {
+    if (event.key === 'Home' || event.key === 'End') {
+      event.preventDefault();
+      return apply({ ...hsv, s: event.key === 'End' ? 1 : 0 });
+    }
     const direction = step(event);
     if (direction === 0) return;
     event.preventDefault();
@@ -203,6 +217,10 @@
   }
 
   function hueKeys(event: KeyboardEvent) {
+    if (event.key === 'Home' || event.key === 'End') {
+      event.preventDefault();
+      return apply({ ...hsv, h: event.key === 'End' ? 359 : 0 });
+    }
     const direction = step(event);
     if (direction === 0) return;
     event.preventDefault();
@@ -249,32 +267,47 @@ and a hex field. Reach for it only when the color is the user's own data, such a
 color; a theme never needs one.
 
 The value follows the picker live, so `bind:value` sees every step of a drag. Arrows move
-the knob and the hue thumb (Shift for bigger steps) and walk the swatches. Enter commits and
-closes, a swatch press does the same, and Escape closes and leaves the field's half-typed hex
-behind. A grey keeps the hue it had, so dragging through it never snaps the rail to red.
+the knob and the hue thumb (Shift for bigger steps) and walk the swatches. Home and End take
+the area to no or full saturation and the rail to its ends. Enter commits and closes, a
+swatch press does the same, and Escape closes and leaves the field's half-typed hex behind.
+A grey keeps the hue it had, so dragging through it never snaps the rail to red.
 
-Inside a `Field`, spread the field's `id` and `describedby` onto it and leave `label` off.
+`label` draws a visible `Field` label over the trigger. Inside a `Field` of your own, spread
+the field's `id` and `describedby` onto it and leave `label` off. Either way the trigger's
+name is the label and the hex, such as "Label color #0f766e".
 -->
 
-<Button
-  bind:element
-  aria-label={label && `${label} ${current}`}
-  {...rest}
-  class={['sui-color-picker', className]}
-  {disabled}
-  popovertarget={popoverId}
-  aria-haspopup="dialog"
-  aria-expanded={open}
-  onclick={seed}
->
-  {#snippet icon()}
-    <span class="mark" style:--sui-color-picker-value={current}></span>
-  {/snippet}
-  <code class="hex">{current}</code>
-  {#snippet trailing()}
-    <Icon name="chevron-down" size="sm" />
-  {/snippet}
-</Button>
+{#snippet trigger(field?: FieldControl)}
+  <Button
+    bind:element
+    {...rest}
+    id={field?.id ?? rest.id}
+    aria-describedby={field?.describedby ?? rest['aria-describedby']}
+    aria-label={name}
+    class={field ? undefined : ['sui-color-picker', className]}
+    {disabled}
+    popovertarget={popoverId}
+    aria-haspopup="dialog"
+    aria-expanded={open}
+    onclick={seed}
+  >
+    {#snippet icon()}
+      <span class="mark" style:--sui-color-picker-value={current}></span>
+    {/snippet}
+    <code class="hex">{current}</code>
+    {#snippet trailing()}
+      <Icon name="chevron-down" size="sm" />
+    {/snippet}
+  </Button>
+{/snippet}
+
+{#if label}
+  <div class={['sui-color-picker', className]}>
+    <Field {label} id={rest.id ?? `${uid}-trigger`} control={trigger} />
+  </div>
+{:else}
+  {@render trigger()}
+{/if}
 
 <Popover
   id={popoverId}
@@ -301,7 +334,7 @@ Inside a `Field`, spread the field's `id` and `describedby` onto it and leave `l
               class="swatch"
               name="{uid}-swatch"
               value={swatch}
-              aria-label={swatch}
+              aria-label="Color {swatch}"
               checked={swatch === current}
               style:--sui-color-picker-swatch={swatch}
               onchange={() => pick(swatch)}

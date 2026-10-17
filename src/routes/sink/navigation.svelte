@@ -9,7 +9,7 @@
 
 <Example
   title="Breadcrumb"
-  note="The way up through the hierarchy, where the nearest ancestor is the last link"
+  note="The way up through the hierarchy, where the nearest ancestor is the last link and the page itself closes the path"
   layout="stack"
 >
   <Breadcrumb
@@ -18,6 +18,7 @@
       { label: 'Repositories', href: '#navigation' },
       { label: 'Library', href: '#navigation' }
     ]}
+    current="Settings"
   />
 </Example>
 
@@ -35,7 +36,7 @@
 
 <Example
   title="Link"
-  note="The action ink with a faint underline that fills on hover, and an arrow when it leaves"
+  note="The action ink with a faint underline that fills on hover, and an arrow when it leaves, read aloud as opens another site"
   layout="stack"
 >
   <p class="copy">

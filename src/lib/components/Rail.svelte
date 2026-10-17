@@ -3,10 +3,12 @@
 
   export type RailItem = {
     label: string;
+    /** A shorter name drawn under the icon, taken from the words of `label` so speech input finds it. */
+    short?: string;
     icon: IconName;
     /** A destination draws a link; without one the tile is a button that calls `onpick`. */
     href?: string;
-    /** A count of things waiting there, drawn on the tile's corner. */
+    /** A count of things waiting there, drawn on the icon's corner and read with the name. */
     badge?: number;
   };
 </script>
@@ -15,6 +17,7 @@
   import type { Snippet } from 'svelte';
   import type { HTMLAttributes } from 'svelte/elements';
   import Icon from '../icons/Icon.svelte';
+  import { watchCut } from '../internal/shell.svelte.js';
   import Tooltip from './Tooltip.svelte';
 
   let {
@@ -41,6 +44,7 @@
   } & HTMLAttributes<HTMLElement> = $props();
 
   const tiles = $state<Record<string, HTMLElement | null>>({});
+  const cut = $state<Record<string, boolean>>({});
 
   const name = (item: RailItem) =>
     item.badge ? `${item.label}, ${item.badge} waiting` : item.label;
@@ -48,17 +52,19 @@
 
 <!--
 @component
-The outermost navigation: a 60px column of tiles, one per place, such as a workspace or a
+The outermost navigation: a 72px column of tiles, one per place, such as a workspace or a
 console. It changes where the reader is, and the `SideNav` beside it changes the page inside
 that place. The current place wears the same solid plate as the current page.
 
-Every tile is an icon with its name in a tooltip that opens to the side, on hover and on
-keyboard focus. Inside an `AppShell` the rail leaves on a phone and in the collapsed strip,
-where the shell keeps one chrome column.
+Every tile is a 44px target with its icon over a one-line label, `short` when one is given.
+A tooltip with the full name opens to the side only when the drawn label is shorter or cut.
+A badge rides the icon's corner and is read as part of the tile's name. Inside an `AppShell`
+the rail stays beside the collapsed strip, and on a phone it rides in the drawer.
 -->
 
 {#snippet tile(item: RailItem)}
   {@const here = item.label === current}
+  {@const tip = item.short ? item.short !== item.label : cut[item.label]}
   <li>
     {#if item.href}
       <a
@@ -68,10 +74,7 @@ where the shell keeps one chrome column.
         aria-label={name(item)}
         aria-current={here ? 'page' : undefined}
       >
-        <Icon name={item.icon} size="md" />
-        {#if item.badge}<span class="sui-rail-badge" aria-hidden="true"
-            ><span>{item.badge}</span></span
-          >{/if}
+        {@render face(item)}
       </a>
     {:else}
       <button
@@ -82,14 +85,24 @@ where the shell keeps one chrome column.
         aria-current={here ? 'true' : undefined}
         onclick={() => onpick?.(item)}
       >
-        <Icon name={item.icon} size="md" />
-        {#if item.badge}<span class="sui-rail-badge" aria-hidden="true"
-            ><span>{item.badge}</span></span
-          >{/if}
+        {@render face(item)}
       </button>
     {/if}
-    <Tooltip anchor={tiles[item.label]} text={name(item)} side="inline-end" />
+    {#if tip}
+      <Tooltip anchor={tiles[item.label]} text={item.label} side="inline-end" />
+    {/if}
   </li>
+{/snippet}
+
+{#snippet face(item: RailItem)}
+  <span class="sui-rail-glyph">
+    <Icon name={item.icon} size="md" />
+    {#if item.badge}<span class="sui-rail-badge" aria-hidden="true"><span>{item.badge}</span></span
+      >{/if}
+  </span>
+  <span class="sui-rail-label" {@attach watchCut((value) => (cut[item.label] = value))}
+    >{item.short ?? item.label}</span
+  >
 {/snippet}
 
 <nav {...rest} class={['sui-rail', className]} aria-label={label}>
@@ -148,18 +161,19 @@ where the shell keeps one chrome column.
   .sui-rail-tile {
     align-items: center;
     background: transparent;
-    block-size: var(--sui-rail-tile);
+    block-size: var(--sui-touch-target);
     border: 0;
     border-radius: var(--sui-radius-surface);
     box-sizing: border-box;
     color: var(--sui-sidebar-text-secondary);
     cursor: pointer;
-    display: inline-flex;
-    inline-size: var(--sui-rail-tile);
+    display: flex;
+    flex-direction: column;
+    gap: var(--sui-space-1);
+    inline-size: calc(var(--sui-rail-width) - var(--sui-space-2));
     justify-content: center;
     margin: 0;
-    padding: 0;
-    position: relative;
+    padding: 0 var(--sui-space-1);
     text-decoration: none;
     touch-action: manipulation;
     transition:
@@ -196,6 +210,24 @@ where the shell keeps one chrome column.
     box-shadow: var(--sui-sidebar-pressed-inset), var(--sui-sidebar-thumb-shadow-pressed);
   }
 
+  .sui-rail-glyph {
+    display: inline-flex;
+    position: relative;
+  }
+
+  .sui-rail-label {
+    font: 500 var(--sui-font-size-micro) / var(--sui-leading-flat) var(--sui-sans);
+    max-inline-size: 100%;
+    overflow-x: clip;
+    text-box: trim-both cap alphabetic;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .sui-rail-tile[aria-current] .sui-rail-label {
+    font-weight: 600;
+  }
+
   .sui-rail-badge {
     align-items: center;
     background: var(--sui-danger);
@@ -205,10 +237,10 @@ where the shell keeps one chrome column.
     box-sizing: border-box;
     color: var(--sui-on-danger);
     display: inline-flex;
-    font: 600 var(--sui-font-size-nano) / var(--sui-leading-flat) var(--sui-sans);
+    font: 600 var(--sui-font-size-micro) / var(--sui-leading-flat) var(--sui-sans);
     font-variant-numeric: tabular-nums;
     inset-block-start: calc(-1 * var(--sui-space-1));
-    inset-inline-end: calc(-1 * var(--sui-space-1));
+    inset-inline-start: calc(100% - var(--sui-space-2));
     justify-content: center;
     min-inline-size: var(--sui-icon-base);
     padding-inline: var(--sui-space-1);

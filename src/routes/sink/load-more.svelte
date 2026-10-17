@@ -33,7 +33,7 @@
 
 <Example
   title="On demand"
-  note="The next page loads as the end comes near, and a failure waits for a press"
+  note="The next page loads on a press, the status counts the new rows, and a failure waits for a retry"
   layout="stack"
 >
   <div class="card">
@@ -46,12 +46,22 @@
         </ObjectRow>
       {/each}
     </ObjectList>
-    <LoadMore more={items.length < PAGE * PAGES} {loading} {problem} onmore={next} />
+    <LoadMore
+      more={items.length < PAGE * PAGES}
+      shown={items.length}
+      total={PAGE * PAGES}
+      {loading}
+      {problem}
+      onmore={next}
+    />
   </div>
 </Example>
 
-<Example title="After a failure" note="The retry stands at the list boundary until it is pressed">
-  <LoadMore more problem="The next page could not be loaded" onmore={() => {}} />
+<Example
+  title="After a failure"
+  note="The reason and the retry stand at the list boundary until it is pressed"
+>
+  <LoadMore more shown={8} problem="The next page could not be loaded" onmore={() => {}} />
 </Example>
 
 <style>

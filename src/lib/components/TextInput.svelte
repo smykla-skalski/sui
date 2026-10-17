@@ -47,11 +47,11 @@ tabular figures.
   .sui-text-input {
     background-color: var(--sui-control-bg);
     block-size: var(--sui-local-control-height, var(--sui-control-height-compact));
-    border: 1px solid var(--sui-control-border);
+    border: 1px solid var(--sui-field-border);
     border-radius: var(--sui-radius-control);
     box-sizing: border-box;
     color: var(--sui-text-primary);
-    font: 400 var(--sui-font-size-meta) / var(--sui-leading-meta) var(--sui-sans);
+    font: 400 var(--sui-font-size-input) / var(--sui-leading-input) var(--sui-sans);
     inline-size: 100%;
     margin: 0;
     min-inline-size: var(--sui-field-target-min);
@@ -67,7 +67,7 @@ tabular figures.
   }
 
   .sui-text-input:hover:not(:disabled):not(:focus) {
-    border-color: var(--sui-control-border-hover);
+    border-color: var(--sui-field-border-hover);
   }
 
   .sui-text-input:focus {
@@ -86,7 +86,7 @@ tabular figures.
 
   .sui-text-input:disabled {
     cursor: default;
-    opacity: 0.5;
+    opacity: var(--sui-disabled-opacity);
   }
 
   .mono {

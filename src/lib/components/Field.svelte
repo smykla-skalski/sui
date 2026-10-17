@@ -6,6 +6,8 @@
     describedby: string | undefined;
     /** True while the field shows an error. */
     invalid: boolean;
+    /** True when the field must be filled. Put `required` on a native control, `aria-required` on any other. */
+    required: boolean;
   };
 </script>
 
@@ -20,6 +22,7 @@
     label,
     hint,
     error,
+    required = false,
     value = $bindable(''),
     type = 'text',
     layout = 'stack',
@@ -34,6 +37,8 @@
     hint?: string;
     /** Says what is wrong. The control is marked invalid and described by it. */
     error?: string;
+    /** Shows the word "Required" beside the label and marks the control required. */
+    required?: boolean;
     value?: string | number | null;
     type?: 'text' | 'email' | 'password' | 'search' | 'tel' | 'url' | 'number';
     /** `row` puts the label beside a switch instead of above the control. */
@@ -58,23 +63,36 @@ A label, its control, and the help and error under it, 8px apart as rendered ink
 land on that input.
 
 Any other control goes in the `control` snippet, which receives the `id` the label points at,
-the `describedby` ids of the hint and the error, and `invalid`. Spread them onto a `Textarea`,
-a `Switch` or a picker. `layout="row"` sets the label beside a switch, both centred on one line.
+the `describedby` ids of the hint and the error, `invalid` and `required`. Spread them onto a
+`Textarea`, a `Select`, a `Checkbox` or a picker. `layout="row"` sets the label beside a
+checkbox or a switch, both centred on one line.
+
+`required` writes the word "Required" beside the label, never only an asterisk, and marks
+the control. The word stays out of the accessibility tree, because the control already
+announces itself as required.
 
 A group of choices names itself with a legend, so `CheckList`, `ChoiceCards` and
 `SegmentedControl` stand on their own instead of inside a field.
 -->
 
 <div class="sui-field" data-layout={layout}>
-  <label class="sui-field-label" for={id}>{label}</label>
+  {#if required}
+    <div class="sui-field-head">
+      <label class="sui-field-label" for={id}>{label}</label>
+      <span class="sui-field-required" aria-hidden="true">Required</span>
+    </div>
+  {:else}
+    <label class="sui-field-label" for={id}>{label}</label>
+  {/if}
   <div class="sui-field-control">
     {#if control}
-      {@render control({ id, describedby, invalid: Boolean(error) })}
+      {@render control({ id, describedby, invalid: Boolean(error), required })}
     {:else}
       <TextInput
         {...rest}
         {id}
         {type}
+        {required}
         class={className}
         bind:value
         invalid={Boolean(error)}
@@ -107,6 +125,20 @@ A group of choices names itself with a legend, so `CheckList`, `ChoiceCards` and
     color: var(--sui-text-secondary);
     font: 600 var(--sui-font-size-control) / var(--sui-row-copy-leading) var(--sui-sans);
     min-inline-size: 0;
+    text-box: trim-both cap alphabetic;
+  }
+
+  .sui-field-head {
+    align-items: baseline;
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--sui-space-1) var(--sui-space-2);
+    min-inline-size: 0;
+  }
+
+  .sui-field-required {
+    color: var(--sui-text-muted);
+    font: 400 var(--sui-font-size-control) / var(--sui-row-copy-leading) var(--sui-sans);
     text-box: trim-both cap alphabetic;
   }
 

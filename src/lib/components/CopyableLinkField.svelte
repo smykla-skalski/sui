@@ -8,7 +8,7 @@
     value,
     label,
     hint,
-    copyLabel = 'Copy',
+    copyLabel = 'Copy link',
     class: className = '',
     ...rest
   }: {
@@ -18,7 +18,7 @@
     label?: string;
     /** One sentence under the field, such as when the link stops working. */
     hint?: string;
-    /** The copy button's resting label. */
+    /** The copy button's resting label, naming what it copies. */
     copyLabel?: string;
     /** Layout for the call site only, on the whole field. */
     class?: HTMLAttributes<HTMLDivElement>['class'];

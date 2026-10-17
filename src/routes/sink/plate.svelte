@@ -34,11 +34,24 @@
     {#snippet status()}
       <span class="state"><Icon name="warning" size="sm" /><span>2 repositories differ</span></span>
     {/snippet}
-    <Callout tone="warning" title="Drift blocks the next sync">
-      {#snippet icon()}<Icon name="warning" size="sm" />{/snippet}
-      Resolve the two differences before the sync at 02:00
-    </Callout>
+    <p class="copy">The two repositories changed their branch rules by hand</p>
   </Plate>
+</Example>
+
+<Example
+  title="Beside a callout"
+  note="A callout about a plate stands beside it, never inside it, so surfaces do not nest"
+  layout="stack"
+>
+  <Plate title="Configuration drift" level={4}>
+    {#snippet status()}
+      <span class="state"><Icon name="warning" size="sm" /><span>2 repositories differ</span></span>
+    {/snippet}
+  </Plate>
+  <Callout tone="warning" title="Drift blocks the next sync">
+    {#snippet icon()}<Icon name="warning" size="sm" />{/snippet}
+    Resolve the two differences before the sync at 02:00
+  </Callout>
 </Example>
 
 <style>

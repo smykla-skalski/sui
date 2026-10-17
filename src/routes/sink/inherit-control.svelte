@@ -3,7 +3,14 @@
 </script>
 
 <script lang="ts">
-  import { Card, DurationInput, InheritControl, Select, SettingList, SettingRow } from '#lib';
+  import {
+    Card,
+    DurationInput,
+    InheritControl,
+    SegmentedControl,
+    SettingList,
+    SettingRow
+  } from '#lib';
   import Example from '../kit/Example.svelte';
 
   const INHERITED_LIFETIME = 3600;
@@ -43,6 +50,7 @@
 >
   <InheritControl
     bind:overridden={() => lifetimeOverridden, overrideLifetime}
+    label="Session lifetime"
     inherited="1 hour"
     source="the workspace"
   >
@@ -51,14 +59,15 @@
     {/snippet}
   </InheritControl>
   <div class="specimen">
-    <span id="sink-inherit-level" class="caption">Log level</span>
+    <span class="caption">Log level</span>
     <InheritControl
       bind:overridden={() => levelOverridden, overrideLevel}
+      label="Log level"
       inherited="Info"
       source="the organization"
     >
       {#snippet control()}
-        <Select options={levels} bind:value={level} aria-labelledby="sink-inherit-level" />
+        <SegmentedControl label="Log level" options={levels} bind:value={level} />
       {/snippet}
     </InheritControl>
   </div>
@@ -76,14 +85,16 @@
         why="How long a sign-in lasts before it is asked for again"
         unsaved={lifetimeUnsaved}
       >
-        {#snippet control()}
+        {#snippet control({ id })}
           <InheritControl
             bind:overridden={() => lifetimeOverridden, overrideLifetime}
+            {id}
+            label="Session lifetime"
             inherited="1 hour"
             source="the workspace"
           >
             {#snippet control()}
-              <DurationInput label="Session lifetime" bind:value={lifetime} min={60} />
+              <DurationInput {id} label="Session lifetime" bind:value={lifetime} min={60} />
             {/snippet}
           </InheritControl>
         {/snippet}
@@ -96,11 +107,13 @@
         {#snippet control({ id })}
           <InheritControl
             bind:overridden={() => levelOverridden, overrideLevel}
+            {id}
+            label="Log level"
             inherited="Info"
             source="the organization"
           >
             {#snippet control()}
-              <Select {id} options={levels} bind:value={level} />
+              <SegmentedControl label="Log level" options={levels} bind:value={level} />
             {/snippet}
           </InheritControl>
         {/snippet}
@@ -116,6 +129,7 @@
 >
   <div class="narrow">
     <InheritControl
+      label="Retention"
       inherited="30 days"
       source="the retention policy of the whole organization"
       disabled

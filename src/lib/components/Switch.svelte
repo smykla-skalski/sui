@@ -160,7 +160,7 @@ its own rhythm.
 
   .disabled {
     cursor: default;
-    opacity: 0.5;
+    opacity: var(--sui-disabled-opacity);
   }
 
   @media (prefers-reduced-motion: reduce) {

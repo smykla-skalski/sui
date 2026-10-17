@@ -10,6 +10,16 @@
   type Repository = { name: string; open: number; merged: number; review: string };
   type Release = { version: string; status: string; size: string; published: string };
   type Check = { name: string; path: string; detail: string; runs: number };
+  type Build = {
+    branch: string;
+    runner: string;
+    queued: string;
+    duration: string;
+    tests: number;
+    failed: number;
+    cache: string;
+    size: string;
+  };
 
   const repositoryColumns: DataTableColumn<Repository>[] = [
     { key: 'name', label: 'Repository' },
@@ -55,6 +65,79 @@
       runs: 48_211
     }
   ];
+
+  const buildColumns: DataTableColumn<Build>[] = [
+    { key: 'branch', label: 'Branch', nowrap: true },
+    { key: 'runner', label: 'Runner', nowrap: true },
+    { key: 'queued', label: 'Queued', numeric: true },
+    { key: 'duration', label: 'Duration', numeric: true },
+    { key: 'tests', label: 'Tests', numeric: true },
+    { key: 'failed', label: 'Failed', numeric: true },
+    { key: 'cache', label: 'Cache hits', numeric: true },
+    { key: 'size', label: 'Artifact', numeric: true }
+  ];
+  const builds: Build[] = [
+    {
+      branch: 'main',
+      runner: 'linux-x64',
+      queued: '4 s',
+      duration: '6 min 12 s',
+      tests: 1_284,
+      failed: 0,
+      cache: '92%',
+      size: '84.7 MB'
+    },
+    {
+      branch: 'release/0.3',
+      runner: 'linux-x64',
+      queued: '11 s',
+      duration: '7 min 40 s',
+      tests: 1_284,
+      failed: 2,
+      cache: '88%',
+      size: '84.9 MB'
+    },
+    {
+      branch: 'feat/charts',
+      runner: 'macos-arm64',
+      queued: '1 min 3 s',
+      duration: '9 min 5 s',
+      tests: 1_302,
+      failed: 0,
+      cache: '71%',
+      size: '85.3 MB'
+    },
+    {
+      branch: 'fix/focus',
+      runner: 'linux-arm64',
+      queued: '9 s',
+      duration: '5 min 58 s',
+      tests: 1_286,
+      failed: 1,
+      cache: '94%',
+      size: '84.7 MB'
+    },
+    {
+      branch: 'chore/deps',
+      runner: 'linux-x64',
+      queued: '6 s',
+      duration: '8 min 21 s',
+      tests: 1_284,
+      failed: 0,
+      cache: '43%',
+      size: '86.1 MB'
+    },
+    {
+      branch: 'feat/pager',
+      runner: 'windows-x64',
+      queued: '2 min 40 s',
+      duration: '12 min 9 s',
+      tests: 1_290,
+      failed: 5,
+      cache: '65%',
+      size: '85.0 MB'
+    }
+  ];
 </script>
 
 <Example
@@ -98,6 +181,20 @@
   layout="stack"
 >
   <DataTable aria-label="Law checks" columns={checkColumns} rows={checks} />
+</Example>
+
+<Example
+  title="Striped"
+  note="A wide table tints every other row, so the eye keeps its row from the first column to the last"
+  layout="stack"
+>
+  <DataTable
+    caption="Builds in the last hour"
+    columns={buildColumns}
+    rows={builds}
+    rowHeader
+    striped
+  />
 </Example>
 
 <style>

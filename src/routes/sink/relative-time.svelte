@@ -19,7 +19,7 @@
 
 <Example
   title="Past"
-  note="Press a time, or focus it, to read the whole instant with seconds and its zone"
+  note="Hover a time, or press and hold it, to read the whole instant with seconds and its zone"
 >
   {#each past as value (value)}
     <span class="line"><RelativeTime {value} /></span>

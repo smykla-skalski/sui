@@ -134,4 +134,17 @@
   .sui-chart-table :global(td) {
     font-variant-numeric: tabular-nums;
   }
+
+  /* A finger needs a 44px target, so the hit area grows past the drawn box (L-38). */
+  @media (pointer: coarse), (max-width: 47.9375rem) {
+    summary {
+      position: relative;
+    }
+
+    summary::after {
+      content: '';
+      inset: calc((100% - var(--sui-touch-target)) / 2);
+      position: absolute;
+    }
+  }
 </style>

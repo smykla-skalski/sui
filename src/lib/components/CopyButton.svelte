@@ -10,7 +10,7 @@
   }: {
     /** What lands on the clipboard. */
     text: string;
-    /** The resting label. The confirmation is always "Copied". */
+    /** The resting label, naming what is copied, such as "Copy link". */
     label?: string;
     /** Matches the 34px control tier of a field or toolbar beside it. */
     toolbar?: boolean;
@@ -19,32 +19,51 @@
   } & Omit<HTMLButtonAttributes, 'children' | 'onclick'> = $props();
 
   const CONFIRM_FOR = 1600;
+  /* The status empties first and speaks a moment later, so a second copy inside the
+     confirmation is a change a screen reader hears again. */
+  const SETTLE = 100;
 
-  let copied = $state(false);
+  let outcome = $state<'copied' | 'failed' | null>(null);
+  let message = $state('');
   let timer = 0;
+  let speak = 0;
 
   async function copy(): Promise<void> {
+    let next: 'copied' | 'failed' = 'copied';
     try {
       await navigator.clipboard.writeText(text);
     } catch {
-      // ponytail: a refused clipboard confirms nothing, so the label stays; add a failure
-      // message when a caller needs the reader told to copy by hand.
-      return;
+      next = 'failed';
     }
-    copied = true;
+    outcome = next;
+    message = '';
+    clearTimeout(speak);
     clearTimeout(timer);
-    timer = window.setTimeout(() => (copied = false), CONFIRM_FOR);
+    speak = window.setTimeout(
+      () => (message = next === 'copied' ? 'Copied' : 'Copy failed'),
+      SETTLE
+    );
+    timer = window.setTimeout(() => {
+      outcome = null;
+      message = '';
+    }, CONFIRM_FOR);
   }
 
-  $effect(() => () => clearTimeout(timer));
+  $effect(() => () => {
+    clearTimeout(speak);
+    clearTimeout(timer);
+  });
 </script>
 
 <!--
 @component
-A small bordered button that puts `text` on the clipboard and says "Copied" for 1.6 seconds.
-The confirmation is also announced through a polite live region, so a reader who cannot see
-the label change still hears it. Both labels share one box, so the button does not change
-width when it confirms.
+A small bordered button that puts `text` on the clipboard and says "Copied" for 1.6 seconds,
+or "Copy failed" when the browser refuses the write. Name what it copies in `label`, such as
+"Copy link", because a page of buttons all called "Copy" tells a screen reader nothing.
+
+Each outcome is also announced through a polite live region, a second copy included, so a
+reader who cannot see the label change still hears it. The labels share one box, so the
+button does not change width when it answers.
 
 It is 28px tall on its own opaque ground, so it can sit over code. `CodeBlock` places one
 in its corner. Beside a 34px field or in a toolbar it takes the control tier with `toolbar`.
@@ -54,15 +73,17 @@ in its corner. Beside a 34px field or in a toolbar it takes the control tier wit
   type="button"
   {...rest}
   class={['sui-copy-button', className, { toolbar }]}
-  data-copied={copied || undefined}
+  data-copied={outcome === 'copied' || undefined}
+  data-failed={outcome === 'failed' || undefined}
   onclick={copy}
 >
   <span class="sui-copy-button-labels">
-    <span class={{ off: copied }}>{label}</span>
-    <span class={{ off: !copied }}>Copied</span>
+    <span class={{ off: outcome !== null }}>{label}</span>
+    <span class={{ off: outcome !== 'copied' }}>Copied</span>
+    <span class={{ off: outcome !== 'failed' }}>Copy failed</span>
   </span>
 </button>
-<span class="sui-copy-button-status" role="status">{copied ? 'Copied' : ''}</span>
+<span class="sui-copy-button-status" role="status">{message}</span>
 
 <style>
   /* The same registered state layer as `Button`, so the veil over the opaque ground
@@ -127,6 +148,10 @@ in its corner. Beside a 34px field or in a toolbar it takes the control tier wit
     outline-offset: var(--sui-focus-ring-flush);
   }
 
+  .sui-copy-button[data-failed] {
+    color: var(--sui-danger);
+  }
+
   .sui-copy-button-labels {
     display: grid;
   }
@@ -157,6 +182,19 @@ in its corner. Beside a 34px field or in a toolbar it takes the control tier wit
 
     .sui-copy-button:active {
       translate: none;
+    }
+  }
+
+  /* A finger needs a 44px target, so the hit area grows past the drawn box (L-38). */
+  @media (pointer: coarse), (max-width: 47.9375rem) {
+    .sui-copy-button {
+      position: relative;
+    }
+
+    .sui-copy-button::after {
+      content: '';
+      inset: calc((100% - var(--sui-touch-target)) / 2);
+      position: absolute;
     }
   }
 </style>

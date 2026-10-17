@@ -10,7 +10,7 @@
     { value: 'push', label: 'Push' },
     { value: 'pull-request', label: 'Pull request' },
     { value: 'release', label: 'Release' },
-    { value: 'tag', label: 'Tag', disabled: true }
+    { value: 'tag', label: 'Tag (needs app 2.4)', disabled: true }
   ];
 
   const scopes = [
@@ -27,7 +27,7 @@
     {
       value: 'admin',
       label: 'Manage members',
-      description: 'Invites and removes people, so grant it only to owners',
+      description: 'Invites and removes people, and only an owner can grant it',
       disabled: true
     }
   ];
@@ -40,7 +40,10 @@
   const some = $derived(chosen.length > 0 && !all);
 </script>
 
-<Example title="States" note="Unchecked, checked, partly chosen and disabled, each with its label">
+<Example
+  title="States"
+  note="The states alone: unchecked, checked, partly chosen and disabled, each with its label"
+>
   <div class="line">
     <Checkbox label="Unchecked" />
     <Checkbox label="Checked" checked />
@@ -61,12 +64,7 @@
     indeterminate={some}
     onchange={(event) => (chosen = event.currentTarget.checked ? available : [])}
   />
-  <CheckList
-    label="Events that start a sync"
-    hint="Tag events need a newer app version"
-    options={events}
-    bind:value={chosen}
-  />
+  <CheckList label="Events that start a sync" options={events} bind:value={chosen} />
 </Example>
 
 <Example

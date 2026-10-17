@@ -22,6 +22,7 @@
     rows,
     caption,
     rowHeader = false,
+    striped = false,
     cell,
     class: className = '',
     ...rest
@@ -32,6 +33,8 @@
     caption?: string;
     /** The first column names its row, so screen readers announce it with every cell. */
     rowHeader?: boolean;
+    /** Tints every other row, so the eye keeps its row across a wide table. */
+    striped?: boolean;
     /** Draws a cell instead of its plain value. */
     cell?: Snippet<[row: Row, column: DataTableColumn<Row>]>;
     /** Layout for the call site only, never the table's own paint. */
@@ -63,9 +66,12 @@ keyboard can scroll it too.
 
 The caption is drawn above the frame rather than inside the table, so it wraps to the room
 on screen while the table scrolls under it; it still names the table.
+
+`striped` tints every other row in place of the hairlines. Reach for it on a table wide
+enough that the eye can lose its row between the first column and the last.
 -->
 
-<div class={['sui-data-table', className]}>
+<div class={['sui-data-table', className, { striped }]}>
   {#if caption}<p id={captionId} class="caption">{caption}</p>{/if}
   <!-- The frame is a tab stop only while it scrolls, so a keyboard can reach what is past the edge. -->
   <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
@@ -170,6 +176,23 @@ on screen while the table scrolls under it; it still names the table.
 
   tbody tr + tr {
     border-block-start: 1px solid var(--sui-border-subtle);
+  }
+
+  /* A tinted row needs room inside its tint, so the outer cells take back their inset. */
+  .striped tbody tr + tr {
+    border-block-start: 0;
+  }
+
+  .striped tbody tr:nth-child(even) {
+    background: var(--sui-surface-inset);
+  }
+
+  .striped :is(th, td):first-child {
+    padding-inline-start: var(--sui-space-3);
+  }
+
+  .striped :is(th, td):last-child {
+    padding-inline-end: var(--sui-space-3);
   }
 
   td {
