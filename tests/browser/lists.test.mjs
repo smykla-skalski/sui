@@ -1,7 +1,6 @@
 import assert from 'node:assert/strict';
 import { after, before, test } from 'node:test';
-import { chromium } from 'playwright-core';
-import { createServer } from 'vite';
+import { startSink, visit } from './sink.mjs';
 
 // The lists, pickers and settings behaviours that need a real keyboard, pointer and focus:
 // where focus goes when a control leaves, what a reader can take back, and what is said.
@@ -13,10 +12,7 @@ let browser;
 let url = '';
 
 before(async () => {
-  server = await createServer({ logLevel: 'error', server: { port: 0 } });
-  await server.listen();
-  url = server.resolvedUrls?.local[0] ?? '';
-  browser = await chromium.launch({ channel: process.env.SUI_BROWSER_CHANNEL ?? 'chrome' });
+  ({ server, browser, url } = await startSink());
 });
 
 after(async () => {
@@ -27,7 +23,7 @@ after(async () => {
 /** @param {import('playwright-core').BrowserContextOptions} [options] */
 async function open(options = {}) {
   const page = await browser.newPage({ viewport: { width: 1440, height: 900 }, ...options });
-  await page.goto(url, { waitUntil: 'networkidle' });
+  await visit(page, url);
   await page.evaluate(() => document.fonts.ready);
   return page;
 }

@@ -1,7 +1,6 @@
 import assert from 'node:assert/strict';
 import { after, before, test } from 'node:test';
-import { chromium } from 'playwright-core';
-import { createServer } from 'vite';
+import { startSink, visit } from './sink.mjs';
 
 // Behaviour of the shell, the navigation lists, the tabs and the charts that the law audit
 // cannot see in one still page: focus handoffs, placement by direction, the phone bars,
@@ -14,10 +13,7 @@ let browser;
 let url = '';
 
 before(async () => {
-  server = await createServer({ logLevel: 'error', server: { port: 0 } });
-  await server.listen();
-  url = server.resolvedUrls?.local[0] ?? '';
-  browser = await chromium.launch({ channel: process.env.SUI_BROWSER_CHANNEL ?? 'chrome' });
+  ({ server, browser, url } = await startSink());
 });
 
 after(async () => {
@@ -32,7 +28,7 @@ after(async () => {
 async function open(width, { rtl = false, forced = false } = {}) {
   const page = await browser.newPage({ viewport: { width, height: 900 } });
   if (forced) await page.emulateMedia({ forcedColors: 'active' });
-  await page.goto(url, { waitUntil: 'networkidle' });
+  await visit(page, url);
   await page.evaluate(async (rtl) => {
     if (rtl) document.documentElement.dir = 'rtl';
     await document.fonts.ready;

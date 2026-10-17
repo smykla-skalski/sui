@@ -1,8 +1,7 @@
 import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
 import { after, before, test } from 'node:test';
-import { chromium } from 'playwright-core';
-import { createServer } from 'vite';
+import { startSink, visit } from './sink.mjs';
 
 // The kitchen sink under the conditions readers bring with them: an accessibility engine's
 // WCAG 2.2 rules, a right-to-left page, forced colors, the WCAG 1.4.12 text spacing and text
@@ -18,10 +17,7 @@ let browser;
 let url = '';
 
 before(async () => {
-  server = await createServer({ logLevel: 'error', server: { port: 0 } });
-  await server.listen();
-  url = server.resolvedUrls?.local[0] ?? '';
-  browser = await chromium.launch({ channel: process.env.SUI_BROWSER_CHANNEL ?? 'chrome' });
+  ({ server, browser, url } = await startSink());
 });
 
 after(async () => {
@@ -36,7 +32,7 @@ after(async () => {
  */
 async function open(width, theme, options = {}) {
   const page = await browser.newPage({ viewport: { width, height: 900 }, ...options });
-  await page.goto(url, { waitUntil: 'networkidle' });
+  await visit(page, url);
   await page.evaluate(async (name) => {
     document.documentElement.dataset.suiTheme = name;
     await document.fonts.ready;

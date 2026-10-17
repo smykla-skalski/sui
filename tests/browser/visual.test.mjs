@@ -3,8 +3,7 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { after, before, test } from 'node:test';
-import { chromium } from 'playwright-core';
-import { createServer } from 'vite';
+import { startSink, visit } from './sink.mjs';
 
 // Visual regression: each kitchen-sink section, drawn in both themes, must match the picture
 // recorded for this platform. Fonts rasterize differently per operating system, so pictures are
@@ -61,10 +60,7 @@ let browser;
 let url = '';
 
 before(async () => {
-  server = await createServer({ logLevel: 'error', server: { port: 0 } });
-  await server.listen();
-  url = server.resolvedUrls?.local[0] ?? '';
-  browser = await chromium.launch({ channel: process.env.SUI_BROWSER_CHANNEL ?? 'chrome' });
+  ({ server, browser, url } = await startSink());
 });
 
 after(async () => {
@@ -85,7 +81,7 @@ for (const theme of ['light', 'dark'])
       reducedMotion: 'reduce'
     });
     try {
-      await page.goto(url, { waitUntil: 'networkidle' });
+      await visit(page, url);
       await page.evaluate(async (name) => {
         document.documentElement.dataset.suiTheme = name;
         await document.fonts.ready;

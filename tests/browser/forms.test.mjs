@@ -1,7 +1,6 @@
 import assert from 'node:assert/strict';
 import { after, before, test } from 'node:test';
-import { chromium } from 'playwright-core';
-import { createServer } from 'vite';
+import { startSink, visit } from './sink.mjs';
 
 // The actions and form controls in the kitchen sink: focus handoffs, locked and pending states,
 // what a form posts, and placement in a right-to-left page.
@@ -13,10 +12,7 @@ let browser;
 let url = '';
 
 before(async () => {
-  server = await createServer({ logLevel: 'error', server: { port: 0 } });
-  await server.listen();
-  url = server.resolvedUrls?.local[0] ?? '';
-  browser = await chromium.launch({ channel: process.env.SUI_BROWSER_CHANNEL ?? 'chrome' });
+  ({ server, browser, url } = await startSink());
 });
 
 after(async () => {
@@ -33,7 +29,7 @@ async function open({ lang, width = 1440 } = {}) {
       const body = (await response.text()).replace(/<html lang="[^"]*"/, `<html lang="${lang}"`);
       await route.fulfill({ response, body });
     });
-  await page.goto(url, { waitUntil: 'networkidle' });
+  await visit(page, url);
   await page.evaluate(() => document.fonts.ready);
   await page.waitForFunction(() => '__suiAudit' in window);
   return page;

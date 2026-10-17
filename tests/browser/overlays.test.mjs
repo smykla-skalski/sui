@@ -1,7 +1,6 @@
 import assert from 'node:assert/strict';
 import { after, before, test } from 'node:test';
-import { chromium } from 'playwright-core';
-import { createServer } from 'vite';
+import { startSink, visit } from './sink.mjs';
 
 // Focus, keyboard and placement of the floating layers and dialogs, on the kitchen sink.
 
@@ -12,10 +11,7 @@ let browser;
 let url = '';
 
 before(async () => {
-  server = await createServer({ logLevel: 'error', server: { port: 0 } });
-  await server.listen();
-  url = server.resolvedUrls?.local[0] ?? '';
-  browser = await chromium.launch({ channel: process.env.SUI_BROWSER_CHANNEL ?? 'chrome' });
+  ({ server, browser, url } = await startSink());
 });
 
 after(async () => {
@@ -26,7 +22,7 @@ after(async () => {
 /** @param {import('playwright-core').BrowserContextOptions} [options] */
 async function open(options = {}) {
   const page = await browser.newPage({ viewport: { width: 1280, height: 900 }, ...options });
-  await page.goto(url, { waitUntil: 'networkidle' });
+  await visit(page, url);
   await page.evaluate(() => document.fonts.ready);
   // A smooth scroll would still be moving a trigger when its layer is measured.
   await page.addStyleTag({ content: 'html { scroll-behavior: auto !important; }' });
