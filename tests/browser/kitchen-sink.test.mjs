@@ -377,6 +377,31 @@ test('L-50 a dragged thumb chooses on release, and Escape puts it back', async (
   }
 });
 
+test('L-80 a clipped label answers its own hover, not the page around it', async () => {
+  const page = await open(1440, 'light');
+  try {
+    const stage = page.locator('#clipped-label .stage').first();
+    await stage.scrollIntoViewIfNeeded();
+    const box = await stage.boundingBox();
+    assert.ok(box);
+    const tips = () =>
+      page.evaluate(() =>
+        [...document.querySelectorAll('.sui-tooltip:popover-open')].map((tip) => tip.textContent)
+      );
+    // The main landmark takes script focus (tabindex -1), so it once anchored every tip.
+    await page.mouse.move(box.x + 4, box.y + 4);
+    await page.waitForTimeout(600);
+    assert.deepEqual(await tips(), [], 'entering the page opened a tip');
+
+    const label = page.locator('#clipped-label .sui-clipped-label').last();
+    await label.hover();
+    await page.waitForTimeout(600);
+    assert.deepEqual(await tips(), [await label.textContent()]);
+  } finally {
+    await page.close();
+  }
+});
+
 test('L-87 the phone drawer holds focus and gives it back', async () => {
   const page = await open(1440, 'light');
   try {

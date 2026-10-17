@@ -18,7 +18,8 @@
 The settings of one card, as a real `ul` of `SettingRow`s. Put it in a `Card`: the rows reach
 8px past the list on both sides, so their names keep the card title's edge while a changed row's
 fill stands clear of the text, and the list hands back the last row's bottom padding so the last
-line closes on the card's own frame.
+line closes on the card's own frame. When it opens the card it hands back the first row's top
+padding too, so the first line stands the card's inset below the keyline.
 -->
 
 <ul role="list" {...rest} class={['sui-setting-list', className]}>{@render children()}</ul>
@@ -34,5 +35,9 @@ line closes on the card's own frame.
 
   .sui-setting-list:has(> :global(li)) {
     margin-block-end: calc(-1 * var(--sui-row-pad-default));
+  }
+
+  .sui-setting-list:first-child:has(> :global(li)) {
+    margin-block-start: var(--sui-local-row-lead, 0px);
   }
 </style>

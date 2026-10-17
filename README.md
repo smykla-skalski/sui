@@ -1,6 +1,6 @@
 # SUI
 
-Reusable Svelte 5 components for Smykla projects. The shared look follows the [Smyklot panel design system](https://github.com/smykla-skalski/smyklot/blob/main/design-system/smyklot-panel/MASTER.md): graphite surfaces, petrol actions, Plus Jakarta Sans for interface text, JetBrains Mono for technical values, and semantic status colors. Every component is held to the [SUI design laws](docs/laws.md), which merge the Smyklot sheet with the rules of a companion documentation site.
+Reusable Svelte 5 components for Smykla projects. The shared look follows the [Smyklot panel design system](https://github.com/smykla-skalski/smyklot/blob/main/design-system/smyklot-panel/MASTER.md): neutral surfaces, one ocean blue accent in both themes, Plus Jakarta Sans for interface text, JetBrains Mono for technical values, and semantic status colors. Every component is held to the [SUI design laws](docs/laws.md), which merge the Smyklot sheet with the rules of a companion documentation site.
 
 This repository contains the package and a kitchen sink (`npm run dev`) that shows every component in every state and measures the laws on each render.
 

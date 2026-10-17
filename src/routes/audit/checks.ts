@@ -118,7 +118,12 @@ function atLeast(law: string, label: string, value: number, floor: number): Find
 function palette(): Finding[] {
   const t = (name: string) => token(`--sui-${name}`);
   const found: Finding[] = [];
-  const c = (a: string, b: string) => contrast(t(a), t(b));
+  // Lines and control fills are veils, so each is measured as painted: the ground over the
+  // surface, then the ink over the ground.
+  const c = (a: string, b: string) => {
+    const ground = over(t(b), t('surface-base'));
+    return contrast(over(t(a), ground), ground);
+  };
 
   for (const [ink, ground] of [
     ['text-primary', 'surface-base'],
@@ -131,6 +136,7 @@ function palette(): Finding[] {
     ['text-muted', 'input-bg'],
     ['text-muted', 'canvas'],
     ['brand-action-text', 'surface-base'],
+    ['link', 'surface-base'],
     ['brand-action-text', 'brand-action-tint'],
     ['on-brand-action', 'brand-action'],
     ['on-danger', 'danger'],
@@ -230,6 +236,17 @@ function palette(): Finding[] {
     found.push(
       ...atLeast('L-13', `on-brand-action on ${label}`, contrast(t('on-brand-action'), ground), 4.5)
     );
+  const fill = (theme: string) => {
+    const probe = document.createElement('span');
+    probe.dataset.suiTheme = theme;
+    probe.style.color = 'var(--sui-brand-action)';
+    document.body.append(probe);
+    const color = rgba(getComputedStyle(probe).color);
+    probe.remove();
+    return color;
+  };
+  if (deltaE(fill('light'), fill('dark')) > 1)
+    found.push(finding('L-13', null, 'the accent fill is not one color in both themes'));
   const danger = t('danger');
   const dangerHover = t('danger-hover');
   const expected = lightness(base) > 50 ? -1 : 1;
@@ -253,8 +270,8 @@ function palette(): Finding[] {
     ...atLeast('L-85', 'sidebar-focus on sidebar-bg', c('sidebar-focus', 'sidebar-bg'), 3)
   );
   const rail = t('sidebar-bg');
-  if (deltaE(t('sidebar-active-bg'), rail) <= deltaE(t('sidebar-item-pressed'), rail))
-    found.push(finding('L-85', null, 'the current row is not louder than a pressed row'));
+  if (deltaE(t('sidebar-active-bg'), rail) < deltaE(t('sidebar-item-pressed'), rail))
+    found.push(finding('L-85', null, 'the current row is quieter than a pressed row'));
 
   for (let index = 1; index <= 5; index++)
     found.push(
@@ -324,6 +341,7 @@ function edgeStrips(root: Document): Finding[] {
 
 function typeFaces(root: Document): Finding[] {
   const found: Finding[] = [];
+  const leadings = new Map<string, number>();
   for (const { element, text } of textElements(root)) {
     const style = getComputedStyle(element);
     const weight = Number(style.fontWeight);
@@ -347,7 +365,7 @@ function typeFaces(root: Document): Finding[] {
         found.push(finding('L-21', element, 'line-height is normal, a fractional font metric'));
       else if (
         Math.abs(parseFloat(leading) - Math.round(parseFloat(leading))) > 0.01 &&
-        Math.abs(parseFloat(leading) - rowCopyLeading(element)) > 0.01
+        Math.abs(parseFloat(leading) - rowCopyLeading(element, style, leadings)) > 0.01
       )
         found.push(finding('L-21', element, `line-height ${leading} is not a whole pixel`));
     }
@@ -355,13 +373,20 @@ function typeFaces(root: Document): Finding[] {
   return found;
 }
 
-/** The copy leading is the cap height plus the copy gap, so it is fractional by design. */
-function rowCopyLeading(element: Element): number {
+/**
+ * The copy leading is the cap height plus the copy gap, so it is fractional by design. A probe
+ * forces a style pass, so each face, size and gap is probed once per run.
+ */
+function rowCopyLeading(element: Element, style: CSSStyleDeclaration, seen: Map<string, number>) {
+  const key = `${style.fontFamily}|${style.fontSize}|${style.getPropertyValue('--sui-row-copy-gap')}`;
+  const known = seen.get(key);
+  if (known !== undefined) return known;
   const probe = document.createElement('span');
   probe.style.lineHeight = 'var(--sui-row-copy-leading)';
   element.append(probe);
   const leading = parseFloat(getComputedStyle(probe).lineHeight);
   probe.remove();
+  seen.set(key, leading);
   return leading;
 }
 
@@ -421,6 +446,90 @@ function clippedInView(element: Element, width: number): boolean {
   return false;
 }
 
+const CARD_CONTENT =
+  "button, input:not([type='hidden']), select, textarea, svg, img, progress, meter, [role='switch'], [role='checkbox'], [role='radio']";
+
+/**
+ * Where a card's content stops short of each keyline. Content is what a reader sees: words,
+ * controls, framed boxes, painted marks such as a pill or a skeleton bar, and tinted boxes that
+ * keep inside the card's inset, never the ground a row bleeds into the inset on hover or for a
+ * state. A side counts as reached when the content nearest it hugs
+ * its own container there. A line of text ends wherever its words do, so at the end side only
+ * solid content (a control, a framed box, a mark) counts, and text is held to not running past.
+ */
+function cardInsets(card: Element) {
+  const box = card.getBoundingClientRect();
+  const style = getComputedStyle(card);
+  const inner = {
+    top: box.top + parseFloat(style.borderTopWidth),
+    right: box.right - parseFloat(style.borderRightWidth),
+    bottom: box.bottom - parseFloat(style.borderBottomWidth),
+    left: box.left + parseFloat(style.borderLeftWidth)
+  };
+  const pad = parseFloat(style.paddingInlineStart);
+  const within = (own: DOMRect) =>
+    own.left >= inner.left + pad - 0.5 &&
+    own.right <= inner.right - pad + 0.5 &&
+    own.top >= inner.top + pad - 0.5 &&
+    own.bottom <= inner.bottom - pad + 0.5;
+  let top = Infinity;
+  let bottom = -Infinity;
+  const start = { edge: Infinity, reached: false };
+  const end = { edge: -Infinity, reached: false };
+  let text = -Infinity;
+  for (const element of card.querySelectorAll('*')) {
+    if (element.parentElement?.closest('svg') || element.closest(IGNORED)) continue;
+    if (!element.checkVisibility({ opacityProperty: false, visibilityProperty: true })) continue;
+    const own = element.getBoundingClientRect();
+    if (own.width <= 1 || own.height <= 1) continue;
+    const look = getComputedStyle(element);
+    const ground = rgba(look.backgroundColor).a > 0 || look.backgroundImage !== 'none';
+    const framed = (['Top', 'Right', 'Bottom', 'Left'] as const).every(
+      (side) =>
+        parseFloat(look.getPropertyValue(`border-${side.toLowerCase()}-width`)) > 0 &&
+        rgba(look.getPropertyValue(`border-${side.toLowerCase()}-color`)).a > 0
+    );
+    const words = [...element.childNodes].some(
+      (node) => node.nodeType === Node.TEXT_NODE && node.textContent?.trim()
+    );
+    if (!words && !framed && !ground && !element.matches(CARD_CONTENT)) continue;
+    let holder = element.parentElement ?? card;
+    while (holder !== card && /^(inline|contents)$/.test(getComputedStyle(holder).display))
+      holder = holder.parentElement ?? card;
+    const room = holder.getBoundingClientRect();
+    const space = getComputedStyle(holder);
+    const roomLeft = room.left + parseFloat(space.borderLeftWidth) + parseFloat(space.paddingLeft);
+    const roomRight =
+      room.right - parseFloat(space.borderRightWidth) - parseFloat(space.paddingRight);
+    const mark =
+      ground &&
+      (element.childElementCount === 0 || look.display.startsWith('inline-') || within(own));
+    const solid = framed || mark || element.matches(CARD_CONTENT);
+    if (!words && !solid) continue;
+    top = Math.min(top, own.top);
+    bottom = Math.max(bottom, own.bottom);
+    if (own.left < start.edge - 0.5) Object.assign(start, { edge: own.left, reached: false });
+    if (Math.abs(own.left - start.edge) <= 0.5 && own.left <= roomLeft + 1) start.reached = true;
+    if (!solid) {
+      text = Math.max(text, own.right);
+      continue;
+    }
+    if (own.right > end.edge + 0.5) Object.assign(end, { edge: own.right, reached: false });
+    if (Math.abs(own.right - end.edge) <= 0.5 && own.right >= roomRight - 1) end.reached = true;
+  }
+  if (top === Infinity) return null;
+  return {
+    inset: pad,
+    top: top - inner.top,
+    end: {
+      gap: Math.min(inner.right - end.edge, inner.right - text),
+      reached: end.reached && end.edge >= text
+    },
+    bottom: inner.bottom - bottom,
+    start: { gap: start.edge - inner.left, reached: start.reached }
+  };
+}
+
 function geometry(root: Document): Finding[] {
   const found: Finding[] = [];
 
@@ -430,11 +539,26 @@ function geometry(root: Document): Finding[] {
       found.push(finding('L-33', card, 'a card spaces itself with a margin'));
     if (parseFloat(style.minWidth) !== 0)
       found.push(finding('L-33', card, 'a card sets its own minimum width'));
+    const measured = cardInsets(card);
+    if (!measured) continue;
+    const { inset, top, end, bottom, start } = measured;
+    const off = (gap: number) => Math.abs(gap - inset) > 1;
+    const sideOff = (side: { gap: number; reached: boolean }) =>
+      side.reached ? off(side.gap) : side.gap < inset - 1;
+    if (off(top) || off(bottom) || sideOff(start) || sideOff(end))
+      found.push(
+        finding(
+          'L-33',
+          card,
+          `content stands ${round(top)} from the top, ${round(end.gap)} from the end, ${round(bottom)} from the bottom and ${round(start.gap)} from the start, not ${inset} all round`
+        )
+      );
   }
 
   for (const heading of audited(root, 'h1, h2, h3, h4, h5, h6')) {
     const parent = heading.parentElement;
-    if (!parent) continue;
+    // A card's head takes its control's height so the control keeps the card's inset (L-33).
+    if (!parent || parent.matches('.sui-card-head')) continue;
     const h = heading.getBoundingClientRect();
     const beside = [...parent.children].filter((sibling) => {
       if (sibling === heading || !shown(sibling)) return false;
@@ -646,6 +770,166 @@ function accessibility(root: Document): Finding[] {
   return found;
 }
 
+/** How wide the ink a reader sees in a box runs: its lines of text, controls and painted boxes. */
+function inkWidth(box: Element): number {
+  const spans: DOMRect[] = [];
+  const walker = document.createTreeWalker(box, NodeFilter.SHOW_TEXT);
+  for (let node = walker.nextNode(); node; node = walker.nextNode()) {
+    if (!node.textContent?.trim() || node.parentElement?.closest(':popover-open')) continue;
+    const range = document.createRange();
+    range.selectNodeContents(node);
+    spans.push(...range.getClientRects());
+  }
+  for (const element of box.querySelectorAll('*')) {
+    if (!element.getClientRects().length || element.closest(':popover-open')) continue;
+    const look = getComputedStyle(element);
+    const painted =
+      rgba(look.backgroundColor).a > 0 ||
+      parseFloat(look.borderLeftWidth) > 0 ||
+      parseFloat(look.borderTopWidth) > 0;
+    if (painted || element.matches(CARD_CONTENT)) spans.push(element.getBoundingClientRect());
+  }
+  if (spans.length === 0) return 0;
+  return Math.max(...spans.map((span) => span.right)) - Math.min(...spans.map((span) => span.left));
+}
+
+/**
+ * The kitchen sink's specimens (L-55): a component stays inside its specimen, and the name and
+ * props under it stay inside it too. Where a specimen sizes to its content, a caption line wraps
+ * only when the specimen could not grow wider. A stack is for specimens that use their line:
+ * ones that each fill under 60% of it and would fit side by side share a row.
+ */
+function specimens(root: Document): Finding[] {
+  const found: Finding[] = [];
+  for (const specimen of audited(root, 'figure.specimen')) {
+    const panel = specimen.querySelector(':scope > .body');
+    if (!panel) continue;
+    const edge = panel.getBoundingClientRect();
+    // Content that scrolls or clips inside its own box has not escaped: only its box counts.
+    const held = (element: Element) => {
+      for (let node = element.parentElement; node && node !== panel; node = node.parentElement) {
+        const style = getComputedStyle(node);
+        if (style.overflowX !== 'visible' || style.overflowY !== 'visible') return true;
+      }
+      return false;
+    };
+    // Only ink counts, and only sideways: a link's or summary's hit area may bleed past the
+    // specimen unseen, and trimmed text paints its ascenders above its own box by design.
+    const outside = (box: DOMRect) =>
+      box.width > 1 &&
+      box.height > 1 &&
+      (box.left < edge.left - 0.5 || box.right > edge.right + 0.5);
+    const escaped = [...panel.querySelectorAll('*')].find((element) => {
+      if (element.closest(':popover-open, dialog[open]') || held(element)) return false;
+      if (!element.checkVisibility({ opacityProperty: false, visibilityProperty: true }))
+        return false;
+      const look = getComputedStyle(element);
+      if (look.position === 'fixed' || look.clipPath !== 'none') return false;
+      const painted =
+        rgba(look.backgroundColor).a > 0 ||
+        parseFloat(look.borderLeftWidth) > 0 ||
+        parseFloat(look.borderTopWidth) > 0;
+      if ((painted || element.matches(CARD_CONTENT)) && outside(element.getBoundingClientRect()))
+        return true;
+      // Text an element clips to its own box paints no further than that box.
+      if (look.overflowX !== 'visible') return outside(element.getBoundingClientRect());
+      return [...element.childNodes].some((node) => {
+        if (node.nodeType !== Node.TEXT_NODE || !node.textContent?.trim()) return false;
+        const range = document.createRange();
+        range.selectNodeContents(node);
+        return [...range.getClientRects()].some(outside);
+      });
+    });
+    if (escaped) found.push(finding('L-55', escaped, 'reaches past its specimen'));
+
+    const own = specimen.getBoundingClientRect();
+    const holder = specimen.parentElement;
+    const room = holder
+      ? holder.clientWidth -
+        parseFloat(getComputedStyle(holder).paddingLeft) -
+        parseFloat(getComputedStyle(holder).paddingRight)
+      : own.width;
+    const caption = specimen.querySelector(':scope > figcaption');
+    if (!caption) continue;
+    const grows = holder !== null && getComputedStyle(holder).display.includes('flex');
+    for (const part of caption.children) {
+      const box = part.getBoundingClientRect();
+      if (box.left < own.left - 0.5 || box.right > own.right + 0.5)
+        found.push(finding('L-55', part, 'the caption runs past its specimen'));
+      const range = document.createRange();
+      range.selectNodeContents(part);
+      const lines = new Set([...range.getClientRects()].map((line) => Math.round(line.top))).size;
+      if (lines > 1 && grows && own.width < room - 1)
+        found.push(finding('L-55', part, 'the caption wraps while its specimen has room to grow'));
+    }
+  }
+
+  for (const stack of audited(root, ".specimens[data-layout='stack']")) {
+    const cells = [...stack.querySelectorAll(':scope > figure.specimen')];
+    if (cells.length < 2) continue;
+    const sizes = cells.map((cell) => {
+      const body = cell.querySelector(':scope > .body');
+      const band = cell.querySelector(':scope > figcaption');
+      if (!body) return { share: 1, natural: Infinity };
+      const space = getComputedStyle(body);
+      const pad = parseFloat(space.paddingLeft) + parseFloat(space.paddingRight);
+      const ink = inkWidth(body);
+      const bandWidth = band
+        ? [...band.children].reduce((sum, part) => sum + part.getBoundingClientRect().width, 0) +
+          parseFloat(getComputedStyle(band).columnGap || '0') * (band.children.length - 1) +
+          parseFloat(getComputedStyle(band).paddingLeft) +
+          parseFloat(getComputedStyle(band).paddingRight)
+        : 0;
+      return { share: ink / (body.clientWidth - pad), natural: Math.max(ink + pad, bandWidth) + 1 };
+    });
+    const fits = sizes.reduce((sum, size) => sum + size.natural, 0) <= stack.clientWidth;
+    if (fits && sizes.every((size) => size.share <= 0.6))
+      found.push(
+        finding('L-55', stack, 'stacked specimens use under 60% of their line and fit side by side')
+      );
+  }
+  return found;
+}
+
+/**
+ * Rows that wrap (L-90): every new line starts at the row's start edge, so a lone item that an
+ * auto margin pushes over never floats away from what it belongs to. A row aligned to its end or
+ * centre on purpose keeps every line there, and is left alone.
+ */
+function wrapping(root: Document): Finding[] {
+  const found: Finding[] = [];
+  for (const row of audited(root, 'body *')) {
+    const style = getComputedStyle(row);
+    if (!style.display.endsWith('flex') || style.flexWrap === 'nowrap') continue;
+    if (!style.flexDirection.startsWith('row')) continue;
+    if (/center|around|evenly|end|right/.test(style.justifyContent)) continue;
+    const items = [...row.children].filter(
+      (child) => shown(child) && !/^(absolute|fixed)$/.test(getComputedStyle(child).position)
+    );
+    if (items.length < 2) continue;
+    const box = row.getBoundingClientRect();
+    const start = box.left + parseFloat(style.borderLeftWidth) + parseFloat(style.paddingLeft);
+    let bottom = items[0].getBoundingClientRect().bottom;
+    for (const item of items.slice(1)) {
+      const own = item.getBoundingClientRect();
+      if (own.top < bottom - 0.5) {
+        bottom = Math.max(bottom, own.bottom);
+        continue;
+      }
+      bottom = own.bottom;
+      if (Math.abs(own.left - start) > 1)
+        found.push(
+          finding(
+            'L-90',
+            item,
+            `a wrapped line starts ${round(own.left - start)}px from the row's start`
+          )
+        );
+    }
+  }
+  return found;
+}
+
 register(
   palette,
   textContrast,
@@ -655,5 +939,7 @@ register(
   copyRhythm,
   geometry,
   controls,
-  accessibility
+  accessibility,
+  specimens,
+  wrapping
 );

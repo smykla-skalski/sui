@@ -82,7 +82,6 @@
 <Example
   title="Check list"
   note="Short labels run along one line, and once any option has a description each takes its own line"
-  layout="stack"
 >
   <Specimen label="Short labels" code="options">
     <CheckList label="Labels on the pull request" options={kinds} bind:value={labels} />

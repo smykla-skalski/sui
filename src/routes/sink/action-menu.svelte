@@ -72,7 +72,6 @@
 <Example
   title="Open"
   note="Icons, a disabled item with its reason, a destructive item last and a long item that wraps, with the first item lit"
-  layout="stack"
 >
   <Specimen label="Open with icons" code="preview">
     <ActionMenu label="Repository actions" icon="more" items={repository} align="end" preview />

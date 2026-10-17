@@ -214,7 +214,7 @@ a device without hover. It copies `code` exactly as given.
 
 <style>
   .sui-code-block {
-    background: var(--sui-surface-inset);
+    background: var(--sui-surface-code);
     border: 1px solid var(--sui-border-subtle);
     border-radius: var(--sui-radius-control);
     box-sizing: border-box;

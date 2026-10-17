@@ -4,7 +4,7 @@
   /* The two inks a painted chip can wear: `--sui-text-primary` in the light and in the dark
      palette, reached by scoping the ink to that theme. Their relative luminance is restated here
      so the choice can be made before paint; recompute it if those two tokens change. */
-  const INK = { light: 0.0138, dark: 0.9168 } as const;
+  const INK = { light: 0.0085, dark: 0.8527 } as const;
   /* A little over 4.5:1, so rounding the fill to whole channels never lands under it. */
   const FLOOR = 4.6;
 

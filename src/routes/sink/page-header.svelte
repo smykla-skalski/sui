@@ -40,7 +40,6 @@
 <Example
   title="Breadcrumb and back link"
   note="A breadcrumb or a back link takes the eyebrow's place"
-  layout="stack"
   ground="canvas"
 >
   <Specimen label="Breadcrumb" code="kicker">

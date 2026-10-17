@@ -100,7 +100,6 @@
 <Example
   title="Narrow width"
   note="Short of room, the same choice becomes a native select, with icons dropped and counts in brackets"
-  layout="stack"
 >
   <Specimen label="Words as a select">
     <div class="narrow">

@@ -16,7 +16,6 @@
 <Example
   title="Breadcrumb"
   note="The nearest ancestor is the last link, and a lone ancestor leads with a chevron so it reads as Up"
-  layout="stack"
 >
   <Specimen label="Ancestors and the page" code="items current">
     <Breadcrumb
@@ -45,7 +44,6 @@
 <Example
   title="Link"
   note="The action ink with a faint underline that fills on hover, and an arrow after a link that leaves"
-  layout="stack"
 >
   <Specimen label="Inside a sentence" code="href">
     <p class="copy">

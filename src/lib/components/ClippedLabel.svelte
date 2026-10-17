@@ -17,7 +17,10 @@
     class?: HTMLAttributes<HTMLSpanElement>['class'];
   } & Omit<HTMLAttributes<HTMLSpanElement>, 'children'> = $props();
 
-  const FOCUSABLE = 'a[href], button, input, select, textarea, summary, [tabindex]';
+  /* A negative tabindex is focus a script moves, such as the page's main landmark after a
+     skip link: a reader never tabs there, and it holds every label on the page. */
+  const FOCUSABLE =
+    "a[href], button, input, select, textarea, summary, [tabindex]:not([tabindex^='-'])";
 
   let clipped = $state(false);
 

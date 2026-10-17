@@ -189,7 +189,7 @@ removed line has no single number to claim. Two empty sides say "No changes".
 
 <style>
   .sui-diff-block {
-    background: var(--sui-surface-inset);
+    background: var(--sui-surface-code);
     border: 1px solid var(--sui-border-subtle);
     border-radius: var(--sui-radius-control);
     box-sizing: border-box;

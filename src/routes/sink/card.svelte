@@ -15,7 +15,7 @@
 
 <Example
   title="Parts"
-  note="The note is the title's second line, and controls beside the title never raise the head"
+  note="The note is the title's second line, and controls beside the title keep the card's inset"
   layout="grid"
   ground="canvas"
 >

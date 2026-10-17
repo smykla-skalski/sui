@@ -75,7 +75,7 @@
       >
         {#snippet control()}
           <AdditionPicker
-            label="Override another behaviour"
+            label="Override another"
             choices={behaviours}
             {added}
             done="Every behaviour is already set here"

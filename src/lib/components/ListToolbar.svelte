@@ -79,7 +79,8 @@
 @component
 The bar over a list: a search that leads, an optional primary filter as a segmented control,
 a tools button holding the sort and any further filters, and one optional primary action at
-the end. The tools button shows its label beside its glyph at every width. Search and filters
+the end of its line. On a line of its own the action starts at the edge, never adrift at the
+far end. The tools button shows its label beside its glyph at every width. Search and filters
 stand outside the list's card. The bar owns no list state: each group reports its choice
 through `onchange`, and the query is `bind:query`.
 
@@ -165,11 +166,14 @@ Escape or an outside press, returning focus to the tools button.
     min-inline-size: 0;
   }
 
+  /* Spread, not pushed by an auto margin: the action ends a line it shares, and on a line of
+     its own it starts at the edge like the search above it (L-90). */
   .sui-list-toolbar-bar {
     align-items: center;
     display: flex;
     flex-wrap: wrap;
     gap: var(--sui-space-2) var(--sui-space-3);
+    justify-content: space-between;
   }
 
   .sui-list-toolbar-search {
@@ -206,7 +210,6 @@ Escape or an outside press, returning focus to the tools button.
   .sui-list-toolbar-action {
     display: flex;
     gap: var(--sui-space-2);
-    margin-inline-start: auto;
   }
 
   /* Too narrow to share a line: the search takes the whole first line, and the folded filter,

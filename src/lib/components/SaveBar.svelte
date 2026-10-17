@@ -182,12 +182,13 @@ the bar up with the reason, and the work is never dropped on its own.
     color: var(--sui-danger);
   }
 
+  /* The bar spreads its two parts, so the actions end the line they share with the copy and
+     start the line they wrap to (L-90). */
   .actions {
     display: flex;
     flex: none;
     flex-wrap: wrap;
     gap: var(--sui-space-2);
-    margin-inline-start: auto;
   }
 
   @media (prefers-reduced-motion: reduce) {

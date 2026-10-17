@@ -15,8 +15,8 @@
 - Breaking: the `sticky` toast option is gone. A toast with an action stays until the reader acts, and toasts show above an open dialog.
 - Breaking: `LoadMore` is a button that announces new rows and needs `shown`. It no longer loads on scroll.
 - Breaking: `InheritControl` needs `label`. `RelativeTime` is no longer a tab stop. `SegmentedControl` turns into a select when its options do not fit.
-- The light theme takes the companion documentation site's grounds, rules, control edges and inks: a lighter canvas, a firmer hairline and deeper text. The dark theme already matched.
-- Status, accent, diff and code colors are one OKLCH system: every hue has the same ink, tint and fill steps in each theme. The decision gold is a fill with its own dark ink, and the dark accent is no longer neon.
+- The palette takes a companion operations console's colors in both themes: neutral grounds, black and white veil lines, transparent control fills, and its status, unsaved and role colors. The accent is one ocean blue that fills the same in both themes with white ink, and links wear its text shade (`--sui-link`). Code and diffs stand on their own code ground, and charts draw on the console's mark hues.
+- The decision gold is a fill with its own dark ink.
 - Add `Field` `required`, `Checkbox` `bare`, `DataTable` `striped`, `Breadcrumb` `current`, `Modal` `role` and `ActionMenu` item descriptions.
 
 ## 0.2.1

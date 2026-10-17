@@ -64,6 +64,9 @@ the button has focus, focus moves to the end-of-list note instead of falling to 
 A failure does not try again on its own, which could hammer a server that is already
 struggling. The reason shows beside the button, which reads "Try again" until the caller
 clears `problem`. Clear it when the retry starts.
+
+It pads 12px above and below like a row, and drops the bottom padding when it ends its
+container, so its button closes on a card's inset (L-33) as a list's last row does.
 -->
 
 <div class="sui-load-more" bind:this={root}>
@@ -90,6 +93,10 @@ clears `problem`. Clear it when the retry starts.
     gap: var(--sui-space-2) var(--sui-space-3);
     justify-content: center;
     padding-block: var(--sui-space-3);
+  }
+
+  .sui-load-more:last-child {
+    padding-block-end: 0;
   }
 
   .sui-load-more-copy {

@@ -538,9 +538,8 @@ from a sibling.
   }
 
   .sui-segmented-count {
-    background: var(--sui-interactive-hover-layer);
     border-radius: var(--sui-radius-chip);
-    color: var(--sui-text-secondary);
+    color: var(--sui-text-muted);
     display: inline-grid;
     font: 600 var(--sui-font-size-micro) / var(--sui-leading-flat) var(--sui-sans);
     font-variant-numeric: tabular-nums;

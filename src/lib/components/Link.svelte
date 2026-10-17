@@ -53,7 +53,7 @@ back from a page is `BackLink`.
 
 <style>
   .sui-link {
-    color: var(--sui-brand-action-text);
+    color: var(--sui-link);
     font-weight: 600;
     inline-size: fit-content;
     overflow-wrap: anywhere;
@@ -71,7 +71,7 @@ back from a page is `BackLink`.
   }
 
   .sui-link:active {
-    color: color-mix(in srgb, var(--sui-brand-action-text) 78%, var(--sui-text-primary));
+    color: color-mix(in srgb, var(--sui-link) 78%, var(--sui-text-primary));
   }
 
   .sui-link:focus-visible {

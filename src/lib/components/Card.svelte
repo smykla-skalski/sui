@@ -45,11 +45,15 @@ The surface for a group of related things: the base ground, a subtle keyline and
 corner. The card owns its 20px inset (16px on a phone) and never its outer spacing, so a
 stack of cards takes its 16px from the container's gap. It never decides its column's width.
 
-The title is a heading at `level`, balanced and trimmed to its cap height. A `note` is the
-title's second line, 8px of ink below it, not the first line of the body. Controls in
-`actions` centre on the title's cap line and bleed into the inset rather than growing the
-head, so every card's title sits the same distance from its first row. A `footer` closes on
-the same track, so the inset below its last action matches the inset above the head's.
+Whatever the card holds stands the same inset from all four keylines (L-33): the first ink
+sits 20px below the top, the last 20px above the bottom, and anything that reaches a side
+stops 20px short of it. The title is a heading at `level`, balanced and trimmed to its cap
+height. A `note` is the title's second line, 8px of ink below it, not the first line of the
+body. Controls in `actions` set the head's height and the title centres on them, so a control
+keeps the inset from the top and the end; under a title that wraps past them they stay on
+the first line. A `footer` row is as tall as its actions, so they keep the inset from the
+bottom. A row list that opens the card hands back its first row's padding, as it hands back
+its last.
 
 Do not nest cards for decoration. Reach for `Plate` when the subject has a state to say
 on its title line.
@@ -102,6 +106,7 @@ on its title line.
   }
 
   .sui-card-title {
+    align-self: center;
     color: var(--sui-text-primary);
     flex: 1 1 auto;
     font: 600 var(--sui-font-size-card-title) / var(--sui-leading-title) var(--sui-sans);
@@ -113,22 +118,16 @@ on its title line.
     text-wrap: balance;
   }
 
-  /* A track exactly one title cap tall, in the title's own face so `1cap` is the title's:
-     whatever the caller puts here overflows it equally above and below, so a 34px button
-     centres on the title's first line without raising the head. */
   .sui-card-actions {
     align-items: center;
-    block-size: 1cap;
     display: flex;
     flex: none;
-    font: 600 var(--sui-font-size-card-title) / var(--sui-leading-title) var(--sui-sans);
     gap: var(--sui-space-2);
     margin-inline-start: auto;
   }
 
   .sui-card-footer {
     align-items: center;
-    block-size: var(--sui-card-head-line);
     display: flex;
     gap: var(--sui-space-2);
   }
@@ -154,7 +153,12 @@ on its title line.
   }
 
   * + .sui-card-footer {
-    margin-block-start: var(--sui-rhythm-card-foot-band);
+    margin-block-start: var(--sui-rhythm-card-head-body);
+  }
+
+  /* A row list that opens the card reads this and hands back its first row's padding. */
+  .sui-card-body:first-child > :global(:first-child) {
+    --sui-local-row-lead: calc(-1 * var(--sui-row-pad-default));
   }
 
   @media (max-width: 36rem) {

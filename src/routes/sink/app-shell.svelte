@@ -181,6 +181,7 @@
     --sui-shell-height: 30rem;
     border: 1px solid var(--sui-border-subtle);
     border-radius: var(--sui-radius-surface);
+    box-sizing: border-box;
     overflow: hidden;
   }
 

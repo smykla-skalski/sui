@@ -153,11 +153,11 @@ These are native radios, so the arrow keys move the choice and skip disabled ans
   }
 
   .sui-choice-card:has(input:checked) {
-    background-color: color-mix(in oklab, var(--sui-brand-action) 25%, var(--sui-surface-base));
+    background-color: var(--sui-brand-action-tint);
   }
 
   .sui-choice-card:has(input:checked):hover:not(.disabled) {
-    background-color: color-mix(in oklab, var(--sui-brand-action) 29%, var(--sui-surface-base));
+    background-color: color-mix(in srgb, var(--sui-brand-action) 14%, var(--sui-surface-base));
   }
 
   /* The radio is the focus target and wears the ring, so it covers the card without its

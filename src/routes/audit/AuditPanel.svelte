@@ -8,7 +8,16 @@
 
   const count = (n: number, word: string) => `${n} ${word}${n === 1 ? '' : 's'}`;
 
-  async function rerun() {
+  // A theme switch during a run starts another, and only the newest run reports.
+  let runs = 0;
+  // A reader who switches the theme may switch straight back, so the audit waits until the
+  // switching stops instead of holding up the next click.
+  const AFTER_SWITCH = 500;
+
+  async function rerun(wait = 0) {
+    const run = ++runs;
+    if (wait) await new Promise((resolve) => setTimeout(resolve, wait));
+    if (run !== runs) return null;
     await tick();
     await document.fonts.ready;
     await new Promise(requestAnimationFrame);
@@ -22,7 +31,9 @@
       )
       .map((animation) => animation.finished);
     await Promise.allSettled(settling);
-    findings = runAudit(document);
+    const result = await runAudit(document, () => run !== runs);
+    if (result) findings = result;
+    return result;
   }
 
   function reveal(finding: Finding) {
@@ -46,17 +57,19 @@
 
   onMount(() => {
     (window as unknown as { __suiAudit: () => Promise<Finding[]> }).__suiAudit = async () => {
-      await rerun();
-      return (findings ?? []).map(({ law, where, detail }) => ({ law, where, detail }));
+      let result = await rerun();
+      while (!result) result = await rerun();
+      return result.map(({ law, where, detail }) => ({ law, where, detail }));
     };
     void rerun();
-    const observer = new MutationObserver(() => void rerun());
+    const observer = new MutationObserver(() => void rerun(AFTER_SWITCH));
     observer.observe(document.documentElement, { attributeFilter: ['data-sui-theme'] });
     const query = matchMedia('(max-width: 47.9375rem)');
-    query.addEventListener('change', rerun);
+    const resized = () => void rerun();
+    query.addEventListener('change', resized);
     return () => {
       observer.disconnect();
-      query.removeEventListener('change', rerun);
+      query.removeEventListener('change', resized);
     };
   });
 </script>

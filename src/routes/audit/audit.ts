@@ -35,12 +35,23 @@ export function shown(element: Element): boolean {
   return element.checkVisibility({ opacityProperty: false }) && element.getClientRects().length > 0;
 }
 
-export function runAudit(root: Document = document): Finding[] {
-  return [...checks.values()].flatMap((check) => {
+/**
+ * Runs every check and gives the page a turn before each one, so a click or a hover never waits
+ * on the whole audit. A run that `stale` says a newer one replaced stops and returns null.
+ */
+export async function runAudit(
+  root: Document = document,
+  stale: () => boolean = () => false
+): Promise<Finding[] | null> {
+  const found: Finding[] = [];
+  for (const check of checks.values()) {
+    await new Promise((resolve) => setTimeout(resolve));
+    if (stale()) return null;
     try {
-      return check(root);
+      found.push(...check(root));
     } catch (error) {
-      return [{ law: 'audit', where: check.name || 'check', detail: String(error) }];
+      found.push({ law: 'audit', where: check.name || 'check', detail: String(error) });
     }
-  });
+  }
+  return found;
 }
