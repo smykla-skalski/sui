@@ -75,6 +75,8 @@ npm run build
 npm run dev
 ```
 
+`npm test` runs on Node's built-in test runner. Component tests mount real Svelte components into jsdom through `tests/support/render.mjs` and drive them with Testing Library's `user-event`, so new components can add keyboard and focus tests the same way.
+
 `npm run build` writes distributable Svelte components, JavaScript, declarations, and CSS to `dist/`. `npm pack --dry-run` previews the published files.
 
 ## Release
