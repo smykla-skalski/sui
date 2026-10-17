@@ -107,6 +107,7 @@ on its title line.
 
   .sui-card-title {
     align-self: center;
+    block-size: var(--sui-block-snap);
     color: var(--sui-text-primary);
     flex: 1 1 auto;
     font: 600 var(--sui-font-size-card-title) / var(--sui-leading-title) var(--sui-sans);
@@ -133,6 +134,7 @@ on its title line.
   }
 
   .sui-card-note {
+    block-size: var(--sui-block-snap);
     color: var(--sui-text-muted);
     font: 400 var(--sui-font-size-meta) / var(--sui-row-copy-leading) var(--sui-sans);
     margin: var(--sui-row-copy-gap) 0 0;

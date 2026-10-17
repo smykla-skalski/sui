@@ -1,5 +1,5 @@
 import { describe, register, shown, type Finding } from './audit.js';
-import { contrast, deltaE, lightness, over, rgba, type Rgba } from './color.js';
+import { contrast, deltaE, lab, lightness, over, rgba, type Rgba } from './color.js';
 
 const IGNORED = '[data-audit-ignore], [data-audit-ignore] *';
 const INTERACTIVE =
@@ -175,16 +175,20 @@ function palette(): Finding[] {
   found.push(
     ...between('L-9', 'control-border on input-bg', c('control-border', 'input-bg'), 1.4, 2.25)
   );
-  for (const ground of [
-    'canvas',
-    'surface-base',
-    'surface-raised',
-    'surface-control',
-    'input-bg',
-    'unsaved-surface',
-    'unsaved-control'
-  ])
+  // A changed row restates its fields' baseline (unsaved-field-border), measured below.
+  for (const ground of ['canvas', 'surface-base', 'surface-raised', 'surface-control', 'input-bg'])
     found.push(...atLeast('L-9', `field-border on ${ground}`, c('field-border', ground), 3));
+  for (const ground of ['unsaved-surface', 'unsaved-control'])
+    found.push(
+      ...atLeast('L-9', `unsaved-field-border on ${ground}`, c('unsaved-field-border', ground), 3),
+      ...between(
+        'L-9',
+        `unsaved-control-border on ${ground}`,
+        c('unsaved-control-border', ground),
+        1.5,
+        2.25
+      )
+    );
   found.push(
     ...between('L-10', 'control-bg on surface-base', c('control-bg', 'surface-base'), 1, 1.5)
   );
@@ -930,6 +934,361 @@ function wrapping(root: Document): Finding[] {
   return found;
 }
 
+/**
+ * State plates (L-91): a row's state ground drawn inside its own box. Two neighbouring rows in a
+ * state show 4px to 8px of card between their plates.
+ */
+function plates(root: Document): Finding[] {
+  const found: Finding[] = [];
+  // A plate is the row's own ground, or a ground its ::before lays inside it.
+  const plate = (row: Element): DOMRect | null => {
+    const box = row.getBoundingClientRect();
+    const own = getComputedStyle(row);
+    if (rgba(own.backgroundColor).a > 0) {
+      const clipped = own.backgroundClip === 'padding-box';
+      const top = box.top + (clipped ? parseFloat(own.borderTopWidth) : 0);
+      const bottom = box.bottom - (clipped ? parseFloat(own.borderBottomWidth) : 0);
+      return new DOMRect(box.left, top, box.width, bottom - top);
+    }
+    const look = getComputedStyle(row, '::before');
+    if (look.content === 'none' || look.position !== 'absolute') return null;
+    if (rgba(look.backgroundColor).a === 0) return null;
+    const top = box.top + parseFloat(look.top);
+    const bottom = box.bottom - parseFloat(look.bottom);
+    return new DOMRect(box.left, top, box.width, bottom - top);
+  };
+  for (const row of audited(root, 'li')) {
+    const next = row.nextElementSibling;
+    if (!next || !shown(next)) continue;
+    const [above, below] = [plate(row), plate(next)];
+    if (!above || !below) continue;
+    const gap = below.top - above.bottom;
+    if (gap < 3.5 || gap > 8.5)
+      found.push(
+        finding('L-91', next, `two state plates stand ${round(gap)}px apart, not 4px to 8px`)
+      );
+  }
+  return found;
+}
+
+/**
+ * A changed row (L-16): every edge inside it wears the unsaved family, so no neutral line sits
+ * on the gold plate. The tokens are read inside the row, where it has set them.
+ */
+function changedEdges(root: Document): Finding[] {
+  const found: Finding[] = [];
+  const tokens = [
+    'unsaved-field-border',
+    'unsaved-field-border-hover',
+    'unsaved-control-border',
+    'unsaved-border',
+    'unsaved-secondary',
+    'unsaved-ink',
+    'decision-accent',
+    'decision-accent-hover',
+    'decision-accent-pressed',
+    'focus'
+  ];
+  for (const row of audited(root, '[data-unsaved]')) {
+    const ground = rgba(getComputedStyle(row, '::before').backgroundColor);
+    const read = (name: string) => {
+      const probe = document.createElement('span');
+      probe.style.color = `var(--sui-${name})`;
+      row.append(probe);
+      const color = rgba(getComputedStyle(probe).color);
+      probe.remove();
+      return over(color, ground);
+    };
+    const family = tokens.map(read);
+    for (const element of row.querySelectorAll('*')) {
+      if (element.closest(':popover-open') || !shown(element)) continue;
+      const look = getComputedStyle(element);
+      for (const side of ['top', 'right', 'bottom', 'left']) {
+        if (parseFloat(look.getPropertyValue(`border-${side}-width`)) === 0) continue;
+        const edge = rgba(look.getPropertyValue(`border-${side}-color`));
+        if (edge.a === 0) continue;
+        const seen = over(edge, ground);
+        if (family.every((color) => deltaE(color, seen) > 3)) {
+          found.push(finding('L-16', element, 'an edge in a changed row keeps a neutral colour'));
+          break;
+        }
+      }
+    }
+  }
+  return found;
+}
+
+/**
+ * Controls on a state (L-92): inside a container that wears a warning, a danger or an unsaved
+ * decision, no control keeps a neutral edge. Neutral is a Lab chroma under 4 once the edge is
+ * laid on the container's ground.
+ */
+function tonedControls(root: Document): Finding[] {
+  const found: Finding[] = [];
+  const states =
+    ".sui-callout[data-tone='warning'], .sui-callout.decision, .sui-save-bar, .sui-error-state";
+  for (const holder of audited(root, states)) {
+    const ground = over(
+      rgba(getComputedStyle(holder).backgroundColor),
+      token('--sui-surface-base')
+    );
+    for (const control of holder.querySelectorAll('button, a.sui-button, input, select')) {
+      if (control.closest(':popover-open') || !shown(control)) continue;
+      const look = getComputedStyle(control);
+      if (parseFloat(look.borderTopWidth) === 0) continue;
+      const edge = rgba(look.borderTopColor);
+      if (edge.a === 0) continue;
+      const [, a, b] = lab(over(edge, ground));
+      if (Math.hypot(a, b) < 4)
+        found.push(finding('L-92', control, 'a control on a state keeps a neutral edge'));
+    }
+  }
+  return found;
+}
+
+/**
+ * A message's symbol (L-56): a 2rem tile holding an 18px glyph. Copy shorter than the tile
+ * centres on it, and longer copy starts at its top.
+ */
+function symbolTiles(root: Document): Finding[] {
+  const found: Finding[] = [];
+  const rem = parseFloat(getComputedStyle(root.documentElement).fontSize);
+  for (const tile of audited(root, '.sui-callout-icon, .sui-toast-mark')) {
+    const box = tile.getBoundingClientRect();
+    if (Math.abs(box.width - 2 * rem) > 0.5 || Math.abs(box.height - 2 * rem) > 0.5)
+      found.push(finding('L-56', tile, `the symbol's tile is ${round(box.width)}px, not 2rem`));
+    const glyph = tile.querySelector('svg')?.getBoundingClientRect();
+    if (glyph && Math.abs(glyph.width - 18) > 0.5)
+      found.push(finding('L-56', tile, `the symbol draws at ${round(glyph.width)}px, not 18px`));
+    const copy = tile.nextElementSibling;
+    const lines = copy
+      ? [...copy.children].filter(shown).map((line) => line.getBoundingClientRect())
+      : [];
+    if (lines.length === 0) continue;
+    const top = Math.min(...lines.map((line) => line.top));
+    const bottom = Math.max(...lines.map((line) => line.bottom));
+    const off =
+      bottom - top < box.height ? (top + bottom) / 2 - (box.top + box.bottom) / 2 : top - box.top;
+    if (Math.abs(off) > 0.5)
+      found.push(finding('L-56', tile, `the copy stands ${round(off)}px off its symbol's tile`));
+  }
+  return found;
+}
+
+/**
+ * Painted swatches (L-93): a colour the reader picked holds 3:1 on its ground, or its ring
+ * does. The ring is a box shadow on a mark and a border on a swatch.
+ */
+function swatches(root: Document): Finding[] {
+  const found: Finding[] = [];
+  const marks = audited(
+    root,
+    '[style*="--sui-color-picker-value"], [style*="--sui-color-picker-swatch"]'
+  ).filter((element) => element.matches('.mark, .swatch'));
+  for (const mark of marks) {
+    const look = getComputedStyle(mark);
+    const ground = paintedGround(mark.parentElement ?? mark);
+    const fill = over(rgba(look.backgroundColor), ground);
+    if (contrast(fill, ground) >= 2.95) continue;
+    const ring = mark.matches('.swatch')
+      ? look.borderTopColor
+      : (look.boxShadow.match(/^(?:[a-z-]+\([^)]*\)|#[0-9a-f]+|[a-z]+)/i)?.[0] ?? 'transparent');
+    if (contrast(over(rgba(ring), ground), ground) < 2.95)
+      found.push(finding('L-93', mark, 'a swatch and its ring both fall under 3:1 on the ground'));
+  }
+  return found;
+}
+
+/**
+ * Icons beside text that wraps (L-94): a menu item's or option's leading icon centres on the
+ * first line of its text, never on the middle of a block of two or more lines.
+ */
+function leadingIcons(root: Document): Finding[] {
+  const found: Finding[] = [];
+  for (const item of audited(root, "[role='menuitem'], [role='option'], option")) {
+    const icon = item.querySelector(':scope > span > svg, :scope > svg');
+    if (!icon) continue;
+    const range = document.createRange();
+    const walker = document.createTreeWalker(item, NodeFilter.SHOW_TEXT);
+    const lines: DOMRect[] = [];
+    for (let node = walker.nextNode(); node; node = walker.nextNode()) {
+      if (!node.textContent?.trim()) continue;
+      range.selectNodeContents(node);
+      lines.push(...[...range.getClientRects()].filter((line) => line.width > 0));
+    }
+    const tops = [...new Set(lines.map((line) => Math.round(line.top)))];
+    if (tops.length < 2) continue;
+    const first = lines.filter((line) => Math.round(line.top) === Math.min(...tops));
+    const middle =
+      (Math.min(...first.map((l) => l.top)) + Math.max(...first.map((l) => l.bottom))) / 2;
+    const glyph = icon.getBoundingClientRect();
+    const off = (glyph.top + glyph.bottom) / 2 - middle;
+    if (Math.abs(off) > 1.5)
+      found.push(finding('L-94', item, `the icon sits ${round(off)}px off the first line`));
+  }
+  return found;
+}
+
+/**
+ * Whole pixels (L-95): no box is born with a fractional height. A box counts when its own
+ * height is fractional while every box it holds is whole, so a fraction is reported where it
+ * starts and not again in everything it pushes down. Moving and inline boxes are left out.
+ */
+function wholePixels(root: Document): Finding[] {
+  const found: Finding[] = [];
+  const fractional = (value: number) => Math.abs(value - Math.round(value)) > 0.02;
+  const counts = (element: Element) => {
+    const look = getComputedStyle(element);
+    return (
+      !/^(inline|contents)$/.test(look.display) &&
+      look.transform === 'none' &&
+      look.animationName === 'none' &&
+      !/^(absolute|fixed)$/.test(look.position)
+    );
+  };
+  for (const element of audited(root, 'main *')) {
+    if (!counts(element)) continue;
+    const height = element.getBoundingClientRect().height;
+    if (!fractional(height)) continue;
+    const born = [...element.children].every(
+      (child) =>
+        !counts(child) || !shown(child) || !fractional(child.getBoundingClientRect().height)
+    );
+    if (born)
+      found.push(finding('L-95', element, `a ${round(height)}px box starts off the pixel grid`));
+  }
+
+  // A whole box can still be centred into an odd remainder. Only an edge shows it, so each
+  // border, outline or ground drawn off the grid names the box where the half pixel enters.
+  const top = (element: Element) => element.getBoundingClientRect().top + scrollY;
+  const still = (element: Element) => {
+    for (let node: Element | null = element; node; node = node.parentElement) {
+      const look = getComputedStyle(node);
+      if (!counts(node) && look.display !== 'inline' && look.display !== 'contents') return false;
+      if (/^(fixed|sticky)$/.test(look.position)) return false;
+      if ([look.translate, look.scale, look.rotate].some((value) => value !== 'none')) return false;
+    }
+    return true;
+  };
+  const edged = (element: Element) => {
+    const look = getComputedStyle(element);
+    const border = (['Top', 'Bottom'] as const).some(
+      (side) => parseFloat(look[`border${side}Width`]) > 0 && rgba(look[`border${side}Color`]).a > 0
+    );
+    const outline = look.outlineStyle !== 'none' && parseFloat(look.outlineWidth) > 0;
+    return border || outline || rgba(look.backgroundColor).a > 0;
+  };
+  const named = new Set<Element>();
+  for (const element of audited(root, 'main *')) {
+    if (!fractional(top(element)) || !edged(element) || !still(element)) continue;
+    let born = element;
+    while (
+      born.parentElement &&
+      born.parentElement.closest('main') &&
+      fractional(top(born.parentElement))
+    )
+      born = born.parentElement;
+    if (named.has(born)) continue;
+    named.add(born);
+    found.push(finding('L-95', born, 'a box is centred half a pixel off the grid'));
+  }
+  return found;
+}
+
+/**
+ * How far past its border box an element paints a ring: an outline beyond its offset, or a
+ * hard box-shadow ring (no offset, no blur). A soft elevation shadow may fade under a clip.
+ */
+export function ringReach(look: CSSStyleDeclaration): number {
+  let reach =
+    look.outlineStyle !== 'none'
+      ? parseFloat(look.outlineOffset) + parseFloat(look.outlineWidth)
+      : 0;
+  for (const shadow of look.boxShadow === 'none' ? [] : look.boxShadow.split(/,(?![^(]*\))/)) {
+    if (shadow.includes('inset')) continue;
+    const [x = 0, y = 0, blur = 0, spread = 0] = [
+      ...shadow.replace(/[a-z-]+\([^)]*\)/g, '').matchAll(/-?[\d.]+px/g)
+    ].map(([length]) => parseFloat(length));
+    if (x === 0 && y === 0 && blur === 0) reach = Math.max(reach, spread);
+  }
+  return reach;
+}
+
+/** The sides of a ring that the nearest clipping ancestor cuts while the box itself shows. */
+export function cutSides(element: Element, reach: number): string[] {
+  const box = element.getBoundingClientRect();
+  for (
+    let node = element.parentElement;
+    node && node !== document.body;
+    node = node.parentElement
+  ) {
+    const look = getComputedStyle(node);
+    const paint = /paint|content|strict/.test(look.contain);
+    const clipsX = paint || look.overflowX !== 'visible';
+    const clipsY = paint || look.overflowY !== 'visible';
+    if (!clipsX && !clipsY) continue;
+    const edge = node.getBoundingClientRect();
+    const top = edge.top + parseFloat(look.borderTopWidth);
+    const bottom = edge.bottom - parseFloat(look.borderBottomWidth);
+    const left = edge.left + parseFloat(look.borderLeftWidth);
+    const right = edge.right - parseFloat(look.borderRightWidth);
+    const slack = 0.5;
+    return [
+      clipsY && box.top >= top - slack && box.top - reach < top - slack && 'top',
+      clipsY && box.bottom <= bottom + slack && box.bottom + reach > bottom + slack && 'bottom',
+      clipsX && box.left >= left - slack && box.left - reach < left - slack && 'left',
+      clipsX && box.right <= right + slack && box.right + reach > right + slack && 'right'
+    ].filter((side): side is string => Boolean(side));
+  }
+  return [];
+}
+
+/**
+ * Code lines (L-65): every line of a code or diff block is one height, and the first and last
+ * lines meet the block's edges.
+ */
+function codeLines(root: Document): Finding[] {
+  const found: Finding[] = [];
+  for (const block of audited(root, '.sui-code-block, .sui-diff-block')) {
+    const lines = [...block.querySelectorAll('code > *')].filter(shown);
+    const scroller = lines[0]?.closest('pre');
+    if (!scroller) continue;
+    const heights = new Set(lines.map((line) => round(line.getBoundingClientRect().height)));
+    if (heights.size > 1)
+      found.push(finding('L-65', block, `its lines are ${[...heights].join(', ')}px tall`));
+    const edge = scroller.getBoundingClientRect();
+    const gaps = [
+      lines[0].getBoundingClientRect().top - edge.top - scroller.clientTop,
+      edge.bottom - lines.at(-1)!.getBoundingClientRect().bottom - scroller.clientTop
+    ];
+    if (gaps.some((gap) => gap > 0.5))
+      found.push(
+        finding(
+          'L-65',
+          block,
+          `bare ground of ${gaps.map((gap) => round(gap)).join(' and ')}px around its lines`
+        )
+      );
+  }
+  return found;
+}
+
+/**
+ * Rings in full (L-96): an outline or a ring shadow at rest is never cut by a clipping box.
+ * Focus rings are walked by keyboard in the browser suite, through the same two helpers.
+ */
+function rings(root: Document): Finding[] {
+  const found: Finding[] = [];
+  for (const element of audited(root, 'main *')) {
+    const reach = ringReach(getComputedStyle(element));
+    if (reach <= 0) continue;
+    const cut = cutSides(element, reach);
+    if (cut.length)
+      found.push(finding('L-96', element, `a ${reach}px ring is cut at its ${cut.join(' and ')}`));
+  }
+  return found;
+}
+
 register(
   palette,
   textContrast,
@@ -941,5 +1300,14 @@ register(
   controls,
   accessibility,
   specimens,
-  wrapping
+  wrapping,
+  plates,
+  changedEdges,
+  tonedControls,
+  symbolTiles,
+  swatches,
+  leadingIcons,
+  wholePixels,
+  rings,
+  codeLines
 );

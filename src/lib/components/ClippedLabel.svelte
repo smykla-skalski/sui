@@ -66,6 +66,7 @@ it a bounded width anywhere else.
 
 <style>
   .sui-clipped-label {
+    block-size: var(--sui-block-snap);
     display: block;
     min-inline-size: 0;
     overflow-x: clip;

@@ -228,6 +228,7 @@ is still read aloud. In the phone drawer the same place holds a close button, an
   }
 
   .sui-side-nav-kicker {
+    block-size: var(--sui-block-snap);
     color: var(--sui-sidebar-text-muted);
     font: 600 var(--sui-font-size-micro) / var(--sui-leading-micro) var(--sui-sans);
     letter-spacing: 0.07em;
@@ -237,6 +238,7 @@ is still read aloud. In the phone drawer the same place holds a close button, an
   }
 
   .sui-side-nav-title {
+    block-size: var(--sui-block-snap);
     font: 600 var(--sui-font-size-meta) / var(--sui-row-copy-leading) var(--sui-sans);
     margin: 0;
     overflow-wrap: anywhere;
@@ -266,6 +268,7 @@ is still read aloud. In the phone drawer the same place holds a close button, an
   }
 
   .sui-side-nav-group {
+    block-size: var(--sui-block-snap);
     color: var(--sui-sidebar-text-muted);
     font: 600 var(--sui-font-size-micro) / var(--sui-leading-micro) var(--sui-sans);
     letter-spacing: 0.07em;
@@ -374,6 +377,7 @@ is still read aloud. In the phone drawer the same place holds a close button, an
   }
 
   .sui-side-nav-label {
+    block-size: var(--sui-block-snap);
     flex: 1;
     min-inline-size: 0;
     overflow-wrap: anywhere;
@@ -399,6 +403,7 @@ is still read aloud. In the phone drawer the same place holds a close button, an
   }
 
   .sui-side-nav-count > span {
+    block-size: var(--sui-block-snap);
     text-box: trim-both cap alphabetic;
   }
 
@@ -468,6 +473,7 @@ is still read aloud. In the phone drawer the same place holds a close button, an
   }
 
   [data-mode='collapsed'] .sui-side-nav-short {
+    block-size: var(--sui-block-snap);
     display: block;
     text-box: trim-both cap alphabetic;
   }

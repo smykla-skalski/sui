@@ -164,6 +164,7 @@ parent itself, which gets `tabindex="-1"` when it has none.
   /* The padding sits on the label so a wrapped value clears the edges, while one line keeps
      the chip at its tier. */
   .sui-chip-label {
+    block-size: var(--sui-block-snap);
     min-inline-size: 0;
     overflow-wrap: anywhere;
     padding-block: var(--sui-space-1);

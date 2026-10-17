@@ -248,7 +248,6 @@ a device without hover. It copies `code` exactly as given.
     font-variant-numeric: tabular-nums;
     margin: 0;
     overflow-x: auto;
-    padding: var(--sui-space-3) 0;
   }
 
   /* Rounded even when `bare` squares the block, so the inset ring never has sharp corners. */
@@ -272,11 +271,14 @@ a device without hover. It copies `code` exactly as given.
     grid-template-columns: auto minmax(0, 1fr);
   }
 
+  /* Every line is one height with its air inside it, so a tone runs from edge to edge and the
+     block has no strip of bare ground above its first line or below its last. */
   .ln {
     display: grid;
     grid-column: 1 / -1;
     grid-template-columns: subgrid;
     min-block-size: var(--sui-leading-meta);
+    padding-block: calc(var(--sui-space-1) / 2);
   }
 
   .no {
@@ -331,19 +333,24 @@ a device without hover. It copies `code` exactly as given.
     font-weight: 500;
   }
 
+  /* 2px off the corner, so the 28px control ends above the second line's ink. */
   .sui-code-block-copy {
     display: flex;
-    inset-block-start: var(--sui-space-2);
-    inset-inline-end: var(--sui-space-2);
+    inset-block-start: calc(var(--sui-space-1) / 2);
+    inset-inline-end: calc(var(--sui-space-1) / 2);
     opacity: 0;
     position: absolute;
     transition: opacity var(--sui-duration-fast) var(--sui-ease-standard);
   }
 
-  /* One line: the control centres on it rather than hanging from the top edge. */
+  /* One line: the control centres on it, and the line is as tall as the control. */
   .single .sui-code-block-copy {
     align-items: center;
     inset-block: 0;
+  }
+
+  .single.copyable .ln {
+    min-block-size: var(--sui-tier-quiet);
   }
 
   .sui-code-block-body:hover .sui-code-block-copy,

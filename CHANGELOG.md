@@ -18,6 +18,7 @@
 - The palette takes a companion operations console's colors in both themes: neutral grounds, black and white veil lines, transparent control fills, and its status, unsaved and role colors. The accent is one ocean blue that fills the same in both themes with white ink, and links wear its text shade (`--sui-link`). Code and diffs stand on their own code ground, and charts draw on the console's mark hues.
 - The decision gold is a fill with its own dark ink.
 - Add `Field` `required`, `Checkbox` `bare`, `DataTable` `striped`, `Breadcrumb` `current`, `Modal` `role` and `ActionMenu` item descriptions.
+- Fields draw a quiet frame with a 3:1 baseline, every box lands on whole pixels, no clipping container cuts a ring or a focus ring, and code and diff lines share one height with no gap above or below.
 
 ## 0.2.1
 

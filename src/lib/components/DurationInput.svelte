@@ -183,6 +183,7 @@ in the unit picked. `label` names both halves; other attributes, such as `id`, l
 
   /* Contained, so a long reason wraps under the controls instead of widening the field. */
   .sui-duration-problem {
+    block-size: var(--sui-block-snap);
     color: var(--sui-danger);
     contain: inline-size;
     font: 400 var(--sui-font-size-meta) / var(--sui-row-copy-leading) var(--sui-sans);

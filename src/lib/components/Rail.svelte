@@ -216,6 +216,7 @@ the rail stays beside the collapsed strip, and on a phone it rides in the drawer
   }
 
   .sui-rail-label {
+    block-size: var(--sui-block-snap);
     font: 500 var(--sui-font-size-micro) / var(--sui-leading-flat) var(--sui-sans);
     max-inline-size: 100%;
     overflow-x: clip;
@@ -248,6 +249,7 @@ the rail stays beside the collapsed strip, and on a phone it rides in the drawer
   }
 
   .sui-rail-badge > span {
+    block-size: var(--sui-block-snap);
     text-box: trim-both cap alphabetic;
   }
 

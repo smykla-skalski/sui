@@ -149,6 +149,7 @@ from assistive technology rather than read twice. The picture is fetched without
   }
 
   .sui-avatar-letters {
+    block-size: var(--sui-block-snap);
     text-box: trim-both cap alphabetic;
   }
 </style>

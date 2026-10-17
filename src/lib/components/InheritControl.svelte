@@ -129,6 +129,7 @@ overriding writes nothing until the reader picks.
   }
 
   .sui-inherit-value {
+    block-size: var(--sui-block-snap);
     color: var(--sui-text-muted);
     font: 400 var(--sui-font-size-meta) / var(--sui-row-copy-leading) var(--sui-sans);
     min-inline-size: 0;

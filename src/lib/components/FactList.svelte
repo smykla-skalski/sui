@@ -77,6 +77,7 @@ mono with tabular figures. A setting a reader changes is a form row, not a fact.
 
   .sui-fact-list-label,
   .sui-fact-list-value {
+    block-size: var(--sui-block-snap-even);
     font: 400 var(--sui-font-size-meta) / var(--sui-row-copy-leading) var(--sui-sans);
     margin: 0;
     min-inline-size: 0;

@@ -95,6 +95,7 @@ the text around the group, because each item's hover ground bleeds out into the 
   }
 
   .sui-check-list-legend {
+    block-size: var(--sui-block-snap);
     color: var(--sui-text-secondary);
     float: inline-start;
     font: 600 var(--sui-font-size-control) / var(--sui-row-copy-leading) var(--sui-sans);
@@ -117,6 +118,7 @@ the text around the group, because each item's hover ground bleeds out into the 
 
   .sui-check-list-help,
   .sui-check-list-error {
+    block-size: var(--sui-block-snap);
     margin: 0;
     text-box: trim-both cap alphabetic;
   }

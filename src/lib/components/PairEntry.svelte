@@ -289,6 +289,7 @@ reset for a row of pairs belongs beside the whole group, which `SettingRow` draw
   /* The lane's border and 2px inset stand before the key half, so the key heading steps in
      by both to start on the typed text. */
   .sui-pair-head {
+    block-size: var(--sui-block-snap);
     color: var(--sui-text-secondary);
     font: 600 var(--sui-font-size-control) / var(--sui-row-copy-leading) var(--sui-sans);
     grid-column: 1;
@@ -310,7 +311,8 @@ reset for a row of pairs belongs beside the whole group, which `SettingRow` draw
     align-items: center;
     background-color: var(--sui-control-bg);
     block-size: var(--sui-control-height-compact);
-    border: 1px solid var(--sui-field-border);
+    border: 1px solid var(--sui-field-frame);
+    border-block-end-color: var(--sui-field-border);
     border-radius: var(--sui-radius-control);
     box-sizing: border-box;
     column-gap: 0;
@@ -323,7 +325,8 @@ reset for a row of pairs belongs beside the whole group, which `SettingRow` draw
   }
 
   .sui-pair-lane:hover:not(.disabled):not(:focus-within) {
-    border-color: var(--sui-field-border-hover);
+    border-color: var(--sui-field-frame-hover);
+    border-block-end-color: var(--sui-field-border-hover);
   }
 
   .sui-pair-lane.invalid {
@@ -384,6 +387,7 @@ reset for a row of pairs belongs beside the whole group, which `SettingRow` draw
   }
 
   .sui-pair-arrow {
+    block-size: var(--sui-block-snap);
     color: var(--sui-text-muted);
     font: 400 var(--sui-font-size-meta) / var(--sui-leading-flat) var(--sui-sans);
     padding-inline: var(--sui-space-1);
@@ -402,6 +406,7 @@ reset for a row of pairs belongs beside the whole group, which `SettingRow` draw
   }
 
   .sui-pair-error {
+    block-size: var(--sui-block-snap);
     color: var(--sui-danger);
     contain: inline-size;
     grid-column: 1 / span 4;

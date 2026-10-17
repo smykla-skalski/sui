@@ -57,12 +57,14 @@
   }
 
   h3 {
+    block-size: var(--sui-block-snap);
     font: 600 var(--sui-font-size-title) / var(--sui-leading-title) var(--sui-sans);
     margin: 0;
     text-box: trim-both cap alphabetic;
   }
 
   figcaption p {
+    block-size: var(--sui-block-snap);
     color: var(--sui-text-secondary);
     font: 400 var(--sui-font-size-meta) / var(--sui-row-copy-leading) var(--sui-sans);
     margin: 0;
@@ -119,8 +121,11 @@
     outline-offset: var(--sui-focus-ring-inset);
   }
 
+  /* A collapsed border is split between its two cells, which puts every row half a pixel off
+     the grid (L-95). */
   .sui-chart-table :global(table) {
-    border-collapse: collapse;
+    border-collapse: separate;
+    border-spacing: 0;
     font: 400 var(--sui-font-size-meta) / var(--sui-leading-meta) var(--sui-sans);
     inline-size: 100%;
     text-align: start;

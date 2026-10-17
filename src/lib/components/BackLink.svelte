@@ -46,7 +46,7 @@ fits the eyebrow's place in a `PageHeader`.
     font: 600 var(--sui-font-size-meta) / var(--sui-leading-flat) var(--sui-sans);
     gap: var(--sui-space-1);
     inline-size: fit-content;
-    margin-block: calc((1cap - var(--sui-control-height-chip)) / 2);
+    margin-block: round(calc((1cap - var(--sui-control-height-chip)) / 2), 1px);
     min-block-size: var(--sui-control-height-chip);
     text-decoration: none;
     transition:
@@ -74,6 +74,7 @@ fits the eyebrow's place in a `PageHeader`.
   }
 
   .sui-back-link-label {
+    block-size: var(--sui-block-snap);
     text-box: trim-both cap alphabetic;
   }
 

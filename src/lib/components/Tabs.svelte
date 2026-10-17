@@ -130,6 +130,7 @@ the track never clips it.
   }
 
   .sui-tabs-label {
+    block-size: var(--sui-block-snap);
     text-box: trim-both cap alphabetic;
   }
 
@@ -146,6 +147,7 @@ the track never clips it.
   }
 
   .sui-tabs-count > span {
+    block-size: var(--sui-block-snap-even);
     text-box: trim-both cap alphabetic;
   }
 

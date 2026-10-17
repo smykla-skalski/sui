@@ -129,6 +129,7 @@ enough that the eye can lose its row between the first column and the last.
   }
 
   .caption {
+    block-size: var(--sui-block-snap);
     color: var(--sui-text-muted);
     font: 400 var(--sui-font-size-meta) / var(--sui-row-copy-leading) var(--sui-sans);
     margin: 0;
@@ -146,13 +147,19 @@ enough that the eye can lose its row between the first column and the last.
     outline-offset: var(--sui-focus-ring-offset);
   }
 
+  /* Separate borders: a collapsed border is split between its two cells, which puts every
+     row half a pixel off the grid (L-95). The row lines live on the cells instead. */
   table {
-    border-collapse: collapse;
+    border-collapse: separate;
+    border-spacing: 0;
     inline-size: 100%;
   }
 
+  /* Baseline alignment of mono figures beside sans words can leave a row a fraction tall, so
+     each cell rounds its height up to the pixel (L-95). */
   th,
   td {
+    block-size: var(--sui-block-snap);
     padding: var(--sui-space-3) var(--sui-space-4);
     text-align: start;
     vertical-align: baseline;
@@ -174,12 +181,12 @@ enough that the eye can lose its row between the first column and the last.
     text-transform: uppercase;
   }
 
-  tbody tr + tr {
+  tbody tr + tr > :is(th, td) {
     border-block-start: 1px solid var(--sui-border-divider);
   }
 
   /* A tinted row needs room inside its tint, so the outer cells take back their inset. */
-  .striped tbody tr + tr {
+  .striped tbody tr + tr > :is(th, td) {
     border-block-start: 0;
   }
 

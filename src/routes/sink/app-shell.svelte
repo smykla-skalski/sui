@@ -83,7 +83,10 @@
       description="Press a page in the sidebar and the selection plate glides to it"
       level={4}
     />
-    <p class="copy"><Pill tone="success">Healthy</Pill> Every repository synced 4 minutes ago</p>
+    <p class="copy">
+      <Pill tone="success">Healthy</Pill>
+      <span class="sentence">Every repository synced 4 minutes ago</span>
+    </p>
   </div>
 {/snippet}
 
@@ -236,6 +239,11 @@
     display: grid;
     gap: var(--sui-space-4);
     padding: var(--sui-rhythm-pane-top-compact) var(--sui-space-6);
+  }
+
+  /* The sentence centres on the pill at an even height, so the pill lands on whole pixels. */
+  .sentence {
+    block-size: var(--sui-block-snap-even);
   }
 
   .copy {

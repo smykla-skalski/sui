@@ -56,6 +56,7 @@
         why="Runs a failed check once more before reporting it"
         unsaved={retry !== saved.retry}
         onclear={retry !== saved.retry ? () => (retry = saved.retry) : undefined}
+        resettable
       >
         {#snippet control({ id, describedby })}
           <Checkbox {id} aria-describedby={describedby} bare bind:checked={retry} />
@@ -66,6 +67,7 @@
         why="The least serious event the service writes down"
         unsaved={level !== saved.level}
         onclear={level !== saved.level ? () => (level = saved.level) : undefined}
+        resettable
       >
         {#snippet control({ describedby })}
           <SegmentedControl
@@ -179,6 +181,7 @@
   }
 
   .fact {
+    block-size: var(--sui-block-snap);
     color: var(--sui-text-secondary);
     font: 400 var(--sui-font-size-meta) / var(--sui-leading-flat) var(--sui-sans);
     text-box: trim-both cap alphabetic;

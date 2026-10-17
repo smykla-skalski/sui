@@ -83,6 +83,7 @@
   }
 
   h4 {
+    block-size: var(--sui-block-snap);
     color: var(--sui-text-primary);
     font: 600 var(--sui-font-size-title) / var(--sui-leading-title) var(--sui-sans);
     margin: 0;

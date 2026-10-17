@@ -114,7 +114,14 @@ the bar up with the reason, and the work is never dropped on its own.
 </aside>
 
 <style>
+  /* Discard sits beside the decision, so it is quiet in the unsaved hue: no ground of its own,
+     a gold edge and the unsaved ink (L-92). */
   .sui-save-bar {
+    --sui-surface-raised: transparent;
+    --sui-control-border: var(--sui-unsaved-control-border);
+    --sui-control-border-hover: var(--sui-unsaved-border);
+    --sui-interactive-hover-layer: color-mix(in srgb, var(--sui-unsaved-ink) 10%, transparent);
+    --sui-interactive-pressed: color-mix(in srgb, var(--sui-unsaved-ink) 16%, transparent);
     align-items: center;
     background: var(--sui-popover-bg);
     border: var(--sui-decision-border-width) solid var(--sui-decision-accent);
@@ -164,6 +171,7 @@ the bar up with the reason, and the work is never dropped on its own.
 
   .title,
   .subtitle {
+    block-size: var(--sui-block-snap);
     margin: 0;
     overflow-wrap: anywhere;
     text-box: trim-both cap alphabetic;
@@ -185,6 +193,7 @@ the bar up with the reason, and the work is never dropped on its own.
   /* The bar spreads its two parts, so the actions end the line they share with the copy and
      start the line they wrap to (L-90). */
   .actions {
+    --sui-text-primary: var(--sui-unsaved-ink);
     display: flex;
     flex: none;
     flex-wrap: wrap;

@@ -95,12 +95,14 @@ row for a settings column.
   }
 
   .sui-disclosure-label {
+    block-size: var(--sui-block-snap);
     min-inline-size: 0;
     overflow-wrap: break-word;
     text-box: trim-both cap alphabetic;
   }
 
   .sui-disclosure-hint {
+    block-size: var(--sui-block-snap);
     color: var(--sui-text-muted);
     font: 400 var(--sui-font-size-meta) / var(--sui-leading-meta) var(--sui-sans);
     margin-inline-start: auto;

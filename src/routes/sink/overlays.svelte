@@ -90,12 +90,14 @@
   }
 
   .panel-title {
+    block-size: var(--sui-block-snap);
     font: 600 var(--sui-font-size-meta) / var(--sui-leading-meta) var(--sui-sans);
     margin: 0;
     text-box: trim-both cap alphabetic;
   }
 
   .panel-copy {
+    block-size: var(--sui-block-snap);
     color: var(--sui-text-secondary);
     font: 400 var(--sui-font-size-meta) / var(--sui-row-copy-leading) var(--sui-sans);
     margin: 0;

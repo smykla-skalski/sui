@@ -275,8 +275,11 @@ item opens then returns focus there too. Labels wrap rather than being cut short
     row-gap: 2px;
   }
 
+  /* The icon sits on the first line, never the middle of a two-line item: Material's lists
+     top-align a leading icon with the primary text. The block padding centres one line in the
+     control height, so a one-line item is exactly that tall (L-94). */
   .sui-action-menu-item {
-    align-items: center;
+    align-items: flex-start;
     background-color: transparent;
     min-block-size: var(--sui-control-height-compact);
     border: 0;
@@ -289,7 +292,8 @@ item opens then returns focus there too. Labels wrap rather than being cut short
     gap: var(--sui-space-2);
     inline-size: 100%;
     margin: 0;
-    padding: var(--sui-space-1) var(--sui-space-3);
+    padding: calc((var(--sui-control-height-compact) - var(--sui-leading-meta)) / 2)
+      var(--sui-space-3);
     text-align: start;
     transition:
       background-color var(--sui-duration-fast) var(--sui-ease-standard),
@@ -332,6 +336,8 @@ item opens then returns focus there too. Labels wrap rather than being cut short
   }
 
   .sui-action-menu-icon {
+    align-items: center;
+    block-size: var(--sui-leading-meta);
     color: var(--sui-text-muted);
     display: inline-flex;
     flex: none;

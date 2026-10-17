@@ -54,7 +54,8 @@ tabular figures.
   .sui-text-input {
     background-color: var(--sui-control-bg);
     block-size: var(--sui-local-control-height, var(--sui-control-height-compact));
-    border: 1px solid var(--sui-field-border);
+    border: 1px solid var(--sui-field-frame);
+    border-block-end-color: var(--sui-field-border);
     border-radius: var(--sui-radius-control);
     box-sizing: border-box;
     color: var(--sui-text-primary);
@@ -74,7 +75,8 @@ tabular figures.
   }
 
   .sui-text-input:hover:not(:disabled, :focus, .bare) {
-    border-color: var(--sui-field-border-hover);
+    border-color: var(--sui-field-frame-hover);
+    border-block-end-color: var(--sui-field-border-hover);
   }
 
   .sui-text-input:focus {

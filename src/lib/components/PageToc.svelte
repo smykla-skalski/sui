@@ -201,6 +201,7 @@ or leaving it out on a phone, is the page's layout.
   }
 
   .sui-page-toc-group {
+    block-size: var(--sui-block-snap);
     color: var(--sui-text-secondary);
     font: 600 var(--sui-font-size-compact) / var(--sui-leading-compact) var(--sui-sans);
     margin: var(--sui-space-5) 0 var(--sui-space-2);
@@ -208,6 +209,7 @@ or leaving it out on a phone, is the page's layout.
   }
 
   .sui-page-toc-title {
+    block-size: var(--sui-block-snap);
     color: var(--sui-text-muted);
     font: 600 var(--sui-font-size-micro) / var(--sui-leading-micro) var(--sui-sans);
     letter-spacing: 0.06em;
@@ -260,6 +262,7 @@ or leaving it out on a phone, is the page's layout.
   }
 
   .sui-page-toc-label {
+    block-size: var(--sui-block-snap);
     text-box: trim-both cap alphabetic;
   }
 

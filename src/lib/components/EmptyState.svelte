@@ -61,6 +61,7 @@ An empty list is not an error and is not drawn as one; a request that failed is
   }
 
   p {
+    block-size: var(--sui-block-snap);
     margin: 0;
     overflow-wrap: anywhere;
     text-box: trim-both cap alphabetic;

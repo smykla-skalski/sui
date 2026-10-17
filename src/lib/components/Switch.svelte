@@ -71,6 +71,9 @@ its own rhythm.
     max-inline-size: 100%;
     min-block-size: var(--sui-touch-target);
     touch-action: manipulation;
+    /* Top, not baseline: on the baseline the line under it adds the strut's descent and sets
+       the line a fraction tall (L-95). */
+    vertical-align: top;
     -webkit-tap-highlight-color: transparent;
   }
 
@@ -79,6 +82,7 @@ its own rhythm.
   }
 
   .sui-switch-label {
+    block-size: var(--sui-block-snap-even);
     color: var(--sui-text-primary);
     font: 400 var(--sui-font-size-control) / var(--sui-row-copy-leading) var(--sui-sans);
     min-inline-size: 0;

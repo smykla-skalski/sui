@@ -10,7 +10,7 @@
 </script>
 
 <script lang="ts">
-  import type { Snippet } from 'svelte';
+  import { tick, type Snippet } from 'svelte';
   import type { HTMLLiAttributes } from 'svelte/elements';
   import IconButton from './IconButton.svelte';
 
@@ -21,6 +21,7 @@
     why,
     unsaved = false,
     onclear,
+    resettable = false,
     clearLabel,
     control,
     class: className = '',
@@ -33,6 +34,11 @@
     unsaved?: boolean;
     /** Draws a reset beside the whole control area, which takes the setting back where it came from. */
     onclear?: () => void;
+    /**
+     * Keeps the reset's seat while `onclear` is unset, for a row that offers a reset only while
+     * it is changed, so the controls never move when the reset comes and goes.
+     */
+    resettable?: boolean;
     /** Names the reset. It defaults to "Reset" and the setting's name. */
     clearLabel?: string;
     /** The setting's controls, at the row's end beside the copy or on the line under it. */
@@ -40,6 +46,22 @@
     /** Layout for the call site only, never the row's own paint. */
     class?: HTMLLiAttributes['class'];
   } & Omit<HTMLLiAttributes, 'children' | 'class'> = $props();
+
+  let controls = $state<HTMLDivElement | null>(null);
+
+  // A reset that only shows while changed leaves with the change, so focus moves on to the
+  // control it reset instead of falling to the page (L-89).
+  async function clear(event: MouseEvent): Promise<void> {
+    const reset = event.currentTarget;
+    onclear?.();
+    await tick();
+    if (onclear || ![reset, document.body].includes(document.activeElement)) return;
+    controls
+      ?.querySelector<HTMLElement>(
+        "input:not(:disabled), select:not(:disabled), textarea:not(:disabled), button:not(:disabled), [href], [tabindex]:not([tabindex^='-'])"
+      )
+      ?.focus();
+  }
 
   const ids = $derived<SettingRowControl>({
     id: `${uid}-control`,
@@ -60,24 +82,29 @@ effect at once, and a checkbox holds a value that a later save writes.
 `control` receives the `id` the name's `<label for>` points at, for a single control, and
 `labelledby`, the name's own id, for the `aria-labelledby` of a group such as a fieldset or a
 segmented control, which a `<label>` cannot name.
-`unsaved` repaints the row in the unsaved surface and inks, stars its name, and clears the
-separators on both its edges; two changed rows in a row keep exactly 1px of card between them.
-`onclear` draws a reset centred beside the whole control area, even when the controls wrap.
+`unsaved` lays a plate of the unsaved surface inside the row, repaints the inks, stars its name
+and clears the separators on both its edges. The plate sits 2px inside the row's own box and the
+star keeps its seat while hidden, so a change of state never moves the row, changes its height
+or rewraps its name, and two changed rows in a row show a 5px strip of card between them (L-91). `onclear` draws a reset centred beside the whole control area,
+even when the controls wrap; a row that offers it only while changed passes `resettable` too, so
+the reset's seat stays and the controls never shift.
 -->
 
 <li {...rest} class={['sui-setting-row', className]} data-unsaved={unsaved || undefined}>
   <div class="sui-setting-say">
     <label id={ids.labelledby} for={ids.id} class="sui-setting-name"
-      >{name}{#if unsaved}<span class="sui-setting-star" aria-hidden="true">*</span><span
+      >{name}<span class="sui-setting-star" aria-hidden="true">*</span>{#if unsaved}<span
           class="sui-visually-hidden">, unsaved</span
         >{/if}</label
     >
     {#if why}<p id={ids.describedby} class="sui-setting-why">{why}</p>{/if}
   </div>
   <div class="sui-setting-value">
-    <div class="sui-setting-control">{@render control(ids)}</div>
-    {#if onclear}
-      <IconButton icon="undo" label={clearLabel ?? `Reset ${name}`} onclick={onclear} />
+    <div bind:this={controls} class="sui-setting-control">{@render control(ids)}</div>
+    {#if onclear || resettable}
+      <span class={['sui-setting-reset', { idle: !onclear }]} inert={!onclear}>
+        <IconButton icon="undo" label={clearLabel ?? `Reset ${name}`} onclick={clear} />
+      </span>
     {/if}
   </div>
 </li>
@@ -105,6 +132,28 @@ separators on both its edges; two changed rows in a row keep exactly 1px of card
     row-gap: var(--sui-space-2);
   }
 
+  /* A state's plate lies inside the row's own box, 2px short of its top and bottom, so the row
+     never moves or resizes when its state changes and keeps 10px of ground above and below its
+     ink, and two plates in a row show a 5px strip of card between them (L-91). */
+  .sui-setting-row::before {
+    border-radius: inherit;
+    content: '';
+    inset: calc(var(--sui-space-1) / 2) 0 calc(var(--sui-space-1) / 2 + var(--sui-row-hairline));
+    position: absolute;
+    z-index: 0;
+  }
+
+  /* The plate and the row's two sides stack inside the row alone: plate, then copy and controls. */
+  .sui-setting-row {
+    isolation: isolate;
+  }
+
+  .sui-setting-say,
+  .sui-setting-value {
+    position: relative;
+    z-index: 1;
+  }
+
   .sui-setting-row:not(:last-child)::after {
     background: var(--sui-border-divider);
     block-size: var(--sui-row-hairline);
@@ -114,7 +163,9 @@ separators on both its edges; two changed rows in a row keep exactly 1px of card
     position: absolute;
   }
 
-  /* A change is a state of the row it was made in: the surface and inks change, never an edge. */
+  /* A change is a state of the row it was made in: its plate, inks, edges and fills all take the
+     unsaved hue, and no edge changes width, so nothing moves (L-16). The tokens are set here one
+     by one because the derived ones resolve at the root. */
   .sui-setting-row[data-unsaved] {
     --sui-text-primary: var(--sui-unsaved-ink);
     --sui-text-secondary: var(--sui-unsaved-secondary);
@@ -122,9 +173,25 @@ separators on both its edges; two changed rows in a row keep exactly 1px of card
     --sui-control-bg: var(--sui-unsaved-control);
     --sui-input-bg: var(--sui-unsaved-control);
     --sui-control-border: var(--sui-unsaved-control-border);
+    --sui-control-border-hover: var(--sui-unsaved-border);
+    --sui-field-frame: var(--sui-unsaved-control-border);
+    --sui-field-frame-hover: var(--sui-unsaved-border);
+    --sui-field-border: var(--sui-unsaved-field-border);
+    --sui-field-border-hover: var(--sui-unsaved-field-border-hover);
+    --sui-border-strong: var(--sui-unsaved-field-border);
+    --sui-switch-track-off-border: var(--sui-unsaved-field-border);
+    --sui-brand-action: var(--sui-decision-accent);
+    --sui-brand-action-hover: var(--sui-decision-accent-hover);
+    --sui-brand-action-pressed: var(--sui-decision-accent-pressed);
+    --sui-brand-action-text: var(--sui-unsaved-ink);
+    --sui-brand-action-tint: var(--sui-unsaved-control);
+    --sui-on-brand-action: var(--sui-on-decision-accent);
     --sui-switch-track-on: var(--sui-decision-accent);
     --sui-segment-thumb: var(--sui-decision-accent);
     --sui-segment-thumb-ink: var(--sui-on-decision-accent);
+  }
+
+  .sui-setting-row[data-unsaved]::before {
     background-color: var(--sui-unsaved-surface);
   }
 
@@ -133,14 +200,6 @@ separators on both its edges; two changed rows in a row keep exactly 1px of card
   .sui-setting-row[data-unsaved]::after,
   .sui-setting-row:has(+ :global([data-unsaved]))::after {
     background: transparent;
-  }
-
-  /* Two changed rows in a row: the separator's pixel turns into a clear border under a fill
-     clipped to the padding, so exactly 1px of card shows between them. */
-  .sui-setting-row[data-unsaved]:has(+ :global([data-unsaved])) {
-    background-clip: padding-box;
-    border-block-end: var(--sui-row-hairline) solid transparent;
-    padding-block-end: var(--sui-row-pad-default);
   }
 
   /* The copy takes what is left and never less than it reads at, unless the row itself is
@@ -155,6 +214,7 @@ separators on both its edges; two changed rows in a row keep exactly 1px of card
 
   .sui-setting-name,
   .sui-setting-why {
+    block-size: var(--sui-block-snap);
     font: 400 var(--sui-font-size-meta) / var(--sui-row-copy-leading) var(--sui-sans);
     margin: 0;
     overflow-wrap: anywhere;
@@ -172,9 +232,23 @@ separators on both its edges; two changed rows in a row keep exactly 1px of card
     text-wrap: pretty;
   }
 
+  /* Always laid out, shown only while unsaved, so its arrival never rewraps the name. */
   .sui-setting-star {
     color: var(--sui-unsaved-ink);
     margin-inline-start: var(--sui-space-1);
+    visibility: hidden;
+  }
+
+  [data-unsaved] .sui-setting-star {
+    visibility: visible;
+  }
+
+  .sui-setting-reset {
+    display: flex;
+  }
+
+  .idle {
+    visibility: hidden;
   }
 
   .sui-visually-hidden {

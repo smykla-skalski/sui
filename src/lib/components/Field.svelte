@@ -122,6 +122,7 @@ A group of choices names itself with a legend, so `CheckList`, `ChoiceCards` and
   }
 
   .sui-field-label {
+    block-size: var(--sui-block-snap);
     color: var(--sui-text-secondary);
     font: 600 var(--sui-font-size-control) / var(--sui-row-copy-leading) var(--sui-sans);
     min-inline-size: 0;
@@ -137,6 +138,7 @@ A group of choices names itself with a legend, so `CheckList`, `ChoiceCards` and
   }
 
   .sui-field-required {
+    block-size: var(--sui-block-snap);
     color: var(--sui-text-muted);
     font: 400 var(--sui-font-size-control) / var(--sui-row-copy-leading) var(--sui-sans);
     text-box: trim-both cap alphabetic;
@@ -155,6 +157,7 @@ A group of choices names itself with a legend, so `CheckList`, `ChoiceCards` and
 
   .sui-field-help,
   .sui-field-error {
+    block-size: var(--sui-block-snap);
     margin: 0;
     overflow-wrap: anywhere;
     text-box: trim-both cap alphabetic;

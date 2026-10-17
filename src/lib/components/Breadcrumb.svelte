@@ -98,7 +98,8 @@ fits the eyebrow's place in a `PageHeader`.
     display: inline-flex;
     font: 500 var(--sui-font-size-meta) / var(--sui-leading-flat) var(--sui-sans);
     gap: var(--sui-space-1);
-    margin: calc((1cap - var(--sui-control-height-chip)) / 2) calc(var(--sui-space-2) * -1);
+    margin: round(calc((1cap - var(--sui-control-height-chip)) / 2), 1px)
+      calc(var(--sui-space-2) * -1);
     min-block-size: var(--sui-control-height-chip);
     min-inline-size: 0;
     padding-inline: var(--sui-space-2);
@@ -124,6 +125,7 @@ fits the eyebrow's place in a `PageHeader`.
   }
 
   .sui-breadcrumb-label {
+    block-size: var(--sui-block-snap);
     overflow-wrap: anywhere;
     text-box: trim-both cap alphabetic;
   }
@@ -135,6 +137,7 @@ fits the eyebrow's place in a `PageHeader`.
   }
 
   .sui-breadcrumb-separator {
+    block-size: var(--sui-block-snap);
     color: var(--sui-text-muted);
     font: 400 var(--sui-font-size-compact) / var(--sui-leading-flat) var(--sui-sans);
     text-box: trim-both cap alphabetic;

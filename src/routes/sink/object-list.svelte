@@ -142,6 +142,7 @@
 
 <style>
   .name {
+    block-size: var(--sui-block-snap);
     color: var(--sui-text-primary);
     font: 600 var(--sui-font-size-meta) / var(--sui-row-copy-leading) var(--sui-sans);
     overflow-wrap: anywhere;
@@ -149,6 +150,7 @@
   }
 
   .sum {
+    block-size: var(--sui-block-snap);
     color: var(--sui-text-muted);
     font: 400 var(--sui-font-size-meta) / var(--sui-row-copy-leading) var(--sui-sans);
     overflow-wrap: anywhere;

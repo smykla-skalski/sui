@@ -157,6 +157,7 @@
   }
 
   .name {
+    block-size: var(--sui-block-snap);
     color: var(--sui-text-primary);
     font: 600 var(--sui-font-size-meta) / var(--sui-row-copy-leading) var(--sui-sans);
     text-box: trim-both cap alphabetic;

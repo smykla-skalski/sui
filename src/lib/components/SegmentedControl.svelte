@@ -520,6 +520,7 @@ from a sibling.
   }
 
   .sui-segmented-word {
+    block-size: var(--sui-block-snap);
     text-box: trim-both cap alphabetic;
   }
 
@@ -548,6 +549,7 @@ from a sibling.
   }
 
   .sui-segmented-count > span {
+    block-size: var(--sui-block-snap-even);
     text-box: trim-both cap alphabetic;
   }
 

@@ -175,7 +175,8 @@ the field, hidden from assistive technology, because a native picker cannot be h
     appearance: none;
     background-color: var(--sui-control-bg);
     block-size: var(--sui-local-control-height, var(--sui-control-height-compact));
-    border: 1px solid var(--sui-field-border);
+    border: 1px solid var(--sui-field-frame);
+    border-block-end-color: var(--sui-field-border);
     border-radius: var(--sui-radius-control);
     box-sizing: border-box;
     color: var(--sui-text-primary);
@@ -196,7 +197,8 @@ the field, hidden from assistive technology, because a native picker cannot be h
   }
 
   .sui-select-control:hover:not(:disabled, :focus-visible) {
-    border-color: var(--sui-field-border-hover);
+    border-color: var(--sui-field-frame-hover);
+    border-block-end-color: var(--sui-field-border-hover);
   }
 
   .sui-select-control:is([aria-invalid='true'], :user-invalid):not(:focus-visible) {
@@ -274,7 +276,8 @@ the field, hidden from assistive technology, because a native picker cannot be h
       }
 
       .sui-select:not(.bare) .sui-select-control:open:not(:focus-visible) {
-        border-color: var(--sui-field-border-hover);
+        border-color: var(--sui-field-frame-hover);
+        border-block-end-color: var(--sui-field-border-hover);
       }
 
       /* The full label shows in the picker, so the closed field may cut it. */
@@ -327,10 +330,13 @@ the field, hidden from assistive technology, because a native picker cannot be h
     }
   }
 
+  /* As wide as the field or the widest row, whichever is more, as the real picker is, even
+     where a container would stretch it. */
   .sui-select-preview {
     display: inline-grid;
     gap: var(--sui-space-1);
     grid-template-columns: minmax(0, auto);
+    inline-size: fit-content;
     justify-items: start;
     max-inline-size: 100%;
   }

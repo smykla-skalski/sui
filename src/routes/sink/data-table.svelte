@@ -202,9 +202,12 @@
 </Example>
 
 <style>
+  /* An icon has no baseline, so a baseline-aligned box would ride half a pixel above the line
+     and grow the row off the grid (L-95). */
   .status {
     align-items: center;
     display: inline-flex;
     gap: var(--sui-space-1);
+    vertical-align: top;
   }
 </style>

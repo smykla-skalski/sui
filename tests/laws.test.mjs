@@ -65,7 +65,7 @@ const declared = new Set(Object.keys(tokenMap(stripComments(palette))));
 
 test('L-1 the palette is the only place a colour is written', () => {
   const literal =
-    /#[0-9a-f]{3,8}\b|\b(?:rgba?|hsla?|hwb|lab|lch|oklab|oklch)\(|\bcolor\(\s*srgb|\b(?:white|black|red|blue|green|gray|grey|silver|orange|yellow|purple|pink)\b/i;
+    /#[0-9a-f]{3,8}\b|\b(?:rgba?|hsla?|hwb|lab|lch|oklab|oklch)\((?!\s*from\b)|\bcolor\(\s*srgb|\b(?:white|black|red|blue|green|gray|grey|silver|orange|yellow|purple|pink)\b/i;
   assert.deepEqual(
     violations(({ value }) => (literal.test(value) ? 'colour literal' : null)),
     []

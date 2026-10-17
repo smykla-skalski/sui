@@ -154,7 +154,7 @@ whose children are partly chosen.
     /* The label's face, so `1cap` is the label's cap height and the box centres on the
        label's first line however many lines the label wraps to. */
     font: 400 var(--sui-font-size-control) / var(--sui-leading-flat) var(--sui-sans);
-    margin-block: calc((1cap - var(--sui-icon-md)) / 2);
+    margin-block: round(calc((1cap - var(--sui-icon-md)) / 2), 1px);
   }
 
   .sui-checkbox-control > * {
@@ -213,18 +213,21 @@ whose children are partly chosen.
   }
 
   .sui-checkbox-copy {
+    block-size: var(--sui-block-snap-even);
     display: grid;
     gap: var(--sui-row-copy-gap);
     min-inline-size: 0;
   }
 
   .sui-checkbox-label {
+    block-size: var(--sui-block-snap);
     color: var(--sui-text-primary);
     font: 400 var(--sui-font-size-control) / var(--sui-row-copy-leading) var(--sui-sans);
     text-box: trim-both cap alphabetic;
   }
 
   .sui-checkbox-description {
+    block-size: var(--sui-block-snap);
     color: var(--sui-text-secondary);
     font: 400 var(--sui-font-size-meta) / var(--sui-row-copy-leading) var(--sui-sans);
     text-box: trim-both cap alphabetic;

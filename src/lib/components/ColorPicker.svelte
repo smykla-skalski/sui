@@ -428,11 +428,18 @@ name is the label and the hex, such as "Label color #0f766e".
     --sui-color-picker-hairline: color-mix(in srgb, var(--sui-text-primary) 14%, transparent);
   }
 
+  /* A swatch's ring is its own colour, its lightness clamped into the band that holds 3:1 on
+     the ground. A colour that already contrasts is unchanged, so its ring vanishes into it; one
+     that does not gets the nearest shade of itself that does, never a grey line (L-93). */
   .mark {
+    --sui-color-picker-ring: oklch(
+      from var(--sui-color-picker-value)
+        clamp(var(--sui-swatch-edge-floor), l, var(--sui-swatch-edge-ceiling)) c h
+    );
     background-color: var(--sui-color-picker-value);
     block-size: var(--sui-icon-base);
     border-radius: 50%;
-    box-shadow: inset 0 0 0 1px var(--sui-color-picker-hairline);
+    box-shadow: inset 0 0 0 1px var(--sui-color-picker-ring);
     flex: none;
     inline-size: var(--sui-icon-base);
   }
@@ -473,7 +480,11 @@ name is the label and the hex, such as "Label color #0f766e".
     background-color: var(--sui-color-picker-swatch);
     background-image: linear-gradient(var(--sui-color-picker-layer), var(--sui-color-picker-layer));
     block-size: var(--sui-cp-cell);
-    border: 1px solid var(--sui-color-picker-hairline);
+    border: 1px solid
+      oklch(
+        from var(--sui-color-picker-swatch)
+          clamp(var(--sui-swatch-edge-floor), l, var(--sui-swatch-edge-ceiling)) c h
+      );
     border-radius: var(--sui-radius-control);
     box-sizing: border-box;
     cursor: pointer;
@@ -579,6 +590,7 @@ name is the label and the hex, such as "Label color #0f766e".
   }
 
   .error > span {
+    block-size: var(--sui-block-snap);
     text-box: trim-both cap alphabetic;
   }
 

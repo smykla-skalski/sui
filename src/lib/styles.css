@@ -121,6 +121,13 @@
   --sui-unsaved-secondary: #8a5a1e;
   --sui-unsaved-control: #fffaf0;
   --sui-unsaved-control-border: #d7a94e;
+  /* A painted swatch's ring is the swatch's own colour with its OKLCH lightness clamped into this
+     band, which holds 3:1 on the theme's grounds for every hue (L-93). */
+  --sui-swatch-edge-floor: 0;
+  --sui-swatch-edge-ceiling: 0.64;
+  /* A field's edge in a changed row, which holds 3:1 there like any field's (L-9). */
+  --sui-unsaved-field-border: var(--sui-unsaved-secondary);
+  --sui-unsaved-field-border-hover: var(--sui-unsaved-ink);
   --sui-unsaved-border: #c98a2e;
   --sui-decision-accent-hover: color-mix(
     in srgb,
@@ -183,8 +190,16 @@
   --sui-control-border: var(--sui-border-control);
 
   --sui-control-border-hover: rgb(0 0 0 / 30%);
+  /* A field is a quiet frame with a baseline: the frame shapes it, and the baseline holds 3:1
+     on every ground it stands on, the cue WCAG 1.4.11 asks of a text input (L-9). */
+  --sui-field-frame: var(--sui-border-control);
+  --sui-field-frame-hover: var(--sui-control-border-hover);
   --sui-field-border: var(--sui-border-strong);
-  --sui-field-border-hover: var(--sui-text-secondary);
+  --sui-field-border-hover: color-mix(
+    in srgb,
+    var(--sui-field-border) 60%,
+    var(--sui-text-primary)
+  );
   --sui-input-bg: var(--sui-surface-inset);
   --sui-popover-bg: var(--sui-surface-base);
   --sui-popover-border: var(--sui-border-control);
@@ -267,7 +282,16 @@
 
   --sui-row-copy-gap: 8px;
 
-  --sui-row-copy-leading: calc(1cap + var(--sui-row-copy-gap));
+  /* A trimmed line is as tall as its cap height, which is rarely a whole pixel; this rounds the
+     block up so every edge under it lands on the pixel grid and draws crisp (L-95). Browsers
+     without calc-size() ignore it and keep the fractional height. */
+  --sui-block-snap: calc-size(auto, round(up, size, 1px));
+
+  /* A box centred in an even height (every control height, target and floor here is even)
+     rounds up to an even height too, so the space either side of it halves to whole pixels. */
+  --sui-block-snap-even: calc-size(auto, round(up, size, 2px));
+
+  --sui-row-copy-leading: round(calc(1cap + var(--sui-row-copy-gap)), 1px);
 
   --sui-card-head-line: 13px;
 
@@ -342,6 +366,9 @@
   --sui-icon-sm: 13px;
   --sui-icon-base: 16px;
   --sui-icon-md: 18px;
+
+  /* A message's symbol stands in a tile of its tone, a glyph tier larger than the words'. */
+  --sui-symbol-tile: var(--sui-space-8);
 
   --sui-content-max: 70rem;
 
@@ -446,7 +473,11 @@
   --sui-unsaved-ink: #f5d9a3;
   --sui-unsaved-secondary: #d6b884;
   --sui-unsaved-control: #352c17;
-  --sui-unsaved-control-border: #b98c3d;
+  --sui-unsaved-control-border: #6a5326;
+  --sui-unsaved-field-border: #9c7735;
+  --sui-unsaved-field-border-hover: var(--sui-unsaved-secondary);
+  --sui-swatch-edge-floor: 0.56;
+  --sui-swatch-edge-ceiling: 1;
   --sui-unsaved-border: #a5772c;
   --sui-decision-accent-hover: color-mix(
     in srgb,
@@ -538,10 +569,14 @@
   --sui-border-strong: var(--sui-primitive-dark-strong);
 
   --sui-control-border: var(--sui-border-control);
-  /* The console's strong edge falls under 3:1 on the unsaved grounds, so a field's edge sits
-     a step lighter. */
-  --sui-field-border: color-mix(in srgb, var(--sui-text-primary) 46%, var(--sui-surface-base));
-  --sui-field-border-hover: var(--sui-text-secondary);
+  --sui-field-frame: var(--sui-border-control);
+  --sui-field-frame-hover: var(--sui-control-border-hover);
+  --sui-field-border: var(--sui-border-strong);
+  --sui-field-border-hover: color-mix(
+    in srgb,
+    var(--sui-field-border) 60%,
+    var(--sui-text-primary)
+  );
   --sui-popover-border: var(--sui-border-control);
   --sui-dialog-border: var(--sui-border-control);
   --sui-shadow-plate: 0 1px 2px var(--sui-shadow-color);

@@ -280,6 +280,7 @@ for a review that needs no click.
   }
 
   .sui-modal-title {
+    block-size: var(--sui-block-snap);
     font: 700 var(--sui-font-size-dialog-title) / var(--sui-leading-title) var(--sui-sans);
     letter-spacing: -0.015em;
     margin: 0;
@@ -290,14 +291,21 @@ for a review that needs no click.
 
   /* A box with no height of its own, so the close button centres on the title's cap band and
      never makes the head row taller than the title. */
+  /* A zero-height seat on the middle of the title's first line, rounded down to the pixel, so
+     the even-height button centred on it lands on whole pixels (L-95) and stays by the first
+     line when the title wraps. The title's face makes `1cap` its cap height. */
   .sui-modal-close {
     align-items: center;
+    align-self: flex-start;
     block-size: 0;
     display: flex;
     flex: none;
+    font: 700 var(--sui-font-size-dialog-title) / var(--sui-leading-flat) var(--sui-sans);
+    margin-block-start: round(down, calc(round(up, 1cap, 1px) / 2), 1px);
   }
 
   .sui-modal-description {
+    block-size: var(--sui-block-snap);
     color: var(--sui-text-secondary);
     font: 400 var(--sui-font-size-meta) / var(--sui-row-copy-leading) var(--sui-sans);
     margin: 0;

@@ -28,6 +28,7 @@ margins of its own; the form that holds it sets the gap above it.
 
 <style>
   .sui-form-error {
+    block-size: var(--sui-block-snap);
     color: var(--sui-danger);
     font: 400 var(--sui-font-size-meta) / var(--sui-row-copy-leading) var(--sui-sans);
     margin: 0;

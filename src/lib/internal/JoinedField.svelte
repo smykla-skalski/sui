@@ -33,7 +33,8 @@ between them.
   .sui-joined {
     background-color: var(--sui-control-bg);
     block-size: var(--sui-local-control-height, var(--sui-control-height-compact));
-    border: 1px solid var(--sui-field-border);
+    border: 1px solid var(--sui-field-frame);
+    border-block-end-color: var(--sui-field-border);
     border-radius: var(--sui-radius-control);
     box-sizing: border-box;
     display: flex;
@@ -48,7 +49,8 @@ between them.
   }
 
   .sui-joined:hover:not(.disabled, :has(:global(:focus-visible))) {
-    border-color: var(--sui-field-border-hover);
+    border-color: var(--sui-field-frame-hover);
+    border-block-end-color: var(--sui-field-border-hover);
   }
 
   .sui-joined.invalid:not(:has(:global(:focus-visible))) {

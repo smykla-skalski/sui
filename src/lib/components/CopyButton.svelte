@@ -185,6 +185,7 @@ in its corner. Beside a 34px field or in a toolbar it takes the control tier wit
   }
 
   .sui-copy-button-labels > span {
+    block-size: var(--sui-block-snap);
     grid-area: 1 / 1;
     text-align: center;
     text-box: trim-both cap alphabetic;

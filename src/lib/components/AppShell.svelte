@@ -270,6 +270,7 @@ viewport. `landmark="none"` keeps the content from claiming the page's one `main
   }
 
   .sui-shell-title {
+    block-size: var(--sui-block-snap);
     flex: 1;
     font: 600 var(--sui-font-size-title) / var(--sui-leading-title) var(--sui-sans);
     margin: 0;

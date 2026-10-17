@@ -73,7 +73,17 @@ falling to the page. Give that element `tabindex="-1"` when it is not a control.
 </div>
 
 <style>
+  /* The retry takes the danger tone: an edge of the hue on the raised frame, and on the tint
+     no ground of its own, so no neutral block sits on a failure (L-92). */
   .sui-error-state {
+    --sui-control-border: color-mix(in srgb, var(--sui-danger) 40%, var(--sui-surface-raised));
+    --sui-control-border-hover: color-mix(
+      in srgb,
+      var(--sui-danger) 65%,
+      var(--sui-surface-raised)
+    );
+    --sui-interactive-hover-layer: color-mix(in srgb, var(--sui-danger) 10%, transparent);
+    --sui-interactive-pressed: color-mix(in srgb, var(--sui-danger) 16%, transparent);
     background: var(--sui-surface-raised);
     border: 1px solid color-mix(in srgb, var(--sui-danger) 35%, transparent);
     border-radius: var(--sui-radius-control);
@@ -92,6 +102,7 @@ falling to the page. Give that element `tabindex="-1"` when it is not a control.
   }
 
   p {
+    block-size: var(--sui-block-snap);
     margin: 0;
     overflow-wrap: anywhere;
     text-box: trim-both cap alphabetic;
@@ -109,6 +120,9 @@ falling to the page. Give that element `tabindex="-1"` when it is not a control.
 
   /* One line sized to itself, so the rows under it keep their place. */
   .over {
+    --sui-surface-raised: transparent;
+    --sui-control-border: color-mix(in srgb, var(--sui-danger) 40%, var(--sui-danger-tint));
+    --sui-control-border-hover: color-mix(in srgb, var(--sui-danger) 65%, var(--sui-danger-tint));
     align-items: center;
     background: var(--sui-danger-tint);
     border-color: transparent;

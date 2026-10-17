@@ -257,13 +257,26 @@ politely. `preview` draws `items` in the page's flow instead, silent and still, 
     }
   }
 
+  /* The failure symbol stands in a tile of the danger tone, at the tile's 18px glyph. It sits
+     level with the copy's padding, so short copy centres on it and long copy starts at its top
+     (L-56). */
   .sui-toast-mark {
+    --sui-icon-base: var(--sui-icon-md);
+    align-items: center;
+    align-self: flex-start;
+    margin-block: var(--sui-space-2);
+    background: var(--sui-danger-tint);
+    block-size: var(--sui-symbol-tile);
+    border-radius: var(--sui-radius-control);
     color: var(--sui-danger);
     display: inline-flex;
     flex: none;
+    inline-size: var(--sui-symbol-tile);
+    justify-content: center;
   }
 
   .sui-toast-copy {
+    align-content: center;
     display: grid;
     flex: 1 1 auto;
     gap: var(--sui-row-copy-gap);
@@ -271,8 +284,13 @@ politely. `preview` draws `items` in the page's flow instead, silent and still, 
     padding-block: var(--sui-space-2);
   }
 
+  .sui-toast:has(> .sui-toast-mark) > .sui-toast-copy {
+    min-block-size: var(--sui-symbol-tile);
+  }
+
   .sui-toast-title,
   .sui-toast-description {
+    block-size: var(--sui-block-snap);
     font: 400 var(--sui-font-size-meta) / var(--sui-row-copy-leading) var(--sui-sans);
     margin: 0;
     overflow-wrap: anywhere;

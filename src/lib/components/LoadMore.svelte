@@ -100,6 +100,7 @@ container, so its button closes on a card's inset (L-33) as a list's last row do
   }
 
   .sui-load-more-copy {
+    block-size: var(--sui-block-snap);
     color: var(--sui-text-secondary);
     font: 400 var(--sui-font-size-meta) / var(--sui-row-copy-leading) var(--sui-sans);
     margin: 0;

@@ -70,7 +70,7 @@
 
 <Example
   title="Long copy"
-  note="The icon stays on the first line's cap band however many lines follow"
+  note="Long copy starts at the symbol's tile however many lines follow"
   layout="stack"
 >
   <Specimen label="Wrapping title and a link">

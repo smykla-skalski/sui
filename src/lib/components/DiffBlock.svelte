@@ -221,7 +221,6 @@ removed line has no single number to claim. Two empty sides say "No changes".
     font-variant-numeric: tabular-nums;
     margin: 0;
     overflow-x: auto;
-    padding: var(--sui-space-3) 0;
   }
 
   .sui-diff-block-scroll:focus-visible {
@@ -245,11 +244,14 @@ removed line has no single number to claim. Two empty sides say "No changes".
     min-inline-size: 100%;
   }
 
+  /* Every line is one height with its air inside it, so a tone runs from edge to edge and the
+     block has no strip of bare ground above its first line or below its last. */
   .ln {
     display: grid;
     grid-column: 1 / -1;
     grid-template-columns: subgrid;
     min-block-size: var(--sui-leading-meta);
+    padding-block: calc(var(--sui-space-1) / 2);
   }
 
   .no {

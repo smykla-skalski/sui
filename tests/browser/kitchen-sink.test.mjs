@@ -63,9 +63,18 @@ for (const width of WIDTHS)
       }
     });
 
-test('L-41 every keyboard stop draws the 2px focus ring', async () => {
+test('L-41 and L-96 every keyboard stop draws the 2px focus ring in full', async () => {
   const page = await open(1440, 'light');
   try {
+    // The same measure the audit's ring check uses, from the module the page already loaded.
+    // The path is an argument, so it resolves in the page, not in the type checker.
+    await page.evaluate(async (checks) => {
+      const { cutSides, ringReach } = await import(/* @vite-ignore */ checks);
+      Object.assign(window, {
+        ringCut: (/** @type {Element} */ element) =>
+          cutSides(element, ringReach(getComputedStyle(element)))
+      });
+    }, '/src/routes/audit/checks.ts');
     const problems = [];
     let stops = 0;
     for (let step = 0; step < 600; step++) {
@@ -91,19 +100,31 @@ test('L-41 every keyboard stop draws the 2px focus ring', async () => {
                 .join('')
           );
         // A full-row or full-card link may draw its ring on the row it covers (K-81).
+        let wearer = element;
         let ring = getComputedStyle(element);
         for (
           let /** @type {Element | null} */ node = element, depth = 0;
           node && depth < 4 && ring.outlineStyle !== 'solid';
           node = node.parentElement, depth++
-        )
+        ) {
+          wearer = node;
           ring = getComputedStyle(node);
-        return { where: path.join(' > '), outline: ring.outlineStyle, width: ring.outlineWidth };
+        }
+        const cut = /** @type {{ ringCut: (element: Element) => string[] }} */ (
+          /** @type {unknown} */ (window)
+        ).ringCut(wearer);
+        return {
+          where: path.join(' > '),
+          outline: ring.outlineStyle,
+          width: ring.outlineWidth,
+          cut
+        };
       });
       if (!stop) break;
       stops++;
       if (stop.outline !== 'solid' || stop.width !== '2px')
         problems.push(`${stop.where}: outline ${stop.outline} ${stop.width}`);
+      if (stop.cut.length) problems.push(`${stop.where}: ring cut at ${stop.cut.join(' and ')}`);
     }
     assert.ok(stops > 10, `only ${stops} keyboard stops were reached`);
     assert.deepEqual(problems, []);
@@ -397,6 +418,41 @@ test('L-80 a clipped label answers its own hover, not the page around it', async
     await label.hover();
     await page.waitForTimeout(600);
     assert.deepEqual(await tips(), [await label.textContent()]);
+  } finally {
+    await page.close();
+  }
+});
+
+test("L-91 and L-89 a row's change of state moves nothing and keeps focus", async () => {
+  const page = await open(1440, 'light');
+  try {
+    const list = page.locator('#setting-list .sui-setting-list').first();
+    await list.scrollIntoViewIfNeeded();
+    const row = list.locator('.sui-setting-row').first();
+    const layout = () =>
+      list.evaluate((node) =>
+        [...node.querySelectorAll('.sui-setting-row, .sui-setting-control > *')].map((part) => {
+          const box = part.getBoundingClientRect();
+          return [box.left, box.top, box.width, box.height].map((value) => Math.round(value * 2));
+        })
+      );
+    const changed = () => row.evaluate((node) => node.hasAttribute('data-unsaved'));
+    assert.ok(await changed(), 'the first row starts changed');
+    const before = await layout();
+    await row.getByRole('button', { name: /^Reset / }).click();
+    assert.equal(await changed(), false, 'the reset did not take the row back');
+    assert.deepEqual(await layout(), before, 'saving the row moved or resized something');
+    // The reset hides with the change it undid, so focus must land on what it reset.
+    assert.ok(
+      await row.evaluate((node) =>
+        node.querySelector('.sui-setting-control')?.contains(document.activeElement)
+      ),
+      'focus fell out of the row when its reset hid'
+    );
+    // The drawn box lies over the native input, so set the input itself.
+    await row.getByRole('checkbox').check({ force: true });
+    assert.ok(await changed(), 'changing the value did not mark the row');
+    assert.deepEqual(await layout(), before, 'changing the row moved or resized something');
   } finally {
     await page.close();
   }

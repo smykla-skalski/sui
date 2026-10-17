@@ -29,7 +29,8 @@ nothing to report yet, which is a state worth showing rather than a hole to hide
 
 A plate is a place, not a message. Something the reader must act on now is a `Callout`
 inside it. It carries the one-pixel plate lift, which a `Card` does not, and like a card it
-takes its outer spacing from its container.
+takes its outer spacing from its container. The head and the body keep one 16px inset on every
+side, and a state that does not fit beside a long title stands 8px of ink under it.
 -->
 
 <section {...rest} class={['sui-plate', className, { 'head-only': !children }]}>
@@ -56,24 +57,25 @@ takes its outer spacing from its container.
     min-inline-size: 0;
   }
 
+  /* One inset on every side of the head, the body's own, however the title wraps: the state
+     follows the title on its line, or the next line 8px of ink under it. */
   .sui-plate-head {
     align-items: center;
     border-block-end: 1px solid var(--sui-border-divider);
     box-sizing: border-box;
     display: flex;
     flex-wrap: wrap;
-    gap: var(--sui-space-2) var(--sui-space-3);
+    gap: var(--sui-row-copy-gap) var(--sui-space-3);
     justify-content: space-between;
-    min-block-size: 2.75rem;
-    padding: var(--sui-space-2) var(--sui-space-4);
+    padding: var(--sui-space-4);
   }
 
   .head-only .sui-plate-head {
     border-block-end: 0;
-    min-block-size: 4rem;
   }
 
   .sui-plate-title {
+    block-size: var(--sui-block-snap);
     color: var(--sui-text-primary);
     font: 600 var(--sui-font-size-card-title) / var(--sui-leading-title) var(--sui-sans);
     margin: 0;
@@ -92,7 +94,7 @@ takes its outer spacing from its container.
      a status mark overflows it evenly and centres on the title without raising the head. */
   .sui-plate-status {
     align-items: center;
-    block-size: 1cap;
+    block-size: round(1cap, 1px);
     display: flex;
     flex-wrap: wrap;
     font: 600 var(--sui-font-size-card-title) / var(--sui-leading-title) var(--sui-sans);

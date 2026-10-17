@@ -200,6 +200,7 @@ Escape or an outside press, returning focus to the tools button.
   }
 
   .sui-list-toolbar-current {
+    block-size: var(--sui-block-snap);
     color: var(--sui-text-secondary);
     display: none;
     font: 600 var(--sui-font-size-meta) / var(--sui-leading-flat) var(--sui-sans);
@@ -243,6 +244,7 @@ Escape or an outside press, returning focus to the tools button.
   }
 
   .sui-list-toolbar-heading {
+    block-size: var(--sui-block-snap);
     color: var(--sui-text-muted);
     font: 600 var(--sui-font-size-micro) / var(--sui-leading-tight) var(--sui-sans);
     letter-spacing: 0.07em;

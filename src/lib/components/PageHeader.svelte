@@ -73,6 +73,7 @@ sets `--sui-head-exit-gap` to that gap, and the header owes only the difference.
   }
 
   .sui-page-header-copy {
+    block-size: var(--sui-block-snap-even);
     display: flex;
     flex-direction: column;
     gap: var(--sui-rhythm-head-copy);
@@ -80,6 +81,7 @@ sets `--sui-head-exit-gap` to that gap, and the header owes only the difference.
   }
 
   .sui-page-header-eyebrow {
+    block-size: var(--sui-block-snap);
     color: var(--sui-text-muted);
     font: 600 var(--sui-font-size-micro) / var(--sui-leading-micro) var(--sui-sans);
     letter-spacing: 0.07em;
@@ -89,6 +91,7 @@ sets `--sui-head-exit-gap` to that gap, and the header owes only the difference.
   }
 
   .sui-page-header-title {
+    block-size: var(--sui-block-snap);
     color: var(--sui-text-primary);
     font: 700 var(--sui-font-size-page-title) / var(--sui-leading-page) var(--sui-sans);
     letter-spacing: -0.015em;
@@ -99,6 +102,7 @@ sets `--sui-head-exit-gap` to that gap, and the header owes only the difference.
   }
 
   .sui-page-header-description {
+    block-size: var(--sui-block-snap);
     color: var(--sui-text-muted);
     font: 400 var(--sui-font-size-body) / var(--sui-row-copy-leading) var(--sui-sans);
     margin: 0;

@@ -163,6 +163,7 @@ typed until the reader fixes it.
 
   /* Contained, so a long reason wraps under its entry instead of widening the list. */
   .sui-pattern-problem {
+    block-size: var(--sui-block-snap);
     color: var(--sui-danger);
     contain: inline-size;
     font: 400 var(--sui-font-size-meta) / var(--sui-row-copy-leading) var(--sui-sans);

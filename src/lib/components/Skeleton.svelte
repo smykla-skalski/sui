@@ -82,11 +82,13 @@ of what is coming is already known.
     min-inline-size: 0;
   }
 
-  /* Two trimmed lines of meta copy, the copy gap between them, the row padding and the
-     hairline: exactly an `ObjectRow`, measured in the face that row is set in. */
+  /* Two trimmed lines of meta copy, each snapped up to the pixel as the row snaps them, the
+     copy gap between them, the row padding and the hairline: exactly an `ObjectRow`, measured
+     in the face that row is set in. */
   .sui-skeleton-rows {
     --sui-skeleton-row: calc(
-      2cap + var(--sui-row-copy-gap) + 2 * var(--sui-row-pad-default) + var(--sui-row-hairline)
+      2 * round(up, 1cap, 1px) + var(--sui-row-copy-gap) + 2 * var(--sui-row-pad-default) +
+        var(--sui-row-hairline)
     );
     animation: sui-skeleton-pulse var(--sui-rhythm-shimmer) var(--sui-ease-inout) infinite alternate;
     display: grid;

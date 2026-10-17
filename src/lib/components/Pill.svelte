@@ -74,6 +74,7 @@ stops and the dot stays. A long label wraps inside the pill, so no word is ever 
   }
 
   .sui-pill-label {
+    block-size: var(--sui-block-snap);
     min-inline-size: 0;
     overflow-wrap: anywhere;
     text-box: trim-both cap alphabetic;

@@ -142,6 +142,7 @@ start.
   }
 
   .sui-button-label {
+    block-size: var(--sui-block-snap);
     text-box: trim-both cap alphabetic;
   }
 

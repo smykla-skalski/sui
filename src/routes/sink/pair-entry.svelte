@@ -56,6 +56,7 @@
         why="Extra words mapped to the commands they run"
         unsaved={changed}
         onclear={changed ? reset : undefined}
+        resettable
         clearLabel="Reset aliases"
       >
         {#snippet control({ labelledby })}
@@ -143,6 +144,7 @@
         why="Extra words mapped to the commands they run"
         unsaved={changed}
         onclear={changed ? reset : undefined}
+        resettable
         clearLabel="Reset aliases"
       >
         {#snippet control({ labelledby })}
@@ -210,6 +212,7 @@
   }
 
   .reason {
+    block-size: var(--sui-block-snap);
     color: var(--sui-text-secondary);
     font: 400 var(--sui-font-size-meta) / var(--sui-row-copy-leading) var(--sui-sans);
     margin: 0;

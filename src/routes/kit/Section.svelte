@@ -83,6 +83,7 @@
   }
 
   .family {
+    block-size: var(--sui-block-snap);
     color: var(--sui-text-muted);
     font: 600 var(--sui-font-size-micro) / var(--sui-leading-micro) var(--sui-sans);
     letter-spacing: 0.06em;
@@ -92,6 +93,7 @@
   }
 
   h2 {
+    block-size: var(--sui-block-snap);
     color: var(--sui-text-primary);
     font: 700 var(--sui-font-size-dialog-title) / var(--sui-leading-title) var(--sui-sans);
     letter-spacing: -0.015em;
@@ -107,6 +109,7 @@
   }
 
   .lead {
+    block-size: var(--sui-block-snap);
     color: var(--sui-text-secondary);
     font: 400 var(--sui-font-size-body) / var(--sui-row-copy-leading) var(--sui-sans);
     margin: 0;

@@ -142,6 +142,7 @@
   }
 
   h2 {
+    block-size: var(--sui-block-snap);
     font: 700 var(--sui-font-size-dialog-title) / var(--sui-leading-title) var(--sui-sans);
     letter-spacing: -0.015em;
     margin: 0;
@@ -164,6 +165,7 @@
   }
 
   .scope {
+    block-size: var(--sui-block-snap);
     color: var(--sui-text-muted);
     font: 400 var(--sui-font-size-meta) / var(--sui-row-copy-leading) var(--sui-sans);
     margin: 0;
@@ -171,6 +173,7 @@
   }
 
   .summary {
+    block-size: var(--sui-block-snap);
     color: var(--sui-text-secondary);
     font: 400 var(--sui-font-size-meta) / var(--sui-row-copy-leading) var(--sui-sans);
     margin: 0;

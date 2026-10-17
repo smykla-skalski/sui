@@ -44,7 +44,8 @@ It has no label of its own. Put it in a `Field` through the `control` snippet, o
 <style>
   .sui-textarea {
     background-color: var(--sui-control-bg);
-    border: 1px solid var(--sui-field-border);
+    border: 1px solid var(--sui-field-frame);
+    border-block-end-color: var(--sui-field-border);
     border-radius: var(--sui-radius-control);
     box-sizing: border-box;
     color: var(--sui-text-primary);
@@ -67,7 +68,8 @@ It has no label of its own. Put it in a `Field` through the `control` snippet, o
   }
 
   .sui-textarea:hover:not(:disabled):not(:focus) {
-    border-color: var(--sui-field-border-hover);
+    border-color: var(--sui-field-frame-hover);
+    border-block-end-color: var(--sui-field-border-hover);
   }
 
   .sui-textarea:focus {

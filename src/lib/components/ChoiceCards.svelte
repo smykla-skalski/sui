@@ -99,6 +99,7 @@ These are native radios, so the arrow keys move the choice and skip disabled ans
   }
 
   .sui-choice-cards-legend {
+    block-size: var(--sui-block-snap);
     color: var(--sui-text-secondary);
     float: inline-start;
     font: 600 var(--sui-font-size-control) / var(--sui-row-copy-leading) var(--sui-sans);
@@ -188,7 +189,7 @@ These are native radios, so the arrow keys move the choice and skip disabled ans
        first line however many lines it wraps to. */
     font: 600 var(--sui-font-size-meta) / var(--sui-leading-flat) var(--sui-sans);
     inline-size: var(--sui-icon-base);
-    margin-block: calc((1cap - var(--sui-icon-base)) / 2);
+    margin-block: round(calc((1cap - var(--sui-icon-base)) / 2), 1px);
     position: relative;
   }
 
@@ -205,6 +206,7 @@ These are native radios, so the arrow keys move the choice and skip disabled ans
   }
 
   .sui-choice-card-label {
+    block-size: var(--sui-block-snap);
     color: var(--sui-text-primary);
     font: 600 var(--sui-font-size-meta) / var(--sui-row-copy-leading) var(--sui-sans);
     text-box: trim-both cap alphabetic;
@@ -216,6 +218,7 @@ These are native radios, so the arrow keys move the choice and skip disabled ans
   }
 
   .sui-choice-card-description {
+    block-size: var(--sui-block-snap);
     color: var(--sui-text-secondary);
     font: 400 var(--sui-font-size-meta) / var(--sui-row-copy-leading) var(--sui-sans);
     grid-column: 2;
@@ -230,6 +233,7 @@ These are native radios, so the arrow keys move the choice and skip disabled ans
 
   .sui-choice-cards-help,
   .sui-choice-cards-error {
+    block-size: var(--sui-block-snap);
     margin: 0;
     text-box: trim-both cap alphabetic;
   }

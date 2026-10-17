@@ -70,6 +70,7 @@ is drawn by CSS, so a screen reader hears the words as written.
 
 <style>
   .sui-day-heading {
+    block-size: var(--sui-block-snap);
     color: var(--sui-text-muted);
     font: 600 var(--sui-font-size-micro) / var(--sui-leading-tight) var(--sui-sans);
     letter-spacing: 0.07em;
