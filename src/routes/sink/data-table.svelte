@@ -35,7 +35,7 @@
   const repositories: Repository[] = [
     { name: 'smyklot', open: 12, merged: 1_284, review: '3 h 20 min' },
     { name: 'sui', open: 4, merged: 96, review: '45 min' },
-    { name: 'ksai', open: 31, merged: 7_402, review: '1 d 2 h' }
+    { name: 'ledger', open: 31, merged: 7_402, review: '1 d 2 h' }
   ];
 
   const releaseColumns: DataTableColumn<Release>[] = [

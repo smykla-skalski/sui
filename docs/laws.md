@@ -1,6 +1,6 @@
 # SUI design laws
 
-These laws govern every SUI component and the kitchen sink that shows them. They come from two sheets: the [Smyklot panel design system](https://github.com/smykla-skalski/smyklot/blob/main/design-system/smyklot-panel/MASTER.md) (`S-n`) and the rules of the ksai documentation site (`K-n`). When the sheets disagree, Smyklot wins and ksai fills what Smyklot does not say. Where the Smyklot sheet and its tested `tokens.css` disagree, SUI follows the tested code.
+These laws govern every SUI component and the kitchen sink that shows them. They come from two sheets: the [Smyklot panel design system](https://github.com/smykla-skalski/smyklot/blob/main/design-system/smyklot-panel/MASTER.md) (`S-n`) and the rules of a companion documentation site (`K-n`), whose light grounds and inks the palette also takes. When the sheets disagree, Smyklot wins and the companion sheet fills what Smyklot does not say. Where the Smyklot sheet and its tested `tokens.css` disagree, SUI follows the tested code.
 
 A sheet rule that goes against an accessibility or usability standard does not stand. Where a law departs from its sheet for that reason, it names the standard: WCAG 2.2, the WAI-ARIA Authoring Practices (APG), the Apple and Material platform guidelines, GOV.UK, or published research.
 

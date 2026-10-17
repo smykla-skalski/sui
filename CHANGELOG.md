@@ -15,6 +15,7 @@
 - Breaking: the `sticky` toast option is gone. A toast with an action stays until the reader acts, and toasts show above an open dialog.
 - Breaking: `LoadMore` is a button that announces new rows and needs `shown`. It no longer loads on scroll.
 - Breaking: `InheritControl` needs `label`. `RelativeTime` is no longer a tab stop. `SegmentedControl` turns into a select when its options do not fit.
+- The light theme takes the companion documentation site's grounds, rules, control edges and inks: a lighter canvas, a firmer hairline and deeper text. The dark theme already matched.
 - Add `Field` `required`, `Checkbox` `bare`, `DataTable` `striped`, `Breadcrumb` `current`, `Modal` `role` and `ActionMenu` item descriptions.
 
 ## 0.2.1

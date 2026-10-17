@@ -50,17 +50,17 @@
 [data-sui-theme='light'] {
   color-scheme: light;
 
-  --sui-primitive-light-canvas: #eef2f0;
+  --sui-primitive-light-canvas: #f7f9f7;
   --sui-primitive-light-surface: #ffffff;
-  --sui-primitive-light-raised: #fafbfa;
-  --sui-primitive-light-inset: #f0f3f2;
-  --sui-primitive-light-control: #f8faf9;
-  --sui-primitive-light-rule: #e3e8e6;
-  --sui-primitive-light-control-border: #c4cec9;
+  --sui-primitive-light-raised: #fbfcfa;
+  --sui-primitive-light-inset: #edefed;
+  --sui-primitive-light-control: #f7f9f7;
+  --sui-primitive-light-rule: #b9c5b6;
+  --sui-primitive-light-control-border: #aebaab;
   --sui-primitive-light-control-border-hover: #99a7a1;
-  --sui-primitive-light-text: #18211f;
-  --sui-primitive-light-secondary: #4c5b57;
-  --sui-primitive-light-muted: #63716c;
+  --sui-primitive-light-text: #001408;
+  --sui-primitive-light-secondary: #4a4d49;
+  --sui-primitive-light-muted: #686c67;
   --sui-primitive-dark-canvas: #0e1116;
   --sui-primitive-dark-surface: #151a21;
   --sui-primitive-dark-raised: #1b222b;
@@ -70,7 +70,7 @@
   --sui-primitive-dark-control-border: #3a4653;
   --sui-primitive-dark-control-border-hover: #536170;
   --sui-primitive-dark-text: #f3f6f7;
-  --sui-primitive-light-sidebar: #e6ede9;
+  --sui-primitive-light-sidebar: #e7ede5;
   --sui-primitive-dark-sidebar: #10151b;
   --sui-primitive-dark-secondary: #c4cdd4;
   --sui-primitive-dark-muted: #95a1ab;
@@ -163,12 +163,12 @@
   --sui-scrim-blur: 8px;
 
   --sui-sidebar-bg: var(--sui-primitive-light-sidebar);
-  --sui-sidebar-border: #c9d4cf;
+  --sui-sidebar-border: #c3cbc0;
   --sui-sidebar-text: var(--sui-primitive-light-text);
-  --sui-sidebar-text-secondary: #3d4b47;
-  --sui-sidebar-text-muted: #53615c;
-  --sui-sidebar-item-hover: #cfd7d2;
-  --sui-sidebar-item-pressed: #c2cbc5;
+  --sui-sidebar-text-secondary: #3b3e3a;
+  --sui-sidebar-text-muted: #565a53;
+  --sui-sidebar-item-hover: #dbe2d8;
+  --sui-sidebar-item-pressed: #cdd4cb;
   --sui-sidebar-active-bg: var(--sui-primitive-petrol-700);
   --sui-sidebar-active-ink: #ffffff;
   --sui-sidebar-focus: var(--sui-primitive-petrol-700);

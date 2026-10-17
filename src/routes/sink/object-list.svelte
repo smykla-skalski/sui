@@ -17,7 +17,7 @@
   const repositories = [
     { name: 'smykla-skalski/sui', summary: 'Default branch main · 84 files in step' },
     { name: 'smykla-skalski/smyklot', summary: 'Default branch main · 3 rules would change' },
-    { name: 'smykla-skalski/ksai', summary: 'Default branch trunk · archived last year' }
+    { name: 'smykla-skalski/ledger', summary: 'Default branch trunk · archived last year' }
   ];
 
   let syncing = $state(false);

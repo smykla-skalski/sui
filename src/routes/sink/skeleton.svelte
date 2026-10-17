@@ -12,7 +12,7 @@
   import Example from '../kit/Example.svelte';
   import Specimen from '../kit/Specimen.svelte';
 
-  const names = ['smykla-skalski/sui', 'smykla-skalski/smyklot', 'smykla-skalski/ksai'];
+  const names = ['smykla-skalski/sui', 'smykla-skalski/smyklot', 'smykla-skalski/ledger'];
 
   let loading = $state(true);
 
