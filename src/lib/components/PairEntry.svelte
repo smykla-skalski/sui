@@ -473,7 +473,7 @@ row gives them and fall under the copy on a narrow row.
     box-sizing: border-box;
     display: grid;
     gap: var(--sui-space-4);
-    inline-size: min(20rem, calc(100vw - 2 * var(--sui-space-2) - 2px));
+    inline-size: min(20rem, calc(100vw - 2 * var(--sui-space-2) - 2 * var(--sui-stroke)));
     margin: 0;
     padding: var(--sui-space-4);
   }

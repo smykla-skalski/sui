@@ -555,7 +555,7 @@ from the checked option because CSS cannot size one box from a sibling.
       inset 0 2px 4px var(--sui-segment-well-head),
       inset var(--sui-local-bleed-start) 0 3px var(--sui-segment-well-rim),
       inset calc(-1 * var(--sui-local-bleed-end)) 0 3px var(--sui-segment-well-rim),
-      inset 0 -1px 0 var(--sui-segment-well-foot);
+      inset 0 calc(-1 * var(--sui-stroke)) 0 var(--sui-segment-well-foot);
     opacity: 1;
   }
 

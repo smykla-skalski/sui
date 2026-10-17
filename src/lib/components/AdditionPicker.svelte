@@ -237,7 +237,7 @@ new control after `onadd` is the caller's.
     box-sizing: border-box;
     display: grid;
     grid-template-columns: minmax(0, 1fr);
-    max-block-size: calc(min(20rem, var(--sui-floating-available-block)) - 2px);
+    max-block-size: calc(min(20rem, var(--sui-floating-available-block)) - 2 * var(--sui-stroke));
     max-inline-size: max(24rem, var(--sui-floating-anchor-inline));
     outline: none;
     overflow: auto;

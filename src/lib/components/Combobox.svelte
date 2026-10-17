@@ -446,7 +446,7 @@ Name it with a `<label>` or `aria-label`, as any field.
     box-sizing: border-box;
     display: grid;
     grid-template-columns: minmax(0, 1fr);
-    max-block-size: calc(min(20rem, var(--sui-floating-available-block)) - 2px);
+    max-block-size: calc(min(20rem, var(--sui-floating-available-block)) - 2 * var(--sui-stroke));
     max-inline-size: max(24rem, var(--sui-floating-anchor-inline));
     overflow: auto;
     overscroll-behavior: contain;

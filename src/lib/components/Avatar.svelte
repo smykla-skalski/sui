@@ -122,7 +122,7 @@ without a referrer.
     /* An outline paints over a picture where an inset shadow would sit under it, and a
        photograph can end in the color of the card behind it. */
     outline: var(--sui-stroke) solid var(--sui-avatar-ring);
-    outline-offset: -1px;
+    outline-offset: calc(-1 * var(--sui-stroke));
   }
 
   [data-corner='control'] {

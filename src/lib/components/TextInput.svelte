@@ -133,7 +133,7 @@ tabular figures.
     background-color: transparent;
     border-color: transparent;
     border-radius: 0;
-    margin-block: -1px;
+    margin-block: calc(-1 * var(--sui-stroke));
     outline: none;
   }
 

@@ -560,7 +560,7 @@ name is the label and the hex, such as "Label color #0f766e". `name` posts the h
     display: grid;
     gap: var(--sui-space-3);
     /* The token is the popover's outer width, so the popover's 1px border comes off it. */
-    inline-size: calc(var(--sui-cp-width) - 2px);
+    inline-size: calc(var(--sui-cp-width) - 2 * var(--sui-stroke));
     padding: var(--sui-cp-pad);
   }
 

@@ -287,7 +287,7 @@ assistive technology, because a native picker cannot be held open.
     border-radius: 0;
     border-width: 0;
     color: var(--sui-text-secondary);
-    margin-block: -1px;
+    margin-block: calc(-1 * var(--sui-stroke));
     padding-inline-start: var(--sui-space-1);
     translate: none;
   }
