@@ -84,11 +84,11 @@
         {count(findings.length, 'finding')} against {count(byLaw.length, 'law')}
       {/if}
     </p>
-    {#if findings !== null}
-      <p class="scope">
-        {checkCount()} rendered checks, run again on every theme switch and layout change
-      </p>
-    {/if}
+    <!-- Shown from the start, so the panel keeps its height when the first run reports and
+         nothing below it moves. -->
+    <p class="scope">
+      {checkCount()} rendered checks, run again on every theme switch and layout change
+    </p>
   </div>
   {#if findings && findings.length > 0}
     <ul class="laws">
