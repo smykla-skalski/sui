@@ -52,7 +52,8 @@
 
   /* The teardown runs once the panel is out of the page, so focus has already fallen to
      <body>. The next microtask finds whatever took this panel's place: the caller's choice,
-     else the first control left where the panel stood. */
+     else the first control left where the panel stood, else the place itself, which holds
+     focus until the reader moves on, so the reader's place is never the top of the page. */
   $effect(() => () => {
     if (!retried) return;
     const region = place;
@@ -62,9 +63,17 @@
       const found = [...(region?.querySelectorAll<HTMLElement>(TABBABLE) ?? [])].find((node) =>
         node.checkVisibility()
       );
-      (chosen ?? found)?.focus();
+      const target = chosen ?? found ?? (region instanceof HTMLElement ? hold(region) : null);
+      target?.focus({ preventScroll: true });
     });
   });
+
+  function hold(region: HTMLElement): HTMLElement {
+    if (region.hasAttribute('tabindex')) return region;
+    region.tabIndex = -1;
+    region.addEventListener('blur', () => region.removeAttribute('tabindex'), { once: true });
+    return region;
+  }
 </script>
 
 <!--
@@ -82,7 +91,7 @@ of them.
 - States: failed (a panel in the danger tone), retrying (the button busy with `retryingLabel`), and over loaded content (one line on the danger tint).
 - Keyboard: the retry takes Tab, Enter and Space; it ignores presses while busy.
 - Pointer and touch: the retry is 34px tall, 44px on a phone or touch screen.
-- Focus: the retry keeps focus while it runs; when the retry succeeds and the panel leaves, focus moves to `focusAfterRetry`, else to the first control where the panel stood, never to the page.
+- Focus: the retry keeps focus while it runs; when the retry succeeds and the panel leaves, focus moves to `focusAfterRetry`, else to the first control where the panel stood, else to the place itself, never to the page.
 - Responsive: the panel fills its column; over content the line wraps its words and its button.
 - Accessibility: the alert announces the failure when it appears, the busy button is announced as busy, and the title wears the danger ink with words that say what failed.
 - Localization: `retryLabel` and `retryingLabel` carry the built-in words, and it starts at the inline start, mirrored in a right-to-left page.

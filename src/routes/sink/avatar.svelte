@@ -64,10 +64,7 @@
   </Specimen>
 </Example>
 
-<Example
-  title="Narrow width"
-  note="A long name or handle ends in an ellipsis and shows in full in a tooltip"
->
+<Example title="Narrow width" note="A long name or handle wraps and keeps every word">
   <Specimen label="Long name in 16rem">
     <div class="narrow">
       <IdentityRow

@@ -106,18 +106,24 @@ for (const theme of ['light', 'dark'])
         await section.scrollIntoViewIfNeeded();
         const picture = await section.screenshot({ animations: 'disabled' });
         const file = join(BASELINES, `${id}-${theme}.png`);
-        if (UPDATE) writeFileSync(file, picture);
-        else if (!existsSync(file)) missing.push(id);
-        else {
-          const pixels = await changedPixels(page, picture, readFileSync(file));
-          if (pixels === -1 || pixels > NOISE_PIXELS) {
-            const seen = join(tmpdir(), `sui-visual-${id}-${theme}.png`);
-            writeFileSync(seen, picture);
-            changed.push(
-              `${id}: ${pixels === -1 ? 'a new size' : `${pixels} pixels`} (now in ${seen})`
-            );
-          }
+        if (!existsSync(file)) {
+          if (UPDATE) writeFileSync(file, picture);
+          else missing.push(id);
+          continue;
         }
+        const pixels = await changedPixels(page, picture, readFileSync(file));
+        if (pixels !== -1 && pixels <= NOISE_PIXELS) continue;
+        // An update rewrites only what changed past the noise, so the diff holds only real
+        // changes rather than every picture redrawn.
+        if (UPDATE) {
+          writeFileSync(file, picture);
+          continue;
+        }
+        const seen = join(tmpdir(), `sui-visual-${id}-${theme}.png`);
+        writeFileSync(seen, picture);
+        changed.push(
+          `${id}: ${pixels === -1 ? 'a new size' : `${pixels} pixels`} (now in ${seen})`
+        );
       }
       assert.deepEqual(missing, [], 'sections with no recorded picture');
       assert.deepEqual(changed, [], 'sections that look different from their recorded picture');

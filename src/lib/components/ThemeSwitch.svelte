@@ -173,4 +173,8 @@ mounts, so set the stored theme from a small script in the document head to avoi
   class={className}
   onclick={pick}
   onchange={pick}
+  onkeyup={(event: KeyboardEvent) => {
+    // Space on the radio already checked fires no click, yet it is a choice all the same.
+    if (event.key === ' ') pick(event);
+  }}
 />

@@ -25,7 +25,7 @@
 
 <Example
   title="States"
-  note="Empty, filled with its clear button and with its label drawn, and Escape clears the query before it closes anything"
+  note="Empty, filled with its clear button and with an example query, each under its drawn label, and Escape clears the query before it closes anything"
   layout="grid"
 >
   <Specimen label="Empty" code="placeholder">
@@ -34,8 +34,8 @@
   <Specimen label="Filled" code="bind:value">
     <SearchField label="Search the people" placeholder="Search people" bind:value={people} />
   </Specimen>
-  <Specimen label="Drawn label" code="showLabel">
-    <SearchField label="Search the teams" showLabel placeholder="Platform" bind:value={teams} />
+  <Specimen label="Example placeholder" code="placeholder">
+    <SearchField label="Search the teams" placeholder="Platform" bind:value={teams} />
   </Specimen>
 </Example>
 

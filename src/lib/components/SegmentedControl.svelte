@@ -106,8 +106,8 @@
     return () => observer.disconnect();
   }
 
-  // ponytail: ignores `zoom` and scale transforms on ancestors; multiply their factors into
-  // the measurement if the control ever has to sit inside a scaled subtree.
+  // ponytail: ignores `zoom` on ancestors; divide by it too if the control ever sits in a zoomed
+  // subtree.
   function measure() {
     if (!track) return;
     const input =
@@ -120,11 +120,17 @@
       return;
     }
     const own = track.getBoundingClientRect();
+    // A layer growing open scales the control: its boxes are read in the layout's own pixels,
+    // and read again each frame while the growth runs, so the thumb lands at full size.
+    // `offsetWidth` is rounded, so only a clear difference is a scale.
+    const ratio = own.width / track.offsetWidth || 1;
+    const scale = Math.abs(ratio - 1) > 0.01 ? ratio : 1;
+    if (scale !== 1 && document.getAnimations().length > 0) requestAnimationFrame(measure);
     const rtl = getComputedStyle(track).direction === 'rtl';
     const next = {
       option: input.value,
-      start: (rtl ? own.right - box.right : box.left - own.left) - track.clientLeft,
-      width: box.width
+      start: (rtl ? own.right - box.right : box.left - own.left) / scale - track.clientLeft,
+      width: box.width / scale
     };
     if (thumb?.start === next.start && thumb.width === next.width) return;
     // Only a new selection travels. The same option measuring differently (a font landed, a

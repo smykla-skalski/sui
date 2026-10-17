@@ -16,7 +16,8 @@
     emptyAction,
     ontableopenchange,
     emptyTitle = 'No chart data yet',
-    emptyDescription = 'Values show here once they are recorded',
+    emptyDescription = 'Nothing has been recorded for this chart',
+    emptyStep = 'Values show here once they are recorded',
     dataLabel = 'View chart data',
     loadingLabel = 'Loading chart data…',
     refreshingLabel = 'Updating…',
@@ -112,7 +113,7 @@
     <EmptyState
       title={emptyTitle}
       description={emptyDescription}
-      {...emptyAction ? { action: emptyAction } : {}}
+      {...emptyAction ? { action: emptyAction } : { step: emptyStep }}
     />
   {:else}
     <!-- A box that scrolls takes a stop so a keyboard can scroll it, as WCAG 2.1.1 asks. -->

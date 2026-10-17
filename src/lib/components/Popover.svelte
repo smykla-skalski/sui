@@ -55,9 +55,20 @@
 
   $effect(() => {
     if (!closeOnLeave || !anchor) return;
-    const press = () => (pressingAnchor = true);
+    // The press ends when the pointer lifts, so a later Tab or Shift+Tab onto the anchor is the
+    // reader leaving again.
+    const release = () => (pressingAnchor = false);
+    const press = () => {
+      pressingAnchor = true;
+      addEventListener('pointerup', release, { capture: true, once: true });
+      addEventListener('pointercancel', release, { capture: true, once: true });
+    };
     anchor.addEventListener('pointerdown', press);
-    return () => anchor.removeEventListener('pointerdown', press);
+    return () => {
+      anchor.removeEventListener('pointerdown', press);
+      removeEventListener('pointerup', release, { capture: true });
+      removeEventListener('pointercancel', release, { capture: true });
+    };
   });
 
   function onfocusout(event: FocusEvent & { currentTarget: EventTarget & HTMLDivElement }) {
@@ -230,7 +241,7 @@ close control, because only Escape and that control end it.
 - Responsive: it flips to the side with more room, stays 8px inside the viewport, caps its height to the room it has and scrolls inside.
 - Accessibility: in the top layer it is never inert under a dialog; the content's role and the trigger's `aria-expanded` carry its meaning.
 - Localization: `start` and `end` alignment and the inline sides follow the reading direction, so a right-to-left page hangs it from the mirrored edge.
-- Performance: the box scrolls with the page in the same frame as its trigger, and is placed again only when a scrolling container around the trigger moves it, the viewport resizes or either box changes size, keeping the side it opened on; a scroll inside the box never moves it. The growth runs on transform and opacity only, and only fades under reduced motion.
+- Performance: the box scrolls with the page in the same frame as its trigger. While open it reads the trigger's box once a frame and is placed again only when the trigger moves within the page (a scrolling container, content above that changes height), the viewport resizes or either box changes size, keeping the side it opened on; a scroll inside the box never moves it. The growth runs on transform and opacity only, and only fades under reduced motion.
 - Analytics: `onclose` reports every close, and `ontoggle` reports both directions.
 - Failure: with no `anchor` it opens without placement or growth; content taller than the room scrolls inside instead of leaving the screen.
 -->

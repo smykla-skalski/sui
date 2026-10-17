@@ -28,8 +28,10 @@ export type ChartFrameProps = {
   error?: string;
   /** Draws "Try again" on a failed chart. */
   onretry?: () => void;
-  /** The next step an empty chart offers, usually a `Button`. */
+  /** The next step an empty chart offers, usually a `Button`; without it the chart says `emptyStep`. */
   emptyAction?: Snippet;
+  /** The next step in words, for an empty chart with no `emptyAction`. */
+  emptyStep?: string;
   /** Called when the reader opens or closes the table of values. */
   ontableopenchange?: (open: boolean) => void;
   emptyTitle?: string;

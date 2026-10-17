@@ -144,37 +144,53 @@ const laidOut = (floating: HTMLElement) => ({
 });
 
 /**
- * Keeps an open box on its anchor when the viewport resizes, either box changes size, or a
- * scrolling container around the anchor moves it. The page's own scroll needs nothing, since the
- * box scrolls with the page, and a scroll inside the box is the reader reading it. The box keeps
- * the side it opened on, so it never jumps across its trigger mid-scroll.
+ * Keeps an open box on its anchor while it is open. The page's own scroll needs nothing, since
+ * the box scrolls with the page, and a scroll inside the box is the reader reading it. Anything
+ * that moves the anchor within the page places the box again: a scrolling container around it,
+ * content above it that grows or shrinks, a resized viewport, or either box changing size. The
+ * box keeps the side it opened on, so it never jumps across its trigger mid-scroll.
  */
 export function follow(
   floating: HTMLElement,
   anchor: Element,
   placement: Placement = {}
 ): () => void {
-  let frame = 0;
-  const update = () => {
-    cancelAnimationFrame(frame);
-    frame = requestAnimationFrame(() => place(floating, anchor, placement, true));
+  // Where the anchor stands in the page and how big it is, as last placed against.
+  let seen = '';
+  const where = () => {
+    const box = anchor.getBoundingClientRect();
+    return [box.left + scrollX, box.top + scrollY, box.width, box.height]
+      .map((value) => Math.round(value * 2))
+      .join();
   };
+  const settle = () => {
+    seen = where();
+    place(floating, anchor, placement, true);
+  };
+  // One box read a frame: a scroll leaves the page position alone, and only a real move of
+  // the anchor costs a placement.
+  let frame = 0;
+  const watch = () => {
+    if (where() !== seen) settle();
+    frame = requestAnimationFrame(watch);
+  };
+  seen = where();
+  frame = requestAnimationFrame(watch);
   // A container's scroll event fires in the frame it moves, so placing at once keeps the box
-  // with its trigger in that frame.
+  // with its trigger in that frame rather than the next.
   const scrolled = (event: Event) => {
     const source = event.target;
     if (source instanceof Element && source.contains(anchor) && !floating.contains(source))
-      place(floating, anchor, placement, true);
+      settle();
   };
-  const observer = new ResizeObserver(update);
+  const observer = new ResizeObserver(() => settle());
   observer.observe(floating);
-  observer.observe(anchor);
   addEventListener('scroll', scrolled, { capture: true, passive: true });
-  addEventListener('resize', update, { passive: true });
+  addEventListener('resize', settle, { passive: true });
   return () => {
     cancelAnimationFrame(frame);
     observer.disconnect();
     removeEventListener('scroll', scrolled, { capture: true });
-    removeEventListener('resize', update);
+    removeEventListener('resize', settle);
   };
 }

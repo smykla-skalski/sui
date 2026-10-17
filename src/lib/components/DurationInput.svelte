@@ -191,12 +191,16 @@
     hold(event.currentTarget.value, unit);
   }
 
-  // A readable amount keeps its seconds and is said in the new unit. Text that cannot be read
-  // stays as typed and is read again in the new unit, so 0.5 seconds becomes 0.5 minutes.
+  // A readable amount keeps its seconds and is said in the new unit when that takes at most two
+  // decimals, so 90 seconds becomes 1.5 minutes. Otherwise the amount stays as written and is
+  // read in the new unit, so 1 second becomes 1 minute, never 0.016666 minutes, and text that
+  // cannot be read, such as 0.5 seconds, becomes 0.5 minutes.
   function pick(next: DurationUnit | null): void {
     if (next === null) return;
     revealed = true;
-    hold(typed === null ? text : numbers.format(typed / SECONDS[next]), next);
+    const converted = typed === null ? null : typed / SECONDS[next];
+    const readable = converted !== null && Math.round(converted * 100) === converted * 100;
+    hold(readable ? numbers.format(converted) : text, next);
   }
 </script>
 

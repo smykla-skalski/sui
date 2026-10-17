@@ -129,6 +129,21 @@ test('K10 an open layer rides with its trigger as the page scrolls and scrolls i
       Math.max(...gaps) - Math.min(...gaps) <= 1,
       `the gap to the trigger ran ${[...new Set(gaps.map(Math.round))].join(', ')}px`
     );
+
+    // Content above that grows moves the trigger within the page, and the layer goes with it.
+    const shifted = await page.evaluate(async () => {
+      const anchor = document.querySelector('[aria-label="Repository actions"]');
+      const layer = document.querySelector('.sui-popover:popover-open');
+      const filler = document.createElement('div');
+      filler.style.blockSize = '120px';
+      anchor?.closest('section')?.before(filler);
+      await new Promise((done) => requestAnimationFrame(() => requestAnimationFrame(done)));
+      const gap =
+        (layer?.getBoundingClientRect().top ?? 0) - (anchor?.getBoundingClientRect().bottom ?? 0);
+      filler.remove();
+      return gap;
+    });
+    assert.ok(Math.abs(shifted - gaps[0]) <= 1, `after a shift above, the gap is ${shifted}px`);
   } finally {
     await page.close();
   }

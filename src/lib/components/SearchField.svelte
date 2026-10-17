@@ -9,7 +9,7 @@
   let {
     value = $bindable(''),
     label,
-    showLabel = false,
+    hideLabel = false,
     clearLabel = 'Clear the search',
     onclear,
     element = $bindable(null),
@@ -19,10 +19,10 @@
     ...rest
   }: {
     value?: string;
-    /** The accessible name, and the drawn label with `showLabel`. */
+    /** The accessible name and the label drawn above the field. */
     label: string;
-    /** Draws `label` above the field, for a search that is not the only one in its bar. */
-    showLabel?: boolean;
+    /** Hides the drawn label, only for a caller that draws the field's visible label itself. */
+    hideLabel?: boolean;
     /** The clear button's name and tooltip. */
     clearLabel?: string;
     /** Hears each clear, by the button or by Escape. */
@@ -59,8 +59,9 @@ which is the only side that knows whether an answer costs a request.
 
 A clear button shows once there is a query, and Escape clears it too. An Escape with nothing
 to clear passes on, so the dialog or popover around the field still closes. `label` is the
-accessible name, and `showLabel` draws it above the field; leave it hidden only where the
-magnifier sits in a bar whose own words say what it searches. A search that filters is never
+accessible name and is drawn above the field, so the field never relies on its placeholder;
+`hideLabel` hides it only for a caller that draws the visible label itself, as `ListToolbar`
+does beside its search. A search that filters is never
 disabled to say nothing matches; the list says that, and the caller puts the number of
 matches in a polite `role="status"` beside it so a screen reader hears it.
 
@@ -79,7 +80,7 @@ matches in a polite `role="status"` beside it so a screen reader hears it.
 -->
 
 <div class={['sui-search-field', className]}>
-  {#if showLabel}<label class="sui-search-field-label" for={id}>{label}</label>{/if}
+  {#if !hideLabel}<label class="sui-search-field-label" for={id}>{label}</label>{/if}
   <div class="sui-search-field-box">
     <TextInput
       bind:element
@@ -90,7 +91,7 @@ matches in a polite `role="status"` beside it so a screen reader hears it.
       role="searchbox"
       enterkeyhint="search"
       class="search-input"
-      aria-label={showLabel ? undefined : label}
+      aria-label={hideLabel ? label : undefined}
       onkeydown={onkeydownInput}
     />
     <span class="sui-search-field-icon"><Icon name="search" size="sm" strokeWidth={2} /></span>

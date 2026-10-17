@@ -26,6 +26,7 @@
   let retrying = $state(false);
   let recovered = $state(false);
   let refreshing = $state(false);
+  let settled = $state(false);
   let list = $state<HTMLElement>();
   let refused = $state<string | null>(null);
   let filtered = $state(false);
@@ -152,6 +153,17 @@
       title="Access is not available"
       description="Ask an owner of this workspace to give you the viewer role"
     />
+  </Specimen>
+  <Specimen label={settled ? 'Retried into words' : 'Retry that leaves no control'}>
+    {#if settled}
+      <p class="name">Usage for this month loaded</p>
+    {:else}
+      <ErrorState
+        title="Usage could not be loaded"
+        description="The server did not answer in time"
+        onretry={() => (settled = true)}
+      />
+    {/if}
   </Specimen>
 </Example>
 

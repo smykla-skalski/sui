@@ -132,6 +132,17 @@ test('P7 a two-way theme switch keeps the shown theme when it is pressed', async
   } finally {
     await page.close();
   }
+  // Space on the shown option fires no click, and is a choice all the same.
+  const keyboard = await open({ colorScheme: 'dark' });
+  try {
+    const radio = keyboard.locator('input[name="sink-theme-two"][value="dark"]');
+    await radio.scrollIntoViewIfNeeded();
+    await radio.focus();
+    await keyboard.keyboard.press('Space');
+    assert.equal(await keyboard.evaluate(() => localStorage.getItem('sui:theme')), 'dark');
+  } finally {
+    await keyboard.close();
+  }
 });
 
 test('L-52 Tab out of the tools menu closes it', async () => {
@@ -144,6 +155,72 @@ test('L-52 Tab out of the tools menu closes it', async () => {
     await page.keyboard.press('Tab');
     await page.waitForTimeout(250);
     assert.equal(await page.locator(':popover-open .sui-list-toolbar-panel').count(), 0);
+
+    // Opened by a press, Shift+Tab hands focus back to the button, and that is leaving too.
+    await trigger.first().click();
+    await page.locator(':popover-open .sui-list-toolbar-panel').waitFor();
+    await page.keyboard.press('Shift+Tab');
+    await page.waitForTimeout(250);
+    assert.equal(
+      await page.locator(':popover-open .sui-list-toolbar-panel').count(),
+      0,
+      'Shift+Tab left the menu open'
+    );
+  } finally {
+    await page.close();
+  }
+});
+
+test('the tools menu marks its chosen option across the whole option once it has grown', async () => {
+  const page = await open();
+  try {
+    const trigger = page.locator('#list-toolbar').getByRole('button', { name: 'Sort and filter' });
+    await trigger.first().scrollIntoViewIfNeeded();
+    await trigger.first().click();
+    const panel = page.locator(':popover-open .sui-list-toolbar-panel');
+    await panel.waitFor();
+    await page.waitForTimeout(600);
+    const marks = await panel.evaluate((element) =>
+      [...element.querySelectorAll('.sui-segmented-track:has(input:checked)')].map((track) => {
+        const option = track.querySelector('input:checked')?.closest('label');
+        const thumb = track.querySelector('.sui-segmented-thumb');
+        return [option?.getBoundingClientRect().width, thumb?.getBoundingClientRect().width];
+      })
+    );
+    assert.ok(marks.length > 0, 'the menu holds no segmented choice');
+    for (const [option, thumb] of marks)
+      assert.ok(Math.abs(Number(option) - Number(thumb)) <= 0.5, `${thumb}px marks ${option}px`);
+  } finally {
+    await page.close();
+  }
+});
+
+test('AC4 a toolbar says its count again after a pick that leaves the count as it was', async () => {
+  const page = await open();
+  try {
+    const bar = page.locator('#list-toolbar .sui-list-toolbar').filter({
+      has: page.getByRole('searchbox', { name: 'Search repositories' })
+    });
+    const counted = bar.last();
+    await counted.scrollIntoViewIfNeeded();
+    await counted.getByRole('searchbox').fill('sui');
+    await page.waitForTimeout(800);
+    const status = counted.locator('[role="status"]');
+    assert.equal((await status.textContent())?.trim(), '1 result');
+    await status.evaluate((element) => {
+      const said = /** @type {string[]} */ ([]);
+      Object.assign(window, { said });
+      new MutationObserver(() => said.push(element.textContent?.trim() ?? '')).observe(element, {
+        childList: true,
+        subtree: true
+      });
+    });
+    await counted.locator('label', { hasText: 'Active' }).first().click();
+    await page.waitForTimeout(800);
+    const said = await page.evaluate(
+      () => /** @type {{ said: string[] }} */ (/** @type {unknown} */ (window)).said
+    );
+    assert.ok(said.includes('1 result'), `after the pick the status said ${JSON.stringify(said)}`);
   } finally {
     await page.close();
   }
@@ -243,6 +320,27 @@ test('U5 a sortable heading sorts the rows and says so with aria-sort', async ()
     );
     assert.equal(await table.locator('th[aria-sort]').getAttribute('aria-sort'), 'ascending');
     assert.equal(await table.locator('tbody th').first().textContent(), 'ledger');
+  } finally {
+    await page.close();
+  }
+});
+
+test('K6 a retried error that leaves no control keeps focus where it stood', async () => {
+  const page = await open();
+  try {
+    const retry = page
+      .locator('#states .specimen', { hasText: 'Usage could not be loaded' })
+      .getByRole('button', { name: 'Try again' });
+    await retry.scrollIntoViewIfNeeded();
+    await retry.focus();
+    await page.keyboard.press('Enter');
+    await page.waitForTimeout(200);
+    const at = await page.evaluate(() => ({
+      body: document.activeElement === document.body,
+      words: document.activeElement?.textContent?.trim()
+    }));
+    assert.equal(at.body, false, 'focus fell to the page');
+    assert.match(at.words ?? '', /Usage for this month loaded/);
   } finally {
     await page.close();
   }

@@ -236,7 +236,8 @@ in its corner. Beside a 34px field or in a toolbar it takes the control tier wit
     outline-offset: var(--sui-focus-ring-inset);
   }
 
-  .sui-copy-button[data-failed] {
+  /* On the words, so a hover or a press that sets the button's ink never hides the failure. */
+  .sui-copy-button[data-failed] .sui-copy-button-labels {
     color: var(--sui-danger);
   }
 
