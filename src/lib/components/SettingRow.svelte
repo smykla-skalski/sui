@@ -40,6 +40,7 @@
     reason,
     clearLabel,
     resetLabel = word('SettingRow.resetLabel', 'Reset'),
+    resetName = word('SettingRow.resetName', (reset: string, name: string) => `${reset} ${name}`),
     undoLabel = word('SettingRow.undoLabel', 'Undo'),
     unsavedLabel = word('SettingRow.unsavedLabel', 'Unsaved'),
     pendingLabel = word('SettingRow.pendingLabel', 'Saving…'),
@@ -75,6 +76,8 @@
     /** Names the reset. It defaults to `resetLabel` and the setting's name. */
     clearLabel?: string;
     resetLabel?: string;
+    /** The reset's accessible name from its word and the setting's name, in the language's order. */
+    resetName?: (reset: string, name: string) => string;
     undoLabel?: string;
     /** The word beside the name while the row is unsaved. */
     unsavedLabel?: string;
@@ -201,7 +204,11 @@ between them (L-91).
       {@const live = Boolean(onclear) && !undo && !disabled && !readonly}
       <span bind:this={seat} class="sui-setting-reset">
         <span class={{ idle: !live, 'sui-setting-reset-live': live }} inert={!live}>
-          <Button tone="ghost" aria-label={clearLabel ?? `${resetLabel} ${name}`} onclick={clear}>
+          <Button
+            tone="ghost"
+            aria-label={clearLabel ?? resetName(resetLabel, name)}
+            onclick={clear}
+          >
             {#snippet icon()}<Icon name="undo" size="sm" />{/snippet}
             {resetLabel}
           </Button>

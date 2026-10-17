@@ -128,7 +128,8 @@
     const head = topBar;
     const foot = places;
     const check = () => {
-      const room = contained && root ? root.clientHeight : innerHeight;
+      // A contained shell taller than the window is seen through the window.
+      const room = contained && root ? Math.min(root.clientHeight, innerHeight) : innerHeight;
       flowing = head.offsetHeight + (foot?.offsetHeight ?? 0) > room * MOST;
     };
     const observer = new ResizeObserver(check);
@@ -391,6 +392,9 @@ viewport. `landmark="none"` keeps the content from claiming the page's one `main
       var(--sui-sans);
     margin: 0;
     min-inline-size: 0;
+    /* A word wider than the bar, as at a large text size, breaks at a syllable with a hyphen
+       where the page's language allows, else at the edge. */
+    hyphens: auto;
     overflow-wrap: break-word;
     text-box: trim-both cap alphabetic;
     text-wrap: balance;

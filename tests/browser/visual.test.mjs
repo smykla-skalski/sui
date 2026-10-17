@@ -86,10 +86,11 @@ for (const theme of ['light', 'dark'])
         document.documentElement.dataset.suiTheme = name;
         await document.fonts.ready;
       }, theme);
-      // Time-relative words and live pulses would differ between runs.
+      // Time-relative words and live pulses would differ between runs, and the sink's own bar,
+      // fixed over the page once it scrolls, may or may not have come in when a section is shot.
       await page.addStyleTag({
         content:
-          '*, *::before, *::after { animation: none !important; caret-color: transparent !important; } time { visibility: hidden !important; }'
+          '*, *::before, *::after { animation: none !important; caret-color: transparent !important; } time { visibility: hidden !important; } .tools.compact { visibility: hidden !important; }'
       });
       const ids = await page
         .locator('main > section[id]')

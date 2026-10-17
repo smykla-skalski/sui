@@ -471,6 +471,17 @@ test('K9 every built-in word reads through word(), so setWords can replace it', 
         found.push(`${path}: ${name}`);
     }
   }
+  // Words joined into markup, such as an accessible name built from a label, read through a
+  // function prop too, so a language can put them in its own order.
+  for (const path of svelteFiles.filter((file) => file.startsWith('src/lib/'))) {
+    const markup = read(path).replace(
+      /<script[\s\S]*?<\/script>|<style[\s\S]*?<\/style>|<!--[\s\S]*?-->/g,
+      ''
+    );
+    for (const [, template] of markup.matchAll(/`([^`]*)`/g))
+      if (/(^|\s)[A-Za-z]{2,}|[A-Za-z]{2,}\s/.test(template.replace(/\$\{[^}]*\}/g, '')))
+        found.push(`${path}: \`${template}\``);
+  }
   for (const path of scriptFiles.filter(
     (file) => file.startsWith('src/lib/') && !file.endsWith('words.ts')
   ))

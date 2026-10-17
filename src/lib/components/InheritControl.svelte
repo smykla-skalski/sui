@@ -20,6 +20,10 @@
     inheritLabel = word('InheritControl.inheritLabel', 'Use inherited value'),
     overrideName,
     inheritName,
+    inheritFor = word(
+      'InheritControl.inheritFor',
+      (action: string, field: string) => `${action} for ${field}`
+    ),
     inheritedLabel = word(
       'InheritControl.inheritedLabel',
       (value: string, from: string) => `${value} from ${from}`
@@ -53,6 +57,8 @@
     overrideName?: (label: string) => string;
     /** The way back's accessible name, given `label`. */
     inheritName?: (label: string) => string;
+    /** Joins the action and the field into the button's accessible name when `inheritName` is not given. */
+    inheritFor?: (action: string, field: string) => string;
     /** The sentence that says the inherited value and its source, in the page's word order. */
     inheritedLabel?: (value: string, source: string) => string;
     /** Said when the source sets nothing either. */
@@ -151,7 +157,7 @@ for a press of the way back.
     <Button
       tone="ghost"
       {disabled}
-      aria-label={inheritName?.(label) ?? `${inheritLabel} for ${label}`}
+      aria-label={inheritName?.(label) ?? inheritFor(inheritLabel, label)}
       onclick={inherit}>{inheritLabel}</Button
     >
   {:else}

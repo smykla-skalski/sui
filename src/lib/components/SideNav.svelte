@@ -36,6 +36,7 @@
     sections,
     current,
     label,
+    pagesLabel = word('SideNav.pagesLabel', (title: string) => `${title} pages`),
     level = 2,
     closeLabel = word('SideNav.closeLabel', 'Close navigation'),
     collapseLabel = word('SideNav.collapseLabel', 'Collapse'),
@@ -58,6 +59,8 @@
     current?: string;
     /** The navigation landmark's name. Defaults to "<title> pages". */
     label?: string;
+    /** Names the page list from `title` when `label` is not given. */
+    pagesLabel?: (title: string) => string;
     /** The title's heading level; section headings sit one level below it. */
     level?: 2 | 3 | 4 | 5;
     /** Names the button that closes the phone drawer. */
@@ -183,7 +186,7 @@ following a row closes the drawer.
     {/if}
   </div>
 
-  <nav class="sui-side-nav-tree" aria-label={label ?? `${title} pages`}>
+  <nav class="sui-side-nav-tree" aria-label={label ?? pagesLabel(title)}>
     <div bind:this={tree} class={['sui-side-nav-list', { measured, gliding }]}>
       <span
         class="sui-side-nav-thumb"

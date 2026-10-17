@@ -79,11 +79,14 @@
   const labelOf = (group: ListToolGroup) =>
     group.options.find((option) => option.value === group.value)?.label;
   const current = $derived(filter ? (labelOf(filter) ?? '') : '');
-  const chosen = $derived(
+  const list = (labels: (string | undefined)[]) =>
     new Intl.ListFormat(pageLocale(), { style: 'narrow', type: 'conjunction' }).format(
-      tools.map(labelOf).filter((label) => label !== undefined)
-    )
-  );
+      labels.filter((label): label is string => label !== undefined && label !== '')
+    );
+  const chosen = $derived(list(tools.map(labelOf)));
+  // The button's description reads the filter's choice and the tools' as one list, since the
+  // dot between them on screen is drawn, not read.
+  const described = $derived(list([current, ...tools.map(labelOf)]));
 
   /* Said a moment after the last keystroke or pick, so a reader typing hears one count, and
      never on first paint, when nothing has changed yet. A pick that leaves the count as it was
@@ -207,7 +210,7 @@ button. Without `tools` there is no button and the filter never folds.
                 aria-haspopup="dialog"
                 aria-expanded={open}
                 aria-controls={popupId}
-                aria-describedby={`${uid}-chosen`}
+                aria-describedby={`${uid}-described`}
               >
                 {#snippet icon()}<Icon name="sliders" size="sm" />{/snippet}
                 {toolsLabel}
@@ -215,7 +218,8 @@ button. Without `tools` there is no button and the filter never folds.
             </span>
           {/if}
           {#if filter || chosen}
-            <span id="{uid}-chosen" class="sui-list-toolbar-current">
+            <span id="{uid}-described" hidden>{described}</span>
+            <span class="sui-list-toolbar-current">
               {#if filter}<span class="sui-list-toolbar-folded">{current}</span>{/if}
               {#if filter && chosen}<span class="sui-list-toolbar-dot" aria-hidden="true"
                 ></span>{/if}

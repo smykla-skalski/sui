@@ -218,8 +218,10 @@
 A duration stored in seconds and said as an amount and a unit: seconds, minutes or hours. The
 amount and the unit are one field that reads as one phrase, "90 seconds": the amount is typed
 at the start and the unit picker finishes it at the end, with one frame and one error edge. A
-value is shown in the largest unit that holds it whole, and picking another unit only changes
-how it is said, so 90 seconds becomes 1.5 minutes without writing anything.
+value is shown in the largest unit that holds it whole. Picking another unit keeps the seconds
+when the new unit says them in at most two decimals, so 90 seconds becomes 1.5 minutes without
+writing anything; otherwise the amount stays as written and is read in the new unit, so 1
+second becomes 1 minute rather than 0.016666 minutes.
 
 Text that is not a whole number of seconds inside `min` and `max` stays on screen and is never
 written to `value`, so a cleared or mistyped field never becomes zero. The accepted range shows
