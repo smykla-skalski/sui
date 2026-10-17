@@ -50,6 +50,10 @@
   let fits = $state(true);
   let thumb = $state<{ option: string; left: number; width: number } | null>(null);
   let ready = $state(false);
+  // The option a dragged thumb is held over. The thumb and the words follow it, and the
+  // value only takes it when the pointer lets go.
+  let held = $state<string | null>(null);
+  const shown = $derived(held ?? value);
 
   const choices = $derived(
     options.map((option) => ({
@@ -76,7 +80,8 @@
   // the measurement if the control ever has to sit inside a scaled subtree.
   function measure() {
     if (!track) return;
-    const input = track.querySelector<HTMLInputElement>('input:checked');
+    const input =
+      held === null ? track.querySelector<HTMLInputElement>('input:checked') : radio(held);
     const box = input?.closest('label')?.getBoundingClientRect();
     // A closed popover reports no box, which is not a position: wait to be measured again.
     if (!input || !box || box.width === 0) {
@@ -98,9 +103,74 @@
   }
 
   $effect(() => {
-    void value;
+    void shown;
     untrack(measure);
   });
+
+  const radio = (option: string) =>
+    [...(track?.querySelectorAll<HTMLInputElement>('input') ?? [])].find(
+      (input) => input.value === option
+    ) ?? null;
+
+  // THE THUMB CAN BE DRAGGED, as a platform segmented control's can: press on the selected
+  // option, move past a few pixels, and the thumb follows the pointer from option to option,
+  // skipping disabled ones. Letting go chooses where it stands, through the radio itself so
+  // `change` fires as for a click; Escape or a cancelled pointer puts it back. Below the
+  // threshold nothing is captured, so a plain click keeps its native behaviour. Dragging is
+  // never the only way: a click or the arrow keys choose any option (WCAG 2.5.7).
+  const DRAG_THRESHOLD = 4;
+  let drag: { pointer: number; x: number; captured: boolean } | null = null;
+
+  function optionAt(x: number): string | null {
+    const enabled = [...(track?.querySelectorAll<HTMLLabelElement>('label') ?? [])].filter(
+      (option) => !option.querySelector('input')?.disabled
+    );
+    if (enabled.length === 0) return null;
+    const boxes = enabled.map((option) => option.getBoundingClientRect());
+    const index = boxes.findIndex((box) => x < box.right);
+    const at = enabled[index === -1 ? enabled.length - 1 : index];
+    return at.querySelector('input')?.value ?? null;
+  }
+
+  function grab(event: PointerEvent) {
+    if (disabled || event.button !== 0 || value === null) return;
+    const option = (event.target as Element).closest('label');
+    if (!option?.classList.contains('selected')) return;
+    drag = { pointer: event.pointerId, x: event.clientX, captured: false };
+  }
+
+  function follow(event: PointerEvent) {
+    if (!drag || event.pointerId !== drag.pointer || !track) return;
+    if (!drag.captured) {
+      if (Math.abs(event.clientX - drag.x) < DRAG_THRESHOLD) return;
+      track.setPointerCapture(event.pointerId);
+      drag.captured = true;
+    }
+    const over = optionAt(event.clientX);
+    if (over !== null) held = over === value ? null : over;
+  }
+
+  function release(event: PointerEvent) {
+    if (!drag || event.pointerId !== drag.pointer) return;
+    const target = drag.captured ? held : null;
+    drop();
+    if (target === null) return;
+    const input = radio(target);
+    input?.click();
+    input?.focus({ preventScroll: true });
+  }
+
+  function drop() {
+    drag = null;
+    held = null;
+  }
+
+  function escape(event: KeyboardEvent) {
+    if (event.key !== 'Escape' || !drag?.captured) return;
+    event.preventDefault();
+    track?.releasePointerCapture(drag.pointer);
+    drop();
+  }
 
   $effect(() => {
     const node = track;
@@ -134,6 +204,11 @@ The selection is one solid thumb exactly as wide as its option and held 2px insi
 lands without sliding on first paint, travels 240ms between options, and is not drawn at all for
 `null`, which is how a control says its value is inherited, not chosen.
 
+The thumb can be dragged: press the selected option and move, and the thumb and its ink follow
+the pointer from option to option, skipping disabled ones. Letting go chooses where it stands and
+fires `change` as a click would; Escape or a cancelled pointer puts it back. A click or the arrow
+keys reach every option too, so the drag is never the only way.
+
 Short of room, the control draws the same choice as a native `Select`, with icons dropped and
 counts in brackets, such as "Users (24)". An inert, hidden copy of the segments, with no inputs,
 measures their natural width against the room through a `ResizeObserver`. `aria-describedby`
@@ -164,11 +239,19 @@ from a sibling.
     </div>
   </div>
   {#if fits}
+    <!-- The radios are the controls. The track only follows a drag that starts on the
+         selected one, and Escape cancels that drag. -->
+    <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
     <fieldset
       bind:this={track}
-      class={['sui-segmented-track', { ready }]}
+      class={['sui-segmented-track', { ready, dragging: held !== null }]}
       {disabled}
       aria-describedby={describedby}
+      onpointerdown={grab}
+      onpointermove={follow}
+      onpointerup={release}
+      onpointercancel={drop}
+      onkeydown={escape}
     >
       <legend class="sui-segmented-legend">{label}</legend>
       {#if thumb}
@@ -182,7 +265,7 @@ from a sibling.
       {#each options as option (option.value)}
         <label
           class="sui-segmented-option"
-          class:selected={value === option.value}
+          class:selected={shown === option.value}
           class:disabled={option.disabled}
         >
           <input
@@ -255,6 +338,20 @@ from a sibling.
     min-inline-size: 0;
     padding: var(--sui-control-inset);
     position: relative;
+  }
+
+  /* A horizontal drag on the track moves the thumb; a vertical one still scrolls the page. */
+  .sui-segmented-track:not(:disabled) {
+    touch-action: pan-y;
+  }
+
+  .sui-segmented-track.dragging,
+  .sui-segmented-track.dragging .sui-segmented-option {
+    cursor: grabbing;
+  }
+
+  .sui-segmented-track:not(:disabled) .sui-segmented-option.selected {
+    cursor: grab;
   }
 
   .sui-segmented-track:disabled {

@@ -332,6 +332,51 @@ for (const width of [375, 1440])
     }
   });
 
+test('L-50 a dragged thumb chooses on release, and Escape puts it back', async () => {
+  const page = await open(1440, 'light');
+  try {
+    const track = page
+      .locator('#segmented-control .sui-segmented-track:not(:disabled)')
+      .filter({ has: page.locator('.selected') })
+      .first();
+    await track.scrollIntoViewIfNeeded();
+    const state = () =>
+      track.evaluate((node) => ({
+        checked: node.querySelector('input:checked')?.value,
+        shown: node.querySelector('.selected input')?.value
+      }));
+    const options = track.locator('label');
+    const at = await track.evaluate((node) =>
+      [...node.querySelectorAll('label')].findIndex((option) => option.matches('.selected'))
+    );
+    const from = await options.nth(at).boundingBox();
+    const to = await options.nth(at + 1 < (await options.count()) ? at + 1 : at - 1).boundingBox();
+    assert.ok(from && to);
+    const start = await state();
+    const drag = async () => {
+      await page.mouse.move(from.x + from.width / 2, from.y + from.height / 2);
+      await page.mouse.down();
+      await page.mouse.move(to.x + to.width / 2, to.y + to.height / 2, { steps: 8 });
+    };
+
+    await drag();
+    const held = await state();
+    assert.equal(held.checked, start.checked, 'holding the thumb over an option chose it');
+    assert.notEqual(held.shown, start.shown, 'the thumb did not follow the pointer');
+    await page.keyboard.press('Escape');
+    assert.deepEqual(await state(), start, 'Escape did not put the thumb back');
+    await page.mouse.up();
+
+    await drag();
+    await page.mouse.up();
+    const chosen = await state();
+    assert.equal(chosen.checked, held.shown, 'letting go did not choose the option');
+    assert.equal(chosen.shown, chosen.checked);
+  } finally {
+    await page.close();
+  }
+});
+
 test('L-87 the phone drawer holds focus and gives it back', async () => {
   const page = await open(1440, 'light');
   try {

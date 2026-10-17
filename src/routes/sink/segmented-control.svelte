@@ -39,7 +39,10 @@
   let narrowPeople = $state<string | null>('users');
 </script>
 
-<Example title="Options" note="Two to five options, with a thumb exactly as wide as the chosen one">
+<Example
+  title="Options"
+  note="Two to five options, with a thumb as wide as the chosen one that a drag can move"
+>
   <Specimen label="Words" code="options">
     <SegmentedControl label="Time range" options={range} bind:value={span} />
   </Specimen>
