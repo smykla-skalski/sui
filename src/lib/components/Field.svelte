@@ -1,13 +1,18 @@
-<script lang="ts">
-  import type { HTMLInputAttributes } from 'svelte/elements';
-
-  type Props = Omit<HTMLInputAttributes, 'value' | 'type'> & {
-    label: string;
-    hint?: string;
-    error?: string;
-    value?: string;
-    type?: 'text' | 'email' | 'password' | 'search' | 'tel' | 'url';
+<script module lang="ts">
+  export type FieldControl = {
+    /** Put this on the control so the field's label names it. */
+    id: string;
+    /** The hint and error ids, for the control's `aria-describedby`. */
+    describedby: string | undefined;
+    /** True while the field shows an error. */
+    invalid: boolean;
   };
+</script>
+
+<script lang="ts">
+  import type { Snippet } from 'svelte';
+  import type { HTMLInputAttributes } from 'svelte/elements';
+  import TextInput from './TextInput.svelte';
 
   const fallbackId = $props.id();
 
@@ -17,79 +22,119 @@
     error,
     value = $bindable(''),
     type = 'text',
+    layout = 'stack',
+    control,
     id = fallbackId,
     'aria-describedby': describedBy,
     class: className = '',
     ...rest
-  }: Props = $props();
+  }: {
+    label: string;
+    /** One sentence under the control that helps the reader fill it in. */
+    hint?: string;
+    /** Says what is wrong. The control is marked invalid and described by it. */
+    error?: string;
+    value?: string | number | null;
+    type?: 'text' | 'email' | 'password' | 'search' | 'tel' | 'url' | 'number';
+    /** `row` puts the label beside a switch instead of above the control. */
+    layout?: 'stack' | 'row';
+    /** Draws any control in place of the text input, such as `Textarea` or `Switch`. */
+    control?: Snippet<[FieldControl]>;
+    /** Lands on the text input, never on the field. */
+    class?: HTMLInputAttributes['class'];
+    id?: string;
+  } & Omit<HTMLInputAttributes, 'value' | 'type' | 'id'> = $props();
 
-  let description = $derived(
+  const describedby = $derived(
     [describedBy, hint && `${id}-hint`, error && `${id}-error`].filter(Boolean).join(' ') ||
       undefined
   );
 </script>
 
-<div class="sui-field">
-  <label for={id}>{label}</label>
-  <input
-    {...rest}
-    {id}
-    {type}
-    class="sui-field-input {className}"
-    bind:value
-    aria-invalid={error ? true : undefined}
-    aria-describedby={description}
-  />
-  {#if hint}<p id="{id}-hint" class="sui-field-hint">{hint}</p>{/if}
+<!--
+@component
+A label, its control, and the help and error under it, 8px apart as rendered ink. With no
+`control` it draws a `TextInput`, and every native input attribute, `bind:value` and `class`
+land on that input.
+
+Any other control goes in the `control` snippet, which receives the `id` the label points at,
+the `describedby` ids of the hint and the error, and `invalid`. Spread them onto a `Textarea`,
+a `Switch` or a picker. `layout="row"` sets the label beside a switch, both centred on one line.
+
+A group of choices names itself with a legend, so `CheckList`, `ChoiceCards` and
+`SegmentedControl` stand on their own instead of inside a field.
+-->
+
+<div class="sui-field" data-layout={layout}>
+  <label class="sui-field-label" for={id}>{label}</label>
+  <div class="sui-field-control">
+    {#if control}
+      {@render control({ id, describedby, invalid: Boolean(error) })}
+    {:else}
+      <TextInput
+        {...rest}
+        {id}
+        {type}
+        class={className}
+        bind:value
+        invalid={Boolean(error)}
+        aria-describedby={describedby}
+      />
+    {/if}
+  </div>
+  {#if hint}<p id="{id}-hint" class="sui-field-help">{hint}</p>{/if}
   {#if error}<p id="{id}-error" class="sui-field-error">{error}</p>{/if}
 </div>
 
 <style>
   .sui-field {
     display: grid;
-    gap: 0.375rem;
-    font-family: var(--sui-font, system-ui, sans-serif);
+    gap: var(--sui-row-copy-gap);
+    min-inline-size: 0;
   }
-  label {
-    color: var(--sui-foreground, #18211f);
-    font-size: 0.8125rem;
-    font-weight: 600;
+
+  .sui-field[data-layout='row'] {
+    align-items: center;
+    column-gap: var(--sui-space-4);
+    grid-template-columns: minmax(0, 1fr) auto;
   }
-  .sui-field-input {
-    width: 100%;
-    min-height: 2.5rem;
-    padding: 0.5rem 0.75rem;
-    border: 1px solid var(--sui-border, #c4cec9);
-    border-radius: var(--sui-radius, 0.5rem);
-    background: var(--sui-surface, #fff);
-    color: var(--sui-foreground, #18211f);
-    font: inherit;
-    font-size: 0.875rem;
-    box-sizing: border-box;
+
+  .sui-field[data-layout='row'] > :is(.sui-field-help, .sui-field-error) {
+    grid-column: 1 / -1;
   }
-  .sui-field-input::placeholder {
-    color: var(--sui-muted, #4c5b57);
+
+  .sui-field-label {
+    color: var(--sui-text-secondary);
+    font: 600 var(--sui-font-size-control) / var(--sui-row-copy-leading) var(--sui-sans);
+    min-inline-size: 0;
+    text-box: trim-both cap alphabetic;
   }
-  .sui-field-input:focus-visible {
-    outline: 2px solid var(--sui-focus, #0f766e);
-    outline-offset: 2px;
+
+  .sui-field-control {
+    display: grid;
+    min-inline-size: 0;
   }
-  .sui-field-input:disabled {
-    opacity: 0.55;
-    cursor: not-allowed;
+
+  .sui-field[data-layout='row'] > .sui-field-control {
+    align-items: center;
+    display: flex;
+    min-block-size: var(--sui-control-height-compact);
   }
-  .sui-field-input[aria-invalid='true'] {
-    border-color: var(--sui-danger, #a33a45);
-  }
-  p {
-    margin: 0;
-    font-size: 0.75rem;
-    line-height: 1.4;
-  }
-  .sui-field-hint {
-    color: var(--sui-muted, #4c5b57);
-  }
+
+  .sui-field-help,
   .sui-field-error {
-    color: var(--sui-danger, #a33a45);
+    margin: 0;
+    overflow-wrap: anywhere;
+    text-box: trim-both cap alphabetic;
+  }
+
+  .sui-field-help {
+    color: var(--sui-text-secondary);
+    font: 400 var(--sui-font-size-compact) / var(--sui-row-copy-leading) var(--sui-sans);
+  }
+
+  .sui-field-error {
+    color: var(--sui-danger);
+    font: 400 var(--sui-font-size-meta) / var(--sui-row-copy-leading) var(--sui-sans);
   }
 </style>

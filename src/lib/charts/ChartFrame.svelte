@@ -28,49 +28,71 @@
 
 <style>
   .sui-chart {
+    color: var(--sui-text-primary);
     display: grid;
-    gap: 1rem;
+    gap: var(--sui-space-4);
     margin: 0;
-    min-width: 0;
-    color: var(--sui-foreground, #18211f);
-    font-family: var(--sui-font, system-ui, sans-serif);
+    min-inline-size: 0;
   }
+
+  figcaption {
+    display: grid;
+    gap: var(--sui-row-copy-gap);
+  }
+
   h3 {
+    font: 600 var(--sui-font-size-title) / var(--sui-leading-title) var(--sui-sans);
     margin: 0;
-    font-size: 1rem;
-    line-height: 1.5;
+    text-box: trim-both cap alphabetic;
   }
+
   p {
-    margin: 0.25rem 0 0;
-    color: var(--sui-muted, #4c5b57);
-    font-size: 0.875rem;
-    line-height: 1.5;
+    color: var(--sui-text-secondary);
+    font: 400 var(--sui-font-size-meta) / var(--sui-row-copy-leading) var(--sui-sans);
+    margin: 0;
+    text-box: trim-both cap alphabetic;
   }
+
   summary {
-    width: fit-content;
-    color: var(--sui-primary, #0f766e);
-    font-size: 0.8125rem;
-    font-weight: 600;
+    align-items: center;
+    border-radius: var(--sui-radius-control);
+    color: var(--sui-brand-action-text);
     cursor: pointer;
+    display: inline-flex;
+    font: 600 var(--sui-font-size-control) / var(--sui-leading-compact) var(--sui-sans);
+    inline-size: fit-content;
+    min-block-size: var(--sui-control-height-chip);
   }
+
   summary:focus-visible {
-    outline: 2px solid var(--sui-focus, #0f766e);
-    outline-offset: 2px;
+    outline: var(--sui-focus-ring-width) solid var(--sui-focus);
+    outline-offset: var(--sui-focus-ring-offset);
   }
+
   .sui-chart-table {
-    max-width: 100%;
+    margin-block-start: var(--sui-space-3);
+    max-inline-size: 100%;
     overflow-x: auto;
-    margin-top: 0.75rem;
   }
+
+  .sui-chart-table:focus-visible {
+    outline: var(--sui-focus-ring-width) solid var(--sui-focus);
+    outline-offset: var(--sui-focus-ring-inset);
+  }
+
   .sui-chart-table :global(table) {
-    width: 100%;
     border-collapse: collapse;
-    font-size: 0.8125rem;
-    text-align: left;
+    font: 400 var(--sui-font-size-meta) / var(--sui-leading-meta) var(--sui-sans);
+    inline-size: 100%;
+    text-align: start;
   }
-  .sui-chart-table :global(th),
+
+  .sui-chart-table :global(:is(th, td)) {
+    border-block-end: 1px solid var(--sui-chart-grid);
+    padding: var(--sui-space-2);
+  }
+
   .sui-chart-table :global(td) {
-    padding: 0.5rem;
-    border-bottom: 1px solid var(--sui-border, #c4cec9);
+    font-variant-numeric: tabular-nums;
   }
 </style>

@@ -1,217 +1,118 @@
 <script lang="ts">
-  import {
-    Badge,
-    Button,
-    Card,
-    Field,
-    HeatmapChart,
-    LineChart,
-    RangeChart,
-    ScatterChart
-  } from '#lib';
+  import type { Component } from 'svelte';
+  import { PageHeader, PageToc, SkipLink, ThemeSwitch } from '#lib';
+  import AuditPanel from './audit/AuditPanel.svelte';
 
-  const trend = [
-    {
-      id: 'north',
-      label: 'North',
-      points: [
-        { x: 1, y: 18 },
-        { x: 2, y: 25 },
-        { x: 3, y: 23 },
-        { x: 4, y: 34 }
-      ]
-    },
-    {
-      id: 'south',
-      label: 'South',
-      points: [
-        { x: 1, y: 12 },
-        { x: 2, y: 16 },
-        { x: 3, y: 22 },
-        { x: 4, y: 27 }
-      ]
-    }
-  ];
-  const ranges = [
-    { label: 'Planning', start: 12, end: 29, marker: 22 },
-    { label: 'Design', start: 19, end: 37, marker: 30 },
-    { label: 'Build', start: 25, end: 48, marker: 39 }
-  ];
-  const heatmap = [
-    { row: 'Morning', column: 'Mon', value: 12 },
-    { row: 'Morning', column: 'Tue', value: 19 },
-    { row: 'Morning', column: 'Wed', value: 24 },
-    { row: 'Afternoon', column: 'Mon', value: 20 },
-    { row: 'Afternoon', column: 'Tue', value: 31 },
-    { row: 'Afternoon', column: 'Wed', value: null }
-  ];
+  type SectionMeta = { title: string; order: number };
+  type SectionModule = { default: Component; section: SectionMeta };
 
-  let name = $state('');
-  let dark = $state(false);
-
-  function toggleTheme() {
-    dark = !dark;
-    document.documentElement.dataset.suiTheme = dark ? 'dark' : 'light';
-  }
+  const modules = import.meta.glob<SectionModule>('./sink/*.svelte', { eager: true });
+  const sections = Object.entries(modules)
+    .map(([path, module]) => ({
+      id: path.replace(/^.*\/|\.svelte$/g, ''),
+      ...module.section,
+      Body: module.default
+    }))
+    .sort((a, b) => a.order - b.order || a.title.localeCompare(b.title));
+  const entries = sections.map(({ id, title }) => ({ id, label: title }));
 </script>
 
 <svelte:head>
-  <title>SUI component gallery</title>
-  <meta name="description" content="A small, themeable Svelte component foundation" />
+  <title>SUI kitchen sink</title>
+  <meta
+    name="description"
+    content="Every SUI component in every state, held to the SUI design laws"
+  />
 </svelte:head>
 
-<main>
-  <header>
-    <div>
-      <p class="eyebrow">Smykla UI</p>
-      <h1>Reusable Svelte components</h1>
-      <p>A small foundation for interfaces across projects. Change the tokens to make it yours.</p>
-    </div>
-    <Button variant="secondary" onclick={toggleTheme}>Switch to {dark ? 'light' : 'dark'}</Button>
-  </header>
+<SkipLink href="#content" />
 
-  <section aria-labelledby="actions-heading">
-    <h2 id="actions-heading">Actions</h2>
-    <div class="row">
-      <Button onclick={() => alert('Saved')}>Primary action</Button>
-      <Button variant="secondary">Secondary</Button>
-      <Button variant="ghost">Ghost</Button>
-      <Button variant="danger">Delete</Button>
-      <Button loading>Saving</Button>
-    </div>
-  </section>
+<div class="page">
+  <PageHeader
+    eyebrow="SUI"
+    title="Kitchen sink"
+    description="Every component in every state, measured against the design laws on each render"
+    class="head"
+  >
+    {#snippet actions()}<ThemeSwitch name="sink-page-theme" />{/snippet}
+  </PageHeader>
 
-  <section aria-labelledby="content-heading">
-    <h2 id="content-heading">Content and status</h2>
-    <div class="cards">
-      <Card
-        heading="Project status"
-        description="A card with optional heading, description, and footer."
-      >
-        <div class="row">
-          <Badge>Draft</Badge>
-          <Badge tone="success">Ready</Badge>
-          <Badge tone="warning">Needs review</Badge>
-          <Badge tone="danger">Blocked</Badge>
-        </div>
-        {#snippet footer()}<Button size="sm" variant="secondary">View details</Button>{/snippet}
-      </Card>
-      <Card heading="Contact">
-        <Field
-          label="Your name"
-          hint="Shown on your profile"
-          placeholder="Ada Lovelace"
-          bind:value={name}
-        />
-        <p class="preview">Hello{name ? `, ${name}` : ''}.</p>
-      </Card>
-    </div>
-  </section>
+  <div class="layout">
+    <PageToc {entries} title="Components" class="toc" />
 
-  <section aria-labelledby="charts-heading">
-    <h2 id="charts-heading">Charts</h2>
-    <div class="cards">
-      <Card
-        ><LineChart
-          title="Weekly trend"
-          description="Both regions increased over four weeks."
-          series={trend}
-          xLabel="Week"
-          yLabel="Items"
-        /></Card
-      >
-      <Card
-        ><ScatterChart
-          title="Values by week"
-          description="The points show growth across four weeks."
-          series={trend}
-          xLabel="Week"
-          yLabel="Items"
-        /></Card
-      >
-      <Card
-        ><RangeChart
-          title="Work ranges"
-          description="The marker shows the selected point in each range."
-          data={ranges}
-          valueLabel="Hours"
-        /></Card
-      >
-      <Card
-        ><HeatmapChart
-          title="Activity"
-          description="Tuesday afternoon has the highest activity."
-          rows={['Morning', 'Afternoon']}
-          columns={['Mon', 'Tue', 'Wed']}
-          cells={heatmap}
-        /></Card
-      >
-    </div>
-  </section>
-</main>
+    <main id="content" tabindex="-1">
+      <AuditPanel />
+      {#each sections as { id, title, Body } (id)}
+        <section {id} aria-labelledby="{id}-title">
+          <h2 id="{id}-title">{title}</h2>
+          <Body />
+        </section>
+      {/each}
+    </main>
+  </div>
+</div>
 
 <style>
-  :global(body) {
-    margin: 0;
-    background: var(--sui-canvas);
-    color: var(--sui-foreground);
+  .page {
+    box-sizing: border-box;
+    margin-inline: auto;
+    max-inline-size: var(--sui-content-max);
+    padding: var(--sui-rhythm-pane-top-wide) clamp(var(--sui-space-4), 2.4vw, var(--sui-space-8))
+      var(--sui-space-8);
   }
-  main {
-    max-width: 68rem;
-    margin: auto;
-    padding: 4rem 1.5rem;
-    font-family: var(--sui-font);
-  }
-  header {
-    display: flex;
-    align-items: start;
-    justify-content: space-between;
-    gap: 2rem;
-    margin-bottom: 3.5rem;
-  }
-  h1 {
-    margin: 0.25rem 0;
-    font-size: clamp(2rem, 4vw, 3.5rem);
-    letter-spacing: -0.04em;
-  }
-  h2 {
-    margin: 0 0 1rem;
-    font-size: 1.125rem;
-  }
-  p {
-    color: var(--sui-muted);
-    line-height: 1.5;
-  }
-  .eyebrow {
-    margin: 0;
-    color: var(--sui-primary);
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-  }
-  section {
-    margin-top: 2.5rem;
-  }
-  .row {
-    display: flex;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 0.75rem;
-  }
-  .cards {
+
+  .layout {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(min(100%, 21rem), 1fr));
-    gap: 1rem;
+    gap: var(--sui-space-6);
+    grid-template-columns: minmax(0, 1fr);
   }
-  .preview {
-    margin: 1rem 0 0;
+
+  .layout :global(.toc) {
+    display: none;
   }
-  @media (max-width: 40rem) {
-    header {
-      flex-direction: column;
+
+  main {
+    display: grid;
+    gap: var(--sui-space-8);
+    min-inline-size: 0;
+  }
+
+  main:focus {
+    outline: none;
+  }
+
+  section {
+    background: var(--sui-surface-base);
+    border: 1px solid var(--sui-border-subtle);
+    border-radius: var(--sui-radius-surface);
+    box-sizing: border-box;
+    display: grid;
+    gap: var(--sui-space-6);
+    min-inline-size: 0;
+    padding: var(--sui-rhythm-surface-pad);
+    scroll-margin-block-start: var(--sui-space-4);
+  }
+
+  h2 {
+    color: var(--sui-text-primary);
+    font: 600 var(--sui-font-size-card-title) / var(--sui-leading-title) var(--sui-sans);
+    margin: 0;
+    text-box: trim-both cap alphabetic;
+  }
+
+  @media (max-width: 36rem) {
+    section {
+      padding: var(--sui-rhythm-surface-pad-compact);
     }
-    main {
-      padding-top: 2rem;
+  }
+
+  @media (min-width: 72rem) {
+    .layout {
+      grid-template-columns: var(--sui-toc-width) minmax(0, 1fr);
+    }
+
+    .layout :global(.toc) {
+      display: grid;
     }
   }
 </style>
