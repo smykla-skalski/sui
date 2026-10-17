@@ -24,3 +24,24 @@ test('installs the piped preview and removes those of closed pull requests', (t)
   assert.deepEqual(readdirSync(join(data, 'previews')).sort(), ['pr-10', 'pr-12', 'pr-3']);
   assert.equal(readFileSync(join(data, 'previews', 'pr-3', 'index.html'), 'utf8'), 'pr 3');
 });
+
+test('replaces the previous main at the root and keeps the open previews', (t) => {
+  const data = mkdtempSync(join(tmpdir(), 'sui-previews-'));
+  t.after(() => rmSync(data, { recursive: true, force: true }));
+  const previews = join(data, 'previews');
+  for (const pr of [1, 3]) mkdirSync(join(previews, `pr-${pr}`), { recursive: true });
+  mkdirSync(join(previews, '_app', 'old'), { recursive: true });
+  writeFileSync(join(previews, 'index.html'), 'old main');
+  const site = join(data, 'site');
+  mkdirSync(join(site, '_app', 'new'), { recursive: true });
+  writeFileSync(join(site, 'index.html'), 'new main');
+
+  execFileSync('sh', [script, 'main', '3'], {
+    input: execFileSync('tar', ['-cz', '-C', site, '.']),
+    env: { ...process.env, PREVIEWS_DATA: data }
+  });
+
+  assert.deepEqual(readdirSync(previews).sort(), ['_app', 'index.html', 'pr-3']);
+  assert.deepEqual(readdirSync(join(previews, '_app')), ['new']);
+  assert.equal(readFileSync(join(previews, 'index.html'), 'utf8'), 'new main');
+});
