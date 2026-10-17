@@ -1,0 +1,35 @@
+# Every PR preview of the kitchen sink, on one machine that stops when idle.
+# oauth2-proxy is the whole server: it signs visitors in with GitHub, lets in only
+# members of the org, and serves /data/previews/pr-<number>/ from the volume.
+#
+# Secrets, set once with `fly secrets set` (see README.md):
+#   OAUTH2_PROXY_CLIENT_ID, OAUTH2_PROXY_CLIENT_SECRET, OAUTH2_PROXY_COOKIE_SECRET
+app = "sui-previews"
+primary_region = "fra"
+
+[env]
+  OAUTH2_PROXY_HTTP_ADDRESS = "0.0.0.0:4180"
+  OAUTH2_PROXY_PROVIDER = "github"
+  OAUTH2_PROXY_GITHUB_ORG = "smykla-skalski"
+  OAUTH2_PROXY_EMAIL_DOMAINS = "*"
+  OAUTH2_PROXY_REDIRECT_URL = "https://sui.smyklot.com/oauth2/callback"
+  OAUTH2_PROXY_UPSTREAMS = "file:///data/previews/#/"
+  OAUTH2_PROXY_REVERSE_PROXY = "true"
+  OAUTH2_PROXY_SKIP_PROVIDER_BUTTON = "true"
+
+[[mounts]]
+  source = "previews"
+  destination = "/data"
+  initial_size = "1gb"
+
+[http_service]
+  internal_port = 4180
+  force_https = true
+  auto_stop_machines = "stop"
+  auto_start_machines = true
+  min_machines_running = 0
+
+[[vm]]
+  memory = "256mb"
+  cpu_kind = "shared"
+  cpus = 1

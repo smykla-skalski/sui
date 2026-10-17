@@ -1,0 +1,63 @@
+name: Preview
+
+# A pull request that changes what the kitchen sink renders gets its own copy at
+# https://sui.smyklot.com/pr-<number>. Setup is in preview/README.md.
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, closed]
+    paths:
+      - 'src/**'
+      - 'vite.config.ts'
+      - '.github/workflows/preview.yml'
+
+permissions:
+  contents: read
+  pull-requests: read
+
+concurrency:
+  group: preview-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+env:
+  FLY_APP: sui-previews
+  PREVIEW_HOST: sui.smyklot.com
+  FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+  GH_REPO: ${{ github.repository }}
+  GH_TOKEN: ${{ github.token }}
+  PR: ${{ github.event.pull_request.number }}
+
+jobs:
+  deploy:
+    # Pull requests from forks get no secrets.
+    if: github.event.action != 'closed' && github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    environment:
+      name: preview
+      url: https://${{ env.PREVIEW_HOST }}/pr-${{ github.event.pull_request.number }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci
+      - run: npm run build:site
+        env:
+          BASE_PATH: /pr-${{ github.event.pull_request.number }}
+      - uses: superfly/flyctl-actions/setup-flyctl@ed8efb33836e8b2096c7fd3ba1c8afe303ebbff1 # v1.6
+      # The machine stops when idle and only an HTTP request starts it again.
+      - run: curl -fsS --retry 10 --retry-all-errors -o /dev/null "https://$PREVIEW_HOST/ping"
+      # A separate assignment, so a failed listing stops the step instead of reading as no open PRs.
+      - run: |
+          open=$(gh pr list --state open --limit 1000 --json number --jq '[.[].number | tostring] | join(" ")')
+          tar -cz -C build . | flyctl ssh console -a "$FLY_APP" -C "/usr/local/bin/previews $PR $open"
+
+  remove:
+    if: github.event.action == 'closed' && github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    steps:
+      - uses: superfly/flyctl-actions/setup-flyctl@ed8efb33836e8b2096c7fd3ba1c8afe303ebbff1 # v1.6
+      - run: curl -fsS --retry 10 --retry-all-errors -o /dev/null "https://$PREVIEW_HOST/ping"
+      - run: |
+          open=$(gh pr list --state open --limit 1000 --json number --jq '[.[].number | tostring] | join(" ")')
+          flyctl ssh console -a "$FLY_APP" -C "/usr/local/bin/previews - $open"
