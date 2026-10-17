@@ -22,6 +22,28 @@
   >
 </Example>
 
+<Example
+  title="Open"
+  note="A neutral toast, a failure and one with an action, drawn in place with no timers"
+>
+  <Toaster
+    preview
+    items={[
+      { title: 'Settings saved' },
+      {
+        title: 'Sync failed',
+        description: 'GitHub answered 502, try again in a minute',
+        tone: 'danger'
+      },
+      {
+        title: 'Rule removed',
+        description: 'Required reviewers no longer applies to main',
+        action: { label: 'Undo', run: () => {} }
+      }
+    ]}
+  />
+</Example>
+
 <Example title="Danger and sticky" note="A failure and unsaved work stay until they are dismissed">
   <Button
     onclick={() =>

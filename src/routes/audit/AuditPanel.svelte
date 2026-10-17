@@ -1,6 +1,7 @@
 <script lang="ts">
   import { onMount, tick } from 'svelte';
-  import { runAudit, type Finding } from './audit.js';
+  import { Pill } from '#lib';
+  import { checkCount, runAudit, type Finding } from './audit.js';
   import './checks.js';
 
   let findings = $state<Finding[] | null>(null);
@@ -11,7 +12,12 @@
     await new Promise(requestAnimationFrame);
     const settling = document
       .getAnimations()
-      .filter((animation) => animation.effect?.getTiming().iterations !== Infinity)
+      // Only time-based animations settle; a scroll-driven one finishes when the reader scrolls.
+      .filter(
+        (animation) =>
+          animation.timeline instanceof DocumentTimeline &&
+          animation.effect?.getTiming().iterations !== Infinity
+      )
       .map((animation) => animation.finished);
     await Promise.allSettled(settling);
     findings = runAudit(document);
@@ -55,7 +61,18 @@
 
 <section class="audit" aria-labelledby="audit-title" data-audit-ignore>
   <div class="head">
-    <h2 id="audit-title">Law audit</h2>
+    <div class="title-row">
+      <h2 id="audit-title">Law audit</h2>
+      {#if findings !== null}
+        <span class="badge">
+          {#if findings.length === 0}
+            <Pill tone="success" icon="check">Passing</Pill>
+          {:else}
+            <Pill tone="danger" icon="failure">{findings.length} findings</Pill>
+          {/if}
+        </span>
+      {/if}
+    </div>
     <p class="summary" role="status">
       {#if findings === null}
         Measuring…
@@ -65,6 +82,11 @@
         {findings.length} findings against {byLaw.length} laws
       {/if}
     </p>
+    {#if findings !== null}
+      <p class="scope">
+        {checkCount()} rendered checks, run again on every theme switch and layout change
+      </p>
+    {/if}
   </div>
   {#if findings && findings.length > 0}
     <ul class="laws">
@@ -105,7 +127,30 @@
   }
 
   h2 {
-    font: 600 var(--sui-font-size-card-title) / var(--sui-leading-title) var(--sui-sans);
+    font: 700 var(--sui-font-size-dialog-title) / var(--sui-leading-title) var(--sui-sans);
+    letter-spacing: -0.015em;
+    margin: 0;
+    text-box: trim-both cap alphabetic;
+  }
+
+  .title-row {
+    align-items: center;
+    display: flex;
+    gap: var(--sui-space-3);
+  }
+
+  /* One title cap tall in the title's face, so the pill centres on the title without
+     raising its row. */
+  .badge {
+    align-items: center;
+    block-size: 1cap;
+    display: flex;
+    font: 700 var(--sui-font-size-dialog-title) / var(--sui-leading-title) var(--sui-sans);
+  }
+
+  .scope {
+    color: var(--sui-text-muted);
+    font: 400 var(--sui-font-size-meta) / var(--sui-row-copy-leading) var(--sui-sans);
     margin: 0;
     text-box: trim-both cap alphabetic;
   }

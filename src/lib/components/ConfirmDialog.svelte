@@ -12,6 +12,7 @@
     tone = 'signal',
     onconfirm,
     oncancel,
+    preview = false,
     children
   }: {
     open?: boolean;
@@ -27,6 +28,8 @@
     onconfirm?: () => void;
     /** Runs for every way out that is not the confirm action: Cancel, Escape, an outside press. */
     oncancel?: () => void;
+    /** Draws the question in the page's flow, as `Modal` does, without taking focus. */
+    preview?: boolean;
     children?: Snippet;
   } = $props();
 
@@ -57,8 +60,8 @@ calls `oncancel`. Anything the answer needs, such as a reason, goes in the child
 -->
 
 {#snippet footer()}
-  <Button autofocus onclick={() => (open = false)}>{cancelLabel}</Button>
+  <Button autofocus={!preview} onclick={() => (open = false)}>{cancelLabel}</Button>
   <Button {tone} onclick={confirm}>{confirmLabel}</Button>
 {/snippet}
 
-<Modal bind:open {title} description={consequence} onclose={closed} {children} {footer} />
+<Modal bind:open {preview} {title} description={consequence} onclose={closed} {children} {footer} />

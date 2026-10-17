@@ -46,7 +46,7 @@ channel = "stable"`;
 
 <Example
   title="Languages"
-  note="Each language colours its own tokens, and plain text stays plain"
+  note="Each language colors its own tokens, and plain text stays plain"
   layout="stack"
 >
   <CodeBlock code={yaml} lang="yaml" />

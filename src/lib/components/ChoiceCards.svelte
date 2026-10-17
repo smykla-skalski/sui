@@ -64,7 +64,7 @@ These are native radios, so the arrow keys move the choice and skip disabled ans
   aria-describedby={describedby}
 >
   <legend class="sui-choice-cards-legend">{label}</legend>
-  <div class="sui-choice-cards-grid">
+  <div class={['sui-choice-cards-grid', { invalid: Boolean(error) }]}>
     {#each options as option, index (option.value)}
       <label class="sui-choice-card" class:disabled={disabled || option.disabled}>
         <input
@@ -115,6 +115,11 @@ These are native radios, so the arrow keys move the choice and skip disabled ans
     grid-template-columns: repeat(auto-fit, minmax(min(14rem, 100%), 1fr));
     overflow: clip;
     padding: var(--sui-control-inset);
+  }
+
+  /* The same signal an invalid text field gives: its frame takes the danger ink. */
+  .sui-choice-cards-grid.invalid {
+    box-shadow: inset 0 0 0 1px var(--sui-danger);
   }
 
   .sui-choice-card {
@@ -212,7 +217,7 @@ These are native radios, so the arrow keys move the choice and skip disabled ans
 
   .sui-choice-card-description {
     color: var(--sui-text-secondary);
-    font: 400 var(--sui-font-size-compact) / var(--sui-row-copy-leading) var(--sui-sans);
+    font: 400 var(--sui-font-size-meta) / var(--sui-row-copy-leading) var(--sui-sans);
     grid-column: 2;
     text-box: trim-both cap alphabetic;
     text-wrap: pretty;
@@ -231,7 +236,7 @@ These are native radios, so the arrow keys move the choice and skip disabled ans
 
   .sui-choice-cards-help {
     color: var(--sui-text-secondary);
-    font: 400 var(--sui-font-size-compact) / var(--sui-row-copy-leading) var(--sui-sans);
+    font: 400 var(--sui-font-size-meta) / var(--sui-row-copy-leading) var(--sui-sans);
   }
 
   .sui-choice-cards-error {

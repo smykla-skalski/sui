@@ -13,6 +13,12 @@
     }
   }
 
+  /** One choice per page, so every switch on it shows the same thing. */
+  const shared = $state<{ choice: ThemeChoice | null }>({ choice: null });
+
+  const isChoice = (value: unknown): value is ThemeChoice =>
+    typeof value === 'string' && choices.includes(value);
+
   function store(choice: string) {
     try {
       localStorage.setItem(STORAGE_KEY, choice);
@@ -45,21 +51,35 @@
   ];
 
   $effect(() => {
-    const saved = stored();
-    if (saved) value = saved;
+    shared.choice ??= stored() ?? value;
   });
 
   $effect(() => {
+    if (shared.choice) value = shared.choice;
+  });
+
+  $effect(() => {
+    const choice = shared.choice;
+    if (!choice) return;
     const root = document.documentElement;
-    if (value !== 'system') {
-      root.dataset.suiTheme = value;
-      return;
-    }
     const query = matchMedia('(prefers-color-scheme: dark)');
-    const follow = () => (root.dataset.suiTheme = query.matches ? 'dark' : 'light');
-    follow();
-    query.addEventListener('change', follow);
-    return () => query.removeEventListener('change', follow);
+    const wanted = () => (choice === 'system' ? (query.matches ? 'dark' : 'light') : choice);
+    const apply = () => {
+      if (root.dataset.suiTheme !== wanted()) root.dataset.suiTheme = wanted();
+    };
+    apply();
+    // A theme set on the root from elsewhere is an explicit choice, so the switch shows it
+    // instead of claiming a choice the page no longer wears.
+    const observer = new MutationObserver(() => {
+      const theme = root.dataset.suiTheme;
+      if ((theme === 'light' || theme === 'dark') && theme !== wanted()) shared.choice = theme;
+    });
+    observer.observe(root, { attributeFilter: ['data-sui-theme'] });
+    query.addEventListener('change', apply);
+    return () => {
+      observer.disconnect();
+      query.removeEventListener('change', apply);
+    };
   });
 </script>
 
@@ -70,7 +90,8 @@ sets `data-sui-theme` on the root element, keeps the choice in local storage und
 `sui:theme`, and reads it back on the next visit. System follows the operating system live,
 so a reader who switches the system to dark sees the page follow without a reload.
 
-Use one per page. A page that renders on the server paints its default theme until this
+Every switch on a page shares one choice, and a theme set on the root from elsewhere shows as
+that explicit choice. A page that renders on the server paints its default theme until this
 mounts, so set the stored theme from a small script in the document head to avoid a flash.
 -->
 
@@ -78,7 +99,7 @@ mounts, so set the stored theme from a small script in the document head to avoi
   bind:value={
     () => value,
     (next) => {
-      if (next === 'light' || next === 'dark' || next === 'system') value = next;
+      if (isChoice(next)) shared.choice = next;
     }
   }
   {name}

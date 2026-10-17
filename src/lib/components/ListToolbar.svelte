@@ -196,7 +196,7 @@ Escape or an outside press, returning focus to the tools button.
   .sui-list-toolbar-current {
     color: var(--sui-text-secondary);
     display: none;
-    font: 600 var(--sui-font-size-compact) / var(--sui-leading-flat) var(--sui-sans);
+    font: 600 var(--sui-font-size-meta) / var(--sui-leading-flat) var(--sui-sans);
     text-box: trim-both cap alphabetic;
     white-space: nowrap;
   }
@@ -207,9 +207,11 @@ Escape or an outside press, returning focus to the tools button.
     margin-inline-start: auto;
   }
 
+  /* Too narrow to share a line: the search takes the whole first line, and the folded filter,
+     its tools and the action follow on the next. */
   @container (max-width: 18rem) {
     .foldable .sui-list-toolbar-search {
-      flex-basis: 0;
+      flex-basis: 100%;
     }
 
     .foldable .sui-list-toolbar-segments {

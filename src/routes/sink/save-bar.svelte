@@ -43,7 +43,7 @@
 
 <Example
   title="Unsaved work"
-  note="Edit a field to raise the bar, and the last line still scrolls clear of it"
+  note="Edit a field to raise the bar, which reserves its own room after the last line"
   layout="stack"
 >
   <div class="pane">
@@ -110,21 +110,21 @@
 </Example>
 
 <style>
-  /* A containing block for fixed boxes, so the bar sits at this pane's end, not the page's. */
+  /* A containing block for fixed boxes, so the bar sits at this pane's end, not the page's.
+     The pane grows with its content, so the bar sits in the room it reserves after the last
+     line instead of over the middle of the list. */
   .pane {
     border: 1px solid var(--sui-border-subtle);
     border-radius: var(--sui-radius-surface);
-    block-size: 18rem;
     contain: layout;
     overflow: hidden;
   }
 
   .narrow {
-    inline-size: min(100%, 20rem);
+    inline-size: min(100%, 16rem);
   }
 
   .scroller {
-    block-size: 100%;
     box-sizing: border-box;
     display: grid;
     align-content: start;

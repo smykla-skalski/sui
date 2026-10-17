@@ -32,7 +32,7 @@ its state, its keyboard and its accessibility. The summary row bleeds into the m
 own padding, so its words share the left edge of the heading above it, and the chevron at
 its end sits inside the hit area and turns a quarter when open.
 
-The open content sits on the same surface with no frame and no coloured edge. A disclosure
+The open content sits on the same surface with no frame and no colored edge. A disclosure
 that reveals controls puts them in their own `Card` inside it. `inline` is the smaller help
 row for a settings column.
 -->
@@ -102,7 +102,7 @@ row for a settings column.
 
   .sui-disclosure-hint {
     color: var(--sui-text-muted);
-    font: 400 var(--sui-font-size-compact) / var(--sui-leading-compact) var(--sui-sans);
+    font: 400 var(--sui-font-size-meta) / var(--sui-leading-meta) var(--sui-sans);
     margin-inline-start: auto;
     text-box: trim-both cap alphabetic;
   }

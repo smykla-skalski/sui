@@ -101,7 +101,7 @@ The pages of one place, as rows under section headings: the second level of navi
 a `Rail` chooses the place and this chooses the page. Every row is a destination with its own
 icon and address, and a heading is only a label.
 
-The current page wears one solid plate in the brand colour with inverse ink, the loudest thing
+The current page wears one solid plate in the brand color with inverse ink, the loudest thing
 in the column. The plate is measured from the current row, does not slide on first paint, and
 glides to the next row when the page changes. Until it is measured the row paints its own plate,
 so the first frame is already right.

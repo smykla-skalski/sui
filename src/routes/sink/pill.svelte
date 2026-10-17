@@ -5,15 +5,16 @@
 <script lang="ts">
   import { Pill } from '#lib';
   import Example from '../kit/Example.svelte';
+  import Specimen from '../kit/Specimen.svelte';
 </script>
 
-<Example title="Tones" note="A standing wears its word, and colour never carries it alone">
-  <Pill>Member</Pill>
-  <Pill tone="info">Invited</Pill>
-  <Pill tone="success">Active</Pill>
-  <Pill tone="warning">Expires soon</Pill>
-  <Pill tone="danger">Suspended</Pill>
-  <Pill tone="role">Owner</Pill>
+<Example title="Tones" note="A standing wears its word, and color never carries it alone">
+  <Specimen label={'tone="neutral"'}><Pill>Member</Pill></Specimen>
+  <Specimen label={'tone="info"'}><Pill tone="info">Invited</Pill></Specimen>
+  <Specimen label={'tone="success"'}><Pill tone="success">Active</Pill></Specimen>
+  <Specimen label={'tone="warning"'}><Pill tone="warning">Expires soon</Pill></Specimen>
+  <Specimen label={'tone="danger"'}><Pill tone="danger">Suspended</Pill></Specimen>
+  <Specimen label={'tone="role"'}><Pill tone="role">Owner</Pill></Specimen>
 </Example>
 
 <Example title="With an icon" note="The glyph starts where a word would start">
@@ -35,6 +36,6 @@
 <style>
   .narrow {
     display: flex;
-    inline-size: min(100%, 14rem);
+    inline-size: min(100%, 16rem);
   }
 </style>

@@ -88,7 +88,7 @@ from its container rather than sizing it to its content.
   .sui-callout[data-tone='warning'] {
     background: var(--sui-warning-tint);
     border-color: color-mix(in srgb, var(--sui-warning) 30%, var(--sui-warning-tint));
-    font-size: var(--sui-font-size-compact);
+    font-size: var(--sui-font-size-meta);
     gap: var(--sui-space-2);
   }
 

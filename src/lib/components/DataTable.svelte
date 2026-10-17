@@ -124,7 +124,7 @@ on screen while the table scrolls under it; it still names the table.
 
   .caption {
     color: var(--sui-text-muted);
-    font: 400 var(--sui-font-size-compact) / var(--sui-row-copy-leading) var(--sui-sans);
+    font: 400 var(--sui-font-size-meta) / var(--sui-row-copy-leading) var(--sui-sans);
     margin: 0;
     overflow-wrap: anywhere;
     text-box: trim-both cap alphabetic;

@@ -5,6 +5,7 @@
 <script lang="ts">
   import { Avatar, IdentityRow } from '#lib';
   import Example from '../kit/Example.svelte';
+  import Specimen from '../kit/Specimen.svelte';
 
   const sizes = [20, 24, 28, 32, 40, 48];
 
@@ -14,15 +15,19 @@
 
 <Example title="Initials" note="Without a picture, initials sit on the brand tint at a type step">
   {#each sizes as size (size)}
-    <Avatar name="Ada Lovelace" {size} />
+    <Specimen label={`size={${size}}`}><Avatar name="Ada Lovelace" {size} /></Specimen>
   {/each}
 </Example>
 
 <Example title="Person and workspace" note="A person is a circle and a workspace a rounded square">
-  <Avatar name="Grace Hopper" size={32} />
-  <Avatar name="Platform Team 01" shape="workspace" size={32} />
-  <Avatar name="" handle="octocat" size={32} />
-  <Avatar name="Infrastructure" shape="workspace" size={48} />
+  <Specimen label={'shape="person"'}><Avatar name="Grace Hopper" size={32} /></Specimen>
+  <Specimen label={'shape="workspace"'}
+    ><Avatar name="Platform Team 01" shape="workspace" size={32} /></Specimen
+  >
+  <Specimen label={'handle="octocat"'}><Avatar name="" handle="octocat" size={32} /></Specimen>
+  <Specimen label={'shape="workspace" size={48}'}
+    ><Avatar name="Infrastructure" shape="workspace" size={48} /></Specimen
+  >
 </Example>
 
 <Example title="Broken picture" note="A picture that does not load falls back to initials">

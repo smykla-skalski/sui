@@ -1,5 +1,5 @@
 <script module lang="ts">
-  export const section = { title: 'Colour picker', order: 101 };
+  export const section = { title: 'Color picker', order: 101 };
 </script>
 
 <script lang="ts">
@@ -19,14 +19,14 @@
   title="States"
   note="A saturated pick, a pale one, a grey that keeps its hue and a locked one"
 >
-  <ColorPicker label="Label colour" bind:value={label} />
-  <ColorPicker label="Highlight colour" bind:value={pale} />
-  <ColorPicker label="Muted colour" bind:value={grey} />
-  <ColorPicker label="Locked colour" value="#5319e7" disabled />
+  <ColorPicker label="Label color" bind:value={label} />
+  <ColorPicker label="Highlight color" bind:value={pale} />
+  <ColorPicker label="Muted color" bind:value={grey} />
+  <ColorPicker label="Locked color" value="#5319e7" disabled />
 </Example>
 
 <Example title="In a field" note="The field's label names the trigger, and its hint describes it">
-  <Field label="Brand colour" hint="Used for links and the one signal button on each view">
+  <Field label="Brand color" hint="Used for links and the one signal button on each view">
     {#snippet control(field)}
       <ColorPicker id={field.id} aria-describedby={field.describedby} bind:value={brand} />
     {/snippet}
@@ -35,9 +35,9 @@
 
 <Example
   title="Own swatches"
-  note="A caller replaces the swatch list, and a colour off the list checks no swatch"
+  note="A caller replaces the swatch list, and a color off the list checks no swatch"
 >
-  <ColorPicker label="Series colour" swatches={chartSwatches} bind:value={chart} />
+  <ColorPicker label="Series color" swatches={chartSwatches} bind:value={chart} />
   <span class="value">Picked <code>{chart}</code></span>
 </Example>
 

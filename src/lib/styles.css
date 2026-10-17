@@ -1,4 +1,4 @@
-/* The palette is the only place a colour, size or duration is written. Laws: docs/laws.md. */
+/* The palette is the only place a color, size or duration is written. Laws: docs/laws.md. */
 
 @font-face {
   font-display: swap;
@@ -555,5 +555,8 @@
     --sui-leading-body: 1.5rem;
     --sui-leading-title: 1.75rem;
     --sui-leading-page: 2rem;
+
+    /* A finger needs more than a pointer: standalone controls step from 34px to the 40px tier. */
+    --sui-control-height-compact: 40px;
   }
 }

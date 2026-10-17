@@ -102,7 +102,7 @@
 
 <Example
   title="Collapsed on a wide screen"
-  note="Above 64rem the sidebar folds into a strip of icons that name themselves in tooltips"
+  note="Above 64rem the sidebar folds into icons, so this 66rem frame scrolls sideways inside its section"
   layout="stack"
 >
   <div class="scroller">
@@ -164,10 +164,38 @@
     overflow: hidden;
   }
 
+  /* The right edge fades while more of the frame waits to the side, and the fade clears
+     once the frame is scrolled to its end where scroll timelines exist. */
   .scroller {
     border-radius: var(--sui-radius-surface);
+    mask-image: linear-gradient(
+      to right,
+      var(--sui-canvas) calc(100% - var(--sui-space-8)),
+      transparent
+    );
+    mask-repeat: no-repeat;
+    mask-size: 100% 100%;
     max-inline-size: 100%;
     overflow-x: auto;
+  }
+
+  @supports (animation-timeline: scroll()) {
+    .scroller {
+      animation: sink-shell-reveal var(--sui-ease-linear) both;
+      animation-timeline: scroll(self inline);
+    }
+  }
+
+  @keyframes sink-shell-reveal {
+    to {
+      mask-size: calc(100% + var(--sui-space-8)) 100%;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .scroller {
+      animation: none;
+    }
   }
 
   .scroller:focus-visible {

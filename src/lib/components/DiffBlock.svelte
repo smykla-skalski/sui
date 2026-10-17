@@ -149,7 +149,7 @@
 @component
 A small unified diff, drawn from two texts or from lines prepared elsewhere. It shows an
 excerpt worth reading, never a whole file. Each line wears its tone, and a glyph beside the
-colour says the same thing: plus for added, minus for removed, a tilde for a line changed in
+color says the same thing: plus for added, minus for removed, a tilde for a line changed in
 place. The stretch that actually changed inside a paired line is one step deeper.
 
 Line numbers count the window, not the file, and only kept lines wear one: an added or
@@ -203,7 +203,7 @@ removed line has no single number to claim. Two empty sides say "No changes".
     color: var(--sui-text-secondary);
     display: flex;
     flex-wrap: wrap;
-    font: 400 var(--sui-font-size-compact) / var(--sui-leading-compact) var(--sui-sans);
+    font: 400 var(--sui-font-size-meta) / var(--sui-leading-meta) var(--sui-sans);
     gap: var(--sui-space-2) var(--sui-space-4);
     padding: var(--sui-space-2) var(--sui-space-3);
   }
@@ -307,7 +307,7 @@ removed line has no single number to claim. Two empty sides say "No changes".
     background: color-mix(in srgb, var(--sui-diff-chg-ink) 18%, var(--sui-diff-chg-bg));
   }
 
-  /* Syntax colours are tuned for the code ground, not for the deeper word mark under them. */
+  /* Syntax colors are tuned for the code ground, not for the deeper word mark under them. */
   .ln .word {
     color: var(--sui-text-primary);
   }

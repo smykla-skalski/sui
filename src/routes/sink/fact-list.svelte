@@ -10,7 +10,7 @@
 </script>
 
 {#snippet syncedAt()}<RelativeTime value={synced} />{/snippet}
-{#snippet health()}<Chip tone="clear" label="In step" />{/snippet}
+{#snippet health()}<Chip tone="success" label="In step" />{/snippet}
 
 <Example
   title="Facts"

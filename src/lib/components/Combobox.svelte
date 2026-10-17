@@ -22,6 +22,7 @@
     options = [],
     search,
     free = false,
+    preview = false,
     element = $bindable(null),
     class: className = '',
     ...rest
@@ -33,6 +34,8 @@
     search?: (query: string) => Promise<readonly ComboboxOption[]>;
     /** Offers what was typed as the last row, and keeps it when focus leaves. */
     free?: boolean;
+    /** Draws the list open under a read-only field in the page's flow, with the value's row active and no keyboard. */
+    preview?: boolean;
     element?: HTMLInputElement | null;
     class?: HTMLInputAttributes['class'];
   } & Omit<HTMLInputAttributes, 'value' | 'type' | 'role' | 'class'> = $props();
@@ -69,7 +72,15 @@
   );
   const rows = $derived(hits.length + (offers ? 1 : 0));
   const empty = $derived(asked !== '' && rows === 0 && !pending);
-  const showing = $derived(open && (rows > 0 || empty));
+  const showing = $derived((preview || open) && (rows > 0 || empty));
+  const current = $derived(
+    preview
+      ? Math.max(
+          0,
+          hits.findIndex((option) => option.value === value)
+        )
+      : active
+  );
   const listLabel = $derived(
     rest['aria-label'] ??
       ([...(element?.labels ?? [])]
@@ -140,6 +151,7 @@
   }
 
   function take(index: number): void {
+    if (preview) return;
     if (index === hits.length && offers) value = asked;
     else {
       const option = hits[index];
@@ -201,82 +213,98 @@ emptied or `free` keeps the typed text. Name it with a `<label>` or `aria-label`
     >{label.slice(at + needle.length)}{/if}
 {/snippet}
 
-<TextInput
-  bind:element
-  {...rest}
-  class={className}
-  value={typed ? query : shown}
-  role="combobox"
-  autocomplete="off"
-  spellcheck="false"
-  aria-autocomplete="list"
-  aria-expanded={showing}
-  aria-controls={listId}
-  aria-activedescendant={showing && rows > 0 ? optionId(active) : undefined}
-  {oninput}
-  {onkeydown}
-  {onblur}
-  onclick={() => {
-    if (!open) show();
-  }}
-/>
+{#snippet control()}
+  <TextInput
+    bind:element
+    {...rest}
+    class={className}
+    value={typed ? query : shown}
+    readonly={preview || rest.readonly}
+    role="combobox"
+    autocomplete="off"
+    spellcheck="false"
+    aria-autocomplete="list"
+    aria-expanded={showing}
+    aria-controls={listId}
+    aria-activedescendant={showing && rows > 0 ? optionId(current) : undefined}
+    {oninput}
+    onkeydown={preview ? undefined : onkeydown}
+    {onblur}
+    onclick={() => {
+      if (!open && !preview) show();
+    }}
+  />
 
-<Popover
-  anchor={element}
-  open={showing}
-  dismiss="manual"
-  width="min-trigger"
-  onmousedown={(event: MouseEvent) => event.preventDefault()}
->
-  <div
-    bind:this={list}
-    id={listId}
-    role="listbox"
-    tabindex="-1"
-    class="sui-combobox-list"
-    aria-label={listLabel}
-    hidden={rows === 0}
+  <Popover
+    anchor={element}
+    open={showing}
+    inline={preview}
+    dismiss="manual"
+    width="min-trigger"
+    onmousedown={(event: MouseEvent) => event.preventDefault()}
   >
-    {#each hits as option, index (option.value)}
-      <!-- Keys are handled on the field, which keeps focus while an option is active. -->
-      <!-- svelte-ignore a11y_click_events_have_key_events -->
-      <div
-        id={optionId(index)}
-        role="option"
-        tabindex="-1"
-        class={['sui-combobox-option', { active: index === active }]}
-        aria-selected={option.value === value}
-        aria-disabled={option.disabled || undefined}
-        onclick={() => take(index)}
-        onpointermove={() => {
-          if (!option.disabled) active = index;
-        }}
-      >
-        <span class="sui-combobox-label">{@render marked(option.label)}</span>
-        {#if option.description}
-          <span class="sui-combobox-note">{option.description}</span>
-        {/if}
-      </div>
-    {/each}
-    {#if offers}
-      <!-- svelte-ignore a11y_click_events_have_key_events -->
-      <div
-        id={optionId(hits.length)}
-        role="option"
-        tabindex="-1"
-        class={['sui-combobox-option', { active: active === hits.length }]}
-        aria-selected="false"
-        onclick={() => take(hits.length)}
-        onpointermove={() => (active = hits.length)}
-      >
-        <span class="sui-combobox-label">Use “{asked}”</span>
-      </div>
-    {/if}
-  </div>
-  {#if empty}<p class="sui-combobox-empty">Nothing matches that</p>{/if}
-</Popover>
+    <div
+      bind:this={list}
+      id={listId}
+      role="listbox"
+      tabindex="-1"
+      class="sui-combobox-list"
+      aria-label={listLabel}
+      hidden={rows === 0}
+    >
+      {#each hits as option, index (option.value)}
+        <!-- Keys are handled on the field, which keeps focus while an option is active. -->
+        <!-- svelte-ignore a11y_click_events_have_key_events -->
+        <div
+          id={optionId(index)}
+          role="option"
+          tabindex="-1"
+          class={['sui-combobox-option', { active: index === current }]}
+          aria-selected={option.value === value}
+          aria-disabled={option.disabled || undefined}
+          onclick={() => take(index)}
+          onpointermove={() => {
+            if (!option.disabled) active = index;
+          }}
+        >
+          <span class="sui-combobox-label">{@render marked(option.label)}</span>
+          {#if option.description}
+            <span class="sui-combobox-note">{option.description}</span>
+          {/if}
+        </div>
+      {/each}
+      {#if offers}
+        <!-- svelte-ignore a11y_click_events_have_key_events -->
+        <div
+          id={optionId(hits.length)}
+          role="option"
+          tabindex="-1"
+          class={['sui-combobox-option', { active: current === hits.length }]}
+          aria-selected="false"
+          onclick={() => take(hits.length)}
+          onpointermove={() => (active = hits.length)}
+        >
+          <span class="sui-combobox-label">Use “{asked}”</span>
+        </div>
+      {/if}
+    </div>
+    {#if empty}<p class="sui-combobox-empty">Nothing matches that</p>{/if}
+  </Popover>
+{/snippet}
+
+{#if preview}
+  <div class="sui-combobox-preview">{@render control()}</div>
+{:else}
+  {@render control()}
+{/if}
 
 <style>
+  .sui-combobox-preview {
+    display: grid;
+    gap: var(--sui-space-1);
+    min-inline-size: 0;
+  }
+
   /* The popover's own 1px border sits outside this list, so the box as a whole stops at
      min(20rem, the room it has). */
   .sui-combobox-list {
@@ -344,6 +372,11 @@ emptied or `free` keeps the typed text. Name it with a `<label>` or `aria-label`
     color: var(--sui-text-muted);
     flex: 1 1 0;
     font-weight: 400;
+  }
+
+  /* Muted ink drops under 4.5:1 on the active row's veil. */
+  .sui-combobox-option.active .sui-combobox-note {
+    color: var(--sui-text-secondary);
   }
 
   mark {

@@ -5,19 +5,24 @@
 <script lang="ts">
   import { StatusPill } from '#lib';
   import Example from '../kit/Example.svelte';
+  import Specimen from '../kit/Specimen.svelte';
 </script>
 
 <Example title="Tones" note="A fact about the surface, quieter than a value and never pressable">
-  <StatusPill>Read only</StatusPill>
-  <StatusPill tone="success">Healthy</StatusPill>
-  <StatusPill tone="warning">Degraded</StatusPill>
-  <StatusPill tone="danger">Unavailable</StatusPill>
+  <Specimen label={'tone="neutral"'}><StatusPill>Read only</StatusPill></Specimen>
+  <Specimen label={'tone="success"'}><StatusPill tone="success">Healthy</StatusPill></Specimen>
+  <Specimen label={'tone="warning"'}><StatusPill tone="warning">Degraded</StatusPill></Specimen>
+  <Specimen label={'tone="danger"'}><StatusPill tone="danger">Unavailable</StatusPill></Specimen>
 </Example>
 
 <Example title="Dot and live" note="The live dot pulses, and under reduced motion it stays still">
-  <StatusPill dot>Current</StatusPill>
-  <StatusPill tone="success" live>Live</StatusPill>
-  <StatusPill tone="warning" dot>Reconnecting</StatusPill>
+  <Specimen label="dot"><StatusPill dot>Current</StatusPill></Specimen>
+  <Specimen label={'tone="success" live'}
+    ><StatusPill tone="success" live>Live</StatusPill></Specimen
+  >
+  <Specimen label={'tone="warning" dot'}
+    ><StatusPill tone="warning" dot>Reconnecting</StatusPill></Specimen
+  >
 </Example>
 
 <Example title="With an icon" note="A symbol for what the words alone cannot carry">
@@ -34,6 +39,6 @@
 <style>
   .narrow {
     display: flex;
-    inline-size: min(100%, 14rem);
+    inline-size: min(100%, 16rem);
   }
 </style>

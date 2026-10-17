@@ -36,6 +36,13 @@
     'Posted the result to the pull request'
   ];
 
+  const changes = [
+    'Select, combobox and action menu replace the native pickers',
+    'Modal and confirm dialog run on the native dialog element',
+    'Toasts stack in the corner and wait while they are read',
+    'Help tips explain a label in one sentence'
+  ];
+
   // Closing would throw away the note, so ask first, and only when there is one.
   function keepNote(): boolean {
     if (note.trim() === '') return true;
@@ -51,6 +58,60 @@
   <Button onclick={() => (webhook = true)}>Edit webhook</Button>
   <Button onclick={() => (inspector = true)}>Inspect run</Button>
   <Button onclick={() => (wide = true)}>Read the changelog</Button>
+</Example>
+
+<Example
+  title="Open states"
+  note="Each size drawn in place at its real width without the scrim, so a review needs no click"
+  layout="stack"
+>
+  <Modal
+    preview
+    title="Edit webhook"
+    description="Smyklot posts every event you pick to this address"
+  >
+    <div class="field">
+      <label for="sink-modal-open-url">Payload address</label>
+      <TextInput
+        id="sink-modal-open-url"
+        type="url"
+        value="https://example.com/hooks/smyklot"
+        mono
+      />
+    </div>
+    {#snippet footer()}
+      <Button>Cancel</Button>
+      <Button tone="signal">Save webhook</Button>
+    {/snippet}
+  </Modal>
+  <Modal
+    preview
+    size="inspector"
+    title="Run 4821"
+    description="Started by a push to main and finished in 6 minutes"
+  >
+    <ul class="steps">
+      {#each steps.slice(0, 4) as step (step)}
+        <li>{step}</li>
+      {/each}
+    </ul>
+    {#snippet footer()}
+      <Button>Close run</Button>
+      <Button tone="signal">Run again</Button>
+    {/snippet}
+  </Modal>
+  <Modal
+    preview
+    size="wide"
+    title="Changelog 0.3.0"
+    description="Everything that changed since 0.2.1"
+  >
+    <ul class="steps">
+      {#each changes as change (change)}
+        <li>{change}</li>
+      {/each}
+    </ul>
+  </Modal>
 </Example>
 
 <Example
@@ -123,10 +184,9 @@
   description="Everything that changed since 0.2.1"
 >
   <ul class="steps">
-    <li>Select, combobox and action menu replace the native pickers</li>
-    <li>Modal and confirm dialog run on the native dialog element</li>
-    <li>Toasts stack in the corner and wait while they are read</li>
-    <li>Help tips explain a label in one sentence</li>
+    {#each changes as change (change)}
+      <li>{change}</li>
+    {/each}
   </ul>
 </Modal>
 

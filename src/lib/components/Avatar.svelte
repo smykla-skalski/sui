@@ -105,7 +105,7 @@ from assistive technology rather than read twice. The picture is fetched without
     inline-size: var(--sui-avatar-size);
     object-fit: cover;
     /* An outline paints over a picture where an inset shadow would sit under it, and a
-       photograph can end in the colour of the card behind it. */
+       photograph can end in the color of the card behind it. */
     outline: 1px solid var(--sui-avatar-ring);
     outline-offset: -1px;
   }

@@ -30,9 +30,9 @@
 
 <!--
 @component
-A link inside a sentence. It borrows the action ink rather than a link colour of its own,
+A link inside a sentence. It borrows the action ink rather than a link color of its own,
 so it never shows the browser's blue or purple, and its underline is faint at rest and full
-on hover, so two links close together do not read as ruled lines. Press is a colour step,
+on hover, so two links close together do not read as ruled lines. Press is a color step,
 because moving a run of text inside a sentence would move the words around it.
 
 A link that leaves the product draws a north-east arrow after its words and is sent with

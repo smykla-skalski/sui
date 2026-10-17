@@ -1,6 +1,6 @@
 <script lang="ts">
   import ChartFrame from './ChartFrame.svelte';
-  import { extent, position, ticks } from './geometry.js';
+  import { axis, position } from './geometry.js';
   import type { RangeDatum } from './types.js';
 
   let {
@@ -19,7 +19,7 @@
 
   const left = 140;
   const right = 20;
-  const width = 700;
+  const minWidth = 320;
   const rowHeight = 42;
   const top = 32;
 
@@ -31,8 +31,8 @@
         (item.marker === undefined || Number.isFinite(item.marker))
     )
   );
-  let domain = $derived(
-    extent(
+  let valueAxis = $derived(
+    axis(
       validData.flatMap((item) => [
         item.start,
         item.end,
@@ -41,10 +41,9 @@
     )
   );
   let height = $derived(top + validData.length * rowHeight + 36);
-  let axisTicks = $derived(ticks(domain));
 
-  function x(value: number): number {
-    return position(value, domain, left, width - right);
+  function x(value: number, width: number): number {
+    return position(value, valueAxis.domain, left, width - right);
   }
 </script>
 
@@ -52,45 +51,49 @@
 @component
 Labelled intervals on one numeric axis, each with an optional marker inside it, such as a
 planned window and the moment work actually started. Long labels are cut with an ellipsis on
-the axis and stay whole in the table under the chart.
+the axis and stay whole in the table under the chart. The plot fills the width of its container
+with text at its token size, and scrolls sideways below 320px.
 -->
 
-<ChartFrame {title} {description}>
-  {#if validData.length === 0}
-    <p class="sui-chart-empty">No chart data yet</p>
-  {:else}
-    <div class="plot-scroll">
-      <svg viewBox="0 0 {width} {height}" role="img" aria-label="{title}. {description}">
-        {#each axisTicks as tick}
-          <line x1={x(tick)} x2={x(tick)} y1={top - 12} y2={height - 30} class="grid" />
-          <text x={x(tick)} y={height - 13} class="axis" text-anchor="middle"
-            >{formatValue(tick)}</text
-          >
-        {/each}
-        {#each validData as item, index}
-          {@const rowY = top + index * rowHeight + rowHeight / 2}
-          <text x={left - 12} y={rowY + 4} class="axis" text-anchor="end"
-            >{item.label.length > 18 ? `${item.label.slice(0, 17)}…` : item.label}</text
-          >
-          <line x1={x(item.start)} x2={x(item.end)} y1={rowY} y2={rowY} class="range" />
-          <circle cx={x(item.start)} cy={rowY} r="5" class="endpoint"
-            ><title>{item.label} start: {formatValue(item.start)}</title></circle
-          >
-          <circle cx={x(item.end)} cy={rowY} r="5" class="endpoint"
-            ><title>{item.label} end: {formatValue(item.end)}</title></circle
-          >
-          {#if item.marker !== undefined}
-            <circle cx={x(item.marker)} cy={rowY} r="5" class="marker"
-              ><title>{item.label} marker: {formatValue(item.marker)}</title></circle
-            >
-          {/if}
-        {/each}
-        <text x={(left + width - right) / 2} y={height - 1} class="axis label" text-anchor="middle"
-          >{valueLabel}</text
+<ChartFrame {title} {description} empty={validData.length === 0}>
+  {#snippet plot(frameWidth: number)}
+    {@const width = Math.max(minWidth, frameWidth)}
+    <svg
+      {width}
+      {height}
+      viewBox="0 0 {width} {height}"
+      role="img"
+      aria-label="{title}. {description}"
+    >
+      {#each valueAxis.ticks as tick (tick)}
+        <line x1={x(tick, width)} x2={x(tick, width)} y1={top - 12} y2={height - 30} class="grid" />
+        <text x={x(tick, width)} y={height - 13} class="axis" text-anchor="middle"
+          >{formatValue(tick)}</text
         >
-      </svg>
-    </div>
-  {/if}
+      {/each}
+      {#each validData as item, index (index)}
+        {@const rowY = top + index * rowHeight + rowHeight / 2}
+        <text x={left - 12} y={rowY + 4} class="axis" text-anchor="end"
+          >{item.label.length > 18 ? `${item.label.slice(0, 17)}…` : item.label}</text
+        >
+        <line x1={x(item.start, width)} x2={x(item.end, width)} y1={rowY} y2={rowY} class="range" />
+        <circle cx={x(item.start, width)} cy={rowY} r="5" class="endpoint"
+          ><title>{item.label} start: {formatValue(item.start)}</title></circle
+        >
+        <circle cx={x(item.end, width)} cy={rowY} r="5" class="endpoint"
+          ><title>{item.label} end: {formatValue(item.end)}</title></circle
+        >
+        {#if item.marker !== undefined}
+          <circle cx={x(item.marker, width)} cy={rowY} r="5" class="marker"
+            ><title>{item.label} marker: {formatValue(item.marker)}</title></circle
+          >
+        {/if}
+      {/each}
+      <text x={(left + width - right) / 2} y={height - 1} class="axis label" text-anchor="middle"
+        >{valueLabel}</text
+      >
+    </svg>
+  {/snippet}
   {#snippet table()}
     <table>
       <thead
@@ -101,7 +104,7 @@ the axis and stay whole in the table under the chart.
         ></thead
       >
       <tbody>
-        {#each validData as item}
+        {#each validData as item, index (index)}
           <tr
             ><th scope="row">{item.label}</th><td>{formatValue(item.start)}</td><td
               >{formatValue(item.end)}</td
@@ -114,20 +117,8 @@ the axis and stay whole in the table under the chart.
 </ChartFrame>
 
 <style>
-  .plot-scroll {
-    border-radius: var(--sui-radius-control);
-    overflow-x: auto;
-  }
-
-  .plot-scroll:focus-visible {
-    outline: var(--sui-focus-ring-width) solid var(--sui-focus);
-    outline-offset: var(--sui-focus-ring-inset);
-  }
   svg {
     display: block;
-    width: 100%;
-    min-width: 700px;
-    height: auto;
   }
   .grid {
     stroke: var(--sui-chart-grid);
@@ -152,14 +143,5 @@ the axis and stay whole in the table under the chart.
     fill: var(--sui-chart-4);
     stroke: var(--sui-surface-base);
     stroke-width: 2;
-  }
-  .sui-chart-empty {
-    margin: 0;
-    padding: var(--sui-space-8);
-    border-radius: var(--sui-radius-control);
-    color: var(--sui-text-secondary);
-    font: 400 var(--sui-font-size-meta) / var(--sui-leading-meta) var(--sui-sans);
-    background: var(--sui-surface-inset);
-    text-align: center;
   }
 </style>

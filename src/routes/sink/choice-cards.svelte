@@ -78,6 +78,6 @@
 
 <style>
   .narrow {
-    inline-size: min(100%, 20rem);
+    inline-size: min(100%, 16rem);
   }
 </style>

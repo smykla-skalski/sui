@@ -142,7 +142,7 @@
   }
 
   .narrow {
-    inline-size: 16rem;
+    inline-size: min(100%, 16rem);
     max-inline-size: 100%;
   }
 </style>
