@@ -9,9 +9,11 @@
   :global(body) {
     background: var(--sui-canvas);
     color: var(--sui-text-primary);
-    font: 400 var(--sui-font-size-body) / var(--sui-leading-body) var(--sui-sans);
+    font: var(--sui-weight-regular) var(--sui-font-size-body) / var(--sui-leading-body)
+      var(--sui-sans);
     margin: 0;
-    min-inline-size: 20rem;
+    /* Reflow is measured in CSS pixels (WCAG 1.4.10), so the floor does not grow with the text. */
+    min-inline-size: 320px;
     -webkit-font-smoothing: antialiased;
   }
 </style>

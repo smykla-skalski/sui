@@ -17,6 +17,14 @@
   let revoke = $state(false);
   let archived = $state(false);
   let reason = $state('');
+  let leaving = $state(false);
+  let tokens = $state(['Deploy bot', 'Release script', 'Nightly backup']);
+  let revoking = $state('');
+  let revokeOpen = $state(false);
+
+  // The sink's server refuses, so the question shows its pending and failed states.
+  const refuse = () =>
+    new Promise((_, reject) => setTimeout(() => reject(new Error('refused')), 900));
 
   function archive(): void {
     archived = true;
@@ -93,6 +101,43 @@
 </Example>
 
 <Example
+  title="Pending and failed"
+  note="The act runs before the dialog closes, so a refusal keeps the question open and says so"
+>
+  <Specimen label="Refused" code="onconfirm returns a promise">
+    <Button tone="stop-quiet" onclick={() => (leaving = true)}>Leave workspace</Button>
+  </Specimen>
+</Example>
+
+<Example
+  title="Removing the opener"
+  note="When the confirmed act removes the row that asked, focus moves to the next row and never to the page"
+  layout="stack"
+>
+  <Specimen label={`${tokens.length} tokens`}>
+    <ul class="tokens" role="list">
+      {#each tokens as token (token)}
+        <li>
+          <span class="token">{token}</span>
+          <Button
+            tone="stop-quiet"
+            onclick={() => {
+              revoking = token;
+              revokeOpen = true;
+            }}>Revoke {token}</Button
+          >
+        </li>
+      {/each}
+    </ul>
+    {#if tokens.length === 0}
+      <Button onclick={() => (tokens = ['Deploy bot', 'Release script', 'Nightly backup'])}
+        >Restore the tokens</Button
+      >
+    {/if}
+  </Specimen>
+</Example>
+
+<Example
   title="No question"
   note="An act that can be undone just happens and offers Undo in a toast"
 >
@@ -127,3 +172,48 @@
 >
   <Field label="Reason" bind:value={reason} placeholder="Leaked in a build log" />
 </ConfirmDialog>
+
+<ConfirmDialog
+  bind:open={leaving}
+  title="Leave this workspace?"
+  consequence="You lose access to its repositories until an owner invites you again"
+  confirmLabel="Leave workspace"
+  tone="stop"
+  onconfirm={refuse}
+  failedLabel={() => 'The workspace needs one owner, so you cannot leave it yet'}
+/>
+
+<ConfirmDialog
+  bind:open={revokeOpen}
+  title={`Revoke ${revoking}?`}
+  consequence="Every script that signs in with it stops working at once"
+  confirmLabel="Revoke token"
+  tone="stop"
+  onconfirm={() => {
+    tokens = tokens.filter((token) => token !== revoking);
+  }}
+/>
+
+<style>
+  .tokens {
+    display: grid;
+    gap: var(--sui-space-2);
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .tokens > li {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--sui-space-2) var(--sui-space-3);
+    justify-content: space-between;
+  }
+
+  .token {
+    color: var(--sui-text-primary);
+    font: var(--sui-weight-medium) var(--sui-font-size-meta) / var(--sui-leading-meta)
+      var(--sui-sans);
+  }
+</style>

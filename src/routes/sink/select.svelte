@@ -78,6 +78,7 @@
 
   let region = $state<string | null>('eu-central');
   let backup = $state<string | null>(null);
+  let failover = $state<string | null>('eu-west');
   let plan = $state<string | null>('team-year');
   let branch = $state<string | null>(branches[2].value);
   let zone = $state<string | null>(null);
@@ -93,7 +94,7 @@
 
 <Example
   title="States"
-  note="A chosen value, a prompt before anything is chosen, and a locked field with its reason under it"
+  note="A chosen value, a prompt before anything is chosen, a refused value and a locked field with its reason"
   layout="grid"
 >
   <Specimen label="Chosen" code="bind:value">
@@ -112,6 +113,19 @@
           options={regions}
           bind:value={backup}
           placeholder="Choose a region"
+        />
+      {/snippet}
+    </Field>
+  </Specimen>
+  <Specimen label="Invalid" code="invalid">
+    <Field label="Failover region" error="Pick a region other than the home region">
+      {#snippet control({ id, describedby, invalid })}
+        <Select
+          {id}
+          aria-describedby={describedby}
+          {invalid}
+          options={regions}
+          bind:value={failover}
         />
       {/snippet}
     </Field>

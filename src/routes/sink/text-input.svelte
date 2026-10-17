@@ -8,7 +8,7 @@
 </script>
 
 <script lang="ts">
-  import { TextInput } from '#lib';
+  import { Field, TextInput } from '#lib';
   import Example from '../kit/Example.svelte';
   import Specimen from '../kit/Specimen.svelte';
 
@@ -18,62 +18,74 @@
 
 <Example
   title="States"
-  note="Rest, filled, invalid and disabled, and the locked one says why"
+  note="Rest, filled, invalid, read only and disabled, each under its label, and the locked one says why"
   layout="grid"
 >
   <Specimen label="Rest" code="placeholder">
-    <TextInput aria-label="Project name" placeholder="your-project" bind:value={name} />
+    <Field label="Project name">
+      {#snippet control({ id, describedby })}
+        <TextInput
+          {id}
+          aria-describedby={describedby}
+          placeholder="your-project"
+          bind:value={name}
+        />
+      {/snippet}
+    </Field>
   </Specimen>
   <Specimen label="Filled, technical value" code="mono">
-    <TextInput aria-label="Image digest" mono bind:value={digest} />
+    <Field label="Image digest">
+      {#snippet control({ id, describedby })}
+        <TextInput {id} aria-describedby={describedby} mono bind:value={digest} />
+      {/snippet}
+    </Field>
   </Specimen>
   <Specimen label="Invalid" code="invalid">
-    <TextInput aria-label="Team name" value="Team with spaces" invalid />
+    <Field label="Team name" error="Use letters, digits and dashes only">
+      {#snippet control({ id, describedby, invalid })}
+        <TextInput {id} aria-describedby={describedby} {invalid} value="Team with spaces" />
+      {/snippet}
+    </Field>
+  </Specimen>
+  <Specimen label="Read only" code="readonly">
+    <Field label="Repository ID" hint="Set when the repository was created">
+      {#snippet control({ id, describedby })}
+        <TextInput {id} aria-describedby={describedby} mono readonly value="R_kgDOJ8x2Qw" />
+      {/snippet}
+    </Field>
   </Specimen>
   <Specimen label="Disabled" code="disabled">
-    <div class="locked">
-      <TextInput
-        aria-label="Owner"
-        aria-describedby="sink-text-input-owner-reason"
-        value="smykla-skalski"
-        disabled
-      />
-      <p id="sink-text-input-owner-reason" class="reason">
-        Only an owner can move the repository to another account
-      </p>
-    </div>
+    <Field label="Owner" hint="Only an owner can move the repository to another account">
+      {#snippet control({ id, describedby })}
+        <TextInput {id} aria-describedby={describedby} value="smykla-skalski" disabled />
+      {/snippet}
+    </Field>
   </Specimen>
 </Example>
 
 <Example title="Tiers" note="34px by default and 44px on phones, and a surface may opt into 40px">
   <Specimen label="Default" code="--sui-control-height-compact">
-    <TextInput aria-label="Filter the projects" placeholder="Filter" />
+    <Field label="Filter the projects">
+      {#snippet control({ id, describedby })}
+        <TextInput {id} aria-describedby={describedby} placeholder="api" />
+      {/snippet}
+    </Field>
   </Specimen>
   <Specimen label="Tall" code="--sui-local-control-height">
     <div class="tall">
-      <TextInput aria-label="Search the projects" type="search" placeholder="Search" />
+      <Field label="Search the projects">
+        {#snippet control({ id, describedby })}
+          <TextInput {id} aria-describedby={describedby} type="search" placeholder="platform" />
+        {/snippet}
+      </Field>
     </div>
   </Specimen>
 </Example>
 
 <style>
-  .locked {
-    display: grid;
-    gap: var(--sui-row-copy-gap);
-    inline-size: 100%;
-  }
-
-  .reason {
-    block-size: var(--sui-block-snap);
-    color: var(--sui-text-secondary);
-    font: 400 var(--sui-font-size-meta) / var(--sui-row-copy-leading) var(--sui-sans);
-    margin: 0;
-    text-box: trim-both cap alphabetic;
-  }
-
   .tall {
     --sui-local-control-height: var(--sui-control-height);
-    display: flex;
+    display: grid;
     inline-size: 100%;
   }
 </style>

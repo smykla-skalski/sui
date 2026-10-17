@@ -14,32 +14,41 @@
 </script>
 
 <script lang="ts">
-  import { untrack } from 'svelte';
+  import { tick, untrack } from 'svelte';
   import type { HTMLAttributes } from 'svelte/elements';
   import Icon from '../icons/Icon.svelte';
+  import Count from '../internal/Count.svelte';
+  import { formatCount } from '../internal/locale.js';
   import Select from './Select.svelte';
 
   const id = $props.id();
 
   let {
     label,
+    hideLabel = false,
     options,
     value = $bindable(null),
     name = id,
     disabled = false,
+    countedLabel = (word: string, count: string) => `${word} (${count})`,
     element = $bindable(null),
     'aria-describedby': describedby,
+    'aria-labelledby': labelledby,
     class: className = '',
     ...rest
   }: {
-    /** Names the choice for assistive technology. It is never drawn. */
+    /** Names the choice. It is drawn above the segments unless its name already stands elsewhere. */
     label: string;
+    /** Speaks `label` without drawing it, for a control whose visible name stands beside it. */
+    hideLabel?: boolean;
     /** Two to five options. More belong in a `Select`. */
     options: ReadonlyArray<SegmentOption>;
     /** `null` selects nothing and draws no thumb. */
     value?: string | null;
     name?: string;
     disabled?: boolean;
+    /** The fallback select's words for an option with a count, given the count already formatted. */
+    countedLabel?: (label: string, count: string) => string;
     /** The outer box, which holds the segments or, short of room, the select. */
     element?: HTMLDivElement | null;
     /** Layout for the call site only, never the control's own paint. */
@@ -48,28 +57,49 @@
 
   let track = $state<HTMLFieldSetElement | null>(null);
   let fits = $state(true);
-  let thumb = $state<{ option: string; left: number; width: number } | null>(null);
+  // `start` runs from the track's inline-start edge, so a placement holds in either direction.
+  let thumb = $state<{ option: string; start: number; width: number } | null>(null);
   let ready = $state(false);
   // The option a dragged thumb is held over. The thumb and the words follow it, and the
   // value only takes it when the pointer lets go.
   let held = $state<string | null>(null);
   const shown = $derived(held ?? value);
+  // A name passed by id, or hidden on purpose, already stands somewhere a reader sees.
+  const captioned = $derived(!hideLabel && !labelledby);
 
   const choices = $derived(
     options.map((option) => ({
       value: option.value,
-      label: option.count === undefined ? option.label : `${option.label} (${option.count})`,
+      label:
+        option.count === undefined
+          ? option.label
+          : countedLabel(
+              option.label,
+              typeof option.count === 'number' ? formatCount(option.count) : option.count
+            ),
       disabled: option.disabled
     }))
   );
 
   // The box is as wide as the copy's natural width or the room, whichever is less, and the
   // select contributes no width, so swapping between the two never changes what is measured.
+  // Focus on one form moves to the other, so a swap never drops it to the page (L-89).
   function fit(box: HTMLElement) {
     const natural = box.querySelector('.sui-segmented-ruler');
     if (!natural) return;
     const observer = new ResizeObserver(() => {
-      fits = box.getBoundingClientRect().width + 0.5 >= natural.getBoundingClientRect().width;
+      const next = box.getBoundingClientRect().width + 0.5 >= natural.getBoundingClientRect().width;
+      if (next === fits) return;
+      const focused = box.contains(document.activeElement);
+      fits = next;
+      if (!focused) return;
+      void tick().then(() =>
+        (next
+          ? (box.querySelector<HTMLElement>('input:checked') ??
+            box.querySelector<HTMLElement>('input:enabled'))
+          : box.querySelector('select')
+        )?.focus({ preventScroll: true })
+      );
     });
     observer.observe(box);
     observer.observe(natural);
@@ -90,12 +120,13 @@
       return;
     }
     const own = track.getBoundingClientRect();
+    const rtl = getComputedStyle(track).direction === 'rtl';
     const next = {
       option: input.value,
-      left: box.left - own.left - track.clientLeft,
+      start: (rtl ? own.right - box.right : box.left - own.left) - track.clientLeft,
       width: box.width
     };
-    if (thumb?.left === next.left && thumb.width === next.width) return;
+    if (thumb?.start === next.start && thumb.width === next.width) return;
     // Only a new selection travels. The same option measuring differently (a font landed, a
     // count arrived, a neighbour grew) is placed again, so nothing slides under a still reader.
     if (thumb?.option === next.option) ready = false;
@@ -121,15 +152,20 @@
   const DRAG_THRESHOLD = 4;
   let drag: { pointer: number; x: number; captured: boolean } | null = null;
 
+  // The enabled option nearest the pointer, whichever way the options run.
   function optionAt(x: number): string | null {
     const enabled = [...(track?.querySelectorAll<HTMLLabelElement>('label') ?? [])].filter(
       (option) => !option.querySelector('input')?.disabled
     );
-    if (enabled.length === 0) return null;
-    const boxes = enabled.map((option) => option.getBoundingClientRect());
-    const index = boxes.findIndex((box) => x < box.right);
-    const at = enabled[index === -1 ? enabled.length - 1 : index];
-    return at.querySelector('input')?.value ?? null;
+    const away = (option: Element) => {
+      const box = option.getBoundingClientRect();
+      return Math.max(box.left - x, 0, x - box.right);
+    };
+    const at = enabled.reduce<HTMLLabelElement | null>(
+      (best, option) => (best === null || away(option) < away(best) ? option : best),
+      null
+    );
+    return at?.querySelector('input')?.value ?? null;
   }
 
   function grab(event: PointerEvent) {
@@ -141,6 +177,9 @@
 
   function follow(event: PointerEvent) {
     if (!drag || event.pointerId !== drag.pointer || !track) return;
+    // A press let go outside the track before it became a drag never reaches the track, so
+    // the next move with no button down ends it rather than dragging the thumb on a hover.
+    if ((event.buttons & 1) === 0) return drop();
     if (!drag.captured) {
       if (Math.abs(event.clientX - drag.x) < DRAG_THRESHOLD) return;
       track.setPointerCapture(event.pointerId);
@@ -206,29 +245,45 @@ lands without sliding on first paint, travels 240ms between options, and is not 
 
 The thumb can be dragged: press the selected option and move, and the thumb and its ink follow
 the pointer from option to option, skipping disabled ones. Letting go chooses where it stands and
-fires `change` as a click would; Escape or a cancelled pointer puts it back. A click or the arrow
-keys reach every option too, so the drag is never the only way.
+fires `change` as a click would; Escape or a cancelled pointer puts it back.
 
 Short of room, the control draws the same choice as a native `Select`, with icons dropped and
 counts in brackets, such as "Users (24)". An inert, hidden copy of the segments, with no inputs,
-measures their natural width against the room through a `ResizeObserver`. `aria-describedby`
-reaches the group or the select, and other attributes and events land on the outer box, so
-`onchange` hears a pick in either form.
+measures their natural width against the room through a `ResizeObserver`. The thumb is measured
+from the checked option because CSS cannot size one box from a sibling.
 
-The segments are native radios under a hidden legend, so the arrow keys move the choice and skip
-disabled options. The thumb is measured from the checked option because CSS cannot size one box
-from a sibling.
+- Semantics: a `fieldset` of native radios named by `label`, or by `aria-labelledby` when it is passed; the fallback is a native `select` with the same name.
+- Content: two to five options, each a short word with an optional icon and count; a long word never wraps, so the control turns into the select instead.
+- States: rest, hover (a fill that keeps the thumb's curve), pressed (the fill sinks, the thumb darkens and creases), selected (the thumb), focus (an inset ring on the option), disabled options and a disabled whole at the disabled opacity, and `null` with no thumb.
+- Keyboard: Tab reaches the checked option, or the first one when nothing is chosen; the arrow keys move the choice and skip disabled options; Escape puts a dragged thumb back.
+- Pointer and touch: a click chooses any option and a drag of the thumb chooses on release, so the drag is never the only way (WCAG 2.5.7); on a phone or a coarse pointer each option is at least 44 by 44px.
+- Focus: choosing keeps focus on the option; when the segments turn into the select, or back, focus moves to the other form instead of falling to the page.
+- Responsive: as wide as its words or its room, whichever is less; short of room it turns into a `Select`, because a hidden option is a lost option.
+- Accessibility: `label` is drawn above the segments, 8px from them, unless `hideLabel` is set or `aria-labelledby` names a label that is already drawn; `aria-describedby` reaches the group or the select; counts are part of each option's name.
+- Localization: `label`, option words and `countedLabel` are the caller's; numeric counts are grouped in the page's language; the thumb is placed from the inline-start edge and the drag finds the option under the pointer, so both hold right to left.
+- Performance: two `ResizeObserver`s per control; the thumb moves by `translate` and its width, and reduced motion drops every transition.
+- Analytics: the outer box hears a native `change` event for every pick, in either form, through `onchange`.
+- Failure: a value no option has draws no thumb and an empty select; disabled options stay visible while the keyboard skips them.
 -->
 
 {#snippet face(option: SegmentOption)}
   {#if option.icon}<Icon name={option.icon} size="sm" />{/if}
   <span class="sui-segmented-word">{option.label}</span>
   {#if option.count !== undefined}
-    <span class="sui-segmented-count"><span>{option.count}</span></span>
+    <Count value={option.count} />
   {/if}
 {/snippet}
 
-<div bind:this={element} {...rest} class={['sui-segmented', className]} {@attach fit}>
+<div
+  bind:this={element}
+  {...rest}
+  class={['sui-segmented', className, { captioned }]}
+  {@attach fit}
+>
+  {#if captioned}
+    <!-- The legend names the group; this draws the same words where a reader looks for them. -->
+    <span class="sui-segmented-caption" aria-hidden="true">{label}</span>
+  {/if}
   <div class="sui-segmented-measure" aria-hidden="true" inert>
     <div class="sui-segmented-track sui-segmented-ruler">
       {#each options as option (option.value)}
@@ -246,6 +301,7 @@ from a sibling.
       bind:this={track}
       class={['sui-segmented-track', { ready, dragging: held !== null }]}
       {disabled}
+      aria-labelledby={labelledby}
       aria-describedby={describedby}
       onpointerdown={grab}
       onpointermove={follow}
@@ -257,7 +313,7 @@ from a sibling.
       {#if thumb}
         <span
           class="sui-segmented-thumb"
-          style:translate="{thumb.left}px 0"
+          style:--sui-segmented-start="{thumb.start}px"
           style:inline-size="{thumb.width}px"
           aria-hidden="true"
         ></span>
@@ -285,7 +341,8 @@ from a sibling.
       <Select
         options={choices}
         bind:value
-        aria-label={label}
+        aria-label={labelledby ? undefined : label}
+        aria-labelledby={labelledby}
         aria-describedby={describedby}
         {name}
         {disabled}
@@ -295,7 +352,10 @@ from a sibling.
 </div>
 
 <style>
+  /* The track is an inset ground, so a darkening veil would sink a count's ink under 4.5:1;
+     its pill lifts toward the surface instead. */
   .sui-segmented {
+    --sui-local-count-ground: color-mix(in srgb, var(--sui-surface-base) 55%, transparent);
     display: inline-grid;
     grid-template-columns: minmax(0, max-content);
     max-inline-size: 100%;
@@ -305,6 +365,28 @@ from a sibling.
 
   .sui-segmented > * {
     grid-area: 1 / 1;
+  }
+
+  .captioned {
+    row-gap: var(--sui-space-2);
+  }
+
+  .captioned > * {
+    grid-area: 2 / 1;
+  }
+
+  .captioned > .sui-segmented-caption {
+    grid-area: 1 / 1;
+  }
+
+  .sui-segmented-caption {
+    block-size: var(--sui-block-snap);
+    color: var(--sui-text-secondary);
+    font: var(--sui-weight-semibold) var(--sui-font-size-control) / var(--sui-row-copy-leading)
+      var(--sui-sans);
+    min-inline-size: 0;
+    overflow-wrap: anywhere;
+    text-box: trim-both cap alphabetic;
   }
 
   .sui-segmented-measure {
@@ -329,7 +411,7 @@ from a sibling.
     border: 0;
     /* A surface radius around a control-radius thumb, 2px in, keeps the two curves concentric. */
     border-radius: var(--sui-radius-surface);
-    box-shadow: inset 0 0 0 1px var(--sui-border-subtle);
+    box-shadow: inset 0 0 0 var(--sui-stroke) var(--sui-border-subtle);
     box-sizing: border-box;
     display: flex;
     /* Fills, thumb and words stack inside the track alone: fill, then thumb, then words. */
@@ -369,16 +451,22 @@ from a sibling.
   }
 
   /* A plate seated on the track by a small drop shadow, rounded on all four wherever it
-     stands. */
+     stands. It moves along the reading direction, so its travel flips right to left. */
   .sui-segmented-thumb {
+    --sui-segmented-sign: 1;
     background: var(--sui-segment-thumb);
     border-radius: var(--sui-radius-control);
     box-shadow: var(--sui-segment-thumb-shadow);
     inset-block: var(--sui-control-inset);
-    left: 0;
+    inset-inline-start: 0;
     pointer-events: none;
     position: absolute;
-    z-index: 2;
+    translate: calc(var(--sui-segmented-start) * var(--sui-segmented-sign)) 0;
+    z-index: var(--sui-layer-inner-plate);
+  }
+
+  .sui-segmented-thumb:dir(rtl) {
+    --sui-segmented-sign: -1;
   }
 
   .ready .sui-segmented-thumb {
@@ -389,9 +477,11 @@ from a sibling.
       box-shadow var(--sui-duration-press) var(--sui-ease-standard);
   }
 
-  .sui-segmented-track:has(.sui-segmented-option:hover:not(:active) > input:checked:enabled)
-    .sui-segmented-thumb {
-    background: var(--sui-brand-action-hover);
+  @media (hover: hover) {
+    .sui-segmented-track:has(.sui-segmented-option:hover:not(:active) > input:checked:enabled)
+      .sui-segmented-thumb {
+      background: var(--sui-brand-action-hover);
+    }
   }
 
   /* The thumb takes the press without the 1px sink: inside a shared track a pixel down
@@ -409,6 +499,7 @@ from a sibling.
     position: relative;
     user-select: none;
     -webkit-tap-highlight-color: transparent;
+    -webkit-user-select: none;
   }
 
   /* THE FILL IS ONE BOX AND THE WHOLE HOVERED OR PRESSED SURFACE. It keeps the thumb's
@@ -433,7 +524,6 @@ from a sibling.
       opacity var(--sui-duration-press) var(--sui-ease-standard),
       background-color var(--sui-duration-press) var(--sui-ease-standard),
       box-shadow var(--sui-duration-press) var(--sui-ease-standard);
-    z-index: 1;
   }
 
   .selected + .sui-segmented-option::before {
@@ -451,8 +541,10 @@ from a sibling.
   }
 
   /* The selected option draws no fill: the thumb is its ground and carries its states. */
-  .sui-segmented-option:hover:not(:active, .selected, .disabled)::before {
-    opacity: 1;
+  @media (hover: hover) {
+    .sui-segmented-option:hover:not(:active, .selected, .disabled)::before {
+      opacity: 1;
+    }
   }
 
   /* The press is the hover one step deeper, sunk into the track. The side rims move out by
@@ -487,7 +579,7 @@ from a sibling.
     inset: 0;
     margin: 0;
     position: absolute;
-    z-index: 3;
+    z-index: var(--sui-layer-inner-face);
   }
 
   .sui-segmented-input:focus-visible {
@@ -503,7 +595,8 @@ from a sibling.
     align-items: center;
     color: var(--sui-text-secondary);
     display: flex;
-    font: 600 var(--sui-font-size-compact) / var(--sui-leading-flat) var(--sui-sans);
+    font: var(--sui-weight-semibold) var(--sui-font-size-compact) / var(--sui-leading-flat)
+      var(--sui-sans);
     gap: var(--sui-space-1);
     justify-content: center;
     padding: 0 var(--sui-space-3);
@@ -511,7 +604,7 @@ from a sibling.
     position: relative;
     transition: color var(--sui-duration-fast) var(--sui-ease-standard);
     white-space: nowrap;
-    z-index: 3;
+    z-index: var(--sui-layer-inner-face);
   }
 
   .sui-segmented-label > :global(svg:first-child) {
@@ -526,8 +619,14 @@ from a sibling.
 
   /* A keyboard press lands on the pressed surface with no hover before it, so press lifts
      the ink as well. */
-  .sui-segmented-option:is(:hover, :active):not(.selected, .disabled) .sui-segmented-label {
+  .sui-segmented-option:active:not(.selected, .disabled) .sui-segmented-label {
     color: var(--sui-text-primary);
+  }
+
+  @media (hover: hover) {
+    .sui-segmented-option:hover:not(.selected, .disabled) .sui-segmented-label {
+      color: var(--sui-text-primary);
+    }
   }
 
   .selected .sui-segmented-label {
@@ -538,24 +637,51 @@ from a sibling.
     opacity: var(--sui-disabled-opacity);
   }
 
-  .sui-segmented-count {
-    border-radius: var(--sui-radius-chip);
-    color: var(--sui-text-muted);
-    display: inline-grid;
-    font: 600 var(--sui-font-size-micro) / var(--sui-leading-flat) var(--sui-sans);
-    font-variant-numeric: tabular-nums;
-    padding: var(--sui-space-1);
-    place-items: center;
+  /* On the filled thumb the count wears the thumb's ink on a veil of the opposite lightness,
+     which only deepens the ink's contrast with the fill, whatever the fill's hue. */
+  .sui-segmented-option.selected {
+    --sui-local-count-ground: oklch(from var(--sui-segment-thumb-ink) calc(1 - l) 0 0 / 22%);
+    --sui-local-count-ink: var(--sui-segment-thumb-ink);
   }
 
-  .sui-segmented-count > span {
-    block-size: var(--sui-block-snap-even);
-    text-box: trim-both cap alphabetic;
+  /* A finger's target is at least 44px each way (L-38), so each option's target reaches over
+     the track's rim beside it. */
+  @media (max-width: 47.9375rem), (pointer: coarse) {
+    .sui-segmented-option {
+      justify-content: center;
+      min-inline-size: var(--sui-touch-target);
+    }
+
+    .sui-segmented-option::after {
+      content: '';
+      inset-block: calc((100% - var(--sui-touch-target)) / 2);
+      inset-inline: 0;
+      position: absolute;
+    }
   }
 
-  .selected .sui-segmented-count {
-    background: var(--sui-brand-action-tint);
-    color: var(--sui-brand-action-text);
+  /* High contrast drops grounds and shadows, so the thumb and its words take the system's
+     selection colours, and the track keeps an edge. */
+  @media (forced-colors: active) {
+    .sui-segmented-track {
+      outline: var(--sui-stroke) solid CanvasText;
+      outline-offset: calc(-1 * var(--sui-stroke));
+    }
+
+    .sui-segmented-thumb {
+      background: Highlight;
+      forced-color-adjust: none;
+    }
+
+    .sui-segmented-option.selected {
+      --sui-local-count-ground: transparent;
+      --sui-local-count-ink: HighlightText;
+    }
+
+    .selected .sui-segmented-label {
+      color: HighlightText;
+      forced-color-adjust: none;
+    }
   }
 
   @media (prefers-reduced-motion: reduce) {

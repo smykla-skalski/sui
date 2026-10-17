@@ -7,6 +7,7 @@ import {
   extent,
   markerPath,
   position,
+  sieve,
   spread
 } from '../src/lib/charts/geometry.ts';
 
@@ -114,4 +115,30 @@ test('line names stay inside the plot when they crowd an edge', () => {
   const placed = spread([250, 252, 254], 16, 20, 254);
   assert.ok(Math.max(...placed) <= 254 && Math.min(...placed) >= 20);
   assert.deepEqual(spread([0], 16, 20, 254), [20]);
+});
+
+test('a dense scatter keeps one mark per cell, in order, however many points arrive', () => {
+  const at = (/** @type {[number, number]} */ point) => point;
+  const cloud = Array.from(
+    { length: 50_000 },
+    (_, index) => /** @type {[number, number]} */ ([index % 100, Math.floor(index / 100) % 50])
+  );
+  const kept = sieve(cloud, at, 5);
+  assert.equal(kept.length, 20 * 10);
+  assert.deepEqual(kept[0], [0, 0]);
+  assert.deepEqual(
+    sieve(
+      [
+        [0, 0],
+        [12, 0],
+        [3, 4]
+      ],
+      at,
+      5
+    ),
+    [
+      [0, 0],
+      [12, 0]
+    ]
+  );
 });

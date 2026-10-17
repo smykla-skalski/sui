@@ -37,6 +37,18 @@
       mixed = rgb.map((c) => Math.round(c + ((pole - c) * step) / 20)) as Rgb;
     return { theme, fill: `rgb(${mixed.join(' ')})` };
   }
+
+  /* A removed chip takes its own markup with it, so the news is read from a short-lived region
+     in the layer the chip stood in, filled a beat after it lands so it is heard as a change. */
+  function announce(near: Element, words: string): void {
+    const region = document.createElement('div');
+    region.setAttribute('role', 'status');
+    region.style.cssText =
+      'position: fixed; inline-size: 1px; block-size: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap';
+    (near.closest('dialog, [popover]') ?? document.body).append(region);
+    setTimeout(() => (region.textContent = words), 100);
+    setTimeout(() => region.remove(), 7000);
+  }
 </script>
 
 <script lang="ts">
@@ -51,6 +63,9 @@
     small = false,
     mono = false,
     onremove,
+    disabled = false,
+    removeLabel = (value: string) => `Remove ${value}`,
+    removedLabel = (value: string) => `Removed ${value}`,
     class: className = '',
     ...rest
   }: {
@@ -62,14 +77,20 @@
     small?: boolean;
     /** For a technical value: an ID, a path, a version or a key. */
     mono?: boolean;
-    /** Draws a remove control named "Remove" and the value. */
+    /** Draws a remove control named by `removeLabel`. */
     onremove?: () => void;
+    /** Holds the remove control while removing cannot run; say why beside the chips. */
+    disabled?: boolean;
+    /** The remove control's name and tooltip, given the value. */
+    removeLabel?: (label: string) => string;
+    /** Said once the chip has gone, given the value. */
+    removedLabel?: (label: string) => string;
     class?: HTMLAttributes<HTMLSpanElement>['class'];
   } & Omit<HTMLAttributes<HTMLSpanElement>, 'children' | 'color'> = $props();
 
   let remover = $state<HTMLButtonElement | null>(null);
 
-  const removeLabel = $derived(`Remove ${label}`);
+  const removeName = $derived(removeLabel(label));
   const painted = $derived.by(() => {
     const rgb = color === undefined ? null : parse(color);
     return rgb ? paint(rgb) : null;
@@ -90,6 +111,7 @@
     if (own.isConnected) return;
     if (next === group && !group.hasAttribute('tabindex')) group.tabIndex = -1;
     next.focus({ preventScroll: true });
+    announce(group, removedLabel(label));
   }
 </script>
 
@@ -101,12 +123,20 @@ chose, such as a GitHub label's, and is how a reader recognises it in a list.
 
 A painted chip's ink is dark or light, whichever reads better on the fill, and a mid tone that
 neither reads 4.5:1 on is nudged toward white or black until one does. Anything but hex digits
-draws the plain chip, so a stored value never writes a style declaration. A long value wraps
-inside the chip, so no part of it is ever cut.
+draws the plain chip, so a stored value never writes a style declaration.
 
-`onremove` adds a remove control with a 24px target, 44px on a coarse pointer. After a removal
-focus moves to the next remove control in the chip's parent, then the previous one, then the
-parent itself, which gets `tabindex="-1"` when it has none.
+- Semantics: a `span` holding the value as text, with a native `button` to remove it when `onremove` is set.
+- Content: one value of any length, which wraps inside the chip so no part of it is cut; `small` for a chip inside a line of text, `mono` for a technical value.
+- States: rest, painted, and on the remove control hover, pressed, focus and disabled at the disabled opacity.
+- Keyboard: the remove control is a tab stop, and Enter or Space removes; the chip itself is not a stop.
+- Pointer and touch: the remove target is 24px; on a phone or a coarse pointer a removable chip grows to 44px tall around a 44px square control, so the targets of chips on wrapped lines never overlap.
+- Focus: after a removal it moves to the next remove control in the chip's parent, then the previous one, then the parent itself, which gets `tabindex="-1"` when it has none.
+- Responsive: as wide as its value, up to its container, and taller as a long value wraps.
+- Accessibility: the remove control is named by `removeLabel`, which is also its tooltip, and a polite status says `removedLabel` once the chip has gone; a painted chip's ink holds 4.5:1.
+- Localization: `removeLabel` and `removedLabel` are functions of the value with English defaults; the remove control sits at the inline end, so it moves to the left in a right-to-left page.
+- Performance: a painted chip computes its fill once per color; a remove control mounts one tooltip.
+- Analytics: `onremove` hears each removal.
+- Failure: a color that is not hex digits draws the plain chip; with `disabled` the remove control stays visible and does nothing, so say why beside the chips.
 -->
 
 <span
@@ -121,14 +151,15 @@ parent itself, which gets `tabindex="-1"` when it has none.
       type="button"
       class="sui-chip-remove"
       data-sui-theme={painted?.theme}
-      aria-label={removeLabel}
+      aria-label={removeName}
+      {disabled}
       onclick={remove}
     >
       <Icon name="close" size="xs" strokeWidth={2} />
     </button>
     <!-- Client only, so a chip inside a paragraph never gets a block box from the server. -->
     {#if remover}
-      <Tooltip anchor={remover} text={removeLabel} />
+      <Tooltip anchor={remover} text={removeName} />
     {/if}
   {/if}
 </span>
@@ -137,12 +168,13 @@ parent itself, which gets `tabindex="-1"` when it has none.
   .sui-chip {
     align-items: center;
     background: var(--sui-neutral-tint);
-    border-radius: var(--sui-r-chip);
-    box-shadow: inset 0 0 0 1px color-mix(in srgb, currentColor 22%, transparent);
+    border-radius: var(--sui-radius-chip);
+    box-shadow: inset 0 0 0 var(--sui-stroke) color-mix(in srgb, currentColor 22%, transparent);
     box-sizing: border-box;
     color: var(--sui-text-secondary);
     display: inline-flex;
-    font: 600 var(--sui-font-size-compact) / var(--sui-leading-compact) var(--sui-sans);
+    font: var(--sui-weight-semibold) var(--sui-font-size-compact) / var(--sui-leading-compact)
+      var(--sui-sans);
     gap: var(--sui-space-1);
     inline-size: fit-content;
     max-inline-size: 100%;
@@ -158,7 +190,7 @@ parent itself, which gets `tabindex="-1"` when it has none.
   .mono {
     font-family: var(--sui-mono);
     font-variant-numeric: tabular-nums;
-    font-weight: 500;
+    font-weight: var(--sui-weight-medium);
   }
 
   /* The padding sits on the label so a wrapped value clears the edges, while one line keeps
@@ -175,7 +207,7 @@ parent itself, which gets `tabindex="-1"` when it has none.
      a white card. The label and the remove control are scoped to the ink's own theme. */
   .painted {
     background: var(--sui-chip-fill);
-    box-shadow: inset 0 0 0 1px
+    box-shadow: inset 0 0 0 var(--sui-stroke)
       color-mix(in srgb, var(--sui-chip-fill) 72%, var(--sui-text-primary));
   }
 
@@ -214,7 +246,9 @@ parent itself, which gets `tabindex="-1"` when it has none.
       background-color var(--sui-duration-fast) var(--sui-ease-standard),
       translate var(--sui-duration-press) var(--sui-ease-standard),
       box-shadow var(--sui-duration-press) var(--sui-ease-standard);
+    user-select: none;
     -webkit-tap-highlight-color: transparent;
+    -webkit-user-select: none;
   }
 
   /* The glyph is 20px so the chip keeps its height; the pointer target is 24px, and a finger's
@@ -225,17 +259,37 @@ parent itself, which gets `tabindex="-1"` when it has none.
     position: absolute;
   }
 
+  /* A finger's 44px target that reached past the chip would overlap the next line's, so the
+     chip grows to hold the whole target instead. */
   @media (pointer: coarse), (max-width: 47.9375rem) {
+    .removable,
+    .small.removable {
+      min-block-size: var(--sui-touch-target);
+      padding-inline-end: 0;
+    }
+
+    .sui-chip-remove {
+      block-size: var(--sui-touch-target);
+      inline-size: var(--sui-touch-target);
+    }
+
     .sui-chip-remove::before {
-      inset: calc((var(--sui-tier-mark) - var(--sui-touch-target)) / 2);
+      inset: 0;
     }
   }
 
-  .sui-chip-remove:hover:not(:active) {
-    background-color: var(--sui-interactive-hover-layer);
+  @media (hover: hover) {
+    .sui-chip-remove:hover:not(:active, :disabled) {
+      background-color: var(--sui-interactive-hover-layer);
+    }
   }
 
-  .sui-chip-remove:active {
+  .sui-chip-remove:disabled {
+    cursor: default;
+    opacity: var(--sui-disabled-opacity);
+  }
+
+  .sui-chip-remove:active:not(:disabled) {
     background-color: var(--sui-interactive-pressed);
     box-shadow: var(--sui-pressed-inset);
     translate: 0 1px;
@@ -251,7 +305,7 @@ parent itself, which gets `tabindex="-1"` when it has none.
       transition: none;
     }
 
-    .sui-chip-remove:active {
+    .sui-chip-remove:active:not(:disabled) {
       translate: none;
     }
   }

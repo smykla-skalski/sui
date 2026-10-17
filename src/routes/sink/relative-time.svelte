@@ -69,7 +69,8 @@
 <style>
   .line {
     color: var(--sui-text-muted);
-    font: 400 var(--sui-font-size-meta) / var(--sui-leading-meta) var(--sui-sans);
+    font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-leading-meta)
+      var(--sui-sans);
     margin: 0;
   }
 </style>

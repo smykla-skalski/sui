@@ -74,7 +74,7 @@
 
 <Example
   title="Parts"
-  note="The search leads, a filter stands with its tools button, and one action may end the bar"
+  note="The search leads, a filter stands beside its heading with its tools button and their choices, and one action may end the bar"
   layout="stack"
 >
   <Specimen label="Search and action" code="action">
@@ -88,6 +88,14 @@
       placeholder="Search repositories…"
       filter={parts.filter}
       tools={parts.tools}
+    />
+  </Specimen>
+  <Specimen label="Searching" code="pending">
+    <ListToolbar
+      searchLabel="Search repositories"
+      placeholder="Search repositories…"
+      query="sm"
+      pending
     />
   </Specimen>
 </Example>
@@ -108,7 +116,7 @@
 
 <Example
   title="In context"
-  note="The bar stands outside the list's card and owns no list state, so the page filters the rows"
+  note="The bar stands outside the list's card, owns no list state and says how many rows are left after a pause"
   layout="stack"
   ground="canvas"
 >
@@ -119,6 +127,7 @@
       placeholder="Search repositories…"
       filter={list.filter}
       tools={list.tools}
+      count={rows.length}
     >
       {#snippet action()}<Button tone="signal">Add repository</Button>{/snippet}
     </ListToolbar>
@@ -161,7 +170,8 @@
   .name {
     block-size: var(--sui-block-snap);
     color: var(--sui-text-primary);
-    font: 600 var(--sui-font-size-meta) / var(--sui-row-copy-leading) var(--sui-sans);
+    font: var(--sui-weight-semibold) var(--sui-font-size-meta) / var(--sui-row-copy-leading)
+      var(--sui-sans);
     overflow-wrap: anywhere;
     text-box: trim-both cap alphabetic;
   }
@@ -169,7 +179,8 @@
   .sum {
     block-size: var(--sui-block-snap);
     color: var(--sui-text-muted);
-    font: 400 var(--sui-font-size-meta) / var(--sui-row-copy-leading) var(--sui-sans);
+    font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-row-copy-leading)
+      var(--sui-sans);
     overflow-wrap: anywhere;
     text-box: trim-both cap alphabetic;
   }

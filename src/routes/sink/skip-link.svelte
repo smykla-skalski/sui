@@ -16,7 +16,6 @@
 <Example
   title="Skip link"
   note="The link waits above the window and comes into the corner while it has focus"
-  layout="stack"
 >
   <Specimen label="Waiting above the window" code="href">
     <p class="copy">Click this sentence, then press Tab to reveal the skip link</p>
@@ -44,7 +43,8 @@
 <style>
   .copy {
     color: var(--sui-text-secondary);
-    font: 400 var(--sui-font-size-body) / var(--sui-leading-body) var(--sui-sans);
+    font: var(--sui-weight-regular) var(--sui-font-size-body) / var(--sui-leading-body)
+      var(--sui-sans);
     margin: 0;
   }
 

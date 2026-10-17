@@ -91,4 +91,22 @@
   </Specimen>
 </Example>
 
+<Example
+  title="Reaching the stack"
+  note="F8 moves focus to the newest toast and Escape hands it back, and a stack taller than the screen scrolls"
+>
+  <Specimen label="Many toasts" code="hotkey">
+    <Button
+      onclick={() => {
+        for (const name of ['sui', 'smyklot', 'ledger', 'atlas', 'harbor', 'relay'])
+          toast({
+            title: `Sync failed for ${name}`,
+            description: 'GitHub answered 502, try again in a minute',
+            tone: 'danger'
+          });
+      }}>Sync six repositories</Button
+    >
+  </Specimen>
+</Example>
+
 <Toaster />

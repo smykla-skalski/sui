@@ -1,26 +1,29 @@
 <script module lang="ts">
   type Hsv = { h: number; s: number; v: number };
 
+  /** A hex, or a hex with the name a screen reader hears for it. */
+  export type ColorSwatch = string | { value: string; label: string };
+
   // These literals are the user's data and the color space itself: the default swatches a
   // caller can replace, and the gradients that draw hue, saturation and value. They are not
   // paint, so they live here and never in the palette or the style block.
-  const DEFAULT_SWATCHES = [
-    '#b60205',
-    '#d93f0b',
-    '#fbca04',
-    '#0e8a16',
-    '#006b75',
-    '#1d76db',
-    '#0052cc',
-    '#5319e7',
-    '#e99695',
-    '#f9d0c4',
-    '#fef2c0',
-    '#c2e0c6',
-    '#bfdadc',
-    '#c5def5',
-    '#bfd4f2',
-    '#d4c5f9'
+  const DEFAULT_SWATCHES: readonly ColorSwatch[] = [
+    { value: '#b60205', label: 'Red' },
+    { value: '#d93f0b', label: 'Orange' },
+    { value: '#fbca04', label: 'Yellow' },
+    { value: '#0e8a16', label: 'Green' },
+    { value: '#006b75', label: 'Teal' },
+    { value: '#1d76db', label: 'Blue' },
+    { value: '#0052cc', label: 'Dark blue' },
+    { value: '#5319e7', label: 'Violet' },
+    { value: '#e99695', label: 'Pale red' },
+    { value: '#f9d0c4', label: 'Peach' },
+    { value: '#fef2c0', label: 'Cream' },
+    { value: '#c2e0c6', label: 'Pale green' },
+    { value: '#bfdadc', label: 'Pale teal' },
+    { value: '#c5def5', label: 'Pale blue' },
+    { value: '#bfd4f2', label: 'Lavender blue' },
+    { value: '#d4c5f9', label: 'Lavender' }
   ];
   const HUE_RAIL =
     'linear-gradient(to right, #ff0000, #ffff00, #00ff00, #00ffff, #0000ff, #ff00ff, #ff0000)';
@@ -70,18 +73,36 @@
   import { tick } from 'svelte';
   import type { HTMLButtonAttributes } from 'svelte/elements';
   import Icon from '../icons/Icon.svelte';
+  import { pageLocale } from '../internal/locale.js';
   import Button from './Button.svelte';
   import Field, { type FieldControl } from './Field.svelte';
   import Popover from './Popover.svelte';
   import TextInput from './TextInput.svelte';
+  import VisuallyHidden from './VisuallyHidden.svelte';
 
   const uid = $props.id();
+  const percent = new Intl.NumberFormat(pageLocale(), { style: 'percent' });
+  const whole = new Intl.NumberFormat(pageLocale());
 
   let {
     value = $bindable(),
     swatches = DEFAULT_SWATCHES,
     label,
     disabled = false,
+    name,
+    dialogLabel = 'Pick a color',
+    swatchesLabel = 'Swatches',
+    swatchName = (hex: string, named?: string) => (named ? `${named}, ${hex}` : `Color ${hex}`),
+    areaLabel = 'Saturation and brightness',
+    areaValue = (saturation: number, brightness: number) =>
+      `Saturation ${percent.format(saturation / 100)}, brightness ${percent.format(brightness / 100)}`,
+    hueLabel = 'Hue',
+    hueValue = (degrees: number) =>
+      degrees === 1 ? '1 degree' : `${whole.format(degrees)} degrees`,
+    hexLabel = 'Hex color',
+    hexError = 'Use a hex color such as #0e8a16',
+    triggerName = (field: string, hex: string) => `${field} ${hex}`,
+    onchange,
     element = $bindable(null),
     class: className = '',
     onclick,
@@ -89,18 +110,46 @@
   }: {
     /** The color as `#rrggbb`. It follows the picker live while the popover is open. */
     value: string;
-    /** The one-press choices, in reading order. */
-    swatches?: readonly string[];
+    /** The one-press choices, in reading order; a named one is read by its name and hex. */
+    swatches?: readonly ColorSwatch[];
     /** Draws a `Field` label over the trigger. Inside a `Field` of your own, leave it off. */
     label?: string;
     disabled?: boolean;
+    /** Posts the hex with a form. */
+    name?: string;
+    /** The popover's accessible name. */
+    dialogLabel?: string;
+    /** The swatch group's accessible name. */
+    swatchesLabel?: string;
+    /** A swatch's accessible name from its hex and its name, when it has one. */
+    swatchName?: (hex: string, named?: string) => string;
+    /** Drawn over the saturation and brightness area, and its name. */
+    areaLabel?: string;
+    /** The area's value in words, from percentages. */
+    areaValue?: (saturation: number, brightness: number) => string;
+    /** Drawn over the hue rail, and its name. */
+    hueLabel?: string;
+    /** The rail's value in words, from degrees. */
+    hueValue?: (degrees: number) => string;
+    /** Drawn over the hex field, and its name. */
+    hexLabel?: string;
+    /** Said under the hex field when it does not hold a hex color. */
+    hexError?: string;
+    /** The trigger's accessible name from the field's label and the hex. */
+    triggerName?: (field: string, hex: string) => string;
+    /** Hears the color each time the popover closes on a new one. */
+    onchange?: (hex: string) => void;
     element?: HTMLButtonElement | HTMLAnchorElement | null;
     /** Layout for the call site only, never the trigger's own paint. */
     class?: HTMLButtonAttributes['class'];
-  } & Omit<HTMLButtonAttributes, 'value' | 'children' | 'popovertarget'> = $props();
+  } & Omit<
+    HTMLButtonAttributes,
+    'value' | 'children' | 'popovertarget' | 'name' | 'onchange'
+  > = $props();
 
   const popoverId = `${uid}-popover`;
   const errorId = `${uid}-error`;
+  const hexId = `${uid}-hex`;
 
   let open = $state(false);
   // The picker owns its hue: a grey's hex has none to read back, so the hue survives here
@@ -111,7 +160,10 @@
   let hexInput = $state<HTMLInputElement | null>(null);
   let grid = $state<HTMLElement | null>(null);
   let area = $state<HTMLElement | null>(null);
+  let box = $state<HTMLElement | null>(null);
   let drag: { target: HTMLElement; kind: 'area' | 'hue' } | null = null;
+  // The color the popover opened on, which Escape goes back to.
+  let start = { hex: '', hsv: { h: 0, s: 0, v: 0 } };
 
   const current = $derived(parseHex(value) ?? value);
   /* A `<label for>` would replace the trigger's words as its name, so the name is the
@@ -122,8 +174,15 @@
       .filter(Boolean)
       .join(' ') || rest['aria-label']
   );
-  const name = $derived(labelled ? `${labelled} ${current}` : undefined);
-  const palette = $derived([...new Set(swatches.map((swatch) => swatch.toLowerCase()))]);
+  const accessibleName = $derived(labelled ? triggerName(labelled, current) : undefined);
+  const palette = $derived.by(() => {
+    const seen = new Map<string, string | undefined>();
+    for (const swatch of swatches) {
+      const hex = (typeof swatch === 'string' ? swatch : swatch.value).toLowerCase();
+      if (!seen.has(hex)) seen.set(hex, typeof swatch === 'string' ? undefined : swatch.label);
+    }
+    return [...seen].map(([hex, named]) => ({ hex, named }));
+  });
   const hueColor = $derived(hsvToHex({ h: hsv.h, s: 1, v: 1 }));
   const saturation = $derived(Math.round(hsv.s * 100));
   const brightness = $derived(Math.round(hsv.v * 100));
@@ -136,6 +195,7 @@
       if (hex && hex !== hsvToHex(hsv)) hsv = keepHue(hex);
       hexField = current;
       hexInvalid = false;
+      start = { hex: current, hsv: { ...hsv } };
     }
     onclick?.(event);
   }
@@ -143,11 +203,11 @@
   $effect(() => {
     if (!open) return;
     void tick().then(() => {
-      const start =
+      const first =
         grid?.querySelector<HTMLInputElement>('input:checked') ??
         grid?.querySelector<HTMLInputElement>('input') ??
         area;
-      start?.focus({ preventScroll: true });
+      first?.focus({ preventScroll: true });
     });
   });
 
@@ -175,12 +235,16 @@
     element?.focus();
   }
 
+  function closed() {
+    if (current !== start.hex) onchange?.(current);
+  }
+
   function dragMove(event: PointerEvent) {
     if (!drag) return;
-    const box = drag.target.getBoundingClientRect();
-    const x = clamp((event.clientX - box.left) / box.width);
+    const bounds = drag.target.getBoundingClientRect();
+    const x = clamp((event.clientX - bounds.left) / bounds.width);
     if (drag.kind === 'hue') apply({ ...hsv, h: x * 360 });
-    else apply({ ...hsv, s: x, v: 1 - clamp((event.clientY - box.top) / box.height) });
+    else apply({ ...hsv, s: x, v: 1 - clamp((event.clientY - bounds.top) / bounds.height) });
   }
 
   function dragStart(event: PointerEvent, kind: 'area' | 'hue') {
@@ -251,7 +315,15 @@
     return true;
   }
 
-  function commitOnEnter(event: KeyboardEvent) {
+  function keys(event: KeyboardEvent) {
+    if (event.key === 'Escape') {
+      // Escape is the way back: the color the picker opened on returns, typed hex and all.
+      hsv = { ...start.hsv };
+      value = start.hex;
+      hexField = start.hex;
+      hexInvalid = false;
+      return;
+    }
     if (event.key !== 'Enter') return;
     event.preventDefault();
     if (event.target === hexInput && !commitHex()) return;
@@ -263,18 +335,33 @@
 @component
 A color as `#rrggbb`, picked from a trigger that shows the swatch and the hex. The popover
 offers the caller's swatches as a radio group, a saturation and brightness area, a hue rail
-and a hex field. Reach for it only when the color is the user's own data, such as a label
-color; a theme never needs one.
+and a hex field, each with its words drawn over it. Reach for it only when the color is the
+user's own data, such as a label color; a theme never needs one.
 
 The value follows the picker live, so `bind:value` sees every step of a drag. Arrows move
 the knob and the hue thumb (Shift for bigger steps) and walk the swatches. Home and End take
 the area to no or full saturation and the rail to its ends. Enter commits and closes, a
-swatch press does the same, and Escape closes and leaves the field's half-typed hex behind.
-A grey keeps the hue it had, so dragging through it never snaps the rail to red.
+swatch press does the same, Escape closes and goes back to the color the picker opened on,
+and Tab past the last stop closes it and moves on. A grey keeps the hue it had, so dragging
+through it never snaps the rail to red. The area and the rail are a color space, not a line
+of text, so they read left to right in every direction, as a chart's plot does.
 
 `label` draws a visible `Field` label over the trigger. Inside a `Field` of your own, spread
 the field's `id` and `describedby` onto it and leave `label` off. Either way the trigger's
-name is the label and the hex, such as "Label color #0f766e".
+name is the label and the hex, such as "Label color #0f766e". `name` posts the hex.
+
+- Semantics: a `Button` with `aria-haspopup="dialog"` and `aria-expanded`, a `role="dialog"` popover named by `dialogLabel`, a radio group of swatches, two `role="slider"` controls, a hex text field, and a hidden input that posts the hex.
+- Content: the caller's swatches, named or by hex, the area, the rail and the hex field, each with its drawn words.
+- States: closed, open, a checked swatch (a check mark), hover and pressed swatches, dragging, an invalid hex (an error with a warning mark) and a disabled trigger.
+- Keyboard: Enter or Space opens it, Tab walks the swatches, area, rail and hex, the arrows move each, Enter commits, Escape goes back and closes, and Tab past the hex closes it.
+- Pointer and touch: the trigger is 34px, or 44px on a phone or any touch screen, where swatches are 44px and the rail's hit area 44px tall; every drag has keys.
+- Focus: opening focuses the checked swatch, or the first, or the area; Enter, a swatch press and Escape return focus to the trigger, and Tab out lets it move on.
+- Responsive: the popover is the swatch grid's width, six swatches a row on a touch screen, and stays inside the viewport.
+- Accessibility: every part has a name, the sliders say their values in words, the hex error is spoken, and a swatch that does not hold 3:1 wears a ring of its own colour that does.
+- Localization: every word and value text is a prop with an English default, percentages and degrees follow the page language, and the panel's layout is logical while the color space stays left to right.
+- Performance: a drag writes `value` on every pointer move, and nothing animates but a swatch's 1px press.
+- Analytics: `onchange` hears the color each time the popover closes on a new one.
+- Failure: a hex that does not read stays in the field with its reason, and Escape takes the color back to where it started.
 -->
 
 {#snippet trigger(field?: FieldControl)}
@@ -283,7 +370,7 @@ name is the label and the hex, such as "Label color #0f766e".
     {...rest}
     id={field?.id ?? rest.id}
     aria-describedby={field?.describedby ?? rest['aria-describedby']}
-    aria-label={name}
+    aria-label={accessibleName}
     class={field ? undefined : ['sui-color-picker', className]}
     {disabled}
     popovertarget={popoverId}
@@ -308,14 +395,18 @@ name is the label and the hex, such as "Label color #0f766e".
 {:else}
   {@render trigger()}
 {/if}
+{#if name}<input type="hidden" {name} value={current} form={rest.form} {disabled} />{/if}
 
 <Popover
   id={popoverId}
   anchor={element}
   bind:open
+  bind:element={box}
   role="dialog"
-  aria-label="Pick a color"
-  onkeydown={commitOnEnter}
+  aria-label={dialogLabel}
+  onkeydown={keys}
+  closeOnLeave
+  onclose={closed}
 >
   <div
     class="panel"
@@ -326,23 +417,23 @@ name is the label and the hex, such as "Label color #0f766e".
     style:--sui-color-picker-h="{(hsv.h / 360) * 100}%"
   >
     {#if palette.length > 0}
-      <div bind:this={grid} class="swatches" role="radiogroup" aria-label="Swatches">
-        {#each palette as swatch (swatch)}
+      <div bind:this={grid} class="swatches" role="radiogroup" aria-label={swatchesLabel}>
+        {#each palette as swatch (swatch.hex)}
           <span class="cell">
             <input
               type="radio"
               class="swatch"
               name="{uid}-swatch"
-              value={swatch}
-              aria-label="Color {swatch}"
-              checked={swatch === current}
-              style:--sui-color-picker-swatch={swatch}
-              onchange={() => pick(swatch)}
+              value={swatch.hex}
+              aria-label={swatchName(swatch.hex, swatch.named)}
+              checked={swatch.hex === current}
+              style:--sui-color-picker-swatch={swatch.hex}
+              onchange={() => pick(swatch.hex)}
               onclick={(event) => {
                 if (event.detail > 0) close();
               }}
             />
-            {#if swatch === current}
+            {#if swatch.hex === current}
               <!-- A light halo under a dark check, or the reverse in dark, reads on any swatch. -->
               <span class="check" aria-hidden="true">
                 <span class="halo"><Icon name="check" size="sm" strokeWidth={5} /></span>
@@ -354,64 +445,78 @@ name is the label and the hex, such as "Label color #0f766e".
       </div>
     {/if}
 
-    <div
-      bind:this={area}
-      class="area"
-      role="slider"
-      tabindex="0"
-      aria-label="Saturation and brightness"
-      aria-valuemin={0}
-      aria-valuemax={100}
-      aria-valuenow={saturation}
-      aria-valuetext="Saturation {saturation}%, brightness {brightness}%"
-      style:background-image={plane(hueColor)}
-      onpointerdown={(event) => dragStart(event, 'area')}
-      onpointermove={dragMove}
-      onpointerup={dragEnd}
-      onpointercancel={dragEnd}
-      onkeydown={areaKeys}
-    >
-      <span class="knob"></span>
+    <div class="part">
+      <span id="{uid}-area-label" class="part-label">{areaLabel}</span>
+      <div
+        bind:this={area}
+        class="area"
+        dir="ltr"
+        role="slider"
+        tabindex="0"
+        aria-labelledby="{uid}-area-label"
+        aria-valuemin={0}
+        aria-valuemax={100}
+        aria-valuenow={saturation}
+        aria-valuetext={areaValue(saturation, brightness)}
+        style:background-image={plane(hueColor)}
+        onpointerdown={(event) => dragStart(event, 'area')}
+        onpointermove={dragMove}
+        onpointerup={dragEnd}
+        onpointercancel={dragEnd}
+        onkeydown={areaKeys}
+      >
+        <span class="knob"></span>
+      </div>
     </div>
 
-    <div
-      class="hue"
-      role="slider"
-      tabindex="0"
-      aria-label="Hue"
-      aria-valuemin={0}
-      aria-valuemax={360}
-      aria-valuenow={Math.round(hsv.h)}
-      aria-valuetext="{Math.round(hsv.h)} degrees"
-      style:background-image={HUE_RAIL}
-      onpointerdown={(event) => dragStart(event, 'hue')}
-      onpointermove={dragMove}
-      onpointerup={dragEnd}
-      onpointercancel={dragEnd}
-      onkeydown={hueKeys}
-    >
-      <span class="thumb"></span>
+    <div class="part">
+      <span id="{uid}-hue-label" class="part-label">{hueLabel}</span>
+      <div
+        class="hue"
+        dir="ltr"
+        role="slider"
+        tabindex="0"
+        aria-labelledby="{uid}-hue-label"
+        aria-valuemin={0}
+        aria-valuemax={360}
+        aria-valuenow={Math.round(hsv.h)}
+        aria-valuetext={hueValue(Math.round(hsv.h))}
+        style:background-image={HUE_RAIL}
+        onpointerdown={(event) => dragStart(event, 'hue')}
+        onpointermove={dragMove}
+        onpointerup={dragEnd}
+        onpointercancel={dragEnd}
+        onkeydown={hueKeys}
+      >
+        <span class="thumb"></span>
+      </div>
     </div>
 
-    <TextInput
-      bind:element={hexInput}
-      bind:value={hexField}
-      mono
-      aria-label="Hex color"
-      invalid={hexInvalid}
-      aria-describedby={hexInvalid ? errorId : undefined}
-      spellcheck="false"
-      autocomplete="off"
-      maxlength={7}
-      oninput={typeHex}
-      onblur={() => (hexInvalid = parseHex(hexField) === null)}
-    />
-    {#if hexInvalid}
-      <p id={errorId} class="error">
-        <Icon name="alert" size="xs" />
-        <span>Use a hex color such as #0e8a16</span>
-      </p>
-    {/if}
+    <div class="part">
+      <label for={hexId} class="part-label">{hexLabel}</label>
+      <TextInput
+        id={hexId}
+        bind:element={hexInput}
+        bind:value={hexField}
+        mono
+        invalid={hexInvalid}
+        aria-describedby={hexInvalid ? errorId : undefined}
+        spellcheck="false"
+        autocomplete="off"
+        maxlength={7}
+        oninput={typeHex}
+        onblur={() => (hexInvalid = parseHex(hexField) === null)}
+      />
+      <!-- The status speaks the error, so the drawn copy stays out of the tree; the field's
+           description still reads it. -->
+      {#if hexInvalid}
+        <p id={errorId} class="error" aria-hidden="true">
+          <span class="error-mark"><Icon name="alert" size="xs" /></span>
+          <span class="error-words">{hexError}</span>
+        </p>
+      {/if}
+      <VisuallyHidden role="status">{hexInvalid ? hexError : ''}</VisuallyHidden>
+    </div>
   </div>
 </Popover>
 
@@ -439,7 +544,7 @@ name is the label and the hex, such as "Label color #0f766e".
     background-color: var(--sui-color-picker-value);
     block-size: var(--sui-icon-base);
     border-radius: 50%;
-    box-shadow: inset 0 0 0 1px var(--sui-color-picker-ring);
+    box-shadow: inset 0 0 0 var(--sui-stroke) var(--sui-color-picker-ring);
     flex: none;
     inline-size: var(--sui-icon-base);
   }
@@ -447,16 +552,30 @@ name is the label and the hex, such as "Label color #0f766e".
   .hex {
     font-family: var(--sui-mono);
     font-variant-numeric: tabular-nums;
-    font-weight: 400;
+    font-weight: var(--sui-weight-regular);
   }
 
   .panel {
     box-sizing: border-box;
     display: grid;
-    gap: var(--sui-space-2);
+    gap: var(--sui-space-3);
     /* The token is the popover's outer width, so the popover's 1px border comes off it. */
     inline-size: calc(var(--sui-cp-width) - 2px);
     padding: var(--sui-cp-pad);
+  }
+
+  /* A part's words sit closer to it than the parts sit to each other. */
+  .part {
+    display: grid;
+    gap: var(--sui-row-copy-gap);
+  }
+
+  .part-label {
+    block-size: var(--sui-block-snap);
+    color: var(--sui-text-secondary);
+    font: var(--sui-weight-semibold) var(--sui-font-size-control) / var(--sui-row-copy-leading)
+      var(--sui-sans);
+    text-box: trim-both cap alphabetic;
   }
 
   .swatches {
@@ -468,6 +587,8 @@ name is the label and the hex, such as "Label color #0f766e".
   .cell {
     display: grid;
     transition: translate var(--sui-duration-press) var(--sui-ease-standard);
+    -webkit-user-select: none;
+    user-select: none;
   }
 
   .cell:active {
@@ -480,7 +601,7 @@ name is the label and the hex, such as "Label color #0f766e".
     background-color: var(--sui-color-picker-swatch);
     background-image: linear-gradient(var(--sui-color-picker-layer), var(--sui-color-picker-layer));
     block-size: var(--sui-cp-cell);
-    border: 1px solid
+    border: var(--sui-stroke) solid
       oklch(
         from var(--sui-color-picker-swatch)
           clamp(var(--sui-swatch-edge-floor), l, var(--sui-swatch-edge-ceiling)) c h
@@ -496,8 +617,10 @@ name is the label and the hex, such as "Label color #0f766e".
       box-shadow var(--sui-duration-press) var(--sui-ease-standard);
   }
 
-  .swatch:hover:not(:active) {
-    --sui-color-picker-layer: var(--sui-interactive-hover-layer);
+  @media (hover: hover) {
+    .swatch:hover:not(:active) {
+      --sui-color-picker-layer: var(--sui-interactive-hover-layer);
+    }
   }
 
   .swatch:active {
@@ -535,19 +658,21 @@ name is the label and the hex, such as "Label color #0f766e".
   .area {
     block-size: var(--sui-cp-area-height);
     border-radius: var(--sui-radius-control);
-    box-shadow: inset 0 0 0 1px var(--sui-color-picker-hairline);
+    box-shadow: inset 0 0 0 var(--sui-stroke) var(--sui-color-picker-hairline);
     cursor: crosshair;
     position: relative;
     touch-action: none;
+    -webkit-user-select: none;
+    user-select: none;
   }
 
   /* Both knobs track the pointer raw: a knob that eases behind a drag reads as broken. The
      two rings, the thumb material inside the strong border, hold on every color. */
   .knob,
   .thumb {
-    border: 2px solid var(--sui-switch-thumb);
+    border: var(--sui-stroke-bold) solid var(--sui-switch-thumb);
     border-radius: 50%;
-    box-shadow: 0 0 0 1px var(--sui-border-strong);
+    box-shadow: 0 0 0 var(--sui-stroke) var(--sui-border-strong);
     box-sizing: border-box;
     pointer-events: none;
     position: absolute;
@@ -564,12 +689,14 @@ name is the label and the hex, such as "Label color #0f766e".
 
   .hue {
     block-size: var(--sui-cp-hue-height);
-    border-radius: var(--sui-radius-chip);
+    border-radius: var(--sui-radius-pill);
     cursor: pointer;
     /* The thumb's own radius, so its centre reaches both ends of the rail. */
     margin-inline: calc(var(--sui-cp-hue-thumb) / 2);
     position: relative;
     touch-action: none;
+    -webkit-user-select: none;
+    user-select: none;
   }
 
   .thumb {
@@ -581,16 +708,26 @@ name is the label and the hex, such as "Label color #0f766e".
   }
 
   .error {
-    align-items: center;
+    align-items: start;
     color: var(--sui-danger);
-    display: flex;
-    font: 400 var(--sui-font-size-meta) / var(--sui-row-copy-leading) var(--sui-sans);
-    gap: var(--sui-space-1);
+    column-gap: var(--sui-space-1);
+    display: grid;
+    font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-row-copy-leading)
+      var(--sui-sans);
+    grid-template-columns: auto minmax(0, 1fr);
     margin: 0;
   }
 
-  .error > span {
+  /* Centred on the first line's cap height, however many lines the error wraps to. */
+  .error-mark {
+    display: flex;
+    margin-block: round(calc((1cap - var(--sui-icon-xs)) / 2), 1px);
+  }
+
+  .error-words {
     block-size: var(--sui-block-snap);
+    min-inline-size: 0;
+    overflow-wrap: anywhere;
     text-box: trim-both cap alphabetic;
   }
 
@@ -602,6 +739,44 @@ name is the label and the hex, such as "Label color #0f766e".
 
     .cell:active {
       translate: none;
+    }
+  }
+
+  /* A finger needs 44px targets (L-38): six swatches a row at the touch size, which keeps the
+     popover inside a 320px screen, and a rail whose hit area grows past its drawn height. */
+  @media (pointer: coarse), (max-width: 47.9375rem) {
+    .panel {
+      inline-size: calc(
+        6 * var(--sui-touch-target) + 5 * var(--sui-cp-gap) + 2 * var(--sui-cp-pad)
+      );
+    }
+
+    .swatches {
+      grid-template-columns: repeat(6, var(--sui-touch-target));
+    }
+
+    .swatch {
+      block-size: var(--sui-touch-target);
+      inline-size: var(--sui-touch-target);
+    }
+
+    .hue::before {
+      content: '';
+      inset-block: calc((100% - var(--sui-touch-target)) / 2);
+      inset-inline: calc(-1 * var(--sui-cp-hue-thumb) / 2);
+      position: absolute;
+    }
+  }
+
+  /* The colors are the reader's data, so high contrast keeps them as they are. */
+  @media (forced-colors: active) {
+    .mark,
+    .swatch,
+    .area,
+    .hue,
+    .knob,
+    .thumb {
+      forced-color-adjust: none;
     }
   }
 </style>

@@ -127,7 +127,7 @@
 <style>
   .audit {
     background: var(--sui-surface-base);
-    border: 1px solid var(--sui-border-subtle);
+    border: var(--sui-stroke) solid var(--sui-border-subtle);
     border-radius: var(--sui-radius-surface);
     box-sizing: border-box;
     display: grid;
@@ -143,7 +143,8 @@
 
   h2 {
     block-size: var(--sui-block-snap);
-    font: 700 var(--sui-font-size-dialog-title) / var(--sui-leading-title) var(--sui-sans);
+    font: var(--sui-weight-bold) var(--sui-font-size-dialog-title) / var(--sui-leading-title)
+      var(--sui-sans);
     letter-spacing: -0.015em;
     margin: 0;
     text-box: trim-both cap alphabetic;
@@ -161,13 +162,15 @@
     align-items: center;
     block-size: 1cap;
     display: flex;
-    font: 700 var(--sui-font-size-dialog-title) / var(--sui-leading-title) var(--sui-sans);
+    font: var(--sui-weight-bold) var(--sui-font-size-dialog-title) / var(--sui-leading-title)
+      var(--sui-sans);
   }
 
   .scope {
     block-size: var(--sui-block-snap);
     color: var(--sui-text-muted);
-    font: 400 var(--sui-font-size-meta) / var(--sui-row-copy-leading) var(--sui-sans);
+    font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-row-copy-leading)
+      var(--sui-sans);
     margin: 0;
     text-box: trim-both cap alphabetic;
   }
@@ -175,7 +178,8 @@
   .summary {
     block-size: var(--sui-block-snap);
     color: var(--sui-text-secondary);
-    font: 400 var(--sui-font-size-meta) / var(--sui-row-copy-leading) var(--sui-sans);
+    font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-row-copy-leading)
+      var(--sui-sans);
     margin: 0;
     text-box: trim-both cap alphabetic;
   }
@@ -192,7 +196,8 @@
   summary {
     border-radius: var(--sui-radius-control);
     cursor: pointer;
-    font: 500 var(--sui-font-size-meta) / var(--sui-leading-meta) var(--sui-sans);
+    font: var(--sui-weight-medium) var(--sui-font-size-meta) / var(--sui-leading-meta)
+      var(--sui-sans);
     padding: var(--sui-space-1) var(--sui-space-2);
   }
 
@@ -204,11 +209,12 @@
   .law {
     font-family: var(--sui-mono);
     font-variant-numeric: tabular-nums;
-    font-weight: 500;
+    font-weight: var(--sui-weight-medium);
   }
 
   .items {
-    padding: var(--sui-space-2) var(--sui-space-2) var(--sui-space-2) var(--sui-space-6);
+    padding: var(--sui-space-2);
+    padding-inline-start: var(--sui-space-6);
   }
 
   .items li {
@@ -219,10 +225,11 @@
   .items button {
     background: none;
     border: 0;
-    border-radius: var(--sui-radius-chip);
+    border-radius: var(--sui-radius-pill);
     color: var(--sui-brand-action-text);
     cursor: pointer;
-    font: 500 var(--sui-font-size-micro) / var(--sui-leading-micro) var(--sui-mono);
+    font: var(--sui-weight-medium) var(--sui-font-size-micro) / var(--sui-leading-micro)
+      var(--sui-mono);
     justify-self: start;
     min-block-size: var(--sui-control-height-chip);
     overflow-wrap: anywhere;
@@ -237,6 +244,7 @@
 
   .detail {
     color: var(--sui-text-secondary);
-    font: 400 var(--sui-font-size-meta) / var(--sui-leading-meta) var(--sui-sans);
+    font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-leading-meta)
+      var(--sui-sans);
   }
 </style>

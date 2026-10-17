@@ -56,7 +56,7 @@
         <span class="sources-label">Source</span>
         {#each meta.components as name (name)}
           {#if sources[name]}
-            <Link href={REPOSITORY + sources[name]}>{name}</Link>
+            <Link href={REPOSITORY + sources[name]} standalone>{name}</Link>
           {:else}
             <span class="name">{name}</span>
           {/if}
@@ -69,7 +69,7 @@
 
 <style>
   .section {
-    border-block-start: 1px solid var(--sui-border-divider);
+    border-block-start: var(--sui-stroke) solid var(--sui-border-divider);
     box-sizing: border-box;
     display: grid;
     gap: var(--sui-space-8);
@@ -85,7 +85,8 @@
   .family {
     block-size: var(--sui-block-snap);
     color: var(--sui-text-muted);
-    font: 600 var(--sui-font-size-micro) / var(--sui-leading-micro) var(--sui-sans);
+    font: var(--sui-weight-semibold) var(--sui-font-size-micro) / var(--sui-leading-micro)
+      var(--sui-sans);
     letter-spacing: 0.06em;
     margin: 0;
     text-box: trim-both cap alphabetic;
@@ -95,7 +96,8 @@
   h2 {
     block-size: var(--sui-block-snap);
     color: var(--sui-text-primary);
-    font: 700 var(--sui-font-size-dialog-title) / var(--sui-leading-title) var(--sui-sans);
+    font: var(--sui-weight-bold) var(--sui-font-size-dialog-title) / var(--sui-leading-title)
+      var(--sui-sans);
     letter-spacing: -0.015em;
     margin: 0;
     text-box: trim-both cap alphabetic;
@@ -111,7 +113,8 @@
   .lead {
     block-size: var(--sui-block-snap);
     color: var(--sui-text-secondary);
-    font: 400 var(--sui-font-size-body) / var(--sui-row-copy-leading) var(--sui-sans);
+    font: var(--sui-weight-regular) var(--sui-font-size-body) / var(--sui-row-copy-leading)
+      var(--sui-sans);
     margin: 0;
     text-box: trim-both cap alphabetic;
     text-wrap: pretty;
@@ -122,13 +125,22 @@
     color: var(--sui-text-muted);
     display: flex;
     flex-wrap: wrap;
-    font: 400 var(--sui-font-size-meta) / var(--sui-leading-meta) var(--sui-sans);
+    font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-leading-meta)
+      var(--sui-sans);
     gap: var(--sui-space-1) var(--sui-space-3);
     margin: 0;
   }
 
   .sources-label {
-    font-weight: 600;
+    font-weight: var(--sui-weight-semibold);
+  }
+
+  /* The links stand alone, so their hit areas grow to 44px on a touch screen; wrapped lines
+     stand far enough apart that two hit areas never overlap. */
+  @media (pointer: coarse), (max-width: 47.9375rem) {
+    .sources {
+      row-gap: var(--sui-space-6);
+    }
   }
 
   .name {

@@ -15,16 +15,46 @@
     emphasis?: readonly DiffEmphasis[];
   }
 
+  /** The most cells the line table may hold, about four hundred lines a side. */
+  const TABLE_LIMIT = 160_000;
+
   /**
    * A unified diff of two small texts: longest common subsequence over lines, with the
    * deletions of a changed region before the insertions that replace them. Where a deletion
    * and an insertion pair up, the stretch past their common prefix and suffix is emphasised
-   * on both. The table is quadratic, which is fine for the excerpts a diff block shows.
+   * on both. Shared first and last lines are kept without entering the quadratic table, and a
+   * middle too large for it is drawn as all of its old lines removed and its new ones added.
    */
   export function unifiedDiff(before: string, after: string): DiffLine[] {
-    const a = splitLines(before);
-    const b = splitLines(after);
-    // ponytail: quadratic LCS table; trim shared edges first if whole files arrive here.
+    const whole = { a: splitLines(before), b: splitLines(after) };
+    let head = 0;
+    while (head < whole.a.length && head < whole.b.length && whole.a[head] === whole.b[head])
+      head += 1;
+    let tail = 0;
+    while (
+      tail < whole.a.length - head &&
+      tail < whole.b.length - head &&
+      whole.a[whole.a.length - 1 - tail] === whole.b[whole.b.length - 1 - tail]
+    )
+      tail += 1;
+    const kept = (lines: string[]) => lines.map((text): DiffLine => ({ op: ' ', text }));
+    const a = whole.a.slice(head, whole.a.length - tail);
+    const b = whole.b.slice(head, whole.b.length - tail);
+    const middle =
+      (a.length + 1) * (b.length + 1) > TABLE_LIMIT
+        ? [
+            ...a.map((text): DiffLine => ({ op: '-', text })),
+            ...b.map((text): DiffLine => ({ op: '+', text }))
+          ]
+        : lineDiff(a, b);
+    return [
+      ...kept(whole.a.slice(0, head)),
+      ...middle,
+      ...kept(whole.a.slice(whole.a.length - tail))
+    ];
+  }
+
+  function lineDiff(a: string[], b: string[]): DiffLine[] {
     const table = Array.from({ length: a.length + 1 }, () =>
       new Array<number>(b.length + 1).fill(0)
     );
@@ -114,6 +144,7 @@
 <script lang="ts">
   import type { HTMLAttributes } from 'svelte/elements';
   import { tokenizeLine, watchOverflow, type CodeLang } from './CodeBlock.svelte';
+  import VisuallyHidden from './VisuallyHidden.svelte';
 
   let {
     before = '',
@@ -122,6 +153,9 @@
     lang = 'text',
     label,
     labels,
+    emptyLabel = 'No changes',
+    regionLabel = 'Diff',
+    opLabels = { '+': 'Added', '-': 'Removed', '~': 'Changed' },
     class: className = '',
     ...rest
   }: {
@@ -131,16 +165,30 @@
     lines?: readonly DiffLine[];
     /** The file's own language: the diff tones ride on top of its tokens. */
     lang?: CodeLang;
-    /** The diff's accessible name when it scrolls, such as the file it compares. */
+    /** The file the diff compares, drawn above it and used as its name. */
     label?: string;
     /** Names the two sources beside the minus and plus glyphs. */
     labels?: { before: string; after: string };
+    /** What two empty sides say. */
+    emptyLabel?: string;
+    /** The scroller's name when it scrolls and has no `label`. */
+    regionLabel?: string;
+    /** The words a screen reader hears for each line's glyph. */
+    opLabels?: Record<'+' | '-' | '~', string>;
     /** Layout for the call site only, never the block's own paint. */
     class?: HTMLAttributes<HTMLElement>['class'];
   } & HTMLAttributes<HTMLElement> = $props();
 
   const lines = $derived(prepared ?? unifiedDiff(before, after));
   const glyph: Record<DiffOp, string> = { ' ': '', '+': '+', '-': '−', '~': '~' };
+  // The changed stretch is marked in the document, not only in colour: inserted, deleted, or
+  // changed in place.
+  const mark: Record<DiffOp, 'ins' | 'del' | 'mark' | 'span'> = {
+    ' ': 'span',
+    '+': 'ins',
+    '-': 'del',
+    '~': 'mark'
+  };
 
   let scrolls = $state(false);
 </script>
@@ -150,37 +198,60 @@
 A small unified diff, drawn from two texts or from lines prepared elsewhere. It shows an
 excerpt worth reading, never a whole file. Each line wears its tone, and a glyph beside the
 color says the same thing: plus for added, minus for removed, a tilde for a line changed in
-place. The stretch that actually changed inside a paired line is one step deeper.
+place. The stretch that actually changed inside a paired line is one step deeper and
+underlined, marked as inserted, deleted or changed.
 
 Line numbers count the window, not the file, and only kept lines wear one: an added or
-removed line has no single number to claim. Two empty sides say "No changes".
--->
+removed line has no single number to claim. Two empty sides say `emptyLabel`.
 
+- Semantics: a `figure` whose `figcaption` holds the file name and the two sources; the lines are a `pre`, a scroller that scrolls is a focusable `region`, and changed stretches are `ins`, `del` and `mark`.
+- Content: two texts or prepared lines in one of six languages; long lines never wrap and scroll sideways instead.
+- States: kept, added, removed and changed lines, each with its tone and glyph, a deeper underlined stretch inside a paired line, scrolling with the 2px inset ring on focus, and empty.
+- Keyboard: Tab reaches a diff that scrolls, and the arrow keys scroll it.
+- Pointer and touch: none of its own beyond selecting text.
+- Focus: it never moves focus.
+- Responsive: the diff fills its column and its lines scroll inside it at every width; the caption wraps.
+- Accessibility: each glyph is read as `opLabels` words, the caption names the figure, and the changed stretch is marked in the document and underlined, so it survives forced colours.
+- Localization: `emptyLabel`, `regionLabel` and `opLabels` carry the built-in words; the lines always read left to right (`dir="ltr"`), while the caption follows the page.
+- Performance: shared first and last lines skip the line table, and a middle over about four hundred lines a side is drawn as removed then added instead of compared.
+- Analytics: none; a diff reports no outcome.
+- Failure: two empty sides say `emptyLabel`; an oversized middle falls back to a plain removed-then-added diff.
+-->
 <figure {...rest} class={['sui-diff-block', className]}>
-  {#if labels}
+  {#if label !== undefined || labels}
     <figcaption class="sui-diff-block-legend">
-      <span><span class="del" aria-hidden="true">−</span> {labels.before}</span>
-      <span><span class="add" aria-hidden="true">+</span> {labels.after}</span>
+      {#if label !== undefined}<span class="sui-diff-block-name">{label}</span>{/if}
+      {#if labels}
+        <span class="sui-diff-block-sources">
+          <span><span class="del" aria-hidden="true">−</span> {labels.before}</span>
+          <span><span class="add" aria-hidden="true">+</span> {labels.after}</span>
+        </span>
+      {/if}
     </figcaption>
   {/if}
   {#if lines.length === 0}
-    <p class="sui-diff-block-empty">No changes</p>
+    <p class="sui-diff-block-empty">{emptyLabel}</p>
   {:else}
     <!-- A block that scrolls sideways must be reachable by keyboard to be scrolled. -->
     <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
     <pre
       {@attach watchOverflow((value) => (scrolls = value))}
+      dir="ltr"
       class="sui-diff-block-scroll"
       tabindex={scrolls ? 0 : undefined}
       role={scrolls ? 'region' : undefined}
-      aria-label={scrolls ? (label ?? 'Diff') : undefined}><code
+      aria-label={scrolls ? (label ?? regionLabel) : undefined}><code
         >{#each lines as line, index (index)}<span class="ln" data-op={line.op}
             ><span class="no" aria-hidden="true">{line.op === ' ' ? index + 1 : ''}</span><span
-              class="op">{glyph[line.op]}</span
+              class="op"
+              ><span aria-hidden="true">{glyph[line.op]}</span>{#if line.op !== ' '}<VisuallyHidden
+                  >{opLabels[line.op]}&nbsp;</VisuallyHidden
+                >{/if}</span
             ><span class="src"
-              >{#each emphasize(tokenizeLine(lang, line.text), line.emphasis) as piece, at (at)}<span
-                  class={[piece.cls, piece.word && 'word']}>{piece.text}</span
-                >{/each}</span
+              >{#each emphasize(tokenizeLine(lang, line.text), line.emphasis) as piece, at (at)}{#if piece.word}<svelte:element
+                    this={mark[line.op]}
+                    class={[piece.cls, 'word']}>{piece.text}</svelte:element
+                  >{:else}<span class={piece.cls}>{piece.text}</span>{/if}{/each}</span
             ></span
           >{/each}</code
       ></pre>
@@ -190,7 +261,7 @@ removed line has no single number to claim. Two empty sides say "No changes".
 <style>
   .sui-diff-block {
     background: var(--sui-surface-code);
-    border: 1px solid var(--sui-border-subtle);
+    border: var(--sui-stroke) solid var(--sui-border-subtle);
     border-radius: var(--sui-radius-control);
     box-sizing: border-box;
     color: var(--sui-text-primary);
@@ -199,25 +270,43 @@ removed line has no single number to claim. Two empty sides say "No changes".
   }
 
   .sui-diff-block-legend {
-    border-block-end: 1px solid var(--sui-border-divider);
+    border-block-end: var(--sui-stroke) solid var(--sui-border-divider);
     color: var(--sui-text-secondary);
     display: flex;
     flex-wrap: wrap;
-    font: 400 var(--sui-font-size-meta) / var(--sui-leading-meta) var(--sui-sans);
+    font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-leading-meta)
+      var(--sui-sans);
     gap: var(--sui-space-2) var(--sui-space-4);
+    justify-content: space-between;
     padding: var(--sui-space-2) var(--sui-space-3);
+  }
+
+  .sui-diff-block-name {
+    color: var(--sui-text-primary);
+    font-family: var(--sui-mono);
+    font-variant-numeric: tabular-nums;
+    min-inline-size: 0;
+    overflow-wrap: anywhere;
+  }
+
+  .sui-diff-block-sources {
+    display: flex;
+    flex-wrap: wrap;
+    gap: inherit;
   }
 
   .sui-diff-block-empty {
     color: var(--sui-text-muted);
-    font: 400 var(--sui-font-size-meta) / var(--sui-leading-meta) var(--sui-sans);
+    font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-leading-meta)
+      var(--sui-sans);
     margin: 0;
     padding: var(--sui-space-3);
   }
 
   .sui-diff-block-scroll {
     border-radius: inherit;
-    font: 400 var(--sui-font-size-meta) / var(--sui-leading-meta) var(--sui-mono);
+    font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-leading-meta)
+      var(--sui-mono);
     font-variant-numeric: tabular-nums;
     margin: 0;
     overflow-x: auto;
@@ -261,9 +350,12 @@ removed line has no single number to claim. Two empty sides say "No changes".
     user-select: none;
   }
 
+  /* The glyph and its spoken word stay out of a copied selection, as the gutter does. */
   .op {
     min-inline-size: 1ch;
     padding-inline-end: var(--sui-space-2);
+    -webkit-user-select: none;
+    user-select: none;
   }
 
   .src {
@@ -309,9 +401,13 @@ removed line has no single number to claim. Two empty sides say "No changes".
     background: color-mix(in srgb, var(--sui-diff-chg-ink) 18%, var(--sui-diff-chg-bg));
   }
 
-  /* Syntax colors are tuned for the code ground, not for the deeper word mark under them. */
+  /* Syntax colors are tuned for the code ground, not for the deeper word mark under them. The
+     underline marks the stretch without colour, and holds in forced colours. */
   .ln .word {
     color: var(--sui-text-primary);
+    text-decoration: underline;
+    text-decoration-thickness: var(--sui-stroke);
+    text-underline-offset: 0.2em;
   }
 
   .tok-key {
@@ -336,6 +432,6 @@ removed line has no single number to claim. Two empty sides say "No changes".
 
   .tok-head {
     color: var(--sui-code-key);
-    font-weight: 500;
+    font-weight: var(--sui-weight-medium);
   }
 </style>

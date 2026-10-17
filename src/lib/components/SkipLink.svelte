@@ -4,15 +4,18 @@
 
   let {
     href,
+    label = 'Skip to content',
     class: className = '',
     children,
     ...rest
   }: {
     /** The fragment of the region the link jumps to, such as `#content`. */
     href: `#${string}`;
+    /** The words, when no richer `children` are given. */
+    label?: string;
     /** Layout for the call site only, never the link's own paint. */
     class?: HTMLAnchorAttributes['class'];
-    /** The label. Without one it says "Skip to content". */
+    /** Richer words than `label` can carry. */
     children?: Snippet;
   } & Omit<HTMLAnchorAttributes, 'href' | 'children'> = $props();
 </script>
@@ -26,20 +29,34 @@ a 1px focus border and the focus ring.
 
 Give the target `tabindex="-1"` so focus lands in it and the next Tab continues from there.
 A link that is always visible is `Link`, and words that are never shown are `VisuallyHidden`.
+
+- Semantics: a native `<a href="#…">` named by its words.
+- Content: `label` or `children`, a short phrase that names where it jumps, such as "Skip to content".
+- States: waiting above the window, shown in the corner while it has focus with a 1px focus border and the 2px ring, and pressed, which follows it.
+- Keyboard: the first Tab of the page reaches it, Enter jumps, and the next Tab leaves it hidden again.
+- Pointer and touch: a pointer rarely meets it; once shown it is a 34px box with a 44px hit area on a phone or any touch screen.
+- Focus: Enter moves focus into the target, which needs `tabindex="-1"` to take it.
+- Responsive: it stays inside the window's width less its 16px insets and wraps there.
+- Accessibility: its words are the name, and its ink holds 4.5:1 on its own ground over any content.
+- Localization: `label` is a prop with an English default, and it sits at the start corner of a right-to-left page.
+- Performance: one anchor that moves by `translate` alone, with no movement under reduced motion.
+- Analytics: the anchor's own `onclick` reports a jump; it adds nothing of its own.
+- Failure: a target missing from the page leaves focus on the link, so nothing falls to the body.
 -->
 
 <a {...rest} {href} class={['sui-skip-link', className]}
-  >{#if children}{@render children()}{:else}Skip to content{/if}</a
+  >{#if children}{@render children()}{:else}{label}{/if}</a
 >
 
 <style>
   .sui-skip-link {
     background: var(--sui-surface-base);
-    border: 1px solid var(--sui-focus);
+    border: var(--sui-stroke) solid var(--sui-focus);
     border-radius: var(--sui-radius-control);
     box-sizing: border-box;
     color: var(--sui-text-primary);
-    font: 600 var(--sui-font-size-control) / var(--sui-leading-compact) var(--sui-sans);
+    font: var(--sui-weight-semibold) var(--sui-font-size-control) / var(--sui-leading-compact)
+      var(--sui-sans);
     inset-block-start: var(--sui-space-3);
     inset-inline-start: var(--sui-space-4);
     max-inline-size: calc(100vw - 2 * var(--sui-space-4));

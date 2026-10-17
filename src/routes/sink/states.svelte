@@ -8,7 +8,16 @@
 </script>
 
 <script lang="ts">
-  import { Button, Card, EmptyState, ErrorState, FormError, ObjectList, ObjectRow } from '#lib';
+  import {
+    Button,
+    Card,
+    EmptyState,
+    ErrorState,
+    Field,
+    FormError,
+    ObjectList,
+    ObjectRow
+  } from '#lib';
   import Example from '../kit/Example.svelte';
   import Specimen from '../kit/Specimen.svelte';
 
@@ -19,6 +28,7 @@
   let refreshing = $state(false);
   let list = $state<HTMLElement>();
   let refused = $state<string | null>(null);
+  let filtered = $state(false);
 
   /* The first retry succeeds, so the panel gives way to the rows and hands them focus. */
   function retry() {
@@ -37,6 +47,30 @@
   function submit() {
     refused = refused ? null : 'That name is taken by another workspace, so pick another one';
   }
+
+  let workspace = $state('');
+  let contact = $state('');
+  let sent = $state(false);
+  let attempts = $state(0);
+  const nameProblem = $derived(sent && !workspace.trim() ? 'Enter a workspace name' : undefined);
+  const contactProblem = $derived(
+    sent && !contact.includes('@') ? 'Enter an email address such as you@example.com' : undefined
+  );
+  const problems = $derived([
+    ...(nameProblem ? [{ field: 'sink-states-workspace', message: nameProblem }] : []),
+    ...(contactProblem ? [{ field: 'sink-states-contact', message: contactProblem }] : [])
+  ]);
+  const summary = $derived(
+    problems.length === 0
+      ? null
+      : `Fix ${problems.length === 1 ? 'one problem' : `${problems.length} problems`} to create the workspace`
+  );
+
+  function send(event: SubmitEvent) {
+    event.preventDefault();
+    sent = true;
+    attempts += 1;
+  }
 </script>
 
 <Example
@@ -53,11 +87,31 @@
       {#snippet action()}<Button>Clear the filter</Button>{/snippet}
     </EmptyState>
   </Specimen>
-  <Specimen label="Nothing to do yet">
+  <Specimen label="Nothing here yet">
     <EmptyState
       title="No invitations yet"
       description="People you invite to this workspace appear here until they accept"
-    />
+    >
+      {#snippet action()}<Button>Invite people</Button>{/snippet}
+    </EmptyState>
+  </Specimen>
+  <Specimen label={filtered ? 'Emptied by a filter' : 'Filtered list'} code="live">
+    <div class="filtered">
+      <Button onclick={() => (filtered = !filtered)}
+        >{filtered ? 'Show every repository' : 'Show archived only'}</Button
+      >
+      {#if filtered}
+        <EmptyState
+          live
+          title="No archived repositories"
+          description="Archive a repository from its settings and it appears here"
+        >
+          {#snippet action()}<Button>Open repository settings</Button>{/snippet}
+        </EmptyState>
+      {:else}
+        <p class="name">smykla-skalski/sui</p>
+      {/if}
+    </div>
   </Specimen>
 </Example>
 
@@ -127,7 +181,10 @@
   </Specimen>
 </Example>
 
-<Example title="Form error" note="A server refusal is announced and carries no margin of its own">
+<Example
+  title="Form error"
+  note="A server refusal is announced, and a long form's summary takes focus with a link to each field"
+>
   <Specimen label="Refusal">
     <FormError message="The invitation expired before it was accepted" />
   </Specimen>
@@ -137,9 +194,40 @@
       <FormError message={refused} />
     </div>
   </Specimen>
+  <Specimen label="Summary of fields to fix" code="problems attempt">
+    <form class="form summary" novalidate onsubmit={send}>
+      <FormError message={summary} {problems} attempt={attempts} />
+      <Field
+        id="sink-states-workspace"
+        label="Workspace name"
+        required
+        error={nameProblem}
+        bind:value={workspace}
+      />
+      <Field
+        id="sink-states-contact"
+        label="Contact email"
+        type="email"
+        required
+        error={contactProblem}
+        bind:value={contact}
+      />
+      <Button type="submit">Create the workspace</Button>
+    </form>
+  </Specimen>
 </Example>
 
 <style>
+  .filtered {
+    display: grid;
+    gap: var(--sui-space-3);
+    justify-items: start;
+  }
+
+  .filtered > p {
+    margin: 0;
+  }
+
   .loaded {
     display: grid;
     gap: var(--sui-space-4);
@@ -159,7 +247,8 @@
   .name {
     block-size: var(--sui-block-snap);
     color: var(--sui-text-primary);
-    font: 600 var(--sui-font-size-meta) / var(--sui-row-copy-leading) var(--sui-sans);
+    font: var(--sui-weight-semibold) var(--sui-font-size-meta) / var(--sui-row-copy-leading)
+      var(--sui-sans);
     text-box: trim-both cap alphabetic;
   }
 
@@ -167,5 +256,10 @@
     display: grid;
     gap: var(--sui-space-2);
     justify-items: start;
+  }
+
+  .summary {
+    gap: var(--sui-space-4);
+    justify-items: stretch;
   }
 </style>

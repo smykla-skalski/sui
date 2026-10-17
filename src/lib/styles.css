@@ -158,6 +158,7 @@
   --sui-on-danger: #ffffff;
 
   --sui-danger-hover: #a33039;
+  --sui-danger-pressed: color-mix(in srgb, var(--sui-danger-hover) 82%, var(--sui-text-primary));
   --sui-neutral-tint: var(--sui-surface-inset);
 
   --sui-role-tint: #e8e1f2;
@@ -167,7 +168,7 @@
 
   --sui-interactive-hover-layer: rgb(0 0 0 / 9%);
   --sui-interactive-pressed: rgb(0 0 0 / 14%);
-  --sui-scrim: rgb(0 0 0 / 55%);
+  --sui-scrim: rgb(0 0 0 / 56%);
   --sui-scrim-blur: 8px;
 
   --sui-sidebar-bg: var(--sui-canvas);
@@ -210,9 +211,9 @@
   --sui-dialog-bg: var(--sui-surface-base);
   --sui-dialog-border: var(--sui-border-control);
 
-  --sui-drift: #2a5fd2;
-  --sui-diff-chg-ink: var(--sui-drift);
-  --sui-diff-chg-bg: color-mix(in srgb, var(--sui-drift) 7%, var(--sui-surface-code));
+  --sui-changed: #2a5fd2;
+  --sui-diff-chg-ink: var(--sui-changed);
+  --sui-diff-chg-bg: color-mix(in srgb, var(--sui-changed) 7%, var(--sui-surface-code));
   --sui-diff-del-ink: var(--sui-danger);
 
   --sui-verb-add: var(--sui-success);
@@ -223,7 +224,7 @@
   --sui-diff-add-word: color-mix(in srgb, var(--sui-success) 13%, var(--sui-surface-code));
   --sui-diff-del-word: color-mix(in srgb, var(--sui-danger) 13%, var(--sui-surface-code));
 
-  --sui-code-key: var(--sui-drift);
+  --sui-code-key: var(--sui-changed);
   --sui-code-const: var(--sui-role-ink);
   --sui-code-string: #9b4805;
   --sui-code-selection-bg: var(--sui-brand-action);
@@ -256,19 +257,16 @@
   --sui-space-7: 1.75rem;
   --sui-space-8: 2rem;
 
-  --sui-rhythm-pane-top-wide: 40px;
-  --sui-rhythm-pane-top-compact: 16px;
+  --sui-rhythm-pane-top-wide: 2.5rem;
+  --sui-rhythm-pane-top-compact: 1rem;
 
-  --sui-rhythm-head-copy: 8px;
-  --sui-rhythm-head-surface-wide: 24px;
-  --sui-rhythm-head-surface-compact: 20px;
+  --sui-rhythm-head-copy: 0.5rem;
+  --sui-rhythm-head-surface: 1.5rem;
 
-  --sui-rhythm-head-toolbar: 20px;
+  --sui-rhythm-head-actions-stacked: 0.75rem;
 
-  --sui-rhythm-head-actions-stacked: 12px;
-
-  --sui-rhythm-toolbar-surface: 16px;
-  --sui-rhythm-card-head-body: 16px;
+  --sui-rhythm-toolbar-surface: 1rem;
+  --sui-rhythm-card-head-body: 1rem;
 
   --sui-rhythm-card-gap: var(--sui-space-4);
 
@@ -276,11 +274,16 @@
 
   --sui-rhythm-surface-pad-compact: var(--sui-space-4);
 
-  --sui-row-pad-default: 12px;
+  --sui-row-pad-default: 0.75rem;
 
   --sui-row-hairline: 1px;
 
-  --sui-row-copy-gap: 8px;
+  /* Every edge is one of two strokes: a hairline for frames and a bold stroke for marks that
+     carry a state, such as the current tab's underline. */
+  --sui-stroke: 1px;
+  --sui-stroke-bold: 2px;
+
+  --sui-row-copy-gap: 0.5rem;
 
   /* A trimmed line is as tall as its cap height, which is rarely a whole pixel; this rounds the
      block up so every edge under it lands on the pixel grid and draws crisp (L-95). Browsers
@@ -293,7 +296,7 @@
 
   --sui-row-copy-leading: round(calc(1cap + var(--sui-row-copy-gap)), 1px);
 
-  --sui-card-head-line: 13px;
+  --sui-card-head-line: 0.8125rem;
 
   --sui-setting-say-min: 13rem;
 
@@ -326,6 +329,13 @@
   --sui-font-size-page-title: 1.75rem;
 
   --sui-leading-flat: 1;
+
+  /* The weights the two families ship: the sans from regular to bold, the mono from regular to
+     medium (L-18, L-19). */
+  --sui-weight-regular: 400;
+  --sui-weight-medium: 500;
+  --sui-weight-semibold: 600;
+  --sui-weight-bold: 700;
   --sui-leading-tight: 1rem;
   --sui-leading-micro: 1.0625rem;
   --sui-leading-compact: 1.125rem;
@@ -335,37 +345,46 @@
   --sui-leading-title: 1.625rem;
   --sui-leading-page: 2.125rem;
 
-  --sui-radius-chip: 999px;
+  --sui-radius-pill: 999px;
   --sui-radius-control: 8px;
   --sui-radius-surface: 10px;
   --sui-radius-popover: 12px;
   --sui-radius-dialog: 14px;
   --sui-radius-check: 5px;
 
-  --sui-r-chip: 6px;
+  --sui-radius-chip: 6px;
 
-  --sui-control-height: 40px;
-  --sui-control-height-compact: 34px;
+  /* Control heights hold their tier at the default text size and grow with the reader's own,
+     rounded to the pixel, so words and glyphs never outgrow their control (WCAG 1.4.4). */
+  --sui-control-height: max(40px, round(2.5rem, 1px));
+  --sui-control-height-compact: max(34px, round(2.125rem, 1px));
 
-  --sui-control-height-chip: 24px;
-  --sui-control-height-chip-small: 20px;
+  --sui-control-height-chip: max(24px, round(1.5rem, 1px));
+  --sui-control-height-chip-small: max(20px, round(1.25rem, 1px));
 
-  --sui-tier-quiet: 28px;
+  --sui-tier-quiet: max(28px, round(1.75rem, 1px));
 
-  --sui-tier-mark: 20px;
+  --sui-tier-mark: max(20px, round(1.25rem, 1px));
 
-  --sui-touch-target: 44px;
+  --sui-touch-target: max(44px, round(2.75rem, 1px));
 
-  --sui-field-target-min: 24px;
+  /* The two widths the layout changes at. A media query cannot read a custom property, so the
+     queries write these values and the source laws hold them to this list; script reads them
+     here. The phone is up to 47.9375rem, the wide shell from 64.0625rem. */
+  --sui-breakpoint-phone: 47.9375rem;
+  --sui-breakpoint-wide: 64.0625rem;
+
+  --sui-field-target-min: max(24px, round(1.5rem, 1px));
   --sui-disabled-opacity: 0.7;
   --sui-control-inset: 2px;
 
-  --sui-icon-nano: 8px;
-  --sui-icon-micro: 10px;
-  --sui-icon-xs: 12px;
-  --sui-icon-sm: 13px;
-  --sui-icon-base: 16px;
-  --sui-icon-md: 18px;
+  /* Icon tiers in rem, rounded to the pixel: 10 to 18px at the default text size, and they grow
+     with the reader's text size, together with every box drawn at a tier (L-68). */
+  --sui-icon-micro: round(0.625rem, 1px);
+  --sui-icon-xs: round(0.75rem, 1px);
+  --sui-icon-sm: round(0.8125rem, 1px);
+  --sui-icon-base: round(1rem, 1px);
+  --sui-icon-md: round(1.125rem, 1px);
 
   /* A message's symbol stands in a tile of its tone, a glyph tier larger than the words'. */
   --sui-symbol-tile: var(--sui-space-8);
@@ -373,7 +392,7 @@
   --sui-content-max: 70rem;
 
   --sui-toc-width: 12rem;
-  --sui-rail-width: 72px;
+  --sui-rail-width: 4.5rem;
   --sui-sidebar-width: 228px;
   --sui-sidebar-width-collapsed: 4.5rem;
   --sui-top-bar-height: 56px;
@@ -383,12 +402,9 @@
   --sui-duration-fast: 160ms;
   --sui-duration-normal: 220ms;
 
-  --sui-rhythm-pulse: 700ms;
-  --sui-rhythm-spinner: 900ms;
-  --sui-rhythm-shimmer: 1350ms;
-  --sui-rhythm-preview: 1600ms;
-  --sui-rhythm-live: 2600ms;
-  --sui-rhythm-turn: 9000ms;
+  --sui-duration-spinner: 900ms;
+  --sui-duration-shimmer: 1350ms;
+  --sui-duration-live: 2600ms;
 
   --sui-ease-standard: cubic-bezier(0.16, 1, 0.3, 1);
   --sui-ease-out: var(--sui-ease-standard);
@@ -396,19 +412,17 @@
   --sui-duration-travel: 240ms;
   --sui-ease-travel: cubic-bezier(0.22, 1, 0.36, 1);
 
-  --sui-ease-overshoot: cubic-bezier(0.34, 1.4, 0.64, 1);
-
   --sui-ease-inout: ease-in-out;
 
   --sui-ease-linear: linear;
 
-  --sui-layer-chrome: 10;
+  /* Order inside a control that isolates its own stacking: a moving plate, then the words and
+     the hit area over it. */
+  --sui-layer-inner-plate: 1;
+  --sui-layer-inner-face: 2;
   --sui-layer-sticky: 30;
 
   --sui-layer-top-bar: 35;
-  --sui-layer-scrim: 36;
-  --sui-layer-side: 40;
-  --sui-layer-rail: 50;
   --sui-layer-skip: 120;
   --sui-shadow-plate: 0 1px 2px var(--sui-shadow-color);
   --sui-shadow-popover: 0 16px 42px var(--sui-shadow-color);
@@ -501,6 +515,7 @@
   --sui-danger-tint: var(--sui-primitive-danger-dark-tint);
   --sui-on-danger: #0c0e11;
   --sui-danger-hover: #ff929b;
+  --sui-danger-pressed: color-mix(in srgb, var(--sui-danger-hover) 82%, var(--sui-text-primary));
   --sui-neutral-tint: var(--sui-surface-inset);
   --sui-role-tint: #23202e;
   --sui-role-ink: #c9a6ff;
@@ -508,7 +523,7 @@
 
   --sui-interactive-hover-layer: rgb(255 255 255 / 8.5%);
   --sui-interactive-pressed: rgb(255 255 255 / 13.5%);
-  --sui-scrim: rgb(0 0 0 / 55%);
+  --sui-scrim: rgb(0 0 0 / 62%);
 
   --sui-sidebar-bg: var(--sui-canvas);
   --sui-sidebar-border: var(--sui-border-subtle);
@@ -530,9 +545,9 @@
   --sui-row-hover: color-mix(in srgb, #ffffff 6.8%, transparent);
   --sui-row-pressed: color-mix(in srgb, #ffffff 12.4%, transparent);
 
-  --sui-drift: var(--sui-link);
-  --sui-diff-chg-ink: var(--sui-drift);
-  --sui-diff-chg-bg: color-mix(in srgb, var(--sui-drift) 9%, var(--sui-surface-code));
+  --sui-changed: var(--sui-link);
+  --sui-diff-chg-ink: var(--sui-changed);
+  --sui-diff-chg-bg: color-mix(in srgb, var(--sui-changed) 9%, var(--sui-surface-code));
   --sui-diff-del-ink: var(--sui-danger);
   --sui-verb-add: var(--sui-success);
   --sui-diff-add-ink: var(--sui-verb-add);
@@ -540,7 +555,7 @@
   --sui-diff-del-bg: color-mix(in srgb, var(--sui-danger) 9%, var(--sui-surface-code));
   --sui-diff-add-word: color-mix(in srgb, var(--sui-success) 15%, var(--sui-surface-code));
   --sui-diff-del-word: color-mix(in srgb, var(--sui-danger) 15%, var(--sui-surface-code));
-  --sui-code-key: var(--sui-drift);
+  --sui-code-key: var(--sui-changed);
   --sui-code-const: var(--sui-role-ink);
   --sui-code-string: #f2ab83;
   --sui-code-selection-bg: var(--sui-brand-action);
@@ -589,6 +604,163 @@
   --sui-chart-5: #d4609d;
 }
 
+/* With no theme chosen on the page, the reader's system preference picks the dark palette. The
+   declarations are the dark block's, word for word, and a source law holds them equal. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme], [data-sui-theme]) {
+    color-scheme: dark;
+
+    --sui-canvas: var(--sui-primitive-dark-canvas);
+    --sui-surface-base: var(--sui-primitive-dark-surface);
+    --sui-surface-raised: var(--sui-primitive-dark-raised);
+    --sui-surface-inset: var(--sui-primitive-dark-inset);
+    --sui-surface-code: var(--sui-primitive-dark-code);
+    --sui-border-subtle: rgb(255 255 255 / 9%);
+    --sui-chart-grid: var(--sui-border-divider);
+    --sui-border-control: rgb(255 255 255 / 16%);
+    --sui-border-divider: color-mix(in srgb, var(--sui-border-subtle) 60%, transparent);
+    --sui-control-border-hover: rgb(255 255 255 / 28%);
+    --sui-avatar-ring: rgb(255 255 255 / 20%);
+    --sui-text-primary: var(--sui-primitive-dark-text);
+    --sui-text-secondary: var(--sui-primitive-dark-secondary);
+    --sui-text-muted: var(--sui-primitive-dark-muted);
+    --sui-brand-action: var(--sui-primitive-ocean-500);
+    --sui-chart-ink: var(--sui-brand-action);
+    --sui-brand-action-hover: var(--sui-primitive-ocean-600);
+
+    --sui-brand-action-pressed: var(--sui-primitive-ocean-700);
+    --sui-brand-action-tint: color-mix(
+      in srgb,
+      var(--sui-brand-action) 10%,
+      var(--sui-surface-base)
+    );
+    --sui-brand-action-text: var(--sui-primitive-ocean-200);
+    --sui-on-brand-action: #ffffff;
+    --sui-link: var(--sui-brand-action-text);
+    --sui-decision-accent: #f2b75c;
+    --sui-unsaved-surface: #2a2414;
+    --sui-unsaved-ink: #f5d9a3;
+    --sui-unsaved-secondary: #d6b884;
+    --sui-unsaved-control: #352c17;
+    --sui-unsaved-control-border: #6a5326;
+    --sui-unsaved-field-border: #9c7735;
+    --sui-unsaved-field-border-hover: var(--sui-unsaved-secondary);
+    --sui-swatch-edge-floor: 0.56;
+    --sui-swatch-edge-ceiling: 1;
+    --sui-unsaved-border: #a5772c;
+    --sui-decision-accent-hover: color-mix(
+      in srgb,
+      var(--sui-decision-accent) 86%,
+      var(--sui-text-primary)
+    );
+    --sui-decision-accent-pressed: color-mix(
+      in srgb,
+      var(--sui-decision-accent) 76%,
+      var(--sui-text-primary)
+    );
+    --sui-on-decision-accent: #0c0e11;
+    --sui-focus: var(--sui-brand-action);
+    --sui-info: var(--sui-link);
+    --sui-info-tint: var(--sui-primitive-info-dark-tint);
+    --sui-success: var(--sui-primitive-success-dark);
+    --sui-success-tint: var(--sui-primitive-success-dark-tint);
+    --sui-warning: var(--sui-primitive-warning-dark);
+    --sui-warning-tint: var(--sui-primitive-warning-dark-tint);
+    --sui-danger: var(--sui-primitive-danger-dark);
+    --sui-danger-tint: var(--sui-primitive-danger-dark-tint);
+    --sui-on-danger: #0c0e11;
+    --sui-danger-hover: #ff929b;
+    --sui-danger-pressed: color-mix(in srgb, var(--sui-danger-hover) 82%, var(--sui-text-primary));
+    --sui-neutral-tint: var(--sui-surface-inset);
+    --sui-role-tint: #23202e;
+    --sui-role-ink: #c9a6ff;
+    --sui-interactive-hover: color-mix(in srgb, #ffffff 4%, var(--sui-surface-base));
+
+    --sui-interactive-hover-layer: rgb(255 255 255 / 8.5%);
+    --sui-interactive-pressed: rgb(255 255 255 / 13.5%);
+    --sui-scrim: rgb(0 0 0 / 62%);
+
+    --sui-sidebar-bg: var(--sui-canvas);
+    --sui-sidebar-border: var(--sui-border-subtle);
+    --sui-sidebar-text: var(--sui-text-primary);
+    --sui-sidebar-text-secondary: var(--sui-text-secondary);
+    --sui-sidebar-text-muted: var(--sui-text-muted);
+    --sui-sidebar-item-hover: color-mix(in srgb, #ffffff 4%, var(--sui-sidebar-bg));
+    --sui-sidebar-item-pressed: var(--sui-surface-inset);
+    --sui-sidebar-active-bg: var(--sui-surface-inset);
+    --sui-sidebar-active-ink: var(--sui-sidebar-text);
+    --sui-sidebar-focus: var(--sui-focus);
+    --sui-sidebar-thumb-shadow: 0 0 0 transparent;
+    --sui-sidebar-thumb-shadow-pressed: 0 1px 1px rgb(0 0 0 / 30%);
+    --sui-sidebar-pressed-inset: inset 0 1px 2px rgb(0 0 0 / 34%);
+    --sui-shadow-color: rgb(0 0 0 / 45%);
+
+    --sui-pressed-inset: inset 0 1px 2px rgb(0 0 0 / 34%);
+
+    --sui-row-hover: color-mix(in srgb, #ffffff 6.8%, transparent);
+    --sui-row-pressed: color-mix(in srgb, #ffffff 12.4%, transparent);
+
+    --sui-changed: var(--sui-link);
+    --sui-diff-chg-ink: var(--sui-changed);
+    --sui-diff-chg-bg: color-mix(in srgb, var(--sui-changed) 9%, var(--sui-surface-code));
+    --sui-diff-del-ink: var(--sui-danger);
+    --sui-verb-add: var(--sui-success);
+    --sui-diff-add-ink: var(--sui-verb-add);
+    --sui-diff-add-bg: color-mix(in srgb, var(--sui-success) 9%, var(--sui-surface-code));
+    --sui-diff-del-bg: color-mix(in srgb, var(--sui-danger) 9%, var(--sui-surface-code));
+    --sui-diff-add-word: color-mix(in srgb, var(--sui-success) 15%, var(--sui-surface-code));
+    --sui-diff-del-word: color-mix(in srgb, var(--sui-danger) 15%, var(--sui-surface-code));
+    --sui-code-key: var(--sui-changed);
+    --sui-code-const: var(--sui-role-ink);
+    --sui-code-string: #f2ab83;
+    --sui-code-selection-bg: var(--sui-brand-action);
+    --sui-code-selection-ink: var(--sui-on-brand-action);
+    --sui-code-gutter: var(--sui-text-secondary);
+    --sui-code-comment: color-mix(in srgb, var(--sui-text-muted) 85%, var(--sui-text-primary));
+    --sui-code-punct: var(--sui-text-secondary);
+    --sui-match-ink: var(--sui-brand-action-text);
+    --sui-switch-track-off: var(--sui-surface-inset);
+    --sui-switch-track-off-border: var(--sui-border-strong);
+    --sui-switch-track-on: var(--sui-brand-action);
+    --sui-switch-thumb: #eceef0;
+
+    --sui-control-bg: var(--sui-surface-control);
+    --sui-input-bg: var(--sui-surface-inset);
+    --sui-popover-bg: var(--sui-surface-base);
+    --sui-dialog-bg: var(--sui-surface-base);
+
+    --sui-segment-track: rgb(0 0 0 / 30%);
+    --sui-segment-thumb: var(--sui-brand-action);
+    --sui-segment-thumb-ink: var(--sui-on-brand-action);
+    --sui-segment-hover: var(--sui-interactive-hover-layer);
+    --sui-segment-pressed: var(--sui-interactive-pressed);
+    --sui-segment-thumb-shadow: 0 1px 3px
+      color-mix(in srgb, var(--sui-shadow-color) 72%, transparent);
+
+    --sui-border-strong: var(--sui-primitive-dark-strong);
+
+    --sui-control-border: var(--sui-border-control);
+    --sui-field-frame: var(--sui-border-control);
+    --sui-field-frame-hover: var(--sui-control-border-hover);
+    --sui-field-border: var(--sui-border-strong);
+    --sui-field-border-hover: color-mix(
+      in srgb,
+      var(--sui-field-border) 60%,
+      var(--sui-text-primary)
+    );
+    --sui-popover-border: var(--sui-border-control);
+    --sui-dialog-border: var(--sui-border-control);
+    --sui-shadow-plate: 0 1px 2px var(--sui-shadow-color);
+    --sui-shadow-popover: 0 16px 42px var(--sui-shadow-color);
+    --sui-shadow-dialog: 0 24px 60px var(--sui-shadow-color);
+    --sui-chart-1: #4990e8;
+    --sui-chart-2: #db7431;
+    --sui-chart-3: #07aaa3;
+    --sui-chart-4: #8e60d2;
+    --sui-chart-5: #d4609d;
+  }
+}
+
 @media (max-width: 47.9375rem) {
   :root,
   [data-sui-theme] {
@@ -609,8 +781,17 @@
     --sui-leading-title: 1.75rem;
     --sui-leading-page: 2rem;
 
-    /* A finger needs a 44px target (Apple HIG, WCAG 2.5.5), so standalone controls step up. */
-    --sui-control-height-compact: 44px;
-    --sui-control-height: 44px;
+    /* The space under a page header steps down with the type. */
+    --sui-rhythm-head-surface: 1.25rem;
+  }
+}
+
+/* A finger needs a 44px target (Apple HIG, WCAG 2.5.5), so standalone controls step up on a
+   phone and on any touch screen, such as a tablet wider than a phone. */
+@media (max-width: 47.9375rem), (pointer: coarse) {
+  :root,
+  [data-sui-theme] {
+    --sui-control-height-compact: max(44px, round(2.75rem, 1px));
+    --sui-control-height: max(44px, round(2.75rem, 1px));
   }
 }

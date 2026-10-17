@@ -14,6 +14,7 @@
   import Variants from '../kit/Variants.svelte';
 
   const tones = ['quiet', 'warning'] as const;
+  let expiring = $state(false);
   const forms = ['Words only', 'With actions'] as const;
   const copy: Record<CalloutTone, { icon: IconName; title: string; text: string; action: string }> =
     {
@@ -91,8 +92,30 @@
 </Example>
 
 <Example
+  title="Appearing after an edit"
+  note="A callout that an edit brings is announced once it appears, and one that loads with the page stays quiet"
+  layout="stack"
+>
+  <Specimen label={expiring ? 'Announced' : 'Not shown'} code="live">
+    <div class="appear">
+      <Button onclick={() => (expiring = !expiring)}
+        >{expiring ? 'Keep the token' : 'Shorten the token to 2 days'}</Button
+      >
+      {#if expiring}
+        <div class="full">
+          <Callout live tone="warning" title="Token expires in 2 days">
+            {#snippet icon()}<Icon name="warning" size="sm" />{/snippet}
+            The sync stops when it expires
+          </Callout>
+        </div>
+      {/if}
+    </div>
+  </Specimen>
+</Example>
+
+<Example
   title="Narrow width"
-  note="At 24rem or narrower the actions stack in a column beside the message"
+  note="At 24rem or narrower the actions move under the message, so its words keep the width"
   layout="grid"
 >
   <Specimen label="Quiet" code="actions">
@@ -125,3 +148,16 @@
     </Callout>
   </Specimen>
 </Example>
+
+<style>
+  .appear {
+    display: grid;
+    gap: var(--sui-space-3);
+    justify-items: start;
+  }
+
+  .full {
+    display: grid;
+    justify-self: stretch;
+  }
+</style>

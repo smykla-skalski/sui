@@ -35,12 +35,36 @@
   </Specimen>
 </Example>
 
+<Example
+  title="Open"
+  note="A tapped or clicked mark stays pressed on its veil while its tip is open, drawn here in place"
+>
+  <Specimen label="Open" code="preview">
+    <span class="label wrap">
+      Retention
+      <HelpTip
+        preview
+        label="About retention"
+        text="Runs older than this are deleted every night"
+      />
+    </span>
+  </Specimen>
+</Example>
+
 <style>
+  .label.wrap {
+    align-items: start;
+    display: flex;
+    flex-wrap: wrap;
+    max-inline-size: 100%;
+  }
+
   .label {
     align-items: center;
     color: var(--sui-text-primary);
     display: inline-flex;
-    font: 600 var(--sui-font-size-control) / var(--sui-leading-meta) var(--sui-sans);
+    font: var(--sui-weight-semibold) var(--sui-font-size-control) / var(--sui-leading-meta)
+      var(--sui-sans);
     gap: var(--sui-space-1);
   }
 </style>

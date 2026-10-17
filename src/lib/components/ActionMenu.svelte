@@ -177,8 +177,20 @@ returns focus to the trigger, and Tab closes it and moves on to the next control
 item stays in the arrow order with its `description`, and choosing it does nothing. Choosing
 any other item closes the menu and focuses the trigger before `onselect` runs. A dialog the
 item opens then returns focus there too. Labels wrap rather than being cut short.
--->
 
+- Semantics: a menu button (`aria-haspopup="menu"`, `aria-expanded`) and a `menu` of `menuitem` buttons named by the trigger, with `separator` rows between groups.
+- Content: items with a label, an optional icon and one line of description; a destructive item last; labels and descriptions wrap.
+- States: closed, open, an item highlighted by focus or pointer, pressed, disabled (dimmed label with its reason at full contrast), `stop` in the danger ink, and a disabled trigger.
+- Keyboard: Enter, Space, Down or Up opens on the first or last item; arrows wrap, Home and End jump, a letter jumps, Enter or Space chooses, Escape closes to the trigger and Tab closes and moves on.
+- Pointer and touch: items are one control tall, 34px and 44px on a phone or touch screen; the pointer's item takes focus as it moves.
+- Focus: opening moves focus to the first item, choosing or Escape returns it to the trigger before `onselect` runs, and Tab hands it to the next control.
+- Responsive: the menu is at least 13rem and at most 24rem wide or the viewport less 24px, flips above the trigger when there is more room, and scrolls inside when tall.
+- Accessibility: the trigger names the menu, a disabled item is `aria-disabled` and keeps its reason as its description, and the highlight survives forced colours as an outline.
+- Localization: every word is the caller's, and `align` start and end follow the reading direction, so a right-to-left page hangs the menu from the mirrored edge.
+- Performance: items render only while the menu is in the page; the highlight fades its ground and the press sinks 1px, both removed under reduced motion.
+- Analytics: each item's `onselect` reports the chosen act; a menu closed without a choice calls nothing.
+- Failure: an empty `items` opens an empty menu, so leave the trigger out instead; a disabled item says why in its description.
+-->
 {#snippet control()}
   {#if children}
     <Button bind:element={button} id={triggerId} {tone} {disabled} {...triggerProps}>
@@ -288,7 +300,8 @@ item opens then returns focus there too. Labels wrap rather than being cut short
     color: var(--sui-text-primary);
     cursor: pointer;
     display: flex;
-    font: 500 var(--sui-font-size-control) / var(--sui-leading-meta) var(--sui-sans);
+    font: var(--sui-weight-medium) var(--sui-font-size-control) / var(--sui-leading-meta)
+      var(--sui-sans);
     gap: var(--sui-space-2);
     inline-size: 100%;
     margin: 0;
@@ -299,6 +312,8 @@ item opens then returns focus there too. Labels wrap rather than being cut short
       background-color var(--sui-duration-fast) var(--sui-ease-standard),
       translate var(--sui-duration-press) var(--sui-ease-standard);
     -webkit-tap-highlight-color: transparent;
+    -webkit-user-select: none;
+    user-select: none;
   }
 
   /* Focus follows the pointer, so one highlight serves hover and the keyboard. */
@@ -361,14 +376,24 @@ item opens then returns focus there too. Labels wrap rather than being cut short
 
   .sui-action-menu-description {
     color: var(--sui-text-secondary);
-    font: 400 var(--sui-font-size-meta) / var(--sui-leading-meta) var(--sui-sans);
+    font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-leading-meta)
+      var(--sui-sans);
     overflow-wrap: anywhere;
   }
 
   .sui-action-menu-separator {
     background-color: var(--sui-popover-border);
-    block-size: 1px;
+    block-size: var(--sui-stroke);
     margin: var(--sui-space-1) calc(-1 * var(--sui-space-1));
+  }
+
+  /* The highlight is a veil, which high contrast drops, so it draws an outline there. */
+  @media (forced-colors: active) {
+    .sui-action-menu-item:focus:not([aria-disabled='true']),
+    .sui-action-menu-item.active {
+      outline: var(--sui-focus-ring-width) solid Highlight;
+      outline-offset: var(--sui-focus-ring-inset);
+    }
   }
 
   @media (prefers-reduced-motion: reduce) {

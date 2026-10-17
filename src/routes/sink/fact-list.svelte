@@ -58,3 +58,17 @@
     />
   </Specimen>
 </Example>
+
+<Example
+  title="Missing value"
+  note="An absent value says so in words instead of leaving its fact empty"
+>
+  <Specimen label="Null value" code={'value: null'}>
+    <FactList
+      facts={[
+        { label: 'Branch', value: 'main', mono: true },
+        { label: 'Owner', value: null }
+      ]}
+    />
+  </Specimen>
+</Example>

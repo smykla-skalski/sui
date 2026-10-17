@@ -1,5 +1,6 @@
 <script lang="ts">
   import type { Attachment } from 'svelte/attachments';
+  import { formatCount } from '../internal/locale.js';
   import Button from './Button.svelte';
   import VisuallyHidden from './VisuallyHidden.svelte';
 
@@ -9,7 +10,13 @@
     total,
     loading = false,
     problem = null,
-    onmore
+    onmore,
+    moreLabel = 'Load more',
+    loadingLabel = 'Loading…',
+    retryLabel = 'Try again',
+    endLabel = (shown: string) => `All ${shown} shown`,
+    arrivedLabel = (count: number, arrived: string, shown: string, total?: string) =>
+      `${arrived} more loaded, ${total === undefined ? shown : `${shown} of ${total}`} shown`
   }: {
     /** Another page exists. Without one the button gives way to an end-of-list note. */
     more: boolean;
@@ -23,6 +30,16 @@
     problem?: string | null;
     /** Ask for the next page. */
     onmore: () => void;
+    moreLabel?: string;
+    loadingLabel?: string;
+    retryLabel?: string;
+    /** The end-of-list note, given the row count already formatted in the page's language. */
+    endLabel?: (shown: string) => string;
+    /**
+     * The polite status once rows arrive: `count` for plural rules, then the arrived, shown and
+     * total counts formatted in the page's language.
+     */
+    arrivedLabel?: (count: number, arrived: string, shown: string, total?: string) => string;
   } = $props();
 
   let root = $state<HTMLElement>();
@@ -30,9 +47,15 @@
   let asked = $state<number | null>(null);
   let refocus = false;
 
-  const counted = $derived(total === undefined ? `${shown}` : `${shown} of ${total}`);
   const arrived = $derived(
-    asked !== null && shown > asked ? `${shown - asked} more loaded, ${counted} shown` : ''
+    asked !== null && shown > asked
+      ? arrivedLabel(
+          shown - asked,
+          formatCount(shown - asked),
+          formatCount(shown),
+          total === undefined ? undefined : formatCount(total)
+        )
+      : ''
   );
 
   /* A pre-effect runs before the button leaves the page, while it can still hold focus. */
@@ -54,19 +77,28 @@
 <!--
 @component
 What a long list has instead of infinite scroll: a "Load more" button after the last row. The
-reader decides when the next page comes, so keyboard focus keeps its place and the footer
-stays in reach. Numbered pages belong to a data table, never to a list of rows.
-
-While a page loads the button reads "Loading…", keeps focus and ignores presses. When rows
-arrive, a polite status says how many came and how many show. If the last page lands while
-the button has focus, focus moves to the end-of-list note instead of falling to the page.
+reader decides when the next page comes, so keyboard focus keeps its place and the footer stays
+in reach. Numbered pages belong to a data table, never to a list of rows.
 
 A failure does not try again on its own, which could hammer a server that is already
-struggling. The reason shows beside the button, which reads "Try again" until the caller
+struggling. The reason shows beside the button, which offers `retryLabel` until the caller
 clears `problem`. Clear it when the retry starts.
 
 It pads 12px above and below like a row, and drops the bottom padding when it ends its
 container, so its button closes on a card's inset (L-33) as a list's last row does.
+
+- Semantics: a native `button`, a polite status region, an alert for a failure, and an end-of-list paragraph.
+- Content: the button's words, the failure's reason, and the end note with its count.
+- States: ready (`moreLabel`), loading (`loadingLabel`, busy, presses ignored), failed (the reason beside a `retryLabel` button), and ended (`endLabel`).
+- Keyboard: Enter or Space on the button asks for the next page.
+- Pointer and touch: the button is 34px tall, 44px on a phone.
+- Focus: stays on the button while a page loads; when the last page lands while the button has focus, focus moves to the end note instead of falling to the page.
+- Responsive: the reason and the button wrap onto two lines when the room is short, centred.
+- Accessibility: arrivals are said through a polite status with how many came and how many show; set `aria-busy` on the list while `loading` is true, so assistive technology waits for the new rows.
+- Localization: every word is a prop, the counted ones functions that receive counts already grouped in the page's language, and the plain count for plural rules.
+- Performance: no cost while idle; the caller decides the page size.
+- Analytics: `onmore` hears every request, a retry included.
+- Failure: `problem` shows its reason as an alert and turns the button into a retry; nothing retries on its own.
 -->
 
 <div class="sui-load-more" bind:this={root}>
@@ -75,11 +107,11 @@ container, so its button closes on a card's inset (L-33) as a list's last row do
       <p class="sui-load-more-copy" role="alert">{problem}</p>
     {/if}
     <Button {loading} onclick={press}>
-      {loading ? 'Loading…' : problem ? 'Try again' : 'Load more'}
+      {loading ? loadingLabel : problem ? retryLabel : moreLabel}
     </Button>
   {:else if asked !== null}
     <p class="sui-load-more-copy sui-load-more-end" tabindex="-1" {@attach takeFocus}>
-      All {shown} shown
+      {endLabel(formatCount(shown))}
     </p>
   {/if}
   <VisuallyHidden role="status">{arrived}</VisuallyHidden>
@@ -102,7 +134,8 @@ container, so its button closes on a card's inset (L-33) as a list's last row do
   .sui-load-more-copy {
     block-size: var(--sui-block-snap);
     color: var(--sui-text-secondary);
-    font: 400 var(--sui-font-size-meta) / var(--sui-row-copy-leading) var(--sui-sans);
+    font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-row-copy-leading)
+      var(--sui-sans);
     margin: 0;
     min-inline-size: 0;
     overflow-wrap: anywhere;

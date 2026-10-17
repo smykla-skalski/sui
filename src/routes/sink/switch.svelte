@@ -29,6 +29,20 @@
   };
 
   let scheduled = $state(true);
+  let mirror = $state(false);
+  let saving = $state(false);
+  let refusal = $state<string | undefined>('The backup region is full, so mirroring stayed off');
+
+  /* The sink's save always fails, so the switch flips back and says why. */
+  function flip() {
+    saving = true;
+    refusal = undefined;
+    setTimeout(() => {
+      saving = false;
+      mirror = !mirror;
+      refusal = 'The backup region is full, so mirroring stayed off';
+    }, 900);
+  }
 </script>
 
 <Example
@@ -52,6 +66,24 @@
       {/if}
     {/snippet}
   </Variants>
+</Example>
+
+<Example
+  title="Saving"
+  note="A flip takes effect at once, so the thumb turns while it saves and a refused change flips back and says why"
+>
+  <Specimen label="Pending" code="pending">
+    <Switch label="Send weekly digests" checked pending />
+  </Specimen>
+  <Specimen label="Refused" code="error">
+    <Switch
+      label="Mirror to the backup region"
+      bind:checked={mirror}
+      pending={saving}
+      error={refusal}
+      onchange={flip}
+    />
+  </Specimen>
 </Example>
 
 <Example
@@ -104,14 +136,16 @@
   .reason {
     block-size: var(--sui-block-snap);
     color: var(--sui-text-secondary);
-    font: 400 var(--sui-font-size-meta) / var(--sui-row-copy-leading) var(--sui-sans);
+    font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-row-copy-leading)
+      var(--sui-sans);
     margin: 0;
     text-box: trim-both cap alphabetic;
   }
 
   .copy {
     color: var(--sui-text-secondary);
-    font: 400 var(--sui-font-size-body) / var(--sui-leading-body) var(--sui-sans);
+    font: var(--sui-weight-regular) var(--sui-font-size-body) / var(--sui-leading-body)
+      var(--sui-sans);
     margin: 0;
   }
 

@@ -8,6 +8,7 @@
 </script>
 
 <script lang="ts">
+  import { tick } from 'svelte';
   import { AdditionPicker, Card, Checkbox, SettingList, SettingRow } from '#lib';
   import Example from '../kit/Example.svelte';
   import Specimen from '../kit/Specimen.svelte';
@@ -28,12 +29,36 @@
   const added = $derived(Object.keys(overrides));
   const rest = $derived(behaviours.length - added.length);
   const named = (value: string) => behaviours.find((behaviour) => behaviour.value === value);
+
+  // A reset row leaves the list, so focus goes on to the picker that can bring it back.
+  async function handBack(value: string) {
+    delete overrides[value];
+    await tick();
+    document.getElementById('sink-addition-more')?.focus();
+  }
+
+  let failed = $state(true);
 </script>
 
 <Example
   title="States"
-  note="When every choice is in use the list says so, and a locked picker says why it is locked"
+  note="Loading, failed, empty and used-up lists say so inside the menu, and a locked picker says why"
 >
+  <Specimen label="Loading" code="loading">
+    <AdditionPicker label="Add a check" choices={[]} loading onadd={() => {}} />
+  </Specimen>
+  <Specimen label="Failed" code="error onretry">
+    <AdditionPicker
+      label="Add a check"
+      choices={failed ? [] : behaviours}
+      error={failed ? 'The checks could not load' : null}
+      onretry={() => (failed = false)}
+      onadd={() => {}}
+    />
+  </Specimen>
+  <Specimen label="Nothing to add" code={'choices={[]}'}>
+    <AdditionPicker label="Add a check" choices={[]} onadd={() => {}} />
+  </Specimen>
   <Specimen label="Everything added" code="added">
     <AdditionPicker
       label="Add a check"
@@ -62,7 +87,7 @@
         <SettingRow
           name={named(value)?.label ?? value}
           why={named(value)?.description}
-          onclear={() => delete overrides[value]}
+          onclear={() => void handBack(value)}
         >
           {#snippet control({ id, describedby })}
             <Checkbox {id} aria-describedby={describedby} bare bind:checked={overrides[value]} />
@@ -75,6 +100,7 @@
       >
         {#snippet control()}
           <AdditionPicker
+            id="sink-addition-more"
             label="Override another"
             choices={behaviours}
             {added}
@@ -97,7 +123,8 @@
   .reason {
     block-size: var(--sui-block-snap);
     color: var(--sui-text-secondary);
-    font: 400 var(--sui-font-size-meta) / var(--sui-row-copy-leading) var(--sui-sans);
+    font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-row-copy-leading)
+      var(--sui-sans);
     margin: 0;
     text-box: trim-both cap alphabetic;
   }

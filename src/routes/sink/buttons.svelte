@@ -13,7 +13,7 @@
   import Specimen from '../kit/Specimen.svelte';
   import Variants from '../kit/Variants.svelte';
 
-  const tones = ['default', 'signal', 'ghost', 'stop', 'stop-quiet', 'decision'] as const;
+  const tones = ['default', 'signal', 'ghost', 'stop', 'stop-quiet', 'decision', 'add'] as const;
   const states = ['Rest', 'Disabled', 'Loading'] as const;
 </script>
 
@@ -23,9 +23,16 @@
 >
   <Variants rows={tones} columns={states} axis="tone" rowLabel={(tone) => `"${tone}"`}>
     {#snippet cell(tone, state)}
-      <Button {tone} disabled={state === 'Disabled'} loading={state === 'Loading'}>
-        {state === 'Loading' ? 'Saving' : 'Save changes'}
-      </Button>
+      {#if tone === 'add'}
+        <Button {tone} disabled={state === 'Disabled'} loading={state === 'Loading'}>
+          {#snippet icon()}<Icon name="plus" size="sm" />{/snippet}
+          {state === 'Loading' ? 'Adding a rule' : 'Add a rule'}
+        </Button>
+      {:else}
+        <Button {tone} disabled={state === 'Disabled'} loading={state === 'Loading'}>
+          {state === 'Loading' ? 'Saving' : 'Save changes'}
+        </Button>
+      {/if}
     {/snippet}
   </Variants>
 </Example>
@@ -54,11 +61,56 @@
   </Specimen>
 </Example>
 
-<Example title="As a link" note="A destination draws an anchor with the same paint">
+<Example
+  title="Long label"
+  note="A long or translated label wraps inside its container and never scrolls the page"
+  layout="stack"
+>
+  <Specimen label="Wrapped label">
+    <div class="narrow">
+      <Button>Move every repository to the new organization</Button>
+    </div>
+  </Specimen>
+</Example>
+
+<Example
+  title="As a link"
+  note="A destination draws an anchor with the same paint, and a disabled one cannot be followed"
+>
   <Specimen label="Link" code="href">
     <Button href="#buttons">Read the guide</Button>
   </Specimen>
   <Specimen label="Signal link" code={'href tone="signal"'}>
     <Button href="#buttons" tone="signal">Open the project</Button>
   </Specimen>
+  <Specimen label="Disabled link" code="href disabled">
+    <div class="locked">
+      <Button href="#buttons" disabled aria-describedby="sink-button-billing-reason"
+        >Open billing</Button
+      >
+      <p id="sink-button-billing-reason" class="reason">Only an owner can see billing</p>
+    </div>
+  </Specimen>
 </Example>
+
+<style>
+  .narrow {
+    display: grid;
+    inline-size: min(100%, 14rem);
+  }
+
+  .locked {
+    display: grid;
+    gap: var(--sui-row-copy-gap);
+    justify-items: start;
+  }
+
+  .reason {
+    block-size: var(--sui-block-snap);
+    color: var(--sui-text-secondary);
+    font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-row-copy-leading)
+      var(--sui-sans);
+    margin: 0;
+    text-box: trim-both cap alphabetic;
+  }
+</style>

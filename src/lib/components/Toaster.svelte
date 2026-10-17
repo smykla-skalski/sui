@@ -4,24 +4,52 @@
   import {
     dismiss,
     hosts,
+    toaster,
     toasts,
     type Toast,
+    type ToastEnd,
     type ToastOptions
   } from '../internal/toasts.svelte.js';
   import Button from './Button.svelte';
   import IconButton from './IconButton.svelte';
   import VisuallyHidden from './VisuallyHidden.svelte';
 
-  const LINGER_MS = 5000;
-
   let {
     preview = false,
-    items = []
+    items = [],
+    dismissLabel,
+    label,
+    linger: lingerMs,
+    hotkey
   }: {
     /** Draws `items` in the page's flow in place of the page's toasts, with no timers and no live region. */
     preview?: boolean;
     items?: readonly ToastOptions[];
+    /** Each Dismiss button's name. Set on the page's `Toaster`, it holds for every dialog's toasts too. */
+    dismissLabel?: string;
+    /** The stack's landmark name. */
+    label?: string;
+    /** How long a toast without an action stays, in milliseconds, before it leaves. */
+    linger?: number;
+    /** The key (`KeyboardEvent.key`) that moves focus to the newest toast. */
+    hotkey?: string;
   } = $props();
+
+  // The page's Toaster speaks for every Toaster, so a dialog's own stack keeps its words.
+  $effect(() => {
+    if (preview) return;
+    if (dismissLabel !== undefined) toaster.dismissLabel = dismissLabel;
+    if (label !== undefined) toaster.label = label;
+    if (lingerMs !== undefined) toaster.linger = lingerMs;
+    if (hotkey !== undefined) toaster.hotkey = hotkey;
+  });
+
+  const words = $derived({
+    dismiss: dismissLabel ?? toaster.dismissLabel,
+    region: label ?? toaster.label,
+    linger: lingerMs ?? toaster.linger,
+    hotkey: hotkey ?? toaster.hotkey
+  });
 
   let stack = $state<HTMLElement | null>(null);
   let hovered = $state(false);
@@ -56,6 +84,29 @@
     else if (!top && visible) stack.hidePopover();
   });
 
+  // A stack taller than the screen scrolls, and the newest toast, at its end, stays in view
+  // unless the reader is working inside the stack.
+  $effect(() => {
+    if (!stack || preview || shown.length === 0 || focused) return;
+    stack.scrollTop = stack.scrollHeight;
+  });
+
+  // The hotkey reaches the newest toast from anywhere, as a landmark jump would.
+  $effect(() => {
+    if (!top || !stack) return;
+    const into = stack;
+    const onkeydown = (event: KeyboardEvent) => {
+      if (event.key !== words.hotkey || event.defaultPrevented) return;
+      const newest = [...into.querySelectorAll<HTMLElement>('.sui-toast')].at(-1);
+      const control = newest?.querySelector<HTMLElement>('button');
+      if (!control) return;
+      event.preventDefault();
+      control.focus();
+    };
+    addEventListener('keydown', onkeydown);
+    return () => removeEventListener('keydown', onkeydown);
+  });
+
   // The stack leaves the top layer once the last toast has faded.
   function settle(): void {
     if (shown.length === 0 && stack?.matches(':popover-open')) stack.hidePopover();
@@ -65,7 +116,7 @@
   function linger(item: Toast) {
     return () => {
       if (preview || hovered || focused || item.tone === 'danger' || item.action) return;
-      const timer = setTimeout(() => dismiss(item.id), LINGER_MS);
+      const timer = setTimeout(() => dismiss(item.id, 'expired'), words.linger);
       return () => clearTimeout(timer);
     };
   }
@@ -77,15 +128,23 @@
       before = from instanceof HTMLElement ? from : null;
   }
 
+  // Escape hands focus back to where it came from, and stops here so a dialog around the
+  // stack stays open.
+  function onkeydown(event: KeyboardEvent): void {
+    if (event.key !== 'Escape' || !before?.isConnected) return;
+    event.preventDefault();
+    event.stopPropagation();
+    before.focus();
+  }
+
   // Focus on a removed button falls to the body, so it goes back to where it came from, or to
   // the next toast's Dismiss when that place is gone.
-  function close(item: Toast, event: MouseEvent): void {
+  function close(item: Toast, event: MouseEvent, reason: ToastEnd): void {
     const leaving = (event.currentTarget as HTMLElement).closest<HTMLElement>('.sui-toast');
     if (stack && leaving?.contains(document.activeElement)) {
       before?.focus();
       if (!before || document.activeElement !== before) {
-        // The action may already have taken its own toast back, so the neighbours come from
-        // the stack as drawn, skipping any toast that is fading out.
+        // The neighbours come from the stack as drawn, skipping any toast that is fading out.
         const all = [...stack.querySelectorAll<HTMLElement>('.sui-toast')];
         const at = all.indexOf(leaving);
         const live = (node: HTMLElement) =>
@@ -96,12 +155,14 @@
       // A removed element never reports losing focus, so the hold is let go by hand.
       focused = !leaving.contains(document.activeElement) && stack.contains(document.activeElement);
     }
-    dismiss(item.id);
+    dismiss(item.id, reason);
   }
 
+  // The toast leaves before its action runs, so an action that raises the next toast or takes
+  // this one back finds the stack already settled.
   function run(item: Toast, event: MouseEvent): void {
+    close(item, event, 'acted');
     item.action?.run();
-    close(item, event);
   }
 
   // Exit reads the fast duration token and keeps only the fade when motion is reduced.
@@ -120,16 +181,26 @@
 @component
 The page's toasts, stacked at the block-end, inline-end corner in the top layer. Mount it once
 on the page and call `toast()` from anywhere; `dismiss(id)` takes one back. A modal dialog makes
-the page under it inert, so every `Modal` draws the toasts inside itself while it is the topmost.
+the page under it inert, so every `Modal` draws the toasts inside itself while it is the topmost,
+with the words and timing set on the page's `Toaster`.
 
 A toast says what just happened, with at most one way back such as Undo. A neutral toast leaves
 after five seconds, and the clock holds while the pointer or focus is on the stack. A toast with
 an action stays until the reader runs it or dismisses it, so a keyboard can always reach it.
 A `danger` toast reports a failure and stays too.
 
-Closing a toast returns focus to wherever it was before it entered the stack. Each toast is
-announced once, from regions kept apart from the stack: a failure as an alert, anything else
-politely. `preview` draws `items` in the page's flow instead, silent and still, for a review.
+- Semantics: a `region` landmark named by `label`, with `aria-keyshortcuts` for its hotkey; each toast is announced once from hidden `status` and `alert` regions kept apart from the stack.
+- Content: a title, one description that never repeats it, at most one action, and Dismiss; a failure carries its symbol; words wrap at 24rem.
+- States: entering (rises 8px and fades in), shown, held while hovered or focused, leaving (fades), `danger` with its symbol in a danger tile, and drawn in place with `preview`.
+- Keyboard: the hotkey (F8) moves focus to the newest toast, Tab moves through its action and Dismiss, and Escape returns focus to where it was.
+- Pointer and touch: the action and Dismiss are 34px targets, 44px on a phone or touch screen; the corner around the toasts lets presses through to the page.
+- Focus: closing a toast returns focus to where it was before it entered the stack, or to the next toast's Dismiss when that place is gone.
+- Responsive: the stack is at most the viewport's width less 32px and its height, and scrolls inside past that with the newest toast kept in view.
+- Accessibility: a failure is announced as an alert and anything else politely, each once, and the stack is a landmark a reader can jump to.
+- Localization: `dismissLabel`, `label` and `hotkey` carry the built-in words and key, the stack stands at the inline end, mirrored in a right-to-left page, and its padding is logical.
+- Performance: one stack per page and per open dialog; each toast holds one timer, and the motion is opacity and translate, a fade alone under reduced motion.
+- Analytics: each toast's `ondismiss` reports `dismissed`, `expired`, `acted` or `withdrawn`.
+- Failure: a failure toast stays until dismissed, and more toasts than the screen holds scroll inside the stack instead of leaving it.
 -->
 
 {#if !preview}
@@ -158,10 +229,12 @@ politely. `preview` draws `items` in the page's flow instead, silent and still, 
   class={['sui-toaster', { preview }]}
   popover={preview ? undefined : 'manual'}
   role={preview ? undefined : 'region'}
-  aria-label={preview ? undefined : 'Notifications'}
+  aria-label={preview ? undefined : words.region}
+  aria-keyshortcuts={preview ? undefined : words.hotkey}
   onpointerenter={() => (hovered = true)}
   onpointerleave={() => (hovered = false)}
   {onfocusin}
+  {onkeydown}
   onfocusout={(event) => {
     focused =
       event.relatedTarget instanceof Node && event.currentTarget.contains(event.relatedTarget);
@@ -183,33 +256,42 @@ politely. `preview` draws `items` in the page's flow instead, silent and still, 
         {#if item.description}<p class="sui-toast-description">{item.description}</p>{/if}
       </div>
       {#if item.action}
-        <Button onclick={(event) => run(item, event)}>{item.action.label}</Button>
+        <span class="sui-toast-action"
+          ><Button onclick={(event) => run(item, event)}>{item.action.label}</Button></span
+        >
       {/if}
       <IconButton
         icon="close"
-        label="Dismiss"
+        label={words.dismiss}
         data-dismiss
-        onclick={(event) => close(item, event)}
+        onclick={(event) => close(item, event, 'dismissed')}
       />
     </div>
   {/each}
 </div>
 
 <style>
+  /* The stack's own padding is the 16px gap to the screen's corner, so the toasts' shadows sit
+     inside the box that scrolls them and are never cut at its edge. */
   .sui-toaster {
     align-items: flex-end;
     background: none;
     border: 0;
+    box-sizing: border-box;
     color: inherit;
     flex-direction: column;
     gap: var(--sui-space-2);
     inset: auto;
-    inset-block-end: max(var(--sui-space-4), env(safe-area-inset-bottom));
-    inset-inline-end: var(--sui-space-4);
+    inset-block-end: calc(
+      max(var(--sui-space-4), env(safe-area-inset-bottom)) - var(--sui-space-4)
+    );
+    inset-inline-end: 0;
     margin: 0;
-    max-inline-size: calc(100vw - 2 * var(--sui-space-4));
-    overflow: visible;
-    padding: 0;
+    max-block-size: 100dvh;
+    max-inline-size: 100vw;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding: var(--sui-space-4);
     pointer-events: none;
     position: fixed;
   }
@@ -221,7 +303,10 @@ politely. `preview` draws `items` in the page's flow instead, silent and still, 
   }
 
   .preview {
+    max-block-size: none;
     max-inline-size: 100%;
+    overflow: visible;
+    padding: 0;
     position: static;
   }
 
@@ -233,7 +318,7 @@ politely. `preview` draws `items` in the page's flow instead, silent and still, 
   .sui-toast {
     align-items: center;
     background-color: var(--sui-popover-bg);
-    border: 1px solid var(--sui-popover-border);
+    border: var(--sui-stroke) solid var(--sui-popover-border);
     border-radius: var(--sui-radius-surface);
     box-shadow: var(--sui-shadow-popover);
     box-sizing: border-box;
@@ -242,7 +327,8 @@ politely. `preview` draws `items` in the page's flow instead, silent and still, 
     gap: var(--sui-space-3);
     max-inline-size: 24rem;
     opacity: 1;
-    padding: var(--sui-space-2) var(--sui-space-2) var(--sui-space-2) var(--sui-space-4);
+    padding-block: var(--sui-space-2);
+    padding-inline: var(--sui-space-4) var(--sui-space-2);
     pointer-events: auto;
     transition:
       opacity var(--sui-duration-normal) var(--sui-ease-out),
@@ -288,17 +374,33 @@ politely. `preview` draws `items` in the page's flow instead, silent and still, 
     min-block-size: var(--sui-symbol-tile);
   }
 
+  /* The action keeps its width, so the copy wraps instead of the button's word. A toast too
+     narrow for a few words of copy beside both buttons puts the buttons on a line under it. */
+  .sui-toast-action {
+    display: flex;
+    flex: none;
+  }
+
+  .sui-toast:has(> .sui-toast-action) {
+    flex-wrap: wrap;
+  }
+
+  .sui-toast:has(> .sui-toast-action) > .sui-toast-copy {
+    flex-basis: 8rem;
+  }
+
   .sui-toast-title,
   .sui-toast-description {
     block-size: var(--sui-block-snap);
-    font: 400 var(--sui-font-size-meta) / var(--sui-row-copy-leading) var(--sui-sans);
+    font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-row-copy-leading)
+      var(--sui-sans);
     margin: 0;
     overflow-wrap: anywhere;
     text-box: trim-both cap alphabetic;
   }
 
   .sui-toast-title {
-    font-weight: 600;
+    font-weight: var(--sui-weight-semibold);
   }
 
   .sui-toast-description {

@@ -30,6 +30,18 @@
   <Specimen label="One ancestor" code="items">
     <Breadcrumb items={[{ label: 'Repositories', href: '#navigation' }]} />
   </Specimen>
+  <Specimen label="Wrapped path, one target per line">
+    <div class="crumbs">
+      <Breadcrumb
+        items={[
+          { label: 'Acme', href: '#navigation' },
+          { label: 'Platform repositories', href: '#navigation' },
+          { label: 'Deployment library', href: '#navigation' }
+        ]}
+        current="Branch protection"
+      />
+    </div>
+  </Specimen>
 </Example>
 
 <Example title="Back link" note="The way back from a page that stands inside a list">
@@ -43,7 +55,7 @@
 
 <Example
   title="Link"
-  note="The action ink with a faint underline that fills on hover, and an arrow after a link that leaves"
+  note="An underlined link in the action ink, an arrow after one that leaves, and a full-size target for one that stands alone"
 >
   <Specimen label="Inside a sentence" code="href">
     <p class="copy">
@@ -55,6 +67,12 @@
       Follow the <Link href="https://www.w3.org/WAI/ARIA/apg/">ARIA authoring practices</Link> before
       you build a new widget
     </p>
+  </Specimen>
+  <Specimen label="Outside a sentence" code="standalone">
+    <div class="links">
+      <Link href="#callout" standalone>Callout</Link>
+      <Link href="#code-block" standalone>Code block</Link>
+    </div>
   </Specimen>
 </Example>
 
@@ -72,11 +90,24 @@
 <style>
   .copy {
     color: var(--sui-text-secondary);
-    font: 400 var(--sui-font-size-body) / var(--sui-leading-body) var(--sui-sans);
+    font: var(--sui-weight-regular) var(--sui-font-size-body) / var(--sui-leading-body)
+      var(--sui-sans);
     margin: 0;
+  }
+
+  .links {
+    display: flex;
+    flex-wrap: wrap;
+    font: var(--sui-weight-regular) var(--sui-font-size-body) / var(--sui-leading-body)
+      var(--sui-sans);
+    gap: var(--sui-space-6) var(--sui-space-4);
   }
 
   .narrow {
     max-inline-size: 16rem;
+  }
+
+  .crumbs {
+    max-inline-size: 14rem;
   }
 </style>

@@ -2,13 +2,13 @@
   export const section = {
     title: 'Pair entry',
     order: 105,
-    lead: 'A key and the value it maps to in one lane, such as an alias and its command. A list of single values is PatternEntries.',
+    lead: 'Keys and the values they map to as chips that edit in place, such as aliases and their commands. A list of single values is PatternEntries.',
     components: ['PairEntry']
   };
 </script>
 
 <script lang="ts">
-  import { Button, Card, Icon, PairEntry, SettingList, SettingRow } from '#lib';
+  import { Card, PairEntry, SettingList, SettingRow, type Pair } from '#lib';
   import Example from '../kit/Example.svelte';
   import Specimen from '../kit/Specimen.svelte';
 
@@ -22,28 +22,40 @@
     { value: 'close', label: 'close', description: 'Retired', disabled: true }
   ];
 
-  const saved = [
+  const saved: Pair[] = [
     { key: 'ship', value: 'deploy' },
     { key: 'go', value: 'merge' }
   ];
 
-  let single = $state({ key: 'ship', value: 'deploy' });
-  let wrong = $state({ key: 'Ship it', value: 'deploy' });
-  let pairs = $state([...saved.map((pair) => ({ ...pair })), { key: 'again', value: 'retry' }]);
+  let few = $state<Pair[]>([
+    { key: 'ship', value: 'deploy' },
+    { key: 'go', value: 'merge' }
+  ]);
+  let none = $state<Pair[]>([]);
+  let wrong = $state<Pair[]>([
+    { key: 'ship', value: 'deploy' },
+    { key: 'Ship it', value: 'merge' }
+  ]);
+  let pairs = $state<Pair[]>([
+    ...saved.map((pair) => ({ ...pair })),
+    { key: 'again', value: 'retry' }
+  ]);
 
   const changed = $derived(JSON.stringify(pairs) !== JSON.stringify(saved));
 
-  function problem(key: string, index = -1): string | undefined {
-    const name = key.trim();
-    if (name === '') return 'Name the alias';
-    if (!/^[a-z0-9-]+$/.test(name)) return 'Use lowercase letters, digits and dashes';
-    if (index >= 0 && pairs.findIndex((pair) => pair.key.trim() === name) !== index)
+  function problem(key: string, index: number, list: readonly Pair[]): string | null {
+    if (key === '') return 'Name the alias';
+    if (!/^[a-z0-9-]+$/.test(key)) return 'Use lowercase letters, digits and dashes';
+    if (list.findIndex((pair) => pair.key.trim() === key) !== index)
       return 'This alias is already taken';
-    return undefined;
+    return null;
   }
 
+  // A reset hands back a way to put the pairs back, so the row offers Undo.
   function reset() {
+    const was = pairs;
     pairs = saved.map((pair) => ({ ...pair }));
+    return () => (pairs = was);
   }
 </script>
 
@@ -60,29 +72,15 @@
         clearLabel="Reset aliases"
       >
         {#snippet control({ labelledby })}
-          <div class="pairs" role="group" aria-labelledby={labelledby}>
-            <div class="grid">
-              {#each pairs as pair, index (index)}
-                <PairEntry
-                  bind:key={pair.key}
-                  bind:value={pair.value}
-                  options={commands}
-                  keyLabel="Alias"
-                  valueLabel="Command"
-                  row={index + 1}
-                  heads={index === 0}
-                  keyPlaceholder="alias"
-                  valuePlaceholder="command"
-                  error={problem(pair.key, index)}
-                  onremove={() => pairs.splice(index, 1)}
-                />
-              {/each}
-            </div>
-            <Button tone="add" onclick={() => pairs.push({ key: '', value: 'deploy' })}>
-              {#snippet icon()}<Icon name="plus" size="sm" />{/snippet}
-              Add an alias
-            </Button>
-          </div>
+          <PairEntry
+            bind:value={pairs}
+            options={commands}
+            keyLabel="Alias"
+            valueLabel="Command"
+            addLabel="Add an alias"
+            validate={problem}
+            aria-labelledby={labelledby}
+          />
         {/snippet}
       </SettingRow>
     </SettingList>
@@ -91,95 +89,68 @@
 
 <Example
   title="States"
-  note="Headings name each half above the lane, a problem with the key stands under it, and a locked pair says why"
+  note="A chip opens its editor, a refused key marks its chip and says why, removals are announced, and a locked set says why"
+  layout="grid"
 >
-  <Specimen label="Valid" code="keyLabel valueLabel">
+  <Specimen label="Pairs" code="keyLabel valueLabel">
     <PairEntry
-      bind:key={single.key}
-      bind:value={single.value}
+      bind:value={few}
       options={commands}
       keyLabel="Alias"
       valueLabel="Command"
-      error={problem(single.key)}
-      onremove={() => {}}
+      addLabel="Add an alias"
+      validate={problem}
+      aria-label="Aliases"
     />
   </Specimen>
-  <Specimen label="Invalid" code="error">
+  <Specimen label="Empty" code="value={[]}">
     <PairEntry
-      bind:key={wrong.key}
-      bind:value={wrong.value}
+      bind:value={none}
       options={commands}
-      keyLabel="New alias"
-      valueLabel="New command"
-      error={problem(wrong.key)}
-      onremove={() => {}}
+      keyLabel="Alias"
+      valueLabel="Command"
+      addLabel="Add an alias"
+      validate={problem}
+      aria-label="Aliases"
     />
   </Specimen>
-  <Specimen label="Disabled" code="disabled">
-    <div class="locked">
-      <PairEntry
-        key="hold"
-        value="merge"
-        options={commands}
-        keyLabel="Locked alias"
-        valueLabel="Locked command"
-        disabled
-        onremove={() => {}}
-      />
-      <p class="reason">Set by the organization, so only an owner can change it</p>
-    </div>
+  <Specimen label="Invalid" code="validate">
+    <PairEntry
+      bind:value={wrong}
+      options={commands}
+      keyLabel="Alias"
+      valueLabel="Command"
+      addLabel="Add an alias"
+      validate={problem}
+      aria-label="Aliases"
+    />
+  </Specimen>
+  <Specimen label="Disabled" code="disabled reason">
+    <PairEntry
+      value={[{ key: 'hold', value: 'merge' }]}
+      options={commands}
+      keyLabel="Alias"
+      valueLabel="Command"
+      addLabel="Add an alias"
+      disabled
+      reason="Set by the organization, so only an owner can change it"
+      aria-label="Locked aliases"
+    />
   </Specimen>
 </Example>
 
 <Example
   title="In a setting row"
-  note="Pairs stack under one set of headings, the arrows light a suggestion for Enter to pick, and the reset stays centred"
+  note="The chips stand beside the copy and wrap, and a change marks the row until it is reset"
   layout="stack"
   ground="canvas"
 >
-  <Card title="Commands" level={4}>
-    <SettingList>
-      <SettingRow
-        name="Aliases"
-        why="Extra words mapped to the commands they run"
-        unsaved={changed}
-        onclear={changed ? reset : undefined}
-        resettable
-        clearLabel="Reset aliases"
-      >
-        {#snippet control({ labelledby })}
-          <div class="pairs" role="group" aria-labelledby={labelledby}>
-            <div class="grid">
-              {#each pairs as pair, index (index)}
-                <PairEntry
-                  bind:key={pair.key}
-                  bind:value={pair.value}
-                  options={commands}
-                  keyLabel="Alias"
-                  valueLabel="Command"
-                  row={index + 1}
-                  heads={index === 0}
-                  keyPlaceholder="alias"
-                  valuePlaceholder="command"
-                  error={problem(pair.key, index)}
-                  onremove={() => pairs.splice(index, 1)}
-                />
-              {/each}
-            </div>
-            <Button tone="add" onclick={() => pairs.push({ key: '', value: 'deploy' })}>
-              {#snippet icon()}<Icon name="plus" size="sm" />{/snippet}
-              Add an alias
-            </Button>
-          </div>
-        {/snippet}
-      </SettingRow>
-    </SettingList>
-  </Card>
+  {@render aliases()}
 </Example>
 
 <Example
   title="Narrow width"
-  note="On a narrow card the pairs take the line under the copy and pack to its start"
+  note="On a narrow card the chips take the line under the copy and pack to its start"
   layout="stack"
   ground="canvas"
   code={false}
@@ -188,38 +159,6 @@
 </Example>
 
 <style>
-  .pairs {
-    display: grid;
-    gap: var(--sui-space-2);
-    justify-items: start;
-    min-inline-size: 0;
-  }
-
-  /* Four columns for each pair to subgrid, so the halves line up under the first pair's headings. */
-  .grid {
-    column-gap: 0;
-    display: grid;
-    grid-template-columns: minmax(0, auto) auto minmax(0, auto) auto;
-    max-inline-size: 100%;
-    min-inline-size: 0;
-    row-gap: var(--sui-space-2);
-  }
-
-  .locked {
-    display: grid;
-    gap: var(--sui-row-copy-gap);
-    justify-items: start;
-  }
-
-  .reason {
-    block-size: var(--sui-block-snap);
-    color: var(--sui-text-secondary);
-    font: 400 var(--sui-font-size-meta) / var(--sui-row-copy-leading) var(--sui-sans);
-    margin: 0;
-    max-inline-size: 18rem;
-    text-box: trim-both cap alphabetic;
-  }
-
   .narrow {
     inline-size: 22rem;
     max-inline-size: 100%;

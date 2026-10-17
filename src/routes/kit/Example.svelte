@@ -97,7 +97,8 @@ live specimens, not a surface of the design, so it may hold cards and dialogs (L
   h3 {
     block-size: var(--sui-block-snap);
     color: var(--sui-text-primary);
-    font: 600 var(--sui-font-size-title) / var(--sui-leading-title) var(--sui-sans);
+    font: var(--sui-weight-semibold) var(--sui-font-size-title) / var(--sui-leading-title)
+      var(--sui-sans);
     margin: 0;
     text-box: trim-both cap alphabetic;
   }
@@ -105,14 +106,15 @@ live specimens, not a surface of the design, so it may hold cards and dialogs (L
   .note {
     block-size: var(--sui-block-snap);
     color: var(--sui-text-secondary);
-    font: 400 var(--sui-font-size-meta) / var(--sui-row-copy-leading) var(--sui-sans);
+    font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-row-copy-leading)
+      var(--sui-sans);
     margin: 0;
     text-box: trim-both cap alphabetic;
     text-wrap: pretty;
   }
 
   .frame {
-    border: 1px solid var(--sui-border-subtle);
+    border: var(--sui-stroke) solid var(--sui-border-subtle);
     border-radius: var(--sui-radius-surface);
     container: sink-stage / inline-size;
     display: grid;
@@ -166,7 +168,7 @@ live specimens, not a surface of the design, so it may hold cards and dialogs (L
 
   .tools {
     background: var(--sui-surface-base);
-    border-block-start: 1px solid var(--sui-border-divider);
+    border-block-start: var(--sui-stroke) solid var(--sui-border-divider);
     display: flex;
     gap: var(--sui-space-2);
     padding: var(--sui-space-2);
@@ -187,7 +189,7 @@ live specimens, not a surface of the design, so it may hold cards and dialogs (L
   }
 
   .code {
-    border-block-start: 1px solid var(--sui-border-divider);
+    border-block-start: var(--sui-stroke) solid var(--sui-border-divider);
     min-inline-size: 0;
   }
 

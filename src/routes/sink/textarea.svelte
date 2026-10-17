@@ -23,7 +23,16 @@
   layout="grid"
 >
   <Specimen label="Rest" code="placeholder">
-    <Textarea aria-label="Note" placeholder="Add a note for the reviewers…" bind:value={note} />
+    <Field label="Note for the reviewers">
+      {#snippet control({ id, describedby })}
+        <Textarea
+          {id}
+          aria-describedby={describedby}
+          placeholder="Ask for a second look at the migration…"
+          bind:value={note}
+        />
+      {/snippet}
+    </Field>
   </Specimen>
   <Specimen label="Filled">
     <Textarea aria-label="Reason" bind:value={reason} />
@@ -88,7 +97,8 @@
   .reason {
     block-size: var(--sui-block-snap);
     color: var(--sui-text-secondary);
-    font: 400 var(--sui-font-size-meta) / var(--sui-row-copy-leading) var(--sui-sans);
+    font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-row-copy-leading)
+      var(--sui-sans);
     margin: 0;
     text-box: trim-both cap alphabetic;
   }

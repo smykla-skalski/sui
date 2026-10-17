@@ -19,7 +19,7 @@
 
 <Example
   title="Tiers and states"
-  note="The 28px quiet tier and the 34px toolbar tier, at rest, busy and disabled"
+  note="The 28px quiet tier and the 34px toolbar tier, at rest, busy with a spinner and disabled"
 >
   <Variants
     rows={tiers}
@@ -28,8 +28,8 @@
   >
     {#snippet cell(tier, state)}
       <IconButton
-        icon="refresh"
-        label="Refresh the list"
+        icon="trash"
+        label="Remove the rule"
         toolbar={tier === 'toolbar'}
         busy={state === 'Busy'}
         disabled={state === 'Disabled'}
@@ -40,7 +40,7 @@
 
 <Example
   title="Glyphs"
-  note="Each glyph reads the same to every reader, and its label is the tooltip"
+  note="Only glyphs every reader reads the same way stand alone, and any other action is a Button with its word"
 >
   <Specimen label="Settings" code={'icon="settings"'}>
     <IconButton icon="settings" label="Open settings" />
@@ -54,10 +54,7 @@
   <Specimen label="Close" code={'icon="close"'}>
     <IconButton icon="close" label="Close the panel" />
   </Specimen>
-  <Specimen label="Filter" code={'icon="filter"'}>
-    <IconButton icon="filter" label="Filter the list" />
-  </Specimen>
-  <Specimen label="Sort" code={'icon="sort"'}>
-    <IconButton icon="sort" label="Sort the list" />
+  <Specimen label="Search" code={'icon="search"'}>
+    <IconButton icon="search" label="Search the list" />
   </Specimen>
 </Example>

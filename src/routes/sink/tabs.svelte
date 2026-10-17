@@ -44,7 +44,11 @@
   </Specimen>
 </Example>
 
-<Example title="Counts" note="A count rides its label in tabular figures" layout="stack">
+<Example
+  title="Counts"
+  note="A count rides its label in tabular figures, grouped the way the page's language writes numbers"
+  layout="stack"
+>
   <Specimen label="With counts" code="count">
     <Tabs label="Pull requests" items={counted} current="#tabs-open" />
   </Specimen>
@@ -52,7 +56,7 @@
 
 <Example
   title="Narrow width"
-  note="Short of room, the row scrolls inside its own track and starts with the current tab in view"
+  note="Short of room, the row scrolls in its own track, fades an edge with more tabs past it and starts on the current tab"
   layout="stack"
 >
   <Specimen label="Scrolled to the current tab">

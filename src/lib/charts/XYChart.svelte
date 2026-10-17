@@ -1,5 +1,6 @@
 <script lang="ts">
   import ChartFrame from './ChartFrame.svelte';
+  import { formatNumber } from './format.js';
   import {
     axis,
     chartColor,
@@ -8,6 +9,8 @@
     markerPath,
     position,
     spread,
+    sieve,
+    thin,
     xyPlot
   } from './geometry.js';
   import type { ChartPoint, XYChartProps } from './types.js';
@@ -21,8 +24,10 @@
     series,
     xLabel = 'X',
     yLabel = 'Y',
-    formatX = (value) => String(Number(value.toFixed(2))),
-    formatY = (value) => String(Number(value.toFixed(2)))
+    seriesHeading = 'Series',
+    formatX = formatNumber,
+    formatY = formatNumber,
+    ...frame
   }: Props = $props();
 
   /* At least 8px across, and a little larger where there is no line to follow. */
@@ -34,14 +39,28 @@
   // measure the rendered text if a face with much wider glyphs ever replaces this one.
   const LABEL_CHAR = 7.5;
 
+  type Frame = {
+    width: number;
+    height: number;
+    left: number;
+    right: number;
+    top: number;
+    bottom: number;
+  };
+
+  const finite = (point: ChartPoint) => Number.isFinite(point.x) && Number.isFinite(point.y);
+
   let validSeries = $derived(
     series.map((item, index) => ({
       ...item,
-      color: item.color ?? chartColor(index),
+      color: chartColor(index),
       marker: chartMarker(index),
       dash: chartDash(index),
-      points: item.points.filter((point) => Number.isFinite(point.x) && Number.isFinite(point.y))
+      points: item.points.filter(finite)
     }))
+  );
+  let missing = $derived(
+    series.reduce((sum, item) => sum + item.points.length - item.points.filter(finite).length, 0)
   );
   let ends = $derived(
     kind === 'line' && validSeries.length <= MOST_LABELLED
@@ -54,11 +73,6 @@
         })
       : []
   );
-  let right = $derived(
-    ends.length === 0
-      ? xyPlot.right
-      : Math.max(xyPlot.right, ...ends.map((end) => end.label.length * LABEL_CHAR + 2 * LABEL_GAP))
-  );
   let points = $derived(validSeries.flatMap((item) => item.points));
   let xAxis = $derived(axis(points.map((point) => point.x)));
   let yAxis = $derived(
@@ -68,57 +82,98 @@
     )
   );
 
-  function x(value: number, width: number): number {
-    return position(value, xAxis.domain, xyPlot.left, width - right);
+  /** The plot's box for a frame width, with the margins that hold text grown by the reader's text scale. */
+  function layout(frameWidth: number, scale: number): Frame {
+    const names = ends.map((end) => (end.label.length * LABEL_CHAR + 2 * LABEL_GAP) * scale);
+    const top = xyPlot.top * scale;
+    const bottom = xyPlot.bottom * scale;
+    return {
+      width: Math.max(xyPlot.minWidth, frameWidth),
+      height: Math.round(top + bottom + xyPlot.height - xyPlot.top - xyPlot.bottom),
+      left: xyPlot.left * scale,
+      right: Math.max(xyPlot.right, ...names),
+      top,
+      bottom
+    };
   }
 
-  function y(value: number): number {
-    return position(value, yAxis.domain, xyPlot.height - xyPlot.bottom, xyPlot.top);
+  function x(value: number, box: Frame): number {
+    return position(value, xAxis.domain, box.left, box.width - box.right);
   }
 
-  function path(seriesPoints: ChartPoint[], width: number): string {
-    return seriesPoints
-      .map((point, index) => `${index === 0 ? 'M' : 'L'} ${x(point.x, width)} ${y(point.y)}`)
+  function y(value: number, box: Frame): number {
+    return position(value, yAxis.domain, box.height - box.bottom, box.top);
+  }
+
+  function path(seriesPoints: ChartPoint[], box: Frame): string {
+    return thin(seriesPoints, Math.round(box.width - box.right - box.left), xAxis.domain)
+      .map((point, index) => `${index === 0 ? 'M' : 'L'} ${x(point.x, box)} ${y(point.y, box)}`)
       .join(' ');
+  }
+
+  /* A marker needs room to read as a shape, so a line denser than that is drawn as a line alone,
+     and its dash still tells it apart. A scatter's markers are its data, so they always draw. */
+  function marked(count: number, box: Frame): boolean {
+    return kind === 'scatter' || count * MARKER.line * 2 <= box.width - box.right - box.left;
+  }
+
+  /* A scatter keeps one mark per half-marker square: the ones it drops would lie under it, and
+     every value stays in the table. */
+  function drawn(seriesPoints: ChartPoint[], box: Frame): ChartPoint[] {
+    if (kind !== 'scatter') return seriesPoints;
+    return sieve(seriesPoints, (point) => [x(point.x, box), y(point.y, box)], MARKER.scatter / 2);
   }
 </script>
 
-<ChartFrame {title} {description} empty={points.length === 0}>
-  {#snippet plot(frameWidth: number)}
-    {@const width = Math.max(xyPlot.minWidth, frameWidth)}
+<ChartFrame
+  {...frame}
+  {title}
+  {description}
+  empty={points.length === 0}
+  {missing}
+  plotHeight={xyPlot.height}
+>
+  {#snippet plot(frameWidth: number, scale: number)}
+    {@const box = layout(frameWidth, scale)}
     <svg
-      {width}
-      height={xyPlot.height}
-      viewBox="0 0 {width} {xyPlot.height}"
+      width={box.width}
+      height={box.height}
+      viewBox="0 0 {box.width} {box.height}"
       role="img"
       aria-label="{title}. {description}"
     >
       {#each yAxis.ticks as tick (tick)}
-        <line x1={xyPlot.left} x2={width - right} y1={y(tick)} y2={y(tick)} class="grid" />
-        <text x={xyPlot.left - 8} y={y(tick) + 4} class="axis" text-anchor="end"
+        <line
+          x1={box.left}
+          x2={box.width - box.right}
+          y1={y(tick, box)}
+          y2={y(tick, box)}
+          class="grid"
+        />
+        <text x={box.left - 8 * scale} y={y(tick, box) + 4 * scale} class="axis" text-anchor="end"
           >{formatY(tick)}</text
         >
       {/each}
       {#each xAxis.ticks as tick (tick)}
-        <text x={x(tick, width)} y={xyPlot.height - 22} class="axis" text-anchor="middle"
+        <text x={x(tick, box)} y={box.height - 22 * scale} class="axis" text-anchor="middle"
           >{formatX(tick)}</text
         >
       {/each}
       <text
-        x={(xyPlot.left + width - right) / 2}
-        y={xyPlot.height - 2}
+        x={(box.left + box.width - box.right) / 2}
+        y={box.height - 2 * scale}
         class="label"
         text-anchor="middle">{xLabel}</text
       >
       <text
-        transform="translate(14 {(xyPlot.top + xyPlot.height - xyPlot.bottom) / 2}) rotate(-90)"
+        transform="translate({14 * scale} {(box.top + box.height - box.bottom) / 2}) rotate(-90)"
         class="label"
         text-anchor="middle">{yLabel}</text
       >
       {#each validSeries as item (item.id)}
         {#if kind === 'line' && item.points.length > 1}
           <path
-            d={path(item.points, width)}
+            d={path(item.points, box)}
             fill="none"
             stroke={item.color}
             stroke-dasharray={item.dash}
@@ -127,26 +182,28 @@
             stroke-linejoin="round"
           />
         {/if}
-        {#each item.points as point, pointIndex (pointIndex)}
-          <path
-            d={markerPath(item.marker, x(point.x, width), y(point.y), MARKER[kind])}
-            fill={item.color}
-            class="marker"
-          >
-            <title>{item.label}: {formatX(point.x)}, {formatY(point.y)}</title>
-          </path>
-        {/each}
+        {#if marked(item.points.length, box)}
+          {#each drawn(item.points, box) as point, pointIndex (pointIndex)}
+            <path
+              d={markerPath(item.marker, x(point.x, box), y(point.y, box), MARKER[kind])}
+              fill={item.color}
+              class="marker"
+            >
+              <title>{item.label}: {formatX(point.x)}, {formatY(point.y)}</title>
+            </path>
+          {/each}
+        {/if}
       {/each}
       {#if ends.length > 0}
         {@const placed = spread(
-          ends.map((end) => y(end.point.y)),
-          LABEL_GAP,
-          xyPlot.top,
-          xyPlot.height - xyPlot.bottom
+          ends.map((end) => y(end.point.y, box)),
+          LABEL_GAP * scale,
+          box.top,
+          box.height - box.bottom
         )}
         {#each ends as end, index (end.id)}
           <text
-            x={x(end.point.x, width) + LABEL_GAP / 2 + MARKER.line / 2}
+            x={x(end.point.x, box) + (LABEL_GAP / 2 + MARKER.line / 2) * scale}
             y={placed[index]}
             class="name"
             dominant-baseline="central">{end.label}</text
@@ -178,9 +235,12 @@
   </ul>
   {#snippet table()}
     <table>
+      <caption>{title}</caption>
       <thead
         ><tr
-          ><th scope="col">Series</th><th scope="col">{xLabel}</th><th scope="col">{yLabel}</th></tr
+          ><th scope="col">{seriesHeading}</th><th scope="col">{xLabel}</th><th scope="col"
+            >{yLabel}</th
+          ></tr
         ></thead
       >
       <tbody>
@@ -210,14 +270,16 @@
   .axis,
   .label {
     fill: var(--sui-text-muted);
-    font: 400 var(--sui-font-size-compact) / var(--sui-leading-flat) var(--sui-sans);
+    font: var(--sui-weight-regular) var(--sui-font-size-compact) / var(--sui-leading-flat)
+      var(--sui-sans);
   }
   .label {
-    font-weight: 600;
+    font-weight: var(--sui-weight-semibold);
   }
   .name {
     fill: var(--sui-text-secondary);
-    font: 600 var(--sui-font-size-compact) / var(--sui-leading-flat) var(--sui-sans);
+    font: var(--sui-weight-semibold) var(--sui-font-size-compact) / var(--sui-leading-flat)
+      var(--sui-sans);
   }
   /* A ring of the surface keeps a marker whole where it crosses another series' line. */
   .marker {
@@ -232,7 +294,8 @@
     margin: 0;
     padding: 0;
     list-style: none;
-    font: 400 var(--sui-font-size-meta) / var(--sui-leading-meta) var(--sui-sans);
+    font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-leading-meta)
+      var(--sui-sans);
   }
   .legend li {
     display: inline-flex;

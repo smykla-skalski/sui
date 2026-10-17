@@ -22,6 +22,12 @@
   <Specimen label="Chosen: {theme}" code="bind:value">
     <ThemeSwitch name="sink-theme" bind:value={theme} />
   </Specimen>
+  <Specimen label="Light and dark" code={'system={false}'}>
+    <ThemeSwitch name="sink-theme-two" system={false} />
+  </Specimen>
+  <Specimen label="Label drawn" code={'hideLabel={false}'}>
+    <ThemeSwitch name="sink-theme-labelled" hideLabel={false} />
+  </Specimen>
 </Example>
 
 <Example

@@ -50,14 +50,16 @@
   .label {
     block-size: var(--sui-block-snap);
     color: var(--sui-text-secondary);
-    font: 500 var(--sui-font-size-compact) / var(--sui-leading-compact) var(--sui-sans);
+    font: var(--sui-weight-medium) var(--sui-font-size-compact) / var(--sui-leading-compact)
+      var(--sui-sans);
     text-box: trim-both cap alphabetic;
   }
 
   code {
     block-size: var(--sui-block-snap);
     color: var(--sui-text-muted);
-    font: 400 var(--sui-font-size-micro) / var(--sui-leading-micro) var(--sui-mono);
+    font: var(--sui-weight-regular) var(--sui-font-size-micro) / var(--sui-leading-micro)
+      var(--sui-mono);
     font-variant-numeric: tabular-nums;
     overflow-wrap: anywhere;
     text-box: trim-both cap alphabetic;

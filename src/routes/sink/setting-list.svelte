@@ -16,6 +16,7 @@
     SegmentedControl,
     SettingList,
     SettingRow,
+    Switch,
     TextInput
   } from '#lib';
   import Example from '../kit/Example.svelte';
@@ -41,6 +42,35 @@
   let prefix = $state(saved.prefix);
   let session = $state(saved.session);
   let ignore = $state([...saved.ignore]);
+
+  // A reset hands back a way to put the change back, so the row can offer Undo.
+  function resetter<T>(read: () => T, write: (value: T) => void, start: T) {
+    return () => {
+      const was = read();
+      write(start);
+      return () => write(was);
+    };
+  }
+
+  let mirror = $state(true);
+  let mirrorPending = $state(false);
+  let mirrorError = $state<string | null>(null);
+
+  // The service takes a moment and refuses to turn mirroring off, so both states show. A flip
+  // while one is on its way is ignored rather than disabling the focused switch.
+  function flipMirror(next: boolean) {
+    if (mirrorPending) return;
+    mirror = next;
+    mirrorError = null;
+    mirrorPending = true;
+    setTimeout(() => {
+      mirrorPending = false;
+      if (!next) {
+        mirror = true;
+        mirrorError = 'Mirroring stays on while a release is open';
+      }
+    }, 1200);
+  }
 </script>
 
 <Example
@@ -55,7 +85,13 @@
         name="Retry failed checks"
         why="Runs a failed check once more before reporting it"
         unsaved={retry !== saved.retry}
-        onclear={retry !== saved.retry ? () => (retry = saved.retry) : undefined}
+        onclear={retry !== saved.retry
+          ? resetter(
+              () => retry,
+              (value) => (retry = value),
+              saved.retry
+            )
+          : undefined}
         resettable
       >
         {#snippet control({ id, describedby })}
@@ -66,12 +102,19 @@
         name="Log level"
         why="The least serious event the service writes down"
         unsaved={level !== saved.level}
-        onclear={level !== saved.level ? () => (level = saved.level) : undefined}
+        onclear={level !== saved.level
+          ? resetter(
+              () => level,
+              (value) => (level = value),
+              saved.level
+            )
+          : undefined}
         resettable
       >
-        {#snippet control({ describedby })}
+        {#snippet control({ labelledby, describedby })}
           <SegmentedControl
             label="Log level"
+            aria-labelledby={labelledby}
             aria-describedby={describedby}
             options={levels}
             bind:value={level}
@@ -109,13 +152,55 @@
         why="Every file under these patterns is left exactly as it was committed, which keeps generated and vendored code untouched"
         unsaved={JSON.stringify(ignore) !== JSON.stringify(saved.ignore)}
       >
-        {#snippet control()}
-          <PatternEntries bind:value={ignore} addLabel="Add a path pattern" />
+        {#snippet control({ labelledby })}
+          <PatternEntries
+            bind:value={ignore}
+            addLabel="Add a path pattern"
+            aria-labelledby={labelledby}
+          />
         {/snippet}
       </SettingRow>
-      <SettingRow name="Merge method" why="Set by the organization and read only here">
+      <SettingRow name="Merge method" readonly reason="Set by the organization and read only here">
         {#snippet control()}
           <span class="fact">Squash</span>
+        {/snippet}
+      </SettingRow>
+    </SettingList>
+  </Card>
+</Example>
+
+<Example
+  title="States"
+  note="A change that takes effect at once says it is saving and why it was refused, and a locked row says why"
+  layout="stack"
+  ground="canvas"
+>
+  <Card title="Delivery" level={4}>
+    <SettingList>
+      <SettingRow
+        name="Mirror to the backup region"
+        why="Copies every event to a second region as it arrives"
+        pending={mirrorPending}
+        error={mirrorError}
+      >
+        {#snippet control({ id, describedby, invalid })}
+          <Switch
+            {id}
+            aria-describedby={describedby}
+            bare
+            {invalid}
+            bind:checked={() => mirror, flipMirror}
+          />
+        {/snippet}
+      </SettingRow>
+      <SettingRow
+        name="Retry failed checks"
+        why="Runs a failed check once more before reporting it"
+        disabled
+        reason="Locked until the save finishes"
+      >
+        {#snippet control({ id, describedby, disabled })}
+          <Checkbox {id} aria-describedby={describedby} bare checked {disabled} />
         {/snippet}
       </SettingRow>
     </SettingList>
@@ -145,9 +230,10 @@
           why="The least serious event the service writes down"
           unsaved={level !== saved.level}
         >
-          {#snippet control({ describedby })}
+          {#snippet control({ labelledby, describedby })}
             <SegmentedControl
               label="Log level"
+              aria-labelledby={labelledby}
               aria-describedby={describedby}
               options={levels}
               bind:value={level}
@@ -181,9 +267,10 @@
   }
 
   .fact {
-    block-size: var(--sui-block-snap);
+    block-size: var(--sui-block-snap-even);
     color: var(--sui-text-secondary);
-    font: 400 var(--sui-font-size-meta) / var(--sui-leading-flat) var(--sui-sans);
+    font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-leading-flat)
+      var(--sui-sans);
     text-box: trim-both cap alphabetic;
   }
 

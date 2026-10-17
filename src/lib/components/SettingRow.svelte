@@ -4,17 +4,27 @@
     id: string;
     /** The name's id, for the `aria-labelledby` of a group of controls. */
     labelledby: string;
-    /** The why line's id, for the control's `aria-describedby`. */
+    /** The why line's, reason's and problem's ids, for the control's `aria-describedby`. */
     describedby: string | undefined;
+    /** Pass to the control: it cannot run while the row is `disabled`. */
+    disabled: boolean;
+    /** Pass to the control: the value shows and cannot change. */
+    readonly: boolean;
+    /** Pass to the control as its invalid state while the row shows a problem. */
+    invalid: boolean;
   };
 </script>
 
 <script lang="ts">
   import { tick, type Snippet } from 'svelte';
   import type { HTMLLiAttributes } from 'svelte/elements';
-  import IconButton from './IconButton.svelte';
+  import Icon from '../icons/Icon.svelte';
+  import Button from './Button.svelte';
+  import VisuallyHidden from './VisuallyHidden.svelte';
 
   const uid = $props.id();
+  const FOCUSABLE =
+    "input:not(:disabled), select:not(:disabled), textarea:not(:disabled), button:not(:disabled), [href], [tabindex]:not([tabindex^='-'])";
 
   let {
     name,
@@ -22,7 +32,16 @@
     unsaved = false,
     onclear,
     resettable = false,
+    pending = false,
+    error = null,
+    disabled = false,
+    readonly = false,
+    reason,
     clearLabel,
+    resetLabel = 'Reset',
+    undoLabel = 'Undo',
+    unsavedLabel = 'Unsaved',
+    pendingLabel = 'Saving…',
     control,
     class: className = '',
     ...rest
@@ -32,15 +51,33 @@
     why?: string;
     /** Repaints the row while its value differs from the saved one. Only the caller can know that. */
     unsaved?: boolean;
-    /** Draws a reset beside the whole control area, which takes the setting back where it came from. */
-    onclear?: () => void;
+    /**
+     * Draws a reset beside the whole control area, which takes the setting back where it came
+     * from. Return a function that puts the change back, and the row offers Undo after a reset.
+     */
+    onclear?: () => void | (() => void);
     /**
      * Keeps the reset's seat while `onclear` is unset, for a row that offers a reset only while
      * it is changed, so the controls never move when the reset comes and goes.
      */
     resettable?: boolean;
-    /** Names the reset. It defaults to "Reset" and the setting's name. */
+    /** A change that takes effect at once is on its way, such as a switch writing its value. */
+    pending?: boolean;
+    /** Why the last change was refused, said under the copy with an alert mark. */
+    error?: string | null;
+    /** The controls cannot run now, such as during a save. Say why with `reason`. */
+    disabled?: boolean;
+    /** The value shows and cannot change here, such as without permission. Say why with `reason`. */
+    readonly?: boolean;
+    /** Why the setting is disabled or read only, drawn under the copy and tied to the controls. */
+    reason?: string;
+    /** Names the reset. It defaults to `resetLabel` and the setting's name. */
     clearLabel?: string;
+    resetLabel?: string;
+    undoLabel?: string;
+    /** The word beside the name while the row is unsaved. */
+    unsavedLabel?: string;
+    pendingLabel?: string;
     /** The setting's controls, at the row's end beside the copy or on the line under it. */
     control: Snippet<[SettingRowControl]>;
     /** Layout for the call site only, never the row's own paint. */
@@ -48,26 +85,58 @@
   } & Omit<HTMLLiAttributes, 'children' | 'class'> = $props();
 
   let controls = $state<HTMLDivElement | null>(null);
-
-  // A reset that only shows while changed leaves with the change, so focus moves on to the
-  // control it reset instead of falling to the page (L-89).
-  async function clear(event: MouseEvent): Promise<void> {
-    const reset = event.currentTarget;
-    onclear?.();
-    await tick();
-    if (onclear || ![reset, document.body].includes(document.activeElement)) return;
-    controls
-      ?.querySelector<HTMLElement>(
-        "input:not(:disabled), select:not(:disabled), textarea:not(:disabled), button:not(:disabled), [href], [tabindex]:not([tabindex^='-'])"
-      )
-      ?.focus();
-  }
+  let seat = $state<HTMLElement | null>(null);
+  /* Puts back the change the last reset dropped, until the reader changes the value again. */
+  let undo = $state<(() => void) | null>(null);
+  /* A `<label for>` names only a control that carries `id`; a group is named by the name's id. */
+  let named = $state(false);
 
   const ids = $derived<SettingRowControl>({
     id: `${uid}-control`,
     labelledby: `${uid}-name`,
-    describedby: why ? `${uid}-why` : undefined
+    describedby:
+      [why && `${uid}-why`, reason && `${uid}-reason`, error && `${uid}-problem`]
+        .filter(Boolean)
+        .join(' ') || undefined,
+    disabled,
+    readonly,
+    invalid: Boolean(error)
   });
+
+  $effect(() => {
+    if (unsaved) undo = null;
+  });
+
+  $effect(() => {
+    const box = controls;
+    if (!box) return;
+    const look = () => (named = box.querySelector(`[id="${ids.id}"]`) !== null);
+    look();
+    const watch = new MutationObserver(look);
+    watch.observe(box, { childList: true, subtree: true, attributeFilter: ['id'] });
+    return () => watch.disconnect();
+  });
+
+  const firstControl = () => controls?.querySelector<HTMLElement>(FOCUSABLE);
+
+  // A reset leaves with the change it reset, so focus moves on to the control it reset instead
+  // of falling to the page (L-89); Undo is the next stop after it.
+  async function clear(event: MouseEvent): Promise<void> {
+    const reset = event.currentTarget;
+    const back = onclear?.();
+    undo = typeof back === 'function' ? back : null;
+    await tick();
+    if (onclear && !undo && document.activeElement === reset) return;
+    if (![reset, document.body].includes(document.activeElement)) return;
+    firstControl()?.focus();
+  }
+
+  async function restore(): Promise<void> {
+    undo?.();
+    undo = null;
+    await tick();
+    (seat?.querySelector<HTMLElement>('.sui-setting-reset-live button') ?? firstControl())?.focus();
+  }
 </script>
 
 <!--
@@ -79,31 +148,68 @@ the line under the copy and pack to the start. A row whose only control is a `Sw
 `Checkbox` keeps it beside the copy at every width; give that control `bare`. A switch takes
 effect at once, and a checkbox holds a value that a later save writes.
 
-`control` receives the `id` the name's `<label for>` points at, for a single control, and
-`labelledby`, the name's own id, for the `aria-labelledby` of a group such as a fieldset or a
-segmented control, which a `<label>` cannot name.
-`unsaved` lays a plate of the unsaved surface inside the row, repaints the inks, stars its name
-and clears the separators on both its edges. The plate sits 2px inside the row's own box and the
-star keeps its seat while hidden, so a change of state never moves the row, changes its height
-or rewraps its name, and two changed rows in a row show a 5px strip of card between them (L-91). `onclear` draws a reset centred beside the whole control area,
-even when the controls wrap; a row that offers it only while changed passes `resettable` too, so
-the reset's seat stays and the controls never shift.
+`unsaved` lays a plate of the unsaved surface inside the row, repaints the inks and edges in the
+unsaved family, and shows `unsavedLabel` beside the name. The plate sits 2px inside the row's
+own box and the word keeps its seat while hidden, so a change of state never moves the row,
+changes its height or rewraps its name, and two changed rows in a row show a 5px strip of card
+between them (L-91).
+
+- Semantics: an `li`; the name is a `label` for a single control that carries the given `id`, and otherwise a plain name whose id the group takes through `aria-labelledby`.
+- Content: a name, an optional one-sentence why line, and the controls in `control`, which receives the ids and the `disabled`, `readonly` and `invalid` flags to pass on.
+- States: rest, unsaved (gold plate and the `unsavedLabel` word), pending (`pendingLabel` under the copy, busy), refused (`error` under the copy with an alert mark), disabled and read only (with `reason` under the copy), and after a reset an Undo in the reset's seat.
+- Keyboard: Tab walks the controls, then the reset or Undo; Enter or Space resets or undoes.
+- Pointer and touch: the row is at least 44px tall; the reset and Undo are 34px buttons, 44px on a phone.
+- Focus: after a reset focus moves to the first control instead of falling to the page; after Undo it moves to the reset, or to the first control when the reset is gone.
+- Responsive: the controls drop under the copy when both sides cannot fit, and pack to the start under 25rem.
+- Accessibility: the name labels a single control or names a group; the why line, `reason` and `error` describe the controls; pending and refused changes are said through a polite status; the unsaved state is a word, not only a color.
+- Localization: `resetLabel`, `undoLabel`, `unsavedLabel`, `pendingLabel` and `clearLabel` are props with English defaults; the controls sit at the inline end and follow the reading direction.
+- Performance: one mutation observer per row watches which control carries the id; nothing animates.
+- Analytics: `onclear` hears each reset, and the function it returns hears each undo.
+- Failure: a refused change says `error` and marks the controls invalid while the value stays as the reader set it; a disabled or read-only row says `reason`, and its reset goes away.
 -->
 
-<li {...rest} class={['sui-setting-row', className]} data-unsaved={unsaved || undefined}>
+<li
+  {...rest}
+  class={['sui-setting-row', className]}
+  data-unsaved={unsaved || undefined}
+  aria-busy={pending || undefined}
+>
   <div class="sui-setting-say">
-    <label id={ids.labelledby} for={ids.id} class="sui-setting-name"
-      >{name}<span class="sui-setting-star" aria-hidden="true">*</span>{#if unsaved}<span
-          class="sui-visually-hidden">, unsaved</span
-        >{/if}</label
+    <svelte:element
+      this={named ? 'label' : 'span'}
+      id={ids.labelledby}
+      for={named ? ids.id : undefined}
+      class="sui-setting-name"
+      >{name}<span class="sui-setting-mark"><VisuallyHidden>,</VisuallyHidden>{unsavedLabel}</span
+      ></svelte:element
     >
-    {#if why}<p id={ids.describedby} class="sui-setting-why">{why}</p>{/if}
+    {#if why}<p id="{uid}-why" class="sui-setting-why">{why}</p>{/if}
+    {#if reason}<p id="{uid}-reason" class="sui-setting-why">{reason}</p>{/if}
+    {#if error}
+      <p id="{uid}-problem" class="sui-setting-problem">
+        <Icon name="alert" size="sm" /><span>{error}</span>
+      </p>
+    {:else if pending}
+      <p class="sui-setting-why">{pendingLabel}</p>
+    {/if}
+    <VisuallyHidden role="status">{error ?? (pending ? pendingLabel : '')}</VisuallyHidden>
   </div>
   <div class="sui-setting-value">
     <div bind:this={controls} class="sui-setting-control">{@render control(ids)}</div>
-    {#if onclear || resettable}
-      <span class={['sui-setting-reset', { idle: !onclear }]} inert={!onclear}>
-        <IconButton icon="undo" label={clearLabel ?? `Reset ${name}`} onclick={clear} />
+    {#if onclear || resettable || undo}
+      {@const live = Boolean(onclear) && !undo && !disabled && !readonly}
+      <span bind:this={seat} class="sui-setting-reset">
+        <span class={{ idle: !live, 'sui-setting-reset-live': live }} inert={!live}>
+          <Button tone="ghost" aria-label={clearLabel ?? `${resetLabel} ${name}`} onclick={clear}>
+            {#snippet icon()}<Icon name="undo" size="sm" />{/snippet}
+            {resetLabel}
+          </Button>
+        </span>
+        <span class={{ idle: !undo }} inert={!undo}>
+          <Button tone="ghost" aria-label="{undoLabel}, {name}" onclick={restore}>
+            {undoLabel}
+          </Button>
+        </span>
       </span>
     {/if}
   </div>
@@ -134,24 +240,18 @@ the reset's seat stays and the controls never shift.
 
   /* A state's plate lies inside the row's own box, 2px short of its top and bottom, so the row
      never moves or resizes when its state changes and keeps 10px of ground above and below its
-     ink, and two plates in a row show a 5px strip of card between them (L-91). */
+     ink, and two plates in a row show a 5px strip of card between them (L-91). It comes first
+     in the row, so the copy and controls, positioned after it, paint over it. */
   .sui-setting-row::before {
     border-radius: inherit;
     content: '';
     inset: calc(var(--sui-space-1) / 2) 0 calc(var(--sui-space-1) / 2 + var(--sui-row-hairline));
     position: absolute;
-    z-index: 0;
-  }
-
-  /* The plate and the row's two sides stack inside the row alone: plate, then copy and controls. */
-  .sui-setting-row {
-    isolation: isolate;
   }
 
   .sui-setting-say,
   .sui-setting-value {
     position: relative;
-    z-index: 1;
   }
 
   .sui-setting-row:not(:last-child)::after {
@@ -163,9 +263,9 @@ the reset's seat stays and the controls never shift.
     position: absolute;
   }
 
-  /* A change is a state of the row it was made in: its plate, inks, edges and fills all take the
-     unsaved hue, and no edge changes width, so nothing moves (L-16). The tokens are set here one
-     by one because the derived ones resolve at the root. */
+  /* A change is a state of the row it was made in: its plate, inks, edges, fills, hover and
+     press all take the unsaved hue, and no edge changes width, so nothing moves (L-16). The
+     tokens are set here one by one because the derived ones resolve at the root. */
   .sui-setting-row[data-unsaved] {
     --sui-text-primary: var(--sui-unsaved-ink);
     --sui-text-secondary: var(--sui-unsaved-secondary);
@@ -189,6 +289,8 @@ the reset's seat stays and the controls never shift.
     --sui-switch-track-on: var(--sui-decision-accent);
     --sui-segment-thumb: var(--sui-decision-accent);
     --sui-segment-thumb-ink: var(--sui-on-decision-accent);
+    --sui-interactive-hover-layer: color-mix(in srgb, var(--sui-unsaved-ink) 10%, transparent);
+    --sui-interactive-pressed: color-mix(in srgb, var(--sui-unsaved-ink) 16%, transparent);
   }
 
   .sui-setting-row[data-unsaved]::before {
@@ -204,7 +306,9 @@ the reset's seat stays and the controls never shift.
 
   /* The copy takes what is left and never less than it reads at, unless the row itself is
      narrower than that. */
+  /* An even column, so a control centred beside it lands on whole pixels (L-95). */
   .sui-setting-say {
+    block-size: var(--sui-block-snap-even);
     display: grid;
     flex: 1 1 var(--sui-setting-say-min);
     gap: var(--sui-row-copy-gap);
@@ -213,9 +317,11 @@ the reset's seat stays and the controls never shift.
   }
 
   .sui-setting-name,
-  .sui-setting-why {
+  .sui-setting-why,
+  .sui-setting-problem > span {
     block-size: var(--sui-block-snap);
-    font: 400 var(--sui-font-size-meta) / var(--sui-row-copy-leading) var(--sui-sans);
+    font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-row-copy-leading)
+      var(--sui-sans);
     margin: 0;
     overflow-wrap: anywhere;
     text-box: trim-both cap alphabetic;
@@ -223,7 +329,7 @@ the reset's seat stays and the controls never shift.
 
   .sui-setting-name {
     color: var(--sui-text-primary);
-    font-weight: 600;
+    font-weight: var(--sui-weight-semibold);
     text-wrap: balance;
   }
 
@@ -232,32 +338,43 @@ the reset's seat stays and the controls never shift.
     text-wrap: pretty;
   }
 
-  /* Always laid out, shown only while unsaved, so its arrival never rewraps the name. */
-  .sui-setting-star {
+  .sui-setting-problem {
+    align-items: center;
+    color: var(--sui-danger);
+    display: flex;
+    gap: var(--sui-space-1);
+    margin: 0;
+    min-inline-size: 0;
+  }
+
+  /* Always laid out, shown only while unsaved, so its arrival never rewraps the name. A word
+     rather than a star, which most forms use for a required field. */
+  .sui-setting-mark {
     color: var(--sui-unsaved-ink);
-    margin-inline-start: var(--sui-space-1);
+    font-weight: var(--sui-weight-regular);
+    margin-inline-start: var(--sui-space-2);
     visibility: hidden;
   }
 
-  [data-unsaved] .sui-setting-star {
+  [data-unsaved] .sui-setting-mark {
     visibility: visible;
   }
 
+  /* Reset and Undo share one seat as wide as the wider of them, so neither moves the controls,
+     and the seat never gives up width, so neither word breaks. */
   .sui-setting-reset {
+    display: grid;
+    flex: none;
+  }
+
+  .sui-setting-reset > * {
     display: flex;
+    grid-area: 1 / 1;
+    justify-content: center;
   }
 
   .idle {
     visibility: hidden;
-  }
-
-  .sui-visually-hidden {
-    block-size: 1px;
-    clip-path: inset(50%);
-    inline-size: 1px;
-    overflow: hidden;
-    position: absolute;
-    white-space: nowrap;
   }
 
   /* Neither side takes more than half the row, unless a control cannot be drawn narrower. */
@@ -309,6 +426,14 @@ the reset's seat stays and the controls never shift.
 
     .sui-setting-control {
       justify-content: flex-start;
+    }
+  }
+
+  /* High contrast drops the plate's ground, so a changed row keeps an outline of it. */
+  @media (forced-colors: active) {
+    .sui-setting-row[data-unsaved]::before {
+      outline: var(--sui-stroke) solid CanvasText;
+      outline-offset: calc(-1 * var(--sui-stroke));
     }
   }
 </style>

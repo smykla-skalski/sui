@@ -4,8 +4,13 @@
   let {
     text,
     label = 'Copy',
+    copiedLabel = 'Copied',
+    failedLabel = 'Copy failed',
     toolbar = false,
     bare = false,
+    disabled = false,
+    oncopied,
+    oncopyfailed,
     class: className = '',
     ...rest
   }: {
@@ -13,13 +18,21 @@
     text: string;
     /** The resting label, naming what is copied, such as "Copy link". */
     label?: string;
+    /** Said for 1.6 seconds after each copy. */
+    copiedLabel?: string;
+    /** Said when the browser refuses the write, until the next press. */
+    failedLabel?: string;
     /** Matches the 34px control tier of a field or toolbar beside it. */
     toolbar?: boolean;
     /**
-     * Drops the frame and takes the field's height, for the end of a joined field whose host
-     * draws the frame and the focus ring.
+     * Drops the frame and sits inside the end of a joined field, whose host draws the frame.
      */
     bare?: boolean;
+    disabled?: boolean;
+    /** Hears each copy that landed on the clipboard. */
+    oncopied?: () => void;
+    /** Hears each refused write, so the caller can offer the text to select by hand. */
+    oncopyfailed?: (error: unknown) => void;
     /** Layout for the call site only, never the button's own paint. */
     class?: HTMLButtonAttributes['class'];
   } & Omit<HTMLButtonAttributes, 'children' | 'onclick'> = $props();
@@ -36,23 +49,29 @@
 
   async function copy(): Promise<void> {
     let next: 'copied' | 'failed' = 'copied';
+    let error: unknown;
     try {
       await navigator.clipboard.writeText(text);
-    } catch {
+    } catch (refusal) {
       next = 'failed';
+      error = refusal;
     }
     outcome = next;
     message = '';
     clearTimeout(speak);
     clearTimeout(timer);
     speak = window.setTimeout(
-      () => (message = next === 'copied' ? 'Copied' : 'Copy failed'),
+      () => (message = next === 'copied' ? copiedLabel : failedLabel),
       SETTLE
     );
-    timer = window.setTimeout(() => {
-      outcome = null;
-      message = '';
-    }, CONFIRM_FOR);
+    // A failure stays until the next press, so the reader has time to read it and act.
+    if (next === 'copied') {
+      timer = window.setTimeout(() => {
+        outcome = null;
+        message = '';
+      }, CONFIRM_FOR);
+      oncopied?.();
+    } else oncopyfailed?.(error);
   }
 
   $effect(() => () => {
@@ -64,8 +83,9 @@
 <!--
 @component
 A small bordered button that puts `text` on the clipboard and says "Copied" for 1.6 seconds,
-or "Copy failed" when the browser refuses the write. Name what it copies in `label`, such as
-"Copy link", because a page of buttons all called "Copy" tells a screen reader nothing.
+or "Copy failed" when the browser refuses the write, which stays until the next press. Name
+what it copies in `label`, such as "Copy link", because a page of buttons all called "Copy"
+tells a screen reader nothing.
 
 Each outcome is also announced through a polite live region, a second copy included, so a
 reader who cannot see the label change still hears it. The labels share one box, so the
@@ -73,11 +93,25 @@ button does not change width when it answers.
 
 It is 28px tall on its own opaque ground, so it can sit over code. `CodeBlock` places one
 in its corner. Beside a 34px field or in a toolbar it takes the control tier with `toolbar`.
+
+- Semantics: a native `<button type="button">` whose visible words are its name, with a polite `role="status"` beside it.
+- Content: `label`, `copiedLabel` and `failedLabel`, each a short phrase; the button is as wide as the longest of the three.
+- States: rest, hover (a veil and a firmer edge), focus (a flush 2px ring, or an inset one when `bare`), pressed (a deeper veil, an inset shadow and a 1px sink), copied, failed (danger ink) and disabled (0.7 opacity).
+- Keyboard: Tab reaches it and Enter or Space copies; focus stays on it through the answer.
+- Pointer and touch: 28px tall, or 34px with `toolbar`, and a 44px hit area on a phone or any touch screen.
+- Focus: copying never moves focus; `oncopyfailed` is where a caller sends focus to the text to select by hand.
+- Responsive: one line as wide as its longest label, and it never wraps.
+- Accessibility: the visible words are the name, each outcome is spoken through the status, and its ink holds 4.5:1 on its own ground.
+- Localization: `label`, `copiedLabel` and `failedLabel` are props with English defaults, and the shared box fits whichever is longest.
+- Performance: one button and one status per instance, with two timers that clear on unmount; only colours, the inset shadow and the 1px sink move.
+- Analytics: `oncopied` hears each copy that landed and `oncopyfailed` each refused write.
+- Failure: a refused write says "Copy failed" in danger ink until the next press and calls `oncopyfailed`, so the text can be offered to select by hand.
 -->
 
 <button
   type="button"
   {...rest}
+  {disabled}
   class={['sui-copy-button', className, { toolbar, bare }]}
   data-copied={outcome === 'copied' || undefined}
   data-failed={outcome === 'failed' || undefined}
@@ -85,8 +119,8 @@ in its corner. Beside a 34px field or in a toolbar it takes the control tier wit
 >
   <span class="sui-copy-button-labels">
     <span class={{ off: outcome !== null }}>{label}</span>
-    <span class={{ off: outcome !== 'copied' }}>Copied</span>
-    <span class={{ off: outcome !== 'failed' }}>Copy failed</span>
+    <span class={{ off: outcome !== 'copied' }}>{copiedLabel}</span>
+    <span class={{ off: outcome !== 'failed' }}>{failedLabel}</span>
   </span>
 </button>
 <span class="sui-copy-button-status" role="status">{message}</span>
@@ -109,19 +143,22 @@ in its corner. Beside a 34px field or in a toolbar it takes the control tier wit
       var(--sui-control-state-layer)
     );
     block-size: var(--sui-tier-quiet);
-    border: 1px solid var(--sui-control-border);
+    border: var(--sui-stroke) solid var(--sui-control-border);
     border-radius: var(--sui-radius-control);
     box-sizing: border-box;
-    color: var(--sui-text-muted);
+    color: var(--sui-text-secondary);
     cursor: pointer;
     display: inline-flex;
     flex: none;
-    font: 600 var(--sui-font-size-micro) / var(--sui-leading-flat) var(--sui-sans);
+    font: var(--sui-weight-medium) var(--sui-font-size-control) / var(--sui-leading-flat)
+      var(--sui-sans);
     inline-size: fit-content;
     white-space: nowrap;
     margin: 0;
     padding: 0 var(--sui-space-2);
     touch-action: manipulation;
+    -webkit-user-select: none;
+    user-select: none;
     transition:
       --sui-control-state-layer var(--sui-duration-fast) var(--sui-ease-standard),
       border-color var(--sui-duration-fast) var(--sui-ease-standard),
@@ -135,13 +172,15 @@ in its corner. Beside a 34px field or in a toolbar it takes the control tier wit
     block-size: var(--sui-control-height-compact);
   }
 
-  .sui-copy-button:hover:not(:active) {
-    --sui-control-state-layer: var(--sui-interactive-hover-layer);
-    border-color: var(--sui-control-border-hover);
-    color: var(--sui-text-primary);
+  @media (hover: hover) {
+    .sui-copy-button:hover:not(:active, :disabled) {
+      --sui-control-state-layer: var(--sui-interactive-hover-layer);
+      border-color: var(--sui-control-border-hover);
+      color: var(--sui-text-primary);
+    }
   }
 
-  .sui-copy-button:active {
+  .sui-copy-button:active:not(:disabled) {
     --sui-control-state-layer: var(--sui-interactive-pressed);
     box-shadow: var(--sui-pressed-inset);
     color: var(--sui-text-primary);
@@ -154,26 +193,47 @@ in its corner. Beside a 34px field or in a toolbar it takes the control tier wit
     outline-offset: var(--sui-focus-ring-flush);
   }
 
+  .sui-copy-button:disabled {
+    cursor: default;
+    opacity: var(--sui-disabled-opacity);
+  }
+
   /* A chip inside the end of a joined field: a quiet tinted button at the 28px tier, its
-     corners following the field's, with no frame and no sink. The host's ring says where
-     focus is, and the veil deepens for a pointer or the keyboard. */
+     corners following the field's, with no frame and no sink. It draws its own inset ring,
+     so the reader sees that focus left the value for the copy action. */
   .sui-copy-button.bare,
-  .sui-copy-button.bare:is(:hover, :active, :focus-visible) {
+  .sui-copy-button.bare:is(:active, :focus-visible) {
     background-color: transparent;
-    border-color: transparent;
-    border-radius: var(--sui-r-chip);
+    border-width: 0;
+    border-radius: var(--sui-radius-chip);
     color: var(--sui-text-secondary);
-    outline: none;
     translate: none;
+  }
+
+  @media (hover: hover) {
+    .sui-copy-button.bare:hover {
+      background-color: transparent;
+      translate: none;
+    }
+
+    .sui-copy-button.bare:hover:not(:active, :disabled) {
+      --sui-control-state-layer: var(--sui-interactive-hover-layer);
+      color: var(--sui-text-primary);
+    }
   }
 
   .sui-copy-button.bare {
     --sui-control-state-layer: var(--sui-row-hover);
   }
 
-  .sui-copy-button.bare:is(:hover, :focus-visible):not(:active) {
+  .sui-copy-button.bare:focus-visible:not(:active) {
     --sui-control-state-layer: var(--sui-interactive-hover-layer);
+  }
+
+  .sui-copy-button.bare:focus-visible {
     color: var(--sui-text-primary);
+    outline: var(--sui-focus-ring-width) solid var(--sui-focus);
+    outline-offset: var(--sui-focus-ring-inset);
   }
 
   .sui-copy-button[data-failed] {
@@ -224,6 +284,12 @@ in its corner. Beside a 34px field or in a toolbar it takes the control tier wit
       content: '';
       inset: calc((100% - var(--sui-touch-target)) / 2);
       position: absolute;
+    }
+  }
+
+  @media (hover: hover) and (forced-colors: active) {
+    .sui-copy-button:hover:not(:disabled, :focus-visible) {
+      border-color: Highlight;
     }
   }
 </style>

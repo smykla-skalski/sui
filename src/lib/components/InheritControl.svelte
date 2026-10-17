@@ -13,6 +13,17 @@
     inherited,
     source,
     disabled = false,
+    loading = false,
+    error = null,
+    overrideLabel = 'Override',
+    inheritLabel = 'Use inherited value',
+    overrideName,
+    inheritName,
+    inheritedLabel = (value: string, from: string) => `${value} from ${from}`,
+    unknownLabel = (from: string) => `Nothing set in ${from}`,
+    loadingLabel = 'Loading the inherited value…',
+    onoverride,
+    oninherit,
     control,
     class: className = '',
     ...rest
@@ -23,11 +34,30 @@
     label: string;
     /** Lands on Override while the value is inherited, so a row's `<label for>` points at a control. */
     id?: string;
-    /** The value that applies while nothing is set here, said as a reader would say it. */
+    /** The value that applies while nothing is set here, said as a reader would say it. Empty when nothing is set there either. */
     inherited: string;
-    /** Where the inherited value comes from, read after "from", such as "the workspace". */
+    /** Where the inherited value comes from, such as "the workspace". */
     source: string;
     disabled?: boolean;
+    /** The inherited value is on its way. */
+    loading?: boolean;
+    /** Why the inherited value could not be read. Override still works. */
+    error?: string | null;
+    overrideLabel?: string;
+    inheritLabel?: string;
+    /** Override's accessible name, given `label`. It defaults to `overrideLabel` and `label`. */
+    overrideName?: (label: string) => string;
+    /** The way back's accessible name, given `label`. */
+    inheritName?: (label: string) => string;
+    /** The sentence that says the inherited value and its source, in the page's word order. */
+    inheritedLabel?: (value: string, source: string) => string;
+    /** Said when the source sets nothing either. */
+    unknownLabel?: (source: string) => string;
+    loadingLabel?: string;
+    /** Hears each override. */
+    onoverride?: () => void;
+    /** Hears each return to the inherited value. */
+    oninherit?: () => void;
     /** The control that sets the value here, drawn only while it is overridden. */
     control: Snippet;
     /** Layout for the call site only, never the control's own paint. */
@@ -36,8 +66,23 @@
 
   let root = $state<HTMLElement | null>(null);
 
+  // The value sits inside the sentence wherever the language puts it, so it keeps its weight.
+  const said = $derived.by(() => {
+    if (inherited === '') return { before: unknownLabel(source), value: '', after: '' };
+    const sentence = inheritedLabel(inherited, source);
+    const at = sentence.indexOf(inherited);
+    return at < 0
+      ? { before: sentence, value: '', after: '' }
+      : {
+          before: sentence.slice(0, at),
+          value: inherited,
+          after: sentence.slice(at + inherited.length)
+        };
+  });
+
   async function override(): Promise<void> {
     overridden = true;
+    onoverride?.();
     await tick();
     const choice =
       root?.querySelector<HTMLElement>('input:checked') ?? root?.querySelector(FOCUSABLE);
@@ -46,6 +91,7 @@
 
   async function inherit(): Promise<void> {
     overridden = false;
+    oninherit?.();
     await tick();
     root?.querySelector<HTMLElement>('button')?.focus({ preventScroll: true });
   }
@@ -55,17 +101,27 @@
 @component
 A value that comes from somewhere else until this level overrides it, and the way back. While it
 inherits, it says the value in muted ink and where it comes from, beside an `add` button named
-Override. Overriding draws the caller's `control` in its place and moves focus into it; "Use
-inherited value" takes it back and returns focus to Override. Both moves keep the page still.
+Override. Overriding draws the caller's `control` in its place and moves focus into it; the way
+back takes it away and returns focus to Override. Both moves keep the page still.
 
-Both buttons add `label` to their accessible names, so a screen reader hears which setting they
-act on. Pass the row's `id` both here and to the control: it lands on Override while inheriting,
-so pressing the setting's name overrides, and on the control while overridden.
+An override is not a change by itself. Mark the row unsaved, with `SettingRow`'s `unsaved`, only
+when the setting differs from its saved value, never because it differs from the inherited one.
+Seed the control with the inherited value once, when it has no value of its own, and keep its
+value when the reader goes back: Override then brings the last override back, which is the undo
+for a press of the way back.
 
-An override is not a change by itself. Mark the row unsaved, with `SettingRow`'s `unsaved`,
-only when the setting differs from its saved value, never because it differs from the inherited
-one. Set the control's starting value to the inherited one when `overridden` turns on, so
-overriding writes nothing until the reader picks.
+- Semantics: a `div` holding the sentence and a native button, or the caller's control and a native button; pass the row's `id` here and to the control, and it lands on Override while inheriting, so pressing the setting's name overrides.
+- Content: the inherited value and its source as one sentence, or the caller's control.
+- States: inheriting (the value in muted ink beside a link mark), overridden (the control beside a broken link mark), loading, failed (`error` with an alert mark), nothing set at the source, and disabled.
+- Keyboard: Tab reaches Override or the control and then the way back; Enter or Space on either button switches.
+- Pointer and touch: both buttons are 34px tall, 44px on a phone.
+- Focus: overriding moves focus into the control, onto its chosen option first; going back moves it to Override.
+- Responsive: the sentence wraps beside its mark, and the button wraps under it when the room is short.
+- Accessibility: each button's name carries `label`, so a screen reader hears which setting it acts on; the mark is decorative and the sentence says the state.
+- Localization: every word is a prop; the sentence is one function of the value and the source, so a language can place them in its own order, and the value keeps its weight wherever it lands.
+- Performance: the control mounts only while overridden.
+- Analytics: `onoverride` hears each override and `oninherit` each return to the inherited value.
+- Failure: `loading` says `loadingLabel`, `error` says why the inherited value is unknown while Override still works, and an empty `inherited` says `unknownLabel`.
 -->
 
 <div bind:this={root} {...rest} class={['sui-inherit', className]}>
@@ -75,9 +131,15 @@ overriding writes nothing until the reader picks.
     </span>
     {#if overridden}
       <span class="sui-inherit-control">{@render control()}</span>
+    {:else if loading}
+      <span class="sui-inherit-value">{loadingLabel}</span>
+    {:else if error}
+      <span class="sui-inherit-problem">
+        <Icon name="alert" size="sm" /><span class="sui-inherit-value">{error}</span>
+      </span>
     {:else}
       <span class="sui-inherit-value"
-        ><span class="sui-inherit-word">{inherited}</span> from {source}</span
+        >{said.before}<span class="sui-inherit-word">{said.value}</span>{said.after}</span
       >
     {/if}
   </span>
@@ -85,13 +147,19 @@ overriding writes nothing until the reader picks.
     <Button
       tone="ghost"
       {disabled}
-      aria-label={`Use inherited value for ${label}`}
-      onclick={inherit}>Use inherited value</Button
+      aria-label={inheritName?.(label) ?? `${inheritLabel} for ${label}`}
+      onclick={inherit}>{inheritLabel}</Button
     >
   {:else}
-    <Button tone="add" {id} {disabled} aria-label={`Override ${label}`} onclick={override}>
+    <Button
+      tone="add"
+      {id}
+      {disabled}
+      aria-label={overrideName?.(label) ?? `${overrideLabel} ${label}`}
+      onclick={override}
+    >
       {#snippet icon()}<Icon name="plus" size="sm" />{/snippet}
-      Override
+      {overrideLabel}
     </Button>
   {/if}
 </div>
@@ -131,13 +199,26 @@ overriding writes nothing until the reader picks.
   .sui-inherit-value {
     block-size: var(--sui-block-snap);
     color: var(--sui-text-muted);
-    font: 400 var(--sui-font-size-meta) / var(--sui-row-copy-leading) var(--sui-sans);
+    font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-row-copy-leading)
+      var(--sui-sans);
     min-inline-size: 0;
     overflow-wrap: anywhere;
     text-box: trim-both cap alphabetic;
   }
 
   .sui-inherit-word {
-    font-weight: 600;
+    font-weight: var(--sui-weight-semibold);
+  }
+
+  .sui-inherit-problem {
+    align-items: center;
+    color: var(--sui-danger);
+    display: flex;
+    gap: var(--sui-space-1);
+    min-inline-size: 0;
+  }
+
+  .sui-inherit-problem .sui-inherit-value {
+    color: inherit;
   }
 </style>

@@ -27,9 +27,9 @@
   };
 
   const repositoryColumns: DataTableColumn<Repository>[] = [
-    { key: 'name', label: 'Repository' },
-    { key: 'open', label: 'Open', numeric: true },
-    { key: 'merged', label: 'Merged', numeric: true },
+    { key: 'name', label: 'Repository', sortable: true },
+    { key: 'open', label: 'Open', numeric: true, sortable: true },
+    { key: 'merged', label: 'Merged', numeric: true, sortable: true },
     { key: 'review', label: 'Median review', numeric: true }
   ];
   const repositories: Repository[] = [
@@ -143,6 +143,12 @@
       size: '85.0 MB'
     }
   ];
+
+  let sort = $state<{ key: string; direction: 'ascending' | 'descending' } | null>({
+    key: 'merged',
+    direction: 'descending'
+  });
+  let retried = $state(0);
 </script>
 
 <Example
@@ -150,12 +156,13 @@
   note="Row headers name each row, numbers sit at the end, and a wide table may stripe its rows"
   layout="stack"
 >
-  <Specimen label="Row headers" code="caption rowHeader">
+  <Specimen label="Row headers, sortable" code="caption rowHeader sortable bind:sort">
     <DataTable
       caption="Pull requests over the last 90 days"
       columns={repositoryColumns}
       rows={repositories}
       rowHeader
+      bind:sort
     />
   </Specimen>
   <Specimen label="Striped" code="striped">
@@ -180,8 +187,42 @@
 </Example>
 
 <Example
+  title="States"
+  note="Empty, loading, refreshing and failed tables say so in words under their headings"
+  layout="grid"
+>
+  <Specimen label="Empty" code={'rows={[]}'}>
+    <DataTable caption="Releases" columns={releaseColumns} rows={[]} />
+  </Specimen>
+  <Specimen label="Loading" code="loading">
+    <DataTable caption="Releases" columns={releaseColumns} rows={[]} loading />
+  </Specimen>
+  <Specimen label="Refreshing" code="refreshing">
+    <DataTable caption="Releases" columns={releaseColumns} rows={releases} refreshing />
+  </Specimen>
+  <Specimen label="Failed" code="error onretry">
+    <DataTable
+      caption="Releases"
+      columns={releaseColumns}
+      rows={[]}
+      error="Releases could not load"
+      onretry={() => retried++}
+    />
+  </Specimen>
+  <Specimen label="Failed over old rows" code="error onretry">
+    <DataTable
+      caption="Releases"
+      columns={releaseColumns}
+      rows={releases.slice(0, 2)}
+      error="These rows may be out of date"
+      onretry={() => retried++}
+    />
+  </Specimen>
+</Example>
+
+<Example
   title="Narrow width"
-  note="Columns that keep to one line outgrow the room, so the table scrolls inside its own frame"
+  note="Columns that outgrow the room scroll inside the frame, which says so and keeps the row headings in view"
   layout="grid"
 >
   <Specimen label="Scrolls, with drawn cells" code="cell">

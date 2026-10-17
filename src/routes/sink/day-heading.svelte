@@ -55,6 +55,8 @@
   {#each readings as day (day.label)}
     <Specimen label={day.label}><DayHeading value={day.value} level={4} /></Specimen>
   {/each}
+  <Specimen label="Not a date" code={'value="soon"'}><DayHeading value="soon" level={4} /></Specimen
+  >
 </Example>
 
 <Example
@@ -108,14 +110,16 @@
 
   .what {
     color: var(--sui-text-primary);
-    font: 400 var(--sui-font-size-meta) / var(--sui-leading-meta) var(--sui-sans);
+    font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-leading-meta)
+      var(--sui-sans);
     min-inline-size: 0;
     overflow-wrap: anywhere;
   }
 
   .time {
     color: var(--sui-text-muted);
-    font: 400 var(--sui-font-size-compact) / var(--sui-leading-compact) var(--sui-mono);
+    font: var(--sui-weight-regular) var(--sui-font-size-compact) / var(--sui-leading-compact)
+      var(--sui-mono);
     font-variant-numeric: tabular-nums;
   }
 </style>

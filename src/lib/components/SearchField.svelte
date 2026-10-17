@@ -4,28 +4,39 @@
   import IconButton from './IconButton.svelte';
   import TextInput from './TextInput.svelte';
 
+  const uid = $props.id();
+
   let {
     value = $bindable(''),
     label,
+    showLabel = false,
     clearLabel = 'Clear the search',
+    onclear,
     element = $bindable(null),
+    id = `${uid}-input`,
     class: className = '',
     onkeydown,
     ...rest
   }: {
     value?: string;
-    /** The accessible name. The magnifier says what the box is only to somebody looking at it. */
+    /** The accessible name, and the drawn label with `showLabel`. */
     label: string;
+    /** Draws `label` above the field, for a search that is not the only one in its bar. */
+    showLabel?: boolean;
     /** The clear button's name and tooltip. */
     clearLabel?: string;
+    /** Hears each clear, by the button or by Escape. */
+    onclear?: () => void;
     element?: HTMLInputElement | null;
+    id?: string;
     /** Layout for the call site only, never the field's own paint. */
     class?: HTMLInputAttributes['class'];
-  } & Omit<HTMLInputAttributes, 'value' | 'type' | 'aria-label'> = $props();
+  } & Omit<HTMLInputAttributes, 'value' | 'type' | 'aria-label' | 'id'> = $props();
 
   function clear() {
     value = '';
     element?.focus();
+    onclear?.();
   }
 
   function onkeydownInput(event: KeyboardEvent & { currentTarget: HTMLInputElement }) {
@@ -36,6 +47,7 @@
     event.preventDefault();
     event.stopPropagation();
     value = '';
+    onclear?.();
   }
 </script>
 
@@ -47,44 +59,77 @@ which is the only side that knows whether an answer costs a request.
 
 A clear button shows once there is a query, and Escape clears it too. An Escape with nothing
 to clear passes on, so the dialog or popover around the field still closes. `label` is the
-accessible name and is never drawn. A search that filters is never disabled to say nothing
-matches; the list says that.
+accessible name, and `showLabel` draws it above the field; leave it hidden only where the
+magnifier sits in a bar whose own words say what it searches. A search that filters is never
+disabled to say nothing matches; the list says that, and the caller puts the number of
+matches in a polite `role="status"` beside it so a screen reader hears it.
+
+- Semantics: a text input with `role="searchbox"`, named by `label`, through a drawn `<label for>` or `aria-label`, with a clear `IconButton` once there is a query.
+- Content: one line of query text, an optional placeholder that is an example, and the magnifier at the start.
+- States: empty, filled (with the clear button), focus (a flush 2px ring), invalid and disabled as `TextInput` draws them.
+- Keyboard: typing narrows, Escape clears a query and passes on when there is none, and Tab reaches the clear button.
+- Pointer and touch: 34px tall, 44px on a phone or any touch screen, and the clear button keeps a 44px hit area there.
+- Focus: clearing by the button puts focus back in the field, and Escape keeps it there.
+- Responsive: it fills its container and scrolls a long query inside itself, clear of the magnifier and the button.
+- Accessibility: `label` names it, the clear button has its own name, and the caller's count status says how many match.
+- Localization: `clearLabel` is a prop with an English default, and the magnifier and the button sit at the start and end in either direction.
+- Performance: one input and a button that mounts with the first character; it never waits or requests on its own.
+- Analytics: `oninput` reports each keystroke and `onclear` each clear.
+- Failure: no matches are the list's to say; the field stays enabled and keeps the query.
 -->
 
 <div class={['sui-search-field', className]}>
-  <TextInput
-    bind:element
-    bind:value
-    {...rest}
-    type="text"
-    role="searchbox"
-    enterkeyhint="search"
-    class="search-input"
-    aria-label={label}
-    onkeydown={onkeydownInput}
-  />
-  <span class="sui-search-field-icon"><Icon name="search" size="sm" strokeWidth={2} /></span>
-  {#if value}
-    <span class="sui-search-field-clear">
-      <IconButton icon="close" label={clearLabel} onclick={clear} />
-    </span>
-  {/if}
+  {#if showLabel}<label class="sui-search-field-label" for={id}>{label}</label>{/if}
+  <div class="sui-search-field-box">
+    <TextInput
+      bind:element
+      bind:value
+      {...rest}
+      {id}
+      type="text"
+      role="searchbox"
+      enterkeyhint="search"
+      class="search-input"
+      aria-label={showLabel ? undefined : label}
+      onkeydown={onkeydownInput}
+    />
+    <span class="sui-search-field-icon"><Icon name="search" size="sm" strokeWidth={2} /></span>
+    {#if value}
+      <span class="sui-search-field-clear">
+        <IconButton icon="close" label={clearLabel} onclick={clear} />
+      </span>
+    {/if}
+  </div>
 </div>
 
 <style>
   .sui-search-field {
+    display: grid;
+    gap: var(--sui-row-copy-gap);
+    min-inline-size: 0;
+  }
+
+  .sui-search-field-label {
+    block-size: var(--sui-block-snap);
+    color: var(--sui-text-secondary);
+    font: var(--sui-weight-semibold) var(--sui-font-size-control) / var(--sui-row-copy-leading)
+      var(--sui-sans);
+    text-box: trim-both cap alphabetic;
+  }
+
+  .sui-search-field-box {
     align-items: center;
     display: grid;
     min-inline-size: 0;
   }
 
-  .sui-search-field > :global(.search-input),
+  .sui-search-field-box > :global(.search-input),
   .sui-search-field-icon,
   .sui-search-field-clear {
     grid-area: 1 / 1;
   }
 
-  .sui-search-field > :global(.search-input) {
+  .sui-search-field-box > :global(.search-input) {
     padding-inline: var(--sui-space-8)
       var(--sui-local-control-height, var(--sui-control-height-compact));
   }

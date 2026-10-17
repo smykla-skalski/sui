@@ -37,7 +37,7 @@
 
 <Example
   title="States"
-  note="A chosen answer, a disabled one the keyboard skips, a missing answer and a group locked while it saves"
+  note="A chosen answer, a disabled one the keyboard skips, a required answer still missing and a group locked while it saves"
   layout="stack"
 >
   <Specimen label="Chosen, with a disabled answer" code="bind:value">
@@ -48,9 +48,10 @@
       bind:value={method}
     />
   </Specimen>
-  <Specimen label="Invalid" code="error">
+  <Specimen label="Required, still unanswered" code="required error">
     <ChoiceCards
       label="Who can approve"
+      required
       options={[
         {
           value: 'owners',

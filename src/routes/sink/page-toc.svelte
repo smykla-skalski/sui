@@ -21,7 +21,7 @@
 
 <Example
   title="In context"
-  note="The current entry turns its rule brand as the page scrolls, and a link opens a folded section and focuses its heading"
+  note="The current entry takes the ringed plate as the page scrolls, and a link opens a folded section and focuses its heading"
   layout="stack"
   ground="canvas"
 >
@@ -85,14 +85,16 @@
   h4 {
     block-size: var(--sui-block-snap);
     color: var(--sui-text-primary);
-    font: 600 var(--sui-font-size-title) / var(--sui-leading-title) var(--sui-sans);
+    font: var(--sui-weight-semibold) var(--sui-font-size-title) / var(--sui-leading-title)
+      var(--sui-sans);
     margin: 0;
     text-box: trim-both cap alphabetic;
   }
 
   .copy {
     color: var(--sui-text-secondary);
-    font: 400 var(--sui-font-size-body) / var(--sui-leading-body) var(--sui-sans);
+    font: var(--sui-weight-regular) var(--sui-font-size-body) / var(--sui-leading-body)
+      var(--sui-sans);
     margin: 0;
   }
 

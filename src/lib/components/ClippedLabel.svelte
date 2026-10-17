@@ -24,9 +24,9 @@
 
   let clipped = $state(false);
 
-  /* The tip shows on keyboard focus too, so it hangs on the control the label sits in
-     when there is one: a bare span never takes focus. */
-  const anchor = $derived(element?.closest<HTMLElement>(FOCUSABLE) ?? element);
+  /* A cut label inside no control becomes a tab stop of its own, so the keyboard can reach the
+     rest of its words; inside a control, that control's focus shows them. */
+  const alone = $derived(clipped && !element?.parentElement?.closest(FOCUSABLE));
 
   /* Keyed to the text so a swapped label measures again; the observer covers the other
      way the cut changes, the box resizing. */
@@ -52,16 +52,32 @@ noise, so it exists only while the label is clipped.
 The label trims itself to the cap height and the baseline and clips on the inline axis
 only, so descenders below the trimmed box still paint. It shrinks inside a flex row; give
 it a bounded width anywhere else.
+
+- Semantics: a `span` whose words are the whole text, so a screen reader always hears all of it; a cut label inside no control becomes a tab stop.
+- Content: one line of plain text, cut with an ellipsis at the end of its box.
+- States: fits (a plain span), clipped (the ellipsis, and the tip on hover, long press and focus), and focused (the 2px ring when it is its own tab stop).
+- Keyboard: a cut label inside a control shows its tip on that control's focus; a cut label alone takes Tab itself, and Escape closes the tip.
+- Pointer and touch: hover shows the whole text after a pause, and a long press shows it on touch.
+- Focus: it never moves focus; it takes focus only while cut and outside any control.
+- Responsive: it shrinks with its row and measures again on every resize, so the tip comes and goes with the cut.
+- Accessibility: the whole text stays in the accessibility tree, and the tip, which repeats it, stays out of it.
+- Localization: the ellipsis falls at the inline end and the tip follows the reading direction.
+- Performance: one resize observer per label, and a tooltip only while the label is cut.
+- Analytics: none; a label reports no outcome.
+- Failure: an empty `text` draws an empty line with no tip.
 -->
 
+<!-- A cut label outside any control must be reachable by keyboard to be read in full. -->
+<!-- svelte-ignore a11y_no_noninteractive_tabindex -->
 <span
   bind:this={element}
   {...rest}
   class={['sui-clipped-label', className]}
+  tabindex={alone ? 0 : undefined}
   {@attach measured(text)}>{text}</span
 >
 {#if clipped}
-  <Tooltip {anchor} {text} {mono} />
+  <Tooltip anchor={element} {text} {mono} />
 {/if}
 
 <style>
@@ -73,5 +89,11 @@ it a bounded width anywhere else.
     text-box: trim-both cap alphabetic;
     text-overflow: ellipsis;
     white-space: nowrap;
+  }
+
+  .sui-clipped-label:focus-visible {
+    border-radius: var(--sui-radius-chip);
+    outline: var(--sui-focus-ring-width) solid var(--sui-focus);
+    outline-offset: var(--sui-focus-ring-offset);
   }
 </style>

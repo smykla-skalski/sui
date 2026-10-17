@@ -66,6 +66,7 @@
   let wide = $state('#shell-repositories');
   let folded = $state('#shell-queue');
   let phone = $state('#shell-overview');
+  let bottom = $state('#shell-labels');
   let place = $state('Smykla Skalski');
   let collapsed = $state(true);
 
@@ -119,7 +120,7 @@
 
 <Example
   title="Collapsed"
-  note="Above 64rem the pages fold into icons over short labels beside the rail, so this 66rem frame scrolls sideways"
+  note="Above 64rem Collapse folds the pages into icons over short labels beside the rail, so this 66rem frame scrolls sideways"
   layout="stack"
   ground="canvas"
 >
@@ -154,7 +155,7 @@
 
 <Example
   title="Narrow width"
-  note="Below 48rem a bar names the page, and its button opens the rail and the pages as one drawer"
+  note="Below 48rem a bar names the page, and its Menu button opens the rail and the pages as one drawer"
   layout="stack"
   ground="canvas"
 >
@@ -179,10 +180,43 @@
   </Specimen>
 </Example>
 
+<Example
+  title="Bottom navigation"
+  note="With bottomNav, a phone keeps the rail's few places in a bar along the bottom, and the drawer holds only the pages"
+  layout="stack"
+  ground="canvas"
+>
+  <Specimen label="Under 48rem" code="bottomNav">
+    <div class="frame phone">
+      <AppShell
+        title={names[bottom]}
+        contained
+        landmark="none"
+        label="Workspace navigation"
+        bottomNav
+      >
+        {#snippet rail()}
+          <Rail items={places} {foot} current={place} onpick={(item) => (place = item.label)} />
+        {/snippet}
+        {#snippet sidebar()}
+          <SideNav
+            kicker="Workspace"
+            title="Smykla Skalski"
+            {sections}
+            current={bottom}
+            onnavigate={go((href) => (bottom = href))}
+          />
+        {/snippet}
+        {@render content(bottom)}
+      </AppShell>
+    </div>
+  </Specimen>
+</Example>
+
 <style>
   .frame {
     --sui-shell-height: 30rem;
-    border: 1px solid var(--sui-border-subtle);
+    border: var(--sui-stroke) solid var(--sui-border-subtle);
     border-radius: var(--sui-radius-surface);
     box-sizing: border-box;
     overflow: hidden;
@@ -251,7 +285,8 @@
     color: var(--sui-text-secondary);
     display: flex;
     flex-wrap: wrap;
-    font: 400 var(--sui-font-size-body) / var(--sui-leading-body) var(--sui-sans);
+    font: var(--sui-weight-regular) var(--sui-font-size-body) / var(--sui-leading-body)
+      var(--sui-sans);
     gap: var(--sui-space-2);
     margin: 0;
   }

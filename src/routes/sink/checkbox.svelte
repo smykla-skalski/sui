@@ -81,7 +81,7 @@
 
 <Example
   title="Check list"
-  note="Short labels run along one line, and once any option has a description each takes its own line"
+  note="Short labels run along one line, a description puts each on its own line, and a saving list stays focusable"
 >
   <Specimen label="Short labels" code="options">
     <CheckList label="Labels on the pull request" options={kinds} bind:value={labels} />
@@ -89,12 +89,26 @@
   <Specimen label="With descriptions" code="description">
     <CheckList label="Permissions" options={scopes} bind:value={granted} />
   </Specimen>
+  <Specimen label="Locked while saving" code="disabled">
+    <CheckList
+      label="Labels on the issue"
+      hint="Saving the labels…"
+      options={kinds}
+      value={['docs']}
+      disabled
+    />
+  </Specimen>
 </Example>
 
-<Example title="Invalid" note="An error under the group names what is missing" layout="stack">
-  <Specimen label="Invalid" code="error">
+<Example
+  title="Required and invalid"
+  note="A required group says so after its question, and an error under it names what is missing"
+  layout="stack"
+>
+  <Specimen label="Required, still unanswered" code="required error">
     <CheckList
       label="Agreement"
+      required
       options={[{ value: 'terms', label: 'I accept the terms of service' }]}
       error="Accept the terms to continue"
       bind:value={terms}

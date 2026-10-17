@@ -1,4 +1,58 @@
+import type { ChartPoint } from './types.js';
+
+/** The plot's frame in CSS pixels at a 16px root. The margins hold text, so they grow with it. */
 export const xyPlot = { minWidth: 280, height: 300, left: 58, right: 20, top: 20, bottom: 46 };
+
+/**
+ * Keeps the lowest and the highest point of each of `columns` slices of the domain, in order,
+ * so a line through far more points than the plot has pixels draws the same peaks for a
+ * fraction of the path.
+ */
+export function thin(
+  points: ChartPoint[],
+  columns: number,
+  domain: [number, number]
+): ChartPoint[] {
+  if (points.length <= columns * 2) return points;
+  const kept: ChartPoint[] = [];
+  const span = domain[1] - domain[0] || 1;
+  let slice = -1;
+  let low: ChartPoint | null = null;
+  let high: ChartPoint | null = null;
+  const flush = () => {
+    if (!low || !high) return;
+    if (low === high) kept.push(low);
+    else kept.push(...(low.x <= high.x ? [low, high] : [high, low]));
+  };
+  for (const point of [...points].sort((a, b) => a.x - b.x)) {
+    const at = Math.min(columns - 1, Math.floor(((point.x - domain[0]) / span) * columns));
+    if (at !== slice) {
+      flush();
+      slice = at;
+      low = high = point;
+    } else {
+      if (point.y < (low?.y ?? Infinity)) low = point;
+      if (point.y > (high?.y ?? -Infinity)) high = point;
+    }
+  }
+  flush();
+  return kept;
+}
+
+/**
+ * Keeps the first point that lands in each `cell`-pixel square, so a dense scatter draws one
+ * mark where many would lie under each other, and the plot holds a bounded number of paths.
+ */
+export function sieve<T>(points: T[], at: (point: T) => [number, number], cell: number): T[] {
+  const taken = new Set<string>();
+  return points.filter((point) => {
+    const [x, y] = at(point);
+    const key = `${Math.floor(x / cell)}:${Math.floor(y / cell)}`;
+    if (taken.has(key)) return false;
+    taken.add(key);
+    return true;
+  });
+}
 
 export function extent(values: number[], includeZero = false): [number, number] {
   let minimum = Infinity;
@@ -71,14 +125,18 @@ const MARKERS: readonly ChartMarker[] = ['circle', 'square', 'triangle', 'diamon
 /* The first line is solid. Round caps eat into each gap, so the gaps are wider than they read. */
 const DASHES: readonly (string | undefined)[] = [undefined, '8 6', '1 6', '12 5 1 5', '4 5'];
 
+/* Past five series the colours come round again, so each later round shifts the shapes by one
+   and the dashes by two: up to 25 series, no two share a colour, a shape and a dash. */
+const round = (index: number) => Math.floor(index / CHART_SERIES);
+
 /** The shape that tells a series apart without its color, in the same order as its color. */
 export function chartMarker(index: number): ChartMarker {
-  return MARKERS[index % CHART_SERIES];
+  return MARKERS[(index + round(index)) % CHART_SERIES];
 }
 
 /** The dash that tells a line apart without its color. The first line has none. */
 export function chartDash(index: number): string | undefined {
-  return DASHES[index % CHART_SERIES];
+  return DASHES[(index + 2 * round(index)) % CHART_SERIES];
 }
 
 /**

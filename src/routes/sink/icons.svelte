@@ -10,10 +10,19 @@
 <script lang="ts">
   import { Icon, iconNames } from '#lib';
   import Example from '../kit/Example.svelte';
+  import Specimen from '../kit/Specimen.svelte';
   import Variants from '../kit/Variants.svelte';
 
+  const directional = [
+    'chevron-left',
+    'chevron-right',
+    'arrow-up-right',
+    'undo',
+    'settings'
+  ] as const;
+
   const glyphs = ['settings', 'refresh', 'check'] as const;
-  const sizes = ['nano', 'micro', 'xs', 'sm', 'base', 'md'] as const;
+  const sizes = ['micro', 'xs', 'sm', 'base', 'md'] as const;
 </script>
 
 <Example
@@ -32,7 +41,7 @@
 
 <Example
   title="Sizes"
-  note="Six px tiers from 8 to 18px, because an icon does not grow with the text"
+  note="Five tiers from 10 to 18px at the default text size, growing with the reader's own text size"
 >
   <Variants rows={glyphs} columns={sizes} axis="name" rowLabel={(name) => `"${name}"`}>
     {#snippet cell(name, size)}
@@ -41,7 +50,30 @@
   </Variants>
 </Example>
 
+<Example
+  title="Direction"
+  note="Directional glyphs face the reading direction, so a right-to-left page mirrors them and keeps the rest"
+>
+  <Specimen label="Left to right">
+    <span class="row">
+      {#each directional as name (name)}<Icon {name} size="md" />{/each}
+    </span>
+  </Specimen>
+  <Specimen label="Right to left" code={'dir="rtl"'}>
+    <span class="row" dir="rtl">
+      {#each directional as name (name)}<Icon {name} size="md" />{/each}
+    </span>
+  </Specimen>
+</Example>
+
 <style>
+  .row {
+    color: var(--sui-text-primary);
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--sui-space-3);
+  }
+
   .grid {
     display: grid;
     gap: var(--sui-space-2);
@@ -63,7 +95,8 @@
 
   .name {
     color: var(--sui-text-secondary);
-    font: 400 var(--sui-font-size-micro) / var(--sui-leading-micro) var(--sui-mono);
+    font: var(--sui-weight-regular) var(--sui-font-size-micro) / var(--sui-leading-micro)
+      var(--sui-mono);
     overflow-wrap: anywhere;
   }
 </style>

@@ -25,7 +25,7 @@ import '@smykla-skalski/sui/styles.css';
   let project = $state('');
 </script>
 
-<Card title="New project" note="Give it a short name">
+<Card title="New project" description="Give it a short name">
   <Field label="Project name" bind:value={project} required />
   {#snippet footer()}
     <Button tone="signal" onclick={() => console.log(project)}>Create</Button>
@@ -39,7 +39,7 @@ import '@smykla-skalski/sui/styles.css';
 Each component documents its contract in an `@component` comment, and the kitchen sink shows its states.
 
 - Shell: `AppShell` (rail, sidebar and content, a collapsed icon strip on wide screens, a bar and a drawer on phones), `SideNav`, `Rail`
-- Actions: `Button` (tones `default`, `signal`, `ghost`, `stop`, `stop-quiet`, `brand`, `quiet`, `add`, `decision`), `IconButton`, `CopyButton`, `Link`, `BackLink`, `Breadcrumb`, `Tabs`, `SkipLink`
+- Actions: `Button` (tones `default`, `signal`, `ghost`, `stop`, `stop-quiet`, `add`, `decision`), `IconButton`, `CopyButton`, `Link`, `BackLink`, `Breadcrumb`, `Tabs`, `SkipLink`
 - Inputs: `Field`, `TextInput`, `Textarea`, `SearchField`, `Switch`, `Checkbox`, `CheckList`, `ChoiceCards`, `SegmentedControl`, `ThemeSwitch`, `CopyableLinkField`, `ColorPicker`
 - Pickers and editors: `Select`, `Combobox`, `ActionMenu`, `HelpTip`, `DurationInput`, `PairEntry`, `PatternEntries`, `InheritControl`, `AdditionPicker`, `SettingList`, `SettingRow`
 - Overlays: `Popover`, `Tooltip`, `Modal`, `ConfirmDialog`, `Toaster` with `toast()` and `dismiss()`, `SaveBar`
@@ -52,7 +52,7 @@ Overlays use the native `<dialog>` element and the Popover API, so they render i
 
 ## Theming
 
-Set `data-sui-theme="dark"` (or `data-theme="dark"`) on `<html>` for the dark palette, or put `data-sui-theme` on any element to theme only that subtree. `ThemeSwitch` offers Light, Dark and System, stores the choice and follows the system preference live.
+Set `data-sui-theme="dark"` (or `data-theme="dark"`) on `<html>` for the dark palette, or put `data-sui-theme` on any element to theme only that subtree. With neither attribute on `<html>`, the palette follows the reader's system preference. `ThemeSwitch` offers Light, Dark and System, stores the choice and follows the system preference live.
 
 Override tokens after the theme import. Components use the nearest value.
 

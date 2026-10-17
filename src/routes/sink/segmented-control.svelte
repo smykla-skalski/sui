@@ -52,11 +52,31 @@
 </Example>
 
 <Example
+  title="Label"
+  note="The label stands above the options, unless a visible name beside the control already says it"
+>
+  <Specimen label="Drawn" code="label">
+    <SegmentedControl label="Time range" options={range} bind:value={span} />
+  </Specimen>
+  <Specimen label="Named beside it" code="aria-labelledby">
+    <div class="beside">
+      <span id="sink-segmented-name" class="name">Time range</span>
+      <SegmentedControl
+        label="Time range"
+        aria-labelledby="sink-segmented-name"
+        options={range}
+        bind:value={span}
+      />
+    </div>
+  </Specimen>
+</Example>
+
+<Example
   title="States"
   note="A null value draws no thumb, the arrow keys skip a disabled option, and a locked control says why"
 >
   <Specimen label="Nothing chosen" code={'value={null}'}>
-    <SegmentedControl label="Time range override" options={range} bind:value={inherited} />
+    <SegmentedControl label="Time range" options={range} bind:value={inherited} />
   </Specimen>
   <Specimen label="Disabled option" code="disabled: true">
     <div class="locked">
@@ -72,7 +92,7 @@
   <Specimen label="Disabled" code="disabled">
     <div class="locked">
       <SegmentedControl
-        label="Log level while saving"
+        label="Log level"
         options={levels}
         value="errors"
         disabled
@@ -88,11 +108,11 @@
   note="34px by default and 44px on phones, and a surface may opt into 40px through one custom property"
 >
   <Specimen label="Default" code="--sui-control-height-compact">
-    <SegmentedControl label="Time range on the default tier" options={range} value="month" />
+    <SegmentedControl label="Time range" options={range} value="month" />
   </Specimen>
   <Specimen label="Tall" code="--sui-local-control-height">
     <div class="tall">
-      <SegmentedControl label="Time range on the tall tier" options={range} value="month" />
+      <SegmentedControl label="Time range" options={range} value="month" />
     </div>
   </Specimen>
 </Example>
@@ -103,16 +123,12 @@
 >
   <Specimen label="Words as a select">
     <div class="narrow">
-      <SegmentedControl label="Log level in a narrow pane" options={levels} bind:value={narrow} />
+      <SegmentedControl label="Log level" options={levels} bind:value={narrow} />
     </div>
   </Specimen>
   <Specimen label="Counts in brackets">
     <div class="narrow">
-      <SegmentedControl
-        label="People in a narrow pane"
-        options={people}
-        bind:value={narrowPeople}
-      />
+      <SegmentedControl label="People" options={people} bind:value={narrowPeople} />
     </div>
   </Specimen>
 </Example>
@@ -128,6 +144,22 @@
     inline-size: min(100%, 12rem);
   }
 
+  .beside {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--sui-space-3);
+    min-inline-size: 0;
+  }
+
+  .name {
+    block-size: var(--sui-block-snap);
+    color: var(--sui-text-secondary);
+    font: var(--sui-weight-semibold) var(--sui-font-size-control) / var(--sui-leading-flat)
+      var(--sui-sans);
+    text-box: trim-both cap alphabetic;
+  }
+
   .locked {
     display: grid;
     gap: var(--sui-row-copy-gap);
@@ -138,7 +170,8 @@
   .reason {
     block-size: var(--sui-block-snap);
     color: var(--sui-text-secondary);
-    font: 400 var(--sui-font-size-meta) / var(--sui-row-copy-leading) var(--sui-sans);
+    font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-row-copy-leading)
+      var(--sui-sans);
     margin: 0;
     text-box: trim-both cap alphabetic;
   }

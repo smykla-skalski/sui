@@ -14,10 +14,20 @@ const finding = (law: string, element: Element | null, detail: string): Finding 
   element: element ?? undefined
 });
 
-const audited = (root: Document, selector: string) =>
-  [...root.querySelectorAll(selector)].filter(
-    (element) => !element.matches(IGNORED) && shown(element)
+// A box still growing or fading is measured between its two states, so nothing inside one is
+// judged until its motion ends.
+const audited = (root: Document, selector: string) => {
+  const moving = root
+    .getAnimations()
+    .map((animation) => (animation.effect as KeyframeEffect | null)?.target)
+    .filter((target): target is Element => target instanceof Element);
+  return [...root.querySelectorAll(selector)].filter(
+    (element) =>
+      !element.matches(IGNORED) &&
+      shown(element) &&
+      !moving.some((target) => target.contains(element))
   );
+};
 
 const round = (value: number, places = 2) => Number(value.toFixed(places));
 
@@ -310,7 +320,7 @@ function textContrast(root: Document): Finding[] {
 
 function edgeStrips(root: Document): Finding[] {
   const found: Finding[] = [];
-  for (const element of audited(root, 'body *:not(svg *, svg, nav *, pre *, code *)')) {
+  for (const element of audited(root, 'body *:not(svg *, svg, pre *, code *)')) {
     const style = getComputedStyle(element);
     const start = parseFloat(style.borderInlineStartWidth);
     const end = parseFloat(style.borderInlineEndWidth);
@@ -462,13 +472,19 @@ const CARD_CONTENT =
  * solid content (a control, a framed box, a mark) counts, and text is held to not running past.
  */
 function cardInsets(card: Element) {
-  const box = card.getBoundingClientRect();
   const style = getComputedStyle(card);
+  // A right-to-left card is measured mirrored, so its start is the smaller coordinate as in LTR.
+  const rtl = style.direction === 'rtl';
+  const read = (element: Element) => {
+    const own = element.getBoundingClientRect();
+    return rtl ? new DOMRect(-own.right, own.top, own.width, own.height) : own;
+  };
+  const box = read(card);
   const inner = {
     top: box.top + parseFloat(style.borderTopWidth),
-    right: box.right - parseFloat(style.borderRightWidth),
+    right: box.right - parseFloat(style.borderInlineEndWidth),
     bottom: box.bottom - parseFloat(style.borderBottomWidth),
-    left: box.left + parseFloat(style.borderLeftWidth)
+    left: box.left + parseFloat(style.borderInlineStartWidth)
   };
   const pad = parseFloat(style.paddingInlineStart);
   const within = (own: DOMRect) =>
@@ -484,7 +500,7 @@ function cardInsets(card: Element) {
   for (const element of card.querySelectorAll('*')) {
     if (element.parentElement?.closest('svg') || element.closest(IGNORED)) continue;
     if (!element.checkVisibility({ opacityProperty: false, visibilityProperty: true })) continue;
-    const own = element.getBoundingClientRect();
+    const own = read(element);
     if (own.width <= 1 || own.height <= 1) continue;
     const look = getComputedStyle(element);
     const ground = rgba(look.backgroundColor).a > 0 || look.backgroundImage !== 'none';
@@ -500,11 +516,12 @@ function cardInsets(card: Element) {
     let holder = element.parentElement ?? card;
     while (holder !== card && /^(inline|contents)$/.test(getComputedStyle(holder).display))
       holder = holder.parentElement ?? card;
-    const room = holder.getBoundingClientRect();
+    const room = read(holder);
     const space = getComputedStyle(holder);
-    const roomLeft = room.left + parseFloat(space.borderLeftWidth) + parseFloat(space.paddingLeft);
+    const roomLeft =
+      room.left + parseFloat(space.borderInlineStartWidth) + parseFloat(space.paddingInlineStart);
     const roomRight =
-      room.right - parseFloat(space.borderRightWidth) - parseFloat(space.paddingRight);
+      room.right - parseFloat(space.borderInlineEndWidth) - parseFloat(space.paddingInlineEnd);
     const mark =
       ground &&
       (element.childElementCount === 0 || look.display.startsWith('inline-') || within(own));
@@ -636,6 +653,7 @@ function geometry(root: Document): Finding[] {
 function controls(root: Document): Finding[] {
   const found: Finding[] = [];
   const phone = matchMedia('(max-width: 47.9375rem)').matches;
+  const hits: { target: Element; own: DOMRect; hit: DOMRect }[] = [];
   for (const target of audited(root, INTERACTIVE)) {
     if (target.matches("input[type='checkbox'], input[type='radio']")) continue;
     if (getComputedStyle(target).opacity === '0') continue;
@@ -649,8 +667,32 @@ function controls(root: Document): Finding[] {
       width: Math.max(box.width, ...extensions.map((pseudo) => parseFloat(pseudo.width) || 0)),
       height: Math.max(box.height, ...extensions.map((pseudo) => parseFloat(pseudo.height) || 0))
     };
+    // WCAG 2.5.8 spares a link inside a sentence, which shares its line with words of its own;
+    // a link alone in a list item or a cell is a target like any other.
     const inline =
-      target.matches('a') && target.parentElement?.matches('p, li, dd, figcaption, span');
+      target.matches('a') &&
+      [...(target.parentElement?.childNodes ?? [])].some(
+        (node) => node !== target && node.nodeType === Node.TEXT_NODE && node.textContent?.trim()
+      );
+    hits.push({
+      target,
+      own: box,
+      hit: extensions.reduce((area, pseudo) => {
+        const left = box.left + parseFloat(pseudo.left);
+        const top = box.top + parseFloat(pseudo.top);
+        const right = left + parseFloat(pseudo.width);
+        const bottom = top + parseFloat(pseudo.height);
+        if (![left, top, right, bottom].every(Number.isFinite)) return area;
+        const x = Math.min(area.left, left);
+        const y = Math.min(area.top, top);
+        return new DOMRect(
+          x,
+          y,
+          Math.max(area.right, right) - x,
+          Math.max(area.bottom, bottom) - y
+        );
+      }, box)
+    });
     const floor = phone ? 44 : 24;
     if (!inline && (r.width < floor - 0.01 || r.height < floor - 0.01))
       found.push(
@@ -661,6 +703,19 @@ function controls(root: Document): Finding[] {
         )
       );
   }
+
+  // Two targets that stand apart must not reach into each other's grown hit area, or a press
+  // between them lands on whichever the browser stacks last. A control laid over a bigger one,
+  // such as a clear button in a field, overlaps on purpose and is left alone.
+  const meet = (a: DOMRect, b: DOMRect) =>
+    Math.min(a.right, b.right) - Math.max(a.left, b.left) > 0.5 &&
+    Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top) > 0.5;
+  for (const [index, one] of hits.entries())
+    for (const other of hits.slice(index + 1)) {
+      if (one.target.contains(other.target) || other.target.contains(one.target)) continue;
+      if (meet(one.own, other.own) || !meet(one.hit, other.hit)) continue;
+      found.push(finding('L-38', one.target, `its hit area overlaps ${describe(other.target)}'s`));
+    }
 
   const disabledOpacity = parseFloat(
     getComputedStyle(root.documentElement).getPropertyValue('--sui-disabled-opacity')
@@ -906,13 +961,19 @@ function wrapping(root: Document): Finding[] {
     const style = getComputedStyle(row);
     if (!style.display.endsWith('flex') || style.flexWrap === 'nowrap') continue;
     if (!style.flexDirection.startsWith('row')) continue;
-    if (/center|around|evenly|end|right/.test(style.justifyContent)) continue;
+    const rtl = style.direction === 'rtl';
+    // `left` and `right` are physical, so the one that is the end depends on the direction.
+    if (/center|around|evenly|end/.test(style.justifyContent)) continue;
+    if (style.justifyContent.includes(rtl ? 'left' : 'right')) continue;
     const items = [...row.children].filter(
       (child) => shown(child) && !/^(absolute|fixed)$/.test(getComputedStyle(child).position)
     );
     if (items.length < 2) continue;
     const box = row.getBoundingClientRect();
-    const start = box.left + parseFloat(style.borderLeftWidth) + parseFloat(style.paddingLeft);
+    // A line starts at the inline start, which is the right edge in a right-to-left row.
+    const start = rtl
+      ? box.right - parseFloat(style.borderRightWidth) - parseFloat(style.paddingRight)
+      : box.left + parseFloat(style.borderLeftWidth) + parseFloat(style.paddingLeft);
     let bottom = items[0].getBoundingClientRect().bottom;
     for (const item of items.slice(1)) {
       const own = item.getBoundingClientRect();
@@ -921,12 +982,13 @@ function wrapping(root: Document): Finding[] {
         continue;
       }
       bottom = own.bottom;
-      if (Math.abs(own.left - start) > 1)
+      const edge = rtl ? own.right : own.left;
+      if (Math.abs(edge - start) > 1)
         found.push(
           finding(
             'L-90',
             item,
-            `a wrapped line starts ${round(own.left - start)}px from the row's start`
+            `a wrapped line starts ${round(Math.abs(edge - start))}px from the row's start`
           )
         );
     }
@@ -1146,7 +1208,9 @@ function wholePixels(root: Document): Finding[] {
       !/^(absolute|fixed)$/.test(look.position)
     );
   };
-  for (const element of audited(root, 'main *')) {
+  // SVG content is drawn in user units, not laid out in boxes: a text's box is its glyphs' own
+  // extent and is fractional by nature, so only the svg element itself is measured.
+  for (const element of audited(root, 'main *:not(svg *)')) {
     if (!counts(element)) continue;
     const height = element.getBoundingClientRect().height;
     if (!fractional(height)) continue;
@@ -1179,7 +1243,7 @@ function wholePixels(root: Document): Finding[] {
     return border || outline || rgba(look.backgroundColor).a > 0;
   };
   const named = new Set<Element>();
-  for (const element of audited(root, 'main *')) {
+  for (const element of audited(root, 'main *:not(svg, svg *)')) {
     if (!fractional(top(element)) || !edged(element) || !still(element)) continue;
     let born = element;
     while (
@@ -1274,6 +1338,58 @@ function codeLines(root: Document): Finding[] {
 }
 
 /**
+ * A press never selects words (L-42): every control a reader presses, text links aside, sets
+ * `user-select: none`, so a double press or a press that drags never highlights its label.
+ */
+function pressSelection(root: Document): Finding[] {
+  const found: Finding[] = [];
+  const pressable =
+    "button, select, summary, [role='menuitem'], [role='option'], [role='tab'], label:has(input:is([type='checkbox'], [type='radio'])), a[href]";
+  const textLinks = '.sui-link, .sui-back-link, .sui-skip-link, .sui-breadcrumb a, p a';
+  for (const control of audited(root, `main :is(${pressable})`)) {
+    if (control.matches(textLinks) || !(control as HTMLElement).innerText?.trim()) continue;
+    const look = getComputedStyle(control);
+    if ((look.userSelect || look.webkitUserSelect) !== 'none')
+      found.push(finding('L-42', control, 'a press can select its words'));
+  }
+  return found;
+}
+
+/**
+ * What a chart draws (L-5, L-66): its words hold 4.5:1 on the plot's ground, and every mark that
+ * carries data holds 3:1 there, unless the mark also prints its value (`data-labelled`). Grid
+ * lines are a backdrop and are spared.
+ */
+function chartInk(root: Document): Finding[] {
+  const found: Finding[] = [];
+  for (const svg of audited(root, 'svg:has(text, path, circle, rect, line)')) {
+    if (!svg.closest('.sui-chart')) continue;
+    const ground = paintedGround(svg);
+    for (const text of svg.querySelectorAll('text')) {
+      if (!shown(text) || !text.textContent?.trim()) continue;
+      const ratio = contrast(over(rgba(getComputedStyle(text).fill), ground), ground);
+      if (ratio < 4.5)
+        found.push(finding('L-5', text, `chart text contrast ${round(ratio)} under 4.5`));
+    }
+    for (const mark of svg.querySelectorAll('path, circle, rect, line, polyline')) {
+      if (!shown(mark) || mark.matches('.grid, [data-labelled], [data-labelled] *')) continue;
+      // A marker may wear a ring of the ground around its fill, so the stronger of the two
+      // paints is the one that shows the mark.
+      const look = getComputedStyle(mark);
+      const paints = [
+        look.stroke !== 'none' && parseFloat(look.strokeWidth) > 0 ? look.stroke : 'none',
+        look.fill
+      ].filter((paint) => paint !== 'none' && rgba(paint).a > 0);
+      if (paints.length === 0) continue;
+      const ratio = Math.max(...paints.map((paint) => contrast(over(rgba(paint), ground), ground)));
+      if (ratio < 3)
+        found.push(finding('L-66', mark, `a data mark holds ${round(ratio)}:1, under 3`));
+    }
+  }
+  return found;
+}
+
+/**
  * Rings in full (L-96): an outline or a ring shadow at rest is never cut by a clipping box.
  * Focus rings are walked by keyboard in the browser suite, through the same two helpers.
  */
@@ -1309,5 +1425,7 @@ register(
   leadingIcons,
   wholePixels,
   rings,
-  codeLines
+  codeLines,
+  chartInk,
+  pressSelection
 );

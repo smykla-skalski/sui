@@ -15,7 +15,7 @@
 
 <Example
   title="Fits and clipped"
-  note="Each label has 16rem, and only the clipped ones answer a hover with their whole text"
+  note="Each label has 16rem, and only the clipped ones show their whole text on hover and take a tab stop to show it on focus"
   layout="grid"
 >
   <Specimen label="Fits">
@@ -39,7 +39,8 @@
   .frame {
     color: var(--sui-text-primary);
     display: flex;
-    font: 500 var(--sui-font-size-control) / var(--sui-leading-meta) var(--sui-sans);
+    font: var(--sui-weight-medium) var(--sui-font-size-control) / var(--sui-leading-meta)
+      var(--sui-sans);
     inline-size: min(100%, 16rem);
   }
 

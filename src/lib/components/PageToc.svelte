@@ -14,15 +14,21 @@
   let {
     entries,
     title = 'On this page',
+    level = 2,
     offset,
+    onnavigate,
     class: className = '',
     ...rest
   }: {
     entries: readonly TocEntry[];
     /** The column's own label and the landmark's name. Not one of the entries. */
     title?: string;
+    /** The title's heading level; group headings sit one level below it. */
+    level?: 2 | 3 | 4 | 5;
     /** The height of a bar that sticks above the page, which the index sticks under. */
     offset?: string;
+    /** Called when an entry is followed. */
+    onnavigate?: (event: MouseEvent, entry: TocEntry) => void;
     /** Layout for the call site only, never the index's own paint. */
     class?: HTMLAttributes<HTMLElement>['class'];
   } & Omit<HTMLAttributes<HTMLElement>, 'title'> = $props();
@@ -56,7 +62,24 @@
     else if (row.bottom > bottom) nav.scrollTop += row.bottom - bottom;
   });
 
-  /** The reader's place: the last section whose top has crossed the reading line. */
+  /** The box the sections scroll in: a pane that scrolls them, or the page. */
+  function scroller(section: HTMLElement): HTMLElement | null {
+    const page = document.documentElement;
+    for (
+      let node = section.parentElement;
+      node && node !== document.body && node !== page;
+      node = node.parentElement
+    ) {
+      if (
+        /auto|scroll/.test(getComputedStyle(node).overflowY) &&
+        node.scrollHeight > node.clientHeight + 1
+      )
+        return node;
+    }
+    return null;
+  }
+
+  /** The reader's place: the last section whose top has crossed the top quarter of its scroller. */
   function mark(): void {
     const sections = entries
       .map((entry) => document.getElementById(entry.id))
@@ -65,12 +88,16 @@
       );
     const first = sections[0];
     if (!first) return;
-    const root = document.documentElement;
-    if (window.scrollY + window.innerHeight >= root.scrollHeight - 1 && window.scrollY > 1) {
+    const pane = scroller(first);
+    const page = document.documentElement;
+    const [scrolled, seen, whole] = pane
+      ? [pane.scrollTop, pane.clientHeight, pane.scrollHeight]
+      : [window.scrollY, window.innerHeight, page.scrollHeight];
+    if (scrolled + seen >= whole - 1 && scrolled > 1) {
       here = sections.at(-1)?.id ?? null;
       return;
     }
-    const line = window.innerHeight / 4;
+    const line = (pane ? pane.getBoundingClientRect().top : 0) + seen / 4;
     let found = first.id;
     for (const section of sections) {
       if (section.getBoundingClientRect().top <= line) found = section.id;
@@ -96,17 +123,18 @@
     target.focus({ preventScroll: true });
   }
 
-  function follow(event: MouseEvent, id: string): void {
+  function follow(event: MouseEvent, entry: TocEntry): void {
+    onnavigate?.(event, entry);
     if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) {
       return;
     }
-    const section = reveal(id);
+    const section = reveal(entry.id);
     if (!section) return;
     if (!matchMedia('(prefers-reduced-motion: reduce)').matches) {
       event.preventDefault();
       section.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      history.pushState(null, '', `#${id}`);
-      here = id;
+      history.pushState(null, '', `#${entry.id}`);
+      here = entry.id;
     }
     land(section);
   }
@@ -119,20 +147,25 @@
     } else mark();
   }
 
+  // Scroll events do not bubble, so one listener in the capture phase hears the page and any
+  // pane the sections scroll in, and the reading line is found once a frame.
   $effect(() => {
-    // The band is the top quarter of the viewport: a section is current once its top
-    // crosses it, and the observer says when that might have changed.
-    const observer = new IntersectionObserver(mark, { rootMargin: '0px 0px -75% 0px' });
-    for (const entry of entries) {
-      const section = document.getElementById(entry.id);
-      if (section) observer.observe(section);
-    }
+    void entries;
+    let frame = 0;
+    const onscroll = () => {
+      cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(mark);
+    };
+    addEventListener('scroll', onscroll, { capture: true, passive: true });
     arrive();
-    return () => observer.disconnect();
+    return () => {
+      cancelAnimationFrame(frame);
+      removeEventListener('scroll', onscroll, { capture: true });
+    };
   });
 </script>
 
-<svelte:window onhashchange={arrive} onscrollend={mark} />
+<svelte:window onhashchange={arrive} />
 
 <!--
 @component
@@ -142,13 +175,28 @@ section. When the reader allows motion the index scrolls there smoothly and reco
 itself, and otherwise the browser follows the link as it would any other. Either way focus
 moves to the section's first heading, or to the section, so the next Tab starts there.
 
-The current entry turns its rule to the brand ink and is announced with
-`aria-current="location"`. It follows the URL hash on arrival, then the last section whose
-top has crossed the top quarter of the viewport, and the last section once the page is
+The current entry wears the current mark every navigation list shares: the neutral selection
+plate inside a `--sui-border-strong` ring, which holds 3:1, with semibold primary ink, and
+`Highlight` under forced colors. It is announced with `aria-current="location"`. It follows
+the URL hash on arrival, then the last section whose top has crossed the top quarter of the
+box the sections scroll in, the page or a pane, and the last section once that box is
 scrolled to its end. The index sticks to the top of the viewport inside whatever column it
 is given, or under a sticky bar as tall as `offset`, and fills the height below, padding its
 own top and bottom, so a long index scrolls out at that edge. Placing it beside the content,
 or leaving it out on a phone, is the page's layout.
+
+- Semantics: a `nav` landmark named by `title`, with the title as a heading at `level`, group headings one level below, and lists of fragment links, the current one with `aria-current="location"`.
+- Content: entries with an id and a label that wraps, optionally grouped under a heading.
+- States: rest, hover (a row ground), pressed (the pressed ground and an inset shadow), focus (a 2px inset ring) and current (the plate inside its ring, semibold).
+- Keyboard: Tab moves through the entries and Enter follows one, moving focus to the section's heading.
+- Pointer and touch: entries are 28px tall on a desktop pointer and 44px on a phone or a coarse pointer, across the column's width.
+- Focus: following an entry moves focus to its section's first heading, or the section, which takes a temporary `tabindex`.
+- Responsive: the index sticks and scrolls inside itself, keeping the current entry in view; the page decides where it stands.
+- Accessibility: the current entry is announced, its ring holds 3:1 and every entry's ink 4.5:1.
+- Localization: `title` is a prop with an English default; the entries follow the reading direction.
+- Performance: one capture listener reads the sections' places once a frame while anything scrolls; it suits tens of sections.
+- Analytics: `onnavigate(event, entry)` reports every followed entry.
+- Failure: an entry whose section is missing or hidden is never current and its link still works as a fragment link; an empty `entries` draws only the title.
 -->
 
 <nav
@@ -158,9 +206,11 @@ or leaving it out on a phone, is the page's layout.
   style:--sui-local-toc-offset={offset}
   aria-label={title}
 >
-  <p class="sui-page-toc-title">{title}</p>
+  <svelte:element this={`h${level}`} class="sui-page-toc-title">{title}</svelte:element>
   {#each groups as group, index (group.label ?? index)}
-    {#if group.label}<p class="sui-page-toc-group">{group.label}</p>{/if}
+    {#if group.label}<svelte:element this={`h${level + 1}`} class="sui-page-toc-group"
+        >{group.label}</svelte:element
+      >{/if}
     <ul class="sui-page-toc-list">
       {#each group.items as entry (entry.id)}
         <li>
@@ -169,7 +219,7 @@ or leaving it out on a phone, is the page's layout.
             class="sui-page-toc-link"
             href="#{entry.id}"
             aria-current={here === entry.id ? 'location' : undefined}
-            onclick={(event) => follow(event, entry.id)}
+            onclick={(event) => follow(event, entry)}
             ><span class="sui-page-toc-label">{entry.label}</span></a
           >
         </li>
@@ -203,7 +253,8 @@ or leaving it out on a phone, is the page's layout.
   .sui-page-toc-group {
     block-size: var(--sui-block-snap);
     color: var(--sui-text-secondary);
-    font: 600 var(--sui-font-size-compact) / var(--sui-leading-compact) var(--sui-sans);
+    font: var(--sui-weight-semibold) var(--sui-font-size-compact) / var(--sui-leading-compact)
+      var(--sui-sans);
     margin: var(--sui-space-5) 0 var(--sui-space-2);
     text-box: trim-both cap alphabetic;
   }
@@ -211,7 +262,8 @@ or leaving it out on a phone, is the page's layout.
   .sui-page-toc-title {
     block-size: var(--sui-block-snap);
     color: var(--sui-text-muted);
-    font: 600 var(--sui-font-size-micro) / var(--sui-leading-micro) var(--sui-sans);
+    font: var(--sui-weight-semibold) var(--sui-font-size-micro) / var(--sui-leading-micro)
+      var(--sui-sans);
     letter-spacing: 0.06em;
     margin: 0 0 var(--sui-space-2);
     text-box: trim-both cap alphabetic;
@@ -228,35 +280,40 @@ or leaving it out on a phone, is the page's layout.
 
   .sui-page-toc-link {
     align-items: center;
-    border-inline-start: 2px solid var(--sui-border-divider);
-    border-end-end-radius: var(--sui-radius-chip);
-    border-start-end-radius: var(--sui-radius-chip);
+    border-radius: var(--sui-radius-control);
     box-sizing: border-box;
     color: var(--sui-text-muted);
     display: flex;
-    font: 400 var(--sui-font-size-meta) / var(--sui-leading-meta) var(--sui-sans);
+    font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-leading-meta)
+      var(--sui-sans);
     min-block-size: var(--sui-tier-quiet);
     overflow-wrap: anywhere;
     padding: var(--sui-space-1) var(--sui-space-3);
+    position: relative;
     text-decoration: none;
     transition:
       background-color var(--sui-duration-fast) var(--sui-ease-standard),
-      border-color var(--sui-duration-fast) var(--sui-ease-standard),
-      color var(--sui-duration-fast) var(--sui-ease-standard);
+      color var(--sui-duration-fast) var(--sui-ease-standard),
+      box-shadow var(--sui-duration-press) var(--sui-ease-standard);
+    -webkit-tap-highlight-color: transparent;
+    -webkit-user-select: none;
+    user-select: none;
   }
 
-  .sui-page-toc-link:hover {
-    background: var(--sui-row-hover);
-    color: var(--sui-text-primary);
+  @media (hover: hover) {
+    .sui-page-toc-link:hover:not(:active, [aria-current='location']) {
+      background: var(--sui-row-hover);
+      color: var(--sui-text-primary);
+    }
   }
 
   .sui-page-toc-link:active {
     background: var(--sui-row-pressed);
+    box-shadow: var(--sui-pressed-inset);
+    color: var(--sui-text-primary);
   }
 
-  /* The ring rounds every corner, though the resting row is square on its rule side. */
   .sui-page-toc-link:focus-visible {
-    border-radius: var(--sui-radius-control);
     outline: var(--sui-focus-ring-width) solid var(--sui-focus);
     outline-offset: var(--sui-focus-ring-inset);
   }
@@ -266,12 +323,33 @@ or leaving it out on a phone, is the page's layout.
     text-box: trim-both cap alphabetic;
   }
 
-  /* The reader's place, not a choice they made: said with the rule and the ink, never
-     with a filled ground. */
+  /* The current mark every navigation list shares: the selection plate inside a ring that holds
+     3:1, on all four sides so it is never an edge strip, laid over the row so it moves nothing. */
   .sui-page-toc-link[aria-current='location'] {
-    border-inline-start-color: var(--sui-brand-action);
+    background: var(--sui-surface-inset);
     color: var(--sui-text-primary);
-    font-weight: 600;
+    font-weight: var(--sui-weight-semibold);
+  }
+
+  .sui-page-toc-link[aria-current='location']::before {
+    border: var(--sui-stroke) solid var(--sui-border-strong);
+    border-radius: inherit;
+    content: '';
+    inset: 0;
+    pointer-events: none;
+    position: absolute;
+  }
+
+  @media (max-width: 47.9375rem), (pointer: coarse) {
+    .sui-page-toc-link {
+      min-block-size: var(--sui-touch-target);
+    }
+  }
+
+  @media (forced-colors: active) {
+    .sui-page-toc-link[aria-current='location']::before {
+      border: var(--sui-stroke-bold) solid Highlight;
+    }
   }
 
   @media (prefers-reduced-motion: reduce) {

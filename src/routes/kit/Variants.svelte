@@ -109,14 +109,16 @@ stage, each row folds into a block whose cells carry their own column names.
   .cell-label {
     block-size: var(--sui-block-snap);
     color: var(--sui-text-muted);
-    font: 600 var(--sui-font-size-micro) / var(--sui-leading-micro) var(--sui-sans);
+    font: var(--sui-weight-semibold) var(--sui-font-size-micro) / var(--sui-leading-micro)
+      var(--sui-sans);
     letter-spacing: 0.06em;
     text-box: trim-both cap alphabetic;
     text-transform: uppercase;
   }
 
   .corner code {
-    font: 400 var(--sui-font-size-micro) / var(--sui-leading-micro) var(--sui-mono);
+    font: var(--sui-weight-regular) var(--sui-font-size-micro) / var(--sui-leading-micro)
+      var(--sui-mono);
     letter-spacing: 0;
     text-transform: none;
   }
@@ -124,7 +126,8 @@ stage, each row folds into a block whose cells carry their own column names.
   .row-label {
     block-size: var(--sui-block-snap);
     color: var(--sui-text-secondary);
-    font: 400 var(--sui-font-size-micro) / var(--sui-leading-micro) var(--sui-mono);
+    font: var(--sui-weight-regular) var(--sui-font-size-micro) / var(--sui-leading-micro)
+      var(--sui-mono);
     font-variant-numeric: tabular-nums;
     text-box: trim-both cap alphabetic;
   }

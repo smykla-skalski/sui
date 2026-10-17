@@ -4,11 +4,14 @@
   let {
     invalid = false,
     disabled = false,
+    readonly = false,
     start,
     end
   }: {
     invalid?: boolean;
     disabled?: boolean;
+    /** The value only reads, so the field drops its fill and its strong baseline. */
+    readonly?: boolean;
     /** The part a reader types or reads in, drawn `bare`. */
     start: Snippet;
     /** The part that qualifies or acts on it, such as a unit or a copy control, drawn `bare`. */
@@ -18,13 +21,28 @@
 
 <!--
 One field that holds a value and a part that qualifies or acts on it, such as an amount and its
-unit or a link and its copy control. It owns the one frame, the one focus ring, the editing ground
-and the error and disabled looks, so the pair reads as a single control. Each part is drawn
-`bare`: the value fills the field, and the end part sits inside it, after the value, with no line
-between them.
+unit or a link and its copy control. It owns the one frame, the editing ground and the error and
+disabled looks, so the pair reads as a single control. Each part is drawn `bare`: the value
+fills the field, and the end part sits inside it, after the value, with no line between them.
+
+The ring says which part holds focus: the whole field wears it while the value has focus, and
+the end part draws its own inset ring while it has focus, so the two never look the same.
+
+- Semantics: a `<div>` with no role around two native controls, each named on its own.
+- Content: `start`, the value, and `end`, one unit picker or one action, each drawn `bare`.
+- States: rest (the control fill, a quiet frame and a 3:1 baseline), hover (a firmer frame), the value focused (the inset fill and a flush 2px ring), the end focused (its own inset ring), invalid (a danger edge on all four sides in every state), read-only and disabled (0.7 opacity).
+- Keyboard: Tab moves from the value to the end part, each with its own keys.
+- Pointer and touch: the frame is the control height, 34px or 44px on a phone or any touch screen, and each part keeps its own target.
+- Focus: it never moves focus; each part keeps its own.
+- Responsive: it fills up to its container, the value shrinks first, and the end part keeps its width.
+- Accessibility: each part has its own name; the baseline holds 3:1 and the ring 3:1 on every ground.
+- Localization: it draws no words, and the end part sits at the inline end in either direction.
+- Performance: two parts in one clipped frame; only edge and fill colours change.
+- Analytics: none of its own; each part reports through its own callbacks.
+- Failure: an invalid value keeps the danger edge whichever part has focus, and the words that say why belong to the host.
 -->
 
-<div class={['sui-joined', { invalid, disabled }]}>
+<div class={['sui-joined', { invalid, disabled, readonly }]}>
   <div class="sui-joined-value">{@render start()}</div>
   <div class="sui-joined-end">{@render end()}</div>
 </div>
@@ -33,7 +51,7 @@ between them.
   .sui-joined {
     background-color: var(--sui-control-bg);
     block-size: var(--sui-local-control-height, var(--sui-control-height-compact));
-    border: 1px solid var(--sui-field-frame);
+    border: var(--sui-stroke) solid var(--sui-field-frame);
     border-block-end-color: var(--sui-field-border);
     border-radius: var(--sui-radius-control);
     box-sizing: border-box;
@@ -48,23 +66,32 @@ between them.
       border-color var(--sui-duration-fast) var(--sui-ease-standard);
   }
 
-  .sui-joined:hover:not(.disabled, :has(:global(:focus-visible))) {
-    border-color: var(--sui-field-frame-hover);
-    border-block-end-color: var(--sui-field-border-hover);
+  @media (hover: hover) {
+    .sui-joined:hover:not(.disabled, .readonly, .invalid, :has(:global(:focus-visible))) {
+      border-color: var(--sui-field-frame-hover);
+      border-block-end-color: var(--sui-field-border-hover);
+    }
   }
 
-  .sui-joined.invalid:not(:has(:global(:focus-visible))) {
-    border-color: var(--sui-danger);
-  }
-
-  /* The whole field takes the editing ground and the ring, whichever part holds focus. A
-     bordered control is flush: its edge takes the focus color under the 2px ring (L-41). The
-     focused part belongs to another component, so the state is looked up globally. */
-  .sui-joined:has(:global(:focus-visible)) {
+  /* The field takes the editing ground and the ring while the value has focus. A bordered
+     control is flush: its edge takes the focus color under the 2px ring (L-41). The focused
+     part belongs to another component, so the state is looked up globally. */
+  .sui-joined:has(.sui-joined-value :global(:focus-visible)) {
     background-color: var(--sui-input-bg);
     border-color: var(--sui-focus);
     outline: var(--sui-focus-ring-width) solid var(--sui-focus);
     outline-offset: var(--sui-focus-ring-flush);
+  }
+
+  .readonly,
+  .readonly:has(.sui-joined-value :global(:focus-visible)) {
+    background-color: transparent;
+    border-block-end-color: var(--sui-field-frame);
+  }
+
+  .invalid,
+  .invalid:has(.sui-joined-value :global(:focus-visible)) {
+    border-color: var(--sui-danger);
   }
 
   .disabled {
@@ -82,6 +109,13 @@ between them.
     display: flex;
     flex: none;
     padding-inline-end: var(--sui-control-inset);
+  }
+
+  /* High contrast paints every edge in one colour, so an invalid field says so with a 2px edge. */
+  @media (forced-colors: active) {
+    .invalid {
+      border-width: var(--sui-stroke-bold);
+    }
   }
 
   @media (prefers-reduced-motion: reduce) {

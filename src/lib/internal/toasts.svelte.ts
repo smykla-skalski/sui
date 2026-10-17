@@ -2,6 +2,9 @@ import { untrack } from 'svelte';
 
 export type ToastTone = 'neutral' | 'danger';
 
+/** How a toast left: its Dismiss, its clock, its action, or `dismiss()` from code. */
+export type ToastEnd = 'dismissed' | 'expired' | 'acted' | 'withdrawn';
+
 export type ToastOptions = {
   title: string;
   /** Adds to the title and never repeats it. */
@@ -10,6 +13,8 @@ export type ToastOptions = {
   tone?: ToastTone;
   /** One way back or forward, such as Undo. The toast stays until it runs or is dismissed. */
   action?: { label: string; run: () => void };
+  /** Runs once when the toast leaves, with how it left. */
+  ondismiss?: (reason: ToastEnd) => void;
 };
 
 export type Toast = ToastOptions & {
@@ -23,6 +28,17 @@ let last = 0;
 
 /** What `Toaster` draws, oldest first. */
 export const toasts = $state<Toast[]>([]);
+
+/**
+ * The words and timing every `Toaster` uses, including the ones each `Modal` draws for itself.
+ * The page's `Toaster` sets them from its props, so a dialog's toasts speak the page's language.
+ */
+export const toaster = $state({
+  dismissLabel: 'Dismiss',
+  label: 'Notifications',
+  linger: 5000,
+  hotkey: 'F8'
+});
 
 /**
  * Open modal dialogs, topmost last. A modal dialog makes the rest of the page inert, so the
@@ -50,7 +66,10 @@ export function toast(options: ToastOptions): number {
   return id;
 }
 
-export function dismiss(id: number): void {
+/** Takes a toast back. `reason` is what its `ondismiss` hears, `withdrawn` from code. */
+export function dismiss(id: number, reason: ToastEnd = 'withdrawn'): void {
   const index = toasts.findIndex((item) => item.id === id);
-  if (index !== -1) toasts.splice(index, 1);
+  if (index === -1) return;
+  const [gone] = toasts.splice(index, 1);
+  gone.ondismiss?.(reason);
 }

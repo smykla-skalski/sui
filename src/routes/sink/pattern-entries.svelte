@@ -28,31 +28,41 @@
 
 <Example
   title="States"
-  note="Each pattern is edited where it stands, a problem stands 8px under its entry, and an empty list is only its add button"
+  note="A problem shows once its entry is left, a removal offers Undo, and a pasted list adds one entry per line"
   layout="grid"
 >
   <Specimen label="With problems" code="validate">
-    <PatternEntries bind:value={branches} {validate} addLabel="Add a branch pattern" />
+    <PatternEntries
+      bind:value={branches}
+      {validate}
+      aria-label="Branches to skip"
+      addLabel="Add a branch pattern"
+    />
   </Specimen>
   <Specimen label="Empty" code="bind:value">
-    <PatternEntries bind:value={paths} />
+    <PatternEntries bind:value={paths} aria-label="Paths to skip" />
   </Specimen>
   <Specimen label="Disabled" code="disabled">
     <div class="locked">
-      <PatternEntries value={['docs/**', 'CHANGELOG.md']} disabled />
-      <p class="reason">A parent workspace sets these patterns</p>
+      <PatternEntries
+        value={['docs/**', 'CHANGELOG.md']}
+        disabled
+        aria-label="Paths a parent leaves alone"
+        aria-describedby="sink-pattern-locked"
+      />
+      <p id="sink-pattern-locked" class="reason">A parent workspace sets these patterns</p>
     </div>
   </Specimen>
 </Example>
 
 <Example
   title="Narrow width"
-  note="A long pattern scrolls inside its field and the cross stays beside it"
+  note="A field takes the room it has, and a pattern longer than that scrolls inside it with the cross beside it"
   layout="stack"
 >
   <Specimen label="Long pattern">
     <div class="narrow">
-      <PatternEntries bind:value={long} />
+      <PatternEntries bind:value={long} aria-label="Paths to skip" />
     </div>
   </Specimen>
 </Example>
@@ -67,7 +77,8 @@
   .reason {
     block-size: var(--sui-block-snap);
     color: var(--sui-text-secondary);
-    font: 400 var(--sui-font-size-meta) / var(--sui-row-copy-leading) var(--sui-sans);
+    font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-row-copy-leading)
+      var(--sui-sans);
     margin: 0;
     text-box: trim-both cap alphabetic;
   }

@@ -8,7 +8,7 @@
 </script>
 
 <script lang="ts">
-  import { HeatmapChart, LineChart, RangeChart, ScatterChart } from '#lib';
+  import { Button, HeatmapChart, LineChart, RangeChart, ScatterChart } from '#lib';
   import Example from '../kit/Example.svelte';
   import Specimen from '../kit/Specimen.svelte';
 
@@ -74,8 +74,23 @@
   const ranges = [
     { label: 'Planning', start: 12, end: 29, marker: 22 },
     { label: 'Design', start: 19, end: 37, marker: 30 },
-    { label: 'Build', start: 25, end: 48, marker: 39 }
+    { label: 'Build', start: 25, end: 48 }
   ];
+  /* Two readings never arrived, so the line skips them and says how many it left out. */
+  const gappy = [
+    {
+      id: 'north',
+      label: 'North',
+      points: [
+        { x: 1, y: 18 },
+        { x: 2, y: Number.NaN },
+        { x: 3, y: 23 },
+        { x: 4, y: Number.NaN },
+        { x: 5, y: 31 }
+      ]
+    }
+  ];
+
   const heatmap = [
     { row: 'Morning', column: 'Mon', value: 12 },
     { row: 'Morning', column: 'Tue', value: 19 },
@@ -113,13 +128,13 @@
 
 <Example
   title="Ranges and matrices"
-  note="A range marks a point inside each interval, and a missing cell in a matrix stays neutral"
+  note="A range marks a diamond inside an interval, and a matrix prints every value, with a dashed cell where one is missing"
   layout="stack"
 >
   <Specimen label="Range" code="data valueLabel">
     <RangeChart
       title="Work ranges"
-      description="The neutral marker shows the selected point in each range"
+      description="Each diamond shows when work started inside its planned window"
       data={ranges}
       valueLabel="Hours"
     />
@@ -135,9 +150,62 @@
   </Specimen>
 </Example>
 
-<Example title="No data" note="An empty chart says so in words">
-  <Specimen label="Empty" code={'series={[]}'}>
-    <LineChart title="New project" description="Nothing has been measured yet" series={[]} />
+<Example
+  title="States"
+  note="Each state says itself in words: a placeholder while loading, a line over updating or aging values, and a way out of a failure"
+>
+  <Specimen label="Loading" code={'status="loading"'}>
+    <LineChart
+      title="Signups by week"
+      description="Signups each region added per week"
+      series={[]}
+      status="loading"
+    />
+  </Specimen>
+  <Specimen label="Refreshing" code={'status="refreshing"'}>
+    <LineChart
+      title="Orders by week"
+      description="North and south grew over four weeks"
+      series={trend}
+      xLabel="Week"
+      yLabel="Orders"
+      status="refreshing"
+    />
+  </Specimen>
+  <Specimen label="Stale" code={'status="stale" staleLabel'}>
+    <LineChart
+      title="Deploys by week"
+      description="North and south grew over four weeks"
+      series={trend}
+      xLabel="Week"
+      yLabel="Deploys"
+      status="stale"
+      staleLabel="Last updated 3 hours ago"
+    />
+  </Specimen>
+  <Specimen label="Failed" code={'status="failed" error onretry'}>
+    <LineChart
+      title="Errors by week"
+      description="Errors each region reported per week"
+      series={[]}
+      status="failed"
+      error="The metrics service did not answer. Try again in a minute."
+      onretry={() => {}}
+    />
+  </Specimen>
+  <Specimen label="Partial" code="series">
+    <LineChart
+      title="Daily readings"
+      description="North kept rising on the days it reported"
+      series={gappy}
+      xLabel="Day"
+      yLabel="Items"
+    />
+  </Specimen>
+  <Specimen label="Empty" code={'series={[]} emptyAction'}>
+    <LineChart title="New project" description="Nothing has been measured yet" series={[]}>
+      {#snippet emptyAction()}<Button>Connect a data source</Button>{/snippet}
+    </LineChart>
   </Specimen>
 </Example>
 

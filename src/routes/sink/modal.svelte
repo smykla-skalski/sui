@@ -55,6 +55,24 @@
   let notes = $state('');
   let notesDraft = $state('');
   let note = $state('');
+  let renaming = $state(false);
+  let renameBusy = $state(false);
+  let renameError = $state<string | undefined>();
+  let newName = $state('smyklot');
+
+  function rename(): void {
+    renameError = undefined;
+    renaming = true;
+  }
+
+  // The sink's server always refuses, so the dialog shows its pending and failed states.
+  function saveName(): void {
+    renameBusy = true;
+    setTimeout(() => {
+      renameBusy = false;
+      renameError = 'Another repository in this workspace already has that name';
+    }, 900);
+  }
 
   function editWebhook(): void {
     webhookDraft = $state.snapshot(webhook);
@@ -102,10 +120,7 @@
           />
         {/snippet}
       </Field>
-      <div class="field">
-        <span class="label" aria-hidden="true">Events</span>
-        <SegmentedControl label="Events" options={eventOptions} value="push" />
-      </div>
+      <SegmentedControl label="Events" options={eventOptions} value="push" />
       {#snippet footer()}
         <Button>Cancel</Button>
         <Button tone="signal">Save webhook</Button>
@@ -160,6 +175,42 @@
 </Example>
 
 <Example
+  title="States"
+  note="A save in progress refuses every way out, and a failed save keeps the fields and says why above the actions"
+  layout="stack"
+  ground="canvas"
+>
+  <Specimen label="Saving" code="busy preview">
+    <Modal
+      preview
+      busy
+      title="Rename repository"
+      description="Links to the old name redirect for a year"
+    >
+      <Field label="Name" value="smyklot-next" />
+      {#snippet footer()}
+        <Button>Cancel</Button>
+        <Button tone="signal" loading>Rename repository</Button>
+      {/snippet}
+    </Modal>
+  </Specimen>
+  <Specimen label="Save failed" code="error preview">
+    <Modal
+      preview
+      title="Rename repository"
+      description="Links to the old name redirect for a year"
+      error="Another repository in this workspace already has that name"
+    >
+      <Field label="Name" value="smyklot" />
+      {#snippet footer()}
+        <Button>Cancel</Button>
+        <Button tone="signal">Rename repository</Button>
+      {/snippet}
+    </Modal>
+  </Specimen>
+</Example>
+
+<Example
   title="Opening"
   note="Each size opens over a scrim on a copy of its record, and only Save writes the copy back"
 >
@@ -181,6 +232,9 @@
   <Specimen label="Guarded" code="beforeClose">
     <Button onclick={() => (guarded = true)}>Write a note</Button>
   </Specimen>
+  <Specimen label="Failing save" code="busy error">
+    <Button onclick={rename}>Rename repository</Button>
+  </Specimen>
 </Example>
 
 <Modal
@@ -199,10 +253,7 @@
       />
     {/snippet}
   </Field>
-  <div class="field">
-    <span class="label" aria-hidden="true">Events</span>
-    <SegmentedControl label="Events" options={eventOptions} bind:value={webhookDraft.events} />
-  </div>
+  <SegmentedControl label="Events" options={eventOptions} bind:value={webhookDraft.events} />
   <CheckList label="Teams to notify" options={teamOptions} bind:value={webhookDraft.teams} />
   {#snippet footer()}
     <Button onclick={() => (webhookOpen = false)}>Cancel</Button>
@@ -286,6 +337,20 @@
   {/snippet}
 </Modal>
 
+<Modal
+  bind:open={renaming}
+  title="Rename repository"
+  description="Links to the old name redirect for a year"
+  busy={renameBusy}
+  error={renameError}
+>
+  <Field label="Name" bind:value={newName} />
+  {#snippet footer()}
+    <Button disabled={renameBusy} onclick={() => (renaming = false)}>Cancel</Button>
+    <Button tone="signal" loading={renameBusy} onclick={saveName}>Rename repository</Button>
+  {/snippet}
+</Modal>
+
 <ConfirmDialog
   bind:open={discard}
   title="Discard the note?"
@@ -297,17 +362,3 @@
     guarded = false;
   }}
 />
-
-<style>
-  .field {
-    display: grid;
-    gap: var(--sui-space-2);
-  }
-
-  .label {
-    block-size: var(--sui-block-snap);
-    color: var(--sui-text-primary);
-    font: 600 var(--sui-font-size-control) / var(--sui-leading-flat) var(--sui-sans);
-    text-box: trim-both cap alphabetic;
-  }
-</style>

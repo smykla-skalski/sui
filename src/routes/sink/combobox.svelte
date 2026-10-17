@@ -8,7 +8,7 @@
 </script>
 
 <script lang="ts">
-  import { Combobox, Field } from '#lib';
+  import { Button, Combobox, Field } from '#lib';
   import Example from '../kit/Example.svelte';
   import Specimen from '../kit/Specimen.svelte';
 
@@ -42,9 +42,25 @@
     );
   }
 
+  /* The directory never answers, so the refused state shows on the first letters typed. */
+  function offline(): Promise<typeof accounts> {
+    return new Promise((_, reject) =>
+      setTimeout(() => reject(new Error('The directory is offline')), 300)
+    );
+  }
+
   let language = $state('ts');
   let label = $state('');
   let reviewer = $state('');
+  let owner = $state('');
+  let runtime = $state('rust');
+  let primary = $state('rb');
+  let sent = $state('Nothing sent yet');
+
+  function send(event: SubmitEvent & { currentTarget: HTMLFormElement }): void {
+    event.preventDefault();
+    sent = `Sent ${new FormData(event.currentTarget).get('runtime') || 'nothing'}`;
+  }
 </script>
 
 <Example
@@ -90,9 +106,35 @@
 
 <Example
   title="States"
-  note="A disabled field keeps its value in view and says why under it"
+  note="A refused value keeps its danger edge, a refused search says so, and a disabled field says why under it"
   layout="grid"
 >
+  <Specimen label="Invalid" code="invalid">
+    <Field label="Primary language" error="Ruby is retired, so pick another language">
+      {#snippet control({ id, describedby, invalid })}
+        <Combobox
+          {id}
+          aria-describedby={describedby}
+          {invalid}
+          options={languages}
+          bind:value={primary}
+        />
+      {/snippet}
+    </Field>
+  </Specimen>
+  <Specimen label="Search refused" code="search">
+    <Field label="Owner" hint="Type a name to look it up">
+      {#snippet control({ id, describedby })}
+        <Combobox
+          {id}
+          aria-describedby={describedby}
+          search={offline}
+          bind:value={owner}
+          placeholder="octocat"
+        />
+      {/snippet}
+    </Field>
+  </Specimen>
   <Specimen label="Disabled" code="disabled">
     <Field label="Language" hint="The template sets the language for every new repository">
       {#snippet control({ id, describedby })}
@@ -103,8 +145,30 @@
 </Example>
 
 <Example
+  title="In a form"
+  note="The form posts the chosen value, never its label, and a label typed in full picks its option"
+>
+  <Specimen label={sent} code="name">
+    <form class="form" onsubmit={send}>
+      <Field label="Runtime">
+        {#snippet control({ id, describedby })}
+          <Combobox
+            {id}
+            aria-describedby={describedby}
+            name="runtime"
+            options={languages}
+            bind:value={runtime}
+          />
+        {/snippet}
+      </Field>
+      <Button type="submit">Save the runtime</Button>
+    </form>
+  </Specimen>
+</Example>
+
+<Example
   title="Open"
-  note="The open list drawn in place, with the current value as the active row"
+  note="The open list drawn in place, with the current value as the active row and its check"
   layout="grid"
 >
   <Specimen label="Open" code="preview">
@@ -115,3 +179,12 @@
     </Field>
   </Specimen>
 </Example>
+
+<style>
+  .form {
+    display: grid;
+    gap: var(--sui-space-4);
+    justify-items: stretch;
+    min-inline-size: 0;
+  }
+</style>

@@ -89,7 +89,13 @@ test('L-2 every token read is declared and every declared token is read', () => 
   ].filter((name) => !declared.has(name) && !local.has(name));
   assert.deepEqual(unresolved, [], 'tokens read without a declaration');
 
-  const readNames = new Set([...sources.matchAll(/var\((--sui-[a-z0-9-]+)/g)].map((m) => m[1]));
+  const readNames = new Set(
+    [
+      ...sources.matchAll(/var\((--sui-[a-z0-9-]+)/g),
+      // Script reads a token by its quoted name, as `getPropertyValue('--sui-…')` does.
+      ...sources.matchAll(/'(--sui-[a-z0-9-]+)'/g)
+    ].map((m) => m[1])
+  );
   const tokens = tokenMap(stripComments(palette));
   const queue = [...readNames];
   while (queue.length > 0) {
@@ -101,7 +107,7 @@ test('L-2 every token read is declared and every declared token is read', () => 
       }
   }
   const scales =
-    /^--sui-(space|font-size|leading|icon|layer|duration|radius|rhythm|ease|control-height|tier|chart|focus-ring|primitive)-/;
+    /^--sui-(space|font-size|leading|icon|layer|duration|radius|ease|control-height|tier|chart|focus-ring|primitive)-/;
   const unread = [...declared].filter((name) => !readNames.has(name) && !scales.test(name));
   assert.deepEqual(unread, [], 'tokens declared but never read');
 });
@@ -130,6 +136,19 @@ test('L-4 a derived token is restated in every palette block', () => {
     (name) => !(name in dark) && reads(name).some((inner) => changed.has(inner))
   );
   assert.deepEqual(stale, []);
+});
+
+test('L-4 a page with no theme chosen follows the system to the same dark block', () => {
+  // The indented copy wraps differently, so values compare with their whitespace folded.
+  const folded = (/** @type {Record<string, string>} */ map) =>
+    Object.fromEntries(
+      Object.entries(map).map(([name, value]) => [
+        name,
+        value.replace(/\s+/g, ' ').replace(/\( /g, '(').replace(/ \)/g, ')')
+      ])
+    );
+  const system = tokenMap(block(':root:not([data-theme], [data-sui-theme])'));
+  assert.deepEqual(folded(system), folded(dark));
 });
 
 test('L-18 two families with the faces and weights Smyklot ships', () => {
@@ -240,11 +259,41 @@ test('L-53 radii come from the radius tokens', () => {
   );
 });
 
-test('L-68 icon sizes are named px tiers', () => {
+test('L-53 edges are a stroke token wide', () => {
+  assert.deepEqual(
+    violations(({ property, value }) => {
+      const bare = value.replace(/var\([^()]*(\([^()]*\))*[^()]*\)/g, 'var()');
+      const edge =
+        /^(border|outline|column-rule)(-(block|inline|top|right|bottom|left)(-(start|end))?)?(-width)?$/.test(
+          property
+        ) && /(?<![\w.-])[1-9]\d*(\.\d+)?px\b/.test(bare);
+      const ring = property === 'box-shadow' && /\b0 0 0 [1-9]\d*(\.\d+)?px\b/.test(bare);
+      return edge || ring ? 'literal edge width' : null;
+    }),
+    []
+  );
+});
+
+test('a side that differs from its opposite is written along the reading direction', () => {
+  assert.deepEqual(
+    violations(({ property, value }) => {
+      if (/^(left|right)$|-(left|right)(-|$)/.test(property) && !/radius/.test(property))
+        return 'physical side';
+      if (!/^(padding|margin|inset|border-(width|style|color))$/.test(property)) return null;
+      const parts = value.match(/(?:[a-z-]+\((?:[^()]|\([^()]*\))*\)|[^\s()]+)/g) ?? [];
+      return parts.length === 4 && parts[1] !== parts[3] ? 'right differs from left' : null;
+    }),
+    []
+  );
+});
+
+test('L-68 icon sizes are named tiers that grow with the text and land on whole pixels', () => {
   for (const [name, value] of Object.entries(tokenMap(stripComments(palette))).filter(([name]) =>
     name.startsWith('--sui-icon-')
-  ))
-    assert.match(value, /^\d+px$/, name);
+  )) {
+    const rem = value.match(/^round\(([\d.]+)rem, 1px\)$/)?.[1];
+    assert.ok(rem && Number.isInteger(parseFloat(rem) * 16), `${name}: ${value}`);
+  }
   const literal = svelteFiles.flatMap((path) =>
     [...read(path).matchAll(/<Icon\b[^>]*\bsize=\{(\d+)\}/g)]
       .filter(([, size]) => Number(size) <= 18)
@@ -256,7 +305,7 @@ test('L-68 icon sizes are named px tiers', () => {
 test('L-72 stacking order comes from the layer tokens', () => {
   assert.deepEqual(
     violations(({ property, value }) =>
-      property === 'z-index' && !/^var\(--sui-layer-[a-z-]+\)$|^[0-3]$|^auto$/.test(value)
+      property === 'z-index' && !/^var\(--sui-layer-[a-z-]+\)$|^auto$/.test(value)
         ? 'layer off the scale'
         : null
     ),
@@ -311,10 +360,68 @@ test('L-83 every exported component has a contract and a kitchen sink section', 
   ];
   assert.ok(exported.length > 0);
   const sink = globSync('src/routes/sink/*.svelte').map(read).join('\n');
+  const items = [
+    'Semantics',
+    'Content',
+    'States',
+    'Keyboard',
+    'Pointer and touch',
+    'Focus',
+    'Responsive',
+    'Accessibility',
+    'Localization',
+    'Performance',
+    'Analytics',
+    'Failure'
+  ];
   for (const [, name, file] of exported) {
-    assert.match(read(`src/lib/${file}`), /@component\n/, `${name} has an @component contract`);
+    const source = read(`src/lib/${file}`);
+    assert.match(source, /@component\n/, `${name} has an @component contract`);
+    const contract = source.slice(
+      source.indexOf('@component'),
+      source.indexOf('-->', source.indexOf('@component'))
+    );
+    const missing = items.filter((item) => !new RegExp(`^- ${item}:`, 'm').test(contract));
+    assert.deepEqual(missing, [], `${name}'s contract leaves out these items`);
     assert.match(sink, new RegExp(`\\b${name}\\b`), `${name} appears in the kitchen sink`);
   }
+});
+
+test('L-98 hover paint sits behind a pointer that can hover', () => {
+  /** Drops every block opened by `opener`, so whatever is left stands outside them. */
+  const without = (/** @type {string} */ css, /** @type {RegExp} */ opener) => {
+    let rest = css;
+    for (let match = opener.exec(rest); match; match = opener.exec(rest)) {
+      let depth = 0;
+      let end = rest.indexOf('{', match.index);
+      for (; end < rest.length; end++) {
+        if (rest[end] === '{') depth++;
+        if (rest[end] === '}' && --depth === 0) break;
+      }
+      rest = rest.slice(0, match.index) + rest.slice(end + 1);
+    }
+    return rest;
+  };
+  const bare = Object.entries(styles)
+    .filter(([path]) => path.startsWith('src/lib/'))
+    .filter(([, css]) => /:hover/.test(without(stripComments(css), /@media\s*\(hover:\s*hover\)/)))
+    .map(([path]) => path);
+  assert.deepEqual(bare, []);
+});
+
+test('L-99 the layout changes only at the palette breakpoints', () => {
+  const tokens = tokenMap(stripComments(palette));
+  const phone = tokens['--sui-breakpoint-phone'];
+  const wide = tokens['--sui-breakpoint-wide'];
+  // A min-width query starts where the max-width one ends, a sixteenth of a rem on.
+  const allowed = new Set([phone, wide, `${parseFloat(phone) + 0.0625}rem`]);
+  const found = [];
+  for (const [path, css] of Object.entries(styles))
+    if (path.startsWith('src/lib/'))
+      for (const [query] of stripComments(css).matchAll(/@media[^{]+/g))
+        for (const [, length] of query.matchAll(/(?:min|max)-width:\s*([\d.]+rem)/g))
+          if (!allowed.has(length)) found.push(`${path}: ${query.trim()}`);
+  assert.deepEqual(found, []);
 });
 
 test('L-84 no nested :has() and no control characters', () => {

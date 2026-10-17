@@ -16,6 +16,7 @@
 
   let query = $state('');
   let people = $state('Grace');
+  let teams = $state('');
   let filter = $state('atlas');
   const matches = $derived(
     repositories.filter((name) => name.includes(filter.trim().toLowerCase()))
@@ -24,7 +25,7 @@
 
 <Example
   title="States"
-  note="Empty, then filled with its clear button, and Escape clears the query before it closes anything"
+  note="Empty, filled with its clear button and with its label drawn, and Escape clears the query before it closes anything"
   layout="grid"
 >
   <Specimen label="Empty" code="placeholder">
@@ -32,6 +33,9 @@
   </Specimen>
   <Specimen label="Filled" code="bind:value">
     <SearchField label="Search the people" placeholder="Search people" bind:value={people} />
+  </Specimen>
+  <Specimen label="Drawn label" code="showLabel">
+    <SearchField label="Search the teams" showLabel placeholder="Platform" bind:value={teams} />
   </Specimen>
 </Example>
 
@@ -52,7 +56,7 @@
 
 <Example
   title="In context"
-  note="A line under the field says how many match, so the field never disables itself"
+  note="A status under the field says how many match and a screen reader hears it, so the field never disables itself"
   layout="grid"
 >
   <div class="filter">
@@ -61,7 +65,7 @@
       placeholder="Filter repositories"
       bind:value={filter}
     />
-    <p class="result">{matches.length} of {repositories.length} repositories match</p>
+    <p class="result" role="status">{matches.length} of {repositories.length} repositories match</p>
   </div>
 </Example>
 
@@ -97,7 +101,8 @@
 
   .result {
     color: var(--sui-text-secondary);
-    font: 400 var(--sui-font-size-meta) / var(--sui-leading-meta) var(--sui-sans);
+    font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-leading-meta)
+      var(--sui-sans);
     font-variant-numeric: tabular-nums;
     margin: 0;
   }

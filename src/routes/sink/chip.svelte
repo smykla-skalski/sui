@@ -97,7 +97,7 @@
 
 <Example
   title="Removable"
-  note="Each remove control names its value, and focus moves to the next one after a removal"
+  note="Each remove control names its value, a removal is announced, and focus moves to the next control"
 >
   <Specimen label="Remove and refocus" code="onremove">
     <div class="group" role="group" aria-label="Labels">
@@ -106,6 +106,15 @@
       {:else}
         <span class="empty">No labels</span>
       {/each}
+    </div>
+  </Specimen>
+  <Specimen label="Disabled" code="onremove disabled">
+    <div class="held">
+      <div class="group" role="group" aria-label="Locked labels" aria-describedby="sink-chip-held">
+        <Chip mono label="team:platform" onremove={() => {}} disabled />
+        <Chip mono label="v2.9.1" onremove={() => {}} disabled />
+      </div>
+      <p id="sink-chip-held" class="empty">Labels are locked while the release runs</p>
     </div>
   </Specimen>
 </Example>
@@ -143,8 +152,16 @@
     outline-offset: var(--sui-focus-ring-offset);
   }
 
+  .held {
+    display: grid;
+    gap: var(--sui-row-copy-gap);
+    min-inline-size: 0;
+  }
+
   .empty {
     color: var(--sui-text-muted);
-    font: 400 var(--sui-font-size-meta) / var(--sui-leading-meta) var(--sui-sans);
+    font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-leading-meta)
+      var(--sui-sans);
+    margin: 0;
   }
 </style>

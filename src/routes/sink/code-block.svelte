@@ -87,10 +87,7 @@ channel = "stable"`;
   </Specimen>
 </Example>
 
-<Example
-  title="Copy control"
-  note="It shows on hover and focus, always on touch, and says Copied for 1.6 seconds"
->
+<Example title="Copy control" note="It names what it copies and says Copied for 1.6 seconds">
   <Specimen label="Default name" code="text">
     <CopyButton text="npm install @smykla-skalski/sui" />
   </Specimen>
@@ -100,4 +97,32 @@ channel = "stable"`;
   <Specimen label="Toolbar tier, 34px" code="toolbar">
     <CopyButton text="https://sui.smyklot.com" label="Copy link" toolbar />
   </Specimen>
+  <Specimen label="Disabled" code="disabled">
+    <div class="copy-locked">
+      <CopyButton
+        text="ghp_example"
+        label="Copy token"
+        disabled
+        aria-describedby="sink-copy-token-reason"
+      />
+      <p id="sink-copy-token-reason" class="copy-reason">The token was revoked</p>
+    </div>
+  </Specimen>
 </Example>
+
+<style>
+  .copy-locked {
+    display: grid;
+    gap: var(--sui-row-copy-gap);
+    justify-items: start;
+  }
+
+  .copy-reason {
+    block-size: var(--sui-block-snap);
+    color: var(--sui-text-secondary);
+    font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-row-copy-leading)
+      var(--sui-sans);
+    margin: 0;
+    text-box: trim-both cap alphabetic;
+  }
+</style>

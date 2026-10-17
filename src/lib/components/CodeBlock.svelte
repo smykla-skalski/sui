@@ -150,6 +150,8 @@
     lineNumbers = false,
     copy = true,
     bare = false,
+    regionLabel = 'Code',
+    copyLabel = 'Copy code',
     class: className = '',
     ...rest
   }: {
@@ -162,6 +164,10 @@
     copy?: boolean;
     /** Drops the block's own frame, for a host that already frames it. */
     bare?: boolean;
+    /** The scroller's name when it scrolls and has no `label`. */
+    regionLabel?: string;
+    /** The copy control's name, saying what it copies. */
+    copyLabel?: string;
     /** Layout for the call site only, never the block's own paint. */
     class?: HTMLAttributes<HTMLElement>['class'];
   } & HTMLAttributes<HTMLElement> = $props();
@@ -180,15 +186,27 @@ A block that scrolls can take keyboard focus, so it can be scrolled without a po
 `lineNumbers` draws a gutter in the gutter ink at full opacity, which never selects or
 copies. Selected code is opaque, in the selection colors. `label` names the file above the
 code, and `bare` drops the frame for a host that frames the block itself. `html` colors markup,
-Svelte templates included. The copy control sits in the corner, shows on hover and on focus, and always shows on
-a device without hover. It copies `code` exactly as given.
--->
+Svelte templates included. The copy control stands in its own column at the end of the block,
+always in view and never over the code. It copies `code` exactly as given.
 
+- Semantics: a `figure` whose `figcaption` is the file name; the code is a `pre`, and a scroller that scrolls is a focusable `region` named by the label or `regionLabel`.
+- Content: plain text in one of six languages, any number of lines; long lines never wrap, and the block scrolls sideways instead.
+- States: at rest, scrolling (a tab stop with the 2px inset ring on focus), and the copy control's own copied and failed states.
+- Keyboard: Tab reaches a block that scrolls and then its copy control, and the arrow keys scroll a focused block.
+- Pointer and touch: the copy control is 28px, 44px on a phone or touch screen, and always shown; selection works as in any text.
+- Focus: it never moves focus; the copy control keeps focus through its copied state.
+- Responsive: the block fills its column and its lines scroll inside it at every width; the copy column keeps its place at the end.
+- Accessibility: tokens hold 4.5:1 on the code ground, the gutter is hidden from assistive technology, and the scroller is named only when it is a tab stop.
+- Localization: `regionLabel` and `copyLabel` carry the built-in words; the code always reads left to right (`dir="ltr"`) in a right-to-left page, while the file name follows the page.
+- Performance: tokenizing is a handful of patterns per line and runs again only when `code` changes; one observer per block watches for overflow.
+- Analytics: none of its own; the copy control reports its copy.
+- Failure: an empty `code` draws one empty line; a language it does not know is drawn as plain text.
+-->
 <figure {...rest} class={['sui-code-block', { bare }, className]}>
   {#if label !== undefined}
     <figcaption class="sui-code-block-label">{label}</figcaption>
   {/if}
-  <div class={['sui-code-block-body', { single: lines.length === 1, copyable: copy }]}>
+  <div class={['sui-code-block-body', { single: lines.length === 1 }]} dir="ltr">
     <!-- A block that scrolls sideways must be reachable by keyboard to be scrolled. -->
     <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
     <pre
@@ -196,7 +214,8 @@ a device without hover. It copies `code` exactly as given.
       class="sui-code-block-scroll"
       tabindex={scrolls ? 0 : undefined}
       role={scrolls ? 'region' : undefined}
-      aria-label={scrolls ? (label ?? 'Code') : undefined}><code class={{ numbered: lineNumbers }}
+      aria-label={scrolls ? (label ?? regionLabel) : undefined}><code
+        class={{ numbered: lineNumbers }}
         >{#each lines as line, index (index)}<span class="ln"
             >{#if lineNumbers}<span class="no" aria-hidden="true">{index + 1}</span>{/if}<span
               class="src"
@@ -207,7 +226,7 @@ a device without hover. It copies `code` exactly as given.
           >{/each}</code
       ></pre>
     {#if copy}
-      <div class="sui-code-block-copy"><CopyButton text={code} label="Copy code" /></div>
+      <div class="sui-code-block-copy"><CopyButton text={code} label={copyLabel} /></div>
     {/if}
   </div>
 </figure>
@@ -215,7 +234,7 @@ a device without hover. It copies `code` exactly as given.
 <style>
   .sui-code-block {
     background: var(--sui-surface-code);
-    border: 1px solid var(--sui-border-subtle);
+    border: var(--sui-stroke) solid var(--sui-border-subtle);
     border-radius: var(--sui-radius-control);
     box-sizing: border-box;
     color: var(--sui-text-primary);
@@ -229,22 +248,26 @@ a device without hover. It copies `code` exactly as given.
   }
 
   .sui-code-block-label {
-    border-block-end: 1px solid var(--sui-border-divider);
+    border-block-end: var(--sui-stroke) solid var(--sui-border-divider);
     color: var(--sui-text-secondary);
-    font: 400 var(--sui-font-size-micro) / var(--sui-leading-micro) var(--sui-mono);
+    font: var(--sui-weight-regular) var(--sui-font-size-micro) / var(--sui-leading-micro)
+      var(--sui-mono);
     font-variant-numeric: tabular-nums;
     letter-spacing: 0.04em;
     overflow-wrap: anywhere;
     padding: var(--sui-space-2) var(--sui-space-3);
   }
 
+  /* The copy control has a column of its own at the end, so it never covers a line. */
   .sui-code-block-body {
-    position: relative;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
   }
 
   .sui-code-block-scroll {
     border-radius: inherit;
-    font: 400 var(--sui-font-size-meta) / var(--sui-leading-meta) var(--sui-mono);
+    font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-leading-meta)
+      var(--sui-mono);
     font-variant-numeric: tabular-nums;
     margin: 0;
     overflow-x: auto;
@@ -297,11 +320,6 @@ a device without hover. It copies `code` exactly as given.
     padding-inline-start: 0;
   }
 
-  /* The copy control covers the end of the first line, so that line can scroll clear of it. */
-  .copyable .ln:first-child .src {
-    padding-inline-end: calc(var(--sui-space-8) * 2 + var(--sui-space-2));
-  }
-
   .sui-code-block-scroll::selection,
   .sui-code-block-scroll *::selection {
     background: var(--sui-code-selection-bg);
@@ -330,44 +348,22 @@ a device without hover. It copies `code` exactly as given.
 
   .tok-head {
     color: var(--sui-code-key);
-    font-weight: 500;
+    font-weight: var(--sui-weight-medium);
   }
 
-  /* 2px off the corner, so the 28px control ends above the second line's ink. */
+  /* 2px off the corner, as the first line's air is, so the control lines up with it. */
   .sui-code-block-copy {
+    align-self: start;
     display: flex;
-    inset-block-start: calc(var(--sui-space-1) / 2);
-    inset-inline-end: calc(var(--sui-space-1) / 2);
-    opacity: 0;
-    position: absolute;
-    transition: opacity var(--sui-duration-fast) var(--sui-ease-standard);
+    padding: calc(var(--sui-space-1) / 2);
   }
 
   /* One line: the control centres on it, and the line is as tall as the control. */
   .single .sui-code-block-copy {
-    align-items: center;
-    inset-block: 0;
+    align-self: center;
   }
 
-  .single.copyable .ln {
+  .single:has(.sui-code-block-copy) .ln {
     min-block-size: var(--sui-tier-quiet);
-  }
-
-  .sui-code-block-body:hover .sui-code-block-copy,
-  .sui-code-block-copy:focus-within,
-  .sui-code-block-copy:has(:global([data-copied])) {
-    opacity: 1;
-  }
-
-  @media (hover: none) {
-    .sui-code-block-copy {
-      opacity: 1;
-    }
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    .sui-code-block-copy {
-      transition: none;
-    }
   }
 </style>

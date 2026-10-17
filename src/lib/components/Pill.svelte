@@ -6,12 +6,15 @@
   import type { Snippet } from 'svelte';
   import type { HTMLAttributes } from 'svelte/elements';
   import Icon, { type IconName } from '../icons/Icon.svelte';
+  import VisuallyHidden from './VisuallyHidden.svelte';
 
   let {
     tone = 'neutral',
     icon,
     dot = false,
     live = false,
+    dotLabel = 'now',
+    liveLabel = 'live',
     class: className = '',
     children,
     ...rest
@@ -22,8 +25,12 @@
     icon?: IconName;
     /** Marks a state that is true right now rather than a fixed attribute. */
     dot?: boolean;
-    /** Pulses the dot, for a state arriving as it happens. */
+    /** Pulses the dot once, for a state arriving as it happens. */
     live?: boolean;
+    /** Said after the label for `dot`, so the mark is heard as well as seen. */
+    dotLabel?: string;
+    /** Said after the label for `live`. */
+    liveLabel?: string;
     class?: HTMLAttributes<HTMLSpanElement>['class'];
     children: Snippet;
   } & Omit<HTMLAttributes<HTMLSpanElement>, 'children'> = $props();
@@ -37,9 +44,20 @@ and nothing to press, so it never reads as a control. Reach for `Chip` for a val
 label, a pattern or a count.
 
 `role` wears violet and belongs to the standing somebody holds over everyone else's. The
-outcome tones always come with their word, so color never carries the state alone. `dot` marks
-a state that is true right now, and `live` sets the dot pulsing; under reduced motion the pulse
-stops and the dot stays. A long label wraps inside the pill, so no word is ever cut.
+outcome tones always come with their word, so color never carries the state alone.
+
+- Semantics: a `span` of text; give it `role="status"` when its state changes while the reader is on the page, so the new word is spoken.
+- Content: one short status word or phrase, with an optional icon, `dot` or `live` mark before it; a long label wraps inside the pill, so no word is cut.
+- States: one per tone; `dot` marks a state true right now, and `live` pulses that dot once, for under 3 seconds, then keeps it still (WCAG 2.2.2).
+- Keyboard: none, because nothing in it is pressable.
+- Pointer and touch: none, because it is not a target.
+- Focus: never takes focus.
+- Responsive: as wide as its words, up to its container, and taller as they wrap.
+- Accessibility: the word carries the state; `dotLabel` or `liveLabel` is spoken after it, so the mark is not color or motion alone; each tone's ink holds 4.5:1 on its tint.
+- Localization: `dotLabel` and `liveLabel` are props with English defaults; the mark sits at the inline start and follows the reading direction.
+- Performance: no script; the one pulse animates only scale and opacity.
+- Analytics: none, because a reader does nothing with a pill.
+- Failure: an empty label draws a bare mark, so always pass the word; under reduced motion the pulse never runs and the dot stays.
 -->
 
 <span {...rest} class={['sui-pill', className]} data-tone={tone}>
@@ -50,18 +68,20 @@ stops and the dot stays. A long label wraps inside the pill, so no word is ever 
     <span class={['sui-pill-dot', { live }]} aria-hidden="true"></span>
   {/if}
   <span class="sui-pill-label">{@render children()}</span>
+  {#if dot || live}<VisuallyHidden>, {live ? liveLabel : dotLabel}</VisuallyHidden>{/if}
 </span>
 
 <style>
   .sui-pill {
     align-items: center;
     background: var(--sui-neutral-tint);
-    border-radius: var(--sui-radius-chip);
+    border-radius: var(--sui-radius-pill);
     box-sizing: border-box;
     color: var(--sui-text-secondary);
     display: inline-flex;
     flex: none;
-    font: 600 var(--sui-font-size-micro) / var(--sui-leading-tight) var(--sui-sans);
+    font: var(--sui-weight-semibold) var(--sui-font-size-micro) / var(--sui-leading-tight)
+      var(--sui-sans);
     gap: var(--sui-space-1);
     inline-size: fit-content;
     max-inline-size: 100%;
@@ -108,16 +128,16 @@ stops and the dot stays. A long label wraps inside the pill, so no word is ever 
   .sui-pill-dot {
     background: currentColor;
     block-size: 0.375rem;
-    border-radius: var(--sui-radius-chip);
+    border-radius: var(--sui-radius-pill);
     flex: none;
     inline-size: 0.375rem;
     position: relative;
   }
 
   /* The ring grows and fades through scale and opacity, so the pulse moves nothing else and
-     never paints a glow. */
+     never paints a glow. It runs once: motion that lasts past 5 seconds needs a pause control. */
   .live::after {
-    animation: sui-pill-live var(--sui-rhythm-live) var(--sui-ease-standard) infinite;
+    animation: sui-pill-live var(--sui-duration-live) var(--sui-ease-standard);
     background: currentColor;
     border-radius: inherit;
     content: '';

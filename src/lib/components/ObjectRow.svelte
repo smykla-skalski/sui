@@ -23,14 +23,26 @@
 
 <!--
 @component
-One row of an `ObjectList`. It pads 12px and draws a 1px hairline inset by that padding,
-which the hovered row hides along with the one above it, so the hover ground never sits on
-a line. On a phone the side drops under the main content and packs to the start.
+One row of an `ObjectList`. It pads 12px and draws a 1px hairline inset by that padding, which
+the hovered row hides along with the one above it, so the hover ground never sits on a line.
 
-With `href` the whole row is a link through a layer under the content, so a control inside
-it, such as an `IconButton`, a `RelativeTime` or a switch, stays pressable and never
-navigates. The link is named by the main content. A row without `href` stays still under
-the pointer: hover and press only answer on a row that opens something.
+With `href` the whole row is a link through a layer under the content, so a control inside it,
+such as an `IconButton`, a `RelativeTime` or a switch, stays pressable and never navigates. A
+row without `href` stays still under the pointer: hover and press only answer on a row that
+opens something.
+
+- Semantics: an `li`; with `href`, an `a` under the content, named by the main content through `aria-labelledby`.
+- Content: `main`, the name and what the row says about it, and an optional `side` of standings, values and controls.
+- States: rest; with `href`, hover (the row ground, where the pointer can hover), pressed (a deeper ground and a 1px sink) and focus (an inset ring on the row).
+- Keyboard: the row link is one tab stop, then each control inside the row; Enter follows the link.
+- Pointer and touch: the whole row is the link's target, at least 44px tall with its padding; controls inside keep their own targets.
+- Focus: the ring is drawn inside the row, so a list that clips never cuts it.
+- Responsive: on a phone the side drops under the main content and packs to the start; rows grow when their content wraps.
+- Accessibility: the link's name is the main content, so a reader hears the row once; the side stays outside the name.
+- Localization: everything it says is the caller's; the side sits at the inline end and follows the reading direction.
+- Performance: no script; hover and press change only the ground and a 1px sink.
+- Analytics: none of its own; the row link is a plain `a`, so the page's navigation tracking hears it.
+- Failure: a row with no `main` content has no name, so always pass one; with nothing to open, leave out `href` and it stays still.
 -->
 
 <li {...rest} class={['sui-object-row', className, { linked: href !== undefined }]}>
@@ -74,13 +86,16 @@ the pointer: hover and press only answer on a row that opens something.
   }
 
   /* The hit comes first, so the content painted after it stacks above it without a
-     z-index; the content lets the pointer through and its controls take it back. */
+     z-index; the content lets the pointer through and its controls take it back. The hit holds
+     no words, and the row's names stay selectable as content. */
   .sui-object-row-hit {
     border-radius: inherit;
     color: inherit;
     inset: 0;
     position: absolute;
+    user-select: none;
     -webkit-tap-highlight-color: transparent;
+    -webkit-user-select: none;
   }
 
   .sui-object-row-hit:focus-visible {
@@ -120,8 +135,17 @@ the pointer: hover and press only answer on a row that opens something.
     justify-content: flex-end;
   }
 
-  .sui-object-row:has(> .sui-object-row-hit:hover) {
-    background-color: var(--sui-row-hover);
+  @media (hover: hover) {
+    .sui-object-row:has(> .sui-object-row-hit:hover) {
+      background-color: var(--sui-row-hover);
+    }
+
+    /* The hover ground has round corners and a line crossing its edge reads as a crack, so
+       both of its edges go: this row's line and the one above it. */
+    .sui-object-row:has(> .sui-object-row-hit:hover)::after,
+    .sui-object-row:has(+ :global(li > a[href]:hover))::after {
+      background: transparent;
+    }
   }
 
   .sui-object-row:has(> .sui-object-row-hit:active) {
@@ -133,13 +157,6 @@ the pointer: hover and press only answer on a row that opens something.
   .sui-object-row:has(> .sui-object-row-hit:focus-visible) {
     outline: var(--sui-focus-ring-width) solid var(--sui-focus);
     outline-offset: var(--sui-focus-ring-inset);
-  }
-
-  /* The hover ground has round corners and a line crossing its edge reads as a crack, so
-     both of its edges go: this row's line and the one above it. */
-  .sui-object-row:has(> .sui-object-row-hit:hover)::after,
-  .sui-object-row:has(+ :global(li > a[href]:hover))::after {
-    background: transparent;
   }
 
   @media (max-width: 47.9375rem) {

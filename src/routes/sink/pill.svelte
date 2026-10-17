@@ -8,7 +8,7 @@
 </script>
 
 <script lang="ts">
-  import { Pill, type IconName, type PillTone } from '#lib';
+  import { Button, Pill, type IconName, type PillTone } from '#lib';
   import Example from '../kit/Example.svelte';
   import Specimen from '../kit/Specimen.svelte';
   import Variants from '../kit/Variants.svelte';
@@ -31,11 +31,13 @@
     danger: 'ban',
     role: 'owner'
   };
+
+  let healthy = $state(true);
 </script>
 
 <Example
   title="Tones and marks"
-  note="A status wears its word, a dot marks a state true now, and a live dot pulses unless motion is reduced"
+  note="A status wears its word, a dot marks a state true now, and a live dot pulses once unless motion is reduced"
 >
   <Variants rows={tones} columns={marks} axis="tone" rowLabel={(tone) => `"${tone}"`}>
     {#snippet cell(tone, mark)}
@@ -60,3 +62,26 @@
     <Pill tone="info">Invited to the infrastructure and platform engineering workspace</Pill>
   </Specimen>
 </Example>
+
+<Example
+  title="Changing status"
+  note="A pill whose state changes in place is a status region, so its new word is spoken"
+>
+  <Specimen label="Spoken on change" code={'role="status" dot'}>
+    <span class="row">
+      <Pill role="status" tone={healthy ? 'success' : 'warning'} dot>
+        {healthy ? 'Healthy' : 'Degraded'}
+      </Pill>
+      <Button onclick={() => (healthy = !healthy)}>Change the status</Button>
+    </span>
+  </Specimen>
+</Example>
+
+<style>
+  .row {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--sui-space-3);
+  }
+</style>

@@ -11,19 +11,30 @@
     disabled = false,
     element = $bindable(null),
     class: className = '',
+    onclick,
     ...rest
   }: {
+    /** A glyph every reader reads the same way, such as close, more, search, trash or settings. */
     icon: IconName;
     /** Says what the button does. It is the accessible name and the tooltip both. */
     label: string;
     /** Matches the 34px control tier of the buttons and segmented controls beside it. */
     toolbar?: boolean;
-    /** Turns the glyph while the work this button started is still running. */
+    /** Draws a spinner in place of the glyph and refuses presses while the work it started runs. */
     busy?: boolean;
     disabled?: boolean;
     element?: HTMLButtonElement | null;
     class?: HTMLButtonAttributes['class'];
   } & Omit<HTMLButtonAttributes, 'children' | 'aria-label'> = $props();
+
+  /* `disabled` would drop a focused button's focus to the body, so a busy one keeps its place
+     in the tab order and refuses the press itself, as `Button` does. */
+  const refusing = $derived(busy && !disabled);
+
+  function press(event: MouseEvent & { currentTarget: EventTarget & HTMLButtonElement }) {
+    if (refusing) event.preventDefault();
+    else onclick?.(event);
+  }
 </script>
 
 <!--
@@ -33,7 +44,22 @@ and the tooltip, so an icon button nobody can name cannot be written.
 
 It stands on the 28px quiet tier, which fits a row's margin or the end of a heading; a
 toolbar opts into the 34px tier with `toolbar`. Its states are translucent layers, so it
-steps up from whatever row or card it sits on. Reach for `Button` wherever a word fits.
+steps up from whatever row or card it sits on. Only a glyph every reader reads the same way
+stands alone: close, more, search, trash and settings. Refresh, filter, sort and any other
+action are a `Button` with the word beside the glyph.
+
+- Semantics: a native `<button type="button">` named by `label` through `aria-label`, with the glyph hidden.
+- Content: one glyph from the certain set; the label is a verb phrase such as "Remove the rule".
+- States: rest (muted glyph), hover and open (`aria-expanded`, a veil and primary ink), focus (a flush 2px ring), pressed (a deeper veil, an inset shadow and a 1px sink), busy (a spinner in place of the glyph, at 0.7 opacity) and disabled (0.7 opacity).
+- Keyboard: Tab reaches it and Enter or Space presses it; a busy one refuses both and keeps focus.
+- Pointer and touch: 28px square, or 34px with `toolbar`, and a 44px hit area on a phone or any touch screen.
+- Focus: a press never moves focus and a busy button keeps it; the caller moves focus when the press removes the button.
+- Responsive: square at its tier at every width, never taking a text button's padding.
+- Accessibility: the label is the name and the tooltip, `busy` sets `aria-busy` and `aria-disabled`, and forced colours outline its hover and open states.
+- Localization: `label` is the only word and comes from the caller; directional glyphs mirror in a right-to-left page.
+- Performance: one element and a tooltip that mounts only while shown; only colours, the inset shadow and the 1px sink move, and the spinner stops under reduced motion.
+- Analytics: `onclick` reports each press that runs; a press while busy never calls it.
+- Failure: a press while busy does nothing, and a spinner that stops under reduced motion still differs from the glyph, so busy never reads as disabled alone.
 -->
 
 <button
@@ -42,12 +68,17 @@ steps up from whatever row or card it sits on. Reach for `Button` wherever a wor
   {...rest}
   class={['sui-icon-button', className]}
   class:toolbar
-  class:busy
   aria-label={label}
   aria-busy={busy || undefined}
-  disabled={disabled || busy}
+  aria-disabled={refusing || undefined}
+  {disabled}
+  onclick={press}
 >
-  <Icon name={icon} size="sm" strokeWidth={2} />
+  {#if busy}
+    <span class="sui-icon-button-spinner" aria-hidden="true"></span>
+  {:else}
+    <Icon name={icon} size="sm" strokeWidth={2} />
+  {/if}
 </button>
 <Tooltip anchor={element} text={label} />
 
@@ -69,6 +100,8 @@ steps up from whatever row or card it sits on. Reach for `Button` wherever a wor
     padding: 0;
     position: relative;
     touch-action: manipulation;
+    -webkit-user-select: none;
+    user-select: none;
     transition:
       background-color var(--sui-duration-fast) var(--sui-ease-standard),
       color var(--sui-duration-fast) var(--sui-ease-standard),
@@ -82,12 +115,19 @@ steps up from whatever row or card it sits on. Reach for `Button` wherever a wor
     inline-size: var(--sui-control-height-compact);
   }
 
-  .sui-icon-button:where(:hover, [aria-expanded='true']):not(:disabled) {
+  @media (hover: hover) {
+    .sui-icon-button:hover:not(:disabled, [aria-disabled='true']) {
+      background-color: var(--sui-interactive-hover-layer);
+      color: var(--sui-text-primary);
+    }
+  }
+
+  .sui-icon-button[aria-expanded='true']:not(:disabled) {
     background-color: var(--sui-interactive-hover-layer);
     color: var(--sui-text-primary);
   }
 
-  .sui-icon-button:active:not(:disabled) {
+  .sui-icon-button:active:not(:disabled, [aria-disabled='true']) {
     background-color: var(--sui-interactive-pressed);
     box-shadow: var(--sui-pressed-inset);
     color: var(--sui-text-primary);
@@ -99,13 +139,19 @@ steps up from whatever row or card it sits on. Reach for `Button` wherever a wor
     outline-offset: var(--sui-focus-ring-flush);
   }
 
-  .sui-icon-button:disabled {
+  .sui-icon-button:is(:disabled, [aria-disabled='true']) {
     cursor: default;
     opacity: var(--sui-disabled-opacity);
   }
 
-  .busy :global(svg) {
-    animation: sui-icon-button-spin var(--sui-rhythm-spinner) var(--sui-ease-linear) infinite;
+  .sui-icon-button-spinner {
+    block-size: var(--sui-icon-sm);
+    border: var(--sui-stroke-bold) solid currentColor;
+    border-inline-end-color: transparent;
+    border-radius: 50%;
+    box-sizing: border-box;
+    inline-size: var(--sui-icon-sm);
+    animation: sui-icon-button-spin var(--sui-duration-spinner) var(--sui-ease-linear) infinite;
   }
 
   @keyframes sui-icon-button-spin {
@@ -119,11 +165,11 @@ steps up from whatever row or card it sits on. Reach for `Button` wherever a wor
       transition: none;
     }
 
-    .sui-icon-button:active:not(:disabled) {
+    .sui-icon-button:active:not(:disabled, [aria-disabled='true']) {
       translate: none;
     }
 
-    .busy :global(svg) {
+    .sui-icon-button-spinner {
       animation: none;
     }
   }
@@ -134,6 +180,19 @@ steps up from whatever row or card it sits on. Reach for `Button` wherever a wor
       content: '';
       inset: calc((100% - var(--sui-touch-target)) / 2);
       position: absolute;
+    }
+  }
+
+  /* High contrast drops the veils, so an open or hovered button draws its edge instead. */
+  @media (forced-colors: active) {
+    .sui-icon-button[aria-expanded='true']:not(:focus-visible) {
+      outline: var(--sui-stroke) solid Highlight;
+    }
+  }
+
+  @media (hover: hover) and (forced-colors: active) {
+    .sui-icon-button:hover:not(:disabled, [aria-disabled='true'], :focus-visible) {
+      outline: var(--sui-stroke) solid Highlight;
     }
   }
 </style>

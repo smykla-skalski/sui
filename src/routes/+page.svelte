@@ -115,10 +115,15 @@
   // header has scrolled away. Their place keeps its height, so nothing below it moves.
   let slot = $state<HTMLElement | null>(null);
   let compact = $state(false);
+  // The slot keeps the box the tools had in it while they ride in the fixed bar, so the header
+  // keeps its wrap and the page under it never moves when the bar comes or goes.
+  let held = $state({ inline: 0, block: 0 });
   $effect(() => {
     if (!slot) return;
     const watcher = new IntersectionObserver(([entry]) => {
-      compact = !entry.isIntersecting && entry.boundingClientRect.bottom <= 0;
+      const next = !entry.isIntersecting && entry.boundingClientRect.bottom <= 0;
+      if (next && !compact && slot) held = { inline: slot.offsetWidth, block: slot.offsetHeight };
+      compact = next;
     });
     watcher.observe(slot);
     return () => watcher.disconnect();
@@ -148,7 +153,12 @@
     description="Every component in every state, measured against the design laws on every render"
   >
     {#snippet actions()}
-      <div class="slot" bind:this={slot}>
+      <div
+        class="slot"
+        bind:this={slot}
+        style:inline-size={compact ? `${held.inline}px` : undefined}
+        style:block-size={compact ? `${held.block}px` : undefined}
+      >
         <div class={['tools', { compact }]}>
           <p class="tools-title" aria-hidden="true">Kitchen sink</p>
           <!-- Without the index column, this is the way across the sections. -->
@@ -216,7 +226,7 @@
   .tools.compact {
     animation: sink-bar-in var(--sui-duration-normal) var(--sui-ease-out);
     background: var(--sui-canvas);
-    border-block-end: 1px solid var(--sui-border-divider);
+    border-block-end: var(--sui-stroke) solid var(--sui-border-divider);
     box-sizing: border-box;
     inset-block-start: 0;
     inset-inline: 0;
@@ -240,7 +250,8 @@
     block-size: var(--sui-block-snap);
     color: var(--sui-text-primary);
     display: none;
-    font: 600 var(--sui-font-size-control) / var(--sui-leading-flat) var(--sui-sans);
+    font: var(--sui-weight-semibold) var(--sui-font-size-control) / var(--sui-leading-flat)
+      var(--sui-sans);
     margin: 0;
     text-box: trim-both cap alphabetic;
   }

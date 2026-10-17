@@ -1,5 +1,4 @@
 import { getContext, setContext } from 'svelte';
-import type { Attachment } from 'svelte/attachments';
 
 /** `drawer` is a phone, `collapsed` the labelled icon strip on a wide screen, `full` everything else. */
 export type ShellMode = 'full' | 'collapsed' | 'drawer';
@@ -7,6 +6,10 @@ export type ShellMode = 'full' | 'collapsed' | 'drawer';
 export type ShellState = {
   readonly mode: ShellMode;
   readonly collapsed: boolean;
+  /** The shell is wide enough to fold its sidebar into the strip. */
+  readonly foldable: boolean;
+  /** On a phone the rail's places stand in a bar along the bottom instead of in the drawer. */
+  readonly bottomNav: boolean;
   toggleCollapsed(): void;
   closeDrawer(): void;
 };
@@ -20,6 +23,14 @@ export function setShell(state: ShellState): void {
 /** The shell around a navigation component, or nothing when it stands on its own. */
 export function getShell(): ShellState | undefined {
   return getContext<ShellState | undefined>(key);
+}
+
+/**
+ * A press that follows a link in place: the primary button with no modifier, which a new tab
+ * or window never is. Navigation inside the drawer closes it only for this press.
+ */
+export function followsInPlace(event: MouseEvent): boolean {
+  return event.button === 0 && !event.metaKey && !event.ctrlKey && !event.shiftKey && !event.altKey;
 }
 
 const FOCUSABLE =
@@ -48,13 +59,4 @@ export function firstStop(container: HTMLElement): HTMLElement | undefined {
   return [...container.querySelectorAll<HTMLElement>(FOCUSABLE)].find(
     (element) => element.getClientRects().length > 0
   );
-}
-
-/** Reports whether one line of text is cut short by its own box, as its size changes. */
-export function watchCut(report: (cut: boolean) => void): Attachment<HTMLElement> {
-  return (element) => {
-    const observer = new ResizeObserver(() => report(element.scrollWidth > element.clientWidth));
-    observer.observe(element);
-    return () => observer.disconnect();
-  };
 }

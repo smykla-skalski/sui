@@ -15,15 +15,27 @@
 
 <!--
 @component
-A list of things a page is about, as a real `ul` of `ObjectRow`s. Rows grow when their
-content wraps; there are no fixed heights, no zebra stripes and no column headings, and the
-page keeps its one scroll. Long collections load more with `LoadMore` after the last row.
+A list of things a page is about, as a real `ul` of `ObjectRow`s. Rows grow when their content
+wraps; there are no fixed heights, no zebra stripes and no column headings, and the page keeps
+its one scroll.
 
-Rows reach 12px past the list on both sides so their ink lines up with the card around
-them, and the list hands back the last row's bottom padding so the last line closes on the
-card's own frame. When it opens a card it hands back the first row's top padding too, so its
-first line stands the card's inset below the keyline. Give it a container with at least that
-much inset.
+Rows reach 12px past the list on both sides so their ink lines up with the card around them,
+and the list hands back the last row's bottom padding so the last line closes on the card's own
+frame. When it opens a card it hands back the first row's top padding too, so its first line
+stands the card's inset below the keyline. Give it a container with at least that much inset.
+
+- Semantics: a `ul` with `role="list"`, so Safari keeps the list once its bullets are gone.
+- Content: `ObjectRow`s only, one per item.
+- States: none of its own; each row draws its hover, press and focus.
+- Keyboard: Tab walks the rows' links and controls in order.
+- Pointer and touch: each row is its own target, at least 44px tall.
+- Focus: none moves; after a row is removed, move focus to the next row's link, or to the list's heading when none is left.
+- Responsive: rows take the full width and drop their side under the main content on a phone.
+- Accessibility: a screen reader hears it as a list with its count; name it with `aria-label` or `aria-labelledby` when the page has more than one.
+- Localization: everything it says is the caller's; the rows follow the reading direction.
+- Performance: every row renders; past a few hundred, page the list with `LoadMore` rather than drawing everything.
+- Analytics: none of its own; rows and `LoadMore` report what the reader opens and asks for.
+- Failure: draw an `EmptyState` in its place when there are no rows, a `Skeleton` while the first page loads, and an `ErrorState` when it failed, never an empty `ul`.
 -->
 
 <ul role="list" {...rest} class={['sui-object-list', className]}>{@render children()}</ul>

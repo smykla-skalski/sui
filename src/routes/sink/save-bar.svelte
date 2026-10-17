@@ -28,9 +28,12 @@
     }, SAVE_DELAY);
   }
 
+  // Discarding keeps the draft it threw away, so the bar can offer it back.
   function discard() {
+    const draft = { name, branch };
     name = saved.name;
     branch = saved.branch;
+    return () => ({ name, branch } = draft);
   }
 
   const noop = () => {};
@@ -38,7 +41,7 @@
 
 <Example
   title="States"
-  note="Edit a field to raise the bar, which reserves room after the last line, holds both actions while saving and keeps a failure up"
+  note="Editing raises the bar, Ctrl+S saves, a save is confirmed, a discard offers Undo, and a failure stays up"
   layout="stack"
   ground="canvas"
 >
