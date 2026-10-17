@@ -140,6 +140,26 @@ test('L-71 switching the theme moves nothing', async () => {
   }
 });
 
+for (const [stored, colorScheme] of /** @type {const} */ ([
+  ['dark', 'light'],
+  [null, 'dark']
+]))
+  test(`the page starts dark with ${stored ?? 'nothing'} stored under a ${colorScheme} system`, async () => {
+    const page = await browser.newPage({ colorScheme });
+    try {
+      if (stored)
+        await page.addInitScript((theme) => localStorage.setItem('sui:theme', theme), stored);
+      // Without its scripts the app never starts, so only the document can set the theme.
+      await page.route('**/*', (route) =>
+        route.request().resourceType() === 'document' ? route.continue() : route.abort()
+      );
+      await page.goto(url);
+      assert.equal(await page.evaluate(() => document.documentElement.dataset.suiTheme), 'dark');
+    } finally {
+      await page.close();
+    }
+  });
+
 test('L-75 reduced motion removes every transition and endless animation', async () => {
   const page = await open(1440, 'light', { reducedMotion: 'reduce' });
   try {
