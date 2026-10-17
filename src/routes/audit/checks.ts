@@ -472,6 +472,8 @@ const CARD_CONTENT =
  * solid content (a control, a framed box, a mark) counts, and text is held to not running past.
  */
 function cardInsets(card: Element) {
+  // Placeholders stand in for rows still loading; the insets are judged on what arrives.
+  if (card.querySelector("[aria-busy='true']")) return null;
   const style = getComputedStyle(card);
   // A right-to-left card is measured mirrored, so its start is the smaller coordinate as in LTR.
   const rtl = style.direction === 'rtl';

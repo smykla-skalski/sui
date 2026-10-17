@@ -9,6 +9,7 @@
 </script>
 
 <script lang="ts">
+  import { word } from '../words.js';
   import { flushSync, tick } from 'svelte';
   import type { HTMLInputAttributes } from 'svelte/elements';
   import Icon from '../icons/Icon.svelte';
@@ -29,13 +30,20 @@
     preview = false,
     limit = 100,
     name,
-    emptyLabel = 'Nothing matches that',
-    searchingLabel = 'Searching…',
-    failedLabel = 'Suggestions could not load, so keep typing to try again',
-    useLabel = (text: string) => `Use “${text}”`,
-    countLabel = (count: number) =>
-      count === 1 ? '1 suggestion' : `${formatCount(count)} suggestions`,
-    moreLabel = (count: number) => `${formatCount(count)} more, so keep typing to narrow them`,
+    emptyLabel = word('Combobox.emptyLabel', 'Nothing matches that'),
+    searchingLabel = word('Combobox.searchingLabel', 'Searching…'),
+    failedLabel = word(
+      'Combobox.failedLabel',
+      'Suggestions could not load, so keep typing to try again'
+    ),
+    useLabel = word('Combobox.useLabel', (text: string) => `Use “${text}”`),
+    countLabel = word('Combobox.countLabel', (count: number) =>
+      count === 1 ? '1 suggestion' : `${formatCount(count)} suggestions`
+    ),
+    moreLabel = word(
+      'Combobox.moreLabel',
+      (count: number) => `${formatCount(count)} more, so keep typing to narrow them`
+    ),
     onselect,
     onsearcherror,
     element = $bindable(null),

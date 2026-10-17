@@ -52,6 +52,7 @@
 </script>
 
 <script lang="ts">
+  import { word } from '../words.js';
   import { tick } from 'svelte';
   import type { HTMLAttributes } from 'svelte/elements';
   import Icon from '../icons/Icon.svelte';
@@ -64,8 +65,8 @@
     mono = false,
     onremove,
     disabled = false,
-    removeLabel = (value: string) => `Remove ${value}`,
-    removedLabel = (value: string) => `Removed ${value}`,
+    removeLabel = word('Chip.removeLabel', (value: string) => `Remove ${value}`),
+    removedLabel = word('Chip.removedLabel', (value: string) => `Removed ${value}`),
     class: className = '',
     ...rest
   }: {

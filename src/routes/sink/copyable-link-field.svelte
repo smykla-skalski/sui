@@ -36,13 +36,14 @@
 
 <Example
   title="Long value"
-  note="A long token scrolls inside the field, never widens the row, and copies whole"
+  note="A long token wraps onto more lines, so all of it shows, never widens the row, and copies whole"
   layout="stack"
 >
-  <Specimen label="Scrolled token">
+  <Specimen label="Wrapped token" code="copyLabel">
     <div class="narrow">
       <CopyableLinkField
         label="Webhook secret"
+        copyLabel="Copy secret"
         value="whsec_9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08"
       />
     </div>

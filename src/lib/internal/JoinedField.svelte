@@ -30,7 +30,7 @@ the end part draws its own inset ring while it has focus, so the two never look 
 
 - Semantics: a `<div>` with no role around two native controls, each named on its own.
 - Content: `start`, the value, and `end`, one unit picker or one action, each drawn `bare`.
-- States: rest (the control fill, a quiet frame and a 3:1 baseline), hover (a firmer frame), the value focused (the inset fill and a flush 2px ring), the end focused (its own inset ring), invalid (a danger edge on all four sides in every state), read-only and disabled (0.7 opacity).
+- States: rest (the control fill, a quiet frame and a 3:1 baseline), hover (a firmer frame), the value focused (the inset fill and a flush 2px ring), the end focused (its own inset ring), invalid (a danger edge on all four sides in every state), read-only (the inset well and a quiet frame) and disabled (0.7 opacity).
 - Keyboard: Tab moves from the value to the end part, each with its own keys.
 - Pointer and touch: the frame is the control height, 34px or 44px on a phone or any touch screen, and each part keeps its own target.
 - Focus: it never moves focus; each part keeps its own.
@@ -50,7 +50,7 @@ the end part draws its own inset ring while it has focus, so the two never look 
 <style>
   .sui-joined {
     background-color: var(--sui-control-bg);
-    block-size: var(--sui-local-control-height, var(--sui-control-height-compact));
+    min-block-size: var(--sui-local-control-height, var(--sui-control-height-compact));
     border: var(--sui-stroke) solid var(--sui-field-frame);
     border-block-end-color: var(--sui-field-border);
     border-radius: var(--sui-radius-control);
@@ -59,8 +59,10 @@ the end part draws its own inset ring while it has focus, so the two never look 
     max-inline-size: 100%;
     min-inline-size: 0;
     /* The parts lie over the frame's edge to keep the full control height; the clip keeps
-       their grounds inside the frame's inner curve. */
+       their grounds inside the frame's inner curve. A host whose end part draws no ground at
+       the edge may reach the clip over the frame, so that part's hit area keeps its 44px. */
     overflow: clip;
+    overflow-clip-margin: var(--sui-local-joined-reach, 0px);
     transition:
       background-color var(--sui-duration-fast) var(--sui-ease-standard),
       border-color var(--sui-duration-fast) var(--sui-ease-standard);
@@ -83,10 +85,12 @@ the end part draws its own inset ring while it has focus, so the two never look 
     outline-offset: var(--sui-focus-ring-flush);
   }
 
+  /* A value that only reads sits in the inset well with a quiet frame, as a read-only text
+     field does, so it never looks like a field to type in. */
   .readonly,
   .readonly:has(.sui-joined-value :global(:focus-visible)) {
-    background-color: transparent;
-    border-block-end-color: var(--sui-field-frame);
+    background-color: var(--sui-surface-inset);
+    border-color: var(--sui-border-subtle);
   }
 
   .invalid,

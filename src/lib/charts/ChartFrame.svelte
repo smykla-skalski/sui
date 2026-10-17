@@ -1,9 +1,11 @@
 <script lang="ts">
+  import { word } from '../words.js';
   import { onMount, type Snippet } from 'svelte';
   import EmptyState from '../components/EmptyState.svelte';
   import ErrorState from '../components/ErrorState.svelte';
   import VisuallyHidden from '../components/VisuallyHidden.svelte';
   import { formatCount } from '../internal/locale.js';
+  import { rootFontSize } from '../internal/rem.svelte.js';
   import type { ChartFrameProps } from './types.js';
 
   let {
@@ -15,19 +17,23 @@
     onretry,
     emptyAction,
     ontableopenchange,
-    emptyTitle = 'No chart data yet',
-    emptyDescription = 'Nothing has been recorded for this chart',
-    emptyStep = 'Values show here once they are recorded',
-    dataLabel = 'View chart data',
-    loadingLabel = 'Loading chart data…',
-    refreshingLabel = 'Updating…',
-    staleLabel = 'These values may be out of date',
-    failedTitle = 'Chart data could not load',
-    failedDescription = 'Try again in a moment',
-    missingLabel = (count: number) =>
+    emptyTitle = word('ChartFrame.emptyTitle', 'No chart data yet'),
+    emptyDescription = word(
+      'ChartFrame.emptyDescription',
+      'Nothing has been recorded for this chart'
+    ),
+    emptyStep = word('ChartFrame.emptyStep', 'Values show here once they are recorded'),
+    dataLabel = word('ChartFrame.dataLabel', 'View chart data'),
+    loadingLabel = word('ChartFrame.loadingLabel', 'Loading chart data…'),
+    refreshingLabel = word('ChartFrame.refreshingLabel', 'Updating…'),
+    staleLabel = word('ChartFrame.staleLabel', 'These values may be out of date'),
+    failedTitle = word('ChartFrame.failedTitle', 'Chart data could not load'),
+    failedDescription = word('ChartFrame.failedDescription', 'Try again in a moment'),
+    missingLabel = word('ChartFrame.missingLabel', (count: number) =>
       count === 1
         ? '1 missing value is left out'
-        : `${formatCount(count)} missing values are left out`,
+        : `${formatCount(count)} missing values are left out`
+    ),
     empty,
     missing = 0,
     plotHeight,
@@ -55,7 +61,10 @@
   let scrolls = $state(false);
   let tableScrolls = $state(false);
   let open = $state(false);
-  let scale = $state(1);
+  let mounted = $state(false);
+  // Chart text is set in rem, so a reader's larger text widens the margins that hold it, also
+  // when the text grows after the chart is drawn. A server render lays it out at 16px.
+  const scale = $derived(mounted ? rootFontSize() / 16 : 1);
   let settled = $state(false);
   // A server render has nothing to measure, so it lays the plot out at a desktop width.
   let width = $derived(Math.floor(frame?.width ?? 640));
@@ -73,8 +82,7 @@
   );
 
   onMount(() => {
-    // Chart text is set in rem, so a reader's larger text widens the margins that hold it.
-    scale = (parseFloat(getComputedStyle(document.documentElement).fontSize) || 16) / 16;
+    mounted = true;
     // A status region that enters the page with its words is often not read, so they wait.
     const timer = setTimeout(() => (settled = true), 100);
     return () => clearTimeout(timer);

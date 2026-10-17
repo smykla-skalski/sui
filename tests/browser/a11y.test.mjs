@@ -175,13 +175,23 @@ test('in forced colors every current and selected state differs by more than wei
 test('in forced colors an invalid field draws a different edge from a valid one', async () => {
   const page = await open(1440, 'light', { forcedColors: 'active' });
   try {
+    // A checked box and an on switch keep the invalid edge too, so one of each is turned on.
+    for (const mark of ['.sui-checkbox-box.invalid', '.sui-switch-track.invalid']) {
+      const input = page.locator(`main label:has(${mark}) input:not(:checked):not(:disabled)`);
+      if ((await input.count()) > 0) await input.first().check({ force: true });
+    }
+    // Neither focus nor hover may tell them apart instead of the edge.
+    await page.evaluate(() => /** @type {HTMLElement | null} */ (document.activeElement)?.blur());
+    await page.mouse.move(0, 0);
     const same = await page.evaluate(() => {
       const frames = [
         ['.sui-text-input:not(.bare)', "[aria-invalid='true']"],
         ['.sui-textarea', "[aria-invalid='true']"],
         ['.sui-select:not(.bare) .sui-select-control', "[aria-invalid='true']"],
         ['.sui-joined', '.invalid'],
-        ['.sui-choice-cards-grid', '.invalid']
+        ['.sui-choice-cards-grid', '.invalid'],
+        ['.sui-checkbox input:checked + .sui-checkbox-box', '.invalid'],
+        ['.sui-switch-row input:checked + .sui-switch-track', '.invalid']
       ];
       const edge = (/** @type {Element} */ element) => {
         const style = getComputedStyle(element);
@@ -228,7 +238,9 @@ for (const [name, css] of [
             element.children.length === 0 &&
             element.textContent?.trim() &&
             element.checkVisibility({ checkOpacity: true, checkVisibilityCSS: true }) &&
-            !element.closest('[popover], svg, [aria-hidden="true"]')
+            !element.closest('[popover], [aria-hidden="true"]') &&
+            // A chart's words are drawn in SVG text; the rest of an SVG holds no words to read.
+            (!element.closest('svg') || element.matches('svg text, svg text *'))
         );
         // What a reader sees of each text: every line of it, each clipped by every frame that
         // scrolls or clips it, so a long line scrolled out of view is not counted where it

@@ -3,6 +3,7 @@
 </script>
 
 <script lang="ts">
+  import { word } from '../words.js';
   import { tick } from 'svelte';
   import type { HTMLAttributes } from 'svelte/elements';
   import Icon from '../icons/Icon.svelte';
@@ -17,14 +18,14 @@
   let {
     value = $bindable([]),
     options,
-    keyLabel = 'Key',
-    valueLabel = 'Value',
+    keyLabel = word('PairEntry.keyLabel', 'Key'),
+    valueLabel = word('PairEntry.valueLabel', 'Value'),
     validate,
-    addLabel = 'Add a pair',
-    doneLabel = 'Done',
-    removeLabel = 'Remove',
-    removeName = (key: string) => `${removeLabel} ${key}`,
-    removedLabel = (key: string) => `Removed ${key}`,
+    addLabel = word('PairEntry.addLabel', 'Add a pair'),
+    doneLabel = word('PairEntry.doneLabel', 'Done'),
+    removeLabel = word('PairEntry.removeLabel', 'Remove'),
+    removeName = word('PairEntry.removeName', (key: string) => `${removeLabel} ${key}`),
+    removedLabel = word('PairEntry.removedLabel', (key: string) => `Removed ${key}`),
     reason,
     onadd,
     onedit,
@@ -93,14 +94,42 @@
 
   const focusKey = () => form?.querySelector('input')?.focus({ preventScroll: true });
 
+  /* A draft left by a press outside or by Tab waits for the same chip or Add to open again, so
+     a stray press never throws typing away (P8); Escape, Done and Remove leave nothing behind. */
+  let kept: { index: number; draft: Pair } | null = null;
+  let settled = false;
+
   // The invoker's press lands before the browser opens the editor, so the draft is seeded here
   // and the editor opens on the pair that was pressed. A press while it is open only closes it.
   function seed(index: number, event: MouseEvent & { currentTarget: HTMLElement }): void {
     if (open) return;
     editing = index;
-    draft = index < 0 ? { key: '', value: options[0]?.value ?? '' } : { ...value[index] };
+    draft =
+      kept?.index === index
+        ? kept.draft
+        : index < 0
+          ? { key: '', value: options[0]?.value ?? '' }
+          : { ...value[index] };
+    kept = null;
+    settled = false;
     draftProblem = null;
     anchor = event.currentTarget;
+  }
+
+  // Escape is the one close that drops the draft. An Escape a field inside spends on itself,
+  // such as closing the value's list, never reaches the window.
+  $effect(() => {
+    if (!open) return;
+    const cancel = (event: KeyboardEvent) => {
+      if (event.key === 'Escape' && !event.defaultPrevented) settled = true;
+    };
+    addEventListener('keydown', cancel);
+    return () => removeEventListener('keydown', cancel);
+  });
+
+  function closed(): void {
+    if (!settled) kept = { index: editing, draft: { ...draft } };
+    settled = false;
   }
 
   // Focus goes to the pair that took the removed one's place, else the one before, else Add,
@@ -108,6 +137,8 @@
   async function remove(index: number): Promise<void> {
     const gone = value[index];
     value = value.filter((_, at) => at !== index);
+    settled = true;
+    kept = null;
     open = false;
     if (gone) {
       said = removedLabel(gone.key);
@@ -129,6 +160,7 @@
       return;
     }
     value = next;
+    settled = true;
     open = false;
     if (editing < 0) onadd?.(pair);
     else onedit?.(pair, at);
@@ -147,15 +179,16 @@
 Pairs of a key and the value it maps to, such as aliases and the commands they run, as chips
 that wrap side by side: "ship → deploy". Pressing a chip opens an editor beside it with a field
 for the key and a picker of `options` for the value; Done checks the key with `validate` and
-keeps the editor open, focused on the key, while it is wrong. Escape or a press outside closes
-the editor and drops its draft, and focus returns to the chip. `addLabel` opens the same editor
+keeps the editor open, focused on the key, while it is wrong. Escape closes the editor and drops
+its draft, and focus returns to the chip. A press outside or Tab out of the editor closes it
+and keeps the draft, which the same chip or Add opens with next time. `addLabel` opens the same editor
 for a new pair, which joins the end of the row on Done.
 
 In a `SettingRow`, give the row's `labelledby` to this group. The chips wrap within the room the
 row gives them and fall under the copy on a narrow row.
 
 - Semantics: a `div` with `role="group"` holding a list of chips, each an edit `button` with `aria-haspopup="dialog"` and a remove `button`, an `add` button, and a dialog `Popover` with a `Field` and a `Combobox`.
-- Content: pairs of a short key and one of `options`; a long key or value ends in an ellipsis inside its chip, and the editor shows it whole.
+- Content: pairs of a short key and one of `options`; a long key or value wraps inside its chip, so all of it shows.
 - States: rest, hover, pressed and focus on each part, open (the chip's edge takes the focus color), invalid (the danger edge, an alert mark and the problem in words under the row), and disabled with `reason`.
 - Keyboard: Tab walks each chip's edit and remove parts, then Add; Enter or Space opens the editor; Delete or Backspace on a chip removes it; in the editor Enter is Done and Escape closes.
 - Pointer and touch: each part is 28px, and 44px on a phone or a coarse pointer; the remove part sits outside the edit target.
@@ -247,8 +280,10 @@ row gives them and fall under the copy on a narrow row.
   bind:open
   role="dialog"
   aria-label={editing < 0 ? addLabel : `${keyLabel} ${value[editing]?.key ?? ''}`}
+  closeOnLeave
   ontoggle={(event: ToggleEvent) => {
     if (event.newState === 'open') void tick().then(focusKey);
+    else closed();
   }}
 >
   <form bind:this={form} class="sui-pair-editor" onsubmit={done}>
@@ -342,7 +377,7 @@ row gives them and fall under the copy on a narrow row.
     align-items: center;
     appearance: none;
     background-color: transparent;
-    block-size: var(--sui-pair-chip);
+    min-block-size: var(--sui-pair-chip);
     border: 0;
     border-radius: inherit;
     box-sizing: border-box;
@@ -365,9 +400,11 @@ row gives them and fall under the copy on a narrow row.
     border-start-end-radius: 0;
     font: var(--sui-weight-regular) var(--sui-font-size-control) / var(--sui-leading-flat)
       var(--sui-sans);
-    gap: var(--sui-space-1);
+    flex-wrap: wrap;
+    gap: 0 var(--sui-space-1);
     min-inline-size: 0;
     padding-inline: var(--sui-space-2);
+    text-align: start;
   }
 
   .sui-pair-remove {
@@ -409,15 +446,14 @@ row gives them and fall under the copy on a narrow row.
     outline-offset: var(--sui-focus-ring-inset);
   }
 
+  /* A long key or value wraps inside the chip, at any character, so all of it shows (U6). */
   .sui-pair-key,
   .sui-pair-value {
-    font: var(--sui-weight-regular) var(--sui-font-size-control) / var(--sui-leading-flat)
+    font: var(--sui-weight-regular) var(--sui-font-size-control) / var(--sui-leading-compact)
       var(--sui-mono);
     font-variant-numeric: tabular-nums;
     min-inline-size: 0;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    overflow-wrap: anywhere;
   }
 
   .sui-pair-key {

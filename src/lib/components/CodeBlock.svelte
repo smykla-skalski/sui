@@ -140,6 +140,7 @@
 </script>
 
 <script lang="ts">
+  import { word } from '../words.js';
   import type { HTMLAttributes } from 'svelte/elements';
   import CopyButton from './CopyButton.svelte';
 
@@ -150,8 +151,8 @@
     lineNumbers = false,
     copy = true,
     bare = false,
-    regionLabel = 'Code',
-    copyLabel = 'Copy code',
+    regionLabel = word('CodeBlock.regionLabel', 'Code'),
+    copyLabel = word('CodeBlock.copyLabel', 'Copy code'),
     class: className = '',
     ...rest
   }: {

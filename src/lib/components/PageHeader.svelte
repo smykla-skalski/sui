@@ -145,4 +145,19 @@ gap, and the header owes only the difference.
     flex-wrap: wrap;
     gap: var(--sui-space-2);
   }
+
+  /* In a shell as narrow as a phone, as on a wide screen's split pane, the header takes the
+     phone's title and spacing by the shell's own width, as the shell's bars do. */
+  @container sui-shell (max-width: 47.9375rem) {
+    .sui-page-header {
+      margin-block-end: calc(
+        var(--sui-rhythm-head-surface-compact) - var(--sui-head-exit-gap, 0px)
+      );
+    }
+
+    .sui-page-header-title {
+      font: var(--sui-weight-bold) var(--sui-font-size-page-title-compact) /
+        var(--sui-leading-page-compact) var(--sui-sans);
+    }
+  }
 </style>

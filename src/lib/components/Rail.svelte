@@ -14,6 +14,7 @@
 </script>
 
 <script lang="ts">
+  import { word } from '../words.js';
   import type { Snippet } from 'svelte';
   import type { HTMLAttributes } from 'svelte/elements';
   import Icon from '../icons/Icon.svelte';
@@ -25,8 +26,8 @@
     items,
     foot = [],
     current,
-    label = 'Places',
-    badgeLabel = (count: number) => `${formatCount(count)} waiting`,
+    label = word('Rail.label', 'Places'),
+    badgeLabel = word('Rail.badgeLabel', (count: number) => `${formatCount(count)} waiting`),
     brand,
     onpick,
     onnavigate,
@@ -329,6 +330,7 @@ semibold ink, and under forced colors the ring turns `Highlight`.
       border-block-start: var(--sui-stroke) solid var(--sui-sidebar-border);
       border-inline-end: 0;
       flex-direction: row;
+      flex-wrap: wrap;
       gap: 0;
       inline-size: 100%;
       overflow: visible;
@@ -340,11 +342,14 @@ semibold ink, and under forced colors the ring turns `Highlight`.
       display: none;
     }
 
-    /* Each tile starts from its label's width, so a longer name gets the room it needs. */
+    /* Each tile starts from its label's width, so a longer name gets the room it needs, and
+       never narrows past a finger's 44px; tiles that no longer fit one row, as at a large
+       text size, wrap onto a second rather than squeeze. */
     .sui-rail[data-bar] .sui-rail-list {
       align-self: auto;
       display: flex;
       flex: var(--sui-local-rail-count) 1 auto;
+      flex-wrap: wrap;
       gap: 0;
       margin: 0;
       min-inline-size: 0;
@@ -354,7 +359,19 @@ semibold ink, and under forced colors the ring turns `Highlight`.
     .sui-rail[data-bar] li {
       display: flex;
       flex: 1 1 auto;
-      min-inline-size: 0;
+      min-inline-size: var(--sui-touch-target);
+    }
+
+    /* In a tile no wider than its words the count stands beside the glyph, inside the tile,
+       rather than on its corner, where it would reach into the next tile. */
+    .sui-rail[data-bar] .sui-rail-glyph {
+      align-items: center;
+      gap: var(--sui-space-1);
+    }
+
+    .sui-rail[data-bar] .sui-rail-badge {
+      box-shadow: none;
+      position: static;
     }
 
     /* Tiles in a row meet, so a narrow phone gives each label the whole tile. */

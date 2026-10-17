@@ -16,6 +16,7 @@
 </script>
 
 <script lang="ts">
+  import { word } from '../words.js';
   import { tick, type Snippet } from 'svelte';
   import type { HTMLLiAttributes } from 'svelte/elements';
   import Icon from '../icons/Icon.svelte';
@@ -38,10 +39,10 @@
     readonly = false,
     reason,
     clearLabel,
-    resetLabel = 'Reset',
-    undoLabel = 'Undo',
-    unsavedLabel = 'Unsaved',
-    pendingLabel = 'Saving…',
+    resetLabel = word('SettingRow.resetLabel', 'Reset'),
+    undoLabel = word('SettingRow.undoLabel', 'Undo'),
+    unsavedLabel = word('SettingRow.unsavedLabel', 'Unsaved'),
+    pendingLabel = word('SettingRow.pendingLabel', 'Saving…'),
     control,
     class: className = '',
     ...rest

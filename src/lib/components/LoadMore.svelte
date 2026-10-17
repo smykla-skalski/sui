@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { word } from '../words.js';
   import type { Attachment } from 'svelte/attachments';
   import { formatCount } from '../internal/locale.js';
   import Button from './Button.svelte';
@@ -11,12 +12,15 @@
     loading = false,
     problem = null,
     onmore,
-    moreLabel = 'Load more',
-    loadingLabel = 'Loading…',
-    retryLabel = 'Try again',
-    endLabel = (shown: string) => `All ${shown} shown`,
-    arrivedLabel = (count: number, arrived: string, shown: string, total?: string) =>
-      `${arrived} more loaded, ${total === undefined ? shown : `${shown} of ${total}`} shown`
+    moreLabel = word('LoadMore.moreLabel', 'Load more'),
+    loadingLabel = word('LoadMore.loadingLabel', 'Loading…'),
+    retryLabel = word('LoadMore.retryLabel', 'Try again'),
+    endLabel = word('LoadMore.endLabel', (shown: string) => `All ${shown} shown`),
+    arrivedLabel = word(
+      'LoadMore.arrivedLabel',
+      (count: number, arrived: string, shown: string, total?: string) =>
+        `${arrived} more loaded, ${total === undefined ? shown : `${shown} of ${total}`} shown`
+    )
   }: {
     /** Another page exists. Without one the button gives way to an end-of-list note. */
     more: boolean;

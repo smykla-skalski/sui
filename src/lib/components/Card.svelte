@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { word } from '../words.js';
   import type { Snippet } from 'svelte';
   import type { HTMLAttributes } from 'svelte/elements';
   import VisuallyHidden from './VisuallyHidden.svelte';
@@ -10,7 +11,7 @@
     actions,
     footer,
     unsaved = false,
-    unsavedLabel = 'unsaved',
+    unsavedLabel = word('Card.unsavedLabel', 'Unsaved'),
     class: className = '',
     children,
     ...rest
@@ -24,9 +25,9 @@
     actions?: Snippet;
     /** A closing row of actions, held to the same cap-line track as the head. */
     footer?: Snippet;
-    /** Marks a card that holds changes not saved yet: a star after its title and the unsaved keyline. */
+    /** Marks a card that holds changes not saved yet: `unsavedLabel` after its title and the unsaved keyline. */
     unsaved?: boolean;
-    /** The word a screen reader hears after the title of an unsaved card. */
+    /** The word drawn after the title of an unsaved card, as `SettingRow` draws it. */
     unsavedLabel?: string;
     /** Layout for the call site only, never the card's own paint. */
     class?: HTMLAttributes<HTMLDivElement>['class'];
@@ -56,16 +57,16 @@ on its title line.
 
 - Semantics: a plain grouping box; the title is a heading at `level` and nothing else carries a role.
 - Content: an optional title, description, head actions, body and footer actions; the title and the description wrap.
-- States: rest, and unsaved, which stars the title in the unsaved ink, adds `unsavedLabel` to the heading's words and gives the keyline the unsaved tint.
+- States: rest, and unsaved, which draws `unsavedLabel` after the title in the unsaved ink and gives the keyline the unsaved tint.
 - Keyboard: none of its own; Tab reaches the controls inside in reading order.
 - Pointer and touch: none of its own; the controls inside keep their own targets and press feedback.
 - Focus: nothing here moves focus.
 - Responsive: a container query on the card's own width steps the inset from 20px to 16px at 36rem, the head's actions stay on the title's first line, and the footer's actions pack to the end.
-- Accessibility: the unsaved state is said in words and a star, never by the keyline's colour alone, and the copy holds 4.5:1.
+- Accessibility: the unsaved state is a drawn word, never the keyline's colour alone, and the copy and the word hold 4.5:1.
 - Localization: `unsavedLabel` is a prop with an English default; the actions sit at the inline end, which mirrors in a right-to-left page.
 - Performance: static layout with no script; each card is its own size container.
 - Analytics: none of its own, because it holds no control; its actions report their own outcomes.
-- Failure: a card with no title, body or footer draws an empty surface, and an unsaved card without a title has nowhere to put its star, so give it one.
+- Failure: a card with no title, body or footer draws an empty surface, and an unsaved card without a title has nowhere to put its word, so give it one.
 -->
 
 <div {...rest} class={['sui-card-box', className]}>
@@ -74,7 +75,8 @@ on its title line.
       <div class="sui-card-head">
         {#if title !== undefined}
           <svelte:element this={`h${level}`} class="sui-card-title"
-            >{title}{#if unsaved}<VisuallyHidden>, {unsavedLabel}</VisuallyHidden
+            >{title}{#if unsaved}<span class="sui-card-unsaved"
+                ><VisuallyHidden>,</VisuallyHidden>{unsavedLabel}</span
               >{/if}</svelte:element
           >
         {/if}
@@ -117,11 +119,15 @@ on its title line.
     border-color: var(--sui-unsaved-border);
   }
 
-  /* The star is drawn, not read: its alternative text is empty, and the words follow it. */
-  .unsaved .sui-card-title::after {
+  /* The word, not a mark: a reader sees "Unsaved" whatever the keyline's tint, as on a setting
+     row. */
+  .sui-card-unsaved {
+    block-size: var(--sui-block-snap);
     color: var(--sui-unsaved-ink);
-    content: '*' / '';
-    margin-inline-start: var(--sui-space-1);
+    display: inline-block;
+    font-weight: var(--sui-weight-regular);
+    margin-inline-start: var(--sui-space-2);
+    text-box: trim-both cap alphabetic;
   }
 
   /* The actions end the title's line, and drop under the title when they do not fit, as at a

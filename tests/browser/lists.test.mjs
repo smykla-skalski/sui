@@ -345,3 +345,80 @@ test('K6 a retried error that leaves no control keeps focus where it stood', asy
     await page.close();
   }
 });
+
+test('P8 a pair editor left by a press outside or Tab keeps the draft, and Escape drops it', async () => {
+  const page = await open();
+  try {
+    const add = page.locator('#pair-entry').getByRole('button', { name: 'Add an alias' }).first();
+    await add.scrollIntoViewIfNeeded();
+    const editor = page.locator(':popover-open .sui-pair-editor');
+    const key = editor.getByRole('textbox', { name: 'Alias' });
+
+    await add.click();
+    await key.fill('stage');
+    await page.mouse.click(5, 5);
+    await editor.waitFor({ state: 'detached' });
+    await add.click();
+    await editor.waitFor();
+    await page.waitForTimeout(100);
+    assert.equal(await key.inputValue(), 'stage', 'a press outside dropped the draft');
+
+    // Tab past the last control of the editor leaves it, and that closes it.
+    for (let step = 0; step < 6 && (await editor.count()) > 0; step++)
+      await page.keyboard.press('Tab');
+    await page.waitForTimeout(250);
+    assert.equal(await editor.count(), 0, 'Tab out left the editor open');
+
+    await add.click();
+    await editor.waitFor();
+    await page.waitForTimeout(100);
+    assert.equal(await key.inputValue(), 'stage', 'Tab out dropped the draft');
+    await page.keyboard.press('Escape');
+    await page.waitForTimeout(250);
+    await add.click();
+    await editor.waitFor();
+    await page.waitForTimeout(100);
+    assert.equal(await key.inputValue(), '', 'Escape kept the draft');
+  } finally {
+    await page.close();
+  }
+});
+
+test('P8 typing a duplicate into one pattern leaves the others unjudged until it is left', async () => {
+  const page = await open();
+  try {
+    const list = page.locator('#pattern-entries .sui-pattern-entries').first();
+    await list.scrollIntoViewIfNeeded();
+    const first = list.getByRole('textbox', { name: 'Pattern 1' });
+    const second = await list.getByRole('textbox', { name: 'Pattern 2' }).inputValue();
+    const before = await list.locator('.sui-pattern-problem').count();
+    await first.click();
+    await first.fill(second);
+    assert.equal(
+      await list.locator('.sui-pattern-problem').count(),
+      before,
+      'another entry was judged against a half-typed one'
+    );
+  } finally {
+    await page.close();
+  }
+});
+
+test('S2 a setting list says when it loads, fails or has nothing to set', async () => {
+  const page = await open();
+  try {
+    const states = page.locator('#setting-list .example', { hasText: 'List states' });
+    await states.scrollIntoViewIfNeeded();
+    const specimen = (/** @type {string} */ name) =>
+      states.locator('.specimen').filter({ hasText: name });
+    assert.equal(await specimen('Loading').locator('[aria-busy="true"]').count(), 1);
+    assert.equal(await specimen('Failed').getByRole('alert').count(), 1);
+    assert.equal(await specimen('Failed').getByRole('button', { name: 'Try again' }).count(), 1);
+    assert.match(
+      (await specimen('Nothing to set').textContent()) ?? '',
+      /Settings show here once there are any/
+    );
+  } finally {
+    await page.close();
+  }
+});

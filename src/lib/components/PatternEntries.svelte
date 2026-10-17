@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { word } from '../words.js';
   import { tick } from 'svelte';
   import type { HTMLAttributes } from 'svelte/elements';
   import Icon from '../icons/Icon.svelte';
@@ -13,14 +14,17 @@
   let {
     value = $bindable([]),
     validate,
-    addLabel = 'Add a pattern',
-    entryLabel = (position: number) => `Pattern ${position}`,
-    removeLabel = (pattern: string) => `Remove ${pattern}`,
-    removeEmptyLabel = 'Remove the empty pattern',
-    removedLabel = (pattern: string) => `Removed ${pattern}`,
-    addedLabel = (count: number, formatted: string) =>
-      `Added ${formatted} ${count === 1 ? 'pattern' : 'patterns'}`,
-    undoLabel = 'Undo',
+    addLabel = word('PatternEntries.addLabel', 'Add a pattern'),
+    entryLabel = word('PatternEntries.entryLabel', (position: number) => `Pattern ${position}`),
+    removeLabel = word('PatternEntries.removeLabel', (pattern: string) => `Remove ${pattern}`),
+    removeEmptyLabel = word('PatternEntries.removeEmptyLabel', 'Remove the empty pattern'),
+    removedLabel = word('PatternEntries.removedLabel', (pattern: string) => `Removed ${pattern}`),
+    addedLabel = word(
+      'PatternEntries.addedLabel',
+      (count: number, formatted: string) =>
+        `Added ${formatted} ${count === 1 ? 'pattern' : 'patterns'}`
+    ),
+    undoLabel = word('PatternEntries.undoLabel', 'Undo'),
     onadd,
     onremove,
     disabled = false,
@@ -57,15 +61,27 @@
      is judged once the reader leaves it rather than at every keystroke. */
   let quiet = $state<number | null>(null);
   /* What an entry held when focus came, so emptying it and leaving can be undone. */
-  let held: { index: number; pattern: string } | null = null;
+  let held = $state<{ index: number; pattern: string } | null>(null);
   let removed = $state<{ index: number; pattern: string } | null>(null);
   let said = $state('');
 
+  /* The other entries are judged against the list as it stood before the quiet entry was
+     typed into, so a half-typed pattern never makes another entry read as a duplicate, and
+     `validate` runs again only when that list changes, never at a keystroke in the quiet one. */
+  const judged = $derived(
+    JSON.stringify(
+      quiet !== null && held?.index === quiet ? value.toSpliced(quiet, 1, held.pattern) : value
+    )
+  );
+  const verdicts = $derived.by(() => {
+    const list: string[] = JSON.parse(judged);
+    return list.map((pattern, index) =>
+      pattern.trim() === '' ? null : (validate?.(pattern.trim(), index, list) ?? null)
+    );
+  });
   const problems = $derived(
     value.map((pattern, index) =>
-      pattern.trim() === '' || index === quiet
-        ? null
-        : (validate?.(pattern.trim(), index, value) ?? null)
+      pattern.trim() === '' || index === quiet ? null : (verdicts[index] ?? null)
     )
   );
 
@@ -182,7 +198,7 @@ the text stays as typed until the reader fixes it.
 - Responsive: each field takes the room the list has, so a long pattern shows as much as fits; the list stacks one entry per line.
 - Accessibility: the group is named by the caller; problems, removals and pastes are said through a polite status; each problem describes its field.
 - Localization: every word is a prop, the counted and named ones functions; counts are grouped in the page's language; the remove button sits at the inline end.
-- Performance: every entry renders and `validate` runs for each entry that is not being typed into; keep it to tens of patterns.
+- Performance: every entry renders; `validate` runs for the other entries only when the list they are judged against changes, never at a keystroke in an entry the reader is still typing; keep it to tens of patterns.
 - Analytics: `onadd` hears each pattern added and `onremove` each one removed.
 - Failure: an invalid pattern stays as typed and says why; an empty list shows only Add.
 -->

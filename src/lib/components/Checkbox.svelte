@@ -308,6 +308,12 @@ it keeps focus, for a list that is saving.
       border-color: Highlight;
       color: HighlightText;
     }
+
+    /* Every edge is one colour here, so an invalid box says so with a 2px edge, checked or not. */
+    .sui-checkbox input + .sui-checkbox-box.invalid {
+      border-color: CanvasText;
+      border-width: var(--sui-stroke-bold);
+    }
   }
 
   @media (hover: hover) and (forced-colors: active) {

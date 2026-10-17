@@ -14,6 +14,7 @@
 </script>
 
 <script lang="ts">
+  import { word } from '../words.js';
   import { tick, untrack } from 'svelte';
   import type { HTMLAttributes } from 'svelte/elements';
   import Icon from '../icons/Icon.svelte';
@@ -30,7 +31,10 @@
     value = $bindable(null),
     name = id,
     disabled = false,
-    countedLabel = (word: string, count: string) => `${word} (${count})`,
+    countedLabel = word(
+      'SegmentedControl.countedLabel',
+      (word: string, count: string) => `${word} (${count})`
+    ),
     element = $bindable(null),
     'aria-describedby': describedby,
     'aria-labelledby': labelledby,

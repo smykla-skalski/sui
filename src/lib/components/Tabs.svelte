@@ -24,7 +24,7 @@
     /** Names the navigation for assistive technology, such as "Repository". It is never drawn. */
     label: string;
     items: readonly TabItem[];
-    /** The `href` of the page being shown. Its tab wears the underline and `aria-current`. */
+    /** The `href` of the page being shown. Its tab wears the current plate and `aria-current`. */
     current?: string;
     /** Called when a tab is followed, for a router that handles the click itself. */
     onnavigate?: (event: MouseEvent, item: TabItem) => void;
@@ -55,9 +55,10 @@ and settings. Each tab is a link, so it opens in a new tab, survives a reload an
 without script. For exclusive views inside one page, which swap content without changing the
 address, reach for `SegmentedControl` instead.
 
-The current tab wears a 2px brand underline, primary ink and `aria-current="page"`. It is the
-tab row's form of the current mark every navigation component shares: a mark that holds 3:1
-against its ground, never colour alone, and `Highlight` under forced colors. A count rides
+The current tab wears the plate inside a 3:1 ring, primary ink and `aria-current="page"`: the
+same current mark `SideNav`, `Rail` and `PageToc` draw, never colour alone, and `Highlight`
+under forced colors. A choice in a control, such as a segmented thumb or a checked box, is
+the brand fill instead, so where the reader is and what they chose never look alike. A count rides
 its label in tabular figures.
 
 A row short of room scrolls inside its own track and never widens the page. The edge that
@@ -68,16 +69,16 @@ never clips it.
 
 - Semantics: a `nav` landmark named by `label`, holding a list of links with `aria-current="page"` on the current one.
 - Content: a short label per tab and an optional count; a label never wraps, so a long set scrolls.
-- States: rest, hover (a quiet underline and primary ink), pressed (the pressed ground, an inset shadow and a 1px sink), focus (a 2px inset ring) and current (the brand underline and primary ink).
+- States: rest, hover (a row ground and primary ink), pressed (the pressed ground, an inset shadow and a 1px sink), focus (a 2px inset ring) and current (the plate inside its 3:1 ring, the mark every navigation list shares, and primary ink).
 - Keyboard: Tab moves through the tabs as links and Enter follows one; they are links, so there are no arrow keys.
 - Pointer and touch: tabs are 34px tall on a desktop pointer and 44 by 44px at least on a phone or a coarse pointer; the track scrolls by wheel, scrollbar, swipe or keyboard focus.
 - Focus: following a tab moves to its page, where the page decides focus; focus on a tab out of view scrolls it into view.
 - Responsive: the track scrolls sideways, fades the edge with more tabs past it, and reveals the current tab on arrival.
-- Accessibility: the current underline holds 3:1 and its ink 4.5:1, and the counts are read with their labels.
+- Accessibility: the current ring holds 3:1 and its ink 4.5:1, and the counts are read with their labels.
 - Localization: the tabs follow the reading direction, so the fades and the scroll mirror in a right-to-left page, and a numeric count follows the page language's digits and grouping.
-- Performance: plain links with no measuring beyond one reveal per current page; only colour, the underline and the 1px press transition, and the fade runs on a scroll timeline.
+- Performance: plain links with no measuring beyond one reveal per current page; only colour, the ground and the 1px press transition, and the fade runs on a scroll timeline.
 - Analytics: `onnavigate(event, item)` reports every followed tab.
-- Failure: an empty `items` draws an empty track, and a `current` that matches no tab draws no underline.
+- Failure: an empty `items` draws an empty track, and a `current` that matches no tab draws no plate.
 -->
 
 <nav {...rest} class={['sui-tabs', className]} aria-label={label}>
@@ -198,9 +199,7 @@ never clips it.
   .sui-tabs-tab {
     align-items: center;
     block-size: var(--sui-control-height-compact);
-    border-block-end: var(--sui-stroke-bold) solid transparent;
-    border-start-end-radius: var(--sui-radius-control);
-    border-start-start-radius: var(--sui-radius-control);
+    border-radius: var(--sui-radius-control);
     box-sizing: border-box;
     color: var(--sui-text-secondary);
     display: flex;
@@ -208,11 +207,12 @@ never clips it.
       var(--sui-sans);
     gap: var(--sui-space-2);
     justify-content: center;
-    padding-block-start: var(--sui-stroke-bold);
+    padding-inline: var(--sui-space-3);
+    position: relative;
     text-decoration: none;
     transition:
       color var(--sui-duration-fast) var(--sui-ease-standard),
-      border-color var(--sui-duration-fast) var(--sui-ease-standard),
+      background-color var(--sui-duration-fast) var(--sui-ease-standard),
       translate var(--sui-duration-press) var(--sui-ease-standard),
       box-shadow var(--sui-duration-press) var(--sui-ease-standard);
     white-space: nowrap;
@@ -223,7 +223,7 @@ never clips it.
 
   @media (hover: hover) {
     .sui-tabs-tab:hover:not(:active, [aria-current='page']) {
-      border-block-end-color: var(--sui-control-border);
+      background: var(--sui-row-hover);
       color: var(--sui-text-primary);
     }
   }
@@ -235,9 +235,21 @@ never clips it.
     translate: 0 1px;
   }
 
+  /* The current mark every navigation list shares: the selection plate inside a ring that holds
+     3:1, on all four sides, laid over the tab so it moves nothing. */
   .sui-tabs-tab[aria-current='page'] {
-    border-block-end-color: var(--sui-brand-action);
+    --sui-local-count-ink: var(--sui-text-primary);
+    background: var(--sui-surface-inset);
     color: var(--sui-text-primary);
+  }
+
+  .sui-tabs-tab[aria-current='page']::before {
+    border: var(--sui-stroke) solid var(--sui-border-strong);
+    border-radius: inherit;
+    content: '';
+    inset: 0;
+    pointer-events: none;
+    position: absolute;
   }
 
   .sui-tabs-tab:focus-visible {
@@ -250,12 +262,6 @@ never clips it.
     text-box: trim-both cap alphabetic;
   }
 
-  /* The current tab's count takes the tab's own brand inks. */
-  .sui-tabs-tab[aria-current='page'] {
-    --sui-local-count-ground: var(--sui-brand-action-tint);
-    --sui-local-count-ink: var(--sui-brand-action-text);
-  }
-
   /* A finger needs 44 by 44px, so a short label's tab widens to it. */
   @media (max-width: 47.9375rem), (pointer: coarse) {
     .sui-tabs-tab {
@@ -265,12 +271,8 @@ never clips it.
   }
 
   @media (forced-colors: active) {
-    .sui-tabs-tab {
-      border-block-end-color: Canvas;
-    }
-
-    .sui-tabs-tab[aria-current='page'] {
-      border-block-end-color: Highlight;
+    .sui-tabs-tab[aria-current='page']::before {
+      border: var(--sui-stroke-bold) solid Highlight;
     }
   }
 

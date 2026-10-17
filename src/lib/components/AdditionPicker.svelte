@@ -8,6 +8,7 @@
 </script>
 
 <script lang="ts">
+  import { word } from '../words.js';
   import { tick } from 'svelte';
   import type { HTMLButtonAttributes } from 'svelte/elements';
   import Icon from '../icons/Icon.svelte';
@@ -22,13 +23,13 @@
     choices,
     added = [],
     onadd,
-    done = 'Every choice is already added',
-    none = 'Nothing to add',
+    done = word('AdditionPicker.done', 'Every choice is already added'),
+    none = word('AdditionPicker.none', 'Nothing to add'),
     loading = false,
-    loadingLabel = 'Loading the choices…',
+    loadingLabel = word('AdditionPicker.loadingLabel', 'Loading the choices…'),
     error = null,
     onretry,
-    retryLabel = 'Try again',
+    retryLabel = word('AdditionPicker.retryLabel', 'Try again'),
     disabled = false,
     class: className = '',
     ...rest

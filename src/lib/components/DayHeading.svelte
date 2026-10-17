@@ -33,6 +33,7 @@
 </script>
 
 <script lang="ts">
+  import { word } from '../words.js';
   import type { HTMLAttributes } from 'svelte/elements';
   import { pageNow } from '../internal/clock.svelte.js';
   import { pageLocale } from '../internal/locale.js';
@@ -41,7 +42,7 @@
     value,
     level = 3,
     locale,
-    unknownLabel = 'Unknown day',
+    unknownLabel = word('DayHeading.unknownLabel', 'Unknown day'),
     class: className = '',
     ...rest
   }: {

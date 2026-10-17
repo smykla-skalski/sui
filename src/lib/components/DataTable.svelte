@@ -16,6 +16,7 @@
 </script>
 
 <script lang="ts" generics="Row extends Record<string, unknown>">
+  import { word } from '../words.js';
   import type { Snippet } from 'svelte';
   import type { HTMLTableAttributes } from 'svelte/elements';
   import Icon from '../icons/Icon.svelte';
@@ -41,11 +42,11 @@
     error = null,
     onretry,
     empty,
-    emptyLabel = 'Nothing to show yet',
-    loadingLabel = 'Loading…',
-    refreshingLabel = 'Refreshing…',
-    retryLabel = 'Try again',
-    scrollHint = 'Scroll sideways to see every column',
+    emptyLabel = word('DataTable.emptyLabel', 'Nothing to show yet'),
+    loadingLabel = word('DataTable.loadingLabel', 'Loading…'),
+    refreshingLabel = word('DataTable.refreshingLabel', 'Refreshing…'),
+    retryLabel = word('DataTable.retryLabel', 'Try again'),
+    scrollHint = word('DataTable.scrollHint', 'Scroll sideways to see every column'),
     class: className = '',
     ...rest
   }: {

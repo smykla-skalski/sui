@@ -10,6 +10,7 @@
 </script>
 
 <script lang="ts">
+  import { word } from '../words.js';
   import type { HTMLFieldsetAttributes } from 'svelte/elements';
   import Icon from '../icons/Icon.svelte';
   import Checkbox from './Checkbox.svelte';
@@ -25,7 +26,7 @@
     hint,
     error,
     required = false,
-    requiredLabel = 'Required',
+    requiredLabel = word('CheckList.requiredLabel', 'Required'),
     disabled = false,
     onchange,
     'aria-describedby': describedBy,

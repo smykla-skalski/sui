@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { word } from '../words.js';
   import type { HTMLInputAttributes } from 'svelte/elements';
   import Icon from '../icons/Icon.svelte';
   import IconButton from './IconButton.svelte';
@@ -10,7 +11,7 @@
     value = $bindable(''),
     label,
     hideLabel = false,
-    clearLabel = 'Clear the search',
+    clearLabel = word('SearchField.clearLabel', 'Clear the search'),
     onclear,
     element = $bindable(null),
     id = `${uid}-input`,

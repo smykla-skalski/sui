@@ -19,6 +19,7 @@
 </script>
 
 <script lang="ts">
+  import { word } from '../words.js';
   import { tick, untrack, type Snippet } from 'svelte';
   import type { HTMLAttributes } from 'svelte/elements';
   import Icon from '../icons/Icon.svelte';
@@ -36,10 +37,13 @@
     current,
     label,
     level = 2,
-    closeLabel = 'Close navigation',
-    collapseLabel = 'Collapse',
-    expandLabel = 'Expand',
-    countLabel = (count: number) => `${formatCount(count)} ${count === 1 ? 'item' : 'items'}`,
+    closeLabel = word('SideNav.closeLabel', 'Close navigation'),
+    collapseLabel = word('SideNav.collapseLabel', 'Collapse'),
+    expandLabel = word('SideNav.expandLabel', 'Expand'),
+    countLabel = word(
+      'SideNav.countLabel',
+      (count: number) => `${formatCount(count)} ${count === 1 ? 'item' : 'items'}`
+    ),
     foot,
     onnavigate,
     class: className = '',

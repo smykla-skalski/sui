@@ -57,7 +57,7 @@ it a bounded width anywhere else.
 - Content: one line of plain text, cut with an ellipsis at the end of its box.
 - States: fits (a plain span), clipped (the ellipsis, and the tip on hover, long press and focus), and focused (the 2px ring when it is its own tab stop).
 - Keyboard: a cut label inside a control shows its tip on that control's focus; a cut label alone takes Tab itself, and Escape closes the tip.
-- Pointer and touch: hover shows the whole text after a pause, and a long press shows it on touch.
+- Pointer and touch: hover shows the whole text after a pause, and a long press shows it on touch, with the system's long-press menu and word selection held off a cut label.
 - Focus: it never moves focus; it takes focus only while cut and outside any control.
 - Responsive: it shrinks with its row and measures again on every resize, so the tip comes and goes with the cut.
 - Accessibility: the whole text stays in the accessibility tree, and the tip, which repeats it, stays out of it.
@@ -72,7 +72,7 @@ it a bounded width anywhere else.
 <span
   bind:this={element}
   {...rest}
-  class={['sui-clipped-label', className]}
+  class={['sui-clipped-label', className, { clipped }]}
   tabindex={alone ? 0 : undefined}
   {@attach measured(text)}>{text}</span
 >
@@ -95,5 +95,15 @@ it a bounded width anywhere else.
     border-radius: var(--sui-radius-chip);
     outline: var(--sui-focus-ring-width) solid var(--sui-focus);
     outline-offset: var(--sui-focus-ring-offset);
+  }
+
+  /* A long press shows the tip on touch, so the system's own long-press menu and word selection
+     stay out of its way. */
+  @media (pointer: coarse) {
+    .sui-clipped-label.clipped {
+      -webkit-touch-callout: none;
+      user-select: none;
+      -webkit-user-select: none;
+    }
   }
 </style>

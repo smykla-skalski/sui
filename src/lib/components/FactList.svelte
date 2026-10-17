@@ -16,12 +16,13 @@
 </script>
 
 <script lang="ts">
+  import { word } from '../words.js';
   import type { HTMLAttributes } from 'svelte/elements';
   import Link from './Link.svelte';
 
   let {
     facts,
-    missingLabel = 'Not set',
+    missingLabel = word('FactList.missingLabel', 'Not set'),
     class: className = '',
     ...rest
   }: {

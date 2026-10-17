@@ -4,6 +4,7 @@
 </script>
 
 <script lang="ts">
+  import { word } from '../words.js';
   import type { Snippet } from 'svelte';
   import type { HTMLAttributes } from 'svelte/elements';
   import VisuallyHidden from './VisuallyHidden.svelte';
@@ -15,8 +16,8 @@
     icon,
     actions,
     live = false,
-    warningLabel = 'Warning:',
-    decisionLabel = 'Needs your decision:',
+    warningLabel = word('Callout.warningLabel', 'Warning:'),
+    decisionLabel = word('Callout.decisionLabel', 'Needs your decision:'),
     class: className = '',
     children,
     ...rest

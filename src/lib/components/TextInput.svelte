@@ -36,7 +36,7 @@
 The one text field. It rests on the control fill, takes the inset fill while it has focus,
 and is 34px tall unless the surface it sits on asks for the 40px tier through
 `--sui-local-control-height`. Focus turns its own border into the ring, so the ring is never
-clipped by a card. A `readonly` field drops its fill and its strong baseline, so a value that
+clipped by a card. A `readonly` field sits in the inset well with a quiet frame and no strong baseline, so a value that
 only reads never looks like one to type into.
 
 It has no label of its own. Put it inside `Field`, or give it `aria-label` when the words
@@ -111,10 +111,12 @@ tabular figures.
   }
 
   /* An open list means the field is in use, so a combobox's preview keeps the editing look. */
+  /* A value that only reads sits in the inset well with a quiet frame and no strong
+     baseline, so it never looks like a field to type in. */
   .sui-text-input[readonly]:not([aria-expanded='true']),
   .sui-text-input[readonly]:not([aria-expanded='true']):focus {
-    background-color: transparent;
-    border-block-end-color: var(--sui-field-frame);
+    background-color: var(--sui-surface-inset);
+    border-color: var(--sui-border-subtle);
   }
 
   .sui-text-input[aria-invalid='true'] {

@@ -335,5 +335,11 @@ take, under the switch and to a screen reader, while the owner sets `checked` ba
     .sui-switch-row input:checked + .sui-switch-track::after {
       background: HighlightText;
     }
+
+    /* Every edge is one colour here, so an invalid track says so with a 2px edge, on or off. */
+    .sui-switch-row input + .sui-switch-track.invalid {
+      border-color: CanvasText;
+      border-width: var(--sui-stroke-bold);
+    }
   }
 </style>

@@ -128,7 +128,7 @@
   /* A field's edge in a changed row, which holds 3:1 there like any field's (L-9). */
   --sui-unsaved-field-border: var(--sui-unsaved-secondary);
   --sui-unsaved-field-border-hover: var(--sui-unsaved-ink);
-  --sui-unsaved-border: #c98a2e;
+  --sui-unsaved-border: #b67a22;
   --sui-decision-accent-hover: color-mix(
     in srgb,
     var(--sui-decision-accent) 86%,
@@ -262,6 +262,9 @@
 
   --sui-rhythm-head-copy: 0.5rem;
   --sui-rhythm-head-surface: 1.5rem;
+  /* The phone's step, named so a page header in a phone-wide shell can take it by the shell's
+     width as well as by the viewport's. */
+  --sui-rhythm-head-surface-compact: 1.25rem;
 
   --sui-rhythm-head-actions-stacked: 0.75rem;
 
@@ -327,6 +330,7 @@
   --sui-font-size-card-title: 1.0625rem;
   --sui-font-size-dialog-title: 1.25rem;
   --sui-font-size-page-title: 1.75rem;
+  --sui-font-size-page-title-compact: 1.5rem;
 
   --sui-leading-flat: 1;
 
@@ -344,6 +348,7 @@
   --sui-leading-body: 1.4375rem;
   --sui-leading-title: 1.625rem;
   --sui-leading-page: 2.125rem;
+  --sui-leading-page-compact: 2rem;
 
   --sui-radius-pill: 999px;
   --sui-radius-control: 8px;
@@ -373,6 +378,15 @@
      here. The phone is up to 47.9375rem, the wide shell from 64.0625rem. */
   --sui-breakpoint-phone: 47.9375rem;
   --sui-breakpoint-wide: 64.0625rem;
+
+  /* The widths a component answers to in its own container, under which it changes its layout:
+     a card moves its actions under its head, a setting row stacks its control, a callout puts
+     its actions under the message, and a list toolbar folds its filter into its menu. A
+     container query cannot read them either, so the source laws hold each query to this list. */
+  --sui-breakpoint-card: 36rem;
+  --sui-breakpoint-row: 25rem;
+  --sui-breakpoint-callout: 24rem;
+  --sui-breakpoint-bar: 18rem;
 
   --sui-field-target-min: max(24px, round(1.5rem, 1px));
   --sui-disabled-opacity: 0.7;
@@ -773,16 +787,16 @@
     /* iOS Safari zooms the page into a focused field whose text is under 16px. */
     --sui-font-size-input: 1rem;
     --sui-leading-input: 1.5rem;
-    --sui-font-size-page-title: 1.5rem;
+    --sui-font-size-page-title: var(--sui-font-size-page-title-compact);
     --sui-leading-micro: 1.125rem;
     --sui-leading-compact: 1.25rem;
     --sui-leading-meta: 1.375rem;
     --sui-leading-body: 1.5rem;
     --sui-leading-title: 1.75rem;
-    --sui-leading-page: 2rem;
+    --sui-leading-page: var(--sui-leading-page-compact);
 
     /* The space under a page header steps down with the type. */
-    --sui-rhythm-head-surface: 1.25rem;
+    --sui-rhythm-head-surface: var(--sui-rhythm-head-surface-compact);
   }
 }
 

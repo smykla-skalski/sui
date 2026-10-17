@@ -9,11 +9,12 @@
 </script>
 
 <script lang="ts">
+  import { word } from '../words.js';
   import type { HTMLAttributes } from 'svelte/elements';
 
   let {
     entries,
-    title = 'On this page',
+    title = word('PageToc.title', 'On this page'),
     level = 2,
     offset,
     onnavigate,

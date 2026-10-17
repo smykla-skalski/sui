@@ -84,6 +84,9 @@
       onchange={flip}
     />
   </Specimen>
+  <Specimen label="Invalid, kept when on" code="invalid">
+    <Switch label="Allow public forks" checked invalid />
+  </Specimen>
 </Example>
 
 <Example

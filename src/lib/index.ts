@@ -123,3 +123,4 @@ export type {
   ChartStatus,
   ChartFrameProps
 } from './charts/types.js';
+export { setWords } from './words.js';

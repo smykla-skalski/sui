@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { word } from '../words.js';
   import { tick } from 'svelte';
   import type { HTMLAttributes } from 'svelte/elements';
   import Button from './Button.svelte';
@@ -9,16 +10,16 @@
     dirty,
     saving = false,
     error = null,
-    title = 'You have unsaved changes',
-    subtitle = 'Save to keep them, or discard to go back',
-    failedTitle = 'Your changes were not saved',
-    savedTitle = 'Your changes are saved',
-    discardedTitle = 'Your changes were discarded',
-    saveLabel = 'Save',
-    savingLabel = 'Saving…',
-    discardLabel = 'Discard',
-    undoLabel = 'Undo',
-    dismissLabel = 'Dismiss',
+    title = word('SaveBar.title', 'You have unsaved changes'),
+    subtitle = word('SaveBar.subtitle', 'Save to keep them, or discard to go back'),
+    failedTitle = word('SaveBar.failedTitle', 'Your changes were not saved'),
+    savedTitle = word('SaveBar.savedTitle', 'Your changes are saved'),
+    discardedTitle = word('SaveBar.discardedTitle', 'Your changes were discarded'),
+    saveLabel = word('SaveBar.saveLabel', 'Save'),
+    savingLabel = word('SaveBar.savingLabel', 'Saving…'),
+    discardLabel = word('SaveBar.discardLabel', 'Discard'),
+    undoLabel = word('SaveBar.undoLabel', 'Undo'),
+    dismissLabel = word('SaveBar.dismissLabel', 'Dismiss'),
     onsave,
     ondiscard,
     element = $bindable(null),

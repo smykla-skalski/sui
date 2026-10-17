@@ -257,3 +257,25 @@ test('an on switch keeps its thumb inside the track in a right-to-left page', as
     await page.close();
   }
 });
+
+test('I4 swatches given as bare hex are named by their colour, not only their code', async () => {
+  const page = await open();
+  try {
+    const trigger = page
+      .locator('#color-picker .specimen', { hasText: 'Series color' })
+      .locator('button[popovertarget]');
+    await trigger.scrollIntoViewIfNeeded();
+    await trigger.click();
+    const names = await page
+      .locator(':popover-open .swatches input')
+      .evaluateAll((inputs) => inputs.map((input) => input.getAttribute('aria-label') ?? ''));
+    assert.equal(names.length, 6);
+    for (const name of names) assert.match(name, /^(Dark |Pale )?[A-Z][a-z]+, #[0-9a-f]{6}$/i);
+    assert.deepEqual(
+      names.map((name) => name.split(',')[0]),
+      ['Blue', 'Green', 'Orange', 'Red', 'Violet', 'Teal']
+    );
+  } finally {
+    await page.close();
+  }
+});

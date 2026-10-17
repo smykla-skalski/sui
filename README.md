@@ -66,6 +66,19 @@ Override tokens after the theme import. Components use the nearest value.
 
 A surface can opt into the 40px control tier with `--sui-local-control-height: var(--sui-control-height)`. The package applies no global reset and does not import SvelteKit app modules, so it works in SvelteKit, plain Svelte with Vite, and Svelte islands in Astro. The bundled fonts' licenses are in `src/lib/assets/fonts/`.
 
+## Language
+
+Every word a component draws or announces is a prop with an English default. Replace any of them app-wide once, before the first component renders, with `setWords`; a prop on one instance still wins. Numbers, dates and times follow the page's `lang`.
+
+```ts
+import { setWords } from '@smykla-skalski/sui';
+
+setWords({
+  'CopyableLinkField.copyLabel': 'Kopiuj link',
+  'LoadMore.endLabel': (shown: string) => `Wszystkie ${shown} widoczne`
+});
+```
+
 ## Design laws
 
 [docs/laws.md](docs/laws.md) lists every law with its source and how it is held. [docs/authoring.md](docs/authoring.md) explains how to write a component that meets them.

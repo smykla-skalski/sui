@@ -3,6 +3,7 @@
 </script>
 
 <script lang="ts">
+  import { word } from '../words.js';
   import type { Snippet } from 'svelte';
   import type { HTMLAttributes } from 'svelte/elements';
   import Icon, { type IconName } from '../icons/Icon.svelte';
@@ -13,8 +14,8 @@
     icon,
     dot = false,
     live = false,
-    dotLabel = 'now',
-    liveLabel = 'live',
+    dotLabel = word('Pill.dotLabel', 'now'),
+    liveLabel = word('Pill.liveLabel', 'live'),
     class: className = '',
     children,
     ...rest

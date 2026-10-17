@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { word } from '../words.js';
   import type { Snippet } from 'svelte';
   import type { HTMLAttributes } from 'svelte/elements';
   import VisuallyHidden from './VisuallyHidden.svelte';
@@ -8,10 +9,10 @@
     rows = 6,
     rowHeight,
     bars = true,
-    label = 'Loading…',
-    loadedLabel = 'Loaded',
+    label = word('Skeleton.label', 'Loading…'),
+    loadedLabel = word('Skeleton.loadedLabel', 'Loaded'),
     patience = 10_000,
-    slowLabel = 'Still loading, this is taking longer than usual',
+    slowLabel = word('Skeleton.slowLabel', 'Still loading, this is taking longer than usual'),
     class: className = '',
     children,
     ...rest

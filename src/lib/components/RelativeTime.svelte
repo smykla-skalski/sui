@@ -37,6 +37,7 @@
 </script>
 
 <script lang="ts">
+  import { word } from '../words.js';
   import type { HTMLTimeAttributes } from 'svelte/elements';
   import { pageNow } from '../internal/clock.svelte.js';
   import { pageLocale } from '../internal/locale.js';
@@ -47,7 +48,7 @@
     value,
     exact: exactOnly = false,
     locale,
-    exactLabel = (time: string) => `, exactly ${time}`,
+    exactLabel = word('RelativeTime.exactLabel', (time: string) => `, exactly ${time}`),
     element = $bindable(null),
     class: className = '',
     ...rest
@@ -102,7 +103,7 @@ tooltip.
 - Content: one reading, "4 minutes ago" or "in 3 days", turning into the date a week out; the whole instant with seconds and its zone.
 - States: relative (dotted underline, the tip on hover and long press), hover (the secondary ink), and `exact` (the whole instant in place, free to wrap).
 - Keyboard: outside any control it is a tab stop that shows the tip; inside a control, that control's focus shows the tip; Escape closes it.
-- Pointer and touch: the hover area reaches 8px above and below and 6px to each side; a 500ms press shows the tip on touch.
+- Pointer and touch: the hover area reaches 8px above and below and 6px to each side; a 500ms press shows the tip on touch, with the system's long-press menu and word selection held off.
 - Focus: outside any control it takes focus and wears the 2px ring; it never moves focus.
 - Responsive: the relative reading never breaks inside, and the exact one wraps where a column is narrow.
 - Accessibility: the whole instant is in its words for a screen reader, and the tip repeats it, so the tip stays out of the accessibility tree.
@@ -162,5 +163,15 @@ tooltip.
   .exact {
     text-decoration: none;
     white-space: normal;
+  }
+
+  /* A long press shows the tip on touch, so the system's own long-press menu and word selection
+     stay out of its way. */
+  @media (pointer: coarse) {
+    .sui-relative-time:not(.exact) {
+      -webkit-touch-callout: none;
+      user-select: none;
+      -webkit-user-select: none;
+    }
   }
 </style>

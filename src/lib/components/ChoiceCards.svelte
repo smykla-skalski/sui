@@ -11,6 +11,7 @@
 </script>
 
 <script lang="ts">
+  import { word } from '../words.js';
   import type { HTMLFieldsetAttributes } from 'svelte/elements';
   import Icon from '../icons/Icon.svelte';
   import VisuallyHidden from './VisuallyHidden.svelte';
@@ -25,7 +26,7 @@
     hint,
     error,
     required = false,
-    requiredLabel = 'Required',
+    requiredLabel = word('ChoiceCards.requiredLabel', 'Required'),
     disabled = false,
     onchange,
     'aria-describedby': describedBy,

@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { word } from '../words.js';
   import VisuallyHidden from '../components/VisuallyHidden.svelte';
   import ChartFrame from './ChartFrame.svelte';
   import { clip, formatNumber } from './format.js';
@@ -9,13 +10,13 @@
     title,
     description,
     data,
-    valueLabel = 'Value',
-    labelHeading = 'Label',
-    startLabel = 'Start',
-    endLabel = 'End',
-    rangeLabel = 'Range',
-    markerLabel = 'Marker',
-    noMarkerLabel = 'None',
+    valueLabel = word('RangeChart.valueLabel', 'Value'),
+    labelHeading = word('RangeChart.labelHeading', 'Label'),
+    startLabel = word('RangeChart.startLabel', 'Start'),
+    endLabel = word('RangeChart.endLabel', 'End'),
+    rangeLabel = word('RangeChart.rangeLabel', 'Range'),
+    markerLabel = word('RangeChart.markerLabel', 'Marker'),
+    noMarkerLabel = word('RangeChart.noMarkerLabel', 'None'),
     formatValue = formatNumber,
     ...frame
   }: ChartFrameProps & {
@@ -74,10 +75,12 @@
     const top = 32 * scale;
     const row = 42 * scale;
     const rows = top + validData.length * row;
+    const left = 140 * scale;
+    // The least width grows with the text, as the names do, so the bars never squeeze.
     return {
-      width: Math.max(MIN_WIDTH, frameWidth),
+      width: Math.max(MIN_WIDTH * scale, frameWidth),
       height: Math.round(rows + 46 * scale),
-      left: 140 * scale,
+      left,
       top,
       row,
       rows

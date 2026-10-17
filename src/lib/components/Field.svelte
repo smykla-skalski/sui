@@ -12,6 +12,7 @@
 </script>
 
 <script lang="ts">
+  import { word } from '../words.js';
   import type { Snippet } from 'svelte';
   import type { HTMLInputAttributes } from 'svelte/elements';
   import Icon from '../icons/Icon.svelte';
@@ -25,7 +26,7 @@
     hint,
     error,
     required = false,
-    requiredLabel = 'Required',
+    requiredLabel = word('Field.requiredLabel', 'Required'),
     value = $bindable(''),
     type = 'text',
     layout = 'stack',

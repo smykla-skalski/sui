@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { word } from '../words.js';
   import ChartFrame from './ChartFrame.svelte';
   import { formatNumber } from './format.js';
   import {
@@ -22,9 +23,9 @@
     title,
     description,
     series,
-    xLabel = 'X',
-    yLabel = 'Y',
-    seriesHeading = 'Series',
+    xLabel = word('XYChart.xLabel', 'X'),
+    yLabel = word('XYChart.yLabel', 'Y'),
+    seriesHeading = word('XYChart.seriesHeading', 'Series'),
     formatX = formatNumber,
     formatY = formatNumber,
     ...frame
@@ -87,11 +88,15 @@
     const names = ends.map((end) => (end.label.length * LABEL_CHAR + 2 * LABEL_GAP) * scale);
     const top = xyPlot.top * scale;
     const bottom = xyPlot.bottom * scale;
+    const left = xyPlot.left * scale;
+    const right = Math.max(xyPlot.right, ...names);
+    // The least width grows with the text, as the margins do, so larger text scrolls the chart
+    // sideways rather than squeezing its points and ticks together.
     return {
-      width: Math.max(xyPlot.minWidth, frameWidth),
+      width: Math.max(xyPlot.minWidth * scale, frameWidth),
       height: Math.round(top + bottom + xyPlot.height - xyPlot.top - xyPlot.bottom),
-      left: xyPlot.left * scale,
-      right: Math.max(xyPlot.right, ...names),
+      left,
+      right,
       top,
       bottom
     };

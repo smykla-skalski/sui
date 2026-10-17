@@ -28,14 +28,14 @@
   title="Units"
   note="A value shows in the largest unit that holds it whole, and picking another unit leaves the seconds alone"
 >
-  <Specimen label="Stored as {retry} seconds" code="bind:value max">
+  <Specimen label="Stored as {retry} {retry === 1 ? 'second' : 'seconds'}" code="bind:value max">
     <Field label="Retry delay">
       {#snippet control({ id, describedby })}
         <DurationInput {id} aria-describedby={describedby} bind:value={retry} max={86400} />
       {/snippet}
     </Field>
   </Specimen>
-  <Specimen label="Stored as {merge} seconds" code="bind:value">
+  <Specimen label="Stored as {merge} {merge === 1 ? 'second' : 'seconds'}" code="bind:value">
     <Field label="Merge window">
       {#snippet control({ id, describedby })}
         <DurationInput {id} aria-describedby={describedby} bind:value={merge} />

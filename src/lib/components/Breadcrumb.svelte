@@ -7,13 +7,14 @@
 </script>
 
 <script lang="ts">
+  import { word } from '../words.js';
   import type { HTMLAttributes } from 'svelte/elements';
   import Icon from '../icons/Icon.svelte';
 
   let {
     items,
     current,
-    label = 'Where this page sits',
+    label = word('Breadcrumb.label', 'Where this page sits'),
     onnavigate,
     class: className = '',
     ...rest

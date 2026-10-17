@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { word } from '../words.js';
   import type { Snippet } from 'svelte';
   import Icon from '../icons/Icon.svelte';
   import type { HTMLAnchorAttributes } from 'svelte/elements';
@@ -9,7 +10,7 @@
     external,
     rel,
     standalone = false,
-    externalLabel = '(opens another site)',
+    externalLabel = word('Link.externalLabel', '(opens another site)'),
     class: className = '',
     children,
     ...rest

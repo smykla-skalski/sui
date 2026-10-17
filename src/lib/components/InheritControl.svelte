@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { word } from '../words.js';
   import { tick, type Snippet } from 'svelte';
   import type { HTMLAttributes } from 'svelte/elements';
   import Icon from '../icons/Icon.svelte';
@@ -15,13 +16,16 @@
     disabled = false,
     loading = false,
     error = null,
-    overrideLabel = 'Override',
-    inheritLabel = 'Use inherited value',
+    overrideLabel = word('InheritControl.overrideLabel', 'Override'),
+    inheritLabel = word('InheritControl.inheritLabel', 'Use inherited value'),
     overrideName,
     inheritName,
-    inheritedLabel = (value: string, from: string) => `${value} from ${from}`,
-    unknownLabel = (from: string) => `Nothing set in ${from}`,
-    loadingLabel = 'Loading the inherited value…',
+    inheritedLabel = word(
+      'InheritControl.inheritedLabel',
+      (value: string, from: string) => `${value} from ${from}`
+    ),
+    unknownLabel = word('InheritControl.unknownLabel', (from: string) => `Nothing set in ${from}`),
+    loadingLabel = word('InheritControl.loadingLabel', 'Loading the inherited value…'),
     onoverride,
     oninherit,
     control,

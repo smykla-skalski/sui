@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { word } from '../words.js';
   import type { HTMLAttributes } from 'svelte/elements';
   import Button from './Button.svelte';
 
@@ -9,8 +10,8 @@
     busy = false,
     focusAfterRetry,
     overContent = false,
-    retryLabel = 'Try again',
-    retryingLabel = 'Trying again…',
+    retryLabel = word('ErrorState.retryLabel', 'Try again'),
+    retryingLabel = word('ErrorState.retryingLabel', 'Trying again…'),
     element = $bindable(null),
     class: className = '',
     ...rest

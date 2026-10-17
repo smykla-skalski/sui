@@ -107,7 +107,7 @@ test('L-2 every token read is declared and every declared token is read', () => 
       }
   }
   const scales =
-    /^--sui-(space|font-size|leading|icon|layer|duration|radius|ease|control-height|tier|chart|focus-ring|primitive)-/;
+    /^--sui-(space|font-size|leading|icon|layer|duration|radius|ease|control-height|tier|chart|focus-ring|primitive|breakpoint)-/;
   const unread = [...declared].filter((name) => !readNames.has(name) && !scales.test(name));
   assert.deepEqual(unread, [], 'tokens declared but never read');
 });
@@ -182,11 +182,15 @@ test('L-21 sizes and leading come from the scale and land on whole pixels', () =
     }),
     []
   );
-  for (const [name, value] of Object.entries(tokenMap(stripComments(palette))).filter(([name]) =>
+  const tokens = tokenMap(stripComments(palette));
+  // A leading may name another leading token, such as the phone's step reading its own name.
+  const resolve = (/** @type {string} */ value) =>
+    tokens[/^var\((--sui-leading-[a-z-]+)\)$/.exec(value)?.[1] ?? ''] ?? value;
+  for (const [name, value] of Object.entries(tokens).filter(([name]) =>
     name.startsWith('--sui-leading-')
   ))
     assert.ok(
-      value === '1' || Number.isInteger(parseFloat(value) * 16),
+      resolve(value) === '1' || Number.isInteger(parseFloat(resolve(value)) * 16),
       `${name}: ${value} is not a whole pixel`
     );
 });
@@ -414,13 +418,20 @@ test('L-99 the layout changes only at the palette breakpoints', () => {
   const phone = tokens['--sui-breakpoint-phone'];
   const wide = tokens['--sui-breakpoint-wide'];
   // A min-width query starts where the max-width one ends, a sixteenth of a rem on.
-  const allowed = new Set([phone, wide, `${parseFloat(phone) + 0.0625}rem`]);
+  const page = new Set([phone, wide, `${parseFloat(phone) + 0.0625}rem`]);
+  // A container query may also use a component's own width, which the palette names too.
+  const own = new Set([
+    ...page,
+    ...Object.entries(tokens)
+      .filter(([name]) => name.startsWith('--sui-breakpoint-'))
+      .map(([, value]) => value)
+  ]);
   const found = [];
   for (const [path, css] of Object.entries(styles))
     if (path.startsWith('src/lib/'))
-      for (const [query] of stripComments(css).matchAll(/@media[^{]+/g))
+      for (const [query, rule] of stripComments(css).matchAll(/@(media|container)[^{]+/g))
         for (const [, length] of query.matchAll(/(?:min|max)-width:\s*([\d.]+rem)/g))
-          if (!allowed.has(length)) found.push(`${path}: ${query.trim()}`);
+          if (!(rule === 'media' ? page : own).has(length)) found.push(`${path}: ${query.trim()}`);
   assert.deepEqual(found, []);
 });
 
@@ -434,4 +445,19 @@ test('L-84 no nested :has() and no control characters', () => {
     /[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f]/.test(read(path))
   );
   assert.deepEqual(control, []);
+});
+
+test('K9 every built-in word reads through word(), so setWords can replace it', () => {
+  const found = [];
+  for (const path of svelteFiles.filter((file) => file.startsWith('src/lib/'))) {
+    const source = read(path);
+    const props = /\n {2}let \{\n([\s\S]*?)\n {2}\}:/.exec(source)?.[1] ?? '';
+    for (const [, name, value] of props.matchAll(/^ {4}(\w+) = (.+)$/gm)) {
+      const literal = /^(['`])(.*)\1,?$/.exec(value)?.[2];
+      const words = literal !== undefined && /[A-Z ·…]/.test(literal);
+      const sentence = value.startsWith('(') && /['`]/.test(value);
+      if ((words || sentence) && !value.startsWith('word(')) found.push(`${path}: ${name}`);
+    }
+  }
+  assert.deepEqual(found, []);
 });

@@ -3,6 +3,7 @@
 </script>
 
 <script lang="ts">
+  import { word } from '../words.js';
   import type { HTMLAttributes, HTMLInputAttributes } from 'svelte/elements';
   import Icon from '../icons/Icon.svelte';
   import JoinedField from '../internal/JoinedField.svelte';
@@ -24,15 +25,23 @@
     disabled = false,
     invalid = false,
     name,
-    unitLabel = (unit: DurationUnit, amount: number) => (amount === 1 ? unit.slice(0, -1) : unit),
-    amountName = (field: string) => `${field} amount`,
-    unitName = (field: string) => `${field} unit`,
-    emptyMessage = 'Enter a duration',
-    wholeMessage = 'Enter a duration in whole seconds',
-    minMessage = (least: string) => `Enter ${least} or more`,
-    rangeMessage = (least: string, most: string) => `Enter a duration from ${least} to ${most}`,
-    minHint = (least: string) => `${least} or more`,
-    rangeHint = (least: string, most: string) => `From ${least} to ${most}`,
+    unitLabel = word('DurationInput.unitLabel', (unit: DurationUnit, amount: number) =>
+      amount === 1 ? unit.slice(0, -1) : unit
+    ),
+    amountName = word('DurationInput.amountName', (field: string) => `${field} amount`),
+    unitName = word('DurationInput.unitName', (field: string) => `${field} unit`),
+    emptyMessage = word('DurationInput.emptyMessage', 'Enter a duration'),
+    wholeMessage = word('DurationInput.wholeMessage', 'Enter a duration in whole seconds'),
+    minMessage = word('DurationInput.minMessage', (least: string) => `Enter ${least} or more`),
+    rangeMessage = word(
+      'DurationInput.rangeMessage',
+      (least: string, most: string) => `Enter a duration from ${least} to ${most}`
+    ),
+    minHint = word('DurationInput.minHint', (least: string) => `${least} or more`),
+    rangeHint = word(
+      'DurationInput.rangeHint',
+      (least: string, most: string) => `From ${least} to ${most}`
+    ),
     onproblem,
     onchange,
     'aria-describedby': describedBy,

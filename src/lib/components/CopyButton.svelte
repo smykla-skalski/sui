@@ -1,11 +1,12 @@
 <script lang="ts">
+  import { word } from '../words.js';
   import type { HTMLButtonAttributes } from 'svelte/elements';
 
   let {
     text,
-    label = 'Copy',
-    copiedLabel = 'Copied',
-    failedLabel = 'Copy failed',
+    label = word('CopyButton.label', 'Copy'),
+    copiedLabel = word('CopyButton.copiedLabel', 'Copied'),
+    failedLabel = word('CopyButton.failedLabel', 'Copy failed'),
     toolbar = false,
     bare = false,
     disabled = false,

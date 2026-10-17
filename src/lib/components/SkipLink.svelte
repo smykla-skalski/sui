@@ -1,10 +1,11 @@
 <script lang="ts">
+  import { word } from '../words.js';
   import type { Snippet } from 'svelte';
   import type { HTMLAnchorAttributes } from 'svelte/elements';
 
   let {
     href,
-    label = 'Skip to content',
+    label = word('SkipLink.label', 'Skip to content'),
     class: className = '',
     children,
     ...rest

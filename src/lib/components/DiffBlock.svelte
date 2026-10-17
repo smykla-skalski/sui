@@ -142,6 +142,7 @@
 </script>
 
 <script lang="ts">
+  import { word } from '../words.js';
   import type { HTMLAttributes } from 'svelte/elements';
   import { tokenizeLine, watchOverflow, type CodeLang } from './CodeBlock.svelte';
   import VisuallyHidden from './VisuallyHidden.svelte';
@@ -153,8 +154,8 @@
     lang = 'text',
     label,
     labels,
-    emptyLabel = 'No changes',
-    regionLabel = 'Diff',
+    emptyLabel = word('DiffBlock.emptyLabel', 'No changes'),
+    regionLabel = word('DiffBlock.regionLabel', 'Diff'),
     opLabels = { '+': 'Added', '-': 'Removed', '~': 'Changed' },
     class: className = '',
     ...rest

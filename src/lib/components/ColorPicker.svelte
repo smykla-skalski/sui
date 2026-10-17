@@ -58,6 +58,30 @@
     return `#${channel(5)}${channel(3)}${channel(1)}`;
   }
 
+  // ponytail: nine hue families and three tones, enough to tell swatches apart by ear; a
+  // caller who needs finer names gives each swatch a `label` or replaces `colorName`.
+  const HUES: readonly [number, string][] = [
+    [15, 'Red'],
+    [40, 'Orange'],
+    [65, 'Yellow'],
+    [160, 'Green'],
+    [195, 'Teal'],
+    [250, 'Blue'],
+    [290, 'Violet'],
+    [335, 'Pink'],
+    [360, 'Red']
+  ];
+
+  /** A plain English name for a hex, such as "Dark blue" or "Pale green". */
+  function describeColor(hex: string): string {
+    const { h, s, v } = hexToHsv(hex);
+    if (s < 0.12) return v < 0.15 ? 'Black' : v > 0.92 ? 'White' : v < 0.45 ? 'Dark gray' : 'Gray';
+    const hue = HUES.find(([end]) => h < end)?.[1] ?? 'Red';
+    if (v < 0.45) return `Dark ${hue.toLowerCase()}`;
+    if (s < 0.35 && v > 0.8) return `Pale ${hue.toLowerCase()}`;
+    return hue;
+  }
+
   /** Three digits or six, with or without the `#`. */
   function parseHex(raw: string): string | null {
     const match = /^#?([0-9a-f]{3}|[0-9a-f]{6})$/i.exec(raw.trim());
@@ -70,6 +94,7 @@
 </script>
 
 <script lang="ts">
+  import { word } from '../words.js';
   import { tick } from 'svelte';
   import type { HTMLButtonAttributes } from 'svelte/elements';
   import Icon from '../icons/Icon.svelte';
@@ -90,18 +115,29 @@
     label,
     disabled = false,
     name,
-    dialogLabel = 'Pick a color',
-    swatchesLabel = 'Swatches',
-    swatchName = (hex: string, named?: string) => (named ? `${named}, ${hex}` : `Color ${hex}`),
-    areaLabel = 'Saturation and brightness',
-    areaValue = (saturation: number, brightness: number) =>
-      `Saturation ${percent.format(saturation / 100)}, brightness ${percent.format(brightness / 100)}`,
-    hueLabel = 'Hue',
-    hueValue = (degrees: number) =>
-      degrees === 1 ? '1 degree' : `${whole.format(degrees)} degrees`,
-    hexLabel = 'Hex color',
-    hexError = 'Use a hex color such as #0e8a16',
-    triggerName = (field: string, hex: string) => `${field} ${hex}`,
+    dialogLabel = word('ColorPicker.dialogLabel', 'Pick a color'),
+    swatchesLabel = word('ColorPicker.swatchesLabel', 'Swatches'),
+    colorName = describeColor,
+    swatchName = word(
+      'ColorPicker.swatchName',
+      (hex: string, named?: string) => `${named ?? colorName(hex)}, ${hex}`
+    ),
+    areaLabel = word('ColorPicker.areaLabel', 'Saturation and brightness'),
+    areaValue = word(
+      'ColorPicker.areaValue',
+      (saturation: number, brightness: number) =>
+        `Saturation ${percent.format(saturation / 100)}, brightness ${percent.format(brightness / 100)}`
+    ),
+    hueLabel = word('ColorPicker.hueLabel', 'Hue'),
+    hueValue = word('ColorPicker.hueValue', (degrees: number) =>
+      degrees === 1 ? '1 degree' : `${whole.format(degrees)} degrees`
+    ),
+    hexLabel = word('ColorPicker.hexLabel', 'Hex color'),
+    hexError = word('ColorPicker.hexError', 'Use a hex color such as #0e8a16'),
+    triggerName = word(
+      'ColorPicker.triggerName',
+      (field: string, hex: string) => `${field} ${hex}`
+    ),
     onchange,
     element = $bindable(null),
     class: className = '',
@@ -121,7 +157,9 @@
     dialogLabel?: string;
     /** The swatch group's accessible name. */
     swatchesLabel?: string;
-    /** A swatch's accessible name from its hex and its name, when it has one. */
+    /** Names a swatch given as a bare hex, such as "Dark blue"; plain English by default. */
+    colorName?: (hex: string) => string;
+    /** A swatch's accessible name from its hex and its name, its `label` or else `colorName`. */
     swatchName?: (hex: string, named?: string) => string;
     /** Drawn over the saturation and brightness area, and its name. */
     areaLabel?: string;

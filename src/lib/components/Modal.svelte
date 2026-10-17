@@ -4,6 +4,7 @@
 </script>
 
 <script lang="ts">
+  import { word } from '../words.js';
   import type { Snippet } from 'svelte';
   import type { HTMLDialogAttributes } from 'svelte/elements';
   import Icon from '../icons/Icon.svelte';
@@ -21,7 +22,7 @@
     role = 'dialog',
     busy = false,
     error,
-    closeLabel = 'Close',
+    closeLabel = word('Modal.closeLabel', 'Close'),
     beforeClose,
     returnFocus,
     onclose,

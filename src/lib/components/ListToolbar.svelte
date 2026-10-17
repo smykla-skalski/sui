@@ -12,6 +12,7 @@
 </script>
 
 <script lang="ts">
+  import { word } from '../words.js';
   import { untrack, type Snippet } from 'svelte';
   import type { HTMLAttributes } from 'svelte/elements';
   import Icon from '../icons/Icon.svelte';
@@ -30,13 +31,14 @@
     placeholder,
     filter,
     tools = [],
-    toolsLabel = 'Sort and filter',
+    toolsLabel = word('ListToolbar.toolsLabel', 'Sort and filter'),
     action,
     count,
     pending = false,
-    countLabel = (total: number, shown: string) =>
-      total === 0 ? 'No results' : `${shown} ${total === 1 ? 'result' : 'results'}`,
-    pendingLabel = 'Searching…',
+    countLabel = word('ListToolbar.countLabel', (total: number, shown: string) =>
+      total === 0 ? 'No results' : `${shown} ${total === 1 ? 'result' : 'results'}`
+    ),
+    pendingLabel = word('ListToolbar.pendingLabel', 'Searching…'),
     onsearch,
     class: className = '',
     ...rest

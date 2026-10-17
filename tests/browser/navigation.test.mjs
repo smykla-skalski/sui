@@ -166,7 +166,7 @@ test('under forced colors the current tab and the current place are marked in Hi
       const highlight = getComputedStyle(probe).color;
       probe.remove();
       const tabs = [...document.querySelectorAll('#tabs .sui-tabs')][0];
-      const line = (/** @type {Element} */ tab) => getComputedStyle(tab).borderBottomColor;
+      const line = (/** @type {Element} */ tab) => getComputedStyle(tab, '::before').borderTopColor;
       const tile = document.querySelector('#app-shell .sui-rail-tile[aria-current]');
       return {
         highlight,

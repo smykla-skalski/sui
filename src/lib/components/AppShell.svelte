@@ -1,7 +1,9 @@
 <script lang="ts">
+  import { word } from '../words.js';
   import { flushSync, type Snippet } from 'svelte';
   import type { HTMLAttributes } from 'svelte/elements';
   import Icon from '../icons/Icon.svelte';
+  import { rootFontSize } from '../internal/rem.svelte.js';
   import { firstStop, setShell, trapTab, type ShellMode } from '../internal/shell.svelte.js';
 
   let {
@@ -9,8 +11,8 @@
     rail,
     sidebar,
     bar,
-    label = 'Navigation',
-    menuLabel = 'Menu',
+    label = word('AppShell.label', 'Navigation'),
+    menuLabel = word('AppShell.menuLabel', 'Menu'),
     bottomNav = false,
     landmark = 'main',
     contained = false,
@@ -60,11 +62,11 @@
   const bottom = $derived(bottomNav && rail !== undefined);
 
   // The palette's breakpoints, the same as the container queries below, which own the first
-  // paint. They are read whenever the width changes, so a reader's text size moves them in step
-  // with the queries, which measure in rem too.
+  // paint. They are read again whenever the width or the root's text size changes, so a reader
+  // who enlarges the text moves them in step with the queries, which measure in rem too.
   function breakpoint(name: string): number {
-    const look = getComputedStyle(document.documentElement);
-    return parseFloat(look.getPropertyValue(name)) * (parseFloat(look.fontSize) || 16);
+    const rem = parseFloat(getComputedStyle(document.documentElement).getPropertyValue(name));
+    return rem * rootFontSize();
   }
 
   // A server render has no width and no styles to read, so it draws the full shell, as the
@@ -113,11 +115,36 @@
     else if (!drawerOpen && shown) side.hidePopover();
   });
 
+  /* Bars that would cover much of the screen, as with very large text on a phone, ride with
+     the content instead of sticking, so the content is never hidden under them (WCAG 1.4.10). */
+  const MOST = 0.4;
+  let flowing = $state(false);
+  $effect(() => {
+    if (mode !== 'drawer' || !topBar) {
+      flowing = false;
+      return;
+    }
+    const head = topBar;
+    const foot = places;
+    const check = () => {
+      flowing = head.offsetHeight + (foot?.offsetHeight ?? 0) > innerHeight * MOST;
+    };
+    const observer = new ResizeObserver(check);
+    observer.observe(head);
+    if (foot) observer.observe(foot);
+    addEventListener('resize', check);
+    return () => {
+      observer.disconnect();
+      removeEventListener('resize', check);
+    };
+  });
+
   /* A page shell scrolls the document under its sticky bars, so a link to a fragment or a
      focused control would land behind them; the page's scroll padding keeps them clear. A
-     contained shell scrolls its pane, which the bars never cover. */
+     contained shell scrolls its pane, which the bars never cover, and bars that ride with the
+     content cover nothing. */
   $effect(() => {
-    if (contained || mode !== 'drawer' || !topBar) return;
+    if (contained || mode !== 'drawer' || !topBar || flowing) return;
     const page = document.documentElement.style;
     const before = [page.scrollPaddingBlockStart, page.scrollPaddingBlockEnd];
     const head = topBar;
@@ -207,7 +234,7 @@ viewport. `landmark="none"` keeps the content from claiming the page's one `main
 - Keyboard: Tab reaches the menu button, the bars and the content in order; in the open drawer Tab and Shift+Tab stay inside and Escape closes it.
 - Pointer and touch: the menu button and every bottom bar tile are 44px; a press outside the open drawer closes it, and nothing needs a gesture.
 - Focus: opening the drawer moves focus to its first control, and closing it, by Escape, a press outside or a followed link, returns focus to the menu button.
-- Responsive: container queries on the shell's own width switch between full, folded, drawer and bottom bar, and the phone bar's title wraps instead of being cut; a page shell pads the document's scroll by the bars' height so a focused control never hides behind them.
+- Responsive: container queries on the shell's own width switch between full, folded, drawer and bottom bar, and the phone bar's title wraps instead of being cut; bars that would cover more than two fifths of the screen, as with very large text, ride with the content instead of sticking; a page shell pads the document's scroll by the bars' height so a focused control never hides behind them.
 - Accessibility: while the drawer is open the bars and the content are inert; the menu button shows its word and reports `aria-expanded`.
 - Localization: `menuLabel` and `label` are props with English defaults; the drawer opens from the start edge and is placed by direction, so it lands on the right in a right-to-left page, and the sidebar glyph mirrors.
 - Performance: one width measure drives the mode; the fold snaps instead of animating the column's width, and placement work runs only while the drawer is open.
@@ -219,7 +246,7 @@ viewport. `landmark="none"` keeps the content from claiming the page's one `main
   bind:this={root}
   bind:clientWidth={width}
   {...rest}
-  class={['sui-shell', className, { contained, 'bottom-nav': bottom }]}
+  class={['sui-shell', className, { contained, 'bottom-nav': bottom, flowing }]}
 >
   <header bind:this={topBar} class="sui-shell-bar" inert={drawerOpen}>
     <button
@@ -492,6 +519,10 @@ viewport. `landmark="none"` keeps the content from claiming the page's one `main
       inset-block: auto 0;
       z-index: var(--sui-layer-top-bar);
     }
+  }
+
+  .flowing :is(.sui-shell-bar, .sui-shell-places) {
+    position: relative;
   }
 
   @media (forced-colors: active) {

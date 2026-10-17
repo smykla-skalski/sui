@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { word } from '../words.js';
   import VisuallyHidden from '../components/VisuallyHidden.svelte';
   import ChartFrame from './ChartFrame.svelte';
   import { clip, formatNumber } from './format.js';
@@ -11,8 +12,8 @@
     rows,
     columns,
     cells,
-    rowHeading = 'Row',
-    noDataLabel = 'No data',
+    rowHeading = word('HeatmapChart.rowHeading', 'Row'),
+    noDataLabel = word('HeatmapChart.noDataLabel', 'No data'),
     formatValue = formatNumber,
     ...frame
   }: ChartFrameProps & {
@@ -80,7 +81,7 @@ columns and scrolls sideways in a narrower container.
 - Pointer and touch: "View chart data" is 24px tall on a desktop pointer and 44px on a phone or a coarse pointer; nothing needs hover, since each cell prints its value.
 - Focus: opening the table keeps focus on its control; retrying a failed chart is the error state's button.
 - Responsive: cells keep their size and the matrix scrolls sideways; cells and margins grow with the reader's text size, and long names are cut without splitting a character and stay whole in the table.
-- Accessibility: the printed value carries each cell, so its fill need not reach 3:1, while the value's ink holds 4.5:1 on every step; the table has the title as its caption and names an empty cell in words.
+- Accessibility: every cell's edge holds 3:1 against the surface and the printed value carries its number, with ink at 4.5:1 on every step; the table has the title as its caption and names an empty cell in words.
 - Localization: `rowHeading`, `noDataLabel` and the frame's words are props with English defaults; default numbers follow the page language, and the matrix reads left to right in every page.
 - Performance: one rect and one text a cell, which suits a few hundred cells; the table renders only while it is open. Nothing animates.
 - Analytics: `ontableopenchange(open)` reports the table and `onretry` a retry.
@@ -220,15 +221,19 @@ columns and scrolls sideways in a narrower container.
   .step-4 {
     --sui-local-heat: color-mix(in srgb, var(--sui-chart-1) 68%, var(--sui-surface-base));
   }
+  /* Every cell's edge holds 3:1 against the surface, so each one stands out whatever its step,
+     and the steps keep their range from near the surface to the strongest. */
   .cell {
     fill: var(--sui-local-heat);
+    stroke: var(--sui-border-strong);
+    stroke-width: var(--sui-stroke);
   }
   /* No value is not the lowest value: a dashed edge that holds 3:1 sets it apart from every step. */
   rect.missing {
     fill: var(--sui-surface-base);
     stroke: var(--sui-border-strong);
     stroke-dasharray: 4 3;
-    stroke-width: 1;
+    stroke-width: var(--sui-stroke);
   }
   .legend {
     display: flex;
@@ -249,7 +254,7 @@ columns and scrolls sideways in a narrower container.
   .swatch {
     background: var(--sui-local-heat);
     block-size: var(--sui-icon-base);
-    border: var(--sui-stroke) solid var(--sui-border-divider);
+    border: var(--sui-stroke) solid var(--sui-border-strong);
     border-radius: var(--sui-radius-check);
     box-sizing: border-box;
     flex: none;

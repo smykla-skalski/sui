@@ -29,6 +29,7 @@
 </script>
 
 <script lang="ts">
+  import { word } from '../words.js';
   import type { HTMLFieldsetAttributes } from 'svelte/elements';
   import SegmentedControl, { type SegmentOption } from './SegmentedControl.svelte';
 
@@ -36,11 +37,11 @@
     value = $bindable('system'),
     name,
     system = true,
-    label = 'Theme',
+    label = word('ThemeSwitch.label', 'Theme'),
     hideLabel = true,
-    lightLabel = 'Light',
-    darkLabel = 'Dark',
-    systemLabel = 'System',
+    lightLabel = word('ThemeSwitch.lightLabel', 'Light'),
+    darkLabel = word('ThemeSwitch.darkLabel', 'Dark'),
+    systemLabel = word('ThemeSwitch.systemLabel', 'System'),
     onchange,
     class: className = ''
   }: {

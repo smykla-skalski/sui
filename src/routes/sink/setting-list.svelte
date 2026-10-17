@@ -20,6 +20,7 @@
     TextInput
   } from '#lib';
   import Example from '../kit/Example.svelte';
+  import Specimen from '../kit/Specimen.svelte';
 
   const levels = [
     { value: 'debug', label: 'Debug' },
@@ -205,6 +206,25 @@
       </SettingRow>
     </SettingList>
   </Card>
+</Example>
+
+<Example
+  title="List states"
+  note="While the settings load, when they fail and when there is nothing to set, the list says so in the rows' place"
+  layout="grid"
+  ground="canvas"
+>
+  <Specimen label="Loading" code="loading">
+    <Card title="Webhooks" level={4}><SettingList loading /></Card>
+  </Specimen>
+  <Specimen label="Failed" code="error onretry">
+    <Card title="Webhooks" level={4}>
+      <SettingList error="The server did not answer in time" onretry={() => {}} />
+    </Card>
+  </Specimen>
+  <Specimen label="Nothing to set" code="empty">
+    <Card title="Webhooks" level={4}><SettingList empty /></Card>
+  </Specimen>
 </Example>
 
 <Example

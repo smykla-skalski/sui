@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { word } from '../words.js';
   import type { Snippet } from 'svelte';
   import Button from './Button.svelte';
   import Modal, { type ModalCloseReason } from './Modal.svelte';
@@ -8,9 +9,12 @@
     title,
     consequence,
     confirmLabel,
-    cancelLabel = 'Cancel',
-    closeLabel = 'Close',
-    failedLabel = () => 'That could not be done, so nothing changed',
+    cancelLabel = word('ConfirmDialog.cancelLabel', 'Cancel'),
+    closeLabel = word('ConfirmDialog.closeLabel', 'Close'),
+    failedLabel = word(
+      'ConfirmDialog.failedLabel',
+      () => 'That could not be done, so nothing changed'
+    ),
     tone = 'signal',
     onconfirm,
     oncancel,
