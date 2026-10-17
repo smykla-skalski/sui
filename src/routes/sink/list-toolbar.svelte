@@ -16,7 +16,7 @@
     { name: 'smykla-skalski/sui', state: 'active', updated: 3 },
     { name: 'smykla-skalski/smyklot', state: 'active', updated: 2 },
     { name: 'smykla-skalski/dotfiles', state: 'archived', updated: 40 },
-    { name: 'smykla-skalski/kuma-demo', state: 'active', updated: 12 }
+    { name: 'smykla-skalski/demo-app', state: 'active', updated: 12 }
   ];
 
   const states = [

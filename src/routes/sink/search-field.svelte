@@ -12,11 +12,11 @@
   import Example from '../kit/Example.svelte';
   import Specimen from '../kit/Specimen.svelte';
 
-  const repositories = ['kuma', 'kuma-gui', 'kuma-website', 'smyklot', 'sui', 'mesh-perf'];
+  const repositories = ['atlas', 'atlas-gui', 'atlas-website', 'smyklot', 'sui', 'mesh-perf'];
 
   let query = $state('');
   let people = $state('Grace');
-  let filter = $state('kuma');
+  let filter = $state('atlas');
   const matches = $derived(
     repositories.filter((name) => name.includes(filter.trim().toLowerCase()))
   );

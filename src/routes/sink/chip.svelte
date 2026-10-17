@@ -38,7 +38,7 @@
     ['blocked', '#000000', 'Black']
   ] as const;
 
-  let labels = $state(['kuma.io/zone', 'team:platform', 'env=production', 'v2.9.1']);
+  let labels = $state(['topology/zone', 'team:platform', 'env=production', 'v2.9.1']);
 </script>
 
 <Example
@@ -118,7 +118,7 @@
   <Specimen label="Mono, removable" code="mono onremove">
     <Chip
       mono
-      label="registry.example.com/platform/control-plane/kuma-cp:2.9.1-rc.3"
+      label="registry.example.com/platform/control-plane/server:2.9.1-rc.3"
       onremove={() => {}}
     />
   </Specimen>
