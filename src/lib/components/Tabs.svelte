@@ -80,7 +80,7 @@ the track never clips it.
   }
 
   .sui-tabs-track {
-    border-block-end: 1px solid var(--sui-border-subtle);
+    border-block-end: 1px solid var(--sui-border-divider);
     display: flex;
     gap: var(--sui-space-4);
     list-style: none;

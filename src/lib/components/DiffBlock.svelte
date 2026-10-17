@@ -199,7 +199,7 @@ removed line has no single number to claim. Two empty sides say "No changes".
   }
 
   .sui-diff-block-legend {
-    border-block-end: 1px solid var(--sui-border-subtle);
+    border-block-end: 1px solid var(--sui-border-divider);
     color: var(--sui-text-secondary);
     display: flex;
     flex-wrap: wrap;

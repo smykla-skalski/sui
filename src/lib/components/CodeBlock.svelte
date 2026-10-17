@@ -229,7 +229,7 @@ a device without hover. It copies `code` exactly as given.
   }
 
   .sui-code-block-label {
-    border-block-end: 1px solid var(--sui-border-subtle);
+    border-block-end: 1px solid var(--sui-border-divider);
     color: var(--sui-text-secondary);
     font: 400 var(--sui-font-size-micro) / var(--sui-leading-micro) var(--sui-mono);
     font-variant-numeric: tabular-nums;

@@ -69,7 +69,7 @@
 
 <style>
   .section {
-    border-block-start: 1px solid var(--sui-border-subtle);
+    border-block-start: 1px solid var(--sui-border-divider);
     box-sizing: border-box;
     display: grid;
     gap: var(--sui-space-8);

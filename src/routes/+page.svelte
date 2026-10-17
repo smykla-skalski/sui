@@ -216,7 +216,7 @@
   .tools.compact {
     animation: sink-bar-in var(--sui-duration-normal) var(--sui-ease-out);
     background: var(--sui-canvas);
-    border-block-end: 1px solid var(--sui-border-subtle);
+    border-block-end: 1px solid var(--sui-border-divider);
     box-sizing: border-box;
     inset-block-start: 0;
     inset-inline: 0;

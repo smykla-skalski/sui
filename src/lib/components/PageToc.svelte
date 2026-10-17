@@ -226,7 +226,7 @@ or leaving it out on a phone, is the page's layout.
 
   .sui-page-toc-link {
     align-items: center;
-    border-inline-start: 2px solid var(--sui-border-subtle);
+    border-inline-start: 2px solid var(--sui-border-divider);
     border-end-end-radius: var(--sui-radius-chip);
     border-start-end-radius: var(--sui-radius-chip);
     box-sizing: border-box;

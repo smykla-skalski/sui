@@ -318,7 +318,7 @@ for a review that needs no click.
   .sui-modal-foot {
     align-items: center;
     background-color: var(--sui-dialog-bg);
-    border-block-start: 1px solid var(--sui-border-subtle);
+    border-block-start: 1px solid var(--sui-border-divider);
     display: flex;
     flex: none;
     flex-wrap: wrap;

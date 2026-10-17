@@ -65,7 +65,7 @@ the pointer: hover and press only answer on a row that opens something.
   }
 
   .sui-object-row:not(:last-child)::after {
-    background: var(--sui-border-subtle);
+    background: var(--sui-border-divider);
     block-size: var(--sui-row-hairline);
     content: '';
     inset-block-end: 0;

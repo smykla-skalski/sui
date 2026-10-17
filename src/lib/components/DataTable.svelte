@@ -175,7 +175,7 @@ enough that the eye can lose its row between the first column and the last.
   }
 
   tbody tr + tr {
-    border-block-start: 1px solid var(--sui-border-subtle);
+    border-block-start: 1px solid var(--sui-border-divider);
   }
 
   /* A tinted row needs room inside its tint, so the outer cells take back their inset. */

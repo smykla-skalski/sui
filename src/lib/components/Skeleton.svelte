@@ -96,7 +96,7 @@ of what is coming is already known.
 
   span {
     block-size: var(--sui-skeleton-row);
-    border-block-end: var(--sui-row-hairline) solid var(--sui-border-subtle);
+    border-block-end: var(--sui-row-hairline) solid var(--sui-border-divider);
     box-sizing: border-box;
     display: block;
     position: relative;

@@ -106,7 +106,7 @@ separators on both its edges; two changed rows in a row keep exactly 1px of card
   }
 
   .sui-setting-row:not(:last-child)::after {
-    background: var(--sui-border-subtle);
+    background: var(--sui-border-divider);
     block-size: var(--sui-row-hairline);
     content: '';
     inset-block-end: 0;

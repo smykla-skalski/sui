@@ -155,6 +155,15 @@ function palette(): Finding[] {
     ...between('L-8', 'border-subtle on surface-base', c('border-subtle', 'surface-base'), 1.2, 2)
   );
   found.push(
+    ...between(
+      'L-8',
+      'border-divider on surface-base',
+      c('border-divider', 'surface-base'),
+      1.1,
+      1.5
+    )
+  );
+  found.push(
     ...between('L-9', 'control-border on control-bg', c('control-border', 'control-bg'), 1.5, 2.25)
   );
   found.push(

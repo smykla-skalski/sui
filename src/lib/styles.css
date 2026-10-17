@@ -82,22 +82,22 @@
   --sui-primitive-petrol-50: #e7f5f2;
   --sui-primitive-petrol-950: #103634;
   --sui-primitive-info-light: #526b7a;
-  --sui-primitive-info-light-tint: #edf2f4;
+  --sui-primitive-info-light-tint: #f1f3f4;
   --sui-primitive-info-dark: #b6c5d1;
-  --sui-primitive-info-dark-tint: #26323b;
+  --sui-primitive-info-dark-tint: #212a33;
 
   --sui-primitive-success-light: #187733;
-  --sui-primitive-success-light-tint: #e9f7ec;
+  --sui-primitive-success-light-tint: #edf4ee;
   --sui-primitive-success-dark: #7fd396;
-  --sui-primitive-success-dark-tint: #16351f;
+  --sui-primitive-success-dark-tint: #152b1e;
   --sui-primitive-warning-light: #8a5d17;
-  --sui-primitive-warning-light-tint: #f8f0de;
+  --sui-primitive-warning-light-tint: #f6f2ec;
   --sui-primitive-warning-dark: #e8c07a;
-  --sui-primitive-warning-dark-tint: #382f20;
+  --sui-primitive-warning-dark-tint: #2c271f;
   --sui-primitive-danger-light: #a33a45;
-  --sui-primitive-danger-light-tint: #faecee;
+  --sui-primitive-danger-light-tint: #f8eff0;
   --sui-primitive-danger-dark: #f0a0a6;
-  --sui-primitive-danger-dark-tint: #3a2429;
+  --sui-primitive-danger-dark-tint: #312028;
 
   --sui-canvas: var(--sui-primitive-light-canvas);
   --sui-surface-base: var(--sui-primitive-light-surface);
@@ -106,8 +106,11 @@
   --sui-surface-control: var(--sui-primitive-light-control);
   --sui-border-subtle: var(--sui-primitive-light-rule);
   --sui-border-control: var(--sui-primitive-light-control-border);
+  /* A line inside a surface (rows, a head or foot, a tab baseline, a chart grid) is quieter
+     than the hairline that frames the surface. */
+  --sui-border-divider: color-mix(in srgb, var(--sui-border-subtle) 50%, var(--sui-surface-base));
 
-  --sui-avatar-ring: rgb(24 33 31 / 22%);
+  --sui-avatar-ring: rgb(0 20 8 / 22%);
   --sui-text-primary: var(--sui-primitive-light-text);
   --sui-text-secondary: var(--sui-primitive-light-secondary);
   --sui-text-muted: var(--sui-primitive-light-muted);
@@ -155,10 +158,10 @@
   --sui-role-tint: #efeaf9;
   --sui-role-ink: #5b459f;
 
-  --sui-interactive-hover: #f1f5f3;
+  --sui-interactive-hover: #f1f4f0;
 
-  --sui-interactive-hover-layer: rgb(24 33 31 / 10%);
-  --sui-interactive-pressed: rgb(24 33 31 / 16%);
+  --sui-interactive-hover-layer: rgb(0 20 8 / 10%);
+  --sui-interactive-pressed: rgb(0 20 8 / 15%);
   --sui-scrim: rgb(14 17 22 / 56%);
   --sui-scrim-blur: 8px;
 
@@ -172,10 +175,10 @@
   --sui-sidebar-active-bg: var(--sui-primitive-petrol-700);
   --sui-sidebar-active-ink: #ffffff;
   --sui-sidebar-focus: var(--sui-primitive-petrol-700);
-  --sui-sidebar-thumb-shadow: 0 4px 12px -8px rgb(24 33 31 / 42%), 0 1px 3px rgb(24 33 31 / 14%);
-  --sui-sidebar-thumb-shadow-pressed: 0 1px 2px rgb(24 33 31 / 12%);
-  --sui-sidebar-pressed-inset: inset 0 1px 2px rgb(24 33 31 / 12%);
-  --sui-shadow-color: rgb(24 33 31 / 10%);
+  --sui-sidebar-thumb-shadow: 0 4px 12px -8px rgb(0 20 8 / 42%), 0 1px 3px rgb(0 20 8 / 14%);
+  --sui-sidebar-thumb-shadow-pressed: 0 1px 2px rgb(0 20 8 / 12%);
+  --sui-sidebar-pressed-inset: inset 0 1px 2px rgb(0 20 8 / 12%);
+  --sui-shadow-color: rgb(0 20 8 / 10%);
 
   --sui-control-bg: var(--sui-surface-control);
 
@@ -233,7 +236,7 @@
   --sui-sans: 'SUI Plus Jakarta Sans', 'Segoe UI Variable', 'Segoe UI', system-ui, sans-serif;
 
   --sui-chart-ink: var(--sui-brand-action);
-  --sui-chart-grid: var(--sui-border-subtle);
+  --sui-chart-grid: var(--sui-border-divider);
 
   --sui-space-1: 0.25rem;
   --sui-space-2: 0.5rem;
@@ -356,7 +359,7 @@
   --sui-sidebar-width-collapsed: 4.5rem;
   --sui-top-bar-height: 56px;
 
-  --sui-pressed-inset: inset 0 1px 2px rgb(24 33 31 / 12%);
+  --sui-pressed-inset: inset 0 1px 2px rgb(0 20 8 / 12%);
   --sui-duration-press: 100ms;
   --sui-duration-fast: 160ms;
   --sui-duration-normal: 220ms;
@@ -427,8 +430,9 @@
   --sui-surface-inset: var(--sui-primitive-dark-inset);
   --sui-surface-control: var(--sui-primitive-dark-control);
   --sui-border-subtle: var(--sui-primitive-dark-rule);
-  --sui-chart-grid: var(--sui-border-subtle);
+  --sui-chart-grid: var(--sui-border-divider);
   --sui-border-control: var(--sui-primitive-dark-control-border);
+  --sui-border-divider: var(--sui-border-subtle);
   --sui-control-border-hover: var(--sui-primitive-dark-control-border-hover);
   --sui-avatar-ring: rgb(255 255 255 / 22%);
   --sui-text-primary: var(--sui-primitive-dark-text);

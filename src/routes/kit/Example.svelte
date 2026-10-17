@@ -164,7 +164,7 @@ live specimens, not a surface of the design, so it may hold cards and dialogs (L
 
   .tools {
     background: var(--sui-surface-base);
-    border-block-start: 1px solid var(--sui-border-subtle);
+    border-block-start: 1px solid var(--sui-border-divider);
     display: flex;
     gap: var(--sui-space-2);
     padding: var(--sui-space-2);
@@ -185,7 +185,7 @@ live specimens, not a surface of the design, so it may hold cards and dialogs (L
   }
 
   .code {
-    border-block-start: 1px solid var(--sui-border-subtle);
+    border-block-start: 1px solid var(--sui-border-divider);
     min-inline-size: 0;
   }
 

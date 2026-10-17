@@ -58,7 +58,7 @@ takes its outer spacing from its container.
 
   .sui-plate-head {
     align-items: center;
-    border-block-end: 1px solid var(--sui-border-subtle);
+    border-block-end: 1px solid var(--sui-border-divider);
     box-sizing: border-box;
     display: flex;
     flex-wrap: wrap;
