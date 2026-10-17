@@ -124,6 +124,7 @@ separators on both its edges; two changed rows in a row keep exactly 1px of card
     --sui-control-border: var(--sui-unsaved-control-border);
     --sui-switch-track-on: var(--sui-decision-accent);
     --sui-segment-thumb: var(--sui-decision-accent);
+    --sui-segment-thumb-ink: var(--sui-on-decision-accent);
     background-color: var(--sui-unsaved-surface);
   }
 
@@ -172,7 +173,7 @@ separators on both its edges; two changed rows in a row keep exactly 1px of card
   }
 
   .sui-setting-star {
-    color: var(--sui-decision-accent);
+    color: var(--sui-unsaved-ink);
     margin-inline-start: var(--sui-space-1);
   }
 

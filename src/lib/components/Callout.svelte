@@ -126,7 +126,7 @@ from its container rather than sizing it to its content.
   }
 
   .decision .sui-callout-icon {
-    color: var(--sui-decision-accent);
+    color: var(--sui-unsaved-ink);
   }
 
   .sui-callout-copy {

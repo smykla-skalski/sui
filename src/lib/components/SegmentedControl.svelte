@@ -496,7 +496,7 @@ from a sibling.
   }
 
   .selected .sui-segmented-input:focus-visible {
-    outline-color: var(--sui-on-brand-action);
+    outline-color: var(--sui-segment-thumb-ink);
   }
 
   .sui-segmented-label {
@@ -530,7 +530,7 @@ from a sibling.
   }
 
   .selected .sui-segmented-label {
-    color: var(--sui-on-brand-action);
+    color: var(--sui-segment-thumb-ink);
   }
 
   .disabled .sui-segmented-label {
