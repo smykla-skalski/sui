@@ -2,8 +2,8 @@
   import type { Component } from 'svelte';
   import { PageHeader, PageToc, Select, SkipLink, ThemeSwitch } from '#lib';
   import AuditPanel from './audit/AuditPanel.svelte';
+  import Section, { type SectionMeta } from './kit/Section.svelte';
 
-  type SectionMeta = { title: string; order: number };
   type SectionModule = { default: Component; section: SectionMeta };
 
   // The families a reader looks for, in the order the README lists them. A section that is
@@ -69,13 +69,32 @@
   };
 
   const modules = import.meta.glob<SectionModule>('./sink/*.svelte', { eager: true });
+  // Each section's own text, so every example can offer the markup that draws it.
+  const texts = import.meta.glob<string>('./sink/*.svelte', {
+    eager: true,
+    import: 'default',
+    query: '?raw'
+  });
+  // Only the paths: a section links each component it shows to its source.
+  const sources = Object.fromEntries(
+    Object.keys(
+      import.meta.glob([
+        '../lib/components/*.svelte',
+        '../lib/charts/*.svelte',
+        '../lib/icons/*.svelte'
+      ])
+    ).map((path) => [path.replace(/^.*\/|\.svelte$/g, ''), path.replace(/^\.\.\//, 'src/')])
+  );
   const sections = Object.entries(modules)
     .map(([path, module]) => {
       const id = path.replace(/^.*\/|\.svelte$/g, '');
       const [family, position] = place(id);
       return {
         id,
-        ...module.section,
+        meta: module.section,
+        title: module.section.title,
+        order: module.section.order,
+        source: texts[path] ?? '',
         family: FAMILIES[family]?.[0] ?? 'More',
         rank: family * 100 + position,
         Body: module.default
@@ -91,6 +110,19 @@
   }));
 
   let jump = $state<string | null>(null);
+
+  // The header's pickers become a bar fixed to the top of the window once their place in the
+  // header has scrolled away. Their place keeps its height, so nothing below it moves.
+  let slot = $state<HTMLElement | null>(null);
+  let compact = $state(false);
+  $effect(() => {
+    if (!slot) return;
+    const watcher = new IntersectionObserver(([entry]) => {
+      compact = !entry.isIntersecting && entry.boundingClientRect.bottom <= 0;
+    });
+    watcher.observe(slot);
+    return () => watcher.disconnect();
+  });
 
   $effect(() => {
     if (!jump) return;
@@ -113,42 +145,114 @@
   <PageHeader
     eyebrow="SUI"
     title="Kitchen sink"
-    description="Every component in every state, measured against the design laws on each render"
-    class="head"
+    description="Every component in every state, measured against the design laws on every render"
   >
-    {#snippet actions()}<ThemeSwitch name="sink-page-theme" />{/snippet}
+    {#snippet actions()}
+      <div class="slot" bind:this={slot}>
+        <div class={['tools', { compact }]}>
+          <p class="tools-title" aria-hidden="true">Kitchen sink</p>
+          <!-- Without the index column, this is the way across the sections. -->
+          <div class="jump">
+            <Select
+              bind:value={jump}
+              options={jumps}
+              placeholder="Jump to a component"
+              aria-label="Jump to a component"
+            />
+          </div>
+          <div class="theme"><ThemeSwitch name="sink-page-theme" system={false} /></div>
+        </div>
+      </div>
+    {/snippet}
   </PageHeader>
 
   <div class="layout">
-    <PageToc {entries} title="Components" class="toc" />
+    <PageToc {entries} title="Components" offset="var(--sink-bar)" class="toc" />
 
     <main id="content" tabindex="-1">
-      <div class="jump">
-        <Select
-          bind:value={jump}
-          options={jumps}
-          placeholder="Jump to a component"
-          aria-label="Jump to a component"
-        />
-      </div>
       <AuditPanel />
-      {#each sections as { id, title, Body } (id)}
-        <section {id} aria-labelledby="{id}-title">
-          <h2 id="{id}-title">{title}</h2>
-          <Body />
-        </section>
+      {#each sections as { id, family, meta, source, Body } (id)}
+        <Section {id} {family} {meta} {source} {sources} body={Body} />
       {/each}
     </main>
   </div>
 </div>
 
 <style>
+  /* The bar the header's pickers become, and the room anchors, the index and focus keep
+     below it so nothing lands under it. */
+  :global(html) {
+    --sink-bar: calc(var(--sui-control-height-compact) + 2 * var(--sui-space-2) + 1px);
+    --sink-gutter: clamp(var(--sui-space-4), 2.4vw, var(--sui-space-8));
+    --sink-width: calc(var(--sui-content-max) + var(--sui-toc-width));
+
+    scroll-padding-block-start: calc(var(--sink-bar) + var(--sui-space-4));
+  }
+
+  /* The index column sits beside the reading column, so the page is wider by the index. */
   .page {
     box-sizing: border-box;
     margin-inline: auto;
-    max-inline-size: var(--sui-content-max);
-    padding: var(--sui-rhythm-pane-top-wide) clamp(var(--sui-space-4), 2.4vw, var(--sui-space-8))
-      var(--sui-space-8);
+    max-inline-size: var(--sink-width);
+    padding: var(--sui-rhythm-pane-top-wide) var(--sink-gutter) var(--sui-space-8);
+  }
+
+  .slot {
+    display: flex;
+    flex: 1 1 auto;
+    min-block-size: var(--sui-control-height-compact);
+    min-inline-size: 0;
+  }
+
+  .tools {
+    align-items: center;
+    display: flex;
+    flex: 1 1 auto;
+    gap: var(--sui-space-3);
+    min-inline-size: 0;
+  }
+
+  /* Fixed to the window, lined up with the page's column, and sliding in from above. */
+  .tools.compact {
+    animation: sink-bar-in var(--sui-duration-normal) var(--sui-ease-out);
+    background: var(--sui-canvas);
+    border-block-end: 1px solid var(--sui-border-subtle);
+    box-sizing: border-box;
+    inset-block-start: 0;
+    inset-inline: 0;
+    min-block-size: var(--sink-bar);
+    padding-block: var(--sui-space-2);
+    padding-inline: max(
+      var(--sink-gutter),
+      calc((100% - var(--sink-width)) / 2 + var(--sink-gutter))
+    );
+    position: fixed;
+    z-index: var(--sui-layer-sticky);
+  }
+
+  @keyframes sink-bar-in {
+    from {
+      translate: 0 -100%;
+    }
+  }
+
+  .tools-title {
+    color: var(--sui-text-primary);
+    display: none;
+    font: 600 var(--sui-font-size-control) / var(--sui-leading-flat) var(--sui-sans);
+    margin: 0;
+    text-box: trim-both cap alphabetic;
+  }
+
+  .jump {
+    flex: 1 1 auto;
+    max-inline-size: 20rem;
+    min-inline-size: 0;
+  }
+
+  .theme {
+    flex: none;
+    margin-inline-start: auto;
   }
 
   .layout {
@@ -161,45 +265,22 @@
     display: none;
   }
 
+  /* The index pads its own scroll area, so the column beside it starts as low. */
   main {
     display: grid;
     gap: var(--sui-space-8);
     min-inline-size: 0;
+    padding-block-start: var(--sui-space-6);
   }
 
   main:focus {
     outline: none;
   }
 
-  /* A section is a heading over a rule, not a card: the cards, callouts and previews inside
-     it are surfaces of their own, and a frame around them would nest surfaces (L-55). */
-  section {
-    border-block-start: 1px solid var(--sui-border-subtle);
-    box-sizing: border-box;
-    display: grid;
-    gap: var(--sui-space-6);
-    min-inline-size: 0;
-    padding-block: var(--sui-space-8) var(--sui-space-4);
-    scroll-margin-block-start: var(--sui-space-4);
-  }
-
-  /* A section title stands a full tier above the example titles inside it (16px), so the
-     two levels never read as one. */
-  h2 {
-    color: var(--sui-text-primary);
-    font: 700 var(--sui-font-size-dialog-title) / var(--sui-leading-title) var(--sui-sans);
-    letter-spacing: -0.015em;
-    margin: 0;
-    text-box: trim-both cap alphabetic;
-  }
-
-  /* Without the index column, a picker that stays in reach is the way across 60 sections. */
-  .jump {
-    background: var(--sui-canvas);
-    inset-block-start: 0;
-    padding-block: var(--sui-space-2);
-    position: sticky;
-    z-index: var(--sui-layer-sticky);
+  @media (min-width: 48rem) {
+    .compact .tools-title {
+      display: block;
+    }
   }
 
   @media (min-width: 72rem) {
@@ -213,6 +294,12 @@
 
     .jump {
       display: none;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .tools.compact {
+      animation: none;
     }
   }
 </style>

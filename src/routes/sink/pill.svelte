@@ -1,44 +1,62 @@
 <script module lang="ts">
-  export const section = { title: 'Pill', order: 80 };
+  export const section = {
+    title: 'Pill',
+    order: 80,
+    lead: 'A status or a standing that nothing presses. A value such as a label, a pattern or a count is a Chip.',
+    components: ['Pill']
+  };
 </script>
 
 <script lang="ts">
-  import { Pill } from '#lib';
+  import { Pill, type IconName, type PillTone } from '#lib';
   import Example from '../kit/Example.svelte';
   import Specimen from '../kit/Specimen.svelte';
+  import Variants from '../kit/Variants.svelte';
+
+  const tones = ['neutral', 'info', 'success', 'warning', 'danger', 'role'] as const;
+  const marks = ['Plain', 'Icon', 'Dot', 'Live'] as const;
+  const words: Record<PillTone, string> = {
+    neutral: 'Member',
+    info: 'Invited',
+    success: 'Healthy',
+    warning: 'Degraded',
+    danger: 'Suspended',
+    role: 'Owner'
+  };
+  const icons: Record<PillTone, IconName> = {
+    neutral: 'user',
+    info: 'mail',
+    success: 'check',
+    warning: 'warning',
+    danger: 'ban',
+    role: 'owner'
+  };
 </script>
 
-<Example title="Tones" note="A status wears its word, and color never carries it alone">
-  <Specimen label={'tone="neutral"'}><Pill>Member</Pill></Specimen>
-  <Specimen label={'tone="info"'}><Pill tone="info">Invited</Pill></Specimen>
-  <Specimen label={'tone="success"'}><Pill tone="success">Healthy</Pill></Specimen>
-  <Specimen label={'tone="warning"'}><Pill tone="warning">Degraded</Pill></Specimen>
-  <Specimen label={'tone="danger"'}><Pill tone="danger">Suspended</Pill></Specimen>
-  <Specimen label={'tone="role"'}><Pill tone="role">Owner</Pill></Specimen>
+<Example
+  title="Tones and marks"
+  note="A status wears its word, a dot marks a state true now, and a live dot pulses unless motion is reduced"
+>
+  <Variants rows={tones} columns={marks} axis="tone" rowLabel={(tone) => `"${tone}"`}>
+    {#snippet cell(tone, mark)}
+      <Pill
+        {tone}
+        icon={mark === 'Icon' ? icons[tone] : undefined}
+        dot={mark === 'Dot'}
+        live={mark === 'Live'}
+      >
+        {words[tone]}
+      </Pill>
+    {/snippet}
+  </Variants>
 </Example>
 
-<Example title="With an icon" note="The glyph starts where a word would start">
-  <Pill tone="role" icon="owner">Owner</Pill>
-  <Pill tone="success" icon="check">Verified</Pill>
-  <Pill icon="lock">Workspace scope</Pill>
-  <Pill tone="danger" icon="database">Database offline</Pill>
-</Example>
-
-<Example title="Dot and live" note="The live dot pulses, and under reduced motion it stays still">
-  <Specimen label="dot"><Pill dot>Current</Pill></Specimen>
-  <Specimen label={'tone="success" live'}><Pill tone="success" live>Live</Pill></Specimen>
-  <Specimen label={'tone="warning" dot'}><Pill tone="warning" dot>Reconnecting</Pill></Specimen>
-</Example>
-
-<Example title="Long status" note="A long status wraps inside the pill, so no word is cut">
-  <div class="narrow">
+<Example
+  title="Long status"
+  note="A long status wraps inside the pill, so no word is cut"
+  layout="grid"
+>
+  <Specimen label="Wrapping label">
     <Pill tone="info">Invited to the infrastructure and platform engineering workspace</Pill>
-  </div>
+  </Specimen>
 </Example>
-
-<style>
-  .narrow {
-    display: flex;
-    inline-size: min(100%, 16rem);
-  }
-</style>

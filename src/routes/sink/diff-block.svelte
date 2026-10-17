@@ -1,10 +1,16 @@
 <script module lang="ts">
-  export const section = { title: 'Diff block', order: 69 };
+  export const section = {
+    title: 'Diff block',
+    order: 69,
+    lead: 'A small unified diff that shows an excerpt worth reading, never a whole file. Code with nothing to compare is a CodeBlock.',
+    components: ['DiffBlock']
+  };
 </script>
 
 <script lang="ts">
   import { DiffBlock } from '#lib';
   import Example from '../kit/Example.svelte';
+  import Specimen from '../kit/Specimen.svelte';
 
   const before = `{
   "prHourlyLimit": 2,
@@ -27,27 +33,32 @@
 </script>
 
 <Example
-  title="From two texts"
+  title="Sources"
   note="Added and removed lines wear their tone and a glyph, and the changed stretch is one step deeper"
   layout="stack"
+  ground="canvas"
 >
-  <DiffBlock
-    {before}
-    {after}
-    lang="json"
-    label="renovate.json"
-    labels={{ before: 'Template', after: 'Repository' }}
-  />
+  <Specimen label="From two texts" code="before after labels">
+    <DiffBlock
+      {before}
+      {after}
+      lang="json"
+      label="renovate.json"
+      labels={{ before: 'Template', after: 'Repository' }}
+    />
+  </Specimen>
+  <Specimen label="Prepared lines, one changed in place" code="lines">
+    <DiffBlock lines={prepared} lang="yaml" />
+  </Specimen>
 </Example>
 
 <Example
-  title="Prepared lines"
-  note="Lines diffed elsewhere can carry a change in place, drawn with a tilde"
+  title="Empty"
+  note="Two empty sides say there is nothing to compare"
   layout="stack"
+  ground="canvas"
 >
-  <DiffBlock lines={prepared} lang="yaml" />
-</Example>
-
-<Example title="Empty" note="Two empty sides say there is nothing to compare" layout="stack">
-  <DiffBlock before="" after="" />
+  <Specimen label="No changes" code={'before="" after=""'}>
+    <DiffBlock before="" after="" />
+  </Specimen>
 </Example>

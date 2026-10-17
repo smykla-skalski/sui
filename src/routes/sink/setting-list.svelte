@@ -1,5 +1,10 @@
 <script module lang="ts">
-  export const section = { title: 'Setting list', order: 108 };
+  export const section = {
+    title: 'Setting list',
+    order: 108,
+    lead: 'The settings of one card, each a row with its name, a why line and its controls. A short form stacks Fields instead.',
+    components: ['SettingList', 'SettingRow']
+  };
 </script>
 
 <script lang="ts">
@@ -38,7 +43,12 @@
   let ignore = $state([...saved.ignore]);
 </script>
 
-{#snippet settings()}
+<Example
+  title="In a card"
+  note="A checkbox, a segmented control, a field, a duration, a list and a read-only fact, with the two changed rows 1px apart"
+  layout="stack"
+  ground="canvas"
+>
   <Card title="Runtime" level={4}>
     <SettingList>
       <SettingRow
@@ -57,7 +67,7 @@
         unsaved={level !== saved.level}
         onclear={level !== saved.level ? () => (level = saved.level) : undefined}
       >
-        {#snippet control({ id, describedby })}
+        {#snippet control({ describedby })}
           <SegmentedControl
             label="Log level"
             aria-describedby={describedby}
@@ -108,22 +118,58 @@
       </SettingRow>
     </SettingList>
   </Card>
-{/snippet}
-
-<Example
-  title="Rows"
-  note="A checkbox, a segmented control, a field, a duration and a list, with the two changed rows 1px apart"
-  layout="stack"
->
-  {@render settings()}
 </Example>
 
 <Example
   title="Narrow width"
   note="Below a readable copy width the controls take the next line, and the checkbox stays beside its copy"
   layout="stack"
+  ground="canvas"
 >
-  <div class="narrow">{@render settings()}</div>
+  <div class="narrow">
+    <Card title="Runtime" level={4}>
+      <SettingList>
+        <SettingRow
+          name="Retry failed checks"
+          why="Runs a failed check once more before reporting it"
+          unsaved={retry !== saved.retry}
+        >
+          {#snippet control({ id, describedby })}
+            <Checkbox {id} aria-describedby={describedby} bare bind:checked={retry} />
+          {/snippet}
+        </SettingRow>
+        <SettingRow
+          name="Log level"
+          why="The least serious event the service writes down"
+          unsaved={level !== saved.level}
+        >
+          {#snippet control({ describedby })}
+            <SegmentedControl
+              label="Log level"
+              aria-describedby={describedby}
+              options={levels}
+              bind:value={level}
+            />
+          {/snippet}
+        </SettingRow>
+        <SettingRow
+          name="Session lifetime"
+          why="How long a sign-in lasts before it is asked for again"
+          unsaved={session !== saved.session}
+        >
+          {#snippet control({ id, describedby })}
+            <DurationInput
+              {id}
+              aria-describedby={describedby}
+              label="Session lifetime"
+              bind:value={session}
+              min={60}
+            />
+          {/snippet}
+        </SettingRow>
+      </SettingList>
+    </Card>
+  </div>
 </Example>
 
 <style>

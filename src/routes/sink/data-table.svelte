@@ -1,11 +1,16 @@
 <script module lang="ts">
-  export const section = { title: 'Data table', order: 102 };
+  export const section = {
+    title: 'Data table',
+    order: 102,
+    lead: 'A table of numbers and facts that a reader compares across rows. Things a reader opens or acts on belong in an ObjectList.',
+    components: ['DataTable']
+  };
 </script>
 
 <script lang="ts">
-  import { Icon } from '#lib';
-  import { DataTable, type DataTableColumn } from '#lib';
+  import { DataTable, Icon, type DataTableColumn } from '#lib';
   import Example from '../kit/Example.svelte';
+  import Specimen from '../kit/Specimen.svelte';
 
   type Repository = { name: string; open: number; merged: number; review: string };
   type Release = { version: string; status: string; size: string; published: string };
@@ -141,24 +146,45 @@
 </script>
 
 <Example
-  title="Numbers and facts"
-  note="Row headers name each row, and numbers sit at the end with tabular figures"
+  title="Variants"
+  note="Row headers name each row, numbers sit at the end, and a wide table may stripe its rows"
   layout="stack"
 >
-  <DataTable
-    caption="Pull requests over the last 90 days"
-    columns={repositoryColumns}
-    rows={repositories}
-    rowHeader
-  />
+  <Specimen label="Row headers" code="caption rowHeader">
+    <DataTable
+      caption="Pull requests over the last 90 days"
+      columns={repositoryColumns}
+      rows={repositories}
+      rowHeader
+    />
+  </Specimen>
+  <Specimen label="Striped" code="striped">
+    <DataTable
+      caption="Builds in the last hour"
+      columns={buildColumns}
+      rows={builds}
+      rowHeader
+      striped
+    />
+  </Specimen>
 </Example>
 
 <Example
-  title="Narrow frame"
-  note="Columns that keep to one line outgrow the room, so the table scrolls inside its own frame"
+  title="Long values"
+  note="Long text wraps inside its own column, so no cell draws past the column it belongs to"
   layout="stack"
 >
-  <div class="narrow">
+  <Specimen label="Wrapping text, named without a caption" code="aria-label">
+    <DataTable aria-label="Law checks" columns={checkColumns} rows={checks} />
+  </Specimen>
+</Example>
+
+<Example
+  title="Narrow width"
+  note="Columns that keep to one line outgrow the room, so the table scrolls inside its own frame"
+  layout="grid"
+>
+  <Specimen label="Scrolls, with drawn cells" code="cell">
     <DataTable caption="Releases" columns={releaseColumns} rows={releases} rowHeader>
       {#snippet cell(row, column)}
         {#if column.key === 'status'}
@@ -172,36 +198,10 @@
         {/if}
       {/snippet}
     </DataTable>
-  </div>
-</Example>
-
-<Example
-  title="Long values"
-  note="Long text wraps inside its own column, so no cell draws past the column it belongs to"
-  layout="stack"
->
-  <DataTable aria-label="Law checks" columns={checkColumns} rows={checks} />
-</Example>
-
-<Example
-  title="Striped"
-  note="A wide table tints every other row, so the eye keeps its row from the first column to the last"
-  layout="stack"
->
-  <DataTable
-    caption="Builds in the last hour"
-    columns={buildColumns}
-    rows={builds}
-    rowHeader
-    striped
-  />
+  </Specimen>
 </Example>
 
 <style>
-  .narrow {
-    inline-size: min(100%, 16rem);
-  }
-
   .status {
     align-items: center;
     display: inline-flex;

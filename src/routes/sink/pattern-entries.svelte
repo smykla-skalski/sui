@@ -1,10 +1,16 @@
 <script module lang="ts">
-  export const section = { title: 'Pattern entries', order: 106 };
+  export const section = {
+    title: 'Pattern entries',
+    order: 106,
+    lead: 'An editable list of patterns, such as branches or paths to leave alone. A key that maps to a value is a PairEntry.',
+    components: ['PatternEntries']
+  };
 </script>
 
 <script lang="ts">
   import { PatternEntries } from '#lib';
   import Example from '../kit/Example.svelte';
+  import Specimen from '../kit/Specimen.svelte';
 
   let branches = $state(['release/*', 'main', 'hotfix/ urgent', 'main']);
   let paths = $state<string[]>([]);
@@ -21,23 +27,22 @@
 </script>
 
 <Example
-  title="Entries"
-  note="Each pattern is edited where it stands, and a problem stands 8px under the entry it belongs to"
-  layout="stack"
+  title="States"
+  note="Each pattern is edited where it stands, a problem stands 8px under its entry, and an empty list is only its add button"
+  layout="grid"
 >
-  <PatternEntries bind:value={branches} {validate} addLabel="Add a branch pattern" />
-  <span class="state">{JSON.stringify(branches)}</span>
-</Example>
-
-<Example
-  title="Empty and disabled"
-  note="An empty list is only its add button, and a disabled list keeps every entry and its reason in view"
->
-  <PatternEntries bind:value={paths} />
-  <div class="locked">
-    <PatternEntries value={['docs/**', 'CHANGELOG.md']} disabled />
-    <p class="reason">A parent workspace sets these patterns</p>
-  </div>
+  <Specimen label="With problems" code="validate">
+    <PatternEntries bind:value={branches} {validate} addLabel="Add a branch pattern" />
+  </Specimen>
+  <Specimen label="Empty" code="bind:value">
+    <PatternEntries bind:value={paths} />
+  </Specimen>
+  <Specimen label="Disabled" code="disabled">
+    <div class="locked">
+      <PatternEntries value={['docs/**', 'CHANGELOG.md']} disabled />
+      <p class="reason">A parent workspace sets these patterns</p>
+    </div>
+  </Specimen>
 </Example>
 
 <Example
@@ -45,9 +50,11 @@
   note="A long pattern scrolls inside its field and the cross stays beside it"
   layout="stack"
 >
-  <div class="narrow">
-    <PatternEntries bind:value={long} />
-  </div>
+  <Specimen label="Long pattern">
+    <div class="narrow">
+      <PatternEntries bind:value={long} />
+    </div>
+  </Specimen>
 </Example>
 
 <style>
@@ -62,13 +69,6 @@
     font: 400 var(--sui-font-size-meta) / var(--sui-row-copy-leading) var(--sui-sans);
     margin: 0;
     text-box: trim-both cap alphabetic;
-  }
-
-  .state {
-    color: var(--sui-text-muted);
-    font: 400 var(--sui-font-size-meta) / var(--sui-leading-meta) var(--sui-mono);
-    font-variant-numeric: tabular-nums;
-    overflow-wrap: anywhere;
   }
 
   .narrow {

@@ -1,14 +1,20 @@
 <script module lang="ts">
-  export const section = { title: 'List toolbar', order: 112 };
+  export const section = {
+    title: 'List toolbar',
+    order: 112,
+    lead: 'The bar over a list, with a search, an optional filter and tools, and one action. A search outside a list is a SearchField.',
+    components: ['ListToolbar']
+  };
 </script>
 
 <script lang="ts">
-  import { Button, ListToolbar, ObjectList, ObjectRow, Pill } from '#lib';
+  import { Button, Card, ListToolbar, ObjectList, ObjectRow, Pill, type ListToolGroup } from '#lib';
   import Example from '../kit/Example.svelte';
+  import Specimen from '../kit/Specimen.svelte';
 
   const repositories = [
     { name: 'smykla-skalski/sui', state: 'active', updated: 3 },
-    { name: 'smykla-skalski/smyklot', state: 'active', updated: 1 },
+    { name: 'smykla-skalski/smyklot', state: 'active', updated: 2 },
     { name: 'smykla-skalski/dotfiles', state: 'archived', updated: 40 },
     { name: 'smykla-skalski/kuma-demo', state: 'active', updated: 12 }
   ];
@@ -24,53 +30,99 @@
     { value: 'name', label: 'Name' }
   ];
 
+  /* Each bar keeps its own choices, so one example never changes another. */
+  function choices(shown: string, order: string) {
+    const picked = $state({ shown, order });
+    return {
+      picked,
+      get filter(): ListToolGroup {
+        return {
+          label: 'State',
+          options: states,
+          value: picked.shown,
+          onchange: (value) => (picked.shown = value)
+        };
+      },
+      get tools(): ListToolGroup[] {
+        return [
+          {
+            label: 'Sort by',
+            options: orders,
+            value: picked.order,
+            onchange: (value) => (picked.order = value)
+          }
+        ];
+      }
+    };
+  }
+
+  const parts = choices('all', 'updated');
+  const narrow = choices('active', 'name');
+  const list = choices('all', 'updated');
+
   let query = $state('');
-  let shown = $state('all');
-  let order = $state('updated');
-
-  let narrowQuery = $state('');
-  let narrowShown = $state('active');
-  let narrowOrder = $state('name');
-
-  const filter = $derived({
-    label: 'State',
-    options: states,
-    value: shown,
-    onchange: (value: string) => (shown = value)
-  });
-  const tools = $derived([
-    {
-      label: 'Sort by',
-      options: orders,
-      value: order,
-      onchange: (value: string) => (order = value)
-    }
-  ]);
 
   const rows = $derived(
     repositories
-      .filter((repository) => shown === 'all' || repository.state === shown)
+      .filter((repository) => list.picked.shown === 'all' || repository.state === list.picked.shown)
       .filter((repository) => repository.name.includes(query.trim().toLowerCase()))
-      .sort((a, b) => (order === 'name' ? a.name.localeCompare(b.name) : a.updated - b.updated))
+      .sort((a, b) =>
+        list.picked.order === 'name' ? a.name.localeCompare(b.name) : a.updated - b.updated
+      )
   );
 </script>
 
 <Example
-  title="Search, filter, tools and action"
-  note="The search leads, the filter and its tools button stand together, and the one action ends the bar"
+  title="Parts"
+  note="The search leads, a filter stands with its tools button, and one action may end the bar"
   layout="stack"
+>
+  <Specimen label="Search and action" code="action">
+    <ListToolbar searchLabel="Search members" placeholder="Search members…">
+      {#snippet action()}<Button>Invite member</Button>{/snippet}
+    </ListToolbar>
+  </Specimen>
+  <Specimen label="Filter and tools" code="filter tools">
+    <ListToolbar
+      searchLabel="Search repositories"
+      placeholder="Search repositories…"
+      filter={parts.filter}
+      tools={parts.tools}
+    />
+  </Specimen>
+</Example>
+
+<Example
+  title="Narrow width"
+  note="Under 18rem the filter folds into the tools menu, and the bar names the choice beside the button"
+  layout="stack"
+>
+  <Specimen label="In 17rem">
+    <div class="narrow">
+      <ListToolbar searchLabel="Search repositories" filter={narrow.filter} tools={narrow.tools}>
+        {#snippet action()}<Button>Add repository</Button>{/snippet}
+      </ListToolbar>
+    </div>
+  </Specimen>
+</Example>
+
+<Example
+  title="In context"
+  note="The bar stands outside the list's card and owns no list state, so the page filters the rows"
+  layout="stack"
+  ground="canvas"
 >
   <div class="stack">
     <ListToolbar
       bind:query
       searchLabel="Search repositories"
       placeholder="Search repositories…"
-      {filter}
-      {tools}
+      filter={list.filter}
+      tools={list.tools}
     >
       {#snippet action()}<Button tone="signal">Add repository</Button>{/snippet}
     </ListToolbar>
-    <div class="card">
+    <Card>
       <ObjectList>
         {#each rows as repository (repository.name)}
           <ObjectRow>
@@ -91,47 +143,8 @@
           </ObjectRow>
         {/each}
       </ObjectList>
-    </div>
+    </Card>
   </div>
-</Example>
-
-<Example
-  title="Narrow toolbar"
-  note="Under 18rem the filter folds into the tools menu, and the bar names the choice beside the button"
-  layout="stack"
->
-  <div class="narrow">
-    <ListToolbar
-      bind:query={narrowQuery}
-      searchLabel="Search repositories"
-      filter={{
-        label: 'State',
-        options: states,
-        value: narrowShown,
-        onchange: (value) => (narrowShown = value)
-      }}
-      tools={[
-        {
-          label: 'Sort by',
-          options: orders,
-          value: narrowOrder,
-          onchange: (value) => (narrowOrder = value)
-        }
-      ]}
-    >
-      {#snippet action()}<Button>Add repository</Button>{/snippet}
-    </ListToolbar>
-  </div>
-</Example>
-
-<Example
-  title="Search alone"
-  note="Without a filter or tools the search fills the bar up to its action"
-  layout="stack"
->
-  <ListToolbar searchLabel="Search members" placeholder="Search members…">
-    {#snippet action()}<Button>Invite member</Button>{/snippet}
-  </ListToolbar>
 </Example>
 
 <style>
@@ -143,20 +156,6 @@
 
   .narrow {
     inline-size: min(100%, 17rem);
-  }
-
-  .card {
-    background: var(--sui-surface-base);
-    border: 1px solid var(--sui-border-subtle);
-    border-radius: var(--sui-radius-surface);
-    min-inline-size: 0;
-    padding: var(--sui-rhythm-surface-pad);
-  }
-
-  @media (max-width: 36rem) {
-    .card {
-      padding: var(--sui-rhythm-surface-pad-compact);
-    }
   }
 
   .name {

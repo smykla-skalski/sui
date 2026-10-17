@@ -1,10 +1,16 @@
 <script module lang="ts">
-  export const section = { title: 'Pair entry', order: 105 };
+  export const section = {
+    title: 'Pair entry',
+    order: 105,
+    lead: 'A key and the value it maps to in one lane, such as an alias and its command. A list of single values is PatternEntries.',
+    components: ['PairEntry']
+  };
 </script>
 
 <script lang="ts">
   import { Button, Card, Icon, PairEntry, SettingList, SettingRow } from '#lib';
   import Example from '../kit/Example.svelte';
+  import Specimen from '../kit/Specimen.svelte';
 
   const commands = [
     { value: 'deploy', label: 'deploy', description: 'Ship the branch' },
@@ -41,6 +47,7 @@
   }
 </script>
 
+<!-- The card of "In a setting row" again, for the narrow example, whose markup is the same. -->
 {#snippet aliases()}
   <Card title="Commands" level={4}>
     <SettingList>
@@ -82,53 +89,98 @@
 {/snippet}
 
 <Example
-  title="Pairs"
-  note="Headings name each half above the lane, and the arrows light a suggestion for Enter to pick"
+  title="States"
+  note="Headings name each half above the lane, a problem with the key stands under it, and a locked pair says why"
 >
-  <PairEntry
-    bind:key={single.key}
-    bind:value={single.value}
-    options={commands}
-    keyLabel="Alias"
-    valueLabel="Command"
-    error={problem(single.key)}
-    onremove={() => {}}
-  />
-  <PairEntry
-    bind:key={wrong.key}
-    bind:value={wrong.value}
-    options={commands}
-    keyLabel="New alias"
-    valueLabel="New command"
-    error={problem(wrong.key)}
-    onremove={() => {}}
-  />
-  <div class="locked">
+  <Specimen label="Valid" code="keyLabel valueLabel">
     <PairEntry
-      key="hold"
-      value="merge"
+      bind:key={single.key}
+      bind:value={single.value}
       options={commands}
-      keyLabel="Locked alias"
-      valueLabel="Locked command"
-      disabled
+      keyLabel="Alias"
+      valueLabel="Command"
+      error={problem(single.key)}
       onremove={() => {}}
     />
-    <p class="reason">Set by the organization, so only an owner can change it</p>
-  </div>
+  </Specimen>
+  <Specimen label="Invalid" code="error">
+    <PairEntry
+      bind:key={wrong.key}
+      bind:value={wrong.value}
+      options={commands}
+      keyLabel="New alias"
+      valueLabel="New command"
+      error={problem(wrong.key)}
+      onremove={() => {}}
+    />
+  </Specimen>
+  <Specimen label="Disabled" code="disabled">
+    <div class="locked">
+      <PairEntry
+        key="hold"
+        value="merge"
+        options={commands}
+        keyLabel="Locked alias"
+        valueLabel="Locked command"
+        disabled
+        onremove={() => {}}
+      />
+      <p class="reason">Set by the organization, so only an owner can change it</p>
+    </div>
+  </Specimen>
 </Example>
 
 <Example
   title="In a setting row"
-  note="Pairs stack under one set of headings, and the reset stays centred beside all of them"
+  note="Pairs stack under one set of headings, the arrows light a suggestion for Enter to pick, and the reset stays centred"
   layout="stack"
+  ground="canvas"
 >
-  {@render aliases()}
+  <Card title="Commands" level={4}>
+    <SettingList>
+      <SettingRow
+        name="Aliases"
+        why="Extra words mapped to the commands they run"
+        unsaved={changed}
+        onclear={changed ? reset : undefined}
+        clearLabel="Reset aliases"
+      >
+        {#snippet control({ labelledby })}
+          <div class="pairs" role="group" aria-labelledby={labelledby}>
+            <div class="grid">
+              {#each pairs as pair, index (index)}
+                <PairEntry
+                  bind:key={pair.key}
+                  bind:value={pair.value}
+                  options={commands}
+                  keyLabel="Alias"
+                  valueLabel="Command"
+                  row={index + 1}
+                  heads={index === 0}
+                  keyPlaceholder="alias"
+                  valuePlaceholder="command"
+                  error={problem(pair.key, index)}
+                  onremove={() => pairs.splice(index, 1)}
+                />
+              {/each}
+            </div>
+            <Button tone="add" onclick={() => pairs.push({ key: '', value: 'deploy' })}>
+              {#snippet icon()}<Icon name="plus" size="sm" />{/snippet}
+              Add an alias
+            </Button>
+          </div>
+        {/snippet}
+      </SettingRow>
+    </SettingList>
+  </Card>
 </Example>
 
 <Example
   title="Narrow width"
   note="On a narrow card the pairs take the line under the copy and pack to its start"
   layout="stack"
+  ground="canvas"
+  code={false}
 >
   <div class="narrow">{@render aliases()}</div>
 </Example>

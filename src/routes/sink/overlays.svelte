@@ -1,86 +1,85 @@
 <script module lang="ts">
-  export const section = { title: 'Popover and tooltip', order: 60 };
+  export const section = {
+    title: 'Popover and tooltip',
+    order: 60,
+    lead: 'A floating box beside its trigger, and a short tip on a control that does something. A task that needs an answer is a Modal.',
+    components: ['Popover', 'Tooltip']
+  };
 </script>
 
 <script lang="ts">
   import { Button, Icon, IconButton, Popover, Tooltip } from '#lib';
   import Example from '../kit/Example.svelte';
+  import Specimen from '../kit/Specimen.svelte';
 
   let trigger = $state<HTMLButtonElement | HTMLAnchorElement | null>(null);
   let sync = $state<HTMLButtonElement | HTMLAnchorElement | null>(null);
   let openSync = $state<HTMLButtonElement | HTMLAnchorElement | null>(null);
-  let open = $state(false);
   let refreshes = $state(0);
   let synced = $state(false);
-  let last = $state('Nothing done yet');
 
   const syncHint = $derived(synced ? 'Last synced just now' : 'Last synced 4 minutes ago');
-
-  function refresh(): void {
-    refreshes += 1;
-    last = refreshes === 1 ? 'Refreshed once' : `Refreshed ${refreshes} times`;
-  }
-
-  async function copyLink(): Promise<void> {
-    try {
-      await navigator.clipboard.writeText('https://github.com/smykla-skalski/sui');
-      last = 'Link copied';
-    } catch {
-      last = 'The browser did not allow the copy';
-    }
-  }
-
-  function syncNow(): void {
-    synced = true;
-    last = 'Synced';
-  }
+  const refreshed = $derived(
+    refreshes === 0
+      ? 'Name tip'
+      : refreshes === 1
+        ? 'Refreshed once'
+        : `Refreshed ${refreshes} times`
+  );
 </script>
 
 <Example title="Popover" note="The browser toggles it, keeps it in the top layer and returns focus">
-  <Button bind:element={trigger} popovertarget="sink-popover">
-    Show details
-    {#snippet trailing()}<Icon name="chevron-down" size="sm" />{/snippet}
-  </Button>
-  <Popover id="sink-popover" anchor={trigger} bind:open width="min-trigger">
-    <div class="panel">
-      <p class="panel-title">Release 0.3.0</p>
-      <p class="panel-copy">Published to npm and tagged on GitHub</p>
-    </div>
-  </Popover>
-  <span class="state">{open ? 'Open' : 'Closed'}</span>
-</Example>
-
-<Example
-  title="Open states"
-  note="The popover and a described tip drawn in place, so a review needs no click or hover"
->
-  <div class="open">
-    <Button aria-expanded="true" aria-controls="sink-popover-open">
+  <Specimen label="Toggled by its trigger" code={'popovertarget width="min-trigger"'}>
+    <Button bind:element={trigger} popovertarget="sink-popover">
       Show details
       {#snippet trailing()}<Icon name="chevron-down" size="sm" />{/snippet}
     </Button>
-    <Popover id="sink-popover-open" anchor={null} inline>
+    <Popover id="sink-popover" anchor={trigger} width="min-trigger">
       <div class="panel">
         <p class="panel-title">Release 0.3.0</p>
         <p class="panel-copy">Published to npm and tagged on GitHub</p>
       </div>
     </Popover>
-  </div>
-  <div class="open">
-    <Button bind:element={openSync} onclick={syncNow}>Sync now</Button>
-    <Tooltip anchor={openSync} describe preview text={syncHint} />
-  </div>
+  </Specimen>
 </Example>
 
 <Example
   title="Tooltip"
   note="Hover pauses before it shows, focus shows it at once, and a long press shows it on touch"
 >
-  <IconButton icon="refresh" label="Refresh the list" onclick={refresh} />
-  <IconButton icon="link" label="Copy the link" onclick={copyLink} />
-  <Button bind:element={sync} onclick={syncNow}>Sync now</Button>
-  <Tooltip anchor={sync} describe text={syncHint} />
-  <span class="state" role="status">{last}</span>
+  <Specimen label={refreshed} code={'icon="refresh" label'}>
+    <IconButton icon="refresh" label="Refresh the list" onclick={() => (refreshes += 1)} />
+  </Specimen>
+  <Specimen label="Description tip" code="describe">
+    <Button bind:element={sync} onclick={() => (synced = true)}>Sync now</Button>
+    <Tooltip anchor={sync} describe text={syncHint} />
+  </Specimen>
+</Example>
+
+<Example
+  title="Open"
+  note="The popover and a described tip drawn in place, so a review needs no click or hover"
+>
+  <Specimen label="Open popover" code="inline">
+    <div class="open">
+      <Button aria-expanded="true" aria-controls="sink-popover-open">
+        Show details
+        {#snippet trailing()}<Icon name="chevron-down" size="sm" />{/snippet}
+      </Button>
+      <Popover id="sink-popover-open" anchor={null} inline>
+        <div class="panel">
+          <p class="panel-title">Release 0.3.0</p>
+          <p class="panel-copy">Published to npm and tagged on GitHub</p>
+        </div>
+      </Popover>
+    </div>
+  </Specimen>
+  <Specimen label="Open tip" code="preview">
+    <div class="open">
+      <Button bind:element={openSync} onclick={() => (synced = true)}>Sync now</Button>
+      <Tooltip anchor={openSync} describe preview text={syncHint} />
+    </div>
+  </Specimen>
 </Example>
 
 <style>
@@ -104,16 +103,9 @@
   }
 
   .open {
-    align-self: start;
     display: grid;
     gap: var(--sui-space-1);
     justify-items: start;
-    max-inline-size: 100%;
     min-inline-size: 0;
-  }
-
-  .state {
-    color: var(--sui-text-muted);
-    font: 400 var(--sui-font-size-meta) / var(--sui-leading-meta) var(--sui-sans);
   }
 </style>

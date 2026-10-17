@@ -1,10 +1,16 @@
 <script module lang="ts">
-  export const section = { title: 'Charts', order: 100 };
+  export const section = {
+    title: 'Charts',
+    order: 100,
+    lead: 'Numbers drawn as lines, points, ranges or a matrix, each with a title, a description and a table of its values. Values a reader looks up belong in a DataTable.',
+    components: ['LineChart', 'ScatterChart', 'RangeChart', 'HeatmapChart']
+  };
 </script>
 
 <script lang="ts">
   import { HeatmapChart, LineChart, RangeChart, ScatterChart } from '#lib';
   import Example from '../kit/Example.svelte';
+  import Specimen from '../kit/Specimen.svelte';
 
   const trend = [
     {
@@ -85,52 +91,68 @@
   note="Each series has its own shape and dash as well as its color, and short sets name each line at its end"
   layout="stack"
 >
-  <LineChart
-    title="Weekly trend"
-    description="North and south grew over four weeks, while east stayed nearly flat"
-    series={trend}
-    xLabel="Week"
-    yLabel="Items"
-  />
-  <ScatterChart
-    title="Build time by change size"
-    description="Builds that change more files take longer, and a cold cache adds about six minutes"
-    series={builds}
-    xLabel="Changed files"
-    yLabel="Build minutes"
-  />
-</Example>
-
-<Example title="Ranges and matrices" layout="stack">
-  <RangeChart
-    title="Work ranges"
-    description="The neutral marker shows the selected point in each range"
-    data={ranges}
-    valueLabel="Hours"
-  />
-  <HeatmapChart
-    title="Activity"
-    description="Tuesday afternoon has the most activity"
-    rows={['Morning', 'Afternoon']}
-    columns={['Mon', 'Tue', 'Wed']}
-    cells={heatmap}
-  />
-</Example>
-
-<Example title="Narrow column" note="Chart text keeps its token size when the chart is narrow">
-  <div class="narrow">
+  <Specimen label="Line, a series over time" code="series xLabel yLabel">
     <LineChart
-      title="Items by week"
-      description="North stayed ahead of the other regions in every week"
+      title="Weekly trend"
+      description="North and south grew over four weeks, while east stayed nearly flat"
       series={trend}
       xLabel="Week"
       yLabel="Items"
     />
-  </div>
+  </Specimen>
+  <Specimen label="Scatter, two measures of each item" code="series xLabel yLabel">
+    <ScatterChart
+      title="Build time by change size"
+      description="Builds that change more files take longer, and a cold cache adds about six minutes"
+      series={builds}
+      xLabel="Changed files"
+      yLabel="Build minutes"
+    />
+  </Specimen>
+</Example>
+
+<Example
+  title="Ranges and matrices"
+  note="A range marks a point inside each interval, and a missing cell in a matrix stays neutral"
+  layout="stack"
+>
+  <Specimen label="Range" code="data valueLabel">
+    <RangeChart
+      title="Work ranges"
+      description="The neutral marker shows the selected point in each range"
+      data={ranges}
+      valueLabel="Hours"
+    />
+  </Specimen>
+  <Specimen label="Heatmap" code="rows columns cells">
+    <HeatmapChart
+      title="Activity"
+      description="Tuesday afternoon has the most activity"
+      rows={['Morning', 'Afternoon']}
+      columns={['Mon', 'Tue', 'Wed']}
+      cells={heatmap}
+    />
+  </Specimen>
 </Example>
 
 <Example title="No data" note="An empty chart says so in words">
-  <LineChart title="New project" description="Nothing has been measured yet" series={[]} />
+  <Specimen label="Empty" code={'series={[]}'}>
+    <LineChart title="New project" description="Nothing has been measured yet" series={[]} />
+  </Specimen>
+</Example>
+
+<Example title="Narrow width" note="Chart text keeps its token size when the chart is narrow">
+  <Specimen label="In 20rem">
+    <div class="narrow">
+      <LineChart
+        title="Items by week"
+        description="North stayed ahead of the other regions in every week"
+        series={trend}
+        xLabel="Week"
+        yLabel="Items"
+      />
+    </div>
+  </Specimen>
 </Example>
 
 <style>

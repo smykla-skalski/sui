@@ -1,10 +1,16 @@
 <script module lang="ts">
-  export const section = { title: 'Code block', order: 68 };
+  export const section = {
+    title: 'Code block',
+    order: 68,
+    lead: 'A read-only window of code, colored by its language, with a copy control in the corner. A change between two texts is a DiffBlock.',
+    components: ['CodeBlock', 'CopyButton']
+  };
 </script>
 
 <script lang="ts">
   import { CodeBlock, CopyButton } from '#lib';
   import Example from '../kit/Example.svelte';
+  import Specimen from '../kit/Specimen.svelte';
 
   const json = `{
   "extends": ["config:recommended"],
@@ -37,39 +43,61 @@ channel = "stable"`;
 </script>
 
 <Example
-  title="Line numbers and a file label"
-  note="The gutter reads at full opacity and never selects, and the label names the file"
-  layout="stack"
->
-  <CodeBlock code={json} lang="json" label="renovate.json" lineNumbers />
-</Example>
-
-<Example
   title="Languages"
   note="Each language colors its own tokens, and plain text stays plain"
   layout="stack"
+  ground="canvas"
 >
-  <CodeBlock code={yaml} lang="yaml" />
-  <CodeBlock code={toml} lang="toml" label="Cargo.toml" />
-  <CodeBlock code={markdown} lang="markdown" />
+  <Specimen label="YAML" code={'lang="yaml"'}>
+    <CodeBlock code={yaml} lang="yaml" />
+  </Specimen>
+  <Specimen label="TOML" code={'lang="toml"'}>
+    <CodeBlock code={toml} lang="toml" />
+  </Specimen>
+  <Specimen label="Markdown" code={'lang="markdown"'}>
+    <CodeBlock code={markdown} lang="markdown" />
+  </Specimen>
+  <Specimen label="Plain text" code={'lang="text"'}>
+    <CodeBlock code="SUI_THEME=dark" lang="text" />
+  </Specimen>
 </Example>
 
 <Example
-  title="A long line"
+  title="Parts"
+  note="The label names the file, and the gutter reads at full opacity and never selects"
+  layout="stack"
+  ground="canvas"
+>
+  <Specimen label="File label and line numbers" code="label lineNumbers">
+    <CodeBlock code={json} lang="json" label="renovate.json" lineNumbers />
+  </Specimen>
+  <Specimen label="Without a copy control" code={'copy={false}'}>
+    <CodeBlock code="npm run check" copy={false} />
+  </Specimen>
+</Example>
+
+<Example
+  title="Long line"
   note="A long line scrolls inside the block, which then takes keyboard focus"
   layout="stack"
+  ground="canvas"
 >
-  <CodeBlock code={long} />
+  <Specimen label="Scrolls sideways">
+    <CodeBlock code={long} />
+  </Specimen>
 </Example>
 
 <Example
   title="Copy control"
   note="It shows on hover and focus, always on touch, and says Copied for 1.6 seconds"
 >
-  <CopyButton text="npm install @smykla-skalski/sui" />
-  <CopyButton text="0.2.1" label="Copy version" />
-</Example>
-
-<Example title="Without a copy control" note="A caller can leave the control out" layout="stack">
-  <CodeBlock code="SUI_THEME=dark" copy={false} />
+  <Specimen label="Default name" code="text">
+    <CopyButton text="npm install @smykla-skalski/sui" />
+  </Specimen>
+  <Specimen label="Named for what it copies" code={'label="Copy version"'}>
+    <CopyButton text="0.2.1" label="Copy version" />
+  </Specimen>
+  <Specimen label="Toolbar tier, 34px" code="toolbar">
+    <CopyButton text="https://sui.smyklot.com" label="Copy link" toolbar />
+  </Specimen>
 </Example>

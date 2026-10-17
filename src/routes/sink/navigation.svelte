@@ -1,53 +1,74 @@
 <script module lang="ts">
-  export const section = { title: 'Navigation', order: 66 };
+  export const section = {
+    title: 'Navigation',
+    order: 66,
+    lead: 'The ways between pages: a breadcrumb up the hierarchy, a back link out of a list and a link inside a sentence. A control that looks like a button is a Button with href.',
+    components: ['Breadcrumb', 'BackLink', 'Link']
+  };
 </script>
 
 <script lang="ts">
   import { BackLink, Breadcrumb, Link } from '#lib';
   import Example from '../kit/Example.svelte';
+  import Specimen from '../kit/Specimen.svelte';
 </script>
 
 <Example
   title="Breadcrumb"
-  note="The way up through the hierarchy, where the nearest ancestor is the last link and the page itself closes the path"
+  note="The nearest ancestor is the last link, and a lone ancestor leads with a chevron so it reads as Up"
   layout="stack"
 >
-  <Breadcrumb
-    items={[
-      { label: 'Acme', href: '#navigation' },
-      { label: 'Repositories', href: '#navigation' },
-      { label: 'Library', href: '#navigation' }
-    ]}
-    current="Settings"
-  />
-</Example>
-
-<Example
-  title="One ancestor"
-  note="A path with one ancestor leads with a chevron, so it reads as Up"
->
-  <Breadcrumb items={[{ label: 'Repositories', href: '#navigation' }]} />
+  <Specimen label="Ancestors and the page" code="items current">
+    <Breadcrumb
+      items={[
+        { label: 'Acme', href: '#navigation' },
+        { label: 'Repositories', href: '#navigation' },
+        { label: 'Library', href: '#navigation' }
+      ]}
+      current="Settings"
+    />
+  </Specimen>
+  <Specimen label="One ancestor" code="items">
+    <Breadcrumb items={[{ label: 'Repositories', href: '#navigation' }]} />
+  </Specimen>
 </Example>
 
 <Example title="Back link" note="The way back from a page that stands inside a list">
-  <BackLink href="#navigation" label="All runs" />
-  <BackLink href="#navigation" label="All runs" tone="quiet" />
+  <Specimen label="Default" code="href label">
+    <BackLink href="#navigation" label="All runs" />
+  </Specimen>
+  <Specimen label="Quiet, beside tabs" code={'tone="quiet"'}>
+    <BackLink href="#navigation" label="All runs" tone="quiet" />
+  </Specimen>
 </Example>
 
 <Example
   title="Link"
-  note="The action ink with a faint underline that fills on hover, and an arrow when it leaves, read aloud as opens another site"
+  note="The action ink with a faint underline that fills on hover, and an arrow after a link that leaves"
   layout="stack"
 >
-  <p class="copy">
-    Read the <Link href="#callout">callout guidance</Link> or the
-    <Link href="https://www.w3.org/WAI/ARIA/apg/">ARIA authoring practices</Link> before you write a new
-    pattern
-  </p>
-  <p class="copy narrow">
-    A long link wraps with its sentence: see
-    <Link href="#code-block">the guide to settings every repository in the workspace inherits</Link>
-  </p>
+  <Specimen label="Inside a sentence" code="href">
+    <p class="copy">
+      Read the <Link href="#callout">callout guidance</Link> before you write a new pattern
+    </p>
+  </Specimen>
+  <Specimen label="Leaves the product" code={'href="https://…"'}>
+    <p class="copy">
+      Follow the <Link href="https://www.w3.org/WAI/ARIA/apg/">ARIA authoring practices</Link> before
+      you build a new widget
+    </p>
+  </Specimen>
+</Example>
+
+<Example title="Narrow width" note="A long link wraps with its sentence" layout="stack">
+  <Specimen label="Wrapped link">
+    <p class="copy narrow">
+      Before you change a default, read
+      <Link href="#code-block"
+        >the guide to settings every repository in the workspace inherits</Link
+      >
+    </p>
+  </Specimen>
 </Example>
 
 <style>

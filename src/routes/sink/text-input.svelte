@@ -1,10 +1,16 @@
 <script module lang="ts">
-  export const section = { title: 'Text input', order: 20 };
+  export const section = {
+    title: 'Text input',
+    order: 20,
+    lead: 'A single line the reader types. Inside a form, wrap it in a Field so it has a label, help and an error.',
+    components: ['TextInput']
+  };
 </script>
 
 <script lang="ts">
   import { TextInput } from '#lib';
   import Example from '../kit/Example.svelte';
+  import Specimen from '../kit/Specimen.svelte';
 
   let name = $state('');
   let digest = $state('sha256:9f86d081884c7d65');
@@ -12,13 +18,19 @@
 
 <Example
   title="States"
-  note="Rest, filled, invalid and disabled at the 34px tier, with the reason beside the locked one"
-  layout="stack"
+  note="Rest, filled, invalid and disabled, and the locked one says why"
+  layout="grid"
 >
-  <div class="field">
+  <Specimen label="Rest" code="placeholder">
     <TextInput aria-label="Project name" placeholder="your-project" bind:value={name} />
+  </Specimen>
+  <Specimen label="Filled, technical value" code="mono">
     <TextInput aria-label="Image digest" mono bind:value={digest} />
+  </Specimen>
+  <Specimen label="Invalid" code="invalid">
     <TextInput aria-label="Team name" value="Team with spaces" invalid />
+  </Specimen>
+  <Specimen label="Disabled" code="disabled">
     <div class="locked">
       <TextInput
         aria-label="Owner"
@@ -30,19 +42,25 @@
         Only an owner can move the repository to another account
       </p>
     </div>
-  </div>
+  </Specimen>
 </Example>
 
-<Example title="Taller tier" note="A surface opts into 40px through one custom property">
-  <div class="tall">
-    <TextInput aria-label="Search the projects" type="search" placeholder="Search" />
-  </div>
+<Example title="Tiers" note="34px by default and 44px on phones, and a surface may opt into 40px">
+  <Specimen label="Default" code="--sui-control-height-compact">
+    <TextInput aria-label="Filter the projects" placeholder="Filter" />
+  </Specimen>
+  <Specimen label="Tall" code="--sui-local-control-height">
+    <div class="tall">
+      <TextInput aria-label="Search the projects" type="search" placeholder="Search" />
+    </div>
+  </Specimen>
 </Example>
 
 <style>
   .locked {
     display: grid;
     gap: var(--sui-row-copy-gap);
+    inline-size: 100%;
   }
 
   .reason {
@@ -52,14 +70,9 @@
     text-box: trim-both cap alphabetic;
   }
 
-  .field {
-    display: grid;
-    gap: var(--sui-space-3);
-    inline-size: min(100%, 24rem);
-  }
-
   .tall {
     --sui-local-control-height: var(--sui-control-height);
-    inline-size: min(100%, 24rem);
+    display: flex;
+    inline-size: 100%;
   }
 </style>

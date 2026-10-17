@@ -1,14 +1,28 @@
 <script module lang="ts">
-  export const section = { title: 'Day heading', order: 115 };
+  export const section = {
+    title: 'Day heading',
+    order: 115,
+    lead: "The heading over a run of entries from one day, in the reader's own calendar. A single time inside a row is a RelativeTime.",
+    components: ['DayHeading']
+  };
 </script>
 
 <script lang="ts">
   import { DayHeading, dayKey } from '#lib';
   import Example from '../kit/Example.svelte';
+  import Specimen from '../kit/Specimen.svelte';
 
   const now = new Date();
   const local = (daysAgo: number, hour: number, minute: number) =>
     new Date(now.getFullYear(), now.getMonth(), now.getDate() - daysAgo, hour, minute);
+
+  const readings = [
+    { label: 'Today', value: now },
+    { label: 'Yesterday', value: local(1, 9, 30) },
+    { label: 'This week', value: local(4, 14, 5) },
+    { label: 'Earlier this year', value: local(8, 11, 0) },
+    { label: 'Another year', value: local(400, 16, 45) }
+  ];
 
   const entries = [
     { at: now, what: 'Merged the release workflow' },
@@ -34,8 +48,18 @@
 </script>
 
 <Example
-  title="Today and other days"
-  note="Entries group by the reader's calendar, so one local day keeps one heading where it crosses midnight in UTC"
+  title="Readings"
+  note="Today and yesterday in words, the weekday inside the last week, and the year only when it is not this one"
+  layout="grid"
+>
+  {#each readings as day (day.label)}
+    <Specimen label={day.label}><DayHeading value={day.value} level={4} /></Specimen>
+  {/each}
+</Example>
+
+<Example
+  title="In context"
+  note="Entries group by the reader's calendar, so one local day keeps one heading across midnight in UTC"
   layout="stack"
 >
   <div class="days">

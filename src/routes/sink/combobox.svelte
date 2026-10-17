@@ -1,10 +1,16 @@
 <script module lang="ts">
-  export const section = { title: 'Combobox', order: 42 };
+  export const section = {
+    title: 'Combobox',
+    order: 42,
+    lead: 'A text field that suggests values as the reader types and commits one. A list short enough to read whole is a Select.',
+    components: ['Combobox']
+  };
 </script>
 
 <script lang="ts">
-  import { Combobox } from '#lib';
+  import { Combobox, Field } from '#lib';
   import Example from '../kit/Example.svelte';
+  import Specimen from '../kit/Specimen.svelte';
 
   const languages = [
     { value: 'go', label: 'Go' },
@@ -14,6 +20,12 @@
     { value: 'rb', label: 'Ruby', description: 'Retired', disabled: true },
     { value: 'kt', label: 'Kotlin' },
     { value: 'swift', label: 'Swift' }
+  ];
+
+  const labels = [
+    { value: 'bug', label: 'bug' },
+    { value: 'documentation', label: 'documentation' },
+    { value: 'good first issue', label: 'good first issue' }
   ];
 
   const accounts = [
@@ -36,96 +48,70 @@
 </script>
 
 <Example
-  title="Filtered options"
-  note="Type to narrow the list, then the arrows light an option, a retired one included"
+  title="Suggestions"
+  note="Typing narrows the options, free entry offers what was typed, and a slow search says it is searching or that nothing matches"
+  layout="grid"
 >
-  <div class="field">
-    <label for="sink-combobox-language">Language</label>
-    <Combobox id="sink-combobox-language" options={languages} bind:value={language} />
-  </div>
-  <span class="state">{language || 'Nothing chosen'}</span>
-</Example>
-
-<Example title="Open" note="The open list drawn in place, with the current value as the active row">
-  <div class="field">
-    <label for="sink-combobox-open">Language</label>
-    <Combobox id="sink-combobox-open" options={languages} value="ts" preview />
-  </div>
-</Example>
-
-<Example title="Free entry" note="What was typed is offered as a value of its own">
-  <div class="field">
-    <label for="sink-combobox-label">Label</label>
-    <Combobox
-      id="sink-combobox-label"
-      free
-      options={[
-        { value: 'bug', label: 'bug' },
-        { value: 'documentation', label: 'documentation' },
-        { value: 'good first issue', label: 'good first issue' }
-      ]}
-      bind:value={label}
-      placeholder="bug"
-    />
-  </div>
-  <span class="state">{label || 'Nothing chosen'}</span>
+  <Specimen label="Filtered options" code="options">
+    <Field label="Language">
+      {#snippet control({ id, describedby })}
+        <Combobox {id} aria-describedby={describedby} options={languages} bind:value={language} />
+      {/snippet}
+    </Field>
+  </Specimen>
+  <Specimen label="Free entry" code="free">
+    <Field label="Label">
+      {#snippet control({ id, describedby })}
+        <Combobox
+          {id}
+          aria-describedby={describedby}
+          free
+          options={labels}
+          bind:value={label}
+          placeholder="bug"
+        />
+      {/snippet}
+    </Field>
+  </Specimen>
+  <Specimen label="Search" code="search">
+    <Field label="Reviewer">
+      {#snippet control({ id, describedby })}
+        <Combobox
+          {id}
+          aria-describedby={describedby}
+          search={findAccounts}
+          bind:value={reviewer}
+          placeholder="octocat"
+        />
+      {/snippet}
+    </Field>
+  </Specimen>
 </Example>
 
 <Example
-  title="Search and empty result"
-  note="A slow search says it is searching, and a login nobody has says nothing matches"
+  title="States"
+  note="A disabled field keeps its value in view and says why under it"
+  layout="grid"
 >
-  <div class="field">
-    <label for="sink-combobox-reviewer">Reviewer</label>
-    <Combobox
-      id="sink-combobox-reviewer"
-      search={findAccounts}
-      bind:value={reviewer}
-      placeholder="octocat"
-    />
-  </div>
-  <span class="state">{reviewer || 'Nothing chosen'}</span>
+  <Specimen label="Disabled" code="disabled">
+    <Field label="Language" hint="The template sets the language for every new repository">
+      {#snippet control({ id, describedby })}
+        <Combobox {id} aria-describedby={describedby} options={languages} value="go" disabled />
+      {/snippet}
+    </Field>
+  </Specimen>
 </Example>
 
-<Example title="Disabled" note="A disabled field keeps its value in view and says why">
-  <div class="field">
-    <label for="sink-combobox-disabled">Language</label>
-    <Combobox
-      id="sink-combobox-disabled"
-      aria-describedby="sink-combobox-disabled-reason"
-      options={languages}
-      value="go"
-      disabled
-    />
-    <p id="sink-combobox-disabled-reason" class="reason">
-      The template sets the language for every new repository
-    </p>
-  </div>
+<Example
+  title="Open"
+  note="The open list drawn in place, with the current value as the active row"
+  layout="grid"
+>
+  <Specimen label="Open" code="preview">
+    <Field label="Language">
+      {#snippet control({ id, describedby })}
+        <Combobox {id} aria-describedby={describedby} options={languages} value="ts" preview />
+      {/snippet}
+    </Field>
+  </Specimen>
 </Example>
-
-<style>
-  .field {
-    display: grid;
-    gap: var(--sui-space-2);
-    inline-size: 16rem;
-    max-inline-size: 100%;
-  }
-
-  label {
-    color: var(--sui-text-primary);
-    font: 600 var(--sui-font-size-control) / var(--sui-leading-flat) var(--sui-sans);
-    text-box: trim-both cap alphabetic;
-  }
-
-  .reason {
-    color: var(--sui-text-secondary);
-    font: 400 var(--sui-font-size-meta) / var(--sui-row-copy-leading) var(--sui-sans);
-    margin: 0;
-    text-box: trim-both cap alphabetic;
-  }
-
-  .state {
-    color: var(--sui-text-muted);
-    font: 400 var(--sui-font-size-meta) / var(--sui-leading-meta) var(--sui-mono);
-  }
-</style>

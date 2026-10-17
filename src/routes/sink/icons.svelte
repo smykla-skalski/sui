@@ -1,15 +1,25 @@
 <script module lang="ts">
-  export const section = { title: 'Icon', order: 90 };
+  export const section = {
+    title: 'Icon',
+    order: 90,
+    lead: 'A glyph from one closed set, hidden from assistive technology because the words beside it carry the meaning. An icon-only control is an IconButton.',
+    components: ['Icon']
+  };
 </script>
 
 <script lang="ts">
   import { Icon, iconNames } from '#lib';
   import Example from '../kit/Example.svelte';
+  import Variants from '../kit/Variants.svelte';
 
+  const glyphs = ['settings', 'refresh', 'check'] as const;
   const sizes = ['nano', 'micro', 'xs', 'sm', 'base', 'md'] as const;
 </script>
 
-<Example title="Set" note="One outline family on a 24-unit grid with a 1.75 stroke">
+<Example
+  title="Set"
+  note="One outline family on a 24-unit grid with a 1.75 stroke, each glyph by its name"
+>
   <ul class="grid" role="list">
     {#each iconNames as name (name)}
       <li>
@@ -20,10 +30,15 @@
   </ul>
 </Example>
 
-<Example title="Size tiers" note="Six px tiers, because an icon does not grow with the text">
-  {#each sizes as size (size)}
-    <span class="tier"><Icon name="settings" {size} /><span class="name">{size}</span></span>
-  {/each}
+<Example
+  title="Sizes"
+  note="Six px tiers from 8 to 18px, because an icon does not grow with the text"
+>
+  <Variants rows={glyphs} columns={sizes} axis="name" rowLabel={(name) => `"${name}"`}>
+    {#snippet cell(name, size)}
+      <Icon {name} {size} />
+    {/snippet}
+  </Variants>
 </Example>
 
 <style>
@@ -37,8 +52,7 @@
     padding: 0;
   }
 
-  li,
-  .tier {
+  li {
     align-items: center;
     color: var(--sui-text-primary);
     display: flex;

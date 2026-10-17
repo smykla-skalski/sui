@@ -1,10 +1,16 @@
 <script module lang="ts">
-  export const section = { title: 'Skeleton', order: 87 };
+  export const section = {
+    title: 'Skeleton',
+    order: 87,
+    lead: 'The rows a list draws while it waits for its first answer. A refresh keeps the loaded rows and reports itself in place instead.',
+    components: ['Skeleton']
+  };
 </script>
 
 <script lang="ts">
-  import { Button, ObjectList, ObjectRow, Skeleton } from '#lib';
+  import { Button, Card, ObjectList, ObjectRow, Skeleton } from '#lib';
   import Example from '../kit/Example.svelte';
+  import Specimen from '../kit/Specimen.svelte';
 
   const names = ['smykla-skalski/sui', 'smykla-skalski/smyklot', 'smykla-skalski/ksai'];
 
@@ -17,52 +23,51 @@
 </script>
 
 <Example
+  title="Rows"
+  note="Two bars hint at a row's main content and side, and plain rows suit a list of one-line rows"
+  layout="grid"
+  ground="canvas"
+>
+  <Specimen label="Two-line rows">
+    <Card>
+      <Skeleton rows={2} label="Loading repositories…" />
+    </Card>
+  </Specimen>
+  <Specimen label="Plain rows" code={'bars={false} rowHeight="2.75rem"'}>
+    <Card>
+      <Skeleton rows={2} rowHeight="2.75rem" bars={false} label="Loading members…" />
+    </Card>
+  </Specimen>
+</Example>
+
+<Example
   title="First load"
   note="The region is busy while placeholder rows reserve the loaded height, and the rows take their place"
   layout="stack"
+  ground="canvas"
 >
-  <div>
-    <Button onclick={() => (loading ? (loading = false) : reload())}>
-      {loading ? 'Show the rows' : 'Load again'}
-    </Button>
-  </div>
-  <div class="card">
-    <Skeleton {loading} rows={3} label="Loading repositories…">
-      <ObjectList>
-        {#each names as name (name)}
-          <ObjectRow>
-            {#snippet main()}
-              <span class="name">{name}</span>
-              <span class="sum">Default branch main · in step</span>
-            {/snippet}
-          </ObjectRow>
-        {/each}
-      </ObjectList>
-    </Skeleton>
-  </div>
-</Example>
-
-<Example title="Plain rows" note="Without bars, for a list whose rows hold one line" layout="stack">
-  <div class="card">
-    <Skeleton rows={2} rowHeight="2.75rem" bars={false} />
-  </div>
+  <Button onclick={() => (loading ? (loading = false) : reload())}>
+    {loading ? 'Show the rows' : 'Load again'}
+  </Button>
+  <Specimen label={loading ? 'Loading' : 'Loaded'} code="loading">
+    <Card>
+      <Skeleton {loading} rows={3} label="Loading repositories…">
+        <ObjectList>
+          {#each names as name (name)}
+            <ObjectRow>
+              {#snippet main()}
+                <span class="name">{name}</span>
+                <span class="sum">Default branch main · in step</span>
+              {/snippet}
+            </ObjectRow>
+          {/each}
+        </ObjectList>
+      </Skeleton>
+    </Card>
+  </Specimen>
 </Example>
 
 <style>
-  .card {
-    background: var(--sui-surface-base);
-    border: 1px solid var(--sui-border-subtle);
-    border-radius: var(--sui-radius-surface);
-    min-inline-size: 0;
-    padding: var(--sui-rhythm-surface-pad);
-  }
-
-  @media (max-width: 36rem) {
-    .card {
-      padding: var(--sui-rhythm-surface-pad-compact);
-    }
-  }
-
   .name {
     color: var(--sui-text-primary);
     font: 600 var(--sui-font-size-meta) / var(--sui-row-copy-leading) var(--sui-sans);

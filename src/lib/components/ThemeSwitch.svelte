@@ -35,20 +35,38 @@
   let {
     value = $bindable('system'),
     name,
+    system = true,
     class: className = ''
   }: {
     /** The choice shown before a stored one is read. A stored choice wins. */
     value?: ThemeChoice;
+    /**
+     * Offers System as a third choice. Without it the switch shows the system's theme
+     * until the reader picks one, and follows the system until then.
+     */
+    system?: boolean;
     /** The radio group's name, unique on the page. Two switches under one name are one group. */
     name?: string;
     class?: HTMLFieldsetAttributes['class'];
   } = $props();
 
-  const options: SegmentOption[] = [
+  const options: SegmentOption[] = $derived([
     { value: 'light', label: 'Light', icon: 'sun' },
     { value: 'dark', label: 'Dark', icon: 'moon' },
-    { value: 'system', label: 'System', icon: 'system' }
-  ];
+    ...(system ? [{ value: 'system', label: 'System', icon: 'system' } as const] : [])
+  ]);
+
+  // The system's own theme, which a two-way switch shows while nothing is chosen.
+  let systemDark = $state(false);
+  $effect(() => {
+    const query = matchMedia('(prefers-color-scheme: dark)');
+    const read = () => (systemDark = query.matches);
+    read();
+    query.addEventListener('change', read);
+    return () => query.removeEventListener('change', read);
+  });
+
+  const shown = $derived(!system && value === 'system' ? (systemDark ? 'dark' : 'light') : value);
 
   $effect(() => {
     shared.choice ??= stored() ?? value;
@@ -86,7 +104,8 @@
 <!--
 @component
 Light, dark or follow the system, all three visible at once, or a select with the same three
-when the room is too narrow, as every `SegmentedControl` does. It owns the page's theme: it
+when the room is too narrow, as every `SegmentedControl` does. Without `system` it offers
+light and dark only, and shows the system's theme, following it live, until the reader picks. It owns the page's theme: it
 sets `data-sui-theme` on the root element, keeps the choice in local storage under
 `sui:theme`, and reads it back on the next visit. System follows the operating system live,
 so a reader who switches the system to dark sees the page follow without a reload.
@@ -98,7 +117,7 @@ mounts, so set the stored theme from a small script in the document head to avoi
 
 <SegmentedControl
   bind:value={
-    () => value,
+    () => shown,
     (next) => {
       if (isChoice(next)) shared.choice = next;
     }

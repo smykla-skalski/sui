@@ -1,10 +1,16 @@
 <script module lang="ts">
-  export const section = { title: 'Select', order: 40 };
+  export const section = {
+    title: 'Select',
+    order: 40,
+    lead: 'One value from six or more options. Two to five that fit are a SegmentedControl, and a list the reader searches is a Combobox.',
+    components: ['Select']
+  };
 </script>
 
 <script lang="ts">
   import { Button, Field, Select } from '#lib';
   import Example from '../kit/Example.svelte';
+  import Specimen from '../kit/Specimen.svelte';
 
   const regions = [
     { value: 'eu-west', label: 'Europe west', description: 'Dublin' },
@@ -71,7 +77,7 @@
   }));
 
   let region = $state<string | null>('eu-central');
-  let empty = $state<string | null>(null);
+  let backup = $state<string | null>(null);
   let plan = $state<string | null>('team-year');
   let branch = $state<string | null>(branches[2].value);
   let zone = $state<string | null>(null);
@@ -81,129 +87,126 @@
   function send(event: SubmitEvent & { currentTarget: HTMLFormElement }): void {
     event.preventDefault();
     const data = new FormData(event.currentTarget);
-    sent = `zone=${data.get('zone')} attempts=${data.get('attempts')}`;
+    sent = `Sent ${data.get('zone')} and ${data.get('attempts')} attempts`;
   }
 </script>
 
 <Example
   title="States"
-  note="A chosen value, a placeholder before anything is chosen, and disabled with its reason under it"
+  note="A chosen value, a prompt before anything is chosen, and a locked field with its reason under it"
+  layout="grid"
 >
-  <Field label="Region">
-    {#snippet control({ id, describedby })}
-      <Select {id} aria-describedby={describedby} options={regions} bind:value={region} />
-    {/snippet}
-  </Field>
-  <Field label="Backup region">
-    {#snippet control({ id, describedby })}
-      <Select
-        {id}
-        aria-describedby={describedby}
-        options={regions}
-        bind:value={empty}
-        placeholder="Choose a region"
-      />
-    {/snippet}
-  </Field>
-  <Field label="Home region" hint="Fixed once the workspace holds data">
-    {#snippet control({ id, describedby })}
-      <Select {id} aria-describedby={describedby} options={regions} value="eu-west" disabled />
-    {/snippet}
-  </Field>
+  <Specimen label="Chosen" code="bind:value">
+    <Field label="Region">
+      {#snippet control({ id, describedby })}
+        <Select {id} aria-describedby={describedby} options={regions} bind:value={region} />
+      {/snippet}
+    </Field>
+  </Specimen>
+  <Specimen label="Placeholder" code="placeholder">
+    <Field label="Backup region">
+      {#snippet control({ id, describedby })}
+        <Select
+          {id}
+          aria-describedby={describedby}
+          options={regions}
+          bind:value={backup}
+          placeholder="Choose a region"
+        />
+      {/snippet}
+    </Field>
+  </Specimen>
+  <Specimen label="Disabled" code="disabled">
+    <Field label="Home region" hint="Fixed once the workspace holds data">
+      {#snippet control({ id, describedby })}
+        <Select {id} aria-describedby={describedby} options={regions} value="eu-west" disabled />
+      {/snippet}
+    </Field>
+  </Specimen>
 </Example>
 
 <Example
-  title="Open states"
-  note="A static copy of the open picker under each field, with the value checked and the next option active"
-  layout="stack"
+  title="Content"
+  note="Headed groups with notes, a retired plan that cannot be chosen, and a long branch cut in the field but wrapped in the picker"
+  layout="grid"
 >
-  <Field label="Region">
-    {#snippet control({ id, describedby })}
-      <Select {id} aria-describedby={describedby} options={regions} value="eu-central" preview />
-    {/snippet}
-  </Field>
-  <Field label="Plan">
-    {#snippet control({ id, describedby })}
-      <Select {id} aria-describedby={describedby} options={plans} value="team-month" preview />
-    {/snippet}
-  </Field>
-</Example>
-
-<Example
-  title="Groups and notes"
-  note="Headed groups, a note after each label in the picker only, and a retired plan that cannot be chosen"
->
-  <Field label="Plan">
-    {#snippet control({ id, describedby })}
-      <Select {id} aria-describedby={describedby} options={plans} bind:value={plan} />
-    {/snippet}
-  </Field>
-  <span class="state">plan={plan ?? 'null'}</span>
-</Example>
-
-<Example
-  title="Long labels"
-  note="The closed field cuts a long branch with an ellipsis, and the picker wraps it in full"
->
-  <div class="narrow">
+  <Specimen label="Groups and notes">
+    <Field label="Plan">
+      {#snippet control({ id, describedby })}
+        <Select {id} aria-describedby={describedby} options={plans} bind:value={plan} />
+      {/snippet}
+    </Field>
+  </Specimen>
+  <Specimen label="Long label">
     <Field label="Branch">
       {#snippet control({ id, describedby })}
         <Select {id} aria-describedby={describedby} options={branches} bind:value={branch} />
       {/snippet}
     </Field>
-  </div>
+  </Specimen>
+</Example>
+
+<Example
+  title="Open"
+  note="A static copy of the open picker under each field, with the value checked and the next option active"
+  layout="grid"
+>
+  <Specimen label="Open" code="preview">
+    <Field label="Region">
+      {#snippet control({ id, describedby })}
+        <Select {id} aria-describedby={describedby} options={regions} value="eu-central" preview />
+      {/snippet}
+    </Field>
+  </Specimen>
+  <Specimen label="Open with groups" code="preview">
+    <Field label="Plan">
+      {#snippet control({ id, describedby })}
+        <Select {id} aria-describedby={describedby} options={plans} value="team-month" preview />
+      {/snippet}
+    </Field>
+  </Specimen>
 </Example>
 
 <Example
   title="In a form"
   note="Native validation stops a send without a time zone, and the values submit by name, numbers included"
 >
-  <form class="form" onsubmit={send}>
-    <Field label="Report time zone" hint="Reports run at midnight in this zone" required>
-      {#snippet control({ id, describedby, required })}
-        <Select
-          {id}
-          aria-describedby={describedby}
-          name="zone"
-          {required}
-          options={zones}
-          bind:value={zone}
-          placeholder="Choose a time zone"
-        />
-      {/snippet}
-    </Field>
-    <Field label="Retries">
-      {#snippet control({ id, describedby })}
-        <Select
-          {id}
-          aria-describedby={describedby}
-          name="attempts"
-          options={retries}
-          bind:value={attempts}
-        />
-      {/snippet}
-    </Field>
-    <Button type="submit">Save the report</Button>
-  </form>
-  <span class="state">{sent}</span>
+  <Specimen label={sent} code="name required">
+    <form class="form" onsubmit={send}>
+      <Field label="Report time zone" hint="Reports run at midnight in this zone" required>
+        {#snippet control({ id, describedby, required })}
+          <Select
+            {id}
+            aria-describedby={describedby}
+            name="zone"
+            {required}
+            options={zones}
+            bind:value={zone}
+            placeholder="Choose a time zone"
+          />
+        {/snippet}
+      </Field>
+      <Field label="Retries">
+        {#snippet control({ id, describedby })}
+          <Select
+            {id}
+            aria-describedby={describedby}
+            name="attempts"
+            options={retries}
+            bind:value={attempts}
+          />
+        {/snippet}
+      </Field>
+      <Button type="submit">Save the report</Button>
+    </form>
+  </Specimen>
 </Example>
 
 <style>
-  .narrow {
-    inline-size: 14rem;
-    max-inline-size: 100%;
-  }
-
   .form {
     display: grid;
     gap: var(--sui-space-4);
     justify-items: start;
     min-inline-size: 0;
-  }
-
-  .state {
-    color: var(--sui-text-muted);
-    font: 400 var(--sui-font-size-meta) / var(--sui-leading-meta) var(--sui-mono);
-    font-variant-numeric: tabular-nums;
   }
 </style>

@@ -1,10 +1,16 @@
 <script module lang="ts">
-  export const section = { title: 'Choice cards', order: 26 };
+  export const section = {
+    title: 'Choice cards',
+    order: 26,
+    lead: 'One answer to one question, where every answer needs a sentence to say what it does. Answers that a word names are a SegmentedControl.',
+    components: ['ChoiceCards']
+  };
 </script>
 
 <script lang="ts">
   import { ChoiceCards } from '#lib';
   import Example from '../kit/Example.svelte';
+  import Specimen from '../kit/Specimen.svelte';
 
   const methods = [
     {
@@ -31,49 +37,45 @@
 
 <Example
   title="States"
-  note="Chosen, resting and a disabled answer that stays visible while the keyboard skips it"
+  note="A chosen answer, a disabled one the keyboard skips, a missing answer and a group locked while it saves"
   layout="stack"
 >
-  <ChoiceCards
-    label="How pull requests merge"
-    hint="Turn on linear history in the branch rules to offer rebase"
-    options={methods}
-    bind:value={method}
-  />
-</Example>
-
-<Example
-  title="Invalid"
-  note="Nothing is chosen yet, and the error under the group says so"
-  layout="stack"
->
-  <ChoiceCards
-    label="Who can approve"
-    options={[
-      { value: 'owners', label: 'Owners only', description: 'Only people who own the repository' },
-      {
-        value: 'members',
-        label: 'Any member',
-        description: 'Anybody in the organization with write access'
-      }
-    ]}
-    error="Choose who can approve before you save"
-    bind:value={pending}
-  />
-</Example>
-
-<Example
-  title="Disabled"
-  note="The whole group is disabled while the change saves, and its hint says so"
-  layout="stack"
->
-  <ChoiceCards
-    label="How pull requests merge"
-    hint="Saving the merge method…"
-    options={methods}
-    value="merge"
-    disabled
-  />
+  <Specimen label="Chosen, with a disabled answer" code="bind:value">
+    <ChoiceCards
+      label="How pull requests merge"
+      hint="Turn on linear history in the branch rules to offer rebase"
+      options={methods}
+      bind:value={method}
+    />
+  </Specimen>
+  <Specimen label="Invalid" code="error">
+    <ChoiceCards
+      label="Who can approve"
+      options={[
+        {
+          value: 'owners',
+          label: 'Owners only',
+          description: 'Only people who own the repository'
+        },
+        {
+          value: 'members',
+          label: 'Any member',
+          description: 'Anybody in the organization with write access'
+        }
+      ]}
+      error="Choose who can approve before you save"
+      bind:value={pending}
+    />
+  </Specimen>
+  <Specimen label="Disabled" code="disabled">
+    <ChoiceCards
+      label="How pull requests merge"
+      hint="Saving the merge method…"
+      options={methods}
+      value="merge"
+      disabled
+    />
+  </Specimen>
 </Example>
 
 <Example
@@ -81,9 +83,11 @@
   note="Below two 14rem columns the cards stack, and long sentences wrap"
   layout="stack"
 >
-  <div class="narrow">
-    <ChoiceCards label="How pull requests merge" options={methods} value="merge" />
-  </div>
+  <Specimen label="Stacked cards">
+    <div class="narrow">
+      <ChoiceCards label="How pull requests merge" options={methods} value="merge" />
+    </div>
+  </Specimen>
 </Example>
 
 <style>

@@ -1,10 +1,16 @@
 <script module lang="ts">
-  export const section = { title: 'Segmented control', order: 27 };
+  export const section = {
+    title: 'Segmented control',
+    order: 27,
+    lead: 'One choice from two to five options that all show at once. Six or more belong in a Select, and answers that need a sentence are ChoiceCards.',
+    components: ['SegmentedControl']
+  };
 </script>
 
 <script lang="ts">
   import { SegmentedControl } from '#lib';
   import Example from '../kit/Example.svelte';
+  import Specimen from '../kit/Specimen.svelte';
 
   const range = [
     { value: 'day', label: 'Day' },
@@ -34,46 +40,58 @@
 </script>
 
 <Example title="Options" note="Two to five options, with a thumb exactly as wide as the chosen one">
-  <SegmentedControl label="Time range" options={range} bind:value={span} />
-  <SegmentedControl label="People" options={people} bind:value={tab} />
-  <div class="with-reason">
-    <SegmentedControl
-      label="Log level"
-      options={levels}
-      bind:value={level}
-      aria-describedby="sink-segmented-debug"
-    />
-    <p id="sink-segmented-debug" class="reason">Debug needs a support plan</p>
-  </div>
+  <Specimen label="Words" code="options">
+    <SegmentedControl label="Time range" options={range} bind:value={span} />
+  </Specimen>
+  <Specimen label="Icons and counts" code="icon count">
+    <SegmentedControl label="People" options={people} bind:value={tab} />
+  </Specimen>
 </Example>
 
 <Example
-  title="Nothing chosen"
-  note="A null value draws no thumb, which says the value is inherited and not chosen here"
+  title="States"
+  note="A null value draws no thumb, the arrow keys skip a disabled option, and a locked control says why"
 >
-  <SegmentedControl label="Time range override" options={range} bind:value={inherited} />
+  <Specimen label="Nothing chosen" code={'value={null}'}>
+    <SegmentedControl label="Time range override" options={range} bind:value={inherited} />
+  </Specimen>
+  <Specimen label="Disabled option" code="disabled: true">
+    <div class="locked">
+      <SegmentedControl
+        label="Log level"
+        options={levels}
+        bind:value={level}
+        aria-describedby="sink-segmented-debug"
+      />
+      <p id="sink-segmented-debug" class="reason">Debug needs a support plan</p>
+    </div>
+  </Specimen>
+  <Specimen label="Disabled" code="disabled">
+    <div class="locked">
+      <SegmentedControl
+        label="Log level while saving"
+        options={levels}
+        value="errors"
+        disabled
+        aria-describedby="sink-segmented-saving"
+      />
+      <p id="sink-segmented-saving" class="reason">Locked until the save finishes</p>
+    </div>
+  </Specimen>
 </Example>
 
 <Example
-  title="Disabled"
-  note="A disabled option stays visible and the arrow keys skip it, and the whole control can be disabled"
+  title="Tiers"
+  note="34px by default and 44px on phones, and a surface may opt into 40px through one custom property"
 >
-  <div class="with-reason">
-    <SegmentedControl
-      label="Log level while saving"
-      options={levels}
-      value="errors"
-      disabled
-      aria-describedby="sink-segmented-saving"
-    />
-    <p id="sink-segmented-saving" class="reason">Locked until the save finishes</p>
-  </div>
-</Example>
-
-<Example title="Taller tier" note="A surface opts into 40px through one custom property">
-  <div class="tall">
-    <SegmentedControl label="Time range on the tall tier" options={range} value="month" />
-  </div>
+  <Specimen label="Default" code="--sui-control-height-compact">
+    <SegmentedControl label="Time range on the default tier" options={range} value="month" />
+  </Specimen>
+  <Specimen label="Tall" code="--sui-local-control-height">
+    <div class="tall">
+      <SegmentedControl label="Time range on the tall tier" options={range} value="month" />
+    </div>
+  </Specimen>
 </Example>
 
 <Example
@@ -81,17 +99,26 @@
   note="Short of room, the same choice becomes a native select, with icons dropped and counts in brackets"
   layout="stack"
 >
-  <div class="narrow">
-    <SegmentedControl label="Log level in a narrow pane" options={levels} bind:value={narrow} />
-  </div>
-  <div class="narrow">
-    <SegmentedControl label="People in a narrow pane" options={people} bind:value={narrowPeople} />
-  </div>
+  <Specimen label="Words as a select">
+    <div class="narrow">
+      <SegmentedControl label="Log level in a narrow pane" options={levels} bind:value={narrow} />
+    </div>
+  </Specimen>
+  <Specimen label="Counts in brackets">
+    <div class="narrow">
+      <SegmentedControl
+        label="People in a narrow pane"
+        options={people}
+        bind:value={narrowPeople}
+      />
+    </div>
+  </Specimen>
 </Example>
 
 <style>
   .tall {
     --sui-local-control-height: var(--sui-control-height);
+    display: grid;
   }
 
   .narrow {
@@ -99,7 +126,7 @@
     inline-size: min(100%, 12rem);
   }
 
-  .with-reason {
+  .locked {
     display: grid;
     gap: var(--sui-row-copy-gap);
     justify-items: start;

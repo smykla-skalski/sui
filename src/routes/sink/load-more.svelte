@@ -1,10 +1,16 @@
 <script module lang="ts">
-  export const section = { title: 'Load more', order: 88 };
+  export const section = {
+    title: 'Load more',
+    order: 88,
+    lead: 'The button after the last row of a long list, so the reader decides when the next page comes. A data table pages by number instead.',
+    components: ['LoadMore']
+  };
 </script>
 
 <script lang="ts">
-  import { LoadMore, ObjectList, ObjectRow } from '#lib';
+  import { Card, LoadMore, ObjectList, ObjectRow } from '#lib';
   import Example from '../kit/Example.svelte';
+  import Specimen from '../kit/Specimen.svelte';
 
   const PAGE = 4;
   const PAGES = 3;
@@ -32,11 +38,28 @@
 </script>
 
 <Example
-  title="On demand"
-  note="The next page loads on a press, the status counts the new rows, and a failure waits for a retry"
-  layout="stack"
+  title="States"
+  note="The button reads what a press does, and a failure keeps its reason beside the retry"
+  layout="grid"
 >
-  <div class="card">
+  <Specimen label="More to load" code="more shown total">
+    <LoadMore more shown={4} total={12} onmore={() => {}} />
+  </Specimen>
+  <Specimen label="Loading" code="loading">
+    <LoadMore more shown={4} total={12} loading onmore={() => {}} />
+  </Specimen>
+  <Specimen label="Failed" code="problem">
+    <LoadMore more shown={8} problem="The next page could not be loaded" onmore={() => {}} />
+  </Specimen>
+</Example>
+
+<Example
+  title="On demand"
+  note="The next page loads on a press, a failure waits for a retry, and the last page ends in a note"
+  layout="stack"
+  ground="canvas"
+>
+  <Card>
     <ObjectList>
       {#each items as item (item)}
         <ObjectRow>
@@ -54,31 +77,10 @@
       {problem}
       onmore={next}
     />
-  </div>
-</Example>
-
-<Example
-  title="After a failure"
-  note="The reason and the retry stand at the list boundary until it is pressed"
->
-  <LoadMore more shown={8} problem="The next page could not be loaded" onmore={() => {}} />
+  </Card>
 </Example>
 
 <style>
-  .card {
-    background: var(--sui-surface-base);
-    border: 1px solid var(--sui-border-subtle);
-    border-radius: var(--sui-radius-surface);
-    min-inline-size: 0;
-    padding: var(--sui-rhythm-surface-pad);
-  }
-
-  @media (max-width: 36rem) {
-    .card {
-      padding: var(--sui-rhythm-surface-pad-compact);
-    }
-  }
-
   .name {
     color: var(--sui-text-primary);
     font: 600 var(--sui-font-size-meta) / var(--sui-row-copy-leading) var(--sui-sans);

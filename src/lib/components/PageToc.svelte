@@ -14,12 +14,15 @@
   let {
     entries,
     title = 'On this page',
+    offset,
     class: className = '',
     ...rest
   }: {
     entries: readonly TocEntry[];
     /** The column's own label and the landmark's name. Not one of the entries. */
     title?: string;
+    /** The height of a bar that sticks above the page, which the index sticks under. */
+    offset?: string;
     /** Layout for the call site only, never the index's own paint. */
     class?: HTMLAttributes<HTMLElement>['class'];
   } & Omit<HTMLAttributes<HTMLElement>, 'title'> = $props();
@@ -37,16 +40,20 @@
     }, [])
   );
 
-  // A long index scrolls inside itself; the current entry is kept in its view without
-  // scrolling the page, which scrollIntoView would also do.
+  // A long index scrolls inside itself; the current entry is kept one row clear of the
+  // visible edges without scrolling the page, which scrollIntoView would also do. The
+  // visible part is measured on screen, because the index may reach past the viewport
+  // before it sticks.
   $effect(() => {
     const link = here ? links[here] : null;
     if (!nav || !link) return;
-    const pad = link.offsetHeight;
-    const top = link.offsetTop - nav.offsetTop;
-    if (top - pad < nav.scrollTop) nav.scrollTop = Math.max(0, top - pad);
-    else if (top + link.offsetHeight + pad > nav.scrollTop + nav.clientHeight)
-      nav.scrollTop = top + link.offsetHeight + pad - nav.clientHeight;
+    const box = nav.getBoundingClientRect();
+    const row = link.getBoundingClientRect();
+    const pad = parseFloat(getComputedStyle(nav).scrollPaddingBlockStart) || 0;
+    const top = Math.max(box.top, 0) + pad + row.height;
+    const bottom = Math.min(box.bottom, innerHeight) - pad - row.height;
+    if (row.top < top) nav.scrollTop -= top - row.top;
+    else if (row.bottom > bottom) nav.scrollTop += row.bottom - bottom;
   });
 
   /** The reader's place: the last section whose top has crossed the reading line. */
@@ -138,11 +145,19 @@ moves to the section's first heading, or to the section, so the next Tab starts 
 The current entry turns its rule to the brand ink and is announced with
 `aria-current="location"`. It follows the URL hash on arrival, then the last section whose
 top has crossed the top quarter of the viewport, and the last section once the page is
-scrolled to its end. The index is sticky inside whatever column it is given, and placing it
-beside the content, or leaving it out on a phone, is the page's layout.
+scrolled to its end. The index sticks to the top of the viewport inside whatever column it
+is given, or under a sticky bar as tall as `offset`, and fills the height below, padding its
+own top and bottom, so a long index scrolls out at that edge. Placing it beside the content,
+or leaving it out on a phone, is the page's layout.
 -->
 
-<nav bind:this={nav} {...rest} class={['sui-page-toc', className]} aria-label={title}>
+<nav
+  bind:this={nav}
+  {...rest}
+  class={['sui-page-toc', className]}
+  style:--sui-local-toc-offset={offset}
+  aria-label={title}
+>
   <p class="sui-page-toc-title">{title}</p>
   {#each groups as group, index (group.label ?? index)}
     {#if group.label}<p class="sui-page-toc-group">{group.label}</p>{/if}
@@ -164,14 +179,20 @@ beside the content, or leaving it out on a phone, is the page's layout.
 </nav>
 
 <style>
+  /* The index sticks to the viewport's top, or under the page's bar, and fills the height
+     below it, padding its own scroll area, so entries leave at that edge and never get cut
+     at a line in the middle of the page. */
   .sui-page-toc {
     align-self: start;
-    inset-block-start: var(--sui-rhythm-pane-top-wide);
-    max-block-size: calc(100dvh - 2 * var(--sui-rhythm-pane-top-wide));
+    box-sizing: border-box;
+    inset-block-start: var(--sui-local-toc-offset, 0px);
+    max-block-size: calc(100dvh - var(--sui-local-toc-offset, 0px));
     min-inline-size: 0;
     overflow-y: auto;
     overscroll-behavior: contain;
+    padding-block: var(--sui-space-6);
     position: sticky;
+    scroll-padding-block: var(--sui-space-6);
     scrollbar-width: thin;
   }
 
@@ -231,7 +252,9 @@ beside the content, or leaving it out on a phone, is the page's layout.
     background: var(--sui-row-pressed);
   }
 
+  /* The ring rounds every corner, though the resting row is square on its rule side. */
   .sui-page-toc-link:focus-visible {
+    border-radius: var(--sui-radius-control);
     outline: var(--sui-focus-ring-width) solid var(--sui-focus);
     outline-offset: var(--sui-focus-ring-inset);
   }

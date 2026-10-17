@@ -6,6 +6,8 @@
 
   let findings = $state<Finding[] | null>(null);
 
+  const count = (n: number, word: string) => `${n} ${word}${n === 1 ? '' : 's'}`;
+
   async function rerun() {
     await tick();
     await document.fonts.ready;
@@ -68,7 +70,7 @@
           {#if findings.length === 0}
             <Pill tone="success" icon="check">Passing</Pill>
           {:else}
-            <Pill tone="danger" icon="failure">{findings.length} findings</Pill>
+            <Pill tone="danger" icon="failure">{count(findings.length, 'finding')}</Pill>
           {/if}
         </span>
       {/if}
@@ -79,7 +81,7 @@
       {:else if findings.length === 0}
         Every law holds on this page
       {:else}
-        {findings.length} findings against {byLaw.length} laws
+        {count(findings.length, 'finding')} against {count(byLaw.length, 'law')}
       {/if}
     </p>
     {#if findings !== null}
@@ -93,7 +95,7 @@
       {#each byLaw as [law, items] (law)}
         <li>
           <details>
-            <summary><span class="law">{law}</span> {items.length} findings</summary>
+            <summary><span class="law">{law}</span> {count(items.length, 'finding')}</summary>
             <ul class="items">
               {#each items as finding, index (index)}
                 <li>

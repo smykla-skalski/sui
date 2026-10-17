@@ -1,10 +1,16 @@
 <script module lang="ts">
-  export const section = { title: 'Tabs', order: 110 };
+  export const section = {
+    title: 'Tabs',
+    order: 110,
+    lead: "Links between the pages of one place, such as a repository's overview, runs and settings. Views that swap inside one page are a SegmentedControl.",
+    components: ['Tabs']
+  };
 </script>
 
 <script lang="ts">
   import { Tabs } from '#lib';
   import Example from '../kit/Example.svelte';
+  import Specimen from '../kit/Specimen.svelte';
 
   const pages = [
     { href: '#tabs-overview', label: 'Overview' },
@@ -33,21 +39,27 @@
   note="The page being shown wears the brand underline and is announced as the current page"
   layout="stack"
 >
-  <Tabs label="Repository" items={pages} current="#tabs-runs" />
+  <Specimen label="Current" code="current">
+    <Tabs label="Repository" items={pages} current="#tabs-runs" />
+  </Specimen>
 </Example>
 
 <Example title="Counts" note="A count rides its label in tabular figures" layout="stack">
-  <Tabs label="Pull requests" items={counted} current="#tabs-open" />
+  <Specimen label="With counts" code="count">
+    <Tabs label="Pull requests" items={counted} current="#tabs-open" />
+  </Specimen>
 </Example>
 
 <Example
-  title="Overflowing row"
-  note="Short of room, the row scrolls inside its own track with a thin scrollbar and starts with the current tab in view"
+  title="Narrow width"
+  note="Short of room, the row scrolls inside its own track and starts with the current tab in view"
   layout="stack"
 >
-  <div class="narrow">
-    <Tabs label="Pull request" items={many} current="#tabs-access" />
-  </div>
+  <Specimen label="Scrolled to the current tab">
+    <div class="narrow">
+      <Tabs label="Pull request" items={many} current="#tabs-access" />
+    </div>
+  </Specimen>
 </Example>
 
 <style>

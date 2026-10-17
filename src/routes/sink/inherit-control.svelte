@@ -1,5 +1,10 @@
 <script module lang="ts">
-  export const section = { title: 'Inherit control', order: 107 };
+  export const section = {
+    title: 'Inherit control',
+    order: 107,
+    lead: 'A value inherited from another level until this one overrides it, with the way back. A setting with nothing to inherit takes its control directly.',
+    components: ['InheritControl']
+  };
 </script>
 
 <script lang="ts">
@@ -12,6 +17,7 @@
     SettingRow
   } from '#lib';
   import Example from '../kit/Example.svelte';
+  import Specimen from '../kit/Specimen.svelte';
 
   const INHERITED_LIFETIME = 3600;
   const INHERITED_LEVEL = 'info';
@@ -45,21 +51,22 @@
 </script>
 
 <Example
-  title="Inherited and overridden"
-  note="An inherited value is muted with where it comes from, and an override shows the control with a way back"
+  title="States"
+  note="An inherited value is muted with where it comes from, an override shows the control with a way back, and a locked one says why"
 >
-  <InheritControl
-    bind:overridden={() => lifetimeOverridden, overrideLifetime}
-    label="Session lifetime"
-    inherited="1 hour"
-    source="the workspace"
-  >
-    {#snippet control()}
-      <DurationInput label="Session lifetime" bind:value={lifetime} min={60} />
-    {/snippet}
-  </InheritControl>
-  <div class="specimen">
-    <span class="caption">Log level</span>
+  <Specimen label="Inherited" code={'inherited="1 hour" source="the workspace"'}>
+    <InheritControl
+      bind:overridden={() => lifetimeOverridden, overrideLifetime}
+      label="Session lifetime"
+      inherited="1 hour"
+      source="the workspace"
+    >
+      {#snippet control()}
+        <DurationInput label="Session lifetime" bind:value={lifetime} min={60} />
+      {/snippet}
+    </InheritControl>
+  </Specimen>
+  <Specimen label="Overridden" code="bind:overridden">
     <InheritControl
       bind:overridden={() => levelOverridden, overrideLevel}
       label="Log level"
@@ -70,13 +77,24 @@
         <SegmentedControl label="Log level" options={levels} bind:value={level} />
       {/snippet}
     </InheritControl>
-  </div>
+  </Specimen>
+  <Specimen label="Disabled" code="disabled">
+    <div class="locked">
+      <InheritControl label="Retention" inherited="30 days" source="the organization" disabled>
+        {#snippet control()}
+          <DurationInput label="Retention" value={2_592_000} />
+        {/snippet}
+      </InheritControl>
+      <p class="reason">Only an owner can override the retention</p>
+    </div>
+  </Specimen>
 </Example>
 
 <Example
   title="In setting rows"
   note="A row is unsaved only while it differs from what is stored, so picking Debug again clears the log level's mark"
   layout="stack"
+  ground="canvas"
 >
   <Card title="Runtime" level={4}>
     <SettingList>
@@ -123,35 +141,36 @@
 </Example>
 
 <Example
-  title="Disabled and narrow"
-  note="A locked value keeps both actions in view, and a long source wraps beside its marker"
+  title="Narrow width"
+  note="A long source wraps beside its marker and Override stays in view"
   layout="stack"
 >
-  <div class="narrow">
-    <InheritControl
-      label="Retention"
-      inherited="30 days"
-      source="the retention policy of the whole organization"
-      disabled
-    >
-      {#snippet control()}
-        <DurationInput label="Retention" value={2_592_000} />
-      {/snippet}
-    </InheritControl>
-  </div>
+  <Specimen label="Long source">
+    <div class="narrow">
+      <InheritControl
+        label="Retention"
+        inherited="30 days"
+        source="the retention policy of the whole organization"
+      >
+        {#snippet control()}
+          <DurationInput label="Retention" value={2_592_000} />
+        {/snippet}
+      </InheritControl>
+    </div>
+  </Specimen>
 </Example>
 
 <style>
-  .specimen {
+  .locked {
     display: grid;
-    gap: var(--sui-space-2);
+    gap: var(--sui-row-copy-gap);
     justify-items: start;
-    min-inline-size: 0;
   }
 
-  .caption {
-    color: var(--sui-text-primary);
-    font: 600 var(--sui-font-size-control) / var(--sui-leading-flat) var(--sui-sans);
+  .reason {
+    color: var(--sui-text-secondary);
+    font: 400 var(--sui-font-size-meta) / var(--sui-row-copy-leading) var(--sui-sans);
+    margin: 0;
     text-box: trim-both cap alphabetic;
   }
 

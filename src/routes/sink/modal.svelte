@@ -1,5 +1,10 @@
 <script module lang="ts">
-  export const section = { title: 'Modal', order: 50 };
+  export const section = {
+    title: 'Modal',
+    order: 50,
+    lead: 'A task the reader must finish or abandon before using the page again. Reading belongs on a page or in a panel.',
+    components: ['Modal']
+  };
 </script>
 
 <script lang="ts">
@@ -14,6 +19,7 @@
     Textarea
   } from '#lib';
   import Example from '../kit/Example.svelte';
+  import Specimen from '../kit/Specimen.svelte';
 
   const eventOptions = [
     { value: 'push', label: 'Pushes' },
@@ -50,10 +56,6 @@
   let notesDraft = $state('');
   let note = $state('');
 
-  const eventLabel = $derived(
-    eventOptions.find((option) => option.value === webhook.events)?.label ?? 'Nothing'
-  );
-
   function editWebhook(): void {
     webhookDraft = $state.snapshot(webhook);
     webhookOpen = true;
@@ -79,91 +81,106 @@
 
 <Example
   title="Sizes"
-  note="A dialog holds a short form, an inspector edits a record from the edge, wide holds a long task"
+  note="Each size drawn in place at its real width without the scrim, so a review needs no click"
+  layout="stack"
+  ground="canvas"
 >
-  <Button onclick={editWebhook}>Edit webhook</Button>
-  <Button onclick={editRun}>Edit run settings</Button>
-  <Button onclick={writeNotes}>Write release notes</Button>
-  <span class="state">{eventLabel} to {webhook.url}</span>
+  <Specimen label="Dialog" code="preview">
+    <Modal
+      preview
+      title="Edit webhook"
+      description="Smyklot posts every event you pick to this address"
+    >
+      <Field label="Payload address">
+        {#snippet control({ id, describedby })}
+          <TextInput
+            {id}
+            aria-describedby={describedby}
+            type="url"
+            value="https://example.com/hooks/smyklot"
+            mono
+          />
+        {/snippet}
+      </Field>
+      <div class="field">
+        <span class="label" aria-hidden="true">Events</span>
+        <SegmentedControl label="Events" options={eventOptions} value="push" />
+      </div>
+      {#snippet footer()}
+        <Button>Cancel</Button>
+        <Button tone="signal">Save webhook</Button>
+      {/snippet}
+    </Modal>
+  </Specimen>
+  <Specimen label="Inspector" code={'size="inspector" preview'}>
+    <Modal
+      preview
+      size="inspector"
+      title="Edit run settings"
+      description="Applies to every run of smyklot from the next push"
+    >
+      <Field label="Branch" value="main" />
+      <Field
+        label="Timeout in minutes"
+        type="number"
+        value="30"
+        hint="A run that takes longer is stopped and marked failed"
+      />
+      <CheckList label="Run on" options={triggerOptions} value={['push', 'pull']} />
+      {#snippet footer()}
+        <Button>Cancel</Button>
+        <Button tone="signal">Save settings</Button>
+      {/snippet}
+    </Modal>
+  </Specimen>
+  <Specimen label="Wide" code={'size="wide" preview'}>
+    <Modal
+      preview
+      size="wide"
+      title="Write release notes"
+      description="Shown on the release page and in the changelog for 0.3.0"
+    >
+      <Field label="Release notes">
+        {#snippet control({ id, describedby, invalid })}
+          <Textarea
+            {id}
+            aria-describedby={describedby}
+            {invalid}
+            rows={6}
+            value="Select is the native picker, styled where the browser allows it"
+          />
+        {/snippet}
+      </Field>
+      {#snippet footer()}
+        <Button>Cancel</Button>
+        <Button tone="signal">Save notes</Button>
+      {/snippet}
+    </Modal>
+  </Specimen>
 </Example>
 
 <Example
-  title="Open states"
-  note="Each size drawn in place at its real width without the scrim, so a review needs no click"
-  layout="stack"
+  title="Opening"
+  note="Each size opens over a scrim on a copy of its record, and only Save writes the copy back"
 >
-  <Modal
-    preview
-    title="Edit webhook"
-    description="Smyklot posts every event you pick to this address"
-  >
-    <div class="field">
-      <label for="sink-modal-open-url">Payload address</label>
-      <TextInput
-        id="sink-modal-open-url"
-        type="url"
-        value="https://example.com/hooks/smyklot"
-        mono
-      />
-    </div>
-    <div class="field">
-      <span class="label" aria-hidden="true">Events</span>
-      <SegmentedControl label="Events" options={eventOptions} value="push" />
-    </div>
-    {#snippet footer()}
-      <Button>Cancel</Button>
-      <Button tone="signal">Save webhook</Button>
-    {/snippet}
-  </Modal>
-  <Modal
-    preview
-    size="inspector"
-    title="Edit run settings"
-    description="Applies to every run of smyklot from the next push"
-  >
-    <Field id="sink-modal-open-branch" label="Branch" value="main" />
-    <Field
-      id="sink-modal-open-timeout"
-      label="Timeout in minutes"
-      type="number"
-      value="30"
-      hint="A run that takes longer is stopped and marked failed"
-    />
-    <CheckList label="Run on" options={triggerOptions} value={['push', 'pull']} />
-    {#snippet footer()}
-      <Button>Cancel</Button>
-      <Button tone="signal">Save settings</Button>
-    {/snippet}
-  </Modal>
-  <Modal
-    preview
-    size="wide"
-    title="Write release notes"
-    description="Shown on the release page and in the changelog for 0.3.0"
-  >
-    <Field id="sink-modal-open-notes" label="Release notes">
-      {#snippet control({ id, describedby, invalid })}
-        <Textarea
-          {id}
-          aria-describedby={describedby}
-          {invalid}
-          rows={6}
-          value="Select is the native picker, styled where the browser allows it"
-        />
-      {/snippet}
-    </Field>
-    {#snippet footer()}
-      <Button>Cancel</Button>
-      <Button tone="signal">Save notes</Button>
-    {/snippet}
-  </Modal>
+  <Specimen label="Dialog" code="bind:open">
+    <Button onclick={editWebhook}>Edit webhook</Button>
+  </Specimen>
+  <Specimen label="Inspector" code={'size="inspector"'}>
+    <Button onclick={editRun}>Edit run settings</Button>
+  </Specimen>
+  <Specimen label="Wide" code={'size="wide"'}>
+    <Button onclick={writeNotes}>Write release notes</Button>
+  </Specimen>
 </Example>
 
 <Example
   title="Guarded close"
   note="Escape and the close button ask before throwing away a note, and a press outside never closes a form"
 >
-  <Button onclick={() => (guarded = true)}>Write a note</Button>
+  <Specimen label="Guarded" code="beforeClose">
+    <Button onclick={() => (guarded = true)}>Write a note</Button>
+  </Specimen>
 </Example>
 
 <Modal
@@ -171,10 +188,17 @@
   title="Edit webhook"
   description="Smyklot posts every event you pick to this address"
 >
-  <div class="field">
-    <label for="sink-modal-url">Payload address</label>
-    <TextInput id="sink-modal-url" type="url" bind:value={webhookDraft.url} mono />
-  </div>
+  <Field label="Payload address">
+    {#snippet control({ id, describedby })}
+      <TextInput
+        {id}
+        aria-describedby={describedby}
+        type="url"
+        bind:value={webhookDraft.url}
+        mono
+      />
+    {/snippet}
+  </Field>
   <div class="field">
     <span class="label" aria-hidden="true">Events</span>
     <SegmentedControl label="Events" options={eventOptions} bind:value={webhookDraft.events} />
@@ -198,9 +222,8 @@
   title="Edit run settings"
   description="Applies to every run of smyklot from the next push"
 >
-  <Field id="sink-modal-branch" label="Branch" bind:value={runDraft.branch} />
+  <Field label="Branch" bind:value={runDraft.branch} />
   <Field
-    id="sink-modal-timeout"
     label="Timeout in minutes"
     type="number"
     min="1"
@@ -226,7 +249,7 @@
   title="Write release notes"
   description="Shown on the release page and in the changelog for 0.3.0"
 >
-  <Field id="sink-modal-notes" label="Release notes">
+  <Field label="Release notes">
     {#snippet control({ id, describedby, invalid })}
       <Textarea
         {id}
@@ -251,14 +274,7 @@
 </Modal>
 
 <Modal bind:open={guarded} title="Write a note" beforeClose={keepNote}>
-  <div class="field">
-    <label for="sink-modal-note">Note</label>
-    <TextInput
-      id="sink-modal-note"
-      bind:value={note}
-      placeholder="Type something, then press Escape"
-    />
-  </div>
+  <Field label="Note" bind:value={note} placeholder="Type something, then press Escape" />
   {#snippet footer()}
     <Button
       onclick={() => {
@@ -288,16 +304,9 @@
     gap: var(--sui-space-2);
   }
 
-  label,
   .label {
     color: var(--sui-text-primary);
     font: 600 var(--sui-font-size-control) / var(--sui-leading-flat) var(--sui-sans);
     text-box: trim-both cap alphabetic;
-  }
-
-  .state {
-    color: var(--sui-text-muted);
-    font: 400 var(--sui-font-size-meta) / var(--sui-leading-meta) var(--sui-sans);
-    overflow-wrap: anywhere;
   }
 </style>

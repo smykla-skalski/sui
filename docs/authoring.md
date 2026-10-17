@@ -6,22 +6,40 @@ Read [laws.md](laws.md) first. A component is done when it meets every law there
 
 - The component lives in `src/lib/components/<Name>.svelte`. Glyphs live in `src/lib/icons/`. Shared behaviour that is not a component (placement, focus, timing) lives in `src/lib/internal/`.
 - Export it from `src/lib/index.ts`, with its public types.
-- Show it in a kitchen sink section, `src/routes/sink/<name>.svelte`. The page finds every file in that folder. A section declares its title and order in a module script, and uses `src/routes/kit/Example.svelte` for each group of specimens:
+- Show it in a kitchen sink section, `src/routes/sink/<name>.svelte`. The page finds every file in that folder, and a running dev server does not always notice a new one; save `src/routes/+page.svelte` once to make it look again.
+
+## Kitchen sink sections
+
+A section is a component's page: what it is for, then every variant and state it has, each one named. It is built from four kit parts in `src/routes/kit/`, and nothing else frames or labels a specimen.
 
 ```svelte
 <script module lang="ts">
-  export const section = { title: 'Switch', order: 30 };
+  export const section = {
+    title: 'Switch',
+    order: 30,
+    lead: 'A boolean that takes effect the moment it flips. A value that a later save writes is a Checkbox.',
+    components: ['Switch']
+  };
 </script>
 
 <script lang="ts">
   import { Switch } from '#lib';
   import Example from '../kit/Example.svelte';
+  import Specimen from '../kit/Specimen.svelte';
 </script>
 
-<Example title="States" note="Off, on and disabled, each with its label">...</Example>
+<Example title="States" note="Off, on and disabled, each with its label">
+  <Specimen label="Off"><Switch label="Send notifications" /></Specimen>
+  <Specimen label="On" code="checked"><Switch label="Sync on push" checked /></Specimen>
+</Example>
 ```
 
-The page renders the section's `h2`, so a section starts at `h3` through `Example`. A running dev server does not always notice a new file in that folder; save `src/routes/+page.svelte` once to make it look again.
+- `section`: `title` is the component's name. `lead` says what the component is for and when to reach for another one, in one or two sentences of at most 25 words. A lone sentence ends without a period, and two sentences each end with one. `components` lists the exports the section shows, and the page links each one to its source.
+- `Example` is one titled point with a one-sentence `note` that says what it proves. Its specimens stand on a framed stage, and its markup shows under the stage at a press, so write the markup a reader would copy: literal props, no sink-only wrappers. `layout` is `row` for marks and controls, `grid` for fields and other things that fill a column, and `stack` for wide compositions. `ground="canvas"` is for specimens that are surfaces themselves (cards, plates, dialogs, toasts, shells, framed lists), so they read against the page as they will in a product.
+- `Specimen` names one specimen: `label` is the variant or state in words ("Disabled"), and `code` is the props that draw it as written in the markup (`tone="stop" disabled`). Every specimen is named. Only an "In context" example, which shows one composition, may stand without a caption.
+- `Variants` is a matrix for two axes at once: one prop down the side (`rows`, `axis`, `rowLabel`) and its states or options across the top (`columns`), drawn by the `cell` snippet. It folds into labelled blocks on a narrow stage.
+- Examples come in this order, using only the ones that apply: variants or tones, states, sizes or tiers, content (icons, long text, empty), behaviour and open states, in context, narrow width. Titles are short nouns in sentence case.
+- Use the library's own components for any frame a specimen needs, a `Card` for a card, and never a local imitation.
 
 ## Contract
 

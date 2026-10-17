@@ -1,10 +1,16 @@
 <script module lang="ts">
-  export const section = { title: 'Save bar', order: 103 };
+  export const section = {
+    title: 'Save bar',
+    order: 103,
+    lead: "The one place a pane's unsaved work is saved or thrown away. A setting that applies at once needs no bar.",
+    components: ['SaveBar']
+  };
 </script>
 
 <script lang="ts">
   import { Field, SaveBar } from '#lib';
   import Example from '../kit/Example.svelte';
+  import Specimen from '../kit/Specimen.svelte';
 
   const SAVE_DELAY = 1200;
 
@@ -27,95 +33,78 @@
     branch = saved.branch;
   }
 
-  const lines = [
-    'Merge queue checks run on every pull request',
-    'Stale reviews are dismissed when new commits land',
-    'Branch protection applies to administrators too',
-    'Required checks must pass before a merge',
-    'Squash merges keep the history linear'
-  ];
   const noop = () => {};
 </script>
 
-{#snippet filler()}
-  {#each lines as line (line)}<p class="line">{line}</p>{/each}
-{/snippet}
-
 <Example
-  title="Unsaved work"
-  note="Edit a field to raise the bar, which reserves its own room after the last line"
+  title="States"
+  note="Edit a field to raise the bar, which reserves room after the last line, holds both actions while saving and keeps a failure up"
   layout="stack"
+  ground="canvas"
 >
-  <div class="pane">
-    <div class="scroller">
-      <Field label="Repository name" bind:value={name} />
-      <Field label="Default branch" bind:value={branch} />
-      {@render filler()}
-      <SaveBar
-        {dirty}
-        {saving}
-        title="2 settings changed"
-        subtitle="They apply to every repository in this workspace"
-        onsave={save}
-        ondiscard={discard}
-      />
+  <Specimen label="Unsaved" code="dirty">
+    <div class="pane">
+      <div class="scroller">
+        <Field label="Repository name" bind:value={name} />
+        <Field label="Default branch" bind:value={branch} />
+        <SaveBar
+          {dirty}
+          {saving}
+          title="2 settings changed"
+          subtitle="They apply to every repository in this workspace"
+          onsave={save}
+          ondiscard={discard}
+        />
+      </div>
     </div>
-  </div>
-</Example>
-
-<Example title="Saving" note="Both actions hold while the save runs" layout="stack">
-  <div class="pane">
-    <div class="scroller">
-      {@render filler()}
-      <SaveBar dirty saving title="1 setting changed" onsave={noop} ondiscard={noop} />
+  </Specimen>
+  <Specimen label="Saving" code="saving">
+    <div class="pane">
+      <div class="scroller">
+        <SaveBar dirty saving title="1 setting changed" onsave={noop} ondiscard={noop} />
+      </div>
     </div>
-  </div>
+  </Specimen>
+  <Specimen label="Failed save" code="error">
+    <div class="pane">
+      <div class="scroller">
+        <SaveBar
+          dirty
+          error="Another tab saved these settings first, so reload to see them before saving again"
+          onsave={noop}
+          ondiscard={noop}
+        />
+      </div>
+    </div>
+  </Specimen>
 </Example>
 
 <Example
-  title="Failed save"
-  note="The reason replaces the subtitle, and the bar stays until the work is saved or discarded"
-  layout="stack"
->
-  <div class="pane">
-    <div class="scroller">
-      {@render filler()}
-      <SaveBar
-        dirty
-        error="Another tab saved these settings first, so reload to see them before saving again"
-        onsave={noop}
-        ondiscard={noop}
-      />
-    </div>
-  </div>
-</Example>
-
-<Example
-  title="Narrow pane"
+  title="Narrow width"
   note="Long copy wraps with the 8px rhythm and the actions wrap under it"
   layout="stack"
+  ground="canvas"
 >
-  <div class="pane narrow">
-    <div class="scroller">
-      {@render filler()}
-      <SaveBar
-        dirty
-        title="14 settings changed across merge rules, branch protection and review policy"
-        subtitle="Review anywhere in this workspace, then save everything together in one go"
-        onsave={noop}
-        ondiscard={noop}
-      />
+  <Specimen label="Long copy">
+    <div class="pane narrow">
+      <div class="scroller">
+        <SaveBar
+          dirty
+          title="14 settings changed across merge rules, branch protection and review policy"
+          subtitle="Review anywhere in this workspace, then save everything together in one go"
+          onsave={noop}
+          ondiscard={noop}
+        />
+      </div>
     </div>
-  </div>
+  </Specimen>
 </Example>
 
 <style>
   /* A containing block for fixed boxes, so the bar sits at this pane's end, not the page's.
      The pane grows with its content, so the bar sits in the room it reserves after the last
-     line instead of over the middle of the list. */
+     line instead of over the middle of the content. */
   .pane {
-    border: 1px solid var(--sui-border-subtle);
-    border-radius: var(--sui-radius-surface);
     contain: layout;
     overflow: hidden;
   }
@@ -125,17 +114,11 @@
   }
 
   .scroller {
+    align-content: start;
     box-sizing: border-box;
     display: grid;
-    align-content: start;
     gap: var(--sui-space-4);
     overflow-y: auto;
     padding: var(--sui-space-4);
-  }
-
-  .line {
-    color: var(--sui-text-secondary);
-    font: 400 var(--sui-font-size-body) / var(--sui-leading-body) var(--sui-sans);
-    margin: 0;
   }
 </style>

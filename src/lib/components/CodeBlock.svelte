@@ -1,7 +1,7 @@
 <script module lang="ts">
   import type { Attachment } from 'svelte/attachments';
 
-  export type CodeLang = 'json' | 'yaml' | 'toml' | 'markdown' | 'text';
+  export type CodeLang = 'json' | 'yaml' | 'toml' | 'markdown' | 'html' | 'text';
 
   /** One stretch of a line wearing one token class. */
   export interface TokenRun {
@@ -89,6 +89,28 @@
     ];
   }
 
+  // Markup, Svelte templates included: tag names, attribute names and quoted values. An
+  // expression in braces stays plain, because coloring it would need a script tokenizer.
+  function tokenizeHtml(line: string): TokenRun[] {
+    const out: TokenRun[] = [];
+    const re =
+      /(<!--.*?(?:-->|$))|(<\/?)([A-Za-z][\w.:-]*)|(\/?>)|(?<==)("[^"]*"|'[^']*')|([A-Za-z_:@][\w:.|-]*)(?==)/g;
+    let last = 0;
+    let match;
+    while ((match = re.exec(line))) {
+      out.push(...run(line.slice(last, match.index)));
+      if (match[1] !== undefined) out.push(...run(match[1], 'tok-com'));
+      else if (match[3] !== undefined)
+        out.push(...run(match[2] ?? '', 'tok-pun'), ...run(match[3], 'tok-key'));
+      else if (match[4] !== undefined) out.push(...run(match[4], 'tok-pun'));
+      else if (match[5] !== undefined) out.push(...run(match[5], 'tok-str'));
+      else if (match[6] !== undefined) out.push(...run(match[6], 'tok-const'));
+      last = re.lastIndex;
+    }
+    out.push(...run(line.slice(last)));
+    return out;
+  }
+
   /**
    * Cuts one line into classed runs. A handful of patterns per language, because these
    * blocks show excerpts, not an editor. It returns data, never markup, so nothing a
@@ -99,6 +121,7 @@
     if (lang === 'toml') return tokenizeToml(line);
     if (lang === 'markdown') return tokenizeMarkdown(line);
     if (lang === 'json') return tokenizeJson(line);
+    if (lang === 'html') return tokenizeHtml(line);
     return run(line);
   }
 
@@ -126,6 +149,7 @@
     label,
     lineNumbers = false,
     copy = true,
+    bare = false,
     class: className = '',
     ...rest
   }: {
@@ -136,6 +160,8 @@
     lineNumbers?: boolean;
     /** Offers a copy control in the corner. */
     copy?: boolean;
+    /** Drops the block's own frame, for a host that already frames it. */
+    bare?: boolean;
     /** Layout for the call site only, never the block's own paint. */
     class?: HTMLAttributes<HTMLElement>['class'];
   } & HTMLAttributes<HTMLElement> = $props();
@@ -153,11 +179,12 @@ A block that scrolls can take keyboard focus, so it can be scrolled without a po
 
 `lineNumbers` draws a gutter in the gutter ink at full opacity, which never selects or
 copies. Selected code is opaque, in the selection colors. `label` names the file above the
-code. The copy control sits in the corner, shows on hover and on focus, and always shows on
+code, and `bare` drops the frame for a host that frames the block itself. `html` colors markup,
+Svelte templates included. The copy control sits in the corner, shows on hover and on focus, and always shows on
 a device without hover. It copies `code` exactly as given.
 -->
 
-<figure {...rest} class={['sui-code-block', className]}>
+<figure {...rest} class={['sui-code-block', { bare }, className]}>
   {#if label !== undefined}
     <figcaption class="sui-code-block-label">{label}</figcaption>
   {/if}
@@ -196,6 +223,11 @@ a device without hover. It copies `code` exactly as given.
     min-inline-size: 0;
   }
 
+  .bare {
+    border: 0;
+    border-radius: 0;
+  }
+
   .sui-code-block-label {
     border-block-end: 1px solid var(--sui-border-subtle);
     color: var(--sui-text-secondary);
@@ -219,7 +251,9 @@ a device without hover. It copies `code` exactly as given.
     padding: var(--sui-space-3) 0;
   }
 
+  /* Rounded even when `bare` squares the block, so the inset ring never has sharp corners. */
   .sui-code-block-scroll:focus-visible {
+    border-radius: var(--sui-radius-control);
     outline: var(--sui-focus-ring-width) solid var(--sui-focus);
     outline-offset: var(--sui-focus-ring-inset);
   }

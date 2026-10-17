@@ -75,6 +75,7 @@ back from a page is `BackLink`.
   }
 
   .sui-link:focus-visible {
+    border-radius: var(--sui-r-chip);
     outline: var(--sui-focus-ring-width) solid var(--sui-focus);
     outline-offset: var(--sui-focus-ring-offset);
   }
