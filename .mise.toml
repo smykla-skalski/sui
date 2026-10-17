@@ -1,2 +1,20 @@
 [tools]
-node = "24.21.0"
+node = "24.22.0"
+
+[tasks.install]
+description = "Install current dependencies and update the lockfile"
+run = "npm install"
+
+[tasks.format]
+description = "Format package files"
+run = "npm run format"
+
+[tasks.validate]
+description = "Run all package validation"
+run = [
+  "npm run format:check",
+  "npm run check",
+  "npm test",
+  "npm run build",
+  "npm pack --dry-run",
+]
