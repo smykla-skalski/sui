@@ -180,7 +180,7 @@ a device without hover. It copies `code` exactly as given.
           >{/each}</code
       ></pre>
     {#if copy}
-      <div class="sui-code-block-copy"><CopyButton text={code} /></div>
+      <div class="sui-code-block-copy"><CopyButton text={code} label="Copy code" /></div>
     {/if}
   </div>
 </figure>

@@ -1,7 +1,9 @@
 <script lang="ts">
   import type { Snippet } from 'svelte';
   import type { HTMLDialogAttributes } from 'svelte/elements';
+  import { hostToasts } from '../internal/toasts.svelte.js';
   import IconButton from './IconButton.svelte';
+  import Toaster from './Toaster.svelte';
 
   const uid = $props.id();
 
@@ -10,6 +12,7 @@
     title,
     description,
     size = 'dialog',
+    role = 'dialog',
     beforeClose,
     onclose,
     preview = false,
@@ -24,9 +27,11 @@
     title: string;
     /** What the dialog is for, said once under the title and read as its description. */
     description?: string;
-    /** `dialog` asks a question, `inspector` reads a record beside the page, `wide` holds a document. */
+    /** `dialog` asks a question or holds a short form, `inspector` edits a record beside the page, `wide` holds a task that needs room. */
     size?: 'dialog' | 'inspector' | 'wide';
-    /** Asked before Escape, an outside click or the close button ends the dialog; `false` keeps it open. */
+    /** `alertdialog` for a question that interrupts the reader, as `ConfirmDialog` asks. */
+    role?: 'dialog' | 'alertdialog';
+    /** Asked before Escape, an outside press or the close button ends the dialog; `false` keeps it open. */
     beforeClose?: () => boolean;
     /** Runs once the dialog has closed, whatever closed it. */
     onclose?: () => void;
@@ -37,20 +42,40 @@
     children?: Snippet;
     /** Actions that stay in view below the scrolling body, trailing edge first in reading order. */
     footer?: Snippet;
-  } & Omit<HTMLDialogAttributes, 'open' | 'title' | 'children' | 'class'> = $props();
+  } & Omit<HTMLDialogAttributes, 'open' | 'title' | 'role' | 'children' | 'class'> = $props();
 
   const titleId = `${uid}-title`;
   const descriptionId = `${uid}-description`;
 
+  const TABBABLE =
+    ':is(a[href], button, input, select, textarea, [contenteditable], [tabindex]):not(:disabled, [tabindex^="-"], [contenteditable="false"], [type="hidden"], [type="radio"]:not(:checked))';
+  const EDITABLE =
+    'input:not([type="hidden"]), textarea, select, [contenteditable]:not([contenteditable="false"])';
+
   let opener: Element | null = null;
   let pressedOutside = false;
+  let body = $state<HTMLElement | null>(null);
+  let foot = $state<HTMLElement | null>(null);
+  let closeButton = $state<HTMLButtonElement | null>(null);
+
+  const firstIn = (root: HTMLElement | null) =>
+    [...(root?.querySelectorAll<HTMLElement>(TABBABLE) ?? [])].find((node) =>
+      node.checkVisibility()
+    );
 
   $effect(() => {
     if (!element) return;
     if (open && !element.open) {
       opener = document.activeElement;
       element.showModal();
+      // The browser would focus the first control in tree order, which is Close in the head.
+      if (!element.querySelector('[autofocus]'))
+        (firstIn(body) ?? firstIn(foot) ?? closeButton)?.focus();
     } else if (!open && element.open) element.close();
+  });
+
+  $effect(() => {
+    if (open && element) return hostToasts(element);
   });
 
   function dismiss(): void {
@@ -72,7 +97,9 @@
 
   // An open auto popover inside the dialog (a menu, a listbox) takes Escape and outside
   // presses first, and the dialog stays.
-  const layered = () => element?.querySelector('[popover="auto"]:popover-open') != null;
+  // `:is()` keeps a browser without `:open` from rejecting the whole selector.
+  const layered = () =>
+    element?.querySelector(':is([popover="auto"]:popover-open, select:open)') != null;
 
   function onkeydown(event: KeyboardEvent): void {
     if (event.key !== 'Escape' || event.defaultPrevented || layered()) return;
@@ -87,8 +114,10 @@
     dismiss();
   }
 
+  // A stray press must never throw away a half-filled form, so only a dialog without fields
+  // closes on one.
   function onpointerdown(event: PointerEvent): void {
-    pressedOutside = outside(event) && !layered();
+    pressedOutside = outside(event) && !layered() && !element?.querySelector(EDITABLE);
   }
 
   // `closedby="any"` would do this natively, but Safari does not support it yet. A press that
@@ -108,17 +137,24 @@
 
 <!--
 @component
-Work that has to be finished or abandoned before the page under it can be used again. Three
-widths and no others: `dialog` asks a question, `inspector` reads a record from the inline end
-at full height, and `wide` holds a document. Something a reader can carry on past belongs in a
-callout beside the work, not here.
+A task that has to be finished or abandoned before the page under it can be used again. It holds
+fields and a way to commit or cancel them. Reading belongs on a page or in a panel, never here.
+There are three widths. `dialog` asks a question or holds a short form. `inspector` edits a
+record from the inline end at full height. `wide` holds a task that needs room, such as writing
+release notes. Something a reader can carry on past belongs in a callout beside the work.
 
 It is a native `<dialog>` opened with `showModal()`, so the browser traps focus, makes the page
-inert and keeps it in the top layer. Escape, a press outside the box and the close button ask
-`beforeClose` first, which can refuse; confirm there only when closing would discard work.
-Setting `open` to false always closes it. Focus returns to whatever had it when the dialog
-opened. The body scrolls and `footer` stays in view under it. `preview` draws the same box in
-the page's flow instead, for a review that needs no click.
+inert and keeps it in the top layer. Escape and the close button ask `beforeClose` first, which
+can refuse; confirm there only when closing would discard work. A press outside the box asks
+too, but only while the dialog holds no field, so a stray click never loses a half-filled form.
+An Escape that a layer inside it already handled, such as a menu or a tooltip, leaves it open.
+Setting `open` to false always closes it.
+
+Focus opens on an `[autofocus]` element, else on the first control in the body, then in the
+footer, and on the close button last. It returns to whatever had it when the dialog opened. The
+page's toasts draw inside the topmost dialog, so they are never inert under it. The body scrolls
+and `footer` stays in view under it. `preview` draws the same box in the page's flow instead,
+for a review that needs no click.
 -->
 
 {#snippet box()}
@@ -126,18 +162,23 @@ the page's flow instead, for a review that needs no click.
     <div class="sui-modal-heading">
       <h2 id={titleId} class="sui-modal-title">{title}</h2>
       <span class="sui-modal-close"
-        ><IconButton icon="close" label="Close" onclick={dismiss} /></span
+        ><IconButton
+          bind:element={closeButton}
+          icon="close"
+          label="Close"
+          onclick={dismiss}
+        /></span
       >
     </div>
     {#if description}<p id={descriptionId} class="sui-modal-description">{description}</p>{/if}
   </header>
-  {#if children}<div class="sui-modal-body">{@render children()}</div>{/if}
-  {#if footer}<footer class="sui-modal-foot">{@render footer()}</footer>{/if}
+  {#if children}<div bind:this={body} class="sui-modal-body">{@render children()}</div>{/if}
+  {#if footer}<footer bind:this={foot} class="sui-modal-foot">{@render footer()}</footer>{/if}
 {/snippet}
 
 {#if preview}
   <div
-    role="dialog"
+    {role}
     class={['sui-modal', 'preview', className]}
     data-size={size}
     aria-labelledby={titleId}
@@ -150,6 +191,7 @@ the page's flow instead, for a review that needs no click.
     bind:this={element}
     {...rest}
     class={['sui-modal', className]}
+    role={role === 'alertdialog' ? role : undefined}
     data-size={size}
     aria-labelledby={titleId}
     aria-describedby={description ? descriptionId : undefined}
@@ -160,6 +202,7 @@ the page's flow instead, for a review that needs no click.
     onclose={closed}
   >
     {@render box()}
+    <Toaster />
   </dialog>
 {/if}
 

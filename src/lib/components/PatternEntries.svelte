@@ -82,7 +82,7 @@ typed until the reader fixes it.
 
 <div bind:this={root} {...rest} class={['sui-pattern-entries', className]}>
   {#if value.length > 0}
-    <ul class="sui-pattern-list">
+    <ul class="sui-pattern-list" role="list">
       {#each value as pattern, index (index)}
         {@const problem = problems[index]}
         <li class="sui-pattern-entry" onfocusout={(event) => settle(index, event)}>

@@ -101,7 +101,7 @@ steps up from whatever row or card it sits on. Reach for `Button` wherever a wor
 
   .sui-icon-button:disabled {
     cursor: default;
-    opacity: 0.5;
+    opacity: var(--sui-disabled-opacity);
   }
 
   .busy :global(svg) {
@@ -125,6 +125,15 @@ steps up from whatever row or card it sits on. Reach for `Button` wherever a wor
 
     .busy :global(svg) {
       animation: none;
+    }
+  }
+
+  /* A finger needs a 44px target, so the hit area grows past the drawn box (L-38). */
+  @media (pointer: coarse), (max-width: 47.9375rem) {
+    .sui-icon-button::after {
+      content: '';
+      inset: calc((100% - var(--sui-touch-target)) / 2);
+      position: absolute;
     }
   }
 </style>

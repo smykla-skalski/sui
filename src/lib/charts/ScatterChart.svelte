@@ -7,9 +7,11 @@
 
 <!--
 @component
-Numeric points over a numeric axis, for values that are measured rather than continuous.
-It takes the same series, labels, formatters and sizing as `LineChart`, and like every chart
-it needs a `description` and offers its values as a table.
+Two numeric variables plotted against each other, one point per thing measured, such as
+changed files against build minutes. A value over time is a `LineChart` instead. It takes the
+same series, labels, formatters and sizing as `LineChart`, gives each series its own marker
+shape as well as its color, and like every chart needs a `description` and offers its values
+as a table.
 -->
 
 <XYChart {...props} kind="scatter" />

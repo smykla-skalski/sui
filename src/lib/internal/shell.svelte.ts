@@ -1,6 +1,7 @@
 import { getContext, setContext } from 'svelte';
+import type { Attachment } from 'svelte/attachments';
 
-/** `drawer` is a phone, `collapsed` the icon strip on a wide screen, `full` everything else. */
+/** `drawer` is a phone, `collapsed` the labelled icon strip on a wide screen, `full` everything else. */
 export type ShellMode = 'full' | 'collapsed' | 'drawer';
 
 export type ShellState = {
@@ -47,4 +48,13 @@ export function firstStop(container: HTMLElement): HTMLElement | undefined {
   return [...container.querySelectorAll<HTMLElement>(FOCUSABLE)].find(
     (element) => element.getClientRects().length > 0
   );
+}
+
+/** Reports whether one line of text is cut short by its own box, as its size changes. */
+export function watchCut(report: (cut: boolean) => void): Attachment<HTMLElement> {
+  return (element) => {
+    const observer = new ResizeObserver(() => report(element.scrollWidth > element.clientWidth));
+    observer.observe(element);
+    return () => observer.disconnect();
+  };
 }

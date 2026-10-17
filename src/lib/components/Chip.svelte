@@ -1,17 +1,53 @@
 <script module lang="ts">
-  export type ChipTone = 'neutral' | 'info' | 'success' | 'brand' | 'warning' | 'danger' | 'absent';
+  type Rgb = [number, number, number];
+
+  /* The two inks a painted chip can wear: `--sui-text-primary` in the light and in the dark
+     palette, reached by scoping the ink to that theme. Their relative luminance is restated here
+     so the choice can be made before paint; recompute it if those two tokens change. */
+  const INK = { light: 0.0138, dark: 0.9168 } as const;
+  /* A little over 4.5:1, so rounding the fill to whole channels never lands under it. */
+  const FLOOR = 4.6;
+
+  const channel = (value: number) => {
+    const c = value / 255;
+    return c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
+  };
+  const luminance = ([r, g, b]: Rgb) =>
+    0.2126 * channel(r) + 0.7152 * channel(g) + 0.0722 * channel(b);
+  const contrast = (a: number, b: number) => (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05);
+
+  function parse(color: string): Rgb | null {
+    const digits = /^#?([0-9a-f]{3}|[0-9a-f]{6})$/i.exec(color.trim())?.[1];
+    if (!digits) return null;
+    const full = digits.length === 3 ? [...digits].map((d) => d + d).join('') : digits;
+    return [0, 2, 4].map((at) => parseInt(full.slice(at, at + 2), 16)) as Rgb;
+  }
+
+  /**
+   * The theme whose ink reads best on the caller's color, and the fill: that color, or the
+   * least step from it toward white or black that brings the ink to 4.5:1. Mid tones such as
+   * GitHub's red `d73a4a` reach neither ink as they are.
+   */
+  function paint(rgb: Rgb): { theme: keyof typeof INK; fill: string } {
+    const own = luminance(rgb);
+    const theme = contrast(own, INK.light) >= contrast(own, INK.dark) ? 'light' : 'dark';
+    const pole = theme === 'light' ? 255 : 0;
+    let mixed = rgb;
+    for (let step = 1; step <= 20 && contrast(luminance(mixed), INK[theme]) < FLOOR; step++)
+      mixed = rgb.map((c) => Math.round(c + ((pole - c) * step) / 20)) as Rgb;
+    return { theme, fill: `rgb(${mixed.join(' ')})` };
+  }
 </script>
 
 <script lang="ts">
+  import { tick } from 'svelte';
   import type { HTMLAttributes } from 'svelte/elements';
-  import Icon, { type IconName } from '../icons/Icon.svelte';
-  import ClippedLabel from './ClippedLabel.svelte';
+  import Icon from '../icons/Icon.svelte';
   import Tooltip from './Tooltip.svelte';
 
   let {
     label,
-    tone = 'neutral',
-    icon,
+    color,
     small = false,
     mono = false,
     onremove,
@@ -20,9 +56,8 @@
   }: {
     /** The value the chip carries. It also names the remove control. */
     label: string;
-    tone?: ChipTone;
-    /** For an outcome the tone alone cannot name. */
-    icon?: IconName;
+    /** A color somebody else chose, as three or six hex digits with or without `#`, as GitHub stores a label's. */
+    color?: string;
     /** For a chip set inside a line of text rather than beside it. */
     small?: boolean;
     /** For a technical value: an ID, a path, a version or a key. */
@@ -30,41 +65,64 @@
     /** Draws a remove control named "Remove" and the value. */
     onremove?: () => void;
     class?: HTMLAttributes<HTMLSpanElement>['class'];
-  } & Omit<HTMLAttributes<HTMLSpanElement>, 'children'> = $props();
+  } & Omit<HTMLAttributes<HTMLSpanElement>, 'children' | 'color'> = $props();
 
   let remover = $state<HTMLButtonElement | null>(null);
 
   const removeLabel = $derived(`Remove ${label}`);
+  const painted = $derived.by(() => {
+    const rgb = color === undefined ? null : parse(color);
+    return rgb ? paint(rgb) : null;
+  });
+
+  /* The pressed control leaves with its chip, so focus is placed before it would fall to the
+     body: on the next remove control in the group, the previous one, or the group itself. */
+  async function remove() {
+    const own = remover;
+    const group = own?.parentElement?.parentElement;
+    if (!own || !group || !onremove) return;
+    const removers = [...group.querySelectorAll<HTMLElement>('.sui-chip-remove')];
+    const at = removers.indexOf(own);
+    const next = removers[at + 1] ?? removers[at - 1] ?? group;
+    onremove();
+    await tick();
+    // Still here: the caller kept the chip, or an unkeyed list reused it for the next value.
+    if (own.isConnected) return;
+    if (next === group && !group.hasAttribute('tabindex')) group.tabIndex = -1;
+    next.focus({ preventScroll: true });
+  }
 </script>
 
 <!--
 @component
-A value a row reports, drawn as a mark: a label name, a pattern, a count. Where `Pill` is a
-standing and `StatusPill` a fact about the surface, a chip carries one cell's value and takes
-its tone from what that value means, so the same word wears the same tone down a column.
+A value drawn as a mark: a label name, a pattern, a count. It never carries a status; reach for
+`Pill` for a state, a role or a standing. `color` paints the chip in a color somebody else
+chose, such as a GitHub label's, and is how a reader recognises it in a list.
 
-`success` is a good outcome, `info` informs, `brand` wears the brand tint, `warning` and
-`danger` need attention, and `absent` says there is nothing to show with a dashed keyline, in
-the shape itself. `onremove` adds a remove control with a 24px hit area. A long value ends in
-an ellipsis and shows in full in a tooltip.
+A painted chip's ink is dark or light, whichever reads better on the fill, and a mid tone that
+neither reads 4.5:1 on is nudged toward white or black until one does. Anything but hex digits
+draws the plain chip, so a stored value never writes a style declaration. A long value wraps
+inside the chip, so no part of it is ever cut.
+
+`onremove` adds a remove control with a 24px target, 44px on a coarse pointer. After a removal
+focus moves to the next remove control in the chip's parent, then the previous one, then the
+parent itself, which gets `tabindex="-1"` when it has none.
 -->
 
 <span
   {...rest}
-  class={['sui-chip', className, { small, mono, removable: onremove !== undefined }]}
-  data-tone={tone}
+  class={['sui-chip', className, { small, mono, painted, removable: onremove !== undefined }]}
+  style:--sui-chip-fill={painted?.fill}
 >
-  {#if icon !== undefined}
-    <Icon name={icon} size={small ? 'xs' : 'sm'} strokeWidth={2} />
-  {/if}
-  <ClippedLabel text={label} {mono} />
+  <span class="sui-chip-label" data-sui-theme={painted?.theme}>{label}</span>
   {#if onremove !== undefined}
     <button
       bind:this={remover}
       type="button"
       class="sui-chip-remove"
+      data-sui-theme={painted?.theme}
       aria-label={removeLabel}
-      onclick={onremove}
+      onclick={remove}
     >
       <Icon name="close" size="xs" strokeWidth={2} />
     </button>
@@ -84,13 +142,12 @@ an ellipsis and shows in full in a tooltip.
     box-sizing: border-box;
     color: var(--sui-text-secondary);
     display: inline-flex;
-    font: 600 var(--sui-font-size-compact) / var(--sui-leading-flat) var(--sui-sans);
+    font: 600 var(--sui-font-size-compact) / var(--sui-leading-compact) var(--sui-sans);
     gap: var(--sui-space-1);
     inline-size: fit-content;
     max-inline-size: 100%;
     min-block-size: var(--sui-control-height-chip);
     padding-inline: var(--sui-space-2);
-    white-space: nowrap;
   }
 
   .small {
@@ -104,8 +161,26 @@ an ellipsis and shows in full in a tooltip.
     font-weight: 500;
   }
 
-  .sui-chip > :global(svg:first-child) {
-    margin-inline-start: calc(-1 * var(--sui-icon-ink-start, 0px));
+  /* The padding sits on the label so a wrapped value clears the edges, while one line keeps
+     the chip at its tier. */
+  .sui-chip-label {
+    min-inline-size: 0;
+    overflow-wrap: anywhere;
+    padding-block: var(--sui-space-1);
+    text-box: trim-both cap alphabetic;
+  }
+
+  /* The edge is the fill pulled toward the page's ink, so a white chip still has an outline on
+     a white card. The label and the remove control are scoped to the ink's own theme. */
+  .painted {
+    background: var(--sui-chip-fill);
+    box-shadow: inset 0 0 0 1px
+      color-mix(in srgb, var(--sui-chip-fill) 72%, var(--sui-text-primary));
+  }
+
+  .painted .sui-chip-label,
+  .painted .sui-chip-remove {
+    color: var(--sui-text-primary);
   }
 
   /* The remove control sits concentric with the chip: the same inset on the end as above
@@ -141,11 +216,18 @@ an ellipsis and shows in full in a tooltip.
     -webkit-tap-highlight-color: transparent;
   }
 
-  /* The glyph is 20px so the chip keeps its height; the pointer target is 24px. */
+  /* The glyph is 20px so the chip keeps its height; the pointer target is 24px, and a finger's
+     is the full touch target. */
   .sui-chip-remove::before {
     content: '';
     inset: calc(-1 * var(--sui-control-inset));
     position: absolute;
+  }
+
+  @media (pointer: coarse), (max-width: 47.9375rem) {
+    .sui-chip-remove::before {
+      inset: calc((var(--sui-tier-mark) - var(--sui-touch-target)) / 2);
+    }
   }
 
   .sui-chip-remove:hover:not(:active) {
@@ -161,41 +243,6 @@ an ellipsis and shows in full in a tooltip.
   .sui-chip-remove:focus-visible {
     outline: var(--sui-focus-ring-width) solid var(--sui-focus);
     outline-offset: var(--sui-focus-ring-flush);
-  }
-
-  .sui-chip[data-tone='success'] {
-    background: var(--sui-success-tint);
-    color: var(--sui-success);
-  }
-
-  .sui-chip[data-tone='info'] {
-    background: var(--sui-info-tint);
-    color: var(--sui-info);
-  }
-
-  .sui-chip[data-tone='brand'] {
-    background: var(--sui-brand-action-tint);
-    color: var(--sui-brand-action-text);
-  }
-
-  .sui-chip[data-tone='warning'] {
-    background: var(--sui-warning-tint);
-    color: var(--sui-warning);
-  }
-
-  .sui-chip[data-tone='danger'] {
-    background: var(--sui-danger-tint);
-    color: var(--sui-danger);
-  }
-
-  /* An outline rather than the keyline, because an inset shadow cannot be dashed. Inset by
-     its own width, so the chip measures the same as its neighbours. */
-  .sui-chip[data-tone='absent'] {
-    background: transparent;
-    box-shadow: none;
-    color: var(--sui-text-muted);
-    outline: 1px dashed color-mix(in srgb, currentColor 42%, transparent);
-    outline-offset: -1px;
   }
 
   @media (prefers-reduced-motion: reduce) {

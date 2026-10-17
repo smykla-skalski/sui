@@ -139,8 +139,9 @@ with text at its token size, and scrolls sideways below 320px.
   .endpoint {
     fill: var(--sui-chart-1);
   }
+  /* Neutral ink, so the marker is never read as a second series. */
   .marker {
-    fill: var(--sui-chart-4);
+    fill: var(--sui-text-primary);
     stroke: var(--sui-surface-base);
     stroke-width: 2;
   }

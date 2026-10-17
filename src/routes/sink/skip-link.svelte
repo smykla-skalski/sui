@@ -26,7 +26,7 @@
   note="Each button reads as Remove and the member's name to a screen reader, and shows only Remove"
   layout="stack"
 >
-  <ul class="members">
+  <ul class="members" role="list">
     {#each members as member (member)}
       <li>
         <span class="copy">{member}</span>

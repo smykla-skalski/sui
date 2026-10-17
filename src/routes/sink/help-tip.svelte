@@ -9,7 +9,7 @@
 
 <Example
   title="Beside a label"
-  note="Hover pauses before the tip shows, keyboard focus shows it at once"
+  note="Hover pauses before the tip shows, focus shows it at once, and a tap or click toggles it"
 >
   <span class="label">
     Retention
@@ -21,6 +21,13 @@
       label="About required reviewers"
       text="Approvals needed before a pull request can merge, counted per change"
       side="block-end"
+    />
+  </span>
+  <span class="label">
+    Signal button
+    <HelpTip
+      label="About signal buttons"
+      text="The one action a view exists for, so a view has exactly one of them"
     />
   </span>
 </Example>

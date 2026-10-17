@@ -34,7 +34,7 @@
     disabled?: boolean;
     /** Marks the amount as wrong for a reason the field cannot see, such as a refused save. */
     invalid?: boolean;
-    /** Hears the field's own problem after each keystroke, so an owner can hold Save while one stands. */
+    /** Hears the field's own problem after each keystroke and unit pick, so a Save can send focus back to the amount. */
     onproblem?: (problem: string | null) => void;
     /** Layout for the call site only, never the field's own paint. */
     class?: HTMLAttributes<HTMLDivElement>['class'];
@@ -92,19 +92,23 @@
     [describedBy, problem && `${uid}-problem`].filter(Boolean).join(' ') || undefined
   );
 
-  function type(event: Event & { currentTarget: EventTarget & HTMLInputElement }): void {
-    const shown = unit;
-    const next = event.currentTarget.value;
+  /** Holds what the reader sees and writes the seconds only when they are whole and in range. */
+  function hold(next: string, shown: Unit): void {
     const seconds = exact(next, shown);
     if (seconds !== null && fits(seconds)) value = seconds;
     edit = { text: next, unit: shown, seconds: value };
     onproblem?.(check(next, shown));
   }
 
-  // A unit only changes how the value is said: the seconds stay exactly as they were.
+  function type(event: Event & { currentTarget: EventTarget & HTMLInputElement }): void {
+    hold(event.currentTarget.value, unit);
+  }
+
+  // A readable amount keeps its seconds and is said in the new unit. Text that cannot be read
+  // stays as typed and is read again in the new unit, so 0.5 seconds becomes 0.5 minutes.
   function pick(next: Unit | null): void {
-    if (next === null || typed === null) return;
-    edit = { text: String(typed / SECONDS[next]), unit: next, seconds: value };
+    if (next === null) return;
+    hold(typed === null ? text : String(typed / SECONDS[next]), next);
   }
 </script>
 
@@ -117,10 +121,10 @@ the largest unit that holds it whole, and picking another unit only changes how 
 
 Text that is not a whole number of seconds inside `min` and `max` stays on screen with the
 reason under it and is never written to `value`, so a cleared or mistyped field never becomes
-zero. `onproblem` hears that reason after each keystroke, so the owner can hold Save while it
-stands; a value the owner writes, such as a discard, replaces the held text. The unit picker
-waits while the amount cannot be read. `label` names both halves; other attributes, such as
-`id`, land on the amount.
+zero. `onproblem` hears that reason after each keystroke and each unit pick, so a Save can send
+focus back to the amount while it stands. A value the owner writes, such as a discard, replaces
+the held text. The unit stays enabled while the amount cannot be read, and the text is read again
+in the unit picked. `label` names both halves; other attributes, such as `id`, land on the amount.
 -->
 
 <div class={['sui-duration-input', className]}>
@@ -146,7 +150,7 @@ waits while the amount cannot be read. `label` names both halves; other attribut
       options={unitOptions}
       bind:value={() => unit, pick}
       aria-labelledby="{uid}-unit"
-      disabled={disabled || typed === null}
+      {disabled}
     />
     <span id="{uid}-unit" hidden>{label} unit</span>
   </div>

@@ -182,6 +182,12 @@
   --sui-control-border: var(--sui-border-control);
 
   --sui-control-border-hover: var(--sui-primitive-light-control-border-hover);
+  --sui-field-border: color-mix(in srgb, var(--sui-text-primary) 60%, var(--sui-surface-base));
+  --sui-field-border-hover: color-mix(
+    in srgb,
+    var(--sui-text-primary) 78%,
+    var(--sui-surface-base)
+  );
   --sui-input-bg: var(--sui-surface-inset);
   --sui-popover-bg: var(--sui-surface-base);
   --sui-popover-border: var(--sui-border-subtle);
@@ -288,12 +294,12 @@
   --sui-cp-area-height: 10rem;
   --sui-cp-knob: 14px;
 
-  --sui-font-size-nano: 0.5625rem;
   --sui-font-size-micro: 0.6875rem;
   --sui-font-size-compact: 0.75rem;
   --sui-font-size-meta: 0.8125rem;
   --sui-font-size-body: 0.9375rem;
   --sui-font-size-control: 0.8125rem;
+  --sui-font-size-input: 0.8125rem;
   --sui-font-size-title: 1rem;
 
   --sui-font-size-card-title: 1.0625rem;
@@ -305,6 +311,7 @@
   --sui-leading-micro: 1.0625rem;
   --sui-leading-compact: 1.125rem;
   --sui-leading-meta: 1.25rem;
+  --sui-leading-input: 1.25rem;
   --sui-leading-body: 1.4375rem;
   --sui-leading-title: 1.625rem;
   --sui-leading-page: 2.125rem;
@@ -328,10 +335,10 @@
 
   --sui-tier-mark: 20px;
 
-  --sui-status-pill-line: 1.5rem;
   --sui-touch-target: 44px;
 
   --sui-field-target-min: 24px;
+  --sui-disabled-opacity: 0.7;
   --sui-control-inset: 2px;
 
   --sui-icon-nano: 8px;
@@ -344,8 +351,7 @@
   --sui-content-max: 70rem;
 
   --sui-toc-width: 12rem;
-  --sui-rail-width: 60px;
-  --sui-rail-tile: 38px;
+  --sui-rail-width: 72px;
   --sui-sidebar-width: 228px;
   --sui-sidebar-width-collapsed: 4.5rem;
   --sui-top-bar-height: 56px;
@@ -381,16 +387,6 @@
   --sui-layer-scrim: 36;
   --sui-layer-side: 40;
   --sui-layer-rail: 50;
-
-  --sui-layer-popover: 55;
-  --sui-layer-menu: 55;
-  --sui-layer-flyout: 60;
-  --sui-layer-dialog: 75;
-  --sui-layer-dialog-popover: 80;
-
-  --sui-layer-toast: 85;
-
-  --sui-layer-tooltip: 95;
   --sui-layer-skip: 120;
   --sui-shadow-plate: 0 1px 2px var(--sui-shadow-color);
   --sui-shadow-popover: 0 16px 42px var(--sui-shadow-color);
@@ -404,11 +400,11 @@
 
   --sui-border-strong: color-mix(in srgb, var(--sui-text-primary) 53%, var(--sui-surface-base));
 
-  --sui-chart-1: var(--sui-brand-action);
-  --sui-chart-2: var(--sui-info);
-  --sui-chart-3: var(--sui-warning);
-  --sui-chart-4: var(--sui-danger);
-  --sui-chart-5: var(--sui-role-ink);
+  --sui-chart-1: #008a7d;
+  --sui-chart-2: #6250d6;
+  --sui-chart-3: #c4450f;
+  --sui-chart-4: #2470d0;
+  --sui-chart-5: #b42f78;
 }
 
 :root[data-theme='dark'],
@@ -528,16 +524,22 @@
   --sui-border-strong: color-mix(in srgb, var(--sui-text-primary) 40%, var(--sui-surface-base));
 
   --sui-control-border: var(--sui-border-control);
+  --sui-field-border: color-mix(in srgb, var(--sui-text-primary) 46%, var(--sui-surface-base));
+  --sui-field-border-hover: color-mix(
+    in srgb,
+    var(--sui-text-primary) 62%,
+    var(--sui-surface-base)
+  );
   --sui-popover-border: var(--sui-border-subtle);
   --sui-dialog-border: var(--sui-border-subtle);
   --sui-shadow-plate: 0 1px 2px var(--sui-shadow-color);
   --sui-shadow-popover: 0 16px 42px var(--sui-shadow-color);
   --sui-shadow-dialog: 0 24px 72px color-mix(in srgb, var(--sui-shadow-color) 82%, black);
-  --sui-chart-1: var(--sui-brand-action);
-  --sui-chart-2: var(--sui-info);
-  --sui-chart-3: var(--sui-warning);
-  --sui-chart-4: var(--sui-danger);
-  --sui-chart-5: var(--sui-role-ink);
+  --sui-chart-1: #16a393;
+  --sui-chart-2: #8a7bef;
+  --sui-chart-3: #df6d2c;
+  --sui-chart-4: #4a8de6;
+  --sui-chart-5: #d65f99;
 }
 
 @media (max-width: 47.9375rem) {
@@ -548,6 +550,10 @@
     --sui-font-size-meta: 0.875rem;
     --sui-font-size-control: 0.875rem;
     --sui-font-size-body: 1rem;
+
+    /* iOS Safari zooms the page into a focused field whose text is under 16px. */
+    --sui-font-size-input: 1rem;
+    --sui-leading-input: 1.5rem;
     --sui-font-size-page-title: 1.5rem;
     --sui-leading-micro: 1.125rem;
     --sui-leading-compact: 1.25rem;
@@ -556,7 +562,8 @@
     --sui-leading-title: 1.75rem;
     --sui-leading-page: 2rem;
 
-    /* A finger needs more than a pointer: standalone controls step from 34px to the 40px tier. */
-    --sui-control-height-compact: 40px;
+    /* A finger needs a 44px target (Apple HIG, WCAG 2.5.5), so standalone controls step up. */
+    --sui-control-height-compact: 44px;
+    --sui-control-height: 44px;
   }
 }

@@ -14,7 +14,8 @@
 <script lang="ts">
   import type { Snippet } from 'svelte';
   import type { HTMLAttributes } from 'svelte/elements';
-  import IconButton from './IconButton.svelte';
+  import Icon from '../icons/Icon.svelte';
+  import Button from './Button.svelte';
   import Popover from './Popover.svelte';
   import SearchField from './SearchField.svelte';
   import SegmentedControl from './SegmentedControl.svelte';
@@ -40,7 +41,7 @@
     filter?: ListToolGroup;
     /** The sort and any further filters, gathered in one menu behind the tools button. */
     tools?: readonly ListToolGroup[];
-    /** The tools button's accessible name and tooltip. */
+    /** The tools button's visible label, which also names its menu. */
     toolsLabel?: string;
     /** The one primary action, at the end of the bar. */
     action?: Snippet;
@@ -50,7 +51,7 @@
   const popupId = `${uid}-tools`;
 
   let open = $state(false);
-  let trigger = $state<HTMLButtonElement | null>(null);
+  let trigger = $state<HTMLButtonElement | HTMLAnchorElement | null>(null);
   let segments = $state<HTMLElement | null>(null);
   /* The width that hides the segmented filter is a container query, so the menu asks the
      page whether it is hidden rather than repeating that width here. */
@@ -78,14 +79,15 @@
 @component
 The bar over a list: a search that leads, an optional primary filter as a segmented control,
 a tools button holding the sort and any further filters, and one optional primary action at
-the end. Search and filters stand outside the list's card. The bar owns no list state: each
-group reports its choice through `onchange`, and the query is `bind:query`.
+the end. The tools button shows its label beside its glyph at every width. Search and filters
+stand outside the list's card. The bar owns no list state: each group reports its choice
+through `onchange`, and the query is `bind:query`.
 
 The primary filter and the tools button are one unit and wrap together, so the button is never
 left on a line by itself. Short of room, the search takes its own line and the filter sits
-under it with the tools button, scrolling inside its own track. In a bar narrower than 18rem
-the filter folds into the tools menu, its choice is named beside the button, and the search
-shares a line with them. Without `tools` there is no button and the filter never folds.
+under it with the tools button, and turns into a select when its options do not fit. In a bar narrower than 18rem
+the filter folds into the tools menu, its choice is named beside the button, and both sit on
+the line under the search. Without `tools` there is no button and the filter never folds.
 
 The menu stays open through every choice, because a reader came for the set, and closes on
 Escape or an outside press, returning focus to the tools button.
@@ -119,16 +121,16 @@ Escape or an outside press, returning focus to the tools button.
           <span class="sui-list-toolbar-current">{current}</span>
         {/if}
         {#if tools.length > 0}
-          <IconButton
+          <Button
             bind:element={trigger}
-            icon="sliders"
-            label={toolsLabel}
-            toolbar
             popovertarget={popupId}
             aria-haspopup="dialog"
             aria-expanded={open}
             aria-controls={popupId}
-          />
+          >
+            {#snippet icon()}<Icon name="sliders" size="sm" />{/snippet}
+            {toolsLabel}
+          </Button>
         {/if}
       </div>
     {/if}

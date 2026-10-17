@@ -225,7 +225,7 @@ These are native radios, so the arrow keys move the choice and skip disabled ans
 
   .disabled {
     cursor: default;
-    opacity: 0.5;
+    opacity: var(--sui-disabled-opacity);
   }
 
   .sui-choice-cards-help,

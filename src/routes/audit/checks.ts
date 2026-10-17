@@ -160,6 +160,16 @@ function palette(): Finding[] {
   found.push(
     ...between('L-9', 'control-border on input-bg', c('control-border', 'input-bg'), 1.4, 2.25)
   );
+  for (const ground of [
+    'canvas',
+    'surface-base',
+    'surface-raised',
+    'surface-control',
+    'input-bg',
+    'unsaved-surface',
+    'unsaved-control'
+  ])
+    found.push(...atLeast('L-9', `field-border on ${ground}`, c('field-border', ground), 3));
   found.push(
     ...between('L-10', 'control-bg on surface-base', c('control-bg', 'surface-base'), 1, 1.5)
   );
@@ -435,13 +445,15 @@ function geometry(root: Document): Finding[] {
       );
   }
 
-  const tiers = new Set([20, 24, 28, 34, 38, 40, 44]);
+  const tiers = new Set([20, 24, 28, 34, 40, 44]);
   const controls = audited(
     root,
     "button, input:not([type='checkbox'], [type='radio'], [type='hidden'], [type='range']), select, [role='combobox'], a.sui-button"
   );
   for (const control of controls) {
     if (getComputedStyle(control).opacity === '0') continue;
+    // A menu row grows with its words (L-48); only its floor is a tier.
+    if (control.matches("[role='menuitem'], [role='option']")) continue;
     const { height } = control.getBoundingClientRect();
     if (height === 0 || height > 60) continue;
     if (!Number.isInteger(round(height, 3)))
@@ -486,12 +498,15 @@ function geometry(root: Document): Finding[] {
 
 function controls(root: Document): Finding[] {
   const found: Finding[] = [];
+  const phone = matchMedia('(max-width: 47.9375rem)').matches;
   for (const target of audited(root, INTERACTIVE)) {
     if (target.matches("input[type='checkbox'], input[type='radio']")) continue;
     if (getComputedStyle(target).opacity === '0') continue;
-    const box = target.getBoundingClientRect();
+    // A press on a field's own label focuses it, so the label is part of the target.
+    const hit = (target.matches('input') && target.closest('label')) || target;
+    const box = hit.getBoundingClientRect();
     const extensions = ['::before', '::after']
-      .map((pseudo) => getComputedStyle(target, pseudo))
+      .map((pseudo) => getComputedStyle(hit, pseudo))
       .filter((pseudo) => pseudo.content !== 'none' && pseudo.position === 'absolute');
     const r = {
       width: Math.max(box.width, ...extensions.map((pseudo) => parseFloat(pseudo.width) || 0)),
@@ -499,19 +514,23 @@ function controls(root: Document): Finding[] {
     };
     const inline =
       target.matches('a') && target.parentElement?.matches('p, li, dd, figcaption, span');
-    if (!inline && (r.width < 23.99 || r.height < 23.99))
+    const floor = phone ? 44 : 24;
+    if (!inline && (r.width < floor - 0.01 || r.height < floor - 0.01))
       found.push(
         finding(
           'L-38',
           target,
-          `target is ${round(r.width)} by ${round(r.height)}px, under 24 by 24`
+          `target is ${round(r.width)} by ${round(r.height)}px, under ${floor} by ${floor}`
         )
       );
   }
 
+  const disabledOpacity = parseFloat(
+    getComputedStyle(root.documentElement).getPropertyValue('--sui-disabled-opacity')
+  );
   for (const control of audited(
     root,
-    'button:disabled, input:disabled, select:disabled, textarea:disabled'
+    "button:disabled, button[aria-disabled='true'], input:disabled, select:disabled, textarea:disabled"
   )) {
     const style = getComputedStyle(control);
     const paintsNothing =
@@ -519,10 +538,13 @@ function controls(root: Document): Finding[] {
       rgba(style.backgroundColor).a === 0 &&
       parseFloat(style.borderTopWidth) === 0 &&
       control.matches('input');
-    if (style.opacity === '0' || paintsNothing) continue;
+    // A menu row dims its name but keeps the reason it gives at full ink.
+    if (style.opacity === '0' || paintsNothing || control.matches("[role='menuitem']")) continue;
     const opacity = effectiveOpacity(control);
-    if (Math.abs(opacity - 0.5) > 0.02)
-      found.push(finding('L-40', control, `disabled at opacity ${round(opacity)}, not 0.5`));
+    if (Math.abs(opacity - disabledOpacity) > 0.02)
+      found.push(
+        finding('L-40', control, `disabled at opacity ${round(opacity)}, not ${disabledOpacity}`)
+      );
     if (style.cursor === 'pointer')
       found.push(finding('L-40', control, 'a disabled control keeps the pointer cursor'));
   }
@@ -559,7 +581,12 @@ function accessibility(root: Document): Finding[] {
   for (const element of audited(root, INTERACTIVE)) {
     const label = element.getAttribute('aria-label')?.trim().toLowerCase() ?? '';
     const labelledby = element.getAttribute('aria-labelledby');
-    const visible = (element as HTMLElement).innerText?.trim().toLowerCase() ?? '';
+    // A select's text is its options, and its visible label is its <label>, not its value.
+    const visible = (
+      element instanceof HTMLSelectElement ? '' : ((element as HTMLElement).innerText ?? '')
+    )
+      .trim()
+      .toLowerCase();
     const labels = (element as HTMLInputElement).labels;
     const named =
       label !== '' ||
@@ -593,9 +620,19 @@ function accessibility(root: Document): Finding[] {
   if (!root.documentElement.lang) found.push(finding('L-78', null, 'the page has no language'));
 
   for (const link of audited(root, 'a[href]')) {
-    const color = getComputedStyle(link).color.replace(/\s/g, '');
+    const style = getComputedStyle(link);
+    const color = style.color.replace(/\s/g, '');
     if (color === 'rgb(0,0,238)' || color === 'rgb(85,26,139)')
       found.push(finding('L-81', link, 'a link wears the browser default color'));
+    const inSentence = link.parentElement?.matches('p, dd, figcaption') && !link.closest('nav');
+    if (inSentence && !style.textDecorationLine.includes('underline'))
+      found.push(finding('L-81', link, 'a link inside a sentence is not underlined at rest'));
+  }
+
+  for (const list of audited(root, 'ul, ol')) {
+    if (getComputedStyle(list).listStyleType === 'none' && list.getAttribute('role') !== 'list')
+      if (!list.closest('nav') && list.getAttribute('role') === null)
+        found.push(finding('L-61', list, 'a list without bullets lacks role="list"'));
   }
   return found;
 }

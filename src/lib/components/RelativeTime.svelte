@@ -45,17 +45,18 @@
   import type { HTMLTimeAttributes } from 'svelte/elements';
   import { pageNow } from '../internal/clock.svelte.js';
   import Tooltip from './Tooltip.svelte';
+  import VisuallyHidden from './VisuallyHidden.svelte';
 
   let {
     value,
-    exact: exactFirst = false,
+    exact: exactOnly = false,
     element = $bindable(null),
     class: className = '',
     ...rest
   }: {
     /** The instant, as an ISO 8601 string, epoch milliseconds or a `Date`. */
     value: string | number | Date;
-    /** Start on the whole instant, for a surface whose reader chose that. */
+    /** Show the whole instant in place, for a surface whose reader chose that. */
     exact?: boolean;
     element?: HTMLTimeElement | null;
     class?: HTMLTimeAttributes['class'];
@@ -65,55 +66,37 @@
   const valid = $derived(Number.isFinite(at));
   const resting = $derived(valid ? relative(at, pageNow()) : String(value));
   const whole = $derived(valid ? exact(at) : String(value));
-
-  /* Seeded from the surface's choice and owned by whoever presses it after that. */
-  let showing = $derived(exactFirst);
-
-  function toggle(event: Event) {
-    event.preventDefault();
-    event.stopPropagation();
-    showing = !showing;
-  }
-
-  function onkeydown(event: KeyboardEvent) {
-    if (event.key === 'Enter' || event.key === ' ') toggle(event);
-  }
 </script>
 
 <!--
 @component
-A time a reader can take either way: how long ago or how soon by default, and the whole
-instant, with seconds and the zone, one press away. A press swaps the words in place, so
-the stamp can be copied, and hover or keyboard focus shows it in a tooltip first.
+A time read as how long ago or how soon, with the whole instant, seconds and zone included,
+in a tooltip on hover and on a long press. A screen reader hears both readings, because the
+whole instant is also in the words, visually hidden.
 
-Every instance reads the page's one clock, so a list of times agrees on "now" and wakes
-the page once. The affordance is a dotted underline, and the hit area grows through a
-pseudo-element so the line it sits in keeps its height. A press does not reach a row link
-around it.
+It is plain text, never a control: a list of fifty rows gets no extra tab stops. Every
+instance reads the page's one clock, so a list of times agrees on "now" and wakes the page
+once. The dotted underline says a tooltip is there, and the hover area grows through a
+pseudo-element so the line it sits in keeps its height. `exact` shows the whole instant in
+place and drops the tooltip.
 -->
 
-<!-- A `time` rather than a `button`, so `datetime` keeps its meaning; the button recipe is
-     here in full: role, tab stop, Enter and Space, and a name with both readings. -->
 <time
   bind:this={element}
   {...rest}
-  class={['sui-relative-time', className, { exact: showing }]}
+  class={['sui-relative-time', className, { exact: exactOnly }]}
   datetime={valid ? new Date(at).toISOString() : String(value)}
-  role="button"
-  tabindex="0"
-  aria-label="{resting}, exactly {whole}"
-  onclick={toggle}
-  {onkeydown}>{showing ? whole : resting}</time
 >
+  {#if exactOnly}{whole}{:else}{resting}<VisuallyHidden>{`, exactly ${whole}`}</VisuallyHidden>{/if}
+</time>
 <!-- Mounted once the element exists, so the server never writes the tip's block box into
      the sentence a time sits in, where a parser would close the paragraph around it. -->
-{#if element && !showing}
+{#if element && !exactOnly}
   <Tooltip anchor={element} text={whole} />
 {/if}
 
 <style>
   .sui-relative-time {
-    cursor: pointer;
     position: relative;
     text-decoration: underline dotted color-mix(in srgb, var(--sui-text-muted) 55%, transparent);
     text-decoration-thickness: 1px;
@@ -121,7 +104,7 @@ around it.
     white-space: nowrap;
   }
 
-  .sui-relative-time:hover {
+  .sui-relative-time:not(.exact):hover {
     color: var(--sui-text-secondary);
     text-decoration-color: var(--sui-text-secondary);
   }
@@ -135,13 +118,7 @@ around it.
   /* The whole instant is twice as long as the relative reading, so it may wrap where a
      column sized for the short one would otherwise clip it. */
   .exact {
-    color: var(--sui-text-secondary);
-    text-decoration-color: transparent;
+    text-decoration: none;
     white-space: normal;
-  }
-
-  .sui-relative-time:focus-visible {
-    outline: var(--sui-focus-ring-width) solid var(--sui-focus);
-    outline-offset: var(--sui-focus-ring-offset);
   }
 </style>

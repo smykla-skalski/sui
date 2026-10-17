@@ -137,7 +137,7 @@ from assistive technology rather than read twice. The picture is fetched without
   }
 
   .sui-avatar-initials[data-step='nano'] {
-    font-size: var(--sui-font-size-nano);
+    font-size: var(--sui-font-size-micro);
   }
 
   .sui-avatar-initials[data-step='micro'] {

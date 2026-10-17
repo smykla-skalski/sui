@@ -21,7 +21,7 @@ fill stands clear of the text, and the list hands back the last row's bottom pad
 line closes on the card's own frame.
 -->
 
-<ul {...rest} class={['sui-setting-list', className]}>{@render children()}</ul>
+<ul role="list" {...rest} class={['sui-setting-list', className]}>{@render children()}</ul>
 
 <style>
   .sui-setting-list {

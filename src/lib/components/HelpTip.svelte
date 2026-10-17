@@ -24,16 +24,19 @@
   } & Omit<HTMLButtonAttributes, 'children' | 'aria-label' | 'class'> = $props();
 
   let open = $state(false);
-  // The tooltip closes itself on pointerdown, so the tap remembers what it saw before that.
+  // The tooltip closes itself on a press, so the capture phase notes what the press found first.
   let openAtPress = false;
 </script>
 
 <!--
 @component
 A small mark beside a label that holds one short explanation in a `Tooltip`. The tip shows on
-hover after a short pause, at once on keyboard focus, and on a tap for touch screens, and it is the button's description, so
-a screen reader reads it with the button's name. Anything longer than a sentence, or anything
-the reader must act on, belongs on the page instead.
+hover after a short pause and at once on keyboard focus. A tap or a click toggles it, and a
+press anywhere else closes it. It is the button's description, so a screen reader reads it with
+the button's name. Anything longer than a sentence, or anything the reader must act on, belongs
+on the page instead.
+
+The mark is drawn at 24px, and on a coarse pointer its hit area grows to the 44px touch target.
 -->
 
 <button
@@ -42,8 +45,8 @@ the reader must act on, belongs on the page instead.
   {...rest}
   class={['sui-help-tip', className]}
   aria-label={label}
-  onpointerdown={() => (openAtPress = open)}
-  onclick={() => (open = !openAtPress)}
+  onpointerdowncapture={() => (openAtPress = open)}
+  onclick={(event) => (open = event.detail === 0 ? !open : !openAtPress)}
 >
   <Icon name="help" size="sm" strokeWidth={2} />
 </button>
@@ -64,6 +67,7 @@ the reader must act on, belongs on the page instead.
     justify-content: center;
     margin: 0;
     padding: 0;
+    position: relative;
     transition: color var(--sui-duration-fast) var(--sui-ease-standard);
     vertical-align: middle;
     -webkit-tap-highlight-color: transparent;
@@ -77,6 +81,14 @@ the reader must act on, belongs on the page instead.
   .sui-help-tip:focus-visible {
     outline: var(--sui-focus-ring-width) solid var(--sui-focus);
     outline-offset: var(--sui-focus-ring-offset);
+  }
+
+  @media (pointer: coarse), (max-width: 47.9375rem) {
+    .sui-help-tip::before {
+      content: '';
+      inset: calc((100% - var(--sui-touch-target)) / 2);
+      position: absolute;
+    }
   }
 
   @media (prefers-reduced-motion: reduce) {

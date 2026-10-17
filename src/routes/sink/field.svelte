@@ -3,13 +3,15 @@
 </script>
 
 <script lang="ts">
-  import { Field, Switch, Textarea } from '#lib';
+  import { Checkbox, Field, Textarea } from '#lib';
   import Example from '../kit/Example.svelte';
 
   let project = $state('');
   let owner = $state('smykla-skalski');
   let team = $state('Team with spaces');
   let reason = $state('');
+  let repository = $state('');
+  let summary = $state('');
   let sync = $state(true);
   let protect = $state(false);
 </script>
@@ -32,7 +34,23 @@
       error="Use letters, digits and dashes only"
       bind:value={team}
     />
-    <Field label="Default branch" value="main" disabled />
+    <Field
+      label="Default branch"
+      hint="Only an owner can rename the default branch"
+      value="main"
+      disabled
+    />
+  </div>
+</Example>
+
+<Example
+  title="Required"
+  note="A required field says so in a word beside its label, and an optional one says nothing"
+  layout="stack"
+>
+  <div class="form">
+    <Field label="Repository name" required placeholder="your-project" bind:value={repository} />
+    <Field label="Description" hint="Shown under the name in every list" bind:value={summary} />
   </div>
 </Example>
 
@@ -67,14 +85,14 @@
 </Example>
 
 <Example
-  title="Label beside a switch"
-  note="A row layout centres the label and the switch on one line"
+  title="Label beside a checkbox"
+  note="A row layout centres the label and a form's checkbox on one line, and the label names the box"
   layout="stack"
 >
   <div class="form">
     <Field label="Sync on every push" layout="row" hint="Runs within a minute of each push">
       {#snippet control({ id, describedby, invalid })}
-        <Switch {id} aria-describedby={describedby} {invalid} bare bind:checked={sync} />
+        <Checkbox {id} aria-describedby={describedby} {invalid} bare bind:checked={sync} />
       {/snippet}
     </Field>
     <Field
@@ -83,7 +101,7 @@
       error="The default branch must stay protected while reviews are required"
     >
       {#snippet control({ id, describedby, invalid })}
-        <Switch {id} aria-describedby={describedby} {invalid} bare bind:checked={protect} />
+        <Checkbox {id} aria-describedby={describedby} {invalid} bare bind:checked={protect} />
       {/snippet}
     </Field>
   </div>

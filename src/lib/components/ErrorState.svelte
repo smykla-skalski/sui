@@ -7,6 +7,7 @@
     description,
     onretry,
     busy = false,
+    focusAfterRetry,
     overContent = false,
     class: className = '',
     ...rest
@@ -17,12 +18,31 @@
     description: string;
     /** Draws "Try again", for a failure that repeating the request can fix. */
     onretry?: () => void;
-    /** The retry is running, so a second press cannot be sent. */
+    /** The retry is running, so the button keeps focus and ignores a second press. */
     busy?: boolean;
+    /** What takes focus when a retry succeeds and this state leaves, such as the list it gave way to. */
+    focusAfterRetry?: () => HTMLElement | null | undefined;
     /** Loaded content stands behind the failure, so it becomes a line above it. */
     overContent?: boolean;
     class?: HTMLAttributes<HTMLDivElement>['class'];
   } & Omit<HTMLAttributes<HTMLDivElement>, 'children' | 'title'> = $props();
+
+  let retried = false;
+
+  function retry() {
+    retried = true;
+    onretry?.();
+  }
+
+  /* The teardown runs once the panel is out of the page, so focus has already fallen to
+     <body>. The next microtask finds whatever took this panel's place. */
+  $effect(() => () => {
+    if (!retried || !focusAfterRetry) return;
+    queueMicrotask(() => {
+      if (document.activeElement && document.activeElement !== document.body) return;
+      focusAfterRetry()?.focus();
+    });
+  });
 </script>
 
 <!--
@@ -33,7 +53,11 @@ the same question: a thing that went wrong rather than a thing that is not there
 
 `overContent` keeps what is already loaded. A refresh that fails over a list has not made
 the list wrong, so the failure becomes one line above the rows instead of a panel in place
-of them. `busy` disables the retry while it runs.
+of them.
+
+While `busy`, the retry reads "Trying again…", keeps focus and ignores presses. When the
+retry succeeds and this state leaves the page, focus moves to `focusAfterRetry` instead of
+falling to the page. Give that element `tabindex="-1"` when it is not a control.
 -->
 
 <div {...rest} class={['sui-error-state', className, { over: overContent }]} role="alert">
@@ -42,7 +66,9 @@ of them. `busy` disables the retry while it runs.
     <p class="sui-error-state-description">{description}</p>
   </div>
   {#if onretry}
-    <Button onclick={onretry} loading={busy}>{busy ? 'Trying again…' : 'Try again'}</Button>
+    <Button loading={busy} onclick={retry}>
+      {busy ? 'Trying again…' : 'Try again'}
+    </Button>
   {/if}
 </div>
 

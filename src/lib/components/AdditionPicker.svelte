@@ -2,7 +2,7 @@
   export type AdditionChoice = {
     value: string;
     label: string;
-    /** A short note set after the label on the same line, so the row stays 34px. */
+    /** A short note set after the label, which drops under it when the line runs out. */
     description?: string;
   };
 </script>
@@ -40,6 +40,7 @@
   } & Omit<HTMLButtonAttributes, 'children' | 'class' | 'disabled' | 'onclick'> = $props();
 
   const popupId = `${uid}-popup`;
+  const menuId = `${uid}-menu`;
 
   let trigger = $state<HTMLButtonElement | HTMLAnchorElement | null>(null);
   let menu = $state<HTMLElement | null>(null);
@@ -79,9 +80,14 @@
     else if (event.key === 'ArrowUp') next = (at <= 0 ? all.length : at) - 1;
     else if (event.key === 'Home') next = 0;
     else if (event.key === 'End') next = all.length - 1;
-    else if (event.key === 'Escape' || event.key === 'Tab') {
+    else if (event.key === 'Escape') {
       event.stopPropagation();
       open = false;
+      trigger?.focus({ preventScroll: true });
+    } else if (event.key === 'Tab') {
+      // Focus moves on to the next control in the page's order, as the menu pattern asks.
+      open = false;
+      return;
     } else return;
     event.preventDefault();
     all[next]?.focus({ preventScroll: true });
@@ -92,14 +98,14 @@
 @component
 An `add` button that opens the choices of what to add, such as the settings a level can still
 override. The choices float in a `Popover` under the trigger, so opening and closing never move
-the trigger or grow the page, and a long list scrolls inside its own box. The trigger says
-whether the list is open with `aria-expanded`.
+the trigger or grow the page. A long list scrolls inside its own box. The trigger says whether
+the list is open with `aria-expanded`.
 
 Opening moves focus to the first choice. Arrows move through them and wrap, Home and End jump,
-Enter or a press adds one, and Escape, Tab or a press outside closes the list, handing focus back
-to the trigger without scrolling. Whatever is in `added` is not offered again; when that is
-everything, the list says so with `done` instead of offering duplicates. Moving focus to the new
-control after `onadd` is the caller's.
+Enter or a press adds one. Escape or a press outside closes the list and hands focus back to the
+trigger without scrolling. Tab closes it and moves on to the next control. Whatever is in
+`added` is not offered again; when that is everything, the list says so with `done` instead of
+offering duplicates. Moving focus to the new control after `onadd` is the caller's.
 -->
 
 <Button
@@ -110,7 +116,7 @@ control after `onadd` is the caller's.
   {disabled}
   aria-haspopup="menu"
   aria-expanded={open}
-  aria-controls={popupId}
+  aria-controls={menuId}
   popovertarget={popupId}
   onclick={toggle}
 >
@@ -121,6 +127,7 @@ control after `onadd` is the caller's.
 <Popover id={popupId} anchor={trigger} bind:open {onclose} width="min-trigger">
   <div
     bind:this={menu}
+    id={menuId}
     role="menu"
     tabindex="-1"
     aria-label={label}
@@ -166,20 +173,22 @@ control after `onadd` is the caller's.
   }
 
   .sui-addition-choice {
-    align-items: center;
+    align-content: center;
+    align-items: baseline;
     appearance: none;
     background-color: transparent;
-    block-size: var(--sui-control-height-compact);
+    min-block-size: var(--sui-control-height-compact);
     border: 0;
     border-radius: var(--sui-radius-control);
     box-sizing: border-box;
     color: var(--sui-text-primary);
     cursor: pointer;
+    column-gap: var(--sui-space-2);
     display: flex;
+    flex-wrap: wrap;
     font: 500 var(--sui-font-size-control) / var(--sui-leading-meta) var(--sui-sans);
-    gap: var(--sui-space-2);
     margin: 0;
-    padding: 0 var(--sui-space-3);
+    padding: var(--sui-space-1) var(--sui-space-3);
     text-align: start;
     transition:
       background-color var(--sui-duration-fast) var(--sui-ease-standard),
@@ -205,18 +214,11 @@ control after `onadd` is the caller's.
   .sui-addition-label,
   .sui-addition-note {
     min-inline-size: 0;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-
-  .sui-addition-label {
-    flex: 0 1 auto;
+    overflow-wrap: anywhere;
   }
 
   .sui-addition-note {
     color: var(--sui-text-muted);
-    flex: 1 1 0;
     font-weight: 400;
   }
 

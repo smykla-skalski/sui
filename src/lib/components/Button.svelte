@@ -1,6 +1,6 @@
 <script module lang="ts">
   export type ButtonTone =
-    'default' | 'signal' | 'ghost' | 'stop' | 'stop-quiet' | 'brand' | 'quiet' | 'add' | 'decision';
+    'default' | 'signal' | 'ghost' | 'stop' | 'stop-quiet' | 'add' | 'decision';
 </script>
 
 <script lang="ts" generics="Href extends string | undefined = undefined">
@@ -30,7 +30,7 @@
     icon?: Snippet;
     /** Drawn after the label, such as a chevron or a count. */
     trailing?: Snippet;
-    /** Disables the button and announces it as busy while the work runs. */
+    /** Draws a spinner, announces the button as busy and ignores presses while the work runs. */
     loading?: boolean;
     disabled?: boolean;
     element?: HTMLButtonElement | HTMLAnchorElement | null;
@@ -38,21 +38,30 @@
     class?: HTMLAttributes<NativeElement>['class'];
     children: Snippet;
   } & NativeAttributes = $props();
+
+  /* `disabled` would drop a focused button's focus to the body, so a busy one stays in the tab
+     order and refuses the press itself. */
+  const busy = $derived(loading && !disabled);
+
+  function refuse(event: MouseEvent) {
+    event.preventDefault();
+  }
 </script>
 
 <!--
 @component
 A tone is a job, never a color. `default` does a view's ordinary work, `signal` is the one
-action a view exists for (one per view), `ghost` supports it quietly, `stop` is destructive,
-and `stop-quiet` is destructive but bordered, for a flow whose filled danger button is the
-final confirmation. `brand` takes the brand tint of wherever it is drawn. `quiet` does not
-read as a control until it is wanted. `add` is a dashed pill that starts an optional entry;
-it never submits, saves, cancels, removes or navigates. `decision` is the gold action that
+action a view exists for (one per view), `ghost` is low emphasis that supports it, `stop` is
+destructive, and `stop-quiet` is destructive but bordered, for a flow whose filled danger
+button is the final confirmation. `add` is a dashed pill that starts an optional entry; it
+never submits, saves, cancels, removes or navigates. `decision` is the gold action that
 resolves unsaved work, such as Save in a save bar, and nothing else wears it.
 
-Disabled is a state that any tone can wear, and so is `loading`. `href` draws an anchor with
-the same paint. The label is always wrapped so its box can be trimmed to the cap height,
-and an icon starts where a word would start.
+Disabled is a state that any tone can wear, and so is `loading`. A loading button keeps its
+place in the tab order and its focus, is announced as busy and disabled, and ignores presses
+without calling `onclick`. `href` draws an anchor with the same paint. The label is always
+wrapped so its box can be trimmed to the cap height, and an icon starts where a word would
+start.
 -->
 
 {#snippet body()}
@@ -82,8 +91,10 @@ and an icon starts where a word would start.
     {...rest as HTMLButtonAttributes}
     class={['sui-button', className]}
     data-tone={tone}
-    disabled={disabled || loading}
-    aria-busy={loading || undefined}>{@render body()}</button
+    {disabled}
+    aria-disabled={busy || undefined}
+    aria-busy={loading || undefined}
+    onclick={busy ? refuse : (rest as HTMLButtonAttributes).onclick}>{@render body()}</button
   >
 {/if}
 
@@ -142,12 +153,12 @@ and an icon starts where a word would start.
     margin-inline-end: calc(-1 * var(--sui-icon-ink-end, 0px));
   }
 
-  .sui-button:hover:not(:active):not(:disabled) {
+  .sui-button:hover:not(:active):not(:disabled, [aria-disabled='true']) {
     --sui-control-state-layer: var(--sui-interactive-hover-layer);
     border-color: var(--sui-control-border-hover);
   }
 
-  .sui-button:active:not(:disabled) {
+  .sui-button:active:not(:disabled, [aria-disabled='true']) {
     --sui-control-state-layer: var(--sui-interactive-pressed);
     box-shadow: var(--sui-pressed-inset);
     translate: 0 1px;
@@ -159,9 +170,9 @@ and an icon starts where a word would start.
     outline-offset: var(--sui-focus-ring-flush);
   }
 
-  .sui-button:disabled {
+  .sui-button:is(:disabled, [aria-disabled='true']) {
     cursor: default;
-    opacity: 0.5;
+    opacity: var(--sui-disabled-opacity);
   }
 
   .sui-button[data-tone='signal'] {
@@ -171,12 +182,12 @@ and an icon starts where a word would start.
     color: var(--sui-on-brand-action);
   }
 
-  .sui-button[data-tone='signal']:hover:not(:active):not(:disabled) {
+  .sui-button[data-tone='signal']:hover:not(:active):not(:disabled, [aria-disabled='true']) {
     background-color: var(--sui-brand-action-hover);
     border-color: var(--sui-brand-action-hover);
   }
 
-  .sui-button[data-tone='signal']:active:not(:disabled) {
+  .sui-button[data-tone='signal']:active:not(:disabled, [aria-disabled='true']) {
     background-color: var(--sui-brand-action-pressed);
     border-color: var(--sui-brand-action-pressed);
   }
@@ -188,12 +199,12 @@ and an icon starts where a word would start.
     color: var(--sui-on-decision-accent);
   }
 
-  .sui-button[data-tone='decision']:hover:not(:active):not(:disabled) {
+  .sui-button[data-tone='decision']:hover:not(:active):not(:disabled, [aria-disabled='true']) {
     background-color: var(--sui-decision-accent-hover);
     border-color: var(--sui-decision-accent-hover);
   }
 
-  .sui-button[data-tone='decision']:active:not(:disabled) {
+  .sui-button[data-tone='decision']:active:not(:disabled, [aria-disabled='true']) {
     background-color: var(--sui-decision-accent-pressed);
     border-color: var(--sui-decision-accent-pressed);
   }
@@ -203,7 +214,7 @@ and an icon starts where a word would start.
     border-color: transparent;
   }
 
-  .sui-button[data-tone='ghost']:hover:not(:active):not(:disabled) {
+  .sui-button[data-tone='ghost']:hover:not(:active):not(:disabled, [aria-disabled='true']) {
     --sui-control-state-layer: transparent;
     background-color: var(--sui-surface-inset);
     border-color: transparent;
@@ -216,7 +227,7 @@ and an icon starts where a word would start.
     color: var(--sui-on-danger);
   }
 
-  .sui-button[data-tone='stop']:hover:not(:active):not(:disabled) {
+  .sui-button[data-tone='stop']:hover:not(:active):not(:disabled, [aria-disabled='true']) {
     background-color: var(--sui-danger-hover);
     border-color: var(--sui-danger-hover);
   }
@@ -226,27 +237,10 @@ and an icon starts where a word would start.
     color: var(--sui-danger);
   }
 
-  .sui-button[data-tone='stop-quiet']:hover:not(:active):not(:disabled) {
+  .sui-button[data-tone='stop-quiet']:hover:not(:active):not(:disabled, [aria-disabled='true']) {
     --sui-control-state-layer: transparent;
     background-color: var(--sui-danger-tint);
     border-color: var(--sui-danger);
-  }
-
-  .sui-button[data-tone='brand'] {
-    background-color: color-mix(in srgb, var(--sui-brand-action) 12%, var(--sui-surface-base));
-    border-color: color-mix(in srgb, var(--sui-brand-action) 45%, var(--sui-control-border));
-    color: var(--sui-brand-action-text);
-  }
-
-  .sui-button[data-tone='quiet'] {
-    background-color: transparent;
-    border-color: transparent;
-    color: var(--sui-text-muted);
-  }
-
-  .sui-button[data-tone='quiet']:hover:not(:active):not(:disabled) {
-    border-color: transparent;
-    color: var(--sui-text-primary);
   }
 
   .sui-button[data-tone='add'] {
@@ -282,7 +276,7 @@ and an icon starts where a word would start.
       transition: none;
     }
 
-    .sui-button:active:not(:disabled) {
+    .sui-button:active:not(:disabled, [aria-disabled='true']) {
       translate: none;
     }
 

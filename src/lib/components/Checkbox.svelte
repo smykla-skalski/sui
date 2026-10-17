@@ -12,6 +12,7 @@
     description,
     invalid = false,
     disabled = false,
+    bare = false,
     element = $bindable(null),
     'aria-describedby': describedBy,
     class: className = '',
@@ -28,6 +29,8 @@
     /** Marks the value as wrong; pair it with an error the group describes. */
     invalid?: boolean;
     disabled?: boolean;
+    /** The box alone, for a `SettingRow` or a `Field layout="row"` whose label names it. */
+    bare?: boolean;
     element?: HTMLInputElement | null;
     /** Layout for the call site only, never the item's own paint. */
     class?: HTMLInputAttributes['class'];
@@ -44,8 +47,12 @@
 <!--
 @component
 One item of a checklist: a visible 18px box with its words, for a multi-choice or a consent.
-A boolean setting that takes effect at once is a `Switch`, and several boxes that answer one
-question go in a `CheckList`.
+It is also the boolean of a form that a later save writes. A boolean that takes effect at
+once is a `Switch`, and several boxes that answer one question go in a `CheckList`.
+
+As the control of a `SettingRow` or a `Field layout="row"`, give it the row's `id`, no label
+and `bare`. The row's label names it, its box lines up with the row's end, and it keeps a
+44px touch target without setting the row's height.
 
 The native input lies over the box without its native paint and wears the focus ring, and
 the whole item is its label, so the item is the hit area. The label is the accessible name and the description is read
@@ -53,7 +60,7 @@ as its description, never as part of the name. `indeterminate` draws a dash for 
 whose children are partly chosen.
 -->
 
-<label class={['sui-checkbox', className]} class:described={description} class:disabled>
+<label class={['sui-checkbox', className]} class:described={description} class:bare class:disabled>
   <span class="sui-checkbox-control">
     <input
       bind:this={element}
@@ -111,6 +118,22 @@ whose children are partly chosen.
 
   .described {
     min-block-size: var(--sui-touch-target);
+  }
+
+  /* The padding stays for the hover ground, and the margin hands it back, so the box sits
+     on the row's edge and the row keeps its own height. */
+  .bare {
+    margin: calc(-1 * var(--sui-space-2));
+    min-block-size: auto;
+    position: relative;
+  }
+
+  .bare::before {
+    block-size: var(--sui-touch-target);
+    content: '';
+    inline-size: var(--sui-touch-target);
+    inset: calc((100% - var(--sui-touch-target)) / 2);
+    position: absolute;
   }
 
   .sui-checkbox:hover:not(:active):not(.disabled) {
@@ -209,7 +232,7 @@ whose children are partly chosen.
 
   .disabled {
     cursor: default;
-    opacity: 0.5;
+    opacity: var(--sui-disabled-opacity);
   }
 
   @media (prefers-reduced-motion: reduce) {

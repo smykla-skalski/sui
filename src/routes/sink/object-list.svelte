@@ -3,7 +3,7 @@
 </script>
 
 <script lang="ts">
-  import { Chip, IconButton, IdentityRow, ObjectList, ObjectRow, Pill, RelativeTime } from '#lib';
+  import { Button, Icon, IdentityRow, ObjectList, ObjectRow, Pill, RelativeTime } from '#lib';
   import Example from '../kit/Example.svelte';
 
   const synced = new Date(Date.now() - 12 * 60_000).toISOString();
@@ -29,13 +29,11 @@
           <span class="sum">Synced <RelativeTime value={synced} /> · 84 files in step</span>
         {/snippet}
         {#snippet side()}
-          <Chip tone="success" label="In step" />
-          <IconButton
-            icon="refresh"
-            label="Sync smykla-skalski/sui"
-            busy={syncing}
-            onclick={sync}
-          />
+          <Pill tone="success">In step</Pill>
+          <Button loading={syncing} aria-label="Sync smykla-skalski/sui" onclick={sync}>
+            {#snippet icon()}<Icon name="refresh" size="sm" />{/snippet}
+            Sync
+          </Button>
         {/snippet}
       </ObjectRow>
       <ObjectRow href="#object-list">
@@ -48,7 +46,7 @@
           >
         {/snippet}
         {#snippet side()}
-          <Chip tone="warning" label="3 changes" />
+          <Pill tone="warning">3 changes</Pill>
         {/snippet}
       </ObjectRow>
       <ObjectRow>

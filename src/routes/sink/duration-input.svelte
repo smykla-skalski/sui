@@ -11,7 +11,13 @@
   let retry = $state(90);
   let merge = $state(7200);
   let cadence = $state(30);
+  let saved = $state(30);
   let problem = $state<string | null>(null);
+
+  function save(): void {
+    if (problem === null) saved = cadence;
+    else document.getElementById('sink-duration-cadence')?.focus();
+  }
 </script>
 
 <Example
@@ -48,17 +54,18 @@
 </Example>
 
 <Example
-  title="Holding save"
-  note="Type 0.5 and the save waits, because half a second is not a whole number of seconds"
+  title="Saving with a problem"
+  note="Type 0.5 and save: the button stays enabled and sends focus to the amount, where the reason already shows"
 >
   <DurationInput
+    id="sink-duration-cadence"
     label="Check cadence"
     bind:value={cadence}
     min={1}
     onproblem={(next) => (problem = next)}
   />
-  <Button disabled={problem !== null}>Save the cadence</Button>
-  <span class="state">value={cadence}</span>
+  <Button onclick={save}>Save the cadence</Button>
+  <span class="state">saved={saved}</span>
 </Example>
 
 <Example

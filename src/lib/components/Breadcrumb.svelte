@@ -12,12 +12,15 @@
 
   let {
     items,
+    current,
     label = 'Where this page sits',
     class: className = '',
     ...rest
   }: {
     /** The page's ancestors, root first. The page itself is not one of them. */
     items: readonly BreadcrumbItem[];
+    /** The name of the page itself, drawn last as text with `aria-current="page"`. */
+    current?: string;
     /** The navigation landmark's name. */
     label?: string;
     /** Layout for the call site only, never the path's own paint. */
@@ -29,12 +32,14 @@
 @component
 The way back up: hierarchy, not history. A page below its root opens with its ancestors,
 each one a link, and the last of them is Up. The browser keeps Back, and the two answer
-different questions. A path with one ancestor leads with a chevron, so it reads as Up.
+different questions. A path with one ancestor and no `current` leads with a chevron, so it
+reads as Up.
 
-The current page is not in the path, because a link to the page it sits on goes nowhere. A
-root page has no ancestors, and an empty `items` renders nothing rather than an empty
-strip. Each link bleeds its 24px hit area into the space around it, so the path takes one
-cap line of layout and fits the eyebrow's place in a `PageHeader`.
+`current` names the page itself as the last item, as text with `aria-current="page"` and
+never a link, because a link to the page it sits on goes nowhere. A root page has no
+ancestors, and an empty `items` renders nothing rather than an empty strip. Each link bleeds
+its 24px hit area into the space around it, so the path takes one cap line of layout and
+fits the eyebrow's place in a `PageHeader`.
 -->
 
 {#if items.length > 0}
@@ -46,11 +51,19 @@ cap line of layout and fits the eyebrow's place in a `PageHeader`.
             <span class="sui-breadcrumb-separator" aria-hidden="true">/</span>
           {/if}
           <a class="sui-breadcrumb-link" href={item.href}>
-            {#if items.length === 1}<Icon name="chevron-left" size="sm" />{/if}
+            {#if items.length === 1 && !current}<Icon name="chevron-left" size="sm" />{/if}
             <span class="sui-breadcrumb-label">{item.label}</span>
           </a>
         </li>
       {/each}
+      {#if current}
+        <li class="sui-breadcrumb-item">
+          <span class="sui-breadcrumb-separator" aria-hidden="true">/</span>
+          <span class="sui-breadcrumb-label sui-breadcrumb-current" aria-current="page"
+            >{current}</span
+          >
+        </li>
+      {/if}
     </ol>
   </nav>
 {/if}
@@ -113,6 +126,12 @@ cap line of layout and fits the eyebrow's place in a `PageHeader`.
   .sui-breadcrumb-label {
     overflow-wrap: anywhere;
     text-box: trim-both cap alphabetic;
+  }
+
+  .sui-breadcrumb-current {
+    color: var(--sui-text-primary);
+    font: 500 var(--sui-font-size-meta) / var(--sui-leading-flat) var(--sui-sans);
+    min-inline-size: 0;
   }
 
   .sui-breadcrumb-separator {

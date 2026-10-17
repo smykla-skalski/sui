@@ -20,7 +20,7 @@
     {
       value: 'rebase',
       label: 'Rebase',
-      description: 'Replays each commit on top of the base branch, one by one',
+      description: 'Needs linear history, then replays each commit on top of the base branch',
       disabled: true
     }
   ];
@@ -36,7 +36,7 @@
 >
   <ChoiceCards
     label="How pull requests merge"
-    hint="Rebase needs linear history on the base branch"
+    hint="Turn on linear history in the branch rules to offer rebase"
     options={methods}
     bind:value={method}
   />
@@ -62,8 +62,18 @@
   />
 </Example>
 
-<Example title="Disabled" note="The whole group is disabled while the change saves" layout="stack">
-  <ChoiceCards label="How pull requests merge" options={methods} value="merge" disabled />
+<Example
+  title="Disabled"
+  note="The whole group is disabled while the change saves, and its hint says so"
+  layout="stack"
+>
+  <ChoiceCards
+    label="How pull requests merge"
+    hint="Saving the merge method…"
+    options={methods}
+    value="merge"
+    disabled
+  />
 </Example>
 
 <Example

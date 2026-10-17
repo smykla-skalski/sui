@@ -172,10 +172,16 @@ test('L-21 sizes and leading come from the scale and land on whole pixels', () =
     );
 });
 
-test('L-22 the phone reads one step larger', () => {
+test('L-22 the phone reads one step larger and types at 16px', () => {
   const phone = palette.slice(palette.indexOf('@media (max-width: 47.9375rem)'));
   for (const name of ['--sui-font-size-body', '--sui-leading-body', '--sui-font-size-page-title'])
     assert.match(phone, new RegExp(`${name}:`));
+  assert.match(phone, /--sui-font-size-input:\s*1rem;/);
+  const entry = /<textarea\b|<input\b(?![^>]*type="(?:checkbox|radio|hidden|range|color)")/;
+  const typed = svelteFiles
+    .filter((path) => entry.test(read(path)) && !styles[path].includes('--sui-font-size-input'))
+    .filter((path) => /\bfont\s*:/.test(styles[path]));
+  assert.deepEqual(typed, [], 'a field the reader types in reads --sui-font-size-input');
 });
 
 test('L-32 spacing comes from the scale', () => {
@@ -192,6 +198,18 @@ test('L-32 spacing comes from the scale', () => {
     }),
     []
   );
+});
+
+test('L-40 a disabled control draws at the disabled opacity', () => {
+  /** @type {string[]} */
+  const found = [];
+  for (const [path, css] of Object.entries(styles))
+    for (const [, selector, body] of css.matchAll(/([^{}]+)\{([^{}]*)\}/g))
+      if (/disabled/.test(selector))
+        for (const { property, value } of declarations(`{${body}`))
+          if (property === 'opacity' && /^0?\.\d+$/.test(value))
+            found.push(`${path}: ${selector.trim()} { opacity: ${value} }`);
+  assert.deepEqual(found, []);
 });
 
 test('L-43 a mark is as wide as what it says', () => {

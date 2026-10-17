@@ -24,7 +24,7 @@ them, and the list hands back the last row's bottom padding so the last line clo
 card's own frame. Give it a container with at least that much inset.
 -->
 
-<ul {...rest} class={['sui-object-list', className]}>{@render children()}</ul>
+<ul role="list" {...rest} class={['sui-object-list', className]}>{@render children()}</ul>
 
 <style>
   .sui-object-list {

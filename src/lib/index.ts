@@ -81,13 +81,9 @@ export type { DiffLine, DiffOp, DiffEmphasis } from './components/DiffBlock.svel
 export { default as Pill } from './components/Pill.svelte';
 export type { PillTone } from './components/Pill.svelte';
 export { default as Chip } from './components/Chip.svelte';
-export type { ChipTone } from './components/Chip.svelte';
-export { default as StatusPill } from './components/StatusPill.svelte';
-export type { StatusPillTone } from './components/StatusPill.svelte';
 export { default as Avatar } from './components/Avatar.svelte';
 export type { AvatarShape } from './components/Avatar.svelte';
 export { default as IdentityRow } from './components/IdentityRow.svelte';
-export { default as ColorTag } from './components/ColorTag.svelte';
 export { default as ClippedLabel } from './components/ClippedLabel.svelte';
 export { default as RelativeTime } from './components/RelativeTime.svelte';
 

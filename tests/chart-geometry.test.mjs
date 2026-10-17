@@ -1,6 +1,14 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { axis, extent, position } from '../src/lib/charts/geometry.ts';
+import {
+  axis,
+  chartDash,
+  chartMarker,
+  extent,
+  markerPath,
+  position,
+  spread
+} from '../src/lib/charts/geometry.ts';
 
 test('empty and non-finite datasets have a usable domain', () => {
   assert.deepEqual(extent([NaN, Infinity, -Infinity]), [0, 1]);
@@ -64,4 +72,46 @@ test('a single value still gets a readable range', () => {
   assert.deepEqual(axis([4]).ticks, [3, 4, 5]);
   assert.deepEqual(axis([4], true).ticks, [0, 1, 2, 3, 4]);
   assert.deepEqual(axis([]).ticks, [0, 1]);
+});
+
+test('the five series differ by shape, and every line after the first by dash', () => {
+  const series = [0, 1, 2, 3, 4];
+  assert.equal(new Set(series.map(chartMarker)).size, 5);
+  assert.equal(chartDash(0), undefined);
+  const dashes = series.slice(1).map(chartDash);
+  assert.ok(dashes.every(Boolean));
+  assert.equal(new Set(dashes).size, 4);
+});
+
+test('every marker shape spans at least its size both ways', () => {
+  for (const shape of [0, 1, 2, 3, 4].map(chartMarker)) {
+    const numbers = markerPath(shape, 0, 0, 8)
+      .split(/[^\d.-]+/)
+      .filter(Boolean)
+      .map(Number);
+    // Arcs carry radii and flags between their end points, so a circle is read by its ends.
+    const pairs =
+      shape === 'circle'
+        ? [numbers.slice(0, 2), numbers.slice(7, 9)]
+        : Array.from({ length: numbers.length / 2 }, (_, at) => numbers.slice(2 * at, 2 * at + 2));
+    const xs = pairs.map(([px]) => px);
+    const ys = pairs.map(([, py]) => py);
+    assert.ok(Math.max(...xs) - Math.min(...xs) >= 8, `${shape} is narrower than 8`);
+    if (shape !== 'circle')
+      assert.ok(Math.max(...ys) - Math.min(...ys) >= 8, `${shape} is shorter than 8`);
+  }
+});
+
+test('line names keep their order and never stand closer than the gap', () => {
+  const placed = spread([100, 104, 60, 102], 16, 20, 254);
+  const order = [2, 0, 3, 1];
+  for (let at = 1; at < order.length; at++)
+    assert.ok(placed[order[at]] - placed[order[at - 1]] >= 16 - 1e-9);
+  assert.deepEqual(spread([40, 120, 200], 16, 20, 254), [40, 120, 200]);
+});
+
+test('line names stay inside the plot when they crowd an edge', () => {
+  const placed = spread([250, 252, 254], 16, 20, 254);
+  assert.ok(Math.max(...placed) <= 254 && Math.min(...placed) >= 20);
+  assert.deepEqual(spread([0], 16, 20, 254), [20]);
 });

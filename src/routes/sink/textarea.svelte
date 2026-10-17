@@ -13,7 +13,7 @@
 
 <Example
   title="States"
-  note="Rest, filled, technical text in mono, invalid and disabled, in the interface face at control size"
+  note="Rest, filled, technical text in mono, invalid and disabled with its reason, at control size"
   layout="stack"
 >
   <div class="column">
@@ -21,7 +21,17 @@
     <Textarea aria-label="Reason" bind:value={reason} />
     <Textarea aria-label="Branch rules" mono rows={4} bind:value={config} />
     <Textarea aria-label="Summary" value="Fix the typo" invalid />
-    <Textarea aria-label="Archived note" value="Archived with the old project" disabled />
+    <div class="locked">
+      <Textarea
+        aria-label="Archived note"
+        aria-describedby="sink-textarea-archived-reason"
+        value="Archived with the old project"
+        disabled
+      />
+      <p id="sink-textarea-archived-reason" class="reason">
+        The project is archived, so its notes are read only
+      </p>
+    </div>
   </div>
 </Example>
 
@@ -54,6 +64,18 @@
 </Example>
 
 <style>
+  .locked {
+    display: grid;
+    gap: var(--sui-row-copy-gap);
+  }
+
+  .reason {
+    color: var(--sui-text-secondary);
+    font: 400 var(--sui-font-size-meta) / var(--sui-row-copy-leading) var(--sui-sans);
+    margin: 0;
+    text-box: trim-both cap alphabetic;
+  }
+
   .column {
     display: grid;
     gap: var(--sui-space-4);

@@ -63,3 +63,88 @@ const CHART_SERIES = 5;
 export function chartColor(index: number): string {
   return `var(--sui-chart-${(index % CHART_SERIES) + 1})`;
 }
+
+export type ChartMarker = 'circle' | 'square' | 'triangle' | 'diamond' | 'cross';
+
+const MARKERS: readonly ChartMarker[] = ['circle', 'square', 'triangle', 'diamond', 'cross'];
+
+/* The first line is solid. Round caps eat into each gap, so the gaps are wider than they read. */
+const DASHES: readonly (string | undefined)[] = [undefined, '8 6', '1 6', '12 5 1 5', '4 5'];
+
+/** The shape that tells a series apart without its color, in the same order as its color. */
+export function chartMarker(index: number): ChartMarker {
+  return MARKERS[index % CHART_SERIES];
+}
+
+/** The dash that tells a line apart without its color. The first line has none. */
+export function chartDash(index: number): string | undefined {
+  return DASHES[index % CHART_SERIES];
+}
+
+/**
+ * A marker as an SVG path centred on (`cx`, `cy`). `size` is the side of the box the
+ * shape fills; the angular shapes reach a little past it so they weigh the same as a circle.
+ */
+export function markerPath(shape: ChartMarker, cx: number, cy: number, size: number): string {
+  const r = size / 2;
+  const at = (points: [number, number][]) =>
+    `M ${points.map(([dx, dy]) => `${cx + dx} ${cy + dy}`).join(' L ')} Z`;
+  if (shape === 'circle')
+    return `M ${cx - r} ${cy} A ${r} ${r} 0 1 0 ${cx + r} ${cy} A ${r} ${r} 0 1 0 ${cx - r} ${cy} Z`;
+  if (shape === 'square')
+    return at([
+      [-r, -r],
+      [r, -r],
+      [r, r],
+      [-r, r]
+    ]);
+  if (shape === 'diamond') {
+    const d = r * 1.3;
+    return at([
+      [0, -d],
+      [d, 0],
+      [0, d],
+      [-d, 0]
+    ]);
+  }
+  if (shape === 'triangle') {
+    const t = r * 1.25;
+    return at([
+      [0, -t],
+      [t, t * 0.8],
+      [-t, t * 0.8]
+    ]);
+  }
+  const arm = r * 1.15;
+  const w = size / 6;
+  return at([
+    [-w, -arm],
+    [w, -arm],
+    [w, -w],
+    [arm, -w],
+    [arm, w],
+    [w, w],
+    [w, arm],
+    [-w, arm],
+    [-w, w],
+    [-arm, w],
+    [-arm, -w],
+    [-w, -w]
+  ]);
+}
+
+/**
+ * Moves label centres apart so no two stand closer than `gap`, keeping their order and,
+ * where there is room, staying between `min` and `max`. Labels already apart do not move.
+ */
+export function spread(values: number[], gap: number, min: number, max: number): number[] {
+  const order = values.map((value, index) => ({ value, index })).sort((a, b) => a.value - b.value);
+  const placed = order.map((item) => item.value);
+  for (let at = 0; at < placed.length; at++)
+    placed[at] = Math.max(placed[at], at === 0 ? min : placed[at - 1] + gap);
+  for (let at = placed.length - 1; at >= 0; at--)
+    placed[at] = Math.min(placed[at], at === placed.length - 1 ? max : placed[at + 1] - gap);
+  const result = new Array<number>(values.length);
+  order.forEach((item, at) => (result[item.index] = placed[at]));
+  return result;
+}

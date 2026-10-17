@@ -10,12 +10,26 @@
   let digest = $state('sha256:9f86d081884c7d65');
 </script>
 
-<Example title="States" note="Rest, filled, invalid and disabled at the 34px tier" layout="stack">
+<Example
+  title="States"
+  note="Rest, filled, invalid and disabled at the 34px tier, with the reason beside the locked one"
+  layout="stack"
+>
   <div class="field">
     <TextInput aria-label="Project name" placeholder="your-project" bind:value={name} />
     <TextInput aria-label="Image digest" mono bind:value={digest} />
     <TextInput aria-label="Team name" value="Team with spaces" invalid />
-    <TextInput aria-label="Owner" value="smykla-skalski" disabled />
+    <div class="locked">
+      <TextInput
+        aria-label="Owner"
+        aria-describedby="sink-text-input-owner-reason"
+        value="smykla-skalski"
+        disabled
+      />
+      <p id="sink-text-input-owner-reason" class="reason">
+        Only an owner can move the repository to another account
+      </p>
+    </div>
   </div>
 </Example>
 
@@ -26,6 +40,18 @@
 </Example>
 
 <style>
+  .locked {
+    display: grid;
+    gap: var(--sui-row-copy-gap);
+  }
+
+  .reason {
+    color: var(--sui-text-secondary);
+    font: 400 var(--sui-font-size-meta) / var(--sui-row-copy-leading) var(--sui-sans);
+    margin: 0;
+    text-box: trim-both cap alphabetic;
+  }
+
   .field {
     display: grid;
     gap: var(--sui-space-3);

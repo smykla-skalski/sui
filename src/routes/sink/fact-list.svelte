@@ -3,14 +3,14 @@
 </script>
 
 <script lang="ts">
-  import { Chip, FactList, RelativeTime } from '#lib';
+  import { FactList, Pill, RelativeTime } from '#lib';
   import Example from '../kit/Example.svelte';
 
   const synced = new Date(Date.now() - 42 * 60_000).toISOString();
 </script>
 
 {#snippet syncedAt()}<RelativeTime value={synced} />{/snippet}
-{#snippet health()}<Chip tone="success" label="In step" />{/snippet}
+{#snippet health()}<Pill tone="success">In step</Pill>{/snippet}
 
 <Example
   title="Facts"

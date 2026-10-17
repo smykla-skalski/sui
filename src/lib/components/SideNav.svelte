@@ -4,6 +4,8 @@
   export type NavItem = {
     href: string;
     label: string;
+    /** A shorter name for the collapsed strip, taken from the words of `label` so speech input finds it. */
+    short?: string;
     icon: IconName;
     /** A count beside the label, in tabular figures. */
     count?: number;
@@ -20,7 +22,7 @@
   import type { Snippet } from 'svelte';
   import type { HTMLAttributes } from 'svelte/elements';
   import Icon from '../icons/Icon.svelte';
-  import { getShell } from '../internal/shell.svelte.js';
+  import { getShell, watchCut } from '../internal/shell.svelte.js';
   import IconButton from './IconButton.svelte';
   import Tooltip from './Tooltip.svelte';
 
@@ -53,18 +55,22 @@
 
   const shell = getShell();
   const mode = $derived(shell?.mode ?? 'full');
+  const uid = $props.id();
 
   let tree = $state<HTMLElement | null>(null);
   let thumb = $state({ top: 0, left: 0, width: 0, height: 0 });
   let measured = $state(false);
   let gliding = $state(false);
   const rows = $state<Record<string, HTMLAnchorElement | null>>({});
+  const cut = $state<Record<string, boolean>>({});
 
   /** Lays the selection plate under the current row, measured rather than guessed. */
   function measure() {
     const row = current ? rows[current] : null;
-    if (!tree || !row) {
+    // A closed drawer draws no rows, so its plate lands afresh when the drawer opens.
+    if (!tree || !row || row.getClientRects().length === 0) {
       measured = false;
+      gliding = false;
       return;
     }
     // Client rects, because offsets round to whole pixels and the plate must sit exactly on the row.
@@ -106,8 +112,10 @@ in the column. The plate is measured from the current row, does not slide on fir
 glides to the next row when the page changes. Until it is measured the row paints its own plate,
 so the first frame is already right.
 
-Inside an `AppShell` it follows the shell: a collapse button folds it into an icon strip whose
-rows name themselves in tooltips, and in the phone drawer the same place holds a close button.
+Inside an `AppShell` it follows the shell. A button named Navigation, with `aria-expanded`,
+folds it into a strip where each row is an icon over a one-line label, `short` when one is
+given. A tooltip with the full name shows only when that label is shorter or cut, and a count
+is still read aloud. In the phone drawer the same place holds a close button, and rows are 44px.
 -->
 
 <div {...rest} class={['sui-side-nav', className]} data-mode={mode}>
@@ -127,7 +135,7 @@ rows name themselves in tooltips, and in the phone drawer the same place holds a
       <IconButton
         toolbar
         icon={shell.collapsed ? 'sidebar-expand' : 'sidebar-collapse'}
-        label={shell.collapsed ? 'Expand navigation' : 'Collapse navigation'}
+        label="Navigation"
         aria-expanded={!shell.collapsed}
         onclick={() => shell.toggleCollapsed()}
       />
@@ -146,10 +154,14 @@ rows name themselves in tooltips, and in the phone drawer the same place holds a
       ></span>
       {#each sections as section, index (section.label ?? index)}
         {#if section.label}
-          <p class="sui-side-nav-group">{section.label}</p>
+          <p id="{uid}-{index}" class="sui-side-nav-group">{section.label}</p>
         {/if}
-        <ul class="sui-side-nav-rows">
+        <ul
+          class="sui-side-nav-rows"
+          aria-labelledby={section.label ? `${uid}-${index}` : undefined}
+        >
           {#each section.items as item (item.href)}
+            {@const tip = item.short ? item.short !== item.label : cut[item.href]}
             <li>
               <a
                 bind:this={rows[item.href]}
@@ -159,12 +171,20 @@ rows name themselves in tooltips, and in the phone drawer the same place holds a
                 onclick={(event) => onnavigate?.(event, item)}
               >
                 <span class="sui-side-nav-glyph"><Icon name={item.icon} size="base" /></span>
-                <span class="sui-side-nav-label">{item.label}</span>
+                <span
+                  class={['sui-side-nav-label', { replaced: item.short }]}
+                  {@attach watchCut((value) => (cut[item.href] = value))}
+                >
+                  {item.label}
+                </span>
+                {#if item.short}
+                  <span class="sui-side-nav-short" aria-hidden="true">{item.short}</span>
+                {/if}
                 {#if item.count !== undefined}
                   <span class="sui-side-nav-count"><span>{item.count}</span></span>
                 {/if}
               </a>
-              {#if mode === 'collapsed'}
+              {#if mode === 'collapsed' && tip}
                 <Tooltip anchor={rows[item.href]} text={item.label} side="inline-end" />
               {/if}
             </li>
@@ -360,6 +380,10 @@ rows name themselves in tooltips, and in the phone drawer the same place holds a
     text-box: trim-both cap alphabetic;
   }
 
+  .sui-side-nav-short {
+    display: none;
+  }
+
   .sui-side-nav-count {
     align-items: center;
     background: var(--sui-sidebar-item-hover);
@@ -389,45 +413,75 @@ rows name themselves in tooltips, and in the phone drawer the same place holds a
     padding-block-start: var(--sui-space-3);
   }
 
-  /* The icon strip: names and counts give way to centred glyphs, which name themselves in
-     tooltips, and a heading's boundary stays as space. */
+  [data-mode='drawer'] .sui-side-nav-row {
+    min-block-size: var(--sui-touch-target);
+  }
+
+  /* The strip: each row stacks its glyph over a one-line label, the place's names give way,
+     and a heading's boundary stays as space. */
+  [data-mode='collapsed'] {
+    padding-inline: var(--sui-space-1);
+  }
+
   [data-mode='collapsed'] .sui-side-nav-head {
     justify-content: center;
     padding-inline-start: 0;
   }
 
-  [data-mode='collapsed'] :is(.sui-side-nav-names, .sui-side-nav-count) {
+  [data-mode='collapsed'] :is(.sui-side-nav-names, .sui-side-nav-group) {
     display: none;
   }
 
-  /* The label leaves the strip but stays the row's accessible name. */
-  [data-mode='collapsed'] .sui-side-nav-label {
-    block-size: 1px;
-    clip-path: inset(50%);
-    inline-size: 1px;
-    overflow: hidden;
-    position: absolute;
-    text-box: normal;
-    white-space: nowrap;
+  [data-mode='collapsed'] .sui-side-nav-tree {
+    margin-inline: calc(-1 * var(--sui-space-1));
+    padding-inline: var(--sui-space-1);
   }
 
-  [data-mode='collapsed'] .sui-side-nav-group {
-    display: none;
+  /* The column keeps the strip's width, so a long label is cut instead of widening it. */
+  [data-mode='collapsed'] .sui-side-nav-rows {
+    grid-template-columns: minmax(0, 1fr);
   }
 
   [data-mode='collapsed'] .sui-side-nav-rows ~ .sui-side-nav-rows {
     margin-block-start: var(--sui-space-4);
   }
 
-  [data-mode='collapsed'] .sui-side-nav-rows {
-    justify-items: center;
+  [data-mode='collapsed'] .sui-side-nav-row {
+    flex-direction: column;
+    font: 500 var(--sui-font-size-micro) / var(--sui-leading-flat) var(--sui-sans);
+    gap: var(--sui-space-1);
+    justify-content: center;
+    min-block-size: var(--sui-touch-target);
+    padding: 0 var(--sui-space-1);
   }
 
-  [data-mode='collapsed'] .sui-side-nav-row {
-    block-size: var(--sui-control-height-compact);
-    inline-size: var(--sui-control-height-compact);
-    justify-content: center;
+  [data-mode='collapsed'] .sui-side-nav-row[aria-current='page'] {
+    font-weight: 600;
+  }
+
+  [data-mode='collapsed'] :is(.sui-side-nav-label, .sui-side-nav-short) {
+    flex: none;
+    max-inline-size: 100%;
+    overflow-x: clip;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  [data-mode='collapsed'] .sui-side-nav-short {
+    display: block;
+    text-box: trim-both cap alphabetic;
+  }
+
+  /* A label replaced by its short form, and a count, leave the strip but are still read. */
+  [data-mode='collapsed'] :is(.sui-side-nav-label.replaced, .sui-side-nav-count) {
+    block-size: 1px;
+    clip-path: inset(50%);
+    inline-size: 1px;
+    overflow: hidden;
     padding: 0;
+    position: absolute;
+    text-box: normal;
+    white-space: nowrap;
   }
 
   @media (prefers-reduced-motion: reduce) {

@@ -53,10 +53,13 @@
 One setting in a `SettingList`: its name and an optional why line on one side, 8px apart as
 rendered ink, and its controls on the other. The row measures itself, so the copy keeps at least
 13rem and neither side takes more than half the row; when both cannot fit, the controls move to
-the line under the copy and pack to the start. A row whose only control is a `Switch` keeps it
-beside the copy at every width; give that switch `bare`.
+the line under the copy and pack to the start. A row whose only control is a `Switch` or a
+`Checkbox` keeps it beside the copy at every width; give that control `bare`. A switch takes
+effect at once, and a checkbox holds a value that a later save writes.
 
-`control` receives the `id` the name labels and the ids to describe or label a group with.
+`control` receives the `id` the name's `<label for>` points at, for a single control, and
+`labelledby`, the name's own id, for the `aria-labelledby` of a group such as a fieldset or a
+segmented control, which a `<label>` cannot name.
 `unsaved` repaints the row in the unsaved surface and inks, stars its name, and clears the
 separators on both its edges; two changed rows in a row keep exactly 1px of card between them.
 `onclear` draws a reset centred beside the whole control area, even when the controls wrap.
@@ -201,10 +204,12 @@ separators on both its edges; two changed rows in a row keep exactly 1px of card
     justify-content: flex-end;
   }
 
-  /* A lone switch needs a small fixed seat: its copy wraps beside it rather than pushing it
-     onto a line of its own. */
+  /* A lone switch or checkbox needs a small fixed seat: its copy wraps beside it rather than
+     pushing it onto a line of its own. */
   .sui-setting-row:has(
-      > .sui-setting-value > .sui-setting-control > :global(:only-child [role='switch'])
+      > .sui-setting-value
+        > .sui-setting-control
+        > :global(:only-child > * > input[type='checkbox'])
     )
     > .sui-setting-say {
     flex-basis: 0;
@@ -212,7 +217,9 @@ separators on both its edges; two changed rows in a row keep exactly 1px of card
   }
 
   .sui-setting-row:has(
-      > .sui-setting-value > .sui-setting-control > :global(:only-child [role='switch'])
+      > .sui-setting-value
+        > .sui-setting-control
+        > :global(:only-child > * > input[type='checkbox'])
     )
     > .sui-setting-value {
     flex: none;

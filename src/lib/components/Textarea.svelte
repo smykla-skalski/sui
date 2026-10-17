@@ -44,12 +44,12 @@ It has no label of its own. Put it in a `Field` through the `control` snippet, o
 <style>
   .sui-textarea {
     background-color: var(--sui-control-bg);
-    border: 1px solid var(--sui-control-border);
+    border: 1px solid var(--sui-field-border);
     border-radius: var(--sui-radius-control);
     box-sizing: border-box;
     color: var(--sui-text-primary);
     display: block;
-    font: 400 var(--sui-font-size-control) / var(--sui-leading-meta) var(--sui-sans);
+    font: 400 var(--sui-font-size-input) / var(--sui-leading-input) var(--sui-sans);
     inline-size: 100%;
     margin: 0;
     min-block-size: var(--sui-control-height-compact);
@@ -67,7 +67,7 @@ It has no label of its own. Put it in a `Field` through the `control` snippet, o
   }
 
   .sui-textarea:hover:not(:disabled):not(:focus) {
-    border-color: var(--sui-control-border-hover);
+    border-color: var(--sui-field-border-hover);
   }
 
   .sui-textarea:focus {
@@ -86,7 +86,7 @@ It has no label of its own. Put it in a `Field` through the `control` snippet, o
 
   .sui-textarea:disabled {
     cursor: default;
-    opacity: 0.5;
+    opacity: var(--sui-disabled-opacity);
     resize: none;
   }
 
