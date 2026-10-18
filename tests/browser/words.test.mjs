@@ -104,17 +104,17 @@ test('with every mark replaced, each joined name reads the marks and nothing bet
         'marks.comma': 'ⓒ',
         'marks.space': 'ⓟ',
         'marks.stop': 'ⓢ',
-        'Card.unsavedLabel': 'NIEZAP',
-        'SettingRow.unsavedLabel': 'NIEZAP',
-        'CheckList.requiredLabel': 'WYM',
-        'ChoiceCards.requiredLabel': 'WYM',
-        'Callout.warningLabel': 'UWAGA',
-        'SideNav.countLabel': (/** @type {number} */ count) => `{${count} SZT}`,
-        'Pill.liveLabel': 'NAZYWO',
-        'Link.externalLabel': 'ZEWN',
-        'RelativeTime.exactLabel': (/** @type {string} */ time) => `{DOKL ${time}}`,
-        'PairEntry.keyLabel': 'KLUCZ',
-        'PairEntry.valueLabel': 'WART'
+        'Card.unsavedLabel': 'DIRTY',
+        'SettingRow.unsavedLabel': 'DIRTY',
+        'CheckList.requiredLabel': 'MUST',
+        'ChoiceCards.requiredLabel': 'MUST',
+        'Callout.warningLabel': 'HEADS-UP',
+        'SideNav.countLabel': (/** @type {number} */ count) => `{${count} PCS}`,
+        'Pill.liveLabel': 'ON-AIR',
+        'Link.externalLabel': 'OFFSITE',
+        'RelativeTime.exactLabel': (/** @type {string} */ time) => `{EXACT ${time}}`,
+        'PairEntry.keyLabel': 'NAME',
+        'PairEntry.valueLabel': 'TARGET'
       });
       const host = document.createElement('div');
       host.id = 'words-host';
@@ -266,17 +266,17 @@ test('with every mark replaced, each joined name reads the marks and nothing bet
       IdentityRow: (await read('[data-words="IdentityRow"]')).name
     };
     assert.deepEqual(names, {
-      Card: 'BillingⓒNIEZAP',
-      SettingRow: { name: 'RetriesⓒNIEZAP', description: undefined },
-      CheckList: 'Run onⓟWYM',
-      ChoiceCards: 'MergeⓟWYM',
+      Card: 'BillingⓒDIRTY',
+      SettingRow: { name: 'RetriesⓒDIRTY', description: undefined },
+      CheckList: 'Run onⓟMUST',
+      ChoiceCards: 'MergeⓟMUST',
       SegmentedControl: 'Usersⓟ(24)',
-      SideNav: 'Queueⓒ{3 SZT}',
-      Pill: 'RunⓒNAZYWO',
-      Link: { name: 'Docs⁠', description: 'ZEWN' },
+      SideNav: 'Queueⓒ{3 PCS}',
+      Pill: 'RunⓒON-AIR',
+      Link: { name: 'Docs⁠', description: 'OFFSITE' },
       Disclosure: { name: 'SkippedⓒThree archived', description: undefined },
       AdditionPicker: 'Auto mergeⓒOnce green',
-      PairEntry: 'alias: ShipⓒKLUCZ: WART',
+      PairEntry: 'alias: ShipⓒNAME: TARGET',
       ListToolbar: 'AllⓒUpdatedⓒOpen',
       IdentityRow: 'Ada Lovelaceⓒ@ada'
     });
@@ -289,7 +289,7 @@ test('with every mark replaced, each joined name reads the marks and nothing bet
     const resting = await page
       .locator('[data-words="RelativeTime"] time')
       .evaluate((node) => node.firstChild?.textContent?.trim() ?? '');
-    assert.match(time.name ?? '', new RegExp(`^${resting}\\{DOKL [^}]+\\}$`));
+    assert.match(time.name ?? '', new RegExp(`^${resting}\\{EXACT [^}]+\\}$`));
 
     const callout = page.locator('[data-words="Callout"] [role="alert"]');
     await page.waitForFunction(
@@ -300,7 +300,7 @@ test('with every mark replaced, each joined name reads the marks and nothing bet
     // between the pill's flex items, which is not drawn. The title's no-break space stays.
     assert.equal(
       await callout.textContent(),
-      'UWAGAⓟDrift\u00a0foundⓟRead Docs\u2060 nowRunⓒNAZYWO, ask About drift or Copy'
+      'HEADS-UPⓟDrift\u00a0foundⓟRead Docs\u2060 nowRunⓒON-AIR, ask About drift or Copy'
     );
 
     const duration = await read('[data-words="DurationInput"] input:not([type="hidden"])');
