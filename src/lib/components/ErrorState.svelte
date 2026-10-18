@@ -112,9 +112,11 @@ of them.
     <p class="sui-error-state-description">{description}</p>
   </div>
   {#if onretry}
-    <Button loading={busy} onclick={retry}>
-      {busy ? retryingLabel : retryLabel}
-    </Button>
+    <div class="sui-error-state-retry">
+      <Button loading={busy} onclick={retry}>
+        {busy ? retryingLabel : retryLabel}
+      </Button>
+    </div>
   {/if}
 </div>
 
@@ -167,19 +169,47 @@ of them.
       var(--sui-sans);
   }
 
-  /* One line sized to itself, so the rows under it keep their place. */
+  /* Over a list the failure is a row of its own: it bleeds past the list's edge as a row does
+     and pads back by the row's inset, so its words start where the rows' words start and the
+     retry ends where their actions end. Its tint is a plate 2px inside that box on every side,
+     as a row's state is (L-91), so it stands as far from the card's top as from its sides, and
+     the retry stays quiet on it (L-92). */
   .over {
     --sui-surface-raised: transparent;
     --sui-control-border: color-mix(in srgb, var(--sui-danger) 40%, var(--sui-danger-tint));
     --sui-control-border-hover: color-mix(in srgb, var(--sui-danger) 65%, var(--sui-danger-tint));
     align-items: center;
-    background: var(--sui-danger-tint);
-    border-color: transparent;
+    background: none;
+    border: 0;
     display: flex;
     flex-wrap: wrap;
     gap: var(--sui-space-2) var(--sui-space-3);
     justify-content: space-between;
-    padding: var(--sui-space-2) var(--sui-space-3);
+    /* Opening a card, it hands back its padding as a row list does (L-33). */
+    margin-block-start: var(--sui-local-row-lead, 0px);
+    margin-inline: calc(-1 * var(--sui-row-pad-default));
+    padding: var(--sui-row-pad-default);
+    position: relative;
+  }
+
+  .over::before {
+    background: var(--sui-danger-tint);
+    border-radius: inherit;
+    content: '';
+    inset: calc(var(--sui-space-1) / 2);
+    position: absolute;
+  }
+
+  .over > :is(.sui-error-state-copy, .sui-error-state-retry) {
+    position: relative;
+  }
+
+  /* High contrast drops the tint, so the plate keeps its shape by an outline. */
+  @media (forced-colors: active) {
+    .over::before {
+      outline: var(--sui-stroke) solid CanvasText;
+      outline-offset: calc(-1 * var(--sui-stroke));
+    }
   }
 
   .over .sui-error-state-description {
