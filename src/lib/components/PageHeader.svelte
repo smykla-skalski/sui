@@ -252,11 +252,10 @@ and the header owes only the difference.
     gap: var(--sui-space-2);
   }
 
-  /* The facts stand one copy gap further below the description than its lines stand apart,
-     and hand back what their targets stand around their words, so the gap and the band's
-     gutter are measured to their ink. */
+  /* The facts stand one copy gap further below the description than its lines stand apart.
+     A `FactList` trims its lines to its words, so the gap and the band's gutter reach their
+     ink. */
   .sui-page-header-facts {
-    --sui-local-row-lead: calc(-1 * var(--sui-row-pad-default));
     min-inline-size: 0;
   }
 

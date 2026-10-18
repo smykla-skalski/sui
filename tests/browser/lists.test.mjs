@@ -962,4 +962,35 @@ suite('lists', together, () => {
       }
     }
   );
+
+  test(
+    'inline facts flow side by side on a phone, and only a line that holds a target grows to it',
+    long,
+    async () => {
+      const page = await open({ viewport: { width: 375, height: 900 } });
+      try {
+        const list = page.locator('#fact-list .sui-fact-list.inline').first();
+        await list.scrollIntoViewIfNeeded();
+        const facts = await list.evaluate((dl) =>
+          [...dl.children].map((fact) => ({
+            label: fact.querySelector('dt')?.textContent,
+            top: fact.getBoundingClientRect().top,
+            height: fact.getBoundingClientRect().height,
+            target: fact.querySelector('a[href], [tabindex="0"]') !== null
+          }))
+        );
+        const byLabel = Object.fromEntries(facts.map((fact) => [fact.label, fact]));
+        assert.equal(
+          byLabel.Branch.top,
+          byLabel.Version.top,
+          'two short facts do not share a line'
+        );
+        for (const fact of facts)
+          if (fact.target) assert.equal(fact.height, 44, `${fact.label} holds a target under 44px`);
+          else assert.ok(fact.height < 24, `${fact.label} is ${fact.height}px tall with no target`);
+      } finally {
+        await page.close();
+      }
+    }
+  );
 });

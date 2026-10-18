@@ -52,27 +52,28 @@
 Facts about a thing, each a label and its value, such as the branch, the version and when it
 last synced. A setting a reader changes is a form row, not a fact.
 
-`inline` is for two to five headline facts, as under a page title: they sit in a row and wrap
-one by one, separated by space alone, so no generated comma or dot is left at the end of a
-line. `rows` is a summary list of a thing's properties, as GOV.UK's summary list and Stripe's
+`inline` is for two to five headline facts, as under a page title: they flow as words do,
+side by side, and a line breaks between two facts, separated by space alone, so no generated
+comma or dot is left at either end of a line. A line of plain facts keeps the copy's leading,
+8px between its words and the next line's, and only a line that holds a target, a link or a
+time that shows its instant, grows to the target's height. The list is trimmed to its first
+cap and its last baseline, so a holder measures its rhythm to the facts' ink.
+
+`rows` is a summary list of a thing's properties, as GOV.UK's summary list and Stripe's
 property list draw them: the labels in a column as wide as the longest one, up to 16rem where a
 longer label wraps, the values 24px after it, and an optional `action` per fact at the row's
-end, such as a "Change" link. Rows pad
-12px and a hairline parts each row from the next, never above the first or under the last,
-so the list's first and last ink stand at its own edges. Once the list itself is under 25rem
-wide, each label stands over its value, one copy gap apart, and the action under the value.
-
-A holder that measures its rhythm to the ink, as a page header does, sets
-`--sui-local-row-lead`, and inline facts hand back what their targets stand above their
-words and below them.
+end, such as a "Change" link. Rows pad 12px and a hairline parts each row from the next, never
+above the first or under the last, so the list's first and last ink stand at its own edges.
+Once the list itself is under 25rem wide, each label stands over its value, one copy gap
+apart, and the action under the value.
 
 - Semantics: a `dl` with one `dt` and one `dd` per fact, each pair in its own `div`; a row's action is a second `dd`, as in GOV.UK's summary list.
 - Content: short labels and values; a value is words, a link through `href`, or a snippet such as a `RelativeTime`, a `Pill` or a `Chip`; in `rows`, an optional `action` per fact whose name says which fact it changes.
 - States: plain, linked and mono values, and the missing value, which says `missingLabel` in muted words.
 - Keyboard: a linked value and a row's action are tab stops, in reading order; nothing else is.
-- Pointer and touch: inline, every fact is at least 24px tall, and 44px on a phone or a coarse pointer, so a row keeps one height; a linked value is a standalone `Link`, whose hit area grows to that target size without moving its words; a row's action keeps its own target.
+- Pointer and touch: inline, a fact that holds a target is at least 24px tall, and 44px on a phone or a coarse pointer, so its line holds the target and two targets on two lines never meet; a linked value is a standalone `Link`, whose hit area grows to that target size without moving its words; a row's action keeps its own target.
 - Focus: none moves; a linked value and an action take focus in reading order.
-- Responsive: inline facts wrap one by one, a long value breaks inside its fact, and on a phone every fact takes its own line, 8px apart; rows answer to the list's own width and stack each label over its value under 25rem.
+- Responsive: inline facts wrap one by one at every width, a long value breaks inside its fact, and text at 200% wraps the same way; rows answer to the list's own width and stack each label over its value under 25rem.
 - Accessibility: the label is muted and regular and the value medium, so they differ by weight as well as ink; both hold 4.5:1; in rows each label and value pair still reads as a term and its description.
 - Localization: `missingLabel` is a prop with an English default; values come formatted by the caller in the page's language, and both layouts follow the reading direction.
 - Performance: one element per fact with no script; rows share one grid through `subgrid`, so a column never measures twice.
@@ -108,29 +109,56 @@ words and below them.
     min-inline-size: 0;
   }
 
-  /* In the facts' face, so `1cap` is theirs: a holder that sets `--sui-local-row-lead` gets back
-     what a fact's target stands above its words and below them. */
+  /* Inline facts flow as words do: each fact is an inline box, so a line breaks between two
+     facts and a long fact wraps inside itself. The line has no leading of its own, so only the
+     facts set its height, and the list trims its first line to the cap and its last to the
+     baseline, so its ink starts and ends at its own edges and a target on either line reaches
+     past them with its room alone. */
   .inline {
-    display: flex;
-    flex-wrap: wrap;
-    font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-row-copy-leading)
+    block-size: var(--sui-block-snap);
+    font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-leading-none)
       var(--sui-sans);
-    gap: var(--sui-space-2) var(--sui-space-5);
-    margin-block: calc(
-      sign(var(--sui-local-row-lead, 0px)) * (var(--sui-field-target-min) - round(up, 1cap, 2px)) /
-        2
-    );
+    text-box: trim-both cap alphabetic;
   }
 
+  /* Its words stand at the top of their snapped box, so a fact's baseline is one cap below its
+     top: every fact starts on a whole pixel, and a line of plain facts parts from the next by
+     the copy's leading, its words 8px from the next line's. */
   .inline > .sui-fact-list-fact {
-    align-content: center;
     align-items: baseline;
+    block-size: var(--sui-block-snap);
     column-gap: var(--sui-space-2);
-    display: flex;
+    display: inline-flex;
     flex-wrap: wrap;
-    min-block-size: var(--sui-field-target-min);
-    min-inline-size: 0;
+    margin-block-end: calc(var(--sui-row-copy-leading) - round(up, 1cap, 2px));
+    margin-inline-end: var(--sui-space-5);
+    max-inline-size: 100%;
     row-gap: var(--sui-row-copy-gap);
+    vertical-align: baseline;
+  }
+
+  .inline > .sui-fact-list-fact:last-child {
+    margin-inline-end: 0;
+  }
+
+  .inline .sui-fact-list-label,
+  .inline .sui-fact-list-value {
+    align-content: start;
+  }
+
+  /* A fact that holds a target, a link or a time that shows its instant, is as tall as the
+     target with its words on its middle, so its line grows to hold the target and two targets
+     on two lines never reach into each other (L-38). A line of plain facts stays a line of
+     words. */
+  .inline
+    > .sui-fact-list-fact:has(:global(:is(a[href], button, [tabindex]:not([tabindex^='-'])))) {
+    align-content: center;
+    min-block-size: var(--sui-field-target-min);
+  }
+
+  /* A pill or a chip centres its label on it, so the box lands on whole pixels (L-95). */
+  .inline > .sui-fact-list-fact:has(> .sui-fact-list-value > :global(:is(.sui-pill, .sui-chip))) {
+    align-items: center;
   }
 
   /* Every row shares the list's columns, so labels and values line up down the list whatever
@@ -242,21 +270,9 @@ words and below them.
     }
   }
 
-  @media (max-width: 47.9375rem) {
-    .inline {
-      display: grid;
-      grid-template-columns: minmax(0, 1fr);
-    }
-  }
-
   @media (max-width: 47.9375rem), (pointer: coarse) {
-    .inline {
-      margin-block: calc(
-        sign(var(--sui-local-row-lead, 0px)) * (var(--sui-touch-target) - round(up, 1cap, 2px)) / 2
-      );
-    }
-
-    .inline > .sui-fact-list-fact {
+    .inline
+      > .sui-fact-list-fact:has(:global(:is(a[href], button, [tabindex]:not([tabindex^='-'])))) {
       min-block-size: var(--sui-touch-target);
     }
   }

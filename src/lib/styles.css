@@ -402,6 +402,9 @@
   --sui-font-size-page-title-compact: 1.5rem;
 
   --sui-leading-flat: 1;
+  /* No leading at all, for a line built only of boxes, such as inline facts, whose own heights
+     set the line. */
+  --sui-leading-none: 0;
 
   /* The weights the two families ship: the sans from regular to bold, the mono from regular to
      medium (L-18, L-19). */
