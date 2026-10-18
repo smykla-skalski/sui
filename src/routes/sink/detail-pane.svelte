@@ -8,7 +8,6 @@
 </script>
 
 <script lang="ts">
-  import '#lib/internal/scroll-edge.css';
   import {
     ActionMenu,
     AppShell,
@@ -46,7 +45,7 @@
   import Specimen from '../kit/Specimen.svelte';
 
   const PAGE = 5;
-  const started = Date.now() - 12 * 60_000;
+  const started = Date.now() - 12.5 * 60_000;
   const nothing = () => {};
 
   const differs = { state: 'Differs', tone: 'warning' as PillTone };
@@ -257,10 +256,8 @@
   layout="stack"
   ground="canvas"
 >
-  <Specimen label="Aside beside the main column" code="main aside">
-    <div class="scroller sui-scroll-edge">
-      <div class="frame wide">{@render shell('detail-pane-wide')}</div>
-    </div>
+  <Specimen label="On its own page" code="main aside">
+    <div class="page">{@render pane('detail-pane-wide')}</div>
   </Specimen>
 </Example>
 
@@ -391,14 +388,12 @@
 
 <Example
   title="Narrow width"
-  note="Under 56rem of pane the properties follow the main sections, and a phone puts the actions under the copy"
+  note="In a shell the pane is under 56rem, so its properties follow the main sections, and a narrow shell trades its sidebar for a menu"
   layout="stack"
   ground="canvas"
 >
-  <Specimen label="40rem pane">
-    <div class="scroller sui-scroll-edge">
-      <div class="frame split">{@render shell('detail-pane-split')}</div>
-    </div>
+  <Specimen label="Rail and sidebar">
+    <div class="frame split">{@render shell('detail-pane-split')}</div>
   </Specimen>
   <Specimen label="Phone">
     <div class="frame phone">{@render shell('detail-pane-phone')}</div>
@@ -415,24 +410,12 @@
     overflow: hidden;
   }
 
-  .scroller {
-    border-radius: var(--sui-radius-surface);
-    max-inline-size: 100%;
-    overflow-x: auto;
-  }
-
-  .scroller:focus-visible {
-    outline: var(--sui-focus-ring-width) solid var(--sui-focus);
-    outline-offset: var(--sui-focus-ring-inset);
-  }
-
-  .wide {
-    inline-size: 80rem;
-  }
-
+  /* A 40rem pane beside the rail and the sidebar where the stage has the room; narrower, the
+     shell answers to its own width as it does on a page. */
   .split {
-    inline-size: calc(
-      var(--sui-rail-width) + var(--sui-sidebar-width) + 40rem + 2 * var(--sui-stroke)
+    inline-size: min(
+      100%,
+      calc(var(--sui-rail-width) + var(--sui-sidebar-width) + 40rem + 2 * var(--sui-stroke))
     );
   }
 

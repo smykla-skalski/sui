@@ -533,4 +533,47 @@ suite('navigation', together, () => {
       }
     }
   );
+
+  test(
+    "the detail pane's shells fit their stage at every width, with the wide pane's aside beside it at 1440px",
+    long,
+    async () => {
+      for (const width of [320, 375, 768, 1024, 1280, 1440])
+        for (const theme of ['light', 'dark']) {
+          const page = await open(width);
+          try {
+            const found = await page.evaluate((theme) => {
+              document.documentElement.dataset.suiTheme = theme;
+              const wide = (/** @type {Element} */ box) => box.scrollWidth > box.clientWidth;
+              const section = /** @type {HTMLElement} */ (document.getElementById('detail-pane'));
+              const scrollers = [...section.querySelectorAll('*')].filter(
+                (box) => /auto|scroll/.test(getComputedStyle(box).overflowX) && wide(box)
+              );
+              const layout = document
+                .getElementById('detail-pane-layout')
+                ?.closest('.example')
+                ?.querySelector('.sui-detail-layout');
+              const main = layout
+                ?.querySelector('.sui-detail-layout-main')
+                ?.getBoundingClientRect();
+              const aside = layout
+                ?.querySelector('.sui-detail-layout-aside')
+                ?.getBoundingClientRect();
+              return {
+                section: wide(section),
+                scrollers: scrollers.map((box) => `${box.tagName} ${box.className}`),
+                beside: !!main && !!aside && Math.abs(main.top - aside.top) < 1
+              };
+            }, theme);
+            const at = `at ${width}px in ${theme}`;
+            assert.equal(found.section, false, `the section reaches past the page ${at}`);
+            assert.deepEqual(found.scrollers, [], `boxes scroll sideways ${at}`);
+            if (width === 1440)
+              assert.ok(found.beside, `the aside is not beside the main column ${at}`);
+          } finally {
+            await page.close();
+          }
+        }
+    }
+  );
 });
