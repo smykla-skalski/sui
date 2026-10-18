@@ -250,7 +250,7 @@ assistive technology, because a native picker cannot be held open.
     /* Hover lays the row veil over the field and steps its edge up, and an invalid field keeps
        its danger edge, a step deeper, so every field answers the pointer (L-9). */
     .sui-select:not(.bare) .sui-select-control:hover:not(:active, :disabled, :focus-visible) {
-      background-color: var(--sui-row-hover);
+      background-color: var(--sui-field-hover);
       border-color: var(--sui-field-frame-hover);
       border-block-end-color: var(--sui-field-border-hover);
     }
@@ -261,7 +261,7 @@ assistive technology, because a native picker cannot be held open.
         :disabled,
         :focus-visible
       ) {
-      background-color: var(--sui-danger-hover-layer);
+      background-color: var(--sui-field-danger-hover);
       border-color: var(--sui-danger-hover);
     }
   }

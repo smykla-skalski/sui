@@ -156,6 +156,7 @@
   /* A row's hover and press veils in the row's own ink, a step and two steps off the plate as
      a neutral row's are off the card (L-12, L-16). */
   --sui-unsaved-row-hover: color-mix(in srgb, var(--sui-unsaved-ink) 6%, transparent);
+  --sui-unsaved-field-hover: color-mix(in srgb, var(--sui-unsaved-ink) 3%, transparent);
   --sui-unsaved-row-pressed: color-mix(in srgb, var(--sui-unsaved-ink) 12%, transparent);
   --sui-decision-accent-hover: color-mix(
     in srgb,
@@ -188,6 +189,7 @@
   --sui-danger-hover: #a33039;
   /* The hover veil of a part in the danger state, so its hover keeps the state's hue. */
   --sui-danger-hover-layer: color-mix(in srgb, var(--sui-danger) 9%, transparent);
+  --sui-field-danger-hover: color-mix(in srgb, var(--sui-danger) 4.5%, transparent);
   --sui-danger-pressed: color-mix(in srgb, var(--sui-danger-hover) 82%, var(--sui-text-primary));
   --sui-neutral-tint: var(--sui-surface-inset);
   /* A placeholder is a veil, so it reads the same on a card, the canvas or an inset, and the
@@ -254,6 +256,8 @@
   --sui-popover-border: var(--sui-border-control);
 
   --sui-row-hover: color-mix(in srgb, var(--sui-text-primary) 5.4%, transparent);
+  /* A field already firms its frame on hover, so its ground moves half a row's step. */
+  --sui-field-hover: color-mix(in srgb, var(--sui-text-primary) 2.7%, transparent);
 
   --sui-row-pressed: color-mix(in srgb, var(--sui-text-primary) 10.9%, transparent);
   --sui-dialog-bg: var(--sui-surface-base);
@@ -597,6 +601,7 @@
   --sui-swatch-edge-ceiling: 1;
   --sui-unsaved-border: #a5772c;
   --sui-unsaved-row-hover: color-mix(in srgb, var(--sui-unsaved-ink) 8%, transparent);
+  --sui-unsaved-field-hover: color-mix(in srgb, var(--sui-unsaved-ink) 4%, transparent);
   --sui-unsaved-row-pressed: color-mix(in srgb, var(--sui-unsaved-ink) 16%, transparent);
   --sui-decision-accent-hover: color-mix(
     in srgb,
@@ -621,6 +626,7 @@
   --sui-on-danger: #0c0e11;
   --sui-danger-hover: #ff929b;
   --sui-danger-hover-layer: color-mix(in srgb, var(--sui-danger) 12%, transparent);
+  --sui-field-danger-hover: color-mix(in srgb, var(--sui-danger) 6%, transparent);
   --sui-danger-pressed: color-mix(in srgb, var(--sui-danger-hover) 82%, var(--sui-text-primary));
   --sui-neutral-tint: var(--sui-surface-inset);
   --sui-placeholder: rgb(255 255 255 / 7%);
@@ -658,6 +664,7 @@
   --sui-pressed-inset: inset 0 1px 2px rgb(0 0 0 / 34%);
 
   --sui-row-hover: color-mix(in srgb, #ffffff 6.8%, transparent);
+  --sui-field-hover: color-mix(in srgb, #ffffff 3.4%, transparent);
   --sui-row-pressed: color-mix(in srgb, #ffffff 12.4%, transparent);
 
   --sui-changed: var(--sui-link);
@@ -771,6 +778,7 @@
     --sui-swatch-edge-ceiling: 1;
     --sui-unsaved-border: #a5772c;
     --sui-unsaved-row-hover: color-mix(in srgb, var(--sui-unsaved-ink) 8%, transparent);
+    --sui-unsaved-field-hover: color-mix(in srgb, var(--sui-unsaved-ink) 4%, transparent);
     --sui-unsaved-row-pressed: color-mix(in srgb, var(--sui-unsaved-ink) 16%, transparent);
     --sui-decision-accent-hover: color-mix(
       in srgb,
@@ -795,6 +803,7 @@
     --sui-on-danger: #0c0e11;
     --sui-danger-hover: #ff929b;
     --sui-danger-hover-layer: color-mix(in srgb, var(--sui-danger) 12%, transparent);
+    --sui-field-danger-hover: color-mix(in srgb, var(--sui-danger) 6%, transparent);
     --sui-danger-pressed: color-mix(in srgb, var(--sui-danger-hover) 82%, var(--sui-text-primary));
     --sui-neutral-tint: var(--sui-surface-inset);
     --sui-placeholder: rgb(255 255 255 / 7%);
@@ -832,6 +841,7 @@
     --sui-pressed-inset: inset 0 1px 2px rgb(0 0 0 / 34%);
 
     --sui-row-hover: color-mix(in srgb, #ffffff 6.8%, transparent);
+    --sui-field-hover: color-mix(in srgb, #ffffff 3.4%, transparent);
     --sui-row-pressed: color-mix(in srgb, #ffffff 12.4%, transparent);
 
     --sui-changed: var(--sui-link);

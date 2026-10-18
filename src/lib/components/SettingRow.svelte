@@ -352,6 +352,7 @@ between them (L-91).
     --sui-interactive-pressed: color-mix(in srgb, var(--sui-unsaved-ink) 16%, transparent);
     --sui-surface-raised: transparent;
     --sui-row-hover: var(--sui-unsaved-row-hover);
+    --sui-field-hover: var(--sui-unsaved-field-hover);
     --sui-row-pressed: var(--sui-unsaved-row-pressed);
     --sui-segment-hover: var(--sui-interactive-hover-layer);
     --sui-segment-pressed: var(--sui-interactive-pressed);

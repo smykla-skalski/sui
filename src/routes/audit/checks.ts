@@ -241,10 +241,14 @@ function palette(): Finding[] {
 
   const base = t('surface-base');
   const rowStep = deltaE(base, over(t('row-hover'), base));
+  const fieldStep = deltaE(base, over(t('field-hover'), base));
   found.push(
     ...(lightness(base) > 50
       ? between('L-12', 'row hover step on surface-base', rowStep, 2, 3)
-      : between('L-12', 'row hover step on surface-base', rowStep, 4.5, 5.5))
+      : between('L-12', 'row hover step on surface-base', rowStep, 4.5, 5.5)),
+    ...(lightness(base) > 50
+      ? between('L-12', 'field hover step on surface-base', fieldStep, 1, 1.5)
+      : between('L-12', 'field hover step on surface-base', fieldStep, 2.2, 2.8))
   );
 
   const [rest, hovered, press] = ['brand-action', 'brand-action-hover', 'brand-action-pressed'].map(
@@ -1664,6 +1668,7 @@ function unsavedVeils(root: Document): Finding[] {
   const found: Finding[] = [];
   const veils = [
     '--sui-row-hover',
+    '--sui-field-hover',
     '--sui-row-pressed',
     '--sui-interactive-hover-layer',
     '--sui-interactive-pressed',
