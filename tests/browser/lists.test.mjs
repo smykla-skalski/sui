@@ -720,6 +720,40 @@ suite('lists', together, () => {
     }
   });
 
+  test('L-64 a slow wait takes the shape of the placeholder rows around it', long, async () => {
+    const page = await open();
+    try {
+      await page.waitForSelector('#skeleton .sui-skeleton-rows.slow', { state: 'attached' });
+      const problems = await page.evaluate(() => {
+        const found = [];
+        const box = (/** @type {Element} */ element) => element.getBoundingClientRect();
+        // Each line's top and height inside its row, so two rows compare line by line.
+        const lines = (/** @type {Element} */ row, /** @type {string} */ selector) =>
+          [...row.querySelectorAll(selector)]
+            .map((line) => `${box(line).top - box(row).top}+${box(line).height}`)
+            .join(' ');
+        const groups = document.querySelectorAll('#skeleton .sui-skeleton-rows.slow');
+        if (groups.length < 2) found.push(`only ${groups.length} slow waits were found`);
+        for (const group of groups) {
+          const [said, next] = group.querySelectorAll(':scope > .row');
+          const kind = group.classList.contains('bars') ? 'two-line' : 'one-line';
+          if (box(said).height !== box(next).height)
+            found.push(
+              `${kind}: the slow row is ${box(said).height}px, its neighbour ${box(next).height}px`
+            );
+          const words = lines(said, '.words > span');
+          const bars = lines(next, '.main > .bar');
+          if (words !== bars)
+            found.push(`${kind}: the words stand at ${words}, the bars at ${bars}`);
+        }
+        return found;
+      });
+      assert.deepEqual(problems, []);
+    } finally {
+      await page.close();
+    }
+  });
+
   test('P8 an entry that shows a problem follows its keystrokes', long, async () => {
     const page = await open();
     try {

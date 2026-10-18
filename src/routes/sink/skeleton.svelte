@@ -48,13 +48,18 @@
 
 <Example
   title="Slow"
-  note="A wait that outlasts its patience stops its light and says so in words, here from the start"
+  note="A wait that outlasts its patience stops its light and says so in the first row's shape, here from the start"
   layout="grid"
   ground="canvas"
 >
-  <Specimen label="Past its patience" code={'patience={0}'}>
+  <Specimen label="Two-line rows" code={'patience={0}'}>
     <Card>
       <Skeleton rows={2} patience={0} label="Loading repositories…" />
+    </Card>
+  </Specimen>
+  <Specimen label="Plain rows" code={'bars={false} rowHeight="2.75rem" patience={0}'}>
+    <Card>
+      <Skeleton rows={2} rowHeight="2.75rem" bars={false} patience={0} label="Loading members…" />
     </Card>
   </Specimen>
 </Example>

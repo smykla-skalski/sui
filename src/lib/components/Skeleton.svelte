@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { word } from '../words.js';
+  import { mark, word } from '../words.js';
   import type { Snippet } from 'svelte';
   import type { HTMLAttributes } from 'svelte/elements';
   import VisuallyHidden from './VisuallyHidden.svelte';
@@ -12,7 +12,8 @@
     label = word('Skeleton.label', 'Loading…'),
     loadedLabel = word('Skeleton.loadedLabel', 'Loaded'),
     patience = 10_000,
-    slowLabel = word('Skeleton.slowLabel', 'Still loading, this is taking longer than usual'),
+    slowLabel = word('Skeleton.slowLabel', 'Still loading'),
+    slowDescription = word('Skeleton.slowDescription', 'This is taking longer than usual'),
     class: className = '',
     children,
     ...rest
@@ -30,8 +31,10 @@
     loadedLabel?: string;
     /** How long, in milliseconds, before the light stops and the wait says it is slow. `Infinity` never turns slow. */
     patience?: number;
-    /** Drawn in the first row and announced once the wait outlasts `patience`. */
+    /** The slow wait's title, drawn in the first row where a name stands once the wait outlasts `patience`. */
     slowLabel?: string;
+    /** Why the wait is slow, drawn under `slowLabel` where a two-line row's second line stands, and announced after it. */
+    slowDescription?: string;
     class?: HTMLAttributes<HTMLDivElement>['class'];
     /** The loaded content, drawn in the same busy region once `loading` ends. */
     children?: Snippet;
@@ -63,7 +66,15 @@
   });
 
   const said = $derived(
-    !settled ? '' : loading ? (slow ? slowLabel : label) : waited ? loadedLabel : ''
+    !settled
+      ? ''
+      : loading
+        ? slow
+          ? `${slowLabel}${mark('stop')}${slowDescription}`
+          : label
+        : waited
+          ? loadedLabel
+          : ''
   );
 </script>
 
@@ -87,13 +98,13 @@ under reduced motion. Use it only where the shape of what is coming is already k
 
 - Semantics: a `div` that is `aria-busy` while loading, beside a polite `status` that speaks for it.
 - Content: `rows` placeholder rows of the loaded row's height, with bars for a two-line row's name, its line under it and its side, or one bar for a one-line row, and the loaded `children` in their place.
-- States: waiting (the light crosses the bars), slow (the light stops and the first row says `slowLabel`), and loaded (the children, with `loadedLabel` announced).
+- States: waiting (the light crosses the bars), slow (the light stops and the first row says `slowLabel` where a name stands and `slowDescription` where the line under it stands, or the title alone in a one-line row), and loaded (the children, with `loadedLabel` announced).
 - Keyboard: none; placeholders take no focus.
 - Pointer and touch: none; placeholders take no presses.
 - Focus: it never takes focus, and the loaded rows arrive without moving it.
 - Responsive: the bars are fractions of the row's width, capped in rem, so they fit any column.
 - Accessibility: the placeholders are hidden from assistive technology, and the status says what is awaited, when the wait is slow and when it ends; under forced colors each bar keeps an outline.
-- Localization: `label`, `loadedLabel` and `slowLabel` carry the built-in words; the bars start at the inline start, the side bar sits at the inline end and the light crosses in the reading direction, all mirrored in a right-to-left page.
+- Localization: `label`, `loadedLabel`, `slowLabel` and `slowDescription` carry the built-in words, and the slow words are announced joined by `marks.stop`; the bars start at the inline start, the side bar sits at the inline end and the light crosses in the reading direction, all mirrored in a right-to-left page.
 - Performance: each bar shows its part of one light that only `transform` moves, so the compositor runs it, for at most `patience` milliseconds, and none under reduced motion.
 - Analytics: none; the list it holds reports its own outcomes.
 - Failure: a wait past `patience` says it is slow in words instead of sweeping forever; a failed load is the caller's `ErrorState` in its place.
@@ -110,7 +121,10 @@ under reduced motion. Use it only where the shape of what is coming is already k
         <span class="row">
           {#if slow && index === 0}
             <!-- Drawn here as the bars are, because the status beside the region speaks it. -->
-            <span class="words">{slowLabel}</span>
+            <span class="words"
+              ><span class="title">{slowLabel}</span>{#if bars}<span>{slowDescription}</span
+                >{/if}</span
+            >
           {:else}
             <span class="main"
               ><span class="bar"></span>{#if bars}<span class="bar"></span>{/if}</span
@@ -241,15 +255,29 @@ under reduced motion. Use it only where the shape of what is coming is already k
     content: none;
   }
 
+  /* The slow words take a row's shape: a title where the name stands, in a name's ink, and a
+     quieter line where the line under it stands, each cap to baseline on its bar's place. A
+     one-line row keeps one line, the title, so it stays as tall as its neighbours; the status
+     says the rest. */
   .words {
-    align-content: center;
-    block-size: var(--sui-block-snap);
-    color: var(--sui-text-secondary);
+    color: var(--sui-text-muted);
+    display: grid;
     font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-row-copy-leading)
       var(--sui-sans);
+    gap: var(--sui-row-copy-gap);
     grid-column: 1 / -1;
     overflow-wrap: anywhere;
+  }
+
+  .words > span {
+    align-content: center;
+    block-size: var(--sui-block-snap);
     text-box: trim-both cap alphabetic;
+  }
+
+  .title {
+    color: var(--sui-text-primary);
+    font-weight: var(--sui-weight-semibold);
   }
 
   @keyframes sui-skeleton-sheen {
