@@ -2,6 +2,13 @@ import { chromium } from 'playwright-core';
 import { createServer } from 'vite';
 
 /**
+ * Options for a test that takes long, such as an axe or a picture pass over the whole sink or a
+ * sweep that presses every control. It runs only with `SUI_LONG=1` (`npm run test:browser:long`),
+ * as in CI, so the everyday run stays quick.
+ */
+export const long = { skip: process.env.SUI_LONG ? false : 'long: run with SUI_LONG=1' };
+
+/**
  * Starts the kitchen sink on a free port and a browser for it. A cold server optimizes its
  * dependencies on the first visit and then reloads the page, so one visit happens here, before
  * any test presses anything on a page that is about to reload.

@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
 import { after, before, test } from 'node:test';
-import { startSink, visit } from './sink.mjs';
+import { long, startSink, visit } from './sink.mjs';
 
 // The kitchen sink under the conditions readers bring with them: an accessibility engine's
 // WCAG 2.2 rules, a right-to-left page, forced colors, the WCAG 1.4.12 text spacing and text
@@ -60,7 +60,7 @@ const audit = (page) =>
 
 for (const width of [375, 1440])
   for (const theme of ['light', 'dark'])
-    test(`axe finds no WCAG 2.2 A or AA violation at ${width}px in ${theme}`, async () => {
+    test(`axe finds no WCAG 2.2 A or AA violation at ${width}px in ${theme}`, long, async () => {
       const page = await open(width, theme);
       try {
         await page.addScriptTag({ path: axePath });

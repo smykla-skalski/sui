@@ -3,12 +3,12 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { after, before, test } from 'node:test';
-import { startSink, visit } from './sink.mjs';
+import { long, startSink, visit } from './sink.mjs';
 
 // Visual regression: each kitchen-sink section, drawn in both themes, must match the picture
 // recorded for this platform. Fonts rasterize differently per operating system, so pictures are
 // kept per platform, and a platform with none recorded skips rather than passing unseen.
-// Record or refresh them with `SUI_VISUAL_UPDATE=1 node --test tests/browser/visual.test.mjs`
+// Record or refresh them with `SUI_LONG=1 SUI_VISUAL_UPDATE=1 node --test tests/browser/visual.test.mjs`
 // after a change that is meant to look different, and review the new pictures in the diff.
 
 // The same page drawn twice differs in a few anti-aliased pixels at glyph and curve edges, by
@@ -60,7 +60,7 @@ let browser;
 let url = '';
 
 before(async () => {
-  ({ server, browser, url } = await startSink());
+  if (!long.skip) ({ server, browser, url } = await startSink());
 });
 
 after(async () => {
@@ -69,7 +69,7 @@ after(async () => {
 });
 
 for (const theme of ['light', 'dark'])
-  test(`every section looks as recorded in ${theme}`, async (t) => {
+  test(`every section looks as recorded in ${theme}`, long, async (t) => {
     if (!UPDATE && !existsSync(BASELINES)) {
       t.skip(`no pictures are recorded for ${process.platform}`);
       return;

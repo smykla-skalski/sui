@@ -111,15 +111,16 @@ the end part draws its own inset ring while it has focus, so the two never look 
     min-inline-size: 0;
   }
 
-  /* On a line of its own the end starts at the field's start edge (L-90), and its block inset
-     keeps a chip that wraps its words clear of the frame. */
+  /* On a line of its own the end starts at the field's start edge (L-90). A host whose end is a
+     chip that wraps its words sets a block inset to keep it clear of the frame; a full-height
+     end takes none, or it would make the field taller than its value. */
   .sui-joined-end {
     align-items: center;
     box-sizing: border-box;
     display: flex;
     flex: none;
     max-inline-size: 100%;
-    padding-block: var(--sui-control-inset);
+    padding-block: var(--sui-local-joined-end-inset, 0px);
     padding-inline-end: var(--sui-control-inset);
   }
 

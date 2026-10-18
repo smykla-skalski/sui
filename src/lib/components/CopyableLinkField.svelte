@@ -128,7 +128,9 @@ the text field.
 </div>
 
 <style>
+  /* The copy chip wraps its words at a large text size, so it keeps clear of the frame. */
   .sui-copyable-link-field {
+    --sui-local-joined-end-inset: var(--sui-control-inset);
     min-inline-size: 0;
   }
 

@@ -213,6 +213,39 @@ test('a duration problem waits for the reader to leave, and amounts read in the 
   }
 });
 
+for (const width of [1440, 375])
+  test(`a joined field is one control tall and holds its value at the centre at ${width}px`, async () => {
+    const page = await open({ width });
+    try {
+      const wrong = await page.evaluate(() => {
+        const plain = [...document.querySelectorAll('main input.sui-text-input:not(.bare)')].find(
+          (input) => input.checkVisibility()
+        );
+        const control = plain?.getBoundingClientRect().height ?? 0;
+        return [...document.querySelectorAll('main .sui-joined')]
+          .filter((frame) => frame.checkVisibility())
+          .flatMap((frame) => {
+            const value = frame.querySelector(
+              '.sui-joined-value :is(input:not([type="hidden"]), textarea)'
+            );
+            if (!value) return [];
+            const box = frame.getBoundingClientRect();
+            const part = value.getBoundingClientRect();
+            const off = part.top + part.height / 2 - (box.top + box.height / 2);
+            // A value of several lines makes the field as tall as it needs; one line keeps it
+            // a control tall.
+            const tall = part.height <= control && Math.abs(box.height - control) > 0.5;
+            return tall || Math.abs(off) > 0.5
+              ? [`${frame.closest('section')?.id}: ${box.height}px tall, value ${off}px off centre`]
+              : [];
+          });
+      });
+      assert.deepEqual(wrong, []);
+    } finally {
+      await page.close();
+    }
+  });
+
 test('a joined field rings the part that holds focus', async () => {
   const page = await open();
   try {

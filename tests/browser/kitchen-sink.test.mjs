@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { after, before, test } from 'node:test';
-import { startSink, visit } from './sink.mjs';
+import { long, startSink, visit } from './sink.mjs';
 
 // The rendered half of docs/laws.md: the kitchen sink's own law audit, asked at every width
 // and theme, plus the laws that need a real keyboard, a media emulation or two renders.
@@ -230,130 +230,135 @@ test('L-69 every glyph is centred in its 24-unit box', async () => {
 });
 
 for (const width of [375, 1440])
-  test(`L-48 and L-52 every menu, listbox and select opens in place at ${width}px`, async () => {
-    const page = await open(width, 'light');
-    try {
-      const triggers = page.locator(
-        'main > section [aria-haspopup="listbox"]:not(:disabled), main > section [aria-haspopup="menu"]:not(:disabled)'
-      );
-      const count = await triggers.count();
-      assert.ok(count > 3, `only ${count} menu triggers were found`);
-      const problems = [];
-      for (let index = 0; index < count; index++) {
-        const trigger = triggers.nth(index);
-        if (!(await trigger.isVisible())) continue;
-        await trigger.scrollIntoViewIfNeeded();
-        // Where the reader sees it: scroll anchoring holds it there when a specimen above grows
-        // on a timer, so only a scroll the opening caused moves it.
-        const before = await trigger.evaluate((element) => element.getBoundingClientRect().top);
-        await trigger.click();
-        await page.waitForTimeout(250);
-        const report = await trigger.evaluate((element) => {
-          const layer = document.querySelector(
-            ':popover-open:has([role="listbox"], [role="menu"])'
-          );
-          if (!layer) return { missing: true };
-          const box = layer.getBoundingClientRect();
-          const anchor = element.getBoundingClientRect();
-          const options = [...layer.querySelectorAll('[role="option"], [role="menuitem"]')]
-            .filter((option) => option.getClientRects().length > 0)
-            .map((option) => option.getBoundingClientRect().height);
-          return {
-            missing: false,
-            inside:
-              box.left >= -0.5 &&
-              box.top >= -0.5 &&
-              box.right <= document.documentElement.clientWidth + 0.5 &&
-              box.bottom <= document.documentElement.clientHeight + 0.5,
-            narrower:
-              element.getAttribute('aria-haspopup') === 'listbox' && box.width < anchor.width - 0.5,
-            tall: box.height > 320.5,
-            heights: [...new Set(options.map((height) => Math.round(height * 100) / 100))],
-            tier: parseFloat(
-              getComputedStyle(document.documentElement).getPropertyValue(
-                '--sui-control-height-compact'
-              )
-            )
-          };
-        });
-        const name = `trigger ${index} (${await trigger.getAttribute('aria-haspopup')})`;
-        if (report.missing) problems.push(`${name}: no menu opened`);
-        else {
-          if (!report.inside) problems.push(`${name}: the layer leaves the viewport`);
-          if (report.narrower) problems.push(`${name}: the listbox is narrower than its trigger`);
-          if (report.tall) problems.push(`${name}: the layer is taller than 20rem`);
-          if (report.heights?.some((height) => height < report.tier - 0.01))
-            problems.push(
-              `${name}: option heights ${report.heights.join(', ')}, under ${report.tier}`
+  test(
+    `L-48 and L-52 every menu, listbox and select opens in place at ${width}px`,
+    long,
+    async () => {
+      const page = await open(width, 'light');
+      try {
+        const triggers = page.locator(
+          'main > section [aria-haspopup="listbox"]:not(:disabled), main > section [aria-haspopup="menu"]:not(:disabled)'
+        );
+        const count = await triggers.count();
+        assert.ok(count > 3, `only ${count} menu triggers were found`);
+        const problems = [];
+        for (let index = 0; index < count; index++) {
+          const trigger = triggers.nth(index);
+          if (!(await trigger.isVisible())) continue;
+          await trigger.scrollIntoViewIfNeeded();
+          // Where the reader sees it: scroll anchoring holds it there when a specimen above grows
+          // on a timer, so only a scroll the opening caused moves it.
+          const before = await trigger.evaluate((element) => element.getBoundingClientRect().top);
+          await trigger.click();
+          await page.waitForTimeout(250);
+          const report = await trigger.evaluate((element) => {
+            const layer = document.querySelector(
+              ':popover-open:has([role="listbox"], [role="menu"])'
             );
+            if (!layer) return { missing: true };
+            const box = layer.getBoundingClientRect();
+            const anchor = element.getBoundingClientRect();
+            const options = [...layer.querySelectorAll('[role="option"], [role="menuitem"]')]
+              .filter((option) => option.getClientRects().length > 0)
+              .map((option) => option.getBoundingClientRect().height);
+            return {
+              missing: false,
+              inside:
+                box.left >= -0.5 &&
+                box.top >= -0.5 &&
+                box.right <= document.documentElement.clientWidth + 0.5 &&
+                box.bottom <= document.documentElement.clientHeight + 0.5,
+              narrower:
+                element.getAttribute('aria-haspopup') === 'listbox' &&
+                box.width < anchor.width - 0.5,
+              tall: box.height > 320.5,
+              heights: [...new Set(options.map((height) => Math.round(height * 100) / 100))],
+              tier: parseFloat(
+                getComputedStyle(document.documentElement).getPropertyValue(
+                  '--sui-control-height-compact'
+                )
+              )
+            };
+          });
+          const name = `trigger ${index} (${await trigger.getAttribute('aria-haspopup')})`;
+          if (report.missing) problems.push(`${name}: no menu opened`);
+          else {
+            if (!report.inside) problems.push(`${name}: the layer leaves the viewport`);
+            if (report.narrower) problems.push(`${name}: the listbox is narrower than its trigger`);
+            if (report.tall) problems.push(`${name}: the layer is taller than 20rem`);
+            if (report.heights?.some((height) => height < report.tier - 0.01))
+              problems.push(
+                `${name}: option heights ${report.heights.join(', ')}, under ${report.tier}`
+              );
+          }
+          const after = await trigger.evaluate((element) => element.getBoundingClientRect().top);
+          if (Math.abs(after - before) > 0.5)
+            problems.push(`${name}: opening scrolled the page by ${after - before}px`);
+          await page.keyboard.press('Escape');
+          await page.waitForTimeout(200);
+          if (!(await trigger.evaluate((element) => document.activeElement === element)))
+            problems.push(`${name}: focus did not return to the trigger`);
         }
-        const after = await trigger.evaluate((element) => element.getBoundingClientRect().top);
-        if (Math.abs(after - before) > 0.5)
-          problems.push(`${name}: opening scrolled the page by ${after - before}px`);
-        await page.keyboard.press('Escape');
-        await page.waitForTimeout(200);
-        if (!(await trigger.evaluate((element) => document.activeElement === element)))
-          problems.push(`${name}: focus did not return to the trigger`);
-      }
 
-      // A native select draws its picker as `::picker(select)`, which has no element to
-      // measure, so the picker is read through its computed style and its options' boxes.
-      const selects = page.locator(
-        'main > section select:not(:disabled):not([inert] *, [aria-hidden="true"] *)'
-      );
-      const total = await selects.count();
-      assert.ok(total > 3, `only ${total} selects were found`);
-      for (let index = 0; index < total; index++) {
-        const select = selects.nth(index);
-        if (!(await select.isVisible())) continue;
-        await select.scrollIntoViewIfNeeded();
-        // Where the reader sees it: scroll anchoring holds it there when a specimen above grows
-        // on a timer, so only a scroll the opening caused moves it.
-        const before = await select.evaluate((element) => element.getBoundingClientRect().top);
-        await select.click();
-        await page.waitForTimeout(250);
-        const report = await select.evaluate((element) => {
-          if (!(/** @type {HTMLSelectElement} */ (element).matches(':open')))
-            return { open: false };
-          const picker = getComputedStyle(element, '::picker(select)');
-          const options = [.../** @type {HTMLSelectElement} */ (element).options]
-            .filter((option) => option.getClientRects().length > 0)
-            .map((option) => option.getBoundingClientRect().height);
-          return {
-            open: true,
-            narrower: parseFloat(picker.width) < element.getBoundingClientRect().width - 0.5,
-            tall: parseFloat(picker.height) > 320.5,
-            heights: [...new Set(options.map((height) => Math.round(height * 100) / 100))],
-            tier: parseFloat(
-              getComputedStyle(document.documentElement).getPropertyValue(
-                '--sui-control-height-compact'
+        // A native select draws its picker as `::picker(select)`, which has no element to
+        // measure, so the picker is read through its computed style and its options' boxes.
+        const selects = page.locator(
+          'main > section select:not(:disabled):not([inert] *, [aria-hidden="true"] *)'
+        );
+        const total = await selects.count();
+        assert.ok(total > 3, `only ${total} selects were found`);
+        for (let index = 0; index < total; index++) {
+          const select = selects.nth(index);
+          if (!(await select.isVisible())) continue;
+          await select.scrollIntoViewIfNeeded();
+          // Where the reader sees it: scroll anchoring holds it there when a specimen above grows
+          // on a timer, so only a scroll the opening caused moves it.
+          const before = await select.evaluate((element) => element.getBoundingClientRect().top);
+          await select.click();
+          await page.waitForTimeout(250);
+          const report = await select.evaluate((element) => {
+            if (!(/** @type {HTMLSelectElement} */ (element).matches(':open')))
+              return { open: false };
+            const picker = getComputedStyle(element, '::picker(select)');
+            const options = [.../** @type {HTMLSelectElement} */ (element).options]
+              .filter((option) => option.getClientRects().length > 0)
+              .map((option) => option.getBoundingClientRect().height);
+            return {
+              open: true,
+              narrower: parseFloat(picker.width) < element.getBoundingClientRect().width - 0.5,
+              tall: parseFloat(picker.height) > 320.5,
+              heights: [...new Set(options.map((height) => Math.round(height * 100) / 100))],
+              tier: parseFloat(
+                getComputedStyle(document.documentElement).getPropertyValue(
+                  '--sui-control-height-compact'
+                )
               )
-            )
-          };
-        });
-        const name = `select ${index} (${(await select.getAttribute('aria-label')) ?? (await select.getAttribute('id'))})`;
-        if (!report.open) problems.push(`${name}: the picker did not open`);
-        else {
-          if (report.narrower) problems.push(`${name}: the picker is narrower than its field`);
-          if (report.tall) problems.push(`${name}: the picker is taller than 20rem`);
-          if (report.heights?.some((height) => height < report.tier - 0.01))
-            problems.push(
-              `${name}: option heights ${report.heights.join(', ')}, under ${report.tier}`
-            );
+            };
+          });
+          const name = `select ${index} (${(await select.getAttribute('aria-label')) ?? (await select.getAttribute('id'))})`;
+          if (!report.open) problems.push(`${name}: the picker did not open`);
+          else {
+            if (report.narrower) problems.push(`${name}: the picker is narrower than its field`);
+            if (report.tall) problems.push(`${name}: the picker is taller than 20rem`);
+            if (report.heights?.some((height) => height < report.tier - 0.01))
+              problems.push(
+                `${name}: option heights ${report.heights.join(', ')}, under ${report.tier}`
+              );
+          }
+          const after = await select.evaluate((element) => element.getBoundingClientRect().top);
+          if (Math.abs(after - before) > 0.5)
+            problems.push(`${name}: opening scrolled the page by ${after - before}px`);
+          await page.keyboard.press('Escape');
+          await page.waitForTimeout(200);
+          if (!(await select.evaluate((element) => document.activeElement === element)))
+            problems.push(`${name}: focus did not return to the field`);
         }
-        const after = await select.evaluate((element) => element.getBoundingClientRect().top);
-        if (Math.abs(after - before) > 0.5)
-          problems.push(`${name}: opening scrolled the page by ${after - before}px`);
-        await page.keyboard.press('Escape');
-        await page.waitForTimeout(200);
-        if (!(await select.evaluate((element) => document.activeElement === element)))
-          problems.push(`${name}: focus did not return to the field`);
+        assert.deepEqual(problems, []);
+      } finally {
+        await page.close();
       }
-      assert.deepEqual(problems, []);
-    } finally {
-      await page.close();
     }
-  });
+  );
 
 test('L-50 a dragged thumb chooses on release, and Escape puts it back', async () => {
   const page = await open(1440, 'light');
@@ -504,94 +509,98 @@ test('L-52 and L-89 a pair chip edits in place and focus never falls to the page
   }
 });
 
-test('L-97 every layer a press opens grows from its trigger edge and folds back to it', async () => {
-  const page = await open(1440, 'light');
-  try {
-    // A smooth scroll would still move the trigger while its layer grows. Each layer's motion is
-    // seeked to its ends, so its length does not matter, and a long one is still running when a
-    // busy page gets round to looking at it. The trigger keeps its own press timing.
-    await page.addStyleTag({
-      content:
-        'html { scroll-behavior: auto !important; } .sui-popover { --sui-duration-press: 10000ms !important; --sui-duration-normal: 10000ms !important; }'
-    });
-    // The phone drawer is an edge layer, not one placed beside its trigger.
-    const triggers = page.locator(
-      'main > section [popovertarget]:not(:disabled):not([aria-controls*="drawer"])'
-    );
-    const count = await triggers.count();
-    assert.ok(count > 5, `only ${count} popover triggers were found`);
-    const problems = [];
-    // Seeks the trigger's own layer to one end of its motion: the box must be a line on its edge
-    // that faces the trigger, as long as the trigger, and clear of the trigger itself.
-    const at = (
-      /** @type {import('playwright-core').Locator} */ trigger,
-      /** @type {'start' | 'end'} */ end
-    ) =>
-      trigger.evaluate((element, end) => {
-        const box = document.getElementById(element.getAttribute('popovertarget') ?? '');
-        if (!(box instanceof HTMLElement) || !box.classList.contains('sui-popover')) return '';
-        if (box.getAnimations().length === 0) return 'it does not move';
-        for (const animation of box.getAnimations()) {
-          animation.pause();
-          animation.currentTime =
-            end === 'start' ? 0 : Number(animation.effect?.getTiming().duration) - 0.01;
-        }
-        const seen = box.getBoundingClientRect();
-        const from = element.getBoundingClientRect();
-        for (const animation of box.getAnimations()) animation.finish();
-        const near = (/** @type {number} */ a, /** @type {number} */ b) => Math.abs(a - b) <= 1;
-        const below = box.dataset.side !== 'block-start';
-        const line =
-          seen.height <= 1 &&
-          near(seen.left, from.left) &&
-          near(seen.width, from.width) &&
-          (below ? seen.top >= from.bottom : seen.bottom <= from.top);
-        const size = (/** @type {DOMRect} */ r) =>
-          `${Math.round(r.width)}x${Math.round(r.height)} at ${Math.round(r.left)},${Math.round(r.top)}`;
-        return line ? '' : `it is ${size(seen)}, the trigger ${size(from)}`;
-      }, end);
-    // Waits, frame by frame, until the layer is open or closed and in motion, so a slow frame
-    // under load never lets the motion start late or end before it is seen. A layer that never
-    // moves times out here and fails at `at`.
-    const moving = (
-      /** @type {import('playwright-core').Locator} */ trigger,
-      /** @type {boolean} */ open
-    ) =>
-      trigger.evaluate(
-        (element, open) =>
-          new Promise((resolve) => {
-            const box = document.getElementById(element.getAttribute('popovertarget') ?? '');
-            const started = performance.now();
-            const look = () => {
-              if (!box || performance.now() - started > 5000) return resolve(false);
-              if (box.matches(':popover-open') === open && box.getAnimations().length > 0)
-                return resolve(true);
-              requestAnimationFrame(look);
-            };
-            look();
-          }),
-        open
+test(
+  'L-97 every layer a press opens grows from its trigger edge and folds back to it',
+  long,
+  async () => {
+    const page = await open(1440, 'light');
+    try {
+      // A smooth scroll would still move the trigger while its layer grows. Each layer's motion is
+      // seeked to its ends, so its length does not matter, and a long one is still running when a
+      // busy page gets round to looking at it. The trigger keeps its own press timing.
+      await page.addStyleTag({
+        content:
+          'html { scroll-behavior: auto !important; } .sui-popover { --sui-duration-press: 10000ms !important; --sui-duration-normal: 10000ms !important; }'
+      });
+      // The phone drawer is an edge layer, not one placed beside its trigger.
+      const triggers = page.locator(
+        'main > section [popovertarget]:not(:disabled):not([aria-controls*="drawer"])'
       );
-    for (let index = 0; index < count; index++) {
-      const trigger = triggers.nth(index);
-      if (!(await trigger.isVisible())) continue;
-      await trigger.scrollIntoViewIfNeeded();
-      const name = `trigger ${index} (${(await trigger.textContent())?.trim() || (await trigger.getAttribute('aria-label'))})`;
-      await trigger.click();
-      await moving(trigger, true);
-      const grew = await at(trigger, 'start');
-      if (grew) problems.push(`${name}: opening does not start on the trigger, ${grew}`);
-      await page.keyboard.press('Escape');
-      await moving(trigger, false);
-      const shrank = await at(trigger, 'end');
-      if (shrank) problems.push(`${name}: closing does not end on the trigger, ${shrank}`);
-      await page.waitForTimeout(150);
+      const count = await triggers.count();
+      assert.ok(count > 5, `only ${count} popover triggers were found`);
+      const problems = [];
+      // Seeks the trigger's own layer to one end of its motion: the box must be a line on its edge
+      // that faces the trigger, as long as the trigger, and clear of the trigger itself.
+      const at = (
+        /** @type {import('playwright-core').Locator} */ trigger,
+        /** @type {'start' | 'end'} */ end
+      ) =>
+        trigger.evaluate((element, end) => {
+          const box = document.getElementById(element.getAttribute('popovertarget') ?? '');
+          if (!(box instanceof HTMLElement) || !box.classList.contains('sui-popover')) return '';
+          if (box.getAnimations().length === 0) return 'it does not move';
+          for (const animation of box.getAnimations()) {
+            animation.pause();
+            animation.currentTime =
+              end === 'start' ? 0 : Number(animation.effect?.getTiming().duration) - 0.01;
+          }
+          const seen = box.getBoundingClientRect();
+          const from = element.getBoundingClientRect();
+          for (const animation of box.getAnimations()) animation.finish();
+          const near = (/** @type {number} */ a, /** @type {number} */ b) => Math.abs(a - b) <= 1;
+          const below = box.dataset.side !== 'block-start';
+          const line =
+            seen.height <= 1 &&
+            near(seen.left, from.left) &&
+            near(seen.width, from.width) &&
+            (below ? seen.top >= from.bottom : seen.bottom <= from.top);
+          const size = (/** @type {DOMRect} */ r) =>
+            `${Math.round(r.width)}x${Math.round(r.height)} at ${Math.round(r.left)},${Math.round(r.top)}`;
+          return line ? '' : `it is ${size(seen)}, the trigger ${size(from)}`;
+        }, end);
+      // Waits, frame by frame, until the layer is open or closed and in motion, so a slow frame
+      // under load never lets the motion start late or end before it is seen. A layer that never
+      // moves times out here and fails at `at`.
+      const moving = (
+        /** @type {import('playwright-core').Locator} */ trigger,
+        /** @type {boolean} */ open
+      ) =>
+        trigger.evaluate(
+          (element, open) =>
+            new Promise((resolve) => {
+              const box = document.getElementById(element.getAttribute('popovertarget') ?? '');
+              const started = performance.now();
+              const look = () => {
+                if (!box || performance.now() - started > 5000) return resolve(false);
+                if (box.matches(':popover-open') === open && box.getAnimations().length > 0)
+                  return resolve(true);
+                requestAnimationFrame(look);
+              };
+              look();
+            }),
+          open
+        );
+      for (let index = 0; index < count; index++) {
+        const trigger = triggers.nth(index);
+        if (!(await trigger.isVisible())) continue;
+        await trigger.scrollIntoViewIfNeeded();
+        const name = `trigger ${index} (${(await trigger.textContent())?.trim() || (await trigger.getAttribute('aria-label'))})`;
+        await trigger.click();
+        await moving(trigger, true);
+        const grew = await at(trigger, 'start');
+        if (grew) problems.push(`${name}: opening does not start on the trigger, ${grew}`);
+        await page.keyboard.press('Escape');
+        await moving(trigger, false);
+        const shrank = await at(trigger, 'end');
+        if (shrank) problems.push(`${name}: closing does not end on the trigger, ${shrank}`);
+        await page.waitForTimeout(150);
+      }
+      assert.deepEqual(problems, []);
+    } finally {
+      await page.close();
     }
-    assert.deepEqual(problems, []);
-  } finally {
-    await page.close();
   }
-});
+);
 
 // Every control a reader presses, save text links: buttons, select triggers, summaries, menu
 // items, options, tabs, navigation rows, chips and check rows.
@@ -608,97 +617,106 @@ const PRESSABLE = [
   .join(', ');
 const TEXT_LINKS = '.sui-link, .sui-back-link, .sui-skip-link, .sui-breadcrumb a, p a';
 
-test('L-42 every control shows its press: a ground, an inset, and a sink when it has a frame', async () => {
-  const page = await open(1440, 'light');
-  try {
-    const count = await page.evaluate(
-      ({ pressable, textLinks }) => {
-        const found = [...document.querySelectorAll(pressable)].filter(
-          (element) =>
-            !element.matches(textLinks) &&
-            !element.matches(
-              ':disabled, :has(input:disabled), .disabled, [aria-disabled="true"], [aria-busy="true"], [inert], [inert] *'
-            ) &&
-            !element.closest('[popover]:not(:popover-open), [hidden], [aria-hidden="true"]') &&
-            element.checkVisibility({ checkOpacity: true, checkVisibilityCSS: true }) &&
-            element.getBoundingClientRect().width > 0
-        );
-        found.forEach((element, index) => element.setAttribute('data-press-probe', String(index)));
-        return found.length;
-      },
-      { pressable: PRESSABLE, textLinks: TEXT_LINKS }
-    );
-    assert.ok(count > 50, `only ${count} pressable controls were found`);
-    // Transitions off, so each state is read the moment it applies.
-    await page.addStyleTag({ content: '*, *::before, *::after { transition: none !important; }' });
-    // The paint a press may change: the control, the row a whole-row link covers, its
-    // pseudo-elements, its children and the absolute layers beside it, such as a segmented thumb.
-    await page.evaluate(() => {
-      Object.assign(window, {
-        pressRead: (/** @type {Element} */ element) => {
-          const parts = [
-            element,
-            ...(element.parentElement ? [element.parentElement] : []),
-            ...element.querySelectorAll('*'),
-            ...[...(element.parentElement?.children ?? [])].filter(
-              (sibling) => sibling !== element && getComputedStyle(sibling).position === 'absolute'
-            )
-          ];
-          const look = getComputedStyle(element);
-          return {
-            paint: parts.flatMap((part) =>
-              [null, '::before', '::after'].map((pseudo) => {
-                const style = getComputedStyle(part, pseudo);
-                return `${style.backgroundColor}|${style.backgroundImage}|${style.boxShadow}`;
-              })
-            ),
-            sink: look.translate,
-            // A border of its own, even a clear one, makes a control free-standing; a part of a
-            // shared frame, such as a chip's remove part, has none and does not sink.
-            framed: parseFloat(look.borderTopWidth) > 0,
-            name: `${element.tagName.toLowerCase()}.${[...element.classList].filter((name) => !name.startsWith('svelte-')).join('.')} “${(element.textContent ?? '').trim().slice(0, 24) || element.getAttribute('aria-label')}”`
-          };
-        }
-      });
-    });
-    const take = (/** @type {Element} */ element) =>
-      /** @type {{ pressRead: (element: Element) => { paint: string[]; sink: string; framed: boolean; name: string } }} */ (
-        /** @type {unknown} */ (window)
-      ).pressRead(element);
-    const problems = [];
-    for (let index = 0; index < count; index++) {
-      const control = page.locator(`[data-press-probe="${index}"]`);
-      if (!(await control.isVisible())) continue;
-      // A control an earlier press re-rendered away is not there to press.
-      const reached = await control
-        .scrollIntoViewIfNeeded({ timeout: 2000 })
-        .then(() => true)
-        .catch(() => false);
-      if (!reached) continue;
-      const box = await control.boundingBox();
-      if (!box) continue;
-      await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
-      const rest = await control.evaluate(take);
-      await page.mouse.down();
-      const pressed = await control.evaluate(take);
-      // Leave before letting go, so the press never becomes a click.
-      await page.mouse.move(0, 0);
-      await page.mouse.up();
-      const grounded = pressed.paint.some(
-        (/** @type {string} */ part, /** @type {number} */ at) => part !== rest.paint[at]
+test(
+  'L-42 every control shows its press: a ground, an inset, and a sink when it has a frame',
+  long,
+  async () => {
+    const page = await open(1440, 'light');
+    try {
+      const count = await page.evaluate(
+        ({ pressable, textLinks }) => {
+          const found = [...document.querySelectorAll(pressable)].filter(
+            (element) =>
+              !element.matches(textLinks) &&
+              !element.matches(
+                ':disabled, :has(input:disabled), .disabled, [aria-disabled="true"], [aria-busy="true"], [inert], [inert] *'
+              ) &&
+              !element.closest('[popover]:not(:popover-open), [hidden], [aria-hidden="true"]') &&
+              element.checkVisibility({ checkOpacity: true, checkVisibilityCSS: true }) &&
+              element.getBoundingClientRect().width > 0
+          );
+          found.forEach((element, index) =>
+            element.setAttribute('data-press-probe', String(index))
+          );
+          return found.length;
+        },
+        { pressable: PRESSABLE, textLinks: TEXT_LINKS }
       );
-      const inset = pressed.paint.some((/** @type {string} */ part) => part.includes('inset'));
-      if (!grounded || !inset) problems.push(`${pressed.name}: no pressed ground and inset`);
-      else if (rest.framed && pressed.sink !== '0px 1px')
-        problems.push(`${pressed.name}: a framed control does not sink 1px`);
+      assert.ok(count > 50, `only ${count} pressable controls were found`);
+      // Transitions off, so each state is read the moment it applies.
+      await page.addStyleTag({
+        content: '*, *::before, *::after { transition: none !important; }'
+      });
+      // The paint a press may change: the control, the row a whole-row link covers, its
+      // pseudo-elements, its children and the absolute layers beside it, such as a segmented thumb.
+      await page.evaluate(() => {
+        Object.assign(window, {
+          pressRead: (/** @type {Element} */ element) => {
+            const parts = [
+              element,
+              ...(element.parentElement ? [element.parentElement] : []),
+              ...element.querySelectorAll('*'),
+              ...[...(element.parentElement?.children ?? [])].filter(
+                (sibling) =>
+                  sibling !== element && getComputedStyle(sibling).position === 'absolute'
+              )
+            ];
+            const look = getComputedStyle(element);
+            return {
+              paint: parts.flatMap((part) =>
+                [null, '::before', '::after'].map((pseudo) => {
+                  const style = getComputedStyle(part, pseudo);
+                  return `${style.backgroundColor}|${style.backgroundImage}|${style.boxShadow}`;
+                })
+              ),
+              sink: look.translate,
+              // A border of its own, even a clear one, makes a control free-standing; a part of a
+              // shared frame, such as a chip's remove part, has none and does not sink.
+              framed: parseFloat(look.borderTopWidth) > 0,
+              name: `${element.tagName.toLowerCase()}.${[...element.classList].filter((name) => !name.startsWith('svelte-')).join('.')} “${(element.textContent ?? '').trim().slice(0, 24) || element.getAttribute('aria-label')}”`
+            };
+          }
+        });
+      });
+      const take = (/** @type {Element} */ element) =>
+        /** @type {{ pressRead: (element: Element) => { paint: string[]; sink: string; framed: boolean; name: string } }} */ (
+          /** @type {unknown} */ (window)
+        ).pressRead(element);
+      const problems = [];
+      for (let index = 0; index < count; index++) {
+        const control = page.locator(`[data-press-probe="${index}"]`);
+        if (!(await control.isVisible())) continue;
+        // A control an earlier press re-rendered away is not there to press.
+        const reached = await control
+          .scrollIntoViewIfNeeded({ timeout: 2000 })
+          .then(() => true)
+          .catch(() => false);
+        if (!reached) continue;
+        const box = await control.boundingBox();
+        if (!box) continue;
+        await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+        const rest = await control.evaluate(take);
+        await page.mouse.down();
+        const pressed = await control.evaluate(take);
+        // Leave before letting go, so the press never becomes a click.
+        await page.mouse.move(0, 0);
+        await page.mouse.up();
+        const grounded = pressed.paint.some(
+          (/** @type {string} */ part, /** @type {number} */ at) => part !== rest.paint[at]
+        );
+        const inset = pressed.paint.some((/** @type {string} */ part) => part.includes('inset'));
+        if (!grounded || !inset) problems.push(`${pressed.name}: no pressed ground and inset`);
+        else if (rest.framed && pressed.sink !== '0px 1px')
+          problems.push(`${pressed.name}: a framed control does not sink 1px`);
+      }
+      assert.deepEqual(problems, []);
+    } finally {
+      await page.close();
     }
-    assert.deepEqual(problems, []);
-  } finally {
-    await page.close();
   }
-});
+);
 
-test('L-52 a second press on a trigger closes its open layer', async () => {
+test('L-52 a second press on a trigger closes its open layer', long, async () => {
   const page = await open(1440, 'light');
   try {
     // The phone drawer is modal and covers its own menu button, so it closes from inside.

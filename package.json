@@ -46,7 +46,8 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "prepack": "npm run build",
-    "test:browser": "node --test tests/browser/*.test.mjs"
+    "test:browser": "node --test tests/browser/*.test.mjs",
+    "test:browser:long": "SUI_LONG=1 node --test tests/browser/*.test.mjs"
   },
   "peerDependencies": {
     "svelte": "^5.0.0"
