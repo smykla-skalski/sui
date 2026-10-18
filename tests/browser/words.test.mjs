@@ -191,7 +191,7 @@ test('with every mark replaced, each joined name reads the marks and nothing bet
       });
       put(lib.Callout, 'Callout', {
         tone: 'warning',
-        title: 'Drift',
+        title: 'Drift\u00a0found',
         live: true,
         children: html(
           '<span>Read <span data-link></span> now<span data-pill></span>, ask <span data-tip></span> or <span data-copy></span></span>'
@@ -297,10 +297,10 @@ test('with every mark replaced, each joined name reads the marks and nothing bet
     );
     // What Chrome reads of the copy: the tip and the copy control by their names, and neither
     // the closed tip, the hidden note, the copy control's unshown state words nor the space
-    // between the pill's flex items, which is not drawn.
+    // between the pill's flex items, which is not drawn. The title's no-break space stays.
     assert.equal(
       await callout.textContent(),
-      'UWAGAⓟDriftⓟRead Docs\u2060 nowRunⓒNAZYWO, ask About drift or Copy'
+      'UWAGAⓟDrift\u00a0foundⓟRead Docs\u2060 nowRunⓒNAZYWO, ask About drift or Copy'
     );
 
     const duration = await read('[data-words="DurationInput"] input:not([type="hidden"])');
@@ -333,7 +333,17 @@ test('a control inside a sentence adds no space of its own to it', async () => {
         ['IconButton', { label: 'Delete', icon: 'trash' }],
         ['ActionMenu', { label: 'More', items: [] }],
         ['AdditionPicker', { label: 'Add', choices: [], onadd: () => {} }],
-        ['ColorPicker', { value: '#0e8a16', 'aria-label': 'Color' }]
+        ['ColorPicker', { value: '#0e8a16', 'aria-label': 'Color' }],
+        // Narrowed, because at full width a trailing space hangs at the line's end undrawn.
+        [
+          'Combobox',
+          {
+            'aria-label': 'Language',
+            name: 'language',
+            options: [{ value: 'ts', label: 'TypeScript' }],
+            style: 'inline-size: 9rem'
+          }
+        ]
       ];
       return controls.flatMap(([name, props]) => {
         const sentence = document.createElement('p');

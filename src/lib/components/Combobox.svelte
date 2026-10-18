@@ -360,13 +360,13 @@ Name it with a `<label>` or `aria-label`, as any field.
     onclick={() => {
       if (!open && !preview) show(false);
     }}
-  />
-  {#if name}
-    <input type="hidden" {name} {value} form={rest.form} disabled={rest.disabled} />
-  {/if}
-  <VisuallyHidden role="status">{spoken}</VisuallyHidden>
-
-  <Popover
+  />{#if name}<input
+      type="hidden"
+      {name}
+      {value}
+      form={rest.form}
+      disabled={rest.disabled}
+    />{/if}<VisuallyHidden role="status">{spoken}</VisuallyHidden><Popover
     anchor={element}
     open={showing}
     inline={preview}

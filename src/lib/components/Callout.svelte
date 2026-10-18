@@ -67,6 +67,10 @@
     return node.getAttribute('aria-label') ?? [...node.childNodes].map(spoken).join('');
   };
 
+  /* Whitespace collapses as the page draws it, so a no-break or narrow space a language writes
+     between its words stays as written. */
+  const collapse = (text: string) => text.replace(/[ \t\n\r\f]+/g, ' ').replace(/^ | $/g, '');
+
   const prefix = $derived(decision ? decisionLabel : tone === 'warning' ? warningLabel : '');
 
   $effect(() => {
@@ -76,7 +80,7 @@
     const timer = setTimeout(
       () =>
         (said = [...source.children]
-          .map((part) => spoken(part).replace(/\s+/g, ' ').trim())
+          .map((part) => collapse(spoken(part)))
           .filter(Boolean)
           .join(mark('space'))),
       SETTLE
