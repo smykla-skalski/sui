@@ -675,8 +675,11 @@ function buttonInsets(
 /**
  * Where a glyph puts ink: its shapes' extent widened by half their stroke, from the svg's user
  * units to the page's pixels, rather than the box it is drawn in, which a glyph rarely fills.
+ * An svg that draws words, such as a chart, is read by each part's own ink instead (wordsInk).
  */
 function glyphInk(svg: SVGSVGElement): DOMRect {
+  if ([...svg.querySelectorAll('text')].some((text) => text.textContent?.trim()))
+    return wordsInk(svg);
   const box = svg.getBoundingClientRect();
   const view = svg.viewBox.baseVal;
   let shapes: DOMRect;
@@ -698,13 +701,100 @@ function glyphInk(svg: SVGSVGElement): DOMRect {
   );
 }
 
+/**
+ * Where an svg that draws words puts ink. A text's own box is its advance and its em, which
+ * reach past the glyphs it draws, so each text is read by its glyphs' ink as the browser
+ * shapes them in its face, and each shape by its extent widened by half its stroke. Both are
+ * taken through the part's own transform, so a turned axis title is read as drawn.
+ */
+function wordsInk(svg: SVGSVGElement): DOMRect {
+  const context = document.createElement('canvas').getContext('2d');
+  const corners: DOMPoint[] = [];
+  const add = (part: SVGGraphicsElement, x0: number, y0: number, x1: number, y1: number) => {
+    const ctm = part.getScreenCTM();
+    if (!ctm) return;
+    for (const [x, y] of [
+      [x0, y0],
+      [x1, y0],
+      [x0, y1],
+      [x1, y1]
+    ])
+      corners.push(new DOMPoint(x, y).matrixTransform(ctm));
+  };
+  for (const part of svg.querySelectorAll<SVGGraphicsElement>(
+    'line, path, circle, ellipse, rect, polyline, polygon, text'
+  )) {
+    const look = getComputedStyle(part);
+    if (look.display === 'none' || look.visibility !== 'visible') continue;
+    if (part instanceof SVGTextElement) {
+      const words = part.textContent ?? '';
+      if (!words.trim() || !context || part.getNumberOfChars() === 0) continue;
+      context.font = `${look.fontStyle} ${look.fontWeight} ${look.fontSize} ${look.fontFamily}`;
+      const ink = context.measureText(words);
+      const start = part.getStartPositionOfChar(0);
+      add(
+        part,
+        start.x - ink.actualBoundingBoxLeft,
+        start.y - ink.actualBoundingBoxAscent,
+        start.x + ink.actualBoundingBoxRight,
+        start.y + ink.actualBoundingBoxDescent
+      );
+      continue;
+    }
+    const shape = part.getBBox();
+    if (shape.width + shape.height === 0) continue;
+    const half = look.stroke === 'none' ? 0 : (parseFloat(look.strokeWidth) || 0) / 2;
+    add(
+      part,
+      shape.x - half,
+      shape.y - half,
+      shape.x + shape.width + half,
+      shape.y + shape.height + half
+    );
+  }
+  if (corners.length === 0) return svg.getBoundingClientRect();
+  const xs = corners.map((corner) => corner.x);
+  const ys = corners.map((corner) => corner.y);
+  return new DOMRect(
+    Math.min(...xs),
+    Math.min(...ys),
+    Math.max(...xs) - Math.min(...xs),
+    Math.max(...ys) - Math.min(...ys)
+  );
+}
+
 function cardInsets(card: Element) {
   const style = getComputedStyle(card);
   // A right-to-left card is measured mirrored, so its start is the smaller coordinate as in LTR.
   const rtl = style.direction === 'rtl';
+  // A part inside a box that scrolls sideways, because its content is wider than it, is read
+  // clipped to the room that box lays its content in: what scrolls past it is out of sight, or
+  // passes under the box's own padding. A box with nothing to scroll clips nothing.
+  const scrolled = (element: Element) => {
+    for (let node = element.parentElement; node && node !== card; node = node.parentElement) {
+      const look = getComputedStyle(node);
+      if (look.overflowX === 'visible' || node.scrollWidth <= node.clientWidth + 1) continue;
+      const edge = node.getBoundingClientRect();
+      return {
+        left: edge.left + parseFloat(look.borderLeftWidth) + parseFloat(look.paddingLeft),
+        right: edge.right - parseFloat(look.borderRightWidth) - parseFloat(look.paddingRight)
+      };
+    }
+    return null;
+  };
   const read = (element: Element) => {
-    const own =
+    let own =
       element instanceof SVGSVGElement ? glyphInk(element) : element.getBoundingClientRect();
+    const view = element === card ? null : scrolled(element);
+    if (view && (own.left < view.left || own.right > view.right)) {
+      const left = Math.max(own.left, view.left);
+      own = new DOMRect(
+        left,
+        own.top,
+        Math.max(0, Math.min(own.right, view.right) - left),
+        own.height
+      );
+    }
     return rtl ? new DOMRect(-own.right, own.top, own.width, own.height) : own;
   };
   const box = read(card);

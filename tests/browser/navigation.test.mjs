@@ -401,10 +401,9 @@ suite('navigation', together, () => {
               const holder = /** @type {Element} */ (card ?? band.closest('.frame'));
               const keyline = parseFloat(getComputedStyle(holder).borderLeftWidth);
               const room = holder.getBoundingClientRect();
-              const plot = /** @type {Element} */ (
-                band.querySelector('.plot-scroll, .sui-chart-wait')
-              );
-              const pad = parseFloat(getComputedStyle(plot).paddingLeft || '0');
+              // A waiting band is its own placeholder, with no plot inside to pad.
+              const plot = band.querySelector('.plot-scroll') ?? band;
+              const pad = parseFloat(getComputedStyle(plot).paddingLeft);
               const specimen = band.closest('.specimen')?.getBoundingClientRect();
               const title = /** @type {Element} */ (
                 band.closest('.sui-chart')?.querySelector('.sui-chart-title')

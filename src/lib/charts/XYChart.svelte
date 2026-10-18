@@ -310,9 +310,9 @@
   .name {
     fill: var(--sui-text-secondary);
   }
-  /* A ring of the ground keeps a marker whole where it crosses another series' line. */
+  /* A ring of the band's ground keeps a marker whole where it crosses another series' line. */
   .marker {
-    stroke: var(--sui-chart-ground);
+    stroke: var(--sui-chart-ring);
     stroke-width: 1.5;
     paint-order: stroke;
   }

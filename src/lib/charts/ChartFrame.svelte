@@ -170,9 +170,12 @@
   {#if status === 'failed'}
     <ErrorState title={failedTitle} description={error ?? failedDescription} {onretry} />
   {:else if status === 'loading'}
-    <div {@attach measureFace} class="plot-band">
-      <div class="sui-chart-wait" style:--sui-local-plot={plotHeight} aria-hidden="true"></div>
-    </div>
+    <div
+      {@attach measureFace}
+      class="plot-band sui-chart-wait"
+      style:--sui-local-plot={plotHeight}
+      aria-hidden="true"
+    ></div>
   {:else if empty}
     <EmptyState
       title={emptyTitle}
@@ -310,13 +313,14 @@
     }
   }
 
-  /* The placeholder keeps the plot's place, and the light that crosses every placeholder
-     crosses it. Only the light moves, by transform, so the compositor runs it. */
+  /* While the data loads, the band itself is the placeholder: it keeps the band's place, size
+     and shape, so nothing moves when the plot arrives, takes the placeholder veil, and the light
+     that crosses every placeholder crosses it. Only the light moves, by transform, so the
+     compositor runs it. */
   .sui-chart-wait {
     background: var(--sui-placeholder);
-    block-size: calc(var(--sui-local-plot) * 1rem / 16);
-    border-radius: var(--sui-radius-control);
-    margin: var(--sui-local-band-pad);
+    block-size: calc(var(--sui-local-plot) * 1rem / 16 + 2 * var(--sui-local-band-pad));
+    box-sizing: border-box;
     overflow: clip;
     position: relative;
   }
@@ -344,14 +348,28 @@
     }
   }
 
+  /* Forced colors drop the veil, so the waiting band keeps its shape by an outline, as every
+     placeholder does. A band that reaches its holder's edges keeps only the lines above and
+     below it, since the holder's own keyline closes its sides. */
   @media (forced-colors: active) {
     .sui-chart-wait {
+      border-block: 0;
       outline: var(--sui-stroke) solid GrayText;
       outline-offset: calc(-1 * var(--sui-stroke));
     }
+
+    @container not style(--sui-local-bleed: 0px) {
+      .sui-chart-wait {
+        border-block: var(--sui-stroke) solid GrayText;
+        outline: none;
+      }
+    }
   }
 
-  /* A block-level flex box, so no line box rounds the disclosure's height off the pixel. */
+  /* A block-level flex box, so no line box rounds the disclosure's height off the pixel. It has
+     no frame or ground at rest, so it hands back the room above and below its words: they
+     stand one gap under the legend and their baseline, to the nearest pixel, on a card's
+     inset, and only its pressed or hovered ground reaches past them (L-33). */
   summary {
     align-items: center;
     border-radius: var(--sui-radius-control);
@@ -361,6 +379,11 @@
     font: var(--sui-weight-semibold) var(--sui-font-size-control) / var(--sui-leading-compact)
       var(--sui-sans);
     inline-size: fit-content;
+    margin-block: calc((round(up, 1cap, 2px) - var(--sui-control-height-chip)) / 2)
+      calc(
+        (round(up, 1cap, 2px) - var(--sui-control-height-chip)) / 2 -
+          round((round(up, 1cap, 2px) - 1cap) / 2, 1px)
+      );
     margin-inline: calc(-1 * var(--sui-space-2));
     min-block-size: var(--sui-control-height-chip);
     padding-inline: var(--sui-space-2);
@@ -371,9 +394,11 @@
     user-select: none;
   }
 
+  /* An even box in the even control, so the room above and under the words halves to whole
+     pixels (L-95). */
   summary > span {
     align-content: center;
-    block-size: var(--sui-block-snap);
+    block-size: var(--sui-block-snap-even);
     text-box: trim-both cap alphabetic;
   }
 

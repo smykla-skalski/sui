@@ -225,19 +225,19 @@ columns and scrolls sideways in a narrower container.
     fill: var(--sui-text-muted);
   }
   .step-0 {
-    --sui-local-heat: color-mix(in srgb, var(--sui-chart-1) 12%, var(--sui-chart-ground));
+    --sui-local-heat: color-mix(in srgb, var(--sui-chart-1) 12%, transparent);
   }
   .step-1 {
-    --sui-local-heat: color-mix(in srgb, var(--sui-chart-1) 26%, var(--sui-chart-ground));
+    --sui-local-heat: color-mix(in srgb, var(--sui-chart-1) 26%, transparent);
   }
   .step-2 {
-    --sui-local-heat: color-mix(in srgb, var(--sui-chart-1) 40%, var(--sui-chart-ground));
+    --sui-local-heat: color-mix(in srgb, var(--sui-chart-1) 40%, transparent);
   }
   .step-3 {
-    --sui-local-heat: color-mix(in srgb, var(--sui-chart-1) 54%, var(--sui-chart-ground));
+    --sui-local-heat: color-mix(in srgb, var(--sui-chart-1) 54%, transparent);
   }
   .step-4 {
-    --sui-local-heat: color-mix(in srgb, var(--sui-chart-1) 68%, var(--sui-chart-ground));
+    --sui-local-heat: color-mix(in srgb, var(--sui-chart-1) 68%, transparent);
   }
   /* Every cell prints its value, so its step is never the only carrier and it needs no edge
      (WCAG 1.4.11): the cells stand as plain fills parted by the surface, and the steps keep
@@ -245,9 +245,10 @@ columns and scrolls sideways in a narrower container.
   .cell {
     fill: var(--sui-local-heat);
   }
-  /* No value is not the lowest value: a dashed edge that holds 3:1 sets it apart from every step. */
+  /* No value is not the lowest value: a dashed edge that holds 3:1 sets it apart from every step,
+     on the band's own ground. */
   rect.missing {
-    fill: var(--sui-chart-ground);
+    fill: transparent;
     stroke: var(--sui-border-strong);
     stroke-dasharray: 4 3;
     stroke-width: var(--sui-stroke);

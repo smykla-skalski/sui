@@ -266,7 +266,7 @@ cut on the axis without splitting a character and stay whole in the table under 
   .marker {
     fill: var(--sui-text-primary);
     paint-order: stroke;
-    stroke: var(--sui-chart-ground);
+    stroke: var(--sui-chart-ring);
     stroke-width: 2;
   }
 

@@ -34,7 +34,7 @@ Supply a description that states the chart's main finding. The SVG has a short a
 
 ## Layout
 
-The plot stands on a band of `--sui-chart-ground`, so a reader sees where the chart starts and ends. Every mark, grid line and axis word keeps its contrast on that ground. The plot is laid out to its ink: its words are measured in the face they draw in, and the first ink starts and the last ends on the band's inner edges.
+The plot stands on a band of `--sui-chart-ground`, so a reader sees where the chart starts and ends. The ground is a black veil, so the band sits a step under whatever holds it, a card, the page or a changed row, in both themes. Every mark, grid line and axis word keeps its contrast on that ground. The plot is laid out to its ink: its words are measured in the face they draw in, and the first ink starts and the last ends on the band's inner edges.
 
 A surface that holds a chart can let the band reach its own edges. It sets `--sui-local-bleed` to its inline padding on its direct children, as `Card` does. The band then reaches past the chart by that much and pads back by it, so the plot keeps the title's edges. The property does not inherit, so a chart nested deeper, such as in one column of a grid, keeps its band inside its column.
 
