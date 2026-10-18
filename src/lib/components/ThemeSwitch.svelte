@@ -98,7 +98,16 @@
     return () => query.removeEventListener('change', read);
   });
 
-  const shown = $derived(!system && value === 'system' ? (systemDark ? 'dark' : 'light') : value);
+  // A page rendered ahead of time cannot know the stored choice, so the switch claims none until
+  // it runs, rather than showing one choice and then jumping to another.
+  let known = $state(false);
+  $effect(() => {
+    known = true;
+  });
+
+  const shown = $derived(
+    !known ? null : !system && value === 'system' ? (systemDark ? 'dark' : 'light') : value
+  );
 
   $effect(() => {
     shared.choice ??= stored() ?? value;
@@ -148,7 +157,7 @@ mounts, so set the stored theme from a small script in the document head to avoi
 
 - Semantics: a `SegmentedControl` of native radios named `label`, or its fallback `select`.
 - Content: two or three options, each a sun, moon or system glyph beside its word.
-- States: those of `SegmentedControl`; the thumb marks the theme the page wears, which is the system's until a choice is made.
+- States: those of `SegmentedControl`; the thumb marks the theme the page wears, which is the system's until a choice is made, and on a page rendered ahead of time no option is marked until the switch runs and reads the stored choice.
 - Keyboard: Tab reaches the group and the arrow keys choose, as in any radio group; Space on the shown option makes it the choice.
 - Pointer and touch: a press or a thumb drag chooses; on a phone or a coarse pointer each option is 44 by 44px.
 - Focus: stays on the option pressed, and moves to the select or back when the control changes form.
