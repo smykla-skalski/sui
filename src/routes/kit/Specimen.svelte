@@ -81,10 +81,11 @@
       {#if label}<span class="label">{label}</span>{:else}<span class="label" aria-hidden="true"
           >&nbsp;</span
         >{/if}
-      {#if code}<code
-          >{#each propsOf(code) as prop, index (index)}{#if index}{' '}{/if}<span>{prop}</span
+      {#if code}{@const props = propsOf(code)}<code
+          >{#each props as prop, index (index)}<span
+              >{index < props.length - 1 ? `${prop} ` : prop}</span
             >{/each}</code
-        >{:else}<code aria-hidden="true">&nbsp;</code>{/if}
+        >{:else}<code aria-hidden="true"><span>&nbsp;</span></code>{/if}
     </figcaption>
   {/if}
 </figure>
@@ -163,19 +164,25 @@
     text-box: trim-both cap alphabetic;
   }
 
+  /* Each prop is a word of the caption: a line breaks between props, and only a prop longer
+     than the whole line breaks inside, under its own first line. A prop keeps its trailing
+     space in its text, so the caption copies and reads with its spaces. */
   code {
-    align-content: center;
-    block-size: var(--sui-block-snap);
     color: var(--sui-text-muted);
+    display: flex;
+    flex-wrap: wrap;
     font: var(--sui-weight-regular) var(--sui-font-size-micro) / var(--sui-leading-micro)
       var(--sui-mono);
     font-variant-numeric: tabular-nums;
-    overflow-wrap: anywhere;
-    text-box: trim-both cap alphabetic;
+    row-gap: var(--sui-row-copy-gap);
   }
 
-  /* A prop moves to the next line whole and breaks inside only when it is wider than a line. */
   code > span {
-    display: inline-block;
+    align-content: center;
+    block-size: var(--sui-block-snap);
+    min-inline-size: 0;
+    overflow-wrap: anywhere;
+    text-box: trim-both cap alphabetic;
+    white-space: pre-wrap;
   }
 </style>
