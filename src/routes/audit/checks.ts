@@ -1756,11 +1756,18 @@ export function cutSides(element: Element, reach: number): string[] {
 }
 
 /**
- * Code lines (L-65): every line of a code or diff block is one height, and the first and last
- * lines meet the block's edges.
+ * Code lines (L-65): every line of a code or diff block is one height. A diff block's first
+ * and last lines meet its edges, so their tones run to them; a code block keeps one even air
+ * above its first line and under its last, and its copy control centres on the first line.
  */
 function codeLines(root: Document): Finding[] {
   const found: Finding[] = [];
+  // The copy row: a quiet-tier control with 8px above and below it.
+  const probe = root.createElement('div');
+  probe.style.blockSize = 'calc(var(--sui-tier-quiet) + 2 * var(--sui-space-2))';
+  root.body.append(probe);
+  const row = probe.getBoundingClientRect().height;
+  probe.remove();
   for (const block of audited(root, '.sui-code-block, .sui-diff-block')) {
     const lines = [...block.querySelectorAll('code > *')].filter(shown);
     const scroller = lines[0]?.closest('pre');
@@ -1769,17 +1776,30 @@ function codeLines(root: Document): Finding[] {
     if (heights.size > 1)
       found.push(finding('L-65', block, `its lines are ${[...heights].join(', ')}px tall`));
     const edge = scroller.getBoundingClientRect();
+    const first = lines[0].getBoundingClientRect();
     const gaps = [
-      lines[0].getBoundingClientRect().top - edge.top - scroller.clientTop,
-      edge.bottom - lines.at(-1)!.getBoundingClientRect().bottom - scroller.clientTop
+      first.top - edge.top - scroller.clientTop,
+      edge.bottom -
+        lines.at(-1)!.getBoundingClientRect().bottom -
+        parseFloat(getComputedStyle(scroller).borderBottomWidth)
     ];
-    if (gaps.some((gap) => gap > 0.5))
+    const code = block.matches('.sui-code-block');
+    const air = code ? (row - first.height) / 2 : 0;
+    if (gaps.some((gap) => Math.abs(gap - air) > 0.5))
       found.push(
         finding(
           'L-65',
           block,
-          `bare ground of ${gaps.map((gap) => round(gap)).join(' and ')}px around its lines`
+          `${gaps.map((gap) => round(gap)).join(' and ')}px of ground around its lines, not ${round(air)}px`
         )
+      );
+    const copy = block.querySelector(':scope > .sui-code-block-copy .sui-copy-button');
+    if (!code || !copy || block.matches('.labelled')) continue;
+    const box = copy.getBoundingClientRect();
+    const off = (box.top + box.bottom) / 2 - (first.top + first.bottom) / 2;
+    if (Math.abs(off) > 0.5)
+      found.push(
+        finding('L-65', block, `its copy control sits ${round(off)}px off its first line`)
       );
   }
   return found;
