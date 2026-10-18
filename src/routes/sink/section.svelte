@@ -8,7 +8,6 @@
 </script>
 
 <script lang="ts">
-  import '#lib/internal/scroll-edge.css';
   import {
     Button,
     DetailLayout,
@@ -172,12 +171,10 @@
   layout="stack"
   ground="canvas"
 >
-  <Specimen label="60rem wide" code="main aside">
-    <div class="sui-scroll-edge scroller">
-      <div class="wide">{@render pane()}</div>
-    </div>
+  <Specimen label="The stage’s width" code="main aside">
+    {@render pane()}
   </Specimen>
-  <Specimen label="30rem wide">
+  <Specimen label="In 30rem">
     <div class="narrow">{@render pane()}</div>
   </Specimen>
 </Example>
@@ -198,15 +195,6 @@
       var(--sui-sans);
     overflow-wrap: anywhere;
     text-box: trim-both cap alphabetic;
-  }
-
-  .scroller {
-    max-inline-size: 100%;
-    overflow-x: auto;
-  }
-
-  .wide {
-    inline-size: 60rem;
   }
 
   .narrow {

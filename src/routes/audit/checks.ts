@@ -2539,6 +2539,41 @@ function boundaryLines(root: Document): Finding[] {
 }
 
 /**
+ * Hanging rows (L-61): a row that reaches past its list on both sides, so its words keep the
+ * heading's edge while its hover or state ground runs the row padding past it, has that room.
+ * No clipping ancestor cuts the ground at either side, or the hover shows whole on one side and
+ * cut on the other, and a scrolling ancestor would scroll sideways for it.
+ */
+function rowGrounds(root: Document): Finding[] {
+  const found: Finding[] = [];
+  for (const row of audited(root, 'main *')) {
+    const look = getComputedStyle(row);
+    if (parseFloat(look.marginInlineStart) >= 0 || parseFloat(look.marginInlineEnd) >= 0) continue;
+    const box = row.getBoundingClientRect();
+    for (let node = row.parentElement; node && node !== root.body; node = node.parentElement) {
+      const holder = getComputedStyle(node);
+      if (!/paint|content|strict/.test(holder.contain) && holder.overflowX === 'visible') continue;
+      const edge = node.getBoundingClientRect();
+      const left = edge.left + parseFloat(holder.borderLeftWidth);
+      const right = edge.right - parseFloat(holder.borderRightWidth);
+      const sides: [string, number][] = [
+        ['left', left - box.left],
+        ['right', box.right - right]
+      ];
+      const cut = sides
+        .filter(([, past]) => past > 0.5)
+        .map(([side, past]) => `${round(past)}px at its ${side}`);
+      if (cut.length)
+        found.push(
+          finding('L-61', row, `its ground is cut ${cut.join(' and ')} by ${describe(node)}`)
+        );
+      break;
+    }
+  }
+  return found;
+}
+
+/**
  * Detail panes (L-110): the aside follows the main column in the DOM and on the page, under it
  * when the columns stack and at its inline end when they stand side by side.
  */
@@ -2689,5 +2724,6 @@ register(
   nestedFrames,
   earnedCards,
   framedSettings,
-  disclosedCards
+  disclosedCards,
+  rowGrounds
 );
