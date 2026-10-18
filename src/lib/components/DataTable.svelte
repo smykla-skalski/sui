@@ -149,7 +149,7 @@ row in place of the hairlines, for a table wide enough that the eye can lose its
 - Keyboard: a sortable heading is a button, and Enter or Space sorts by it, then reverses; a frame that scrolls is a tab stop, so the arrow keys scroll it.
 - Pointer and touch: a sortable heading's target is at least 24px tall, and 44px on a phone or a coarse pointer.
 - Focus: sorting keeps focus on the heading; the frame is a stop only while it scrolls.
-- Responsive: columns grow to their widest value and the table scrolls inside its own frame, with a line that says so, a fade on each edge that has more past it, starting past held row headings, and the row headings held in view; numeric and `nowrap` columns never wrap, other text wraps inside its column.
+- Responsive: columns grow to their widest value and the table scrolls inside its own frame, with a line that says so, a fade on each edge that has more past it, starting past held row headings, and the row headings held in view; numeric and `nowrap` columns never wrap, other text wraps inside its column; a wrapping column is never narrower than its values up to a 16rem measure, 8rem for held row headings, so on a narrow frame a long value wraps to a few lines while the frame scrolls.
 - Accessibility: loading and refreshing mark the table `aria-busy` and are said through a polite status; a failure is an alert in words beside an icon; sorted order is `aria-sort` and an up or down chevron.
 - Localization: every built-in word is a prop with an English default; numbers group and text sorts by the page's language; columns, alignment, the held row headings and the loading light follow the reading direction.
 - Performance: every row renders; key rows with `rowKey`, and page a long table with numbered pages or `LoadMore` rather than drawing thousands; the loading light moves only by `transform`, so the compositor runs it, and holds still under reduced motion.
@@ -163,7 +163,7 @@ row in place of the hairlines, for a table wide enough that the eye can lose its
 
 <div class={['sui-data-table', className, { striped, scrolls, held: rowHeader }]}>
   {#if caption}<p id={captionId} class="caption">{caption}</p>{/if}
-  {#if scrolls}<p class="caption hint" aria-hidden="true">{scrollHint}</p>{/if}
+  <p class="caption hint" aria-hidden="true">{scrollHint}</p>
   {#if error && rows.length > 0}
     <div class="problem" role="alert">
       <Icon name="alert" size="sm" />
@@ -286,6 +286,38 @@ row in place of the hairlines, for a table wide enough that the eye can lose its
     display: grid;
     gap: var(--sui-row-copy-gap);
     min-inline-size: 0;
+    timeline-scope: --sui-data-table-frame;
+  }
+
+  /* The line that says the columns scroll takes its room only while they do. The frame's scroll
+     timeline is active only while the frame has somewhere to scroll, and the browser settles it
+     before it paints, so a server-rendered table draws the line from its first frame. Without
+     scroll timelines the line follows the measure script. */
+  .hint {
+    display: none;
+  }
+
+  .scrolls .hint {
+    display: block;
+  }
+
+  @supports (animation-timeline: scroll()) {
+    .hint,
+    .scrolls .hint {
+      animation: sui-data-table-scrolls var(--sui-ease-linear) both;
+      animation-timeline: --sui-data-table-frame;
+      display: block;
+      position: absolute;
+      visibility: hidden;
+    }
+  }
+
+  @keyframes sui-data-table-scrolls {
+    from,
+    to {
+      position: static;
+      visibility: visible;
+    }
   }
 
   .caption {
@@ -318,13 +350,15 @@ row in place of the hairlines, for a table wide enough that the eye can lose its
   }
 
   .frame {
+    container-type: scroll-state;
     min-inline-size: 0;
     overflow-x: auto;
+    scroll-timeline: --sui-data-table-frame inline;
   }
 
   /* Held row headings stay at the start while the columns scroll under them, so the start
      fade begins at their edge. */
-  .held.scrolls .frame {
+  .held .frame {
     --sui-local-edge-hold: var(--sui-local-table-held);
   }
 
@@ -523,25 +557,95 @@ row in place of the hairlines, for a table wide enough that the eye can lose its
   }
 
   /* While the columns scroll, the row headings stay at the start on the table's own ground,
-     and a hairline shows where the scrolled columns slide under them. */
-  .held.scrolls :is(th, td):first-child {
-    background: var(--sui-surface-base);
-    inset-inline-start: 0;
-    position: sticky;
-    z-index: var(--sui-layer-inner-plate);
+     and a hairline shows where the scrolled columns slide under them. The frame's own scroll
+     state says so before the first paint; without scroll-state queries the measure script's
+     class does. */
+  @container scroll-state(scrollable: inline) {
+    .held :is(th, td):first-child {
+      background: var(--sui-surface-base);
+      inset-inline-start: 0;
+      position: sticky;
+      z-index: var(--sui-layer-inner-plate);
+    }
+
+    .held.striped tbody tr:nth-child(even) > :first-child {
+      background: var(--sui-surface-inset);
+    }
+
+    .held :is(th, td):first-child::after {
+      background: var(--sui-border-divider);
+      content: '';
+      inline-size: var(--sui-stroke);
+      inset-block: 0;
+      inset-inline-end: 0;
+      position: absolute;
+    }
+
+    /* A held cell would frame its bar's light alone, and a placeholder has no name to hold. */
+    .held .placeholder > :first-child {
+      position: static;
+    }
+
+    .held .placeholder > :first-child::after {
+      content: none;
+    }
   }
 
-  .held.scrolls.striped tbody tr:nth-child(even) > :first-child {
-    background: var(--sui-surface-inset);
+  @supports not (container-type: scroll-state) {
+    .held.scrolls :is(th, td):first-child {
+      background: var(--sui-surface-base);
+      inset-inline-start: 0;
+      position: sticky;
+      z-index: var(--sui-layer-inner-plate);
+    }
+
+    .held.scrolls.striped tbody tr:nth-child(even) > :first-child {
+      background: var(--sui-surface-inset);
+    }
+
+    .held.scrolls :is(th, td):first-child::after {
+      background: var(--sui-border-divider);
+      content: '';
+      inline-size: var(--sui-stroke);
+      inset-block: 0;
+      inset-inline-end: 0;
+      position: absolute;
+    }
+
+    .held.scrolls .placeholder > :first-child {
+      position: static;
+    }
+
+    .held.scrolls .placeholder > :first-child::after {
+      content: none;
+    }
   }
 
-  .held.scrolls :is(th, td):first-child::after {
-    background: var(--sui-border-divider);
-    content: '';
-    inline-size: var(--sui-stroke);
-    inset-block: 0;
-    inset-inline-end: 0;
-    position: absolute;
+  /* A table too wide for its frame squeezes each column to its longest word, which stood a long
+     value a word a line. Each wrapping value keeps at least its own width up to a reading
+     measure instead, as Primer's columns grow to their content, so on a narrow frame a long
+     value wraps to a few lines while the frame scrolls, and a wide frame lays out as before. A
+     held row heading keeps a shorter measure, so the columns keep most of the frame. */
+  :is(th, td):not(.nowrap) > .value {
+    min-inline-size: calc-size(max-content, min(size, 16rem));
+  }
+
+  .held :is(th, td):first-child:not(.nowrap) > .value {
+    min-inline-size: calc-size(max-content, min(size, 8rem));
+  }
+
+  /* Without calc-size(), a value counts its own width up to the measure for its column, and a
+     cyclic percentage minimum counts as zero there, so it still fills its cell when laid out. */
+  @supports not (min-inline-size: calc-size(max-content, size)) {
+    :is(th, td):not(.nowrap) > .value {
+      inline-size: max-content;
+      max-inline-size: 16rem;
+      min-inline-size: 100%;
+    }
+
+    .held :is(th, td):first-child:not(.nowrap) > .value {
+      max-inline-size: 8rem;
+    }
   }
 
   [data-align='end'] {
@@ -578,15 +682,6 @@ row in place of the hairlines, for a table wide enough that the eye can lose its
 
   table:has(> tbody > .placeholder) {
     overflow: clip;
-  }
-
-  /* A held cell would frame its bar's light alone, and a placeholder has no name to hold. */
-  .held.scrolls .placeholder > :first-child {
-    position: static;
-  }
-
-  .held.scrolls .placeholder > :first-child::after {
-    content: none;
   }
 
   /* A placeholder bar is one line of the cell's words, cap line to baseline, so a placeholder

@@ -218,6 +218,39 @@ suite('lists', together, () => {
     }
   );
 
+  // Columns squeezed to their longest word once wrapped a sentence a word a line on a phone.
+  test(
+    'a table that scrolls wraps a long value to a few lines, not a word a line',
+    long,
+    async () => {
+      const page = await open({ viewport: { width: 375, height: 800 } });
+      try {
+        const table = page.locator('#data-table table[aria-label="Law checks"]');
+        await table.scrollIntoViewIfNeeded();
+        const { scrolls, lines } = await table.evaluate((element) => {
+          const frame = /** @type {HTMLElement} */ (element.parentElement);
+          return {
+            scrolls: frame.scrollWidth > frame.clientWidth,
+            lines: [.../** @type {HTMLTableElement} */ (element).tBodies[0].rows].map((row) => {
+              const range = document.createRange();
+              range.selectNodeContents(
+                /** @type {Element} */ (row.cells[2].querySelector('.value'))
+              );
+              return new Set([...range.getClientRects()].map((line) => Math.round(line.top))).size;
+            })
+          };
+        });
+        assert.ok(scrolls, 'the table no longer scrolls inside its frame');
+        assert.ok(
+          lines.every((count) => count <= 4),
+          `the long values wrap to ${lines.join(' and ')} lines`
+        );
+      } finally {
+        await page.close();
+      }
+    }
+  );
+
   test('P7 a two-way theme switch keeps the shown theme when it is pressed', long, async () => {
     const page = await open({ colorScheme: 'dark' });
     try {
