@@ -75,6 +75,7 @@ centre on the avatar.
 
   /* An even column, so the avatar centred beside it lands on whole pixels (L-95). */
   .sui-identity-copy {
+    align-content: center;
     block-size: var(--sui-block-snap-even);
     display: grid;
     gap: var(--sui-row-copy-gap);
@@ -83,6 +84,7 @@ centre on the avatar.
 
   .sui-identity-name,
   .sui-identity-handle {
+    align-content: center;
     block-size: var(--sui-block-snap);
     min-inline-size: 0;
     overflow-wrap: anywhere;

@@ -219,6 +219,7 @@ does, stays out of the accessibility tree. Any other tip describes the control t
 
 <style>
   .sui-tooltip {
+    align-content: center;
     background: var(--sui-popover-bg);
     border: var(--sui-stroke) solid var(--sui-popover-border);
     border-radius: var(--sui-radius-popover);

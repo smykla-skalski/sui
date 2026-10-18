@@ -152,6 +152,7 @@ polite status speaks it when it appears or changes.
   }
 
   .sui-field-label {
+    align-content: center;
     block-size: var(--sui-block-snap);
     color: var(--sui-text-secondary);
     font: var(--sui-weight-semibold) var(--sui-font-size-control) / var(--sui-row-copy-leading)
@@ -177,6 +178,7 @@ polite status speaks it when it appears or changes.
   }
 
   .sui-field-required {
+    align-content: center;
     block-size: var(--sui-block-snap);
     color: var(--sui-text-muted);
     font: var(--sui-weight-regular) var(--sui-font-size-control) / var(--sui-row-copy-leading)
@@ -197,6 +199,7 @@ polite status speaks it when it appears or changes.
 
   .sui-field-help,
   .sui-field-error-text {
+    align-content: center;
     block-size: var(--sui-block-snap);
     margin: 0;
     min-inline-size: 0;

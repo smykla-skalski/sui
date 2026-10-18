@@ -83,9 +83,6 @@ tabular figures.
     margin: 0;
     min-inline-size: var(--sui-field-target-min);
     padding: 0 var(--sui-space-2);
-    transition:
-      background-color var(--sui-duration-fast) var(--sui-ease-standard),
-      border-color var(--sui-duration-fast) var(--sui-ease-standard);
   }
 
   .sui-text-input::placeholder {
@@ -94,9 +91,16 @@ tabular figures.
   }
 
   @media (hover: hover) {
-    .sui-text-input:hover:not(:disabled, :focus, .bare, [readonly], [aria-invalid='true']) {
+    /* Hover lays the row veil over the field and steps its edge up, and an invalid field keeps
+       its danger edge, a step deeper, so every field answers the pointer (L-9). */
+    .sui-text-input:hover:not(:disabled, :focus, .bare, [readonly]) {
+      background-color: var(--sui-row-hover);
       border-color: var(--sui-field-frame-hover);
       border-block-end-color: var(--sui-field-border-hover);
+    }
+
+    .sui-text-input[aria-invalid='true']:hover:not(:disabled, :focus, .bare, [readonly]) {
+      border-color: var(--sui-danger-hover);
     }
   }
 
@@ -152,12 +156,6 @@ tabular figures.
   @media (forced-colors: active) {
     .sui-text-input[aria-invalid='true']:not(.bare) {
       border-width: var(--sui-stroke-bold);
-    }
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    .sui-text-input {
-      transition: none;
     }
   }
 </style>

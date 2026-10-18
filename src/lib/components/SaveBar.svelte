@@ -171,7 +171,7 @@ it rests after the last content, so it never covers that content and nothing is 
 
 - Semantics: an `aside` named by its title, with a polite live copy and native buttons.
 - Content: a title and a subtitle while there is work; `savedTitle` once a save lands; `discardedTitle` with Undo once Discard has run.
-- States: unsaved (Discard and Save), saving (both held, Save busy with `savingLabel`), failed (`failedTitle` over the reason), saved (a quiet notice for 5 seconds, paused while hovered) and discarded (Undo and Dismiss until the reader acts).
+- States: unsaved (Discard and Save), saving (both held, Save busy with `savingLabel`, and the gold edge muted with it), failed (`failedTitle` over the reason), saved (a quiet notice for 5 seconds, paused while hovered) and discarded (Undo and Dismiss until the reader acts).
 - Keyboard: Tab reaches Discard and Save at the pane's end; Ctrl+S or Cmd+S saves from anywhere in the bar's pane; Escape never discards.
 - Pointer and touch: buttons are 34px tall, 44px on a phone.
 - Focus: after Discard focus moves to Undo, or to Dismiss without one; after a save lands, Undo or Dismiss, focus goes back to the control the reader came from, else the pane's first control, never to the page.
@@ -188,7 +188,7 @@ it rests after the last content, so it never covers that content and nothing is 
   {@attach settle}
   {@attach shortcut}
   {...rest}
-  class={['sui-save-bar', className, { notice: notice !== null }]}
+  class={['sui-save-bar', className, { notice: notice !== null, saving }]}
   aria-labelledby={titleId}
   hidden={!dirty && !notice}
   {onfocusin}
@@ -272,6 +272,16 @@ it rests after the last content, so it never covers that content and nothing is 
     border-color: var(--sui-border-subtle);
   }
 
+  /* While the save runs the edge waits with its Save button, muted the same way, so the bar
+     reads as busy as a whole. */
+  .sui-save-bar.saving {
+    border-color: color-mix(
+      in srgb,
+      var(--sui-decision-accent) calc(var(--sui-disabled-opacity) * 100%),
+      transparent
+    );
+  }
+
   .sui-save-bar[hidden] {
     display: none;
     opacity: 0;
@@ -295,6 +305,7 @@ it rests after the last content, so it never covers that content and nothing is 
 
   .title,
   .subtitle {
+    align-content: center;
     block-size: var(--sui-block-snap);
     margin: 0;
     overflow-wrap: anywhere;

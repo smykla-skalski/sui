@@ -90,6 +90,7 @@ sits in a polite status region, so a change of state is announced without moving
   }
 
   .sui-plate-title {
+    align-content: center;
     block-size: var(--sui-block-snap);
     color: var(--sui-text-primary);
     font: var(--sui-weight-semibold) var(--sui-font-size-card-title) / var(--sui-leading-title)

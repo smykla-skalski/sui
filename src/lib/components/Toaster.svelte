@@ -415,6 +415,7 @@ A `danger` toast reports a failure and stays too.
 
   .sui-toast-title,
   .sui-toast-description {
+    align-content: center;
     block-size: var(--sui-block-snap);
     font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-row-copy-leading)
       var(--sui-sans);

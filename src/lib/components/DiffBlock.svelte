@@ -297,6 +297,7 @@ removed line has no single number to claim. Two empty sides say `emptyLabel`.
   }
 
   .sui-diff-block-empty {
+    align-content: center;
     block-size: var(--sui-block-snap);
     color: var(--sui-text-muted);
     font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-leading-meta)

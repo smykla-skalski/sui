@@ -43,17 +43,17 @@
 
   /* A row short of room may start with the current tab out of sight, which is the one tab a
      reader looks for. Keyed to `current` so a new page reveals its tab again. Jumped, never
-     scrolled smoothly, so nothing slides into the first paint, and kept clear of the track's
+     scrolled smoothly, so nothing slides into the first paint, and kept clear of the row's
      scroll padding so the edge fade never covers it. */
-  function revealCurrent(_current: string | undefined): Attachment<HTMLUListElement> {
-    return (track) => {
-      const tab = track.querySelector('[aria-current="page"]');
+  function revealCurrent(_current: string | undefined): Attachment<HTMLElement> {
+    return (row) => {
+      const tab = row.querySelector('[aria-current="page"]');
       if (!tab) return;
-      const pad = parseFloat(getComputedStyle(track).scrollPaddingInlineStart) || 0;
+      const pad = parseFloat(getComputedStyle(row).scrollPaddingInlineStart) || 0;
       const box = tab.getBoundingClientRect();
-      const own = track.getBoundingClientRect();
-      if (box.left < own.left + pad) track.scrollLeft += box.left - own.left - pad;
-      else if (box.right > own.right - pad) track.scrollLeft += box.right - own.right + pad;
+      const own = row.getBoundingClientRect();
+      if (box.left < own.left + pad) row.scrollLeft += box.left - own.left - pad;
+      else if (box.right > own.right - pad) row.scrollLeft += box.right - own.right + pad;
     };
   }
 </script>
@@ -72,9 +72,10 @@ words tell the current tab apart as well as the bar, never colour alone, and the
 `Highlight` under forced colors. Each label keeps the room its semibold form needs, so the row
 never shifts when the current tab changes. A count rides its label in tabular figures.
 
-A row short of room scrolls inside its own track and never widens the page. The edge that
-has more tabs past it fades, so the reader can see the row goes on, and a thin scrollbar
-stays for a mouse without a wheel. The current tab is brought into view clear of the fade,
+A row short of room scrolls inside itself and never widens the page. The edge that has more
+tabs past it fades, the track's line with it, so the reader can see the row goes on, and a thin
+scrollbar stays for a mouse without a wheel, in room kept under the line so it never covers
+the tabs. The current tab is brought into view clear of the fade,
 and keyboard focus scrolls the tab it reaches into view, with the ring inset so the track
 never clips it.
 
@@ -92,8 +93,8 @@ never clips it.
 - Failure: an empty `items` draws an empty track, and a `current` that matches no tab draws no bar.
 -->
 
-<nav {...rest} class={['sui-tabs', className]} aria-label={label}>
-  <ul class="sui-tabs-track" {@attach revealCurrent(current)}>
+<nav {...rest} class={['sui-tabs', className]} aria-label={label} {@attach revealCurrent(current)}>
+  <ul class="sui-tabs-track">
     {#each items as item (item.href)}
       <li class="sui-tabs-item">
         <a
@@ -116,32 +117,24 @@ never clips it.
 </nav>
 
 <style>
-  /* The track's line is the nav's own edge, outside the scrolling list, so forced colors keep
-     it and the list's overflow never clips it. */
+  /* The nav scrolls and the track scrolls inside it with its line, so the line fades with the
+     tabs at an edge that has more past it. Each fade is its own mask layer sized one fade past
+     the nav, so sliding a layer by that much shows or hides its fade. The scroll timeline
+     slides them: the start fade shows once the row has left its start, and the end fade hides
+     once it reaches its end. A row that does not scroll has no timeline, and both fades stay
+     hidden. */
   .sui-tabs {
-    border-block-end: var(--sui-stroke) solid var(--sui-border-subtle);
-    min-inline-size: 0;
-  }
-
-  /* Each fade is its own mask layer sized one fade past the track, so sliding a layer by that
-     much shows or hides its fade. The scroll timeline slides them: the start fade shows once
-     the row has left its start, and the end fade hides once it reaches its end. A track that
-     does not scroll has no timeline, and both fades stay hidden. */
-  .sui-tabs-track {
     --sui-local-tabs-fade: var(--sui-space-8);
-    display: flex;
-    gap: var(--sui-space-2);
-    list-style: none;
-    margin: 0 0 calc(-1 * var(--sui-stroke));
+    container-type: scroll-state;
+    min-inline-size: 0;
     overflow-x: auto;
     overflow-y: hidden;
-    padding: var(--sui-space-1) 0 0;
     scroll-padding-inline: var(--sui-local-tabs-fade);
     scrollbar-width: thin;
   }
 
   @supports (animation-timeline: scroll()) {
-    .sui-tabs-track {
+    .sui-tabs {
       animation: sui-tabs-fade var(--sui-ease-linear) both;
       animation-timeline: scroll(self inline);
       -webkit-mask-image:
@@ -159,8 +152,29 @@ never clips it.
       mask-size: calc(100% + var(--sui-local-tabs-fade)) 100%;
     }
 
-    .sui-tabs-track:dir(rtl) {
+    .sui-tabs:dir(rtl) {
       animation-name: sui-tabs-fade-rtl;
+    }
+  }
+
+  /* The track is as wide as its tabs or the nav, whichever is wider, so its line runs the whole
+     row. */
+  .sui-tabs-track {
+    border-block-end: var(--sui-stroke) solid var(--sui-border-subtle);
+    box-sizing: border-box;
+    display: flex;
+    gap: var(--sui-space-2);
+    inline-size: max-content;
+    list-style: none;
+    margin: 0;
+    min-inline-size: 100%;
+    padding: var(--sui-space-1) 0 0;
+  }
+
+  /* A row that scrolls keeps room under its line, so the scrollbar never covers the tabs. */
+  @container scroll-state(scrollable: inline) {
+    .sui-tabs-track {
+      margin-block-end: var(--sui-space-3);
     }
   }
 
@@ -229,10 +243,7 @@ never clips it.
     padding-inline: var(--sui-space-2);
     position: relative;
     text-decoration: none;
-    transition:
-      color var(--sui-duration-fast) var(--sui-ease-standard),
-      background-color var(--sui-duration-fast) var(--sui-ease-standard),
-      box-shadow var(--sui-duration-press) var(--sui-ease-standard);
+    transition: box-shadow var(--sui-duration-press) var(--sui-ease-standard);
     white-space: nowrap;
     -webkit-tap-highlight-color: transparent;
     -webkit-user-select: none;
@@ -244,7 +255,7 @@ never clips it.
     border-start-end-radius: var(--sui-radius-pill);
     border-start-start-radius: var(--sui-radius-pill);
     content: '';
-    inset-block-end: calc(-1 * var(--sui-space-1));
+    inset-block-end: calc(-1 * (var(--sui-space-1) + var(--sui-stroke)));
     inset-inline: var(--sui-space-2);
     pointer-events: none;
     position: absolute;
@@ -281,12 +292,14 @@ never clips it.
   /* A hidden semibold copy shares the words' cell, so a tab already holds the room the current
      weight needs and the row never shifts (L-91). */
   .sui-tabs-label {
+    align-content: center;
     block-size: var(--sui-block-snap);
     display: grid;
   }
 
   .sui-tabs-label > span,
   .sui-tabs-label::after {
+    align-content: center;
     block-size: var(--sui-block-snap);
     grid-area: 1 / 1;
     text-box: trim-both cap alphabetic;
@@ -311,7 +324,7 @@ never clips it.
     }
 
     .sui-tabs-tab::after {
-      inset-block-end: 0;
+      inset-block-end: calc(-1 * var(--sui-stroke));
     }
   }
 

@@ -101,6 +101,7 @@ outcome tones always come with their word, so color never carries the state alon
   }
 
   .sui-pill-label {
+    align-content: center;
     block-size: var(--sui-block-snap);
     min-inline-size: 0;
     overflow-wrap: anywhere;

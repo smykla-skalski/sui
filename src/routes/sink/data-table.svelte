@@ -245,10 +245,18 @@
 <style>
   /* An icon has no baseline, so a baseline-aligned box would ride half a pixel above the line
      and grow the row off the grid (L-95). */
+  /* The words run cap to baseline in an even box, so the icon centres on them by whole
+     pixels (L-94). */
   .status {
     align-items: center;
     display: inline-flex;
     gap: var(--sui-space-1);
     vertical-align: top;
+  }
+
+  .status > span {
+    align-content: center;
+    block-size: var(--sui-block-snap-even);
+    text-box: trim-both cap alphabetic;
   }
 </style>

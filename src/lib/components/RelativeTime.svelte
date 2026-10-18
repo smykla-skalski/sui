@@ -154,18 +154,23 @@ tooltip.
 </time>{#if element && !exactOnly}<Tooltip anchor={element} text={whole} />{/if}
 
 <style>
+  /* A dotted underline with room between its dots: a native dotted line spaces its dots one
+     stroke apart, which reads as solid, so a row of round dots, 4px apart, runs along the foot
+     of the words instead. */
   .sui-relative-time {
+    --sui-local-dot: color-mix(in srgb, var(--sui-text-muted) 70%, transparent);
+    background-image: radial-gradient(circle, var(--sui-local-dot) 0.75px, transparent 1.25px);
+    background-position: 0 100%;
+    background-repeat: repeat-x;
+    background-size: 4px 2px;
     position: relative;
-    text-decoration: underline dotted color-mix(in srgb, var(--sui-text-muted) 55%, transparent);
-    text-decoration-thickness: var(--sui-stroke);
-    text-underline-offset: 3px;
     white-space: nowrap;
   }
 
   @media (hover: hover) {
     .sui-relative-time:not(.exact):hover {
+      --sui-local-dot: var(--sui-text-secondary);
       color: var(--sui-text-secondary);
-      text-decoration-color: var(--sui-text-secondary);
     }
   }
 
@@ -184,8 +189,15 @@ tooltip.
   /* The whole instant is twice as long as the relative reading, so it may wrap where a
      column sized for the short one would otherwise clip it. */
   .exact {
-    text-decoration: none;
+    background-image: none;
     white-space: normal;
+  }
+
+  /* Forced colors drop background images, so the system draws its own dotted line there. */
+  @media (forced-colors: active) {
+    .sui-relative-time:not(.exact) {
+      text-decoration: underline dotted;
+    }
   }
 
   /* A long press shows the tip on touch, so the system's own long-press menu and word selection

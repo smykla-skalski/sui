@@ -362,6 +362,7 @@ dialog, so they are never inert under it.
   }
 
   .sui-modal-title {
+    align-content: center;
     block-size: var(--sui-block-snap);
     font: var(--sui-weight-bold) var(--sui-font-size-dialog-title) / var(--sui-leading-title)
       var(--sui-sans);
@@ -389,6 +390,7 @@ dialog, so they are never inert under it.
   }
 
   .sui-modal-description {
+    align-content: center;
     block-size: var(--sui-block-snap);
     color: var(--sui-text-secondary);
     font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-row-copy-leading)
@@ -425,16 +427,19 @@ dialog, so they are never inert under it.
   }
 
   /* The symbol centres on the first line of the message, however many lines follow. */
+  /* Centred on the first line of the reason, the box an even snap gives one line (L-94). */
   .sui-modal-error-mark {
-    align-items: center;
-    block-size: var(--sui-leading-meta);
     display: flex;
     flex: none;
+    margin-block: calc((round(up, 1cap, 2px) - var(--sui-icon-md)) / 2);
   }
 
   .sui-modal-error-text {
+    align-content: center;
+    block-size: var(--sui-block-snap-even);
     min-inline-size: 0;
     overflow-wrap: anywhere;
+    text-box: trim-both cap alphabetic;
   }
 
   .sui-modal-foot {

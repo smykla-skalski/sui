@@ -136,6 +136,7 @@ focus while the group saves keeps it.
   }
 
   .sui-check-list-legend {
+    align-content: center;
     block-size: var(--sui-block-snap);
     color: var(--sui-text-secondary);
     float: inline-start;
@@ -166,6 +167,7 @@ focus while the group saves keeps it.
 
   .sui-check-list-help,
   .sui-check-list-words {
+    align-content: center;
     block-size: var(--sui-block-snap);
     margin: 0;
     min-inline-size: 0;

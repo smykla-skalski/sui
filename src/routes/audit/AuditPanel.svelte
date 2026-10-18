@@ -199,6 +199,7 @@
   }
 
   h2 {
+    align-content: center;
     block-size: var(--sui-block-snap);
     font: var(--sui-weight-bold) var(--sui-font-size-dialog-title) / var(--sui-leading-title)
       var(--sui-sans);
@@ -232,6 +233,7 @@
   }
 
   .scope {
+    align-content: center;
     block-size: var(--sui-block-snap);
     color: var(--sui-text-muted);
     font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-row-copy-leading)
@@ -241,6 +243,7 @@
   }
 
   .summary {
+    align-content: center;
     block-size: var(--sui-block-snap);
     color: var(--sui-text-secondary);
     font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-row-copy-leading)

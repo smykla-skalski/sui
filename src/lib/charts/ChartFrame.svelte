@@ -170,6 +170,7 @@
   }
 
   .sui-chart-title {
+    align-content: center;
     block-size: var(--sui-block-snap);
     font: var(--sui-weight-semibold) var(--sui-font-size-title) / var(--sui-leading-title)
       var(--sui-sans);
@@ -179,6 +180,7 @@
 
   figcaption p,
   .sui-chart-note {
+    align-content: center;
     block-size: var(--sui-block-snap);
     color: var(--sui-text-secondary);
     font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-row-copy-leading)
@@ -236,15 +238,14 @@
     min-block-size: var(--sui-control-height-chip);
     padding-inline: var(--sui-space-2);
     position: relative;
-    transition:
-      background-color var(--sui-duration-fast) var(--sui-ease-standard),
-      box-shadow var(--sui-duration-press) var(--sui-ease-standard);
+    transition: box-shadow var(--sui-duration-press) var(--sui-ease-standard);
     -webkit-tap-highlight-color: transparent;
     -webkit-user-select: none;
     user-select: none;
   }
 
   summary > span {
+    align-content: center;
     block-size: var(--sui-block-snap);
     text-box: trim-both cap alphabetic;
   }

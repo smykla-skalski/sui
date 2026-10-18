@@ -157,6 +157,7 @@ save keeps it.
   }
 
   .sui-choice-cards-legend {
+    align-content: center;
     block-size: var(--sui-block-snap);
     color: var(--sui-text-secondary);
     float: inline-start;
@@ -202,7 +203,6 @@ save keeps it.
     padding: var(--sui-space-3) var(--sui-space-4);
     position: relative;
     transition:
-      background-color var(--sui-duration-fast) var(--sui-ease-standard),
       box-shadow var(--sui-duration-press) var(--sui-ease-standard),
       translate var(--sui-duration-press) var(--sui-ease-standard);
     -webkit-user-select: none;
@@ -276,6 +276,7 @@ save keeps it.
   }
 
   .sui-choice-card-label {
+    align-content: center;
     block-size: var(--sui-block-snap);
     color: var(--sui-text-primary);
     font: var(--sui-weight-semibold) var(--sui-font-size-meta) / var(--sui-row-copy-leading)
@@ -289,6 +290,7 @@ save keeps it.
   }
 
   .sui-choice-card-description {
+    align-content: center;
     block-size: var(--sui-block-snap);
     color: var(--sui-text-secondary);
     font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-row-copy-leading)
@@ -305,6 +307,7 @@ save keeps it.
 
   .sui-choice-cards-help,
   .sui-choice-cards-words {
+    align-content: center;
     block-size: var(--sui-block-snap);
     margin: 0;
     min-inline-size: 0;

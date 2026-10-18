@@ -120,6 +120,7 @@
   }
 
   .state > span {
+    align-content: center;
     block-size: var(--sui-block-snap);
     text-box: trim-both cap alphabetic;
   }

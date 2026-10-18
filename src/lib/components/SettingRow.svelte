@@ -347,6 +347,7 @@ between them (L-91).
   .sui-setting-name,
   .sui-setting-why,
   .sui-setting-problem > span {
+    align-content: center;
     block-size: var(--sui-block-snap);
     font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-row-copy-leading)
       var(--sui-sans);

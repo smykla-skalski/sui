@@ -95,6 +95,7 @@ live specimens, not a surface of the design, so it may hold cards and dialogs (L
   }
 
   h3 {
+    align-content: center;
     block-size: var(--sui-block-snap);
     color: var(--sui-text-primary);
     font: var(--sui-weight-semibold) var(--sui-font-size-title) / var(--sui-leading-title)
@@ -104,6 +105,7 @@ live specimens, not a surface of the design, so it may hold cards and dialogs (L
   }
 
   .note {
+    align-content: center;
     block-size: var(--sui-block-snap);
     color: var(--sui-text-secondary);
     font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-row-copy-leading)

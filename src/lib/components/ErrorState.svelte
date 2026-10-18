@@ -148,6 +148,7 @@ of them.
   }
 
   p {
+    align-content: center;
     block-size: var(--sui-block-snap);
     margin: 0;
     overflow-wrap: anywhere;

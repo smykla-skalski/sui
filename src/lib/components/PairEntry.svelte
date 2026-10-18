@@ -374,7 +374,6 @@ row gives them and fall under the copy on a narrow row.
     inset: 0;
     pointer-events: none;
     position: absolute;
-    transition: border-color var(--sui-duration-fast) var(--sui-ease-standard);
   }
 
   @media (hover: hover) {
@@ -406,7 +405,6 @@ row gives them and fall under the copy on a narrow row.
     margin: 0;
     position: relative;
     touch-action: manipulation;
-    transition: background-color var(--sui-duration-fast) var(--sui-ease-standard);
     user-select: none;
     -webkit-tap-highlight-color: transparent;
     -webkit-user-select: none;
@@ -426,14 +424,17 @@ row gives them and fall under the copy on a narrow row.
     text-align: start;
   }
 
+  /* The mark hangs from the top by half what a one-line chip leaves, so it centres on a
+     one-line pair and stays on the first line of one that wraps (L-94). */
   .sui-pair-remove {
+    align-items: start;
     border-end-start-radius: 0;
     border-start-start-radius: 0;
     color: var(--sui-text-muted);
     flex: none;
     inline-size: var(--sui-pair-chip);
     justify-content: center;
-    padding: 0;
+    padding: calc((var(--sui-pair-chip) - var(--sui-icon-xs)) / 2) 0 0;
   }
 
   .sui-pair-divider {
@@ -465,14 +466,18 @@ row gives them and fall under the copy on a narrow row.
     outline-offset: var(--sui-focus-ring-inset);
   }
 
-  /* A long key or value wraps inside the chip, at any character, so all of it shows (U6). */
+  /* A long key or value wraps inside the chip, at any character, so all of it shows (U6). The
+     words run cap to baseline in an even box, so the chip's middle is their middle (L-94). */
   .sui-pair-key,
   .sui-pair-value {
+    align-content: center;
+    block-size: var(--sui-block-snap-even);
     font: var(--sui-weight-regular) var(--sui-font-size-control) / var(--sui-leading-compact)
       var(--sui-mono);
     font-variant-numeric: tabular-nums;
     min-inline-size: 0;
     overflow-wrap: anywhere;
+    text-box: trim-both cap alphabetic;
   }
 
   .sui-pair-key {
@@ -482,9 +487,12 @@ row gives them and fall under the copy on a narrow row.
 
   /* The arrow points from the key to its value, so it turns with the reading direction. */
   .sui-pair-arrow {
+    align-content: center;
+    block-size: var(--sui-block-snap-even);
     color: var(--sui-text-muted);
     flex: none;
     font-family: var(--sui-sans);
+    text-box: trim-both cap alphabetic;
   }
 
   .sui-pair-arrow:dir(rtl) {
@@ -505,6 +513,7 @@ row gives them and fall under the copy on a narrow row.
   }
 
   .sui-pair-reason {
+    align-content: center;
     block-size: var(--sui-block-snap);
     color: var(--sui-text-secondary);
     font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-row-copy-leading)
@@ -515,6 +524,7 @@ row gives them and fall under the copy on a narrow row.
   }
 
   .sui-pair-problem {
+    align-content: center;
     block-size: var(--sui-block-snap);
     color: var(--sui-danger);
     font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-row-copy-leading)
@@ -551,14 +561,6 @@ row gives them and fall under the copy on a narrow row.
   @media (forced-colors: active) {
     .sui-pair-chip.open::after {
       border-color: Highlight;
-    }
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    .sui-pair-chip::after,
-    .sui-pair-edit,
-    .sui-pair-remove {
-      transition: none;
     }
   }
 </style>

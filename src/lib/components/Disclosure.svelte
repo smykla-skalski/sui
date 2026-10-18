@@ -97,7 +97,6 @@ row for a settings column.
     -webkit-user-select: none;
     user-select: none;
     transition:
-      background-color var(--sui-duration-fast) var(--sui-ease-standard),
       box-shadow var(--sui-duration-press) var(--sui-ease-standard),
       translate var(--sui-duration-press) var(--sui-ease-standard);
     -webkit-tap-highlight-color: transparent;
@@ -132,6 +131,7 @@ row for a settings column.
   }
 
   .sui-disclosure-label {
+    align-content: center;
     block-size: var(--sui-block-snap);
     min-inline-size: 0;
     overflow-wrap: break-word;
@@ -139,6 +139,7 @@ row for a settings column.
   }
 
   .sui-disclosure-hint {
+    align-content: center;
     block-size: var(--sui-block-snap);
     color: var(--sui-text-muted);
     font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-leading-meta)

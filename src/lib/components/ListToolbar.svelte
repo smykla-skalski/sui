@@ -345,6 +345,7 @@ button. Without `tools` there is no button and the filter never folds.
 
   .sui-list-toolbar-folded,
   .sui-list-toolbar-chosen {
+    align-content: center;
     block-size: var(--sui-block-snap-even);
     font: var(--sui-weight-semibold) var(--sui-font-size-meta) / var(--sui-row-copy-leading)
       var(--sui-sans);
@@ -439,6 +440,7 @@ button. Without `tools` there is no button and the filter never folds.
   }
 
   .sui-list-toolbar-heading {
+    align-content: center;
     block-size: var(--sui-block-snap);
     color: var(--sui-text-muted);
     font: var(--sui-weight-semibold) var(--sui-font-size-micro) / var(--sui-leading-tight)

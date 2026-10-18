@@ -484,9 +484,7 @@ Name it with a `<label>` or `aria-label`, as any field.
     outline: none;
     padding-block: var(--sui-space-1);
     padding-inline: var(--sui-space-2) var(--sui-space-3);
-    transition:
-      background-color var(--sui-duration-fast) var(--sui-ease-standard),
-      translate var(--sui-duration-press) var(--sui-ease-standard);
+    transition: translate var(--sui-duration-press) var(--sui-ease-standard);
     -webkit-user-select: none;
     user-select: none;
   }
@@ -517,8 +515,9 @@ Name it with a `<label>` or `aria-label`, as any field.
   .sui-combobox-check {
     display: flex;
     justify-content: center;
-    /* One cap tall, so the check centres on the name's cap line. */
-    margin-block: calc((1cap - var(--sui-icon-base)) / 2);
+    /* Centred on the name's first line, the box an even snap gives one line, so the check
+       stands on whole pixels at the middle of the words (L-94). */
+    margin-block: calc((round(up, 1cap, 2px) - var(--sui-icon-base)) / 2);
   }
 
   .sui-combobox-option:not([aria-selected='true']) .sui-combobox-check {

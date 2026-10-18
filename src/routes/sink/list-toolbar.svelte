@@ -168,6 +168,7 @@
   }
 
   .name {
+    align-content: center;
     block-size: var(--sui-block-snap);
     color: var(--sui-text-primary);
     font: var(--sui-weight-semibold) var(--sui-font-size-meta) / var(--sui-row-copy-leading)
@@ -177,6 +178,7 @@
   }
 
   .sum {
+    align-content: center;
     block-size: var(--sui-block-snap);
     color: var(--sui-text-muted);
     font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-row-copy-leading)

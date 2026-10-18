@@ -64,15 +64,19 @@ the end part draws its own inset ring while it has focus, so the two never look 
        the edge may reach the clip over the frame, so that part's hit area keeps its 44px. */
     overflow: clip;
     overflow-clip-margin: var(--sui-local-joined-reach, 0px);
-    transition:
-      background-color var(--sui-duration-fast) var(--sui-ease-standard),
-      border-color var(--sui-duration-fast) var(--sui-ease-standard);
   }
 
+  /* Hover lays the row veil over the field and steps its edge up, and an invalid field keeps
+     its danger edge, a step deeper, so every field answers the pointer (L-9). */
   @media (hover: hover) {
-    .sui-joined:hover:not(.disabled, .readonly, .invalid, :has(:global(:focus-visible))) {
+    .sui-joined:hover:not(.disabled, .readonly, :has(:global(:focus-visible))) {
+      background-color: var(--sui-row-hover);
       border-color: var(--sui-field-frame-hover);
       border-block-end-color: var(--sui-field-border-hover);
+    }
+
+    .sui-joined.invalid:hover:not(.disabled, .readonly, :has(:global(:focus-visible))) {
+      border-color: var(--sui-danger-hover);
     }
   }
 
@@ -112,8 +116,9 @@ the end part draws its own inset ring while it has focus, so the two never look 
   }
 
   /* On a line of its own the end starts at the field's start edge (L-90). A host whose end is a
-     chip that wraps its words sets a block inset to keep it clear of the frame; a full-height
-     end takes none, or it would make the field taller than its value. */
+     chip that wraps its words sets an inset to keep it clear of the frame; a full-height end,
+     such as a picker, takes none, so its ground meets the frame and the frame's curve clips it,
+     and it never makes the field taller than its value. */
   .sui-joined-end {
     align-items: center;
     box-sizing: border-box;
@@ -121,19 +126,13 @@ the end part draws its own inset ring while it has focus, so the two never look 
     flex: none;
     max-inline-size: 100%;
     padding-block: var(--sui-local-joined-end-inset, 0px);
-    padding-inline-end: var(--sui-control-inset);
+    padding-inline-end: var(--sui-local-joined-end-inset, 0px);
   }
 
   /* High contrast paints every edge in one colour, so an invalid field says so with a 2px edge. */
   @media (forced-colors: active) {
     .invalid {
       border-width: var(--sui-stroke-bold);
-    }
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    .sui-joined {
-      transition: none;
     }
   }
 </style>

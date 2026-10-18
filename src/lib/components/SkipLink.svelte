@@ -51,6 +51,7 @@ A link that is always visible is `Link`, and words that are never shown are `Vis
 
 <style>
   .sui-skip-link {
+    align-content: center;
     background: var(--sui-surface-base);
     border: var(--sui-stroke) solid var(--sui-focus);
     border-radius: var(--sui-radius-control);

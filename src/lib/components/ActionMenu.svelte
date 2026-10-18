@@ -315,14 +315,12 @@ item opens then returns focus there too. Labels wrap rather than being cut short
     inline-size: 100%;
     margin: 0;
     /* A one-line name stands as far under the top as over the bottom, cap line to baseline
-       (L-102). */
-    padding-block: round(calc((var(--sui-control-height-compact) - 1cap) / 2), 1px)
-      round(down, calc((var(--sui-control-height-compact) - 1cap) / 2), 1px);
+       (L-102): the name's box snaps to an even height, as the control height is, so the room
+       left splits into two whole pixels. */
+    padding-block: calc((var(--sui-control-height-compact) - round(up, 1cap, 2px)) / 2);
     padding-inline: var(--sui-space-3);
     text-align: start;
-    transition:
-      background-color var(--sui-duration-fast) var(--sui-ease-standard),
-      translate var(--sui-duration-press) var(--sui-ease-standard);
+    transition: translate var(--sui-duration-press) var(--sui-ease-standard);
     -webkit-tap-highlight-color: transparent;
     -webkit-user-select: none;
     user-select: none;
@@ -384,12 +382,14 @@ item opens then returns focus there too. Labels wrap rather than being cut short
   }
 
   .sui-action-menu-label {
-    block-size: var(--sui-block-snap);
+    align-content: center;
+    block-size: var(--sui-block-snap-even);
     overflow-wrap: anywhere;
     text-box: trim-both cap alphabetic;
   }
 
   .sui-action-menu-description {
+    align-content: center;
     block-size: var(--sui-block-snap);
     color: var(--sui-text-secondary);
     font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-leading-meta)

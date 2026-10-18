@@ -246,6 +246,7 @@ and the unsaved ink, so no neutral block sits on a state (L-92).
 
   .sui-callout-title,
   .sui-callout-text {
+    align-content: center;
     block-size: var(--sui-block-snap);
     margin: 0;
     min-inline-size: 0;

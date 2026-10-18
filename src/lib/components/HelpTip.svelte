@@ -28,15 +28,18 @@
     class?: HTMLButtonAttributes['class'];
   } & Omit<HTMLButtonAttributes, 'children' | 'aria-label' | 'class'> = $props();
 
-  // The tooltip closes itself on a press, so the capture phase notes what the press found first.
+  // The tooltip closes itself on a press, so the capture phase notes what the press found first,
+  // and which pointer pressed: a mouse already shows the tip by hovering, so its click keeps it.
   let openAtPress = false;
+  let pressedBy = '';
 </script>
 
 <!--
 @component
 A small mark beside a label that holds one short explanation in a `Tooltip`. The tip shows on
-hover after a short pause and at once on keyboard focus. A tap or a click toggles it, and a
-press anywhere else closes it. It is the button's description, so a screen reader reads it with
+hover after a short pause and at once on keyboard focus. A mouse needs nothing more, so the
+mark shows the help cursor and a click keeps the tip open; a tap, Enter or Space toggles it,
+and a press anywhere else closes it. It is the button's description, so a screen reader reads it with
 the button's name. Anything longer than a sentence, or anything the reader must act on, belongs
 on the page instead.
 
@@ -44,7 +47,7 @@ on the page instead.
 - Content: one 13px help glyph; `text` is one short sentence without a period.
 - States: rest in the muted ink, hover and focus in the information ink, pressed on the pressed veil and inset, open in the information ink on a quiet veil, focus with the 2px ring offset 2px.
 - Keyboard: Tab focuses it and shows the tip, Enter or Space toggles the tip, and Escape closes it.
-- Pointer and touch: a 24px mark whose hit area grows to 44px on a phone or touch screen; a tap toggles the tip and a press elsewhere closes it.
+- Pointer and touch: a 24px mark whose hit area grows to 44px on a phone or touch screen; a mouse shows the tip by hovering, under the help cursor, a tap toggles it, and a press elsewhere closes it.
 - Focus: it keeps focus while the tip opens and closes, and the tip never takes it.
 - Responsive: the tip flips to the side with room and stays inside the viewport.
 - Accessibility: the name says what it explains, the tip text is its description, and the open state is drawn and announced.
@@ -62,9 +65,14 @@ on the page instead.
     class={['sui-help-tip', className]}
     aria-label={label}
     aria-expanded={preview || open}
-    onpointerdowncapture={() => (openAtPress = open)}
+    onpointerdowncapture={(event) => {
+      openAtPress = open;
+      pressedBy = event.pointerType;
+    }}
     onclick={(event) => {
-      if (!preview) open = event.detail === 0 ? !open : !openAtPress;
+      if (preview) return;
+      if (event.detail === 0) open = !open;
+      else open = pressedBy === 'mouse' || !openAtPress;
     }}
   >
     <Icon name="help" size="sm" strokeWidth={2} />
@@ -96,7 +104,7 @@ on the page instead.
     border: 0;
     border-radius: var(--sui-radius-pill);
     color: var(--sui-text-muted);
-    cursor: pointer;
+    cursor: help;
     display: inline-flex;
     flex: none;
     inline-size: var(--sui-control-height-chip);
@@ -104,10 +112,7 @@ on the page instead.
     margin: 0;
     padding: 0;
     position: relative;
-    transition:
-      color var(--sui-duration-fast) var(--sui-ease-standard),
-      background-color var(--sui-duration-fast) var(--sui-ease-standard),
-      box-shadow var(--sui-duration-press) var(--sui-ease-standard);
+    transition: box-shadow var(--sui-duration-press) var(--sui-ease-standard);
     -webkit-user-select: none;
     user-select: none;
     vertical-align: middle;

@@ -271,9 +271,7 @@ new control after `onadd` is the caller's.
     margin: 0;
     padding: var(--sui-space-1) var(--sui-space-3);
     text-align: start;
-    transition:
-      background-color var(--sui-duration-fast) var(--sui-ease-standard),
-      translate var(--sui-duration-press) var(--sui-ease-standard);
+    transition: translate var(--sui-duration-press) var(--sui-ease-standard);
     user-select: none;
     -webkit-user-select: none;
   }

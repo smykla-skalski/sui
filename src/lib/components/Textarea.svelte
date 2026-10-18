@@ -75,9 +75,6 @@ It has no label of its own. Put it in a `Field` through the `control` snippet, o
     min-inline-size: var(--sui-field-target-min);
     padding: var(--sui-space-2);
     resize: vertical;
-    transition:
-      background-color var(--sui-duration-fast) var(--sui-ease-standard),
-      border-color var(--sui-duration-fast) var(--sui-ease-standard);
   }
 
   .sui-textarea::placeholder {
@@ -86,9 +83,16 @@ It has no label of its own. Put it in a `Field` through the `control` snippet, o
   }
 
   @media (hover: hover) {
-    .sui-textarea:hover:not(:disabled, :focus, [aria-invalid='true']) {
+    /* Hover lays the row veil over the field and steps its edge up, and an invalid field keeps
+       its danger edge, a step deeper, so every field answers the pointer (L-9). */
+    .sui-textarea:hover:not(:disabled, :focus, [readonly]) {
+      background-color: var(--sui-row-hover);
       border-color: var(--sui-field-frame-hover);
       border-block-end-color: var(--sui-field-border-hover);
+    }
+
+    .sui-textarea[aria-invalid='true']:hover:not(:disabled, :focus, [readonly]) {
+      border-color: var(--sui-danger-hover);
     }
   }
 
@@ -121,12 +125,6 @@ It has no label of its own. Put it in a `Field` through the `control` snippet, o
   @media (forced-colors: active) {
     .sui-textarea[aria-invalid='true'] {
       border-width: var(--sui-stroke-bold);
-    }
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    .sui-textarea {
-      transition: none;
     }
   }
 </style>

@@ -11,6 +11,7 @@
     description,
     level = 1,
     actions,
+    tabs,
     class: className = '',
     ...rest
   }: {
@@ -27,6 +28,8 @@
     level?: 1 | 2 | 3 | 4 | 5 | 6;
     /** The controls that act on the whole page. */
     actions?: Snippet;
+    /** The page's views, such as `Tabs`, which turn the header into a band down to their line. */
+    tabs?: Snippet;
     /** Layout for the call site only, never the header's own paint. */
     class?: HTMLAttributes<HTMLElement>['class'];
   } & Omit<HTMLAttributes<HTMLElement>, 'title' | 'id'> = $props();
@@ -46,8 +49,13 @@ characters a line. The header leaves 24px to the first surface under it (20px on
 container that already spaces its children with a gap sets `--sui-head-exit-gap` to that
 gap, and the header owes only the difference.
 
+With `tabs` the header is a band of the surface ground down to the tabs' line, so the view under
+it starts on a clean cut, as the page's body starts below a toolbar. Place it flush with the top
+and sides of the page's content area: the band pads its top and sides by the pane gutter, the
+inset the page gives its content, so its words line up with the view's.
+
 - Semantics: a `header` holding the title as a heading at `level` (the page's `h1` by default), with `id` for a landmark that points at it.
-- Content: a title, an optional eyebrow or a `kicker` such as a `Breadcrumb` or `BackLink` in its place, an optional one-line description and optional actions.
+- Content: a title, an optional eyebrow or a `kicker` such as a `Breadcrumb` or `BackLink` in its place, an optional one-line description, optional actions and optional `tabs` at its foot.
 - States: none of its own; the controls in `actions` draw theirs.
 - Keyboard: none of its own; Tab reaches the kicker's links and the actions in reading order.
 - Pointer and touch: none of its own; the actions keep their own targets.
@@ -60,7 +68,7 @@ gap, and the header owes only the difference.
 - Failure: without a description or an eyebrow the stack is the title alone, and an empty eyebrow keeps its line.
 -->
 
-<header {...rest} class={['sui-page-header', className]}>
+<header {...rest} class={['sui-page-header', className, { banded: tabs !== undefined }]}>
   <div class="sui-page-header-layout">
     <div class="sui-page-header-copy">
       {#if kicker}
@@ -81,12 +89,25 @@ gap, and the header owes only the difference.
       <div class="sui-page-header-actions">{@render actions()}</div>
     {/if}
   </div>
+  {#if tabs}
+    <div class="sui-page-header-tabs">{@render tabs()}</div>
+  {/if}
 </header>
 
 <style>
   .sui-page-header {
     margin: 0 0 calc(var(--sui-rhythm-head-surface) - var(--sui-head-exit-gap, 0px));
     min-inline-size: 0;
+  }
+
+  /* The band's foot is the tabs' line, so the view under it starts on a clean cut. */
+  .banded {
+    background: var(--sui-surface-base);
+    padding: var(--sui-rhythm-pane-gutter) var(--sui-rhythm-pane-gutter) 0;
+  }
+
+  .sui-page-header-tabs {
+    margin-block-start: var(--sui-rhythm-head-surface);
   }
 
   /* The header answers to its own width: the actions stand beside the copy while both fit,
@@ -102,6 +123,7 @@ gap, and the header owes only the difference.
   }
 
   .sui-page-header-copy {
+    align-content: center;
     block-size: var(--sui-block-snap-even);
     display: flex;
     flex: 1 1 20rem;
@@ -111,6 +133,7 @@ gap, and the header owes only the difference.
   }
 
   .sui-page-header-eyebrow {
+    align-content: center;
     block-size: var(--sui-block-snap);
     color: var(--sui-text-muted);
     font: var(--sui-weight-semibold) var(--sui-font-size-micro) / var(--sui-leading-micro)
@@ -122,6 +145,7 @@ gap, and the header owes only the difference.
   }
 
   .sui-page-header-title {
+    align-content: center;
     block-size: var(--sui-block-snap);
     color: var(--sui-text-primary);
     font: var(--sui-weight-bold) var(--sui-font-size-page-title) / var(--sui-leading-page)
@@ -134,6 +158,7 @@ gap, and the header owes only the difference.
   }
 
   .sui-page-header-description {
+    align-content: center;
     block-size: var(--sui-block-snap);
     color: var(--sui-text-muted);
     font: var(--sui-weight-regular) var(--sui-font-size-body) / var(--sui-row-copy-leading)

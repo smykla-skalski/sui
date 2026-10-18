@@ -155,9 +155,9 @@ a `Rail` chooses the place and this chooses the page. Every row is a destination
 icon and address, and a heading is only a label.
 
 Current is drawn the same way in every navigation list: the words carry it. Rest rows are
-muted at the regular weight, and the page on screen is primary ink at semibold, a step of 3:1
-or more in lightness and a step in weight, on a quiet plate that only supports them. Under
-forced colors the plate is `Highlight` and its words `HighlightText`. The plate is measured
+muted and the page on screen is primary ink, a step of 3:1 or more in lightness, on a quiet
+plate that only supports it. Both keep one weight, so turning current never rewraps a label or
+changes a row's height. Under forced colors the plate is `Highlight` and its words `HighlightText`. The plate is measured
 from the current row, does not slide on first paint, and glides to the next row when the page
 changes. Until it is measured the row paints its own plate.
 
@@ -169,12 +169,12 @@ following a row closes the drawer.
 
 - Semantics: a `nav` landmark named "<title> pages" by default, the title a heading at `level`, each section a list labelled by its own heading one level below, and every row a link with `aria-current="page"` on the current one.
 - Content: a title and optional kicker, sections of rows with a glyph, a label, an optional `short` label and an optional count, and an optional `foot`.
-- States: rest, hover, pressed (the pressed ground, an inset shadow and a 1px sink), focus (a 2px inset ring) and current (primary semibold ink on the quiet plate); a label keeps the room its semibold form needs, so turning current moves nothing, and labels wrap rather than being cut.
+- States: rest, hover, pressed (the pressed ground, an inset shadow and a 1px sink), focus (a 2px inset ring) and current (primary ink on the quiet plate, in the rest rows' weight, so it moves nothing); labels wrap rather than being cut.
 - Keyboard: Tab moves through the rows, then the fold or close control; Enter follows a row or presses the control.
 - Pointer and touch: rows are 34px on a desktop pointer and 44px in the drawer and the strip; the close and fold controls are 34px and 44px there, and nothing needs a gesture.
 - Focus: folding keeps focus on the control; a fold control that leaves as the shell narrows hands focus to the current row, and a row followed in the drawer closes it with focus returned to the menu button.
 - Responsive: the row list scrolls inside the column, a long label wraps, the strip stacks each glyph over its short label, and the fold control shows only where the shell can fold.
-- Accessibility: a count is read with its words from `countLabel`, joined to the label by `countedName`, every ink holds 4.5:1 on its ground, the current ink stands 3:1 from the rest ink with a heavier weight, so it is never colour alone, and a heading names each group for heading navigation.
+- Accessibility: a count is read with its words from `countLabel`, joined to the label by `countedName`, every ink holds 4.5:1 on its ground, the current ink stands 3:1 from the rest ink in lightness, so it is never hue alone (WCAG 1.4.1), and a heading names each group for heading navigation.
 - Localization: `label`, `closeLabel`, `collapseLabel`, `expandLabel` and `countLabel` are props with English defaults; counts follow the page language, the plate is measured from the start edge and the fold glyphs mirror in a right-to-left page.
 - Performance: one resize observer measures the plate, which glides with a transform; it suits a sidebar of tens of rows, not thousands.
 - Analytics: `onnavigate(event, item)` reports every followed row; the shell's `oncollapsedchange` reports the fold.
@@ -226,14 +226,9 @@ following a row closes the drawer.
                 onclick={(event) => follow(event, item)}
               >
                 <span class="sui-side-nav-glyph"><Icon name={item.icon} size="base" /></span>
-                <span
-                  class={['sui-side-nav-label', { replaced: item.short }]}
-                  data-label={item.label}><span>{item.label}</span></span
-                >
+                <span class={['sui-side-nav-label', { replaced: item.short }]}>{item.label}</span>
                 {#if item.short}
-                  <span class="sui-side-nav-short" aria-hidden="true" data-label={item.short}
-                    ><span>{item.short}</span></span
-                  >
+                  <span class="sui-side-nav-short" aria-hidden="true">{item.short}</span>
                 {/if}
                 {#if item.count !== undefined}
                   <span class="sui-side-nav-count" aria-hidden="true"
@@ -274,6 +269,14 @@ following a row closes the drawer.
 </div>
 
 <style>
+  /* The row's one-line box, computed in the row's font and handed down, so a part in another
+     font, such as the count, can centre on the first line too. */
+  @property --sui-local-line {
+    syntax: '<length>';
+    inherits: true;
+    initial-value: 0px;
+  }
+
   /* A row's glyph and a heading's first letter share one column because the row's inline
      padding and the heading's inline margin are the same token. */
   .sui-side-nav {
@@ -302,6 +305,7 @@ following a row closes the drawer.
   }
 
   .sui-side-nav-kicker {
+    align-content: center;
     block-size: var(--sui-block-snap);
     color: var(--sui-sidebar-text-muted);
     font: var(--sui-weight-semibold) var(--sui-font-size-micro) / var(--sui-leading-micro)
@@ -313,6 +317,7 @@ following a row closes the drawer.
   }
 
   .sui-side-nav-title {
+    align-content: center;
     block-size: var(--sui-block-snap);
     font: var(--sui-weight-semibold) var(--sui-font-size-meta) / var(--sui-row-copy-leading)
       var(--sui-sans);
@@ -344,6 +349,7 @@ following a row closes the drawer.
   }
 
   .sui-side-nav-group {
+    align-content: center;
     block-size: var(--sui-block-snap);
     color: var(--sui-sidebar-text-muted);
     font: var(--sui-weight-semibold) var(--sui-font-size-micro) / var(--sui-leading-micro)
@@ -358,8 +364,8 @@ following a row closes the drawer.
     margin-block-start: 0;
   }
 
-  /* The quiet plate under the current row. It supports the row's ink and weight, which carry
-     the state, so it needs no ring or edge. */
+  /* The quiet plate under the current row. It supports the row's ink, which carries the
+     state, so it needs no ring or edge. */
   .sui-side-nav-thumb {
     background: var(--sui-sidebar-active-bg);
     block-size: var(--sui-thumb-height);
@@ -391,8 +397,13 @@ following a row closes the drawer.
     translate: 0 1px;
   }
 
+  /* The row hangs its parts from the top, padded so a one-line row is exactly its height with
+     the words on its middle; a glyph and a count centre on the first line, so a label that
+     wraps keeps them beside its first line (L-94). */
   .sui-side-nav-row {
-    align-items: center;
+    --sui-local-row: var(--sui-control-height-compact);
+    --sui-local-line: round(up, 1cap, 2px);
+    align-items: start;
     background: transparent;
     border: 0;
     border-radius: var(--sui-radius-control);
@@ -405,14 +416,12 @@ following a row closes the drawer.
     gap: var(--sui-space-2);
     inline-size: 100%;
     margin: 0;
-    min-block-size: var(--sui-control-height-compact);
-    padding: var(--sui-space-2) var(--sui-space-3);
+    min-block-size: var(--sui-local-row);
+    padding: calc((var(--sui-local-row) - var(--sui-local-line)) / 2) var(--sui-space-3);
     position: relative;
     text-align: start;
     text-decoration: none;
     transition:
-      background-color var(--sui-duration-fast) var(--sui-ease-standard),
-      color var(--sui-duration-fast) var(--sui-ease-standard),
       translate var(--sui-duration-press) var(--sui-ease-standard),
       box-shadow var(--sui-duration-press) var(--sui-ease-standard);
     -webkit-tap-highlight-color: transparent;
@@ -440,7 +449,6 @@ following a row closes the drawer.
 
   .sui-side-nav-row[aria-current='page'] {
     color: var(--sui-sidebar-active-ink);
-    font-weight: var(--sui-weight-semibold);
   }
 
   /* Until the plate is measured the current row paints its own, so the first frame is right. */
@@ -462,33 +470,16 @@ following a row closes the drawer.
     align-items: center;
     display: inline-flex;
     flex: none;
+    margin-block: calc((var(--sui-local-line) - var(--sui-icon-base)) / 2);
   }
 
   .sui-side-nav-label {
-    block-size: var(--sui-block-snap);
+    align-content: center;
+    block-size: var(--sui-block-snap-even);
     flex: 1;
     min-inline-size: 0;
     overflow-wrap: anywhere;
     text-box: trim-both cap alphabetic;
-  }
-
-  /* A hidden semibold copy shares the words' cell, so the row already holds the room the
-     current weight needs and turning current moves nothing (L-91). */
-  .sui-side-nav-label[data-label] {
-    display: grid;
-  }
-
-  :is(.sui-side-nav-label, .sui-side-nav-short) > span,
-  :is(.sui-side-nav-label, .sui-side-nav-short)::after {
-    block-size: var(--sui-block-snap);
-    grid-area: 1 / 1;
-    text-box: trim-both cap alphabetic;
-  }
-
-  :is(.sui-side-nav-label, .sui-side-nav-short)[data-label]::after {
-    content: attr(data-label) / '';
-    font-weight: var(--sui-weight-semibold);
-    visibility: hidden;
   }
 
   .sui-side-nav-short {
@@ -497,11 +488,16 @@ following a row closes the drawer.
 
   /* The count keeps the sidebar's own inks, and the current row's. Its ground is a veil a step
      past a pressed row, so it stands apart from every ground a row takes, hover included. */
+  /* In the count's own font, so its cap is the count's: the count is its digits' even box and
+     a space on each side, centred on the row's first line. */
   .sui-side-nav-count {
     --sui-local-count-ground: var(--sui-row-pressed);
     --sui-local-count-ink: var(--sui-sidebar-text-secondary);
     display: flex;
     flex: none;
+    font: var(--sui-weight-semibold) var(--sui-font-size-micro) / var(--sui-leading-flat)
+      var(--sui-sans);
+    margin-block: calc((var(--sui-local-line) - round(up, 1cap, 2px) - 2 * var(--sui-space-1)) / 2);
   }
 
   .sui-side-nav-row[aria-current='page'] .sui-side-nav-count {
@@ -514,7 +510,7 @@ following a row closes the drawer.
   }
 
   [data-mode='drawer'] .sui-side-nav-row {
-    min-block-size: var(--sui-touch-target);
+    --sui-local-row: var(--sui-touch-target);
   }
 
   /* The strip: each row stacks its glyph over a label that wraps rather than being cut, the
@@ -546,6 +542,7 @@ following a row closes the drawer.
   }
 
   [data-mode='collapsed'] .sui-side-nav-row {
+    align-items: center;
     flex-direction: column;
     font: var(--sui-weight-regular) var(--sui-font-size-compact) / var(--sui-leading-compact)
       var(--sui-sans);
@@ -556,8 +553,8 @@ following a row closes the drawer.
     text-align: center;
   }
 
-  [data-mode='collapsed'] .sui-side-nav-row[aria-current='page'] {
-    font-weight: var(--sui-weight-semibold);
+  [data-mode='collapsed'] .sui-side-nav-glyph {
+    margin-block: 0;
   }
 
   /* A word too long for the strip breaks at a hyphen where the page's language allows. */
@@ -569,8 +566,10 @@ following a row closes the drawer.
   }
 
   [data-mode='collapsed'] .sui-side-nav-short {
+    align-content: center;
     block-size: var(--sui-block-snap);
-    display: grid;
+    display: block;
+    text-box: trim-both cap alphabetic;
   }
 
   /* A label replaced by its short form, and a count, leave the strip but are still read. */

@@ -71,7 +71,6 @@ opens something.
       calc(var(--sui-row-pad-default) + var(--sui-row-hairline));
     position: relative;
     transition:
-      background-color var(--sui-duration-fast) var(--sui-ease-standard),
       translate var(--sui-duration-press) var(--sui-ease-standard),
       box-shadow var(--sui-duration-press) var(--sui-ease-standard);
   }

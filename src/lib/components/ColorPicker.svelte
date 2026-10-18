@@ -464,7 +464,7 @@ name is the label and the hex, such as "Label color #0f766e". `name` posts the h
     {#if palette.length > 0}
       <div bind:this={grid} class="swatches" role="radiogroup" aria-label={swatchesLabel}>
         {#each palette as swatch (swatch.hex)}
-          <span class="cell">
+          <span class="cell" style:--sui-color-picker-swatch={swatch.hex}>
             <input
               type="radio"
               class="swatch"
@@ -472,18 +472,15 @@ name is the label and the hex, such as "Label color #0f766e". `name` posts the h
               value={swatch.hex}
               aria-label={swatchName(swatch.hex, swatch.named)}
               checked={swatch.hex === current}
-              style:--sui-color-picker-swatch={swatch.hex}
               onchange={() => pick(swatch.hex)}
               onclick={(event) => {
                 if (event.detail > 0) close();
               }}
             />
             {#if swatch.hex === current}
-              <!-- A light halo under a dark check, or the reverse in dark, reads on any swatch. -->
-              <span class="check" aria-hidden="true">
-                <span class="halo"><Icon name="check" size="sm" strokeWidth={5} /></span>
-                <span class="ink"><Icon name="check" size="sm" strokeWidth={2} /></span>
-              </span>
+              <span class="check" aria-hidden="true"
+                ><Icon name="check" size="sm" strokeWidth={2.5} /></span
+              >
             {/if}
           </span>
         {/each}
@@ -566,13 +563,6 @@ name is the label and the hex, such as "Label color #0f766e". `name` posts the h
 </Popover>
 
 <style>
-  /* Registered so the swatch's state veil interpolates, the same way `Button` does it. */
-  @property --sui-color-picker-layer {
-    syntax: '<color>';
-    inherits: false;
-    initial-value: transparent;
-  }
-
   .mark,
   .panel {
     --sui-color-picker-hairline: color-mix(in srgb, var(--sui-text-primary) 14%, transparent);
@@ -616,6 +606,7 @@ name is the label and the hex, such as "Label color #0f766e". `name` posts the h
   }
 
   .part-label {
+    align-content: center;
     block-size: var(--sui-block-snap);
     color: var(--sui-text-secondary);
     font: var(--sui-weight-semibold) var(--sui-font-size-control) / var(--sui-row-copy-leading)
@@ -657,9 +648,7 @@ name is the label and the hex, such as "Label color #0f766e". `name` posts the h
     grid-area: 1 / 1;
     inline-size: var(--sui-cp-cell);
     margin: 0;
-    transition:
-      --sui-color-picker-layer var(--sui-duration-fast) var(--sui-ease-standard),
-      box-shadow var(--sui-duration-press) var(--sui-ease-standard);
+    transition: box-shadow var(--sui-duration-press) var(--sui-ease-standard);
   }
 
   @media (hover: hover) {
@@ -680,24 +669,15 @@ name is the label and the hex, such as "Label color #0f766e". `name` posts the h
     outline-offset: var(--sui-focus-ring-offset);
   }
 
+  /* One check in black or white, whichever the swatch is lighter or darker than, so it holds
+     3:1 on any colour with no rim around it: the swatch's lightness, pushed far past the
+     middle grey, clamps to 0 or 1. */
   .check {
+    color: oklch(from var(--sui-color-picker-swatch) clamp(0, (0.62 - l) * 1000, 1) 0 0);
     display: grid;
     grid-area: 1 / 1;
     place-items: center;
     pointer-events: none;
-  }
-
-  .check > span {
-    display: flex;
-    grid-area: 1 / 1;
-  }
-
-  .halo {
-    color: var(--sui-popover-bg);
-  }
-
-  .ink {
-    color: var(--sui-text-primary);
   }
 
   .area {
@@ -770,6 +750,7 @@ name is the label and the hex, such as "Label color #0f766e". `name` posts the h
   }
 
   .error-words {
+    align-content: center;
     block-size: var(--sui-block-snap);
     min-inline-size: 0;
     overflow-wrap: anywhere;

@@ -81,18 +81,18 @@ collapsed strip. On a phone it rides in the drawer, or, in a shell with `bottomN
 into the bottom bar: the same tiles side by side, sharing the width.
 
 Current is drawn the same way in every navigation list: the words carry it. Rest tiles are
-muted at the regular weight, and the place on screen is primary ink at semibold, a step of 3:1
-or more in lightness and a step in weight, on a quiet plate that only supports them. Under
-forced colors the plate is `Highlight` and its words `HighlightText`.
+muted and the place on screen is primary ink, a step of 3:1 or more in lightness, on a quiet
+plate that only supports it. Both keep one weight, so turning current never rewraps a label or
+changes a tile's height. Under forced colors the plate is `Highlight` and its words `HighlightText`.
 
 - Semantics: a `nav` landmark named by `label`, holding lists of links (`aria-current="page"`) or buttons (`aria-current="true"`).
 - Content: tiles with a glyph, a label and an optional `short` label and `badge`; an optional `brand` mark above them and `foot` tiles at the end.
-- States: rest, hover, pressed (the plate's ground, an inset shadow and a 1px sink), focus (a 2px offset ring) and current (primary semibold ink on the quiet plate); a label keeps the room its semibold form needs, so turning current moves nothing.
+- States: rest, hover, pressed (the plate's ground, an inset shadow and a 1px sink), focus (a 2px offset ring) and current (primary ink on the quiet plate, in the rest tiles' weight, so it moves nothing).
 - Keyboard: Tab moves through the tiles in order, and Enter follows a link or presses a button.
 - Pointer and touch: every tile is at least 44 by 44px on every pointer; nothing needs a gesture.
 - Focus: pressing a tile keeps focus on it; following a link inside the phone drawer closes the drawer and the shell returns focus to its menu button.
 - Responsive: in a column shorter than its tiles, as at 400% zoom, the rail scrolls inside itself; text zoom grows the tiles instead of spilling them, and with `bottomNav` on a phone the tiles share one row.
-- Accessibility: each tile's name is its full `label` plus the badge's words, so a `short` label still names it in full; every ink holds 4.5:1 on its ground, and the current ink stands 3:1 from the rest ink with a heavier weight, so it is never colour alone.
+- Accessibility: each tile's name is its full `label` plus the badge's words, so a `short` label still names it in full; every ink holds 4.5:1 on its ground, and the current ink stands 3:1 from the rest ink in lightness, so it is never hue alone (WCAG 1.4.1).
 - Localization: `label` and `badgeLabel` are props with English defaults; the badge's count follows the page language's digits and grouping, and the tooltip opens on the inline end, which is the left in a right-to-left page.
 - Performance: a handful of static tiles; only background, colour and the 1px press move, through transitions that reduced motion removes.
 - Analytics: `onnavigate(event, item)` reports a followed link and `onpick(item)` a pressed button.
@@ -143,9 +143,7 @@ forced colors the plate is `Highlight` and its words `HighlightText`.
         ><span>{formatCount(item.badge)}</span></span
       >{/if}
   </span>
-  <span class="sui-rail-label" data-label={item.short ?? item.label}
-    ><span>{item.short ?? item.label}</span></span
-  >
+  <span class="sui-rail-label">{item.short ?? item.label}</span>
 {/snippet}
 
 <nav {...rest} class={['sui-rail', className]} aria-label={label} data-bar={bar || undefined}>
@@ -230,8 +228,6 @@ forced colors the plate is `Highlight` and its words `HighlightText`.
     text-decoration: none;
     touch-action: manipulation;
     transition:
-      background-color var(--sui-duration-fast) var(--sui-ease-standard),
-      color var(--sui-duration-fast) var(--sui-ease-standard),
       translate var(--sui-duration-press) var(--sui-ease-standard),
       box-shadow var(--sui-duration-press) var(--sui-ease-standard);
     -webkit-tap-highlight-color: transparent;
@@ -257,8 +253,8 @@ forced colors the plate is `Highlight` and its words `HighlightText`.
     outline-offset: var(--sui-focus-ring-offset);
   }
 
-  /* The quiet plate under the current tile. It supports the tile's ink and weight, which
-     carry the state, so it needs no ring or edge. */
+  /* The quiet plate under the current tile. It supports the tile's ink, which carries the
+     state, so it needs no ring or edge. */
   .sui-rail-tile[aria-current] {
     background: var(--sui-sidebar-active-bg);
     box-shadow: var(--sui-sidebar-thumb-shadow);
@@ -274,35 +270,17 @@ forced colors the plate is `Highlight` and its words `HighlightText`.
     position: relative;
   }
 
-  /* A hidden semibold copy shares the words' cell, so the tile already holds the room the
-     current weight needs and turning current moves nothing (L-91). */
   .sui-rail-label {
+    align-content: center;
     block-size: var(--sui-block-snap);
-    display: grid;
     font: var(--sui-weight-regular) var(--sui-font-size-compact) / var(--sui-leading-compact)
       var(--sui-sans);
     hyphens: auto;
     max-inline-size: 100%;
     overflow-wrap: break-word;
     text-align: center;
-    text-wrap: balance;
-  }
-
-  .sui-rail-label > span,
-  .sui-rail-label::after {
-    block-size: var(--sui-block-snap);
-    grid-area: 1 / 1;
     text-box: trim-both cap alphabetic;
-  }
-
-  .sui-rail-label::after {
-    content: attr(data-label) / '';
-    font-weight: var(--sui-weight-semibold);
-    visibility: hidden;
-  }
-
-  .sui-rail-tile[aria-current] .sui-rail-label {
-    font-weight: var(--sui-weight-semibold);
+    text-wrap: balance;
   }
 
   /* Something waiting is information, not a fault, so it wears the accent. */
@@ -327,6 +305,7 @@ forced colors the plate is `Highlight` and its words `HighlightText`.
   }
 
   .sui-rail-badge > span {
+    align-content: center;
     block-size: var(--sui-block-snap);
     text-box: trim-both cap alphabetic;
   }

@@ -112,6 +112,7 @@ matches in a polite `role="status"` beside it so a screen reader hears it.
   }
 
   .sui-search-field-label {
+    align-content: center;
     block-size: var(--sui-block-snap);
     color: var(--sui-text-secondary);
     font: var(--sui-weight-semibold) var(--sui-font-size-control) / var(--sui-row-copy-leading)

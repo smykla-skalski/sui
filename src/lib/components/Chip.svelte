@@ -166,8 +166,13 @@ draws the plain chip, so a stored value never writes a style declaration.
 </span>
 
 <style>
+  /* The parts hang from the top: the label's padding centres one line in the chip's height and
+     the remove mark sits on that line, so a value that wraps keeps its mark beside its first
+     line (L-94). */
   .sui-chip {
-    align-items: center;
+    --sui-local-chip: var(--sui-control-height-chip);
+    --sui-local-remove: var(--sui-tier-mark);
+    align-items: start;
     background: var(--sui-neutral-tint);
     border-radius: var(--sui-radius-chip);
     box-shadow: inset 0 0 0 var(--sui-stroke) color-mix(in srgb, currentColor 22%, transparent);
@@ -179,13 +184,13 @@ draws the plain chip, so a stored value never writes a style declaration.
     gap: var(--sui-space-1);
     inline-size: fit-content;
     max-inline-size: 100%;
-    min-block-size: var(--sui-control-height-chip);
+    min-block-size: var(--sui-local-chip);
     padding-inline: var(--sui-space-2);
   }
 
   .small {
+    --sui-local-chip: var(--sui-control-height-chip-small);
     font-size: var(--sui-font-size-micro);
-    min-block-size: var(--sui-control-height-chip-small);
   }
 
   .mono {
@@ -195,12 +200,13 @@ draws the plain chip, so a stored value never writes a style declaration.
   }
 
   /* The padding sits on the label so a wrapped value clears the edges, while one line keeps
-     the chip at its tier. */
+     the chip at its tier with the words on its middle. */
   .sui-chip-label {
-    block-size: var(--sui-block-snap);
+    align-content: center;
+    block-size: var(--sui-block-snap-even);
     min-inline-size: 0;
     overflow-wrap: anywhere;
-    padding-block: var(--sui-space-1);
+    padding-block: calc((var(--sui-local-chip) - round(up, 1cap, 2px)) / 2);
     text-box: trim-both cap alphabetic;
   }
 
@@ -230,21 +236,20 @@ draws the plain chip, so a stored value never writes a style declaration.
   .sui-chip-remove {
     align-items: center;
     background-color: transparent;
-    block-size: var(--sui-tier-mark);
+    block-size: var(--sui-local-remove);
     border: 0;
     border-radius: inherit;
     color: inherit;
     cursor: pointer;
     display: inline-flex;
     flex: none;
-    inline-size: var(--sui-tier-mark);
+    inline-size: var(--sui-local-remove);
     justify-content: center;
-    margin: 0;
+    margin: calc((var(--sui-local-chip) - var(--sui-local-remove)) / 2) 0;
     padding: 0;
     position: relative;
     touch-action: manipulation;
     transition:
-      background-color var(--sui-duration-fast) var(--sui-ease-standard),
       translate var(--sui-duration-press) var(--sui-ease-standard),
       box-shadow var(--sui-duration-press) var(--sui-ease-standard);
     user-select: none;
@@ -265,13 +270,9 @@ draws the plain chip, so a stored value never writes a style declaration.
   @media (pointer: coarse), (max-width: 47.9375rem) {
     .removable,
     .small.removable {
-      min-block-size: var(--sui-touch-target);
+      --sui-local-chip: var(--sui-touch-target);
+      --sui-local-remove: var(--sui-touch-target);
       padding-inline-end: 0;
-    }
-
-    .sui-chip-remove {
-      block-size: var(--sui-touch-target);
-      inline-size: var(--sui-touch-target);
     }
 
     .sui-chip-remove::before {

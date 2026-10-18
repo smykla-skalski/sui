@@ -332,6 +332,7 @@ at its `id`, or with `label`; other attributes land on the amount.
 
   .sui-duration-hint,
   .sui-duration-words {
+    align-content: center;
     block-size: var(--sui-block-snap);
     min-inline-size: 0;
     overflow-wrap: anywhere;

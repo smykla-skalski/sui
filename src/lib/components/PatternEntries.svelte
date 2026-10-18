@@ -302,6 +302,7 @@ the text stays as typed until the reader fixes it.
 
   /* Contained, so a long reason wraps under its entry instead of widening the list. */
   .sui-pattern-problem {
+    align-content: center;
     block-size: var(--sui-block-snap);
     color: var(--sui-danger);
     contain: inline-size;
@@ -321,6 +322,7 @@ the text stays as typed until the reader fixes it.
   }
 
   .sui-pattern-said {
+    align-content: center;
     block-size: var(--sui-block-snap);
     color: var(--sui-text-secondary);
     font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-row-copy-leading)

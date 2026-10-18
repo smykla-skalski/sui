@@ -103,6 +103,7 @@
   }
 
   .label {
+    align-content: center;
     block-size: var(--sui-block-snap);
     color: var(--sui-text-secondary);
     font: var(--sui-weight-medium) var(--sui-font-size-compact) / var(--sui-leading-compact)
@@ -111,6 +112,7 @@
   }
 
   code {
+    align-content: center;
     block-size: var(--sui-block-snap);
     color: var(--sui-text-muted);
     font: var(--sui-weight-regular) var(--sui-font-size-micro) / var(--sui-leading-micro)

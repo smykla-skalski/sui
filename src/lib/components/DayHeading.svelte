@@ -94,6 +94,7 @@ one local day never opens two headings because its entries cross midnight in UTC
 
 <style>
   .sui-day-heading {
+    align-content: center;
     block-size: var(--sui-block-snap);
     color: var(--sui-text-secondary);
     font: var(--sui-weight-semibold) var(--sui-font-size-control) / var(--sui-leading-meta)

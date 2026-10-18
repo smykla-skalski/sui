@@ -102,8 +102,6 @@ action are a `Button` with the word beside the glyph.
     -webkit-user-select: none;
     user-select: none;
     transition:
-      background-color var(--sui-duration-fast) var(--sui-ease-standard),
-      color var(--sui-duration-fast) var(--sui-ease-standard),
       translate var(--sui-duration-press) var(--sui-ease-standard),
       box-shadow var(--sui-duration-press) var(--sui-ease-standard);
     -webkit-tap-highlight-color: transparent;

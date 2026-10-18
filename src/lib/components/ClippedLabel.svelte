@@ -82,6 +82,7 @@ it a bounded width anywhere else.
 
 <style>
   .sui-clipped-label {
+    align-content: center;
     block-size: var(--sui-block-snap);
     display: block;
     min-inline-size: 0;

@@ -277,6 +277,7 @@
 
   /* The sentence centres on the pill at an even height, so the pill lands on whole pixels. */
   .sentence {
+    align-content: center;
     block-size: var(--sui-block-snap-even);
   }
 

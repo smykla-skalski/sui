@@ -165,6 +165,7 @@ on its title line.
   }
 
   .sui-card-title {
+    align-content: center;
     align-self: center;
     block-size: var(--sui-block-snap);
     color: var(--sui-text-primary);
@@ -196,6 +197,7 @@ on its title line.
   }
 
   .sui-card-note {
+    align-content: center;
     block-size: var(--sui-block-snap);
     color: var(--sui-text-muted);
     font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-row-copy-leading)
@@ -210,13 +212,18 @@ on its title line.
   }
 
   /* Words that open or close the card start at their cap line and end at their baseline, so
-     the ink stands the inset from the top and the bottom alike (L-33). */
-  .sui-card > :first-child :global(:is(p, ul, ol, dl, blockquote):first-child) {
+     the ink stands the inset from the top and the bottom alike (L-33). Without weight, so a
+     component that trims its own words keeps both edges, and an only paragraph trims both. */
+  :where(.sui-card > :first-child) :global(:where(p, ul, ol, dl, blockquote):first-child) {
     text-box: trim-start cap alphabetic;
   }
 
-  .sui-card > :last-child :global(:is(p, ul, ol, dl, blockquote):last-child) {
+  :where(.sui-card > :last-child) :global(:where(p, ul, ol, dl, blockquote):last-child) {
     text-box: trim-end cap alphabetic;
+  }
+
+  :where(.sui-card > :only-child) :global(:where(p, ul, ol, dl, blockquote):only-child) {
+    text-box: trim-both cap alphabetic;
   }
 
   :is(.sui-card-head, .sui-card-note) + .sui-card-body {

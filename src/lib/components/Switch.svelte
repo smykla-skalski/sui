@@ -64,12 +64,12 @@ row is 44px tall too unless `bare` takes that out of layout, for a head or a row
 its own rhythm.
 
 A flip takes effect at once, so its save has two states of its own: `pending` turns the thumb
-while the change is saved and holds off another flip, and `error` says why a change did not
+into a spinner while the change is saved and holds off another flip, and `error` says why a change did not
 take, under the switch and to a screen reader, while the owner sets `checked` back.
 
 - Semantics: a native `<input type="checkbox" role="switch">` inside its `<label>`, described by `error`, with a polite `role="status"` that speaks the error.
 - Content: a short label that names what turns on, or richer `children`, and an optional one-sentence error.
-- States: off, on (the track fills and the thumb travels 14px), hover (a veil on the track), focus (a 2px ring 2px off the track), pressed (a deeper veil, an inset shadow and a 1px sink), pending (a turning thumb, busy), failed (an error with a warning mark), invalid (a danger edge, kept when on) and disabled (0.7 opacity).
+- States: off, on (the track fills and the thumb travels 14px), hover (a veil on the track), focus (a 2px ring 2px off the track), pressed (a deeper veil, an inset shadow and a 1px sink), pending (the thumb turns into the spinner where it stands, busy), failed (an error with a warning mark), invalid (a danger edge, kept when on) and disabled (0.7 opacity).
 - Keyboard: Tab reaches it and Space flips it; a pending switch refuses the flip and keeps focus.
 - Pointer and touch: a 34 by 20px track with a 44px hit area, and a 44px row unless `bare`; the label is part of the target.
 - Focus: a flip never moves focus, and neither does a pending or failed save.
@@ -145,6 +145,7 @@ take, under the switch and to a screen reader, while the owner sets `checked` ba
   }
 
   .sui-switch-label {
+    align-content: center;
     block-size: var(--sui-block-snap-even);
     color: var(--sui-text-primary);
     font: var(--sui-weight-regular) var(--sui-font-size-control) / var(--sui-row-copy-leading)
@@ -253,29 +254,26 @@ take, under the switch and to a screen reader, while the owner sets `checked` ba
     translate: 0 1px;
   }
 
-  /* While the flip saves, a three-quarter arc in the switch's on colour turns inside the
-     thumb, which keeps its face and its shadow; only the arc's start angle moves. */
-  @property --sui-switch-arc {
-    syntax: '<angle>';
-    inherits: false;
-    initial-value: 0deg;
-  }
-
+  /* While the flip saves, the thumb becomes the system's spinner, the button's ring with one
+     side open, turning where the thumb stands, so the track still says which way it went. The
+     ring is the thumb's face on the filled track and the secondary ink on the empty one, so it
+     holds 4.5:1 on either. */
   .sui-switch-track.pending::after {
-    animation: sui-switch-turn var(--sui-duration-spinner) var(--sui-ease-linear) infinite;
-    background:
-      radial-gradient(circle, var(--sui-switch-thumb) 3.5px, transparent 4px),
-      radial-gradient(circle, transparent 5.5px, var(--sui-switch-thumb) 6px),
-      conic-gradient(
-        from var(--sui-switch-arc),
-        var(--sui-switch-track-on) 0 0.75turn,
-        var(--sui-switch-thumb) 0
-      );
+    animation: sui-switch-spin var(--sui-duration-spinner) var(--sui-ease-linear) infinite;
+    background: none;
+    border: var(--sui-stroke-bold) solid var(--sui-text-secondary);
+    border-inline-end-color: transparent;
+    box-shadow: none;
   }
 
-  @keyframes sui-switch-turn {
+  .sui-switch-row input:checked + .sui-switch-track.pending::after {
+    border-color: var(--sui-switch-thumb);
+    border-inline-end-color: transparent;
+  }
+
+  @keyframes sui-switch-spin {
     to {
-      --sui-switch-arc: 1turn;
+      rotate: 1turn;
     }
   }
 
@@ -301,6 +299,7 @@ take, under the switch and to a screen reader, while the owner sets `checked` ba
   }
 
   .sui-switch-words {
+    align-content: center;
     block-size: var(--sui-block-snap);
     min-inline-size: 0;
     overflow-wrap: anywhere;

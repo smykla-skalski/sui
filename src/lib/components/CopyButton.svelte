@@ -126,14 +126,6 @@ in its corner. Beside a 34px field or in a toolbar it takes the control tier wit
 </button><span class="sui-copy-button-status" role="status">{message}</span>
 
 <style>
-  /* The same registered state layer as `Button`, so the veil over the opaque ground
-     animates and hover, press and release stay one continuous change. */
-  @property --sui-control-state-layer {
-    syntax: '<color>';
-    inherits: false;
-    initial-value: transparent;
-  }
-
   .sui-copy-button {
     --sui-control-state-layer: transparent;
     align-items: center;
@@ -160,9 +152,6 @@ in its corner. Beside a 34px field or in a toolbar it takes the control tier wit
     -webkit-user-select: none;
     user-select: none;
     transition:
-      --sui-control-state-layer var(--sui-duration-fast) var(--sui-ease-standard),
-      border-color var(--sui-duration-fast) var(--sui-ease-standard),
-      color var(--sui-duration-fast) var(--sui-ease-standard),
       translate var(--sui-duration-press) var(--sui-ease-standard),
       box-shadow var(--sui-duration-press) var(--sui-ease-standard);
     -webkit-tap-highlight-color: transparent;
@@ -255,6 +244,7 @@ in its corner. Beside a 34px field or in a toolbar it takes the control tier wit
   }
 
   .sui-copy-button-labels > span {
+    align-content: center;
     block-size: var(--sui-block-snap);
     grid-area: 1 / 1;
     text-align: center;

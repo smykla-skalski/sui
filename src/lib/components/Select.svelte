@@ -223,7 +223,6 @@ assistive technology, because a native picker cannot be held open.
     padding-inline: var(--sui-space-2) calc(2 * var(--sui-space-2) + var(--sui-icon-sm));
     text-overflow: ellipsis;
     transition:
-      border-color var(--sui-duration-fast) var(--sui-ease-standard),
       translate var(--sui-duration-press) var(--sui-ease-standard),
       box-shadow var(--sui-duration-press) var(--sui-ease-standard);
     -webkit-user-select: none;
@@ -236,15 +235,21 @@ assistive technology, because a native picker cannot be held open.
   }
 
   @media (hover: hover) {
-    .sui-select-control:hover:not(
-        :active,
-        :disabled,
-        :focus-visible,
-        [aria-invalid='true'],
-        :user-invalid
-      ) {
+    /* Hover lays the row veil over the field and steps its edge up, and an invalid field keeps
+       its danger edge, a step deeper, so every field answers the pointer (L-9). */
+    .sui-select:not(.bare) .sui-select-control:hover:not(:active, :disabled, :focus-visible) {
+      background-color: var(--sui-row-hover);
       border-color: var(--sui-field-frame-hover);
       border-block-end-color: var(--sui-field-border-hover);
+    }
+
+    .sui-select:not(.bare)
+      .sui-select-control:is([aria-invalid='true'], :user-invalid):hover:not(
+        :active,
+        :disabled,
+        :focus-visible
+      ) {
+      border-color: var(--sui-danger-hover);
     }
   }
 
@@ -295,7 +300,8 @@ assistive technology, because a native picker cannot be held open.
     border-width: 0;
     color: var(--sui-text-secondary);
     margin-block: calc(-1 * var(--sui-stroke));
-    padding-inline-start: var(--sui-space-1);
+    /* The field's own text inset, so the unit's words sit as far in as a value's would. */
+    padding-inline-start: var(--sui-space-2);
     translate: none;
   }
 
@@ -312,10 +318,6 @@ assistive technology, because a native picker cannot be held open.
   .bare .sui-select-control:focus-visible {
     outline: var(--sui-focus-ring-width) solid var(--sui-focus);
     outline-offset: var(--sui-focus-ring-inset);
-  }
-
-  .bare .sui-select-chevron {
-    transition: color var(--sui-duration-fast) var(--sui-ease-standard);
   }
 
   .bare:has(.sui-select-control:focus-visible) .sui-select-control,
@@ -460,7 +462,6 @@ assistive technology, because a native picker cannot be held open.
     gap: var(--sui-space-2);
     min-block-size: var(--sui-control-height-compact);
     padding: var(--sui-space-1) var(--sui-space-3);
-    transition: background-color var(--sui-duration-fast) var(--sui-ease-standard);
     white-space: normal;
   }
 
@@ -544,9 +545,7 @@ assistive technology, because a native picker cannot be held open.
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .sui-select-control,
-    .sui-select-option,
-    .bare .sui-select-chevron {
+    .sui-select-control {
       transition: none;
     }
 

@@ -164,7 +164,10 @@ without a referrer.
     font-size: var(--sui-font-size-meta);
   }
 
+  /* The letters centre in their snapped box, so the spare pixels split above and under them
+     (L-102). */
   .sui-avatar-letters {
+    align-content: center;
     block-size: var(--sui-block-snap);
     text-box: trim-both cap alphabetic;
   }

@@ -99,6 +99,7 @@ not a fact.
 
   .sui-fact-list-label,
   .sui-fact-list-value {
+    align-content: center;
     block-size: var(--sui-block-snap-even);
     font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-row-copy-leading)
       var(--sui-sans);
@@ -116,6 +117,14 @@ not a fact.
     color: var(--sui-text-primary);
     font-weight: var(--sui-weight-medium);
     overflow-wrap: anywhere;
+  }
+
+  /* A pill or chip given as the value is a box, not words: the value lays it out as a box, so
+     its edge lands on whole pixels (L-95) where the words' baseline would set it on a
+     fraction, and it stands one copy gap under its label as any box does. */
+  .sui-fact-list-value:has(> :global(:is(.sui-pill, .sui-chip))) {
+    align-items: center;
+    display: flex;
   }
 
   .missing {

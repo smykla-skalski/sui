@@ -92,9 +92,6 @@ is `Button` with `href`, and the way back from a page is `BackLink`.
     text-decoration-color: currentColor;
     text-decoration-thickness: var(--sui-stroke);
     text-underline-offset: 0.18em;
-    transition:
-      color var(--sui-duration-fast) var(--sui-ease-standard),
-      text-decoration-thickness var(--sui-duration-fast) var(--sui-ease-standard);
   }
 
   @media (hover: hover) {
@@ -138,12 +135,6 @@ is `Button` with `href`, and the way back from a page is `BackLink`.
     .standalone::after {
       inset-block: min(0%, round(down, calc((100% - var(--sui-touch-target)) / 2), 1px));
       inset-inline: min(0%, round(down, calc((100% - var(--sui-touch-target)) / 2), 1px));
-    }
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    .sui-link {
-      transition: none;
     }
   }
 </style>

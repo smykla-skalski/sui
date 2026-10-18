@@ -259,6 +259,7 @@
 
   --sui-rhythm-pane-top-wide: 2.5rem;
   --sui-rhythm-pane-top-compact: 1rem;
+  --sui-rhythm-pane-gutter: var(--sui-space-6);
 
   --sui-rhythm-head-copy: 0.5rem;
   --sui-rhythm-head-surface: 1.5rem;

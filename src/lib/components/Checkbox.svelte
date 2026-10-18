@@ -143,7 +143,6 @@ it keeps focus, for a list that is saving.
     -webkit-user-select: none;
     user-select: none;
     transition:
-      background-color var(--sui-duration-fast) var(--sui-ease-standard),
       box-shadow var(--sui-duration-press) var(--sui-ease-standard),
       translate var(--sui-duration-press) var(--sui-ease-standard);
     -webkit-tap-highlight-color: transparent;
@@ -228,10 +227,6 @@ it keeps focus, for a list that is saving.
     inline-size: var(--sui-icon-md);
     justify-content: center;
     position: relative;
-    transition:
-      background-color var(--sui-duration-fast) var(--sui-ease-standard),
-      border-color var(--sui-duration-fast) var(--sui-ease-standard),
-      color var(--sui-duration-fast) var(--sui-ease-standard);
   }
 
   .sui-checkbox input:is(:checked, :indeterminate) + .sui-checkbox-box {
@@ -253,6 +248,7 @@ it keeps focus, for a list that is saving.
   }
 
   .sui-checkbox-copy {
+    align-content: center;
     block-size: var(--sui-block-snap-even);
     display: grid;
     gap: var(--sui-row-copy-gap);
@@ -260,6 +256,7 @@ it keeps focus, for a list that is saving.
   }
 
   .sui-checkbox-label {
+    align-content: center;
     block-size: var(--sui-block-snap);
     color: var(--sui-text-primary);
     font: var(--sui-weight-regular) var(--sui-font-size-control) / var(--sui-row-copy-leading)
@@ -270,6 +267,7 @@ it keeps focus, for a list that is saving.
   }
 
   .sui-checkbox-description {
+    align-content: center;
     block-size: var(--sui-block-snap);
     color: var(--sui-text-secondary);
     font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-row-copy-leading)

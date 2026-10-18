@@ -83,6 +83,7 @@
   }
 
   h4 {
+    align-content: center;
     block-size: var(--sui-block-snap);
     color: var(--sui-text-primary);
     font: var(--sui-weight-semibold) var(--sui-font-size-title) / var(--sui-leading-title)

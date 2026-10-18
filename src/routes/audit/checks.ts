@@ -33,6 +33,16 @@ const audited = (root: Document, selector: string) => {
 
 const round = (value: number, places = 2) => Number(value.toFixed(places));
 
+// Words that are only heard sit in a box clipped to a pixel, and are never drawn.
+function heardOnly(element: Element): boolean {
+  for (let node: Element | null = element; node; node = node.parentElement) {
+    const box = node.getBoundingClientRect();
+    if (box.width <= 1 && box.height <= 1 && getComputedStyle(node).overflow !== 'visible')
+      return true;
+  }
+  return false;
+}
+
 /** Elements that paint text of their own, with that text. */
 function textElements(root: Document, exempt = TEXT_EXEMPT): { element: Element; text: string }[] {
   const found = new Map<Element, string>();
@@ -888,8 +898,12 @@ function controls(root: Document): Finding[] {
       // A chosen radio flips nothing, and a control that cannot run falls back (L-40).
       if ((control.type === 'radio' && control.checked) || isDisabled(control)) continue;
     } else if (isDisabled(target) || target.closest('[inert]')) continue;
-    if (getComputedStyle(target).cursor !== 'pointer')
-      found.push(finding('L-100', target, 'a click presses it, but it does not show the pointer'));
+    // A help mark answers a mouse by hovering, so it shows the help cursor instead.
+    const cursor = target.matches('.sui-help-tip') ? 'help' : 'pointer';
+    if (getComputedStyle(target).cursor !== cursor)
+      found.push(
+        finding('L-100', target, `a click presses it, but it does not show the ${cursor}`)
+      );
   }
 
   // Buttons side by side in one row share one height, so a hover never shows one taller
@@ -919,15 +933,6 @@ function controls(root: Document): Finding[] {
   // Words in a small box of their own ground or frame sit on its middle: as much room above
   // the cap line as under the baseline, as a count, a pill or a button's word does. Only a box
   // whose words make one line, with nothing stacked above or under it, is weighed this way.
-  // Words that are only heard sit in a box clipped to a pixel, and are never drawn.
-  const heardOnly = (element: Element) => {
-    for (let node: Element | null = element; node; node = node.parentElement) {
-      const box = node.getBoundingClientRect();
-      if (box.width <= 1 && box.height <= 1 && getComputedStyle(node).overflow !== 'visible')
-        return true;
-    }
-    return false;
-  };
   for (const box of audited(root, '*')) {
     const own = box.getBoundingClientRect();
     if (own.height > 48 || own.height < 8 || box.closest('svg, .sui-visually-hidden, pre, code'))
@@ -971,7 +976,7 @@ function controls(root: Document): Finding[] {
     if (!ink) continue;
     const above = ink.top - (own.top + parseFloat(look.borderTopWidth));
     const below = own.bottom - parseFloat(look.borderBottomWidth) - ink.bottom;
-    if (Math.abs(above - below) > 1)
+    if (Math.abs(above - below) > 0.5)
       found.push(
         finding(
           'L-102',
@@ -1333,9 +1338,9 @@ function plates(root: Document): Finding[] {
 
 /**
  * Where the reader is (L-85): a current navigation row stands apart from a resting peer by its
- * words, an ink 3:1 from the peer's and a weight 200 or more heavier, so its quiet plate needs
- * no ring or edge, and it draws none. A current tab carries its bar instead, at 3:1 on the
- * ground under it.
+ * ink, 3:1 from the peer's, so its quiet plate needs no ring or edge, and it draws none. A row
+ * whose words may wrap keeps the peer's font, so turning current never rewraps them or changes
+ * its height. A current tab, whose words never wrap, carries its bar too, at 3:1 on the ground.
  */
 function currentMarks(root: Document): Finding[] {
   const found: Finding[] = [];
@@ -1375,9 +1380,21 @@ function currentMarks(root: Document): Finding[] {
     if (!peer || !shown(peer)) continue;
     const look = getComputedStyle(words(current));
     const rest = getComputedStyle(words(peer));
-    const step = Number(look.fontWeight) - Number(rest.fontWeight);
-    if (step < 200)
-      found.push(finding('L-85', current, `the current weight is only ${step} past a rest row`));
+    const face = (style: CSSStyleDeclaration) => [
+      style.fontWeight,
+      style.fontSize,
+      style.fontStyle,
+      style.letterSpacing,
+      style.fontFamily
+    ];
+    if (!current.matches('.sui-tabs-tab') && face(look).join() !== face(rest).join())
+      found.push(
+        finding(
+          'L-85',
+          current,
+          `the current words take ${face(look)[0]}, a rest row ${face(rest)[0]}, so they can rewrap`
+        )
+      );
     const inks = contrast(rgba(look.color), rgba(rest.color));
     if (inks < 2.95)
       found.push(
@@ -1521,26 +1538,45 @@ function swatches(root: Document): Finding[] {
  */
 function leadingIcons(root: Document): Finding[] {
   const found: Finding[] = [];
-  for (const item of audited(root, "[role='menuitem'], [role='option'], option")) {
-    const icon = item.querySelector(':scope > span > svg, :scope > svg');
-    if (!icon) continue;
-    const range = document.createRange();
-    const walker = document.createTreeWalker(item, NodeFilter.SHOW_TEXT);
-    const lines: DOMRect[] = [];
-    for (let node = walker.nextNode(); node; node = walker.nextNode()) {
-      if (!node.textContent?.trim()) continue;
-      range.selectNodeContents(node);
-      lines.push(...[...range.getClientRects()].filter((line) => line.width > 0));
-    }
-    const tops = [...new Set(lines.map((line) => Math.round(line.top)))];
-    if (tops.length < 2) continue;
-    const first = lines.filter((line) => Math.round(line.top) === Math.min(...tops));
-    const middle =
-      (Math.min(...first.map((l) => l.top)) + Math.max(...first.map((l) => l.bottom))) / 2;
+  // A message's symbol stands in a tile that L-56 places against the whole copy.
+  const tiles = '.sui-callout-icon, .sui-toast-mark';
+  for (const icon of audited(root, 'svg.tier')) {
     const glyph = icon.getBoundingClientRect();
-    const off = (glyph.top + glyph.bottom) / 2 - middle;
-    if (Math.abs(off) > 1.5)
-      found.push(finding('L-94', item, `the icon sits ${round(off)}px off the first line`));
+    if (glyph.width === 0 || icon.closest(tiles)) continue;
+    // The icon's own box is a wrapper that holds nothing else; the words are outside it.
+    const parent = icon.parentElement;
+    const holder =
+      parent && parent.childElementCount === 1 && !parent.textContent?.trim() ? parent : icon;
+    const row = holder.parentElement;
+    if (!row || row.closest('.sui-visually-hidden')) continue;
+    const walker = document.createTreeWalker(row, NodeFilter.SHOW_TEXT);
+    const range = document.createRange();
+    let line: DOMRect | null = null;
+    let words: Element | null = null;
+    for (let node = walker.nextNode(); node; node = walker.nextNode()) {
+      const box = node.parentElement;
+      if (!node.textContent?.trim() || !box || holder.contains(node)) continue;
+      if (box.closest('.sui-visually-hidden, [aria-hidden="true"]') || !shown(box)) continue;
+      if (heardOnly(box)) continue;
+      range.selectNodeContents(node);
+      const first = [...range.getClientRects()].find((rect) => rect.width > 0);
+      if (!first) continue;
+      line = first;
+      words = box;
+      break;
+    }
+    // Only a mark that stands beside its words on their first line: one stacked over them, or
+    // beside a control rather than words, is not weighed here.
+    if (!line || !words || line.bottom < glyph.top || line.top > glyph.bottom) continue;
+    const face = faceMetrics(getComputedStyle(words));
+    if (!face) continue;
+    const capMiddle = line.top + face.ascent - face.cap / 2;
+    const off = (glyph.top + glyph.bottom) / 2 - capMiddle;
+    // A mark on whole pixels lands within half a pixel of any middle.
+    if (Math.abs(off) > 0.55)
+      found.push(
+        finding('L-94', icon, `the icon sits ${round(off)}px off the middle of its words' cap`)
+      );
   }
   return found;
 }

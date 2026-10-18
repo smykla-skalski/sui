@@ -248,6 +248,7 @@
   }
 
   .tools-title {
+    align-content: center;
     block-size: var(--sui-block-snap);
     color: var(--sui-text-primary);
     display: none;

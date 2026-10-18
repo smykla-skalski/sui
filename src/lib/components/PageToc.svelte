@@ -176,9 +176,10 @@ section. When the reader allows motion the index scrolls there smoothly and reco
 itself, and otherwise the browser follows the link as it would any other. Either way focus
 moves to the section's first heading, or to the section, so the next Tab starts there.
 
-The current entry wears the current mark every navigation list shares: primary ink at
-semibold against muted entries at the regular weight, a step of 3:1 or more in lightness and a
-step in weight, on a quiet plate that only supports them, and `Highlight` under forced colors. It is announced with `aria-current="location"`. It follows
+The current entry wears the current mark every navigation list shares: primary ink against
+muted entries, a step of 3:1 or more in lightness, on a quiet plate that only supports it, and
+`Highlight` under forced colors. It keeps the entries' weight, so turning current never
+rewraps it or changes its height. It is announced with `aria-current="location"`. It follows
 the URL hash on arrival, then the last section whose top has crossed the top quarter of the
 box the sections scroll in, the page or a pane, and the last section once that box is
 scrolled to its end. The index sticks to the top of the viewport inside whatever column it
@@ -188,12 +189,12 @@ or leaving it out on a phone, is the page's layout.
 
 - Semantics: a `nav` landmark named by `title`, with the title as a heading at `level`, group headings one level below, and lists of fragment links, the current one with `aria-current="location"`.
 - Content: entries with an id and a label that wraps, optionally grouped under a heading.
-- States: rest, hover (a row ground), pressed (the pressed ground and an inset shadow), focus (a 2px inset ring) and current (primary semibold ink on the quiet plate); an entry keeps the room its semibold form needs, so turning current moves nothing.
+- States: rest, hover (a row ground), pressed (the pressed ground and an inset shadow), focus (a 2px inset ring) and current (primary ink on the quiet plate, in the entries' weight, so it moves nothing).
 - Keyboard: Tab moves through the entries and Enter follows one, moving focus to the section's heading.
 - Pointer and touch: entries are 28px tall on a desktop pointer and 44px on a phone or a coarse pointer, across the column's width.
 - Focus: following an entry moves focus to its section's first heading, or the section, which takes a temporary `tabindex`.
 - Responsive: the index sticks and scrolls inside itself, keeping the current entry in view; the page decides where it stands.
-- Accessibility: the current entry is announced, every entry's ink holds 4.5:1, and the current ink stands 3:1 from the rest ink with a heavier weight, so it is never colour alone.
+- Accessibility: the current entry is announced, every entry's ink holds 4.5:1, and the current ink stands 3:1 from the rest ink in lightness, so it is never hue alone (WCAG 1.4.1).
 - Localization: `title` is a prop with an English default; the entries follow the reading direction.
 - Performance: one capture listener reads the sections' places once a frame while anything scrolls; it suits tens of sections.
 - Analytics: `onnavigate(event, entry)` reports every followed entry.
@@ -221,9 +222,7 @@ or leaving it out on a phone, is the page's layout.
             href="#{entry.id}"
             aria-current={here === entry.id ? 'location' : undefined}
             onclick={(event) => follow(event, entry)}
-            ><span class="sui-page-toc-label" data-label={entry.label}
-              ><span>{entry.label}</span></span
-            ></a
+            ><span class="sui-page-toc-label">{entry.label}</span></a
           >
         </li>
       {/each}
@@ -254,6 +253,7 @@ or leaving it out on a phone, is the page's layout.
   }
 
   .sui-page-toc-group {
+    align-content: center;
     block-size: var(--sui-block-snap);
     color: var(--sui-text-secondary);
     font: var(--sui-weight-semibold) var(--sui-font-size-compact) / var(--sui-leading-compact)
@@ -263,6 +263,7 @@ or leaving it out on a phone, is the page's layout.
   }
 
   .sui-page-toc-title {
+    align-content: center;
     block-size: var(--sui-block-snap);
     color: var(--sui-text-muted);
     font: var(--sui-weight-semibold) var(--sui-font-size-micro) / var(--sui-leading-micro)
@@ -293,10 +294,7 @@ or leaving it out on a phone, is the page's layout.
     overflow-wrap: anywhere;
     padding: var(--sui-space-1) var(--sui-space-3);
     text-decoration: none;
-    transition:
-      background-color var(--sui-duration-fast) var(--sui-ease-standard),
-      color var(--sui-duration-fast) var(--sui-ease-standard),
-      box-shadow var(--sui-duration-press) var(--sui-ease-standard);
+    transition: box-shadow var(--sui-duration-press) var(--sui-ease-standard);
     -webkit-tap-highlight-color: transparent;
     -webkit-user-select: none;
     user-select: none;
@@ -319,32 +317,17 @@ or leaving it out on a phone, is the page's layout.
     outline-offset: var(--sui-focus-ring-inset);
   }
 
-  /* A hidden semibold copy shares the words' cell, so the entry already holds the room the
-     current weight needs and turning current moves nothing (L-91). */
   .sui-page-toc-label {
+    align-content: center;
     block-size: var(--sui-block-snap);
-    display: grid;
-  }
-
-  .sui-page-toc-label > span,
-  .sui-page-toc-label::after {
-    block-size: var(--sui-block-snap);
-    grid-area: 1 / 1;
     text-box: trim-both cap alphabetic;
   }
 
-  .sui-page-toc-label::after {
-    content: attr(data-label) / '';
-    font-weight: var(--sui-weight-semibold);
-    visibility: hidden;
-  }
-
-  /* The current mark every navigation list shares: primary semibold ink, which carries the
-     state, on a quiet plate that only supports it. */
+  /* The current mark every navigation list shares: primary ink, which carries the state, on a
+     quiet plate that only supports it. */
   .sui-page-toc-link[aria-current='location'] {
     background: var(--sui-surface-inset);
     color: var(--sui-text-primary);
-    font-weight: var(--sui-weight-semibold);
   }
 
   @media (max-width: 47.9375rem), (pointer: coarse) {

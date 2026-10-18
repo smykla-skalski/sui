@@ -117,14 +117,6 @@ start.
 {/if}
 
 <style>
-  /* A gradient cannot interpolate, so its one tint is registered and animated instead,
-     which keeps hover, press and release one continuous surface. */
-  @property --sui-control-state-layer {
-    syntax: '<color>';
-    inherits: false;
-    initial-value: transparent;
-  }
-
   .sui-button {
     --sui-control-state-layer: transparent;
     align-items: center;
@@ -156,16 +148,13 @@ start.
     -webkit-user-select: none;
     user-select: none;
     transition:
-      --sui-control-state-layer var(--sui-duration-fast) var(--sui-ease-standard),
-      background-color var(--sui-duration-fast) var(--sui-ease-standard),
-      border-color var(--sui-duration-fast) var(--sui-ease-standard),
-      color var(--sui-duration-fast) var(--sui-ease-standard),
       translate var(--sui-duration-press) var(--sui-ease-standard),
       box-shadow var(--sui-duration-press) var(--sui-ease-standard);
     -webkit-tap-highlight-color: transparent;
   }
 
   .sui-button-label {
+    align-content: center;
     block-size: var(--sui-block-snap);
     line-height: var(--sui-leading-meta);
     min-inline-size: 0;
@@ -198,9 +187,9 @@ start.
       border-color: var(--sui-decision-accent-hover);
     }
 
+    /* A veil, not a ground of its own, so a quiet button reads on any plate it stands on, the
+       unsaved row's gold included. */
     .sui-button[data-tone='ghost']:hover:not(:active):not(:disabled, [aria-disabled='true']) {
-      --sui-control-state-layer: transparent;
-      background-color: var(--sui-surface-inset);
       border-color: transparent;
     }
 

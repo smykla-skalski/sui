@@ -401,6 +401,7 @@ from the checked option because CSS cannot size one box from a sibling.
   }
 
   .sui-segmented-caption {
+    align-content: center;
     block-size: var(--sui-block-snap);
     color: var(--sui-text-secondary);
     font: var(--sui-weight-semibold) var(--sui-font-size-control) / var(--sui-row-copy-leading)
@@ -541,10 +542,7 @@ from the checked option because CSS cannot size one box from a sibling.
     opacity: 0;
     pointer-events: none;
     position: absolute;
-    transition:
-      opacity var(--sui-duration-press) var(--sui-ease-standard),
-      background-color var(--sui-duration-press) var(--sui-ease-standard),
-      box-shadow var(--sui-duration-press) var(--sui-ease-standard);
+    transition: box-shadow var(--sui-duration-press) var(--sui-ease-standard);
   }
 
   .selected + .sui-segmented-option::before {
@@ -563,14 +561,14 @@ from the checked option because CSS cannot size one box from a sibling.
 
   /* The selected option draws no fill: the thumb is its ground and carries its states. */
   @media (hover: hover) {
-    .sui-segmented-option:hover:not(:active, .selected, .disabled)::before {
+    .sui-segmented-option:hover:has(> input:enabled):not(:active, .selected)::before {
       opacity: 1;
     }
   }
 
   /* The press is the hover one step deeper, sunk into the track. The side rims move out by
      the run, so each lands on the edge a reader sees and not under the thumb. */
-  .sui-segmented-option:active:not(.selected, .disabled)::before {
+  .sui-segmented-option:active:has(> input:enabled):not(.selected)::before {
     background: var(--sui-segment-pressed);
     box-shadow:
       inset 0 2px 4px var(--sui-segment-well-head),
@@ -623,7 +621,6 @@ from the checked option because CSS cannot size one box from a sibling.
     padding: 0 var(--sui-space-3);
     pointer-events: none;
     position: relative;
-    transition: color var(--sui-duration-fast) var(--sui-ease-standard);
     white-space: nowrap;
     z-index: var(--sui-layer-inner-face);
   }
@@ -634,18 +631,19 @@ from the checked option because CSS cannot size one box from a sibling.
   }
 
   .sui-segmented-word {
+    align-content: center;
     block-size: var(--sui-block-snap);
     text-box: trim-both cap alphabetic;
   }
 
   /* A keyboard press lands on the pressed surface with no hover before it, so press lifts
      the ink as well. */
-  .sui-segmented-option:active:not(.selected, .disabled) .sui-segmented-label {
+  .sui-segmented-option:active:has(> input:enabled):not(.selected) .sui-segmented-label {
     color: var(--sui-text-primary);
   }
 
   @media (hover: hover) {
-    .sui-segmented-option:hover:not(.selected, .disabled) .sui-segmented-label {
+    .sui-segmented-option:hover:has(> input:enabled):not(.selected) .sui-segmented-label {
       color: var(--sui-text-primary);
     }
   }

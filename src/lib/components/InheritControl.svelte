@@ -140,7 +140,7 @@ for a press of the way back.
 - Failure: `loading` says `loadingLabel`, `error` says why the inherited value is unknown while Override still works, and an empty `inherited` says `unknownLabel`.
 -->
 
-<div bind:this={root} {...rest} class={['sui-inherit', className]}>
+<div bind:this={root} {...rest} class={['sui-inherit', className, { overridden }]}>
   <span class="sui-inherit-subject">
     <span class="sui-inherit-marker" aria-hidden="true">
       <Icon name={overridden ? 'link-off' : 'link'} size="sm" />
@@ -191,8 +191,9 @@ for a press of the way back.
     min-inline-size: 0;
   }
 
+  /* Words: the mark centres on the first line's cap height, however many lines they wrap to. */
   .sui-inherit-subject {
-    align-items: center;
+    align-items: start;
     display: flex;
     gap: var(--sui-inherit-marker-gap);
     min-inline-size: 0;
@@ -203,8 +204,23 @@ for a press of the way back.
     color: var(--sui-text-muted);
     display: grid;
     flex: none;
+    font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-row-copy-leading)
+      var(--sui-sans);
     inline-size: var(--sui-inherit-marker-size);
+    margin-block: calc((round(up, 1cap, 2px) - var(--sui-inherit-marker-size)) / 2);
     place-items: center;
+  }
+
+  /* A control: the mark and the button stand on the control's own row, a control tall, so a
+     caption over the control never pulls them off its centre. */
+  .overridden,
+  .overridden .sui-inherit-subject {
+    align-items: end;
+  }
+
+  .overridden .sui-inherit-marker {
+    block-size: var(--sui-local-control-height, var(--sui-control-height-compact));
+    margin-block: 0;
   }
 
   .sui-inherit-control {
@@ -213,7 +229,8 @@ for a press of the way back.
   }
 
   .sui-inherit-value {
-    block-size: var(--sui-block-snap);
+    align-content: center;
+    block-size: var(--sui-block-snap-even);
     color: var(--sui-text-muted);
     font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-row-copy-leading)
       var(--sui-sans);
@@ -226,12 +243,20 @@ for a press of the way back.
     font-weight: var(--sui-weight-semibold);
   }
 
+  /* In the words' font, so its alert mark centres on their first line as the link mark does. */
   .sui-inherit-problem {
-    align-items: center;
+    align-items: start;
     color: var(--sui-danger);
     display: flex;
+    font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-row-copy-leading)
+      var(--sui-sans);
     gap: var(--sui-space-1);
     min-inline-size: 0;
+  }
+
+  .sui-inherit-problem > :global(svg) {
+    flex: none;
+    margin-block: calc((round(up, 1cap, 2px) - var(--sui-icon-sm)) / 2);
   }
 
   .sui-inherit-problem .sui-inherit-value {

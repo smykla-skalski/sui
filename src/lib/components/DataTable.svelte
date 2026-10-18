@@ -274,6 +274,7 @@ row in place of the hairlines, for a table wide enough that the eye can lose its
   }
 
   .caption {
+    align-content: center;
     block-size: var(--sui-block-snap);
     color: var(--sui-text-muted);
     font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-row-copy-leading)
@@ -292,6 +293,7 @@ row in place of the hairlines, for a table wide enough that the eye can lose its
   }
 
   .problem-words {
+    align-content: center;
     block-size: var(--sui-block-snap);
     font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-row-copy-leading)
       var(--sui-sans);
@@ -322,6 +324,7 @@ row in place of the hairlines, for a table wide enough that the eye can lose its
      each cell rounds its height up to the pixel (L-95). */
   th,
   td {
+    align-content: center;
     block-size: var(--sui-block-snap);
     padding: var(--sui-space-3) var(--sui-space-4);
     text-align: start;
@@ -331,6 +334,7 @@ row in place of the hairlines, for a table wide enough that the eye can lose its
   /* A cell's words run cap line to baseline in a box rounded to the pixel, so a row's room
      above and under them match (L-102) and every row stays on the grid (L-95). */
   .value {
+    align-content: center;
     block-size: var(--sui-block-snap);
     display: block;
     text-box: trim-both cap alphabetic;
@@ -379,7 +383,6 @@ row in place of the hairlines, for a table wide enough that the eye can lose its
     padding: 0 var(--sui-space-1);
     position: relative;
     text-transform: inherit;
-    transition: background-color var(--sui-duration-fast) var(--sui-ease-standard);
     user-select: none;
     /* Off the baseline, so the glyph beside the words never moves the heading row's line. */
     vertical-align: top;
@@ -525,12 +528,6 @@ row in place of the hairlines, for a table wide enough that the eye can lose its
 
     .sort::before {
       inset: calc((100% - max(100%, var(--sui-touch-target))) / 2);
-    }
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    .sort {
-      transition: none;
     }
   }
 </style>
