@@ -137,7 +137,7 @@ row in place of the hairlines, for a table wide enough that the eye can lose its
 
 - Semantics: a native `table` named by its caption or `aria-label`, with column headings, row headings under `rowHeader`, and `aria-sort` on the sorted column.
 - Content: `columns` and `rows` of plain values, or any markup through `cell`; numbers print in the page's number format, and other values should come formatted.
-- States: loaded, sorted, empty (`emptyLabel` or `empty`), loading (three placeholder rows built from the table's own cells, so they match the loaded rows), refreshing (rows kept, busy), and failed (`error`, with a retry); a failure over rows already here keeps them, marked as not current.
+- States: loaded, sorted, empty (`emptyLabel` or `empty`), loading (three placeholder rows built from the table's own cells, so they match the loaded rows, each bar where its column's words start and crossed by the light every placeholder shares), refreshing (rows kept, busy), and failed (`error`, with a retry); a failure over rows already here keeps them, marked as not current.
 - Keyboard: a sortable heading is a button, and Enter or Space sorts by it, then reverses; a frame that scrolls is a tab stop, so the arrow keys scroll it.
 - Pointer and touch: a sortable heading's target is at least 24px tall, and 44px on a phone or a coarse pointer.
 - Focus: sorting keeps focus on the heading; the frame is a stop only while it scrolls.
@@ -535,46 +535,98 @@ row in place of the hairlines, for a table wide enough that the eye can lose its
       inset: calc((100% - max(100%, var(--sui-touch-target))) / 2);
     }
   }
+  /* The placeholder rows are the frame the light crosses: every bar shows the part of it that
+     falls on the bar, so it reads as one light over the rows, and the table clips it so it
+     never widens the frame's scroll. */
+  tbody:has(> .placeholder) {
+    position: relative;
+  }
+
+  table:has(> tbody > .placeholder) {
+    overflow: clip;
+  }
+
+  /* A held cell would frame its bar's light alone, and a placeholder has no name to hold. */
+  .held.scrolls .placeholder > :first-child {
+    position: static;
+  }
+
+  .held.scrolls .placeholder > :first-child::after {
+    content: none;
+  }
+
   /* A placeholder bar is one line of the cell's words, cap line to baseline, so a placeholder
-     row is exactly as tall as a loaded one. */
+     row is exactly as tall as a loaded one. It starts where the column's words start and runs
+     a little short of its heading, a little more or less on each row, as words do; a number's
+     bar is short and sits at the end. The light is laid out on the rows, so only the bar's
+     clip path, not its overflow, keeps it inside the bar. */
   .placeholder .bar {
-    animation: sui-data-table-pulse var(--sui-duration-shimmer) var(--sui-ease-inout) infinite
-      alternate;
-    background: var(--sui-surface-inset);
+    background: var(--sui-placeholder);
     block-size: round(up, 1cap, 1px);
-    border-radius: var(--sui-radius-check);
+    border-radius: var(--sui-radius-pill);
+    clip-path: inset(0 round var(--sui-radius-pill));
     display: block;
-    inline-size: min(8rem, 70%);
+    inline-size: 90%;
+  }
+
+  .placeholder:nth-child(3n + 2) .bar {
+    inline-size: 65%;
+  }
+
+  .placeholder:nth-child(3n) .bar {
+    inline-size: 78%;
   }
 
   .placeholder .numeric .bar {
-    inline-size: 3rem;
+    inline-size: min(3rem, 100%);
+  }
+
+  .placeholder:nth-child(3n + 2) .numeric .bar {
+    inline-size: min(2.25rem, 100%);
+  }
+
+  .placeholder:nth-child(3n) .numeric .bar {
+    inline-size: min(2.75rem, 100%);
   }
 
   .placeholder [data-align='end'] .bar {
     margin-inline-start: auto;
   }
 
-  @keyframes sui-data-table-pulse {
+  .placeholder .bar::after {
+    animation: sui-data-table-sheen var(--sui-duration-shimmer) var(--sui-ease-linear) infinite;
+    background: var(--sui-placeholder-sheen);
+    content: '';
+    inset-block: 0;
+    inset-inline: calc(-1 * var(--sui-placeholder-reach));
+    position: absolute;
+  }
+
+  .placeholder .bar:dir(rtl)::after {
+    scale: -1 1;
+  }
+
+  @keyframes sui-data-table-sheen {
     from {
-      opacity: 0.48;
+      transform: translateX(-50%);
     }
 
     to {
-      opacity: 0.88;
+      transform: translateX(50%);
     }
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .placeholder .bar {
+    .placeholder .bar::after {
       animation: none;
+      content: none;
     }
   }
 
   /* Forced colors drop the bar's ground, so it keeps its shape by an outline. */
   @media (forced-colors: active) {
     .placeholder .bar {
-      outline: var(--sui-stroke) solid CanvasText;
+      outline: var(--sui-stroke) solid GrayText;
       outline-offset: calc(-1 * var(--sui-stroke));
     }
   }

@@ -24,25 +24,31 @@
 
 <Example
   title="Rows"
-  note="Two bars hint at a row's main content and side, and plain rows suit a list of one-line rows"
+  note="Bars stand where a row's name, its line under it and its side will be, plain rows draw one line, and one light crosses them"
   layout="grid"
   ground="canvas"
 >
   <Specimen label="Two-line rows">
     <Card>
-      <Skeleton rows={2} label="Loading repositories…" />
+      <Skeleton rows={2} patience={Infinity} label="Loading repositories…" />
     </Card>
   </Specimen>
   <Specimen label="Plain rows" code={'bars={false} rowHeight="2.75rem"'}>
     <Card>
-      <Skeleton rows={2} rowHeight="2.75rem" bars={false} label="Loading members…" />
+      <Skeleton
+        rows={2}
+        rowHeight="2.75rem"
+        bars={false}
+        patience={Infinity}
+        label="Loading members…"
+      />
     </Card>
   </Specimen>
 </Example>
 
 <Example
   title="Slow"
-  note="A wait that outlasts its patience stops pulsing and says so in words, here from the start"
+  note="A wait that outlasts its patience stops its light and says so in words, here from the start"
   layout="grid"
   ground="canvas"
 >
@@ -71,7 +77,8 @@
               {#snippet main()}
                 <span class="name">{name}</span>
                 <span class="sum"
-                  ><FactLine><span>Default branch main</span><span>up to date</span></FactLine></span
+                  ><FactLine><span>Default branch main</span><span>up to date</span></FactLine
+                  ></span
                 >
               {/snippet}
             </ObjectRow>

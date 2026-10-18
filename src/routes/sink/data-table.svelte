@@ -221,6 +221,22 @@
 </Example>
 
 <Example
+  title="First load"
+  note="Placeholder rows take the table's own cells, each bar where its column's words start, and one light crosses them"
+  layout="stack"
+>
+  <Specimen label="Loading, wide" code="rowHeader loading">
+    <DataTable
+      caption="Builds in the last hour"
+      columns={buildColumns}
+      rows={[]}
+      rowHeader
+      loading
+    />
+  </Specimen>
+</Example>
+
+<Example
   title="Narrow width"
   note="Columns that outgrow the room scroll inside the frame, which says so and keeps the row headings in view"
   layout="grid"

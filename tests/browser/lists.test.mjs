@@ -570,6 +570,51 @@ suite('lists', together, () => {
     }
   });
 
+  test('L-64 every placeholder shares one light that only transform moves', long, async () => {
+    const page = await open();
+    try {
+      const problems = await page.evaluate(() => {
+        const found = [];
+        const frames = document.querySelectorAll(
+          'main .sui-skeleton-rows:not(.slow), main tbody:has(> tr.placeholder), main .sui-chart-wait'
+        );
+        if (frames.length < 3) found.push(`only ${frames.length} placeholders were found`);
+        for (const frame of frames) {
+          const bars = frame.matches('.sui-chart-wait')
+            ? [frame]
+            : [...frame.querySelectorAll('.bar')];
+          const lights = bars.flatMap((bar) => bar.getAnimations({ subtree: true }));
+          if (lights.length !== bars.length)
+            found.push(`${frame.className}: ${lights.length} lights for ${bars.length} bars`);
+          for (const light of lights) {
+            const moved = /** @type {KeyframeEffect} */ (light.effect)
+              .getKeyframes()
+              .flatMap((keyframe) => Object.keys(keyframe))
+              .filter((key) => !['offset', 'computedOffset', 'easing', 'composite'].includes(key));
+            if (moved.some((property) => property !== 'transform'))
+              found.push(`${frame.className}: the light moves ${moved.join(', ')}`);
+            if (light.startTime !== lights[0].startTime)
+              found.push(`${frame.className}: the lights are out of step`);
+          }
+          // Each bar shows its part of a layer laid out on the whole placeholder, so every bar's
+          // layer has the same box and the bars read as lit by one light.
+          const layers = new Set(
+            bars.map((bar) => {
+              const layer = getComputedStyle(bar, '::after');
+              return `${layer.left} ${layer.top} ${layer.width} ${layer.height}`;
+            })
+          );
+          if (layers.size !== 1)
+            found.push(`${frame.className}: its bars carry ${layers.size} separate lights`);
+        }
+        return found;
+      });
+      assert.deepEqual(problems, []);
+    } finally {
+      await page.close();
+    }
+  });
+
   test('P8 an entry that shows a problem follows its keystrokes', long, async () => {
     const page = await open();
     try {

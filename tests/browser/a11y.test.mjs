@@ -231,7 +231,7 @@ suite('accessibility', together, () => {
   );
 
   test(
-    'in forced colors a skeleton bar, the lit menu item and each diff change keep a mark',
+    'in forced colors every placeholder, the lit menu item and each diff change keep a mark',
     long,
     async () => {
       const page = await open(1440, 'light', { forcedColors: 'active' });
@@ -239,9 +239,15 @@ suite('accessibility', together, () => {
         // Forced colors drop every fill, so each of these needs an edge, an outline or a glyph.
         const missing = await page.evaluate(() => {
           const found = [];
-          const bar = document.querySelector('main .sui-skeleton-rows.bars > span');
-          if (!bar || getComputedStyle(bar, '::before').borderTopStyle === 'none')
-            found.push('a skeleton bar draws no edge');
+          for (const placeholder of [
+            'main .sui-skeleton-rows .bar',
+            'main tr.placeholder .bar',
+            'main .sui-chart-wait'
+          ]) {
+            const box = document.querySelector(placeholder);
+            if (!box || getComputedStyle(box).outlineStyle === 'none')
+              found.push(`${placeholder} draws no outline`);
+          }
           const lit = document.querySelector('main .sui-action-menu-item.active');
           if (!lit || getComputedStyle(lit).outlineStyle === 'none')
             found.push('the lit menu item draws no outline');

@@ -182,6 +182,19 @@
   --sui-danger-hover-layer: color-mix(in srgb, var(--sui-danger) 9%, transparent);
   --sui-danger-pressed: color-mix(in srgb, var(--sui-danger-hover) 82%, var(--sui-text-primary));
   --sui-neutral-tint: var(--sui-surface-inset);
+  /* A placeholder is a veil, so it reads the same on a card, the canvas or an inset, and the
+     light that crosses it while it waits is a brighter veil over that. */
+  --sui-placeholder: rgb(0 0 0 / 7%);
+  --sui-placeholder-glint: rgb(255 255 255 / 60%);
+  --sui-placeholder-sheen: linear-gradient(
+    115deg,
+    transparent calc(50% - min(5rem, 10%)),
+    var(--sui-placeholder-glint) 50%,
+    transparent calc(50% + min(5rem, 10%))
+  );
+  /* How far the light's layer reaches past a placeholder on each side, so its slanted band
+     starts and ends wholly outside a placeholder up to about 28rem tall. */
+  --sui-placeholder-reach: 12rem;
 
   --sui-role-tint: #e8e1f2;
   --sui-role-ink: #7a3fe0;
@@ -450,7 +463,9 @@
   --sui-duration-open: 120ms;
 
   --sui-duration-spinner: 900ms;
-  --sui-duration-shimmer: 1350ms;
+  /* One pass of the light across a placeholder. A slow, steady sweep reads as a shorter wait
+     than a fast one or a pulse (Chung, 2018); MUI sweeps on a 2s cycle and Fluent on 3s. */
+  --sui-duration-shimmer: 2000ms;
   --sui-duration-live: 2600ms;
 
   --sui-ease-standard: cubic-bezier(0.16, 1, 0.3, 1);
@@ -565,6 +580,14 @@
   --sui-danger-hover-layer: color-mix(in srgb, var(--sui-danger) 12%, transparent);
   --sui-danger-pressed: color-mix(in srgb, var(--sui-danger-hover) 82%, var(--sui-text-primary));
   --sui-neutral-tint: var(--sui-surface-inset);
+  --sui-placeholder: rgb(255 255 255 / 7%);
+  --sui-placeholder-glint: rgb(255 255 255 / 10%);
+  --sui-placeholder-sheen: linear-gradient(
+    115deg,
+    transparent calc(50% - min(5rem, 10%)),
+    var(--sui-placeholder-glint) 50%,
+    transparent calc(50% + min(5rem, 10%))
+  );
   --sui-role-tint: #23202e;
   --sui-role-ink: #c9a6ff;
   --sui-interactive-hover: color-mix(in srgb, #ffffff 4%, var(--sui-surface-base));
@@ -725,6 +748,14 @@
     --sui-danger-hover-layer: color-mix(in srgb, var(--sui-danger) 12%, transparent);
     --sui-danger-pressed: color-mix(in srgb, var(--sui-danger-hover) 82%, var(--sui-text-primary));
     --sui-neutral-tint: var(--sui-surface-inset);
+    --sui-placeholder: rgb(255 255 255 / 7%);
+    --sui-placeholder-glint: rgb(255 255 255 / 10%);
+    --sui-placeholder-sheen: linear-gradient(
+      115deg,
+      transparent calc(50% - min(5rem, 10%)),
+      var(--sui-placeholder-glint) 50%,
+      transparent calc(50% + min(5rem, 10%))
+    );
     --sui-role-tint: #23202e;
     --sui-role-ink: #c9a6ff;
     --sui-interactive-hover: color-mix(in srgb, #ffffff 4%, var(--sui-surface-base));
