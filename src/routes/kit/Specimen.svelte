@@ -35,49 +35,13 @@
     if (part) parts.push(part);
     return parts;
   };
-
-  let body = $state<HTMLElement | null>(null);
-  let caption = $state<HTMLElement | null>(null);
-  /* How wide the shown component and its caption's words run, so the rule under them spans
-     what is shown and not a stretched specimen. Layers and anything taken out of the flow do
-     not count. The rule is drawn out of the flow, so this width never sizes the specimen. */
-  let reach = $state<number | null>(null);
-
-  $effect(() => {
-    const box = body;
-    const band = caption;
-    if (!box || !band) return;
-    const parts = () => [...box.children, ...band.children];
-    const measure = () => {
-      const edges = parts()
-        .filter((part) => !/^(absolute|fixed)$/.test(getComputedStyle(part).position))
-        .map((part) => part.getBoundingClientRect())
-        .filter((rect) => rect.width > 0);
-      reach = edges.length
-        ? Math.min(
-            band.clientWidth,
-            Math.max(...edges.map((rect) => rect.right)) -
-              Math.min(...edges.map((rect) => rect.left))
-          )
-        : null;
-    };
-    const watch = new ResizeObserver(measure);
-    watch.observe(box);
-    watch.observe(band);
-    for (const part of parts()) watch.observe(part);
-    measure();
-    return () => watch.disconnect();
-  });
 </script>
 
 <figure class="specimen">
-  <div bind:this={body} class="body">{@render children()}</div>
+  <div class="body">{@render children()}</div>
   {#if label || code}
     <!-- Both lines always take their room, so captions side by side start on one line. -->
-    <figcaption
-      bind:this={caption}
-      style:--rule={reach === null ? undefined : `${Math.ceil(reach)}px`}
-    >
+    <figcaption>
       {#if label}<span class="label">{label}</span>{:else}<span class="label" aria-hidden="true"
           >&nbsp;</span
         >{/if}
@@ -144,15 +108,63 @@
     position: relative;
   }
 
-  /* A dashed rule parts what is shown from what names it, as wide as the component or the
-     caption's own words, whichever is wider. */
+  /* A dashed rule parts what is shown from what names it. */
   figcaption::before {
     border-block-start: var(--sui-stroke) dashed var(--sui-border-control);
     content: '';
-    inline-size: var(--rule, 100%);
+    inline-size: 100%;
     inset-block-start: 0;
     inset-inline-start: 0;
     position: absolute;
+  }
+
+  /* The rule is as wide as the component or the caption's own words, whichever is wider, laid
+     out by the browser from their boxes, so the server's render draws it at its final length.
+     A closed layer has no box and never counts. Without anchor positioning it runs the
+     caption's width. */
+  @supports (anchor-scope: all) {
+    /* The figure holds its rule, so a layout elsewhere on the page never sends the browser
+       through every specimen's anchored rule. */
+    .specimen {
+      anchor-scope: all;
+      position: relative;
+    }
+
+    .body > :global(:first-child) {
+      anchor-name: --specimen-first;
+    }
+
+    .body > :global(:last-child:not(:first-child)) {
+      anchor-name: --specimen-last;
+    }
+
+    figcaption {
+      anchor-name: --specimen-caption;
+      position: static;
+    }
+
+    .label {
+      anchor-name: --specimen-label;
+    }
+
+    code {
+      anchor-name: --specimen-code;
+    }
+
+    figcaption::before {
+      inline-size: auto;
+      inset-block-start: anchor(--specimen-caption top);
+      inset-inline-end: max(
+        anchor(--specimen-caption end),
+        min(
+          anchor(--specimen-first end, 100%),
+          anchor(--specimen-last end, 100%),
+          anchor(--specimen-label end),
+          anchor(--specimen-code end)
+        )
+      );
+      inset-inline-start: anchor(--specimen-caption start);
+    }
   }
 
   .label {

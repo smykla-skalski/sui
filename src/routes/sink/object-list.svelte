@@ -22,7 +22,7 @@
   import Example from '../kit/Example.svelte';
   import Specimen from '../kit/Specimen.svelte';
 
-  const synced = new Date(Date.now() - 12 * 60_000).toISOString();
+  const synced = new Date(Date.now() - 12.5 * 60_000).toISOString();
 
   const repositories = [
     { name: 'smykla-skalski/sui', summary: ['Default branch main', '84 files up to date'] },

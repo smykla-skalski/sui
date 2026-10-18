@@ -29,7 +29,9 @@
   ];
 
   const now = Date.now();
-  const ago = (minutes: number) => new Date(now - minutes * 60_000);
+  // Half a minute past the whole count, so the moments between the server's render and the
+  // page's never tip a relative time into the next count.
+  const ago = (minutes: number) => new Date(now - (minutes + 0.5) * 60_000);
 
   const recent: TimelineEvent[] = [
     { at: ago(4), text: 'Sync finished with 3 repositories that differ' },

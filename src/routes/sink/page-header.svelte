@@ -21,7 +21,7 @@
   import Example from '../kit/Example.svelte';
   import Specimen from '../kit/Specimen.svelte';
 
-  const started = new Date(Date.now() - 12 * 60_000).toISOString();
+  const started = new Date(Date.now() - 12.5 * 60_000).toISOString();
   let checked = $state(false);
 </script>
 

@@ -44,9 +44,62 @@
   });
 
   const REPOSITORY = 'https://github.com/smykla-skalski/sui/blob/main/';
+
+  /* Chrome restyles every running animation on every frame it draws, seen or not, and the sink
+     holds about a hundred endless ones, spinners and loading sheens, which would cost a scroll
+     or a keystroke its frame. A section more than a screen away holds its own still, and they
+     run on before it comes into view; a held loop is never seen, so nothing looks different. */
+  function stillWhenAway(section: HTMLElement) {
+    // The section's endless animations, read once when it first leaves and then as each starts,
+    // so a section passing the edge of the margin only pauses or plays what it holds.
+    const loops = new Set<Animation>();
+    const held = new Set<Animation>();
+    let read = false;
+    let away = false;
+    const gather = (from: Element) => {
+      for (const animation of from.getAnimations({ subtree: true }))
+        if (animation.effect?.getTiming().iterations === Infinity) loops.add(animation);
+    };
+    const hold = () => {
+      if (!read) gather(section);
+      read = true;
+      for (const animation of loops) {
+        if (animation.playState === 'idle') loops.delete(animation);
+        else if (animation.playState === 'running') {
+          animation.pause();
+          held.add(animation);
+        }
+      }
+    };
+    const release = () => {
+      for (const animation of held) if (animation.playState === 'paused') animation.play();
+      held.clear();
+    };
+    const near = new IntersectionObserver(
+      ([entry]) => {
+        away = !entry.isIntersecting;
+        if (away) hold();
+        else release();
+      },
+      { rootMargin: '100% 0px' }
+    );
+    // A loop that starts later, as a skeleton that turns slow, joins them, and holds if away.
+    const started = (event: AnimationEvent) => {
+      if (!read || !(event.target instanceof Element)) return;
+      gather(event.target);
+      if (away) hold();
+    };
+    near.observe(section);
+    section.addEventListener('animationstart', started);
+    return () => {
+      near.disconnect();
+      section.removeEventListener('animationstart', started);
+      release();
+    };
+  }
 </script>
 
-<section {id} class="section" aria-labelledby="{id}-title">
+<section {id} class="section" aria-labelledby="{id}-title" {@attach stillWhenAway}>
   <header class="head">
     <p class="family">{family}</p>
     <h2 id="{id}-title">{meta.title}</h2>

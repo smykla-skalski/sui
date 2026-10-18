@@ -25,11 +25,15 @@
     { label: 'Days ago', value: at(-2.5 * DAY) },
     { label: 'A month ago', value: at(-30 * DAY) }
   ];
+  // Half a step past a whole count, as the past ones are, so the moments between the server's
+  // render and the page's never cross into the next count.
   const future = [
-    { label: 'In minutes', value: at(9 * MINUTE) },
-    { label: 'In hours', value: at(5 * HOUR) },
-    { label: 'In days', value: at(3 * DAY) }
+    { label: 'In minutes', value: at(9.5 * MINUTE) },
+    { label: 'In hours', value: at(5.5 * HOUR) },
+    { label: 'In days', value: at(3.5 * DAY) }
   ];
+  // The whole instant shows its seconds, so it is a fixed one rather than one counted from now.
+  const instant = '2026-03-14T09:26:53Z';
 </script>
 
 <Example
@@ -51,9 +55,7 @@
   title="Exact"
   note="The whole instant shows in place, for a reader who chose it, and the tooltip goes away"
 >
-  <Specimen label="Whole instant" code="exact"
-    ><RelativeTime value={past[3].value} exact /></Specimen
-  >
+  <Specimen label="Whole instant" code="exact"><RelativeTime value={instant} exact /></Specimen>
 </Example>
 
 <Example

@@ -241,6 +241,43 @@ suite('navigation', together, () => {
     }
   );
 
+  // The specimen is fixed to the window, so containment on its section, as content-visibility
+  // brings, would hold it at the section and show it under the section above.
+  test(
+    'the skip link specimen waits above the window, wherever the page stands',
+    long,
+    async () => {
+      for (const width of [375, 1440]) {
+        const page = await open(width);
+        try {
+          const link = page.locator('#skip-link .sui-skip-link');
+          await page.evaluate(() => {
+            const section = /** @type {HTMLElement} */ (document.getElementById('skip-link'));
+            scrollBy(0, section.getBoundingClientRect().top - innerHeight / 2);
+          });
+          const waiting = await link.evaluate((node) => node.getBoundingClientRect().bottom);
+          assert.ok(waiting <= 0, `at ${width}px it waits ${waiting}px into the window`);
+          await link.focus();
+          const shown = await settles(
+            page.waitForFunction(
+              () => {
+                const box = document
+                  .querySelector('#skip-link .sui-skip-link')
+                  ?.getBoundingClientRect();
+                return box && box.top >= 0 && box.top < 40 && box.left < 40;
+              },
+              null,
+              brief
+            )
+          );
+          assert.ok(shown, `at ${width}px focus never brought it into the window's corner`);
+        } finally {
+          await page.close();
+        }
+      }
+    }
+  );
+
   test('the page index follows sections that scroll inside a pane', long, async () => {
     const page = await open(1440);
     try {

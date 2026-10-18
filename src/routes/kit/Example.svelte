@@ -143,11 +143,15 @@ live specimens, not a surface of the design, so it may hold cards and dialogs (L
     padding: var(--stage-pad);
   }
 
+  /* The ground is lent to the specimens too, for a part held over content that scrolls under
+     it. */
   .stage[data-ground='surface'] {
+    --sui-local-stage-ground: var(--sui-surface-base);
     background: var(--sui-surface-base);
   }
 
   .stage[data-ground='canvas'] {
+    --sui-local-stage-ground: var(--sui-canvas);
     background: var(--sui-canvas);
   }
 

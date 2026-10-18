@@ -24,8 +24,9 @@
     { label: 'Another year', value: local(400, 16, 45) }
   ];
 
+  // Every time shown is a fixed minute of its day, so the server's render and the page agree.
   const entries = [
-    { at: now, what: 'Merged the release workflow' },
+    { at: local(0, 0, 20), what: 'Merged the release workflow' },
     { at: local(0, 0, 10), what: 'Opened a pull request just after local midnight' },
     { at: local(1, 23, 50), what: 'Closed an issue just before local midnight' },
     { at: local(1, 9, 30), what: 'Synced 84 files' },

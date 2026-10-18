@@ -12,7 +12,7 @@
   import Example from '../kit/Example.svelte';
   import Specimen from '../kit/Specimen.svelte';
 
-  const synced = new Date(Date.now() - 42 * 60_000).toISOString();
+  const synced = new Date(Date.now() - 42.5 * 60_000).toISOString();
 </script>
 
 <Example title="Facts" note="The dot stands 9px from each fact and is read as a comma">
