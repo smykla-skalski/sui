@@ -13,8 +13,9 @@ let server;
 let browser;
 let url = '';
 
+// Its tests mount the library's own modules, which only a dev server serves.
 before(async () => {
-  ({ server, browser, url } = await startSink());
+  ({ server, browser, url } = await startSink({ dev: true }));
 });
 
 after(async () => {
