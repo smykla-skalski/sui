@@ -1,39 +1,47 @@
 <script module lang="ts">
-  export const section = { title: 'Fact list', order: 113 };
+  export const section = {
+    title: 'Fact list',
+    order: 113,
+    lead: 'Short facts about a thing, each a label and its value. A setting the reader changes is a form row instead.',
+    components: ['FactList']
+  };
 </script>
 
 <script lang="ts">
-  import { Chip, FactList, RelativeTime } from '#lib';
+  import { FactList, Pill, RelativeTime } from '#lib';
   import Example from '../kit/Example.svelte';
+  import Specimen from '../kit/Specimen.svelte';
 
   const synced = new Date(Date.now() - 42 * 60_000).toISOString();
 </script>
 
 {#snippet syncedAt()}<RelativeTime value={synced} />{/snippet}
-{#snippet health()}<Chip tone="clear" label="In step" />{/snippet}
+{#snippet health()}<Pill tone="success">In step</Pill>{/snippet}
 
 <Example
-  title="Facts"
+  title="Values"
   note="Facts wrap one by one with space between them, and technical values are mono"
   layout="stack"
 >
-  <FactList
-    facts={[
-      { label: 'Branch', value: 'main', mono: true },
-      { label: 'Version', value: 'v2.9.1', mono: true },
-      { label: 'Synced', value: syncedAt },
-      { label: 'State', value: health },
-      { label: 'Owner', value: 'Platform team', href: '#fact-list' }
-    ]}
-  />
+  <Specimen label="Text, mono, time, status and link" code="mono href">
+    <FactList
+      facts={[
+        { label: 'Branch', value: 'main', mono: true },
+        { label: 'Version', value: 'v2.9.1', mono: true },
+        { label: 'Synced', value: syncedAt },
+        { label: 'State', value: health },
+        { label: 'Owner', value: 'Platform team', href: '#fact-list' }
+      ]}
+    />
+  </Specimen>
 </Example>
 
 <Example
   title="Long values"
   note="A long value breaks inside its own fact and never pushes the row wider"
-  layout="stack"
+  layout="grid"
 >
-  <div class="narrow">
+  <Specimen label="Path, hash and sentence">
     <FactList
       facts={[
         {
@@ -48,11 +56,19 @@
         }
       ]}
     />
-  </div>
+  </Specimen>
 </Example>
 
-<style>
-  .narrow {
-    inline-size: min(100%, 22rem);
-  }
-</style>
+<Example
+  title="Missing value"
+  note="An absent value says so in words instead of leaving its fact empty"
+>
+  <Specimen label="Null value" code={'value: null'}>
+    <FactList
+      facts={[
+        { label: 'Branch', value: 'main', mono: true },
+        { label: 'Owner', value: null }
+      ]}
+    />
+  </Specimen>
+</Example>

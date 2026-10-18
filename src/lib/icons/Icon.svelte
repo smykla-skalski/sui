@@ -161,9 +161,23 @@
     warning: 2.8
   };
 
-  export type IconSize = 'nano' | 'micro' | 'xs' | 'sm' | 'base' | 'md';
+  /** The tiers, 10 to 18px at the default text size. Nothing smaller stays recognisable. */
+  export type IconSize = 'micro' | 'xs' | 'sm' | 'base' | 'md';
 
   export const iconNames = Object.keys(INK_BEARING) as IconName[];
+
+  /* Glyphs that point along the reading direction, or turn with time, face the other way in a
+     right-to-left page, as Material's bidirectionality guidance mirrors them. */
+  const MIRRORED: ReadonlySet<IconName> = new Set([
+    'arrow-up-right',
+    'chevron-left',
+    'chevron-right',
+    'history',
+    'sidebar-collapse',
+    'sidebar-expand',
+    'sign-out',
+    'undo'
+  ]);
 </script>
 
 <script lang="ts">
@@ -185,10 +199,11 @@
    *
    * A tier resolves to its token; the escape hatch resolves to its own px. The svg is
    * then sized in CSS instead of through `width`/`height` attributes, which is what
-   * lets the tokens be the single place the six numbers live - an attribute takes a
+   * lets the tokens be the single place the numbers live - an attribute takes a
    * number and cannot take a `var()`.
    */
   const length = $derived(typeof size === 'number' ? `${size}px` : `var(--sui-icon-${size})`);
+  const tier = $derived(typeof size !== 'number');
 
   /**
    * The dead space before the ink starts, per edge, as a calc rather than a figure.
@@ -202,7 +217,7 @@
     const declared = INK_BEARING[name];
     const [start, end] = Array.isArray(declared) ? declared : [declared, declared];
     const ink = (units: number): string =>
-      `max(0px, calc((${units} - ${strokeWidth} / 2) / 24 * ${length}))`;
+      `max(0px, calc((${units} - ${strokeWidth} / 2) / 24 * var(--sui-icon-size)))`;
     return { start: ink(start), end: ink(end) };
   });
 </script>
@@ -212,21 +227,34 @@
 One drawn set on a 24-unit grid at a 1.75 stroke, from a closed list of names, so two
 icons side by side never disagree about weight.
 
-`size` names a tier of the icon scale (`--sui-icon-*`). The tiers are px because an icon
-does not grow with the reader's font size. A number is accepted only for a drawing that is
-not an icon, such as an avatar or an illustration.
+`size` names a tier of the icon scale (`--sui-icon-*`). The tiers are px at the default text
+size and grow with the reader's own text size, rounded to the pixel, so a glyph keeps its
+place beside words a reader has enlarged. A number is accepted only for a drawing that is not
+an icon, such as an avatar or an illustration, and stays as given.
 
 The icon is drawn, never announced: it repeats what nearby words say, or it sits inside a
 control that carries its own accessible name. It publishes its ink bearing as
 `--sui-icon-ink-start` and `--sui-icon-ink-end`, so a button can start the glyph where a
 word would start.
--->
 
+- Semantics: an `svg` with `aria-hidden="true"`; the words beside it or its control's name carry its meaning.
+- Content: one glyph from the closed `IconName` list, drawn in the current text colour.
+- States: one; colour and size come from the caller, and a directional glyph faces the reading direction.
+- Keyboard: none; it is never a tab stop.
+- Pointer and touch: none; the control around it owns the target.
+- Focus: it never takes focus.
+- Responsive: a tier grows with the reader's text size, rounded to the pixel; it never squeezes in a flex row.
+- Accessibility: always hidden from assistive technology, at least 10px so it stays recognisable, in the ink of the words it sits with.
+- Localization: chevrons, arrows, undo, history, sign-out and the sidebar glyphs mirror in a right-to-left page, and the ink bearings swap sides with it.
+- Performance: inline paths with no requests and no animation.
+- Analytics: none; an icon reports no outcome.
+- Failure: the name list is closed, so an unknown name is a type error; a glyph with no path for its name draws nothing.
+-->
 <svg
-  class={className}
+  class={[className, { mirrored: MIRRORED.has(name), tier }]}
   data-icon={name}
-  style:--sui-icon-ink-start={bearing.start}
-  style:--sui-icon-ink-end={bearing.end}
+  style:--sui-icon-ink-left={bearing.start}
+  style:--sui-icon-ink-right={bearing.end}
   style:--sui-icon-drawn={length}
   viewBox="0 0 24 24"
   fill="none"
@@ -499,14 +527,28 @@ word would start.
 </svg>
 
 <style>
+  /* The bearings are measured on the glyph as drawn, left and right; start and end follow
+     the reading direction, unless the glyph mirrors with it. */
   svg {
+    --sui-icon-size: var(--sui-icon-drawn);
+    --sui-icon-ink-start: var(--sui-icon-ink-left);
+    --sui-icon-ink-end: var(--sui-icon-ink-right);
     /* Sized here rather than through `width`/`height`, which take a number and cannot
-       take a `var()` - which is why the six sizes used to live at the call sites
+       take a `var()` - which is why the sizes used to live at the call sites
        instead of in the scale. */
-    block-size: var(--sui-icon-drawn);
+    block-size: var(--sui-icon-size);
     display: block;
     flex: none;
-    inline-size: var(--sui-icon-drawn);
+    inline-size: var(--sui-icon-size);
     overflow: visible;
+  }
+
+  svg:dir(rtl):not(.mirrored) {
+    --sui-icon-ink-start: var(--sui-icon-ink-right);
+    --sui-icon-ink-end: var(--sui-icon-ink-left);
+  }
+
+  .mirrored:dir(rtl) {
+    scale: -1 1;
   }
 </style>

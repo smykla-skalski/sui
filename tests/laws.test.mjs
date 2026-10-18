@@ -65,7 +65,7 @@ const declared = new Set(Object.keys(tokenMap(stripComments(palette))));
 
 test('L-1 the palette is the only place a colour is written', () => {
   const literal =
-    /#[0-9a-f]{3,8}\b|\b(?:rgba?|hsla?|hwb|lab|lch|oklab|oklch)\(|\bcolor\(\s*srgb|\b(?:white|black|red|blue|green|gray|grey|silver|orange|yellow|purple|pink)\b/i;
+    /#[0-9a-f]{3,8}\b|\b(?:rgba?|hsla?|hwb|lab|lch|oklab|oklch)\((?!\s*from\b)|\bcolor\(\s*srgb|\b(?:white|black|red|blue|green|gray|grey|silver|orange|yellow|purple|pink)\b/i;
   assert.deepEqual(
     violations(({ value }) => (literal.test(value) ? 'colour literal' : null)),
     []
@@ -89,7 +89,13 @@ test('L-2 every token read is declared and every declared token is read', () => 
   ].filter((name) => !declared.has(name) && !local.has(name));
   assert.deepEqual(unresolved, [], 'tokens read without a declaration');
 
-  const readNames = new Set([...sources.matchAll(/var\((--sui-[a-z0-9-]+)/g)].map((m) => m[1]));
+  const readNames = new Set(
+    [
+      ...sources.matchAll(/var\((--sui-[a-z0-9-]+)/g),
+      // Script reads a token by its quoted name, as `getPropertyValue('--sui-…')` does.
+      ...sources.matchAll(/'(--sui-[a-z0-9-]+)'/g)
+    ].map((m) => m[1])
+  );
   const tokens = tokenMap(stripComments(palette));
   const queue = [...readNames];
   while (queue.length > 0) {
@@ -101,7 +107,7 @@ test('L-2 every token read is declared and every declared token is read', () => 
       }
   }
   const scales =
-    /^--sui-(space|font-size|leading|icon|layer|duration|radius|rhythm|ease|control-height|tier|chart|focus-ring|primitive)-/;
+    /^--sui-(space|font-size|leading|icon|layer|duration|radius|ease|control-height|tier|chart|focus-ring|primitive|breakpoint)-/;
   const unread = [...declared].filter((name) => !readNames.has(name) && !scales.test(name));
   assert.deepEqual(unread, [], 'tokens declared but never read');
 });
@@ -130,6 +136,19 @@ test('L-4 a derived token is restated in every palette block', () => {
     (name) => !(name in dark) && reads(name).some((inner) => changed.has(inner))
   );
   assert.deepEqual(stale, []);
+});
+
+test('L-4 a page with no theme chosen follows the system to the same dark block', () => {
+  // The indented copy wraps differently, so values compare with their whitespace folded.
+  const folded = (/** @type {Record<string, string>} */ map) =>
+    Object.fromEntries(
+      Object.entries(map).map(([name, value]) => [
+        name,
+        value.replace(/\s+/g, ' ').replace(/\( /g, '(').replace(/ \)/g, ')')
+      ])
+    );
+  const system = tokenMap(block(':root:not([data-theme], [data-sui-theme])'));
+  assert.deepEqual(folded(system), folded(dark));
 });
 
 test('L-18 two families with the faces and weights Smyklot ships', () => {
@@ -163,19 +182,29 @@ test('L-21 sizes and leading come from the scale and land on whole pixels', () =
     }),
     []
   );
-  for (const [name, value] of Object.entries(tokenMap(stripComments(palette))).filter(([name]) =>
+  const tokens = tokenMap(stripComments(palette));
+  // A leading may name another leading token, such as the phone's step reading its own name.
+  const resolve = (/** @type {string} */ value) =>
+    tokens[/^var\((--sui-leading-[a-z-]+)\)$/.exec(value)?.[1] ?? ''] ?? value;
+  for (const [name, value] of Object.entries(tokens).filter(([name]) =>
     name.startsWith('--sui-leading-')
   ))
     assert.ok(
-      value === '1' || Number.isInteger(parseFloat(value) * 16),
+      resolve(value) === '1' || Number.isInteger(parseFloat(resolve(value)) * 16),
       `${name}: ${value} is not a whole pixel`
     );
 });
 
-test('L-22 the phone reads one step larger', () => {
+test('L-22 the phone reads one step larger and types at 16px', () => {
   const phone = palette.slice(palette.indexOf('@media (max-width: 47.9375rem)'));
   for (const name of ['--sui-font-size-body', '--sui-leading-body', '--sui-font-size-page-title'])
     assert.match(phone, new RegExp(`${name}:`));
+  assert.match(phone, /--sui-font-size-input:\s*1rem;/);
+  const entry = /<textarea\b|<input\b(?![^>]*type="(?:checkbox|radio|hidden|range|color)")/;
+  const typed = svelteFiles
+    .filter((path) => entry.test(read(path)) && !styles[path].includes('--sui-font-size-input'))
+    .filter((path) => /\bfont\s*:/.test(styles[path]));
+  assert.deepEqual(typed, [], 'a field the reader types in reads --sui-font-size-input');
 });
 
 test('L-32 spacing comes from the scale', () => {
@@ -192,6 +221,18 @@ test('L-32 spacing comes from the scale', () => {
     }),
     []
   );
+});
+
+test('L-40 a disabled control draws at the disabled opacity', () => {
+  /** @type {string[]} */
+  const found = [];
+  for (const [path, css] of Object.entries(styles))
+    for (const [, selector, body] of css.matchAll(/([^{}]+)\{([^{}]*)\}/g))
+      if (/disabled/.test(selector))
+        for (const { property, value } of declarations(`{${body}`))
+          if (property === 'opacity' && /^0?\.\d+$/.test(value))
+            found.push(`${path}: ${selector.trim()} { opacity: ${value} }`);
+  assert.deepEqual(found, []);
 });
 
 test('L-43 a mark is as wide as what it says', () => {
@@ -222,11 +263,41 @@ test('L-53 radii come from the radius tokens', () => {
   );
 });
 
-test('L-68 icon sizes are named px tiers', () => {
+test('L-53 edges are a stroke token wide', () => {
+  assert.deepEqual(
+    violations(({ property, value }) => {
+      const bare = value.replace(/var\([^()]*(\([^()]*\))*[^()]*\)/g, 'var()');
+      const edge =
+        /^(border|outline|column-rule)(-(block|inline|top|right|bottom|left)(-(start|end))?)?(-width)?$/.test(
+          property
+        ) && /(?<![\w.-])[1-9]\d*(\.\d+)?px\b/.test(bare);
+      const ring = property === 'box-shadow' && /\b0 0 0 [1-9]\d*(\.\d+)?px\b/.test(bare);
+      return edge || ring ? 'literal edge width' : null;
+    }),
+    []
+  );
+});
+
+test('a side that differs from its opposite is written along the reading direction', () => {
+  assert.deepEqual(
+    violations(({ property, value }) => {
+      if (/^(left|right)$|-(left|right)(-|$)/.test(property) && !/radius/.test(property))
+        return 'physical side';
+      if (!/^(padding|margin|inset|border-(width|style|color))$/.test(property)) return null;
+      const parts = value.match(/(?:[a-z-]+\((?:[^()]|\([^()]*\))*\)|[^\s()]+)/g) ?? [];
+      return parts.length === 4 && parts[1] !== parts[3] ? 'right differs from left' : null;
+    }),
+    []
+  );
+});
+
+test('L-68 icon sizes are named tiers that grow with the text and land on whole pixels', () => {
   for (const [name, value] of Object.entries(tokenMap(stripComments(palette))).filter(([name]) =>
     name.startsWith('--sui-icon-')
-  ))
-    assert.match(value, /^\d+px$/, name);
+  )) {
+    const rem = value.match(/^round\(([\d.]+)rem, 1px\)$/)?.[1];
+    assert.ok(rem && Number.isInteger(parseFloat(rem) * 16), `${name}: ${value}`);
+  }
   const literal = svelteFiles.flatMap((path) =>
     [...read(path).matchAll(/<Icon\b[^>]*\bsize=\{(\d+)\}/g)]
       .filter(([, size]) => Number(size) <= 18)
@@ -238,7 +309,7 @@ test('L-68 icon sizes are named px tiers', () => {
 test('L-72 stacking order comes from the layer tokens', () => {
   assert.deepEqual(
     violations(({ property, value }) =>
-      property === 'z-index' && !/^var\(--sui-layer-[a-z-]+\)$|^[0-3]$|^auto$/.test(value)
+      property === 'z-index' && !/^var\(--sui-layer-[a-z-]+\)$|^auto$/.test(value)
         ? 'layer off the scale'
         : null
     ),
@@ -293,10 +364,75 @@ test('L-83 every exported component has a contract and a kitchen sink section', 
   ];
   assert.ok(exported.length > 0);
   const sink = globSync('src/routes/sink/*.svelte').map(read).join('\n');
+  const items = [
+    'Semantics',
+    'Content',
+    'States',
+    'Keyboard',
+    'Pointer and touch',
+    'Focus',
+    'Responsive',
+    'Accessibility',
+    'Localization',
+    'Performance',
+    'Analytics',
+    'Failure'
+  ];
   for (const [, name, file] of exported) {
-    assert.match(read(`src/lib/${file}`), /@component\n/, `${name} has an @component contract`);
+    const source = read(`src/lib/${file}`);
+    assert.match(source, /@component\n/, `${name} has an @component contract`);
+    const contract = source.slice(
+      source.indexOf('@component'),
+      source.indexOf('-->', source.indexOf('@component'))
+    );
+    const missing = items.filter((item) => !new RegExp(`^- ${item}:`, 'm').test(contract));
+    assert.deepEqual(missing, [], `${name}'s contract leaves out these items`);
     assert.match(sink, new RegExp(`\\b${name}\\b`), `${name} appears in the kitchen sink`);
   }
+});
+
+test('L-98 hover paint sits behind a pointer that can hover', () => {
+  /** Drops every block opened by `opener`, so whatever is left stands outside them. */
+  const without = (/** @type {string} */ css, /** @type {RegExp} */ opener) => {
+    let rest = css;
+    for (let match = opener.exec(rest); match; match = opener.exec(rest)) {
+      let depth = 0;
+      let end = rest.indexOf('{', match.index);
+      for (; end < rest.length; end++) {
+        if (rest[end] === '{') depth++;
+        if (rest[end] === '}' && --depth === 0) break;
+      }
+      rest = rest.slice(0, match.index) + rest.slice(end + 1);
+    }
+    return rest;
+  };
+  const bare = Object.entries(styles)
+    .filter(([path]) => path.startsWith('src/lib/'))
+    .filter(([, css]) => /:hover/.test(without(stripComments(css), /@media\s*\(hover:\s*hover\)/)))
+    .map(([path]) => path);
+  assert.deepEqual(bare, []);
+});
+
+test('L-99 the layout changes only at the palette breakpoints', () => {
+  const tokens = tokenMap(stripComments(palette));
+  const phone = tokens['--sui-breakpoint-phone'];
+  const wide = tokens['--sui-breakpoint-wide'];
+  // A min-width query starts where the max-width one ends, a sixteenth of a rem on.
+  const page = new Set([phone, wide, `${parseFloat(phone) + 0.0625}rem`]);
+  // A container query may also use a component's own width, which the palette names too.
+  const own = new Set([
+    ...page,
+    ...Object.entries(tokens)
+      .filter(([name]) => name.startsWith('--sui-breakpoint-'))
+      .map(([, value]) => value)
+  ]);
+  const found = [];
+  for (const [path, css] of Object.entries(styles))
+    if (path.startsWith('src/lib/'))
+      for (const [query, rule] of stripComments(css).matchAll(/@(media|container)[^{]+/g))
+        for (const [, length] of query.matchAll(/(?:min|max)-width:\s*([\d.]+rem)/g))
+          if (!(rule === 'media' ? page : own).has(length)) found.push(`${path}: ${query.trim()}`);
+  assert.deepEqual(found, []);
 });
 
 test('L-84 no nested :has() and no control characters', () => {
@@ -309,4 +445,77 @@ test('L-84 no nested :has() and no control characters', () => {
     /[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f]/.test(read(path))
   );
   assert.deepEqual(control, []);
+});
+
+test('K9 every built-in word reads through word(), so setWords can replace it', () => {
+  // Words a reader sees, as against key names an event carries.
+  const sentence =
+    /(['`])(?!(?:Home|End|Escape|Tab|Enter|Delete|Backspace)\1)[A-Z][a-z]+(?: [A-Za-z]+)*[.…]?\1/;
+  const found = [];
+  for (const path of svelteFiles.filter((file) => file.startsWith('src/lib/'))) {
+    const source = read(path);
+    const props = /\n {2}let \{\n([\s\S]*?)\n {2}\}:/.exec(source)?.[1] ?? '';
+    // Two values side by side in a default are joined in its own language unless a mark joins them.
+    for (const [join] of props.matchAll(/\$\{\w+\} +\$\{\w+\}/g))
+      found.push(`${path}: ${join} joins values with a space`);
+    for (const [, name, value] of props.matchAll(/^ {4}(\w+) = ([\s\S]+?)(?=,?\n {4}\S|,?$)/gm)) {
+      if (value.startsWith('word(') || value.includes('word(')) continue;
+      const literal = /^(['`])(.*)\1$/.exec(value.trim())?.[2];
+      const words = literal !== undefined && /[A-Z ·…]/.test(literal);
+      const spoken = /^[({]/.test(value) && /['`][^'`]*[A-Za-z][^'`]*['`]/.test(value);
+      // A default that names a local constant or function carries that one's words.
+      const named = /^[A-Za-z_]\w*$/.exec(value.trim())?.[0];
+      const body = named
+        ? new RegExp(
+            `(?:const ${named}\\s*(?::[^=]*)?=[^;]*;|function ${named}\\b[\\s\\S]*?\\n {2}\\})`
+          ).exec(source)?.[0]
+        : undefined;
+      if (words || spoken || (body !== undefined && sentence.test(body)))
+        found.push(`${path}: ${name}`);
+    }
+  }
+  // Words joined into markup, such as an accessible name built from a label, read through a
+  // function prop too, so a language can put them in its own order.
+  for (const path of svelteFiles.filter((file) => file.startsWith('src/lib/'))) {
+    const markup = read(path)
+      .replace(/<script[\s\S]*?<\/script>|<style[\s\S]*?<\/style>|<!--[\s\S]*?-->/g, '')
+      .replace(/\{[#/:@][^{}]*\}/g, '');
+    for (const [, template] of markup.matchAll(/`([^`]*)`/g))
+      if (template.includes('${') && !/^[\w-]*$/.test(template.replace(/\$\{[^}]*\}/g, '')))
+        found.push(`${path}: \`${template}\``);
+    // Marks and words between expressions, in a quoted attribute or in text, join words in one
+    // language's order and punctuation; they read through `mark()` or a function word instead.
+    const plumbing =
+      /^(class|style|id|for|href|d|viewBox|points|transform|name|aria-(describedby|labelledby|controls))$/;
+    for (const [, name, value] of markup.matchAll(/\s([\w:-]+)="([^"]*\{[^"]*)"/g))
+      if (
+        !plumbing.test(name) &&
+        !/^(class|style):/.test(name) &&
+        value.replace(/\{[^{}]*\}/g, '').trim()
+      )
+        found.push(`${path}: ${name}="${value}"`);
+    // A literal space, no-break space or lone mark between words sets one language's joins too.
+    for (const [join] of markup.matchAll(/\{\s*(['"`])\s*\1\s*\}|&nbsp;|>\s*[,.:;]\s*</g))
+      found.push(`${path}: ${join}`);
+    for (const [, text] of markup.matchAll(/>([^<>]*\{[^<>]*)</g))
+      if (!/^\s*\{[#/:@]/.test(text) && /[^\s]/.test(text.replace(/\{[^{}]*\}|&nbsp;/g, '')))
+        found.push(`${path}: ${text.trim()}`);
+    // A name built from content gains a space on each side of a hidden box, so a box that opens
+    // with a mark never joins words exactly; the name is composed in script instead.
+    const raw = read(path).replace(
+      /<script[\s\S]*?<\/script>|<style[\s\S]*?<\/style>|<!--[\s\S]*?-->/g,
+      ''
+    );
+    for (const [join] of raw.matchAll(/<VisuallyHidden\b[^>]*>\s*\{\s*(?:mark|joiner)\([^)]*\)\}/g))
+      found.push(`${path}: ${join.replace(/\s+/g, ' ')}`);
+  }
+  for (const path of [...svelteFiles, ...scriptFiles].filter((file) => file.startsWith('src/lib/')))
+    for (const [join] of read(path).matchAll(/textContent[^;]*?\.join\(\s*' '\s*\)/g))
+      found.push(`${path}: words joined with a space: ${join.replace(/\s+/g, ' ')}`);
+  for (const path of scriptFiles.filter(
+    (file) => file.startsWith('src/lib/') && !file.endsWith('words.ts')
+  ))
+    if (sentence.test(read(path).replace(/\/\*[\s\S]*?\*\/|\/\/[^\n]*/g, '')))
+      found.push(`${path}: a word outside word()`);
+  assert.deepEqual(found, []);
 });

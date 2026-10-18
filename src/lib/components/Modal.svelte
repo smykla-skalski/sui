@@ -1,7 +1,16 @@
+<script module lang="ts">
+  /** How a dialog ended: Escape, its close button, a press outside it, or the caller setting `open`. */
+  export type ModalCloseReason = 'escape' | 'close' | 'outside' | 'program';
+</script>
+
 <script lang="ts">
+  import { word } from '../words.js';
   import type { Snippet } from 'svelte';
   import type { HTMLDialogAttributes } from 'svelte/elements';
+  import Icon from '../icons/Icon.svelte';
+  import { hostToasts } from '../internal/toasts.svelte.js';
   import IconButton from './IconButton.svelte';
+  import Toaster from './Toaster.svelte';
 
   const uid = $props.id();
 
@@ -10,8 +19,14 @@
     title,
     description,
     size = 'dialog',
+    role = 'dialog',
+    busy = false,
+    error,
+    closeLabel = word('Modal.closeLabel', 'Close'),
     beforeClose,
+    returnFocus,
     onclose,
+    preview = false,
     element = $bindable(null),
     class: className = '',
     children,
@@ -23,36 +38,105 @@
     title: string;
     /** What the dialog is for, said once under the title and read as its description. */
     description?: string;
-    /** `dialog` asks a question, `inspector` reads a record beside the page, `wide` holds a document. */
+    /** `dialog` asks a question or holds a short form, `inspector` edits a record beside the page, `wide` holds a task that needs room. */
     size?: 'dialog' | 'inspector' | 'wide';
-    /** Asked before Escape, an outside click or the close button ends the dialog; `false` keeps it open. */
+    /** `alertdialog` for a question that interrupts the reader, as `ConfirmDialog` asks. */
+    role?: 'dialog' | 'alertdialog';
+    /** The dialog's work is running, such as a save: it is `aria-busy` and refuses every way out but `open`. */
+    busy?: boolean;
+    /** Why the last submit failed, drawn above the footer and announced. The dialog stays open with its fields. */
+    error?: string;
+    /** The close button's name and tooltip. */
+    closeLabel?: string;
+    /** Asked before Escape, an outside press or the close button ends the dialog; `false` keeps it open. */
     beforeClose?: () => boolean;
-    /** Runs once the dialog has closed, whatever closed it. */
-    onclose?: () => void;
+    /** What takes focus on close when the control that opened the dialog is gone, such as the row after a deleted one. */
+    returnFocus?: () => HTMLElement | null | undefined;
+    /** Runs once the dialog has closed, with what closed it. */
+    onclose?: (reason: ModalCloseReason) => void;
+    /** Draws the box in the page's flow at its width, capped to its container, with no scrim, focus trap or `open`. */
+    preview?: boolean;
     element?: HTMLDialogElement | null;
     class?: HTMLDialogAttributes['class'];
     children?: Snippet;
     /** Actions that stay in view below the scrolling body, trailing edge first in reading order. */
     footer?: Snippet;
-  } & Omit<HTMLDialogAttributes, 'open' | 'title' | 'children' | 'class'> = $props();
+  } & Omit<
+    HTMLDialogAttributes,
+    'open' | 'title' | 'role' | 'children' | 'class' | 'onclose'
+  > = $props();
 
   const titleId = `${uid}-title`;
   const descriptionId = `${uid}-description`;
 
+  const TABBABLE =
+    ':is(a[href], button, input, select, textarea, summary, [contenteditable], [tabindex]):not(:disabled, [tabindex^="-"], [contenteditable="false"], [type="hidden"], [type="radio"]:not(:checked))';
+  const EDITABLE =
+    'input:not([type="hidden"]), textarea, select, [contenteditable]:not([contenteditable="false"])';
+
   let opener: Element | null = null;
+  // The opener's ancestors from the nearest out, each with the controls it held, ordered from
+  // just after the opener outwards. Focus finds its way back through them when the opener
+  // is gone by the time the dialog closes, as a deleted row's menu trigger is.
+  let home: { place: Element; around: HTMLElement[] }[] = [];
+  let reason: ModalCloseReason = 'program';
   let pressedOutside = false;
+  let body = $state<HTMLElement | null>(null);
+  let foot = $state<HTMLElement | null>(null);
+  let closeButton = $state<HTMLButtonElement | null>(null);
+
+  const firstIn = (root: Element | null) =>
+    [...(root?.querySelectorAll<HTMLElement>(TABBABLE) ?? [])].find((node) =>
+      node.checkVisibility()
+    );
 
   $effect(() => {
     if (!element) return;
     if (open && !element.open) {
       opener = document.activeElement;
+      home = [];
+      for (let at = opener?.parentElement; at && at !== document.body; at = at.parentElement) {
+        const all = [...at.querySelectorAll<HTMLElement>(TABBABLE)];
+        const index = all.indexOf(opener as HTMLElement);
+        home.push({
+          place: at,
+          around: [...all.slice(index + 1), ...all.slice(0, Math.max(index, 0)).reverse()]
+        });
+      }
+      reason = 'program';
       element.showModal();
+      // The browser would focus the first control in tree order, which is Close in the head.
+      if (!element.querySelector('[autofocus]'))
+        (firstIn(body) ?? firstIn(foot) ?? closeButton)?.focus();
     } else if (!open && element.open) element.close();
   });
 
-  function dismiss(): void {
-    if (beforeClose?.() === false) return;
+  $effect(() => {
+    if (open && element) return hostToasts(element);
+  });
+
+  function dismiss(how: ModalCloseReason): void {
+    if (busy || beforeClose?.() === false) return;
+    reason = how;
     open = false;
+  }
+
+  // The opener when it is still there, else the caller's choice, else the nearest control left
+  // where the opener stood.
+  function successor(): HTMLElement | null | undefined {
+    if (opener instanceof HTMLElement && opener.isConnected && opener.checkVisibility())
+      return opener;
+    const chosen = returnFocus?.();
+    if (chosen) return chosen;
+    // A control that took the opener's place since, such as a "Restore" button, counts too.
+    for (const { place, around } of home) {
+      if (!place.isConnected) continue;
+      const found =
+        around.find(
+          (node) => node.isConnected && node.matches(TABBABLE) && node.checkVisibility()
+        ) ?? firstIn(place);
+      if (found) return found;
+    }
   }
 
   // A press on the backdrop targets the dialog itself, outside the box it draws.
@@ -67,86 +151,147 @@
     );
   }
 
-  // An open auto popover inside the dialog (a menu, a listbox) takes Escape and outside
-  // presses first, and the dialog stays.
-  const layered = () => element?.querySelector('[popover="auto"]:popover-open') != null;
+  // An open layer inside the dialog (a menu, a listbox, a manual `Popover`) takes Escape and
+  // outside presses first, and the dialog stays.
+  // `:is()` keeps a browser without `:open` from rejecting the whole selector.
+  const layered = () =>
+    element?.querySelector(
+      ':is([popover="auto"]:popover-open, .sui-popover:popover-open, select:open)'
+    ) != null;
 
   function onkeydown(event: KeyboardEvent): void {
     if (event.key !== 'Escape' || event.defaultPrevented || layered()) return;
     // Handled here rather than through `cancel`, which the browser stops letting a page refuse
     // after the first Escape without a click in between.
     event.preventDefault();
-    dismiss();
+    dismiss('escape');
   }
 
   function oncancel(event: Event): void {
     event.preventDefault();
-    dismiss();
+    dismiss('escape');
   }
 
+  // A stray press must never throw away a half-filled form, so only a dialog without fields
+  // closes on one.
   function onpointerdown(event: PointerEvent): void {
-    pressedOutside = outside(event) && !layered();
+    pressedOutside = outside(event) && !layered() && !element?.querySelector(EDITABLE);
   }
 
   // `closedby="any"` would do this natively, but Safari does not support it yet. A press that
   // starts inside the box and ends outside it, as a text selection does, never closes.
   function onclick(event: MouseEvent): void {
-    if (pressedOutside && outside(event)) dismiss();
+    if (pressedOutside && outside(event)) dismiss('outside');
     pressedOutside = false;
   }
 
   function closed(): void {
     open = false;
-    if (opener instanceof HTMLElement && opener.isConnected) opener.focus();
+    successor()?.focus();
     opener = null;
-    onclose?.();
+    home = [];
+    onclose?.(reason);
   }
 </script>
 
 <!--
 @component
-Work that has to be finished or abandoned before the page under it can be used again. Three
-widths and no others: `dialog` asks a question, `inspector` reads a record from the inline end
-at full height, and `wide` holds a document. Something a reader can carry on past belongs in a
-callout beside the work, not here.
+A task that has to be finished or abandoned before the page under it can be used again. It holds
+fields and a way to commit or cancel them. Reading belongs on a page or in a panel, never here.
+There are three widths. `dialog` asks a question or holds a short form. `inspector` edits a
+record from the inline end at full height. `wide` holds a task that needs room, such as writing
+release notes. Something a reader can carry on past belongs in a callout beside the work.
 
 It is a native `<dialog>` opened with `showModal()`, so the browser traps focus, makes the page
-inert and keeps it in the top layer. Escape, a press outside the box and the close button ask
-`beforeClose` first, which can refuse; confirm there only when closing would discard work.
-Setting `open` to false always closes it. Focus returns to whatever had it when the dialog
-opened. The body scrolls and `footer` stays in view under it.
--->
+inert and keeps it in the top layer. Escape and the close button ask `beforeClose` first, which
+can refuse; confirm there only when closing would discard work. A press outside the box asks
+too, but only while the dialog holds no field, so a stray click never loses a half-filled form.
+An Escape that a layer inside it already handled, such as a menu or a tooltip, leaves it open.
+Setting `open` to false always closes it.
 
-<dialog
-  bind:this={element}
-  {...rest}
-  class={['sui-modal', className]}
-  data-size={size}
-  aria-labelledby={titleId}
-  aria-describedby={description ? descriptionId : undefined}
-  {onkeydown}
-  {oncancel}
-  {onpointerdown}
-  {onclick}
-  onclose={closed}
->
+While a submit runs, set `busy`: the dialog refuses Escape, the close button and an outside
+press until the work ends. When it fails, keep the dialog open and set `error`, so the reader
+keeps what they typed and reads why above the footer. The page's toasts draw inside the topmost
+dialog, so they are never inert under it.
+
+- Semantics: a modal `<dialog>`, or `alertdialog` through `role`, named by its `<h2>` title and described by `description`.
+- Content: a title, one description, the body's fields and a footer of actions with the primary action last; the title and the error wrap.
+- States: closed, open, busy (`aria-busy`, every way out refused) and failed (`error` in the danger ink with its symbol); the inspector docks to the inline end at full height.
+- Keyboard: Tab stays inside, Escape closes after `beforeClose` unless a layer inside took it, and Enter belongs to the focused control.
+- Pointer and touch: the close button is a 34px target, 44px on a phone or touch screen, and a press outside closes only a dialog that holds no field.
+- Focus: opens on an `[autofocus]` element, else the body's first control, then the footer's, then Close; returns to the opener, or to `returnFocus`, or to the first control left where the opener stood.
+- Responsive: under 48rem it fills the width less 8px each side, and on a short screen (30rem tall or less) the head, body and footer scroll as one so the footer never covers the fields.
+- Accessibility: the title names it and the description describes it, `error` is announced as an alert, and the scrim follows `--sui-scrim`.
+- Localization: `closeLabel` names the close button, every other word is the caller's, and the inspector docks and slides in from the inline end, mirrored in a right-to-left page.
+- Performance: the box enters with one 220ms fade and short slide on transform and opacity, removed under reduced motion; a closed dialog keeps no listeners.
+- Analytics: `onclose` reports `escape`, `close`, `outside` or `program`, so a caller can tell a save from an abandon.
+- Failure: a refused submit keeps the dialog open with `error`; a missing body draws the head alone with its full inset; a missing opener sends focus to `returnFocus` or the nearest control.
+-->
+{#snippet box()}
   <header class={['sui-modal-head', { alone: !children }]}>
     <div class="sui-modal-heading">
       <h2 id={titleId} class="sui-modal-title">{title}</h2>
       <span class="sui-modal-close"
-        ><IconButton icon="close" label="Close" onclick={dismiss} /></span
+        ><IconButton
+          bind:element={closeButton}
+          icon="close"
+          label={closeLabel}
+          aria-disabled={busy || undefined}
+          onclick={() => dismiss('close')}
+        /></span
       >
     </div>
     {#if description}<p id={descriptionId} class="sui-modal-description">{description}</p>{/if}
   </header>
-  {#if children}<div class="sui-modal-body">{@render children()}</div>{/if}
-  {#if footer}<footer class="sui-modal-foot">{@render footer()}</footer>{/if}
-</dialog>
+  {#if children}<div bind:this={body} class="sui-modal-body">{@render children()}</div>{/if}
+  <div class="sui-modal-error" role="alert">
+    {#if error}
+      <p class="sui-modal-error-line">
+        <span class="sui-modal-error-mark"><Icon name="failure" size="md" /></span><span
+          class="sui-modal-error-text">{error}</span
+        >
+      </p>
+    {/if}
+  </div>
+  {#if footer}<footer bind:this={foot} class="sui-modal-foot">{@render footer()}</footer>{/if}
+{/snippet}
+
+{#if preview}
+  <div
+    {role}
+    class={['sui-modal', 'preview', className]}
+    data-size={size}
+    aria-labelledby={titleId}
+    aria-describedby={description ? descriptionId : undefined}
+    aria-busy={busy || undefined}
+  >
+    {@render box()}
+  </div>
+{:else}
+  <dialog
+    bind:this={element}
+    {...rest}
+    class={['sui-modal', className]}
+    role={role === 'alertdialog' ? role : undefined}
+    data-size={size}
+    aria-labelledby={titleId}
+    aria-describedby={description ? descriptionId : undefined}
+    aria-busy={busy || undefined}
+    {onkeydown}
+    {oncancel}
+    {onpointerdown}
+    {onclick}
+    onclose={closed}
+  >
+    {@render box()}
+    <Toaster />
+  </dialog>
+{/if}
 
 <style>
   .sui-modal {
     background-color: var(--sui-dialog-bg);
-    border: 1px solid var(--sui-dialog-border);
+    border: var(--sui-stroke) solid var(--sui-dialog-border);
     border-radius: var(--sui-radius-dialog);
     box-shadow: var(--sui-shadow-dialog);
     box-sizing: border-box;
@@ -156,6 +301,13 @@ opened. The body scrolls and `footer` stays in view under it.
     max-inline-size: calc(100vw - 2 * var(--sui-space-4));
     overflow: hidden;
     padding: 0;
+  }
+
+  /* Open without the entry animation, which would replay on every page load. */
+  .sui-modal.preview {
+    display: flex;
+    flex-direction: column;
+    max-inline-size: 100%;
   }
 
   .sui-modal[open] {
@@ -173,7 +325,8 @@ opened. The body scrolls and `footer` stays in view under it.
     inline-size: 46rem;
   }
 
-  .sui-modal[data-size='inspector'] {
+  /* Docked to the edge only in the top layer; in flow an inspector keeps the whole frame. */
+  .sui-modal[data-size='inspector']:not(.preview) {
     block-size: 100dvh;
     border-block: 0;
     border-inline-end: 0;
@@ -209,7 +362,9 @@ opened. The body scrolls and `footer` stays in view under it.
   }
 
   .sui-modal-title {
-    font: 700 var(--sui-font-size-dialog-title) / var(--sui-leading-title) var(--sui-sans);
+    block-size: var(--sui-block-snap);
+    font: var(--sui-weight-bold) var(--sui-font-size-dialog-title) / var(--sui-leading-title)
+      var(--sui-sans);
     letter-spacing: -0.015em;
     margin: 0;
     min-inline-size: 0;
@@ -219,16 +374,25 @@ opened. The body scrolls and `footer` stays in view under it.
 
   /* A box with no height of its own, so the close button centres on the title's cap band and
      never makes the head row taller than the title. */
+  /* A zero-height seat on the middle of the title's first line, rounded down to the pixel, so
+     the even-height button centred on it lands on whole pixels (L-95) and stays by the first
+     line when the title wraps. The title's face makes `1cap` its cap height. */
   .sui-modal-close {
     align-items: center;
+    align-self: flex-start;
     block-size: 0;
     display: flex;
     flex: none;
+    font: var(--sui-weight-bold) var(--sui-font-size-dialog-title) / var(--sui-leading-flat)
+      var(--sui-sans);
+    margin-block-start: round(down, calc(round(up, 1cap, 1px) / 2), 1px);
   }
 
   .sui-modal-description {
+    block-size: var(--sui-block-snap);
     color: var(--sui-text-secondary);
-    font: 400 var(--sui-font-size-meta) / var(--sui-row-copy-leading) var(--sui-sans);
+    font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-row-copy-leading)
+      var(--sui-sans);
     margin: 0;
     text-box: trim-both cap alphabetic;
   }
@@ -244,10 +408,39 @@ opened. The body scrolls and `footer` stays in view under it.
     padding: var(--sui-space-3) var(--sui-space-6) var(--sui-space-6);
   }
 
+  /* The failure sits between the fields and the actions that will try again. */
+  .sui-modal-error {
+    flex: none;
+  }
+
+  .sui-modal-error-line {
+    align-items: flex-start;
+    color: var(--sui-danger);
+    display: flex;
+    font: var(--sui-weight-medium) var(--sui-font-size-meta) / var(--sui-leading-meta)
+      var(--sui-sans);
+    gap: var(--sui-space-2);
+    margin: 0;
+    padding: 0 var(--sui-space-6) var(--sui-space-4);
+  }
+
+  /* The symbol centres on the first line of the message, however many lines follow. */
+  .sui-modal-error-mark {
+    align-items: center;
+    block-size: var(--sui-leading-meta);
+    display: flex;
+    flex: none;
+  }
+
+  .sui-modal-error-text {
+    min-inline-size: 0;
+    overflow-wrap: anywhere;
+  }
+
   .sui-modal-foot {
     align-items: center;
     background-color: var(--sui-dialog-bg);
-    border-block-start: 1px solid var(--sui-border-subtle);
+    border-block-start: var(--sui-stroke) solid var(--sui-border-divider);
     display: flex;
     flex: none;
     flex-wrap: wrap;
@@ -264,6 +457,7 @@ opened. The body scrolls and `footer` stays in view under it.
     }
   }
 
+  /* The inspector arrives from the inline end, which is the left edge in a right-to-left page. */
   @keyframes sui-inspector-in {
     from {
       opacity: 0;
@@ -271,14 +465,25 @@ opened. The body scrolls and `footer` stays in view under it.
     }
   }
 
-  @media (max-width: 38rem) {
+  @keyframes sui-inspector-in-rtl {
+    from {
+      opacity: 0;
+      translate: calc(-1 * var(--sui-space-4)) 0;
+    }
+  }
+
+  .sui-modal[open][data-size='inspector']:dir(rtl) {
+    animation-name: sui-inspector-in-rtl;
+  }
+
+  @media (max-width: 47.9375rem) {
     .sui-modal {
       inline-size: 100%;
       max-block-size: calc(100dvh - 2 * var(--sui-space-2));
       max-inline-size: calc(100vw - 2 * var(--sui-space-2));
     }
 
-    .sui-modal[data-size='inspector'] {
+    .sui-modal[data-size='inspector']:not(.preview) {
       inline-size: 100%;
       max-block-size: none;
       max-inline-size: none;
@@ -286,8 +491,23 @@ opened. The body scrolls and `footer` stays in view under it.
 
     .sui-modal-head,
     .sui-modal-body,
+    .sui-modal-error-line,
     .sui-modal-foot {
       padding-inline: var(--sui-space-4);
+    }
+  }
+
+  /* On a short screen, as at 400% zoom, a pinned head and footer would leave the fields a
+     sliver, so the whole box scrolls as one (WCAG 1.4.10). */
+  @media (max-height: 30rem) {
+    .sui-modal[open],
+    .sui-modal.preview {
+      overflow-y: auto;
+    }
+
+    .sui-modal-body {
+      flex: none;
+      overflow-y: visible;
     }
   }
 

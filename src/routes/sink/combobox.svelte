@@ -1,19 +1,31 @@
 <script module lang="ts">
-  export const section = { title: 'Combobox', order: 42 };
+  export const section = {
+    title: 'Combobox',
+    order: 42,
+    lead: 'A text field that suggests values as the reader types and commits one. A list short enough to read whole is a Select.',
+    components: ['Combobox']
+  };
 </script>
 
 <script lang="ts">
-  import { Combobox } from '#lib';
+  import { Button, Combobox, Field } from '#lib';
   import Example from '../kit/Example.svelte';
+  import Specimen from '../kit/Specimen.svelte';
 
   const languages = [
     { value: 'go', label: 'Go' },
     { value: 'rust', label: 'Rust' },
     { value: 'ts', label: 'TypeScript', description: 'Typed JavaScript' },
     { value: 'py', label: 'Python' },
-    { value: 'rb', label: 'Ruby', disabled: true },
+    { value: 'rb', label: 'Ruby', description: 'Retired', disabled: true },
     { value: 'kt', label: 'Kotlin' },
     { value: 'swift', label: 'Swift' }
+  ];
+
+  const labels = [
+    { value: 'bug', label: 'bug' },
+    { value: 'documentation', label: 'documentation' },
+    { value: 'good first issue', label: 'good first issue' }
   ];
 
   const accounts = [
@@ -30,79 +42,149 @@
     );
   }
 
+  /* The directory never answers, so the refused state shows on the first letters typed. */
+  function offline(): Promise<typeof accounts> {
+    return new Promise((_, reject) =>
+      setTimeout(() => reject(new Error('The directory is offline')), 300)
+    );
+  }
+
   let language = $state('ts');
   let label = $state('');
   let reviewer = $state('');
+  let owner = $state('');
+  let runtime = $state('rust');
+  let primary = $state('rb');
+  let sent = $state('Nothing sent yet');
+
+  function send(event: SubmitEvent & { currentTarget: HTMLFormElement }): void {
+    event.preventDefault();
+    sent = `Sent ${new FormData(event.currentTarget).get('runtime') || 'nothing'}`;
+  }
 </script>
 
 <Example
-  title="Filtered options"
-  note="Type to narrow the list, and the matched letters are marked"
+  title="Suggestions"
+  note="Typing narrows the options, free entry offers what was typed, and a slow search says it is searching or that nothing matches"
+  layout="grid"
 >
-  <div class="field">
-    <label for="sink-combobox-language">Language</label>
-    <Combobox id="sink-combobox-language" options={languages} bind:value={language} />
-  </div>
-  <span class="state">{language || 'Nothing chosen'}</span>
-</Example>
-
-<Example title="Free entry" note="What was typed is offered as a value of its own">
-  <div class="field">
-    <label for="sink-combobox-label">Label</label>
-    <Combobox
-      id="sink-combobox-label"
-      free
-      options={[
-        { value: 'bug', label: 'bug' },
-        { value: 'documentation', label: 'documentation' },
-        { value: 'good first issue', label: 'good first issue' }
-      ]}
-      bind:value={label}
-      placeholder="bug"
-    />
-  </div>
-  <span class="state">{label || 'Nothing chosen'}</span>
+  <Specimen label="Filtered options" code="options">
+    <Field label="Language">
+      {#snippet control({ id, describedby })}
+        <Combobox {id} aria-describedby={describedby} options={languages} bind:value={language} />
+      {/snippet}
+    </Field>
+  </Specimen>
+  <Specimen label="Free entry" code="free">
+    <Field label="Label">
+      {#snippet control({ id, describedby })}
+        <Combobox
+          {id}
+          aria-describedby={describedby}
+          free
+          options={labels}
+          bind:value={label}
+          placeholder="bug"
+        />
+      {/snippet}
+    </Field>
+  </Specimen>
+  <Specimen label="Search" code="search">
+    <Field label="Reviewer">
+      {#snippet control({ id, describedby })}
+        <Combobox
+          {id}
+          aria-describedby={describedby}
+          search={findAccounts}
+          bind:value={reviewer}
+          placeholder="octocat"
+        />
+      {/snippet}
+    </Field>
+  </Specimen>
 </Example>
 
 <Example
-  title="Search and empty result"
-  note="Suggestions come from a slow search, and a login nobody has says nothing matches"
+  title="States"
+  note="A refused value keeps its danger edge, a refused search says so, and a disabled field says why under it"
+  layout="grid"
 >
-  <div class="field">
-    <label for="sink-combobox-reviewer">Reviewer</label>
-    <Combobox
-      id="sink-combobox-reviewer"
-      search={findAccounts}
-      bind:value={reviewer}
-      placeholder="octocat"
-    />
-  </div>
-  <span class="state">{reviewer || 'Nothing chosen'}</span>
+  <Specimen label="Invalid" code="invalid">
+    <Field label="Primary language" error="Ruby is retired, so pick another language">
+      {#snippet control({ id, describedby, invalid })}
+        <Combobox
+          {id}
+          aria-describedby={describedby}
+          {invalid}
+          options={languages}
+          bind:value={primary}
+        />
+      {/snippet}
+    </Field>
+  </Specimen>
+  <Specimen label="Search refused" code="search">
+    <Field label="Owner" hint="Type a name to look it up">
+      {#snippet control({ id, describedby })}
+        <Combobox
+          {id}
+          aria-describedby={describedby}
+          search={offline}
+          bind:value={owner}
+          placeholder="octocat"
+        />
+      {/snippet}
+    </Field>
+  </Specimen>
+  <Specimen label="Disabled" code="disabled">
+    <Field label="Language" hint="The template sets the language for every new repository">
+      {#snippet control({ id, describedby })}
+        <Combobox {id} aria-describedby={describedby} options={languages} value="go" disabled />
+      {/snippet}
+    </Field>
+  </Specimen>
 </Example>
 
-<Example title="Disabled" note="A disabled field keeps its value in view">
-  <div class="field">
-    <label for="sink-combobox-disabled">Language</label>
-    <Combobox id="sink-combobox-disabled" options={languages} value="go" disabled />
-  </div>
+<Example
+  title="In a form"
+  note="The form posts the chosen value, never its label, and a label typed in full picks its option"
+>
+  <Specimen label={sent} code="name">
+    <form class="form" onsubmit={send}>
+      <Field label="Runtime">
+        {#snippet control({ id, describedby })}
+          <Combobox
+            {id}
+            aria-describedby={describedby}
+            name="runtime"
+            options={languages}
+            bind:value={runtime}
+          />
+        {/snippet}
+      </Field>
+      <Button type="submit">Save the runtime</Button>
+    </form>
+  </Specimen>
+</Example>
+
+<Example
+  title="Open"
+  note="The open list drawn in place, with the current value as the active row and its check"
+  layout="grid"
+>
+  <Specimen label="Open" code="preview">
+    <Field label="Language">
+      {#snippet control({ id, describedby })}
+        <Combobox {id} aria-describedby={describedby} options={languages} value="ts" preview />
+      {/snippet}
+    </Field>
+  </Specimen>
 </Example>
 
 <style>
-  .field {
+  .form {
     display: grid;
-    gap: var(--sui-space-2);
-    inline-size: 16rem;
-    max-inline-size: 100%;
-  }
-
-  label {
-    color: var(--sui-text-primary);
-    font: 600 var(--sui-font-size-control) / var(--sui-leading-flat) var(--sui-sans);
-    text-box: trim-both cap alphabetic;
-  }
-
-  .state {
-    color: var(--sui-text-muted);
-    font: 400 var(--sui-font-size-meta) / var(--sui-leading-meta) var(--sui-mono);
+    gap: var(--sui-space-4);
+    justify-items: stretch;
+    min-inline-size: 0;
   }
 </style>

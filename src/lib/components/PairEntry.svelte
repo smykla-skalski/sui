@@ -1,434 +1,560 @@
+<script module lang="ts">
+  export type Pair = { key: string; value: string };
+</script>
+
 <script lang="ts">
+  import { mark, word } from '../words.js';
   import { tick } from 'svelte';
   import type { HTMLAttributes } from 'svelte/elements';
   import Icon from '../icons/Icon.svelte';
-  import type { ComboboxOption } from './Combobox.svelte';
-  import IconButton from './IconButton.svelte';
+  import Button from './Button.svelte';
+  import Combobox, { type ComboboxOption } from './Combobox.svelte';
+  import Field from './Field.svelte';
   import Popover from './Popover.svelte';
+  import VisuallyHidden from './VisuallyHidden.svelte';
 
   const uid = $props.id();
 
   let {
-    key = $bindable(''),
-    value = $bindable(''),
+    value = $bindable([]),
     options,
-    keyLabel = 'Key',
-    valueLabel = 'Value',
-    keyPlaceholder = 'key',
-    valuePlaceholder = 'value',
-    removeLabel,
-    error,
-    disabled = false,
+    keyLabel = word('PairEntry.keyLabel', 'Key'),
+    editName = word(
+      'PairEntry.editName',
+      (field: string, key: string) => `${field}${mark('space')}${key}`
+    ),
+    valueLabel = word('PairEntry.valueLabel', 'Value'),
+    pairName = word(
+      'PairEntry.pairName',
+      (key: string, value: string) =>
+        `${keyLabel}${mark('space')}${key}${mark('comma')}${valueLabel}${mark('space')}${value}`
+    ),
+    validate,
+    addLabel = word('PairEntry.addLabel', 'Add a pair'),
+    doneLabel = word('PairEntry.doneLabel', 'Done'),
+    removeLabel = word('PairEntry.removeLabel', 'Remove'),
+    removeName = word(
+      'PairEntry.removeName',
+      (key: string) => `${removeLabel}${mark('space')}${key}`
+    ),
+    removedLabel = word('PairEntry.removedLabel', (key: string) => `Removed ${key}`),
+    reason,
+    onadd,
+    onedit,
     onremove,
+    disabled = false,
     class: className = '',
     ...rest
   }: {
-    key?: string;
-    /** An option's `value`. Typing only searches; choosing an option is what changes it. */
-    value?: string;
+    value?: Pair[];
+    /** The values a pair may map to. A pair's chip shows the chosen option's label. */
     options: readonly ComboboxOption[];
-    /** Names the key field, such as "Alias deploy". */
+    /** Names the key, such as "Alias": the editor's first field and every chip's spoken name. */
     keyLabel?: string;
-    /** Names the value field and its suggestions, such as "Command for alias deploy". */
+    /** The editor's name for one pair, from `keyLabel` and the pair's key, in the language's order. */
+    editName?: (field: string, key: string) => string;
+    /** Names the value, such as "Command": the editor's second field. */
     valueLabel?: string;
-    keyPlaceholder?: string;
-    valuePlaceholder?: string;
-    /** Names the remove button. It defaults to "Remove" and the key. */
+    /** A chip's accessible name from its key and its value, with `keyLabel` and `valueLabel`. */
+    pairName?: (key: string, value: string) => string;
+    /** Says what is wrong with a key, or null when it is fine. `index` is the pair's place in `pairs`. */
+    validate?: (key: string, index: number, pairs: readonly Pair[]) => string | null;
+    /** The add button's words, specific to what the pairs are. */
+    addLabel?: string;
+    /** The editor's confirming button. */
+    doneLabel?: string;
+    /** The editor's remove button. */
     removeLabel?: string;
-    /** Says what is wrong with the key. The lane is marked invalid and the key described by it. */
-    error?: string;
+    /** Each chip's remove control's name, given the pair's key. */
+    removeName?: (key: string) => string;
+    /** Said once a pair has gone, given its key. */
+    removedLabel?: (key: string) => string;
+    /** Why the pairs are read only, drawn under them and tied to every chip and to Add. */
+    reason?: string;
+    /** Hears each new pair once Done accepts it. */
+    onadd?: (pair: Pair) => void;
+    /** Hears each changed pair once Done accepts it, with its place. */
+    onedit?: (pair: Pair, index: number) => void;
+    /** Hears each removed pair. */
+    onremove?: (pair: Pair) => void;
     disabled?: boolean;
-    onremove: () => void;
-    /** Layout for the call site only, never the lane's own paint. */
+    /** Layout for the call site only, never the chips' own paint. */
     class?: HTMLAttributes<HTMLDivElement>['class'];
   } & Omit<HTMLAttributes<HTMLDivElement>, 'children' | 'class'> = $props();
 
-  const listId = `${uid}-list`;
-  const errorId = `${uid}-error`;
-  const optionId = (index: number) => `${uid}-option-${index}`;
+  const editorId = `${uid}-editor`;
+  const reasonId = `${uid}-reason`;
+  const problemId = (index: number) => `${uid}-problem-${index}`;
+  const described = (index?: number) =>
+    [reason && reasonId, index !== undefined && problems[index] && problemId(index)]
+      .filter(Boolean)
+      .join(' ') || undefined;
 
-  let lane = $state<HTMLElement | null>(null);
-  let list = $state<HTMLElement | null>(null);
+  let root = $state<HTMLElement | null>(null);
+  let adder = $state<HTMLButtonElement | HTMLAnchorElement | null>(null);
+  let anchor = $state<HTMLElement | null>(null);
+  let form = $state<HTMLFormElement | null>(null);
   let open = $state(false);
-  let query = $state<string | null>(null);
-  let active = $state(0);
+  /** The pair in the editor: its index, or -1 for a new one. */
+  let editing = $state(-1);
+  let draft = $state<Pair>({ key: '', value: '' });
+  let draftProblem = $state<string | null>(null);
+  let said = $state('');
 
-  const removal = $derived(
-    removeLabel ?? (key.trim() ? `Remove ${key.trim()}` : 'Remove this pair')
+  const labelOf = (pick: string) => options.find((option) => option.value === pick)?.label ?? pick;
+  const problems = $derived(
+    value.map((pair, index) => validate?.(pair.key.trim(), index, value) ?? null)
   );
-  const shown = $derived(query ?? options.find((option) => option.value === value)?.label ?? value);
-  const needle = $derived(query?.trim().toLowerCase() ?? '');
-  const hits = $derived(
-    needle === ''
-      ? options
-      : options.filter((option) =>
-          `${option.label} ${option.description ?? ''}`.toLowerCase().includes(needle)
-        )
-  );
-  const showing = $derived(open && !disabled);
 
-  function step(from: number, by: 1 | -1): number {
-    const count = hits.length;
-    for (let distance = 1; distance <= count; distance++) {
-      const at = (((from + by * distance) % count) + count) % count;
-      if (!hits[at].disabled) return at;
-    }
-    return -1;
+  const chips = () => [...(root?.querySelectorAll<HTMLElement>('.sui-pair-edit') ?? [])];
+
+  const focusKey = () => form?.querySelector('input')?.focus({ preventScroll: true });
+
+  /* A draft left by a press outside or by Tab waits for the same chip or Add to open again, so
+     a stray press never throws typing away (P8); Escape, Done and Remove leave nothing behind. */
+  let kept: { index: number; draft: Pair } | null = null;
+  let settled = false;
+
+  // The invoker's press lands before the browser opens the editor, so the draft is seeded here
+  // and the editor opens on the pair that was pressed. A press while it is open only closes it.
+  function seed(index: number, event: MouseEvent & { currentTarget: HTMLElement }): void {
+    if (open) return;
+    editing = index;
+    draft =
+      kept?.index === index
+        ? kept.draft
+        : index < 0
+          ? { key: '', value: options[0]?.value ?? '' }
+          : { ...value[index] };
+    kept = null;
+    settled = false;
+    draftProblem = null;
+    anchor = event.currentTarget;
   }
 
-  // Scrolls the list alone: the box is fixed in the top layer, and scrollIntoView could move the page.
-  function reveal(): void {
-    const row = document.getElementById(optionId(active));
-    if (!list || !row) return;
-    const view = list.getBoundingClientRect();
-    const box = row.getBoundingClientRect();
-    if (box.top < view.top) list.scrollTop -= view.top - box.top;
-    else if (box.bottom > view.bottom) list.scrollTop += box.bottom - view.bottom;
+  // Escape is the one close that drops the draft. An Escape a field inside spends on itself,
+  // such as closing the value's list, never reaches the window.
+  $effect(() => {
+    if (!open) return;
+    const cancel = (event: KeyboardEvent) => {
+      if (event.key === 'Escape' && !event.defaultPrevented) settled = true;
+    };
+    addEventListener('keydown', cancel);
+    return () => removeEventListener('keydown', cancel);
+  });
+
+  function closed(): void {
+    if (!settled) kept = { index: editing, draft: { ...draft } };
+    settled = false;
   }
 
-  function show(): void {
-    query = null;
-    open = true;
-    active = Math.max(
-      0,
-      hits.findIndex((option) => option.value === value)
-    );
-    void tick().then(reveal);
-  }
-
-  function hide(): void {
+  // Focus goes to the pair that took the removed one's place, else the one before, else Add,
+  // so it never falls to the page (L-89).
+  async function remove(index: number): Promise<void> {
+    const gone = value[index];
+    value = value.filter((_, at) => at !== index);
+    settled = true;
+    kept = null;
     open = false;
-    query = null;
-  }
-
-  function take(index: number): void {
-    const option = hits[index];
-    if (!option || option.disabled) return;
-    value = option.value;
-    hide();
-  }
-
-  function oninput(event: Event & { currentTarget: EventTarget & HTMLInputElement }): void {
-    query = event.currentTarget.value;
-    open = true;
-    active = Math.max(0, step(-1, 1));
-  }
-
-  function onkeydown(event: KeyboardEvent): void {
-    if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
-      event.preventDefault();
-      if (!open) return show();
-      const next = step(active, event.key === 'ArrowDown' ? 1 : -1);
-      if (next < 0) return;
-      active = next;
-      reveal();
-    } else if (event.key === 'Enter' && showing && hits.length > 0) {
-      event.preventDefault();
-      take(active);
-    } else if (event.key === 'Escape' && open) {
-      event.preventDefault();
-      event.stopPropagation();
-      hide();
+    if (gone) {
+      said = removedLabel(gone.key);
+      onremove?.(gone);
     }
+    await tick();
+    const left = chips();
+    (left[index] ?? left[index - 1] ?? adder)?.focus();
+  }
+
+  function done(event: SubmitEvent): void {
+    event.preventDefault();
+    const pair = { key: draft.key.trim(), value: draft.value };
+    const at = editing < 0 ? value.length : editing;
+    const next = value.toSpliced(at, 1, pair);
+    draftProblem = validate?.(pair.key, at, next) ?? null;
+    if (draftProblem) {
+      focusKey();
+      return;
+    }
+    value = next;
+    settled = true;
+    open = false;
+    if (editing < 0) onadd?.(pair);
+    else onedit?.(pair, at);
+  }
+
+  // Delete and Backspace remove a focused chip, as an accelerator for its remove control.
+  function chipKeys(index: number, event: KeyboardEvent): void {
+    if (event.key !== 'Delete' && event.key !== 'Backspace') return;
+    event.preventDefault();
+    void remove(index);
   }
 </script>
 
 <!--
 @component
-A key and the value it maps to, such as an alias and the command it runs, in one 34px lane with
-one border. The key is typed. The value is picked from `options`: pressing or typing in it opens
-the suggestions, which follow the ARIA combobox pattern with arrows that wrap, Enter to commit
-and Escape to close and put the chosen value back. Typing only searches, so the value is always
-one of the options.
+Pairs of a key and the value it maps to, such as aliases and the commands they run, as chips
+that wrap side by side: "ship → deploy". Pressing a chip opens an editor beside it with a field
+for the key and a picker of `options` for the value; Done checks the key with `validate` and
+keeps the editor open, focused on the key, while it is wrong. Escape closes the editor and drops
+its draft, and focus returns to the chip. A press outside or Tab out of the editor closes it
+and keeps the draft, which the same chip or Add opens with next time. `addLabel` opens the same editor
+for a new pair, which joins the end of the row on Done.
 
-The chevron belongs to the picker and the cross at the lane's end removes the pair, so the two
-never share a target. `error` is about the key: it marks the lane and stands 8px under it. A
-reset for a row of pairs belongs beside the whole group, which `SettingRow` draws with `onclear`.
+In a `SettingRow`, give the row's `labelledby` to this group. The chips wrap within the room the
+row gives them and fall under the copy on a narrow row.
+
+- Semantics: a `div` with `role="group"` holding a list of chips, each an edit `button` with `aria-haspopup="dialog"` and a remove `button`, an `add` button, and a dialog `Popover` with a `Field` and a `Combobox`.
+- Content: pairs of a short key and one of `options`; a long key or value wraps inside its chip, so all of it shows.
+- States: rest, hover, pressed and focus on each part, open (the chip's edge takes the focus color), invalid (the danger edge, an alert mark and the problem in words under the row), and disabled with `reason`.
+- Keyboard: Tab walks each chip's edit and remove parts, then Add; Enter or Space opens the editor; Delete or Backspace on a chip removes it; in the editor Enter is Done and Escape closes.
+- Pointer and touch: each part is 28px, and 44px on a phone or a coarse pointer; the remove part sits outside the edit target.
+- Focus: the editor opens on the key field and returns focus to its chip on close; after a removal focus moves to the next chip, the one before, or Add.
+- Responsive: chips wrap one by one within the row's room, and the editor is at most 20rem wide and inside the viewport.
+- Accessibility: every chip is named by `pairName` from `keyLabel` and `valueLabel`, such as "Alias ship, Command deploy"; a problem and `reason` describe the chips; a removal is said through a polite status.
+- Localization: every word is a prop, the named ones functions of the key; the arrow between key and value turns with the reading direction.
+- Performance: every pair renders a chip, and one editor serves them all.
+- Analytics: `onadd`, `onedit` and `onremove` hear each accepted change.
+- Failure: a key `validate` refuses keeps the editor open with the problem and never reaches `value`; a stored pair it refuses is marked and described; with `disabled` the chips read only, so say why with `reason`.
 -->
 
-<div {...rest} class={['sui-pair-entry', className]}>
-  <div bind:this={lane} class="sui-pair-lane" class:invalid={Boolean(error)} class:disabled>
-    <label class="sui-pair-half">
-      <input
-        bind:value={key}
-        aria-label={keyLabel}
-        aria-invalid={Boolean(error) || undefined}
-        aria-describedby={error ? errorId : undefined}
-        placeholder={keyPlaceholder}
-        autocomplete="off"
-        spellcheck="false"
+<div
+  {...rest}
+  bind:this={root}
+  class={['sui-pair-entry', className, { disabled }]}
+  role="group"
+  aria-describedby={rest['aria-describedby'] ?? (reason ? reasonId : undefined)}
+>
+  <ul class="sui-pair-chips" role="list">
+    {#each value as pair, index (index)}
+      <li>
+        <span
+          class={['sui-pair-chip', { invalid: problems[index], open: open && editing === index }]}
+        >
+          <button
+            type="button"
+            class="sui-pair-edit"
+            popovertarget={editorId}
+            aria-haspopup="dialog"
+            aria-expanded={open && editing === index}
+            aria-label={pairName(pair.key, labelOf(pair.value))}
+            aria-describedby={described(index)}
+            {disabled}
+            onclick={(event) => seed(index, event)}
+            onkeydown={(event) => chipKeys(index, event)}
+          >
+            {#if problems[index]}<span class="sui-pair-mark"><Icon name="alert" size="xs" /></span
+              >{/if}
+            <code class="sui-pair-key">{pair.key}</code>
+            <span class="sui-pair-arrow" aria-hidden="true">→</span>
+            <code class="sui-pair-value">{labelOf(pair.value)}</code>
+          </button>
+          <span class="sui-pair-divider" aria-hidden="true"></span>
+          <button
+            type="button"
+            class="sui-pair-remove"
+            aria-label={removeName(pair.key)}
+            aria-describedby={described()}
+            {disabled}
+            onclick={() => remove(index)}
+          >
+            <Icon name="close" size="xs" />
+          </button>
+        </span>
+      </li>
+    {/each}
+    <li>
+      <Button
+        bind:element={adder}
+        tone="add"
+        popovertarget={editorId}
+        aria-haspopup="dialog"
+        aria-expanded={open && editing < 0}
+        aria-describedby={described()}
         {disabled}
-      />
-    </label>
-    <span class="sui-pair-arrow" aria-hidden="true">→</span>
-    <label class="sui-pair-half">
-      <input
-        value={shown}
-        role="combobox"
-        aria-label={valueLabel}
-        aria-autocomplete="list"
-        aria-expanded={showing}
-        aria-controls={listId}
-        aria-activedescendant={showing && hits.length > 0 ? optionId(active) : undefined}
-        placeholder={valuePlaceholder}
-        autocomplete="off"
-        spellcheck="false"
-        {disabled}
-        {oninput}
-        {onkeydown}
-        onblur={hide}
-        onclick={() => {
-          if (!open) show();
-        }}
-      />
-      <Icon name="chevron-down" size="xs" />
-    </label>
-    <IconButton icon="close" label={removal} {disabled} onclick={onremove} />
-  </div>
-  {#if error}<p id={errorId} class="sui-pair-error">{error}</p>{/if}
+        onclick={(event: MouseEvent & { currentTarget: HTMLElement }) => seed(-1, event)}
+      >
+        {#snippet icon()}<Icon name="plus" size="sm" />{/snippet}
+        {addLabel}
+      </Button>
+    </li>
+  </ul>
+  {#each value as pair, index (index)}
+    {#if problems[index]}
+      <p id={problemId(index)} class="sui-pair-problem">
+        <code>{pair.key}</code>{mark('colon')}{problems[index]}
+      </p>
+    {/if}
+  {/each}
+  {#if reason}<p id={reasonId} class="sui-pair-reason">{reason}</p>{/if}
+  <VisuallyHidden role="status">{said}</VisuallyHidden>
 </div>
 
 <Popover
-  anchor={lane}
-  open={showing}
-  dismiss="manual"
-  width="min-trigger"
-  onmousedown={(event: MouseEvent) => event.preventDefault()}
+  id={editorId}
+  {anchor}
+  bind:open
+  role="dialog"
+  aria-label={editing < 0 ? addLabel : editName(keyLabel, value[editing]?.key ?? '')}
+  closeOnLeave
+  ontoggle={(event: ToggleEvent) => {
+    if (event.newState === 'open') void tick().then(focusKey);
+    else closed();
+  }}
 >
-  <div
-    bind:this={list}
-    id={listId}
-    role="listbox"
-    tabindex="-1"
-    class="sui-pair-list"
-    aria-label={valueLabel}
-    hidden={hits.length === 0}
-  >
-    {#each hits as option, index (option.value)}
-      <!-- Keys are handled on the field, which keeps focus while an option is active. -->
-      <!-- svelte-ignore a11y_click_events_have_key_events -->
-      <div
-        id={optionId(index)}
-        role="option"
-        tabindex="-1"
-        class={['sui-pair-option', { active: index === active }]}
-        aria-selected={option.value === value}
-        aria-disabled={option.disabled || undefined}
-        onclick={() => take(index)}
-        onpointermove={() => {
-          if (!option.disabled) active = index;
-        }}
-      >
-        <span class="sui-pair-option-label">{option.label}</span>
-        {#if option.description}
-          <span class="sui-pair-option-note">{option.description}</span>
-        {/if}
-      </div>
-    {/each}
-  </div>
-  {#if hits.length === 0}<p class="sui-pair-empty">Nothing matches that</p>{/if}
+  <form bind:this={form} class="sui-pair-editor" onsubmit={done}>
+    <Field
+      label={keyLabel}
+      bind:value={draft.key}
+      error={draftProblem ?? undefined}
+      autocomplete="off"
+      spellcheck="false"
+    />
+    <Field label={valueLabel}>
+      {#snippet control({ id, describedby })}
+        <Combobox {id} bind:value={draft.value} {options} aria-describedby={describedby} />
+      {/snippet}
+    </Field>
+    <div class="sui-pair-actions">
+      {#if editing >= 0}
+        <Button tone="ghost" onclick={() => remove(editing)}>{removeLabel}</Button>
+      {/if}
+      <Button tone="signal" type="submit">{doneLabel}</Button>
+    </div>
+  </form>
 </Popover>
 
 <style>
+  /* A chip is 28px on a pointer and a finger's 44px on a phone (L-38), and so are its parts. */
   .sui-pair-entry {
+    --sui-pair-chip: var(--sui-tier-quiet);
     display: grid;
     gap: var(--sui-row-copy-gap);
-    inline-size: fit-content;
     justify-items: start;
+    min-inline-size: 0;
+  }
+
+  .sui-pair-chips {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--sui-space-2);
+    list-style: none;
+    margin: 0;
+    max-inline-size: 100%;
+    min-inline-size: 0;
+    padding: 0;
+  }
+
+  .sui-pair-chips > li {
+    display: flex;
     max-inline-size: 100%;
     min-inline-size: 0;
   }
 
-  /* 34px less the border leaves 32px; each half and the cross stand 28px tall in it, 2px clear
-     of the border all round, so a half's inset ring never touches the lane's edge. */
-  .sui-pair-lane {
-    align-items: center;
+  /* The frame is drawn over the chip, not around it, so each part is a whole control tier tall
+     and the remove part is square (L-37, L-44). */
+  .sui-pair-chip {
+    --sui-pair-edge: var(--sui-control-border);
     background-color: var(--sui-control-bg);
-    block-size: var(--sui-control-height-compact);
-    border: 1px solid var(--sui-control-border);
     border-radius: var(--sui-radius-control);
-    box-sizing: border-box;
     display: flex;
     max-inline-size: 100%;
     min-inline-size: 0;
-    padding-inline: 2px;
+    position: relative;
+  }
+
+  .sui-pair-chip::after {
+    border: var(--sui-stroke) solid var(--sui-pair-edge);
+    border-radius: inherit;
+    content: '';
+    inset: 0;
+    pointer-events: none;
+    position: absolute;
     transition: border-color var(--sui-duration-fast) var(--sui-ease-standard);
   }
 
-  .sui-pair-lane:hover:not(.disabled):not(:focus-within) {
-    border-color: var(--sui-control-border-hover);
+  @media (hover: hover) {
+    .sui-pair-chip:hover:not(.invalid, .open) {
+      --sui-pair-edge: var(--sui-control-border-hover);
+    }
   }
 
-  .sui-pair-lane.invalid {
-    border-color: var(--sui-danger);
+  .sui-pair-chip.open {
+    --sui-pair-edge: var(--sui-focus);
   }
 
-  .sui-pair-half {
+  .sui-pair-chip.invalid {
+    --sui-pair-edge: var(--sui-danger);
+  }
+
+  .sui-pair-edit,
+  .sui-pair-remove {
     align-items: center;
-    block-size: var(--sui-tier-quiet);
-    border-radius: var(--sui-radius-check);
+    appearance: none;
+    background-color: transparent;
+    min-block-size: var(--sui-pair-chip);
+    border: 0;
+    border-radius: inherit;
     box-sizing: border-box;
-    color: var(--sui-text-muted);
-    cursor: text;
+    color: var(--sui-text-secondary);
+    cursor: pointer;
     display: flex;
-    flex: 0 1 auto;
-    gap: var(--sui-space-1);
+    margin: 0;
+    position: relative;
+    touch-action: manipulation;
+    transition: background-color var(--sui-duration-fast) var(--sui-ease-standard);
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-user-select: none;
+  }
+
+  /* The parts share the chip's frame, so each keeps only its own two round corners and its
+     ring stays inside the frame (L-41). */
+  .sui-pair-edit {
+    border-end-end-radius: 0;
+    border-start-end-radius: 0;
+    font: var(--sui-weight-regular) var(--sui-font-size-control) / var(--sui-leading-flat)
+      var(--sui-sans);
+    flex-wrap: wrap;
+    gap: 0 var(--sui-space-1);
     min-inline-size: 0;
     padding-inline: var(--sui-space-2);
-    transition: background-color var(--sui-duration-fast) var(--sui-ease-standard);
+    text-align: start;
   }
 
-  .sui-pair-half:focus-within {
-    background-color: var(--sui-input-bg);
+  .sui-pair-remove {
+    border-end-start-radius: 0;
+    border-start-start-radius: 0;
+    color: var(--sui-text-muted);
+    flex: none;
+    inline-size: var(--sui-pair-chip);
+    justify-content: center;
+    padding: 0;
+  }
+
+  .sui-pair-divider {
+    background-color: var(--sui-pair-edge);
+    flex: none;
+    inline-size: var(--sui-stroke);
+  }
+
+  .sui-pair-mark {
+    color: var(--sui-danger);
+    display: flex;
+    flex: none;
+  }
+
+  @media (hover: hover) {
+    :is(.sui-pair-edit, .sui-pair-remove):hover:not(:disabled, :active) {
+      background-color: var(--sui-interactive-hover-layer);
+      color: var(--sui-text-primary);
+    }
+  }
+
+  :is(.sui-pair-edit, .sui-pair-remove):active:not(:disabled) {
+    background-color: var(--sui-interactive-pressed);
+    box-shadow: var(--sui-pressed-inset);
+  }
+
+  :is(.sui-pair-edit, .sui-pair-remove):focus-visible {
     outline: var(--sui-focus-ring-width) solid var(--sui-focus);
     outline-offset: var(--sui-focus-ring-inset);
   }
 
-  /* Each half is as wide as what it holds, inside a bound, where the browser can measure it. */
-  .sui-pair-half input {
-    appearance: none;
-    background: none;
-    block-size: var(--sui-tier-quiet);
-    border: 0;
-    box-sizing: border-box;
-    color: var(--sui-text-primary);
-    font: 400 var(--sui-font-size-meta) / var(--sui-leading-meta) var(--sui-mono);
+  /* A long key or value wraps inside the chip, at any character, so all of it shows (U6). */
+  .sui-pair-key,
+  .sui-pair-value {
+    font: var(--sui-weight-regular) var(--sui-font-size-control) / var(--sui-leading-compact)
+      var(--sui-mono);
     font-variant-numeric: tabular-nums;
-    inline-size: 9ch;
-    margin: 0;
-    max-inline-size: 10rem;
-    min-inline-size: 4ch;
-    outline: none;
-    padding: 0;
-    text-overflow: ellipsis;
+    min-inline-size: 0;
+    overflow-wrap: anywhere;
   }
 
-  @supports (field-sizing: content) {
-    .sui-pair-half input {
-      field-sizing: content;
-      inline-size: auto;
-    }
+  .sui-pair-key {
+    color: var(--sui-text-primary);
+    font-weight: var(--sui-weight-medium);
   }
 
-  .sui-pair-half input::placeholder {
-    color: var(--sui-text-muted);
-    opacity: 1;
-  }
-
+  /* The arrow points from the key to its value, so it turns with the reading direction. */
   .sui-pair-arrow {
     color: var(--sui-text-muted);
     flex: none;
-    font: 400 var(--sui-font-size-meta) / var(--sui-leading-flat) var(--sui-sans);
-    padding-inline: var(--sui-space-1);
-    text-box: trim-both cap alphabetic;
+    font-family: var(--sui-sans);
   }
 
-  /* Opacity on the parts rather than the lane, so the cross, which fades itself, is not
-     faded twice. */
-  .disabled {
-    border-color: color-mix(in srgb, var(--sui-control-border) 50%, transparent);
+  .sui-pair-arrow:dir(rtl) {
+    scale: -1 1;
   }
 
-  .disabled > :is(.sui-pair-half, .sui-pair-arrow) {
+  .disabled .sui-pair-chip {
+    opacity: var(--sui-disabled-opacity);
+  }
+
+  .disabled :is(.sui-pair-edit, .sui-pair-remove) {
     cursor: default;
-    opacity: 0.5;
   }
 
-  .sui-pair-error {
-    color: var(--sui-danger);
-    contain: inline-size;
-    font: 400 var(--sui-font-size-meta) / var(--sui-row-copy-leading) var(--sui-sans);
-    justify-self: stretch;
+  .sui-pair-problem code {
+    font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-row-copy-leading)
+      var(--sui-mono);
+  }
+
+  .sui-pair-reason {
+    block-size: var(--sui-block-snap);
+    color: var(--sui-text-secondary);
+    font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-row-copy-leading)
+      var(--sui-sans);
     margin: 0;
     overflow-wrap: anywhere;
     text-box: trim-both cap alphabetic;
   }
 
-  /* The popover's own 1px border sits outside this list, so the box as a whole stops at
-     min(20rem, the room it has). */
-  .sui-pair-list {
+  .sui-pair-problem {
+    block-size: var(--sui-block-snap);
+    color: var(--sui-danger);
+    font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-row-copy-leading)
+      var(--sui-sans);
+    margin: 0;
+    overflow-wrap: anywhere;
+    text-box: trim-both cap alphabetic;
+  }
+
+  .sui-pair-editor {
     box-sizing: border-box;
     display: grid;
-    grid-template-columns: minmax(0, 1fr);
-    max-block-size: calc(min(20rem, var(--sui-floating-available-block)) - 2px);
-    max-inline-size: max(24rem, var(--sui-floating-anchor-inline));
-    overflow: auto;
-    overscroll-behavior: contain;
-    padding: var(--sui-space-1);
-    row-gap: 2px;
-  }
-
-  .sui-pair-list[hidden] {
-    display: none;
-  }
-
-  .sui-pair-option {
-    align-items: center;
-    block-size: var(--sui-control-height-compact);
-    border-radius: var(--sui-radius-control);
-    box-sizing: border-box;
-    color: var(--sui-text-primary);
-    cursor: pointer;
-    display: flex;
-    gap: var(--sui-space-3);
-    outline: none;
-    padding-inline: var(--sui-space-3);
-    transition:
-      background-color var(--sui-duration-fast) var(--sui-ease-standard),
-      translate var(--sui-duration-press) var(--sui-ease-standard);
-  }
-
-  .sui-pair-option.active:not([aria-disabled='true']):not(:active) {
-    background-color: var(--sui-interactive-hover-layer);
-  }
-
-  .sui-pair-option:active:not([aria-disabled='true']) {
-    background-color: var(--sui-interactive-pressed);
-    box-shadow: var(--sui-pressed-inset);
-    translate: 0 1px;
-  }
-
-  .sui-pair-option[aria-disabled='true'] {
-    cursor: default;
-    opacity: 0.5;
-  }
-
-  .sui-pair-option-label,
-  .sui-pair-option-note {
-    min-inline-size: 0;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-
-  .sui-pair-option-label {
-    flex: 0 1 auto;
-    font: 400 var(--sui-font-size-control) / var(--sui-leading-meta) var(--sui-mono);
-    font-variant-numeric: tabular-nums;
-  }
-
-  .sui-pair-option-note {
-    color: var(--sui-text-muted);
-    flex: 1 1 0;
-    font: 400 var(--sui-font-size-control) / var(--sui-leading-meta) var(--sui-sans);
-  }
-
-  .sui-pair-empty {
-    color: var(--sui-text-secondary);
-    font: 400 var(--sui-font-size-control) / var(--sui-leading-meta) var(--sui-sans);
+    gap: var(--sui-space-4);
+    inline-size: min(20rem, calc(100vw - 2 * var(--sui-space-2) - 2 * var(--sui-stroke)));
     margin: 0;
-    padding: var(--sui-space-2) var(--sui-space-3);
+    padding: var(--sui-space-4);
+  }
+
+  .sui-pair-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--sui-space-2);
+    justify-content: flex-end;
+  }
+
+  @media (max-width: 47.9375rem), (pointer: coarse) {
+    .sui-pair-entry {
+      --sui-pair-chip: var(--sui-touch-target);
+    }
+  }
+
+  /* High contrast draws every edge in one ink, so the chip whose editor is open keeps the
+     system's selection color. */
+  @media (forced-colors: active) {
+    .sui-pair-chip.open::after {
+      border-color: Highlight;
+    }
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .sui-pair-lane,
-    .sui-pair-half,
-    .sui-pair-option {
+    .sui-pair-chip::after,
+    .sui-pair-edit,
+    .sui-pair-remove {
       transition: none;
-    }
-
-    .sui-pair-option:active:not([aria-disabled='true']) {
-      translate: none;
     }
   }
 </style>

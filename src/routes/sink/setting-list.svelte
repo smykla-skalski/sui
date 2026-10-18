@@ -1,19 +1,26 @@
 <script module lang="ts">
-  export const section = { title: 'Setting list', order: 108 };
+  export const section = {
+    title: 'Setting list',
+    order: 108,
+    lead: 'The settings of one card, each a row with its name, a why line and its controls. A short form stacks Fields instead.',
+    components: ['SettingList', 'SettingRow']
+  };
 </script>
 
 <script lang="ts">
   import {
     Card,
+    Checkbox,
     DurationInput,
     PatternEntries,
-    Select,
+    SegmentedControl,
     SettingList,
     SettingRow,
     Switch,
     TextInput
   } from '#lib';
   import Example from '../kit/Example.svelte';
+  import Specimen from '../kit/Specimen.svelte';
 
   const levels = [
     { value: 'debug', label: 'Debug' },
@@ -36,29 +43,83 @@
   let prefix = $state(saved.prefix);
   let session = $state(saved.session);
   let ignore = $state([...saved.ignore]);
+
+  // A reset hands back a way to put the change back, so the row can offer Undo.
+  function resetter<T>(read: () => T, write: (value: T) => void, start: T) {
+    return () => {
+      const was = read();
+      write(start);
+      return () => write(was);
+    };
+  }
+
+  let mirror = $state(true);
+  let mirrorPending = $state(false);
+  let mirrorError = $state<string | null>(null);
+
+  // The service takes a moment and refuses to turn mirroring off, so both states show. A flip
+  // while one is on its way is ignored rather than disabling the focused switch.
+  function flipMirror(next: boolean) {
+    if (mirrorPending) return;
+    mirror = next;
+    mirrorError = null;
+    mirrorPending = true;
+    setTimeout(() => {
+      mirrorPending = false;
+      if (!next) {
+        mirror = true;
+        mirrorError = 'Mirroring stays on while a release is open';
+      }
+    }, 1200);
+  }
 </script>
 
-{#snippet settings()}
+<Example
+  title="In a card"
+  note="A checkbox, a segmented control, a field, a duration, a list and a read-only fact, with the two changed rows 1px apart"
+  layout="stack"
+  ground="canvas"
+>
   <Card title="Runtime" level={4}>
     <SettingList>
       <SettingRow
         name="Retry failed checks"
         why="Runs a failed check once more before reporting it"
         unsaved={retry !== saved.retry}
-        onclear={retry !== saved.retry ? () => (retry = saved.retry) : undefined}
+        onclear={retry !== saved.retry
+          ? resetter(
+              () => retry,
+              (value) => (retry = value),
+              saved.retry
+            )
+          : undefined}
+        resettable
       >
         {#snippet control({ id, describedby })}
-          <Switch {id} aria-describedby={describedby} bare bind:checked={retry} />
+          <Checkbox {id} aria-describedby={describedby} bare bind:checked={retry} />
         {/snippet}
       </SettingRow>
       <SettingRow
         name="Log level"
         why="The least serious event the service writes down"
         unsaved={level !== saved.level}
-        onclear={level !== saved.level ? () => (level = saved.level) : undefined}
+        onclear={level !== saved.level
+          ? resetter(
+              () => level,
+              (value) => (level = value),
+              saved.level
+            )
+          : undefined}
+        resettable
       >
-        {#snippet control({ id, describedby })}
-          <Select {id} aria-describedby={describedby} options={levels} bind:value={level} />
+        {#snippet control({ labelledby, describedby })}
+          <SegmentedControl
+            label="Log level"
+            aria-labelledby={labelledby}
+            aria-describedby={describedby}
+            options={levels}
+            bind:value={level}
+          />
         {/snippet}
       </SettingRow>
       <SettingRow
@@ -92,33 +153,131 @@
         why="Every file under these patterns is left exactly as it was committed, which keeps generated and vendored code untouched"
         unsaved={JSON.stringify(ignore) !== JSON.stringify(saved.ignore)}
       >
-        {#snippet control()}
-          <PatternEntries bind:value={ignore} addLabel="Add a path pattern" />
+        {#snippet control({ labelledby })}
+          <PatternEntries
+            bind:value={ignore}
+            addLabel="Add a path pattern"
+            aria-labelledby={labelledby}
+          />
         {/snippet}
       </SettingRow>
-      <SettingRow name="Merge method" why="Set by the organization and read only here">
+      <SettingRow name="Merge method" readonly reason="Set by the organization and read only here">
         {#snippet control()}
           <span class="fact">Squash</span>
         {/snippet}
       </SettingRow>
     </SettingList>
   </Card>
-{/snippet}
+</Example>
 
 <Example
-  title="Rows"
-  note="A switch, a picker, a field, a duration and a list, with the two changed rows 1px apart"
+  title="States"
+  note="A change that takes effect at once says it is saving and why it was refused, and a locked row says why"
   layout="stack"
+  ground="canvas"
 >
-  {@render settings()}
+  <Card title="Delivery" level={4}>
+    <SettingList>
+      <SettingRow
+        name="Mirror to the backup region"
+        why="Copies every event to a second region as it arrives"
+        pending={mirrorPending}
+        error={mirrorError}
+      >
+        {#snippet control({ id, describedby, invalid })}
+          <Switch
+            {id}
+            aria-describedby={describedby}
+            bare
+            {invalid}
+            bind:checked={() => mirror, flipMirror}
+          />
+        {/snippet}
+      </SettingRow>
+      <SettingRow
+        name="Retry failed checks"
+        why="Runs a failed check once more before reporting it"
+        disabled
+        reason="Locked until the save finishes"
+      >
+        {#snippet control({ id, describedby, disabled })}
+          <Checkbox {id} aria-describedby={describedby} bare checked {disabled} />
+        {/snippet}
+      </SettingRow>
+    </SettingList>
+  </Card>
+</Example>
+
+<Example
+  title="List states"
+  note="While the settings load, when they fail and when there is nothing to set, the list says so in the rows' place"
+  layout="grid"
+  ground="canvas"
+>
+  <Specimen label="Loading" code="loading">
+    <Card title="Webhooks" level={4}><SettingList loading /></Card>
+  </Specimen>
+  <Specimen label="Failed" code="error onretry">
+    <Card title="Webhooks" level={4}>
+      <SettingList error="The server did not answer in time" onretry={() => {}} />
+    </Card>
+  </Specimen>
+  <Specimen label="Nothing to set" code="empty">
+    <Card title="Webhooks" level={4}><SettingList empty /></Card>
+  </Specimen>
 </Example>
 
 <Example
   title="Narrow width"
-  note="Below a readable copy width the controls take the next line, and the switch stays beside its copy"
+  note="Below a readable copy width the controls take the next line, and the checkbox stays beside its copy"
   layout="stack"
+  ground="canvas"
 >
-  <div class="narrow">{@render settings()}</div>
+  <div class="narrow">
+    <Card title="Runtime" level={4}>
+      <SettingList>
+        <SettingRow
+          name="Retry failed checks"
+          why="Runs a failed check once more before reporting it"
+          unsaved={retry !== saved.retry}
+        >
+          {#snippet control({ id, describedby })}
+            <Checkbox {id} aria-describedby={describedby} bare bind:checked={retry} />
+          {/snippet}
+        </SettingRow>
+        <SettingRow
+          name="Log level"
+          why="The least serious event the service writes down"
+          unsaved={level !== saved.level}
+        >
+          {#snippet control({ labelledby, describedby })}
+            <SegmentedControl
+              label="Log level"
+              aria-labelledby={labelledby}
+              aria-describedby={describedby}
+              options={levels}
+              bind:value={level}
+            />
+          {/snippet}
+        </SettingRow>
+        <SettingRow
+          name="Session lifetime"
+          why="How long a sign-in lasts before it is asked for again"
+          unsaved={session !== saved.session}
+        >
+          {#snippet control({ id, describedby })}
+            <DurationInput
+              {id}
+              aria-describedby={describedby}
+              label="Session lifetime"
+              bind:value={session}
+              min={60}
+            />
+          {/snippet}
+        </SettingRow>
+      </SettingList>
+    </Card>
+  </div>
 </Example>
 
 <style>
@@ -128,13 +287,15 @@
   }
 
   .fact {
+    block-size: var(--sui-block-snap-even);
     color: var(--sui-text-secondary);
-    font: 400 var(--sui-font-size-meta) / var(--sui-leading-flat) var(--sui-sans);
+    font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-leading-flat)
+      var(--sui-sans);
     text-box: trim-both cap alphabetic;
   }
 
   .narrow {
-    inline-size: 20rem;
+    inline-size: min(100%, 16rem);
     max-inline-size: 100%;
   }
 </style>

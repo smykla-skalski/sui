@@ -1,6 +1,6 @@
 # SUI
 
-Reusable Svelte 5 components for Smykla projects. The shared look follows the [Smyklot panel design system](https://github.com/smykla-skalski/smyklot/blob/main/design-system/smyklot-panel/MASTER.md): graphite surfaces, petrol actions, Plus Jakarta Sans for interface text, JetBrains Mono for technical values, and semantic status colors. Every component is held to the [SUI design laws](docs/laws.md), which merge the Smyklot sheet with the rules of the ksai documentation site.
+Reusable Svelte 5 components for Smykla projects. The shared look follows the [Smyklot panel design system](https://github.com/smykla-skalski/smyklot/blob/main/design-system/smyklot-panel/MASTER.md): neutral surfaces, one ocean blue accent in both themes, Plus Jakarta Sans for interface text, JetBrains Mono for technical values, and semantic status colors. Every component is held to the [SUI design laws](docs/laws.md), which merge the Smyklot sheet with the rules of a companion documentation site.
 
 This repository contains the package and a kitchen sink (`npm run dev`) that shows every component in every state and measures the laws on each render.
 
@@ -25,7 +25,7 @@ import '@smykla-skalski/sui/styles.css';
   let project = $state('');
 </script>
 
-<Card title="New project" note="Give it a short name">
+<Card title="New project" description="Give it a short name">
   <Field label="Project name" bind:value={project} required />
   {#snippet footer()}
     <Button tone="signal" onclick={() => console.log(project)}>Create</Button>
@@ -39,12 +39,12 @@ import '@smykla-skalski/sui/styles.css';
 Each component documents its contract in an `@component` comment, and the kitchen sink shows its states.
 
 - Shell: `AppShell` (rail, sidebar and content, a collapsed icon strip on wide screens, a bar and a drawer on phones), `SideNav`, `Rail`
-- Actions: `Button` (tones `default`, `signal`, `ghost`, `stop`, `stop-quiet`, `brand`, `quiet`, `add`, `decision`), `IconButton`, `CopyButton`, `Link`, `BackLink`, `Breadcrumb`, `Tabs`, `SkipLink`
+- Actions: `Button` (tones `default`, `signal`, `ghost`, `stop`, `stop-quiet`, `add`, `decision`), `IconButton`, `CopyButton`, `Link`, `BackLink`, `Breadcrumb`, `Tabs`, `SkipLink`
 - Inputs: `Field`, `TextInput`, `Textarea`, `SearchField`, `Switch`, `Checkbox`, `CheckList`, `ChoiceCards`, `SegmentedControl`, `ThemeSwitch`, `CopyableLinkField`, `ColorPicker`
 - Pickers and editors: `Select`, `Combobox`, `ActionMenu`, `HelpTip`, `DurationInput`, `PairEntry`, `PatternEntries`, `InheritControl`, `AdditionPicker`, `SettingList`, `SettingRow`
 - Overlays: `Popover`, `Tooltip`, `Modal`, `ConfirmDialog`, `Toaster` with `toast()` and `dismiss()`, `SaveBar`
 - Surfaces and content: `Card`, `Plate`, `Callout`, `Disclosure`, `PageHeader`, `PageToc`, `CodeBlock`, `DiffBlock`, `DataTable`, `FactList`
-- Marks: `Pill`, `Chip`, `StatusPill`, `ColorTag`, `Avatar`, `IdentityRow`, `ClippedLabel`, `RelativeTime`, `DayHeading`, `Icon`, `VisuallyHidden`
+- Marks: `Pill`, `Chip`, `Avatar`, `IdentityRow`, `ClippedLabel`, `RelativeTime`, `DayHeading`, `Icon`, `VisuallyHidden`
 - Lists and states: `ObjectList`, `ObjectRow`, `ListToolbar`, `EmptyState`, `ErrorState`, `FormError`, `Skeleton`, `LoadMore`
 - Charts: `LineChart`, `ScatterChart`, `RangeChart`, `HeatmapChart` (see [chart usage](docs/charts.md))
 
@@ -52,7 +52,7 @@ Overlays use the native `<dialog>` element and the Popover API, so they render i
 
 ## Theming
 
-Set `data-sui-theme="dark"` (or `data-theme="dark"`) on `<html>` for the dark palette, or put `data-sui-theme` on any element to theme only that subtree. `ThemeSwitch` offers Light, Dark and System, stores the choice and follows the system preference live.
+Set `data-sui-theme="dark"` (or `data-theme="dark"`) on `<html>` for the dark palette, or put `data-sui-theme` on any element to theme only that subtree. With neither attribute on `<html>`, the palette follows the reader's system preference. `ThemeSwitch` offers Light, Dark and System, stores the choice and follows the system preference live.
 
 Override tokens after the theme import. Components use the nearest value.
 
@@ -66,11 +66,24 @@ Override tokens after the theme import. Components use the nearest value.
 
 A surface can opt into the 40px control tier with `--sui-local-control-height: var(--sui-control-height)`. The package applies no global reset and does not import SvelteKit app modules, so it works in SvelteKit, plain Svelte with Vite, and Svelte islands in Astro. The bundled fonts' licenses are in `src/lib/assets/fonts/`.
 
+## Language
+
+Every word a component draws or announces is a prop with an English default. Replace any of them app-wide once, before the first component renders, with `setWords`; a prop on one instance still wins. Words a component joins, such as a name and its count, take the language's order through function words and its punctuation through `marks.comma`, `marks.colon`, `marks.stop` and `marks.space`. Numbers, dates and times follow the page's `lang`.
+
+```ts
+import { setWords } from '@smykla-skalski/sui';
+
+setWords({
+  'CopyableLinkField.copyLabel': 'Kopiuj link',
+  'LoadMore.endLabel': (shown: string) => `Wszystkie ${shown} widoczne`
+});
+```
+
 ## Design laws
 
 [docs/laws.md](docs/laws.md) lists every law with its source and how it is held. [docs/authoring.md](docs/authoring.md) explains how to write a component that meets them.
 
-- `npm test` runs the source laws (`tests/laws.test.mjs`): the palette is the only place a colour is written, every token is declared and read, sizes, leading, spacing, radii, layers and durations come from tokens, every moving component has a reduced-motion fallback, and every component has a contract and a kitchen sink section.
+- `npm test` runs the source laws (`tests/laws.test.mjs`): the palette is the only place a color is written, every token is declared and read, sizes, leading, spacing, radii, layers and durations come from tokens, every moving component has a reduced-motion fallback, and every component has a contract and a kitchen sink section.
 - The kitchen sink runs the rendered laws in the page and shows each finding: contrast, palette bands, type faces and leading, copy rules, control heights, target sizes, centring, focus, names and sideways scroll.
 - `npm run test:browser` runs that audit in Chrome at 320, 375, 768 and 1440px in both themes. It also walks every keyboard stop, opens every menu, checks reduced motion, theme geometry and icon centring. It uses the installed Chrome through `playwright-core`; set `SUI_BROWSER_CHANNEL` to use another channel.
 

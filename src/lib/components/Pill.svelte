@@ -3,13 +3,19 @@
 </script>
 
 <script lang="ts">
+  import { mark, word } from '../words.js';
   import type { Snippet } from 'svelte';
   import type { HTMLAttributes } from 'svelte/elements';
   import Icon, { type IconName } from '../icons/Icon.svelte';
+  import VisuallyHidden from './VisuallyHidden.svelte';
 
   let {
     tone = 'neutral',
     icon,
+    dot = false,
+    live = false,
+    dotLabel = word('Pill.dotLabel', 'now'),
+    liveLabel = word('Pill.liveLabel', 'live'),
     class: className = '',
     children,
     ...rest
@@ -18,6 +24,14 @@
     tone?: PillTone;
     /** Drawn before the label, for a standing the word alone cannot name. */
     icon?: IconName;
+    /** Marks a state that is true right now rather than a fixed attribute. */
+    dot?: boolean;
+    /** Pulses the dot once, for a state arriving as it happens. */
+    live?: boolean;
+    /** Said after the label for `dot`, so the mark is heard as well as seen. */
+    dotLabel?: string;
+    /** Said after the label for `live`. */
+    liveLabel?: string;
     class?: HTMLAttributes<HTMLSpanElement>['class'];
     children: Snippet;
   } & Omit<HTMLAttributes<HTMLSpanElement>, 'children'> = $props();
@@ -25,53 +39,72 @@
 
 <!--
 @component
-A standing: the role somebody holds or the state a thing is in. It is fully round, has no
-keyline and nothing to press, so it never reads as a control. Reach for `Chip` for a value
-such as a label, a pattern or a count, and for `StatusPill` for a fact about the surface
-it stands on.
+A status or a standing: the role somebody holds, the state a thing is in, the scope of a page,
+the health of a dependency, or whether changes arrive live. It is fully round, has no keyline
+and nothing to press, so it never reads as a control. Reach for `Chip` for a value such as a
+label, a pattern or a count.
 
 `role` wears violet and belongs to the standing somebody holds over everyone else's. The
-outcome tones always come with their word, so colour never carries the state alone. A
-pill stays on one line and ends in an ellipsis rather than pushing its row wider.
+outcome tones always come with their word, so color never carries the state alone.
+
+- Semantics: a `span` of text; give it `role="status"` when its state changes while the reader is on the page, so the new word is spoken.
+- Content: one short status word or phrase, with an optional icon, `dot` or `live` mark before it; a long label wraps inside the pill, so no word is cut.
+- States: one per tone; `dot` marks a state true right now, and `live` pulses that dot once, for under 3 seconds, then keeps it still (WCAG 2.2.2).
+- Keyboard: none, because nothing in it is pressable.
+- Pointer and touch: none, because it is not a target.
+- Focus: never takes focus.
+- Responsive: as wide as its words, up to its container, and taller as they wrap.
+- Accessibility: the word carries the state; `dotLabel` or `liveLabel` is spoken after it, so the mark is not color or motion alone; each tone's ink holds 4.5:1 on its tint.
+- Localization: `dotLabel` and `liveLabel` are props with English defaults; the mark sits at the inline start and follows the reading direction.
+- Performance: no script; the one pulse animates only scale and opacity.
+- Analytics: none, because a reader does nothing with a pill.
+- Failure: an empty label draws a bare mark, so always pass the word; under reduced motion the pulse never runs and the dot stays.
 -->
 
 <span {...rest} class={['sui-pill', className]} data-tone={tone}>
   {#if icon !== undefined}
     <Icon name={icon} size="xs" strokeWidth={2} />
   {/if}
-  <span class="sui-pill-label">{@render children()}</span>
+  {#if dot || live}
+    <span class={['sui-pill-dot', { live }]} aria-hidden="true"></span>
+  {/if}
+  <!-- The words and the mark's word are read as one run of text, because a hidden box beside
+       the label would add a space before the comma to every name the pill sits in. -->
+  <span class="sui-pill-label" aria-hidden={dot || live ? 'true' : undefined}
+    >{@render children()}</span
+  >
+  {#if dot || live}<VisuallyHidden
+      >{@render children()}{mark('comma')}{live ? liveLabel : dotLabel}</VisuallyHidden
+    >{/if}
 </span>
 
 <style>
   .sui-pill {
     align-items: center;
     background: var(--sui-neutral-tint);
-    border-radius: var(--sui-radius-chip);
+    border-radius: var(--sui-radius-pill);
     box-sizing: border-box;
     color: var(--sui-text-secondary);
     display: inline-flex;
     flex: none;
-    font: 600 var(--sui-font-size-micro) / var(--sui-leading-flat) var(--sui-sans);
+    font: var(--sui-weight-semibold) var(--sui-font-size-micro) / var(--sui-leading-tight)
+      var(--sui-sans);
     gap: var(--sui-space-1);
     inline-size: fit-content;
     max-inline-size: 100%;
     min-block-size: var(--sui-tier-mark);
-    padding-inline: var(--sui-space-2);
-    white-space: nowrap;
+    padding: var(--sui-space-1) var(--sui-space-2);
   }
 
   .sui-pill > :global(svg:first-child) {
     margin-inline-start: calc(-1 * var(--sui-icon-ink-start, 0px));
   }
 
-  /* `clip` on the inline axis only: the trimmed box ends on the baseline, and the
-     descenders below it must still paint. */
   .sui-pill-label {
-    display: block;
+    block-size: var(--sui-block-snap);
     min-inline-size: 0;
-    overflow-x: clip;
+    overflow-wrap: anywhere;
     text-box: trim-both cap alphabetic;
-    text-overflow: ellipsis;
   }
 
   .sui-pill[data-tone='info'] {
@@ -97,5 +130,45 @@ pill stays on one line and ends in an ellipsis rather than pushing its row wider
   .sui-pill[data-tone='role'] {
     background: var(--sui-role-tint);
     color: var(--sui-role-ink);
+  }
+
+  .sui-pill-dot {
+    background: currentColor;
+    block-size: 0.375rem;
+    border-radius: var(--sui-radius-pill);
+    flex: none;
+    inline-size: 0.375rem;
+    position: relative;
+  }
+
+  /* The ring grows and fades through scale and opacity, so the pulse moves nothing else and
+     never paints a glow. It runs once: motion that lasts past 5 seconds needs a pause control. */
+  .live::after {
+    animation: sui-pill-live var(--sui-duration-live) var(--sui-ease-standard);
+    background: currentColor;
+    border-radius: inherit;
+    content: '';
+    inset: 0;
+    opacity: 0;
+    position: absolute;
+  }
+
+  @keyframes sui-pill-live {
+    0% {
+      opacity: 0.45;
+      scale: 1;
+    }
+
+    70%,
+    100% {
+      opacity: 0;
+      scale: 2.6;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .live::after {
+      animation: none;
+    }
   }
 </style>
