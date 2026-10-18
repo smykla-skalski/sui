@@ -1,23 +1,53 @@
 <script lang="ts">
   import { onMount, tick } from 'svelte';
-  import { Pill } from '#lib';
+  import { Button, Pill } from '#lib';
   import { checkCount, runAudit, type Finding } from './audit.js';
   import './checks.js';
 
+  /** What a run found and where it was measured, kept per page so a reload never re-runs it. */
+  type Kept = { findings: Finding[]; at: string; width: number; theme: string };
+
   let findings = $state<Finding[] | null>(null);
+  let measured = $state<Omit<Kept, 'findings'> | null>(null);
+  let running = $state(false);
 
   const count = (n: number, word: string) => `${n} ${word}${n === 1 ? '' : 's'}`;
 
-  // A theme switch during a run starts another, and only the newest run reports.
-  let runs = 0;
-  // A reader who switches the theme may switch straight back, so the audit waits until the
-  // switching stops instead of holding up the next click.
-  const AFTER_SWITCH = 500;
+  // One record per address and path, so each preview of the sink keeps its own.
+  const key = () => `sui:audit:${location.origin}${location.pathname}`;
 
-  async function rerun(wait = 0) {
+  function recall(): Kept | null {
+    try {
+      const kept = JSON.parse(localStorage.getItem(key()) ?? 'null') as Kept | null;
+      return kept && Array.isArray(kept.findings) ? kept : null;
+    } catch {
+      return null;
+    }
+  }
+
+  function keep(result: Finding[]) {
+    const theme =
+      document.documentElement.dataset.suiTheme ??
+      (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+    const kept: Kept = {
+      findings: result.map(({ law, where, detail }) => ({ law, where, detail })),
+      at: new Date().toISOString(),
+      width: innerWidth,
+      theme
+    };
+    measured = { at: kept.at, width: kept.width, theme: kept.theme };
+    try {
+      localStorage.setItem(key(), JSON.stringify(kept));
+    } catch {
+      // A page that cannot store simply runs again on the next press.
+    }
+  }
+
+  // Only the newest run reports.
+  let runs = 0;
+
+  async function rerun() {
     const run = ++runs;
-    if (wait) await new Promise((resolve) => setTimeout(resolve, wait));
-    if (run !== runs) return null;
     await tick();
     await document.fonts.ready;
     await new Promise(requestAnimationFrame);
@@ -36,8 +66,21 @@
     return result;
   }
 
+  async function measure() {
+    running = true;
+    const result = await rerun();
+    if (result) keep(result);
+    running = false;
+  }
+
   function reveal(finding: Finding) {
-    const target = finding.element;
+    let target: Element | null | undefined = finding.element;
+    // A kept finding lost its element with the page it was measured on, so its path finds it.
+    try {
+      target ??= document.querySelector(finding.where);
+    } catch {
+      target = null;
+    }
     if (!(target instanceof HTMLElement || target instanceof SVGElement)) return;
     target.scrollIntoView({ block: 'center' });
     target.animate(
@@ -64,17 +107,20 @@
     // A browser test asks for the audit when it needs one, so its presses never wait behind a
     // run of the whole page it did not ask for.
     if (new URLSearchParams(location.search).get('audit') === 'manual') return;
-    void rerun();
-    const observer = new MutationObserver(() => void rerun(AFTER_SWITCH));
-    observer.observe(document.documentElement, { attributeFilter: ['data-sui-theme'] });
-    const query = matchMedia('(max-width: 47.9375rem)');
-    const resized = () => void rerun();
-    query.addEventListener('change', resized);
-    return () => {
-      observer.disconnect();
-      query.removeEventListener('change', resized);
-    };
+    // The whole page is measured once; after that the kept result shows until the reader asks
+    // for another run, so a reload never pays for the audit again.
+    const kept = recall();
+    if (kept) {
+      findings = kept.findings;
+      measured = { at: kept.at, width: kept.width, theme: kept.theme };
+    } else void measure();
   });
+
+  const when = (at: string) =>
+    new Intl.DateTimeFormat(document.documentElement.lang || undefined, {
+      dateStyle: 'medium',
+      timeStyle: 'short'
+    }).format(new Date(at));
 </script>
 
 <section class="audit" aria-labelledby="audit-title" data-audit-ignore>
@@ -92,7 +138,7 @@
       {/if}
     </div>
     <p class="summary" role="status">
-      {#if findings === null}
+      {#if findings === null || running}
         Measuring…
       {:else if findings.length === 0}
         Every law holds on this page
@@ -102,9 +148,17 @@
     </p>
     <!-- Shown from the start, so the panel keeps its height when the first run reports and
          nothing below it moves. -->
-    <p class="scope">
-      {checkCount()} rendered checks, run again on every theme switch and layout change
-    </p>
+    <div class="scope-row">
+      <p class="scope">
+        {#if measured}
+          {checkCount()} rendered checks, measured {when(measured.at)} at {measured.width}px in
+          {measured.theme}
+        {:else}
+          {checkCount()} rendered checks
+        {/if}
+      </p>
+      <Button loading={running} onclick={measure}>Run the audit again</Button>
+    </div>
   </div>
   {#if findings && findings.length > 0}
     <ul class="laws">
@@ -167,6 +221,14 @@
     display: flex;
     font: var(--sui-weight-bold) var(--sui-font-size-dialog-title) / var(--sui-leading-title)
       var(--sui-sans);
+  }
+
+  .scope-row {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--sui-space-3);
+    justify-content: space-between;
   }
 
   .scope {

@@ -17,34 +17,43 @@
 <figure class="specimen">
   <div class="body">{@render children()}</div>
   {#if label || code}
+    <!-- Both lines always take their room, so captions side by side start on one line. -->
     <figcaption>
-      {#if label}<span class="label">{label}</span>{/if}
-      {#if code}<code>{code}</code>{/if}
+      {#if label}<span class="label">{label}</span>{:else}<span class="label" aria-hidden="true"
+          >&nbsp;</span
+        >{/if}
+      {#if code}<code>{code}</code>{:else}<code aria-hidden="true">&nbsp;</code>{/if}
     </figcaption>
   {/if}
 </figure>
 
 <style>
   /* The body is a grid as wide as the specimen: a block surface or a field fills it, while
-     a mark keeps its own fit-content width (L-43). */
+     a mark keeps its own fit-content width (L-43). Specimens on one line share the tallest
+     one's height, and the body takes the spare room, so their captions line up at the bottom. */
   .specimen {
     display: grid;
     gap: var(--sui-space-3);
+    grid-template-rows: 1fr auto;
     margin: 0;
     min-inline-size: 0;
   }
 
   /* One shrinkable column: a surface capped at 100% stays inside a narrow stage. */
   .body {
+    align-content: start;
     display: grid;
     grid-template-columns: minmax(0, 1fr);
     min-inline-size: 0;
   }
 
+  /* A dashed rule parts what is shown from what names it. */
   figcaption {
+    border-block-start: var(--sui-stroke) dashed var(--sui-border-control);
     display: grid;
     gap: var(--sui-row-copy-gap);
-    justify-self: start;
+    justify-items: start;
+    padding-block-start: var(--sui-space-3);
   }
 
   .label {

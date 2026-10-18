@@ -1005,6 +1005,23 @@ function specimens(root: Document): Finding[] {
         finding('L-55', stack, 'stacked specimens use under 60% of their line and fit side by side')
       );
   }
+  // Specimens on one line hang their captions from one line too, under a dashed rule, so a
+  // reader scans the names across without hunting below each specimen.
+  const lines = new Map<Element, Map<number, number[]>>();
+  for (const caption of audited(root, 'figure.specimen > figcaption')) {
+    const row = caption.parentElement?.parentElement;
+    if (!row?.matches('.specimens:not([data-layout="stack"])')) continue;
+    const top = Math.round(caption.parentElement!.getBoundingClientRect().top);
+    const tops = lines.get(row) ?? new Map<number, number[]>();
+    tops.set(top, [...(tops.get(top) ?? []), caption.getBoundingClientRect().top]);
+    lines.set(row, tops);
+    if (getComputedStyle(caption).borderBlockStartStyle !== 'dashed')
+      found.push(finding('L-55', caption, 'a caption has no dashed rule above it'));
+  }
+  for (const [row, tops] of lines)
+    for (const captions of tops.values())
+      if (Math.max(...captions) - Math.min(...captions) > 0.5)
+        found.push(finding('L-55', row, 'captions on one line do not share one top'));
   return found;
 }
 

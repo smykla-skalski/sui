@@ -66,6 +66,49 @@ suite('the law audit', { concurrency: true }, () => {
       );
 });
 
+test('the page keeps its audit per path and runs it again only on a press', long, async () => {
+  const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
+  try {
+    const kept = {
+      findings: [{ law: 'L-1', where: 'main', detail: 'kept from an earlier run' }],
+      at: '2026-10-01T12:00:00.000Z',
+      width: 1440,
+      theme: 'light'
+    };
+    await page.addInitScript((record) => {
+      localStorage.setItem(`sui:audit:${location.origin}${location.pathname}`, record);
+      localStorage.setItem(`sui:audit:${location.origin}/elsewhere/`, 'not this page');
+    }, JSON.stringify(kept));
+    await page.goto(url);
+    await page.waitForFunction(() => '__suiAudit' in window);
+    const summary = page.locator('.audit .summary');
+    // The kept run shows at once, and no run starts on its own.
+    assert.equal((await summary.textContent())?.trim(), '1 finding against 1 law');
+    await page.waitForTimeout(1500);
+    assert.equal((await summary.textContent())?.trim(), '1 finding against 1 law');
+
+    await page.getByRole('button', { name: 'Run the audit again' }).click();
+    await page.waitForFunction(
+      () =>
+        !document.querySelector('.audit .summary')?.textContent?.includes('kept') &&
+        document.querySelector('.audit .summary')?.textContent?.trim() ===
+          'Every law holds on this page',
+      null,
+      { timeout: 30_000 }
+    );
+    const stored = await page.evaluate(() =>
+      JSON.parse(localStorage.getItem(`sui:audit:${location.origin}${location.pathname}`) ?? 'null')
+    );
+    assert.deepEqual(stored.findings, []);
+    assert.equal(
+      await page.evaluate(() => localStorage.getItem(`sui:audit:${location.origin}/elsewhere/`)),
+      'not this page'
+    );
+  } finally {
+    await page.close();
+  }
+});
+
 // A tablet wider than a phone still has a coarse pointer, so the touch tier must hold there too.
 for (const width of [820, 1024])
   test(`the law audit finds nothing on a ${width}px touch screen`, long, async () => {

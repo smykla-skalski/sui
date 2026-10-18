@@ -146,7 +146,7 @@ live specimens, not a surface of the design, so it may hold cards and dialogs (L
   }
 
   .specimens {
-    align-items: flex-start;
+    align-items: stretch;
     display: flex;
     flex-wrap: wrap;
     gap: var(--sui-space-6) var(--sui-space-5);
@@ -161,7 +161,7 @@ live specimens, not a surface of the design, so it may hold cards and dialogs (L
   }
 
   .specimens[data-layout='grid'] {
-    align-items: start;
+    align-items: stretch;
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(min(100%, 16rem), 1fr));
   }
