@@ -1598,6 +1598,38 @@ function symbolTiles(root: Document): Finding[] {
 }
 
 /**
+ * Disclosures (L-57): the chevron leads the summary's words, and open content starts at those
+ * words, so the summary and what it reveals share one start edge in either direction.
+ */
+function disclosures(root: Document): Finding[] {
+  const found: Finding[] = [];
+  for (const details of audited(root, 'details.sui-disclosure')) {
+    const chevron = details.querySelector(':scope > summary > .sui-disclosure-chevron');
+    const words = details.querySelector(':scope > summary > .sui-disclosure-label');
+    if (!chevron || !words) continue;
+    const rtl = getComputedStyle(details).direction === 'rtl';
+    const start = (box: DOMRect) => (rtl ? -box.right : box.left);
+    const end = (box: DOMRect) => (rtl ? -box.left : box.right);
+    const label = start(words.getBoundingClientRect());
+    if (end(chevron.getBoundingClientRect()) > label + 0.5)
+      found.push(finding('L-57', details, "the chevron does not lead the summary's words"));
+    const body = details.querySelector(':scope > .sui-disclosure-body');
+    if (!(details as HTMLDetailsElement).open || !body || !shown(body)) continue;
+    const content =
+      start(body.getBoundingClientRect()) + parseFloat(getComputedStyle(body).paddingInlineStart);
+    if (Math.abs(content - label) > 0.5)
+      found.push(
+        finding(
+          'L-57',
+          body,
+          `the content starts ${round(content - label)}px off the summary's words`
+        )
+      );
+  }
+  return found;
+}
+
+/**
  * Painted swatches (L-93): a colour the reader picked holds 3:1 on its ground, or its ring
  * does. The ring is a box shadow on a mark and a border on a swatch.
  */
@@ -1929,5 +1961,6 @@ register(
   codeLines,
   chartInk,
   pressSelection,
-  titleProximity
+  titleProximity,
+  disclosures
 );

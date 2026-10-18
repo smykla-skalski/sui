@@ -275,6 +275,31 @@ suite('the kitchen sink', together, () => {
     }
   });
 
+  // Growing the height would lay the whole page out on every frame, so only the content moves.
+  test(
+    'L-57 a disclosure opens to its full height at once and fades in its content',
+    long,
+    async () => {
+      const page = await open(1440, 'light');
+      try {
+        const opened = await page.evaluate(async () => {
+          const details = /** @type {HTMLDetailsElement} */ (
+            document.querySelector('#disclosure details.sui-disclosure:not([open])')
+          );
+          details.open = true;
+          const first = details.getBoundingClientRect().height;
+          const opacity = Number(getComputedStyle(details, '::details-content').opacity);
+          await new Promise((resolve) => setTimeout(resolve, 400));
+          return { first, opacity, last: details.getBoundingClientRect().height };
+        });
+        assert.equal(opened.first, opened.last);
+        assert.ok(opened.opacity < 1, 'the content shows at once instead of fading in');
+      } finally {
+        await page.close();
+      }
+    }
+  );
+
   test('L-69 every glyph is centred in its 24-unit box', long, async () => {
     const page = await open(1440, 'light');
     try {
