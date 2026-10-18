@@ -3,7 +3,7 @@
   import VisuallyHidden from '../components/VisuallyHidden.svelte';
   import ChartFrame from './ChartFrame.svelte';
   import { clip, formatNumber } from './format.js';
-  import { extent } from './geometry.js';
+  import { centred, extent, heatmapLayout, type Measure } from './geometry.js';
   import type { ChartFrameProps, HeatmapCell } from './types.js';
 
   let {
@@ -35,6 +35,8 @@
   const STEPS = 5;
   const COLUMN_MOST = 7;
   const ROW_MOST = 18;
+  /* A placeholder keeps the room of two rows until the rows arrive. */
+  const ROWS = 2;
 
   let lookup = $derived(
     new Map(cells.map((cell) => [`${cell.row}\u0000${cell.column}`, cell.value]))
@@ -66,6 +68,15 @@
       : null;
   }
 
+  function layout(scale: number, measure: Measure, names: string[]) {
+    return heatmapLayout({
+      scale,
+      measure,
+      rows: names.map((row) => clip(row, ROW_MOST)),
+      columns: columns.map((column) => clip(column, COLUMN_MOST))
+    });
+  }
+
   function step(cellValue: number): number {
     const fraction = (cellValue - domain[0]) / (domain[1] - domain[0]);
     return Math.min(STEPS - 1, Math.max(0, Math.floor(fraction * STEPS)));
@@ -86,74 +97,75 @@ columns and scrolls sideways in a narrower container.
 - Keyboard: Tab reaches the matrix when it scrolls, then "View chart data", where Enter or Space opens the table, and the table itself when it scrolls.
 - Pointer and touch: "View chart data" is 24px tall on a desktop pointer and 44px on a phone or a coarse pointer; nothing needs hover, since each cell prints its value.
 - Focus: opening the table keeps focus on its control; retrying a failed chart is the error state's button.
-- Responsive: cells keep their size and the matrix scrolls sideways; cells and margins grow with the reader's text size, and long names are cut without splitting a character and stay whole in the table.
+- Responsive: the matrix stands on a band of the chart ground that reaches the edges of a card holding it, and starts exactly at the band's inner edge; cells keep their size and the matrix scrolls sideways with a fade on each edge that has more past it; cells and margins grow with the reader's text size, and long names are cut without splitting a character and stay whole in the table.
 - Accessibility: the printed value carries each cell's number, with ink at 4.5:1 on every step, so a cell needs no edge; a cell with no value has a dashed edge at 3:1, forced colors outline every cell, and the table has the title as its caption and names an empty cell in words.
 - Localization: `rowHeading`, `noDataLabel` and the frame's words are props with English defaults; default numbers follow the page language, and the matrix reads left to right in every page.
-- Performance: one rect and one text a cell, which suits a few hundred cells; the table renders only while it is open. Nothing animates.
+- Performance: one rect and one text a cell, which suits a few hundred cells; the table renders only while it is open. Nothing animates; an edge fade switches on the matrix's own scroll timeline.
 - Analytics: `ontableopenchange(open)` reports the table and `onretry` a retry.
 - Failure: `status` draws loading, refreshing, stale and failed as every chart does; no values draw an empty state with `emptyAction`, and a cell with no value keeps its place with a dashed edge, named in the legend.
 -->
 
-<ChartFrame {...frame} {title} {description} {empty} plotHeight={54 + 2 * 52 + 12}>
-  {#snippet plot(_width: number, scale: number)}
-    {@const size = 52 * scale}
-    {@const left = 140 * scale}
-    {@const top = 54 * scale}
-    {@const width = Math.round(left + columns.length * size + 12)}
-    {@const height = Math.round(top + rows.length * size + 12)}
+<ChartFrame
+  {...frame}
+  {title}
+  {description}
+  {empty}
+  plotSize={(scale, measure) =>
+    layout(scale, measure, rows.length > 0 ? rows : Array<string>(ROWS).fill('')).height}
+>
+  {#snippet plot(_width: number, scale: number, measure: Measure)}
+    {@const box = layout(scale, measure, rows)}
+    {@const cell = box.size - 2 * box.inset}
     <svg
-      {width}
-      {height}
-      viewBox="0 0 {width} {height}"
+      width={box.width}
+      height={box.height}
+      viewBox="0 0 {box.width} {box.height}"
       role="img"
       aria-label="{title}{mark('stop')}{description}"
     >
       {#each columns as column, columnIndex (columnIndex)}
         <text
-          x={left + columnIndex * size + size / 2}
-          y={top - 12 * scale}
+          x={box.left + (columnIndex + 0.5) * box.size}
+          y={box.columnBaseline}
           class="axis"
           text-anchor="middle">{clip(column, COLUMN_MOST)}</text
         >
       {/each}
       {#each rows as row, rowIndex (rowIndex)}
-        <text
-          x={left - 10 * scale}
-          y={top + rowIndex * size + size / 2 + 4 * scale}
-          class="axis"
-          text-anchor="end">{clip(row, ROW_MOST)}</text
+        {@const cy = box.top + (rowIndex + 0.5) * box.size}
+        <text x={box.labelEnd} y={cy + box.cap / 2} class="axis" text-anchor="end"
+          >{clip(row, ROW_MOST)}</text
         >
         {#each columns as column, columnIndex (columnIndex)}
           {@const cellValue = value(row, column)}
-          {@const cx = left + columnIndex * size + size / 2}
-          {@const cy = top + rowIndex * size + size / 2}
+          {@const cx = box.left + (columnIndex + 0.5) * box.size}
           {#if cellValue === null}
+            <!-- The dashed edge is drawn inside the cell's box, so an empty cell is no larger than a filled one. -->
             <rect
-              x={cx - size / 2 + 2}
-              y={cy - size / 2 + 2}
-              width={size - 4}
-              height={size - 4}
-              rx="5"
+              x={cx - cell / 2 + 0.5}
+              y={cy - cell / 2 + 0.5}
+              width={cell - 1}
+              height={cell - 1}
+              rx="4.5"
               class="missing"
               ><title>{row}{mark('comma')}{column}{mark('colon')}{noDataLabel}</title></rect
             >
-            <text x={cx} y={cy} class="value none" text-anchor="middle" dominant-baseline="central"
+            <text x={cx} y={centred(measure('—'), cy)} class="value none" text-anchor="middle"
               >—</text
             >
           {:else}
+            {@const words = formatValue(cellValue)}
             <rect
-              x={cx - size / 2 + 2}
-              y={cy - size / 2 + 2}
-              width={size - 4}
-              height={size - 4}
+              x={cx - cell / 2}
+              y={cy - cell / 2}
+              width={cell}
+              height={cell}
               rx="5"
               class="cell step-{step(cellValue)}"
-              data-labelled
-              ><title>{row}{mark('comma')}{column}{mark('colon')}{formatValue(cellValue)}</title
-              ></rect
+              data-labelled><title>{row}{mark('comma')}{column}{mark('colon')}{words}</title></rect
             >
-            <text x={cx} y={cy} class="value" text-anchor="middle" dominant-baseline="central"
-              >{formatValue(cellValue)}</text
+            <text x={cx} y={centred(measure(words), cy)} class="value" text-anchor="middle"
+              >{words}</text
             >
           {/if}
         {/each}
@@ -201,11 +213,8 @@ columns and scrolls sideways in a narrower container.
   svg {
     display: block;
   }
-  .axis,
-  .value {
+  .axis {
     fill: var(--sui-text-muted);
-    font: var(--sui-weight-regular) var(--sui-font-size-compact) / var(--sui-leading-flat)
-      var(--sui-sans);
   }
   .value {
     fill: var(--sui-text-primary);
@@ -216,19 +225,19 @@ columns and scrolls sideways in a narrower container.
     fill: var(--sui-text-muted);
   }
   .step-0 {
-    --sui-local-heat: color-mix(in srgb, var(--sui-chart-1) 12%, var(--sui-surface-base));
+    --sui-local-heat: color-mix(in srgb, var(--sui-chart-1) 12%, var(--sui-chart-ground));
   }
   .step-1 {
-    --sui-local-heat: color-mix(in srgb, var(--sui-chart-1) 26%, var(--sui-surface-base));
+    --sui-local-heat: color-mix(in srgb, var(--sui-chart-1) 26%, var(--sui-chart-ground));
   }
   .step-2 {
-    --sui-local-heat: color-mix(in srgb, var(--sui-chart-1) 40%, var(--sui-surface-base));
+    --sui-local-heat: color-mix(in srgb, var(--sui-chart-1) 40%, var(--sui-chart-ground));
   }
   .step-3 {
-    --sui-local-heat: color-mix(in srgb, var(--sui-chart-1) 54%, var(--sui-surface-base));
+    --sui-local-heat: color-mix(in srgb, var(--sui-chart-1) 54%, var(--sui-chart-ground));
   }
   .step-4 {
-    --sui-local-heat: color-mix(in srgb, var(--sui-chart-1) 68%, var(--sui-surface-base));
+    --sui-local-heat: color-mix(in srgb, var(--sui-chart-1) 68%, var(--sui-chart-ground));
   }
   /* Every cell prints its value, so its step is never the only carrier and it needs no edge
      (WCAG 1.4.11): the cells stand as plain fills parted by the surface, and the steps keep
@@ -238,7 +247,7 @@ columns and scrolls sideways in a narrower container.
   }
   /* No value is not the lowest value: a dashed edge that holds 3:1 sets it apart from every step. */
   rect.missing {
-    fill: var(--sui-surface-base);
+    fill: var(--sui-chart-ground);
     stroke: var(--sui-border-strong);
     stroke-dasharray: 4 3;
     stroke-width: var(--sui-stroke);
@@ -268,7 +277,7 @@ columns and scrolls sideways in a narrower container.
     inline-size: var(--sui-space-6);
   }
   .swatch.missing {
-    background: var(--sui-surface-base);
+    background: var(--sui-chart-ground);
     border: var(--sui-stroke) dashed var(--sui-border-strong);
   }
   /* Forced colors drop the fills, so every cell and swatch keeps its place by an outline. */

@@ -288,6 +288,7 @@
 
   --sui-chart-ink: var(--sui-brand-action);
   --sui-chart-grid: var(--sui-border-divider);
+  --sui-chart-ground: var(--sui-surface-inset);
 
   --sui-space-1: 0.25rem;
   --sui-space-2: 0.5rem;
@@ -540,6 +541,7 @@
   --sui-surface-code: var(--sui-primitive-dark-code);
   --sui-border-subtle: rgb(255 255 255 / 9%);
   --sui-chart-grid: var(--sui-border-divider);
+  --sui-chart-ground: var(--sui-surface-inset);
   --sui-border-control: rgb(255 255 255 / 16%);
   --sui-border-divider: color-mix(in srgb, var(--sui-border-subtle) 60%, transparent);
   --sui-control-border-hover: rgb(255 255 255 / 28%);
@@ -704,6 +706,7 @@
     --sui-surface-code: var(--sui-primitive-dark-code);
     --sui-border-subtle: rgb(255 255 255 / 9%);
     --sui-chart-grid: var(--sui-border-divider);
+    --sui-chart-ground: var(--sui-surface-inset);
     --sui-border-control: rgb(255 255 255 / 16%);
     --sui-border-divider: color-mix(in srgb, var(--sui-border-subtle) 60%, transparent);
     --sui-control-border-hover: rgb(255 255 255 / 28%);

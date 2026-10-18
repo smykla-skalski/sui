@@ -12,6 +12,7 @@
   import type { HTMLAttributes } from 'svelte/elements';
   import Count from '../internal/Count.svelte';
   import { formatCount } from '../internal/locale.js';
+  import '../internal/scroll-edge.css';
   import { mark, word } from '../words.js';
 
   let {
@@ -93,7 +94,12 @@ never clips it.
 - Failure: an empty `items` draws an empty track, and a `current` that matches no tab draws no bar.
 -->
 
-<nav {...rest} class={['sui-tabs', className]} aria-label={label} {@attach revealCurrent(current)}>
+<nav
+  {...rest}
+  class={['sui-tabs', 'sui-scroll-edge', className]}
+  aria-label={label}
+  {@attach revealCurrent(current)}
+>
   <ul class="sui-tabs-track">
     {#each items as item (item.href)}
       <li class="sui-tabs-item">
@@ -118,43 +124,13 @@ never clips it.
 
 <style>
   /* The nav scrolls and the track scrolls inside it with its line, so the line fades with the
-     tabs at an edge that has more past it. Each fade is its own mask layer sized one fade past
-     the nav, so sliding a layer by that much shows or hides its fade. The scroll timeline
-     slides them: the start fade shows once the row has left its start, and the end fade hides
-     once it reaches its end. A row that does not scroll has no timeline, and both fades stay
-     hidden. */
+     tabs at an edge that has more past it (`sui-scroll-edge`). */
   .sui-tabs {
-    --sui-local-tabs-fade: var(--sui-space-8);
     container-type: scroll-state;
     min-inline-size: 0;
     overflow-x: auto;
     overflow-y: hidden;
-    scroll-padding-inline: var(--sui-local-tabs-fade);
     scrollbar-width: thin;
-  }
-
-  @supports (animation-timeline: scroll()) {
-    .sui-tabs {
-      animation: sui-tabs-fade var(--sui-ease-linear) both;
-      animation-timeline: scroll(self inline);
-      -webkit-mask-image:
-        linear-gradient(to right, transparent, var(--sui-canvas) var(--sui-local-tabs-fade)),
-        linear-gradient(to left, transparent, var(--sui-canvas) var(--sui-local-tabs-fade));
-      mask-image:
-        linear-gradient(to right, transparent, var(--sui-canvas) var(--sui-local-tabs-fade)),
-        linear-gradient(to left, transparent, var(--sui-canvas) var(--sui-local-tabs-fade));
-      -webkit-mask-composite: source-in;
-      mask-composite: intersect;
-      mask-position:
-        100% 0,
-        0 0;
-      mask-repeat: no-repeat;
-      mask-size: calc(100% + var(--sui-local-tabs-fade)) 100%;
-    }
-
-    .sui-tabs:dir(rtl) {
-      animation-name: sui-tabs-fade-rtl;
-    }
   }
 
   /* The track is as wide as its tabs or the nav, whichever is wider, so its line runs the whole
@@ -175,49 +151,6 @@ never clips it.
   @container scroll-state(scrollable: inline) {
     .sui-tabs-track {
       margin-block-end: var(--sui-space-3);
-    }
-  }
-
-  @keyframes sui-tabs-fade {
-    0% {
-      mask-position:
-        100% 0,
-        100% 0;
-    }
-
-    4%,
-    96% {
-      mask-position:
-        0 0,
-        100% 0;
-    }
-
-    100% {
-      mask-position:
-        0 0,
-        0 0;
-    }
-  }
-
-  /* In a right-to-left page the row starts at the right, so the left fade shows first. */
-  @keyframes sui-tabs-fade-rtl {
-    0% {
-      mask-position:
-        0 0,
-        0 0;
-    }
-
-    4%,
-    96% {
-      mask-position:
-        0 0,
-        100% 0;
-    }
-
-    100% {
-      mask-position:
-        100% 0,
-        100% 0;
     }
   }
 

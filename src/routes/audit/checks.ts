@@ -1318,12 +1318,28 @@ function specimens(root: Document): Finding[] {
       box.width > 1 &&
       box.height > 1 &&
       (box.left < edge.left - 0.5 || box.right > edge.right + 0.5);
+    // A stacked stage lends its inset to what a specimen shows (L-66), so a chart's band may
+    // span the specimen and exactly that inset on both sides, and nothing reaches further.
+    const spansLent = (element: Element) => {
+      let shown: Element | null = element;
+      while (shown && shown.parentElement !== panel) shown = shown.parentElement;
+      const inset = shown
+        ? parseFloat(getComputedStyle(shown).getPropertyValue('--sui-local-bleed'))
+        : 0;
+      const box = element.getBoundingClientRect();
+      return (
+        inset > 0 &&
+        Math.abs(edge.left - inset - box.left) <= 0.5 &&
+        Math.abs(edge.right + inset - box.right) <= 0.5
+      );
+    };
     const escaped = [...panel.querySelectorAll('*')].find((element) => {
       if (element.closest(':popover-open, dialog[open]') || held(element)) return false;
       if (!element.checkVisibility({ opacityProperty: false, visibilityProperty: true }))
         return false;
       const look = getComputedStyle(element);
       if (look.position === 'fixed' || look.clipPath !== 'none') return false;
+      if (spansLent(element)) return false;
       const painted =
         rgba(look.backgroundColor).a > 0 ||
         parseFloat(look.borderLeftWidth) > 0 ||

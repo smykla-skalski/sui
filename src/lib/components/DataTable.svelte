@@ -23,6 +23,7 @@
   import { formatCount, pageLocale } from '../internal/locale.js';
   import Button from './Button.svelte';
   import VisuallyHidden from './VisuallyHidden.svelte';
+  import '../internal/scroll-edge.css';
 
   const captionId = $props.id();
 
@@ -88,7 +89,14 @@
   let scrolls = $state(false);
 
   function watchOverflow(frame: HTMLDivElement) {
-    const observer = new ResizeObserver(() => (scrolls = frame.scrollWidth > frame.clientWidth));
+    const observer = new ResizeObserver(() => {
+      scrolls = frame.scrollWidth > frame.clientWidth;
+      const heading = frame.querySelector('thead tr > :first-child');
+      frame.style.setProperty(
+        '--sui-local-table-held',
+        `${heading?.getBoundingClientRect().width ?? 0}px`
+      );
+    });
     observer.observe(frame);
     if (frame.firstElementChild) observer.observe(frame.firstElementChild);
     return () => observer.disconnect();
@@ -141,10 +149,10 @@ row in place of the hairlines, for a table wide enough that the eye can lose its
 - Keyboard: a sortable heading is a button, and Enter or Space sorts by it, then reverses; a frame that scrolls is a tab stop, so the arrow keys scroll it.
 - Pointer and touch: a sortable heading's target is at least 24px tall, and 44px on a phone or a coarse pointer.
 - Focus: sorting keeps focus on the heading; the frame is a stop only while it scrolls.
-- Responsive: columns grow to their widest value and the table scrolls inside its own frame, with a line that says so and the row headings held in view; numeric and `nowrap` columns never wrap, other text wraps inside its column.
+- Responsive: columns grow to their widest value and the table scrolls inside its own frame, with a line that says so, a fade on each edge that has more past it, starting past held row headings, and the row headings held in view; numeric and `nowrap` columns never wrap, other text wraps inside its column.
 - Accessibility: loading and refreshing mark the table `aria-busy` and are said through a polite status; a failure is an alert in words beside an icon; sorted order is `aria-sort` and an up or down chevron.
-- Localization: every built-in word is a prop with an English default; numbers group and text sorts by the page's language; columns, alignment and the held row headings follow the reading direction.
-- Performance: every row renders; key rows with `rowKey`, and page a long table with numbered pages or `LoadMore` rather than drawing thousands.
+- Localization: every built-in word is a prop with an English default; numbers group and text sorts by the page's language; columns, alignment, the held row headings and the loading light follow the reading direction.
+- Performance: every row renders; key rows with `rowKey`, and page a long table with numbered pages or `LoadMore` rather than drawing thousands; the loading light moves only by `transform`, so the compositor runs it, and holds still under reduced motion.
 - Analytics: `onsort` hears each sort, and `onretry` each retry.
 - Failure: no rows says `emptyLabel` or draws `empty` in the body under the headings; a failure says `error` with a retry; a missing value prints blank and sorts first.
 -->
@@ -168,7 +176,7 @@ row in place of the hairlines, for a table wide enough that the eye can lose its
   <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
   <div
     {@attach watchOverflow}
-    class="frame"
+    class="frame sui-scroll-edge"
     role={scrolls ? 'region' : undefined}
     tabindex={scrolls ? 0 : undefined}
     aria-labelledby={scrolls && caption ? captionId : undefined}
@@ -310,6 +318,12 @@ row in place of the hairlines, for a table wide enough that the eye can lose its
   .frame {
     min-inline-size: 0;
     overflow-x: auto;
+  }
+
+  /* Held row headings stay at the start while the columns scroll under them, so the start
+     fade begins at their edge. */
+  .held.scrolls .frame {
+    --sui-local-edge-hold: var(--sui-local-table-held);
   }
 
   .frame:focus-visible {

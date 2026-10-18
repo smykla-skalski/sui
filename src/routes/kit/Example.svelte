@@ -161,8 +161,11 @@ live specimens, not a surface of the design, so it may hold cards and dialogs (L
     row-rule: var(--sui-stroke) dashed var(--sui-border-control);
   }
 
-  /* A wrapping column sizes each line to its widest item, so a stack must not wrap. */
+  /* A wrapping column sizes each line to its widest item, so a stack must not wrap. A stacked
+     specimen spans the stage, so it lends the stage's inset to what it shows, such as a
+     chart's band, which reaches the frame's edges with it. */
   .specimens[data-layout='stack'] {
+    --sui-local-stage-pad: var(--sui-space-6);
     align-items: stretch;
     flex-direction: column;
     flex-wrap: nowrap;
@@ -204,6 +207,10 @@ live specimens, not a surface of the design, so it may hold cards and dialogs (L
   @container sink-stage (max-width: 30rem) {
     .stage {
       padding: var(--sui-space-4);
+    }
+
+    .specimens[data-layout='stack'] {
+      --sui-local-stage-pad: var(--sui-space-4);
     }
   }
 

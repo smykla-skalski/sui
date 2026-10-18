@@ -5,11 +5,41 @@ import {
   chartDash,
   chartMarker,
   extent,
+  heatmapLayout,
+  inkSpan,
   markerPath,
+  markerReach,
+  plotEnd,
   position,
+  rangeLayout,
   sieve,
-  spread
+  spread,
+  ticksOf,
+  xyLayout
 } from '../src/lib/charts/geometry.ts';
+
+/**
+ * A stand-in for canvas metrics: fixed-width glyphs whose ink sits half a pixel inside their
+ * advance, capitals 8px tall and descenders 2px deep, wider in the semibold face.
+ * @param {string} text
+ * @param {boolean} [semibold]
+ */
+const measure = (text, semibold = false) => {
+  const advance = text.length * (semibold ? 6.5 : 6);
+  return {
+    advance,
+    left: -0.5,
+    right: advance - 0.5,
+    ascent: 8,
+    descent: /[gjpqy]/.test(text) ? 2 : 0
+  };
+};
+
+/** The extent of a list of `[start, end]` spans. */
+const union = (/** @type {number[][]} */ spans) => [
+  Math.min(...spans.map(([start]) => start)),
+  Math.max(...spans.map(([, end]) => end))
+];
 
 test('empty and non-finite datasets have a usable domain', () => {
   assert.deepEqual(extent([NaN, Infinity, -Infinity]), [0, 1]);
@@ -141,4 +171,130 @@ test('a dense scatter keeps one mark per cell, in order, however many points arr
       [12, 0]
     ]
   );
+});
+
+test('the plot end puts the furthest ink exactly on the width', () => {
+  const end = plotEnd(40, 400, [
+    { at: 1, past: 0 },
+    { at: 1, past: 9 },
+    { at: 0.5, past: 200 }
+  ]);
+  // Each reach ends at start + at * (end - start) + past; the furthest of them is the width.
+  const reaches = [40 + (end - 40) + 9, 40 + 0.5 * (end - 40) + 200, end];
+  assert.ok(Math.abs(Math.max(...reaches) - 400) < 1e-9);
+});
+
+test('a marker reaches as far as its drawn path', () => {
+  for (const shape of [0, 1, 2, 3, 4].map(chartMarker)) {
+    const numbers = markerPath(shape, 0, 0, 10)
+      .split(/[^\d.-]+/)
+      .filter(Boolean)
+      .map(Number);
+    const pairs =
+      shape === 'circle'
+        ? [
+            [-5, 0],
+            [5, 0],
+            [0, -5],
+            [0, 5]
+          ]
+        : Array.from({ length: numbers.length / 2 }, (_, at) => numbers.slice(2 * at, 2 * at + 2));
+    const reach = markerReach(shape, 10);
+    assert.ok(Math.abs(Math.max(...pairs.map(([x]) => x)) - reach.across) < 1e-9, shape);
+    assert.ok(Math.abs(-Math.min(...pairs.map(([, y]) => y)) - reach.above) < 1e-9, shape);
+    assert.ok(Math.abs(Math.max(...pairs.map(([, y]) => y)) - reach.below) < 1e-9, shape);
+  }
+});
+
+test('a line or scatter starts and ends exactly at the edges of its room', () => {
+  const yAxis = axis([3, 88], true);
+  const xAxis = axis([1, 12]);
+  for (const [width, names] of /** @type {const} */ ([
+    [640, []],
+    [640, ['North', 'Southwest region']],
+    [300, ['Long name for a line']]
+  ])) {
+    const xTicks = ticksOf(xAxis.ticks, xAxis.domain, String);
+    const yTicks = ticksOf(yAxis.ticks, yAxis.domain, String);
+    const marks = [{ x: 1, y: 1, across: 5, above: 5, below: 5 }];
+    const ends = names.map((text, index) => ({ x: 1, y: index / 4, text }));
+    const box = xyLayout({
+      width,
+      scale: 1,
+      measure,
+      xTicks,
+      yTicks,
+      xLabel: 'Week',
+      yLabel: 'Requests',
+      marks,
+      names: ends
+    });
+    const x = (/** @type {number} */ at) => box.left + at * (box.right - box.left);
+    const y = (/** @type {number} */ at) => box.bottom - at * (box.bottom - box.top);
+    const title = measure('Requests', true);
+    const across = union([
+      [box.yTitle.x - title.ascent, box.yTitle.x + title.descent],
+      ...yTicks.map((tick) => inkSpan(measure(tick.text), box.tickEnd, 'end')),
+      ...xTicks.map((tick) => inkSpan(measure(tick.text), x(tick.at), 'middle')),
+      ...marks.map((mark) => [x(mark.x) - mark.across, x(mark.x) + mark.across]),
+      ...ends.map((end) => inkSpan(measure(end.text, true), x(end.x) + box.nameGap)),
+      [box.left, box.right]
+    ]);
+    assert.ok(Math.abs(across[0]) < 1e-9, `${width}: the ink starts at ${across[0]}`);
+    assert.ok(Math.abs(across[1] - width) < 1e-9, `${width}: the ink ends at ${across[1]}`);
+    const down = union([
+      [box.top - 0.5, box.bottom + 0.5],
+      ...yTicks.map((tick) => [y(tick.at) - 4, y(tick.at) + 4]),
+      ...marks.map((mark) => [y(mark.y) - mark.above, y(mark.y) + mark.below]),
+      ...box.names.map((baseline) => [baseline - 8, baseline]),
+      [box.xTitleBaseline - 8, box.xTitleBaseline]
+    ]);
+    assert.ok(Math.abs(down[0]) < 1e-9, `${width}: the ink tops out at ${down[0]}`);
+    assert.ok(box.height - down[1] >= 0 && box.height - down[1] < 1, `${width}: height`);
+    assert.ok(
+      box.xTickBaseline - 8 >= box.bottom + 4 + 8 - 1e-9,
+      'x ticks clear the lowest y tick'
+    );
+  }
+});
+
+test('a range chart starts at its longest label and ends at its furthest ink', () => {
+  const values = axis([12, 48]);
+  const ticks = ticksOf(values.ticks, values.domain, String);
+  const labels = ['Planning', 'Design', 'Build and release'];
+  const marks = [
+    { at: (48 - values.domain[0]) / (values.domain[1] - values.domain[0]), past: 5 },
+    { at: 0.5, past: 6.5 }
+  ];
+  const box = rangeLayout({
+    width: 500,
+    scale: 1,
+    measure,
+    labels,
+    ticks,
+    valueLabel: 'Hours',
+    marks
+  });
+  const x = (/** @type {number} */ at) => box.left + at * (box.right - box.left);
+  const across = union([
+    ...labels.map((label) => inkSpan(measure(label), box.labelEnd, 'end')),
+    ...ticks.map((tick) => inkSpan(measure(tick.text), x(tick.at), 'middle')),
+    ...marks.map((mark) => [x(mark.at) - mark.past, x(mark.at) + mark.past]),
+    [box.left - 0.5, box.right + 0.5]
+  ]);
+  assert.ok(Math.abs(across[0]) < 1e-9, `the ink starts at ${across[0]}`);
+  assert.ok(Math.abs(across[1] - 500) < 1e-9, `the ink ends at ${across[1]}`);
+  assert.ok(box.height - (box.titleBaseline + 0) < 1, 'the axis title ends the height');
+});
+
+test('a matrix starts at its longest row name and its column names top it', () => {
+  const rows = ['Morning', 'Afternoon'];
+  const columns = ['Mon', 'Tue', 'Wed'];
+  const box = heatmapLayout({ scale: 1, measure, rows, columns });
+  const starts = rows.map((row) => inkSpan(measure(row), box.labelEnd, 'end')[0]);
+  assert.ok(Math.abs(Math.min(...starts)) < 1e-9);
+  assert.equal(box.columnBaseline - 8, 0);
+  const last = box.left + columns.length * box.size - box.inset;
+  assert.ok(box.width - last >= 0 && box.width - last < 1);
+  assert.ok(box.height - (box.top + rows.length * box.size - box.inset) < 1);
 });

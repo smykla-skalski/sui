@@ -291,4 +291,116 @@ suite('navigation', together, () => {
       }
     }
   );
+
+  test(
+    'every sideways scroller fades only the edges with more past them, mirrored right to left (L-107)',
+    long,
+    async () => {
+      for (const rtl of [false, true]) {
+        const page = await open(375, { rtl });
+        try {
+          const found = await page.evaluate(async () => {
+            const frame = () => new Promise(requestAnimationFrame);
+            const fades = (/** @type {Element} */ box) => {
+              const look = getComputedStyle(box);
+              return ['--sui-scroll-edge-start', '--sui-scroll-edge-end'].map((name) =>
+                parseFloat(look.getPropertyValue(name))
+              );
+            };
+            const wrong = [];
+            let checked = 0;
+            // A component's own scroller: it, or one of the two boxes it sits in, wears a
+            // `sui-` class, as a chart's plot sits in its band inside the chart.
+            for (const box of document.querySelectorAll('[class]')) {
+              const look = getComputedStyle(box);
+              const owned = [box, box.parentElement, box.parentElement?.parentElement].some(
+                (node) => [...(node?.classList ?? [])].some((name) => name.startsWith('sui-'))
+              );
+              if (!owned || !/auto|scroll/.test(look.overflowX)) continue;
+              const max = box.scrollWidth - box.clientWidth;
+              if (max < 4) continue;
+              checked++;
+              const name = `${box.closest('section')?.id} ${box.className}`;
+              const sign = look.direction === 'rtl' ? -1 : 1;
+              const states = [];
+              for (const at of [0, max / 2, max]) {
+                box.scrollLeft = sign * at;
+                await frame();
+                await frame();
+                states.push(fades(box).map((width) => width > 0));
+              }
+              box.scrollLeft = 0;
+              if (
+                JSON.stringify(states) !==
+                JSON.stringify([
+                  [false, true],
+                  [true, true],
+                  [true, false]
+                ])
+              )
+                wrong.push(`${name}: ${JSON.stringify(states)}`);
+              if (look.direction === 'rtl' && !look.maskImage.includes('to left'))
+                wrong.push(`${name}: the fade does not mirror`);
+            }
+            return { checked, wrong };
+          });
+          assert.ok(found.checked > 5, `only ${found.checked} sideways scrollers were found`);
+          assert.deepEqual(found.wrong, [], rtl ? 'right to left' : 'left to right');
+        } finally {
+          await page.close();
+        }
+      }
+    }
+  );
+
+  test(
+    'a chart band reaches the edges of a card or stage that lends its inset, and stays in a specimen that does not (L-66)',
+    long,
+    async () => {
+      for (const width of [1440, 375]) {
+        const page = await open(width);
+        try {
+          const bands = await page.evaluate(() =>
+            [...document.querySelectorAll('#charts .plot-band')].map((band) => {
+              const box = band.getBoundingClientRect();
+              const card = band.closest('.sui-card');
+              // A card lends its inset inside its keyline; a stacked stage inside its frame's.
+              const holder = /** @type {Element} */ (card ?? band.closest('.frame'));
+              const keyline = parseFloat(getComputedStyle(holder).borderLeftWidth);
+              const room = holder.getBoundingClientRect();
+              const plot = /** @type {Element} */ (
+                band.querySelector('.plot-scroll, .sui-chart-wait')
+              );
+              const pad = parseFloat(getComputedStyle(plot).paddingLeft || '0');
+              const specimen = band.closest('.specimen')?.getBoundingClientRect();
+              const title = /** @type {Element} */ (
+                band.closest('.sui-chart')?.querySelector('.sui-chart-title')
+              ).getBoundingClientRect();
+              return {
+                lent: card !== null || band.closest('[data-layout="stack"] .specimen') !== null,
+                start: box.left - room.left - keyline,
+                end: room.right - keyline - box.right,
+                inside:
+                  specimen !== undefined &&
+                  box.left >= specimen.left - 0.5 &&
+                  box.right <= specimen.right + 0.5,
+                plotStart: box.left + pad - title.left
+              };
+            })
+          );
+          assert.ok(bands.some((band) => band.lent) && bands.some((band) => !band.lent));
+          for (const band of bands)
+            if (band.lent) {
+              assert.ok(
+                Math.abs(band.start) < 0.5 && Math.abs(band.end) < 0.5,
+                JSON.stringify(band)
+              );
+              assert.ok(Math.abs(band.plotStart) < 0.5, `the plot keeps the title's edge`);
+            } else assert.ok(band.inside, `${width}px: a band leaves its specimen`);
+        } finally {
+          await page.close();
+        }
+      }
+    }
+  );
 });

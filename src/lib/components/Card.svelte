@@ -361,9 +361,18 @@ on its title line.
     --sui-local-row-lead: calc(-1 * var(--sui-row-pad-default));
   }
 
+  /* A chart's band reads this and reaches the card's edges, padding back by the inset. */
+  .sui-card-body > :global(*) {
+    --sui-local-bleed: var(--sui-rhythm-surface-pad);
+  }
+
   @container (max-width: 36rem) {
     .sui-card {
       padding: var(--sui-rhythm-surface-pad-compact);
+    }
+
+    .sui-card-body > :global(*) {
+      --sui-local-bleed: var(--sui-rhythm-surface-pad-compact);
     }
   }
 </style>

@@ -146,6 +146,7 @@
   import type { HTMLAttributes } from 'svelte/elements';
   import { tokenizeLine, watchOverflow, type CodeLang } from './CodeBlock.svelte';
   import VisuallyHidden from './VisuallyHidden.svelte';
+  import '../internal/scroll-edge.css';
 
   let {
     before = '',
@@ -212,7 +213,7 @@ removed line has no single number to claim. Two empty sides say `emptyLabel`.
 - Keyboard: Tab reaches a diff that scrolls, and the arrow keys scroll it.
 - Pointer and touch: none of its own beyond selecting text.
 - Focus: it never moves focus.
-- Responsive: the diff fills its column and its lines scroll inside it at every width; the caption wraps.
+- Responsive: the diff fills its column and its lines scroll inside it at every width, with a fade on each edge that has more past it; the caption wraps.
 - Accessibility: each glyph is read as `opLabels` words, the caption names the figure, and the changed stretch is marked in the document and underlined, so it survives forced colours; each tone holds the ink drawn on it at 4.5:1, and added and removed stay apart for red-green colour blindness.
 - Localization: `emptyLabel`, `regionLabel` and `opLabels` carry the built-in words; the lines always read left to right (`dir="ltr"`), while the caption follows the page.
 - Performance: shared first and last lines skip the line table, and a middle over about four hundred lines a side is drawn as removed then added instead of compared.
@@ -239,7 +240,7 @@ removed line has no single number to claim. Two empty sides say `emptyLabel`.
     <pre
       {@attach watchOverflow((value) => (scrolls = value))}
       dir="ltr"
-      class="sui-diff-block-scroll"
+      class="sui-diff-block-scroll sui-scroll-edge"
       tabindex={scrolls ? 0 : undefined}
       role={scrolls ? 'region' : undefined}
       aria-label={scrolls ? (label ?? regionLabel) : undefined}><code

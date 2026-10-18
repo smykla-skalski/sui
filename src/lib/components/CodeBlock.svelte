@@ -150,6 +150,7 @@
   import { word } from '../words.js';
   import type { HTMLAttributes } from 'svelte/elements';
   import CopyButton from './CopyButton.svelte';
+  import '../internal/scroll-edge.css';
 
   let {
     code,
@@ -205,7 +206,7 @@ from the corner and centred on the first line, or in the file name's row when th
 - Keyboard: Tab reaches a block that scrolls and then its copy control, and the arrow keys scroll a focused block.
 - Pointer and touch: the copy control is 28px, 44px on a phone or touch screen, and always shown; selection works as in any text.
 - Focus: it never moves focus; the copy control keeps focus through its copied state.
-- Responsive: the block fills its column and its lines scroll inside it at every width; the copy column keeps its place at the end.
+- Responsive: the block fills its column and its lines scroll inside it at every width, with a fade on each edge that has more past it, the start fade past the line numbers; the copy column keeps its place at the end.
 - Accessibility: tokens hold 4.5:1 on the code ground, the gutter is hidden from assistive technology, and the scroller is named only when it is a tab stop.
 - Localization: `regionLabel` and `copyLabel` carry the built-in words; the code always reads left to right (`dir="ltr"`) in a right-to-left page, while the file name follows the page.
 - Performance: tokenizing is one pass over each line and runs again only when `code` or `lang` changes; one observer per block watches for overflow.
@@ -225,7 +226,8 @@ from the corner and centred on the first line, or in the file name's row when th
   <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
   <pre
     {@attach watchOverflow((value) => (scrolls = value))}
-    class="sui-code-block-scroll"
+    class="sui-code-block-scroll sui-scroll-edge"
+    style:--sui-local-code-digits={String(lines.length).length}
     dir="ltr"
     tabindex={scrolls ? 0 : undefined}
     role={scrolls ? 'region' : undefined}
@@ -298,6 +300,12 @@ from the corner and centred on the first line, or in the file name's row when th
     min-inline-size: 0;
     overflow-x: auto;
     padding-block: calc((var(--sui-local-code-row) - var(--sui-leading-meta)) / 2);
+  }
+
+  /* The line numbers stay put while the lines scroll under them, so the start fade begins
+     past the gutter: its numbers are as wide as the longest, in tabular figures. */
+  .sui-code-block-scroll:has(> .numbered) {
+    --sui-local-edge-hold: calc(var(--sui-local-code-digits) * 1ch + 2 * var(--sui-space-4));
   }
 
   /* Under the file name the code takes the block's whole width. */

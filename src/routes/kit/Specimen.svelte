@@ -83,6 +83,11 @@
     min-inline-size: 0;
   }
 
+  /* What the specimen shows takes the inset a stacked stage lends, as a card lends its own. */
+  .body > :global(*) {
+    --sui-local-bleed: var(--sui-local-stage-pad, 0px);
+  }
+
   figcaption {
     display: grid;
     gap: var(--sui-row-copy-gap);

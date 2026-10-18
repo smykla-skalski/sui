@@ -6,7 +6,34 @@
   import VisuallyHidden from '../components/VisuallyHidden.svelte';
   import { formatCount } from '../internal/locale.js';
   import { rootFontSize } from '../internal/rem.svelte.js';
+  import '../internal/scroll-edge.css';
+  import { guessInk, type Ink, type Measure } from './geometry.js';
   import type { ChartFrameProps } from './types.js';
+
+  /** Measures text in the face and size `look` sets, as the plot's SVG text draws it. */
+  function measurer(look: CSSStyleDeclaration): Measure {
+    const context = document.createElement('canvas').getContext('2d');
+    if (!context) return guessInk(parseFloat(look.fontSize));
+    const weights = [look.fontWeight, look.getPropertyValue('--sui-weight-semibold').trim()];
+    const known = new Map<string, Ink>();
+    return (text, semibold = false) => {
+      const key = `${Number(semibold)}${text}`;
+      let ink = known.get(key);
+      if (!ink) {
+        context.font = `${weights[Number(semibold)]} ${look.fontSize} ${look.fontFamily}`;
+        const metrics = context.measureText(text);
+        ink = {
+          advance: metrics.width,
+          left: metrics.actualBoundingBoxLeft,
+          right: metrics.actualBoundingBoxRight,
+          ascent: metrics.actualBoundingBoxAscent,
+          descent: metrics.actualBoundingBoxDescent
+        };
+        known.set(key, ink);
+      }
+      return ink;
+    };
+  }
 
   let {
     title,
@@ -36,7 +63,7 @@
     ),
     empty,
     missing = 0,
-    plotHeight,
+    plotSize,
     plot,
     children,
     table
@@ -45,10 +72,12 @@
     empty: boolean;
     /** How many values the chart left out because they were missing or not numbers. */
     missing?: number;
-    /** The plot's height at a 16px root, which a placeholder keeps while the data loads. */
-    plotHeight: number;
-    /** Draws the plot for the frame's width in CSS pixels and the reader's text scale. */
-    plot: Snippet<[width: number, scale: number]>;
+    /** The plot's height in CSS pixels for the reader's text scale and the plot's measured
+        text, which a placeholder keeps while the data loads. */
+    plotSize: (scale: number, measure: Measure) => number;
+    /** Draws the plot for the band's inner width in CSS pixels, the reader's text scale and
+        the plot's text as measured. */
+    plot: Snippet<[width: number, scale: number, measure: Measure]>;
     /** Notes under the plot, such as a legend. */
     children?: Snippet;
     table: Snippet;
@@ -68,6 +97,9 @@
   let settled = $state(false);
   // A server render has nothing to measure, so it lays the plot out at a desktop width.
   let width = $derived(Math.floor(frame?.width ?? 640));
+  let measure = $state<Measure>(guessInk(12));
+  // The placeholder sizes itself in rem, so it takes the plot's height at a 16px root.
+  const plotHeight = $derived(plotSize(scale, measure) / scale);
 
   const note = $derived(
     status === 'loading'
@@ -87,6 +119,28 @@
     const timer = setTimeout(() => (settled = true), 100);
     return () => clearTimeout(timer);
   });
+
+  /* The plot lays its words out by their ink, so it measures them in the band's own face once
+     the band is drawn, again when the reader's text size or the band's width changes its face
+     (chart text steps up on a phone), and again when a face loads. */
+  function measureFace(band: HTMLElement) {
+    void scale;
+    let font = '';
+    const update = (force = false) => {
+      const look = getComputedStyle(band);
+      const next = `${look.fontSize} ${look.fontFamily}`;
+      if (force || next !== font) measure = measurer(look);
+      font = next;
+    };
+    const loaded = () => update(true);
+    const resized = new ResizeObserver(() => update());
+    resized.observe(band);
+    document.fonts.addEventListener('loadingdone', loaded);
+    return () => {
+      resized.disconnect();
+      document.fonts.removeEventListener('loadingdone', loaded);
+    };
+  }
 
   /* A box that scrolls is a stop on the keyboard path, named after the chart, so a keyboard
      reader can scroll it; one that fits takes no stop. */
@@ -116,7 +170,9 @@
   {#if status === 'failed'}
     <ErrorState title={failedTitle} description={error ?? failedDescription} {onretry} />
   {:else if status === 'loading'}
-    <div class="sui-chart-wait" style:--sui-local-plot={plotHeight} aria-hidden="true"></div>
+    <div {@attach measureFace} class="plot-band">
+      <div class="sui-chart-wait" style:--sui-local-plot={plotHeight} aria-hidden="true"></div>
+    </div>
   {:else if empty}
     <EmptyState
       title={emptyTitle}
@@ -124,18 +180,20 @@
       {...emptyAction ? { action: emptyAction } : { step: emptyStep }}
     />
   {:else}
-    <!-- A box that scrolls takes a stop so a keyboard can scroll it, as WCAG 2.1.1 asks. -->
-    <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
-    <div
-      bind:this={scroller}
-      class="plot-scroll"
-      dir="ltr"
-      bind:contentRect={frame}
-      tabindex={scrolls ? 0 : undefined}
-      role={scrolls ? 'region' : undefined}
-      aria-labelledby={scrolls ? headingId : undefined}
-    >
-      {@render plot(width, scale)}
+    <div {@attach measureFace} class="plot-band">
+      <!-- A box that scrolls takes a stop so a keyboard can scroll it, as WCAG 2.1.1 asks. -->
+      <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
+      <div
+        bind:this={scroller}
+        class="plot-scroll sui-scroll-edge"
+        dir="ltr"
+        bind:contentRect={frame}
+        tabindex={scrolls ? 0 : undefined}
+        role={scrolls ? 'region' : undefined}
+        aria-labelledby={scrolls ? headingId : undefined}
+      >
+        {@render plot(width, scale, measure)}
+      </div>
     </div>
     {@render children?.()}
     <details bind:open ontoggle={() => ontableopenchange?.(open)}>
@@ -144,7 +202,7 @@
       <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
       <div
         bind:this={tableBox}
-        class="sui-chart-table"
+        class="sui-chart-table sui-scroll-edge"
         tabindex={tableScrolls ? 0 : undefined}
         role={tableScrolls ? 'region' : undefined}
         aria-label={tableScrolls ? dataLabel : undefined}
@@ -156,7 +214,17 @@
 </figure>
 
 <style>
+  /* A surface that holds the chart lends its inline inset to its direct children here, as a
+     card does. It does not inherit, so a chart nested deeper in a grid never reaches past its
+     own column. */
+  @property --sui-local-bleed {
+    syntax: '<length>';
+    inherits: false;
+    initial-value: 0px;
+  }
+
   .sui-chart {
+    --sui-local-chart-bleed: var(--sui-local-bleed);
     color: var(--sui-text-primary);
     display: grid;
     gap: var(--sui-space-4);
@@ -193,12 +261,36 @@
     color: var(--sui-text-muted);
   }
 
+  /* The plot stands on a band of the chart's own ground, so a reader sees where the chart
+     starts and ends. The band reaches the edges of the surface that lends its inset, and the
+     plot pads back by it, so the plot keeps the title's edges and its ink stands the same room
+     from all four sides of the band. The plot scrolls inside the band, so an edge fade fades
+     the plot and never the band. Chart text is set here, so the plot measures the face its
+     words draw in, also while a placeholder keeps its place. */
+  .plot-band {
+    --sui-local-band-pad: max(var(--sui-local-chart-bleed), var(--sui-space-4));
+    background: var(--sui-chart-ground);
+    border-radius: var(--sui-radius-control);
+    font: var(--sui-weight-regular) var(--sui-font-size-compact) / var(--sui-leading-flat)
+      var(--sui-sans);
+    margin-inline: calc(-1 * var(--sui-local-chart-bleed));
+    min-inline-size: 0;
+  }
+
+  /* A band that reaches its holder's edges runs square into them. */
+  @container not style(--sui-local-bleed: 0px) {
+    .plot-band {
+      border-radius: 0;
+    }
+  }
+
   /* Inline-size containment keeps the drawn width out of the frame's own sizing, so a measured
      plot never holds its container open. */
   .plot-scroll {
-    border-radius: var(--sui-radius-control);
+    border-radius: inherit;
     contain: inline-size;
     overflow-x: auto;
+    padding: var(--sui-local-band-pad);
   }
 
   .plot-scroll:focus-visible {
@@ -206,21 +298,56 @@
     outline-offset: var(--sui-focus-ring-inset);
   }
 
-  /* The placeholder keeps the plot's place, and pulses as every placeholder does. */
-  .sui-chart-wait {
-    animation: sui-chart-pulse var(--sui-duration-shimmer) var(--sui-ease-inout) infinite alternate;
-    background: var(--sui-surface-inset);
-    block-size: calc(var(--sui-local-plot) * 1rem / 16);
-    border-radius: var(--sui-radius-control);
+  /* Forced colors drop the band's ground, so a line above and below it keeps the plot's row
+     apart, inside the band's own height. */
+  @media (forced-colors: active) {
+    .plot-band {
+      border-block: var(--sui-stroke) solid CanvasText;
+    }
+
+    .plot-scroll {
+      padding-block: calc(var(--sui-local-band-pad) - var(--sui-stroke));
+    }
   }
 
-  @keyframes sui-chart-pulse {
+  /* The placeholder keeps the plot's place, and the light that crosses every placeholder
+     crosses it. Only the light moves, by transform, so the compositor runs it. */
+  .sui-chart-wait {
+    background: var(--sui-placeholder);
+    block-size: calc(var(--sui-local-plot) * 1rem / 16);
+    border-radius: var(--sui-radius-control);
+    margin: var(--sui-local-band-pad);
+    overflow: clip;
+    position: relative;
+  }
+
+  .sui-chart-wait::after {
+    animation: sui-chart-sheen var(--sui-duration-shimmer) var(--sui-ease-linear) infinite;
+    background: var(--sui-placeholder-sheen);
+    content: '';
+    inset-block: 0;
+    inset-inline: calc(-1 * var(--sui-placeholder-reach));
+    position: absolute;
+  }
+
+  .sui-chart-wait:dir(rtl)::after {
+    scale: -1 1;
+  }
+
+  @keyframes sui-chart-sheen {
     from {
-      opacity: 0.48;
+      transform: translateX(-50%);
     }
 
     to {
-      opacity: 0.88;
+      transform: translateX(50%);
+    }
+  }
+
+  @media (forced-colors: active) {
+    .sui-chart-wait {
+      outline: var(--sui-stroke) solid GrayText;
+      outline-offset: calc(-1 * var(--sui-stroke));
     }
   }
 
@@ -319,9 +446,9 @@
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .sui-chart-wait {
+    .sui-chart-wait::after {
       animation: none;
-      opacity: 0.68;
+      content: none;
     }
 
     summary {
