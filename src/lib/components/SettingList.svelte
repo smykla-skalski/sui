@@ -75,7 +75,10 @@ padding too, so the first line stands the card's inset below the keyline.
 {/if}
 
 <style>
+  /* Its width is a row's whole width, padding and all, which a row can ask but cannot read off
+     itself. */
   .sui-setting-list {
+    container: sui-setting-list / inline-size;
     display: grid;
     list-style: none;
     margin: 0 calc(-1 * var(--sui-space-2));

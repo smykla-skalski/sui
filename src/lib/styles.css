@@ -149,6 +149,10 @@
   --sui-unsaved-field-border: var(--sui-unsaved-secondary);
   --sui-unsaved-field-border-hover: var(--sui-unsaved-ink);
   --sui-unsaved-border: #b67a22;
+  /* A row's hover and press veils in the row's own ink, a step and two steps off the plate as
+     a neutral row's are off the card (L-12, L-16). */
+  --sui-unsaved-row-hover: color-mix(in srgb, var(--sui-unsaved-ink) 6%, transparent);
+  --sui-unsaved-row-pressed: color-mix(in srgb, var(--sui-unsaved-ink) 12%, transparent);
   --sui-decision-accent-hover: color-mix(
     in srgb,
     var(--sui-decision-accent) 86%,
@@ -495,6 +499,9 @@
      the hit area over it. */
   --sui-layer-inner-plate: 1;
   --sui-layer-inner-face: 2;
+  /* Under everything in flow inside a part that isolates its own stacking, as a row's state
+     plate and hairline lie under its copy while a hit area stretched over the row stays on top. */
+  --sui-layer-inner-ground: -1;
   --sui-layer-sticky: 30;
 
   --sui-layer-top-bar: 35;
@@ -569,6 +576,8 @@
   --sui-swatch-edge-floor: 0.56;
   --sui-swatch-edge-ceiling: 1;
   --sui-unsaved-border: #a5772c;
+  --sui-unsaved-row-hover: color-mix(in srgb, var(--sui-unsaved-ink) 8%, transparent);
+  --sui-unsaved-row-pressed: color-mix(in srgb, var(--sui-unsaved-ink) 16%, transparent);
   --sui-decision-accent-hover: color-mix(
     in srgb,
     var(--sui-decision-accent) 86%,
@@ -738,6 +747,8 @@
     --sui-swatch-edge-floor: 0.56;
     --sui-swatch-edge-ceiling: 1;
     --sui-unsaved-border: #a5772c;
+    --sui-unsaved-row-hover: color-mix(in srgb, var(--sui-unsaved-ink) 8%, transparent);
+    --sui-unsaved-row-pressed: color-mix(in srgb, var(--sui-unsaved-ink) 16%, transparent);
     --sui-decision-accent-hover: color-mix(
       in srgb,
       var(--sui-decision-accent) 86%,

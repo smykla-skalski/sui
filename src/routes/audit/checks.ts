@@ -320,7 +320,9 @@ function palette(): Finding[] {
 function textContrast(root: Document): Finding[] {
   const found: Finding[] = [];
   for (const { element } of textElements(root, PAINT_EXEMPT)) {
-    if (isDisabled(element)) continue;
+    // A save bar's copy dims with its held actions while the save runs: the words of an
+    // inactive component, which WCAG 1.4.3 exempts as it does a disabled control's (L-40).
+    if (isDisabled(element) || element.closest('.sui-save-bar.saving')) continue;
     const style = getComputedStyle(element);
     const ink = rgba(style.color);
     const ground = paintedGround(element);
@@ -1026,6 +1028,9 @@ function controls(root: Document): Finding[] {
   }
 
   for (const button of audited(root, 'button, a[href]')) {
+    // A button kept hidden in its seat, as a setting row's idle reset is, has words that
+    // `innerText` does not report.
+    if (!button.checkVisibility({ visibilityProperty: true })) continue;
     if ((button as HTMLElement).innerText.trim() !== '' || !button.querySelector('svg')) continue;
     if (!button.getAttribute('aria-label') && !button.getAttribute('aria-labelledby'))
       found.push(finding('L-44', button, 'an icon-only control has no accessible name'));
@@ -1502,6 +1507,73 @@ function plates(root: Document): Finding[] {
       found.push(
         finding('L-91', next, `two state plates stand ${round(gap)}px apart, not 4px to 8px`)
       );
+  }
+  return found;
+}
+
+/**
+ * A setting row's reset (L-36), shown or keeping its seat, centres within half a pixel on its
+ * controls' first line, hanging on the first line of a control that wraps, and lends the row
+ * no height: the controls' side is exactly as tall as the controls. In a row too narrow to
+ * hold both on one line, it stands beside the copy instead and centres on it.
+ */
+function settingResets(root: Document): Finding[] {
+  const found: Finding[] = [];
+  for (const seat of audited(root, '.sui-setting-reset')) {
+    const side = seat.parentElement;
+    const row = seat.closest('.sui-setting-row');
+    const controls = side?.querySelector(':scope > .sui-setting-control');
+    const copy = row?.querySelector(':scope > .sui-setting-say');
+    const reset = seat.querySelector('button');
+    if (!side || !controls || !copy || !reset) continue;
+    const own = reset.getBoundingClientRect();
+    const first = [...controls.querySelectorAll(INTERACTIVE)]
+      .map((part) => part.getBoundingClientRect())
+      .filter((box) => box.width > 1 && box.height > 1)
+      .sort((a, b) => a.top - b.top)[0];
+    const beside = first && own.bottom > first.top && own.top < first.bottom;
+    const line = copy.getBoundingClientRect();
+    const middle = beside
+      ? first.top + Math.min(first.height, own.height) / 2
+      : (line.top + line.bottom) / 2;
+    const off = (own.top + own.bottom) / 2 - middle;
+    if (Math.abs(off) > 0.5)
+      found.push(
+        finding(
+          'L-36',
+          reset,
+          `the reset sits ${round(off)}px off the middle of its ${beside ? "controls' first line" : 'copy'}`
+        )
+      );
+    if (getComputedStyle(side).display === 'contents') continue;
+    const taller = side.getBoundingClientRect().height - controls.getBoundingClientRect().height;
+    if (taller > 0.5)
+      found.push(finding('L-36', reset, `the reset makes its row ${round(taller)}px taller`));
+  }
+  return found;
+}
+
+/**
+ * A changed setting row lays every hover and press veil of its controls in its own ink (L-16).
+ * A veil token the row leaves alone still holds the value it took where it was declared, in
+ * the neutral ink, and draws grey on the gold plate.
+ */
+function unsavedVeils(root: Document): Finding[] {
+  const found: Finding[] = [];
+  const veils = [
+    '--sui-row-hover',
+    '--sui-row-pressed',
+    '--sui-interactive-hover-layer',
+    '--sui-interactive-pressed',
+    '--sui-segment-hover',
+    '--sui-segment-pressed'
+  ];
+  for (const row of audited(root, '.sui-setting-row[data-unsaved]')) {
+    const own = getComputedStyle(row);
+    const around = row.parentElement && getComputedStyle(row.parentElement);
+    for (const veil of veils)
+      if (around && own.getPropertyValue(veil).trim() === around.getPropertyValue(veil).trim())
+        found.push(finding('L-16', row, `${veil} keeps the neutral veil on the changed plate`));
   }
   return found;
 }
@@ -2195,5 +2267,7 @@ register(
   titleProximity,
   disclosures,
   loadMoreRows,
-  dialogInsets
+  dialogInsets,
+  settingResets,
+  unsavedVeils
 );

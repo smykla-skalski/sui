@@ -158,13 +158,19 @@ it keeps focus, for a list that is saving.
 
   /* A box with no words is a square as tall as a control, 34px or 44px on touch, so its
      ground and its hit area match the buttons beside it (L-101). The margin hands that room
-     back, so the box sits on the row's edge and the row keeps its own height. No words to wrap,
-     so no clamp: a 100% cap would let a shrink-wrapped column squeeze the square. */
+     back, so the box sits on the row's edge and the row keeps its own height. A parent whose
+     edge the box ends, as a setting row's end is, sets `--sui-local-checkbox-bleed: 0px` so the
+     square stands inside it like any other control. No words to wrap, so no clamp: a 100% cap
+     would let a shrink-wrapped column squeeze the square. */
   .bare {
     block-size: var(--sui-control-height-compact);
     grid-template-columns: auto;
     inline-size: var(--sui-control-height-compact);
-    margin: calc((var(--sui-icon-md) - var(--sui-control-height-compact)) / 2);
+    margin-block: calc((var(--sui-icon-md) - var(--sui-control-height-compact)) / 2);
+    margin-inline: var(
+      --sui-local-checkbox-bleed,
+      calc((var(--sui-icon-md) - var(--sui-control-height-compact)) / 2)
+    );
     max-inline-size: none;
     min-block-size: 0;
     padding: 0;

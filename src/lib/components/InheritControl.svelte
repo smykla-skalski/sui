@@ -118,7 +118,9 @@
 A value that comes from somewhere else until this level overrides it, and the way back. While it
 inherits, it says the value in muted ink and where it comes from, beside an `add` button named
 Override. Overriding draws the caller's `control` in its place and moves focus into it; the way
-back takes it away and returns focus to Override. Both moves keep the page still.
+back, a bordered button, takes it away and returns focus to Override. Its frame keeps it in line
+with the control's edge when it wraps under the control on a narrow row. Both moves keep the
+page still.
 
 An override is not a change by itself. Mark the row unsaved, with `SettingRow`'s `unsaved`, only
 when the setting differs from its saved value, never because it differs from the inherited one.
@@ -161,7 +163,6 @@ for a press of the way back.
   </span>
   {#if overridden}
     <Button
-      tone="ghost"
       {disabled}
       aria-label={inheritName?.(label) ?? inheritFor(inheritLabel, label)}
       onclick={inherit}>{inheritLabel}</Button

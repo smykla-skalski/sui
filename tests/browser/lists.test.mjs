@@ -403,6 +403,66 @@ suite('lists', together, () => {
     }
   );
 
+  test(
+    'L-36 a press anywhere on a setting row reaches the control its name labels once',
+    long,
+    async () => {
+      const page = await open();
+      try {
+        const rows = page.locator('#setting-list .sui-setting-list').first();
+        await rows.scrollIntoViewIfNeeded();
+        // A grid over the whole row: the why line, the padding, the gap between the sides and
+        // the control itself. Only the reset is left out, because pressing it resets.
+        const points = async (/** @type {string} */ name) => {
+          const row = rows.locator('.sui-setting-row', { hasText: name }).first();
+          const box = await row.boundingBox();
+          assert.ok(box);
+          const grid = [];
+          for (let y = 0; y < 5; y++)
+            for (let x = 0; x < 16; x++)
+              grid.push({
+                x: box.x + ((x + 0.5) / 16) * box.width,
+                y: box.y + ((y + 0.5) / 5) * box.height
+              });
+          return { row, grid };
+        };
+        const onReset = (/** @type {{ x: number, y: number }} */ at) =>
+          page.evaluate(
+            ({ x, y }) => document.elementFromPoint(x, y)?.closest('.sui-setting-reset') !== null,
+            at
+          );
+
+        const field = await points('Command prefix');
+        const input = field.row.getByRole('textbox');
+        for (const at of field.grid) {
+          await page.evaluate(() =>
+            /** @type {HTMLElement | null} */ (document.activeElement)?.blur()
+          );
+          await page.mouse.click(at.x, at.y);
+          assert.ok(
+            await input.evaluate((node) => node === document.activeElement),
+            `a press at ${Math.round(at.x)},${Math.round(at.y)} left the field unfocused`
+          );
+        }
+
+        const box = await points('Retry failed checks');
+        const checkbox = box.row.getByRole('checkbox');
+        for (const at of box.grid) {
+          if (await onReset(at)) continue;
+          const before = await checkbox.isChecked();
+          await page.mouse.click(at.x, at.y);
+          assert.equal(
+            await checkbox.isChecked(),
+            !before,
+            `a press at ${Math.round(at.x)},${Math.round(at.y)} did not flip the box once`
+          );
+        }
+      } finally {
+        await page.close();
+      }
+    }
+  );
+
   test('AC12 a removed chip and a removed pair are announced', long, async () => {
     const page = await open();
     try {

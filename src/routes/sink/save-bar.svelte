@@ -122,4 +122,9 @@
     overflow-y: auto;
     padding: var(--sui-space-4);
   }
+
+  /* A bar that shows brings its own room under it. */
+  .scroller:has(> :global(.sui-save-bar:not([hidden]))) {
+    padding-block-end: 0;
+  }
 </style>

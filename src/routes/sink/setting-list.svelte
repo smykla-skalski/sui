@@ -43,6 +43,7 @@
   let prefix = $state(saved.prefix);
   let session = $state(saved.session);
   let ignore = $state([...saved.ignore]);
+  const ignoreChanged = $derived(JSON.stringify(ignore) !== JSON.stringify(saved.ignore));
 
   // A reset hands back a way to put the change back, so the row can offer Undo.
   function resetter<T>(read: () => T, write: (value: T) => void, start: T) {
@@ -126,6 +127,14 @@
         name="Command prefix"
         why="What a comment starts with to reach the bot"
         unsaved={prefix !== saved.prefix}
+        onclear={prefix !== saved.prefix
+          ? resetter(
+              () => prefix,
+              (value) => (prefix = value),
+              saved.prefix
+            )
+          : undefined}
+        resettable
       >
         {#snippet control({ id, describedby })}
           <span class="prefix">
@@ -137,6 +146,14 @@
         name="Session lifetime"
         why="How long a sign-in lasts before it is asked for again"
         unsaved={session !== saved.session}
+        onclear={session !== saved.session
+          ? resetter(
+              () => session,
+              (value) => (session = value),
+              saved.session
+            )
+          : undefined}
+        resettable
       >
         {#snippet control({ id, describedby })}
           <DurationInput
@@ -151,7 +168,15 @@
       <SettingRow
         name="Paths the bot never formats, even when a rule in a parent workspace asks it to"
         why="Every file under these patterns is left exactly as it was committed, which keeps generated and vendored code untouched"
-        unsaved={JSON.stringify(ignore) !== JSON.stringify(saved.ignore)}
+        unsaved={ignoreChanged}
+        onclear={ignoreChanged
+          ? resetter(
+              () => ignore,
+              (value) => (ignore = value),
+              [...saved.ignore]
+            )
+          : undefined}
+        resettable
         stacked
       >
         {#snippet control({ labelledby })}
@@ -287,9 +312,10 @@
     inline-size: 8rem;
   }
 
-  /* Centred in its snapped box, so the spare pixels split above and under the words. */
+  /* The snap's spare pixel goes above the words, as it does above a row's name, so the words
+     end one inset above the card's foot when the fact closes it. */
   .fact {
-    align-content: center;
+    align-content: end;
     block-size: var(--sui-block-snap-even);
     color: var(--sui-text-secondary);
     font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-leading-flat)

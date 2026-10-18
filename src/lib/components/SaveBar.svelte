@@ -150,6 +150,27 @@
     return () => pane.removeEventListener('keydown', onkeydown);
   }
 
+  // A field the reader tabs to, or a fragment the page jumps to, scrolls clear above the
+  // floating bar instead of behind it (WCAG 2.4.11), as AppShell keeps the page clear of its
+  // bars: the scroller's end padding is the bar, its inset under it and as much again above it.
+  function clearance(bar: HTMLElement) {
+    let scroller = bar.parentElement;
+    while (scroller && !/auto|scroll/.test(getComputedStyle(scroller).overflowY))
+      scroller = scroller.parentElement;
+    const pane = scroller ?? document.documentElement;
+    const before = pane.style.scrollPaddingBlockEnd;
+    const observer = new ResizeObserver(([entry]) => {
+      const tall = entry.borderBoxSize[0].blockSize;
+      const inset = parseFloat(getComputedStyle(bar).insetBlockEnd);
+      pane.style.scrollPaddingBlockEnd = tall > 0 ? `${tall + 2 * inset}px` : before;
+    });
+    observer.observe(bar);
+    return () => {
+      observer.disconnect();
+      pane.style.scrollPaddingBlockEnd = before;
+    };
+  }
+
   // Resolving the style before the flag lands means a bar that is up at first paint already
   // has one, so only a later reveal slides in.
   function settle(bar: HTMLElement) {
@@ -165,20 +186,22 @@ saved or thrown away. Every edit on the pane stages a draft; this bar sends it. 
 exception: its border and its Save button wear the decision accent, which belongs only to
 unsaved state and the action that resolves it.
 
-Place it last in the content that scrolls, the page's or a pane's. It sticks to the block end
-of that scroller, 16px in, while there is content past it, and once the reader reaches the end
-it rests after the last content, so it never covers that content and nothing is measured.
+Place it last in the content that scrolls, the page's or a pane's, with the gap the content
+keeps between its own parts before it. It sticks to the block end of that scroller, 16px in,
+while there is content past it, and once the reader reaches the end it rests after the last
+content at that same gap, with its 16px under it, so it never covers that content. The bar
+brings its own room under it, so the scroller needs no end padding.
 
 - Semantics: an `aside` named by its title, with a polite live copy and native buttons.
 - Content: a title and a subtitle while there is work; `savedTitle` once a save lands; `discardedTitle` with Undo once Discard has run.
-- States: unsaved (Discard and Save), saving (both held, Save busy with `savingLabel`, and the gold edge muted with it), failed (`failedTitle` over the reason), saved (a quiet notice for 5 seconds, paused while hovered) and discarded (Undo and Dismiss until the reader acts).
+- States: unsaved (Discard and Save), saving (both held, Save busy with `savingLabel`, and the gold edge and the copy dimmed with them), failed (`failedTitle` over the reason), saved (a quiet notice for 5 seconds, paused while hovered) and discarded (Undo and Dismiss until the reader acts).
 - Keyboard: Tab reaches Discard and Save at the pane's end; Ctrl+S or Cmd+S saves from anywhere in the bar's pane; Escape never discards.
 - Pointer and touch: buttons are 34px tall, 44px on a phone.
-- Focus: after Discard focus moves to Undo, or to Dismiss without one; after a save lands, Undo or Dismiss, focus goes back to the control the reader came from, else the pane's first control, never to the page.
+- Focus: after Discard focus moves to Undo, or to Dismiss without one; after a save lands, Undo or Dismiss, focus goes back to the control the reader came from, else the pane's first control, never to the page; a field focused under the floating bar scrolls clear above it, because the bar pads its scroller's end by its own height (WCAG 2.4.11).
 - Responsive: the copy wraps and the actions wrap under it; on a screen under 30rem tall, as at 400% zoom, the bar stops sticking and only sits at the pane's end, so it never covers most of the view.
 - Accessibility: the copy is a polite live region, so a failure, a save and a discard are each said; the bar's name is its title.
 - Localization: every word is a prop with an English default; the actions end the line in the reading direction.
-- Performance: no script measures it; a fade and 8px rise on entry, removed under reduced motion.
+- Performance: one `ResizeObserver` keeps the scroller's end padding as tall as the bar, and nothing measures it per frame; a fade and 8px rise on entry, removed under reduced motion.
 - Analytics: `onsave` hears each save, the shortcut included, `ondiscard` each discard, and the function it returns each undo.
 - Failure: a failed save keeps the bar up with the reason and the work is never dropped on its own; without an undo from `ondiscard` the discard still says so before the bar leaves.
 -->
@@ -187,6 +210,7 @@ it rests after the last content, so it never covers that content and nothing is 
   bind:this={element}
   {@attach settle}
   {@attach shortcut}
+  {@attach clearance}
   {...rest}
   class={['sui-save-bar', className, { notice: notice !== null, saving }]}
   aria-labelledby={titleId}
@@ -228,7 +252,11 @@ it rests after the last content, so it never covers that content and nothing is 
 </aside>
 
 <style>
+  /* The bar keeps its inset under it as a margin too, so it rests where it floats: at the
+     content's end a sticky box is held its inset off the scroller's end, and without the room
+     it would ride up over the gap above it, flush with the last field. */
   .sui-save-bar {
+    --sui-save-bar-inset: max(var(--sui-space-4), env(safe-area-inset-bottom));
     --sui-surface-raised: transparent;
     align-items: center;
     background: var(--sui-popover-bg);
@@ -241,8 +269,9 @@ it rests after the last content, so it never covers that content and nothing is 
     flex-wrap: wrap;
     gap: var(--sui-space-3) var(--sui-space-5);
     inline-size: 100%;
-    inset-block-end: max(var(--sui-space-4), env(safe-area-inset-bottom));
+    inset-block-end: var(--sui-save-bar-inset);
     justify-content: space-between;
+    margin-block-end: var(--sui-save-bar-inset);
     margin-inline: auto;
     max-inline-size: 50rem;
     opacity: 1;
@@ -272,14 +301,19 @@ it rests after the last content, so it never covers that content and nothing is 
     border-color: var(--sui-border-subtle);
   }
 
-  /* While the save runs the edge waits with its Save button, muted the same way, so the bar
-     reads as busy as a whole. */
+  /* While the save runs the edge and the copy wait with its buttons, muted the same way, so the
+     bar reads as busy as a whole (L-40). Opacity leaves the live copy's words in the
+     accessibility tree, so the outcome is still said. */
   .sui-save-bar.saving {
     border-color: color-mix(
       in srgb,
       var(--sui-decision-accent) calc(var(--sui-disabled-opacity) * 100%),
       transparent
     );
+  }
+
+  .saving .copy {
+    opacity: var(--sui-disabled-opacity);
   }
 
   .sui-save-bar[hidden] {
@@ -328,10 +362,11 @@ it rests after the last content, so it never covers that content and nothing is 
   }
 
   /* The bar spreads its two parts, so the actions end the line they share with the copy and
-     start the line they wrap to (L-90). */
+     start the line they wrap to (L-90). On a line narrower than both buttons they wrap too,
+     rather than reach into the bar's inset. */
   .actions {
     display: flex;
-    flex: none;
+    flex: 0 1 auto;
     flex-wrap: wrap;
     gap: var(--sui-space-2);
   }
