@@ -373,11 +373,11 @@ dialog, so they are never inert under it.
     text-box: trim-both cap alphabetic;
   }
 
-  /* A box with no height of its own, so the close button centres on the title's cap band and
-     never makes the head row taller than the title. */
   /* A zero-height seat on the middle of the title's first line, rounded down to the pixel, so
      the even-height button centred on it lands on whole pixels (L-95) and stays by the first
-     line when the title wraps. The title's face makes `1cap` its cap height. */
+     line when the title wraps. The title's face makes `1cap` its cap height. The button reaches
+     past the head's inset by its own padding, so its glyph stands on the content's edge, as
+     far from the dialog's side as the title is from the other, square to the corner. */
   .sui-modal-close {
     align-items: center;
     align-self: flex-start;
@@ -387,6 +387,7 @@ dialog, so they are never inert under it.
     font: var(--sui-weight-bold) var(--sui-font-size-dialog-title) / var(--sui-leading-flat)
       var(--sui-sans);
     margin-block-start: round(down, calc(round(up, 1cap, 1px) / 2), 1px);
+    margin-inline-end: round(calc((var(--sui-icon-sm) - var(--sui-tier-quiet)) / 2), 1px);
   }
 
   .sui-modal-description {
@@ -452,7 +453,8 @@ dialog, so they are never inert under it.
     gap: var(--sui-space-2);
     justify-content: flex-end;
     margin-block-start: auto;
-    padding: var(--sui-space-4) var(--sui-space-6);
+    /* One inset on every side, the dialog's own, so the actions stand square in the footer. */
+    padding: var(--sui-space-6);
   }
 
   @keyframes sui-modal-in {
@@ -496,9 +498,12 @@ dialog, so they are never inert under it.
 
     .sui-modal-head,
     .sui-modal-body,
-    .sui-modal-error-line,
-    .sui-modal-foot {
+    .sui-modal-error-line {
       padding-inline: var(--sui-space-4);
+    }
+
+    .sui-modal-foot {
+      padding: var(--sui-space-4);
     }
   }
 
