@@ -46,7 +46,7 @@
   const SETTLE = 100;
 
   let settled = $state(false);
-  let slow = $state(false);
+  let late = $state(false);
   // Only a wait the reader saw ends with the loaded words.
   let waited = $state(false);
 
@@ -56,14 +56,17 @@
   });
 
   $effect(() => {
-    slow = false;
+    late = false;
     if (!loading) return;
     waited = true;
     // A timer clamps a delay past 2^31 - 1 ms to none, so a wait with no end sets none.
-    if (!Number.isFinite(patience)) return;
-    const timer = setTimeout(() => (slow = true), patience);
+    if (patience <= 0 || !Number.isFinite(patience)) return;
+    const timer = setTimeout(() => (late = true), patience);
     return () => clearTimeout(timer);
   });
+
+  // A wait with no patience is slow from its first paint, which the server renders too.
+  const slow = $derived(loading && (patience <= 0 || late));
 
   const said = $derived(
     !settled
