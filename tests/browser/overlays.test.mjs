@@ -409,6 +409,29 @@ suite('overlays', together, () => {
     }
   );
 
+  // The dots are the box's ground, so a parent that stretches the box would draw them past
+  // the words.
+  test('a relative time draws its dots under its words only', long, async () => {
+    const page = await open();
+    try {
+      const widths = await page.evaluate(() =>
+        [...document.querySelectorAll('#relative-time time.sui-relative-time:not(.exact)')].map(
+          (time) => {
+            const words = document.createRange();
+            const text = [...time.childNodes].find((node) => node.nodeType === Node.TEXT_NODE);
+            if (text) words.selectNodeContents(text);
+            return [time.getBoundingClientRect().width, words.getBoundingClientRect().width];
+          }
+        )
+      );
+      assert.ok(widths.length > 0);
+      for (const [box, words] of widths)
+        assert.ok(Math.abs(box - words) <= 0.5, `dots run ${box}px under ${words}px of words`);
+    } finally {
+      await page.close();
+    }
+  });
+
   test(
     'AC2 a time outside any control takes a tab stop and shows its whole instant',
     long,
