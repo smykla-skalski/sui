@@ -1,14 +1,22 @@
 <script module lang="ts">
-  export const section = { title: 'Field', order: 21 };
+  export const section = {
+    title: 'Field',
+    order: 21,
+    lead: 'A label, its control and the help and error under it, for one value in a form. A group of choices names itself with a legend and needs no Field.',
+    components: ['Field']
+  };
 </script>
 
 <script lang="ts">
-  import { Field, Switch, Textarea } from '#lib';
+  import { Card, Checkbox, Field, Textarea } from '#lib';
   import Example from '../kit/Example.svelte';
+  import Specimen from '../kit/Specimen.svelte';
 
   let project = $state('');
   let owner = $state('smykla-skalski');
   let team = $state('Team with spaces');
+  let repository = $state('');
+  let summary = $state('');
   let reason = $state('');
   let sync = $state(true);
   let protect = $state(false);
@@ -16,42 +24,56 @@
 
 <Example
   title="States"
-  note="Rest, filled, invalid with its error and disabled, 16px apart with 8px inside each field"
-  layout="stack"
+  note="Rest, filled with a hint, invalid with its error and disabled with its reason"
+  layout="grid"
 >
-  <div class="form">
+  <Specimen label="Rest" code="placeholder">
     <Field label="Project name" placeholder="your-project" bind:value={project} />
+  </Specimen>
+  <Specimen label="Filled, with a hint" code="hint">
     <Field
       label="Owner"
       hint="The organization or user that owns the repository"
       bind:value={owner}
     />
+  </Specimen>
+  <Specimen label="Invalid" code="error">
     <Field
       label="Team name"
       hint="Shown on every review request"
       error="Use letters, digits and dashes only"
       bind:value={team}
     />
-    <Field label="Default branch" value="main" disabled />
-  </div>
+  </Specimen>
+  <Specimen label="Disabled" code="disabled">
+    <Field
+      label="Default branch"
+      hint="Only an owner can rename the default branch"
+      value="main"
+      disabled
+    />
+  </Specimen>
 </Example>
 
 <Example
-  title="Keyboard focus"
-  note="Tab into a field and its own border becomes the ring, so a card never clips it"
-  layout="stack"
+  title="Required"
+  note="A required field says so in a word beside its label, and an optional one says nothing"
+  layout="grid"
 >
-  <div class="form">
-    <Field label="Contact email" type="email" required placeholder="you@example.com" />
-  </div>
+  <Specimen label="Required" code="required">
+    <Field label="Repository name" required placeholder="your-project" bind:value={repository} />
+  </Specimen>
+  <Specimen label="Optional">
+    <Field label="Description" hint="Shown under the name in every list" bind:value={summary} />
+  </Specimen>
 </Example>
 
 <Example
   title="Any control"
   note="The control snippet takes the id, the description ids and the invalid flag"
-  layout="stack"
+  layout="grid"
 >
-  <div class="form">
+  <Specimen label="Textarea" code="control">
     <Field label="Reason" hint="Shown in the audit log next to the change">
       {#snippet control({ id, describedby, invalid })}
         <Textarea
@@ -63,30 +85,46 @@
         />
       {/snippet}
     </Field>
-  </div>
+  </Specimen>
 </Example>
 
 <Example
-  title="Label beside a switch"
-  note="A row layout centres the label and the switch on one line"
-  layout="stack"
+  title="Label beside a checkbox"
+  note="A row layout centres the label and a form's checkbox on one line, and the label names the box"
+  layout="grid"
 >
-  <div class="form">
+  <Specimen label="Checked" code={'layout="row"'}>
     <Field label="Sync on every push" layout="row" hint="Runs within a minute of each push">
       {#snippet control({ id, describedby, invalid })}
-        <Switch {id} aria-describedby={describedby} {invalid} bare bind:checked={sync} />
+        <Checkbox {id} aria-describedby={describedby} {invalid} bare bind:checked={sync} />
       {/snippet}
     </Field>
+  </Specimen>
+  <Specimen label="Invalid" code={'layout="row" error'}>
     <Field
       label="Protect the default branch"
       layout="row"
       error="The default branch must stay protected while reviews are required"
     >
       {#snippet control({ id, describedby, invalid })}
-        <Switch {id} aria-describedby={describedby} {invalid} bare bind:checked={protect} />
+        <Checkbox {id} aria-describedby={describedby} {invalid} bare bind:checked={protect} />
       {/snippet}
     </Field>
-  </div>
+  </Specimen>
+</Example>
+
+<Example
+  title="In context"
+  note="Fields stack 16px apart, and a focused field's own border becomes the ring, so the card never clips it"
+  layout="grid"
+  ground="canvas"
+>
+  <Card title="New repository" level={4}>
+    <div class="form">
+      <Field label="Repository name" required placeholder="your-project" />
+      <Field label="Contact email" type="email" required placeholder="you@example.com" />
+    </div>
+  </Card>
 </Example>
 
 <Example
@@ -94,21 +132,22 @@
   note="Long labels, hints and errors wrap and keep the same 8px gap between lines"
   layout="stack"
 >
-  <div class="form narrow">
-    <Field
-      label="The address that hears about every scheduled sync that fails on any repository"
-      hint="One address only, and it can be a shared team inbox that several people read"
-      error="This address bounced the last message, so check it before you save"
-      value="alerts@example"
-    />
-  </div>
+  <Specimen label="Wrapped label, hint and error">
+    <div class="narrow">
+      <Field
+        label="The address that hears about every scheduled sync that fails on any repository"
+        hint="One address only, and it can be a shared team inbox that several people read"
+        error="This address bounced the last message, so check it before you save"
+        value="alerts@example"
+      />
+    </div>
+  </Specimen>
 </Example>
 
 <style>
   .form {
     display: grid;
     gap: var(--sui-space-4);
-    inline-size: min(100%, 24rem);
   }
 
   .narrow {

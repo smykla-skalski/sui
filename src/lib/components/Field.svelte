@@ -6,13 +6,18 @@
     describedby: string | undefined;
     /** True while the field shows an error. */
     invalid: boolean;
+    /** True when the field must be filled. Put `required` on a native control, `aria-required` on any other. */
+    required: boolean;
   };
 </script>
 
 <script lang="ts">
+  import { word } from '../words.js';
   import type { Snippet } from 'svelte';
   import type { HTMLInputAttributes } from 'svelte/elements';
+  import Icon from '../icons/Icon.svelte';
   import TextInput from './TextInput.svelte';
+  import VisuallyHidden from './VisuallyHidden.svelte';
 
   const fallbackId = $props.id();
 
@@ -20,6 +25,8 @@
     label,
     hint,
     error,
+    required = false,
+    requiredLabel = word('Field.requiredLabel', 'Required'),
     value = $bindable(''),
     type = 'text',
     layout = 'stack',
@@ -34,6 +41,10 @@
     hint?: string;
     /** Says what is wrong. The control is marked invalid and described by it. */
     error?: string;
+    /** Shows `requiredLabel` beside the label and marks the control required. */
+    required?: boolean;
+    /** The word beside the label of a field that must be filled. */
+    requiredLabel?: string;
     value?: string | number | null;
     type?: 'text' | 'email' | 'password' | 'search' | 'tel' | 'url' | 'number';
     /** `row` puts the label beside a switch instead of above the control. */
@@ -58,23 +69,52 @@ A label, its control, and the help and error under it, 8px apart as rendered ink
 land on that input.
 
 Any other control goes in the `control` snippet, which receives the `id` the label points at,
-the `describedby` ids of the hint and the error, and `invalid`. Spread them onto a `Textarea`,
-a `Switch` or a picker. `layout="row"` sets the label beside a switch, both centred on one line.
+the `describedby` ids of the hint and the error, `invalid` and `required`. Spread them onto a
+`Textarea`, a `Select`, a `Checkbox` or a picker. `layout="row"` sets the label beside a
+checkbox or a switch, both centred on one line.
+
+`required` writes the word "Required" beside the label, never only an asterisk, and marks
+the control. The word stays out of the accessibility tree, because the control already
+announces itself as required.
 
 A group of choices names itself with a legend, so `CheckList`, `ChoiceCards` and
 `SegmentedControl` stand on their own instead of inside a field.
+
+An error leads with a warning mark, so it differs from the hint by more than colour, and a
+polite status speaks it when it appears or changes.
+
+- Semantics: a `<label for>` that names the control, a hint and an error that describe it through `aria-describedby`, and a polite `role="status"` that speaks the error.
+- Content: `label` (a few words, sentence case), an optional one-sentence `hint`, an optional `error` that says what is wrong and how to fix it, and any one control.
+- States: rest, required (the word beside the label and a required control), with a hint, invalid (the control's danger edge and an error with a warning mark) and disabled (the control's own look).
+- Keyboard: a press on the label focuses the control; the control brings its own keys.
+- Pointer and touch: the label is part of a text control's target, and the control keeps its own sizes.
+- Focus: it never moves focus; a form that refuses a send moves focus to the first invalid control.
+- Responsive: it fills its column, and a long label, hint or error wraps with the same 8px gap between lines; `row` keeps a switch or checkbox beside a label that wraps.
+- Accessibility: the label names the control, hint and error describe it, the error is spoken when it appears, and every line holds 4.5:1.
+- Localization: `requiredLabel` is a prop with an English default, the label, hint and error come from the caller, and the layout is logical.
+- Performance: static markup and one status per field; nothing animates.
+- Analytics: none of its own; the control reports through its own callbacks.
+- Failure: an `error` is drawn with a mark and words and spoken, and a missing `label` is a type error, so a field is never unnamed.
 -->
 
 <div class="sui-field" data-layout={layout}>
-  <label class="sui-field-label" for={id}>{label}</label>
+  {#if required}
+    <div class="sui-field-head">
+      <label class="sui-field-label" for={id}>{label}</label>
+      <span class="sui-field-required" aria-hidden="true">{requiredLabel}</span>
+    </div>
+  {:else}
+    <label class="sui-field-label" for={id}>{label}</label>
+  {/if}
   <div class="sui-field-control">
     {#if control}
-      {@render control({ id, describedby, invalid: Boolean(error) })}
+      {@render control({ id, describedby, invalid: Boolean(error), required })}
     {:else}
       <TextInput
         {...rest}
         {id}
         {type}
+        {required}
         class={className}
         bind:value
         invalid={Boolean(error)}
@@ -83,7 +123,15 @@ A group of choices names itself with a legend, so `CheckList`, `ChoiceCards` and
     {/if}
   </div>
   {#if hint}<p id="{id}-hint" class="sui-field-help">{hint}</p>{/if}
-  {#if error}<p id="{id}-error" class="sui-field-error">{error}</p>{/if}
+  <!-- The status speaks the error, so the drawn copy stays out of the tree; the control's
+       description still reads it. -->
+  {#if error}
+    <p id="{id}-error" class="sui-field-error" aria-hidden="true">
+      <span class="sui-field-error-mark"><Icon name="alert" size="xs" /></span>
+      <span class="sui-field-error-text">{error}</span>
+    </p>
+  {/if}
+  <VisuallyHidden role="status">{error ?? ''}</VisuallyHidden>
 </div>
 
 <style>
@@ -104,9 +152,27 @@ A group of choices names itself with a legend, so `CheckList`, `ChoiceCards` and
   }
 
   .sui-field-label {
+    block-size: var(--sui-block-snap);
     color: var(--sui-text-secondary);
-    font: 600 var(--sui-font-size-control) / var(--sui-row-copy-leading) var(--sui-sans);
+    font: var(--sui-weight-semibold) var(--sui-font-size-control) / var(--sui-row-copy-leading)
+      var(--sui-sans);
     min-inline-size: 0;
+    text-box: trim-both cap alphabetic;
+  }
+
+  .sui-field-head {
+    align-items: baseline;
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--sui-space-1) var(--sui-space-2);
+    min-inline-size: 0;
+  }
+
+  .sui-field-required {
+    block-size: var(--sui-block-snap);
+    color: var(--sui-text-muted);
+    font: var(--sui-weight-regular) var(--sui-font-size-control) / var(--sui-row-copy-leading)
+      var(--sui-sans);
     text-box: trim-both cap alphabetic;
   }
 
@@ -122,19 +188,34 @@ A group of choices names itself with a legend, so `CheckList`, `ChoiceCards` and
   }
 
   .sui-field-help,
-  .sui-field-error {
+  .sui-field-error-text {
+    block-size: var(--sui-block-snap);
     margin: 0;
+    min-inline-size: 0;
     overflow-wrap: anywhere;
     text-box: trim-both cap alphabetic;
   }
 
   .sui-field-help {
     color: var(--sui-text-secondary);
-    font: 400 var(--sui-font-size-compact) / var(--sui-row-copy-leading) var(--sui-sans);
+    font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-row-copy-leading)
+      var(--sui-sans);
   }
 
   .sui-field-error {
+    align-items: start;
     color: var(--sui-danger);
-    font: 400 var(--sui-font-size-meta) / var(--sui-row-copy-leading) var(--sui-sans);
+    column-gap: var(--sui-space-1);
+    display: grid;
+    font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-row-copy-leading)
+      var(--sui-sans);
+    grid-template-columns: auto minmax(0, 1fr);
+    margin: 0;
+  }
+
+  /* Centred on the first line's cap height, however many lines the error wraps to. */
+  .sui-field-error-mark {
+    display: flex;
+    margin-block: round(calc((1cap - var(--sui-icon-xs)) / 2), 1px);
   }
 </style>

@@ -4,7 +4,7 @@
   export type SelectOption<Value extends SelectValue = string> = {
     value: Value;
     label: string;
-    /** A short note set after the label on the same line, so the row stays 34px. */
+    /** A short note after the label, such as "10 seats". The picker shows it, the closed field does not. */
     description?: string;
     disabled?: boolean;
   };
@@ -17,456 +17,535 @@
 </script>
 
 <script lang="ts" generics="Value extends SelectValue = string">
-  import { tick } from 'svelte';
-  import type { HTMLButtonAttributes } from 'svelte/elements';
+  import { mark, word } from '../words.js';
+  import type { HTMLSelectAttributes } from 'svelte/elements';
   import Icon from '../icons/Icon.svelte';
-  import Popover from './Popover.svelte';
-
-  const uid = $props.id();
-  const TYPEAHEAD_PAUSE = 500;
 
   let {
     value = $bindable(null),
     options,
-    placeholder = 'Choose an option',
-    name,
-    form,
-    disabled = false,
+    placeholder,
+    promptLabel = word('Select.promptLabel', 'Choose an option'),
+    separator = word('Select.separator', ' · '),
+    optionName = word(
+      'Select.optionName',
+      (label: string, note: string) => `${label}${mark('comma')}${note}`
+    ),
+    invalid = false,
+    preview = false,
+    bare = false,
     element = $bindable(null),
+    'aria-invalid': ariaInvalid,
     class: className = '',
     ...rest
   }: {
     value?: Value | null;
     options: readonly (SelectOption<Value> | SelectGroup<Value>)[];
-    /** Shown in muted ink while nothing is chosen. */
+    /** The prompt in a disabled first option. Without it, `promptLabel` shows while `value` is null. */
     placeholder?: string;
-    /** Submits the value with its form through a hidden input. */
-    name?: string;
-    form?: string;
-    disabled?: boolean;
-    element?: HTMLButtonElement | null;
-    class?: HTMLButtonAttributes['class'];
-  } & Omit<
-    HTMLButtonAttributes,
-    'value' | 'name' | 'form' | 'type' | 'role' | 'children' | 'disabled' | 'class'
-  > = $props();
+    /** The prompt while `value` is null and no `placeholder` is set. */
+    promptLabel?: string;
+    /** Set between a label and its note where the browser's own picker shows them on one line. */
+    separator?: string;
+    /** An option's accessible name from its label and its note. */
+    optionName?: (label: string, note: string) => string;
+    /** Marks the value as wrong; pass a `Field`'s `invalid` here, with its error in `aria-describedby`. */
+    invalid?: boolean;
+    /** Draws a static copy of the open picker under the field, with the option after the value active. */
+    preview?: boolean;
+    /**
+     * Drops the frame, for one part of a joined field whose host draws the frame, the focus
+     * ring and the error and disabled looks.
+     */
+    bare?: boolean;
+    element?: HTMLSelectElement | null;
+    /** Layout for the call site only, never the field's own paint. */
+    class?: HTMLSelectAttributes['class'];
+  } & Omit<HTMLSelectAttributes, 'value' | 'multiple' | 'size' | 'children' | 'class'> = $props();
 
-  type Entry = { option: SelectOption<Value>; index: number };
+  const isGroup = (item: SelectOption<Value> | SelectGroup<Value>): item is SelectGroup<Value> =>
+    'options' in item;
 
-  const popupId = `${uid}-popup`;
-  const listId = `${uid}-list`;
-  const optionId = (index: number) => `${uid}-option-${index}`;
-
-  const sections = $derived.by(() => {
-    let index = 0;
-    return options.map((item, at) => {
-      const group = 'options' in item ? item : undefined;
-      const members = group ? group.options : [item as SelectOption<Value>];
-      return {
-        key: `${uid}-group-${at}`,
-        heading: group?.label,
-        entries: members.map((option): Entry => ({ option, index: index++ }))
-      };
-    });
+  const prompt = $derived(placeholder ?? (value === null ? promptLabel : undefined));
+  const wrong = $derived(invalid || (ariaInvalid !== undefined && String(ariaInvalid) !== 'false'));
+  const flat = $derived(options.flatMap((item) => (isGroup(item) ? item.options : [item])));
+  const chosen = $derived(flat.find((option) => option.value === value));
+  const active = $derived.by(() => {
+    if (!preview) return undefined;
+    const at = chosen ? flat.indexOf(chosen) + 1 : 0;
+    return [...flat.slice(at), ...flat.slice(0, at)].find((option) => !option.disabled);
   });
-  const flat = $derived(sections.flatMap((section) => section.entries.map(({ option }) => option)));
-  const selected = $derived(flat.findIndex((option) => option.value === value));
-  const listLabel = $derived(
-    rest['aria-label'] ??
-      ([...(element?.labels ?? [])]
-        .map((label) => label.textContent?.trim())
-        .filter(Boolean)
-        .join(' ') ||
-        placeholder)
-  );
-
-  let open = $state(false);
-  let active = $state(-1);
-  let list = $state<HTMLElement | null>(null);
-  let typed = '';
-  let typedAt = 0;
-
-  /** The next enabled option from `from`, wrapping; `from` may sit one past either end. */
-  function step(from: number, by: 1 | -1): number {
-    const count = flat.length;
-    for (let distance = 1; distance <= count; distance++) {
-      const at = (((from + by * distance) % count) + count) % count;
-      if (!flat[at].disabled) return at;
-    }
-    return -1;
-  }
-
-  const first = () => step(-1, 1);
-  const last = () => step(flat.length, -1);
-
-  function seek(key: string, at: number): number {
-    typed = at - typedAt > TYPEAHEAD_PAUSE ? key : typed + key;
-    typedAt = at;
-    const needle = typed.toLowerCase();
-    const from = typed.length === 1 ? active + 1 : Math.max(active, 0);
-    for (let distance = 0; distance < flat.length; distance++) {
-      const index = (from + distance) % flat.length;
-      if (!flat[index].disabled && flat[index].label.toLowerCase().startsWith(needle)) return index;
-    }
-    return -1;
-  }
-
-  // Scrolls the list alone: the box is fixed in the top layer, and scrollIntoView could move the page.
-  function reveal(): void {
-    const row = document.getElementById(optionId(active));
-    if (!list || !row) return;
-    const view = list.getBoundingClientRect();
-    const box = row.getBoundingClientRect();
-    if (box.top < view.top) list.scrollTop -= view.top - box.top;
-    else if (box.bottom > view.bottom) list.scrollTop += box.bottom - view.bottom;
-  }
-
-  async function show(index: number): Promise<void> {
-    if (index < 0) return;
-    // Safari does not focus a pressed button, and the keyboard model lives on the trigger.
-    element?.focus({ preventScroll: true });
-    active = index;
-    open = true;
-    await tick();
-    reveal();
-  }
-
-  function move(index: number): void {
-    if (index < 0) return;
-    active = index;
-    reveal();
-  }
-
-  function commit(index: number): void {
-    const option = flat[index];
-    if (!option || option.disabled) return;
-    value = option.value;
-    open = false;
-  }
-
-  const printable = (event: KeyboardEvent) =>
-    event.key.length === 1 && !event.ctrlKey && !event.metaKey && !event.altKey;
-
-  function onkeydown(event: KeyboardEvent): void {
-    const { key } = event;
-    if (!open) {
-      if (key === 'ArrowDown' || key === 'Enter' || key === ' ')
-        void show(selected >= 0 ? selected : first());
-      else if (key === 'ArrowUp') void show(selected >= 0 ? selected : last());
-      else if (key === 'Home') void show(first());
-      else if (key === 'End') void show(last());
-      else if (printable(event)) {
-        active = selected;
-        void show(seek(key, event.timeStamp));
-      } else return;
-      event.preventDefault();
-      return;
-    }
-    if (key === 'ArrowDown') move(step(active, 1));
-    else if (key === 'ArrowUp') move(step(active, -1));
-    else if (key === 'Home') move(first());
-    else if (key === 'End') move(last());
-    else if (key === 'Enter' || key === ' ') commit(active);
-    else if (key === 'Escape') {
-      event.stopPropagation();
-      open = false;
-    } else if (key === 'Tab') {
-      open = false;
-      return;
-    } else if (printable(event)) move(seek(key, event.timeStamp));
-    else return;
-    event.preventDefault();
-  }
-
-  // Space activates a button on keyup in some engines; the keydown above already handled it.
-  function onkeyup(event: KeyboardEvent): void {
-    if (event.key === ' ') event.preventDefault();
-  }
-
-  // `popovertarget` stays on the trigger so the browser treats it as the invoker and never
-  // light-dismisses on it, but the click is handled here so every path runs through `show`.
-  function onclick(event: MouseEvent): void {
-    event.preventDefault();
-    if (open) open = false;
-    else void show(selected >= 0 ? selected : first());
-  }
 </script>
 
 <!--
 @component
-A choice of one value from a fixed list, drawn as the shared button with the chosen label and a
-chevron, and a themed listbox that opens beneath it. It replaces the native `<select>`, whose
-menu cannot be themed. Reach for `Combobox` when the reader types to find the value, and for a
-segmented control when there are two to five options that fit on screen.
+One value from a list of six or more, on a native `<select>`. Where the browser has customizable
+select and a fine pointer, the field and its picker wear SUI: the picker opens under the field in
+the top layer, a note follows each label, and long labels wrap. Elsewhere, phones included, the
+platform's own picker opens, and a note reads as "Team · 10 seats".
 
-Focus never leaves the trigger: the active option is announced through
-`aria-activedescendant`. Arrows wrap, Home and End jump, typing a name jumps to it, Enter or
-Space commits, and Escape closes without closing a surrounding dialog. Name it with a `<label>`
-pointing at its `id`, or with `aria-label`. `name` submits the value through a hidden input.
+Two to five options that fit on screen are a `SegmentedControl`. When the reader types to find
+the value, reach for a `Combobox`.
+
+Every native attribute lands on the `<select>`, so `name`, `required` and `form` submit and
+validate like any field. While `value` is null, or whenever `placeholder` is set, a disabled first
+option holds the prompt, and `required` counts it as no answer. Name the field with a `<label>`
+pointing at its `id`, or with `aria-label`, and pass a `Field`'s `invalid` to `invalid` so its
+error edge shows. `preview` draws an inert copy of the open picker under the field, hidden from
+assistive technology, because a native picker cannot be held open.
+
+- Semantics: a native `<select>` with `<option>` and `<optgroup>` children, named by a `<label for>` or `aria-label`; `invalid` sets `aria-invalid`.
+- Content: six or more options with short labels and optional notes, in optional headed groups; disabled options stay in view.
+- States: rest (the control fill, a quiet frame and a 3:1 baseline), hover (a firmer frame), open, focus (a flush 2px ring), pressed (a deeper ground, an inset shadow and a 1px sink), invalid (a danger edge kept under focus), prompt (muted ink) and disabled (0.7 opacity); in the picker an option is active (a veil) or checked (a check mark).
+- Keyboard: the browser's own select keys: Space, Enter and the arrows open it and move, typing jumps to a label, and Escape closes it.
+- Pointer and touch: the trigger is 34px tall on a pointer and 44px on a phone or any touch screen, every option at least that tall, and a phone opens its own picker.
+- Focus: focus stays on the trigger while the picker opens and closes.
+- Responsive: the trigger is as wide as its value up to its container and cuts a long value, which the picker shows in full, wrapped.
+- Accessibility: options are native, so their names, groups and states reach every screen reader; a note is in an option's name; edges hold 3:1 and words 4.5:1.
+- Localization: `promptLabel`, `separator` and `optionName` are props with English defaults, the chevron and padding are logical, and the picker opens at the start edge in either direction.
+- Performance: native options render once each; the open picker moves only opacity and `translate`, with no movement under reduced motion.
+- Analytics: the native `onchange` reports each pick, and `bind:value` holds it.
+- Failure: no options show only the prompt, a required select with no answer is refused by native validation, and a refused value keeps its danger edge.
 -->
 
-<button
-  bind:this={element}
-  type="button"
-  {...rest}
-  class={['sui-select', className]}
-  role="combobox"
-  aria-haspopup="listbox"
-  aria-expanded={open}
-  aria-controls={listId}
-  aria-activedescendant={open && active >= 0 ? optionId(active) : undefined}
-  popovertarget={popupId}
-  {disabled}
-  {onclick}
-  {onkeydown}
-  {onkeyup}
-  onblur={() => (open = false)}
->
-  <span class={['sui-select-value', { placeholder: selected < 0 }]}>
-    {selected < 0 ? placeholder : flat[selected].label}
-  </span>
-  <Icon name="chevron-down" size="sm" />
-</button>
-{#if name}
-  <input type="hidden" {name} {form} {disabled} value={value ?? ''} />
-{/if}
-
-{#snippet row({ option, index }: Entry)}
-  <!-- Keys are handled on the trigger, which keeps focus while an option is active. -->
-  <!-- svelte-ignore a11y_click_events_have_key_events -->
-  <div
-    id={optionId(index)}
-    role="option"
-    tabindex="-1"
-    class={['sui-select-option', { active: index === active }]}
-    aria-selected={index === selected}
-    aria-disabled={option.disabled || undefined}
-    onclick={() => commit(index)}
-    onpointermove={() => {
-      if (!option.disabled) active = index;
-    }}
+{#snippet face(label: string, description?: string)}
+  <span class="sui-select-check"><Icon name="check" size="base" /></span>
+  <span class="sui-select-text"
+    ><span class="sui-select-label">{label}</span>{#if description}<span class="sui-select-note"
+        >{separator}{description}</span
+      >{/if}</span
   >
-    <span class="sui-select-check">
-      {#if index === selected}<Icon name="check" size="base" />{/if}
-    </span>
-    <span class="sui-select-label">{option.label}</span>
-    {#if option.description}<span class="sui-select-note">{option.description}</span>{/if}
+{/snippet}
+
+{#snippet choice(option: SelectOption<SelectValue>)}
+  <option
+    class="sui-select-option"
+    value={option.value}
+    disabled={option.disabled}
+    aria-label={option.description ? optionName(option.label, option.description) : undefined}
+  >
+    {@render face(option.label, option.description)}
+  </option>
+{/snippet}
+
+{#snippet row(option: SelectOption<Value>)}
+  <div
+    class={['sui-select-option', { checked: option === chosen, active: option === active }]}
+    aria-disabled={option.disabled || undefined}
+  >
+    {@render face(option.label, option.description)}
   </div>
 {/snippet}
 
-<Popover
-  id={popupId}
-  anchor={element}
-  bind:open
-  width="min-trigger"
-  onmousedown={(event: MouseEvent) => event.preventDefault()}
->
-  <div
-    bind:this={list}
-    id={listId}
-    role="listbox"
-    tabindex="-1"
-    class="sui-select-list"
-    aria-label={rest['aria-labelledby'] ? undefined : listLabel}
-    aria-labelledby={rest['aria-labelledby']}
-  >
-    {#each sections as section (section.key)}
-      {#if section.heading === undefined}
-        {#each section.entries as entry (entry.index)}{@render row(entry)}{/each}
-      {:else}
-        <div role="group" class="sui-select-group" aria-labelledby={section.key}>
-          <div id={section.key} role="presentation" class="sui-select-heading">
-            {section.heading}
-          </div>
-          {#each section.entries as entry (entry.index)}{@render row(entry)}{/each}
-        </div>
+{#snippet field()}
+  <span class={['sui-select', { bare }, className]}>
+    <select
+      bind:this={element}
+      {...rest}
+      class="sui-select-control"
+      aria-invalid={wrong || undefined}
+      bind:value={() => value ?? '', (next) => (value = next === '' ? null : next)}
+    >
+      <button><selectedcontent class="sui-select-value"></selectedcontent></button>
+      {#if prompt !== undefined}
+        <option class="sui-select-option sui-select-placeholder" value="" disabled>
+          {@render face(prompt)}
+        </option>
       {/if}
-    {/each}
+      {#each options as item (item)}
+        {#if isGroup(item)}
+          <optgroup label={item.label}>
+            <legend class="sui-select-heading">{item.label}</legend>
+            {#each item.options as option (option.value)}{@render choice(option)}{/each}
+          </optgroup>
+        {:else}
+          {@render choice(item)}
+        {/if}
+      {/each}
+    </select>
+    <span class="sui-select-chevron"><Icon name="chevron-down" size="sm" /></span>
+  </span>
+{/snippet}
+
+{#if preview}
+  <div class="sui-select-preview">
+    {@render field()}
+    <div class="sui-select-sheet" aria-hidden="true" inert>
+      {#if prompt !== undefined}
+        <div class="sui-select-option" aria-disabled="true">{@render face(prompt)}</div>
+      {/if}
+      {#each options as item (item)}
+        {#if isGroup(item)}
+          <div class="sui-select-heading">{item.label}</div>
+          {#each item.options as option (option.value)}{@render row(option)}{/each}
+        {:else}
+          {@render row(item)}
+        {/if}
+      {/each}
+    </div>
   </div>
-</Popover>
+{:else}
+  {@render field()}
+{/if}
 
 <style>
-  /* Registered so the state veil can interpolate, the same way `Button` does it. */
-  @property --sui-control-state-layer {
-    syntax: '<color>';
-    inherits: false;
-    initial-value: transparent;
+  .sui-select {
+    display: inline-grid;
+    grid-template-columns: minmax(0, auto);
+    max-inline-size: 100%;
+    min-inline-size: 0;
+    vertical-align: middle;
   }
 
-  .sui-select {
-    --sui-control-state-layer: transparent;
-    align-items: center;
+  .sui-select-control,
+  .sui-select-chevron {
+    grid-area: 1 / 1;
+  }
+
+  /* A field edge, not a button: the native select in every browser, and the base of the
+     customizable one. The end padding keeps the value clear of the chevron laid over it. */
+  .sui-select-control {
+    appearance: none;
     background-color: var(--sui-control-bg);
-    background-image: linear-gradient(
-      var(--sui-control-state-layer),
-      var(--sui-control-state-layer)
-    );
     block-size: var(--sui-local-control-height, var(--sui-control-height-compact));
-    border: 1px solid var(--sui-control-border);
+    border: var(--sui-stroke) solid var(--sui-field-frame);
+    border-block-end-color: var(--sui-field-border);
     border-radius: var(--sui-radius-control);
     box-sizing: border-box;
     color: var(--sui-text-primary);
     cursor: pointer;
-    display: inline-flex;
-    font: 500 var(--sui-font-size-control) / var(--sui-leading-flat) var(--sui-sans);
-    gap: var(--sui-space-2);
-    inline-size: fit-content;
+    font: var(--sui-weight-regular) var(--sui-font-size-input) / var(--sui-leading-input)
+      var(--sui-sans);
     margin: 0;
-    max-inline-size: 100%;
     min-inline-size: 0;
-    padding: 0 var(--sui-space-3);
-    touch-action: manipulation;
+    overflow: hidden;
+    padding-block: 0;
+    padding-inline: var(--sui-space-2) calc(2 * var(--sui-space-2) + var(--sui-icon-sm));
+    text-overflow: ellipsis;
     transition:
-      --sui-control-state-layer var(--sui-duration-fast) var(--sui-ease-standard),
       border-color var(--sui-duration-fast) var(--sui-ease-standard),
       translate var(--sui-duration-press) var(--sui-ease-standard),
       box-shadow var(--sui-duration-press) var(--sui-ease-standard);
+    -webkit-user-select: none;
+    user-select: none;
     white-space: nowrap;
-    -webkit-tap-highlight-color: transparent;
   }
 
-  /* Ellipsis clips its box, so the trimmed label gets room for descenders without changing
-     the control's height. */
-  .sui-select-value {
-    margin-block: calc(-1 * var(--sui-space-1));
-    min-inline-size: 0;
-    overflow: hidden;
-    padding-block: var(--sui-space-1);
-    text-box: trim-both cap alphabetic;
-    text-overflow: ellipsis;
-  }
-
-  .placeholder {
+  .sui-select-control:has(> .sui-select-placeholder:checked) {
     color: var(--sui-text-muted);
   }
 
-  .sui-select > :global(svg) {
-    color: var(--sui-text-muted);
-    margin-inline-end: calc(-1 * var(--sui-icon-ink-end, 0px));
+  @media (hover: hover) {
+    .sui-select-control:hover:not(
+        :active,
+        :disabled,
+        :focus-visible,
+        [aria-invalid='true'],
+        :user-invalid
+      ) {
+      border-color: var(--sui-field-frame-hover);
+      border-block-end-color: var(--sui-field-border-hover);
+    }
   }
 
-  .sui-select:hover:not(:active):not(:disabled),
-  .sui-select[aria-expanded='true']:not(:active) {
-    --sui-control-state-layer: var(--sui-interactive-hover-layer);
-  }
-
-  .sui-select:hover:not(:disabled):not(:focus-visible),
-  .sui-select[aria-expanded='true']:not(:focus-visible) {
-    border-color: var(--sui-control-border-hover);
-  }
-
-  .sui-select:active:not(:disabled) {
-    --sui-control-state-layer: var(--sui-interactive-pressed);
+  .sui-select-control:active:not(:disabled) {
+    background-image: linear-gradient(
+      var(--sui-interactive-pressed),
+      var(--sui-interactive-pressed)
+    );
     box-shadow: var(--sui-pressed-inset);
     translate: 0 1px;
   }
 
-  .sui-select:focus-visible {
+  .sui-select-control:active:not(:disabled) + .sui-select-chevron {
+    translate: 0 1px;
+  }
+
+  .sui-select-control:focus-visible {
     border-color: var(--sui-focus);
     outline: var(--sui-focus-ring-width) solid var(--sui-focus);
     outline-offset: var(--sui-focus-ring-flush);
   }
 
-  .sui-select:disabled {
+  /* After focus, so a refused value keeps its edge under the ring, as a text field does. */
+  .sui-select-control:is([aria-invalid='true'], :user-invalid) {
+    border-color: var(--sui-danger);
+  }
+
+  .sui-select-control:disabled {
     cursor: default;
-    opacity: 0.5;
   }
 
-  /* The popover's own 1px border sits outside this list, so the box as a whole stops at
-     min(20rem, the room it has). */
-  .sui-select-list {
-    box-sizing: border-box;
-    display: grid;
-    grid-template-columns: minmax(0, 1fr);
-    max-block-size: calc(min(20rem, var(--sui-floating-available-block)) - 2px);
-    max-inline-size: max(24rem, var(--sui-floating-anchor-inline));
-    overflow: auto;
-    overscroll-behavior: contain;
-    padding: var(--sui-space-1);
-    row-gap: 2px;
+  .sui-select-control:disabled,
+  .sui-select-control:disabled + .sui-select-chevron {
+    opacity: var(--sui-disabled-opacity);
   }
 
-  .sui-select-group {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr);
-    row-gap: 2px;
+  /* The end of a joined field: words that finish the value's phrase, such as the unit in
+     "90 seconds". No frame and no ground of its own, so a press takes the ground and the inset
+     without the sink; the ink rises when a pointer or the keyboard is on it, and its own inset
+     ring says that focus left the value for the unit. */
+  .bare .sui-select-control,
+  .bare .sui-select-control:is(:active, :focus-visible, [aria-invalid='true'], :user-invalid) {
+    background-color: transparent;
+    border-radius: 0;
+    border-width: 0;
+    color: var(--sui-text-secondary);
+    margin-block: calc(-1 * var(--sui-stroke));
+    padding-inline-start: var(--sui-space-1);
+    translate: none;
   }
 
-  .sui-select-heading {
+  .bare .sui-select-control:active:not(:disabled) + .sui-select-chevron {
+    translate: none;
+  }
+
+  .bare .sui-select-control:focus-visible {
+    outline: var(--sui-focus-ring-width) solid var(--sui-focus);
+    outline-offset: var(--sui-focus-ring-inset);
+  }
+
+  .bare .sui-select-chevron {
+    transition: color var(--sui-duration-fast) var(--sui-ease-standard);
+  }
+
+  .bare:has(.sui-select-control:focus-visible) .sui-select-control,
+  .bare:has(.sui-select-control:focus-visible) .sui-select-chevron {
+    color: var(--sui-text-primary);
+  }
+
+  @media (hover: hover) {
+    .bare:has(.sui-select-control:hover:not(:disabled)) .sui-select-control,
+    .bare:has(.sui-select-control:hover:not(:disabled)) .sui-select-chevron {
+      color: var(--sui-text-primary);
+    }
+  }
+
+  .bare .sui-select-control:disabled,
+  .bare .sui-select-control:disabled + .sui-select-chevron {
+    opacity: 1;
+  }
+
+  .sui-select-chevron {
+    align-self: center;
     color: var(--sui-text-muted);
-    font: 600 var(--sui-font-size-micro) / var(--sui-leading-tight) var(--sui-sans);
-    letter-spacing: 0.07em;
-    padding: var(--sui-space-2) var(--sui-space-3) var(--sui-space-1);
-    text-transform: uppercase;
+    display: inline-flex;
+    justify-self: end;
+    margin-inline-end: var(--sui-space-2);
+    pointer-events: none;
   }
 
+  /* A phone keeps its own picker, which suits touch and screen readers better than any page can. */
+  @supports (appearance: base-select) {
+    @media (pointer: fine) {
+      .sui-select-control,
+      .sui-select-control::picker(select) {
+        appearance: base-select;
+      }
+
+      .sui-select-control {
+        align-items: center;
+        display: flex;
+      }
+
+      .sui-select-control::picker-icon,
+      .sui-select-option::checkmark {
+        display: none;
+      }
+
+      .sui-select:not(.bare)
+        .sui-select-control:open:not(:focus-visible, [aria-invalid='true'], :user-invalid) {
+        border-color: var(--sui-field-frame-hover);
+        border-block-end-color: var(--sui-field-border-hover);
+      }
+
+      /* The full label shows in the picker, so the closed field may cut it. */
+      .sui-select-value {
+        min-inline-size: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .sui-select-value .sui-select-check,
+      .sui-select-value .sui-select-note {
+        display: none;
+      }
+
+      /* The browser anchors the picker under the field, flips it when the room is above, and
+         holds it at least as wide as the field. */
+      .sui-select-control::picker(select) {
+        background: var(--sui-popover-bg);
+        border: var(--sui-stroke) solid var(--sui-popover-border);
+        border-radius: var(--sui-radius-popover);
+        box-shadow: var(--sui-shadow-popover);
+        box-sizing: border-box;
+        color: var(--sui-text-primary);
+        margin-block: var(--sui-space-1);
+        max-block-size: min(20rem, 100% - 2 * var(--sui-space-1));
+        max-inline-size: min(24rem, 100vw - 2 * var(--sui-space-2));
+        opacity: 1;
+        overscroll-behavior: contain;
+        padding: var(--sui-space-1);
+        transition:
+          opacity var(--sui-duration-fast) var(--sui-ease-standard),
+          translate var(--sui-duration-fast) var(--sui-ease-standard),
+          overlay var(--sui-duration-fast) allow-discrete,
+          display var(--sui-duration-fast) allow-discrete;
+        translate: 0 0;
+      }
+
+      .sui-select-control:not(:open)::picker(select) {
+        opacity: 0;
+        transition-duration: var(--sui-duration-press);
+      }
+
+      @starting-style {
+        .sui-select-control:open::picker(select) {
+          opacity: 0;
+          translate: 0 calc(-1 * var(--sui-space-1));
+        }
+      }
+    }
+  }
+
+  /* As wide as the field or the widest row, whichever is more, as the real picker is, even
+     where a container would stretch it. */
+  .sui-select-preview {
+    display: inline-grid;
+    gap: var(--sui-space-1);
+    grid-template-columns: minmax(0, auto);
+    inline-size: fit-content;
+    justify-items: start;
+    max-inline-size: 100%;
+  }
+
+  /* The open picker, drawn in flow. */
+  .sui-select-sheet {
+    background: var(--sui-popover-bg);
+    border: var(--sui-stroke) solid var(--sui-popover-border);
+    border-radius: var(--sui-radius-popover);
+    box-shadow: var(--sui-shadow-popover);
+    box-sizing: border-box;
+    color: var(--sui-text-primary);
+    justify-self: stretch;
+    max-inline-size: 24rem;
+    padding: var(--sui-space-1);
+  }
+
+  /* Rows of the picker and of the preview's copy. A browser with the native picker reads only
+     the colors and the font here. */
   .sui-select-option {
     align-items: center;
-    block-size: var(--sui-control-height-compact);
     border-radius: var(--sui-radius-control);
     box-sizing: border-box;
     color: var(--sui-text-primary);
     cursor: pointer;
     display: flex;
-    font: 500 var(--sui-font-size-control) / var(--sui-leading-meta) var(--sui-sans);
+    font: var(--sui-weight-medium) var(--sui-font-size-control) / var(--sui-leading-meta)
+      var(--sui-sans);
     gap: var(--sui-space-2);
-    outline: none;
-    padding-inline: var(--sui-space-3);
-    transition:
-      background-color var(--sui-duration-fast) var(--sui-ease-standard),
-      translate var(--sui-duration-press) var(--sui-ease-standard);
+    min-block-size: var(--sui-control-height-compact);
+    padding: var(--sui-space-1) var(--sui-space-3);
+    transition: background-color var(--sui-duration-fast) var(--sui-ease-standard);
+    white-space: normal;
   }
 
-  .sui-select-option.active:not([aria-disabled='true']):not(:active) {
-    background-color: var(--sui-interactive-hover-layer);
+  .sui-select-option:is(:focus-visible, .active):not(:disabled, [aria-disabled='true']) {
+    background-color: var(--sui-row-hover);
   }
 
-  .sui-select-option:active:not([aria-disabled='true']) {
-    background-color: var(--sui-interactive-pressed);
-    box-shadow: var(--sui-pressed-inset);
-    translate: 0 1px;
+  @media (hover: hover) {
+    .sui-select-option:hover:not(:disabled, [aria-disabled='true']) {
+      background-color: var(--sui-row-hover);
+    }
+
+    .sui-select-option:hover .sui-select-note {
+      color: var(--sui-text-secondary);
+    }
   }
 
-  .sui-select-option[aria-disabled='true'] {
+  .sui-select-option:focus-visible {
+    outline: var(--sui-focus-ring-width) solid var(--sui-focus);
+    outline-offset: var(--sui-focus-ring-inset);
+  }
+
+  .sui-select-option:is(:disabled, [aria-disabled='true']) {
     cursor: default;
-    opacity: 0.5;
+    opacity: var(--sui-disabled-opacity);
   }
 
   .sui-select-check {
     display: inline-flex;
     flex: none;
-    inline-size: var(--sui-space-4);
+    inline-size: var(--sui-icon-base);
     justify-content: center;
   }
 
-  /* No cap trim: a name has descenders, and the row centres it on its own. */
-  .sui-select-label,
-  .sui-select-note {
-    min-inline-size: 0;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+  .sui-select-option:not(:checked, .checked) .sui-select-check {
+    visibility: hidden;
   }
 
-  .sui-select-label {
-    flex: 0 1 auto;
+  .sui-select-text {
+    flex: 1 1 auto;
+    min-inline-size: 0;
+    overflow-wrap: anywhere;
   }
 
   .sui-select-note {
     color: var(--sui-text-muted);
-    flex: 1 1 0;
-    font-weight: 400;
+    font-weight: var(--sui-weight-regular);
+  }
+
+  /* Muted ink drops under 4.5:1 on the active row's veil. */
+  .sui-select-option:is(:focus-visible, .active) .sui-select-note {
+    color: var(--sui-text-secondary);
+  }
+
+  .sui-select-heading {
+    color: var(--sui-text-muted);
+    font: var(--sui-weight-semibold) var(--sui-font-size-micro) / var(--sui-leading-micro)
+      var(--sui-sans);
+    letter-spacing: 0.06em;
+    padding: var(--sui-space-2) var(--sui-space-3) var(--sui-space-1);
+    text-transform: uppercase;
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .sui-select,
-    .sui-select-option {
+    .sui-select-control,
+    .sui-select-option,
+    .bare .sui-select-chevron {
       transition: none;
     }
 
-    .sui-select:active:not(:disabled),
-    .sui-select-option:active:not([aria-disabled='true']) {
+    .sui-select-control:active:not(:disabled),
+    .sui-select-control:active:not(:disabled) + .sui-select-chevron {
       translate: none;
+    }
+
+    /* Apart, because a browser without the picker drops a whole list that names it. */
+    .sui-select-control::picker(select) {
+      transition: none;
+    }
+  }
+
+  /* High contrast drops the veils, so the active and hovered rows draw an edge instead, and
+     paints every edge in one colour, so an invalid trigger says so with a 2px edge. */
+  @media (forced-colors: active) {
+    .sui-select:not(.bare) .sui-select-control:is([aria-invalid='true'], :user-invalid) {
+      border-width: var(--sui-stroke-bold);
+    }
+
+    .sui-select-option:is(:focus-visible, .active) {
+      outline: var(--sui-stroke) solid Highlight;
+      outline-offset: calc(-1 * var(--sui-stroke));
+    }
+  }
+
+  @media (hover: hover) and (forced-colors: active) {
+    .sui-select-option:hover:not(:disabled, [aria-disabled='true']) {
+      outline: var(--sui-stroke) solid Highlight;
+      outline-offset: calc(-1 * var(--sui-stroke));
     }
   }
 </style>

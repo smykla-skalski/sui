@@ -1,20 +1,39 @@
 <script lang="ts">
   import { onMount, tick } from 'svelte';
-  import { runAudit, type Finding } from './audit.js';
+  import { Pill } from '#lib';
+  import { checkCount, runAudit, type Finding } from './audit.js';
   import './checks.js';
 
   let findings = $state<Finding[] | null>(null);
 
-  async function rerun() {
+  const count = (n: number, word: string) => `${n} ${word}${n === 1 ? '' : 's'}`;
+
+  // A theme switch during a run starts another, and only the newest run reports.
+  let runs = 0;
+  // A reader who switches the theme may switch straight back, so the audit waits until the
+  // switching stops instead of holding up the next click.
+  const AFTER_SWITCH = 500;
+
+  async function rerun(wait = 0) {
+    const run = ++runs;
+    if (wait) await new Promise((resolve) => setTimeout(resolve, wait));
+    if (run !== runs) return null;
     await tick();
     await document.fonts.ready;
     await new Promise(requestAnimationFrame);
     const settling = document
       .getAnimations()
-      .filter((animation) => animation.effect?.getTiming().iterations !== Infinity)
+      // Only time-based animations settle; a scroll-driven one finishes when the reader scrolls.
+      .filter(
+        (animation) =>
+          animation.timeline instanceof DocumentTimeline &&
+          animation.effect?.getTiming().iterations !== Infinity
+      )
       .map((animation) => animation.finished);
     await Promise.allSettled(settling);
-    findings = runAudit(document);
+    const result = await runAudit(document, () => run !== runs);
+    if (result) findings = result;
+    return result;
   }
 
   function reveal(finding: Finding) {
@@ -38,32 +57,50 @@
 
   onMount(() => {
     (window as unknown as { __suiAudit: () => Promise<Finding[]> }).__suiAudit = async () => {
-      await rerun();
-      return (findings ?? []).map(({ law, where, detail }) => ({ law, where, detail }));
+      let result = await rerun();
+      while (!result) result = await rerun();
+      return result.map(({ law, where, detail }) => ({ law, where, detail }));
     };
     void rerun();
-    const observer = new MutationObserver(() => void rerun());
+    const observer = new MutationObserver(() => void rerun(AFTER_SWITCH));
     observer.observe(document.documentElement, { attributeFilter: ['data-sui-theme'] });
     const query = matchMedia('(max-width: 47.9375rem)');
-    query.addEventListener('change', rerun);
+    const resized = () => void rerun();
+    query.addEventListener('change', resized);
     return () => {
       observer.disconnect();
-      query.removeEventListener('change', rerun);
+      query.removeEventListener('change', resized);
     };
   });
 </script>
 
 <section class="audit" aria-labelledby="audit-title" data-audit-ignore>
   <div class="head">
-    <h2 id="audit-title">Law audit</h2>
+    <div class="title-row">
+      <h2 id="audit-title">Law audit</h2>
+      {#if findings !== null}
+        <span class="badge">
+          {#if findings.length === 0}
+            <Pill tone="success" icon="check">Passing</Pill>
+          {:else}
+            <Pill tone="danger" icon="failure">{count(findings.length, 'finding')}</Pill>
+          {/if}
+        </span>
+      {/if}
+    </div>
     <p class="summary" role="status">
       {#if findings === null}
         Measuring…
       {:else if findings.length === 0}
         Every law holds on this page
       {:else}
-        {findings.length} findings against {byLaw.length} laws
+        {count(findings.length, 'finding')} against {count(byLaw.length, 'law')}
       {/if}
+    </p>
+    <!-- Shown from the start, so the panel keeps its height when the first run reports and
+         nothing below it moves. -->
+    <p class="scope">
+      {checkCount()} rendered checks, run again on every theme switch and layout change
     </p>
   </div>
   {#if findings && findings.length > 0}
@@ -71,7 +108,7 @@
       {#each byLaw as [law, items] (law)}
         <li>
           <details>
-            <summary><span class="law">{law}</span> {items.length} findings</summary>
+            <summary><span class="law">{law}</span> {count(items.length, 'finding')}</summary>
             <ul class="items">
               {#each items as finding, index (index)}
                 <li>
@@ -90,7 +127,7 @@
 <style>
   .audit {
     background: var(--sui-surface-base);
-    border: 1px solid var(--sui-border-subtle);
+    border: var(--sui-stroke) solid var(--sui-border-subtle);
     border-radius: var(--sui-radius-surface);
     box-sizing: border-box;
     display: grid;
@@ -105,14 +142,44 @@
   }
 
   h2 {
-    font: 600 var(--sui-font-size-card-title) / var(--sui-leading-title) var(--sui-sans);
+    block-size: var(--sui-block-snap);
+    font: var(--sui-weight-bold) var(--sui-font-size-dialog-title) / var(--sui-leading-title)
+      var(--sui-sans);
+    letter-spacing: -0.015em;
+    margin: 0;
+    text-box: trim-both cap alphabetic;
+  }
+
+  .title-row {
+    align-items: center;
+    display: flex;
+    gap: var(--sui-space-3);
+  }
+
+  /* One title cap tall in the title's face, so the pill centres on the title without
+     raising its row. */
+  .badge {
+    align-items: center;
+    block-size: 1cap;
+    display: flex;
+    font: var(--sui-weight-bold) var(--sui-font-size-dialog-title) / var(--sui-leading-title)
+      var(--sui-sans);
+  }
+
+  .scope {
+    block-size: var(--sui-block-snap);
+    color: var(--sui-text-muted);
+    font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-row-copy-leading)
+      var(--sui-sans);
     margin: 0;
     text-box: trim-both cap alphabetic;
   }
 
   .summary {
+    block-size: var(--sui-block-snap);
     color: var(--sui-text-secondary);
-    font: 400 var(--sui-font-size-meta) / var(--sui-row-copy-leading) var(--sui-sans);
+    font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-row-copy-leading)
+      var(--sui-sans);
     margin: 0;
     text-box: trim-both cap alphabetic;
   }
@@ -129,7 +196,8 @@
   summary {
     border-radius: var(--sui-radius-control);
     cursor: pointer;
-    font: 500 var(--sui-font-size-meta) / var(--sui-leading-meta) var(--sui-sans);
+    font: var(--sui-weight-medium) var(--sui-font-size-meta) / var(--sui-leading-meta)
+      var(--sui-sans);
     padding: var(--sui-space-1) var(--sui-space-2);
   }
 
@@ -141,11 +209,12 @@
   .law {
     font-family: var(--sui-mono);
     font-variant-numeric: tabular-nums;
-    font-weight: 500;
+    font-weight: var(--sui-weight-medium);
   }
 
   .items {
-    padding: var(--sui-space-2) var(--sui-space-2) var(--sui-space-2) var(--sui-space-6);
+    padding: var(--sui-space-2);
+    padding-inline-start: var(--sui-space-6);
   }
 
   .items li {
@@ -156,10 +225,11 @@
   .items button {
     background: none;
     border: 0;
-    border-radius: var(--sui-radius-chip);
+    border-radius: var(--sui-radius-pill);
     color: var(--sui-brand-action-text);
     cursor: pointer;
-    font: 500 var(--sui-font-size-micro) / var(--sui-leading-micro) var(--sui-mono);
+    font: var(--sui-weight-medium) var(--sui-font-size-micro) / var(--sui-leading-micro)
+      var(--sui-mono);
     justify-self: start;
     min-block-size: var(--sui-control-height-chip);
     overflow-wrap: anywhere;
@@ -174,6 +244,7 @@
 
   .detail {
     color: var(--sui-text-secondary);
-    font: 400 var(--sui-font-size-meta) / var(--sui-leading-meta) var(--sui-sans);
+    font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-leading-meta)
+      var(--sui-sans);
   }
 </style>

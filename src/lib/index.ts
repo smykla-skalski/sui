@@ -48,12 +48,15 @@ export type { ActionMenuItem } from './components/ActionMenu.svelte';
 export { default as HelpTip } from './components/HelpTip.svelte';
 
 export { default as Modal } from './components/Modal.svelte';
+export type { ModalCloseReason } from './components/Modal.svelte';
 export { default as ConfirmDialog } from './components/ConfirmDialog.svelte';
 export { default as Toaster } from './components/Toaster.svelte';
 export { toast, dismiss } from './internal/toasts.svelte.js';
-export type { Toast, ToastOptions, ToastTone } from './internal/toasts.svelte.js';
+export type { Toast, ToastEnd, ToastOptions, ToastTone } from './internal/toasts.svelte.js';
 export { default as DurationInput } from './components/DurationInput.svelte';
+export type { DurationUnit } from './components/DurationInput.svelte';
 export { default as PairEntry } from './components/PairEntry.svelte';
+export type { Pair } from './components/PairEntry.svelte';
 export { default as PatternEntries } from './components/PatternEntries.svelte';
 export { default as InheritControl } from './components/InheritControl.svelte';
 export { default as AdditionPicker } from './components/AdditionPicker.svelte';
@@ -81,13 +84,9 @@ export type { DiffLine, DiffOp, DiffEmphasis } from './components/DiffBlock.svel
 export { default as Pill } from './components/Pill.svelte';
 export type { PillTone } from './components/Pill.svelte';
 export { default as Chip } from './components/Chip.svelte';
-export type { ChipTone } from './components/Chip.svelte';
-export { default as StatusPill } from './components/StatusPill.svelte';
-export type { StatusPillTone } from './components/StatusPill.svelte';
 export { default as Avatar } from './components/Avatar.svelte';
 export type { AvatarShape } from './components/Avatar.svelte';
 export { default as IdentityRow } from './components/IdentityRow.svelte';
-export { default as ColorTag } from './components/ColorTag.svelte';
 export { default as ClippedLabel } from './components/ClippedLabel.svelte';
 export { default as RelativeTime } from './components/RelativeTime.svelte';
 
@@ -101,12 +100,14 @@ export { default as ObjectRow } from './components/ObjectRow.svelte';
 export { default as EmptyState } from './components/EmptyState.svelte';
 export { default as ErrorState } from './components/ErrorState.svelte';
 export { default as FormError } from './components/FormError.svelte';
+export type { FormProblem } from './components/FormError.svelte';
 export { default as Skeleton } from './components/Skeleton.svelte';
 export { default as LoadMore } from './components/LoadMore.svelte';
 
 export { default as ColorPicker } from './components/ColorPicker.svelte';
+export type { ColorSwatch } from './components/ColorPicker.svelte';
 export { default as DataTable } from './components/DataTable.svelte';
-export type { DataTableColumn } from './components/DataTable.svelte';
+export type { DataTableColumn, DataTableSort } from './components/DataTable.svelte';
 export { default as SaveBar } from './components/SaveBar.svelte';
 
 export { default as LineChart } from './charts/LineChart.svelte';
@@ -118,5 +119,8 @@ export type {
   ChartSeries,
   XYChartProps,
   RangeDatum,
-  HeatmapCell
+  HeatmapCell,
+  ChartStatus,
+  ChartFrameProps
 } from './charts/types.js';
+export { setWords } from './words.js';

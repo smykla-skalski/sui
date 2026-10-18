@@ -1,10 +1,17 @@
 <script module lang="ts">
-  export const section = { title: 'Addition picker', order: 109 };
+  export const section = {
+    title: 'Addition picker',
+    order: 109,
+    lead: 'An add button that opens what is left to add, such as settings a level can override. A single new entry is an add Button.',
+    components: ['AdditionPicker']
+  };
 </script>
 
 <script lang="ts">
-  import { AdditionPicker, Card, SettingList, SettingRow, Switch } from '#lib';
+  import { tick } from 'svelte';
+  import { AdditionPicker, Card, Checkbox, SettingList, SettingRow } from '#lib';
   import Example from '../kit/Example.svelte';
+  import Specimen from '../kit/Specimen.svelte';
 
   const behaviours = [
     { value: 'auto-merge', label: 'Auto merge', description: 'Merge once every check passes' },
@@ -22,12 +29,57 @@
   const added = $derived(Object.keys(overrides));
   const rest = $derived(behaviours.length - added.length);
   const named = (value: string) => behaviours.find((behaviour) => behaviour.value === value);
+
+  // A reset row leaves the list, so focus goes on to the picker that can bring it back.
+  async function handBack(value: string) {
+    delete overrides[value];
+    await tick();
+    document.getElementById('sink-addition-more')?.focus();
+  }
+
+  let failed = $state(true);
 </script>
 
 <Example
-  title="Overrides"
+  title="States"
+  note="Loading, failed, empty and used-up lists say so inside the menu, and a locked picker says why"
+>
+  <Specimen label="Loading" code="loading">
+    <AdditionPicker label="Add a check" choices={[]} loading onadd={() => {}} />
+  </Specimen>
+  <Specimen label="Failed" code="error onretry">
+    <AdditionPicker
+      label="Add a check"
+      choices={failed ? [] : behaviours}
+      error={failed ? 'The checks could not load' : null}
+      onretry={() => (failed = false)}
+      onadd={() => {}}
+    />
+  </Specimen>
+  <Specimen label="Nothing to add" code={'choices={[]}'}>
+    <AdditionPicker label="Add a check" choices={[]} onadd={() => {}} />
+  </Specimen>
+  <Specimen label="Everything added" code="added">
+    <AdditionPicker
+      label="Add a check"
+      choices={behaviours}
+      added={behaviours.map((behaviour) => behaviour.value)}
+      onadd={() => {}}
+    />
+  </Specimen>
+  <Specimen label="Disabled" code="disabled">
+    <div class="locked">
+      <AdditionPicker label="Override a behaviour" choices={behaviours} disabled onadd={() => {}} />
+      <p class="reason">The workspace locks these behaviours for every repository</p>
+    </div>
+  </Specimen>
+</Example>
+
+<Example
+  title="In a setting list"
   note="Pick a behaviour to set it here, and reset its row to hand it back to the workspace"
   layout="stack"
+  ground="canvas"
 >
   <Card title="Behaviour" level={4}>
     <SettingList>
@@ -35,10 +87,10 @@
         <SettingRow
           name={named(value)?.label ?? value}
           why={named(value)?.description}
-          onclear={() => delete overrides[value]}
+          onclear={() => void handBack(value)}
         >
           {#snippet control({ id, describedby })}
-            <Switch {id} aria-describedby={describedby} bare bind:checked={overrides[value]} />
+            <Checkbox {id} aria-describedby={describedby} bare bind:checked={overrides[value]} />
           {/snippet}
         </SettingRow>
       {/each}
@@ -48,7 +100,8 @@
       >
         {#snippet control()}
           <AdditionPicker
-            label="Override another behaviour"
+            id="sink-addition-more"
+            label="Override another"
             choices={behaviours}
             {added}
             done="Every behaviour is already set here"
@@ -60,15 +113,19 @@
   </Card>
 </Example>
 
-<Example
-  title="Everything added and disabled"
-  note="When every choice is in use the list says so instead of offering duplicates"
->
-  <AdditionPicker
-    label="Add a check"
-    choices={behaviours}
-    added={behaviours.map((behaviour) => behaviour.value)}
-    onadd={() => {}}
-  />
-  <AdditionPicker label="Override a behaviour" choices={behaviours} disabled onadd={() => {}} />
-</Example>
+<style>
+  .locked {
+    display: grid;
+    gap: var(--sui-row-copy-gap);
+    justify-items: start;
+  }
+
+  .reason {
+    block-size: var(--sui-block-snap);
+    color: var(--sui-text-secondary);
+    font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-row-copy-leading)
+      var(--sui-sans);
+    margin: 0;
+    text-box: trim-both cap alphabetic;
+  }
+</style>

@@ -1,4 +1,6 @@
 <script module lang="ts">
+  import { pageLocale } from '../internal/locale.js';
+
   export type AvatarShape = 'person' | 'workspace';
 
   let graphemes: Intl.Segmenter | undefined;
@@ -11,10 +13,10 @@
   /** "Ada Lovelace" is AL, "Engineering Team 01" is E1, and a bare handle gives its first letter. */
   function monogram(name: string, handle: string): string {
     const words = name.trim().split(/\s+/).filter(Boolean);
-    if (words.length === 0) return first(handle.trim()).toLocaleUpperCase() || '?';
+    if (words.length === 0) return first(handle.trim()).toLocaleUpperCase(pageLocale()) || '?';
     const last = words.length > 1 ? words[words.length - 1] : '';
     const end = /^\d+$/.test(last) ? last.slice(-1) : first(last);
-    return `${first(words[0])}${end}`.toLocaleUpperCase();
+    return `${first(words[0])}${end}`.toLocaleUpperCase(pageLocale());
   }
 </script>
 
@@ -31,7 +33,10 @@
     /** The login, for initials when the name is empty. */
     handle?: string;
     src?: string | null;
-    /** In px, because the places that need an avatar never agree on a step. */
+    /**
+     * In px at the default text size, because the places that need an avatar never agree on a
+     * step. It is drawn in rem, so the box grows with text zoom as its initials do.
+     */
     size?: number;
     /** A person is a circle and a workspace a rounded square. */
     shape?: AvatarShape;
@@ -65,17 +70,27 @@
 <!--
 @component
 Who or what, at the size the place asks for. A person is a circle and a workspace a rounded
-square, so two avatars side by side say which is which without a label. A picture that does
-not load falls back to initials on the brand tint, and so does a missing one.
+square, so two avatars side by side say which is which without a label. The picture is fetched
+without a referrer.
 
-The avatar is decorative: the name it stands for always stands beside it, so it is hidden
-from assistive technology rather than read twice. The picture is fetched without a referrer.
+- Semantics: an `img` with empty `alt`, or a `span` of initials hidden from assistive technology, because the name it stands for always stands beside it.
+- Content: a picture URL, or initials from the name: "Ada Lovelace" is AL, "Engineering Team 01" is E1, and a bare handle gives its first letter.
+- States: picture, initials, and initials again when the picture fails.
+- Keyboard: none, because it is not interactive.
+- Pointer and touch: none, because it is not a target.
+- Focus: never takes focus.
+- Responsive: one fixed size per place; the box is in rem, so text zoom grows the box and its initials together.
+- Accessibility: decorative and hidden, so the name beside it is read once; the initials hold 4.5:1 on the brand tint.
+- Localization: initials take the first grapheme of each word, so a combined letter or an emoji stays whole, and they are uppercased in the page's language, so a Turkish "i" becomes "İ".
+- Performance: the picture loads lazily and decodes off the main thread; nothing animates.
+- Analytics: none, because a reader does nothing with an avatar.
+- Failure: a missing picture, or one that fails to load, draws the initials on the brand tint, and an empty name and handle draw "?"; the failed URL is not requested again.
 -->
 
 {#if source !== null}
   <img
     class="sui-avatar"
-    style:--sui-avatar-size="{size}px"
+    style:--sui-avatar-size="{size / 16}rem"
     data-corner={corner}
     src={source}
     alt=""
@@ -89,7 +104,7 @@ from assistive technology rather than read twice. The picture is fetched without
 {:else}
   <span
     class="sui-avatar sui-avatar-initials"
-    style:--sui-avatar-size="{size}px"
+    style:--sui-avatar-size="{size / 16}rem"
     data-corner={corner}
     data-step={step}
     aria-hidden="true"><span class="sui-avatar-letters">{monogram(name, handle)}</span></span
@@ -105,9 +120,9 @@ from assistive technology rather than read twice. The picture is fetched without
     inline-size: var(--sui-avatar-size);
     object-fit: cover;
     /* An outline paints over a picture where an inset shadow would sit under it, and a
-       photograph can end in the colour of the card behind it. */
-    outline: 1px solid var(--sui-avatar-ring);
-    outline-offset: -1px;
+       photograph can end in the color of the card behind it. */
+    outline: var(--sui-stroke) solid var(--sui-avatar-ring);
+    outline-offset: calc(-1 * var(--sui-stroke));
   }
 
   [data-corner='control'] {
@@ -131,13 +146,14 @@ from assistive technology rather than read twice. The picture is fetched without
     background: var(--sui-brand-action-tint);
     color: var(--sui-brand-action-text);
     display: inline-flex;
-    font: 700 var(--sui-font-size-title) / var(--sui-leading-flat) var(--sui-sans);
+    font: var(--sui-weight-bold) var(--sui-font-size-title) / var(--sui-leading-flat)
+      var(--sui-sans);
     justify-content: center;
     outline-color: color-mix(in srgb, currentColor 28%, transparent);
   }
 
   .sui-avatar-initials[data-step='nano'] {
-    font-size: var(--sui-font-size-nano);
+    font-size: var(--sui-font-size-micro);
   }
 
   .sui-avatar-initials[data-step='micro'] {
@@ -149,6 +165,7 @@ from assistive technology rather than read twice. The picture is fetched without
   }
 
   .sui-avatar-letters {
+    block-size: var(--sui-block-snap);
     text-box: trim-both cap alphabetic;
   }
 </style>

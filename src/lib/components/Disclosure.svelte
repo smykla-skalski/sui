@@ -1,11 +1,17 @@
 <script lang="ts">
+  import { mark, word } from '../words.js';
   import type { Snippet } from 'svelte';
   import type { HTMLDetailsAttributes } from 'svelte/elements';
   import Icon from '../icons/Icon.svelte';
+  import VisuallyHidden from './VisuallyHidden.svelte';
 
   let {
     summary,
     hint,
+    summaryName = word(
+      'Disclosure.summaryName',
+      (summary: string, hint: string) => `${summary}${mark('comma')}${hint}`
+    ),
     inline = false,
     open = $bindable(false),
     class: className = '',
@@ -16,6 +22,8 @@
     summary: string;
     /** What is inside, said quietly before the chevron so a reader can decide without opening. */
     hint?: string;
+    /** The summary's accessible name from its words and the hint, in the language's order. */
+    summaryName?: (summary: string, hint: string) => string;
     /** Inline help inside a settings column: smaller, 34px, with an 8px bleed. */
     inline?: boolean;
     open?: boolean;
@@ -29,21 +37,38 @@
 @component
 A quiet native disclosure for an optional explanation that opens in place. The browser owns
 its state, its keyboard and its accessibility. The summary row bleeds into the margin by its
-own padding, so its words share the left edge of the heading above it, and the chevron at
+own padding, so its words share the start edge of the heading above it, and the chevron at
 its end sits inside the hit area and turns a quarter when open.
 
-The open content sits on the same surface with no frame and no coloured edge. A disclosure
+The open content sits on the same surface with no frame and no colored edge. A disclosure
 that reveals controls puts them in their own `Card` inside it. `inline` is the smaller help
 row for a settings column.
--->
 
+- Semantics: a native `<details>` whose `<summary>` is the button, named by `summary` and `hint`, with its expanded state from the browser.
+- Content: one line of summary words that wrap, an optional quiet hint, and any content inside.
+- States: closed, open (the chevron turned a quarter towards the content), hover (the row veil), pressed (the pressed veil, inset and 1px sink) and focus (the 2px inset ring).
+- Keyboard: Tab reaches the summary, and Enter or Space opens and closes it.
+- Pointer and touch: the whole summary row is the target, one control tall, 34px and 44px on a phone or touch screen.
+- Focus: focus stays on the summary when it opens or closes.
+- Responsive: the summary words wrap and the row grows; the hint and chevron stay at the inline end.
+- Accessibility: the browser announces expanded and collapsed, the chevron is hidden, and the open state also shows in the chevron's turn.
+- Localization: every word is the caller's, and `summaryName` joins the summary and the hint; the chevron mirrors and turns towards the content in a right-to-left page, and the bleed is logical.
+- Performance: the content renders closed too, so keep it light; the chevron's turn and the press are the only motion, removed under reduced motion.
+- Analytics: `open` is bindable and the native `toggle` event reports each opening.
+- Failure: with an empty body it opens to nothing, so leave it out instead; long words in the summary wrap rather than clip.
+-->
 <details {...rest} bind:open class={['sui-disclosure', className, { inline }]}>
+  <!-- The drawn words are read once, as one run of text, because Chrome reads a summary's
+       words as its description too when an aria-label names it. -->
   <summary class="sui-disclosure-summary">
-    <span class="sui-disclosure-label">{summary}</span>
+    <span class="sui-disclosure-label" aria-hidden={hint === undefined ? undefined : 'true'}
+      >{summary}</span
+    >
     {#if hint !== undefined}
-      <span class="sui-disclosure-hint">{hint}</span>
+      <span class="sui-disclosure-hint" aria-hidden="true">{hint}</span>
     {/if}
     <span class="sui-disclosure-chevron"><Icon name="chevron-right" size="xs" /></span>
+    {#if hint !== undefined}<VisuallyHidden>{summaryName(summary, hint)}</VisuallyHidden>{/if}
   </summary>
   <div class="sui-disclosure-body">{@render children()}</div>
 </details>
@@ -61,13 +86,16 @@ row for a settings column.
     color: var(--sui-text-primary);
     cursor: pointer;
     display: flex;
-    font: 500 var(--sui-font-size-meta) / var(--sui-leading-meta) var(--sui-sans);
+    font: var(--sui-weight-medium) var(--sui-font-size-meta) / var(--sui-leading-meta)
+      var(--sui-sans);
     gap: var(--sui-space-2);
     list-style: none;
     margin-inline: calc(var(--sui-space-3) * -1);
-    min-block-size: 36px;
+    min-block-size: var(--sui-control-height-compact);
     padding: 0 var(--sui-space-3);
     touch-action: manipulation;
+    -webkit-user-select: none;
+    user-select: none;
     transition:
       background-color var(--sui-duration-fast) var(--sui-ease-standard),
       box-shadow var(--sui-duration-press) var(--sui-ease-standard),
@@ -79,8 +107,17 @@ row for a settings column.
     display: none;
   }
 
-  .sui-disclosure-summary:hover:not(:active) {
-    background: var(--sui-row-hover);
+  @media (hover: hover) {
+    .sui-disclosure-summary:hover:not(:active) {
+      background: var(--sui-row-hover);
+    }
+
+    @media (forced-colors: active) {
+      .sui-disclosure-summary:hover {
+        outline: var(--sui-stroke) solid CanvasText;
+        outline-offset: calc(-1 * var(--sui-stroke));
+      }
+    }
   }
 
   .sui-disclosure-summary:active {
@@ -95,14 +132,17 @@ row for a settings column.
   }
 
   .sui-disclosure-label {
+    block-size: var(--sui-block-snap);
     min-inline-size: 0;
     overflow-wrap: break-word;
     text-box: trim-both cap alphabetic;
   }
 
   .sui-disclosure-hint {
+    block-size: var(--sui-block-snap);
     color: var(--sui-text-muted);
-    font: 400 var(--sui-font-size-compact) / var(--sui-leading-compact) var(--sui-sans);
+    font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-leading-meta)
+      var(--sui-sans);
     margin-inline-start: auto;
     text-box: trim-both cap alphabetic;
   }
@@ -123,6 +163,11 @@ row for a settings column.
     rotate: 90deg;
   }
 
+  /* The mirrored chevron points to the left, so a quarter turn the other way points it down. */
+  [open] > .sui-disclosure-summary .sui-disclosure-chevron:dir(rtl) {
+    rotate: -90deg;
+  }
+
   .sui-disclosure-body {
     margin-block-start: var(--sui-space-2);
     min-inline-size: 0;
@@ -130,7 +175,8 @@ row for a settings column.
 
   .inline > .sui-disclosure-summary {
     color: var(--sui-text-secondary);
-    font: 400 var(--sui-font-size-compact) / var(--sui-leading-compact) var(--sui-sans);
+    font: var(--sui-weight-regular) var(--sui-font-size-compact) / var(--sui-leading-compact)
+      var(--sui-sans);
     margin-inline: calc(var(--sui-space-2) * -1);
     min-block-size: var(--sui-control-height-compact);
     padding-inline: var(--sui-space-2);
@@ -144,6 +190,14 @@ row for a settings column.
 
     .sui-disclosure-summary:active {
       translate: none;
+    }
+  }
+
+  /* The hover and press veils are lost in high contrast, so the row draws its edge there. */
+  @media (forced-colors: active) {
+    .sui-disclosure-summary:active {
+      outline: var(--sui-stroke) solid CanvasText;
+      outline-offset: calc(-1 * var(--sui-stroke));
     }
   }
 </style>

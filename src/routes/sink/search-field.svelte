@@ -1,39 +1,71 @@
 <script module lang="ts">
-  export const section = { title: 'Search field', order: 23 };
+  export const section = {
+    title: 'Search field',
+    order: 23,
+    lead: 'A search that narrows what is already on screen. A value picked from suggestions as the reader types is a Combobox.',
+    components: ['SearchField']
+  };
 </script>
 
 <script lang="ts">
   import { SearchField } from '#lib';
   import Example from '../kit/Example.svelte';
+  import Specimen from '../kit/Specimen.svelte';
 
-  const repositories = ['kuma', 'kuma-gui', 'kuma-website', 'smyklot', 'sui', 'mesh-perf'];
+  const repositories = ['atlas', 'atlas-gui', 'atlas-website', 'smyklot', 'sui', 'mesh-perf'];
 
   let query = $state('');
-  let filled = $state('kuma');
+  let people = $state('Grace');
+  let teams = $state('');
+  let filter = $state('atlas');
   const matches = $derived(
-    repositories.filter((name) => name.includes(filled.trim().toLowerCase()))
+    repositories.filter((name) => name.includes(filter.trim().toLowerCase()))
   );
 </script>
 
 <Example
   title="States"
-  note="Empty, then filled with its clear button, and Escape clears the query before it closes anything"
-  layout="stack"
+  note="Empty, filled with its clear button and with an example query, each under its drawn label, and Escape clears the query before it closes anything"
+  layout="grid"
 >
-  <div class="column">
+  <Specimen label="Empty" code="placeholder">
     <SearchField label="Search the projects" placeholder="Search projects" bind:value={query} />
+  </Specimen>
+  <Specimen label="Filled" code="bind:value">
+    <SearchField label="Search the people" placeholder="Search people" bind:value={people} />
+  </Specimen>
+  <Specimen label="Example placeholder" code="placeholder">
+    <SearchField label="Search the teams" placeholder="Platform" bind:value={teams} />
+  </Specimen>
+</Example>
+
+<Example
+  title="Tiers"
+  note="34px by default and 44px on phones, and a surface may opt into 40px with the clear button centred"
+  layout="grid"
+>
+  <Specimen label="Default" code="--sui-control-height-compact">
+    <SearchField label="Search the teams" placeholder="Search teams" value="Platform" />
+  </Specimen>
+  <Specimen label="Tall" code="--sui-local-control-height">
+    <div class="tall">
+      <SearchField label="Search the members" placeholder="Search members" value="Bart" />
+    </div>
+  </Specimen>
+</Example>
+
+<Example
+  title="In context"
+  note="A status under the field says how many match and a screen reader hears it, so the field never disables itself"
+  layout="grid"
+>
+  <div class="filter">
     <SearchField
       label="Filter the repositories"
       placeholder="Filter repositories"
-      bind:value={filled}
+      bind:value={filter}
     />
-    <p class="result">{matches.length} of {repositories.length} repositories match</p>
-  </div>
-</Example>
-
-<Example title="Taller tier" note="A surface opts into 40px and the clear button stays centred">
-  <div class="column tall">
-    <SearchField label="Search the people" placeholder="Search people" value="Bart" />
+    <p class="result" role="status">{matches.length} of {repositories.length} repositories match</p>
   </div>
 </Example>
 
@@ -42,20 +74,25 @@
   note="The field fills the room it has, and a long query scrolls inside it"
   layout="stack"
 >
-  <div class="column narrow">
-    <SearchField label="Search the audit log" value="registry.example.com/platform/control-plane" />
-  </div>
+  <Specimen label="Long query">
+    <div class="narrow">
+      <SearchField
+        label="Search the audit log"
+        value="registry.example.com/platform/control-plane"
+      />
+    </div>
+  </Specimen>
 </Example>
 
 <style>
-  .column {
-    display: grid;
-    gap: var(--sui-space-3);
-    inline-size: min(100%, 24rem);
-  }
-
   .tall {
     --sui-local-control-height: var(--sui-control-height);
+    display: grid;
+  }
+
+  .filter {
+    display: grid;
+    gap: var(--sui-space-3);
   }
 
   .narrow {
@@ -64,7 +101,8 @@
 
   .result {
     color: var(--sui-text-secondary);
-    font: 400 var(--sui-font-size-meta) / var(--sui-leading-meta) var(--sui-sans);
+    font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-leading-meta)
+      var(--sui-sans);
     font-variant-numeric: tabular-nums;
     margin: 0;
   }
