@@ -159,8 +159,12 @@ assistive technology, because a native picker cannot be held open.
     >
       <button><selectedcontent class="sui-select-value"></selectedcontent></button>
       {#if prompt !== undefined}
-        <option class="sui-select-option sui-select-placeholder" value="" disabled>
+        <option
+          class="sui-select-option sui-select-placeholder"
           data-sui-theme={pickerTheme}
+          value=""
+          disabled
+        >
           {@render face(prompt)}
         </option>
       {/if}
