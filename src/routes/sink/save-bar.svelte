@@ -36,12 +36,47 @@
     return () => ({ name, branch } = draft);
   }
 
+  // Another tab saved "trunk" after this one loaded "main", so a save from here is refused until
+  // the reader reloads, and Undo then puts their own value back over the latest one.
+  const LATEST = 'trunk';
+  let loaded = $state('main');
+  let draft = $state('develop');
+  let stale = $state(true);
+  let reloading = $state(false);
+  let savingDraft = $state(false);
+
+  function reload() {
+    const mine = draft;
+    reloading = true;
+    setTimeout(() => {
+      loaded = LATEST;
+      draft = LATEST;
+      stale = false;
+      reloading = false;
+    }, SAVE_DELAY);
+    return () => (draft = mine);
+  }
+
+  function saveDraft() {
+    savingDraft = true;
+    setTimeout(() => {
+      loaded = draft;
+      savingDraft = false;
+    }, SAVE_DELAY);
+  }
+
+  function discardDraft() {
+    const mine = draft;
+    draft = loaded;
+    return () => (draft = mine);
+  }
+
   const noop = () => {};
 </script>
 
 <Example
   title="States"
-  note="Editing raises the bar, Ctrl+S saves, a save is confirmed, a discard offers Undo, and a failure stays up"
+  note="Editing raises the bar, Ctrl+S saves, a discard offers Undo, a failure stays up, and a conflict reloads with Undo"
   layout="stack"
   ground="canvas"
 >
@@ -73,9 +108,25 @@
       <div class="scroller">
         <SaveBar
           dirty
-          error="Another tab saved these settings first, so reload to see them before saving again"
+          error="The server did not answer, so your changes are still here to save again"
           onsave={noop}
           ondiscard={noop}
+        />
+      </div>
+    </div>
+  </Specimen>
+  <Specimen label="Conflict" code="conflict onreload">
+    <div class="pane">
+      <div class="scroller">
+        <Field label="Default branch" bind:value={draft} />
+        <SaveBar
+          dirty={draft !== loaded}
+          conflict={stale}
+          {reloading}
+          saving={savingDraft}
+          onsave={saveDraft}
+          ondiscard={discardDraft}
+          onreload={reload}
         />
       </div>
     </div>

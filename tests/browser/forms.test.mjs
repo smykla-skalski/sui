@@ -464,4 +464,58 @@ suite('forms', together, () => {
       }
     }
   );
+
+  test(
+    'a saving pane hands focus to Save and disables its fields until the save ends',
+    long,
+    async () => {
+      const page = await open();
+      try {
+        const field = page.locator('#save-bar input').first();
+        await field.scrollIntoViewIfNeeded();
+        await field.click();
+        await page.keyboard.press('End');
+        await page.keyboard.type('-x');
+        const typed = await field.inputValue();
+        // The sink's save ends in about a second, sooner than a slow runner comes back from a
+        // keystroke, so the page notes the hold the frame after the save starts.
+        await page.evaluate(() => {
+          const input = /** @type {HTMLInputElement} */ (document.querySelector('#save-bar input'));
+          /** @type {any} */ (window).held = new Promise((done) => {
+            const watch = new MutationObserver(() => {
+              if (input.closest('[aria-busy="true"]') === null) return;
+              watch.disconnect();
+              requestAnimationFrame(() => {
+                const press = new PointerEvent('pointerdown', { bubbles: true, cancelable: true });
+                input.dispatchEvent(press);
+                done({
+                  onSave: document.activeElement?.getAttribute('aria-busy') === 'true',
+                  disabled: input.disabled,
+                  pressRefused: press.defaultPrevented
+                });
+              });
+            });
+            watch.observe(/** @type {HTMLElement} */ (document.getElementById('save-bar')), {
+              attributeFilter: ['aria-busy'],
+              subtree: true
+            });
+          });
+        });
+        await page.keyboard.press('ControlOrMeta+s');
+        assert.deepEqual(
+          await page.evaluate(() => /** @type {any} */ (window).held),
+          { onSave: true, disabled: true, pressRefused: true },
+          'a saving pane left its field in use or focus off Save'
+        );
+        await page.waitForFunction(
+          () => document.querySelector('#save-bar input')?.closest('[aria-busy]') === null
+        );
+        await page.waitForFunction(() => document.activeElement?.tagName === 'INPUT');
+        await page.keyboard.type('!');
+        assert.equal(await field.inputValue(), `${typed}!`, 'focus did not return to the field');
+      } finally {
+        await page.close();
+      }
+    }
+  );
 });

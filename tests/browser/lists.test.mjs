@@ -994,4 +994,39 @@ suite('lists', together, () => {
       }
     }
   );
+
+  test(
+    'L-16 and L-89 a conflicted save offers Reload, which replaces the draft with Undo',
+    long,
+    async () => {
+      const page = await open();
+      try {
+        const specimen = page.locator('#save-bar .specimen', { hasText: 'Conflict' }).first();
+        const field = specimen.getByLabel('Default branch');
+        const bar = specimen.locator('.sui-save-bar');
+        await field.scrollIntoViewIfNeeded();
+        // Saving again would be refused, so Reload is the only way on.
+        assert.deepEqual(await bar.getByRole('button').allInnerTexts(), ['Reload']);
+
+        const reload = bar.getByRole('button', { name: 'Reload' });
+        await reload.click();
+        const busy = bar.getByRole('button', { name: 'Reloading…' });
+        assert.equal(await busy.getAttribute('aria-busy'), 'true');
+        assert.ok(
+          await busy.evaluate((node) => node === document.activeElement),
+          'the busy Reload let go of focus'
+        );
+        await bar.getByText('The latest version replaced your changes').waitFor({ timeout: 4000 });
+        assert.equal(await field.inputValue(), 'trunk', 'the reload did not bring the latest');
+        assert.match(await focused(page), /^button Undo/, 'focus did not move to Undo');
+
+        await page.keyboard.press('Enter');
+        assert.equal(await field.inputValue(), 'develop', 'Undo did not put the draft back');
+        assert.deepEqual(await bar.getByRole('button').allInnerTexts(), ['Discard', 'Save']);
+        assert.match(await focused(page), /^button Save/, 'focus did not land on Save');
+      } finally {
+        await page.close();
+      }
+    }
+  );
 });
