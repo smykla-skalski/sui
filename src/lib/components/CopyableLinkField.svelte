@@ -38,6 +38,9 @@
   } & Omit<HTMLTextareaAttributes, 'value' | 'readonly' | 'class' | 'children'> = $props();
 
   let input = $state<HTMLTextAreaElement | null>(null);
+  // A press places the caret or selects a word itself; a select-all on its focus would be
+  // extended by that press from the value's start to the pointer instead.
+  let pressing = false;
 
   /* The value wraps at any character, and the box is as tall as its lines, so a long token is
      never cut. A browser that sizes a field to its content does it in CSS alone. Elsewhere the
@@ -103,7 +106,7 @@ the text field.
 {#snippet row(control?: FieldControl)}
   <JoinedField readonly>
     {#snippet start()}
-      <!-- A read-only area takes focus by Tab, which selects the whole value, as a field does. -->
+      <!-- Focus by Tab selects the whole value, as a field does. -->
       <textarea
         bind:this={input}
         {...rest}
@@ -115,7 +118,12 @@ the text field.
         rows="1"
         spellcheck="false"
         {@attach fit}
-        onfocus={(event) => event.currentTarget.select()}></textarea>
+        onpointerdown={() => (pressing = true)}
+        onfocus={(event) => {
+          if (!pressing) event.currentTarget.select();
+          pressing = false;
+        }}
+        onblur={() => (pressing = false)}></textarea>
     {/snippet}
     {#snippet end()}
       <CopyButton

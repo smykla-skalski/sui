@@ -235,6 +235,56 @@ suite('forms', together, () => {
     }
   );
 
+  test(
+    'a link field selects all of its value on focus and one word on a double click',
+    long,
+    async () => {
+      const page = await open();
+      try {
+        const value = page.locator('#copyable-link-field textarea').first();
+        await value.scrollIntoViewIfNeeded();
+        // The middle of a word that neither starts nor ends the value, measured in the field's font.
+        const { x, y, word } = await value.evaluate((/** @type {HTMLTextAreaElement} */ area) => {
+          const look = getComputedStyle(area);
+          const mirror = document.createElement('span');
+          for (const name of ['font-family', 'font-size', 'font-weight', 'letter-spacing'])
+            mirror.style.setProperty(name, look.getPropertyValue(name));
+          mirror.style.whiteSpace = 'pre';
+          document.body.append(mirror);
+          const width = (/** @type {string} */ text) => {
+            mirror.textContent = text;
+            return mirror.getBoundingClientRect().width;
+          };
+          const word = area.value.split(/\W+/).filter(Boolean)[1];
+          const before = width(area.value.slice(0, area.value.indexOf(word)));
+          const middle = before + width(word) / 2;
+          mirror.remove();
+          const box = area.getBoundingClientRect();
+          return {
+            x: box.x + area.clientLeft + parseFloat(look.paddingInlineStart) + middle,
+            y: box.y + area.clientTop + parseFloat(look.paddingBlockStart) + 4,
+            word
+          };
+        });
+        const selected = () =>
+          value.evaluate((/** @type {HTMLTextAreaElement} */ area) =>
+            area.value.slice(area.selectionStart, area.selectionEnd)
+          );
+        await page.mouse.dblclick(x, y);
+        assert.equal(await selected(), word, 'a double click did not select its word');
+        await page.evaluate(() => /** @type {HTMLElement} */ (document.activeElement).blur());
+        await value.focus();
+        assert.equal(
+          await selected(),
+          await value.inputValue(),
+          'focus that is not a press did not select the whole value'
+        );
+      } finally {
+        await page.close();
+      }
+    }
+  );
+
   test('a joined field rings the part that holds focus', long, async () => {
     const page = await open();
     try {
