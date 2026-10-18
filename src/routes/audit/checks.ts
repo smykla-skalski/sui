@@ -1484,7 +1484,11 @@ function specimens(root: Document): Finding[] {
         found.push(finding('L-55', part, 'the caption runs past its specimen'));
       const range = document.createRange();
       range.selectNodeContents(part);
-      const lines = new Set([...range.getClientRects()].map((line) => Math.round(line.top))).size;
+      /* A caption's props are boxes of their own, a pixel off its text, so only a step of half
+         a line or more starts a new line. */
+      const tops = [...range.getClientRects()].map((line) => line.top).sort((a, b) => a - b);
+      const half = parseFloat(getComputedStyle(part).lineHeight) / 2;
+      const lines = tops.filter((top, index) => index === 0 || top - tops[index - 1] >= half).length;
       if (lines > 1 && grows && own.width < room - 1)
         found.push(finding('L-55', part, 'the caption wraps while its specimen has room to grow'));
     }

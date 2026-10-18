@@ -137,9 +137,10 @@ live specimens, not a surface of the design, so it may hold cards and dialogs (L
   }
 
   .stage {
+    --stage-pad: var(--sui-space-6);
     box-sizing: border-box;
     min-inline-size: 0;
-    padding: var(--sui-space-6);
+    padding: var(--stage-pad);
   }
 
   .stage[data-ground='surface'] {
@@ -171,10 +172,23 @@ live specimens, not a surface of the design, so it may hold cards and dialogs (L
     flex-wrap: nowrap;
   }
 
+  /* Each specimen spans a body row and a caption row, and the gap rule breaks at every item that
+     spans rows, so each specimen draws the rule between lines itself. It needs how many columns
+     fit, counted as auto-fill counts them: the stage's inner width over a column and its gap. */
   .specimens[data-layout='grid'] {
+    --sui-local-grid-columns: max(
+      1,
+      round(
+        down,
+        (100cqi - 2 * var(--stage-pad) + var(--sui-space-5)) / (16rem + var(--sui-space-5)),
+        1
+      )
+    );
+    --sui-local-grid-gap: var(--sui-space-6);
     align-items: stretch;
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(min(100%, 16rem), 1fr));
+    row-rule: none;
   }
 
   .tools {
@@ -206,7 +220,7 @@ live specimens, not a surface of the design, so it may hold cards and dialogs (L
 
   @container sink-stage (max-width: 30rem) {
     .stage {
-      padding: var(--sui-space-4);
+      --stage-pad: var(--sui-space-4);
     }
 
     .specimens[data-layout='stack'] {

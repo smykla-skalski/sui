@@ -13,6 +13,29 @@
     children: Snippet;
   } = $props();
 
+  /* The caption's props, split at the spaces between them and never inside a quoted or braced
+     value, so a line breaks between props and `patience={0}` never loses its `{0}`. */
+  const propsOf = (source: string) => {
+    const parts: string[] = [];
+    let part = '';
+    let depth = 0;
+    let quote = '';
+    for (const char of source) {
+      if (quote) quote = char === quote ? '' : quote;
+      else if (`"'\``.includes(char)) quote = char;
+      else if ('{[('.includes(char)) depth++;
+      else if ('}])'.includes(char)) depth--;
+      else if (/\s/.test(char) && depth === 0) {
+        if (part) parts.push(part);
+        part = '';
+        continue;
+      }
+      part += char;
+    }
+    if (part) parts.push(part);
+    return parts;
+  };
+
   let body = $state<HTMLElement | null>(null);
   let caption = $state<HTMLElement | null>(null);
   /* How wide the shown component and its caption's words run, so the rule under them spans
@@ -58,21 +81,44 @@
       {#if label}<span class="label">{label}</span>{:else}<span class="label" aria-hidden="true"
           >&nbsp;</span
         >{/if}
-      {#if code}<code>{code}</code>{:else}<code aria-hidden="true">&nbsp;</code>{/if}
+      {#if code}<code
+          >{#each propsOf(code) as prop, index (index)}{#if index}{' '}{/if}<span>{prop}</span
+            >{/each}</code
+        >{:else}<code aria-hidden="true">&nbsp;</code>{/if}
     </figcaption>
   {/if}
 </figure>
 
 <style>
   /* The body is a grid as wide as the specimen: a block surface or a field fills it, while
-     a mark keeps its own fit-content width (L-43). Specimens on one line share the tallest
-     one's height, and the body takes the spare room, so their captions line up at the bottom. */
+     a mark keeps its own fit-content width (L-43). In a grid of specimens it takes two of the
+     grid's rows, so every body on a line shares the tallest body's track and every caption the
+     tallest caption's: their rules and labels start on one line even when a caption wraps. In
+     a row or a stack there is no parent grid, the subgrid falls back to two rows of its own,
+     and specimens on one line share the tallest one's height with the caption at the bottom. */
   .specimen {
+    align-content: space-between;
     display: grid;
     gap: var(--sui-space-3);
-    grid-template-rows: 1fr auto;
+    grid-row: span 2;
+    grid-template-rows: subgrid;
     margin: 0;
     min-inline-size: 0;
+  }
+
+  /* In a grid, each specimen past the first line draws the dashed rule centred in the gap above
+     it, so the reader sees where the next line starts. Every specimen reaches half the gap up,
+     so the lines stay level whether or not they draw it. */
+  @supports (inline-size: calc(1px * sibling-index())) and (inline-size: calc(1px * (1px / 1px))) {
+    .specimen {
+      --past-first-line: clamp(0, sibling-index() - var(--sui-local-grid-columns, infinity), 1);
+      border-block-start: calc(var(--sui-stroke) * var(--past-first-line)) dashed
+        var(--sui-border-control);
+      margin-block-start: calc(var(--sui-local-grid-gap, 0px) / -2);
+      padding-block-start: calc(
+        var(--sui-local-grid-gap, 0px) / 2 - var(--sui-stroke) * var(--past-first-line)
+      );
+    }
   }
 
   /* One shrinkable column: a surface capped at 100% stays inside a narrow stage. */
@@ -89,6 +135,7 @@
   }
 
   figcaption {
+    align-content: start;
     display: grid;
     gap: var(--sui-row-copy-gap);
     justify-items: start;
@@ -125,5 +172,10 @@
     font-variant-numeric: tabular-nums;
     overflow-wrap: anywhere;
     text-box: trim-both cap alphabetic;
+  }
+
+  /* A prop moves to the next line whole and breaks inside only when it is wider than a line. */
+  code > span {
+    display: inline-block;
   }
 </style>
