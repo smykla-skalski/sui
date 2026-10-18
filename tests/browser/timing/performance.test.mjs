@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { after, before, test } from 'node:test';
-import { long, startSink, visit } from './sink.mjs';
+import { long, startSink, visit } from '../sink.mjs';
 
 // Lab stand-ins for field data: a page with the library and nothing else, on a CPU about as fast
 // as a mid-range phone's, against the Core Web Vitals "good" limits (CLS 0.1, INP 200ms) and the
@@ -9,7 +9,7 @@ const slowdown = process.env.CI ? 1 : 4;
 
 /** @type {{ close: () => Promise<void> }} */
 let server;
-/** @type {import('./sink.mjs').SinkBrowser} */
+/** @type {import('../sink.mjs').SinkBrowser} */
 let browser;
 let url = '';
 
