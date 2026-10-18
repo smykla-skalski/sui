@@ -74,23 +74,25 @@
 One answer to one question, where every answer needs a sentence to say what it does, so
 nothing has to be tried to find out. Answers that a word names are a `SegmentedControl`.
 
-The cards are one connected surface with 2px gutters, not separate cards, because they are
-exclusive answers to a single question. They sit side by side while each has 14rem and stack
-when they do not. The chosen card is a brand ground, brand ink and a filled dot together.
+Each answer is a framed card of its own, 12px from the next, with its dot in the top end
+corner on the label's first line, as radio cards are drawn across design systems, so the reader
+sees at once how many answers there are. They sit side by side while each has 14rem and stack
+when they do not. The chosen card wears a brand tint, a 2px brand edge and a filled dot
+together, so the choice never rests on colour alone, and choosing moves nothing.
 These are native radios, so the arrow keys move the choice and skip disabled answers.
 `disabled` locks the whole group with `aria-disabled`, so a radio that holds focus during a
 save keeps it.
 
 - Semantics: a `<fieldset role="radiogroup">` named by its `<legend>`, described by the hint and the error, holding native radios each named by its label and described by its sentence, with a polite `role="status"` that speaks the error.
 - Content: a question as the legend and two to six answers, each a short label and one sentence; an optional hint and an error.
-- States: unchosen, chosen (a brand ground, brand ink and a filled dot), hover (a veil), focus (an inset 2px ring), pressed (a deeper veil, an inset shadow and a 1px sink), required (the word after the legend), invalid (a danger frame and an error with a warning mark), locked and disabled answers (0.7 opacity).
+- States: unchosen (a quiet edge), chosen (a brand tint, a 2px brand edge and a filled dot), hover (a veil and a firmer edge), focus (a flush 2px ring on a focus-coloured edge), pressed (a deeper ground, an inset shadow and a 1px sink), required (the word after the legend), invalid (a danger edge on every unchosen card and an error with a warning mark), locked and disabled answers (0.7 opacity).
 - Keyboard: Tab enters the group at the chosen answer, the arrows move the choice and skip disabled answers, and Space chooses; a locked group refuses all of them and keeps focus.
 - Pointer and touch: every card is its own target, at least 72px tall.
 - Focus: it never moves focus, and locking the group leaves focus on the radio that had it.
 - Responsive: the cards sit side by side while each has 14rem and stack when they do not; long sentences wrap.
 - Accessibility: the legend names the group, the required word is read with it, each card's label names its radio and its sentence describes it, and the error is spoken when it appears.
 - Localization: `requiredLabel` is a prop with an English default, the question and answers come from the caller, and the dot and the layout follow the reading direction.
-- Performance: one radio per answer; only colours, the inset shadow and the 1px sink move.
+- Performance: one radio per answer; colours and edges change at once, and only the 1px sink moves.
 - Analytics: `onchange` hears each answer the reader picks.
 - Failure: an `error` is drawn with a mark and words and spoken, and an unavailable answer stays visible and disabled.
 -->
@@ -126,8 +128,8 @@ save keeps it.
           onkeydown={refuse}
           onchange={() => onchange?.(option.value)}
         />
-        <span class="sui-choice-card-dot" aria-hidden="true"></span>
         <span id="{id}-{index}-label" class="sui-choice-card-label">{option.label}</span>
+        <span class="sui-choice-card-dot" aria-hidden="true"></span>
         <span id="{id}-{index}-description" class="sui-choice-card-description"
           >{option.description}</span
         >
@@ -173,79 +175,102 @@ save keeps it.
     margin-inline-start: var(--sui-space-1);
   }
 
+  /* Each answer is a card of its own, so the reader sees how many there are and where each
+     ends; they sit side by side while each has 14rem and stack when they do not. */
   .sui-choice-cards-grid {
-    background: var(--sui-control-bg);
-    border-radius: var(--sui-radius-surface);
-    box-shadow: inset 0 0 0 var(--sui-stroke) var(--sui-control-border);
     display: grid;
-    gap: var(--sui-control-inset);
+    gap: var(--sui-space-3);
     grid-template-columns: repeat(auto-fit, minmax(min(14rem, 100%), 1fr));
-    overflow: clip;
-    padding: var(--sui-control-inset);
   }
 
-  /* The same signal an invalid text field gives: its frame takes the danger ink. */
-  .sui-choice-cards-grid.invalid {
-    box-shadow: inset 0 0 0 var(--sui-stroke) var(--sui-danger);
-  }
-
+  /* The label and the sentence take the start column and the dot the top end corner, on the
+     label's first line (L-94). */
   .sui-choice-card {
     align-content: start;
     align-items: start;
-    border-radius: var(--sui-radius-control);
+    background-color: var(--sui-control-bg);
+    border-radius: var(--sui-radius-surface);
+    box-shadow: inset 0 0 0 var(--sui-stroke) var(--sui-control-border);
     box-sizing: border-box;
     cursor: pointer;
     display: grid;
     gap: var(--sui-row-copy-gap) var(--sui-space-3);
-    grid-template-columns: auto minmax(0, 1fr);
+    grid-template-columns: minmax(0, 1fr) auto;
     min-block-size: 72px;
     min-inline-size: 0;
-    padding: var(--sui-space-3) var(--sui-space-4);
+    padding: var(--sui-space-4);
     position: relative;
-    transition:
-      box-shadow var(--sui-duration-press) var(--sui-ease-standard),
-      translate var(--sui-duration-press) var(--sui-ease-standard);
+    transition: translate var(--sui-duration-press) var(--sui-ease-standard);
     -webkit-user-select: none;
     user-select: none;
     -webkit-tap-highlight-color: transparent;
   }
 
+  /* An answer still missing marks every card, as an invalid field marks its frame. */
+  .invalid .sui-choice-card:not(:has(input:checked)) {
+    box-shadow: inset 0 0 0 var(--sui-stroke) var(--sui-danger);
+  }
+
+  /* Hover and press lay a veil over the card's own ground, its rest fill or its brand tint. */
   @media (hover: hover) {
     .sui-choice-card:hover:not(:active, .disabled) {
-      background-color: var(--sui-interactive-hover-layer);
+      background-image: linear-gradient(
+        var(--sui-interactive-hover-layer),
+        var(--sui-interactive-hover-layer)
+      );
     }
 
-    .sui-choice-card:has(input:checked):hover:not(:active, .disabled) {
-      background-color: color-mix(in srgb, var(--sui-brand-action) 14%, var(--sui-surface-base));
+    .sui-choice-card:hover:not(:active, .disabled, :has(input:checked)) {
+      box-shadow: inset 0 0 0 var(--sui-stroke) var(--sui-control-border-hover);
     }
+  }
+
+  /* The chosen answer says so three ways at once: a brand tint, a 2px brand edge and a filled
+     dot, so the choice never rests on colour alone. The edge is drawn inside the card, so
+     choosing moves nothing. */
+  .sui-choice-card:has(input:checked) {
+    background-color: var(--sui-brand-action-tint);
+    box-shadow: inset 0 0 0 var(--sui-stroke-bold) var(--sui-brand-action);
   }
 
   .sui-choice-card:active:not(.disabled) {
-    background-color: var(--sui-interactive-pressed);
-    box-shadow: var(--sui-pressed-inset);
+    background-image: linear-gradient(
+      var(--sui-interactive-pressed),
+      var(--sui-interactive-pressed)
+    );
+    box-shadow:
+      var(--sui-pressed-inset),
+      inset 0 0 0 var(--sui-stroke) var(--sui-control-border-hover);
     translate: 0 1px;
   }
 
-  .sui-choice-card:has(input:checked):not(:active) {
-    background-color: var(--sui-brand-action-tint);
+  .sui-choice-card:has(input:checked):active:not(.disabled) {
+    box-shadow:
+      var(--sui-pressed-inset),
+      inset 0 0 0 var(--sui-stroke-bold) var(--sui-brand-action);
   }
 
   /* The radio is the focus target and wears the ring, so it covers the card without its
-     native paint, and the ring sits inset because the group clips its corners. */
+     native paint. The card is framed, so the ring is flush and its edge takes the focus
+     colour under it (L-41). */
   .sui-choice-card input {
     appearance: none;
     background: none;
     border: 0;
-    border-radius: var(--sui-radius-control);
+    border-radius: inherit;
     cursor: inherit;
     inset: 0;
     margin: 0;
     position: absolute;
   }
 
+  .sui-choice-card:has(input:focus-visible) {
+    box-shadow: inset 0 0 0 var(--sui-stroke) var(--sui-focus);
+  }
+
   .sui-choice-card input:focus-visible {
     outline: var(--sui-focus-ring-width) solid var(--sui-focus);
-    outline-offset: var(--sui-focus-ring-inset);
+    outline-offset: var(--sui-focus-ring-flush);
   }
 
   .sui-choice-card-dot {
@@ -255,11 +280,13 @@ save keeps it.
     border-radius: 50%;
     box-sizing: border-box;
     /* The label's face, so `1cap` is the label's cap height and the dot centres on its
-       first line however many lines it wraps to. */
+       snapped first line however many lines it wraps to. */
     font: var(--sui-weight-semibold) var(--sui-font-size-meta) / var(--sui-leading-flat)
       var(--sui-sans);
+    grid-column: 2;
+    grid-row: 1;
     inline-size: var(--sui-icon-base);
-    margin-block: round(calc((1cap - var(--sui-icon-base)) / 2), 1px);
+    margin-block: calc((round(up, 1cap, 2px) - var(--sui-icon-base)) / 2);
     position: relative;
   }
 
@@ -277,16 +304,12 @@ save keeps it.
 
   .sui-choice-card-label {
     align-content: center;
-    block-size: var(--sui-block-snap);
+    block-size: var(--sui-block-snap-even);
     color: var(--sui-text-primary);
     font: var(--sui-weight-semibold) var(--sui-font-size-meta) / var(--sui-row-copy-leading)
       var(--sui-sans);
     text-box: trim-both cap alphabetic;
     text-wrap: pretty;
-  }
-
-  .sui-choice-card:has(input:checked) .sui-choice-card-label {
-    color: var(--sui-brand-action-text);
   }
 
   .sui-choice-card-description {
@@ -295,7 +318,7 @@ save keeps it.
     color: var(--sui-text-secondary);
     font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-row-copy-leading)
       var(--sui-sans);
-    grid-column: 2;
+    grid-column: 1;
     text-box: trim-both cap alphabetic;
     text-wrap: pretty;
   }
@@ -348,23 +371,23 @@ save keeps it.
     }
   }
 
-  /* High contrast drops the grounds, the frame's shadow and the dot's fill, so the frame and
-     the chosen card draw outlines, an invalid frame twice as wide, and the dot fills in system
-     colours. */
+  /* High contrast drops the grounds, the edges and the dot's fill, so every card draws an
+     outline, an invalid one twice as wide, the chosen one in `Highlight`, and the dot fills in
+     system colours. */
   @media (forced-colors: active) {
-    .sui-choice-cards-grid {
+    .sui-choice-card {
       outline: var(--sui-stroke) solid CanvasText;
       outline-offset: calc(-1 * var(--sui-stroke));
     }
 
-    .sui-choice-cards-grid.invalid {
+    .invalid .sui-choice-card:not(:has(input:checked)) {
       outline-width: var(--sui-stroke-bold);
       outline-offset: calc(-1 * var(--sui-stroke-bold));
     }
 
     .sui-choice-card:has(input:checked) {
       outline: var(--sui-stroke-bold) solid Highlight;
-      outline-offset: var(--sui-focus-ring-inset);
+      outline-offset: calc(-1 * var(--sui-stroke-bold));
     }
 
     .sui-choice-card:has(input:checked) .sui-choice-card-dot::after {
@@ -375,8 +398,7 @@ save keeps it.
 
   @media (hover: hover) and (forced-colors: active) {
     .sui-choice-card:hover:not(.disabled, :has(input:checked)) {
-      outline: var(--sui-stroke) solid Highlight;
-      outline-offset: calc(-1 * var(--sui-stroke));
+      outline-color: Highlight;
     }
   }
 </style>
