@@ -3,6 +3,7 @@
   import type { Snippet } from 'svelte';
   import type { HTMLDetailsAttributes } from 'svelte/elements';
   import Icon from '../icons/Icon.svelte';
+  import VisuallyHidden from './VisuallyHidden.svelte';
 
   let {
     summary,
@@ -57,15 +58,17 @@ row for a settings column.
 - Failure: with an empty body it opens to nothing, so leave it out instead; long words in the summary wrap rather than clip.
 -->
 <details {...rest} bind:open class={['sui-disclosure', className, { inline }]}>
-  <summary
-    class="sui-disclosure-summary"
-    aria-label={hint === undefined ? undefined : summaryName(summary, hint)}
-  >
-    <span class="sui-disclosure-label">{summary}</span>
+  <!-- The drawn words are read once, as one run of text, because Chrome reads a summary's
+       words as its description too when an aria-label names it. -->
+  <summary class="sui-disclosure-summary">
+    <span class="sui-disclosure-label" aria-hidden={hint === undefined ? undefined : 'true'}
+      >{summary}</span
+    >
     {#if hint !== undefined}
-      <span class="sui-disclosure-hint">{hint}</span>
+      <span class="sui-disclosure-hint" aria-hidden="true">{hint}</span>
     {/if}
     <span class="sui-disclosure-chevron"><Icon name="chevron-right" size="xs" /></span>
+    {#if hint !== undefined}<VisuallyHidden>{summaryName(summary, hint)}</VisuallyHidden>{/if}
   </summary>
   <div class="sui-disclosure-body">{@render children()}</div>
 </details>

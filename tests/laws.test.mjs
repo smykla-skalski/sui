@@ -456,7 +456,7 @@ test('K9 every built-in word reads through word(), so setWords can replace it', 
     const source = read(path);
     const props = /\n {2}let \{\n([\s\S]*?)\n {2}\}:/.exec(source)?.[1] ?? '';
     // Two values side by side in a default are joined in its own language unless a mark joins them.
-    for (const [join] of props.matchAll(/\$\{\w+\} +\$\{\w+\}/g))
+    for (const [join] of props.matchAll(/\$\{\w+\} +[^\w\s$]?\$\{\w+\}/g))
       found.push(`${path}: ${join} joins values with a space`);
     for (const [, name, value] of props.matchAll(/^ {4}(\w+) = ([\s\S]+?)(?=,?\n {4}\S|,?$)/gm)) {
       if (value.startsWith('word(') || value.includes('word(')) continue;
@@ -512,6 +512,10 @@ test('K9 every built-in word reads through word(), so setWords can replace it', 
   for (const path of [...svelteFiles, ...scriptFiles].filter((file) => file.startsWith('src/lib/')))
     for (const [join] of read(path).matchAll(/textContent[^;]*?\.join\(\s*' '\s*\)/g))
       found.push(`${path}: words joined with a space: ${join.replace(/\s+/g, ' ')}`);
+  for (const path of [...svelteFiles, ...scriptFiles].filter((file) => file.startsWith('src/lib/')))
+    // A list format joins with the locale's punctuation, which no mark replaces.
+    if (/new Intl\.ListFormat\b/.test(read(path)))
+      found.push(`${path}: a list joined by Intl.ListFormat`);
   for (const path of scriptFiles.filter(
     (file) => file.startsWith('src/lib/') && !file.endsWith('words.ts')
   ))

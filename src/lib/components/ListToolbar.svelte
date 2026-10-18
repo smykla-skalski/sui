@@ -12,11 +12,11 @@
 </script>
 
 <script lang="ts">
-  import { word } from '../words.js';
+  import { mark, word } from '../words.js';
   import { untrack, type Snippet } from 'svelte';
   import type { HTMLAttributes } from 'svelte/elements';
   import Icon from '../icons/Icon.svelte';
-  import { formatCount, pageLocale } from '../internal/locale.js';
+  import { formatCount } from '../internal/locale.js';
   import Button from './Button.svelte';
   import Popover from './Popover.svelte';
   import SearchField from './SearchField.svelte';
@@ -79,10 +79,7 @@
   const labelOf = (group: ListToolGroup) =>
     group.options.find((option) => option.value === group.value)?.label;
   const current = $derived(filter ? (labelOf(filter) ?? '') : '');
-  const list = (labels: (string | undefined)[]) =>
-    new Intl.ListFormat(pageLocale(), { style: 'narrow', type: 'conjunction' }).format(
-      labels.filter((label): label is string => label !== undefined && label !== '')
-    );
+  const list = (labels: (string | undefined)[]) => labels.filter(Boolean).join(mark('comma'));
   const chosen = $derived(list(tools.map(labelOf)));
   // The button's description reads the filter's choice and the tools' as one list, since the
   // dot between them on screen is drawn, not read.

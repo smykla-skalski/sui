@@ -49,6 +49,16 @@
   let copy = $state<HTMLElement | null>(null);
   let said = $state('');
 
+  /* What a screen reader reads of the copy: a copy drawn only for the eye is hidden from it,
+     and a note kept for a description is `hidden`. */
+  const spoken = (node: Node): string =>
+    node instanceof Element &&
+    (node.hasAttribute('hidden') || node.getAttribute('aria-hidden') === 'true')
+      ? ''
+      : node.nodeType === Node.TEXT_NODE
+        ? (node.textContent ?? '')
+        : [...node.childNodes].map(spoken).join('');
+
   const prefix = $derived(decision ? decisionLabel : tone === 'warning' ? warningLabel : '');
 
   $effect(() => {
@@ -58,7 +68,7 @@
     const timer = setTimeout(
       () =>
         (said = [...source.children]
-          .map((part) => part.textContent?.replace(/\s+/g, ' ').trim())
+          .map((part) => spoken(part).replace(/\s+/g, ' ').trim())
           .filter(Boolean)
           .join(mark('space'))),
       SETTLE

@@ -72,10 +72,6 @@ test('with every mark replaced, each joined name reads the marks and nothing bet
         'CheckList.requiredLabel': 'WYM',
         'ChoiceCards.requiredLabel': 'WYM',
         'Callout.warningLabel': 'UWAGA',
-        'SegmentedControl.countedLabel': (
-          /** @type {string} */ label,
-          /** @type {string} */ count
-        ) => `{${count}|${label}}`,
         'SideNav.countLabel': (/** @type {number} */ count) => `{${count} SZT}`,
         'Pill.liveLabel': 'NAZYWO',
         'Link.externalLabel': 'ZEWN',
@@ -160,8 +156,32 @@ test('with every mark replaced, each joined name reads the marks and nothing bet
         tone: 'warning',
         title: 'Drift',
         live: true,
-        children: html('<span>Body</span>')
+        children: html('<span>Read <span data-link></span> now <span data-pill></span></span>')
       });
+      flushSync();
+      // A link and a pill in the live words, each with words a screen reader alone hears.
+      const slot = (/** @type {string} */ name) =>
+        document.querySelector(`[data-words="Callout"] [data-${name}]`) ?? document.body;
+      mount(lib.Link, {
+        target: slot('link'),
+        props: { href: 'https://example.com', children: html('<span>Docs</span>') }
+      });
+      mount(lib.Pill, {
+        target: slot('pill'),
+        props: { live: true, children: html('<span>Run</span>') }
+      });
+      const tool = (/** @type {string} */ label, /** @type {string[]} */ words) => ({
+        label,
+        options: words.map((word) => ({ value: word, label: word })),
+        value: words[0],
+        onchange: () => {}
+      });
+      put(lib.ListToolbar, 'ListToolbar', {
+        searchLabel: 'Search',
+        filter: tool('State', ['All', 'Archived']),
+        tools: [tool('Sort', ['Updated', 'Name']), tool('Show', ['Open', 'Closed'])]
+      });
+      put(lib.IdentityRow, 'IdentityRow', { name: 'Ada Lovelace', handle: '@ada' }, 'button');
       flushSync();
     });
     await page.locator('[data-words="AdditionPicker"] button').first().click();
@@ -193,23 +213,32 @@ test('with every mark replaced, each joined name reads the marks and nothing bet
       SideNav: (await read('[data-words="SideNav"] a[href="#queue"]')).name,
       Pill: (await read('[data-words="Pill"]')).name,
       Link: await read('[data-words="Link"] a'),
-      Disclosure: (await read('[data-words="Disclosure"] summary')).name,
+      Disclosure: await read('[data-words="Disclosure"] summary'),
       AdditionPicker: (await read('[data-words="AdditionPicker"] [role="menuitem"]')).name,
-      PairEntry: (await read('[data-words="PairEntry"] .sui-pair-edit')).name
+      PairEntry: (await read('[data-words="PairEntry"] .sui-pair-edit')).name,
+      ListToolbar: (await read('[data-words="ListToolbar"] [aria-describedby$="-described"]'))
+        .description,
+      IdentityRow: (await read('[data-words="IdentityRow"]')).name
     };
     assert.deepEqual(names, {
       Card: 'BillingⓒNIEZAP',
-      SettingRow: { name: 'Retries', description: 'NIEZAP' },
+      SettingRow: { name: 'RetriesⓒNIEZAP', description: undefined },
       CheckList: 'Run onⓟWYM',
       ChoiceCards: 'MergeⓟWYM',
-      SegmentedControl: '{24|Users}',
+      SegmentedControl: 'Usersⓟ(24)',
       SideNav: 'Queueⓒ{3 SZT}',
       Pill: 'RunⓒNAZYWO',
       Link: { name: 'Docs⁠', description: 'ZEWN' },
-      Disclosure: 'SkippedⓒThree archived',
+      Disclosure: { name: 'SkippedⓒThree archived', description: undefined },
       AdditionPicker: 'Auto mergeⓒOnce green',
-      PairEntry: 'KLUCZⓟaliasⓒWARTⓟShip'
+      PairEntry: 'KLUCZⓟaliasⓒWARTⓟShip',
+      ListToolbar: 'AllⓒUpdatedⓒOpen',
+      IdentityRow: 'Ada Lovelaceⓒ@ada'
     });
+    assert.equal(
+      await page.locator('[data-words="ListToolbar"] .sui-list-toolbar-chosen').textContent(),
+      'UpdatedⓒOpen'
+    );
 
     const time = await read('[data-words="RelativeTime"] time');
     const resting = await page
@@ -221,7 +250,7 @@ test('with every mark replaced, each joined name reads the marks and nothing bet
     await page.waitForFunction(
       () => document.querySelector('[data-words="Callout"] [role="alert"]')?.textContent !== ''
     );
-    assert.equal(await callout.textContent(), 'UWAGAⓟDriftⓟBody');
+    assert.equal(await callout.textContent(), 'UWAGAⓟDriftⓟRead Docs\u2060 now RunⓒNAZYWO');
   } finally {
     await page.close();
   }

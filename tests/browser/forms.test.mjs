@@ -96,9 +96,15 @@ test('a pending switch refuses a second flip, keeps focus, and a refusal is spok
     const row = page.locator('#switch .sui-switch-row', { hasText: 'Mirror to the backup region' });
     const input = row.locator('input');
     await row.click();
-    assert.equal(await input.getAttribute('aria-busy'), 'true');
-    await row.click();
-    assert.equal(await input.isChecked(), true, 'a second flip ran while saving');
+    // The check and the second press run in one turn of the page, so a slow runner cannot let
+    // the sink's 900ms save answer between them.
+    const second = await row.evaluate((element) => {
+      const box = /** @type {HTMLInputElement} */ (element.querySelector('input'));
+      const busy = box.getAttribute('aria-busy') === 'true';
+      /** @type {HTMLElement} */ (element).click();
+      return { busy, checked: box.checked };
+    });
+    assert.deepEqual(second, { busy: true, checked: true }, 'a second flip ran while saving');
     assert.ok(await input.evaluate((element) => document.activeElement === element));
     await page.waitForFunction(
       (element) => element && !element.hasAttribute('aria-busy'),

@@ -1,6 +1,8 @@
 <script lang="ts">
+  import { mark, word } from '../words.js';
   import type { HTMLAttributes } from 'svelte/elements';
   import Avatar, { type AvatarShape } from './Avatar.svelte';
+  import VisuallyHidden from './VisuallyHidden.svelte';
 
   let {
     name,
@@ -8,6 +10,10 @@
     src,
     shape = 'person',
     size = 32,
+    handleName = word(
+      'IdentityRow.handleName',
+      (name: string, handle: string) => `${name}${mark('comma')}${handle}`
+    ),
     class: className = '',
     ...rest
   }: {
@@ -19,6 +25,8 @@
     shape?: AvatarShape;
     /** The avatar's size in px. */
     size?: number;
+    /** The words read for a row with a handle, from the name and the handle, in the language's order. */
+    handleName?: (name: string, handle: string) => string;
     class?: HTMLAttributes<HTMLSpanElement>['class'];
   } & Omit<HTMLAttributes<HTMLSpanElement>, 'children'> = $props();
 </script>
@@ -29,7 +37,7 @@ Who a row is about, in one row: the avatar, then the name with the handle in mon
 Both lines are trimmed to their ink and stand 8px apart, so the words, not their line boxes,
 centre on the avatar.
 
-- Semantics: a `span` of text; the avatar is hidden, so the name is read once and the handle after it.
+- Semantics: a `span` of text; the avatar is hidden, so the name is read once and the handle after it, joined by `handleName`.
 - Content: a name, an optional handle and an optional picture.
 - States: with a picture, with initials, and with or without a handle.
 - Keyboard: none of its own; put it inside the link or button that acts on the person.
@@ -37,7 +45,7 @@ centre on the avatar.
 - Focus: never takes focus.
 - Responsive: a long name or handle wraps inside the room it is given, so every character can be read without a tooltip and nothing runs under what stands beside the row.
 - Accessibility: the full name and handle are always drawn as text; the name holds 4.5:1 and the muted handle 4.5:1 on the surface.
-- Localization: the name and handle are the caller's; the avatar sits at the inline start and follows the reading direction.
+- Localization: the name and handle are the caller's, and `handleName` joins them; the avatar sits at the inline start and follows the reading direction.
 - Performance: one avatar picture per row, loaded lazily.
 - Analytics: none, because a reader does nothing with it on its own.
 - Failure: a picture that fails falls back to initials; an empty handle draws no second line.
@@ -45,12 +53,15 @@ centre on the avatar.
 
 <span {...rest} class={['sui-identity-row', className]}>
   <Avatar {name} handle={handle ?? ''} {src} {shape} {size} />
-  <span class="sui-identity-copy">
+  <!-- The two lines are read as one run of text, so a control around the row names the person
+       with the language's own join, not with the space a browser puts between lines. -->
+  <span class="sui-identity-copy" aria-hidden={handle ? 'true' : undefined}>
     <span class="sui-identity-name">{name}</span>
     {#if handle}
       <span class="sui-identity-handle">{handle}</span>
     {/if}
   </span>
+  {#if handle}<VisuallyHidden>{handleName(name, handle)}</VisuallyHidden>{/if}
 </span>
 
 <style>
