@@ -1484,7 +1484,8 @@ function tonedControls(root: Document): Finding[] {
 
 /**
  * A message's symbol (L-56): a 2rem tile holding an 18px glyph. Copy shorter than the tile
- * centres on it, and longer copy starts at its top.
+ * centres on it, and longer copy starts at its top; a toast's tile centres on its title's
+ * first line instead.
  */
 function symbolTiles(root: Document): Finding[] {
   const found: Finding[] = [];
@@ -1496,6 +1497,14 @@ function symbolTiles(root: Document): Finding[] {
     const glyph = tile.querySelector('svg')?.getBoundingClientRect();
     if (glyph && Math.abs(glyph.width - 18) > 0.5)
       found.push(finding('L-56', tile, `the symbol draws at ${round(glyph.width)}px, not 18px`));
+    // A toast hangs its symbol, its title and its buttons on one first line.
+    if (tile.matches('.sui-toast-mark')) {
+      const first = tile.parentElement && firstLine(tile.parentElement, tile);
+      const off = first ? (box.top + box.bottom) / 2 - first.capMiddle : 0;
+      if (Math.abs(off) > 0.55)
+        found.push(finding('L-56', tile, `the tile sits ${round(off)}px off its title's cap`));
+      continue;
+    }
     const copy = tile.nextElementSibling;
     const lines = copy
       ? [...copy.children].filter(shown).map((line) => line.getBoundingClientRect())
@@ -1539,6 +1548,24 @@ function swatches(root: Document): Finding[] {
  * Icons beside text that wraps (L-94): a menu item's or option's leading icon centres on the
  * first line of its text, never on the middle of a block of two or more lines.
  */
+/** The first line of words a reader sees in `row`, outside `skip`, and its cap band's middle. */
+function firstLine(row: Element, skip?: Element): { line: DOMRect; capMiddle: number } | null {
+  const walker = document.createTreeWalker(row, NodeFilter.SHOW_TEXT);
+  const range = document.createRange();
+  for (let node = walker.nextNode(); node; node = walker.nextNode()) {
+    const box = node.parentElement;
+    if (!node.textContent?.trim() || !box || skip?.contains(node)) continue;
+    if (box.closest('.sui-visually-hidden, [aria-hidden="true"]') || !shown(box)) continue;
+    if (heardOnly(box)) continue;
+    range.selectNodeContents(node);
+    const line = [...range.getClientRects()].find((rect) => rect.width > 0);
+    if (!line) continue;
+    const face = faceMetrics(getComputedStyle(box));
+    return face ? { line, capMiddle: line.top + face.ascent - face.cap / 2 } : null;
+  }
+  return null;
+}
+
 function leadingIcons(root: Document): Finding[] {
   const found: Finding[] = [];
   // A message's symbol stands in a tile that L-56 places against the whole copy.
@@ -1552,29 +1579,11 @@ function leadingIcons(root: Document): Finding[] {
       parent && parent.childElementCount === 1 && !parent.textContent?.trim() ? parent : icon;
     const row = holder.parentElement;
     if (!row || row.closest('.sui-visually-hidden')) continue;
-    const walker = document.createTreeWalker(row, NodeFilter.SHOW_TEXT);
-    const range = document.createRange();
-    let line: DOMRect | null = null;
-    let words: Element | null = null;
-    for (let node = walker.nextNode(); node; node = walker.nextNode()) {
-      const box = node.parentElement;
-      if (!node.textContent?.trim() || !box || holder.contains(node)) continue;
-      if (box.closest('.sui-visually-hidden, [aria-hidden="true"]') || !shown(box)) continue;
-      if (heardOnly(box)) continue;
-      range.selectNodeContents(node);
-      const first = [...range.getClientRects()].find((rect) => rect.width > 0);
-      if (!first) continue;
-      line = first;
-      words = box;
-      break;
-    }
+    const first = firstLine(row, holder);
     // Only a mark that stands beside its words on their first line: one stacked over them, or
     // beside a control rather than words, is not weighed here.
-    if (!line || !words || line.bottom < glyph.top || line.top > glyph.bottom) continue;
-    const face = faceMetrics(getComputedStyle(words));
-    if (!face) continue;
-    const capMiddle = line.top + face.ascent - face.cap / 2;
-    const off = (glyph.top + glyph.bottom) / 2 - capMiddle;
+    if (!first || first.line.bottom < glyph.top || first.line.top > glyph.bottom) continue;
+    const off = (glyph.top + glyph.bottom) / 2 - first.capMiddle;
     // A mark on whole pixels lands within half a pixel of any middle.
     if (Math.abs(off) > 0.55)
       found.push(
