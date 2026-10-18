@@ -1,7 +1,20 @@
 <script lang="ts">
-  import type { Component } from 'svelte';
+  import { flushSync, type Component } from 'svelte';
   import { page } from '$app/state';
-  import { AppShell, Button, Icon, PageHeader, PageToc, Rail, SkipLink, ThemeSwitch } from '#lib';
+  import {
+    AppShell,
+    Button,
+    Icon,
+    PageHeader,
+    Rail,
+    SideNav,
+    SkipLink,
+    ThemeSwitch,
+    type IconName,
+    type NavItem,
+    type NavSection
+  } from '#lib';
+  import { followsInPlace } from '#lib/internal/shell.svelte.js';
   import AuditPanel from './audit/AuditPanel.svelte';
   import Section, { type SectionMeta } from './kit/Section.svelte';
   import { places } from './places';
@@ -107,31 +120,96 @@
       };
     })
     .sort((a, b) => a.rank - b.rank || a.order - b.order || a.title.localeCompare(b.title));
-  const entries = sections.map(({ id, title, family }) => ({ id, label: title, group: family }));
 
-  // The header's tools become a bar fixed over the content once their place in the header has
-  // scrolled away.
-  let compact = $state(false);
-  // The slot keeps the box the tools had in it while they ride in the fixed bar, so the header
-  // keeps its wrap and the page under it never moves when the bar comes or goes.
-  let held = $state({ inline: 0, block: 0 });
-  let slides = $state(false);
-  function watch(slot: HTMLElement) {
-    // The first report is where the page already stands, as after a reload halfway down, so the
-    // bar is simply there; only the reader's own scrolling slides it in.
-    let reported = false;
-    // One call can carry several entries for the slot, as when the page scrolls before the
-    // first one is delivered, and only the last is current.
-    const watcher = new IntersectionObserver((entries) => {
-      const entry = entries[entries.length - 1];
-      const next = !entry.isIntersecting && entry.boundingClientRect.bottom <= 0;
-      if (next && !compact) held = { inline: slot.offsetWidth, block: slot.offsetHeight };
-      slides = reported;
-      reported = true;
-      compact = next;
-    });
-    watcher.observe(slot);
+  // Each family's glyph, worn by every member without a glyph of its own.
+  const FAMILY_ICONS: Record<string, IconName> = {
+    Actions: 'sliders',
+    Inputs: 'editor',
+    'Pickers and editors': 'chevrons-up-down',
+    Overlays: 'notifications',
+    'Surfaces and content': 'file',
+    Marks: 'tag',
+    'Lists and states': 'repositories',
+    Charts: 'gauge',
+    Shell: 'sidebar-expand'
+  };
+  // A component a glyph already names wears that glyph.
+  const ICONS: Record<string, IconName> = {
+    'icon-buttons': 'more',
+    navigation: 'arrow-up-right',
+    'search-field': 'search',
+    checkbox: 'check',
+    'theme-switch': 'sun-moon',
+    'copyable-link-field': 'link',
+    'help-tip': 'help',
+    'duration-input': 'pending',
+    'confirm-dialog': 'warning',
+    'service-worker-status': 'server',
+    callout: 'info',
+    'diff-block': 'branch',
+    'data-table': 'database',
+    avatar: 'user',
+    'relative-time': 'history',
+    'day-heading': 'calendar',
+    'list-toolbar': 'filter',
+    'load-more': 'refresh',
+    skeleton: 'circle-dashed',
+    states: 'circle-slash'
+  };
+  const index: NavSection[] = Object.values(
+    Object.groupBy(sections, (section) => section.family) as Record<string, typeof sections>
+  ).map((members) => ({
+    label: members[0].family,
+    items: members.map(({ id, title, family }) => ({
+      href: `#${id}`,
+      label: title,
+      icon: ICONS[id] ?? FAMILY_ICONS[family] ?? 'circle-dashed'
+    }))
+  }));
+
+  // The section the reader is in: the last whose top has crossed the top quarter of the window,
+  // where a reader's eye lands. The index's plate follows it. Before the page runs, as in the
+  // server's render, the reader is at the top, in the first section.
+  let here = $state(sections[0]?.id ?? '');
+  function spy(main: HTMLElement) {
+    const tops = [...main.querySelectorAll<HTMLElement>(':scope > section[id]')];
+    // Read once where the page already stands, as after a reload halfway down, so the plate
+    // lands there before it would glide.
+    here =
+      tops.findLast((section) => section.getBoundingClientRect().top <= innerHeight / 4)?.id ??
+      here;
+    // A line a quarter down the window: a section crossing it is where the reader is.
+    const watcher = new IntersectionObserver(
+      (records) => {
+        for (const record of records) if (record.isIntersecting) here = record.target.id;
+      },
+      { rootMargin: '-25% 0px -75% 0px' }
+    );
+    for (const section of tops) watcher.observe(section);
     return () => watcher.disconnect();
+  }
+
+  let drawerOpen = $state(false);
+
+  /** Follows an entry in place: the page scrolls there and focus lands on the section's heading,
+   * so the next Tab starts there. */
+  function follow(event: MouseEvent, item: NavItem) {
+    const section = document.getElementById(item.href.slice(1));
+    if (!followsInPlace(event) || !section) return;
+    event.preventDefault();
+    // The phone drawer leaves first, so the section is no longer inert and can take focus.
+    drawerOpen = false;
+    flushSync();
+    const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    section.scrollIntoView({ behavior: still ? 'instant' : 'smooth', block: 'start' });
+    history.pushState(null, '', item.href);
+    here = section.id;
+    const heading = section.querySelector<HTMLElement>('h2') ?? section;
+    if (!heading.hasAttribute('tabindex')) {
+      heading.tabIndex = -1;
+      heading.addEventListener('blur', () => heading.removeAttribute('tabindex'), { once: true });
+    }
+    heading.focus({ preventScroll: true });
   }
 </script>
 
@@ -145,12 +223,19 @@
 
 <SkipLink href="#content" />
 
-<AppShell title="Kitchen sink" landmark="none">
+<AppShell title="Kitchen sink" landmark="none" bind:drawerOpen>
   {#snippet rail()}
     <Rail items={places} current={page.url.pathname} />
   {/snippet}
   {#snippet sidebar()}
-    <div class="index"><PageToc {entries} title="Components" class="toc" /></div>
+    <SideNav
+      kicker="SUI"
+      title="Kitchen sink"
+      label="Components"
+      sections={index}
+      current="#{here}"
+      onnavigate={follow}
+    />
   {/snippet}
 
   <div class="sink">
@@ -161,22 +246,21 @@
       description="Every component in every state, measured against the design laws on every render"
     >
       {#snippet actions()}
-        <div
-          class="slot"
-          {@attach watch}
-          style:inline-size={compact ? `${held.inline}px` : undefined}
-          style:block-size={compact ? `${held.block}px` : undefined}
-        >
-          <div class={['tools', { compact, slides }]}>
-            <p class="tools-title" aria-hidden="true">Kitchen sink</p>
-            <div class="theme"><ThemeSwitch name="sink-page-theme" system={false} /></div>
-          </div>
+        <div class="slot">
+          <div class="theme"><ThemeSwitch name="sink-page-theme" system={false} /></div>
         </div>
       {/snippet}
     </PageHeader>
 
+    <!-- The header's tools ride in a bar over the content once their place in the header has
+         scrolled away. -->
+    <div class="bar">
+      <p class="bar-title" aria-hidden="true">Kitchen sink</p>
+      <div class="theme"><ThemeSwitch name="sink-bar-theme" system={false} /></div>
+    </div>
+
     <div class="page">
-      <main id="content" tabindex="-1">
+      <main id="content" tabindex="-1" {@attach spy}>
         <AuditPanel />
         {#each sections as { id, family, meta, source, Body } (id)}
           <Section {id} {family} {meta} {source} {sources} body={Body} />
@@ -184,14 +268,12 @@
       </main>
 
       <!-- "#top" is the fragment every browser takes to the start of the page, with no script. -->
-      {#if compact}
-        <div class="to-top">
-          <Button href="#top">
-            {#snippet icon()}<Icon name="chevron-up" size="sm" />{/snippet}
-            Back to top
-          </Button>
-        </div>
-      {/if}
+      <div class="to-top">
+        <Button href="#top">
+          {#snippet icon()}<Icon name="chevron-up" size="sm" />{/snippet}
+          Back to top
+        </Button>
+      </div>
     </div>
   </div>
 </AppShell>
@@ -211,22 +293,6 @@
     scroll-padding-block-end: var(--sink-floor);
   }
 
-  /* The index fills the sidebar's column and scrolls inside it, in the drawer too. */
-  .index {
-    display: flex;
-    flex: 1 1 auto;
-    flex-direction: column;
-    min-block-size: 0;
-  }
-
-  .index :global(.toc) {
-    align-self: stretch;
-    flex: 1 1 auto;
-    min-block-size: 0;
-    padding-block-start: var(--sui-rhythm-pane-gutter);
-    padding-inline-start: var(--sui-space-3);
-  }
-
   /* The content box is the measure for the fixed bar, which spans it and nothing else. The
      column is centred in it, and the header's band and the bar keep its inset. */
   .sink {
@@ -236,6 +302,7 @@
       calc((100cqi - var(--sui-content-max)) / 2 + var(--sink-gutter))
     );
     container-type: inline-size;
+    timeline-scope: --sink-tools;
   }
 
   .sink :global(.head) {
@@ -254,25 +321,8 @@
     flex: 1 1 auto;
     min-block-size: var(--sui-control-height-compact);
     min-inline-size: 0;
-  }
-
-  .tools {
-    align-items: center;
-    display: flex;
-    flex: 1 1 auto;
-    gap: var(--sui-space-3);
-    min-inline-size: 0;
-  }
-
-  .tools-title {
-    align-content: center;
-    block-size: var(--sui-block-snap);
-    color: var(--sui-text-primary);
-    display: none;
-    font: var(--sui-weight-semibold) var(--sui-font-size-control) / var(--sui-leading-flat)
-      var(--sui-sans);
-    margin: 0;
-    text-box: trim-both cap alphabetic;
+    view-timeline: --sink-tools block;
+    view-timeline-inset: 0px;
   }
 
   .theme {
@@ -280,16 +330,33 @@
     margin-inline-start: auto;
   }
 
+  .bar {
+    display: none;
+  }
+
+  .bar-title {
+    align-content: center;
+    block-size: var(--sui-block-snap);
+    color: var(--sui-text-primary);
+    font: var(--sui-weight-semibold) var(--sui-font-size-control) / var(--sui-leading-flat)
+      var(--sui-sans);
+    margin: 0;
+    text-box: trim-both cap alphabetic;
+  }
+
   /* A phone's shell bar already sticks above the content, so the tools stay in the header
-     there and only a wider shell takes them into a bar of their own, sliding in from above.
-     The bar is frosted glass over the page scrolling under it, as Fluent's in-app acrylic is
-     for surfaces that content scrolls beneath and Apple's bar materials are. */
+     there and only a wider shell gives them a bar of their own. The bar is frosted glass over
+     the page scrolling under it, as Fluent's in-app acrylic is for surfaces that content
+     scrolls beneath and Apple's bar materials are. */
   @container sui-shell (min-width: 48rem) {
-    .tools.compact {
+    .bar {
+      align-items: center;
       backdrop-filter: var(--sui-glass-filter);
       background: var(--sui-glass-bar);
       border-block-end: var(--sui-stroke) solid var(--sui-border-divider);
       box-sizing: border-box;
+      display: flex;
+      gap: var(--sui-space-3);
       inline-size: 100cqi;
       inset-block-start: 0;
       inset-inline-end: 0;
@@ -297,37 +364,63 @@
       padding-block: var(--sui-space-2);
       padding-inline: var(--sink-inset);
       position: fixed;
+      visibility: hidden;
       z-index: var(--sui-layer-sticky);
-    }
-
-    .compact .tools-title {
-      display: block;
-    }
-
-    .tools.compact.slides {
-      animation: sink-bar-in var(--sui-duration-normal) var(--sui-ease-out);
     }
 
     /* Where nothing frosts what passes under it, or the reader asks for less transparency, the
        bar is the band's opaque ground, as Apple's Reduce Transparency and Fluent's solid
        fallback make it; forced colors draw the system's own. */
     @supports not (backdrop-filter: blur(1px)) {
-      .tools.compact {
+      .bar {
         background: var(--sui-surface-base);
       }
     }
 
     @media (prefers-reduced-transparency: reduce) {
-      .tools.compact {
+      .bar {
         backdrop-filter: none;
         background: var(--sui-surface-base);
       }
     }
 
     @media (forced-colors: active) {
-      .tools.compact {
+      .bar {
         backdrop-filter: none;
         background: Canvas;
+      }
+    }
+  }
+
+  /* The bar and the way back up follow the slot's place in the header through its view
+     timeline, which the browser resolves before it paints, so after a reload halfway down they
+     are there in the first frame. The bar slides in with the reader's own scroll and never
+     moves on its own. Without scroll-driven animations the tools stay in the header and the
+     way back up stays at the foot of the window. */
+  @supports (animation-timeline: view()) {
+    @container sui-shell (min-width: 48rem) {
+      .bar {
+        animation: sink-bar-in var(--sui-ease-linear) forwards;
+        animation-range: exit 100% exit calc(100% + var(--sink-bar));
+        animation-timeline: --sink-tools;
+      }
+    }
+
+    /* While the header shows, its words are skipped as well as hidden, so the page holds no
+       control that can be neither seen nor named. */
+    .to-top {
+      animation: sink-to-top-in var(--sui-ease-linear) forwards;
+      animation-range: exit 100% exit calc(100% + 1px);
+      animation-timeline: --sink-tools;
+      content-visibility: hidden;
+      visibility: hidden;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      @container sui-shell (min-width: 48rem) {
+        .bar {
+          animation-name: sink-shown;
+        }
       }
     }
   }
@@ -335,6 +428,27 @@
   @keyframes sink-bar-in {
     from {
       translate: 0 -100%;
+      visibility: visible;
+    }
+
+    to {
+      translate: 0 0;
+      visibility: visible;
+    }
+  }
+
+  @keyframes sink-shown {
+    from,
+    to {
+      visibility: visible;
+    }
+  }
+
+  @keyframes sink-to-top-in {
+    from,
+    to {
+      content-visibility: visible;
+      visibility: visible;
     }
   }
 
@@ -360,11 +474,5 @@
     margin-inline-start: auto;
     position: sticky;
     z-index: var(--sui-layer-sticky);
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    .tools.compact.slides {
-      animation: none;
-    }
   }
 </style>

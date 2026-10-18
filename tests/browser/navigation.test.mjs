@@ -277,7 +277,7 @@ suite('navigation', together, () => {
           await visit(page, url);
           // The sink's own shell comes first; the app shell section's specimens follow it.
           if (width < 768) await page.locator('.sui-shell-menu').first().click();
-          await page.locator('.sui-page-toc-link', { hasText: 'Data table' }).first().click();
+          await page.locator('.sui-side-nav-row', { hasText: 'Data table' }).first().click();
           await settles(
             page.waitForFunction(
               () => document.activeElement?.closest('#data-table') !== null,
@@ -296,6 +296,32 @@ suite('navigation', together, () => {
       }
     }
   );
+
+  test("the sink's index marks the section the reader has scrolled to", long, async () => {
+    const page = await open(1440);
+    try {
+      await page.evaluate(() => document.getElementById('data-table')?.scrollIntoView());
+      const marked = () =>
+        page.evaluate(() =>
+          document
+            .querySelector('.sui-shell-side .sui-side-nav-row[aria-current="page"]')
+            ?.textContent?.trim()
+        );
+      await settles(
+        page.waitForFunction(
+          () =>
+            document
+              .querySelector('.sui-shell-side .sui-side-nav-row[aria-current="page"]')
+              ?.textContent?.trim() === 'Data table',
+          null,
+          brief
+        )
+      );
+      assert.equal(await marked(), 'Data table');
+    } finally {
+      await page.close();
+    }
+  });
 
   test(
     'a chart plot that scrolls is a named keyboard stop, and its table renders only when opened',

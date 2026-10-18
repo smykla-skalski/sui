@@ -89,11 +89,15 @@
   const uid = $props.id();
 
   let tree = $state<HTMLElement | null>(null);
+  let scroller = $state<HTMLElement | null>(null);
   let fold = $state<HTMLButtonElement | null>(null);
   let thumb = $state({ x: 0, y: 0, width: 0, height: 0 });
   let measured = $state(false);
   let gliding = $state(false);
   const rows = $state<Record<string, HTMLAnchorElement | null>>({});
+  // The row last brought into view, so the list follows a new current row once and a reader
+  // who scrolls the list on their own is left where they scrolled.
+  let shown: string | undefined;
 
   /** Lays the selection plate under the current row, measured rather than guessed. */
   function measure() {
@@ -102,7 +106,12 @@
     if (!tree || !row || row.getClientRects().length === 0) {
       measured = false;
       gliding = false;
+      shown = undefined;
       return;
+    }
+    if (shown !== current) {
+      shown = current;
+      keepInView(row);
     }
     // Client rects, because offsets round to whole pixels and the plate must sit exactly on the
     // row. The plate stands at the list's start corner, which is its right in a right-to-left page.
@@ -120,6 +129,16 @@
       // The first placement is not a change, so the plate only glides after it has landed.
       requestAnimationFrame(() => requestAnimationFrame(() => (gliding = true)));
     }
+  }
+
+  /** Scrolls the list, never the page, so the row and one row's room beyond it are in view. */
+  function keepInView(row: HTMLElement) {
+    if (!scroller) return;
+    const view = scroller.getBoundingClientRect();
+    const box = row.getBoundingClientRect();
+    if (box.top < view.top + box.height) scroller.scrollTop -= view.top + box.height - box.top;
+    else if (box.bottom > view.bottom - box.height)
+      scroller.scrollTop += box.bottom - view.bottom + box.height;
   }
 
   // The plate's own state stays out of the effect's reach, so a measure from the observer never
@@ -173,7 +192,7 @@ following a row closes the drawer.
 - Keyboard: Tab moves through the rows, then the fold or close control; Enter follows a row or presses the control.
 - Pointer and touch: rows are 34px on a desktop pointer and 44px in the drawer and the strip; the close and fold controls are 34px and 44px there, and nothing needs a gesture.
 - Focus: folding keeps focus on the control; a fold control that leaves as the shell narrows hands focus to the current row, and a row followed in the drawer closes it with focus returned to the menu button.
-- Responsive: the row list scrolls inside the column, a long label wraps, the strip stacks each glyph over its short label, and the fold control shows only where the shell can fold.
+- Responsive: the row list scrolls inside the column and brings a new current row into view without scrolling the page, a long label wraps, the strip stacks each glyph over its short label, and the fold control shows only where the shell can fold.
 - Accessibility: a count is read with its words from `countLabel`, joined to the label by `countedName`, every ink holds 4.5:1 on its ground, the current ink stands 3:1 from the rest ink in lightness, so it is never hue alone (WCAG 1.4.1), and a heading names each group for heading navigation.
 - Localization: `label`, `closeLabel`, `collapseLabel`, `expandLabel` and `countLabel` are props with English defaults; counts follow the page language, the plate is measured from the start edge and the fold glyphs mirror in a right-to-left page.
 - Performance: one resize observer measures the plate, which glides with a transform; it suits a sidebar of tens of rows, not thousands.
@@ -192,7 +211,7 @@ following a row closes the drawer.
     {/if}
   </div>
 
-  <nav class="sui-side-nav-tree" aria-label={label ?? pagesLabel(title)}>
+  <nav bind:this={scroller} class="sui-side-nav-tree" aria-label={label ?? pagesLabel(title)}>
     <div bind:this={tree} class={['sui-side-nav-list', { measured, gliding }]}>
       <span
         class="sui-side-nav-thumb"
