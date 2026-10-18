@@ -82,11 +82,11 @@
 
   /** The reader's place: the last section whose top has crossed the top quarter of its scroller. */
   function mark(): void {
+    // Not client rects: a folded section still has them, since the browser lays out closed
+    // `details` content, but it is hidden.
     const sections = entries
       .map((entry) => document.getElementById(entry.id))
-      .filter(
-        (section): section is HTMLElement => section !== null && section.getClientRects().length > 0
-      );
+      .filter((section): section is HTMLElement => section?.checkVisibility() ?? false);
     const first = sections[0];
     if (!first) return;
     const pane = scroller(first);
@@ -184,7 +184,8 @@ the URL hash on arrival, then the last section whose top has crossed the top qua
 box the sections scroll in, the page or a pane, and the last section once that box is
 scrolled to its end. The index sticks to the top of the viewport inside whatever column it
 is given, or under a sticky bar as tall as `offset`, and fills the height below, padding its
-own top and bottom, so a long index scrolls out at that edge. Placing it beside the content,
+own top and bottom, so a long index scrolls out at that edge, and keeping room at its end
+for the scrollbar, so the scrollbar never covers the entries. Placing it beside the content,
 or leaving it out on a phone, is the page's layout.
 
 - Semantics: a `nav` landmark named by `title`, with the title as a heading at `level`, group headings one level below, and lists of fragment links, the current one with `aria-current="location"`.
@@ -233,7 +234,8 @@ or leaving it out on a phone, is the page's layout.
 <style>
   /* The index sticks to the viewport's top, or under the page's bar, and fills the height
      below it, padding its own scroll area, so entries leave at that edge and never get cut
-     at a line in the middle of the page. */
+     at a line in the middle of the page. The end padding is room for the scrollbar, which
+     an overlay scrollbar would otherwise draw over the entries. */
   .sui-page-toc {
     align-self: start;
     box-sizing: border-box;
@@ -243,6 +245,7 @@ or leaving it out on a phone, is the page's layout.
     overflow-y: auto;
     overscroll-behavior: contain;
     padding-block: var(--sui-space-6);
+    padding-inline-end: var(--sui-space-3);
     position: sticky;
     scroll-padding-block: var(--sui-space-6);
     scrollbar-width: thin;
