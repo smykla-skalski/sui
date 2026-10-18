@@ -11,7 +11,10 @@ export default defineConfig({
       // PR previews share one host, each under its own /pr-<number> prefix.
       paths: { base: (process.env.BASE_PATH ?? '') as '' | `/${string}` },
       // The sink's tabs and links point at demo anchors that no section renders.
-      prerender: { handleMissingId: 'ignore' }
+      prerender: { handleMissingId: 'ignore' },
+      // The layout registers the worker with `registerServiceWorker`, which never does on the
+      // dev server, so a dev page never runs a build's caches.
+      serviceWorker: { register: false }
     })
   ],
   // The SSR pre-bundle resolves rolldown's virtual runtime, which no `include` covers, so

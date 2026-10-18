@@ -116,6 +116,14 @@ export type { ColorSwatch } from './components/ColorPicker.svelte';
 export { default as DataTable } from './components/DataTable.svelte';
 export type { DataTableColumn, DataTableSort } from './components/DataTable.svelte';
 export { default as SaveBar } from './components/SaveBar.svelte';
+export { default as ServiceWorkerStatus } from './components/ServiceWorkerStatus.svelte';
+export type { ServiceWorkerNotice } from './components/ServiceWorkerStatus.svelte';
+export { registerServiceWorker } from './internal/service-worker.svelte.js';
+export type {
+  ServiceWorkerContainerLike,
+  ServiceWorkerOptions,
+  ServiceWorkerState
+} from './internal/service-worker.svelte.js';
 
 export { default as LineChart } from './charts/LineChart.svelte';
 export { default as ScatterChart } from './charts/ScatterChart.svelte';

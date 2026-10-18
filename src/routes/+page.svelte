@@ -56,7 +56,10 @@
         'setting-list'
       ]
     ],
-    ['Overlays', ['overlays', 'modal', 'confirm-dialog', 'toaster', 'save-bar']],
+    [
+      'Overlays',
+      ['overlays', 'modal', 'confirm-dialog', 'toaster', 'save-bar', 'service-worker-status']
+    ],
     [
       'Surfaces and content',
       [

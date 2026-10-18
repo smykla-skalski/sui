@@ -47,6 +47,7 @@ Each component documents its contract in an `@component` comment, and the kitche
 - Marks: `Pill`, `Chip`, `Avatar`, `IdentityRow`, `ClippedLabel`, `RelativeTime`, `DayHeading`, `Icon`, `VisuallyHidden`
 - Lists and states: `ObjectList`, `ObjectRow`, `ListToolbar`, `EmptyState`, `ErrorState`, `FormError`, `Skeleton`, `LoadMore`
 - Charts: `LineChart`, `ScatterChart`, `RangeChart`, `HeatmapChart` (see [chart usage](docs/charts.md))
+- Offline: `serve()` from `@smykla-skalski/sui/service-worker` for the app's service worker, with `registerServiceWorker()` and `ServiceWorkerStatus` in its layout (see [offline and updates](docs/offline.md))
 
 Overlays use the native `<dialog>` element and the Popover API, so they render in the browser's top layer with native light dismiss and focus return. SUI has no runtime dependencies besides Svelte.
 
