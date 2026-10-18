@@ -90,7 +90,8 @@ tells a screen reader nothing.
 
 Each outcome is also announced through a polite live region, a second copy included, so a
 reader who cannot see the label change still hears it. The labels share one box, so the
-button does not change width when it answers.
+button does not change width when it answers; a `bare` one is as wide as its resting and
+copied words, and the failure wraps inside that width.
 
 It is 28px tall on its own opaque ground, so it can sit over code. `CodeBlock` places one
 in its corner. Beside a 34px field or in a toolbar it takes the control tier with `toolbar`.
@@ -253,6 +254,17 @@ in its corner. Beside a 34px field or in a toolbar it takes the control tier wit
 
   .sui-copy-button-labels > .off {
     visibility: hidden;
+  }
+
+  /* Inside a field the chip keeps the width its resting and copied words need, so the value
+     keeps its room; the rarer failure wraps inside that width instead of widening it, and
+     takes no room at all while it is hidden. */
+  .bare .sui-copy-button-labels > :last-child {
+    contain: inline-size;
+  }
+
+  .bare .sui-copy-button-labels > .off:last-child {
+    contain: size;
   }
 
   .sui-copy-button-status {

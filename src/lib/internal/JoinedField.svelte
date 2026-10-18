@@ -115,16 +115,21 @@ the end part draws its own inset ring while it has focus, so the two never look 
     min-inline-size: 0;
   }
 
-  /* On a line of its own the end starts at the field's start edge (L-90). A host whose end is a
-     chip that wraps its words sets an inset to keep it clear of the frame; a full-height end,
-     such as a picker, takes none, so its ground meets the frame and the frame's curve clips it,
-     and it never makes the field taller than its value. */
+  /* The end hangs on the value's first line, one line tall, so beside a value that wraps it
+     stays level with the first line. On a line of its own it starts at the field's start edge
+     (L-90). A host whose end is a chip that wraps its words sets an inset to keep it clear of
+     the frame; a full-height end, such as a picker, takes none, so its ground meets the frame
+     and the frame's curve clips it, and it never makes the field taller than its value. */
   .sui-joined-end {
     align-items: center;
+    align-self: flex-start;
     box-sizing: border-box;
     display: flex;
     flex: none;
     max-inline-size: 100%;
+    min-block-size: calc(
+      var(--sui-local-control-height, var(--sui-control-height-compact)) - 2 * var(--sui-stroke)
+    );
     padding-block: var(--sui-local-joined-end-inset, 0px);
     padding-inline-end: var(--sui-local-joined-end-inset, 0px);
   }

@@ -23,7 +23,7 @@
     label?: string;
     /** One sentence under the field, such as when the link stops working. */
     hint?: string;
-    /** The copy button's resting label, naming what it copies. */
+    /** The copy button's name, naming what it copies; the button shows the short "Copy". */
     copyLabel?: string;
     /** Said for 1.6 seconds after each copy. */
     copiedLabel?: string;
@@ -80,17 +80,19 @@ available. Tabbing into the field selects the whole value, and a refused copy mo
 the value with all of it selected.
 
 The field and its `CopyButton` are one control: the copy action is a chip inside the field's
-end, under one frame. The copy part confirms with "Copied". A long value wraps onto more lines
+end, under one frame. The chip shows the short "Copy", so the value keeps the width, and is
+named by `copyLabel`, such as "Copy link", which starts with the shown word (WCAG 2.5.3). The
+copy part confirms with "Copied". A long value wraps onto more lines
 at any character, so all of it shows and it never widens the row. With `label` the pair sits in a `Field`, and the label names
 the text field.
 
-- Semantics: a read-only text area named by its `Field` label or `aria-label`, and a copy button named by `copyLabel`, inside one joined field.
+- Semantics: a read-only text area named by its `Field` label or `aria-label`, and a copy button named by `copyLabel`, which starts with its shown word, inside one joined field.
 - Content: one link or token in the mono face, and the copy action's three short labels.
 - States: rest (the inset well and a quiet frame, because it only reads), focus on the value (the field's ring, the value selected), focus on the copy action (its own inset ring), pressed copy action (a deeper veil and an inset shadow), copied and failed.
 - Keyboard: Tab selects the value and moves on to the copy action, Enter or Space copies, and the platform's own copy works on the selection.
 - Pointer and touch: 34px tall, 44px on a phone or any touch screen, and the copy action keeps a 44px hit area there.
 - Focus: copying keeps focus on the action, and a refused copy moves it to the value, selected.
-- Responsive: it fills its container, a long value wraps onto more lines, and the copy action keeps its width.
+- Responsive: it fills its container, a long value wraps onto more lines with the copy action level with the first one, and the copy action keeps the width of "Copy" or "Copied"; a longer failure wraps inside it.
 - Accessibility: each part has its own name, the outcome is spoken through the copy action's status, and the value's text holds 4.5:1.
 - Localization: `copyLabel`, `copiedLabel` and `failedLabel` are props with English defaults, and the copy action sits at the inline end in either direction.
 - Performance: one text area and one button; the text area is measured again only when its width changes.
@@ -118,7 +120,7 @@ the text field.
     {#snippet end()}
       <CopyButton
         text={value}
-        label={copyLabel}
+        aria-label={copyLabel}
         {copiedLabel}
         {failedLabel}
         {oncopied}
