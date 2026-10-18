@@ -187,7 +187,8 @@ suite('navigation', together, () => {
       try {
         const shells = page.locator('#app-shell .sui-shell');
         // The expanded specimen is 980px wide, under the 64rem a fold needs; the collapsed one is 66rem.
-        assert.equal(await shells.nth(0).locator('.sui-side-nav-fold').count(), 0);
+        // Every shell draws the control in its markup, and its own width shows it.
+        assert.equal(await shells.nth(0).locator('.sui-side-nav-fold:visible').count(), 0);
         const fold = shells.nth(1).locator('.sui-side-nav-fold');
         assert.equal((await fold.textContent())?.trim(), 'Expand');
         await fold.click();

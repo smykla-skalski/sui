@@ -50,6 +50,7 @@
     ),
     foot,
     onnavigate,
+    scrollTargets = false,
     class: className = '',
     ...rest
   }: {
@@ -80,6 +81,12 @@
     foot?: Snippet;
     /** Called when a row is followed, for a router that handles the click itself. */
     onnavigate?: (event: MouseEvent, item: NavItem) => void;
+    /**
+     * The rows are fragment links to the sections of this page, and the current row is the
+     * section the reader has scrolled to, as the browser picks it for such links
+     * (`scroll-target-group`), from the first paint; `current` is not read.
+     */
+    scrollTargets?: boolean;
     class?: HTMLAttributes<HTMLDivElement>['class'];
   } & HTMLAttributes<HTMLDivElement> = $props();
 
@@ -95,13 +102,63 @@
   let measured = $state(false);
   let gliding = $state(false);
   const rows = $state<Record<string, HTMLAnchorElement | null>>({});
+
+  // The row of the section the reader has reached, read from the browser's own pick once script
+  // runs, so the plate and `aria-current` take the row the first paint already marked.
+  let reached = $state<string | undefined>(undefined);
+  const here = $derived(scrollTargets ? reached : current);
+
+  $effect(() => {
+    if (!scrollTargets || !tree) return;
+    const list = tree;
+    const native = CSS.supports('selector(:target-current)');
+    const read = () => {
+      if (native) {
+        reached =
+          list.querySelector<HTMLAnchorElement>(':target-current')?.getAttribute('href') ??
+          undefined;
+        return;
+      }
+      // Without scroll target groups: the last section whose top has crossed the top quarter
+      // of the window, or the last one once the page is scrolled to its end.
+      const targets = [...list.querySelectorAll<HTMLAnchorElement>('a[href^="#"]')]
+        .map(
+          (link) => [link, document.getElementById(decodeURIComponent(link.hash.slice(1)))] as const
+        )
+        .filter((pair): pair is readonly [HTMLAnchorElement, HTMLElement] => pair[1] !== null);
+      const end = scrollY + innerHeight >= document.documentElement.scrollHeight - 1 && scrollY > 1;
+      const hit = end
+        ? targets.at(-1)
+        : targets.findLast(([, section]) => section.getBoundingClientRect().top <= innerHeight / 4);
+      reached = (hit ?? targets[0])?.[0].getAttribute('href') ?? undefined;
+    };
+    // The browser settles its pick in the frame that paints the scroll, so it is read a frame
+    // after a scroll, and again once the scroll ends.
+    let frame = 0;
+    const onscroll = () => {
+      cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(() => (frame = requestAnimationFrame(read)));
+    };
+    read();
+    addEventListener('scroll', onscroll, { capture: true, passive: true });
+    addEventListener('scrollend', onscroll, { capture: true, passive: true });
+    addEventListener('hashchange', onscroll);
+    return () => {
+      cancelAnimationFrame(frame);
+      removeEventListener('scroll', onscroll, { capture: true });
+      removeEventListener('scrollend', onscroll, { capture: true });
+      removeEventListener('hashchange', onscroll);
+    };
+  });
   // The row last brought into view, so the list follows a new current row once and a reader
-  // who scrolls the list on their own is left where they scrolled.
+  // who scrolls the list on their own is left where they scrolled. The first current row is
+  // placed by the browser before the first paint (`scroll-initial-target`), so script never
+  // scrolls a list that is already on screen.
   let shown: string | undefined;
 
   /** Lays the selection plate under the current row, measured rather than guessed. */
   function measure() {
-    const row = current ? rows[current] : null;
+    const row = here ? rows[here] : null;
     // A closed drawer draws no rows, so its plate lands afresh when the drawer opens.
     if (!tree || !row || row.getClientRects().length === 0) {
       measured = false;
@@ -109,20 +166,23 @@
       shown = undefined;
       return;
     }
-    if (shown !== current) {
-      shown = current;
-      keepInView(row);
+    if (shown !== here) {
+      if (measured) keepInView(row);
+      shown = here;
     }
-    // Client rects, because offsets round to whole pixels and the plate must sit exactly on the
-    // row. The plate stands at the list's start corner, which is its right in a right-to-left page.
+    // The browser paints the row's own plate, and the thumb's place before its translation, on
+    // whole device pixels, so the thumb moves from that snapped place to the row's snapped edges
+    // and takes over the plate the server drew without a sliver of change. The plate stands at
+    // the list's start corner, which is its right in a right-to-left page.
+    const snap = (edge: number) => Math.round(edge * devicePixelRatio) / devicePixelRatio;
     const list = tree.getBoundingClientRect();
     const box = row.getBoundingClientRect();
     const rtl = getComputedStyle(tree).direction === 'rtl';
     thumb = {
-      x: rtl ? box.right - list.right : box.left - list.left,
-      y: box.top - list.top,
-      width: box.width,
-      height: box.height
+      x: rtl ? snap(box.right) - snap(list.right) : snap(box.left) - snap(list.left),
+      y: snap(box.top) - snap(list.top),
+      width: snap(box.right) - snap(box.left),
+      height: snap(box.bottom) - snap(box.top)
     };
     if (!measured) {
       measured = true;
@@ -144,7 +204,7 @@
   // The plate's own state stays out of the effect's reach, so a measure from the observer never
   // rebuilds the observer inside its own delivery.
   $effect(() => {
-    void current;
+    void here;
     void mode;
     if (!tree) return;
     untrack(measure);
@@ -158,7 +218,7 @@
      current page's row takes it, so focus never falls to the page. */
   $effect.pre(() => {
     if (folds || !fold || document.activeElement !== fold) return;
-    void tick().then(() => (rows[current ?? ''] ?? Object.values(rows)[0])?.focus());
+    void tick().then(() => (rows[here ?? ''] ?? Object.values(rows)[0])?.focus());
   });
 
   function follow(event: MouseEvent, item: NavItem) {
@@ -200,7 +260,12 @@ following a row closes the drawer.
 - Failure: a `current` that matches no row draws no plate, an empty section draws only its heading, and an empty `sections` leaves the title and its controls.
 -->
 
-<div {...rest} class={['sui-side-nav', className]} data-mode={mode}>
+<div
+  {...rest}
+  class={['sui-side-nav', className, { 'scroll-targets': scrollTargets }]}
+  data-mode={mode}
+  data-collapsed={shell?.collapsed || undefined}
+>
   <div class="sui-side-nav-head">
     <div class="sui-side-nav-names">
       {#if kicker}<p class="sui-side-nav-kicker">{kicker}</p>{/if}
@@ -241,7 +306,7 @@ following a row closes the drawer.
                   ? undefined
                   : countedName(item.label, countLabel(item.count))}
                 class="sui-side-nav-row"
-                aria-current={item.href === current ? 'page' : undefined}
+                aria-current={item.href === here ? 'page' : undefined}
                 onclick={(event) => follow(event, item)}
               >
                 <span class="sui-side-nav-glyph"><Icon name={item.icon} size="base" /></span>
@@ -265,7 +330,9 @@ following a row closes the drawer.
     </div>
   </nav>
 
-  {#if folds && shell}
+  <!-- Drawn wherever there is a shell, so the server's render has it; the shell's own width
+       shows it only where the shell can fold. -->
+  {#if shell}
     <button
       bind:this={fold}
       type="button"
@@ -273,12 +340,9 @@ following a row closes the drawer.
       onclick={() => shell.toggleCollapsed()}
     >
       <span class="sui-side-nav-glyph"
-        ><Icon
-          name={mode === 'collapsed' ? 'sidebar-expand' : 'sidebar-collapse'}
-          size="base"
-        /></span
+        ><Icon name={shell.collapsed ? 'sidebar-expand' : 'sidebar-collapse'} size="base" /></span
       >
-      <span class="sui-side-nav-label">{mode === 'collapsed' ? expandLabel : collapseLabel}</span>
+      <span class="sui-side-nav-label">{shell.collapsed ? expandLabel : collapseLabel}</span>
     </button>
   {/if}
 
@@ -485,6 +549,49 @@ following a row closes the drawer.
     outline-color: var(--sui-sidebar-active-ink);
   }
 
+  /* The list is laid out with the current row in view, its end clear by a row's room, before the
+     first paint; a row already in view leaves the list where it is. Once the plate is measured,
+     script keeps the row in view, so a new current row changes nothing that lays out the page. */
+  @supports (scroll-initial-target: nearest) {
+    .sui-side-nav-list:not(.measured) .sui-side-nav-row[aria-current='page'],
+    .scroll-targets .sui-side-nav-list:not(.measured) .sui-side-nav-row:target-current {
+      scroll-initial-target: nearest;
+      scroll-margin-block: var(--sui-local-row);
+      scroll-snap-align: end;
+    }
+  }
+
+  /* Rows that link to this page's sections: the browser marks the row of the section the reader
+     has reached, in the first paint and as the page scrolls, with the current row's look. */
+  @supports selector(:target-current) {
+    .scroll-targets .sui-side-nav-list {
+      scroll-target-group: auto;
+    }
+
+    .scroll-targets .sui-side-nav-row:target-current {
+      color: var(--sui-sidebar-active-ink);
+    }
+
+    .scroll-targets .sui-side-nav-list:not(.measured) .sui-side-nav-row:target-current {
+      background: var(--sui-sidebar-active-bg);
+    }
+
+    .scroll-targets .sui-side-nav-row:target-current .sui-side-nav-count {
+      --sui-local-count-ink: var(--sui-sidebar-active-ink);
+    }
+
+    @media (forced-colors: active) {
+      .scroll-targets .sui-side-nav-list:not(.measured) .sui-side-nav-row:target-current {
+        background-color: Highlight;
+      }
+
+      .scroll-targets .sui-side-nav-row:target-current {
+        color: HighlightText;
+        forced-color-adjust: none;
+      }
+    }
+  }
+
   .sui-side-nav-glyph {
     align-items: center;
     display: inline-flex;
@@ -523,6 +630,12 @@ following a row closes the drawer.
     --sui-local-count-ink: var(--sui-sidebar-active-ink);
   }
 
+  @container sui-shell not (min-width: 64.0625rem) {
+    .sui-side-nav-fold {
+      display: none;
+    }
+  }
+
   .sui-side-nav-foot {
     border-block-start: var(--sui-stroke) solid var(--sui-sidebar-border);
     padding-block-start: var(--sui-space-3);
@@ -532,75 +645,81 @@ following a row closes the drawer.
     --sui-local-row: var(--sui-touch-target);
   }
 
-  /* The strip: each row stacks its glyph over a label that wraps rather than being cut, the
-     place's names give way, and a heading's boundary stays as space. */
-  [data-mode='collapsed'] {
-    padding-inline: var(--sui-space-1);
-  }
+  /* The strip, where a collapsed shell is wide enough to fold: the shell's own width decides it,
+     so the server's render already draws it. Each row stacks its glyph over a label that wraps
+     rather than being cut, the place's names give way, and a heading's boundary stays as
+     space. */
+  @container sui-shell (min-width: 64.0625rem) {
+    .sui-side-nav[data-collapsed] {
+      padding-inline: var(--sui-space-1);
+    }
 
-  [data-mode='collapsed'] .sui-side-nav-head {
-    display: none;
-  }
+    .sui-side-nav[data-collapsed] .sui-side-nav-head {
+      display: none;
+    }
 
-  [data-mode='collapsed'] .sui-side-nav-group {
-    display: none;
-  }
+    .sui-side-nav[data-collapsed] .sui-side-nav-group {
+      display: none;
+    }
 
-  [data-mode='collapsed'] .sui-side-nav-tree {
-    margin-inline: calc(-1 * var(--sui-space-1));
-    padding-inline: var(--sui-space-1);
-  }
+    .sui-side-nav[data-collapsed] .sui-side-nav-tree {
+      margin-inline: calc(-1 * var(--sui-space-1));
+      padding-inline: var(--sui-space-1);
+    }
 
-  /* The column keeps the strip's width, so a long label wraps instead of widening it. */
-  [data-mode='collapsed'] .sui-side-nav-rows {
-    grid-template-columns: minmax(0, 1fr);
-  }
+    /* The column keeps the strip's width, so a long label wraps instead of widening it. */
+    .sui-side-nav[data-collapsed] .sui-side-nav-rows {
+      grid-template-columns: minmax(0, 1fr);
+    }
 
-  [data-mode='collapsed'] .sui-side-nav-rows ~ .sui-side-nav-rows {
-    margin-block-start: var(--sui-space-4);
-  }
+    .sui-side-nav[data-collapsed] .sui-side-nav-rows ~ .sui-side-nav-rows {
+      margin-block-start: var(--sui-space-4);
+    }
 
-  [data-mode='collapsed'] .sui-side-nav-row {
-    align-items: center;
-    flex-direction: column;
-    font: var(--sui-weight-regular) var(--sui-font-size-compact) / var(--sui-leading-compact)
-      var(--sui-sans);
-    gap: var(--sui-space-1);
-    justify-content: center;
-    min-block-size: var(--sui-touch-target);
-    padding: var(--sui-space-1);
-    text-align: center;
-  }
+    .sui-side-nav[data-collapsed] .sui-side-nav-row {
+      align-items: center;
+      flex-direction: column;
+      font: var(--sui-weight-regular) var(--sui-font-size-compact) / var(--sui-leading-compact)
+        var(--sui-sans);
+      gap: var(--sui-space-1);
+      justify-content: center;
+      min-block-size: var(--sui-touch-target);
+      padding: var(--sui-space-1);
+      text-align: center;
+    }
 
-  [data-mode='collapsed'] .sui-side-nav-glyph {
-    margin-block: 0;
-  }
+    .sui-side-nav[data-collapsed] .sui-side-nav-glyph {
+      margin-block: 0;
+    }
 
-  /* A word too long for the strip breaks at a hyphen where the page's language allows. */
-  [data-mode='collapsed'] :is(.sui-side-nav-label, .sui-side-nav-short) {
-    flex: none;
-    hyphens: auto;
-    max-inline-size: 100%;
-    overflow-wrap: break-word;
-  }
+    /* A label wraps only between its words, and a word too long for the strip only at a hyphen
+       where the page's language allows one, so no word ever breaks without it. A shorter `short`
+       label is the way to a strip label that needs neither. */
+    .sui-side-nav[data-collapsed] :is(.sui-side-nav-label, .sui-side-nav-short) {
+      flex: none;
+      hyphens: auto;
+      max-inline-size: 100%;
+      overflow-wrap: normal;
+    }
 
-  [data-mode='collapsed'] .sui-side-nav-short {
-    align-content: center;
-    block-size: var(--sui-block-snap);
-    display: block;
-    text-box: trim-both cap alphabetic;
-  }
+    .sui-side-nav[data-collapsed] .sui-side-nav-short {
+      align-content: center;
+      block-size: var(--sui-block-snap);
+      display: block;
+      text-box: trim-both cap alphabetic;
+    }
 
-  /* A label replaced by its short form, and a count, leave the strip but are still read. */
-  [data-mode='collapsed'] :is(.sui-side-nav-label.replaced, .sui-side-nav-count) {
-    block-size: 1px;
-    clip-path: inset(50%);
-    inline-size: 1px;
-    overflow: hidden;
-    padding: 0;
-    position: absolute;
-    text-box: normal;
-    white-space: nowrap;
+    /* A label replaced by its short form, and a count, leave the strip but are still read. */
+    .sui-side-nav[data-collapsed] :is(.sui-side-nav-label.replaced, .sui-side-nav-count) {
+      block-size: 1px;
+      clip-path: inset(50%);
+      inline-size: 1px;
+      overflow: hidden;
+      padding: 0;
+      position: absolute;
+      text-box: normal;
+      white-space: nowrap;
+    }
   }
 
   /* Forced colors keep system colors, so the plate and its words survive the mode. */
