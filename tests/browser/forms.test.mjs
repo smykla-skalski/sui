@@ -550,4 +550,29 @@ suite('forms', together, () => {
       }
     }
   );
+
+  test(
+    'a hover on either part of a pair chip lights the whole chip, and the remove part over it',
+    long,
+    async () => {
+      const page = await open();
+      try {
+        const chip = page.locator('#pair-entry .sui-pair-chip').first();
+        const remove = chip.locator('.sui-pair-remove');
+        const ground = () => chip.evaluate((element) => getComputedStyle(element).backgroundImage);
+        const plate = () =>
+          remove.evaluate((element) => getComputedStyle(element, '::before').backgroundColor);
+        const rest = await ground();
+        const plateRest = await plate();
+        await chip.locator('.sui-pair-key').hover();
+        const lit = await ground();
+        assert.notEqual(lit, rest, 'the edit part did not light its chip');
+        await remove.hover();
+        assert.equal(await ground(), lit, 'the remove part did not light the whole chip');
+        assert.notEqual(await plate(), plateRest, 'the remove part does not answer the pointer');
+      } finally {
+        await page.close();
+      }
+    }
+  );
 });

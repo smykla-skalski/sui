@@ -398,7 +398,9 @@ row gives them and fall under the copy on a narrow row.
       --sui-pair-edge: var(--sui-control-border-hover);
     }
 
-    .sui-pair-chip:has(> .sui-pair-edit:hover:not(:disabled, [aria-disabled='true'], :active)) {
+    /* The pointer anywhere on the chip lights all of it, the remove part included, as a joined
+       field lights whole, and the remove part's own plate steps up over that. */
+    .sui-pair-chip:hover:not(:has(> :is(:disabled, [aria-disabled='true']))) {
       --sui-pair-layer: var(--sui-interactive-hover-layer);
     }
   }
