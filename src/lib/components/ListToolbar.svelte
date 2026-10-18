@@ -218,8 +218,8 @@ button. Without `tools` there is no button and the filter never folds.
             <span id="{uid}-described" hidden>{described}</span>
             <span class="sui-list-toolbar-current">
               {#if filter}<span class="sui-list-toolbar-folded">{current}</span>{/if}
-              {#if filter && chosen}<span class="sui-list-toolbar-dot" aria-hidden="true"
-                ></span>{/if}
+              {#if filter && chosen}<span class="sui-list-toolbar-dot" aria-hidden="true">·</span
+                >{/if}
               {#if chosen}<span class="sui-list-toolbar-chosen">{chosen}</span>{/if}
             </span>
           {/if}
@@ -333,13 +333,14 @@ button. Without `tools` there is no button and the filter never folds.
     gap: var(--sui-space-2);
   }
 
+  /* No gap along the line: the dot between the choices makes its own room (L-103). */
   .sui-list-toolbar-current {
     align-items: center;
     color: var(--sui-text-secondary);
     display: flex;
     flex-wrap: wrap;
-    gap: var(--sui-space-1);
     min-inline-size: 0;
+    row-gap: var(--sui-space-1);
   }
 
   .sui-list-toolbar-folded,
@@ -357,13 +358,14 @@ button. Without `tools` there is no button and the filter never folds.
     display: none;
   }
 
-  /* A dot, not a written separator, between the folded filter's choice and the tools' choices. */
+  /* The fact line's dot between the folded filter's choice and the tools' choices, standing
+     the same room from each (L-103). */
   .sui-list-toolbar-dot {
-    background: currentColor;
-    block-size: var(--sui-space-1);
-    border-radius: 50%;
+    color: var(--sui-text-muted);
     flex: none;
-    inline-size: var(--sui-space-1);
+    font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-leading-flat)
+      var(--sui-sans);
+    margin-inline: var(--sui-sep-space);
   }
 
   /* The inline room holds the spinner's corners as it turns, at the start of a wrapped line. */

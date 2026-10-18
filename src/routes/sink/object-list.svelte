@@ -8,16 +8,26 @@
 </script>
 
 <script lang="ts">
-  import { Button, Card, Icon, IdentityRow, ObjectList, ObjectRow, Pill, RelativeTime } from '#lib';
+  import {
+    Button,
+    Card,
+    FactLine,
+    Icon,
+    IdentityRow,
+    ObjectList,
+    ObjectRow,
+    Pill,
+    RelativeTime
+  } from '#lib';
   import Example from '../kit/Example.svelte';
   import Specimen from '../kit/Specimen.svelte';
 
   const synced = new Date(Date.now() - 12 * 60_000).toISOString();
 
   const repositories = [
-    { name: 'smykla-skalski/sui', summary: 'Default branch main · 84 files in step' },
-    { name: 'smykla-skalski/smyklot', summary: 'Default branch main · 3 rules would change' },
-    { name: 'smykla-skalski/ledger', summary: 'Default branch trunk · archived last year' }
+    { name: 'smykla-skalski/sui', summary: ['Default branch main', '84 files in step'] },
+    { name: 'smykla-skalski/smyklot', summary: ['Default branch main', '3 rules would change'] },
+    { name: 'smykla-skalski/ledger', summary: ['Default branch trunk', 'archived last year'] }
   ];
 
   let syncing = $state(false);
@@ -40,7 +50,10 @@
         <ObjectRow href="#object-list">
           {#snippet main()}
             <span class="name">smykla-skalski/sui</span>
-            <span class="sum">Default branch main · 84 files in step</span>
+            <span class="sum"
+              ><FactLine><span>Default branch main</span><span>84 files in step</span></FactLine
+              ></span
+            >
           {/snippet}
         </ObjectRow>
       </ObjectList>
@@ -72,7 +85,12 @@
         <ObjectRow href="#object-list">
           {#snippet main()}
             <span class="name">smykla-skalski/sui</span>
-            <span class="sum">Synced <RelativeTime value={synced} /> · 84 files in step</span>
+            <span class="sum"
+              ><FactLine
+                ><span>Synced <RelativeTime value={synced} /></span><span>84 files in step</span
+                ></FactLine
+              ></span
+            >
           {/snippet}
           {#snippet side()}
             <Pill tone="success">In step</Pill>
@@ -132,7 +150,11 @@
         <ObjectRow href="#object-list">
           {#snippet main()}
             <span class="name">{repository.name}</span>
-            <span class="sum">{repository.summary}</span>
+            <span class="sum"
+              ><FactLine
+                >{#each repository.summary as fact (fact)}<span>{fact}</span>{/each}</FactLine
+              ></span
+            >
           {/snippet}
         </ObjectRow>
       {/each}

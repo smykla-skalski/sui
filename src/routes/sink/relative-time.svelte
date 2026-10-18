@@ -8,7 +8,7 @@
 </script>
 
 <script lang="ts">
-  import { RelativeTime } from '#lib';
+  import { FactLine, RelativeTime } from '#lib';
   import Example from '../kit/Example.svelte';
   import Specimen from '../kit/Specimen.svelte';
 
@@ -61,7 +61,10 @@
   note="The time stays one word in a sentence, and every instance reads one page clock"
 >
   <p class="line">
-    Deployed by Ada <RelativeTime value={past[1].value} /> · checked again
+    <FactLine
+      ><span>Deployed by Ada <RelativeTime value={past[1].value} /></span><span>checked again</span
+      ></FactLine
+    >
     <RelativeTime value={future[0].value} />
   </p>
 </Example>

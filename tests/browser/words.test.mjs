@@ -233,7 +233,12 @@ test('with every mark replaced, each joined name reads the marks and nothing bet
       });
       put(lib.DurationInput, 'DurationInput', { label: 'Delay', value: 5, min: 60, max: 86_400 });
       put(lib.IdentityRow, 'IdentityRow', { name: 'Ada Lovelace', handle: '@ada' }, 'button');
+      put(lib.FactLine, 'FactLine', { children: html('<span>main</span>') }, 'button');
       flushSync();
+      // A raw snippet renders one root, so the second fact joins the line by hand.
+      const second = document.createElement('span');
+      second.textContent = '84 files';
+      document.querySelector('[data-words="FactLine"] .sui-fact-line')?.append(second);
     });
     await page.locator('[data-words="AdditionPicker"] button').first().click();
     await page.locator('[data-words="AdditionPicker"] [role="menuitem"]').first().waitFor();
@@ -270,7 +275,8 @@ test('with every mark replaced, each joined name reads the marks and nothing bet
       ActionMenu: (await read('[data-words="ActionMenu"] [role="menuitem"]')).name,
       ListToolbar: (await read('[data-words="ListToolbar"] [aria-describedby$="-described"]'))
         .description,
-      IdentityRow: (await read('[data-words="IdentityRow"]')).name
+      IdentityRow: (await read('[data-words="IdentityRow"]')).name,
+      FactLine: (await read('[data-words="FactLine"]')).name
     };
     assert.deepEqual(names, {
       Card: 'BillingⓒNIEZAP',
@@ -286,7 +292,8 @@ test('with every mark replaced, each joined name reads the marks and nothing bet
       PairEntry: 'aliasⓟNAⓟShip',
       ActionMenu: 'TransferⓒOwners only',
       ListToolbar: 'AllⓒUpdatedⓒOpen',
-      IdentityRow: 'Ada Lovelaceⓒ@ada'
+      IdentityRow: 'Ada Lovelaceⓒ@ada',
+      FactLine: 'mainⓒ84 files'
     });
     assert.equal(
       await page.locator('[data-words="ListToolbar"] .sui-list-toolbar-chosen').textContent(),

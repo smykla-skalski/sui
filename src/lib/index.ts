@@ -92,6 +92,7 @@ export { default as RelativeTime } from './components/RelativeTime.svelte';
 
 export { default as ListToolbar } from './components/ListToolbar.svelte';
 export type { ListToolGroup } from './components/ListToolbar.svelte';
+export { default as FactLine } from './components/FactLine.svelte';
 export { default as FactList } from './components/FactList.svelte';
 export type { Fact } from './components/FactList.svelte';
 export { default as DayHeading, dayKey } from './components/DayHeading.svelte';

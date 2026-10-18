@@ -22,7 +22,7 @@
   <Specimen label="Eyebrow, description and actions" code="eyebrow description actions">
     <PageHeader
       level={4}
-      eyebrow="Acme · Sync"
+      eyebrow={['Acme', 'Sync']}
       title="Repository settings"
       description="Rules every repository in this workspace is held to"
     >
@@ -74,7 +74,7 @@
   <Specimen label="Wrapping title and description">
     <PageHeader
       level={4}
-      eyebrow="Acme · Access"
+      eyebrow={['Acme', 'Access']}
       title="Bypass rules for the platform team's deployment and release repositories in every region"
       description="People and apps listed here can push past the branch rules, and every push they make is written to the audit log"
     >

@@ -1,5 +1,6 @@
 <script lang="ts">
   import type { Snippet } from 'svelte';
+  import FactLine from './FactLine.svelte';
   import type { HTMLAttributes } from 'svelte/elements';
 
   let {
@@ -16,8 +17,8 @@
     title: string;
     /** The title's id, for a page landmark that points at it with `aria-labelledby`. */
     id?: string;
-    /** Where the page is, above its title: a scope and a section, joined by " · ". */
-    eyebrow?: string;
+    /** Where the page is, above its title, such as a scope and a section, parted by a drawn dot. */
+    eyebrow?: string | readonly string[];
     /** Drawn in the eyebrow's place, such as a `Breadcrumb` or a `BackLink`. */
     kicker?: Snippet;
     /** One line saying what the page is for. Not every page owes one. */
@@ -65,7 +66,11 @@ gap, and the header owes only the difference.
       {#if kicker}
         {@render kicker()}
       {:else if eyebrow !== undefined}
-        <p class="sui-page-header-eyebrow">{eyebrow}</p>
+        <p class="sui-page-header-eyebrow">
+          {#if typeof eyebrow === 'string'}{eyebrow}{:else}<FactLine
+              >{#each eyebrow as part, index (index)}<span>{part}</span>{/each}</FactLine
+            >{/if}
+        </p>
       {/if}
       <svelte:element this={`h${level}`} class="sui-page-header-title" {id}>{title}</svelte:element>
       {#if description !== undefined}

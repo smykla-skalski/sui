@@ -280,6 +280,8 @@
   --sui-row-pad-default: 0.75rem;
 
   --sui-row-hairline: 1px;
+  /* The room on each side of a fact line's middle dot (L-103). */
+  --sui-sep-space: calc(var(--sui-space-2) + var(--sui-row-hairline));
 
   /* Every edge is one of two strokes: a hairline for frames and a bold stroke for marks that
      carry a state, such as the current tab's underline. */

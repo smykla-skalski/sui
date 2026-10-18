@@ -172,6 +172,8 @@ test('L-21 sizes and leading come from the scale and land on whole pixels', () =
   const leading = /var\(--sui-(leading-[a-z]+|row-copy-leading)\)/;
   assert.deepEqual(
     violations(({ property, value }) => {
+      // Size 0 and leading 0 are for words that are heard and never drawn.
+      if (/^(font-size|line-height)$/.test(property) && value === '0') return null;
       if (property === 'line-height' && !leading.test(value) && value !== 'inherit')
         return 'leading off the scale';
       if (property === 'font' && value !== 'inherit' && !/\/\s*var\(/.test(value))

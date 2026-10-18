@@ -428,8 +428,69 @@ function copy(root: Document): Finding[] {
   }
   for (const { element, text } of textElements(root)) {
     if (/\.\.\./.test(text)) found.push(finding('L-31', element, 'three dots instead of "…"'));
-    if (/\S·|·\S/.test(text))
-      found.push(finding('L-27', element, 'a "·" separator without a space on each side'));
+    // Facts are parted by a drawn dot, never one typed into the words (L-103); a native
+    // option is a string-only place and keeps its typed separator.
+    if (text.includes('·') && text.trim() !== '·' && !element.closest('select, option, code, pre'))
+      found.push(finding('L-103', element, 'a "·" typed into the words instead of a drawn dot'));
+  }
+  return found;
+}
+
+/** The room on each side of a separator dot, from the token, in pixels. */
+function sepSpace(root: Document): number {
+  const probe = root.createElement('span');
+  probe.style.marginInlineStart = 'var(--sui-sep-space)';
+  root.body.append(probe);
+  const space = parseFloat(getComputedStyle(probe).marginInlineStart);
+  probe.remove();
+  return space;
+}
+
+/** A dot between facts stands the token's room from each fact and nothing else adds room. */
+function separators(root: Document): Finding[] {
+  const found: Finding[] = [];
+  const space = sepSpace(root);
+  const off = (value: string) => Math.abs(parseFloat(value) - space) > 0.5;
+  for (const line of audited(root, '.sui-fact-line')) {
+    for (const fact of [...line.children].slice(0, -1)) {
+      const dot = getComputedStyle(fact, '::after');
+      if (!dot.content.includes('·')) continue;
+      if (off(dot.marginInlineStart) || off(dot.marginInlineEnd))
+        found.push(
+          finding(
+            'L-103',
+            fact,
+            `its dot stands ${dot.marginInlineStart} and ${dot.marginInlineEnd} from the facts, not ${space}px`
+          )
+        );
+    }
+    // A space typed between two facts adds room beside the dot.
+    for (const node of line.childNodes) {
+      if (node.nodeType !== Node.TEXT_NODE || node.textContent?.trim()) continue;
+      const range = root.createRange();
+      range.selectNodeContents(node);
+      if (range.getClientRects().length > 0)
+        found.push(finding('L-103', line, 'a space between two facts adds room beside the dot'));
+    }
+  }
+  // A dot drawn as its own element stands the same room from its neighbours, with no gap.
+  for (const dot of audited(root, '[aria-hidden="true"]')) {
+    if (dot.textContent?.trim() !== '·' || dot.children.length > 0) continue;
+    const before = dot.previousElementSibling;
+    const after = dot.nextElementSibling;
+    const own = dot.getBoundingClientRect();
+    const gaps = [
+      before && shown(before) ? Math.abs(own.left - before.getBoundingClientRect().right) : space,
+      after && shown(after) ? Math.abs(after.getBoundingClientRect().left - own.right) : space
+    ];
+    if (gaps.some((gap) => Math.abs(gap - space) > 0.5))
+      found.push(
+        finding(
+          'L-103',
+          dot,
+          `it stands ${gaps.map(round).join(' and ')}px from its neighbours, not ${space}px`
+        )
+      );
   }
   return found;
 }
@@ -1621,6 +1682,7 @@ function rings(root: Document): Finding[] {
 }
 
 register(
+  separators,
   palette,
   textContrast,
   edgeStrips,

@@ -8,7 +8,7 @@
 </script>
 
 <script lang="ts">
-  import { Button, Card, ObjectList, ObjectRow, Skeleton } from '#lib';
+  import { Button, Card, FactLine, ObjectList, ObjectRow, Skeleton } from '#lib';
   import Example from '../kit/Example.svelte';
   import Specimen from '../kit/Specimen.svelte';
 
@@ -70,7 +70,9 @@
             <ObjectRow>
               {#snippet main()}
                 <span class="name">{name}</span>
-                <span class="sum">Default branch main · in step</span>
+                <span class="sum"
+                  ><FactLine><span>Default branch main</span><span>in step</span></FactLine></span
+                >
               {/snippet}
             </ObjectRow>
           {/each}

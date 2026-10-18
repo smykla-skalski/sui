@@ -79,7 +79,7 @@
 {#snippet content(current: string)}
   <div class="pane">
     <PageHeader
-      eyebrow="Smykla Skalski · Workspace"
+      eyebrow={['Smykla Skalski', 'Workspace']}
       title={names[current] ?? 'Overview'}
       description="Press a page in the sidebar and the selection plate glides to it"
       level={4}

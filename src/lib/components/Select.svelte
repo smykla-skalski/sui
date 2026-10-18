@@ -111,9 +111,9 @@ assistive technology, because a native picker cannot be held open.
 {#snippet face(label: string, description?: string)}
   <span class="sui-select-check"><Icon name="check" size="base" /></span>
   <span class="sui-select-text"
-    ><span class="sui-select-label">{label}</span>{#if description}<span class="sui-select-note"
-        >{separator}{description}</span
-      >{/if}</span
+    ><span class="sui-select-label">{label}</span>{#if description}<span class="sui-select-sep"
+        >{separator}</span
+      ><span class="sui-select-note">{description}</span>{/if}</span
   >
 {/snippet}
 
@@ -512,6 +512,21 @@ assistive technology, because a native picker cannot be held open.
   .sui-select-note {
     color: var(--sui-text-muted);
     font-weight: var(--sui-weight-regular);
+  }
+
+  /* A picker the page draws parts the name and the note with the fact line's drawn dot; a
+     native picker shows text only, so it keeps the typed separator (L-103). The option's name
+     already says both, so the dot itself says nothing. */
+  @supports (appearance: base-select) {
+    .sui-select-sep {
+      display: none;
+    }
+
+    .sui-select-note::before {
+      color: var(--sui-text-muted);
+      content: '·' / '';
+      margin-inline: var(--sui-sep-space);
+    }
   }
 
   /* Muted ink drops under 4.5:1 on the active row's veil. */
