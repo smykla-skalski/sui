@@ -22,7 +22,6 @@
   import Icon from '../icons/Icon.svelte';
   import { formatCount, pageLocale } from '../internal/locale.js';
   import Button from './Button.svelte';
-  import Skeleton from './Skeleton.svelte';
   import VisuallyHidden from './VisuallyHidden.svelte';
 
   const captionId = $props.id();
@@ -138,7 +137,7 @@ row in place of the hairlines, for a table wide enough that the eye can lose its
 
 - Semantics: a native `table` named by its caption or `aria-label`, with column headings, row headings under `rowHeader`, and `aria-sort` on the sorted column.
 - Content: `columns` and `rows` of plain values, or any markup through `cell`; numbers print in the page's number format, and other values should come formatted.
-- States: loaded, sorted, empty (`emptyLabel` or `empty`), loading (placeholder rows), refreshing (rows kept, busy), and failed (`error`, with a retry); a failure over rows already here keeps them, marked as not current.
+- States: loaded, sorted, empty (`emptyLabel` or `empty`), loading (three placeholder rows built from the table's own cells, so they match the loaded rows), refreshing (rows kept, busy), and failed (`error`, with a retry); a failure over rows already here keeps them, marked as not current.
 - Keyboard: a sortable heading is a button, and Enter or Space sorts by it, then reverses; a frame that scrolls is a tab stop, so the arrow keys scroll it.
 - Pointer and touch: a sortable heading's target is at least 24px tall, and 44px on a phone or a coarse pointer.
 - Focus: sorting keeps focus on the heading; the frame is a stop only while it scrolls.
@@ -209,12 +208,22 @@ row in place of the hairlines, for a table wide enough that the eye can lose its
         </tr>
       </thead>
       <tbody>
-        {#if rows.length === 0}
+        {#if rows.length === 0 && loading}
+          <!-- Placeholder rows are rows of this table, with its cells, padding and hairlines,
+               so they stand where the loaded rows will and the table never moves on arrival. -->
+          {#each { length: 3 } as _, index (index)}
+            <tr class="placeholder" aria-hidden="true">
+              {#each columns as column (column.key)}
+                <td data-align={alignOf(column)} class={{ numeric: column.numeric }}
+                  ><span class="value"><span class="bar"></span></span></td
+                >
+              {/each}
+            </tr>
+          {/each}
+        {:else if rows.length === 0}
           <tr>
             <td class="state" colspan={columns.length}>
-              {#if loading}
-                <Skeleton rows={3} rowHeight="var(--sui-data-table-row)" />
-              {:else if error}
+              {#if error}
                 <span class="problem" role="alert">
                   <Icon name="alert" size="sm" />
                   <span class="problem-words">{error}</span>
@@ -264,10 +273,6 @@ row in place of the hairlines, for a table wide enough that the eye can lose its
 
 <style>
   .sui-data-table {
-    /* One loaded row: the body's line, its padding and the hairline between rows. */
-    --sui-data-table-row: calc(
-      var(--sui-leading-body) + 2 * var(--sui-space-3) + var(--sui-stroke)
-    );
     display: grid;
     gap: var(--sui-row-copy-gap);
     min-inline-size: 0;
@@ -528,6 +533,49 @@ row in place of the hairlines, for a table wide enough that the eye can lose its
 
     .sort::before {
       inset: calc((100% - max(100%, var(--sui-touch-target))) / 2);
+    }
+  }
+  /* A placeholder bar is one line of the cell's words, cap line to baseline, so a placeholder
+     row is exactly as tall as a loaded one. */
+  .placeholder .bar {
+    animation: sui-data-table-pulse var(--sui-duration-shimmer) var(--sui-ease-inout) infinite
+      alternate;
+    background: var(--sui-surface-inset);
+    block-size: round(up, 1cap, 1px);
+    border-radius: var(--sui-radius-check);
+    display: block;
+    inline-size: min(8rem, 70%);
+  }
+
+  .placeholder .numeric .bar {
+    inline-size: 3rem;
+  }
+
+  .placeholder [data-align='end'] .bar {
+    margin-inline-start: auto;
+  }
+
+  @keyframes sui-data-table-pulse {
+    from {
+      opacity: 0.48;
+    }
+
+    to {
+      opacity: 0.88;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .placeholder .bar {
+      animation: none;
+    }
+  }
+
+  /* Forced colors drop the bar's ground, so it keeps its shape by an outline. */
+  @media (forced-colors: active) {
+    .placeholder .bar {
+      outline: var(--sui-stroke) solid CanvasText;
+      outline-offset: calc(-1 * var(--sui-stroke));
     }
   }
 </style>
