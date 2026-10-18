@@ -723,4 +723,38 @@ suite('navigation', together, () => {
       }
     }
   );
+
+  test(
+    'a wheel over a bounded list-detail pane scrolls the pane, then the page past its end',
+    long,
+    async () => {
+      const page = await open(1440);
+      try {
+        const list = pair(page, 0).locator('.sui-list-detail-list');
+        await list.scrollIntoViewIfNeeded();
+        const box = await list.boundingBox();
+        assert.ok(box);
+        await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+        const pane = await list.elementHandle();
+        await page.mouse.wheel(0, 120);
+        assert.ok(
+          await settles(page.waitForFunction((pane) => pane && pane.scrollTop > 0, pane, brief)),
+          'the wheel did not scroll the list'
+        );
+
+        // A new wheel gesture, once the list rests at its end, runs on into the page. The page
+        // must travel most of the wheel's way, so a shift of the sink's own layout never passes.
+        await page.waitForTimeout(600);
+        await list.evaluate((pane) => (pane.scrollTop = pane.scrollHeight));
+        const before = await page.evaluate(() => scrollY);
+        await page.mouse.wheel(0, 240);
+        assert.ok(
+          await settles(page.waitForFunction((before) => scrollY > before + 120, before, brief)),
+          'the page stopped under the list at its end'
+        );
+      } finally {
+        await page.close();
+      }
+    }
+  );
 });

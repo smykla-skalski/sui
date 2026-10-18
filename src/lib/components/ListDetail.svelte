@@ -133,7 +133,7 @@ in the pair or the focused control just left, so a change made elsewhere never p
 - Keyboard: Tab walks the list, then the detail; the way back is a link that Enter follows; nothing traps focus, since the pair is not modal.
 - Pointer and touch: none of its own; the rows and the way back keep their own targets, 44px on a phone.
 - Focus: opening an item moves focus to the detail's first heading, and closing it returns focus to the row that opened it, or the list's first control.
-- Responsive: a container query on the layout's own width shows both panes from 56rem (`--sui-breakpoint-detail`), the detail keeping at least 36rem, each scrolling on its own, and one pane at a time below it, the open item over the list.
+- Responsive: a container query on the layout's own width shows both panes from 56rem (`--sui-breakpoint-detail`), the detail keeping at least 36rem, each scrolling on its own, and one pane at a time below it, the open item over the list; a pane holds its scroll at its end only when the pair fills the viewport, and a `contained` pair lets the wheel run on into the page.
 - Accessibility: the list is a named navigation landmark a reader can jump to, the current row is announced as the current page, the hairline holds the shell's structural contrast, and the hidden pane is out of the accessibility tree.
 - Localization: `label`, `backLabel` and the empty words are props with English defaults; the list stands at the inline start and the way back's chevron mirrors in a right-to-left page.
 - Performance: layout by container query with no script; focus work runs once per change of `current`, and the list is never rendered again when the detail changes.
@@ -207,8 +207,8 @@ in the pair or the focused control just left, so a change made elsewhere never p
     }
   }
 
-  /* Side by side, each pane scrolls on its own and holds its scroll at its end, so the list
-     keeps its place while the detail changes and a scroll never runs on into the page. */
+  /* Side by side, each pane scrolls on its own, so the list keeps its place while the detail
+     changes. */
   @container sui-list-detail (min-width: 56rem) {
     /* The list's share is rounded to the pixel, so the hairline between the panes draws crisp. */
     .sui-list-detail-panes {
@@ -223,6 +223,12 @@ in the pair or the focused control just left, so a change made elsewhere never p
     .sui-list-detail-list,
     .sui-list-detail-detail {
       overflow-y: auto;
+    }
+
+    /* A pair that fills the viewport is the page's whole scrolling area, so a pane holds its
+       scroll at its end rather than nudging what little stands above it. A bounded pair sits
+       in a page that scrolls on, so the wheel runs on into the page at a pane's end. */
+    .sui-list-detail:not(.contained) :is(.sui-list-detail-list, .sui-list-detail-detail) {
       overscroll-behavior: contain;
     }
 
