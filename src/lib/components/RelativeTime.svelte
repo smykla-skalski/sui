@@ -167,10 +167,16 @@ tooltip.
     white-space: nowrap;
   }
 
+  /* The help cursor says the words explain themselves on hover, as an `abbr` does. */
+  .sui-relative-time:not(.exact) {
+    cursor: help;
+  }
+
+  /* Hover strengthens the dots and only nudges the words, so the reading stays in its sentence. */
   @media (hover: hover) {
     .sui-relative-time:not(.exact):hover {
       --sui-local-dot: var(--sui-text-secondary);
-      color: var(--sui-text-secondary);
+      color: color-mix(in oklab, currentColor 75%, var(--sui-text-primary));
     }
   }
 

@@ -182,6 +182,17 @@ start.
     flex: none;
   }
 
+  /* A trailing chevron turns over while the layer it opens is open, so it points the way the
+     layer will go when pressed again. */
+  .sui-button-part:last-child:has(> :global(svg[data-icon='chevron-down'])) {
+    transition: rotate var(--sui-duration-open) var(--sui-ease-standard);
+  }
+
+  .sui-button[aria-expanded='true']
+    > .sui-button-part:last-child:has(> :global(svg[data-icon='chevron-down'])) {
+    rotate: 180deg;
+  }
+
   .sui-button-part:first-child > :global(svg) {
     margin-inline-start: calc(-1 * var(--sui-icon-ink-start, 0px));
   }
@@ -330,7 +341,8 @@ start.
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .sui-button {
+    .sui-button,
+    .sui-button-part {
       transition: none;
     }
 

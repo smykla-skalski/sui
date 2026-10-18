@@ -76,6 +76,7 @@ the end part draws its own inset ring while it has focus, so the two never look 
     }
 
     .sui-joined.invalid:hover:not(.disabled, .readonly, :has(:global(:focus-visible))) {
+      background-color: var(--sui-danger-hover-layer);
       border-color: var(--sui-danger-hover);
     }
   }

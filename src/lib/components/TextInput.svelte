@@ -100,6 +100,7 @@ tabular figures.
     }
 
     .sui-text-input[aria-invalid='true']:hover:not(:disabled, :focus, .bare, [readonly]) {
+      background-color: var(--sui-danger-hover-layer);
       border-color: var(--sui-danger-hover);
     }
   }

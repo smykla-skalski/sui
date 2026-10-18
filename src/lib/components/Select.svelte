@@ -249,6 +249,7 @@ assistive technology, because a native picker cannot be held open.
         :disabled,
         :focus-visible
       ) {
+      background-color: var(--sui-danger-hover-layer);
       border-color: var(--sui-danger-hover);
     }
   }
@@ -341,6 +342,11 @@ assistive technology, because a native picker cannot be held open.
     opacity: 1;
   }
 
+  /* The chevron turns over while the picker is open. */
+  .sui-select-control:open + .sui-select-chevron {
+    rotate: 180deg;
+  }
+
   .sui-select-chevron {
     align-self: center;
     color: var(--sui-text-muted);
@@ -348,6 +354,7 @@ assistive technology, because a native picker cannot be held open.
     justify-self: end;
     margin-inline-end: var(--sui-space-2);
     pointer-events: none;
+    transition: rotate var(--sui-duration-open) var(--sui-ease-standard);
   }
 
   /* A phone keeps its own picker, which suits touch and screen readers better than any page can. */
@@ -403,10 +410,10 @@ assistive technology, because a native picker cannot be held open.
         overscroll-behavior: contain;
         padding: var(--sui-space-1);
         transition:
-          opacity var(--sui-duration-fast) var(--sui-ease-standard),
-          translate var(--sui-duration-fast) var(--sui-ease-standard),
-          overlay var(--sui-duration-fast) allow-discrete,
-          display var(--sui-duration-fast) allow-discrete;
+          opacity var(--sui-duration-open) var(--sui-ease-standard),
+          translate var(--sui-duration-open) var(--sui-ease-standard),
+          overlay var(--sui-duration-open) allow-discrete,
+          display var(--sui-duration-open) allow-discrete;
         translate: 0 0;
       }
 
@@ -545,7 +552,8 @@ assistive technology, because a native picker cannot be held open.
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .sui-select-control {
+    .sui-select-control,
+    .sui-select-chevron {
       transition: none;
     }
 

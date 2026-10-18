@@ -682,7 +682,7 @@ suite('the kitchen sink', together, () => {
           // busy page gets round to looking at it. The trigger keeps its own press timing.
           await page.addStyleTag({
             content:
-              'html { scroll-behavior: auto !important; } .sui-popover { --sui-duration-press: 10000ms !important; --sui-duration-normal: 10000ms !important; }'
+              'html { scroll-behavior: auto !important; } .sui-popover { --sui-duration-press: 10000ms !important; --sui-duration-normal: 10000ms !important; --sui-duration-open: 10000ms !important; }'
           });
           // The phone drawer is an edge layer, not one placed beside its trigger.
           const triggers = page.locator(

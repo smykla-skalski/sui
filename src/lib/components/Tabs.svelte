@@ -81,7 +81,7 @@ never clips it.
 
 - Semantics: a `nav` landmark named by `label`, holding a list of links with `aria-current="page"` on the current one.
 - Content: a short label per tab and an optional count; a label never wraps, so a long set scrolls.
-- States: rest (muted ink, regular weight), hover (a row ground and secondary ink), pressed (the pressed ground and an inset shadow, with no sink, so the bar stays on the line), focus (a 2px inset ring) and current (the accent bar, primary ink and semibold).
+- States: rest (muted ink, regular weight), hover (a row ground, and secondary ink on a rest tab), pressed (the pressed ground and an inset shadow, with no sink, so the bar stays on the line), focus (a 2px inset ring) and current (the accent bar, primary ink and semibold).
 - Keyboard: Tab moves through the tabs as links and Enter follows one; they are links, so there are no arrow keys.
 - Pointer and touch: tabs are 34px tall in a 42px track on a desktop pointer and 44 by 44px at least on a phone or a coarse pointer; the track scrolls by wheel, scrollbar, swipe or keyboard focus.
 - Focus: following a tab moves to its page, where the page decides focus; focus on a tab out of view scrolls it into view.
@@ -261,9 +261,14 @@ never clips it.
     position: absolute;
   }
 
+  /* Every tab answers the pointer with the row ground, the current one too; only a rest tab's
+     ink steps up, so the current tab keeps its primary ink. */
   @media (hover: hover) {
-    .sui-tabs-tab:hover:not(:active, [aria-current='page']) {
+    .sui-tabs-tab:hover:not(:active) {
       background: var(--sui-row-hover);
+    }
+
+    .sui-tabs-tab:hover:not(:active, [aria-current='page']) {
       color: var(--sui-text-secondary);
     }
   }

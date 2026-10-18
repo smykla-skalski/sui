@@ -92,6 +92,7 @@ It has no label of its own. Put it in a `Field` through the `control` snippet, o
     }
 
     .sui-textarea[aria-invalid='true']:hover:not(:disabled, :focus, [readonly]) {
+      background-color: var(--sui-danger-hover-layer);
       border-color: var(--sui-danger-hover);
     }
   }

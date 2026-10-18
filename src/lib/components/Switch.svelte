@@ -69,7 +69,7 @@ take, under the switch and to a screen reader, while the owner sets `checked` ba
 
 - Semantics: a native `<input type="checkbox" role="switch">` inside its `<label>`, described by `error`, with a polite `role="status"` that speaks the error.
 - Content: a short label that names what turns on, or richer `children`, and an optional one-sentence error.
-- States: off, on (the track fills and the thumb travels 14px), hover (a veil on the track), focus (a 2px ring 2px off the track), pressed (a deeper veil, an inset shadow and a 1px sink), pending (the thumb turns into the spinner where it stands, busy), failed (an error with a warning mark), invalid (a danger edge, kept when on) and disabled (0.5 opacity).
+- States: off, on (the track fills and the thumb travels 14px), hover (a veil on the track), focus (a 2px ring 2px off the track), pressed (a deeper veil, an inset shadow and a 1px sink), pending (the track dims as a busy button does and the thumb turns into the spinner where it stands, busy), failed (an error with a warning mark), invalid (a danger edge, kept when on) and disabled (0.5 opacity).
 - Keyboard: Tab reaches it and Space flips it; a pending switch refuses the flip and keeps focus.
 - Pointer and touch: a 34 by 20px track with a 44px hit area, and a 44px row unless `bare`; the label is part of the target.
 - Focus: a flip never moves focus, and neither does a pending or failed save.
@@ -258,6 +258,11 @@ take, under the switch and to a screen reader, while the owner sets `checked` ba
      side open, turning where the thumb stands, so the track still says which way it went. The
      ring is the thumb's face on the filled track and the secondary ink on the empty one, so it
      holds 4.5:1 on either. */
+  /* A pending save dims the track as a busy button dims (L-40), while the spinner turns. */
+  .sui-switch-track.pending {
+    opacity: var(--sui-disabled-opacity);
+  }
+
   .sui-switch-track.pending::after {
     animation: sui-switch-spin var(--sui-duration-spinner) var(--sui-ease-linear) infinite;
     background: none;

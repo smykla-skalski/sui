@@ -223,6 +223,16 @@ save keeps it.
     .sui-choice-card:hover:not(:active, .disabled, :has(input:checked)) {
       box-shadow: inset 0 0 0 var(--sui-stroke) var(--sui-control-border-hover);
     }
+
+    /* A card in a group still missing its answer hovers in the danger hue, as an invalid field
+       does, so the hover never hides the state (L-9). */
+    .invalid .sui-choice-card:hover:not(:active, .disabled, :has(input:checked)) {
+      background-image: linear-gradient(
+        var(--sui-danger-hover-layer),
+        var(--sui-danger-hover-layer)
+      );
+      box-shadow: inset 0 0 0 var(--sui-stroke) var(--sui-danger-hover);
+    }
   }
 
   /* The chosen answer says so three ways at once: a brand tint, a 2px brand edge and a filled

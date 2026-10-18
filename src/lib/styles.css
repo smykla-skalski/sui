@@ -158,6 +158,8 @@
   --sui-on-danger: #ffffff;
 
   --sui-danger-hover: #a33039;
+  /* The hover veil of a part in the danger state, so its hover keeps the state's hue. */
+  --sui-danger-hover-layer: color-mix(in srgb, var(--sui-danger) 9%, transparent);
   --sui-danger-pressed: color-mix(in srgb, var(--sui-danger-hover) 82%, var(--sui-text-primary));
   --sui-neutral-tint: var(--sui-surface-inset);
 
@@ -417,6 +419,9 @@
   --sui-duration-press: 100ms;
   --sui-duration-fast: 160ms;
   --sui-duration-normal: 220ms;
+  /* A layer a press opens (a menu, a listbox, a picker) arrives at once, so the reader never
+     waits on it. */
+  --sui-duration-open: 120ms;
 
   --sui-duration-spinner: 900ms;
   --sui-duration-shimmer: 1350ms;
@@ -531,6 +536,7 @@
   --sui-danger-tint: var(--sui-primitive-danger-dark-tint);
   --sui-on-danger: #0c0e11;
   --sui-danger-hover: #ff929b;
+  --sui-danger-hover-layer: color-mix(in srgb, var(--sui-danger) 12%, transparent);
   --sui-danger-pressed: color-mix(in srgb, var(--sui-danger-hover) 82%, var(--sui-text-primary));
   --sui-neutral-tint: var(--sui-surface-inset);
   --sui-role-tint: #23202e;
@@ -686,6 +692,7 @@
     --sui-danger-tint: var(--sui-primitive-danger-dark-tint);
     --sui-on-danger: #0c0e11;
     --sui-danger-hover: #ff929b;
+    --sui-danger-hover-layer: color-mix(in srgb, var(--sui-danger) 12%, transparent);
     --sui-danger-pressed: color-mix(in srgb, var(--sui-danger-hover) 82%, var(--sui-text-primary));
     --sui-neutral-tint: var(--sui-surface-inset);
     --sui-role-tint: #23202e;

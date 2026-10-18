@@ -101,6 +101,13 @@
     return follow(element, anchor, placement);
   });
 
+  // A trigger that opens the layer through `popovertarget` is read as expanded, but the browser
+  // writes no attribute for it, so the trigger says it here and can draw its open state.
+  $effect(() => {
+    if (!(anchor instanceof HTMLButtonElement) || anchor.popoverTargetElement !== element) return;
+    anchor.setAttribute('aria-expanded', String(open));
+  });
+
   // The transform that folds the box into a line on its own edge that faces the trigger, as
   // long as the trigger is along that edge: the shape it grows out of on open and folds back
   // into on close. The line stays on the box's side of the gap, so it never covers the trigger.
@@ -146,7 +153,7 @@
       return;
     }
     const animation = box.animate(growth(shape), {
-      duration: time('--sui-duration-normal'),
+      duration: time('--sui-duration-open'),
       easing
     });
     // Content that measures itself after its first frame, such as a segmented control choosing
