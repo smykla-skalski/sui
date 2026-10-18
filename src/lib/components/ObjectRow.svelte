@@ -45,7 +45,7 @@ and the one above as a hovered row does, and keeps the plate under the pointer.
 - Pointer and touch: the whole row is the link's target, at least 44px tall with its padding; controls inside keep their own targets.
 - Focus: the ring is drawn inside the row, so a list that clips never cuts it.
 - Responsive: on a phone the side drops under the main content and packs to the start; rows grow when their content wraps.
-- Accessibility: the link's name is the main content, so a reader hears the row once; the side stays outside the name; a current row is announced as the current page, and its plate is `Highlight` under forced colors.
+- Accessibility: the link's name is the main content, so a reader hears the row once; the side stays outside the name; a current row is announced as the current page, and under forced colors its link frames it in `Highlight`.
 - Localization: everything it says is the caller's; the side sits at the inline end and follows the reading direction.
 - Performance: no script; hover and press change only the ground and a 1px sink.
 - Analytics: none of its own; the row link is a plain `a`, so the page's navigation tracking hears it.
@@ -203,9 +203,11 @@ and the one above as a hovered row does, and keeps the plate under the pointer.
     }
   }
 
+  /* Forced colours keep the row's words in the canvas ink, which a Highlight fill would leave
+     unreadable, so the current row's link frames the row in Highlight instead. */
   @media (forced-colors: active) {
-    .current {
-      background-color: Highlight;
+    .sui-object-row-hit[aria-current='page'] {
+      border: var(--sui-focus-ring-width) solid Highlight;
     }
   }
 
