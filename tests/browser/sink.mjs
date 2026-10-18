@@ -136,13 +136,18 @@ export const settles = (wait) =>
   );
 
 /**
- * Ends every finite animation at once, so boxes are read where they come to rest.
+ * Ends every finite animation at once, so boxes are read where they come to rest. A scroll-driven
+ * one is left alone: it follows its scroller, and ending it would hold it at its end.
  * @param {import('playwright-core').Page} page
  */
 export const atRest = (page) =>
   page.evaluate(() => {
     for (const animation of document.getAnimations())
-      if (animation.effect?.getTiming().iterations !== Infinity) animation.finish();
+      if (
+        animation.timeline instanceof DocumentTimeline &&
+        animation.effect?.getTiming().iterations !== Infinity
+      )
+        animation.finish();
   });
 
 /**
@@ -154,7 +159,11 @@ export const atRest = (page) =>
 export const audit = (page) =>
   page.evaluate(async () => {
     for (const animation of document.getAnimations())
-      if (animation.effect?.getTiming().iterations !== Infinity) animation.finish();
+      if (
+        animation.timeline instanceof DocumentTimeline &&
+        animation.effect?.getTiming().iterations !== Infinity
+      )
+        animation.finish();
     const run =
       /** @type {{ __suiAudit: () => Promise<{ law: string; where: string; detail: string }[]> }} */ (
         /** @type {unknown} */ (window)
