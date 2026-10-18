@@ -27,7 +27,7 @@
     pairName = word(
       'PairEntry.pairName',
       (key: string, value: string) =>
-        `${keyLabel}${mark('space')}${key}${mark('comma')}${valueLabel}${mark('space')}${value}`
+        `${key}${mark('colon')}${value}${mark('comma')}${keyLabel}${mark('colon')}${valueLabel}`
     ),
     validate,
     addLabel = word('PairEntry.addLabel', 'Add a pair'),
@@ -210,7 +210,7 @@ row gives them and fall under the copy on a narrow row.
 - Pointer and touch: each part is 28px, and 44px on a phone or a coarse pointer; the remove part sits outside the edit target.
 - Focus: the editor opens on the key field and returns focus to its chip on close; after a removal focus moves to the next chip, the one before, or Add.
 - Responsive: chips wrap one by one within the row's room, and the editor is at most 20rem wide and inside the viewport.
-- Accessibility: every chip is named by `pairName` from `keyLabel` and `valueLabel`, such as "Alias ship, Command deploy"; a problem and `reason` describe the chips; a removal is said through a polite status.
+- Accessibility: every chip is named by `pairName` from `keyLabel` and `valueLabel`, such as "ship: deploy, Alias: Command", which starts with the words the chip draws; a problem and `reason` describe the chips; a removal is said through a polite status.
 - Localization: every word is a prop, the named ones functions of the key; the arrow between key and value turns with the reading direction.
 - Performance: every pair renders a chip, and one editor serves them all.
 - Analytics: `onadd`, `onedit` and `onremove` hear each accepted change.

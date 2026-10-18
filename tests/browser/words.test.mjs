@@ -276,7 +276,7 @@ test('with every mark replaced, each joined name reads the marks and nothing bet
       Link: { name: 'Docs⁠', description: 'ZEWN' },
       Disclosure: { name: 'SkippedⓒThree archived', description: undefined },
       AdditionPicker: 'Auto mergeⓒOnce green',
-      PairEntry: 'KLUCZⓟaliasⓒWARTⓟShip',
+      PairEntry: 'alias: ShipⓒKLUCZ: WART',
       ListToolbar: 'AllⓒUpdatedⓒOpen',
       IdentityRow: 'Ada Lovelaceⓒ@ada'
     });
