@@ -225,7 +225,7 @@ only and a `LoadMore` after it lands on the first new one. Page it in the order 
      same pitch with or without them. */
   .sui-timeline-event + .sui-timeline-event {
     margin-block-start: calc(
-      var(--sui-local-timeline-target) - round(up, 1cap, 2px) + var(--sui-space-1)
+      var(--sui-local-timeline-target) - round(up, 1cap, 1px) + var(--sui-space-1)
     );
   }
 
@@ -238,10 +238,13 @@ only and a `LoadMore` after it lands on the first new one. Page it in the order 
     margin-block-start: var(--sui-space-3);
   }
 
+  /* The pixel the snap adds goes above the cap, so each baseline lands on its box's foot and an
+     event's last ink ends exactly where its box does. Both boxes are trimmed in the list's own
+     face, so a time and the words beside it share one baseline. */
   .sui-timeline-time,
   .sui-timeline-words {
-    align-content: center;
-    block-size: var(--sui-block-snap-even);
+    align-content: end;
+    block-size: var(--sui-block-snap);
     margin: 0;
     min-inline-size: 0;
     text-box: trim-both cap alphabetic;
@@ -252,7 +255,7 @@ only and a `LoadMore` after it lands on the first new one. Page it in the order 
     white-space: nowrap;
   }
 
-  .sui-timeline-time.clock {
+  .sui-timeline-time.clock > time {
     font-family: var(--sui-mono);
     font-variant-numeric: tabular-nums;
   }
