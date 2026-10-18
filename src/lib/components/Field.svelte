@@ -205,7 +205,10 @@ the `control` snippet reports here on its own, and a control of another kind kee
     min-inline-size: 0;
   }
 
+  /* The control ends the row, so a bare check box keeps its whole square inside it, its hover
+     ground standing off the row's end as a button's does. */
   .sui-field[data-layout='row'] > .sui-field-control {
+    --sui-local-checkbox-bleed: 0px;
     align-items: center;
     display: flex;
     min-block-size: var(--sui-control-height-compact);
