@@ -138,6 +138,51 @@ suite('lists', together, () => {
     }
   );
 
+  test(
+    'a scrolled table keeps its held heading over the columns and its focus ring over both',
+    long,
+    async () => {
+      const page = await open({ viewport: { width: 375, height: 800 } });
+      try {
+        const frame = page.locator('#data-table .sui-data-table.held.scrolls .frame').first();
+        await frame.scrollIntoViewIfNeeded();
+        await page.keyboard.press('Shift');
+        await frame.focus();
+        await frame.evaluate((scroller) => (scroller.scrollLeft = 60));
+        await page.waitForTimeout(200);
+        const { onHeld, box, ring } = await frame.evaluate((scroller) => {
+          const held = /** @type {Element} */ (scroller.querySelector('thead th:first-child'));
+          const edge = held.getBoundingClientRect();
+          const top = document.elementFromPoint(edge.right - 3, edge.top + edge.height / 2);
+          const viewport = /** @type {Element} */ (scroller.parentElement);
+          return {
+            onHeld: held.contains(top),
+            box: scroller.getBoundingClientRect().toJSON(),
+            ring: getComputedStyle(viewport, '::after').outlineColor
+          };
+        });
+        assert.ok(onHeld, 'a scrolled column painted over the held heading');
+        // The ring's start side, where the held cells stand, is drawn in the ring's color.
+        const shot = await page.screenshot({
+          clip: { x: box.x + 0.5, y: box.y + box.height / 2, width: 1, height: 1 }
+        });
+        const pixel = await page.evaluate(
+          async (data) => {
+            const image = await createImageBitmap(await (await fetch(data)).blob());
+            const context = new OffscreenCanvas(1, 1).getContext('2d');
+            context?.drawImage(image, 0, 0);
+            const [r, g, b] = context?.getImageData(0, 0, 1, 1).data ?? [];
+            return `rgb(${r}, ${g}, ${b})`;
+          },
+          `data:image/png;base64,${shot.toString('base64')}`
+        );
+        assert.equal(pixel, ring, 'the held cells cover the focus ring');
+      } finally {
+        await page.close();
+      }
+    }
+  );
+
   test('P7 a two-way theme switch keeps the shown theme when it is pressed', long, async () => {
     const page = await open({ colorScheme: 'dark' });
     try {

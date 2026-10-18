@@ -132,8 +132,8 @@ suite('the kitchen sink', together, () => {
       await page.evaluate(async (checks) => {
         const { cutSides, ringReach } = await import(/* @vite-ignore */ checks);
         Object.assign(window, {
-          ringCut: (/** @type {Element} */ element) =>
-            cutSides(element, ringReach(getComputedStyle(element)))
+          ringCut: (/** @type {Element} */ element, /** @type {CSSStyleDeclaration} */ look) =>
+            cutSides(element, ringReach(look))
         });
       }, '/src/routes/audit/checks.ts');
       const problems = [];
@@ -160,7 +160,8 @@ suite('the kitchen sink', together, () => {
                   .map((c) => `.${c}`)
                   .join('')
             );
-          // A full-row or full-card link may draw its ring on the row it covers (K-81).
+          // A full-row or full-card link may draw its ring on the row it covers (K-81), and a
+          // scroller whose held parts stack over its own outline draws it from a frame's `::after`.
           let wearer = element;
           let ring = getComputedStyle(element);
           for (
@@ -170,10 +171,13 @@ suite('the kitchen sink', together, () => {
           ) {
             wearer = node;
             ring = getComputedStyle(node);
+            const over = getComputedStyle(node, '::after');
+            if (ring.outlineStyle !== 'solid' && over.outlineStyle === 'solid') ring = over;
           }
-          const cut = /** @type {{ ringCut: (element: Element) => string[] }} */ (
-            /** @type {unknown} */ (window)
-          ).ringCut(wearer);
+          const cut =
+            /** @type {{ ringCut: (element: Element, look: CSSStyleDeclaration) => string[] }} */ (
+              /** @type {unknown} */ (window)
+            ).ringCut(wearer, ring);
           return {
             where: path.join(' > '),
             outline: ring.outlineStyle,

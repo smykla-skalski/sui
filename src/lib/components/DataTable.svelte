@@ -172,110 +172,112 @@ row in place of the hairlines, for a table wide enough that the eye can lose its
     </div>
   {/if}
   <VisuallyHidden role="status">{status}</VisuallyHidden>
-  <!-- The frame is a tab stop only while it scrolls, so a keyboard can reach what is past the edge. -->
-  <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
-  <div
-    {@attach watchOverflow}
-    class="frame sui-scroll-edge"
-    role={scrolls ? 'region' : undefined}
-    tabindex={scrolls ? 0 : undefined}
-    aria-labelledby={scrolls && caption ? captionId : undefined}
-    aria-label={scrolls && !caption ? rest['aria-label'] : undefined}
-  >
-    <table
-      aria-labelledby={caption ? captionId : undefined}
-      aria-busy={loading || refreshing || undefined}
-      {...rest}
+  <div class="viewport">
+    <!-- The frame is a tab stop only while it scrolls, so a keyboard can reach what is past the edge. -->
+    <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
+    <div
+      {@attach watchOverflow}
+      class="frame sui-scroll-edge"
+      role={scrolls ? 'region' : undefined}
+      tabindex={scrolls ? 0 : undefined}
+      aria-labelledby={scrolls && caption ? captionId : undefined}
+      aria-label={scrolls && !caption ? rest['aria-label'] : undefined}
     >
-      <thead>
-        <tr>
-          {#each columns as column (column.key)}
-            <th
-              scope="col"
-              data-align={alignOf(column)}
-              class={{ nowrap: column.nowrap || column.numeric }}
-              aria-sort={sort?.key === column.key ? sort.direction : undefined}
-            >
-              {#if column.sortable}
-                <button type="button" class="sort" onclick={() => sortBy(column)}>
-                  <span>{column.label}</span>
-                  <Icon
-                    name={sort?.key !== column.key
-                      ? 'chevrons-up-down'
-                      : sort.direction === 'ascending'
-                        ? 'chevron-up'
-                        : 'chevron-down'}
-                    size="xs"
-                  />
-                </button>
-              {:else}
-                <span class="value">{column.label}</span>
-              {/if}
-            </th>
-          {/each}
-        </tr>
-      </thead>
-      <tbody>
-        {#if rows.length === 0 && loading}
-          <!-- Placeholder rows are rows of this table, with its cells, padding and hairlines,
-               so they stand where the loaded rows will and the table never moves on arrival. -->
-          {#each { length: 3 } as _, index (index)}
-            <tr class="placeholder" aria-hidden="true">
-              {#each columns as column (column.key)}
-                <td data-align={alignOf(column)} class={{ numeric: column.numeric }}
-                  ><span class="value"><span class="bar"></span></span></td
-                >
-              {/each}
-            </tr>
-          {/each}
-        {:else if rows.length === 0}
+      <table
+        aria-labelledby={caption ? captionId : undefined}
+        aria-busy={loading || refreshing || undefined}
+        {...rest}
+      >
+        <thead>
           <tr>
-            <td class="state" colspan={columns.length}>
-              {#if error}
-                <span class="problem" role="alert">
-                  <Icon name="alert" size="sm" />
-                  <span class="problem-words">{error}</span>
-                  {@render retry()}
-                </span>
-              {:else if empty}
-                {@render empty()}
-              {:else}
-                {emptyLabel}
-              {/if}
-            </td>
-          </tr>
-        {:else}
-          {#each shown as row, index (rowKey ? rowKey(row, index) : index)}
-            <tr class={{ stale: Boolean(error) }}>
-              {#each columns as column, at (column.key)}
-                {#if rowHeader && at === 0}
-                  <th
-                    scope="row"
-                    data-align={alignOf(column)}
-                    class={{ numeric: column.numeric, nowrap: column.nowrap || column.numeric }}
-                    ><span class="value"
-                      >{#if cell}{@render cell(row, column)}{:else}{plain(
-                          row[column.key]
-                        )}{/if}</span
-                    ></th
-                  >
+            {#each columns as column (column.key)}
+              <th
+                scope="col"
+                data-align={alignOf(column)}
+                class={{ nowrap: column.nowrap || column.numeric }}
+                aria-sort={sort?.key === column.key ? sort.direction : undefined}
+              >
+                {#if column.sortable}
+                  <button type="button" class="sort" onclick={() => sortBy(column)}>
+                    <span>{column.label}</span>
+                    <Icon
+                      name={sort?.key !== column.key
+                        ? 'chevrons-up-down'
+                        : sort.direction === 'ascending'
+                          ? 'chevron-up'
+                          : 'chevron-down'}
+                      size="xs"
+                    />
+                  </button>
                 {:else}
-                  <td
-                    data-align={alignOf(column)}
-                    class={{ numeric: column.numeric, nowrap: column.nowrap || column.numeric }}
-                    ><span class="value"
-                      >{#if cell}{@render cell(row, column)}{:else}{plain(
-                          row[column.key]
-                        )}{/if}</span
-                    ></td
-                  >
+                  <span class="value">{column.label}</span>
                 {/if}
-              {/each}
+              </th>
+            {/each}
+          </tr>
+        </thead>
+        <tbody>
+          {#if rows.length === 0 && loading}
+            <!-- Placeholder rows are rows of this table, with its cells, padding and hairlines,
+               so they stand where the loaded rows will and the table never moves on arrival. -->
+            {#each { length: 3 } as _, index (index)}
+              <tr class="placeholder" aria-hidden="true">
+                {#each columns as column (column.key)}
+                  <td data-align={alignOf(column)} class={{ numeric: column.numeric }}
+                    ><span class="value"><span class="bar"></span></span></td
+                  >
+                {/each}
+              </tr>
+            {/each}
+          {:else if rows.length === 0}
+            <tr>
+              <td class="state" colspan={columns.length}>
+                {#if error}
+                  <span class="problem" role="alert">
+                    <Icon name="alert" size="sm" />
+                    <span class="problem-words">{error}</span>
+                    {@render retry()}
+                  </span>
+                {:else if empty}
+                  {@render empty()}
+                {:else}
+                  {emptyLabel}
+                {/if}
+              </td>
             </tr>
-          {/each}
-        {/if}
-      </tbody>
-    </table>
+          {:else}
+            {#each shown as row, index (rowKey ? rowKey(row, index) : index)}
+              <tr class={{ stale: Boolean(error) }}>
+                {#each columns as column, at (column.key)}
+                  {#if rowHeader && at === 0}
+                    <th
+                      scope="row"
+                      data-align={alignOf(column)}
+                      class={{ numeric: column.numeric, nowrap: column.nowrap || column.numeric }}
+                      ><span class="value"
+                        >{#if cell}{@render cell(row, column)}{:else}{plain(
+                            row[column.key]
+                          )}{/if}</span
+                      ></th
+                    >
+                  {:else}
+                    <td
+                      data-align={alignOf(column)}
+                      class={{ numeric: column.numeric, nowrap: column.nowrap || column.numeric }}
+                      ><span class="value"
+                        >{#if cell}{@render cell(row, column)}{:else}{plain(
+                            row[column.key]
+                          )}{/if}</span
+                      ></td
+                    >
+                  {/if}
+                {/each}
+              </tr>
+            {/each}
+          {/if}
+        </tbody>
+      </table>
+    </div>
   </div>
 </div>
 
@@ -326,9 +328,26 @@ row in place of the hairlines, for a table wide enough that the eye can lose its
     --sui-local-edge-hold: var(--sui-local-table-held);
   }
 
+  /* The frame's ring is drawn over it, not by it: an outline paints under every positioned part
+     of its box, and the held row headings stack over the columns that scroll under them. */
+  .viewport {
+    isolation: isolate;
+    min-inline-size: 0;
+    position: relative;
+  }
+
   .frame:focus-visible {
+    outline: none;
+  }
+
+  .viewport:has(> .frame:focus-visible)::after {
+    content: '';
+    inset: 0;
     outline: var(--sui-focus-ring-width) solid var(--sui-focus);
     outline-offset: var(--sui-focus-ring-inset);
+    pointer-events: none;
+    position: absolute;
+    z-index: var(--sui-layer-inner-face);
   }
 
   /* Separate borders: a collapsed border is split between its two cells, which puts every
@@ -509,6 +528,7 @@ row in place of the hairlines, for a table wide enough that the eye can lose its
     background: var(--sui-surface-base);
     inset-inline-start: 0;
     position: sticky;
+    z-index: var(--sui-layer-inner-plate);
   }
 
   .held.scrolls.striped tbody tr:nth-child(even) > :first-child {
