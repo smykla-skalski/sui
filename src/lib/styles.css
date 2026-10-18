@@ -357,6 +357,9 @@
      rounds up to an even height too, so the space either side of it halves to whole pixels. */
   --sui-block-snap-even: calc-size(auto, round(up, size, 2px));
 
+  /* A trimmed line whose ink must stand within half a pixel of both of its box's edges rounds
+     to the nearest pixel instead, so its ink overhangs or falls short by half a pixel at most. */
+  --sui-block-snap-near: calc-size(auto, round(size, 1px));
   --sui-row-copy-leading: round(calc(1cap + var(--sui-row-copy-gap)), 1px);
 
   --sui-setting-say-min: 13rem;

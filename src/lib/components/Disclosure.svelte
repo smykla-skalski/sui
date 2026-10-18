@@ -42,8 +42,9 @@ The chevron leads the summary's words at the start edge of the text above, as Ap
 disclosure triangle and the APG pattern draw it, so the open state shows where the reader is
 already looking. The content hangs under the summary's words, and a hairline guide drops from
 the chevron beside it, so the summary and what it reveals read as one unit. Disclosures that
-share a `name` open one at a time. On the page, controls it reveals sit in their own `Card`
-inside it; inside a card, they sit straight in it.
+share a `name` open one at a time. What it reveals sits straight in it, never in a card.
+Open, its last ink stands as far above its foot as the summary's words stand under its top,
+and a disclosure that closes a card leaves that room to the card's inset.
 
 - Semantics: a native `<details>` whose `<summary>` is the button, named by `summary` and `hint`, with its expanded state from the browser.
 - Content: one line of summary words that wrap, an optional quiet hint, and any content inside, which starts at the summary's words.
@@ -75,7 +76,17 @@ inside it; inside a card, they sit straight in it.
 </details>
 
 <style>
+  /* Read in the face of whatever uses them: the summary row's padding, and the room under the
+     open content's last ink, which is the room above the summary's words to the pixel, unless
+     a card closes on the disclosure and its inset gives that room (`--sui-local-row-trail`). */
   .sui-disclosure {
+    --sui-local-disclosure-inset: calc(
+      (var(--sui-control-height-compact) - round(up, 1cap, 2px)) / 2
+    );
+    --sui-local-disclosure-trail: var(
+      --sui-local-row-trail,
+      round(calc((var(--sui-control-height-compact) - 1cap) / 2), 1px)
+    );
     --sui-local-disclosure-indent: calc(var(--sui-icon-xs) + var(--sui-space-2));
     /* The chevron centres on the first line, so its foot stands this far below the top. */
     --sui-local-disclosure-foot: calc((var(--sui-control-height-compact) + var(--sui-icon-xs)) / 2);
@@ -86,11 +97,15 @@ inside it; inside a card, they sit straight in it.
 
   /* The guide drops from under the chevron to the content's last ink, beside a summary that
      wraps too: a hairline as quiet as a row's divider, never a coloured edge (L-17). It comes
-     before the summary, so the summary's veil and focus ring paint over it. */
+     before the summary, so the summary's veil and focus ring paint over it. It reads the
+     trailing room in the summary's face. */
   .sui-disclosure::before {
     border-inline-start: var(--sui-stroke) solid var(--sui-border-divider);
     content: '';
-    inset-block: calc(var(--sui-local-disclosure-foot) + var(--sui-space-1)) 0;
+    font: var(--sui-weight-medium) var(--sui-font-size-meta) / var(--sui-leading-meta)
+      var(--sui-sans);
+    inset-block: calc(var(--sui-local-disclosure-foot) + var(--sui-space-1))
+      var(--sui-local-disclosure-trail);
     inset-inline-start: round(calc((var(--sui-icon-xs) - var(--sui-stroke)) / 2), 1px);
     opacity: 0;
     position: absolute;
@@ -118,7 +133,7 @@ inside it; inside a card, they sit straight in it.
     list-style: none;
     margin-inline: calc(var(--sui-space-2) * -1);
     min-block-size: var(--sui-control-height-compact);
-    padding: calc((var(--sui-control-height-compact) - round(up, 1cap, 2px)) / 2) var(--sui-space-2);
+    padding: var(--sui-local-disclosure-inset) var(--sui-space-2);
     touch-action: manipulation;
     -webkit-user-select: none;
     user-select: none;
@@ -196,6 +211,8 @@ inside it; inside a card, they sit straight in it.
      summary's box, so the ground a hover paints there never touches it. That keeps it closer
      to its summary than the next row is. */
   .sui-disclosure-body {
+    /* Only the disclosure that closes the card hands its room back, never one nested in it. */
+    --sui-local-row-trail: initial;
     min-inline-size: 0;
     padding-block-start: var(--sui-row-copy-gap);
     padding-inline-start: var(--sui-local-disclosure-indent);
@@ -216,19 +233,32 @@ inside it; inside a card, they sit straight in it.
     text-box: trim-end cap alphabetic;
   }
 
+  /* An only block keeps its baseline on its box's end even when its ink overhangs, so its last
+     ink lands on the pixel, and rounds to the nearest pixel, so its cap stands within half a
+     pixel of the copy gap. */
   :where(.sui-disclosure-body) > :global(:where(p, ul, ol, dl, blockquote):only-child) {
-    align-content: center;
+    align-content: unsafe end;
+    block-size: var(--sui-block-snap-near);
     text-box: trim-both cap alphabetic;
   }
 
-  /* In a group, an open disclosure's last ink stands as far above the next summary's words
-     as two closed rows' words stand apart. */
-  .sui-disclosure[open]:has(+ :global(.sui-disclosure)) {
-    margin-block-end: var(--sui-space-3);
+  /* The trailing room, in the summary's face, so a group of disclosures keeps the rhythm of
+     its closed rows: two rooms between one's last ink and the next one's words. */
+  .sui-disclosure-body::after {
+    block-size: var(--sui-local-disclosure-trail);
+    content: '';
+    display: block;
+    font: var(--sui-weight-medium) var(--sui-font-size-meta) / var(--sui-leading-meta)
+      var(--sui-sans);
   }
 
   .inline > .sui-disclosure-summary {
     color: var(--sui-text-secondary);
+  }
+
+  .inline > .sui-disclosure-summary,
+  .inline::before,
+  .inline > .sui-disclosure-body::after {
     font: var(--sui-weight-regular) var(--sui-font-size-compact) / var(--sui-leading-compact)
       var(--sui-sans);
   }

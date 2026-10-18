@@ -8,7 +8,7 @@
 </script>
 
 <script lang="ts">
-  import { Card, Disclosure, Field, TextInput } from '#lib';
+  import { Card, Disclosure, Field } from '#lib';
   import Example from '../kit/Example.svelte';
   import Specimen from '../kit/Specimen.svelte';
 
@@ -84,26 +84,10 @@
 
 <Example
   title="Revealing controls"
-  note="On the page, the controls a disclosure reveals sit in their own card under its words"
+  note="The controls a disclosure reveals sit straight in it under its words, never in a card"
   layout="stack"
-  ground="canvas"
 >
-  <Specimen label="Open with a card" code="open">
-    <Disclosure summary="Advanced settings" open>
-      <Card title="Commit author" level={4}>
-        <TextInput aria-label="Commit author" value="sync-bot" mono />
-      </Card>
-    </Disclosure>
-  </Specimen>
-</Example>
-
-<Example
-  title="In context"
-  note="Inside a card the controls a disclosure reveals sit straight under its words"
-  layout="stack"
-  ground="canvas"
->
-  <Card title="Sync" level={4}>
+  <Specimen label="Open with fields" code={'hint="2 fields" open'}>
     <Disclosure summary="Advanced settings" hint="2 fields" open>
       <div class="fields">
         <Field
@@ -113,6 +97,23 @@
         />
         <Field label="Branch prefix" value="sync/" />
       </div>
+    </Disclosure>
+  </Specimen>
+</Example>
+
+<Example
+  title="In context"
+  note="A disclosure that closes a card leaves the card's inset under its last ink"
+  layout="stack"
+  ground="canvas"
+>
+  <Card
+    title="This invite has expired"
+    description="Ask a workspace owner to send you a new one"
+    level={4}
+  >
+    <Disclosure summary="Why invites expire" open>
+      <p class="copy">A link that never expires could let the wrong person join the workspace</p>
     </Disclosure>
   </Card>
 </Example>

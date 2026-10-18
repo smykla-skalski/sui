@@ -1909,34 +1909,46 @@ function symbolTiles(root: Document): Finding[] {
   return found;
 }
 
-/** The top of the first ink in a box: the edge of a framed or grounded box, or a line's cap. */
-function firstInk(box: Element): number | null {
+/**
+ * Where a box puts ink: from the first to the last edge of a framed or grounded box inside it,
+ * or from a line's cap to a line's baseline, whichever reaches further.
+ */
+function inkBand(box: Element): { top: number; bottom: number } | null {
   let top = Infinity;
+  let bottom = -Infinity;
   const range = document.createRange();
   const walker = document.createTreeWalker(box, NodeFilter.SHOW_ELEMENT | NodeFilter.SHOW_TEXT);
   for (let node = walker.nextNode(); node; node = walker.nextNode()) {
     if (node instanceof Element) {
       if (!shown(node)) continue;
       const look = getComputedStyle(node);
-      const edged = parseFloat(look.borderTopWidth) > 0 && rgba(look.borderTopColor).a > 0;
-      if (edged || paintsGround(look)) top = Math.min(top, node.getBoundingClientRect().top);
+      const edged = (side: 'Top' | 'Bottom') =>
+        parseFloat(look[`border${side}Width`]) > 0 && rgba(look[`border${side}Color`]).a > 0;
+      const ground = paintsGround(look);
+      const edges = node.getBoundingClientRect();
+      if (ground || edged('Top')) top = Math.min(top, edges.top);
+      if (ground || edged('Bottom')) bottom = Math.max(bottom, edges.bottom);
       continue;
     }
     const holder = node.parentElement;
     if (!node.textContent?.trim() || !holder || !shown(holder) || heardOnly(holder)) continue;
     const face = faceMetrics(getComputedStyle(holder));
     range.selectNodeContents(node);
-    const line = [...range.getClientRects()].find((rect) => rect.width > 0);
-    if (face && line) top = Math.min(top, line.top + face.ascent - face.cap);
+    const lines = [...range.getClientRects()].filter((rect) => rect.width > 0);
+    if (!face || lines.length === 0) continue;
+    top = Math.min(top, lines[0].top + face.ascent - face.cap);
+    bottom = Math.max(bottom, lines[lines.length - 1].top + face.ascent);
   }
-  return Number.isFinite(top) ? top : null;
+  return Number.isFinite(top) && Number.isFinite(bottom) ? { top, bottom } : null;
 }
 
 /**
  * Disclosures (L-57): the chevron leads the summary's words, and open content starts at those
  * words, so the summary and what it reveals share one start edge in either direction. The
  * content's first ink stands a copy gap under the summary's box, so the ground a hover paints
- * there never touches it.
+ * there never touches it, and its last ink stands as far above the disclosure's foot as the
+ * summary's words stand under its top. A disclosure that closes a card leaves that room to
+ * the card's inset, which the card's own check holds (L-33).
  */
 function disclosures(root: Document): Finding[] {
   const found: Finding[] = [];
@@ -1968,14 +1980,27 @@ function disclosures(root: Document): Finding[] {
           `the content starts ${round(content - label)}px off the summary's words`
         )
       );
-    const ink = firstInk(body);
-    const under = ink === null ? gap : ink - summary.getBoundingClientRect().bottom;
+    const ink = inkBand(body);
+    const wordsInk = inkBand(words);
+    if (!ink || !wordsInk) continue;
+    const under = ink.top - summary.getBoundingClientRect().bottom;
     if (Math.abs(under - gap) > 0.5)
       found.push(
         finding(
           'L-57',
           body,
           `the content's first ink stands ${round(under)}px under the summary's ground, not ${round(gap)}px`
+        )
+      );
+    if (details.matches('.sui-card-body:last-child > :last-child')) continue;
+    const above = wordsInk.top - details.getBoundingClientRect().top;
+    const below = details.getBoundingClientRect().bottom - ink.bottom;
+    if (Math.abs(below - above) > 0.5)
+      found.push(
+        finding(
+          'L-57',
+          details,
+          `the content's last ink stands ${round(below)}px above the foot, and the summary's words ${round(above)}px under the top`
         )
       );
   }
