@@ -25,6 +25,10 @@
     disabled = false,
     invalid = false,
     name,
+    durationName = word(
+      'DurationInput.durationName',
+      (amount: string, unit: string) => `${amount} ${unit}`
+    ),
     unitLabel = word('DurationInput.unitLabel', (unit: DurationUnit, amount: number) =>
       amount === 1 ? unit.slice(0, -1) : unit
     ),
@@ -63,6 +67,8 @@
     name?: string;
     /** A unit's name after an amount, such as "1 minute" or "90 seconds". */
     unitLabel?: (unit: DurationUnit, amount: number) => string;
+    /** Puts an amount and its unit together, such as "90 seconds", in the language's order. */
+    durationName?: (amount: string, unit: string) => string;
     /** The amount's accessible name from the field's name. */
     amountName?: (field: string) => string;
     /** The unit picker's accessible name from the field's name. */
@@ -128,7 +134,7 @@
   function say(seconds: number): string {
     const unit = unitFor(seconds);
     const amount = seconds / SECONDS[unit];
-    return `${numbers.format(amount)} ${unitLabel(unit, amount)}`;
+    return durationName(numbers.format(amount), unitLabel(unit, amount));
   }
 
   const fits = (seconds: number) => seconds >= min && (max === undefined || seconds <= max);

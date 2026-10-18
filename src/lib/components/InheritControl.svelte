@@ -17,6 +17,10 @@
     loading = false,
     error = null,
     overrideLabel = word('InheritControl.overrideLabel', 'Override'),
+    overrideFor = word(
+      'InheritControl.overrideFor',
+      (action: string, field: string) => `${action} ${field}`
+    ),
     inheritLabel = word('InheritControl.inheritLabel', 'Use inherited value'),
     overrideName,
     inheritName,
@@ -55,6 +59,8 @@
     inheritLabel?: string;
     /** Override's accessible name, given `label`. It defaults to `overrideLabel` and `label`. */
     overrideName?: (label: string) => string;
+    /** Joins the action and the field into the override's accessible name when `overrideName` is not given. */
+    overrideFor?: (action: string, field: string) => string;
     /** The way back's accessible name, given `label`. */
     inheritName?: (label: string) => string;
     /** Joins the action and the field into the button's accessible name when `inheritName` is not given. */
@@ -165,7 +171,7 @@ for a press of the way back.
       tone="add"
       {id}
       {disabled}
-      aria-label={overrideName?.(label) ?? `${overrideLabel} ${label}`}
+      aria-label={overrideName?.(label) ?? overrideFor(overrideLabel, label)}
       onclick={override}
     >
       {#snippet icon()}<Icon name="plus" size="sm" />{/snippet}

@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { word } from '../words.js';
+  import { mark, word } from '../words.js';
   import VisuallyHidden from '../components/VisuallyHidden.svelte';
   import ChartFrame from './ChartFrame.svelte';
   import { clip, formatNumber } from './format.js';
@@ -129,7 +129,7 @@ cut on the axis without splitting a character and stay whole in the table under 
       height={box.height}
       viewBox="0 0 {box.width} {box.height}"
       role="img"
-      aria-label="{title}. {description}"
+      aria-label="{title}{mark('stop')}{description}"
     >
       {#each valueAxis.ticks as tick (tick)}
         <line
@@ -150,14 +150,21 @@ cut on the axis without splitting a character and stay whole in the table under 
         >
         <line x1={x(item.start, box)} x2={x(item.end, box)} y1={rowY} y2={rowY} class="range" />
         <circle cx={x(item.start, box)} cy={rowY} r="5" class="endpoint"
-          ><title>{item.label}, {startLabel}: {formatValue(item.start)}</title></circle
+          ><title
+            >{item.label}{mark('comma')}{startLabel}{mark('colon')}{formatValue(item.start)}</title
+          ></circle
         >
         <circle cx={x(item.end, box)} cy={rowY} r="5" class="endpoint"
-          ><title>{item.label}, {endLabel}: {formatValue(item.end)}</title></circle
+          ><title>{item.label}{mark('comma')}{endLabel}{mark('colon')}{formatValue(item.end)}</title
+          ></circle
         >
         {#if item.marker !== undefined}
           <path d={markerPath('diamond', x(item.marker, box), rowY, MARKER)} class="marker"
-            ><title>{item.label}, {markerLabel}: {formatValue(item.marker)}</title></path
+            ><title
+              >{item.label}{mark('comma')}{markerLabel}{mark('colon')}{formatValue(
+                item.marker
+              )}</title
+            ></path
           >
         {/if}
       {/each}

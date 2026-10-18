@@ -14,7 +14,7 @@
 </script>
 
 <script lang="ts">
-  import { word } from '../words.js';
+  import { mark, word } from '../words.js';
   import type { Snippet } from 'svelte';
   import type { HTMLAttributes } from 'svelte/elements';
   import Icon from '../icons/Icon.svelte';
@@ -59,7 +59,7 @@
 
   const key = (item: RailItem) => item.href ?? item.label;
   const name = (item: RailItem) =>
-    item.badge ? `${item.label}, ${badgeLabel(item.badge)}` : item.label;
+    item.badge ? `${item.label}${mark('comma')}${badgeLabel(item.badge)}` : item.label;
 
   function follow(event: MouseEvent, item: RailItem) {
     onnavigate?.(event, item);

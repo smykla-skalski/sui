@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { word } from '../words.js';
+  import { mark, word } from '../words.js';
   import VisuallyHidden from '../components/VisuallyHidden.svelte';
   import ChartFrame from './ChartFrame.svelte';
   import { clip, formatNumber } from './format.js';
@@ -15,6 +15,7 @@
     rowHeading = word('HeatmapChart.rowHeading', 'Row'),
     noDataLabel = word('HeatmapChart.noDataLabel', 'No data'),
     formatValue = formatNumber,
+    rangeLabel = word('HeatmapChart.rangeLabel', (from: string, to: string) => `${from}–${to}`),
     ...frame
   }: ChartFrameProps & {
     rows: string[];
@@ -25,6 +26,8 @@
     /** The legend's and the table's words for a cell with no value. */
     noDataLabel?: string;
     formatValue?: (value: number) => string;
+    /** A legend step's range from its two ends. */
+    rangeLabel?: (from: string, to: string) => string;
   } = $props();
 
   /* Five steps of the first chart colour. The strongest stops where text ink still holds 4.5:1
@@ -49,7 +52,10 @@
   let legend = $derived(
     Array.from({ length: STEPS }, (_, step) => {
       const size = (domain[1] - domain[0]) / STEPS;
-      return `${formatValue(domain[0] + step * size)}–${formatValue(domain[0] + (step + 1) * size)}`;
+      return rangeLabel(
+        formatValue(domain[0] + step * size),
+        formatValue(domain[0] + (step + 1) * size)
+      );
     })
   );
 
@@ -100,7 +106,7 @@ columns and scrolls sideways in a narrower container.
       {height}
       viewBox="0 0 {width} {height}"
       role="img"
-      aria-label="{title}. {description}"
+      aria-label="{title}{mark('stop')}{description}"
     >
       {#each columns as column, columnIndex (columnIndex)}
         <text
@@ -128,7 +134,8 @@ columns and scrolls sideways in a narrower container.
               width={size - 4}
               height={size - 4}
               rx="5"
-              class="missing"><title>{row}, {column}: {noDataLabel}</title></rect
+              class="missing"
+              ><title>{row}{mark('comma')}{column}{mark('colon')}{noDataLabel}</title></rect
             >
             <text x={cx} y={cy} class="value none" text-anchor="middle" dominant-baseline="central"
               >—</text
@@ -141,7 +148,9 @@ columns and scrolls sideways in a narrower container.
               height={size - 4}
               rx="5"
               class="cell step-{step(cellValue)}"
-              data-labelled><title>{row}, {column}: {formatValue(cellValue)}</title></rect
+              data-labelled
+              ><title>{row}{mark('comma')}{column}{mark('colon')}{formatValue(cellValue)}</title
+              ></rect
             >
             <text x={cx} y={cy} class="value" text-anchor="middle" dominant-baseline="central"
               >{formatValue(cellValue)}</text

@@ -3,7 +3,7 @@
 </script>
 
 <script lang="ts">
-  import { word } from '../words.js';
+  import { mark, word } from '../words.js';
   import { tick } from 'svelte';
   import type { HTMLAttributes } from 'svelte/elements';
   import Icon from '../icons/Icon.svelte';
@@ -19,6 +19,7 @@
     value = $bindable([]),
     options,
     keyLabel = word('PairEntry.keyLabel', 'Key'),
+    editName = word('PairEntry.editName', (field: string, key: string) => `${field} ${key}`),
     valueLabel = word('PairEntry.valueLabel', 'Value'),
     validate,
     addLabel = word('PairEntry.addLabel', 'Add a pair'),
@@ -39,6 +40,8 @@
     options: readonly ComboboxOption[];
     /** Names the key, such as "Alias": the editor's first field and every chip's spoken name. */
     keyLabel?: string;
+    /** The editor's name for one pair, from `keyLabel` and the pair's key, in the language's order. */
+    editName?: (field: string, key: string) => string;
     /** Names the value, such as "Command": the editor's second field. */
     valueLabel?: string;
     /** Says what is wrong with a key, or null when it is fine. `index` is the pair's place in `pairs`. */
@@ -230,7 +233,7 @@ row gives them and fall under the copy on a narrow row.
             <VisuallyHidden>{keyLabel}</VisuallyHidden>
             <code class="sui-pair-key">{pair.key}</code>
             <span class="sui-pair-arrow" aria-hidden="true">→</span>
-            <VisuallyHidden>, {valueLabel}</VisuallyHidden>
+            <VisuallyHidden>{mark('comma')}{valueLabel}</VisuallyHidden>
             <code class="sui-pair-value">{labelOf(pair.value)}</code>
           </button>
           <span class="sui-pair-divider" aria-hidden="true"></span>
@@ -266,7 +269,7 @@ row gives them and fall under the copy on a narrow row.
   {#each value as pair, index (index)}
     {#if problems[index]}
       <p id={problemId(index)} class="sui-pair-problem">
-        <code>{pair.key}</code>: {problems[index]}
+        <code>{pair.key}</code>{mark('colon')}{problems[index]}
       </p>
     {/if}
   {/each}
@@ -279,7 +282,7 @@ row gives them and fall under the copy on a narrow row.
   {anchor}
   bind:open
   role="dialog"
-  aria-label={editing < 0 ? addLabel : `${keyLabel} ${value[editing]?.key ?? ''}`}
+  aria-label={editing < 0 ? addLabel : editName(keyLabel, value[editing]?.key ?? '')}
   closeOnLeave
   ontoggle={(event: ToggleEvent) => {
     if (event.newState === 'open') void tick().then(focusKey);

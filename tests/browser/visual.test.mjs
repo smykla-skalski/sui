@@ -101,6 +101,10 @@ for (const theme of ['light', 'dark'])
       for (const id of ids) {
         const section = page.locator(`main > section#${id}`);
         await section.scrollIntoViewIfNeeded();
+        // A scroll can flip the sink's bar, which a busy page lays out a frame or two later.
+        await page.evaluate(
+          () => new Promise((done) => requestAnimationFrame(() => requestAnimationFrame(done)))
+        );
         const picture = await section.screenshot({ animations: 'disabled' });
         const file = join(BASELINES, `${id}-${theme}.png`);
         if (!existsSync(file)) {

@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { word } from '../words.js';
+  import { mark, word } from '../words.js';
   import type { TransitionConfig } from 'svelte/transition';
   import Icon from '../icons/Icon.svelte';
   import {
@@ -209,7 +209,7 @@ A `danger` toast reports a failure and stays too.
     {#each heard as item (item.id)}
       {#if item.tone !== 'danger'}
         <span class="sui-toast-said"
-          >{item.title}{#if item.description}, {item.description}{/if}</span
+          >{item.title}{#if item.description}{mark('comma')}{item.description}{/if}</span
         >
       {/if}
     {/each}
@@ -218,7 +218,7 @@ A `danger` toast reports a failure and stays too.
     {#each heard as item (item.id)}
       {#if item.tone === 'danger'}
         <span class="sui-toast-said"
-          >{item.title}{#if item.description}, {item.description}{/if}</span
+          >{item.title}{#if item.description}{mark('comma')}{item.description}{/if}</span
         >
       {/if}
     {/each}

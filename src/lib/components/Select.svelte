@@ -109,7 +109,7 @@ assistive technology, because a native picker cannot be held open.
   <span class="sui-select-check"><Icon name="check" size="base" /></span>
   <span class="sui-select-text"
     ><span class="sui-select-label">{label}</span>{#if description}<span class="sui-select-note"
-        >{`${separator}${description}`}</span
+        >{separator}{description}</span
       >{/if}</span
   >
 {/snippet}

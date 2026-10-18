@@ -42,6 +42,7 @@
     resetLabel = word('SettingRow.resetLabel', 'Reset'),
     resetName = word('SettingRow.resetName', (reset: string, name: string) => `${reset} ${name}`),
     undoLabel = word('SettingRow.undoLabel', 'Undo'),
+    undoName = word('SettingRow.undoName', (undo: string, name: string) => `${undo}, ${name}`),
     unsavedLabel = word('SettingRow.unsavedLabel', 'Unsaved'),
     pendingLabel = word('SettingRow.pendingLabel', 'Saving…'),
     control,
@@ -79,6 +80,8 @@
     /** The reset's accessible name from its word and the setting's name, in the language's order. */
     resetName?: (reset: string, name: string) => string;
     undoLabel?: string;
+    /** The undo's accessible name from its word and the setting's name, in the language's order. */
+    undoName?: (undo: string, name: string) => string;
     /** The word beside the name while the row is unsaved. */
     unsavedLabel?: string;
     pendingLabel?: string;
@@ -214,7 +217,7 @@ between them (L-91).
           </Button>
         </span>
         <span class={{ idle: !undo }} inert={!undo}>
-          <Button tone="ghost" aria-label="{undoLabel}, {name}" onclick={restore}>
+          <Button tone="ghost" aria-label={undoName(undoLabel, name)} onclick={restore}>
             {undoLabel}
           </Button>
         </span>

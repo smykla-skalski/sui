@@ -20,3 +20,14 @@ export function setWords(next: Record<string, Word>): void {
 export function word<T extends Word>(key: string, fallback: T): T {
   return key in words ? (words[key] as T) : fallback;
 }
+
+/**
+ * The marks that join words a component puts together, such as a name and its count ("Queue,
+ * 3 items") or a series and its value ("North: 12"). A language sets its own with the keys
+ * `marks.comma`, `marks.colon`, `marks.stop` and `marks.space`.
+ */
+const MARKS = { comma: ', ', colon: ': ', stop: '. ', space: ' ' } as const;
+
+export function mark(name: keyof typeof MARKS): string {
+  return word(`marks.${name}`, MARKS[name]);
+}

@@ -19,7 +19,7 @@
 </script>
 
 <script lang="ts">
-  import { word } from '../words.js';
+  import { mark, word } from '../words.js';
   import { tick, untrack, type Snippet } from 'svelte';
   import type { HTMLAttributes } from 'svelte/elements';
   import Icon from '../icons/Icon.svelte';
@@ -225,7 +225,7 @@ following a row closes the drawer.
                   <span class="sui-side-nav-count" aria-hidden="true"
                     ><Count value={formatCount(item.count)} /></span
                   >
-                  <VisuallyHidden>, {countLabel(item.count)}</VisuallyHidden>
+                  <VisuallyHidden>{mark('comma')}{countLabel(item.count)}</VisuallyHidden>
                 {/if}
               </a>
               {#if mode === 'collapsed' && tip}

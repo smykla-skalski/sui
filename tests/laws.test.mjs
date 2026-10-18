@@ -474,13 +474,26 @@ test('K9 every built-in word reads through word(), so setWords can replace it', 
   // Words joined into markup, such as an accessible name built from a label, read through a
   // function prop too, so a language can put them in its own order.
   for (const path of svelteFiles.filter((file) => file.startsWith('src/lib/'))) {
-    const markup = read(path).replace(
-      /<script[\s\S]*?<\/script>|<style[\s\S]*?<\/style>|<!--[\s\S]*?-->/g,
-      ''
-    );
+    const markup = read(path)
+      .replace(/<script[\s\S]*?<\/script>|<style[\s\S]*?<\/style>|<!--[\s\S]*?-->/g, '')
+      .replace(/\{[#/:@][^{}]*\}/g, '');
     for (const [, template] of markup.matchAll(/`([^`]*)`/g))
-      if (/(^|\s)[A-Za-z]{2,}|[A-Za-z]{2,}\s/.test(template.replace(/\$\{[^}]*\}/g, '')))
+      if (template.includes('${') && !/^[\w-]*$/.test(template.replace(/\$\{[^}]*\}/g, '')))
         found.push(`${path}: \`${template}\``);
+    // Marks and words between expressions, in a quoted attribute or in text, join words in one
+    // language's order and punctuation; they read through `mark()` or a function word instead.
+    const plumbing =
+      /^(class|style|id|for|href|d|viewBox|points|transform|name|aria-(describedby|labelledby|controls))$/;
+    for (const [, name, value] of markup.matchAll(/\s([\w:-]+)="([^"]*\{[^"]*)"/g))
+      if (
+        !plumbing.test(name) &&
+        !/^(class|style):/.test(name) &&
+        value.replace(/\{[^{}]*\}/g, '').trim()
+      )
+        found.push(`${path}: ${name}="${value}"`);
+    for (const [, text] of markup.matchAll(/>([^<>]*\{[^<>]*)</g))
+      if (!/^\s*\{[#/:@]/.test(text) && /[^\s]/.test(text.replace(/\{[^{}]*\}|&nbsp;/g, '')))
+        found.push(`${path}: ${text.trim()}`);
   }
   for (const path of scriptFiles.filter(
     (file) => file.startsWith('src/lib/') && !file.endsWith('words.ts')

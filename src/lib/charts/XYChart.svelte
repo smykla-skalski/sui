@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { word } from '../words.js';
+  import { mark, word } from '../words.js';
   import ChartFrame from './ChartFrame.svelte';
   import { formatNumber } from './format.js';
   import {
@@ -145,7 +145,7 @@
       height={box.height}
       viewBox="0 0 {box.width} {box.height}"
       role="img"
-      aria-label="{title}. {description}"
+      aria-label="{title}{mark('stop')}{description}"
     >
       {#each yAxis.ticks as tick (tick)}
         <line
@@ -194,7 +194,11 @@
               fill={item.color}
               class="marker"
             >
-              <title>{item.label}: {formatX(point.x)}, {formatY(point.y)}</title>
+              <title
+                >{item.label}{mark('colon')}{formatX(point.x)}{mark('comma')}{formatY(
+                  point.y
+                )}</title
+              >
             </path>
           {/each}
         {/if}

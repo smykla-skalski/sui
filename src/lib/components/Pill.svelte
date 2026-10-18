@@ -3,7 +3,7 @@
 </script>
 
 <script lang="ts">
-  import { word } from '../words.js';
+  import { mark, word } from '../words.js';
   import type { Snippet } from 'svelte';
   import type { HTMLAttributes } from 'svelte/elements';
   import Icon, { type IconName } from '../icons/Icon.svelte';
@@ -69,7 +69,8 @@ outcome tones always come with their word, so color never carries the state alon
     <span class={['sui-pill-dot', { live }]} aria-hidden="true"></span>
   {/if}
   <span class="sui-pill-label">{@render children()}</span>
-  {#if dot || live}<VisuallyHidden>, {live ? liveLabel : dotLabel}</VisuallyHidden>{/if}
+  {#if dot || live}<VisuallyHidden>{mark('comma')}{live ? liveLabel : dotLabel}</VisuallyHidden
+    >{/if}
 </span>
 
 <style>

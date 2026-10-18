@@ -68,7 +68,7 @@ A surface can opt into the 40px control tier with `--sui-local-control-height: v
 
 ## Language
 
-Every word a component draws or announces is a prop with an English default. Replace any of them app-wide once, before the first component renders, with `setWords`; a prop on one instance still wins. Numbers, dates and times follow the page's `lang`.
+Every word a component draws or announces is a prop with an English default. Replace any of them app-wide once, before the first component renders, with `setWords`; a prop on one instance still wins. Words a component joins, such as a name and its count, take the language's order through function words and its punctuation through `marks.comma`, `marks.colon`, `marks.stop` and `marks.space`. Numbers, dates and times follow the page's `lang`.
 
 ```ts
 import { setWords } from '@smykla-skalski/sui';

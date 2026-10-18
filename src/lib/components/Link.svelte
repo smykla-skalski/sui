@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { word } from '../words.js';
+  import { mark, word } from '../words.js';
   import type { Snippet } from 'svelte';
   import Icon from '../icons/Icon.svelte';
   import type { HTMLAnchorAttributes } from 'svelte/elements';
@@ -69,7 +69,7 @@ is `Button` with `href`, and the way back from a page is `BackLink`.
 <a {...rest} {href} rel={relation} class={['sui-link', className, { standalone }]}
   >{@render children()}{#if leaves}{JOINER}<span class="sui-link-external"
       ><Icon name="arrow-up-right" size="micro" strokeWidth={2} /><VisuallyHidden
-        >{` ${externalLabel}`}</VisuallyHidden
+        >{mark('space')}{externalLabel}</VisuallyHidden
       ></span
     >{/if}</a
 >

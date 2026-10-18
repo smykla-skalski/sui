@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { mark } from '../words.js';
   import type { Snippet } from 'svelte';
   import type { HTMLAttributes } from 'svelte/elements';
   import VisuallyHidden from './VisuallyHidden.svelte';
@@ -41,7 +42,7 @@
 
   $effect(() => {
     if (!live) return;
-    const words = [title, description, step].filter(Boolean).join(', ');
+    const words = [title, description, step].filter(Boolean).join(mark('comma'));
     const timer = setTimeout(() => (said = words), SETTLE);
     return () => clearTimeout(timer);
   });
