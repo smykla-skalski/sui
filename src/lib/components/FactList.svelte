@@ -111,26 +111,27 @@ apart, and the action under the value.
 
   /* Inline facts flow as words do: each fact is an inline box, so a line breaks between two
      facts and a long fact wraps inside itself. The line has no leading of its own, so only the
-     facts set its height, and the list trims its first line to the cap and its last to the
-     baseline, so its ink starts and ends at its own edges and a target on either line reaches
-     past them with its room alone. */
+     facts set its height. The list trims its first line to the cap, so its ink starts at its
+     top and a target on that line reaches past it with its room alone; its last line ends at
+     its facts' own foot, so a fact that wraps on it stays inside the list. */
   .inline {
     block-size: var(--sui-block-snap);
     font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-leading-none)
       var(--sui-sans);
-    text-box: trim-both cap alphabetic;
+    text-box: trim-start cap alphabetic;
   }
 
   /* Its words stand at the top of their snapped box, so a fact's baseline is one cap below its
-     top: every fact starts on a whole pixel, and a line of plain facts parts from the next by
-     the copy's leading, its words 8px from the next line's. */
+     top: every fact starts on a whole pixel, and a line of plain facts parts from the one above
+     by the copy's leading, its words 8px from that line's. The first line's trim takes that
+     room off the top. */
   .inline > .sui-fact-list-fact {
     align-items: baseline;
     block-size: var(--sui-block-snap);
     column-gap: var(--sui-space-2);
     display: inline-flex;
     flex-wrap: wrap;
-    margin-block-end: calc(var(--sui-row-copy-leading) - round(up, 1cap, 2px));
+    margin-block-start: calc(var(--sui-row-copy-leading) - round(up, 1cap, 2px));
     margin-inline-end: var(--sui-space-5);
     max-inline-size: 100%;
     row-gap: var(--sui-row-copy-gap);
@@ -154,6 +155,15 @@ apart, and the action under the value.
     > .sui-fact-list-fact:has(:global(:is(a[href], button, [tabindex]:not([tabindex^='-'])))) {
     align-content: center;
     min-block-size: var(--sui-field-target-min);
+  }
+
+  /* On the list's last line a target's room under its words reaches past the list, as on the
+     first, so the list still ends at its words. */
+  .inline
+    > .sui-fact-list-fact:last-child:has(
+      :global(:is(a[href], button, [tabindex]:not([tabindex^='-'])))
+    ) {
+    margin-block-end: calc((round(up, 1cap, 1px) - var(--sui-field-target-min)) / 2);
   }
 
   /* A pill or a chip centres its label on it, so the box lands on whole pixels (L-95). */
