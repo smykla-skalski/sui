@@ -63,7 +63,7 @@
 
   // The palette's breakpoints, the same as the container queries below, which own the first
   // paint. They are read again whenever the width or the root's text size changes, so a reader
-  // who enlarges the text moves them in step with the queries, which measure in rem too.
+  // who enlarges the text moves them along with the queries, which measure in rem too.
   function breakpoint(name: string): number {
     const rem = parseFloat(getComputedStyle(document.documentElement).getPropertyValue(name));
     return rem * rootFontSize();

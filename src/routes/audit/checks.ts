@@ -446,6 +446,9 @@ function copy(root: Document): Finding[] {
   }
   for (const { element, text } of textElements(root)) {
     if (/\.\.\./.test(text)) found.push(finding('L-31', element, 'three dots instead of "…"'));
+    // Plain words a reader gets at once, not an idiom (L-105).
+    const idiom = text.match(/\bin step\b/i)?.[0];
+    if (idiom) found.push(finding('L-105', element, `"${idiom}" is an idiom; say what it means`));
     // Facts are parted by a drawn dot, never one typed into the words (L-103); a native
     // option is a string-only place and keeps its typed separator.
     if (text.includes('·') && text.trim() !== '·' && !element.closest('select, option, code, pre'))

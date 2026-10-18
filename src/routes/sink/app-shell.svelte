@@ -36,7 +36,7 @@
         { href: '#shell-rulesets', label: 'Rulesets', icon: 'shield' },
         {
           href: '#shell-files',
-          label: 'Files kept in step across every repository',
+          label: 'Files synced across every repository',
           short: 'Files',
           icon: 'file'
         }

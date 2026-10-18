@@ -16,7 +16,7 @@
 </script>
 
 {#snippet syncedAt()}<RelativeTime value={synced} />{/snippet}
-{#snippet health()}<Pill tone="success">In step</Pill>{/snippet}
+{#snippet health()}<Pill tone="success">Up to date</Pill>{/snippet}
 
 <Example
   title="Values"

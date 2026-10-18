@@ -71,7 +71,7 @@
               {#snippet main()}
                 <span class="name">{name}</span>
                 <span class="sum"
-                  ><FactLine><span>Default branch main</span><span>in step</span></FactLine></span
+                  ><FactLine><span>Default branch main</span><span>up to date</span></FactLine></span
                 >
               {/snippet}
             </ObjectRow>

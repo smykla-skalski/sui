@@ -17,7 +17,7 @@
 
 <Example title="Facts" note="The dot stands 9px from each fact and is read as a comma">
   <Specimen label="Words" code="children">
-    <FactLine><span>Default branch main</span><span>84 files in step</span></FactLine>
+    <FactLine><span>Default branch main</span><span>84 files up to date</span></FactLine>
   </Specimen>
   <Specimen label="With a time" code="children">
     <FactLine
@@ -31,7 +31,7 @@
   <Specimen label="Wrapping" code="children">
     <div class="narrow">
       <FactLine
-        ><span>Default branch release/2026-10</span><span>1,284 files in step</span><span
+        ><span>Default branch release/2026-10</span><span>1,284 files up to date</span><span
           >archived last year</span
         ></FactLine
       >

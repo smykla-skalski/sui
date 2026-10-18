@@ -25,7 +25,7 @@
   const synced = new Date(Date.now() - 12 * 60_000).toISOString();
 
   const repositories = [
-    { name: 'smykla-skalski/sui', summary: ['Default branch main', '84 files in step'] },
+    { name: 'smykla-skalski/sui', summary: ['Default branch main', '84 files up to date'] },
     { name: 'smykla-skalski/smyklot', summary: ['Default branch main', '3 rules would change'] },
     { name: 'smykla-skalski/ledger', summary: ['Default branch trunk', 'archived last year'] }
   ];
@@ -51,7 +51,7 @@
           {#snippet main()}
             <span class="name">smykla-skalski/sui</span>
             <span class="sum"
-              ><FactLine><span>Default branch main</span><span>84 files in step</span></FactLine
+              ><FactLine><span>Default branch main</span><span>84 files up to date</span></FactLine
               ></span
             >
           {/snippet}
@@ -87,13 +87,13 @@
             <span class="name">smykla-skalski/sui</span>
             <span class="sum"
               ><FactLine
-                ><span>Synced <RelativeTime value={synced} /></span><span>84 files in step</span
+                ><span>Synced <RelativeTime value={synced} /></span><span>84 files up to date</span
                 ></FactLine
               ></span
             >
           {/snippet}
           {#snippet side()}
-            <Pill tone="success">In step</Pill>
+            <Pill tone="success">Up to date</Pill>
             <Button loading={syncing} aria-label="Sync smykla-skalski/sui" onclick={sync}>
               {#snippet icon()}<Icon name="refresh" size="sm" />{/snippet}
               Sync

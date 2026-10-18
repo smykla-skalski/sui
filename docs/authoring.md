@@ -68,7 +68,7 @@ Write "none" only when an item truly does not apply, and say why. Document each 
 - Pass native attributes through with `...rest` onto the element a caller would expect, and merge `class` as `class={['sui-name', className]}`.
 - Offer `element = $bindable(null)` when a caller may need to focus or anchor to the element.
 - Use `$props.id()` for generated ids, assigned to a `const` first.
-- Name tones after jobs, never colors (`signal`, `stop`, `quiet`), and keep tone names in step with `Button`.
+- Name tones after jobs, never colors (`signal`, `stop`, `quiet`), and keep tone names the same as `Button`.
 
 ## Styles
 

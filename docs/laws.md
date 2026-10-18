@@ -43,7 +43,7 @@ A law that says "every" means every component, including the ones added after it
 - **L-24** A title and its description stand 8px apart as rendered ink (`--sui-row-copy-gap`), and wrapped lines keep the same 8px ink gap. Form help and form errors use the same rhythm, never body leading. `S-55 S-57` `audit`
 - **L-25** The tiers: page title 28px 700, dialog title 20px 700 at -0.015em, card title 17px 600 balanced, body 15px, control and label 13px with labels at 600. No text is smaller than 11px, the Apple minimum. Eyebrows, group headings and column headings may be uppercase micro or compact type at 600 with 0.06em to 0.07em tracking, for one to three words only. All caps reads about 10% slower (NN/g), and VoiceOver can spell a short uppercase word letter by letter. `S-61 S-62 S-63` `review`
 - **L-26** Contents of a centred single-line row are centred by eye: the cap-to-baseline band of text and the border box of painted things share a centre within 0.25px. No `translate` nudges. `S-60` `audit`
-- **L-27** A value inside a sentence breaks with it (`overflow-wrap: anywhere`), and an atom such as "84.7 MB" stays on one line. The `·` separator has a space on both sides. `S-83 S-162` `audit`
+- **L-27** A value inside a sentence breaks with it (`overflow-wrap: anywhere`), and an atom such as "84.7 MB" stays on one line. Facts on one line are parted by a drawn dot (L-103). `S-83 S-162` `audit`
 
 ## Copy
 
@@ -153,4 +153,5 @@ A law that says "every" means every component, including the ones added after it
 - **L-102** Words in a small box of their own ground or frame sit on its middle: the room above the cap line equals the room under the baseline within half a pixel, in a count, a pill, a chip, a tab or a button. A box snapped to whole pixels splits its spare pixel above and under its words, and one centred in an even control snaps to an even height. `audit`
 - **L-103** Facts on one line are parted by a drawn middle dot (`FactLine`), muted, standing `--sui-sep-space` (9px) from each fact, and nothing beside it adds room: no typed space and no gap. The dot is never typed into the words; it is read as `marks.comma`. A string-only place (a title, a tooltip, a placeholder, an accessible name, a native option) keeps a typed separator. `audit`
 - **L-104** Hover and press answer at once: a ground, an ink, an edge or a state layer never fades in or out, so a menu or a list keeps up with a pointer that sweeps it. Motion that a press makes (the 1px sink, the inset shadow) runs at the press's 100ms, and only a part that travels, a switch's track or a segmented control's thumb, fades its fill with its travel. `source`
+- **L-105** UI copy uses plain words a reader understands at once, never an idiom: a file is "up to date" or "synced", not "in step". `audit`
 - **L-84** Selectors never nest `:has()` inside `:has()`, and sources carry no control characters. `S-220 S-221` `source`
