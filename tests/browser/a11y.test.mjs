@@ -195,7 +195,7 @@ test(
           ['.sui-textarea', "[aria-invalid='true']"],
           ['.sui-select:not(.bare) .sui-select-control', "[aria-invalid='true']"],
           ['.sui-joined', '.invalid'],
-          ['.sui-choice-cards-grid', '.invalid'],
+          ['.sui-choice-card:not(:has(input:checked))', '.invalid > *'],
           ['.sui-checkbox input:checked + .sui-checkbox-box', '.invalid'],
           ['.sui-switch-row input:checked + .sui-switch-track', '.invalid']
         ];
