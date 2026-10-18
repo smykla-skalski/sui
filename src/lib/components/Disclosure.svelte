@@ -192,10 +192,12 @@ inside it; inside a card, they sit straight in it.
     text-box: trim-both cap alphabetic;
   }
 
-  /* The content starts at the summary's words, its first ink the row's own padding under
-     them, closer to its summary than the next row is. */
+  /* The content starts at the summary's words, and its first ink stands a copy gap under the
+     summary's box, so the ground a hover paints there never touches it. That keeps it closer
+     to its summary than the next row is. */
   .sui-disclosure-body {
     min-inline-size: 0;
+    padding-block-start: var(--sui-row-copy-gap);
     padding-inline-start: var(--sui-local-disclosure-indent);
   }
 
@@ -203,13 +205,13 @@ inside it; inside a card, they sit straight in it.
      as in a card (L-33), so the guide runs from the first ink to the last. A trimmed block
      rounds up to the pixel and keeps the spare fraction away from its trimmed edge (L-95). */
   :where(.sui-disclosure-body) > :global(:where(p, ul, ol, dl, blockquote):first-child) {
-    align-content: end;
+    align-content: start;
     block-size: var(--sui-block-snap);
     text-box: trim-start cap alphabetic;
   }
 
   :where(.sui-disclosure-body) > :global(:where(p, ul, ol, dl, blockquote):last-child) {
-    align-content: start;
+    align-content: end;
     block-size: var(--sui-block-snap);
     text-box: trim-end cap alphabetic;
   }

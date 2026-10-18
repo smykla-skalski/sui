@@ -1731,16 +1731,47 @@ function symbolTiles(root: Document): Finding[] {
   return found;
 }
 
+/** The top of the first ink in a box: the edge of a framed or grounded box, or a line's cap. */
+function firstInk(box: Element): number | null {
+  let top = Infinity;
+  const range = document.createRange();
+  const walker = document.createTreeWalker(box, NodeFilter.SHOW_ELEMENT | NodeFilter.SHOW_TEXT);
+  for (let node = walker.nextNode(); node; node = walker.nextNode()) {
+    if (node instanceof Element) {
+      if (!shown(node)) continue;
+      const look = getComputedStyle(node);
+      const edged = parseFloat(look.borderTopWidth) > 0 && rgba(look.borderTopColor).a > 0;
+      if (edged || paintsGround(look)) top = Math.min(top, node.getBoundingClientRect().top);
+      continue;
+    }
+    const holder = node.parentElement;
+    if (!node.textContent?.trim() || !holder || !shown(holder) || heardOnly(holder)) continue;
+    const face = faceMetrics(getComputedStyle(holder));
+    range.selectNodeContents(node);
+    const line = [...range.getClientRects()].find((rect) => rect.width > 0);
+    if (face && line) top = Math.min(top, line.top + face.ascent - face.cap);
+  }
+  return Number.isFinite(top) ? top : null;
+}
+
 /**
  * Disclosures (L-57): the chevron leads the summary's words, and open content starts at those
- * words, so the summary and what it reveals share one start edge in either direction.
+ * words, so the summary and what it reveals share one start edge in either direction. The
+ * content's first ink stands a copy gap under the summary's box, so the ground a hover paints
+ * there never touches it.
  */
 function disclosures(root: Document): Finding[] {
   const found: Finding[] = [];
+  const probe = root.createElement('span');
+  probe.style.marginBlockStart = 'var(--sui-row-copy-gap)';
+  root.body.append(probe);
+  const gap = parseFloat(getComputedStyle(probe).marginBlockStart);
+  probe.remove();
   for (const details of audited(root, 'details.sui-disclosure')) {
-    const chevron = details.querySelector(':scope > summary > .sui-disclosure-chevron');
-    const words = details.querySelector(':scope > summary > .sui-disclosure-label');
-    if (!chevron || !words) continue;
+    const summary = details.querySelector(':scope > summary');
+    const chevron = summary?.querySelector(':scope > .sui-disclosure-chevron');
+    const words = summary?.querySelector(':scope > .sui-disclosure-label');
+    if (!summary || !chevron || !words) continue;
     const rtl = getComputedStyle(details).direction === 'rtl';
     const start = (box: DOMRect) => (rtl ? -box.right : box.left);
     const end = (box: DOMRect) => (rtl ? -box.left : box.right);
@@ -1757,6 +1788,16 @@ function disclosures(root: Document): Finding[] {
           'L-57',
           body,
           `the content starts ${round(content - label)}px off the summary's words`
+        )
+      );
+    const ink = firstInk(body);
+    const under = ink === null ? gap : ink - summary.getBoundingClientRect().bottom;
+    if (Math.abs(under - gap) > 0.5)
+      found.push(
+        finding(
+          'L-57',
+          body,
+          `the content's first ink stands ${round(under)}px under the summary's ground, not ${round(gap)}px`
         )
       );
   }
