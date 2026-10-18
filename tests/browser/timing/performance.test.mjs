@@ -127,10 +127,74 @@ test('sorting a table of 500 rows answers within 200ms', long, async () => {
   }
 });
 
-test('a clock tick over a list of 100 times holds no task past 50ms', long, async () => {
+/**
+ * The page's frames while `act` runs and for `span` milliseconds from the first one: each one's
+ * gap to the frame before it, and whether it is the first dropped frame after a click ran, the one
+ * that draws its first answer, in the frame the click runs in or the next. A gap of 1.5 of the
+ * display's own intervals or more is a dropped frame, at any refresh rate.
+ * @param {import('playwright-core').Page} page
+ * @param {number} span
+ * @param {() => Promise<unknown>} act
+ */
+async function frames(page, span, act) {
+  const recorded = page.evaluate(
+    (span) =>
+      new Promise((done) => {
+        /** @type {{ at: number, gap: number }[]} */
+        const seen = [];
+        let start = 0;
+        // A click starts only once its target holds still for a few frames, so the frames
+        // before it show no answer yet. It is timed as it runs, not by its input's time stamp,
+        // which comes before a frame that started ahead of it.
+        let clicked = Infinity;
+        const press = () => (clicked = Math.min(clicked, performance.now()));
+        addEventListener('click', press, { capture: true });
+        /** @param {number} now */
+        const step = (now) => {
+          if (start) seen.push({ at: now, gap: now - (seen.at(-1)?.at ?? start) });
+          start ||= now;
+          if (now - start < span) requestAnimationFrame(step);
+          else {
+            removeEventListener('click', press, { capture: true });
+            done({ seen, clicked });
+          }
+        };
+        requestAnimationFrame(step);
+      }),
+    span
+  );
+  // The recorder starts on a frame of its own, before the act.
+  await page.waitForTimeout(100);
+  await act();
+  const { seen, clicked } =
+    /** @type {{ seen: { at: number, gap: number }[], clicked: number }} */ (await recorded);
+  const interval = seen.map(({ gap }) => gap).sort((a, b) => a - b)[seen.length >> 1];
+  /** @param {number} gap */
+  const late = (gap) => gap >= interval * 1.5;
+  const answer = seen.find(({ at, gap }) => at > clicked && late(gap));
+  return seen.map((frame) => ({
+    gap: Math.round(frame.gap),
+    dropped: late(frame.gap),
+    answer: frame === answer
+  }));
+}
+
+/**
+ * The frames a measure found dropped, from the first of three runs that drops none, or from the
+ * last run. Another process can take the machine for a frame at any moment, but the page's own
+ * work drops its frames on every run.
+ * @param {() => Promise<string[]>} measure
+ */
+async function steadiest(measure) {
+  let late = await measure();
+  for (let run = 1; run < 3 && late.length; run++) late = await measure();
+  return late;
+}
+
+test('a clock tick over a list of 100 times drops no frame', long, async () => {
   const page = await app();
   try {
-    const longest = await page.evaluate(async () => {
+    await page.evaluate(async () => {
       const { lib, mount, flushSync } = /** @type {any} */ (window);
       const list = document.createElement('ul');
       document.body.append(list);
@@ -143,17 +207,113 @@ test('a clock tick over a list of 100 times holds no task past 50ms', long, asyn
         });
       }
       flushSync();
-      // The page's one clock ticks every 30 seconds; one tick is waited for.
-      return new Promise((done) => {
-        let worst = 0;
-        new PerformanceObserver((entries) => {
-          for (const entry of entries.getEntries()) worst = Math.max(worst, entry.duration);
-        }).observe({ type: 'longtask' });
-        setTimeout(() => done(worst), 31_000);
-      });
+      await new Promise((painted) => requestAnimationFrame(() => setTimeout(painted)));
     });
-    assert.equal(longest, 0, `a tick held the page for ${longest}ms`);
+    // The page's one clock ticks every 30 seconds after its first reader mounts.
+    const late = await steadiest(async () =>
+      (await frames(page, 31_000, async () => {}))
+        .filter(({ dropped }) => dropped)
+        .map(({ gap }) => `${gap}ms`)
+    );
+    assert.deepEqual(late, [], `the tick held frames for ${late.join(', ')}`);
   } finally {
     await page.close();
   }
 });
+
+// Chrome's own wheel gesture, one latched sequence as a wheel or trackpad sends it, over a long
+// page whose index marks the section the reader is in.
+test(
+  'an index of 1000 sections follows a wheel scroll without dropping a frame',
+  long,
+  async () => {
+    const late = await steadiest(async () => {
+      const page = await app();
+      try {
+        await page.evaluate(async () => {
+          const { lib, mount, flushSync } = /** @type {any} */ (window);
+          const entries = Array.from({ length: 1000 }, (_, index) => ({
+            id: `part-${index}`,
+            label: `Part ${index}`
+          }));
+          const layout = document.createElement('div');
+          layout.style.cssText =
+            'display: grid; grid-template-columns: 16rem 1fr; align-items: start';
+          const aside = document.createElement('div');
+          const main = document.createElement('main');
+          for (const { id, label } of entries) {
+            const section = document.createElement('section');
+            const heading = document.createElement('h2');
+            section.id = id;
+            section.style.blockSize = '240px';
+            heading.textContent = label;
+            section.append(heading);
+            main.append(section);
+          }
+          layout.append(aside, main);
+          document.body.append(layout);
+          mount(lib.PageToc, { target: aside, props: { entries } });
+          flushSync();
+          await new Promise((painted) => requestAnimationFrame(() => setTimeout(painted)));
+        });
+        const cdp = await page.context().newCDPSession(page);
+        const scroll = () =>
+          cdp.send('Input.synthesizeScrollGesture', {
+            x: 800,
+            y: 450,
+            yDistance: -20_000,
+            speed: 4000,
+            gestureSourceType: 'mouse'
+          });
+        return (await frames(page, 5000, scroll))
+          .filter(({ dropped }) => dropped)
+          .map(({ gap }) => `${gap}ms`);
+      } finally {
+        await page.close();
+      }
+    });
+    assert.deepEqual(late, [], `the scroll held frames for ${late.join(', ')}`);
+  }
+);
+
+// Each layer opens twice in its own section of the sink, the rest of the sink removed so the
+// page is as small as an app's. The first open pays once for the layer's first style and paint,
+// so the one frame that draws them may run long and every other frame is held to 60fps; every
+// later open is held to it from the press.
+for (const [id, trigger] of [
+  ['action-menu', '[aria-haspopup="menu"]'],
+  ['select', 'select:not([disabled])'],
+  ['overlays', 'button[popovertarget]'],
+  ['confirm-dialog', 'button:has-text("Publish release")'],
+  ['modal', 'button:has-text("webhook")'],
+  ['toaster', 'button:has-text("Save settings")']
+]) {
+  test(`the ${id} layer grows at 60 frames a second`, long, async () => {
+    const late = await steadiest(async () => {
+      const page = await browser.newPage({ viewport: { width: 1280, height: 900 } });
+      try {
+        await visit(page, url);
+        await page.evaluate((id) => {
+          for (const section of document.querySelectorAll('main section[id]'))
+            if (section.id !== id) section.remove();
+        }, id);
+        const cdp = await page.context().newCDPSession(page);
+        await cdp.send('Emulation.setCPUThrottlingRate', { rate: slowdown });
+        const press = page.locator(`#${id} ${trigger}`).first();
+        /** @type {string[]} */
+        const found = [];
+        for (const open of ['first', 'later']) {
+          await page.waitForTimeout(500);
+          for (const { gap, dropped, answer } of await frames(page, 800, () => press.click()))
+            if (dropped && !(answer && open === 'first'))
+              found.push(`${gap}ms on the ${open} open`);
+          await page.keyboard.press('Escape');
+        }
+        return found;
+      } finally {
+        await page.close();
+      }
+    });
+    assert.deepEqual(late, [], `frames held for ${late.join(', ')}`);
+  });
+}

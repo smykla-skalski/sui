@@ -84,24 +84,34 @@
     return null;
   }
 
-  /** The reader's place: the last section whose top has crossed the top quarter of its scroller. */
-  function mark(): void {
+  /** The sections the entries name that are shown, in the entries' order. */
+  function shownSections(): HTMLElement[] {
     // Not client rects: a folded section still has them, since the browser lays out closed
     // `details` content, but it is hidden.
-    const sections = entries
+    return entries
       .map((entry) => document.getElementById(entry.id))
       .filter((section): section is HTMLElement => section?.checkVisibility() ?? false);
+  }
+
+  /** Whether the box the sections scroll in, a pane or the page, is scrolled to its end. */
+  function atEnd(pane: HTMLElement | null): boolean {
+    const [scrolled, seen, whole] = pane
+      ? [pane.scrollTop, pane.clientHeight, pane.scrollHeight]
+      : [window.scrollY, window.innerHeight, document.documentElement.scrollHeight];
+    return scrolled + seen >= whole - 1 && scrolled > 1;
+  }
+
+  /** The reader's place: the last section whose top has crossed the top quarter of its scroller. */
+  function mark(): void {
+    const sections = shownSections();
     const first = sections[0];
     if (!first) return;
     const pane = scroller(first);
-    const page = document.documentElement;
-    const [scrolled, seen, whole] = pane
-      ? [pane.scrollTop, pane.clientHeight, pane.scrollHeight]
-      : [window.scrollY, window.innerHeight, page.scrollHeight];
-    if (scrolled + seen >= whole - 1 && scrolled > 1) {
+    if (atEnd(pane)) {
       here = sections.at(-1)?.id ?? null;
       return;
     }
+    const seen = pane ? pane.clientHeight : window.innerHeight;
     const line = (pane ? pane.getBoundingClientRect().top : 0) + seen / 4;
     let found = first.id;
     for (const section of sections) {
@@ -148,7 +158,11 @@
     land(section);
   }
 
+  // The entry the URL names on arrival stays current until the reader scrolls.
+  let held = true;
+
   function arrive(): void {
+    held = true;
     const id = decodeURIComponent(location.hash.slice(1));
     if (entries.some((entry) => entry.id === id)) {
       reveal(id);
@@ -156,19 +170,91 @@
     } else mark();
   }
 
-  // Scroll events do not bubble, so one listener in the capture phase hears the page and any
-  // pane the sections scroll in, and the reading line is found once a frame.
+  // Observers report the sections that stand across the reading line, the top quarter of the
+  // box they scroll in, and the sections on screen, so a frame of a scroll reads no section's
+  // place, and looks at the end of the box only while its last section shows. Scroll events do
+  // not bubble, so one listener in the capture phase hears the page and any pane, and a pane
+  // that scrolls the sections becomes the observers' root.
   $effect(() => {
     void entries;
+    const across = new Set<Element>();
+    const onScreen = new Set<Element>();
+    let root: HTMLElement | null = null;
+    let band: IntersectionObserver | undefined;
+    let view: IntersectionObserver | undefined;
+    let nearEnd = false;
+    let ended = false;
     let frame = 0;
-    const onscroll = () => {
-      cancelAnimationFrame(frame);
-      frame = requestAnimationFrame(mark);
+    const settle = () => {
+      const sections = shownSections();
+      const last = ended ? sections.at(-1) : sections.findLast((section) => across.has(section));
+      if (last) here = last.id;
+      else mark();
     };
+    const look = () => {
+      const end = nearEnd && atEnd(root);
+      // At the end the last shown section is current, and opening a fold changes which that is.
+      if (held || end || end !== ended) {
+        held = false;
+        ended = end;
+        settle();
+      }
+    };
+    const track = (into: Set<Element>) => (records: IntersectionObserverEntry[]) => {
+      for (const record of records) {
+        if (record.isIntersecting) into.add(record.target);
+        else into.delete(record.target);
+      }
+    };
+    const watch = (next: HTMLElement | null) => {
+      root = next;
+      across.clear();
+      onScreen.clear();
+      band?.disconnect();
+      view?.disconnect();
+      const crossing = track(across);
+      band = new IntersectionObserver(
+        (records) => {
+          crossing(records);
+          if (!held) settle();
+        },
+        { root, rootMargin: '0px 0px -75% 0px' }
+      );
+      const showing = track(onScreen);
+      view = new IntersectionObserver(
+        (records) => {
+          showing(records);
+          const last = shownSections().at(-1);
+          nearEnd = last !== undefined && onScreen.has(last);
+          if (!held) look();
+        },
+        { root }
+      );
+      for (const entry of entries) {
+        const section = document.getElementById(entry.id);
+        if (!section) continue;
+        band.observe(section);
+        view.observe(section);
+      }
+    };
+    const onscroll = (event: Event) => {
+      const box = event.target;
+      if (box instanceof HTMLElement && box !== root) {
+        const first = entries[0] ? document.getElementById(entries[0].id) : null;
+        if (first && box.contains(first)) watch(box);
+      }
+      if (!held && !nearEnd) return;
+      cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(look);
+    };
+    const first = shownSections()[0];
+    watch(first ? scroller(first) : null);
     addEventListener('scroll', onscroll, { capture: true, passive: true });
     arrive();
     return () => {
       cancelAnimationFrame(frame);
+      band?.disconnect();
+      view?.disconnect();
       removeEventListener('scroll', onscroll, { capture: true });
     };
   });
@@ -207,7 +293,7 @@ phone drawer, and following an entry closes the drawer before focus moves.
 - Responsive: the index sticks and scrolls inside itself, keeping the current entry in view; the page decides where it stands.
 - Accessibility: the current entry is announced, every entry's ink holds 4.5:1, and the current ink stands 3:1 from the rest ink in lightness, so it is never hue alone (WCAG 1.4.1).
 - Localization: `title` is a prop with an English default; the entries follow the reading direction.
-- Performance: one capture listener reads the sections' places once a frame while anything scrolls; it suits tens of sections.
+- Performance: `IntersectionObserver`s report the sections that cross the reading line and those on screen, so a scroll reads no section's place and looks at the box's end only while its last section shows; it suits a thousand sections.
 - Analytics: `onnavigate(event, entry)` reports every followed entry.
 - Failure: an entry whose section is missing or hidden is never current and its link still works as a fragment link; an empty `entries` draws only the title.
 -->
