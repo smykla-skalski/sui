@@ -83,11 +83,10 @@
   const notice = $derived(preview ?? live);
   // A modal dialog makes the page under it inert, so the bar waits until the dialog closes.
   const shown = $derived(notice !== null && (preview !== undefined || hosts.length === 0));
-  // The words stay while the bar fades out, so it never fades out empty.
-  let drawn = $state<ServiceWorkerNotice>('ready');
-  $effect.pre(() => {
-    if (notice) drawn = notice;
-  });
+  // The words stay while the bar fades out, so it never fades out empty. Derived, so a server
+  // render draws the notice it was given, a preview included.
+  let last: ServiceWorkerNotice = 'ready';
+  const drawn = $derived.by(() => (notice ? (last = notice) : last));
 
   const title = $derived(
     drawn === 'offline' ? offlineTitle : drawn === 'online' ? onlineTitle : readyTitle
@@ -187,7 +186,7 @@ dismisses it, and the return says "You are back online" for five seconds.
 - Responsive: as wide as its words up to 28rem, the buttons wrapping under the copy; on a phone it spans the screen less 16px a side, above the safe area.
 - Accessibility: the update, offline and return are each announced politely once; the bar's name is its title; text holds 4.5:1 on the popover ground; forced colors keep its edge.
 - Localization: every word is a prop with an English default; the bar stands at the inline start and its buttons end the line in the reading direction, mirrored in a right-to-left page.
-- Performance: one element and one timer; it rises 8px and fades in, and fades out, with only the fade under reduced motion.
+- Performance: one element and one timer; it rises 8px and fades in, and fades out, and under reduced motion it comes and goes at once.
 - Analytics: `onreload` hears each press of Reload and `ondismiss` each notice set aside.
 - Failure: without a worker, or where the browser has none, it shows only offline from the device's own state; an update that fails to install never reaches it, because the old version keeps serving.
 -->
@@ -330,13 +329,10 @@ dismisses it, and the return says "You are back online" for five seconds.
     }
   }
 
-  /* Only the fade is left, so the bar arrives and leaves where it rests. */
+  /* The bar arrives and leaves where it rests, at once (L-75). */
   @media (prefers-reduced-motion: reduce) {
     .sui-service-worker-status:not(.preview) {
-      transition:
-        opacity var(--sui-duration-fast) var(--sui-ease-out),
-        display var(--sui-duration-fast) allow-discrete,
-        overlay var(--sui-duration-fast) allow-discrete;
+      transition: none;
       translate: 0 0;
     }
   }
