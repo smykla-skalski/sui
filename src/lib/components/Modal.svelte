@@ -220,7 +220,7 @@ dialog, so they are never inert under it.
 - Keyboard: Tab stays inside, Escape closes after `beforeClose` unless a layer inside took it, and Enter belongs to the focused control.
 - Pointer and touch: the close button is a 34px target, 44px on a phone or touch screen, and a press outside closes only a dialog that holds no field.
 - Focus: opens on an `[autofocus]` element, else the body's first control, then the footer's, then Close; returns to the opener, or to `returnFocus`, or to the first control left where the opener stood.
-- Responsive: under 48rem it fills the width less 8px each side, and on a short screen (30rem tall or less) the head, body and footer scroll as one so the footer never covers the fields.
+- Responsive: its parts stand 24px from each other and from every edge, 16px under 48rem, where it fills the width less 8px each side; a body taller than the box scrolls under the footer behind a line, and on a short screen (30rem tall or less) the head, body and footer scroll as one so the footer never covers the fields.
 - Accessibility: the title names it and the description describes it, `error` is announced as an alert, and the scrim follows `--sui-scrim`.
 - Localization: `closeLabel` names the close button, every other word is the caller's, and the inspector docks and slides in from the inline end, mirrored in a right-to-left page.
 - Performance: the box enters with one 220ms fade and short slide on transform and opacity, removed under reduced motion; a closed dialog keeps no listeners.
@@ -228,7 +228,7 @@ dialog, so they are never inert under it.
 - Failure: a refused submit keeps the dialog open with `error`; a missing body draws the head alone with its full inset; a missing opener sends focus to `returnFocus` or the nearest control.
 -->
 {#snippet box()}
-  <header class={['sui-modal-head', { alone: !children }]}>
+  <header class="sui-modal-head">
     <div class="sui-modal-heading">
       <h2 id={titleId} class="sui-modal-title">{title}</h2>
       <span class="sui-modal-close"
@@ -289,7 +289,10 @@ dialog, so they are never inert under it.
 {/if}
 
 <style>
+  /* Each part pads half the inset above and below, and the box the other half, so the parts
+     stand one inset from each other and from every edge, measured to the ink. */
   .sui-modal {
+    --sui-local-modal-inset: var(--sui-space-6);
     background-color: var(--sui-dialog-bg);
     border: var(--sui-stroke) solid var(--sui-dialog-border);
     border-radius: var(--sui-radius-dialog);
@@ -300,7 +303,14 @@ dialog, so they are never inert under it.
     max-block-size: calc(100dvh - 2 * var(--sui-space-4));
     max-inline-size: calc(100vw - 2 * var(--sui-space-4));
     overflow: hidden;
-    padding: 0;
+    padding: calc(var(--sui-local-modal-inset) / 2) 0;
+  }
+
+  .sui-modal-head,
+  .sui-modal-body,
+  .sui-modal-error-line,
+  .sui-modal-foot {
+    padding: calc(var(--sui-local-modal-inset) / 2) var(--sui-local-modal-inset);
   }
 
   /* Open without the entry animation, which would replay on every page load. */
@@ -346,11 +356,6 @@ dialog, so they are never inert under it.
     display: grid;
     flex: none;
     gap: var(--sui-row-copy-gap);
-    padding: var(--sui-space-6) var(--sui-space-6) var(--sui-space-3);
-  }
-
-  .alone {
-    padding-block-end: var(--sui-space-6);
   }
 
   .sui-modal-heading {
@@ -408,12 +413,46 @@ dialog, so they are never inert under it.
     grid-template-columns: minmax(0, 1fr);
     min-block-size: 0;
     overflow-y: auto;
-    padding: var(--sui-space-3) var(--sui-space-6) var(--sui-space-6);
   }
 
   /* The failure sits between the fields and the actions that will try again. */
   .sui-modal-error {
     flex: none;
+    position: relative;
+  }
+
+  /* A body taller than the box is cut where the error and the actions begin, and a line marks
+     the cut. A body that fits is never cut, so it draws no line, as Primer and Material do.
+     Where scroll timelines are missing, the line always shows. */
+  .sui-modal-body + .sui-modal-error::before {
+    border-block-start: var(--sui-stroke) solid var(--sui-border-divider);
+    content: '';
+    inset-block-start: 0;
+    inset-inline: 0;
+    position: absolute;
+  }
+
+  @supports (animation-timeline: scroll()) {
+    .sui-modal {
+      timeline-scope: --sui-modal-body;
+    }
+
+    .sui-modal-body {
+      scroll-timeline: --sui-modal-body block;
+    }
+
+    .sui-modal-body + .sui-modal-error::before {
+      animation: sui-modal-cut var(--sui-ease-linear) both;
+      animation-timeline: --sui-modal-body;
+      opacity: 0;
+    }
+  }
+
+  @keyframes sui-modal-cut {
+    from,
+    to {
+      opacity: 1;
+    }
   }
 
   .sui-modal-error-line {
@@ -424,7 +463,6 @@ dialog, so they are never inert under it.
       var(--sui-sans);
     gap: var(--sui-space-2);
     margin: 0;
-    padding: 0 var(--sui-space-6) var(--sui-space-4);
   }
 
   /* The symbol centres on the first line of the message, however many lines follow. */
@@ -445,16 +483,12 @@ dialog, so they are never inert under it.
 
   .sui-modal-foot {
     align-items: center;
-    background-color: var(--sui-dialog-bg);
-    border-block-start: var(--sui-stroke) solid var(--sui-border-divider);
     display: flex;
     flex: none;
     flex-wrap: wrap;
     gap: var(--sui-space-2);
     justify-content: flex-end;
     margin-block-start: auto;
-    /* One inset on every side, the dialog's own, so the actions stand square in the footer. */
-    padding: var(--sui-space-6);
   }
 
   @keyframes sui-modal-in {
@@ -485,6 +519,7 @@ dialog, so they are never inert under it.
 
   @media (max-width: 47.9375rem) {
     .sui-modal {
+      --sui-local-modal-inset: var(--sui-space-4);
       inline-size: 100%;
       max-block-size: calc(100dvh - 2 * var(--sui-space-2));
       max-inline-size: calc(100vw - 2 * var(--sui-space-2));
@@ -494,16 +529,6 @@ dialog, so they are never inert under it.
       inline-size: 100%;
       max-block-size: none;
       max-inline-size: none;
-    }
-
-    .sui-modal-head,
-    .sui-modal-body,
-    .sui-modal-error-line {
-      padding-inline: var(--sui-space-4);
-    }
-
-    .sui-modal-foot {
-      padding: var(--sui-space-4);
     }
   }
 

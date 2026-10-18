@@ -1560,9 +1560,74 @@ function tonedControls(root: Document): Finding[] {
 }
 
 /**
+ * A dialog's parts (L-58): the head, the body, the error and the actions stand one inset from
+ * every edge and from each other, measured to the ink. A body that scrolls is cut where the
+ * actions begin, and a docked inspector parks them at its foot, so neither gap is weighed.
+ */
+function dialogInsets(root: Document): Finding[] {
+  const found: Finding[] = [];
+  for (const dialog of audited(root, '.sui-modal')) {
+    const head = dialog.querySelector(':scope > .sui-modal-head');
+    const title = head?.querySelector('.sui-modal-title');
+    const buttons = [...dialog.querySelectorAll(':scope > .sui-modal-foot button')].filter(shown);
+    if (!head || !title || buttons.length === 0) continue;
+    // A box that scrolls as one, as on a short screen, has no bottom edge in view to weigh.
+    if (dialog.scrollHeight > dialog.clientHeight + 1) continue;
+    const inset = parseFloat(getComputedStyle(head).paddingInlineStart);
+    const look = getComputedStyle(dialog);
+    const box = dialog.getBoundingClientRect();
+    const rtl = look.direction === 'rtl';
+    const band = (parts: Element[]) => {
+      const boxes = parts.filter(shown).map((part) => part.getBoundingClientRect());
+      return boxes.length === 0
+        ? null
+        : {
+            top: Math.min(...boxes.map((b) => b.top)),
+            bottom: Math.max(...boxes.map((b) => b.bottom)),
+            end: rtl
+              ? Math.min(...boxes.map((b) => b.left))
+              : Math.max(...boxes.map((b) => b.right))
+          };
+    };
+    // Titles, descriptions and error words are trimmed to their ink; fields and buttons draw
+    // their frames, so a box is what a reader sees.
+    const body = dialog.querySelector(':scope > .sui-modal-body');
+    const inBody = body ? band([...body.children]) : null;
+    const bands = [
+      band([...head.querySelectorAll('.sui-modal-title, .sui-modal-description')]),
+      inBody,
+      band([...dialog.querySelectorAll(':scope > .sui-modal-error .sui-modal-error-text')]),
+      band(buttons)
+    ].filter((part) => part !== null);
+    const foot = bands[bands.length - 1];
+    const cut = body !== null && inBody !== null && body.scrollHeight > body.clientHeight + 1;
+    const docked = dialog.matches("[data-size='inspector']:not(.preview)");
+    // Each gap is weighed against the band under it, and the last against the bottom edge.
+    const gaps = [...bands, null].flatMap((under, at) => {
+      const over = bands[at - 1];
+      if ((cut && (under === inBody || over === inBody)) || (docked && under === foot)) return [];
+      if (!under) return [box.bottom - parseFloat(look.borderBottomWidth) - over.bottom];
+      if (!over) return [under.top - box.top - parseFloat(look.borderTopWidth)];
+      return [under.top - over.bottom];
+    });
+    const end = rtl
+      ? foot.end - box.left - parseFloat(look.borderLeftWidth)
+      : box.right - parseFloat(look.borderRightWidth) - foot.end;
+    if ([...gaps, end].some((gap) => Math.abs(gap - inset) > 0.5))
+      found.push(
+        finding(
+          'L-58',
+          dialog,
+          `its parts stand ${gaps.map(round).join(', ')}px apart from top to bottom and its actions ${round(end)}px from the end, not ${inset}px`
+        )
+      );
+  }
+  return found;
+}
+
+/**
  * A message's symbol (L-56): a 2rem tile holding an 18px glyph. Copy shorter than the tile
- * centres on it, and longer copy starts at its top; a toast's tile centres on its title's
- * first line instead.
+ * centres on it, and longer copy starts at its top.
  */
 function symbolTiles(root: Document): Finding[] {
   const found: Finding[] = [];
@@ -1574,20 +1639,15 @@ function symbolTiles(root: Document): Finding[] {
     const glyph = tile.querySelector('svg')?.getBoundingClientRect();
     if (glyph && Math.abs(glyph.width - 18) > 0.5)
       found.push(finding('L-56', tile, `the symbol draws at ${round(glyph.width)}px, not 18px`));
-    // A toast hangs its symbol, its title and its buttons on one first line.
-    if (tile.matches('.sui-toast-mark')) {
-      const first = tile.parentElement && firstLine(tile.parentElement, tile);
-      const off = first ? (box.top + box.bottom) / 2 - first.capMiddle : 0;
-      if (Math.abs(off) > 0.55)
-        found.push(finding('L-56', tile, `the tile sits ${round(off)}px off its title's cap`));
-      continue;
-    }
-    const copy = tile.nextElementSibling;
+    // A toast's copy shares a column with the action under it.
+    const beside = tile.nextElementSibling;
+    const copy = beside?.querySelector(':scope > .sui-toast-copy') ?? beside;
     const lines = copy
       ? [...copy.children].filter(shown).map((line) => line.getBoundingClientRect())
       : [];
-    if (lines.length === 0) continue;
     const top = Math.min(...lines.map((line) => line.top));
+    // Copy that a narrow message moves under its tile no longer stands beside it.
+    if (lines.length === 0 || top >= box.bottom) continue;
     const bottom = Math.max(...lines.map((line) => line.bottom));
     const off =
       bottom - top < box.height ? (top + bottom) / 2 - (box.top + box.bottom) / 2 : top - box.top;
@@ -2003,5 +2063,6 @@ register(
   pressSelection,
   titleProximity,
   disclosures,
-  loadMoreRows
+  loadMoreRows,
+  dialogInsets
 );

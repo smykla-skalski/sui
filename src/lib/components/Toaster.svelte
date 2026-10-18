@@ -194,9 +194,9 @@ A `danger` toast reports a failure and stays too.
 - Content: a title, one description that never repeats it, at most one action, and Dismiss; a failure carries its symbol; words wrap at 24rem.
 - States: entering (rises 8px and fades in), shown, held while hovered or focused, leaving (fades), `danger` with its symbol in a danger tile, and drawn in place with `preview`.
 - Keyboard: the hotkey (F8) moves focus to the newest toast, Tab moves through its action and Dismiss, and Escape returns focus to where it was.
-- Pointer and touch: the action and Dismiss are 34px targets, 44px on a phone or touch screen; the corner around the toasts lets presses through to the page.
+- Pointer and touch: the action is a 34px target and Dismiss a 28px one, both 44px on a phone or touch screen; the corner around the toasts lets presses through to the page.
 - Focus: closing a toast returns focus to where it was before it entered the stack, or to the next toast's Dismiss when that place is gone.
-- Responsive: the stack is at most the viewport's width less 32px and its height, and scrolls inside past that with the newest toast kept in view. On a phone it spans the screen. Dismiss keeps the inline-end corner; the action moves under the copy when the copy would get less than 8rem beside it, and the copy moves under a failure's symbol when it would get less than 8rem beside that.
+- Responsive: the stack is at most the viewport's width less 32px and its height, and scrolls inside past that with the newest toast kept in view. On a phone it spans the screen. Dismiss keeps the inline-end corner beside the title's first line, the action stands under the copy, and the copy moves under a failure's symbol when it would get less than 8rem beside it.
 - Accessibility: a failure is announced as an alert and anything else politely, each once, and the stack is a landmark a reader can jump to.
 - Localization: `dismissLabel`, `label` and `hotkey` carry the built-in words and key, the stack stands at the inline end, mirrored in a right-to-left page, and its padding is logical.
 - Performance: one stack per page and per open dialog; each toast holds one timer, and the motion is opacity and translate, a fade alone under reduced motion.
@@ -263,14 +263,14 @@ A `danger` toast reports a failure and stays too.
           {/if}
         </div>
       </div>
-      <!-- As tall as the action, so the first line stays even (L-101). -->
-      <IconButton
-        icon="close"
-        toolbar
-        label={words.dismiss}
-        data-dismiss
-        onclick={(event) => close(item, event, 'dismissed')}
-      />
+      <span class="sui-toast-dismiss"
+        ><IconButton
+          icon="close"
+          label={words.dismiss}
+          data-dismiss
+          onclick={(event) => close(item, event, 'dismissed')}
+        /></span
+      >
     </div>
   {/each}
 </div>
@@ -323,11 +323,10 @@ A `danger` toast reports a failure and stays too.
     display: block;
   }
 
-  /* Dismiss holds the inline-end corner and never wraps. What is beside it wraps instead, so
-     the copy keeps a readable width: first the action moves under the copy, starting at its
-     start edge (L-90), and then, on a very narrow toast, the copy moves under the symbol. The
-     symbol, the title's first line, the action and Dismiss hang on one first line as tall as
-     the buttons, so they centre on one another however far the copy runs (L-56). */
+  /* One inset all round, measured to the ink (L-33): the title's cap line and the symbol's
+     tile stand it below the top, the last baseline or the action's foot above the bottom, and
+     Dismiss's glyph from the inline end. Dismiss holds that corner and never wraps, so on a very
+     narrow toast the copy moves under the symbol instead. */
   .sui-toast {
     align-items: flex-start;
     background-color: var(--sui-popover-bg);
@@ -340,7 +339,6 @@ A `danger` toast reports a failure and stays too.
     gap: var(--sui-space-3);
     max-inline-size: 24rem;
     opacity: 1;
-    /* One inset all round, measured to the ink (L-33). */
     padding: var(--sui-space-3);
     pointer-events: auto;
     transition:
@@ -368,7 +366,6 @@ A `danger` toast reports a failure and stays too.
     flex: none;
     inline-size: var(--sui-symbol-tile);
     justify-content: center;
-    margin-block: calc((var(--sui-control-height-compact) - var(--sui-symbol-tile)) / 2);
   }
 
   .sui-toast-body {
@@ -379,20 +376,49 @@ A `danger` toast reports a failure and stays too.
     min-inline-size: 0;
   }
 
+  /* The action stands under the copy from its start edge, so it never sits beside Dismiss at
+     another height (L-90, L-101). */
   .sui-toast-main {
-    align-items: flex-start;
-    display: flex;
+    display: grid;
     flex: 1 1 8rem;
-    flex-wrap: wrap;
     gap: var(--sui-space-3);
+    justify-items: start;
     min-inline-size: 0;
   }
 
   .sui-toast-copy {
+    align-content: center;
     display: grid;
-    flex: 1 1 8rem;
     gap: var(--sui-row-copy-gap);
+    justify-self: stretch;
     min-inline-size: 0;
+  }
+
+  /* At least as tall as the tile beside it, so short copy centres on the tile and longer copy
+     starts at its top (L-56). */
+  .sui-toast-body:has(> .sui-toast-mark) .sui-toast-copy {
+    min-block-size: var(--sui-symbol-tile);
+  }
+
+  /* A zero-height seat on the middle of the title's first line, rounded down to the pixel, so
+     Dismiss centres beside that line (L-94) on whole pixels (L-95) without making the toast
+     taller. The seat takes the title's face, so `1cap` is the title's cap height. A quiet button
+     draws nothing around its glyph at rest, so its box reaches into the inset by its own room
+     and the glyph's bearing, and the glyph's ink keeps the inset (L-33), as a card's quiet head
+     control does. The close glyph's ink starts 5 of its 24 units in: 6 empty units less half
+     its 2-unit stroke. */
+  .sui-toast-dismiss {
+    align-items: center;
+    block-size: 0;
+    display: flex;
+    flex: none;
+    font: var(--sui-weight-semibold) var(--sui-font-size-meta) / var(--sui-leading-flat)
+      var(--sui-sans);
+    margin-block-start: round(down, calc(round(up, 1cap, 1px) / 2), 1px);
+    margin-inline-end: round(
+      calc((var(--sui-icon-sm) - var(--sui-tier-quiet)) / 2 - 5 / 24 * var(--sui-icon-sm)),
+      1px
+    );
   }
 
   /* On a phone the stack spans the screen and each toast takes its width. */
@@ -417,11 +443,8 @@ A `danger` toast reports a failure and stays too.
     text-box: trim-both cap alphabetic;
   }
 
-  /* The first line's cap centres on the even first line, so it snaps even too. */
   .sui-toast-title {
-    block-size: var(--sui-block-snap-even);
     font-weight: var(--sui-weight-semibold);
-    margin-block-start: calc((var(--sui-control-height-compact) - round(up, 1cap, 2px)) / 2);
   }
 
   .sui-toast-description {

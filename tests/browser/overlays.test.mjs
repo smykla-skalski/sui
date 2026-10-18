@@ -128,6 +128,38 @@ suite('overlays', together, () => {
   );
 
   test(
+    'L-58 a line parts a dialog body from its actions only while the body scrolls under them',
+    long,
+    async () => {
+      const page = await open();
+      try {
+        const opener = page.locator('#modal button', { hasText: 'Edit webhook' }).first();
+        await opener.scrollIntoViewIfNeeded();
+        await opener.click();
+        await page.waitForSelector('dialog[open] .sui-modal-body');
+        const cut = () => {
+          const after = document.querySelector('dialog[open] .sui-modal-body + .sui-modal-error');
+          const line = after && getComputedStyle(after, '::before');
+          return line ? Number(line.opacity) * parseFloat(line.borderTopWidth) : 0;
+        };
+        assert.equal(await page.evaluate(cut), 0, 'a body that fits draws a line over the actions');
+        // A form longer than the screen, so the body scrolls under the actions.
+        await page.evaluate(() => {
+          const rest = document.createElement('div');
+          rest.style.blockSize = '200vh';
+          document.querySelector('dialog[open] .sui-modal-body')?.append(rest);
+        });
+        // The scroll timeline takes the new length on the next frame.
+        await page
+          .waitForFunction(cut, undefined, { timeout: 5000 })
+          .catch(() => assert.fail('a body cut by the actions draws no line'));
+      } finally {
+        await page.close();
+      }
+    }
+  );
+
+  test(
     'K10 an open layer rides with its trigger as the page scrolls and scrolls inside itself',
     long,
     async () => {
