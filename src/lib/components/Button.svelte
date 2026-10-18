@@ -190,9 +190,12 @@ start.
   }
 
   /* A trailing chevron turns over while the layer it opens is open, so it points the way the
-     layer will go when pressed again. */
-  .sui-button-part:last-child:has(> :global(svg[data-icon='chevron-down'])) {
-    transition: rotate var(--sui-duration-open) var(--sui-ease-standard);
+     layer will go when pressed again. It turns in one step for a reader who asks for less
+     motion. */
+  @media (prefers-reduced-motion: no-preference) {
+    .sui-button-part:last-child:has(> :global(svg[data-icon='chevron-down'])) {
+      transition: rotate var(--sui-duration-open) var(--sui-ease-standard);
+    }
   }
 
   .sui-button[aria-expanded='true']
