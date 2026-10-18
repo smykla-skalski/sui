@@ -24,10 +24,10 @@
       (field: string, key: string) => `${field}${mark('space')}${key}`
     ),
     valueLabel = word('PairEntry.valueLabel', 'Value'),
-    arrowLabel = word('PairEntry.arrowLabel', 'to'),
     pairName = word(
       'PairEntry.pairName',
-      (key: string, value: string) => `${key}${mark('space')}${arrowLabel}${mark('space')}${value}`
+      (key: string, value: string) =>
+        `${key}${mark('colon')}${value}${mark('comma')}${keyLabel}${mark('colon')}${valueLabel}`
     ),
     validate,
     addLabel = word('PairEntry.addLabel', 'Add a pair'),
@@ -55,9 +55,10 @@
     editName?: (field: string, key: string) => string;
     /** Names the value, such as "Command": the editor's second field. */
     valueLabel?: string;
-    /** The word the arrow between a key and its value is read as. */
-    arrowLabel?: string;
-    /** A chip's accessible name from its key and its value, read in the order they are drawn. */
+    /**
+     * A chip's accessible name from its key and its value. It starts with the words the chip
+     * draws, in their order, so a voice command that says them reaches the chip (WCAG 2.5.3).
+     */
     pairName?: (key: string, value: string) => string;
     /** Says what is wrong with a key, or null when it is fine. `index` is the pair's place in `pairs`. */
     validate?: (key: string, index: number, pairs: readonly Pair[]) => string | null;
@@ -212,7 +213,7 @@ row gives them and fall under the copy on a narrow row.
 - Pointer and touch: each part is 28px, and 44px on a phone or a coarse pointer; the remove part sits outside the edit target.
 - Focus: the editor opens on the key field and returns focus to its chip on close; after a removal focus moves to the next chip, the one before, or Add.
 - Responsive: chips wrap one by one within the row's room, and the editor is at most 20rem wide and inside the viewport.
-- Accessibility: every chip is named by `pairName` in the order its words are drawn, with the arrow read as `arrowLabel`, such as "ship to deploy", so the name holds every drawn word; a problem and `reason` describe the chips; a removal is said through a polite status.
+- Accessibility: every chip is named by `pairName` from `keyLabel` and `valueLabel`, such as "ship: deploy, Alias: Command", which starts with the words the chip draws in their order; a problem and `reason` describe the chips; a removal is said through a polite status.
 - Localization: every word is a prop, the named ones functions of the key; the arrow between key and value turns with the reading direction.
 - Performance: every pair renders a chip, and one editor serves them all.
 - Analytics: `onadd`, `onedit` and `onremove` hear each accepted change.
@@ -247,7 +248,7 @@ row gives them and fall under the copy on a narrow row.
             {#if problems[index]}<span class="sui-pair-mark"><Icon name="alert" size="xs" /></span
               >{/if}
             <code class="sui-pair-key">{pair.key}</code>
-            <span class="sui-pair-arrow" role="img" aria-label={arrowLabel}>→</span>
+            <span class="sui-pair-arrow" aria-hidden="true">→</span>
             <code class="sui-pair-value">{labelOf(pair.value)}</code>
           </button>
           <span class="sui-pair-divider" aria-hidden="true"></span>

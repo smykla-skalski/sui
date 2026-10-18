@@ -115,8 +115,7 @@ suite('words', together, () => {
           'Link.externalLabel': 'OFFSITE',
           'RelativeTime.exactLabel': (/** @type {string} */ time) => `{EXACT ${time}}`,
           'PairEntry.keyLabel': 'NAME',
-          'PairEntry.valueLabel': 'TARGET',
-          'PairEntry.arrowLabel': 'NA'
+          'PairEntry.valueLabel': 'TARGET'
         });
         const host = document.createElement('div');
         host.id = 'words-host';
@@ -286,7 +285,7 @@ suite('words', together, () => {
         Link: { name: 'Docs⁠', description: 'OFFSITE' },
         Disclosure: { name: 'SkippedⓒThree archived', description: undefined },
         AdditionPicker: 'Auto mergeⓒOnce green',
-        PairEntry: 'aliasⓟNAⓟShip',
+        PairEntry: 'alias: ShipⓒNAME: TARGET',
         ActionMenu: 'TransferⓒOwners only',
         ListToolbar: 'AllⓒUpdatedⓒOpen',
         IdentityRow: 'Ada Lovelaceⓒ@ada'
