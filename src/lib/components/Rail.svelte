@@ -140,7 +140,7 @@ changes a tile's height. Under forced colors the plate is `Highlight` and its wo
   <span class="sui-rail-glyph">
     <Icon name={item.icon} size="md" />
     {#if item.badge}<span class="sui-rail-badge" aria-hidden="true"
-        ><span>{formatCount(item.badge)}</span></span
+        ><span data-count={formatCount(item.badge)}></span></span
       >{/if}
   </span>
   <span class="sui-rail-label">{item.short ?? item.label}</span>
@@ -304,10 +304,16 @@ changes a tile's height. Under forced colors the plate is `Highlight` and its wo
     position: absolute;
   }
 
+  /* The count is drawn, not written, so the tile's visible words stay its label, which leads
+     its name (WCAG 2.5.3); the name already says the count. */
   .sui-rail-badge > span {
     align-content: center;
     block-size: var(--sui-block-snap);
     text-box: trim-both cap alphabetic;
+  }
+
+  .sui-rail-badge > span::before {
+    content: attr(data-count);
   }
 
   /* In a shell with a bottom bar, on a phone, the tiles stand side by side and share the row. */
