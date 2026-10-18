@@ -1084,6 +1084,22 @@ function controls(root: Document): Finding[] {
   const found: Finding[] = [];
   const phone = matchMedia('(max-width: 47.9375rem)').matches;
   const hits: { target: Element; own: DOMRect; hit: DOMRect }[] = [];
+  // A target scrolled out of a box that clips it cannot be pressed there, so its own box and
+  // its hit area count only where its clipping ancestors show them.
+  const clipped = (element: Element, area: DOMRect) => {
+    let { left, top, right, bottom } = area;
+    for (let node = element.parentElement; node; node = node.parentElement) {
+      const look = getComputedStyle(node);
+      if (look.display === 'contents') continue;
+      if (look.overflowX === 'visible' && look.overflowY === 'visible') continue;
+      const edge = node.getBoundingClientRect();
+      if (look.overflowX !== 'visible')
+        [left, right] = [Math.max(left, edge.left), Math.min(right, edge.right)];
+      if (look.overflowY !== 'visible')
+        [top, bottom] = [Math.max(top, edge.top), Math.min(bottom, edge.bottom)];
+    }
+    return new DOMRect(left, top, Math.max(0, right - left), Math.max(0, bottom - top));
+  };
   for (const target of audited(root, INTERACTIVE)) {
     if (target.matches("input[type='checkbox'], input[type='radio']")) continue;
     if (getComputedStyle(target).opacity === '0') continue;
@@ -1106,22 +1122,25 @@ function controls(root: Document): Finding[] {
       );
     hits.push({
       target,
-      own: box,
-      hit: extensions.reduce((area, pseudo) => {
-        const left = box.left + parseFloat(pseudo.left);
-        const top = box.top + parseFloat(pseudo.top);
-        const right = left + parseFloat(pseudo.width);
-        const bottom = top + parseFloat(pseudo.height);
-        if (![left, top, right, bottom].every(Number.isFinite)) return area;
-        const x = Math.min(area.left, left);
-        const y = Math.min(area.top, top);
-        return new DOMRect(
-          x,
-          y,
-          Math.max(area.right, right) - x,
-          Math.max(area.bottom, bottom) - y
-        );
-      }, box)
+      own: clipped(hit, box),
+      hit: clipped(
+        hit,
+        extensions.reduce((area, pseudo) => {
+          const left = box.left + parseFloat(pseudo.left);
+          const top = box.top + parseFloat(pseudo.top);
+          const right = left + parseFloat(pseudo.width);
+          const bottom = top + parseFloat(pseudo.height);
+          if (![left, top, right, bottom].every(Number.isFinite)) return area;
+          const x = Math.min(area.left, left);
+          const y = Math.min(area.top, top);
+          return new DOMRect(
+            x,
+            y,
+            Math.max(area.right, right) - x,
+            Math.max(area.bottom, bottom) - y
+          );
+        }, box)
+      )
     });
     const floor = phone ? 44 : 24;
     if (!inline && (r.width < floor - 0.01 || r.height < floor - 0.01))
