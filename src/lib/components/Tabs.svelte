@@ -12,13 +12,16 @@
   import type { HTMLAttributes } from 'svelte/elements';
   import Count from '../internal/Count.svelte';
   import { formatCount } from '../internal/locale.js';
-  import { word } from '../words.js';
+  import { mark, word } from '../words.js';
 
   let {
     label,
     items,
     current,
-    countedName = word('Tabs.countedName', (label: string, count: string) => `${label} ${count}`),
+    countedName = word(
+      'Tabs.countedName',
+      (label: string, count: string) => `${label}${mark('space')}${count}`
+    ),
     onnavigate,
     class: className = '',
     ...rest

@@ -224,8 +224,8 @@ removed line has no single number to claim. Two empty sides say `emptyLabel`.
       {#if label !== undefined}<span class="sui-diff-block-name">{label}</span>{/if}
       {#if labels}
         <span class="sui-diff-block-sources">
-          <span><span class="del" aria-hidden="true">−</span> {labels.before}</span>
-          <span><span class="add" aria-hidden="true">+</span> {labels.after}</span>
+          <span><span class="del" aria-hidden="true">−</span>{joiner('space')}{labels.before}</span>
+          <span><span class="add" aria-hidden="true">+</span>{joiner('space')}{labels.after}</span>
         </span>
       {/if}
     </figcaption>

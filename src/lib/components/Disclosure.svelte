@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { mark, word } from '../words.js';
   import type { Snippet } from 'svelte';
   import type { HTMLDetailsAttributes } from 'svelte/elements';
   import Icon from '../icons/Icon.svelte';
@@ -6,6 +7,10 @@
   let {
     summary,
     hint,
+    summaryName = word(
+      'Disclosure.summaryName',
+      (summary: string, hint: string) => `${summary}${mark('comma')}${hint}`
+    ),
     inline = false,
     open = $bindable(false),
     class: className = '',
@@ -16,6 +21,8 @@
     summary: string;
     /** What is inside, said quietly before the chevron so a reader can decide without opening. */
     hint?: string;
+    /** The summary's accessible name from its words and the hint, in the language's order. */
+    summaryName?: (summary: string, hint: string) => string;
     /** Inline help inside a settings column: smaller, 34px, with an 8px bleed. */
     inline?: boolean;
     open?: boolean;
@@ -44,13 +51,16 @@ row for a settings column.
 - Focus: focus stays on the summary when it opens or closes.
 - Responsive: the summary words wrap and the row grows; the hint and chevron stay at the inline end.
 - Accessibility: the browser announces expanded and collapsed, the chevron is hidden, and the open state also shows in the chevron's turn.
-- Localization: every word is the caller's; the chevron mirrors and turns towards the content in a right-to-left page, and the bleed is logical.
+- Localization: every word is the caller's, and `summaryName` joins the summary and the hint; the chevron mirrors and turns towards the content in a right-to-left page, and the bleed is logical.
 - Performance: the content renders closed too, so keep it light; the chevron's turn and the press are the only motion, removed under reduced motion.
 - Analytics: `open` is bindable and the native `toggle` event reports each opening.
 - Failure: with an empty body it opens to nothing, so leave it out instead; long words in the summary wrap rather than clip.
 -->
 <details {...rest} bind:open class={['sui-disclosure', className, { inline }]}>
-  <summary class="sui-disclosure-summary">
+  <summary
+    class="sui-disclosure-summary"
+    aria-label={hint === undefined ? undefined : summaryName(summary, hint)}
+  >
     <span class="sui-disclosure-label">{summary}</span>
     {#if hint !== undefined}
       <span class="sui-disclosure-hint">{hint}</span>

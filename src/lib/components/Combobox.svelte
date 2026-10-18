@@ -154,7 +154,7 @@
       ([...(element?.labels ?? [])]
         .map((label) => label.textContent?.trim())
         .filter(Boolean)
-        .join(' ') ||
+        .join(mark('space')) ||
         undefined)
   );
 

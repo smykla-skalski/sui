@@ -2,7 +2,6 @@
   import { mark, word } from '../words.js';
   import type { Snippet } from 'svelte';
   import type { HTMLAttributes } from 'svelte/elements';
-  import VisuallyHidden from './VisuallyHidden.svelte';
 
   let {
     title,
@@ -12,6 +11,10 @@
     footer,
     unsaved = false,
     unsavedLabel = word('Card.unsavedLabel', 'Unsaved'),
+    titleName = word(
+      'Card.titleName',
+      (title: string, unsaved: string) => `${title}${mark('comma')}${unsaved}`
+    ),
     class: className = '',
     children,
     ...rest
@@ -29,6 +32,8 @@
     unsaved?: boolean;
     /** The word drawn after the title of an unsaved card, as `SettingRow` draws it. */
     unsavedLabel?: string;
+    /** An unsaved card's heading name from its title and `unsavedLabel`, in the language's order. */
+    titleName?: (title: string, unsaved: string) => string;
     /** Layout for the call site only, never the card's own paint. */
     class?: HTMLAttributes<HTMLDivElement>['class'];
     children?: Snippet;
@@ -63,7 +68,7 @@ on its title line.
 - Focus: nothing here moves focus.
 - Responsive: a container query on the card's own width steps the inset from 20px to 16px at 36rem, the head's actions stay on the title's first line, and the footer's actions pack to the end.
 - Accessibility: the unsaved state is a drawn word, never the keyline's colour alone, and the copy and the word hold 4.5:1.
-- Localization: `unsavedLabel` is a prop with an English default; the actions sit at the inline end, which mirrors in a right-to-left page.
+- Localization: `unsavedLabel` is a prop with an English default, and `titleName` joins it to the title; the actions sit at the inline end, which mirrors in a right-to-left page.
 - Performance: static layout with no script; each card is its own size container.
 - Analytics: none of its own, because it holds no control; its actions report their own outcomes.
 - Failure: a card with no title, body or footer draws an empty surface, and an unsaved card without a title has nowhere to put its word, so give it one.
@@ -74,9 +79,11 @@ on its title line.
     {#if title !== undefined || actions}
       <div class="sui-card-head">
         {#if title !== undefined}
-          <svelte:element this={`h${level}`} class="sui-card-title"
-            >{title}{#if unsaved}<span class="sui-card-unsaved"
-                ><VisuallyHidden>{mark('comma')}</VisuallyHidden>{unsavedLabel}</span
+          <svelte:element
+            this={`h${level}`}
+            class="sui-card-title"
+            aria-label={unsaved ? titleName(title, unsavedLabel) : undefined}
+            >{title}{#if unsaved}<span class="sui-card-unsaved">{unsavedLabel}</span
               >{/if}</svelte:element
           >
         {/if}

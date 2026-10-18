@@ -120,6 +120,7 @@ tooltip.
 <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
 <time
   bind:this={element}
+  aria-label={exactOnly ? undefined : `${resting}${exactLabel(whole)}`}
   {...rest}
   class={['sui-relative-time', className, { exact: exactOnly }]}
   tabindex={alone ? 0 : undefined}

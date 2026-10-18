@@ -1,9 +1,8 @@
 <script lang="ts">
-  import { mark, word } from '../words.js';
+  import { word } from '../words.js';
   import type { Snippet } from 'svelte';
   import Icon from '../icons/Icon.svelte';
   import type { HTMLAnchorAttributes } from 'svelte/elements';
-  import VisuallyHidden from './VisuallyHidden.svelte';
 
   let {
     href,
@@ -31,6 +30,7 @@
     children: Snippet;
   } & Omit<HTMLAnchorAttributes, 'href' | 'rel' | 'children'> = $props();
 
+  const uid = $props.id();
   const JOINER = '⁠';
   const leaves = $derived(external ?? /^https?:\/\//i.test(href));
   const relation = $derived(
@@ -52,24 +52,32 @@ the caller's choice. A link outside a sentence, such as a row of source links, t
 `standalone`, which grows its hit area to a target's size. A control that looks like a button
 is `Button` with `href`, and the way back from a page is `BackLink`.
 
-- Semantics: a native `<a href>` named by its words, with the external note read after them.
+- Semantics: a native `<a href>` named by its words, with the external note as its description.
 - Content: a few words that say where it goes, never "click here"; an external one adds a 10px arrow kept on the line of its last word.
 - States: rest (action ink at 600 with a full underline), hover (a 2px underline), focus (a 2px ring 2px off), pressed (a deeper ink) and visited, which looks like rest.
 - Keyboard: Tab reaches it and Enter follows it.
 - Pointer and touch: inside a sentence its target is the words' line, as WCAG 2.5.8 allows; `standalone` grows the hit area to 24px, and 44px on a phone or any touch screen.
 - Focus: following it moves focus as the browser's navigation does; nothing here moves it.
 - Responsive: it breaks with its sentence anywhere, and the arrow never falls onto a line of its own.
-- Accessibility: its words are the name, an external one says "(opens another site)", and its ink holds 4.5:1 on every ground.
+- Accessibility: its words are the name, an external one is described as "(opens another site)", and its ink holds 4.5:1 on every ground.
 - Localization: `externalLabel` is a prop with an English default, and the arrow mirrors in a right-to-left page.
 - Performance: one anchor, and only colour and the underline change.
 - Analytics: the anchor's own `onclick` reports a follow; it adds nothing of its own.
 - Failure: a missing `href` is a type error, and an address the product cannot reach is the caller's to mark `external`.
 -->
 
-<a {...rest} {href} rel={relation} class={['sui-link', className, { standalone }]}
+<!-- The note is a description, so no hidden box sits between the words and it in the name. -->
+<a
+  {...rest}
+  {href}
+  rel={relation}
+  aria-describedby={[rest['aria-describedby'], leaves && `${uid}-external`]
+    .filter(Boolean)
+    .join(' ') || undefined}
+  class={['sui-link', className, { standalone }]}
   >{@render children()}{#if leaves}{JOINER}<span class="sui-link-external"
-      ><Icon name="arrow-up-right" size="micro" strokeWidth={2} /><VisuallyHidden
-        >{mark('space')}{externalLabel}</VisuallyHidden
+      ><Icon name="arrow-up-right" size="micro" strokeWidth={2} /><span id="{uid}-external" hidden
+        >{externalLabel}</span
       ></span
     >{/if}</a
 >

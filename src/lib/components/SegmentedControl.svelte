@@ -338,7 +338,7 @@ from the checked option because CSS cannot size one box from a sibling.
           aria-hidden="true"
         ></span>
       {/if}
-      {#each options as option (option.value)}
+      {#each options as option, index (option.value)}
         <label
           class="sui-segmented-option"
           class:selected={shown === option.value}
@@ -349,6 +349,7 @@ from the checked option because CSS cannot size one box from a sibling.
             class="sui-segmented-input"
             {name}
             value={option.value}
+            aria-label={option.count === undefined ? undefined : choices[index].label}
             bind:group={value}
             disabled={option.disabled}
           />

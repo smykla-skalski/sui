@@ -68,8 +68,13 @@ outcome tones always come with their word, so color never carries the state alon
   {#if dot || live}
     <span class={['sui-pill-dot', { live }]} aria-hidden="true"></span>
   {/if}
-  <span class="sui-pill-label">{@render children()}</span>
-  {#if dot || live}<VisuallyHidden>{mark('comma')}{live ? liveLabel : dotLabel}</VisuallyHidden
+  <!-- The words and the mark's word are read as one run of text, because a hidden box beside
+       the label would add a space before the comma to every name the pill sits in. -->
+  <span class="sui-pill-label" aria-hidden={dot || live ? 'true' : undefined}
+    >{@render children()}</span
+  >
+  {#if dot || live}<VisuallyHidden
+      >{@render children()}{mark('comma')}{live ? liveLabel : dotLabel}</VisuallyHidden
     >{/if}
 </span>
 

@@ -87,6 +87,7 @@ Write "none" only when an item truly does not apply, and say why. Document each 
 ## Language and direction
 
 - Every word a component draws or announces is a prop whose English default reads through `word()`, such as `clearLabel = word('SearchField.clearLabel', 'Clear the search')`, so `setWords` replaces it app-wide and a prop on one instance still wins. A word that depends on a count is a function prop, `(count: number) => string`, so a language applies its own plural rules.
+- An accessible name joined from several words is built in script from function words and marks, such as `countedName(label, count)`, and given whole through `aria-label`, or the extra words go in a description. A browser adds a space on each side of a `VisuallyHidden` box or a flex item when it builds a name from content, so a mark beside one never joins words exactly.
 - Numbers, dates and times format with the page's language through `src/lib/internal/locale.ts`, never with the browser's default.
 - Layout uses logical properties (`inset-inline-start`, `margin-inline`, `padding-inline-end`), never `left`, `right` or a physical shorthand that differs per side. Movement along the reading direction flips under `:dir(rtl)`. Directional glyphs mirror in `Icon` on their own.
 - Code, diffs, numbers in a chart's plot and other content that reads left to right whatever the page set `dir="ltr"` on their own element.

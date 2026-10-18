@@ -19,13 +19,24 @@
     value = $bindable([]),
     options,
     keyLabel = word('PairEntry.keyLabel', 'Key'),
-    editName = word('PairEntry.editName', (field: string, key: string) => `${field} ${key}`),
+    editName = word(
+      'PairEntry.editName',
+      (field: string, key: string) => `${field}${mark('space')}${key}`
+    ),
     valueLabel = word('PairEntry.valueLabel', 'Value'),
+    pairName = word(
+      'PairEntry.pairName',
+      (key: string, value: string) =>
+        `${keyLabel}${mark('space')}${key}${mark('comma')}${valueLabel}${mark('space')}${value}`
+    ),
     validate,
     addLabel = word('PairEntry.addLabel', 'Add a pair'),
     doneLabel = word('PairEntry.doneLabel', 'Done'),
     removeLabel = word('PairEntry.removeLabel', 'Remove'),
-    removeName = word('PairEntry.removeName', (key: string) => `${removeLabel} ${key}`),
+    removeName = word(
+      'PairEntry.removeName',
+      (key: string) => `${removeLabel}${mark('space')}${key}`
+    ),
     removedLabel = word('PairEntry.removedLabel', (key: string) => `Removed ${key}`),
     reason,
     onadd,
@@ -44,6 +55,8 @@
     editName?: (field: string, key: string) => string;
     /** Names the value, such as "Command": the editor's second field. */
     valueLabel?: string;
+    /** A chip's accessible name from its key and its value, with `keyLabel` and `valueLabel`. */
+    pairName?: (key: string, value: string) => string;
     /** Says what is wrong with a key, or null when it is fine. `index` is the pair's place in `pairs`. */
     validate?: (key: string, index: number, pairs: readonly Pair[]) => string | null;
     /** The add button's words, specific to what the pairs are. */
@@ -197,7 +210,7 @@ row gives them and fall under the copy on a narrow row.
 - Pointer and touch: each part is 28px, and 44px on a phone or a coarse pointer; the remove part sits outside the edit target.
 - Focus: the editor opens on the key field and returns focus to its chip on close; after a removal focus moves to the next chip, the one before, or Add.
 - Responsive: chips wrap one by one within the row's room, and the editor is at most 20rem wide and inside the viewport.
-- Accessibility: every chip is named by `keyLabel` and `valueLabel`, such as "Alias ship, Command deploy"; a problem and `reason` describe the chips; a removal is said through a polite status.
+- Accessibility: every chip is named by `pairName` from `keyLabel` and `valueLabel`, such as "Alias ship, Command deploy"; a problem and `reason` describe the chips; a removal is said through a polite status.
 - Localization: every word is a prop, the named ones functions of the key; the arrow between key and value turns with the reading direction.
 - Performance: every pair renders a chip, and one editor serves them all.
 - Analytics: `onadd`, `onedit` and `onremove` hear each accepted change.
@@ -223,6 +236,7 @@ row gives them and fall under the copy on a narrow row.
             popovertarget={editorId}
             aria-haspopup="dialog"
             aria-expanded={open && editing === index}
+            aria-label={pairName(pair.key, labelOf(pair.value))}
             aria-describedby={described(index)}
             {disabled}
             onclick={(event) => seed(index, event)}
@@ -230,10 +244,8 @@ row gives them and fall under the copy on a narrow row.
           >
             {#if problems[index]}<span class="sui-pair-mark"><Icon name="alert" size="xs" /></span
               >{/if}
-            <VisuallyHidden>{keyLabel}</VisuallyHidden>
             <code class="sui-pair-key">{pair.key}</code>
             <span class="sui-pair-arrow" aria-hidden="true">→</span>
-            <VisuallyHidden>{mark('comma')}{valueLabel}</VisuallyHidden>
             <code class="sui-pair-value">{labelOf(pair.value)}</code>
           </button>
           <span class="sui-pair-divider" aria-hidden="true"></span>

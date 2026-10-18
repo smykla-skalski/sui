@@ -3,7 +3,7 @@
 </script>
 
 <script lang="ts">
-  import { word } from '../words.js';
+  import { mark, word } from '../words.js';
   import type { HTMLAttributes, HTMLInputAttributes } from 'svelte/elements';
   import Icon from '../icons/Icon.svelte';
   import JoinedField from '../internal/JoinedField.svelte';
@@ -27,7 +27,7 @@
     name,
     durationName = word(
       'DurationInput.durationName',
-      (amount: string, unit: string) => `${amount} ${unit}`
+      (amount: string, unit: string) => `${amount}${mark('space')}${unit}`
     ),
     unitLabel = word('DurationInput.unitLabel', (unit: DurationUnit, amount: number) =>
       amount === 1 ? unit.slice(0, -1) : unit
@@ -180,7 +180,7 @@
       ([...(amount?.labels ?? [])]
         .map((node) => node.textContent?.trim())
         .filter(Boolean)
-        .join(' ') ||
+        .join(mark('space')) ||
         rest['aria-label'] ||
         '')
   );

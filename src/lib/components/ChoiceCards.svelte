@@ -105,8 +105,8 @@ save keeps it.
   aria-required={required || undefined}
 >
   <legend class="sui-choice-cards-legend"
-    >{label}{#if required}{mark('space')}<span class="sui-choice-cards-required"
-        >{requiredLabel}</span
+    >{label}{#if required}<span class="sui-choice-cards-required"
+        >{mark('space')}{requiredLabel}</span
       >{/if}</legend
   >
   <div class={['sui-choice-cards-grid', { invalid: Boolean(error) }]}>

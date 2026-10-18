@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { word } from '../words.js';
+  import { mark, word } from '../words.js';
   import { tick, type Snippet } from 'svelte';
   import type { HTMLAttributes } from 'svelte/elements';
   import Icon from '../icons/Icon.svelte';
@@ -19,7 +19,7 @@
     overrideLabel = word('InheritControl.overrideLabel', 'Override'),
     overrideFor = word(
       'InheritControl.overrideFor',
-      (action: string, field: string) => `${action} ${field}`
+      (action: string, field: string) => `${action}${mark('space')}${field}`
     ),
     inheritLabel = word('InheritControl.inheritLabel', 'Use inherited value'),
     overrideName,

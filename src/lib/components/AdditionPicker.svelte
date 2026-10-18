@@ -8,7 +8,7 @@
 </script>
 
 <script lang="ts">
-  import { word } from '../words.js';
+  import { mark, word } from '../words.js';
   import { tick } from 'svelte';
   import type { HTMLButtonAttributes } from 'svelte/elements';
   import Icon from '../icons/Icon.svelte';
@@ -30,6 +30,10 @@
     error = null,
     onretry,
     retryLabel = word('AdditionPicker.retryLabel', 'Try again'),
+    optionName = word(
+      'AdditionPicker.optionName',
+      (label: string, description: string) => `${label}${mark('comma')}${description}`
+    ),
     disabled = false,
     class: className = '',
     ...rest
@@ -52,6 +56,8 @@
     /** Offers a retry beside `error`. */
     onretry?: () => void;
     retryLabel?: string;
+    /** A choice's accessible name from its label and its description, in the language's order. */
+    optionName?: (label: string, description: string) => string;
     disabled?: boolean;
     /** Layout for the call site only, never the trigger's own paint. */
     class?: HTMLButtonAttributes['class'];
@@ -215,6 +221,7 @@ new control after `onadd` is the caller's.
           role="menuitem"
           tabindex="-1"
           class="sui-addition-choice"
+          aria-label={choice.description ? optionName(choice.label, choice.description) : undefined}
           onclick={() => choose(choice.value)}
         >
           <span class="sui-addition-label">{choice.label}</span>

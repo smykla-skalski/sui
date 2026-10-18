@@ -56,7 +56,11 @@
     const source = copy;
     void title;
     const timer = setTimeout(
-      () => (said = source.textContent?.replace(/\s+/g, ' ').trim() ?? ''),
+      () =>
+        (said = [...source.children]
+          .map((part) => part.textContent?.replace(/\s+/g, ' ').trim())
+          .filter(Boolean)
+          .join(mark('space'))),
       SETTLE
     );
     return () => clearTimeout(timer);
@@ -96,7 +100,6 @@ and the unsaved ink, so no neutral block sits on a state (L-92).
 - Failure: with no title it reads its description alone, and with neither it draws only its frame, so always pass words.
 -->
 
-<!-- A no-break space, because Svelte trims a plain one at the end of the words. -->
 {#snippet named()}
   {#if prefix}<VisuallyHidden>{prefix}{mark('space')}</VisuallyHidden>{/if}
 {/snippet}

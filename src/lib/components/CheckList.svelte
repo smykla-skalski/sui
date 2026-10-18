@@ -95,7 +95,7 @@ focus while the group saves keeps it.
 
 <fieldset {...rest} class={['sui-check-list', className]} aria-describedby={describedby}>
   <legend class="sui-check-list-legend"
-    >{label}{#if required}{mark('space')}<span class="sui-check-list-required">{requiredLabel}</span
+    >{label}{#if required}<span class="sui-check-list-required">{mark('space')}{requiredLabel}</span
       >{/if}</legend
   >
   <div class="sui-check-list-items" class:stacked>

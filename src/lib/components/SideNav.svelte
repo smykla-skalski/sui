@@ -28,7 +28,6 @@
   import { followsInPlace, getShell } from '../internal/shell.svelte.js';
   import IconButton from './IconButton.svelte';
   import Tooltip from './Tooltip.svelte';
-  import VisuallyHidden from './VisuallyHidden.svelte';
 
   let {
     title,
@@ -44,6 +43,10 @@
     countLabel = word(
       'SideNav.countLabel',
       (count: number) => `${formatCount(count)} ${count === 1 ? 'item' : 'items'}`
+    ),
+    countedName = word(
+      'SideNav.countedName',
+      (label: string, count: string) => `${label}${mark('comma')}${count}`
     ),
     foot,
     onnavigate,
@@ -71,6 +74,8 @@
     expandLabel?: string;
     /** The words a row's count is read as, after its label. */
     countLabel?: (count: number) => string;
+    /** A counted row's accessible name from its label and `countLabel`, in the language's order. */
+    countedName?: (label: string, count: string) => string;
     /** Quiet content at the bottom, such as the account. */
     foot?: Snippet;
     /** Called when a row is followed, for a router that handles the click itself. */
@@ -168,7 +173,7 @@ following a row closes the drawer.
 - Pointer and touch: rows are 34px on a desktop pointer and 44px in the drawer and the strip; the close and fold controls are 34px and 44px there, and nothing needs a gesture.
 - Focus: folding keeps focus on the control; a fold control that leaves as the shell narrows hands focus to the current row, and a row followed in the drawer closes it with focus returned to the menu button.
 - Responsive: the row list scrolls inside the column, a long label wraps, the strip stacks each glyph over its short label, and the fold control shows only where the shell can fold.
-- Accessibility: a count is read with its words from `countLabel`, the plate's ink holds 4.5:1 and its ring 3:1, and a heading names each group for heading navigation.
+- Accessibility: a count is read with its words from `countLabel`, joined to the label by `countedName`, the plate's ink holds 4.5:1 and its ring 3:1, and a heading names each group for heading navigation.
 - Localization: `label`, `closeLabel`, `collapseLabel`, `expandLabel` and `countLabel` are props with English defaults; counts follow the page language, the plate is measured from the start edge and the fold glyphs mirror in a right-to-left page.
 - Performance: one resize observer measures the plate, which glides with a transform; it suits a sidebar of tens of rows, not thousands.
 - Analytics: `onnavigate(event, item)` reports every followed row; the shell's `oncollapsedchange` reports the fold.
@@ -212,6 +217,9 @@ following a row closes the drawer.
               <a
                 bind:this={rows[item.href]}
                 href={item.href}
+                aria-label={item.count === undefined
+                  ? undefined
+                  : countedName(item.label, countLabel(item.count))}
                 class="sui-side-nav-row"
                 aria-current={item.href === current ? 'page' : undefined}
                 onclick={(event) => follow(event, item)}
@@ -225,7 +233,6 @@ following a row closes the drawer.
                   <span class="sui-side-nav-count" aria-hidden="true"
                     ><Count value={formatCount(item.count)} /></span
                   >
-                  <VisuallyHidden>{mark('comma')}{countLabel(item.count)}</VisuallyHidden>
                 {/if}
               </a>
               {#if mode === 'collapsed' && tip}

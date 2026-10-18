@@ -140,7 +140,7 @@
     hexError = word('ColorPicker.hexError', 'Use a hex color such as #0e8a16'),
     triggerName = word(
       'ColorPicker.triggerName',
-      (field: string, hex: string) => `${field} ${hex}`
+      (field: string, hex: string) => `${field}${mark('space')}${hex}`
     ),
     onchange,
     element = $bindable(null),
@@ -214,7 +214,7 @@
     [...(element && 'labels' in element ? element.labels : [])]
       .map((node) => node.textContent?.trim())
       .filter(Boolean)
-      .join(' ') || rest['aria-label']
+      .join(mark('space')) || rest['aria-label']
   );
   const accessibleName = $derived(labelled ? triggerName(labelled, current) : undefined);
   const palette = $derived.by(() => {

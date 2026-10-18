@@ -455,6 +455,9 @@ test('K9 every built-in word reads through word(), so setWords can replace it', 
   for (const path of svelteFiles.filter((file) => file.startsWith('src/lib/'))) {
     const source = read(path);
     const props = /\n {2}let \{\n([\s\S]*?)\n {2}\}:/.exec(source)?.[1] ?? '';
+    // Two values side by side in a default are joined in its own language unless a mark joins them.
+    for (const [join] of props.matchAll(/\$\{\w+\} +\$\{\w+\}/g))
+      found.push(`${path}: ${join} joins values with a space`);
     for (const [, name, value] of props.matchAll(/^ {4}(\w+) = ([\s\S]+?)(?=,?\n {4}\S|,?$)/gm)) {
       if (value.startsWith('word(') || value.includes('word(')) continue;
       const literal = /^(['`])(.*)\1$/.exec(value.trim())?.[2];
@@ -497,7 +500,18 @@ test('K9 every built-in word reads through word(), so setWords can replace it', 
     for (const [, text] of markup.matchAll(/>([^<>]*\{[^<>]*)</g))
       if (!/^\s*\{[#/:@]/.test(text) && /[^\s]/.test(text.replace(/\{[^{}]*\}|&nbsp;/g, '')))
         found.push(`${path}: ${text.trim()}`);
+    // A name built from content gains a space on each side of a hidden box, so a box that opens
+    // with a mark never joins words exactly; the name is composed in script instead.
+    const raw = read(path).replace(
+      /<script[\s\S]*?<\/script>|<style[\s\S]*?<\/style>|<!--[\s\S]*?-->/g,
+      ''
+    );
+    for (const [join] of raw.matchAll(/<VisuallyHidden\b[^>]*>\s*\{\s*(?:mark|joiner)\([^)]*\)\}/g))
+      found.push(`${path}: ${join.replace(/\s+/g, ' ')}`);
   }
+  for (const path of [...svelteFiles, ...scriptFiles].filter((file) => file.startsWith('src/lib/')))
+    for (const [join] of read(path).matchAll(/textContent[^;]*?\.join\(\s*' '\s*\)/g))
+      found.push(`${path}: words joined with a space: ${join.replace(/\s+/g, ' ')}`);
   for (const path of scriptFiles.filter(
     (file) => file.startsWith('src/lib/') && !file.endsWith('words.ts')
   ))

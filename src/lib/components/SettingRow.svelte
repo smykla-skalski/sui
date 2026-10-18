@@ -4,7 +4,7 @@
     id: string;
     /** The name's id, for the `aria-labelledby` of a group of controls. */
     labelledby: string;
-    /** The why line's, reason's and problem's ids, for the control's `aria-describedby`. */
+    /** The unsaved word's, why line's, reason's and problem's ids, for the control's `aria-describedby`. */
     describedby: string | undefined;
     /** Pass to the control: it cannot run while the row is `disabled`. */
     disabled: boolean;
@@ -40,7 +40,10 @@
     reason,
     clearLabel,
     resetLabel = word('SettingRow.resetLabel', 'Reset'),
-    resetName = word('SettingRow.resetName', (reset: string, name: string) => `${reset} ${name}`),
+    resetName = word(
+      'SettingRow.resetName',
+      (reset: string, name: string) => `${reset}${mark('space')}${name}`
+    ),
     undoLabel = word('SettingRow.undoLabel', 'Undo'),
     undoName = word(
       'SettingRow.undoName',
@@ -105,7 +108,12 @@
     id: `${uid}-control`,
     labelledby: `${uid}-name`,
     describedby:
-      [why && `${uid}-why`, reason && `${uid}-reason`, error && `${uid}-problem`]
+      [
+        unsaved && `${uid}-unsaved`,
+        why && `${uid}-why`,
+        reason && `${uid}-reason`,
+        error && `${uid}-problem`
+      ]
         .filter(Boolean)
         .join(' ') || undefined,
     disabled,
@@ -171,7 +179,7 @@ between them (L-91).
 - Pointer and touch: the row is at least 44px tall; the reset and Undo are 34px buttons, 44px on a phone.
 - Focus: after a reset focus moves to the first control instead of falling to the page; after Undo it moves to the reset, or to the first control when the reset is gone.
 - Responsive: the controls drop under the copy when both sides cannot fit, and pack to the start under 25rem.
-- Accessibility: the name labels a single control or names a group; the why line, `reason` and `error` describe the controls; pending and refused changes are said through a polite status; the unsaved state is a word, not only a color.
+- Accessibility: the name labels a single control or names a group; the unsaved word, the why line, `reason` and `error` describe the controls; pending and refused changes are said through a polite status; the unsaved state is a word, not only a color.
 - Localization: `resetLabel`, `undoLabel`, `unsavedLabel`, `pendingLabel` and `clearLabel` are props with English defaults; the controls sit at the inline end and follow the reading direction.
 - Performance: one mutation observer per row watches which control carries the id; nothing animates.
 - Analytics: `onclear` hears each reset, and the function it returns hears each undo.
@@ -190,8 +198,8 @@ between them (L-91).
       id={ids.labelledby}
       for={named ? ids.id : undefined}
       class="sui-setting-name"
-      >{name}<span class="sui-setting-mark"
-        ><VisuallyHidden>{mark('comma')}</VisuallyHidden>{unsavedLabel}</span
+      >{name}<span id="{uid}-unsaved" class="sui-setting-mark" aria-hidden="true"
+        >{unsavedLabel}</span
       ></svelte:element
     >
     {#if why}<p id="{uid}-why" class="sui-setting-why">{why}</p>{/if}
