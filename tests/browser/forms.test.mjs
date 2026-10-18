@@ -337,6 +337,26 @@ suite('forms', together, () => {
     }
   );
 
+  // Chrome fires blur while it removes a focused control, inside the update that removes it.
+  test('removing a focused chip with its tip shown throws nothing', long, async () => {
+    const page = await open();
+    /** @type {string[]} */
+    const errors = [];
+    page.on('pageerror', (error) => errors.push(error.message));
+    try {
+      const remover = page.locator('#chip .sui-chip-remove:not([disabled])').first();
+      await remover.scrollIntoViewIfNeeded();
+      await remover.focus();
+      await page.keyboard.press('Enter');
+      await page.keyboard.press('Enter');
+      await page.waitForTimeout(200);
+      assert.deepEqual(errors, []);
+      assert.match(await focused(page), /sui-chip-remove/, 'focus left the chips');
+    } finally {
+      await page.close();
+    }
+  });
+
   test('a joined field rings the part that holds focus', long, async () => {
     const page = await open();
     try {

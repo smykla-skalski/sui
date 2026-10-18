@@ -122,10 +122,17 @@
     const onscroll = () => {
       if (!control.matches(':focus-visible')) close();
     };
+    // Chrome fires blur while it removes a focused control, inside the update that removes it,
+    // where state cannot change, so the tip closes once that update is done, unless focus came
+    // straight back.
+    const onblur = () =>
+      queueMicrotask(() => {
+        if (!control.matches(':focus')) close();
+      });
     target.addEventListener('pointerenter', onenter);
     target.addEventListener('pointerleave', leave);
     control.addEventListener('focus', onfocus);
-    control.addEventListener('blur', close);
+    control.addEventListener('blur', onblur);
     target.addEventListener('pointerdown', ondown);
     target.addEventListener('pointerup', onup);
     target.addEventListener('pointercancel', onup);
@@ -139,7 +146,7 @@
       target.removeEventListener('pointerenter', onenter);
       target.removeEventListener('pointerleave', leave);
       control.removeEventListener('focus', onfocus);
-      control.removeEventListener('blur', close);
+      control.removeEventListener('blur', onblur);
       target.removeEventListener('pointerdown', ondown);
       target.removeEventListener('pointerup', onup);
       target.removeEventListener('pointercancel', onup);
