@@ -2695,6 +2695,58 @@ function disclosedCards(root: Document): Finding[] {
   );
 }
 
+/**
+ * A timeline (L-113): the times, and the words after them, each start on one edge down the
+ * whole list, and an avatar, a pill or an action beside the words centres on the cap band of
+ * their first line.
+ */
+function timelines(root: Document): Finding[] {
+  const found: Finding[] = [];
+  for (const list of audited(root, '.sui-timeline')) {
+    for (const [part, name] of [
+      ['.sui-timeline-time', 'time'],
+      ['.sui-timeline-body', 'event'] // A stacked event lays its body out as contents, with no box.
+    ]) {
+      const boxes = [...list.querySelectorAll(`:scope > li > ${part}`)].filter(
+        (box) => box.getBoundingClientRect().width > 0
+      );
+      const starts = boxes.map((box) => {
+        const edges = box.getBoundingClientRect();
+        return getComputedStyle(box).direction === 'rtl' ? edges.right : edges.left;
+      });
+      const astray = starts.findIndex((start) => Math.abs(start - starts[0]) > 0.5);
+      if (astray > 0)
+        found.push(
+          finding(
+            'L-113',
+            boxes[astray],
+            `the ${name} starts ${round(Math.abs(starts[astray] - starts[0]))}px off the first one's edge`
+          )
+        );
+    }
+    for (const event of list.querySelectorAll(':scope > li')) {
+      const words = event.querySelector(':scope > .sui-timeline-body > .sui-timeline-words');
+      const first = words && firstLine(words);
+      if (!first) continue;
+      const marks = event.querySelectorAll(
+        ':scope > .sui-timeline-body > .sui-timeline-face > *, :scope > .sui-timeline-side > *'
+      );
+      for (const mark of marks) {
+        const box = mark.getBoundingClientRect();
+        // A mark dropped under the words, as on a narrow list, is not beside them.
+        if (box.height === 0 || first.line.bottom < box.top || first.line.top > box.bottom)
+          continue;
+        const off = (box.top + box.bottom) / 2 - first.capMiddle;
+        if (Math.abs(off) > 0.55)
+          found.push(
+            finding('L-113', mark, `it sits ${round(off)}px off the middle of the words' first cap`)
+          );
+      }
+    }
+  }
+  return found;
+}
+
 register(
   separators,
   palette,
@@ -2734,5 +2786,6 @@ register(
   earnedCards,
   framedSettings,
   disclosedCards,
-  rowGrounds
+  rowGrounds,
+  timelines
 );

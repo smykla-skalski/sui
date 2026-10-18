@@ -58,7 +58,9 @@
         'diff-block',
         'data-table',
         'fact-list',
-        'fact-line'
+        'fact-line',
+        'timeline',
+        'link-list'
       ]
     ],
     ['Marks', ['pill', 'chip', 'avatar', 'clipped-label', 'relative-time', 'day-heading', 'icons']],

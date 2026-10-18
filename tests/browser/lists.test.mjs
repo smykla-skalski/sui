@@ -681,9 +681,9 @@ suite('lists', together, () => {
       const problems = await page.evaluate(() => {
         const found = [];
         const frames = document.querySelectorAll(
-          'main .sui-skeleton-rows:not(.slow), main tbody:has(> tr.placeholder), main .sui-chart-wait'
+          'main .sui-skeleton-rows:not(.slow), main tbody:has(> tr.placeholder), main .sui-chart-wait, main .sui-timeline:has(> li.placeholder)'
         );
-        if (frames.length < 3) found.push(`only ${frames.length} placeholders were found`);
+        if (frames.length < 4) found.push(`only ${frames.length} placeholders were found`);
         for (const frame of frames) {
           const bars = frame.matches('.sui-chart-wait')
             ? [frame]
@@ -753,6 +753,75 @@ suite('lists', together, () => {
       await page.close();
     }
   });
+
+  test('L-64 a loading timeline holds the places its events will take', long, async () => {
+    const page = await open();
+    try {
+      const problems = await page.evaluate(() => {
+        const waiting = document.querySelector('#timeline .sui-timeline:has(> li.placeholder)');
+        const loaded = document.querySelector(
+          '#timeline .sui-timeline[aria-busy="true"]:not(:has(> li.placeholder))'
+        );
+        if (!waiting || !loaded) return ['the loading and refreshing timelines were not found'];
+        /** @param {Element} list */
+        const places = (list) => {
+          const top = list.getBoundingClientRect().top;
+          return [
+            `list ${list.getBoundingClientRect().height}`,
+            ...[
+              ...list.querySelectorAll(
+                ':scope > li > :is(.sui-timeline-time, .sui-timeline-body, .sui-timeline-words)'
+              )
+            ].map((part) => {
+              const box = part.getBoundingClientRect();
+              return `${part.className.split(' ')[0]} ${box.top - top} ${box.height}`;
+            })
+          ];
+        };
+        const want = places(loaded);
+        const got = places(waiting).map((place) =>
+          place.replace('sui-timeline-words', 'sui-timeline-body')
+        );
+        return got.join('\n') === want.join('\n')
+          ? []
+          : [`${got.join(', ')} for ${want.join(', ')}`];
+      });
+      assert.deepEqual(problems, []);
+    } finally {
+      await page.close();
+    }
+  });
+
+  test(
+    'L-113 a timeline grouped by day stays one list of its events, newest first',
+    long,
+    async () => {
+      const page = await open();
+      try {
+        const shape = await page.evaluate(() => {
+          const list = document.querySelector('#timeline .sui-timeline:has(h4)');
+          const events = [...(list?.children ?? [])];
+          return {
+            items: events.length,
+            headings: events.map((event) => event.querySelector('h4')?.textContent ?? ''),
+            times: events.map(
+              (event) =>
+                event.querySelector('.sui-timeline-time time')?.getAttribute('datetime') ?? ''
+            )
+          };
+        });
+        assert.equal(shape.items, 4, 'one list item per event, the day headings inside them');
+        assert.deepEqual(
+          shape.headings.map(Boolean),
+          [true, false, true, true],
+          'a heading opens each day'
+        );
+        assert.deepEqual(shape.times, shape.times.toSorted().reverse(), 'newest first');
+      } finally {
+        await page.close();
+      }
+    }
+  );
 
   test('P8 an entry that shows a problem follows its keystrokes', long, async () => {
     const page = await open();
