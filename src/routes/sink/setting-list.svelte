@@ -2,17 +2,17 @@
   export const section = {
     title: 'Setting list',
     order: 108,
-    lead: 'The settings of one card, each a row with its name, a why line and its controls. A short form stacks Fields instead.',
+    lead: 'The settings of one section, each a row with its name, a why line and its controls. A short form stacks Fields instead.',
     components: ['SettingList', 'SettingRow']
   };
 </script>
 
 <script lang="ts">
   import {
-    Card,
     Checkbox,
     DurationInput,
     PatternEntries,
+    Section,
     SegmentedControl,
     SettingList,
     SettingRow,
@@ -76,12 +76,12 @@
 </script>
 
 <Example
-  title="In a card"
+  title="In a section"
   note="A checkbox, a segmented control, a field, a duration, a list and a read-only fact, with the two changed rows 1px apart"
   layout="stack"
   ground="canvas"
 >
-  <Card title="Runtime" level={4}>
+  <Section title="Runtime" level={4}>
     <SettingList>
       <SettingRow
         name="Retry failed checks"
@@ -193,7 +193,7 @@
         {/snippet}
       </SettingRow>
     </SettingList>
-  </Card>
+  </Section>
 </Example>
 
 <Example
@@ -202,7 +202,7 @@
   layout="stack"
   ground="canvas"
 >
-  <Card title="Delivery" level={4}>
+  <Section title="Delivery" level={4}>
     <SettingList>
       <SettingRow
         name="Mirror to the backup region"
@@ -231,7 +231,7 @@
         {/snippet}
       </SettingRow>
     </SettingList>
-  </Card>
+  </Section>
 </Example>
 
 <Example
@@ -241,15 +241,15 @@
   ground="canvas"
 >
   <Specimen label="Loading" code="loading">
-    <Card title="Webhooks" level={4}><SettingList loading /></Card>
+    <Section title="Webhooks" level={4}><SettingList loading /></Section>
   </Specimen>
   <Specimen label="Failed" code="error onretry">
-    <Card title="Webhooks" level={4}>
+    <Section title="Webhooks" level={4}>
       <SettingList error="The server did not answer in time" onretry={() => {}} />
-    </Card>
+    </Section>
   </Specimen>
   <Specimen label="Nothing to set" code="empty">
-    <Card title="Webhooks" level={4}><SettingList empty /></Card>
+    <Section title="Webhooks" level={4}><SettingList empty /></Section>
   </Specimen>
 </Example>
 
@@ -260,7 +260,7 @@
   ground="canvas"
 >
   <div class="narrow">
-    <Card title="Runtime" level={4}>
+    <Section title="Runtime" level={4}>
       <SettingList>
         <SettingRow
           name="Retry failed checks"
@@ -302,7 +302,7 @@
           {/snippet}
         </SettingRow>
       </SettingList>
-    </Card>
+    </Section>
   </div>
 </Example>
 
@@ -313,7 +313,7 @@
   }
 
   /* The snap's spare pixel goes above the words, as it does above a row's name, so the words
-     end one inset above the card's foot when the fact closes it. */
+     end on the list's foot, where the section's rhythm measures from, when the fact closes it. */
   .fact {
     align-content: end;
     block-size: var(--sui-block-snap-even);

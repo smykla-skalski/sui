@@ -9,7 +9,7 @@
 
 <script lang="ts">
   import { tick } from 'svelte';
-  import { AdditionPicker, Card, Checkbox, SettingList, SettingRow } from '#lib';
+  import { AdditionPicker, Checkbox, Section, SettingList, SettingRow } from '#lib';
   import Example from '../kit/Example.svelte';
   import Specimen from '../kit/Specimen.svelte';
 
@@ -81,7 +81,7 @@
   layout="stack"
   ground="canvas"
 >
-  <Card title="Behaviour" level={4}>
+  <Section title="Behaviour" level={4}>
     <SettingList>
       {#each added as value (value)}
         <SettingRow
@@ -110,7 +110,7 @@
         {/snippet}
       </SettingRow>
     </SettingList>
-  </Card>
+  </Section>
 </Example>
 
 <style>

@@ -8,7 +8,7 @@
 </script>
 
 <script lang="ts">
-  import { Card, LoadMore, ObjectList, ObjectRow } from '#lib';
+  import { LoadMore, ObjectList, ObjectRow, Section } from '#lib';
   import Example from '../kit/Example.svelte';
   import Specimen from '../kit/Specimen.svelte';
 
@@ -50,7 +50,7 @@
 </script>
 
 {#snippet events(id: string, count: number, busy = false)}
-  <ObjectList {id} aria-label="Activity" aria-busy={busy || undefined}>
+  <ObjectList {id} aria-labelledby="{id}-title" aria-busy={busy || undefined}>
     {#each EVENTS.slice(0, count) as event, index (event)}
       <ObjectRow href="#load-more">
         {#snippet main()}
@@ -69,19 +69,19 @@
   ground="canvas"
 >
   <Specimen label="More to load" code="more shown total">
-    <Card>
+    <Section title="Activity" level={4} id="load-more-ready-title">
       {@render events('load-more-ready', 2)}
       <LoadMore list="load-more-ready" more shown={2} total={12} onmore={() => {}} />
-    </Card>
+    </Section>
   </Specimen>
   <Specimen label="Loading" code="loading">
-    <Card>
+    <Section title="Activity" level={4} id="load-more-loading-title">
       {@render events('load-more-loading', 2, true)}
       <LoadMore list="load-more-loading" more shown={2} total={12} loading onmore={() => {}} />
-    </Card>
+    </Section>
   </Specimen>
   <Specimen label="Failed" code="problem">
-    <Card>
+    <Section title="Activity" level={4} id="load-more-failed-title">
       {@render events('load-more-failed', 2)}
       <LoadMore
         list="load-more-failed"
@@ -91,13 +91,13 @@
         problem="The next page could not be loaded"
         onmore={() => {}}
       />
-    </Card>
+    </Section>
   </Specimen>
   <Specimen label="Whole" code={'more={false}'}>
-    <Card>
+    <Section title="Activity" level={4} id="load-more-whole-title">
       {@render events('load-more-whole', 2)}
       <LoadMore list="load-more-whole" more={false} shown={2} onmore={() => {}} />
-    </Card>
+    </Section>
   </Specimen>
 </Example>
 
@@ -108,10 +108,10 @@
   ground="canvas"
 >
   <Specimen label="Total unknown" code="more shown">
-    <Card>
+    <Section title="Activity" level={4} id="load-more-open-title">
       {@render events('load-more-open', 2)}
       <LoadMore list="load-more-open" more shown={2} onmore={() => {}} />
-    </Card>
+    </Section>
   </Specimen>
 </Example>
 
@@ -121,8 +121,12 @@
   layout="stack"
   ground="canvas"
 >
-  <Card title="Activity" level={4}>
-    <ObjectList id="load-more-activity" aria-label="Activity" aria-busy={loading}>
+  <Section title="Activity" level={4} id="load-more-activity-title">
+    <ObjectList
+      id="load-more-activity"
+      aria-labelledby="load-more-activity-title"
+      aria-busy={loading}
+    >
       {#each EVENTS.slice(0, shown) as event, index (event)}
         <ObjectRow href="#load-more">
           {#snippet main()}
@@ -141,7 +145,7 @@
       {problem}
       onmore={next}
     />
-  </Card>
+  </Section>
 </Example>
 
 <style>

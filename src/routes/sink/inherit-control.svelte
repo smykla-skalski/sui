@@ -9,9 +9,9 @@
 
 <script lang="ts">
   import {
-    Card,
     DurationInput,
     InheritControl,
+    Section,
     SegmentedControl,
     SettingList,
     SettingRow
@@ -119,7 +119,7 @@
   layout="stack"
   ground="canvas"
 >
-  <Card title="Runtime" level={4}>
+  <Section title="Runtime" level={4}>
     <SettingList>
       <SettingRow
         name="Session lifetime"
@@ -165,7 +165,7 @@
         {/snippet}
       </SettingRow>
     </SettingList>
-  </Card>
+  </Section>
 </Example>
 
 <Example

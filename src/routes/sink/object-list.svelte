@@ -10,14 +10,14 @@
 <script lang="ts">
   import {
     Button,
-    Card,
     FactLine,
     Icon,
     IdentityRow,
     ObjectList,
     ObjectRow,
     Pill,
-    RelativeTime
+    RelativeTime,
+    Section
   } from '#lib';
   import Example from '../kit/Example.svelte';
   import Specimen from '../kit/Specimen.svelte';
@@ -45,7 +45,7 @@
   ground="canvas"
 >
   <Specimen label="Linked" code="href">
-    <Card>
+    <Section title="Repositories" level={4}>
       <ObjectList>
         <ObjectRow href="#object-list">
           {#snippet main()}
@@ -57,10 +57,10 @@
           {/snippet}
         </ObjectRow>
       </ObjectList>
-    </Card>
+    </Section>
   </Specimen>
   <Specimen label="Still">
-    <Card>
+    <Section title="Exports" level={4}>
       <ObjectList>
         <ObjectRow>
           {#snippet main()}
@@ -69,7 +69,7 @@
           {/snippet}
         </ObjectRow>
       </ObjectList>
-    </Card>
+    </Section>
   </Specimen>
 </Example>
 
@@ -80,7 +80,7 @@
   ground="canvas"
 >
   <Specimen label="Status and action" code="side">
-    <Card>
+    <Section title="Repositories" level={4}>
       <ObjectList>
         <ObjectRow href="#object-list">
           {#snippet main()}
@@ -101,10 +101,10 @@
           {/snippet}
         </ObjectRow>
       </ObjectList>
-    </Card>
+    </Section>
   </Specimen>
   <Specimen label="Identity">
-    <Card>
+    <Section title="Members" level={4}>
       <ObjectList>
         <ObjectRow>
           {#snippet main()}
@@ -115,10 +115,10 @@
           {/snippet}
         </ObjectRow>
       </ObjectList>
-    </Card>
+    </Section>
   </Specimen>
   <Specimen label="Long text">
-    <Card>
+    <Section title="Repositories" level={4}>
       <ObjectList>
         <ObjectRow href="#object-list">
           {#snippet main()}
@@ -134,17 +134,17 @@
           {/snippet}
         </ObjectRow>
       </ObjectList>
-    </Card>
+    </Section>
   </Specimen>
 </Example>
 
 <Example
   title="In context"
-  note="Rows stand on hairlines inset by their padding, and the last row closes on the card's frame"
+  note="Rows stand on hairlines inset by their padding, and their words keep the section title's edge"
   layout="stack"
   ground="canvas"
 >
-  <Card title="Repositories" level={4}>
+  <Section title="Repositories" level={4}>
     <ObjectList>
       {#each repositories as repository (repository.name)}
         <ObjectRow href="#object-list">
@@ -159,7 +159,7 @@
         </ObjectRow>
       {/each}
     </ObjectList>
-  </Card>
+  </Section>
 </Example>
 
 <style>

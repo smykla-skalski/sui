@@ -8,7 +8,7 @@
 </script>
 
 <script lang="ts">
-  import { Button, Card, FactLine, ObjectList, ObjectRow, Skeleton } from '#lib';
+  import { Button, FactLine, ObjectList, ObjectRow, Section, Skeleton } from '#lib';
   import Example from '../kit/Example.svelte';
   import Specimen from '../kit/Specimen.svelte';
 
@@ -29,12 +29,12 @@
   ground="canvas"
 >
   <Specimen label="Two-line rows">
-    <Card>
+    <Section title="Repositories" level={4}>
       <Skeleton rows={2} patience={Infinity} label="Loading repositories…" />
-    </Card>
+    </Section>
   </Specimen>
   <Specimen label="Plain rows" code={'bars={false} rowHeight="2.75rem"'}>
-    <Card>
+    <Section title="Members" level={4}>
       <Skeleton
         rows={2}
         rowHeight="2.75rem"
@@ -42,7 +42,7 @@
         patience={Infinity}
         label="Loading members…"
       />
-    </Card>
+    </Section>
   </Specimen>
 </Example>
 
@@ -53,14 +53,14 @@
   ground="canvas"
 >
   <Specimen label="Two-line rows" code={'patience={0}'}>
-    <Card>
+    <Section title="Repositories" level={4}>
       <Skeleton rows={2} patience={0} label="Loading repositories…" />
-    </Card>
+    </Section>
   </Specimen>
   <Specimen label="Plain rows" code={'bars={false} rowHeight="2.75rem" patience={0}'}>
-    <Card>
+    <Section title="Members" level={4}>
       <Skeleton rows={2} rowHeight="2.75rem" bars={false} patience={0} label="Loading members…" />
-    </Card>
+    </Section>
   </Specimen>
 </Example>
 
@@ -74,7 +74,7 @@
     {loading ? 'Show the rows' : 'Load again'}
   </Button>
   <Specimen label={loading ? 'Loading' : 'Loaded'} code="loading">
-    <Card>
+    <Section title="Repositories" level={4}>
       <Skeleton {loading} rows={3} label="Loading repositories…">
         <ObjectList>
           {#each names as name (name)}
@@ -90,7 +90,7 @@
           {/each}
         </ObjectList>
       </Skeleton>
-    </Card>
+    </Section>
   </Specimen>
 </Example>
 
