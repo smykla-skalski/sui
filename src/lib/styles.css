@@ -490,6 +490,9 @@
   --sui-breakpoint-card: 36rem;
   --sui-breakpoint-row: 25rem;
   --sui-breakpoint-bar: 18rem;
+  /* Under this width a head stands its actions or state under its title: in rem it scales with
+     the text, so only text grown well past its size brings it on a phone (WCAG 1.4.10). */
+  --sui-breakpoint-head: 12rem;
   /* From this width up a detail layout stands its aside beside the main column. */
   --sui-breakpoint-detail: 56rem;
 

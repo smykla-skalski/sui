@@ -98,7 +98,7 @@ title, such as "Danger zone", and holds the acts that cannot be undone, each a `
 - Keyboard: without `href`, none of its own; with it, the card is one tab stop and Enter follows the link; then Tab reaches the controls inside in reading order.
 - Pointer and touch: with `href`, the whole card is the link's target; the controls inside keep their own targets and press feedback.
 - Focus: nothing here moves focus; a focused card link draws the 2px ring flush on the card's keyline, which takes the focus colour, as a bordered control does (L-41).
-- Responsive: a container query on the card's own width steps the inset from 20px to 16px at 36rem, the head's actions stay beside the copy at every width, centred on the title's cap band, while the copy wraps beside them, and the footer's actions stand beside the copy while they fit next to 11rem of it and wrap under it, from its start edge, otherwise.
+- Responsive: a container query on the card's own width steps the inset from 20px to 16px at 36rem, the head's actions stay beside the copy, centred on the title's cap band, while the copy wraps beside them, until the card is under 12rem wide, as with text at twice its size, where they stand under the copy, and the footer's actions stand beside the copy while they fit next to 11rem of it and wrap under it, from its start edge, otherwise.
 - Accessibility: the unsaved and danger states are said in words, never by the keyline's colour alone, and the copy, the word and the danger title hold 4.5:1; a card link is heard once, by its title, with the rest of the card outside its name.
 - Localization: `unsavedLabel` is a prop with an English default, and `titleName` joins it to the title; the actions sit at the inline end, which mirrors in a right-to-left page.
 - Performance: static layout with no script; each card is its own size container, and hover and press change only the veil, the inset shadow and a 1px sink.
@@ -358,6 +358,24 @@ title, such as "Danger zone", and holds the acts that cannot be undone, each a `
   .sui-card-head:has(> .sui-card-actions > :global(.sui-icon-button.toolbar):only-of-type)
     > .sui-card-actions {
     margin-inline-end: calc((round(up, 1cap, 2px) - var(--sui-control-height-compact)) / 2);
+  }
+
+  /* With too little room for both, as with text at twice its size, the actions stand under
+     the copy from its start edge, at their own height (--sui-breakpoint-head). */
+  @container (max-width: 12rem) {
+    .sui-card-head {
+      flex-wrap: wrap;
+      row-gap: var(--sui-row-copy-gap);
+    }
+
+    .sui-card-head > .sui-card-actions {
+      block-size: auto;
+      flex: 1 1 100%;
+      flex-wrap: wrap;
+      justify-content: flex-start;
+      margin-block-end: 0;
+      margin-inline-end: 0;
+    }
   }
 
   /* Its cap stands within half a pixel of its box's top, so the title keeps the inset to its

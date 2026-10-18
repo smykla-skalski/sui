@@ -45,7 +45,7 @@ first render, because a region that arrives with its words is often not read.
 - Keyboard: none of its own; Tab reaches the controls inside in reading order.
 - Pointer and touch: none of its own; the controls inside keep their own targets.
 - Focus: nothing here moves focus, and an announced change of state leaves focus where it is.
-- Responsive: the state stays on the title's first line at every width; the title wraps beside it first, down to its longest word, and only then do the state's words wrap under their first line.
+- Responsive: the state stays on the title's first line until the plate is under 12rem wide, as with text at twice its size, where it stands under the title; the title wraps beside it first, down to its longest word, and only then do the state's words wrap under their first line.
 - Accessibility: a change of `status` is announced politely, and the title and state hold 4.5:1.
 - Localization: it draws no words of its own; the state sits at the inline end, which mirrors in a right-to-left page.
 - Performance: static layout with no script.
@@ -77,6 +77,7 @@ first render, because a region that arrives with its words is often not read.
     box-shadow: var(--sui-shadow-plate);
     box-sizing: border-box;
     color: var(--sui-text-primary);
+    container-type: inline-size;
     margin: 0;
     min-inline-size: 0;
     padding: var(--sui-space-4);
@@ -147,6 +148,29 @@ first render, because a region that arrives with its words is often not read.
     gap: var(--sui-space-2);
     margin-block-start: calc(round(up, 1cap, 2px) / -2);
     min-inline-size: 0;
+  }
+
+  /* With too little room for both, as with text at twice its size, the state stands under the
+     title from its start edge, at its own height (--sui-breakpoint-head). */
+  @container (max-width: 12rem) {
+    .sui-plate-head {
+      flex-wrap: wrap;
+      row-gap: var(--sui-row-copy-gap);
+    }
+
+    .sui-plate-title {
+      flex-basis: 100%;
+      min-inline-size: 0;
+    }
+
+    .sui-plate-status {
+      flex: 1 1 100%;
+      padding-block-start: 0;
+    }
+
+    .sui-plate-said {
+      margin-block-start: 0;
+    }
   }
 
   .sui-plate-body {

@@ -415,6 +415,12 @@ only and a `LoadMore` after it lands on the first new one. Page it in the order 
       grid-column: 1 / -1;
     }
 
+    /* Over its words a time may break after its date, so larger text never pushes it past the
+       list. */
+    .sui-timeline-time {
+      white-space: normal;
+    }
+
     .sui-timeline-day {
       margin-block-end: var(--sui-space-1);
     }

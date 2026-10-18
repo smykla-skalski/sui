@@ -72,7 +72,7 @@ its words on the title's edge.
 - Keyboard: none of its own; Tab reaches the actions, then the content, in reading order.
 - Pointer and touch: none of its own; the actions keep their own targets, which grow on a phone without moving the head.
 - Focus: nothing here moves focus.
-- Responsive: the actions stay beside the copy at every width, centred on the title's cap band, and short of room the title and the description wrap in what is left, a segmented control turns into its select, and the other controls keep their width; the gaps between sections step down on a phone.
+- Responsive: the actions stay beside the copy, centred on the title's cap band, until the section is under 12rem wide, as with text at twice its size, where they stand under the copy; short of room the title and the description wrap in what is left, a segmented control turns into its select, and the other controls keep their width; the gaps between sections step down on a phone.
 - Accessibility: the heading keeps the page's outline; the count is part of the heading's name; the title and the description hold 4.5:1.
 - Localization: `countedName` joins the title and the count, which follows the page's number format; the actions sit at the inline end, which mirrors in a right-to-left page.
 - Performance: static layout with no script; each section is its own size container.
@@ -202,6 +202,26 @@ its words on the title's edge.
     font: var(--sui-weight-semibold)
       var(--sui-local-section-size, var(--sui-font-size-card-title)) / var(--sui-leading-flat)
       var(--sui-sans);
+  }
+
+  /* With too little room for both, as with text at twice its size, the actions stand under
+     the copy from its start edge, at their own height (--sui-breakpoint-head). */
+  @container (max-width: 12rem) {
+    .sui-section-head {
+      flex-wrap: wrap;
+      row-gap: var(--sui-row-copy-gap);
+    }
+
+    .sui-section-seat {
+      block-size: auto;
+      flex: 1 1 100%;
+      margin-block-start: 0;
+    }
+
+    .sui-section-actions {
+      flex-wrap: wrap;
+      justify-content: flex-start;
+    }
   }
 
   /* The seat's face only measures the cap; the actions take the control tier, so a link here

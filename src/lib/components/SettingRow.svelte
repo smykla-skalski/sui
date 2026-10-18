@@ -585,9 +585,13 @@ section's ground between them (L-91).
      purpose). A lone box with a reset beside it no longer has a small seat, so it takes that
      line too rather than squeezing its copy. */
   @container (max-width: 25rem) {
+    /* Where even the whole line cannot hold the reset beside its control, as with text at twice
+       its size, the reset goes above the control at the row's end (WCAG 1.4.10). */
     .sui-setting-value {
       flex-basis: 100%;
+      flex-wrap: wrap;
       max-inline-size: 100%;
+      min-inline-size: 0;
     }
 
     .sui-setting-row:has(.sui-setting-reset) > .sui-setting-say {
