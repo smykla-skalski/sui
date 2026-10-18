@@ -100,7 +100,12 @@ suite('accessibility', together, () => {
       await page.evaluate(() => {
         document.documentElement.dir = 'rtl';
       });
-      const trigger = page.locator('main > section [aria-haspopup="menu"]:not(:disabled)').nth(1);
+      // A menu aligned to its trigger's start, as an end-aligned one hangs from the other edge.
+      const trigger = page
+        .locator('#action-menu [aria-haspopup="menu"]:not(:disabled)', {
+          hasText: 'Release actions'
+        })
+        .first();
       await trigger.scrollIntoViewIfNeeded();
       await trigger.click();
       await page.waitForTimeout(300);
