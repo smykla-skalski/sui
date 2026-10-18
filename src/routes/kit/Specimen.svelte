@@ -12,13 +12,37 @@
     code?: string;
     children: Snippet;
   } = $props();
+
+  let body = $state<HTMLElement | null>(null);
+  /* How wide the shown component runs, so the rule under it spans the component and not a
+     stretched specimen. Layers and anything taken out of the flow do not count. */
+  let reach = $state<number | null>(null);
+
+  $effect(() => {
+    const box = body;
+    if (!box) return;
+    const measure = () => {
+      const edges = [...box.children]
+        .filter((child) => !/^(absolute|fixed)$/.test(getComputedStyle(child).position))
+        .map((child) => child.getBoundingClientRect())
+        .filter((rect) => rect.width > 0);
+      reach = edges.length
+        ? Math.max(...edges.map((rect) => rect.right)) - Math.min(...edges.map((rect) => rect.left))
+        : null;
+    };
+    const watch = new ResizeObserver(measure);
+    watch.observe(box);
+    for (const child of box.children) watch.observe(child);
+    measure();
+    return () => watch.disconnect();
+  });
 </script>
 
 <figure class="specimen">
-  <div class="body">{@render children()}</div>
+  <div bind:this={body} class="body">{@render children()}</div>
   {#if label || code}
     <!-- Both lines always take their room, so captions side by side start on one line. -->
-    <figcaption>
+    <figcaption style:--rule={reach === null ? undefined : `${Math.ceil(reach)}px`}>
       {#if label}<span class="label">{label}</span>{:else}<span class="label" aria-hidden="true"
           >&nbsp;</span
         >{/if}
@@ -47,8 +71,13 @@
     min-inline-size: 0;
   }
 
-  /* A dashed rule parts what is shown from what names it. */
+  /* A dashed rule parts what is shown from what names it, as wide as the component or the
+     caption's own words, whichever is wider. */
   figcaption {
+    inline-size: var(--rule, auto);
+    justify-self: start;
+    max-inline-size: 100%;
+    min-inline-size: fit-content;
     border-block-start: var(--sui-stroke) dashed var(--sui-border-control);
     display: grid;
     gap: var(--sui-row-copy-gap);

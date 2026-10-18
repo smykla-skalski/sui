@@ -60,9 +60,14 @@
   title="States"
   note="A menu whose acts are unavailable keeps its trigger in view, with the reason beside it"
 >
-  <Specimen label="Disabled" code="disabled">
+  <Specimen label="Disabled icon trigger" code="disabled">
     <div class="locked">
       <ActionMenu label="Repository actions" icon="more" items={repository} disabled />
+      <p class="reason">Read-only while the repository is archived</p>
+    </div>
+  </Specimen>
+  <Specimen label="Disabled button trigger" code="disabled">
+    <div class="locked">
       <ActionMenu items={release} disabled>Release actions</ActionMenu>
       <p class="reason">Read-only while the repository is archived</p>
     </div>

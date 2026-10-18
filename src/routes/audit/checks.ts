@@ -758,6 +758,46 @@ function controls(root: Document): Finding[] {
       );
   }
 
+  // Whatever a click presses or flips shows the pointer, so a reader knows before pressing,
+  // including the words that label a box or a switch; a disabled one falls back (L-40).
+  const pressable =
+    'button, [role="button"], a[href], summary, [role="menuitem"], [role="option"], [role="tab"]';
+  for (const target of audited(root, `${pressable}, label`)) {
+    if (target.matches('label')) {
+      const control = (target as HTMLLabelElement).control;
+      if (!(control instanceof HTMLInputElement) || !/^(checkbox|radio)$/.test(control.type))
+        continue;
+      // A chosen radio flips nothing, and a control that cannot run falls back (L-40).
+      if ((control.type === 'radio' && control.checked) || isDisabled(control)) continue;
+    } else if (isDisabled(target) || target.closest('[inert]')) continue;
+    if (getComputedStyle(target).cursor !== 'pointer')
+      found.push(finding('L-100', target, 'a click presses it, but it does not show the pointer'));
+  }
+
+  // Buttons side by side in one row share one height, so a hover never shows one taller
+  // than its neighbour; a text button beside an icon button takes the same tier.
+  const buttons = audited(root, 'button, [role="button"]').filter(
+    (button) => !button.closest('[role="menu"], [role="listbox"], [role="radiogroup"], nav')
+  );
+  const boxes = buttons.map((button) => button.getBoundingClientRect());
+  for (let one = 0; one < buttons.length; one++)
+    for (let two = one + 1; two < buttons.length; two++) {
+      const [a, b] = [boxes[one], boxes[two]];
+      const gap = Math.max(b.left - a.right, a.left - b.right);
+      const shared = Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top);
+      if (gap < 0 || gap > 24 || shared < Math.min(a.height, b.height) / 2) continue;
+      // Specimens side by side are separate rows, however close they stand.
+      if (buttons[one].closest('figure') !== buttons[two].closest('figure')) continue;
+      if (Math.abs(a.height - b.height) > 0.5)
+        found.push(
+          finding(
+            'L-101',
+            buttons[two],
+            `beside a ${round(a.height)}px button it is ${round(b.height)}px tall`
+          )
+        );
+    }
+
   // A field joined to a second part is one control: as tall as a plain field while its value
   // is one line, with the value on its centre line.
   const plain = audited(root, 'input.sui-text-input:not(.bare)')[0];

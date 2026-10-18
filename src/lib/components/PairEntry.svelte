@@ -335,7 +335,9 @@ row gives them and fall under the copy on a narrow row.
     min-inline-size: 0;
   }
 
+  /* Add stands in the row of chips, so it takes their height (L-101). */
   .sui-pair-chips {
+    --sui-local-control-height: var(--sui-pair-chip);
     align-items: center;
     display: flex;
     flex-wrap: wrap;

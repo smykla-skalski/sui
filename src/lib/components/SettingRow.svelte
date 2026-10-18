@@ -351,6 +351,14 @@ between them (L-91).
     text-box: trim-both cap alphabetic;
   }
 
+  /* A name that labels a box or a switch flips it on a click, so it shows the pointer (L-100). */
+  .sui-setting-row:has(
+      .sui-setting-control :global(:is(input[type='checkbox'], input[type='radio']):not(:disabled))
+    )
+    label.sui-setting-name {
+    cursor: pointer;
+  }
+
   .sui-setting-name {
     color: var(--sui-text-primary);
     font-weight: var(--sui-weight-semibold);

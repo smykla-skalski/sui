@@ -261,8 +261,10 @@ A `danger` toast reports a failure and stays too.
           ><Button onclick={(event) => run(item, event)}>{item.action.label}</Button></span
         >
       {/if}
+      <!-- As tall as the action beside it, so the row stays even (L-101). -->
       <IconButton
         icon="close"
+        toolbar
         label={words.dismiss}
         data-dismiss
         onclick={(event) => close(item, event, 'dismissed')}

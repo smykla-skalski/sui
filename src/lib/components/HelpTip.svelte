@@ -96,7 +96,7 @@ on the page instead.
     border: 0;
     border-radius: var(--sui-radius-pill);
     color: var(--sui-text-muted);
-    cursor: help;
+    cursor: pointer;
     display: inline-flex;
     flex: none;
     inline-size: var(--sui-control-height-chip);

@@ -160,6 +160,14 @@ polite status speaks it when it appears or changes.
     text-box: trim-both cap alphabetic;
   }
 
+  /* The label of a box or a switch flips it on a click, so it shows the pointer (L-100). */
+  .sui-field:has(
+      .sui-field-control :global(:is(input[type='checkbox'], input[type='radio']):not(:disabled))
+    )
+    .sui-field-label {
+    cursor: pointer;
+  }
+
   .sui-field-head {
     align-items: baseline;
     display: flex;
