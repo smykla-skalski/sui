@@ -8,6 +8,7 @@
   import type { Snippet } from 'svelte';
   import type { HTMLDialogAttributes } from 'svelte/elements';
   import Icon from '../icons/Icon.svelte';
+  import { themeAt } from '../internal/theme.svelte.js';
   import { hostToasts } from '../internal/toasts.svelte.js';
   import IconButton from './IconButton.svelte';
   import Toaster from './Toaster.svelte';
@@ -272,6 +273,7 @@ dialog, so they are never inert under it.
     bind:this={element}
     {...rest}
     class={['sui-modal', className]}
+    data-sui-theme={themeAt(element?.parentElement)}
     role={role === 'alertdialog' ? role : undefined}
     data-size={size}
     aria-labelledby={titleId}

@@ -236,6 +236,40 @@ suite('overlays', together, () => {
   );
 
   test(
+    "L-72 a layer opened from a changed row wears the page's palette, not the row's",
+    long,
+    async () => {
+      const page = await open();
+      try {
+        const look = async (/** @type {import('playwright-core').Locator} */ entry) => {
+          const add = entry.getByRole('button', { name: 'Add an alias' });
+          await add.scrollIntoViewIfNeeded();
+          await add.click();
+          const editor = page.locator(':popover-open:has(> .sui-pair-editor)');
+          const seen = await editor.evaluate((layer) => {
+            const field = layer.querySelector('input');
+            const label = layer.querySelector('label');
+            return field && label
+              ? [getComputedStyle(field).backgroundColor, getComputedStyle(label).color]
+              : [];
+          });
+          await page.keyboard.press('Escape');
+          await page.waitForFunction(() => !document.querySelector(':popover-open'));
+          return seen;
+        };
+        const plain = await look(page.locator('#pair-entry .sui-pair-entry').first());
+        const changed = await look(
+          page.locator('#pair-entry .sui-setting-row[data-unsaved] .sui-pair-entry').first()
+        );
+        assert.equal(plain.length, 2);
+        assert.deepEqual(changed, plain, "the editor took the changed row's ground or ink");
+      } finally {
+        await page.close();
+      }
+    }
+  );
+
+  test(
     'L-52 a list open in a layer closes alone on a press inside the layer, Escape and Tab',
     long,
     async () => {

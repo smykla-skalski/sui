@@ -11,6 +11,7 @@
     type ToastEnd,
     type ToastOptions
   } from '../internal/toasts.svelte.js';
+  import { themeAt } from '../internal/theme.svelte.js';
   import Button from './Button.svelte';
   import IconButton from './IconButton.svelte';
   import VisuallyHidden from './VisuallyHidden.svelte';
@@ -229,6 +230,7 @@ A `danger` toast reports a failure and stays too.
   bind:this={stack}
   class={['sui-toaster', { preview }]}
   popover={preview ? undefined : 'manual'}
+  data-sui-theme={themeAt(stack?.parentElement)}
   role={preview ? undefined : 'region'}
   aria-label={preview ? undefined : words.region}
   aria-keyshortcuts={preview ? undefined : words.hotkey}

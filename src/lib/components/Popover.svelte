@@ -2,6 +2,7 @@
   import type { Snippet } from 'svelte';
   import type { HTMLAttributes } from 'svelte/elements';
   import { follow, place, placedAt, type Placement } from '../internal/anchor.js';
+  import { themeAt } from '../internal/theme.svelte.js';
 
   const fallbackId = $props.id();
 
@@ -229,7 +230,9 @@
 The one floating layer. It lives in the browser's top layer through the Popover API, so it
 is never clipped by a scrolling card and never fights a z-index. A trigger whose
 `popovertarget` names this `id` toggles it natively; the browser then keeps that trigger out
-of light dismiss and returns focus to it on close. `open` can also be driven directly.
+of light dismiss and returns focus to it on close. `open` can also be driven directly. It is a
+surface of its own, so it wears the theme of the page or of a subtree themed on purpose, never
+a tone the place it opens from restates, such as a changed setting row's gold.
 
 The box is placed beside `anchor`, flips to the other side when that one has more room, and
 stays inside the viewport. It is as tall as the room it has and scrolls inside itself.
@@ -264,6 +267,7 @@ close control, because only Escape and that control end it.
   {id}
   popover={inline ? undefined : dismiss}
   tabindex={closeOnLeave ? -1 : undefined}
+  data-sui-theme={themeAt(element?.parentElement)}
   class={['sui-popover', { inline }, className]}
   data-width={width}
   {onbeforetoggle}

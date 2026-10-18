@@ -1,5 +1,6 @@
 <script lang="ts">
   import { follow, place, type Placement } from '../internal/anchor.js';
+  import { themeAt } from '../internal/theme.svelte.js';
 
   let {
     anchor,
@@ -211,6 +212,7 @@ does, stays out of the accessibility tree. Any other tip describes the control t
   bind:this={element}
   {id}
   popover={preview ? undefined : 'manual'}
+  data-sui-theme={themeAt(element?.parentElement)}
   role="tooltip"
   class="sui-tooltip"
   class:mono

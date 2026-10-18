@@ -21,6 +21,7 @@
   import type { HTMLSelectAttributes } from 'svelte/elements';
   import Icon from '../icons/Icon.svelte';
   import { getRefusals } from '../internal/refusals.svelte.js';
+  import { themeAt } from '../internal/theme.svelte.js';
 
   let {
     value = $bindable(null),
@@ -68,6 +69,8 @@
     'options' in item;
 
   const prompt = $derived(placeholder ?? (value === null ? promptLabel : undefined));
+  // The picker is a layer of its own that no attribute reaches, so its rows name the theme.
+  const pickerTheme = $derived(themeAt(element));
   const refusals = getRefusals();
   const wrong = $derived(
     invalid ||
@@ -126,6 +129,7 @@ assistive technology, because a native picker cannot be held open.
 {#snippet choice(option: SelectOption<SelectValue>)}
   <option
     class="sui-select-option"
+    data-sui-theme={pickerTheme}
     value={option.value}
     disabled={option.disabled}
     aria-label={option.description ? optionName(option.label, option.description) : undefined}
@@ -156,12 +160,13 @@ assistive technology, because a native picker cannot be held open.
       <button><selectedcontent class="sui-select-value"></selectedcontent></button>
       {#if prompt !== undefined}
         <option class="sui-select-option sui-select-placeholder" value="" disabled>
+          data-sui-theme={pickerTheme}
           {@render face(prompt)}
         </option>
       {/if}
       {#each options as item (item)}
         {#if isGroup(item)}
-          <optgroup label={item.label}>
+          <optgroup label={item.label} data-sui-theme={pickerTheme}>
             <legend class="sui-select-heading">{item.label}</legend>
             {#each item.options as option (option.value)}{@render choice(option)}{/each}
           </optgroup>
