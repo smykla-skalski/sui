@@ -32,9 +32,10 @@ which take a `Skeleton`, an `EmptyState` or an `ErrorState` in the place of what
 and it never sits inside a detail pane, whose parts are `Section`s. It holds no other framed
 surface (L-55). Something the reader must act on now is a `Callout` inside it. It carries the one-pixel plate lift, which a `Card` does not, and like a card it
 takes its outer spacing from its container. Its content stands one 16px inset from all four
-edges, to the ink. The state centres on the title's first line without raising the head, and
-one that does not fit beside a long title moves under it, as far below as the title's lines
-stand apart plus the 8px copy gap, so the title reads as one block. The state sits in a polite
+edges, to the ink. The state centres on the title's first line at every width and lends the
+head no height, so the title and the body stand where they stand with no state: short of
+room the title wraps first, down to its longest word, and only then do the state's words wrap
+under their own first line. The state sits in a polite
 status region, so a change of state is announced without moving focus; pass `status` from the
 first render, because a region that arrives with its words is often not read.
 
@@ -44,7 +45,7 @@ first render, because a region that arrives with its words is often not read.
 - Keyboard: none of its own; Tab reaches the controls inside in reading order.
 - Pointer and touch: none of its own; the controls inside keep their own targets.
 - Focus: nothing here moves focus, and an announced change of state leaves focus where it is.
-- Responsive: the state follows the title on its line, and moves under a title that leaves it no room.
+- Responsive: the state stays on the title's first line at every width; the title wraps beside it first, down to its longest word, and only then do the state's words wrap under their first line.
 - Accessibility: a change of `status` is announced politely, and the title and state hold 4.5:1.
 - Localization: it draws no words of its own; the state sits at the inline end, which mirrors in a right-to-left page.
 - Performance: static layout with no script.
@@ -56,7 +57,9 @@ first render, because a region that arrives with its words is often not read.
   <header class="sui-plate-head">
     <svelte:element this={`h${level}`} class="sui-plate-title">{title}</svelte:element>
     {#if status}
-      <div class="sui-plate-status" role="status">{@render status()}</div>
+      <div class="sui-plate-status" role="status">
+        <div class="sui-plate-said">{@render status()}</div>
+      </div>
     {/if}
   </header>
   {#if children}
@@ -79,18 +82,18 @@ first render, because a region that arrives with its words is often not read.
     padding: var(--sui-space-4);
   }
 
-  /* The state follows the title on its line, or moves under it, as far below a wrapped title
-     as the title's lines stand apart plus the copy gap, so the title reads as one block. The
-     rule under the head runs the plate's full width. */
+  /* The state follows the title on its first line at every width: short of room, the title
+     gives up width first and wraps, down to its longest word, and only then do the state's
+     words wrap under their own first line, so a state rarely stands taller than the title
+     beside it. The rule under the head runs the plate's full width. */
   .sui-plate-head {
-    align-items: center;
+    align-items: start;
     border-block-end: var(--sui-stroke) solid var(--sui-border-divider);
     box-sizing: border-box;
+    column-gap: var(--sui-space-3);
     display: flex;
-    flex-wrap: wrap;
     font: var(--sui-weight-semibold) var(--sui-font-size-card-title) / var(--sui-leading-card-title)
       var(--sui-sans);
-    gap: calc(round(calc(1lh - 1cap), 1px) + var(--sui-row-copy-gap)) var(--sui-space-3);
     justify-content: space-between;
     margin-inline: calc(-1 * var(--sui-space-4));
     padding: 0 var(--sui-space-4) var(--sui-space-4);
@@ -110,24 +113,40 @@ first render, because a region that arrives with its words is often not read.
     align-content: center;
     block-size: var(--sui-block-snap);
     color: var(--sui-text-primary);
+    flex: 1 1000 auto;
     font: inherit;
     margin: 0;
-    min-inline-size: 0;
+    min-inline-size: auto;
     overflow-wrap: break-word;
     text-box: trim-both cap alphabetic;
     text-wrap: balance;
   }
 
-  /* As tall as its words, so on the title's line it centres on the title without raising the
-     head, and under a long title its last baseline keeps the inset. A glyph beside the words
-     centres on their first line (L-94), so its box overflows that line evenly while its drawn
-     ink stays inside. */
+  /* The state's box starts on the middle of the title's first cap band, in the title's face so
+     `1cap` is its cap height, and its words reach back up by half their own first line: one
+     line of state stands inside the title's line and lends the head no height, so the title
+     and the body stand where they stand with no state, and only words that wrap past the
+     title's own lines take room below them, inside the plate. */
   .sui-plate-status {
-    align-items: center;
-    block-size: var(--sui-block-snap);
+    align-items: start;
+    display: flex;
+    flex: 0 1 auto;
+    min-inline-size: 0;
+    padding-block-start: calc(round(up, 1cap, 2px) / 2);
+  }
+
+  /* In the state's own face, so `1cap` is its words' cap: the first line of its words centres
+     on the seat, and words that wrap hang under it (L-94). A glyph beside them centres on
+     their first line, so its box overflows that line evenly while its drawn ink stays inside. */
+  .sui-plate-said {
+    align-items: start;
     display: flex;
     flex-wrap: wrap;
+    font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-row-copy-leading)
+      var(--sui-sans);
     gap: var(--sui-space-2);
+    margin-block-start: calc(round(up, 1cap, 2px) / -2);
+    min-inline-size: 0;
   }
 
   .sui-plate-body {

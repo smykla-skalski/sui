@@ -76,8 +76,9 @@ where they stand in the same card with no action; a control taller than the titl
 reaches above and below it into the inset. A framed control ends on the inset, and a ghost
 button or a quiet icon button keeps its words or glyph there instead, with its box as far past
 the end as above the band. A button there stays drawn at 34px on a phone with a 44px hit area.
-Under a title that wraps the actions stay on its first line, and only a card under 18rem puts
-them on a line of their own under the copy. A `footer`'s actions stand beside the copy at its
+The actions never take a line of their own: at every width they stay on the title's first
+line, and short of room the title and its note wrap in what is left beside them, a segmented
+control turns into its select, and the other controls keep their width. A `footer`'s actions stand beside the copy at its
 foot while the card holds both next to an 11rem measure of copy, as a callout's do, and on a
 line of their own under it otherwise, so they keep the inset from the bottom and the end in
 either place. A row list or a `Skeleton` that opens the card hands back what stands above its
@@ -97,7 +98,7 @@ title, such as "Danger zone", and holds the acts that cannot be undone, each a `
 - Keyboard: without `href`, none of its own; with it, the card is one tab stop and Enter follows the link; then Tab reaches the controls inside in reading order.
 - Pointer and touch: with `href`, the whole card is the link's target; the controls inside keep their own targets and press feedback.
 - Focus: nothing here moves focus; a focused card link draws the 2px ring flush on the card's keyline, which takes the focus colour, as a bordered control does (L-41).
-- Responsive: a container query on the card's own width steps the inset from 20px to 16px at 36rem, the head's actions centre on the title's cap band beside the copy and move under it below 18rem, and the footer's actions stand beside the copy while they fit next to 11rem of it and wrap under it, from its start edge, otherwise.
+- Responsive: a container query on the card's own width steps the inset from 20px to 16px at 36rem, the head's actions stay beside the copy at every width, centred on the title's cap band, while the copy wraps beside them, and the footer's actions stand beside the copy while they fit next to 11rem of it and wrap under it, from its start edge, otherwise.
 - Accessibility: the unsaved and danger states are said in words, never by the keyline's colour alone, and the copy, the word and the danger title hold 4.5:1; a card link is heard once, by its title, with the rest of the card outside its name.
 - Localization: `unsavedLabel` is a prop with an English default, and `titleName` joins it to the title; the actions sit at the inline end, which mirrors in a right-to-left page.
 - Performance: static layout with no script; each card is its own size container, and hover and press change only the veil, the inset shadow and a 1px sink.
@@ -287,71 +288,76 @@ title, such as "Danger zone", and holds the acts that cannot be undone, each a `
     font-weight: var(--sui-weight-regular);
   }
 
-  /* The copy, the title and the note under it, keeps one column and the actions another, so
-     the note never runs under an action. The copy keeps 10rem beside the actions, so keep them
-     to a short control or two. Only a card too narrow for both puts them on a line of their
-     own under the copy, from its start edge (L-90). */
+  /* The copy and the actions share the head's one line at every width: short of room, each
+     gives up width in proportion to its own, so a long title wraps while the controls keep
+     theirs and a segmented control turns into its select, and the title and its note wrap in
+     what is left. */
   .sui-card-head {
     align-items: start;
     column-gap: var(--sui-space-6);
-    display: grid;
-    grid-template-columns: minmax(min(10rem, 100%), 1fr) auto;
+    display: flex;
+    justify-content: flex-end;
   }
 
   .sui-card-copy {
     display: grid;
+    flex: 1 1 auto;
     gap: var(--sui-row-copy-gap);
     min-inline-size: 0;
   }
 
-  /* A button in the head keeps its pointer tier drawn on a phone and grows only its hit area,
-     so it never reaches past the card's keyline from the title's line. */
+  /* Whatever the actions hold, a button, a switch, a segmented control, a pill or a menu,
+     centres on the title's cap band and lends the head no height: the seat is that band, in
+     the title's face so `1cap` is the title's, and it gives back all of its height, so the
+     copy alone sets the head's and the title, its note and the content stand where they stand
+     in a card with no action (L-34). A control taller than the band reaches above and below
+     the title's line into the card's inset; a button there stays drawn at its pointer tier on
+     a phone and grows only its hit area, so it never reaches the keyline. A framed control
+     ends on the inset. A ghost button or a quiet icon button draws nothing at rest, so its
+     words or glyph keep the inset instead, and its box reaches as far past the end as above
+     the band, so a hover or press ground sits square in the card's corner. Material aligns an
+     icon button's glyph to a card's keyline, lets its state layer reach past it, and draws a
+     40dp button inside a 48dp target. */
   .sui-card-actions {
     --sui-local-button-seat: var(--sui-control-height-drawn);
     align-items: center;
+    block-size: round(up, 1cap, 2px);
     display: flex;
-    flex-wrap: wrap;
+    flex: 0 1 auto;
+    font: var(--sui-weight-semibold) var(--sui-font-size-card-title) / var(--sui-leading-flat)
+      var(--sui-sans);
     gap: var(--sui-space-2);
-    grid-column: 2;
     justify-content: flex-end;
-    min-inline-size: 0;
+    margin-block-end: calc(-1 * round(up, 1cap, 2px));
   }
 
-  /* Beside the copy, whatever the actions hold, a button, a switch, a segmented control, a pill
-     or a menu, centres on the title's cap band and lends the head no height: the seat is that
-     band, in the title's face, so `1cap` is the title's, and a control taller than it reaches
-     above and below the title's line, into the card's inset, so the title, its note and the
-     content stand where they stand in a card with no action (L-34). A framed control ends on
-     the inset. A ghost button or a quiet icon button draws nothing at rest, so its words or
-     glyph keep the inset instead, and its box reaches as far past the end as above the band,
-     so a hover or press ground sits square in the card's corner. Material aligns an icon
-     button's glyph to a card's keyline, lets its state layer reach past it, and draws a 40dp
-     button inside a 48dp target. */
-  @container not (max-width: 18rem) {
-    /* The seat's even band can stand a pixel taller than the title's own box, so the seat
-       gives back all of its height and the copy alone sets the head's. */
-    .sui-card-actions {
-      block-size: round(up, 1cap, 2px);
-      flex-wrap: nowrap;
-      font: var(--sui-weight-semibold) var(--sui-font-size-card-title) / var(--sui-leading-flat)
-        var(--sui-sans);
-      margin-block-end: calc(-1 * round(up, 1cap, 2px));
-    }
+  /* A control keeps its whole width, so a label never wraps into a taller box on the title's
+     line. A segmented control chooses its form against the room the copy leaves it, about 9rem
+     of copy and the gap from the card's content box, and turns into its select short of it. */
+  .sui-card-actions {
+    --sui-local-segmented-room: calc(
+      100cqi - 2 * (var(--sui-rhythm-surface-pad) + var(--sui-stroke)) - 9rem - var(--sui-space-6)
+    );
+  }
 
-    .sui-card-head:has(> .sui-card-actions > :global(.sui-button[data-tone='ghost']):only-of-type)
-      > .sui-card-actions {
-      margin-inline-end: calc((round(up, 1cap, 2px) - var(--sui-control-height-drawn)) / 2);
-    }
+  .sui-card-actions > :global(*) {
+    flex: none;
+    min-inline-size: max-content;
+  }
 
-    .sui-card-head:has(> .sui-card-actions > :global(.sui-icon-button):only-of-type)
-      > .sui-card-actions {
-      margin-inline-end: calc((round(up, 1cap, 2px) - var(--sui-tier-quiet)) / 2);
-    }
+  .sui-card-head:has(> .sui-card-actions > :global(.sui-button[data-tone='ghost']):only-of-type)
+    > .sui-card-actions {
+    margin-inline-end: calc((round(up, 1cap, 2px) - var(--sui-control-height-drawn)) / 2);
+  }
 
-    .sui-card-head:has(> .sui-card-actions > :global(.sui-icon-button.toolbar):only-of-type)
-      > .sui-card-actions {
-      margin-inline-end: calc((round(up, 1cap, 2px) - var(--sui-control-height-compact)) / 2);
-    }
+  .sui-card-head:has(> .sui-card-actions > :global(.sui-icon-button):only-of-type)
+    > .sui-card-actions {
+    margin-inline-end: calc((round(up, 1cap, 2px) - var(--sui-tier-quiet)) / 2);
+  }
+
+  .sui-card-head:has(> .sui-card-actions > :global(.sui-icon-button.toolbar):only-of-type)
+    > .sui-card-actions {
+    margin-inline-end: calc((round(up, 1cap, 2px) - var(--sui-control-height-compact)) / 2);
   }
 
   /* Its cap stands within half a pixel of its box's top, so the title keeps the inset to its
@@ -374,18 +380,6 @@ title, such as "Danger zone", and holds the acts that cannot be undone, each a `
      the title's own line height, it holds when a reader raises line spacing (WCAG 1.4.12). */
   .sui-card-title:has(+ .sui-card-note) {
     margin-block-end: round(calc(1lh - 1cap), 1px);
-  }
-
-  @container (max-width: 18rem) {
-    .sui-card-head {
-      grid-template-columns: minmax(0, 1fr);
-      row-gap: var(--sui-rhythm-head-actions-stacked);
-    }
-
-    .sui-card-actions {
-      grid-column: 1;
-      justify-content: flex-start;
-    }
   }
 
   .sui-card-footer {
@@ -455,6 +449,13 @@ title, such as "Danger zone", and holds the acts that cannot be undone, each a `
   @container (max-width: 36rem) {
     .sui-card {
       padding: var(--sui-rhythm-surface-pad-compact);
+    }
+
+    .sui-card-actions {
+      --sui-local-segmented-room: calc(
+        100cqi - 2 * (var(--sui-rhythm-surface-pad-compact) + var(--sui-stroke)) - 9rem -
+          var(--sui-space-6)
+      );
     }
 
     .sui-card-body > :global(*) {

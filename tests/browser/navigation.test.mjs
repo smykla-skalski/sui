@@ -537,49 +537,6 @@ suite('navigation', together, () => {
     }
   );
 
-  test(
-    "the detail pane's shells fit their stage at every width, with the wide pane's aside beside it at 1440px",
-    long,
-    async () => {
-      for (const width of [320, 375, 768, 1024, 1280, 1440])
-        for (const theme of ['light', 'dark']) {
-          const page = await open(width);
-          try {
-            const found = await page.evaluate((theme) => {
-              document.documentElement.dataset.suiTheme = theme;
-              const wide = (/** @type {Element} */ box) => box.scrollWidth > box.clientWidth;
-              const section = /** @type {HTMLElement} */ (document.getElementById('detail-pane'));
-              const scrollers = [...section.querySelectorAll('*')].filter(
-                (box) => /auto|scroll/.test(getComputedStyle(box).overflowX) && wide(box)
-              );
-              const layout = document
-                .getElementById('detail-pane-layout')
-                ?.closest('.example')
-                ?.querySelector('.sui-detail-layout');
-              const main = layout
-                ?.querySelector('.sui-detail-layout-main')
-                ?.getBoundingClientRect();
-              const aside = layout
-                ?.querySelector('.sui-detail-layout-aside')
-                ?.getBoundingClientRect();
-              return {
-                section: wide(section),
-                scrollers: scrollers.map((box) => `${box.tagName} ${box.className}`),
-                beside: !!main && !!aside && Math.abs(main.top - aside.top) < 1
-              };
-            }, theme);
-            const at = `at ${width}px in ${theme}`;
-            assert.equal(found.section, false, `the section reaches past the page ${at}`);
-            assert.deepEqual(found.scrollers, [], `boxes scroll sideways ${at}`);
-            if (width === 1440)
-              assert.ok(found.beside, `the aside is not beside the main column ${at}`);
-          } finally {
-            await page.close();
-          }
-        }
-    }
-  );
-
   /** The list-detail section's pairs: two on their own, then beside a rail and a sidebar, then a phone. */
   const pair = (/** @type {import('playwright-core').Page} */ page, /** @type {number} */ index) =>
     page.locator('#list-detail .sui-list-detail').nth(index);
@@ -687,6 +644,83 @@ suite('navigation', together, () => {
   });
 
   test(
+    'a wheel over a bounded list-detail pane scrolls the pane, then the page past its end',
+    long,
+    async () => {
+      const page = await open(1440);
+      try {
+        const list = pair(page, 0).locator('.sui-list-detail-list');
+        await list.scrollIntoViewIfNeeded();
+        const box = await list.boundingBox();
+        assert.ok(box);
+        await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+        const pane = await list.elementHandle();
+        await page.mouse.wheel(0, 120);
+        assert.ok(
+          await settles(page.waitForFunction((pane) => pane && pane.scrollTop > 0, pane, brief)),
+          'the wheel did not scroll the list'
+        );
+
+        // A new wheel gesture, once the list rests at its end, runs on into the page. The page
+        // must travel most of the wheel's way, so a shift of the sink's own layout never passes.
+        await page.waitForTimeout(600);
+        await list.evaluate((pane) => (pane.scrollTop = pane.scrollHeight));
+        const before = await page.evaluate(() => scrollY);
+        await page.mouse.wheel(0, 240);
+        assert.ok(
+          await settles(page.waitForFunction((before) => scrollY > before + 120, before, brief)),
+          'the page stopped under the list at its end'
+        );
+      } finally {
+        await page.close();
+      }
+    }
+  );
+
+  test(
+    "the detail pane's shells fit their stage at every width, with the wide pane's aside beside it at 1440px",
+    long,
+    async () => {
+      for (const width of [320, 375, 768, 1024, 1280, 1440])
+        for (const theme of ['light', 'dark']) {
+          const page = await open(width);
+          try {
+            const found = await page.evaluate((theme) => {
+              document.documentElement.dataset.suiTheme = theme;
+              const wide = (/** @type {Element} */ box) => box.scrollWidth > box.clientWidth;
+              const section = /** @type {HTMLElement} */ (document.getElementById('detail-pane'));
+              const scrollers = [...section.querySelectorAll('*')].filter(
+                (box) => /auto|scroll/.test(getComputedStyle(box).overflowX) && wide(box)
+              );
+              const layout = document
+                .getElementById('detail-pane-layout')
+                ?.closest('.example')
+                ?.querySelector('.sui-detail-layout');
+              const main = layout
+                ?.querySelector('.sui-detail-layout-main')
+                ?.getBoundingClientRect();
+              const aside = layout
+                ?.querySelector('.sui-detail-layout-aside')
+                ?.getBoundingClientRect();
+              return {
+                section: wide(section),
+                scrollers: scrollers.map((box) => `${box.tagName} ${box.className}`),
+                beside: !!main && !!aside && Math.abs(main.top - aside.top) < 1
+              };
+            }, theme);
+            const at = `at ${width}px in ${theme}`;
+            assert.equal(found.section, false, `the section reaches past the page ${at}`);
+            assert.deepEqual(found.scrollers, [], `boxes scroll sideways ${at}`);
+            if (width === 1440)
+              assert.ok(found.beside, `the aside is not beside the main column ${at}`);
+          } finally {
+            await page.close();
+          }
+        }
+    }
+  );
+
+  test(
     "a card's footer stands beside its copy at the foot while it fits, and under it otherwise",
     long,
     async () => {
@@ -725,35 +759,98 @@ suite('navigation', together, () => {
   );
 
   test(
-    'a wheel over a bounded list-detail pane scrolls the pane, then the page past its end',
+    'an action beside a head or a message never moves the copy, and a head keeps it beside',
     long,
     async () => {
-      const page = await open(1440);
-      try {
-        const list = pair(page, 0).locator('.sui-list-detail-list');
-        await list.scrollIntoViewIfNeeded();
-        const box = await list.boundingBox();
-        assert.ok(box);
-        await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
-        const pane = await list.elementHandle();
-        await page.mouse.wheel(0, 120);
-        assert.ok(
-          await settles(page.waitForFunction((pane) => pane && pane.scrollTop > 0, pane, brief)),
-          'the wheel did not scroll the list'
-        );
-
-        // A new wheel gesture, once the list rests at its end, runs on into the page. The page
-        // must travel most of the wheel's way, so a shift of the sink's own layout never passes.
-        await page.waitForTimeout(600);
-        await list.evaluate((pane) => (pane.scrollTop = pane.scrollHeight));
-        const before = await page.evaluate(() => scrollY);
-        await page.mouse.wheel(0, 240);
-        assert.ok(
-          await settles(page.waitForFunction((before) => scrollY > before + 120, before, brief)),
-          'the page stopped under the list at its end'
-        );
-      } finally {
-        await page.close();
+      for (const width of [1440, 320]) {
+        const page = await open(width);
+        try {
+          const problems = await page.evaluate(async () => {
+            const frame = () =>
+              new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+            // A head never puts its action on a line of its own; a callout may, under 24rem.
+            /** @type {[string, string, string[], boolean][]} */
+            const kinds = [
+              [
+                '.sui-card',
+                '.sui-card-actions',
+                ['.sui-card-title', '.sui-card-note', '.sui-card-body'],
+                true
+              ],
+              [
+                '.sui-section',
+                ':scope > .sui-section-head .sui-section-seat',
+                ['.sui-section-title', '.sui-section-note', ':scope > .sui-section-body'],
+                true
+              ],
+              [
+                '.sui-plate',
+                ':scope > .sui-plate-head > .sui-plate-status',
+                ['.sui-plate-title', ':scope > .sui-plate-body'],
+                true
+              ],
+              [
+                '.sui-callout',
+                '.sui-callout-actions',
+                ['.sui-callout-title', '.sui-callout-text'],
+                false
+              ]
+            ];
+            /** @type {string[]} */
+            const found = [];
+            for (const [kind, seat, parts, beside] of kinds)
+              for (const root of document.querySelectorAll(kind)) {
+                const action = root.querySelector(seat);
+                if (!action || !root.checkVisibility()) continue;
+                const title = root.querySelector(parts[0])?.getBoundingClientRect();
+                const drawn = [...action.querySelectorAll('*')]
+                  .map((part) => part.getBoundingClientRect())
+                  .filter((box) => box.width > 1 && box.height > 1);
+                if (!title || drawn.length === 0) continue;
+                const where = `${root.closest('section.section')?.id} ${kind}`;
+                const top = Math.min(...drawn.map((box) => box.top));
+                if (top >= title.bottom) {
+                  if (beside) found.push(`${where}: the action takes a line of its own`);
+                  continue;
+                }
+                const lines = () =>
+                  parts.slice(0, 2).map((part) => {
+                    const words = document.createRange();
+                    const element = root.querySelector(part);
+                    if (!element) return 0;
+                    words.selectNodeContents(element);
+                    return new Set([...words.getClientRects()].map((line) => Math.round(line.top)))
+                      .size;
+                  });
+                const read = () => {
+                  const origin = root.getBoundingClientRect().top;
+                  return parts
+                    .map((part) => root.querySelector(part)?.getBoundingClientRect().top ?? origin)
+                    .map((at) => at - origin)
+                    .concat(root.getBoundingClientRect().height);
+                };
+                const [withLines, withAction] = [lines(), read()];
+                const holder = action.parentElement;
+                const next = action.nextSibling;
+                action.remove();
+                await frame();
+                const [bareLines, bare] = [lines(), read()];
+                holder?.insertBefore(action, next);
+                await frame();
+                // Lending its width may wrap the copy one more line; only a move of the same lines counts.
+                if (withLines.join() !== bareLines.join()) continue;
+                const moved = withAction.findIndex((at, index) => Math.abs(at - bare[index]) > 0.5);
+                if (moved >= 0)
+                  found.push(
+                    `${where}: ${parts[moved] ?? 'its height'} moves ${withAction[moved] - bare[moved]}px`
+                  );
+              }
+            return found;
+          });
+          assert.deepEqual(problems, [], `at ${width}px`);
+        } finally {
+          await page.close();
+        }
       }
     }
   );

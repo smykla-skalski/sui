@@ -13,7 +13,6 @@
     Button,
     Card,
     Field,
-    Icon,
     Pill,
     SegmentedControl,
     Switch,
@@ -178,10 +177,7 @@
       level={4}
     >
       {#snippet actions()}
-        <Button tone="add">
-          {#snippet icon()}<Icon name="plus" size="sm" />{/snippet}
-          Add a check
-        </Button>
+        <ActionMenu label="Check actions" icon="more" items={rules} align="end" />
       {/snippet}
     </Card>
   </Specimen>

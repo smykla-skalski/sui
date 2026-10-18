@@ -28,7 +28,7 @@
     title?: string;
     /** The mark beside the words, when the words alone do not carry the weight. */
     icon?: Snippet;
-    /** Controls beside the message. They centre on it without changing its rhythm. */
+    /** Controls beside the message, drawn at the quiet tier inside the band its symbol opens. They never move it. */
     actions?: Snippet;
     /** Announces the callout's words once it appears, for one that shows up after the reader's own edit. */
     live?: boolean;
@@ -103,7 +103,11 @@ hears `decisionLabel` before its words. Its resolving action wears Button's `dec
 and every other action keeps the default tone.
 
 The icon stands in a 2rem tile of the callout's tone and draws at 18px whatever tier the caller
-asked for. Copy shorter than the tile centres on it; longer copy starts at the tile's top. A
+asked for. Copy shorter than the tile centres on it; longer copy starts at the tile's top. The
+tile opens the message's first line in a band its actions fit inside: they are drawn at the
+28px quiet tier and centre on the message, so a callout stands as tall, and its words where
+they stand, with or without them. Give a callout with actions its symbol, because words alone
+open no band. A
 default action takes the tone too: in a warning it is quiet, with no ground of its own and an
 edge of the warning hue, and beside a decision it is quiet in the unsaved hue, with a gold edge
 and the unsaved ink, so no neutral block sits on a state (L-92).
@@ -112,9 +116,9 @@ and the unsaved ink, so no neutral block sits on a state (L-92).
 - Content: an optional 2rem symbol tile, a title, inline description content such as a `Link`, and a few actions; copy wraps at the callout's own width.
 - States: `quiet` on the neutral veil, `warning` on the warning tint, and `decision` on the opaque surface with the gold border and shadow.
 - Keyboard: none of its own; its actions and links take Tab in reading order.
-- Pointer and touch: its actions keep their own 34px and 44px targets.
+- Pointer and touch: its actions are drawn at the 28px quiet tier and keep a 44px hit area on a phone or a coarse pointer; stacked, they stand 16px apart there so two hit areas never meet.
 - Focus: it never takes focus; a caller that raises it after a failed act leaves focus on the control the reader used.
-- Responsive: actions sit at the inline end beside the message, centred on it, and move to a line under the copy, from its start edge, only when the callout cannot hold them beside an 11rem measure of copy.
+- Responsive: actions sit at the inline end beside the message, centred on it inside the band its symbol's tile opens, so the message never moves for them, and move to a line under the copy, from its start edge, only when the callout cannot hold them beside an 11rem measure of copy.
 - Accessibility: `warningLabel` and `decisionLabel` say in words what the tint and the gold say in colour, and `live` announces a callout that appears after an edit.
 - Localization: `warningLabel` and `decisionLabel` carry the built-in words, the tile sits at the inline start and the actions at the inline end, mirrored in a right-to-left page.
 - Performance: a static block laid out by flex wrapping alone; `live` sets one short timer when it appears.
@@ -275,12 +279,23 @@ and the unsaved ink, so no neutral block sits on a state (L-92).
     --sui-text-primary: var(--sui-unsaved-ink);
   }
 
-  /* On a line of their own, actions too wide for it wrap among themselves. */
+  /* The message opens in a band as tall as its symbol's tile, and its actions are drawn at the
+     quiet tier, shorter than that band, with their hit area grown on a phone: beside the
+     message they live inside its band, so the message stands where it stands with no action
+     and the callout keeps its height, and on a line of their own they wrap among themselves,
+     far enough apart that two hit areas never meet (L-38). */
   .sui-callout-actions {
+    --sui-local-button-seat: var(--sui-tier-quiet);
     align-items: center;
     display: flex;
     flex-wrap: wrap;
     gap: var(--sui-space-2);
     min-inline-size: 0;
+  }
+
+  @media (max-width: 47.9375rem), (pointer: coarse) {
+    .sui-callout-actions {
+      row-gap: calc(var(--sui-touch-target) - var(--sui-tier-quiet));
+    }
   }
 </style>

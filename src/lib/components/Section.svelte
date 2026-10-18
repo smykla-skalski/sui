@@ -56,8 +56,9 @@ size follows the nesting a reader sees and `level` the page's outline, so a pane
 sections start at h3 still draws them at the section tier. A `description` is the title's
 second line, as far below it as the title's own lines stand apart plus 8px. A `count` stands
 beside the title as a tab's does. `actions` stand at the head's end, centred on the title's
-cap band, and reach above and below it rather than raise the head, so keep them to a link or
-a quiet button.
+cap band, and reach above and below it rather than raise the head, so the title, the
+description and the content stand where they stand with no action. They stay there at every
+width and the copy wraps beside them, so keep them to a link or a quiet button.
 
 A section stands `--sui-rhythm-section-gap` above the section that follows it, so a page
 needs no wrapper and a page header before the first keeps its own gap. A sub-section stands
@@ -71,7 +72,7 @@ its words on the title's edge.
 - Keyboard: none of its own; Tab reaches the actions, then the content, in reading order.
 - Pointer and touch: none of its own; the actions keep their own targets, which grow on a phone without moving the head.
 - Focus: nothing here moves focus.
-- Responsive: a container query on the section's own width keeps the actions beside the copy and moves them under it, from the start edge, below 18rem; the gaps between sections step down on a phone.
+- Responsive: the actions stay beside the copy at every width, centred on the title's cap band, and short of room the title and the description wrap in what is left, a segmented control turns into its select, and the other controls keep their width; the gaps between sections step down on a phone.
 - Accessibility: the heading keeps the page's outline; the count is part of the heading's name; the title and the description hold 4.5:1.
 - Localization: `countedName` joins the title and the count, which follows the page's number format; the actions sit at the inline end, which mirrors in a right-to-left page.
 - Performance: static layout with no script; each section is its own size container.
@@ -129,18 +130,21 @@ its words on the title's edge.
     min-inline-size: 0;
   }
 
-  /* The copy keeps one column and the actions another, so the note never runs under an
-     action; the copy keeps 10rem beside them. */
+  /* The copy and the actions share the head's one line at every width, so the note never runs
+     under an action and an action never moves the copy: short of room, each gives up width in
+     proportion to its own, so a long title wraps while the controls keep theirs and a segmented
+     control turns into its select. */
   .sui-section-head {
     align-items: start;
     column-gap: var(--sui-space-6);
-    display: grid;
-    grid-template-columns: minmax(min(10rem, 100%), 1fr) auto;
+    display: flex;
+    justify-content: flex-end;
     margin-block-end: var(--sui-space-4);
   }
 
   .sui-section-copy {
     display: grid;
+    flex: 1 1 auto;
     gap: var(--sui-row-copy-gap);
     min-inline-size: 0;
   }
@@ -194,10 +198,10 @@ its words on the title's edge.
   }
 
   .sui-section-seat {
+    flex: 0 1 auto;
     font: var(--sui-weight-semibold)
       var(--sui-local-section-size, var(--sui-font-size-card-title)) / var(--sui-leading-flat)
       var(--sui-sans);
-    grid-column: 2;
   }
 
   /* The seat's face only measures the cap; the actions take the control tier, so a link here
@@ -205,11 +209,23 @@ its words on the title's edge.
   .sui-section-actions {
     align-items: center;
     display: flex;
-    flex-wrap: wrap;
     font: var(--sui-weight-regular) var(--sui-font-size-control) / var(--sui-leading-compact)
       var(--sui-sans);
     gap: var(--sui-space-2);
     justify-content: flex-end;
+    min-inline-size: 0;
+  }
+
+  /* A control keeps its whole width, so a label never wraps into a taller box on the title's
+     line. A segmented control chooses its form against the room the copy leaves it, about 9rem
+     of copy and the gap from the section's width, and turns into its select short of it. */
+  .sui-section-actions {
+    --sui-local-segmented-room: calc(100cqi - 9rem - var(--sui-space-6));
+  }
+
+  .sui-section-actions > :global(*) {
+    flex: none;
+    min-inline-size: max-content;
   }
 
   /* A lone ghost button draws nothing at rest, so it stays drawn at the pointer's tier on a
@@ -217,31 +233,6 @@ its words on the title's edge.
      title than on a desktop, clear of the content under it. */
   .sui-section-actions:has(> :global(.sui-button[data-tone='ghost']):only-child) {
     --sui-local-button-seat: var(--sui-control-height-drawn);
-  }
-
-  @container not (max-width: 18rem) {
-    .sui-section-head:has(> .sui-section-seat) .sui-section-words {
-      block-size: var(--sui-block-snap-even);
-    }
-  }
-
-  /* Too narrow for both, the actions take a line of their own under the copy, from its start
-     edge (L-90), and keep their own box. */
-  @container (max-width: 18rem) {
-    .sui-section-head {
-      grid-template-columns: minmax(0, 1fr);
-      row-gap: var(--sui-rhythm-head-actions-stacked);
-    }
-
-    .sui-section-seat {
-      block-size: auto;
-      grid-column: 1;
-      margin-block-start: 0;
-    }
-
-    .sui-section-actions {
-      justify-content: flex-start;
-    }
   }
 
   .sui-section-note {

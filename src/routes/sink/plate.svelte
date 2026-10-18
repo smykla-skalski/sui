@@ -40,7 +40,7 @@
 
 <Example
   title="Long title"
-  note="A long title wraps, and the state moves under it when the line has no room"
+  note="A long title wraps beside the state, which stays on its first line and never moves the title"
   layout="grid"
   ground="canvas"
 >
@@ -88,7 +88,7 @@
 >
   <Plate title="Configuration drift" level={4}>
     {#snippet status()}
-      <span class="state"><Icon name="warning" size="sm" /><span>2 repositories differ</span></span>
+      <span class="state"><Icon name="warning" size="sm" /><span>2 differ</span></span>
     {/snippet}
   </Plate>
   <Callout tone="warning" title="Drift blocks the next sync">

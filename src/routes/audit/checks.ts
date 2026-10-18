@@ -2098,6 +2098,15 @@ function calloutActions(root: Document): Finding[] {
         found.push(
           finding('L-56', actions, `the actions sit ${round(off)}px off the message's middle`)
         );
+      // Beside the message they live inside its band, so they never raise the callout (L-34).
+      if (own.height > said.height + 0.5)
+        found.push(
+          finding(
+            'L-34',
+            actions,
+            `the actions stand ${round(own.height - said.height)}px taller than the message`
+          )
+        );
       continue;
     }
     const rtl = getComputedStyle(inner).direction === 'rtl';
@@ -2857,9 +2866,9 @@ function disclosedCards(root: Document): Finding[] {
 }
 
 /**
- * A card's head action never moves its copy (L-34): beside the copy, the head is exactly as tall
- * as the copy, so the title, its note and the body stand where they stand with no action, and
- * the action centres on the cap band of the title's first line.
+ * A card's head action never moves its copy (L-34): it stays beside the copy at every width,
+ * the head is exactly as tall as the copy, so the title, its note and the body stand where they
+ * stand with no action, and the action centres on the cap band of the title's first line.
  */
 function cardHeads(root: Document): Finding[] {
   const found: Finding[] = [];
@@ -2870,7 +2879,10 @@ function cardHeads(root: Document): Finding[] {
     if (!actions || !copy || !words) continue;
     const band = actions.getBoundingClientRect();
     const text = copy.getBoundingClientRect();
-    if (band.top >= text.bottom - 0.5) continue;
+    if (band.top >= text.bottom - 0.5) {
+      found.push(finding('L-34', head, 'its action takes a line of its own under the copy'));
+      continue;
+    }
     const taller = head.getBoundingClientRect().height - text.height;
     if (taller > 0.5)
       found.push(
