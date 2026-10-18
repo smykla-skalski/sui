@@ -199,10 +199,8 @@ between them (L-91).
       id={ids.labelledby}
       for={named ? ids.id : undefined}
       class="sui-setting-name"
-      ><span aria-hidden="true"
-        >{name}<span class="sui-setting-gap"></span><span class="sui-setting-mark"
-          >{unsavedLabel}</span
-        ></span
+      ><span class="sui-setting-words" aria-hidden="true"
+        ><span>{name}</span><span class="sui-setting-mark">{unsavedLabel}</span></span
       ><VisuallyHidden>{unsaved ? unsavedName(name, unsavedLabel) : name}</VisuallyHidden
       ></svelte:element
     >
@@ -385,25 +383,28 @@ between them (L-91).
     min-inline-size: 0;
   }
 
-  /* Always laid out, shown only while unsaved, so its arrival never rewraps the name. A word
-     rather than a star, which most forms use for a required field. */
-  /* The room before the mark is a drawn space widened to 8px (0.17em is the sans's own space),
-     not a margin, so a narrow line that moves the mark down starts it flush with the words
-     above. It is spacing, never a word, so no language's joins are typed into the markup. */
-  .sui-setting-gap::before {
-    content: ' ';
-    font-weight: var(--sui-weight-regular);
-    word-spacing: calc(var(--sui-space-2) - 0.17em);
+  /* The name and the word "Unsaved" are one wrapping row: the column gap parts them, and a
+     narrow row moves the word to the next line, flush with the name and one line's leading
+     under it. Trim does not reach into a flex row, so each part trims its own words. */
+  .sui-setting-words {
+    align-items: baseline;
+    column-gap: var(--sui-space-2);
+    display: flex;
+    flex-wrap: wrap;
+    row-gap: round(calc(1lh - 1cap), 1px);
   }
 
-  /* A box of its own, as the card draws it, so a narrow row moves the whole word to the next
-     line instead of breaking it. */
-  .sui-setting-mark {
+  .sui-setting-words > span {
+    align-content: center;
     block-size: var(--sui-block-snap);
-    color: var(--sui-unsaved-ink);
-    display: inline-block;
-    font-weight: var(--sui-weight-regular);
     text-box: trim-both cap alphabetic;
+  }
+
+  /* Always laid out, shown only while unsaved, so its arrival never rewraps the name. A word
+     rather than a star, which most forms use for a required field. */
+  .sui-setting-mark {
+    color: var(--sui-unsaved-ink);
+    font-weight: var(--sui-weight-regular);
     visibility: hidden;
   }
 

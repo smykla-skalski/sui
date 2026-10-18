@@ -83,9 +83,10 @@ on its title line.
             this={`h${level}`}
             class="sui-card-title"
             aria-label={unsaved ? titleName(title, unsavedLabel) : undefined}
-            >{title}{#if unsaved}<span class="sui-card-gap"></span><span class="sui-card-unsaved"
-                >{unsavedLabel}</span
-              >{/if}</svelte:element
+            ><span class="sui-card-words"
+              ><span>{title}</span>{#if unsaved}<span class="sui-card-unsaved">{unsavedLabel}</span
+                >{/if}</span
+            ></svelte:element
           >
         {/if}
         {#if actions}
@@ -127,23 +128,28 @@ on its title line.
     border-color: var(--sui-unsaved-border);
   }
 
-  /* The word, not a mark: a reader sees "Unsaved" whatever the keyline's tint, as on a setting
-     row. */
-  /* The room before the mark is a drawn space widened to 8px (0.17em is the sans's own space),
-     not a margin, so a narrow line that moves the mark down starts it flush with the words
-     above. It is spacing, never a word, so no language's joins are typed into the markup. */
-  .sui-card-gap::before {
-    content: ' ';
-    font-weight: var(--sui-weight-regular);
-    word-spacing: calc(var(--sui-space-2) - 0.17em);
+  /* The title and the word "Unsaved" are one wrapping row: the column gap parts them, and a
+     narrow card moves the word to the next line, flush with the title and one line's leading
+     under it. Trim does not reach into a flex row, so each part trims its own words. */
+  .sui-card-words {
+    align-items: baseline;
+    column-gap: var(--sui-space-2);
+    display: flex;
+    flex-wrap: wrap;
+    row-gap: round(calc(1lh - 1cap), 1px);
   }
 
-  .sui-card-unsaved {
+  .sui-card-words > span {
+    align-content: center;
     block-size: var(--sui-block-snap);
-    color: var(--sui-unsaved-ink);
-    display: inline-block;
-    font-weight: var(--sui-weight-regular);
     text-box: trim-both cap alphabetic;
+  }
+
+  /* The word, not a mark: a reader sees "Unsaved" whatever the keyline's tint, as on a setting
+     row. */
+  .sui-card-unsaved {
+    color: var(--sui-unsaved-ink);
+    font-weight: var(--sui-weight-regular);
   }
 
   /* The actions end the title's line, and drop under the title when they do not fit, as at a

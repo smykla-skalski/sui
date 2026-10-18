@@ -40,9 +40,11 @@
   let input = $state<HTMLTextAreaElement | null>(null);
 
   /* The value wraps at any character, and the box is as tall as its lines, so a long token is
-     never cut. Measured again when the width changes, which moves the wraps, in the next frame,
+     never cut. A browser that sizes a field to its content does it in CSS alone. Elsewhere the
+     height is measured again when the width changes, which moves the wraps, in the next frame,
      so the height it sets is not a change the watcher is still reporting. */
   function fit(node: HTMLTextAreaElement) {
+    if (CSS.supports('field-sizing', 'content')) return;
     const size = () => {
       node.style.blockSize = '0px';
       node.style.blockSize = `${node.scrollHeight}px`;
@@ -158,6 +160,7 @@ the text field.
     box-sizing: border-box;
     color: var(--sui-text-primary);
     display: block;
+    field-sizing: content;
     font: var(--sui-weight-regular) var(--sui-font-size-input) / var(--sui-leading-input)
       var(--sui-mono);
     font-variant-numeric: tabular-nums;

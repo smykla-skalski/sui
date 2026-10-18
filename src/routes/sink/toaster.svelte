@@ -37,6 +37,7 @@
   title="Tones and actions"
   note="A neutral toast, a failure and one with an action, drawn in place with no timers"
   ground="canvas"
+  layout="grid"
 >
   <Specimen label="Neutral" code="preview">
     <Toaster preview items={[{ title: 'Settings saved' }]} />

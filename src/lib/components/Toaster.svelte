@@ -196,7 +196,7 @@ A `danger` toast reports a failure and stays too.
 - Keyboard: the hotkey (F8) moves focus to the newest toast, Tab moves through its action and Dismiss, and Escape returns focus to where it was.
 - Pointer and touch: the action and Dismiss are 34px targets, 44px on a phone or touch screen; the corner around the toasts lets presses through to the page.
 - Focus: closing a toast returns focus to where it was before it entered the stack, or to the next toast's Dismiss when that place is gone.
-- Responsive: the stack is at most the viewport's width less 32px and its height, and scrolls inside past that with the newest toast kept in view.
+- Responsive: the stack is at most the viewport's width less 32px and its height, and scrolls inside past that with the newest toast kept in view. On a phone it spans the screen, and a toast puts its buttons under the copy when the copy would get less than 8rem beside them.
 - Accessibility: a failure is announced as an alert and anything else politely, each once, and the stack is a landmark a reader can jump to.
 - Localization: `dismissLabel`, `label` and `hotkey` carry the built-in words and key, the stack stands at the inline end, mirrored in a right-to-left page, and its padding is logical.
 - Performance: one stack per page and per open dialog; each toast holds one timer, and the motion is opacity and translate, a fade alone under reduced motion.
@@ -256,19 +256,19 @@ A `danger` toast reports a failure and stays too.
         <p class="sui-toast-title">{item.title}</p>
         {#if item.description}<p class="sui-toast-description">{item.description}</p>{/if}
       </div>
-      {#if item.action}
-        <span class="sui-toast-action"
-          ><Button onclick={(event) => run(item, event)}>{item.action.label}</Button></span
-        >
-      {/if}
-      <!-- As tall as the action beside it, so the row stays even (L-101). -->
-      <IconButton
-        icon="close"
-        toolbar
-        label={words.dismiss}
-        data-dismiss
-        onclick={(event) => close(item, event, 'dismissed')}
-      />
+      <div class="sui-toast-buttons">
+        {#if item.action}
+          <Button onclick={(event) => run(item, event)}>{item.action.label}</Button>
+        {/if}
+        <!-- As tall as the action beside it, so the row stays even (L-101). -->
+        <IconButton
+          icon="close"
+          toolbar
+          label={words.dismiss}
+          data-dismiss
+          onclick={(event) => close(item, event, 'dismissed')}
+        />
+      </div>
     </div>
   {/each}
 </div>
@@ -305,7 +305,10 @@ A `danger` toast reports a failure and stays too.
     display: flex;
   }
 
+  /* Drawn in place, the toasts start where any content would; only the live stack hangs from
+     the screen's inline end. */
   .preview {
+    align-items: flex-start;
     max-block-size: none;
     max-inline-size: 100%;
     overflow: visible;
@@ -327,7 +330,6 @@ A `danger` toast reports a failure and stays too.
     box-sizing: border-box;
     color: var(--sui-text-primary);
     display: flex;
-    flex-wrap: wrap;
     gap: var(--sui-space-3);
     max-inline-size: 24rem;
     opacity: 1;
@@ -367,7 +369,7 @@ A `danger` toast reports a failure and stays too.
   .sui-toast-copy {
     align-content: center;
     display: grid;
-    flex: 1 1 8rem;
+    flex: 1 1 auto;
     gap: var(--sui-row-copy-gap);
     min-inline-size: 0;
   }
@@ -377,12 +379,38 @@ A `danger` toast reports a failure and stays too.
     min-block-size: var(--sui-symbol-tile);
   }
 
-  /* The action keeps its width, so the copy wraps instead of the button's word. A toast too
-     narrow for a few words of copy beside its buttons, as at a large text size, puts the
-     buttons on a line under it. */
-  .sui-toast-action {
+  /* The buttons keep their width and move as one, so the copy wraps instead of a button's word
+     and a wrapped toast never parts the action from its dismiss. */
+  .sui-toast-buttons {
+    align-items: center;
     display: flex;
     flex: none;
+    flex-wrap: wrap;
+    gap: var(--sui-space-3);
+  }
+
+  /* On a phone the stack spans the screen and each toast takes its width, so a toast too narrow
+     for a few words of copy beside its buttons, as at a large text size, puts the buttons on a
+     line under the copy, starting at its start edge (L-90). */
+  @media (max-width: 47.9375rem) {
+    .sui-toaster {
+      inset-inline-start: 0;
+    }
+
+    .sui-toast {
+      flex-wrap: wrap;
+      inline-size: 100%;
+    }
+
+    .sui-toast-copy {
+      flex-basis: 8rem;
+    }
+
+    /* Alone on a line too narrow for both, the dismiss starts the group's next line. */
+    .sui-toast-buttons {
+      flex-shrink: 1;
+      min-inline-size: 0;
+    }
   }
 
   .sui-toast-title,
