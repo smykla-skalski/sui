@@ -40,9 +40,10 @@
 <!--
 @component
 A status or a standing: the role somebody holds, the state a thing is in, the scope of a page,
-the health of a dependency, or whether changes arrive live. It is fully round, has no keyline
-and nothing to press, so it never reads as a control. Reach for `Chip` for a value such as a
-label, a pattern or a count.
+the health of a dependency, or whether changes arrive live. It is fully round on one line and
+keeps that corner when its words wrap, so every line keeps the one-line inset; it has no
+keyline and nothing to press, so it never reads as a control. Reach for `Chip` for a value
+such as a label, a pattern or a count.
 
 `role` wears violet and belongs to the standing somebody holds over everyone else's. The
 outcome tones always come with their word, so color never carries the state alone.
@@ -53,7 +54,7 @@ outcome tones always come with their word, so color never carries the state alon
 - Keyboard: none, because nothing in it is pressable.
 - Pointer and touch: none, because it is not a target.
 - Focus: never takes focus.
-- Responsive: as wide as its words, up to its container, and taller as they wrap.
+- Responsive: as wide as its words, up to its container, and taller by whole lines as they wrap, each line keeping the one-line inset inside corners that keep the one-line radius.
 - Accessibility: the word carries the state; `dotLabel` or `liveLabel` is spoken after it, so the mark is not color or motion alone; each tone's ink holds 4.5:1 on its tint.
 - Localization: `dotLabel` and `liveLabel` are props with English defaults; the mark sits at the inline start and follows the reading direction.
 - Performance: no script; the one pulse animates only scale and opacity.
@@ -79,10 +80,14 @@ outcome tones always come with their word, so color never carries the state alon
 </span>
 
 <style>
+  /* One line is fully round. Its corners keep that one line's radius as the words wrap, and
+     the padding is what one line leaves above its cap and under its baseline, so every line
+     keeps the one-line inset and no line's end reaches past a round corner. A badge that wraps
+     keeps a fixed corner the same way (Polaris). */
   .sui-pill {
-    align-items: center;
+    align-items: start;
     background: var(--sui-neutral-tint);
-    border-radius: var(--sui-radius-pill);
+    border-radius: var(--sui-radius-mark);
     box-sizing: border-box;
     color: var(--sui-text-secondary);
     display: inline-flex;
@@ -93,7 +98,12 @@ outcome tones always come with their word, so color never carries the state alon
     inline-size: fit-content;
     max-inline-size: 100%;
     min-block-size: var(--sui-tier-mark);
-    padding: var(--sui-space-1) var(--sui-space-2);
+    padding: calc((var(--sui-tier-mark) - round(up, 1cap, 2px)) / 2) var(--sui-space-2);
+  }
+
+  /* A mark centres on the first line's cap band, however many lines follow (L-94). */
+  .sui-pill > :global(svg) {
+    margin-block: calc((round(up, 1cap, 2px) - var(--sui-icon-xs)) / 2);
   }
 
   .sui-pill > :global(svg:first-child) {
@@ -102,7 +112,7 @@ outcome tones always come with their word, so color never carries the state alon
 
   .sui-pill-label {
     align-content: center;
-    block-size: var(--sui-block-snap);
+    block-size: var(--sui-block-snap-even);
     min-inline-size: 0;
     overflow-wrap: anywhere;
     text-box: trim-both cap alphabetic;
@@ -134,11 +144,13 @@ outcome tones always come with their word, so color never carries the state alon
   }
 
   .sui-pill-dot {
+    --sui-pill-dot: 0.375rem;
     background: currentColor;
-    block-size: 0.375rem;
+    block-size: var(--sui-pill-dot);
     border-radius: var(--sui-radius-pill);
     flex: none;
-    inline-size: 0.375rem;
+    inline-size: var(--sui-pill-dot);
+    margin-block: calc((round(up, 1cap, 2px) - var(--sui-pill-dot)) / 2);
     position: relative;
   }
 

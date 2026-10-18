@@ -580,16 +580,17 @@ function clippedInView(element: Element, width: number): boolean {
 const CARD_CONTENT =
   "button, input:not([type='hidden']), select, textarea, svg, img, progress, meter, [role='switch'], [role='checkbox'], [role='radio']";
 
-/**
- * Where a card's content stops short of each keyline. Content is what a reader sees: words,
- * controls, framed boxes, painted marks such as a pill or a skeleton bar, and tinted boxes that
- * keep inside the card's inset, never the ground a row bleeds into the inset on hover or for a
- * state. A side counts as reached when the content nearest it hugs
- * its own container there. A line of text ends wherever its words do, so at the end side only
- * solid content (a control, a framed box, a mark) counts, and text is held to not running past.
- */
 /** Surfaces with a frame of their own, whose content stands one inset from every edge (L-33). */
-const FRAMED_SURFACES = '.sui-card, .sui-save-bar, .sui-toast, .sui-callout';
+const FRAMED_SURFACES = '.sui-card, .sui-plate, .sui-save-bar, .sui-toast, .sui-callout';
+
+/** A ground a reader sees: an opaque or tinted color, or an image with a stop that shows. */
+function paintsGround(look: CSSStyleDeclaration): boolean {
+  if (rgba(look.backgroundColor).a > 0) return true;
+  const image = look.backgroundImage;
+  if (image === 'none') return false;
+  const stops = image.match(/rgba?\([^)]*\)/g);
+  return /url\(/.test(image) || !stops || stops.some((stop) => rgba(stop).a > 0);
+}
 
 const fonts = new Map<string, { cap: number; ascent: number }>();
 
@@ -658,14 +659,50 @@ function buttonInsets(
   };
 }
 
+/**
+ * Where a card's content stops short of each keyline, to the ink a reader sees at rest: words
+ * from their cap line to their baseline, controls, framed boxes, painted marks such as a pill
+ * or a placeholder's bar, and tinted boxes that keep inside the card's inset, never the ground
+ * a row bleeds into the inset on hover or for a state. A control that draws no frame or ground
+ * at rest, such as a ghost button or a quiet icon button, shows only its words and glyph, so
+ * those are weighed and its box is not. A side counts as reached when the content nearest it
+ * hugs its own container there. A line of text ends wherever its words do, so at the end side
+ * only solid content (a control, a framed box, a mark) counts, and text is held to not running
+ * past.
+ */
+/**
+ * Where a glyph puts ink: its shapes' extent widened by half their stroke, from the svg's user
+ * units to the page's pixels, rather than the box it is drawn in, which a glyph rarely fills.
+ */
+function glyphInk(svg: SVGSVGElement): DOMRect {
+  const box = svg.getBoundingClientRect();
+  const view = svg.viewBox.baseVal;
+  let shapes: DOMRect;
+  try {
+    shapes = svg.getBBox();
+  } catch {
+    return box;
+  }
+  if (!view || view.width === 0 || view.height === 0 || shapes.width + shapes.height === 0)
+    return box;
+  const look = getComputedStyle(svg);
+  const half = look.stroke === 'none' ? 0 : (parseFloat(look.strokeWidth) || 0) / 2;
+  const scale = { x: box.width / view.width, y: box.height / view.height };
+  return new DOMRect(
+    box.left + (shapes.x - half - view.x) * scale.x,
+    box.top + (shapes.y - half - view.y) * scale.y,
+    (shapes.width + 2 * half) * scale.x,
+    (shapes.height + 2 * half) * scale.y
+  );
+}
+
 function cardInsets(card: Element) {
-  // Placeholders stand in for rows still loading; the insets are judged on what arrives.
-  if (card.querySelector("[aria-busy='true']")) return null;
   const style = getComputedStyle(card);
   // A right-to-left card is measured mirrored, so its start is the smaller coordinate as in LTR.
   const rtl = style.direction === 'rtl';
   const read = (element: Element) => {
-    const own = element.getBoundingClientRect();
+    const own =
+      element instanceof SVGSVGElement ? glyphInk(element) : element.getBoundingClientRect();
     return rtl ? new DOMRect(-own.right, own.top, own.width, own.height) : own;
   };
   const box = read(card);
@@ -692,7 +729,7 @@ function cardInsets(card: Element) {
     const own = read(element);
     if (own.width <= 1 || own.height <= 1) continue;
     const look = getComputedStyle(element);
-    const ground = rgba(look.backgroundColor).a > 0 || look.backgroundImage !== 'none';
+    const ground = paintsGround(look);
     const framed = (['Top', 'Right', 'Bottom', 'Left'] as const).every(
       (side) =>
         parseFloat(look.getPropertyValue(`border-${side.toLowerCase()}-width`)) > 0 &&
@@ -701,7 +738,9 @@ function cardInsets(card: Element) {
     const words = [...element.childNodes].some(
       (node) => node.nodeType === Node.TEXT_NODE && node.textContent?.trim()
     );
-    if (!words && !framed && !ground && !element.matches(CARD_CONTENT)) continue;
+    const content =
+      element.matches(CARD_CONTENT) && !(element.matches('button') && !framed && !ground);
+    if (!words && !framed && !ground && !content) continue;
     let holder = element.parentElement ?? card;
     while (holder !== card && /^(inline|contents)$/.test(getComputedStyle(holder).display))
       holder = holder.parentElement ?? card;
@@ -714,7 +753,7 @@ function cardInsets(card: Element) {
     const mark =
       ground &&
       (element.childElementCount === 0 || look.display.startsWith('inline-') || within(own));
-    const solid = framed || mark || element.matches(CARD_CONTENT);
+    const solid = framed || mark || content;
     if (!words && !solid) continue;
     // Words are weighed by their ink; a solid part by its box.
     const ink = words && !solid ? inkLines(element) : null;
@@ -742,6 +781,32 @@ function cardInsets(card: Element) {
   };
 }
 
+/**
+ * A card's head action beside its copy stands its box, the ground its hover, press or frame
+ * shows, as far from the card's end edge as from its top, so that ground sits square in the
+ * corner (L-33). Null when there is no action beside the copy.
+ */
+function headActionInsets(card: Element): { top: number; end: number } | null {
+  const actions = card.querySelector(':scope > .sui-card-head > .sui-card-actions');
+  const copy = actions?.parentElement?.querySelector(':scope > .sui-card-copy');
+  const last = actions && [...actions.children].filter(shown).at(-1);
+  const control = last && (last.matches(INTERACTIVE) ? last : last.querySelector(INTERACTIVE));
+  if (!actions || !control || !shown(control)) return null;
+  // Stacked under the copy, the action starts its own line and has no corner to sit in.
+  if (copy && actions.getBoundingClientRect().top >= copy.getBoundingClientRect().bottom - 0.5)
+    return null;
+  const style = getComputedStyle(card);
+  const box = card.getBoundingClientRect();
+  const own = control.getBoundingClientRect();
+  const rtl = style.direction === 'rtl';
+  return {
+    top: own.top - box.top - parseFloat(style.borderTopWidth),
+    end: rtl
+      ? own.left - box.left - parseFloat(style.borderLeftWidth)
+      : box.right - parseFloat(style.borderRightWidth) - own.right
+  };
+}
+
 function geometry(root: Document): Finding[] {
   const found: Finding[] = [];
 
@@ -754,12 +819,21 @@ function geometry(root: Document): Finding[] {
       if (parseFloat(style.minWidth) !== 0)
         found.push(finding('L-33', card, 'a card sets its own minimum width'));
     }
+    const action = card.matches('.sui-card') ? headActionInsets(card) : null;
+    if (action && Math.abs(action.top - action.end) > 0.5)
+      found.push(
+        finding(
+          'L-33',
+          card,
+          `its head action's box stands ${round(action.top)}px from the top and ${round(action.end)}px from the end`
+        )
+      );
     const measured = cardInsets(card);
     if (!measured) continue;
     const { inset, top, end, bottom, start } = measured;
-    const off = (gap: number) => Math.abs(gap - inset) > 1;
+    const off = (gap: number) => Math.abs(gap - inset) > 0.5;
     const sideOff = (side: { gap: number; reached: boolean }) =>
-      side.reached ? off(side.gap) : side.gap < inset - 1;
+      side.reached ? off(side.gap) : side.gap < inset - 0.5;
     if (off(top) || off(bottom) || sideOff(start) || sideOff(end))
       found.push(
         finding(

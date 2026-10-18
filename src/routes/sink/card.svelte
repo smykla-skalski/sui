@@ -8,14 +8,21 @@
 </script>
 
 <script lang="ts">
-  import { Button, Card, Icon, IconButton } from '#lib';
+  import { ActionMenu, Button, Card, Icon, IconButton, type ActionMenuItem } from '#lib';
   import Example from '../kit/Example.svelte';
   import Specimen from '../kit/Specimen.svelte';
+
+  const nothing = () => {};
+
+  const keys: ActionMenuItem[] = [
+    { label: 'Add a deploy key', icon: 'plus', onselect: nothing },
+    { label: 'Remove every key', icon: 'trash', tone: 'stop', onselect: nothing }
+  ];
 </script>
 
 <Example
   title="Parts"
-  note="The description is the title's second line, and controls beside the title keep the card's inset"
+  note="The description is the title's second line, and a control beside the title keeps the card's inset to its ink"
   layout="grid"
   ground="canvas"
 >
@@ -38,6 +45,14 @@
     <Card title="Webhooks" description="Deliveries in the last 24 hours" level={4}>
       {#snippet actions()}<Button tone="ghost">Refresh</Button>{/snippet}
       <p class="copy">All 18 deliveries succeeded</p>
+    </Card>
+  </Specimen>
+  <Specimen label="Menu" code="actions">
+    <Card title="Deploy keys" level={4}>
+      {#snippet actions()}
+        <ActionMenu label="Deploy key actions" icon="more" items={keys} align="end" />
+      {/snippet}
+      <p class="copy">Two keys can push to this repository</p>
     </Card>
   </Specimen>
   <Specimen label="Footer" code="footer">

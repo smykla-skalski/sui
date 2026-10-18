@@ -47,15 +47,19 @@ corner. The card owns its 20px inset, 16px once the card itself is 36rem wide or
 and never its outer spacing, so a stack of cards takes its 16px from the container's gap. It
 fills the width its container gives it and never decides that width.
 
-Whatever the card holds stands the same inset from all four keylines (L-33): the first ink
-sits the inset below the top, the last the inset above the bottom, and anything that reaches
-a side stops the inset short of it. The title is a heading at `level`, balanced and trimmed to
-its cap height. A `description` is the title's second line, 8px of ink below it, not the first
-line of the body. Controls in `actions` set the head's height and the title centres on them,
-so a control keeps the inset from the top and the end; under a title that wraps past them
-they stay on the first line. A `footer` row is as tall as its actions, so they keep the inset
-from the bottom. A row list that opens the card hands back its first row's padding, as it
-hands back its last.
+Whatever the card holds stands the same inset from all four keylines, to the ink a reader
+sees (L-33): the first ink sits the inset below the top, the last the inset above the bottom,
+and anything that reaches a side stops the inset short of it. The title is a heading at
+`level`, balanced and trimmed to its cap height. A `description` is the title's second line,
+as far below it as the title's own lines stand apart plus 8px, not the first line of the
+body. Framed controls in `actions` set the head's height and the title centres on them, so a
+control keeps the inset from the top and the end. A lone ghost button or quiet icon button
+draws nothing at rest, so its words or glyph keep the inset instead: it centres on the title's
+cap band, its box stands as far past the end as above the title, and a ghost button stays
+34px on a phone with a 44px hit area. Under a title that wraps past them the actions stay on
+the first line. A `footer` row is as tall as its actions, so they keep the inset from the
+bottom. A row list or a `Skeleton` that opens the card hands back what stands above its first
+row's ink, as it hands back what stands below its last.
 
 Do not nest cards for decoration. Reach for `Plate` when the subject has a state to say
 on its title line.
@@ -147,6 +151,7 @@ on its title line.
   .sui-card-words > span {
     align-content: center;
     block-size: var(--sui-block-snap);
+    min-inline-size: 0;
     text-box: trim-both cap alphabetic;
   }
 
@@ -178,14 +183,59 @@ on its title line.
     min-inline-size: 0;
   }
 
-  /* A lone quiet icon button or a bare switch is shorter than the control tier, so the seat
-     takes its height and the control still keeps the card's inset. */
-  .sui-card-head:has(> .sui-card-actions > :global(.sui-icon-button:not(.toolbar)):only-of-type) {
-    --sui-local-card-seat: var(--sui-tier-quiet);
-  }
-
+  /* A bare switch is shorter than the control tier, so the seat takes its height and the
+     switch still keeps the card's inset. */
   .sui-card-head:has(> .sui-card-actions > :global(.sui-switch.bare):only-child) {
     --sui-local-card-seat: 20px;
+  }
+
+  /* A ghost button or a quiet icon button draws no frame or ground at rest, so a reader sees
+     only its words or glyph, and those keep the inset instead of its box: the seat is the
+     title's own cap band and the control (`--sui-local-card-control` tall) centres on it.
+     Its box reaches into the inset, as a hover ground may, and as far past the end as above
+     the seat, so a hover or press ground sits square in the card's corner. A ghost button
+     stays drawn at the pointer's tier on a phone too and grows only its hit area, so it
+     reaches no further than its own padding and its words never pass the inset. Material
+     aligns an icon button's glyph to a card's keyline, lets its state layer reach past it,
+     and draws a 40dp button inside a 48dp target. */
+  .sui-card-head:has(> .sui-card-actions > :global(.sui-button[data-tone='ghost']):only-of-type) {
+    --sui-local-button-seat: var(--sui-control-height-drawn);
+    --sui-local-card-control: var(--sui-control-height-drawn);
+    --sui-local-card-seat: round(up, 1cap, 2px);
+  }
+
+  .sui-card-head:has(> .sui-card-actions > :global(.sui-icon-button):only-of-type) {
+    --sui-local-card-seat: round(up, 1cap, 2px);
+    --sui-local-card-control: var(--sui-tier-quiet);
+  }
+
+  .sui-card-head:has(> .sui-card-actions > :global(.sui-icon-button.toolbar):only-of-type) {
+    --sui-local-card-control: var(--sui-control-height-compact);
+  }
+
+  /* Beside the copy only: stacked under it, the control keeps its own box. The actions take
+     the title's face, so the seat is the title's band here as in the copy, and the title is
+     the first ink. */
+  @container not (max-width: 18rem) {
+    .sui-card-head:has(
+        > .sui-card-actions
+          > :global(:is(.sui-button[data-tone='ghost'], .sui-icon-button)):only-of-type
+      )
+      > .sui-card-actions {
+      block-size: var(--sui-local-card-seat);
+      flex-wrap: nowrap;
+      font: var(--sui-weight-semibold) var(--sui-font-size-card-title) / var(--sui-leading-flat)
+        var(--sui-sans);
+      margin-inline-end: calc((var(--sui-local-card-seat) - var(--sui-local-card-control)) / 2);
+    }
+
+    .sui-card-head:has(
+        > .sui-card-actions
+          > :global(:is(.sui-button[data-tone='ghost'], .sui-icon-button)):only-of-type
+      )
+      .sui-card-title {
+      block-size: var(--sui-block-snap);
+    }
   }
 
   /* In the title's face, so `1cap` is the title's cap height. */
@@ -195,17 +245,32 @@ on its title line.
     padding-block-start: calc((var(--sui-local-card-seat) - round(up, 1cap, 2px)) / 2);
   }
 
+  /* Its cap stands within half a pixel of its box's top, so a title that opens the card keeps
+     the inset to its ink. */
   .sui-card-title {
     align-content: center;
-    block-size: var(--sui-block-snap-even);
+    block-size: var(--sui-block-snap);
     color: var(--sui-text-primary);
-    font: var(--sui-weight-semibold) var(--sui-font-size-card-title) / var(--sui-leading-title)
+    font: var(--sui-weight-semibold) var(--sui-font-size-card-title) / var(--sui-leading-card-title)
       var(--sui-sans);
     margin: 0;
     min-inline-size: 0;
     overflow-wrap: break-word;
     text-box: trim-both cap alphabetic;
     text-wrap: balance;
+  }
+
+  /* Beside a control's seat the title takes the seat's even parity, so it centres on the
+     control to the pixel, and the control is the first ink. */
+  .sui-card-head:has(> .sui-card-actions) .sui-card-title {
+    block-size: var(--sui-block-snap-even);
+  }
+
+  /* Proximity: a wrapped title's lines stand 1lh - 1cap apart in ink, so the note stands that
+     far plus the copy gap and the title reads as one block, as on the page header. Taken from
+     the title's own line height, it holds when a reader raises line spacing (WCAG 1.4.12). */
+  .sui-card-title:has(+ .sui-card-note) {
+    margin-block-end: round(calc(1lh - 1cap), 1px);
   }
 
   .sui-card-actions {
@@ -227,6 +292,10 @@ on its title line.
 
     .sui-card-head:has(> .sui-card-actions) > .sui-card-copy {
       padding-block-start: 0;
+    }
+
+    .sui-card-head:has(> .sui-card-actions) .sui-card-title {
+      block-size: var(--sui-block-snap);
     }
 
     .sui-card-actions {
@@ -258,8 +327,11 @@ on its title line.
 
   /* Words that open or close the card start at their cap line and end at their baseline, so
      the ink stands the inset from the top and the bottom alike (L-33). Without weight, so a
-     component that trims its own words keeps both edges, and an only paragraph trims both. */
+     component that trims its own words keeps both edges, and an only paragraph trims both.
+     A trimmed edge cuts a fraction of a pixel, so the box rounds up to the pixel and an only
+     paragraph splits that spare above its cap and under its baseline. */
   :where(.sui-card > :first-child) :global(:where(p, ul, ol, dl, blockquote):first-child) {
+    block-size: var(--sui-block-snap);
     text-box: trim-start cap alphabetic;
   }
 
@@ -268,6 +340,7 @@ on its title line.
   }
 
   :where(.sui-card > :only-child) :global(:where(p, ul, ol, dl, blockquote):only-child) {
+    align-content: center;
     text-box: trim-both cap alphabetic;
   }
 

@@ -109,7 +109,7 @@ edge of the warning hue, and beside a decision it is quiet in the unsaved hue, w
 and the unsaved ink, so no neutral block sits on a state (L-92).
 
 - Semantics: a `div` of one or two paragraphs; with `live` its words also reach a polite `status`, or an `alert` for a warning.
-- Content: an optional 2rem symbol tile, a title, inline description content such as a `Link`, and a few actions; copy wraps and stops at 72 characters a line.
+- Content: an optional 2rem symbol tile, a title, inline description content such as a `Link`, and a few actions; copy wraps at the callout's own width.
 - States: `quiet` on the neutral veil, `warning` on the warning tint, and `decision` on the opaque surface with the gold border and shadow.
 - Keyboard: none of its own; its actions and links take Tab in reading order.
 - Pointer and touch: its actions keep their own 34px and 44px targets.
@@ -229,17 +229,17 @@ and the unsaved ink, so no neutral block sits on a state (L-92).
     justify-content: center;
   }
 
-  /* At least as tall as the tile, so short copy centres on it and long copy starts at its top. */
-  /* 72 characters a line at most, so a wide callout keeps a readable measure. */
+  /* The copy takes the width the callout gives it: a callout is set beside the work in that
+     work's own column, so it already reads at the column's measure. */
   .sui-callout-copy {
     align-content: center;
     display: grid;
     flex: 1;
     gap: var(--sui-row-copy-gap);
-    max-inline-size: 72ch;
     min-inline-size: 0;
   }
 
+  /* At least as tall as the tile, so short copy centres on it and long copy starts at its top. */
   .sui-callout-message:has(> .sui-callout-icon) > .sui-callout-copy {
     min-block-size: var(--sui-symbol-tile);
   }

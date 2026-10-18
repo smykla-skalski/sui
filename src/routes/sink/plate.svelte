@@ -110,18 +110,28 @@
     gap: var(--sui-space-4);
   }
 
+  /* The glyph centres on the words' first line, however many lines they wrap to (L-94), and
+     the words' box rounds up to the pixel, so a state that ends the plate keeps the inset to
+     its baseline. */
   .state {
-    align-items: center;
+    align-items: start;
     color: var(--sui-text-secondary);
     display: inline-flex;
-    font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-leading-meta)
+    font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-row-copy-leading)
       var(--sui-sans);
     gap: var(--sui-space-2);
+    min-inline-size: 0;
+  }
+
+  .state > :global(svg) {
+    margin-block: calc((round(up, 1cap, 1px) - var(--sui-icon-sm)) / 2);
   }
 
   .state > span {
     align-content: center;
     block-size: var(--sui-block-snap);
+    min-inline-size: 0;
+    overflow-wrap: anywhere;
     text-box: trim-both cap alphabetic;
   }
 </style>

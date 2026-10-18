@@ -300,6 +300,82 @@ suite('the kitchen sink', together, () => {
     }
   );
 
+  test('L-102 a wrapped pill keeps its one-line inset and its words inside its corners', async () => {
+    // 200% text wraps the long status onto several lines, where a fully round end would cut
+    // across the first and last lines' words.
+    for (const [width, text] of /** @type {const} */ ([
+      [1440, '100%'],
+      [375, '200%']
+    ])) {
+      const page = await open(width, 'light');
+      try {
+        await page.evaluate((size) => (document.documentElement.style.fontSize = size), text);
+        const off = await page.evaluate(() => {
+          const pills = [...document.querySelectorAll('#pill .sui-pill')];
+          /** @param {Element | undefined} pill */
+          const measure = (pill) => {
+            const label = pill?.querySelector('.sui-pill-label');
+            if (!pill || !label) return null;
+            const look = getComputedStyle(label);
+            const context = document.createElement('canvas').getContext('2d');
+            if (!context) return null;
+            context.font = `${look.fontWeight} ${look.fontSize} ${look.fontFamily}`;
+            const face = context.measureText('H');
+            const range = document.createRange();
+            range.selectNodeContents(label);
+            const box = pill.getBoundingClientRect();
+            const lines = [...range.getClientRects()].map((line) => ({
+              start: line.left - box.left,
+              end: line.right - box.left,
+              cap: line.top + face.fontBoundingBoxAscent - face.actualBoundingBoxAscent - box.top,
+              base: line.top + face.fontBoundingBoxAscent - box.top
+            }));
+            const radius = Math.min(
+              parseFloat(getComputedStyle(pill).borderTopLeftRadius),
+              box.width / 2,
+              box.height / 2
+            );
+            return { width: box.width, height: box.height, radius, lines };
+          };
+          const one = measure(pills.find((pill) => pill.textContent?.trim() === 'Invited'));
+          const wrapped = measure(pills.find((pill) => pill.textContent?.includes('platform')));
+          if (!one || !wrapped) return ['the sink lost its pills'];
+          if (wrapped.lines.length < 2) return ['the long status does not wrap'];
+          const found = [];
+          const top = (/** @type {typeof one} */ pill) => pill.lines[0].cap;
+          const bottom = (/** @type {typeof one} */ pill) =>
+            pill.height - pill.lines[pill.lines.length - 1].base;
+          if (
+            Math.abs(top(wrapped) - top(one)) > 0.5 ||
+            Math.abs(bottom(wrapped) - bottom(one)) > 0.5
+          )
+            found.push(
+              `its words stand ${top(wrapped).toFixed(2)}px and ${bottom(wrapped).toFixed(2)}px from its edges, not ${top(one).toFixed(2)}px as on one line`
+            );
+          // The first line's top corners and the last line's bottom corners, each against the
+          // round corner it stands in.
+          const { radius: r, width, height, lines } = wrapped;
+          const [first, last] = [lines[0], lines[lines.length - 1]];
+          const corners = [
+            [first.start, first.cap],
+            [width - first.end, first.cap],
+            [last.start, height - last.base],
+            [width - last.end, height - last.base]
+          ];
+          for (const [x, y] of corners)
+            if (x < r && y < r && Math.hypot(r - x, r - y) > r)
+              found.push(
+                `a word's corner at ${x.toFixed(1)}, ${y.toFixed(1)} reaches past a ${r}px round corner`
+              );
+          return found;
+        });
+        assert.deepEqual(off, [], `${width}px at ${text} text`);
+      } finally {
+        await page.close();
+      }
+    }
+  });
+
   test('L-69 every glyph is centred in its 24-unit box', long, async () => {
     const page = await open(1440, 'light');
     try {

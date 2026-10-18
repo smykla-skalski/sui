@@ -68,7 +68,7 @@ start.
 - Content: a short verb phrase that names the result, an optional leading `icon` and an optional `trailing` mark; a long or translated label wraps onto more lines inside its container.
 - States: rest, hover (a veil and a firmer edge), focus (a 2px ring, flush on bordered tones and 2px off a filled one), pressed (a deeper ground, an inset shadow and a 1px sink), loading (a spinner, busy) and disabled (0.5 opacity, default cursor).
 - Keyboard: Tab reaches it, and Enter or Space presses a button while Enter follows an anchor; a loading or disabled one refuses both.
-- Pointer and touch: 34px tall on a pointer and 44px on a phone or any touch screen, at least as wide as its label, and a press is never a drag.
+- Pointer and touch: 34px tall on a pointer and 44px on a phone or any touch screen, at least as wide as its label, and a press is never a drag; a surface may keep it drawn at 34px on a phone with `--sui-local-button-seat`, and its hit area still grows to 44px.
 - Focus: pressing never moves focus, and a loading button keeps it; the caller moves focus when the press removes the button.
 - Responsive: as wide as its words up to its container or 20rem, and wider words wrap onto more lines, each keeping the one-line inset, instead of scrolling the page.
 - Accessibility: the label is the name, `loading` sets `aria-busy` and `aria-disabled`, every tone's ink holds 4.5:1 on its fill, and forced colours draw hover with a highlight edge.
@@ -123,7 +123,11 @@ start.
   .sui-button {
     --sui-control-state-layer: transparent;
     --sui-local-button-line: calc(
-      var(--sui-local-control-height, var(--sui-control-height-compact)) - 2 * var(--sui-stroke)
+      var(
+          --sui-local-button-seat,
+          var(--sui-local-control-height, var(--sui-control-height-compact))
+        ) -
+        2 * var(--sui-stroke)
     );
     align-items: flex-start;
     background-color: var(--sui-surface-raised);
@@ -144,7 +148,10 @@ start.
     justify-content: center;
     margin: 0;
     max-inline-size: min(100%, 20rem);
-    min-block-size: var(--sui-local-control-height, var(--sui-control-height-compact));
+    min-block-size: var(
+      --sui-local-button-seat,
+      var(--sui-local-control-height, var(--sui-control-height-compact))
+    );
     padding: 0 var(--sui-space-3);
     text-align: center;
     text-decoration: none;
@@ -199,6 +206,21 @@ start.
 
   .sui-button-part:last-child > :global(svg) {
     margin-inline-end: calc(-1 * var(--sui-icon-ink-end, 0px));
+  }
+
+  /* A surface that draws a button at the pointer's tier on a phone too
+     (`--sui-local-button-seat`), as a card's head does its ghost action, still gives a finger
+     44px: the hit area grows past the drawn box (L-38), and never shrinks below it. */
+  @media (pointer: coarse), (max-width: 47.9375rem) {
+    .sui-button {
+      position: relative;
+    }
+
+    .sui-button::after {
+      content: '';
+      inset: calc((100% - max(100%, var(--sui-touch-target))) / 2);
+      position: absolute;
+    }
   }
 
   @media (hover: hover) {

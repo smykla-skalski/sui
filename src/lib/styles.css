@@ -389,10 +389,19 @@
   --sui-leading-input: 1.25rem;
   --sui-leading-body: 1.4375rem;
   --sui-leading-title: 1.625rem;
+  /* A card or plate title's lines hold together as one block over its note: 17px on 22px,
+     so a descender still clears the next line's ascender by about 5px. */
+  --sui-leading-card-title: 1.375rem;
+  /* Display sizes set tighter than copy, about 1.15 rounded to 4px (Atlassian's 28/32 and
+     24/28), so a wrapped title's lines hold together; descenders still clear the next line's
+     ascenders by over 4px. */
   --sui-leading-page: 2rem;
   --sui-leading-page-compact: 1.75rem;
 
   --sui-radius-pill: 999px;
+  /* Fully round on a mark one line tall, and the same corner once its words wrap, so every
+     line keeps the one-line inset inside it. */
+  --sui-radius-mark: calc(var(--sui-tier-mark) / 2);
   --sui-radius-control: 8px;
   --sui-radius-surface: 10px;
   --sui-radius-popover: 12px;
@@ -405,6 +414,9 @@
      rounded to the pixel, so words and glyphs never outgrow their control (WCAG 1.4.4). */
   --sui-control-height: max(40px, round(2.5rem, 1px));
   --sui-control-height-compact: max(34px, round(2.125rem, 1px));
+  /* The compact control as drawn at every width, for a quiet control that a surface keeps at
+     the pointer's tier on a phone too, while its hit area alone grows to the touch target. */
+  --sui-control-height-drawn: max(34px, round(2.125rem, 1px));
 
   --sui-control-height-chip: max(24px, round(1.5rem, 1px));
   --sui-control-height-chip-small: max(20px, round(1.25rem, 1px));
