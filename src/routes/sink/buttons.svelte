@@ -63,12 +63,19 @@
 
 <Example
   title="Long label"
-  note="A long or translated label wraps inside its container and never scrolls the page"
-  layout="stack"
+  note="A long or translated label wraps inside its container, at most 20rem wide, and every line keeps the one-line inset"
 >
   <Specimen label="Wrapped label">
     <div class="narrow">
-      <Button>Move every repository to the new organization</Button>
+      <Button>Move repositories to the new organization</Button>
+    </div>
+  </Specimen>
+  <Specimen label="Wrapped with an icon" code="icon">
+    <div class="narrow">
+      <Button>
+        {#snippet icon()}<Icon name="repositories" size="sm" />{/snippet}
+        Move repositories to the new organization
+      </Button>
     </div>
   </Specimen>
 </Example>

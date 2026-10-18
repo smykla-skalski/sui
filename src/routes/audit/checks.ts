@@ -597,6 +597,36 @@ function inkLines(element: Element): { top: number; bottom: number } | null {
   return { top: first.top + face.ascent - face.cap, bottom: last.top + face.ascent };
 }
 
+/**
+ * A button's ink insets: from its inner top edge to the first line's cap, and from the last
+ * line's baseline to its inner bottom edge, against the inset one line has in its tier.
+ */
+function buttonInsets(
+  button: Element
+): { top: number; bottom: number; line: number; wrapped: boolean } | null {
+  const label = button.querySelector(':scope > .sui-button-label');
+  if (!label || !shown(label)) return null;
+  const ink = inkLines(label);
+  const face = faceMetrics(getComputedStyle(label));
+  if (!ink || !face) return null;
+  const look = getComputedStyle(button);
+  const box = button.getBoundingClientRect();
+  const inner = {
+    top: box.top + parseFloat(look.borderTopWidth),
+    bottom: box.bottom - parseFloat(look.borderBottomWidth)
+  };
+  const row =
+    parseFloat(look.minBlockSize) -
+    parseFloat(look.borderTopWidth) -
+    parseFloat(look.borderBottomWidth);
+  return {
+    top: ink.top - inner.top,
+    bottom: inner.bottom - ink.bottom,
+    line: (row - face.cap) / 2,
+    wrapped: ink.bottom - ink.top > face.cap * 1.5
+  };
+}
+
 function cardInsets(card: Element) {
   // Placeholders stand in for rows still loading; the insets are judged on what arrives.
   if (card.querySelector("[aria-busy='true']")) return null;
@@ -743,10 +773,26 @@ function geometry(root: Document): Finding[] {
     if (control.matches("[role='menuitem'], [role='option']")) continue;
     const { height } = control.getBoundingClientRect();
     if (height === 0 || height > 60) continue;
+    // A button whose label wraps grows by its lines; its insets are weighed below.
+    if (buttonInsets(control)?.wrapped) continue;
     if (!Number.isInteger(round(height, 3)))
       found.push(finding('L-37', control, `height ${round(height, 3)}px is not a whole pixel`));
     else if (!tiers.has(Math.round(height)))
       found.push(finding('L-37', control, `height ${round(height)}px is not a control tier`));
+  }
+
+  for (const button of audited(root, '.sui-button')) {
+    const insets = buttonInsets(button);
+    if (!insets) continue;
+    const { top, bottom, line } = insets;
+    if (Math.abs(top - line) > 0.5 || Math.abs(bottom - line) > 0.5)
+      found.push(
+        finding(
+          'L-37',
+          button,
+          `its words stand ${round(top)}px and ${round(bottom)}px from its edges, not ${round(line)}px as on one line`
+        )
+      );
   }
 
   for (const field of audited(

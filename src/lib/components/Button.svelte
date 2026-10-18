@@ -70,7 +70,7 @@ start.
 - Keyboard: Tab reaches it, and Enter or Space presses a button while Enter follows an anchor; a loading or disabled one refuses both.
 - Pointer and touch: 34px tall on a pointer and 44px on a phone or any touch screen, at least as wide as its label, and a press is never a drag.
 - Focus: pressing never moves focus, and a loading button keeps it; the caller moves focus when the press removes the button.
-- Responsive: as wide as its words up to its container, and wider words wrap onto a second line at 40 or 44px instead of scrolling the page.
+- Responsive: as wide as its words up to its container or 20rem, and wider words wrap onto more lines, each keeping the one-line inset, instead of scrolling the page.
 - Accessibility: the label is the name, `loading` sets `aria-busy` and `aria-disabled`, every tone's ink holds 4.5:1 on its fill, and forced colours draw hover with a highlight edge.
 - Localization: it draws no words of its own; the leading icon and the gap follow the reading direction, and directional glyphs mirror in a right-to-left page.
 - Performance: one element, and only colours, the inset shadow and the 1px sink move, with no movement under reduced motion.
@@ -80,13 +80,13 @@ start.
 
 {#snippet body()}
   {#if loading}
-    <span class="sui-button-spinner" aria-hidden="true"></span>
+    <span class="sui-button-part"><span class="sui-button-spinner" aria-hidden="true"></span></span>
   {:else if icon}
-    {@render icon()}
+    <span class="sui-button-part">{@render icon()}</span>
   {/if}
   <span class="sui-button-label">{@render children()}</span>
   {#if trailing}
-    {@render trailing()}
+    <span class="sui-button-part">{@render trailing()}</span>
   {/if}
 {/snippet}
 
@@ -117,9 +117,15 @@ start.
 {/if}
 
 <style>
+  /* Every line of the label keeps the inset one line has, so a label that wraps grows the
+     button by whole lines and never presses against its edge, and the parts beside it hang on
+     its first line (L-37, L-94). */
   .sui-button {
     --sui-control-state-layer: transparent;
-    align-items: center;
+    --sui-local-button-line: calc(
+      var(--sui-local-control-height, var(--sui-control-height-compact)) - 2 * var(--sui-stroke)
+    );
+    align-items: flex-start;
     background-color: var(--sui-surface-raised);
     background-image: linear-gradient(
       var(--sui-control-state-layer),
@@ -137,11 +143,9 @@ start.
     inline-size: fit-content;
     justify-content: center;
     margin: 0;
-    max-inline-size: 100%;
+    max-inline-size: min(100%, 20rem);
     min-block-size: var(--sui-local-control-height, var(--sui-control-height-compact));
-    /* One line centres in the tier; two lines of the meta leading land on 40px, or 44px on a
-       phone, so a wrapped label still stands on a control tier (L-37). */
-    padding: var(--sui-space-1) var(--sui-space-3);
+    padding: 0 var(--sui-space-3);
     text-align: center;
     text-decoration: none;
     touch-action: manipulation;
@@ -155,19 +159,34 @@ start.
 
   .sui-button-label {
     align-content: center;
-    block-size: var(--sui-block-snap);
+    block-size: var(--sui-block-snap-even);
     line-height: var(--sui-leading-meta);
+    margin-block: calc((var(--sui-local-button-line) - round(up, 1cap, 2px)) / 2);
     min-inline-size: 0;
     overflow-wrap: anywhere;
     text-box: trim-both cap alphabetic;
     text-wrap: balance;
   }
 
-  .sui-button > :global(svg:first-child:not(:only-child)) {
+  /* A wrapped label fills the button, so beside an icon or a mark its lines start at that part
+     rather than centring away from it. */
+  .sui-button-part + .sui-button-label,
+  .sui-button-label:has(+ .sui-button-part) {
+    text-align: start;
+  }
+
+  .sui-button-part {
+    align-items: center;
+    block-size: var(--sui-local-button-line);
+    display: flex;
+    flex: none;
+  }
+
+  .sui-button-part:first-child > :global(svg) {
     margin-inline-start: calc(-1 * var(--sui-icon-ink-start, 0px));
   }
 
-  .sui-button > :global(svg:last-child:not(:only-child)) {
+  .sui-button-part:last-child > :global(svg) {
     margin-inline-end: calc(-1 * var(--sui-icon-ink-end, 0px));
   }
 
