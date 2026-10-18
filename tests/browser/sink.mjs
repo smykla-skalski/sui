@@ -1,7 +1,7 @@
 import { existsSync } from 'node:fs';
 import { availableParallelism } from 'node:os';
 import { chromium } from 'playwright-core';
-import { createServer } from 'vite';
+import { build, createServer, preview } from 'vite';
 
 /**
  * Options for a test that takes long, such as an axe or a picture pass over the whole sink or a
@@ -20,11 +20,24 @@ export const together = { concurrency: Math.max(2, Math.floor(availableParalleli
 const launch = () => chromium.launch({ channel: process.env.SUI_BROWSER_CHANNEL ?? 'chrome' });
 
 /**
- * Starts the kitchen sink on a free port. Without a dependency cache, as in CI, the server
- * optimizes its dependencies on the first visit and then reloads the page, so one visit happens
- * here, before any test presses anything on a page that is about to reload.
+ * Starts the kitchen sink on a free port, built once and served as static files. A dev server
+ * sends each page about 500 modules one by one, so the pages a run opens side by side wait on it
+ * in turn and pass the 30-second wait. `SUI_SINK_DEV=1` serves the dev server instead, for a
+ * quick run of one file while editing.
  */
 export async function serveSink() {
+  if (process.env.SUI_SINK_DEV) return serveDev();
+  await build({ logLevel: 'error' });
+  const server = await preview({ logLevel: 'error', preview: { port: 0 } });
+  return { server, url: server.resolvedUrls?.local[0] ?? '' };
+}
+
+/**
+ * Without a dependency cache, as in CI, the dev server optimizes its dependencies on the first
+ * visit and then reloads the page, so one visit happens here, before any test presses anything
+ * on a page that is about to reload.
+ */
+async function serveDev() {
   // The sink's modules are transformed while the test files and their browsers start.
   const server = await createServer({
     logLevel: 'error',
@@ -49,18 +62,25 @@ export async function serveSink() {
 /**
  * A browser for the sink, started on its first page, so a file whose tests are all skipped
  * starts none. The run's global setup serves one sink for every file through `SUI_SINK_URL`; a
- * file run on its own serves its own.
+ * file run on its own serves its own. `dev` serves a dev server of its own, for a test of what
+ * only the dev server does.
+ * @param {{ dev?: boolean }} [options]
  * @returns {Promise<{ server: { close: () => Promise<void> }; browser: SinkBrowser; url: string }>}
  */
-export async function startSink() {
-  const shared = process.env.SUI_SINK_URL;
-  const own = shared ? null : await serveSink();
+export async function startSink({ dev = false } = {}) {
+  const shared = dev ? undefined : process.env.SUI_SINK_URL;
+  const own = shared ? null : await (dev ? serveDev() : serveSink());
   /** @type {Promise<import('playwright-core').Browser> | undefined} */
   let started;
   return {
     server: { close: async () => void (await own?.server.close()) },
     browser: {
-      newPage: async (options) => (await (started ??= launch())).newPage(options),
+      // The built sink registers its service worker, whose caches would carry one test's
+      // answers into the next; a dev sink registers none, and its own test asks for one.
+      newPage: async (options) =>
+        (await (started ??= launch())).newPage(
+          dev ? options : { serviceWorkers: 'block', ...options }
+        ),
       close: async () => void (await (await started)?.close())
     },
     url: shared ?? own?.url ?? ''

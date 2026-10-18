@@ -31,7 +31,7 @@ async function holds(page, check, arg, timeout) {
 }
 
 test('a dev page never runs a build’s caches: it registers no worker, and one left behind leaves', async (t) => {
-  const { server, browser, url } = await startSink();
+  const { server, browser, url } = await startSink({ dev: true });
   t.after(async () => {
     await browser.close();
     await server.close();

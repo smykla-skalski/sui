@@ -1,6 +1,6 @@
 import { serveSink } from './sink.mjs';
 
-/** @type {import('vite').ViteDevServer | undefined} */
+/** @type {{ close: () => Promise<void> } | undefined} */
 let server;
 
 /** One sink for every browser test file, so each file starts only its own browser. */
