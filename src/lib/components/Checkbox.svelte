@@ -115,7 +115,12 @@ way; a busy dialog or a saving pane around it disables it while the work runs.
       aria-disabled={locked || ariaDisabled}
       onclick={press}
     />
-    <span class="sui-checkbox-box" class:invalid={wrong} aria-hidden="true">
+    <span
+      class="sui-checkbox-box"
+      class:invalid={wrong}
+      class:mixed={indeterminate}
+      aria-hidden="true"
+    >
       {#if indeterminate}
         <span class="sui-checkbox-dash"></span>
       {:else}
@@ -246,7 +251,11 @@ way; a busy dialog or a saving pane around it disables it while the work runs.
     position: relative;
   }
 
-  .sui-checkbox input:is(:checked, :indeterminate) + .sui-checkbox-box {
+  /* A partly chosen box is drawn from the prop, which the server renders too: the input's
+     `indeterminate` exists only once script sets it, so `:indeterminate` would fill the box a
+     moment after the first paint. */
+  .sui-checkbox input:checked + .sui-checkbox-box,
+  .sui-checkbox input + .sui-checkbox-box.mixed {
     background: var(--sui-brand-action);
     border-color: var(--sui-brand-action);
     color: var(--sui-on-brand-action);
@@ -318,7 +327,8 @@ way; a busy dialog or a saving pane around it disables it while the work runs.
       forced-color-adjust: none;
     }
 
-    .sui-checkbox input:is(:checked, :indeterminate) + .sui-checkbox-box {
+    .sui-checkbox input:checked + .sui-checkbox-box,
+    .sui-checkbox input + .sui-checkbox-box.mixed {
       background: Highlight;
       border-color: Highlight;
       color: HighlightText;
