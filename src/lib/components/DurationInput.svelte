@@ -168,9 +168,8 @@
       : null
   );
   const describedby = $derived(
-    [describedBy, hint !== null && `${uid}-hint`, showing && `${uid}-problem`]
-      .filter(Boolean)
-      .join(' ') || undefined
+    [describedBy, (hint !== null || showing) && `${uid}-described`].filter(Boolean).join(' ') ||
+      undefined
   );
   const named = $derived(
     Boolean(rest['aria-label'] || rest['aria-labelledby'] || amount?.labels?.length)
@@ -290,11 +289,15 @@ at its `id`, or with `label`; other attributes land on the amount.
   </JoinedField>
   {#if name}<input type="hidden" {name} {value} form={rest.form} {disabled} />{/if}
   <span id="{uid}-unit" hidden>{unitName(field)}</span>
-  {#if hint !== null}<p id="{uid}-hint" class="sui-duration-hint">{hint}</p>{/if}
-  <!-- The status speaks the problem, so the drawn copy stays out of the tree; the amount's
-       description still reads it. -->
+  <!-- The hint and the problem are both this field's words, so the amount's description joins
+       them with the language's stop instead of the bare space a browser puts between ids. -->
+  <span id="{uid}-described" hidden
+    >{[hint, showing ? problem : null].filter(Boolean).join(mark('stop'))}</span
+  >
+  {#if hint !== null}<p class="sui-duration-hint">{hint}</p>{/if}
+  <!-- The status speaks the problem, so the drawn copy stays out of the tree. -->
   {#if showing}
-    <p id="{uid}-problem" class="sui-duration-problem" aria-hidden="true">
+    <p class="sui-duration-problem" aria-hidden="true">
       <span class="sui-duration-mark"><Icon name="alert" size="xs" /></span>
       <span class="sui-duration-words">{problem}</span>
     </p>

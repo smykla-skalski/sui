@@ -21,32 +21,68 @@ after(async () => {
   await server?.close();
 });
 
-test('a required legend from the server keeps the space before its word', async () => {
+test('a space mark from the server stays in the name beside its word', async () => {
   const page = await browser.newPage();
   try {
     await visit(page, url);
     const cdp = await page.context().newCDPSession(page);
-    const { result } = await cdp.send('Runtime.evaluate', {
-      expression:
-        "[...document.querySelectorAll('fieldset:has(.sui-check-list-required, .sui-choice-cards-required)')]"
-    });
-    const { result: found } = await cdp.send('Runtime.getProperties', {
-      objectId: result.objectId ?? '',
-      ownProperties: true
-    });
-    const names = [];
-    for (const entry of found.filter((entry) => /^\d+$/.test(entry.name))) {
-      const { nodes } = await cdp.send('Accessibility.getPartialAXTree', {
-        objectId: entry.value?.objectId,
-        fetchRelatives: false
+    /** @param {string} selector */
+    const names = async (selector) => {
+      const { result } = await cdp.send('Runtime.evaluate', {
+        expression: `[...document.querySelectorAll(${JSON.stringify(selector)})]`
       });
-      names.push(nodes[0].name?.value);
-    }
-    assert.ok(names.length > 0, 'the sink holds no required legend');
+      const { result: found } = await cdp.send('Runtime.getProperties', {
+        objectId: result.objectId ?? '',
+        ownProperties: true
+      });
+      const read = [];
+      for (const entry of found.filter((entry) => /^\d+$/.test(entry.name))) {
+        const { nodes } = await cdp.send('Accessibility.getPartialAXTree', {
+          objectId: entry.value?.objectId,
+          fetchRelatives: false
+        });
+        read.push(nodes[0].name?.value);
+      }
+      return read;
+    };
+    const legends = await names(
+      'fieldset:has(.sui-check-list-required, .sui-choice-cards-required)'
+    );
+    assert.ok(legends.length > 0, 'the sink holds no required legend');
     assert.deepEqual(
-      names.filter((name) => !/\S Required$/.test(name ?? '')),
+      legends.filter((name) => !/\S Required$/.test(name ?? '')),
       []
     );
+    // A closed list's options are out of the tree, so the first list with a note opens.
+    const list = await page.$$eval('[role="combobox"]', (inputs) =>
+      inputs
+        .find(
+          (input) =>
+            input instanceof HTMLInputElement &&
+            !input.disabled &&
+            !input.readOnly &&
+            input.checkVisibility() &&
+            document
+              .getElementById(input.getAttribute('aria-controls') ?? '')
+              ?.querySelector('.sui-combobox-note')
+        )
+        ?.getAttribute('aria-controls')
+    );
+    assert.ok(list, 'the sink holds no option with a note');
+    const input = page.locator(`[aria-controls="${list}"]`);
+    await input.scrollIntoViewIfNeeded();
+    await input.focus();
+    await page.keyboard.press('ArrowDown');
+    const noted = `#${list} .sui-combobox-option:has(.sui-combobox-note)`;
+    await page.locator(noted).first().waitFor();
+    const options = await names(noted);
+    const words = await page.$$eval(noted, (found) =>
+      found.map(
+        (option) =>
+          `${option.querySelector('.sui-combobox-label')?.textContent?.trim()} ${option.querySelector('.sui-combobox-note')?.textContent?.trim()}`
+      )
+    );
+    assert.deepEqual(options, words);
   } finally {
     await page.close();
   }
@@ -67,6 +103,7 @@ test('with every mark replaced, each joined name reads the marks and nothing bet
       lib.setWords({
         'marks.comma': 'ⓒ',
         'marks.space': 'ⓟ',
+        'marks.stop': 'ⓢ',
         'Card.unsavedLabel': 'NIEZAP',
         'SettingRow.unsavedLabel': 'NIEZAP',
         'CheckList.requiredLabel': 'WYM',
@@ -156,7 +193,9 @@ test('with every mark replaced, each joined name reads the marks and nothing bet
         tone: 'warning',
         title: 'Drift',
         live: true,
-        children: html('<span>Read <span data-link></span> now <span data-pill></span></span>')
+        children: html(
+          '<span>Read <span data-link></span> now <span data-pill></span>, ask <span data-tip></span> or <span data-copy></span></span>'
+        )
       });
       flushSync();
       // A link and a pill in the live words, each with words a screen reader alone hears.
@@ -166,6 +205,11 @@ test('with every mark replaced, each joined name reads the marks and nothing bet
         target: slot('link'),
         props: { href: 'https://example.com', children: html('<span>Docs</span>') }
       });
+      mount(lib.HelpTip, {
+        target: slot('tip'),
+        props: { label: 'About drift', text: 'Drift means the files differ' }
+      });
+      mount(lib.CopyButton, { target: slot('copy'), props: { text: 'abc' } });
       mount(lib.Pill, {
         target: slot('pill'),
         props: { live: true, children: html('<span>Run</span>') }
@@ -181,6 +225,7 @@ test('with every mark replaced, each joined name reads the marks and nothing bet
         filter: tool('State', ['All', 'Archived']),
         tools: [tool('Sort', ['Updated', 'Name']), tool('Show', ['Open', 'Closed'])]
       });
+      put(lib.DurationInput, 'DurationInput', { label: 'Delay', value: 5, min: 60, max: 86_400 });
       put(lib.IdentityRow, 'IdentityRow', { name: 'Ada Lovelace', handle: '@ada' }, 'button');
       flushSync();
     });
@@ -250,7 +295,19 @@ test('with every mark replaced, each joined name reads the marks and nothing bet
     await page.waitForFunction(
       () => document.querySelector('[data-words="Callout"] [role="alert"]')?.textContent !== ''
     );
-    assert.equal(await callout.textContent(), 'UWAGAⓟDriftⓟRead Docs\u2060 now RunⓒNAZYWO');
+    // What Chrome reads of the copy: the tip and the copy control by their names, and neither
+    // the closed tip, the hidden note nor the copy control's unshown state words.
+    assert.equal(
+      await callout.textContent(),
+      'UWAGAⓟDriftⓟRead Docs\u2060 now RunⓒNAZYWO, ask About drift or Copy'
+    );
+
+    const duration = await read('[data-words="DurationInput"] input:not([type="hidden"])');
+    const shown = await page
+      .locator('[data-words="DurationInput"] :is(.sui-duration-hint, .sui-duration-words)')
+      .allTextContents();
+    assert.equal(shown.length, 2, 'the hint or the problem is not drawn');
+    assert.equal(duration.description, shown.map((text) => text.trim()).join('ⓢ'));
   } finally {
     await page.close();
   }

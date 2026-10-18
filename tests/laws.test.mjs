@@ -508,6 +508,12 @@ test('K9 every built-in word reads through word(), so setWords can replace it', 
     );
     for (const [join] of raw.matchAll(/<VisuallyHidden\b[^>]*>\s*\{\s*(?:mark|joiner)\([^)]*\)\}/g))
       found.push(`${path}: ${join.replace(/\s+/g, ' ')}`);
+    // A space mark alone between a block or a tag and an element is a text node of its own, and
+    // after a server render Chrome drops it from the name; it goes inside the next element.
+    for (const [join] of raw.matchAll(
+      /(?:\{[#:][^{}]*\}|>)\s*\{\s*(?:mark|joiner)\(\s*'space'\s*\)\}\s*</g
+    ))
+      found.push(`${path}: a lone space mark: ${join.replace(/\s+/g, ' ')}`);
   }
   for (const path of [...svelteFiles, ...scriptFiles].filter((file) => file.startsWith('src/lib/')))
     for (const [join] of read(path).matchAll(/textContent[^;]*?\.join\(\s*' '\s*\)/g))
