@@ -273,13 +273,12 @@ line, or in the file name's row when there is one. It copies `code` exactly as g
     text-box: trim-both cap alphabetic;
   }
 
-  /* Beside a file name too long to share its row, the control takes a row of its own, still at
-     the end. */
+  /* Beside a file name too long to share its row, the control takes a row of its own, from the
+     start edge (L-90). */
   .sui-code-block-copy {
     align-self: start;
     display: flex;
     flex: none;
-    margin-inline-start: auto;
     padding: var(--sui-space-2);
   }
 

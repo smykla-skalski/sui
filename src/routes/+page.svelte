@@ -214,6 +214,9 @@
     --sink-floor: calc(var(--sui-touch-target) + 2 * var(--sink-float));
 
     scroll-padding-block-start: calc(var(--sink-bar) + var(--sui-space-4));
+    /* Anything scrolled into view, focus included, stops clear of the floating button (WCAG
+       2.4.11). */
+    scroll-padding-block-end: var(--sink-floor);
   }
 
   /* The index column sits beside the reading column, so the page is wider by the index. */
