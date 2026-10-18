@@ -248,8 +248,8 @@ line, or in the file name's row when there is one. It copies `code` exactly as g
     border-radius: var(--sui-radius-control);
     box-sizing: border-box;
     color: var(--sui-text-primary);
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) auto;
+    display: flex;
+    flex-wrap: wrap;
     margin: 0;
     min-inline-size: 0;
   }
@@ -265,6 +265,7 @@ line, or in the file name's row when there is one. It copies `code` exactly as g
     font: var(--sui-weight-regular) var(--sui-font-size-micro) / var(--sui-leading-micro)
       var(--sui-mono);
     font-variant-numeric: tabular-nums;
+    flex: 1 1 8rem;
     letter-spacing: 0.04em;
     min-block-size: var(--sui-local-code-row);
     overflow-wrap: anywhere;
@@ -272,9 +273,13 @@ line, or in the file name's row when there is one. It copies `code` exactly as g
     text-box: trim-both cap alphabetic;
   }
 
+  /* Beside a file name too long to share its row, the control takes a row of its own, still at
+     the end. */
   .sui-code-block-copy {
     align-self: start;
     display: flex;
+    flex: none;
+    margin-inline-start: auto;
     padding: var(--sui-space-2);
   }
 
@@ -282,8 +287,10 @@ line, or in the file name's row when there is one. It copies `code` exactly as g
     border-radius: inherit;
     font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-leading-meta)
       var(--sui-mono);
+    flex: 1 1 0;
     font-variant-numeric: tabular-nums;
     margin: 0;
+    min-inline-size: 0;
     overflow-x: auto;
     padding-block: calc((var(--sui-local-code-row) - var(--sui-leading-meta)) / 2);
   }
@@ -293,7 +300,7 @@ line, or in the file name's row when there is one. It copies `code` exactly as g
     border-block-start: var(--sui-stroke) solid var(--sui-border-divider);
     border-start-end-radius: 0;
     border-start-start-radius: 0;
-    grid-column: 1 / -1;
+    flex-basis: 100%;
   }
 
   /* Rounded even when `bare` squares the block, so the inset ring never has sharp corners. */
