@@ -70,6 +70,7 @@
         'page-header',
         'section',
         'detail-pane',
+        'list-detail',
         'page-toc',
         'code-block',
         'diff-block',

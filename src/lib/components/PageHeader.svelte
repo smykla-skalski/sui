@@ -86,7 +86,7 @@ and the header owes only the difference.
 - States: none of its own; `status` says the thing's state in its own words, and the controls in `actions` draw theirs.
 - Keyboard: none of its own; Tab reaches the kicker's links and the actions in reading order.
 - Pointer and touch: none of its own; the actions keep their own targets.
-- Focus: nothing here moves focus.
+- Focus: nothing here moves focus; a script may move focus to the title as a reading position, after a navigation or from a `ListDetail`, and since it is not a control it draws no ring.
 - Responsive: the header answers to its own width, so the actions wrap under the copy, packed to the start, once the copy would have under 20rem; the title balances its lines, the status moves under a title that leaves it no room, as on a phone, and the copy and the facts wrap.
 - Accessibility: the title is a real heading and the copy holds 4.5:1 on the band; the status is a `role="status"` region, so a change is announced politely and never as part of the heading; the eyebrow is uppercase only for its few words; the foot's hairline is a border, so under forced colors, where the band and the page share one ground, it draws in the system's line colour.
 - Localization: it draws no words of its own; the actions pack to the start, which mirrors in a right-to-left page.
@@ -213,6 +213,13 @@ and the header owes only the difference.
     overflow-wrap: break-word;
     text-box: trim-both cap alphabetic;
     text-wrap: balance;
+  }
+
+  /* A script lands focus on the title as a reading position, after a navigation or from a
+     ListDetail. It is never a tab stop or a control, so it draws no ring, which around a box
+     trimmed to the cap would cut the descenders and run into the kicker above. */
+  .sui-page-header-title:focus {
+    outline: none;
   }
 
   /* Proximity: a wrapped title's lines stand 1lh - 1cap apart in ink, so the description stands

@@ -2490,7 +2490,8 @@ function sectionHeads(root: Document): Finding[] {
  * One line per boundary (L-109): two parallel rules that share a stretch never stand within
  * 8px of each other. A rule is a top or bottom border of a box with no side borders, as a
  * frame's edge is not a rule, or a hairline `::before` or `::after`, at least half as wide as
- * its container. Rules on fixed or sticky chrome move against the page, so they are left out.
+ * its container. Rules on fixed or sticky chrome move against the page, so they are left out,
+ * and so are rules a scrolling or clipping box hides, which no reader sees beside another.
  */
 function boundaryLines(root: Document): Finding[] {
   const found: Finding[] = [];
@@ -2498,6 +2499,14 @@ function boundaryLines(root: Document): Finding[] {
   const pinned = (element: Element) => {
     for (let node: Element | null = element; node; node = node.parentElement)
       if (/^(fixed|sticky)$/.test(getComputedStyle(node).position)) return true;
+    return false;
+  };
+  const clipped = (element: Element, top: number) => {
+    for (let node = element.parentElement; node; node = node.parentElement)
+      if (/auto|scroll|hidden|clip/.test(getComputedStyle(node).overflowY)) {
+        const box = node.getBoundingClientRect();
+        if (top < box.top || top > box.bottom) return true;
+      }
     return false;
   };
   for (const element of audited(root, 'body *:not(svg, svg *)')) {
@@ -2534,7 +2543,7 @@ function boundaryLines(root: Document): Finding[] {
     }
   }
   const page = rules
-    .filter((rule) => !pinned(rule.element))
+    .filter((rule) => !pinned(rule.element) && !clipped(rule.element, rule.top))
     .sort((one, other) => one.top - other.top);
   for (const [index, one] of page.entries())
     for (const other of page.slice(index + 1)) {

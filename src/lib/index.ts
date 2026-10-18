@@ -76,6 +76,7 @@ export { default as Disclosure } from './components/Disclosure.svelte';
 export { default as PageHeader } from './components/PageHeader.svelte';
 export { default as Section } from './components/Section.svelte';
 export { default as DetailLayout } from './components/DetailLayout.svelte';
+export { default as ListDetail } from './components/ListDetail.svelte';
 export { default as PageToc } from './components/PageToc.svelte';
 export type { TocEntry } from './components/PageToc.svelte';
 export { default as CodeBlock } from './components/CodeBlock.svelte';

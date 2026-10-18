@@ -576,4 +576,97 @@ suite('navigation', together, () => {
         }
     }
   );
+
+  test(
+    'a narrow list-detail opens a run over its list, and its way back lands on the row in place',
+    long,
+    async () => {
+      const page = await open(1440);
+      try {
+        const narrow = pair(page, 3);
+        await narrow.scrollIntoViewIfNeeded();
+        const place = await narrow.evaluate((box) => {
+          box.scrollTop = box.scrollHeight;
+          return box.scrollTop;
+        });
+        await narrow.locator('a[href="#list-detail-run-4174"]').focus();
+        await page.keyboard.press('Enter');
+        assert.ok(
+          await settles(
+            page.waitForFunction(
+              () => document.activeElement?.matches('h1, h2, h3, h4'),
+              null,
+              brief
+            )
+          ),
+          'opening a run left focus on its row'
+        );
+        assert.equal(await focused(page), 'Deploy web #4174', 'focus is not on the run title');
+        assert.equal(
+          await narrow.locator('.sui-list-detail-list').isVisible(),
+          false,
+          'the list stayed beside the run'
+        );
+
+        // The way back is the stop before the title, so Shift+Tab reaches it.
+        await page.keyboard.press('Shift+Tab');
+        assert.equal(
+          await focused(page),
+          '#list-detail-runs',
+          'the way back is not before the title'
+        );
+        await page.keyboard.press('Enter');
+        assert.ok(
+          await settles(
+            page.waitForFunction(
+              () => document.activeElement?.getAttribute('href') === '#list-detail-run-4174',
+              null,
+              brief
+            )
+          ),
+          `the way back left focus on ${await focused(page)}`
+        );
+        assert.ok(
+          Math.abs((await narrow.evaluate((box) => box.scrollTop)) - place) <= 1,
+          'the list did not come back to where it was scrolled'
+        );
+      } finally {
+        await page.close();
+      }
+    }
+  );
+
+  test('a wide list-detail keeps its list in place and marks the run it opens', long, async () => {
+    const page = await open(1440);
+    try {
+      const wide = pair(page, 0);
+      await wide.scrollIntoViewIfNeeded();
+      const list = wide.locator('.sui-list-detail-list');
+      // The row stands whole in the scrolled list, so the press scrolls nothing itself.
+      await list.evaluate((pane) => (pane.scrollTop = 120));
+      await wide.locator('a[href="#list-detail-run-4176"]').click();
+      assert.ok(
+        await settles(
+          page.waitForFunction(() => document.activeElement?.matches('h1, h2, h3, h4'), null, brief)
+        ),
+        'opening a run left focus on its row'
+      );
+      assert.equal(await focused(page), 'Deploy web #4176', 'focus is not on the run title');
+      assert.equal(await list.evaluate((pane) => pane.scrollTop), 120, 'the list lost its place');
+      assert.deepEqual(
+        await wide
+          .locator('[aria-current="page"]')
+          .evaluateAll((rows) => rows.map((row) => row.getAttribute('href'))),
+        ['#list-detail-run-4176'],
+        'the opened run is not the one current row'
+      );
+      assert.equal(
+        await wide.getByRole('link', { name: 'Runs' }).count(),
+        0,
+        'the way back shows beside the list'
+      );
+    } finally {
+      await page.close();
+    }
+  });
 });
