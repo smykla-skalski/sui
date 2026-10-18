@@ -33,11 +33,12 @@
   };
 
   let healthy = $state(true);
+  let updates = $state(0);
 </script>
 
 <Example
   title="Tones and marks"
-  note="A status wears its word, a dot marks a state true now, and a live dot pulses once unless motion is reduced"
+  note="A status wears its word, a dot marks a state true now, and a live dot pulses as it appears unless motion is reduced"
 >
   <Variants rows={tones} columns={marks} axis="tone" rowLabel={(tone) => `"${tone}"`}>
     {#snippet cell(tone, mark)}
@@ -60,6 +61,18 @@
 >
   <Specimen label="Wrapping label">
     <Pill tone="info">Invited to the infrastructure and platform engineering workspace</Pill>
+  </Specimen>
+</Example>
+
+<Example
+  title="Live updates"
+  note="A live dot pulses again each time its data arrives, each run under 5 seconds, so it never needs a pause control"
+>
+  <Specimen label="Pulses on each update" code="live beat">
+    <span class="row">
+      <Pill tone="success" live beat={updates}>Syncing</Pill>
+      <Button onclick={() => updates++}>Receive an update</Button>
+    </span>
   </Specimen>
 </Example>
 

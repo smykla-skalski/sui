@@ -14,6 +14,7 @@
     icon,
     dot = false,
     live = false,
+    beat,
     dotLabel = word('Pill.dotLabel', 'now'),
     liveLabel = word('Pill.liveLabel', 'live'),
     class: className = '',
@@ -26,8 +27,10 @@
     icon?: IconName;
     /** Marks a state that is true right now rather than a fixed attribute. */
     dot?: boolean;
-    /** Pulses the dot once, for a state arriving as it happens. */
+    /** Pulses the dot when it appears, for a state arriving as it happens. */
     live?: boolean;
+    /** Changes each time live data arrives, and the dot pulses again. */
+    beat?: unknown;
     /** Said after the label for `dot`, so the mark is heard as well as seen. */
     dotLabel?: string;
     /** Said after the label for `live`. */
@@ -50,14 +53,14 @@ outcome tones always come with their word, so color never carries the state alon
 
 - Semantics: a `span` of text; give it `role="status"` when its state changes while the reader is on the page, so the new word is spoken.
 - Content: one short status word or phrase, with an optional icon, `dot` or `live` mark before it; a long label wraps inside the pill, so no word is cut.
-- States: one per tone; `dot` marks a state true right now, and `live` pulses that dot once, for under 3 seconds, then keeps it still (WCAG 2.2.2).
+- States: one per tone; `dot` marks a state true right now, and `live` pulses that dot three times when it appears and again each time `beat` changes, each run under 5 seconds, then keeps it still (WCAG 2.2.2).
 - Keyboard: none, because nothing in it is pressable.
 - Pointer and touch: none, because it is not a target.
 - Focus: never takes focus.
 - Responsive: as wide as its words, up to its container, and taller by whole lines as they wrap, each line keeping the one-line inset inside corners that keep the one-line radius.
 - Accessibility: the word carries the state; `dotLabel` or `liveLabel` is spoken after it, so the mark is not color or motion alone; each tone's ink holds 4.5:1 on its tint.
 - Localization: `dotLabel` and `liveLabel` are props with English defaults; the mark sits at the inline start and follows the reading direction.
-- Performance: no script; the one pulse animates only scale and opacity.
+- Performance: no script; the pulse animates only scale and opacity.
 - Analytics: none, because a reader does nothing with a pill.
 - Failure: an empty label draws a bare mark, so always pass the word; under reduced motion the pulse never runs and the dot stays.
 -->
@@ -66,8 +69,11 @@ outcome tones always come with their word, so color never carries the state alon
   {#if icon !== undefined}
     <Icon name={icon} size="xs" strokeWidth={2} />
   {/if}
-  {#if dot || live}
-    <span class={['sui-pill-dot', { live }]} aria-hidden="true"></span>
+  {#if live}
+    <!-- A new dot for each beat restarts its pulse. -->
+    {#key beat}<span class="sui-pill-dot live" aria-hidden="true"></span>{/key}
+  {:else if dot}
+    <span class="sui-pill-dot" aria-hidden="true"></span>
   {/if}
   <!-- The words and the mark's word are read as one run of text, because a hidden box beside
        the label would add a space before the comma to every name the pill sits in. -->
@@ -155,9 +161,10 @@ outcome tones always come with their word, so color never carries the state alon
   }
 
   /* The ring grows and fades through scale and opacity, so the pulse moves nothing else and
-     never paints a glow. It runs once: motion that lasts past 5 seconds needs a pause control. */
+     never paints a glow. It beats three times, under 5 seconds, because motion that lasts
+     longer needs a pause control (WCAG 2.2.2); each new beat of the data starts it again. */
   .live::after {
-    animation: sui-pill-live var(--sui-duration-live) var(--sui-ease-standard);
+    animation: sui-pill-live var(--sui-duration-live) var(--sui-ease-standard) 3;
     background: currentColor;
     border-radius: inherit;
     content: '';

@@ -492,7 +492,7 @@
   /* One pass of the light across a placeholder. A slow, steady sweep reads as a shorter wait
      than a fast one or a pulse (Chung, 2018); MUI sweeps on a 2s cycle and Fluent on 3s. */
   --sui-duration-shimmer: 2000ms;
-  --sui-duration-live: 2600ms;
+  --sui-duration-live: 1600ms;
 
   --sui-ease-standard: cubic-bezier(0.16, 1, 0.3, 1);
   --sui-ease-out: var(--sui-ease-standard);

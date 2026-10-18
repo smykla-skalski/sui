@@ -116,6 +116,36 @@ suite('accessibility', together, () => {
     }
   });
 
+  // WCAG 2.2.2: motion that starts on its own and runs past 5 seconds needs a pause control, so
+  // a live dot's pulse ends inside that time and runs again only when its data arrives.
+  test('a live dot pulses under 5 seconds and again on each update', long, async () => {
+    const page = await open(1440, 'light');
+    try {
+      const pill = page.locator('#pill .sui-pill:has(.live)', { hasText: 'Syncing' });
+      await pill.scrollIntoViewIfNeeded();
+      const pulse = () =>
+        pill.evaluate((element) => {
+          const animation = /** @type {Element} */ (element.querySelector('.live'))
+            .getAnimations({ subtree: true })
+            .find((running) => running instanceof CSSAnimation);
+          const timing = animation?.effect?.getComputedTiming();
+          return {
+            end: Number(timing?.endTime ?? Infinity),
+            at: Number(animation?.currentTime ?? 0)
+          };
+        });
+      const first = await pulse();
+      assert.ok(first.end < 5000, `the pulse runs ${first.end}ms`);
+      await page.waitForTimeout(first.end - first.at + 100);
+      assert.ok((await pulse()).end === Infinity, 'the pulse did not end');
+      await page.getByRole('button', { name: 'Receive an update' }).click();
+      const again = await pulse();
+      assert.ok(again.end < 5000 && again.at < 1000, 'an update did not pulse the dot again');
+    } finally {
+      await page.close();
+    }
+  });
+
   // A named section would be a region landmark, and a pane of them would bury the landmarks a
   // reader jumps between (APG landmark regions).
   test('a section is never a landmark region', long, async () => {
