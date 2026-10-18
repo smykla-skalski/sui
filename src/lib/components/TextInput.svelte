@@ -156,8 +156,11 @@ tabular figures.
     opacity: 1;
   }
 
+  /* The mono face's code ligatures would join a typed path's slash and stars, so `/**` shows
+     as typed. */
   .mono {
     font-family: var(--sui-mono);
+    font-variant-ligatures: none;
     font-variant-numeric: tabular-nums;
   }
 

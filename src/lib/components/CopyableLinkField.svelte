@@ -179,6 +179,7 @@ the text field.
     field-sizing: content;
     font: var(--sui-weight-regular) var(--sui-font-size-input) / var(--sui-leading-input)
       var(--sui-mono);
+    font-variant-ligatures: none;
     font-variant-numeric: tabular-nums;
     inline-size: 100%;
     margin: 0;
