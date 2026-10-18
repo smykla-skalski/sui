@@ -38,6 +38,12 @@ channel = "stable"`;
 - Run \`npm install @smykla-skalski/sui\`
 - Import the palette once`;
 
+  const shell = `# Pack the library, then count what it exports
+SUI_THEME=dark npm run build -- --mode=production
+npx svelte-package --input src/lib \\
+  --output "$OUT_DIR" && ls "\${OUT_DIR}/components" | wc -l
+grep -rn 'export default' dist 2>/dev/null || echo "No exports"`;
+
   const long =
     'npm run build && npx svelte-package --input src/lib --output dist --types && node scripts/verify-exports.mjs --strict --report reports/exports.json';
 </script>
@@ -57,6 +63,9 @@ channel = "stable"`;
   <Specimen label="Markdown" code={'lang="markdown"'}>
     <CodeBlock code={markdown} lang="markdown" />
   </Specimen>
+  <Specimen label="Shell" code={'lang="shell"'}>
+    <CodeBlock code={shell} lang="shell" />
+  </Specimen>
   <Specimen label="Plain text" code={'lang="text"'}>
     <CodeBlock code="SUI_THEME=dark" lang="text" />
   </Specimen>
@@ -72,7 +81,7 @@ channel = "stable"`;
     <CodeBlock code={json} lang="json" label="renovate.json" lineNumbers />
   </Specimen>
   <Specimen label="Without a copy control" code={'copy={false}'}>
-    <CodeBlock code="npm run check" copy={false} />
+    <CodeBlock code="npm run check" lang="shell" copy={false} />
   </Specimen>
 </Example>
 
@@ -83,7 +92,7 @@ channel = "stable"`;
   ground="canvas"
 >
   <Specimen label="Scrolls sideways">
-    <CodeBlock code={long} />
+    <CodeBlock code={long} lang="shell" />
   </Specimen>
 </Example>
 

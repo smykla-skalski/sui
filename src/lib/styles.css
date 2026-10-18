@@ -89,6 +89,22 @@
   --sui-primitive-info-light-tint: #dbe2ec;
   --sui-primitive-info-dark-tint: #1b222e;
 
+  /* Diff tones, set in OKLCH: one lightness for every line ground and one for every word mark,
+     so no tone outweighs another. Added leans yellow-green and removed leans crimson, the pair
+     that stays furthest apart for red-green colour blindness. */
+  --sui-primitive-diff-light-add: #e8f9e7;
+  --sui-primitive-diff-light-add-word: #c6ecc6;
+  --sui-primitive-diff-light-del: #ffeff2;
+  --sui-primitive-diff-light-del-word: #ffd5da;
+  --sui-primitive-diff-light-chg: #ebf5ff;
+  --sui-primitive-diff-light-chg-word: #c8e3ff;
+  --sui-primitive-diff-dark-add: #172617;
+  --sui-primitive-diff-dark-add-word: #1e4420;
+  --sui-primitive-diff-dark-del: #301a1f;
+  --sui-primitive-diff-dark-del-word: #5b2831;
+  --sui-primitive-diff-dark-chg: #0f2336;
+  --sui-primitive-diff-dark-chg-word: #1b3c5d;
+
   --sui-canvas: var(--sui-primitive-light-canvas);
   --sui-surface-base: var(--sui-primitive-light-surface);
   --sui-surface-raised: var(--sui-primitive-light-surface);
@@ -215,16 +231,22 @@
 
   --sui-changed: #2a5fd2;
   --sui-diff-chg-ink: var(--sui-changed);
-  --sui-diff-chg-bg: color-mix(in srgb, var(--sui-changed) 7%, var(--sui-surface-code));
+  --sui-diff-chg-bg: var(--sui-primitive-diff-light-chg);
   --sui-diff-del-ink: var(--sui-danger);
 
   --sui-verb-add: var(--sui-success);
   --sui-diff-add-ink: var(--sui-verb-add);
-  --sui-diff-add-bg: color-mix(in srgb, var(--sui-success) 7%, var(--sui-surface-code));
-  --sui-diff-del-bg: color-mix(in srgb, var(--sui-danger) 7%, var(--sui-surface-code));
+  --sui-diff-add-bg: var(--sui-primitive-diff-light-add);
+  --sui-diff-del-bg: var(--sui-primitive-diff-light-del);
 
-  --sui-diff-add-word: color-mix(in srgb, var(--sui-success) 13%, var(--sui-surface-code));
-  --sui-diff-del-word: color-mix(in srgb, var(--sui-danger) 13%, var(--sui-surface-code));
+  --sui-diff-add-word: var(--sui-primitive-diff-light-add-word);
+  --sui-diff-del-word: var(--sui-primitive-diff-light-del-word);
+  --sui-diff-chg-word: var(--sui-primitive-diff-light-chg-word);
+  /* A changed line's gutter, holding its glyph, stands halfway between its ground and its word
+     mark. */
+  --sui-diff-add-gutter: color-mix(in oklab, var(--sui-diff-add-bg), var(--sui-diff-add-word));
+  --sui-diff-del-gutter: color-mix(in oklab, var(--sui-diff-del-bg), var(--sui-diff-del-word));
+  --sui-diff-chg-gutter: color-mix(in oklab, var(--sui-diff-chg-bg), var(--sui-diff-chg-word));
 
   --sui-code-key: var(--sui-changed);
   --sui-code-const: var(--sui-role-ink);
@@ -569,14 +591,18 @@
 
   --sui-changed: var(--sui-link);
   --sui-diff-chg-ink: var(--sui-changed);
-  --sui-diff-chg-bg: color-mix(in srgb, var(--sui-changed) 9%, var(--sui-surface-code));
+  --sui-diff-chg-bg: var(--sui-primitive-diff-dark-chg);
   --sui-diff-del-ink: var(--sui-danger);
   --sui-verb-add: var(--sui-success);
   --sui-diff-add-ink: var(--sui-verb-add);
-  --sui-diff-add-bg: color-mix(in srgb, var(--sui-success) 9%, var(--sui-surface-code));
-  --sui-diff-del-bg: color-mix(in srgb, var(--sui-danger) 9%, var(--sui-surface-code));
-  --sui-diff-add-word: color-mix(in srgb, var(--sui-success) 15%, var(--sui-surface-code));
-  --sui-diff-del-word: color-mix(in srgb, var(--sui-danger) 15%, var(--sui-surface-code));
+  --sui-diff-add-bg: var(--sui-primitive-diff-dark-add);
+  --sui-diff-del-bg: var(--sui-primitive-diff-dark-del);
+  --sui-diff-add-word: var(--sui-primitive-diff-dark-add-word);
+  --sui-diff-del-word: var(--sui-primitive-diff-dark-del-word);
+  --sui-diff-chg-word: var(--sui-primitive-diff-dark-chg-word);
+  --sui-diff-add-gutter: color-mix(in oklab, var(--sui-diff-add-bg), var(--sui-diff-add-word));
+  --sui-diff-del-gutter: color-mix(in oklab, var(--sui-diff-del-bg), var(--sui-diff-del-word));
+  --sui-diff-chg-gutter: color-mix(in oklab, var(--sui-diff-chg-bg), var(--sui-diff-chg-word));
   --sui-code-key: var(--sui-changed);
   --sui-code-const: var(--sui-role-ink);
   --sui-code-string: #f2ab83;
@@ -725,14 +751,18 @@
 
     --sui-changed: var(--sui-link);
     --sui-diff-chg-ink: var(--sui-changed);
-    --sui-diff-chg-bg: color-mix(in srgb, var(--sui-changed) 9%, var(--sui-surface-code));
+    --sui-diff-chg-bg: var(--sui-primitive-diff-dark-chg);
     --sui-diff-del-ink: var(--sui-danger);
     --sui-verb-add: var(--sui-success);
     --sui-diff-add-ink: var(--sui-verb-add);
-    --sui-diff-add-bg: color-mix(in srgb, var(--sui-success) 9%, var(--sui-surface-code));
-    --sui-diff-del-bg: color-mix(in srgb, var(--sui-danger) 9%, var(--sui-surface-code));
-    --sui-diff-add-word: color-mix(in srgb, var(--sui-success) 15%, var(--sui-surface-code));
-    --sui-diff-del-word: color-mix(in srgb, var(--sui-danger) 15%, var(--sui-surface-code));
+    --sui-diff-add-bg: var(--sui-primitive-diff-dark-add);
+    --sui-diff-del-bg: var(--sui-primitive-diff-dark-del);
+    --sui-diff-add-word: var(--sui-primitive-diff-dark-add-word);
+    --sui-diff-del-word: var(--sui-primitive-diff-dark-del-word);
+    --sui-diff-chg-word: var(--sui-primitive-diff-dark-chg-word);
+    --sui-diff-add-gutter: color-mix(in oklab, var(--sui-diff-add-bg), var(--sui-diff-add-word));
+    --sui-diff-del-gutter: color-mix(in oklab, var(--sui-diff-del-bg), var(--sui-diff-del-word));
+    --sui-diff-chg-gutter: color-mix(in oklab, var(--sui-diff-chg-bg), var(--sui-diff-chg-word));
     --sui-code-key: var(--sui-changed);
     --sui-code-const: var(--sui-role-ink);
     --sui-code-string: #f2ab83;

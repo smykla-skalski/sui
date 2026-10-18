@@ -199,20 +199,21 @@
 A small unified diff, drawn from two texts or from lines prepared elsewhere. It shows an
 excerpt worth reading, never a whole file. Each line wears its tone, and a glyph beside the
 color says the same thing: plus for added, minus for removed, a tilde for a line changed in
-place. The stretch that actually changed inside a paired line is one step deeper and
-underlined, marked as inserted, deleted or changed.
+place. The glyph stands in the gutter on a step of the tone. The stretch that actually changed
+inside a paired line is a step deeper again and underlined in the line's ink, marked as
+inserted, deleted or changed.
 
 Line numbers count the window, not the file, and only kept lines wear one: an added or
 removed line has no single number to claim. Two empty sides say `emptyLabel`.
 
 - Semantics: a `figure` whose `figcaption` holds the file name and the two sources; the lines are a `pre`, a scroller that scrolls is a focusable `region`, and changed stretches are `ins`, `del` and `mark`.
-- Content: two texts or prepared lines in one of six languages; long lines never wrap and scroll sideways instead.
-- States: kept, added, removed and changed lines, each with its tone and glyph, a deeper underlined stretch inside a paired line, scrolling with the 2px inset ring on focus, and empty.
+- Content: two texts or prepared lines in one of seven languages; long lines never wrap and scroll sideways instead.
+- States: kept, added, removed and changed lines, each with its tone and its glyph on a deeper gutter, a deeper underlined stretch inside a paired line, scrolling with the 2px inset ring on focus, and empty.
 - Keyboard: Tab reaches a diff that scrolls, and the arrow keys scroll it.
 - Pointer and touch: none of its own beyond selecting text.
 - Focus: it never moves focus.
 - Responsive: the diff fills its column and its lines scroll inside it at every width; the caption wraps.
-- Accessibility: each glyph is read as `opLabels` words, the caption names the figure, and the changed stretch is marked in the document and underlined, so it survives forced colours.
+- Accessibility: each glyph is read as `opLabels` words, the caption names the figure, and the changed stretch is marked in the document and underlined, so it survives forced colours; each tone holds the ink drawn on it at 4.5:1, and added and removed stay apart for red-green colour blindness.
 - Localization: `emptyLabel`, `regionLabel` and `opLabels` carry the built-in words; the lines always read left to right (`dir="ltr"`), while the caption follows the page.
 - Performance: shared first and last lines skip the line table, and a middle over about four hundred lines a side is drawn as removed then added instead of compared.
 - Analytics: none; a diff reports no outcome.
@@ -337,13 +338,17 @@ removed line has no single number to claim. Two empty sides say `emptyLabel`.
     min-inline-size: 100%;
   }
 
-  /* Every line is one height with its air inside it, so a tone runs from edge to edge and the
-     block has no strip of bare ground above its first line or below its last. */
+  /* Every line is one height with its air inside its cells, so a tone runs from edge to edge,
+     the gutter's step fills the line's height, and the block has no strip of bare ground above
+     its first line or below its last. */
   .ln {
     display: grid;
     grid-column: 1 / -1;
     grid-template-columns: subgrid;
     min-block-size: var(--sui-leading-meta);
+  }
+
+  .ln > * {
     padding-block: calc(var(--sui-space-1) / 2);
   }
 
@@ -363,7 +368,7 @@ removed line has no single number to claim. Two empty sides say `emptyLabel`.
   }
 
   .src {
-    padding-inline-end: var(--sui-space-3);
+    padding-inline: var(--sui-space-2) var(--sui-space-3);
     white-space: pre;
   }
 
@@ -393,23 +398,41 @@ removed line has no single number to claim. Two empty sides say `emptyLabel`.
     color: var(--sui-diff-chg-ink);
   }
 
+  /* A changed line's number and glyph stand on a step of its tone, a fill that holds the line's
+     mark, as the numbered gutters of GitHub and GitLab do. */
+  .ln[data-op='+'] > :is(.no, .op) {
+    background: var(--sui-diff-add-gutter);
+  }
+
+  .ln[data-op='-'] > :is(.no, .op) {
+    background: var(--sui-diff-del-gutter);
+  }
+
+  .ln[data-op='~'] > :is(.no, .op) {
+    background: var(--sui-diff-chg-gutter);
+  }
+
   .ln[data-op='+'] .word {
     background: var(--sui-diff-add-word);
+    text-decoration-color: var(--sui-diff-add-ink);
   }
 
   .ln[data-op='-'] .word {
     background: var(--sui-diff-del-word);
+    text-decoration-color: var(--sui-diff-del-ink);
   }
 
   .ln[data-op='~'] .word {
-    background: color-mix(in srgb, var(--sui-diff-chg-ink) 18%, var(--sui-diff-chg-bg));
+    background: var(--sui-diff-chg-word);
+    text-decoration-color: var(--sui-diff-chg-ink);
   }
 
   /* Syntax colors are tuned for the code ground, not for the deeper word mark under them. The
-     underline marks the stretch without colour, and holds in forced colours. */
+     underline in the line's ink marks the stretch without its ground, and holds in forced
+     colours. */
   .ln .word {
     color: var(--sui-text-primary);
-    text-decoration: underline;
+    text-decoration-line: underline;
     text-decoration-thickness: var(--sui-stroke);
     text-underline-offset: 0.2em;
   }

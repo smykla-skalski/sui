@@ -1,7 +1,8 @@
 <script module lang="ts">
   import type { Attachment } from 'svelte/attachments';
+  import { tokenizeShell } from '../internal/shell-syntax.js';
 
-  export type CodeLang = 'json' | 'yaml' | 'toml' | 'markdown' | 'html' | 'text';
+  export type CodeLang = 'json' | 'yaml' | 'toml' | 'markdown' | 'html' | 'shell' | 'text';
 
   /** One stretch of a line wearing one token class. */
   export interface TokenRun {
@@ -122,7 +123,13 @@
     if (lang === 'markdown') return tokenizeMarkdown(line);
     if (lang === 'json') return tokenizeJson(line);
     if (lang === 'html') return tokenizeHtml(line);
+    if (lang === 'shell') return tokenizeShell([line])[0];
     return run(line);
+  }
+
+  /** Cuts every line, letting shell carry an open quote or a continued command to the next. */
+  export function tokenizeLines(lang: CodeLang, lines: readonly string[]): TokenRun[][] {
+    return lang === 'shell' ? tokenizeShell(lines) : lines.map((line) => tokenizeLine(lang, line));
   }
 
   /**
@@ -173,7 +180,7 @@
     class?: HTMLAttributes<HTMLElement>['class'];
   } & HTMLAttributes<HTMLElement> = $props();
 
-  const lines = $derived(code.replace(/\n$/, '').split('\n'));
+  const lines = $derived(tokenizeLines(lang, code.replace(/\n$/, '').split('\n')));
 
   let scrolls = $state(false);
 </script>
@@ -187,12 +194,13 @@ A block that scrolls can take keyboard focus, so it can be scrolled without a po
 `lineNumbers` draws a gutter in the gutter ink at full opacity, which never selects or
 copies and stays in view while long lines scroll. Selected code is opaque, in the selection colors. `label` names the file above the
 code, and `bare` drops the frame for a host that frames the block itself. `html` colors markup,
-Svelte templates included. The copy control stands in its own column at the end of the block,
-always in view and never over the code, 8px in from the corner and centred on the first
-line, or in the file name's row when there is one. It copies `code` exactly as given.
+Svelte templates included. `shell` colors commands, flags, strings, variables and operators,
+and carries an open quote or a continued line on to the next line. The copy control stands
+in its own column at the end of the block, always in view and never over the code, 8px in
+from the corner and centred on the first line, or in the file name's row when there is one. It copies `code` exactly as given.
 
 - Semantics: a `figure` whose `figcaption` is the file name; the code is a `pre`, and a scroller that scrolls is a focusable `region` named by the label or `regionLabel`.
-- Content: plain text in one of six languages, any number of lines; long lines never wrap, and the block scrolls sideways instead.
+- Content: plain text in one of seven languages, any number of lines; long lines never wrap, and the block scrolls sideways instead.
 - States: at rest, scrolling (a tab stop with the 2px inset ring on focus), and the copy control's own copied and failed states.
 - Keyboard: Tab reaches a block that scrolls and then its copy control, and the arrow keys scroll a focused block.
 - Pointer and touch: the copy control is 28px, 44px on a phone or touch screen, and always shown; selection works as in any text.
@@ -200,7 +208,7 @@ line, or in the file name's row when there is one. It copies `code` exactly as g
 - Responsive: the block fills its column and its lines scroll inside it at every width; the copy column keeps its place at the end.
 - Accessibility: tokens hold 4.5:1 on the code ground, the gutter is hidden from assistive technology, and the scroller is named only when it is a tab stop.
 - Localization: `regionLabel` and `copyLabel` carry the built-in words; the code always reads left to right (`dir="ltr"`) in a right-to-left page, while the file name follows the page.
-- Performance: tokenizing is a handful of patterns per line and runs again only when `code` changes; one observer per block watches for overflow.
+- Performance: tokenizing is one pass over each line and runs again only when `code` or `lang` changes; one observer per block watches for overflow.
 - Analytics: none of its own; the copy control reports its copy.
 - Failure: an empty `code` draws one empty line; a language it does not know is drawn as plain text.
 -->
@@ -226,9 +234,7 @@ line, or in the file name's row when there is one. It copies `code` exactly as g
       >{#each lines as line, index (index)}<span class="ln"
           >{#if lineNumbers}<span class="no" aria-hidden="true">{index + 1}</span>{/if}<span
             class="src"
-            >{#each tokenizeLine(lang, line) as piece, at (at)}<span class={piece.cls}
-                >{piece.text}</span
-              >{/each}</span
+            >{#each line as piece, at (at)}<span class={piece.cls}>{piece.text}</span>{/each}</span
           ></span
         >{/each}</code
     ></pre>
