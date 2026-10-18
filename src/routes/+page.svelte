@@ -1,6 +1,6 @@
 <script lang="ts">
   import type { Component } from 'svelte';
-  import { PageHeader, PageToc, Select, SkipLink, ThemeSwitch } from '#lib';
+  import { Button, Icon, PageHeader, PageToc, Select, SkipLink, ThemeSwitch } from '#lib';
   import AuditPanel from './audit/AuditPanel.svelte';
   import Section, { type SectionMeta } from './kit/Section.svelte';
 
@@ -121,7 +121,10 @@
   let held = $state({ inline: 0, block: 0 });
   $effect(() => {
     if (!slot) return;
-    const watcher = new IntersectionObserver(([entry]) => {
+    // One call can carry several entries for the slot, as when the page scrolls before the
+    // first one is delivered, and only the last is current.
+    const watcher = new IntersectionObserver((entries) => {
+      const entry = entries[entries.length - 1];
       const next = !entry.isIntersecting && entry.boundingClientRect.bottom <= 0;
       if (next && !compact && slot) held = { inline: slot.offsetWidth, block: slot.offsetHeight };
       compact = next;
@@ -187,6 +190,16 @@
       {/each}
     </main>
   </div>
+
+  <!-- "#top" is the fragment every browser takes to the start of the page, with no script. -->
+  {#if compact}
+    <div class="to-top">
+      <Button href="#top">
+        {#snippet icon()}<Icon name="chevron-up" size="sm" />{/snippet}
+        Back to top
+      </Button>
+    </div>
+  {/if}
 </div>
 
 <style>
@@ -196,6 +209,9 @@
     --sink-bar: calc(var(--sui-control-height-compact) + 2 * var(--sui-space-2) + 1px);
     --sink-gutter: clamp(var(--sui-space-4), 2.4vw, var(--sui-space-8));
     --sink-width: calc(var(--sui-content-max) + var(--sui-toc-width));
+    --sink-float: max(var(--sui-space-6), env(safe-area-inset-bottom));
+    /* The page ends clear of the floating button, so it never covers the last section. */
+    --sink-floor: calc(var(--sui-touch-target) + 2 * var(--sink-float));
 
     scroll-padding-block-start: calc(var(--sink-bar) + var(--sui-space-4));
   }
@@ -205,7 +221,7 @@
     box-sizing: border-box;
     margin-inline: auto;
     max-inline-size: var(--sink-width);
-    padding: var(--sui-rhythm-pane-top-wide) var(--sink-gutter) var(--sui-space-8);
+    padding: var(--sui-rhythm-pane-top-wide) var(--sink-gutter) var(--sink-floor);
   }
 
   .slot {
@@ -247,6 +263,20 @@
     }
   }
 
+  /* Shown once the header has scrolled away, at the end of the page's column. */
+  .to-top {
+    border-radius: var(--sui-radius-control);
+    box-shadow: var(--sui-shadow-popover);
+    display: flex;
+    inset-block-end: var(--sink-float);
+    inset-inline-end: max(
+      var(--sink-gutter),
+      calc((100% - var(--sink-width)) / 2 + var(--sink-gutter))
+    );
+    position: fixed;
+    z-index: var(--sui-layer-sticky);
+  }
+
   .tools-title {
     align-content: center;
     block-size: var(--sui-block-snap);
@@ -269,9 +299,10 @@
     margin-inline-start: auto;
   }
 
+  /* The index keeps the rest of the gap inside its own scroll area, for its scrollbar. */
   .layout {
+    column-gap: var(--sui-space-3);
     display: grid;
-    gap: var(--sui-space-6);
     grid-template-columns: minmax(0, 1fr);
   }
 
