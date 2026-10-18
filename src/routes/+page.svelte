@@ -172,28 +172,6 @@
     }))
   }));
 
-  // The section the reader is in: the last whose top has crossed the top quarter of the window,
-  // where a reader's eye lands. The index's plate follows it. Before the page runs, as in the
-  // server's render, the reader is at the top, in the first section.
-  let here = $state(sections[0]?.id ?? '');
-  function spy(main: HTMLElement) {
-    const tops = [...main.querySelectorAll<HTMLElement>(':scope > section[id]')];
-    // Read once where the page already stands, as after a reload halfway down, so the plate
-    // lands there before it would glide.
-    here =
-      tops.findLast((section) => section.getBoundingClientRect().top <= innerHeight / 4)?.id ??
-      here;
-    // A line a quarter down the window: a section crossing it is where the reader is.
-    const watcher = new IntersectionObserver(
-      (records) => {
-        for (const record of records) if (record.isIntersecting) here = record.target.id;
-      },
-      { rootMargin: '-25% 0px -75% 0px' }
-    );
-    for (const section of tops) watcher.observe(section);
-    return () => watcher.disconnect();
-  }
-
   let drawerOpen = $state(false);
 
   /** Follows an entry in place: the page scrolls there and focus lands on the section's heading,
@@ -208,7 +186,6 @@
     const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
     section.scrollIntoView({ behavior: still ? 'instant' : 'smooth', block: 'start' });
     history.pushState(null, '', item.href);
-    here = section.id;
     const heading = section.querySelector<HTMLElement>('h2') ?? section;
     if (!heading.hasAttribute('tabindex')) {
       heading.tabIndex = -1;
@@ -238,9 +215,16 @@
       title="Kitchen sink"
       label="Components"
       sections={index}
-      current="#{here}"
+      scrollTargets
       onnavigate={follow}
     />
+    <!-- A phone's bar has room only for the menu and the page's name, and the header's switch
+         scrolls away, so the drawer keeps the theme at its foot, where Material's navigation
+         drawer and Apple's sidebars keep an app's settings. A wider shell shows the switch in
+         the header and the bar. -->
+    <div class="drawer-theme">
+      <ThemeSwitch name="sink-drawer-theme" system={false} hideLabel={false} />
+    </div>
   {/snippet}
 
   <div class="sink">
@@ -265,7 +249,7 @@
     </div>
 
     <div class="page">
-      <main id="content" tabindex="-1" {@attach spy}>
+      <main id="content" tabindex="-1">
         <AuditPanel />
         {#each sections as { id, family, meta, source, Body } (id)}
           <Section {id} {family} {meta} {source} {sources} body={Body} />
@@ -319,6 +303,20 @@
     margin-inline: auto;
     max-inline-size: var(--sui-content-max);
     padding: 0 var(--sink-gutter) var(--sink-float);
+  }
+
+  /* The foot SideNav draws: a rule inside the list's own inset, the same room above. */
+  .drawer-theme {
+    border-block-start: var(--sui-stroke) solid var(--sui-sidebar-border);
+    flex: none;
+    margin: 0 var(--sui-space-3) var(--sui-space-4);
+    padding-block-start: var(--sui-space-3);
+  }
+
+  @container sui-shell (min-width: 48rem) {
+    .drawer-theme {
+      display: none;
+    }
   }
 
   .slot {

@@ -324,6 +324,24 @@ suite('navigation', together, () => {
     }
   });
 
+  test('a phone changes the theme from the drawer, far down the page', long, async () => {
+    const page = await open(375);
+    try {
+      await page.evaluate(() => scrollTo(0, 6000));
+      await page.locator('.sui-shell-menu').first().click();
+      const drawer = page.locator('.sui-shell-side:popover-open');
+      await drawer.waitFor();
+      const wanted =
+        (await page.evaluate(() => document.documentElement.dataset.suiTheme)) === 'dark'
+          ? 'light'
+          : 'dark';
+      await drawer.getByRole('radio', { name: wanted === 'dark' ? 'Dark' : 'Light' }).check();
+      assert.equal(await page.evaluate(() => document.documentElement.dataset.suiTheme), wanted);
+    } finally {
+      await page.close();
+    }
+  });
+
   test(
     'a chart plot that scrolls is a named keyboard stop, and its table renders only when opened',
     long,

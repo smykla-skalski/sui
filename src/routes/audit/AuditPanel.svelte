@@ -109,16 +109,14 @@
       __suiRingCut: (element: Element, look: CSSStyleDeclaration) =>
         cutSides(element, ringReach(look))
     });
-    // A browser test asks for the audit when it needs one, so its presses never wait behind a
-    // run of the whole page it did not ask for.
-    if (new URLSearchParams(location.search).get('audit') === 'manual') return;
     // The whole page is measured once; after that the kept result shows until the reader asks
-    // for another run, so a reload never pays for the audit again.
+    // for another run, so a reload never pays for the audit again. A browser test asks for the
+    // audit when it needs one, so its presses never wait behind a run it did not ask for.
     const kept = recall();
     if (kept) {
       findings = kept.findings;
       measured = { at: kept.at, width: kept.width, theme: kept.theme };
-    } else void measure();
+    } else if (new URLSearchParams(location.search).get('audit') !== 'manual') void measure();
   });
 
   const when = (at: string) =>
@@ -132,19 +130,29 @@
   <div class="head">
     <div class="title-row">
       <h2 id="audit-title">Law audit</h2>
-      {#if findings !== null}
-        <span class="badge">
-          {#if findings.length === 0}
-            <Pill tone="success" icon="check">Passing</Pill>
-          {:else}
-            <Pill tone="danger" icon="failure">{count(findings.length, 'finding')}</Pill>
-          {/if}
-        </span>
-      {/if}
+      <!-- Until the panel reads the kept run itself, the page's first script has read it and
+           names it on the root (src/app.html), so the first frame already draws it in words this
+           script will draw too, and the panel never changes when it starts. -->
+      <span class="badge">
+        {#if findings === null}
+          <span class="kept pass"><Pill tone="success" icon="check">Passing</Pill></span>
+          <span class="kept fail"
+            ><Pill tone="danger" icon="failure"><span class="kept-found"></span></Pill></span
+          >
+        {:else if findings.length === 0}
+          <Pill tone="success" icon="check">Passing</Pill>
+        {:else}
+          <Pill tone="danger" icon="failure">{count(findings.length, 'finding')}</Pill>
+        {/if}
+      </span>
     </div>
     <p class="summary" role="status">
-      {#if findings === null || running}
+      {#if running}
         Measuring…
+      {:else if findings === null}
+        <span class="kept none">Measuring…</span><span class="kept pass"
+          >Every law holds on this page</span
+        ><span class="kept fail kept-summary"></span>
       {:else if findings.length === 0}
         Every law holds on this page
       {:else}
@@ -253,6 +261,24 @@
       var(--sui-sans);
     margin: 0;
     text-box: trim-both cap alphabetic;
+  }
+
+  .kept {
+    display: none;
+  }
+
+  :global(:root:not([data-sui-audit])) .kept.none,
+  :global(:root[data-sui-audit='pass']) .kept.pass,
+  :global(:root[data-sui-audit='fail']) .kept.fail {
+    display: contents;
+  }
+
+  .kept-found::before {
+    content: var(--sink-audit-found);
+  }
+
+  .kept-summary::before {
+    content: var(--sink-audit-summary);
   }
 
   .summary {
