@@ -66,6 +66,7 @@
         'disclosure',
         'page-header',
         'section',
+        'detail-pane',
         'page-toc',
         'code-block',
         'diff-block',
