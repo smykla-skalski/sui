@@ -66,7 +66,7 @@ on its title line.
 - Keyboard: none of its own; Tab reaches the controls inside in reading order.
 - Pointer and touch: none of its own; the controls inside keep their own targets and press feedback.
 - Focus: nothing here moves focus.
-- Responsive: a container query on the card's own width steps the inset from 20px to 16px at 36rem, the head's actions stay on the title's first line, and the footer's actions pack to the end.
+- Responsive: a container query on the card's own width steps the inset from 20px to 16px at 36rem, the head's actions centre on the title beside the copy and move under it below 18rem, and the footer's actions pack to the end.
 - Accessibility: the unsaved state is a drawn word, never the keyline's colour alone, and the copy and the word hold 4.5:1.
 - Localization: `unsavedLabel` is a prop with an English default, and `titleName` joins it to the title; the actions sit at the inline end, which mirrors in a right-to-left page.
 - Performance: static layout with no script; each card is its own size container.
@@ -78,24 +78,29 @@ on its title line.
   <div class={['sui-card', { unsaved }]}>
     {#if title !== undefined || actions}
       <div class="sui-card-head">
-        {#if title !== undefined}
-          <svelte:element
-            this={`h${level}`}
-            class="sui-card-title"
-            aria-label={unsaved ? titleName(title, unsavedLabel) : undefined}
-            ><span class="sui-card-words"
-              ><span>{title}</span>{#if unsaved}<span class="sui-card-unsaved">{unsavedLabel}</span
-                >{/if}</span
-            ></svelte:element
-          >
+        {#if title !== undefined || description !== undefined}
+          <div class="sui-card-copy">
+            {#if title !== undefined}
+              <svelte:element
+                this={`h${level}`}
+                class="sui-card-title"
+                aria-label={unsaved ? titleName(title, unsavedLabel) : undefined}
+                ><span class="sui-card-words"
+                  ><span>{title}</span>{#if unsaved}<span class="sui-card-unsaved"
+                      >{unsavedLabel}</span
+                    >{/if}</span
+                ></svelte:element
+              >
+            {/if}
+            {#if description !== undefined}
+              <p class="sui-card-note">{description}</p>
+            {/if}
+          </div>
         {/if}
         {#if actions}
           <div class="sui-card-actions">{@render actions()}</div>
         {/if}
       </div>
-      {#if description !== undefined}
-        <p class="sui-card-note">{description}</p>
-      {/if}
     {/if}
     {#if children}
       <div class="sui-card-body">{@render children()}</div>
@@ -152,28 +157,51 @@ on its title line.
     font-weight: var(--sui-weight-regular);
   }
 
-  /* The actions end the title's line, and drop under the title when they do not fit, as at a
-     large text size; spread rather than pushed by an auto margin (L-90). */
+  /* The copy, the title and the note under it, keeps one column and the actions another, so
+     the note never runs under an action. The actions stand at the card's inset in a seat one
+     control tall, and the copy drops by half of what that seat stands above the title's cap,
+     so the title centres on the actions while the note stays one copy gap under the title,
+     never under the actions' foot. The copy keeps 10rem beside them, so keep the actions to a
+     short button or two. Only a card too narrow for both puts them on a line of their own
+     under the copy, from its start edge (L-90). */
   .sui-card-head {
-    align-items: flex-start;
-    column-gap: var(--sui-space-3);
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: space-between;
-    min-block-size: var(--sui-card-head-line);
-    row-gap: var(--sui-space-2);
+    --sui-local-card-seat: var(--sui-control-height-compact);
+    align-items: start;
+    column-gap: var(--sui-space-6);
+    display: grid;
+    grid-template-columns: minmax(min(10rem, 100%), 1fr) auto;
+  }
+
+  .sui-card-copy {
+    display: grid;
+    gap: var(--sui-row-copy-gap);
+    min-inline-size: 0;
+  }
+
+  /* A lone quiet icon button or a bare switch is shorter than the control tier, so the seat
+     takes its height and the control still keeps the card's inset. */
+  .sui-card-head:has(> .sui-card-actions > :global(.sui-icon-button:not(.toolbar)):only-of-type) {
+    --sui-local-card-seat: var(--sui-tier-quiet);
+  }
+
+  .sui-card-head:has(> .sui-card-actions > :global(.sui-switch.bare):only-child) {
+    --sui-local-card-seat: 20px;
+  }
+
+  /* In the title's face, so `1cap` is the title's cap height. */
+  .sui-card-head:has(> .sui-card-actions) > .sui-card-copy {
+    font: var(--sui-weight-semibold) var(--sui-font-size-card-title) / var(--sui-leading-flat)
+      var(--sui-sans);
+    padding-block-start: calc((var(--sui-local-card-seat) - round(up, 1cap, 2px)) / 2);
   }
 
   .sui-card-title {
     align-content: center;
-    align-self: center;
-    block-size: var(--sui-block-snap);
+    block-size: var(--sui-block-snap-even);
     color: var(--sui-text-primary);
-    flex: 1 1 auto;
     font: var(--sui-weight-semibold) var(--sui-font-size-card-title) / var(--sui-leading-title)
       var(--sui-sans);
     margin: 0;
-    min-block-size: var(--sui-card-head-line);
     min-inline-size: 0;
     overflow-wrap: break-word;
     text-box: trim-both cap alphabetic;
@@ -183,11 +211,28 @@ on its title line.
   .sui-card-actions {
     align-items: center;
     display: flex;
-    flex: 0 1 auto;
     flex-wrap: wrap;
     gap: var(--sui-space-2);
-    max-inline-size: 100%;
+    grid-column: 2;
+    justify-content: flex-end;
+    min-block-size: var(--sui-local-card-seat);
     min-inline-size: 0;
+  }
+
+  @container (max-width: 18rem) {
+    .sui-card-head {
+      grid-template-columns: minmax(0, 1fr);
+      row-gap: var(--sui-rhythm-head-actions-stacked);
+    }
+
+    .sui-card-head:has(> .sui-card-actions) > .sui-card-copy {
+      padding-block-start: 0;
+    }
+
+    .sui-card-actions {
+      grid-column: 1;
+      justify-content: flex-start;
+    }
   }
 
   .sui-card-footer {
@@ -202,7 +247,7 @@ on its title line.
     color: var(--sui-text-muted);
     font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-row-copy-leading)
       var(--sui-sans);
-    margin: var(--sui-row-copy-gap) 0 0;
+    margin: 0;
     text-box: trim-both cap alphabetic;
     text-wrap: pretty;
   }
@@ -226,7 +271,7 @@ on its title line.
     text-box: trim-both cap alphabetic;
   }
 
-  :is(.sui-card-head, .sui-card-note) + .sui-card-body {
+  .sui-card-head + .sui-card-body {
     margin-block-start: var(--sui-rhythm-card-head-body);
   }
 

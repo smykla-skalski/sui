@@ -302,8 +302,6 @@
 
   --sui-row-copy-leading: round(calc(1cap + var(--sui-row-copy-gap)), 1px);
 
-  --sui-card-head-line: 0.8125rem;
-
   --sui-setting-say-min: 13rem;
 
   --sui-inherit-marker-size: 26px;
@@ -383,8 +381,9 @@
   --sui-breakpoint-wide: 64.0625rem;
 
   /* The widths a component answers to in its own container, under which it changes its layout:
-     a card moves its actions under its head, a setting row stacks its control, a callout puts
-     its actions under the message, and a list toolbar folds its filter into its menu. A
+     a card steps its inset down, a setting row stacks its control, a callout puts its actions
+     under the message, and a list toolbar folds its filter into its menu as a card moves its
+     head's actions under its copy. A
      container query cannot read them either, so the source laws hold each query to this list. */
   --sui-breakpoint-card: 36rem;
   --sui-breakpoint-row: 25rem;
