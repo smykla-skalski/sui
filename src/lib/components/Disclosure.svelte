@@ -79,8 +79,11 @@ row for a settings column.
     min-inline-size: 0;
   }
 
+  /* The parts hang from the first line: the padding centres one line in the control height,
+     and the chevron and the hint sit on that line, so a summary that wraps keeps its chevron
+     beside its first line (L-94). */
   .sui-disclosure-summary {
-    align-items: center;
+    align-items: start;
     border-radius: var(--sui-radius-control);
     box-sizing: border-box;
     color: var(--sui-text-primary);
@@ -92,7 +95,8 @@ row for a settings column.
     list-style: none;
     margin-inline: calc(var(--sui-space-3) * -1);
     min-block-size: var(--sui-control-height-compact);
-    padding: 0 var(--sui-space-3);
+    padding: calc((var(--sui-control-height-compact) - round(up, 1cap, 2px)) / 2)
+      var(--sui-space-3);
     touch-action: manipulation;
     -webkit-user-select: none;
     user-select: none;
@@ -132,7 +136,7 @@ row for a settings column.
 
   .sui-disclosure-label {
     align-content: center;
-    block-size: var(--sui-block-snap);
+    block-size: var(--sui-block-snap-even);
     min-inline-size: 0;
     overflow-wrap: break-word;
     text-box: trim-both cap alphabetic;
@@ -140,7 +144,7 @@ row for a settings column.
 
   .sui-disclosure-hint {
     align-content: center;
-    block-size: var(--sui-block-snap);
+    block-size: var(--sui-block-snap-even);
     color: var(--sui-text-muted);
     font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-leading-meta)
       var(--sui-sans);
@@ -152,6 +156,7 @@ row for a settings column.
     color: var(--sui-text-muted);
     display: flex;
     flex: none;
+    margin-block: calc((round(up, 1cap, 2px) - var(--sui-icon-xs)) / 2);
     margin-inline-start: auto;
     transition: rotate var(--sui-duration-fast) var(--sui-ease-standard);
   }
