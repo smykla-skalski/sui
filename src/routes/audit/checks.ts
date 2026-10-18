@@ -343,9 +343,7 @@ function palette(): Finding[] {
 function textContrast(root: Document): Finding[] {
   const found: Finding[] = [];
   for (const { element } of textElements(root, PAINT_EXEMPT)) {
-    // A save bar's copy dims with its held actions while a save or a reload runs: the words of
-    // an inactive component, which WCAG 1.4.3 exempts as it does a disabled control's (L-40).
-    if (isDisabled(element) || element.closest('.sui-save-bar.busy')) continue;
+    if (isDisabled(element)) continue;
     const style = getComputedStyle(element);
     const ink = rgba(style.color);
     const ground = paintedGround(element);

@@ -384,9 +384,9 @@ brings its own room under it, so the scroller needs no end padding.
     border-color: var(--sui-border-subtle);
   }
 
-  /* While a save or a reload runs the edge and the copy wait with its buttons, muted the same
-     way, so the bar reads as busy as a whole (L-40). Opacity leaves the live copy's words in the
-     accessibility tree, so the outcome is still said. */
+  /* While a save or a reload runs the edge waits with its buttons, muted the same way, so the
+     bar reads as busy as a whole (L-40). The copy is the live status the reader still reads, so
+     its title quiets to the muted ink and both lines keep 4.5:1 (WCAG 1.4.3). */
   .sui-save-bar.busy {
     border-color: color-mix(
       in srgb,
@@ -395,8 +395,8 @@ brings its own room under it, so the scroller needs no end padding.
     );
   }
 
-  .busy .copy {
-    opacity: var(--sui-disabled-opacity);
+  .busy .title {
+    color: var(--sui-text-muted);
   }
 
   .sui-save-bar[hidden] {
