@@ -724,14 +724,25 @@ function glyphInk(svg: SVGSVGElement): DOMRect {
 
 /**
  * Where an svg that draws words puts ink. A text's own box is its advance and its em, which
- * reach past the glyphs it draws, so each text is read by its glyphs' ink as the browser
- * shapes them in its face, and each shape by its extent widened by half its stroke. Both are
- * taken through the part's own transform, so a turned axis title is read as drawn.
+ * reach past the glyphs it draws, so each text is read glyph by glyph, each glyph's ink in its
+ * face at the place the browser set it, kerning and anchor included; chart text draws every
+ * character as its own glyph. Each shape is read by its extent widened by half its stroke.
+ * Both are taken through the part's own transform, so a turned axis title or a line stretched
+ * across the plot is read as drawn.
  */
 function wordsInk(svg: SVGSVGElement): DOMRect {
   const context = document.createElement('canvas').getContext('2d');
   const corners: DOMPoint[] = [];
-  const add = (part: SVGGraphicsElement, x0: number, y0: number, x1: number, y1: number) => {
+  // A stroke that keeps its width however its shape is stretched reaches `pad` page pixels
+  // past the shape on every side.
+  const add = (
+    part: SVGGraphicsElement,
+    x0: number,
+    y0: number,
+    x1: number,
+    y1: number,
+    pad = 0
+  ) => {
     const ctm = part.getScreenCTM();
     if (!ctm) return;
     for (const [x, y] of [
@@ -739,8 +750,13 @@ function wordsInk(svg: SVGSVGElement): DOMRect {
       [x1, y0],
       [x0, y1],
       [x1, y1]
-    ])
-      corners.push(new DOMPoint(x, y).matrixTransform(ctm));
+    ]) {
+      const corner = new DOMPoint(x, y).matrixTransform(ctm);
+      corners.push(
+        new DOMPoint(corner.x - pad, corner.y - pad),
+        new DOMPoint(corner.x + pad, corner.y + pad)
+      );
+    }
   };
   for (const part of svg.querySelectorAll<SVGGraphicsElement>(
     'line, path, circle, ellipse, rect, polyline, polygon, text'
@@ -751,27 +767,37 @@ function wordsInk(svg: SVGSVGElement): DOMRect {
       const words = part.textContent ?? '';
       if (!words.trim() || !context || part.getNumberOfChars() === 0) continue;
       context.font = `${look.fontStyle} ${look.fontWeight} ${look.fontSize} ${look.fontFamily}`;
-      const ink = context.measureText(words);
-      const start = part.getStartPositionOfChar(0);
-      add(
-        part,
-        start.x - ink.actualBoundingBoxLeft,
-        start.y - ink.actualBoundingBoxAscent,
-        start.x + ink.actualBoundingBoxRight,
-        start.y + ink.actualBoundingBoxDescent
-      );
+      let index = 0;
+      for (const glyph of words) {
+        if (index >= part.getNumberOfChars()) break;
+        const ink = context.measureText(glyph);
+        if (ink.actualBoundingBoxLeft + ink.actualBoundingBoxRight > 0) {
+          const start = part.getStartPositionOfChar(index);
+          add(
+            part,
+            start.x - ink.actualBoundingBoxLeft,
+            start.y - ink.actualBoundingBoxAscent,
+            start.x + ink.actualBoundingBoxRight,
+            start.y + ink.actualBoundingBoxDescent
+          );
+        }
+        index += glyph.length;
+      }
       continue;
     }
     const shape = part.getBBox();
     if (shape.width + shape.height === 0) continue;
     const half = look.stroke === 'none' ? 0 : (parseFloat(look.strokeWidth) || 0) / 2;
-    add(
-      part,
-      shape.x - half,
-      shape.y - half,
-      shape.x + shape.width + half,
-      shape.y + shape.height + half
-    );
+    if (look.vectorEffect === 'non-scaling-stroke')
+      add(part, shape.x, shape.y, shape.x + shape.width, shape.y + shape.height, half);
+    else
+      add(
+        part,
+        shape.x - half,
+        shape.y - half,
+        shape.x + shape.width + half,
+        shape.y + shape.height + half
+      );
   }
   if (corners.length === 0) return svg.getBoundingClientRect();
   const xs = corners.map((corner) => corner.x);
@@ -1528,6 +1554,18 @@ function specimens(root: Document): Finding[] {
         Math.abs(edge.right + inset - box.right) <= 0.5
       );
     };
+    // A line of text paints only where every box that clips it shows it, as an avatar's
+    // letters, spaced wider for reading, stay inside the circle that clips them.
+    const shown = (line: DOMRect, element: Element) => {
+      let { left, right } = line;
+      for (let node = element.parentElement; node && node !== panel; node = node.parentElement) {
+        const look = getComputedStyle(node);
+        if (look.display === 'contents' || look.overflowX === 'visible') continue;
+        const box = node.getBoundingClientRect();
+        [left, right] = [Math.max(left, box.left), Math.min(right, box.right)];
+      }
+      return new DOMRect(left, line.top, Math.max(0, right - left), line.height);
+    };
     const escaped = [...panel.querySelectorAll('*')].find((element) => {
       if (element.closest(':popover-open, dialog[open]') || held(element)) return false;
       if (!element.checkVisibility({ opacityProperty: false, visibilityProperty: true }))
@@ -1547,7 +1585,7 @@ function specimens(root: Document): Finding[] {
         if (node.nodeType !== Node.TEXT_NODE || !node.textContent?.trim()) return false;
         const range = document.createRange();
         range.selectNodeContents(node);
-        return [...range.getClientRects()].some(outside);
+        return [...range.getClientRects()].some((line) => outside(shown(line, element)));
       });
     });
     if (escaped) found.push(finding('L-55', escaped, 'reaches past its specimen'));
@@ -2547,6 +2585,39 @@ function chartInk(root: Document): Finding[] {
 }
 
 /**
+ * A chart's plot is laid out to its ink (L-66): its first ink starts on the band's inner edges
+ * and its last ends on the edges of the box it fills, the band's full width or, for a matrix,
+ * its last column, each within a pixel.
+ */
+function chartEdges(root: Document): Finding[] {
+  const found: Finding[] = [];
+  for (const svg of audited(root, '.sui-chart .plot-scroll > svg')) {
+    const room = svg.parentElement as HTMLElement;
+    if (room.scrollLeft !== 0) continue;
+    const look = getComputedStyle(room);
+    const edge = room.getBoundingClientRect();
+    const box = svg.getBoundingClientRect();
+    const ink = wordsInk(svg as SVGSVGElement);
+    const gaps = {
+      start: ink.left - edge.left - parseFloat(look.borderLeftWidth) - parseFloat(look.paddingLeft),
+      top: ink.top - edge.top - parseFloat(look.borderTopWidth) - parseFloat(look.paddingTop),
+      end: box.right - ink.right,
+      bottom: box.bottom - ink.bottom
+    };
+    const off = Object.entries(gaps).filter(([, gap]) => Math.abs(gap) > 1);
+    if (off.length)
+      found.push(
+        finding(
+          'L-66',
+          svg,
+          `its ink stands ${off.map(([side, gap]) => `${round(gap)}px from the ${side}`).join(', ')} of its band`
+        )
+      );
+  }
+  return found;
+}
+
+/**
  * Rings in full (L-96): an outline or a ring shadow at rest is never cut by a clipping box.
  * Focus rings are walked by keyboard in the browser suite, through the same two helpers.
  */
@@ -2979,39 +3050,40 @@ register(
   typeFaces,
   copy,
   copyRhythm,
+  titleProximity,
   geometry,
   controls,
   accessibility,
   specimens,
   wrapping,
   plates,
+  settingResets,
+  unsavedVeils,
+  fieldRecesses,
   currentMarks,
   changedEdges,
   tonedControls,
+  dialogInsets,
   symbolTiles,
+  calloutActions,
+  disclosures,
   swatches,
   leadingIcons,
   wholePixels,
   rings,
   codeLines,
   chartInk,
+  chartEdges,
   pressSelection,
-  titleProximity,
-  disclosures,
   loadMoreRows,
-  dialogInsets,
-  settingResets,
-  unsavedVeils,
   sectionHeads,
   boundaryLines,
   detailPanes,
-  calloutActions,
+  rowGrounds,
   nestedFrames,
   earnedCards,
   framedSettings,
   disclosedCards,
-  rowGrounds,
-  timelines,
   cardHeads,
-  fieldRecesses
+  timelines
 );
