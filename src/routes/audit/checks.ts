@@ -2405,8 +2405,11 @@ function loadMoreRows(root: Document): Finding[] {
       found.push(finding('L-63', row, 'the list draws no hairline over it'));
       continue;
     }
-    const words = [...list.querySelectorAll(':scope > li:last-child *')].flatMap(
-      (element) => inkLines(element)?.bottom ?? []
+    // A pill or a chip at the row's side is ink too, and the lowest ink is the last (L-33).
+    const words = [...list.querySelectorAll(':scope > li:last-child *')].flatMap((element) =>
+      rgba(getComputedStyle(element).backgroundColor).a > 0
+        ? element.getBoundingClientRect().bottom
+        : (inkLines(element)?.bottom ?? [])
     );
     const note = row.querySelector('.sui-load-more-text');
     const tops = [button?.getBoundingClientRect().top, note && inkLines(note)?.top].filter(
