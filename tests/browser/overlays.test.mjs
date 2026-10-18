@@ -128,6 +128,131 @@ suite('overlays', together, () => {
   );
 
   test(
+    'L-58 a press outside closes a form dialog as Escape does: a pristine one at once, a changed one after asking',
+    long,
+    async () => {
+      const page = await open();
+      try {
+        const opener = page
+          .locator('#modal button:not(.sui-modal *)', { hasText: 'Edit webhook' })
+          .first();
+        const shown = () => page.locator('dialog[open]').count();
+        await opener.scrollIntoViewIfNeeded();
+        await opener.click();
+        await page.waitForSelector('dialog[open]');
+        // The scrim's corner, well outside the box.
+        await page.mouse.click(4, 4);
+        await page.waitForFunction(() => !document.querySelector('dialog[open]'));
+        await opener.click();
+        await page.waitForSelector('dialog[open]');
+        await page.keyboard.press('End');
+        await page.keyboard.type('/x');
+        await page.mouse.click(4, 4);
+        await page.waitForSelector('dialog[open][role="alertdialog"]');
+        assert.equal(await shown(), 2, 'a press outside threw a changed form away');
+        await page
+          .locator('dialog[open][role="alertdialog"] button', { hasText: 'Discard changes' })
+          .click();
+        await page.waitForFunction(() => !document.querySelector('dialog[open]'));
+      } finally {
+        await page.close();
+      }
+    }
+  );
+
+  test(
+    'L-58 a dialog opens on its first field, and a confirmation without one on its least destructive answer',
+    long,
+    async () => {
+      const page = await open();
+      try {
+        /** @param {string} name */
+        const opensOn = async (name) => {
+          const opener = page
+            .locator('#confirm-dialog button:not(.sui-modal *)', { hasText: name })
+            .first();
+          await opener.scrollIntoViewIfNeeded();
+          await opener.click();
+          await page.waitForSelector('dialog[open]');
+          const at = await page.evaluate(() => {
+            const active = document.activeElement;
+            const field = document.querySelector(
+              'dialog[open] .sui-modal-body :is(input, textarea)'
+            );
+            return active === field ? 'its first field' : active?.textContent?.trim();
+          });
+          await page.keyboard.press('Escape');
+          await page.waitForFunction(() => !document.querySelector('dialog[open]'));
+          return at;
+        };
+        assert.equal(await opensOn('Revoke token'), 'its first field');
+        assert.equal(await opensOn('Delete repository'), 'Cancel');
+      } finally {
+        await page.close();
+      }
+    }
+  );
+
+  test(
+    'L-58 a busy dialog hands focus to its busy action and disables its fields until the work ends',
+    long,
+    async () => {
+      const page = await open();
+      try {
+        const opener = page
+          .locator('#modal button:not(.sui-modal *)', { hasText: 'Rename repository' })
+          .first();
+        await opener.scrollIntoViewIfNeeded();
+        await opener.click();
+        const field = page.locator('dialog[open] input').first();
+        await field.focus();
+        await page.keyboard.press('End');
+        await page.keyboard.type('-next');
+        // The sink's work ends in under a second, sooner than a slow runner comes back from a
+        // keystroke, so the page notes the hold the frame after the work starts.
+        await page.evaluate(() => {
+          const dialog = /** @type {HTMLDialogElement} */ (document.querySelector('dialog[open]'));
+          /** @type {any} */ (window).held = new Promise((done) => {
+            const watch = new MutationObserver(() => {
+              if (dialog.getAttribute('aria-busy') !== 'true') return;
+              watch.disconnect();
+              requestAnimationFrame(() => {
+                const input = /** @type {HTMLInputElement} */ (dialog.querySelector('input'));
+                const press = new PointerEvent('pointerdown', { bubbles: true, cancelable: true });
+                input.dispatchEvent(press);
+                done({
+                  onAction: document.activeElement?.getAttribute('aria-busy') === 'true',
+                  disabled: input.disabled,
+                  pressRefused: press.defaultPrevented
+                });
+              });
+            });
+            watch.observe(dialog, { attributeFilter: ['aria-busy'] });
+          });
+        });
+        await page.keyboard.press('Enter');
+        assert.deepEqual(
+          await page.evaluate(() => /** @type {any} */ (window).held),
+          { onAction: true, disabled: true, pressRefused: true },
+          'a busy dialog left its field in use or focus off its busy action'
+        );
+        await page.waitForFunction(
+          () => !document.querySelector('dialog[open]')?.hasAttribute('aria-busy')
+        );
+        await page.waitForFunction(() => document.activeElement?.tagName === 'INPUT');
+        await page.keyboard.type('!');
+        assert.equal(
+          await field.inputValue(),
+          'smyklot-next!',
+          'focus did not return to the field'
+        );
+      } finally {
+        await page.close();
+      }
+    }
+  );
+
+  test(
     'L-58 a line parts a dialog body from its actions only while the body scrolls under them',
     long,
     async () => {

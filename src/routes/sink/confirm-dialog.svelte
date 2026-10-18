@@ -170,7 +170,10 @@
   confirmLabel="Revoke token"
   tone="stop"
 >
-  <Field label="Reason" bind:value={reason} placeholder="Leaked in a build log" />
+  <!-- A form of its own, so the reason is one form's field, and Enter in it never revokes. -->
+  <form class="form" onsubmit={(event) => event.preventDefault()}>
+    <Field label="Reason" bind:value={reason} placeholder="Leaked in a build log" />
+  </form>
 </ConfirmDialog>
 
 <ConfirmDialog
@@ -195,6 +198,10 @@
 />
 
 <style>
+  .form {
+    display: contents;
+  }
+
   .tokens {
     display: grid;
     gap: var(--sui-space-2);

@@ -41,7 +41,6 @@
   let runOpen = $state(false);
   let notesOpen = $state(false);
   let guarded = $state(false);
-  let discard = $state(false);
 
   // Each dialog edits a copy, and only Save writes it back, so every other way out reverts.
   let webhook = $state({
@@ -58,7 +57,8 @@
   let renaming = $state(false);
   let renameBusy = $state(false);
   let renameError = $state<string | undefined>();
-  let newName = $state('smyklot');
+  const REPOSITORY = 'smyklot';
+  let newName = $state(REPOSITORY);
 
   function rename(): void {
     renameError = undefined;
@@ -66,12 +66,37 @@
   }
 
   // The sink's server always refuses, so the dialog shows its pending and failed states.
-  function saveName(): void {
+  function saveName(event: SubmitEvent): void {
+    event.preventDefault();
     renameBusy = true;
     setTimeout(() => {
       renameBusy = false;
       renameError = 'Another repository in this workspace already has that name';
     }, 900);
+  }
+
+  // Each form saves its copy back, so Enter in a field saves as the primary action does.
+  function saveWebhook(event: SubmitEvent): void {
+    event.preventDefault();
+    webhook = webhookDraft;
+    webhookOpen = false;
+  }
+
+  function saveRun(event: SubmitEvent): void {
+    event.preventDefault();
+    run = runDraft;
+    runOpen = false;
+  }
+
+  function saveNotes(event: SubmitEvent): void {
+    event.preventDefault();
+    notes = notesDraft;
+    notesOpen = false;
+  }
+
+  function keepNote(event: SubmitEvent): void {
+    event.preventDefault();
+    guarded = false;
   }
 
   function editWebhook(): void {
@@ -89,12 +114,20 @@
     notesOpen = true;
   }
 
-  // Closing would throw away the note, so ask first, and only when there is one.
-  function keepNote(): boolean {
-    if (note.trim() === '') return true;
-    discard = true;
-    return false;
+  // Escape, the close button and a press outside all throw a form's changes away, so a form
+  // that holds changes asks first and a pristine one closes at once. `leaving` is the close
+  // that waits on the answer.
+  let leaving = $state<(() => void) | null>(null);
+
+  function guard(changed: () => boolean, close: () => void): () => boolean {
+    return () => {
+      if (!changed()) return true;
+      leaving = close;
+      return false;
+    };
   }
+
+  const same = (one: unknown, other: unknown) => JSON.stringify(one) === JSON.stringify(other);
 </script>
 
 <Example
@@ -227,7 +260,7 @@
 
 <Example
   title="Guarded close"
-  note="Escape and the close button ask before throwing away a note, and a press outside never closes a form"
+  note="Escape, the close button and a press outside ask before throwing away a note, and close a blank one at once"
 >
   <Specimen label="Guarded" code="beforeClose">
     <Button onclick={() => (guarded = true)}>Write a note</Button>
@@ -239,93 +272,105 @@
 
 <Modal
   bind:open={webhookOpen}
+  beforeClose={guard(
+    () => !same(webhookDraft, webhook),
+    () => (webhookOpen = false)
+  )}
   title="Edit webhook"
   description="Smyklot posts every event you pick to this address"
 >
-  <Field label="Payload address">
-    {#snippet control({ id, describedby })}
-      <TextInput
-        {id}
-        aria-describedby={describedby}
-        type="url"
-        bind:value={webhookDraft.url}
-        mono
-      />
-    {/snippet}
-  </Field>
-  <SegmentedControl label="Events" options={eventOptions} bind:value={webhookDraft.events} />
-  <CheckList label="Teams to notify" options={teamOptions} bind:value={webhookDraft.teams} />
+  <form id="sink-webhook" class="form" onsubmit={saveWebhook}>
+    <Field label="Payload address">
+      {#snippet control({ id, describedby })}
+        <TextInput
+          {id}
+          aria-describedby={describedby}
+          type="url"
+          bind:value={webhookDraft.url}
+          mono
+        />
+      {/snippet}
+    </Field>
+    <SegmentedControl label="Events" options={eventOptions} bind:value={webhookDraft.events} />
+    <CheckList label="Teams to notify" options={teamOptions} bind:value={webhookDraft.teams} />
+  </form>
   {#snippet footer()}
     <Button onclick={() => (webhookOpen = false)}>Cancel</Button>
-    <Button
-      tone="signal"
-      onclick={() => {
-        webhook = webhookDraft;
-        webhookOpen = false;
-      }}>Save webhook</Button
-    >
+    <Button tone="signal" type="submit" form="sink-webhook">Save webhook</Button>
   {/snippet}
 </Modal>
 
 <Modal
   bind:open={runOpen}
+  beforeClose={guard(
+    () => !same(runDraft, run),
+    () => (runOpen = false)
+  )}
   size="inspector"
   title="Edit run settings"
   description="Applies to every run of smyklot from the next push"
 >
-  <Field label="Branch" bind:value={runDraft.branch} />
-  <Field
-    label="Timeout in minutes"
-    type="number"
-    min="1"
-    bind:value={runDraft.timeout}
-    hint="A run that takes longer is stopped and marked failed"
-  />
-  <CheckList label="Run on" options={triggerOptions} bind:value={runDraft.triggers} />
+  <form id="sink-run" class="form" onsubmit={saveRun}>
+    <Field label="Branch" bind:value={runDraft.branch} />
+    <Field
+      label="Timeout in minutes"
+      type="number"
+      min="1"
+      bind:value={runDraft.timeout}
+      hint="A run that takes longer is stopped and marked failed"
+    />
+    <CheckList label="Run on" options={triggerOptions} bind:value={runDraft.triggers} />
+  </form>
   {#snippet footer()}
     <Button onclick={() => (runOpen = false)}>Cancel</Button>
-    <Button
-      tone="signal"
-      onclick={() => {
-        run = runDraft;
-        runOpen = false;
-      }}>Save settings</Button
-    >
+    <Button tone="signal" type="submit" form="sink-run">Save settings</Button>
   {/snippet}
 </Modal>
 
 <Modal
   bind:open={notesOpen}
+  beforeClose={guard(
+    () => notesDraft !== notes,
+    () => (notesOpen = false)
+  )}
   size="wide"
   title="Write release notes"
   description="Shown on the release page and in the changelog for 0.3.0"
 >
-  <Field label="Release notes">
-    {#snippet control({ id, describedby, invalid })}
-      <Textarea
-        {id}
-        aria-describedby={describedby}
-        {invalid}
-        rows={12}
-        placeholder="What changed, and what a reader has to do about it…"
-        bind:value={notesDraft}
-      />
-    {/snippet}
-  </Field>
+  <form id="sink-notes" class="form" onsubmit={saveNotes}>
+    <Field label="Release notes">
+      {#snippet control({ id, describedby, invalid })}
+        <Textarea
+          {id}
+          aria-describedby={describedby}
+          {invalid}
+          rows={12}
+          placeholder="What changed, and what a reader has to do about it…"
+          bind:value={notesDraft}
+        />
+      {/snippet}
+    </Field>
+  </form>
   {#snippet footer()}
     <Button onclick={() => (notesOpen = false)}>Cancel</Button>
-    <Button
-      tone="signal"
-      onclick={() => {
-        notes = notesDraft;
-        notesOpen = false;
-      }}>Save notes</Button
-    >
+    <Button tone="signal" type="submit" form="sink-notes">Save notes</Button>
   {/snippet}
 </Modal>
 
-<Modal bind:open={guarded} title="Write a note" beforeClose={keepNote}>
-  <Field label="Note" bind:value={note} placeholder="Type something, then press Escape" />
+<Modal
+  bind:open={guarded}
+  title="Write a note"
+  beforeClose={guard(
+    () => note.trim() !== '',
+    () => {
+      note = '';
+      guarded = false;
+    }
+  )}
+>
+  <form id="sink-note" class="form" onsubmit={keepNote}>
+    <Field label="Note" bind:value={note} placeholder="Type something, then press Escape" />
+  </form>
   {#snippet footer()}
     <Button
       onclick={() => {
@@ -333,32 +378,52 @@
         guarded = false;
       }}>Discard note</Button
     >
-    <Button tone="signal" onclick={() => (guarded = false)}>Keep note</Button>
+    <Button tone="signal" type="submit" form="sink-note">Keep note</Button>
   {/snippet}
 </Modal>
 
 <Modal
   bind:open={renaming}
+  beforeClose={guard(
+    () => newName !== REPOSITORY,
+    () => {
+      newName = REPOSITORY;
+      renaming = false;
+    }
+  )}
   title="Rename repository"
   description="Links to the old name redirect for a year"
   busy={renameBusy}
   error={renameError}
 >
-  <Field label="Name" bind:value={newName} />
+  <form id="sink-rename" class="form" onsubmit={saveName}>
+    <Field label="Name" bind:value={newName} />
+  </form>
   {#snippet footer()}
     <Button disabled={renameBusy} onclick={() => (renaming = false)}>Cancel</Button>
-    <Button tone="signal" loading={renameBusy} onclick={saveName}>Rename repository</Button>
+    <Button tone="signal" type="submit" form="sink-rename" loading={renameBusy}
+      >Rename repository</Button
+    >
   {/snippet}
 </Modal>
 
 <ConfirmDialog
-  bind:open={discard}
-  title="Discard the note?"
-  consequence="What you typed is gone once the dialog closes"
-  confirmLabel="Discard note"
+  bind:open={
+    () => leaving !== null,
+    (next) => {
+      if (!next) leaving = null;
+    }
+  }
+  title="Discard your changes?"
+  consequence="What you changed is gone once the dialog closes"
+  confirmLabel="Discard changes"
   tone="stop"
-  onconfirm={() => {
-    note = '';
-    guarded = false;
-  }}
+  onconfirm={() => leaving?.()}
 />
+
+<style>
+  /* The form owns its fields and lets them stand in the dialog body's own rhythm. */
+  .form {
+    display: contents;
+  }
+</style>

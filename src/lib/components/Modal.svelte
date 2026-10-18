@@ -9,6 +9,7 @@
   import type { HTMLDialogAttributes } from 'svelte/elements';
   import Icon from '../icons/Icon.svelte';
   import { themeAt } from '../internal/theme.svelte.js';
+  import { holdForWork, provideHold } from '../internal/held.svelte.js';
   import { hostToasts } from '../internal/toasts.svelte.js';
   import IconButton from './IconButton.svelte';
   import Toaster from './Toaster.svelte';
@@ -67,6 +68,10 @@
     'open' | 'title' | 'role' | 'children' | 'class' | 'onclose'
   > = $props();
 
+  // The fields inside read the busy state while they render, so a dialog busy at load paints
+  // them held from its first frame.
+  provideHold(() => busy);
+
   const titleId = `${uid}-title`;
   const descriptionId = `${uid}-description`;
 
@@ -76,10 +81,10 @@
     'input:not([type="hidden"]), textarea, select, [contenteditable]:not([contenteditable="false"])';
 
   let opener: Element | null = null;
-  // The opener's ancestors from the nearest out, each with the controls it held, ordered from
-  // just after the opener outwards. Focus finds its way back through them when the opener
-  // is gone by the time the dialog closes, as a deleted row's menu trigger is.
-  let home: { place: Element; around: HTMLElement[] }[] = [];
+  // Where the opener stood, as a live range: when the opener, or the row around it, is removed
+  // before the dialog closes, as a deleted row's menu trigger is, the page moves the range to
+  // its place. Focus finds its way back from there only then, so opening never scans the page.
+  let spot: Range | null = null;
   let reason: ModalCloseReason = 'program';
   let pressedOutside = false;
   let body = $state<HTMLElement | null>(null);
@@ -95,20 +100,29 @@
     if (!element) return;
     if (open && !element.open) {
       opener = document.activeElement;
-      home = [];
-      for (let at = opener?.parentElement; at && at !== document.body; at = at.parentElement) {
-        const all = [...at.querySelectorAll<HTMLElement>(TABBABLE)];
-        const index = all.indexOf(opener as HTMLElement);
-        home.push({
-          place: at,
-          around: [...all.slice(index + 1), ...all.slice(0, Math.max(index, 0)).reverse()]
-        });
+      spot = null;
+      if (opener && opener !== document.body) {
+        spot = document.createRange();
+        spot.selectNode(opener);
       }
       reason = 'program';
       element.showModal();
-      // The browser would focus the first control in tree order, which is Close in the head.
-      if (!element.querySelector('[autofocus]'))
-        (firstIn(body) ?? firstIn(foot) ?? closeButton)?.focus();
+      // A dialog that holds a field opens on it, so the reader can type at once (L-58), and an
+      // `[autofocus]` in the body names another field. Without one, an `[autofocus]` the footer
+      // names, such as a confirmation's least destructive answer, else the first control. The
+      // browser alone would focus the first control in tree order, which is Close in the head.
+      const named = element.querySelector<HTMLElement>('[autofocus]');
+      const field = [...(body?.querySelectorAll<HTMLElement>(EDITABLE) ?? [])].find(
+        (node) => node.matches(TABBABLE) && node.checkVisibility()
+      );
+      (
+        (named && body?.contains(named) ? named : undefined) ??
+        field ??
+        named ??
+        firstIn(body) ??
+        firstIn(foot) ??
+        closeButton
+      )?.focus();
     } else if (!open && element.open) element.close();
   });
 
@@ -129,15 +143,33 @@
       return opener;
     const chosen = returnFocus?.();
     if (chosen) return chosen;
-    // A control that took the opener's place since, such as a "Restore" button, counts too.
-    for (const { place, around } of home) {
-      if (!place.isConnected) continue;
-      const found =
-        around.find(
-          (node) => node.isConnected && node.matches(TABBABLE) && node.checkVisibility()
-        ) ?? firstIn(place);
-      if (found) return found;
+    // The nearest container left on the page hands focus to its first control after where the
+    // opener stood, else its last one before, so a control that took the opener's place since,
+    // such as a "Restore" button, counts too.
+    const at = spot;
+    if (!at) return;
+    for (let place = at.commonAncestorContainer; place !== document.body;) {
+      if (place instanceof Element) {
+        const all = [...place.querySelectorAll<HTMLElement>(TABBABLE)].filter((node) =>
+          node.checkVisibility()
+        );
+        const found =
+          all.find((node) => at.comparePoint(node, 0) > 0) ??
+          all.findLast((node) => at.comparePoint(node, 0) < 0);
+        if (found) return found;
+      }
+      if (!place.parentNode) return;
+      place = place.parentNode;
     }
+  }
+
+  // A busy dialog holds every field in it, so the work runs on the values the reader sent:
+  // focus moves to the busy action in the footer, and the fields are disabled.
+  function holding(box: HTMLElement) {
+    if (busy)
+      return holdForWork(box, () =>
+        box.querySelector<HTMLElement>(':scope > .sui-modal-foot [aria-busy="true"]')
+      );
   }
 
   // A press on the backdrop targets the dialog itself, outside the box it draws.
@@ -173,14 +205,20 @@
     dismiss('escape');
   }
 
-  // A stray press must never throw away a half-filled form, so only a dialog without fields
-  // closes on one.
+  // A press outside closes the dialog as Escape does, through `beforeClose`, so a form that
+  // holds the reader's changes asks first and a pristine one closes at once (Material, Primer,
+  // Radix). An open layer inside takes the press first.
   function onpointerdown(event: PointerEvent): void {
-    pressedOutside = outside(event) && !layered() && !element?.querySelector(EDITABLE);
+    pressedOutside = outside(event) && !layered();
+    // The press would move focus to the dialog itself, so a question that `beforeClose` raises
+    // would hand focus back there rather than to the field the reader was in.
+    if (pressedOutside) event.preventDefault();
   }
 
-  // `closedby="any"` would do this natively, but Safari does not support it yet. A press that
-  // starts inside the box and ends outside it, as a text selection does, never closes.
+  // A press that starts inside the box and ends outside it, as a text selection does, never
+  // closes. `closedby="any"` would close through the `cancel` event, which the browser stops
+  // letting a page refuse after one refusal, so a busy dialog or a `beforeClose` that keeps the
+  // work could close anyway.
   function onclick(event: MouseEvent): void {
     if (pressedOutside && outside(event)) dismiss('outside');
     pressedOutside = false;
@@ -188,9 +226,14 @@
 
   function closed(): void {
     open = false;
-    successor()?.focus();
+    // The browser has already handed focus back to the opener when it could. When another layer
+    // closed in the same turn, as the dialog a "Discard changes" question closes, that layer has
+    // placed focus by now, and it stays there.
+    const at = document.activeElement;
+    if (!(at instanceof HTMLElement) || at === document.body || !at.checkVisibility())
+      successor()?.focus();
     opener = null;
-    home = [];
+    spot = null;
     onclose?.(reason);
   }
 </script>
@@ -204,27 +247,31 @@ record from the inline end at full height. `wide` holds a task that needs room, 
 release notes. Something a reader can carry on past belongs in a callout beside the work.
 
 It is a native `<dialog>` opened with `showModal()`, so the browser traps focus, makes the page
-inert and keeps it in the top layer. Escape and the close button ask `beforeClose` first, which
-can refuse; confirm there only when closing would discard work. A press outside the box asks
-too, but only while the dialog holds no field, so a stray click never loses a half-filled form.
-An Escape that a layer inside it already handled, such as a menu or a tooltip, leaves it open.
+inert and keeps it in the top layer. Escape, the close button and a press outside the box all
+ask `beforeClose` first, which can refuse: confirm there only when closing would discard work,
+such as fields the reader changed, so a pristine form closes at once. An Escape or a press that
+a layer inside it takes first, such as a menu or a tooltip, leaves it open, and so does a press
+that starts inside the box, as a text selection does.
 Setting `open` to false always closes it.
 
 While a submit runs, set `busy`: the dialog refuses Escape, the close button and an outside
-press until the work ends. When it fails, keep the dialog open and set `error`, so the reader
+press until the work ends. Focus moves to the busy action, the footer button that is `loading`,
+and every field in it is disabled until the work ends, so the work runs on what the reader sent
+and focus goes back to the field it came from. When it fails, keep the dialog open and set
+`error`, so the reader
 keeps what they typed and reads why above the footer. The page's toasts draw inside the topmost
 dialog, so they are never inert under it.
 
 - Semantics: a modal `<dialog>`, or `alertdialog` through `role`, named by its `<h2>` title and described by `description`.
-- Content: a title, one description, the body's fields and a footer of actions with the primary action last; the title and the error wrap.
-- States: closed, open, busy (`aria-busy`, every way out refused) and failed (`error` in the danger ink with its symbol); the inspector docks to the inline end at full height.
+- Content: a title, one description, the body's fields and a footer of actions with the primary action last; the title and the error wrap. Put the fields in a `<form>` that the primary action submits through its `form` attribute, so Enter sends and the browser reads them as one form.
+- States: closed, open, busy (`aria-busy`, every way out refused, focus on the busy action and every field in it disabled) and failed (`error` in the danger ink with its symbol); the inspector docks to the inline end at full height.
 - Keyboard: Tab stays inside, Escape closes after `beforeClose` unless a layer inside took it, and Enter belongs to the focused control.
-- Pointer and touch: the close button is a 34px target, 44px on a phone or touch screen, and a press outside closes only a dialog that holds no field.
-- Focus: opens on an `[autofocus]` element, else the body's first control, then the footer's, then Close; returns to the opener, or to `returnFocus`, or to the first control left where the opener stood.
+- Pointer and touch: the close button is a 34px target, 44px on a phone or touch screen, and a press outside closes the dialog as Escape does, after `beforeClose`, unless it is busy.
+- Focus: opens on an `[autofocus]` element in the body, else the body's first field, else an `[autofocus]` element in the footer, else the body's first control, then the footer's, then Close; while busy it sits on the busy action, and a press on a disabled field leaves it there, then it returns to the field it came from; on close it returns to the opener, or to `returnFocus`, or to the nearest control left where the opener stood.
 - Responsive: its parts stand 24px from each other and from every edge, 16px under 48rem, where it fills the width less 8px each side; a body taller than the box scrolls under the footer behind a line, and on a short screen (30rem tall or less) the head, body and footer scroll as one so the footer never covers the fields.
 - Accessibility: the title names it and the description describes it, `error` is announced as an alert, and the scrim follows `--sui-scrim`.
 - Localization: `closeLabel` names the close button, every other word is the caller's, and the inspector docks and slides in from the inline end, mirrored in a right-to-left page.
-- Performance: the box enters with one 220ms fade and short slide on transform and opacity, removed under reduced motion; a closed dialog keeps no listeners.
+- Performance: the box enters with one 220ms fade and short slide on transform and opacity, removed under reduced motion; opening scans nothing outside the box, and closing searches for a control to take focus only when the opener is gone; a closed dialog keeps no listeners. A field outside any form costs its first focus a scan of every field outside a form on the page, which Chrome's autofill makes, so the form above also keeps the first open short.
 - Analytics: `onclose` reports `escape`, `close`, `outside` or `program`, so a caller can tell a save from an abandon.
 - Failure: a refused submit keeps the dialog open with `error`; a missing body draws the head alone with its full inset; a missing opener sends focus to `returnFocus` or the nearest control.
 -->
@@ -265,6 +312,7 @@ dialog, so they are never inert under it.
     aria-labelledby={titleId}
     aria-describedby={description ? descriptionId : undefined}
     aria-busy={busy || undefined}
+    {@attach holding}
   >
     {@render box()}
   </div>
@@ -279,6 +327,7 @@ dialog, so they are never inert under it.
     aria-labelledby={titleId}
     aria-describedby={description ? descriptionId : undefined}
     aria-busy={busy || undefined}
+    {@attach holding}
     {onkeydown}
     {oncancel}
     {onpointerdown}

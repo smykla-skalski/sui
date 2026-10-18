@@ -1888,7 +1888,10 @@ function dialogInsets(root: Document): Finding[] {
     // Titles, descriptions and error words are trimmed to their ink; fields and buttons draw
     // their frames, so a box is what a reader sees.
     const body = dialog.querySelector(':scope > .sui-modal-body');
-    const inBody = body ? band([...body.children]) : null;
+    // A form that only owns the fields (`display: contents`) is weighed by the fields it holds.
+    const laid = (part: Element): Element[] =>
+      getComputedStyle(part).display === 'contents' ? [...part.children].flatMap(laid) : [part];
+    const inBody = body ? band([...body.children].flatMap(laid)) : null;
     const bands = [
       band([...head.querySelectorAll('.sui-modal-title, .sui-modal-description')]),
       inBody,
