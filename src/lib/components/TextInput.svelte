@@ -1,5 +1,6 @@
 <script lang="ts">
   import type { HTMLInputAttributes } from 'svelte/elements';
+  import { getRefusals } from '../internal/refusals.svelte.js';
 
   let {
     value = $bindable(''),
@@ -27,8 +28,14 @@
     class?: HTMLInputAttributes['class'];
   } & Omit<HTMLInputAttributes, 'value' | 'type'> = $props();
 
+  const refusals = getRefusals();
+
   /* A caller's own `aria-invalid`, such as a combobox's, counts as much as `invalid`. */
-  const wrong = $derived(invalid || (ariaInvalid !== undefined && String(ariaInvalid) !== 'false'));
+  const wrong = $derived(
+    invalid ||
+      (ariaInvalid !== undefined && String(ariaInvalid) !== 'false') ||
+      Boolean(refusals?.refuses(element))
+  );
 </script>
 
 <!--
@@ -43,7 +50,7 @@ It has no label of its own. Put it inside `Field`, or give it `aria-label` when 
 that name it are already on screen. `mono` sets technical values in the mono face with
 tabular figures.
 
-- Semantics: a native `<input>` of the given `type`, named by a `<label for>` or `aria-label`; `invalid` or a caller's `aria-invalid` sets `aria-invalid`.
+- Semantics: a native `<input>` of the given `type`, named by a `<label for>` or `aria-label`; `invalid`, a caller's `aria-invalid` or a value the browser's check refused sets `aria-invalid`.
 - Content: one line of text the reader types, with an optional placeholder that is an example and never the label.
 - States: rest (the control fill, a quiet frame and a 3:1 baseline), hover (a firmer frame), focus (the inset fill and a flush 2px ring), invalid (a danger edge on all four sides, kept under hover and focus), read-only (no fill and no baseline) and disabled (0.5 opacity).
 - Keyboard: the browser's own text editing; Tab moves on.
@@ -54,7 +61,7 @@ tabular figures.
 - Localization: it draws no words of its own, its padding is logical, and the browser sets the text's direction from the page.
 - Performance: one native input with no script beyond the binding; only its edge and fill colours change.
 - Analytics: the native `oninput` and `onchange` report what the reader typed.
-- Failure: an invalid value keeps the danger edge in every state, and the words that say why belong to the `Field` or the caller.
+- Failure: an invalid value keeps the danger edge in every state, and the words that say why belong to the `Field` or the caller; a value its own constraints (`required`, `pattern`, `type`) refuse on a send is said in the error line of the field around it in place of the browser's bubble, and with no field around it the browser says it.
 -->
 
 <input
@@ -62,6 +69,7 @@ tabular figures.
   bind:value
   {type}
   {...rest}
+  {@attach refusals?.watch}
   class={['sui-text-input', className]}
   class:mono
   class:bare

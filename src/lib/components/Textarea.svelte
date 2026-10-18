@@ -1,5 +1,6 @@
 <script lang="ts">
   import type { HTMLTextareaAttributes } from 'svelte/elements';
+  import { getRefusals } from '../internal/refusals.svelte.js';
 
   let {
     value = $bindable(''),
@@ -22,8 +23,14 @@
     class?: HTMLTextareaAttributes['class'];
   } & Omit<HTMLTextareaAttributes, 'value'> = $props();
 
+  const refusals = getRefusals();
+
   /* A caller's own `aria-invalid` counts as much as `invalid`. */
-  const wrong = $derived(invalid || (ariaInvalid !== undefined && String(ariaInvalid) !== 'false'));
+  const wrong = $derived(
+    invalid ||
+      (ariaInvalid !== undefined && String(ariaInvalid) !== 'false') ||
+      Boolean(refusals?.refuses(element))
+  );
 </script>
 
 <!--
@@ -35,7 +42,7 @@ instead of the browser's default, and the reader can drag it taller but never wi
 It has no label of its own. Put it in a `Field` through the `control` snippet, or give it
 `aria-label`. `mono` is for technical text such as configuration.
 
-- Semantics: a native `<textarea>`, named by a `<label for>` or `aria-label`; `invalid` or a caller's `aria-invalid` sets `aria-invalid`.
+- Semantics: a native `<textarea>`, named by a `<label for>` or `aria-label`; `invalid`, a caller's `aria-invalid` or a value the browser's check refused sets `aria-invalid`.
 - Content: free text over several lines, `rows` lines tall before it scrolls, with an optional placeholder that is an example and never the label.
 - States: rest (the control fill, a quiet frame and a 3:1 baseline), hover (a firmer frame), focus (the inset fill and a flush 2px ring), invalid (a danger edge on all four sides, kept under hover and focus) and disabled (0.5 opacity, no resize).
 - Keyboard: the browser's own text editing, Enter included; Tab moves on.
@@ -46,7 +53,7 @@ It has no label of its own. Put it in a `Field` through the `control` snippet, o
 - Localization: it draws no words of its own, its padding is logical, and the browser sets the text's direction from the page.
 - Performance: one native textarea with no script beyond the binding; only its edge and fill colours change.
 - Analytics: the native `oninput` and `onchange` report what the reader wrote.
-- Failure: an invalid value keeps the danger edge in every state, and the words that say why belong to the `Field` or the caller.
+- Failure: an invalid value keeps the danger edge in every state, and the words that say why belong to the `Field` or the caller; a value its own constraints (`required`, `minlength`) refuse on a send is said in the error line of the field around it in place of the browser's bubble, and with no field around it the browser says it.
 -->
 
 <textarea
@@ -54,6 +61,7 @@ It has no label of its own. Put it in a `Field` through the `control` snippet, o
   bind:value
   {rows}
   {...rest}
+  {@attach refusals?.watch}
   class={['sui-textarea', className]}
   class:mono
   aria-invalid={wrong || undefined}></textarea>

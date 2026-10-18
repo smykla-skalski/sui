@@ -14,9 +14,11 @@
   import { mark, word } from '../words.js';
   import type { HTMLFieldsetAttributes } from 'svelte/elements';
   import Icon from '../icons/Icon.svelte';
+  import { setRefusals } from '../internal/refusals.svelte.js';
   import VisuallyHidden from './VisuallyHidden.svelte';
 
   const id = $props.id();
+  const refusals = setRefusals();
 
   let {
     label,
@@ -25,6 +27,7 @@
     name = id,
     hint,
     error,
+    validationMessage,
     required = false,
     requiredLabel = word('ChoiceCards.requiredLabel', 'Required'),
     disabled = false,
@@ -42,6 +45,8 @@
     hint?: string;
     /** Says what is wrong, such as an answer that is still missing. */
     error?: string;
+    /** Said in place of the browser's own words when a send leaves a required question unanswered, such as "Choose a plan". */
+    validationMessage?: string;
     /** An answer must be chosen: the legend says `requiredLabel` and the radios are `required`. */
     required?: boolean;
     /** The word after the legend of a question that must be answered. */
@@ -63,8 +68,9 @@
     event.preventDefault();
   }
 
+  const shown = $derived(refusals.message(error, validationMessage));
   const describedby = $derived(
-    [describedBy, hint && `${id}-hint`, error && `${id}-error`].filter(Boolean).join(' ') ||
+    [describedBy, hint && `${id}-hint`, shown && `${id}-error`].filter(Boolean).join(' ') ||
       undefined
   );
 </script>
@@ -85,16 +91,16 @@ save keeps it.
 
 - Semantics: a `<fieldset role="radiogroup">` named by its `<legend>`, described by the hint and the error, holding native radios each named by its label and described by its sentence, with a polite `role="status"` that speaks the error.
 - Content: a question as the legend and two to six answers, each a short label and one sentence; an optional hint and an error.
-- States: unchosen (a quiet edge), chosen (a brand tint, a 2px brand edge and a filled dot), hover (a veil and a firmer edge), focus (a flush 2px ring on a focus-coloured edge), pressed (a deeper ground, an inset shadow and a 1px sink), required (the word after the legend), invalid (a danger edge on every unchosen card and an error with a warning mark), locked and disabled answers (0.5 opacity).
+- States: unchosen (a quiet edge), chosen (a brand tint, a 2px brand edge and a filled dot), hover (a veil and a firmer edge), focus (a flush 2px ring on a focus-coloured edge), pressed (a deeper ground, an inset shadow and a 1px sink), required (the word after the legend), invalid (a danger edge on every unchosen card and an error with a warning mark, from `error` or from a refused send), locked and disabled answers (0.5 opacity).
 - Keyboard: Tab enters the group at the chosen answer, the arrows move the choice and skip disabled answers, and Space chooses; a locked group refuses all of them and keeps focus.
 - Pointer and touch: every card is its own target, at least 72px tall.
-- Focus: it never moves focus, and locking the group leaves focus on the radio that had it.
+- Focus: locking the group leaves focus on the radio that had it, and a send that leaves a required question unanswered moves focus to its first radio when it is the form's first refused control.
 - Responsive: the cards sit side by side while each has 14rem and stack when they do not; long sentences wrap.
 - Accessibility: the legend names the group, the required word is read with it, each card's label names its radio and its sentence describes it, and the error is spoken when it appears.
-- Localization: `requiredLabel` is a prop with an English default, the question and answers come from the caller, and the dot and the layout follow the reading direction.
+- Localization: `requiredLabel` is a prop with an English default, the question, answers and `validationMessage` come from the caller, a refusal without `validationMessage` is in the browser's words for the reader's language, and the dot and the layout follow the reading direction.
 - Performance: one radio per answer; colours and edges change at once, and only the 1px sink moves.
 - Analytics: `onchange` hears each answer the reader picks.
-- Failure: an `error` is drawn with a mark and words and spoken, and an unavailable answer stays visible and disabled.
+- Failure: an `error`, or a required question a send left unanswered, is drawn with a mark and words and spoken in place of the browser's bubble, and an unavailable answer stays visible and disabled.
 -->
 
 <fieldset
@@ -103,15 +109,16 @@ save keeps it.
   role="radiogroup"
   aria-describedby={describedby}
   aria-disabled={disabled || undefined}
-  aria-invalid={error ? true : undefined}
+  aria-invalid={shown ? true : undefined}
   aria-required={required || undefined}
+  {@attach refusals.area}
 >
   <legend class="sui-choice-cards-legend"
     >{label}{#if required}<span class="sui-choice-cards-required"
         >{mark('space')}{requiredLabel}</span
       >{/if}</legend
   >
-  <div class={['sui-choice-cards-grid', { invalid: Boolean(error) }]}>
+  <div class={['sui-choice-cards-grid', { invalid: Boolean(shown) }]}>
     {#each options as option, index (option.value)}
       <label class="sui-choice-card" class:disabled={disabled || option.disabled}>
         <input
@@ -127,6 +134,7 @@ save keeps it.
           onclick={refuse}
           onkeydown={refuse}
           onchange={() => onchange?.(option.value)}
+          {@attach refusals.watch}
         />
         <span id="{id}-{index}-label" class="sui-choice-card-label">{option.label}</span>
         <span class="sui-choice-card-dot" aria-hidden="true"></span>
@@ -139,13 +147,13 @@ save keeps it.
   {#if hint}<p id="{id}-hint" class="sui-choice-cards-help">{hint}</p>{/if}
   <!-- The status speaks the error, so the drawn copy stays out of the tree; the group's
        description still reads it. -->
-  {#if error}
+  {#if shown}
     <p id="{id}-error" class="sui-choice-cards-error" aria-hidden="true">
       <span class="sui-choice-cards-mark"><Icon name="alert" size="xs" /></span>
-      <span class="sui-choice-cards-words">{error}</span>
+      <span class="sui-choice-cards-words">{shown}</span>
     </p>
   {/if}
-  <VisuallyHidden role="status">{error ?? ''}</VisuallyHidden>
+  <VisuallyHidden role="status">{shown ?? ''}</VisuallyHidden>
 </fieldset>
 
 <style>

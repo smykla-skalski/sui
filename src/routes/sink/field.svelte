@@ -8,7 +8,7 @@
 </script>
 
 <script lang="ts">
-  import { Card, Checkbox, Field, Textarea } from '#lib';
+  import { Button, Card, Checkbox, Field, Textarea } from '#lib';
   import Example from '../kit/Example.svelte';
   import Specimen from '../kit/Specimen.svelte';
 
@@ -20,6 +20,13 @@
   let reason = $state('');
   let sync = $state(true);
   let protect = $state(false);
+  let sent = $state('Nothing sent yet');
+
+  function send(event: SubmitEvent & { currentTarget: HTMLFormElement }): void {
+    event.preventDefault();
+    const data = new FormData(event.currentTarget);
+    sent = `Sent ${data.get('repository')} for ${data.get('contact')}`;
+  }
 </script>
 
 <Example
@@ -110,6 +117,34 @@
         <Checkbox {id} aria-describedby={describedby} {invalid} bare bind:checked={protect} />
       {/snippet}
     </Field>
+  </Specimen>
+</Example>
+
+<Example
+  title="Refused send"
+  note="A refused send shows each field's own error in place of the browser's bubble and focuses the first field to fix"
+  layout="grid"
+>
+  <Specimen label={sent} code="required pattern validationMessage">
+    <form class="form" onsubmit={send}>
+      <Field
+        label="Repository name"
+        name="repository"
+        required
+        pattern="[a-z0-9\-]+"
+        validationMessage="Enter a name of lowercase letters, digits and dashes"
+        placeholder="your-project"
+      />
+      <Field
+        label="Contact email"
+        name="contact"
+        type="email"
+        required
+        validationMessage="Enter an email address such as you@example.com"
+        placeholder="you@example.com"
+      />
+      <Button type="submit">Create the repository</Button>
+    </form>
   </Specimen>
 </Example>
 

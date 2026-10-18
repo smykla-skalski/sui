@@ -198,6 +198,58 @@ suite('forms', together, () => {
     }
   });
 
+  test('a refused send says why under the field, never in the browser bubble', long, async () => {
+    const page = await open();
+    try {
+      const form = page.locator('#select form');
+      const zone = form.locator('select[name="zone"]');
+      // Listens after the field does, so it sees whether the bubble was cancelled.
+      await zone.evaluate((select) =>
+        select.addEventListener('invalid', (event) => {
+          select.dataset.bubble = String(!event.defaultPrevented);
+        })
+      );
+      await form.locator('button[type="submit"]').click();
+      const error = form.locator('.sui-field-error');
+      await error.waitFor();
+      assert.equal(await zone.getAttribute('data-bubble'), 'false', 'the browser bubble showed');
+      assert.equal((await error.textContent())?.trim(), 'Choose the time zone the reports run in');
+      assert.ok(await zone.evaluate((select) => document.activeElement === select), 'not focused');
+      assert.equal(await zone.getAttribute('aria-invalid'), 'true');
+      assert.ok(
+        (await zone.getAttribute('aria-describedby'))?.includes(
+          (await error.getAttribute('id')) ?? 'none'
+        ),
+        'the error does not describe the select'
+      );
+      await zone.selectOption({ index: 1 });
+      await error.waitFor({ state: 'detached' });
+    } finally {
+      await page.close();
+    }
+  });
+
+  test('a combobox refuses a send while its text names no option', long, async () => {
+    const page = await open();
+    try {
+      const field = page.getByRole('combobox', { name: 'Runtime' });
+      const error = page.locator('#combobox form .sui-field-error');
+      await field.fill('Cobol');
+      await page.keyboard.press('Enter');
+      await error.waitFor();
+      assert.equal(
+        await page.locator('#combobox figcaption .label', { hasText: /^Sent/ }).count(),
+        0,
+        'the draft was sent'
+      );
+      // Typed words that name an option lift the refusal before they are committed.
+      await field.fill('Go');
+      await error.waitFor({ state: 'detached' });
+    } finally {
+      await page.close();
+    }
+  });
+
   test('a refused combobox search says so', long, async () => {
     const page = await open();
     try {
@@ -308,6 +360,39 @@ suite('forms', together, () => {
       await page.close();
     }
   });
+
+  test(
+    'a joined unit lights only itself on hover and stays lit while its list is open',
+    long,
+    async () => {
+      const page = await open();
+      try {
+        const host = page.locator('#duration-input .sui-joined').first();
+        const unit = host.locator('select');
+        const ground = (/** @type {import('playwright-core').Locator} */ part) =>
+          part.evaluate((element) => getComputedStyle(element).backgroundColor);
+        const rest = {
+          frame: await ground(host),
+          value: await ground(host.locator('.sui-joined-value'))
+        };
+        const unitRest = await ground(unit);
+        await unit.hover();
+        assert.notEqual(await ground(unit), unitRest, 'the unit does not answer the pointer');
+        assert.equal(await ground(host), rest.frame, 'the hover lit the whole field');
+        assert.equal(await ground(host.locator('.sui-joined-value')), rest.value, 'the value lit');
+        await unit.click();
+        await page.waitForFunction(
+          (select) => select?.matches(':open'),
+          await unit.elementHandle()
+        );
+        await page.mouse.move(0, 0);
+        assert.notEqual(await ground(unit), unitRest, 'the open unit went back to rest');
+        await page.keyboard.press('Escape');
+      } finally {
+        await page.close();
+      }
+    }
+  );
 
   test('an on switch keeps its thumb inside the track in a right-to-left page', long, async () => {
     const page = await open();

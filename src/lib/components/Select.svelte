@@ -20,6 +20,7 @@
   import { mark, word } from '../words.js';
   import type { HTMLSelectAttributes } from 'svelte/elements';
   import Icon from '../icons/Icon.svelte';
+  import { getRefusals } from '../internal/refusals.svelte.js';
 
   let {
     value = $bindable(null),
@@ -67,7 +68,12 @@
     'options' in item;
 
   const prompt = $derived(placeholder ?? (value === null ? promptLabel : undefined));
-  const wrong = $derived(invalid || (ariaInvalid !== undefined && String(ariaInvalid) !== 'false'));
+  const refusals = getRefusals();
+  const wrong = $derived(
+    invalid ||
+      (ariaInvalid !== undefined && String(ariaInvalid) !== 'false') ||
+      Boolean(refusals?.refuses(element))
+  );
   const flat = $derived(options.flatMap((item) => (isGroup(item) ? item.options : [item])));
   const chosen = $derived(flat.find((option) => option.value === value));
   const active = $derived.by(() => {
@@ -94,7 +100,7 @@ pointing at its `id`, or with `aria-label`, and pass a `Field`'s `invalid` to `i
 error edge shows. `preview` draws an inert copy of the open picker under the field, hidden from
 assistive technology, because a native picker cannot be held open.
 
-- Semantics: a native `<select>` with `<option>` and `<optgroup>` children, named by a `<label for>` or `aria-label`; `invalid` sets `aria-invalid`.
+- Semantics: a native `<select>` with `<option>` and `<optgroup>` children, named by a `<label for>` or `aria-label`; `invalid` or a value the browser's check refused sets `aria-invalid`.
 - Content: six or more options with short labels and optional notes, in optional headed groups; disabled options stay in view.
 - States: rest (the control fill, a quiet frame and a 3:1 baseline), hover (a firmer frame), open, focus (a flush 2px ring), pressed (a deeper ground, an inset shadow and a 1px sink), invalid (a danger edge kept under focus), prompt (muted ink) and disabled (0.5 opacity); in the picker an option is active (a veil) or checked (a check mark).
 - Keyboard: the browser's own select keys: Space, Enter and the arrows open it and move, typing jumps to a label, and Escape closes it.
@@ -105,7 +111,7 @@ assistive technology, because a native picker cannot be held open.
 - Localization: `promptLabel`, `separator` and `optionName` are props with English defaults, the chevron and padding are logical, and the picker opens at the start edge in either direction.
 - Performance: native options render once each; the open picker moves only opacity and `translate`, with no movement under reduced motion.
 - Analytics: the native `onchange` reports each pick, and `bind:value` holds it.
-- Failure: no options show only the prompt, a required select with no answer is refused by native validation, and a refused value keeps its danger edge.
+- Failure: no options show only the prompt, a required select with no answer is refused by native validation, which the error line of the field around it says in place of the browser's bubble (the browser says it with no field around it), and a refused value keeps its danger edge.
 -->
 
 {#snippet face(label: string, description?: string)}
@@ -142,6 +148,7 @@ assistive technology, because a native picker cannot be held open.
     <select
       bind:this={element}
       {...rest}
+      {@attach refusals?.watch}
       class="sui-select-control"
       aria-invalid={wrong || undefined}
       bind:value={() => value ?? '', (next) => (value = next === '' ? null : next)}
@@ -304,6 +311,17 @@ assistive technology, because a native picker cannot be held open.
     /* The field's own text inset, so the unit's words sit as far in as a value's would. */
     padding-inline-start: var(--sui-space-2);
     translate: none;
+  }
+
+  /* While its picker is open the unit keeps the lit ground and ink, as an icon button does
+     while its menu is open, so the part the list belongs to stays marked. */
+  .bare .sui-select-control:open,
+  .bare:has(.sui-select-control:open) .sui-select-chevron {
+    color: var(--sui-text-primary);
+  }
+
+  .bare .sui-select-control:open {
+    background-color: var(--sui-interactive-hover-layer);
   }
 
   .bare .sui-select-control:active:not(:disabled) {
@@ -576,6 +594,12 @@ assistive technology, because a native picker cannot be held open.
     }
 
     .sui-select-option:is(:focus-visible, .active) {
+      outline: var(--sui-stroke) solid Highlight;
+      outline-offset: calc(-1 * var(--sui-stroke));
+    }
+
+    /* High contrast drops the lit ground, so an open unit draws its edge instead. */
+    .bare .sui-select-control:open:not(:focus-visible) {
       outline: var(--sui-stroke) solid Highlight;
       outline-offset: calc(-1 * var(--sui-stroke));
     }

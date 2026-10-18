@@ -66,18 +66,27 @@ the end part draws its own inset ring while it has focus, so the two never look 
     overflow-clip-margin: var(--sui-local-joined-reach, 0px);
   }
 
-  /* Hover lays the row veil over the field and steps its edge up, and an invalid field keeps
-     its danger edge, a step deeper, so every field answers the pointer (L-9). */
+  /* Hover steps the whole frame's edge up, and an invalid field keeps its danger edge, a step
+     deeper, so every field answers the pointer (L-9). The row veil lies only on the value
+     while the pointer is on it: the end part lights its own ground, so a pointer on a unit or
+     a copy action never lights the value as well. */
   @media (hover: hover) {
     .sui-joined:hover:not(.disabled, .readonly, :has(:global(:focus-visible))) {
-      background-color: var(--sui-row-hover);
       border-color: var(--sui-field-frame-hover);
       border-block-end-color: var(--sui-field-border-hover);
     }
 
     .sui-joined.invalid:hover:not(.disabled, .readonly, :has(:global(:focus-visible))) {
-      background-color: var(--sui-danger-hover-layer);
       border-color: var(--sui-danger-hover);
+    }
+
+    .sui-joined:not(.disabled, .readonly, :has(:global(:focus-visible))) > .sui-joined-value:hover {
+      background-color: var(--sui-row-hover);
+    }
+
+    .sui-joined.invalid:not(.disabled, .readonly, :has(:global(:focus-visible)))
+      > .sui-joined-value:hover {
+      background-color: var(--sui-danger-hover-layer);
     }
   }
 

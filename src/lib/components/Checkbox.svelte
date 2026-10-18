@@ -2,6 +2,7 @@
   import type { Snippet } from 'svelte';
   import type { HTMLInputAttributes } from 'svelte/elements';
   import Icon from '../icons/Icon.svelte';
+  import { getRefusals } from '../internal/refusals.svelte.js';
 
   const id = $props.id();
 
@@ -40,6 +41,8 @@
     children?: Snippet;
   } & Omit<HTMLInputAttributes, 'type' | 'checked' | 'indeterminate' | 'children'> = $props();
 
+  const refusals = getRefusals();
+  const wrong = $derived(invalid || Boolean(refusals?.refuses(element)));
   const named = $derived(Boolean(children || label));
   /* `aria-disabled` locks the box without `disabled`, which would drop a focused box's focus
      to the body, so it stays a tab stop and refuses the press itself. */
@@ -77,11 +80,11 @@ it keeps focus, for a list that is saving.
 - Pointer and touch: the whole item is the target, 34px tall, 44px with a description, on a phone or on any touch screen, and `bare` is a square as tall as a control, 34px or 44px on touch, which is both its ground and its hit area.
 - Focus: a press never moves focus, and a locked box keeps it.
 - Responsive: a long label wraps and the box stays centred on its first line.
-- Accessibility: the label is the name, the description the description, `invalid` sets `aria-invalid`, and the box's edge holds 3:1.
+- Accessibility: the label is the name, the description the description, `invalid` or a box the browser's check refused sets `aria-invalid`, and the box's edge holds 3:1.
 - Localization: its words come from the caller, the box sits at the inline start and the layout is logical.
 - Performance: one native input per item; only colours, the inset shadow and the 1px sink move.
 - Analytics: the native `onchange` reports each toggle; a refused press never fires it.
-- Failure: an invalid box keeps its danger edge in every state, and the words that say why belong to the group or the field.
+- Failure: an invalid box keeps its danger edge in every state, and the words that say why belong to the group or the field; a `required` box left empty on a send is said in their error line in place of the browser's bubble, and with neither around it the browser says it.
 -->
 
 <label
@@ -96,15 +99,16 @@ it keeps focus, for a list that is saving.
       bind:checked
       bind:indeterminate
       {...rest}
+      {@attach refusals?.watch}
       type="checkbox"
       {disabled}
       aria-labelledby={named ? `${id}-label` : undefined}
       aria-describedby={describedby}
-      aria-invalid={invalid || undefined}
+      aria-invalid={wrong || undefined}
       aria-disabled={ariaDisabled}
       onclick={press}
     />
-    <span class="sui-checkbox-box" class:invalid aria-hidden="true">
+    <span class="sui-checkbox-box" class:invalid={wrong} aria-hidden="true">
       {#if indeterminate}
         <span class="sui-checkbox-dash"></span>
       {:else}
