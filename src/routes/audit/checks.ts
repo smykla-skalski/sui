@@ -1488,7 +1488,9 @@ function specimens(root: Document): Finding[] {
          a line or more starts a new line. */
       const tops = [...range.getClientRects()].map((line) => line.top).sort((a, b) => a - b);
       const half = parseFloat(getComputedStyle(part).lineHeight) / 2;
-      const lines = tops.filter((top, index) => index === 0 || top - tops[index - 1] >= half).length;
+      const lines = tops.filter(
+        (top, index) => index === 0 || top - tops[index - 1] >= half
+      ).length;
       if (lines > 1 && grows && own.width < room - 1)
         found.push(finding('L-55', part, 'the caption wraps while its specimen has room to grow'));
     }
