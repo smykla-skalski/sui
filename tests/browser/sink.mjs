@@ -1,7 +1,7 @@
 import { existsSync } from 'node:fs';
 import { availableParallelism } from 'node:os';
 import { chromium } from 'playwright-core';
-import { build, createServer, preview } from 'vite';
+import { createBuilder, createServer, preview } from 'vite';
 
 /**
  * Options for a test that takes long, such as an axe or a picture pass over the whole sink or a
@@ -27,7 +27,8 @@ const launch = () => chromium.launch({ channel: process.env.SUI_BROWSER_CHANNEL 
  */
 export async function serveSink() {
   if (process.env.SUI_SINK_DEV) return serveDev();
-  await build({ logLevel: 'error' });
+  // The app build, as `vite build` runs it: SvelteKit writes its client's entries in it.
+  await (await createBuilder({ logLevel: 'error' })).buildApp();
   const server = await preview({ logLevel: 'error', preview: { port: 0 } });
   return { server, url: server.resolvedUrls?.local[0] ?? '' };
 }
