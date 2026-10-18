@@ -156,8 +156,10 @@ and the one above as a hovered row does, and keeps the plate under the pointer.
   /* The plate that marks where the reader is. A row's words keep their ink when it turns
      current, so the plate stands at the pressed step, as the sidebar's does, a step past the
      hover ground, and a hovered row never looks current (L-85). Like a hover ground it has
-     round corners, so neither its own line nor the one above crosses its edge. */
+     round corners, so neither its own line nor the one above crosses its edge. On that deeper
+     ground the muted ink falls under 4.5:1, so the row's quiet words take the secondary ink. */
   .current {
+    --sui-text-muted: var(--sui-text-secondary);
     background-color: var(--sui-row-pressed);
   }
 
