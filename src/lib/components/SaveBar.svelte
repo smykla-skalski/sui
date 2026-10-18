@@ -53,8 +53,6 @@
     class?: HTMLAttributes<HTMLElement>['class'];
   } & Omit<HTMLAttributes<HTMLElement>, 'title' | 'children' | 'hidden'> = $props();
 
-  /** Clear air between the last line of content and the bar, once it has scrolled to the end. */
-  const CLEARANCE_GAP = 8;
   /** How long a notice with nothing to press stays, as a toast does (L-60). */
   const LINGER_MS = 5000;
   const FOCUSABLE =
@@ -152,50 +150,11 @@
     return () => pane.removeEventListener('keydown', onkeydown);
   }
 
-  function scrollerOf(node: Element): HTMLElement {
-    for (let parent = node.parentElement; parent; parent = parent.parentElement) {
-      const { overflowY } = getComputedStyle(parent);
-      if (overflowY === 'auto' || overflowY === 'scroll') return parent;
-    }
-    return (document.scrollingElement as HTMLElement | null) ?? document.documentElement;
-  }
-
   // Resolving the style before the flag lands means a bar that is up at first paint already
   // has one, so only a later reveal slides in.
   function settle(bar: HTMLElement) {
     void getComputedStyle(bar).opacity;
     bar.dataset.settled = '';
-  }
-
-  function reserveClearance(bar: HTMLElement) {
-    const scroller = scrollerOf(bar);
-    const { style } = scroller;
-    const before = {
-      padding: style.paddingBlockEnd,
-      scrollPadding: style.scrollPaddingBlockEnd
-    };
-    const resting = getComputedStyle(scroller).paddingBlockEnd;
-    style.paddingBlockEnd = `max(${resting}, var(--sui-save-bar-clearance))`;
-    style.scrollPaddingBlockEnd = 'var(--sui-save-bar-clearance)';
-    // A bar that sits in the flow on a short screen covers nothing, so it reserves nothing.
-    const measure = () => {
-      const look = getComputedStyle(bar);
-      const inset = parseFloat(look.bottom) || 0;
-      style.setProperty(
-        '--sui-save-bar-clearance',
-        look.position === 'fixed' ? `${bar.offsetHeight + inset + CLEARANCE_GAP}px` : '0px'
-      );
-    };
-    const observer = new ResizeObserver(measure);
-    observer.observe(bar);
-    addEventListener('resize', measure);
-    return () => {
-      observer.disconnect();
-      removeEventListener('resize', measure);
-      style.removeProperty('--sui-save-bar-clearance');
-      style.paddingBlockEnd = before.padding;
-      style.scrollPaddingBlockEnd = before.scrollPadding;
-    };
   }
 </script>
 
@@ -206,11 +165,9 @@ saved or thrown away. Every edit on the pane stages a draft; this bar sends it. 
 exception: its border and its Save button wear the decision accent, which belongs only to
 unsaved state and the action that resolves it.
 
-It is fixed to the block end of the viewport, 16px in, unless an ancestor is a containing block
-for fixed boxes (`contain: layout` or a transform), which is how a pane with its own scroller
-holds it. Place it inside the scroller whose end it covers. While it floats, it writes its
-measured height to `--sui-save-bar-clearance` on that scroller and pads the scroller's end by
-it, so the last content always scrolls clear of the bar.
+Place it last in the content that scrolls, the page's or a pane's. It sticks to the block end
+of that scroller, 16px in, while there is content past it, and once the reader reaches the end
+it rests after the last content, so it never covers that content and nothing is measured.
 
 - Semantics: an `aside` named by its title, with a polite live copy and native buttons.
 - Content: a title and a subtitle while there is work; `savedTitle` once a save lands; `discardedTitle` with Undo once Discard has run.
@@ -218,10 +175,10 @@ it, so the last content always scrolls clear of the bar.
 - Keyboard: Tab reaches Discard and Save at the pane's end; Ctrl+S or Cmd+S saves from anywhere in the bar's pane; Escape never discards.
 - Pointer and touch: buttons are 34px tall, 44px on a phone.
 - Focus: after Discard focus moves to Undo, or to Dismiss without one; after a save lands, Undo or Dismiss, focus goes back to the control the reader came from, else the pane's first control, never to the page.
-- Responsive: the copy wraps and the actions wrap under it; on a screen under 30rem tall, as at 400% zoom, the bar stops floating and sits at the pane's end, so it never covers most of the view.
+- Responsive: the copy wraps and the actions wrap under it; on a screen under 30rem tall, as at 400% zoom, the bar stops sticking and only sits at the pane's end, so it never covers most of the view.
 - Accessibility: the copy is a polite live region, so a failure, a save and a discard are each said; the bar's name is its title.
 - Localization: every word is a prop with an English default; the actions end the line in the reading direction.
-- Performance: one resize observer while the bar is up, and a fade and 8px rise on entry, removed under reduced motion.
+- Performance: no script measures it; a fade and 8px rise on entry, removed under reduced motion.
 - Analytics: `onsave` hears each save, the shortcut included, `ondiscard` each discard, and the function it returns each undo.
 - Failure: a failed save keeps the bar up with the reason and the work is never dropped on its own; without an undo from `ondiscard` the discard still says so before the bar leaves.
 -->
@@ -229,7 +186,6 @@ it, so the last content always scrolls clear of the bar.
 <aside
   bind:this={element}
   {@attach settle}
-  {@attach (dirty || notice) && reserveClearance}
   {@attach shortcut}
   {...rest}
   class={['sui-save-bar', className, { notice: notice !== null }]}
@@ -284,15 +240,15 @@ it, so the last content always scrolls clear of the bar.
     display: flex;
     flex-wrap: wrap;
     gap: var(--sui-space-3) var(--sui-space-5);
+    inline-size: 100%;
     inset-block-end: max(var(--sui-space-4), env(safe-area-inset-bottom));
-    inset-inline: var(--sui-space-4);
     justify-content: space-between;
     margin-inline: auto;
     max-inline-size: 50rem;
     opacity: 1;
     /* One inset all round, measured to the ink (L-33). */
     padding: var(--sui-space-4);
-    position: fixed;
+    position: sticky;
     transition:
       opacity var(--sui-duration-normal) var(--sui-ease-standard),
       translate var(--sui-duration-normal) var(--sui-ease-standard),
@@ -373,12 +329,10 @@ it, so the last content always scrolls clear of the bar.
     --sui-text-primary: var(--sui-unsaved-ink);
   }
 
-  /* On a screen this short a floating bar would cover most of it (400% zoom is 256px tall),
-     so the bar takes its place at the pane's end, where Ctrl+S or a scroll reaches it. */
+  /* On a screen this short a sticking bar would cover most of it (400% zoom is 256px tall), so
+     the bar only sits at the pane's end, where Ctrl+S or a scroll reaches it. */
   @media (max-height: 30rem) {
     .sui-save-bar {
-      inset: auto;
-      margin-block-start: var(--sui-space-4);
       position: static;
     }
   }

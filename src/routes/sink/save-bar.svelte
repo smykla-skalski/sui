@@ -104,11 +104,9 @@
 </Example>
 
 <style>
-  /* A containing block for fixed boxes, so the bar sits at this pane's end, not the page's.
-     The pane grows with its content, so the bar sits in the room it reserves after the last
-     line instead of over the middle of the content. */
+  /* The pane grows with its content, so the bar rests after the last line instead of sticking
+     over the middle of the content. */
   .pane {
-    contain: layout;
     overflow: hidden;
   }
 
