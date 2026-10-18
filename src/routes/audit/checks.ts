@@ -2239,6 +2239,238 @@ function loadMoreRows(root: Document): Finding[] {
   return found;
 }
 
+/** A top or bottom edge a reader sees as a line: a hairline wide, in a colour that shows. */
+const hairline = (width: string, color: string) =>
+  parseFloat(width) > 0 && parseFloat(width) <= 1.5 && rgba(color).a > 0;
+
+/**
+ * Sections (L-108): a section draws no frame, ground or shadow, its title is never uppercase,
+ * and nothing in its head draws a line. The actions are left out: a button keeps its own frame.
+ */
+function sectionHeads(root: Document): Finding[] {
+  const found: Finding[] = [];
+  const edged = (look: CSSStyleDeclaration) =>
+    (['Top', 'Right', 'Bottom', 'Left'] as const).some(
+      (side) => parseFloat(look[`border${side}Width`]) > 0 && rgba(look[`border${side}Color`]).a > 0
+    );
+  const lined = (element: Element) => {
+    const look = getComputedStyle(element);
+    if (
+      hairline(look.borderTopWidth, look.borderTopColor) ||
+      hairline(look.borderBottomWidth, look.borderBottomColor) ||
+      look.boxShadow !== 'none'
+    )
+      return true;
+    return ['::before', '::after'].some((pseudo) => {
+      const drawn = getComputedStyle(element, pseudo);
+      return (
+        drawn.content !== 'none' &&
+        drawn.content !== 'normal' &&
+        (paintsGround(drawn) || edged(drawn))
+      );
+    });
+  };
+  for (const section of audited(root, '.sui-section')) {
+    const look = getComputedStyle(section);
+    if (paintsGround(look) || edged(look) || look.boxShadow !== 'none')
+      found.push(finding('L-108', section, 'a section draws a frame, a ground or a shadow'));
+    const head = section.querySelector(':scope > .sui-section-head');
+    const title = head?.querySelector('.sui-section-title');
+    if (!head || !title) continue;
+    const words = title.querySelector('.sui-section-words') ?? title;
+    const text = words.textContent ?? '';
+    // Typed capitals count as well as a transform; a lone acronym of three letters does not.
+    const shouted =
+      [title, words].some((part) => getComputedStyle(part).textTransform !== 'none') ||
+      (!/\p{Ll}/u.test(text) && (text.match(/\p{Lu}/gu)?.length ?? 0) > 3);
+    if (shouted) found.push(finding('L-108', title, 'a section title is not sentence case'));
+    const line = [head, ...head.querySelectorAll('*')].find(
+      (part) => !part.closest('.sui-section-actions') && lined(part)
+    );
+    if (line) found.push(finding('L-108', line, 'a section head draws a line'));
+  }
+  return found;
+}
+
+/**
+ * One line per boundary (L-109): two parallel rules that share a stretch never stand within
+ * 8px of each other. A rule is a top or bottom border of a box with no side borders, as a
+ * frame's edge is not a rule, or a hairline `::before` or `::after`, at least half as wide as
+ * its container. Rules on fixed or sticky chrome move against the page, so they are left out.
+ */
+function boundaryLines(root: Document): Finding[] {
+  const found: Finding[] = [];
+  const rules: { element: Element; top: number; left: number; right: number }[] = [];
+  const pinned = (element: Element) => {
+    for (let node: Element | null = element; node; node = node.parentElement)
+      if (/^(fixed|sticky)$/.test(getComputedStyle(node).position)) return true;
+    return false;
+  };
+  for (const element of audited(root, 'body *:not(svg, svg *)')) {
+    const look = getComputedStyle(element);
+    const box = element.getBoundingClientRect();
+    if (box.width <= 1) continue;
+    const room = element.parentElement?.getBoundingClientRect().width ?? box.width;
+    const sided =
+      hairline(look.borderLeftWidth, look.borderLeftColor) ||
+      hairline(look.borderRightWidth, look.borderRightColor);
+    if (!sided && box.width >= room / 2 - 0.5) {
+      if (hairline(look.borderTopWidth, look.borderTopColor))
+        rules.push({ element, top: box.top, left: box.left, right: box.right });
+      if (hairline(look.borderBottomWidth, look.borderBottomColor))
+        rules.push({
+          element,
+          top: box.bottom - parseFloat(look.borderBottomWidth),
+          left: box.left,
+          right: box.right
+        });
+    }
+    if (look.position === 'static') continue;
+    for (const pseudo of ['::before', '::after']) {
+      const drawn = getComputedStyle(element, pseudo);
+      if (drawn.content === 'none' || drawn.content === 'normal' || drawn.position !== 'absolute')
+        continue;
+      const height = parseFloat(drawn.height);
+      const width = parseFloat(drawn.width);
+      const left = box.left + parseFloat(drawn.left);
+      const top = box.top + parseFloat(drawn.top);
+      if (!(height > 0 && height <= 1.5) || rgba(drawn.backgroundColor).a === 0) continue;
+      if (![width, left, top].every(Number.isFinite) || width < box.width / 2 - 0.5) continue;
+      rules.push({ element, top, left, right: left + width });
+    }
+  }
+  const page = rules
+    .filter((rule) => !pinned(rule.element))
+    .sort((one, other) => one.top - other.top);
+  for (const [index, one] of page.entries())
+    for (const other of page.slice(index + 1)) {
+      const gap = other.top - one.top;
+      if (gap > 8) break;
+      if (Math.min(one.right, other.right) - Math.max(one.left, other.left) <= 0.5) continue;
+      found.push(
+        finding(
+          'L-109',
+          other.element,
+          `a line stands ${round(gap)}px from a parallel one on ${describe(one.element)}`
+        )
+      );
+    }
+  return found;
+}
+
+/**
+ * Detail panes (L-110): the aside follows the main column in the DOM and on the page, under it
+ * when the columns stack and at its inline end when they stand side by side.
+ */
+function detailPanes(root: Document): Finding[] {
+  const found: Finding[] = [];
+  for (const layout of audited(root, '.sui-detail-layout')) {
+    const columns = ':scope > .sui-detail-layout-columns > ';
+    const main = layout.querySelector(`${columns}.sui-detail-layout-main`);
+    const aside = layout.querySelector(`${columns}.sui-detail-layout-aside`);
+    if (!main || !aside || !shown(aside)) continue;
+    if (!(main.compareDocumentPosition(aside) & Node.DOCUMENT_POSITION_FOLLOWING))
+      found.push(finding('L-110', aside, 'the aside comes before the main column in the DOM'));
+    const first = main.getBoundingClientRect();
+    const then = aside.getBoundingClientRect();
+    const stacked = Math.min(first.right, then.right) - Math.max(first.left, then.left) > 0.5;
+    const rtl = getComputedStyle(layout).direction === 'rtl';
+    if (stacked && then.top < first.bottom - 0.5)
+      found.push(
+        finding(
+          'L-110',
+          aside,
+          `the stacked aside starts ${round(first.bottom - then.top)}px above the main column's foot`
+        )
+      );
+    else if (!stacked && (rtl ? then.right > first.left + 0.5 : then.left < first.right - 0.5))
+      found.push(finding('L-110', aside, 'the aside stands before the main column'));
+  }
+  return found;
+}
+
+const FRAMES = '.sui-card, .sui-plate';
+
+/** A box drawn by a visible edge on all four sides. */
+function framedBox(element: Element): boolean {
+  const look = getComputedStyle(element);
+  return (['top', 'right', 'bottom', 'left'] as const).every(
+    (side) =>
+      parseFloat(look.getPropertyValue(`border-${side}-width`)) > 0 &&
+      rgba(look.getPropertyValue(`border-${side}-color`)).a > 0
+  );
+}
+
+/**
+ * Framed surfaces never nest (L-55): no card, plate, code or diff block or table that draws a
+ * frame of its own sits inside a card or a plate, and a state never stands inside one (L-59),
+ * because it belongs in the place of what it replaces. Only a drawn frame counts, so a bare
+ * code block and an error over content, which is a row, pass.
+ */
+function nestedFrames(root: Document): Finding[] {
+  const found: Finding[] = [];
+  const surfaces = '.sui-card, .sui-plate, .sui-code-block, .sui-diff-block, .sui-data-table';
+  const states = '.sui-empty-state, .sui-error-state';
+  for (const inner of audited(root, `:is(${FRAMES}) :is(${surfaces}, ${states})`)) {
+    const frame = inner.parentElement?.closest(FRAMES);
+    if (!frame || !framedBox(inner)) continue;
+    const holder = frame.matches('.sui-card') ? 'card' : 'plate';
+    found.push(
+      inner.matches(states)
+        ? finding('L-59', inner, `a state stands in a ${holder}, not in the place it fills`)
+        : finding('L-55', inner, `a framed surface stands inside a ${holder}`)
+    );
+  }
+  return found;
+}
+
+/**
+ * Cards are earned (L-55): a card links to its page, is the danger zone, stands among its card
+ * peers, or is the one box on a bare page, whose nearest ground holds nothing but it. The kitchen
+ * sink's stage is a ground with captions on it, so one lone card in a specimen is a finding.
+ */
+function earnedCards(root: Document): Finding[] {
+  const found: Finding[] = [];
+  const words = (element: Element) =>
+    (element as HTMLElement).innerText.replace(/\s+/g, ' ').trim();
+  for (const card of audited(root, '.sui-card')) {
+    const box = card.parentElement;
+    if (!box || card.matches('.linked, .danger')) continue;
+    // A card wrapped alone, as in a list item, is weighed by the wrapper among its siblings.
+    let item: Element = box;
+    while (item.parentElement && [...item.parentElement.children].filter(shown).length === 1)
+      item = item.parentElement;
+    const peers = [...(item.parentElement?.children ?? [])].some(
+      (sibling) =>
+        sibling !== item &&
+        shown(sibling) &&
+        (sibling.matches('.sui-card-box') || sibling.querySelector(':scope > .sui-card-box'))
+    );
+    if (peers) continue;
+    let page = box.parentElement;
+    while (page && !paintsGround(getComputedStyle(page))) page = page.parentElement;
+    if (page && words(page) === words(box)) continue;
+    found.push(
+      finding('L-55', card, 'a lone card that neither links nor is the danger zone or a bare page')
+    );
+  }
+  return found;
+}
+
+/** Settings stand in a section, never in a card or a plate (L-55). */
+function framedSettings(root: Document): Finding[] {
+  return audited(root, `:is(${FRAMES}) .sui-setting-list`).map((list) =>
+    finding('L-55', list, 'a settings group stands inside a card or a plate, not in a section')
+  );
+}
+
+/** What a disclosure reveals sits straight in it, never in a card (L-57). */
+function disclosedCards(root: Document): Finding[] {
+  return audited(root, '.sui-disclosure .sui-card').map((card) =>
+    finding('L-57', card, 'a card stands inside a disclosure')
+  );
+}
+
 register(
   separators,
   palette,
@@ -2269,5 +2501,8 @@ register(
   loadMoreRows,
   dialogInsets,
   settingResets,
-  unsavedVeils
+  unsavedVeils,
+  sectionHeads,
+  boundaryLines,
+  detailPanes
 );

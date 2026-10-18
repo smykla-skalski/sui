@@ -52,6 +52,7 @@
         'callout',
         'disclosure',
         'page-header',
+        'section',
         'page-toc',
         'code-block',
         'diff-block',

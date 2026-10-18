@@ -323,6 +323,10 @@
 
   --sui-rhythm-card-gap: var(--sui-space-4);
 
+  /* Between sections that follow each other, and between sub-sections inside one. */
+  --sui-rhythm-section-gap: 2.5rem;
+  --sui-rhythm-subsection-gap: var(--sui-space-6);
+
   --sui-rhythm-surface-pad: var(--sui-space-5);
 
   --sui-rhythm-surface-pad-compact: var(--sui-space-4);
@@ -450,6 +454,8 @@
   --sui-breakpoint-row: 25rem;
   --sui-breakpoint-callout: 24rem;
   --sui-breakpoint-bar: 18rem;
+  /* From this width up a detail layout stands its aside beside the main column. */
+  --sui-breakpoint-detail: 56rem;
 
   --sui-field-target-min: max(24px, round(1.5rem, 1px));
   --sui-disabled-opacity: 0.5;
@@ -902,6 +908,8 @@
 
     /* The space under a page header steps down with the type. */
     --sui-rhythm-head-surface: var(--sui-rhythm-head-surface-compact);
+    --sui-rhythm-section-gap: 2rem;
+    --sui-rhythm-subsection-gap: var(--sui-space-5);
   }
 }
 

@@ -116,6 +116,22 @@ suite('accessibility', together, () => {
     }
   });
 
+  // A named section would be a region landmark, and a pane of them would bury the landmarks a
+  // reader jumps between (APG landmark regions).
+  test('a section is never a landmark region', long, async () => {
+    const page = await open(1440, 'light');
+    try {
+      const sections = await page.locator('.sui-section').count();
+      const regions = await page
+        .getByRole('region')
+        .evaluateAll((found) => found.filter((element) => element.matches('.sui-section')).length);
+      assert.ok(sections > 0, 'the kitchen sink shows sections');
+      assert.equal(regions, 0);
+    } finally {
+      await page.close();
+    }
+  });
+
   test(
     'in forced colors every current and selected state differs by more than weight',
     long,
