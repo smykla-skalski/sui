@@ -36,4 +36,4 @@ Run a moderated task test with five to eight readers per user type, and repeat a
 
 Measure Largest Contentful Paint, Interaction to Next Paint and Cumulative Layout Shift at the 75th percentile on mobile and desktop in the products that use SUI, and profile long option lists, large tables and many relative times on one page.
 
-`tests/browser/performance.test.mjs` holds lab stand-ins on a CPU four times slower: loading the sink shifts layout by less than 0.1, a keystroke in a combobox of 5000 options and a sort of 500 table rows answer within 200ms, and a clock tick over 100 relative times holds no task past 50ms. Field data at the 75th percentile still decides.
+`tests/browser/performance.test.mjs` holds lab stand-ins on a CPU about as fast as a mid-range phone (a laptop slowed four times, a CI runner as it is): loading the sink shifts layout by less than 0.1, a keystroke in a combobox of 5000 options and a sort of 500 table rows answer within 200ms, and a clock tick over 100 relative times holds no task past 50ms. Field data at the 75th percentile still decides.

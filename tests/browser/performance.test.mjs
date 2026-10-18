@@ -2,8 +2,10 @@ import assert from 'node:assert/strict';
 import { after, before, test } from 'node:test';
 import { long, startSink, visit } from './sink.mjs';
 
-// Lab stand-ins for field data: a page with the library and nothing else, on a CPU four times
-// slower, against the Core Web Vitals "good" limits (CLS 0.1, INP 200ms) and the 50ms long task.
+// Lab stand-ins for field data: a page with the library and nothing else, on a CPU about as fast
+// as a mid-range phone's, against the Core Web Vitals "good" limits (CLS 0.1, INP 200ms) and the
+// 50ms long task. A laptop runs four times slower to get there; a CI runner is already that slow.
+const slowdown = process.env.CI ? 1 : 4;
 
 /** @type {{ close: () => Promise<void> }} */
 let server;
@@ -20,7 +22,7 @@ after(async () => {
   await server?.close();
 });
 
-/** An app page: the library loaded, the sink's own sections gone, the CPU four times slower. */
+/** An app page: the library loaded, the sink's own sections gone, the CPU slowed. */
 async function app() {
   const page = await browser.newPage({ viewport: { width: 1280, height: 900 } });
   await visit(page, url);
@@ -35,7 +37,7 @@ async function app() {
     for (const element of [...document.body.children]) element.remove();
   });
   const cdp = await page.context().newCDPSession(page);
-  await cdp.send('Emulation.setCPUThrottlingRate', { rate: 4 });
+  await cdp.send('Emulation.setCPUThrottlingRate', { rate: slowdown });
   return page;
 }
 

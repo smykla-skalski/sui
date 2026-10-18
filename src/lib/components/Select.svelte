@@ -286,13 +286,22 @@ assistive technology, because a native picker cannot be held open.
      without the sink; the ink rises when a pointer or the keyboard is on it, and its own inset
      ring says that focus left the value for the unit. */
   .bare .sui-select-control,
-  .bare .sui-select-control:is(:active, :focus-visible, [aria-invalid='true'], :user-invalid) {
+  .bare .sui-select-control:is(:focus-visible, [aria-invalid='true'], :user-invalid) {
     background-color: transparent;
+    /* Round on the side that faces the value; the field's own curve clips the far side. */
     border-radius: 0;
+    border-end-start-radius: var(--sui-radius-control);
+    border-start-start-radius: var(--sui-radius-control);
     border-width: 0;
     color: var(--sui-text-secondary);
     margin-block: calc(-1 * var(--sui-stroke));
     padding-inline-start: var(--sui-space-1);
+    translate: none;
+  }
+
+  .bare .sui-select-control:active:not(:disabled) {
+    background-color: var(--sui-interactive-pressed);
+    box-shadow: var(--sui-pressed-inset);
     translate: none;
   }
 
@@ -315,6 +324,10 @@ assistive technology, because a native picker cannot be held open.
   }
 
   @media (hover: hover) {
+    .bare .sui-select-control:hover:not(:disabled, :active) {
+      background-color: var(--sui-interactive-hover-layer);
+    }
+
     .bare:has(.sui-select-control:hover:not(:disabled)) .sui-select-control,
     .bare:has(.sui-select-control:hover:not(:disabled)) .sui-select-chevron {
       color: var(--sui-text-primary);

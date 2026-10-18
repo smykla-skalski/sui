@@ -253,21 +253,29 @@ take, under the switch and to a screen reader, while the owner sets `checked` ba
     translate: 0 1px;
   }
 
-  /* A thumb with a gap in its rim, turning, says the flip is being saved. */
-  .sui-switch-track.pending::after {
-    animation: sui-switch-turn var(--sui-duration-spinner) var(--sui-ease-linear) infinite;
-    border: var(--sui-stroke-bold) solid var(--sui-switch-track-on);
-    border-inline-end-color: transparent;
+  /* While the flip saves, a three-quarter arc in the switch's on colour turns inside the
+     thumb, which keeps its face and its shadow; only the arc's start angle moves. */
+  @property --sui-switch-arc {
+    syntax: '<angle>';
+    inherits: false;
+    initial-value: 0deg;
   }
 
-  .sui-switch-row input:checked + .sui-switch-track.pending::after {
-    border-color: var(--sui-switch-track-off-border);
-    border-inline-end-color: transparent;
+  .sui-switch-track.pending::after {
+    animation: sui-switch-turn var(--sui-duration-spinner) var(--sui-ease-linear) infinite;
+    background:
+      radial-gradient(circle, var(--sui-switch-thumb) 3.5px, transparent 4px),
+      radial-gradient(circle, transparent 5.5px, var(--sui-switch-thumb) 6px),
+      conic-gradient(
+        from var(--sui-switch-arc),
+        var(--sui-switch-track-on) 0 0.75turn,
+        var(--sui-switch-thumb) 0
+      );
   }
 
   @keyframes sui-switch-turn {
     to {
-      rotate: 1turn;
+      --sui-switch-arc: 1turn;
     }
   }
 
