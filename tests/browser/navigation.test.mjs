@@ -577,6 +577,19 @@ suite('navigation', together, () => {
     }
   );
 
+  /** The list-detail section's pairs: two on their own, then beside a rail and a sidebar, then a phone. */
+  const pair = (/** @type {import('playwright-core').Page} */ page, /** @type {number} */ index) =>
+    page.locator('#list-detail .sui-list-detail').nth(index);
+
+  /** What holds focus: a heading's words, or a link's address. */
+  const focused = (/** @type {import('playwright-core').Page} */ page) =>
+    page.evaluate(() => {
+      const active = document.activeElement;
+      return active?.matches('a[href]')
+        ? active.getAttribute('href')
+        : (active?.textContent?.trim() ?? '');
+    });
+
   test(
     'a narrow list-detail opens a run over its list, and its way back lands on the row in place',
     long,
