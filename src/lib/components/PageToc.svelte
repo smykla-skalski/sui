@@ -176,9 +176,9 @@ section. When the reader allows motion the index scrolls there smoothly and reco
 itself, and otherwise the browser follows the link as it would any other. Either way focus
 moves to the section's first heading, or to the section, so the next Tab starts there.
 
-The current entry wears the current mark every navigation list shares: the neutral selection
-plate inside a `--sui-border-strong` ring, which holds 3:1, with semibold primary ink, and
-`Highlight` under forced colors. It is announced with `aria-current="location"`. It follows
+The current entry wears the current mark every navigation list shares: primary ink at
+semibold against muted entries at the regular weight, a step of 3:1 or more in lightness and a
+step in weight, on a quiet plate that only supports them, and `Highlight` under forced colors. It is announced with `aria-current="location"`. It follows
 the URL hash on arrival, then the last section whose top has crossed the top quarter of the
 box the sections scroll in, the page or a pane, and the last section once that box is
 scrolled to its end. The index sticks to the top of the viewport inside whatever column it
@@ -188,12 +188,12 @@ or leaving it out on a phone, is the page's layout.
 
 - Semantics: a `nav` landmark named by `title`, with the title as a heading at `level`, group headings one level below, and lists of fragment links, the current one with `aria-current="location"`.
 - Content: entries with an id and a label that wraps, optionally grouped under a heading.
-- States: rest, hover (a row ground), pressed (the pressed ground and an inset shadow), focus (a 2px inset ring) and current (the plate inside its ring, semibold).
+- States: rest, hover (a row ground), pressed (the pressed ground and an inset shadow), focus (a 2px inset ring) and current (primary semibold ink on the quiet plate); an entry keeps the room its semibold form needs, so turning current moves nothing.
 - Keyboard: Tab moves through the entries and Enter follows one, moving focus to the section's heading.
 - Pointer and touch: entries are 28px tall on a desktop pointer and 44px on a phone or a coarse pointer, across the column's width.
 - Focus: following an entry moves focus to its section's first heading, or the section, which takes a temporary `tabindex`.
 - Responsive: the index sticks and scrolls inside itself, keeping the current entry in view; the page decides where it stands.
-- Accessibility: the current entry is announced, its ring holds 3:1 and every entry's ink 4.5:1.
+- Accessibility: the current entry is announced, every entry's ink holds 4.5:1, and the current ink stands 3:1 from the rest ink with a heavier weight, so it is never colour alone.
 - Localization: `title` is a prop with an English default; the entries follow the reading direction.
 - Performance: one capture listener reads the sections' places once a frame while anything scrolls; it suits tens of sections.
 - Analytics: `onnavigate(event, entry)` reports every followed entry.
@@ -221,7 +221,9 @@ or leaving it out on a phone, is the page's layout.
             href="#{entry.id}"
             aria-current={here === entry.id ? 'location' : undefined}
             onclick={(event) => follow(event, entry)}
-            ><span class="sui-page-toc-label">{entry.label}</span></a
+            ><span class="sui-page-toc-label" data-label={entry.label}
+              ><span>{entry.label}</span></span
+            ></a
           >
         </li>
       {/each}
@@ -290,7 +292,6 @@ or leaving it out on a phone, is the page's layout.
     min-block-size: var(--sui-tier-quiet);
     overflow-wrap: anywhere;
     padding: var(--sui-space-1) var(--sui-space-3);
-    position: relative;
     text-decoration: none;
     transition:
       background-color var(--sui-duration-fast) var(--sui-ease-standard),
@@ -304,14 +305,13 @@ or leaving it out on a phone, is the page's layout.
   @media (hover: hover) {
     .sui-page-toc-link:hover:not(:active, [aria-current='location']) {
       background: var(--sui-row-hover);
-      color: var(--sui-text-primary);
+      color: var(--sui-text-secondary);
     }
   }
 
   .sui-page-toc-link:active {
     background: var(--sui-row-pressed);
     box-shadow: var(--sui-pressed-inset);
-    color: var(--sui-text-primary);
   }
 
   .sui-page-toc-link:focus-visible {
@@ -319,26 +319,32 @@ or leaving it out on a phone, is the page's layout.
     outline-offset: var(--sui-focus-ring-inset);
   }
 
+  /* A hidden semibold copy shares the words' cell, so the entry already holds the room the
+     current weight needs and turning current moves nothing (L-91). */
   .sui-page-toc-label {
     block-size: var(--sui-block-snap);
+    display: grid;
+  }
+
+  .sui-page-toc-label > span,
+  .sui-page-toc-label::after {
+    block-size: var(--sui-block-snap);
+    grid-area: 1 / 1;
     text-box: trim-both cap alphabetic;
   }
 
-  /* The current mark every navigation list shares: the selection plate inside a ring that holds
-     3:1, on all four sides so it is never an edge strip, laid over the row so it moves nothing. */
+  .sui-page-toc-label::after {
+    content: attr(data-label) / '';
+    font-weight: var(--sui-weight-semibold);
+    visibility: hidden;
+  }
+
+  /* The current mark every navigation list shares: primary semibold ink, which carries the
+     state, on a quiet plate that only supports it. */
   .sui-page-toc-link[aria-current='location'] {
     background: var(--sui-surface-inset);
     color: var(--sui-text-primary);
     font-weight: var(--sui-weight-semibold);
-  }
-
-  .sui-page-toc-link[aria-current='location']::before {
-    border: var(--sui-stroke) solid var(--sui-border-strong);
-    border-radius: inherit;
-    content: '';
-    inset: 0;
-    pointer-events: none;
-    position: absolute;
   }
 
   @media (max-width: 47.9375rem), (pointer: coarse) {
@@ -348,8 +354,9 @@ or leaving it out on a phone, is the page's layout.
   }
 
   @media (forced-colors: active) {
-    .sui-page-toc-link[aria-current='location']::before {
-      border: var(--sui-stroke-bold) solid Highlight;
+    .sui-page-toc-link[aria-current='location'] {
+      background-color: Highlight;
+      color: HighlightText;
     }
   }
 

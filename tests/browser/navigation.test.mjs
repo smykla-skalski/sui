@@ -177,14 +177,14 @@ test(
         const highlight = getComputedStyle(probe).color;
         probe.remove();
         const tabs = [...document.querySelectorAll('#tabs .sui-tabs')][0];
-        const line = (/** @type {Element} */ tab) =>
-          getComputedStyle(tab, '::before').borderTopColor;
+        const bar = (/** @type {Element} */ tab) =>
+          getComputedStyle(tab, '::after').backgroundColor;
         const tile = document.querySelector('#app-shell .sui-rail-tile[aria-current]');
         return {
           highlight,
-          current: line(/** @type {Element} */ (tabs.querySelector('[aria-current="page"]'))),
-          others: [...tabs.querySelectorAll('.sui-tabs-tab:not([aria-current])')].map(line),
-          place: tile ? getComputedStyle(tile, '::before').borderTopColor : null
+          current: bar(/** @type {Element} */ (tabs.querySelector('[aria-current="page"]'))),
+          others: [...tabs.querySelectorAll('.sui-tabs-tab:not([aria-current])')].map(bar),
+          place: tile ? getComputedStyle(tile).backgroundColor : null
         };
       });
       assert.equal(marks.current, marks.highlight);

@@ -283,7 +283,13 @@ function palette(): Finding[] {
     )
   );
   found.push(
-    ...atLeast('L-85', 'sidebar-focus on sidebar-bg', c('sidebar-focus', 'sidebar-bg'), 3)
+    ...atLeast('L-85', 'sidebar-focus on sidebar-bg', c('sidebar-focus', 'sidebar-bg'), 3),
+    ...atLeast(
+      'L-85',
+      'sidebar-active-ink against sidebar-text-muted',
+      contrast(t('sidebar-active-ink'), t('sidebar-text-muted')),
+      3
+    )
   );
   const rail = t('sidebar-bg');
   if (deltaE(t('sidebar-active-bg'), rail) < deltaE(t('sidebar-item-pressed'), rail))
@@ -1326,6 +1332,62 @@ function plates(root: Document): Finding[] {
 }
 
 /**
+ * Where the reader is (L-85): a current navigation row stands apart from a resting peer by its
+ * words, an ink 3:1 from the peer's and a weight 200 or more heavier, so its quiet plate needs
+ * no ring or edge, and it draws none. A current tab carries its bar instead, at 3:1 on the
+ * ground under it.
+ */
+function currentMarks(root: Document): Finding[] {
+  const found: Finding[] = [];
+  const rows = '.sui-side-nav-row, .sui-rail-tile, .sui-page-toc-link, .sui-tabs-tab';
+  // What a row says: the box of its first words a sighted reader sees, past any hidden badge.
+  const words = (row: Element): Element => {
+    const walker = root.createTreeWalker(row, NodeFilter.SHOW_TEXT);
+    for (let node = walker.nextNode(); node; node = walker.nextNode()) {
+      const box = node.parentElement;
+      if (node.textContent?.trim() && box && shown(box) && !box.closest('[aria-hidden="true"]'))
+        return box;
+    }
+    return row;
+  };
+  for (const current of audited(root, `:is(${rows})[aria-current]`)) {
+    const kind = rows.split(', ').find((selector) => current.matches(selector)) ?? '';
+    const peer = [...(current.closest('nav')?.querySelectorAll(kind) ?? [])].find(
+      (other) => other.tagName === current.tagName && !other.hasAttribute('aria-current')
+    );
+    if (current.matches('.sui-tabs-tab')) {
+      const bar = getComputedStyle(current, '::after');
+      const ground = paintedGround(current);
+      const ratio = contrast(over(rgba(bar.backgroundColor), ground), ground);
+      if (bar.content === 'none' || ratio < 2.95)
+        found.push(finding('L-85', current, `the current tab's bar holds ${round(ratio)}:1`));
+    }
+    for (const pseudo of ['', '::before', '::after']) {
+      const edge = getComputedStyle(current, pseudo || null);
+      const drawn = ['top', 'right', 'bottom', 'left'].some(
+        (side) =>
+          parseFloat(edge.getPropertyValue(`border-${side}-width`)) > 0 &&
+          edge.getPropertyValue(`border-${side}-style`) !== 'none'
+      );
+      if (drawn && (pseudo === '' || edge.content !== 'none'))
+        found.push(finding('L-85', current, `the current row draws a ring or edge${pseudo}`));
+    }
+    if (!peer || !shown(peer)) continue;
+    const look = getComputedStyle(words(current));
+    const rest = getComputedStyle(words(peer));
+    const step = Number(look.fontWeight) - Number(rest.fontWeight);
+    if (step < 200)
+      found.push(finding('L-85', current, `the current weight is only ${step} past a rest row`));
+    const inks = contrast(rgba(look.color), rgba(rest.color));
+    if (inks < 2.95)
+      found.push(
+        finding('L-85', current, `the current ink stands ${round(inks)}:1 from a rest row`)
+      );
+  }
+  return found;
+}
+
+/**
  * A changed row (L-16): every edge inside it wears the unsaved family, so no neutral line sits
  * on the gold plate. The tokens are read inside the row, where it has set them.
  */
@@ -1711,6 +1773,7 @@ register(
   specimens,
   wrapping,
   plates,
+  currentMarks,
   changedEdges,
   tonedControls,
   symbolTiles,

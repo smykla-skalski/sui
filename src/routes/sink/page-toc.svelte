@@ -21,7 +21,7 @@
 
 <Example
   title="In context"
-  note="The current entry takes the ringed plate as the page scrolls, and a link opens a folded section and focuses its heading"
+  note="The current entry turns primary and semibold as the page scrolls, and a link opens a folded section and focuses its heading"
   layout="stack"
   ground="canvas"
 >
