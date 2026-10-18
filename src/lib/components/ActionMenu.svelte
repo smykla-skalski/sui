@@ -206,9 +206,14 @@ item opens then returns focus there too. Labels wrap rather than being cut short
       {disabled}
       {...triggerProps}
     />
-  {/if}
-
-  <Popover id={popupId} anchor={trigger} bind:open inline={preview} width="min-trigger" {align}>
+  {/if}<Popover
+    id={popupId}
+    anchor={trigger}
+    bind:open
+    inline={preview}
+    width="min-trigger"
+    {align}
+  >
     <div
       bind:this={menu}
       id={menuId}

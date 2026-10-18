@@ -116,6 +116,9 @@ tooltip.
 - Failure: a value that is not a date is shown as given, with no relative reading, so a bad record never reads "Invalid Date".
 -->
 
+<!-- The tip is mounted once the element exists, so the server never writes its block box into
+     the sentence a time sits in, where a parser would close the paragraph around it. Nothing
+     stands between the time and the tip, because a space there is drawn in the sentence. -->
 <!-- A time outside any control must be reachable by keyboard to show its whole instant. -->
 <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
 <time
@@ -127,12 +130,7 @@ tooltip.
   datetime={valid ? new Date(at).toISOString() : String(value)}
 >
   {#if exactOnly}{whole}{:else}{resting}<VisuallyHidden>{exactLabel(whole)}</VisuallyHidden>{/if}
-</time>
-<!-- Mounted once the element exists, so the server never writes the tip's block box into
-     the sentence a time sits in, where a parser would close the paragraph around it. -->
-{#if element && !exactOnly}
-  <Tooltip anchor={element} text={whole} />
-{/if}
+</time>{#if element && !exactOnly}<Tooltip anchor={element} text={whole} />{/if}
 
 <style>
   .sui-relative-time {

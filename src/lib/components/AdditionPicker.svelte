@@ -182,9 +182,7 @@ new control after `onadd` is the caller's.
 >
   {#snippet icon()}<Icon name="plus" size="sm" />{/snippet}
   {label}
-</Button>
-
-<Popover id={popupId} anchor={trigger} bind:open {onclose} width="min-trigger">
+</Button><Popover id={popupId} anchor={trigger} bind:open {onclose} width="min-trigger">
   <div
     bind:this={menu}
     id={menuId}

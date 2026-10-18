@@ -68,8 +68,7 @@ on the page instead.
     }}
   >
     <Icon name="help" size="sm" strokeWidth={2} />
-  </button>
-  <Tooltip anchor={element} {text} describe {side} {align} {preview} bind:open />
+  </button><Tooltip anchor={element} {text} describe {side} {align} {preview} bind:open />
 {/snippet}
 
 {#if preview}

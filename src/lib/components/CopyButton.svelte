@@ -123,8 +123,7 @@ in its corner. Beside a 34px field or in a toolbar it takes the control tier wit
     <span class={{ off: outcome !== 'copied' }}>{copiedLabel}</span>
     <span class={{ off: outcome !== 'failed' }}>{failedLabel}</span>
   </span>
-</button>
-<span class="sui-copy-button-status" role="status">{message}</span>
+</button><span class="sui-copy-button-status" role="status">{message}</span>
 
 <style>
   /* The same registered state layer as `Button`, so the veil over the opaque ground

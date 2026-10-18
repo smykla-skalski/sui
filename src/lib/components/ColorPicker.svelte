@@ -436,10 +436,13 @@ name is the label and the hex, such as "Label color #0f766e". `name` posts the h
   </div>
 {:else}
   {@render trigger()}
-{/if}
-{#if name}<input type="hidden" {name} value={current} form={rest.form} {disabled} />{/if}
-
-<Popover
+{/if}{#if name}<input
+    type="hidden"
+    {name}
+    value={current}
+    form={rest.form}
+    {disabled}
+  />{/if}<Popover
   id={popoverId}
   anchor={element}
   bind:open

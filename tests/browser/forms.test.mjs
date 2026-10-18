@@ -95,15 +95,13 @@ test('a pending switch refuses a second flip, keeps focus, and a refusal is spok
   try {
     const row = page.locator('#switch .sui-switch-row', { hasText: 'Mirror to the backup region' });
     const input = row.locator('input');
-    await row.click();
-    await page.waitForFunction(
-      (element) => element?.getAttribute('aria-busy') === 'true',
-      await input.elementHandle()
-    );
-    // The check and the second press run in one turn of the page, so a slow runner cannot let
-    // the sink's 900ms save answer between them.
-    const second = await row.evaluate((element) => {
+    await input.focus();
+    // Both presses run inside the page, a task apart, because a slow runner returns from a
+    // driven click so late that the sink's 900ms save has already answered.
+    const second = await row.evaluate(async (element) => {
       const box = /** @type {HTMLInputElement} */ (element.querySelector('input'));
+      /** @type {HTMLElement} */ (element).click();
+      await new Promise((done) => setTimeout(done));
       const busy = box.getAttribute('aria-busy') === 'true';
       /** @type {HTMLElement} */ (element).click();
       return { busy, checked: box.checked };

@@ -79,8 +79,7 @@ action are a `Button` with the word beside the glyph.
   {:else}
     <Icon name={icon} size="sm" strokeWidth={2} />
   {/if}
-</button>
-<Tooltip anchor={element} text={label} />
+</button><Tooltip anchor={element} text={label} />
 
 <style>
   .sui-icon-button {

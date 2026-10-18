@@ -194,7 +194,7 @@ test('with every mark replaced, each joined name reads the marks and nothing bet
         title: 'Drift',
         live: true,
         children: html(
-          '<span>Read <span data-link></span> now <span data-pill></span>, ask <span data-tip></span> or <span data-copy></span></span>'
+          '<span>Read <span data-link></span> now<span data-pill></span>, ask <span data-tip></span> or <span data-copy></span></span>'
         )
       });
       flushSync();
@@ -296,10 +296,11 @@ test('with every mark replaced, each joined name reads the marks and nothing bet
       () => document.querySelector('[data-words="Callout"] [role="alert"]')?.textContent !== ''
     );
     // What Chrome reads of the copy: the tip and the copy control by their names, and neither
-    // the closed tip, the hidden note nor the copy control's unshown state words.
+    // the closed tip, the hidden note, the copy control's unshown state words nor the space
+    // between the pill's flex items, which is not drawn.
     assert.equal(
       await callout.textContent(),
-      'UWAGAⓟDriftⓟRead Docs\u2060 now RunⓒNAZYWO, ask About drift or Copy'
+      'UWAGAⓟDriftⓟRead Docs\u2060 nowRunⓒNAZYWO, ask About drift or Copy'
     );
 
     const duration = await read('[data-words="DurationInput"] input:not([type="hidden"])');
@@ -308,6 +309,50 @@ test('with every mark replaced, each joined name reads the marks and nothing bet
       .allTextContents();
     assert.equal(shown.length, 2, 'the hint or the problem is not drawn');
     assert.equal(duration.description, shown.map((text) => text.trim()).join('ⓢ'));
+  } finally {
+    await page.close();
+  }
+});
+
+test('a control inside a sentence adds no space of its own to it', async () => {
+  const page = await browser.newPage();
+  try {
+    await visit(page, url);
+    const spaced = await page.evaluate(async () => {
+      const loaded = performance.getEntriesByType('resource').map((entry) => entry.name);
+      const find = (/** @type {RegExp} */ pattern) => loaded.find((name) => pattern.test(name));
+      const lib = await import(/* @vite-ignore */ find(/\/src\/lib\/index\.ts/) ?? '');
+      const { mount, flushSync } = await import(
+        /* @vite-ignore */ find(/\.vite\/deps\/svelte\.js/) ?? ''
+      );
+      /** @type {[string, Record<string, unknown>][]} */
+      const controls = [
+        ['RelativeTime', { value: Date.now() - 60_000 }],
+        ['HelpTip', { label: 'About drift', text: 'Drift means the files differ' }],
+        ['CopyButton', { text: 'abc' }],
+        ['IconButton', { label: 'Delete', icon: 'trash' }],
+        ['ActionMenu', { label: 'More', items: [] }],
+        ['AdditionPicker', { label: 'Add', choices: [], onadd: () => {} }],
+        ['ColorPicker', { value: '#0e8a16', 'aria-label': 'Color' }]
+      ];
+      return controls.flatMap(([name, props]) => {
+        const sentence = document.createElement('p');
+        document.body.prepend(sentence);
+        sentence.append('Before');
+        mount(lib[name], { target: sentence, props });
+        flushSync();
+        sentence.append('after.');
+        // A space the component writes beside its own root is drawn between the words around it.
+        const drawn = [...sentence.childNodes].filter((node) => {
+          if (node.nodeType !== Node.TEXT_NODE || node.textContent?.trim()) return false;
+          const range = document.createRange();
+          range.selectNodeContents(node);
+          return range.getClientRects().length > 0;
+        });
+        return drawn.length > 0 ? [name] : [];
+      });
+    });
+    assert.deepEqual(spaced, []);
   } finally {
     await page.close();
   }

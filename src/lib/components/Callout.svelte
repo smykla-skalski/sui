@@ -50,13 +50,18 @@
   let said = $state('');
 
   /* What a screen reader reads of the copy: a copy drawn only for the eye is hidden from it, a
-     closed layer, a `hidden` note and a word kept invisible for its seat are not drawn, and a
-     control named by `aria-label` is read by that name. */
+     closed layer, a `hidden` note, a word kept invisible for its seat and a space between flex
+     items are not drawn, and a control named by `aria-label` is read by that name. */
   const spoken = (node: Node): string => {
-    if (node.nodeType === Node.TEXT_NODE)
-      return node.parentElement && getComputedStyle(node.parentElement).visibility === 'visible'
-        ? (node.textContent ?? '')
-        : '';
+    if (node.nodeType === Node.TEXT_NODE) {
+      const text = node.textContent ?? '';
+      if (!node.parentElement || getComputedStyle(node.parentElement).visibility !== 'visible')
+        return '';
+      if (text.trim()) return text;
+      const drawn = document.createRange();
+      drawn.selectNodeContents(node);
+      return drawn.getClientRects().length > 0 ? text : '';
+    }
     if (!(node instanceof Element)) return '';
     if (node.getAttribute('aria-hidden') === 'true' || !node.checkVisibility()) return '';
     return node.getAttribute('aria-label') ?? [...node.childNodes].map(spoken).join('');
