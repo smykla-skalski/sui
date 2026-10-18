@@ -232,6 +232,9 @@ does, stays out of the accessibility tree. Any other tip describes the control t
     margin: 0;
     max-inline-size: min(17rem, calc(100vw - 3rem));
     opacity: 1;
+    /* A popover scrolls by default, and the trimmed words overhang the box, so the tip would be
+       a scroller that Tab can enter. It is one short line that never scrolls. */
+    overflow: visible;
     padding: var(--sui-space-2) var(--sui-space-3);
     /* The words run from their cap line to their baseline, so the padding is the room above
        and under them alike (L-102). */

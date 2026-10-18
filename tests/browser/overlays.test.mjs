@@ -374,6 +374,27 @@ test(
   }
 );
 
+// A popover scrolls by default and a tip's trimmed words overhang its box, so a tip that
+// scrolled would be a keyboard stop of its own, and closing it on blur dropped focus to the page.
+test('a shown tip is never a tab stop, so Tab goes on to the next control', long, async () => {
+  const page = await open();
+  try {
+    const button = page.locator('#icon-buttons .sui-icon-button').first();
+    await button.scrollIntoViewIfNeeded();
+    await page.keyboard.press('Shift');
+    await button.focus();
+    await page.locator('.sui-tooltip:popover-open').waitFor();
+    await page.keyboard.press('Tab');
+    const landed = await page.evaluate(() => {
+      const active = document.activeElement;
+      return active === document.body ? 'the page' : (active?.closest('.sui-tooltip')?.id ?? '');
+    });
+    assert.equal(landed, '', `Tab from a control with its tip shown landed on ${landed}`);
+  } finally {
+    await page.close();
+  }
+});
+
 test(
   'K9 a time writes its whole instant in the page language once the clock ticks',
   long,
