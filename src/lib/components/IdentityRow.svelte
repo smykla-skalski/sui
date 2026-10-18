@@ -62,7 +62,8 @@ the handle under them.
     {/if}
   </span>
   <!-- After the name in the source, so the name can anchor it; drawn at the inline start. -->
-  <span class="sui-identity-face"><Avatar {name} handle={handle ?? ''} {src} {shape} {size} /></span
+  <span class="sui-identity-face"
+    ><Avatar {name} handle={handle ?? ''} {src} {shape} {size} alt="" /></span
   >
   {#if handle}<VisuallyHidden>{handleName(name, handle)}</VisuallyHidden>{/if}
 </span>

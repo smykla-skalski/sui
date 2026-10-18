@@ -171,6 +171,7 @@ only and a `LoadMore` after it lands on the first new one. Page it in the order 
                   src={event.actor.src}
                   shape={event.actor.shape}
                   size={20}
+                  alt=""
                 /></span
               >
             {/if}
