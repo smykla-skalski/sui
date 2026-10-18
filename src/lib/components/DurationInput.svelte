@@ -238,7 +238,7 @@ at its `id`, or with `label`; other attributes land on the amount.
 
 - Semantics: a text input for the amount and a native `<select>` for the unit, inside one joined field, with a hidden input that posts the seconds.
 - Content: an amount in the page's number format, one of three units named for that amount, an optional range hint and a problem line.
-- States: rest, focus on the amount (the field's ring), focus on the unit (its own inset ring), pressed unit, a hint for the range, invalid (a danger edge and a problem with a warning mark) and disabled (0.7 opacity).
+- States: rest, focus on the amount (the field's ring), focus on the unit (its own inset ring), pressed unit, a hint for the range, invalid (a danger edge and a problem with a warning mark) and disabled (0.5 opacity).
 - Keyboard: the amount takes typing in the page's decimal mark, Tab moves to the unit, and the unit takes the select's own keys.
 - Pointer and touch: 34px tall, 44px on a phone or any touch screen, and a phone opens its own unit picker.
 - Focus: it never moves focus; a Save that hears a problem through `onproblem` sends focus to the amount.

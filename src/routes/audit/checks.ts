@@ -112,8 +112,9 @@ function effectiveOpacity(element: Element): number {
 }
 
 const isDisabled = (element: Element) =>
-  element.closest(':disabled, [aria-disabled="true"], fieldset:disabled, label:has(:disabled)') !==
-    null || element.parentElement?.matches(':has(> :disabled)') === true;
+  element.closest(
+    ':disabled, [aria-disabled="true"], fieldset:disabled, label:has(:disabled, [aria-disabled="true"])'
+  ) !== null || element.parentElement?.matches(':has(> :disabled)') === true;
 
 // ---------------------------------------------------------------------------------------
 // Palette laws, measured on the tokens as the active theme resolves them.

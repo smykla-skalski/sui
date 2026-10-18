@@ -37,7 +37,7 @@ It has no label of its own. Put it in a `Field` through the `control` snippet, o
 
 - Semantics: a native `<textarea>`, named by a `<label for>` or `aria-label`; `invalid` or a caller's `aria-invalid` sets `aria-invalid`.
 - Content: free text over several lines, `rows` lines tall before it scrolls, with an optional placeholder that is an example and never the label.
-- States: rest (the control fill, a quiet frame and a 3:1 baseline), hover (a firmer frame), focus (the inset fill and a flush 2px ring), invalid (a danger edge on all four sides, kept under hover and focus) and disabled (0.7 opacity, no resize).
+- States: rest (the control fill, a quiet frame and a 3:1 baseline), hover (a firmer frame), focus (the inset fill and a flush 2px ring), invalid (a danger edge on all four sides, kept under hover and focus) and disabled (0.5 opacity, no resize).
 - Keyboard: the browser's own text editing, Enter included; Tab moves on.
 - Pointer and touch: at least 34px tall, 44px on a phone or any touch screen, with 16px text on a phone so iOS does not zoom; the resize grip is an extra, never the only way to read more.
 - Focus: it takes focus on a press and never moves it elsewhere.

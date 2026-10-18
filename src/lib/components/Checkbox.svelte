@@ -72,7 +72,7 @@ it keeps focus, for a list that is saving.
 
 - Semantics: a native `<input type="checkbox">` inside its `<label>`, named by the label and described by the description.
 - Content: a short label and an optional one-sentence description, or richer `children`.
-- States: unchecked, checked (a filled box with a check), partly chosen (a dash), hover (a row ground), focus (a 2px ring 2px off the box), pressed (a deeper ground, an inset shadow and a 1px sink), invalid (a danger edge, kept when checked), locked and disabled (0.7 opacity).
+- States: unchecked, checked (a filled box with a check), partly chosen (a dash), hover (a row ground), focus (a 2px ring 2px off the box), pressed (a deeper ground, an inset shadow and a 1px sink), invalid (a danger edge, kept when checked), locked and disabled (0.5 opacity).
 - Keyboard: Tab reaches it and Space toggles it; a locked or disabled box refuses the toggle.
 - Pointer and touch: the whole item is the target, 34px tall, 44px with a description, on a phone or on any touch screen, and `bare` keeps a 44px hit area.
 - Focus: a press never moves focus, and a locked box keeps it.
