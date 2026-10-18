@@ -1,5 +1,6 @@
 <script lang="ts">
   import type { Snippet } from 'svelte';
+  import { held, holdAround } from './held.svelte.js';
 
   let {
     invalid = false,
@@ -17,6 +18,11 @@
     /** The part that qualifies or acts on it, such as a unit or a copy control, drawn `bare`. */
     end: Snippet;
   } = $props();
+
+  let root = $state<HTMLDivElement | null>(null);
+  /* Work that runs on the form around it holds both parts, which dims the field as disabled. */
+  const around = holdAround();
+  const holding = $derived(held(root, around));
 </script>
 
 <!--
@@ -42,7 +48,7 @@ the end part draws its own inset ring while it has focus, so the two never look 
 - Failure: an invalid value keeps the danger edge whichever part has focus, and the words that say why belong to the host.
 -->
 
-<div class={['sui-joined', { invalid, disabled, readonly }]}>
+<div bind:this={root} class={['sui-joined', { invalid, disabled: disabled || holding, readonly }]}>
   <div class="sui-joined-value">{@render start()}</div>
   <div class="sui-joined-end">{@render end()}</div>
 </div>

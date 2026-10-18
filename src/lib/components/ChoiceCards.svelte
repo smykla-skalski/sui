@@ -14,6 +14,7 @@
   import { mark, word } from '../words.js';
   import type { HTMLFieldsetAttributes } from 'svelte/elements';
   import Icon from '../icons/Icon.svelte';
+  import { held, holdAround } from '../internal/held.svelte.js';
   import { setRefusals } from '../internal/refusals.svelte.js';
   import VisuallyHidden from './VisuallyHidden.svelte';
 
@@ -60,10 +61,16 @@
 
   const MOVES = new Set([' ', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight']);
 
+  let group = $state<HTMLFieldSetElement | null>(null);
+  /* Work that runs on the form around it locks the group as `disabled` does, and a busy dialog
+     or a saving pane, which has moved focus to its busy action, disables the radios too. */
+  const around = holdAround();
+  const locked = $derived(disabled || held(group, around) !== null);
+
   /* `disabled` on the group would drop a focused radio's focus to the body, so a locked group
      keeps its radios focusable and refuses every press and arrow that would change the answer. */
   function refuse(event: Event) {
-    if (!disabled) return;
+    if (!locked) return;
     if (event instanceof KeyboardEvent && !MOVES.has(event.key)) return;
     event.preventDefault();
   }
@@ -87,7 +94,7 @@ when they do not. The chosen card wears a brand tint, a 2px brand edge and a fil
 together, so the choice never rests on colour alone, and choosing moves nothing.
 These are native radios, so the arrow keys move the choice and skip disabled answers.
 `disabled` locks the whole group with `aria-disabled`, so a radio that holds focus during a
-save keeps it.
+save keeps it. A busy dialog or a saving pane around it disables the radios while the work runs.
 
 - Semantics: a `<fieldset role="radiogroup">` named by its `<legend>`, described by the hint and the error, holding native radios each named by its label and described by its sentence, with a polite `role="status"` that speaks the error.
 - Content: a question as the legend and two to six answers, each a short label and one sentence; an optional hint and an error.
@@ -104,11 +111,12 @@ save keeps it.
 -->
 
 <fieldset
+  bind:this={group}
   {...rest}
   class={['sui-choice-cards', className]}
   role="radiogroup"
   aria-describedby={describedby}
-  aria-disabled={disabled || undefined}
+  aria-disabled={locked || undefined}
   aria-invalid={shown ? true : undefined}
   aria-required={required || undefined}
   {@attach refusals.area}
@@ -120,15 +128,15 @@ save keeps it.
   >
   <div class={['sui-choice-cards-grid', { invalid: Boolean(shown) }]}>
     {#each options as option, index (option.value)}
-      <label class="sui-choice-card" class:disabled={disabled || option.disabled}>
+      <label class="sui-choice-card" class:disabled={locked || option.disabled}>
         <input
           type="radio"
           {name}
           value={option.value}
           bind:group={value}
-          disabled={option.disabled}
+          disabled={option.disabled || held(group, around) === 'firm'}
           {required}
-          aria-disabled={disabled || undefined}
+          aria-disabled={locked || undefined}
           aria-labelledby="{id}-{index}-label"
           aria-describedby="{id}-{index}-description"
           onclick={refuse}

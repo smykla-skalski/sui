@@ -7,6 +7,7 @@
   import { tick } from 'svelte';
   import type { HTMLAttributes } from 'svelte/elements';
   import Icon from '../icons/Icon.svelte';
+  import { held, holdAround } from '../internal/held.svelte.js';
   import Button from './Button.svelte';
   import Combobox, { type ComboboxOption } from './Combobox.svelte';
   import Field from './Field.svelte';
@@ -94,6 +95,10 @@
       .join(' ') || undefined;
 
   let root = $state<HTMLElement | null>(null);
+  /* Work that runs on the form around it holds the pairs: the chips and Add dim and refuse
+     edits, removals and additions, disabled under a firm hold and tab stops under a soft one. */
+  const around = holdAround();
+  const holding = $derived(held(root, around));
   let adder = $state<HTMLButtonElement | HTMLAnchorElement | null>(null);
   let anchor = $state<HTMLElement | null>(null);
   let form = $state<HTMLFormElement | null>(null);
@@ -121,6 +126,11 @@
   // The invoker's press lands before the browser opens the editor, so the draft is seeded here
   // and the editor opens on the pair that was pressed. A press while it is open only closes it.
   function seed(index: number, event: MouseEvent & { currentTarget: HTMLElement }): void {
+    // A held press must not open the editor, which the browser does after this handler.
+    if (holding) {
+      event.preventDefault();
+      return;
+    }
     if (open) return;
     editing = index;
     draft =
@@ -154,6 +164,7 @@
   // Focus goes to the pair that took the removed one's place, else the one before, else Add,
   // so it never falls to the page (L-89).
   async function remove(index: number): Promise<void> {
+    if (holding) return;
     const gone = value[index];
     value = value.filter((_, at) => at !== index);
     settled = true;
@@ -187,7 +198,7 @@
 
   // Delete and Backspace remove a focused chip, as an accelerator for its remove control.
   function chipKeys(index: number, event: KeyboardEvent): void {
-    if (event.key !== 'Delete' && event.key !== 'Backspace') return;
+    if (holding || (event.key !== 'Delete' && event.key !== 'Backspace')) return;
     event.preventDefault();
     void remove(index);
   }
@@ -217,13 +228,13 @@ row gives them and fall under the copy on a narrow row.
 - Localization: every word is a prop, the named ones functions of the key; the arrow between key and value turns with the reading direction.
 - Performance: every pair renders a chip, and one editor serves them all.
 - Analytics: `onadd`, `onedit` and `onremove` hear each accepted change.
-- Failure: a key `validate` refuses keeps the editor open with the problem and never reaches `value`; a stored pair it refuses is marked and described; with `disabled` the chips read only, so say why with `reason`.
+- Failure: a key `validate` refuses keeps the editor open with the problem and never reaches `value`; a stored pair it refuses is marked and described; with `disabled` the chips read only, so say why with `reason`; while a busy dialog or a saving pane around it works, the chips and Add are disabled.
 -->
 
 <div
   {...rest}
   bind:this={root}
-  class={['sui-pair-entry', className, { disabled }]}
+  class={['sui-pair-entry', className, { disabled: disabled || holding }]}
   role="group"
   aria-describedby={rest['aria-describedby'] ?? (reason ? reasonId : undefined)}
 >
@@ -241,7 +252,8 @@ row gives them and fall under the copy on a narrow row.
             aria-expanded={open && editing === index}
             aria-label={pairName(pair.key, labelOf(pair.value))}
             aria-describedby={described(index)}
-            {disabled}
+            disabled={disabled || holding === 'firm'}
+            aria-disabled={Boolean(holding) || undefined}
             onclick={(event) => seed(index, event)}
             onkeydown={(event) => chipKeys(index, event)}
           >
@@ -256,7 +268,8 @@ row gives them and fall under the copy on a narrow row.
             class="sui-pair-remove"
             aria-label={removeName(pair.key)}
             aria-describedby={described()}
-            {disabled}
+            disabled={disabled || holding === 'firm'}
+            aria-disabled={Boolean(holding) || undefined}
             onclick={() => remove(index)}
           >
             <span class="sui-pair-glyph"><Icon name="close" size="xs" /></span>
@@ -272,7 +285,8 @@ row gives them and fall under the copy on a narrow row.
         aria-haspopup="dialog"
         aria-expanded={open && editing < 0}
         aria-describedby={described()}
-        {disabled}
+        disabled={disabled || holding === 'firm'}
+        aria-disabled={Boolean(holding) || undefined}
         onclick={(event: MouseEvent & { currentTarget: HTMLElement }) => seed(-1, event)}
       >
         {#snippet icon()}<Icon name="plus" size="sm" />{/snippet}
@@ -384,12 +398,12 @@ row gives them and fall under the copy on a narrow row.
       --sui-pair-edge: var(--sui-control-border-hover);
     }
 
-    .sui-pair-chip:has(> .sui-pair-edit:hover:not(:disabled, :active)) {
+    .sui-pair-chip:has(> .sui-pair-edit:hover:not(:disabled, [aria-disabled='true'], :active)) {
       --sui-pair-layer: var(--sui-interactive-hover-layer);
     }
   }
 
-  .sui-pair-chip:has(> .sui-pair-edit:active:not(:disabled)) {
+  .sui-pair-chip:has(> .sui-pair-edit:active:not(:disabled, [aria-disabled='true'])) {
     --sui-pair-layer: var(--sui-interactive-pressed);
     box-shadow: var(--sui-pressed-inset);
   }
@@ -492,11 +506,11 @@ row gives them and fall under the copy on a narrow row.
   }
 
   @media (hover: hover) {
-    .sui-pair-edit:hover:not(:disabled, :active) {
+    .sui-pair-edit:hover:not(:disabled, [aria-disabled='true'], :active) {
       color: var(--sui-text-primary);
     }
 
-    .sui-pair-remove:hover:not(:disabled, :active) {
+    .sui-pair-remove:hover:not(:disabled, [aria-disabled='true'], :active) {
       --sui-pair-plate: var(--sui-interactive-hover-layer);
       color: var(--sui-text-primary);
     }
@@ -506,12 +520,12 @@ row gives them and fall under the copy on a narrow row.
     --sui-pair-plate: var(--sui-interactive-hover-layer);
   }
 
-  .sui-pair-remove:active:not(:disabled) {
+  .sui-pair-remove:active:not(:disabled, [aria-disabled='true']) {
     --sui-pair-plate: var(--sui-interactive-pressed);
     color: var(--sui-text-primary);
   }
 
-  .sui-pair-remove:active:not(:disabled)::before {
+  .sui-pair-remove:active:not(:disabled, [aria-disabled='true'])::before {
     box-shadow: var(--sui-pressed-inset);
   }
 
@@ -626,11 +640,11 @@ row gives them and fall under the copy on a narrow row.
   }
 
   @media (hover: hover) and (forced-colors: active) {
-    .sui-pair-chip:has(> .sui-pair-edit:hover:not(:disabled))::after {
+    .sui-pair-chip:has(> .sui-pair-edit:hover:not(:disabled, [aria-disabled='true']))::after {
       border-color: Highlight;
     }
 
-    .sui-pair-remove:hover:not(:disabled)::before {
+    .sui-pair-remove:hover:not(:disabled, [aria-disabled='true'])::before {
       outline-color: Highlight;
     }
   }

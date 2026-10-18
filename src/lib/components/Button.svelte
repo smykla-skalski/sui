@@ -19,6 +19,7 @@
     loading = false,
     disabled = false,
     element = $bindable(null),
+    'aria-disabled': ariaDisabled,
     class: className = '',
     children,
     ...rest
@@ -40,8 +41,10 @@
   } & NativeAttributes = $props();
 
   /* `disabled` would drop a focused button's focus to the body, so a busy one stays in the tab
-     order and refuses the press itself. */
+     order and refuses the press itself, and so does one its owner locks with `aria-disabled`,
+     such as a control held while a busy dialog or a saving pane around it works. */
   const busy = $derived(loading && !disabled);
+  const locked = $derived(busy || ariaDisabled === true || ariaDisabled === 'true');
 
   function refuse(event: MouseEvent) {
     event.preventDefault();
@@ -98,9 +101,10 @@ start.
     {...rest as HTMLAnchorAttributes}
     class={['sui-button', className]}
     data-tone={tone}
-    aria-disabled={disabled || busy || undefined}
+    aria-disabled={disabled || locked || undefined}
     aria-busy={loading || undefined}
-    onclick={disabled || busy ? refuse : (rest as HTMLAnchorAttributes).onclick}>{@render body()}</a
+    onclick={disabled || locked ? refuse : (rest as HTMLAnchorAttributes).onclick}
+    >{@render body()}</a
   >
 {:else}
   <button
@@ -110,9 +114,9 @@ start.
     class={['sui-button', className]}
     data-tone={tone}
     {disabled}
-    aria-disabled={busy || undefined}
+    aria-disabled={locked || undefined}
     aria-busy={loading || undefined}
-    onclick={busy ? refuse : (rest as HTMLButtonAttributes).onclick}>{@render body()}</button
+    onclick={locked ? refuse : (rest as HTMLButtonAttributes).onclick}>{@render body()}</button
   >
 {/if}
 

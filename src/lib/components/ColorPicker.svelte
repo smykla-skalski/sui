@@ -98,6 +98,7 @@
   import { tick } from 'svelte';
   import type { HTMLButtonAttributes } from 'svelte/elements';
   import Icon from '../icons/Icon.svelte';
+  import { held, holdAround } from '../internal/held.svelte.js';
   import { pageLocale } from '../internal/locale.js';
   import Button from './Button.svelte';
   import Field, { type FieldControl } from './Field.svelte';
@@ -188,6 +189,11 @@
     HTMLButtonAttributes,
     'value' | 'children' | 'popovertarget' | 'name' | 'onchange'
   > = $props();
+
+  /* Work that runs on the form around it holds the color: the trigger refuses to open the
+     picker, disabled under a firm hold and a tab stop under a soft one. */
+  const around = holdAround();
+  const holding = $derived(held(element, around));
 
   const popoverId = `${uid}-popover`;
   const errorId = `${uid}-error`;
@@ -414,7 +420,8 @@ name is the label and the hex, such as "Label color #0f766e". `name` posts the h
     aria-describedby={field?.describedby ?? rest['aria-describedby']}
     aria-label={accessibleName}
     class={field ? undefined : ['sui-color-picker', className]}
-    {disabled}
+    disabled={disabled || holding === 'firm'}
+    aria-disabled={Boolean(holding) || rest['aria-disabled']}
     popovertarget={popoverId}
     aria-haspopup="dialog"
     aria-expanded={open}

@@ -1,5 +1,6 @@
 <script lang="ts">
   import type { HTMLTextareaAttributes } from 'svelte/elements';
+  import { held, holdAround } from '../internal/held.svelte.js';
   import { getRefusals } from '../internal/refusals.svelte.js';
 
   let {
@@ -8,6 +9,7 @@
     invalid = false,
     mono = false,
     element = $bindable(null),
+    readonly = false,
     'aria-invalid': ariaInvalid,
     class: className = '',
     ...rest
@@ -31,6 +33,11 @@
       (ariaInvalid !== undefined && String(ariaInvalid) !== 'false') ||
       Boolean(refusals?.refuses(element))
   );
+  /* Work that runs on the form around it holds the value: a firm hold disables the field once
+     its owner has moved focus to the busy action, and a soft one keeps it focusable and read
+     only. */
+  const around = holdAround();
+  const holding = $derived(held(element, around));
 </script>
 
 <!--
@@ -61,9 +68,12 @@ It has no label of its own. Put it in a `Field` through the `control` snippet, o
   bind:value
   {rows}
   {...rest}
+  disabled={rest.disabled || holding === 'firm'}
+  readonly={readonly || holding !== null}
   {@attach refusals?.watch}
   class={['sui-textarea', className]}
   class:mono
+  class:held={holding !== null}
   aria-invalid={wrong || undefined}></textarea>
 
 <style>
@@ -119,7 +129,7 @@ It has no label of its own. Put it in a `Field` through the `control` snippet, o
     border-color: var(--sui-danger);
   }
 
-  .sui-textarea:disabled {
+  .sui-textarea:is(:disabled, .held) {
     cursor: default;
     opacity: var(--sui-disabled-opacity);
     resize: none;

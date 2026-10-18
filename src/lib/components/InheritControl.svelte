@@ -3,6 +3,7 @@
   import { tick, type Snippet } from 'svelte';
   import type { HTMLAttributes } from 'svelte/elements';
   import Icon from '../icons/Icon.svelte';
+  import { held, holdAround } from '../internal/held.svelte.js';
   import Button from './Button.svelte';
 
   const FOCUSABLE = 'input, select, textarea, button, [tabindex]:not([tabindex="-1"])';
@@ -105,6 +106,11 @@
     choice?.focus({ preventScroll: true });
   }
 
+  /* Work that runs on the form around it holds the choice: both buttons refuse the press,
+     disabled under a firm hold and tab stops under a soft one. */
+  const around = holdAround();
+  const holding = $derived(held(root, around));
+
   async function inherit(): Promise<void> {
     overridden = false;
     oninherit?.();
@@ -163,7 +169,8 @@ for a press of the way back.
   </span>
   {#if overridden}
     <Button
-      {disabled}
+      disabled={disabled || holding === 'firm'}
+      aria-disabled={Boolean(holding) || undefined}
       aria-label={inheritName?.(label) ?? inheritFor(inheritLabel, label)}
       onclick={inherit}>{inheritLabel}</Button
     >
@@ -171,7 +178,8 @@ for a press of the way back.
     <Button
       tone="add"
       {id}
-      {disabled}
+      disabled={disabled || holding === 'firm'}
+      aria-disabled={Boolean(holding) || undefined}
       aria-label={overrideName?.(label) ?? overrideFor(overrideLabel, label)}
       onclick={override}
     >

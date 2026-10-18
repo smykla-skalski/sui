@@ -12,6 +12,7 @@
   import { tick } from 'svelte';
   import type { HTMLButtonAttributes } from 'svelte/elements';
   import Icon from '../icons/Icon.svelte';
+  import { held, holdAround } from '../internal/held.svelte.js';
   import { pageLocale } from '../internal/locale.js';
   import Button from './Button.svelte';
   import Popover from './Popover.svelte';
@@ -67,6 +68,10 @@
   const menuId = `${uid}-menu`;
 
   let trigger = $state<HTMLButtonElement | HTMLAnchorElement | null>(null);
+  /* Work that runs on the form around it holds what is added: the trigger refuses to open the
+     menu, disabled under a firm hold and a tab stop under a soft one. */
+  const around = holdAround();
+  const holding = $derived(held(trigger, around));
   let menu = $state<HTMLElement | null>(null);
   let open = $state(false);
 
@@ -173,7 +178,8 @@ new control after `onadd` is the caller's.
   {...rest}
   tone="add"
   class={className}
-  {disabled}
+  disabled={disabled || holding === 'firm'}
+  aria-disabled={Boolean(holding) || rest['aria-disabled']}
   aria-haspopup="menu"
   aria-expanded={open}
   aria-controls={menuId}

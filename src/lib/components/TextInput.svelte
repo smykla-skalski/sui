@@ -1,5 +1,6 @@
 <script lang="ts">
   import type { HTMLInputAttributes } from 'svelte/elements';
+  import { held, holdAround } from '../internal/held.svelte.js';
   import { getRefusals } from '../internal/refusals.svelte.js';
 
   let {
@@ -9,6 +10,7 @@
     mono = false,
     bare = false,
     element = $bindable(null),
+    readonly = false,
     'aria-invalid': ariaInvalid,
     class: className = '',
     ...rest
@@ -36,6 +38,11 @@
       (ariaInvalid !== undefined && String(ariaInvalid) !== 'false') ||
       Boolean(refusals?.refuses(element))
   );
+  /* Work that runs on the form around it holds the value: a firm hold disables the field once
+     its owner has moved focus to the busy action, and a soft one keeps it focusable and read
+     only. */
+  const around = holdAround();
+  const holding = $derived(held(element, around));
 </script>
 
 <!--
@@ -69,10 +76,13 @@ tabular figures.
   bind:value
   {type}
   {...rest}
+  disabled={rest.disabled || holding === 'firm'}
+  readonly={readonly || holding !== null}
   {@attach refusals?.watch}
   class={['sui-text-input', className]}
   class:mono
   class:bare
+  class:held={holding !== null}
   aria-invalid={wrong || undefined}
 />
 
@@ -138,6 +148,15 @@ tabular figures.
 
   .sui-text-input:disabled {
     cursor: default;
+    opacity: var(--sui-disabled-opacity);
+  }
+
+  /* A held value dims as a busy button does (L-40); a bare part leaves that to its host. */
+  .sui-text-input.held {
+    cursor: default;
+  }
+
+  .sui-text-input.held:not(.bare) {
     opacity: var(--sui-disabled-opacity);
   }
 

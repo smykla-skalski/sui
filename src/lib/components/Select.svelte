@@ -20,6 +20,7 @@
   import { mark, word } from '../words.js';
   import type { HTMLSelectAttributes } from 'svelte/elements';
   import Icon from '../icons/Icon.svelte';
+  import { held, holdAround } from '../internal/held.svelte.js';
   import { getRefusals } from '../internal/refusals.svelte.js';
   import { themeAt } from '../internal/theme.svelte.js';
 
@@ -38,6 +39,8 @@
     bare = false,
     element = $bindable(null),
     'aria-invalid': ariaInvalid,
+    onmousedown,
+    onkeydown,
     class: className = '',
     ...rest
   }: {
@@ -77,6 +80,22 @@
       (ariaInvalid !== undefined && String(ariaInvalid) !== 'false') ||
       Boolean(refusals?.refuses(element))
   );
+  /* Work that runs on the form around it holds the value. A firm hold disables it once its
+     owner has moved focus to the busy action. A select has no read-only state, so under a soft
+     hold it stays a tab stop and refuses the press that opens it and every key but Tab. */
+  const around = holdAround();
+  const holding = $derived(held(element, around));
+
+  function press(event: MouseEvent & { currentTarget: EventTarget & HTMLSelectElement }) {
+    if (holding) event.preventDefault();
+    else onmousedown?.(event);
+  }
+
+  function key(event: KeyboardEvent & { currentTarget: EventTarget & HTMLSelectElement }) {
+    if (holding && event.key !== 'Tab') event.preventDefault();
+    else onkeydown?.(event);
+  }
+
   const flat = $derived(options.flatMap((item) => (isGroup(item) ? item.options : [item])));
   const chosen = $derived(flat.find((option) => option.value === value));
   const active = $derived.by(() => {
@@ -155,6 +174,10 @@ assistive technology, because a native picker cannot be held open.
       {@attach refusals?.watch}
       class="sui-select-control"
       aria-invalid={wrong || undefined}
+      disabled={rest.disabled || holding === 'firm'}
+      aria-disabled={Boolean(holding) || rest['aria-disabled']}
+      onmousedown={press}
+      onkeydown={key}
       bind:value={() => value ?? '', (next) => (value = next === '' ? null : next)}
     >
       <button><selectedcontent class="sui-select-value"></selectedcontent></button>
@@ -253,7 +276,8 @@ assistive technology, because a native picker cannot be held open.
   @media (hover: hover) {
     /* Hover lays the row veil over the field and steps its edge up, and an invalid field keeps
        its danger edge, a step deeper, so every field answers the pointer (L-9). */
-    .sui-select:not(.bare) .sui-select-control:hover:not(:active, :disabled, :focus-visible) {
+    .sui-select:not(.bare)
+      .sui-select-control:hover:not(:active, :disabled, [aria-disabled='true'], :focus-visible) {
       background-color: var(--sui-field-hover);
       border-color: var(--sui-field-frame-hover);
       border-block-end-color: var(--sui-field-border-hover);
@@ -263,6 +287,7 @@ assistive technology, because a native picker cannot be held open.
       .sui-select-control:is([aria-invalid='true'], :user-invalid):hover:not(
         :active,
         :disabled,
+        [aria-disabled='true'],
         :focus-visible
       ) {
       background-color: var(--sui-field-danger-hover);
@@ -270,7 +295,7 @@ assistive technology, because a native picker cannot be held open.
     }
   }
 
-  .sui-select-control:active:not(:disabled) {
+  .sui-select-control:active:not(:disabled, [aria-disabled='true']) {
     background-image: linear-gradient(
       var(--sui-interactive-pressed),
       var(--sui-interactive-pressed)
@@ -279,7 +304,7 @@ assistive technology, because a native picker cannot be held open.
     translate: 0 1px;
   }
 
-  .sui-select-control:active:not(:disabled) + .sui-select-chevron {
+  .sui-select-control:active:not(:disabled, [aria-disabled='true']) + .sui-select-chevron {
     translate: 0 1px;
   }
 
@@ -294,12 +319,12 @@ assistive technology, because a native picker cannot be held open.
     border-color: var(--sui-danger);
   }
 
-  .sui-select-control:disabled {
+  .sui-select-control:is(:disabled, [aria-disabled='true']) {
     cursor: default;
   }
 
-  .sui-select-control:disabled,
-  .sui-select-control:disabled + .sui-select-chevron {
+  .sui-select-control:is(:disabled, [aria-disabled='true']),
+  .sui-select-control:is(:disabled, [aria-disabled='true']) + .sui-select-chevron {
     opacity: var(--sui-disabled-opacity);
   }
 
@@ -333,13 +358,13 @@ assistive technology, because a native picker cannot be held open.
     background-color: var(--sui-interactive-hover-layer);
   }
 
-  .bare .sui-select-control:active:not(:disabled) {
+  .bare .sui-select-control:active:not(:disabled, [aria-disabled='true']) {
     background-color: var(--sui-interactive-pressed);
     box-shadow: var(--sui-pressed-inset);
     translate: none;
   }
 
-  .bare .sui-select-control:active:not(:disabled) + .sui-select-chevron {
+  .bare .sui-select-control:active:not(:disabled, [aria-disabled='true']) + .sui-select-chevron {
     translate: none;
   }
 
@@ -354,18 +379,19 @@ assistive technology, because a native picker cannot be held open.
   }
 
   @media (hover: hover) {
-    .bare .sui-select-control:hover:not(:disabled, :active) {
+    .bare .sui-select-control:hover:not(:disabled, [aria-disabled='true'], :active) {
       background-color: var(--sui-interactive-hover-layer);
     }
 
-    .bare:has(.sui-select-control:hover:not(:disabled)) .sui-select-control,
-    .bare:has(.sui-select-control:hover:not(:disabled)) .sui-select-chevron {
+    .bare:has(.sui-select-control:hover:not(:disabled, [aria-disabled='true'])) .sui-select-control,
+    .bare:has(.sui-select-control:hover:not(:disabled, [aria-disabled='true']))
+      .sui-select-chevron {
       color: var(--sui-text-primary);
     }
   }
 
-  .bare .sui-select-control:disabled,
-  .bare .sui-select-control:disabled + .sui-select-chevron {
+  .bare .sui-select-control:is(:disabled, [aria-disabled='true']),
+  .bare .sui-select-control:is(:disabled, [aria-disabled='true']) + .sui-select-chevron {
     opacity: 1;
   }
 
@@ -584,8 +610,8 @@ assistive technology, because a native picker cannot be held open.
       transition: none;
     }
 
-    .sui-select-control:active:not(:disabled),
-    .sui-select-control:active:not(:disabled) + .sui-select-chevron {
+    .sui-select-control:active:not(:disabled, [aria-disabled='true']),
+    .sui-select-control:active:not(:disabled, [aria-disabled='true']) + .sui-select-chevron {
       translate: none;
     }
 

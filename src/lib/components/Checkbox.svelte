@@ -2,6 +2,7 @@
   import type { Snippet } from 'svelte';
   import type { HTMLInputAttributes } from 'svelte/elements';
   import Icon from '../icons/Icon.svelte';
+  import { held, holdAround } from '../internal/held.svelte.js';
   import { getRefusals } from '../internal/refusals.svelte.js';
 
   const id = $props.id();
@@ -45,8 +46,13 @@
   const wrong = $derived(invalid || Boolean(refusals?.refuses(element)));
   const named = $derived(Boolean(children || label));
   /* `aria-disabled` locks the box without `disabled`, which would drop a focused box's focus
-     to the body, so it stays a tab stop and refuses the press itself. */
-  const locked = $derived(ariaDisabled === true || ariaDisabled === 'true');
+     to the body, so it stays a tab stop and refuses the press itself. Work that runs on the
+     form around it locks it the same way, and disables it once a busy dialog or a saving pane
+     has moved focus to its busy action. */
+  const around = holdAround();
+  const locked = $derived(
+    ariaDisabled === true || ariaDisabled === 'true' || held(element, around) !== null
+  );
 
   function press(event: MouseEvent & { currentTarget: EventTarget & HTMLInputElement }) {
     if (locked) event.preventDefault();
@@ -71,7 +77,8 @@ The native input lies over the box without its native paint and wears the focus 
 the whole item is its label, so the item is the hit area. The label is the accessible name and
 the description is read as its description, never as part of the name. `indeterminate` draws a
 dash for a parent whose children are partly chosen. `aria-disabled="true"` locks the box while
-it keeps focus, for a list that is saving.
+it keeps focus, for a list that is saving, and a saving setting row around it locks it the same
+way; a busy dialog or a saving pane around it disables it while the work runs.
 
 - Semantics: a native `<input type="checkbox">` inside its `<label>`, named by the label and described by the description.
 - Content: a short label and an optional one-sentence description, or richer `children`.
@@ -101,11 +108,11 @@ it keeps focus, for a list that is saving.
       {...rest}
       {@attach refusals?.watch}
       type="checkbox"
-      {disabled}
+      disabled={disabled || held(element, around) === 'firm'}
       aria-labelledby={named ? `${id}-label` : undefined}
       aria-describedby={describedby}
       aria-invalid={wrong || undefined}
-      aria-disabled={ariaDisabled}
+      aria-disabled={locked || ariaDisabled}
       onclick={press}
     />
     <span class="sui-checkbox-box" class:invalid={wrong} aria-hidden="true">

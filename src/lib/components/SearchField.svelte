@@ -2,6 +2,7 @@
   import { word } from '../words.js';
   import type { HTMLInputAttributes } from 'svelte/elements';
   import Icon from '../icons/Icon.svelte';
+  import { held, holdAround } from '../internal/held.svelte.js';
   import { setRefusals } from '../internal/refusals.svelte.js';
   import IconButton from './IconButton.svelte';
   import TextInput from './TextInput.svelte';
@@ -46,7 +47,13 @@
     [describedBy, shown && `${uid}-error`].filter(Boolean).join(' ') || undefined
   );
 
+  /* Work that runs on the form around it holds the query: the field reads only, and neither
+     the clear button nor Escape empties it. */
+  const around = holdAround();
+  const holding = $derived(held(element, around));
+
   function clear() {
+    if (holding) return;
     value = '';
     element?.focus();
     onclear?.();
@@ -54,7 +61,7 @@
 
   function onkeydownInput(event: KeyboardEvent & { currentTarget: HTMLInputElement }) {
     onkeydown?.(event);
-    if (event.key !== 'Escape' || !value || event.defaultPrevented) return;
+    if (event.key !== 'Escape' || !value || holding || event.defaultPrevented) return;
     // Only a press that had something to clear is spent here; the next one reaches the
     // dialog or popover around the field and closes it.
     event.preventDefault();
@@ -112,7 +119,13 @@ matches in a polite `role="status"` beside it so a screen reader hears it.
     <span class="sui-search-field-icon"><Icon name="search" size="sm" strokeWidth={2} /></span>
     {#if value}
       <span class="sui-search-field-clear">
-        <IconButton icon="close" label={clearLabel} onclick={clear} />
+        <IconButton
+          icon="close"
+          label={clearLabel}
+          disabled={holding === 'firm'}
+          aria-disabled={holding === 'soft' || undefined}
+          onclick={clear}
+        />
       </span>
     {/if}
   </div>

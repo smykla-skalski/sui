@@ -14,6 +14,7 @@
   import type { Attachment } from 'svelte/attachments';
   import type { HTMLInputAttributes } from 'svelte/elements';
   import Icon from '../icons/Icon.svelte';
+  import { held, holdAround } from '../internal/held.svelte.js';
   import { formatCount } from '../internal/locale.js';
   import Popover from './Popover.svelte';
   import TextInput from './TextInput.svelte';
@@ -227,7 +228,13 @@
     onselect?.(next);
   }
 
+  /* Work that runs on the form around it holds the value: the field reads only or is disabled,
+     and the list stays shut so no row can be committed. */
+  const around = holdAround();
+  const holding = $derived(held(element, around));
+
   function show(byKey: boolean): void {
+    if (holding) return;
     if (!drafting) typed = false;
     open = true;
     navigated = byKey;
@@ -334,7 +341,7 @@ Name it with a `<label>` or `aria-label`, as any field.
 - Semantics: a text input with `role="combobox"` and `aria-autocomplete="list"`, a `role="listbox"` of `role="option"` rows in a popover, a polite `role="status"`, and a hidden input that posts `value`.
 - Content: options with a short label and an optional note, both wrapping; at most `limit` rows are drawn and the rest are counted.
 - States: closed, open, searching, nothing matches, search refused, invalid (the field's danger edge) and disabled; in the list a row is active (a veil and an inset 2px ring), committed (a check mark), pressed (a deeper veil, an inset shadow and a 1px sink) or disabled (0.5 opacity).
-- Keyboard: typing filters, Down and Up open the list and light a row with wrap-around, Enter commits the lit row or settles the typed text, and Escape closes the list and stops there.
+- Keyboard: typing filters, Down and Up open the list and light a row with wrap-around, Enter commits the lit row or settles the typed text, and Escape closes the list and stops there; while a busy dialog or a saving pane around it works, the field is disabled and the list stays shut.
 - Pointer and touch: the field is 34px tall, 44px on a phone or any touch screen, every row at least that tall, and a press on a row commits it.
 - Focus: focus stays in the field the whole time; the lit row is `aria-activedescendant`, set only once an arrow or the pointer moved to it.
 - Responsive: the list is at least as wide as the field and at most the room it has, and rows wrap their words and grow.
