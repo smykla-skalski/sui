@@ -209,6 +209,11 @@
   --sui-interactive-pressed: rgb(0 0 0 / 14%);
   --sui-scrim: rgb(0 0 0 / 56%);
   --sui-scrim-blur: 8px;
+  /* Frosted glass for a bar that floats over scrolling content: the band's ground, opaque
+     enough that its words hold 4.5:1 over anything passing under it, and the blur and the
+     saturation that frost what passes. */
+  --sui-glass-bar: color-mix(in srgb, var(--sui-surface-base) 85%, transparent);
+  --sui-glass-filter: blur(20px) saturate(180%);
 
   --sui-sidebar-bg: var(--sui-canvas);
   --sui-sidebar-border: var(--sui-border-subtle);
@@ -303,8 +308,6 @@
   --sui-space-7: 1.75rem;
   --sui-space-8: 2rem;
 
-  --sui-rhythm-pane-top-wide: 2.5rem;
-  --sui-rhythm-pane-top-compact: 1rem;
   --sui-rhythm-pane-gutter: var(--sui-space-6);
 
   --sui-rhythm-head-copy: 0.5rem;
@@ -618,6 +621,7 @@
   --sui-interactive-hover-layer: rgb(255 255 255 / 8.5%);
   --sui-interactive-pressed: rgb(255 255 255 / 13.5%);
   --sui-scrim: rgb(0 0 0 / 62%);
+  --sui-glass-bar: color-mix(in srgb, var(--sui-surface-base) 80%, transparent);
 
   --sui-sidebar-bg: var(--sui-canvas);
   --sui-sidebar-border: var(--sui-border-subtle);
@@ -789,6 +793,7 @@
     --sui-interactive-hover-layer: rgb(255 255 255 / 8.5%);
     --sui-interactive-pressed: rgb(255 255 255 / 13.5%);
     --sui-scrim: rgb(0 0 0 / 62%);
+    --sui-glass-bar: color-mix(in srgb, var(--sui-surface-base) 80%, transparent);
 
     --sui-sidebar-bg: var(--sui-canvas);
     --sui-sidebar-border: var(--sui-border-subtle);

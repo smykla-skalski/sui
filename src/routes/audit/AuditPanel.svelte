@@ -1,6 +1,6 @@
 <script lang="ts">
   import { onMount, tick } from 'svelte';
-  import { Button, Pill } from '#lib';
+  import { Button, Disclosure, Icon, Pill } from '#lib';
   import { checkCount, runAudit, type Finding } from './audit.js';
   import './checks.js';
 
@@ -146,39 +146,47 @@
         {count(findings.length, 'finding')} against {count(byLaw.length, 'law')}
       {/if}
     </p>
-    <!-- Shown from the start, so the panel keeps its height when the first run reports and
-         nothing below it moves. -->
+    <!-- A kept result is read only once the page runs, so every line the panel shows from the
+         first paint keeps its words, and the result's details wait behind a press: nothing
+         below the panel moves when a result arrives. The spinner takes the icon's place, so a
+         run keeps the button's width. -->
     <div class="scope-row">
-      <p class="scope">
-        {#if measured}
-          {checkCount()} rendered checks, measured {when(measured.at)} at {measured.width}px in
-          {measured.theme}
-        {:else}
-          {checkCount()} rendered checks
-        {/if}
-      </p>
-      <Button loading={running} onclick={measure}>Run the audit again</Button>
+      <p class="scope">{checkCount()} rendered checks</p>
+      <Button loading={running} onclick={measure}>
+        {#snippet icon()}<Icon name="refresh" size="sm" />{/snippet}
+        Run the audit again
+      </Button>
     </div>
   </div>
-  {#if findings && findings.length > 0}
-    <ul class="laws">
-      {#each byLaw as [law, items] (law)}
-        <li>
-          <details>
-            <summary><span class="law">{law}</span> {count(items.length, 'finding')}</summary>
-            <ul class="items">
-              {#each items as finding, index (index)}
-                <li>
-                  <button type="button" onclick={() => reveal(finding)}>{finding.where}</button>
-                  <span class="detail">{finding.detail}</span>
-                </li>
-              {/each}
-            </ul>
-          </details>
-        </li>
-      {/each}
-    </ul>
-  {/if}
+  <Disclosure summary="Details of the run">
+    <div class="result-body">
+      <p class="scope">
+        {#if measured}
+          Measured {when(measured.at)} at {measured.width}px in {measured.theme}
+        {:else}
+          Not measured yet
+        {/if}
+      </p>
+      {#if findings && findings.length > 0}
+        <ul class="laws">
+          {#each byLaw as [law, items] (law)}
+            <li>
+              <Disclosure summary={law} hint={count(items.length, 'finding')}>
+                <ul class="items">
+                  {#each items as finding, index (index)}
+                    <li>
+                      <button type="button" onclick={() => reveal(finding)}>{finding.where}</button>
+                      <span class="detail">{finding.detail}</span>
+                    </li>
+                  {/each}
+                </ul>
+              </Disclosure>
+            </li>
+          {/each}
+        </ul>
+      {/if}
+    </div>
+  </Disclosure>
 </section>
 
 <style>
@@ -252,6 +260,11 @@
     text-box: trim-both cap alphabetic;
   }
 
+  .result-body {
+    display: grid;
+    gap: var(--sui-space-3);
+  }
+
   .laws,
   .items {
     display: grid;
@@ -259,30 +272,6 @@
     list-style: none;
     margin: 0;
     padding: 0;
-  }
-
-  summary {
-    border-radius: var(--sui-radius-control);
-    cursor: pointer;
-    font: var(--sui-weight-medium) var(--sui-font-size-meta) / var(--sui-leading-meta)
-      var(--sui-sans);
-    padding: var(--sui-space-1) var(--sui-space-2);
-  }
-
-  summary:focus-visible {
-    outline: var(--sui-focus-ring-width) solid var(--sui-focus);
-    outline-offset: var(--sui-focus-ring-inset);
-  }
-
-  .law {
-    font-family: var(--sui-mono);
-    font-variant-numeric: tabular-nums;
-    font-weight: var(--sui-weight-medium);
-  }
-
-  .items {
-    padding: var(--sui-space-2);
-    padding-inline-start: var(--sui-space-6);
   }
 
   .items li {

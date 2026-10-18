@@ -1110,4 +1110,107 @@ suite('the kitchen sink', together, () => {
       await page.close();
     }
   });
+
+  test("a reload's first frame that shows text draws it in SUI's own faces", long, async () => {
+    const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
+    try {
+      await visit(page, url);
+      // Every request takes as long as on a slow phone connection, so a face that is fetched
+      // arrives after the first frame.
+      const cdp = await page.context().newCDPSession(page);
+      await cdp.send('Network.emulateNetworkConditions', {
+        offline: false,
+        latency: 600,
+        downloadThroughput: -1,
+        uploadThroughput: -1
+      });
+      await page.addInitScript(() => {
+        /** @type {{ text: boolean; ready: boolean }[]} */
+        const painted = [];
+        Object.assign(window, { painted });
+        const step = () => {
+          const text =
+            document.querySelector('h1') !== null &&
+            getComputedStyle(document.body).visibility === 'visible';
+          // The Latin faces, which draw every word on the page.
+          const latin = [...document.fonts].filter((face) => /U\+0-FF\b/i.test(face.unicodeRange));
+          const ready = latin.length > 0 && latin.every((face) => face.status === 'loaded');
+          painted.push({ text, ready });
+          if (!text) requestAnimationFrame(step);
+        };
+        requestAnimationFrame(step);
+      });
+      await page.reload({ waitUntil: 'commit' });
+      // The app need not start: the frames before it are what this reads.
+      const first = await page.waitForFunction(() =>
+        /** @type {{ painted: { text: boolean; ready: boolean }[] }} */ (
+          /** @type {unknown} */ (window)
+        ).painted.find((frame) => frame.text)
+      );
+      assert.deepEqual(await first.jsonValue(), { text: true, ready: true });
+    } finally {
+      await page.close();
+    }
+  });
+
+  test("a reload halfway down paints the reader's place from its first frame", long, async () => {
+    const page = await open(1440, 'light');
+    try {
+      const place = await page.evaluate(() => {
+        scrollTo(0, 3000);
+        return scrollY;
+      });
+      await page.addInitScript(() =>
+        requestAnimationFrame(() => Object.assign(window, { first: scrollY }))
+      );
+      await page.reload();
+      await page.waitForFunction(() => '__suiAudit' in window);
+      assert.equal(
+        await page.evaluate(
+          () => /** @type {{ first: number }} */ (/** @type {unknown} */ (window)).first
+        ),
+        place
+      );
+    } finally {
+      await page.close();
+    }
+  });
+
+  test("a returning reader's reload on a phone shifts no layout", long, async () => {
+    const page = await browser.newPage({ viewport: { width: 375, height: 812 } });
+    try {
+      await visit(page, url);
+      // A kept run, as a returning reader has, which the panel reads only once the page runs.
+      await page.evaluate(() =>
+        localStorage.setItem(
+          `sui:audit:${location.origin}${location.pathname}`,
+          JSON.stringify({
+            findings: [],
+            at: '2026-10-01T12:00:00.000Z',
+            width: 375,
+            theme: 'light'
+          })
+        )
+      );
+      await page.addInitScript(() => {
+        Object.assign(window, { shifted: 0 });
+        new PerformanceObserver((list) => {
+          for (const entry of /** @type {any[]} */ (list.getEntries()))
+            /** @type {any} */ (window).shifted += entry.value;
+        }).observe({ type: 'layout-shift', buffered: true });
+      });
+      await page.goto(url);
+      await page.waitForFunction(
+        () =>
+          document.querySelector('.audit .summary')?.textContent?.trim() ===
+          'Every law holds on this page'
+      );
+      await page.evaluate(
+        () => new Promise((done) => requestAnimationFrame(() => requestAnimationFrame(done)))
+      );
+      assert.equal(await page.evaluate(() => /** @type {any} */ (window).shifted), 0);
+    } finally {
+      await page.close();
+    }
+  });
 });

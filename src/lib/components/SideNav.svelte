@@ -593,6 +593,8 @@ following a row closes the drawer.
 
     .sui-side-nav-row[aria-current='page'] {
       color: HighlightText;
+      /* Kept as written, or the browser draws a Canvas backplate behind the words on the plate. */
+      forced-color-adjust: none;
     }
   }
 

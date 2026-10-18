@@ -1,8 +1,10 @@
 <script lang="ts">
   import type { Component } from 'svelte';
-  import { Button, Icon, PageHeader, PageToc, Select, SkipLink, ThemeSwitch } from '#lib';
+  import { page } from '$app/state';
+  import { AppShell, Button, Icon, PageHeader, PageToc, Rail, SkipLink, ThemeSwitch } from '#lib';
   import AuditPanel from './audit/AuditPanel.svelte';
   import Section, { type SectionMeta } from './kit/Section.svelte';
+  import { places } from './places';
 
   type SectionModule = { default: Component; section: SectionMeta };
 
@@ -103,41 +105,31 @@
     })
     .sort((a, b) => a.rank - b.rank || a.order - b.order || a.title.localeCompare(b.title));
   const entries = sections.map(({ id, title, family }) => ({ id, label: title, group: family }));
-  const jumps = Object.values(
-    Object.groupBy(sections, (section) => section.family) as Record<string, typeof sections>
-  ).map((members) => ({
-    label: members[0].family,
-    options: members.map(({ id, title }) => ({ value: id, label: title }))
-  }));
 
-  let jump = $state<string | null>(null);
-
-  // The header's pickers become a bar fixed to the top of the window once their place in the
-  // header has scrolled away. Their place keeps its height, so nothing below it moves.
-  let slot = $state<HTMLElement | null>(null);
+  // The header's tools become a bar fixed over the content once their place in the header has
+  // scrolled away.
   let compact = $state(false);
   // The slot keeps the box the tools had in it while they ride in the fixed bar, so the header
   // keeps its wrap and the page under it never moves when the bar comes or goes.
   let held = $state({ inline: 0, block: 0 });
-  $effect(() => {
-    if (!slot) return;
+  let slides = $state(false);
+  function watch(slot: HTMLElement) {
+    // The first report is where the page already stands, as after a reload halfway down, so the
+    // bar is simply there; only the reader's own scrolling slides it in.
+    let reported = false;
     // One call can carry several entries for the slot, as when the page scrolls before the
     // first one is delivered, and only the last is current.
     const watcher = new IntersectionObserver((entries) => {
       const entry = entries[entries.length - 1];
       const next = !entry.isIntersecting && entry.boundingClientRect.bottom <= 0;
-      if (next && !compact && slot) held = { inline: slot.offsetWidth, block: slot.offsetHeight };
+      if (next && !compact) held = { inline: slot.offsetWidth, block: slot.offsetHeight };
+      slides = reported;
+      reported = true;
       compact = next;
     });
     watcher.observe(slot);
     return () => watcher.disconnect();
-  });
-
-  $effect(() => {
-    if (!jump) return;
-    document.getElementById(jump)?.scrollIntoView({ block: 'start' });
-    history.replaceState(null, '', `#${jump}`);
-  });
+  }
 </script>
 
 <svelte:head>
@@ -150,81 +142,108 @@
 
 <SkipLink href="#content" />
 
-<div class="page">
-  <PageHeader
-    eyebrow="SUI"
-    title="Kitchen sink"
-    description="Every component in every state, measured against the design laws on every render"
-  >
-    {#snippet actions()}
-      <div
-        class="slot"
-        bind:this={slot}
-        style:inline-size={compact ? `${held.inline}px` : undefined}
-        style:block-size={compact ? `${held.block}px` : undefined}
-      >
-        <div class={['tools', { compact }]}>
-          <p class="tools-title" aria-hidden="true">Kitchen sink</p>
-          <!-- Without the index column, this is the way across the sections. -->
-          <div class="jump">
-            <Select
-              bind:value={jump}
-              options={jumps}
-              placeholder="Jump to a component"
-              aria-label="Jump to a component"
-            />
+<AppShell title="Kitchen sink" landmark="none">
+  {#snippet rail()}
+    <Rail items={places} current={page.url.pathname} />
+  {/snippet}
+  {#snippet sidebar()}
+    <div class="index"><PageToc {entries} title="Components" class="toc" /></div>
+  {/snippet}
+
+  <div class="sink">
+    <PageHeader
+      class="head"
+      eyebrow="SUI"
+      title="Kitchen sink"
+      description="Every component in every state, measured against the design laws on every render"
+    >
+      {#snippet actions()}
+        <div
+          class="slot"
+          {@attach watch}
+          style:inline-size={compact ? `${held.inline}px` : undefined}
+          style:block-size={compact ? `${held.block}px` : undefined}
+        >
+          <div class={['tools', { compact, slides }]}>
+            <p class="tools-title" aria-hidden="true">Kitchen sink</p>
+            <div class="theme"><ThemeSwitch name="sink-page-theme" system={false} /></div>
           </div>
-          <div class="theme"><ThemeSwitch name="sink-page-theme" system={false} /></div>
         </div>
-      </div>
-    {/snippet}
-  </PageHeader>
+      {/snippet}
+    </PageHeader>
 
-  <div class="layout">
-    <PageToc {entries} title="Components" offset="var(--sink-bar)" class="toc" />
+    <div class="page">
+      <main id="content" tabindex="-1">
+        <AuditPanel />
+        {#each sections as { id, family, meta, source, Body } (id)}
+          <Section {id} {family} {meta} {source} {sources} body={Body} />
+        {/each}
+      </main>
 
-    <main id="content" tabindex="-1">
-      <AuditPanel />
-      {#each sections as { id, family, meta, source, Body } (id)}
-        <Section {id} {family} {meta} {source} {sources} body={Body} />
-      {/each}
-    </main>
-  </div>
-
-  <!-- "#top" is the fragment every browser takes to the start of the page, with no script. -->
-  {#if compact}
-    <div class="to-top">
-      <Button href="#top">
-        {#snippet icon()}<Icon name="chevron-up" size="sm" />{/snippet}
-        Back to top
-      </Button>
+      <!-- "#top" is the fragment every browser takes to the start of the page, with no script. -->
+      {#if compact}
+        <div class="to-top">
+          <Button href="#top">
+            {#snippet icon()}<Icon name="chevron-up" size="sm" />{/snippet}
+            Back to top
+          </Button>
+        </div>
+      {/if}
     </div>
-  {/if}
-</div>
+  </div>
+</AppShell>
 
 <style>
-  /* The bar the header's pickers become, and the room anchors, the index and focus keep
-     below it so nothing lands under it. */
+  /* The bar the header's tools become, and the room anchors and focus keep below it and above
+     the floating button, so nothing lands under either (WCAG 2.4.11). A phone shell pads the
+     top by its own bar instead. */
   :global(html) {
-    --sink-bar: calc(var(--sui-control-height-compact) + 2 * var(--sui-space-2) + 1px);
-    --sink-gutter: clamp(var(--sui-space-4), 2.4vw, var(--sui-space-8));
-    --sink-width: calc(var(--sui-content-max) + var(--sui-toc-width));
+    --sink-bar: calc(
+      var(--sui-control-height-compact) + 2 * var(--sui-space-2) + var(--sui-stroke)
+    );
     --sink-float: max(var(--sui-space-6), env(safe-area-inset-bottom));
-    /* The page ends clear of the floating button, so it never covers the last section. */
     --sink-floor: calc(var(--sui-touch-target) + 2 * var(--sink-float));
 
     scroll-padding-block-start: calc(var(--sink-bar) + var(--sui-space-4));
-    /* Anything scrolled into view, focus included, stops clear of the floating button (WCAG
-       2.4.11). */
     scroll-padding-block-end: var(--sink-floor);
   }
 
-  /* The index column sits beside the reading column, so the page is wider by the index. */
+  /* The index fills the sidebar's column and scrolls inside it, in the drawer too. */
+  .index {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    min-block-size: 0;
+  }
+
+  .index :global(.toc) {
+    align-self: stretch;
+    flex: 1 1 auto;
+    min-block-size: 0;
+    padding-block-start: var(--sui-rhythm-pane-gutter);
+    padding-inline-start: var(--sui-space-3);
+  }
+
+  /* The content box is the measure for the fixed bar, which spans it and nothing else. The
+     column is centred in it, and the header's band and the bar keep its inset. */
+  .sink {
+    --sink-gutter: clamp(var(--sui-space-4), 2.4vw, var(--sui-space-8));
+    --sink-inset: max(
+      var(--sink-gutter),
+      calc((100cqi - var(--sui-content-max)) / 2 + var(--sink-gutter))
+    );
+    container-type: inline-size;
+  }
+
+  .sink :global(.head) {
+    --sui-local-head-inset: var(--sink-inset);
+  }
+
   .page {
     box-sizing: border-box;
     margin-inline: auto;
-    max-inline-size: var(--sink-width);
-    padding: var(--sui-rhythm-pane-top-wide) var(--sink-gutter) var(--sink-floor);
+    max-inline-size: var(--sui-content-max);
+    padding: 0 var(--sink-gutter) var(--sink-float);
   }
 
   .slot {
@@ -242,44 +261,6 @@
     min-inline-size: 0;
   }
 
-  /* Fixed to the window, lined up with the page's column, and sliding in from above. */
-  .tools.compact {
-    animation: sink-bar-in var(--sui-duration-normal) var(--sui-ease-out);
-    background: var(--sui-canvas);
-    border-block-end: var(--sui-stroke) solid var(--sui-border-divider);
-    box-sizing: border-box;
-    inset-block-start: 0;
-    inset-inline: 0;
-    min-block-size: var(--sink-bar);
-    padding-block: var(--sui-space-2);
-    padding-inline: max(
-      var(--sink-gutter),
-      calc((100% - var(--sink-width)) / 2 + var(--sink-gutter))
-    );
-    position: fixed;
-    z-index: var(--sui-layer-sticky);
-  }
-
-  @keyframes sink-bar-in {
-    from {
-      translate: 0 -100%;
-    }
-  }
-
-  /* Shown once the header has scrolled away, at the end of the page's column. */
-  .to-top {
-    border-radius: var(--sui-radius-control);
-    box-shadow: var(--sui-shadow-popover);
-    display: flex;
-    inset-block-end: var(--sink-float);
-    inset-inline-end: max(
-      var(--sink-gutter),
-      calc((100% - var(--sink-width)) / 2 + var(--sink-gutter))
-    );
-    position: fixed;
-    z-index: var(--sui-layer-sticky);
-  }
-
   .tools-title {
     align-content: center;
     block-size: var(--sui-block-snap);
@@ -291,62 +272,95 @@
     text-box: trim-both cap alphabetic;
   }
 
-  .jump {
-    flex: 1 1 auto;
-    max-inline-size: 20rem;
-    min-inline-size: 0;
-  }
-
   .theme {
     flex: none;
     margin-inline-start: auto;
   }
 
-  /* The index keeps the rest of the gap inside its own scroll area, for its scrollbar. */
-  .layout {
-    column-gap: var(--sui-space-3);
-    display: grid;
-    grid-template-columns: minmax(0, 1fr);
+  /* A phone's shell bar already sticks above the content, so the tools stay in the header
+     there and only a wider shell takes them into a bar of their own, sliding in from above.
+     The bar is frosted glass over the page scrolling under it, as Fluent's in-app acrylic is
+     for surfaces that content scrolls beneath and Apple's bar materials are. */
+  @container sui-shell (min-width: 48rem) {
+    .tools.compact {
+      backdrop-filter: var(--sui-glass-filter);
+      background: var(--sui-glass-bar);
+      border-block-end: var(--sui-stroke) solid var(--sui-border-divider);
+      box-sizing: border-box;
+      inline-size: 100cqi;
+      inset-block-start: 0;
+      inset-inline-end: 0;
+      min-block-size: var(--sink-bar);
+      padding-block: var(--sui-space-2);
+      padding-inline: var(--sink-inset);
+      position: fixed;
+      z-index: var(--sui-layer-sticky);
+    }
+
+    .compact .tools-title {
+      display: block;
+    }
+
+    .tools.compact.slides {
+      animation: sink-bar-in var(--sui-duration-normal) var(--sui-ease-out);
+    }
+
+    /* Where nothing frosts what passes under it, or the reader asks for less transparency, the
+       bar is the band's opaque ground, as Apple's Reduce Transparency and Fluent's solid
+       fallback make it; forced colors draw the system's own. */
+    @supports not (backdrop-filter: blur(1px)) {
+      .tools.compact {
+        background: var(--sui-surface-base);
+      }
+    }
+
+    @media (prefers-reduced-transparency: reduce) {
+      .tools.compact {
+        backdrop-filter: none;
+        background: var(--sui-surface-base);
+      }
+    }
+
+    @media (forced-colors: active) {
+      .tools.compact {
+        backdrop-filter: none;
+        background: Canvas;
+      }
+    }
   }
 
-  .layout :global(.toc) {
-    display: none;
+  @keyframes sink-bar-in {
+    from {
+      translate: 0 -100%;
+    }
   }
 
-  /* The index pads its own scroll area, so the column beside it starts as low. */
   main {
     display: grid;
     gap: var(--sui-space-8);
     min-inline-size: 0;
-    padding-block-start: var(--sui-space-6);
   }
 
   main:focus {
     outline: none;
   }
 
-  @media (min-width: 48rem) {
-    .compact .tools-title {
-      display: block;
-    }
-  }
-
-  @media (min-width: 72rem) {
-    .layout {
-      grid-template-columns: var(--sui-toc-width) minmax(0, 1fr);
-    }
-
-    .layout :global(.toc) {
-      display: block;
-    }
-
-    .jump {
-      display: none;
-    }
+  /* The way back up rides the foot of the window at the end of the column, and rests below the
+     last section once the page is scrolled to its end, so it never covers it. */
+  .to-top {
+    border-radius: var(--sui-radius-control);
+    box-shadow: var(--sui-shadow-popover);
+    display: flex;
+    inline-size: fit-content;
+    inset-block-end: var(--sink-float);
+    margin-block-start: var(--sink-float);
+    margin-inline-start: auto;
+    position: sticky;
+    z-index: var(--sui-layer-sticky);
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .tools.compact {
+    .tools.compact.slides {
       animation: none;
     }
   }

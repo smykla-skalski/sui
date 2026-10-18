@@ -377,6 +377,8 @@ changes a tile's height. Under forced colors the plate is `Highlight` and its wo
     .sui-rail-tile[aria-current] {
       background-color: Highlight;
       color: HighlightText;
+      /* Kept as written, or the browser draws a Canvas backplate behind the words on the plate. */
+      forced-color-adjust: none;
     }
 
     .sui-rail-badge {

@@ -10,7 +10,9 @@
 
 <script lang="ts">
   import { word } from '../words.js';
+  import { flushSync } from 'svelte';
   import type { HTMLAttributes } from 'svelte/elements';
+  import { followsInPlace, getShell } from '../internal/shell.svelte.js';
 
   let {
     entries,
@@ -34,7 +36,9 @@
     class?: HTMLAttributes<HTMLElement>['class'];
   } & Omit<HTMLAttributes<HTMLElement>, 'title'> = $props();
 
-  let here = $state<string | null>(null);
+  const shell = getShell();
+  // Before the page is read, as in a server render, the reader is at the top, in the first section.
+  let here = $derived<string | null>(entries[0]?.id ?? null);
   let nav = $state<HTMLElement | null>(null);
   const links = $state<Record<string, HTMLAnchorElement | null>>({});
 
@@ -126,17 +130,21 @@
 
   function follow(event: MouseEvent, entry: TocEntry): void {
     onnavigate?.(event, entry);
-    if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) {
-      return;
+    if (!followsInPlace(event)) return;
+    // A phone drawer closes first, so the section it lands on is no longer inert and takes focus.
+    if (shell?.mode === 'drawer') {
+      shell.closeDrawer();
+      flushSync();
     }
     const section = reveal(entry.id);
     if (!section) return;
-    if (!matchMedia('(prefers-reduced-motion: reduce)').matches) {
-      event.preventDefault();
-      section.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      history.pushState(null, '', `#${entry.id}`);
-      here = entry.id;
-    }
+    // The index scrolls and records the hash itself: a browser that follows the fragment clears
+    // focus from a target that cannot take it, after the heading has taken it.
+    event.preventDefault();
+    const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    section.scrollIntoView({ behavior: still ? 'instant' : 'smooth', block: 'start' });
+    history.pushState(null, '', `#${entry.id}`);
+    here = entry.id;
     land(section);
   }
 
@@ -172,28 +180,30 @@
 @component
 The index beside a long page: where its sections are, and which one the reader is in. The
 entries are fragment links. Following one opens any native disclosure that holds its
-section. When the reader allows motion the index scrolls there smoothly and records the hash
-itself, and otherwise the browser follows the link as it would any other. Either way focus
-moves to the section's first heading, or to the section, so the next Tab starts there.
+section. The index scrolls there itself, smoothly when the reader allows motion and at once
+when not, records the hash, and moves focus to the section's first heading, or to the
+section, so the next Tab starts there.
 
 The current entry wears the current mark every navigation list shares: primary ink against
 muted entries, a step of 3:1 or more in lightness, on a quiet plate that only supports it, and
 `Highlight` under forced colors. It keeps the entries' weight, so turning current never
-rewraps it or changes its height. It is announced with `aria-current="location"`. It follows
-the URL hash on arrival, then the last section whose top has crossed the top quarter of the
+rewraps it or changes its height. It is announced with `aria-current="location"`. The first
+entry is current from the first paint, as at the top of the page, and then it follows the URL
+hash on arrival, then the last section whose top has crossed the top quarter of the
 box the sections scroll in, the page or a pane, and the last section once that box is
 scrolled to its end. The index sticks to the top of the viewport inside whatever column it
 is given, or under a sticky bar as tall as `offset`, and fills the height below, padding its
 own top and bottom, so a long index scrolls out at that edge, and keeping room at its end
 for the scrollbar, so the scrollbar never covers the entries. Placing it beside the content,
-or leaving it out on a phone, is the page's layout.
+or leaving it out on a phone, is the page's layout. As an `AppShell`'s sidebar it rides in the
+phone drawer, and following an entry closes the drawer before focus moves.
 
 - Semantics: a `nav` landmark named by `title`, with the title as a heading at `level`, group headings one level below, and lists of fragment links, the current one with `aria-current="location"`.
 - Content: entries with an id and a label that wraps, optionally grouped under a heading.
 - States: rest, hover (a row ground), pressed (the pressed ground and an inset shadow), focus (a 2px inset ring) and current (primary ink on the quiet plate, in the entries' weight, so it moves nothing).
 - Keyboard: Tab moves through the entries and Enter follows one, moving focus to the section's heading.
 - Pointer and touch: entries are 28px tall on a desktop pointer and 44px on a phone or a coarse pointer, across the column's width.
-- Focus: following an entry moves focus to its section's first heading, or the section, which takes a temporary `tabindex`.
+- Focus: following an entry moves focus to its section's first heading, or the section, which takes a temporary `tabindex`; in a shell's phone drawer the drawer closes first, so focus lands in the section and never on the menu button.
 - Responsive: the index sticks and scrolls inside itself, keeping the current entry in view; the page decides where it stands.
 - Accessibility: the current entry is announced, every entry's ink holds 4.5:1, and the current ink stands 3:1 from the rest ink in lightness, so it is never hue alone (WCAG 1.4.1).
 - Localization: `title` is a prop with an English default; the entries follow the reading direction.
@@ -343,6 +353,8 @@ or leaving it out on a phone, is the page's layout.
     .sui-page-toc-link[aria-current='location'] {
       background-color: Highlight;
       color: HighlightText;
+      /* Kept as written, or the browser draws a Canvas backplate behind the words on the plate. */
+      forced-color-adjust: none;
     }
   }
 

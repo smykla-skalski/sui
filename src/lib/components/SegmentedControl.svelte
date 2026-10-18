@@ -270,7 +270,9 @@ fires `change` as a click would; Escape or a cancelled pointer puts it back.
 Short of room, the control draws the same choice as a native `Select`, with icons dropped and
 counts in brackets, such as "Users (24)". An inert, hidden copy of the segments, with no inputs,
 measures their natural width against the room through a `ResizeObserver`. The thumb is measured
-from the checked option because CSS cannot size one box from a sibling.
+from the checked option because CSS cannot size one box from a sibling. Until it is measured, as
+in a server render, the checked option paints the thumb's ground itself, so the choice shows
+from the first frame.
 
 - Semantics: a `fieldset` of native radios named by `label`, or by `aria-labelledby` when it is passed; the fallback is a native `select` with the same name.
 - Content: two to five options, each a short word with an optional icon and count; a long word never wraps, so the control turns into the select instead.
@@ -491,6 +493,15 @@ from the checked option because CSS cannot size one box from a sibling.
     --sui-segmented-sign: -1;
   }
 
+  /* Until script has measured the thumb, as in the server's render, the chosen option paints
+     the thumb's ground itself, so its ink never stands on the bare track. The option's box is
+     the thumb's, so the measured thumb lands exactly there. */
+  .sui-segmented-track:not(:has(> .sui-segmented-thumb)) > .sui-segmented-option.selected {
+    background: var(--sui-segment-thumb);
+    border-radius: var(--sui-radius-control);
+    box-shadow: var(--sui-segment-thumb-shadow);
+  }
+
   .ready .sui-segmented-thumb {
     transition:
       translate var(--sui-duration-travel) var(--sui-ease-travel),
@@ -687,7 +698,8 @@ from the checked option because CSS cannot size one box from a sibling.
       outline-offset: calc(-1 * var(--sui-stroke));
     }
 
-    .sui-segmented-thumb {
+    .sui-segmented-thumb,
+    .sui-segmented-track:not(:has(> .sui-segmented-thumb)) > .sui-segmented-option.selected {
       background: Highlight;
       forced-color-adjust: none;
     }

@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { after, before, suite, test } from 'node:test';
-import { long, startSink, together, visit } from './sink.mjs';
+import { brief, long, settles, startSink, together, visit } from './sink.mjs';
 
 // Behaviour of the shell, the navigation lists, the tabs and the charts that the law audit
 // cannot see in one still page: focus handoffs, placement by direction, the phone bars,
@@ -263,6 +263,39 @@ suite('navigation', together, () => {
       await page.close();
     }
   });
+
+  test(
+    "an index entry lands focus on its section's heading, from the phone drawer and under reduced motion",
+    long,
+    async () => {
+      for (const [width, reducedMotion] of /** @type {const} */ ([
+        [375, 'no-preference'],
+        [1440, 'reduce']
+      ])) {
+        const page = await browser.newPage({ viewport: { width, height: 900 }, reducedMotion });
+        try {
+          await visit(page, url);
+          // The sink's own shell comes first; the app shell section's specimens follow it.
+          if (width < 768) await page.locator('.sui-shell-menu').first().click();
+          await page.locator('.sui-page-toc-link', { hasText: 'Data table' }).first().click();
+          await settles(
+            page.waitForFunction(
+              () => document.activeElement?.closest('#data-table') !== null,
+              null,
+              brief
+            )
+          );
+          const landed = await page.evaluate(() => ({
+            focus: `${document.activeElement?.tagName} ${document.activeElement?.textContent?.trim()}`,
+            open: document.querySelector('.sui-shell-side:popover-open') !== null
+          }));
+          assert.deepEqual(landed, { focus: 'H2 Data table', open: false }, `at ${width}px`);
+        } finally {
+          await page.close();
+        }
+      }
+    }
+  );
 
   test(
     'a chart plot that scrolls is a named keyboard stop, and its table renders only when opened',

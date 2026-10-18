@@ -22,6 +22,10 @@
         visibility: hidden;
       }
     </style>
+    <!-- The first paint waits until the parser reaches the main content, so the chrome above
+         it never paints half parsed on a slow connection and then rearranges. -->
+    <link rel="expect" href="#content" blocking="render" />
+
     %sveltekit.head%
     <script>
       // A face is decoded only once text first asks for it, which is after the first layout,
