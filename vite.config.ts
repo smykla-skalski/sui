@@ -17,6 +17,9 @@ export default defineConfig({
       serviceWorker: { register: false }
     })
   ],
+  // Below these versions the CSS minifier rewrites `:dir(rtl)` into a list of right-to-left
+  // `:lang()` selectors, which miss a page that sets only `dir`, so every mirrored rule is lost.
+  build: { cssTarget: ['chrome120', 'edge120', 'firefox115', 'safari16.4'] },
   // The SSR pre-bundle resolves rolldown's virtual runtime, which no `include` covers, so
   // auto-discovery walks up into any parent project's tsconfig (e.g. from a git worktree).
   ssr: { optimizeDeps: { rolldownOptions: { tsconfig: 'tsconfig.json' } } }

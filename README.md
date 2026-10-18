@@ -18,6 +18,15 @@ Import the theme once in the app root. It holds every `--sui-*` token and both b
 import '@smykla-skalski/sui/styles.css';
 ```
 
+Components mirror for right-to-left text through `:dir(rtl)`. Vite's default build target lets its CSS minifier rewrite that selector into a list of right-to-left `:lang()` selectors, which miss a page that sets only `dir`, so set a CSS target that keeps it:
+
+```ts
+// vite.config.ts
+export default defineConfig({
+  build: { cssTarget: ['chrome120', 'edge120', 'firefox115', 'safari16.4'] }
+});
+```
+
 ```svelte
 <script lang="ts">
   import { Button, Card, Field, Pill } from '@smykla-skalski/sui';
