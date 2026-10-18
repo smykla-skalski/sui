@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { word } from '../words.js';
+  import { mark, word } from '../words.js';
   import type { Snippet } from 'svelte';
   import type { HTMLAttributes } from 'svelte/elements';
   import VisuallyHidden from './VisuallyHidden.svelte';
@@ -76,7 +76,7 @@ on its title line.
         {#if title !== undefined}
           <svelte:element this={`h${level}`} class="sui-card-title"
             >{title}{#if unsaved}<span class="sui-card-unsaved"
-                ><VisuallyHidden>,</VisuallyHidden>{unsavedLabel}</span
+                ><VisuallyHidden>{mark('comma')}</VisuallyHidden>{unsavedLabel}</span
               >{/if}</svelte:element
           >
         {/if}

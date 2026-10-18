@@ -94,7 +94,7 @@
 </script>
 
 <script lang="ts">
-  import { word } from '../words.js';
+  import { mark, word } from '../words.js';
   import { tick } from 'svelte';
   import type { HTMLButtonAttributes } from 'svelte/elements';
   import Icon from '../icons/Icon.svelte';
@@ -124,7 +124,7 @@
     colorName = word('ColorPicker.colorName', describeColor),
     swatchName = word(
       'ColorPicker.swatchName',
-      (hex: string, named?: string) => `${named ?? colorName(hex)}, ${hex}`
+      (hex: string, named?: string) => `${named ?? colorName(hex)}${mark('comma')}${hex}`
     ),
     areaLabel = word('ColorPicker.areaLabel', 'Saturation and brightness'),
     areaValue = word(

@@ -16,7 +16,7 @@
 </script>
 
 <script lang="ts">
-  import { word } from '../words.js';
+  import { mark, word } from '../words.js';
   import { tick, type Snippet } from 'svelte';
   import type { HTMLLiAttributes } from 'svelte/elements';
   import Icon from '../icons/Icon.svelte';
@@ -42,7 +42,10 @@
     resetLabel = word('SettingRow.resetLabel', 'Reset'),
     resetName = word('SettingRow.resetName', (reset: string, name: string) => `${reset} ${name}`),
     undoLabel = word('SettingRow.undoLabel', 'Undo'),
-    undoName = word('SettingRow.undoName', (undo: string, name: string) => `${undo}, ${name}`),
+    undoName = word(
+      'SettingRow.undoName',
+      (undo: string, name: string) => `${undo}${mark('comma')}${name}`
+    ),
     unsavedLabel = word('SettingRow.unsavedLabel', 'Unsaved'),
     pendingLabel = word('SettingRow.pendingLabel', 'Saving…'),
     control,
@@ -187,7 +190,8 @@ between them (L-91).
       id={ids.labelledby}
       for={named ? ids.id : undefined}
       class="sui-setting-name"
-      >{name}<span class="sui-setting-mark"><VisuallyHidden>,</VisuallyHidden>{unsavedLabel}</span
+      >{name}<span class="sui-setting-mark"
+        ><VisuallyHidden>{mark('comma')}</VisuallyHidden>{unsavedLabel}</span
       ></svelte:element
     >
     {#if why}<p id="{uid}-why" class="sui-setting-why">{why}</p>{/if}

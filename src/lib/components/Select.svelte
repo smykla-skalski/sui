@@ -17,7 +17,7 @@
 </script>
 
 <script lang="ts" generics="Value extends SelectValue = string">
-  import { word } from '../words.js';
+  import { mark, word } from '../words.js';
   import type { HTMLSelectAttributes } from 'svelte/elements';
   import Icon from '../icons/Icon.svelte';
 
@@ -27,7 +27,10 @@
     placeholder,
     promptLabel = word('Select.promptLabel', 'Choose an option'),
     separator = word('Select.separator', ' · '),
-    optionName = word('Select.optionName', (label: string, note: string) => `${label}, ${note}`),
+    optionName = word(
+      'Select.optionName',
+      (label: string, note: string) => `${label}${mark('comma')}${note}`
+    ),
     invalid = false,
     preview = false,
     bare = false,

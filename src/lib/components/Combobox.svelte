@@ -9,7 +9,7 @@
 </script>
 
 <script lang="ts">
-  import { word } from '../words.js';
+  import { mark, word } from '../words.js';
   import { flushSync, tick } from 'svelte';
   import type { HTMLInputAttributes } from 'svelte/elements';
   import Icon from '../icons/Icon.svelte';
@@ -403,7 +403,8 @@ Name it with a `<label>` or `aria-label`, as any field.
           <span class="sui-combobox-check"><Icon name="check" size="base" /></span>
           <span class="sui-combobox-text"
             ><span class="sui-combobox-label">{@render marked(option.label)}</span
-            >{#if option.description}{' '}<span class="sui-combobox-note">{option.description}</span
+            >{#if option.description}{mark('space')}<span class="sui-combobox-note"
+                >{option.description}</span
               >{/if}</span
           >
         </div>

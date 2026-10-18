@@ -4,7 +4,7 @@
 </script>
 
 <script lang="ts">
-  import { word } from '../words.js';
+  import { mark, word } from '../words.js';
   import type { Snippet } from 'svelte';
   import type { HTMLAttributes } from 'svelte/elements';
   import VisuallyHidden from './VisuallyHidden.svelte';
@@ -98,7 +98,7 @@ and the unsaved ink, so no neutral block sits on a state (L-92).
 
 <!-- A no-break space, because Svelte trims a plain one at the end of the words. -->
 {#snippet named()}
-  {#if prefix}<VisuallyHidden>{prefix}&nbsp;</VisuallyHidden>{/if}
+  {#if prefix}<VisuallyHidden>{prefix}{mark('space')}</VisuallyHidden>{/if}
 {/snippet}
 
 <div {...rest} class={['sui-callout', className, { decision }]} data-tone={tone}>

@@ -491,6 +491,9 @@ test('K9 every built-in word reads through word(), so setWords can replace it', 
         value.replace(/\{[^{}]*\}/g, '').trim()
       )
         found.push(`${path}: ${name}="${value}"`);
+    // A literal space, no-break space or lone mark between words sets one language's joins too.
+    for (const [join] of markup.matchAll(/\{\s*(['"`])\s*\1\s*\}|&nbsp;|>\s*[,.:;]\s*</g))
+      found.push(`${path}: ${join}`);
     for (const [, text] of markup.matchAll(/>([^<>]*\{[^<>]*)</g))
       if (!/^\s*\{[#/:@]/.test(text) && /[^\s]/.test(text.replace(/\{[^{}]*\}|&nbsp;/g, '')))
         found.push(`${path}: ${text.trim()}`);

@@ -12,11 +12,13 @@
   import type { HTMLAttributes } from 'svelte/elements';
   import Count from '../internal/Count.svelte';
   import { formatCount } from '../internal/locale.js';
+  import { word } from '../words.js';
 
   let {
     label,
     items,
     current,
+    countedName = word('Tabs.countedName', (label: string, count: string) => `${label} ${count}`),
     onnavigate,
     class: className = '',
     ...rest
@@ -26,10 +28,15 @@
     items: readonly TabItem[];
     /** The `href` of the page being shown. Its tab wears the current plate and `aria-current`. */
     current?: string;
+    /** A counted tab's accessible name from its label and its count, in the language's order. */
+    countedName?: (label: string, count: string) => string;
     /** Called when a tab is followed, for a router that handles the click itself. */
     onnavigate?: (event: MouseEvent, item: TabItem) => void;
     class?: HTMLAttributes<HTMLElement>['class'];
   } & Omit<HTMLAttributes<HTMLElement>, 'children' | 'aria-label'> = $props();
+
+  const counted = (count: number | string) =>
+    typeof count === 'number' ? formatCount(count) : count;
 
   /* A row short of room may start with the current tab out of sight, which is the one tab a
      reader looks for. Keyed to `current` so a new page reveals its tab again. Jumped, never
@@ -89,11 +96,14 @@ never clips it.
           class="sui-tabs-tab"
           href={item.href}
           aria-current={item.href === current ? 'page' : undefined}
+          aria-label={item.count === undefined
+            ? undefined
+            : countedName(item.label, counted(item.count))}
           onclick={(event) => onnavigate?.(event, item)}
         >
           <span class="sui-tabs-label">{item.label}</span>
           {#if item.count !== undefined}
-            <Count value={typeof item.count === 'number' ? formatCount(item.count) : item.count} />
+            <Count value={counted(item.count)} />
           {/if}
         </a>
       </li>

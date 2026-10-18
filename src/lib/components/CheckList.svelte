@@ -10,7 +10,7 @@
 </script>
 
 <script lang="ts">
-  import { word } from '../words.js';
+  import { mark, word } from '../words.js';
   import type { HTMLFieldsetAttributes } from 'svelte/elements';
   import Icon from '../icons/Icon.svelte';
   import Checkbox from './Checkbox.svelte';
@@ -95,7 +95,7 @@ focus while the group saves keeps it.
 
 <fieldset {...rest} class={['sui-check-list', className]} aria-describedby={describedby}>
   <legend class="sui-check-list-legend"
-    >{label}{#if required}{' '}<span class="sui-check-list-required">{requiredLabel}</span
+    >{label}{#if required}{mark('space')}<span class="sui-check-list-required">{requiredLabel}</span
       >{/if}</legend
   >
   <div class="sui-check-list-items" class:stacked>

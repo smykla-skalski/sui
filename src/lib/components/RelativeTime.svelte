@@ -37,7 +37,7 @@
 </script>
 
 <script lang="ts">
-  import { word } from '../words.js';
+  import { mark, word } from '../words.js';
   import type { HTMLTimeAttributes } from 'svelte/elements';
   import { pageNow } from '../internal/clock.svelte.js';
   import { pageLocale } from '../internal/locale.js';
@@ -48,7 +48,10 @@
     value,
     exact: exactOnly = false,
     locale,
-    exactLabel = word('RelativeTime.exactLabel', (time: string) => `, exactly ${time}`),
+    exactLabel = word(
+      'RelativeTime.exactLabel',
+      (time: string) => `${mark('comma')}exactly ${time}`
+    ),
     element = $bindable(null),
     class: className = '',
     ...rest

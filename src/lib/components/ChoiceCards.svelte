@@ -11,7 +11,7 @@
 </script>
 
 <script lang="ts">
-  import { word } from '../words.js';
+  import { mark, word } from '../words.js';
   import type { HTMLFieldsetAttributes } from 'svelte/elements';
   import Icon from '../icons/Icon.svelte';
   import VisuallyHidden from './VisuallyHidden.svelte';
@@ -105,7 +105,8 @@ save keeps it.
   aria-required={required || undefined}
 >
   <legend class="sui-choice-cards-legend"
-    >{label}{#if required}{' '}<span class="sui-choice-cards-required">{requiredLabel}</span
+    >{label}{#if required}{mark('space')}<span class="sui-choice-cards-required"
+        >{requiredLabel}</span
       >{/if}</legend
   >
   <div class={['sui-choice-cards-grid', { invalid: Boolean(error) }]}>
