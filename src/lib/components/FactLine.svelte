@@ -13,6 +13,13 @@
     /** The facts, each one element, such as `<span>main</span><span>84 files</span>`. */
     children: Snippet;
   } & Omit<HTMLAttributes<HTMLSpanElement>, 'children'> = $props();
+
+  /* The spoken join as a CSS string, with a quote, a backslash or a control character escaped,
+     so any language's mark reads as itself. */
+  const cssString = (text: string) =>
+    `"${text.replace(/[\\"]|[\u0000-\u001f\u007f]/g, (char) =>
+      char === '\\' || char === '"' ? `\\${char}` : `\\${char.codePointAt(0)?.toString(16)} `
+    )}"`;
 </script>
 
 <!--
@@ -24,14 +31,14 @@ beside it adds space. It is read as the language's comma, and a line may wrap af
 A string-only place (a title, a tooltip's words, a placeholder, an accessible name, a native
 option) keeps its own typed separator instead.
 
-- Semantics: a `span` of inline facts; each fact is an element, the drawn dot is silent generated content, and each fact after the first starts with `marks.comma` as generated text with no size.
+- Semantics: a `span` of inline facts; each fact is an element, and the dot is generated content whose alternative text is `marks.comma`.
 - Content: two or more short facts, each an element with no space around it in the markup.
 - States: none of its own.
 - Keyboard: none of its own; a fact may hold a link or a time.
 - Pointer and touch: none of its own.
 - Focus: none of its own.
 - Responsive: the line wraps after a dot, never before one.
-- Accessibility: the dot is read as the comma of `marks.comma`, so the facts are heard apart without a symbol read aloud.
+- Accessibility: the dot is read as the comma of `marks.comma`, its alternative text, so the facts are heard apart without a symbol read aloud. In a name built from content, such as a link holding the line, Chrome puts a space before that comma.
 - Localization: the spoken join is `marks.comma`; the dot and its spacing are logical and hold right to left.
 - Performance: no script beyond the spoken join.
 - Analytics: none.
@@ -41,7 +48,7 @@ option) keeps its own typed separator instead.
 <span
   {...rest}
   class={['sui-fact-line', className]}
-  style:--sui-fact-join={JSON.stringify(mark('comma'))}>{@render children()}</span
+  style:--sui-fact-join={cssString(mark('comma'))}>{@render children()}</span
 >
 
 <style>
@@ -49,16 +56,8 @@ option) keeps its own typed separator instead.
      a dot, and its margins are the only space beside it (L-103). */
   .sui-fact-line > :global(:not(:last-child))::after {
     color: var(--sui-text-muted);
-    content: '·\200B' / '';
+    content: '·\200B' / var(--sui-fact-join);
     font-weight: var(--sui-weight-regular);
     margin-inline: var(--sui-sep-space);
-  }
-
-  /* The comma is heard and never drawn. Chrome puts a space before generated content that has
-     alt text, so the dot stays silent and the comma is plain text with no size. */
-  .sui-fact-line > :global(:not(:first-child))::before {
-    content: var(--sui-fact-join);
-    font-size: 0;
-    line-height: 0;
   }
 </style>

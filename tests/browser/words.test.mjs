@@ -233,12 +233,8 @@ test('with every mark replaced, each joined name reads the marks and nothing bet
       });
       put(lib.DurationInput, 'DurationInput', { label: 'Delay', value: 5, min: 60, max: 86_400 });
       put(lib.IdentityRow, 'IdentityRow', { name: 'Ada Lovelace', handle: '@ada' }, 'button');
-      put(lib.FactLine, 'FactLine', { children: html('<span>main</span>') }, 'button');
+      put(lib.PageHeader, 'FactLine', { title: 'Repository', eyebrow: ['main', '84 files'] });
       flushSync();
-      // A raw snippet renders one root, so the second fact joins the line by hand.
-      const second = document.createElement('span');
-      second.textContent = '84 files';
-      document.querySelector('[data-words="FactLine"] .sui-fact-line')?.append(second);
     });
     await page.locator('[data-words="AdditionPicker"] button').first().click();
     await page.locator('[data-words="AdditionPicker"] [role="menuitem"]').first().waitFor();
@@ -275,8 +271,7 @@ test('with every mark replaced, each joined name reads the marks and nothing bet
       ActionMenu: (await read('[data-words="ActionMenu"] [role="menuitem"]')).name,
       ListToolbar: (await read('[data-words="ListToolbar"] [aria-describedby$="-described"]'))
         .description,
-      IdentityRow: (await read('[data-words="IdentityRow"]')).name,
-      FactLine: (await read('[data-words="FactLine"]')).name
+      IdentityRow: (await read('[data-words="IdentityRow"]')).name
     };
     assert.deepEqual(names, {
       Card: 'BillingⓒNIEZAP',
@@ -292,13 +287,38 @@ test('with every mark replaced, each joined name reads the marks and nothing bet
       PairEntry: 'aliasⓟNAⓟShip',
       ActionMenu: 'TransferⓒOwners only',
       ListToolbar: 'AllⓒUpdatedⓒOpen',
-      IdentityRow: 'Ada Lovelaceⓒ@ada',
-      FactLine: 'mainⓒ84 files'
+      IdentityRow: 'Ada Lovelaceⓒ@ada'
     });
     assert.equal(
       await page.locator('[data-words="ListToolbar"] .sui-list-toolbar-chosen').textContent(),
       'UpdatedⓒOpen'
     );
+
+    // What a reader hears of a fact line, text by text: the dot's alternative text is the
+    // comma mark, and the dot itself is never read. The eyebrow draws its words in capitals,
+    // and Chrome reads them as drawn.
+    const { result: line } = await cdp.send('Runtime.evaluate', {
+      expression: `document.querySelector('[data-words="FactLine"] .sui-fact-line')`
+    });
+    await cdp.send('Accessibility.enable');
+    const {
+      nodes: [root]
+    } = await cdp.send('Accessibility.getPartialAXTree', {
+      objectId: line.objectId,
+      fetchRelatives: false
+    });
+    /** @type {unknown[]} */
+    const heard = [];
+    const visited = new Set();
+    const listen = async (/** @type {typeof root} */ node) => {
+      if (visited.has(node.nodeId)) return;
+      visited.add(node.nodeId);
+      if (node.role?.value === 'StaticText') return void heard.push(node.name?.value);
+      const { nodes } = await cdp.send('Accessibility.getChildAXNodes', { id: node.nodeId });
+      for (const child of nodes) await listen(child);
+    };
+    await listen(root);
+    assert.deepEqual(heard, ['MAIN', 'ⓒ', '84 FILES']);
 
     const time = await read('[data-words="RelativeTime"] time');
     const resting = await page
