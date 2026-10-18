@@ -1766,15 +1766,20 @@ function settingResets(root: Document): Finding[] {
         : box.right - parseFloat(look.paddingRight) - rect.right;
     const stacked = row.classList.contains('stacked');
     // The copy stands where it stands with no control beside it: taken out for a moment, the
-    // controls and the reset must leave every line of the copy where it was.
-    const lines = [...row.querySelectorAll(':scope > .sui-setting-say > *')].filter(shown);
+    // controls and the reset must leave every line of the copy where it was. The copy keeps its
+    // width meanwhile, so it keeps its lines and only the controls' height could move it.
+    const say = row.querySelector<HTMLElement>(':scope > .sui-setting-say');
+    const lines = [...(say?.children ?? [])].filter(shown);
     const at = () => lines.map((line) => line.getBoundingClientRect().top - box.top);
     const placed = at();
     const parts = [...side.children] as HTMLElement[];
     const shows = parts.map((part) => part.style.display);
+    const width = say?.style.maxInlineSize ?? '';
+    if (say) say.style.maxInlineSize = `${say.getBoundingClientRect().width}px`;
     for (const part of parts) part.style.display = 'none';
     const bare = at();
     parts.forEach((part, index) => (part.style.display = shows[index]));
+    if (say) say.style.maxInlineSize = width;
     const moved = Math.max(0, ...placed.map((top, index) => Math.abs(top - bare[index])));
     if (moved > 0.5)
       found.push(finding('L-36', row, `its controls move the copy ${round(moved)}px`));

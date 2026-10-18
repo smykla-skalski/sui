@@ -180,8 +180,8 @@
 @component
 One setting in a `SettingList`: its name and an optional why line on one side, 8px apart as
 rendered ink, and its controls on the other. The row measures itself, so the copy keeps at least
-13rem and neither side takes more than half the row; when both cannot fit, the controls move to
-the line under the copy and keep the row's end. A row whose only control is a `Switch` or a
+13rem and half the row; controls that need more than the rest move to the line under the copy,
+whole, and keep the row's end. A row whose only control is a `Switch` or a
 `Checkbox` keeps it beside the copy at every width, unless a reset stands beside it in a row
 under 25rem; give that control `bare`. A switch takes effect at once, and a checkbox holds a
 value that a later save writes.
@@ -288,7 +288,9 @@ section's ground between them (L-91).
 
 <style>
   /* The row is its own size container, so half of it is a definite length (`50cqi`) when the
-     flex line decides whether both sides fit, which a percentage is not. */
+     flex line decides whether both sides fit, which a percentage is not. Every line ends at the
+     row's end (L-90: a row aligned to its end on purpose): the copy grows to fill the line it
+     shares, and controls that drop under it keep the row's end. */
   /* Every row opens with a band one control tall, the tier the surface sets, and the copy and
      the controls both stand in it: the copy centres in it, or starts at its top when it is
      taller, and the controls' first line fills it. So no control moves the copy or gives the
@@ -304,7 +306,7 @@ section's ground between them (L-91).
     container-type: inline-size;
     display: flex;
     flex-wrap: wrap;
-    justify-content: space-between;
+    justify-content: flex-end;
     min-block-size: var(--sui-touch-target);
     min-inline-size: 0;
     /* The bottom carries the hairline's pixel on top of the padding, so the ink stands 12px
@@ -408,9 +410,10 @@ section's ground between them (L-91).
     background: transparent;
   }
 
-  /* The copy takes what is left and never less than it reads at, unless the row itself is
-     narrower than that. An even column, so it centres in the even band on whole pixels
-     (L-95). */
+  /* The copy takes what is left and never less than it reads at or half the row less the gap,
+     unless the row itself is narrower than that. So controls stand beside it only while they
+     fit in the other half, and wider ones take a line of their own whole rather than squeezed
+     into half of one. An even column, so it centres in the even band on whole pixels (L-95). */
   .sui-setting-say {
     align-content: center;
     block-size: var(--sui-block-snap-even);
@@ -419,7 +422,7 @@ section's ground between them (L-91).
     flex: 1 1 var(--sui-setting-say-min);
     gap: var(--sui-row-copy-gap);
     grid-template-columns: minmax(0, 1fr);
-    min-inline-size: min(var(--sui-setting-say-min), 100%);
+    min-inline-size: min(max(var(--sui-setting-say-min), 50cqi - var(--sui-space-4)), 100%);
   }
 
   .sui-setting-name,
@@ -512,8 +515,7 @@ section's ground between them (L-91).
     visibility: hidden;
   }
 
-  /* Neither side takes more than half the row, unless a control cannot be drawn narrower. The
-     reset stands right before the controls, so they end at the row's end whether it shows or
+  /* The reset stands right before the controls, so they end at the row's end whether it shows or
      keeps its seat, and the seat it keeps while hidden never pushes them (L-91). The controls'
      first line is one control tall, the tier the surface sets for its controls. */
   .sui-setting-value {
@@ -523,7 +525,6 @@ section's ground between them (L-91).
     flex: 0 1 auto;
     gap: var(--sui-space-2);
     justify-content: flex-end;
-    max-inline-size: 50cqi;
     min-inline-size: min-content;
   }
 
@@ -590,7 +591,6 @@ section's ground between them (L-91).
     .sui-setting-value {
       flex-basis: 100%;
       flex-wrap: wrap;
-      max-inline-size: 100%;
       min-inline-size: 0;
     }
 
@@ -618,7 +618,6 @@ section's ground between them (L-91).
   .stacked > .sui-setting-value {
     flex: 1 1 100%;
     min-block-size: 0;
-    max-inline-size: none;
     min-inline-size: 0;
   }
 
