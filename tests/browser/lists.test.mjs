@@ -943,6 +943,88 @@ suite('lists', together, () => {
     }
   );
 
+  test('a short pattern list keeps Add on the line of its last entry', long, async () => {
+    const page = await open();
+    try {
+      const list = page.locator('#setting-list .sui-pattern-entries').first();
+      await list.scrollIntoViewIfNeeded();
+      const [entry, add] = await Promise.all([
+        list.locator('.sui-pattern-entry').last().boundingBox(),
+        list.getByRole('button', { name: /^Add/ }).boundingBox()
+      ]);
+      assert.ok(entry && add, 'the list has no entry or no Add');
+      assert.ok(Math.abs(add.y - entry.y) < 0.5, 'Add took a line of its own');
+      assert.ok(Math.abs(add.height - entry.height) < 0.5, 'Add is not as tall as the entries');
+    } finally {
+      await page.close();
+    }
+  });
+
+  test('a hover on any part of a pattern lights its whole field and its chip', long, async () => {
+    const page = await open();
+    try {
+      const entry = page
+        .locator('#pattern-entries .specimen', { hasText: 'A few entries' })
+        .locator('.sui-pattern-entry')
+        .first();
+      await entry.scrollIntoViewIfNeeded();
+      const field = entry.locator('.sui-joined');
+      const cross = entry.getByRole('button', { name: /^Remove/ });
+      const ground = (/** @type {import('playwright-core').Locator} */ part, pseudo = '') =>
+        part.evaluate(
+          (element, pseudo) => getComputedStyle(element, pseudo).backgroundColor,
+          pseudo
+        );
+      const rest = await ground(field);
+      await entry.getByRole('textbox').hover();
+      const lit = await ground(field);
+      assert.notEqual(lit, rest, 'the pattern did not light its field');
+      await cross.hover();
+      assert.equal(await ground(field), lit, 'the cross did not light the whole field');
+      assert.notEqual(await ground(cross, '::before'), 'rgba(0, 0, 0, 0)', 'the chip is unlit');
+    } finally {
+      await page.close();
+    }
+  });
+
+  test('the colored copy of a pattern follows what is typed and its scroll', long, async () => {
+    const page = await open({ viewport: { width: 375, height: 812 } });
+    try {
+      const entry = page
+        .locator('#pattern-entries .specimen', { hasText: 'Long pattern' })
+        .locator('.sui-pattern-entry')
+        .first();
+      await entry.scrollIntoViewIfNeeded();
+      const field = entry.getByRole('textbox');
+      await field.focus();
+      await page.keyboard.press('End');
+      await page.keyboard.type('x');
+      await page.waitForFunction(
+        (input) => input instanceof HTMLInputElement && input.scrollLeft > 0,
+        await field.elementHandle()
+      );
+      // The scroll event lands in the next frame, so the copy is read after it.
+      await page.evaluate(() => new Promise((done) => requestAnimationFrame(() => done(null))));
+      const { value, copy, scroll, shift } = await entry.evaluate((item) => {
+        const input = /** @type {HTMLInputElement} */ (item.querySelector('input'));
+        const line = /** @type {HTMLElement} */ (item.querySelector('[aria-hidden="true"] > *'));
+        return {
+          value: input.value,
+          copy: line.textContent,
+          scroll: input.scrollLeft,
+          shift: parseFloat(getComputedStyle(line).translate) || 0
+        };
+      });
+      assert.equal(copy, value, 'the copy shows other words than the field');
+      assert.ok(
+        Math.abs(shift + scroll) < 0.5,
+        `the copy moved ${shift}px for a ${scroll}px scroll`
+      );
+    } finally {
+      await page.close();
+    }
+  });
+
   test(
     'fact rows line their values up past the longest label and stack each pair under 25rem of their own width',
     long,

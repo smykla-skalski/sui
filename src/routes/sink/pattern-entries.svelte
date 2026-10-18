@@ -33,7 +33,14 @@
     'services/payments/internal/adapters/providers/a-provider-with-a-very-long-name/**',
     'main'
   ]);
-  let mirrored = $state(['main', 'release/*', 'docs/**']);
+  let globs = $state([
+    '!docs/README.md',
+    'src/**/*.{ts,svelte}',
+    'logs/[!a-z]?.log',
+    'v{1..3}/*',
+    'build/\\*.tmp'
+  ]);
+  let mirrored = $state(['main', 'release/*', 'docs/**', '!keep/*.{md,txt}']);
   let narrow = $state([
     'docs/**',
     'CHANGELOG.md',
@@ -100,9 +107,12 @@
 
 <Example
   title="Content"
-  note="Each field is as wide as its pattern and the entries wrap, and a pattern longer than the line scrolls inside its field"
+  note="Each field is as wide as its pattern and colors its glob syntax, the entries wrap, and a long pattern scrolls inside its field"
   layout="stack"
 >
+  <Specimen label="Glob syntax">
+    <PatternEntries bind:value={globs} aria-label="Paths to skip" />
+  </Specimen>
   <Specimen label="Many entries">
     <PatternEntries bind:value={many} aria-label="Paths to skip" />
   </Specimen>

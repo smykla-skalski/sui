@@ -1,8 +1,11 @@
 <script lang="ts">
   import { mark, word } from '../words.js';
   import { tick } from 'svelte';
+  import type { Attachment } from 'svelte/attachments';
   import type { HTMLAttributes } from 'svelte/elements';
   import Icon from '../icons/Icon.svelte';
+  import { tokenizeGlob } from '../internal/glob-syntax.js';
+  import { held as heldByWork, holdAround } from '../internal/held.svelte.js';
   import JoinedField from '../internal/JoinedField.svelte';
   import { formatCount } from '../internal/locale.js';
   import Button from './Button.svelte';
@@ -59,6 +62,11 @@
   } & Omit<HTMLAttributes<HTMLDivElement>, 'children' | 'class'> = $props();
 
   let root = $state<HTMLElement | null>(null);
+  /* The list's own save, or work on the form around it, holds every entry as it stands. */
+  const around = holdAround();
+  const busy = $derived(pending || heldByWork(root, around) !== null);
+  /* A busy dialog or a saving pane has moved focus to its busy action, so the list is disabled. */
+  const firm = $derived(heldByWork(root, around) === 'firm');
   let adder = $state<HTMLButtonElement | HTMLAnchorElement | null>(null);
   let removers = $state<(HTMLButtonElement | null)[]>([]);
   /* The entry being typed into that showed no problem when focus came, so a half-typed pattern
@@ -68,6 +76,9 @@
   let held = $state<{ index: number; pattern: string } | null>(null);
   let removed = $state<{ index: number; pattern: string } | null>(null);
   let said = $state('');
+  /* The entry an input method is composing in, which shows its own text for the composition's
+     marks. */
+  let composing = $state<number | null>(null);
 
   /* The other entries are judged against the list as it stood before the entry in hand was
      typed into, so a half-typed pattern never changes another entry's verdict, and `validate`
@@ -119,7 +130,7 @@
   // Any other item stays and holds the next entry with focus still inside, so what it now holds
   // is noted here rather than as focus comes.
   async function remove(index: number): Promise<void> {
-    if (pending) return;
+    if (busy) return;
     if (index === value.length - 1) (fields()[index - 1] ?? adder)?.focus();
     if (index >= value.length) return;
     drop(index, value[index]);
@@ -160,7 +171,7 @@
     const trimmed = value[index]?.trim();
     const before = held?.index === index ? held.pattern : '';
     held = null;
-    if (pending) return;
+    if (busy) return;
     if (trimmed === '') {
       drop(index, before);
       return;
@@ -189,10 +200,20 @@
     previous.setSelectionRange(previous.value.length, previous.value.length);
   }
 
+  /* The colored copy under a field follows the field's own scroll, so each color stays under
+     the character it colors while a long pattern scrolls. Only a composited shift moves. */
+  const follow: Attachment<HTMLInputElement> = (input) => {
+    const line = input.previousElementSibling?.firstElementChild;
+    if (!(line instanceof HTMLElement)) return;
+    const sync = () => line.style.setProperty('translate', `${-input.scrollLeft}px 0`);
+    input.addEventListener('scroll', sync, { passive: true });
+    return () => input.removeEventListener('scroll', sync);
+  };
+
   // A paste of several lines becomes one entry per line, so a list copied from elsewhere goes
   // in at once.
   async function paste(index: number, event: ClipboardEvent): Promise<void> {
-    if (pending) return;
+    if (busy) return;
     const lines = (event.clipboardData?.getData('text') ?? '')
       .split(/\r?\n/)
       .map((line) => line.trim())
@@ -212,29 +233,36 @@
 @component
 An editable list of patterns, such as branches or paths to leave alone. Each entry is a mono
 field as wide as its pattern, edited where it stands, with its remove cross inside the field's
-end, and the entries flow side by side and wrap as tags do. An `add` button under them opens
-an empty entry at the end of the flow and moves focus to it. Backspace in an empty entry steps
-back to the one before. Leaving an entry empty drops it, and a pattern that goes either way
-can be brought back with Undo.
+end, and the entries flow side by side and wrap as tags do. An `add` button follows the last
+entry on its line, opens an empty entry and moves focus to it. Backspace in an empty entry
+steps back to the one before. Leaving an entry empty drops it, and a pattern that goes either
+way can be brought back with Undo.
+
+Each pattern shows its glob syntax in the code palette's roles: wildcards (`*`, `**`, `?`),
+a leading `!`, the characters a set (`[…]`, `{a,b}`) lists or an escape makes literal, and the
+separators and brackets between the plain names. A field cannot color parts of its value, so
+its own words are clear and a colored copy that no reader hears lies under them, following the
+field's scroll; an input method's composition and forced colors show the field's own words.
 
 `validate` judges each pattern against the whole list, so it can refuse a duplicate. A new
 pattern is judged once the reader leaves it, and one already marked is judged again as it is
 fixed. The entry takes the danger edge and an alert mark, its problem stands under the entries
 after the pattern it names, and it describes the entry; the text stays as typed until the
-reader fixes it. `pending` holds the list while a save that carries it runs.
+reader fixes it. `pending` holds the list while a save that carries it runs, and a busy dialog or
+a saving pane around it holds it the same way.
 
-- Semantics: a `div` with `role="group"`, named by the caller's `aria-labelledby` or `aria-label`, holding a list of joined fields, each a text field named by `entryLabel` and a remove button named by `removeLabel`, and an `add` button under the list.
+- Semantics: a `div` with `role="group"`, named by the caller's `aria-labelledby` or `aria-label`, holding a list of joined fields, each a text field named by `entryLabel` and a remove button named by `removeLabel`, and an `add` button as the list's last item.
 - Content: one pattern per entry of any length; a paste of several lines adds one entry per line.
-- States: rest, hover and focus on the field (its ring) and on the cross (its own inset ring), pressed cross (a deeper veil and an inset shadow), invalid (the danger edge, an alert mark and the problem under the entries), removed (`removedLabel` with Undo), pending (busy, every entry read only at the disabled opacity, and Add and Undo loading) and disabled.
-- Keyboard: Tab walks each field and its cross, then Undo and Add; Backspace in an empty entry moves to the end of the one before; Enter in a field does nothing of its own, so a surrounding form can submit.
-- Pointer and touch: the field is 34px tall and its cross 24px, 4px inside the frame; on a phone or any touch screen the field is 44px and the cross's target is 44px, reaching the frame and never the pattern's target.
+- States: rest (the pattern in its syntax colors, each 4.5:1 on every ground the field takes, in a changed row too), hover and focus on the field (its ring) and on the cross (its own inset ring, a selection as opaque as a code block's), pressed cross (a deeper veil and an inset shadow), invalid (the danger edge, an alert mark and the problem under the entries), removed (`removedLabel` with Undo), pending (busy, every entry read only at the disabled opacity, and Add and Undo loading) and disabled.
+- Keyboard: Tab walks each field and its cross, then Add, then Undo; typing, selection, undo and input methods are the field's own; Backspace in an empty entry moves to the end of the one before; Enter in a field does nothing of its own, so a surrounding form can submit.
+- Pointer and touch: the field, its cross and Add are one height, 34px, or 44px on a phone or any touch screen; the cross is a square of the field's height with its chip 4px inside the frame, so its target reaches the frame and never the pattern's.
 - Focus: Add moves focus to the new entry; a removal moves it to the entry that took its place, else the one before, else Add; Undo moves it back to the restored entry; a pending list keeps focus where it is.
-- Responsive: each field is as wide as its pattern, at least a few characters and at most the list's width, and the entries wrap from the start edge; a pattern longer than the line scrolls inside its field.
-- Accessibility: the group is named by the caller and is `aria-busy` while pending; problems, removals and pastes are said through a polite status; each problem describes its field and names the pattern it is about.
+- Responsive: each field is as wide as its pattern, at least a few characters and at most the list's width, and the entries wrap from the start edge, Add after the last one on its line or on a line of its own; a pattern longer than the line scrolls inside its field.
+- Accessibility: the group is named by the caller and is `aria-busy` while pending; a screen reader hears each field's plain value, never the colored copy; problems, removals and pastes are said through a polite status; each problem describes its field and names the pattern it is about.
 - Localization: every word is a prop, the counted and named ones functions; counts are grouped in the page's language; the entries flow from the inline start with the cross at each field's inline end, and a pattern reads left to right in either direction.
-- Performance: every entry renders and sizes itself to its text with `field-sizing` where the browser has it, else at a fixed width; `validate` runs for the other entries only when the list they are judged against changes, never at a keystroke in an entry the reader is still typing; keep it to tens of patterns.
+- Performance: every entry renders and sizes itself to its text with `field-sizing` where the browser has it, else at a fixed width; a keystroke colors one pattern again, and a scroll moves only its copy by a composited shift; `validate` runs for the other entries only when the list they are judged against changes, never at a keystroke in an entry the reader is still typing; keep it to tens of patterns.
 - Analytics: `onadd` hears each pattern added and `onremove` each one removed.
-- Failure: an invalid pattern stays as typed and says why; an empty list shows only Add; a pending list refuses edits, removals, pastes and Undo until the save ends.
+- Failure: an invalid pattern stays as typed and says why, and a malformed glob, such as an unclosed `[` or `{`, shows as plain characters; an empty list shows only Add; a pending list refuses edits, removals, pastes and Undo until the save ends.
 -->
 
 <div
@@ -244,24 +272,33 @@ reader fixes it. `pending` holds the list while a save that carries it runs.
   {...rest}
   class={['sui-pattern-entries', className]}
 >
-  {#if value.length > 0}
-    <ul class="sui-pattern-list" role="list">
-      {#each value as pattern, index (index)}
-        {@const problem = problems[index]}
-        {@const removeName = pattern.trim() === '' ? removeEmptyLabel : removeLabel(pattern.trim())}
-        <li
-          class="sui-pattern-entry"
-          onfocusin={(event) => enter(index, event)}
-          onfocusout={(event) => settle(index, event)}
-          onpaste={(event) => paste(index, event)}
-        >
-          <JoinedField invalid={problem !== null} disabled={disabled || pending}>
-            {#snippet start()}
-              <!-- A label, so a press on the mark lands in the field it marks. -->
-              <label class="sui-pattern-value">
-                {#if problem !== null}
-                  <span class="sui-pattern-mark"><Icon name="alert" size="xs" /></span>
-                {/if}
+  <ul class="sui-pattern-list" role="list">
+    {#each value as pattern, index (index)}
+      {@const problem = problems[index]}
+      {@const removeName = pattern.trim() === '' ? removeEmptyLabel : removeLabel(pattern.trim())}
+      <li
+        class="sui-pattern-entry"
+        onfocusin={(event) => enter(index, event)}
+        onfocusout={(event) => settle(index, event)}
+        onpaste={(event) => paste(index, event)}
+      >
+        <JoinedField invalid={problem !== null} disabled={disabled || busy}>
+          {#snippet start()}
+            <!-- A label, so a press on the mark lands in the field it marks. -->
+            <label class="sui-pattern-value">
+              {#if problem !== null}
+                <span class="sui-pattern-mark"><Icon name="alert" size="xs" /></span>
+              {/if}
+              <!-- A field's value cannot be painted in parts, so its own text is clear and a
+                   colored copy that no reader hears lies under it. -->
+              <span class={['sui-pattern-text', { composing: composing === index }]}>
+                <code class="sui-pattern-copy" dir="ltr" aria-hidden="true"
+                  ><span class="sui-pattern-line"
+                    >{#each tokenizeGlob(pattern) as piece, at (at)}<span class={piece.cls}
+                        >{piece.text}</span
+                      >{/each}</span
+                  ></code
+                >
                 <input
                   class="sui-pattern-input"
                   dir="ltr"
@@ -271,32 +308,48 @@ reader fixes it. `pending` holds the list while a save that carries it runs.
                   aria-describedby={problem === null ? undefined : problemId(index)}
                   autocomplete="off"
                   spellcheck="false"
-                  {disabled}
-                  readonly={pending}
+                  disabled={disabled || firm}
+                  readonly={busy}
+                  aria-disabled={busy || undefined}
+                  {@attach follow}
                   oninput={(event) => write(index, event.currentTarget.value)}
                   onkeydown={(event) => back(index, event)}
+                  oncompositionstart={() => (composing = index)}
+                  oncompositionend={() => (composing = null)}
                 />
-              </label>
-            {/snippet}
-            {#snippet end()}
-              <button
-                bind:this={removers[index]}
-                type="button"
-                class="sui-pattern-remove"
-                aria-label={removeName}
-                aria-disabled={pending || undefined}
-                {disabled}
-                onclick={() => remove(index)}
-              >
-                <Icon name="close" size="xs" strokeWidth={2} />
-              </button>
-            {/snippet}
-          </JoinedField>
-          <Tooltip anchor={removers[index]} text={removeName} />
-        </li>
-      {/each}
-    </ul>
-  {/if}
+              </span>
+            </label>
+          {/snippet}
+          {#snippet end()}
+            <button
+              bind:this={removers[index]}
+              type="button"
+              class="sui-pattern-remove"
+              aria-label={removeName}
+              aria-disabled={busy || undefined}
+              disabled={disabled || firm}
+              onclick={() => remove(index)}
+            >
+              <span class="sui-pattern-glyph"><Icon name="close" size="xs" strokeWidth={2} /></span>
+            </button>
+          {/snippet}
+        </JoinedField>
+        <Tooltip anchor={removers[index]} text={removeName} />
+      </li>
+    {/each}
+    <li class="sui-pattern-add">
+      <Button
+        tone="add"
+        bind:element={adder}
+        disabled={disabled || firm}
+        loading={busy}
+        onclick={add}
+      >
+        {#snippet icon()}<Icon name="plus" size="sm" />{/snippet}
+        {addLabel}
+      </Button>
+    </li>
+  </ul>
   {#each problems as problem, index (index)}
     {#if problem !== null}
       <p id={problemId(index)} class="sui-pattern-problem">
@@ -307,28 +360,17 @@ reader fixes it. `pending` holds the list while a save that carries it runs.
   {#if removed}
     <div class="sui-pattern-removed">
       <span class="sui-pattern-said">{removedLabel(removed.pattern)}</span>
-      <Button tone="ghost" {disabled} loading={pending} onclick={undo}>
+      <Button tone="ghost" disabled={disabled || firm} loading={busy} onclick={undo}>
         {#snippet icon()}<Icon name="undo" size="sm" />{/snippet}
         {undoLabel}
       </Button>
     </div>
   {/if}
-  <Button tone="add" bind:element={adder} {disabled} loading={pending} onclick={add}>
-    {#snippet icon()}<Icon name="plus" size="sm" />{/snippet}
-    {addLabel}
-  </Button>
   <VisuallyHidden role="status">{said}</VisuallyHidden>
 </div>
 
 <style>
-  /* The cross stands 4px inside the frame on every side, as the copy chip in a link field
-     does, so the field keeps the control height. */
   .sui-pattern-entries {
-    --sui-local-joined-end-inset: var(--sui-space-1);
-    --sui-pattern-cross: calc(
-      var(--sui-local-control-height, var(--sui-control-height-compact)) - 2 * var(--sui-stroke) -
-        2 * var(--sui-space-1)
-    );
     display: grid;
     gap: var(--sui-row-copy-gap);
     justify-items: start;
@@ -336,8 +378,8 @@ reader fixes it. `pending` holds the list while a save that carries it runs.
     min-inline-size: 0;
   }
 
-  /* On touch the cross's 44px hit area reaches the field's outer edge, never past it, so the
-     targets of entries on neighbouring lines stay apart (L-38). */
+  /* On touch the cross's 44px box lies over the field's frame, and the clip lets it reach the
+     frame's outer edge, never past it, so the targets of neighbouring lines stay apart (L-38). */
   @media (max-width: 47.9375rem), (pointer: coarse) {
     .sui-pattern-entries {
       --sui-local-joined-reach: var(--sui-stroke);
@@ -356,7 +398,9 @@ reader fixes it. `pending` holds the list while a save that carries it runs.
     padding: 0;
   }
 
-  .sui-pattern-entry {
+  /* Add follows the last entry on its line and wraps like one, at the entries' height. */
+  .sui-pattern-entry,
+  .sui-pattern-add {
     display: flex;
     max-inline-size: 100%;
     min-inline-size: 0;
@@ -371,35 +415,110 @@ reader fixes it. `pending` holds the list while a save that carries it runs.
     min-inline-size: 0;
   }
 
+  /* The field's own start padding follows the mark, so the mark gives back all but 4px of it
+     and the pattern stands 4px after it, the field's transparent start lying over its end. */
   .sui-pattern-mark {
     color: var(--sui-danger);
     display: flex;
     flex: none;
-    margin-inline-start: var(--sui-space-2);
+    margin-inline: var(--sui-space-2) calc(var(--sui-space-1) - var(--sui-space-2));
   }
 
-  /* The ground, edge and ring are the joined field's. Without `field-sizing` every entry is the
-     field's own width of about twenty characters. Every character of a glob shows as typed:
-     the mono face joins `/**` into one glyph, and Chrome drops its slash from typed text. */
-  .sui-pattern-input {
-    background: transparent;
-    block-size: var(--sui-local-control-height, var(--sui-control-height-compact));
-    border: 0;
-    box-sizing: border-box;
-    color: var(--sui-text-primary);
+  /* The field and its colored copy share one cell, and only the field sizes it. */
+  .sui-pattern-text {
+    display: grid;
     flex: 1 1 auto;
+    grid-template-columns: minmax(0, 1fr);
+    min-inline-size: 0;
+  }
+
+  /* Both set the pattern alike, so every character of the copy lies under the field's own.
+     Each is one line tall inside padding that makes up the control height: a field taller than
+     its line places its words a pixel lower than a block of the same line does. Every
+     character of a glob shows as typed: the mono face joins `/**` into one glyph, and Chrome
+     drops its slash from typed text. */
+  .sui-pattern-input,
+  .sui-pattern-copy {
+    box-sizing: border-box;
     font: var(--sui-weight-regular) var(--sui-font-size-input) / var(--sui-leading-input)
       var(--sui-mono);
     font-variant-ligatures: none;
     font-variant-numeric: tabular-nums;
+    grid-area: 1 / 1;
     margin: 0;
-    min-inline-size: 0;
-    outline: none;
-    padding: 0 var(--sui-space-2);
+    padding-block: round(
+      calc(
+        (
+            var(--sui-local-control-height, var(--sui-control-height-compact)) -
+              var(--sui-leading-input)
+          ) /
+          2
+      ),
+      1px
+    );
+    padding-inline: var(--sui-space-2);
+    text-align: match-parent;
   }
 
-  .sui-pattern-mark + .sui-pattern-input {
-    padding-inline-start: var(--sui-space-1);
+  /* The ground, edge and ring are the joined field's, and the words are the copy's, so the
+     field draws only its caret and a selection as opaque as a code block's (L-65). It stands
+     over the copy, which its clip lifts into a layer of its own, so a selection covers the
+     copy's colors. Without `field-sizing` every entry is the field's own width of about twenty
+     characters. */
+  .sui-pattern-input {
+    background: transparent;
+    border: 0;
+    caret-color: var(--sui-text-primary);
+    color: transparent;
+    inline-size: 100%;
+    min-inline-size: 0;
+    outline: none;
+    position: relative;
+  }
+
+  .sui-pattern-input::selection {
+    background-color: var(--sui-code-selection-bg);
+    color: var(--sui-code-selection-ink);
+  }
+
+  /* Clipped to its content box, where the field clips its own text as it scrolls. */
+  .sui-pattern-copy {
+    clip-path: inset(0 var(--sui-space-2));
+    color: var(--sui-text-primary);
+    contain: inline-size;
+    pointer-events: none;
+    user-select: none;
+    white-space: pre;
+  }
+
+  .sui-pattern-line {
+    display: inline-block;
+  }
+
+  /* An input method draws its own marks under the text it composes, so the field shows its
+     words until the composition ends. */
+  .composing > .sui-pattern-input {
+    color: var(--sui-text-primary);
+  }
+
+  .composing > .sui-pattern-copy {
+    visibility: hidden;
+  }
+
+  .tok-const {
+    color: var(--sui-code-const);
+  }
+
+  .tok-key {
+    color: var(--sui-code-key);
+  }
+
+  .tok-str {
+    color: var(--sui-code-string);
+  }
+
+  .tok-pun {
+    color: var(--sui-code-punct);
   }
 
   /* As wide as the pattern, and never narrower than the 4rem a joined field keeps for its
@@ -416,24 +535,26 @@ reader fixes it. `pending` holds the list while a save that carries it runs.
     cursor: default;
   }
 
-  /* A quiet square inside the field's end: no frame and no sink, as a part of a shared frame
-     presses (L-42), and an inset ring of its own, so focus on it never looks like focus on the
-     pattern. */
+  /* The cross takes the field's whole end: a square as tall as the field that lies over its
+     frame, so a line of entries and Add is one height (L-101) and on touch the box itself is
+     the 44px target. Its quiet chip stands 4px inside the frame, as the copy chip in a link field
+     does: the ground under the glyph, and over it the inset ring, so focus on it never looks
+     like focus on the pattern. A part of a shared frame presses without a sink (L-42). */
   .sui-pattern-remove {
     align-items: center;
     appearance: none;
     background-color: transparent;
-    block-size: var(--sui-pattern-cross);
+    block-size: var(--sui-local-control-height, var(--sui-control-height-compact));
     border: 0;
-    border-radius: var(--sui-radius-chip);
     box-sizing: border-box;
     color: var(--sui-text-muted);
     cursor: pointer;
     display: inline-flex;
     flex: none;
-    inline-size: var(--sui-pattern-cross);
+    inline-size: var(--sui-local-control-height, var(--sui-control-height-compact));
     justify-content: center;
-    margin: 0;
+    margin-block: calc(-1 * var(--sui-stroke));
+    margin-inline: 0 calc(-1 * var(--sui-stroke));
     padding: 0;
     position: relative;
     touch-action: manipulation;
@@ -442,21 +563,45 @@ reader fixes it. `pending` holds the list while a save that carries it runs.
     -webkit-user-select: none;
   }
 
+  .sui-pattern-remove::before,
+  .sui-pattern-remove::after {
+    border-radius: var(--sui-radius-chip);
+    content: '';
+    inset: calc(var(--sui-stroke) + var(--sui-space-1));
+    position: absolute;
+  }
+
+  /* Laid out after the chip's ground, so the glyph paints over it. */
+  .sui-pattern-glyph {
+    display: flex;
+    position: relative;
+  }
+
   @media (hover: hover) {
     .sui-pattern-remove:hover:not(:active, :disabled, [aria-disabled='true']) {
-      background-color: var(--sui-interactive-hover-layer);
       color: var(--sui-text-primary);
+    }
+
+    .sui-pattern-remove:hover:not(:active, :disabled, [aria-disabled='true'])::before {
+      background-color: var(--sui-interactive-hover-layer);
     }
   }
 
   .sui-pattern-remove:active:not(:disabled, [aria-disabled='true']) {
+    color: var(--sui-text-primary);
+  }
+
+  .sui-pattern-remove:active:not(:disabled, [aria-disabled='true'])::before {
     background-color: var(--sui-interactive-pressed);
     box-shadow: var(--sui-pressed-inset);
-    color: var(--sui-text-primary);
   }
 
   .sui-pattern-remove:focus-visible {
     color: var(--sui-text-primary);
+    outline: none;
+  }
+
+  .sui-pattern-remove:focus-visible::after {
     outline: var(--sui-focus-ring-width) solid var(--sui-focus);
     outline-offset: var(--sui-focus-ring-inset);
   }
@@ -464,20 +609,6 @@ reader fixes it. `pending` holds the list while a save that carries it runs.
   /* The joined field dims the whole entry, so the cross takes no opacity of its own. */
   .sui-pattern-remove:is(:disabled, [aria-disabled='true']) {
     cursor: default;
-  }
-
-  /* A finger's 44px target reaches the frame's outer edge on three sides, and on the fourth it
-     stops where the pattern's target ends, so the two never overlap (L-38). */
-  @media (pointer: coarse), (max-width: 47.9375rem) {
-    .sui-pattern-remove {
-      margin-inline-start: calc((var(--sui-touch-target) - var(--sui-pattern-cross)) / 2);
-    }
-
-    .sui-pattern-remove::after {
-      content: '';
-      inset: calc((100% - var(--sui-touch-target)) / 2);
-      position: absolute;
-    }
   }
 
   /* Contained, so a long reason wraps under the entries instead of widening the list. */
@@ -518,11 +649,22 @@ reader fixes it. `pending` holds the list while a save that carries it runs.
     text-box: trim-both cap alphabetic;
   }
 
-  /* High contrast drops the veil, so a hovered cross draws its edge instead. */
+  /* High contrast drops the veil, so a hovered cross draws its chip's edge instead, and the
+     field shows its own words, plain, in place of the colored copy. */
   @media (hover: hover) and (forced-colors: active) {
-    .sui-pattern-remove:hover:not(:disabled, [aria-disabled='true'], :focus-visible) {
+    .sui-pattern-remove:hover:not(:disabled, [aria-disabled='true'], :focus-visible)::before {
       outline: var(--sui-stroke) solid Highlight;
-      outline-offset: var(--sui-focus-ring-inset);
+      outline-offset: calc(-1 * var(--sui-stroke));
+    }
+  }
+
+  @media (forced-colors: active) {
+    .sui-pattern-input {
+      color: CanvasText;
+    }
+
+    .sui-pattern-copy {
+      display: none;
     }
   }
 </style>
