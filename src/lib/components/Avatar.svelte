@@ -261,7 +261,9 @@ page runs. The initials' ink, not their advance or line, centres on the box.
     fill: currentColor;
     grid-area: 1 / 1;
     inline-size: 100%;
-    overflow: visible;
+    /* The letters are the avatar's picture, not its words, which its name gives: spaced wider
+       for reading (WCAG 1.4.12), they stay inside the circle rather than spill past it. */
+    overflow: clip;
     text-anchor: middle;
   }
 
