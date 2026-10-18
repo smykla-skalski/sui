@@ -471,6 +471,46 @@ const CARD_CONTENT =
  * its own container there. A line of text ends wherever its words do, so at the end side only
  * solid content (a control, a framed box, a mark) counts, and text is held to not running past.
  */
+/** Surfaces with a frame of their own, whose content stands one inset from every edge (L-33). */
+const FRAMED_SURFACES = '.sui-card, .sui-save-bar, .sui-toast, .sui-callout';
+
+const fonts = new Map<string, { cap: number; ascent: number }>();
+
+/** A face's cap height and ascent at its size, as the browser lays its text out. */
+function faceMetrics(style: CSSStyleDeclaration) {
+  const font = `${style.fontStyle} ${style.fontWeight} ${style.fontSize} ${style.fontFamily}`;
+  let known = fonts.get(font);
+  if (!known) {
+    const context = document.createElement('canvas').getContext('2d');
+    if (!context) return null;
+    context.font = font;
+    const measure = context.measureText('H');
+    known = { cap: measure.actualBoundingBoxAscent, ascent: measure.fontBoundingBoxAscent };
+    fonts.set(font, known);
+  }
+  return known;
+}
+
+/**
+ * Where an element's words put ink: the cap line of the first line and the baseline of the
+ * last, which is what a reader weighs, not the half-leading a line box adds above and below.
+ */
+function inkLines(element: Element): { top: number; bottom: number } | null {
+  const words = [...element.childNodes].filter(
+    (node) => node.nodeType === Node.TEXT_NODE && node.textContent?.trim()
+  );
+  const face = faceMetrics(getComputedStyle(element));
+  if (words.length === 0 || !face) return null;
+  const range = document.createRange();
+  range.selectNodeContents(words[0]);
+  const first = range.getClientRects()[0];
+  range.selectNodeContents(words[words.length - 1]);
+  const lines = range.getClientRects();
+  const last = lines[lines.length - 1];
+  if (!first || !last) return null;
+  return { top: first.top + face.ascent - face.cap, bottom: last.top + face.ascent };
+}
+
 function cardInsets(card: Element) {
   // Placeholders stand in for rows still loading; the insets are judged on what arrives.
   if (card.querySelector("[aria-busy='true']")) return null;
@@ -529,8 +569,10 @@ function cardInsets(card: Element) {
       (element.childElementCount === 0 || look.display.startsWith('inline-') || within(own));
     const solid = framed || mark || element.matches(CARD_CONTENT);
     if (!words && !solid) continue;
-    top = Math.min(top, own.top);
-    bottom = Math.max(bottom, own.bottom);
+    // Words are weighed by their ink; a solid part by its box.
+    const ink = words && !solid ? inkLines(element) : null;
+    top = Math.min(top, ink?.top ?? own.top);
+    bottom = Math.max(bottom, ink?.bottom ?? own.bottom);
     if (own.left < start.edge - 0.5) Object.assign(start, { edge: own.left, reached: false });
     if (Math.abs(own.left - start.edge) <= 0.5 && own.left <= roomLeft + 1) start.reached = true;
     if (!solid) {
@@ -556,12 +598,15 @@ function cardInsets(card: Element) {
 function geometry(root: Document): Finding[] {
   const found: Finding[] = [];
 
-  for (const card of audited(root, '.sui-card')) {
+  // Every framed surface stands its content one inset from all four edges, to the ink.
+  for (const card of audited(root, FRAMED_SURFACES)) {
     const style = getComputedStyle(card);
-    if (parseFloat(style.marginBlockStart) !== 0 || parseFloat(style.marginBlockEnd) !== 0)
-      found.push(finding('L-33', card, 'a card spaces itself with a margin'));
-    if (parseFloat(style.minWidth) !== 0)
-      found.push(finding('L-33', card, 'a card sets its own minimum width'));
+    if (card.matches('.sui-card')) {
+      if (parseFloat(style.marginBlockStart) !== 0 || parseFloat(style.marginBlockEnd) !== 0)
+        found.push(finding('L-33', card, 'a card spaces itself with a margin'));
+      if (parseFloat(style.minWidth) !== 0)
+        found.push(finding('L-33', card, 'a card sets its own minimum width'));
+    }
     const measured = cardInsets(card);
     if (!measured) continue;
     const { inset, top, end, bottom, start } = measured;
@@ -797,6 +842,61 @@ function controls(root: Document): Finding[] {
           )
         );
     }
+
+  // Words in a small box of their own ground or frame sit on its middle: as much room above
+  // the cap line as under the baseline, as a count, a pill or a button's word does. Only a box
+  // whose words make one line, with nothing stacked above or under it, is weighed this way.
+  for (const box of audited(root, '*')) {
+    const own = box.getBoundingClientRect();
+    if (own.height > 48 || own.height < 8 || box.closest('svg, .sui-visually-hidden, pre, code'))
+      continue;
+    // Lines of code keep one leading so their baselines stay a grid; a box of them is a block.
+    if (box.querySelector('pre, code')) continue;
+    const look = getComputedStyle(box);
+    const framed = (['top', 'right', 'bottom', 'left'] as const).every(
+      (side) =>
+        parseFloat(look.getPropertyValue(`border-${side}-width`)) > 0 &&
+        rgba(look.getPropertyValue(`border-${side}-color`)).a > 0
+    );
+    if (rgba(look.backgroundColor).a === 0 && !framed) continue;
+    const walker = document.createTreeWalker(box, NodeFilter.SHOW_TEXT);
+    const words: Text[] = [];
+    while (walker.nextNode()) {
+      const node = walker.currentNode as Text;
+      const parent = node.parentElement;
+      if (!node.textContent?.trim() || !parent || parent.closest('.sui-visually-hidden, svg'))
+        continue;
+      if (parent.checkVisibility({ opacityProperty: false, visibilityProperty: true }))
+        words.push(node);
+    }
+    if (words.length === 0) continue;
+    const range = document.createRange();
+    const lines = words.flatMap((node) => {
+      range.selectNodeContents(node);
+      return [...range.getClientRects()].filter((rect) => rect.width > 0);
+    });
+    if (lines.length === 0 || lines.some((line) => Math.abs(line.top - lines[0].top) > 1)) continue;
+    const line = lines[0];
+    const stacked = [...box.querySelectorAll('*')].some((part) => {
+      if (part.closest('svg') && part.tagName !== 'svg') return false;
+      if (!shown(part) || part.closest('.sui-visually-hidden')) return false;
+      const r = part.getBoundingClientRect();
+      return r.height > 1 && (r.bottom <= line.top + 1 || r.top >= line.bottom - 1);
+    });
+    if (stacked) continue;
+    const ink = inkLines(words[0].parentElement as Element);
+    if (!ink) continue;
+    const above = ink.top - (own.top + parseFloat(look.borderTopWidth));
+    const below = own.bottom - parseFloat(look.borderBottomWidth) - ink.bottom;
+    if (Math.abs(above - below) > 1)
+      found.push(
+        finding(
+          'L-102',
+          box,
+          `its words stand ${round(above)}px under the top and ${round(below)}px over the bottom`
+        )
+      );
+  }
 
   // A field joined to a second part is one control: as tall as a plain field while its value
   // is one line, with the value on its centre line.

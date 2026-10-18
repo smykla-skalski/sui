@@ -202,7 +202,7 @@ row in place of the hairlines, for a table wide enough that the eye can lose its
                   />
                 </button>
               {:else}
-                {column.label}
+                <span class="value">{column.label}</span>
               {/if}
             </th>
           {/each}
@@ -236,13 +236,21 @@ row in place of the hairlines, for a table wide enough that the eye can lose its
                     scope="row"
                     data-align={alignOf(column)}
                     class={{ numeric: column.numeric, nowrap: column.nowrap || column.numeric }}
-                    >{#if cell}{@render cell(row, column)}{:else}{plain(row[column.key])}{/if}</th
+                    ><span class="value"
+                      >{#if cell}{@render cell(row, column)}{:else}{plain(
+                          row[column.key]
+                        )}{/if}</span
+                    ></th
                   >
                 {:else}
                   <td
                     data-align={alignOf(column)}
                     class={{ numeric: column.numeric, nowrap: column.nowrap || column.numeric }}
-                    >{#if cell}{@render cell(row, column)}{:else}{plain(row[column.key])}{/if}</td
+                    ><span class="value"
+                      >{#if cell}{@render cell(row, column)}{:else}{plain(
+                          row[column.key]
+                        )}{/if}</span
+                    ></td
                   >
                 {/if}
               {/each}
@@ -320,6 +328,14 @@ row in place of the hairlines, for a table wide enough that the eye can lose its
     vertical-align: baseline;
   }
 
+  /* A cell's words run cap line to baseline in a box rounded to the pixel, so a row's room
+     above and under them match (L-102) and every row stays on the grid (L-95). */
+  .value {
+    block-size: var(--sui-block-snap);
+    display: block;
+    text-box: trim-both cap alphabetic;
+  }
+
   :is(th, td):first-child {
     padding-inline-start: 0;
   }
@@ -328,8 +344,11 @@ row in place of the hairlines, for a table wide enough that the eye can lose its
     padding-inline-end: 0;
   }
 
+  /* A heading row holds a sort control as tall as a finger on touch, so every heading centres
+     in the row instead of sitting on that control's baseline (L-102). */
   thead th {
     border-block-end: var(--sui-stroke) solid var(--sui-border-control);
+    vertical-align: middle;
     color: var(--sui-text-muted);
     font: var(--sui-weight-semibold) var(--sui-font-size-micro) / var(--sui-leading-micro)
       var(--sui-sans);
@@ -350,9 +369,11 @@ row in place of the hairlines, for a table wide enough that the eye can lose its
     border-radius: var(--sui-radius-control);
     color: inherit;
     cursor: pointer;
-    display: inline-flex;
+    /* A block of its own, so no line's strut stands under it and stretches the row (L-102). */
+    display: flex;
     font: inherit;
     gap: var(--sui-space-1);
+    inline-size: fit-content;
     letter-spacing: inherit;
     margin: calc(-1 * var(--sui-space-1));
     padding: 0 var(--sui-space-1);
@@ -365,8 +386,16 @@ row in place of the hairlines, for a table wide enough that the eye can lose its
     -webkit-user-select: none;
   }
 
+  /* The heading's words run cap line to baseline, so the control centres them (L-102). */
+  .sort > span {
+    align-content: center;
+    block-size: var(--sui-block-snap-even);
+    text-box: trim-both cap alphabetic;
+  }
+
   [data-align='end'] .sort {
     flex-direction: row-reverse;
+    margin-inline-start: auto;
   }
 
   /* An outer heading meets the scroller's edge, which would cut a ground or ring reaching past

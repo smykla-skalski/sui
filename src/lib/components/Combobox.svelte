@@ -517,17 +517,21 @@ Name it with a `<label>` or `aria-label`, as any field.
   .sui-combobox-check {
     display: flex;
     justify-content: center;
-    margin-block: calc((var(--sui-leading-meta) - var(--sui-icon-base)) / 2);
+    /* One cap tall, so the check centres on the name's cap line. */
+    margin-block: calc((1cap - var(--sui-icon-base)) / 2);
   }
 
   .sui-combobox-option:not([aria-selected='true']) .sui-combobox-check {
     visibility: hidden;
   }
 
-  /* No cap trim: a name has descenders, and the row centres it on its own. */
+  /* The name runs cap line to baseline, so the row's room above and under it match (L-102). */
   .sui-combobox-text {
+    align-content: center;
+    block-size: var(--sui-block-snap-even);
     min-inline-size: 0;
     overflow-wrap: anywhere;
+    text-box: trim-both cap alphabetic;
   }
 
   .sui-combobox-note {

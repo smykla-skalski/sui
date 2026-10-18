@@ -314,8 +314,11 @@ item opens then returns focus there too. Labels wrap rather than being cut short
     gap: var(--sui-space-2);
     inline-size: 100%;
     margin: 0;
-    padding: calc((var(--sui-control-height-compact) - var(--sui-leading-meta)) / 2)
-      var(--sui-space-3);
+    /* A one-line name stands as far under the top as over the bottom, cap line to baseline
+       (L-102). */
+    padding-block: round(calc((var(--sui-control-height-compact) - 1cap) / 2), 1px)
+      round(down, calc((var(--sui-control-height-compact) - 1cap) / 2), 1px);
+    padding-inline: var(--sui-space-3);
     text-align: start;
     transition:
       background-color var(--sui-duration-fast) var(--sui-ease-standard),
@@ -359,9 +362,10 @@ item opens then returns focus there too. Labels wrap rather than being cut short
     color: var(--sui-danger);
   }
 
+  /* One cap tall, so the glyph centres on the name's cap line and never sets the row. */
   .sui-action-menu-icon {
     align-items: center;
-    block-size: var(--sui-leading-meta);
+    block-size: round(up, 1cap, 1px);
     color: var(--sui-text-muted);
     display: inline-flex;
     flex: none;
@@ -375,19 +379,23 @@ item opens then returns focus there too. Labels wrap rather than being cut short
 
   .sui-action-menu-text {
     display: grid;
+    gap: var(--sui-row-copy-gap);
     min-inline-size: 0;
   }
 
-  /* No cap trim: a name has descenders, and the row centres it on its own. */
   .sui-action-menu-label {
+    block-size: var(--sui-block-snap);
     overflow-wrap: anywhere;
+    text-box: trim-both cap alphabetic;
   }
 
   .sui-action-menu-description {
+    block-size: var(--sui-block-snap);
     color: var(--sui-text-secondary);
     font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-leading-meta)
       var(--sui-sans);
     overflow-wrap: anywhere;
+    text-box: trim-both cap alphabetic;
   }
 
   .sui-action-menu-separator {

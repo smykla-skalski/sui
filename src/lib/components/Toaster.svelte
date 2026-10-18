@@ -330,8 +330,8 @@ A `danger` toast reports a failure and stays too.
     gap: var(--sui-space-3);
     max-inline-size: 24rem;
     opacity: 1;
-    padding-block: var(--sui-space-2);
-    padding-inline: var(--sui-space-4) var(--sui-space-2);
+    /* One inset all round, measured to the ink (L-33). */
+    padding: var(--sui-space-3);
     pointer-events: auto;
     transition:
       opacity var(--sui-duration-normal) var(--sui-ease-out),
@@ -346,14 +346,13 @@ A `danger` toast reports a failure and stays too.
     }
   }
 
-  /* The failure symbol stands in a tile of the danger tone, at the tile's 18px glyph. It sits
-     level with the copy's padding, so short copy centres on it and long copy starts at its top
+  /* The failure symbol stands in a tile of the danger tone, at the tile's 18px glyph, level
+     with the top of the copy, so short copy centres on it and long copy starts at its top
      (L-56). */
   .sui-toast-mark {
     --sui-icon-base: var(--sui-icon-md);
     align-items: center;
     align-self: flex-start;
-    margin-block: var(--sui-space-2);
     background: var(--sui-danger-tint);
     block-size: var(--sui-symbol-tile);
     border-radius: var(--sui-radius-control);
@@ -370,10 +369,10 @@ A `danger` toast reports a failure and stays too.
     flex: 1 1 auto;
     gap: var(--sui-row-copy-gap);
     min-inline-size: 0;
-    padding-block: var(--sui-space-2);
   }
 
   .sui-toast:has(> .sui-toast-mark) > .sui-toast-copy {
+    align-self: flex-start;
     min-block-size: var(--sui-symbol-tile);
   }
 

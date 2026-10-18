@@ -31,7 +31,10 @@ centres on its line at whole pixels (L-95).
     place-items: center;
   }
 
+  /* The digits centre in their snapped box, so the spare pixels split above and under them
+     (L-102). */
   .sui-count > span {
+    align-content: center;
     block-size: var(--sui-block-snap-even);
     text-box: trim-both cap alphabetic;
   }

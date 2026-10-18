@@ -233,6 +233,10 @@ does, stays out of the accessibility tree. Any other tip describes the control t
     max-inline-size: min(17rem, calc(100vw - 3rem));
     opacity: 1;
     padding: var(--sui-space-2) var(--sui-space-3);
+    /* The words run from their cap line to their baseline, so the padding is the room above
+       and under them alike (L-102). */
+    text-box: trim-both cap alphabetic;
+    block-size: var(--sui-block-snap);
     /* In the top layer this is the page, so the tip scrolls with the page and its anchor. */
     position: absolute;
     text-align: start;

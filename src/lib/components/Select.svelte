@@ -486,10 +486,14 @@ assistive technology, because a native picker cannot be held open.
     visibility: hidden;
   }
 
+  /* The name runs cap line to baseline, so the row's room above and under it match (L-102). */
   .sui-select-text {
+    align-content: center;
+    block-size: var(--sui-block-snap-even);
     flex: 1 1 auto;
     min-inline-size: 0;
     overflow-wrap: anywhere;
+    text-box: trim-both cap alphabetic;
   }
 
   .sui-select-note {

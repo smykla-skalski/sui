@@ -194,6 +194,16 @@ on its title line.
     min-inline-size: 0;
   }
 
+  /* Words that open or close the card start at their cap line and end at their baseline, so
+     the ink stands the inset from the top and the bottom alike (L-33). */
+  .sui-card > :first-child :global(:is(p, ul, ol, dl, blockquote):first-child) {
+    text-box: trim-start cap alphabetic;
+  }
+
+  .sui-card > :last-child :global(:is(p, ul, ol, dl, blockquote):last-child) {
+    text-box: trim-end cap alphabetic;
+  }
+
   :is(.sui-card-head, .sui-card-note) + .sui-card-body {
     margin-block-start: var(--sui-rhythm-card-head-body);
   }

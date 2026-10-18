@@ -50,7 +50,8 @@ stands the card's inset below the keyline. Give it a container with at least tha
   }
 
   .sui-object-list:has(> :global(li)) {
-    margin-block-end: calc(-1 * var(--sui-row-pad-default));
+    /* The last row's padding and its hairline band give the card's inset back (L-33). */
+    margin-block-end: calc(-1 * (var(--sui-row-pad-default) + var(--sui-row-hairline)));
   }
 
   .sui-object-list:first-child:has(> :global(li)) {

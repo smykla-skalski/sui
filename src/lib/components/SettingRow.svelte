@@ -331,7 +331,10 @@ between them (L-91).
   /* The copy takes what is left and never less than it reads at, unless the row itself is
      narrower than that. */
   /* An even column, so a control centred beside it lands on whole pixels (L-95). */
+  /* The even snap's spare pixel goes above the name, so it never stacks on the last line's
+     own snap below it and the ink stays one inset from the row's foot (L-33). */
   .sui-setting-say {
+    align-content: end;
     block-size: var(--sui-block-snap-even);
     display: grid;
     flex: 1 1 var(--sui-setting-say-min);

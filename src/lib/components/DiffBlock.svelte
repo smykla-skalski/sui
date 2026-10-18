@@ -297,11 +297,13 @@ removed line has no single number to claim. Two empty sides say `emptyLabel`.
   }
 
   .sui-diff-block-empty {
+    block-size: var(--sui-block-snap);
     color: var(--sui-text-muted);
     font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-leading-meta)
       var(--sui-sans);
     margin: 0;
     padding: var(--sui-space-3);
+    text-box: trim-both cap alphabetic;
   }
 
   .sui-diff-block-scroll {

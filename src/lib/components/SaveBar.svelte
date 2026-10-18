@@ -290,7 +290,8 @@ it, so the last content always scrolls clear of the bar.
     margin-inline: auto;
     max-inline-size: 50rem;
     opacity: 1;
-    padding: var(--sui-space-3) var(--sui-space-4);
+    /* One inset all round, measured to the ink (L-33). */
+    padding: var(--sui-space-4);
     position: fixed;
     transition:
       opacity var(--sui-duration-normal) var(--sui-ease-standard),
