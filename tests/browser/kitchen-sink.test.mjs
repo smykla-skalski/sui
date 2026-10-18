@@ -1092,8 +1092,9 @@ suite('the kitchen sink', together, () => {
               const found = [...document.querySelectorAll(pressable)].filter(
                 (element) =>
                   !element.matches(textLinks) &&
+                  // A locked control refuses the press, so it shows none (L-40).
                   !element.matches(
-                    ':disabled, :has(input:disabled), .disabled, [aria-disabled="true"], [aria-busy="true"], [inert], [inert] *'
+                    ':disabled, :has(input:is(:disabled, [aria-disabled="true"])), .disabled, [aria-disabled="true"], [aria-busy="true"], [inert], [inert] *'
                   ) &&
                   !element.closest(
                     '[popover]:not(:popover-open), [hidden], [aria-hidden="true"]'
@@ -1356,7 +1357,7 @@ suite('the kitchen sink', together, () => {
     }
   });
 
-  test("a returning reader's reload on a phone shifts no layout", long, async () => {
+  test('a phone reload draws the kept audit at once and shifts nothing', long, async () => {
     const page = await browser.newPage({ viewport: { width: 375, height: 812 } });
     try {
       await visit(page, url);
@@ -1378,6 +1379,18 @@ suite('the kitchen sink', together, () => {
           for (const entry of /** @type {any[]} */ (list.getEntries()))
             /** @type {any} */ (window).shifted += entry.value;
         }).observe({ type: 'layout-shift', buffered: true });
+        // The panel's words in the first frame that paints the page.
+        const words = (/** @type {string} */ selector) =>
+          /** @type {HTMLElement | null} */ (document.querySelector(selector))?.innerText.trim();
+        const step = () => {
+          if (
+            document.querySelector('.audit') &&
+            getComputedStyle(document.body).visibility === 'visible'
+          )
+            Object.assign(window, { first: [words('.audit .summary'), words('.audit .badge')] });
+          else requestAnimationFrame(step);
+        };
+        requestAnimationFrame(step);
       });
       await page.goto(url);
       await page.waitForFunction(
@@ -1388,6 +1401,10 @@ suite('the kitchen sink', together, () => {
       await page.evaluate(
         () => new Promise((done) => requestAnimationFrame(() => requestAnimationFrame(done)))
       );
+      assert.deepEqual(await page.evaluate(() => /** @type {any} */ (window).first), [
+        'Every law holds on this page',
+        'Passing'
+      ]);
       assert.equal(await page.evaluate(() => /** @type {any} */ (window).shifted), 0);
     } finally {
       await page.close();
