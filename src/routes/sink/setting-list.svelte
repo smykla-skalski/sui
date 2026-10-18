@@ -77,7 +77,7 @@
 
 <Example
   title="In a section"
-  note="A checkbox, a segmented control, a field, a duration, a list and a read-only fact, with the two changed rows 1px apart"
+  note="A checkbox, a segmented control, a field, a duration, a list and a read-only fact, with a 5px strip between the two changed rows"
   layout="stack"
   ground="canvas"
 >

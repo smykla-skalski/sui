@@ -324,9 +324,9 @@ function palette(): Finding[] {
 function textContrast(root: Document): Finding[] {
   const found: Finding[] = [];
   for (const { element } of textElements(root, PAINT_EXEMPT)) {
-    // A save bar's copy dims with its held actions while the save runs: the words of an
-    // inactive component, which WCAG 1.4.3 exempts as it does a disabled control's (L-40).
-    if (isDisabled(element) || element.closest('.sui-save-bar.saving')) continue;
+    // A save bar's copy dims with its held actions while a save or a reload runs: the words of
+    // an inactive component, which WCAG 1.4.3 exempts as it does a disabled control's (L-40).
+    if (isDisabled(element) || element.closest('.sui-save-bar.busy')) continue;
     const style = getComputedStyle(element);
     const ink = rgba(style.color);
     const ground = paintedGround(element);
@@ -1198,20 +1198,43 @@ function controls(root: Document): Finding[] {
     (button) => !button.closest('[role="menu"], [role="listbox"], [role="radiogroup"], nav')
   );
   const boxes = buttons.map((button) => button.getBoundingClientRect());
+  // A control whose words wrap, as a chip's do on a phone, is weighed by its first line's
+  // band: its height less the lines its words add under the first.
+  const bands = buttons.map((button, index) => {
+    const runs: DOMRect[] = [];
+    const walker = document.createTreeWalker(button, NodeFilter.SHOW_TEXT);
+    const range = document.createRange();
+    for (let node = walker.nextNode(); node; node = walker.nextNode()) {
+      if (!node.textContent?.trim()) continue;
+      range.selectNodeContents(node);
+      runs.push(...[...range.getClientRects()].filter((run) => run.width > 0));
+    }
+    // Runs in two faces on one line start a pixel or two apart, so a line is every run that
+    // starts above the bottom of the line before it.
+    const lines: { top: number; bottom: number }[] = [];
+    for (const run of runs.sort((a, b) => a.top - b.top)) {
+      const last = lines.at(-1);
+      if (last && run.top < last.bottom - 1) last.bottom = Math.max(last.bottom, run.bottom);
+      else lines.push({ top: run.top, bottom: run.bottom });
+    }
+    const added = lines.length > 1 ? (lines.at(-1)?.bottom ?? 0) - lines[0].bottom : 0;
+    return boxes[index].height - added;
+  });
   for (let one = 0; one < buttons.length; one++)
     for (let two = one + 1; two < buttons.length; two++) {
       const [a, b] = [boxes[one], boxes[two]];
+      const [tall, other] = [bands[one], bands[two]];
       const gap = Math.max(b.left - a.right, a.left - b.right);
-      const shared = Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top);
-      if (gap < 0 || gap > 24 || shared < Math.min(a.height, b.height) / 2) continue;
+      const shared = Math.min(a.top + tall, b.top + other) - Math.max(a.top, b.top);
+      if (gap < 0 || gap > 24 || shared < Math.min(tall, other) / 2) continue;
       // Specimens side by side are separate rows, however close they stand.
       if (buttons[one].closest('figure') !== buttons[two].closest('figure')) continue;
-      if (Math.abs(a.height - b.height) > 0.5)
+      if (Math.abs(tall - other) > 0.5)
         found.push(
           finding(
             'L-101',
             buttons[two],
-            `beside a ${round(a.height)}px button it is ${round(b.height)}px tall`
+            `beside a ${round(tall)}px button it is ${round(other)}px tall`
           )
         );
     }
@@ -1645,41 +1668,75 @@ function plates(root: Document): Finding[] {
 }
 
 /**
- * A setting row's reset (L-36), shown or keeping its seat, centres within half a pixel on its
- * controls' first line, hanging on the first line of a control that wraps, and lends the row
- * no height: the controls' side is exactly as tall as the controls. In a row too narrow to
- * hold both on one line, it stands beside the copy instead and centres on it.
+ * A setting row (L-36): its controls never move its copy, they end at the row's end, and its
+ * reset, shown or keeping its seat, stands right before them on their first line, or ends the
+ * first line of a control that grows, centred on that line within half a pixel (hanging on the
+ * first line of a control that wraps), and lends the row no height.
  */
 function settingResets(root: Document): Finding[] {
   const found: Finding[] = [];
-  for (const seat of audited(root, '.sui-setting-reset')) {
-    const side = seat.parentElement;
-    const row = seat.closest('.sui-setting-row');
+  for (const row of audited(root, '.sui-setting-row')) {
+    const side = row.querySelector(':scope > .sui-setting-value');
     const controls = side?.querySelector(':scope > .sui-setting-control');
-    const copy = row?.querySelector(':scope > .sui-setting-say');
-    const reset = seat.querySelector('button');
-    if (!side || !controls || !copy || !reset) continue;
+    if (!side || !controls) continue;
+    const look = getComputedStyle(row);
+    const rtl = look.direction === 'rtl';
+    const box = row.getBoundingClientRect();
+    const end = (rect: DOMRect) =>
+      rtl
+        ? rect.left - box.left - parseFloat(look.paddingLeft)
+        : box.right - parseFloat(look.paddingRight) - rect.right;
+    const stacked = row.classList.contains('stacked');
+    // The copy stands where it stands with no control beside it: taken out for a moment, the
+    // controls and the reset must leave every line of the copy where it was.
+    const lines = [...row.querySelectorAll(':scope > .sui-setting-say > *')].filter(shown);
+    const at = () => lines.map((line) => line.getBoundingClientRect().top - box.top);
+    const placed = at();
+    const parts = [...side.children] as HTMLElement[];
+    const shows = parts.map((part) => part.style.display);
+    for (const part of parts) part.style.display = 'none';
+    const bare = at();
+    parts.forEach((part, index) => (part.style.display = shows[index]));
+    const moved = Math.max(0, ...placed.map((top, index) => Math.abs(top - bare[index])));
+    if (moved > 0.5)
+      found.push(finding('L-36', row, `its controls move the copy ${round(moved)}px`));
+    const short = end((stacked ? side : controls).getBoundingClientRect());
+    if (Math.abs(short) > 0.5)
+      found.push(
+        finding('L-36', row, `the controls stop ${round(short)}px short of the row's end`)
+      );
+
+    const reset = side.querySelector(':scope > .sui-setting-reset button');
+    if (!reset) continue;
     const own = reset.getBoundingClientRect();
     const first = [...controls.querySelectorAll(INTERACTIVE)]
       .map((part) => part.getBoundingClientRect())
-      .filter((box) => box.width > 1 && box.height > 1)
+      .filter((rect) => rect.width > 1 && rect.height > 1)
       .sort((a, b) => a.top - b.top)[0];
-    const beside = first && own.bottom > first.top && own.top < first.bottom;
-    const line = copy.getBoundingClientRect();
-    const middle = beside
-      ? first.top + Math.min(first.height, own.height) / 2
-      : (line.top + line.bottom) / 2;
-    const off = (own.top + own.bottom) / 2 - middle;
-    if (Math.abs(off) > 0.5)
+    if (!first || own.bottom <= first.top || own.top >= first.bottom) continue;
+    const off = (own.top + own.bottom) / 2 - (first.top + Math.min(first.height, own.height) / 2);
+    if (Math.abs(off) > 0.55)
+      found.push(
+        finding('L-36', reset, `the reset sits ${round(off)}px off its control's first line`)
+      );
+    const reach = controls.getBoundingClientRect();
+    const apart = stacked
+      ? end(own)
+      : rtl
+        ? own.left - reach.right - parseFloat(getComputedStyle(side).columnGap)
+        : reach.left - own.right - parseFloat(getComputedStyle(side).columnGap);
+    if (Math.abs(apart) > 0.5)
       found.push(
         finding(
           'L-36',
           reset,
-          `the reset sits ${round(off)}px off the middle of its ${beside ? "controls' first line" : 'copy'}`
+          stacked
+            ? `the reset stops ${round(apart)}px short of the row's end`
+            : `the reset stands ${round(apart)}px off its control`
         )
       );
-    if (getComputedStyle(side).display === 'contents') continue;
-    const taller = side.getBoundingClientRect().height - controls.getBoundingClientRect().height;
+    const band = parseFloat(getComputedStyle(side).minBlockSize) || 0;
+    const taller = side.getBoundingClientRect().height - Math.max(reach.height, band);
     if (taller > 0.5)
       found.push(finding('L-36', reset, `the reset makes its row ${round(taller)}px taller`));
   }

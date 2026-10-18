@@ -86,6 +86,41 @@ suite('lists', together, () => {
   );
 
   test(
+    'L-16 and L-89 a conflicted save offers Reload, which replaces the draft with Undo',
+    long,
+    async () => {
+      const page = await open();
+      try {
+        const specimen = page.locator('#save-bar .specimen', { hasText: 'Conflict' }).first();
+        const field = specimen.getByLabel('Default branch');
+        const bar = specimen.locator('.sui-save-bar');
+        await field.scrollIntoViewIfNeeded();
+        // Saving again would be refused, so Reload is the only way on.
+        assert.deepEqual(await bar.getByRole('button').allInnerTexts(), ['Reload']);
+
+        const reload = bar.getByRole('button', { name: 'Reload' });
+        await reload.click();
+        const busy = bar.getByRole('button', { name: 'Reloading…' });
+        assert.equal(await busy.getAttribute('aria-busy'), 'true');
+        assert.ok(
+          await busy.evaluate((node) => node === document.activeElement),
+          'the busy Reload let go of focus'
+        );
+        await bar.getByText('The latest version replaced your changes').waitFor({ timeout: 4000 });
+        assert.equal(await field.inputValue(), 'trunk', 'the reload did not bring the latest');
+        assert.match(await focused(page), /^button Undo/, 'focus did not move to Undo');
+
+        await page.keyboard.press('Enter');
+        assert.equal(await field.inputValue(), 'develop', 'Undo did not put the draft back');
+        assert.deepEqual(await bar.getByRole('button').allInnerTexts(), ['Discard', 'Save']);
+        assert.match(await focused(page), /^button Save/, 'focus did not land on Save');
+      } finally {
+        await page.close();
+      }
+    }
+  );
+
+  test(
     'L-50 a dragged thumb in a right-to-left page chooses the option under the pointer',
     long,
     async () => {
@@ -411,51 +446,52 @@ suite('lists', together, () => {
       const page = await open();
       try {
         const rows = page.locator('#setting-list .sui-setting-list').first();
-        await rows.scrollIntoViewIfNeeded();
         // A grid over the whole row: the why line, the padding, the gap between the sides and
-        // the control itself. Only the reset is left out, because pressing it resets.
-        const points = async (/** @type {string} */ name) => {
-          const row = rows.locator('.sui-setting-row', { hasText: name }).first();
+        // the control itself. Only the reset is left out, because pressing it resets. Each
+        // point is read off the row as it stands, since focusing a field may scroll the page.
+        const cells = Array.from({ length: 5 * 16 }, (_, cell) => ({
+          x: ((cell % 16) + 0.5) / 16,
+          y: (Math.floor(cell / 16) + 0.5) / 5
+        }));
+        /** @param {import('playwright-core').Locator} row @param {{ x: number, y: number }} cell */
+        const point = async (row, cell) => {
           const box = await row.boundingBox();
           assert.ok(box);
-          const grid = [];
-          for (let y = 0; y < 5; y++)
-            for (let x = 0; x < 16; x++)
-              grid.push({
-                x: box.x + ((x + 0.5) / 16) * box.width,
-                y: box.y + ((y + 0.5) / 5) * box.height
-              });
-          return { row, grid };
-        };
-        const onReset = (/** @type {{ x: number, y: number }} */ at) =>
-          page.evaluate(
+          const at = { x: box.x + cell.x * box.width, y: box.y + cell.y * box.height };
+          const reset = await page.evaluate(
             ({ x, y }) => document.elementFromPoint(x, y)?.closest('.sui-setting-reset') !== null,
             at
           );
+          return { ...at, reset };
+        };
 
-        const field = await points('Command prefix');
-        const input = field.row.getByRole('textbox');
-        for (const at of field.grid) {
+        const field = rows.locator('.sui-setting-row', { hasText: 'Command prefix' }).first();
+        await field.evaluate((node) => node.scrollIntoView({ block: 'center' }));
+        const input = field.getByRole('textbox');
+        for (const cell of cells) {
           await page.evaluate(() =>
             /** @type {HTMLElement | null} */ (document.activeElement)?.blur()
           );
+          const at = await point(field, cell);
           await page.mouse.click(at.x, at.y);
           assert.ok(
             await input.evaluate((node) => node === document.activeElement),
-            `a press at ${Math.round(at.x)},${Math.round(at.y)} left the field unfocused`
+            `a press at ${cell.x},${cell.y} of the row left the field unfocused`
           );
         }
 
-        const box = await points('Retry failed checks');
-        const checkbox = box.row.getByRole('checkbox');
-        for (const at of box.grid) {
-          if (await onReset(at)) continue;
+        const box = rows.locator('.sui-setting-row', { hasText: 'Retry failed checks' }).first();
+        await box.evaluate((node) => node.scrollIntoView({ block: 'center' }));
+        const checkbox = box.getByRole('checkbox');
+        for (const cell of cells) {
+          const at = await point(box, cell);
+          if (at.reset) continue;
           const before = await checkbox.isChecked();
           await page.mouse.click(at.x, at.y);
           assert.equal(
             await checkbox.isChecked(),
             !before,
-            `a press at ${Math.round(at.x)},${Math.round(at.y)} did not flip the box once`
+            `a press at ${cell.x},${cell.y} of the row did not flip the box once`
           );
         }
       } finally {
@@ -989,41 +1025,6 @@ suite('lists', together, () => {
         for (const fact of facts)
           if (fact.target) assert.equal(fact.height, 44, `${fact.label} holds a target under 44px`);
           else assert.ok(fact.height < 24, `${fact.label} is ${fact.height}px tall with no target`);
-      } finally {
-        await page.close();
-      }
-    }
-  );
-
-  test(
-    'L-16 and L-89 a conflicted save offers Reload, which replaces the draft with Undo',
-    long,
-    async () => {
-      const page = await open();
-      try {
-        const specimen = page.locator('#save-bar .specimen', { hasText: 'Conflict' }).first();
-        const field = specimen.getByLabel('Default branch');
-        const bar = specimen.locator('.sui-save-bar');
-        await field.scrollIntoViewIfNeeded();
-        // Saving again would be refused, so Reload is the only way on.
-        assert.deepEqual(await bar.getByRole('button').allInnerTexts(), ['Reload']);
-
-        const reload = bar.getByRole('button', { name: 'Reload' });
-        await reload.click();
-        const busy = bar.getByRole('button', { name: 'Reloading…' });
-        assert.equal(await busy.getAttribute('aria-busy'), 'true');
-        assert.ok(
-          await busy.evaluate((node) => node === document.activeElement),
-          'the busy Reload let go of focus'
-        );
-        await bar.getByText('The latest version replaced your changes').waitFor({ timeout: 4000 });
-        assert.equal(await field.inputValue(), 'trunk', 'the reload did not bring the latest');
-        assert.match(await focused(page), /^button Undo/, 'focus did not move to Undo');
-
-        await page.keyboard.press('Enter');
-        assert.equal(await field.inputValue(), 'develop', 'Undo did not put the draft back');
-        assert.deepEqual(await bar.getByRole('button').allInnerTexts(), ['Discard', 'Save']);
-        assert.match(await focused(page), /^button Save/, 'focus did not land on Save');
       } finally {
         await page.close();
       }

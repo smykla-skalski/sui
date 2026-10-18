@@ -20,6 +20,7 @@
   import { tick, type Snippet } from 'svelte';
   import type { HTMLLiAttributes } from 'svelte/elements';
   import Icon from '../icons/Icon.svelte';
+  import { hold, held, holdAround, provideHold } from '../internal/held.svelte.js';
   import Button from './Button.svelte';
   import VisuallyHidden from './VisuallyHidden.svelte';
 
@@ -66,14 +67,13 @@
     /** Repaints the row while its value differs from the saved one. Only the caller can know that. */
     unsaved?: boolean;
     /**
-     * Draws a reset at the end of the controls' first line, which takes the setting back where
-     * it came from. Return a function that puts the change back, and the row offers Undo after a
-     * reset.
+     * Draws a reset right before the controls, which takes the setting back where it came
+     * from. Return a function that puts the change back, and the row offers Undo after a reset.
      */
     onclear?: () => void | (() => void);
     /**
      * Keeps the reset's seat while `onclear` is unset, for a row that offers a reset only while
-     * it is changed, so the controls never move when the reset comes and goes.
+     * it is changed, so the copy never rewraps when the reset comes and goes.
      */
     resettable?: boolean;
     /** A change that takes effect at once is on its way, such as a switch writing its value. */
@@ -100,8 +100,8 @@
     unsavedName?: (name: string, unsaved: string) => string;
     pendingLabel?: string;
     /**
-     * Puts the controls on a line of their own under the copy, from its start edge, with the
-     * reset at that line's end. For a control that grows, such as a list of entries.
+     * Puts the controls on a line of their own under the copy, from its start edge. For a
+     * control that grows, such as a list of entries.
      */
     stacked?: boolean;
     /** The setting's controls, at the row's end beside the copy or on the line under it. */
@@ -157,6 +157,17 @@
     firstControl()?.focus();
   }
 
+  // A change that is saving holds the row's controls, so the save carries the value it shows.
+  function holdRow(row: HTMLElement) {
+    if (pending) return hold(row);
+  }
+
+  /* While the row's own save or work on the form around it holds the controls, the reset and
+     its Undo stay where they are and refuse the press, as the controls do. */
+  const outer = holdAround();
+  provideHold(() => pending);
+  const holding = $derived(held(controls, () => outer() ?? (pending ? 'soft' : null)));
+
   async function restore(): Promise<void> {
     undo?.();
     undo = null;
@@ -170,31 +181,35 @@
 One setting in a `SettingList`: its name and an optional why line on one side, 8px apart as
 rendered ink, and its controls on the other. The row measures itself, so the copy keeps at least
 13rem and neither side takes more than half the row; when both cannot fit, the controls move to
-the line under the copy and pack to the start. A row whose only control is a `Switch` or a
-`Checkbox` keeps it beside the copy at every width, unless a reset stands beside it in a narrow
-row; give that control `bare`. A switch takes effect at once, and a checkbox holds a value that a
-later save writes.
+the line under the copy and keep the row's end. A row whose only control is a `Switch` or a
+`Checkbox` keeps it beside the copy at every width, unless a reset stands beside it in a row
+under 25rem; give that control `bare`. A switch takes effect at once, and a checkbox holds a
+value that a later save writes.
 
 The whole row is the name's hit area: a press on the why line, the padding or the space between
 the sides reaches the control the name labels through the label's own activation, so it focuses
 a field or flips a box exactly once, while a press on a control stays the control's own. A reset
-stands at the end of the controls' first line, takes that line's height and centres on it, and
-lends the row no height. In a `SettingList` under 18rem wide, as on a 320px phone, a control and
-its reset cannot share a line, so the controls take their own and the reset centres on the copy.
+stands right before the controls, as tall as their first line and centred on it, so the
+controls end at the row's end in every row, and the seat it keeps while hidden never pushes
+them and never makes the row taller. The copy and the controls share a first band one control
+tall: the copy centres in it, or starts at its top when taller, and the controls' first line
+fills it, so no control of any kind moves the copy or gives the row height of its own, and a
+taller one, such as a field with a hint under it, only grows the row under the band. A control that grows, with `stacked`, has its reset end
+the first line of its entries instead.
 
 `unsaved` lays a plate of the unsaved surface inside the row, repaints the inks and edges in the
 unsaved family, and shows `unsavedLabel` beside the name. The plate sits 2px inside the row's
 own box and the word keeps its seat while hidden, so a change of state never moves the row,
-changes its height or rewraps its name, and two changed rows in a row show a 5px strip of card
-between them (L-91).
+changes its height or rewraps its name, and two changed rows in a row show a 5px strip of the
+section's ground between them (L-91).
 
 - Semantics: an `li`; the name is a `label` for a single control that carries the given `id`, and otherwise a plain name whose id the group takes through `aria-labelledby`.
 - Content: a name, an optional one-sentence why line, and the controls in `control`, which receives the ids and the `disabled`, `readonly` and `invalid` flags to pass on.
-- States: rest, unsaved (gold plate and the `unsavedLabel` word), pending (`pendingLabel` under the copy, busy), refused (`error` under the copy with an alert mark), disabled and read only (with `reason` under the copy), and after a reset an Undo in the reset's seat.
-- Keyboard: Tab walks the controls, then the reset or Undo, in the order they show where the browser follows a flex row's visual order; Enter or Space resets or undoes.
+- States: rest, unsaved (gold plate and the `unsavedLabel` word), pending (`pendingLabel` under the copy, busy, and its controls held until the save ends: dimmed, focusable and refusing changes, as are the reset and its Undo), refused (`error` under the copy with an alert mark), disabled and read only (with `reason` under the copy), and after a reset an Undo in the reset's seat.
+- Keyboard: Tab follows the visual order (L-79, WCAG 2.4.3): the reset or Undo, then the controls it stands before; with `stacked`, the controls, then the reset that ends their first line; Enter or Space resets or undoes.
 - Pointer and touch: the row is at least 44px tall and its whole box is the name's target; the reset and Undo are as tall as the controls' first line, 34px, 28px beside chips, 44px on a phone.
 - Focus: after a reset focus moves to the first control instead of falling to the page; after Undo it moves to the reset, or to the first control when the reset is gone.
-- Responsive: the controls drop under the copy when both sides cannot fit, and pack to the start under 25rem with the reset at the line's end; with `stacked` they always stand under the copy, from its start edge; in a list under 18rem the reset centres on the copy instead.
+- Responsive: the controls drop under the copy when both sides cannot fit, and under 25rem take that whole line, ending at the row's end with the reset beside them; with `stacked` they always stand under the copy, from its start edge, with the reset ending their first line at every width.
 - Accessibility: the name labels a single control or names a group; the why line, `reason` and `error` describe the controls; pending and refused changes are said through a polite status; the unsaved state is a word, not only a color.
 - Localization: `resetLabel`, `undoLabel`, `unsavedLabel`, `pendingLabel` and `clearLabel` are props with English defaults; the controls sit at the inline end and follow the reading direction.
 - Performance: one mutation observer per row watches which control carries the id; nothing animates.
@@ -207,6 +222,7 @@ between them (L-91).
   class={['sui-setting-row', className, { stacked }]}
   data-unsaved={unsaved || undefined}
   aria-busy={pending || undefined}
+  {@attach holdRow}
 >
   <div class="sui-setting-say">
     <svelte:element
@@ -231,35 +247,56 @@ between them (L-91).
     <VisuallyHidden role="status">{error ?? (pending ? pendingLabel : '')}</VisuallyHidden>
   </div>
   <div class="sui-setting-value">
+    {#if !stacked}{@render reset()}{/if}
     <div bind:this={controls} class="sui-setting-control">{@render control(ids)}</div>
-    {#if onclear || resettable || undo}
-      {@const live = Boolean(onclear) && !undo && !disabled && !readonly}
-      <span bind:this={seat} class="sui-setting-reset">
-        <span class={{ idle: !live, 'sui-setting-reset-live': live }} inert={!live}>
-          <Button
-            tone="ghost"
-            aria-label={clearLabel ?? resetName(resetLabel, name)}
-            onclick={clear}
-          >
-            {#snippet icon()}<Icon name="undo" size="sm" />{/snippet}
-            {resetLabel}
-          </Button>
-        </span>
-        <span class={{ idle: !undo }} inert={!undo}>
-          <Button tone="ghost" aria-label={undoName(undoLabel, name)} onclick={restore}>
-            {undoLabel}
-          </Button>
-        </span>
-      </span>
-    {/if}
+    {#if stacked}{@render reset()}{/if}
   </div>
 </li>
+
+<!-- The reset stands on the control's side, first in reading order as it is first on the
+     line, except after a growing control, whose first line it ends. -->
+{#snippet reset()}
+  {#if onclear || resettable || undo}
+    {@const live = Boolean(onclear) && !undo && !disabled && !readonly}
+    <span bind:this={seat} class="sui-setting-reset">
+      <span class={{ idle: !live, 'sui-setting-reset-live': live }} inert={!live}>
+        <Button
+          tone="ghost"
+          aria-label={clearLabel ?? resetName(resetLabel, name)}
+          disabled={holding === 'firm'}
+          aria-disabled={holding === 'soft' || undefined}
+          onclick={clear}
+        >
+          {#snippet icon()}<Icon name="undo" size="sm" />{/snippet}
+          {resetLabel}
+        </Button>
+      </span>
+      <span class={{ idle: !undo }} inert={!undo}>
+        <Button
+          tone="ghost"
+          aria-label={undoName(undoLabel, name)}
+          disabled={holding === 'firm'}
+          aria-disabled={holding === 'soft' || undefined}
+          onclick={restore}
+        >
+          {undoLabel}
+        </Button>
+      </span>
+    </span>
+  {/if}
+{/snippet}
 
 <style>
   /* The row is its own size container, so half of it is a definite length (`50cqi`) when the
      flex line decides whether both sides fit, which a percentage is not. */
+  /* Every row opens with a band one control tall, the tier the surface sets, and the copy and
+     the controls both stand in it: the copy centres in it, or starts at its top when it is
+     taller, and the controls' first line fills it. So no control moves the copy or gives the
+     row height of its own, whatever its kind; one that is taller, such as a field with a hint
+     under it, only grows the row under the band. */
   .sui-setting-row {
-    align-items: center;
+    --sui-setting-band: var(--sui-local-control-height, var(--sui-control-height-compact));
+    align-items: start;
     border-radius: var(--sui-radius-control);
     box-sizing: border-box;
     color: var(--sui-text-primary);
@@ -282,7 +319,7 @@ between them (L-91).
 
   /* A state's plate lies inside the row's own box, 2px short of its top and bottom, so the row
      never moves or resizes when its state changes and keeps 10px of ground above and below its
-     ink, and two plates in a row show a 5px strip of card between them (L-91). */
+     ink, and two plates in a row show a 5px strip of the ground between them (L-91). */
   .sui-setting-row::before {
     border-radius: inherit;
     content: '';
@@ -370,13 +407,12 @@ between them (L-91).
   }
 
   /* The copy takes what is left and never less than it reads at, unless the row itself is
-     narrower than that. */
-  /* An even column, so a control centred beside it lands on whole pixels (L-95). */
-  /* The even snap's spare pixel goes above the name, so it never stacks on the last line's
-     own snap below it and the ink stays one inset from the row's foot (L-33). */
+     narrower than that. An even column, so it centres in the even band on whole pixels
+     (L-95). */
   .sui-setting-say {
-    align-content: end;
+    align-content: center;
     block-size: var(--sui-block-snap-even);
+    min-block-size: var(--sui-setting-band);
     display: grid;
     flex: 1 1 var(--sui-setting-say-min);
     gap: var(--sui-row-copy-gap);
@@ -454,16 +490,14 @@ between them (L-91).
   }
 
   /* Reset and Undo share one seat as wide as the wider of them, so neither moves the controls,
-     and the seat never gives up width, so neither word breaks. The seat is a line of no height
-     through the middle of the controls' first line, and the buttons overflow it evenly, so they
-     centre on that line and the row stays as tall as its copy and its controls make it. */
+     and the seat never gives up width, so neither word breaks. It stands on the controls' first
+     line and takes its height, so the reset centres on a field, a picker, a segmented control
+     or the first line of a list of entries alike and adds nothing to the row (L-94, L-101). */
   .sui-setting-reset {
     --sui-local-control-height: var(--sui-setting-line);
-    align-content: center;
-    block-size: 0;
+    align-self: start;
     display: grid;
     flex: none;
-    margin-block-start: calc(var(--sui-setting-line) / 2);
   }
 
   .sui-setting-reset > * {
@@ -477,11 +511,11 @@ between them (L-91).
   }
 
   /* Neither side takes more than half the row, unless a control cannot be drawn narrower. The
-     controls' first line is one control tall, the tier a surface sets for its controls, so the
-     reset centres on a field, a picker, a segmented control or the first of a list of entries
-     alike. */
+     reset stands right before the controls, so they end at the row's end whether it shows or
+     keeps its seat, and the seat it keeps while hidden never pushes them (L-91). The controls'
+     first line is one control tall, the tier the surface sets for its controls. */
   .sui-setting-value {
-    --sui-setting-line: var(--sui-local-control-height, var(--sui-control-height-compact));
+    --sui-setting-line: var(--sui-setting-band);
     align-items: start;
     display: flex;
     flex: 0 1 auto;
@@ -492,14 +526,17 @@ between them (L-91).
   }
 
   /* A bare check box keeps its whole square inside the row's end, so its hover ground stands
-     the row's inset off the plate's edge as a button's does. */
+     the row's inset off the plate's edge as a button's does, and a segmented control that has
+     turned into its select ends at the row's end too. */
   .sui-setting-control {
     --sui-local-checkbox-bleed: 0px;
+    --sui-local-segmented-align: flex-end;
     align-items: center;
     display: flex;
     flex-wrap: wrap;
     gap: var(--sui-space-2);
     justify-content: flex-end;
+    min-block-size: var(--sui-setting-band);
   }
 
   /* Chips stand a step under a control on a pointer and at a finger's 44px on touch, so a
@@ -515,8 +552,8 @@ between them (L-91).
   }
 
   /* A lone switch or checkbox needs a small fixed seat: its copy wraps beside it rather than
-     pushing it onto a line of its own. It is its own line, whatever its height, so the reset
-     centres on it. Asked through `:where()`, so a narrow row with a reset can still move it. */
+     pushing it onto a line of its own. Asked through `:where()`, so a narrow row with a reset
+     can still move it. */
   .sui-setting-row:where(
       :has(
         > .sui-setting-value
@@ -537,58 +574,44 @@ between them (L-91).
       )
     )
     > .sui-setting-value {
-    align-items: center;
     flex: none;
   }
 
-  .sui-setting-row:where(
-      :has(
-        > .sui-setting-value
-          > .sui-setting-control
-          > :global(:only-child > * > input[type='checkbox'])
-      )
-    )
-    .sui-setting-reset {
-    margin-block-start: 0;
-  }
-
   /* Below a sentence plus the narrowest control there is no other side to share the row
-     with, so the controls take the whole line and pack to its start, and the reset keeps the
-     row's end, where it stands in every other row. A lone box with a reset beside it no
-     longer has a small seat, so it takes that line too rather than squeezing its copy. */
+     with, so the controls take the whole line under the copy and keep the row's end, with their
+     reset before them, as they stand beside the copy (L-90: a row aligned to its end on
+     purpose). A lone box with a reset beside it no longer has a small seat, so it takes that
+     line too rather than squeezing its copy. */
   @container (max-width: 25rem) {
     .sui-setting-value {
       flex-basis: 100%;
-      justify-content: space-between;
       max-inline-size: 100%;
     }
 
-    .sui-setting-control {
-      justify-content: flex-start;
-    }
-
-    .sui-setting-row:has(> .sui-setting-value > .sui-setting-reset) > .sui-setting-say {
+    .sui-setting-row:has(.sui-setting-reset) > .sui-setting-say {
       flex-basis: var(--sui-setting-say-min);
     }
 
-    .sui-setting-row:has(> .sui-setting-value > .sui-setting-reset) > .sui-setting-value {
+    .sui-setting-row:has(.sui-setting-reset) > .sui-setting-value {
       flex: 1 1 100%;
     }
   }
 
   /* A control that grows, such as a list of entries, gets the row's width under the copy, so
-     the copy starts level with the row and never floats beside a tall list. The reset keeps
-     its seat at the end of the controls' first line, as in every other row. */
+     the copy starts level with the row and never floats beside a tall list. Its reset ends the
+     first line of the entries at the row's end, on a phone too, and the entries wrap beside it. */
   .stacked {
     row-gap: var(--sui-space-3);
   }
 
   .stacked > .sui-setting-say {
     flex-basis: 100%;
+    min-block-size: 0;
   }
 
   .stacked > .sui-setting-value {
-    flex-basis: 100%;
+    flex: 1 1 100%;
+    min-block-size: 0;
     max-inline-size: none;
     min-inline-size: 0;
   }
@@ -596,39 +619,34 @@ between them (L-91).
   .stacked .sui-setting-control {
     flex: 1 1 0;
     justify-content: flex-start;
+    min-block-size: 0;
     min-inline-size: 0;
   }
 
-  /* A row this narrow, as on a 320px phone, has no room for a control and its reset on one
-     line: either would squeeze the other, and a line of its own would stand empty while the
-     reset hides. So the controls take the whole line under the copy, and the reset stands
-     beside the copy, centred on it as a lone switch is, which only rewraps the copy and keeps
-     the row's height. The list's width is the row's, padding and all. */
-  @container sui-setting-list (max-width: 18rem) {
-    .sui-setting-row:has(> .sui-setting-value > .sui-setting-reset) > .sui-setting-say {
-      flex: 1 1 0;
-      min-inline-size: 0;
+  /* A segmented control that turns into its select draws only as wide as the select, right
+     after the reset, and still chooses its form against the room the row gives it: half the
+     row beside the copy, or the whole line under it, less the reset's seat and the gap. */
+  @supports (anchor-name: --sui-setting-seat) {
+    .sui-setting-value {
+      anchor-scope: --sui-setting-seat;
     }
 
-    .sui-setting-row:has(> .sui-setting-value > .sui-setting-reset) > .sui-setting-value {
-      display: contents;
+    .sui-setting-reset {
+      anchor-name: --sui-setting-seat;
     }
 
-    .sui-setting-row:has(> .sui-setting-value > .sui-setting-reset) .sui-setting-control {
-      flex-basis: 100%;
-      order: 1;
+    .sui-setting-control {
+      --sui-local-segmented-room: calc(
+        50cqi - anchor-size(--sui-setting-seat inline, 0px) - var(--sui-space-2)
+      );
     }
 
-    .sui-setting-row:has(> .sui-setting-value > .sui-setting-reset) .sui-setting-reset {
-      align-self: center;
-      margin-block-start: 0;
-    }
-  }
-
-  /* Tab follows the reset to the copy's line when a narrow row moves it there. */
-  @supports (reading-flow: flex-visual) {
-    .sui-setting-row {
-      reading-flow: flex-visual;
+    @container (max-width: 25rem) {
+      .sui-setting-control {
+        --sui-local-segmented-room: calc(
+          100cqi - anchor-size(--sui-setting-seat inline, 0px) - var(--sui-space-2)
+        );
+      }
     }
   }
 
