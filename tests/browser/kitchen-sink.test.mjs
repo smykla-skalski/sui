@@ -304,6 +304,38 @@ suite('the kitchen sink', together, () => {
     }
   );
 
+  // A hint that keeps its seat beside the words squeezes them onto more lines on a phone.
+  test("L-57 a disclosure's hint shares the words' line only when both fit", async () => {
+    const page = await open(375, 'light');
+    try {
+      const placed = await page.evaluate(() =>
+        ['Skipped repositories', 'More about this sync'].map((name) => {
+          const words = [...document.querySelectorAll('#disclosure .sui-disclosure-label')].find(
+            (label) => label.textContent === name
+          );
+          const hint = words?.parentElement?.querySelector('.sui-disclosure-hint');
+          if (!words || !hint) return null;
+          const range = document.createRange();
+          range.selectNodeContents(words);
+          const tops = new Set([...range.getClientRects()].map((line) => Math.round(line.top)));
+          const a = words.getBoundingClientRect();
+          const b = hint.getBoundingClientRect();
+          return {
+            lines: tops.size,
+            beside: Math.abs(b.top - a.top) < 0.5,
+            under: b.top >= a.bottom && Math.abs(b.left - a.left) < 0.5
+          };
+        })
+      );
+      assert.deepEqual(placed, [
+        { lines: 1, beside: true, under: false },
+        { lines: 1, beside: false, under: true }
+      ]);
+    } finally {
+      await page.close();
+    }
+  });
+
   test('L-102 a wrapped pill keeps its one-line inset and its words inside its corners', async () => {
     // 200% text wraps the long status onto several lines, where a fully round end would cut
     // across the first and last lines' words.

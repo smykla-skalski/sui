@@ -20,7 +20,7 @@
   }: {
     /** The words on the row that opens it. */
     summary: string;
-    /** What is inside, said quietly at the row's end so a reader can decide without opening. */
+    /** What is inside, said quietly at the row's end, or under the words when both do not fit. */
     hint?: string;
     /** The summary's accessible name from its words and the hint, in the language's order. */
     summaryName?: (summary: string, hint: string) => string;
@@ -46,13 +46,17 @@ share a `name` open one at a time. What it reveals sits straight in it, never in
 Open, its last ink stands as far above its foot as the summary's words stand under its top,
 and a disclosure that closes a card leaves that room to the card's inset.
 
+The hint stands at the row's end while the words and the hint fit on one line, and drops
+under the words when they do not, so it never squeezes them onto more lines, as Apple's value
+cells stack their secondary text.
+
 - Semantics: a native `<details>` whose `<summary>` is the button, named by `summary` and `hint`, with its expanded state from the browser.
 - Content: one line of summary words that wrap, an optional quiet hint, and any content inside, which starts at the summary's words.
 - States: closed (the chevron points along the line), open (the chevron points down and the guide runs beside the content), hover (the row veil on the summary only), pressed (the pressed veil, inset and 1px sink) and focus (the 2px inset ring). There is no disabled state, because opening only shows words.
 - Keyboard: Tab reaches the summary, and Enter or Space opens and closes it.
 - Pointer and touch: the whole summary row is the target, one control tall, 34px and 44px on a phone or touch screen.
 - Focus: focus stays on the summary when it opens or closes, and find-in-page opens a disclosure that holds the match.
-- Responsive: the summary words wrap and the row grows, with the chevron and the hint on the first line.
+- Responsive: the hint drops under the words, at their start edge, when the row cannot hold both on one line; words longer than the row wrap and the row grows, with the chevron on the first line.
 - Accessibility: the browser announces expanded and collapsed, the chevron is hidden, and the open state also shows in the chevron's turn and the guide.
 - Localization: every word is the caller's, and `summaryName` joins the summary and the hint; the chevron mirrors and still turns down in a right-to-left page, and the indent and the guide are logical.
 - Performance: the content renders closed too, so keep it light; opening fades the content in with a short slide, and only the chevron's turn and the press move otherwise, all removed under reduced motion.
@@ -116,24 +120,30 @@ and a disclosure that closes a card leaves that room to the card's inset.
     transition: opacity var(--sui-duration-open) var(--sui-ease-standard);
   }
 
-  /* The parts hang from the first line: the padding centres one line in the control height,
-     and the chevron and the hint sit on that line, so a summary that wraps keeps them beside
-     its first line (L-94). The row bleeds by its padding, so the chevron stands at the start
-     edge of the text above and the veil reaches past it. */
+  /* The padding centres one line in the control height. The words and the hint share that
+     line only when both fit, and the hint otherwise wraps to a line of its own under the
+     words, a copy gap below them as a description stands under its title (L-24), so the
+     words never wrap to make room for it. The row bleeds by its padding, so the chevron
+     stands at the start edge of the text above and the veil reaches past it. */
   .sui-disclosure-summary {
     align-items: start;
     border-radius: var(--sui-radius-control);
     box-sizing: border-box;
     color: var(--sui-text-primary);
+    column-gap: var(--sui-space-4);
     cursor: pointer;
     display: flex;
+    flex-wrap: wrap;
     font: var(--sui-weight-medium) var(--sui-font-size-meta) / var(--sui-leading-meta)
       var(--sui-sans);
-    gap: var(--sui-space-2);
+    justify-content: space-between;
     list-style: none;
     margin-inline: calc(var(--sui-space-2) * -1);
     min-block-size: var(--sui-control-height-compact);
     padding: var(--sui-local-disclosure-inset) var(--sui-space-2);
+    padding-inline-start: calc(var(--sui-space-2) + var(--sui-local-disclosure-indent));
+    position: relative;
+    row-gap: var(--sui-row-copy-gap);
     touch-action: manipulation;
     -webkit-user-select: none;
     user-select: none;
@@ -171,11 +181,15 @@ and a disclosure that closes a card leaves that room to the card's inset.
     outline-offset: var(--sui-focus-ring-inset);
   }
 
+  /* The chevron hangs in the row's start padding, as GOV.UK's details marker does, so the
+     words and the hint share one start edge whichever line each takes, and it centres on the
+     first line, which the padding centres in the control height (L-94). */
   .sui-disclosure-chevron {
     color: var(--sui-text-muted);
     display: flex;
-    flex: none;
-    margin-block: calc((round(up, 1cap, 2px) - var(--sui-icon-xs)) / 2);
+    inset-block-start: calc((var(--sui-control-height-compact) - var(--sui-icon-xs)) / 2);
+    inset-inline-start: var(--sui-space-2);
+    position: absolute;
     transition: rotate var(--sui-duration-open) var(--sui-ease-standard);
   }
 
@@ -200,10 +214,10 @@ and a disclosure that closes a card leaves that room to the card's inset.
     align-content: center;
     block-size: var(--sui-block-snap-even);
     color: var(--sui-text-muted);
-    flex: none;
     font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-leading-meta)
       var(--sui-sans);
-    margin-inline-start: auto;
+    min-inline-size: 0;
+    overflow-wrap: break-word;
     text-box: trim-both cap alphabetic;
   }
 

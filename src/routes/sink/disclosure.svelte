@@ -8,7 +8,7 @@
 </script>
 
 <script lang="ts">
-  import { Card, Disclosure, Field } from '#lib';
+  import { Disclosure, Field, Section } from '#lib';
   import Example from '../kit/Example.svelte';
   import Specimen from '../kit/Specimen.svelte';
 
@@ -60,24 +60,29 @@
 </Example>
 
 <Example
-  title="Long summary"
-  note="A summary that wraps keeps its chevron and its hint on its first line"
+  title="Long text"
+  note="When the words and the hint do not fit one line, the hint drops under the words and the chevron stays on the first line"
   layout="grid"
 >
-  <Specimen label="Closed">
+  <Specimen label="Long summary">
     <Disclosure
       summary="Why pull requests opened before the rules changed keep the checks they started with"
     >
       <p class="copy">A rule change applies to pull requests opened after it</p>
     </Disclosure>
   </Specimen>
-  <Specimen label="Open, with a hint" code={'hint="2 rules" open'}>
+  <Specimen label="Long summary, open with a hint" code={'hint="2 rules" open'}>
     <Disclosure
       summary="Rules that a parent workspace sets and this repository cannot change"
       hint="2 rules"
       open
     >
       <p class="copy">Ask an owner of the parent workspace to change them</p>
+    </Disclosure>
+  </Specimen>
+  <Specimen label="Long hint" code={'hint="ID, worker and settings version"'}>
+    <Disclosure summary="More about this sync" hint="ID, worker and settings version">
+      <p class="copy">Support asks for these when a sync fails</p>
     </Disclosure>
   </Specimen>
 </Example>
@@ -103,19 +108,15 @@
 
 <Example
   title="In context"
-  note="A disclosure that closes a card leaves the card's inset under its last ink"
+  note="A disclosure closes its section with the detail few readers need, its content straight inside"
   layout="stack"
   ground="canvas"
 >
-  <Card
-    title="This invite has expired"
-    description="Ask a workspace owner to send you a new one"
-    level={4}
-  >
+  <Section title="Invites" description="Invites last 7 days" level={4}>
     <Disclosure summary="Why invites expire" open>
       <p class="copy">A link that never expires could let the wrong person join the workspace</p>
     </Disclosure>
-  </Card>
+  </Section>
 </Example>
 
 <Example
