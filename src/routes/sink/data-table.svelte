@@ -247,11 +247,16 @@
      and grow the row off the grid (L-95). */
   /* The words run cap to baseline in an even box, so the icon centres on them by whole
      pixels (L-94). */
+  /* A row of its own, one cap tall like the other cells' words, with the mark hung on that cap
+     (L-94): an inline box would sit at the top of the cell's trimmed line instead. */
   .status {
     align-items: center;
-    display: inline-flex;
+    display: flex;
     gap: var(--sui-space-1);
-    vertical-align: top;
+  }
+
+  .status > :global(svg) {
+    margin-block: calc((round(up, 1cap, 2px) - var(--sui-icon-sm)) / 2);
   }
 
   .status > span {

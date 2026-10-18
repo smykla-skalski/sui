@@ -219,7 +219,7 @@ in its corner. Beside a 34px field or in a toolbar it takes the control tier wit
     block-size: auto;
     flex: 0 1 auto;
     max-inline-size: 100%;
-    min-block-size: var(--sui-tier-quiet);
+    min-block-size: var(--sui-local-copy-chip, var(--sui-tier-quiet));
     min-inline-size: 0;
     padding-block: var(--sui-space-1);
     white-space: normal;

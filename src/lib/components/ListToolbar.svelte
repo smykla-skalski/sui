@@ -439,9 +439,10 @@ button. Without `tools` there is no button and the filter never folds.
     min-inline-size: 0;
   }
 
+  /* Even, so centred beside an even control it lands on whole pixels and reads as centred. */
   .sui-list-toolbar-heading {
     align-content: center;
-    block-size: var(--sui-block-snap);
+    block-size: var(--sui-block-snap-even);
     color: var(--sui-text-muted);
     font: var(--sui-weight-semibold) var(--sui-font-size-micro) / var(--sui-leading-tight)
       var(--sui-sans);

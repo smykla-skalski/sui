@@ -74,7 +74,7 @@ it keeps focus, for a list that is saving.
 - Content: a short label and an optional one-sentence description, or richer `children`.
 - States: unchecked, checked (a filled box with a check), partly chosen (a dash), hover (a row ground), focus (a 2px ring 2px off the box), pressed (a deeper ground, an inset shadow and a 1px sink), invalid (a danger edge, kept when checked), locked and disabled (0.5 opacity).
 - Keyboard: Tab reaches it and Space toggles it; a locked or disabled box refuses the toggle.
-- Pointer and touch: the whole item is the target, 34px tall, 44px with a description, on a phone or on any touch screen, and `bare` keeps a 44px hit area.
+- Pointer and touch: the whole item is the target, 34px tall, 44px with a description, on a phone or on any touch screen, and `bare` is a square as tall as a control, 34px or 44px on touch, which is both its ground and its hit area.
 - Focus: a press never moves focus, and a locked box keeps it.
 - Responsive: a long label wraps and the box stays centred on its first line.
 - Accessibility: the label is the name, the description the description, `invalid` sets `aria-invalid`, and the box's edge holds 3:1.
@@ -152,23 +152,23 @@ it keeps focus, for a list that is saving.
     min-block-size: var(--sui-touch-target);
   }
 
-  /* The padding stays for the hover ground, and the margin hands it back, so the box sits
-     on the row's edge and the row keeps its own height. */
-  /* No words to wrap, so no clamp: against its own shrink-wrapped column a 100% cap would eat
-     the end padding and slide the box past the row's content edge (L-33). */
+  /* A box with no words is a square as tall as a control, 34px or 44px on touch, so its
+     ground and its hit area match the buttons beside it (L-101). The margin hands that room
+     back, so the box sits on the row's edge and the row keeps its own height. No words to wrap,
+     so no clamp: a 100% cap would let a shrink-wrapped column squeeze the square. */
   .bare {
-    margin: calc(-1 * var(--sui-space-2));
+    block-size: var(--sui-control-height-compact);
+    grid-template-columns: auto;
+    inline-size: var(--sui-control-height-compact);
+    margin: calc((var(--sui-icon-md) - var(--sui-control-height-compact)) / 2);
     max-inline-size: none;
-    min-block-size: auto;
-    position: relative;
+    min-block-size: 0;
+    padding: 0;
+    place-content: center;
   }
 
-  .bare::before {
-    block-size: var(--sui-touch-target);
-    content: '';
-    inline-size: var(--sui-touch-target);
-    inset: calc((100% - var(--sui-touch-target)) / 2);
-    position: absolute;
+  .bare .sui-checkbox-control {
+    margin-block: 0;
   }
 
   @media (hover: hover) {

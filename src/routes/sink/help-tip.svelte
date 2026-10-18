@@ -74,4 +74,10 @@
     block-size: var(--sui-block-snap-even);
     text-box: trim-both cap alphabetic;
   }
+
+  /* The open tip hangs under its mark, so the row keeps to the top and the words drop to the
+     mark's middle instead. */
+  .wrap > .words {
+    margin-block-start: calc((var(--sui-control-height-chip) - round(up, 1cap, 2px)) / 2);
+  }
 </style>

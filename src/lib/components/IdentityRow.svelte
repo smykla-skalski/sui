@@ -35,7 +35,8 @@
 @component
 Who a row is about, in one row: the avatar, then the name with the handle in mono under it.
 Both lines are trimmed to their ink and stand 8px apart, so the words, not their line boxes,
-centre on the avatar.
+centre on the avatar. A name that wraps keeps the avatar centred on its own lines, never on
+the handle under them.
 
 - Semantics: a `span` of text; the avatar is hidden, so the name is read once and the handle after it, joined by `handleName`.
 - Content: a name, an optional handle and an optional picture.
@@ -51,8 +52,7 @@ centre on the avatar.
 - Failure: a picture that fails falls back to initials; an empty handle draws no second line.
 -->
 
-<span {...rest} class={['sui-identity-row', className]}>
-  <Avatar {name} handle={handle ?? ''} {src} {shape} {size} />
+<span {...rest} class={['sui-identity-row', className]} style:--sui-local-face="{size / 16}rem">
   <!-- The two lines are read as one run of text, so a control around the row names the person
        with the language's own join, not with the space a browser puts between lines. -->
   <span class="sui-identity-copy" aria-hidden={handle ? 'true' : undefined}>
@@ -61,16 +61,47 @@ centre on the avatar.
       <span class="sui-identity-handle">{handle}</span>
     {/if}
   </span>
+  <!-- After the name in the source, so the name can anchor it; drawn at the inline start. -->
+  <span class="sui-identity-face"><Avatar {name} handle={handle ?? ''} {src} {shape} {size} /></span
+  >
   {#if handle}<VisuallyHidden>{handleName(name, handle)}</VisuallyHidden>{/if}
 </span>
 
 <style>
   .sui-identity-row {
     align-items: center;
+    anchor-scope: --sui-identity-name;
     display: flex;
     gap: var(--sui-space-2);
     max-inline-size: 100%;
+    min-block-size: var(--sui-local-face);
     min-inline-size: 0;
+    position: relative;
+  }
+
+  .sui-identity-face {
+    display: flex;
+    flex: none;
+    order: -1;
+  }
+
+  /* The avatar centres on the name's own lines, and never stands above the row, so a one-line
+     name and its handle still centre on it while a name that wraps keeps it beside its lines. */
+  @supports (anchor-name: --sui-identity-name) {
+    .sui-identity-row {
+      padding-inline-start: calc(var(--sui-local-face) + var(--sui-space-2));
+    }
+
+    .sui-identity-name {
+      anchor-name: --sui-identity-name;
+    }
+
+    .sui-identity-face {
+      inset-inline-start: 0;
+      position: absolute;
+      position-anchor: --sui-identity-name;
+      top: max(0px, calc(anchor(center) - var(--sui-local-face) / 2));
+    }
   }
 
   /* An even column, so the avatar centred beside it lands on whole pixels (L-95). */
