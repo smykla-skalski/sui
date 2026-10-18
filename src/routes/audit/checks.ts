@@ -2686,7 +2686,8 @@ function nestedFrames(root: Document): Finding[] {
 /**
  * Cards are earned (L-55): a card links to its page, is the danger zone, stands among its card
  * peers, or is the one box on a bare page, whose nearest ground holds nothing but it. The kitchen
- * sink's stage is a ground with captions on it, so one lone card in a specimen is a finding.
+ * sink's stage is a viewport around specimens, not a page, so a card alone on it is a finding
+ * even with no caption beside it; a specimen shows a bare page by drawing that page's own ground.
  */
 function earnedCards(root: Document): Finding[] {
   const found: Finding[] = [];
@@ -2708,7 +2709,7 @@ function earnedCards(root: Document): Finding[] {
     if (peers) continue;
     let page = box.parentElement;
     while (page && !paintsGround(getComputedStyle(page))) page = page.parentElement;
-    if (page && words(page) === words(box)) continue;
+    if (page && !page.matches(':has(> .specimens)') && words(page) === words(box)) continue;
     found.push(
       finding('L-55', card, 'a lone card that neither links nor is the danger zone or a bare page')
     );

@@ -19,12 +19,14 @@ A list of things a page is about, as a real `ul` of `ObjectRow`s. Rows grow when
 wraps; there are no fixed heights, no zebra stripes and no column headings, and the page keeps
 its one scroll.
 
-Rows reach 12px past the list on both sides so their ink lines up with the card around them,
-and the list hands back the last row's bottom padding so the last line closes on the card's own
-frame. When it opens a card it hands back the first row's top padding too, so its first line
-stands the card's inset below the keyline. Give it a container with at least that much inset.
-A `LoadMore` right after it is its last row instead, so the list keeps that padding and draws
-the hairline above the `LoadMore`.
+Put it in a `Section` or under a `ListToolbar`, never in a card or a plate (L-55): it hangs
+there with no frame. Rows reach 12px past the list on both sides, so their words stand on the
+section title's edge while a hovered row's ground reaches into the pane's gutter. Give it a
+holder that leaves that room and never clips or scrolls it sideways (L-61). Its rows start 16px
+under the title's ink, as any section content does, and the list hands back the last row's
+bottom padding, so the space after it runs from its last line (L-108). A `LoadMore` right after
+it is its last row instead, so the list keeps that padding and draws the hairline above the
+`LoadMore`.
 
 - Semantics: a `ul` with `role="list"`, so Safari keeps the list once its bullets are gone.
 - Content: `ObjectRow`s only, one per item.
@@ -52,7 +54,8 @@ the hairline above the `LoadMore`.
   }
 
   .sui-object-list:has(> :global(li)) {
-    /* The last row's padding and its hairline band give the card's inset back (L-33). */
+    /* The last row's padding and its hairline band are handed back, so what follows the list
+       stands its own gap from the last line's ink (L-108). */
     margin-block-end: calc(-1 * (var(--sui-row-pad-default) + var(--sui-row-hairline)));
   }
 

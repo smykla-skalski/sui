@@ -413,7 +413,7 @@ suite('navigation', together, () => {
   );
 
   test(
-    'a chart band reaches the edges of a card or stage that lends its inset, and stays in a specimen that does not (L-66)',
+    'a chart band reaches the edges of a stage that lends its inset, and stays in a specimen that does not (L-66)',
     long,
     async () => {
       for (const width of [1440, 375]) {
@@ -422,9 +422,7 @@ suite('navigation', together, () => {
           const bands = await page.evaluate(() =>
             [...document.querySelectorAll('#charts .plot-band')].map((band) => {
               const box = band.getBoundingClientRect();
-              const card = band.closest('.sui-card');
-              // A card lends its inset inside its keyline; a stacked stage inside its frame's.
-              const holder = /** @type {Element} */ (card ?? band.closest('.frame'));
+              const holder = /** @type {Element} */ (band.closest('.frame'));
               const keyline = parseFloat(getComputedStyle(holder).borderLeftWidth);
               const room = holder.getBoundingClientRect();
               // A waiting band is its own placeholder, with no plot inside to pad.
@@ -435,7 +433,12 @@ suite('navigation', together, () => {
                 band.closest('.sui-chart')?.querySelector('.sui-chart-title')
               ).getBoundingClientRect();
               return {
-                lent: card !== null || band.closest('[data-layout="stack"] .specimen') !== null,
+                // A stacked stage lends its inset only to a chart that stands straight in the
+                // specimen, so a chart in a section keeps the section's edges.
+                lent:
+                  band
+                    .closest('.sui-chart')
+                    ?.parentElement?.matches('[data-layout="stack"] > .specimen > .body') === true,
                 start: box.left - room.left - keyline,
                 end: room.right - keyline - box.right,
                 inside:

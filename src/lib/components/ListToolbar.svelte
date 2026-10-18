@@ -133,8 +133,8 @@
 The bar over a list: a search that leads, an optional primary filter as a segmented control, a
 tools button holding the sort and any further filters, and one optional primary action at the
 end of its line. On a line of its own the action starts at the edge, never adrift at the far
-end. Search and filters stand outside the list's card. The bar owns no list state: each group
-reports its choice through `onchange`, and the query is `bind:query`.
+end. The list hangs under the bar with no frame around it (L-61). The bar owns no list state:
+each group reports its choice through `onchange`, and the query is `bind:query`.
 
 The primary filter and the tools button are one unit and wrap together, so the button is never
 left on a line by itself. Short of room, the search takes its own line and the filter sits under

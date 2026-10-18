@@ -172,8 +172,8 @@ of them.
   /* Over a list the failure is a row of its own: it bleeds past the list's edge as a row does
      and pads back by the row's inset, so its words start where the rows' words start and the
      retry ends where their actions end. Its tint is a plate 2px inside that box on every side,
-     as a row's state is (L-91), so it stands as far from the card's top as from its sides, and
-     the retry stays quiet on it (L-92). */
+     as a row's state is (L-91), so it keeps the same room at its top as at its sides, and the
+     retry stays quiet on it (L-92). */
   .over {
     --sui-surface-raised: transparent;
     --sui-control-border: color-mix(in srgb, var(--sui-danger) 40%, var(--sui-danger-tint));
@@ -185,7 +185,7 @@ of them.
     flex-wrap: wrap;
     gap: var(--sui-space-2) var(--sui-space-3);
     justify-content: space-between;
-    /* Opening a card, it hands back its padding as a row list does (L-33). */
+    /* A holder that asks for its lead gets the padding back, as a row list hands it back. */
     margin-block-start: var(--sui-local-row-lead, 0px);
     margin-inline: calc(-1 * var(--sui-row-pad-default));
     padding: var(--sui-row-pad-default);

@@ -8,7 +8,7 @@
 </script>
 
 <script lang="ts">
-  import { Button, Card, Checkbox, Field, Textarea } from '#lib';
+  import { Button, Checkbox, Field, Section, Textarea } from '#lib';
   import Example from '../kit/Example.svelte';
   import Specimen from '../kit/Specimen.svelte';
 
@@ -150,16 +150,16 @@
 
 <Example
   title="In context"
-  note="Fields stack 16px apart, and a focused field's own border becomes the ring, so the card never clips it"
+  note="Fields stack 16px apart, and a focused field's own border becomes the ring, so nothing around it clips it"
   layout="grid"
   ground="canvas"
 >
-  <Card title="New repository" level={4}>
+  <Section title="New repository" level={4}>
     <div class="form">
       <Field label="Repository name" required placeholder="your-project" />
       <Field label="Contact email" type="email" required placeholder="you@example.com" />
     </div>
-  </Card>
+  </Section>
 </Example>
 
 <Example

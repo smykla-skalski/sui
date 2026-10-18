@@ -306,7 +306,8 @@ suite('lists', together, () => {
         await counted.scrollIntoViewIfNeeded();
         await counted.getByRole('searchbox').fill('sui');
         await page.waitForTimeout(800);
-        const status = counted.locator('[role="status"]');
+        // The bar's own status, not the one its search field keeps for its matches.
+        const status = counted.locator(':scope > [role="status"]');
         assert.equal((await status.textContent())?.trim(), '1 result');
         await status.evaluate((element) => {
           const said = /** @type {string[]} */ ([]);

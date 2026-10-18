@@ -40,7 +40,7 @@
 <Example
   title="Links"
   note="Links stand on the heading's edge with no bullets, one target plus 4px apart, and one that leaves the product says so"
-  layout="stack"
+  layout="grid"
 >
   <Specimen label="Plain">
     <LinkList links={related} aria-label="Related" />

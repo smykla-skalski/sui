@@ -170,9 +170,8 @@ under reduced motion. Use it only where the shape of what is coming is already k
     font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-leading-flat)
       var(--sui-sans);
     /* As a row list does, the rows always hand back what stands under their last bar, and
-       hand back what stands above their first when a card asks for its lead
-       (`--sui-local-row-lead`), so the bars stand the card's inset from its edges, where the
-       loaded words will. */
+       hand back what stands above their first when their holder asks for its lead
+       (`--sui-local-row-lead`), so the bars stand where the loaded words will. */
     margin-block: calc(sign(var(--sui-local-row-lead, 0px)) * var(--sui-skeleton-lead))
       calc(var(--sui-skeleton-lead) + var(--sui-skeleton-lines) - var(--sui-skeleton-row));
     overflow: clip;

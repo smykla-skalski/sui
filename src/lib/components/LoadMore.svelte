@@ -130,7 +130,7 @@ reader is and holds the button that loads the next page. The reader decides when
 comes, so the footer stays in reach and the keyboard keeps its place. Numbered pages belong to
 a data table that readers search or return to.
 
-Place it right after the `ObjectList` it extends, inside the same card, and give the list an
+Place it right after the `ObjectList` it extends, in the same section, and give the list an
 `id` for `list`. The list then keeps its last row's padding and draws the hairline above this
 row, so it reads as one more row: the words at the start, the button at the end.
 

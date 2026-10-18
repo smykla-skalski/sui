@@ -109,7 +109,7 @@
 <Example
   title="Times"
   note="Clock times in mono line up in one column, and relative times show the whole instant in a tip"
-  layout="stack"
+  layout="grid"
 >
   <Specimen label="Clock, oldest first" code={'time="clock" order="oldest"'}>
     <Timeline events={log} order="oldest" aria-label="Check 4182" />
@@ -173,7 +173,7 @@
 <Example
   title="Days"
   note="Grouped, each local day takes a heading; ungrouped events from several days carry their date"
-  layout="stack"
+  layout="grid"
 >
   <Specimen label="Grouped by day" code="days">
     <Timeline events={history} days level={4} aria-label="Workspace history" />
