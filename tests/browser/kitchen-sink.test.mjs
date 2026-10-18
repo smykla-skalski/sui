@@ -380,6 +380,152 @@ suite('the kitchen sink', together, () => {
     }
   });
 
+  test("L-102 an avatar's initials centre their drawn ink on the drawn circle", async () => {
+    // A B leans on its stem, a Q hangs its tail and an accent stands over its letter, so the
+    // advance and the cap band are not where the letters draw. The ground is painted red and
+    // the letters blue, and both are found in the pixels at four device pixels to the pixel.
+    for (const width of [1440, 375]) {
+      const page = await open(width, 'light', { deviceScaleFactor: 4 });
+      try {
+        const boxes = await page.evaluate(async () => {
+          const loaded = performance.getEntriesByType('resource').map((entry) => entry.name);
+          const find = (/** @type {RegExp} */ pattern) => loaded.find((name) => pattern.test(name));
+          const lib = await import(/* @vite-ignore */ find(/\/src\/lib\/index\.ts/) ?? '');
+          const { mount, flushSync } = await import(
+            /* @vite-ignore */ find(/\.vite\/deps\/svelte\.js/) ?? ''
+          );
+          const host = document.createElement('div');
+          host.id = 'avatar-ink';
+          host.style.cssText =
+            'position: fixed; inset: 0; z-index: 2147483647; display: flex; flex-wrap: wrap; align-content: start; gap: 6px; padding: 6px; background: white';
+          const paint = document.createElement('style');
+          paint.textContent =
+            '#avatar-ink .sui-avatar { background: #f00 !important; color: #00f !important; outline: none !important }';
+          document.head.append(paint);
+          document.body.append(host);
+          const names = ['Bart', 'Jo', 'Quinn', 'grace', 'Mary Wells', 'Platform Team'];
+          names.push('Engineering Team 01', 'Ágnes', 'İlker', 'Çelik');
+          for (const size of [20, 21, 24, 28, 30, 32, 36, 40, 48])
+            for (const name of names) mount(lib.Avatar, { target: host, props: { name, size } });
+          flushSync();
+          await document.fonts.ready;
+          return [...host.querySelectorAll('.sui-avatar')].map((avatar) => ({
+            letters: `${avatar.textContent?.trim()} at ${avatar.getBoundingClientRect().width}px`,
+            box: avatar.getBoundingClientRect().toJSON()
+          }));
+        });
+        const shot = await page.screenshot();
+        const off = await page.evaluate(
+          async ({ data, boxes }) => {
+            const image = await createImageBitmap(await (await fetch(data)).blob());
+            const context = new OffscreenCanvas(image.width, image.height).getContext('2d');
+            if (!context) return ['no canvas'];
+            context.drawImage(image, 0, 0);
+            const scale = image.width / innerWidth;
+            return boxes.flatMap(({ letters, box }) => {
+              const [x0, y0] = [Math.floor((box.x - 3) * scale), Math.floor((box.y - 3) * scale)];
+              const [w, h] = [
+                Math.ceil((box.width + 6) * scale),
+                Math.ceil((box.height + 6) * scale)
+              ];
+              const { data: px } = context.getImageData(x0, y0, w, h);
+              /** @param {(r: number, g: number, b: number) => number} cover */
+              const middle = (cover) => {
+                const cols = new Array(w).fill(0);
+                const rows = new Array(h).fill(0);
+                for (let y = 0; y < h; y++)
+                  for (let x = 0; x < w; x++) {
+                    const i = (y * w + x) * 4;
+                    const v = cover(px[i], px[i + 1], px[i + 2]);
+                    cols[x] = Math.max(cols[x], v);
+                    rows[y] = Math.max(rows[y], v);
+                  }
+                /** @param {number[]} line */
+                const centre = (line) =>
+                  (line.findIndex((v) => v >= 0.5) + line.findLastIndex((v) => v >= 0.5) + 1) /
+                  2 /
+                  scale;
+                return [centre(cols), centre(rows)];
+              };
+              const circle = middle((r, g, b) => (r + b - 2 * g) / 255);
+              const ink = middle((r, g, b) => (g < 64 ? (b - r) / 255 : 0));
+              const [dx, dy] = [ink[0] - circle[0], ink[1] - circle[1]];
+              return Math.abs(dx) > 0.25 || Math.abs(dy) > 0.25
+                ? [`${letters}: the ink stands ${dx.toFixed(2)}, ${dy.toFixed(2)}px off the middle`]
+                : [];
+            });
+          },
+          { data: `data:image/png;base64,${shot.toString('base64')}`, boxes }
+        );
+        assert.deepEqual(off, [], `${width}px`);
+      } finally {
+        await page.close();
+      }
+    }
+  });
+
+  test('a picture draws the same before script runs as after, named once', async () => {
+    // The server render with no script is the reader's first frame: there a picture that fails
+    // draws nothing over its initials and their ring, and one that loads covers them, even
+    // through a logo's clear middle. The running page draws each the same.
+    const failed = ['Alan Turing', 'Radia Perlman'];
+    const loaded = ['Grace Hopper', 'Platform Team'];
+    const address = new URL(url);
+    address.searchParams.set('audit', 'manual');
+    /** @type {string[]} */
+    const problems = [];
+    /** @param {boolean} javaScriptEnabled */
+    const draw = async (javaScriptEnabled) => {
+      const page = await browser.newPage({
+        viewport: { width: 1440, height: 900 },
+        javaScriptEnabled
+      });
+      try {
+        await page.goto(address.href);
+        if (javaScriptEnabled) await page.waitForFunction(() => '__suiAudit' in window);
+        /** @type {Record<string, Buffer>} */
+        const drawn = {};
+        for (const name of [...failed, ...loaded]) {
+          const avatar = page
+            .locator('#avatar .example', { hasText: /^(Pictures|Fallbacks)/ })
+            .getByRole('img', { name, exact: true });
+          await avatar.scrollIntoViewIfNeeded();
+          for (const img of await avatar.locator('img').all())
+            await img.evaluate((node) =>
+              /** @type {HTMLImageElement} */ (node).decode().catch(() => {})
+            );
+          drawn[name] = await avatar.screenshot();
+          if (javaScriptEnabled) continue;
+          // What a part adds is what disappears with it.
+          const part = avatar.locator(failed.includes(name) ? 'img' : 'svg');
+          await part.evaluate((node) => node.style.setProperty('display', 'none'));
+          if (!(await avatar.screenshot()).equals(drawn[name]))
+            problems.push(
+              `${name}: the ${failed.includes(name) ? 'failed picture' : 'covered initials'} drew something`
+            );
+          await part.evaluate((node) => node.style.removeProperty('display'));
+        }
+        if (!javaScriptEnabled) {
+          assert.equal(
+            await page.getByRole('img', { name: 'Alan Turing', exact: true }).ariaSnapshot(),
+            '- img "Alan Turing"'
+          );
+          // Beside the name an avatar is not heard at all, so the name is read once.
+          for (const event of await page.locator('#timeline li:has(.sui-avatar)').all())
+            assert.doesNotMatch(await event.ariaSnapshot(), /\bimg\b/);
+        }
+        return drawn;
+      } finally {
+        await page.close();
+      }
+    };
+    const before = await draw(false);
+    const after = await draw(true);
+    for (const name of [...failed, ...loaded])
+      if (!after[name].equals(before[name])) problems.push(`${name} changes once script runs`);
+    assert.deepEqual(problems, []);
+  });
+
   test('L-69 every glyph is centred in its 24-unit box', long, async () => {
     const page = await open(1440, 'light');
     try {
@@ -1209,121 +1355,6 @@ suite('the kitchen sink', together, () => {
         () => new Promise((done) => requestAnimationFrame(() => requestAnimationFrame(done)))
       );
       assert.equal(await page.evaluate(() => /** @type {any} */ (window).shifted), 0);
-    } finally {
-      await page.close();
-    }
-  });
-
-  test("L-102 an avatar's initials centre their drawn ink on the drawn circle", async () => {
-    // A B leans on its stem, a Q hangs its tail and an accent stands over its letter, so the
-    // advance and the cap band are not where the letters draw. The ground is painted red and
-    // the letters blue, and both are found in the pixels at four device pixels to the pixel.
-    for (const width of [1440, 375]) {
-      const page = await open(width, 'light', { deviceScaleFactor: 4 });
-      try {
-        const boxes = await page.evaluate(async () => {
-          const loaded = performance.getEntriesByType('resource').map((entry) => entry.name);
-          const find = (/** @type {RegExp} */ pattern) => loaded.find((name) => pattern.test(name));
-          const lib = await import(/* @vite-ignore */ find(/\/src\/lib\/index\.ts/) ?? '');
-          const { mount, flushSync } = await import(
-            /* @vite-ignore */ find(/\.vite\/deps\/svelte\.js/) ?? ''
-          );
-          const host = document.createElement('div');
-          host.id = 'avatar-ink';
-          host.style.cssText =
-            'position: fixed; inset: 0; z-index: 2147483647; display: flex; flex-wrap: wrap; align-content: start; gap: 6px; padding: 6px; background: white';
-          const paint = document.createElement('style');
-          paint.textContent =
-            '#avatar-ink .sui-avatar { background: #f00 !important; color: #00f !important; outline: none !important }';
-          document.head.append(paint);
-          document.body.append(host);
-          const names = ['Bart', 'Jo', 'Quinn', 'grace', 'Mary Wells', 'Platform Team'];
-          names.push('Engineering Team 01', 'Ágnes', 'İlker', 'Çelik');
-          for (const size of [20, 21, 24, 28, 30, 32, 36, 40, 48])
-            for (const name of names) mount(lib.Avatar, { target: host, props: { name, size } });
-          flushSync();
-          await document.fonts.ready;
-          return [...host.querySelectorAll('.sui-avatar')].map((avatar) => ({
-            letters: `${avatar.textContent?.trim()} at ${avatar.getBoundingClientRect().width}px`,
-            box: avatar.getBoundingClientRect().toJSON()
-          }));
-        });
-        const shot = await page.screenshot();
-        const off = await page.evaluate(
-          async ({ data, boxes }) => {
-            const image = await createImageBitmap(await (await fetch(data)).blob());
-            const context = new OffscreenCanvas(image.width, image.height).getContext('2d');
-            if (!context) return ['no canvas'];
-            context.drawImage(image, 0, 0);
-            const scale = image.width / innerWidth;
-            return boxes.flatMap(({ letters, box }) => {
-              const [x0, y0] = [Math.floor((box.x - 3) * scale), Math.floor((box.y - 3) * scale)];
-              const [w, h] = [
-                Math.ceil((box.width + 6) * scale),
-                Math.ceil((box.height + 6) * scale)
-              ];
-              const { data: px } = context.getImageData(x0, y0, w, h);
-              /** @param {(r: number, g: number, b: number) => number} cover */
-              const middle = (cover) => {
-                const cols = new Array(w).fill(0);
-                const rows = new Array(h).fill(0);
-                for (let y = 0; y < h; y++)
-                  for (let x = 0; x < w; x++) {
-                    const i = (y * w + x) * 4;
-                    const v = cover(px[i], px[i + 1], px[i + 2]);
-                    cols[x] = Math.max(cols[x], v);
-                    rows[y] = Math.max(rows[y], v);
-                  }
-                /** @param {number[]} line */
-                const centre = (line) =>
-                  (line.findIndex((v) => v >= 0.5) + line.findLastIndex((v) => v >= 0.5) + 1) /
-                  2 /
-                  scale;
-                return [centre(cols), centre(rows)];
-              };
-              const circle = middle((r, g, b) => (r + b - 2 * g) / 255);
-              const ink = middle((r, g, b) => (g < 64 ? (b - r) / 255 : 0));
-              const [dx, dy] = [ink[0] - circle[0], ink[1] - circle[1]];
-              return Math.abs(dx) > 0.25 || Math.abs(dy) > 0.25
-                ? [`${letters}: the ink stands ${dx.toFixed(2)}, ${dy.toFixed(2)}px off the middle`]
-                : [];
-            });
-          },
-          { data: `data:image/png;base64,${shot.toString('base64')}`, boxes }
-        );
-        assert.deepEqual(off, [], `${width}px`);
-      } finally {
-        await page.close();
-      }
-    }
-  });
-
-  test('a picture that fails shows its initials from the server render, named once', async () => {
-    // No script runs, so nothing can swap a failed picture out: the page must draw it right.
-    const page = await browser.newPage({
-      viewport: { width: 1440, height: 900 },
-      javaScriptEnabled: false
-    });
-    try {
-      await page.goto(url);
-      const avatar = page.getByRole('img', { name: 'Alan Turing', exact: true });
-      await avatar.scrollIntoViewIfNeeded();
-      await avatar
-        .locator('img')
-        .evaluate((img) => /** @type {HTMLImageElement} */ (img).decode().catch(() => {}));
-      const drawn = await avatar.screenshot();
-      await avatar.locator('img').evaluate((img) => img.style.setProperty('display', 'none'));
-      assert.ok((await avatar.screenshot()).equals(drawn), 'the failed picture drew something');
-      assert.equal(
-        await avatar
-          .locator('svg')
-          .evaluate((svg) => `${getComputedStyle(svg).visibility} ${svg.textContent}`),
-        'visible AT'
-      );
-      assert.equal(await avatar.ariaSnapshot(), '- img "Alan Turing"');
-      // Beside the name an avatar is not heard at all, so the name is read once.
-      for (const event of await page.locator('#timeline li:has(.sui-avatar)').all())
-        assert.doesNotMatch(await event.ariaSnapshot(), /\bimg\b/);
     } finally {
       await page.close();
     }

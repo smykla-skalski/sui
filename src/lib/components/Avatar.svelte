@@ -154,13 +154,6 @@
   const letters = $derived(monogram(name, handle));
   const ink = $derived(inkCentre(letters));
 
-  /* URLs rather than flags, so a changed picture is tried again while the one that just
-     failed is not requested twice. */
-  let failed = $state<string | null>(null);
-  let loaded = $state<string | null>(null);
-
-  const source = $derived(src && src !== failed ? src : null);
-
   /* Initials snap to a type step instead of scaling with the circle, so every list
      carries the same weight at a given size. */
   const step = $derived(size < 24 ? 'nano' : size < 32 ? 'micro' : size < 40 ? 'meta' : 'title');
@@ -184,13 +177,13 @@
 @component
 Who or what, at the size the place asks for. A person is a circle and a workspace a rounded
 square, so two avatars side by side say which is which without a label. The picture is fetched
-without a referrer and covers initials drawn under it, so a picture that is slow or fails shows
-the initials from the first frame, before any script runs. The initials' ink, not their advance
-or line, centres on the box.
+without a referrer and covers initials drawn under it. A picture that is slow or fails takes no
+room, so the initials show from the first frame with no script, and nothing changes once the
+page runs. The initials' ink, not their advance or line, centres on the box.
 
 - Semantics: a `span` with role `img`, named by `alt`, which is the name by default; the picture has an empty `alt` and the initials are hidden, so the name is read once. An empty `alt` hides the whole avatar.
 - Content: a picture URL over initials from the name: "Ada Lovelace" is AL, "Engineering Team 01" is E1, and a bare handle gives its first letter.
-- States: initials, then the picture over them once it loads; initials alone when there is no picture or it fails.
+- States: initials, then the picture over them on its own ground and ring once it loads, even where it is transparent; initials alone when there is no picture or it fails.
 - Keyboard: none, because it is not interactive.
 - Pointer and touch: none, because it is not a target.
 - Focus: never takes focus.
@@ -210,21 +203,12 @@ or line, centres on the box.
   style:--sui-avatar-size="{size / 16}rem"
   data-corner={corner}
   data-step={step}
-  data-picture={source === null ? undefined : source === loaded ? 'shown' : 'pending'}
 >
   <svg class="sui-avatar-letters" aria-hidden="true"
     ><text x="50%" y="50%" dx={ink[0]} dy={ink[1]}>{letters}</text></svg
   >
-  {#if source !== null}
-    <img
-      src={source}
-      alt=""
-      loading="lazy"
-      decoding="async"
-      referrerpolicy="no-referrer"
-      onload={() => (loaded = source)}
-      onerror={() => (failed = source)}
-    />
+  {#if src}
+    <img {src} alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer" />
   {/if}
 </span>
 
@@ -233,6 +217,8 @@ or line, centres on the box.
     background: var(--sui-brand-action-tint);
     block-size: var(--sui-avatar-size);
     border-radius: 50%;
+    /* Under the picture, which draws a ring of its own, so only initials wear this one. */
+    box-shadow: inset 0 0 0 var(--sui-stroke) color-mix(in srgb, currentColor 28%, transparent);
     box-sizing: border-box;
     color: var(--sui-brand-action-text);
     display: inline-grid;
@@ -241,14 +227,6 @@ or line, centres on the box.
       var(--sui-sans);
     grid-template: minmax(0, 1fr) / minmax(0, 1fr);
     inline-size: var(--sui-avatar-size);
-    /* An outline paints over the picture where an inset shadow would sit under it, and a
-       photograph can end in the color of the card behind it. */
-    outline: var(--sui-stroke) solid color-mix(in srgb, currentColor 28%, transparent);
-    outline-offset: calc(-1 * var(--sui-stroke));
-  }
-
-  .sui-avatar[data-picture] {
-    outline-color: var(--sui-avatar-ring);
   }
 
   [data-corner='control'] {
@@ -287,17 +265,37 @@ or line, centres on the box.
     text-anchor: middle;
   }
 
-  /* A transparent picture would show the initials through it. */
-  [data-picture='shown'] > .sui-avatar-letters {
-    visibility: hidden;
-  }
-
-  /* Stretched by the grid rather than sized, so a picture that fails draws nothing at all,
-     where a sized one draws the browser's broken image. */
+  /* Sized by its own size, so a picture that fails, which has none, takes no room and draws
+     nothing, not even the browser's broken image. One that loads covers the initials on its
+     own ground, even where it is transparent, and its ring is an outline because a photograph
+     can end in the color of the card behind it. */
   img {
+    background: var(--sui-brand-action-tint);
     border-radius: inherit;
     grid-area: 1 / 1;
+    max-block-size: 100%;
+    max-inline-size: 100%;
     object-fit: cover;
-    place-self: stretch;
+    outline: var(--sui-stroke) solid var(--sui-avatar-ring);
+    outline-offset: calc(-1 * var(--sui-stroke));
+    place-self: center;
+  }
+
+  /* Any size of its own, however small, reaches the whole box, so a small or oblong picture
+     covers it too. Without calc-size a square picture as large as the box still covers it,
+     and others stand inside it. */
+  @supports (min-inline-size: calc-size(max-content, size)) {
+    img {
+      min-block-size: calc-size(max-content, min(100%, size * 1000));
+      min-inline-size: calc-size(max-content, min(100%, size * 1000));
+    }
+  }
+
+  /* Forced colors drop the shadow, so the ring becomes a system-color line. */
+  @media (forced-colors: active) {
+    .sui-avatar {
+      outline: var(--sui-stroke) solid;
+      outline-offset: calc(-1 * var(--sui-stroke));
+    }
   }
 </style>
