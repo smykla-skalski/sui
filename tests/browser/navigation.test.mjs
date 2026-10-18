@@ -73,6 +73,37 @@ suite('navigation', together, () => {
     }
   );
 
+  // A control folded in a closed disclosure still has client rects in Chrome, and the
+  // disclosure's summary is a tab stop of its own.
+  test(
+    'Tab wraps in the phone drawer past a control folded in a closed details',
+    long,
+    async () => {
+      const page = await open(1440);
+      try {
+        const shell = phone(page, 0);
+        await shell.scrollIntoViewIfNeeded();
+        await shell.locator('.sui-shell-menu').click();
+        const drawer = page.locator('.sui-shell-side:popover-open');
+        await drawer.waitFor();
+        await drawer.evaluate((side) => {
+          const more = document.createElement('details');
+          more.innerHTML = '<summary>More</summary><a href="#folded">Folded</a>';
+          side.append(more);
+          more.querySelector('summary')?.focus();
+        });
+        await page.keyboard.press('Tab');
+        const landed = await page.evaluate(() => document.activeElement?.textContent?.trim());
+        const first = await drawer.evaluate((side) =>
+          side.querySelector('a[href], button')?.textContent?.trim()
+        );
+        assert.equal(landed, first, 'Tab from the last stop left the drawer');
+      } finally {
+        await page.close();
+      }
+    }
+  );
+
   test('the phone drawer opens from the start edge in a right-to-left page', long, async () => {
     const page = await open(1440, { rtl: true });
     try {
