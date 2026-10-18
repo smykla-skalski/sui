@@ -59,7 +59,7 @@ tabular figures.
 
 - Semantics: a native `<input>` of the given `type`, named by a `<label for>` or `aria-label`; `invalid`, a caller's `aria-invalid` or a value the browser's check refused sets `aria-invalid`.
 - Content: one line of text the reader types, with an optional placeholder that is an example and never the label.
-- States: rest (the control fill, a quiet frame and a 3:1 baseline), hover (a firmer frame), focus (the inset fill and a flush 2px ring), invalid (a danger edge on all four sides, kept under hover and focus), read-only (no fill and no baseline) and disabled (0.5 opacity).
+- States: rest (the control fill, a quiet frame, a recess under its top edge darker than the frame and a 3:1 baseline), hover (a firmer frame and recess), focus (the inset fill and a flush 2px ring), invalid (a danger edge on all four sides, kept under hover and focus), read-only (no fill, no baseline and no recess), held (disabled while a busy dialog or a saving pane around it works, read only and focusable while a saving setting row does, 0.5 opacity either way) and disabled (0.5 opacity).
 - Keyboard: the browser's own text editing; Tab moves on.
 - Pointer and touch: 34px tall on a pointer and 44px on a phone or any touch screen, with 16px text on a phone so iOS does not zoom.
 - Focus: it takes focus on a press and never moves it elsewhere.
@@ -93,6 +93,7 @@ tabular figures.
     border: var(--sui-stroke) solid var(--sui-field-frame);
     border-block-end-color: var(--sui-field-border);
     border-radius: var(--sui-radius-control);
+    box-shadow: inset 0 var(--sui-stroke) 0 var(--sui-field-recess);
     box-sizing: border-box;
     color: var(--sui-text-primary);
     font: var(--sui-weight-regular) var(--sui-font-size-input) / var(--sui-leading-input)
@@ -115,6 +116,7 @@ tabular figures.
       background-color: var(--sui-field-hover);
       border-color: var(--sui-field-frame-hover);
       border-block-end-color: var(--sui-field-border-hover);
+      box-shadow: inset 0 var(--sui-stroke) 0 var(--sui-field-recess-hover);
     }
 
     .sui-text-input[aria-invalid='true']:hover:not(:disabled, :focus, .bare, [readonly]) {
@@ -134,12 +136,13 @@ tabular figures.
   }
 
   /* An open list means the field is in use, so a combobox's preview keeps the editing look. */
-  /* A value that only reads sits in the inset well with a quiet frame and no strong
-     baseline, so it never looks like a field to type in. */
-  .sui-text-input[readonly]:not([aria-expanded='true']),
-  .sui-text-input[readonly]:not([aria-expanded='true']):focus {
+  /* A value that only reads sits in the inset well with a quiet frame, no strong baseline and
+     no recess, so it never looks like a field to type in. */
+  .sui-text-input[readonly]:not(.held, [aria-expanded='true']),
+  .sui-text-input[readonly]:not(.held, [aria-expanded='true']):focus {
     background-color: var(--sui-surface-inset);
     border-color: var(--sui-border-subtle);
+    box-shadow: none;
   }
 
   .sui-text-input[aria-invalid='true'] {
@@ -161,12 +164,13 @@ tabular figures.
   }
 
   /* Lies over the host's edge by its own transparent border, so it keeps the full height.
-     The ground, edge and ring are the host's. */
+     The ground, edge, recess and ring are the host's. */
   .sui-text-input.bare,
   .sui-text-input.bare:is(:focus, :focus-visible, [aria-invalid='true'], [readonly]) {
     background-color: transparent;
     border-color: transparent;
     border-radius: 0;
+    box-shadow: none;
     margin-block: calc(-1 * var(--sui-stroke));
     outline: none;
   }

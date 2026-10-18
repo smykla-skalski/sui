@@ -467,6 +467,39 @@ suite('forms', together, () => {
     }
   );
 
+  // The audit reads fields at rest; a hover firms the frame, so the recess must firm with it.
+  test('a hovered field keeps its recess darker than its frame', long, async () => {
+    const page = await open();
+    try {
+      for (const selector of [
+        '#text-input .sui-text-input',
+        '#textarea .sui-textarea',
+        '#select .sui-select-control',
+        '#duration-input .sui-joined'
+      ]) {
+        const field = page.locator(selector).first();
+        await field.hover();
+        const { recess, frame } = await field.evaluate((element) => {
+          const look = getComputedStyle(element);
+          // Both are veils over the same ground, so laid on white they compare as a reader sees them.
+          const shade = (/** @type {string} */ color) => {
+            const [r, g, b, a = 1] = (color.match(/[\d.]+/g) ?? []).map(Number);
+            return [r, g, b]
+              .map((channel) => channel * a + 255 * (1 - a))
+              .reduce((sum, channel, index) => sum + channel * [0.2126, 0.7152, 0.0722][index], 0);
+          };
+          return {
+            recess: shade(look.boxShadow.match(/rgba?\([^)]*\)/)?.[0] ?? 'rgba(0, 0, 0, 0)'),
+            frame: shade(look.borderTopColor)
+          };
+        });
+        assert.ok(recess < frame, `${selector} lightens its recess past its hovered frame`);
+      }
+    } finally {
+      await page.close();
+    }
+  });
+
   test('an on switch keeps its thumb inside the track in a right-to-left page', long, async () => {
     const page = await open();
     try {

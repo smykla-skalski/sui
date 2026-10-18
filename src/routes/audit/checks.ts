@@ -212,6 +212,25 @@ function palette(): Finding[] {
         2.25
       )
     );
+  // The recess under a field's top edge is darker than the frame it lies under and the ground
+  // it lies on. On light, where the frame is a shade too, it stands one hover step past it.
+  for (const [recess, frame, grounds] of [
+    ['field-recess', 'field-frame', ['canvas', 'surface-base', 'surface-raised', 'input-bg']],
+    ['field-recess-hover', 'field-frame-hover', ['canvas', 'surface-base', 'surface-raised']],
+    ['unsaved-field-recess', 'unsaved-control-border', ['unsaved-control']],
+    ['unsaved-field-recess-hover', 'unsaved-border', ['unsaved-control']]
+  ] as const)
+    for (const name of grounds) {
+      const ground = over(t(name), t('surface-base'));
+      const line = over(t(recess), ground);
+      const edge = over(t(frame), ground);
+      if (lightness(line) >= Math.min(lightness(edge), lightness(ground)))
+        found.push(finding('L-9', null, `${recess} on ${name} is no darker than ${frame}`));
+      if (lightness(ground) > 50)
+        found.push(
+          ...between('L-9', `${recess} past ${frame} on ${name}`, deltaE(line, edge), 4.4, 5.4)
+        );
+    }
   found.push(
     ...between('L-10', 'control-bg on surface-base', c('control-bg', 'surface-base'), 1, 1.5)
   );
@@ -1753,6 +1772,8 @@ function unsavedVeils(root: Document): Finding[] {
   const veils = [
     '--sui-row-hover',
     '--sui-field-hover',
+    '--sui-field-recess',
+    '--sui-field-recess-hover',
     '--sui-row-pressed',
     '--sui-interactive-hover-layer',
     '--sui-interactive-pressed',
@@ -1765,6 +1786,46 @@ function unsavedVeils(root: Document): Finding[] {
     for (const veil of veils)
       if (around && own.getPropertyValue(veil).trim() === around.getPropertyValue(veil).trim())
         found.push(finding('L-16', row, `${veil} keeps the neutral veil on the changed plate`));
+  }
+  return found;
+}
+
+/**
+ * Field recesses (L-9): every field frame a reader types or picks in draws one line under its
+ * top edge, an inset shadow a stroke deep with no blur, darker than its frame on the field's own
+ * ground in every state. A read-only field sits in the inset well, no place to type, and draws
+ * none.
+ */
+function fieldRecesses(root: Document): Finding[] {
+  const found: Finding[] = [];
+  const frames =
+    '.sui-text-input:not(.bare), .sui-textarea, .sui-select:not(.bare) .sui-select-control, .sui-joined';
+  for (const field of audited(root, frames)) {
+    const look = getComputedStyle(field);
+    const stroke = parseFloat(look.borderTopWidth);
+    const line = (look.boxShadow === 'none' ? [] : look.boxShadow.split(/,(?![^(]*\))/))
+      .filter((shadow) => shadow.includes('inset'))
+      .map((shadow) => {
+        const [x, y, blur, spread] = [
+          ...shadow.replace(/[a-z-]+\([^)]*\)/g, '').matchAll(/-?[\d.]+px/g)
+        ].map(([length]) => parseFloat(length));
+        return { color: shadow.match(/[a-z-]+\([^)]*\)/)?.[0], x, y, blur, spread };
+      })
+      .find(({ x, y, blur, spread }) => x === 0 && y === stroke && blur === 0 && spread === 0);
+    const well =
+      '.sui-text-input[readonly]:not(.held, [aria-expanded="true"]), .sui-joined.readonly';
+    if (field.matches(well)) {
+      if (line) found.push(finding('L-9', field, 'a read-only field draws a recess'));
+      continue;
+    }
+    if (!line?.color) {
+      found.push(finding('L-9', field, 'a field draws no recess under its top edge'));
+      continue;
+    }
+    const ground = paintedGround(field);
+    const frame = rgba(look.getPropertyValue('--sui-field-frame'));
+    if (lightness(over(rgba(line.color), ground)) >= lightness(over(frame, ground)))
+      found.push(finding('L-9', field, 'its recess is no darker than its frame'));
   }
   return found;
 }
@@ -2918,5 +2979,6 @@ register(
   disclosedCards,
   rowGrounds,
   timelines,
-  cardHeads
+  cardHeads,
+  fieldRecesses
 );

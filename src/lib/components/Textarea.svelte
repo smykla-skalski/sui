@@ -51,7 +51,7 @@ It has no label of its own. Put it in a `Field` through the `control` snippet, o
 
 - Semantics: a native `<textarea>`, named by a `<label for>` or `aria-label`; `invalid`, a caller's `aria-invalid` or a value the browser's check refused sets `aria-invalid`.
 - Content: free text over several lines, `rows` lines tall before it scrolls, with an optional placeholder that is an example and never the label.
-- States: rest (the control fill, a quiet frame and a 3:1 baseline), hover (a firmer frame), focus (the inset fill and a flush 2px ring), invalid (a danger edge on all four sides, kept under hover and focus) and disabled (0.5 opacity, no resize).
+- States: rest (the control fill, a quiet frame, a recess under its top edge darker than the frame and a 3:1 baseline), hover (a firmer frame and recess), focus (the inset fill and a flush 2px ring), invalid (a danger edge on all four sides, kept under hover and focus), held (disabled while a busy dialog or a saving pane around it works, read only and focusable while a saving setting row does, 0.5 opacity either way) and disabled (0.5 opacity, no resize).
 - Keyboard: the browser's own text editing, Enter included; Tab moves on.
 - Pointer and touch: at least 34px tall, 44px on a phone or any touch screen, with 16px text on a phone so iOS does not zoom; the resize grip is an extra, never the only way to read more.
 - Focus: it takes focus on a press and never moves it elsewhere.
@@ -82,6 +82,7 @@ It has no label of its own. Put it in a `Field` through the `control` snippet, o
     border: var(--sui-stroke) solid var(--sui-field-frame);
     border-block-end-color: var(--sui-field-border);
     border-radius: var(--sui-radius-control);
+    box-shadow: inset 0 var(--sui-stroke) 0 var(--sui-field-recess);
     box-sizing: border-box;
     color: var(--sui-text-primary);
     display: block;
@@ -107,6 +108,7 @@ It has no label of its own. Put it in a `Field` through the `control` snippet, o
       background-color: var(--sui-field-hover);
       border-color: var(--sui-field-frame-hover);
       border-block-end-color: var(--sui-field-border-hover);
+      box-shadow: inset 0 var(--sui-stroke) 0 var(--sui-field-recess-hover);
     }
 
     .sui-textarea[aria-invalid='true']:hover:not(:disabled, :focus, [readonly]) {

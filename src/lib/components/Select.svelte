@@ -124,8 +124,8 @@ assistive technology, because a native picker cannot be held open.
 
 - Semantics: a native `<select>` with `<option>` and `<optgroup>` children, named by a `<label for>` or `aria-label`; `invalid` or a value the browser's check refused sets `aria-invalid`.
 - Content: six or more options with short labels and optional notes, in optional headed groups; disabled options stay in view.
-- States: rest (the control fill, a quiet frame and a 3:1 baseline), hover (a firmer frame), open, focus (a flush 2px ring), pressed (a deeper ground, an inset shadow and a 1px sink), invalid (a danger edge kept under focus), prompt (muted ink) and disabled (0.5 opacity); in the picker an option is active (a veil) or checked (a check mark).
-- Keyboard: the browser's own select keys: Space, Enter and the arrows open it and move, typing jumps to a label, and Escape closes it.
+- States: rest (the control fill, a quiet frame, a recess under its top edge darker than the frame and a 3:1 baseline), hover (a firmer frame and recess), open, focus (a flush 2px ring), pressed (a deeper ground, an inset shadow and a 1px sink), invalid (a danger edge kept under focus), prompt (muted ink), held (disabled while a busy dialog or a saving pane around it works, a tab stop that refuses every change while a saving setting row does, 0.5 opacity either way) and disabled (0.5 opacity); in the picker an option is active (a veil) or checked (a check mark).
+- Keyboard: the browser's own select keys: Space, Enter and the arrows open it and move, typing jumps to a label, and Escape closes it; a held select refuses all of them but Tab.
 - Pointer and touch: the trigger is 34px tall on a pointer and 44px on a phone or any touch screen, every option at least that tall, and a phone opens its own picker.
 - Focus: focus stays on the trigger while the picker opens and closes.
 - Responsive: the trigger is as wide as its value up to its container and cuts a long value, which the picker shows in full, wrapped.
@@ -250,6 +250,7 @@ assistive technology, because a native picker cannot be held open.
     border: var(--sui-stroke) solid var(--sui-field-frame);
     border-block-end-color: var(--sui-field-border);
     border-radius: var(--sui-radius-control);
+    box-shadow: inset 0 var(--sui-stroke) 0 var(--sui-field-recess);
     box-sizing: border-box;
     color: var(--sui-text-primary);
     cursor: pointer;
@@ -281,6 +282,7 @@ assistive technology, because a native picker cannot be held open.
       background-color: var(--sui-field-hover);
       border-color: var(--sui-field-frame-hover);
       border-block-end-color: var(--sui-field-border-hover);
+      box-shadow: inset 0 var(--sui-stroke) 0 var(--sui-field-recess-hover);
     }
 
     .sui-select:not(.bare)
@@ -300,7 +302,9 @@ assistive technology, because a native picker cannot be held open.
       var(--sui-interactive-pressed),
       var(--sui-interactive-pressed)
     );
-    box-shadow: var(--sui-pressed-inset);
+    box-shadow:
+      inset 0 var(--sui-stroke) 0 var(--sui-field-recess),
+      var(--sui-pressed-inset);
     translate: 0 1px;
   }
 
@@ -340,6 +344,7 @@ assistive technology, because a native picker cannot be held open.
     border-end-start-radius: var(--sui-radius-control);
     border-start-start-radius: var(--sui-radius-control);
     border-width: 0;
+    box-shadow: none;
     color: var(--sui-text-secondary);
     margin-block: calc(-1 * var(--sui-stroke));
     /* The field's own text inset, so the unit's words sit as far in as a value's would. */
@@ -432,6 +437,17 @@ assistive technology, because a native picker cannot be held open.
         .sui-select-control:open:not(:focus-visible, [aria-invalid='true'], :user-invalid) {
         border-color: var(--sui-field-frame-hover);
         border-block-end-color: var(--sui-field-border-hover);
+      }
+
+      /* The press that opens the picker keeps its own inset until it lets go (L-42). */
+      .sui-select:not(.bare)
+        .sui-select-control:open:not(
+          :active,
+          :focus-visible,
+          [aria-invalid='true'],
+          :user-invalid
+        ) {
+        box-shadow: inset 0 var(--sui-stroke) 0 var(--sui-field-recess-hover);
       }
 
       /* The full label shows in the picker, so the closed field may cut it. */

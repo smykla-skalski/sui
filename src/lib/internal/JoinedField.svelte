@@ -36,7 +36,7 @@ the end part draws its own inset ring while it has focus, so the two never look 
 
 - Semantics: a `<div>` with no role around two native controls, each named on its own.
 - Content: `start`, the value, and `end`, one unit picker or one action, each drawn `bare`.
-- States: rest (the control fill, a quiet frame and a 3:1 baseline), hover (a firmer frame), the value focused (the inset fill and a flush 2px ring), the end focused (its own inset ring), invalid (a danger edge on all four sides in every state), read-only (the inset well and a quiet frame) and disabled (0.5 opacity).
+- States: rest (the control fill, a quiet frame, a recess under its top edge darker than the frame and a 3:1 baseline), hover anywhere on it (the field veil over both parts and a firmer frame and recess, an end part's own hover over that), the value focused (the inset fill and a flush 2px ring), the end focused (its own inset ring), invalid (a danger edge on all four sides in every state), read-only (the inset well and a quiet frame with no recess), and disabled or held by a busy dialog or a saving pane (0.5 opacity).
 - Keyboard: Tab moves from the value to the end part, each with its own keys.
 - Pointer and touch: the frame is the control height, 34px or 44px on a phone or any touch screen, and each part keeps its own target.
 - Focus: it never moves focus; each part keeps its own.
@@ -60,6 +60,7 @@ the end part draws its own inset ring while it has focus, so the two never look 
     border: var(--sui-stroke) solid var(--sui-field-frame);
     border-block-end-color: var(--sui-field-border);
     border-radius: var(--sui-radius-control);
+    box-shadow: inset 0 var(--sui-stroke) 0 var(--sui-field-recess);
     box-sizing: border-box;
     display: flex;
     flex-wrap: wrap;
@@ -81,6 +82,7 @@ the end part draws its own inset ring while it has focus, so the two never look 
       background-color: var(--sui-field-hover);
       border-color: var(--sui-field-frame-hover);
       border-block-end-color: var(--sui-field-border-hover);
+      box-shadow: inset 0 var(--sui-stroke) 0 var(--sui-field-recess-hover);
     }
 
     .sui-joined.invalid:hover:not(.disabled, .readonly, :has(:global(:focus-visible))) {
@@ -99,12 +101,13 @@ the end part draws its own inset ring while it has focus, so the two never look 
     outline-offset: var(--sui-focus-ring-flush);
   }
 
-  /* A value that only reads sits in the inset well with a quiet frame, as a read-only text
-     field does, so it never looks like a field to type in. */
+  /* A value that only reads sits in the inset well with a quiet frame and no recess, as a
+     read-only text field does, so it never looks like a field to type in. */
   .readonly,
   .readonly:has(.sui-joined-value :global(:focus-visible)) {
     background-color: var(--sui-surface-inset);
     border-color: var(--sui-border-subtle);
+    box-shadow: none;
   }
 
   .invalid,
