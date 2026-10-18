@@ -34,7 +34,7 @@ A law that says "every" means every component, including the ones added after it
 
 ## Fonts and type
 
-- **L-18** Two families, the same faces Smyklot ships: `SUI Plus Jakarta Sans` (variable 400 to 700) for interface text and `SUI JetBrains Mono` (variable 400 to 500) for technical values. Each has a Latin and a Latin Extended face with `font-display: swap`. `S-48 K-14 K-15` `source`
+- **L-18** Two families, the same faces Smyklot ships: `SUI Plus Jakarta Sans` (variable 400 to 700) for interface text and `SUI JetBrains Mono` (variable 400 to 500) for technical values. Each has a Latin and a Latin Extended face with `font-display: swap`. The Latin faces ride inline in the stylesheet, and the kitchen sink holds its paint until they decode, so text is drawn in its own face from the first frame and never swaps. `S-48 K-14 K-15` `source`
 - **L-19** Text never asks a face for a weight it does not have: sans stays within 400 to 700 and mono within 400 to 500. `K-21` `audit`
 - **L-20** Headings, navigation, labels, buttons and prose are never monospace. Technical values (IDs, paths, versions, code, counts) are mono with tabular figures. `S-49 S-223 K-22` `audit`
 - **L-21** Sizes come from `--sui-font-size-*` and leading from `--sui-leading-*` or `--sui-row-copy-leading`. Every `font` shorthand carries its leading. Every leading is a whole pixel at a 16px root, so rendered line boxes never land on half pixels. The one exception is `--sui-row-copy-leading`, the cap height plus the 8px copy gap, which is fractional by design. `S-51 S-52` `source` `audit`

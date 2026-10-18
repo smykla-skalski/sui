@@ -12,12 +12,16 @@
     U+A720-A7FF;
 }
 
+/* The Latin faces ride inside the stylesheet, which already holds the first paint, so text
+   is drawn in its own face from the first frame and never swaps, on a cold load or when a
+   stylesheet is applied again. A fetched face arrives after the first layout however early
+   it is asked for. The extended faces are fetched only for the characters that need them. */
 @font-face {
   font-display: swap;
   font-family: 'SUI Plus Jakarta Sans';
   font-style: normal;
   font-weight: 400 700;
-  src: url('./assets/fonts/PlusJakartaSansLatinVF.woff2') format('woff2');
+  src: url('./assets/fonts/PlusJakartaSansLatinVF.woff2?inline') format('woff2');
   unicode-range:
     U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329,
     U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
@@ -40,7 +44,7 @@
   font-family: 'SUI JetBrains Mono';
   font-style: normal;
   font-weight: 400 500;
-  src: url('./assets/fonts/JetBrainsMonoLatinVF.woff2') format('woff2');
+  src: url('./assets/fonts/JetBrainsMonoLatinVF.woff2?inline') format('woff2');
   unicode-range:
     U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329,
     U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;

@@ -17,7 +17,29 @@
         document.documentElement.dataset.suiTheme = theme;
       }
     </script>
+    <style>
+      :root[data-sui-fonts='pending'] body {
+        visibility: hidden;
+      }
+    </style>
     %sveltekit.head%
+    <script>
+      // A face is decoded only once text first asks for it, which is after the first layout,
+      // so a cold load would paint a frame or two in another face. The faces are asked for
+      // here, once the stylesheets above have declared them, and the page shows its ground
+      // alone until they are ready. A face that never arrives holds it no longer than the
+      // browser's own block period.
+      {
+        const root = document.documentElement;
+        const show = () => delete root.dataset.suiFonts;
+        root.dataset.suiFonts = 'pending';
+        Promise.allSettled([
+          document.fonts.load('1em "SUI Plus Jakarta Sans"'),
+          document.fonts.load('1em "SUI JetBrains Mono"')
+        ]).then(show);
+        setTimeout(show, 3000);
+      }
+    </script>
   </head>
   <body data-sveltekit-preload-data="hover">
     <div style="display: contents">%sveltekit.body%</div>

@@ -163,7 +163,7 @@ test('L-18 two families with the faces and weights Smyklot ships', () => {
         (family === 'SUI JetBrains Mono' && weight === '400 500'),
       `${family} at ${weight}`
     );
-    const file = face.match(/url\('\.\/([^']+)'\)/)?.[1];
+    const file = face.match(/url\('\.\/([^'?]+)/)?.[1];
     assert.ok(file && existsSync(`src/lib/${file}`), `${file} exists`);
   }
 });
