@@ -27,8 +27,10 @@ A titled ground for one subject, with its state said on the same line as its nam
 head is always drawn and the body is optional: a plate with nothing in it is a subject with
 nothing to report yet, which is a state worth showing rather than a hole to hide.
 
-A plate is a place, not a message. Something the reader must act on now is a `Callout`
-inside it. It carries the one-pixel plate lift, which a `Card` does not, and like a card it
+A plate is a place, not a message: it never stands for a loading, empty or error message,
+which take a `Skeleton`, an `EmptyState` or an `ErrorState` in the place of what they replace,
+and it never sits inside a detail pane, whose parts are `Section`s. It holds no other framed
+surface (L-55). Something the reader must act on now is a `Callout` inside it. It carries the one-pixel plate lift, which a `Card` does not, and like a card it
 takes its outer spacing from its container. Its content stands one 16px inset from all four
 edges, to the ink. The state centres on the title's first line without raising the head, and
 one that does not fit beside a long title moves under it, as far below as the title's lines
@@ -47,7 +49,7 @@ first render, because a region that arrives with its words is often not read.
 - Localization: it draws no words of its own; the state sits at the inline end, which mirrors in a right-to-left page.
 - Performance: static layout with no script.
 - Analytics: none of its own, because it holds no control.
-- Failure: without a body the plate still names its subject and state, which is how it shows nothing to report.
+- Failure: without a body the plate still names its subject and state, which is how it shows nothing to report; content inside it that failed to load says so in one quiet sentence or an `ErrorState overContent`, never in another frame.
 -->
 
 <section {...rest} class={['sui-plate', className, { 'head-only': !children }]}>

@@ -399,4 +399,45 @@ p { margin-block-end: 2em !important; }`;
       }
     }
   );
+
+  test('a page header says a new state once, from the same status region', long, async () => {
+    const page = await open(1440, 'light');
+    try {
+      const header = page
+        .locator('#page-header .sui-page-header')
+        .filter({ has: page.locator('.sui-page-header-status') });
+      await header.scrollIntoViewIfNeeded();
+      const region = header.locator('[role="status"]');
+      assert.equal(await region.count(), 1, 'the state is not in a status region');
+      assert.match(await region.innerText(), /3 differ/);
+      // A screen reader speaks a polite region once for each batch of changes inside it, and
+      // a region put in place with its words is often not spoken at all.
+      await region.evaluate((node) => {
+        const watch = /** @type {{ statusBatches: number; statusNode: Element }} */ (
+          /** @type {unknown} */ (window)
+        );
+        watch.statusBatches = 0;
+        watch.statusNode = node;
+        new MutationObserver(() => watch.statusBatches++).observe(node, {
+          characterData: true,
+          childList: true,
+          subtree: true
+        });
+      });
+      await header.getByRole('button', { name: 'Check again' }).click();
+      assert.match(await region.innerText(), /Up to date/);
+      await page.evaluate(
+        () => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)))
+      );
+      const after = await region.evaluate((node) => {
+        const watch = /** @type {{ statusBatches: number; statusNode: Element }} */ (
+          /** @type {unknown} */ (window)
+        );
+        return { batches: watch.statusBatches, same: node === watch.statusNode };
+      });
+      assert.deepEqual(after, { batches: 1, same: true }, 'the new state was not said once');
+    } finally {
+      await page.close();
+    }
+  });
 });

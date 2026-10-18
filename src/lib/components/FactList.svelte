@@ -12,6 +12,11 @@
     href?: string;
     /** For a technical value: an ID, a path, a version or a count. */
     mono?: boolean;
+    /**
+     * In `rows`, a control at the row's end that changes this fact, such as a "Change" link
+     * whose name also says which fact it changes.
+     */
+    action?: Snippet;
   };
 </script>
 
@@ -22,48 +27,65 @@
 
   let {
     facts,
+    layout = 'inline',
     missingLabel = word('FactList.missingLabel', 'Not set'),
     class: className = '',
     ...rest
   }: {
     facts: readonly Fact[];
+    /**
+     * `inline` for a few headline facts that wrap one by one, `rows` for a thing's properties,
+     * a label and its value on each row.
+     */
+    layout?: 'inline' | 'rows';
     /** Said in place of a value that is absent, so a fact never stands empty. */
     missingLabel?: string;
     class?: HTMLAttributes<HTMLDListElement>['class'];
   } & Omit<HTMLAttributes<HTMLDListElement>, 'children'> = $props();
+
+  const absent = (fact: Fact) =>
+    fact.value === null || fact.value === undefined || fact.value === '';
 </script>
 
 <!--
 @component
-Short facts about a thing, each a label and its value, such as the branch, the version and
-when it last synced. Facts sit in a row and wrap one by one, separated by space alone, so no
-generated comma or dot is left at the end of a line. A setting a reader changes is a form row,
-not a fact.
+Facts about a thing, each a label and its value, such as the branch, the version and when it
+last synced. A setting a reader changes is a form row, not a fact.
 
-- Semantics: a `dl` with one `dt` and one `dd` per fact, each pair in its own `div`.
-- Content: short labels and values; a value is words, a link through `href`, or a snippet such as a `RelativeTime` or a `Chip`.
+`inline` is for two to five headline facts, as under a page title: they sit in a row and wrap
+one by one, separated by space alone, so no generated comma or dot is left at the end of a
+line. `rows` is a summary list of a thing's properties, as GOV.UK's summary list and Stripe's
+property list draw them: the labels in a column as wide as the longest one, up to 16rem where a
+longer label wraps, the values 24px after it, and an optional `action` per fact at the row's
+end, such as a "Change" link. Rows pad
+12px and a hairline parts each row from the next, never above the first or under the last,
+so the list's first and last ink stand at its own edges. Once the list itself is under 25rem
+wide, each label stands over its value, one copy gap apart, and the action under the value.
+
+A holder that measures its rhythm to the ink, as a page header does, sets
+`--sui-local-row-lead`, and inline facts hand back what their targets stand above their
+words and below them.
+
+- Semantics: a `dl` with one `dt` and one `dd` per fact, each pair in its own `div`; a row's action is a second `dd`, as in GOV.UK's summary list.
+- Content: short labels and values; a value is words, a link through `href`, or a snippet such as a `RelativeTime`, a `Pill` or a `Chip`; in `rows`, an optional `action` per fact whose name says which fact it changes.
 - States: plain, linked and mono values, and the missing value, which says `missingLabel` in muted words.
-- Keyboard: a linked value is a tab stop; nothing else is.
-- Pointer and touch: every fact is at least 24px tall, and 44px on a phone or a coarse pointer, so a row keeps one height; a linked value is a standalone `Link`, whose hit area grows to that target size without moving its words.
-- Focus: none moves; a linked value takes focus in reading order.
-- Responsive: facts wrap one by one, a long value breaks inside its fact, and on a phone every fact takes its own line, 8px apart.
-- Accessibility: the label is muted and regular and the value medium, so they differ by weight as well as ink; both hold 4.5:1.
-- Localization: `missingLabel` is a prop with an English default; values come formatted by the caller in the page's language, and the row follows the reading direction.
-- Performance: one element per fact, with no script; keep it to a handful of facts.
-- Analytics: none of its own; a linked value is a `Link`, which reports like any link.
+- Keyboard: a linked value and a row's action are tab stops, in reading order; nothing else is.
+- Pointer and touch: inline, every fact is at least 24px tall, and 44px on a phone or a coarse pointer, so a row keeps one height; a linked value is a standalone `Link`, whose hit area grows to that target size without moving its words; a row's action keeps its own target.
+- Focus: none moves; a linked value and an action take focus in reading order.
+- Responsive: inline facts wrap one by one, a long value breaks inside its fact, and on a phone every fact takes its own line, 8px apart; rows answer to the list's own width and stack each label over its value under 25rem.
+- Accessibility: the label is muted and regular and the value medium, so they differ by weight as well as ink; both hold 4.5:1; in rows each label and value pair still reads as a term and its description.
+- Localization: `missingLabel` is a prop with an English default; values come formatted by the caller in the page's language, and both layouts follow the reading direction.
+- Performance: one element per fact with no script; rows share one grid through `subgrid`, so a column never measures twice.
+- Analytics: none of its own; a linked value is a `Link` and an action reports its own outcome.
 - Failure: an absent value says `missingLabel` instead of standing empty, and two facts may share a label without breaking the list.
 -->
 
-<dl {...rest} class={['sui-fact-list', className]}>
+<dl {...rest} class={['sui-fact-list', layout, className]}>
   {#each facts as fact, index (index)}
     <div class="sui-fact-list-fact">
       <dt class="sui-fact-list-label">{fact.label}</dt>
-      <dd
-        class="sui-fact-list-value"
-        class:mono={fact.mono}
-        class:missing={fact.value === null || fact.value === undefined || fact.value === ''}
-      >
-        {#if fact.value === null || fact.value === undefined || fact.value === ''}
+      <dd class="sui-fact-list-value" class:mono={fact.mono} class:missing={absent(fact)}>
+        {#if absent(fact)}
           {missingLabel}
         {:else if typeof fact.value === 'function'}
           {@render fact.value()}
@@ -73,20 +95,34 @@ not a fact.
           {fact.value}
         {/if}
       </dd>
+      {#if layout === 'rows' && fact.action}
+        <dd class="sui-fact-list-action">{@render fact.action()}</dd>
+      {/if}
     </div>
   {/each}
 </dl>
 
 <style>
   .sui-fact-list {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--sui-space-2) var(--sui-space-5);
     margin: 0;
     min-inline-size: 0;
   }
 
-  .sui-fact-list-fact {
+  /* In the facts' face, so `1cap` is theirs: a holder that sets `--sui-local-row-lead` gets back
+     what a fact's target stands above its words and below them. */
+  .inline {
+    display: flex;
+    flex-wrap: wrap;
+    font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-row-copy-leading)
+      var(--sui-sans);
+    gap: var(--sui-space-2) var(--sui-space-5);
+    margin-block: calc(
+      sign(var(--sui-local-row-lead, 0px)) * (var(--sui-field-target-min) - round(up, 1cap, 2px)) /
+        2
+    );
+  }
+
+  .inline > .sui-fact-list-fact {
     align-content: center;
     align-items: baseline;
     column-gap: var(--sui-space-2);
@@ -95,6 +131,45 @@ not a fact.
     min-block-size: var(--sui-field-target-min);
     min-inline-size: 0;
     row-gap: var(--sui-row-copy-gap);
+  }
+
+  /* Every row shares the list's columns, so labels and values line up down the list whatever
+     each row holds. The label column is as wide as the longest label, up to 16rem, where a
+     longer label wraps, so the values stand one gap from the labels however wide the list. */
+  .rows {
+    column-gap: var(--sui-space-6);
+    container: sui-fact-rows / inline-size;
+    display: grid;
+    grid-template-columns: fit-content(16rem) minmax(0, 1fr);
+  }
+
+  .rows:has(> div > .sui-fact-list-action) {
+    grid-template-columns: fit-content(16rem) minmax(0, 1fr) auto;
+  }
+
+  /* The label and the value share a baseline, and the row rounds its height up to the pixel,
+     so the two sizes meeting on one line never put a hairline on a fraction (L-95). */
+  .rows > .sui-fact-list-fact {
+    align-items: baseline;
+    block-size: var(--sui-block-snap);
+    display: grid;
+    grid-column: 1 / -1;
+    grid-template-columns: subgrid;
+    padding-block: var(--sui-row-pad-default);
+  }
+
+  .rows > .sui-fact-list-fact:not(:last-child) {
+    border-block-end: var(--sui-row-hairline) solid var(--sui-border-divider);
+  }
+
+  /* The padding parts a row's words from a hairline, and the first and last rows have none
+     on their outer side, so the list's ink starts and ends at its own edges. */
+  .rows > .sui-fact-list-fact:first-child {
+    padding-block-start: 0;
+  }
+
+  .rows > .sui-fact-list-fact:last-child {
+    padding-block-end: 0;
   }
 
   .sui-fact-list-label,
@@ -119,6 +194,23 @@ not a fact.
     overflow-wrap: anywhere;
   }
 
+  .rows .sui-fact-list-value {
+    font: var(--sui-weight-medium) var(--sui-font-size-body) / var(--sui-row-copy-leading)
+      var(--sui-sans);
+  }
+
+  /* In the value's face and trimmed as it is, so a "Change" link shares the value's baseline
+     beside it and stands one copy gap under it once the row stacks. */
+  .sui-fact-list-action {
+    align-content: center;
+    block-size: var(--sui-block-snap-even);
+    font: var(--sui-weight-regular) var(--sui-font-size-body) / var(--sui-row-copy-leading)
+      var(--sui-sans);
+    justify-self: end;
+    margin: 0;
+    text-box: trim-both cap alphabetic;
+  }
+
   /* A pill or chip given as the value is a box, not words: the value lays it out as a box, so
      its edge lands on whole pixels (L-95) where the words' baseline would set it on a
      fraction, and it stands one copy gap under its label as any box does. */
@@ -127,25 +219,44 @@ not a fact.
     display: flex;
   }
 
-  .missing {
+  .sui-fact-list-value.missing {
     color: var(--sui-text-muted);
     font-weight: var(--sui-weight-regular);
   }
 
-  .mono {
+  .sui-fact-list-value.mono {
     font-family: var(--sui-mono);
     font-variant-numeric: tabular-nums;
   }
 
+  /* Too narrow for two columns, each label stands over its value and the action under it, in
+     reading order, as GOV.UK's summary list does on a phone. */
+  @container sui-fact-rows (max-width: 25rem) {
+    .rows > .sui-fact-list-fact {
+      grid-template-columns: minmax(0, 1fr);
+      row-gap: var(--sui-row-copy-gap);
+    }
+
+    .sui-fact-list-action {
+      justify-self: start;
+    }
+  }
+
   @media (max-width: 47.9375rem) {
-    .sui-fact-list {
+    .inline {
       display: grid;
       grid-template-columns: minmax(0, 1fr);
     }
   }
 
   @media (max-width: 47.9375rem), (pointer: coarse) {
-    .sui-fact-list-fact {
+    .inline {
+      margin-block: calc(
+        sign(var(--sui-local-row-lead, 0px)) * (var(--sui-touch-target) - round(up, 1cap, 2px)) / 2
+      );
+    }
+
+    .inline > .sui-fact-list-fact {
       min-block-size: var(--sui-touch-target);
     }
   }

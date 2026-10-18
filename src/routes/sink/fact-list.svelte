@@ -2,21 +2,33 @@
   export const section = {
     title: 'Fact list',
     order: 113,
-    lead: 'Short facts about a thing, each a label and its value. A setting the reader changes is a form row instead.',
+    lead: 'Facts about a thing, each a label and its value: a few headline facts inline, or its properties in rows. A setting the reader changes is a form row instead.',
     components: ['FactList']
   };
 </script>
 
 <script lang="ts">
-  import { FactList, Pill, RelativeTime } from '#lib';
+  import { FactList, Link, Pill, RelativeTime, VisuallyHidden, type Fact } from '#lib';
   import Example from '../kit/Example.svelte';
   import Specimen from '../kit/Specimen.svelte';
 
   const synced = new Date(Date.now() - 42 * 60_000).toISOString();
+
+  const properties: Fact[] = [
+    { label: 'Workspace', value: 'acme', href: '#fact-list' },
+    { label: 'Trigger', value: 'Manual, from the sync page', action: changeTrigger },
+    { label: 'Started', value: syncedAt },
+    { label: 'State', value: health },
+    { label: 'Attempt', value: '1 of 3', mono: true },
+    { label: 'Reviewer', value: null }
+  ];
 </script>
 
 {#snippet syncedAt()}<RelativeTime value={synced} />{/snippet}
 {#snippet health()}<Pill tone="success">Up to date</Pill>{/snippet}
+{#snippet changeTrigger()}
+  <Link href="#fact-list" standalone>Change<VisuallyHidden>the trigger</VisuallyHidden></Link>
+{/snippet}
 
 <Example
   title="Values"
@@ -33,6 +45,16 @@
         { label: 'Owner', value: 'Platform team', href: '#fact-list' }
       ]}
     />
+  </Specimen>
+</Example>
+
+<Example
+  title="Rows"
+  note="A thing's properties, a label and its value on each row, with hairlines between rows and an action at a row's end"
+  layout="stack"
+>
+  <Specimen label="Properties with an action" code={'layout="rows" action'}>
+    <FactList layout="rows" facts={properties} />
   </Specimen>
 </Example>
 
@@ -63,7 +85,7 @@
   title="Missing value"
   note="An absent value says so in words instead of leaving its fact empty"
 >
-  <Specimen label="Null value" code={'value: null'}>
+  <Specimen label="Null value" code="value: null">
     <FactList
       facts={[
         { label: 'Branch', value: 'main', mono: true },
@@ -72,3 +94,21 @@
     />
   </Specimen>
 </Example>
+
+<Example
+  title="Narrow width"
+  note="Under 25rem of its own width, each label stands over its value and the action under it"
+  layout="stack"
+>
+  <Specimen label="Rows in 20rem" code={'layout="rows"'}>
+    <div class="narrow">
+      <FactList layout="rows" facts={properties} />
+    </div>
+  </Specimen>
+</Example>
+
+<style>
+  .narrow {
+    inline-size: min(100%, 20rem);
+  }
+</style>

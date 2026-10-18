@@ -435,4 +435,76 @@ suite('navigation', together, () => {
       }
     }
   );
+
+  test(
+    'a linked card is one tab stop named by its title, rings the card and spares its controls',
+    long,
+    async () => {
+      const page = await open(1440);
+      try {
+        const peers = page.locator('#card .peers').first();
+        await peers.scrollIntoViewIfNeeded();
+        const focused = () =>
+          page.evaluate(() => {
+            const element = document.activeElement;
+            return `${element?.tagName.toLowerCase()} ${element?.getAttribute('aria-label') ?? element?.textContent?.trim() ?? ''}`;
+          });
+        const repositories = peers.getByRole('link', { name: 'Repositories', exact: true });
+        assert.equal(await repositories.count(), 1, 'the card link is not named by its title');
+        await repositories.focus();
+        const stops = [];
+        for (let step = 0; step < 4; step++) {
+          await page.keyboard.press('Tab');
+          stops.push(await focused());
+        }
+        assert.deepEqual(
+          stops.map((stop) => stop.replace(/^a $/, 'a')),
+          ['a', 'button Rule actions', 'a', 'button Invite'],
+          'Tab does not go link, control, link, control'
+        );
+        assert.equal(
+          await peers.getByRole('link', { name: 'Members', exact: true }).count(),
+          1,
+          "the third card's link is not named by its title"
+        );
+
+        await page.keyboard.press('Shift+Tab');
+        const ring = await peers
+          .locator('.sui-card')
+          .nth(2)
+          .evaluate((card) => {
+            const look = getComputedStyle(card);
+            return `${look.outlineStyle} ${look.outlineWidth} ${look.outlineColor === look.borderTopColor}`;
+          });
+        assert.equal(ring, 'solid 2px true', 'the focused link does not ring its card');
+
+        const before = await page.evaluate(() => location.hash);
+        await peers.getByRole('button', { name: 'Rule actions' }).click();
+        assert.ok(
+          await settles(
+            page.waitForFunction(() => document.querySelector(':popover-open'), null, brief)
+          ),
+          'the menu inside the card did not open'
+        );
+        assert.equal(
+          await page.evaluate(() => location.hash),
+          before,
+          'the menu press followed the link'
+        );
+        await page.keyboard.press('Escape');
+
+        // The words let the pointer through to the link's layer, so a press on them follows it.
+        const words = await peers.getByText('3 differ from the saved settings').boundingBox();
+        assert.ok(words);
+        await page.mouse.click(words.x + words.width / 2, words.y + words.height / 2);
+        assert.equal(
+          await page.evaluate(() => location.hash),
+          '#card',
+          'a press on the card did not follow its link'
+        );
+      } finally {
+        await page.close();
+      }
+    }
+  );
 });

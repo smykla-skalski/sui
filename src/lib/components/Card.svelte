@@ -9,6 +9,8 @@
     level = 2,
     actions,
     footer,
+    href,
+    tone,
     unsaved = false,
     unsavedLabel = word('Card.unsavedLabel', 'Unsaved'),
     titleName = word(
@@ -28,6 +30,10 @@
     actions?: Snippet;
     /** A closing row of actions, held to the same cap-line track as the head. */
     footer?: Snippet;
+    /** Makes the whole card a link to this address, named by its title, while controls inside stay pressable. */
+    href?: string;
+    /** `danger` marks the page's danger zone: a danger keyline and title, never a filled ground. */
+    tone?: 'danger';
     /** Marks a card that holds changes not saved yet: `unsavedLabel` after its title and the unsaved keyline. */
     unsaved?: boolean;
     /** The word drawn after the title of an unsaved card, as `SettingRow` draws it. */
@@ -38,48 +44,70 @@
     class?: HTMLAttributes<HTMLDivElement>['class'];
     children?: Snippet;
   } & Omit<HTMLAttributes<HTMLDivElement>, 'title'> = $props();
+
+  const id = $props.id();
 </script>
 
 <!--
 @component
-The surface for a group of related things: the base ground, a subtle keyline and a 10px
-corner. The card owns its 20px inset, 16px once the card itself is 36rem wide or narrower,
-and never its outer spacing, so a stack of cards takes its 16px from the container's gap. It
-fills the width its container gives it and never decides that width.
+A framed box that a page earns, for one of five things only: a peer summary that links to its
+page (`href`), a choice to pick, the one box on a bare page, an authored feed entry, and the
+page's danger zone (`tone="danger"`). A list, a settings group, facts, a chart, an editor, a
+disclosure, a message or an empty, loading or failed state never takes a card: reach for a
+`Section` under a heading for those, and put a state in the place of what it replaces. A card
+never holds another framed surface (L-55). Reach for `Plate` when one subject on an overview
+has a state to say on its title line.
+
+The box is the base ground, a subtle keyline and a 10px corner. The card owns its 20px inset,
+16px once the card itself is 36rem wide or narrower, and never its outer spacing, so peers
+take their 16px from the container's gap. It fills the width its container gives it and never
+decides that width. It lends that inline inset to its body's direct children through
+`--sui-local-bleed`, so a chart's band can reach the card's edges and pad back by it.
 
 Whatever the card holds stands the same inset from all four keylines, to the ink a reader
 sees (L-33): the first ink sits the inset below the top, the last the inset above the bottom,
 and anything that reaches a side stops the inset short of it. The title is a heading at
 `level`, balanced and trimmed to its cap height. A `description` is the title's second line,
 as far below it as the title's own lines stand apart plus 8px, not the first line of the
-body. Framed controls in `actions` set the head's height and the title centres on them, so a
-control keeps the inset from the top and the end. A lone ghost button or quiet icon button
+body. The title's cap stands the inset below the top whatever stands beside it, as on the other
+three sides, and a framed control or a switch in `actions` starts on that same line with its
+end on the inset, so the head's first ink is level; a control taller than the title's line sets
+the head's height, and the note stays under the title, never under the control's foot. A lone
+ghost button or quiet icon button
 draws nothing at rest, so its words or glyph keep the inset instead: it centres on the title's
 cap band, its box stands as far past the end as above the title, and a ghost button stays
 34px on a phone with a 44px hit area. Under a title that wraps past them the actions stay on
 the first line. A `footer` row is as tall as its actions, so they keep the inset from the
 bottom. A row list or a `Skeleton` that opens the card hands back what stands above its first
-row's ink, as it hands back what stands below its last.
+row's ink, as it hands back what stands below its last: the card lends the body's first child
+`--sui-local-row-lead` and its last child `--sui-local-row-trail`, so a row that opens or
+closes the card leaves only the inset beside its ink.
 
-Do not nest cards for decoration. Reach for `Plate` when the subject has a state to say
-on its title line.
+With `href` the whole card is one link through a layer under its content, as an `ObjectRow`
+is: the title names it, the card takes the row's hover ground and the press, and the focus
+ring draws on the card's own keyline. A control inside it, such as an `ActionMenu`, stays
+pressable above the layer and never follows the link. A danger zone says what it is in its
+title, such as "Danger zone", and holds the acts that cannot be undone, each a `stop` button.
 
-- Semantics: a plain grouping box; the title is a heading at `level` and nothing else carries a role.
-- Content: an optional title, description, head actions, body and footer actions; the title and the description wrap.
-- States: rest, and unsaved, which draws `unsavedLabel` after the title in the unsaved ink and gives the keyline the unsaved tint.
-- Keyboard: none of its own; Tab reaches the controls inside in reading order.
-- Pointer and touch: none of its own; the controls inside keep their own targets and press feedback.
-- Focus: nothing here moves focus.
+- Semantics: a plain grouping box; the title is a heading at `level`; with `href`, an `a` under the content, named by the title through `aria-labelledby`.
+- Content: an optional title, description, head actions, body and footer actions; the title and the description wrap; a linked card needs a title to name its link.
+- States: rest; unsaved, which draws `unsavedLabel` after the title in the unsaved ink and gives the keyline the unsaved tint; danger, a danger keyline and title ink; with `href`, hover (the row's hover veil, where the pointer can hover), pressed (a deeper veil, the pressed inset and a 1px sink) and focus.
+- Keyboard: without `href`, none of its own; with it, the card is one tab stop and Enter follows the link; then Tab reaches the controls inside in reading order.
+- Pointer and touch: with `href`, the whole card is the link's target; the controls inside keep their own targets and press feedback.
+- Focus: nothing here moves focus; a focused card link draws the 2px ring flush on the card's keyline, which takes the focus colour, as a bordered control does (L-41).
 - Responsive: a container query on the card's own width steps the inset from 20px to 16px at 36rem, the head's actions centre on the title beside the copy and move under it below 18rem, and the footer's actions pack to the end.
-- Accessibility: the unsaved state is a drawn word, never the keyline's colour alone, and the copy and the word hold 4.5:1.
+- Accessibility: the unsaved and danger states are said in words, never by the keyline's colour alone, and the copy, the word and the danger title hold 4.5:1; a card link is heard once, by its title, with the rest of the card outside its name.
 - Localization: `unsavedLabel` is a prop with an English default, and `titleName` joins it to the title; the actions sit at the inline end, which mirrors in a right-to-left page.
-- Performance: static layout with no script; each card is its own size container.
-- Analytics: none of its own, because it holds no control; its actions report their own outcomes.
-- Failure: a card with no title, body or footer draws an empty surface, and an unsaved card without a title has nowhere to put its word, so give it one.
+- Performance: static layout with no script; each card is its own size container, and hover and press change only the veil, the inset shadow and a 1px sink.
+- Analytics: none of its own; a card link is a plain `a`, so the page's navigation tracking hears it, and its actions report their own outcomes.
+- Failure: a card with no title, body or footer draws an empty surface, an unsaved card without a title has nowhere to put its word, and a linked card without a title has no name, so give each one a title.
 -->
 
 <div {...rest} class={['sui-card-box', className]}>
-  <div class={['sui-card', { unsaved }]}>
+  <div class={['sui-card', { unsaved, danger: tone === 'danger', linked: href !== undefined }]}>
+    {#if href !== undefined}
+      <a class="sui-card-hit" {href} aria-labelledby="{id}-title"></a>
+    {/if}
     {#if title !== undefined || actions}
       <div class="sui-card-head">
         {#if title !== undefined || description !== undefined}
@@ -87,6 +115,7 @@ on its title line.
             {#if title !== undefined}
               <svelte:element
                 this={`h${level}`}
+                id="{id}-title"
                 class="sui-card-title"
                 aria-label={unsaved ? titleName(title, unsavedLabel) : undefined}
                 ><span class="sui-card-words"
@@ -133,8 +162,82 @@ on its title line.
     padding: var(--sui-rhythm-surface-pad);
   }
 
+  /* The danger zone says so with its keyline and its title's ink and never with a ground, so
+     its stop buttons keep their own fill (Primer's danger zone). */
+  .danger {
+    border-color: var(--sui-danger);
+  }
+
+  .danger .sui-card-title {
+    color: var(--sui-danger);
+  }
+
   .unsaved {
     border-color: var(--sui-unsaved-border);
+  }
+
+  /* The link comes first, so the content painted after it stacks above it without a z-index;
+     the content lets the pointer through and its controls take it back, as in `ObjectRow`. */
+  .linked {
+    position: relative;
+    transition:
+      translate var(--sui-duration-press) var(--sui-ease-standard),
+      box-shadow var(--sui-duration-press) var(--sui-ease-standard);
+  }
+
+  .sui-card-hit {
+    border-radius: inherit;
+    color: inherit;
+    inset: 0;
+    position: absolute;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-user-select: none;
+  }
+
+  .sui-card-hit:focus-visible {
+    outline: none;
+  }
+
+  .linked > div {
+    pointer-events: none;
+    position: relative;
+  }
+
+  .linked
+    :global(
+      :is(a[href], button, input, select, textarea, label, summary, [role='button'], [tabindex])
+    ) {
+    pointer-events: auto;
+  }
+
+  /* A veil over the card's own ground, a row's step, because the card is a large target. */
+  @media (hover: hover) {
+    .sui-card:has(> .sui-card-hit:hover) {
+      background-image: linear-gradient(var(--sui-row-hover), var(--sui-row-hover));
+    }
+  }
+
+  .sui-card:has(> .sui-card-hit:active) {
+    background-image: linear-gradient(var(--sui-row-pressed), var(--sui-row-pressed));
+    box-shadow: var(--sui-pressed-inset);
+    translate: 0 1px;
+  }
+
+  .sui-card:has(> .sui-card-hit:focus-visible) {
+    border-color: var(--sui-focus);
+    outline: var(--sui-focus-ring-width) solid var(--sui-focus);
+    outline-offset: var(--sui-focus-ring-flush);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .linked {
+      transition: none;
+    }
+
+    .sui-card:has(> .sui-card-hit:active) {
+      translate: none;
+    }
   }
 
   /* The title and the word "Unsaved" are one wrapping row: the column gap parts them, and a
@@ -163,12 +266,11 @@ on its title line.
   }
 
   /* The copy, the title and the note under it, keeps one column and the actions another, so
-     the note never runs under an action. The actions stand at the card's inset in a seat one
-     control tall, and the copy drops by half of what that seat stands above the title's cap,
-     so the title centres on the actions while the note stays one copy gap under the title,
-     never under the actions' foot. The copy keeps 10rem beside them, so keep the actions to a
-     short button or two. Only a card too narrow for both puts them on a line of their own
-     under the copy, from its start edge (L-90). */
+     the note never runs under an action. The title's cap opens the card at its inset, as every
+     side's ink does, and a framed control's seat starts on that line too, so the head's first
+     ink is level and nothing stands above the inset (L-33). The copy keeps 10rem beside the
+     actions, so keep them to a short button or two. Only a card too narrow for both puts them
+     on a line of their own under the copy, from its start edge (L-90). */
   .sui-card-head {
     --sui-local-card-seat: var(--sui-control-height-compact);
     align-items: start;
@@ -184,7 +286,7 @@ on its title line.
   }
 
   /* A bare switch is shorter than the control tier, so the seat takes its height and the
-     switch still keeps the card's inset. */
+     switch starts on the title's cap line as a framed control does. */
   .sui-card-head:has(> .sui-card-actions > :global(.sui-switch.bare):only-child) {
     --sui-local-card-seat: 20px;
   }
@@ -214,8 +316,8 @@ on its title line.
   }
 
   /* Beside the copy only: stacked under it, the control keeps its own box. The actions take
-     the title's face, so the seat is the title's band here as in the copy, and the title is
-     the first ink. */
+     the title's face, so `1cap` makes the seat the title's cap band, and the title is the
+     first ink. */
   @container not (max-width: 18rem) {
     .sui-card-head:has(
         > .sui-card-actions
@@ -228,25 +330,10 @@ on its title line.
         var(--sui-sans);
       margin-inline-end: calc((var(--sui-local-card-seat) - var(--sui-local-card-control)) / 2);
     }
-
-    .sui-card-head:has(
-        > .sui-card-actions
-          > :global(:is(.sui-button[data-tone='ghost'], .sui-icon-button)):only-of-type
-      )
-      .sui-card-title {
-      block-size: var(--sui-block-snap);
-    }
   }
 
-  /* In the title's face, so `1cap` is the title's cap height. */
-  .sui-card-head:has(> .sui-card-actions) > .sui-card-copy {
-    font: var(--sui-weight-semibold) var(--sui-font-size-card-title) / var(--sui-leading-flat)
-      var(--sui-sans);
-    padding-block-start: calc((var(--sui-local-card-seat) - round(up, 1cap, 2px)) / 2);
-  }
-
-  /* Its cap stands within half a pixel of its box's top, so a title that opens the card keeps
-     the inset to its ink. */
+  /* Its cap stands within half a pixel of its box's top, so the title keeps the inset to its
+     ink beside any control. */
   .sui-card-title {
     align-content: center;
     block-size: var(--sui-block-snap);
@@ -258,12 +345,6 @@ on its title line.
     overflow-wrap: break-word;
     text-box: trim-both cap alphabetic;
     text-wrap: balance;
-  }
-
-  /* Beside a control's seat the title takes the seat's even parity, so it centres on the
-     control to the pixel, and the control is the first ink. */
-  .sui-card-head:has(> .sui-card-actions) .sui-card-title {
-    block-size: var(--sui-block-snap-even);
   }
 
   /* Proximity: a wrapped title's lines stand 1lh - 1cap apart in ink, so the note stands that
@@ -288,14 +369,6 @@ on its title line.
     .sui-card-head {
       grid-template-columns: minmax(0, 1fr);
       row-gap: var(--sui-rhythm-head-actions-stacked);
-    }
-
-    .sui-card-head:has(> .sui-card-actions) > .sui-card-copy {
-      padding-block-start: 0;
-    }
-
-    .sui-card-head:has(> .sui-card-actions) .sui-card-title {
-      block-size: var(--sui-block-snap);
     }
 
     .sui-card-actions {
@@ -330,7 +403,7 @@ on its title line.
      component that trims its own words keeps both edges, and an only paragraph trims both.
      A trimmed edge cuts a fraction of a pixel, so the box rounds up to the pixel and an only
      paragraph splits that spare above its cap and under its baseline. */
-  :where(.sui-card > :first-child) :global(:where(p, ul, ol, dl, blockquote):first-child) {
+  :where(.sui-card > div:first-of-type) :global(:where(p, ul, ol, dl, blockquote):first-child) {
     block-size: var(--sui-block-snap);
     text-box: trim-start cap alphabetic;
   }
@@ -339,7 +412,7 @@ on its title line.
     text-box: trim-end cap alphabetic;
   }
 
-  :where(.sui-card > :only-child) :global(:where(p, ul, ol, dl, blockquote):only-child) {
+  :where(.sui-card > div:only-of-type) :global(:where(p, ul, ol, dl, blockquote):only-child) {
     align-content: center;
     text-box: trim-both cap alphabetic;
   }
@@ -352,13 +425,19 @@ on its title line.
     justify-content: flex-end;
   }
 
-  * + .sui-card-footer {
+  div + .sui-card-footer {
     margin-block-start: var(--sui-rhythm-card-head-body);
   }
 
   /* A row list that opens the card reads this and hands back its first row's padding. */
-  .sui-card-body:first-child > :global(:first-child) {
+  .sui-card-body:first-of-type > :global(:first-child) {
     --sui-local-row-lead: calc(-1 * var(--sui-row-pad-default));
+  }
+
+  /* A row that closes the card leaves no room of its own under its last ink, because the
+     card's inset gives that room (L-33). */
+  .sui-card-body:last-child > :global(:last-child) {
+    --sui-local-row-trail: 0px;
   }
 
   /* A chart's band reads this and reaches the card's edges, padding back by the inset. */

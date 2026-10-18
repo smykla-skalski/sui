@@ -920,6 +920,18 @@ function geometry(root: Document): Finding[] {
           `its head action's box stands ${round(action.top)}px from the top and ${round(action.end)}px from the end`
         )
       );
+    // The title's cap opens a card at its inset whatever stands beside it, so a framed control
+    // at the inset never excuses a title set lower (L-34).
+    const words = card.querySelector(':scope > .sui-card-head .sui-card-words > span');
+    const cap = words && inkLines(words);
+    if (cap) {
+      const gap = cap.top - card.getBoundingClientRect().top - parseFloat(style.borderTopWidth);
+      const pad = parseFloat(style.paddingTop);
+      if (Math.abs(gap - pad) > 0.5)
+        found.push(
+          finding('L-33', card, `its title's cap stands ${round(gap)}px from the top, not ${pad}`)
+        );
+    }
     const measured = cardInsets(card);
     if (!measured) continue;
     const { inset, top, end, bottom, start } = measured;
@@ -938,7 +950,7 @@ function geometry(root: Document): Finding[] {
 
   for (const heading of audited(root, 'h1, h2, h3, h4, h5, h6')) {
     const parent = heading.parentElement;
-    // A card's head takes its control's height so the control keeps the card's inset (L-33).
+    // A card's head takes a framed control's height, which starts on the title's cap line (L-34).
     if (!parent || parent.matches('.sui-card-head')) continue;
     const h = heading.getBoundingClientRect();
     const beside = [...parent.children].filter((sibling) => {
@@ -2673,5 +2685,9 @@ register(
   sectionHeads,
   boundaryLines,
   detailPanes,
-  calloutActions
+  calloutActions,
+  nestedFrames,
+  earnedCards,
+  framedSettings,
+  disclosedCards
 );

@@ -2,16 +2,30 @@
   export const section = {
     title: 'Page header',
     order: 65,
-    lead: 'The top of a page: where it is, what it is called, what it is for and the controls that act on it. A group inside the page takes a Card title instead.',
+    lead: 'The top of a page: where it is, what it is called, its state, what it is for and the controls that act on it. A part of the page takes a Section heading instead.',
     components: ['PageHeader', 'Breadcrumb', 'BackLink']
   };
 </script>
 
 <script lang="ts">
-  import { BackLink, Breadcrumb, Button, PageHeader, Tabs } from '#lib';
+  import {
+    BackLink,
+    Breadcrumb,
+    Button,
+    FactList,
+    PageHeader,
+    Pill,
+    RelativeTime,
+    Tabs
+  } from '#lib';
   import Example from '../kit/Example.svelte';
   import Specimen from '../kit/Specimen.svelte';
+
+  const started = new Date(Date.now() - 12 * 60_000).toISOString();
+  let checked = $state(false);
 </script>
+
+{#snippet startedAt()}<RelativeTime value={started} />{/snippet}
 
 <Example
   title="Parts"
@@ -39,6 +53,50 @@
     <div class="page">
       <PageHeader level={4} title="Activity" />
       <p class="view">Nothing happened in the last 7 days</p>
+    </div>
+  </Specimen>
+</Example>
+
+<Example
+  title="State and facts"
+  note="The state stands beside the title and is said once when it changes, and headline facts close the copy"
+  layout="stack"
+  ground="canvas"
+>
+  <Specimen label="Status, description and facts" code="kicker status description facts actions">
+    <div class="page">
+      <PageHeader
+        level={4}
+        title="Sync check #4182"
+        description="Compared 16 repositories in acme with the saved settings"
+      >
+        {#snippet kicker()}<BackLink href="#page-header" label="Queue" />{/snippet}
+        {#snippet status()}
+          <Pill tone={checked ? 'success' : 'warning'} dot>
+            {checked ? 'Up to date' : '3 differ'}
+          </Pill>
+        {/snippet}
+        {#snippet facts()}
+          <FactList
+            facts={[
+              { label: 'Workspace', value: 'acme' },
+              { label: 'Started', value: startedAt },
+              { label: 'Took', value: '48 seconds' },
+              { label: 'Requested by', value: 'Alex Kim' }
+            ]}
+          />
+        {/snippet}
+        {#snippet actions()}
+          <Button tone="signal" onclick={() => (checked = !checked)}>
+            {checked ? 'Undo the check' : 'Check again'}
+          </Button>
+        {/snippet}
+      </PageHeader>
+      <p class="view">
+        {checked
+          ? 'Every repository matches the saved settings'
+          : '3 repositories differ from the saved settings'}
+      </p>
     </div>
   </Specimen>
 </Example>

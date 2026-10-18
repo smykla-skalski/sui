@@ -836,4 +836,61 @@ suite('lists', together, () => {
       }
     }
   );
+
+  test(
+    'fact rows line their values up past the longest label and stack each pair under 25rem of their own width',
+    long,
+    async () => {
+      const page = await open();
+      try {
+        const lists = page.locator('#fact-list .sui-fact-list.rows');
+        await lists.first().scrollIntoViewIfNeeded();
+        const pairs = (/** @type {number} */ index) =>
+          lists.nth(index).evaluate((list) => ({
+            width: list.getBoundingClientRect().width,
+            // A trimmed box spans cap to baseline, and the words' own extent shows where a label
+            // ends, since a grid cell stretches to its column.
+            rows: [...list.children].map((row) => {
+              const [label, value] = [...row.children];
+              const words = document.createRange();
+              words.selectNodeContents(label);
+              return {
+                label: label.getBoundingClientRect().toJSON(),
+                labelEnd: words.getBoundingClientRect().right,
+                value: value.getBoundingClientRect().toJSON()
+              };
+            })
+          }));
+        const wide = await pairs(0);
+        const narrow = await pairs(1);
+        assert.ok(
+          wide.width >= 400 && narrow.width < 400,
+          'the two lists are not either side of 25rem'
+        );
+        const labelsEnd = Math.max(...wide.rows.map((row) => row.labelEnd));
+        for (const { label, value } of wide.rows) {
+          assert.ok(
+            value.top < label.bottom && value.bottom > label.top,
+            'a wide row stacks its value'
+          );
+          assert.ok(
+            Math.abs(value.left - labelsEnd - 24) < 0.5,
+            `a value starts ${value.left - labelsEnd}px past the labels`
+          );
+        }
+        for (const { label, value } of narrow.rows) {
+          assert.ok(
+            Math.abs(value.top - label.bottom - 8) < 0.5,
+            'a narrow value is not one copy gap under its label'
+          );
+          assert.ok(
+            Math.abs(value.left - label.left) < 0.5,
+            'a narrow value does not start under its label'
+          );
+        }
+      } finally {
+        await page.close();
+      }
+    }
+  );
 });

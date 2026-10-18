@@ -76,8 +76,10 @@ never shifts when the current tab changes. A count rides its label in tabular fi
 A row short of room scrolls inside itself and never widens the page. The edge that has more
 tabs past it fades, the track's line with it, so the reader can see the row goes on, and a thin
 scrollbar stays for a mouse without a wheel, in room kept under the line so it never covers
-the tabs. The current tab is brought into view clear of the fade,
-and keyboard focus scrolls the tab it reaches into view, with the ring inset so the track
+the tabs. A holder whose foot the line is, such as a page header, runs the row to its own
+edges and sets `--sui-local-tabs-inset`, the room before the first tab and after the last, and
+`--sui-local-tabs-line`, the line's colour. The current tab is brought into view clear of the
+fade, and keyboard focus scrolls the tab it reaches into view, with the ring inset so the track
 never clips it.
 
 - Semantics: a `nav` landmark named by `label`, holding a list of links with `aria-current="page"` on the current one.
@@ -136,7 +138,7 @@ never clips it.
   /* The track is as wide as its tabs or the nav, whichever is wider, so its line runs the whole
      row. */
   .sui-tabs-track {
-    border-block-end: var(--sui-stroke) solid var(--sui-border-subtle);
+    border-block-end: var(--sui-stroke) solid var(--sui-local-tabs-line, var(--sui-border-subtle));
     box-sizing: border-box;
     display: flex;
     gap: var(--sui-space-2);
@@ -144,7 +146,7 @@ never clips it.
     list-style: none;
     margin: 0;
     min-inline-size: 100%;
-    padding: var(--sui-space-1) 0 0;
+    padding: var(--sui-space-1) var(--sui-local-tabs-inset, 0px) 0;
   }
 
   /* A row that scrolls keeps room under its line, so the scrollbar never covers the tabs. */

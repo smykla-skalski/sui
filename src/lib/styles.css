@@ -122,6 +122,10 @@
   /* A line inside a surface (rows, a head or foot, a tab baseline, a chart grid) is quieter
      than the hairline that frames the surface. */
   --sui-border-divider: color-mix(in srgb, var(--sui-border-subtle) 60%, transparent);
+  /* The line at a page header's foot, where its band meets the view: a step firmer than a
+     surface's keyline on light, where the band and the canvas are close, and the keyline on
+     dark. */
+  --sui-border-band: rgb(0 0 0 / 16%);
 
   --sui-avatar-ring: rgb(0 0 0 / 22%);
   --sui-text-primary: var(--sui-primitive-light-text);
