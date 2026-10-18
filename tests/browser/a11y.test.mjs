@@ -148,6 +148,68 @@ suite('accessibility', together, () => {
 
   // A named section would be a region landmark, and a pane of them would bury the landmarks a
   // reader jumps between (APG landmark regions).
+  // A busy control's spinner is the only drawn sign that it works, so it holds 3:1 on what it
+  // turns on (WCAG 1.4.11). The drawn pixels are read, so every fill, veil and opacity counts.
+  test('every busy spinner holds 3:1 on what it turns on in both themes', long, async () => {
+    for (const theme of ['light', 'dark']) {
+      const page = await open(1440, theme, { reducedMotion: 'reduce' });
+      try {
+        const spinners = page.locator(
+          '.sui-button-spinner, .sui-icon-button-spinner, .sui-switch-spinner'
+        );
+        const low = [];
+        for (let index = 0; index < (await spinners.count()); index++) {
+          const spinner = spinners.nth(index);
+          if (!(await spinner.isVisible())) continue;
+          await spinner.scrollIntoViewIfNeeded();
+          const shot = await spinner.screenshot();
+          const ratio = await page.evaluate(
+            async (data) => {
+              const image = await createImageBitmap(await (await fetch(data)).blob());
+              const context = /** @type {OffscreenCanvasRenderingContext2D} */ (
+                new OffscreenCanvas(image.width, image.height).getContext('2d')
+              );
+              context.drawImage(image, 0, 0);
+              const pixels = context.getImageData(0, 0, image.width, image.height).data;
+              /** @param {number} at */
+              const luminance = (at) => {
+                const [r, g, b] = [0, 1, 2].map((channel) => {
+                  const value = pixels[at + channel] / 255;
+                  return value <= 0.04045 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4;
+                });
+                return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+              };
+              // The middle of the ring shows the ground it turns on.
+              const ground = luminance(
+                (Math.floor(image.height / 2) * image.width + Math.floor(image.width / 2)) * 4
+              );
+              let best = 1;
+              for (let at = 0; at < pixels.length; at += 4) {
+                const ink = luminance(at);
+                best = Math.max(
+                  best,
+                  (Math.max(ink, ground) + 0.05) / (Math.min(ink, ground) + 0.05)
+                );
+              }
+              return best;
+            },
+            `data:image/png;base64,${shot.toString('base64')}`
+          );
+          if (ratio < 3) {
+            const where = await spinner.evaluate(
+              (element) =>
+                `${element.closest('section[id]')?.id} ${element.closest('[data-tone]')?.getAttribute('data-tone') ?? ''}`
+            );
+            low.push(`${theme} ${where}: ${ratio.toFixed(2)}`);
+          }
+        }
+        assert.deepEqual(low, []);
+      } finally {
+        await page.close();
+      }
+    }
+  });
+
   test('a section is never a landmark region', long, async () => {
     const page = await open(1440, 'light');
     try {

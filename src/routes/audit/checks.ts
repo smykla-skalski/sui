@@ -1164,7 +1164,11 @@ function controls(root: Document): Finding[] {
       control.matches('input');
     // A menu row dims its name but keeps the reason it gives at full ink.
     if (style.opacity === '0' || paintsNothing || control.matches("[role='menuitem']")) continue;
-    const opacity = effectiveOpacity(control);
+    // A busy button is the action at work: its fill, edge and spinner keep full strength and
+    // only its words dim, so its words carry the dimming; a busy icon button has none.
+    const busy = control.matches("[aria-busy='true']:not(:disabled)");
+    const dimmed = busy ? control.querySelector('.sui-button-label') : control;
+    const opacity = dimmed ? effectiveOpacity(dimmed) : disabledOpacity;
     if (Math.abs(opacity - disabledOpacity) > 0.02)
       found.push(
         finding('L-40', control, `disabled at opacity ${round(opacity)}, not ${disabledOpacity}`)
