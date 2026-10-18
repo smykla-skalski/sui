@@ -327,4 +327,24 @@ p { margin-block-end: 2em !important; }`;
         }
       }
     );
+
+  // The audit holds the default leading; this holds a reader's, so a fixed gap that only clears
+  // the default line gap fails here.
+  test(
+    'with the WCAG text spacing a wrapped page title still stands closer to itself than to its description',
+    long,
+    async () => {
+      const page = await open(375, 'light');
+      try {
+        await page.addStyleTag({ content: spacing });
+        await page.waitForTimeout(400);
+        assert.deepEqual(
+          (await audit(page)).filter((line) => line.includes("a wrapped title's lines")),
+          []
+        );
+      } finally {
+        await page.close();
+      }
+    }
+  );
 });

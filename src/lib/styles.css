@@ -350,8 +350,8 @@
   --sui-leading-input: 1.25rem;
   --sui-leading-body: 1.4375rem;
   --sui-leading-title: 1.625rem;
-  --sui-leading-page: 2.125rem;
-  --sui-leading-page-compact: 2rem;
+  --sui-leading-page: 2rem;
+  --sui-leading-page-compact: 1.75rem;
 
   --sui-radius-pill: 999px;
   --sui-radius-control: 8px;

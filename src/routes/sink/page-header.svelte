@@ -15,31 +15,37 @@
 
 <Example
   title="Parts"
-  note="The actions centre on the whole copy stack, and move under it on a phone"
+  note="Every header is a band over the page, and its actions move under the copy on a phone"
   layout="stack"
   ground="canvas"
 >
   <Specimen label="Eyebrow, description and actions" code="eyebrow description actions">
-    <PageHeader
-      level={4}
-      eyebrow={['Acme', 'Sync']}
-      title="Repository settings"
-      description="Rules every repository in this workspace is held to"
-    >
-      {#snippet actions()}
-        <Button>Export</Button>
-        <Button tone="signal">Save changes</Button>
-      {/snippet}
-    </PageHeader>
+    <div class="page">
+      <PageHeader
+        level={4}
+        eyebrow={['Acme', 'Sync']}
+        title="Repository settings"
+        description="Rules every repository in this workspace is held to"
+      >
+        {#snippet actions()}
+          <Button>Export</Button>
+          <Button tone="signal">Save changes</Button>
+        {/snippet}
+      </PageHeader>
+      <p class="view">Every new repository starts with these rules</p>
+    </div>
   </Specimen>
   <Specimen label="Title only" code="title">
-    <PageHeader level={4} title="Activity" />
+    <div class="page">
+      <PageHeader level={4} title="Activity" />
+      <p class="view">Nothing happened in the last 7 days</p>
+    </div>
   </Specimen>
 </Example>
 
 <Example
   title="With tabs"
-  note="The header becomes a band down to the tabs' line, so the view under it starts on a clean cut"
+  note="The band's foot is the tabs' line, so the view under it starts on a clean cut"
   layout="stack"
   ground="canvas"
 >
@@ -74,53 +80,63 @@
 <Example
   title="Breadcrumb and back link"
   note="A breadcrumb or a back link takes the eyebrow's place"
+  layout="grid"
   ground="canvas"
 >
   <Specimen label="Breadcrumb" code="kicker">
-    <PageHeader
-      level={4}
-      title="Sync schedule"
-      description="When this repository is checked against its template"
-    >
-      {#snippet kicker()}
-        <Breadcrumb
-          items={[
-            { label: 'Acme', href: '#page-header' },
-            { label: 'Repositories', href: '#page-header' }
-          ]}
-        />
-      {/snippet}
-    </PageHeader>
+    <div class="page">
+      <PageHeader
+        level={4}
+        title="Sync schedule"
+        description="When this repository is checked against its template"
+      >
+        {#snippet kicker()}
+          <Breadcrumb
+            items={[
+              { label: 'Acme', href: '#page-header' },
+              { label: 'Repositories', href: '#page-header' }
+            ]}
+          />
+        {/snippet}
+      </PageHeader>
+      <p class="view">Checked every day at 06:00</p>
+    </div>
   </Specimen>
   <Specimen label="Back link" code="kicker">
-    <PageHeader level={4} title="Run 1842">
-      {#snippet kicker()}<BackLink href="#page-header" label="All runs" />{/snippet}
-    </PageHeader>
+    <div class="page">
+      <PageHeader level={4} title="Run 1842">
+        {#snippet kicker()}<BackLink href="#page-header" label="All runs" />{/snippet}
+      </PageHeader>
+      <p class="view">Finished in 4 minutes with no changes</p>
+    </div>
   </Specimen>
 </Example>
 
 <Example
   title="Long title"
-  note="The title balances its lines, and the copy keeps its 8px rhythm when it wraps"
+  note="The title balances its lines and holds them closer together than the description under them"
   layout="stack"
   ground="canvas"
 >
   <Specimen label="Wrapping title and description">
-    <PageHeader
-      level={4}
-      eyebrow={['Acme', 'Access']}
-      title="Bypass rules for the platform team's deployment and release repositories in every region"
-      description="People and apps listed here can push past the branch rules, and every push they make is written to the audit log"
-    >
-      {#snippet actions()}
-        <Button tone="signal">Add a rule</Button>
-      {/snippet}
-    </PageHeader>
+    <div class="page">
+      <PageHeader
+        level={4}
+        eyebrow={['Acme', 'Access']}
+        title="Bypass rules for the platform team's deployment and release repositories in every region"
+        description="People and apps listed here can push past the branch rules, and every push they make is written to the audit log"
+      >
+        {#snippet actions()}
+          <Button tone="signal">Add a rule</Button>
+        {/snippet}
+      </PageHeader>
+      <p class="view">2 people and 1 app can bypass the rules</p>
+    </div>
   </Specimen>
 </Example>
 
 <style>
-  /* A page's content area: the banded header sits flush with its edges, and the view under it
+  /* A page's content area: the header's band sits flush with its edges, and the view under it
      takes the same gutter. */
   .page {
     background: var(--sui-canvas);

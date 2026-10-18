@@ -28,7 +28,7 @@
     level?: 1 | 2 | 3 | 4 | 5 | 6;
     /** The controls that act on the whole page. */
     actions?: Snippet;
-    /** The page's views, such as `Tabs`, which turn the header into a band down to their line. */
+    /** The page's views, such as `Tabs`, at the band's foot, so their line is where the view starts. */
     tabs?: Snippet;
     /** Layout for the call site only, never the header's own paint. */
     class?: HTMLAttributes<HTMLElement>['class'];
@@ -43,16 +43,21 @@ second column centred against the whole stack. Where the header itself leaves th
 than 20rem, as on a phone or in a narrow pane, the actions move under the copy, 12px below it
 and packed to the start.
 
-The eyebrow stands 8px of ink above the title and the description 8px below it. The title
-is 28px, 24px on a phone, and is the page's one `h1`. The description stops at about 65
-characters a line. The header leaves 24px to the first surface under it (20px on a phone). A
-container that already spaces its children with a gap sets `--sui-head-exit-gap` to that
-gap, and the header owes only the difference.
+The title is 28px on 32px lines, 24px on 28px lines on a phone, and is the page's one `h1`.
+The eyebrow stands 8px of ink above it. The description stands one 8px copy gap further below
+the title than the title's own lines stand apart, 19px of ink (18px on a phone), so a title
+that wraps reads as one block and the description as the next. The gap follows the title's
+line height, so it holds when a reader raises line spacing. The description stops at about 65
+characters a line.
 
-With `tabs` the header is a band of the surface ground down to the tabs' line, so the view under
-it starts on a clean cut, as the page's body starts below a toolbar. Place it flush with the top
-and sides of the page's content area: the band pads its top and sides by the pane gutter, the
-inset the page gives its content, so its words line up with the view's.
+The header is a band of the surface ground over the page's canvas, so the view under it
+starts on a clean cut, as a page's body starts below a toolbar. Place it flush with the top
+and sides of the page's content area: the band pads by the pane gutter on every side, the
+inset the page gives its content, so its words line up with the view's. A page whose column
+sits inside a wider band sets `--sui-local-head-inset` to its column's inset. With `tabs`, the
+band's foot is the tabs' line. The header leaves 24px from its foot to the view's first ink
+(20px on a phone). A container that already spaces its children with a gap sets
+`--sui-head-exit-gap` to that gap, and the header owes only the difference.
 
 - Semantics: a `header` holding the title as a heading at `level` (the page's `h1` by default), with `id` for a landmark that points at it.
 - Content: a title, an optional eyebrow or a `kicker` such as a `Breadcrumb` or `BackLink` in its place, an optional one-line description, optional actions and optional `tabs` at its foot.
@@ -61,14 +66,14 @@ inset the page gives its content, so its words line up with the view's.
 - Pointer and touch: none of its own; the actions keep their own targets.
 - Focus: nothing here moves focus.
 - Responsive: the header answers to its own width, so the actions wrap under the copy, packed to the start, once the copy would have under 20rem; the title balances its lines and the copy wraps.
-- Accessibility: the title is a real heading and the copy holds 4.5:1; the eyebrow is uppercase only for its few words.
+- Accessibility: the title is a real heading and the copy holds 4.5:1 on the band; the eyebrow is uppercase only for its few words; under forced colors, where the band and the page share one ground, the band's foot draws a line.
 - Localization: it draws no words of its own; the actions pack to the start, which mirrors in a right-to-left page.
 - Performance: static text with no script.
 - Analytics: none of its own, because it holds no control; its actions report their own outcomes.
 - Failure: without a description or an eyebrow the stack is the title alone, and an empty eyebrow keeps its line.
 -->
 
-<header {...rest} class={['sui-page-header', className, { banded: tabs !== undefined }]}>
+<header {...rest} class={['sui-page-header', className, { tabbed: tabs !== undefined }]}>
   <div class="sui-page-header-layout">
     <div class="sui-page-header-copy">
       {#if kicker}
@@ -96,14 +101,23 @@ inset the page gives its content, so its words line up with the view's.
 
 <style>
   .sui-page-header {
+    background: var(--sui-surface-base);
     margin: 0 0 calc(var(--sui-rhythm-head-surface) - var(--sui-head-exit-gap, 0px));
     min-inline-size: 0;
+    padding: var(--sui-rhythm-pane-gutter)
+      var(--sui-local-head-inset, var(--sui-rhythm-pane-gutter));
   }
 
-  /* The band's foot is the tabs' line, so the view under it starts on a clean cut. */
-  .banded {
-    background: var(--sui-surface-base);
-    padding: var(--sui-rhythm-pane-gutter) var(--sui-rhythm-pane-gutter) 0;
+  .tabbed {
+    padding-block-end: 0;
+  }
+
+  /* Forced colors paint the band and the page with one ground, so the foot draws the line the
+     ground drew; the tabs already draw theirs. */
+  @media (forced-colors: active) {
+    .sui-page-header:not(.tabbed) {
+      border-block-end: var(--sui-stroke) solid CanvasText;
+    }
   }
 
   .sui-page-header-tabs {
@@ -132,6 +146,12 @@ inset the page gives its content, so its words line up with the view's.
     min-inline-size: 0;
   }
 
+  /* The even height only centres the copy on the actions; alone, the spare pixel would sit
+     under the last line and leave the band's foot a pixel further than its top. */
+  .sui-page-header-copy:only-child {
+    block-size: var(--sui-block-snap);
+  }
+
   .sui-page-header-eyebrow {
     align-content: center;
     block-size: var(--sui-block-snap);
@@ -155,6 +175,13 @@ inset the page gives its content, so its words line up with the view's.
     overflow-wrap: break-word;
     text-box: trim-both cap alphabetic;
     text-wrap: balance;
+  }
+
+  /* Proximity: a wrapped title's lines stand 1lh - 1cap apart in ink, so the description stands
+     that far plus the copy gap, and the title reads as one block. Taken from the title's own
+     line height, it still holds when a reader sets line height to 1.5 (WCAG 1.4.12). */
+  .sui-page-header-title:has(+ .sui-page-header-description) {
+    margin-block-end: round(calc(1lh - 1cap), 1px);
   }
 
   .sui-page-header-description {

@@ -538,6 +538,36 @@ function copyRhythm(root: Document): Finding[] {
   return found;
 }
 
+/**
+ * A page title that wraps reads as one block only while its description stands a copy gap
+ * further below it than its own lines stand apart, measured cap to baseline (L-24).
+ */
+function titleProximity(root: Document): Finding[] {
+  const found: Finding[] = [];
+  for (const title of audited(root, '.sui-page-header-title')) {
+    const description = title.nextElementSibling;
+    const face = faceMetrics(getComputedStyle(title));
+    const own = inkLines(title);
+    const under = description && shown(description) ? inkLines(description) : null;
+    if (!face || !own || !under) continue;
+    const range = root.createRange();
+    range.selectNodeContents(title);
+    const tops = [...new Set([...range.getClientRects()].map((line) => Math.round(line.top)))];
+    if (tops.length < 2) continue;
+    const lineGap = tops[1] - tops[0] - face.cap;
+    const gap = under.top - own.bottom;
+    if (gap - lineGap < 7)
+      found.push(
+        finding(
+          'L-24',
+          description,
+          `a wrapped title's lines stand ${round(lineGap)}px apart, and its description only ${round(gap)}px under it`
+        )
+      );
+  }
+  return found;
+}
+
 /** True when a scrolling or clipping ancestor that fits the viewport hides the overflow. */
 function clippedInView(element: Element, width: number): boolean {
   for (let node = element.parentElement; node; node = node.parentElement) {
@@ -1898,5 +1928,6 @@ register(
   rings,
   codeLines,
   chartInk,
-  pressSelection
+  pressSelection,
+  titleProximity
 );
