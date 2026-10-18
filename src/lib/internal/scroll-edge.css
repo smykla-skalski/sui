@@ -9,7 +9,9 @@
 
   A component imports this sheet and puts `sui-scroll-edge` on its scroller. A part held at the
   start edge while the rest scrolls under it, such as a gutter or a held column, sets its width
-  in `--sui-local-edge-hold`, so the start fade begins where the scrolled content comes out.
+  in `--sui-local-edge-hold`, so the start fade begins where the scrolled content comes out. A box
+  that keeps empty room after its content sets that room in `--sui-local-edge-trail`, so the end
+  fade turns off once only that room is past the edge and is never drawn over nothing.
 */
 
 @property --sui-scroll-edge-start {
@@ -54,7 +56,8 @@
       sui-scroll-edge-end var(--sui-ease-linear) both;
     animation-range:
       0 1px,
-      calc(100% - 2px) calc(100% - 1px);
+      calc(100% - var(--sui-local-edge-trail, 0px) - 2px)
+        calc(100% - var(--sui-local-edge-trail, 0px) - 1px);
     animation-timeline: scroll(self inline), scroll(self inline);
     mask-image: var(--sui-scroll-edge-mask);
   }

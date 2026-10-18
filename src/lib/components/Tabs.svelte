@@ -45,12 +45,20 @@
   /* A row short of room may start with the current tab out of sight, which is the one tab a
      reader looks for. Keyed to `current` so a new page reveals its tab again. Jumped, never
      scrolled smoothly, so nothing slides into the first paint, and kept clear of the row's
-     scroll padding so the edge fade never covers it. */
+     scroll padding so the edge fade never covers it. Where the browser places the row itself
+     (`scroll-initial-target`), it does so before the first paint, so script reveals only a
+     later page's tab, rather than scrolling a row that is already on screen. */
+  let placed = false;
   function revealCurrent(_current: string | undefined): Attachment<HTMLElement> {
     return (row) => {
+      if (!placed) {
+        placed = true;
+        if (CSS.supports('scroll-initial-target', 'nearest') && CSS.supports('anchor-name', '--a'))
+          return;
+      }
       const tab = row.querySelector('[aria-current="page"]');
       if (!tab) return;
-      const pad = parseFloat(getComputedStyle(row).scrollPaddingInlineStart) || 0;
+      const pad = parseFloat(getComputedStyle(tab).scrollMarginInlineStart) || 0;
       const box = tab.getBoundingClientRect();
       const own = row.getBoundingClientRect();
       if (box.left < own.left + pad) row.scrollLeft += box.left - own.left - pad;
@@ -91,7 +99,7 @@ never clips it.
 - Responsive: the track scrolls sideways, fades the edge with more tabs past it, and reveals the current tab on arrival.
 - Accessibility: the current bar holds 3:1 on the page, every ink 4.5:1, and the current ink stands 3:1 from the rest ink with a heavier weight; the counts are read with their labels.
 - Localization: the tabs follow the reading direction, so the fades and the scroll mirror in a right-to-left page, and a numeric count follows the page language's digits and grouping.
-- Performance: plain links with no measuring beyond one reveal per current page; only colour and the ground transition, and the fade runs on a scroll timeline.
+- Performance: plain links; the browser lays the first row out with its current tab in view, and script measures only to reveal a later page's tab; only colour and the ground transition, and the fade runs on a scroll timeline.
 - Analytics: `onnavigate(event, item)` reports every followed tab.
 - Failure: an empty `items` draws an empty track, and a `current` that matches no tab draws no bar.
 -->
@@ -119,6 +127,7 @@ never clips it.
             <Count value={counted(item.count)} />
           {/if}
         </a>
+        {#if item.href === current}<span class="sui-tabs-landing" aria-hidden="true"></span>{/if}
       </li>
     {/each}
   </ul>
@@ -127,33 +136,51 @@ never clips it.
 <style>
   /* The nav scrolls and the track scrolls inside it with its line, so the line fades with the
      tabs at an edge that has more past it (`sui-scroll-edge`). */
+  /* The row lands on a tab's start at its very edge, so it keeps no scroll padding; each tab keeps
+     the fade's room instead, so a tab that focus scrolls into view stops clear of the fade. */
+  /* The grid's second column is as wide as the track runs past the nav, so whether the row
+     scrolls is known in layout, before the first paint and before the browser restores the
+     reader's place. A scroll-state query or a scroll timeline answers only after a frame is laid
+     out, and the room it added then moved the page under the reader. */
   .sui-tabs {
-    container-type: scroll-state;
+    --sui-local-edge-trail: var(--sui-local-edge-fade, var(--sui-space-8));
+    anchor-scope: --sui-tabs-before, --sui-tabs-current;
+    container-type: inline-size;
+    display: grid;
+    grid-template-columns: 100% auto;
+    scroll-padding-inline: 0;
     min-inline-size: 0;
     overflow-x: auto;
     overflow-y: hidden;
     scrollbar-width: thin;
   }
 
+  /* A row that scrolls keeps room under its line, so the scrollbar never covers the tabs. */
+  .sui-tabs::after {
+    content: '';
+    grid-column: 2;
+    padding-block-start: clamp(0%, 100% * 1000, var(--sui-space-3));
+  }
+
   /* The track is as wide as its tabs or the nav, whichever is wider, so its line runs the whole
-     row. */
+     row. A row that scrolls keeps one fade of room after its last tab, so it can scroll a tab
+     boundary onto its start edge with the last tab whole; the end fade is never drawn over that
+     room. */
   .sui-tabs-track {
     border-block-end: var(--sui-stroke) solid var(--sui-local-tabs-line, var(--sui-border-subtle));
     box-sizing: border-box;
     display: flex;
     gap: var(--sui-space-2);
+    grid-column: 1 / -1;
     inline-size: max-content;
     list-style: none;
     margin: 0;
     min-inline-size: 100%;
     padding: var(--sui-space-1) var(--sui-local-tabs-inset, 0px) 0;
-  }
-
-  /* A row that scrolls keeps room under its line, so the scrollbar never covers the tabs. */
-  @container scroll-state(scrollable: inline) {
-    .sui-tabs-track {
-      margin-block-end: var(--sui-space-3);
-    }
+    padding-inline-end: calc(
+      var(--sui-local-tabs-inset, 0px) +
+        clamp(0%, (100% - 100cqi) * 1000, var(--sui-local-edge-fade, var(--sui-space-8)))
+    );
   }
 
   .sui-tabs-item {
@@ -177,12 +204,57 @@ never clips it.
     margin-block-end: var(--sui-space-1);
     padding-inline: var(--sui-space-2);
     position: relative;
+    scroll-margin-inline: var(--sui-local-edge-fade, var(--sui-space-8));
     text-decoration: none;
     transition: box-shadow var(--sui-duration-press) var(--sui-ease-standard);
     white-space: nowrap;
     -webkit-tap-highlight-color: transparent;
     -webkit-user-select: none;
     user-select: none;
+  }
+
+  /* The row is laid out before the first paint from a mark the browser places itself: on the
+     start of the tab before the current one (two before a current last tab, which the room
+     after the last tab lets the row reach), so that tab stands whole under the start fade and
+     the faded edge never shows a cut word; unless the current tab would then reach under the
+     end fade, when the current tab wins and the mark moves on just far enough to clear it. A
+     first tab that is current leaves the row at its start. */
+  .sui-tabs-track {
+    position: relative;
+  }
+
+  .sui-tabs-landing {
+    display: none;
+  }
+
+  @supports (scroll-initial-target: nearest) and (anchor-name: --a) {
+    .sui-tabs-item:has(+ .sui-tabs-item:not(:last-child) > [aria-current='page']),
+    .sui-tabs-item:has(+ .sui-tabs-item + .sui-tabs-item:last-child > [aria-current='page']) {
+      anchor-name: --sui-tabs-before;
+    }
+
+    .sui-tabs-item:has(> [aria-current='page']) {
+      --sui-local-tabs-past: var(--sui-local-edge-fade, var(--sui-space-8));
+      anchor-name: --sui-tabs-current;
+    }
+
+    .sui-tabs-item:last-child:has(> [aria-current='page']) {
+      --sui-local-tabs-past: 0px;
+    }
+
+    .sui-tabs-landing {
+      block-size: 1px;
+      display: block;
+      inline-size: 0;
+      inset-block-start: 0;
+      inset-inline-start: max(
+        anchor(--sui-tabs-before start, 0),
+        calc(anchor(--sui-tabs-current end) + var(--sui-local-tabs-past) - 100cqi)
+      );
+      position: absolute;
+      scroll-initial-target: nearest;
+      scroll-snap-align: start;
+    }
   }
 
   .sui-tabs-tab::after {
