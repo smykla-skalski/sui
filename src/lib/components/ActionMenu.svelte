@@ -31,6 +31,7 @@
     items,
     label,
     icon,
+    toolbar = false,
     tone = 'default',
     align = 'start',
     disabled = false,
@@ -54,12 +55,15 @@
         /** The accessible name and tooltip of the icon trigger. */
         label: string;
         icon: IconName;
+        /** Sets the icon trigger on the 34px control tier, level with the buttons beside it. */
+        toolbar?: boolean;
         tone?: never;
         children?: never;
       }
     | {
         label?: never;
         icon?: never;
+        toolbar?: never;
         tone?: ButtonTone;
         /** The visible label of a `Button` trigger, drawn with a trailing chevron. */
         children: Snippet;
@@ -178,18 +182,20 @@ that happen; a place to go is a link on the page. Put a destructive act last wit
 tone, so it is never the row under the pointer by accident.
 
 The trigger is an `IconButton` when given `label` and `icon`, and a `Button` with a chevron
-when given its label as children. Opening moves focus to the first item. Arrows wrap, Home and
-End jump, and typing a letter jumps to the next item that starts with it. Escape closes and
-returns focus to the trigger, and Tab closes it and moves on to the next control. A disabled
-item stays in the arrow order with its `description`, and choosing it does nothing. Choosing
-any other item closes the menu and focuses the trigger before `onselect` runs. A dialog the
-item opens then returns focus there too. Labels wrap rather than being cut short.
+when given its label as children. The icon trigger stands on the 28px quiet tier for a row's
+end, and `toolbar` sets it on the control tier beside buttons, as tall as they are at every
+width. Opening moves focus to the first item. Arrows wrap, Home and End jump, and typing a
+letter jumps to the next item that starts with it. Escape closes and returns focus to the
+trigger, and Tab closes it and moves on to the next control. A disabled item stays in the
+arrow order with its `description`, and choosing it does nothing. Choosing any other item
+closes the menu and focuses the trigger before `onselect` runs. A dialog the item opens then
+returns focus there too. Labels wrap rather than being cut short.
 
 - Semantics: a menu button (`aria-haspopup="menu"`, `aria-expanded`) and a `menu` of `menuitem` buttons named by the trigger, with `separator` rows between groups.
 - Content: items with a label, an optional icon and one line of description; a destructive item last; labels and descriptions wrap.
 - States: closed, open, an item highlighted by focus or pointer, pressed, disabled (dimmed label with its reason at full contrast), `stop` in the danger ink, and a disabled trigger.
 - Keyboard: Enter, Space, Down or Up opens on the first or last item; arrows wrap, Home and End jump, a letter jumps, Enter or Space chooses, Escape closes to the trigger and Tab closes and moves on.
-- Pointer and touch: items are one control tall, 34px and 44px on a phone or touch screen; the pointer's item takes focus as it moves.
+- Pointer and touch: items are one control tall, 34px and 44px on a phone or touch screen; the pointer's item takes focus as it moves; the icon trigger is 28px with a 44px hit area there, or with `toolbar` one control tall, as the button trigger is.
 - Focus: opening moves focus to the first item, choosing or Escape returns it to the trigger before `onselect` runs, and Tab hands it to the next control.
 - Responsive: the menu is at least 13rem and at most 24rem wide or the viewport less 24px, flips above the trigger when there is more room, and scrolls inside when tall.
 - Accessibility: the trigger names the menu, a disabled item is `aria-disabled`, an item's description is read in its name after the label through `optionName`, so the name holds every drawn word, and the highlight survives forced colours as an outline.
@@ -210,6 +216,7 @@ item opens then returns focus there too. Labels wrap rather than being cut short
       id={triggerId}
       {icon}
       {label}
+      {toolbar}
       {disabled}
       {...triggerProps}
     />

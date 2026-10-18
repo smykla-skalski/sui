@@ -8,7 +8,7 @@
 </script>
 
 <script lang="ts">
-  import { ActionMenu, ConfirmDialog, type ActionMenuItem } from '#lib';
+  import { ActionMenu, Button, ConfirmDialog, type ActionMenuItem } from '#lib';
   import Example from '../kit/Example.svelte';
   import Specimen from '../kit/Specimen.svelte';
 
@@ -43,10 +43,16 @@
 
 <Example
   title="Triggers"
-  note="An icon trigger for a row's end, and a worded trigger with a chevron in the default and ghost tones"
+  note="An icon trigger for a row's end or beside buttons, and a worded trigger with a chevron in the default and ghost tones"
 >
   <Specimen label="Icon trigger" code={'label icon="more" align="end"'}>
     <ActionMenu label="Repository actions" icon="more" items={repository} align="end" />
+  </Specimen>
+  <Specimen label="Beside buttons" code={'label icon="more" toolbar align="end"'}>
+    <div class="actions">
+      <Button>Edit release</Button>
+      <ActionMenu label="Release actions" icon="more" toolbar items={release} align="end" />
+    </div>
   </Specimen>
   <Specimen label="Button trigger" code="children">
     <ActionMenu items={release}>Release actions</ActionMenu>
@@ -103,6 +109,11 @@
 />
 
 <style>
+  .actions {
+    display: flex;
+    gap: var(--sui-space-2);
+  }
+
   .locked {
     align-items: center;
     display: flex;

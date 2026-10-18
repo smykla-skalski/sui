@@ -164,7 +164,7 @@
     {#snippet facts()}<FactList facts={headline} />{/snippet}
     {#snippet actions()}
       <Button tone="signal">Check again</Button>
-      <ActionMenu items={menu} align="end">More</ActionMenu>
+      <ActionMenu label="More actions" icon="more" toolbar items={menu} align="end" />
     {/snippet}
   </PageHeader>
 {/snippet}
