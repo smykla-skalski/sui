@@ -756,4 +756,48 @@ suite('overlays', together, () => {
       await page.close();
     }
   });
+
+  // At twice the text size the menu's 13rem floor outgrew a phone, so the menu scrolled sideways
+  // inside its popover and cut its separator.
+  test('an action menu fits the window and its line at twice the text size', long, async () => {
+    const page = await open({ viewport: { width: 375, height: 800 } });
+    try {
+      await page.evaluate(() => (document.documentElement.style.fontSize = '200%'));
+      const previews = await page.evaluate(() =>
+        [...document.querySelectorAll('#action-menu .sui-action-menu-preview')].map((preview) => {
+          const popover = /** @type {Element} */ (preview.querySelector('.sui-popover'));
+          const box = popover.getBoundingClientRect();
+          const trigger = /** @type {Element} */ (
+            preview.querySelector('button')
+          ).getBoundingClientRect();
+          const line = /** @type {Element} */ (preview.parentElement).getBoundingClientRect();
+          const end = preview.getAttribute('data-align') === 'end';
+          return {
+            scrolls: popover.scrollWidth > popover.clientWidth,
+            inLine: box.left >= line.left - 0.5 && box.right <= line.right + 0.5,
+            aligned: Math.abs(end ? box.right - trigger.right : box.left - trigger.left) < 0.5
+          };
+        })
+      );
+      assert.ok(previews.length > 0, 'the section shows no open menu');
+      for (const preview of previews)
+        assert.deepEqual(preview, { scrolls: false, inLine: true, aligned: true });
+      const trigger = page.locator('#action-menu button[aria-label="Repository actions"]').first();
+      await trigger.scrollIntoViewIfNeeded();
+      await trigger.click();
+      const popover = page.locator('.sui-popover:popover-open');
+      await popover.waitFor();
+      const floating = await popover.evaluate((element) => {
+        const box = element.getBoundingClientRect();
+        return {
+          scrolls: element.scrollWidth > element.clientWidth,
+          inside: box.left >= 0 && box.right <= document.documentElement.clientWidth
+        };
+      });
+      assert.deepEqual(floating, { scrolls: false, inside: true });
+      await page.keyboard.press('Escape');
+    } finally {
+      await page.close();
+    }
+  });
 });

@@ -197,14 +197,14 @@ returns focus there too. Labels wrap rather than being cut short.
 - Keyboard: Enter, Space, Down or Up opens on the first or last item; arrows wrap, Home and End jump, a letter jumps, Enter or Space chooses, Escape closes to the trigger and Tab closes and moves on.
 - Pointer and touch: items are one control tall, 34px and 44px on a phone or touch screen; the pointer's item takes focus as it moves; the icon trigger is 28px with a 44px hit area there, or with `toolbar` one control tall, as the button trigger is.
 - Focus: opening moves focus to the first item, choosing or Escape returns it to the trigger before `onselect` runs, and Tab hands it to the next control.
-- Responsive: the menu is at least 13rem and at most 24rem wide or the viewport less 24px, flips above the trigger when there is more room, and scrolls inside when tall.
+- Responsive: the menu is 13rem to 24rem wide and never wider than the viewport less 24px, or than its line when drawn as a preview, so large text narrows it and wraps its labels; it flips above the trigger when there is more room, and scrolls inside when tall.
 - Accessibility: the trigger names the menu, a disabled item is `aria-disabled`, an item's description is read in its name after the label through `optionName`, so the name holds every drawn word, and the highlight survives forced colours as an outline.
 - Localization: every word is the caller's, and `align` start and end follow the reading direction, so a right-to-left page hangs the menu from the mirrored edge.
 - Performance: items render only while the menu is in the page; the highlight fades its ground and the press sinks 1px, both removed under reduced motion.
 - Analytics: each item's `onselect` reports the chosen act; a menu closed without a choice calls nothing.
 - Failure: an empty `items` opens an empty menu, so leave the trigger out instead; a disabled item says why in its description.
 -->
-{#snippet control()}
+{#snippet opener()}
   {#if children}
     <Button bind:element={button} id={triggerId} {tone} {disabled} {...triggerProps}>
       {@render children()}
@@ -220,14 +220,11 @@ returns focus there too. Labels wrap rather than being cut short.
       {disabled}
       {...triggerProps}
     />
-  {/if}<Popover
-    id={popupId}
-    anchor={trigger}
-    bind:open
-    inline={preview}
-    width="min-trigger"
-    {align}
-  >
+  {/if}
+{/snippet}
+
+{#snippet popup()}
+  <Popover id={popupId} anchor={trigger} bind:open inline={preview} width="min-trigger" {align}>
     <div
       bind:this={menu}
       id={menuId}
@@ -274,22 +271,37 @@ returns focus there too. Labels wrap rather than being cut short.
 {/snippet}
 
 {#if preview}
-  <div class="sui-action-menu-preview" data-align={align}>{@render control()}</div>
+  <div class="sui-action-menu-preview" data-align={align}>
+    <span class="sui-action-menu-trigger">{@render opener()}</span>
+    {@render popup()}
+  </div>
 {:else}
-  {@render control()}
+  {@render opener()}{@render popup()}
 {/if}
 
 <style>
+  /* In the page's flow the room is the preview's own line, so the menu fills a box at least as
+     wide as a floating menu's floor and never wider than that line, and the trigger stands at
+     its aligned edge above it. */
   .sui-action-menu-preview {
     display: inline-grid;
     gap: var(--sui-space-1);
     grid-template-columns: minmax(0, auto);
     inline-size: fit-content;
     max-inline-size: 100%;
+    min-inline-size: min(calc(13rem + 2 * var(--sui-stroke)), 100%);
   }
 
-  .sui-action-menu-preview[data-align='end'] {
-    justify-items: end;
+  .sui-action-menu-trigger {
+    display: flex;
+  }
+
+  .sui-action-menu-preview[data-align='end'] > .sui-action-menu-trigger {
+    justify-content: flex-end;
+  }
+
+  .sui-action-menu-preview .sui-action-menu {
+    min-inline-size: 0;
   }
 
   .sui-action-menu {
@@ -297,7 +309,9 @@ returns focus there too. Labels wrap rather than being cut short.
     display: grid;
     grid-template-columns: minmax(0, 1fr);
     max-inline-size: min(24rem, calc(100vw - 2 * var(--sui-space-3)));
-    min-inline-size: 13rem;
+    /* The floor gives way to the room the window leaves, so large text narrows the menu and
+       wraps its labels rather than scrolling it sideways. */
+    min-inline-size: min(13rem, calc(100vw - 2 * var(--sui-space-3)));
     outline: none;
     padding: var(--sui-space-1);
     row-gap: 2px;
