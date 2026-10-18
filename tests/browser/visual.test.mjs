@@ -89,11 +89,11 @@ for (const theme of ['light', 'dark'])
         document.documentElement.dataset.suiTheme = name;
         await document.fonts.ready;
       }, theme);
-      // Time-relative words and live pulses would differ between runs, and the sink's own bar,
-      // fixed over the page once it scrolls, may or may not have come in when a section is shot.
+      // Time-relative words would differ between runs, and the sink's own bar and its way back
+      // up, which come in over the page once its header scrolls away, would cover sections.
       await page.addStyleTag({
         content:
-          '*, *::before, *::after { animation: none !important; caret-color: transparent !important; } time { visibility: hidden !important; } .tools.compact { visibility: hidden !important; }'
+          '*, *::before, *::after { caret-color: transparent !important; } time, div.bar:has(> .bar-title), .to-top { visibility: hidden !important; }'
       });
       // A skeleton says it is slow after its 10s patience, so every section is shot after it.
       await page.waitForTimeout(Math.max(0, loaded + 10_500 - Date.now()));
@@ -110,7 +110,16 @@ for (const theme of ['light', 'dark'])
         await page.evaluate(
           () => new Promise((done) => requestAnimationFrame(() => requestAnimationFrame(done)))
         );
-        const picture = await section.screenshot({ animations: 'disabled' });
+        // Live pulses and growing layers end, and anything endless stops. A scroll-driven
+        // animation runs on, since it draws a state, such as the form a control takes.
+        await page.evaluate(() => {
+          for (const animation of document.getAnimations()) {
+            if (!(animation.timeline instanceof DocumentTimeline)) continue;
+            if (animation.effect?.getTiming().iterations === Infinity) animation.cancel();
+            else animation.finish();
+          }
+        });
+        const picture = await section.screenshot({ animations: 'allow' });
         const file = join(BASELINES, `${id}-${theme}.png`);
         if (!existsSync(file)) {
           if (UPDATE) writeFileSync(file, picture);
