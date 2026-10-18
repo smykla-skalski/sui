@@ -28,7 +28,7 @@
     level?: 2 | 3 | 4 | 5 | 6;
     /** Controls beside the title. They centre on its cap line and never raise the head. */
     actions?: Snippet;
-    /** A closing row of actions, held to the same cap-line track as the head. */
+    /** Closing actions: beside the copy at its foot while the card holds both, else under it. */
     footer?: Snippet;
     /** Makes the whole card a link to this address, named by its title, while controls inside stay pressable. */
     href?: string;
@@ -69,18 +69,20 @@ sees (L-33): the first ink sits the inset below the top, the last the inset abov
 and anything that reaches a side stops the inset short of it. The title is a heading at
 `level`, balanced and trimmed to its cap height. A `description` is the title's second line,
 as far below it as the title's own lines stand apart plus 8px, not the first line of the
-body. The title's cap stands the inset below the top whatever stands beside it, as on the other
-three sides, and a framed control or a switch in `actions` starts on that same line with its
-end on the inset, so the head's first ink is level; a control taller than the title's line sets
-the head's height, and the note stays under the title, never under the control's foot. A lone
-ghost button or quiet icon button
-draws nothing at rest, so its words or glyph keep the inset instead: it centres on the title's
-cap band, its box stands as far past the end as above the title, and a ghost button stays
-34px on a phone with a 44px hit area. Under a title that wraps past them the actions stay on
-the first line. A `footer` row is as tall as its actions, so they keep the inset from the
-bottom. A row list or a `Skeleton` that opens the card hands back what stands above its first
-row's ink, as it hands back what stands below its last: the card lends the body's first child
-`--sui-local-row-lead` and its last child `--sui-local-row-trail`, so a row that opens or
+body. The title's cap stands the inset below the top. Whatever stands beside the title in
+`actions`, a button, a switch, a segmented control, a pill or a menu, centres on the title's
+cap band and lends the head no height, so the title, its note and the content stand exactly
+where they stand in the same card with no action; a control taller than the title's line
+reaches above and below it into the inset. A framed control ends on the inset, and a ghost
+button or a quiet icon button keeps its words or glyph there instead, with its box as far past
+the end as above the band. A button there stays drawn at 34px on a phone with a 44px hit area.
+Under a title that wraps the actions stay on its first line, and only a card under 18rem puts
+them on a line of their own under the copy. A `footer`'s actions stand beside the copy at its
+foot while the card holds both next to an 11rem measure of copy, as a callout's do, and on a
+line of their own under it otherwise, so they keep the inset from the bottom and the end in
+either place. A row list or a `Skeleton` that opens the card hands back what stands above its
+first row's ink, as it hands back what stands below its last: the card lends the body's first
+child `--sui-local-row-lead` and its last child `--sui-local-row-trail`, so a row that opens or
 closes the card leaves only the inset beside its ink.
 
 With `href` the whole card is one link through a layer under its content, as an `ObjectRow`
@@ -95,7 +97,7 @@ title, such as "Danger zone", and holds the acts that cannot be undone, each a `
 - Keyboard: without `href`, none of its own; with it, the card is one tab stop and Enter follows the link; then Tab reaches the controls inside in reading order.
 - Pointer and touch: with `href`, the whole card is the link's target; the controls inside keep their own targets and press feedback.
 - Focus: nothing here moves focus; a focused card link draws the 2px ring flush on the card's keyline, which takes the focus colour, as a bordered control does (L-41).
-- Responsive: a container query on the card's own width steps the inset from 20px to 16px at 36rem, the head's actions centre on the title beside the copy and move under it below 18rem, and the footer's actions pack to the end.
+- Responsive: a container query on the card's own width steps the inset from 20px to 16px at 36rem, the head's actions centre on the title's cap band beside the copy and move under it below 18rem, and the footer's actions stand beside the copy while they fit next to 11rem of it and wrap under it, from its start edge, otherwise.
 - Accessibility: the unsaved and danger states are said in words, never by the keyline's colour alone, and the copy, the word and the danger title hold 4.5:1; a card link is heard once, by its title, with the rest of the card outside its name.
 - Localization: `unsavedLabel` is a prop with an English default, and `titleName` joins it to the title; the actions sit at the inline end, which mirrors in a right-to-left page.
 - Performance: static layout with no script; each card is its own size container, and hover and press change only the veil, the inset shadow and a 1px sink.
@@ -108,35 +110,39 @@ title, such as "Danger zone", and holds the acts that cannot be undone, each a `
     {#if href !== undefined}
       <a class="sui-card-hit" {href} aria-labelledby="{id}-title"></a>
     {/if}
-    {#if title !== undefined || actions}
-      <div class="sui-card-head">
-        {#if title !== undefined || description !== undefined}
-          <div class="sui-card-copy">
-            {#if title !== undefined}
-              <svelte:element
-                this={`h${level}`}
-                id="{id}-title"
-                class="sui-card-title"
-                aria-label={unsaved ? titleName(title, unsavedLabel) : undefined}
-                ><span class="sui-card-words"
-                  ><span>{title}</span>{#if unsaved}<span class="sui-card-unsaved"
-                      >{unsavedLabel}</span
-                    >{/if}</span
-                ></svelte:element
-              >
+    {#if title !== undefined || actions || children}
+      <div class="sui-card-main">
+        {#if title !== undefined || actions}
+          <div class="sui-card-head">
+            {#if title !== undefined || description !== undefined}
+              <div class="sui-card-copy">
+                {#if title !== undefined}
+                  <svelte:element
+                    this={`h${level}`}
+                    id="{id}-title"
+                    class="sui-card-title"
+                    aria-label={unsaved ? titleName(title, unsavedLabel) : undefined}
+                    ><span class="sui-card-words"
+                      ><span>{title}</span>{#if unsaved}<span class="sui-card-unsaved"
+                          >{unsavedLabel}</span
+                        >{/if}</span
+                    ></svelte:element
+                  >
+                {/if}
+                {#if description !== undefined}
+                  <p class="sui-card-note">{description}</p>
+                {/if}
+              </div>
             {/if}
-            {#if description !== undefined}
-              <p class="sui-card-note">{description}</p>
+            {#if actions}
+              <div class="sui-card-actions">{@render actions()}</div>
             {/if}
           </div>
         {/if}
-        {#if actions}
-          <div class="sui-card-actions">{@render actions()}</div>
+        {#if children}
+          <div class="sui-card-body">{@render children()}</div>
         {/if}
       </div>
-    {/if}
-    {#if children}
-      <div class="sui-card-body">{@render children()}</div>
     {/if}
     {#if footer}
       <div class="sui-card-footer">{@render footer()}</div>
@@ -150,16 +156,32 @@ title, such as "Danger zone", and holds the acts that cannot be undone, each a `
     min-inline-size: 0;
   }
 
+  /* The copy, its head and body, and the footer's actions share one line while the card holds
+     both, and the actions wrap under the copy only when they do not fit beside an 11rem
+     measure of it, as a callout's do: wrapping decides that from the actions' own width, which
+     a container query cannot know. On a shared line the actions close the copy at its foot, so
+     their frame lands on whole pixels whatever the copy's height and keeps the bottom inset,
+     and a line the actions take alone starts at the start edge (L-90). */
   .sui-card {
+    align-items: start;
     background: var(--sui-surface-base);
     border: var(--sui-stroke) solid var(--sui-border-subtle);
     border-radius: var(--sui-radius-surface);
     box-sizing: border-box;
     color: var(--sui-text-primary);
-    display: flow-root;
+    column-gap: var(--sui-space-6);
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
     margin: 0;
     min-inline-size: 0;
     padding: var(--sui-rhythm-surface-pad);
+    row-gap: var(--sui-rhythm-card-head-body);
+  }
+
+  .sui-card-main {
+    flex: 1 1 11rem;
+    min-inline-size: 0;
   }
 
   /* The danger zone says so with its keyline and its title's ink and never with a ground, so
@@ -266,13 +288,10 @@ title, such as "Danger zone", and holds the acts that cannot be undone, each a `
   }
 
   /* The copy, the title and the note under it, keeps one column and the actions another, so
-     the note never runs under an action. The title's cap opens the card at its inset, as every
-     side's ink does, and a framed control's seat starts on that line too, so the head's first
-     ink is level and nothing stands above the inset (L-33). The copy keeps 10rem beside the
-     actions, so keep them to a short button or two. Only a card too narrow for both puts them
-     on a line of their own under the copy, from its start edge (L-90). */
+     the note never runs under an action. The copy keeps 10rem beside the actions, so keep them
+     to a short control or two. Only a card too narrow for both puts them on a line of their
+     own under the copy, from its start edge (L-90). */
   .sui-card-head {
-    --sui-local-card-seat: var(--sui-control-height-compact);
     align-items: start;
     column-gap: var(--sui-space-6);
     display: grid;
@@ -285,50 +304,53 @@ title, such as "Danger zone", and holds the acts that cannot be undone, each a `
     min-inline-size: 0;
   }
 
-  /* A bare switch is shorter than the control tier, so the seat takes its height and the
-     switch starts on the title's cap line as a framed control does. */
-  .sui-card-head:has(> .sui-card-actions > :global(.sui-switch.bare):only-child) {
-    --sui-local-card-seat: 20px;
-  }
-
-  /* A ghost button or a quiet icon button draws no frame or ground at rest, so a reader sees
-     only its words or glyph, and those keep the inset instead of its box: the seat is the
-     title's own cap band and the control (`--sui-local-card-control` tall) centres on it.
-     Its box reaches into the inset, as a hover ground may, and as far past the end as above
-     the seat, so a hover or press ground sits square in the card's corner. A ghost button
-     stays drawn at the pointer's tier on a phone too and grows only its hit area, so it
-     reaches no further than its own padding and its words never pass the inset. Material
-     aligns an icon button's glyph to a card's keyline, lets its state layer reach past it,
-     and draws a 40dp button inside a 48dp target. */
-  .sui-card-head:has(> .sui-card-actions > :global(.sui-button[data-tone='ghost']):only-of-type) {
+  /* A button in the head keeps its pointer tier drawn on a phone and grows only its hit area,
+     so it never reaches past the card's keyline from the title's line. */
+  .sui-card-actions {
     --sui-local-button-seat: var(--sui-control-height-drawn);
-    --sui-local-card-control: var(--sui-control-height-drawn);
-    --sui-local-card-seat: round(up, 1cap, 2px);
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--sui-space-2);
+    grid-column: 2;
+    justify-content: flex-end;
+    min-inline-size: 0;
   }
 
-  .sui-card-head:has(> .sui-card-actions > :global(.sui-icon-button):only-of-type) {
-    --sui-local-card-seat: round(up, 1cap, 2px);
-    --sui-local-card-control: var(--sui-tier-quiet);
-  }
-
-  .sui-card-head:has(> .sui-card-actions > :global(.sui-icon-button.toolbar):only-of-type) {
-    --sui-local-card-control: var(--sui-control-height-compact);
-  }
-
-  /* Beside the copy only: stacked under it, the control keeps its own box. The actions take
-     the title's face, so `1cap` makes the seat the title's cap band, and the title is the
-     first ink. */
+  /* Beside the copy, whatever the actions hold, a button, a switch, a segmented control, a pill
+     or a menu, centres on the title's cap band and lends the head no height: the seat is that
+     band, in the title's face, so `1cap` is the title's, and a control taller than it reaches
+     above and below the title's line, into the card's inset, so the title, its note and the
+     content stand where they stand in a card with no action (L-34). A framed control ends on
+     the inset. A ghost button or a quiet icon button draws nothing at rest, so its words or
+     glyph keep the inset instead, and its box reaches as far past the end as above the band,
+     so a hover or press ground sits square in the card's corner. Material aligns an icon
+     button's glyph to a card's keyline, lets its state layer reach past it, and draws a 40dp
+     button inside a 48dp target. */
   @container not (max-width: 18rem) {
-    .sui-card-head:has(
-        > .sui-card-actions
-          > :global(:is(.sui-button[data-tone='ghost'], .sui-icon-button)):only-of-type
-      )
-      > .sui-card-actions {
-      block-size: var(--sui-local-card-seat);
+    /* The seat's even band can stand a pixel taller than the title's own box, so the seat
+       gives back all of its height and the copy alone sets the head's. */
+    .sui-card-actions {
+      block-size: round(up, 1cap, 2px);
       flex-wrap: nowrap;
       font: var(--sui-weight-semibold) var(--sui-font-size-card-title) / var(--sui-leading-flat)
         var(--sui-sans);
-      margin-inline-end: calc((var(--sui-local-card-seat) - var(--sui-local-card-control)) / 2);
+      margin-block-end: calc(-1 * round(up, 1cap, 2px));
+    }
+
+    .sui-card-head:has(> .sui-card-actions > :global(.sui-button[data-tone='ghost']):only-of-type)
+      > .sui-card-actions {
+      margin-inline-end: calc((round(up, 1cap, 2px) - var(--sui-control-height-drawn)) / 2);
+    }
+
+    .sui-card-head:has(> .sui-card-actions > :global(.sui-icon-button):only-of-type)
+      > .sui-card-actions {
+      margin-inline-end: calc((round(up, 1cap, 2px) - var(--sui-tier-quiet)) / 2);
+    }
+
+    .sui-card-head:has(> .sui-card-actions > :global(.sui-icon-button.toolbar):only-of-type)
+      > .sui-card-actions {
+      margin-inline-end: calc((round(up, 1cap, 2px) - var(--sui-control-height-compact)) / 2);
     }
   }
 
@@ -354,17 +376,6 @@ title, such as "Danger zone", and holds the acts that cannot be undone, each a `
     margin-block-end: round(calc(1lh - 1cap), 1px);
   }
 
-  .sui-card-actions {
-    align-items: center;
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--sui-space-2);
-    grid-column: 2;
-    justify-content: flex-end;
-    min-block-size: var(--sui-local-card-seat);
-    min-inline-size: 0;
-  }
-
   @container (max-width: 18rem) {
     .sui-card-head {
       grid-template-columns: minmax(0, 1fr);
@@ -379,8 +390,12 @@ title, such as "Danger zone", and holds the acts that cannot be undone, each a `
 
   .sui-card-footer {
     align-items: center;
+    align-self: end;
     display: flex;
+    flex: none;
+    flex-wrap: wrap;
     gap: var(--sui-space-2);
+    max-inline-size: 100%;
   }
 
   .sui-card-note {
@@ -403,16 +418,16 @@ title, such as "Danger zone", and holds the acts that cannot be undone, each a `
      component that trims its own words keeps both edges, and an only paragraph trims both.
      A trimmed edge cuts a fraction of a pixel, so the box rounds up to the pixel and an only
      paragraph splits that spare above its cap and under its baseline. */
-  :where(.sui-card > div:first-of-type) :global(:where(p, ul, ol, dl, blockquote):first-child) {
+  :where(.sui-card-main > :first-child) :global(:where(p, ul, ol, dl, blockquote):first-child) {
     block-size: var(--sui-block-snap);
     text-box: trim-start cap alphabetic;
   }
 
-  :where(.sui-card > :last-child) :global(:where(p, ul, ol, dl, blockquote):last-child) {
+  :where(.sui-card-main > :last-child) :global(:where(p, ul, ol, dl, blockquote):last-child) {
     text-box: trim-end cap alphabetic;
   }
 
-  :where(.sui-card > div:only-of-type) :global(:where(p, ul, ol, dl, blockquote):only-child) {
+  :where(.sui-card-main > :only-child) :global(:where(p, ul, ol, dl, blockquote):only-child) {
     align-content: center;
     text-box: trim-both cap alphabetic;
   }
@@ -421,16 +436,8 @@ title, such as "Danger zone", and holds the acts that cannot be undone, each a `
     margin-block-start: var(--sui-rhythm-card-head-body);
   }
 
-  .sui-card-footer {
-    justify-content: flex-end;
-  }
-
-  div + .sui-card-footer {
-    margin-block-start: var(--sui-rhythm-card-head-body);
-  }
-
   /* A row list that opens the card reads this and hands back its first row's padding. */
-  .sui-card-body:first-of-type > :global(:first-child) {
+  .sui-card-body:first-child > :global(:first-child) {
     --sui-local-row-lead: calc(-1 * var(--sui-row-pad-default));
   }
 

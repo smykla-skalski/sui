@@ -819,6 +819,16 @@ function cardInsets(card: Element) {
   const start = { edge: Infinity, reached: false };
   const end = { edge: -Infinity, reached: false };
   let text = -Infinity;
+  // A head action beside the copy centres on the title's cap band and may reach above and
+  // below the title's line into the inset (L-34), so only its end is weighed.
+  const actions = card.querySelector(
+    ':scope > .sui-card-main > .sui-card-head > .sui-card-actions'
+  );
+  const copy = actions?.parentElement?.querySelector(':scope > .sui-card-copy');
+  const beside =
+    actions && copy && actions.getBoundingClientRect().top < copy.getBoundingClientRect().bottom
+      ? actions
+      : null;
   for (const element of card.querySelectorAll('*')) {
     if (element.parentElement?.closest('svg') || element.closest(IGNORED)) continue;
     if (!element.checkVisibility({ opacityProperty: false, visibilityProperty: true })) continue;
@@ -853,8 +863,10 @@ function cardInsets(card: Element) {
     if (!words && !solid) continue;
     // Words are weighed by their ink; a solid part by its box.
     const ink = words && !solid ? inkLines(element) : null;
-    top = Math.min(top, ink?.top ?? own.top);
-    bottom = Math.max(bottom, ink?.bottom ?? own.bottom);
+    if (!beside?.contains(element)) {
+      top = Math.min(top, ink?.top ?? own.top);
+      bottom = Math.max(bottom, ink?.bottom ?? own.bottom);
+    }
     if (own.left < start.edge - 0.5) Object.assign(start, { edge: own.left, reached: false });
     if (Math.abs(own.left - start.edge) <= 0.5 && own.left <= roomLeft + 1) start.reached = true;
     if (!solid) {
@@ -877,16 +889,23 @@ function cardInsets(card: Element) {
   };
 }
 
+const UNFRAMED_HEAD = ".sui-button[data-tone='ghost'], .sui-icon-button:not(.toolbar)";
+
 /**
- * A card's head action beside its copy stands its box, the ground its hover, press or frame
- * shows, as far from the card's end edge as from its top, so that ground sits square in the
- * corner (L-33). Null when there is no action beside the copy.
+ * A card's unframed head action beside its copy, a ghost button or a quiet icon button, stands
+ * its box, the ground its hover or press shows, as far from the card's end edge as from its
+ * top, so that ground sits square in the corner (L-33). A framed control ends on the inset
+ * instead. Null when there is no such action beside the copy.
  */
 function headActionInsets(card: Element): { top: number; end: number } | null {
-  const actions = card.querySelector(':scope > .sui-card-head > .sui-card-actions');
+  const actions = card.querySelector(
+    ':scope > .sui-card-main > .sui-card-head > .sui-card-actions'
+  );
   const copy = actions?.parentElement?.querySelector(':scope > .sui-card-copy');
   const last = actions && [...actions.children].filter(shown).at(-1);
-  const control = last && (last.matches(INTERACTIVE) ? last : last.querySelector(INTERACTIVE));
+  const control = last?.matches(UNFRAMED_HEAD)
+    ? last
+    : last?.querySelector(`:scope > :is(${UNFRAMED_HEAD})`);
   if (!actions || !control || !shown(control)) return null;
   // Stacked under the copy, the action starts its own line and has no corner to sit in.
   if (copy && actions.getBoundingClientRect().top >= copy.getBoundingClientRect().bottom - 0.5)
@@ -926,7 +945,9 @@ function geometry(root: Document): Finding[] {
       );
     // The title's cap opens a card at its inset whatever stands beside it, so a framed control
     // at the inset never excuses a title set lower (L-34).
-    const words = card.querySelector(':scope > .sui-card-head .sui-card-words > span');
+    const words = card.querySelector(
+      ':scope > .sui-card-main > .sui-card-head .sui-card-words > span'
+    );
     const cap = words && inkLines(words);
     if (cap) {
       const gap = cap.top - card.getBoundingClientRect().top - parseFloat(style.borderTopWidth);
@@ -2710,6 +2731,40 @@ function disclosedCards(root: Document): Finding[] {
 }
 
 /**
+ * A card's head action never moves its copy (L-34): beside the copy, the head is exactly as tall
+ * as the copy, so the title, its note and the body stand where they stand with no action, and
+ * the action centres on the cap band of the title's first line.
+ */
+function cardHeads(root: Document): Finding[] {
+  const found: Finding[] = [];
+  for (const head of audited(root, '.sui-card-head:has(> .sui-card-actions)')) {
+    const actions = head.querySelector(':scope > .sui-card-actions');
+    const copy = head.querySelector(':scope > .sui-card-copy');
+    const words = copy?.querySelector('.sui-card-words > span');
+    if (!actions || !copy || !words) continue;
+    const band = actions.getBoundingClientRect();
+    const text = copy.getBoundingClientRect();
+    if (band.top >= text.bottom - 0.5) continue;
+    const taller = head.getBoundingClientRect().height - text.height;
+    if (taller > 0.5)
+      found.push(
+        finding('L-34', head, `its action makes the head ${round(taller)}px taller than its copy`)
+      );
+    // The title's first line is a box snapped to the pixel around its cap band, and the action
+    // takes the band's even parity, so the two centres meet within half a pixel.
+    const cap = faceMetrics(getComputedStyle(words))?.cap;
+    const control = [...actions.children].find(shown);
+    if (!cap || !control) continue;
+    const own = control.getBoundingClientRect();
+    const line = words.getBoundingClientRect().top + Math.ceil(cap) / 2;
+    const off = (own.top + own.bottom) / 2 - line;
+    if (Math.abs(off) > 0.5)
+      found.push(finding('L-34', control, `it sits ${round(off)}px off the title's cap band`));
+  }
+  return found;
+}
+
+/**
  * A timeline (L-113): the times, and the words after them, each start on one edge down the
  * whole list, and an avatar, a pill or an action beside the words centres on the cap band of
  * their first line.
@@ -2801,5 +2856,6 @@ register(
   framedSettings,
   disclosedCards,
   rowGrounds,
-  timelines
+  timelines,
+  cardHeads
 );

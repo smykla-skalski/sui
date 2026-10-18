@@ -682,4 +682,42 @@ suite('navigation', together, () => {
       await page.close();
     }
   });
+
+  test(
+    "a card's footer stands beside its copy at the foot while it fits, and under it otherwise",
+    long,
+    async () => {
+      for (const width of [1440, 375]) {
+        const page = await open(width);
+        try {
+          const card = page.locator('#card .sui-card.danger');
+          await card.scrollIntoViewIfNeeded();
+          const { main, footer, end, foot } = await card.evaluate((box) => {
+            const read = (/** @type {string} */ selector) =>
+              /** @type {Element} */ (box.querySelector(selector)).getBoundingClientRect().toJSON();
+            const style = getComputedStyle(box);
+            const own = box.getBoundingClientRect();
+            return {
+              main: read(':scope > .sui-card-main'),
+              footer: read(':scope > .sui-card-footer'),
+              end: own.right - parseFloat(style.borderRightWidth) - parseFloat(style.paddingRight),
+              foot:
+                own.bottom - parseFloat(style.borderBottomWidth) - parseFloat(style.paddingBottom)
+            };
+          });
+          if (width === 1440) {
+            assert.ok(footer.left >= main.right, 'the footer is not beside the copy');
+            assert.ok(Math.abs(footer.bottom - main.bottom) < 0.5, 'the footer is not at its foot');
+            assert.ok(Math.abs(footer.right - end) < 0.5, 'the footer leaves the end inset');
+          } else {
+            assert.ok(Math.abs(footer.top - main.bottom - 16) < 0.5, 'the footer is not under it');
+            assert.ok(Math.abs(footer.left - main.left) < 0.5, 'the footer does not start with it');
+          }
+          assert.ok(Math.abs(footer.bottom - foot) < 0.5, 'the footer leaves the bottom inset');
+        } finally {
+          await page.close();
+        }
+      }
+    }
+  );
 });

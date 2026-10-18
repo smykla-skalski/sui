@@ -8,12 +8,27 @@
 </script>
 
 <script lang="ts">
-  import { ActionMenu, Button, Card, Field, Icon, Switch, type ActionMenuItem } from '#lib';
+  import {
+    ActionMenu,
+    Button,
+    Card,
+    Field,
+    Icon,
+    Pill,
+    SegmentedControl,
+    Switch,
+    type ActionMenuItem
+  } from '#lib';
   import Example from '../kit/Example.svelte';
   import Specimen from '../kit/Specimen.svelte';
 
   const nothing = () => {};
   let nightly = $state(true);
+  let span = $state('7d');
+  const spans = [
+    { value: '7d', label: '7 days' },
+    { value: '30d', label: '30 days' }
+  ];
 
   const rules: ActionMenuItem[] = [
     { label: 'Add a rule', icon: 'plus', onselect: nothing },
@@ -48,11 +63,11 @@
 
 <Example
   title="Head actions"
-  note="The title's cap stands the card's inset from the top beside any control, and a framed control's top stands there too"
+  note="Whatever stands beside the title centres on its cap band and never moves the title, its note or the content"
   layout="stack"
   ground="canvas"
 >
-  <Specimen label="Framed, menu, ghost and switch" code="href actions">
+  <Specimen label="Framed, menu, ghost, switch, segmented and pill" code="href actions">
     <div class="peers wide">
       <Card href="#card" title="Branch rules" level={4}>
         {#snippet actions()}<Button>Edit</Button>{/snippet}
@@ -73,6 +88,21 @@
           <Switch aria-label="Run the nightly sync" bare bind:checked={nightly} />
         {/snippet}
         <p class="copy">Runs at 02:00 every day</p>
+      </Card>
+      <Card href="#card" title="Usage" description="Runs across every repository" level={4}>
+        {#snippet actions()}
+          <SegmentedControl label="Time range" hideLabel options={spans} bind:value={span} />
+        {/snippet}
+        <p class="copy">{span === '7d' ? '214 runs' : '1,032 runs'}</p>
+      </Card>
+      <Card
+        href="#card"
+        title="Mirror"
+        description="A copy of acme/api on the backup host"
+        level={4}
+      >
+        {#snippet actions()}<Pill tone="warning">Paused</Pill>{/snippet}
+        <p class="copy">Last copied 3 days ago</p>
       </Card>
     </div>
   </Specimen>
@@ -98,7 +128,7 @@
 
 <Example
   title="Bare page"
-  note="The one box on a page that holds nothing else, with its actions in a footer row as tall as they are"
+  note="The one box on a page that holds nothing else, with its actions beside the copy at its foot while they fit"
   layout="stack"
   ground="canvas"
 >
