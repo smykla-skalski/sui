@@ -322,11 +322,12 @@ suite('lists', together, () => {
             await trigger.click();
             const panel = page.locator(':popover-open .sui-list-toolbar-panel');
             await panel.waitFor();
-            await page.waitForFunction(
-              () =>
-                document
-                  .querySelector('.sui-popover:popover-open')
-                  ?.getAnimations({ subtree: true }).length === 0
+            // A segmented control's form follows a scroll timeline, which never ends.
+            await page.waitForFunction(() =>
+              document
+                .querySelector('.sui-popover:popover-open')
+                ?.getAnimations({ subtree: true })
+                .every((animation) => !(animation.timeline instanceof DocumentTimeline))
             );
             const marks = await panel.evaluate((element) =>
               [...element.querySelectorAll('.sui-segmented-track:has(input:checked)')].map(
@@ -334,7 +335,14 @@ suite('lists', together, () => {
                   const option = track.querySelector('input:checked')?.closest('label');
                   const thumb = track.querySelector('.sui-segmented-thumb');
                   const [o, t] = [option?.getBoundingClientRect(), thumb?.getBoundingClientRect()];
-                  return [o?.left, t?.left, o?.right, t?.right];
+                  // The option's own ground paints on whole device pixels, and the mark lands
+                  // on the edges painted there.
+                  /** @param {number | undefined} edge */
+                  const painted = (edge) =>
+                    edge === undefined
+                      ? undefined
+                      : Math.round(edge * devicePixelRatio) / devicePixelRatio;
+                  return [painted(o?.left), t?.left, painted(o?.right), t?.right];
                 }
               )
             );

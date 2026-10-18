@@ -67,9 +67,11 @@
   } = $props();
 
   const options: SegmentOption[] = $derived([
-    { value: 'light', label: lightLabel, icon: 'sun' },
-    { value: 'dark', label: darkLabel, icon: 'moon' },
-    ...(system ? [{ value: 'system', label: systemLabel, icon: 'system' } as const] : [])
+    { value: 'light', label: lightLabel, icon: 'sun', scheme: 'light' },
+    { value: 'dark', label: darkLabel, icon: 'moon', scheme: 'dark' },
+    ...(system
+      ? [{ value: 'system', label: systemLabel, icon: 'system', scheme: 'system' } as const]
+      : [])
   ]);
 
   let reported: ThemeChoice | null = null;
@@ -99,7 +101,9 @@
   });
 
   // A page rendered ahead of time cannot know the stored choice, so the switch claims none until
-  // it runs, rather than showing one choice and then jumping to another.
+  // it runs. Its options name their schemes, so until then the control draws the option for the
+  // theme the root wears, which the head script set from the stored choice before the first
+  // paint, and nothing moves when the switch takes over.
   let known = $state(false);
   $effect(() => {
     known = true;
@@ -153,11 +157,13 @@ reads it back on the next visit.
 
 Every switch on a page shares one choice, and a theme set on the root from elsewhere shows as
 that explicit choice. A page that renders on the server paints its default theme until this
-mounts, so set the stored theme from a small script in the document head to avoid a flash.
+mounts, so a small script in the document head sets `data-sui-theme` on the root to a stored
+`light` or `dark` and leaves it unset for `system` or no choice, which the palette follows. The
+switch then marks that choice from its first paint, before it runs.
 
 - Semantics: a `SegmentedControl` of native radios named `label`, or its fallback `select`.
 - Content: two or three options, each a sun, moon or system glyph beside its word.
-- States: those of `SegmentedControl`; the thumb marks the theme the page wears, which is the system's until a choice is made, and on a page rendered ahead of time no option is marked until the switch runs and reads the stored choice.
+- States: those of `SegmentedControl`; the thumb marks the theme the page wears, which is the system's until a choice is made, and on a page rendered ahead of time the option for the theme the root wears is marked until the switch runs and reads the stored choice.
 - Keyboard: Tab reaches the group and the arrow keys choose, as in any radio group; Space on the shown option makes it the choice.
 - Pointer and touch: a press or a thumb drag chooses; on a phone or a coarse pointer each option is 44 by 44px.
 - Focus: stays on the option pressed, and moves to the select or back when the control changes form.

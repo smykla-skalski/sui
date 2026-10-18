@@ -231,13 +231,15 @@ suite('the kitchen sink', together, () => {
         try {
           if (stored)
             await page.addInitScript((theme) => localStorage.setItem('sui:theme', theme), stored);
-          // Without its scripts the app never starts, so only the document can set the theme.
+          // Without its scripts the app never starts, so only the document and its styles can
+          // set the theme: a stored one through the head's script, the system's through the
+          // palette's own media query.
           await page.route('**/*', (route) =>
-            route.request().resourceType() === 'document' ? route.continue() : route.abort()
+            route.request().resourceType() === 'script' ? route.abort() : route.continue()
           );
           await page.goto(url);
           assert.equal(
-            await page.evaluate(() => document.documentElement.dataset.suiTheme),
+            await page.evaluate(() => getComputedStyle(document.documentElement).colorScheme),
             'dark'
           );
         } finally {

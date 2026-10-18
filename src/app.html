@@ -6,15 +6,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <script>
       // Paints the first frame in the theme ThemeSwitch would pick, which it can only set
-      // once the app has started. Keep the key and the fallback the same as ThemeSwitch uses.
+      // once the app has started. Keep the key the same as ThemeSwitch uses. Without a stored
+      // light or dark the root names no theme: the palette follows the system, and the switch
+      // marks System, or the system's scheme, from its first paint.
       {
         let theme;
         try {
           theme = localStorage.getItem('sui:theme');
         } catch {}
-        if (theme !== 'light' && theme !== 'dark')
-          theme = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-        document.documentElement.dataset.suiTheme = theme;
+        if (theme === 'light' || theme === 'dark')
+          document.documentElement.dataset.suiTheme = theme;
       }
     </script>
     <style>

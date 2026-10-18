@@ -10,6 +10,12 @@
     count?: number | string;
     /** Keeps an unavailable option visible while the keyboard skips it. */
     disabled?: boolean;
+    /**
+     * The colour scheme the option stands for, in a theme picker. While the value is not known
+     * yet, as in a server render before a stored choice is read, the option for the scheme the
+     * page wears (its `data-sui-theme`, or the system's without one) is drawn as chosen.
+     */
+    scheme?: 'light' | 'dark' | 'system';
   };
 </script>
 
@@ -19,6 +25,7 @@
   import type { HTMLAttributes } from 'svelte/elements';
   import Icon from '../icons/Icon.svelte';
   import Count from '../internal/Count.svelte';
+  import { held as heldIn, holdAround } from '../internal/held.svelte.js';
   import { formatCount } from '../internal/locale.js';
   import Select from './Select.svelte';
 
@@ -81,13 +88,16 @@
               option.label,
               typeof option.count === 'number' ? formatCount(option.count) : option.count
             ),
-      disabled: option.disabled
+      disabled: option.disabled,
+      scheme: option.scheme
     }))
   );
 
   // The box is as wide as the copy's natural width or the room, whichever is less, and the
-  // select contributes no width, so swapping between the two never changes what is measured.
-  // Focus on one form moves to the other, so a swap never drops it to the page (L-89).
+  // select contributes no width, so showing one form or the other never changes what is
+  // measured. The browser shows the form from the ruler's own overflow before it paints; this
+  // measure only moves focus to the form that is shown, so a swap never drops it to the page
+  // (L-89), and stands in for the browser where scroll timelines are missing.
   function fit(box: HTMLElement) {
     const natural = box.querySelector('.sui-segmented-ruler');
     if (!natural) return;
@@ -97,13 +107,21 @@
       const focused = box.contains(document.activeElement);
       fits = next;
       if (!focused) return;
-      void tick().then(() =>
-        (next
-          ? (box.querySelector<HTMLElement>('input:checked') ??
-            box.querySelector<HTMLElement>('input:enabled'))
-          : box.querySelector('select')
-        )?.focus({ preventScroll: true })
-      );
+      const target = () =>
+        next
+          ? (box.querySelector<HTMLElement>(':scope > fieldset input:checked') ??
+            box.querySelector<HTMLElement>(':scope > fieldset input:enabled'))
+          : box.querySelector<HTMLElement>(':scope > .sui-segmented-picker select');
+      // ponytail: the browser shows the other form on its next frame; a few frames' wait covers
+      // a slow one, and a form that never shows keeps focus where it was.
+      const move = (frames: number) =>
+        requestAnimationFrame(() => {
+          const form = target();
+          if (form?.checkVisibility({ visibilityProperty: true }))
+            form.focus({ preventScroll: true });
+          else if (frames > 0) move(frames - 1);
+        });
+      void tick().then(() => move(3));
     });
     observer.observe(box);
     observer.observe(natural);
@@ -130,21 +148,29 @@
     const ratio = own.width / track.offsetWidth || 1;
     const scale = Math.abs(own.width - track.offsetWidth) > 0.5 ? ratio : 1;
     const node = track;
-    const growing = document
-      .getAnimations()
-      .some(
-        (animation) =>
-          animation.playState === 'running' &&
-          animation.effect instanceof KeyframeEffect &&
-          animation.effect.target instanceof Element &&
-          animation.effect.target.contains(node)
-      );
+    // Only the track's own ancestors can scale it, so only their animations are read, never
+    // the whole document's, which holds every scroll-driven animation on the page.
+    let growing = false;
+    for (let around: Element | null = node; around && !growing; around = around.parentElement)
+      growing = around
+        .getAnimations()
+        .some(
+          (animation) =>
+            animation.playState === 'running' && animation.timeline instanceof DocumentTimeline
+        );
     if (growing) requestAnimationFrame(measure);
     const rtl = getComputedStyle(track).direction === 'rtl';
+    // The browser paints the option's own ground, and the thumb's place before its translation,
+    // on whole device pixels, so the thumb is moved from that snapped place to the option's
+    // snapped edges and replaces the ground the server drew without a sliver of change.
+    const snap = (edge: number) => Math.round(edge * devicePixelRatio) / devicePixelRatio;
+    const origin = snap(
+      rtl ? own.right - track.clientLeft * scale : own.left + track.clientLeft * scale
+    );
     const next = {
       option: input.value,
-      start: (rtl ? own.right - box.right : box.left - own.left) / scale - track.clientLeft,
-      width: box.width / scale
+      start: (rtl ? origin - snap(box.right) : snap(box.left) - origin) / scale,
+      width: (snap(box.right) - snap(box.left)) / scale
     };
     if (thumb?.start === next.start && thumb.width === next.width) return;
     // Only a new selection travels. The same option measuring differently (a font landed, a
@@ -169,6 +195,20 @@
   // `change` fires as for a click; Escape or a cancelled pointer puts it back. Below the
   // threshold nothing is captured, so a plain click keeps its native behaviour. Dragging is
   // never the only way: a click or the arrow keys choose any option (WCAG 2.5.7).
+  /* Work that runs on the form around it locks the choice. A busy dialog or a saving pane has
+     moved focus to its busy action, so it disables the radios; a saving setting row leaves them
+     tab stops that refuse every press, arrow and drag, since `disabled` would drop a focused
+     radio's focus to the body. */
+  const around = holdAround();
+  const locked = $derived(heldIn(element, around) !== null);
+  const MOVES = new Set([' ', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight']);
+
+  function refuse(event: MouseEvent | KeyboardEvent) {
+    if (!locked) return;
+    if (event instanceof KeyboardEvent && !MOVES.has(event.key)) return;
+    event.preventDefault();
+  }
+
   const DRAG_THRESHOLD = 4;
   let drag: { pointer: number; x: number; captured: boolean } | null = null;
 
@@ -189,7 +229,7 @@
   }
 
   function grab(event: PointerEvent) {
-    if (disabled || event.button !== 0 || value === null) return;
+    if (disabled || locked || event.button !== 0 || value === null) return;
     const option = (event.target as Element).closest('label');
     if (!option?.classList.contains('selected')) return;
     drag = { pointer: event.pointerId, x: event.clientX, captured: false };
@@ -240,7 +280,7 @@
     for (const option of node.querySelectorAll('label')) observer.observe(option);
     return () => {
       observer.disconnect();
-      // Segments that come back after the select land again, never slide in from an old place.
+      // A new set of options lands afresh, never sliding in from an old place.
       thumb = null;
       ready = false;
     };
@@ -268,22 +308,25 @@ the pointer from option to option, skipping disabled ones. Letting go chooses wh
 fires `change` as a click would; Escape or a cancelled pointer puts it back.
 
 Short of room, the control draws the same choice as a native `Select`, with icons dropped and
-counts in brackets, such as "Users (24)". An inert, hidden copy of the segments, with no inputs,
-measures their natural width against the room through a `ResizeObserver`. The thumb is measured
-from the checked option because CSS cannot size one box from a sibling. Until it is measured, as
-in a server render, the checked option paints the thumb's ground itself, so the choice shows
-from the first frame.
+counts in brackets, such as "Users (24)". Both forms are drawn, and an inert, hidden copy of the
+segments, with no inputs, decides which shows: its scroll timeline is active only while it
+overflows the room, so the browser shows the right form before the first paint. A host that sets
+a part before the control can give it its room in `--sui-local-segmented-room`, so the select
+alone sets the short form's width; `--sui-local-segmented-align` ends a select in a wider box.
+The thumb is measured from the checked option because CSS cannot size one box from a sibling.
+Until it is measured, as in a server render, the checked option paints the thumb's ground
+itself, so the choice shows from the first frame.
 
 - Semantics: a `fieldset` of native radios named by `label`, or by `aria-labelledby` when it is passed; the fallback is a native `select` with the same name.
 - Content: two to five options, each a short word with an optional icon and count; a long word never wraps, so the control turns into the select instead.
-- States: rest, hover (a fill that keeps the thumb's curve), pressed (the fill sinks, the thumb darkens and creases), selected (the thumb), focus (an inset ring on the option), disabled options and a disabled whole at the disabled opacity, and `null` with no thumb.
+- States: rest, hover (a fill that keeps the thumb's curve), pressed (the fill sinks, the thumb darkens and creases), selected (the thumb), focus (an inset ring on the option), disabled options and a disabled whole at the disabled opacity, held (the whole at the disabled opacity: disabled while a busy dialog or a saving pane around it works, and refusing every press, arrow and drag with focus kept while a saving setting row does), and `null` with no thumb.
 - Keyboard: Tab reaches the checked option, or the first one when nothing is chosen; the arrow keys move the choice and skip disabled options; Escape puts a dragged thumb back.
 - Pointer and touch: a click chooses any option and a drag of the thumb chooses on release, so the drag is never the only way (WCAG 2.5.7); on a phone or a coarse pointer each option is at least 44 by 44px.
 - Focus: choosing keeps focus on the option; when the segments turn into the select, or back, focus moves to the other form instead of falling to the page.
 - Responsive: as wide as its words or its room, whichever is less; short of room it turns into a `Select`, because a hidden option is a lost option.
 - Accessibility: `label` is drawn above the segments, 8px from them, unless `hideLabel` is set or `aria-labelledby` names a label that is already drawn; `aria-describedby` reaches the group or the select; counts are part of each option's name.
 - Localization: `label`, option words and `countedLabel` are the caller's; numeric counts are grouped in the page's language; the thumb is placed from the inline-start edge and the drag finds the option under the pointer, so both hold right to left.
-- Performance: two `ResizeObserver`s per control; the thumb moves by `translate` and its width, and reduced motion drops every transition.
+- Performance: two `ResizeObserver`s per control, for the thumb and for focus when the form changes; the form itself is chosen by a scroll timeline, the thumb moves by `translate` and its width, and reduced motion drops every transition.
 - Analytics: the outer box hears a native `change` event for every pick, in either form, through `onchange`.
 - Failure: a value no option has draws no thumb and an empty select; disabled options stay visible while the keyboard skips them.
 -->
@@ -299,7 +342,7 @@ from the first frame.
 <div
   bind:this={element}
   {...rest}
-  class={['sui-segmented', className, { captioned }]}
+  class={['sui-segmented', className, { captioned, short: !fits }]}
   {@attach fit}
 >
   {#if captioned}
@@ -315,63 +358,66 @@ from the first frame.
       {/each}
     </div>
   </div>
-  {#if fits}
-    <!-- The radios are the controls. The track only follows a drag that starts on the
-         selected one, and Escape cancels that drag. -->
-    <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
-    <fieldset
-      bind:this={track}
-      class={['sui-segmented-track', { ready, dragging: held !== null }]}
-      {disabled}
+  <!-- Both forms are drawn and the browser shows the one that fits, so the server's render shows
+       the right one. The radios are the controls. The track only follows a drag that starts on
+       the selected one, and Escape cancels that drag. -->
+  <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
+  <fieldset
+    bind:this={track}
+    class={['sui-segmented-track', { ready, dragging: held !== null, locked }]}
+    disabled={disabled || heldIn(element, around) === 'firm'}
+    aria-disabled={locked || undefined}
+    aria-labelledby={labelledby}
+    aria-describedby={describedby}
+    onpointerdown={grab}
+    onpointermove={follow}
+    onpointerup={release}
+    onpointercancel={drop}
+    onkeydown={escape}
+  >
+    <legend class="sui-segmented-legend">{label}</legend>
+    {#if thumb}
+      <span
+        class="sui-segmented-thumb"
+        style:--sui-segmented-start="{thumb.start}px"
+        style:inline-size="{thumb.width}px"
+        aria-hidden="true"
+      ></span>
+    {/if}
+    {#each options as option, index (option.value)}
+      <label
+        class="sui-segmented-option"
+        class:selected={shown === option.value}
+        class:disabled={option.disabled}
+        data-scheme={option.scheme}
+      >
+        <input
+          type="radio"
+          class="sui-segmented-input"
+          {name}
+          value={option.value}
+          aria-label={option.count === undefined ? undefined : choices[index].label}
+          bind:group={value}
+          disabled={option.disabled}
+          aria-disabled={locked || undefined}
+          onclick={refuse}
+          onkeydown={refuse}
+        />
+        <span class="sui-segmented-label">{@render face(option)}</span>
+      </label>
+    {/each}
+  </fieldset>
+  <!-- Unnamed, so a form submits the radios' one value whichever form is shown. -->
+  <div class="sui-segmented-picker">
+    <Select
+      options={choices}
+      bind:value
+      aria-label={labelledby ? undefined : label}
       aria-labelledby={labelledby}
       aria-describedby={describedby}
-      onpointerdown={grab}
-      onpointermove={follow}
-      onpointerup={release}
-      onpointercancel={drop}
-      onkeydown={escape}
-    >
-      <legend class="sui-segmented-legend">{label}</legend>
-      {#if thumb}
-        <span
-          class="sui-segmented-thumb"
-          style:--sui-segmented-start="{thumb.start}px"
-          style:inline-size="{thumb.width}px"
-          aria-hidden="true"
-        ></span>
-      {/if}
-      {#each options as option, index (option.value)}
-        <label
-          class="sui-segmented-option"
-          class:selected={shown === option.value}
-          class:disabled={option.disabled}
-        >
-          <input
-            type="radio"
-            class="sui-segmented-input"
-            {name}
-            value={option.value}
-            aria-label={option.count === undefined ? undefined : choices[index].label}
-            bind:group={value}
-            disabled={option.disabled}
-          />
-          <span class="sui-segmented-label">{@render face(option)}</span>
-        </label>
-      {/each}
-    </fieldset>
-  {:else}
-    <div class="sui-segmented-picker">
-      <Select
-        options={choices}
-        bind:value
-        aria-label={labelledby ? undefined : label}
-        aria-labelledby={labelledby}
-        aria-describedby={describedby}
-        {name}
-        {disabled}
-      />
-    </div>
-  {/if}
+      {disabled}
+    />
+  </div>
 </div>
 
 <style>
@@ -383,6 +429,7 @@ from the first frame.
     grid-template-columns: minmax(0, max-content);
     max-inline-size: 100%;
     min-inline-size: 0;
+    timeline-scope: --sui-segmented-fit;
     vertical-align: middle;
   }
 
@@ -413,9 +460,12 @@ from the first frame.
     text-box: trim-both cap alphabetic;
   }
 
+  /* A pixel tall, because a box with no height reports no overflow to its scroll timeline; it
+     shares the controls' cell, so it adds no room. */
   .sui-segmented-measure {
-    block-size: 0;
+    block-size: 1px;
     overflow: hidden;
+    scroll-timeline: --sui-segmented-fit inline;
     visibility: hidden;
   }
 
@@ -423,10 +473,107 @@ from the first frame.
     inline-size: max-content;
   }
 
-  /* Holds no width of its own, so the select never widens the box it was measured against. */
+  /* Holds no width of its own, so the select never widens the box it was measured against. A
+     hidden form is clipped to the box, so it never widens the page either. A host that ends its
+     controls at an edge, such as a setting row, sets `--sui-local-segmented-align: flex-end`. */
   .sui-segmented-picker {
     contain: inline-size;
+    display: flex;
+    justify-content: var(--sui-local-segmented-align, flex-start);
     min-inline-size: 0;
+    overflow: clip;
+    visibility: hidden;
+  }
+
+  /* The select stands in for the segments while the ruler overflows the box. The ruler's
+     scroll timeline is active only then, and the browser settles it before it paints, so the
+     server's render shows the right form from its first frame and a resize swaps them without
+     script; showing either form never changes the ruler's room, so the choice never loops.
+     Without scroll timelines the measure script's class decides. */
+  @supports (animation-timeline: scroll()) {
+    .sui-segmented > .sui-segmented-track {
+      animation: sui-segmented-short-track var(--sui-ease-linear) both;
+      animation-timeline: --sui-segmented-fit;
+    }
+
+    .sui-segmented-picker {
+      animation: sui-segmented-short-picker var(--sui-ease-linear) both;
+      animation-timeline: --sui-segmented-fit;
+    }
+  }
+
+  @supports not (animation-timeline: scroll()) {
+    .short > .sui-segmented-track {
+      overflow: clip;
+      visibility: hidden;
+    }
+
+    .short > .sui-segmented-picker {
+      overflow: visible;
+      visibility: visible;
+    }
+  }
+
+  @keyframes sui-segmented-short-track {
+    from,
+    to {
+      overflow: clip;
+      visibility: hidden;
+    }
+  }
+
+  @keyframes sui-segmented-short-picker {
+    from,
+    to {
+      overflow: visible;
+      visibility: visible;
+    }
+  }
+
+  /* A host that sets a part before the control, such as a setting row's reset, gives the
+     control the most room it may take in `--sui-local-segmented-room`, a length that may read
+     that part with `anchor-size()` within the host's own positioned box. The form is then
+     chosen against that room rather than the control's own box, so the short form can be only
+     as wide as its select, the part touching it, and still turns back into segments once the
+     room grows. The parts that only measure or wait hang from the host's end, toward its start,
+     so they never widen the page. */
+  @container style(--sui-local-segmented-room) {
+    .sui-segmented-measure {
+      inline-size: var(--sui-local-segmented-room);
+      inset-inline-end: 0;
+      position: absolute;
+    }
+
+    .sui-segmented-picker {
+      contain: none;
+    }
+  }
+
+  @supports (animation-timeline: scroll()) {
+    @container style(--sui-local-segmented-room) {
+      .sui-segmented > .sui-segmented-track {
+        animation-name: sui-segmented-short-track-aside;
+      }
+    }
+  }
+
+  @supports not (animation-timeline: scroll()) {
+    @container style(--sui-local-segmented-room) {
+      .short > .sui-segmented-track {
+        inset-inline-end: 0;
+        position: absolute;
+      }
+    }
+  }
+
+  @keyframes sui-segmented-short-track-aside {
+    from,
+    to {
+      inset-inline-end: 0;
+      overflow: clip;
+      position: absolute;
+      visibility: hidden;
+    }
   }
 
   .sui-segmented-track {
@@ -447,7 +594,7 @@ from the first frame.
   }
 
   /* A horizontal drag on the track moves the thumb; a vertical one still scrolls the page. */
-  .sui-segmented-track:not(:disabled) {
+  .sui-segmented-track:not(:disabled, .locked) {
     touch-action: pan-y;
   }
 
@@ -456,11 +603,11 @@ from the first frame.
     cursor: grabbing;
   }
 
-  .sui-segmented-track:not(:disabled) .sui-segmented-option.selected {
+  .sui-segmented-track:not(:disabled, .locked) .sui-segmented-option.selected {
     cursor: grab;
   }
 
-  .sui-segmented-track:disabled {
+  .sui-segmented-track:is(:disabled, .locked) {
     opacity: var(--sui-disabled-opacity);
   }
 
@@ -502,6 +649,79 @@ from the first frame.
     box-shadow: var(--sui-segment-thumb-shadow);
   }
 
+  /* Until the value is known, as in a server render before a theme picker reads the stored
+     choice, the option for the scheme the page wears is drawn as chosen: the one the root's
+     `data-sui-theme` names, System where the page sets none, or the system's own scheme in a
+     picker without System. */
+  :global(:root[data-sui-theme='light'])
+    .sui-segmented-track:not(:has(> .selected))
+    > .sui-segmented-option[data-scheme='light'],
+  :global(:root[data-sui-theme='dark'])
+    .sui-segmented-track:not(:has(> .selected))
+    > .sui-segmented-option[data-scheme='dark'],
+  :global(:root:not([data-sui-theme]))
+    .sui-segmented-track:not(:has(> .selected))
+    > .sui-segmented-option[data-scheme='system'] {
+    --sui-local-count-ground: oklch(from var(--sui-segment-thumb-ink) calc(1 - l) 0 0 / 22%);
+    --sui-local-count-ink: var(--sui-segment-thumb-ink);
+    background: var(--sui-segment-thumb);
+    border-radius: var(--sui-radius-control);
+    box-shadow: var(--sui-segment-thumb-shadow);
+  }
+
+  :global(:root[data-sui-theme='light'])
+    .sui-segmented-track:not(:has(> .selected))
+    > .sui-segmented-option[data-scheme='light']
+    .sui-segmented-label,
+  :global(:root[data-sui-theme='dark'])
+    .sui-segmented-track:not(:has(> .selected))
+    > .sui-segmented-option[data-scheme='dark']
+    .sui-segmented-label,
+  :global(:root:not([data-sui-theme]))
+    .sui-segmented-track:not(:has(> .selected))
+    > .sui-segmented-option[data-scheme='system']
+    .sui-segmented-label {
+    color: var(--sui-segment-thumb-ink);
+  }
+
+  @media (prefers-color-scheme: light) {
+    :global(:root:not([data-sui-theme]))
+      .sui-segmented-track:not(:has(> .selected, > [data-scheme='system']))
+      > .sui-segmented-option[data-scheme='light'] {
+      --sui-local-count-ground: oklch(from var(--sui-segment-thumb-ink) calc(1 - l) 0 0 / 22%);
+      --sui-local-count-ink: var(--sui-segment-thumb-ink);
+      background: var(--sui-segment-thumb);
+      border-radius: var(--sui-radius-control);
+      box-shadow: var(--sui-segment-thumb-shadow);
+    }
+
+    :global(:root:not([data-sui-theme]))
+      .sui-segmented-track:not(:has(> .selected, > [data-scheme='system']))
+      > .sui-segmented-option[data-scheme='light']
+      .sui-segmented-label {
+      color: var(--sui-segment-thumb-ink);
+    }
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :global(:root:not([data-sui-theme]))
+      .sui-segmented-track:not(:has(> .selected, > [data-scheme='system']))
+      > .sui-segmented-option[data-scheme='dark'] {
+      --sui-local-count-ground: oklch(from var(--sui-segment-thumb-ink) calc(1 - l) 0 0 / 22%);
+      --sui-local-count-ink: var(--sui-segment-thumb-ink);
+      background: var(--sui-segment-thumb);
+      border-radius: var(--sui-radius-control);
+      box-shadow: var(--sui-segment-thumb-shadow);
+    }
+
+    :global(:root:not([data-sui-theme]))
+      .sui-segmented-track:not(:has(> .selected, > [data-scheme='system']))
+      > .sui-segmented-option[data-scheme='dark']
+      .sui-segmented-label {
+      color: var(--sui-segment-thumb-ink);
+    }
+  }
+
   .ready .sui-segmented-thumb {
     transition:
       translate var(--sui-duration-travel) var(--sui-ease-travel),
@@ -511,7 +731,9 @@ from the first frame.
   }
 
   @media (hover: hover) {
-    .sui-segmented-track:has(.sui-segmented-option:hover:not(:active) > input:checked:enabled)
+    .sui-segmented-track:has(
+        .sui-segmented-option:hover:not(:active) > input:checked:enabled:not([aria-disabled='true'])
+      )
       .sui-segmented-thumb {
       background: var(--sui-brand-action-hover);
     }
@@ -519,7 +741,9 @@ from the first frame.
 
   /* The thumb takes the press without the 1px sink: inside a shared track a pixel down
      reads as sliding in its well, so it darkens and settles into a crease instead. */
-  .sui-segmented-track:has(.sui-segmented-option:active > input:checked:enabled)
+  .sui-segmented-track:has(
+      .sui-segmented-option:active > input:checked:enabled:not([aria-disabled='true'])
+    )
     .sui-segmented-thumb {
     background: var(--sui-brand-action-pressed);
     box-shadow: var(--sui-pressed-inset), var(--sui-segment-thumb-shadow-pressed);
@@ -572,14 +796,19 @@ from the first frame.
 
   /* The selected option draws no fill: the thumb is its ground and carries its states. */
   @media (hover: hover) {
-    .sui-segmented-option:hover:has(> input:enabled):not(:active, .selected)::before {
+    .sui-segmented-option:hover:has(> input:enabled:not([aria-disabled='true'])):not(
+        :active,
+        .selected
+      )::before {
       opacity: 1;
     }
   }
 
   /* The press is the hover one step deeper, sunk into the track. The side rims move out by
      the run, so each lands on the edge a reader sees and not under the thumb. */
-  .sui-segmented-option:active:has(> input:enabled):not(.selected)::before {
+  .sui-segmented-option:active:has(> input:enabled:not([aria-disabled='true'])):not(
+      .selected
+    )::before {
     background: var(--sui-segment-pressed);
     box-shadow:
       inset 0 2px 4px var(--sui-segment-well-head),
@@ -589,12 +818,12 @@ from the first frame.
     opacity: 1;
   }
 
-  .sui-segmented-track:disabled .sui-segmented-option,
+  .sui-segmented-track:is(:disabled, .locked) .sui-segmented-option,
   .sui-segmented-option.disabled {
     cursor: default;
   }
 
-  .sui-segmented-track:disabled .sui-segmented-option::before {
+  .sui-segmented-track:is(:disabled, .locked) .sui-segmented-option::before {
     opacity: 0;
   }
 
@@ -649,12 +878,14 @@ from the first frame.
 
   /* A keyboard press lands on the pressed surface with no hover before it, so press lifts
      the ink as well. */
-  .sui-segmented-option:active:has(> input:enabled):not(.selected) .sui-segmented-label {
+  .sui-segmented-option:active:has(> input:enabled:not([aria-disabled='true'])):not(.selected)
+    .sui-segmented-label {
     color: var(--sui-text-primary);
   }
 
   @media (hover: hover) {
-    .sui-segmented-option:hover:has(> input:enabled):not(.selected) .sui-segmented-label {
+    .sui-segmented-option:hover:has(> input:enabled:not([aria-disabled='true'])):not(.selected)
+      .sui-segmented-label {
       color: var(--sui-text-primary);
     }
   }
@@ -710,6 +941,51 @@ from the first frame.
     }
 
     .selected .sui-segmented-label {
+      color: HighlightText;
+      forced-color-adjust: none;
+    }
+
+    :global(:root[data-sui-theme='light'])
+      .sui-segmented-track:not(:has(> .selected))
+      > .sui-segmented-option[data-scheme='light'],
+    :global(:root[data-sui-theme='dark'])
+      .sui-segmented-track:not(:has(> .selected))
+      > .sui-segmented-option[data-scheme='dark'],
+    :global(:root:not([data-sui-theme]))
+      .sui-segmented-track:not(:has(> .selected))
+      > .sui-segmented-option[data-scheme='system'],
+    :global(:root:not([data-sui-theme]))
+      .sui-segmented-track:not(:has(> .selected, > [data-scheme='system']))
+      > .sui-segmented-option[data-scheme='light'],
+    :global(:root:not([data-sui-theme]))
+      .sui-segmented-track:not(:has(> .selected, > [data-scheme='system']))
+      > .sui-segmented-option[data-scheme='dark'] {
+      --sui-local-count-ground: transparent;
+      --sui-local-count-ink: HighlightText;
+      background: Highlight;
+      forced-color-adjust: none;
+    }
+
+    :global(:root[data-sui-theme='light'])
+      .sui-segmented-track:not(:has(> .selected))
+      > .sui-segmented-option[data-scheme='light']
+      .sui-segmented-label,
+    :global(:root[data-sui-theme='dark'])
+      .sui-segmented-track:not(:has(> .selected))
+      > .sui-segmented-option[data-scheme='dark']
+      .sui-segmented-label,
+    :global(:root:not([data-sui-theme]))
+      .sui-segmented-track:not(:has(> .selected))
+      > .sui-segmented-option[data-scheme='system']
+      .sui-segmented-label,
+    :global(:root:not([data-sui-theme]))
+      .sui-segmented-track:not(:has(> .selected, > [data-scheme='system']))
+      > .sui-segmented-option[data-scheme='light']
+      .sui-segmented-label,
+    :global(:root:not([data-sui-theme]))
+      .sui-segmented-track:not(:has(> .selected, > [data-scheme='system']))
+      > .sui-segmented-option[data-scheme='dark']
+      .sui-segmented-label {
       color: HighlightText;
       forced-color-adjust: none;
     }

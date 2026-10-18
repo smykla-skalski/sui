@@ -7,6 +7,12 @@
     /** A short note after the label, such as "10 seats". The picker shows it, the closed field does not. */
     description?: string;
     disabled?: boolean;
+    /**
+     * The colour scheme the option stands for, in a theme picker. While the value is not known
+     * yet, as in a server render before a stored choice is read, the closed field names the
+     * option for the scheme the page wears instead of its prompt.
+     */
+    scheme?: 'light' | 'dark' | 'system';
   };
 
   export type SelectGroup<Value extends SelectValue = string> = {
@@ -72,6 +78,15 @@
     'options' in item;
 
   const prompt = $derived(placeholder ?? (value === null ? promptLabel : undefined));
+  // Options that name a colour scheme stand in for the prompt while the value is unknown, and
+  // the page's own theme picks one of them in CSS before any script runs.
+  const presumed = $derived(
+    value === null && placeholder === undefined
+      ? options
+          .flatMap((item) => (isGroup(item) ? item.options : [item]))
+          .filter((option) => option.scheme !== undefined)
+      : []
+  );
   // The picker is a layer of its own that no attribute reaches, so its rows name the theme.
   const pickerTheme = $derived(themeAt(element));
   const refusals = getRefusals();
@@ -183,12 +198,24 @@ assistive technology, because a native picker cannot be held open.
       <button><selectedcontent class="sui-select-value"></selectedcontent></button>
       {#if prompt !== undefined}
         <option
-          class="sui-select-option sui-select-placeholder"
+          class={['sui-select-option', 'sui-select-placeholder', { presumed: presumed.length > 0 }]}
           data-sui-theme={pickerTheme}
           value=""
           disabled
         >
-          {@render face(prompt)}
+          {#if presumed.length > 0}
+            <span class="sui-select-check"><Icon name="check" size="base" /></span>
+            <span class="sui-select-text"
+              ><span class="sui-select-label"
+                >{#each presumed as option (option.value)}<span
+                    class="sui-select-scheme"
+                    data-scheme={option.scheme}>{option.label}</span
+                  >{/each}</span
+              ></span
+            >
+          {:else}
+            {@render face(prompt)}
+          {/if}
         </option>
       {/if}
       {#each options as item (item)}
@@ -270,8 +297,36 @@ assistive technology, because a native picker cannot be held open.
     white-space: nowrap;
   }
 
-  .sui-select-control:has(> .sui-select-placeholder:checked) {
+  .sui-select-control:has(> .sui-select-placeholder:not(.presumed):checked) {
     color: var(--sui-text-muted);
+  }
+
+  /* The scheme the page wears: the one the root's `data-sui-theme` names, System where the page
+     sets none, or the system's own scheme in a picker without System. */
+  .sui-select-scheme {
+    display: none;
+  }
+
+  :global(:root[data-sui-theme='light']) .sui-select-scheme[data-scheme='light'],
+  :global(:root[data-sui-theme='dark']) .sui-select-scheme[data-scheme='dark'],
+  :global(:root:not([data-sui-theme])) .sui-select-scheme[data-scheme='system'] {
+    display: inline;
+  }
+
+  @media (prefers-color-scheme: light) {
+    :global(:root:not([data-sui-theme]))
+      .sui-select-label:not(:has(> [data-scheme='system']))
+      > .sui-select-scheme[data-scheme='light'] {
+      display: inline;
+    }
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :global(:root:not([data-sui-theme]))
+      .sui-select-label:not(:has(> [data-scheme='system']))
+      > .sui-select-scheme[data-scheme='dark'] {
+      display: inline;
+    }
   }
 
   @media (hover: hover) {
