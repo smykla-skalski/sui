@@ -114,10 +114,10 @@ and the unsaved ink, so no neutral block sits on a state (L-92).
 - Keyboard: none of its own; its actions and links take Tab in reading order.
 - Pointer and touch: its actions keep their own 34px and 44px targets.
 - Focus: it never takes focus; a caller that raises it after a failed act leaves focus on the control the reader used.
-- Responsive: actions sit beside the message, and at 24rem wide or narrower they move to a row under it, lined up with the copy, so the words keep the width.
+- Responsive: actions sit at the inline end beside the message, centred on it, and move to a line under the copy, from its start edge, only when the callout cannot hold them beside an 11rem measure of copy.
 - Accessibility: `warningLabel` and `decisionLabel` say in words what the tint and the gold say in colour, and `live` announces a callout that appears after an edit.
 - Localization: `warningLabel` and `decisionLabel` carry the built-in words, the tile sits at the inline start and the actions at the inline end, mirrored in a right-to-left page.
-- Performance: a static block with one container query; `live` sets one short timer when it appears.
+- Performance: a static block laid out by flex wrapping alone; `live` sets one short timer when it appears.
 - Analytics: none of its own; its actions report the reader's choice.
 - Failure: with no title it reads its description alone, and with neither it draws only its frame, so always pass words.
 -->
@@ -127,7 +127,6 @@ and the unsaved ink, so no neutral block sits on a state (L-92).
 {/snippet}
 
 <div {...rest} class={['sui-callout', className, { decision }]} data-tone={tone}>
-  <!-- The callout measures its own width, and a container query reaches only what is inside. -->
   <div class="sui-callout-inner">
     <div class="sui-callout-message">
       {#if icon}
@@ -161,17 +160,29 @@ and the unsaved ink, so no neutral block sits on a state (L-92).
     border-radius: var(--sui-radius-control);
     box-sizing: border-box;
     color: var(--sui-text-secondary);
-    container: sui-callout / inline-size;
     font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-row-copy-leading)
       var(--sui-sans);
     min-inline-size: 0;
     padding: var(--sui-space-3);
   }
 
+  /* The message and the actions share one line while the callout holds both, and the actions
+     wrap under the copy only when they do not fit beside an 11rem measure of it (about 27
+     characters). Wrapping decides that from the actions' own width, which a container query
+     cannot know. The line is indented by the tile, and the message reaches back over that
+     indent, so a wrapped line of actions starts where the copy starts (L-90). On a shared line
+     the actions centre on the message. */
   .sui-callout-inner {
+    --sui-callout-measure: 11rem;
     align-items: center;
     display: flex;
+    flex-wrap: wrap;
     gap: var(--sui-space-3);
+    padding-inline-start: var(--sui-callout-indent, 0px);
+  }
+
+  .sui-callout-inner:has(> .sui-callout-message > .sui-callout-icon) {
+    --sui-callout-indent: calc(var(--sui-symbol-tile) + var(--sui-space-3));
   }
 
   .sui-callout[data-tone='warning'] {
@@ -205,8 +216,9 @@ and the unsaved ink, so no neutral block sits on a state (L-92).
   .sui-callout-message {
     align-items: flex-start;
     display: flex;
-    flex: 1;
-    gap: inherit;
+    flex: 1 1 calc(var(--sui-callout-indent, 0px) + var(--sui-callout-measure));
+    gap: var(--sui-space-3);
+    margin-inline-start: calc(-1 * var(--sui-callout-indent, 0px));
     min-inline-size: 0;
   }
 
@@ -263,27 +275,12 @@ and the unsaved ink, so no neutral block sits on a state (L-92).
     --sui-text-primary: var(--sui-unsaved-ink);
   }
 
+  /* On a line of their own, actions too wide for it wrap among themselves. */
   .sui-callout-actions {
     align-items: center;
     display: flex;
-    flex: none;
+    flex-wrap: wrap;
     gap: var(--sui-space-2);
-  }
-
-  /* Narrow, the actions take a row of their own under the message, starting where the copy
-     starts, so the words never shrink to a sliver beside the buttons. */
-  @container sui-callout (max-width: 24rem) {
-    .sui-callout-inner {
-      align-items: stretch;
-      flex-direction: column;
-    }
-
-    .sui-callout-actions {
-      flex-wrap: wrap;
-    }
-
-    .sui-callout-message:has(> .sui-callout-icon) + .sui-callout-actions {
-      padding-inline-start: calc(var(--sui-symbol-tile) + var(--sui-space-3));
-    }
+    min-inline-size: 0;
   }
 </style>

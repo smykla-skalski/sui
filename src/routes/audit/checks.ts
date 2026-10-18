@@ -1910,6 +1910,59 @@ function symbolTiles(root: Document): Finding[] {
 }
 
 /**
+ * A callout's actions (L-56) stand at its inline end, centred on its message, and move under
+ * the copy, from the copy's start edge, only when the callout cannot hold them beside its
+ * measure of copy (`--sui-callout-measure`).
+ */
+function calloutActions(root: Document): Finding[] {
+  const found: Finding[] = [];
+  for (const actions of audited(root, '.sui-callout-actions')) {
+    const inner = actions.parentElement;
+    const message = inner?.querySelector(':scope > .sui-callout-message');
+    const copy = message?.querySelector(':scope > .sui-callout-copy');
+    if (!inner || !message || !copy || !shown(actions)) continue;
+    const own = actions.getBoundingClientRect();
+    const said = message.getBoundingClientRect();
+    if (own.top < said.bottom - 0.5) {
+      const off = (own.top + own.bottom) / 2 - (said.top + said.bottom) / 2;
+      if (Math.abs(off) > 0.5)
+        found.push(
+          finding('L-56', actions, `the actions sit ${round(off)}px off the message's middle`)
+        );
+      continue;
+    }
+    const rtl = getComputedStyle(inner).direction === 'rtl';
+    const words = copy.getBoundingClientRect();
+    const startOff = rtl ? words.right - own.right : own.left - words.left;
+    if (Math.abs(startOff) > 0.5)
+      found.push(
+        finding('L-56', actions, `wrapped actions start ${round(startOff)}px off the copy's edge`)
+      );
+    // What the actions need on one line, against what the copy's measure leaves beside it.
+    const parts = [...actions.children].filter(shown);
+    const look = getComputedStyle(actions);
+    const need =
+      parts.reduce((sum, part) => sum + part.getBoundingClientRect().width, 0) +
+      Math.max(0, parts.length - 1) * parseFloat(look.columnGap);
+    const probe = document.createElement('div');
+    probe.style.cssText = 'position: absolute; inline-size: var(--sui-callout-measure)';
+    inner.append(probe);
+    const measure = probe.getBoundingClientRect().width;
+    probe.remove();
+    const room = (rtl ? words.right - said.left : said.right - words.left) - measure;
+    if (need + parseFloat(getComputedStyle(inner).columnGap) <= room - 1)
+      found.push(
+        finding(
+          'L-56',
+          actions,
+          `the actions wrap under the copy while ${round(room)}px beside its measure holds their ${round(need)}px`
+        )
+      );
+  }
+  return found;
+}
+
+/**
  * Where a box puts ink: from the first to the last edge of a framed or grounded box inside it,
  * or from a line's cap to a line's baseline, whichever reaches further.
  */
@@ -2619,5 +2672,6 @@ register(
   unsavedVeils,
   sectionHeads,
   boundaryLines,
-  detailPanes
+  detailPanes,
+  calloutActions
 );

@@ -453,13 +453,11 @@
   --sui-breakpoint-wide: 64.0625rem;
 
   /* The widths a component answers to in its own container, under which it changes its layout:
-     a card steps its inset down, a setting row stacks its control, a callout puts its actions
-     under the message, and a list toolbar folds its filter into its menu as a card moves its
-     head's actions under its copy. A
-     container query cannot read them either, so the source laws hold each query to this list. */
+     a card steps its inset down, a setting row stacks its control, and a list toolbar folds its
+     filter into its menu as a card moves its head's actions under its copy. A container query
+     cannot read them either, so the source laws hold each query to this list. */
   --sui-breakpoint-card: 36rem;
   --sui-breakpoint-row: 25rem;
-  --sui-breakpoint-callout: 24rem;
   --sui-breakpoint-bar: 18rem;
   /* From this width up a detail layout stands its aside beside the main column. */
   --sui-breakpoint-detail: 56rem;
