@@ -1,4 +1,5 @@
 import { existsSync } from 'node:fs';
+import { availableParallelism } from 'node:os';
 import { chromium } from 'playwright-core';
 import { createServer } from 'vite';
 
@@ -8,6 +9,13 @@ import { createServer } from 'vite';
  * as in CI, so the everyday run stays quick.
  */
 export const long = { skip: process.env.SUI_LONG ? false : 'long: run with SUI_LONG=1' };
+
+/**
+ * Lets a file's tests run side by side. Each test opens its own page in the file's browser, so
+ * they share nothing but the browser; a third of the machine's cores keeps the pages from
+ * starving one another while the other files run too.
+ */
+export const together = { concurrency: Math.max(2, Math.floor(availableParallelism() / 3)) };
 
 const launch = () => chromium.launch({ channel: process.env.SUI_BROWSER_CHANNEL ?? 'chrome' });
 
@@ -71,6 +79,50 @@ export async function visit(page, url) {
   await page.goto(address.href);
   await page.waitForFunction(() => '__suiAudit' in window);
 }
+
+/**
+ * Spreads a sweep over several pages of the sink, each taking every `workers`th item from its own
+ * `worker` on, so a sweep that waits on the browser for each item runs side by side. Every page
+ * holds the same items in the same order, and the problems each one finds are joined.
+ * @param {() => Promise<import('playwright-core').Page>} opener
+ * @param {number} workers
+ * @param {(page: import('playwright-core').Page, worker: number) => Promise<string[]>} run
+ * @returns {Promise<string[]>}
+ */
+export async function sweep(opener, workers, run) {
+  const pages = await Promise.all(Array.from({ length: workers }, opener));
+  try {
+    return (await Promise.all(pages.map((page, worker) => run(page, worker)))).flat();
+  } finally {
+    await Promise.all(pages.map((page) => page.close()));
+  }
+}
+
+/** How long a test waits for a state to arrive before it reports that it never did. */
+export const brief = { timeout: 2000 };
+
+/**
+ * Says whether a wait such as `page.waitForFunction(predicate, arg, brief)` saw its state arrive,
+ * so a test reads a state the moment it arrives instead of sleeping a guessed time, and still
+ * reports a state that never arrives.
+ * @param {Promise<unknown>} wait
+ * @returns {Promise<boolean>}
+ */
+export const settles = (wait) =>
+  wait.then(
+    () => true,
+    () => false
+  );
+
+/**
+ * Ends every finite animation at once, so boxes are read where they come to rest.
+ * @param {import('playwright-core').Page} page
+ */
+export const atRest = (page) =>
+  page.evaluate(() => {
+    for (const animation of document.getAnimations())
+      if (animation.effect?.getTiming().iterations !== Infinity) animation.finish();
+  });
 
 /**
  * Runs the page's law audit. The page's own run waits for every finite animation to end; ending
