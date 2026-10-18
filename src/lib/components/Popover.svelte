@@ -245,8 +245,8 @@ close control, because only Escape and that control end it.
 - Content: any content, at most the viewport's width less 16px and as tall as the room beside the trigger, scrolling inside past that.
 - States: closed, opening (it grows out of a line on its edge that faces the trigger), open, closing (it folds back into that line), flipped to the other side, and inline in the page's flow.
 - Keyboard: Escape closes it, auto or manual, and the content's own keys work inside; the Escape stops at this layer.
-- Pointer and touch: an outside press closes an auto layer and never a manual one; the trigger's own target sizes apply.
-- Focus: an `[autofocus]` element inside takes focus on open; on close, focus inside returns to the element that had it before, or to the anchor. With `closeOnLeave`, focus moving out of the layer closes it, as a Tab out does, and a press on the anchor toggles it closed rather than closing and reopening it.
+- Pointer and touch: an outside press closes an auto layer and never a manual one, and a press inside closes only a picker open inside it; the trigger's own target sizes apply.
+- Focus: an `[autofocus]` element inside takes focus on open; on close, focus inside returns to the element that had it before, or to the anchor. With `closeOnLeave`, focus moving out of the layer closes it, as a Tab out does, a press on its words or padding focuses the box itself, so it is never the reader leaving, and a press on the anchor toggles it closed rather than closing and reopening it.
 - Responsive: it flips to the side with more room, stays 8px inside the viewport, caps its height to the room it has and scrolls inside.
 - Accessibility: in the top layer it is never inert under a dialog; the content's role and the trigger's `aria-expanded` carry its meaning.
 - Localization: `start` and `end` alignment and the inline sides follow the reading direction, so a right-to-left page hangs it from the mirrored edge.
@@ -254,10 +254,16 @@ close control, because only Escape and that control end it.
 - Analytics: `onclose` reports every close, and `ontoggle` reports both directions.
 - Failure: with no `anchor` it opens without placement or growth; content taller than the room scrolls inside instead of leaving the screen.
 -->
+<!-- A press on words or padding focuses the nearest focusable ancestor, which for a box in the
+     top layer is a page ancestor, such as a `main` with `tabindex="-1"`, so a layer that closes
+     when focus leaves takes that focus itself. Any other box stays out of focus, so one that
+     scrolls with nothing focusable inside remains a keyboard stop to scroll by. -->
+<!-- svelte-ignore a11y_no_noninteractive_tabindex -->
 <div
   bind:this={element}
   {id}
   popover={inline ? undefined : dismiss}
+  tabindex={closeOnLeave ? -1 : undefined}
   class={['sui-popover', { inline }, className]}
   data-width={width}
   {onbeforetoggle}

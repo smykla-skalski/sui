@@ -236,6 +236,64 @@ suite('overlays', together, () => {
   );
 
   test(
+    'L-52 a list open in a layer closes alone on a press inside the layer, Escape and Tab',
+    long,
+    async () => {
+      const page = await open();
+      try {
+        const add = page
+          .locator('#pair-entry')
+          .getByRole('button', { name: 'Add an alias' })
+          .first();
+        await add.scrollIntoViewIfNeeded();
+        const editor = page.locator(':popover-open:has(> .sui-pair-editor)');
+        const field = editor.getByRole('combobox');
+        const layers = () =>
+          page.evaluate(() =>
+            [...document.querySelectorAll(':popover-open')].map((layer) =>
+              layer.querySelector('form') ? 'editor' : 'list'
+            )
+          );
+        const listed = () =>
+          page.waitForFunction(() => document.querySelector(':popover-open [role="listbox"]'));
+        await add.click();
+        await field.click();
+        await listed();
+
+        // The form's padding is not focusable, so the press would hand focus to the page.
+        await editor.locator('form').click({ position: { x: 4, y: 4 } });
+        await page.waitForTimeout(150);
+        assert.deepEqual(await layers(), ['editor'], 'a press inside the editor closed it');
+        assert.ok(
+          await editor.evaluate((layer) => layer.contains(document.activeElement)),
+          'the press inside took focus out of the editor'
+        );
+
+        await field.click();
+        await listed();
+        await page.keyboard.press('Escape');
+        await page.waitForTimeout(150);
+        assert.deepEqual(await layers(), ['editor'], 'Escape closed more than the list');
+        assert.equal(await field.evaluate((input) => input === document.activeElement), true);
+
+        await page.keyboard.press('ArrowDown');
+        await listed();
+        await page.keyboard.press('Tab');
+        await page.waitForTimeout(150);
+        assert.deepEqual(await layers(), ['editor'], 'Tab out of the field closed the editor');
+        assert.equal(await focused(page), 'Done');
+
+        await page.keyboard.press('Escape');
+        await page.waitForFunction(() => !document.querySelector(':popover-open'));
+        await page.waitForTimeout(100);
+        assert.equal(await focused(page), 'Add an alias');
+      } finally {
+        await page.close();
+      }
+    }
+  );
+
+  test(
     'AC15 a manual layer survives an outside press and closes on Escape back to its trigger',
     long,
     async () => {
