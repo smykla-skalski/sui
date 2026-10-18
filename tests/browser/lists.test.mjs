@@ -432,6 +432,57 @@ suite('lists', together, () => {
   });
 
   test(
+    'L-63 a loaded page takes focus to its first new row and says how many rows came',
+    long,
+    async () => {
+      const page = await open();
+      try {
+        const more = page.locator('#load-more-activity + .sui-load-more');
+        const row = () =>
+          page.evaluate(() =>
+            document.activeElement
+              ?.closest('#load-more-activity > li')
+              ?.textContent?.trim()
+              .replace(/\s+/g, ' ')
+          );
+        await more.scrollIntoViewIfNeeded();
+        await more.getByRole('button').focus();
+        // The sink fails its second page once, so the retry is pressed before anything lands.
+        await page.keyboard.press('Enter');
+        await more.getByRole('alert').waitFor();
+        assert.match(
+          await focused(page),
+          /^button Try again/,
+          'the failure took focus off the retry'
+        );
+
+        await page.keyboard.press('Enter');
+        await settles(
+          page.waitForFunction(
+            () => document.activeElement?.closest('#load-more-activity'),
+            null,
+            brief
+          )
+        );
+        assert.equal(await row(), 'Webhook delivered Event 5', 'focus stayed off the new rows');
+        assert.equal(await more.getByRole('status').textContent(), '4 more loaded, 8 of 12 shown');
+
+        await more.getByRole('button').focus();
+        await page.keyboard.press('Enter');
+        await more.getByRole('button').waitFor({ state: 'detached' });
+        assert.equal(
+          await row(),
+          'Member promoted to owner Event 9',
+          'the last page dropped focus'
+        );
+        assert.equal(await more.getByRole('status').textContent(), '4 more loaded, 12 of 12 shown');
+      } finally {
+        await page.close();
+      }
+    }
+  );
+
+  test(
     'P8 a pair editor left by a press outside or Tab keeps the draft, and Escape drops it',
     long,
     async () => {

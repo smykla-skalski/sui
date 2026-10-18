@@ -1936,6 +1936,46 @@ function rings(root: Document): Finding[] {
   return found;
 }
 
+// A "Load more" row is the last row of the list before it: its button controls that list, and
+// the hairline the list draws stands as far under the last row's words as the row's own content
+// stands under the hairline.
+function loadMoreRows(root: Document): Finding[] {
+  const found: Finding[] = [];
+  for (const row of audited(root, '.sui-load-more')) {
+    const list = row.previousElementSibling;
+    const button = row.querySelector(':scope > button');
+    if (!list?.matches('ul, ol') || (button && button.getAttribute('aria-controls') !== list.id)) {
+      found.push(finding('L-63', row, 'it does not follow the list its button loads into'));
+      continue;
+    }
+    const hairline = getComputedStyle(list, '::after');
+    if (hairline.content === 'none' || rgba(hairline.backgroundColor).a === 0) {
+      found.push(finding('L-63', row, 'the list draws no hairline over it'));
+      continue;
+    }
+    const words = [...list.querySelectorAll(':scope > li:last-child *')].flatMap(
+      (element) => inkLines(element)?.bottom ?? []
+    );
+    const note = row.querySelector('.sui-load-more-text');
+    const tops = [button?.getBoundingClientRect().top, note && inkLines(note)?.top].filter(
+      (top): top is number => typeof top === 'number'
+    );
+    if (words.length === 0 || tops.length === 0) continue;
+    const line = list.getBoundingClientRect().bottom;
+    const above = line - parseFloat(hairline.blockSize) - Math.max(...words);
+    const below = Math.min(...tops) - line;
+    if (Math.abs(above - below) > 0.5)
+      found.push(
+        finding(
+          'L-63',
+          row,
+          `the hairline stands ${round(above)}px under the last row's words and ${round(below)}px over this row`
+        )
+      );
+  }
+  return found;
+}
+
 register(
   separators,
   palette,
@@ -1962,5 +2002,6 @@ register(
   chartInk,
   pressSelection,
   titleProximity,
-  disclosures
+  disclosures,
+  loadMoreRows
 );

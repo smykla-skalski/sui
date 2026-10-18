@@ -23,6 +23,8 @@ Rows reach 12px past the list on both sides so their ink lines up with the card 
 and the list hands back the last row's bottom padding so the last line closes on the card's own
 frame. When it opens a card it hands back the first row's top padding too, so its first line
 stands the card's inset below the keyline. Give it a container with at least that much inset.
+A `LoadMore` right after it is its last row instead, so the list keeps that padding and draws
+the hairline above the `LoadMore`.
 
 - Semantics: a `ul` with `role="list"`, so Safari keeps the list once its bullets are gone.
 - Content: `ObjectRow`s only, one per item.
@@ -56,5 +58,27 @@ stands the card's inset below the keyline. Give it a container with at least tha
 
   .sui-object-list:first-child:has(> :global(li)) {
     margin-block-start: var(--sui-local-row-lead, 0px);
+  }
+
+  /* A LoadMore after the list is its last row, so the list keeps the padding and the band of
+     the row above it and draws the hairline that row would draw over a next one. */
+  .sui-object-list:has(+ :global(.sui-load-more)) {
+    margin-block-end: 0;
+    position: relative;
+  }
+
+  .sui-object-list:has(+ :global(.sui-load-more))::after {
+    background: var(--sui-border-divider);
+    block-size: var(--sui-row-hairline);
+    content: '';
+    inset-block-end: 0;
+    inset-inline: 0;
+    position: absolute;
+  }
+
+  @media (hover: hover) {
+    .sui-object-list:has(> :global(li:last-child > a[href]:hover))::after {
+      background: transparent;
+    }
   }
 </style>
