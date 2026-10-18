@@ -272,9 +272,14 @@ button. Without `tools` there is no button and the filter never folds.
     justify-content: space-between;
   }
 
-  /* The search's label stands before it on its line, as the filter's heading does. */
+  /* The search's label stands before it on its line, as the filter's heading does. When the
+     label wraps above the field the part is snapped to an even height, so the filter centred
+     beside it lands on whole pixels (L-95), and its lines keep to the top so the extra pixel
+     stays under them. */
   .sui-list-toolbar-search {
+    align-content: start;
     align-items: center;
+    block-size: var(--sui-block-snap-even);
     display: flex;
     flex: 1 1 16rem;
     flex-wrap: wrap;

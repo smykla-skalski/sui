@@ -85,8 +85,8 @@ setWords({
 
 - `npm test` runs the source laws (`tests/laws.test.mjs`): the palette is the only place a color is written, every token is declared and read, sizes, leading, spacing, radii, layers and durations come from tokens, every moving component has a reduced-motion fallback, and every component has a contract and a kitchen sink section.
 - The kitchen sink runs the rendered laws in the page and shows each finding: contrast, palette bands, type faces and leading, copy rules, control heights, target sizes, centring, focus, names and sideways scroll.
-- `npm run test:browser` runs that audit in Chrome at 320, 375, 768 and 1440px in both themes. It also walks every keyboard stop, opens every menu, checks reduced motion, theme geometry and icon centring. It uses the installed Chrome through `playwright-core`; set `SUI_BROWSER_CHANNEL` to use another channel.
-- `npm run test:browser:long` adds the long passes that CI runs: axe at two widths in both themes, the section pictures, and the sweeps that press every control and open every layer.
+- `npm run test:browser` is the everyday check, about seven seconds: that audit in Chrome on a phone in light and a desktop in dark, and the checks that every joined name follows `setWords`. It uses the installed Chrome through `playwright-core`; set `SUI_BROWSER_CHANNEL` to use another channel.
+- `npm run test:browser:long` runs everything CI runs: the audit at 320, 375, 768 and 1440px in both themes and on touch tablets, every keyboard stop, menu, press and layer, right to left, forced colors, text spacing and size, axe, the section pictures and the lab performance checks.
 
 ## Development
 

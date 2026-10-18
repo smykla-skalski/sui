@@ -1,14 +1,14 @@
 import assert from 'node:assert/strict';
 import { after, before, test } from 'node:test';
-import { startSink, visit } from './sink.mjs';
+import { long, startSink, visit } from './sink.mjs';
 
 // A language that joins words with no spaces, or with its own commas, must hear exactly its
 // own marks. Chrome adds a space on each side of any box that is not inline text when it builds
 // a name from content, so a mark beside a hidden box or between flex items is not enough.
 
-/** @type {import('vite').ViteDevServer} */
+/** @type {{ close: () => Promise<void> }} */
 let server;
-/** @type {import('playwright-core').Browser} */
+/** @type {import('./sink.mjs').SinkBrowser} */
 let browser;
 let url = '';
 
@@ -21,7 +21,7 @@ after(async () => {
   await server?.close();
 });
 
-test('a space mark from the server stays in the name beside its word', async () => {
+test('a space mark from the server stays in the name beside its word', long, async () => {
   const page = await browser.newPage();
   try {
     await visit(page, url);
@@ -114,7 +114,8 @@ test('with every mark replaced, each joined name reads the marks and nothing bet
         'Link.externalLabel': 'ZEWN',
         'RelativeTime.exactLabel': (/** @type {string} */ time) => `{DOKL ${time}}`,
         'PairEntry.keyLabel': 'KLUCZ',
-        'PairEntry.valueLabel': 'WART'
+        'PairEntry.valueLabel': 'WART',
+        'PairEntry.arrowLabel': 'NA'
       });
       const host = document.createElement('div');
       host.id = 'words-host';
@@ -189,6 +190,11 @@ test('with every mark replaced, each joined name reads the marks and nothing bet
         value: [{ key: 'alias', value: 'ship' }],
         options: [{ value: 'ship', label: 'Ship' }]
       });
+      put(lib.ActionMenu, 'ActionMenu', {
+        label: 'More',
+        preview: true,
+        items: [{ label: 'Transfer', description: 'Owners only', disabled: true }]
+      });
       put(lib.Callout, 'Callout', {
         tone: 'warning',
         title: 'Drift\u00a0found',
@@ -261,6 +267,7 @@ test('with every mark replaced, each joined name reads the marks and nothing bet
       Disclosure: await read('[data-words="Disclosure"] summary'),
       AdditionPicker: (await read('[data-words="AdditionPicker"] [role="menuitem"]')).name,
       PairEntry: (await read('[data-words="PairEntry"] .sui-pair-edit')).name,
+      ActionMenu: (await read('[data-words="ActionMenu"] [role="menuitem"]')).name,
       ListToolbar: (await read('[data-words="ListToolbar"] [aria-describedby$="-described"]'))
         .description,
       IdentityRow: (await read('[data-words="IdentityRow"]')).name
@@ -276,7 +283,8 @@ test('with every mark replaced, each joined name reads the marks and nothing bet
       Link: { name: 'Docs⁠', description: 'ZEWN' },
       Disclosure: { name: 'SkippedⓒThree archived', description: undefined },
       AdditionPicker: 'Auto mergeⓒOnce green',
-      PairEntry: 'KLUCZⓟaliasⓒWARTⓟShip',
+      PairEntry: 'aliasⓟNAⓟShip',
+      ActionMenu: 'TransferⓒOwners only',
       ListToolbar: 'AllⓒUpdatedⓒOpen',
       IdentityRow: 'Ada Lovelaceⓒ@ada'
     });

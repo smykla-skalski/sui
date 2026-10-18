@@ -757,7 +757,50 @@ function controls(root: Document): Finding[] {
         )
       );
   }
+
+  // A field joined to a second part is one control: as tall as a plain field while its value
+  // is one line, with the value on its centre line.
+  const plain = audited(root, 'input.sui-text-input:not(.bare)')[0];
+  const control = plain?.getBoundingClientRect().height ?? 0;
+  for (const frame of audited(root, '.sui-joined')) {
+    const value = frame.querySelector(
+      '.sui-joined-value :is(input:not([type="hidden"]), textarea)'
+    );
+    if (!value || !control) continue;
+    const box = frame.getBoundingClientRect();
+    const part = value.getBoundingClientRect();
+    if (part.height <= control && Math.abs(box.height - control) > 0.5)
+      found.push(
+        finding('L-37', frame, `a joined field is ${round(box.height)}px tall, not ${control}px`)
+      );
+    const off = part.top + part.height / 2 - (box.top + box.height / 2);
+    if (Math.abs(off) > 0.5)
+      found.push(finding('L-37', frame, `its value sits ${round(off)}px off the field's centre`));
+  }
   return found;
+}
+
+/** Letters and numbers only, so marks and symbols a reader does not say never decide a match. */
+const sayable = (text: string) =>
+  text
+    .toLowerCase()
+    .replace(/[^\p{L}\p{N}]+/gu, ' ')
+    .trim();
+
+/** The words a control draws, as a browser reads them: a drawn image by its name. */
+function drawnLabel(element: Element): string {
+  if (element.matches('select, input, textarea')) return '';
+  const read = (node: Node): string => {
+    if (node.nodeType === Node.TEXT_NODE)
+      return node.parentElement?.checkVisibility({ checkVisibilityCSS: true })
+        ? (node.textContent ?? '')
+        : '';
+    if (!(node instanceof Element) || node.getAttribute('aria-hidden') === 'true') return '';
+    if (node.getAttribute('role') === 'img') return ` ${node.getAttribute('aria-label') ?? ''} `;
+    if (node.matches('.sui-visually-hidden')) return '';
+    return ` ${[...node.childNodes].map(read).join('')} `;
+  };
+  return read(element);
 }
 
 function accessibility(root: Document): Finding[] {
@@ -775,6 +818,19 @@ function accessibility(root: Document): Finding[] {
   for (const element of audited(root, INTERACTIVE)) {
     const label = element.getAttribute('aria-label')?.trim().toLowerCase() ?? '';
     const labelledby = element.getAttribute('aria-labelledby');
+    // A voice user says the words they see, so a name given by the author holds the drawn
+    // words as one run, read the way a browser reads them (WCAG 2.5.3).
+    const authored =
+      label ||
+      (labelledby ?? '')
+        .split(/\s+/)
+        .map((id) => root.getElementById(id)?.textContent ?? '')
+        .join(' ');
+    const drawn = sayable(drawnLabel(element));
+    if (authored && drawn && !` ${sayable(authored)} `.includes(` ${drawn} `))
+      found.push(
+        finding('L-77', element, `the name "${authored}" does not hold the drawn words "${drawn}"`)
+      );
     // A select's text is its options, and its visible label is its <label>, not its value.
     const visible = (
       element instanceof HTMLSelectElement ? '' : ((element as HTMLElement).innerText ?? '')

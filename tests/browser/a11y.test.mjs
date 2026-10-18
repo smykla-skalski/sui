@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
 import { after, before, test } from 'node:test';
-import { long, startSink, visit } from './sink.mjs';
+import { audit as auditPage, long, startSink, visit } from './sink.mjs';
 
 // The kitchen sink under the conditions readers bring with them: an accessibility engine's
 // WCAG 2.2 rules, a right-to-left page, forced colors, the WCAG 1.4.12 text spacing and text
@@ -10,9 +10,9 @@ import { long, startSink, visit } from './sink.mjs';
 
 const axePath = createRequire(import.meta.url).resolve('axe-core/axe.min.js');
 
-/** @type {import('vite').ViteDevServer} */
+/** @type {{ close: () => Promise<void> }} */
 let server;
-/** @type {import('playwright-core').Browser} */
+/** @type {import('./sink.mjs').SinkBrowser} */
 let browser;
 let url = '';
 
@@ -49,14 +49,8 @@ async function open(width, theme, options = {}) {
 }
 
 /** @param {import('playwright-core').Page} page */
-const audit = (page) =>
-  page.evaluate(async () =>
-    /** @type {{ __suiAudit: () => Promise<{ law: string; where: string; detail: string }[]> }} */ (
-      /** @type {unknown} */ (window)
-    )
-      .__suiAudit()
-      .then((found) => found.map(({ law, where, detail }) => `${law} ${where}: ${detail}`))
-  );
+const audit = async (page) =>
+  (await auditPage(page)).map(({ law, where, detail }) => `${law} ${where}: ${detail}`);
 
 for (const width of [375, 1440])
   for (const theme of ['light', 'dark'])
@@ -86,7 +80,7 @@ for (const width of [375, 1440])
     });
 
 for (const width of [375, 1440])
-  test(`every law holds in a right-to-left page at ${width}px`, async () => {
+  test(`every law holds in a right-to-left page at ${width}px`, long, async () => {
     const page = await open(width, 'light');
     try {
       await page.evaluate(() => {
@@ -99,7 +93,7 @@ for (const width of [375, 1440])
     }
   });
 
-test('in a right-to-left page a menu hangs from its trigger’s inline start', async () => {
+test('in a right-to-left page a menu hangs from its trigger’s inline start', long, async () => {
   const page = await open(1440, 'light');
   try {
     await page.evaluate(() => {
@@ -121,105 +115,145 @@ test('in a right-to-left page a menu hangs from its trigger’s inline start', a
   }
 });
 
-test('in forced colors every current and selected state differs by more than weight', async () => {
-  const page = await open(1440, 'light', { forcedColors: 'active' });
-  try {
-    const flat = await page.evaluate(() => {
-      const props = [
-        'outline-style',
-        'outline-color',
-        'border-block-end-style',
-        'border-block-end-color',
-        'border-inline-start-style',
-        'border-inline-start-color',
-        'text-decoration-line',
-        'background-color',
-        'color'
-      ];
-      // What forced colors still draw: the element's and its pseudo-elements' lines and system
-      // colors, and which marks inside it (a check, a dot) are shown.
-      const look = (/** @type {Element} */ element) => {
-        const paint = [null, '::before', '::after'].map((pseudo) => {
-          const style = getComputedStyle(element, pseudo);
-          return props.map((name) => style.getPropertyValue(name)).join('|');
-        });
-        const marks = [...element.querySelectorAll('svg, [aria-hidden="true"]')]
-          .filter((mark) => mark.checkVisibility({ checkOpacity: true, checkVisibilityCSS: true }))
-          .map((mark) => mark.getAttribute('data-icon') ?? mark.tagName);
-        return [...paint, marks.join(',')].join('#');
-      };
-      const found = [];
-      for (const current of document.querySelectorAll(
-        "main [aria-current='page'], main [aria-selected='true'], main [aria-pressed='true']"
-      )) {
-        // A list in a closed layer shows nothing, current or not.
-        if (!current.checkVisibility({ checkVisibilityCSS: true })) continue;
-        const peer = [
-          ...(current.parentElement?.parentElement?.querySelectorAll(current.tagName) ?? [])
-        ].find(
-          (other) =>
-            other !== current &&
-            other.className === current.className &&
-            !other.matches("[aria-current='page'], [aria-selected='true'], [aria-pressed='true']")
-        );
-        if (peer && look(peer) === look(current))
-          found.push(
-            `${current.tagName.toLowerCase()}.${current.className}: “${current.textContent?.trim()}”`
+test(
+  'in forced colors every current and selected state differs by more than weight',
+  long,
+  async () => {
+    const page = await open(1440, 'light', { forcedColors: 'active' });
+    try {
+      const flat = await page.evaluate(() => {
+        const props = [
+          'outline-style',
+          'outline-color',
+          'border-block-end-style',
+          'border-block-end-color',
+          'border-inline-start-style',
+          'border-inline-start-color',
+          'text-decoration-line',
+          'background-color',
+          'color'
+        ];
+        // What forced colors still draw: the element's and its pseudo-elements' lines and system
+        // colors, and which marks inside it (a check, a dot) are shown.
+        const look = (/** @type {Element} */ element) => {
+          const paint = [null, '::before', '::after'].map((pseudo) => {
+            const style = getComputedStyle(element, pseudo);
+            return props.map((name) => style.getPropertyValue(name)).join('|');
+          });
+          const marks = [...element.querySelectorAll('svg, [aria-hidden="true"]')]
+            .filter((mark) =>
+              mark.checkVisibility({ checkOpacity: true, checkVisibilityCSS: true })
+            )
+            .map((mark) => mark.getAttribute('data-icon') ?? mark.tagName);
+          return [...paint, marks.join(',')].join('#');
+        };
+        const found = [];
+        for (const current of document.querySelectorAll(
+          "main [aria-current='page'], main [aria-selected='true'], main [aria-pressed='true']"
+        )) {
+          // A list in a closed layer shows nothing, current or not.
+          if (!current.checkVisibility({ checkVisibilityCSS: true })) continue;
+          const peer = [
+            ...(current.parentElement?.parentElement?.querySelectorAll(current.tagName) ?? [])
+          ].find(
+            (other) =>
+              other !== current &&
+              other.className === current.className &&
+              !other.matches("[aria-current='page'], [aria-selected='true'], [aria-pressed='true']")
           );
-      }
-      return found;
-    });
-    assert.deepEqual(flat, []);
-  } finally {
-    await page.close();
-  }
-});
-
-test('in forced colors an invalid field draws a different edge from a valid one', async () => {
-  const page = await open(1440, 'light', { forcedColors: 'active' });
-  try {
-    // A checked box and an on switch keep the invalid edge too, so one of each is turned on.
-    for (const mark of ['.sui-checkbox-box.invalid', '.sui-switch-track.invalid']) {
-      const input = page.locator(`main label:has(${mark}) input:not(:checked):not(:disabled)`);
-      if ((await input.count()) > 0) await input.first().check({ force: true });
-    }
-    // Neither focus nor hover may tell them apart instead of the edge.
-    await page.evaluate(() => /** @type {HTMLElement | null} */ (document.activeElement)?.blur());
-    await page.mouse.move(0, 0);
-    const same = await page.evaluate(() => {
-      const frames = [
-        ['.sui-text-input:not(.bare)', "[aria-invalid='true']"],
-        ['.sui-textarea', "[aria-invalid='true']"],
-        ['.sui-select:not(.bare) .sui-select-control', "[aria-invalid='true']"],
-        ['.sui-joined', '.invalid'],
-        ['.sui-choice-cards-grid', '.invalid'],
-        ['.sui-checkbox input:checked + .sui-checkbox-box', '.invalid'],
-        ['.sui-switch-row input:checked + .sui-switch-track', '.invalid']
-      ];
-      const edge = (/** @type {Element} */ element) => {
-        const style = getComputedStyle(element);
-        return ['border-top', 'outline']
-          .flatMap((side) => ['width', 'style', 'color'].map((part) => `${side}-${part}`))
-          .map((name) => style.getPropertyValue(name))
-          .join('|');
-      };
-      return frames.flatMap(([frame, invalid]) => {
-        const shown = [...document.querySelectorAll(`main ${frame}`)].filter(
-          (element) =>
-            element.checkVisibility({ checkVisibilityCSS: true }) &&
-            !element.matches(':disabled, [readonly], .disabled, .readonly')
-        );
-        const wrong = shown.find((element) => element.matches(invalid));
-        const right = shown.find((element) => !element.matches(invalid));
-        if (!wrong || !right) return [`${frame}: no ${wrong ? 'valid' : 'invalid'} specimen`];
-        return edge(wrong) === edge(right) ? [`${frame}${invalid}`] : [];
+          if (peer && look(peer) === look(current))
+            found.push(
+              `${current.tagName.toLowerCase()}.${current.className}: “${current.textContent?.trim()}”`
+            );
+        }
+        return found;
       });
-    });
-    assert.deepEqual(same, []);
-  } finally {
-    await page.close();
+      assert.deepEqual(flat, []);
+    } finally {
+      await page.close();
+    }
   }
-});
+);
+
+test(
+  'in forced colors an invalid field draws a different edge from a valid one',
+  long,
+  async () => {
+    const page = await open(1440, 'light', { forcedColors: 'active' });
+    try {
+      // A checked box and an on switch keep the invalid edge too, so one of each is turned on.
+      for (const mark of ['.sui-checkbox-box.invalid', '.sui-switch-track.invalid']) {
+        const input = page.locator(`main label:has(${mark}) input:not(:checked):not(:disabled)`);
+        if ((await input.count()) > 0) await input.first().check({ force: true });
+      }
+      // Neither focus nor hover may tell them apart instead of the edge.
+      await page.evaluate(() => /** @type {HTMLElement | null} */ (document.activeElement)?.blur());
+      await page.mouse.move(0, 0);
+      const same = await page.evaluate(() => {
+        const frames = [
+          ['.sui-text-input:not(.bare)', "[aria-invalid='true']"],
+          ['.sui-textarea', "[aria-invalid='true']"],
+          ['.sui-select:not(.bare) .sui-select-control', "[aria-invalid='true']"],
+          ['.sui-joined', '.invalid'],
+          ['.sui-choice-cards-grid', '.invalid'],
+          ['.sui-checkbox input:checked + .sui-checkbox-box', '.invalid'],
+          ['.sui-switch-row input:checked + .sui-switch-track', '.invalid']
+        ];
+        const edge = (/** @type {Element} */ element) => {
+          const style = getComputedStyle(element);
+          return ['border-top', 'outline']
+            .flatMap((side) => ['width', 'style', 'color'].map((part) => `${side}-${part}`))
+            .map((name) => style.getPropertyValue(name))
+            .join('|');
+        };
+        return frames.flatMap(([frame, invalid]) => {
+          const shown = [...document.querySelectorAll(`main ${frame}`)].filter(
+            (element) =>
+              element.checkVisibility({ checkVisibilityCSS: true }) &&
+              !element.matches(':disabled, [readonly], .disabled, .readonly')
+          );
+          const wrong = shown.find((element) => element.matches(invalid));
+          const right = shown.find((element) => !element.matches(invalid));
+          if (!wrong || !right) return [`${frame}: no ${wrong ? 'valid' : 'invalid'} specimen`];
+          return edge(wrong) === edge(right) ? [`${frame}${invalid}`] : [];
+        });
+      });
+      assert.deepEqual(same, []);
+    } finally {
+      await page.close();
+    }
+  }
+);
+
+test(
+  'in forced colors a skeleton bar, the lit menu item and each diff change keep a mark',
+  long,
+  async () => {
+    const page = await open(1440, 'light', { forcedColors: 'active' });
+    try {
+      // Forced colors drop every fill, so each of these needs an edge, an outline or a glyph.
+      const missing = await page.evaluate(() => {
+        const found = [];
+        const bar = document.querySelector('main .sui-skeleton-rows.bars > span');
+        if (!bar || getComputedStyle(bar, '::before').borderTopStyle === 'none')
+          found.push('a skeleton bar draws no edge');
+        const lit = document.querySelector('main .sui-action-menu-item.active');
+        if (!lit || getComputedStyle(lit).outlineStyle === 'none')
+          found.push('the lit menu item draws no outline');
+        for (const line of document.querySelectorAll('main .sui-diff-block-scroll .ln')) {
+          if (/** @type {HTMLElement} */ (line).dataset.op === ' ') continue;
+          const glyph = line.querySelector('.op [aria-hidden="true"]');
+          if (!glyph?.textContent?.trim() || !glyph.checkVisibility())
+            found.push(`a ${/** @type {HTMLElement} */ (line).dataset.op} line shows no glyph`);
+        }
+        return found;
+      });
+      assert.deepEqual(missing, []);
+    } finally {
+      await page.close();
+    }
+  }
+);
 
 // WCAG 1.4.12 and 1.4.4: overrides a reader may apply, and text at twice its size.
 const spacing = `* { line-height: 1.5 !important; letter-spacing: 0.12em !important; word-spacing: 0.16em !important; }
@@ -229,7 +263,7 @@ for (const [name, css] of [
   ['the WCAG text spacing', spacing],
   ['text at twice its size', 'html { font-size: 200% !important; }']
 ])
-  test(`with ${name} nothing overlaps and nothing leaves its specimen at 375px`, async () => {
+  test(`with ${name} nothing overlaps and nothing leaves its specimen at 375px`, long, async () => {
     const page = await open(375, 'light');
     try {
       await page.addStyleTag({ content: css });

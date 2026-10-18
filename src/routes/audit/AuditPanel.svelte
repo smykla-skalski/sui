@@ -61,6 +61,9 @@
       while (!result) result = await rerun();
       return result.map(({ law, where, detail }) => ({ law, where, detail }));
     };
+    // A browser test asks for the audit when it needs one, so its presses never wait behind a
+    // run of the whole page it did not ask for.
+    if (new URLSearchParams(location.search).get('audit') === 'manual') return;
     void rerun();
     const observer = new MutationObserver(() => void rerun(AFTER_SWITCH));
     observer.observe(document.documentElement, { attributeFilter: ['data-sui-theme'] });

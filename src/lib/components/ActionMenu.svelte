@@ -17,6 +17,7 @@
 </script>
 
 <script lang="ts">
+  import { mark, word } from '../words.js';
   import { tick, type Snippet } from 'svelte';
   import Icon from '../icons/Icon.svelte';
   import Button, { type ButtonTone } from './Button.svelte';
@@ -34,6 +35,10 @@
     align = 'start',
     disabled = false,
     preview = false,
+    optionName = word(
+      'ActionMenu.optionName',
+      (label: string, description: string) => `${label}${mark('comma')}${description}`
+    ),
     children
   }: {
     items: readonly ActionMenuItem[];
@@ -42,6 +47,8 @@
     disabled?: boolean;
     /** Draws the menu open under the trigger in the page's flow, with its first item highlighted and no keyboard. */
     preview?: boolean;
+    /** An item's accessible name from its label and its description, in the language's order. */
+    optionName?: (label: string, description: string) => string;
   } & (
     | {
         /** The accessible name and tooltip of the icon trigger. */
@@ -185,7 +192,7 @@ item opens then returns focus there too. Labels wrap rather than being cut short
 - Pointer and touch: items are one control tall, 34px and 44px on a phone or touch screen; the pointer's item takes focus as it moves.
 - Focus: opening moves focus to the first item, choosing or Escape returns it to the trigger before `onselect` runs, and Tab hands it to the next control.
 - Responsive: the menu is at least 13rem and at most 24rem wide or the viewport less 24px, flips above the trigger when there is more room, and scrolls inside when tall.
-- Accessibility: the trigger names the menu, a disabled item is `aria-disabled` and keeps its reason as its description, and the highlight survives forced colours as an outline.
+- Accessibility: the trigger names the menu, a disabled item is `aria-disabled`, an item's description is read in its name after the label through `optionName`, so the name holds every drawn word, and the highlight survives forced colours as an outline.
 - Localization: every word is the caller's, and `align` start and end follow the reading direction, so a right-to-left page hangs the menu from the mirrored edge.
 - Performance: items render only while the menu is in the page; the highlight fades its ground and the press sinks 1px, both removed under reduced motion.
 - Analytics: each item's `onselect` reports the chosen act; a menu closed without a choice calls nothing.
@@ -234,8 +241,7 @@ item opens then returns focus there too. Labels wrap rather than being cut short
             class={['sui-action-menu-item', { active: index === highlighted }]}
             data-tone={item.tone ?? 'default'}
             aria-disabled={item.disabled || undefined}
-            aria-labelledby={item.description ? `${uid}-item-${index}` : undefined}
-            aria-describedby={item.description ? `${uid}-item-${index}-description` : undefined}
+            aria-label={item.description ? optionName(item.label, item.description) : undefined}
             onclick={() => activate(item)}
             onpointermove={(event) => {
               if (!preview && !item.disabled && document.activeElement !== event.currentTarget)
@@ -248,11 +254,9 @@ item opens then returns focus there too. Labels wrap rather than being cut short
               </span>
             {/if}
             <span class="sui-action-menu-text">
-              <span id="{uid}-item-{index}" class="sui-action-menu-label">{item.label}</span>
+              <span class="sui-action-menu-label">{item.label}</span>
               {#if item.description}
-                <span id="{uid}-item-{index}-description" class="sui-action-menu-description"
-                  >{item.description}</span
-                >
+                <span class="sui-action-menu-description">{item.description}</span>
               {/if}
             </span>
           </button>

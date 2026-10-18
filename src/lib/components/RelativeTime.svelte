@@ -3,36 +3,57 @@
   const HOUR = 60 * MINUTE;
   const DAY = 24 * HOUR;
 
+  /* Making a formatter costs far more than using one, and every time on the page rewords
+     itself on each clock tick, so each language's formatters are made once. */
+  const made = new Map<string, Intl.RelativeTimeFormat | Intl.DateTimeFormat>();
+  function once<T extends Intl.RelativeTimeFormat | Intl.DateTimeFormat>(
+    key: string,
+    make: () => T
+  ): T {
+    let formatter = made.get(key);
+    if (!formatter) made.set(key, (formatter = make()));
+    return formatter as T;
+  }
+
   /* Elapsed time only, never calendar days: "yesterday" depends on the zone the page is
      read in. A week out, the date says more than a count. */
   function relative(at: number, now: number, locale: string | undefined): string {
-    const counted = new Intl.RelativeTimeFormat(locale, { numeric: 'always' });
+    const counted = once(
+      `counted ${locale}`,
+      () => new Intl.RelativeTimeFormat(locale, { numeric: 'always' })
+    );
     const delta = at - now;
     const span = Math.abs(delta);
     const sign = Math.sign(delta);
     if (span < MINUTE)
-      return new Intl.RelativeTimeFormat(locale, { numeric: 'auto' }).format(0, 'second');
+      return once(
+        `now ${locale}`,
+        () => new Intl.RelativeTimeFormat(locale, { numeric: 'auto' })
+      ).format(0, 'second');
     if (span < HOUR) return counted.format(sign * Math.floor(span / MINUTE), 'minute');
     if (span < DAY) return counted.format(sign * Math.floor(span / HOUR), 'hour');
     if (span < 7 * DAY) return counted.format(sign * Math.floor(span / DAY), 'day');
-    return new Date(at).toLocaleDateString(locale, {
-      day: 'numeric',
-      month: 'short',
-      year: 'numeric'
-    });
+    return once(
+      `date ${locale}`,
+      () => new Intl.DateTimeFormat(locale, { day: 'numeric', month: 'short', year: 'numeric' })
+    ).format(at);
   }
 
   /* The language decides the hour cycle and how the zone is spelled. */
   function exact(at: number, locale: string | undefined): string {
-    return new Date(at).toLocaleString(locale, {
-      day: 'numeric',
-      month: 'short',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit',
-      timeZoneName: 'shortOffset'
-    });
+    return once(
+      `exact ${locale}`,
+      () =>
+        new Intl.DateTimeFormat(locale, {
+          day: 'numeric',
+          month: 'short',
+          year: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit',
+          second: '2-digit',
+          timeZoneName: 'shortOffset'
+        })
+    ).format(at);
   }
 </script>
 

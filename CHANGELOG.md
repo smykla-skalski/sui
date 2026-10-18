@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- `npm run test:browser` is an everyday check of about seven seconds; every other browser test runs with `npm run test:browser:long`, as CI does. The run serves one sink for every file, and the page runs its law audit only when a test asks for it.
+- The law audit checks that a name holds the drawn words as one run (L-77) and that a joined field is one control tall with its value centred (L-37). `PairEntry` reads its arrow as `arrowLabel` ("ship to deploy"), and an `ActionMenu` item with a description is named by `optionName`.
+- `ListToolbar` keeps its filter on whole pixels on a touch tablet, and `RelativeTime` makes its formatters once per language instead of on every clock tick.
 - Add the full Smyklot primitive set: about 60 components for actions, inputs, pickers, overlays, surfaces, marks, lists, states and settings, with native `<dialog>` and Popover API overlays and no runtime dependencies.
 - Add the application shell: `AppShell`, `SideNav` and `Rail`, with a collapsed icon strip on wide screens and a phone bar with a focus-holding drawer. The shell answers to its own width through container queries.
 - Add the design laws (`docs/laws.md`), the kitchen sink that audits them on each render, source-law tests and a browser law test (`npm run test:browser`).

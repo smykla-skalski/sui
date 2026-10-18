@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
-import { after, before, test } from 'node:test';
-import { long, startSink, visit } from './sink.mjs';
+import { after, before, suite, test } from 'node:test';
+import { audit, long, startSink, visit } from './sink.mjs';
 
 // The rendered half of docs/laws.md: the kitchen sink's own law audit, asked at every width
 // and theme, plus the laws that need a real keyboard, a media emulation or two renders.
@@ -8,9 +8,9 @@ import { long, startSink, visit } from './sink.mjs';
 const WIDTHS = [320, 375, 768, 1440];
 const THEMES = ['light', 'dark'];
 
-/** @type {import('vite').ViteDevServer} */
+/** @type {{ close: () => Promise<void> }} */
 let server;
-/** @type {import('playwright-core').Browser} */
+/** @type {import('./sink.mjs').SinkBrowser} */
 let browser;
 let url = '';
 
@@ -43,23 +43,42 @@ async function open(width, theme, options = {}) {
 const report = (findings) =>
   findings.map(({ law, where, detail }) => `${law} ${where}: ${detail}`).join('\n');
 
-for (const width of WIDTHS)
-  for (const theme of THEMES)
-    test(`the law audit finds nothing at ${width}px in ${theme}`, async () => {
-      const page = await open(width, theme);
-      try {
-        const findings = await page.evaluate(() =>
-          /** @type {{ __suiAudit: () => Promise<{ law: string; where: string; detail: string }[]> }} */ (
-            /** @type {unknown} */ (window)
-          ).__suiAudit()
-        );
-        assert.equal(findings.length, 0, report(findings));
-      } finally {
-        await page.close();
-      }
-    });
+// The everyday run audits a phone in light and a desktop in dark; the rest wait for SUI_LONG.
+const everyday = (/** @type {number} */ width, /** @type {string} */ theme) =>
+  (width === 375 && theme === 'light') || (width === 1440 && theme === 'dark');
 
-test('L-41 and L-96 every keyboard stop draws the 2px focus ring in full', async () => {
+// Each audit has its own page, so they run side by side.
+suite('the law audit', { concurrency: true }, () => {
+  for (const width of WIDTHS)
+    for (const theme of THEMES)
+      test(
+        `the law audit finds nothing at ${width}px in ${theme}`,
+        everyday(width, theme) ? {} : long,
+        async () => {
+          const page = await open(width, theme);
+          try {
+            const findings = await audit(page);
+            assert.equal(findings.length, 0, report(findings));
+          } finally {
+            await page.close();
+          }
+        }
+      );
+});
+
+// A tablet wider than a phone still has a coarse pointer, so the touch tier must hold there too.
+for (const width of [820, 1024])
+  test(`the law audit finds nothing on a ${width}px touch screen`, long, async () => {
+    const page = await open(width, 'light', { hasTouch: true, isMobile: true });
+    try {
+      const findings = await audit(page);
+      assert.equal(findings.length, 0, report(findings));
+    } finally {
+      await page.close();
+    }
+  });
+
+test('L-41 and L-96 every keyboard stop draws the 2px focus ring in full', long, async () => {
   const page = await open(1440, 'light');
   try {
     // The same measure the audit's ring check uses, from the module the page already loaded.
@@ -129,7 +148,7 @@ test('L-41 and L-96 every keyboard stop draws the 2px focus ring in full', async
   }
 });
 
-test('L-71 switching the theme moves nothing', async () => {
+test('L-71 switching the theme moves nothing', long, async () => {
   // Reduced motion stops the spinners, whose boxes would otherwise turn between the two reads.
   const page = await open(1440, 'light', { reducedMotion: 'reduce' });
   try {
@@ -161,23 +180,27 @@ for (const [stored, colorScheme] of /** @type {const} */ ([
   ['dark', 'light'],
   [null, 'dark']
 ]))
-  test(`the page starts dark with ${stored ?? 'nothing'} stored under a ${colorScheme} system`, async () => {
-    const page = await browser.newPage({ colorScheme });
-    try {
-      if (stored)
-        await page.addInitScript((theme) => localStorage.setItem('sui:theme', theme), stored);
-      // Without its scripts the app never starts, so only the document can set the theme.
-      await page.route('**/*', (route) =>
-        route.request().resourceType() === 'document' ? route.continue() : route.abort()
-      );
-      await page.goto(url);
-      assert.equal(await page.evaluate(() => document.documentElement.dataset.suiTheme), 'dark');
-    } finally {
-      await page.close();
+  test(
+    `the page starts dark with ${stored ?? 'nothing'} stored under a ${colorScheme} system`,
+    long,
+    async () => {
+      const page = await browser.newPage({ colorScheme });
+      try {
+        if (stored)
+          await page.addInitScript((theme) => localStorage.setItem('sui:theme', theme), stored);
+        // Without its scripts the app never starts, so only the document can set the theme.
+        await page.route('**/*', (route) =>
+          route.request().resourceType() === 'document' ? route.continue() : route.abort()
+        );
+        await page.goto(url);
+        assert.equal(await page.evaluate(() => document.documentElement.dataset.suiTheme), 'dark');
+      } finally {
+        await page.close();
+      }
     }
-  });
+  );
 
-test('L-75 reduced motion removes every transition and endless animation', async () => {
+test('L-75 reduced motion removes every transition and endless animation', long, async () => {
   const page = await open(1440, 'light', { reducedMotion: 'reduce' });
   try {
     const moving = await page.evaluate(() => {
@@ -203,7 +226,7 @@ test('L-75 reduced motion removes every transition and endless animation', async
   }
 });
 
-test('L-69 every glyph is centred in its 24-unit box', async () => {
+test('L-69 every glyph is centred in its 24-unit box', long, async () => {
   const page = await open(1440, 'light');
   try {
     const offCentre = await page.evaluate(() =>
@@ -360,7 +383,52 @@ for (const width of [375, 1440])
     }
   );
 
-test('L-50 a dragged thumb chooses on release, and Escape puts it back', async () => {
+test('L-50 a finger dragging the thumb chooses where it lifts', long, async () => {
+  const page = await open(390, 'light', { hasTouch: true, isMobile: true });
+  try {
+    const track = page
+      .locator('#segmented-control .sui-segmented-track:not(:disabled)')
+      .filter({ has: page.locator('.selected') })
+      .first();
+    await track.scrollIntoViewIfNeeded();
+    const options = track.locator('label');
+    const at = await track.evaluate((node) =>
+      [...node.querySelectorAll('label')].findIndex((option) => option.matches('.selected'))
+    );
+    const target = at + 1 < (await options.count()) ? at + 1 : at - 1;
+    const from = await options.nth(at).boundingBox();
+    const to = await options.nth(target).boundingBox();
+    assert.ok(from && to);
+    const wanted = await options.nth(target).locator('input').getAttribute('value');
+    // A real finger: touch events, from which the browser makes touch pointers and may scroll.
+    const cdp = await page.context().newCDPSession(page);
+    const touch = (
+      /** @type {'touchStart' | 'touchMove' | 'touchEnd'} */ type,
+      /** @type {number} */ x,
+      /** @type {number} */ y
+    ) =>
+      cdp.send('Input.dispatchTouchEvent', {
+        type,
+        touchPoints: type === 'touchEnd' ? [] : [{ x, y }]
+      });
+    const y = from.y + from.height / 2;
+    const x0 = from.x + from.width / 2;
+    const x1 = to.x + to.width / 2;
+    await touch('touchStart', x0, y);
+    for (let step = 1; step <= 8; step++) await touch('touchMove', x0 + ((x1 - x0) * step) / 8, y);
+    await touch('touchEnd', x1, y);
+    await page.waitForTimeout(100);
+    assert.equal(
+      await track.evaluate((node) => node.querySelector('input:checked')?.getAttribute('value')),
+      wanted,
+      'lifting the finger over an option did not choose it'
+    );
+  } finally {
+    await page.close();
+  }
+});
+
+test('L-50 a dragged thumb chooses on release, and Escape puts it back', long, async () => {
   const page = await open(1440, 'light');
   try {
     const track = page
@@ -405,7 +473,7 @@ test('L-50 a dragged thumb chooses on release, and Escape puts it back', async (
   }
 });
 
-test('L-80 a clipped label answers its own hover, not the page around it', async () => {
+test('L-80 a clipped label answers its own hover, not the page around it', long, async () => {
   const page = await open(1440, 'light');
   try {
     const stage = page.locator('#clipped-label .stage').first();
@@ -430,7 +498,7 @@ test('L-80 a clipped label answers its own hover, not the page around it', async
   }
 });
 
-test("L-91 and L-89 a row's change of state moves nothing and keeps focus", async () => {
+test("L-91 and L-89 a row's change of state moves nothing and keeps focus", long, async () => {
   const page = await open(1440, 'light');
   try {
     const list = page.locator('#setting-list .sui-setting-list').first();
@@ -465,49 +533,53 @@ test("L-91 and L-89 a row's change of state moves nothing and keeps focus", asyn
   }
 });
 
-test('L-52 and L-89 a pair chip edits in place and focus never falls to the page', async () => {
-  const page = await open(1440, 'light');
-  try {
-    const entry = page.locator('#pair-entry .sui-pair-entry').first();
-    await entry.scrollIntoViewIfNeeded();
-    const chip = (/** @type {string} */ key) =>
-      entry.getByRole('button', { name: new RegExp(`\\b${key}\\b.*deploy|\\b${key}\\b.*merge`) });
-    const focused = () =>
-      page.evaluate(() =>
-        document.activeElement?.closest('[popover]')
-          ? 'editor'
-          : (document.activeElement?.textContent?.trim() ?? '')
+test(
+  'L-52 and L-89 a pair chip edits in place and focus never falls to the page',
+  long,
+  async () => {
+    const page = await open(1440, 'light');
+    try {
+      const entry = page.locator('#pair-entry .sui-pair-entry').first();
+      await entry.scrollIntoViewIfNeeded();
+      const chip = (/** @type {string} */ key) =>
+        entry.getByRole('button', { name: new RegExp(`\\b${key}\\b.*deploy|\\b${key}\\b.*merge`) });
+      const focused = () =>
+        page.evaluate(() =>
+          document.activeElement?.closest('[popover]')
+            ? 'editor'
+            : (document.activeElement?.textContent?.trim() ?? '')
+        );
+      const editor = page.locator(':popover-open .sui-pair-editor');
+
+      await chip('ship').click();
+      await page.waitForTimeout(250);
+      assert.equal(await focused(), 'editor', 'the editor did not take focus');
+      // A rejected key keeps the editor open with its words, and changes nothing.
+      await page.keyboard.press('ControlOrMeta+a');
+      await page.keyboard.type('Ship it');
+      await page.keyboard.press('Enter');
+      assert.equal(await editor.count(), 1, 'a rejected key closed the editor');
+      assert.match(await editor.innerText(), /lowercase/);
+      await page.keyboard.press('Escape');
+      await page.waitForTimeout(250);
+      assert.equal(await editor.count(), 0, 'Escape did not close the editor');
+      assert.match(await focused(), /ship/, 'focus did not return to the chip');
+      assert.equal(
+        await entry.locator('.sui-pair-key').first().textContent(),
+        'ship',
+        'Escape kept the draft'
       );
-    const editor = page.locator(':popover-open .sui-pair-editor');
 
-    await chip('ship').click();
-    await page.waitForTimeout(250);
-    assert.equal(await focused(), 'editor', 'the editor did not take focus');
-    // A rejected key keeps the editor open with its words, and changes nothing.
-    await page.keyboard.press('ControlOrMeta+a');
-    await page.keyboard.type('Ship it');
-    await page.keyboard.press('Enter');
-    assert.equal(await editor.count(), 1, 'a rejected key closed the editor');
-    assert.match(await editor.innerText(), /lowercase/);
-    await page.keyboard.press('Escape');
-    await page.waitForTimeout(250);
-    assert.equal(await editor.count(), 0, 'Escape did not close the editor');
-    assert.match(await focused(), /ship/, 'focus did not return to the chip');
-    assert.equal(
-      await entry.locator('.sui-pair-key').first().textContent(),
-      'ship',
-      'Escape kept the draft'
-    );
-
-    // Removing the first pair hands focus to the pair that took its place.
-    await entry.getByRole('button', { name: 'Remove ship' }).click();
-    assert.match(await focused(), /\bgo\b/, 'focus did not move to the next pair');
-    await entry.getByRole('button', { name: 'Remove go' }).click();
-    assert.match(await focused(), /Add an alias/, 'focus did not move to Add');
-  } finally {
-    await page.close();
+      // Removing the first pair hands focus to the pair that took its place.
+      await entry.getByRole('button', { name: 'Remove ship' }).click();
+      assert.match(await focused(), /\bgo\b/, 'focus did not move to the next pair');
+      await entry.getByRole('button', { name: 'Remove go' }).click();
+      assert.match(await focused(), /Add an alias/, 'focus did not move to Add');
+    } finally {
+      await page.close();
+    }
   }
-});
+);
 
 test(
   'L-97 every layer a press opens grows from its trigger edge and folds back to it',
@@ -746,7 +818,7 @@ test('L-52 a second press on a trigger closes its open layer', long, async () =>
   }
 });
 
-test('L-87 the phone drawer holds focus and gives it back', async () => {
+test('L-87 the phone drawer holds focus and gives it back', long, async () => {
   const page = await open(1440, 'light');
   try {
     const menu = page.locator('#app-shell .sui-shell-menu').filter({ visible: true }).first();

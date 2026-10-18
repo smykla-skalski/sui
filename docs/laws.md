@@ -128,7 +128,7 @@ A law that says "every" means every component, including the ones added after it
 
 ## Accessibility
 
-- **L-77** Every interactive element has an accessible name that contains its visible label, every image of meaning has text, and decorative SVG is hidden. `S-215 K-127` `audit`
+- **L-77** Every interactive element has an accessible name that contains its visible label as one run of words (WCAG 2.5.3), every image of meaning has text, and decorative SVG is hidden. `S-215 K-127` `audit`
 - **L-78** Heading levels never skip, the page has one `main`, a title and a language. `S-197 S-215` `audit`
 - **L-79** Keyboard order follows visual order, and every custom widget works with the keyboard alone. A value that only reads, such as a timestamp, is not a tab stop, except a label cut short outside any control, which is a tab stop so the keyboard can read it whole. `S-213 S-214` `review`
 - **L-80** A hover-only affordance also shows on focus, and on touch through a long press. A tooltip sits only on a control that does something, can be hovered and dismissed (WCAG 1.4.13), and never holds the only copy of something the reader needs (NN/g). Nothing is named only in a tooltip. A time or a cut label that shows its whole words in a tip is a tab stop of its own when no control around it already shows the tip on focus. `K-128` `review`
