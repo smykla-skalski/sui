@@ -2,7 +2,7 @@
   import { onMount, tick } from 'svelte';
   import { Button, Disclosure, Icon, Pill } from '#lib';
   import { checkCount, runAudit, type Finding } from './audit.js';
-  import './checks.js';
+  import { cutSides, ringReach } from './checks.js';
 
   /** What a run found and where it was measured, kept per page so a reload never re-runs it. */
   type Kept = { findings: Finding[]; at: string; width: number; theme: string };
@@ -104,6 +104,11 @@
       while (!result) result = await rerun();
       return result.map(({ law, where, detail }) => ({ law, where, detail }));
     };
+    // A browser test weighs each focus ring it tabs to with the ring check's own measure.
+    Object.assign(window, {
+      __suiRingCut: (element: Element, look: CSSStyleDeclaration) =>
+        cutSides(element, ringReach(look))
+    });
     // A browser test asks for the audit when it needs one, so its presses never wait behind a
     // run of the whole page it did not ask for.
     if (new URLSearchParams(location.search).get('audit') === 'manual') return;

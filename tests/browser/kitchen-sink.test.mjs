@@ -127,15 +127,6 @@ suite('the kitchen sink', together, () => {
   test('L-41 and L-96 every keyboard stop draws the 2px focus ring in full', long, async () => {
     const page = await open(1440, 'light');
     try {
-      // The same measure the audit's ring check uses, from the module the page already loaded.
-      // The path is an argument, so it resolves in the page, not in the type checker.
-      await page.evaluate(async (checks) => {
-        const { cutSides, ringReach } = await import(/* @vite-ignore */ checks);
-        Object.assign(window, {
-          ringCut: (/** @type {Element} */ element, /** @type {CSSStyleDeclaration} */ look) =>
-            cutSides(element, ringReach(look))
-        });
-      }, '/src/routes/audit/checks.ts');
       const problems = [];
       let stops = 0;
       for (let step = 0; step < 600; step++) {
@@ -160,13 +151,14 @@ suite('the kitchen sink', together, () => {
                   .map((c) => `.${c}`)
                   .join('')
             );
-          // A full-row or full-card link may draw its ring on the row it covers (K-81), and a
-          // scroller whose held parts stack over its own outline draws it from a frame's `::after`.
+          // A full-row or full-card link may draw its ring on the row it covers (K-81), a joined
+          // field on its frame, whose pattern input stands four boxes in, and a scroller whose
+          // held parts stack over its own outline draws it from a frame's `::after`.
           let wearer = element;
           let ring = getComputedStyle(element);
           for (
             let /** @type {Element | null} */ node = element, depth = 0;
-            node && depth < 4 && ring.outlineStyle !== 'solid';
+            node && depth < 6 && ring.outlineStyle !== 'solid';
             node = node.parentElement, depth++
           ) {
             wearer = node;
@@ -174,10 +166,11 @@ suite('the kitchen sink', together, () => {
             const over = getComputedStyle(node, '::after');
             if (ring.outlineStyle !== 'solid' && over.outlineStyle === 'solid') ring = over;
           }
+          // The same measure the audit's ring check uses, which the audit panel hands the page.
           const cut =
-            /** @type {{ ringCut: (element: Element, look: CSSStyleDeclaration) => string[] }} */ (
+            /** @type {{ __suiRingCut: (element: Element, look: CSSStyleDeclaration) => string[] }} */ (
               /** @type {unknown} */ (window)
-            ).ringCut(wearer, ring);
+            ).__suiRingCut(wearer, ring);
           return {
             where: path.join(' > '),
             outline: ring.outlineStyle,
@@ -416,9 +409,16 @@ suite('the kitchen sink', together, () => {
     // A B leans on its stem, a Q hangs its tail and an accent stands over its letter, so the
     // advance and the cap band are not where the letters draw. The ground is painted red and
     // the letters blue, and both are found in the pixels at four device pixels to the pixel.
+    // The avatars are mounted from the library's own modules, which only a dev server serves.
+    const dev = await startSink({ dev: true });
     for (const width of [1440, 375]) {
-      const page = await open(width, 'light', { deviceScaleFactor: 4 });
+      const page = await dev.browser.newPage({
+        viewport: { width, height: 900 },
+        deviceScaleFactor: 4
+      });
       try {
+        await visit(page, dev.url);
+        await page.evaluate(async () => void (await document.fonts.ready));
         const boxes = await page.evaluate(async () => {
           const loaded = performance.getEntriesByType('resource').map((entry) => entry.name);
           const find = (/** @type {RegExp} */ pattern) => loaded.find((name) => pattern.test(name));
@@ -494,6 +494,8 @@ suite('the kitchen sink', together, () => {
         await page.close();
       }
     }
+    await dev.browser.close();
+    await dev.server.close();
   });
 
   test('a picture draws the same before script runs as after, named once', async () => {
