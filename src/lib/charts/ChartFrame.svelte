@@ -5,35 +5,17 @@
   import ErrorState from '../components/ErrorState.svelte';
   import VisuallyHidden from '../components/VisuallyHidden.svelte';
   import { formatCount } from '../internal/locale.js';
-  import { rootFontSize } from '../internal/rem.svelte.js';
   import '../internal/scroll-edge.css';
-  import { guessInk, type Ink, type Measure } from './geometry.js';
+  import {
+    css,
+    faceInk,
+    guessInk,
+    inlined,
+    type Ink,
+    type Length,
+    type Measure
+  } from './geometry.js';
   import type { ChartFrameProps } from './types.js';
-
-  /** Measures text in the face and size `look` sets, as the plot's SVG text draws it. */
-  function measurer(look: CSSStyleDeclaration): Measure {
-    const context = document.createElement('canvas').getContext('2d');
-    if (!context) return guessInk(parseFloat(look.fontSize));
-    const weights = [look.fontWeight, look.getPropertyValue('--sui-weight-semibold').trim()];
-    const known = new Map<string, Ink>();
-    return (text, semibold = false) => {
-      const key = `${Number(semibold)}${text}`;
-      let ink = known.get(key);
-      if (!ink) {
-        context.font = `${weights[Number(semibold)]} ${look.fontSize} ${look.fontFamily}`;
-        const metrics = context.measureText(text);
-        ink = {
-          advance: metrics.width,
-          left: metrics.actualBoundingBoxLeft,
-          right: metrics.actualBoundingBoxRight,
-          ascent: metrics.actualBoundingBoxAscent,
-          descent: metrics.actualBoundingBoxDescent
-        };
-        known.set(key, ink);
-      }
-      return ink;
-    };
-  }
 
   let {
     title,
@@ -72,12 +54,11 @@
     empty: boolean;
     /** How many values the chart left out because they were missing or not numbers. */
     missing?: number;
-    /** The plot's height in CSS pixels for the reader's text scale and the plot's measured
-        text, which a placeholder keeps while the data loads. */
-    plotSize: (scale: number, measure: Measure) => number;
-    /** Draws the plot for the band's inner width in CSS pixels, the reader's text scale and
-        the plot's text as measured. */
-    plot: Snippet<[width: number, scale: number, measure: Measure]>;
+    /** The plot's height for its measured text, which a placeholder keeps while the data
+        loads. */
+    plotSize: (measure: Measure) => Length;
+    /** Draws the plot, laid out to its text as measured. */
+    plot: Snippet<[measure: Measure]>;
     /** Notes under the plot, such as a legend. */
     children?: Snippet;
     table: Snippet;
@@ -90,16 +71,41 @@
   let scrolls = $state(false);
   let tableScrolls = $state(false);
   let open = $state(false);
+  let band = $state<HTMLElement | null>(null);
   let mounted = $state(false);
-  // Chart text is set in rem, so a reader's larger text widens the margins that hold it, also
-  // when the text grows after the chart is drawn. A server render lays it out at 16px.
-  const scale = $derived(mounted ? rootFontSize() / 16 : 1);
+  let faces = $state(0);
   let settled = $state(false);
-  // A server render has nothing to measure, so it lays the plot out at a desktop width.
-  let width = $derived(Math.floor(frame?.width ?? 640));
-  let measure = $state<Measure>(guessInk(12));
-  // The placeholder sizes itself in rem, so it takes the plot's height at a 16px root.
-  const plotHeight = $derived(plotSize(scale, measure) / scale);
+
+  /* The table holds the face chart text is set in, so the server lays out its words exactly.
+     Words in a face it does not hold, such as another script's, are guessed until the chart is
+     on the page, then measured in the face they draw in, and again when a face loads. */
+  const drawn = new Map<string, Ink>();
+  const measure: Measure = (text, semibold = false) =>
+    faceInk(text, semibold) ?? (mounted && band ? measured(band, text, semibold) : guessInk(text));
+
+  function measured(band: HTMLElement, text: string, semibold: boolean): Ink {
+    const look = getComputedStyle(band);
+    const weight = semibold
+      ? look.getPropertyValue('--sui-weight-semibold').trim()
+      : look.fontWeight;
+    const font = `${weight} 100px ${look.fontFamily}`;
+    const key = `${faces} ${font} ${text}`;
+    const known = drawn.get(key);
+    if (known) return known;
+    const context = document.createElement('canvas').getContext('2d');
+    if (!context) return guessInk(text);
+    context.font = font;
+    const metrics = context.measureText(text);
+    const ink = {
+      advance: metrics.width / 100,
+      left: metrics.actualBoundingBoxLeft / 100,
+      right: metrics.actualBoundingBoxRight / 100,
+      ascent: metrics.actualBoundingBoxAscent / 100,
+      descent: metrics.actualBoundingBoxDescent / 100
+    };
+    drawn.set(key, ink);
+    return ink;
+  }
 
   const note = $derived(
     status === 'loading'
@@ -115,32 +121,15 @@
 
   onMount(() => {
     mounted = true;
+    const loaded = () => faces++;
+    document.fonts.addEventListener('loadingdone', loaded);
     // A status region that enters the page with its words is often not read, so they wait.
     const timer = setTimeout(() => (settled = true), 100);
-    return () => clearTimeout(timer);
-  });
-
-  /* The plot lays its words out by their ink, so it measures them in the band's own face once
-     the band is drawn, again when the reader's text size or the band's width changes its face
-     (chart text steps up on a phone), and again when a face loads. */
-  function measureFace(band: HTMLElement) {
-    void scale;
-    let font = '';
-    const update = (force = false) => {
-      const look = getComputedStyle(band);
-      const next = `${look.fontSize} ${look.fontFamily}`;
-      if (force || next !== font) measure = measurer(look);
-      font = next;
-    };
-    const loaded = () => update(true);
-    const resized = new ResizeObserver(() => update());
-    resized.observe(band);
-    document.fonts.addEventListener('loadingdone', loaded);
     return () => {
-      resized.disconnect();
+      clearTimeout(timer);
       document.fonts.removeEventListener('loadingdone', loaded);
     };
-  }
+  });
 
   /* A box that scrolls is a stop on the keyboard path, named after the chart, so a keyboard
      reader can scroll it; one that fits takes no stop. */
@@ -171,9 +160,9 @@
     <ErrorState title={failedTitle} description={error ?? failedDescription} {onretry} />
   {:else if status === 'loading'}
     <div
-      {@attach measureFace}
+      bind:this={band}
       class="plot-band sui-chart-wait"
-      style:--sui-local-plot={plotHeight}
+      style:--sui-local-plot={css(inlined(plotSize(measure)))}
       aria-hidden="true"
     ></div>
   {:else if empty}
@@ -183,7 +172,7 @@
       {...emptyAction ? { action: emptyAction } : { step: emptyStep }}
     />
   {:else}
-    <div {@attach measureFace} class="plot-band">
+    <div bind:this={band} class="plot-band">
       <!-- A box that scrolls takes a stop so a keyboard can scroll it, as WCAG 2.1.1 asks. -->
       <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
       <div
@@ -195,7 +184,7 @@
         role={scrolls ? 'region' : undefined}
         aria-labelledby={scrolls ? headingId : undefined}
       >
-        {@render plot(width, scale, measure)}
+        {@render plot(measure)}
       </div>
     </div>
     {@render children?.()}
@@ -268,14 +257,16 @@
      starts and ends. The band reaches the edges of the surface that lends its inset, and the
      plot pads back by it, so the plot keeps the title's edges and its ink stands the same room
      from all four sides of the band. The plot scrolls inside the band, so an edge fade fades
-     the plot and never the band. Chart text is set here, so the plot measures the face its
-     words draw in, also while a placeholder keeps its place. */
+     the plot and never the band. Chart text is set here, also for a placeholder, whose height
+     is laid out in the same ems. Each character draws its own glyph, with no ligature or
+     contextual form, so the face's table places every word as the browser draws it. */
   .plot-band {
     --sui-local-band-pad: max(var(--sui-local-chart-bleed), var(--sui-space-4));
     background: var(--sui-chart-ground);
     border-radius: var(--sui-radius-control);
     font: var(--sui-weight-regular) var(--sui-font-size-compact) / var(--sui-leading-flat)
       var(--sui-sans);
+    font-variant-ligatures: none;
     margin-inline: calc(-1 * var(--sui-local-chart-bleed));
     min-inline-size: 0;
   }
@@ -319,7 +310,7 @@
      compositor runs it. */
   .sui-chart-wait {
     background: var(--sui-placeholder);
-    block-size: calc(var(--sui-local-plot) * 1rem / 16 + 2 * var(--sui-local-band-pad));
+    block-size: calc(var(--sui-local-plot) + 2 * var(--sui-local-band-pad));
     box-sizing: border-box;
     overflow: clip;
     position: relative;

@@ -3,19 +3,27 @@
   import ChartFrame from './ChartFrame.svelte';
   import { formatNumber } from './format.js';
   import {
+    along,
     axis,
     centred,
     chartColor,
     chartDash,
     chartMarker,
+    css,
+    definition,
+    fraction,
     markerPath,
     markerReach,
-    position,
+    minus,
+    plus,
+    px,
     sieve,
     thin,
+    thinWidth,
     ticksOf,
+    xyGrid,
     xyLayout,
-    xyMinWidth,
+    type Length,
     type MarkReach,
     type Measure,
     type XYLayout
@@ -41,22 +49,29 @@
   const MARKER = { line: 8, scatter: 10 };
   /* Past four lines, names at the line ends crowd each other, so the legend carries them alone. */
   const MOST_LABELLED = 4;
+  /* A marker needs room to read as a shape: a line keeps its markers while they stand twice
+     their size apart on its narrowest plot, the 280px band less its margins, and a denser line
+     is drawn alone at every width, its dash still telling it apart, so the marks it draws never
+     change with the room it has. Plotly draws markers by a trace's point count the same way. */
+  const MOST_MARKED = 12;
   const LINE_WIDTH = 2.5;
   /* A round cap and join reach half the line's width past each point. */
   const CAP = { across: LINE_WIDTH / 2, above: LINE_WIDTH / 2, below: LINE_WIDTH / 2 };
 
-  type Box = XYLayout & { marked: boolean[] };
-
   const finite = (point: ChartPoint) => Number.isFinite(point.x) && Number.isFinite(point.y);
 
   let validSeries = $derived(
-    series.map((item, index) => ({
-      ...item,
-      color: chartColor(index),
-      marker: chartMarker(index),
-      dash: chartDash(index),
-      points: item.points.filter(finite)
-    }))
+    series.map((item, index) => {
+      const points = item.points.filter(finite);
+      return {
+        ...item,
+        color: chartColor(index),
+        marker: chartMarker(index),
+        dash: chartDash(index),
+        points,
+        marked: kind === 'scatter' || points.length <= MOST_MARKED
+      };
+    })
   );
   let missing = $derived(
     series.reduce((sum, item) => sum + item.points.length - item.points.filter(finite).length, 0)
@@ -81,20 +96,11 @@
     )
   );
 
-  const along = (value: number, domain: [number, number]) =>
-    (value - domain[0]) / (domain[1] - domain[0]);
-
-  /* A marker needs room to read as a shape, so a line denser than that is drawn as a line alone,
-     and its dash still tells it apart. A scatter's markers are its data, so they always draw. */
-  function marked(count: number, plotWidth: number): boolean {
-    return kind === 'scatter' || count * MARKER.line * 2 <= plotWidth;
-  }
-
   /** Each series' outermost points, with the reach of its marker or of its line's cap. */
-  function outermost(markers: (index: number) => boolean): MarkReach[] {
-    return validSeries.flatMap((item, index) => {
+  function outermost(): MarkReach[] {
+    return validSeries.flatMap((item) => {
       if (item.points.length === 0) return [];
-      const reach = markers(index) ? markerReach(item.marker, MARKER[kind]) : CAP;
+      const reach = item.marked ? markerReach(item.marker, MARKER[kind]) : CAP;
       const pick = (first: (a: ChartPoint, b: ChartPoint) => boolean) =>
         item.points.reduce((best, point) => (first(point, best) ? point : best));
       return [
@@ -103,62 +109,63 @@
         pick((a, b) => a.y < b.y),
         pick((a, b) => a.y > b.y)
       ].map((point) => ({
-        x: along(point.x, xAxis.domain),
-        y: along(point.y, yAxis.domain),
+        x: fraction(point.x, xAxis.domain),
+        y: fraction(point.y, yAxis.domain),
         ...reach
       }));
     });
   }
 
-  /**
-   * The plot's box for the band's width, laid out to its ink. Whether a line keeps its markers
-   * depends on the plot's width, and the markers reach further than the line, so the box is
-   * laid out once with every marker and again if a line drops them.
-   */
-  function layout(frameWidth: number, scale: number, measure: Measure): Box {
-    const input = {
-      // The least width grows with the text, so larger text scrolls the chart sideways rather
-      // than squeezing its points and ticks together.
-      width: Math.max(Math.ceil(xyMinWidth * scale), frameWidth),
-      scale,
+  /** The plot's box, laid out to its ink in lengths the browser resolves at any width. */
+  function layout(measure: Measure): XYLayout {
+    return xyLayout({
       measure,
       xTicks: ticksOf(xAxis.ticks, xAxis.domain, formatX),
       yTicks: ticksOf(yAxis.ticks, yAxis.domain, formatY),
       xLabel,
       yLabel,
+      marks: outermost(),
       names: ends.map((end) => ({
-        x: along(end.point.x, xAxis.domain),
-        y: along(end.point.y, yAxis.domain),
+        x: fraction(end.point.x, xAxis.domain),
+        y: fraction(end.point.y, yAxis.domain),
         text: end.label
       }))
-    };
-    const first = xyLayout({ ...input, marks: outermost(() => true) });
-    const keeps = validSeries.map((item) => marked(item.points.length, first.right - first.left));
-    if (keeps.every(Boolean)) return { ...first, marked: keeps };
-    return { ...xyLayout({ ...input, marks: outermost((index) => keeps[index]) }), marked: keeps };
+    });
   }
 
-  function x(value: number, box: Box): number {
-    return position(value, xAxis.domain, box.left, box.right);
-  }
+  /** How far down the grid a value stands, in its own pixels. */
+  const down = (value: number) => xyGrid - fraction(value, yAxis.domain) * xyGrid;
 
-  function y(value: number, box: Box): number {
-    return position(value, yAxis.domain, box.bottom, box.top);
-  }
+  const x = (value: number, box: XYLayout) =>
+    along(box.left, box.right, fraction(value, xAxis.domain));
 
-  function path(seriesPoints: ChartPoint[], box: Box): string {
-    return thin(seriesPoints, Math.round(box.right - box.left), xAxis.domain)
-      .map((point, index) => `${index === 0 ? 'M' : 'L'} ${x(point.x, box)} ${y(point.y, box)}`)
+  const y = (value: number, box: XYLayout) => plus(box.top, px(down(value)));
+
+  /** A place for the `translate` property. */
+  const at = (across: Length, below: Length) => `${css(across)} ${css(below)}`;
+
+  /* The line is drawn in shares of the plot's width, which its style stretches across the
+     plot however wide it is. */
+  function path(seriesPoints: ChartPoint[]): string {
+    return thin(seriesPoints, thinWidth, xAxis.domain)
+      .map(
+        (point, index) =>
+          `${index === 0 ? 'M' : 'L'} ${fraction(point.x, xAxis.domain)} ${down(point.y)}`
+      )
       .join(' ');
   }
 
-  /* A scatter keeps one mark per half-marker square: the ones it drops would lie under it, and
-     every value stays in the table. */
+  /* A scatter keeps one mark per half-marker square of the widest plot: the ones it drops would
+     lie under it, and every value stays in the table. */
   // ponytail: the box is laid out to every point, so a dropped outermost point leaves its edge
   // up to half a marker short; lay out to the kept marks if that ever shows.
-  function drawn(seriesPoints: ChartPoint[], box: Box): ChartPoint[] {
+  function drawn(seriesPoints: ChartPoint[]): ChartPoint[] {
     if (kind !== 'scatter') return seriesPoints;
-    return sieve(seriesPoints, (point) => [x(point.x, box), y(point.y, box)], MARKER.scatter / 2);
+    return sieve(
+      seriesPoints,
+      (point) => [fraction(point.x, xAxis.domain) * thinWidth, down(point.y)],
+      MARKER.scatter / 2
+    );
   }
 </script>
 
@@ -168,51 +175,54 @@
   {description}
   empty={points.length === 0}
   {missing}
-  plotSize={(scale, measure) => layout(xyMinWidth, scale, measure).height}
+  plotSize={(measure) => layout(measure).height}
 >
-  {#snippet plot(frameWidth: number, scale: number, measure: Measure)}
-    {@const box = layout(frameWidth, scale, measure)}
+  {#snippet plot(measure: Measure)}
+    {@const box = layout(measure)}
     <svg
-      width={box.width}
-      height={box.height}
-      viewBox="0 0 {box.width} {box.height}"
+      class="plot"
+      style:--sui-local-plot-start={definition(box.left)}
+      style:--sui-local-plot-end={definition(box.right)}
+      style:--sui-local-plot-top={definition(box.top)}
+      style:block-size={css(box.height)}
       role="img"
       aria-label="{title}{mark('stop')}{description}"
     >
       {#each yAxis.ticks as tick (tick)}
         {@const words = formatY(tick)}
-        <line x1={box.left} x2={box.right} y1={y(tick, box)} y2={y(tick, box)} class="grid" />
+        <rect class="grid" style:y={css(minus(y(tick, box), px(0.5)))} />
         <text
-          x={box.tickEnd}
-          y={centred(measure(words), y(tick, box))}
           class="axis"
-          text-anchor="end">{words}</text
+          text-anchor="end"
+          style:translate={at(box.tickEnd, centred(measure(words), y(tick, box)))}>{words}</text
         >
       {/each}
       {#each xAxis.ticks as tick (tick)}
-        <text x={x(tick, box)} y={box.xTickBaseline} class="axis" text-anchor="middle"
-          >{formatX(tick)}</text
+        <text
+          class="axis"
+          text-anchor="middle"
+          style:translate={at(x(tick, box), box.xTickBaseline)}>{formatX(tick)}</text
         >
       {/each}
       {#if xLabel}
         <text
-          x={(box.left + box.right) / 2}
-          y={box.xTitleBaseline}
           class="label"
-          text-anchor="middle">{xLabel}</text
+          text-anchor="middle"
+          style:translate={at(along(box.left, box.right, 0.5), box.xTitleBaseline)}>{xLabel}</text
         >
       {/if}
       {#if yLabel}
         <text
-          transform="translate({box.yTitle.x} {box.yTitle.y}) rotate(-90)"
-          class="label"
-          text-anchor="middle">{yLabel}</text
+          class="label y-title"
+          text-anchor="middle"
+          style:translate={at(box.yTitle.x, box.yTitle.y)}>{yLabel}</text
         >
       {/if}
-      {#each validSeries as item, index (item.id)}
+      {#each validSeries as item (item.id)}
         {#if kind === 'line' && item.points.length > 1}
           <path
-            d={path(item.points, box)}
+            class="line"
+            d={path(item.points)}
             fill="none"
             stroke={item.color}
             stroke-dasharray={item.dash}
@@ -221,12 +231,13 @@
             stroke-linejoin="round"
           />
         {/if}
-        {#if box.marked[index]}
-          {#each drawn(item.points, box) as point, pointIndex (pointIndex)}
+        {#if item.marked}
+          {#each drawn(item.points) as point, pointIndex (pointIndex)}
             <path
-              d={markerPath(item.marker, x(point.x, box), y(point.y, box), MARKER[kind])}
+              d={markerPath(item.marker, 0, 0, MARKER[kind])}
               fill={item.color}
               class="marker"
+              style:translate={at(x(point.x, box), y(point.y, box))}
             >
               <title
                 >{item.label}{mark('colon')}{formatX(point.x)}{mark('comma')}{formatY(
@@ -238,7 +249,9 @@
         {/if}
       {/each}
       {#each ends as end, index (end.id)}
-        <text x={x(end.point.x, box) + box.nameGap} y={box.names[index]} class="name"
+        <text
+          class="name"
+          style:translate={at(plus(x(end.point.x, box), box.nameGap), box.names[index])}
           >{end.label}</text
         >
       {/each}
@@ -295,9 +308,37 @@
     display: block;
     overflow: visible;
   }
+  /* The plot takes its band's width in whole pixels, and scrolls below 280px at a 16px root,
+     more with larger text, rather than squeezing its points and ticks together. It is its own
+     container, so its marks are placed in shares of its width and the server draws each one
+     exactly where it stands. */
+  .plot {
+    container-type: inline-size;
+    inline-size: max(round(down, 100%, 1px), round(up, 17.5rem, 1px));
+  }
   .grid {
-    stroke: var(--sui-chart-grid);
-    stroke-width: 1;
+    fill: var(--sui-chart-grid);
+    height: 1px;
+    width: calc(var(--sui-local-plot-end) - var(--sui-local-plot-start));
+    x: var(--sui-local-plot-start);
+  }
+  .y-title {
+    rotate: -90deg;
+  }
+  /* A line is drawn in shares of the plot's width and stretched across it, while its stroke,
+     dashes and caps keep their size. The stretch is the plot's width in pixels as a number,
+     which only typed arithmetic divides out; elsewhere the tangent of the angle the width makes
+     with a known length gives the same quotient. */
+  .line {
+    scale: calc(tan(atan2(var(--sui-local-plot-end) - var(--sui-local-plot-start), 1000px)) * 1000)
+      1;
+    translate: var(--sui-local-plot-start) var(--sui-local-plot-top);
+    vector-effect: non-scaling-stroke;
+  }
+  @supports (scale: calc(1px / 1px)) {
+    .line {
+      scale: calc((var(--sui-local-plot-end) - var(--sui-local-plot-start)) / 1px) 1;
+    }
   }
   .axis,
   .label {

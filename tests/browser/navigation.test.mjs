@@ -465,6 +465,118 @@ suite('navigation', together, () => {
     }
   );
 
+  test('a chart draws in its server render exactly where it stands once the page runs', async () => {
+    for (const width of [375, 1440]) {
+      /** Where each chart draws every part of its plot, from the chart's own corner. */
+      const read = async (/** @type {boolean} */ javaScriptEnabled) => {
+        const page = await browser.newPage({ viewport: { width, height: 900 }, javaScriptEnabled });
+        try {
+          if (javaScriptEnabled) await visit(page, url);
+          else await page.goto(url);
+          return await page.evaluate(async () => {
+            await document.fonts.ready;
+            return [...document.querySelectorAll('#charts .sui-chart')].map((chart) => {
+              const corner = chart.getBoundingClientRect();
+              return [chart, ...chart.querySelectorAll('.plot-band, .plot-band svg :not(title)')]
+                .map((part) => {
+                  const box = part.getBoundingClientRect();
+                  return [box.x - corner.x, box.y - corner.y, box.width, box.height]
+                    .map((value) => value.toFixed(2))
+                    .join(' ');
+                })
+                .join(', ');
+            });
+          });
+        } finally {
+          await page.close();
+        }
+      };
+      assert.deepEqual(await read(true), await read(false), `${width}px`);
+    }
+  });
+
+  test('the chart face table holds what Chrome draws, glyph by glyph and pair by pair', async () => {
+    const { faceInk } = await import('../../src/lib/charts/geometry.ts');
+    const page = await browser.newPage();
+    try {
+      await visit(page, url);
+      const candidates = [
+        [0x20, 0x7e],
+        [0xa0, 0x2dc],
+        [0x2000, 0x2215],
+        [0xfffd, 0xfffd]
+      ].flatMap(([from, to]) =>
+        Array.from({ length: to - from + 1 }, (_, at) => String.fromCodePoint(from + at))
+      );
+      for (const semibold of [false, true]) {
+        const glyphs = candidates.filter((glyph) => faceInk(glyph, semibold));
+        // Each first glyph of a pair stands before and after every glyph, so one run reads
+        // every pair the face can kern.
+        const runs = glyphs.map((first) => `${first}${glyphs.join(first)}${first}`);
+        const drawn = await page.evaluate(
+          async ({ glyphs, runs, weight }) => {
+            const face = `${weight} 1000px 'SUI Plus Jakarta Sans'`;
+            await document.fonts.load(face, glyphs.join(''));
+            const context = /** @type {CanvasRenderingContext2D} */ (
+              document.createElement('canvas').getContext('2d')
+            );
+            context.font = face;
+            const ns = 'http://www.w3.org/2000/svg';
+            const svg = document.createElementNS(ns, 'svg');
+            const text = document.createElementNS(ns, 'text');
+            // As a chart sets its words: each character its own glyph, every space kept.
+            text.setAttribute(
+              'style',
+              `font: ${face}; font-variant-ligatures: none; white-space: pre`
+            );
+            svg.append(text);
+            document.body.append(svg);
+            const advances = runs.map((run) => {
+              text.textContent = run;
+              return text.getComputedTextLength();
+            });
+            svg.remove();
+            return {
+              inks: glyphs.map((glyph) => {
+                const ink = context.measureText(glyph);
+                return [
+                  ink.width,
+                  ink.actualBoundingBoxLeft,
+                  ink.actualBoundingBoxRight,
+                  ink.actualBoundingBoxAscent,
+                  ink.actualBoundingBoxDescent
+                ];
+              }),
+              advances
+            };
+          },
+          { glyphs, runs, weight: semibold ? 600 : 400 }
+        );
+        /** @type {string[]} */
+        const wrong = [];
+        glyphs.forEach((glyph, index) => {
+          const ink = /** @type {import('../../src/lib/charts/geometry.ts').Ink} */ (
+            faceInk(glyph, semibold)
+          );
+          const table = [ink.advance, ink.left, ink.right, ink.ascent, ink.descent];
+          if (table.some((value, at) => Math.abs(value * 1000 - drawn.inks[index][at]) > 0.01))
+            wrong.push(`${glyph}: ${drawn.inks[index].join(' ')}`);
+        });
+        runs.forEach((run, index) => {
+          const advance = /** @type {import('../../src/lib/charts/geometry.ts').Ink} */ (
+            faceInk(run, semibold)
+          ).advance;
+          // Each advance in the table is rounded to a hundredth of a unit.
+          if (Math.abs(advance * 1000 - drawn.advances[index]) > 0.005 * run.length)
+            wrong.push(`pairs with ${run[0]}: ${drawn.advances[index] - advance * 1000}`);
+        });
+        assert.deepEqual(wrong, [], semibold ? 'semibold' : 'regular');
+      }
+    } finally {
+      await page.close();
+    }
+  });
+
   test(
     'a linked card is one tab stop named by its title, rings the card and spares its controls',
     long,

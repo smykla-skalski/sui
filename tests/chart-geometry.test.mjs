@@ -1,30 +1,38 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import {
+  along,
   axis,
   chartDash,
   chartMarker,
   extent,
+  fraction,
   heatmapLayout,
   inkSpan,
   markerPath,
   markerReach,
   plotEnd,
-  position,
+  px,
   rangeLayout,
+  rem,
+  resolve,
+  share,
   sieve,
   spread,
   ticksOf,
   xyLayout
 } from '../src/lib/charts/geometry.ts';
 
+/** Chart text is 12px at a 16px root here. */
+const EM = 12;
+
 /**
- * A stand-in for canvas metrics: fixed-width glyphs whose ink sits half a pixel inside their
- * advance, capitals 8px tall and descenders 2px deep, wider in the semibold face.
+ * A stand-in for the face's metrics in pixels: fixed-width glyphs whose ink sits half a pixel
+ * inside their advance, capitals 8px tall and descenders 2px deep, wider in the semibold face.
  * @param {string} text
  * @param {boolean} [semibold]
  */
-const measure = (text, semibold = false) => {
+const pixels = (text, semibold = false) => {
   const advance = text.length * (semibold ? 6.5 : 6);
   return {
     advance,
@@ -34,6 +42,29 @@ const measure = (text, semibold = false) => {
     descent: /[gjpqy]/.test(text) ? 2 : 0
   };
 };
+
+/**
+ * The same metrics in ems, as a chart measures its words.
+ * @param {string} text
+ * @param {boolean} [semibold]
+ */
+const measure = (text, semibold = false) => {
+  const ink = pixels(text, semibold);
+  return {
+    advance: ink.advance / EM,
+    left: ink.left / EM,
+    right: ink.right / EM,
+    ascent: ink.ascent / EM,
+    descent: ink.descent / EM
+  };
+};
+
+/**
+ * A layout's length in pixels for a plot `width` wide.
+ * @param {number} width
+ */
+const at = (width) => (/** @type {import('../src/lib/charts/geometry.ts').Length} */ length) =>
+  resolve(length, { em: EM, rem: 16, width });
 
 /** The extent of a list of `[start, end]` spans. */
 const union = (/** @type {number[][]} */ spans) => [
@@ -58,7 +89,8 @@ test('large datasets scale without argument-spread limits', () => {
 });
 
 test('positions cover both ends of a domain', () => {
-  assert.equal(position(5, [0, 10], 20, 120), 70);
+  assert.equal(at(0)(along(px(20), px(120), fraction(5, [0, 10]))), 70);
+  assert.equal(at(500)(along(px(20), share(1), 1)), 500);
 });
 
 test('ticks fall on 1, 2, 2.5 or 5 times a power of ten', () => {
@@ -134,17 +166,17 @@ test('every marker shape spans at least its size both ways', () => {
 });
 
 test('line names keep their order and never stand closer than the gap', () => {
-  const placed = spread([100, 104, 60, 102], 16, 20, 254);
+  const placed = spread([100, 104, 60, 102], rem(1), 20, 254).map(at(0));
   const order = [2, 0, 3, 1];
-  for (let at = 1; at < order.length; at++)
-    assert.ok(placed[order[at]] - placed[order[at - 1]] >= 16 - 1e-9);
-  assert.deepEqual(spread([40, 120, 200], 16, 20, 254), [40, 120, 200]);
+  for (let index = 1; index < order.length; index++)
+    assert.ok(placed[order[index]] - placed[order[index - 1]] >= 16 - 1e-9);
+  assert.deepEqual(spread([40, 120, 200], rem(1), 20, 254).map(at(0)), [40, 120, 200]);
 });
 
 test('line names stay inside the plot when they crowd an edge', () => {
-  const placed = spread([250, 252, 254], 16, 20, 254);
+  const placed = spread([250, 252, 254], rem(1), 20, 254).map(at(0));
   assert.ok(Math.max(...placed) <= 254 && Math.min(...placed) >= 20);
-  assert.deepEqual(spread([0], 16, 20, 254), [20]);
+  assert.deepEqual(spread([0], rem(1), 20, 254).map(at(0)), [20]);
 });
 
 test('a dense scatter keeps one mark per cell, in order, however many points arrive', () => {
@@ -174,11 +206,13 @@ test('a dense scatter keeps one mark per cell, in order, however many points arr
 });
 
 test('the plot end puts the furthest ink exactly on the width', () => {
-  const end = plotEnd(40, 400, [
-    { at: 1, past: 0 },
-    { at: 1, past: 9 },
-    { at: 0.5, past: 200 }
-  ]);
+  const end = at(400)(
+    plotEnd(px(40), share(1), [
+      { at: 1, past: px(0) },
+      { at: 1, past: px(9) },
+      { at: 0.5, past: px(200) }
+    ])
+  );
   // Each reach ends at start + at * (end - start) + past; the furthest of them is the width.
   const reaches = [40 + (end - 40) + 9, 40 + 0.5 * (end - 40) + 200, end];
   assert.ok(Math.abs(Math.max(...reaches) - 400) < 1e-9);
@@ -218,9 +252,7 @@ test('a line or scatter starts and ends exactly at the edges of its room', () =>
     const yTicks = ticksOf(yAxis.ticks, yAxis.domain, String);
     const marks = [{ x: 1, y: 1, across: 5, above: 5, below: 5 }];
     const ends = names.map((text, index) => ({ x: 1, y: index / 4, text }));
-    const box = xyLayout({
-      width,
-      scale: 1,
+    const layout = xyLayout({
       measure,
       xTicks,
       yTicks,
@@ -229,15 +261,29 @@ test('a line or scatter starts and ends exactly at the edges of its room', () =>
       marks,
       names: ends
     });
-    const x = (/** @type {number} */ at) => box.left + at * (box.right - box.left);
-    const y = (/** @type {number} */ at) => box.bottom - at * (box.bottom - box.top);
-    const title = measure('Requests', true);
+    const length = at(width);
+    const box = {
+      left: length(layout.left),
+      right: length(layout.right),
+      top: length(layout.top),
+      bottom: length(layout.bottom),
+      height: length(layout.height),
+      tickEnd: length(layout.tickEnd),
+      yTitle: { x: length(layout.yTitle.x), y: length(layout.yTitle.y) },
+      xTickBaseline: length(layout.xTickBaseline),
+      xTitleBaseline: length(layout.xTitleBaseline),
+      names: layout.names.map(length),
+      nameGap: length(layout.nameGap)
+    };
+    const x = (/** @type {number} */ share) => box.left + share * (box.right - box.left);
+    const y = (/** @type {number} */ share) => box.bottom - share * (box.bottom - box.top);
+    const title = pixels('Requests', true);
     const across = union([
       [box.yTitle.x - title.ascent, box.yTitle.x + title.descent],
-      ...yTicks.map((tick) => inkSpan(measure(tick.text), box.tickEnd, 'end')),
-      ...xTicks.map((tick) => inkSpan(measure(tick.text), x(tick.at), 'middle')),
+      ...yTicks.map((tick) => inkSpan(pixels(tick.text), box.tickEnd, 'end')),
+      ...xTicks.map((tick) => inkSpan(pixels(tick.text), x(tick.at), 'middle')),
       ...marks.map((mark) => [x(mark.x) - mark.across, x(mark.x) + mark.across]),
-      ...ends.map((end) => inkSpan(measure(end.text, true), x(end.x) + box.nameGap)),
+      ...ends.map((end) => inkSpan(pixels(end.text, true), x(end.x) + box.nameGap)),
       [box.left, box.right]
     ]);
     assert.ok(Math.abs(across[0]) < 1e-9, `${width}: the ink starts at ${across[0]}`);
@@ -266,19 +312,25 @@ test('a range chart starts at its longest label and ends at its furthest ink', (
     { at: (48 - values.domain[0]) / (values.domain[1] - values.domain[0]), past: 5 },
     { at: 0.5, past: 6.5 }
   ];
-  const box = rangeLayout({
-    width: 500,
-    scale: 1,
+  const layout = rangeLayout({
     measure,
     labels,
     ticks,
     valueLabel: 'Hours',
-    marks
+    marks: marks.map((mark) => ({ at: mark.at, past: px(mark.past) }))
   });
-  const x = (/** @type {number} */ at) => box.left + at * (box.right - box.left);
+  const length = at(500);
+  const box = {
+    left: length(layout.left),
+    right: length(layout.right),
+    labelEnd: length(layout.labelEnd),
+    height: length(layout.height),
+    titleBaseline: length(layout.titleBaseline)
+  };
+  const x = (/** @type {number} */ share) => box.left + share * (box.right - box.left);
   const across = union([
-    ...labels.map((label) => inkSpan(measure(label), box.labelEnd, 'end')),
-    ...ticks.map((tick) => inkSpan(measure(tick.text), x(tick.at), 'middle')),
+    ...labels.map((label) => inkSpan(pixels(label), box.labelEnd, 'end')),
+    ...ticks.map((tick) => inkSpan(pixels(tick.text), x(tick.at), 'middle')),
     ...marks.map((mark) => [x(mark.at) - mark.past, x(mark.at) + mark.past]),
     [box.left - 0.5, box.right + 0.5]
   ]);
@@ -290,11 +342,21 @@ test('a range chart starts at its longest label and ends at its furthest ink', (
 test('a matrix starts at its longest row name and its column names top it', () => {
   const rows = ['Morning', 'Afternoon'];
   const columns = ['Mon', 'Tue', 'Wed'];
-  const box = heatmapLayout({ scale: 1, measure, rows, columns });
-  const starts = rows.map((row) => inkSpan(measure(row), box.labelEnd, 'end')[0]);
+  const layout = heatmapLayout({ measure, rows, columns });
+  const length = at(0);
+  const box = {
+    labelEnd: length(layout.labelEnd),
+    columnBaseline: length(layout.columnBaseline),
+    left: length(layout.left),
+    top: length(layout.top),
+    size: length(layout.size),
+    width: length(layout.width),
+    height: length(layout.height)
+  };
+  const starts = rows.map((row) => inkSpan(pixels(row), box.labelEnd, 'end')[0]);
   assert.ok(Math.abs(Math.min(...starts)) < 1e-9);
   assert.equal(box.columnBaseline - 8, 0);
-  const last = box.left + columns.length * box.size - box.inset;
+  const last = box.left + columns.length * box.size - layout.inset;
   assert.ok(box.width - last >= 0 && box.width - last < 1);
-  assert.ok(box.height - (box.top + rows.length * box.size - box.inset) < 1);
+  assert.ok(box.height - (box.top + rows.length * box.size - layout.inset) < 1);
 });

@@ -4,12 +4,21 @@
   import ChartFrame from './ChartFrame.svelte';
   import { clip, formatNumber } from './format.js';
   import {
+    along,
     axis,
+    css,
+    definition,
+    em,
+    fraction,
     markerPath,
     markerReach,
-    position,
+    minus,
+    plus,
+    px,
     rangeLayout,
     ticksOf,
+    times,
+    type Length,
     type Measure,
     type RangeLayout
   } from './geometry.js';
@@ -45,11 +54,12 @@
     formatValue?: (value: number) => string;
   } = $props();
 
-  const MIN_WIDTH = 320;
   /* Row labels longer than this are cut on the axis and stay whole in the table. */
   const LABEL_MOST = 18;
   const MARKER = 10;
   const END = 5;
+  /* An interval's line is 4px thick. */
+  const RANGE = 4;
   /* A placeholder keeps the room of three rows until the rows arrive. */
   const ROWS = 3;
 
@@ -71,32 +81,25 @@
     )
   );
 
-  const along = (value: number) =>
-    (value - valueAxis.domain[0]) / (valueAxis.domain[1] - valueAxis.domain[0]);
-
-  /** The plot's box for the band's width, laid out to its ink. */
-  function layout(frameWidth: number, scale: number, measure: Measure): RangeLayout {
-    const diamond = markerReach('diamond', MARKER).across;
+  /** The plot's box, laid out to its ink in lengths the browser resolves at any width. */
+  function layout(measure: Measure): RangeLayout {
+    const diamond = px(markerReach('diamond', MARKER).across);
+    const at = (value: number) => fraction(value, valueAxis.domain);
     return rangeLayout({
-      // The least width grows with the text, as the names do, so the bars never squeeze.
-      width: Math.max(Math.ceil(MIN_WIDTH * scale), frameWidth),
-      scale,
       measure,
       labels: validData.map((item) => clip(item.label, LABEL_MOST)),
       ticks: ticksOf(valueAxis.ticks, valueAxis.domain, formatValue),
       valueLabel,
       marks: validData.flatMap((item) => [
-        { at: along(item.start), past: END },
-        { at: along(item.end), past: END },
-        ...(item.marker === undefined ? [] : [{ at: along(item.marker), past: diamond }])
+        { at: at(item.start), past: px(END) },
+        { at: at(item.end), past: px(END) },
+        ...(item.marker === undefined ? [] : [{ at: at(item.marker), past: diamond }])
       ])
     });
   }
 
-  function height(scale: number, measure: Measure): number {
+  function height(measure: Measure): Length {
     return rangeLayout({
-      width: MIN_WIDTH,
-      scale,
       measure,
       labels: Array<string>(validData.length || ROWS).fill(''),
       ticks: ticksOf(valueAxis.ticks, valueAxis.domain, formatValue),
@@ -105,9 +108,11 @@
     }).height;
   }
 
-  function x(value: number, box: RangeLayout): number {
-    return position(value, valueAxis.domain, box.left, box.right);
-  }
+  const x = (value: number, box: RangeLayout) =>
+    along(box.left, box.right, fraction(value, valueAxis.domain));
+
+  /** A place for the `translate` property. */
+  const at = (across: Length, below: Length) => `${css(across)} ${css(below)}`;
 </script>
 
 <!--
@@ -124,9 +129,9 @@ cut on the axis without splitting a character and stay whole in the table under 
 - Keyboard: Tab reaches the plot when it scrolls, then "View chart data", where Enter or Space opens the table, and the table itself when it scrolls.
 - Pointer and touch: "View chart data" is 24px tall on a desktop pointer and 44px on a phone or a coarse pointer; nothing needs hover, since every value is in the table.
 - Focus: opening the table keeps focus on its control; retrying a failed chart is the error state's button.
-- Responsive: the plot stands on a band of the chart ground that reaches the edges of a card holding it; the longest row label starts and the furthest tick, end or marker ends exactly at the band's inner edges, and below 320px the plot scrolls sideways with a fade on each edge that has more past it; rows and margins grow with the reader's text size, so the ticks never meet the axis title.
+- Responsive: the plot stands on a band of the chart ground that reaches the edges of a card holding it; the longest row label starts and the furthest tick, end or marker ends exactly at the band's inner edges, and below 320px the plot scrolls sideways with a fade on each edge that has more past it; rows and margins grow with the reader's text size, so the ticks never meet the axis title; every place is a length the browser resolves from the band's width and the text size, so the server draws the plot where it stands once the page runs.
 - Accessibility: the plot is one image named by the title and description, the table has the title as its caption and names a missing marker in words, every mark holds 3:1 and every word 4.5:1.
-- Localization: every word is a prop with an English default (`valueLabel`, `labelHeading`, `startLabel`, `endLabel`, `rangeLabel`, `markerLabel`, `noMarkerLabel` and the frame's words); default numbers follow the page language, labels are cut by character, and the plot reads left to right in every page.
+- Localization: every word is a prop with an English default (`valueLabel`, `labelHeading`, `startLabel`, `endLabel`, `rangeLabel`, `markerLabel`, `noMarkerLabel` and the frame's words); default numbers follow the page language, labels are cut by character, the plot reads left to right in every page, and labels in a script the chart's own face does not hold are measured once the page runs.
 - Performance: two circles, a line and a marker a row, which suits tens of rows; the table renders only while it is open. Nothing animates; an edge fade switches on the plot's own scroll timeline.
 - Analytics: `ontableopenchange(open)` reports the table and `onretry` a retry.
 - Failure: `status` draws loading, refreshing, stale and failed as every chart does; no rows draw an empty state with `emptyAction`, and rows whose values are not numbers are left out and counted in words.
@@ -140,44 +145,54 @@ cut on the axis without splitting a character and stay whole in the table under 
   missing={data.length - validData.length}
   plotSize={height}
 >
-  {#snippet plot(frameWidth: number, scale: number, measure: Measure)}
-    {@const box = layout(frameWidth, scale, measure)}
+  {#snippet plot(measure: Measure)}
+    {@const box = layout(measure)}
+    {@const rows = times(box.row, validData.length)}
     <svg
-      width={box.width}
-      height={box.height}
-      viewBox="0 0 {box.width} {box.height}"
+      class="plot"
+      style:--sui-local-plot-start={definition(box.left)}
+      style:--sui-local-plot-end={definition(box.right)}
+      style:block-size={css(box.height)}
       role="img"
       aria-label="{title}{mark('stop')}{description}"
     >
       {#each valueAxis.ticks as tick (tick)}
-        <line
-          x1={x(tick, box)}
-          x2={x(tick, box)}
-          y1="0"
-          y2={validData.length * box.row}
-          class="grid"
-        />
-        <text x={x(tick, box)} y={box.tickBaseline} class="axis" text-anchor="middle"
+        <rect class="grid" style:x={css(minus(x(tick, box), px(0.5)))} style:height={css(rows)} />
+        <text class="axis" text-anchor="middle" style:translate={at(x(tick, box), box.tickBaseline)}
           >{formatValue(tick)}</text
         >
       {/each}
       {#each validData as item, index (index)}
-        {@const rowY = index * box.row + box.row / 2}
-        <text x={box.labelEnd} y={rowY + box.cap / 2} class="axis" text-anchor="end"
+        {@const rowY = times(box.row, index + 0.5)}
+        <text
+          class="axis"
+          text-anchor="end"
+          style:translate={at(box.labelEnd, plus(rowY, em(box.cap / 2)))}
           >{clip(item.label, LABEL_MOST)}</text
         >
-        <line x1={x(item.start, box)} x2={x(item.end, box)} y1={rowY} y2={rowY} class="range" />
-        <circle cx={x(item.start, box)} cy={rowY} r={END} class="endpoint"
+        <!-- An interval is a line with round caps, drawn as the stadium those caps make. -->
+        <rect
+          class="range"
+          style:x={css(minus(x(item.start, box), px(RANGE / 2)))}
+          style:y={css(minus(rowY, px(RANGE / 2)))}
+          style:width={css(plus(minus(x(item.end, box), x(item.start, box)), px(RANGE)))}
+          height={RANGE}
+          rx={RANGE / 2}
+        />
+        <circle class="endpoint" r={END} style:cx={css(x(item.start, box))} style:cy={css(rowY)}
           ><title
             >{item.label}{mark('comma')}{startLabel}{mark('colon')}{formatValue(item.start)}</title
           ></circle
         >
-        <circle cx={x(item.end, box)} cy={rowY} r={END} class="endpoint"
+        <circle class="endpoint" r={END} style:cx={css(x(item.end, box))} style:cy={css(rowY)}
           ><title>{item.label}{mark('comma')}{endLabel}{mark('colon')}{formatValue(item.end)}</title
           ></circle
         >
         {#if item.marker !== undefined}
-          <path d={markerPath('diamond', x(item.marker, box), rowY, MARKER)} class="marker"
+          <path
+            d={markerPath('diamond', 0, 0, MARKER)}
+            class="marker"
+            style:translate={at(x(item.marker, box), rowY)}
             ><title
               >{item.label}{mark('comma')}{markerLabel}{mark('colon')}{formatValue(
                 item.marker
@@ -188,10 +203,10 @@ cut on the axis without splitting a character and stay whole in the table under 
       {/each}
       {#if valueLabel}
         <text
-          x={(box.left + box.right) / 2}
-          y={box.titleBaseline}
           class="axis label"
-          text-anchor="middle">{valueLabel}</text
+          text-anchor="middle"
+          style:translate={at(along(box.left, box.right, 0.5), box.titleBaseline)}
+          >{valueLabel}</text
         >
       {/if}
     </svg>
@@ -199,7 +214,7 @@ cut on the axis without splitting a character and stay whole in the table under 
   <ul class="legend" role="list">
     <li>
       <svg class="key" viewBox="0 0 24 12" aria-hidden="true">
-        <line x1="5" x2="19" y1="6" y2="6" class="range" />
+        <rect x="3" y="4" width="18" height={RANGE} rx={RANGE / 2} class="range" />
         <circle cx="5" cy="6" r="4" class="endpoint" />
         <circle cx="19" cy="6" r="4" class="endpoint" />
       </svg>{rangeLabel}
@@ -243,9 +258,16 @@ cut on the axis without splitting a character and stay whole in the table under 
   svg {
     display: block;
   }
+  /* The plot takes its band's width in whole pixels, and scrolls below 320px at a 16px root,
+     more with larger text, so its bars never squeeze. It is its own container, so its marks
+     are placed in shares of its width and the server draws each one exactly where it stands. */
+  .plot {
+    container-type: inline-size;
+    inline-size: max(round(down, 100%, 1px), round(up, 20rem, 1px));
+  }
   .grid {
-    stroke: var(--sui-chart-grid);
-    stroke-width: 1;
+    fill: var(--sui-chart-grid);
+    width: 1px;
   }
   .axis {
     fill: var(--sui-text-muted);
@@ -254,9 +276,7 @@ cut on the axis without splitting a character and stay whole in the table under 
     font-weight: var(--sui-weight-semibold);
   }
   .range {
-    stroke: var(--sui-chart-1);
-    stroke-width: 4;
-    stroke-linecap: round;
+    fill: var(--sui-chart-1);
   }
   .endpoint {
     fill: var(--sui-chart-1);
