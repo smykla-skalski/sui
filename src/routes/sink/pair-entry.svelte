@@ -70,6 +70,7 @@
         onclear={changed ? reset : undefined}
         resettable
         clearLabel="Reset aliases"
+        stacked
       >
         {#snippet control({ labelledby })}
           <PairEntry

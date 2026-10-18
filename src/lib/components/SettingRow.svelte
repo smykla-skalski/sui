@@ -55,6 +55,7 @@
       (name: string, unsaved: string) => `${name}${mark('comma')}${unsaved}`
     ),
     pendingLabel = word('SettingRow.pendingLabel', 'Saving…'),
+    stacked = false,
     control,
     class: className = '',
     ...rest
@@ -97,6 +98,11 @@
     /** An unsaved row's name from the setting's name and `unsavedLabel`, in the language's order. */
     unsavedName?: (name: string, unsaved: string) => string;
     pendingLabel?: string;
+    /**
+     * Puts the controls on a line of their own under the copy, from its start edge, with the
+     * reset beside the copy. For a control that grows, such as a list of entries.
+     */
+    stacked?: boolean;
     /** The setting's controls, at the row's end beside the copy or on the line under it. */
     control: Snippet<[SettingRowControl]>;
     /** Layout for the call site only, never the row's own paint. */
@@ -179,7 +185,7 @@ between them (L-91).
 - Keyboard: Tab walks the controls, then the reset or Undo; Enter or Space resets or undoes.
 - Pointer and touch: the row is at least 44px tall; the reset and Undo are 34px buttons, 44px on a phone.
 - Focus: after a reset focus moves to the first control instead of falling to the page; after Undo it moves to the reset, or to the first control when the reset is gone.
-- Responsive: the controls drop under the copy when both sides cannot fit, and pack to the start under 25rem.
+- Responsive: the controls drop under the copy when both sides cannot fit, and pack to the start under 25rem; with `stacked` they always stand under the copy, from its start edge, with the reset beside the copy on the name's first line.
 - Accessibility: the name labels a single control or names a group; the why line, `reason` and `error` describe the controls; pending and refused changes are said through a polite status; the unsaved state is a word, not only a color.
 - Localization: `resetLabel`, `undoLabel`, `unsavedLabel`, `pendingLabel` and `clearLabel` are props with English defaults; the controls sit at the inline end and follow the reading direction.
 - Performance: one mutation observer per row watches which control carries the id; nothing animates.
@@ -189,7 +195,7 @@ between them (L-91).
 
 <li
   {...rest}
-  class={['sui-setting-row', className]}
+  class={['sui-setting-row', className, { stacked }]}
   data-unsaved={unsaved || undefined}
   aria-busy={pending || undefined}
 >
@@ -480,6 +486,39 @@ between them (L-91).
     .sui-setting-control {
       justify-content: flex-start;
     }
+  }
+
+  /* A control that grows, such as a list of entries, gets the row's width under the copy, so
+     the copy starts level with the row and never floats beside a tall list. The reset stays
+     beside the copy, centred on the name's first line in the name's face. */
+  .stacked {
+    align-items: start;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    row-gap: var(--sui-space-3);
+  }
+
+  .stacked > .sui-setting-say {
+    grid-area: 1 / 1;
+  }
+
+  .stacked > .sui-setting-value {
+    display: contents;
+  }
+
+  .stacked .sui-setting-control {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    justify-content: flex-start;
+    position: relative;
+  }
+
+  .stacked .sui-setting-reset {
+    font: var(--sui-weight-semibold) var(--sui-font-size-meta) / var(--sui-leading-flat)
+      var(--sui-sans);
+    grid-area: 1 / 2;
+    margin-block: calc((round(up, 1cap, 2px) - var(--sui-control-height-compact)) / 2);
+    position: relative;
   }
 
   /* High contrast drops the plate's ground, so a changed row keeps an outline of it. */

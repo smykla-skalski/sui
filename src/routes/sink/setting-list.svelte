@@ -152,6 +152,7 @@
         name="Paths the bot never formats, even when a rule in a parent workspace asks it to"
         why="Every file under these patterns is left exactly as it was committed, which keeps generated and vendored code untouched"
         unsaved={JSON.stringify(ignore) !== JSON.stringify(saved.ignore)}
+        stacked
       >
         {#snippet control({ labelledby })}
           <PatternEntries
