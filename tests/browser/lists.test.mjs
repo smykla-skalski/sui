@@ -587,4 +587,69 @@ suite('lists', together, () => {
       await page.close();
     }
   });
+
+  test('pattern entries flow side by side with each cross inside its field', long, async () => {
+    const page = await open();
+    try {
+      const list = page
+        .locator('#pattern-entries .specimen', { hasText: 'A few entries' })
+        .locator('.sui-pattern-entries');
+      await list.scrollIntoViewIfNeeded();
+      const entries = await list.locator('.sui-pattern-entry').evaluateAll((items) =>
+        items.map((item) => {
+          const field = item.firstElementChild?.getBoundingClientRect();
+          const cross = item.querySelector('button')?.getBoundingClientRect();
+          return {
+            top: field?.top ?? NaN,
+            inside:
+              !!field &&
+              !!cross &&
+              cross.left >= field.left &&
+              cross.right <= field.right &&
+              cross.top >= field.top &&
+              cross.bottom <= field.bottom
+          };
+        })
+      );
+      assert.ok(Math.abs(entries[0].top - entries[1].top) < 0.5, 'each entry took a row');
+      assert.ok(
+        entries.every((entry) => entry.inside),
+        'a cross stood outside its field'
+      );
+    } finally {
+      await page.close();
+    }
+  });
+
+  test(
+    'L-89 removing the last pattern hands focus back, and Backspace in an empty entry steps back',
+    long,
+    async () => {
+      const page = await open();
+      try {
+        const list = page
+          .locator('#pattern-entries .specimen', { hasText: 'A few entries' })
+          .locator('.sui-pattern-entries');
+        await list.scrollIntoViewIfNeeded();
+        await list.getByRole('button', { name: 'Remove hotfix/*' }).focus();
+        await page.keyboard.press('Enter');
+        assert.match(await focused(page), /^input Pattern 2 release\/\*$/);
+
+        await list.getByRole('button', { name: 'Add a branch pattern' }).click();
+        await page.keyboard.press('Backspace');
+        assert.match(await focused(page), /^input Pattern 2 release\/\*$/);
+        assert.equal(await list.getByRole('textbox').count(), 2, 'the empty entry stayed');
+
+        // A held key empties the entry it is in and stops there, never running on.
+        for (let press = 0; press < 12; press++) await page.keyboard.down('Backspace');
+        await page.keyboard.up('Backspace');
+        assert.match(await focused(page), /^input Pattern 2$/);
+        await page.keyboard.press('Backspace');
+        assert.match(await focused(page), /^input Pattern 1 main$/);
+        assert.equal(await list.getByRole('button', { name: 'Undo' }).count(), 1);
+      } finally {
+        await page.close();
+      }
+    }
+  );
 });

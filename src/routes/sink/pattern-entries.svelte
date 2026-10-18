@@ -12,10 +12,35 @@
   import Example from '../kit/Example.svelte';
   import Specimen from '../kit/Specimen.svelte';
 
-  let branches = $state(['release/*', 'main', 'hotfix/ urgent', 'main']);
+  let few = $state(['main', 'release/*', 'hotfix/*']);
   let paths = $state<string[]>([]);
+  let branches = $state(['release/*', 'main', 'hotfix/ urgent', 'main']);
+  let many = $state([
+    'docs/**',
+    'CHANGELOG.md',
+    'vendor/**',
+    'node_modules/**',
+    '*.lock',
+    'dist/**',
+    'coverage/**',
+    '.github/workflows/*.yml',
+    'scripts/release.sh',
+    'src/generated/**',
+    '*.snap',
+    'LICENSE'
+  ]);
   let long = $state([
-    'services/payments/internal/adapters/providers/a-provider-with-a-very-long-name/**'
+    'services/payments/internal/adapters/providers/a-provider-with-a-very-long-name/**',
+    'main'
+  ]);
+  let mirrored = $state(['main', 'release/*', 'docs/**']);
+  let narrow = $state([
+    'docs/**',
+    'CHANGELOG.md',
+    'services/payments/internal/adapters/**',
+    'vendor/**',
+    '*.lock',
+    'LICENSE'
   ]);
 
   function validate(pattern: string, index: number, all: readonly string[]): string | null {
@@ -31,7 +56,7 @@
   note="A problem shows once its entry is left, a removal offers Undo, and a pasted list adds one entry per line"
   layout="grid"
 >
-  <Specimen label="With problems" code="validate">
+  <Specimen label="Invalid" code="validate">
     <PatternEntries
       bind:value={branches}
       {validate}
@@ -42,8 +67,26 @@
   <Specimen label="Empty" code="bind:value">
     <PatternEntries bind:value={paths} aria-label="Paths to skip" />
   </Specimen>
+  <Specimen label="A few entries" code="bind:value">
+    <PatternEntries
+      bind:value={few}
+      aria-label="Branches to skip"
+      addLabel="Add a branch pattern"
+    />
+  </Specimen>
+  <Specimen label="Saving" code="pending">
+    <div class="with-reason">
+      <PatternEntries
+        value={['docs/**', 'CHANGELOG.md']}
+        pending
+        aria-label="Paths to skip"
+        aria-describedby="sink-pattern-saving"
+      />
+      <p id="sink-pattern-saving" class="reason">Saving…</p>
+    </div>
+  </Specimen>
   <Specimen label="Disabled" code="disabled">
-    <div class="locked">
+    <div class="with-reason">
       <PatternEntries
         value={['docs/**', 'CHANGELOG.md']}
         disabled
@@ -56,19 +99,42 @@
 </Example>
 
 <Example
-  title="Narrow width"
-  note="A field takes the room it has, and a pattern longer than that scrolls inside it with the cross beside it"
+  title="Content"
+  note="Each field is as wide as its pattern and the entries wrap, and a pattern longer than the line scrolls inside its field"
   layout="stack"
 >
+  <Specimen label="Many entries">
+    <PatternEntries bind:value={many} aria-label="Paths to skip" />
+  </Specimen>
   <Specimen label="Long pattern">
+    <PatternEntries bind:value={long} aria-label="Paths to skip" />
+  </Specimen>
+</Example>
+
+<Example
+  title="Right to left"
+  note="The entries flow from the right and each cross sits at its field's left end"
+  layout="grid"
+>
+  <Specimen label="Right to left" code={'dir="rtl"'}>
+    <PatternEntries bind:value={mirrored} dir="rtl" aria-label="Branches to skip" />
+  </Specimen>
+</Example>
+
+<Example
+  title="Narrow width"
+  note="In a phone's width the entries wrap from the start edge, and a long one takes a line of its own"
+  layout="stack"
+>
+  <Specimen label="Phone width">
     <div class="narrow">
-      <PatternEntries bind:value={long} aria-label="Paths to skip" />
+      <PatternEntries bind:value={narrow} aria-label="Paths to skip" />
     </div>
   </Specimen>
 </Example>
 
 <style>
-  .locked {
+  .with-reason {
     display: grid;
     gap: var(--sui-row-copy-gap);
     justify-items: start;
@@ -84,8 +150,9 @@
     text-box: trim-both cap alphabetic;
   }
 
+  /* A 375px phone's width less its two 16px gutters. */
   .narrow {
-    inline-size: min(100%, 16rem);
+    inline-size: min(100%, 21.4375rem);
     max-inline-size: 100%;
   }
 </style>
