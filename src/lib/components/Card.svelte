@@ -83,7 +83,8 @@ on its title line.
             this={`h${level}`}
             class="sui-card-title"
             aria-label={unsaved ? titleName(title, unsavedLabel) : undefined}
-            >{title}{#if unsaved}<span class="sui-card-unsaved">{unsavedLabel}</span
+            >{title}{#if unsaved}<span class="sui-card-gap"></span><span class="sui-card-unsaved"
+                >{unsavedLabel}</span
               >{/if}</svelte:element
           >
         {/if}
@@ -128,12 +129,20 @@ on its title line.
 
   /* The word, not a mark: a reader sees "Unsaved" whatever the keyline's tint, as on a setting
      row. */
+  /* The room before the mark is a drawn space widened to 8px (0.17em is the sans's own space),
+     not a margin, so a narrow line that moves the mark down starts it flush with the words
+     above. It is spacing, never a word, so no language's joins are typed into the markup. */
+  .sui-card-gap::before {
+    content: ' ';
+    font-weight: var(--sui-weight-regular);
+    word-spacing: calc(var(--sui-space-2) - 0.17em);
+  }
+
   .sui-card-unsaved {
     block-size: var(--sui-block-snap);
     color: var(--sui-unsaved-ink);
     display: inline-block;
     font-weight: var(--sui-weight-regular);
-    margin-inline-start: var(--sui-space-2);
     text-box: trim-both cap alphabetic;
   }
 

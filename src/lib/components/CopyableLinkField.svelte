@@ -40,16 +40,24 @@
   let input = $state<HTMLTextAreaElement | null>(null);
 
   /* The value wraps at any character, and the box is as tall as its lines, so a long token is
-     never cut. Measured again when the width changes, which moves the wraps. */
+     never cut. Measured again when the width changes, which moves the wraps, in the next frame,
+     so the height it sets is not a change the watcher is still reporting. */
   function fit(node: HTMLTextAreaElement) {
     const size = () => {
       node.style.blockSize = '0px';
       node.style.blockSize = `${node.scrollHeight}px`;
     };
     size();
-    const observer = new ResizeObserver(size);
+    let frame = 0;
+    const observer = new ResizeObserver(() => {
+      cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(size);
+    });
     observer.observe(node.parentElement ?? node);
-    return () => observer.disconnect();
+    return () => {
+      cancelAnimationFrame(frame);
+      observer.disconnect();
+    };
   }
 
   /* Selecting by hand is the way out when the clipboard refuses, so the value is handed over

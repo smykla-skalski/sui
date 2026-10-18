@@ -14,25 +14,34 @@
   } = $props();
 
   let body = $state<HTMLElement | null>(null);
-  /* How wide the shown component runs, so the rule under it spans the component and not a
-     stretched specimen. Layers and anything taken out of the flow do not count. */
+  let caption = $state<HTMLElement | null>(null);
+  /* How wide the shown component and its caption's words run, so the rule under them spans
+     what is shown and not a stretched specimen. Layers and anything taken out of the flow do
+     not count. The rule is drawn out of the flow, so this width never sizes the specimen. */
   let reach = $state<number | null>(null);
 
   $effect(() => {
     const box = body;
-    if (!box) return;
+    const band = caption;
+    if (!box || !band) return;
+    const parts = () => [...box.children, ...band.children];
     const measure = () => {
-      const edges = [...box.children]
-        .filter((child) => !/^(absolute|fixed)$/.test(getComputedStyle(child).position))
-        .map((child) => child.getBoundingClientRect())
+      const edges = parts()
+        .filter((part) => !/^(absolute|fixed)$/.test(getComputedStyle(part).position))
+        .map((part) => part.getBoundingClientRect())
         .filter((rect) => rect.width > 0);
       reach = edges.length
-        ? Math.max(...edges.map((rect) => rect.right)) - Math.min(...edges.map((rect) => rect.left))
+        ? Math.min(
+            band.clientWidth,
+            Math.max(...edges.map((rect) => rect.right)) -
+              Math.min(...edges.map((rect) => rect.left))
+          )
         : null;
     };
     const watch = new ResizeObserver(measure);
     watch.observe(box);
-    for (const child of box.children) watch.observe(child);
+    watch.observe(band);
+    for (const part of parts()) watch.observe(part);
     measure();
     return () => watch.disconnect();
   });
@@ -42,7 +51,10 @@
   <div bind:this={body} class="body">{@render children()}</div>
   {#if label || code}
     <!-- Both lines always take their room, so captions side by side start on one line. -->
-    <figcaption style:--rule={reach === null ? undefined : `${Math.ceil(reach)}px`}>
+    <figcaption
+      bind:this={caption}
+      style:--rule={reach === null ? undefined : `${Math.ceil(reach)}px`}
+    >
       {#if label}<span class="label">{label}</span>{:else}<span class="label" aria-hidden="true"
           >&nbsp;</span
         >{/if}
@@ -71,18 +83,23 @@
     min-inline-size: 0;
   }
 
-  /* A dashed rule parts what is shown from what names it, as wide as the component or the
-     caption's own words, whichever is wider. */
   figcaption {
-    inline-size: var(--rule, auto);
-    justify-self: start;
-    max-inline-size: 100%;
-    min-inline-size: fit-content;
-    border-block-start: var(--sui-stroke) dashed var(--sui-border-control);
     display: grid;
     gap: var(--sui-row-copy-gap);
     justify-items: start;
     padding-block-start: var(--sui-space-3);
+    position: relative;
+  }
+
+  /* A dashed rule parts what is shown from what names it, as wide as the component or the
+     caption's own words, whichever is wider. */
+  figcaption::before {
+    border-block-start: var(--sui-stroke) dashed var(--sui-border-control);
+    content: '';
+    inline-size: var(--rule, 100%);
+    inset-block-start: 0;
+    inset-inline-start: 0;
+    position: absolute;
   }
 
   .label {

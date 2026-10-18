@@ -39,19 +39,28 @@
     const frame = box;
     const matrix = grid;
     let natural = 0;
-    const check = () => {
+    let next = 0;
+    const check = (now = false) => {
       if (!folded) natural = matrix.scrollWidth;
       const rem = parseFloat(getComputedStyle(document.documentElement).fontSize);
       const fits = fill
         ? frame.clientWidth >= FILL_FOLD_REM * rem
         : natural <= frame.clientWidth + 0.5;
-      if (folded === fits) folded = !fits;
+      cancelAnimationFrame(next);
+      if (folded !== fits) return;
+      // A fold changes the frame's height, so one the watcher asks for waits for the next
+      // frame instead of resizing what it watches while it reports.
+      if (now) folded = !fits;
+      else next = requestAnimationFrame(() => (folded = !fits));
     };
-    const observer = new ResizeObserver(check);
+    const observer = new ResizeObserver(() => check());
     observer.observe(frame);
     // The first check reads `folded`; tracking it would rebuild the watcher on every fold.
-    untrack(check);
-    return () => observer.disconnect();
+    untrack(() => check(true));
+    return () => {
+      cancelAnimationFrame(next);
+      observer.disconnect();
+    };
   });
 </script>
 

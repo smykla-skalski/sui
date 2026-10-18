@@ -15,10 +15,12 @@ const finding = (law: string, element: Element | null, detail: string): Finding 
 });
 
 // A box still growing or fading is measured between its two states, so nothing inside one is
-// judged until its motion ends.
+// judged until its motion ends. An animation driven by scrolling, such as an edge fade, is
+// not motion: it holds still while the page does.
 const audited = (root: Document, selector: string) => {
   const moving = root
     .getAnimations()
+    .filter((animation) => animation.timeline instanceof DocumentTimeline)
     .map((animation) => (animation.effect as KeyframeEffect | null)?.target)
     .filter((target): target is Element => target instanceof Element);
   return [...root.querySelectorAll(selector)].filter(
@@ -479,10 +481,14 @@ function separators(root: Document): Finding[] {
     const before = dot.previousElementSibling;
     const after = dot.nextElementSibling;
     const own = dot.getBoundingClientRect();
-    const gaps = [
-      before && shown(before) ? Math.abs(own.left - before.getBoundingClientRect().right) : space,
-      after && shown(after) ? Math.abs(after.getBoundingClientRect().left - own.right) : space
-    ];
+    // The room between two boxes on a line, whichever side each stands on, so a right-to-left
+    // line measures the same.
+    const gap = (next: Element | null) => {
+      if (!next || !shown(next)) return space;
+      const box = next.getBoundingClientRect();
+      return Math.max(box.left - own.right, own.left - box.right);
+    };
+    const gaps = [gap(before), gap(after)];
     if (gaps.some((gap) => Math.abs(gap - space) > 0.5))
       found.push(
         finding(
@@ -907,10 +913,20 @@ function controls(root: Document): Finding[] {
   // Words in a small box of their own ground or frame sit on its middle: as much room above
   // the cap line as under the baseline, as a count, a pill or a button's word does. Only a box
   // whose words make one line, with nothing stacked above or under it, is weighed this way.
+  // Words that are only heard sit in a box clipped to a pixel, and are never drawn.
+  const heardOnly = (element: Element) => {
+    for (let node: Element | null = element; node; node = node.parentElement) {
+      const box = node.getBoundingClientRect();
+      if (box.width <= 1 && box.height <= 1 && getComputedStyle(node).overflow !== 'visible')
+        return true;
+    }
+    return false;
+  };
   for (const box of audited(root, '*')) {
     const own = box.getBoundingClientRect();
     if (own.height > 48 || own.height < 8 || box.closest('svg, .sui-visually-hidden, pre, code'))
       continue;
+    if (heardOnly(box)) continue;
     // Lines of code keep one leading so their baselines stay a grid; a box of them is a block.
     if (box.querySelector('pre, code')) continue;
     const look = getComputedStyle(box);
@@ -1216,7 +1232,7 @@ function specimens(root: Document): Finding[] {
     const tops = lines.get(row) ?? new Map<number, number[]>();
     tops.set(top, [...(tops.get(top) ?? []), caption.getBoundingClientRect().top]);
     lines.set(row, tops);
-    if (getComputedStyle(caption).borderBlockStartStyle !== 'dashed')
+    if (getComputedStyle(caption, '::before').borderBlockStartStyle !== 'dashed')
       found.push(finding('L-55', caption, 'a caption has no dashed rule above it'));
   }
   for (const [row, tops] of lines)

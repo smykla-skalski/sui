@@ -327,6 +327,7 @@ A `danger` toast reports a failure and stays too.
     box-sizing: border-box;
     color: var(--sui-text-primary);
     display: flex;
+    flex-wrap: wrap;
     gap: var(--sui-space-3);
     max-inline-size: 24rem;
     opacity: 1;
@@ -366,7 +367,7 @@ A `danger` toast reports a failure and stays too.
   .sui-toast-copy {
     align-content: center;
     display: grid;
-    flex: 1 1 auto;
+    flex: 1 1 8rem;
     gap: var(--sui-row-copy-gap);
     min-inline-size: 0;
   }
@@ -377,18 +378,11 @@ A `danger` toast reports a failure and stays too.
   }
 
   /* The action keeps its width, so the copy wraps instead of the button's word. A toast too
-     narrow for a few words of copy beside both buttons puts the buttons on a line under it. */
+     narrow for a few words of copy beside its buttons, as at a large text size, puts the
+     buttons on a line under it. */
   .sui-toast-action {
     display: flex;
     flex: none;
-  }
-
-  .sui-toast:has(> .sui-toast-action) {
-    flex-wrap: wrap;
-  }
-
-  .sui-toast:has(> .sui-toast-action) > .sui-toast-copy {
-    flex-basis: 8rem;
   }
 
   .sui-toast-title,

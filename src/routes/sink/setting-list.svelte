@@ -286,7 +286,9 @@
     inline-size: 8rem;
   }
 
+  /* Centred in its snapped box, so the spare pixels split above and under the words. */
   .fact {
+    align-content: center;
     block-size: var(--sui-block-snap-even);
     color: var(--sui-text-secondary);
     font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-leading-flat)

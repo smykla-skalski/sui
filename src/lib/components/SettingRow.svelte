@@ -199,7 +199,10 @@ between them (L-91).
       id={ids.labelledby}
       for={named ? ids.id : undefined}
       class="sui-setting-name"
-      ><span aria-hidden="true">{name}<span class="sui-setting-mark">{unsavedLabel}</span></span
+      ><span aria-hidden="true"
+        >{name}<span class="sui-setting-gap"></span><span class="sui-setting-mark"
+          >{unsavedLabel}</span
+        ></span
       ><VisuallyHidden>{unsaved ? unsavedName(name, unsavedLabel) : name}</VisuallyHidden
       ></svelte:element
     >
@@ -384,10 +387,23 @@ between them (L-91).
 
   /* Always laid out, shown only while unsaved, so its arrival never rewraps the name. A word
      rather than a star, which most forms use for a required field. */
-  .sui-setting-mark {
-    color: var(--sui-unsaved-ink);
+  /* The room before the mark is a drawn space widened to 8px (0.17em is the sans's own space),
+     not a margin, so a narrow line that moves the mark down starts it flush with the words
+     above. It is spacing, never a word, so no language's joins are typed into the markup. */
+  .sui-setting-gap::before {
+    content: ' ';
     font-weight: var(--sui-weight-regular);
-    margin-inline-start: var(--sui-space-2);
+    word-spacing: calc(var(--sui-space-2) - 0.17em);
+  }
+
+  /* A box of its own, as the card draws it, so a narrow row moves the whole word to the next
+     line instead of breaking it. */
+  .sui-setting-mark {
+    block-size: var(--sui-block-snap);
+    color: var(--sui-unsaved-ink);
+    display: inline-block;
+    font-weight: var(--sui-weight-regular);
+    text-box: trim-both cap alphabetic;
     visibility: hidden;
   }
 
