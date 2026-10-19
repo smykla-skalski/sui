@@ -92,8 +92,9 @@ a toast.
 
 It is an `alertdialog`. The title is the question and `consequence` the one sentence that says
 what follows. Cancel is a bordered default button before the confirm action in the trailing
-group. With the `stop` tone Cancel opens focused, so Enter never takes something away by
-accident; with `signal` the confirm action does. Every way out other than the confirm action
+group. A question with a field in its body, such as a reason, opens on that field, so the reader
+can type at once. Without one, with the `stop` tone Cancel opens focused, so Enter never takes
+something away by accident; with `signal` the confirm action does. Every way out other than the confirm action
 calls `oncancel`. Anything the answer needs, such as a reason, goes in the children.
 
 The act runs before the dialog closes. When `onconfirm` returns a promise, the confirm button
@@ -104,8 +105,8 @@ rejection keeps the dialog open and says so, so the reader can try again or canc
 - Content: a question, one sentence of consequence, optional fields in the body, and two verb-phrase buttons; long words wrap.
 - States: asking, pending (confirm button busy, Cancel disabled beside it, every way out refused) and failed (`failedLabel` above the buttons, both buttons ready again).
 - Keyboard: Tab cycles inside, Enter or Space answers with the focused button, Escape cancels unless the act is pending.
-- Pointer and touch: both buttons are 34px tall, 44px on a phone or touch screen, and a press outside cancels only when the body holds no field.
-- Focus: opens on Cancel for `stop` and on the confirm button for `signal`, stays on the confirm button while pending, and on close returns to the opener, `returnFocus` or the nearest control.
+- Pointer and touch: both buttons are 34px tall, 44px on a phone or touch screen, and a press outside cancels as Escape does, unless the act is pending.
+- Focus: opens on the body's first field, else on Cancel for `stop` and on the confirm button for `signal`; while pending it moves to the confirm button and the fields are disabled, and on close returns to the opener, `returnFocus` or the nearest control.
 - Responsive: the buttons wrap onto a second line at the trailing edge, and the box fills a phone's width less 8px each side.
 - Accessibility: the role makes a screen reader read the question and consequence at once, the pending button is announced as busy, and a failure is announced as an alert.
 - Localization: `cancelLabel`, `closeLabel` and `failedLabel` carry the built-in words, and the buttons sit at the inline end, mirrored in a right-to-left page.

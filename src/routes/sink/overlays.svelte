@@ -160,6 +160,7 @@
   }
 
   .panel-title {
+    align-content: center;
     block-size: var(--sui-block-snap);
     font: var(--sui-weight-semibold) var(--sui-font-size-meta) / var(--sui-leading-meta)
       var(--sui-sans);
@@ -168,6 +169,7 @@
   }
 
   .panel-copy {
+    align-content: center;
     block-size: var(--sui-block-snap);
     color: var(--sui-text-secondary);
     font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-row-copy-leading)

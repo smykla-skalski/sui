@@ -63,7 +63,7 @@
 
 <Example
   title="Label colors"
-  note="The ink is dark or light for 4.5:1, and a mid tone like the red is nudged until one ink reads"
+  note="The light theme shows the color with black or white ink, and the dark one a tint with ink in its hue"
 >
   {#each github as [label, color, name] (label)}
     <Specimen label={name} code={`color="${color}"`}>
@@ -74,7 +74,7 @@
 
 <Example
   title="Pale and dark"
-  note="The edge is the fill pulled toward the ink, so a white chip still shows on a white card"
+  note="Only a near-white chip draws an edge, so it still shows on a white card"
 >
   {#each extremes as [label, color, name] (label)}
     <Specimen label={name} code={`color="${color}"`}>

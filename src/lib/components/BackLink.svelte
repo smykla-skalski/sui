@@ -63,9 +63,7 @@ fits the eyebrow's place in a `PageHeader`.
     margin-block: round(calc((1cap - var(--sui-control-height-chip)) / 2), 1px);
     min-block-size: var(--sui-control-height-chip);
     text-decoration: none;
-    transition:
-      color var(--sui-duration-fast) var(--sui-ease-standard),
-      translate var(--sui-duration-press) var(--sui-ease-standard);
+    transition: translate var(--sui-duration-press) var(--sui-ease-standard);
   }
 
   .sui-back-link[data-tone='quiet'] {
@@ -91,6 +89,7 @@ fits the eyebrow's place in a `PageHeader`.
   }
 
   .sui-back-link-label {
+    align-content: center;
     block-size: var(--sui-block-snap);
     text-box: trim-both cap alphabetic;
   }

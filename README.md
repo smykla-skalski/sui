@@ -18,6 +18,15 @@ Import the theme once in the app root. It holds every `--sui-*` token and both b
 import '@smykla-skalski/sui/styles.css';
 ```
 
+Components mirror for right-to-left text through `:dir(rtl)`. Vite's default build target lets its CSS minifier rewrite that selector into a list of right-to-left `:lang()` selectors, which miss a page that sets only `dir`, so set a CSS target that keeps it:
+
+```ts
+// vite.config.ts
+export default defineConfig({
+  build: { cssTarget: ['chrome120', 'edge120', 'firefox115', 'safari16.4'] }
+});
+```
+
 ```svelte
 <script lang="ts">
   import { Button, Card, Field, Pill } from '@smykla-skalski/sui';
@@ -43,10 +52,11 @@ Each component documents its contract in an `@component` comment, and the kitche
 - Inputs: `Field`, `TextInput`, `Textarea`, `SearchField`, `Switch`, `Checkbox`, `CheckList`, `ChoiceCards`, `SegmentedControl`, `ThemeSwitch`, `CopyableLinkField`, `ColorPicker`
 - Pickers and editors: `Select`, `Combobox`, `ActionMenu`, `HelpTip`, `DurationInput`, `PairEntry`, `PatternEntries`, `InheritControl`, `AdditionPicker`, `SettingList`, `SettingRow`
 - Overlays: `Popover`, `Tooltip`, `Modal`, `ConfirmDialog`, `Toaster` with `toast()` and `dismiss()`, `SaveBar`
-- Surfaces and content: `Card`, `Plate`, `Callout`, `Disclosure`, `PageHeader`, `PageToc`, `CodeBlock`, `DiffBlock`, `DataTable`, `FactList`
+- Surfaces and content: `Card`, `Plate`, `Callout`, `Disclosure`, `PageHeader`, `PageToc`, `CodeBlock`, `DiffBlock`, `DataTable`, `FactList`, `FactLine`
 - Marks: `Pill`, `Chip`, `Avatar`, `IdentityRow`, `ClippedLabel`, `RelativeTime`, `DayHeading`, `Icon`, `VisuallyHidden`
 - Lists and states: `ObjectList`, `ObjectRow`, `ListToolbar`, `EmptyState`, `ErrorState`, `FormError`, `Skeleton`, `LoadMore`
 - Charts: `LineChart`, `ScatterChart`, `RangeChart`, `HeatmapChart` (see [chart usage](docs/charts.md))
+- Offline: `serve()` from `@smykla-skalski/sui/service-worker` for the app's service worker, with `registerServiceWorker()` and `ServiceWorkerStatus` in its layout (see [offline and updates](docs/offline.md))
 
 Overlays use the native `<dialog>` element and the Popover API, so they render in the browser's top layer with native light dismiss and focus return. SUI has no runtime dependencies besides Svelte.
 
@@ -84,9 +94,9 @@ setWords({
 [docs/laws.md](docs/laws.md) lists every law with its source and how it is held. [docs/authoring.md](docs/authoring.md) explains how to write a component that meets them.
 
 - `npm test` runs the source laws (`tests/laws.test.mjs`): the palette is the only place a color is written, every token is declared and read, sizes, leading, spacing, radii, layers and durations come from tokens, every moving component has a reduced-motion fallback, and every component has a contract and a kitchen sink section.
-- The kitchen sink runs the rendered laws in the page and shows each finding: contrast, palette bands, type faces and leading, copy rules, control heights, target sizes, centring, focus, names and sideways scroll.
-- `npm run test:browser` runs that audit in Chrome at 320, 375, 768 and 1440px in both themes. It also walks every keyboard stop, opens every menu, checks reduced motion, theme geometry and icon centring. It uses the installed Chrome through `playwright-core`; set `SUI_BROWSER_CHANNEL` to use another channel.
-- `npm run test:browser:long` adds the long passes that CI runs: axe at two widths in both themes, the section pictures, and the sweeps that press every control and open every layer.
+- The kitchen sink runs the rendered laws once per page address and shows each finding: contrast, palette bands, type faces and leading, copy rules, control heights, target sizes, centring, focus, names, the current place and sideways scroll. It keeps the result in the browser until you run it again.
+- `npm run test:browser` is the everyday check, about seven seconds: that audit in Chrome on a phone in light and a desktop in dark, and the checks that every joined name follows `setWords`. It uses the installed Chrome through `playwright-core`; set `SUI_BROWSER_CHANNEL` to use another channel.
+- `npm run test:browser:long` runs everything CI runs: the audit at 320, 375, 768 and 1440px in both themes and on touch tablets, every keyboard stop, menu, press and layer, right to left, forced colors, text spacing and size, axe, the section pictures and the lab performance checks.
 
 ## Development
 

@@ -40,7 +40,7 @@
 
 <Example
   title="Long title"
-  note="A long title wraps, and the state moves under it when the line has no room"
+  note="A long title wraps beside the state, which stays on its first line and never moves the title"
   layout="grid"
   ground="canvas"
 >
@@ -88,7 +88,7 @@
 >
   <Plate title="Configuration drift" level={4}>
     {#snippet status()}
-      <span class="state"><Icon name="warning" size="sm" /><span>2 repositories differ</span></span>
+      <span class="state"><Icon name="warning" size="sm" /><span>2 differ</span></span>
     {/snippet}
   </Plate>
   <Callout tone="warning" title="Drift blocks the next sync">
@@ -110,17 +110,28 @@
     gap: var(--sui-space-4);
   }
 
+  /* The glyph centres on the words' first line, however many lines they wrap to (L-94), and
+     the words' box rounds up to the pixel, so a state that ends the plate keeps the inset to
+     its baseline. */
   .state {
-    align-items: center;
+    align-items: start;
     color: var(--sui-text-secondary);
     display: inline-flex;
-    font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-leading-meta)
+    font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-row-copy-leading)
       var(--sui-sans);
     gap: var(--sui-space-2);
+    min-inline-size: 0;
+  }
+
+  .state > :global(svg) {
+    margin-block: calc((round(up, 1cap, 1px) - var(--sui-icon-sm)) / 2);
   }
 
   .state > span {
+    align-content: center;
     block-size: var(--sui-block-snap);
+    min-inline-size: 0;
+    overflow-wrap: anywhere;
     text-box: trim-both cap alphabetic;
   }
 </style>

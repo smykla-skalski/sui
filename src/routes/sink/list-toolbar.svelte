@@ -8,7 +8,16 @@
 </script>
 
 <script lang="ts">
-  import { Button, Card, ListToolbar, ObjectList, ObjectRow, Pill, type ListToolGroup } from '#lib';
+  import { tick } from 'svelte';
+  import {
+    Button,
+    EmptyState,
+    ListToolbar,
+    ObjectList,
+    ObjectRow,
+    Pill,
+    type ListToolGroup
+  } from '#lib';
   import Example from '../kit/Example.svelte';
   import Specimen from '../kit/Specimen.svelte';
 
@@ -61,6 +70,16 @@
   const list = choices('all', 'updated');
 
   let query = $state('');
+
+  let context = $state<HTMLElement>();
+
+  // The button leaves with the empty state, so focus goes back to the search it cleared.
+  async function clear() {
+    query = '';
+    list.picked.shown = 'all';
+    await tick();
+    context?.querySelector<HTMLInputElement>('[role="searchbox"]')?.focus();
+  }
 
   const rows = $derived(
     repositories
@@ -116,11 +135,11 @@
 
 <Example
   title="In context"
-  note="The bar stands outside the list's card, owns no list state and says how many rows are left after a pause"
+  note="The bar stands over the list it filters, owns no list state and says how many rows are left after a pause"
   layout="stack"
   ground="canvas"
 >
-  <div class="stack">
+  <div class="stack" bind:this={context}>
     <ListToolbar
       bind:query
       searchLabel="Search repositories"
@@ -131,7 +150,7 @@
     >
       {#snippet action()}<Button tone="signal">Add repository</Button>{/snippet}
     </ListToolbar>
-    <Card>
+    {#if rows.length > 0}
       <ObjectList>
         {#each rows as repository (repository.name)}
           <ObjectRow>
@@ -143,16 +162,16 @@
               {#if repository.state === 'archived'}<Pill>Archived</Pill>{/if}
             {/snippet}
           </ObjectRow>
-        {:else}
-          <ObjectRow>
-            {#snippet main()}
-              <span class="name">No repositories match</span>
-              <span class="sum">Clear the search or show every state</span>
-            {/snippet}
-          </ObjectRow>
         {/each}
       </ObjectList>
-    </Card>
+    {:else}
+      <EmptyState
+        title="No repositories match"
+        description="Clear the search and show every state to see the rest"
+      >
+        {#snippet action()}<Button onclick={clear}>Show every repository</Button>{/snippet}
+      </EmptyState>
+    {/if}
   </div>
 </Example>
 
@@ -168,6 +187,7 @@
   }
 
   .name {
+    align-content: center;
     block-size: var(--sui-block-snap);
     color: var(--sui-text-primary);
     font: var(--sui-weight-semibold) var(--sui-font-size-meta) / var(--sui-row-copy-leading)
@@ -177,6 +197,7 @@
   }
 
   .sum {
+    align-content: center;
     block-size: var(--sui-block-snap);
     color: var(--sui-text-muted);
     font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-row-copy-leading)

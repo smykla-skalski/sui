@@ -136,6 +136,7 @@ margins of its own; the form that holds it sets the gap above it.
   }
 
   .sui-form-error-text {
+    align-content: center;
     block-size: var(--sui-block-snap);
     min-inline-size: 0;
     overflow-wrap: anywhere;

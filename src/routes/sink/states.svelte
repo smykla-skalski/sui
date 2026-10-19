@@ -10,13 +10,13 @@
 <script lang="ts">
   import {
     Button,
-    Card,
     EmptyState,
     ErrorState,
     Field,
     FormError,
     ObjectList,
-    ObjectRow
+    ObjectRow,
+    Section
   } from '#lib';
   import Example from '../kit/Example.svelte';
   import Specimen from '../kit/Specimen.svelte';
@@ -123,47 +123,53 @@
   ground="canvas"
 >
   <Specimen label={recovered ? 'Recovered' : 'Retry'} code="onretry busy focusAfterRetry">
-    {#if recovered}
-      <div class="loaded">
-        <div bind:this={list} tabindex="-1" class="rows">
-          <Card>
-            <ObjectList aria-label="Repositories">
+    <div class="loaded">
+      <Section title="Repositories" level={4} id="sink-states-recovered">
+        {#if recovered}
+          <div bind:this={list} tabindex="-1" class="rows">
+            <ObjectList aria-labelledby="sink-states-recovered">
               {#each repositories as name (name)}
                 <ObjectRow>
                   {#snippet main()}<span class="name">{name}</span>{/snippet}
                 </ObjectRow>
               {/each}
             </ObjectList>
-          </Card>
-        </div>
-        <Button onclick={() => (recovered = false)}>Show the failure again</Button>
-      </div>
-    {:else}
-      <ErrorState
-        title="Repositories could not be loaded"
-        description="The server did not answer in time, so nothing on this page has changed"
-        onretry={retry}
-        busy={retrying}
-        focusAfterRetry={() => list}
-      />
-    {/if}
+          </div>
+        {:else}
+          <ErrorState
+            title="Repositories could not be loaded"
+            description="The server did not answer in time, so nothing on this page has changed"
+            onretry={retry}
+            busy={retrying}
+            focusAfterRetry={() => list}
+          />
+        {/if}
+      </Section>
+      {#if recovered}
+        <div><Button onclick={() => (recovered = false)}>Show the failure again</Button></div>
+      {/if}
+    </div>
   </Specimen>
   <Specimen label="No retry">
-    <ErrorState
-      title="Access is not available"
-      description="Ask an owner of this workspace to give you the viewer role"
-    />
+    <Section title="Members" level={4}>
+      <ErrorState
+        title="Access is not available"
+        description="Ask an owner of this workspace to give you the viewer role"
+      />
+    </Section>
   </Specimen>
   <Specimen label={settled ? 'Retried into words' : 'Retry that leaves no control'}>
-    {#if settled}
-      <p class="name">Usage for this month loaded</p>
-    {:else}
-      <ErrorState
-        title="Usage could not be loaded"
-        description="The server did not answer in time"
-        onretry={() => (settled = true)}
-      />
-    {/if}
+    <Section title="Usage" level={4}>
+      {#if settled}
+        <p class="name">Usage for this month loaded</p>
+      {:else}
+        <ErrorState
+          title="Usage could not be loaded"
+          description="The server did not answer in time"
+          onretry={() => (settled = true)}
+        />
+      {/if}
+    </Section>
   </Specimen>
 </Example>
 
@@ -174,7 +180,7 @@
   ground="canvas"
 >
   <Specimen label="Refresh failed" code="overContent">
-    <Card>
+    <Section title="Repositories" level={4}>
       <ErrorState
         overContent
         title="The list could not be refreshed"
@@ -189,7 +195,7 @@
           </ObjectRow>
         {/each}
       </ObjectList>
-    </Card>
+    </Section>
   </Specimen>
 </Example>
 
@@ -243,12 +249,14 @@
   .loaded {
     display: grid;
     gap: var(--sui-space-4);
-    justify-items: start;
   }
 
+  /* The rows take focus once the retry succeeds, so the ring frames them whole: their reach past
+     the title's edge, and the last row's padding the list hands back to the section. */
   .rows {
-    border-radius: var(--sui-radius-surface);
-    justify-self: stretch;
+    border-radius: var(--sui-radius-control);
+    margin-inline: calc(-1 * var(--sui-row-pad-default));
+    padding: 0 var(--sui-row-pad-default) calc(var(--sui-row-pad-default) + var(--sui-row-hairline));
   }
 
   .rows:focus-visible {
@@ -257,6 +265,7 @@
   }
 
   .name {
+    align-content: center;
     block-size: var(--sui-block-snap);
     color: var(--sui-text-primary);
     font: var(--sui-weight-semibold) var(--sui-font-size-meta) / var(--sui-row-copy-leading)

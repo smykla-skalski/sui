@@ -163,7 +163,7 @@ test('L-18 two families with the faces and weights Smyklot ships', () => {
         (family === 'SUI JetBrains Mono' && weight === '400 500'),
       `${family} at ${weight}`
     );
-    const file = face.match(/url\('\.\/([^']+)'\)/)?.[1];
+    const file = face.match(/url\('\.\/([^'?]+)/)?.[1];
     assert.ok(file && existsSync(`src/lib/${file}`), `${file} exists`);
   }
 });
@@ -243,8 +243,11 @@ test('L-43 a mark is as wide as what it says', () => {
 });
 
 test('L-46 no component styles another component through :global', () => {
+  // Asking whether a part is there, inside :has(), lays out the asker's own box and paints no
+  // part of the other component, so only the rest of a selector is weighed.
+  const asking = /:has\((?:[^()]|\((?:[^()]|\([^()]*\))*\))*\)/g;
   const offenders = Object.entries(styles).flatMap(([path, css]) =>
-    [...css.matchAll(/:global\(([^)]*)\)/g)]
+    [...css.replace(asking, '').matchAll(/:global\(([^)]*)\)/g)]
       .filter(([, inner]) => inner.includes('.sui-'))
       .map(([match]) => `${path}: ${match}`)
   );
@@ -339,6 +342,30 @@ test('L-75 every moving component has a reduced-motion fallback', () => {
     .filter(([, css]) => !/prefers-reduced-motion:\s*reduce/.test(css))
     .map(([path]) => path);
   assert.deepEqual(offenders, []);
+});
+
+test('L-104 hover and press change grounds, inks and edges at once', () => {
+  // A part that travels fades its fill with its travel; nothing else fades a state's paint.
+  const travels = new Set([
+    'src/lib/components/Switch.svelte .sui-switch-track',
+    'src/lib/components/SegmentedControl.svelte .ready .sui-segmented-thumb'
+  ]);
+  const painted =
+    /^(background(-color)?|color|border(-[a-z]+)?-color|outline-color|fill|stroke|text-decoration-[a-z]+|--sui-[a-z-]+-layer)$/;
+  /** @type {string[]} */
+  const found = [];
+  for (const [path, css] of Object.entries(styles))
+    for (const match of stripComments(css).matchAll(/([^{}]+)\{([^{}]*)\}/g)) {
+      const selector = match[1].trim().replace(/\s+/g, ' ');
+      const transition = match[2].match(/(?:^|;)\s*transition\s*:\s*([^;]+)/)?.[1];
+      if (!transition || travels.has(`${path} ${selector}`)) continue;
+      const fading = transition
+        .split(',')
+        .map((item) => item.trim().split(/\s+/)[0])
+        .filter((name) => painted.test(name));
+      if (fading.length) found.push(`${path} ${selector}: ${fading.join(', ')}`);
+    }
+  assert.deepEqual(found, []);
 });
 
 test('L-82 components use Svelte 5 runes', () => {

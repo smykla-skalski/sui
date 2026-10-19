@@ -2,6 +2,8 @@
   import type { Snippet } from 'svelte';
   import type { HTMLInputAttributes } from 'svelte/elements';
   import Icon from '../icons/Icon.svelte';
+  import { held, holdAround } from '../internal/held.svelte.js';
+  import { getRefusals } from '../internal/refusals.svelte.js';
 
   const id = $props.id();
 
@@ -40,10 +42,17 @@
     children?: Snippet;
   } & Omit<HTMLInputAttributes, 'type' | 'checked' | 'indeterminate' | 'children'> = $props();
 
+  const refusals = getRefusals();
+  const wrong = $derived(invalid || Boolean(refusals?.refuses(element)));
   const named = $derived(Boolean(children || label));
   /* `aria-disabled` locks the box without `disabled`, which would drop a focused box's focus
-     to the body, so it stays a tab stop and refuses the press itself. */
-  const locked = $derived(ariaDisabled === true || ariaDisabled === 'true');
+     to the body, so it stays a tab stop and refuses the press itself. Work that runs on the
+     form around it locks it the same way, and disables it once a busy dialog or a saving pane
+     has moved focus to its busy action. */
+  const around = holdAround();
+  const locked = $derived(
+    ariaDisabled === true || ariaDisabled === 'true' || held(element, around) !== null
+  );
 
   function press(event: MouseEvent & { currentTarget: EventTarget & HTMLInputElement }) {
     if (locked) event.preventDefault();
@@ -68,20 +77,21 @@ The native input lies over the box without its native paint and wears the focus 
 the whole item is its label, so the item is the hit area. The label is the accessible name and
 the description is read as its description, never as part of the name. `indeterminate` draws a
 dash for a parent whose children are partly chosen. `aria-disabled="true"` locks the box while
-it keeps focus, for a list that is saving.
+it keeps focus, for a list that is saving, and a saving setting row around it locks it the same
+way; a busy dialog or a saving pane around it disables it while the work runs.
 
 - Semantics: a native `<input type="checkbox">` inside its `<label>`, named by the label and described by the description.
 - Content: a short label and an optional one-sentence description, or richer `children`.
-- States: unchecked, checked (a filled box with a check), partly chosen (a dash), hover (a row ground), focus (a 2px ring 2px off the box), pressed (a deeper ground, an inset shadow and a 1px sink), invalid (a danger edge, kept when checked), locked and disabled (0.7 opacity).
+- States: unchecked, checked (a filled box with a check), partly chosen (a dash), hover (a row ground), focus (a 2px ring 2px off the box), pressed (a deeper ground, an inset shadow and a 1px sink), invalid (a danger edge, kept when checked), locked and disabled (0.5 opacity).
 - Keyboard: Tab reaches it and Space toggles it; a locked or disabled box refuses the toggle.
-- Pointer and touch: the whole item is the target, 34px tall, 44px with a description, on a phone or on any touch screen, and `bare` keeps a 44px hit area.
+- Pointer and touch: the whole item is the target, 34px tall, 44px with a description, on a phone or on any touch screen, and `bare` is a square as tall as a control, 34px or 44px on touch, which is both its ground and its hit area.
 - Focus: a press never moves focus, and a locked box keeps it.
 - Responsive: a long label wraps and the box stays centred on its first line.
-- Accessibility: the label is the name, the description the description, `invalid` sets `aria-invalid`, and the box's edge holds 3:1.
+- Accessibility: the label is the name, the description the description, `invalid` or a box the browser's check refused sets `aria-invalid`, and the box's edge holds 3:1.
 - Localization: its words come from the caller, the box sits at the inline start and the layout is logical.
 - Performance: one native input per item; only colours, the inset shadow and the 1px sink move.
 - Analytics: the native `onchange` reports each toggle; a refused press never fires it.
-- Failure: an invalid box keeps its danger edge in every state, and the words that say why belong to the group or the field.
+- Failure: an invalid box keeps its danger edge in every state, and the words that say why belong to the group or the field; a `required` box left empty on a send is said in their error line in place of the browser's bubble, and with neither around it the browser says it.
 -->
 
 <label
@@ -96,15 +106,21 @@ it keeps focus, for a list that is saving.
       bind:checked
       bind:indeterminate
       {...rest}
+      {@attach refusals?.watch}
       type="checkbox"
-      {disabled}
+      disabled={disabled || held(element, around) === 'firm'}
       aria-labelledby={named ? `${id}-label` : undefined}
       aria-describedby={describedby}
-      aria-invalid={invalid || undefined}
-      aria-disabled={ariaDisabled}
+      aria-invalid={wrong || undefined}
+      aria-disabled={locked || ariaDisabled}
       onclick={press}
     />
-    <span class="sui-checkbox-box" class:invalid aria-hidden="true">
+    <span
+      class="sui-checkbox-box"
+      class:invalid={wrong}
+      class:mixed={indeterminate}
+      aria-hidden="true"
+    >
       {#if indeterminate}
         <span class="sui-checkbox-dash"></span>
       {:else}
@@ -143,7 +159,6 @@ it keeps focus, for a list that is saving.
     -webkit-user-select: none;
     user-select: none;
     transition:
-      background-color var(--sui-duration-fast) var(--sui-ease-standard),
       box-shadow var(--sui-duration-press) var(--sui-ease-standard),
       translate var(--sui-duration-press) var(--sui-ease-standard);
     -webkit-tap-highlight-color: transparent;
@@ -153,23 +168,29 @@ it keeps focus, for a list that is saving.
     min-block-size: var(--sui-touch-target);
   }
 
-  /* The padding stays for the hover ground, and the margin hands it back, so the box sits
-     on the row's edge and the row keeps its own height. */
-  /* No words to wrap, so no clamp: against its own shrink-wrapped column a 100% cap would eat
-     the end padding and slide the box past the row's content edge (L-33). */
+  /* A box with no words is a square as tall as a control, 34px or 44px on touch, so its
+     ground and its hit area match the buttons beside it (L-101). The margin hands that room
+     back, so the box sits on the row's edge and the row keeps its own height. A parent whose
+     edge the box ends, as a setting row's end is, sets `--sui-local-checkbox-bleed: 0px` so the
+     square stands inside it like any other control. No words to wrap, so no clamp: a 100% cap
+     would let a shrink-wrapped column squeeze the square. */
   .bare {
-    margin: calc(-1 * var(--sui-space-2));
+    block-size: var(--sui-control-height-compact);
+    grid-template-columns: auto;
+    inline-size: var(--sui-control-height-compact);
+    margin-block: calc((var(--sui-icon-md) - var(--sui-control-height-compact)) / 2);
+    margin-inline: var(
+      --sui-local-checkbox-bleed,
+      calc((var(--sui-icon-md) - var(--sui-control-height-compact)) / 2)
+    );
     max-inline-size: none;
-    min-block-size: auto;
-    position: relative;
+    min-block-size: 0;
+    padding: 0;
+    place-content: center;
   }
 
-  .bare::before {
-    block-size: var(--sui-touch-target);
-    content: '';
-    inline-size: var(--sui-touch-target);
-    inset: calc((100% - var(--sui-touch-target)) / 2);
-    position: absolute;
+  .bare .sui-checkbox-control {
+    margin-block: 0;
   }
 
   @media (hover: hover) {
@@ -228,13 +249,13 @@ it keeps focus, for a list that is saving.
     inline-size: var(--sui-icon-md);
     justify-content: center;
     position: relative;
-    transition:
-      background-color var(--sui-duration-fast) var(--sui-ease-standard),
-      border-color var(--sui-duration-fast) var(--sui-ease-standard),
-      color var(--sui-duration-fast) var(--sui-ease-standard);
   }
 
-  .sui-checkbox input:is(:checked, :indeterminate) + .sui-checkbox-box {
+  /* A partly chosen box is drawn from the prop, which the server renders too: the input's
+     `indeterminate` exists only once script sets it, so `:indeterminate` would fill the box a
+     moment after the first paint. */
+  .sui-checkbox input:checked + .sui-checkbox-box,
+  .sui-checkbox input + .sui-checkbox-box.mixed {
     background: var(--sui-brand-action);
     border-color: var(--sui-brand-action);
     color: var(--sui-on-brand-action);
@@ -253,6 +274,7 @@ it keeps focus, for a list that is saving.
   }
 
   .sui-checkbox-copy {
+    align-content: center;
     block-size: var(--sui-block-snap-even);
     display: grid;
     gap: var(--sui-row-copy-gap);
@@ -260,6 +282,7 @@ it keeps focus, for a list that is saving.
   }
 
   .sui-checkbox-label {
+    align-content: center;
     block-size: var(--sui-block-snap);
     color: var(--sui-text-primary);
     font: var(--sui-weight-regular) var(--sui-font-size-control) / var(--sui-row-copy-leading)
@@ -270,6 +293,7 @@ it keeps focus, for a list that is saving.
   }
 
   .sui-checkbox-description {
+    align-content: center;
     block-size: var(--sui-block-snap);
     color: var(--sui-text-secondary);
     font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-row-copy-leading)
@@ -303,7 +327,8 @@ it keeps focus, for a list that is saving.
       forced-color-adjust: none;
     }
 
-    .sui-checkbox input:is(:checked, :indeterminate) + .sui-checkbox-box {
+    .sui-checkbox input:checked + .sui-checkbox-box,
+    .sui-checkbox input + .sui-checkbox-box.mixed {
       background: Highlight;
       border-color: Highlight;
       color: HighlightText;

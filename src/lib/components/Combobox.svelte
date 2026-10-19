@@ -11,8 +11,10 @@
 <script lang="ts">
   import { mark, word } from '../words.js';
   import { flushSync, tick } from 'svelte';
+  import type { Attachment } from 'svelte/attachments';
   import type { HTMLInputAttributes } from 'svelte/elements';
   import Icon from '../icons/Icon.svelte';
+  import { held, holdAround } from '../internal/held.svelte.js';
   import { formatCount } from '../internal/locale.js';
   import Popover from './Popover.svelte';
   import TextInput from './TextInput.svelte';
@@ -44,6 +46,7 @@
       'Combobox.moreLabel',
       (count: number) => `${formatCount(count)} more, so keep typing to narrow them`
     ),
+    draftMessage = word('Combobox.draftMessage', 'Choose one of the suggestions'),
     onselect,
     onsearcherror,
     element = $bindable(null),
@@ -77,6 +80,8 @@
     countLabel?: (count: number) => string;
     /** Drawn under the list when more match than `limit` draws. */
     moreLabel?: (count: number) => string;
+    /** Said by the field around it when a form is sent while the text names no option. */
+    draftMessage?: string;
     /** Hears each value the reader commits, the empty one included. */
     onselect?: (value: string) => void;
     /** Hears a refused `search`. */
@@ -160,6 +165,18 @@
 
   $effect(() => () => clearTimeout(timer));
 
+  const match = $derived(
+    options
+      .concat(found)
+      .find((option) => !option.disabled && option.label.toLowerCase() === needle)
+  );
+
+  /* Text that names no option is a draft, not a value, so a form refuses a send while it stands
+     instead of posting a value other than the words the reader can see. */
+  const draftOnly: Attachment<HTMLInputElement> = (input) => {
+    input.setCustomValidity(!free && drafting && asked !== '' && !match ? draftMessage : '');
+  };
+
   /* Disabled options stay in the arrow path, so a reader hears they exist; `take` refuses them. */
   const step = (from: number, by: 1 | -1) => (((from + by) % rows) + rows) % rows;
 
@@ -211,7 +228,13 @@
     onselect?.(next);
   }
 
+  /* Work that runs on the form around it holds the value: the field reads only or is disabled,
+     and the list stays shut so no row can be committed. */
+  const around = holdAround();
+  const holding = $derived(held(element, around));
+
   function show(byKey: boolean): void {
+    if (holding) return;
     if (!drafting) typed = false;
     open = true;
     navigated = byKey;
@@ -243,9 +266,6 @@
      screen as a draft while the value it replaced is cleared. */
   function settle(): void {
     if (!typed) return;
-    const match = options
-      .concat(found)
-      .find((option) => !option.disabled && option.label.toLowerCase() === needle);
     if (asked === '') commit('');
     else if (match) commit(match.value);
     else if (free) commit(asked);
@@ -315,21 +335,21 @@ lights an option. The arrows light one and wrap, Enter commits it, and Escape cl
 without closing a surrounding dialog. A disabled option is on the arrow path but cannot be
 chosen. `aria-expanded` is true only while options show. Leaving the field keeps what was
 typed: free text is the value, a label typed in full picks its option, and other text stays as
-a draft while the value it replaced is cleared. `name` posts the value through a hidden input.
+a draft while the value it replaced is cleared, which a form refuses to send. `name` posts the value through a hidden input.
 Name it with a `<label>` or `aria-label`, as any field.
 
 - Semantics: a text input with `role="combobox"` and `aria-autocomplete="list"`, a `role="listbox"` of `role="option"` rows in a popover, a polite `role="status"`, and a hidden input that posts `value`.
 - Content: options with a short label and an optional note, both wrapping; at most `limit` rows are drawn and the rest are counted.
-- States: closed, open, searching, nothing matches, search refused, invalid (the field's danger edge) and disabled; in the list a row is active (a veil and an inset 2px ring), committed (a check mark), pressed (a deeper veil, an inset shadow and a 1px sink) or disabled (0.7 opacity).
-- Keyboard: typing filters, Down and Up open the list and light a row with wrap-around, Enter commits the lit row or settles the typed text, and Escape closes the list and stops there.
+- States: closed, open, searching, nothing matches, search refused, invalid (the field's danger edge) and disabled; in the list a row is active (a veil and an inset 2px ring), committed (a check mark), pressed (a deeper veil, an inset shadow and a 1px sink) or disabled (0.5 opacity).
+- Keyboard: typing filters, Down and Up open the list and light a row with wrap-around, Enter commits the lit row or settles the typed text, and Escape closes the list and stops there; while a busy dialog or a saving pane around it works, the field is disabled and the list stays shut.
 - Pointer and touch: the field is 34px tall, 44px on a phone or any touch screen, every row at least that tall, and a press on a row commits it.
 - Focus: focus stays in the field the whole time; the lit row is `aria-activedescendant`, set only once an arrow or the pointer moved to it.
 - Responsive: the list is at least as wide as the field and at most the room it has, and rows wrap their words and grow.
 - Accessibility: the field's label names the list, the status says searching, nothing found, a refusal and the number of suggestions, and the lit row's ring holds 3:1.
-- Localization: `emptyLabel`, `searchingLabel`, `failedLabel`, `useLabel`, `countLabel` and `moreLabel` are props with English defaults, counts follow the page language, and the list hangs from the start edge in either direction.
+- Localization: `emptyLabel`, `searchingLabel`, `failedLabel`, `useLabel`, `countLabel`, `moreLabel` and `draftMessage` are props with English defaults, counts follow the page language, and the list hangs from the start edge in either direction.
 - Performance: filtering runs on each keystroke over `options`, `search` waits 180ms and drops late answers, and at most `limit` rows render.
 - Analytics: `onselect` hears each committed value and `onsearcherror` each refused search.
-- Failure: a refused search clears its old suggestions and says so, nothing found is said in words, and typed text is never thrown away on blur.
+- Failure: a refused search clears its old suggestions and says so, nothing found is said in words, typed text is never thrown away on blur, and a form refuses a send while the text names no option, with `draftMessage` in the field around it.
 -->
 
 {#snippet marked(label: string)}
@@ -354,6 +374,7 @@ Name it with a `<label>` or `aria-label`, as any field.
     aria-controls={listId}
     aria-activedescendant={listed && current >= 0 ? optionId(current) : undefined}
     {oninput}
+    {@attach draftOnly}
     onkeydown={preview ? undefined : onkeydown}
     {onfocus}
     {onblur}
@@ -484,9 +505,7 @@ Name it with a `<label>` or `aria-label`, as any field.
     outline: none;
     padding-block: var(--sui-space-1);
     padding-inline: var(--sui-space-2) var(--sui-space-3);
-    transition:
-      background-color var(--sui-duration-fast) var(--sui-ease-standard),
-      translate var(--sui-duration-press) var(--sui-ease-standard);
+    transition: translate var(--sui-duration-press) var(--sui-ease-standard);
     -webkit-user-select: none;
     user-select: none;
   }
@@ -517,17 +536,22 @@ Name it with a `<label>` or `aria-label`, as any field.
   .sui-combobox-check {
     display: flex;
     justify-content: center;
-    margin-block: calc((var(--sui-leading-meta) - var(--sui-icon-base)) / 2);
+    /* Centred on the name's first line, the box an even snap gives one line, so the check
+       stands on whole pixels at the middle of the words (L-94). */
+    margin-block: calc((round(up, 1cap, 2px) - var(--sui-icon-base)) / 2);
   }
 
   .sui-combobox-option:not([aria-selected='true']) .sui-combobox-check {
     visibility: hidden;
   }
 
-  /* No cap trim: a name has descenders, and the row centres it on its own. */
+  /* The name runs cap line to baseline, so the row's room above and under it match (L-102). */
   .sui-combobox-text {
+    align-content: center;
+    block-size: var(--sui-block-snap-even);
     min-inline-size: 0;
     overflow-wrap: anywhere;
+    text-box: trim-both cap alphabetic;
   }
 
   .sui-combobox-note {

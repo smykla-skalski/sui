@@ -3,36 +3,57 @@
   const HOUR = 60 * MINUTE;
   const DAY = 24 * HOUR;
 
+  /* Making a formatter costs far more than using one, and every time on the page rewords
+     itself on each clock tick, so each language's formatters are made once. */
+  const made = new Map<string, Intl.RelativeTimeFormat | Intl.DateTimeFormat>();
+  function once<T extends Intl.RelativeTimeFormat | Intl.DateTimeFormat>(
+    key: string,
+    make: () => T
+  ): T {
+    let formatter = made.get(key);
+    if (!formatter) made.set(key, (formatter = make()));
+    return formatter as T;
+  }
+
   /* Elapsed time only, never calendar days: "yesterday" depends on the zone the page is
      read in. A week out, the date says more than a count. */
   function relative(at: number, now: number, locale: string | undefined): string {
-    const counted = new Intl.RelativeTimeFormat(locale, { numeric: 'always' });
+    const counted = once(
+      `counted ${locale}`,
+      () => new Intl.RelativeTimeFormat(locale, { numeric: 'always' })
+    );
     const delta = at - now;
     const span = Math.abs(delta);
     const sign = Math.sign(delta);
     if (span < MINUTE)
-      return new Intl.RelativeTimeFormat(locale, { numeric: 'auto' }).format(0, 'second');
+      return once(
+        `now ${locale}`,
+        () => new Intl.RelativeTimeFormat(locale, { numeric: 'auto' })
+      ).format(0, 'second');
     if (span < HOUR) return counted.format(sign * Math.floor(span / MINUTE), 'minute');
     if (span < DAY) return counted.format(sign * Math.floor(span / HOUR), 'hour');
     if (span < 7 * DAY) return counted.format(sign * Math.floor(span / DAY), 'day');
-    return new Date(at).toLocaleDateString(locale, {
-      day: 'numeric',
-      month: 'short',
-      year: 'numeric'
-    });
+    return once(
+      `date ${locale}`,
+      () => new Intl.DateTimeFormat(locale, { day: 'numeric', month: 'short', year: 'numeric' })
+    ).format(at);
   }
 
   /* The language decides the hour cycle and how the zone is spelled. */
   function exact(at: number, locale: string | undefined): string {
-    return new Date(at).toLocaleString(locale, {
-      day: 'numeric',
-      month: 'short',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit',
-      timeZoneName: 'shortOffset'
-    });
+    return once(
+      `exact ${locale}`,
+      () =>
+        new Intl.DateTimeFormat(locale, {
+          day: 'numeric',
+          month: 'short',
+          year: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit',
+          second: '2-digit',
+          timeZoneName: 'shortOffset'
+        })
+    ).format(at);
   }
 </script>
 
@@ -133,18 +154,32 @@ tooltip.
 </time>{#if element && !exactOnly}<Tooltip anchor={element} text={whole} />{/if}
 
 <style>
+  /* A dotted underline with room between its dots: a native dotted line spaces its dots one
+     stroke apart, which reads as solid, so a row of round dots, 4px apart, runs along the foot
+     of the words instead. */
   .sui-relative-time {
+    --sui-local-dot: color-mix(in srgb, var(--sui-text-muted) 70%, transparent);
+    background-image: radial-gradient(circle, var(--sui-local-dot) 0.75px, transparent 1.25px);
+    background-position: 0 100%;
+    background-repeat: repeat-x;
+    background-size: 4px 2px;
+    /* A flex or grid parent makes the time a block and may stretch it, and the dots follow its
+       box, so the box keeps to its words. */
+    inline-size: fit-content;
     position: relative;
-    text-decoration: underline dotted color-mix(in srgb, var(--sui-text-muted) 55%, transparent);
-    text-decoration-thickness: var(--sui-stroke);
-    text-underline-offset: 3px;
     white-space: nowrap;
   }
 
+  /* The help cursor says the words explain themselves on hover, as an `abbr` does. */
+  .sui-relative-time:not(.exact) {
+    cursor: help;
+  }
+
+  /* Hover strengthens the dots and only nudges the words, so the reading stays in its sentence. */
   @media (hover: hover) {
     .sui-relative-time:not(.exact):hover {
-      color: var(--sui-text-secondary);
-      text-decoration-color: var(--sui-text-secondary);
+      --sui-local-dot: var(--sui-text-secondary);
+      color: color-mix(in oklab, currentColor 75%, var(--sui-text-primary));
     }
   }
 
@@ -163,8 +198,15 @@ tooltip.
   /* The whole instant is twice as long as the relative reading, so it may wrap where a
      column sized for the short one would otherwise clip it. */
   .exact {
-    text-decoration: none;
+    background-image: none;
     white-space: normal;
+  }
+
+  /* Forced colors drop background images, so the system draws its own dotted line there. */
+  @media (forced-colors: active) {
+    .sui-relative-time:not(.exact) {
+      text-decoration: underline dotted;
+    }
   }
 
   /* A long press shows the tip on touch, so the system's own long-press menu and word selection

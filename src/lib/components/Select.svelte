@@ -7,6 +7,12 @@
     /** A short note after the label, such as "10 seats". The picker shows it, the closed field does not. */
     description?: string;
     disabled?: boolean;
+    /**
+     * The colour scheme the option stands for, in a theme picker. While the value is not known
+     * yet, as in a server render before a stored choice is read, the closed field names the
+     * option for the scheme the page wears instead of its prompt.
+     */
+    scheme?: 'light' | 'dark' | 'system';
   };
 
   export type SelectGroup<Value extends SelectValue = string> = {
@@ -20,6 +26,9 @@
   import { mark, word } from '../words.js';
   import type { HTMLSelectAttributes } from 'svelte/elements';
   import Icon from '../icons/Icon.svelte';
+  import { held, holdAround } from '../internal/held.svelte.js';
+  import { getRefusals } from '../internal/refusals.svelte.js';
+  import { themeAt } from '../internal/theme.svelte.js';
 
   let {
     value = $bindable(null),
@@ -36,6 +45,8 @@
     bare = false,
     element = $bindable(null),
     'aria-invalid': ariaInvalid,
+    onmousedown,
+    onkeydown,
     class: className = '',
     ...rest
   }: {
@@ -67,7 +78,39 @@
     'options' in item;
 
   const prompt = $derived(placeholder ?? (value === null ? promptLabel : undefined));
-  const wrong = $derived(invalid || (ariaInvalid !== undefined && String(ariaInvalid) !== 'false'));
+  // Options that name a colour scheme stand in for the prompt while the value is unknown, and
+  // the page's own theme picks one of them in CSS before any script runs.
+  const presumed = $derived(
+    value === null && placeholder === undefined
+      ? options
+          .flatMap((item) => (isGroup(item) ? item.options : [item]))
+          .filter((option) => option.scheme !== undefined)
+      : []
+  );
+  // The picker is a layer of its own that no attribute reaches, so its rows name the theme.
+  const pickerTheme = $derived(themeAt(element));
+  const refusals = getRefusals();
+  const wrong = $derived(
+    invalid ||
+      (ariaInvalid !== undefined && String(ariaInvalid) !== 'false') ||
+      Boolean(refusals?.refuses(element))
+  );
+  /* Work that runs on the form around it holds the value. A firm hold disables it once its
+     owner has moved focus to the busy action. A select has no read-only state, so under a soft
+     hold it stays a tab stop and refuses the press that opens it and every key but Tab. */
+  const around = holdAround();
+  const holding = $derived(held(element, around));
+
+  function press(event: MouseEvent & { currentTarget: EventTarget & HTMLSelectElement }) {
+    if (holding) event.preventDefault();
+    else onmousedown?.(event);
+  }
+
+  function key(event: KeyboardEvent & { currentTarget: EventTarget & HTMLSelectElement }) {
+    if (holding && event.key !== 'Tab') event.preventDefault();
+    else onkeydown?.(event);
+  }
+
   const flat = $derived(options.flatMap((item) => (isGroup(item) ? item.options : [item])));
   const chosen = $derived(flat.find((option) => option.value === value));
   const active = $derived.by(() => {
@@ -94,10 +137,10 @@ pointing at its `id`, or with `aria-label`, and pass a `Field`'s `invalid` to `i
 error edge shows. `preview` draws an inert copy of the open picker under the field, hidden from
 assistive technology, because a native picker cannot be held open.
 
-- Semantics: a native `<select>` with `<option>` and `<optgroup>` children, named by a `<label for>` or `aria-label`; `invalid` sets `aria-invalid`.
+- Semantics: a native `<select>` with `<option>` and `<optgroup>` children, named by a `<label for>` or `aria-label`; `invalid` or a value the browser's check refused sets `aria-invalid`.
 - Content: six or more options with short labels and optional notes, in optional headed groups; disabled options stay in view.
-- States: rest (the control fill, a quiet frame and a 3:1 baseline), hover (a firmer frame), open, focus (a flush 2px ring), pressed (a deeper ground, an inset shadow and a 1px sink), invalid (a danger edge kept under focus), prompt (muted ink) and disabled (0.7 opacity); in the picker an option is active (a veil) or checked (a check mark).
-- Keyboard: the browser's own select keys: Space, Enter and the arrows open it and move, typing jumps to a label, and Escape closes it.
+- States: rest (the control fill, a quiet frame, a recess under its top edge darker than the frame and a 3:1 baseline), hover (a firmer frame and recess), open, focus (a flush 2px ring), pressed (a deeper ground, an inset shadow and a 1px sink), invalid (a danger edge kept under focus), prompt (muted ink), held (disabled while a busy dialog or a saving pane around it works, a tab stop that refuses every change while a saving setting row does, 0.5 opacity either way) and disabled (0.5 opacity); in the picker an option is active (a veil) or checked (a check mark).
+- Keyboard: the browser's own select keys: Space, Enter and the arrows open it and move, typing jumps to a label, and Escape closes it; a held select refuses all of them but Tab.
 - Pointer and touch: the trigger is 34px tall on a pointer and 44px on a phone or any touch screen, every option at least that tall, and a phone opens its own picker.
 - Focus: focus stays on the trigger while the picker opens and closes.
 - Responsive: the trigger is as wide as its value up to its container and cuts a long value, which the picker shows in full, wrapped.
@@ -105,21 +148,22 @@ assistive technology, because a native picker cannot be held open.
 - Localization: `promptLabel`, `separator` and `optionName` are props with English defaults, the chevron and padding are logical, and the picker opens at the start edge in either direction.
 - Performance: native options render once each; the open picker moves only opacity and `translate`, with no movement under reduced motion.
 - Analytics: the native `onchange` reports each pick, and `bind:value` holds it.
-- Failure: no options show only the prompt, a required select with no answer is refused by native validation, and a refused value keeps its danger edge.
+- Failure: no options show only the prompt, a required select with no answer is refused by native validation, which the error line of the field around it says in place of the browser's bubble (the browser says it with no field around it), and a refused value keeps its danger edge.
 -->
 
 {#snippet face(label: string, description?: string)}
   <span class="sui-select-check"><Icon name="check" size="base" /></span>
   <span class="sui-select-text"
-    ><span class="sui-select-label">{label}</span>{#if description}<span class="sui-select-note"
-        >{separator}{description}</span
-      >{/if}</span
+    ><span class="sui-select-label">{label}</span>{#if description}<span class="sui-select-sep"
+        >{separator}</span
+      ><span class="sui-select-note">{description}</span>{/if}</span
   >
 {/snippet}
 
 {#snippet choice(option: SelectOption<SelectValue>)}
   <option
     class="sui-select-option"
+    data-sui-theme={pickerTheme}
     value={option.value}
     disabled={option.disabled}
     aria-label={option.description ? optionName(option.label, option.description) : undefined}
@@ -142,19 +186,41 @@ assistive technology, because a native picker cannot be held open.
     <select
       bind:this={element}
       {...rest}
+      {@attach refusals?.watch}
       class="sui-select-control"
       aria-invalid={wrong || undefined}
+      disabled={rest.disabled || holding === 'firm'}
+      aria-disabled={Boolean(holding) || rest['aria-disabled']}
+      onmousedown={press}
+      onkeydown={key}
       bind:value={() => value ?? '', (next) => (value = next === '' ? null : next)}
     >
       <button><selectedcontent class="sui-select-value"></selectedcontent></button>
       {#if prompt !== undefined}
-        <option class="sui-select-option sui-select-placeholder" value="" disabled>
-          {@render face(prompt)}
+        <option
+          class={['sui-select-option', 'sui-select-placeholder', { presumed: presumed.length > 0 }]}
+          data-sui-theme={pickerTheme}
+          value=""
+          disabled
+        >
+          {#if presumed.length > 0}
+            <span class="sui-select-check"><Icon name="check" size="base" /></span>
+            <span class="sui-select-text"
+              ><span class="sui-select-label"
+                >{#each presumed as option (option.value)}<span
+                    class="sui-select-scheme"
+                    data-scheme={option.scheme}>{option.label}</span
+                  >{/each}</span
+              ></span
+            >
+          {:else}
+            {@render face(prompt)}
+          {/if}
         </option>
       {/if}
       {#each options as item (item)}
         {#if isGroup(item)}
-          <optgroup label={item.label}>
+          <optgroup label={item.label} data-sui-theme={pickerTheme}>
             <legend class="sui-select-heading">{item.label}</legend>
             {#each item.options as option (option.value)}{@render choice(option)}{/each}
           </optgroup>
@@ -211,6 +277,7 @@ assistive technology, because a native picker cannot be held open.
     border: var(--sui-stroke) solid var(--sui-field-frame);
     border-block-end-color: var(--sui-field-border);
     border-radius: var(--sui-radius-control);
+    box-shadow: inset 0 var(--sui-stroke) 0 var(--sui-field-recess);
     box-sizing: border-box;
     color: var(--sui-text-primary);
     cursor: pointer;
@@ -223,7 +290,6 @@ assistive technology, because a native picker cannot be held open.
     padding-inline: var(--sui-space-2) calc(2 * var(--sui-space-2) + var(--sui-icon-sm));
     text-overflow: ellipsis;
     transition:
-      border-color var(--sui-duration-fast) var(--sui-ease-standard),
       translate var(--sui-duration-press) var(--sui-ease-standard),
       box-shadow var(--sui-duration-press) var(--sui-ease-standard);
     -webkit-user-select: none;
@@ -231,33 +297,73 @@ assistive technology, because a native picker cannot be held open.
     white-space: nowrap;
   }
 
-  .sui-select-control:has(> .sui-select-placeholder:checked) {
+  .sui-select-control:has(> .sui-select-placeholder:not(.presumed):checked) {
     color: var(--sui-text-muted);
   }
 
-  @media (hover: hover) {
-    .sui-select-control:hover:not(
-        :active,
-        :disabled,
-        :focus-visible,
-        [aria-invalid='true'],
-        :user-invalid
-      ) {
-      border-color: var(--sui-field-frame-hover);
-      border-block-end-color: var(--sui-field-border-hover);
+  /* The scheme the page wears: the one the root's `data-sui-theme` names, System where the page
+     sets none, or the system's own scheme in a picker without System. */
+  .sui-select-scheme {
+    display: none;
+  }
+
+  :global(:root[data-sui-theme='light']) .sui-select-scheme[data-scheme='light'],
+  :global(:root[data-sui-theme='dark']) .sui-select-scheme[data-scheme='dark'],
+  :global(:root:not([data-sui-theme])) .sui-select-scheme[data-scheme='system'] {
+    display: inline;
+  }
+
+  @media (prefers-color-scheme: light) {
+    :global(:root:not([data-sui-theme]))
+      .sui-select-label:not(:has(> [data-scheme='system']))
+      > .sui-select-scheme[data-scheme='light'] {
+      display: inline;
     }
   }
 
-  .sui-select-control:active:not(:disabled) {
+  @media (prefers-color-scheme: dark) {
+    :global(:root:not([data-sui-theme]))
+      .sui-select-label:not(:has(> [data-scheme='system']))
+      > .sui-select-scheme[data-scheme='dark'] {
+      display: inline;
+    }
+  }
+
+  @media (hover: hover) {
+    /* Hover lays the row veil over the field and steps its edge up, and an invalid field keeps
+       its danger edge, a step deeper, so every field answers the pointer (L-9). */
+    .sui-select:not(.bare)
+      .sui-select-control:hover:not(:active, :disabled, [aria-disabled='true'], :focus-visible) {
+      background-color: var(--sui-field-hover);
+      border-color: var(--sui-field-frame-hover);
+      border-block-end-color: var(--sui-field-border-hover);
+      box-shadow: inset 0 var(--sui-stroke) 0 var(--sui-field-recess-hover);
+    }
+
+    .sui-select:not(.bare)
+      .sui-select-control:is([aria-invalid='true'], :user-invalid):hover:not(
+        :active,
+        :disabled,
+        [aria-disabled='true'],
+        :focus-visible
+      ) {
+      background-color: var(--sui-field-danger-hover);
+      border-color: var(--sui-danger-hover);
+    }
+  }
+
+  .sui-select-control:active:not(:disabled, [aria-disabled='true']) {
     background-image: linear-gradient(
       var(--sui-interactive-pressed),
       var(--sui-interactive-pressed)
     );
-    box-shadow: var(--sui-pressed-inset);
+    box-shadow:
+      inset 0 var(--sui-stroke) 0 var(--sui-field-recess),
+      var(--sui-pressed-inset);
     translate: 0 1px;
   }
 
-  .sui-select-control:active:not(:disabled) + .sui-select-chevron {
+  .sui-select-control:active:not(:disabled, [aria-disabled='true']) + .sui-select-chevron {
     translate: 0 1px;
   }
 
@@ -272,12 +378,12 @@ assistive technology, because a native picker cannot be held open.
     border-color: var(--sui-danger);
   }
 
-  .sui-select-control:disabled {
+  .sui-select-control:is(:disabled, [aria-disabled='true']) {
     cursor: default;
   }
 
-  .sui-select-control:disabled,
-  .sui-select-control:disabled + .sui-select-chevron {
+  .sui-select-control:is(:disabled, [aria-disabled='true']),
+  .sui-select-control:is(:disabled, [aria-disabled='true']) + .sui-select-chevron {
     opacity: var(--sui-disabled-opacity);
   }
 
@@ -286,17 +392,39 @@ assistive technology, because a native picker cannot be held open.
      without the sink; the ink rises when a pointer or the keyboard is on it, and its own inset
      ring says that focus left the value for the unit. */
   .bare .sui-select-control,
-  .bare .sui-select-control:is(:active, :focus-visible, [aria-invalid='true'], :user-invalid) {
+  .bare .sui-select-control:is(:focus-visible, [aria-invalid='true'], :user-invalid) {
     background-color: transparent;
+    /* Round on the side that faces the value; the field's own curve clips the far side. */
     border-radius: 0;
+    border-end-start-radius: var(--sui-radius-control);
+    border-start-start-radius: var(--sui-radius-control);
     border-width: 0;
+    box-shadow: none;
     color: var(--sui-text-secondary);
     margin-block: calc(-1 * var(--sui-stroke));
-    padding-inline-start: var(--sui-space-1);
+    /* The field's own text inset, so the unit's words sit as far in as a value's would. */
+    padding-inline-start: var(--sui-space-2);
     translate: none;
   }
 
-  .bare .sui-select-control:active:not(:disabled) + .sui-select-chevron {
+  /* While its picker is open the unit keeps the lit ground and ink, as an icon button does
+     while its menu is open, so the part the list belongs to stays marked. */
+  .bare .sui-select-control:open,
+  .bare:has(.sui-select-control:open) .sui-select-chevron {
+    color: var(--sui-text-primary);
+  }
+
+  .bare .sui-select-control:open {
+    background-color: var(--sui-interactive-hover-layer);
+  }
+
+  .bare .sui-select-control:active:not(:disabled, [aria-disabled='true']) {
+    background-color: var(--sui-interactive-pressed);
+    box-shadow: var(--sui-pressed-inset);
+    translate: none;
+  }
+
+  .bare .sui-select-control:active:not(:disabled, [aria-disabled='true']) + .sui-select-chevron {
     translate: none;
   }
 
@@ -305,25 +433,31 @@ assistive technology, because a native picker cannot be held open.
     outline-offset: var(--sui-focus-ring-inset);
   }
 
-  .bare .sui-select-chevron {
-    transition: color var(--sui-duration-fast) var(--sui-ease-standard);
-  }
-
   .bare:has(.sui-select-control:focus-visible) .sui-select-control,
   .bare:has(.sui-select-control:focus-visible) .sui-select-chevron {
     color: var(--sui-text-primary);
   }
 
   @media (hover: hover) {
-    .bare:has(.sui-select-control:hover:not(:disabled)) .sui-select-control,
-    .bare:has(.sui-select-control:hover:not(:disabled)) .sui-select-chevron {
+    .bare .sui-select-control:hover:not(:disabled, [aria-disabled='true'], :active) {
+      background-color: var(--sui-interactive-hover-layer);
+    }
+
+    .bare:has(.sui-select-control:hover:not(:disabled, [aria-disabled='true'])) .sui-select-control,
+    .bare:has(.sui-select-control:hover:not(:disabled, [aria-disabled='true']))
+      .sui-select-chevron {
       color: var(--sui-text-primary);
     }
   }
 
-  .bare .sui-select-control:disabled,
-  .bare .sui-select-control:disabled + .sui-select-chevron {
+  .bare .sui-select-control:is(:disabled, [aria-disabled='true']),
+  .bare .sui-select-control:is(:disabled, [aria-disabled='true']) + .sui-select-chevron {
     opacity: 1;
+  }
+
+  /* The chevron turns over while the picker is open. */
+  .sui-select-control:open + .sui-select-chevron {
+    rotate: 180deg;
   }
 
   .sui-select-chevron {
@@ -333,6 +467,7 @@ assistive technology, because a native picker cannot be held open.
     justify-self: end;
     margin-inline-end: var(--sui-space-2);
     pointer-events: none;
+    transition: rotate var(--sui-duration-open) var(--sui-ease-standard);
   }
 
   /* A phone keeps its own picker, which suits touch and screen readers better than any page can. */
@@ -357,6 +492,17 @@ assistive technology, because a native picker cannot be held open.
         .sui-select-control:open:not(:focus-visible, [aria-invalid='true'], :user-invalid) {
         border-color: var(--sui-field-frame-hover);
         border-block-end-color: var(--sui-field-border-hover);
+      }
+
+      /* The press that opens the picker keeps its own inset until it lets go (L-42). */
+      .sui-select:not(.bare)
+        .sui-select-control:open:not(
+          :active,
+          :focus-visible,
+          [aria-invalid='true'],
+          :user-invalid
+        ) {
+        box-shadow: inset 0 var(--sui-stroke) 0 var(--sui-field-recess-hover);
       }
 
       /* The full label shows in the picker, so the closed field may cut it. */
@@ -388,10 +534,10 @@ assistive technology, because a native picker cannot be held open.
         overscroll-behavior: contain;
         padding: var(--sui-space-1);
         transition:
-          opacity var(--sui-duration-fast) var(--sui-ease-standard),
-          translate var(--sui-duration-fast) var(--sui-ease-standard),
-          overlay var(--sui-duration-fast) allow-discrete,
-          display var(--sui-duration-fast) allow-discrete;
+          opacity var(--sui-duration-open) var(--sui-ease-standard),
+          translate var(--sui-duration-open) var(--sui-ease-standard),
+          overlay var(--sui-duration-open) allow-discrete,
+          display var(--sui-duration-open) allow-discrete;
         translate: 0 0;
       }
 
@@ -447,7 +593,6 @@ assistive technology, because a native picker cannot be held open.
     gap: var(--sui-space-2);
     min-block-size: var(--sui-control-height-compact);
     padding: var(--sui-space-1) var(--sui-space-3);
-    transition: background-color var(--sui-duration-fast) var(--sui-ease-standard);
     white-space: normal;
   }
 
@@ -486,15 +631,34 @@ assistive technology, because a native picker cannot be held open.
     visibility: hidden;
   }
 
+  /* The name runs cap line to baseline, so the row's room above and under it match (L-102). */
   .sui-select-text {
+    align-content: center;
+    block-size: var(--sui-block-snap-even);
     flex: 1 1 auto;
     min-inline-size: 0;
     overflow-wrap: anywhere;
+    text-box: trim-both cap alphabetic;
   }
 
   .sui-select-note {
     color: var(--sui-text-muted);
     font-weight: var(--sui-weight-regular);
+  }
+
+  /* A picker the page draws parts the name and the note with the fact line's drawn dot; a
+     native picker shows text only, so it keeps the typed separator (L-103). The option's name
+     already says both, so the dot itself says nothing. */
+  @supports (appearance: base-select) {
+    .sui-select-sep {
+      display: none;
+    }
+
+    .sui-select-note::before {
+      color: var(--sui-text-muted);
+      content: '·' / '';
+      margin-inline: var(--sui-sep-space);
+    }
   }
 
   /* Muted ink drops under 4.5:1 on the active row's veil. */
@@ -513,13 +677,12 @@ assistive technology, because a native picker cannot be held open.
 
   @media (prefers-reduced-motion: reduce) {
     .sui-select-control,
-    .sui-select-option,
-    .bare .sui-select-chevron {
+    .sui-select-chevron {
       transition: none;
     }
 
-    .sui-select-control:active:not(:disabled),
-    .sui-select-control:active:not(:disabled) + .sui-select-chevron {
+    .sui-select-control:active:not(:disabled, [aria-disabled='true']),
+    .sui-select-control:active:not(:disabled, [aria-disabled='true']) + .sui-select-chevron {
       translate: none;
     }
 
@@ -537,6 +700,12 @@ assistive technology, because a native picker cannot be held open.
     }
 
     .sui-select-option:is(:focus-visible, .active) {
+      outline: var(--sui-stroke) solid Highlight;
+      outline-offset: calc(-1 * var(--sui-stroke));
+    }
+
+    /* High contrast drops the lit ground, so an open unit draws its edge instead. */
+    .bare .sui-select-control:open:not(:focus-visible) {
       outline: var(--sui-stroke) solid Highlight;
       outline-offset: calc(-1 * var(--sui-stroke));
     }

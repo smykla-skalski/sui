@@ -54,7 +54,7 @@ is `Button` with `href`, and the way back from a page is `BackLink`.
 
 - Semantics: a native `<a href>` named by its words, with the external note as its description.
 - Content: a few words that say where it goes, never "click here"; an external one adds a 10px arrow kept on the line of its last word.
-- States: rest (action ink at 600 with a full underline), hover (a 2px underline), focus (a 2px ring 2px off), pressed (a deeper ink) and visited, which looks like rest.
+- States: rest (action ink at 600 with a full underline), hover (a 2px underline and an ink a step toward the page's ink), focus (a 2px ring 2px off), pressed (a deeper ink) and visited, which looks like rest.
 - Keyboard: Tab reaches it and Enter follows it.
 - Pointer and touch: inside a sentence its target is the words' line, as WCAG 2.5.8 allows; `standalone` grows the hit area to 24px, and 44px on a phone or any touch screen.
 - Focus: following it moves focus as the browser's navigation does; nothing here moves it.
@@ -92,19 +92,19 @@ is `Button` with `href`, and the way back from a page is `BackLink`.
     text-decoration-color: currentColor;
     text-decoration-thickness: var(--sui-stroke);
     text-underline-offset: 0.18em;
-    transition:
-      color var(--sui-duration-fast) var(--sui-ease-standard),
-      text-decoration-thickness var(--sui-duration-fast) var(--sui-ease-standard);
   }
 
+  /* Hover thickens the line and steps the ink toward the page's ink, which only adds
+     contrast; a press steps it further. */
   @media (hover: hover) {
     .sui-link:hover {
+      color: color-mix(in oklab, var(--sui-link) 84%, var(--sui-text-primary));
       text-decoration-thickness: var(--sui-stroke-bold);
     }
   }
 
   .sui-link:active {
-    color: color-mix(in srgb, var(--sui-link) 78%, var(--sui-text-primary));
+    color: color-mix(in oklab, var(--sui-link) 70%, var(--sui-text-primary));
   }
 
   .sui-link:focus-visible {
@@ -138,12 +138,6 @@ is `Button` with `href`, and the way back from a page is `BackLink`.
     .standalone::after {
       inset-block: min(0%, round(down, calc((100% - var(--sui-touch-target)) / 2), 1px));
       inset-inline: min(0%, round(down, calc((100% - var(--sui-touch-target)) / 2), 1px));
-    }
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    .sui-link {
-      transition: none;
     }
   }
 </style>

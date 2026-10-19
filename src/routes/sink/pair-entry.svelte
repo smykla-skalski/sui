@@ -8,7 +8,7 @@
 </script>
 
 <script lang="ts">
-  import { Card, PairEntry, SettingList, SettingRow, type Pair } from '#lib';
+  import { PairEntry, Section, SettingList, SettingRow, type Pair } from '#lib';
   import Example from '../kit/Example.svelte';
   import Specimen from '../kit/Specimen.svelte';
 
@@ -59,9 +59,9 @@
   }
 </script>
 
-<!-- The card of "In a setting row" again, for the narrow example, whose markup is the same. -->
+<!-- The section of "In a setting row" again, for the narrow example, whose markup is the same. -->
 {#snippet aliases()}
-  <Card title="Commands" level={4}>
+  <Section title="Commands" level={4}>
     <SettingList>
       <SettingRow
         name="Aliases"
@@ -70,6 +70,7 @@
         onclear={changed ? reset : undefined}
         resettable
         clearLabel="Reset aliases"
+        stacked
       >
         {#snippet control({ labelledby })}
           <PairEntry
@@ -84,7 +85,7 @@
         {/snippet}
       </SettingRow>
     </SettingList>
-  </Card>
+  </Section>
 {/snippet}
 
 <Example
@@ -150,7 +151,7 @@
 
 <Example
   title="Narrow width"
-  note="On a narrow card the chips take the line under the copy and pack to its start"
+  note="In a narrow section the chips take the line under the copy and pack to its start"
   layout="stack"
   ground="canvas"
   code={false}

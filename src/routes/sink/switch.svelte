@@ -8,7 +8,7 @@
 </script>
 
 <script lang="ts">
-  import { Card, Switch } from '#lib';
+  import { Section, Switch } from '#lib';
   import Example from '../kit/Example.svelte';
   import Specimen from '../kit/Specimen.svelte';
   import Variants from '../kit/Variants.svelte';
@@ -99,18 +99,18 @@
 </Example>
 
 <Example
-  title="In a card head"
+  title="In a section head"
   note="A bare switch keeps its 44px hit area as paint, so the head keeps its own rhythm"
   layout="grid"
   ground="canvas"
 >
   <Specimen label="Bare" code="bare">
-    <Card title="Scheduled syncs" level={4}>
+    <Section title="Scheduled syncs" level={4}>
       {#snippet actions()}
         <Switch aria-label="Run scheduled syncs" bare bind:checked={scheduled} />
       {/snippet}
       <p class="copy">Every repository syncs at 02:00 in its own time zone</p>
-    </Card>
+    </Section>
   </Specimen>
 </Example>
 
@@ -137,6 +137,7 @@
   }
 
   .reason {
+    align-content: center;
     block-size: var(--sui-block-snap);
     color: var(--sui-text-secondary);
     font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-row-copy-leading)

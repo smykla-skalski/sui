@@ -2,17 +2,17 @@
   export const section = {
     title: 'Setting list',
     order: 108,
-    lead: 'The settings of one card, each a row with its name, a why line and its controls. A short form stacks Fields instead.',
+    lead: 'The settings of one section, each a row with its name, a why line and its controls. A short form stacks Fields instead.',
     components: ['SettingList', 'SettingRow']
   };
 </script>
 
 <script lang="ts">
   import {
-    Card,
     Checkbox,
     DurationInput,
     PatternEntries,
+    Section,
     SegmentedControl,
     SettingList,
     SettingRow,
@@ -43,6 +43,7 @@
   let prefix = $state(saved.prefix);
   let session = $state(saved.session);
   let ignore = $state([...saved.ignore]);
+  const ignoreChanged = $derived(JSON.stringify(ignore) !== JSON.stringify(saved.ignore));
 
   // A reset hands back a way to put the change back, so the row can offer Undo.
   function resetter<T>(read: () => T, write: (value: T) => void, start: T) {
@@ -75,12 +76,12 @@
 </script>
 
 <Example
-  title="In a card"
-  note="A checkbox, a segmented control, a field, a duration, a list and a read-only fact, with the two changed rows 1px apart"
+  title="In a section"
+  note="A checkbox, a segmented control, a field, a duration, a list and a read-only fact, with a 5px strip between the two changed rows"
   layout="stack"
   ground="canvas"
 >
-  <Card title="Runtime" level={4}>
+  <Section title="Runtime" level={4}>
     <SettingList>
       <SettingRow
         name="Retry failed checks"
@@ -126,6 +127,14 @@
         name="Command prefix"
         why="What a comment starts with to reach the bot"
         unsaved={prefix !== saved.prefix}
+        onclear={prefix !== saved.prefix
+          ? resetter(
+              () => prefix,
+              (value) => (prefix = value),
+              saved.prefix
+            )
+          : undefined}
+        resettable
       >
         {#snippet control({ id, describedby })}
           <span class="prefix">
@@ -137,6 +146,14 @@
         name="Session lifetime"
         why="How long a sign-in lasts before it is asked for again"
         unsaved={session !== saved.session}
+        onclear={session !== saved.session
+          ? resetter(
+              () => session,
+              (value) => (session = value),
+              saved.session
+            )
+          : undefined}
+        resettable
       >
         {#snippet control({ id, describedby })}
           <DurationInput
@@ -151,7 +168,16 @@
       <SettingRow
         name="Paths the bot never formats, even when a rule in a parent workspace asks it to"
         why="Every file under these patterns is left exactly as it was committed, which keeps generated and vendored code untouched"
-        unsaved={JSON.stringify(ignore) !== JSON.stringify(saved.ignore)}
+        unsaved={ignoreChanged}
+        onclear={ignoreChanged
+          ? resetter(
+              () => ignore,
+              (value) => (ignore = value),
+              [...saved.ignore]
+            )
+          : undefined}
+        resettable
+        stacked
       >
         {#snippet control({ labelledby })}
           <PatternEntries
@@ -167,7 +193,7 @@
         {/snippet}
       </SettingRow>
     </SettingList>
-  </Card>
+  </Section>
 </Example>
 
 <Example
@@ -176,7 +202,7 @@
   layout="stack"
   ground="canvas"
 >
-  <Card title="Delivery" level={4}>
+  <Section title="Delivery" level={4}>
     <SettingList>
       <SettingRow
         name="Mirror to the backup region"
@@ -205,7 +231,7 @@
         {/snippet}
       </SettingRow>
     </SettingList>
-  </Card>
+  </Section>
 </Example>
 
 <Example
@@ -215,15 +241,15 @@
   ground="canvas"
 >
   <Specimen label="Loading" code="loading">
-    <Card title="Webhooks" level={4}><SettingList loading /></Card>
+    <Section title="Webhooks" level={4}><SettingList loading /></Section>
   </Specimen>
   <Specimen label="Failed" code="error onretry">
-    <Card title="Webhooks" level={4}>
+    <Section title="Webhooks" level={4}>
       <SettingList error="The server did not answer in time" onretry={() => {}} />
-    </Card>
+    </Section>
   </Specimen>
   <Specimen label="Nothing to set" code="empty">
-    <Card title="Webhooks" level={4}><SettingList empty /></Card>
+    <Section title="Webhooks" level={4}><SettingList empty /></Section>
   </Specimen>
 </Example>
 
@@ -234,7 +260,7 @@
   ground="canvas"
 >
   <div class="narrow">
-    <Card title="Runtime" level={4}>
+    <Section title="Runtime" level={4}>
       <SettingList>
         <SettingRow
           name="Retry failed checks"
@@ -276,7 +302,7 @@
           {/snippet}
         </SettingRow>
       </SettingList>
-    </Card>
+    </Section>
   </div>
 </Example>
 
@@ -286,7 +312,10 @@
     inline-size: 8rem;
   }
 
+  /* The snap's spare pixel goes above the words, as it does above a row's name, so the words
+     end on the list's foot, where the section's rhythm measures from, when the fact closes it. */
   .fact {
+    align-content: end;
     block-size: var(--sui-block-snap-even);
     color: var(--sui-text-secondary);
     font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-leading-flat)

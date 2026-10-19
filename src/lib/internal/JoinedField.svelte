@@ -1,5 +1,6 @@
 <script lang="ts">
   import type { Snippet } from 'svelte';
+  import { held, holdAround } from './held.svelte.js';
 
   let {
     invalid = false,
@@ -17,6 +18,11 @@
     /** The part that qualifies or acts on it, such as a unit or a copy control, drawn `bare`. */
     end: Snippet;
   } = $props();
+
+  let root = $state<HTMLDivElement | null>(null);
+  /* Work that runs on the form around it holds both parts, which dims the field as disabled. */
+  const around = holdAround();
+  const holding = $derived(held(root, around));
 </script>
 
 <!--
@@ -30,7 +36,7 @@ the end part draws its own inset ring while it has focus, so the two never look 
 
 - Semantics: a `<div>` with no role around two native controls, each named on its own.
 - Content: `start`, the value, and `end`, one unit picker or one action, each drawn `bare`.
-- States: rest (the control fill, a quiet frame and a 3:1 baseline), hover (a firmer frame), the value focused (the inset fill and a flush 2px ring), the end focused (its own inset ring), invalid (a danger edge on all four sides in every state), read-only (the inset well and a quiet frame) and disabled (0.7 opacity).
+- States: rest (the control fill, a quiet frame, a recess under its top edge darker than the frame and a 3:1 baseline), hover anywhere on it (the field veil over both parts and a firmer frame and recess, an end part's own hover over that), the value focused (the inset fill and a flush 2px ring), the end focused (its own inset ring), invalid (a danger edge on all four sides in every state), read-only (the inset well and a quiet frame with no recess), and disabled or held by a busy dialog or a saving pane (0.5 opacity).
 - Keyboard: Tab moves from the value to the end part, each with its own keys.
 - Pointer and touch: the frame is the control height, 34px or 44px on a phone or any touch screen, and each part keeps its own target.
 - Focus: it never moves focus; each part keeps its own.
@@ -42,7 +48,7 @@ the end part draws its own inset ring while it has focus, so the two never look 
 - Failure: an invalid value keeps the danger edge whichever part has focus, and the words that say why belong to the host.
 -->
 
-<div class={['sui-joined', { invalid, disabled, readonly }]}>
+<div bind:this={root} class={['sui-joined', { invalid, disabled: disabled || holding, readonly }]}>
   <div class="sui-joined-value">{@render start()}</div>
   <div class="sui-joined-end">{@render end()}</div>
 </div>
@@ -54,6 +60,7 @@ the end part draws its own inset ring while it has focus, so the two never look 
     border: var(--sui-stroke) solid var(--sui-field-frame);
     border-block-end-color: var(--sui-field-border);
     border-radius: var(--sui-radius-control);
+    box-shadow: inset 0 var(--sui-stroke) 0 var(--sui-field-recess);
     box-sizing: border-box;
     display: flex;
     flex-wrap: wrap;
@@ -64,15 +71,23 @@ the end part draws its own inset ring while it has focus, so the two never look 
        the edge may reach the clip over the frame, so that part's hit area keeps its 44px. */
     overflow: clip;
     overflow-clip-margin: var(--sui-local-joined-reach, 0px);
-    transition:
-      background-color var(--sui-duration-fast) var(--sui-ease-standard),
-      border-color var(--sui-duration-fast) var(--sui-ease-standard);
   }
 
+  /* The pair is one field, so a pointer anywhere on it lays the field's veil over both parts
+     and steps the whole edge up, and an invalid field keeps its danger edge and veil, a step
+     deeper (L-9). An end part that lights its own ground, such as a unit or a remove chip, shows
+     it over the field's veil, so the reader still sees which part the pointer is on. */
   @media (hover: hover) {
-    .sui-joined:hover:not(.disabled, .readonly, .invalid, :has(:global(:focus-visible))) {
+    .sui-joined:hover:not(.disabled, .readonly, :has(:global(:focus-visible))) {
+      background-color: var(--sui-field-hover);
       border-color: var(--sui-field-frame-hover);
       border-block-end-color: var(--sui-field-border-hover);
+      box-shadow: inset 0 var(--sui-stroke) 0 var(--sui-field-recess-hover);
+    }
+
+    .sui-joined.invalid:hover:not(.disabled, .readonly, :has(:global(:focus-visible))) {
+      background-color: var(--sui-field-danger-hover);
+      border-color: var(--sui-danger-hover);
     }
   }
 
@@ -86,12 +101,13 @@ the end part draws its own inset ring while it has focus, so the two never look 
     outline-offset: var(--sui-focus-ring-flush);
   }
 
-  /* A value that only reads sits in the inset well with a quiet frame, as a read-only text
-     field does, so it never looks like a field to type in. */
+  /* A value that only reads sits in the inset well with a quiet frame and no recess, as a
+     read-only text field does, so it never looks like a field to type in. */
   .readonly,
   .readonly:has(.sui-joined-value :global(:focus-visible)) {
     background-color: var(--sui-surface-inset);
     border-color: var(--sui-border-subtle);
+    box-shadow: none;
   }
 
   .invalid,
@@ -111,29 +127,29 @@ the end part draws its own inset ring while it has focus, so the two never look 
     min-inline-size: 0;
   }
 
-  /* On a line of its own the end starts at the field's start edge (L-90). A host whose end is a
-     chip that wraps its words sets a block inset to keep it clear of the frame; a full-height
-     end takes none, or it would make the field taller than its value. */
+  /* The end hangs on the value's first line, one line tall, so beside a value that wraps it
+     stays level with the first line. On a line of its own it starts at the field's start edge
+     (L-90). A host whose end is a chip that wraps its words sets an inset to keep it clear of
+     the frame; a full-height end, such as a picker, takes none, so its ground meets the frame
+     and the frame's curve clips it, and it never makes the field taller than its value. */
   .sui-joined-end {
     align-items: center;
+    align-self: flex-start;
     box-sizing: border-box;
     display: flex;
     flex: none;
     max-inline-size: 100%;
+    min-block-size: calc(
+      var(--sui-local-control-height, var(--sui-control-height-compact)) - 2 * var(--sui-stroke)
+    );
     padding-block: var(--sui-local-joined-end-inset, 0px);
-    padding-inline-end: var(--sui-control-inset);
+    padding-inline-end: var(--sui-local-joined-end-inset, 0px);
   }
 
   /* High contrast paints every edge in one colour, so an invalid field says so with a 2px edge. */
   @media (forced-colors: active) {
     .invalid {
       border-width: var(--sui-stroke-bold);
-    }
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    .sui-joined {
-      transition: none;
     }
   }
 </style>

@@ -1,0 +1,109 @@
+/*
+  The edge fade of a box that scrolls sideways (L-107). An edge with more content past it fades,
+  so a reader sees the box goes on, and an edge with nothing past it stays sharp. The box's own
+  scroll timeline switches each fade within a pixel of its edge, so the mask repaints only when
+  an edge turns, never on every frame of a scroll. The end fade clears a pixel short of the end,
+  where a box whose width falls between device pixels stops. A box that does not
+  scroll has no timeline and no fade. Without scroll timelines no edge fades, so a fade never
+  hides content it cannot reveal.
+
+  A component imports this sheet and puts `sui-scroll-edge` on its scroller. A part held at the
+  start edge while the rest scrolls under it, such as a gutter or a held column, sets its width
+  in `--sui-local-edge-hold`, so the start fade begins where the scrolled content comes out. A box
+  that keeps empty room after its content sets that room in `--sui-local-edge-trail`, so the end
+  fade turns off once only that room is past the edge and is never drawn over nothing.
+*/
+
+@property --sui-scroll-edge-start {
+  syntax: '<length>';
+  inherits: false;
+  initial-value: 0px;
+}
+
+@property --sui-scroll-edge-end {
+  syntax: '<length>';
+  inherits: false;
+  initial-value: 0px;
+}
+
+/* The mask changes while a fade grows, and a property that inherits would restyle every
+   line or cell inside the box on each of those frames. */
+@property --sui-scroll-edge-mask {
+  syntax: '*';
+  inherits: false;
+}
+
+/* Focus and a scroll into view stop clear of the held part and the fade. */
+.sui-scroll-edge {
+  --sui-local-edge-fade: var(--sui-space-8);
+  scroll-padding-inline: calc(var(--sui-local-edge-hold, 0px) + var(--sui-local-edge-fade))
+    var(--sui-local-edge-fade);
+}
+
+@supports (animation-timeline: scroll()) {
+  .sui-scroll-edge {
+    --sui-local-edge-side: to right;
+    --sui-scroll-edge-mask: linear-gradient(
+      var(--sui-local-edge-side),
+      var(--sui-canvas) var(--sui-local-edge-hold, 0px),
+      transparent var(--sui-local-edge-hold, 0px),
+      var(--sui-canvas) calc(var(--sui-local-edge-hold, 0px) + var(--sui-scroll-edge-start)),
+      var(--sui-canvas) calc(100% - var(--sui-scroll-edge-end)),
+      transparent
+    );
+    animation:
+      sui-scroll-edge-start var(--sui-ease-linear) both,
+      sui-scroll-edge-end var(--sui-ease-linear) both;
+    animation-range:
+      0 1px,
+      calc(100% - var(--sui-local-edge-trail, 0px) - 2px)
+        calc(100% - var(--sui-local-edge-trail, 0px) - 1px);
+    animation-timeline: scroll(self inline), scroll(self inline);
+    mask-image: var(--sui-scroll-edge-mask);
+  }
+
+  /* A right-to-left box starts at the right, so its start fade is on the right. */
+  .sui-scroll-edge:dir(rtl) {
+    --sui-local-edge-side: to left;
+  }
+
+  /* A box that takes focus draws its ring inside its own edge (L-41), so under focus the band
+     the ring covers stays out of the fade on all four sides and the whole ring shows (L-96). */
+  .sui-scroll-edge:focus-visible {
+    --sui-local-edge-ring: var(--sui-focus-ring-width);
+    mask-image:
+      linear-gradient(
+        to right,
+        var(--sui-canvas) var(--sui-local-edge-ring),
+        transparent var(--sui-local-edge-ring) calc(100% - var(--sui-local-edge-ring)),
+        var(--sui-canvas) calc(100% - var(--sui-local-edge-ring))
+      ),
+      linear-gradient(
+        to bottom,
+        var(--sui-canvas) var(--sui-local-edge-ring),
+        transparent var(--sui-local-edge-ring) calc(100% - var(--sui-local-edge-ring)),
+        var(--sui-canvas) calc(100% - var(--sui-local-edge-ring))
+      ),
+      var(--sui-scroll-edge-mask);
+  }
+}
+
+@keyframes sui-scroll-edge-start {
+  from {
+    --sui-scroll-edge-start: 0px;
+  }
+
+  to {
+    --sui-scroll-edge-start: var(--sui-local-edge-fade);
+  }
+}
+
+@keyframes sui-scroll-edge-end {
+  from {
+    --sui-scroll-edge-end: var(--sui-local-edge-fade);
+  }
+
+  to {
+    --sui-scroll-edge-end: 0px;
+  }
+}

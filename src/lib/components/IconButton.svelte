@@ -50,7 +50,7 @@ action are a `Button` with the word beside the glyph.
 
 - Semantics: a native `<button type="button">` named by `label` through `aria-label`, with the glyph hidden.
 - Content: one glyph from the certain set; the label is a verb phrase such as "Remove the rule".
-- States: rest (muted glyph), hover and open (`aria-expanded`, a veil and primary ink), focus (a flush 2px ring), pressed (a deeper veil, an inset shadow and a 1px sink), busy (a spinner in place of the glyph, at 0.7 opacity) and disabled (0.7 opacity).
+- States: rest (muted glyph), hover and open (`aria-expanded`, a veil and primary ink), focus (a flush 2px ring), pressed (a deeper veil, an inset shadow and a 1px sink), busy (a spinner in place of the glyph, at full strength) and disabled (0.5 opacity).
 - Keyboard: Tab reaches it and Enter or Space presses it; a busy one refuses both and keeps focus.
 - Pointer and touch: 28px square, or 34px with `toolbar`, and a 44px hit area on a phone or any touch screen.
 - Focus: a press never moves focus and a busy button keeps it; the caller moves focus when the press removes the button.
@@ -102,8 +102,6 @@ action are a `Button` with the word beside the glyph.
     -webkit-user-select: none;
     user-select: none;
     transition:
-      background-color var(--sui-duration-fast) var(--sui-ease-standard),
-      color var(--sui-duration-fast) var(--sui-ease-standard),
       translate var(--sui-duration-press) var(--sui-ease-standard),
       box-shadow var(--sui-duration-press) var(--sui-ease-standard);
     -webkit-tap-highlight-color: transparent;
@@ -140,6 +138,11 @@ action are a `Button` with the word beside the glyph.
 
   .sui-icon-button:is(:disabled, [aria-disabled='true']) {
     cursor: default;
+  }
+
+  /* A busy button is the action at work, not a disabled one, so its spinner keeps full
+     strength and holds its ink's contrast on the ground (WCAG 1.4.11), as `Button` does. */
+  .sui-icon-button:is(:disabled, [aria-disabled='true']:not([aria-busy='true'])) {
     opacity: var(--sui-disabled-opacity);
   }
 

@@ -21,7 +21,7 @@
 
 <Example
   title="In context"
-  note="The current entry takes the ringed plate as the page scrolls, and a link opens a folded section and focuses its heading"
+  note="The current entry turns primary on a quiet plate as the page scrolls, and a link opens a folded section and focuses its heading"
   layout="stack"
   ground="canvas"
 >
@@ -29,23 +29,64 @@
     <div class="sections">
       <section id="toc-overview" class="part">
         <h4>Overview</h4>
-        <p class="copy">
-          These rules apply to every repository in the workspace that has not opted out of the
-          template
-        </p>
+        <div class="text">
+          <p class="copy">
+            These rules apply to every repository in the workspace that has not opted out of the
+            template
+          </p>
+          <p class="copy" lang="la">
+            Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor
+            incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud
+            exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
+          </p>
+          <p class="copy" lang="la">
+            Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat
+            nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui
+            officia deserunt mollit anim id est laborum.
+          </p>
+        </div>
       </section>
       <section id="toc-access" class="part">
         <h4>Who can change the branch rules</h4>
-        <p class="copy">Workspace owners and the platform team can edit them</p>
+        <div class="text">
+          <p class="copy">Workspace owners and the platform team can edit them</p>
+          <p class="copy" lang="la">
+            Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque
+            laudantium. Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit.
+          </p>
+          <p class="copy" lang="la">
+            Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor
+            incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud
+            exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
+          </p>
+        </div>
       </section>
       <section id="toc-checks" class="part">
         <h4>Required checks</h4>
-        <p class="copy">Lint, unit tests and the kitchen sink audit must pass before a merge</p>
+        <div class="text">
+          <p class="copy">Lint, unit tests and the kitchen sink audit must pass before a merge</p>
+          <p class="copy" lang="la">
+            Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat
+            nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui
+            officia deserunt mollit anim id est laborum.
+          </p>
+          <p class="copy" lang="la">
+            Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque
+            laudantium. Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit.
+          </p>
+        </div>
       </section>
       <Disclosure summary="Older changes">
         <section id="toc-history" class="part">
           <h4>History</h4>
-          <p class="copy">The rules were last changed 12 days ago</p>
+          <div class="text">
+            <p class="copy">The rules were last changed 12 days ago</p>
+            <p class="copy" lang="la">
+              Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor
+              incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud
+              exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
+            </p>
+          </div>
         </section>
       </Disclosure>
     </div>
@@ -79,10 +120,15 @@
     align-content: start;
     display: grid;
     gap: var(--sui-row-copy-gap);
-    min-block-size: 12rem;
+  }
+
+  .text {
+    display: grid;
+    gap: var(--sui-space-4);
   }
 
   h4 {
+    align-content: center;
     block-size: var(--sui-block-snap);
     color: var(--sui-text-primary);
     font: var(--sui-weight-semibold) var(--sui-font-size-title) / var(--sui-leading-title)

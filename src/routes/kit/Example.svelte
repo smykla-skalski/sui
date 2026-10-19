@@ -95,6 +95,7 @@ live specimens, not a surface of the design, so it may hold cards and dialogs (L
   }
 
   h3 {
+    align-content: center;
     block-size: var(--sui-block-snap);
     color: var(--sui-text-primary);
     font: var(--sui-weight-semibold) var(--sui-font-size-title) / var(--sui-leading-title)
@@ -104,6 +105,7 @@ live specimens, not a surface of the design, so it may hold cards and dialogs (L
   }
 
   .note {
+    align-content: center;
     block-size: var(--sui-block-snap);
     color: var(--sui-text-secondary);
     font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-row-copy-leading)
@@ -113,11 +115,14 @@ live specimens, not a surface of the design, so it may hold cards and dialogs (L
     text-wrap: pretty;
   }
 
+  /* Its own stacking context, so a specimen's sticky bar or shell bar stacks inside the frame
+     and never over the page's own bar. */
   .frame {
     border: var(--sui-stroke) solid var(--sui-border-subtle);
     border-radius: var(--sui-radius-surface);
     container: sink-stage / inline-size;
     display: grid;
+    isolation: isolate;
     min-inline-size: 0;
   }
 
@@ -132,38 +137,62 @@ live specimens, not a surface of the design, so it may hold cards and dialogs (L
   }
 
   .stage {
+    --stage-pad: var(--sui-space-6);
     box-sizing: border-box;
     min-inline-size: 0;
-    padding: var(--sui-space-6);
+    padding: var(--stage-pad);
   }
 
+  /* The ground is lent to the specimens too, for a part held over content that scrolls under
+     it. */
   .stage[data-ground='surface'] {
+    --sui-local-stage-ground: var(--sui-surface-base);
     background: var(--sui-surface-base);
   }
 
   .stage[data-ground='canvas'] {
+    --sui-local-stage-ground: var(--sui-canvas);
     background: var(--sui-canvas);
   }
 
+  /* Each gap between lines of specimens holds the captions' dashed rule, so the reader sees
+     where the next line starts. It is only drawn between lines, so a single line has none. */
   .specimens {
-    align-items: flex-start;
+    align-items: stretch;
     display: flex;
     flex-wrap: wrap;
     gap: var(--sui-space-6) var(--sui-space-5);
     min-inline-size: 0;
+    row-rule: var(--sui-stroke) dashed var(--sui-border-control);
   }
 
-  /* A wrapping column sizes each line to its widest item, so a stack must not wrap. */
+  /* A wrapping column sizes each line to its widest item, so a stack must not wrap. A stacked
+     specimen spans the stage, so it lends the stage's inset to what it shows, such as a
+     chart's band, which reaches the frame's edges with it. */
   .specimens[data-layout='stack'] {
+    --sui-local-stage-pad: var(--sui-space-6);
     align-items: stretch;
     flex-direction: column;
     flex-wrap: nowrap;
   }
 
+  /* Each specimen spans a body row and a caption row, and the gap rule breaks at every item that
+     spans rows, so each specimen draws the rule between lines itself. It needs how many columns
+     fit, counted as auto-fill counts them: the stage's inner width over a column and its gap. */
   .specimens[data-layout='grid'] {
-    align-items: start;
+    --sui-local-grid-columns: max(
+      1,
+      round(
+        down,
+        (100cqi - 2 * var(--stage-pad) + var(--sui-space-5)) / (16rem + var(--sui-space-5)),
+        1
+      )
+    );
+    --sui-local-grid-gap: var(--sui-space-6);
+    align-items: stretch;
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(min(100%, 16rem), 1fr));
+    row-rule: none;
   }
 
   .tools {
@@ -195,7 +224,11 @@ live specimens, not a surface of the design, so it may hold cards and dialogs (L
 
   @container sink-stage (max-width: 30rem) {
     .stage {
-      padding: var(--sui-space-4);
+      --stage-pad: var(--sui-space-4);
+    }
+
+    .specimens[data-layout='stack'] {
+      --sui-local-stage-pad: var(--sui-space-4);
     }
   }
 

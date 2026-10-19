@@ -19,13 +19,13 @@
 >
   <Specimen label="Above" code={'side="block-start"'}>
     <span class="label">
-      Retention
+      <span class="words">Retention</span>
       <HelpTip label="About retention" text="Runs older than this are deleted every night" />
     </span>
   </Specimen>
   <Specimen label="Below" code={'side="block-end"'}>
     <span class="label">
-      Required reviewers
+      <span class="words">Required reviewers</span>
       <HelpTip
         label="About required reviewers"
         text="Approvals needed before a pull request can merge, counted per change"
@@ -41,7 +41,7 @@
 >
   <Specimen label="Open" code="preview">
     <span class="label wrap">
-      Retention
+      <span class="words">Retention</span>
       <HelpTip
         preview
         label="About retention"
@@ -66,5 +66,18 @@
     font: var(--sui-weight-semibold) var(--sui-font-size-control) / var(--sui-leading-meta)
       var(--sui-sans);
     gap: var(--sui-space-1);
+  }
+
+  /* The words run cap to baseline, so the mark centres on them (L-94). */
+  .words {
+    align-content: center;
+    block-size: var(--sui-block-snap-even);
+    text-box: trim-both cap alphabetic;
+  }
+
+  /* The open tip hangs under its mark, so the row keeps to the top and the words drop to the
+     mark's middle instead. */
+  .wrap > .words {
+    margin-block-start: calc((var(--sui-control-height-chip) - round(up, 1cap, 2px)) / 2);
   }
 </style>
