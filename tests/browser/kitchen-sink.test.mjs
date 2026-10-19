@@ -510,6 +510,38 @@ suite('the kitchen sink', together, () => {
     address.searchParams.set('audit', 'manual');
     /** @type {string[]} */
     const problems = [];
+    // Linux blends an antialiased edge pixel a level or two apart once the layers under it
+    // change, though nothing under it shows; what a part draws changes far more.
+    /**
+     * @param {import('playwright-core').Page} page
+     * @param {Buffer} one
+     * @param {Buffer} two
+     */
+    const alike = (page, one, two) =>
+      page.evaluate(
+        async ([one, two]) => {
+          const decode = async (/** @type {string} */ data) => {
+            const picture = await createImageBitmap(
+              await (await fetch(`data:image/png;base64,${data}`)).blob()
+            );
+            const canvas = new OffscreenCanvas(picture.width, picture.height);
+            const context = /** @type {OffscreenCanvasRenderingContext2D} */ (
+              canvas.getContext('2d')
+            );
+            context.drawImage(picture, 0, 0);
+            return context.getImageData(0, 0, picture.width, picture.height);
+          };
+          const [a, b] = await Promise.all([decode(one), decode(two)]);
+          return (
+            a.width === b.width &&
+            a.height === b.height &&
+            a.data.every((level, index) => Math.abs(level - b.data[index]) <= 2)
+          );
+        },
+        [one.toString('base64'), two.toString('base64')]
+      );
+    /** @type {Record<string, Buffer>} */
+    let before = {};
     /** @param {boolean} javaScriptEnabled */
     const draw = async (javaScriptEnabled) => {
       const page = await browser.newPage({
@@ -531,11 +563,15 @@ suite('the kitchen sink', together, () => {
               /** @type {HTMLImageElement} */ (node).decode().catch(() => {})
             );
           drawn[name] = await avatar.screenshot();
-          if (javaScriptEnabled) continue;
+          if (javaScriptEnabled) {
+            if (!(await alike(page, drawn[name], before[name])))
+              problems.push(`${name} changes once script runs`);
+            continue;
+          }
           // What a part adds is what disappears with it.
           const part = avatar.locator(failed.includes(name) ? 'img' : 'svg');
           await part.evaluate((node) => node.style.setProperty('display', 'none'));
-          if (!(await avatar.screenshot()).equals(drawn[name]))
+          if (!(await alike(page, await avatar.screenshot(), drawn[name])))
             problems.push(
               `${name}: the ${failed.includes(name) ? 'failed picture' : 'covered initials'} drew something`
             );
@@ -555,10 +591,8 @@ suite('the kitchen sink', together, () => {
         await page.close();
       }
     };
-    const before = await draw(false);
-    const after = await draw(true);
-    for (const name of [...failed, ...loaded])
-      if (!after[name].equals(before[name])) problems.push(`${name} changes once script runs`);
+    before = await draw(false);
+    await draw(true);
     assert.deepEqual(problems, []);
   });
 
