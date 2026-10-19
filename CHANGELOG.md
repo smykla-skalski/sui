@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 0.3.1
+
+- `SideNav` is one `nav` landmark from its title to its foot, so its title, fold control and foot, such as a theme switch, no longer stand outside every landmark.
+
 ## 0.3.0
 
 - Add `Section`, the default container on a pane, and `DetailLayout`, a main column with an aside of the thing's properties that stands beside it from 56rem (`--sui-breakpoint-detail`). Add `ListDetail`, a list beside the detail of the item open from it, where every item has its own address, `Timeline`, events in time with their times in one column, and `LinkList`, links to related pages with a quiet note each.
