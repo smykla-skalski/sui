@@ -48,8 +48,7 @@ suite('the kitchen sink', together, () => {
   const everyday = (/** @type {number} */ width, /** @type {string} */ theme) =>
     (width === 375 && theme === 'light') || (width === 1440 && theme === 'dark');
 
-  // Each audit has its own page, so they run side by side.
-  suite('the law audit', { concurrency: true }, () => {
+  suite('the law audit', together, () => {
     for (const width of WIDTHS)
       for (const theme of THEMES)
         test(

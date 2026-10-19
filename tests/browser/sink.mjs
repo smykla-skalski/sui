@@ -1,21 +1,18 @@
 import { existsSync } from 'node:fs';
-import { availableParallelism } from 'node:os';
 import { chromium } from 'playwright-core';
 import { createBuilder, createServer, preview } from 'vite';
 
 /**
  * Options for a test that takes long, such as an axe or a picture pass over the whole sink or a
- * sweep that presses every control. It runs only with `SUI_LONG=1` (`npm run test:browser:long`),
- * as in CI, so the everyday run stays quick.
+ * sweep that presses every control. CI groups enable `SUI_LONG=1` so every check runs.
  */
 export const long = { skip: process.env.SUI_LONG ? false : 'long: run with SUI_LONG=1' };
 
 /**
- * Lets a file's tests run side by side. Each test opens its own page in the file's browser, so
- * they share nothing but the browser; a third of the machine's cores keeps the pages from
- * starving one another while the other files run too.
+ * Each test has its own page. Bound their concurrency independently of the host's core count
+ * because the whole sink needs substantial style and layout work on each page.
  */
-export const together = { concurrency: Math.max(2, Math.floor(availableParallelism() / 3)) };
+export const together = { concurrency: 2 };
 
 const launch = () => chromium.launch({ channel: process.env.SUI_BROWSER_CHANNEL ?? 'chrome' });
 
