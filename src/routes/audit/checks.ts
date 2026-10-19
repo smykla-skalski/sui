@@ -617,7 +617,12 @@ function paintsGround(look: CSSStyleDeclaration): boolean {
 
 const fonts = new Map<string, { cap: number; ascent: number }>();
 
-/** A face's cap height and ascent at its size, as the browser lays its text out. */
+/**
+ * A face's cap height and ascent at its size, as the browser lays its text out: the ascent as
+ * canvas reads it, rounded as layout rounds it, and the cap as `1cap`, which every system
+ * resolves from the face itself. Canvas reads a glyph's own ink only to a sixty-fourth of an em
+ * on Linux.
+ */
 function faceMetrics(style: CSSStyleDeclaration) {
   const font = `${style.fontStyle} ${style.fontWeight} ${style.fontSize} ${style.fontFamily}`;
   let known = fonts.get(font);
@@ -625,8 +630,16 @@ function faceMetrics(style: CSSStyleDeclaration) {
     const context = document.createElement('canvas').getContext('2d');
     if (!context) return null;
     context.font = font;
-    const measure = context.measureText('H');
-    known = { cap: measure.actualBoundingBoxAscent, ascent: measure.fontBoundingBoxAscent };
+    const probe = document.createElement('span');
+    probe.style.cssText =
+      'block-size: 1cap; display: block; position: absolute; visibility: hidden';
+    probe.style.font = font;
+    document.body.append(probe);
+    known = {
+      cap: probe.getBoundingClientRect().height,
+      ascent: context.measureText('H').fontBoundingBoxAscent
+    };
+    probe.remove();
     fonts.set(font, known);
   }
   return known;
