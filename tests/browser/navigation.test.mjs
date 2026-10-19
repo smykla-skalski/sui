@@ -610,21 +610,37 @@ suite('navigation', together, () => {
         );
         /** @type {string[]} */
         const wrong = [];
+        // Chrome on Linux reports a glyph's ink only in steps of a sixty-fourth of an em and
+        // rounds a semibold glyph's advance to a whole unit, so there each glyph is held to
+        // those steps.
+        const linux = process.platform === 'linux';
+        const steps = [linux ? 0.5 : 0.01, ...Array(4).fill(linux ? 1000 / 64 : 0.01)];
+        /** @type {Map<string, number>} */
+        const drawnAdvance = new Map();
         glyphs.forEach((glyph, index) => {
+          drawnAdvance.set(glyph, drawn.inks[index][0]);
           const ink = /** @type {import('../../src/lib/charts/geometry.ts').Ink} */ (
             faceInk(glyph, semibold)
           );
           const table = [ink.advance, ink.left, ink.right, ink.ascent, ink.descent];
-          if (table.some((value, at) => Math.abs(value * 1000 - drawn.inks[index][at]) > 0.01))
+          if (table.some((value, at) => Math.abs(value * 1000 - drawn.inks[index][at]) > steps[at]))
             wrong.push(`${glyph}: ${drawn.inks[index].join(' ')}`);
         });
+        // A run's kerning is its advance less its glyphs' own, as each is drawn, so it is held
+        // exactly wherever a glyph's own advance is rounded.
+        /** @param {string} run @param {(glyph: string) => number} own */
+        const kerned = (run, own) => [...run].reduce((left, glyph) => left - own(glyph), 0);
         runs.forEach((run, index) => {
-          const advance = /** @type {import('../../src/lib/charts/geometry.ts').Ink} */ (
+          const table = /** @type {import('../../src/lib/charts/geometry.ts').Ink} */ (
             faceInk(run, semibold)
           ).advance;
-          // Each advance in the table is rounded to a hundredth of a unit.
-          if (Math.abs(advance * 1000 - drawn.advances[index]) > 0.005 * run.length)
-            wrong.push(`pairs with ${run[0]}: ${drawn.advances[index] - advance * 1000}`);
+          const tableKerning =
+            table * 1000 + kerned(run, (glyph) => (faceInk(glyph, semibold)?.advance ?? 0) * 1000);
+          const drawnKerning =
+            drawn.advances[index] + kerned(run, (glyph) => drawnAdvance.get(glyph) ?? 0);
+          // Each kerning value in the table is rounded to a hundredth of a unit.
+          if (Math.abs(tableKerning - drawnKerning) > 0.005 * run.length)
+            wrong.push(`pairs with ${run[0]}: ${drawnKerning - tableKerning}`);
         });
         assert.deepEqual(wrong, [], semibold ? 'semibold' : 'regular');
       }
