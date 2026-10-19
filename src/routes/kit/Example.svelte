@@ -3,6 +3,7 @@
   import { Button, CodeBlock, Icon } from '#lib';
   import type { SectionContext } from './Section.svelte';
   import { exampleSource, slug } from './source';
+  import './gap-rule.css';
 
   let {
     title,
@@ -50,7 +51,7 @@ live specimens, not a surface of the design, so it may hold cards and dialogs (L
   </div>
   <div class="frame">
     <div class="stage" data-ground={ground}>
-      <div class="specimens" data-layout={layout}>{@render children()}</div>
+      <div class="specimens sink-specimens" data-layout={layout}>{@render children()}</div>
     </div>
     <div class="tools">
       {#if markup}
@@ -155,15 +156,15 @@ live specimens, not a surface of the design, so it may hold cards and dialogs (L
     background: var(--sui-canvas);
   }
 
-  /* Each gap between lines of specimens holds the captions' dashed rule, so the reader sees
-     where the next line starts. It is only drawn between lines, so a single line has none. */
+  /* Each gap between lines of specimens holds the captions' dashed rule (gap-rule.css), so the
+     reader sees where the next line starts. It is only drawn between lines, so a single line
+     has none. */
   .specimens {
     align-items: stretch;
     display: flex;
     flex-wrap: wrap;
     gap: var(--sui-space-6) var(--sui-space-5);
     min-inline-size: 0;
-    row-rule: var(--sui-stroke) dashed var(--sui-border-control);
   }
 
   /* A wrapping column sizes each line to its widest item, so a stack must not wrap. A stacked
@@ -192,7 +193,6 @@ live specimens, not a surface of the design, so it may hold cards and dialogs (L
     align-items: stretch;
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(min(100%, 16rem), 1fr));
-    row-rule: none;
   }
 
   .tools {
