@@ -102,10 +102,12 @@ suite('lists', together, () => {
         await reload.click();
         const busy = bar.getByRole('button', { name: 'Reloading…' });
         assert.equal(await busy.getAttribute('aria-busy'), 'true');
-        assert.ok(
-          await busy.evaluate((node) => node === document.activeElement),
-          'the busy Reload let go of focus'
+        const holder = await busy.evaluate((node) =>
+          node === document.activeElement
+            ? null
+            : `${document.activeElement?.tagName} ${document.activeElement?.textContent?.trim().slice(0, 40)}`
         );
+        assert.equal(holder, null, `the busy Reload let go of focus to ${holder}`);
         await bar.getByText('The latest version replaced your changes').waitFor({ timeout: 4000 });
         assert.equal(await field.inputValue(), 'trunk', 'the reload did not bring the latest');
         assert.match(await focused(page), /^button Undo/, 'focus did not move to Undo');

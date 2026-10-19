@@ -270,7 +270,8 @@ suite('navigation', together, () => {
               brief
             )
           );
-          assert.ok(shown, `at ${width}px focus never brought it into the window's corner`);
+          const box = await link.evaluate((node) => JSON.stringify(node.getBoundingClientRect()));
+          assert.ok(shown, `at ${width}px focus never brought it into the window's corner: ${box}`);
         } finally {
           await page.close();
         }

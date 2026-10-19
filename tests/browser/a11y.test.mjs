@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
 import { after, before, suite, test } from 'node:test';
-import { audit as auditPage, long, startSink, together, visit } from './sink.mjs';
+import { audit as auditPage, long, settles, startSink, together, visit } from './sink.mjs';
 
 // The kitchen sink under the conditions readers bring with them: an accessibility engine's
 // WCAG 2.2 rules, a right-to-left page, forced colors, the WCAG 1.4.12 text spacing and text
@@ -128,24 +128,36 @@ suite('accessibility', together, () => {
     try {
       const pill = page.locator('#pill .sui-pill:has(.live)', { hasText: 'Syncing' });
       await pill.scrollIntoViewIfNeeded();
-      const pulse = () =>
-        pill.evaluate((element) => {
-          const animation = /** @type {Element} */ (element.querySelector('.live'))
+      // The pulse starts as the page mounts and may be over before the page is read, so its
+      // length is read from its style.
+      const length = await pill.evaluate((element) => {
+        const look = getComputedStyle(
+          /** @type {Element} */ (element.querySelector('.live')),
+          '::after'
+        );
+        return parseFloat(look.animationDuration) * 1000 * Number(look.animationIterationCount);
+      });
+      assert.ok(length > 0 && length < 5000, `the pulse runs ${length}ms`);
+      const pulsing = () =>
+        pill.evaluate((element) =>
+          /** @type {Element} */ (element.querySelector('.live'))
             .getAnimations({ subtree: true })
-            .find((running) => running instanceof CSSAnimation);
-          const timing = animation?.effect?.getComputedTiming();
-          return {
-            end: Number(timing?.endTime ?? Infinity),
-            at: Number(animation?.currentTime ?? 0)
-          };
-        });
-      const first = await pulse();
-      assert.ok(first.end < 5000, `the pulse runs ${first.end}ms`);
-      await page.waitForTimeout(first.end - first.at + 100);
-      assert.ok((await pulse()).end === Infinity, 'the pulse did not end');
+            .some((running) => running instanceof CSSAnimation)
+        );
+      const still = await settles(
+        page.waitForFunction(
+          (element) =>
+            !element
+              ?.querySelector('.live')
+              ?.getAnimations({ subtree: true })
+              .some((running) => running instanceof CSSAnimation),
+          await pill.elementHandle(),
+          { timeout: length + 1000 }
+        )
+      );
+      assert.ok(still, 'the pulse did not end');
       await page.getByRole('button', { name: 'Receive an update' }).click();
-      const again = await pulse();
-      assert.ok(again.end < 5000 && again.at < 1000, 'an update did not pulse the dot again');
+      assert.ok(await pulsing(), 'an update did not pulse the dot again');
     } finally {
       await page.close();
     }

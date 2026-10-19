@@ -78,10 +78,15 @@ export async function startSink({ dev = false } = {}) {
     browser: {
       // The built sink registers its service worker, whose caches would carry one test's
       // answers into the next; a dev sink registers none, and its own test asks for one.
-      newPage: async (options) =>
-        (await (started ??= launch())).newPage(
-          dev ? options : { serviceWorkers: 'block', ...options }
-        ),
+      newPage: async (options) => {
+        const page = await (
+          await (started ??= launch())
+        ).newPage(dev ? options : { serviceWorkers: 'block', ...options });
+        // A dev page loads its modules one by one, which a run of pages side by side stretches
+        // past the 30 seconds a built page gets, as it does the dev server's first visit.
+        if (dev) page.setDefaultTimeout(120_000);
+        return page;
+      },
       close: async () => void (await (await started)?.close())
     },
     url: shared ?? own?.url ?? ''
