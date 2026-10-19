@@ -87,8 +87,8 @@
      * (`scroll-target-group`), from the first paint; `current` is not read.
      */
     scrollTargets?: boolean;
-    class?: HTMLAttributes<HTMLDivElement>['class'];
-  } & HTMLAttributes<HTMLDivElement> = $props();
+    class?: HTMLAttributes<HTMLElement>['class'];
+  } & HTMLAttributes<HTMLElement> = $props();
 
   const shell = getShell();
   const mode = $derived(shell?.mode ?? 'full');
@@ -246,7 +246,7 @@ tooltip with the full name shows only where `short` replaces a label, and a coun
 read aloud. In the phone drawer a close button takes the head's end, rows are 44px, and
 following a row closes the drawer.
 
-- Semantics: a `nav` landmark named "<title> pages" by default, the title a heading at `level`, each section a list labelled by its own heading one level below, and every row a link with `aria-current="page"` on the current one.
+- Semantics: a `nav` landmark named "<title> pages" by default that holds the whole sidebar, its title, rows, fold control and foot, so nothing in it stands outside a landmark; the title is a heading at `level`, each section a list labelled by its own heading one level below, and every row a link with `aria-current="page"` on the current one.
 - Content: a title and optional kicker, sections of rows with a glyph, a label, an optional `short` label and an optional count, and an optional `foot`.
 - States: rest, hover, pressed (the pressed ground, an inset shadow and a 1px sink), focus (a 2px inset ring) and current (primary ink on the quiet plate, in the rest rows' weight, so it moves nothing); labels wrap rather than being cut.
 - Keyboard: Tab moves through the rows, then the fold or close control; Enter follows a row or presses the control.
@@ -260,9 +260,10 @@ following a row closes the drawer.
 - Failure: a `current` that matches no row draws no plate, an empty section draws only its heading, and an empty `sections` leaves the title and its controls.
 -->
 
-<div
+<nav
   {...rest}
   class={['sui-side-nav', className, { 'scroll-targets': scrollTargets }]}
+  aria-label={label ?? pagesLabel(title)}
   data-mode={mode}
   data-collapsed={shell?.collapsed || undefined}
 >
@@ -276,7 +277,7 @@ following a row closes the drawer.
     {/if}
   </div>
 
-  <nav bind:this={scroller} class="sui-side-nav-tree" aria-label={label ?? pagesLabel(title)}>
+  <div bind:this={scroller} class="sui-side-nav-tree">
     <div bind:this={tree} class={['sui-side-nav-list', { measured, gliding }]}>
       <span
         class="sui-side-nav-thumb"
@@ -328,7 +329,7 @@ following a row closes the drawer.
         </ul>
       {/each}
     </div>
-  </nav>
+  </div>
 
   <!-- Drawn wherever there is a shell, so the server's render has it; the shell's own width
        shows it only where the shell can fold. -->
@@ -349,7 +350,7 @@ following a row closes the drawer.
   {#if foot}
     <div class="sui-side-nav-foot">{@render foot()}</div>
   {/if}
-</div>
+</nav>
 
 <style>
   /* The row's one-line box, computed in the row's font and handed down, so a part in another
