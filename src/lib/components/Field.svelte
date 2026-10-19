@@ -16,15 +16,18 @@
   import type { Snippet } from 'svelte';
   import type { HTMLInputAttributes } from 'svelte/elements';
   import Icon from '../icons/Icon.svelte';
+  import { setRefusals } from '../internal/refusals.svelte.js';
   import TextInput from './TextInput.svelte';
   import VisuallyHidden from './VisuallyHidden.svelte';
 
   const fallbackId = $props.id();
+  const refusals = setRefusals();
 
   let {
     label,
     hint,
     error,
+    validationMessage,
     required = false,
     requiredLabel = word('Field.requiredLabel', 'Required'),
     value = $bindable(''),
@@ -41,6 +44,8 @@
     hint?: string;
     /** Says what is wrong. The control is marked invalid and described by it. */
     error?: string;
+    /** Said in place of the browser's own words when its check refuses the value, such as "Enter a repository name". */
+    validationMessage?: string;
     /** Shows `requiredLabel` beside the label and marks the control required. */
     required?: boolean;
     /** The word beside the label of a field that must be filled. */
@@ -56,8 +61,9 @@
     id?: string;
   } & Omit<HTMLInputAttributes, 'value' | 'type' | 'id'> = $props();
 
+  const shown = $derived(refusals.message(error, validationMessage));
   const describedby = $derived(
-    [describedBy, hint && `${id}-hint`, error && `${id}-error`].filter(Boolean).join(' ') ||
+    [describedBy, hint && `${id}-hint`, shown && `${id}-error`].filter(Boolean).join(' ') ||
       undefined
   );
 </script>
@@ -83,21 +89,29 @@ A group of choices names itself with a legend, so `CheckList`, `ChoiceCards` and
 An error leads with a warning mark, so it differs from the hint by more than colour, and a
 polite status speaks it when it appears or changes.
 
+Validation stays native: a form refuses a send that breaks `required`, `pattern`, `type`,
+`min` or `max`. The refusal shows here as the error, in place of the browser's bubble, which
+takes no style. It reads `validationMessage` when the caller gives one, and else the browser's
+own words in the reader's language. Focus moves to the first refused control, and its field
+scrolls into view. The error lifts once the value is fixed, and a value still wrong when the
+reader leaves it gets its new reason then. A caller's `error` always wins. A SUI control in
+the `control` snippet reports here on its own, and a control of another kind keeps the bubble.
+
 - Semantics: a `<label for>` that names the control, a hint and an error that describe it through `aria-describedby`, and a polite `role="status"` that speaks the error.
 - Content: `label` (a few words, sentence case), an optional one-sentence `hint`, an optional `error` that says what is wrong and how to fix it, and any one control.
-- States: rest, required (the word beside the label and a required control), with a hint, invalid (the control's danger edge and an error with a warning mark) and disabled (the control's own look).
+- States: rest, required (the word beside the label and a required control), with a hint, invalid (the control's danger edge and an error with a warning mark, from `error` or from a send the browser's check refused) and disabled (the control's own look).
 - Keyboard: a press on the label focuses the control; the control brings its own keys.
 - Pointer and touch: the label is part of a text control's target, and the control keeps its own sizes.
-- Focus: it never moves focus; a form that refuses a send moves focus to the first invalid control.
+- Focus: a send the browser's check refuses moves focus to the first refused control and scrolls its field into view, clear of the page's sticky bars through the page's scroll padding.
 - Responsive: it fills its column, and a long label, hint or error wraps with the same 8px gap between lines; `row` keeps a switch or checkbox beside a label that wraps.
 - Accessibility: the label names the control, hint and error describe it, the error is spoken when it appears, and every line holds 4.5:1.
-- Localization: `requiredLabel` is a prop with an English default, the label, hint and error come from the caller, and the layout is logical.
+- Localization: `requiredLabel` is a prop with an English default, the label, hint, error and `validationMessage` come from the caller, a refusal without `validationMessage` is in the browser's words for the reader's language, and the layout is logical.
 - Performance: static markup and one status per field; nothing animates.
 - Analytics: none of its own; the control reports through its own callbacks.
-- Failure: an `error` is drawn with a mark and words and spoken, and a missing `label` is a type error, so a field is never unnamed.
+- Failure: an `error` or a refused value is drawn with a mark and words and spoken, and a missing `label` is a type error, so a field is never unnamed.
 -->
 
-<div class="sui-field" data-layout={layout}>
+<div class="sui-field" data-layout={layout} {@attach refusals.area}>
   {#if required}
     <div class="sui-field-head">
       <label class="sui-field-label" for={id}>{label}</label>
@@ -108,7 +122,7 @@ polite status speaks it when it appears or changes.
   {/if}
   <div class="sui-field-control">
     {#if control}
-      {@render control({ id, describedby, invalid: Boolean(error), required })}
+      {@render control({ id, describedby, invalid: Boolean(shown), required })}
     {:else}
       <TextInput
         {...rest}
@@ -117,7 +131,7 @@ polite status speaks it when it appears or changes.
         {required}
         class={className}
         bind:value
-        invalid={Boolean(error)}
+        invalid={Boolean(shown)}
         aria-describedby={describedby}
       />
     {/if}
@@ -125,13 +139,13 @@ polite status speaks it when it appears or changes.
   {#if hint}<p id="{id}-hint" class="sui-field-help">{hint}</p>{/if}
   <!-- The status speaks the error, so the drawn copy stays out of the tree; the control's
        description still reads it. -->
-  {#if error}
+  {#if shown}
     <p id="{id}-error" class="sui-field-error" aria-hidden="true">
       <span class="sui-field-error-mark"><Icon name="alert" size="xs" /></span>
-      <span class="sui-field-error-text">{error}</span>
+      <span class="sui-field-error-text">{shown}</span>
     </p>
   {/if}
-  <VisuallyHidden role="status">{error ?? ''}</VisuallyHidden>
+  <VisuallyHidden role="status">{shown ?? ''}</VisuallyHidden>
 </div>
 
 <style>
@@ -152,12 +166,21 @@ polite status speaks it when it appears or changes.
   }
 
   .sui-field-label {
+    align-content: center;
     block-size: var(--sui-block-snap);
     color: var(--sui-text-secondary);
     font: var(--sui-weight-semibold) var(--sui-font-size-control) / var(--sui-row-copy-leading)
       var(--sui-sans);
     min-inline-size: 0;
     text-box: trim-both cap alphabetic;
+  }
+
+  /* The label of a box or a switch flips it on a click, so it shows the pointer (L-100). */
+  .sui-field:has(
+      .sui-field-control :global(:is(input[type='checkbox'], input[type='radio']):not(:disabled))
+    )
+    .sui-field-label {
+    cursor: pointer;
   }
 
   .sui-field-head {
@@ -169,6 +192,7 @@ polite status speaks it when it appears or changes.
   }
 
   .sui-field-required {
+    align-content: center;
     block-size: var(--sui-block-snap);
     color: var(--sui-text-muted);
     font: var(--sui-weight-regular) var(--sui-font-size-control) / var(--sui-row-copy-leading)
@@ -181,7 +205,10 @@ polite status speaks it when it appears or changes.
     min-inline-size: 0;
   }
 
+  /* The control ends the row, so a bare check box keeps its whole square inside it, its hover
+     ground standing off the row's end as a button's does. */
   .sui-field[data-layout='row'] > .sui-field-control {
+    --sui-local-checkbox-bleed: 0px;
     align-items: center;
     display: flex;
     min-block-size: var(--sui-control-height-compact);
@@ -189,6 +216,7 @@ polite status speaks it when it appears or changes.
 
   .sui-field-help,
   .sui-field-error-text {
+    align-content: center;
     block-size: var(--sui-block-snap);
     margin: 0;
     min-inline-size: 0;

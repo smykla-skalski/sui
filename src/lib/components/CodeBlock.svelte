@@ -1,7 +1,8 @@
 <script module lang="ts">
   import type { Attachment } from 'svelte/attachments';
+  import { tokenizeShell } from '../internal/shell-syntax.js';
 
-  export type CodeLang = 'json' | 'yaml' | 'toml' | 'markdown' | 'html' | 'text';
+  export type CodeLang = 'json' | 'yaml' | 'toml' | 'markdown' | 'html' | 'shell' | 'text';
 
   /** One stretch of a line wearing one token class. */
   export interface TokenRun {
@@ -122,7 +123,13 @@
     if (lang === 'markdown') return tokenizeMarkdown(line);
     if (lang === 'json') return tokenizeJson(line);
     if (lang === 'html') return tokenizeHtml(line);
+    if (lang === 'shell') return tokenizeShell([line])[0];
     return run(line);
+  }
+
+  /** Cuts every line, letting shell carry an open quote or a continued command to the next. */
+  export function tokenizeLines(lang: CodeLang, lines: readonly string[]): TokenRun[][] {
+    return lang === 'shell' ? tokenizeShell(lines) : lines.map((line) => tokenizeLine(lang, line));
   }
 
   /**
@@ -143,6 +150,7 @@
   import { word } from '../words.js';
   import type { HTMLAttributes } from 'svelte/elements';
   import CopyButton from './CopyButton.svelte';
+  import '../internal/scroll-edge.css';
 
   let {
     code,
@@ -173,7 +181,7 @@
     class?: HTMLAttributes<HTMLElement>['class'];
   } & HTMLAttributes<HTMLElement> = $props();
 
-  const lines = $derived(code.replace(/\n$/, '').split('\n'));
+  const lines = $derived(tokenizeLines(lang, code.replace(/\n$/, '').split('\n')));
 
   let scrolls = $state(false);
 </script>
@@ -185,60 +193,71 @@ tokens, with long lines scrolling sideways inside the block rather than widening
 A block that scrolls can take keyboard focus, so it can be scrolled without a pointer.
 
 `lineNumbers` draws a gutter in the gutter ink at full opacity, which never selects or
-copies. Selected code is opaque, in the selection colors. `label` names the file above the
+copies and stays in view while long lines scroll. Selected code is opaque, in the selection colors. `label` names the file above the
 code, and `bare` drops the frame for a host that frames the block itself. `html` colors markup,
-Svelte templates included. The copy control stands in its own column at the end of the block,
-always in view and never over the code. It copies `code` exactly as given.
+Svelte templates included. `shell` colors commands, flags, strings, variables and operators,
+and carries an open quote or a continued line on to the next line. The copy control stands
+in its own column at the end of the block, always in view and never over the code, 8px in
+from the corner and centred on the first line, or in the file name's row when there is one. It copies `code` exactly as given.
 
 - Semantics: a `figure` whose `figcaption` is the file name; the code is a `pre`, and a scroller that scrolls is a focusable `region` named by the label or `regionLabel`.
-- Content: plain text in one of six languages, any number of lines; long lines never wrap, and the block scrolls sideways instead.
+- Content: plain text in one of seven languages, any number of lines; long lines never wrap, and the block scrolls sideways instead.
 - States: at rest, scrolling (a tab stop with the 2px inset ring on focus), and the copy control's own copied and failed states.
 - Keyboard: Tab reaches a block that scrolls and then its copy control, and the arrow keys scroll a focused block.
 - Pointer and touch: the copy control is 28px, 44px on a phone or touch screen, and always shown; selection works as in any text.
 - Focus: it never moves focus; the copy control keeps focus through its copied state.
-- Responsive: the block fills its column and its lines scroll inside it at every width; the copy column keeps its place at the end.
+- Responsive: the block fills its column and its lines scroll inside it at every width, with a fade on each edge that has more past it, the start fade past the line numbers; the copy column keeps its place at the end.
 - Accessibility: tokens hold 4.5:1 on the code ground, the gutter is hidden from assistive technology, and the scroller is named only when it is a tab stop.
 - Localization: `regionLabel` and `copyLabel` carry the built-in words; the code always reads left to right (`dir="ltr"`) in a right-to-left page, while the file name follows the page.
-- Performance: tokenizing is a handful of patterns per line and runs again only when `code` changes; one observer per block watches for overflow.
+- Performance: tokenizing is one pass over each line and runs again only when `code` or `lang` changes; one observer per block watches for overflow.
 - Analytics: none of its own; the copy control reports its copy.
 - Failure: an empty `code` draws one empty line; a language it does not know is drawn as plain text.
 -->
-<figure {...rest} class={['sui-code-block', { bare }, className]}>
+{#snippet copier()}
+  <div class="sui-code-block-copy"><CopyButton text={code} label={copyLabel} /></div>
+{/snippet}
+
+<figure {...rest} class={['sui-code-block', { bare, labelled: label !== undefined }, className]}>
   {#if label !== undefined}
     <figcaption class="sui-code-block-label">{label}</figcaption>
+    {#if copy}{@render copier()}{/if}
   {/if}
-  <div class={['sui-code-block-body', { single: lines.length === 1 }]} dir="ltr">
-    <!-- A block that scrolls sideways must be reachable by keyboard to be scrolled. -->
-    <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
-    <pre
-      {@attach watchOverflow((value) => (scrolls = value))}
-      class="sui-code-block-scroll"
-      tabindex={scrolls ? 0 : undefined}
-      role={scrolls ? 'region' : undefined}
-      aria-label={scrolls ? (label ?? regionLabel) : undefined}><code
-        class={{ numbered: lineNumbers }}
-        >{#each lines as line, index (index)}<span class="ln"
-            >{#if lineNumbers}<span class="no" aria-hidden="true">{index + 1}</span>{/if}<span
-              class="src"
-              >{#each tokenizeLine(lang, line) as piece, at (at)}<span class={piece.cls}
-                  >{piece.text}</span
-                >{/each}</span
-            ></span
-          >{/each}</code
-      ></pre>
-    {#if copy}
-      <div class="sui-code-block-copy"><CopyButton text={code} label={copyLabel} /></div>
-    {/if}
-  </div>
+  <!-- A block that scrolls sideways must be reachable by keyboard to be scrolled. -->
+  <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
+  <pre
+    {@attach watchOverflow((value) => (scrolls = value))}
+    class="sui-code-block-scroll sui-scroll-edge"
+    style:--sui-local-code-digits={String(lines.length).length}
+    dir="ltr"
+    tabindex={scrolls ? 0 : undefined}
+    role={scrolls ? 'region' : undefined}
+    aria-label={scrolls ? (label ?? regionLabel) : undefined}><code
+      class={{ numbered: lineNumbers }}
+      >{#each lines as line, index (index)}<span class="ln"
+          >{#if lineNumbers}<span class="no" aria-hidden="true">{index + 1}</span>{/if}<span
+            class="src"
+            >{#each line as piece, at (at)}<span class={piece.cls}>{piece.text}</span>{/each}</span
+          ></span
+        >{/each}</code
+    ></pre>
+  {#if copy && label === undefined}{@render copier()}{/if}
 </figure>
 
 <style>
+  /* One row is as tall as the copy control and its 8px inset all round: the file name's row,
+     and the room a single line of code stands in. Lines are 20px, so the first and the last
+     keep the same 12px of air from the block's edges, and the copy control centres on the
+     first line. The copy control has a column of its own beside the code, so it never covers
+     a line, or sits in the file name's row. */
   .sui-code-block {
+    --sui-local-code-row: calc(var(--sui-tier-quiet) + 2 * var(--sui-space-2));
     background: var(--sui-surface-code);
     border: var(--sui-stroke) solid var(--sui-border-subtle);
     border-radius: var(--sui-radius-control);
     box-sizing: border-box;
     color: var(--sui-text-primary);
+    display: flex;
+    flex-wrap: wrap;
     margin: 0;
     min-inline-size: 0;
   }
@@ -249,29 +268,52 @@ always in view and never over the code. It copies `code` exactly as given.
   }
 
   .sui-code-block-label {
-    border-block-end: var(--sui-stroke) solid var(--sui-border-divider);
+    align-content: center;
     color: var(--sui-text-secondary);
     font: var(--sui-weight-regular) var(--sui-font-size-micro) / var(--sui-leading-micro)
       var(--sui-mono);
     font-variant-numeric: tabular-nums;
+    flex: 1 1 8rem;
     letter-spacing: 0.04em;
+    min-block-size: var(--sui-local-code-row);
     overflow-wrap: anywhere;
-    padding: var(--sui-space-2) var(--sui-space-3);
+    padding-inline: var(--sui-space-4);
+    text-box: trim-both cap alphabetic;
   }
 
-  /* The copy control has a column of its own at the end, so it never covers a line. */
-  .sui-code-block-body {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) auto;
+  /* Beside a file name too long to share its row, the control takes a row of its own, from the
+     start edge (L-90). */
+  .sui-code-block-copy {
+    align-self: start;
+    display: flex;
+    flex: none;
+    padding: var(--sui-space-2);
   }
 
   .sui-code-block-scroll {
     border-radius: inherit;
     font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-leading-meta)
       var(--sui-mono);
+    flex: 1 1 0;
     font-variant-numeric: tabular-nums;
     margin: 0;
+    min-inline-size: 0;
     overflow-x: auto;
+    padding-block: calc((var(--sui-local-code-row) - var(--sui-leading-meta)) / 2);
+  }
+
+  /* The line numbers stay put while the lines scroll under them, so the start fade begins
+     past the gutter: its numbers are as wide as the longest, in tabular figures. */
+  .sui-code-block-scroll:has(> .numbered) {
+    --sui-local-edge-hold: calc(var(--sui-local-code-digits) * 1ch + 2 * var(--sui-space-4));
+  }
+
+  /* Under the file name the code takes the block's whole width. */
+  .labelled .sui-code-block-scroll {
+    border-block-start: var(--sui-stroke) solid var(--sui-border-divider);
+    border-start-end-radius: 0;
+    border-start-start-radius: 0;
+    flex-basis: 100%;
   }
 
   /* Rounded even when `bare` squares the block, so the inset ring never has sharp corners. */
@@ -295,25 +337,26 @@ always in view and never over the code. It copies `code` exactly as given.
     grid-template-columns: auto minmax(0, 1fr);
   }
 
-  /* Every line is one height with its air inside it, so a tone runs from edge to edge and the
-     block has no strip of bare ground above its first line or below its last. */
   .ln {
     display: grid;
     grid-column: 1 / -1;
     grid-template-columns: subgrid;
     min-block-size: var(--sui-leading-meta);
-    padding-block: calc(var(--sui-space-1) / 2);
   }
 
+  /* The gutter stays in view while long lines scroll under it. */
   .no {
+    background: var(--sui-surface-code);
     color: var(--sui-code-gutter);
-    padding-inline: var(--sui-space-3);
+    inset-inline-start: 0;
+    padding-inline: var(--sui-space-4);
+    position: sticky;
     text-align: end;
     user-select: none;
   }
 
   .src {
-    padding-inline: var(--sui-space-3);
+    padding-inline: var(--sui-space-4);
     white-space: pre;
   }
 
@@ -350,21 +393,5 @@ always in view and never over the code. It copies `code` exactly as given.
   .tok-head {
     color: var(--sui-code-key);
     font-weight: var(--sui-weight-medium);
-  }
-
-  /* 2px off the corner, as the first line's air is, so the control lines up with it. */
-  .sui-code-block-copy {
-    align-self: start;
-    display: flex;
-    padding: calc(var(--sui-space-1) / 2);
-  }
-
-  /* One line: the control centres on it, and the line is as tall as the control. */
-  .single .sui-code-block-copy {
-    align-self: center;
-  }
-
-  .single:has(.sui-code-block-copy) .ln {
-    min-block-size: var(--sui-tier-quiet);
   }
 </style>

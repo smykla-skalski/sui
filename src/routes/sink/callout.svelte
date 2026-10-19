@@ -71,7 +71,7 @@
 
 <Example
   title="Long copy"
-  note="Long copy starts at the symbol's tile however many lines follow"
+  note="Long copy starts at the symbol's tile however many lines follow, and an action beside it centres on the message"
   layout="stack"
 >
   <Specimen label="Wrapping title and a link">
@@ -87,6 +87,16 @@
     <Callout>
       {#snippet icon()}<Icon name="info" size="sm" />{/snippet}
       A description can stand on its own without a title
+    </Callout>
+  </Specimen>
+  <Specimen label="Long copy beside an action" code="actions">
+    <Callout
+      title="Archived repositories are skipped during every sync, including the scheduled one that runs at night"
+    >
+      {#snippet icon()}<Icon name="info" size="sm" />{/snippet}
+      Unarchive a repository to bring it back into the sync, with the branch rules it had before it was
+      archived
+      {#snippet actions()}<Button>Show archived</Button>{/snippet}
     </Callout>
   </Specimen>
 </Example>
@@ -115,7 +125,7 @@
 
 <Example
   title="Narrow width"
-  note="At 24rem or narrower the actions move under the message, so its words keep the width"
+  note="A callout too narrow for its actions beside an 11rem measure of copy moves them under the copy, from its start edge"
   layout="grid"
 >
   <Specimen label="Quiet" code="actions">

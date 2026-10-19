@@ -11,6 +11,7 @@
     type ToastEnd,
     type ToastOptions
   } from '../internal/toasts.svelte.js';
+  import { themeAt } from '../internal/theme.svelte.js';
   import Button from './Button.svelte';
   import IconButton from './IconButton.svelte';
   import VisuallyHidden from './VisuallyHidden.svelte';
@@ -194,9 +195,9 @@ A `danger` toast reports a failure and stays too.
 - Content: a title, one description that never repeats it, at most one action, and Dismiss; a failure carries its symbol; words wrap at 24rem.
 - States: entering (rises 8px and fades in), shown, held while hovered or focused, leaving (fades), `danger` with its symbol in a danger tile, and drawn in place with `preview`.
 - Keyboard: the hotkey (F8) moves focus to the newest toast, Tab moves through its action and Dismiss, and Escape returns focus to where it was.
-- Pointer and touch: the action and Dismiss are 34px targets, 44px on a phone or touch screen; the corner around the toasts lets presses through to the page.
+- Pointer and touch: the action is a 34px target and Dismiss a 28px one, both 44px on a phone or touch screen; the corner around the toasts lets presses through to the page.
 - Focus: closing a toast returns focus to where it was before it entered the stack, or to the next toast's Dismiss when that place is gone.
-- Responsive: the stack is at most the viewport's width less 32px and its height, and scrolls inside past that with the newest toast kept in view.
+- Responsive: the stack is at most the viewport's width less 32px and its height, and scrolls inside past that with the newest toast kept in view. On a phone it spans the screen. Dismiss keeps the inline-end corner beside the title's first line, the action stands under the copy, and the copy moves under a failure's symbol when it would get less than 8rem beside it.
 - Accessibility: a failure is announced as an alert and anything else politely, each once, and the stack is a landmark a reader can jump to.
 - Localization: `dismissLabel`, `label` and `hotkey` carry the built-in words and key, the stack stands at the inline end, mirrored in a right-to-left page, and its padding is logical.
 - Performance: one stack per page and per open dialog; each toast holds one timer, and the motion is opacity and translate, a fade alone under reduced motion.
@@ -229,6 +230,7 @@ A `danger` toast reports a failure and stays too.
   bind:this={stack}
   class={['sui-toaster', { preview }]}
   popover={preview ? undefined : 'manual'}
+  data-sui-theme={themeAt(stack?.parentElement)}
   role={preview ? undefined : 'region'}
   aria-label={preview ? undefined : words.region}
   aria-keyshortcuts={preview ? undefined : words.hotkey}
@@ -249,24 +251,28 @@ A `danger` toast reports a failure and stays too.
       out:leave
       onoutroend={settle}
     >
-      {#if item.tone === 'danger'}
-        <span class="sui-toast-mark"><Icon name="failure" size="base" /></span>
-      {/if}
-      <div class="sui-toast-copy">
-        <p class="sui-toast-title">{item.title}</p>
-        {#if item.description}<p class="sui-toast-description">{item.description}</p>{/if}
+      <div class="sui-toast-body">
+        {#if item.tone === 'danger'}
+          <span class="sui-toast-mark"><Icon name="failure" size="base" /></span>
+        {/if}
+        <div class="sui-toast-main">
+          <div class="sui-toast-copy">
+            <p class="sui-toast-title">{item.title}</p>
+            {#if item.description}<p class="sui-toast-description">{item.description}</p>{/if}
+          </div>
+          {#if item.action}
+            <Button onclick={(event) => run(item, event)}>{item.action.label}</Button>
+          {/if}
+        </div>
       </div>
-      {#if item.action}
-        <span class="sui-toast-action"
-          ><Button onclick={(event) => run(item, event)}>{item.action.label}</Button></span
-        >
-      {/if}
-      <IconButton
-        icon="close"
-        label={words.dismiss}
-        data-dismiss
-        onclick={(event) => close(item, event, 'dismissed')}
-      />
+      <span class="sui-toast-dismiss"
+        ><IconButton
+          icon="close"
+          label={words.dismiss}
+          data-dismiss
+          onclick={(event) => close(item, event, 'dismissed')}
+        /></span
+      >
     </div>
   {/each}
 </div>
@@ -303,7 +309,10 @@ A `danger` toast reports a failure and stays too.
     display: flex;
   }
 
+  /* Drawn in place, the toasts start where any content would; only the live stack hangs from
+     the screen's inline end. */
   .preview {
+    align-items: flex-start;
     max-block-size: none;
     max-inline-size: 100%;
     overflow: visible;
@@ -316,8 +325,12 @@ A `danger` toast reports a failure and stays too.
     display: block;
   }
 
+  /* One inset all round, measured to the ink (L-33): the title's cap line and the symbol's
+     tile stand it below the top, the last baseline or the action's foot above the bottom, and
+     Dismiss's glyph from the inline end. Dismiss holds that corner and never wraps, so on a very
+     narrow toast the copy moves under the symbol instead. */
   .sui-toast {
-    align-items: center;
+    align-items: flex-start;
     background-color: var(--sui-popover-bg);
     border: var(--sui-stroke) solid var(--sui-popover-border);
     border-radius: var(--sui-radius-surface);
@@ -328,8 +341,7 @@ A `danger` toast reports a failure and stays too.
     gap: var(--sui-space-3);
     max-inline-size: 24rem;
     opacity: 1;
-    padding-block: var(--sui-space-2);
-    padding-inline: var(--sui-space-4) var(--sui-space-2);
+    padding: var(--sui-space-3);
     pointer-events: auto;
     transition:
       opacity var(--sui-duration-normal) var(--sui-ease-out),
@@ -344,14 +356,10 @@ A `danger` toast reports a failure and stays too.
     }
   }
 
-  /* The failure symbol stands in a tile of the danger tone, at the tile's 18px glyph. It sits
-     level with the copy's padding, so short copy centres on it and long copy starts at its top
-     (L-56). */
+  /* The failure symbol stands in a tile of the danger tone, at the tile's 18px glyph. */
   .sui-toast-mark {
     --sui-icon-base: var(--sui-icon-md);
     align-items: center;
-    align-self: flex-start;
-    margin-block: var(--sui-space-2);
     background: var(--sui-danger-tint);
     block-size: var(--sui-symbol-tile);
     border-radius: var(--sui-radius-control);
@@ -362,36 +370,73 @@ A `danger` toast reports a failure and stays too.
     justify-content: center;
   }
 
+  .sui-toast-body {
+    display: flex;
+    flex: 1 1 auto;
+    flex-wrap: wrap;
+    gap: var(--sui-space-3);
+    min-inline-size: 0;
+  }
+
+  /* The action stands under the copy from its start edge, so it never sits beside Dismiss at
+     another height (L-90, L-101). */
+  .sui-toast-main {
+    display: grid;
+    flex: 1 1 8rem;
+    gap: var(--sui-space-3);
+    justify-items: start;
+    min-inline-size: 0;
+  }
+
   .sui-toast-copy {
     align-content: center;
     display: grid;
-    flex: 1 1 auto;
     gap: var(--sui-row-copy-gap);
+    justify-self: stretch;
     min-inline-size: 0;
-    padding-block: var(--sui-space-2);
   }
 
-  .sui-toast:has(> .sui-toast-mark) > .sui-toast-copy {
+  /* At least as tall as the tile beside it, so short copy centres on the tile and longer copy
+     starts at its top (L-56). */
+  .sui-toast-body:has(> .sui-toast-mark) .sui-toast-copy {
     min-block-size: var(--sui-symbol-tile);
   }
 
-  /* The action keeps its width, so the copy wraps instead of the button's word. A toast too
-     narrow for a few words of copy beside both buttons puts the buttons on a line under it. */
-  .sui-toast-action {
+  /* A zero-height seat on the middle of the title's first line, rounded down to the pixel, so
+     Dismiss centres beside that line (L-94) on whole pixels (L-95) without making the toast
+     taller. The seat takes the title's face, so `1cap` is the title's cap height. A quiet button
+     draws nothing around its glyph at rest, so its box reaches into the inset by its own room
+     and the glyph's bearing, and the glyph's ink keeps the inset (L-33), as a card's quiet head
+     control does. The close glyph's ink starts 5 of its 24 units in: 6 empty units less half
+     its 2-unit stroke. */
+  .sui-toast-dismiss {
+    align-items: center;
+    block-size: 0;
     display: flex;
     flex: none;
+    font: var(--sui-weight-semibold) var(--sui-font-size-meta) / var(--sui-leading-flat)
+      var(--sui-sans);
+    margin-block-start: round(down, calc(round(up, 1cap, 1px) / 2), 1px);
+    margin-inline-end: round(
+      calc((var(--sui-icon-sm) - var(--sui-tier-quiet)) / 2 - 5 / 24 * var(--sui-icon-sm)),
+      1px
+    );
   }
 
-  .sui-toast:has(> .sui-toast-action) {
-    flex-wrap: wrap;
-  }
+  /* On a phone the stack spans the screen and each toast takes its width. */
+  @media (max-width: 47.9375rem) {
+    .sui-toaster {
+      inset-inline-start: 0;
+    }
 
-  .sui-toast:has(> .sui-toast-action) > .sui-toast-copy {
-    flex-basis: 8rem;
+    .sui-toast {
+      inline-size: 100%;
+    }
   }
 
   .sui-toast-title,
   .sui-toast-description {
+    align-content: center;
     block-size: var(--sui-block-snap);
     font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-row-copy-leading)
       var(--sui-sans);

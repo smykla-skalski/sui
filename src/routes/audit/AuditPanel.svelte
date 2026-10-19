@@ -1,23 +1,53 @@
 <script lang="ts">
   import { onMount, tick } from 'svelte';
-  import { Pill } from '#lib';
+  import { Button, Disclosure, Icon, Pill } from '#lib';
   import { checkCount, runAudit, type Finding } from './audit.js';
-  import './checks.js';
+  import { cutSides, ringReach } from './checks.js';
+
+  /** What a run found and where it was measured, kept per page so a reload never re-runs it. */
+  type Kept = { findings: Finding[]; at: string; width: number; theme: string };
 
   let findings = $state<Finding[] | null>(null);
+  let measured = $state<Omit<Kept, 'findings'> | null>(null);
+  let running = $state(false);
 
   const count = (n: number, word: string) => `${n} ${word}${n === 1 ? '' : 's'}`;
 
-  // A theme switch during a run starts another, and only the newest run reports.
-  let runs = 0;
-  // A reader who switches the theme may switch straight back, so the audit waits until the
-  // switching stops instead of holding up the next click.
-  const AFTER_SWITCH = 500;
+  // One record per address and path, so each preview of the sink keeps its own.
+  const key = () => `sui:audit:${location.origin}${location.pathname}`;
 
-  async function rerun(wait = 0) {
+  function recall(): Kept | null {
+    try {
+      const kept = JSON.parse(localStorage.getItem(key()) ?? 'null') as Kept | null;
+      return kept && Array.isArray(kept.findings) ? kept : null;
+    } catch {
+      return null;
+    }
+  }
+
+  function keep(result: Finding[]) {
+    const theme =
+      document.documentElement.dataset.suiTheme ??
+      (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+    const kept: Kept = {
+      findings: result.map(({ law, where, detail }) => ({ law, where, detail })),
+      at: new Date().toISOString(),
+      width: innerWidth,
+      theme
+    };
+    measured = { at: kept.at, width: kept.width, theme: kept.theme };
+    try {
+      localStorage.setItem(key(), JSON.stringify(kept));
+    } catch {
+      // A page that cannot store simply runs again on the next press.
+    }
+  }
+
+  // Only the newest run reports.
+  let runs = 0;
+
+  async function rerun() {
     const run = ++runs;
-    if (wait) await new Promise((resolve) => setTimeout(resolve, wait));
-    if (run !== runs) return null;
     await tick();
     await document.fonts.ready;
     await new Promise(requestAnimationFrame);
@@ -36,8 +66,21 @@
     return result;
   }
 
+  async function measure() {
+    running = true;
+    const result = await rerun();
+    if (result) keep(result);
+    running = false;
+  }
+
   function reveal(finding: Finding) {
-    const target = finding.element;
+    let target: Element | null | undefined = finding.element;
+    // A kept finding lost its element with the page it was measured on, so its path finds it.
+    try {
+      target ??= document.querySelector(finding.where);
+    } catch {
+      target = null;
+    }
     if (!(target instanceof HTMLElement || target instanceof SVGElement)) return;
     target.scrollIntoView({ block: 'center' });
     target.animate(
@@ -61,67 +104,102 @@
       while (!result) result = await rerun();
       return result.map(({ law, where, detail }) => ({ law, where, detail }));
     };
-    void rerun();
-    const observer = new MutationObserver(() => void rerun(AFTER_SWITCH));
-    observer.observe(document.documentElement, { attributeFilter: ['data-sui-theme'] });
-    const query = matchMedia('(max-width: 47.9375rem)');
-    const resized = () => void rerun();
-    query.addEventListener('change', resized);
-    return () => {
-      observer.disconnect();
-      query.removeEventListener('change', resized);
-    };
+    // A browser test weighs each focus ring it tabs to with the ring check's own measure.
+    Object.assign(window, {
+      __suiRingCut: (element: Element, look: CSSStyleDeclaration) =>
+        cutSides(element, ringReach(look))
+    });
+    // The whole page is measured once; after that the kept result shows until the reader asks
+    // for another run, so a reload never pays for the audit again. A browser test asks for the
+    // audit when it needs one, so its presses never wait behind a run it did not ask for.
+    const kept = recall();
+    if (kept) {
+      findings = kept.findings;
+      measured = { at: kept.at, width: kept.width, theme: kept.theme };
+    } else if (new URLSearchParams(location.search).get('audit') !== 'manual') void measure();
   });
+
+  const when = (at: string) =>
+    new Intl.DateTimeFormat(document.documentElement.lang || undefined, {
+      dateStyle: 'medium',
+      timeStyle: 'short'
+    }).format(new Date(at));
 </script>
 
 <section class="audit" aria-labelledby="audit-title" data-audit-ignore>
   <div class="head">
     <div class="title-row">
       <h2 id="audit-title">Law audit</h2>
-      {#if findings !== null}
-        <span class="badge">
-          {#if findings.length === 0}
-            <Pill tone="success" icon="check">Passing</Pill>
-          {:else}
-            <Pill tone="danger" icon="failure">{count(findings.length, 'finding')}</Pill>
-          {/if}
-        </span>
-      {/if}
+      <!-- Until the panel reads the kept run itself, the page's first script has read it and
+           names it on the root (src/app.html), so the first frame already draws it in words this
+           script will draw too, and the panel never changes when it starts. -->
+      <span class="badge">
+        {#if findings === null}
+          <span class="kept pass"><Pill tone="success" icon="check">Passing</Pill></span>
+          <span class="kept fail"
+            ><Pill tone="danger" icon="failure"><span class="kept-found"></span></Pill></span
+          >
+        {:else if findings.length === 0}
+          <Pill tone="success" icon="check">Passing</Pill>
+        {:else}
+          <Pill tone="danger" icon="failure">{count(findings.length, 'finding')}</Pill>
+        {/if}
+      </span>
     </div>
     <p class="summary" role="status">
-      {#if findings === null}
+      {#if running}
         Measuring…
+      {:else if findings === null}
+        <span class="kept none">Measuring…</span><span class="kept pass"
+          >Every law holds on this page</span
+        ><span class="kept fail kept-summary"></span>
       {:else if findings.length === 0}
         Every law holds on this page
       {:else}
         {count(findings.length, 'finding')} against {count(byLaw.length, 'law')}
       {/if}
     </p>
-    <!-- Shown from the start, so the panel keeps its height when the first run reports and
-         nothing below it moves. -->
-    <p class="scope">
-      {checkCount()} rendered checks, run again on every theme switch and layout change
-    </p>
+    <!-- A kept result is read only once the page runs, so every line the panel shows from the
+         first paint keeps its words, and the result's details wait behind a press: nothing
+         below the panel moves when a result arrives. The spinner takes the icon's place, so a
+         run keeps the button's width. -->
+    <div class="scope-row">
+      <p class="scope">{checkCount()} rendered checks</p>
+      <Button loading={running} onclick={measure}>
+        {#snippet icon()}<Icon name="refresh" size="sm" />{/snippet}
+        Run the audit again
+      </Button>
+    </div>
   </div>
-  {#if findings && findings.length > 0}
-    <ul class="laws">
-      {#each byLaw as [law, items] (law)}
-        <li>
-          <details>
-            <summary><span class="law">{law}</span> {count(items.length, 'finding')}</summary>
-            <ul class="items">
-              {#each items as finding, index (index)}
-                <li>
-                  <button type="button" onclick={() => reveal(finding)}>{finding.where}</button>
-                  <span class="detail">{finding.detail}</span>
-                </li>
-              {/each}
-            </ul>
-          </details>
-        </li>
-      {/each}
-    </ul>
-  {/if}
+  <Disclosure summary="Details of the run">
+    <div class="result-body">
+      <p class="scope">
+        {#if measured}
+          Measured {when(measured.at)} at {measured.width}px in {measured.theme}
+        {:else}
+          Not measured yet
+        {/if}
+      </p>
+      {#if findings && findings.length > 0}
+        <ul class="laws">
+          {#each byLaw as [law, items] (law)}
+            <li>
+              <Disclosure summary={law} hint={count(items.length, 'finding')}>
+                <ul class="items">
+                  {#each items as finding, index (index)}
+                    <li>
+                      <button type="button" onclick={() => reveal(finding)}>{finding.where}</button>
+                      <span class="detail">{finding.detail}</span>
+                    </li>
+                  {/each}
+                </ul>
+              </Disclosure>
+            </li>
+          {/each}
+        </ul>
+      {/if}
+    </div>
+  </Disclosure>
 </section>
 
 <style>
@@ -142,6 +220,7 @@
   }
 
   h2 {
+    align-content: center;
     block-size: var(--sui-block-snap);
     font: var(--sui-weight-bold) var(--sui-font-size-dialog-title) / var(--sui-leading-title)
       var(--sui-sans);
@@ -166,7 +245,16 @@
       var(--sui-sans);
   }
 
+  .scope-row {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--sui-space-3);
+    justify-content: space-between;
+  }
+
   .scope {
+    align-content: center;
     block-size: var(--sui-block-snap);
     color: var(--sui-text-muted);
     font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-row-copy-leading)
@@ -175,13 +263,37 @@
     text-box: trim-both cap alphabetic;
   }
 
+  .kept {
+    display: none;
+  }
+
+  :global(:root:not([data-sui-audit])) .kept.none,
+  :global(:root[data-sui-audit='pass']) .kept.pass,
+  :global(:root[data-sui-audit='fail']) .kept.fail {
+    display: contents;
+  }
+
+  .kept-found::before {
+    content: var(--sink-audit-found);
+  }
+
+  .kept-summary::before {
+    content: var(--sink-audit-summary);
+  }
+
   .summary {
+    align-content: center;
     block-size: var(--sui-block-snap);
     color: var(--sui-text-secondary);
     font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-row-copy-leading)
       var(--sui-sans);
     margin: 0;
     text-box: trim-both cap alphabetic;
+  }
+
+  .result-body {
+    display: grid;
+    gap: var(--sui-space-3);
   }
 
   .laws,
@@ -191,30 +303,6 @@
     list-style: none;
     margin: 0;
     padding: 0;
-  }
-
-  summary {
-    border-radius: var(--sui-radius-control);
-    cursor: pointer;
-    font: var(--sui-weight-medium) var(--sui-font-size-meta) / var(--sui-leading-meta)
-      var(--sui-sans);
-    padding: var(--sui-space-1) var(--sui-space-2);
-  }
-
-  summary:focus-visible {
-    outline: var(--sui-focus-ring-width) solid var(--sui-focus);
-    outline-offset: var(--sui-focus-ring-inset);
-  }
-
-  .law {
-    font-family: var(--sui-mono);
-    font-variant-numeric: tabular-nums;
-    font-weight: var(--sui-weight-medium);
-  }
-
-  .items {
-    padding: var(--sui-space-2);
-    padding-inline-start: var(--sui-space-6);
   }
 
   .items li {

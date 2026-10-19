@@ -221,6 +221,22 @@
 </Example>
 
 <Example
+  title="First load"
+  note="Placeholder rows take the table's own cells, each bar where its column's words start, and one light crosses them"
+  layout="stack"
+>
+  <Specimen label="Loading, wide" code="rowHeader loading">
+    <DataTable
+      caption="Builds in the last hour"
+      columns={buildColumns}
+      rows={[]}
+      rowHeader
+      loading
+    />
+  </Specimen>
+</Example>
+
+<Example
   title="Narrow width"
   note="Columns that outgrow the room scroll inside the frame, which says so and keeps the row headings in view"
   layout="grid"
@@ -245,10 +261,23 @@
 <style>
   /* An icon has no baseline, so a baseline-aligned box would ride half a pixel above the line
      and grow the row off the grid (L-95). */
+  /* The words run cap to baseline in an even box, so the icon centres on them by whole
+     pixels (L-94). */
+  /* A row of its own, one cap tall like the other cells' words, with the mark hung on that cap
+     (L-94): an inline box would sit at the top of the cell's trimmed line instead. */
   .status {
     align-items: center;
-    display: inline-flex;
+    display: flex;
     gap: var(--sui-space-1);
-    vertical-align: top;
+  }
+
+  .status > :global(svg) {
+    margin-block: calc((round(up, 1cap, 2px) - var(--sui-icon-sm)) / 2);
+  }
+
+  .status > span {
+    align-content: center;
+    block-size: var(--sui-block-snap-even);
+    text-box: trim-both cap alphabetic;
   }
 </style>

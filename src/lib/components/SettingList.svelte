@@ -44,11 +44,13 @@
 
 <!--
 @component
-The settings of one card, as a real `ul` of `SettingRow`s. Put it in a `Card`: the rows reach
-8px past the list on both sides, so their names keep the card title's edge while a changed row's
-fill stands clear of the text, and the list hands back the last row's bottom padding so the last
-line closes on the card's own frame. When it opens the card it hands back the first row's top
-padding too, so the first line stands the card's inset below the keyline.
+The settings of one group, as a real `ul` of `SettingRow`s. Put it in a `Section`, never in a
+card or a plate (L-55): it hangs there with no frame, so the rows' names stand on the section
+title's edge while a changed row's plate and a hover reach 8px past it into the pane's gutter.
+Give it a holder that leaves that room and never clips or scrolls it sideways (L-61). Its rows,
+grounds and all, start 16px under the title's ink, as any section content does, so a changed
+first row's plate never presses on the heading, as the rows of an `ObjectList` start; it hands
+back the last row's bottom padding, so the space after it runs from its last line (L-108).
 
 - Semantics: a `ul` with `role="list"`, so Safari keeps the list once its bullets are gone.
 - Content: `SettingRow`s only, one per setting.
@@ -59,7 +61,7 @@ padding too, so the first line stands the card's inset below the keyline.
 - Responsive: rows take the full width and drop their controls under the copy when the row is narrow.
 - Accessibility: a screen reader hears a list with its count, and each row names its controls.
 - Localization: everything it says is its rows'; it follows the reading direction.
-- Performance: no script; every row renders, which suits the dozen settings of a card.
+- Performance: no script; every row renders, which suits the dozen settings of a section.
 - Analytics: none of its own; rows report resets through `onclear`.
 - Failure: `loading` draws placeholder rows, `error` an alert with a retry, and `empty` the empty state, each in the rows' place; without permission to change them, keep the rows with `readonly` and a `reason` on each.
 -->
@@ -83,13 +85,9 @@ padding too, so the first line stands the card's inset below the keyline.
     padding: 0;
   }
 
-  /* The last row's bottom padding carries the hairline's pixel too, so the list hands back both,
-     and the card's inset ends at the row's ink (L-33). */
+  /* The last row's bottom padding carries the hairline's pixel too, so the list hands back both
+     and what follows stands its own gap from the last line's ink (L-108). */
   .sui-setting-list:has(> :global(li)) {
     margin-block-end: calc(-1 * (var(--sui-row-pad-default) + var(--sui-row-hairline)));
-  }
-
-  .sui-setting-list:first-child:has(> :global(li)) {
-    margin-block-start: var(--sui-local-row-lead, 0px);
   }
 </style>

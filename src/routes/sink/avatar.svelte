@@ -18,6 +18,12 @@
 
   /* Bytes no browser can decode, so the fallback shows without a request that fails. */
   const broken = 'data:image/png;base64,AAAA';
+  /* Drawn in place, so the sink needs no network: a portrait, and a ring of a logo whose middle
+     is clear. */
+  const portrait =
+    'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCI+PHJlY3Qgd2lkdGg9IjY0IiBoZWlnaHQ9IjY0IiBmaWxsPSIjNmY4ZmIzIi8+PGNpcmNsZSBjeD0iMzIiIGN5PSIyNiIgcj0iMTIiIGZpbGw9IiNmMWRjYzgiLz48cGF0aCBkPSJNOCA2NGMyLTE1IDEyLTIzIDI0LTIzczIyIDggMjQgMjN6IiBmaWxsPSIjMzQ1MDZmIi8+PC9zdmc+';
+  const logo =
+    'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCI+PHBhdGggZD0iTTMyIDlsMjAgMTEuNXYyM0wzMiA1NSAxMiA0My41di0yM3oiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzJmOGY2ZCIgc3Ryb2tlLXdpZHRoPSI3IiBzdHJva2UtbGluZWpvaW49InJvdW5kIi8+PC9zdmc+';
 </script>
 
 <Example
@@ -38,8 +44,20 @@
 </Example>
 
 <Example
+  title="Pictures"
+  note="A picture covers the initials drawn under it, and a logo's clear ground shows the tint"
+>
+  <Specimen label="Person" code="src">
+    <Avatar name="Grace Hopper" src={portrait} size={32} />
+  </Specimen>
+  <Specimen label="Workspace" code={'src shape="workspace"'}>
+    <Avatar name="Platform Team" src={logo} shape="workspace" size={32} />
+  </Specimen>
+</Example>
+
+<Example
   title="Fallbacks"
-  note="A picture that does not load, or a missing name, still draws initials"
+  note="A picture that does not load shows the initials under it, and a missing name draws them from the handle"
 >
   <Specimen label="Picture does not load" code="src">
     <Avatar name="Alan Turing" src={broken} size={32} />

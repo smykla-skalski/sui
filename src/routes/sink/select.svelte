@@ -183,16 +183,22 @@
 
 <Example
   title="In a form"
-  note="Native validation stops a send without a time zone, and the values submit by name, numbers included"
+  note="Native validation stops a send without a time zone and says why under the field, and the values submit by name, numbers included"
 >
-  <Specimen label={sent} code="name required">
+  <Specimen label={sent} code="name required validationMessage">
     <form class="form" onsubmit={send}>
-      <Field label="Report time zone" hint="Reports run at midnight in this zone" required>
-        {#snippet control({ id, describedby, required })}
+      <Field
+        label="Report time zone"
+        hint="Reports run at midnight in this zone"
+        required
+        validationMessage="Choose the time zone the reports run in"
+      >
+        {#snippet control({ id, describedby, invalid, required })}
           <Select
             {id}
             aria-describedby={describedby}
             name="zone"
+            {invalid}
             {required}
             options={zones}
             bind:value={zone}

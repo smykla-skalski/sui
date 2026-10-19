@@ -63,7 +63,7 @@
 
   // The palette's breakpoints, the same as the container queries below, which own the first
   // paint. They are read again whenever the width or the root's text size changes, so a reader
-  // who enlarges the text moves them in step with the queries, which measure in rem too.
+  // who enlarges the text moves them along with the queries, which measure in rem too.
   function breakpoint(name: string): number {
     const rem = parseFloat(getComputedStyle(document.documentElement).getPropertyValue(name));
     return rem * rootFontSize();
@@ -353,8 +353,6 @@ viewport. `landmark="none"` keeps the content from claiming the page's one `main
     padding-inline: var(--sui-space-2) var(--sui-space-3);
     touch-action: manipulation;
     transition:
-      background-color var(--sui-duration-fast) var(--sui-ease-standard),
-      color var(--sui-duration-fast) var(--sui-ease-standard),
       translate var(--sui-duration-press) var(--sui-ease-standard),
       box-shadow var(--sui-duration-press) var(--sui-ease-standard);
     -webkit-tap-highlight-color: transparent;
@@ -363,6 +361,7 @@ viewport. `landmark="none"` keeps the content from claiming the page's one `main
   }
 
   .sui-shell-menu-label {
+    align-content: center;
     block-size: var(--sui-block-snap);
     text-box: trim-both cap alphabetic;
   }
@@ -386,6 +385,7 @@ viewport. `landmark="none"` keeps the content from claiming the page's one `main
   }
 
   .sui-shell-title {
+    align-content: center;
     block-size: var(--sui-block-snap);
     flex: 1 1 8rem;
     font: var(--sui-weight-semibold) var(--sui-font-size-title) / var(--sui-leading-title)

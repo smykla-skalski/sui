@@ -5,6 +5,22 @@ node = "24.22.0"
 description = "Install current dependencies and update the lockfile"
 run = "npm install"
 
+[tasks."install:ci"]
+description = "Install the locked dependencies"
+run = "npm ci"
+
+[tasks."test:browser"]
+description = "Run browser tests"
+run = "npm run test:browser"
+
+[tasks."test:browser:long"]
+description = "Run all browser tests"
+run = "npm run test:browser:long"
+
+[tasks."test:browser:ci"]
+description = "Run one CI browser test group"
+run = "npm run test:browser:ci -- {{arg(name='group')}}"
+
 [tasks.format]
 description = "Format package files"
 run = "npm run format"

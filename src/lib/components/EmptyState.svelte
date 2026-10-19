@@ -109,6 +109,7 @@ An empty list is not an error and is not drawn as one; a request that failed is
   }
 
   p {
+    align-content: center;
     block-size: var(--sui-block-snap);
     margin: 0;
     overflow-wrap: anywhere;

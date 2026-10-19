@@ -19,6 +19,7 @@
     loading = false,
     disabled = false,
     element = $bindable(null),
+    'aria-disabled': ariaDisabled,
     class: className = '',
     children,
     ...rest
@@ -40,8 +41,10 @@
   } & NativeAttributes = $props();
 
   /* `disabled` would drop a focused button's focus to the body, so a busy one stays in the tab
-     order and refuses the press itself. */
+     order and refuses the press itself, and so does one its owner locks with `aria-disabled`,
+     such as a control held while a busy dialog or a saving pane around it works. */
   const busy = $derived(loading && !disabled);
+  const locked = $derived(busy || ariaDisabled === true || ariaDisabled === 'true');
 
   function refuse(event: MouseEvent) {
     event.preventDefault();
@@ -66,11 +69,11 @@ start.
 
 - Semantics: a native `<button type="button">`, or an `<a href>` with `href`; its words are its name, and a disabled anchor is `role="link"` with `aria-disabled`.
 - Content: a short verb phrase that names the result, an optional leading `icon` and an optional `trailing` mark; a long or translated label wraps onto more lines inside its container.
-- States: rest, hover (a veil and a firmer edge), focus (a 2px ring, flush on bordered tones and 2px off a filled one), pressed (a deeper ground, an inset shadow and a 1px sink), loading (a spinner, busy) and disabled (0.7 opacity, default cursor).
-- Keyboard: Tab reaches it, and Enter or Space presses a button while Enter follows an anchor; a loading or disabled one refuses both.
-- Pointer and touch: 34px tall on a pointer and 44px on a phone or any touch screen, at least as wide as its label, and a press is never a drag.
+- States: rest, hover (a veil and a firmer edge), focus (a 2px ring, flush on bordered tones and 2px off a filled one), pressed (a deeper ground, an inset shadow and a 1px sink), loading (a spinner in the tone's ink on the full fill and edge, the words at 0.5 opacity, busy), locked by `aria-disabled` (0.5 opacity, still a tab stop) and disabled (0.5 opacity, default cursor).
+- Keyboard: Tab reaches it, and Enter or Space presses a button while Enter follows an anchor; a loading, locked or disabled one refuses both.
+- Pointer and touch: 34px tall on a pointer and 44px on a phone or any touch screen, at least as wide as its label, and a press is never a drag; a surface may keep it drawn at 34px on a phone with `--sui-local-button-seat`, and its hit area still grows to 44px.
 - Focus: pressing never moves focus, and a loading button keeps it; the caller moves focus when the press removes the button.
-- Responsive: as wide as its words up to its container, and wider words wrap onto a second line at 40 or 44px instead of scrolling the page.
+- Responsive: as wide as its words up to its container or 20rem, and wider words wrap onto more lines, each keeping the one-line inset, instead of scrolling the page.
 - Accessibility: the label is the name, `loading` sets `aria-busy` and `aria-disabled`, every tone's ink holds 4.5:1 on its fill, and forced colours draw hover with a highlight edge.
 - Localization: it draws no words of its own; the leading icon and the gap follow the reading direction, and directional glyphs mirror in a right-to-left page.
 - Performance: one element, and only colours, the inset shadow and the 1px sink move, with no movement under reduced motion.
@@ -80,13 +83,13 @@ start.
 
 {#snippet body()}
   {#if loading}
-    <span class="sui-button-spinner" aria-hidden="true"></span>
+    <span class="sui-button-part"><span class="sui-button-spinner" aria-hidden="true"></span></span>
   {:else if icon}
-    {@render icon()}
+    <span class="sui-button-part">{@render icon()}</span>
   {/if}
   <span class="sui-button-label">{@render children()}</span>
   {#if trailing}
-    {@render trailing()}
+    <span class="sui-button-part">{@render trailing()}</span>
   {/if}
 {/snippet}
 
@@ -96,38 +99,41 @@ start.
     href={disabled ? undefined : href}
     role={disabled ? 'link' : undefined}
     {...rest as HTMLAnchorAttributes}
-    class={['sui-button', className]}
+    class={['sui-button', className, { busy }]}
     data-tone={tone}
-    aria-disabled={disabled || busy || undefined}
+    aria-disabled={disabled || locked || undefined}
     aria-busy={loading || undefined}
-    onclick={disabled || busy ? refuse : (rest as HTMLAnchorAttributes).onclick}>{@render body()}</a
+    onclick={disabled || locked ? refuse : (rest as HTMLAnchorAttributes).onclick}
+    >{@render body()}</a
   >
 {:else}
   <button
     bind:this={element}
     type="button"
     {...rest as HTMLButtonAttributes}
-    class={['sui-button', className]}
+    class={['sui-button', className, { busy }]}
     data-tone={tone}
     {disabled}
-    aria-disabled={busy || undefined}
+    aria-disabled={locked || undefined}
     aria-busy={loading || undefined}
-    onclick={busy ? refuse : (rest as HTMLButtonAttributes).onclick}>{@render body()}</button
+    onclick={locked ? refuse : (rest as HTMLButtonAttributes).onclick}>{@render body()}</button
   >
 {/if}
 
 <style>
-  /* A gradient cannot interpolate, so its one tint is registered and animated instead,
-     which keeps hover, press and release one continuous surface. */
-  @property --sui-control-state-layer {
-    syntax: '<color>';
-    inherits: false;
-    initial-value: transparent;
-  }
-
+  /* Every line of the label keeps the inset one line has, so a label that wraps grows the
+     button by whole lines and never presses against its edge, and the parts beside it hang on
+     its first line (L-37, L-94). */
   .sui-button {
     --sui-control-state-layer: transparent;
-    align-items: center;
+    --sui-local-button-line: calc(
+      var(
+          --sui-local-button-seat,
+          var(--sui-local-control-height, var(--sui-control-height-compact))
+        ) -
+        2 * var(--sui-stroke)
+    );
+    align-items: flex-start;
     background-color: var(--sui-surface-raised);
     background-image: linear-gradient(
       var(--sui-control-state-layer),
@@ -145,41 +151,83 @@ start.
     inline-size: fit-content;
     justify-content: center;
     margin: 0;
-    max-inline-size: 100%;
-    min-block-size: var(--sui-local-control-height, var(--sui-control-height-compact));
-    /* One line centres in the tier; two lines of the meta leading land on 40px, or 44px on a
-       phone, so a wrapped label still stands on a control tier (L-37). */
-    padding: var(--sui-space-1) var(--sui-space-3);
+    max-inline-size: min(100%, 20rem);
+    min-block-size: var(
+      --sui-local-button-seat,
+      var(--sui-local-control-height, var(--sui-control-height-compact))
+    );
+    padding: 0 var(--sui-space-3);
     text-align: center;
     text-decoration: none;
     touch-action: manipulation;
     -webkit-user-select: none;
     user-select: none;
     transition:
-      --sui-control-state-layer var(--sui-duration-fast) var(--sui-ease-standard),
-      background-color var(--sui-duration-fast) var(--sui-ease-standard),
-      border-color var(--sui-duration-fast) var(--sui-ease-standard),
-      color var(--sui-duration-fast) var(--sui-ease-standard),
       translate var(--sui-duration-press) var(--sui-ease-standard),
       box-shadow var(--sui-duration-press) var(--sui-ease-standard);
     -webkit-tap-highlight-color: transparent;
   }
 
   .sui-button-label {
-    block-size: var(--sui-block-snap);
+    align-content: center;
+    block-size: var(--sui-block-snap-even);
     line-height: var(--sui-leading-meta);
+    margin-block: calc((var(--sui-local-button-line) - round(up, 1cap, 2px)) / 2);
     min-inline-size: 0;
     overflow-wrap: anywhere;
     text-box: trim-both cap alphabetic;
     text-wrap: balance;
   }
 
-  .sui-button > :global(svg:first-child:not(:only-child)) {
+  /* A wrapped label fills the button, so beside an icon or a mark its lines start at that part
+     rather than centring away from it. */
+  .sui-button-part + .sui-button-label,
+  .sui-button-label:has(+ .sui-button-part) {
+    text-align: start;
+  }
+
+  .sui-button-part {
+    align-items: center;
+    block-size: var(--sui-local-button-line);
+    display: flex;
+    flex: none;
+  }
+
+  /* A trailing chevron turns over while the layer it opens is open, so it points the way the
+     layer will go when pressed again. It turns in one step for a reader who asks for less
+     motion. */
+  @media (prefers-reduced-motion: no-preference) {
+    .sui-button-part:last-child:has(> :global(svg[data-icon='chevron-down'])) {
+      transition: rotate var(--sui-duration-open) var(--sui-ease-standard);
+    }
+  }
+
+  .sui-button[aria-expanded='true']
+    > .sui-button-part:last-child:has(> :global(svg[data-icon='chevron-down'])) {
+    rotate: 180deg;
+  }
+
+  .sui-button-part:first-child > :global(svg) {
     margin-inline-start: calc(-1 * var(--sui-icon-ink-start, 0px));
   }
 
-  .sui-button > :global(svg:last-child:not(:only-child)) {
+  .sui-button-part:last-child > :global(svg) {
     margin-inline-end: calc(-1 * var(--sui-icon-ink-end, 0px));
+  }
+
+  /* A surface that draws a button at the pointer's tier on a phone too
+     (`--sui-local-button-seat`), as a card's head does its ghost action, still gives a finger
+     44px: the hit area grows past the drawn box (L-38), and never shrinks below it. */
+  @media (pointer: coarse), (max-width: 47.9375rem) {
+    .sui-button {
+      position: relative;
+    }
+
+    .sui-button::after {
+      content: '';
+      inset: calc((100% - max(100%, var(--sui-touch-target))) / 2);
+      position: absolute;
+    }
   }
 
   @media (hover: hover) {
@@ -198,9 +246,9 @@ start.
       border-color: var(--sui-decision-accent-hover);
     }
 
+    /* A veil, not a ground of its own, so a quiet button reads on any plate it stands on, the
+       unsaved row's gold included. */
     .sui-button[data-tone='ghost']:hover:not(:active):not(:disabled, [aria-disabled='true']) {
-      --sui-control-state-layer: transparent;
-      background-color: var(--sui-surface-inset);
       border-color: transparent;
     }
 
@@ -236,6 +284,16 @@ start.
 
   .sui-button:is(:disabled, [aria-disabled='true']) {
     cursor: default;
+  }
+
+  .sui-button:is(:disabled, [aria-disabled='true']):not(.busy) {
+    opacity: var(--sui-disabled-opacity);
+  }
+
+  /* A busy button is the action at work, not a disabled one: its fill, edge and spinner stay
+     at full strength, so the spinner keeps the tone's ink on its fill (WCAG 1.4.11), and only
+     its words dim (Primer, Polaris, Atlassian). */
+  .sui-button.busy > :not(:has(> .sui-button-spinner)) {
     opacity: var(--sui-disabled-opacity);
   }
 
@@ -322,7 +380,8 @@ start.
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .sui-button {
+    .sui-button,
+    .sui-button-part {
       transition: none;
     }
 

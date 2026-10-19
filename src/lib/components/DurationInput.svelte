@@ -4,10 +4,12 @@
 
 <script lang="ts">
   import { mark, word } from '../words.js';
+  import type { Attachment } from 'svelte/attachments';
   import type { HTMLAttributes, HTMLInputAttributes } from 'svelte/elements';
   import Icon from '../icons/Icon.svelte';
   import JoinedField from '../internal/JoinedField.svelte';
   import { pageLocale } from '../internal/locale.js';
+  import { setRefusals } from '../internal/refusals.svelte.js';
   import Select from './Select.svelte';
   import TextInput from './TextInput.svelte';
   import VisuallyHidden from './VisuallyHidden.svelte';
@@ -16,6 +18,7 @@
   const UNITS = Object.keys(SECONDS) as DurationUnit[];
 
   const uid = $props.id();
+  const refusals = setRefusals();
 
   let {
     value = $bindable(0),
@@ -158,8 +161,13 @@
   const text = $derived(held?.text ?? numbers.format(value / SECONDS[unit]));
   const typed = $derived(exact(text, unit));
   const problem = $derived(check(text, unit));
-  const showing = $derived(problem !== null && (held === null || revealed));
-  const wrong = $derived(invalid || showing);
+  // A send the form refused shows the problem at once, as leaving the amount does.
+  const refused = $derived(refusals.message());
+  const showing = $derived(
+    problem !== null && (held === null || revealed || refused !== undefined)
+  );
+  const said = $derived(showing ? problem : (refused ?? null));
+  const wrong = $derived(invalid || said !== null);
   const hint = $derived(
     min > 0 || max !== undefined
       ? max === undefined
@@ -168,8 +176,9 @@
       : null
   );
   const describedby = $derived(
-    [describedBy, (hint !== null || showing) && `${uid}-described`].filter(Boolean).join(' ') ||
-      undefined
+    [describedBy, (hint !== null || said !== null) && `${uid}-described`]
+      .filter(Boolean)
+      .join(' ') || undefined
   );
   const named = $derived(
     Boolean(rest['aria-label'] || rest['aria-labelledby'] || amount?.labels?.length)
@@ -187,6 +196,12 @@
   const unitOptions = $derived(
     UNITS.map((each) => ({ value: each, label: unitLabel(each, shownAmount) }))
   );
+
+  /* The field's own problem is a native constraint as well, so a form refuses a send while it
+     stands instead of posting the last good value. */
+  const ownProblem: Attachment<HTMLInputElement> = (input) => {
+    input.setCustomValidity(problem ?? '');
+  };
 
   /** Holds what the reader sees and writes the seconds only when they are whole and in range. */
   function hold(next: string, shown: DurationUnit): void {
@@ -232,25 +247,27 @@ Text that is not a whole number of seconds inside `min` and `max` stays on scree
 written to `value`, so a cleared or mistyped field never becomes zero. The accepted range shows
 under the field before anything goes wrong, and the reason shows once the reader leaves the
 amount or picks a unit. `onproblem` hears that reason after each keystroke and each unit pick,
-so a Save can send focus back to the amount while it stands. A value the owner writes, such as
+so a Save can send focus back to the amount while it stands. In a form the reason is a native
+constraint too: the form refuses a send while it stands, the reason shows at once, and focus
+moves to the amount, so the last good value is never posted in its place. A value the owner writes, such as
 a discard, replaces the held text. Name it with a `Field` or a `SettingRow`, whose label points
 at its `id`, or with `label`; other attributes land on the amount.
 
 - Semantics: a text input for the amount and a native `<select>` for the unit, inside one joined field, with a hidden input that posts the seconds.
 - Content: an amount in the page's number format, one of three units named for that amount, an optional range hint and a problem line.
-- States: rest, focus on the amount (the field's ring), focus on the unit (its own inset ring), pressed unit, a hint for the range, invalid (a danger edge and a problem with a warning mark) and disabled (0.7 opacity).
+- States: rest, focus on the amount (the field's ring), focus on the unit (its own inset ring), pressed unit, a hint for the range, invalid (a danger edge and a problem with a warning mark) and disabled (0.5 opacity).
 - Keyboard: the amount takes typing in the page's decimal mark, Tab moves to the unit, and the unit takes the select's own keys.
 - Pointer and touch: 34px tall, 44px on a phone or any touch screen, and a phone opens its own unit picker.
-- Focus: it never moves focus; a Save that hears a problem through `onproblem` sends focus to the amount.
+- Focus: a Save that hears a problem through `onproblem` sends focus to the amount, and a form send the problem refused moves focus there when it is the form's first refused control.
 - Responsive: as wide as a short amount and its unit, and a long hint or problem wraps under it without widening it.
 - Accessibility: each part has its own name, the hint and the problem describe the amount, and the problem is spoken when it shows.
 - Localization: `unitLabel`, `amountName`, `unitName` and every message and hint are props with English defaults, a unit's name follows its amount's plural, amounts read and print in the page's language, and the unit sits at the inline end in either direction.
 - Performance: a few string checks per keystroke and nothing that animates.
 - Analytics: `onchange` hears each new value in seconds and `onproblem` each problem.
-- Failure: text that is empty, not a whole number of seconds or out of range is kept with its reason and never written, and `invalid` marks a value the server refused.
+- Failure: text that is empty, not a whole number of seconds or out of range is kept with its reason, never written, and refuses a form's send, and `invalid` marks a value the server refused.
 -->
 
-<div class={['sui-duration-input', className]}>
+<div class={['sui-duration-input', className]} {@attach refusals.area}>
   <JoinedField invalid={wrong} {disabled}>
     {#snippet start()}
       <span class="sui-duration-amount">
@@ -268,6 +285,7 @@ at its `id`, or with `label`; other attributes land on the amount.
           aria-label={named || !field ? rest['aria-label'] : amountName(field)}
           aria-describedby={describedby}
           oninput={type}
+          {@attach ownProblem}
           onblur={(event) => {
             if (problem !== null && held !== null) revealed = true;
             rest.onblur?.(event);
@@ -291,18 +309,16 @@ at its `id`, or with `label`; other attributes land on the amount.
   <span id="{uid}-unit" hidden>{unitName(field)}</span>
   <!-- The hint and the problem are both this field's words, so the amount's description joins
        them with the language's stop instead of the bare space a browser puts between ids. -->
-  <span id="{uid}-described" hidden
-    >{[hint, showing ? problem : null].filter(Boolean).join(mark('stop'))}</span
-  >
+  <span id="{uid}-described" hidden>{[hint, said].filter(Boolean).join(mark('stop'))}</span>
   {#if hint !== null}<p class="sui-duration-hint">{hint}</p>{/if}
   <!-- The status speaks the problem, so the drawn copy stays out of the tree. -->
-  {#if showing}
+  {#if said}
     <p class="sui-duration-problem" aria-hidden="true">
       <span class="sui-duration-mark"><Icon name="alert" size="xs" /></span>
-      <span class="sui-duration-words">{problem}</span>
+      <span class="sui-duration-words">{said}</span>
     </p>
   {/if}
-  <VisuallyHidden role="status">{showing ? problem : ''}</VisuallyHidden>
+  <VisuallyHidden role="status">{said ?? ''}</VisuallyHidden>
 </div>
 
 <style>
@@ -332,6 +348,7 @@ at its `id`, or with `label`; other attributes land on the amount.
 
   .sui-duration-hint,
   .sui-duration-words {
+    align-content: center;
     block-size: var(--sui-block-snap);
     min-inline-size: 0;
     overflow-wrap: anywhere;

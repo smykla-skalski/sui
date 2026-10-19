@@ -1,0 +1,12 @@
+/* The dashed rule between lines of specimens is a CSS gap decoration. svelte-check's CSS data
+   predates CSS Gap Decorations and reports `row-rule` as unknown inside a component, with no
+   setting to accept it, so the rule lives in a plain stylesheet that the checker leaves alone. */
+.sink-specimens {
+  row-rule: var(--sui-stroke) dashed var(--sui-border-control);
+}
+
+/* The grid draws the rule from each specimen instead, because the gap rule breaks at every
+   item that spans rows. */
+.sink-specimens[data-layout='grid'] {
+  row-rule: none;
+}

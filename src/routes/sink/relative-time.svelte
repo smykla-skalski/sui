@@ -8,7 +8,7 @@
 </script>
 
 <script lang="ts">
-  import { RelativeTime } from '#lib';
+  import { FactLine, RelativeTime } from '#lib';
   import Example from '../kit/Example.svelte';
   import Specimen from '../kit/Specimen.svelte';
 
@@ -25,11 +25,15 @@
     { label: 'Days ago', value: at(-2.5 * DAY) },
     { label: 'A month ago', value: at(-30 * DAY) }
   ];
+  // Half a step past a whole count, as the past ones are, so the moments between the server's
+  // render and the page's never cross into the next count.
   const future = [
-    { label: 'In minutes', value: at(9 * MINUTE) },
-    { label: 'In hours', value: at(5 * HOUR) },
-    { label: 'In days', value: at(3 * DAY) }
+    { label: 'In minutes', value: at(9.5 * MINUTE) },
+    { label: 'In hours', value: at(5.5 * HOUR) },
+    { label: 'In days', value: at(3.5 * DAY) }
   ];
+  // The whole instant shows its seconds, so it is a fixed one rather than one counted from now.
+  const instant = '2026-03-14T09:26:53Z';
 </script>
 
 <Example
@@ -51,9 +55,7 @@
   title="Exact"
   note="The whole instant shows in place, for a reader who chose it, and the tooltip goes away"
 >
-  <Specimen label="Whole instant" code="exact"
-    ><RelativeTime value={past[3].value} exact /></Specimen
-  >
+  <Specimen label="Whole instant" code="exact"><RelativeTime value={instant} exact /></Specimen>
 </Example>
 
 <Example
@@ -61,7 +63,10 @@
   note="The time stays one word in a sentence, and every instance reads one page clock"
 >
   <p class="line">
-    Deployed by Ada <RelativeTime value={past[1].value} /> · checked again
+    <FactLine
+      ><span>Deployed by Ada <RelativeTime value={past[1].value} /></span><span>checked again</span
+      ></FactLine
+    >
     <RelativeTime value={future[0].value} />
   </p>
 </Example>

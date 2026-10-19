@@ -5,7 +5,16 @@
   import ErrorState from '../components/ErrorState.svelte';
   import VisuallyHidden from '../components/VisuallyHidden.svelte';
   import { formatCount } from '../internal/locale.js';
-  import { rootFontSize } from '../internal/rem.svelte.js';
+  import '../internal/scroll-edge.css';
+  import {
+    css,
+    faceInk,
+    guessInk,
+    inlined,
+    type Ink,
+    type Length,
+    type Measure
+  } from './geometry.js';
   import type { ChartFrameProps } from './types.js';
 
   let {
@@ -36,7 +45,7 @@
     ),
     empty,
     missing = 0,
-    plotHeight,
+    plotSize,
     plot,
     children,
     table
@@ -45,10 +54,11 @@
     empty: boolean;
     /** How many values the chart left out because they were missing or not numbers. */
     missing?: number;
-    /** The plot's height at a 16px root, which a placeholder keeps while the data loads. */
-    plotHeight: number;
-    /** Draws the plot for the frame's width in CSS pixels and the reader's text scale. */
-    plot: Snippet<[width: number, scale: number]>;
+    /** The plot's height for its measured text, which a placeholder keeps while the data
+        loads. */
+    plotSize: (measure: Measure) => Length;
+    /** Draws the plot, laid out to its text as measured. */
+    plot: Snippet<[measure: Measure]>;
     /** Notes under the plot, such as a legend. */
     children?: Snippet;
     table: Snippet;
@@ -61,13 +71,41 @@
   let scrolls = $state(false);
   let tableScrolls = $state(false);
   let open = $state(false);
+  let band = $state<HTMLElement | null>(null);
   let mounted = $state(false);
-  // Chart text is set in rem, so a reader's larger text widens the margins that hold it, also
-  // when the text grows after the chart is drawn. A server render lays it out at 16px.
-  const scale = $derived(mounted ? rootFontSize() / 16 : 1);
+  let faces = $state(0);
   let settled = $state(false);
-  // A server render has nothing to measure, so it lays the plot out at a desktop width.
-  let width = $derived(Math.floor(frame?.width ?? 640));
+
+  /* The table holds the face chart text is set in, so the server lays out its words exactly.
+     Words in a face it does not hold, such as another script's, are guessed until the chart is
+     on the page, then measured in the face they draw in, and again when a face loads. */
+  const drawn = new Map<string, Ink>();
+  const measure: Measure = (text, semibold = false) =>
+    faceInk(text, semibold) ?? (mounted && band ? measured(band, text, semibold) : guessInk(text));
+
+  function measured(band: HTMLElement, text: string, semibold: boolean): Ink {
+    const look = getComputedStyle(band);
+    const weight = semibold
+      ? look.getPropertyValue('--sui-weight-semibold').trim()
+      : look.fontWeight;
+    const font = `${weight} 100px ${look.fontFamily}`;
+    const key = `${faces} ${font} ${text}`;
+    const known = drawn.get(key);
+    if (known) return known;
+    const context = document.createElement('canvas').getContext('2d');
+    if (!context) return guessInk(text);
+    context.font = font;
+    const metrics = context.measureText(text);
+    const ink = {
+      advance: metrics.width / 100,
+      left: metrics.actualBoundingBoxLeft / 100,
+      right: metrics.actualBoundingBoxRight / 100,
+      ascent: metrics.actualBoundingBoxAscent / 100,
+      descent: metrics.actualBoundingBoxDescent / 100
+    };
+    drawn.set(key, ink);
+    return ink;
+  }
 
   const note = $derived(
     status === 'loading'
@@ -83,9 +121,14 @@
 
   onMount(() => {
     mounted = true;
+    const loaded = () => faces++;
+    document.fonts.addEventListener('loadingdone', loaded);
     // A status region that enters the page with its words is often not read, so they wait.
     const timer = setTimeout(() => (settled = true), 100);
-    return () => clearTimeout(timer);
+    return () => {
+      clearTimeout(timer);
+      document.fonts.removeEventListener('loadingdone', loaded);
+    };
   });
 
   /* A box that scrolls is a stop on the keyboard path, named after the chart, so a keyboard
@@ -116,7 +159,12 @@
   {#if status === 'failed'}
     <ErrorState title={failedTitle} description={error ?? failedDescription} {onretry} />
   {:else if status === 'loading'}
-    <div class="sui-chart-wait" style:--sui-local-plot={plotHeight} aria-hidden="true"></div>
+    <div
+      bind:this={band}
+      class="plot-band sui-chart-wait"
+      style:--sui-local-plot={css(inlined(plotSize(measure)))}
+      aria-hidden="true"
+    ></div>
   {:else if empty}
     <EmptyState
       title={emptyTitle}
@@ -124,18 +172,20 @@
       {...emptyAction ? { action: emptyAction } : { step: emptyStep }}
     />
   {:else}
-    <!-- A box that scrolls takes a stop so a keyboard can scroll it, as WCAG 2.1.1 asks. -->
-    <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
-    <div
-      bind:this={scroller}
-      class="plot-scroll"
-      dir="ltr"
-      bind:contentRect={frame}
-      tabindex={scrolls ? 0 : undefined}
-      role={scrolls ? 'region' : undefined}
-      aria-labelledby={scrolls ? headingId : undefined}
-    >
-      {@render plot(width, scale)}
+    <div bind:this={band} class="plot-band">
+      <!-- A box that scrolls takes a stop so a keyboard can scroll it, as WCAG 2.1.1 asks. -->
+      <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
+      <div
+        bind:this={scroller}
+        class="plot-scroll sui-scroll-edge"
+        dir="ltr"
+        bind:contentRect={frame}
+        tabindex={scrolls ? 0 : undefined}
+        role={scrolls ? 'region' : undefined}
+        aria-labelledby={scrolls ? headingId : undefined}
+      >
+        {@render plot(measure)}
+      </div>
     </div>
     {@render children?.()}
     <details bind:open ontoggle={() => ontableopenchange?.(open)}>
@@ -144,7 +194,7 @@
       <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
       <div
         bind:this={tableBox}
-        class="sui-chart-table"
+        class="sui-chart-table sui-scroll-edge"
         tabindex={tableScrolls ? 0 : undefined}
         role={tableScrolls ? 'region' : undefined}
         aria-label={tableScrolls ? dataLabel : undefined}
@@ -156,7 +206,17 @@
 </figure>
 
 <style>
+  /* A surface that holds the chart lends its inline inset to its direct children here, as a
+     card does. It does not inherit, so a chart nested deeper in a grid never reaches past its
+     own column. */
+  @property --sui-local-bleed {
+    syntax: '<length>';
+    inherits: false;
+    initial-value: 0px;
+  }
+
   .sui-chart {
+    --sui-local-chart-bleed: var(--sui-local-bleed);
     color: var(--sui-text-primary);
     display: grid;
     gap: var(--sui-space-4);
@@ -170,6 +230,7 @@
   }
 
   .sui-chart-title {
+    align-content: center;
     block-size: var(--sui-block-snap);
     font: var(--sui-weight-semibold) var(--sui-font-size-title) / var(--sui-leading-title)
       var(--sui-sans);
@@ -179,6 +240,7 @@
 
   figcaption p,
   .sui-chart-note {
+    align-content: center;
     block-size: var(--sui-block-snap);
     color: var(--sui-text-secondary);
     font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-row-copy-leading)
@@ -191,12 +253,38 @@
     color: var(--sui-text-muted);
   }
 
+  /* The plot stands on a band of the chart's own ground, so a reader sees where the chart
+     starts and ends. The band reaches the edges of the surface that lends its inset, and the
+     plot pads back by it, so the plot keeps the title's edges and its ink stands the same room
+     from all four sides of the band. The plot scrolls inside the band, so an edge fade fades
+     the plot and never the band. Chart text is set here, also for a placeholder, whose height
+     is laid out in the same ems. Each character draws its own glyph, with no ligature or
+     contextual form, so the face's table places every word as the browser draws it. */
+  .plot-band {
+    --sui-local-band-pad: max(var(--sui-local-chart-bleed), var(--sui-space-4));
+    background: var(--sui-chart-ground);
+    border-radius: var(--sui-radius-control);
+    font: var(--sui-weight-regular) var(--sui-font-size-compact) / var(--sui-leading-flat)
+      var(--sui-sans);
+    font-variant-ligatures: none;
+    margin-inline: calc(-1 * var(--sui-local-chart-bleed));
+    min-inline-size: 0;
+  }
+
+  /* A band that reaches its holder's edges runs square into them. */
+  @container not style(--sui-local-bleed: 0px) {
+    .plot-band {
+      border-radius: 0;
+    }
+  }
+
   /* Inline-size containment keeps the drawn width out of the frame's own sizing, so a measured
      plot never holds its container open. */
   .plot-scroll {
-    border-radius: var(--sui-radius-control);
+    border-radius: inherit;
     contain: inline-size;
     overflow-x: auto;
+    padding: var(--sui-local-band-pad);
   }
 
   .plot-scroll:focus-visible {
@@ -204,25 +292,75 @@
     outline-offset: var(--sui-focus-ring-inset);
   }
 
-  /* The placeholder keeps the plot's place, and pulses as every placeholder does. */
-  .sui-chart-wait {
-    animation: sui-chart-pulse var(--sui-duration-shimmer) var(--sui-ease-inout) infinite alternate;
-    background: var(--sui-surface-inset);
-    block-size: calc(var(--sui-local-plot) * 1rem / 16);
-    border-radius: var(--sui-radius-control);
+  /* Forced colors drop the band's ground, so a line above and below it keeps the plot's row
+     apart, inside the band's own height. */
+  @media (forced-colors: active) {
+    .plot-band {
+      border-block: var(--sui-stroke) solid CanvasText;
+    }
+
+    .plot-scroll {
+      padding-block: calc(var(--sui-local-band-pad) - var(--sui-stroke));
+    }
   }
 
-  @keyframes sui-chart-pulse {
+  /* While the data loads, the band itself is the placeholder: it keeps the band's place, size
+     and shape, so nothing moves when the plot arrives, takes the placeholder veil, and the light
+     that crosses every placeholder crosses it. Only the light moves, by transform, so the
+     compositor runs it. */
+  .sui-chart-wait {
+    background: var(--sui-placeholder);
+    block-size: calc(var(--sui-local-plot) + 2 * var(--sui-local-band-pad));
+    box-sizing: border-box;
+    overflow: clip;
+    position: relative;
+  }
+
+  .sui-chart-wait::after {
+    animation: sui-chart-sheen var(--sui-duration-shimmer) var(--sui-ease-linear) infinite;
+    background: var(--sui-placeholder-sheen);
+    content: '';
+    inset-block: 0;
+    inset-inline: calc(-1 * var(--sui-placeholder-reach));
+    position: absolute;
+  }
+
+  .sui-chart-wait:dir(rtl)::after {
+    scale: -1 1;
+  }
+
+  @keyframes sui-chart-sheen {
     from {
-      opacity: 0.48;
+      transform: translateX(-50%);
     }
 
     to {
-      opacity: 0.88;
+      transform: translateX(50%);
     }
   }
 
-  /* A block-level flex box, so no line box rounds the disclosure's height off the pixel. */
+  /* Forced colors drop the veil, so the waiting band keeps its shape by an outline, as every
+     placeholder does. A band that reaches its holder's edges keeps only the lines above and
+     below it, since the holder's own keyline closes its sides. */
+  @media (forced-colors: active) {
+    .sui-chart-wait {
+      border-block: 0;
+      outline: var(--sui-stroke) solid GrayText;
+      outline-offset: calc(-1 * var(--sui-stroke));
+    }
+
+    @container not style(--sui-local-bleed: 0px) {
+      .sui-chart-wait {
+        border-block: var(--sui-stroke) solid GrayText;
+        outline: none;
+      }
+    }
+  }
+
+  /* A block-level flex box, so no line box rounds the disclosure's height off the pixel. It has
+     no frame or ground at rest, so it hands back the room above and below its words: they
+     stand one gap under the legend and their baseline, to the nearest pixel, on a card's
+     inset, and only its pressed or hovered ground reaches past them (L-33). */
   summary {
     align-items: center;
     border-radius: var(--sui-radius-control);
@@ -232,20 +370,26 @@
     font: var(--sui-weight-semibold) var(--sui-font-size-control) / var(--sui-leading-compact)
       var(--sui-sans);
     inline-size: fit-content;
+    margin-block: calc((round(up, 1cap, 2px) - var(--sui-control-height-chip)) / 2)
+      calc(
+        (round(up, 1cap, 2px) - var(--sui-control-height-chip)) / 2 -
+          round((round(up, 1cap, 2px) - 1cap) / 2, 1px)
+      );
     margin-inline: calc(-1 * var(--sui-space-2));
     min-block-size: var(--sui-control-height-chip);
     padding-inline: var(--sui-space-2);
     position: relative;
-    transition:
-      background-color var(--sui-duration-fast) var(--sui-ease-standard),
-      box-shadow var(--sui-duration-press) var(--sui-ease-standard);
+    transition: box-shadow var(--sui-duration-press) var(--sui-ease-standard);
     -webkit-tap-highlight-color: transparent;
     -webkit-user-select: none;
     user-select: none;
   }
 
+  /* An even box in the even control, so the room above and under the words halves to whole
+     pixels (L-95). */
   summary > span {
-    block-size: var(--sui-block-snap);
+    align-content: center;
+    block-size: var(--sui-block-snap-even);
     text-box: trim-both cap alphabetic;
   }
 
@@ -318,9 +462,9 @@
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .sui-chart-wait {
+    .sui-chart-wait::after {
       animation: none;
-      opacity: 0.68;
+      content: none;
     }
 
     summary {

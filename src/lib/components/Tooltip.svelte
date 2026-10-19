@@ -1,5 +1,6 @@
 <script lang="ts">
   import { follow, place, type Placement } from '../internal/anchor.js';
+  import { themeAt } from '../internal/theme.svelte.js';
 
   let {
     anchor,
@@ -40,6 +41,7 @@
   let showTimer = 0;
   let hideTimer = 0;
   let pressTimer = 0;
+  let waiting = $state(false);
 
   /* The control whose keyboard focus shows the tip: the anchor, or the control a bare label
      inside it sits in, so a label's tip still answers the keyboard. */
@@ -61,12 +63,17 @@
   function show(delay: number): void {
     clearTimeout(hideTimer);
     clearTimeout(showTimer);
-    showTimer = window.setTimeout(() => (open = true), delay);
+    waiting = true;
+    showTimer = window.setTimeout(() => {
+      waiting = false;
+      open = true;
+    }, delay);
   }
 
   function hide(delay: number): void {
     clearTimeout(showTimer);
     clearTimeout(hideTimer);
+    waiting = false;
     hideTimer = window.setTimeout(() => (open = false), delay);
   }
 
@@ -74,6 +81,7 @@
     clearTimeout(showTimer);
     clearTimeout(hideTimer);
     clearTimeout(pressTimer);
+    waiting = false;
     open = false;
   }
 
@@ -106,6 +114,40 @@
       clearTimeout(pressTimer);
       if (open) hide(PRESS_LINGER);
     };
+    // Chrome fires blur while it removes a focused control, inside the update that removes it,
+    // where state cannot change, so the tip closes once that update is done, unless focus came
+    // straight back.
+    const onblur = () =>
+      queueMicrotask(() => {
+        if (!control.matches(':focus')) close();
+      });
+    target.addEventListener('pointerenter', onenter);
+    target.addEventListener('pointerleave', leave);
+    control.addEventListener('focus', onfocus);
+    control.addEventListener('blur', onblur);
+    target.addEventListener('pointerdown', ondown);
+    target.addEventListener('pointerup', onup);
+    target.addEventListener('pointercancel', onup);
+    return () => {
+      clearTimeout(showTimer);
+      clearTimeout(hideTimer);
+      clearTimeout(pressTimer);
+      target.removeEventListener('pointerenter', onenter);
+      target.removeEventListener('pointerleave', leave);
+      control.removeEventListener('focus', onfocus);
+      control.removeEventListener('blur', onblur);
+      target.removeEventListener('pointerdown', ondown);
+      target.removeEventListener('pointerup', onup);
+      target.removeEventListener('pointercancel', onup);
+    };
+  });
+
+  // The page hears a tip only while it is shown or about to be: a page of closed tips adds
+  // nothing to each frame of a scroll.
+  $effect(() => {
+    const target = anchor;
+    const control = owner;
+    if (!(open || waiting) || !target || !control || preview) return;
     // A tapped button takes no focus in Safari, so no blur would ever close a tip it opened.
     const onpress = (event: PointerEvent) => {
       const node = event.target as Node;
@@ -122,27 +164,10 @@
     const onscroll = () => {
       if (!control.matches(':focus-visible')) close();
     };
-    target.addEventListener('pointerenter', onenter);
-    target.addEventListener('pointerleave', leave);
-    control.addEventListener('focus', onfocus);
-    control.addEventListener('blur', close);
-    target.addEventListener('pointerdown', ondown);
-    target.addEventListener('pointerup', onup);
-    target.addEventListener('pointercancel', onup);
     document.addEventListener('pointerdown', onpress, { capture: true });
     addEventListener('keydown', onkeydown, { capture: true });
     addEventListener('scroll', onscroll, { capture: true, passive: true });
     return () => {
-      clearTimeout(showTimer);
-      clearTimeout(hideTimer);
-      clearTimeout(pressTimer);
-      target.removeEventListener('pointerenter', onenter);
-      target.removeEventListener('pointerleave', leave);
-      control.removeEventListener('focus', onfocus);
-      control.removeEventListener('blur', close);
-      target.removeEventListener('pointerdown', ondown);
-      target.removeEventListener('pointerup', onup);
-      target.removeEventListener('pointercancel', onup);
       document.removeEventListener('pointerdown', onpress, { capture: true });
       removeEventListener('keydown', onkeydown, { capture: true });
       removeEventListener('scroll', onscroll, { capture: true });
@@ -195,7 +220,7 @@ does, stays out of the accessibility tree. Any other tip describes the control t
 - Responsive: placed beside the anchor, flipped to the side with room and held 8px inside the viewport; it wraps rather than widening past 17rem.
 - Accessibility: hoverable, dismissable and persistent as WCAG 1.4.13 asks, read as a description only when it adds words.
 - Localization: `text` is the caller's words, and the inline sides and `start`/`end` alignment follow the reading direction.
-- Performance: one element per instance with listeners only on its anchor and control; placement runs only while shown, and the fade is opacity alone, removed under reduced motion.
+- Performance: one element per instance with listeners on its anchor and control, and on the page only while it is shown or about to be; placement runs only while shown, and the fade is opacity alone, removed under reduced motion.
 - Analytics: none, because a tip reports no outcome; the control it explains reports its own.
 - Failure: with no anchor it never shows; text too long for one line wraps instead of clipping.
 -->
@@ -204,6 +229,7 @@ does, stays out of the accessibility tree. Any other tip describes the control t
   bind:this={element}
   {id}
   popover={preview ? undefined : 'manual'}
+  data-sui-theme={themeAt(element?.parentElement)}
   role="tooltip"
   class="sui-tooltip"
   class:mono
@@ -219,6 +245,7 @@ does, stays out of the accessibility tree. Any other tip describes the control t
 
 <style>
   .sui-tooltip {
+    align-content: center;
     background: var(--sui-popover-bg);
     border: var(--sui-stroke) solid var(--sui-popover-border);
     border-radius: var(--sui-radius-popover);
@@ -232,7 +259,14 @@ does, stays out of the accessibility tree. Any other tip describes the control t
     margin: 0;
     max-inline-size: min(17rem, calc(100vw - 3rem));
     opacity: 1;
+    /* A popover scrolls by default, and the trimmed words overhang the box, so the tip would be
+       a scroller that Tab can enter. It is one short line that never scrolls. */
+    overflow: visible;
     padding: var(--sui-space-2) var(--sui-space-3);
+    /* The words run from their cap line to their baseline, so the padding is the room above
+       and under them alike (L-102). */
+    text-box: trim-both cap alphabetic;
+    block-size: var(--sui-block-snap);
     /* In the top layer this is the page, so the tip scrolls with the page and its anchor. */
     position: absolute;
     text-align: start;

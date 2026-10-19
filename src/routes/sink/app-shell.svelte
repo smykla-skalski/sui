@@ -18,6 +18,7 @@
     type NavSection,
     type RailItem
   } from '#lib';
+  import '#lib/internal/scroll-edge.css';
   import Example from '../kit/Example.svelte';
   import Specimen from '../kit/Specimen.svelte';
 
@@ -36,7 +37,7 @@
         { href: '#shell-rulesets', label: 'Rulesets', icon: 'shield' },
         {
           href: '#shell-files',
-          label: 'Files kept in step across every repository',
+          label: 'Files synced across every repository',
           short: 'Files',
           icon: 'file'
         }
@@ -79,7 +80,7 @@
 {#snippet content(current: string)}
   <div class="pane">
     <PageHeader
-      eyebrow="Smykla Skalski · Workspace"
+      eyebrow={['Smykla Skalski', 'Workspace']}
       title={names[current] ?? 'Overview'}
       description="Press a page in the sidebar and the selection plate glides to it"
       level={4}
@@ -125,7 +126,7 @@
   ground="canvas"
 >
   <Specimen label="Collapsed" code="bind:collapsed">
-    <div class="scroller">
+    <div class="scroller sui-scroll-edge">
       <div class="frame wide">
         <AppShell
           title={names[folded]}
@@ -222,38 +223,11 @@
     overflow: hidden;
   }
 
-  /* The right edge fades while more of the frame waits to the side, and the fade clears
-     once the frame is scrolled to its end where scroll timelines exist. */
+  /* The frame scrolls sideways, and the shared edge fade shows which side has more of it. */
   .scroller {
     border-radius: var(--sui-radius-surface);
-    mask-image: linear-gradient(
-      to right,
-      var(--sui-canvas) calc(100% - var(--sui-space-8)),
-      transparent
-    );
-    mask-repeat: no-repeat;
-    mask-size: 100% 100%;
     max-inline-size: 100%;
     overflow-x: auto;
-  }
-
-  @supports (animation-timeline: scroll()) {
-    .scroller {
-      animation: sink-shell-reveal var(--sui-ease-linear) both;
-      animation-timeline: scroll(self inline);
-    }
-  }
-
-  @keyframes sink-shell-reveal {
-    to {
-      mask-size: calc(100% + var(--sui-space-8)) 100%;
-    }
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    .scroller {
-      animation: none;
-    }
   }
 
   .scroller:focus-visible {
@@ -269,14 +243,17 @@
     inline-size: min(100%, 23.4375rem);
   }
 
+  /* The header's band stands flush with the pane's top and sides, and the copy under it keeps
+     the band's inset, so their words line up. */
   .pane {
+    --sui-head-exit-gap: var(--sui-space-4);
     display: grid;
     gap: var(--sui-space-4);
-    padding: var(--sui-rhythm-pane-top-compact) var(--sui-space-6);
   }
 
   /* The sentence centres on the pill at an even height, so the pill lands on whole pixels. */
   .sentence {
+    align-content: center;
     block-size: var(--sui-block-snap-even);
   }
 
@@ -289,5 +266,6 @@
       var(--sui-sans);
     gap: var(--sui-space-2);
     margin: 0;
+    padding: 0 var(--sui-rhythm-pane-gutter) var(--sui-rhythm-pane-gutter);
   }
 </style>

@@ -133,8 +133,8 @@
 The bar over a list: a search that leads, an optional primary filter as a segmented control, a
 tools button holding the sort and any further filters, and one optional primary action at the
 end of its line. On a line of its own the action starts at the edge, never adrift at the far
-end. Search and filters stand outside the list's card. The bar owns no list state: each group
-reports its choice through `onchange`, and the query is `bind:query`.
+end. The list hangs under the bar with no frame around it (L-61). The bar owns no list state:
+each group reports its choice through `onchange`, and the query is `bind:query`.
 
 The primary filter and the tools button are one unit and wrap together, so the button is never
 left on a line by itself. Short of room, the search takes its own line and the filter sits under
@@ -218,8 +218,8 @@ button. Without `tools` there is no button and the filter never folds.
             <span id="{uid}-described" hidden>{described}</span>
             <span class="sui-list-toolbar-current">
               {#if filter}<span class="sui-list-toolbar-folded">{current}</span>{/if}
-              {#if filter && chosen}<span class="sui-list-toolbar-dot" aria-hidden="true"
-                ></span>{/if}
+              {#if filter && chosen}<span class="sui-list-toolbar-dot" aria-hidden="true">·</span
+                >{/if}
               {#if chosen}<span class="sui-list-toolbar-chosen">{chosen}</span>{/if}
             </span>
           {/if}
@@ -272,9 +272,14 @@ button. Without `tools` there is no button and the filter never folds.
     justify-content: space-between;
   }
 
-  /* The search's label stands before it on its line, as the filter's heading does. */
+  /* The search's label stands before it on its line, as the filter's heading does. When the
+     label wraps above the field the part is snapped to an even height, so the filter centred
+     beside it lands on whole pixels (L-95), and its lines keep to the top so the extra pixel
+     stays under them. */
   .sui-list-toolbar-search {
+    align-content: start;
     align-items: center;
+    block-size: var(--sui-block-snap-even);
     display: flex;
     flex: 1 1 16rem;
     flex-wrap: wrap;
@@ -328,17 +333,19 @@ button. Without `tools` there is no button and the filter never folds.
     gap: var(--sui-space-2);
   }
 
+  /* No gap along the line: the dot between the choices makes its own room (L-103). */
   .sui-list-toolbar-current {
     align-items: center;
     color: var(--sui-text-secondary);
     display: flex;
     flex-wrap: wrap;
-    gap: var(--sui-space-1);
     min-inline-size: 0;
+    row-gap: var(--sui-space-1);
   }
 
   .sui-list-toolbar-folded,
   .sui-list-toolbar-chosen {
+    align-content: center;
     block-size: var(--sui-block-snap-even);
     font: var(--sui-weight-semibold) var(--sui-font-size-meta) / var(--sui-row-copy-leading)
       var(--sui-sans);
@@ -352,13 +359,14 @@ button. Without `tools` there is no button and the filter never folds.
     display: none;
   }
 
-  /* A dot, not a written separator, between the folded filter's choice and the tools' choices. */
+  /* The fact line's dot between the folded filter's choice and the tools' choices, standing
+     the same room from each (L-103). */
   .sui-list-toolbar-dot {
-    background: currentColor;
-    block-size: var(--sui-space-1);
-    border-radius: 50%;
+    color: var(--sui-text-muted);
     flex: none;
-    inline-size: var(--sui-space-1);
+    font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-leading-flat)
+      var(--sui-sans);
+    margin-inline: var(--sui-sep-space);
   }
 
   /* The inline room holds the spinner's corners as it turns, at the start of a wrapped line. */
@@ -431,8 +439,10 @@ button. Without `tools` there is no button and the filter never folds.
     min-inline-size: 0;
   }
 
+  /* Even, so centred beside an even control it lands on whole pixels and reads as centred. */
   .sui-list-toolbar-heading {
-    block-size: var(--sui-block-snap);
+    align-content: center;
+    block-size: var(--sui-block-snap-even);
     color: var(--sui-text-muted);
     font: var(--sui-weight-semibold) var(--sui-font-size-micro) / var(--sui-leading-tight)
       var(--sui-sans);

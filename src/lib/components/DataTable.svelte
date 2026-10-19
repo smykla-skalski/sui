@@ -22,8 +22,8 @@
   import Icon from '../icons/Icon.svelte';
   import { formatCount, pageLocale } from '../internal/locale.js';
   import Button from './Button.svelte';
-  import Skeleton from './Skeleton.svelte';
   import VisuallyHidden from './VisuallyHidden.svelte';
+  import '../internal/scroll-edge.css';
 
   const captionId = $props.id();
 
@@ -89,7 +89,14 @@
   let scrolls = $state(false);
 
   function watchOverflow(frame: HTMLDivElement) {
-    const observer = new ResizeObserver(() => (scrolls = frame.scrollWidth > frame.clientWidth));
+    const observer = new ResizeObserver(() => {
+      scrolls = frame.scrollWidth > frame.clientWidth;
+      const heading = frame.querySelector('thead tr > :first-child');
+      frame.style.setProperty(
+        '--sui-local-table-held',
+        `${heading?.getBoundingClientRect().width ?? 0}px`
+      );
+    });
     observer.observe(frame);
     if (frame.firstElementChild) observer.observe(frame.firstElementChild);
     return () => observer.disconnect();
@@ -138,14 +145,14 @@ row in place of the hairlines, for a table wide enough that the eye can lose its
 
 - Semantics: a native `table` named by its caption or `aria-label`, with column headings, row headings under `rowHeader`, and `aria-sort` on the sorted column.
 - Content: `columns` and `rows` of plain values, or any markup through `cell`; numbers print in the page's number format, and other values should come formatted.
-- States: loaded, sorted, empty (`emptyLabel` or `empty`), loading (placeholder rows), refreshing (rows kept, busy), and failed (`error`, with a retry); a failure over rows already here keeps them, marked as not current.
+- States: loaded, sorted, empty (`emptyLabel` or `empty`), loading (three placeholder rows built from the table's own cells, so they match the loaded rows, each bar where its column's words start and crossed by the light every placeholder shares), refreshing (rows kept, busy), and failed (`error`, with a retry); a failure over rows already here keeps them, marked as not current.
 - Keyboard: a sortable heading is a button, and Enter or Space sorts by it, then reverses; a frame that scrolls is a tab stop, so the arrow keys scroll it.
 - Pointer and touch: a sortable heading's target is at least 24px tall, and 44px on a phone or a coarse pointer.
 - Focus: sorting keeps focus on the heading; the frame is a stop only while it scrolls.
-- Responsive: columns grow to their widest value and the table scrolls inside its own frame, with a line that says so and the row headings held in view; numeric and `nowrap` columns never wrap, other text wraps inside its column.
+- Responsive: columns grow to their widest value and the table scrolls inside its own frame, with a line that says so, a fade on each edge that has more past it, starting past held row headings, and the row headings held in view; numeric and `nowrap` columns never wrap, other text wraps inside its column; a wrapping column is never narrower than its values up to a 16rem measure, 8rem for held row headings, so on a narrow frame a long value wraps to a few lines while the frame scrolls.
 - Accessibility: loading and refreshing mark the table `aria-busy` and are said through a polite status; a failure is an alert in words beside an icon; sorted order is `aria-sort` and an up or down chevron.
-- Localization: every built-in word is a prop with an English default; numbers group and text sorts by the page's language; columns, alignment and the held row headings follow the reading direction.
-- Performance: every row renders; key rows with `rowKey`, and page a long table with numbered pages or `LoadMore` rather than drawing thousands.
+- Localization: every built-in word is a prop with an English default; numbers group and text sorts by the page's language; columns, alignment, the held row headings and the loading light follow the reading direction.
+- Performance: every row renders; key rows with `rowKey`, and page a long table with numbered pages or `LoadMore` rather than drawing thousands; the loading light moves only by `transform`, so the compositor runs it, and holds still under reduced motion.
 - Analytics: `onsort` hears each sort, and `onretry` each retry.
 - Failure: no rows says `emptyLabel` or draws `empty` in the body under the headings; a failure says `error` with a retry; a missing value prints blank and sorts first.
 -->
@@ -156,7 +163,7 @@ row in place of the hairlines, for a table wide enough that the eye can lose its
 
 <div class={['sui-data-table', className, { striped, scrolls, held: rowHeader }]}>
   {#if caption}<p id={captionId} class="caption">{caption}</p>{/if}
-  {#if scrolls}<p class="caption hint" aria-hidden="true">{scrollHint}</p>{/if}
+  <p class="caption hint" aria-hidden="true">{scrollHint}</p>
   {#if error && rows.length > 0}
     <div class="problem" role="alert">
       <Icon name="alert" size="sm" />
@@ -165,107 +172,156 @@ row in place of the hairlines, for a table wide enough that the eye can lose its
     </div>
   {/if}
   <VisuallyHidden role="status">{status}</VisuallyHidden>
-  <!-- The frame is a tab stop only while it scrolls, so a keyboard can reach what is past the edge. -->
-  <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
-  <div
-    {@attach watchOverflow}
-    class="frame"
-    role={scrolls ? 'region' : undefined}
-    tabindex={scrolls ? 0 : undefined}
-    aria-labelledby={scrolls && caption ? captionId : undefined}
-    aria-label={scrolls && !caption ? rest['aria-label'] : undefined}
-  >
-    <table
-      aria-labelledby={caption ? captionId : undefined}
-      aria-busy={loading || refreshing || undefined}
-      {...rest}
+  <div class="viewport">
+    <!-- The frame is a tab stop only while it scrolls, so a keyboard can reach what is past the edge. -->
+    <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
+    <div
+      {@attach watchOverflow}
+      class="frame sui-scroll-edge"
+      role={scrolls ? 'region' : undefined}
+      tabindex={scrolls ? 0 : undefined}
+      aria-labelledby={scrolls && caption ? captionId : undefined}
+      aria-label={scrolls && !caption ? rest['aria-label'] : undefined}
     >
-      <thead>
-        <tr>
-          {#each columns as column (column.key)}
-            <th
-              scope="col"
-              data-align={alignOf(column)}
-              class={{ nowrap: column.nowrap || column.numeric }}
-              aria-sort={sort?.key === column.key ? sort.direction : undefined}
-            >
-              {#if column.sortable}
-                <button type="button" class="sort" onclick={() => sortBy(column)}>
-                  <span>{column.label}</span>
-                  <Icon
-                    name={sort?.key !== column.key
-                      ? 'chevrons-up-down'
-                      : sort.direction === 'ascending'
-                        ? 'chevron-up'
-                        : 'chevron-down'}
-                    size="xs"
-                  />
-                </button>
-              {:else}
-                {column.label}
-              {/if}
-            </th>
-          {/each}
-        </tr>
-      </thead>
-      <tbody>
-        {#if rows.length === 0}
+      <table
+        aria-labelledby={caption ? captionId : undefined}
+        aria-busy={loading || refreshing || undefined}
+        {...rest}
+      >
+        <thead>
           <tr>
-            <td class="state" colspan={columns.length}>
-              {#if loading}
-                <Skeleton rows={3} rowHeight="var(--sui-data-table-row)" />
-              {:else if error}
-                <span class="problem" role="alert">
-                  <Icon name="alert" size="sm" />
-                  <span class="problem-words">{error}</span>
-                  {@render retry()}
-                </span>
-              {:else if empty}
-                {@render empty()}
-              {:else}
-                {emptyLabel}
-              {/if}
-            </td>
-          </tr>
-        {:else}
-          {#each shown as row, index (rowKey ? rowKey(row, index) : index)}
-            <tr class={{ stale: Boolean(error) }}>
-              {#each columns as column, at (column.key)}
-                {#if rowHeader && at === 0}
-                  <th
-                    scope="row"
-                    data-align={alignOf(column)}
-                    class={{ numeric: column.numeric, nowrap: column.nowrap || column.numeric }}
-                    >{#if cell}{@render cell(row, column)}{:else}{plain(row[column.key])}{/if}</th
-                  >
+            {#each columns as column (column.key)}
+              <th
+                scope="col"
+                data-align={alignOf(column)}
+                class={{ nowrap: column.nowrap || column.numeric }}
+                aria-sort={sort?.key === column.key ? sort.direction : undefined}
+              >
+                {#if column.sortable}
+                  <button type="button" class="sort" onclick={() => sortBy(column)}>
+                    <span>{column.label}</span>
+                    <Icon
+                      name={sort?.key !== column.key
+                        ? 'chevrons-up-down'
+                        : sort.direction === 'ascending'
+                          ? 'chevron-up'
+                          : 'chevron-down'}
+                      size="xs"
+                    />
+                  </button>
                 {:else}
-                  <td
-                    data-align={alignOf(column)}
-                    class={{ numeric: column.numeric, nowrap: column.nowrap || column.numeric }}
-                    >{#if cell}{@render cell(row, column)}{:else}{plain(row[column.key])}{/if}</td
-                  >
+                  <span class="value">{column.label}</span>
                 {/if}
-              {/each}
+              </th>
+            {/each}
+          </tr>
+        </thead>
+        <tbody>
+          {#if rows.length === 0 && loading}
+            <!-- Placeholder rows are rows of this table, with its cells, padding and hairlines,
+               so they stand where the loaded rows will and the table never moves on arrival. -->
+            {#each { length: 3 } as _, index (index)}
+              <tr class="placeholder" aria-hidden="true">
+                {#each columns as column (column.key)}
+                  <td data-align={alignOf(column)} class={{ numeric: column.numeric }}
+                    ><span class="value"><span class="bar"></span></span></td
+                  >
+                {/each}
+              </tr>
+            {/each}
+          {:else if rows.length === 0}
+            <tr>
+              <td class="state" colspan={columns.length}>
+                {#if error}
+                  <span class="problem" role="alert">
+                    <Icon name="alert" size="sm" />
+                    <span class="problem-words">{error}</span>
+                    {@render retry()}
+                  </span>
+                {:else if empty}
+                  {@render empty()}
+                {:else}
+                  {emptyLabel}
+                {/if}
+              </td>
             </tr>
-          {/each}
-        {/if}
-      </tbody>
-    </table>
+          {:else}
+            {#each shown as row, index (rowKey ? rowKey(row, index) : index)}
+              <tr class={{ stale: Boolean(error) }}>
+                {#each columns as column, at (column.key)}
+                  {#if rowHeader && at === 0}
+                    <th
+                      scope="row"
+                      data-align={alignOf(column)}
+                      class={{ numeric: column.numeric, nowrap: column.nowrap || column.numeric }}
+                      ><span class="value"
+                        >{#if cell}{@render cell(row, column)}{:else}{plain(
+                            row[column.key]
+                          )}{/if}</span
+                      ></th
+                    >
+                  {:else}
+                    <td
+                      data-align={alignOf(column)}
+                      class={{ numeric: column.numeric, nowrap: column.nowrap || column.numeric }}
+                      ><span class="value"
+                        >{#if cell}{@render cell(row, column)}{:else}{plain(
+                            row[column.key]
+                          )}{/if}</span
+                      ></td
+                    >
+                  {/if}
+                {/each}
+              </tr>
+            {/each}
+          {/if}
+        </tbody>
+      </table>
+    </div>
   </div>
 </div>
 
 <style>
   .sui-data-table {
-    /* One loaded row: the body's line, its padding and the hairline between rows. */
-    --sui-data-table-row: calc(
-      var(--sui-leading-body) + 2 * var(--sui-space-3) + var(--sui-stroke)
-    );
     display: grid;
     gap: var(--sui-row-copy-gap);
     min-inline-size: 0;
+    timeline-scope: --sui-data-table-frame;
+  }
+
+  /* The line that says the columns scroll takes its room only while they do. The frame's scroll
+     timeline is active only while the frame has somewhere to scroll, and the browser settles it
+     before it paints, so a server-rendered table draws the line from its first frame. Without
+     scroll timelines the line follows the measure script. */
+  .hint {
+    display: none;
+  }
+
+  .scrolls .hint {
+    display: block;
+  }
+
+  @supports (animation-timeline: scroll()) {
+    .hint,
+    .scrolls .hint {
+      animation: sui-data-table-scrolls var(--sui-ease-linear) both;
+      animation-timeline: --sui-data-table-frame;
+      display: block;
+      position: absolute;
+      visibility: hidden;
+    }
+  }
+
+  @keyframes sui-data-table-scrolls {
+    from,
+    to {
+      position: static;
+      visibility: visible;
+    }
   }
 
   .caption {
+    align-content: center;
     block-size: var(--sui-block-snap);
     color: var(--sui-text-muted);
     font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-row-copy-leading)
@@ -284,6 +340,7 @@ row in place of the hairlines, for a table wide enough that the eye can lose its
   }
 
   .problem-words {
+    align-content: center;
     block-size: var(--sui-block-snap);
     font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-row-copy-leading)
       var(--sui-sans);
@@ -293,13 +350,38 @@ row in place of the hairlines, for a table wide enough that the eye can lose its
   }
 
   .frame {
+    container-type: scroll-state;
     min-inline-size: 0;
     overflow-x: auto;
+    scroll-timeline: --sui-data-table-frame inline;
+  }
+
+  /* Held row headings stay at the start while the columns scroll under them, so the start
+     fade begins at their edge. */
+  .held .frame {
+    --sui-local-edge-hold: var(--sui-local-table-held);
+  }
+
+  /* The frame's ring is drawn over it, not by it: an outline paints under every positioned part
+     of its box, and the held row headings stack over the columns that scroll under them. */
+  .viewport {
+    isolation: isolate;
+    min-inline-size: 0;
+    position: relative;
   }
 
   .frame:focus-visible {
+    outline: none;
+  }
+
+  .viewport:has(> .frame:focus-visible)::after {
+    content: '';
+    inset: 0;
     outline: var(--sui-focus-ring-width) solid var(--sui-focus);
     outline-offset: var(--sui-focus-ring-inset);
+    pointer-events: none;
+    position: absolute;
+    z-index: var(--sui-layer-inner-face);
   }
 
   /* Separate borders: a collapsed border is split between its two cells, which puts every
@@ -314,10 +396,20 @@ row in place of the hairlines, for a table wide enough that the eye can lose its
      each cell rounds its height up to the pixel (L-95). */
   th,
   td {
+    align-content: center;
     block-size: var(--sui-block-snap);
     padding: var(--sui-space-3) var(--sui-space-4);
     text-align: start;
     vertical-align: baseline;
+  }
+
+  /* A cell's words run cap line to baseline in a box rounded to the pixel, so a row's room
+     above and under them match (L-102) and every row stays on the grid (L-95). */
+  .value {
+    align-content: center;
+    block-size: var(--sui-block-snap);
+    display: block;
+    text-box: trim-both cap alphabetic;
   }
 
   :is(th, td):first-child {
@@ -328,8 +420,11 @@ row in place of the hairlines, for a table wide enough that the eye can lose its
     padding-inline-end: 0;
   }
 
+  /* A heading row holds a sort control as tall as a finger on touch, so every heading centres
+     in the row instead of sitting on that control's baseline (L-102). */
   thead th {
     border-block-end: var(--sui-stroke) solid var(--sui-border-control);
+    vertical-align: middle;
     color: var(--sui-text-muted);
     font: var(--sui-weight-semibold) var(--sui-font-size-micro) / var(--sui-leading-micro)
       var(--sui-sans);
@@ -350,23 +445,32 @@ row in place of the hairlines, for a table wide enough that the eye can lose its
     border-radius: var(--sui-radius-control);
     color: inherit;
     cursor: pointer;
-    display: inline-flex;
+    /* A block of its own, so no line's strut stands under it and stretches the row (L-102). */
+    display: flex;
     font: inherit;
     gap: var(--sui-space-1);
+    inline-size: fit-content;
     letter-spacing: inherit;
     margin: calc(-1 * var(--sui-space-1));
     padding: 0 var(--sui-space-1);
     position: relative;
     text-transform: inherit;
-    transition: background-color var(--sui-duration-fast) var(--sui-ease-standard);
     user-select: none;
     /* Off the baseline, so the glyph beside the words never moves the heading row's line. */
     vertical-align: top;
     -webkit-user-select: none;
   }
 
+  /* The heading's words run cap line to baseline, so the control centres them (L-102). */
+  .sort > span {
+    align-content: center;
+    block-size: var(--sui-block-snap-even);
+    text-box: trim-both cap alphabetic;
+  }
+
   [data-align='end'] .sort {
     flex-direction: row-reverse;
+    margin-inline-start: auto;
   }
 
   /* An outer heading meets the scroller's edge, which would cut a ground or ring reaching past
@@ -453,24 +557,95 @@ row in place of the hairlines, for a table wide enough that the eye can lose its
   }
 
   /* While the columns scroll, the row headings stay at the start on the table's own ground,
-     and a hairline shows where the scrolled columns slide under them. */
-  .held.scrolls :is(th, td):first-child {
-    background: var(--sui-surface-base);
-    inset-inline-start: 0;
-    position: sticky;
+     and a hairline shows where the scrolled columns slide under them. The frame's own scroll
+     state says so before the first paint; without scroll-state queries the measure script's
+     class does. */
+  @container scroll-state(scrollable: inline) {
+    .held :is(th, td):first-child {
+      background: var(--sui-surface-base);
+      inset-inline-start: 0;
+      position: sticky;
+      z-index: var(--sui-layer-inner-plate);
+    }
+
+    .held.striped tbody tr:nth-child(even) > :first-child {
+      background: var(--sui-surface-inset);
+    }
+
+    .held :is(th, td):first-child::after {
+      background: var(--sui-border-divider);
+      content: '';
+      inline-size: var(--sui-stroke);
+      inset-block: 0;
+      inset-inline-end: 0;
+      position: absolute;
+    }
+
+    /* A held cell would frame its bar's light alone, and a placeholder has no name to hold. */
+    .held .placeholder > :first-child {
+      position: static;
+    }
+
+    .held .placeholder > :first-child::after {
+      content: none;
+    }
   }
 
-  .held.scrolls.striped tbody tr:nth-child(even) > :first-child {
-    background: var(--sui-surface-inset);
+  @supports not (container-type: scroll-state) {
+    .held.scrolls :is(th, td):first-child {
+      background: var(--sui-surface-base);
+      inset-inline-start: 0;
+      position: sticky;
+      z-index: var(--sui-layer-inner-plate);
+    }
+
+    .held.scrolls.striped tbody tr:nth-child(even) > :first-child {
+      background: var(--sui-surface-inset);
+    }
+
+    .held.scrolls :is(th, td):first-child::after {
+      background: var(--sui-border-divider);
+      content: '';
+      inline-size: var(--sui-stroke);
+      inset-block: 0;
+      inset-inline-end: 0;
+      position: absolute;
+    }
+
+    .held.scrolls .placeholder > :first-child {
+      position: static;
+    }
+
+    .held.scrolls .placeholder > :first-child::after {
+      content: none;
+    }
   }
 
-  .held.scrolls :is(th, td):first-child::after {
-    background: var(--sui-border-divider);
-    content: '';
-    inline-size: var(--sui-stroke);
-    inset-block: 0;
-    inset-inline-end: 0;
-    position: absolute;
+  /* A table too wide for its frame squeezes each column to its longest word, which stood a long
+     value a word a line. Each wrapping value keeps at least its own width up to a reading
+     measure instead, as Primer's columns grow to their content, so on a narrow frame a long
+     value wraps to a few lines while the frame scrolls, and a wide frame lays out as before. A
+     held row heading keeps a shorter measure, so the columns keep most of the frame. */
+  :is(th, td):not(.nowrap) > .value {
+    min-inline-size: calc-size(max-content, min(size, 16rem));
+  }
+
+  .held :is(th, td):first-child:not(.nowrap) > .value {
+    min-inline-size: calc-size(max-content, min(size, 8rem));
+  }
+
+  /* Without calc-size(), a value counts its own width up to the measure for its column, and a
+     cyclic percentage minimum counts as zero there, so it still fills its cell when laid out. */
+  @supports not (min-inline-size: calc-size(max-content, size)) {
+    :is(th, td):not(.nowrap) > .value {
+      inline-size: max-content;
+      max-inline-size: 16rem;
+      min-inline-size: 100%;
+    }
+
+    .held :is(th, td):first-child:not(.nowrap) > .value {
+      max-inline-size: 8rem;
+    }
   }
 
   [data-align='end'] {
@@ -498,10 +673,90 @@ row in place of the hairlines, for a table wide enough that the eye can lose its
       inset: calc((100% - max(100%, var(--sui-touch-target))) / 2);
     }
   }
+  /* The placeholder rows are the frame the light crosses: every bar shows the part of it that
+     falls on the bar, so it reads as one light over the rows, and the table clips it so it
+     never widens the frame's scroll. */
+  tbody:has(> .placeholder) {
+    position: relative;
+  }
+
+  table:has(> tbody > .placeholder) {
+    overflow: clip;
+  }
+
+  /* A placeholder bar is one line of the cell's words, cap line to baseline, so a placeholder
+     row is exactly as tall as a loaded one. It starts where the column's words start and runs
+     a little short of its heading, a little more or less on each row, as words do; a number's
+     bar is short and sits at the end. The light is laid out on the rows, so only the bar's
+     clip path, not its overflow, keeps it inside the bar. */
+  .placeholder .bar {
+    background: var(--sui-placeholder);
+    block-size: round(up, 1cap, 1px);
+    border-radius: var(--sui-radius-pill);
+    clip-path: inset(0 round var(--sui-radius-pill));
+    display: block;
+    inline-size: 90%;
+  }
+
+  .placeholder:nth-child(3n + 2) .bar {
+    inline-size: 65%;
+  }
+
+  .placeholder:nth-child(3n) .bar {
+    inline-size: 78%;
+  }
+
+  .placeholder .numeric .bar {
+    inline-size: min(3rem, 100%);
+  }
+
+  .placeholder:nth-child(3n + 2) .numeric .bar {
+    inline-size: min(2.25rem, 100%);
+  }
+
+  .placeholder:nth-child(3n) .numeric .bar {
+    inline-size: min(2.75rem, 100%);
+  }
+
+  .placeholder [data-align='end'] .bar {
+    margin-inline-start: auto;
+  }
+
+  .placeholder .bar::after {
+    animation: sui-data-table-sheen var(--sui-duration-shimmer) var(--sui-ease-linear) infinite;
+    background: var(--sui-placeholder-sheen);
+    content: '';
+    inset-block: 0;
+    inset-inline: calc(-1 * var(--sui-placeholder-reach));
+    position: absolute;
+  }
+
+  .placeholder .bar:dir(rtl)::after {
+    scale: -1 1;
+  }
+
+  @keyframes sui-data-table-sheen {
+    from {
+      transform: translateX(-50%);
+    }
+
+    to {
+      transform: translateX(50%);
+    }
+  }
 
   @media (prefers-reduced-motion: reduce) {
-    .sort {
-      transition: none;
+    .placeholder .bar::after {
+      animation: none;
+      content: none;
+    }
+  }
+
+  /* Forced colors drop the bar's ground, so it keeps its shape by an outline. */
+  @media (forced-colors: active) {
+    .placeholder .bar {
+      outline: var(--sui-stroke) solid GrayText;
+      outline-offset: calc(-1 * var(--sui-stroke));
     }
   }
 </style>

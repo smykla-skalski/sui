@@ -17,6 +17,7 @@
 </script>
 
 <script lang="ts">
+  import { mark, word } from '../words.js';
   import { tick, type Snippet } from 'svelte';
   import Icon from '../icons/Icon.svelte';
   import Button, { type ButtonTone } from './Button.svelte';
@@ -30,10 +31,15 @@
     items,
     label,
     icon,
+    toolbar = false,
     tone = 'default',
     align = 'start',
     disabled = false,
     preview = false,
+    optionName = word(
+      'ActionMenu.optionName',
+      (label: string, description: string) => `${label}${mark('comma')}${description}`
+    ),
     children
   }: {
     items: readonly ActionMenuItem[];
@@ -42,17 +48,22 @@
     disabled?: boolean;
     /** Draws the menu open under the trigger in the page's flow, with its first item highlighted and no keyboard. */
     preview?: boolean;
+    /** An item's accessible name from its label and its description, in the language's order. */
+    optionName?: (label: string, description: string) => string;
   } & (
     | {
         /** The accessible name and tooltip of the icon trigger. */
         label: string;
         icon: IconName;
+        /** Sets the icon trigger on the 34px control tier, level with the buttons beside it. */
+        toolbar?: boolean;
         tone?: never;
         children?: never;
       }
     | {
         label?: never;
         icon?: never;
+        toolbar?: never;
         tone?: ButtonTone;
         /** The visible label of a `Button` trigger, drawn with a trailing chevron. */
         children: Snippet;
@@ -171,27 +182,29 @@ that happen; a place to go is a link on the page. Put a destructive act last wit
 tone, so it is never the row under the pointer by accident.
 
 The trigger is an `IconButton` when given `label` and `icon`, and a `Button` with a chevron
-when given its label as children. Opening moves focus to the first item. Arrows wrap, Home and
-End jump, and typing a letter jumps to the next item that starts with it. Escape closes and
-returns focus to the trigger, and Tab closes it and moves on to the next control. A disabled
-item stays in the arrow order with its `description`, and choosing it does nothing. Choosing
-any other item closes the menu and focuses the trigger before `onselect` runs. A dialog the
-item opens then returns focus there too. Labels wrap rather than being cut short.
+when given its label as children. The icon trigger stands on the 28px quiet tier for a row's
+end, and `toolbar` sets it on the control tier beside buttons, as tall as they are at every
+width. Opening moves focus to the first item. Arrows wrap, Home and End jump, and typing a
+letter jumps to the next item that starts with it. Escape closes and returns focus to the
+trigger, and Tab closes it and moves on to the next control. A disabled item stays in the
+arrow order with its `description`, and choosing it does nothing. Choosing any other item
+closes the menu and focuses the trigger before `onselect` runs. A dialog the item opens then
+returns focus there too. Labels wrap rather than being cut short.
 
 - Semantics: a menu button (`aria-haspopup="menu"`, `aria-expanded`) and a `menu` of `menuitem` buttons named by the trigger, with `separator` rows between groups.
 - Content: items with a label, an optional icon and one line of description; a destructive item last; labels and descriptions wrap.
 - States: closed, open, an item highlighted by focus or pointer, pressed, disabled (dimmed label with its reason at full contrast), `stop` in the danger ink, and a disabled trigger.
 - Keyboard: Enter, Space, Down or Up opens on the first or last item; arrows wrap, Home and End jump, a letter jumps, Enter or Space chooses, Escape closes to the trigger and Tab closes and moves on.
-- Pointer and touch: items are one control tall, 34px and 44px on a phone or touch screen; the pointer's item takes focus as it moves.
+- Pointer and touch: items are one control tall, 34px and 44px on a phone or touch screen; the pointer's item takes focus as it moves; the icon trigger is 28px with a 44px hit area there, or with `toolbar` one control tall, as the button trigger is.
 - Focus: opening moves focus to the first item, choosing or Escape returns it to the trigger before `onselect` runs, and Tab hands it to the next control.
-- Responsive: the menu is at least 13rem and at most 24rem wide or the viewport less 24px, flips above the trigger when there is more room, and scrolls inside when tall.
-- Accessibility: the trigger names the menu, a disabled item is `aria-disabled` and keeps its reason as its description, and the highlight survives forced colours as an outline.
+- Responsive: the menu is 13rem to 24rem wide and never wider than the viewport less 24px, or than its line when drawn as a preview, so large text narrows it and wraps its labels; it flips above the trigger when there is more room, and scrolls inside when tall.
+- Accessibility: the trigger names the menu, a disabled item is `aria-disabled`, an item's description is read in its name after the label through `optionName`, so the name holds every drawn word, and the highlight survives forced colours as an outline.
 - Localization: every word is the caller's, and `align` start and end follow the reading direction, so a right-to-left page hangs the menu from the mirrored edge.
 - Performance: items render only while the menu is in the page; the highlight fades its ground and the press sinks 1px, both removed under reduced motion.
 - Analytics: each item's `onselect` reports the chosen act; a menu closed without a choice calls nothing.
 - Failure: an empty `items` opens an empty menu, so leave the trigger out instead; a disabled item says why in its description.
 -->
-{#snippet control()}
+{#snippet opener()}
   {#if children}
     <Button bind:element={button} id={triggerId} {tone} {disabled} {...triggerProps}>
       {@render children()}
@@ -203,17 +216,15 @@ item opens then returns focus there too. Labels wrap rather than being cut short
       id={triggerId}
       {icon}
       {label}
+      {toolbar}
       {disabled}
       {...triggerProps}
     />
-  {/if}<Popover
-    id={popupId}
-    anchor={trigger}
-    bind:open
-    inline={preview}
-    width="min-trigger"
-    {align}
-  >
+  {/if}
+{/snippet}
+
+{#snippet popup()}
+  <Popover id={popupId} anchor={trigger} bind:open inline={preview} width="min-trigger" {align}>
     <div
       bind:this={menu}
       id={menuId}
@@ -234,8 +245,7 @@ item opens then returns focus there too. Labels wrap rather than being cut short
             class={['sui-action-menu-item', { active: index === highlighted }]}
             data-tone={item.tone ?? 'default'}
             aria-disabled={item.disabled || undefined}
-            aria-labelledby={item.description ? `${uid}-item-${index}` : undefined}
-            aria-describedby={item.description ? `${uid}-item-${index}-description` : undefined}
+            aria-label={item.description ? optionName(item.label, item.description) : undefined}
             onclick={() => activate(item)}
             onpointermove={(event) => {
               if (!preview && !item.disabled && document.activeElement !== event.currentTarget)
@@ -248,11 +258,9 @@ item opens then returns focus there too. Labels wrap rather than being cut short
               </span>
             {/if}
             <span class="sui-action-menu-text">
-              <span id="{uid}-item-{index}" class="sui-action-menu-label">{item.label}</span>
+              <span class="sui-action-menu-label">{item.label}</span>
               {#if item.description}
-                <span id="{uid}-item-{index}-description" class="sui-action-menu-description"
-                  >{item.description}</span
-                >
+                <span class="sui-action-menu-description">{item.description}</span>
               {/if}
             </span>
           </button>
@@ -263,22 +271,37 @@ item opens then returns focus there too. Labels wrap rather than being cut short
 {/snippet}
 
 {#if preview}
-  <div class="sui-action-menu-preview" data-align={align}>{@render control()}</div>
+  <div class="sui-action-menu-preview" data-align={align}>
+    <span class="sui-action-menu-trigger">{@render opener()}</span>
+    {@render popup()}
+  </div>
 {:else}
-  {@render control()}
+  {@render opener()}{@render popup()}
 {/if}
 
 <style>
+  /* In the page's flow the room is the preview's own line, so the menu fills a box at least as
+     wide as a floating menu's floor and never wider than that line, and the trigger stands at
+     its aligned edge above it. */
   .sui-action-menu-preview {
     display: inline-grid;
     gap: var(--sui-space-1);
     grid-template-columns: minmax(0, auto);
     inline-size: fit-content;
     max-inline-size: 100%;
+    min-inline-size: min(calc(13rem + 2 * var(--sui-stroke)), 100%);
   }
 
-  .sui-action-menu-preview[data-align='end'] {
-    justify-items: end;
+  .sui-action-menu-trigger {
+    display: flex;
+  }
+
+  .sui-action-menu-preview[data-align='end'] > .sui-action-menu-trigger {
+    justify-content: flex-end;
+  }
+
+  .sui-action-menu-preview .sui-action-menu {
+    min-inline-size: 0;
   }
 
   .sui-action-menu {
@@ -286,7 +309,9 @@ item opens then returns focus there too. Labels wrap rather than being cut short
     display: grid;
     grid-template-columns: minmax(0, 1fr);
     max-inline-size: min(24rem, calc(100vw - 2 * var(--sui-space-3)));
-    min-inline-size: 13rem;
+    /* The floor gives way to the room the window leaves, so large text narrows the menu and
+       wraps its labels rather than scrolling it sideways. */
+    min-inline-size: min(13rem, calc(100vw - 2 * var(--sui-space-3)));
     outline: none;
     padding: var(--sui-space-1);
     row-gap: 2px;
@@ -310,12 +335,13 @@ item opens then returns focus there too. Labels wrap rather than being cut short
     gap: var(--sui-space-2);
     inline-size: 100%;
     margin: 0;
-    padding: calc((var(--sui-control-height-compact) - var(--sui-leading-meta)) / 2)
-      var(--sui-space-3);
+    /* A one-line name stands as far under the top as over the bottom, cap line to baseline
+       (L-102): the name's box snaps to an even height, as the control height is, so the room
+       left splits into two whole pixels. */
+    padding-block: calc((var(--sui-control-height-compact) - round(up, 1cap, 2px)) / 2);
+    padding-inline: var(--sui-space-3);
     text-align: start;
-    transition:
-      background-color var(--sui-duration-fast) var(--sui-ease-standard),
-      translate var(--sui-duration-press) var(--sui-ease-standard);
+    transition: translate var(--sui-duration-press) var(--sui-ease-standard);
     -webkit-tap-highlight-color: transparent;
     -webkit-user-select: none;
     user-select: none;
@@ -355,9 +381,10 @@ item opens then returns focus there too. Labels wrap rather than being cut short
     color: var(--sui-danger);
   }
 
+  /* One cap tall, so the glyph centres on the name's cap line and never sets the row. */
   .sui-action-menu-icon {
     align-items: center;
-    block-size: var(--sui-leading-meta);
+    block-size: round(up, 1cap, 1px);
     color: var(--sui-text-muted);
     display: inline-flex;
     flex: none;
@@ -371,19 +398,25 @@ item opens then returns focus there too. Labels wrap rather than being cut short
 
   .sui-action-menu-text {
     display: grid;
+    gap: var(--sui-row-copy-gap);
     min-inline-size: 0;
   }
 
-  /* No cap trim: a name has descenders, and the row centres it on its own. */
   .sui-action-menu-label {
+    align-content: center;
+    block-size: var(--sui-block-snap-even);
     overflow-wrap: anywhere;
+    text-box: trim-both cap alphabetic;
   }
 
   .sui-action-menu-description {
+    align-content: center;
+    block-size: var(--sui-block-snap);
     color: var(--sui-text-secondary);
     font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-leading-meta)
       var(--sui-sans);
     overflow-wrap: anywhere;
+    text-box: trim-both cap alphabetic;
   }
 
   .sui-action-menu-separator {

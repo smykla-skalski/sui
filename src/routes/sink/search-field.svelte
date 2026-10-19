@@ -8,7 +8,7 @@
 </script>
 
 <script lang="ts">
-  import { SearchField } from '#lib';
+  import { Button, SearchField } from '#lib';
   import Example from '../kit/Example.svelte';
   import Specimen from '../kit/Specimen.svelte';
 
@@ -21,6 +21,12 @@
   const matches = $derived(
     repositories.filter((name) => name.includes(filter.trim().toLowerCase()))
   );
+  let searched = $state('Nothing searched yet');
+
+  function search(event: SubmitEvent & { currentTarget: HTMLFormElement }): void {
+    event.preventDefault();
+    searched = `Searched for ${new FormData(event.currentTarget).get('q')}`;
+  }
 </script>
 
 <Example
@@ -51,6 +57,26 @@
     <div class="tall">
       <SearchField label="Search the members" placeholder="Search members" value="Bart" />
     </div>
+  </Specimen>
+</Example>
+
+<Example
+  title="In a form"
+  note="A search the form sends refuses a query its constraints reject and says why under the field"
+  layout="grid"
+>
+  <Specimen label={searched} code="required minlength validationMessage">
+    <form class="search" onsubmit={search}>
+      <SearchField
+        label="Search the audit log"
+        name="q"
+        required
+        minlength={3}
+        validationMessage="Enter at least 3 characters to search"
+        placeholder="Search events"
+      />
+      <Button type="submit">Search</Button>
+    </form>
   </Specimen>
 </Example>
 
@@ -93,6 +119,11 @@
   .filter {
     display: grid;
     gap: var(--sui-space-3);
+  }
+
+  .search {
+    display: grid;
+    gap: var(--sui-space-4);
   }
 
   .narrow {

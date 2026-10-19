@@ -7,6 +7,7 @@
   import { tick } from 'svelte';
   import type { HTMLAttributes } from 'svelte/elements';
   import Icon from '../icons/Icon.svelte';
+  import { held, holdAround } from '../internal/held.svelte.js';
   import Button from './Button.svelte';
   import Combobox, { type ComboboxOption } from './Combobox.svelte';
   import Field from './Field.svelte';
@@ -27,7 +28,7 @@
     pairName = word(
       'PairEntry.pairName',
       (key: string, value: string) =>
-        `${keyLabel}${mark('space')}${key}${mark('comma')}${valueLabel}${mark('space')}${value}`
+        `${key}${mark('colon')}${value}${mark('comma')}${keyLabel}${mark('colon')}${valueLabel}`
     ),
     validate,
     addLabel = word('PairEntry.addLabel', 'Add a pair'),
@@ -55,7 +56,10 @@
     editName?: (field: string, key: string) => string;
     /** Names the value, such as "Command": the editor's second field. */
     valueLabel?: string;
-    /** A chip's accessible name from its key and its value, with `keyLabel` and `valueLabel`. */
+    /**
+     * A chip's accessible name from its key and its value. It starts with the words the chip
+     * draws, in their order, so a voice command that says them reaches the chip (WCAG 2.5.3).
+     */
     pairName?: (key: string, value: string) => string;
     /** Says what is wrong with a key, or null when it is fine. `index` is the pair's place in `pairs`. */
     validate?: (key: string, index: number, pairs: readonly Pair[]) => string | null;
@@ -91,6 +95,10 @@
       .join(' ') || undefined;
 
   let root = $state<HTMLElement | null>(null);
+  /* Work that runs on the form around it holds the pairs: the chips and Add dim and refuse
+     edits, removals and additions, disabled under a firm hold and tab stops under a soft one. */
+  const around = holdAround();
+  const holding = $derived(held(root, around));
   let adder = $state<HTMLButtonElement | HTMLAnchorElement | null>(null);
   let anchor = $state<HTMLElement | null>(null);
   let form = $state<HTMLFormElement | null>(null);
@@ -118,6 +126,11 @@
   // The invoker's press lands before the browser opens the editor, so the draft is seeded here
   // and the editor opens on the pair that was pressed. A press while it is open only closes it.
   function seed(index: number, event: MouseEvent & { currentTarget: HTMLElement }): void {
+    // A held press must not open the editor, which the browser does after this handler.
+    if (holding) {
+      event.preventDefault();
+      return;
+    }
     if (open) return;
     editing = index;
     draft =
@@ -151,6 +164,7 @@
   // Focus goes to the pair that took the removed one's place, else the one before, else Add,
   // so it never falls to the page (L-89).
   async function remove(index: number): Promise<void> {
+    if (holding) return;
     const gone = value[index];
     value = value.filter((_, at) => at !== index);
     settled = true;
@@ -184,7 +198,7 @@
 
   // Delete and Backspace remove a focused chip, as an accelerator for its remove control.
   function chipKeys(index: number, event: KeyboardEvent): void {
-    if (event.key !== 'Delete' && event.key !== 'Backspace') return;
+    if (holding || (event.key !== 'Delete' && event.key !== 'Backspace')) return;
     event.preventDefault();
     void remove(index);
   }
@@ -205,22 +219,22 @@ row gives them and fall under the copy on a narrow row.
 
 - Semantics: a `div` with `role="group"` holding a list of chips, each an edit `button` with `aria-haspopup="dialog"` and a remove `button`, an `add` button, and a dialog `Popover` with a `Field` and a `Combobox`.
 - Content: pairs of a short key and one of `options`; a long key or value wraps inside its chip, so all of it shows.
-- States: rest, hover, pressed and focus on each part, open (the chip's edge takes the focus color), invalid (the danger edge, an alert mark and the problem in words under the row), and disabled with `reason`.
-- Keyboard: Tab walks each chip's edit and remove parts, then Add; Enter or Space opens the editor; Delete or Backspace on a chip removes it; in the editor Enter is Done and Escape closes.
-- Pointer and touch: each part is 28px, and 44px on a phone or a coarse pointer; the remove part sits outside the edit target.
-- Focus: the editor opens on the key field and returns focus to its chip on close; after a removal focus moves to the next chip, the one before, or Add.
-- Responsive: chips wrap one by one within the row's room, and the editor is at most 20rem wide and inside the viewport.
-- Accessibility: every chip is named by `pairName` from `keyLabel` and `valueLabel`, such as "Alias ship, Command deploy"; a problem and `reason` describe the chips; a removal is said through a polite status.
+- States: rest; hover, pressed and focus on the edit part paint the whole chip (a veil, a deeper veil with an inset shadow, a flush ring), and the remove part's quiet plate takes its own (a veil, a deeper veil with an inset shadow, an inset ring); open (the chip's edge takes the focus color), invalid (the danger edge, an alert mark and the problem in words under the row), and disabled with `reason`.
+- Keyboard: Tab walks each chip's edit and remove parts, then Add; Enter or Space opens the editor; Delete or Backspace on a chip removes it; in the editor Enter is Done, and Escape closes the value's list first and then the editor.
+- Pointer and touch: the chip is 28px tall and the remove part a 28px square over its end, both 44px on a phone or a coarse pointer; a press on that square is the remove part's alone, and the edit part's words keep clear of it; a press on the editor's words or padding closes only the value's list.
+- Focus: the editor opens on the key field, keeps focus inside when its words or padding are pressed, and returns focus to its chip on close; after a removal focus moves to the next chip, the one before, or Add.
+- Responsive: chips wrap one by one within the row's room, a pair too long for its line grows by whole lines with the remove part on the first, and the editor is at most 20rem wide and inside the viewport.
+- Accessibility: every chip is named by `pairName` from `keyLabel` and `valueLabel`, such as "ship: deploy, Alias: Command", which starts with the words the chip draws in their order; a problem and `reason` describe the chips; a removal is said through a polite status.
 - Localization: every word is a prop, the named ones functions of the key; the arrow between key and value turns with the reading direction.
 - Performance: every pair renders a chip, and one editor serves them all.
 - Analytics: `onadd`, `onedit` and `onremove` hear each accepted change.
-- Failure: a key `validate` refuses keeps the editor open with the problem and never reaches `value`; a stored pair it refuses is marked and described; with `disabled` the chips read only, so say why with `reason`.
+- Failure: a key `validate` refuses keeps the editor open with the problem and never reaches `value`; a stored pair it refuses is marked and described; with `disabled` the chips read only, so say why with `reason`; while a busy dialog or a saving pane around it works, the chips and Add are disabled.
 -->
 
 <div
   {...rest}
   bind:this={root}
-  class={['sui-pair-entry', className, { disabled }]}
+  class={['sui-pair-entry', className, { disabled: disabled || holding }]}
   role="group"
   aria-describedby={rest['aria-describedby'] ?? (reason ? reasonId : undefined)}
 >
@@ -238,7 +252,8 @@ row gives them and fall under the copy on a narrow row.
             aria-expanded={open && editing === index}
             aria-label={pairName(pair.key, labelOf(pair.value))}
             aria-describedby={described(index)}
-            {disabled}
+            disabled={disabled || holding === 'firm'}
+            aria-disabled={Boolean(holding) || undefined}
             onclick={(event) => seed(index, event)}
             onkeydown={(event) => chipKeys(index, event)}
           >
@@ -248,16 +263,16 @@ row gives them and fall under the copy on a narrow row.
             <span class="sui-pair-arrow" aria-hidden="true">→</span>
             <code class="sui-pair-value">{labelOf(pair.value)}</code>
           </button>
-          <span class="sui-pair-divider" aria-hidden="true"></span>
           <button
             type="button"
             class="sui-pair-remove"
             aria-label={removeName(pair.key)}
             aria-describedby={described()}
-            {disabled}
+            disabled={disabled || holding === 'firm'}
+            aria-disabled={Boolean(holding) || undefined}
             onclick={() => remove(index)}
           >
-            <Icon name="close" size="xs" />
+            <span class="sui-pair-glyph"><Icon name="close" size="xs" /></span>
           </button>
         </span>
       </li>
@@ -270,7 +285,8 @@ row gives them and fall under the copy on a narrow row.
         aria-haspopup="dialog"
         aria-expanded={open && editing < 0}
         aria-describedby={described()}
-        {disabled}
+        disabled={disabled || holding === 'firm'}
+        aria-disabled={Boolean(holding) || undefined}
         onclick={(event: MouseEvent & { currentTarget: HTMLElement }) => seed(-1, event)}
       >
         {#snippet icon()}<Icon name="plus" size="sm" />{/snippet}
@@ -333,7 +349,9 @@ row gives them and fall under the copy on a narrow row.
     min-inline-size: 0;
   }
 
+  /* Add stands in the row of chips, so it takes their height (L-101). */
   .sui-pair-chips {
+    --sui-local-control-height: var(--sui-pair-chip);
     align-items: center;
     display: flex;
     flex-wrap: wrap;
@@ -351,11 +369,14 @@ row gives them and fall under the copy on a narrow row.
     min-inline-size: 0;
   }
 
-  /* The frame is drawn over the chip, not around it, so each part is a whole control tier tall
-     and the remove part is square (L-37, L-44). */
+  /* The frame is drawn over the chip, not around it, so the chip is a whole control tier tall
+     (L-37). The edit part is the chip itself, as a joined field's value is the field: its hover,
+     press and ring take the whole chip, and the remove part keeps its own (L-47). */
   .sui-pair-chip {
     --sui-pair-edge: var(--sui-control-border);
+    --sui-pair-layer: transparent;
     background-color: var(--sui-control-bg);
+    background-image: linear-gradient(var(--sui-pair-layer), var(--sui-pair-layer));
     border-radius: var(--sui-radius-control);
     display: flex;
     max-inline-size: 100%;
@@ -370,16 +391,34 @@ row gives them and fall under the copy on a narrow row.
     inset: 0;
     pointer-events: none;
     position: absolute;
-    transition: border-color var(--sui-duration-fast) var(--sui-ease-standard);
   }
 
   @media (hover: hover) {
     .sui-pair-chip:hover:not(.invalid, .open) {
       --sui-pair-edge: var(--sui-control-border-hover);
     }
+
+    /* The pointer anywhere on the chip lights all of it, the remove part included, as a joined
+       field lights whole, and the remove part's own plate steps up over that. */
+    .sui-pair-chip:hover:not(:has(> :is(:disabled, [aria-disabled='true']))) {
+      --sui-pair-layer: var(--sui-interactive-hover-layer);
+    }
   }
 
-  .sui-pair-chip.open {
+  .sui-pair-chip:has(> .sui-pair-edit:active:not(:disabled, [aria-disabled='true'])) {
+    --sui-pair-layer: var(--sui-interactive-pressed);
+    box-shadow: var(--sui-pressed-inset);
+  }
+
+  /* A bordered control's ring is flush, its edge taking the ring's color unless it is invalid
+     (L-9, L-41). */
+  .sui-pair-chip:has(> .sui-pair-edit:focus-visible) {
+    outline: var(--sui-focus-ring-width) solid var(--sui-focus);
+    outline-offset: var(--sui-focus-ring-flush);
+  }
+
+  .sui-pair-chip.open,
+  .sui-pair-chip:has(> .sui-pair-edit:focus-visible):not(.invalid) {
     --sui-pair-edge: var(--sui-focus);
   }
 
@@ -392,83 +431,125 @@ row gives them and fall under the copy on a narrow row.
     align-items: center;
     appearance: none;
     background-color: transparent;
-    min-block-size: var(--sui-pair-chip);
     border: 0;
-    border-radius: inherit;
     box-sizing: border-box;
     color: var(--sui-text-secondary);
     cursor: pointer;
     display: flex;
     margin: 0;
+    outline: none;
     position: relative;
     touch-action: manipulation;
-    transition: background-color var(--sui-duration-fast) var(--sui-ease-standard);
     user-select: none;
     -webkit-tap-highlight-color: transparent;
     -webkit-user-select: none;
   }
 
-  /* The parts share the chip's frame, so each keeps only its own two round corners and its
-     ring stays inside the frame (L-41). */
+  /* The edit part is the whole chip. Its words keep a one-line chip's inset above the first
+     line and under the last, so a pair that wraps grows by whole lines (L-37). It reads mono,
+     the face of its words, so its cap is theirs. Its end keeps room for the remove part and
+     stops the start inset short of its plate. */
   .sui-pair-edit {
-    border-end-end-radius: 0;
-    border-start-end-radius: 0;
+    align-content: start;
+    flex: auto;
     font: var(--sui-weight-regular) var(--sui-font-size-control) / var(--sui-leading-flat)
-      var(--sui-sans);
+      var(--sui-mono);
     flex-wrap: wrap;
-    gap: 0 var(--sui-space-1);
+    gap: calc(var(--sui-leading-compact) - round(up, 1cap, 2px)) var(--sui-space-1);
+    min-block-size: var(--sui-pair-chip);
     min-inline-size: 0;
-    padding-inline: var(--sui-space-2);
+    padding-block: calc((var(--sui-pair-chip) - round(up, 1cap, 2px)) / 2);
+    padding-inline: var(--sui-space-2)
+      calc(var(--sui-pair-chip) + var(--sui-space-2) - var(--sui-control-inset));
     text-align: start;
   }
 
+  /* The remove part lies over the edit part's end, as a clear button lies in a field: a square
+     as tall as a one-line chip, on the first line however many the words wrap to (L-44, L-94).
+     Its plate stands the control inset inside it, as a copy chip stands inside a joined field:
+     quiet at rest, with its own hover, press and an inset ring on the plate (L-42, L-47). The
+     chip radius is the control radius less that inset, so the plate's corners are concentric
+     with the chip's. */
   .sui-pair-remove {
-    border-end-start-radius: 0;
-    border-start-start-radius: 0;
+    --sui-pair-plate: var(--sui-row-hover);
+    block-size: var(--sui-pair-chip);
+    border-radius: var(--sui-radius-control);
     color: var(--sui-text-muted);
-    flex: none;
     inline-size: var(--sui-pair-chip);
+    inset-block-start: 0;
+    inset-inline-end: 0;
     justify-content: center;
     padding: 0;
+    position: absolute;
   }
 
-  .sui-pair-divider {
-    background-color: var(--sui-pair-edge);
-    flex: none;
-    inline-size: var(--sui-stroke);
+  .sui-pair-remove::before {
+    background-color: var(--sui-pair-plate);
+    border-radius: var(--sui-radius-chip);
+    content: '';
+    inset: var(--sui-control-inset);
+    position: absolute;
   }
 
+  /* Placed too, and after the plate, so it paints over it. */
+  .sui-pair-glyph {
+    display: flex;
+    position: relative;
+  }
+
+  /* The mark is a little taller than the words' cap band and centres on it, so the line stays
+     the words' height (L-94). */
   .sui-pair-mark {
+    align-items: center;
+    block-size: round(up, 1cap, 2px);
     color: var(--sui-danger);
     display: flex;
     flex: none;
   }
 
   @media (hover: hover) {
-    :is(.sui-pair-edit, .sui-pair-remove):hover:not(:disabled, :active) {
-      background-color: var(--sui-interactive-hover-layer);
+    .sui-pair-edit:hover:not(:disabled, [aria-disabled='true'], :active) {
+      color: var(--sui-text-primary);
+    }
+
+    .sui-pair-remove:hover:not(:disabled, [aria-disabled='true'], :active) {
+      --sui-pair-plate: var(--sui-interactive-hover-layer);
       color: var(--sui-text-primary);
     }
   }
 
-  :is(.sui-pair-edit, .sui-pair-remove):active:not(:disabled) {
-    background-color: var(--sui-interactive-pressed);
+  .sui-pair-remove:focus-visible:not(:active) {
+    --sui-pair-plate: var(--sui-interactive-hover-layer);
+  }
+
+  .sui-pair-remove:active:not(:disabled, [aria-disabled='true']) {
+    --sui-pair-plate: var(--sui-interactive-pressed);
+    color: var(--sui-text-primary);
+  }
+
+  .sui-pair-remove:active:not(:disabled, [aria-disabled='true'])::before {
     box-shadow: var(--sui-pressed-inset);
   }
 
-  :is(.sui-pair-edit, .sui-pair-remove):focus-visible {
+  /* The ring lies inside the plate, so its curve is the plate's. */
+  .sui-pair-remove:focus-visible {
+    color: var(--sui-text-primary);
     outline: var(--sui-focus-ring-width) solid var(--sui-focus);
-    outline-offset: var(--sui-focus-ring-inset);
+    outline-offset: calc(var(--sui-focus-ring-inset) - var(--sui-control-inset));
   }
 
-  /* A long key or value wraps inside the chip, at any character, so all of it shows (U6). */
+  /* A long key or value wraps inside the chip, at any character, so all of it shows (U6). The
+     words run cap to baseline in an even box, so the chip's middle is their middle (L-94). */
   .sui-pair-key,
   .sui-pair-value {
+    align-content: center;
+    block-size: var(--sui-block-snap-even);
     font: var(--sui-weight-regular) var(--sui-font-size-control) / var(--sui-leading-compact)
       var(--sui-mono);
     font-variant-numeric: tabular-nums;
     min-inline-size: 0;
     overflow-wrap: anywhere;
+    text-box: trim-both cap alphabetic;
   }
 
   .sui-pair-key {
@@ -478,9 +559,12 @@ row gives them and fall under the copy on a narrow row.
 
   /* The arrow points from the key to its value, so it turns with the reading direction. */
   .sui-pair-arrow {
+    align-content: center;
+    block-size: var(--sui-block-snap-even);
     color: var(--sui-text-muted);
     flex: none;
     font-family: var(--sui-sans);
+    text-box: trim-both cap alphabetic;
   }
 
   .sui-pair-arrow:dir(rtl) {
@@ -501,6 +585,7 @@ row gives them and fall under the copy on a narrow row.
   }
 
   .sui-pair-reason {
+    align-content: center;
     block-size: var(--sui-block-snap);
     color: var(--sui-text-secondary);
     font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-row-copy-leading)
@@ -511,6 +596,7 @@ row gives them and fall under the copy on a narrow row.
   }
 
   .sui-pair-problem {
+    align-content: center;
     block-size: var(--sui-block-snap);
     color: var(--sui-danger);
     font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-row-copy-leading)
@@ -542,19 +628,26 @@ row gives them and fall under the copy on a narrow row.
     }
   }
 
-  /* High contrast draws every edge in one ink, so the chip whose editor is open keeps the
-     system's selection color. */
+  /* High contrast drops grounds and draws every edge in one ink, so the remove part's plate
+     keeps an edge, and the open chip and a hovered part take the system's selection color. */
   @media (forced-colors: active) {
     .sui-pair-chip.open::after {
       border-color: Highlight;
     }
+
+    .sui-pair-remove::before {
+      outline: var(--sui-stroke) solid CanvasText;
+      outline-offset: calc(-1 * var(--sui-stroke));
+    }
   }
 
-  @media (prefers-reduced-motion: reduce) {
-    .sui-pair-chip::after,
-    .sui-pair-edit,
-    .sui-pair-remove {
-      transition: none;
+  @media (hover: hover) and (forced-colors: active) {
+    .sui-pair-chip:has(> .sui-pair-edit:hover:not(:disabled, [aria-disabled='true']))::after {
+      border-color: Highlight;
+    }
+
+    .sui-pair-remove:hover:not(:disabled, [aria-disabled='true'])::before {
+      outline-color: Highlight;
     }
   }
 </style>

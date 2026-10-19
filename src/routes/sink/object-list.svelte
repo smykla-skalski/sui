@@ -8,16 +8,26 @@
 </script>
 
 <script lang="ts">
-  import { Button, Card, Icon, IdentityRow, ObjectList, ObjectRow, Pill, RelativeTime } from '#lib';
+  import {
+    Button,
+    FactLine,
+    Icon,
+    IdentityRow,
+    ObjectList,
+    ObjectRow,
+    Pill,
+    RelativeTime,
+    Section
+  } from '#lib';
   import Example from '../kit/Example.svelte';
   import Specimen from '../kit/Specimen.svelte';
 
-  const synced = new Date(Date.now() - 12 * 60_000).toISOString();
+  const synced = new Date(Date.now() - 12.5 * 60_000).toISOString();
 
   const repositories = [
-    { name: 'smykla-skalski/sui', summary: 'Default branch main · 84 files in step' },
-    { name: 'smykla-skalski/smyklot', summary: 'Default branch main · 3 rules would change' },
-    { name: 'smykla-skalski/ledger', summary: 'Default branch trunk · archived last year' }
+    { name: 'smykla-skalski/sui', summary: ['Default branch main', '84 files up to date'] },
+    { name: 'smykla-skalski/smyklot', summary: ['Default branch main', '3 rules would change'] },
+    { name: 'smykla-skalski/ledger', summary: ['Default branch trunk', 'archived last year'] }
   ];
 
   let syncing = $state(false);
@@ -35,19 +45,22 @@
   ground="canvas"
 >
   <Specimen label="Linked" code="href">
-    <Card>
+    <Section title="Repositories" level={4}>
       <ObjectList>
         <ObjectRow href="#object-list">
           {#snippet main()}
             <span class="name">smykla-skalski/sui</span>
-            <span class="sum">Default branch main · 84 files in step</span>
+            <span class="sum"
+              ><FactLine><span>Default branch main</span><span>84 files up to date</span></FactLine
+              ></span
+            >
           {/snippet}
         </ObjectRow>
       </ObjectList>
-    </Card>
+    </Section>
   </Specimen>
   <Specimen label="Still">
-    <Card>
+    <Section title="Exports" level={4}>
       <ObjectList>
         <ObjectRow>
           {#snippet main()}
@@ -56,7 +69,7 @@
           {/snippet}
         </ObjectRow>
       </ObjectList>
-    </Card>
+    </Section>
   </Specimen>
 </Example>
 
@@ -67,15 +80,20 @@
   ground="canvas"
 >
   <Specimen label="Status and action" code="side">
-    <Card>
+    <Section title="Repositories" level={4}>
       <ObjectList>
         <ObjectRow href="#object-list">
           {#snippet main()}
             <span class="name">smykla-skalski/sui</span>
-            <span class="sum">Synced <RelativeTime value={synced} /> · 84 files in step</span>
+            <span class="sum"
+              ><FactLine
+                ><span>Synced <RelativeTime value={synced} /></span><span>84 files up to date</span
+                ></FactLine
+              ></span
+            >
           {/snippet}
           {#snippet side()}
-            <Pill tone="success">In step</Pill>
+            <Pill tone="success">Up to date</Pill>
             <Button loading={syncing} aria-label="Sync smykla-skalski/sui" onclick={sync}>
               {#snippet icon()}<Icon name="refresh" size="sm" />{/snippet}
               Sync
@@ -83,10 +101,10 @@
           {/snippet}
         </ObjectRow>
       </ObjectList>
-    </Card>
+    </Section>
   </Specimen>
   <Specimen label="Identity">
-    <Card>
+    <Section title="Members" level={4}>
       <ObjectList>
         <ObjectRow>
           {#snippet main()}
@@ -97,10 +115,10 @@
           {/snippet}
         </ObjectRow>
       </ObjectList>
-    </Card>
+    </Section>
   </Specimen>
   <Specimen label="Long text">
-    <Card>
+    <Section title="Repositories" level={4}>
       <ObjectList>
         <ObjectRow href="#object-list">
           {#snippet main()}
@@ -116,32 +134,37 @@
           {/snippet}
         </ObjectRow>
       </ObjectList>
-    </Card>
+    </Section>
   </Specimen>
 </Example>
 
 <Example
   title="In context"
-  note="Rows stand on hairlines inset by their padding, and the last row closes on the card's frame"
+  note="Rows stand on hairlines inset by their padding, and their words keep the section title's edge"
   layout="stack"
   ground="canvas"
 >
-  <Card title="Repositories" level={4}>
+  <Section title="Repositories" level={4}>
     <ObjectList>
       {#each repositories as repository (repository.name)}
         <ObjectRow href="#object-list">
           {#snippet main()}
             <span class="name">{repository.name}</span>
-            <span class="sum">{repository.summary}</span>
+            <span class="sum"
+              ><FactLine
+                >{#each repository.summary as fact (fact)}<span>{fact}</span>{/each}</FactLine
+              ></span
+            >
           {/snippet}
         </ObjectRow>
       {/each}
     </ObjectList>
-  </Card>
+  </Section>
 </Example>
 
 <style>
   .name {
+    align-content: center;
     block-size: var(--sui-block-snap);
     color: var(--sui-text-primary);
     font: var(--sui-weight-semibold) var(--sui-font-size-meta) / var(--sui-row-copy-leading)
@@ -151,6 +174,7 @@
   }
 
   .sum {
+    align-content: center;
     block-size: var(--sui-block-snap);
     color: var(--sui-text-muted);
     font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-row-copy-leading)

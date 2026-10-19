@@ -12,12 +12,16 @@
     U+A720-A7FF;
 }
 
+/* The Latin faces ride inside the stylesheet, which already holds the first paint, so text
+   is drawn in its own face from the first frame and never swaps, on a cold load or when a
+   stylesheet is applied again. A fetched face arrives after the first layout however early
+   it is asked for. The extended faces are fetched only for the characters that need them. */
 @font-face {
   font-display: swap;
   font-family: 'SUI Plus Jakarta Sans';
   font-style: normal;
   font-weight: 400 700;
-  src: url('./assets/fonts/PlusJakartaSansLatinVF.woff2') format('woff2');
+  src: url('./assets/fonts/PlusJakartaSansLatinVF.woff2?inline') format('woff2');
   unicode-range:
     U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329,
     U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
@@ -40,7 +44,7 @@
   font-family: 'SUI JetBrains Mono';
   font-style: normal;
   font-weight: 400 500;
-  src: url('./assets/fonts/JetBrainsMonoLatinVF.woff2') format('woff2');
+  src: url('./assets/fonts/JetBrainsMonoLatinVF.woff2?inline') format('woff2');
   unicode-range:
     U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329,
     U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
@@ -66,6 +70,12 @@
   --sui-primitive-dark-secondary: #a2a8b0;
   --sui-primitive-dark-muted: #7d848e;
   --sui-primitive-dark-strong: #686a6b;
+  /* A field's recess, the shade under its top edge: on light one hover step (L-11) past the
+     frame it lies under, at rest and on hover; on dark, where the frame is lighter than the
+     field, as deep a shade as still reads apart from the ground. */
+  --sui-primitive-light-recess: rgb(0 0 0 / 26%);
+  --sui-primitive-light-recess-hover: rgb(0 0 0 / 37%);
+  --sui-primitive-dark-recess: rgb(0 0 0 / 80%);
 
   /* One ocean blue fills the accent in both themes: white ink holds 4.5:1 on it and it holds 3:1 as a
      ring on the light and the dark grounds. Only its text shade changes with the theme. */
@@ -85,9 +95,25 @@
   --sui-primitive-danger-light: #bb3844;
   --sui-primitive-danger-light-tint: #f2e6e5;
   --sui-primitive-danger-dark: #ff7a85;
-  --sui-primitive-danger-dark-tint: #22181b;
+  --sui-primitive-danger-dark-tint: #342328;
   --sui-primitive-info-light-tint: #dbe2ec;
   --sui-primitive-info-dark-tint: #1b222e;
+
+  /* Diff tones, set in OKLCH: one lightness for every line ground and one for every word mark,
+     so no tone outweighs another. Added leans yellow-green and removed leans crimson, the pair
+     that stays furthest apart for red-green colour blindness. */
+  --sui-primitive-diff-light-add: #e8f9e7;
+  --sui-primitive-diff-light-add-word: #c6ecc6;
+  --sui-primitive-diff-light-del: #ffeff2;
+  --sui-primitive-diff-light-del-word: #ffd5da;
+  --sui-primitive-diff-light-chg: #ebf5ff;
+  --sui-primitive-diff-light-chg-word: #c8e3ff;
+  --sui-primitive-diff-dark-add: #172617;
+  --sui-primitive-diff-dark-add-word: #1e4420;
+  --sui-primitive-diff-dark-del: #301a1f;
+  --sui-primitive-diff-dark-del-word: #5b2831;
+  --sui-primitive-diff-dark-chg: #0f2336;
+  --sui-primitive-diff-dark-chg-word: #1b3c5d;
 
   --sui-canvas: var(--sui-primitive-light-canvas);
   --sui-surface-base: var(--sui-primitive-light-surface);
@@ -102,6 +128,10 @@
   /* A line inside a surface (rows, a head or foot, a tab baseline, a chart grid) is quieter
      than the hairline that frames the surface. */
   --sui-border-divider: color-mix(in srgb, var(--sui-border-subtle) 60%, transparent);
+  /* The line at a page header's foot, where its band meets the view: a step firmer than a
+     surface's keyline on light, where the band and the canvas are close, and the keyline on
+     dark. */
+  --sui-border-band: rgb(0 0 0 / 16%);
 
   --sui-avatar-ring: rgb(0 0 0 / 22%);
   --sui-text-primary: var(--sui-primitive-light-text);
@@ -128,7 +158,23 @@
   /* A field's edge in a changed row, which holds 3:1 there like any field's (L-9). */
   --sui-unsaved-field-border: var(--sui-unsaved-secondary);
   --sui-unsaved-field-border-hover: var(--sui-unsaved-ink);
+  /* Its recess, the frame's own gold a hover step deeper, at rest and on hover (L-9, L-16). */
+  --sui-unsaved-field-recess: color-mix(
+    in srgb,
+    var(--sui-unsaved-control-border),
+    var(--sui-unsaved-ink) 16%
+  );
+  --sui-unsaved-field-recess-hover: color-mix(
+    in srgb,
+    var(--sui-unsaved-border),
+    var(--sui-unsaved-ink) 20%
+  );
   --sui-unsaved-border: #b67a22;
+  /* A row's hover and press veils in the row's own ink, a step and two steps off the plate as
+     a neutral row's are off the card (L-12, L-16). */
+  --sui-unsaved-row-hover: color-mix(in srgb, var(--sui-unsaved-ink) 6%, transparent);
+  --sui-unsaved-field-hover: color-mix(in srgb, var(--sui-unsaved-ink) 3%, transparent);
+  --sui-unsaved-row-pressed: color-mix(in srgb, var(--sui-unsaved-ink) 12%, transparent);
   --sui-decision-accent-hover: color-mix(
     in srgb,
     var(--sui-decision-accent) 86%,
@@ -158,8 +204,24 @@
   --sui-on-danger: #ffffff;
 
   --sui-danger-hover: #a33039;
+  /* The hover veil of a part in the danger state, so its hover keeps the state's hue. */
+  --sui-danger-hover-layer: color-mix(in srgb, var(--sui-danger) 9%, transparent);
+  --sui-field-danger-hover: color-mix(in srgb, var(--sui-danger) 4.5%, transparent);
   --sui-danger-pressed: color-mix(in srgb, var(--sui-danger-hover) 82%, var(--sui-text-primary));
   --sui-neutral-tint: var(--sui-surface-inset);
+  /* A placeholder is a veil, so it reads the same on a card, the canvas or an inset, and the
+     light that crosses it while it waits is a brighter veil over that. */
+  --sui-placeholder: rgb(0 0 0 / 7%);
+  --sui-placeholder-glint: rgb(255 255 255 / 60%);
+  --sui-placeholder-sheen: linear-gradient(
+    115deg,
+    transparent calc(50% - min(5rem, 10%)),
+    var(--sui-placeholder-glint) 50%,
+    transparent calc(50% + min(5rem, 10%))
+  );
+  /* How far the light's layer reaches past a placeholder on each side, so its slanted band
+     starts and ends wholly outside a placeholder up to about 28rem tall. */
+  --sui-placeholder-reach: 12rem;
 
   --sui-role-tint: #e8e1f2;
   --sui-role-ink: #7a3fe0;
@@ -170,6 +232,11 @@
   --sui-interactive-pressed: rgb(0 0 0 / 14%);
   --sui-scrim: rgb(0 0 0 / 56%);
   --sui-scrim-blur: 8px;
+  /* Frosted glass for a bar that floats over scrolling content: the band's ground, opaque
+     enough that its words hold 4.5:1 over anything passing under it, and the blur and the
+     saturation that frost what passes. */
+  --sui-glass-bar: color-mix(in srgb, var(--sui-surface-base) 85%, transparent);
+  --sui-glass-filter: blur(20px) saturate(180%);
 
   --sui-sidebar-bg: var(--sui-canvas);
   --sui-sidebar-border: var(--sui-border-subtle);
@@ -192,7 +259,8 @@
 
   --sui-control-border-hover: rgb(0 0 0 / 30%);
   /* A field is a quiet frame with a baseline: the frame shapes it, and the baseline holds 3:1
-     on every ground it stands on, the cue WCAG 1.4.11 asks of a text input (L-9). */
+     on every ground it stands on, the cue WCAG 1.4.11 asks of a text input (L-9). A recess
+     under its top edge sinks it into the ground. */
   --sui-field-frame: var(--sui-border-control);
   --sui-field-frame-hover: var(--sui-control-border-hover);
   --sui-field-border: var(--sui-border-strong);
@@ -201,11 +269,15 @@
     var(--sui-field-border) 60%,
     var(--sui-text-primary)
   );
+  --sui-field-recess: var(--sui-primitive-light-recess);
+  --sui-field-recess-hover: var(--sui-primitive-light-recess-hover);
   --sui-input-bg: var(--sui-surface-inset);
   --sui-popover-bg: var(--sui-surface-base);
   --sui-popover-border: var(--sui-border-control);
 
   --sui-row-hover: color-mix(in srgb, var(--sui-text-primary) 5.4%, transparent);
+  /* A field already firms its frame on hover, so its ground moves half a row's step. */
+  --sui-field-hover: color-mix(in srgb, var(--sui-text-primary) 2.7%, transparent);
 
   --sui-row-pressed: color-mix(in srgb, var(--sui-text-primary) 10.9%, transparent);
   --sui-dialog-bg: var(--sui-surface-base);
@@ -213,16 +285,22 @@
 
   --sui-changed: #2a5fd2;
   --sui-diff-chg-ink: var(--sui-changed);
-  --sui-diff-chg-bg: color-mix(in srgb, var(--sui-changed) 7%, var(--sui-surface-code));
+  --sui-diff-chg-bg: var(--sui-primitive-diff-light-chg);
   --sui-diff-del-ink: var(--sui-danger);
 
   --sui-verb-add: var(--sui-success);
   --sui-diff-add-ink: var(--sui-verb-add);
-  --sui-diff-add-bg: color-mix(in srgb, var(--sui-success) 7%, var(--sui-surface-code));
-  --sui-diff-del-bg: color-mix(in srgb, var(--sui-danger) 7%, var(--sui-surface-code));
+  --sui-diff-add-bg: var(--sui-primitive-diff-light-add);
+  --sui-diff-del-bg: var(--sui-primitive-diff-light-del);
 
-  --sui-diff-add-word: color-mix(in srgb, var(--sui-success) 13%, var(--sui-surface-code));
-  --sui-diff-del-word: color-mix(in srgb, var(--sui-danger) 13%, var(--sui-surface-code));
+  --sui-diff-add-word: var(--sui-primitive-diff-light-add-word);
+  --sui-diff-del-word: var(--sui-primitive-diff-light-del-word);
+  --sui-diff-chg-word: var(--sui-primitive-diff-light-chg-word);
+  /* A changed line's gutter, holding its glyph, stands halfway between its ground and its word
+     mark. */
+  --sui-diff-add-gutter: color-mix(in oklab, var(--sui-diff-add-bg), var(--sui-diff-add-word));
+  --sui-diff-del-gutter: color-mix(in oklab, var(--sui-diff-del-bg), var(--sui-diff-del-word));
+  --sui-diff-chg-gutter: color-mix(in oklab, var(--sui-diff-chg-bg), var(--sui-diff-chg-word));
 
   --sui-code-key: var(--sui-changed);
   --sui-code-const: var(--sui-role-ink);
@@ -247,6 +325,11 @@
 
   --sui-chart-ink: var(--sui-brand-action);
   --sui-chart-grid: var(--sui-border-divider);
+  /* The plot's band is a veil a step under whatever holds it, a card, the canvas or a changed
+     row, as an inset sits under its canvas in GitHub Primer in both themes. A marker's ring is
+     that band laid on a card, opaque, so it parts a marker from a line it crosses. */
+  --sui-chart-ground: rgb(0 0 0 / 4%);
+  --sui-chart-ring: color-mix(in srgb, rgb(0 0 0) 4%, var(--sui-surface-base));
 
   --sui-space-1: 0.25rem;
   --sui-space-2: 0.5rem;
@@ -257,8 +340,7 @@
   --sui-space-7: 1.75rem;
   --sui-space-8: 2rem;
 
-  --sui-rhythm-pane-top-wide: 2.5rem;
-  --sui-rhythm-pane-top-compact: 1rem;
+  --sui-rhythm-pane-gutter: var(--sui-space-6);
 
   --sui-rhythm-head-copy: 0.5rem;
   --sui-rhythm-head-surface: 1.5rem;
@@ -273,6 +355,10 @@
 
   --sui-rhythm-card-gap: var(--sui-space-4);
 
+  /* Between sections that follow each other, and between sub-sections inside one. */
+  --sui-rhythm-section-gap: 2.5rem;
+  --sui-rhythm-subsection-gap: var(--sui-space-6);
+
   --sui-rhythm-surface-pad: var(--sui-space-5);
 
   --sui-rhythm-surface-pad-compact: var(--sui-space-4);
@@ -280,6 +366,8 @@
   --sui-row-pad-default: 0.75rem;
 
   --sui-row-hairline: 1px;
+  /* The room on each side of a fact line's middle dot (L-103). */
+  --sui-sep-space: calc(var(--sui-space-2) + var(--sui-row-hairline));
 
   /* Every edge is one of two strokes: a hairline for frames and a bold stroke for marks that
      carry a state, such as the current tab's underline. */
@@ -297,9 +385,10 @@
      rounds up to an even height too, so the space either side of it halves to whole pixels. */
   --sui-block-snap-even: calc-size(auto, round(up, size, 2px));
 
+  /* A trimmed line whose ink must stand within half a pixel of both of its box's edges rounds
+     to the nearest pixel instead, so its ink overhangs or falls short by half a pixel at most. */
+  --sui-block-snap-near: calc-size(auto, round(size, 1px));
   --sui-row-copy-leading: round(calc(1cap + var(--sui-row-copy-gap)), 1px);
-
-  --sui-card-head-line: 0.8125rem;
 
   --sui-setting-say-min: 13rem;
 
@@ -333,6 +422,9 @@
   --sui-font-size-page-title-compact: 1.5rem;
 
   --sui-leading-flat: 1;
+  /* No leading at all, for a line built only of boxes, such as inline facts, whose own heights
+     set the line. */
+  --sui-leading-none: 0;
 
   /* The weights the two families ship: the sans from regular to bold, the mono from regular to
      medium (L-18, L-19). */
@@ -347,10 +439,19 @@
   --sui-leading-input: 1.25rem;
   --sui-leading-body: 1.4375rem;
   --sui-leading-title: 1.625rem;
-  --sui-leading-page: 2.125rem;
-  --sui-leading-page-compact: 2rem;
+  /* A card or plate title's lines hold together as one block over its note: 17px on 22px,
+     so a descender still clears the next line's ascender by about 5px. */
+  --sui-leading-card-title: 1.375rem;
+  /* Display sizes set tighter than copy, about 1.15 rounded to 4px (Atlassian's 28/32 and
+     24/28), so a wrapped title's lines hold together; descenders still clear the next line's
+     ascenders by over 4px. */
+  --sui-leading-page: 2rem;
+  --sui-leading-page-compact: 1.75rem;
 
   --sui-radius-pill: 999px;
+  /* Fully round on a mark one line tall, and the same corner once its words wrap, so every
+     line keeps the one-line inset inside it. */
+  --sui-radius-mark: calc(var(--sui-tier-mark) / 2);
   --sui-radius-control: 8px;
   --sui-radius-surface: 10px;
   --sui-radius-popover: 12px;
@@ -363,6 +464,9 @@
      rounded to the pixel, so words and glyphs never outgrow their control (WCAG 1.4.4). */
   --sui-control-height: max(40px, round(2.5rem, 1px));
   --sui-control-height-compact: max(34px, round(2.125rem, 1px));
+  /* The compact control as drawn at every width, for a quiet control that a surface keeps at
+     the pointer's tier on a phone too, while its hit area alone grows to the touch target. */
+  --sui-control-height-drawn: max(34px, round(2.125rem, 1px));
 
   --sui-control-height-chip: max(24px, round(1.5rem, 1px));
   --sui-control-height-chip-small: max(20px, round(1.25rem, 1px));
@@ -380,16 +484,20 @@
   --sui-breakpoint-wide: 64.0625rem;
 
   /* The widths a component answers to in its own container, under which it changes its layout:
-     a card moves its actions under its head, a setting row stacks its control, a callout puts
-     its actions under the message, and a list toolbar folds its filter into its menu. A
-     container query cannot read them either, so the source laws hold each query to this list. */
+     a card steps its inset down, a setting row stacks its control, and a list toolbar folds its
+     filter into its menu as a card moves its head's actions under its copy. A container query
+     cannot read them either, so the source laws hold each query to this list. */
   --sui-breakpoint-card: 36rem;
   --sui-breakpoint-row: 25rem;
-  --sui-breakpoint-callout: 24rem;
   --sui-breakpoint-bar: 18rem;
+  /* Under this width a head stands its actions or state under its title: in rem it scales with
+     the text, so only text grown well past its size brings it on a phone (WCAG 1.4.10). */
+  --sui-breakpoint-head: 12rem;
+  /* From this width up a detail layout stands its aside beside the main column. */
+  --sui-breakpoint-detail: 56rem;
 
   --sui-field-target-min: max(24px, round(1.5rem, 1px));
-  --sui-disabled-opacity: 0.7;
+  --sui-disabled-opacity: 0.5;
   --sui-control-inset: 2px;
 
   /* Icon tiers in rem, rounded to the pixel: 10 to 18px at the default text size, and they grow
@@ -415,10 +523,15 @@
   --sui-duration-press: 100ms;
   --sui-duration-fast: 160ms;
   --sui-duration-normal: 220ms;
+  /* A layer a press opens (a menu, a listbox, a picker) arrives at once, so the reader never
+     waits on it. */
+  --sui-duration-open: 120ms;
 
   --sui-duration-spinner: 900ms;
-  --sui-duration-shimmer: 1350ms;
-  --sui-duration-live: 2600ms;
+  /* One pass of the light across a placeholder. A slow, steady sweep reads as a shorter wait
+     than a fast one or a pulse (Chung, 2018); MUI sweeps on a 2s cycle and Fluent on 3s. */
+  --sui-duration-shimmer: 2000ms;
+  --sui-duration-live: 1600ms;
 
   --sui-ease-standard: cubic-bezier(0.16, 1, 0.3, 1);
   --sui-ease-out: var(--sui-ease-standard);
@@ -434,6 +547,9 @@
      the hit area over it. */
   --sui-layer-inner-plate: 1;
   --sui-layer-inner-face: 2;
+  /* Under everything in flow inside a part that isolates its own stacking, as a row's state
+     plate and hairline lie under its copy while a hit area stretched over the row stays on top. */
+  --sui-layer-inner-ground: -1;
   --sui-layer-sticky: 30;
 
   --sui-layer-top-bar: 35;
@@ -480,8 +596,11 @@
   --sui-surface-code: var(--sui-primitive-dark-code);
   --sui-border-subtle: rgb(255 255 255 / 9%);
   --sui-chart-grid: var(--sui-border-divider);
+  --sui-chart-ground: rgb(0 0 0 / 35%);
+  --sui-chart-ring: color-mix(in srgb, rgb(0 0 0) 35%, var(--sui-surface-base));
   --sui-border-control: rgb(255 255 255 / 16%);
   --sui-border-divider: color-mix(in srgb, var(--sui-border-subtle) 60%, transparent);
+  --sui-border-band: var(--sui-border-subtle);
   --sui-control-border-hover: rgb(255 255 255 / 28%);
   --sui-avatar-ring: rgb(255 255 255 / 20%);
   --sui-text-primary: var(--sui-primitive-dark-text);
@@ -504,9 +623,14 @@
   --sui-unsaved-control-border: #6a5326;
   --sui-unsaved-field-border: #9c7735;
   --sui-unsaved-field-border-hover: var(--sui-unsaved-secondary);
+  --sui-unsaved-field-recess: color-mix(in srgb, var(--sui-unsaved-control) 70%, #000000);
+  --sui-unsaved-field-recess-hover: var(--sui-unsaved-field-recess);
   --sui-swatch-edge-floor: 0.56;
   --sui-swatch-edge-ceiling: 1;
   --sui-unsaved-border: #a5772c;
+  --sui-unsaved-row-hover: color-mix(in srgb, var(--sui-unsaved-ink) 8%, transparent);
+  --sui-unsaved-field-hover: color-mix(in srgb, var(--sui-unsaved-ink) 4%, transparent);
+  --sui-unsaved-row-pressed: color-mix(in srgb, var(--sui-unsaved-ink) 16%, transparent);
   --sui-decision-accent-hover: color-mix(
     in srgb,
     var(--sui-decision-accent) 86%,
@@ -529,8 +653,18 @@
   --sui-danger-tint: var(--sui-primitive-danger-dark-tint);
   --sui-on-danger: #0c0e11;
   --sui-danger-hover: #ff929b;
+  --sui-danger-hover-layer: color-mix(in srgb, var(--sui-danger) 12%, transparent);
+  --sui-field-danger-hover: color-mix(in srgb, var(--sui-danger) 6%, transparent);
   --sui-danger-pressed: color-mix(in srgb, var(--sui-danger-hover) 82%, var(--sui-text-primary));
   --sui-neutral-tint: var(--sui-surface-inset);
+  --sui-placeholder: rgb(255 255 255 / 7%);
+  --sui-placeholder-glint: rgb(255 255 255 / 10%);
+  --sui-placeholder-sheen: linear-gradient(
+    115deg,
+    transparent calc(50% - min(5rem, 10%)),
+    var(--sui-placeholder-glint) 50%,
+    transparent calc(50% + min(5rem, 10%))
+  );
   --sui-role-tint: #23202e;
   --sui-role-ink: #c9a6ff;
   --sui-interactive-hover: color-mix(in srgb, #ffffff 4%, var(--sui-surface-base));
@@ -538,6 +672,7 @@
   --sui-interactive-hover-layer: rgb(255 255 255 / 8.5%);
   --sui-interactive-pressed: rgb(255 255 255 / 13.5%);
   --sui-scrim: rgb(0 0 0 / 62%);
+  --sui-glass-bar: color-mix(in srgb, var(--sui-surface-base) 80%, transparent);
 
   --sui-sidebar-bg: var(--sui-canvas);
   --sui-sidebar-border: var(--sui-border-subtle);
@@ -557,18 +692,23 @@
   --sui-pressed-inset: inset 0 1px 2px rgb(0 0 0 / 34%);
 
   --sui-row-hover: color-mix(in srgb, #ffffff 6.8%, transparent);
+  --sui-field-hover: color-mix(in srgb, #ffffff 3.4%, transparent);
   --sui-row-pressed: color-mix(in srgb, #ffffff 12.4%, transparent);
 
   --sui-changed: var(--sui-link);
   --sui-diff-chg-ink: var(--sui-changed);
-  --sui-diff-chg-bg: color-mix(in srgb, var(--sui-changed) 9%, var(--sui-surface-code));
+  --sui-diff-chg-bg: var(--sui-primitive-diff-dark-chg);
   --sui-diff-del-ink: var(--sui-danger);
   --sui-verb-add: var(--sui-success);
   --sui-diff-add-ink: var(--sui-verb-add);
-  --sui-diff-add-bg: color-mix(in srgb, var(--sui-success) 9%, var(--sui-surface-code));
-  --sui-diff-del-bg: color-mix(in srgb, var(--sui-danger) 9%, var(--sui-surface-code));
-  --sui-diff-add-word: color-mix(in srgb, var(--sui-success) 15%, var(--sui-surface-code));
-  --sui-diff-del-word: color-mix(in srgb, var(--sui-danger) 15%, var(--sui-surface-code));
+  --sui-diff-add-bg: var(--sui-primitive-diff-dark-add);
+  --sui-diff-del-bg: var(--sui-primitive-diff-dark-del);
+  --sui-diff-add-word: var(--sui-primitive-diff-dark-add-word);
+  --sui-diff-del-word: var(--sui-primitive-diff-dark-del-word);
+  --sui-diff-chg-word: var(--sui-primitive-diff-dark-chg-word);
+  --sui-diff-add-gutter: color-mix(in oklab, var(--sui-diff-add-bg), var(--sui-diff-add-word));
+  --sui-diff-del-gutter: color-mix(in oklab, var(--sui-diff-del-bg), var(--sui-diff-del-word));
+  --sui-diff-chg-gutter: color-mix(in oklab, var(--sui-diff-chg-bg), var(--sui-diff-chg-word));
   --sui-code-key: var(--sui-changed);
   --sui-code-const: var(--sui-role-ink);
   --sui-code-string: #f2ab83;
@@ -606,6 +746,8 @@
     var(--sui-field-border) 60%,
     var(--sui-text-primary)
   );
+  --sui-field-recess: var(--sui-primitive-dark-recess);
+  --sui-field-recess-hover: var(--sui-primitive-dark-recess);
   --sui-popover-border: var(--sui-border-control);
   --sui-dialog-border: var(--sui-border-control);
   --sui-shadow-plate: 0 1px 2px var(--sui-shadow-color);
@@ -631,8 +773,11 @@
     --sui-surface-code: var(--sui-primitive-dark-code);
     --sui-border-subtle: rgb(255 255 255 / 9%);
     --sui-chart-grid: var(--sui-border-divider);
+    --sui-chart-ground: rgb(0 0 0 / 35%);
+    --sui-chart-ring: color-mix(in srgb, rgb(0 0 0) 35%, var(--sui-surface-base));
     --sui-border-control: rgb(255 255 255 / 16%);
     --sui-border-divider: color-mix(in srgb, var(--sui-border-subtle) 60%, transparent);
+    --sui-border-band: var(--sui-border-subtle);
     --sui-control-border-hover: rgb(255 255 255 / 28%);
     --sui-avatar-ring: rgb(255 255 255 / 20%);
     --sui-text-primary: var(--sui-primitive-dark-text);
@@ -659,9 +804,14 @@
     --sui-unsaved-control-border: #6a5326;
     --sui-unsaved-field-border: #9c7735;
     --sui-unsaved-field-border-hover: var(--sui-unsaved-secondary);
+    --sui-unsaved-field-recess: color-mix(in srgb, var(--sui-unsaved-control) 70%, #000000);
+    --sui-unsaved-field-recess-hover: var(--sui-unsaved-field-recess);
     --sui-swatch-edge-floor: 0.56;
     --sui-swatch-edge-ceiling: 1;
     --sui-unsaved-border: #a5772c;
+    --sui-unsaved-row-hover: color-mix(in srgb, var(--sui-unsaved-ink) 8%, transparent);
+    --sui-unsaved-field-hover: color-mix(in srgb, var(--sui-unsaved-ink) 4%, transparent);
+    --sui-unsaved-row-pressed: color-mix(in srgb, var(--sui-unsaved-ink) 16%, transparent);
     --sui-decision-accent-hover: color-mix(
       in srgb,
       var(--sui-decision-accent) 86%,
@@ -684,8 +834,18 @@
     --sui-danger-tint: var(--sui-primitive-danger-dark-tint);
     --sui-on-danger: #0c0e11;
     --sui-danger-hover: #ff929b;
+    --sui-danger-hover-layer: color-mix(in srgb, var(--sui-danger) 12%, transparent);
+    --sui-field-danger-hover: color-mix(in srgb, var(--sui-danger) 6%, transparent);
     --sui-danger-pressed: color-mix(in srgb, var(--sui-danger-hover) 82%, var(--sui-text-primary));
     --sui-neutral-tint: var(--sui-surface-inset);
+    --sui-placeholder: rgb(255 255 255 / 7%);
+    --sui-placeholder-glint: rgb(255 255 255 / 10%);
+    --sui-placeholder-sheen: linear-gradient(
+      115deg,
+      transparent calc(50% - min(5rem, 10%)),
+      var(--sui-placeholder-glint) 50%,
+      transparent calc(50% + min(5rem, 10%))
+    );
     --sui-role-tint: #23202e;
     --sui-role-ink: #c9a6ff;
     --sui-interactive-hover: color-mix(in srgb, #ffffff 4%, var(--sui-surface-base));
@@ -693,6 +853,7 @@
     --sui-interactive-hover-layer: rgb(255 255 255 / 8.5%);
     --sui-interactive-pressed: rgb(255 255 255 / 13.5%);
     --sui-scrim: rgb(0 0 0 / 62%);
+    --sui-glass-bar: color-mix(in srgb, var(--sui-surface-base) 80%, transparent);
 
     --sui-sidebar-bg: var(--sui-canvas);
     --sui-sidebar-border: var(--sui-border-subtle);
@@ -712,18 +873,23 @@
     --sui-pressed-inset: inset 0 1px 2px rgb(0 0 0 / 34%);
 
     --sui-row-hover: color-mix(in srgb, #ffffff 6.8%, transparent);
+    --sui-field-hover: color-mix(in srgb, #ffffff 3.4%, transparent);
     --sui-row-pressed: color-mix(in srgb, #ffffff 12.4%, transparent);
 
     --sui-changed: var(--sui-link);
     --sui-diff-chg-ink: var(--sui-changed);
-    --sui-diff-chg-bg: color-mix(in srgb, var(--sui-changed) 9%, var(--sui-surface-code));
+    --sui-diff-chg-bg: var(--sui-primitive-diff-dark-chg);
     --sui-diff-del-ink: var(--sui-danger);
     --sui-verb-add: var(--sui-success);
     --sui-diff-add-ink: var(--sui-verb-add);
-    --sui-diff-add-bg: color-mix(in srgb, var(--sui-success) 9%, var(--sui-surface-code));
-    --sui-diff-del-bg: color-mix(in srgb, var(--sui-danger) 9%, var(--sui-surface-code));
-    --sui-diff-add-word: color-mix(in srgb, var(--sui-success) 15%, var(--sui-surface-code));
-    --sui-diff-del-word: color-mix(in srgb, var(--sui-danger) 15%, var(--sui-surface-code));
+    --sui-diff-add-bg: var(--sui-primitive-diff-dark-add);
+    --sui-diff-del-bg: var(--sui-primitive-diff-dark-del);
+    --sui-diff-add-word: var(--sui-primitive-diff-dark-add-word);
+    --sui-diff-del-word: var(--sui-primitive-diff-dark-del-word);
+    --sui-diff-chg-word: var(--sui-primitive-diff-dark-chg-word);
+    --sui-diff-add-gutter: color-mix(in oklab, var(--sui-diff-add-bg), var(--sui-diff-add-word));
+    --sui-diff-del-gutter: color-mix(in oklab, var(--sui-diff-del-bg), var(--sui-diff-del-word));
+    --sui-diff-chg-gutter: color-mix(in oklab, var(--sui-diff-chg-bg), var(--sui-diff-chg-word));
     --sui-code-key: var(--sui-changed);
     --sui-code-const: var(--sui-role-ink);
     --sui-code-string: #f2ab83;
@@ -762,6 +928,8 @@
       var(--sui-field-border) 60%,
       var(--sui-text-primary)
     );
+    --sui-field-recess: var(--sui-primitive-dark-recess);
+    --sui-field-recess-hover: var(--sui-primitive-dark-recess);
     --sui-popover-border: var(--sui-border-control);
     --sui-dialog-border: var(--sui-border-control);
     --sui-shadow-plate: 0 1px 2px var(--sui-shadow-color);
@@ -797,6 +965,8 @@
 
     /* The space under a page header steps down with the type. */
     --sui-rhythm-head-surface: var(--sui-rhythm-head-surface-compact);
+    --sui-rhythm-section-gap: 2rem;
+    --sui-rhythm-subsection-gap: var(--sui-space-5);
   }
 }
 

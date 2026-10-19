@@ -1,9 +1,26 @@
 <script lang="ts">
   import '../lib/styles.css';
+  import { dev } from '$app/env';
+  import { resolve } from '$app/paths';
+  import { ServiceWorkerStatus, registerServiceWorker } from '#lib';
   let { children } = $props();
+
+  // SvelteKit serves the worker at the base, beside the root page.
+  const worker = registerServiceWorker(`${resolve('/')}service-worker.js`, { dev });
+
+  // The router restores a reloaded page's scroll only once the app has started, so a reload
+  // would paint the top of the page and then jump. Leaving a page hands its restore to the
+  // browser, which keeps the reader's place from the first frame; a page shown again from the
+  // back-forward cache gives it back to the router.
+  const browserRestores = () => (history.scrollRestoration = 'auto');
+  const routerRestores = () => (history.scrollRestoration = 'manual');
 </script>
 
+<svelte:window onpagehide={browserRestores} onpageshow={routerRestores} />
+
 {@render children()}
+
+<ServiceWorkerStatus {worker} />
 
 <style>
   :global(body) {

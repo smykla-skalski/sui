@@ -74,6 +74,9 @@ export { default as Callout } from './components/Callout.svelte';
 export type { CalloutTone } from './components/Callout.svelte';
 export { default as Disclosure } from './components/Disclosure.svelte';
 export { default as PageHeader } from './components/PageHeader.svelte';
+export { default as Section } from './components/Section.svelte';
+export { default as DetailLayout } from './components/DetailLayout.svelte';
+export { default as ListDetail } from './components/ListDetail.svelte';
 export { default as PageToc } from './components/PageToc.svelte';
 export type { TocEntry } from './components/PageToc.svelte';
 export { default as CodeBlock } from './components/CodeBlock.svelte';
@@ -92,9 +95,14 @@ export { default as RelativeTime } from './components/RelativeTime.svelte';
 
 export { default as ListToolbar } from './components/ListToolbar.svelte';
 export type { ListToolGroup } from './components/ListToolbar.svelte';
+export { default as FactLine } from './components/FactLine.svelte';
 export { default as FactList } from './components/FactList.svelte';
 export type { Fact } from './components/FactList.svelte';
 export { default as DayHeading, dayKey } from './components/DayHeading.svelte';
+export { default as Timeline } from './components/Timeline.svelte';
+export type { TimelineEvent } from './components/Timeline.svelte';
+export { default as LinkList } from './components/LinkList.svelte';
+export type { LinkListItem } from './components/LinkList.svelte';
 export { default as ObjectList } from './components/ObjectList.svelte';
 export { default as ObjectRow } from './components/ObjectRow.svelte';
 export { default as EmptyState } from './components/EmptyState.svelte';
@@ -109,6 +117,14 @@ export type { ColorSwatch } from './components/ColorPicker.svelte';
 export { default as DataTable } from './components/DataTable.svelte';
 export type { DataTableColumn, DataTableSort } from './components/DataTable.svelte';
 export { default as SaveBar } from './components/SaveBar.svelte';
+export { default as ServiceWorkerStatus } from './components/ServiceWorkerStatus.svelte';
+export type { ServiceWorkerNotice } from './components/ServiceWorkerStatus.svelte';
+export { registerServiceWorker } from './internal/service-worker.svelte.js';
+export type {
+  ServiceWorkerContainerLike,
+  ServiceWorkerOptions,
+  ServiceWorkerState
+} from './internal/service-worker.svelte.js';
 
 export { default as LineChart } from './charts/LineChart.svelte';
 export { default as ScatterChart } from './charts/ScatterChart.svelte';

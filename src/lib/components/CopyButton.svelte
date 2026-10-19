@@ -90,14 +90,15 @@ tells a screen reader nothing.
 
 Each outcome is also announced through a polite live region, a second copy included, so a
 reader who cannot see the label change still hears it. The labels share one box, so the
-button does not change width when it answers.
+button does not change width when it answers; a `bare` one is as wide as its resting and
+copied words, and the failure wraps inside that width.
 
 It is 28px tall on its own opaque ground, so it can sit over code. `CodeBlock` places one
 in its corner. Beside a 34px field or in a toolbar it takes the control tier with `toolbar`.
 
 - Semantics: a native `<button type="button">` whose visible words are its name, with a polite `role="status"` beside it.
 - Content: `label`, `copiedLabel` and `failedLabel`, each a short phrase; the button is as wide as the longest of the three.
-- States: rest, hover (a veil and a firmer edge), focus (a flush 2px ring, or an inset one when `bare`), pressed (a deeper veil, an inset shadow and a 1px sink), copied, failed (danger ink) and disabled (0.7 opacity).
+- States: rest, hover (a veil and a firmer edge), focus (a flush 2px ring, or an inset one when `bare`), pressed (a deeper veil, an inset shadow and a 1px sink), copied, failed (danger ink) and disabled (0.5 opacity).
 - Keyboard: Tab reaches it and Enter or Space copies; focus stays on it through the answer.
 - Pointer and touch: 28px tall, or 34px with `toolbar`, and a 44px hit area on a phone or any touch screen.
 - Focus: copying never moves focus; `oncopyfailed` is where a caller sends focus to the text to select by hand.
@@ -126,14 +127,6 @@ in its corner. Beside a 34px field or in a toolbar it takes the control tier wit
 </button><span class="sui-copy-button-status" role="status">{message}</span>
 
 <style>
-  /* The same registered state layer as `Button`, so the veil over the opaque ground
-     animates and hover, press and release stay one continuous change. */
-  @property --sui-control-state-layer {
-    syntax: '<color>';
-    inherits: false;
-    initial-value: transparent;
-  }
-
   .sui-copy-button {
     --sui-control-state-layer: transparent;
     align-items: center;
@@ -160,9 +153,6 @@ in its corner. Beside a 34px field or in a toolbar it takes the control tier wit
     -webkit-user-select: none;
     user-select: none;
     transition:
-      --sui-control-state-layer var(--sui-duration-fast) var(--sui-ease-standard),
-      border-color var(--sui-duration-fast) var(--sui-ease-standard),
-      color var(--sui-duration-fast) var(--sui-ease-standard),
       translate var(--sui-duration-press) var(--sui-ease-standard),
       box-shadow var(--sui-duration-press) var(--sui-ease-standard);
     -webkit-tap-highlight-color: transparent;
@@ -229,7 +219,7 @@ in its corner. Beside a 34px field or in a toolbar it takes the control tier wit
     block-size: auto;
     flex: 0 1 auto;
     max-inline-size: 100%;
-    min-block-size: var(--sui-tier-quiet);
+    min-block-size: var(--sui-local-copy-chip, var(--sui-tier-quiet));
     min-inline-size: 0;
     padding-block: var(--sui-space-1);
     white-space: normal;
@@ -255,6 +245,7 @@ in its corner. Beside a 34px field or in a toolbar it takes the control tier wit
   }
 
   .sui-copy-button-labels > span {
+    align-content: center;
     block-size: var(--sui-block-snap);
     grid-area: 1 / 1;
     text-align: center;
@@ -263,6 +254,17 @@ in its corner. Beside a 34px field or in a toolbar it takes the control tier wit
 
   .sui-copy-button-labels > .off {
     visibility: hidden;
+  }
+
+  /* Inside a field the chip keeps the width its resting and copied words need, so the value
+     keeps its room; the rarer failure wraps inside that width instead of widening it, and
+     takes no room at all while it is hidden. */
+  .bare .sui-copy-button-labels > :last-child {
+    contain: inline-size;
+  }
+
+  .bare .sui-copy-button-labels > .off:last-child {
+    contain: size;
   }
 
   .sui-copy-button-status {

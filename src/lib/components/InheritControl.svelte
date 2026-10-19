@@ -3,6 +3,7 @@
   import { tick, type Snippet } from 'svelte';
   import type { HTMLAttributes } from 'svelte/elements';
   import Icon from '../icons/Icon.svelte';
+  import { held, holdAround } from '../internal/held.svelte.js';
   import Button from './Button.svelte';
 
   const FOCUSABLE = 'input, select, textarea, button, [tabindex]:not([tabindex="-1"])';
@@ -105,6 +106,11 @@
     choice?.focus({ preventScroll: true });
   }
 
+  /* Work that runs on the form around it holds the choice: both buttons refuse the press,
+     disabled under a firm hold and tab stops under a soft one. */
+  const around = holdAround();
+  const holding = $derived(held(root, around));
+
   async function inherit(): Promise<void> {
     overridden = false;
     oninherit?.();
@@ -118,7 +124,9 @@
 A value that comes from somewhere else until this level overrides it, and the way back. While it
 inherits, it says the value in muted ink and where it comes from, beside an `add` button named
 Override. Overriding draws the caller's `control` in its place and moves focus into it; the way
-back takes it away and returns focus to Override. Both moves keep the page still.
+back, a bordered button, takes it away and returns focus to Override. Its frame keeps it in line
+with the control's edge when it wraps under the control on a narrow row. Both moves keep the
+page still.
 
 An override is not a change by itself. Mark the row unsaved, with `SettingRow`'s `unsaved`, only
 when the setting differs from its saved value, never because it differs from the inherited one.
@@ -140,7 +148,7 @@ for a press of the way back.
 - Failure: `loading` says `loadingLabel`, `error` says why the inherited value is unknown while Override still works, and an empty `inherited` says `unknownLabel`.
 -->
 
-<div bind:this={root} {...rest} class={['sui-inherit', className]}>
+<div bind:this={root} {...rest} class={['sui-inherit', className, { overridden }]}>
   <span class="sui-inherit-subject">
     <span class="sui-inherit-marker" aria-hidden="true">
       <Icon name={overridden ? 'link-off' : 'link'} size="sm" />
@@ -161,8 +169,8 @@ for a press of the way back.
   </span>
   {#if overridden}
     <Button
-      tone="ghost"
-      {disabled}
+      disabled={disabled || holding === 'firm'}
+      aria-disabled={Boolean(holding) || undefined}
       aria-label={inheritName?.(label) ?? inheritFor(inheritLabel, label)}
       onclick={inherit}>{inheritLabel}</Button
     >
@@ -170,7 +178,8 @@ for a press of the way back.
     <Button
       tone="add"
       {id}
-      {disabled}
+      disabled={disabled || holding === 'firm'}
+      aria-disabled={Boolean(holding) || undefined}
       aria-label={overrideName?.(label) ?? overrideFor(overrideLabel, label)}
       onclick={override}
     >
@@ -191,8 +200,9 @@ for a press of the way back.
     min-inline-size: 0;
   }
 
+  /* Words: the mark centres on the first line's cap height, however many lines they wrap to. */
   .sui-inherit-subject {
-    align-items: center;
+    align-items: start;
     display: flex;
     gap: var(--sui-inherit-marker-gap);
     min-inline-size: 0;
@@ -203,8 +213,23 @@ for a press of the way back.
     color: var(--sui-text-muted);
     display: grid;
     flex: none;
+    font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-row-copy-leading)
+      var(--sui-sans);
     inline-size: var(--sui-inherit-marker-size);
+    margin-block: calc((round(up, 1cap, 2px) - var(--sui-inherit-marker-size)) / 2);
     place-items: center;
+  }
+
+  /* A control: the mark and the button stand on the control's own row, a control tall, so a
+     caption over the control never pulls them off its centre. */
+  .overridden,
+  .overridden .sui-inherit-subject {
+    align-items: end;
+  }
+
+  .overridden .sui-inherit-marker {
+    block-size: var(--sui-local-control-height, var(--sui-control-height-compact));
+    margin-block: 0;
   }
 
   .sui-inherit-control {
@@ -213,7 +238,8 @@ for a press of the way back.
   }
 
   .sui-inherit-value {
-    block-size: var(--sui-block-snap);
+    align-content: center;
+    block-size: var(--sui-block-snap-even);
     color: var(--sui-text-muted);
     font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-row-copy-leading)
       var(--sui-sans);
@@ -226,12 +252,20 @@ for a press of the way back.
     font-weight: var(--sui-weight-semibold);
   }
 
+  /* In the words' font, so its alert mark centres on their first line as the link mark does. */
   .sui-inherit-problem {
-    align-items: center;
+    align-items: start;
     color: var(--sui-danger);
     display: flex;
+    font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-row-copy-leading)
+      var(--sui-sans);
     gap: var(--sui-space-1);
     min-inline-size: 0;
+  }
+
+  .sui-inherit-problem > :global(svg) {
+    flex: none;
+    margin-block: calc((round(up, 1cap, 2px) - var(--sui-icon-sm)) / 2);
   }
 
   .sui-inherit-problem .sui-inherit-value {

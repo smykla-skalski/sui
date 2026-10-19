@@ -141,9 +141,6 @@ eyebrow's place in a `PageHeader`.
     padding-inline: var(--sui-space-2);
     position: relative;
     text-decoration: none;
-    transition:
-      background-color var(--sui-duration-fast) var(--sui-ease-standard),
-      color var(--sui-duration-fast) var(--sui-ease-standard);
   }
 
   @media (hover: hover) {
@@ -164,6 +161,7 @@ eyebrow's place in a `PageHeader`.
   }
 
   .sui-breadcrumb-label {
+    align-content: center;
     block-size: var(--sui-block-snap);
     overflow-wrap: anywhere;
     text-box: trim-both cap alphabetic;
@@ -177,6 +175,7 @@ eyebrow's place in a `PageHeader`.
   }
 
   .sui-breadcrumb-separator {
+    align-content: center;
     block-size: var(--sui-block-snap);
     color: var(--sui-text-muted);
     font: var(--sui-weight-regular) var(--sui-font-size-compact) / var(--sui-leading-flat)
@@ -195,12 +194,6 @@ eyebrow's place in a `PageHeader`.
       inset-block: calc((100% - var(--sui-touch-target)) / 2);
       inset-inline: 0;
       position: absolute;
-    }
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    .sui-breadcrumb-link {
-      transition: none;
     }
   }
 </style>

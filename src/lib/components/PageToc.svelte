@@ -10,7 +10,9 @@
 
 <script lang="ts">
   import { word } from '../words.js';
+  import { flushSync } from 'svelte';
   import type { HTMLAttributes } from 'svelte/elements';
+  import { followsInPlace, getShell } from '../internal/shell.svelte.js';
 
   let {
     entries,
@@ -34,7 +36,9 @@
     class?: HTMLAttributes<HTMLElement>['class'];
   } & Omit<HTMLAttributes<HTMLElement>, 'title'> = $props();
 
-  let here = $state<string | null>(null);
+  const shell = getShell();
+  // Before the page is read, as in a server render, the reader is at the top, in the first section.
+  let here = $derived<string | null>(entries[0]?.id ?? null);
   let nav = $state<HTMLElement | null>(null);
   const links = $state<Record<string, HTMLAnchorElement | null>>({});
 
@@ -80,24 +84,34 @@
     return null;
   }
 
+  /** The sections the entries name that are shown, in the entries' order. */
+  function shownSections(): HTMLElement[] {
+    // Not client rects: a folded section still has them, since the browser lays out closed
+    // `details` content, but it is hidden.
+    return entries
+      .map((entry) => document.getElementById(entry.id))
+      .filter((section): section is HTMLElement => section?.checkVisibility() ?? false);
+  }
+
+  /** Whether the box the sections scroll in, a pane or the page, is scrolled to its end. */
+  function atEnd(pane: HTMLElement | null): boolean {
+    const [scrolled, seen, whole] = pane
+      ? [pane.scrollTop, pane.clientHeight, pane.scrollHeight]
+      : [window.scrollY, window.innerHeight, document.documentElement.scrollHeight];
+    return scrolled + seen >= whole - 1 && scrolled > 1;
+  }
+
   /** The reader's place: the last section whose top has crossed the top quarter of its scroller. */
   function mark(): void {
-    const sections = entries
-      .map((entry) => document.getElementById(entry.id))
-      .filter(
-        (section): section is HTMLElement => section !== null && section.getClientRects().length > 0
-      );
+    const sections = shownSections();
     const first = sections[0];
     if (!first) return;
     const pane = scroller(first);
-    const page = document.documentElement;
-    const [scrolled, seen, whole] = pane
-      ? [pane.scrollTop, pane.clientHeight, pane.scrollHeight]
-      : [window.scrollY, window.innerHeight, page.scrollHeight];
-    if (scrolled + seen >= whole - 1 && scrolled > 1) {
+    if (atEnd(pane)) {
       here = sections.at(-1)?.id ?? null;
       return;
     }
+    const seen = pane ? pane.clientHeight : window.innerHeight;
     const line = (pane ? pane.getBoundingClientRect().top : 0) + seen / 4;
     let found = first.id;
     for (const section of sections) {
@@ -126,21 +140,29 @@
 
   function follow(event: MouseEvent, entry: TocEntry): void {
     onnavigate?.(event, entry);
-    if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) {
-      return;
+    if (!followsInPlace(event)) return;
+    // A phone drawer closes first, so the section it lands on is no longer inert and takes focus.
+    if (shell?.mode === 'drawer') {
+      shell.closeDrawer();
+      flushSync();
     }
     const section = reveal(entry.id);
     if (!section) return;
-    if (!matchMedia('(prefers-reduced-motion: reduce)').matches) {
-      event.preventDefault();
-      section.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      history.pushState(null, '', `#${entry.id}`);
-      here = entry.id;
-    }
+    // The index scrolls and records the hash itself: a browser that follows the fragment clears
+    // focus from a target that cannot take it, after the heading has taken it.
+    event.preventDefault();
+    const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    section.scrollIntoView({ behavior: still ? 'instant' : 'smooth', block: 'start' });
+    history.pushState(null, '', `#${entry.id}`);
+    here = entry.id;
     land(section);
   }
 
+  // The entry the URL names on arrival stays current until the reader scrolls.
+  let held = true;
+
   function arrive(): void {
+    held = true;
     const id = decodeURIComponent(location.hash.slice(1));
     if (entries.some((entry) => entry.id === id)) {
       reveal(id);
@@ -148,19 +170,91 @@
     } else mark();
   }
 
-  // Scroll events do not bubble, so one listener in the capture phase hears the page and any
-  // pane the sections scroll in, and the reading line is found once a frame.
+  // Observers report the sections that stand across the reading line, the top quarter of the
+  // box they scroll in, and the sections on screen, so a frame of a scroll reads no section's
+  // place, and looks at the end of the box only while its last section shows. Scroll events do
+  // not bubble, so one listener in the capture phase hears the page and any pane, and a pane
+  // that scrolls the sections becomes the observers' root.
   $effect(() => {
     void entries;
+    const across = new Set<Element>();
+    const onScreen = new Set<Element>();
+    let root: HTMLElement | null = null;
+    let band: IntersectionObserver | undefined;
+    let view: IntersectionObserver | undefined;
+    let nearEnd = false;
+    let ended = false;
     let frame = 0;
-    const onscroll = () => {
-      cancelAnimationFrame(frame);
-      frame = requestAnimationFrame(mark);
+    const settle = () => {
+      const sections = shownSections();
+      const last = ended ? sections.at(-1) : sections.findLast((section) => across.has(section));
+      if (last) here = last.id;
+      else mark();
     };
+    const look = () => {
+      const end = nearEnd && atEnd(root);
+      // At the end the last shown section is current, and opening a fold changes which that is.
+      if (held || end || end !== ended) {
+        held = false;
+        ended = end;
+        settle();
+      }
+    };
+    const track = (into: Set<Element>) => (records: IntersectionObserverEntry[]) => {
+      for (const record of records) {
+        if (record.isIntersecting) into.add(record.target);
+        else into.delete(record.target);
+      }
+    };
+    const watch = (next: HTMLElement | null) => {
+      root = next;
+      across.clear();
+      onScreen.clear();
+      band?.disconnect();
+      view?.disconnect();
+      const crossing = track(across);
+      band = new IntersectionObserver(
+        (records) => {
+          crossing(records);
+          if (!held) settle();
+        },
+        { root, rootMargin: '0px 0px -75% 0px' }
+      );
+      const showing = track(onScreen);
+      view = new IntersectionObserver(
+        (records) => {
+          showing(records);
+          const last = shownSections().at(-1);
+          nearEnd = last !== undefined && onScreen.has(last);
+          if (!held) look();
+        },
+        { root }
+      );
+      for (const entry of entries) {
+        const section = document.getElementById(entry.id);
+        if (!section) continue;
+        band.observe(section);
+        view.observe(section);
+      }
+    };
+    const onscroll = (event: Event) => {
+      const box = event.target;
+      if (box instanceof HTMLElement && box !== root) {
+        const first = entries[0] ? document.getElementById(entries[0].id) : null;
+        if (first && box.contains(first)) watch(box);
+      }
+      if (!held && !nearEnd) return;
+      cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(look);
+    };
+    const first = shownSections()[0];
+    watch(first ? scroller(first) : null);
     addEventListener('scroll', onscroll, { capture: true, passive: true });
     arrive();
     return () => {
       cancelAnimationFrame(frame);
+      band?.disconnect();
+      view?.disconnect();
       removeEventListener('scroll', onscroll, { capture: true });
     };
   });
@@ -172,30 +266,34 @@
 @component
 The index beside a long page: where its sections are, and which one the reader is in. The
 entries are fragment links. Following one opens any native disclosure that holds its
-section. When the reader allows motion the index scrolls there smoothly and records the hash
-itself, and otherwise the browser follows the link as it would any other. Either way focus
-moves to the section's first heading, or to the section, so the next Tab starts there.
+section. The index scrolls there itself, smoothly when the reader allows motion and at once
+when not, records the hash, and moves focus to the section's first heading, or to the
+section, so the next Tab starts there.
 
-The current entry wears the current mark every navigation list shares: the neutral selection
-plate inside a `--sui-border-strong` ring, which holds 3:1, with semibold primary ink, and
-`Highlight` under forced colors. It is announced with `aria-current="location"`. It follows
-the URL hash on arrival, then the last section whose top has crossed the top quarter of the
+The current entry wears the current mark every navigation list shares: primary ink against
+muted entries, a step of 3:1 or more in lightness, on a quiet plate that only supports it, and
+`Highlight` under forced colors. It keeps the entries' weight, so turning current never
+rewraps it or changes its height. It is announced with `aria-current="location"`. The first
+entry is current from the first paint, as at the top of the page, and then it follows the URL
+hash on arrival, then the last section whose top has crossed the top quarter of the
 box the sections scroll in, the page or a pane, and the last section once that box is
 scrolled to its end. The index sticks to the top of the viewport inside whatever column it
 is given, or under a sticky bar as tall as `offset`, and fills the height below, padding its
-own top and bottom, so a long index scrolls out at that edge. Placing it beside the content,
-or leaving it out on a phone, is the page's layout.
+own top and bottom, so a long index scrolls out at that edge, and keeping room at its end
+for the scrollbar, so the scrollbar never covers the entries. Placing it beside the content,
+or leaving it out on a phone, is the page's layout. As an `AppShell`'s sidebar it rides in the
+phone drawer, and following an entry closes the drawer before focus moves.
 
 - Semantics: a `nav` landmark named by `title`, with the title as a heading at `level`, group headings one level below, and lists of fragment links, the current one with `aria-current="location"`.
 - Content: entries with an id and a label that wraps, optionally grouped under a heading.
-- States: rest, hover (a row ground), pressed (the pressed ground and an inset shadow), focus (a 2px inset ring) and current (the plate inside its ring, semibold).
+- States: rest, hover (a row ground), pressed (the pressed ground and an inset shadow), focus (a 2px inset ring) and current (primary ink on the quiet plate, in the entries' weight, so it moves nothing).
 - Keyboard: Tab moves through the entries and Enter follows one, moving focus to the section's heading.
 - Pointer and touch: entries are 28px tall on a desktop pointer and 44px on a phone or a coarse pointer, across the column's width.
-- Focus: following an entry moves focus to its section's first heading, or the section, which takes a temporary `tabindex`.
+- Focus: following an entry moves focus to its section's first heading, or the section, which takes a temporary `tabindex`; in a shell's phone drawer the drawer closes first, so focus lands in the section and never on the menu button.
 - Responsive: the index sticks and scrolls inside itself, keeping the current entry in view; the page decides where it stands.
-- Accessibility: the current entry is announced, its ring holds 3:1 and every entry's ink 4.5:1.
+- Accessibility: the current entry is announced, every entry's ink holds 4.5:1, and the current ink stands 3:1 from the rest ink in lightness, so it is never hue alone (WCAG 1.4.1).
 - Localization: `title` is a prop with an English default; the entries follow the reading direction.
-- Performance: one capture listener reads the sections' places once a frame while anything scrolls; it suits tens of sections.
+- Performance: `IntersectionObserver`s report the sections that cross the reading line and those on screen, so a scroll reads no section's place and looks at the box's end only while its last section shows; it suits a thousand sections.
 - Analytics: `onnavigate(event, entry)` reports every followed entry.
 - Failure: an entry whose section is missing or hidden is never current and its link still works as a fragment link; an empty `entries` draws only the title.
 -->
@@ -232,7 +330,8 @@ or leaving it out on a phone, is the page's layout.
 <style>
   /* The index sticks to the viewport's top, or under the page's bar, and fills the height
      below it, padding its own scroll area, so entries leave at that edge and never get cut
-     at a line in the middle of the page. */
+     at a line in the middle of the page. The end padding is room for the scrollbar, which
+     an overlay scrollbar would otherwise draw over the entries. */
   .sui-page-toc {
     align-self: start;
     box-sizing: border-box;
@@ -242,6 +341,7 @@ or leaving it out on a phone, is the page's layout.
     overflow-y: auto;
     overscroll-behavior: contain;
     padding-block: var(--sui-space-6);
+    padding-inline-end: var(--sui-space-3);
     position: sticky;
     scroll-padding-block: var(--sui-space-6);
     scrollbar-width: thin;
@@ -252,6 +352,7 @@ or leaving it out on a phone, is the page's layout.
   }
 
   .sui-page-toc-group {
+    align-content: center;
     block-size: var(--sui-block-snap);
     color: var(--sui-text-secondary);
     font: var(--sui-weight-semibold) var(--sui-font-size-compact) / var(--sui-leading-compact)
@@ -261,6 +362,7 @@ or leaving it out on a phone, is the page's layout.
   }
 
   .sui-page-toc-title {
+    align-content: center;
     block-size: var(--sui-block-snap);
     color: var(--sui-text-muted);
     font: var(--sui-weight-semibold) var(--sui-font-size-micro) / var(--sui-leading-micro)
@@ -290,12 +392,8 @@ or leaving it out on a phone, is the page's layout.
     min-block-size: var(--sui-tier-quiet);
     overflow-wrap: anywhere;
     padding: var(--sui-space-1) var(--sui-space-3);
-    position: relative;
     text-decoration: none;
-    transition:
-      background-color var(--sui-duration-fast) var(--sui-ease-standard),
-      color var(--sui-duration-fast) var(--sui-ease-standard),
-      box-shadow var(--sui-duration-press) var(--sui-ease-standard);
+    transition: box-shadow var(--sui-duration-press) var(--sui-ease-standard);
     -webkit-tap-highlight-color: transparent;
     -webkit-user-select: none;
     user-select: none;
@@ -304,14 +402,13 @@ or leaving it out on a phone, is the page's layout.
   @media (hover: hover) {
     .sui-page-toc-link:hover:not(:active, [aria-current='location']) {
       background: var(--sui-row-hover);
-      color: var(--sui-text-primary);
+      color: var(--sui-text-secondary);
     }
   }
 
   .sui-page-toc-link:active {
     background: var(--sui-row-pressed);
     box-shadow: var(--sui-pressed-inset);
-    color: var(--sui-text-primary);
   }
 
   .sui-page-toc-link:focus-visible {
@@ -320,25 +417,16 @@ or leaving it out on a phone, is the page's layout.
   }
 
   .sui-page-toc-label {
+    align-content: center;
     block-size: var(--sui-block-snap);
     text-box: trim-both cap alphabetic;
   }
 
-  /* The current mark every navigation list shares: the selection plate inside a ring that holds
-     3:1, on all four sides so it is never an edge strip, laid over the row so it moves nothing. */
+  /* The current mark every navigation list shares: primary ink, which carries the state, on a
+     quiet plate that only supports it. */
   .sui-page-toc-link[aria-current='location'] {
     background: var(--sui-surface-inset);
     color: var(--sui-text-primary);
-    font-weight: var(--sui-weight-semibold);
-  }
-
-  .sui-page-toc-link[aria-current='location']::before {
-    border: var(--sui-stroke) solid var(--sui-border-strong);
-    border-radius: inherit;
-    content: '';
-    inset: 0;
-    pointer-events: none;
-    position: absolute;
   }
 
   @media (max-width: 47.9375rem), (pointer: coarse) {
@@ -348,8 +436,11 @@ or leaving it out on a phone, is the page's layout.
   }
 
   @media (forced-colors: active) {
-    .sui-page-toc-link[aria-current='location']::before {
-      border: var(--sui-stroke-bold) solid Highlight;
+    .sui-page-toc-link[aria-current='location'] {
+      background-color: Highlight;
+      color: HighlightText;
+      /* Kept as written, or the browser draws a Canvas backplate behind the words on the plate. */
+      forced-color-adjust: none;
     }
   }
 

@@ -8,7 +8,7 @@
 </script>
 
 <script lang="ts">
-  import { ActionMenu, ConfirmDialog, type ActionMenuItem } from '#lib';
+  import { ActionMenu, Button, ConfirmDialog, type ActionMenuItem } from '#lib';
   import Example from '../kit/Example.svelte';
   import Specimen from '../kit/Specimen.svelte';
 
@@ -43,10 +43,16 @@
 
 <Example
   title="Triggers"
-  note="An icon trigger for a row's end, and a worded trigger with a chevron in the default and ghost tones"
+  note="An icon trigger for a row's end or beside buttons, and a worded trigger with a chevron in the default and ghost tones"
 >
   <Specimen label="Icon trigger" code={'label icon="more" align="end"'}>
     <ActionMenu label="Repository actions" icon="more" items={repository} align="end" />
+  </Specimen>
+  <Specimen label="Beside buttons" code={'label icon="more" toolbar align="end"'}>
+    <div class="actions">
+      <Button>Edit release</Button>
+      <ActionMenu label="Release actions" icon="more" toolbar items={release} align="end" />
+    </div>
   </Specimen>
   <Specimen label="Button trigger" code="children">
     <ActionMenu items={release}>Release actions</ActionMenu>
@@ -60,9 +66,14 @@
   title="States"
   note="A menu whose acts are unavailable keeps its trigger in view, with the reason beside it"
 >
-  <Specimen label="Disabled" code="disabled">
+  <Specimen label="Disabled icon trigger" code="disabled">
     <div class="locked">
       <ActionMenu label="Repository actions" icon="more" items={repository} disabled />
+      <p class="reason">Read-only while the repository is archived</p>
+    </div>
+  </Specimen>
+  <Specimen label="Disabled button trigger" code="disabled">
+    <div class="locked">
       <ActionMenu items={release} disabled>Release actions</ActionMenu>
       <p class="reason">Read-only while the repository is archived</p>
     </div>
@@ -98,6 +109,11 @@
 />
 
 <style>
+  .actions {
+    display: flex;
+    gap: var(--sui-space-2);
+  }
+
   .locked {
     align-items: center;
     display: flex;
@@ -106,6 +122,7 @@
   }
 
   .reason {
+    align-content: center;
     block-size: var(--sui-block-snap);
     color: var(--sui-text-secondary);
     font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-row-copy-leading)

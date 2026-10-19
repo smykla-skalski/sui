@@ -6,20 +6,73 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <script>
       // Paints the first frame in the theme ThemeSwitch would pick, which it can only set
-      // once the app has started. Keep the key and the fallback in step with ThemeSwitch.
+      // once the app has started. Keep the key the same as ThemeSwitch uses. Without a stored
+      // light or dark the root names no theme: the palette follows the system, and the switch
+      // marks System, or the system's scheme, from its first paint.
       {
         let theme;
         try {
           theme = localStorage.getItem('sui:theme');
         } catch {}
-        if (theme !== 'light' && theme !== 'dark')
-          theme = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-        document.documentElement.dataset.suiTheme = theme;
+        if (theme === 'light' || theme === 'dark')
+          document.documentElement.dataset.suiTheme = theme;
+      }
+      // Paints a kept law audit in the first frame, which AuditPanel can only read once the app
+      // has started. Keep the key and the words the same as AuditPanel uses.
+      {
+        let kept;
+        try {
+          kept = JSON.parse(
+            localStorage.getItem(`sui:audit:${location.origin}${location.pathname}`) ?? 'null'
+          );
+        } catch {}
+        if (Array.isArray(kept?.findings)) {
+          const root = document.documentElement;
+          const count = (n, word) => `${n} ${word}${n === 1 ? '' : 's'}`;
+          const found = count(kept.findings.length, 'finding');
+          const laws = count(new Set(kept.findings.map((finding) => finding.law)).size, 'law');
+          root.dataset.suiAudit = kept.findings.length === 0 ? 'pass' : 'fail';
+          root.style.setProperty('--sink-audit-found', JSON.stringify(found));
+          root.style.setProperty(
+            '--sink-audit-summary',
+            JSON.stringify(`${found} against ${laws}`)
+          );
+        }
       }
     </script>
+    <style>
+      :root[data-sui-fonts='pending'] body {
+        visibility: hidden;
+      }
+    </style>
+    <!-- The first paint waits until the parser reaches the end of the page. The browser restores
+         a reloaded page's scroll only once the page is long enough to hold it, so a paint any
+         earlier shows the top, then a place on the way, then the reader's own; and nothing above
+         paints half parsed on a slow connection and then rearranges. A browser unblocks at an
+         element's start tag, so the element waited for is the last one. -->
+    <link rel="expect" href="#sui-parsed" blocking="render" />
+
     %sveltekit.head%
+    <script>
+      // A face is decoded only once text first asks for it, which is after the first layout,
+      // so a cold load would paint a frame or two in another face. The faces are asked for
+      // here, once the stylesheets above have declared them, and the page shows its ground
+      // alone until they are ready. A face that never arrives holds it no longer than the
+      // browser's own block period.
+      {
+        const root = document.documentElement;
+        const show = () => delete root.dataset.suiFonts;
+        root.dataset.suiFonts = 'pending';
+        Promise.allSettled([
+          document.fonts.load('1em "SUI Plus Jakarta Sans"'),
+          document.fonts.load('1em "SUI JetBrains Mono"')
+        ]).then(show);
+        setTimeout(show, 3000);
+      }
+    </script>
   </head>
   <body data-sveltekit-preload-data="hover">
     <div style="display: contents">%sveltekit.body%</div>
+    <div id="sui-parsed" hidden></div>
   </body>
 </html>

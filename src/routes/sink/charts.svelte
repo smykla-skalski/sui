@@ -8,7 +8,7 @@
 </script>
 
 <script lang="ts">
-  import { Button, HeatmapChart, LineChart, RangeChart, ScatterChart } from '#lib';
+  import { Button, HeatmapChart, LineChart, RangeChart, ScatterChart, Section } from '#lib';
   import Example from '../kit/Example.svelte';
   import Specimen from '../kit/Specimen.svelte';
 
@@ -206,6 +206,25 @@
     <LineChart title="New project" description="Nothing has been measured yet" series={[]}>
       {#snippet emptyAction()}<Button>Connect a data source</Button>{/snippet}
     </LineChart>
+  </Specimen>
+</Example>
+
+<Example
+  title="In context"
+  note="A chart stands in a section with no frame, and its band keeps the section's edges"
+  layout="stack"
+  ground="canvas"
+>
+  <Specimen label="In a section">
+    <Section title="Delivery" level={4}>
+      <RangeChart
+        title="Release windows"
+        description="Build ran longest of the three windows"
+        data={ranges}
+        valueLabel="Hours"
+        level={5}
+      />
+    </Section>
   </Specimen>
 </Example>
 
