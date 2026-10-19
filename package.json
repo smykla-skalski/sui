@@ -51,8 +51,9 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "prepack": "npm run build",
-    "test:browser": "node --test --test-global-setup=tests/browser/setup.mjs tests/browser/*.test.mjs && node --test --test-global-setup=tests/browser/setup.mjs tests/browser/timing/*.test.mjs",
-    "test:browser:long": "SUI_LONG=1 node --test --test-global-setup=tests/browser/setup.mjs tests/browser/*.test.mjs && SUI_LONG=1 node --test --test-global-setup=tests/browser/setup.mjs tests/browser/timing/*.test.mjs"
+    "test:browser": "node --test --test-concurrency=1 --test-global-setup=tests/browser/setup.mjs tests/browser/*.test.mjs && node --test --test-concurrency=1 --test-global-setup=tests/browser/setup.mjs tests/browser/timing/*.test.mjs",
+    "test:browser:long": "SUI_LONG=1 npm run test:browser",
+    "test:browser:ci": "node tests/browser/run.mjs"
   },
   "peerDependencies": {
     "svelte": "^5.0.0"

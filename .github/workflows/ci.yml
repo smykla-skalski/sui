@@ -8,19 +8,46 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: ci-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 jobs:
   package:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
-      - uses: actions/setup-node@v7
-        with:
-          node-version: '24'
-          cache: npm
-      - run: npm ci
-      - run: npm run format:check
-      - run: npm run check
-      - run: npm test
-      - run: npm run test:browser:long
-      - run: npm run build
-      - run: npm pack --dry-run
+      - uses: jdx/mise-action@9b200bcecbfd6303e69a4a261b2e09e3757440a7 # v5.2.0
+      - run: mise run install:ci
+      - run: mise run validate
+
+  browser:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        group:
+          - a11y
+          - forms
+          - lists
+          - navigation
+          - navigation-layout
+          - overlays
+          - words
+          - offline
+          - visual
+          - kitchen-audit
+          - kitchen-sweeps
+          - kitchen-press
+          - kitchen
+          - performance
+          - clock
+          - motion
+          - reload
+    steps:
+      - uses: actions/checkout@v7
+      - uses: jdx/mise-action@9b200bcecbfd6303e69a4a261b2e09e3757440a7 # v5.2.0
+      - run: mise run install:ci
+      - run: mise run test:browser:ci "$SUI_TEST_GROUP"
+        env:
+          SUI_TEST_GROUP: ${{ matrix.group }}
