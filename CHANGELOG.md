@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.3.0
+
 - Add `Section`, the default container on a pane, and `DetailLayout`, a main column with an aside of the thing's properties that stands beside it from 56rem (`--sui-breakpoint-detail`). Add `ListDetail`, a list beside the detail of the item open from it, where every item has its own address, `Timeline`, events in time with their times in one column, and `LinkList`, links to related pages with a quiet note each.
 - Add an offline service worker: `serve()` from `@smykla-skalski/sui/service-worker` keeps the app's files and updates only with the reader's consent, `registerServiceWorker` registers it, and `ServiceWorkerStatus` shows a waiting version and a network that stopped answering. `docs/offline.md` tells how to set it up.
 - Breaking: `LoadMore` needs `list`, the id of the list it extends, so the button controls it and focus moves into the new rows. `endLabel` takes the count before the formatted words.
