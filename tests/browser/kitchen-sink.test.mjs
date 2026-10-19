@@ -89,13 +89,14 @@ suite('the kitchen sink', together, () => {
       assert.equal((await summary.textContent())?.trim(), '1 finding against 1 law');
 
       await page.getByRole('button', { name: 'Run the audit again' }).click();
+      // The run measures the whole page, which takes a CI runner about a minute and a half.
       await page.waitForFunction(
         () =>
           !document.querySelector('.audit .summary')?.textContent?.includes('kept') &&
           document.querySelector('.audit .summary')?.textContent?.trim() ===
             'Every law holds on this page',
         null,
-        { timeout: 30_000 }
+        { timeout: 240_000 }
       );
       const stored = await page.evaluate(() =>
         JSON.parse(
