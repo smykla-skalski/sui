@@ -1278,10 +1278,11 @@ suite('the kitchen sink', together, () => {
   });
 
   test('L-87 the phone drawer holds focus and gives it back', long, async () => {
-    const page = await open(1440, 'light');
+    // The shell is a whole page of its own, opened on a phone.
+    const page = await browser.newPage({ viewport: { width: 375, height: 900 } });
     try {
-      const menu = page.locator('#app-shell .sui-shell-menu').filter({ visible: true }).first();
-      await menu.scrollIntoViewIfNeeded();
+      await visit(page, new URL('layouts/app-shell', url).href);
+      const menu = page.locator('.sui-shell-menu');
       await menu.click();
       await settles(
         page.waitForFunction(

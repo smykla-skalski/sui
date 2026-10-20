@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- A narrow `ListDetail` that is not `contained` scrolls the page back to where its list stood when the way back closes an item, as a `contained` one already did with its own box.
+
 ## 0.3.1
 
 - `SideNav` is one `nav` landmark from its title to its foot, so its title, fold control and foot, such as a theme switch, no longer stand outside every landmark.

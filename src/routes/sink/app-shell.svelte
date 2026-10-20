@@ -8,176 +8,27 @@
 </script>
 
 <script lang="ts">
-  import {
-    AppShell,
-    PageHeader,
-    Pill,
-    Rail,
-    SideNav,
-    type NavItem,
-    type NavSection,
-    type RailItem
-  } from '#lib';
-  import '#lib/internal/scroll-edge.css';
+  import { resolve } from '$app/paths';
   import Example from '../kit/Example.svelte';
+  import LayoutPreview from '../kit/LayoutPreview.svelte';
   import Specimen from '../kit/Specimen.svelte';
 
-  const sections: NavSection[] = [
-    {
-      items: [
-        { href: '#shell-overview', label: 'Overview', icon: 'gauge' },
-        { href: '#shell-repositories', label: 'Repositories', icon: 'repositories' },
-        { href: '#shell-queue', label: 'Queue', icon: 'pending', count: 3 }
-      ]
-    },
-    {
-      label: 'Sync',
-      items: [
-        { href: '#shell-labels', label: 'Labels', icon: 'tag' },
-        { href: '#shell-rulesets', label: 'Rulesets', icon: 'shield' },
-        {
-          href: '#shell-files',
-          label: 'Files synced across every repository',
-          short: 'Files',
-          icon: 'file'
-        }
-      ]
-    },
-    {
-      label: 'Access',
-      items: [
-        { href: '#shell-users', label: 'Users', icon: 'users' },
-        { href: '#shell-invitations', label: 'Invitations', icon: 'mail', count: 2 }
-      ]
-    }
-  ];
-
-  const places: RailItem[] = [
-    { label: 'Smykla Skalski', short: 'Smykla', icon: 'organization' },
-    { label: 'Personal', icon: 'user' },
-    { label: 'Root console', short: 'Console', icon: 'server', badge: 4 }
-  ];
-
-  const foot: RailItem[] = [{ label: 'Settings', icon: 'settings' }];
-
-  const names = Object.fromEntries(
-    sections.flatMap((group) => group.items).map((item) => [item.href, item.label])
-  );
-
-  let wide = $state('#shell-repositories');
-  let folded = $state('#shell-queue');
-  let phone = $state('#shell-overview');
-  let bottom = $state('#shell-labels');
-  let place = $state('Smykla Skalski');
-  let collapsed = $state(true);
-
-  const go = (set: (href: string) => void) => (event: MouseEvent, item: NavItem) => {
-    event.preventDefault();
-    set(item.href);
-  };
+  const source = 'src/routes/layouts/app-shell/[[variant]]/+page.svelte';
 </script>
-
-{#snippet content(current: string)}
-  <div class="pane">
-    <PageHeader
-      eyebrow={['Smykla Skalski', 'Workspace']}
-      title={names[current] ?? 'Overview'}
-      description="Press a page in the sidebar and the selection plate glides to it"
-      level={4}
-    />
-    <p class="copy">
-      <Pill tone="success">Healthy</Pill>
-      <span class="sentence">Every repository synced 4 minutes ago</span>
-    </p>
-  </div>
-{/snippet}
 
 <Example
   title="Layout"
-  note="The rail chooses the place, the sidebar the page, and the current one wears the plate"
+  note="The page in its own frame: under 48rem a drawer holds the rail and the pages, and above 64rem Collapse folds them"
   layout="stack"
   ground="canvas"
+  code={false}
 >
-  <Specimen label="Expanded">
-    <div class="frame">
-      <AppShell title={names[wide]} contained landmark="none" label="Workspace navigation">
-        {#snippet rail()}
-          <Rail items={places} {foot} current={place} onpick={(item) => (place = item.label)} />
-        {/snippet}
-        {#snippet sidebar()}
-          <SideNav
-            kicker="Workspace"
-            title="Smykla Skalski"
-            {sections}
-            current={wide}
-            onnavigate={go((href) => (wide = href))}
-          />
-        {/snippet}
-        {@render content(wide)}
-      </AppShell>
-    </div>
-  </Specimen>
-</Example>
-
-<Example
-  title="Collapsed"
-  note="Above 64rem Collapse folds the pages into icons over short labels beside the rail, so this 66rem frame scrolls sideways"
-  layout="stack"
-  ground="canvas"
->
-  <Specimen label="Collapsed" code="bind:collapsed">
-    <div class="scroller sui-scroll-edge">
-      <div class="frame wide">
-        <AppShell
-          title={names[folded]}
-          contained
-          landmark="none"
-          label="Workspace navigation"
-          bind:collapsed
-        >
-          {#snippet rail()}
-            <Rail items={places} {foot} current={place} onpick={(item) => (place = item.label)} />
-          {/snippet}
-          {#snippet sidebar()}
-            <SideNav
-              kicker="Workspace"
-              title="Smykla Skalski"
-              {sections}
-              current={folded}
-              onnavigate={go((href) => (folded = href))}
-            />
-          {/snippet}
-          {@render content(folded)}
-        </AppShell>
-      </div>
-    </div>
-  </Specimen>
-</Example>
-
-<Example
-  title="Narrow width"
-  note="Below 48rem a bar names the page, and its Menu button opens the rail and the pages as one drawer"
-  layout="stack"
-  ground="canvas"
->
-  <Specimen label="Under 48rem">
-    <div class="frame phone">
-      <AppShell title={names[phone]} contained landmark="none" label="Workspace navigation">
-        {#snippet rail()}
-          <Rail items={places} {foot} current={place} onpick={(item) => (place = item.label)} />
-        {/snippet}
-        {#snippet sidebar()}
-          <SideNav
-            kicker="Workspace"
-            title="Smykla Skalski"
-            {sections}
-            current={phone}
-            onnavigate={go((href) => (phone = href))}
-          />
-        {/snippet}
-        {@render content(phone)}
-      </AppShell>
-    </div>
+  <Specimen label="Full page">
+    <LayoutPreview
+      href={resolve('/layouts/app-shell/[[variant]]', {})}
+      {source}
+      title="App shell page"
+    />
   </Specimen>
 </Example>
 
@@ -186,86 +37,14 @@
   note="With bottomNav, a phone keeps the rail's few places in a bar along the bottom, and the drawer holds only the pages"
   layout="stack"
   ground="canvas"
+  code={false}
 >
-  <Specimen label="Under 48rem" code="bottomNav">
-    <div class="frame phone">
-      <AppShell
-        title={names[bottom]}
-        contained
-        landmark="none"
-        label="Workspace navigation"
-        bottomNav
-      >
-        {#snippet rail()}
-          <Rail items={places} {foot} current={place} onpick={(item) => (place = item.label)} />
-        {/snippet}
-        {#snippet sidebar()}
-          <SideNav
-            kicker="Workspace"
-            title="Smykla Skalski"
-            {sections}
-            current={bottom}
-            onnavigate={go((href) => (bottom = href))}
-          />
-        {/snippet}
-        {@render content(bottom)}
-      </AppShell>
-    </div>
+  <Specimen label="Phone" code="bottomNav">
+    <LayoutPreview
+      href={resolve('/layouts/app-shell/[[variant]]', { variant: 'bottom-nav' })}
+      {source}
+      title="App shell page with bottom navigation"
+      width="phone"
+    />
   </Specimen>
 </Example>
-
-<style>
-  .frame {
-    --sui-shell-height: 30rem;
-    border: var(--sui-stroke) solid var(--sui-border-subtle);
-    border-radius: var(--sui-radius-surface);
-    box-sizing: border-box;
-    overflow: hidden;
-  }
-
-  /* The frame scrolls sideways, and the shared edge fade shows which side has more of it. */
-  .scroller {
-    border-radius: var(--sui-radius-surface);
-    max-inline-size: 100%;
-    overflow-x: auto;
-  }
-
-  .scroller:focus-visible {
-    outline: var(--sui-focus-ring-width) solid var(--sui-focus);
-    outline-offset: var(--sui-focus-ring-inset);
-  }
-
-  .wide {
-    inline-size: 66rem;
-  }
-
-  .phone {
-    inline-size: min(100%, 23.4375rem);
-  }
-
-  /* The header's band stands flush with the pane's top and sides, and the copy under it keeps
-     the band's inset, so their words line up. */
-  .pane {
-    --sui-head-exit-gap: var(--sui-space-4);
-    display: grid;
-    gap: var(--sui-space-4);
-  }
-
-  /* The sentence centres on the pill at an even height, so the pill lands on whole pixels. */
-  .sentence {
-    align-content: center;
-    block-size: var(--sui-block-snap-even);
-  }
-
-  .copy {
-    align-items: center;
-    color: var(--sui-text-secondary);
-    display: flex;
-    flex-wrap: wrap;
-    font: var(--sui-weight-regular) var(--sui-font-size-body) / var(--sui-leading-body)
-      var(--sui-sans);
-    gap: var(--sui-space-2);
-    margin: 0;
-    padding: 0 var(--sui-rhythm-pane-gutter) var(--sui-rhythm-pane-gutter);
-  }
-</style>

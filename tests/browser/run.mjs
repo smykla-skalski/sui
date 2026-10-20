@@ -6,7 +6,7 @@ const sweeps = 'L-41 and L-96|L-102 an avatar|L-48 and L-52|L-97';
 const press = 'L-42 every control';
 const clock = 'a clock tick over a list';
 const layers = 'layer grows at 60 frames a second';
-const navigationLayout = "a chart|the chart|the detail pane's shells";
+const navigationLayout = 'a chart|the chart|the detail pane page';
 const kitchen = 'tests/browser/kitchen-sink.test.mjs';
 const performance = 'tests/browser/timing/performance.test.mjs';
 

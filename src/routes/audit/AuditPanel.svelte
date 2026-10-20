@@ -1,8 +1,8 @@
 <script lang="ts">
-  import { onMount, tick } from 'svelte';
+  import { onMount } from 'svelte';
   import { Button, Disclosure, Icon, Pill } from '#lib';
-  import { checkCount, runAudit, type Finding } from './audit.js';
-  import { cutSides, ringReach } from './checks.js';
+  import { checkCount, type Finding } from './audit.js';
+  import { exposeAudit, settledAudit } from './expose.js';
 
   /** What a run found and where it was measured, kept per page so a reload never re-runs it. */
   type Kept = { findings: Finding[]; at: string; width: number; theme: string };
@@ -48,20 +48,7 @@
 
   async function rerun() {
     const run = ++runs;
-    await tick();
-    await document.fonts.ready;
-    await new Promise(requestAnimationFrame);
-    const settling = document
-      .getAnimations()
-      // Only time-based animations settle; a scroll-driven one finishes when the reader scrolls.
-      .filter(
-        (animation) =>
-          animation.timeline instanceof DocumentTimeline &&
-          animation.effect?.getTiming().iterations !== Infinity
-      )
-      .map((animation) => animation.finished);
-    await Promise.allSettled(settling);
-    const result = await runAudit(document, () => run !== runs);
+    const result = await settledAudit(() => run !== runs);
     if (result) findings = result;
     return result;
   }
@@ -99,16 +86,7 @@
   );
 
   onMount(() => {
-    (window as unknown as { __suiAudit: () => Promise<Finding[]> }).__suiAudit = async () => {
-      let result = await rerun();
-      while (!result) result = await rerun();
-      return result.map(({ law, where, detail }) => ({ law, where, detail }));
-    };
-    // A browser test weighs each focus ring it tabs to with the ring check's own measure.
-    Object.assign(window, {
-      __suiRingCut: (element: Element, look: CSSStyleDeclaration) =>
-        cutSides(element, ringReach(look))
-    });
+    exposeAudit(rerun);
     // The whole page is measured once; after that the kept result shows until the reader asks
     // for another run, so a reload never pays for the audit again. A browser test asks for the
     // audit when it needs one, so its presses never wait behind a run it did not ask for.

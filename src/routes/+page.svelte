@@ -1,5 +1,7 @@
 <script lang="ts">
   import { flushSync, type Component } from 'svelte';
+  import { dev } from '$app/env';
+  import { resolve } from '$app/paths';
   import { page } from '$app/state';
   import {
     AppShell,
@@ -7,9 +9,11 @@
     Icon,
     PageHeader,
     Rail,
+    ServiceWorkerStatus,
     SideNav,
     SkipLink,
     ThemeSwitch,
+    registerServiceWorker,
     type IconName,
     type NavItem,
     type NavSection
@@ -20,6 +24,10 @@
   import { places } from './places';
 
   type SectionModule = { default: Component; section: SectionMeta };
+
+  // SvelteKit serves the worker at the base, beside this page. The layout pages the sink frames
+  // register none, so a frame never shows a notice of its own.
+  const worker = registerServiceWorker(`${resolve('/')}service-worker.js`, { dev });
 
   // The families a reader looks for, in the order the README lists them. A section that is
   // not listed here still shows, at the end, so a new section is never lost.
@@ -266,6 +274,8 @@
     </div>
   </div>
 </AppShell>
+
+<ServiceWorkerStatus {worker} />
 
 <style>
   /* The bar the header's tools become, and the room anchors and focus keep below it and above
