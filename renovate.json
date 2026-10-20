@@ -13,7 +13,11 @@
     "security:openssf-scorecard",
     "group:linters"
   ],
-  "ignorePaths": ["**/tmp/**", ".github/workflows/smyklot-pr-commands.yml", ".github/workflows/smyklot-poll.yml"],
+  "ignorePaths": [
+    "**/tmp/**",
+    ".github/workflows/smyklot-pr-commands.yml",
+    ".github/workflows/smyklot-poll.yml"
+  ],
   "osvVulnerabilityAlerts": true,
   "gitIgnoredAuthors": ["205507218+smyklot[bot]@users.noreply.github.com"],
   "internalChecksFilter": "strict",
@@ -61,7 +65,19 @@
       "enabled": false,
       "matchManagers": ["github-actions"],
       "matchPackageNames": ["smykla-skalski/smyklot"]
+    },
+    {
+      "allowedVersions": "<7",
+      "description": "svelte-check and svelte-package need the TypeScript 6 JS API; TypeScript 7 runs as @typescript/native",
+      "matchPackageNames": ["typescript"]
+    },
+    {
+      "allowedVersions": ">=24 <25",
+      "description": "Keep Node types aligned with the Node 24 LTS runtime",
+      "matchPackageNames": ["@types/node"]
     }
   ],
-  "vulnerabilityAlerts": {"automerge": false}
+  "vulnerabilityAlerts": {
+    "automerge": false
+  }
 }
