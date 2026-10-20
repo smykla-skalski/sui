@@ -15,7 +15,7 @@
   import Specimen from '../kit/Specimen.svelte';
 
   const source = 'src/routes/layouts/detail-pane/[[state]]/+page.svelte';
-  const pane = (state?: string) => resolve('/layouts/detail-pane/[[state]]', { state });
+  const pane = (state?: string) => resolve('/layouts/detail-pane/[[state]]', { state }) + '/';
 </script>
 
 <Example

@@ -25,7 +25,7 @@
 >
   <Specimen label="Run open" code="current detail">
     <LayoutPreview
-      href={resolve('/layouts/list-detail/[[run]]', { run: '4182' })}
+      href={resolve('/layouts/list-detail/[[run]]', { run: '4182' }) + '/'}
       {source}
       title="List detail page with a run open"
     />
@@ -41,7 +41,7 @@
 >
   <Specimen label="No run open" code="emptyTitle emptyDescription emptyStep">
     <LayoutPreview
-      href={resolve('/layouts/list-detail/[[run]]', {})}
+      href={resolve('/layouts/list-detail/[[run]]', {}) + '/'}
       {source}
       title="List detail page with no run open"
     />

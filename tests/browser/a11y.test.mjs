@@ -83,14 +83,14 @@ suite('accessibility', together, () => {
   // Each shell and page layout is a whole page of its own, so its landmarks, its one main and
   // its bars are measured at the window's width, as an app draws them.
   const layouts = [
-    'layouts/app-shell',
-    'layouts/app-shell/bottom-nav',
-    'layouts/list-detail',
-    'layouts/list-detail/4182',
-    'layouts/detail-pane',
-    'layouts/detail-pane/loading',
-    'layouts/detail-pane/missing',
-    'layouts/detail-pane/stale'
+    'layouts/app-shell/',
+    'layouts/app-shell/bottom-nav/',
+    'layouts/list-detail/',
+    'layouts/list-detail/4182/',
+    'layouts/detail-pane/',
+    'layouts/detail-pane/loading/',
+    'layouts/detail-pane/missing/',
+    'layouts/detail-pane/stale/'
   ];
 
   for (const width of [375, 768, 1440])

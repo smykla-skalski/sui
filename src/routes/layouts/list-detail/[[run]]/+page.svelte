@@ -105,8 +105,8 @@
     { name: 'Report the differences', took: '5 s' }
   ];
 
-  const runsHref = resolve('/layouts/list-detail/[[run]]', {});
-  const href = (run: Run) => resolve('/layouts/list-detail/[[run]]', { run: run.id });
+  const runsHref = resolve('/layouts/list-detail/[[run]]', {}) + '/';
+  const href = (run: Run) => resolve('/layouts/list-detail/[[run]]', { run: run.id }) + '/';
   const name = (run: Run) => `${run.workflow} #${run.id}`;
 
   const nav: NavSection[] = [
@@ -203,7 +203,7 @@
     <ListDetail
       label="Runs"
       backHref={runsHref}
-      current={id ? resolve('/layouts/list-detail/[[run]]', { run: id }) : undefined}
+      current={id ? resolve('/layouts/list-detail/[[run]]', { run: id }) + '/' : undefined}
       detail={id ? opened : undefined}
       emptyTitle="No run open"
       emptyDescription="The run you open in the list shows here with its steps and details"

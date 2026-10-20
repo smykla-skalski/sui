@@ -76,7 +76,7 @@ suite('navigation', together, () => {
     'a row followed in the phone drawer closes it and hands focus to the menu button',
     long,
     async () => {
-      const page = await openLayout('layouts/app-shell', 375);
+      const page = await openLayout('layouts/app-shell/', 375);
       try {
         const drawer = await openDrawer(page);
         await drawer.locator('.sui-side-nav-row', { hasText: 'Queue' }).click();
@@ -106,7 +106,7 @@ suite('navigation', together, () => {
     'Tab wraps in the phone drawer past a control folded in a closed details',
     long,
     async () => {
-      const page = await openLayout('layouts/app-shell', 375);
+      const page = await openLayout('layouts/app-shell/', 375);
       try {
         const drawer = await openDrawer(page);
         await drawer.evaluate((side) => {
@@ -128,7 +128,7 @@ suite('navigation', together, () => {
   );
 
   test('the phone drawer opens from the start edge in a right-to-left page', long, async () => {
-    const page = await openLayout('layouts/app-shell', 375, { rtl: true });
+    const page = await openLayout('layouts/app-shell/', 375, { rtl: true });
     try {
       await openDrawer(page);
       await atRest(page);
@@ -154,7 +154,7 @@ suite('navigation', together, () => {
     'with bottomNav a phone keeps the places in a bottom bar and the drawer holds only the pages',
     long,
     async () => {
-      const page = await openLayout('layouts/app-shell/bottom-nav', 375);
+      const page = await openLayout('layouts/app-shell/bottom-nav/', 375);
       try {
         const bar = await page.evaluate(() => {
           const rail = document.querySelector('.sui-shell-places .sui-rail');
@@ -201,13 +201,13 @@ suite('navigation', together, () => {
     async () => {
       // A 1000px window is under the 64rem a fold needs. The shell draws the control in its
       // markup at every width, and its own width shows it.
-      const narrow = await openLayout('layouts/app-shell', 1000);
+      const narrow = await openLayout('layouts/app-shell/', 1000);
       try {
         assert.equal(await narrow.locator('.sui-side-nav-fold:visible').count(), 0);
       } finally {
         await narrow.close();
       }
-      const page = await openLayout('layouts/app-shell', 1440);
+      const page = await openLayout('layouts/app-shell/', 1440);
       try {
         const fold = page.locator('.sui-side-nav-fold');
         const mode = () => page.locator('.sui-side-nav').getAttribute('data-mode');
@@ -757,13 +757,13 @@ suite('navigation', together, () => {
     'a narrow list-detail opens a run over its list, and its way back lands on the row in place',
     long,
     async () => {
-      const page = await openLayout('layouts/list-detail', 375);
+      const page = await openLayout('layouts/list-detail/', 375);
       try {
         const place = await page.evaluate(() => {
           scrollTo(0, document.documentElement.scrollHeight);
           return scrollY;
         });
-        const row = page.locator('a[href="/layouts/list-detail/4174"]');
+        const row = page.locator('a[href="/layouts/list-detail/4174/"]');
         await row.focus();
         await page.keyboard.press('Enter');
         assert.ok(
@@ -777,7 +777,7 @@ suite('navigation', together, () => {
           'opening a run left focus on its row'
         );
         assert.equal(await focused(page), 'Deploy web #4174', 'focus is not on the run title');
-        assert.equal(new URL(page.url()).pathname, '/layouts/list-detail/4174');
+        assert.equal(new URL(page.url()).pathname, '/layouts/list-detail/4174/');
         assert.equal(
           await page.locator('.sui-list-detail-list').isVisible(),
           false,
@@ -788,14 +788,14 @@ suite('navigation', together, () => {
         await page.keyboard.press('Shift+Tab');
         assert.equal(
           await focused(page),
-          '/layouts/list-detail',
+          '/layouts/list-detail/',
           'the way back is not before the title'
         );
         await page.keyboard.press('Enter');
         assert.ok(
           await settles(
             page.waitForFunction(
-              () => document.activeElement?.getAttribute('href') === '/layouts/list-detail/4174',
+              () => document.activeElement?.getAttribute('href') === '/layouts/list-detail/4174/',
               null,
               brief
             )
@@ -814,13 +814,13 @@ suite('navigation', together, () => {
 
   test('a wide list-detail keeps its list in place and marks the run it opens', long, async () => {
     // A short window, so the list scrolls in its own pane.
-    const page = await openLayout('layouts/list-detail/4182', 1440, { height: 560 });
+    const page = await openLayout('layouts/list-detail/4182/', 1440, { height: 560 });
     try {
       const pair = page.locator('.sui-list-detail');
       const list = pair.locator('.sui-list-detail-list');
       // The row stands whole in the scrolled list, so the press scrolls nothing itself.
       await list.evaluate((pane) => (pane.scrollTop = 120));
-      await pair.locator('a[href="/layouts/list-detail/4176"]').click();
+      await pair.locator('a[href="/layouts/list-detail/4176/"]').click();
       assert.ok(
         await settles(
           page.waitForFunction(() => document.activeElement?.matches('h1, h2, h3, h4'), null, brief)
@@ -833,7 +833,7 @@ suite('navigation', together, () => {
         await pair
           .locator('[aria-current="page"]')
           .evaluateAll((rows) => rows.map((row) => row.getAttribute('href'))),
-        ['/layouts/list-detail/4176'],
+        ['/layouts/list-detail/4176/'],
         'the opened run is not the one current row'
       );
       assert.equal(
@@ -852,7 +852,7 @@ suite('navigation', together, () => {
     async () => {
       for (const width of [320, 375, 768, 1024, 1280, 1440])
         for (const theme of ['light', 'dark']) {
-          const page = await openLayout('layouts/detail-pane', width);
+          const page = await openLayout('layouts/detail-pane/', width);
           try {
             const found = await page.evaluate((theme) => {
               document.documentElement.dataset.suiTheme = theme;

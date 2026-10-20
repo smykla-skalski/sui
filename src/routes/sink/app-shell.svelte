@@ -25,7 +25,7 @@
 >
   <Specimen label="Full page">
     <LayoutPreview
-      href={resolve('/layouts/app-shell/[[variant]]', {})}
+      href={resolve('/layouts/app-shell/[[variant]]', {}) + '/'}
       {source}
       title="App shell page"
     />
@@ -41,7 +41,7 @@
 >
   <Specimen label="Phone" code="bottomNav">
     <LayoutPreview
-      href={resolve('/layouts/app-shell/[[variant]]', { variant: 'bottom-nav' })}
+      href={resolve('/layouts/app-shell/[[variant]]', { variant: 'bottom-nav' }) + '/'}
       {source}
       title="App shell page with bottom navigation"
       width="phone"

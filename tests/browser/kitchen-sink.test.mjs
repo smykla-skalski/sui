@@ -1281,7 +1281,7 @@ suite('the kitchen sink', together, () => {
     // The shell is a whole page of its own, opened on a phone.
     const page = await browser.newPage({ viewport: { width: 375, height: 900 } });
     try {
-      await visit(page, new URL('layouts/app-shell', url).href);
+      await visit(page, new URL('layouts/app-shell/', url).href);
       const menu = page.locator('.sui-shell-menu');
       await menu.click();
       await settles(
