@@ -65,15 +65,18 @@
   let shown = untrack(() => current);
   // Focus moves only for a reader acting in the pair, or one whose focused control just left.
   let held = false;
-  // Where a bounded narrow pair had scrolled its list to, so the way back lands there again. It
-  // is read before the detail replaces the list, which would clamp the scroll to its own height.
+  // Where a narrow pair had scrolled its list to, so the way back lands there again. It is read
+  // before the detail replaces the list, which would clamp the scroll to its own height.
   let place = 0;
+
+  /** What scrolls a narrow pair's one pane: its own bounded box, or else the page. */
+  const scroller = () => (contained ? root : document.scrollingElement);
 
   $effect.pre(() => {
     if (current === shown) return;
     const active = document.activeElement;
     held = !active || active === document.body || (root?.contains(active) ?? false);
-    if (shown === undefined) place = root?.scrollTop ?? 0;
+    if (shown === undefined) place = scroller()?.scrollTop ?? 0;
   });
 
   $effect(() => {
@@ -87,7 +90,8 @@
       detailPane.scrollTop = 0;
       if (held) land(detailPane.querySelector<HTMLElement>('h1, h2, h3, h4, h5, h6') ?? detailPane);
     } else {
-      root.scrollTop = place;
+      const box = scroller();
+      if (box) box.scrollTop = place;
       const opener = listPane.querySelector<HTMLElement>(`a[href="${CSS.escape(left ?? '')}"]`);
       if (held) (opener ?? tabStops(listPane)[0])?.focus();
     }
@@ -124,8 +128,11 @@ has nowhere to go.
 
 Opening an item moves focus to the detail's title, and closing it, by the way back, the
 browser's back or anything else that clears `current`, returns focus to the row that opened
-it, or to the list's first control when that row is gone. Focus moves only when the reader was
-in the pair or the focused control just left, so a change made elsewhere never pulls it.
+it, or to the list's first control when that row is gone, with the list scrolled back to where
+it stood. Focus moves only when the reader was in the pair or the focused control just left, so
+a change made elsewhere never pulls it. A router that resets focus and scroll after a
+navigation leaves both to the pair, as SvelteKit does with `data-sveltekit-reset="false"`
+around it.
 
 - Semantics: the list is a `nav` landmark named by `label`; the detail is a plain box, or the page's `main` with `landmark="main"` when the page has no other; the way back is a `BackLink`.
 - Content: a `list` of links to each item's address, usually an `ObjectList`, and the open item's `detail`, usually a `PageHeader` over a `DetailLayout`.

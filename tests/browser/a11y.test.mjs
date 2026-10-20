@@ -80,6 +80,62 @@ suite('accessibility', together, () => {
         }
       });
 
+  // Each shell and page layout is a whole page of its own, so its landmarks, its one main and
+  // its bars are measured at the window's width, as an app draws them.
+  const layouts = [
+    'layouts/app-shell/',
+    'layouts/app-shell/bottom-nav/',
+    'layouts/list-detail/',
+    'layouts/list-detail/4182/',
+    'layouts/detail-pane/',
+    'layouts/detail-pane/loading/',
+    'layouts/detail-pane/missing/',
+    'layouts/detail-pane/stale/'
+  ];
+
+  for (const width of [375, 768, 1440])
+    for (const theme of ['light', 'dark'])
+      test(
+        `every layout page holds every law and passes axe at ${width}px in ${theme}`,
+        long,
+        async () => {
+          const page = await browser.newPage({ viewport: { width, height: 900 } });
+          try {
+            /** @type {string[]} */
+            const found = [];
+            for (const path of layouts) {
+              await visit(page, new URL(path, url).href);
+              await page.evaluate(async (name) => {
+                document.documentElement.dataset.suiTheme = name;
+                await document.fonts.ready;
+              }, theme);
+              await page.addScriptTag({ path: axePath });
+              const violations = await page.evaluate(async () => {
+                const axe = /** @type {any} */ (window).axe;
+                const result = await axe.run(document, {
+                  runOnly: {
+                    type: 'tag',
+                    values: ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa']
+                  }
+                });
+                return result.violations.flatMap((/** @type {any} */ violation) =>
+                  violation.nodes.map(
+                    (/** @type {any} */ node) =>
+                      `${violation.id} ${node.target.join(' ')}: ${violation.help}`
+                  )
+                );
+              });
+              found.push(
+                ...[...violations, ...(await audit(page))].map((line) => `${path} ${line}`)
+              );
+            }
+            assert.deepEqual(found, []);
+          } finally {
+            await page.close();
+          }
+        }
+      );
+
   for (const width of [375, 1440])
     test(`every law holds in a right-to-left page at ${width}px`, long, async () => {
       const page = await open(width, 'light');

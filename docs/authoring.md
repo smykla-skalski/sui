@@ -10,7 +10,9 @@ Read [laws.md](laws.md) first. A component is done when it meets every law there
 
 ## Kitchen sink sections
 
-A section is a component's page: what it is for, then every variant and state it has, each one named. It is built from four kit parts in `src/routes/kit/`, and nothing else frames or labels a specimen.
+A section is a component's page: what it is for, then every variant and state it has, each one named. It is built from five kit parts in `src/routes/kit/`, and nothing else frames or labels a specimen.
+
+A shell or a page layout is never drawn inline. It owns the page's one `main`, its bars stick to the window and its drawer makes the rest of the document inert, so it is a whole page of its own in `src/routes/layouts/<name>/`, written as an app would write it, with each state at its own address. Its section shows that page through `LayoutPreview`, a frame at a phone's, a tablet's or a desktop's width, scaled down whole where the stage is narrower, with links to the full page and its source. Browser tests open the page itself at the window's width.
 
 ```svelte
 <script module lang="ts">

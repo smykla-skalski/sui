@@ -160,13 +160,16 @@ async function buildSink(build, cleanup) {
 async function served(/** @type {string} */ dir) {
   const out = join(dir, 'build');
   const files = await readdir(out, { recursive: true, withFileTypes: true });
-  return files
-    .filter((file) => file.isFile())
-    .map((file) => relative(out, join(file.parentPath, file.name)))
-    .filter((path) => path !== 'service-worker.js' && path !== '_app/version.json')
-    .filter((path) => !path.startsWith('fixture/never/'))
-    .map((path) => (path === 'index.html' ? '/' : `/${path}`))
-    .sort();
+  return (
+    files
+      .filter((file) => file.isFile())
+      .map((file) => relative(out, join(file.parentPath, file.name)))
+      .filter((path) => path !== 'service-worker.js' && path !== '_app/version.json')
+      .filter((path) => !path.startsWith('fixture/never/'))
+      // A page is kept at its address, the folder its `index.html` stands in.
+      .map((path) => `/${path.replace(/(^|\/)index\.html$/, '$1')}`)
+      .sort()
+  );
 }
 
 const freePort = () =>

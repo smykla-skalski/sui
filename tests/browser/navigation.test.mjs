@@ -1,10 +1,11 @@
 import assert from 'node:assert/strict';
 import { after, before, suite, test } from 'node:test';
-import { brief, long, settles, startSink, together, visit } from './sink.mjs';
+import { atRest, brief, long, settles, startSink, together, visit } from './sink.mjs';
 
 // Behaviour of the shell, the navigation lists, the tabs and the charts that the law audit
 // cannot see in one still page: focus handoffs, placement by direction, the phone bars,
-// forced colors and what a scrolling pane or a scrolling plot does.
+// forced colors and what a scrolling pane or a scrolling plot does. The shells and the page
+// layouts are whole pages under /layouts, measured at the window's own width.
 
 /** @type {{ close: () => Promise<void> }} */
 let server;
@@ -38,35 +39,61 @@ suite('navigation', together, () => {
     return page;
   }
 
-  /** The phone shells of the app shell section: the drawer one, then the bottom bar one. */
-  const phone = (/** @type {import('playwright-core').Page} */ page, /** @type {number} */ index) =>
-    page.locator('#app-shell .phone').nth(index);
+  /**
+   * Opens one of the layout pages, a whole app page with no sink around it.
+   * @param {string} path
+   * @param {number} width
+   * @param {{ rtl?: boolean; height?: number }} [options]
+   */
+  async function openLayout(path, width, { rtl = false, height = 900 } = {}) {
+    const page = await browser.newPage({ viewport: { width, height } });
+    await visit(page, new URL(path, url).href);
+    await page.evaluate(async (rtl) => {
+      if (rtl) document.documentElement.dir = 'rtl';
+      await document.fonts.ready;
+    }, rtl);
+    // The page stays hidden until its faces arrive, and nothing hidden is a tab stop.
+    await page.waitForFunction(() => !document.documentElement.dataset.suiFonts);
+    return page;
+  }
+
+  /**
+   * Opens the phone drawer and waits until the shell has taken it: focus moves in last, once its
+   * Tab trap holds and the bars and the content behind it are inert.
+   * @param {import('playwright-core').Page} page
+   */
+  async function openDrawer(page) {
+    await page.locator('.sui-shell-menu').click();
+    const drawer = page.locator('.sui-shell-side:popover-open');
+    await drawer.waitFor();
+    await page.waitForFunction(() =>
+      document.querySelector('.sui-shell-side:popover-open')?.contains(document.activeElement)
+    );
+    return drawer;
+  }
 
   test(
     'a row followed in the phone drawer closes it and hands focus to the menu button',
     long,
     async () => {
-      const page = await open(1440);
+      const page = await openLayout('layouts/app-shell/', 375);
       try {
-        const shell = phone(page, 0);
-        await shell.scrollIntoViewIfNeeded();
-        await shell.locator('.sui-shell-menu').click();
-        const drawer = page.locator('.sui-shell-side:popover-open');
-        await drawer.waitFor();
+        const drawer = await openDrawer(page);
         await drawer.locator('.sui-side-nav-row', { hasText: 'Queue' }).click();
-        await page.waitForTimeout(200);
-        assert.equal(
-          await page.locator('.sui-shell-side:popover-open').count(),
-          0,
-          'the drawer stayed open'
-        );
         assert.ok(
-          await shell
-            .locator('.sui-shell-menu')
-            .evaluate((menu) => document.activeElement === menu),
-          'focus did not return to the menu button'
+          await settles(
+            page.waitForFunction(
+              () =>
+                !document.querySelector('.sui-shell-side:popover-open') &&
+                document.activeElement?.matches('.sui-shell-menu'),
+              null,
+              brief
+            )
+          ),
+          'the drawer stayed open, or focus did not return to the menu button'
         );
-        assert.equal(await shell.locator('.sui-shell-title').textContent(), 'Queue');
+        assert.equal(await page.locator('.sui-shell-title').textContent(), 'Queue');
+        assert.equal(new URL(page.url()).hash, '#queue', 'the page has no address of its own');
       } finally {
         await page.close();
       }
@@ -79,13 +106,9 @@ suite('navigation', together, () => {
     'Tab wraps in the phone drawer past a control folded in a closed details',
     long,
     async () => {
-      const page = await open(1440);
+      const page = await openLayout('layouts/app-shell/', 375);
       try {
-        const shell = phone(page, 0);
-        await shell.scrollIntoViewIfNeeded();
-        await shell.locator('.sui-shell-menu').click();
-        const drawer = page.locator('.sui-shell-side:popover-open');
-        await drawer.waitFor();
+        const drawer = await openDrawer(page);
         await drawer.evaluate((side) => {
           const more = document.createElement('details');
           more.innerHTML = '<summary>More</summary><a href="#folded">Folded</a>';
@@ -105,26 +128,23 @@ suite('navigation', together, () => {
   );
 
   test('the phone drawer opens from the start edge in a right-to-left page', long, async () => {
-    const page = await open(1440, { rtl: true });
+    const page = await openLayout('layouts/app-shell/', 375, { rtl: true });
     try {
-      const shell = phone(page, 0);
-      await shell.scrollIntoViewIfNeeded();
-      await shell.locator('.sui-shell-menu').click();
-      await page.locator('.sui-shell-side:popover-open').waitFor();
-      const { frame, drawer } = await page.evaluate(() => ({
-        frame: document.querySelectorAll('#app-shell .phone')[0].getBoundingClientRect().toJSON(),
+      await openDrawer(page);
+      await atRest(page);
+      const { end, drawer } = await page.evaluate(() => ({
+        end: document.documentElement.clientWidth,
         drawer: document
           .querySelector('.sui-shell-side:popover-open')
           ?.getBoundingClientRect()
           .toJSON()
       }));
       assert.ok(drawer, 'the drawer did not open');
-      // The frame's 1px border stands between the shell and its box.
       assert.ok(
-        Math.abs(drawer.right - (frame.right - 1)) <= 1,
-        `drawer ends at ${drawer.right}, shell at ${frame.right}`
+        Math.abs(drawer.right - end) <= 1,
+        `drawer ends at ${drawer.right}, page at ${end}`
       );
-      assert.ok(drawer.left >= frame.left, 'the drawer runs past the shell');
+      assert.ok(drawer.left >= 0, 'the drawer runs past the page');
     } finally {
       await page.close();
     }
@@ -134,17 +154,15 @@ suite('navigation', together, () => {
     'with bottomNav a phone keeps the places in a bottom bar and the drawer holds only the pages',
     long,
     async () => {
-      const page = await open(1440);
+      const page = await openLayout('layouts/app-shell/bottom-nav/', 375);
       try {
-        const shell = phone(page, 1);
-        await shell.scrollIntoViewIfNeeded();
-        const bar = await shell.evaluate((frame) => {
-          const rail = frame.querySelector('.sui-shell-places .sui-rail');
+        const bar = await page.evaluate(() => {
+          const rail = document.querySelector('.sui-shell-places .sui-rail');
           const box = rail?.getBoundingClientRect();
           return rail && box
             ? {
                 row: getComputedStyle(rail).flexDirection,
-                gap: frame.getBoundingClientRect().bottom - box.bottom,
+                gap: innerHeight - box.bottom,
                 tiles: [...rail.querySelectorAll('.sui-rail-tile')].map((tile) =>
                   Math.round(tile.getBoundingClientRect().height)
                 )
@@ -153,14 +171,12 @@ suite('navigation', together, () => {
         });
         assert.ok(bar, 'no rail in the bottom bar');
         assert.equal(bar.row, 'row');
-        assert.ok(bar.gap <= 1, `the bar stands ${bar.gap}px above the shell's foot`);
+        assert.ok(bar.gap <= 1, `the bar stands ${bar.gap}px above the window's foot`);
         assert.ok(
           bar.tiles.every((height) => height >= 44),
           `tiles are ${bar.tiles.join(', ')}px`
         );
-        await shell.locator('.sui-shell-menu').click();
-        const drawer = page.locator('.sui-shell-side:popover-open');
-        await drawer.waitFor();
+        const drawer = await openDrawer(page);
         assert.equal(
           await drawer.locator('.sui-rail').count(),
           0,
@@ -168,7 +184,7 @@ suite('navigation', together, () => {
         );
         assert.equal(await drawer.locator('.sui-side-nav').count(), 1);
         assert.ok(
-          await shell
+          await page
             .locator('.sui-shell-places')
             .evaluate((places) => /** @type {HTMLElement} */ (places).inert),
           'the bottom bar stays live behind the modal drawer'
@@ -183,20 +199,25 @@ suite('navigation', together, () => {
     'the fold control shows only where the shell is wide enough to fold, and names its action',
     long,
     async () => {
-      const page = await open(1440);
+      // A 1000px window is under the 64rem a fold needs. The shell draws the control in its
+      // markup at every width, and its own width shows it.
+      const narrow = await openLayout('layouts/app-shell/', 1000);
       try {
-        const shells = page.locator('#app-shell .sui-shell');
-        // The expanded specimen is 980px wide, under the 64rem a fold needs; the collapsed one is 66rem.
-        // Every shell draws the control in its markup, and its own width shows it.
-        assert.equal(await shells.nth(0).locator('.sui-side-nav-fold:visible').count(), 0);
-        const fold = shells.nth(1).locator('.sui-side-nav-fold');
+        assert.equal(await narrow.locator('.sui-side-nav-fold:visible').count(), 0);
+      } finally {
+        await narrow.close();
+      }
+      const page = await openLayout('layouts/app-shell/', 1440);
+      try {
+        const fold = page.locator('.sui-side-nav-fold');
+        const mode = () => page.locator('.sui-side-nav').getAttribute('data-mode');
+        assert.equal((await fold.textContent())?.trim(), 'Collapse');
+        await fold.click();
         assert.equal((await fold.textContent())?.trim(), 'Expand');
+        assert.equal(await mode(), 'collapsed');
         await fold.click();
         assert.equal((await fold.textContent())?.trim(), 'Collapse');
-        assert.equal(
-          await shells.nth(1).locator('.sui-side-nav').getAttribute('data-mode'),
-          'full'
-        );
+        assert.equal(await mode(), 'full');
         assert.ok(
           await fold.evaluate((button) => document.activeElement === button),
           'folding lost focus'
@@ -221,7 +242,8 @@ suite('navigation', together, () => {
           const tabs = [...document.querySelectorAll('#tabs .sui-tabs')][0];
           const bar = (/** @type {Element} */ tab) =>
             getComputedStyle(tab, '::after').backgroundColor;
-          const tile = document.querySelector('#app-shell .sui-rail-tile[aria-current]');
+          // The sink's own rail marks the sink as its current place.
+          const tile = document.querySelector('.sui-rail-tile[aria-current]');
           return {
             highlight,
             current: bar(/** @type {Element} */ (tabs.querySelector('[aria-current="page"]'))),
@@ -722,10 +744,6 @@ suite('navigation', together, () => {
     }
   );
 
-  /** The list-detail section's pairs: two on their own, then beside a rail and a sidebar, then a phone. */
-  const pair = (/** @type {import('playwright-core').Page} */ page, /** @type {number} */ index) =>
-    page.locator('#list-detail .sui-list-detail').nth(index);
-
   /** What holds focus: a heading's words, or a link's address. */
   const focused = (/** @type {import('playwright-core').Page} */ page) =>
     page.evaluate(() => {
@@ -739,15 +757,14 @@ suite('navigation', together, () => {
     'a narrow list-detail opens a run over its list, and its way back lands on the row in place',
     long,
     async () => {
-      const page = await open(1440);
+      const page = await openLayout('layouts/list-detail/', 375);
       try {
-        const narrow = pair(page, 3);
-        await narrow.scrollIntoViewIfNeeded();
-        const place = await narrow.evaluate((box) => {
-          box.scrollTop = box.scrollHeight;
-          return box.scrollTop;
+        const place = await page.evaluate(() => {
+          scrollTo(0, document.documentElement.scrollHeight);
+          return scrollY;
         });
-        await narrow.locator('a[href="#list-detail-run-4174"]').focus();
+        const row = page.locator('a[href="/layouts/list-detail/4174/"]');
+        await row.focus();
         await page.keyboard.press('Enter');
         assert.ok(
           await settles(
@@ -760,8 +777,9 @@ suite('navigation', together, () => {
           'opening a run left focus on its row'
         );
         assert.equal(await focused(page), 'Deploy web #4174', 'focus is not on the run title');
+        assert.equal(new URL(page.url()).pathname, '/layouts/list-detail/4174/');
         assert.equal(
-          await narrow.locator('.sui-list-detail-list').isVisible(),
+          await page.locator('.sui-list-detail-list').isVisible(),
           false,
           'the list stayed beside the run'
         );
@@ -770,14 +788,14 @@ suite('navigation', together, () => {
         await page.keyboard.press('Shift+Tab');
         assert.equal(
           await focused(page),
-          '#list-detail-runs',
+          '/layouts/list-detail/',
           'the way back is not before the title'
         );
         await page.keyboard.press('Enter');
         assert.ok(
           await settles(
             page.waitForFunction(
-              () => document.activeElement?.getAttribute('href') === '#list-detail-run-4174',
+              () => document.activeElement?.getAttribute('href') === '/layouts/list-detail/4174/',
               null,
               brief
             )
@@ -785,8 +803,8 @@ suite('navigation', together, () => {
           `the way back left focus on ${await focused(page)}`
         );
         assert.ok(
-          Math.abs((await narrow.evaluate((box) => box.scrollTop)) - place) <= 1,
-          'the list did not come back to where it was scrolled'
+          Math.abs((await page.evaluate(() => scrollY)) - place) <= 1,
+          'the page did not come back to where the list was scrolled'
         );
       } finally {
         await page.close();
@@ -795,14 +813,14 @@ suite('navigation', together, () => {
   );
 
   test('a wide list-detail keeps its list in place and marks the run it opens', long, async () => {
-    const page = await open(1440);
+    // A short window, so the list scrolls in its own pane.
+    const page = await openLayout('layouts/list-detail/4182/', 1440, { height: 560 });
     try {
-      const wide = pair(page, 0);
-      await wide.scrollIntoViewIfNeeded();
-      const list = wide.locator('.sui-list-detail-list');
+      const pair = page.locator('.sui-list-detail');
+      const list = pair.locator('.sui-list-detail-list');
       // The row stands whole in the scrolled list, so the press scrolls nothing itself.
       await list.evaluate((pane) => (pane.scrollTop = 120));
-      await wide.locator('a[href="#list-detail-run-4176"]').click();
+      await pair.locator('a[href="/layouts/list-detail/4176/"]').click();
       assert.ok(
         await settles(
           page.waitForFunction(() => document.activeElement?.matches('h1, h2, h3, h4'), null, brief)
@@ -812,14 +830,14 @@ suite('navigation', together, () => {
       assert.equal(await focused(page), 'Deploy web #4176', 'focus is not on the run title');
       assert.equal(await list.evaluate((pane) => pane.scrollTop), 120, 'the list lost its place');
       assert.deepEqual(
-        await wide
+        await pair
           .locator('[aria-current="page"]')
           .evaluateAll((rows) => rows.map((row) => row.getAttribute('href'))),
-        ['#list-detail-run-4176'],
+        ['/layouts/list-detail/4176/'],
         'the opened run is not the one current row'
       );
       assert.equal(
-        await wide.getByRole('link', { name: 'Runs' }).count(),
+        await pair.getByRole('link', { name: 'Runs' }).count(),
         0,
         'the way back shows beside the list'
       );
@@ -829,72 +847,33 @@ suite('navigation', together, () => {
   });
 
   test(
-    'a wheel over a bounded list-detail pane scrolls the pane, then the page past its end',
-    long,
-    async () => {
-      const page = await open(1440);
-      try {
-        const list = pair(page, 0).locator('.sui-list-detail-list');
-        await list.scrollIntoViewIfNeeded();
-        const box = await list.boundingBox();
-        assert.ok(box);
-        await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
-        const pane = await list.elementHandle();
-        await page.mouse.wheel(0, 120);
-        assert.ok(
-          await settles(page.waitForFunction((pane) => pane && pane.scrollTop > 0, pane, brief)),
-          'the wheel did not scroll the list'
-        );
-
-        // A new wheel gesture, once the list rests at its end, runs on into the page. The page
-        // must travel most of the wheel's way, so a shift of the sink's own layout never passes.
-        await page.waitForTimeout(600);
-        await list.evaluate((pane) => (pane.scrollTop = pane.scrollHeight));
-        const before = await page.evaluate(() => scrollY);
-        await page.mouse.wheel(0, 240);
-        assert.ok(
-          await settles(page.waitForFunction((before) => scrollY > before + 120, before, brief)),
-          'the page stopped under the list at its end'
-        );
-      } finally {
-        await page.close();
-      }
-    }
-  );
-
-  test(
-    "the detail pane's shells fit their stage at every width, with the wide pane's aside beside it at 1440px",
+    'the detail pane page fits every width, with its aside beside the main column at 1440px',
     long,
     async () => {
       for (const width of [320, 375, 768, 1024, 1280, 1440])
         for (const theme of ['light', 'dark']) {
-          const page = await open(width);
+          const page = await openLayout('layouts/detail-pane/', width);
           try {
             const found = await page.evaluate((theme) => {
               document.documentElement.dataset.suiTheme = theme;
               const wide = (/** @type {Element} */ box) => box.scrollWidth > box.clientWidth;
-              const section = /** @type {HTMLElement} */ (document.getElementById('detail-pane'));
-              const scrollers = [...section.querySelectorAll('*')].filter(
+              const scrollers = [...document.querySelectorAll('main *')].filter(
                 (box) => /auto|scroll/.test(getComputedStyle(box).overflowX) && wide(box)
               );
-              const layout = document
-                .getElementById('detail-pane-layout')
-                ?.closest('.example')
-                ?.querySelector('.sui-detail-layout');
-              const main = layout
-                ?.querySelector('.sui-detail-layout-main')
+              const main = document
+                .querySelector('.sui-detail-layout-main')
                 ?.getBoundingClientRect();
-              const aside = layout
-                ?.querySelector('.sui-detail-layout-aside')
+              const aside = document
+                .querySelector('.sui-detail-layout-aside')
                 ?.getBoundingClientRect();
               return {
-                section: wide(section),
+                page: wide(document.documentElement),
                 scrollers: scrollers.map((box) => `${box.tagName} ${box.className}`),
                 beside: !!main && !!aside && Math.abs(main.top - aside.top) < 1
               };
             }, theme);
             const at = `at ${width}px in ${theme}`;
-            assert.equal(found.section, false, `the section reaches past the page ${at}`);
+            assert.equal(found.page, false, `the page scrolls sideways ${at}`);
             assert.deepEqual(found.scrollers, [], `boxes scroll sideways ${at}`);
             if (width === 1440)
               assert.ok(found.beside, `the aside is not beside the main column ${at}`);

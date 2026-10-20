@@ -106,17 +106,40 @@ for (const theme of ['light', 'dark'])
       for (const id of ids) {
         const section = page.locator(`main > section#${id}`);
         await section.scrollIntoViewIfNeeded();
+        // A layout page in a frame loads once it nears the window, and is shot once it has
+        // started and its faces have arrived.
+        await page.waitForFunction(
+          (id) =>
+            [...document.querySelectorAll(`#${id} iframe`)].every((frame) => {
+              const inner = /** @type {HTMLIFrameElement} */ (frame).contentWindow;
+              return (
+                inner && '__suiAudit' in inner && !inner.document.documentElement.dataset.suiFonts
+              );
+            }),
+          id
+        );
         // A scroll can flip the sink's bar, which a busy page lays out a frame or two later.
         await page.evaluate(
           () => new Promise((done) => requestAnimationFrame(() => requestAnimationFrame(done)))
         );
-        // Live pulses and growing layers end, and anything endless stops. A scroll-driven
-        // animation runs on, since it draws a state, such as the form a control takes.
+        // Live pulses and growing layers end, and anything endless stops, in the page and in
+        // its frames. A scroll-driven animation runs on, since it draws a state, such as the
+        // form a control takes.
         await page.evaluate(() => {
-          for (const animation of document.getAnimations()) {
-            if (!(animation.timeline instanceof DocumentTimeline)) continue;
-            if (animation.effect?.getTiming().iterations === Infinity) animation.cancel();
-            else animation.finish();
+          const documents = [
+            document,
+            ...[...document.querySelectorAll('iframe')].flatMap(
+              (frame) => frame.contentDocument ?? []
+            )
+          ];
+          for (const each of documents) {
+            // A frame's timelines are its own window's, so they match its own class.
+            const Timeline = each.defaultView?.DocumentTimeline ?? DocumentTimeline;
+            for (const animation of each.getAnimations()) {
+              if (!(animation.timeline instanceof Timeline)) continue;
+              if (animation.effect?.getTiming().iterations === Infinity) animation.cancel();
+              else animation.finish();
+            }
           }
         });
         const picture = await section.screenshot({ animations: 'allow' });
