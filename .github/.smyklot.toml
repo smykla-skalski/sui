@@ -1,0 +1,40 @@
+#:schema https://smyklot.com/schema/repository-panel-v1.json
+
+# CI runs Prettier over every synced file, so the JSON Smyklot writes takes Prettier's layout:
+# objects stay expanded, and an array stays on one line only while it is short. The limit
+# stands in for Prettier's line width, which counts the key that Smyklot leaves out.
+[formatting.common]
+inline_max_chars = 80
+
+[formatting.json]
+arrays = "auto"
+objects = "expanded"
+
+# The organization's renovate.json gains this repository's own version limits.
+[panel]
+version = 1
+scope = 'repository'
+
+[panel.sync.files]
+document = '''{
+  "merges": [
+    {
+      "path": "renovate.json",
+      "overrides": {
+        "packageRules": [
+          {
+            "description": "svelte-check and svelte-package need the TypeScript 6 JS API; TypeScript 7 runs as @typescript/native",
+            "matchPackageNames": ["typescript"],
+            "allowedVersions": "<7"
+          },
+          {
+            "description": "Keep Node types aligned with the Node 24 LTS runtime",
+            "matchPackageNames": ["@types/node"],
+            "allowedVersions": ">=24 <25"
+          }
+        ]
+      },
+      "arrays": [{"path": "$.packageRules", "strategy": "append"}]
+    }
+  ]
+}'''
