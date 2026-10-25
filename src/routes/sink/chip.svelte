@@ -111,6 +111,7 @@
   </Specimen>
   <Specimen label="Unkeyed remove and refocus" code="onremove">
     <div class="group" role="group" aria-label="Unkeyed labels">
+      <!-- Unkeyed on purpose: a browser test proves a chip hands focus on when a caller forgets the key. -->
       {#each unkeyed as label}
         <Chip
           mono

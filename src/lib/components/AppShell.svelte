@@ -3,6 +3,7 @@
   import { flushSync, type Snippet } from 'svelte';
   import type { HTMLAttributes } from 'svelte/elements';
   import Icon from '../icons/Icon.svelte';
+  import { clearance } from '../internal/clearance.js';
   import { rootFontSize } from '../internal/rem.svelte.js';
   import { firstStop, setShell, trapTab, type ShellMode } from '../internal/shell.svelte.js';
 
@@ -146,24 +147,20 @@
      focused control would land behind them; the page's scroll padding keeps them clear. A
      contained shell scrolls its pane, which the bars never cover, and bars that ride with the
      content cover nothing. */
-  $effect(() => {
-    if (contained || mode !== 'drawer' || !topBar || flowing) return;
-    const page = document.documentElement.style;
-    const before = [page.scrollPaddingBlockStart, page.scrollPaddingBlockEnd];
-    const head = topBar;
+  function padPage(head: HTMLElement) {
+    if (contained || mode !== 'drawer' || flowing) return;
+    const page = clearance(document.documentElement);
     const foot = places;
-    const pad = () => {
-      page.scrollPaddingBlockStart = `${head.offsetHeight}px`;
-      if (foot) page.scrollPaddingBlockEnd = `${foot.offsetHeight}px`;
-    };
-    const observer = new ResizeObserver(pad);
+    const observer = new ResizeObserver(() =>
+      page.hold({ start: head.offsetHeight, end: foot?.offsetHeight })
+    );
     observer.observe(head);
     if (foot) observer.observe(foot);
     return () => {
       observer.disconnect();
-      [page.scrollPaddingBlockStart, page.scrollPaddingBlockEnd] = before;
+      page.release();
     };
-  });
+  }
 
   /** The drawer lives in the top layer, so it is placed against the shell's start edge by hand. */
   function placeDrawer() {
@@ -251,7 +248,7 @@ viewport. `landmark="none"` keeps the content from claiming the page's one `main
   {...rest}
   class={['sui-shell', className, { contained, 'bottom-nav': bottom, flowing }]}
 >
-  <header bind:this={topBar} class="sui-shell-bar" inert={drawerOpen}>
+  <header bind:this={topBar} {@attach padPage} class="sui-shell-bar" inert={drawerOpen}>
     <button
       bind:this={menu}
       type="button"

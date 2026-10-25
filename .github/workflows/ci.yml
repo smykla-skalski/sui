@@ -16,13 +16,16 @@ jobs:
   package:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: jdx/mise-action@fc42bcc7ddbf51124c30f95a877a0c5168a3bfde # v5.2.1
       - run: mise run install:ci
       - run: mise run validate
 
   browser:
-    runs-on: ubuntu-latest
+    # The visual group compares pictures recorded by `mise run test:visual:linux`, so it runs in
+    # the same browser image on the same architecture. The other groups use the runner's Chrome.
+    runs-on: ${{ matrix.group == 'visual' && 'ubuntu-24.04-arm' || 'ubuntu-latest' }}
+    container: ${{ matrix.group == 'visual' && 'mcr.microsoft.com/playwright:v1.64.1-noble@sha256:47b510dd9230bf0b9bfc9b20102241e577ea7a99334ab4c3ca19f19770e9b8ea' || '' }}
     strategy:
       fail-fast: false
       matrix:
@@ -45,9 +48,10 @@ jobs:
           - motion
           - reload
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: jdx/mise-action@fc42bcc7ddbf51124c30f95a877a0c5168a3bfde # v5.2.1
       - run: mise run install:ci
       - run: mise run test:browser:ci "$SUI_TEST_GROUP"
         env:
           SUI_TEST_GROUP: ${{ matrix.group }}
+          SUI_BROWSER_CHANNEL: ${{ matrix.group == 'visual' && 'chromium' || 'chrome' }}

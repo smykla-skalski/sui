@@ -17,6 +17,18 @@ run = "npm run test:browser"
 description = "Run all browser tests"
 run = "npm run test:browser:long"
 
+# The Linux pictures come from the image and architecture CI runs the visual group in, so keep
+# this image the same as the `visual` entry in .github/workflows/ci.yml.
+[tasks."test:visual:linux"]
+description = "Record changed Linux visual pictures in the CI browser image"
+run = '''
+docker run --rm --platform linux/arm64 \
+  -e SUI_BROWSER_CHANNEL=chromium -e SUI_LONG=1 -e SUI_VISUAL_UPDATE=1 \
+  -v "$PWD:/src:ro" -v "$PWD/tests/browser/visual:/out" \
+  mcr.microsoft.com/playwright:v1.64.1-noble@sha256:47b510dd9230bf0b9bfc9b20102241e577ea7a99334ab4c3ca19f19770e9b8ea \
+  bash -c 'mkdir /work && tar -C /src --exclude=./node_modules --exclude=./.svelte-kit -cf - . | tar -C /work -xf - && cd /work && npm ci --no-audit --no-fund && node --test tests/browser/visual.test.mjs; mkdir -p /out/linux && cp tests/browser/visual/linux/*.png /out/linux/'
+'''
+
 [tasks."test:browser:ci"]
 description = "Run one CI browser test group"
 run = "npm run test:browser:ci -- {{arg(name='group')}}"

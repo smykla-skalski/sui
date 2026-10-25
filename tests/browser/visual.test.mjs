@@ -9,7 +9,8 @@ import { long, startSink, visit } from './sink.mjs';
 // recorded for this platform. Fonts rasterize differently per operating system, so pictures are
 // kept per platform, and a platform with none recorded skips rather than passing unseen.
 // Record or refresh them with `SUI_LONG=1 SUI_VISUAL_UPDATE=1 node --test tests/browser/visual.test.mjs`
-// after a change that is meant to look different, and review the new pictures in the diff.
+// on macOS and `mise run test:visual:linux` for the Linux pictures CI compares, after a change
+// that is meant to look different, and review the new pictures in the diff.
 
 // The same page drawn twice differs in a few anti-aliased pixels at glyph and curve edges, by
 // a few levels. A pixel counts as changed only past that noise, and a section only when more

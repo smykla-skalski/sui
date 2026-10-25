@@ -100,6 +100,7 @@ grown hit areas never meet, and a note stands one copy gap under its link.
 
   .sui-link-list-note {
     color: var(--sui-text-muted);
+    max-inline-size: var(--sui-measure);
     font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-row-copy-leading)
       var(--sui-sans);
   }

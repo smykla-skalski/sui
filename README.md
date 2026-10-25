@@ -62,7 +62,7 @@ Overlays use the native `<dialog>` element and the Popover API, so they render i
 
 ## Theming
 
-Set `data-sui-theme="dark"` (or `data-theme="dark"`) on `<html>` for the dark palette, or put `data-sui-theme` on any element to theme only that subtree. With neither attribute on `<html>`, the palette follows the reader's system preference. `ThemeSwitch` offers Light, Dark and System, stores the choice and follows the system preference live.
+Set `data-sui-theme="dark"` (or `data-theme="dark"`) on `<html>` for the dark palette, or put `data-sui-theme` on any element to theme only that subtree. With neither attribute on `<html>`, the palette follows the reader's system preference. `ThemeSwitch` offers Light, Dark and System, stores the choice and follows the system preference live. A reader who asks the system for more contrast gets lines that hold 3:1 on every ground in either theme.
 
 Override tokens after the theme import. Components use the nearest value.
 
@@ -114,7 +114,7 @@ npm run dev
 
 ## Release
 
-The package name is `@smykla-skalski/sui`. Follow [the publishing guide](docs/publishing.md) to create the npm organization, publish the initial version, and connect the GitHub Actions trusted publisher. Later releases publish from GitHub Releases with automatic npm provenance. Keep the package's public entry points and CSS token names stable within a major version.
+The package name is `@smykla-skalski/sui`. Follow [the publishing guide](docs/publishing.md) to create the npm organization, publish the initial version, and connect the GitHub Actions trusted publisher. Later releases publish from GitHub Releases with automatic npm provenance. Keep the package's public entry points and CSS token names stable within a major version. [docs/lifecycle.md](docs/lifecycle.md) says when a component joins, how a change goes through deprecation, how adoption is checked and how an app moves from 0.2 to 0.3.
 
 ## Direction
 

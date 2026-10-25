@@ -256,6 +256,7 @@ its words on the title's edge.
   }
 
   .sui-section-note {
+    max-inline-size: var(--sui-measure);
     align-content: center;
     block-size: var(--sui-block-snap);
     color: var(--sui-text-muted);
@@ -264,6 +265,12 @@ its words on the title's edge.
     margin: 0;
     text-box: trim-both cap alphabetic;
     text-wrap: pretty;
+  }
+
+  /* Running text in a section wraps at the measure, so a wide pane never stretches a paragraph
+     into lines too long to read (WCAG 1.4.8). */
+  :where(.sui-section-body) > :global(:where(p, blockquote)) {
+    max-inline-size: var(--sui-measure);
   }
 
   /* Words that open the content start at their cap line, so the content's first ink stands

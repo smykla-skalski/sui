@@ -191,6 +191,8 @@ for a press of the way back.
 
 <style>
   .sui-inherit {
+    --sui-inherit-marker-size: 26px;
+    --sui-inherit-marker-gap: 6px;
     align-items: center;
     display: flex;
     flex-wrap: wrap;

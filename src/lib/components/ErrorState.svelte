@@ -165,6 +165,7 @@ of them.
 
   .sui-error-state-description {
     color: var(--sui-text-secondary);
+    max-inline-size: var(--sui-measure);
     font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-row-copy-leading)
       var(--sui-sans);
   }

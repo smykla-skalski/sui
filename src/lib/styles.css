@@ -1,4 +1,5 @@
-/* The palette is the only place a color, size or duration is written. Laws: docs/laws.md. */
+/* The palette is the only place a color or duration is written, and it holds every size that more
+   than one component shares or a theme changes. Laws: docs/laws.md. */
 
 @font-face {
   font-display: swap;
@@ -132,6 +133,10 @@
      surface's keyline on light, where the band and the canvas are close, and the keyline on
      dark. */
   --sui-border-band: rgb(0 0 0 / 16%);
+  /* The lines a reader who asks for more contrast gets in place of the quiet ones: each holds
+     3:1 on every ground of the theme (L-114). */
+  --sui-border-contrast: rgb(0 0 0 / 45%);
+  --sui-border-contrast-hover: rgb(0 0 0 / 60%);
 
   --sui-avatar-ring: rgb(0 0 0 / 22%);
   --sui-text-primary: var(--sui-primitive-light-text);
@@ -152,9 +157,10 @@
   --sui-unsaved-control: #fffaf0;
   --sui-unsaved-control-border: #d7a94e;
   /* A painted swatch's ring is the swatch's own colour with its OKLCH lightness clamped into this
-     band, which holds 3:1 on the theme's grounds for every hue (L-93). */
+     band, which holds 3:1 for every colour on each of the theme's grounds and under a hover veil,
+     counting the channels a browser clips when the clamp leaves sRGB (L-93). */
   --sui-swatch-edge-floor: 0;
-  --sui-swatch-edge-ceiling: 0.64;
+  --sui-swatch-edge-ceiling: 0.52;
   /* A field's edge in a changed row, which holds 3:1 there like any field's (L-9). */
   --sui-unsaved-field-border: var(--sui-unsaved-secondary);
   --sui-unsaved-field-border-hover: var(--sui-unsaved-ink);
@@ -390,24 +396,6 @@
   --sui-block-snap-near: calc-size(auto, round(size, 1px));
   --sui-row-copy-leading: round(calc(1cap + var(--sui-row-copy-gap)), 1px);
 
-  --sui-setting-say-min: 13rem;
-
-  --sui-inherit-marker-size: 26px;
-  --sui-inherit-marker-gap: 6px;
-
-  --sui-cp-cell: 26px;
-  --sui-cp-cols: 8;
-  --sui-cp-gap: var(--sui-space-1);
-  --sui-cp-pad: var(--sui-space-2);
-  --sui-cp-width: calc(
-    var(--sui-cp-cell) * var(--sui-cp-cols) + var(--sui-cp-gap) * (var(--sui-cp-cols) - 1) +
-      var(--sui-cp-pad) * 2 + 2 * var(--sui-stroke)
-  );
-  --sui-cp-hue-height: 24px;
-  --sui-cp-hue-thumb: 16px;
-  --sui-cp-area-height: 10rem;
-  --sui-cp-knob: 14px;
-
   --sui-font-size-micro: 0.6875rem;
   --sui-font-size-compact: 0.75rem;
   --sui-font-size-meta: 0.8125rem;
@@ -512,6 +500,9 @@
   --sui-symbol-tile: var(--sui-space-8);
 
   --sui-content-max: 70rem;
+  /* The longest line of running text: about 80 characters of the sans, the WCAG 1.4.8 reference.
+     In ch, so it follows the face and the text size it is set in. */
+  --sui-measure: 50ch;
 
   --sui-toc-width: 12rem;
   --sui-rail-width: 4.5rem;
@@ -601,6 +592,8 @@
   --sui-border-control: rgb(255 255 255 / 16%);
   --sui-border-divider: color-mix(in srgb, var(--sui-border-subtle) 60%, transparent);
   --sui-border-band: var(--sui-border-subtle);
+  --sui-border-contrast: rgb(255 255 255 / 40%);
+  --sui-border-contrast-hover: rgb(255 255 255 / 55%);
   --sui-control-border-hover: rgb(255 255 255 / 28%);
   --sui-avatar-ring: rgb(255 255 255 / 20%);
   --sui-text-primary: var(--sui-primitive-dark-text);
@@ -625,7 +618,7 @@
   --sui-unsaved-field-border-hover: var(--sui-unsaved-secondary);
   --sui-unsaved-field-recess: color-mix(in srgb, var(--sui-unsaved-control) 70%, #000000);
   --sui-unsaved-field-recess-hover: var(--sui-unsaved-field-recess);
-  --sui-swatch-edge-floor: 0.56;
+  --sui-swatch-edge-floor: 0.65;
   --sui-swatch-edge-ceiling: 1;
   --sui-unsaved-border: #a5772c;
   --sui-unsaved-row-hover: color-mix(in srgb, var(--sui-unsaved-ink) 8%, transparent);
@@ -778,6 +771,8 @@
     --sui-border-control: rgb(255 255 255 / 16%);
     --sui-border-divider: color-mix(in srgb, var(--sui-border-subtle) 60%, transparent);
     --sui-border-band: var(--sui-border-subtle);
+    --sui-border-contrast: rgb(255 255 255 / 40%);
+    --sui-border-contrast-hover: rgb(255 255 255 / 55%);
     --sui-control-border-hover: rgb(255 255 255 / 28%);
     --sui-avatar-ring: rgb(255 255 255 / 20%);
     --sui-text-primary: var(--sui-primitive-dark-text);
@@ -806,7 +801,7 @@
     --sui-unsaved-field-border-hover: var(--sui-unsaved-secondary);
     --sui-unsaved-field-recess: color-mix(in srgb, var(--sui-unsaved-control) 70%, #000000);
     --sui-unsaved-field-recess-hover: var(--sui-unsaved-field-recess);
-    --sui-swatch-edge-floor: 0.56;
+    --sui-swatch-edge-floor: 0.65;
     --sui-swatch-edge-ceiling: 1;
     --sui-unsaved-border: #a5772c;
     --sui-unsaved-row-hover: color-mix(in srgb, var(--sui-unsaved-ink) 8%, transparent);
@@ -940,6 +935,21 @@
     --sui-chart-3: #07aaa3;
     --sui-chart-4: #8e60d2;
     --sui-chart-5: #d4609d;
+  }
+}
+
+/* A reader who asks for more contrast, as Apple's Increase Contrast does, gets lines that hold
+   3:1 on every ground in place of the quiet hairlines and button edges (L-114). The swap is
+   important, so it outranks each theme block's own lines, and the reader's wish outranks an
+   app's override of them. */
+@media (prefers-contrast: more) {
+  :root,
+  [data-sui-theme] {
+    --sui-border-subtle: var(--sui-border-contrast) !important;
+    --sui-border-divider: var(--sui-border-contrast) !important;
+    --sui-border-band: var(--sui-border-contrast) !important;
+    --sui-border-control: var(--sui-border-contrast) !important;
+    --sui-control-border-hover: var(--sui-border-contrast-hover) !important;
   }
 }
 
