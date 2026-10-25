@@ -3,6 +3,7 @@
 </script>
 
 <script lang="ts">
+  import { untrack } from 'svelte';
   import { mark, word } from '../words.js';
   import type { Attachment } from 'svelte/attachments';
   import type { HTMLAttributes, HTMLInputAttributes } from 'svelte/elements';
@@ -127,8 +128,9 @@
     const amount = read(text);
     const seconds = amount * SECONDS[unit];
     const whole = Math.round(seconds);
-    // One second said in hours repeats forever, so conversion noise passes and a real fraction does not.
-    const noise = Number.EPSILON * SECONDS[unit] * 4;
+    // One second said in hours repeats forever, so conversion noise passes and a real fraction
+    // does not. The noise grows with the product; text in seconds is never converted.
+    const noise = unit === 'seconds' ? 0 : Number.EPSILON * Math.max(1, seconds) * 4;
     return Number.isFinite(amount) &&
       amount >= 0 &&
       Number.isSafeInteger(whole) &&
@@ -161,6 +163,10 @@
   let revealed = $state(false);
   $effect.pre(() => {
     resetKey;
+    // The owner heard the dropped draft's problem, so it hears that the problem went with it.
+    untrack(() => {
+      if (edit !== null) onproblem?.(null);
+    });
     edit = null;
     revealed = false;
   });

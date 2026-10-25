@@ -728,7 +728,7 @@ export function axis(
       ? STEPS.map((multiple) => multiple * power).find(
           (candidate) => candidate >= rough && (!whole || Number.isInteger(candidate))
         )
-      : Number.MIN_VALUE) ?? rough;
+      : Number.MIN_VALUE) ?? (whole ? 1 : rough);
   const tick = (index: number) => {
     const value = index * step;
     if (!Number.isFinite(value)) return Math.sign(value) * Number.MAX_VALUE;

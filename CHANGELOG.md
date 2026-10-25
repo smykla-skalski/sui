@@ -4,6 +4,7 @@
 
 - A narrow `ListDetail` that is not `contained` scrolls the page back to where its list stood when the way back closes an item, as a `contained` one already did with its own box.
 - Controls keep their values and drafts through unit changes, paste, discard and programmatic updates, and their disabled, validation, focus and announcement states now follow the current interaction. `DurationInput` takes `resetKey` to reset a draft when a discard may assign the identical value.
+- `IconButton` honors a caller's `aria-disabled`: it keeps focus and refuses the press, so `onclick` no longer runs. A `TextInput` held read-only by a saving `SettingRow` keeps its words at full strength.
 - A `Select`'s closed value centres on its cap band, and the last paragraph of a `Card` or a `Plate` rounds its trimmed block to the pixel, so both hold where Chrome lays a face's ascent out at half a pixel, as it does on macOS.
 - Popovers size and scroll beside inline anchors, dialogs await every promise, and save notices, theme choices and focus handoffs follow the latest action.
 - Charts retain their data at every finite scale, diffs preserve newline and Unicode changes, syntax highlighting carries the right state, and invalid times no longer receive invented readings.

@@ -57,6 +57,7 @@ class ServiceWorkerState {
   readonly offline = $derived(this.#disconnected || this.#unreachable);
 
   #registration: Registration | null = null;
+  #script = '';
   #reload: () => void;
   #probe: ReturnType<typeof setTimeout> | undefined;
   #reloaded = false;
@@ -110,6 +111,7 @@ class ServiceWorkerState {
     }
     const registration = await container.register(url, { type: 'module', scope: options.scope });
     this.#registration = registration;
+    this.#script = url;
 
     const ready = (worker: Worker) => {
       const settled = () => {
@@ -170,7 +172,14 @@ class ServiceWorkerState {
       await this.#registration.update();
       this.#reached(true);
     } catch {
-      this.#reached(false);
+      // An update also fails when the server answers with an error or a broken script, so only
+      // a request that gets no answer at all says the network is gone.
+      this.#reached(
+        await fetch(this.#script, { method: 'HEAD', cache: 'no-store' }).then(
+          () => true,
+          () => false
+        )
+      );
     }
   }
 }

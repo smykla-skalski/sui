@@ -107,13 +107,9 @@ function beside(
   rtl: boolean,
   keep: boolean
 ): Side {
-  const centre = a.top + a.height / 2;
-  const room =
-    align === 'start'
-      ? viewportHeight - a.top - VIEWPORT_MARGIN
-      : align === 'end'
-        ? a.bottom - VIEWPORT_MARGIN
-        : 2 * Math.min(centre - VIEWPORT_MARGIN, viewportHeight - centre - VIEWPORT_MARGIN);
+  // The box slides along its anchor to stay in the viewport, so all of the viewport's height is
+  // its room whatever its alignment.
+  const room = viewportHeight - 2 * VIEWPORT_MARGIN;
   floating.style.setProperty('--sui-floating-available-block', `${Math.max(0, room)}px`);
   const box = laidOut(floating);
   const rightRoom = viewportWidth - a.right - offset - VIEWPORT_MARGIN;

@@ -614,6 +614,10 @@ suite('forms', together, () => {
       await discard.click();
       assert.equal(await discard.getAttribute('data-reset'), '1');
       assert.equal(await amount.inputValue(), '30');
+      // The owner heard the draft's problem, so it hears the problem go with it: Save then saves
+      // instead of sending focus back to the amount.
+      await page.getByRole('button', { name: 'Save the cadence' }).click();
+      assert.equal(await amount.evaluate((node) => node === document.activeElement), false);
     } finally {
       await page.close();
     }
@@ -631,6 +635,10 @@ suite('forms', together, () => {
       await specimen.locator('select').selectOption('hours');
       await amount.fill('0.0002777777777777778');
       assert.match((await specimen.textContent()) ?? '', /Stored as 1 second/);
+      // 8.2 × 60 is 491.99999999999994: the noise grows with the seconds, not the unit.
+      await specimen.locator('select').selectOption('minutes');
+      await amount.fill('8.2');
+      assert.match((await specimen.textContent()) ?? '', /Stored as 492 seconds/);
     } finally {
       await page.close();
     }

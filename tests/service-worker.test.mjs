@@ -263,8 +263,9 @@ test('an unstoreable required response rejects the whole install before any cach
 /**
  * @param {unknown} waiting
  * @param {(request: Request) => Promise<Response>} fetch
+ * @param {boolean} [kept] whether the page is in the install
  */
-async function navigate(waiting, fetch) {
+async function navigate(waiting, fetch, kept = true) {
   /** @type {Record<string, (event: any) => void>} */
   const listeners = {};
   /** @type {Promise<unknown>[]} */
@@ -273,7 +274,7 @@ async function navigate(waiting, fetch) {
     /** @type {unknown} */ ({
       location: { href: `${base}service-worker.js` },
       registration: { scope: base, waiting, unregister: async () => true },
-      caches: { match: async () => new Response('installed') },
+      caches: { match: async () => (kept ? new Response('installed') : undefined) },
       clients: { claim: async () => {}, matchAll: async () => [] },
       fetch,
       skipWaiting: async () => {},
@@ -321,4 +322,6 @@ test('a waiting update pins navigation to the install; otherwise it stays networ
     }),
     'installed'
   );
+  // A page the old version never installed, such as a server-rendered one, is no error.
+  assert.equal(await navigate({}, async () => new Response('network'), false), 'network');
 });

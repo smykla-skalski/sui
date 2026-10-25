@@ -94,9 +94,9 @@ const RUNTIME_ENTRIES = 100;
  *
  * A request for an installed file is answered from the install. A navigation goes to the network
  * first, through its preload, and falls back to the installed page and then to `fallback`; while
- * a new worker waits, the installed page or fallback answers without the network. Any other file
- * a page embeds is answered from the runtime cache while the network
- * refreshes it. Everything else goes to the network untouched: other methods, other origins,
+ * a new worker waits, the installed page or fallback answers without the network, and only a page
+ * with neither goes to it. Any other file a page embeds is answered from the runtime cache while
+ * the network refreshes it. Everything else goes to the network untouched: other methods, other origins,
  * `never` paths, partial requests for files that were not installed, data the page fetches, and
  * requests that ask to skip caches. Nothing partial, failed, opaque or marked `no-store` is kept,
  * and a full storage quota only means the network answers.
@@ -203,14 +203,15 @@ export function serve(self: ServiceWorkerScope, options: ServeOptions): void {
 
   async function navigate(event: FetchLike): Promise<Response> {
     const copy = () => installed(event.request.url, { ignoreSearch: true });
-    const fromThisVersion = async () => {
-      const page =
-        (await copy()) ?? (fallback === undefined ? undefined : await installed(fallback));
-      return page ?? Response.error();
-    };
+    const fromThisVersion = async () =>
+      (await copy()) ?? (fallback === undefined ? undefined : await installed(fallback));
     // A new deploy's HTML would not match this page's installed files. Until the reader lets the
-    // waiting worker in, this version answers even when the network could serve the new deploy.
-    if (self.registration.waiting) return fromThisVersion();
+    // waiting worker in, this version answers even when the network could serve the new deploy;
+    // a page it never installed still comes from the network rather than as an error.
+    if (self.registration.waiting) {
+      const page = await fromThisVersion();
+      if (page) return page;
+    }
     const answer = network(event, event.preloadResponse);
     // The navigation's own fetch keeps going after a copy has answered, so its preload is never
     // cut off mid-flight.
@@ -222,7 +223,7 @@ export function serve(self: ServiceWorkerScope, options: ServeOptions): void {
     try {
       return await Promise.race([answer, slow.then(async () => (await copy()) ?? answer)]);
     } catch {
-      return fromThisVersion();
+      return (await fromThisVersion()) ?? Response.error();
     } finally {
       clearTimeout(timer);
     }

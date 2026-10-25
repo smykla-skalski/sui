@@ -258,6 +258,47 @@ const embed = (page, paths) =>
     paths
   );
 
+test('an update the server refuses does not read as a lost network', async (t) => {
+  const { server, browser, url } = await startSink({ dev: true });
+  t.after(async () => {
+    await browser.close();
+    await server.close();
+  });
+  const page = await browser.newPage();
+  await visit(page, url);
+  await page.evaluate(async () => {
+    const loaded = performance.getEntriesByType('resource').map((entry) => entry.name);
+    const lib = await import(
+      /* @vite-ignore */ loaded.find((name) => /\/src\/lib\/index\.ts/.test(name)) ?? ''
+    );
+    // A 500 for the worker's script, or a script that throws, rejects the update as a lost
+    // network does.
+    const registration = {
+      active: null,
+      waiting: null,
+      installing: null,
+      update: async () => {
+        throw new TypeError('A bad HTTP response code (500) was received');
+      },
+      unregister: async () => true,
+      addEventListener() {}
+    };
+    const worker = lib.registerServiceWorker('service-worker.js', {
+      container: {
+        controller: null,
+        register: async () => registration,
+        getRegistration: async () => registration,
+        addEventListener() {}
+      }
+    });
+    Object.assign(window, { worker });
+  });
+  assert.equal(
+    await holds(page, async () => /** @type {any} */ (window).worker.offline, null, brief.timeout),
+    false,
+    'a refused update said the page was offline'
+  );
+});
 test(
   'a build installs whole, works offline, and lets a new version in only on Reload',
   { ...long, timeout: 240_000 },

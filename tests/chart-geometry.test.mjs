@@ -96,6 +96,8 @@ test('positions cover both ends of a domain', () => {
 
 test('ticks fall on 1, 2, 2.5 or 5 times a power of ten', () => {
   assert.deepEqual(axis([1, 2, 3, 4]).ticks, [1, 2, 3, 4]);
+  // A lone whole value pads to a span too narrow for a whole step, so the step is one.
+  assert.deepEqual(axis([1]).ticks, [0, 1, 2]);
   assert.deepEqual(axis([12, 34], true).ticks, [0, 10, 20, 30, 40]);
   assert.deepEqual(axis([0, 0.9]).ticks, [0, 0.25, 0.5, 0.75, 1]);
   assert.deepEqual(axis([0.6, 1.4]).ticks, [0.6, 0.8, 1, 1.2, 1.4]);

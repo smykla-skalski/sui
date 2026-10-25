@@ -923,26 +923,27 @@ suite('overlays', together, () => {
         floating.style.cssText =
           'position:absolute;width:100px;max-height:var(--sui-floating-available-block);overflow:auto';
         const content = document.createElement('div');
-        content.style.blockSize = '2000px';
+        content.style.blockSize = '300px';
         floating.append(content);
         document.body.append(anchor, floating);
         floating.dataset.side = 'block-end';
         place(floating, anchor, { side: 'block-end' }, true);
         const stale = floating.style.getPropertyValue('--sui-floating-available-block');
-        anchor.style.top = '100px';
         place(floating, anchor, { side: 'inline-end', align: 'start' });
         const box = floating.getBoundingClientRect();
         return {
           stale,
           available: floating.style.getPropertyValue('--sui-floating-available-block'),
-          bottom: box.bottom,
-          scrolls: floating.scrollHeight > floating.clientHeight
+          height: box.height,
+          bottom: box.bottom
         };
       });
       assert.equal(found.stale, '48px');
-      assert.equal(found.available, '492px');
+      // Beside an anchor near the foot, the box slides up rather than shrinking to the room
+      // under the anchor's top.
+      assert.equal(found.available, '584px');
+      assert.equal(found.height, 300);
       assert.ok(found.bottom <= 592, `the inline box reaches ${found.bottom}px`);
-      assert.equal(found.scrolls, true);
     } finally {
       await page.close();
     }
