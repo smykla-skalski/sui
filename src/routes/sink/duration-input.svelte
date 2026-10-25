@@ -16,11 +16,17 @@
   let merge = $state(7200);
   let cadence = $state(30);
   let saved = $state(30);
+  let cadenceReset = $state(0);
   let problem = $state<string | null>(null);
 
   function save(): void {
     if (problem === null) saved = cadence;
     else document.getElementById('sink-duration-cadence')?.focus();
+  }
+
+  function discard(): void {
+    cadence = saved;
+    cadenceReset += 1;
   }
 </script>
 
@@ -83,12 +89,14 @@
             {id}
             aria-describedby={describedby}
             bind:value={cadence}
+            resetKey={cadenceReset}
             min={1}
             onproblem={(next) => (problem = next)}
           />
         {/snippet}
       </Field>
       <Button onclick={save}>Save the cadence</Button>
+      <Button onclick={discard} data-reset={cadenceReset}>Discard the cadence</Button>
     </div>
   </Specimen>
 </Example>

@@ -1,4 +1,12 @@
-import { NETWORK, SKIP_WAITING, byteRange, cacheNames, choose, storable } from './strategy.js';
+import {
+  NETWORK,
+  SKIP_WAITING,
+  byteRange,
+  cacheNames,
+  choose,
+  matches,
+  storable
+} from './strategy.js';
 
 export { NETWORK, SKIP_WAITING } from './strategy.js';
 
@@ -20,6 +28,7 @@ export type ServiceWorkerScope = {
   readonly location: { readonly href: string };
   readonly registration: {
     readonly scope: string;
+    readonly waiting?: unknown;
     readonly navigationPreload?: { enable(): Promise<void> };
     unregister(): Promise<boolean>;
   };
@@ -77,15 +86,16 @@ const RUNTIME_ENTRIES = 100;
  * from the app's `src/service-worker/index.ts`.
  *
  * Install fetches every build file, static file and prerendered page, and keeps them in a cache
- * named by the version only once all of them have arrived, so a version is installed whole or
- * not at all. The new worker then waits: it activates only when the page posts
+ * named by the version only once all of them have arrived and can be stored, so a version is
+ * installed whole or not at all. The new worker then waits: it activates only when the page posts
  * `{ type: 'skip-waiting' }`, which `registerServiceWorker` does when the reader presses Reload,
  * or when no page of the old version is left open. Activation deletes this worker's older
  * caches, enables navigation preload and takes control of the open pages.
  *
- * A request for an installed file is answered from the install. A navigation goes to the
- * network first, through its preload, and falls back to the installed page and then to
- * `fallback`. Any other file a page embeds is answered from the runtime cache while the network
+ * A request for an installed file is answered from the install. A navigation goes to the network
+ * first, through its preload, and falls back to the installed page and then to `fallback`; while
+ * a new worker waits, the installed page or fallback answers without the network. Any other file
+ * a page embeds is answered from the runtime cache while the network
  * refreshes it. Everything else goes to the network untouched: other methods, other origins,
  * `never` paths, partial requests for files that were not installed, data the page fetches, and
  * requests that ask to skip caches. Nothing partial, failed, opaque or marked `no-store` is kept,
@@ -109,7 +119,7 @@ export function serve(self: ServiceWorkerScope, options: ServeOptions): void {
     [...options.immutable, ...options.assets, ...options.prerendered, { path: options.fallback }]
       .map((file) => file.path)
       .filter((path): path is string => path !== undefined)
-      .filter((path) => !never.some((pattern) => pattern.test(path)))
+      .filter((path) => !never.some((pattern) => matches(pattern, path)))
       .map(address)
   );
   const rules = { base, precached, never, pages };
@@ -153,7 +163,7 @@ export function serve(self: ServiceWorkerScope, options: ServeOptions): void {
         const response = await self.fetch(
           new Request(url, { cache: hashed.has(url) ? 'default' : 'no-cache' })
         );
-        if (!response.ok) throw new TypeError(`${response.status} ${url}`);
+        if (!response.ok || !storable(response)) throw new TypeError(`${response.status} ${url}`);
         return { url, response };
       })
     );
@@ -161,9 +171,7 @@ export function serve(self: ServiceWorkerScope, options: ServeOptions): void {
     const cache = await self.caches.open(names.precache);
     try {
       await Promise.all(
-        answers
-          .filter(({ response }) => storable(response))
-          .map(async ({ url, response }) => cache.put(url, await followed(response)))
+        answers.map(async ({ url, response }) => cache.put(url, await followed(response)))
       );
     } catch (error) {
       if (!existed) await self.caches.delete(names.precache);
@@ -194,11 +202,19 @@ export function serve(self: ServiceWorkerScope, options: ServeOptions): void {
   }
 
   async function navigate(event: FetchLike): Promise<Response> {
+    const copy = () => installed(event.request.url, { ignoreSearch: true });
+    const fromThisVersion = async () => {
+      const page =
+        (await copy()) ?? (fallback === undefined ? undefined : await installed(fallback));
+      return page ?? Response.error();
+    };
+    // A new deploy's HTML would not match this page's installed files. Until the reader lets the
+    // waiting worker in, this version answers even when the network could serve the new deploy.
+    if (self.registration.waiting) return fromThisVersion();
     const answer = network(event, event.preloadResponse);
     // The navigation's own fetch keeps going after a copy has answered, so its preload is never
     // cut off mid-flight.
     event.waitUntil(answer.catch(() => {}));
-    const copy = () => installed(event.request.url, { ignoreSearch: true });
     let timer: ReturnType<typeof setTimeout> | undefined;
     const slow = new Promise<void>(
       (resolve) => (timer = setTimeout(resolve, NAVIGATION_TIMEOUT_MS))
@@ -206,9 +222,7 @@ export function serve(self: ServiceWorkerScope, options: ServeOptions): void {
     try {
       return await Promise.race([answer, slow.then(async () => (await copy()) ?? answer)]);
     } catch {
-      const page =
-        (await copy()) ?? (fallback === undefined ? undefined : await installed(fallback));
-      return page ?? Response.error();
+      return fromThisVersion();
     } finally {
       clearTimeout(timer);
     }

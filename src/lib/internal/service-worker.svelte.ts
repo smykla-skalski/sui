@@ -68,7 +68,8 @@ class ServiceWorkerState {
     const container =
       options.container ?? ('serviceWorker' in navigator ? navigator.serviceWorker : undefined);
     if (!container) return;
-    const begin = () => void this.#start(container, url, options).catch(() => {});
+    const controller = container.controller;
+    const begin = () => void this.#start(container, url, options, controller).catch(() => {});
     if (document.readyState === 'complete') begin();
     else addEventListener('load', begin, { once: true });
   }
@@ -96,7 +97,12 @@ class ServiceWorkerState {
     this.#reload();
   }
 
-  async #start(container: ServiceWorkerContainerLike, url: string, options: ServiceWorkerOptions) {
+  async #start(
+    container: ServiceWorkerContainerLike,
+    url: string,
+    options: ServiceWorkerOptions,
+    initialController: unknown
+  ) {
     if (options.dev) {
       const scope = options.scope ?? new URL('./', new URL(url, location.href)).href;
       await (await container.getRegistration(scope))?.unregister();
@@ -120,7 +126,10 @@ class ServiceWorkerState {
 
     // The first worker takes control of the page that installed it, which is no new version;
     // any later change of controller is one, whether this page let it in or another tab did.
+    // Comparing with the controller captured before `load` also catches a change another tab
+    // caused while this page was still loading and had no listener yet.
     let controlled = Boolean(container.controller);
+    if (initialController && container.controller !== initialController) this.waiting = true;
     container.addEventListener('controllerchange', () => {
       if (this.reloading) this.#reloadOnce();
       else if (controlled) this.waiting = true;
@@ -131,6 +140,7 @@ class ServiceWorkerState {
       if (report?.type === NETWORK && typeof report.online === 'boolean')
         this.#reached(report.online);
     });
+    void this.#check();
   }
 
   #watchNetwork(): void {
@@ -138,7 +148,7 @@ class ServiceWorkerState {
     addEventListener('offline', () => (this.#disconnected = true));
     addEventListener('online', () => {
       this.#disconnected = false;
-      this.#reached(true);
+      void this.#check();
     });
     document.addEventListener('visibilitychange', () => {
       if (document.visibilityState === 'visible') void this.#check();
@@ -160,7 +170,7 @@ class ServiceWorkerState {
       await this.#registration.update();
       this.#reached(true);
     } catch {
-      if (this.#unreachable) this.#reached(false);
+      this.#reached(false);
     }
   }
 }

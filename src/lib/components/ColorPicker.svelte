@@ -554,7 +554,7 @@ name is the label and the hex, such as "Label color #0f766e". `name` posts the h
         autocomplete="off"
         maxlength={7}
         oninput={typeHex}
-        onblur={() => (hexInvalid = parseHex(hexField) === null)}
+        onblur={commitHex}
       />
       <!-- The status speaks the error, so the drawn copy stays out of the tree; the field's
            description still reads it. -->

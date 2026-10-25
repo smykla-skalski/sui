@@ -44,14 +44,16 @@
 
   /* The value wraps at any character, and the box is as tall as its lines, so a long token is
      never cut. A browser that sizes a field to its content does it in CSS alone. Elsewhere the
-     height is measured again when the width changes, which moves the wraps, in the next frame,
-     so the height it sets is not a change the watcher is still reporting. */
+     height is measured again when the width or value changes. Width changes wait for the next
+     frame, so the height they set is not a change the watcher is still reporting. */
+  let measure: (() => void) | undefined;
   function fit(node: HTMLTextAreaElement) {
     if (CSS.supports('field-sizing', 'content')) return;
     const size = () => {
       node.style.blockSize = '0px';
       node.style.blockSize = `${node.scrollHeight}px`;
     };
+    measure = size;
     size();
     let frame = 0;
     const observer = new ResizeObserver(() => {
@@ -60,10 +62,16 @@
     });
     observer.observe(node.parentElement ?? node);
     return () => {
+      if (measure === size) measure = undefined;
       cancelAnimationFrame(frame);
       observer.disconnect();
     };
   }
+
+  $effect(() => {
+    void value;
+    measure?.();
+  });
 
   /* Selecting by hand is the way out when the clipboard refuses, so the value is handed over
      selected, ready for the platform's own copy. */
@@ -98,7 +106,7 @@ the text field.
 - Responsive: it fills its container, a long value wraps onto more lines with the copy action level with the first one, and the copy action keeps the width of "Copy" or "Copied"; a longer failure wraps inside it.
 - Accessibility: each part has its own name, the outcome is spoken through the copy action's status, and the value's text holds 4.5:1.
 - Localization: `copyLabel`, `copiedLabel` and `failedLabel` are props with English defaults, and the copy action sits at the inline end in either direction.
-- Performance: one text area and one button; the text area is measured again only when its width changes.
+- Performance: one text area and one button; without `field-sizing`, the text area is measured again only when its width or value changes.
 - Analytics: `oncopied` hears each copy and `oncopyfailed` each refusal.
 - Failure: a refused copy says so and hands the value over selected, so the reader can still copy it by hand.
 -->

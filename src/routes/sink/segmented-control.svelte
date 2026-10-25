@@ -37,6 +37,7 @@
   let inherited = $state<string | null>(null);
   let narrow = $state<string | null>('info');
   let narrowPeople = $state<string | null>('users');
+  let disabledLevel = $state<string | null>('debug');
 </script>
 
 <Example
@@ -88,6 +89,9 @@
       />
       <p id="sink-segmented-debug" class="reason">Debug needs a support plan</p>
     </div>
+  </Specimen>
+  <Specimen label="Selected disabled option" code="disabled: true">
+    <SegmentedControl label="Locked log level" options={levels} bind:value={disabledLevel} />
   </Specimen>
   <Specimen label="Disabled" code="disabled">
     <div class="locked">

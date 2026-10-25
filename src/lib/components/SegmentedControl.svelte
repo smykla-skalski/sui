@@ -109,7 +109,7 @@
       if (!focused) return;
       const target = () =>
         next
-          ? (box.querySelector<HTMLElement>(':scope > fieldset input:checked') ??
+          ? (box.querySelector<HTMLElement>(':scope > fieldset input:checked:enabled') ??
             box.querySelector<HTMLElement>(':scope > fieldset input:enabled'))
           : box.querySelector<HTMLElement>(':scope > .sui-segmented-picker select');
       // ponytail: the browser shows the other form on its next frame; a few frames' wait covers

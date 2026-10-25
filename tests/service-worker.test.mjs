@@ -1,6 +1,19 @@
 import assert from 'node:assert/strict';
+import { registerHooks } from 'node:module';
 import test from 'node:test';
 import { byteRange, cacheNames, choose, storable } from '../src/lib/service-worker/strategy.ts';
+
+// Node strips types but does not apply the bundler's `.js` to `.ts` source resolution.
+registerHooks({
+  resolve: (specifier, context, next) =>
+    next(
+      specifier === './strategy.js' && context.parentURL?.endsWith('/service-worker/index.ts')
+        ? './strategy.ts'
+        : specifier,
+      context
+    )
+});
+const { serve } = await import('../src/lib/service-worker/index.ts');
 
 const base = 'https://example.test/app/';
 const rules = {
@@ -99,4 +112,213 @@ test('each registration names and clears only its own caches', () => {
   assert.equal(next.prefix, root.prefix);
   assert.notEqual(next.precache, root.precache);
   assert.notEqual(next.runtime, root.runtime);
+});
+
+test('global and sticky path rules match from the start without changing lastIndex', () => {
+  const pages = /^page/g;
+  pages.lastIndex = 2;
+  const local = { ...rules, never: [], pages: [pages] };
+  for (let i = 0; i < 2; i++) {
+    assert.equal(
+      choose(
+        {
+          url: `${base}page`,
+          method: 'GET',
+          mode: 'navigate',
+          destination: 'document',
+          cache: 'default',
+          range: false
+        },
+        local
+      ),
+      'navigate'
+    );
+    assert.equal(pages.lastIndex, 2);
+  }
+
+  const never = /^api\//y;
+  never.lastIndex = 4;
+  for (let i = 0; i < 2; i++) {
+    assert.equal(
+      choose(
+        {
+          url: `${base}api/me`,
+          method: 'GET',
+          mode: 'no-cors',
+          destination: 'image',
+          cache: 'default',
+          range: false
+        },
+        { ...rules, never: [never] }
+      ),
+      'pass'
+    );
+    assert.equal(never.lastIndex, 4);
+  }
+});
+
+/**
+ * A response with the fields install validation and Cache.put use.
+ * @param {number} status
+ * @param {Record<string, string>} [headers]
+ */
+const required = (status, headers = {}) => ({
+  ok: status >= 200 && status < 300,
+  status,
+  type: 'basic',
+  headers: new Headers(headers),
+  redirected: false
+});
+
+/** @param {(request: Request) => ReturnType<typeof required>} answer */
+function installHarness(answer) {
+  /** @type {Record<string, (event: any) => void>} */
+  const listeners = {};
+  /** @type {{ fetched: string[]; opened: number; written: string[] }} */
+  const state = { fetched: [], opened: 0, written: [] };
+  const self = /** @type {import('../src/lib/service-worker/index.ts').ServiceWorkerScope} */ (
+    /** @type {unknown} */ ({
+      location: { href: `${base}service-worker.js` },
+      registration: { scope: base, waiting: null, unregister: async () => true },
+      caches: {
+        has: async () => false,
+        open: async () => {
+          state.opened++;
+          return {
+            put: async (/** @type {string} */ url) => {
+              state.written.push(url);
+            }
+          };
+        },
+        delete: async () => true
+      },
+      clients: {
+        claim: async () => {},
+        matchAll: async () => []
+      },
+      fetch: async (/** @type {Request} */ request) => {
+        state.fetched.push(request.url);
+        return answer(request);
+      },
+      skipWaiting: async () => {},
+      addEventListener: (
+        /** @type {string} */ type,
+        /** @type {(event: any) => void} */ listener
+      ) => {
+        listeners[type] = listener;
+      }
+    })
+  );
+  return { listeners, self, state };
+}
+
+/** @param {ReturnType<typeof installHarness>} harness */
+async function install(harness) {
+  /** @type {Promise<void> | undefined} */
+  let work;
+  harness.listeners.install({
+    waitUntil: (/** @type {Promise<void>} */ promise) => (work = promise)
+  });
+  assert.ok(work);
+  await work;
+}
+
+test('install path filtering is stateless with a global RegExp', async () => {
+  const never = /^never\//g;
+  const harness = installHarness(() => required(200));
+  serve(harness.self, {
+    version: '1',
+    immutable: [],
+    assets: [{ path: 'never/a' }, { path: 'never/b' }, { path: 'kept' }],
+    prerendered: [],
+    never: [never]
+  });
+  await install(harness);
+  assert.deepEqual(harness.state.fetched, [`${base}kept`]);
+  assert.deepEqual(harness.state.written, [`${base}kept`]);
+  assert.equal(never.lastIndex, 0);
+});
+
+test('an unstoreable required response rejects the whole install before any cache write', async () => {
+  for (const response of [
+    required(200, { 'cache-control': 'no-store' }),
+    required(204),
+    required(206)
+  ]) {
+    const harness = installHarness((request) =>
+      new URL(request.url).pathname.endsWith('/bad') ? response : required(200)
+    );
+    serve(harness.self, {
+      version: '1',
+      immutable: [],
+      assets: [{ path: 'good' }, { path: 'bad' }],
+      prerendered: []
+    });
+    await assert.rejects(install(harness), TypeError);
+    assert.equal(harness.state.opened, 0);
+    assert.deepEqual(harness.state.written, []);
+  }
+});
+
+/**
+ * @param {unknown} waiting
+ * @param {(request: Request) => Promise<Response>} fetch
+ */
+async function navigate(waiting, fetch) {
+  /** @type {Record<string, (event: any) => void>} */
+  const listeners = {};
+  /** @type {Promise<unknown>[]} */
+  const lifetime = [];
+  const self = /** @type {import('../src/lib/service-worker/index.ts').ServiceWorkerScope} */ (
+    /** @type {unknown} */ ({
+      location: { href: `${base}service-worker.js` },
+      registration: { scope: base, waiting, unregister: async () => true },
+      caches: { match: async () => new Response('installed') },
+      clients: { claim: async () => {}, matchAll: async () => [] },
+      fetch,
+      skipWaiting: async () => {},
+      addEventListener: (
+        /** @type {string} */ type,
+        /** @type {(event: any) => void} */ listener
+      ) => {
+        listeners[type] = listener;
+      }
+    })
+  );
+  serve(self, { version: '1', immutable: [], assets: [], prerendered: [{ path: '' }] });
+  /** @type {Promise<Response> | undefined} */
+  let answered;
+  listeners.fetch({
+    request: {
+      url: base,
+      method: 'GET',
+      mode: 'navigate',
+      destination: 'document',
+      cache: 'default',
+      headers: new Headers()
+    },
+    preloadResponse: Promise.resolve(undefined),
+    waitUntil: (/** @type {Promise<unknown>} */ work) => lifetime.push(work),
+    respondWith: (/** @type {Promise<Response>} */ response) => (answered = response)
+  });
+  assert.ok(answered);
+  const response = await answered;
+  await Promise.all(lifetime);
+  return response.text();
+}
+
+test('a waiting update pins navigation to the install; otherwise it stays network first', async () => {
+  assert.equal(await navigate(null, async () => new Response('network')), 'network');
+  assert.equal(
+    await navigate({}, async () => {
+      assert.fail('a waiting update allowed the navigation to reach the network');
+    }),
+    'installed'
+  );
+  assert.equal(
+    await navigate(null, async () => {
+      throw new TypeError('offline');
+    }),
+    'installed'
+  );
 });

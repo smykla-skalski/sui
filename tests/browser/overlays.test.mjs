@@ -9,6 +9,8 @@ let server;
 /** @type {import('./sink.mjs').SinkBrowser} */
 let browser;
 let url = '';
+/** @type {Promise<{ server: { close: () => Promise<void> }; browser: import('./sink.mjs').SinkBrowser; url: string }> | undefined} */
+let mounted;
 
 before(async () => {
   ({ server, browser, url } = await startSink());
@@ -17,7 +19,35 @@ before(async () => {
 after(async () => {
   await browser?.close();
   await server?.close();
+  const running = await mounted;
+  await running?.browser.close();
+  await running?.server.close();
 });
+
+/** A page where a test can mount a component with its own reactive props. */
+async function openMounted(options = {}) {
+  mounted ??= startSink({ dev: true });
+  const running = await mounted;
+  const page = await running.browser.newPage({
+    viewport: { width: 1280, height: 900 },
+    ...options
+  });
+  await visit(page, new URL('layouts/list-detail/', running.url).href);
+  await page.evaluate(async () => {
+    const loaded = performance.getEntriesByType('resource').map((entry) => entry.name);
+    const find = (/** @type {RegExp} */ pattern) => loaded.find((name) => pattern.test(name));
+    const lib = await import(/* @vite-ignore */ find(/\/src\/lib\/index\.ts/) ?? '');
+    const { mount, createRawSnippet, flushSync } = await import(
+      /* @vite-ignore */ find(/\.vite\/deps\/svelte\.js/) ?? ''
+    );
+    const { state, get, set } = await import(
+      /* @vite-ignore */ find(/\.vite\/deps\/svelte_internal_client\.js/) ?? ''
+    );
+    Object.assign(window, { lib, mount, createRawSnippet, flushSync, state, get, set });
+    document.body.replaceChildren();
+  });
+  return page;
+}
 
 suite('overlays', together, () => {
   /** @param {import('playwright-core').BrowserContextOptions} [options] */
@@ -800,4 +830,304 @@ suite('overlays', together, () => {
       await page.close();
     }
   });
+
+  test('a discard after a failed save keeps its notice and Undo', long, async () => {
+    const page = await openMounted();
+    try {
+      await page.evaluate(() => {
+        const { lib, mount, flushSync, state, get, set } = /** @type {any} */ (window);
+        const dirty = state(true);
+        const saving = state(false);
+        mount(lib.SaveBar, {
+          target: document.body,
+          props: {
+            get dirty() {
+              return get(dirty);
+            },
+            get saving() {
+              return get(saving);
+            },
+            onsave() {
+              set(saving, true);
+              setTimeout(() => set(saving, false), 50);
+            },
+            ondiscard() {
+              set(dirty, false);
+              return () => set(dirty, true);
+            }
+          }
+        });
+        flushSync();
+      });
+      await page.getByRole('button', { name: 'Save', exact: true }).click();
+      await page.getByRole('button', { name: 'Saving…', exact: true }).waitFor();
+      await page.getByRole('button', { name: 'Save', exact: true }).waitFor();
+      await page.getByRole('button', { name: 'Discard', exact: true }).click();
+      await page.waitForFunction(
+        () =>
+          document.querySelector('.sui-save-bar .title')?.textContent ===
+          'Your changes were discarded',
+        null,
+        brief
+      );
+      const undo = page.getByRole('button', { name: 'Undo', exact: true });
+      await undo.click();
+      await page.waitForFunction(
+        () =>
+          document.querySelector('.sui-save-bar .title')?.textContent ===
+          'You have unsaved changes',
+        null,
+        brief
+      );
+    } finally {
+      await page.close();
+    }
+  });
+
+  test('inline anchoring publishes the anchor width', long, async () => {
+    const page = await openMounted({ viewport: { width: 900, height: 600 } });
+    try {
+      const found = await page.evaluate(async () => {
+        const module = '/src/lib/internal/anchor.ts';
+        const { place } = await import(/* @vite-ignore */ module);
+        const anchor = document.createElement('button');
+        anchor.style.cssText = 'position:fixed;left:100px;top:100px;width:100px;height:40px';
+        const floating = document.createElement('div');
+        floating.style.cssText =
+          'position:absolute;width:var(--sui-floating-anchor-inline);max-height:var(--sui-floating-available-block);overflow:auto';
+        const content = document.createElement('div');
+        content.style.cssText = 'width:300px;height:2000px';
+        floating.append(content);
+        document.body.append(anchor, floating);
+        place(floating, anchor, { side: 'inline-end' });
+        return {
+          custom: floating.style.getPropertyValue('--sui-floating-anchor-inline'),
+          width: floating.getBoundingClientRect().width
+        };
+      });
+      assert.deepEqual(found, { custom: '100px', width: 100 });
+    } finally {
+      await page.close();
+    }
+  });
+
+  test('inline anchoring replaces a stale block cap with its own viewport room', long, async () => {
+    const page = await openMounted({ viewport: { width: 900, height: 600 } });
+    try {
+      const found = await page.evaluate(async () => {
+        const module = '/src/lib/internal/anchor.ts';
+        const { place } = await import(/* @vite-ignore */ module);
+        const anchor = document.createElement('button');
+        anchor.style.cssText = 'position:fixed;left:100px;top:500px;width:100px;height:40px';
+        const floating = document.createElement('div');
+        floating.style.cssText =
+          'position:absolute;width:100px;max-height:var(--sui-floating-available-block);overflow:auto';
+        const content = document.createElement('div');
+        content.style.blockSize = '2000px';
+        floating.append(content);
+        document.body.append(anchor, floating);
+        floating.dataset.side = 'block-end';
+        place(floating, anchor, { side: 'block-end' }, true);
+        const stale = floating.style.getPropertyValue('--sui-floating-available-block');
+        anchor.style.top = '100px';
+        place(floating, anchor, { side: 'inline-end', align: 'start' });
+        const box = floating.getBoundingClientRect();
+        return {
+          stale,
+          available: floating.style.getPropertyValue('--sui-floating-available-block'),
+          bottom: box.bottom,
+          scrolls: floating.scrollHeight > floating.clientHeight
+        };
+      });
+      assert.equal(found.stale, '48px');
+      assert.equal(found.available, '492px');
+      assert.ok(found.bottom <= 592, `the inline box reaches ${found.bottom}px`);
+      assert.equal(found.scrolls, true);
+    } finally {
+      await page.close();
+    }
+  });
+
+  test(
+    'a parent theme binding updates every switch and still follows the system',
+    long,
+    async () => {
+      const page = await openMounted({ colorScheme: 'dark' });
+      try {
+        await page.evaluate(() => {
+          localStorage.setItem('sui:theme', 'light');
+          const { lib, mount, flushSync, state, get, set } = /** @type {any} */ (window);
+          const value = state('system');
+          const other = state('system');
+          const binding = (/** @type {any} */ signal) => ({
+            get value() {
+              return get(signal);
+            },
+            set value(next) {
+              set(signal, next);
+            }
+          });
+          mount(lib.ThemeSwitch, {
+            target: document.body,
+            props: Object.assign(binding(value), { name: 'first-theme' })
+          });
+          mount(lib.ThemeSwitch, {
+            target: document.body,
+            props: Object.assign(binding(other), { name: 'second-theme' })
+          });
+          flushSync();
+          Object.assign(window, { parentTheme: value, otherTheme: other });
+        });
+        const checked = () =>
+          page.evaluate(() => ({
+            first: /** @type {HTMLInputElement | null} */ (
+              document.querySelector('input[name="first-theme"]:checked')
+            )?.value,
+            second: /** @type {HTMLInputElement | null} */ (
+              document.querySelector('input[name="second-theme"]:checked')
+            )?.value,
+            root: document.documentElement.dataset.suiTheme
+          }));
+        assert.deepEqual(await checked(), { first: 'light', second: 'light', root: 'light' });
+        await page.evaluate(() => {
+          const { flushSync, set, parentTheme } = /** @type {any} */ (window);
+          set(parentTheme, 'dark');
+          flushSync();
+        });
+        assert.deepEqual(await checked(), { first: 'dark', second: 'dark', root: 'dark' });
+        await page.evaluate(() => {
+          const { flushSync, set, parentTheme } = /** @type {any} */ (window);
+          set(parentTheme, 'system');
+          flushSync();
+        });
+        assert.deepEqual(await checked(), { first: 'system', second: 'system', root: 'dark' });
+      } finally {
+        await page.close();
+      }
+    }
+  );
+
+  test(
+    'an unchecked radio group is one native tab stop and can take initial dialog focus',
+    long,
+    async () => {
+      const page = await openMounted();
+      try {
+        const stops = await page.evaluate(async () => {
+          const module = '/src/lib/internal/focus.ts';
+          const { tabStops } = await import(/* @vite-ignore */ module);
+          const group = document.createElement('div');
+          group.innerHTML =
+            '<button id="before">Before</button><input id="radio-one" type="radio" name="choice"><input id="radio-two" type="radio" name="choice"><a id="after" href="#after">After</a>';
+          document.body.append(group);
+          return tabStops(group).map((/** @type {HTMLElement} */ element) => element.id);
+        });
+        assert.deepEqual(stops, ['before', 'radio-one', 'after']);
+        await page.locator('#before').focus();
+        await page.keyboard.press('Tab');
+        assert.equal(await page.evaluate(() => document.activeElement?.id), 'radio-one');
+        await page.keyboard.press('Tab');
+        assert.equal(await page.evaluate(() => document.activeElement?.id), 'after');
+        const initial = await page.evaluate(() => {
+          const { lib, mount, createRawSnippet, flushSync } = /** @type {any} */ (window);
+          mount(lib.Modal, {
+            target: document.body,
+            props: {
+              open: true,
+              title: 'Choose one',
+              children: createRawSnippet(() => ({
+                render: () =>
+                  '<input id="modal-one" type="radio" name="modal-choice"><input id="modal-two" type="radio" name="modal-choice">'
+              }))
+            }
+          });
+          flushSync();
+          return document.activeElement?.id;
+        });
+        assert.equal(initial, 'modal-one');
+      } finally {
+        await page.close();
+      }
+    }
+  );
+
+  test(
+    'confirmation waits for cross-realm promises and thenables, including rejection',
+    long,
+    async () => {
+      const page = await openMounted();
+      try {
+        await page.evaluate(() => {
+          const frame = document.createElement('iframe');
+          document.body.append(frame);
+          const ForeignPromise = /** @type {typeof Promise} */ (
+            /** @type {any} */ (frame.contentWindow).Promise
+          );
+          const { lib, mount, flushSync, state, get, set } = /** @type {any} */ (window);
+          const open = state(true);
+          let mode = 'resolve';
+          let settle = () => {};
+          mount(lib.ConfirmDialog, {
+            target: document.body,
+            props: {
+              get open() {
+                return get(open);
+              },
+              set open(next) {
+                set(open, next);
+              },
+              title: 'Finish this act?',
+              consequence: 'The dialog waits for the answer',
+              confirmLabel: 'Finish act',
+              failedLabel: () => 'The act failed',
+              onconfirm() {
+                if (mode === 'resolve')
+                  return new ForeignPromise((resolve) => {
+                    settle = () => resolve(undefined);
+                  });
+                return {
+                  then(
+                    /** @type {unknown} */ _resolve,
+                    /** @type {(reason?: unknown) => void} */ reject
+                  ) {
+                    settle = () => reject(new Error('refused'));
+                  }
+                };
+              }
+            }
+          });
+          flushSync();
+          Object.assign(window, {
+            settle: () => settle(),
+            rejectNext() {
+              mode = 'reject';
+              set(open, true);
+              flushSync();
+            }
+          });
+        });
+        const confirm = page.getByRole('button', { name: 'Finish act', exact: true });
+        await confirm.click();
+        await page.waitForSelector('dialog[open][aria-busy="true"]');
+        await page.evaluate(() => /** @type {any} */ (window).settle());
+        await page.waitForFunction(() => !document.querySelector('dialog[open]'));
+        await page.waitForTimeout(50);
+        await page.evaluate(() => /** @type {any} */ (window).rejectNext());
+        await confirm.click();
+        await page.waitForSelector('dialog[open][aria-busy="true"]');
+        await page.evaluate(() => /** @type {any} */ (window).settle());
+        await page.waitForFunction(
+          () =>
+            document
+              .querySelector('dialog[open] .sui-modal-error')
+              ?.textContent?.includes('The act failed'),
+          null,
+          brief
+        );
+        assert.equal(await page.locator('dialog[open][aria-busy="true"]').count(), 0);
+      } finally {
+        await page.close();
+      }
+    }
+  );
 });

@@ -59,7 +59,7 @@ tabular figures.
 
 - Semantics: a native `<input>` of the given `type`, named by a `<label for>` or `aria-label`; `invalid`, a caller's `aria-invalid` or a value the browser's check refused sets `aria-invalid`.
 - Content: one line of text the reader types, with an optional placeholder that is an example and never the label.
-- States: rest (the control fill, a quiet frame, a recess under its top edge darker than the frame and a 3:1 baseline), hover (a firmer frame and recess), focus (the inset fill and a flush 2px ring), invalid (a danger edge on all four sides, kept under hover and focus), read-only (no fill, no baseline and no recess), held (disabled while a busy dialog or a saving pane around it works, read only and focusable while a saving setting row does, 0.5 opacity either way) and disabled (0.5 opacity).
+- States: rest (the control fill, a quiet frame, a recess under its top edge darker than the frame and a 3:1 baseline), hover (a firmer frame and recess), focus (the inset fill and a flush 2px ring), invalid (a danger edge on all four sides, kept under hover and focus), read-only (no fill, no baseline and no recess), held (disabled while a busy dialog or a saving pane around it works, read only and focusable with full-strength words while a saving setting row does) and disabled (0.5 opacity).
 - Keyboard: the browser's own text editing; Tab moves on.
 - Pointer and touch: 34px tall on a pointer and 44px on a phone or any touch screen, with 16px text on a phone so iOS does not zoom.
 - Focus: it takes focus on a press and never moves it elsewhere.
@@ -154,13 +154,9 @@ tabular figures.
     opacity: var(--sui-disabled-opacity);
   }
 
-  /* A held value dims as a busy button does (L-40); a bare part leaves that to its host. */
+  /* A soft hold keeps the words readable; native disabled paint above supplies the dimming. */
   .sui-text-input.held {
     cursor: default;
-  }
-
-  .sui-text-input.held:not(.bare) {
-    opacity: var(--sui-disabled-opacity);
   }
 
   /* Lies over the host's edge by its own transparent border, so it keeps the full height.

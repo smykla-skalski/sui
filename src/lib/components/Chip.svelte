@@ -162,16 +162,18 @@
     const own = remover;
     const group = own?.parentElement?.parentElement;
     if (!own || !group || !onremove) return;
-    const removers = [...group.querySelectorAll<HTMLElement>('.sui-chip-remove')];
-    const at = removers.indexOf(own);
-    const next = removers[at + 1] ?? removers[at - 1] ?? group;
+    const removed = label;
+    const before = group.querySelectorAll('.sui-chip-remove').length;
+    const at = [...group.querySelectorAll<HTMLElement>('.sui-chip-remove')].indexOf(own);
     onremove();
     await tick();
-    // Still here: the caller kept the chip, or an unkeyed list reused it for the next value.
-    if (own.isConnected) return;
+    // An unkeyed list can reuse this button for another value, so count the removal instead.
+    const remaining = [...group.querySelectorAll<HTMLElement>('.sui-chip-remove')];
+    if (own.isConnected && remaining.length === before) return;
+    const next = remaining[at] ?? remaining[at - 1] ?? group;
     if (next === group && !group.hasAttribute('tabindex')) group.tabIndex = -1;
     next.focus({ preventScroll: true });
-    announce(group, removedLabel(label));
+    announce(group, removedLabel(removed));
   }
 </script>
 

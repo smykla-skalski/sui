@@ -8,9 +8,11 @@
 </script>
 
 <script lang="ts">
-  import { CopyableLinkField } from '#lib';
+  import { Button, CopyableLinkField } from '#lib';
   import Example from '../kit/Example.svelte';
   import Specimen from '../kit/Specimen.svelte';
+
+  let invitation = $state('https://panel.example.com/invite/8f3k2q');
 </script>
 
 <Example
@@ -22,8 +24,15 @@
     <CopyableLinkField
       label="Invitation link"
       hint="It works once and expires in 7 days"
-      value="https://panel.example.com/invite/8f3k2q"
+      value={invitation}
     />
+    <Button
+      onclick={() =>
+        (invitation =
+          'https://panel.example.com/invite/a-much-longer-one-time-invitation-token-that-wraps')}
+    >
+      Lengthen the invitation
+    </Button>
   </Specimen>
   <Specimen label="Without a label" code="aria-label copyLabel">
     <CopyableLinkField

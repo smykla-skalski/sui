@@ -75,7 +75,7 @@
   $effect.pre(() => {
     if (current === shown) return;
     const active = document.activeElement;
-    held = !active || active === document.body || (root?.contains(active) ?? false);
+    held = active instanceof Element && (root?.contains(active) ?? false);
     if (shown === undefined) place = scroller()?.scrollTop ?? 0;
   });
 

@@ -15,6 +15,7 @@
 
   const tiers = ['quiet', 'toolbar'] as const;
   const states = ['Rest', 'Busy', 'Disabled'] as const;
+  let softPresses = $state(0);
 </script>
 
 <Example
@@ -36,6 +37,15 @@
       />
     {/snippet}
   </Variants>
+  <Specimen label="Soft disabled" code={'aria-disabled="true"'}>
+    <IconButton
+      icon="trash"
+      label="Soft disabled action"
+      aria-disabled="true"
+      onclick={() => softPresses++}
+    />
+    <output id="sink-soft-presses">{softPresses}</output>
+  </Specimen>
 </Example>
 
 <Example

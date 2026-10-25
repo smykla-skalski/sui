@@ -14,6 +14,7 @@
 
   let few = $state(['main', 'release/*', 'hotfix/*']);
   let paths = $state<string[]>([]);
+  let added = $state<string[]>([]);
   let branches = $state(['release/*', 'main', 'hotfix/ urgent', 'main']);
   let many = $state([
     'docs/**',
@@ -72,7 +73,12 @@
     />
   </Specimen>
   <Specimen label="Empty" code="bind:value">
-    <PatternEntries bind:value={paths} aria-label="Paths to skip" />
+    <PatternEntries
+      bind:value={paths}
+      aria-label="Paths to skip"
+      onadd={(pattern) => (added = [...added, pattern])}
+    />
+    <output id="sink-pattern-added">{added.join(',')}</output>
   </Specimen>
   <Specimen label="A few entries" code="bind:value">
     <PatternEntries

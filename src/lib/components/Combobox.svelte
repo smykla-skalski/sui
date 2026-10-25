@@ -97,7 +97,6 @@
   const optionId = (index: number) => `${uid}-option-${index}`;
 
   let open = $state(false);
-  let focused = $state(false);
   /* The field shows `query` instead of the committed label. A draft the reader left behind
      holds only while `value` is still what the draft left, so an owner's new value shows. */
   let typed = $state(false);
@@ -115,7 +114,7 @@
 
   const known = $derived([...options, ...found].find((option) => option.value === value));
   const shown = $derived(known?.label ?? value);
-  const drafting = $derived(typed && (focused || typedFor === value));
+  const drafting = $derived(typed && typedFor === value);
   const asked = $derived(drafting ? query.trim() : '');
   const needle = $derived(asked.toLowerCase());
   const hits = $derived(
@@ -150,8 +149,8 @@
           0,
           visible.findIndex((option) => option.value === value)
         )
-      : navigated
-        ? active
+      : navigated && rows > 0
+        ? Math.min(active, rows - 1)
         : -1
   );
   const listLabel = $derived(
@@ -182,7 +181,7 @@
 
   // Scrolls the list alone: the box is fixed in the top layer, and scrollIntoView could move the page.
   function reveal(): void {
-    const row = document.getElementById(optionId(active));
+    const row = document.getElementById(optionId(current));
     if (!list || !row) return;
     const view = list.getBoundingClientRect();
     const box = row.getBoundingClientRect();
@@ -266,6 +265,10 @@
      screen as a draft while the value it replaced is cleared. */
   function settle(): void {
     if (!typed) return;
+    if (!drafting) {
+      typed = false;
+      return;
+    }
     if (asked === '') commit('');
     else if (match) commit(match.value);
     else if (free) commit(asked);
@@ -277,6 +280,7 @@
   }
 
   function oninput(event: Event): void {
+    if (!drafting) typedFor = value;
     query = (event.currentTarget as HTMLInputElement).value;
     typed = true;
     open = true;
@@ -291,12 +295,12 @@
       if (!open) return show(true);
       if (rows === 0) return;
       const by = event.key === 'ArrowDown' ? 1 : -1;
-      active = navigated ? step(active, by) : by === 1 ? 0 : rows - 1;
+      active = navigated ? step(current, by) : by === 1 ? 0 : rows - 1;
       navigated = true;
       reveal();
     } else if (event.key === 'Enter' && listed && navigated) {
       event.preventDefault();
-      take(active);
+      take(current);
     } else if (event.key === 'Enter') {
       // The form sends after this handler, so the value it posts must already be written.
       settle();
@@ -311,13 +315,11 @@
 
   function onfocus(): void {
     if (typed && typedFor !== value) typed = false;
-    focused = true;
   }
 
   function onblur(): void {
     settle();
     hide();
-    focused = false;
   }
 </script>
 

@@ -621,9 +621,9 @@ export function heatmapLayout(input: {
 }
 
 /**
- * Keeps the lowest and the highest point of each of `columns` slices of the domain, in order,
- * so a line through far more points than the plot has pixels draws the same peaks for a
- * fraction of the path.
+ * Keeps the first and last points and the lowest and highest point of each of `columns` slices
+ * of the domain, in order, so a line through far more points than the plot has pixels draws the
+ * same peaks for a fraction of the path.
  */
 export function thin(
   points: ChartPoint[],
@@ -631,6 +631,7 @@ export function thin(
   domain: [number, number]
 ): ChartPoint[] {
   if (points.length <= columns * 2) return points;
+  const sorted = [...points].sort((a, b) => a.x - b.x);
   const kept: ChartPoint[] = [];
   const span = domain[1] - domain[0] || 1;
   let slice = -1;
@@ -641,7 +642,7 @@ export function thin(
     if (low === high) kept.push(low);
     else kept.push(...(low.x <= high.x ? [low, high] : [high, low]));
   };
-  for (const point of [...points].sort((a, b) => a.x - b.x)) {
+  for (const point of sorted) {
     const at = Math.min(columns - 1, Math.floor(((point.x - domain[0]) / span) * columns));
     if (at !== slice) {
       flush();
@@ -653,6 +654,8 @@ export function thin(
     }
   }
   flush();
+  if (kept[0] !== sorted[0]) kept.unshift(sorted[0]);
+  if (kept.at(-1) !== sorted.at(-1)) kept.push(sorted[sorted.length - 1]);
   return kept;
 }
 
@@ -686,14 +689,21 @@ export function extent(values: number[], includeZero = false): [number, number] 
   }
   if (minimum === maximum) {
     const padding = Math.abs(minimum) * 0.1 || 1;
-    return [minimum - padding, maximum + padding];
+    const lower = minimum - padding;
+    const upper = maximum + padding;
+    return [
+      Number.isFinite(lower) ? lower : -Number.MAX_VALUE,
+      Number.isFinite(upper) ? upper : Number.MAX_VALUE
+    ];
   }
   return [minimum, maximum];
 }
 
 /** Where `value` falls along `domain`, 0 at its start and 1 at its end. */
 export function fraction(value: number, domain: [number, number]): number {
-  return (value - domain[0]) / (domain[1] - domain[0]);
+  const span = domain[1] - domain[0];
+  if (Number.isFinite(span)) return (value - domain[0]) / span;
+  return (value / 2 - domain[0] / 2) / (domain[1] / 2 - domain[0] / 2);
 }
 
 const STEPS = [1, 2, 2.5, 5, 10];
@@ -709,19 +719,37 @@ export function axis(
 ): { domain: [number, number]; ticks: number[] } {
   const [minimum, maximum] = extent(values, includeZero);
   const whole = values.every((value) => !Number.isFinite(value) || Number.isInteger(value));
-  const rough = (maximum - minimum) / (count - 1);
+  // Divide before subtracting so opposite finite extremes cannot overflow the range.
+  const measured = maximum / (count - 1) - minimum / (count - 1);
+  const rough = measured || Number.MIN_VALUE;
   const power = 10 ** Math.floor(Math.log10(rough));
   const step =
-    STEPS.map((multiple) => multiple * power).find(
-      (candidate) => candidate >= rough && (!whole || Number.isInteger(candidate))
-    ) ?? 1;
-  const decimals = Math.max(0, 1 - Math.floor(Math.log10(step)));
-  // The epsilon stops a quotient such as 0.6 / 0.2 = 2.9999… from adding a tick past the data.
-  const first = Math.floor(minimum / step + 1e-9);
-  const last = Math.ceil(maximum / step - 1e-9);
-  const ticks = Array.from({ length: last - first + 1 }, (_, index) =>
-    Number(((first + index) * step).toFixed(decimals))
-  );
+    (power > 0
+      ? STEPS.map((multiple) => multiple * power).find(
+          (candidate) => candidate >= rough && (!whole || Number.isInteger(candidate))
+        )
+      : Number.MIN_VALUE) ?? rough;
+  const tick = (index: number) => {
+    const value = index * step;
+    if (!Number.isFinite(value)) return Math.sign(value) * Number.MAX_VALUE;
+    return Math.abs(value) < 1e15 ? Number(value.toPrecision(15)) : value;
+  };
+  const edge = (quotient: number, direction: -1 | 1) => {
+    const nearest = Math.round(quotient);
+    if (Math.abs(quotient - nearest) < 1e-9) {
+      const value = tick(nearest);
+      if ((direction === -1 && value >= minimum) || (direction === 1 && value <= maximum))
+        return nearest;
+    }
+    return direction === -1 ? Math.floor(quotient) : Math.ceil(quotient);
+  };
+  const first = edge(minimum / step, -1);
+  const last = edge(maximum / step, 1);
+  if (first === last) return { domain: [minimum, maximum], ticks: [minimum, maximum] };
+  const ticks = Array.from({ length: last - first + 1 }, (_, index) => tick(first + index));
+  // Rounding a readable tick must never move the domain inside the data.
+  if (ticks[0] > minimum) ticks[0] = minimum;
+  if (ticks[ticks.length - 1] < maximum) ticks[ticks.length - 1] = maximum;
   return { domain: [ticks[0], ticks[ticks.length - 1]], ticks };
 }
 

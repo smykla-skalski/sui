@@ -48,6 +48,139 @@ suite('the kitchen sink', together, () => {
   const everyday = (/** @type {number} */ width, /** @type {string} */ theme) =>
     (width === 375 && theme === 'light') || (width === 1440 && theme === 'dark');
 
+  test('diff, code, and time regressions hold in their public API and rendering', async () => {
+    const dev = await startSink({ dev: true });
+    const page = await dev.browser.newPage();
+    try {
+      await visit(page, dev.url);
+      const result = await page.evaluate(async () => {
+        const diff = /** @type {any} */ (await import('/src/lib/components/DiffBlock.svelte'));
+        const code = /** @type {any} */ (await import('/src/lib/components/CodeBlock.svelte'));
+        const { default: RelativeTime } = await import('/src/lib/components/RelativeTime.svelte');
+        const formatPath = '/src/lib/charts/format.ts';
+        const format = /** @type {any} */ (await import(/* @vite-ignore */ formatPath));
+        const loaded = performance.getEntriesByType('resource').map((entry) => entry.name);
+        const sveltePath = loaded.find((name) => /\.vite\/deps\/svelte\.js/.test(name)) ?? '';
+        const { mount, flushSync } = await import(/* @vite-ignore */ sveltePath);
+        const both = diff.unifiedDiff('x😀y', 'x😃y');
+        const host = document.createElement('div');
+        document.body.append(host);
+        const eof = document.createElement('div');
+        eof.id = 'eof-diff';
+        host.append(eof);
+        mount(diff.default, { target: eof, props: { before: 'a', after: 'a\n' } });
+        const carried = document.createElement('div');
+        carried.id = 'carried-diff';
+        host.append(carried);
+        mount(diff.default, {
+          target: carried,
+          props: {
+            lang: 'shell',
+            lines: [
+              { op: ' ', text: 'echo "first' },
+              { op: ' ', text: 'second" && echo ok' }
+            ]
+          }
+        });
+        const separate = document.createElement('div');
+        separate.id = 'separate-diff';
+        host.append(separate);
+        mount(diff.default, {
+          target: separate,
+          props: {
+            lang: 'shell',
+            lines: [
+              { op: '-', text: 'echo "removed' },
+              { op: '+', text: 'echo added' }
+            ]
+          }
+        });
+        const invalid = document.createElement('div');
+        invalid.id = 'invalid-time';
+        host.append(invalid);
+        let exactLabels = 0;
+        mount(RelativeTime, {
+          target: invalid,
+          props: {
+            value: 'not-a-date',
+            exactLabel: (/** @type {string} */ time) => {
+              exactLabels += 1;
+              return `, exactly ${time}`;
+            }
+          }
+        });
+        flushSync();
+        return {
+          exactLabels,
+          eofAdded: diff.unifiedDiff('a', 'a\n'),
+          eofRemoved: diff.unifiedDiff('a\n', 'a'),
+          emptyAdded: diff.unifiedDiff('', '\n'),
+          emptyRemoved: diff.unifiedDiff('\n', ''),
+          prefix: diff.unifiedDiff('x😀', 'x😃')[0].emphasis,
+          suffix: diff.unifiedDiff('😀x', '😃x')[0].emphasis,
+          both: both[0].emphasis,
+          marked: diff
+            .emphasize([{ text: 'x😀y' }], both[0].emphasis)
+            .filter((/** @type {{ word?: boolean }} */ piece) => piece.word)
+            .map((/** @type {{ text: string }} */ piece) => piece.text),
+          toml: ['[owner]', '[[products]]'].map((line) => code.tokenizeLine('toml', line)),
+          json: code
+            .tokenizeLine('json', '{"small":1e-9,"large":-2.5E+12}')
+            .filter((/** @type {{ cls?: string }} */ piece) => piece.cls === 'tok-const')
+            .map((/** @type {{ text: string }} */ piece) => piece.text),
+          clipped: [format.clip('abc', 0), format.clip('abc', -2), format.clip('abc', 1)]
+        };
+      });
+      assert.deepEqual(result.eofAdded, [
+        { op: ' ', text: 'a' },
+        { op: '+', text: '' }
+      ]);
+      assert.deepEqual(result.eofRemoved, [
+        { op: ' ', text: 'a' },
+        { op: '-', text: '' }
+      ]);
+      assert.deepEqual(result.emptyAdded, [{ op: '+', text: '' }]);
+      assert.deepEqual(result.emptyRemoved, [{ op: '-', text: '' }]);
+      assert.deepEqual(result.prefix, [[1, 3]]);
+      assert.deepEqual(result.suffix, [[0, 2]]);
+      assert.deepEqual(result.both, [[1, 3]]);
+      assert.deepEqual(result.marked, ['😀']);
+      assert.deepEqual(result.toml, [
+        [{ cls: 'tok-head', text: '[owner]' }],
+        [{ cls: 'tok-head', text: '[[products]]' }]
+      ]);
+      assert.deepEqual(result.json, ['1e-9', '-2.5E+12']);
+      assert.deepEqual(result.clipped, ['', '', '…']);
+
+      const eofRows = page.locator('#eof-diff .ln');
+      assert.equal(await eofRows.count(), 2);
+      assert.equal(await eofRows.nth(1).getAttribute('data-op'), '+');
+      assert.equal(await eofRows.nth(1).locator('.src').textContent(), '');
+      assert.match(await page.locator('#eof-diff pre').ariaSnapshot(), /Added/);
+      assert.equal(
+        await page.locator('#carried-diff .ln').nth(1).locator('.src .tok-str').textContent(),
+        'second"'
+      );
+      assert.equal(
+        await page.locator('#separate-diff .ln').nth(1).locator('.src .tok-head').textContent(),
+        'echo'
+      );
+      const time = page.locator('#invalid-time time');
+      assert.equal(result.exactLabels, 0);
+      assert.equal(await time.textContent(), 'not-a-date');
+      assert.equal(await time.getAttribute('aria-label'), null);
+      assert.equal(await time.getAttribute('datetime'), null);
+      assert.equal(await time.getAttribute('tabindex'), null);
+      assert.match(await time.ariaSnapshot(), /not-a-date/);
+      await time.hover();
+      assert.equal(await page.locator('#invalid-time .sui-tooltip').count(), 0);
+    } finally {
+      await page.close();
+      await dev.browser.close();
+      await dev.server.close();
+    }
+  });
+
   suite('the law audit', together, () => {
     for (const width of WIDTHS)
       for (const theme of THEMES)

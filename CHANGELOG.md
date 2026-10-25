@@ -3,6 +3,10 @@
 ## Unreleased
 
 - A narrow `ListDetail` that is not `contained` scrolls the page back to where its list stood when the way back closes an item, as a `contained` one already did with its own box.
+- Controls keep their values and drafts through unit changes, paste, discard and programmatic updates, and their disabled, validation, focus and announcement states now follow the current interaction. `DurationInput` takes `resetKey` to reset a draft when a discard may assign the identical value.
+- Popovers size and scroll beside inline anchors, dialogs await every promise, and save notices, theme choices and focus handoffs follow the latest action.
+- Charts retain their data at every finite scale, diffs preserve newline and Unicode changes, syntax highlighting carries the right state, and invalid times no longer receive invented readings.
+- Offline installs are atomic, cache rules are repeatable, updates wait for consent across navigations and tabs, and connectivity notices follow actual server answers.
 
 ## 0.3.1
 

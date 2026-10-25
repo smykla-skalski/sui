@@ -12,6 +12,7 @@
     element = $bindable(null),
     class: className = '',
     onclick,
+    'aria-disabled': ariaDisabled,
     ...rest
   }: {
     /** A glyph every reader reads the same way, such as close, more, search, trash or settings. */
@@ -27,9 +28,11 @@
     class?: HTMLButtonAttributes['class'];
   } & Omit<HTMLButtonAttributes, 'children' | 'aria-label'> = $props();
 
-  /* `disabled` would drop a focused button's focus to the body, so a busy one keeps its place
-     in the tab order and refuses the press itself, as `Button` does. */
-  const refusing = $derived(busy && !disabled);
+  /* `disabled` would drop a focused button's focus to the body, so a busy or soft-disabled one
+     keeps its place in the tab order and refuses the press itself, as `Button` does. */
+  const refusing = $derived(
+    (busy || ariaDisabled === true || ariaDisabled === 'true') && !disabled
+  );
 
   function press(event: MouseEvent & { currentTarget: EventTarget & HTMLButtonElement }) {
     if (refusing) event.preventDefault();
@@ -50,16 +53,16 @@ action are a `Button` with the word beside the glyph.
 
 - Semantics: a native `<button type="button">` named by `label` through `aria-label`, with the glyph hidden.
 - Content: one glyph from the certain set; the label is a verb phrase such as "Remove the rule".
-- States: rest (muted glyph), hover and open (`aria-expanded`, a veil and primary ink), focus (a flush 2px ring), pressed (a deeper veil, an inset shadow and a 1px sink), busy (a spinner in place of the glyph, at full strength) and disabled (0.5 opacity).
-- Keyboard: Tab reaches it and Enter or Space presses it; a busy one refuses both and keeps focus.
+- States: rest (muted glyph), hover and open (`aria-expanded`, a veil and primary ink), focus (a flush 2px ring), pressed (a deeper veil, an inset shadow and a 1px sink), busy (a spinner in place of the glyph, at full strength), soft-disabled by `aria-disabled` and disabled (0.5 opacity).
+- Keyboard: Tab reaches it and Enter or Space presses it; a busy or soft-disabled one refuses both and keeps focus.
 - Pointer and touch: 28px square, or 34px with `toolbar`, and a 44px hit area on a phone or any touch screen.
-- Focus: a press never moves focus and a busy button keeps it; the caller moves focus when the press removes the button.
+- Focus: a press never moves focus and a busy or soft-disabled button keeps it; the caller moves focus when the press removes the button.
 - Responsive: square at its tier at every width, never taking a text button's padding.
-- Accessibility: the label is the name and the tooltip, `busy` sets `aria-busy` and `aria-disabled`, and forced colours outline its hover and open states.
+- Accessibility: the label is the name and the tooltip, `busy` sets `aria-busy` and `aria-disabled`, a caller's `aria-disabled` is honored, and forced colours outline its hover and open states.
 - Localization: `label` is the only word and comes from the caller; directional glyphs mirror in a right-to-left page.
 - Performance: one element and a tooltip that mounts only while shown; only colours, the inset shadow and the 1px sink move, and the spinner stops under reduced motion.
-- Analytics: `onclick` reports each press that runs; a press while busy never calls it.
-- Failure: a press while busy does nothing, and a spinner that stops under reduced motion still differs from the glyph, so busy never reads as disabled alone.
+- Analytics: `onclick` reports each press that runs; a press while busy or soft-disabled never calls it.
+- Failure: a press while busy or soft-disabled does nothing, and a spinner that stops under reduced motion still differs from the glyph, so busy never reads as disabled alone.
 -->
 
 <button

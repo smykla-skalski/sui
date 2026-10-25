@@ -106,7 +106,7 @@
   const whole = $derived(valid ? exact(at, language) : String(value));
   /* A time inside no control is a tab stop of its own, so the keyboard can show its whole
      instant; inside a control, that control's focus shows it. */
-  const alone = $derived(!exactOnly && !element?.parentElement?.closest(FOCUSABLE));
+  const alone = $derived(valid && !exactOnly && !element?.parentElement?.closest(FOCUSABLE));
 </script>
 
 <!--
@@ -123,9 +123,9 @@ underline says a tooltip is there, and the hover area grows through a pseudo-ele
 line it sits in keeps its height. `exact` shows the whole instant in place and drops the
 tooltip.
 
-- Semantics: a `time` with a machine-readable `datetime`, read as the relative words and then `exactLabel` with the whole instant.
+- Semantics: a valid value is a `time` with a machine-readable `datetime`, read as the relative words and then `exactLabel` with the whole instant; an invalid one is only its raw text.
 - Content: one reading, "4 minutes ago" or "in 3 days", turning into the date a week out; the whole instant with seconds and its zone.
-- States: relative (dotted underline, the tip on hover and long press), hover (the secondary ink), and `exact` (the whole instant in place, free to wrap).
+- States: relative (dotted underline, the tip on hover and long press), hover (the secondary ink), `exact` (the whole instant in place, free to wrap), and invalid (raw text without a tip).
 - Keyboard: outside any control it is a tab stop that shows the tip; inside a control, that control's focus shows the tip; Escape closes it.
 - Pointer and touch: the hover area reaches 8px above and below and 6px to each side; a 500ms press shows the tip on touch, with the system's long-press menu and word selection held off.
 - Focus: outside any control it takes focus and wears the 2px ring; it never moves focus.
@@ -134,7 +134,7 @@ tooltip.
 - Localization: words, numbers, the hour cycle and the zone follow `locale`, else the page's `lang`; `exactLabel` carries the joining words; the underline and hover area are symmetric, so nothing mirrors.
 - Performance: every instance shares the page's one 30-second clock, and the tooltip exists only once the time is in the page.
 - Analytics: none; a time reports no outcome.
-- Failure: a value that is not a date is shown as given, with no relative reading, so a bad record never reads "Invalid Date".
+- Failure: a value that is not a date is shown as given, with no `datetime`, exact reading, tab stop or tip, so a bad record never reads "Invalid Date".
 -->
 
 <!-- The tip is mounted once the element exists, so the server never writes its block box into
@@ -144,14 +144,16 @@ tooltip.
 <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
 <time
   bind:this={element}
-  aria-label={exactOnly ? undefined : `${resting}${exactLabel(whole)}`}
+  aria-label={valid && !exactOnly ? `${resting}${exactLabel(whole)}` : undefined}
   {...rest}
-  class={['sui-relative-time', className, { exact: exactOnly }]}
+  class={['sui-relative-time', className, { exact: exactOnly || !valid }]}
   tabindex={alone ? 0 : undefined}
-  datetime={valid ? new Date(at).toISOString() : String(value)}
+  datetime={valid ? new Date(at).toISOString() : undefined}
 >
-  {#if exactOnly}{whole}{:else}{resting}<VisuallyHidden>{exactLabel(whole)}</VisuallyHidden>{/if}
-</time>{#if element && !exactOnly}<Tooltip anchor={element} text={whole} />{/if}
+  {#if exactOnly}{whole}{:else}{resting}{#if valid}<VisuallyHidden
+        >{exactLabel(whole)}</VisuallyHidden
+      >{/if}{/if}
+</time>{#if element && valid && !exactOnly}<Tooltip anchor={element} text={whole} />{/if}
 
 <style>
   /* A dotted underline with room between its dots: a native dotted line spaces its dots one

@@ -16,7 +16,7 @@
   function tokenizeJson(line: string): TokenRun[] {
     const out: TokenRun[] = [];
     const re =
-      /("(?:[^"\\]|\\.)*")(\s*:)?|(\/\/.*$)|(-?\d+(?:\.\d+)?)|\b(true|false|null)\b|([{}[\],:])/g;
+      /("(?:[^"\\]|\\.)*")(\s*:)?|(\/\/.*$)|(-?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?)|\b(true|false|null)\b|([{}[\],:])/g;
     let last = 0;
     let match;
     while ((match = re.exec(line))) {
@@ -79,7 +79,7 @@
 
   function tokenizeToml(line: string): TokenRun[] {
     if (/^\s*#/u.test(line)) return run(line, 'tok-com');
-    if (/^\s*\[\[?.+\]\]?\]\s*(?:#.*)?$/u.test(line)) return run(line, 'tok-head');
+    if (/^\s*(?:\[\[.+\]\]|\[.+\])\s*(?:#.*)?$/u.test(line)) return run(line, 'tok-head');
     const entry = /^(\s*)([\w.-]+)(\s*=\s*)(.*)$/u.exec(line);
     if (entry === null) return run(line);
     return [

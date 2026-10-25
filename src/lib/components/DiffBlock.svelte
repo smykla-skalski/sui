@@ -4,7 +4,7 @@
   /** Kept, added, removed, or changed in place (a prepared line only). */
   export type DiffOp = ' ' | '+' | '-' | '~';
 
-  /** [start, end) offsets of the emphasised stretch of a line. */
+  /** [start, end) UTF-16 offsets of the emphasised stretch, at grapheme boundaries. */
   export type DiffEmphasis = readonly [number, number];
 
   /** One rendered line of a unified diff. */
@@ -27,6 +27,8 @@
    */
   export function unifiedDiff(before: string, after: string): DiffLine[] {
     const whole = { a: splitLines(before), b: splitLines(after) };
+    if (before !== '' && after !== '' && before.endsWith('\n') !== after.endsWith('\n'))
+      (before.endsWith('\n') ? whole.a : whole.b).push('');
     let head = 0;
     while (head < whole.a.length && head < whole.b.length && whole.a[head] === whole.b[head])
       head += 1;
@@ -101,20 +103,23 @@
     return text === '' ? [] : text.replace(/\n$/, '').split('\n');
   }
 
+  const GRAPHEMES = new Intl.Segmenter(undefined, { granularity: 'grapheme' });
+
   function withEmphasis(op: '+' | '-', text: string, other: string | null): DiffLine {
     if (other === null || other === text) return { op, text };
-    const shortest = Math.min(text.length, other.length);
-    let prefix = 0;
-    while (prefix < shortest && text[prefix] === other[prefix]) prefix += 1;
+    const a = [...GRAPHEMES.segment(text)].map((part) => part.segment);
+    const b = [...GRAPHEMES.segment(other)].map((part) => part.segment);
+    const shortest = Math.min(a.length, b.length);
+    let common = 0;
+    while (common < shortest && a[common] === b[common]) common += 1;
     let suffix = 0;
-    while (
-      suffix < shortest - prefix &&
-      text[text.length - 1 - suffix] === other[other.length - 1 - suffix]
-    ) {
+    while (suffix < shortest - common && a[a.length - 1 - suffix] === b[b.length - 1 - suffix])
       suffix += 1;
-    }
-    const end = text.length - suffix;
-    return end > prefix ? { op, text, emphasis: [[prefix, end]] } : { op, text };
+    let start = 0;
+    for (let at = 0; at < common; at += 1) start += a[at].length;
+    let end = text.length;
+    for (let at = 0; at < suffix; at += 1) end -= a[a.length - 1 - at].length;
+    return end > start ? { op, text, emphasis: [[start, end]] } : { op, text };
   }
 
   /** Re-cuts token runs so the stretches inside `ranges` are marked, splitting a run at an edge. */
@@ -144,7 +149,7 @@
 <script lang="ts">
   import { mark as joiner, word } from '../words.js';
   import type { HTMLAttributes } from 'svelte/elements';
-  import { tokenizeLine, watchOverflow, type CodeLang } from './CodeBlock.svelte';
+  import { tokenizeLines, watchOverflow, type CodeLang } from './CodeBlock.svelte';
   import VisuallyHidden from './VisuallyHidden.svelte';
   import '../internal/scroll-edge.css';
 
@@ -182,6 +187,22 @@
   } & HTMLAttributes<HTMLElement> = $props();
 
   const lines = $derived(prepared ?? unifiedDiff(before, after));
+  const tokens = $derived.by(() => {
+    const out: TokenRun[][] = lines.map(() => []);
+    // Removed and added rows are different documents. Carry shell state through each version,
+    // then show the added version's state on rows they share.
+    for (const added of [false, true]) {
+      const indexes = lines.flatMap((line, index) =>
+        (added ? line.op !== '-' : line.op !== '+') ? [index] : []
+      );
+      const runs = tokenizeLines(
+        lang,
+        indexes.map((index) => lines[index].text)
+      );
+      indexes.forEach((index, at) => (out[index] = runs[at]));
+    }
+    return out;
+  });
   const glyph: Record<DiffOp, string> = { ' ': '', '+': '+', '-': '−', '~': '~' };
   // The changed stretch is marked in the document, not only in colour: inserted, deleted, or
   // changed in place.
@@ -205,7 +226,8 @@ inside a paired line is a step deeper again and underlined in the line's ink, ma
 inserted, deleted or changed.
 
 Line numbers count the window, not the file, and only kept lines wear one: an added or
-removed line has no single number to claim. Two empty sides say `emptyLabel`.
+removed line has no single number to claim. A change only in the final newline draws an added
+or removed empty line. Two empty sides say `emptyLabel`.
 
 - Semantics: a `figure` whose `figcaption` holds the file name and the two sources; the lines are a `pre`, a scroller that scrolls is a focusable `region`, and changed stretches are `ins`, `del` and `mark`.
 - Content: two texts or prepared lines in one of seven languages; long lines never wrap and scroll sideways instead.
@@ -251,7 +273,7 @@ removed line has no single number to claim. Two empty sides say `emptyLabel`.
                   >{opLabels[line.op]}{joiner('space')}</VisuallyHidden
                 >{/if}</span
             ><span class="src"
-              >{#each emphasize(tokenizeLine(lang, line.text), line.emphasis) as piece, at (at)}{#if piece.word}<svelte:element
+              >{#each emphasize(tokens[index], line.emphasis) as piece, at (at)}{#if piece.word}<svelte:element
                     this={mark[line.op]}
                     class={[piece.cls, 'word']}>{piece.text}</svelte:element
                   >{:else}<span class={piece.cls}>{piece.text}</span>{/if}{/each}</span

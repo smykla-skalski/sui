@@ -39,6 +39,7 @@
   ] as const;
 
   let labels = $state(['topology/zone', 'team:platform', 'env=production', 'v2.9.1']);
+  let unkeyed = $state(['first', 'second', 'third']);
 </script>
 
 <Example
@@ -105,6 +106,17 @@
         <Chip mono {label} onremove={() => (labels = labels.filter((other) => other !== label))} />
       {:else}
         <span class="empty">No labels</span>
+      {/each}
+    </div>
+  </Specimen>
+  <Specimen label="Unkeyed remove and refocus" code="onremove">
+    <div class="group" role="group" aria-label="Unkeyed labels">
+      {#each unkeyed as label}
+        <Chip
+          mono
+          {label}
+          onremove={() => (unkeyed = unkeyed.filter((other) => other !== label))}
+        />
       {/each}
     </div>
   </Specimen>
