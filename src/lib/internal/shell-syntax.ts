@@ -56,17 +56,17 @@ const ASSIGNMENT = /^([A-Za-z_]\w*(?:\[[^\]]*\])?)(\+?=)/;
 
 type Stop = ')' | '`';
 
-/** What a line leaves open for the next: a quote, a continued command, or a here-document. */
+/** What a line leaves open for the next: a quote, a continued command, or here-documents. */
 interface Carry {
   quote?: "'" | '"';
   continued: boolean;
-  heredoc?: { end: string; strip: boolean };
+  heredocs: { end: string; strip: boolean }[];
 }
 
 class Line {
   out: TokenRun[] = [];
   at = 0;
-  heredoc?: Carry['heredoc'];
+  heredocs: Carry['heredocs'] = [];
   readonly text: string;
   readonly carry: Carry;
 
@@ -91,7 +91,7 @@ class Line {
   }
 
   /** Statements up to `stop`, or to the end of the line. */
-  statements(command: boolean, stop?: Stop): void {
+  statements(command: boolean | 'time', stop?: Stop): void {
     let target = false;
     while (this.at < this.text.length) {
       const char = this.text[this.at];
@@ -131,20 +131,20 @@ class Line {
     this.push(found[1]);
     this.push(found[2], PUNCT);
     this.at = HEREDOC.lastIndex;
-    this.heredoc = { end: found[4], strip };
+    this.heredocs.push({ end: found[4], strip });
   }
 
-  /** One word, colored by what its literal head says it is; returns whether a command may follow. */
-  word(command: boolean, stop?: Stop): boolean {
+  /** One word, colored by its role; `time` keeps expecting a command through its options. */
+  word(command: boolean | 'time', stop?: Stop): boolean | 'time' {
     BARE.lastIndex = this.at;
     const head = BARE.exec(this.text)?.[0] ?? '';
     if (command && RESERVED.has(head) && this.ends(this.at + head.length, stop)) {
       this.push(head, KEYWORD);
       this.at += head.length;
-      return LEADS.has(head);
+      return head === 'time' ? 'time' : LEADS.has(head);
     }
     const assignment = ASSIGNMENT.exec(head);
-    if (assignment !== null) {
+    if (command && assignment !== null) {
       this.push(assignment[1], VARIABLE);
       this.push(assignment[2], PUNCT);
       this.at += assignment[0].length;
@@ -161,7 +161,7 @@ class Line {
         this.at += equals + 1;
         this.rest(undefined, stop);
       } else this.rest(FLAG, stop);
-      return false;
+      return command === 'time';
     }
     this.rest(command ? COMMAND : undefined, stop);
     return false;
@@ -251,10 +251,11 @@ class Line {
 
 function shellLine(text: string, carry: Carry): TokenRun[] {
   const line = new Line(text, carry);
-  const { heredoc, quote, continued } = carry;
+  const { quote, continued } = carry;
+  const heredoc = carry.heredocs[0];
   if (heredoc !== undefined) {
     const ends = (heredoc.strip ? text.replace(/^\t+/, '') : text) === heredoc.end;
-    if (ends) carry.heredoc = undefined;
+    if (ends) carry.heredocs.shift();
     line.push(text, ends ? PUNCT : STRING);
     return line.out;
   }
@@ -274,15 +275,15 @@ function shellLine(text: string, carry: Carry): TokenRun[] {
     line.at = prompt[0].length;
   }
   line.statements(fresh);
-  carry.heredoc = line.heredoc;
+  carry.heredocs = line.heredocs;
   return line.out;
 }
 
 /**
  * Colors shell line by line, carrying what a line leaves open (a quote, a continued command,
- * a here-document) to the next, so a continued line reads as arguments, not as a command.
+ * queued here-documents) to the next, so a continued line reads as arguments, not as a command.
  */
 export function tokenizeShell(lines: readonly string[]): TokenRun[][] {
-  const carry: Carry = { continued: false };
+  const carry: Carry = { continued: false, heredocs: [] };
   return lines.map((text) => shellLine(text, carry));
 }

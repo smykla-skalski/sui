@@ -53,7 +53,7 @@
   const holding = $derived(held(element, around));
 
   function clear() {
-    if (holding) return;
+    if (holding || rest.disabled) return;
     value = '';
     element?.focus();
     onclear?.();
@@ -61,7 +61,8 @@
 
   function onkeydownInput(event: KeyboardEvent & { currentTarget: HTMLInputElement }) {
     onkeydown?.(event);
-    if (event.key !== 'Escape' || !value || holding || event.defaultPrevented) return;
+    if (event.key !== 'Escape' || !value || holding || rest.disabled || event.defaultPrevented)
+      return;
     // Only a press that had something to clear is spent here; the next one reaches the
     // dialog or popover around the field and closes it.
     event.preventDefault();
@@ -122,7 +123,7 @@ matches in a polite `role="status"` beside it so a screen reader hears it.
         <IconButton
           icon="close"
           label={clearLabel}
-          disabled={holding === 'firm'}
+          disabled={holding === 'firm' || Boolean(rest.disabled)}
           aria-disabled={holding === 'soft' || undefined}
           onclick={clear}
         />
@@ -144,6 +145,7 @@ matches in a polite `role="status"` beside it so a screen reader hears it.
   .sui-search-field {
     display: grid;
     gap: var(--sui-row-copy-gap);
+    inline-size: 100%;
     min-inline-size: 0;
   }
 

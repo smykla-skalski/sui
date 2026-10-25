@@ -15,6 +15,7 @@ export function formatNumber(value: number): string {
 
 /** Cuts `text` to at most `most` characters as a reader counts them, never inside one. */
 export function clip(text: string, most: number): string {
+  if (most <= 0) return '';
   const characters = [
     ...new Intl.Segmenter(pageLocale(), { granularity: 'grapheme' }).segment(text)
   ].map((part) => part.segment);

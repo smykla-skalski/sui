@@ -8,7 +8,7 @@
 </script>
 
 <script lang="ts">
-  import { Button, SearchField } from '#lib';
+  import { Button, SearchField, SettingList, SettingRow } from '#lib';
   import Example from '../kit/Example.svelte';
   import Specimen from '../kit/Specimen.svelte';
 
@@ -22,6 +22,7 @@
     repositories.filter((name) => name.includes(filter.trim().toLowerCase()))
   );
   let searched = $state('Nothing searched yet');
+  let audit = $state('');
 
   function search(event: SubmitEvent & { currentTarget: HTMLFormElement }): void {
     event.preventDefault();
@@ -42,6 +43,9 @@
   </Specimen>
   <Specimen label="Example placeholder" code="placeholder">
     <SearchField label="Search the teams" placeholder="Platform" bind:value={teams} />
+  </Specimen>
+  <Specimen label="Disabled" code="disabled">
+    <SearchField label="Search the locked projects" value="Locked" disabled />
   </Specimen>
 </Example>
 
@@ -74,9 +78,33 @@
         minlength={3}
         validationMessage="Enter at least 3 characters to search"
         placeholder="Search events"
+        bind:value={audit}
       />
       <Button type="submit">Search</Button>
+      <Button onclick={() => (audit = 'valid')}>Fix the audit query</Button>
     </form>
+  </Specimen>
+</Example>
+
+<Example
+  title="Soft hold"
+  note="A saving setting keeps the clear action in place but refuses it"
+  layout="stack"
+>
+  <Specimen label="Pending">
+    <SettingList>
+      <SettingRow name="Saved search" pending stacked>
+        {#snippet control({ id, describedby })}
+          <SearchField
+            {id}
+            aria-describedby={describedby}
+            label="Search the held projects"
+            hideLabel
+            value="Held"
+          />
+        {/snippet}
+      </SettingRow>
+    </SettingList>
   </Specimen>
 </Example>
 

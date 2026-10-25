@@ -45,13 +45,19 @@ export function relative(url: string, base: string): string | null {
   return address.href.startsWith(base) ? address.href.slice(base.length) : null;
 }
 
+/** Tests from the expression's start without changing the expression the caller gave. */
+export function matches(pattern: RegExp, path: string): boolean {
+  return new RegExp(pattern.source, pattern.flags).test(path);
+}
+
 export function choose(asked: Asked, rules: Rules): Strategy {
   const navigation = asked.mode === 'navigate';
   if (asked.method !== 'GET') return 'pass';
   const path = relative(asked.url, rules.base);
-  if (path === null || rules.never.some((pattern) => pattern.test(path)))
+  if (path === null || rules.never.some((pattern) => matches(pattern, path)))
     return navigation ? 'network' : 'pass';
-  if (navigation) return rules.pages.some((pattern) => pattern.test(path)) ? 'navigate' : 'network';
+  if (navigation)
+    return rules.pages.some((pattern) => matches(pattern, path)) ? 'navigate' : 'network';
   const address = new URL(asked.url);
   address.hash = '';
   if (rules.precached.has(address.href)) return 'precache';

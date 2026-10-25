@@ -1155,4 +1155,56 @@ suite('lists', together, () => {
       }
     }
   );
+
+  test('pasting lines into an empty pattern reports each line exactly once', async () => {
+    const page = await open();
+    try {
+      const list = page
+        .locator('#pattern-entries .specimen')
+        .filter({ has: page.locator('#sink-pattern-added') })
+        .locator('.sui-pattern-entries');
+      await list.getByRole('button', { name: 'Add a pattern' }).click();
+      await list.getByRole('textbox').evaluate((input) => {
+        const data = new DataTransfer();
+        data.setData('text', 'a\nb');
+        input.dispatchEvent(
+          new ClipboardEvent('paste', { bubbles: true, cancelable: true, clipboardData: data })
+        );
+      });
+      await page.waitForFunction(
+        () => document.querySelector('#sink-pattern-added')?.textContent === 'a,b'
+      );
+      assert.deepEqual(
+        await list
+          .getByRole('textbox')
+          .evaluateAll((inputs) =>
+            inputs.map((input) => /** @type {HTMLInputElement} */ (input).value)
+          ),
+        ['a', 'b']
+      );
+      assert.equal(await page.locator('#sink-pattern-added').textContent(), 'a,b');
+    } finally {
+      await page.close();
+    }
+  });
+
+  test('an unkeyed chip removal restores focus and announces the original label', async () => {
+    const page = await open();
+    try {
+      const group = page.getByRole('group', { name: 'Unkeyed labels' });
+      await group.getByRole('button', { name: 'Remove first' }).click();
+      assert.match(await focused(page), /^button Remove second/);
+      await page.waitForFunction(() =>
+        [...document.querySelectorAll('[role="status"]')].some(
+          (status) => status.textContent?.trim() === 'Removed first'
+        )
+      );
+      assert.deepEqual(await group.locator('.sui-chip-label').allTextContents(), [
+        'second',
+        'third'
+      ]);
+    } finally {
+      await page.close();
+    }
+  });
 });

@@ -222,6 +222,8 @@
     event.preventDefault();
     const keep = value[index]?.trim() ? 1 : 0;
     value = value.toSpliced(index + keep, 1 - keep, ...lines);
+    // Every pasted line is reported for the paste; leaving the replaced entry is not a new add.
+    held = { index, pattern: value[index] ?? '' };
     said = addedLabel(lines.length, formatCount(lines.length));
     for (const line of lines) onadd?.(line);
     await tick();

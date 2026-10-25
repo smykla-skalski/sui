@@ -117,8 +117,17 @@
     shared.choice ??= stored() ?? value;
   });
 
+  let seenValue: ThemeChoice | null = null;
+  let seenChoice: ThemeChoice | null = null;
   $effect(() => {
-    if (shared.choice) value = shared.choice;
+    const next = value;
+    const choice = shared.choice;
+    const external = next !== seenValue;
+    const internal = choice !== seenChoice;
+    if (external && !internal && next !== choice) shared.choice = next;
+    else if (choice && next !== choice) value = choice;
+    seenValue = value;
+    seenChoice = shared.choice;
   });
 
   $effect(() => {

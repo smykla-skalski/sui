@@ -57,7 +57,7 @@
     failure = undefined;
     try {
       const result = onconfirm?.();
-      if (result instanceof Promise) {
+      if (result && typeof result.then === 'function') {
         pending = true;
         await result;
       }

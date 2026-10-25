@@ -21,9 +21,21 @@ after(async () => {
 });
 
 suite('forms', together, () => {
-  /** @param {{ lang?: string; width?: number }} [options] */
-  async function open({ lang, width = 1440 } = {}) {
+  /** @param {{ lang?: string; width?: number; fallbackFieldSizing?: boolean }} [options] */
+  async function open({ lang, width = 1440, fallbackFieldSizing = false } = {}) {
     const page = await browser.newPage({ viewport: { width, height: 900 } });
+    if (fallbackFieldSizing)
+      await page.addInitScript(() => {
+        const supports = CSS.supports.bind(CSS);
+        CSS.supports = /** @type {typeof CSS.supports} */ (
+          (property, value) =>
+            property === 'field-sizing' && value === 'content'
+              ? false
+              : value === undefined
+                ? supports(property)
+                : supports(property, value)
+        );
+      });
     if (lang)
       await page.route(
         (address) => `${address.origin}${address.pathname}` === url,
@@ -575,4 +587,265 @@ suite('forms', together, () => {
       }
     }
   );
+
+  test('66 seconds becomes 1.1 minutes without changing the seconds', async () => {
+    const page = await open();
+    try {
+      const specimen = page.locator('#duration-input .specimen').filter({
+        has: page.getByRole('textbox', { name: 'Retry delay' })
+      });
+      const amount = specimen.getByRole('textbox', { name: 'Retry delay' });
+      await amount.fill('66');
+      await specimen.locator('select').selectOption('minutes');
+      assert.equal(await amount.inputValue(), '1.1');
+      assert.match((await specimen.textContent()) ?? '', /Stored as 66 seconds/);
+    } finally {
+      await page.close();
+    }
+  });
+
+  test('a reset key replaces an invalid draft when the owner value stays identical', async () => {
+    const page = await open();
+    try {
+      const amount = page.getByRole('textbox', { name: 'Check cadence' });
+      await amount.fill('0.5');
+      await amount.blur();
+      const discard = page.getByRole('button', { name: 'Discard the cadence' });
+      await discard.click();
+      assert.equal(await discard.getAttribute('data-reset'), '1');
+      assert.equal(await amount.inputValue(), '30');
+      // The owner heard the draft's problem, so it hears the problem go with it: Save then saves
+      // instead of sending focus back to the amount.
+      await page.getByRole('button', { name: 'Save the cadence' }).click();
+      assert.equal(await amount.evaluate((node) => node === document.activeElement), false);
+    } finally {
+      await page.close();
+    }
+  });
+
+  test('duration precision rejects real fractions but allows unit conversion noise', async () => {
+    const page = await open();
+    try {
+      const specimen = page.locator('#duration-input .specimen').filter({
+        has: page.getByRole('textbox', { name: 'Retry delay' })
+      });
+      const amount = specimen.getByRole('textbox', { name: 'Retry delay' });
+      await amount.fill('4503599627370495.5');
+      assert.match((await specimen.textContent()) ?? '', /Stored as 90 seconds/);
+      await specimen.locator('select').selectOption('hours');
+      await amount.fill('0.0002777777777777778');
+      assert.match((await specimen.textContent()) ?? '', /Stored as 1 second/);
+      // 8.2 × 60 is 491.99999999999994: the noise grows with the seconds, not the unit.
+      await specimen.locator('select').selectOption('minutes');
+      await amount.fill('8.2');
+      assert.match((await specimen.textContent()) ?? '', /Stored as 492 seconds/);
+    } finally {
+      await page.close();
+    }
+  });
+
+  test('a disabled search cannot be cleared', async () => {
+    const page = await open();
+    try {
+      const field = page.getByRole('searchbox', { name: 'Search the locked projects' });
+      const root = field.locator('xpath=ancestor::div[contains(@class,"sui-search-field")][1]');
+      const clear = root.getByRole('button', { name: 'Clear the search' });
+      assert.equal(await clear.isDisabled(), true);
+      await clear.evaluate((button) =>
+        button.dispatchEvent(new MouseEvent('click', { bubbles: true }))
+      );
+      assert.equal(await field.inputValue(), 'Locked');
+    } finally {
+      await page.close();
+    }
+  });
+
+  test('a soft-held search keeps focus and refuses its clear action', async () => {
+    const page = await open();
+    try {
+      const field = page.getByRole('searchbox', { name: 'Search the held projects' });
+      const root = field.locator('xpath=ancestor::div[contains(@class,"sui-search-field")][1]');
+      const clear = root.getByRole('button', { name: 'Clear the search' });
+      await clear.focus();
+      const refused = await clear.evaluate((button) => {
+        const event = new MouseEvent('click', { bubbles: true, cancelable: true });
+        button.dispatchEvent(event);
+        return event.defaultPrevented;
+      });
+      assert.equal(refused, true);
+      assert.equal(await clear.getAttribute('aria-disabled'), 'true');
+      assert.equal(await field.inputValue(), 'Held');
+      assert.ok(await clear.evaluate((button) => document.activeElement === button));
+    } finally {
+      await page.close();
+    }
+  });
+
+  test('a programmatic search fix clears its refusal and invalid state', async () => {
+    const page = await open();
+    try {
+      const form = page.locator('#search-field form');
+      const field = form.getByRole('searchbox');
+      const error = form.locator('.sui-search-field-error');
+      await form.getByRole('button', { name: 'Search', exact: true }).click();
+      await error.waitFor();
+      await form
+        .getByRole('button', { name: 'Fix the audit query' })
+        .evaluate((button) => /** @type {HTMLButtonElement} */ (button).click());
+      await error.waitFor({ state: 'detached' });
+      assert.equal(await field.inputValue(), 'valid');
+      assert.equal(await field.getAttribute('aria-invalid'), null);
+    } finally {
+      await page.close();
+    }
+  });
+
+  test('a programmatic select fix clears its refusal and invalid state', async () => {
+    const page = await open();
+    try {
+      const form = page.locator('#select form');
+      const zone = form.locator('select[name="zone"]');
+      const error = form.locator('.sui-field-error');
+      await form.locator('button[type="submit"]').click();
+      await error.waitFor();
+      await zone.evaluate((select) => {
+        const input = /** @type {HTMLSelectElement} */ (select);
+        input.value = input.options[1].value;
+      });
+      await error.waitFor({ state: 'detached' });
+      assert.equal(await zone.getAttribute('aria-invalid'), null);
+    } finally {
+      await page.close();
+    }
+  });
+
+  test('an owner replacement replaces a focused combobox draft', async () => {
+    const page = await open();
+    try {
+      const field = page.getByRole('combobox', { name: 'Language', exact: true }).first();
+      await field.fill('Pyth');
+      await page
+        .getByRole('button', { name: 'Replace the language' })
+        .evaluate((button) => /** @type {HTMLButtonElement} */ (button).click());
+      assert.equal(await field.inputValue(), 'Go');
+      assert.ok(await field.evaluate((input) => document.activeElement === input));
+      await field.evaluate((input) => input.blur());
+      assert.equal(await field.inputValue(), 'Go');
+    } finally {
+      await page.close();
+    }
+  });
+
+  test('a combobox clamps its active row when the limit shrinks', async () => {
+    const page = await open();
+    try {
+      const field = page.getByRole('combobox', { name: 'Language', exact: true }).first();
+      await field.fill('o');
+      await page.keyboard.press('ArrowUp');
+      await page
+        .getByRole('button', { name: 'Limit the language suggestions' })
+        .evaluate((button) => /** @type {HTMLButtonElement} */ (button).click());
+      const active = await field.getAttribute('aria-activedescendant');
+      assert.ok(active?.endsWith('-option-0'), `dangling active row: ${active}`);
+      assert.equal(await page.locator(`#${active}`).count(), 1);
+      await page.keyboard.press('Enter');
+      assert.equal(await field.inputValue(), 'Go');
+    } finally {
+      await page.close();
+    }
+  });
+
+  test('a valid short hex commits when the color field blurs', async () => {
+    const page = await open();
+    try {
+      const trigger = page.locator('#color-picker button[aria-haspopup="dialog"]').first();
+      await trigger.click();
+      const hex = page.locator(':popover-open input.sui-text-input');
+      await hex.fill('#abc');
+      await hex.press('Tab');
+      assert.match((await trigger.textContent()) ?? '', /#aabbcc/);
+    } finally {
+      await page.close();
+    }
+  });
+
+  test('the link field fallback remeasures when its value changes', async () => {
+    const page = await open({ fallbackFieldSizing: true });
+    try {
+      await page.addStyleTag({
+        content: '.sui-copyable-link-value { field-sizing: fixed !important; }'
+      });
+      const field = page.getByRole('textbox', { name: 'Invitation link' });
+      await field.evaluate((area) => {
+        const root = /** @type {HTMLElement} */ (area.closest('.sui-copyable-link-field'));
+        root.style.inlineSize = '16rem';
+      });
+      const before = await field.evaluate((area) => area.getBoundingClientRect().height);
+      await page.getByRole('button', { name: 'Lengthen the invitation' }).click();
+      await page.waitForFunction(
+        ({ area, height }) => area.getBoundingClientRect().height > height,
+        { area: await field.elementHandle(), height: before }
+      );
+      assert.ok(
+        await field.evaluate((area) => area.scrollHeight <= area.clientHeight + 1),
+        'the new value remains clipped'
+      );
+    } finally {
+      await page.close();
+    }
+  });
+
+  test('select-to-radio focus skips a checked disabled option', async () => {
+    const page = await open();
+    try {
+      const control = page.locator('#segmented-control .sui-segmented').filter({
+        has: page.locator('input[value="debug"]:checked')
+      });
+      await control.evaluate((node) => {
+        if (node.parentElement) node.parentElement.style.inlineSize = '4rem';
+      });
+      const select = control.locator('select');
+      await select.waitFor({ state: 'visible' });
+      await select.focus();
+      await control.evaluate((node) => {
+        if (node.parentElement) node.parentElement.style.inlineSize = '40rem';
+      });
+      await page.waitForFunction(
+        (node) =>
+          node?.contains(document.activeElement) && document.activeElement?.matches('input'),
+        await control.elementHandle()
+      );
+      assert.equal(
+        await page.evaluate(() => /** @type {HTMLInputElement} */ (document.activeElement).value),
+        'off'
+      );
+      assert.equal(
+        await page.evaluate(
+          () => /** @type {HTMLInputElement} */ (document.activeElement).disabled
+        ),
+        false
+      );
+    } finally {
+      await page.close();
+    }
+  });
+
+  test('aria-disabled refuses an icon button without dropping focus', async () => {
+    const page = await open();
+    try {
+      const button = page.getByRole('button', { name: 'Soft disabled action' });
+      await button.focus();
+      const refused = await button.evaluate((element) => {
+        const event = new MouseEvent('click', { bubbles: true, cancelable: true });
+        element.dispatchEvent(event);
+        return event.defaultPrevented;
+      });
+      assert.equal(refused, true);
+      assert.equal(await button.getAttribute('aria-disabled'), 'true');
+      assert.equal(await page.locator('#sink-soft-presses').textContent(), '0');
+      assert.ok(await button.evaluate((element) => document.activeElement === element));
+    } finally {
+      await page.close();
+    }
+  });
 });

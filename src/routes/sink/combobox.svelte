@@ -50,6 +50,7 @@
   }
 
   let language = $state('ts');
+  let languageLimit = $state(100);
   let label = $state('');
   let reviewer = $state('');
   let owner = $state('');
@@ -69,11 +70,21 @@
   layout="grid"
 >
   <Specimen label="Filtered options" code="options">
-    <Field label="Language">
-      {#snippet control({ id, describedby })}
-        <Combobox {id} aria-describedby={describedby} options={languages} bind:value={language} />
-      {/snippet}
-    </Field>
+    <div class="form">
+      <Field label="Language">
+        {#snippet control({ id, describedby })}
+          <Combobox
+            {id}
+            aria-describedby={describedby}
+            options={languages}
+            bind:value={language}
+            limit={languageLimit}
+          />
+        {/snippet}
+      </Field>
+      <Button onclick={() => (language = 'go')}>Replace the language</Button>
+      <Button onclick={() => (languageLimit = 1)}>Limit the language suggestions</Button>
+    </div>
   </Specimen>
   <Specimen label="Free entry" code="free">
     <Field label="Label">

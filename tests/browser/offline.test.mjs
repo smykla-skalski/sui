@@ -89,7 +89,8 @@ const answers = {
   '/fixture/failed.svg': [500, {}],
   '/fixture/private.svg': [200, { 'cache-control': 'private, no-store' }],
   '/fixture/partial.svg': [206, { 'content-range': 'bytes 0-' + (svg.length - 1) + '/' + svg.length }],
-  '/fixture/never/kept.svg': [200, {}]
+  '/fixture/never/kept.svg': [200, {}],
+  '/fixture/slow.svg': [200, {}, 5000]
 };
 
 export default {
@@ -102,8 +103,10 @@ export default {
         server.middlewares.use((request, response, next) => {
           const answer = answers[new URL(request.url, 'http://fixture').pathname];
           if (!answer) return next();
-          response.writeHead(answer[0], { 'content-type': 'image/svg+xml', ...answer[1] });
-          response.end(svg);
+          setTimeout(() => {
+            response.writeHead(answer[0], { 'content-type': 'image/svg+xml', ...answer[1] });
+            response.end(svg);
+          }, answer[2] ?? 0);
         });
       }
     }
@@ -140,6 +143,17 @@ async function buildSink(build, cleanup) {
     'src/app.html',
     '<meta charset="utf-8" />',
     `$&<meta name="sui-build" content="${build}" />`
+  );
+  await edit(
+    'src/app.html',
+    '<div id="sui-parsed" hidden></div>',
+    `$&<script>
+      if (new URLSearchParams(location.search).has('slow')) {
+        const image = new Image();
+        image.src = '/fixture/slow.svg';
+        document.currentScript.before(image);
+      }
+    </script>`
   );
   await edit(
     'src/service-worker/index.ts',
@@ -244,6 +258,47 @@ const embed = (page, paths) =>
     paths
   );
 
+test('an update the server refuses does not read as a lost network', async (t) => {
+  const { server, browser, url } = await startSink({ dev: true });
+  t.after(async () => {
+    await browser.close();
+    await server.close();
+  });
+  const page = await browser.newPage();
+  await visit(page, url);
+  await page.evaluate(async () => {
+    const loaded = performance.getEntriesByType('resource').map((entry) => entry.name);
+    const lib = await import(
+      /* @vite-ignore */ loaded.find((name) => /\/src\/lib\/index\.ts/.test(name)) ?? ''
+    );
+    // A 500 for the worker's script, or a script that throws, rejects the update as a lost
+    // network does.
+    const registration = {
+      active: null,
+      waiting: null,
+      installing: null,
+      update: async () => {
+        throw new TypeError('A bad HTTP response code (500) was received');
+      },
+      unregister: async () => true,
+      addEventListener() {}
+    };
+    const worker = lib.registerServiceWorker('service-worker.js', {
+      container: {
+        controller: null,
+        register: async () => registration,
+        getRegistration: async () => registration,
+        addEventListener() {}
+      }
+    });
+    Object.assign(window, { worker });
+  });
+  assert.equal(
+    await holds(page, async () => /** @type {any} */ (window).worker.offline, null, brief.timeout),
+    false,
+    'a refused update said the page was offline'
+  );
+});
 test(
   'a build installs whole, works offline, and lets a new version in only on Reload',
   { ...long, timeout: 240_000 },
@@ -304,11 +359,11 @@ test(
     assert.equal(await kept(2), false);
     assert.deepEqual((await cached(page))[names(first.version).runtime], ['/fixture/kept.svg']);
 
-    // With the server gone and the device offline, a reload draws the installed page in its own
-    // faces and says it is offline, while other methods and refused answers find no network.
+    // With the server gone but the device still online, a controlled reload draws the installed
+    // page and probes the server itself, even though it missed the worker's earlier report.
     await stop();
-    await context.setOffline(true);
     await page.reload();
+    assert.equal(await page.evaluate(() => navigator.onLine), true);
     assert.equal(await page.locator('meta[name="sui-build"]').getAttribute('content'), 'first');
     assert.equal(await page.getByRole('heading', { level: 1 }).textContent(), 'Kitchen sink');
     const faces = await page.evaluate(async () => {
@@ -338,7 +393,25 @@ test(
       '/fixture/partial.svg failed',
       '/fixture/never/kept.svg failed'
     ]);
+
+    // The browser's online event is not a server answer. Wait for the update probe it starts;
+    // with the server still gone, the offline notice must survive that probe's failure.
+    await page.evaluate(() => {
+      const update = ServiceWorkerRegistration.prototype.update;
+      document.documentElement.dataset.finishedProbes = '0';
+      ServiceWorkerRegistration.prototype.update = function (...args) {
+        return update.apply(this, args).finally(() => {
+          const probes = Number(document.documentElement.dataset.finishedProbes);
+          document.documentElement.dataset.finishedProbes = String(probes + 1);
+        });
+      };
+    });
+    await context.setOffline(true);
     await context.setOffline(false);
+    await page.waitForFunction(
+      () => navigator.onLine && Number(document.documentElement.dataset.finishedProbes) > 0
+    );
+    await bar('You are offline').waitFor();
 
     // A new deploy installs beside the old one and waits, and the page stays as it is; even a
     // reload keeps the old worker in control.
@@ -372,6 +445,16 @@ test(
     await page.reload();
     assert.equal(await waits(), true);
     await ready.waitFor();
+    assert.equal(await page.locator('meta[name="sui-build"]').getAttribute('content'), 'first');
+
+    // Another old-code tab is still loading when this tab lets the new worker in. Its slow image
+    // keeps `load` (and therefore registration/listener startup) pending across controllerchange.
+    const other = await context.newPage();
+    await other.goto(`${origin}/?slow`, { waitUntil: 'domcontentloaded' });
+    assert.equal(await other.evaluate(() => document.readyState), 'interactive');
+    const otherReady = other
+      .locator('aside:popover-open')
+      .and(other.getByRole('complementary', { name: 'A new version is ready' }));
 
     // Reload lets the new version in, the page reloads once it is in control, and the old
     // version's caches are gone.
@@ -389,5 +472,8 @@ test(
     );
     assert.deepEqual(Object.keys(await cached(page)).sort(), [names(second.version).precache]);
     assert.equal(await page.locator('meta[name="sui-build"]').getAttribute('content'), 'second');
+    await otherReady.waitFor({ timeout: 10_000 });
+    assert.equal(await other.locator('meta[name="sui-build"]').getAttribute('content'), 'first');
+    await other.close();
   }
 );

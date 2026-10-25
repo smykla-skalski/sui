@@ -19,6 +19,7 @@ import {
   share,
   sieve,
   spread,
+  thin,
   ticksOf,
   xyLayout
 } from '../src/lib/charts/geometry.ts';
@@ -95,6 +96,8 @@ test('positions cover both ends of a domain', () => {
 
 test('ticks fall on 1, 2, 2.5 or 5 times a power of ten', () => {
   assert.deepEqual(axis([1, 2, 3, 4]).ticks, [1, 2, 3, 4]);
+  // A lone whole value pads to a span too narrow for a whole step, so the step is one.
+  assert.deepEqual(axis([1]).ticks, [0, 1, 2]);
   assert.deepEqual(axis([12, 34], true).ticks, [0, 10, 20, 30, 40]);
   assert.deepEqual(axis([0, 0.9]).ticks, [0, 0.25, 0.5, 0.75, 1]);
   assert.deepEqual(axis([0.6, 1.4]).ticks, [0.6, 0.8, 1, 1.2, 1.4]);
@@ -135,6 +138,49 @@ test('a single value still gets a readable range', () => {
   assert.deepEqual(axis([4]).ticks, [3, 4, 5]);
   assert.deepEqual(axis([4], true).ticks, [0, 1, 2, 3, 4]);
   assert.deepEqual(axis([]).ticks, [0, 1]);
+});
+
+test('thinning keeps endpoints and every slice extremum in domain order', () => {
+  const points = [
+    { x: 0, y: 10 },
+    { x: 0.5, y: 0 },
+    { x: 1, y: 20 },
+    { x: 1.5, y: 11 },
+    { x: 2.5, y: -5 },
+    { x: 3, y: 15 },
+    { x: 3.5, y: 12 },
+    { x: 4, y: 8 }
+  ];
+  assert.deepEqual(
+    thin(points, 2, [0, 4]).map((point) => point.x),
+    [0, 0.5, 1, 2.5, 3, 4]
+  );
+});
+
+test('tick rounding never excludes data just below or above a tick', () => {
+  const values = [0.5999999999, 1.4000000001];
+  const { domain } = axis(values);
+  assert.ok(domain[0] <= values[0]);
+  assert.ok(domain[1] >= values[1]);
+});
+
+test('finite extremes and subnormals get finite, nonempty covering axes', () => {
+  for (const values of [
+    [0, Number.MIN_VALUE],
+    [Number.MIN_VALUE],
+    [-Number.MAX_VALUE, Number.MAX_VALUE],
+    [Number.MAX_VALUE],
+    [-Number.MAX_VALUE]
+  ]) {
+    const { domain, ticks } = axis(values);
+    assert.ok(ticks.length > 1, `${values}: not enough ticks`);
+    assert.ok(domain[0] < domain[1], `${values}: empty domain`);
+    assert.ok([...domain, ...ticks].every(Number.isFinite), `${values}: non-finite axis`);
+    assert.ok(domain[0] <= Math.min(...values), `${values}: low end excludes data`);
+    assert.ok(domain[1] >= Math.max(...values), `${values}: high end excludes data`);
+    assert.ok(ticks.every((tick) => Number.isFinite(fraction(tick, domain))));
+  }
+  assert.deepEqual(axis([0, Number.MIN_VALUE]).domain, [0, Number.MIN_VALUE]);
 });
 
 test('the five series differ by shape, and every line after the first by dash', () => {

@@ -134,6 +134,7 @@
   }
 
   async function discard(): Promise<void> {
+    asked = null;
     const back = ondiscard();
     notice = { kind: 'discarded', undo: typeof back === 'function' ? back : undefined };
     await tick();

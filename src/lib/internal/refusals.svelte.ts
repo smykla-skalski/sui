@@ -20,6 +20,7 @@ function firstRefused(form: HTMLFormElement): Element | undefined {
 export class Refusals {
   #refused = $state.raw<readonly (readonly [Control, string])[]>([]);
   #area: HTMLElement | null = null;
+  #frame: number | null = null;
 
   /**
    * The words under the control: the caller's `error` always, else, while the browser refuses
@@ -53,7 +54,7 @@ export class Refusals {
     // update it caused have run and a constraint set with `setCustomValidity()` has caught up.
     const review = (event: Event) =>
       requestAnimationFrame(() => this.#review(event.type === 'change'));
-    const reset = () => (this.#refused = []);
+    const reset = () => this.#clear();
     const form = control.form;
     control.addEventListener('invalid', refuse);
     control.addEventListener('input', review);
@@ -65,6 +66,7 @@ export class Refusals {
       control.removeEventListener('change', review);
       form?.removeEventListener('reset', reset);
       this.#refused = this.#refused.filter(([each]) => each !== control);
+      if (this.#refused.length === 0) this.#clear();
     };
   };
 
@@ -74,6 +76,7 @@ export class Refusals {
     const at = this.#refused.findIndex(([each]) => each === control);
     this.#refused =
       at < 0 ? [...this.#refused, [control, words]] : this.#refused.with(at, [control, words]);
+    this.#review();
     // Cancelling the bubble also cancels the browser's move to the first refused control, so a
     // refused send makes that move here, and brings the label and the error line into view too.
     if (!control.form || firstRefused(control.form) !== control) return;
@@ -82,11 +85,29 @@ export class Refusals {
     void tick().then(() => area.scrollIntoView({ block: 'nearest' }));
   }
 
-  #review(commit: boolean): void {
-    if (this.#refused.length === 0) return;
-    this.#refused = this.#refused
+  #clear(): void {
+    this.#refused = [];
+    if (this.#frame !== null) cancelAnimationFrame(this.#frame);
+    this.#frame = null;
+  }
+
+  #review(commit = false): void {
+    if (this.#frame !== null) cancelAnimationFrame(this.#frame);
+    this.#frame = null;
+    const next = this.#refused
       .filter(([control]) => !control.validity.valid)
       .map(([control, words]) => [control, commit ? control.validationMessage : words] as const);
+    if (
+      next.length !== this.#refused.length ||
+      next.some(
+        ([control, words], index) =>
+          this.#refused[index]?.[0] !== control || this.#refused[index]?.[1] !== words
+      )
+    )
+      this.#refused = next;
+    // Programmatic values and custom validity emit no input or change event. Watch only while a
+    // refusal stands, and stop on the first frame where every watched control is valid again.
+    if (next.length > 0) this.#frame = requestAnimationFrame(() => this.#review());
   }
 }
 

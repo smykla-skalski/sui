@@ -428,14 +428,17 @@ title, such as "Danger zone", and holds the acts that cannot be undone, each a `
   /* Words that open or close the card start at their cap line and end at their baseline, so
      the ink stands the inset from the top and the bottom alike (L-33). Without weight, so a
      component that trims its own words keeps both edges, and an only paragraph trims both.
-     A trimmed edge cuts a fraction of a pixel, so the box rounds up to the pixel and an only
-     paragraph splits that spare above its cap and under its baseline. */
+     A trimmed edge cuts a fraction of a pixel, so the box rounds up to the pixel and keeps the
+     spare away from its trimmed edge, and an only paragraph splits that spare above its cap and
+     under its baseline. */
   :where(.sui-card-main > :first-child) :global(:where(p, ul, ol, dl, blockquote):first-child) {
     block-size: var(--sui-block-snap);
     text-box: trim-start cap alphabetic;
   }
 
   :where(.sui-card-main > :last-child) :global(:where(p, ul, ol, dl, blockquote):last-child) {
+    align-content: end;
+    block-size: var(--sui-block-snap);
     text-box: trim-end cap alphabetic;
   }
 

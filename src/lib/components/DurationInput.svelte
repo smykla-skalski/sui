@@ -3,6 +3,7 @@
 </script>
 
 <script lang="ts">
+  import { untrack } from 'svelte';
   import { mark, word } from '../words.js';
   import type { Attachment } from 'svelte/attachments';
   import type { HTMLAttributes, HTMLInputAttributes } from 'svelte/elements';
@@ -22,6 +23,7 @@
 
   let {
     value = $bindable(0),
+    resetKey,
     label,
     min = 0,
     max,
@@ -57,6 +59,8 @@
   }: {
     /** Seconds. Only a whole number of seconds inside `min` and `max` is ever written back. */
     value?: number;
+    /** Change this on a discard or other reset when `value` may stay identical, to replace the held draft. */
+    resetKey?: unknown;
     /** Names both parts for assistive technology when no `<label for>` names the amount, such as "Retry delay". */
     label?: string;
     /** The fewest seconds accepted. */
@@ -124,8 +128,9 @@
     const amount = read(text);
     const seconds = amount * SECONDS[unit];
     const whole = Math.round(seconds);
-    // One second said in hours repeats forever, so float noise passes and a real fraction does not.
-    const noise = Number.EPSILON * Math.max(1, seconds) * 4;
+    // One second said in hours repeats forever, so conversion noise passes and a real fraction
+    // does not. The noise grows with the product; text in seconds is never converted.
+    const noise = unit === 'seconds' ? 0 : Number.EPSILON * Math.max(1, seconds) * 4;
     return Number.isFinite(amount) &&
       amount >= 0 &&
       Number.isSafeInteger(whole) &&
@@ -150,11 +155,21 @@
   }
 
   // What the reader typed or picked holds only while `value` is still what it left behind,
-  // so a value the owner replaces (a save, a discard) shows itself again.
+  // so a value the owner replaces shows itself again. An identical primitive assignment produces
+  // no update, so a discard that may keep the same value changes `resetKey` instead.
   let edit = $state<{ text: string; unit: DurationUnit; seconds: number } | null>(null);
   // A problem the reader is still typing towards waits until they leave the amount or pick a
   // unit; once shown it follows each keystroke until it is fixed.
   let revealed = $state(false);
+  $effect.pre(() => {
+    resetKey;
+    // The owner heard the dropped draft's problem, so it hears that the problem went with it.
+    untrack(() => {
+      if (edit !== null) onproblem?.(null);
+    });
+    edit = null;
+    revealed = false;
+  });
   let amount = $state<HTMLInputElement | null>(null);
   const held = $derived(edit !== null && edit.seconds === value ? edit : null);
   const unit = $derived(held?.unit ?? unitFor(value));
@@ -228,8 +243,12 @@
     if (next === null) return;
     revealed = true;
     const converted = typed === null ? null : typed / SECONDS[next];
-    const readable = converted !== null && Math.round(converted * 100) === converted * 100;
-    hold(readable ? numbers.format(converted) : text, next);
+    const hundredths = converted === null ? null : Math.round(converted * 100);
+    const readable =
+      converted !== null &&
+      hundredths !== null &&
+      Math.abs(converted * 100 - hundredths) <= Number.EPSILON * Math.abs(hundredths || 1) * 4;
+    hold(readable ? numbers.format(hundredths / 100) : text, next);
   }
 </script>
 
@@ -250,8 +269,10 @@ amount or picks a unit. `onproblem` hears that reason after each keystroke and e
 so a Save can send focus back to the amount while it stands. In a form the reason is a native
 constraint too: the form refuses a send while it stands, the reason shows at once, and focus
 moves to the amount, so the last good value is never posted in its place. A value the owner writes, such as
-a discard, replaces the held text. Name it with a `Field` or a `SettingRow`, whose label points
-at its `id`, or with `label`; other attributes land on the amount.
+a discard, replaces the held text. When a discard may assign the identical primitive, change
+`resetKey` to signal the reset because Svelte emits no update for that assignment. Name it with
+a `Field` or a `SettingRow`, whose label points at its `id`, or with `label`; other attributes
+land on the amount.
 
 - Semantics: a text input for the amount and a native `<select>` for the unit, inside one joined field, with a hidden input that posts the seconds.
 - Content: an amount in the page's number format, one of three units named for that amount, an optional range hint and a problem line.

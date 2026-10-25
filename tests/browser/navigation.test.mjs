@@ -12,6 +12,8 @@ let server;
 /** @type {import('./sink.mjs').SinkBrowser} */
 let browser;
 let url = '';
+/** @type {Promise<{ server: { close: () => Promise<void> }; browser: import('./sink.mjs').SinkBrowser; url: string }> | undefined} */
+let mounted;
 
 before(async () => {
   ({ server, browser, url } = await startSink());
@@ -20,7 +22,32 @@ before(async () => {
 after(async () => {
   await browser?.close();
   await server?.close();
+  const running = await mounted;
+  await running?.browser.close();
+  await running?.server.close();
 });
+
+/** A page where a test can mount a list-detail with its own reactive navigation. */
+async function openMounted() {
+  mounted ??= startSink({ dev: true });
+  const running = await mounted;
+  const page = await running.browser.newPage({ viewport: { width: 1280, height: 900 } });
+  await visit(page, new URL('layouts/detail-pane/', running.url).href);
+  await page.evaluate(async () => {
+    const loaded = performance.getEntriesByType('resource').map((entry) => entry.name);
+    const find = (/** @type {RegExp} */ pattern) => loaded.find((name) => pattern.test(name));
+    const lib = await import(/* @vite-ignore */ find(/\/src\/lib\/index\.ts/) ?? '');
+    const { mount, createRawSnippet, flushSync } = await import(
+      /* @vite-ignore */ find(/\.vite\/deps\/svelte\.js/) ?? ''
+    );
+    const { state, get, set } = await import(
+      /* @vite-ignore */ find(/\.vite\/deps\/svelte_internal_client\.js/) ?? ''
+    );
+    Object.assign(window, { lib, mount, createRawSnippet, flushSync, state, get, set });
+    document.body.replaceChildren();
+  });
+  return page;
+}
 
 suite('navigation', together, () => {
   /**
@@ -845,6 +872,63 @@ suite('navigation', together, () => {
       await page.close();
     }
   });
+
+  test(
+    'an unrelated navigation with body focus does not pull focus into a list-detail',
+    long,
+    async () => {
+      const page = await openMounted();
+      try {
+        await page.evaluate(() => {
+          const { lib, mount, createRawSnippet, flushSync, state, get, set } = /** @type {any} */ (
+            window
+          );
+          const current = state('/one/');
+          const one = createRawSnippet(() => ({
+            render: () => '<h1>One</h1><button id="one-action">One action</button>'
+          }));
+          const two = createRawSnippet(() => ({
+            render: () => '<h1>Two</h1><button id="two-action">Two action</button>'
+          }));
+          mount(lib.ListDetail, {
+            target: document.body,
+            props: {
+              label: 'Items',
+              backHref: '/',
+              get current() {
+                return get(current);
+              },
+              get detail() {
+                return get(current) === '/one/' ? one : two;
+              },
+              list: createRawSnippet(() => ({
+                render: () => '<a href="/one/">One</a><a href="/two/">Two</a>'
+              }))
+            }
+          });
+          flushSync();
+          const outside = document.createElement('button');
+          document.body.append(outside);
+          outside.focus();
+          outside.remove();
+          Object.assign(window, { currentItem: current });
+        });
+        assert.equal(await page.evaluate(() => document.activeElement === document.body), true);
+        await page.evaluate(() => {
+          const { flushSync, set, currentItem } = /** @type {any} */ (window);
+          set(currentItem, '/two/');
+          flushSync();
+        });
+        assert.equal(
+          await page.evaluate(() => document.activeElement === document.body),
+          true,
+          'an unrelated current change pulled focus into the pair'
+        );
+      } finally {
+        await page.close();
+      }
+    }
+  );
 
   test(
     'the detail pane page fits every width, with its aside beside the main column at 1440px',

@@ -11,6 +11,7 @@
   import { themeAt } from '../internal/theme.svelte.js';
   import { holdForWork, provideHold } from '../internal/held.svelte.js';
   import { hostToasts } from '../internal/toasts.svelte.js';
+  import { tabStops } from '../internal/focus.js';
   import IconButton from './IconButton.svelte';
   import Toaster from './Toaster.svelte';
 
@@ -75,8 +76,6 @@
   const titleId = `${uid}-title`;
   const descriptionId = `${uid}-description`;
 
-  const TABBABLE =
-    ':is(a[href], button, input, select, textarea, summary, [contenteditable], [tabindex]):not(:disabled, [tabindex^="-"], [contenteditable="false"], [type="hidden"], [type="radio"]:not(:checked))';
   const EDITABLE =
     'input:not([type="hidden"]), textarea, select, [contenteditable]:not([contenteditable="false"])';
 
@@ -91,10 +90,7 @@
   let foot = $state<HTMLElement | null>(null);
   let closeButton = $state<HTMLButtonElement | null>(null);
 
-  const firstIn = (root: Element | null) =>
-    [...(root?.querySelectorAll<HTMLElement>(TABBABLE) ?? [])].find((node) =>
-      node.checkVisibility()
-    );
+  const firstIn = (root: Element | null) => (root ? tabStops(root)[0] : undefined);
 
   $effect(() => {
     if (!element) return;
@@ -112,9 +108,7 @@
       // names, such as a confirmation's least destructive answer, else the first control. The
       // browser alone would focus the first control in tree order, which is Close in the head.
       const named = element.querySelector<HTMLElement>('[autofocus]');
-      const field = [...(body?.querySelectorAll<HTMLElement>(EDITABLE) ?? [])].find(
-        (node) => node.matches(TABBABLE) && node.checkVisibility()
-      );
+      const field = body ? tabStops(body).find((node) => node.matches(EDITABLE)) : undefined;
       (
         (named && body?.contains(named) ? named : undefined) ??
         field ??
@@ -150,9 +144,7 @@
     if (!at) return;
     for (let place = at.commonAncestorContainer; place !== document.body;) {
       if (place instanceof Element) {
-        const all = [...place.querySelectorAll<HTMLElement>(TABBABLE)].filter((node) =>
-          node.checkVisibility()
-        );
+        const all = tabStops(place);
         const found =
           all.find((node) => at.comparePoint(node, 0) > 0) ??
           all.findLast((node) => at.comparePoint(node, 0) < 0);

@@ -50,3 +50,26 @@ test('a continued line and an open quote carry on to the next line', () => {
     '[str second"] [op &&] [cmd echo] ok'
   ]);
 });
+
+test('time options leave the following command in the command role', () => {
+  assert.deepEqual(marked('time -p ls -l && time --verbose pwd'), [
+    '[opt time] [opt -p] [cmd ls] [opt -l] [op &&] [opt time] [opt --verbose] [cmd pwd]'
+  ]);
+});
+
+test('only assignment-position words receive variable and punctuation roles', () => {
+  assert.deepEqual(marked('echo FOO=bar; FOO=bar env | grep NAME=value'), [
+    '[cmd echo] FOO=bar[op ;] [var FOO][op =]bar [cmd env] [op |] [cmd grep] NAME=value'
+  ]);
+});
+
+test('multiple heredocs on one line consume their delimiters in order', () => {
+  assert.deepEqual(marked("cat <<ONE <<-'TWO'", 'first', 'ONE', '\tsecond', '\tTWO', 'echo done'), [
+    "[cmd cat] [op <<ONE] [op <<-'TWO']",
+    '[str first]',
+    '[op ONE]',
+    '[str \tsecond]',
+    '[op \tTWO]',
+    '[cmd echo] done'
+  ]);
+});

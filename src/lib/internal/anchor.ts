@@ -39,12 +39,12 @@ export function place(
   const rtl = getComputedStyle(anchor).direction === 'rtl';
   const viewportWidth = document.documentElement.clientWidth;
   const viewportHeight = document.documentElement.clientHeight;
+  floating.style.setProperty('--sui-floating-anchor-inline', `${a.width}px`);
   if (side === 'inline-start' || side === 'inline-end')
     return beside(floating, a, side, align, offset, viewportWidth, viewportHeight, rtl, keep);
   const below = viewportHeight - a.bottom - offset - VIEWPORT_MARGIN;
   const above = a.top - offset - VIEWPORT_MARGIN;
 
-  floating.style.setProperty('--sui-floating-anchor-inline', `${a.width}px`);
   // How tall the box wants to be, past the last placement's cap. Read from its content rather
   // than by lifting the cap, which would drop the box's own scroll position back to the top.
   const look = getComputedStyle(floating);
@@ -107,6 +107,10 @@ function beside(
   rtl: boolean,
   keep: boolean
 ): Side {
+  // The box slides along its anchor to stay in the viewport, so all of the viewport's height is
+  // its room whatever its alignment.
+  const room = viewportHeight - 2 * VIEWPORT_MARGIN;
+  floating.style.setProperty('--sui-floating-available-block', `${Math.max(0, room)}px`);
   const box = laidOut(floating);
   const rightRoom = viewportWidth - a.right - offset - VIEWPORT_MARGIN;
   const leftRoom = a.left - offset - VIEWPORT_MARGIN;
