@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.4.0
+
 - A narrow `ListDetail` that is not `contained` scrolls the page back to where its list stood when the way back closes an item, as a `contained` one already did with its own box.
 - Controls keep their values and drafts through unit changes, paste, discard and programmatic updates, and their disabled, validation, focus and announcement states now follow the current interaction. `DurationInput` takes `resetKey` to reset a draft when a discard may assign the identical value.
 - `IconButton` honors a caller's `aria-disabled`: it keeps focus and refuses the press, so `onclick` no longer runs. A `TextInput` held read-only by a saving `SettingRow` keeps its words at full strength.
@@ -9,6 +11,12 @@
 - Popovers size and scroll beside inline anchors, dialogs await every promise, and save notices, theme choices and focus handoffs follow the latest action.
 - Charts retain their data at every finite scale, diffs preserve newline and Unicode changes, syntax highlighting carries the right state, and invalid times no longer receive invented readings.
 - Offline installs are atomic, cache rules are repeatable, updates wait for consent across navigations and tabs, and connectivity notices follow actual server answers.
+- While toasts show, the page's end scroll padding keeps a control that takes focus clear above them, a save bar's controls too (WCAG 2.4.11). `AppShell` and `SaveBar` now share the page's scroll padding, each edge padded by the larger of the two, so one closing never drops the other's.
+- A reader who asks the system for more contrast (`prefers-contrast: more`) gets hairlines, dividers and control edges that hold 3:1 on every ground in both themes (L-114), through the new `--sui-border-contrast` and `--sui-border-contrast-hover` tokens.
+- Running text wraps at the new `--sui-measure`, 50ch or about 80 characters (L-115): a page header's description, a section's note and paragraphs, a card's note, a callout's copy, an empty or error state's explanation, a setting's why line and a link's note. The page header's description, which stopped at 65ch, now stops there too.
+- A `ColorPicker` swatch ring holds 3:1 for every colour on every ground and under the hover veil, counting the channels a browser clips: `--sui-swatch-edge-ceiling` is 0.52 on light and `--sui-swatch-edge-floor` 0.65 on dark.
+- Breaking: the palette no longer declares sizes that only one component draws. `--sui-cp-*`, `--sui-inherit-marker-size`, `--sui-inherit-marker-gap` and `--sui-setting-say-min` move into `ColorPicker`, `InheritControl` and `SettingRow` as their own properties, so an app that set them no longer changes those sizes.
+- `docs/lifecycle.md` says when a component joins SUI, how a change goes through deprecation, how adoption is checked and how an app moves from 0.2 to 0.3. `docs/adoption.md` migrates one workflow at a time, with a baseline and a list of what experienced readers rely on.
 
 ## 0.3.1
 

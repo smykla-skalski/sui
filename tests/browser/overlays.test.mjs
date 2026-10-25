@@ -623,6 +623,48 @@ suite('overlays', together, () => {
     }
   );
 
+  // WCAG 2.4.11: a toast that stays sits over the page's foot, where Tab scrolls each new
+  // control into view. Only the end of the document, which cannot scroll any further, and a
+  // control taller than the room above the stack may stay under it.
+  test('a lasting toast never covers the control that takes focus', long, async () => {
+    const page = await open({ viewport: { width: 375, height: 740 } });
+    try {
+      // The sink pads its own foot for its floating button, which would clear the toast too.
+      await page.addStyleTag({ content: ':root { scroll-padding-block-end: 0; }' });
+      await page.locator('#toaster button', { hasText: 'Sync repositories' }).click();
+      await page.waitForSelector('.sui-toaster:popover-open .sui-toast');
+      await page.evaluate(() => {
+        /** @type {HTMLElement | null} */ (document.activeElement)?.blur();
+        scrollTo(0, 0);
+      });
+      const covered = [];
+      for (let step = 0; step < 120; step++) {
+        await page.keyboard.press('Tab');
+        const under = await page.evaluate(() => {
+          const focused = document.activeElement;
+          if (!focused || focused === document.body || focused.closest('.sui-toaster')) return null;
+          const box = focused.getBoundingClientRect();
+          const toasts = [...document.querySelectorAll('.sui-toaster:popover-open .sui-toast')].map(
+            (toast) => toast.getBoundingClientRect()
+          );
+          const top = Math.min(...toasts.map((toast) => toast.top));
+          const atEnd = scrollY + innerHeight >= document.documentElement.scrollHeight - 1;
+          if (atEnd || box.height > top || box.height === 0) return null;
+          const meets = toasts.some(
+            (toast) =>
+              Math.min(box.right, toast.right) > Math.max(box.left, toast.left) &&
+              Math.min(box.bottom, toast.bottom) > Math.max(box.top, toast.top)
+          );
+          return meets ? focused.getAttribute('aria-label') || focused.textContent?.trim() : null;
+        });
+        if (under) covered.push(under);
+      }
+      assert.deepEqual(covered, []);
+    } finally {
+      await page.close();
+    }
+  });
+
   test(
     'AC2 a cut label outside any control takes a tab stop and shows its whole text',
     long,

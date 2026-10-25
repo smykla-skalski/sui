@@ -297,6 +297,74 @@ suite('accessibility', together, () => {
     }
   });
 
+  // A page with no theme chosen reaches the dark palette through the system's preference, so it
+  // is checked apart from the two themes a page sets.
+  for (const [theme, colorScheme] of /** @type {const} */ ([
+    ['light', 'light'],
+    ['dark', 'dark'],
+    [null, 'dark']
+  ]))
+    test(
+      `L-114 with more contrast every line holds 3:1 on every ground in ${theme ?? 'the system’s dark'}`,
+      long,
+      async () => {
+        const page = await browser.newPage({
+          viewport: { width: 1440, height: 900 },
+          contrast: 'more',
+          colorScheme
+        });
+        try {
+          await visit(page, url);
+          const weak = await page.evaluate((name) => {
+            if (name) document.documentElement.dataset.suiTheme = name;
+            const context = /** @type {CanvasRenderingContext2D} */ (
+              Object.assign(document.createElement('canvas'), { width: 1, height: 1 }).getContext(
+                '2d',
+                { willReadFrequently: true }
+              )
+            );
+            const look = getComputedStyle(document.documentElement);
+            /** @param {string} token @param {string} [under] */
+            const paint = (token, under) => {
+              context.clearRect(0, 0, 1, 1);
+              for (const layer of [under, token].filter(Boolean)) {
+                context.fillStyle = look.getPropertyValue(`--sui-${layer}`).trim();
+                context.fillRect(0, 0, 1, 1);
+              }
+              return [...context.getImageData(0, 0, 1, 1).data.slice(0, 3)].map((v) => v / 255);
+            };
+            const lum = (/** @type {number[]} */ rgb) =>
+              rgb
+                .map((c) => (c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4))
+                .reduce((sum, c, i) => sum + c * [0.2126, 0.7152, 0.0722][i], 0);
+            const ratio = (/** @type {number[]} */ a, /** @type {number[]} */ b) => {
+              const [x, y] = [lum(a), lum(b)].sort((p, q) => q - p);
+              return (x + 0.05) / (y + 0.05);
+            };
+            const found = [];
+            for (const ground of ['canvas', 'surface-base', 'surface-raised', 'surface-inset'])
+              for (const line of [
+                'border-subtle',
+                'border-divider',
+                'border-band',
+                'control-border',
+                'control-border-hover',
+                'field-frame',
+                'popover-border',
+                'sidebar-border'
+              ]) {
+                const value = ratio(paint(line, ground), paint(ground));
+                if (value < 3) found.push(`${line} on ${ground}: ${value.toFixed(2)}`);
+              }
+            return found;
+          }, theme);
+          assert.deepEqual(weak, []);
+        } finally {
+          await page.close();
+        }
+      }
+    );
+
   test(
     'in forced colors every current and selected state differs by more than weight',
     long,
@@ -451,17 +519,53 @@ suite('accessibility', together, () => {
   const spacing = `* { line-height: 1.5 !important; letter-spacing: 0.12em !important; word-spacing: 0.16em !important; }
 p { margin-block-end: 2em !important; }`;
 
-  for (const [name, css] of [
-    ['the WCAG text spacing', spacing],
-    ['text at twice its size', 'html { font-size: 200% !important; }']
-  ])
+  /**
+   * Pseudo-localizes every word on the page: each letter takes an accent, half of them from
+   * Latin Extended so that face loads too, and each word grows by 40%, about what a translation
+   * from English adds to a short string. Words the components measure in script are measured
+   * again as their boxes grow.
+   * @param {import('playwright-core').Page} page
+   */
+  const translate = (page) =>
+    page.evaluate(async () => {
+      const accents = Object.fromEntries(
+        [...'aåeēiïoőuūcčsšzžnñyý'.matchAll(/(.)(.)/g)].flatMap(([, plain, marked]) => [
+          [plain, marked],
+          [plain.toUpperCase(), marked.toUpperCase()]
+        ])
+      );
+      const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+      for (let node = walker.nextNode(); node; node = walker.nextNode()) {
+        if (
+          node.parentElement?.closest('code, pre, script, style, svg, [popover]:not(:popover-open)')
+        )
+          continue;
+        node.nodeValue = (node.nodeValue ?? '').replace(/\p{L}+/gu, (word) => {
+          const longer = word + word.slice(0, Math.ceil(word.length * 0.4));
+          return [...longer].map((letter) => accents[letter] ?? letter).join('');
+        });
+      }
+      await document.fonts.ready;
+    });
+
+  /** @type {[string, (page: import('playwright-core').Page) => Promise<unknown>][]} */
+  const changes = [
+    ['the WCAG text spacing', (page) => page.addStyleTag({ content: spacing })],
+    [
+      'text at twice its size',
+      (page) => page.addStyleTag({ content: 'html { font-size: 200% !important; }' })
+    ],
+    ['pseudo-localized words', translate]
+  ];
+
+  for (const [name, change] of changes)
     test(
       `with ${name} nothing overlaps and nothing leaves its specimen at 375px`,
       long,
       async () => {
         const page = await open(375, 'light');
         try {
-          await page.addStyleTag({ content: css });
+          await change(page);
           await page.waitForTimeout(400);
           const found = (await audit(page)).filter((line) => /^L-(55|70) /.test(line));
           const overlaps = await page.evaluate(() => {

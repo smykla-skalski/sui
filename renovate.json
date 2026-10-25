@@ -75,6 +75,22 @@
       "allowedVersions": ">=24 <25",
       "description": "Keep Node types aligned with the Node 24 LTS runtime",
       "matchPackageNames": ["@types/node"]
+    },
+    {
+      "description": "The visual group runs in the Playwright image whose browsers playwright-core expects, so both move together",
+      "groupName": "playwright",
+      "matchPackageNames": ["playwright-core", "mcr.microsoft.com/playwright"]
+    }
+  ],
+  "customManagers": [
+    {
+      "customType": "regex",
+      "description": "The Playwright image of the visual group in CI and of its recording task",
+      "managerFilePatterns": ["/^\\.github/workflows/ci\\.yml$/", "/^\\.mise\\.toml$/"],
+      "matchStrings": [
+        "(?<depName>mcr\\.microsoft\\.com/playwright):(?<currentValue>v[0-9.]+-noble)@(?<currentDigest>sha256:[a-f0-9]{64})"
+      ],
+      "datasourceTemplate": "docker"
     }
   ],
   "vulnerabilityAlerts": {

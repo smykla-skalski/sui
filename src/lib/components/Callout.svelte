@@ -265,6 +265,7 @@ and the unsaved ink, so no neutral block sits on a state (L-92).
     align-content: center;
     block-size: var(--sui-block-snap);
     margin: 0;
+    max-inline-size: var(--sui-measure);
     min-inline-size: 0;
     overflow-wrap: anywhere;
     text-box: trim-both cap alphabetic;

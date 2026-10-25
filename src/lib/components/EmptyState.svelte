@@ -124,6 +124,7 @@ An empty list is not an error and is not drawn as one; a request that failed is
 
   .sui-empty-state-description {
     color: var(--sui-text-secondary);
+    max-inline-size: var(--sui-measure);
     font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-row-copy-leading)
       var(--sui-sans);
   }

@@ -297,6 +297,7 @@ section's ground between them (L-91).
      row height of its own, whatever its kind; one that is taller, such as a field with a hint
      under it, only grows the row under the band. */
   .sui-setting-row {
+    --sui-setting-say-min: 13rem;
     --sui-setting-band: var(--sui-local-control-height, var(--sui-control-height-compact));
     align-items: start;
     border-radius: var(--sui-radius-control);
@@ -453,6 +454,7 @@ section's ground between them (L-91).
 
   .sui-setting-why {
     color: var(--sui-text-muted);
+    max-inline-size: var(--sui-measure);
     text-wrap: pretty;
   }
 

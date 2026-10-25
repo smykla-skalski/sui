@@ -597,13 +597,26 @@ name is the label and the hex, such as "Label color #0f766e". `name` posts the h
     font-weight: var(--sui-weight-regular);
   }
 
+  /* The picker's own geometry, which no other component draws, so it stays here rather than
+     in the palette. The width is the popover's outer width, so its 1px border comes off it. */
   .panel {
+    --sui-color-picker-cell: 26px;
+    --sui-color-picker-cols: 8;
+    --sui-color-picker-gap: var(--sui-space-1);
+    --sui-color-picker-pad: var(--sui-space-2);
+    --sui-color-picker-width: calc(
+      var(--sui-color-picker-cell) * var(--sui-color-picker-cols) + var(--sui-color-picker-gap) *
+        (var(--sui-color-picker-cols) - 1) + var(--sui-color-picker-pad) * 2 + 2 * var(--sui-stroke)
+    );
+    --sui-color-picker-hue-height: 24px;
+    --sui-color-picker-hue-thumb: 16px;
+    --sui-color-picker-area-height: 10rem;
+    --sui-color-picker-knob: 14px;
     box-sizing: border-box;
     display: grid;
     gap: var(--sui-space-3);
-    /* The token is the popover's outer width, so the popover's 1px border comes off it. */
-    inline-size: calc(var(--sui-cp-width) - 2 * var(--sui-stroke));
-    padding: var(--sui-cp-pad);
+    inline-size: calc(var(--sui-color-picker-width) - 2 * var(--sui-stroke));
+    padding: var(--sui-color-picker-pad);
   }
 
   /* A part's words sit closer to it than the parts sit to each other. */
@@ -623,8 +636,8 @@ name is the label and the hex, such as "Label color #0f766e". `name` posts the h
 
   .swatches {
     display: grid;
-    gap: var(--sui-cp-gap);
-    grid-template-columns: repeat(var(--sui-cp-cols), var(--sui-cp-cell));
+    gap: var(--sui-color-picker-gap);
+    grid-template-columns: repeat(var(--sui-color-picker-cols), var(--sui-color-picker-cell));
   }
 
   .cell {
@@ -643,7 +656,7 @@ name is the label and the hex, such as "Label color #0f766e". `name` posts the h
     appearance: none;
     background-color: var(--sui-color-picker-swatch);
     background-image: linear-gradient(var(--sui-color-picker-layer), var(--sui-color-picker-layer));
-    block-size: var(--sui-cp-cell);
+    block-size: var(--sui-color-picker-cell);
     border: var(--sui-stroke) solid
       oklch(
         from var(--sui-color-picker-swatch)
@@ -653,7 +666,7 @@ name is the label and the hex, such as "Label color #0f766e". `name` posts the h
     box-sizing: border-box;
     cursor: pointer;
     grid-area: 1 / 1;
-    inline-size: var(--sui-cp-cell);
+    inline-size: var(--sui-color-picker-cell);
     margin: 0;
     transition: box-shadow var(--sui-duration-press) var(--sui-ease-standard);
   }
@@ -688,7 +701,7 @@ name is the label and the hex, such as "Label color #0f766e". `name` posts the h
   }
 
   .area {
-    block-size: var(--sui-cp-area-height);
+    block-size: var(--sui-color-picker-area-height);
     border-radius: var(--sui-radius-control);
     box-shadow: inset 0 0 0 var(--sui-stroke) var(--sui-color-picker-hairline);
     cursor: crosshair;
@@ -713,18 +726,18 @@ name is the label and the hex, such as "Label color #0f766e". `name` posts the h
 
   .knob {
     background-color: var(--sui-color-picker-value);
-    block-size: var(--sui-cp-knob);
-    inline-size: var(--sui-cp-knob);
+    block-size: var(--sui-color-picker-knob);
+    inline-size: var(--sui-color-picker-knob);
     inset-block-start: var(--sui-color-picker-y);
     inset-inline-start: var(--sui-color-picker-x);
   }
 
   .hue {
-    block-size: var(--sui-cp-hue-height);
+    block-size: var(--sui-color-picker-hue-height);
     border-radius: var(--sui-radius-pill);
     cursor: pointer;
     /* The thumb's own radius, so its centre reaches both ends of the rail. */
-    margin-inline: calc(var(--sui-cp-hue-thumb) / 2);
+    margin-inline: calc(var(--sui-color-picker-hue-thumb) / 2);
     position: relative;
     touch-action: none;
     -webkit-user-select: none;
@@ -733,8 +746,8 @@ name is the label and the hex, such as "Label color #0f766e". `name` posts the h
 
   .thumb {
     background-color: var(--sui-color-picker-hue);
-    block-size: var(--sui-cp-hue-thumb);
-    inline-size: var(--sui-cp-hue-thumb);
+    block-size: var(--sui-color-picker-hue-thumb);
+    inline-size: var(--sui-color-picker-hue-thumb);
     inset-block-start: 50%;
     inset-inline-start: var(--sui-color-picker-h);
   }
@@ -780,7 +793,8 @@ name is the label and the hex, such as "Label color #0f766e". `name` posts the h
   @media (pointer: coarse), (max-width: 47.9375rem) {
     .panel {
       inline-size: calc(
-        6 * var(--sui-touch-target) + 5 * var(--sui-cp-gap) + 2 * var(--sui-cp-pad)
+        6 * var(--sui-touch-target) + 5 * var(--sui-color-picker-gap) + 2 *
+          var(--sui-color-picker-pad)
       );
     }
 
@@ -796,7 +810,7 @@ name is the label and the hex, such as "Label color #0f766e". `name` posts the h
     .hue::before {
       content: '';
       inset-block: calc((100% - var(--sui-touch-target)) / 2);
-      inset-inline: calc(-1 * var(--sui-cp-hue-thumb) / 2);
+      inset-inline: calc(-1 * var(--sui-color-picker-hue-thumb) / 2);
       position: absolute;
     }
   }

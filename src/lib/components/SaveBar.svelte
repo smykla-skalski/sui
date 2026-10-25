@@ -2,6 +2,7 @@
   import { word } from '../words.js';
   import { tick } from 'svelte';
   import type { HTMLAttributes } from 'svelte/elements';
+  import { clearance as clearanceOf } from '../internal/clearance.js';
   import { holdForWork } from '../internal/held.svelte.js';
   import Button from './Button.svelte';
 
@@ -217,17 +218,16 @@
     let scroller = bar.parentElement;
     while (scroller && !/auto|scroll/.test(getComputedStyle(scroller).overflowY))
       scroller = scroller.parentElement;
-    const pane = scroller ?? document.documentElement;
-    const before = pane.style.scrollPaddingBlockEnd;
+    const pane = clearanceOf(scroller ?? document.documentElement);
     const observer = new ResizeObserver(([entry]) => {
       const tall = entry.borderBoxSize[0].blockSize;
       const inset = parseFloat(getComputedStyle(bar).insetBlockEnd);
-      pane.style.scrollPaddingBlockEnd = tall > 0 ? `${tall + 2 * inset}px` : before;
+      pane.hold({ end: tall > 0 ? tall + 2 * inset : undefined });
     });
     observer.observe(bar);
     return () => {
       observer.disconnect();
-      pane.style.scrollPaddingBlockEnd = before;
+      pane.release();
     };
   }
 

@@ -1935,7 +1935,7 @@ function currentMarks(root: Document): Finding[] {
       const bar = getComputedStyle(current, '::after');
       const ground = paintedGround(current);
       const ratio = contrast(over(rgba(bar.backgroundColor), ground), ground);
-      if (bar.content === 'none' || ratio < 2.95)
+      if (bar.content === 'none' || ratio < 3)
         found.push(finding('L-85', current, `the current tab's bar holds ${round(ratio)}:1`));
     }
     for (const pseudo of ['', '::before', '::after']) {
@@ -1967,7 +1967,7 @@ function currentMarks(root: Document): Finding[] {
         )
       );
     const inks = contrast(rgba(look.color), rgba(rest.color));
-    if (inks < 2.95)
+    if (inks < 3)
       found.push(
         finding('L-85', current, `the current ink stands ${round(inks)}:1 from a rest row`)
       );
@@ -2325,11 +2325,11 @@ function swatches(root: Document): Finding[] {
     const look = getComputedStyle(mark);
     const ground = paintedGround(mark.parentElement ?? mark);
     const fill = over(rgba(look.backgroundColor), ground);
-    if (contrast(fill, ground) >= 2.95) continue;
+    if (contrast(fill, ground) >= 3) continue;
     const ring = mark.matches('.swatch')
       ? look.borderTopColor
       : (look.boxShadow.match(/^(?:[a-z-]+\([^)]*\)|#[0-9a-f]+|[a-z]+)/i)?.[0] ?? 'transparent');
-    if (contrast(over(rgba(ring), ground), ground) < 2.95)
+    if (contrast(over(rgba(ring), ground), ground) < 3)
       found.push(finding('L-93', mark, 'a swatch and its ring both fall under 3:1 on the ground'));
   }
   return found;

@@ -411,6 +411,7 @@ title, such as "Danger zone", and holds the acts that cannot be undone, each a `
   }
 
   .sui-card-note {
+    max-inline-size: var(--sui-measure);
     align-content: center;
     block-size: var(--sui-block-snap);
     color: var(--sui-text-muted);

@@ -2,6 +2,7 @@
   import { mark, word } from '../words.js';
   import type { TransitionConfig } from 'svelte/transition';
   import Icon from '../icons/Icon.svelte';
+  import { clearance } from '../internal/clearance.js';
   import {
     dismiss,
     hosts,
@@ -85,6 +86,28 @@
     if (top && shown.length > 0 && !visible) stack.showPopover();
     else if (!top && visible) stack.hidePopover();
   });
+
+  // A toast covers the page's foot, so a control the reader tabs to, or a fragment the page
+  // jumps to, scrolls clear above the stack instead of behind it (WCAG 2.4.11), as it does above
+  // the shell's bars and a save bar. Padding the root from or back to rest restyles the page, so
+  // it changes only when the stack opens and closes, never as toasts come and go inside it. A
+  // stack taller than half the screen holds only that half, so the page keeps room to show
+  // focus. A dialog's own stack covers only the dialog.
+  const showing = $derived(shown.length > 0);
+  function clearPage(box: HTMLElement) {
+    if (!top || host !== null || !showing) return;
+    const inset = parseFloat(getComputedStyle(box).insetBlockEnd) || 0;
+    const page = clearance(document.documentElement);
+    const observer = new ResizeObserver(([entry]) => {
+      const covered = entry.borderBoxSize[0].blockSize + inset;
+      page.hold({ end: Math.min(covered, innerHeight / 2) });
+    });
+    observer.observe(box);
+    return () => {
+      observer.disconnect();
+      page.release();
+    };
+  }
 
   // A stack taller than the screen scrolls, and the newest toast, at its end, stays in view
   // unless the reader is working inside the stack.
@@ -196,7 +219,7 @@ A `danger` toast reports a failure and stays too.
 - States: entering (rises 8px and fades in), shown, held while hovered or focused, leaving (fades), `danger` with its symbol in a danger tile, and drawn in place with `preview`.
 - Keyboard: the hotkey (F8) moves focus to the newest toast, Tab moves through its action and Dismiss, and Escape returns focus to where it was.
 - Pointer and touch: the action is a 34px target and Dismiss a 28px one, both 44px on a phone or touch screen; the corner around the toasts lets presses through to the page.
-- Focus: closing a toast returns focus to where it was before it entered the stack, or to the next toast's Dismiss when that place is gone.
+- Focus: closing a toast returns focus to where it was before it entered the stack, or to the next toast's Dismiss when that place is gone; while toasts show, the page's end scroll padding keeps a control that takes focus clear above them.
 - Responsive: the stack is at most the viewport's width less 32px and its height, and scrolls inside past that with the newest toast kept in view. On a phone it spans the screen. Dismiss keeps the inline-end corner beside the title's first line, the action stands under the copy, and the copy moves under a failure's symbol when it would get less than 8rem beside it.
 - Accessibility: a failure is announced as an alert and anything else politely, each once, and the stack is a landmark a reader can jump to.
 - Localization: `dismissLabel`, `label` and `hotkey` carry the built-in words and key, the stack stands at the inline end, mirrored in a right-to-left page, and its padding is logical.
@@ -228,6 +251,7 @@ A `danger` toast reports a failure and stays too.
 
 <div
   bind:this={stack}
+  {@attach clearPage}
   class={['sui-toaster', { preview }]}
   popover={preview ? undefined : 'manual'}
   data-sui-theme={themeAt(stack?.parentElement)}

@@ -23,3 +23,13 @@ test('the CI matrix includes every group, and an unknown group fails', () => {
   assert.throws(() => argumentsFor('missing'), /Unknown browser test group/);
   assert.throws(() => argumentsFor('toString'), /Unknown browser test group/);
 });
+
+test('the visual group runs in the Playwright image of playwright-core, as its pictures were recorded', () => {
+  const image = /mcr\.microsoft\.com\/playwright:v([0-9.]+)-noble@sha256:[a-f0-9]{64}/;
+  const ci = readFileSync('.github/workflows/ci.yml', 'utf8').match(image);
+  const recording = readFileSync('.mise.toml', 'utf8').match(image);
+  const core = JSON.parse(readFileSync('package.json', 'utf8')).devDependencies['playwright-core'];
+  assert.ok(ci && recording, 'CI and the recording task name a pinned Playwright image');
+  assert.equal(ci[0], recording[0], 'CI compares pictures recorded in another image');
+  assert.equal(ci[1], core, 'the image ships browsers for another playwright-core');
+});
