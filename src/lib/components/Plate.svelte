@@ -181,14 +181,16 @@ first render, because a region that arrives with its words is often not read.
   /* Words that open or close the body start at their cap line and end at their baseline, so
      the ink stands the inset from the rule and from the bottom alike, as in a card. Without
      weight, so a component that trims its own words keeps both edges. A trimmed edge cuts a
-     fraction of a pixel, so the box rounds up to the pixel and an only paragraph splits that
-     spare above its cap and under its baseline. */
+     fraction of a pixel, so the box rounds up to the pixel and keeps the spare away from its
+     trimmed edge, and an only paragraph splits that spare above its cap and under its baseline. */
   :where(.sui-plate-body) :global(:where(p, ul, ol, dl, blockquote):first-child) {
     block-size: var(--sui-block-snap);
     text-box: trim-start cap alphabetic;
   }
 
   :where(.sui-plate-body) :global(:where(p, ul, ol, dl, blockquote):last-child) {
+    align-content: end;
+    block-size: var(--sui-block-snap);
     text-box: trim-end cap alphabetic;
   }
 

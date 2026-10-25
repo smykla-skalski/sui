@@ -618,28 +618,28 @@ function paintsGround(look: CSSStyleDeclaration): boolean {
 const fonts = new Map<string, { cap: number; ascent: number }>();
 
 /**
- * A face's cap height and ascent at its size, as the browser lays its text out: the ascent as
- * canvas reads it, rounded as layout rounds it, and the cap as `1cap`, which every system
- * resolves from the face itself. Canvas reads a glyph's own ink only to a sixty-fourth of an em
- * on Linux.
+ * A face's cap height and ascent at its size, as the browser lays its text out: the ascent from
+ * the top of a word's box to the baseline an empty inline block rests on, and the cap as `1cap`,
+ * which every system resolves from the face itself. Canvas reads a glyph's own ink only to a
+ * sixty-fourth of an em on Linux, and rounds the ascent to a whole pixel where headed Chrome on
+ * macOS lays it out at a half.
  */
 function faceMetrics(style: CSSStyleDeclaration) {
   const font = `${style.fontStyle} ${style.fontWeight} ${style.fontSize} ${style.fontFamily}`;
   let known = fonts.get(font);
   if (!known) {
-    const context = document.createElement('canvas').getContext('2d');
-    if (!context) return null;
-    context.font = font;
-    const probe = document.createElement('span');
-    probe.style.cssText =
-      'block-size: 1cap; display: block; position: absolute; visibility: hidden';
-    probe.style.font = font;
-    document.body.append(probe);
-    known = {
-      cap: probe.getBoundingClientRect().height,
-      ascent: context.measureText('H').fontBoundingBoxAscent
-    };
-    probe.remove();
+    const line = document.createElement('span');
+    line.style.cssText = 'position: absolute; visibility: hidden';
+    line.style.font = font;
+    const cap = document.createElement('span');
+    cap.style.cssText = 'block-size: 1cap; display: inline-block';
+    line.append('H', cap);
+    document.body.append(line);
+    const word = document.createRange();
+    word.selectNodeContents(line.firstChild as Text);
+    const mark = cap.getBoundingClientRect();
+    known = { cap: mark.height, ascent: mark.bottom - word.getBoundingClientRect().top };
+    line.remove();
     fonts.set(font, known);
   }
   return known;

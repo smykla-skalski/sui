@@ -505,10 +505,16 @@ assistive technology, because a native picker cannot be held open.
         box-shadow: inset 0 var(--sui-stroke) 0 var(--sui-field-recess-hover);
       }
 
-      /* The full label shows in the picker, so the closed field may cut it. */
+      /* The full label shows in the picker, so the closed field may cut it, at its end only, so
+         the ink above the cap and under the baseline still shows. The value runs cap line to
+         baseline and centres in the field, so the room above and under it match whatever the
+         face's ascent rounds to (L-102); the option's own trim does not reach an inline clone. */
       .sui-select-value {
+        align-content: center;
+        block-size: var(--sui-block-snap-even);
         min-inline-size: 0;
-        overflow: hidden;
+        overflow-x: clip;
+        text-box: trim-both cap alphabetic;
         text-overflow: ellipsis;
         white-space: nowrap;
       }
