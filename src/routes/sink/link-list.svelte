@@ -1,7 +1,6 @@
 <script module lang="ts">
   export const section = {
     title: 'Link list',
-    order: 116,
     lead: "Links to other pages about the same thing, such as a pane's related pages. Things a reader opens with their standings are an ObjectList.",
     components: ['LinkList']
   };

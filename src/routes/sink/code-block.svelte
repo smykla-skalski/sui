@@ -1,7 +1,6 @@
 <script module lang="ts">
   export const section = {
     title: 'Code block',
-    order: 68,
     lead: 'A read-only window of code, colored by its language, with a copy control in the corner. A change between two texts is a DiffBlock.',
     components: ['CodeBlock', 'CopyButton']
   };

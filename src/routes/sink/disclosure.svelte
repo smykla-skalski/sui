@@ -1,7 +1,6 @@
 <script module lang="ts">
   export const section = {
     title: 'Disclosure',
-    order: 64,
     lead: "An optional explanation or setting that opens in place, its content hanging under the summary's words. Content most readers need stays on the page.",
     components: ['Disclosure']
   };

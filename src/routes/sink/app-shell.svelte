@@ -1,7 +1,6 @@
 <script module lang="ts">
   export const section = {
     title: 'App shell',
-    order: 118,
     lead: 'The frame of an application, with a rail for the place, a sidebar for the page, and the content. Views inside one page switch with Tabs.',
     components: ['AppShell', 'Rail', 'SideNav']
   };

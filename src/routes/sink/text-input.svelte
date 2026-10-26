@@ -1,7 +1,6 @@
 <script module lang="ts">
   export const section = {
     title: 'Text input',
-    order: 20,
     lead: 'A single line the reader types. Inside a form, wrap it in a Field so it has a label, help and an error.',
     components: ['TextInput']
   };

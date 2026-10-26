@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { after, before, test } from 'node:test';
-import { long, startSink, visit } from '../sink.mjs';
+import { allSections, long, startSink, visit } from '../sink.mjs';
 
 // Lab stand-ins for field data: a page with the library and nothing else, on a CPU about as fast
 // as a mid-range phone's, against the Core Web Vitals "good" limits (CLS 0.1, INP 200ms) and the
@@ -26,7 +26,7 @@ after(async () => {
 /** An app page: the library loaded, the sink's own sections gone, the CPU slowed. */
 async function app() {
   const page = await browser.newPage({ viewport: { width: 1280, height: 900 } });
-  await visit(page, url);
+  await visit(page, allSections(url));
   await page.evaluate(async () => {
     const loaded = performance.getEntriesByType('resource').map((entry) => entry.name);
     const find = (/** @type {RegExp} */ pattern) => loaded.find((name) => pattern.test(name));
@@ -53,7 +53,7 @@ test('loading the sink shifts no layout past the CLS limit', long, async () => {
             /** @type {any} */ (window).shifted += entry.value;
       }).observe({ type: 'layout-shift', buffered: true });
     });
-    await visit(page, url);
+    await visit(page, allSections(url));
     await page.waitForTimeout(1000);
     const shifted = await page.evaluate(() => /** @type {any} */ (window).shifted);
     assert.ok(shifted < 0.1, `the page shifted ${shifted}`);
@@ -292,7 +292,7 @@ for (const [id, trigger] of [
     const late = await steadiest(async () => {
       const page = await browser.newPage({ viewport: { width: 1280, height: 900 } });
       try {
-        await visit(page, url);
+        await visit(page, allSections(url));
         await page.evaluate((id) => {
           for (const section of document.querySelectorAll('main section[id]'))
             if (section.id !== id) section.remove();

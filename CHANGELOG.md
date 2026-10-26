@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- Breaking: the palette drops `--sui-glass-bar` and `--sui-glass-filter`. Only the kitchen sink's floating bar read them, and no app does. L-17 no longer makes an exception for that bar.
+- A `SideNav` row takes the caller's own glyph as a snippet beside the icon set's names.
+- A pending `Switch` keeps its thumb at full strength and turns an accent spinner inside it, in place of a dark ring over the dimmed track. An invalid `Switch` or `Checkbox` draws a 2px danger edge, which reads on the accent fill too.
+- Peer cards in a grid or flex row take the row's height, so they end on one line; a shorter one holds the extra room under its last ink (L-33).
+- The kitchen sink gives each component a page of its own and opens on an overview of cards, each with its own symbol, which its index row wears too. `/all/` keeps every section on one page. One theme switch sits at the sidebar's foot, the floating bar, "Back to top" and the rail are gone, and each example's markup opens from a Code disclosure. The law audit runs on the page you are on when you press "Run the law audit", says its result beside the page title and is not kept between visits.
+
 ## 0.4.0
 
 - A narrow `ListDetail` that is not `contained` scrolls the page back to where its list stood when the way back closes an item, as a `contained` one already did with its own box.

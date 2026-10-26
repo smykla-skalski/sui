@@ -1,7 +1,6 @@
 <script module lang="ts">
   export const section = {
     title: 'Setting list',
-    order: 108,
     lead: 'The settings of one section, each a row with its name, a why line and its controls. A short form stacks Fields instead.',
     components: ['SettingList', 'SettingRow']
   };

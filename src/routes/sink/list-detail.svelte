@@ -1,7 +1,6 @@
 <script module lang="ts">
   export const section = {
     title: 'List detail',
-    order: 65,
     lead: 'A list beside the item open from it, each at its own address. Under 56rem one pane shows at a time, with a way back to the list.',
     components: ['ListDetail']
   };

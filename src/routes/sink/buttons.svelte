@@ -1,7 +1,6 @@
 <script module lang="ts">
   export const section = {
     title: 'Button',
-    order: 10,
     lead: 'An action the reader takes, named by the result it gives. Its tone says what job it does, and a view has one signal.',
     components: ['Button']
   };

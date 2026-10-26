@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { after, before, suite, test } from 'node:test';
-import { long, startSink, together, visit } from './sink.mjs';
+import { allSections, long, startSink, together, visit } from './sink.mjs';
 
 // A language that joins words with no spaces, or with its own commas, must hear exactly its
 // own marks. Chrome adds a space on each side of any box that is not inline text when it builds
@@ -26,7 +26,7 @@ suite('words', together, () => {
   test('a space mark from the server stays in the name beside its word', long, async () => {
     const page = await browser.newPage();
     try {
-      await visit(page, url);
+      await visit(page, allSections(url));
       const cdp = await page.context().newCDPSession(page);
       /** @param {string} selector */
       const names = async (selector) => {
@@ -93,7 +93,7 @@ suite('words', together, () => {
   test('with every mark replaced, each joined name reads the marks and nothing between them', async () => {
     const page = await browser.newPage();
     try {
-      await visit(page, url);
+      await visit(page, allSections(url));
       await page.evaluate(async () => {
         // The sink's own copies, so the components share its Svelte runtime.
         const loaded = performance.getEntriesByType('resource').map((entry) => entry.name);
@@ -354,7 +354,7 @@ suite('words', together, () => {
   test('a control inside a sentence adds no space of its own to it', async () => {
     const page = await browser.newPage();
     try {
-      await visit(page, url);
+      await visit(page, allSections(url));
       const spaced = await page.evaluate(async () => {
         const loaded = performance.getEntriesByType('resource').map((entry) => entry.name);
         const find = (/** @type {RegExp} */ pattern) => loaded.find((name) => pattern.test(name));

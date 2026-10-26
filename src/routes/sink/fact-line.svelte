@@ -1,7 +1,6 @@
 <script module lang="ts">
   export const section = {
     title: 'Fact line',
-    order: 114,
     lead: 'Facts on one line parted by a drawn middle dot. Facts that each need a label are a FactList.',
     components: ['FactLine']
   };

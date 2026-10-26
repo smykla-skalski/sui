@@ -1,7 +1,6 @@
 <script module lang="ts">
   export const section = {
     title: 'Action menu',
-    order: 44,
     lead: 'A menu of acts behind one trigger, with a destructive act last. A place to go is a link on the page, never a menu item.',
     components: ['ActionMenu']
   };

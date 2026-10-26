@@ -1,7 +1,6 @@
 <script module lang="ts">
   export const section = {
     title: 'Section',
-    order: 64,
     lead: 'The default container on a pane: a heading, an optional line of description and the content, with no frame. DetailLayout stands a thing’s properties beside its sections.',
     components: ['Section', 'DetailLayout']
   };

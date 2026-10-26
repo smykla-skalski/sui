@@ -1,7 +1,6 @@
 <script module lang="ts">
   export const section = {
     title: 'Day heading',
-    order: 115,
     lead: "The heading over a run of entries from one day, in the reader's own calendar. A single time inside a row is a RelativeTime.",
     components: ['DayHeading']
   };

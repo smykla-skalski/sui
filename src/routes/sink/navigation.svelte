@@ -1,7 +1,6 @@
 <script module lang="ts">
   export const section = {
     title: 'Navigation',
-    order: 66,
     lead: 'The ways between pages: a breadcrumb up the hierarchy, a back link out of a list and a link inside a sentence. A control that looks like a button is a Button with href.',
     components: ['Breadcrumb', 'BackLink', 'Link']
   };

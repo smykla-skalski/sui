@@ -1,7 +1,6 @@
 <script module lang="ts">
   export const section = {
     title: 'List toolbar',
-    order: 112,
     lead: 'The bar over a list, with a search, an optional filter and tools, and one action. A search outside a list is a SearchField.',
     components: ['ListToolbar']
   };

@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { after, before, suite, test } from 'node:test';
-import { brief, long, settles, startSink, together, visit } from './sink.mjs';
+import { allSections, brief, long, settles, startSink, together, visit } from './sink.mjs';
 
 // The lists, pickers and settings behaviours that need a real keyboard, pointer and focus:
 // where focus goes when a control leaves, what a reader can take back, and what is said.
@@ -24,7 +24,7 @@ suite('lists', together, () => {
   /** @param {import('playwright-core').BrowserContextOptions} [options] */
   async function open(options = {}) {
     const page = await browser.newPage({ viewport: { width: 1440, height: 900 }, ...options });
-    await visit(page, url);
+    await visit(page, allSections(url));
     await page.evaluate(() => document.fonts.ready);
     return page;
   }

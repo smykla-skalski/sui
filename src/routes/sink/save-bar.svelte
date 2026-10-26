@@ -1,7 +1,6 @@
 <script module lang="ts">
   export const section = {
     title: 'Save bar',
-    order: 103,
     lead: "The one place a pane's unsaved work is saved or thrown away. A setting that applies at once needs no bar.",
     components: ['SaveBar']
   };

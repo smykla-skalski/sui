@@ -17,28 +17,6 @@
         if (theme === 'light' || theme === 'dark')
           document.documentElement.dataset.suiTheme = theme;
       }
-      // Paints a kept law audit in the first frame, which AuditPanel can only read once the app
-      // has started. Keep the key and the words the same as AuditPanel uses.
-      {
-        let kept;
-        try {
-          kept = JSON.parse(
-            localStorage.getItem(`sui:audit:${location.origin}${location.pathname}`) ?? 'null'
-          );
-        } catch {}
-        if (Array.isArray(kept?.findings)) {
-          const root = document.documentElement;
-          const count = (n, word) => `${n} ${word}${n === 1 ? '' : 's'}`;
-          const found = count(kept.findings.length, 'finding');
-          const laws = count(new Set(kept.findings.map((finding) => finding.law)).size, 'law');
-          root.dataset.suiAudit = kept.findings.length === 0 ? 'pass' : 'fail';
-          root.style.setProperty('--sink-audit-found', JSON.stringify(found));
-          root.style.setProperty(
-            '--sink-audit-summary',
-            JSON.stringify(`${found} against ${laws}`)
-          );
-        }
-      }
     </script>
     <style>
       :root[data-sui-fonts='pending'] body {

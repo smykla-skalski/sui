@@ -1,7 +1,6 @@
 <script module lang="ts">
   export const section = {
     title: 'Timeline',
-    order: 115,
     lead: 'What happened to one thing, event by event, each with its time. Things a reader opens or acts on are an ObjectList.',
     components: ['Timeline']
   };

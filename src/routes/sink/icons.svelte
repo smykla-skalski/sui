@@ -1,7 +1,6 @@
 <script module lang="ts">
   export const section = {
     title: 'Icon',
-    order: 90,
     lead: 'A glyph from one closed set, hidden from assistive technology because the words beside it carry the meaning. An icon-only control is an IconButton.',
     components: ['Icon']
   };

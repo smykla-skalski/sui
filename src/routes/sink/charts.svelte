@@ -1,7 +1,6 @@
 <script module lang="ts">
   export const section = {
     title: 'Charts',
-    order: 100,
     lead: 'Numbers drawn as lines, points, ranges or a matrix, each with a title, a description and a table of its values. Values a reader looks up belong in a DataTable.',
     components: ['LineChart', 'ScatterChart', 'RangeChart', 'HeatmapChart']
   };

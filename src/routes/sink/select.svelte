@@ -1,7 +1,6 @@
 <script module lang="ts">
   export const section = {
     title: 'Select',
-    order: 40,
     lead: 'One value from six or more options. Two to five that fit are a SegmentedControl, and a list the reader searches is a Combobox.',
     components: ['Select']
   };

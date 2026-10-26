@@ -1,7 +1,6 @@
 <script module lang="ts">
   export const section = {
     title: 'Addition picker',
-    order: 109,
     lead: 'An add button that opens what is left to add, such as settings a level can override. A single new entry is an add Button.',
     components: ['AdditionPicker']
   };

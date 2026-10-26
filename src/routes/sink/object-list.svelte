@@ -1,7 +1,6 @@
 <script module lang="ts">
   export const section = {
     title: 'Object list',
-    order: 86,
     lead: 'The things a page is about, as rows that grow with their content. Values a reader compares across columns belong in a DataTable.',
     components: ['ObjectList', 'ObjectRow']
   };

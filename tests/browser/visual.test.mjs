@@ -3,7 +3,7 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { after, before, test } from 'node:test';
-import { long, startSink, visit } from './sink.mjs';
+import { allSections, long, startSink, visit } from './sink.mjs';
 
 // Visual regression: each kitchen-sink section, drawn in both themes, must match the picture
 // recorded for this platform. Fonts rasterize differently per operating system, so pictures are
@@ -85,16 +85,15 @@ for (const theme of ['light', 'dark'])
       // A time's words and width follow the clock, so every run reads the same instant.
       await page.clock.setFixedTime(new Date('2026-10-01T12:00:00Z'));
       const loaded = Date.now();
-      await visit(page, url);
+      await visit(page, allSections(url));
       await page.evaluate(async (name) => {
         document.documentElement.dataset.suiTheme = name;
         await document.fonts.ready;
       }, theme);
-      // Time-relative words would differ between runs, and the sink's own bar and its way back
-      // up, which come in over the page once its header scrolls away, would cover sections.
+      // Time-relative words would differ between runs.
       await page.addStyleTag({
         content:
-          '*, *::before, *::after { caret-color: transparent !important; } time, div.bar:has(> .bar-title), .to-top { visibility: hidden !important; }'
+          '*, *::before, *::after { caret-color: transparent !important; } time { visibility: hidden !important; }'
       });
       // A skeleton says it is slow after its 10s patience, so every section is shot after it.
       await page.waitForTimeout(Math.max(0, loaded + 10_500 - Date.now()));

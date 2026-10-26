@@ -1,7 +1,6 @@
 <script module lang="ts">
   export const section = {
     title: 'Relative time',
-    order: 85,
     lead: 'A time read as how long ago or how soon, with the whole instant in a tooltip. The day over a run of entries is a DayHeading.',
     components: ['RelativeTime']
   };

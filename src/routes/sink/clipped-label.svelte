@@ -1,7 +1,6 @@
 <script module lang="ts">
   export const section = {
     title: 'Clipped label',
-    order: 84,
     lead: 'A one-line label that shows its whole text in a tooltip, and only once the text is cut. Text that may wrap needs no tooltip, so let it wrap.',
     components: ['ClippedLabel']
   };

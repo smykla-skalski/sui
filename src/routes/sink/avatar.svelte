@@ -1,7 +1,6 @@
 <script module lang="ts">
   export const section = {
     title: 'Avatar',
-    order: 83,
     lead: 'Who or what a row is about, a circle for a person and a rounded square for a workspace. With the name and handle beside it, use IdentityRow.',
     components: ['Avatar', 'IdentityRow']
   };

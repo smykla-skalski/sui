@@ -6,7 +6,7 @@ Read [laws.md](laws.md) first. A component is done when it meets every law there
 
 - The component lives in `src/lib/components/<Name>.svelte`. Glyphs live in `src/lib/icons/`. Shared behaviour that is not a component (placement, focus, timing) lives in `src/lib/internal/`.
 - Export it from `src/lib/index.ts`, with its public types.
-- Show it in a kitchen sink section, `src/routes/sink/<name>.svelte`. The page finds every file in that folder, and a running dev server does not always notice a new one; save `src/routes/+page.svelte` once to make it look again.
+- Show it in a kitchen sink section, `src/routes/sink/<name>.svelte`. The sink finds every file in that folder and gives it a page at `/<name>/`, a card on the overview, a row in the index with a symbol from `src/routes/kit/glyphs.ts`, and a place on `/all/`. A running dev server does not always notice a new file; save `src/routes/kit/sections.ts` once to make it look again.
 
 ## Kitchen sink sections
 
@@ -18,7 +18,6 @@ A shell or a page layout is never drawn inline. It owns the page's one `main`, i
 <script module lang="ts">
   export const section = {
     title: 'Switch',
-    order: 30,
     lead: 'A boolean that takes effect the moment it flips. A value that a later save writes is a Checkbox.',
     components: ['Switch']
   };
@@ -36,8 +35,8 @@ A shell or a page layout is never drawn inline. It owns the page's one `main`, i
 </Example>
 ```
 
-- `section`: `title` is the component's name. `lead` says what the component is for and when to reach for another one, in one or two sentences of at most 25 words. A lone sentence ends without a period, and two sentences each end with one. `components` lists the exports the section shows, and the page links each one to its source.
-- `Example` is one titled point with a one-sentence `note` that says what it proves. Its specimens stand on a framed stage, and its markup shows under the stage at a press, so write the markup a reader would copy: literal props, no sink-only wrappers. `layout` is `row` for marks and controls, `grid` for fields and other things that fill a column, and `stack` for wide compositions. `ground="canvas"` is for specimens that are surfaces themselves (cards, plates, dialogs, toasts, shells, framed lists), so they read against the page as they will in a product.
+- `section`: `title` is the component's name. The family list in `src/routes/kit/sections.ts` is the one place that places a section; one it does not list shows at the end. Draw the section's symbol in `glyphs.ts` in the icon set's family, unlike every other symbol there. `lead` says what the component is for and when to reach for another one, in one or two sentences of at most 25 words. A lone sentence ends without a period, and two sentences each end with one. `components` lists the exports the section shows, and the page links each one to its source.
+- `Example` is one titled point with a one-sentence `note` that says what it proves. Its specimens stand on a framed stage, and its markup opens under the stage from the frame's Code disclosure, so write the markup a reader would copy: literal props, no sink-only wrappers. `layout` is `row` for marks and controls, `grid` for fields and other things that fill a column, and `stack` for wide compositions. `ground="canvas"` is for specimens that are surfaces themselves (cards, plates, dialogs, toasts, shells, framed lists), so they read against the page as they will in a product.
 - `Specimen` names one specimen: `label` is the variant or state in words ("Disabled"), and `code` is the props that draw it as written in the markup (`tone="stop" disabled`). Every specimen is named. Only an "In context" example, which shows one composition, may stand without a caption.
 - `Variants` is a matrix for two axes at once: one prop down the side (`rows`, `axis`, `rowLabel`) and its states or options across the top (`columns`), drawn by the `cell` snippet. It folds into labelled blocks on a narrow stage.
 - Examples come in this order, using only the ones that apply: variants or tones, states, sizes or tiers, content (icons, long text, empty), behaviour and open states, in context, narrow width. Titles are short nouns in sentence case.
@@ -115,4 +114,4 @@ Write "none" only when an item truly does not apply, and say why. Document each 
 
 - `npm run check` passes with no errors or warnings.
 - `npm test` passes, including `tests/laws.test.mjs`.
-- Open the kitchen sink with `npm run dev`, look at the section in light and dark at 375px and at a desktop width, and read the law audit at the top of the page. It must say "Every law holds on this page".
+- Open the kitchen sink with `npm run dev`, look at the section in light and dark at 375px and at a desktop width, and press "Run the law audit" in the page header. It must say "Laws hold".

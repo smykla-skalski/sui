@@ -82,7 +82,7 @@ way; a busy dialog or a saving pane around it disables it while the work runs.
 
 - Semantics: a native `<input type="checkbox">` inside its `<label>`, named by the label and described by the description.
 - Content: a short label and an optional one-sentence description, or richer `children`.
-- States: unchecked, checked (a filled box with a check), partly chosen (a dash), hover (a row ground), focus (a 2px ring 2px off the box), pressed (a deeper ground, an inset shadow and a 1px sink), invalid (a danger edge, kept when checked), locked and disabled (0.5 opacity).
+- States: unchecked, checked (a filled box with a check), partly chosen (a dash), hover (a row ground), focus (a 2px ring 2px off the box), pressed (a deeper ground, an inset shadow and a 1px sink), invalid (a 2px danger edge, kept when checked), locked and disabled (0.5 opacity).
 - Keyboard: Tab reaches it and Space toggles it; a locked or disabled box refuses the toggle.
 - Pointer and touch: the whole item is the target, 34px tall, 44px with a description, on a phone or on any touch screen, and `bare` is a square as tall as a control, 34px or 44px on touch, which is both its ground and its hit area.
 - Focus: a press never moves focus, and a locked box keeps it.
@@ -261,9 +261,13 @@ way; a busy dialog or a saving pane around it disables it while the work runs.
     color: var(--sui-on-brand-action);
   }
 
-  /* As specific as the checked rule and after it, so a checked box keeps its danger edge. */
+  /* As specific as the checked rule and after it, so a checked box keeps its danger edge. The
+     outline doubles the edge outward, so it reads against the accent fill as well as the empty
+     box, and stays clear of the focus ring 2px further out. */
   .sui-checkbox input + .sui-checkbox-box.invalid {
     border-color: var(--sui-danger);
+    outline: var(--sui-stroke-bold) solid var(--sui-danger);
+    outline-offset: calc(-1 * var(--sui-stroke));
   }
 
   .sui-checkbox-dash {
@@ -338,6 +342,7 @@ way; a busy dialog or a saving pane around it disables it while the work runs.
     .sui-checkbox input + .sui-checkbox-box.invalid {
       border-color: CanvasText;
       border-width: var(--sui-stroke-bold);
+      outline: none;
     }
   }
 

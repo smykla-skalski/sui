@@ -1,7 +1,6 @@
 <script module lang="ts">
   export const section = {
     title: 'Field',
-    order: 21,
     lead: 'A label, its control and the help and error under it, for one value in a form. A group of choices names itself with a legend and needs no Field.',
     components: ['Field']
   };

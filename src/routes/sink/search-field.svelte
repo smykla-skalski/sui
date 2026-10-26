@@ -1,7 +1,6 @@
 <script module lang="ts">
   export const section = {
     title: 'Search field',
-    order: 23,
     lead: 'A search that narrows what is already on screen. A value picked from suggestions as the reader types is a Combobox.',
     components: ['SearchField']
   };

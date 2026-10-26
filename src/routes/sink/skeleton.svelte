@@ -1,7 +1,6 @@
 <script module lang="ts">
   export const section = {
     title: 'Skeleton',
-    order: 87,
     lead: 'The rows a list draws while it waits for its first answer. A refresh keeps the loaded rows and reports itself in place instead.',
     components: ['Skeleton']
   };
