@@ -1,7 +1,6 @@
 <script module lang="ts">
   export const section = {
     title: 'Icon button',
-    order: 11,
     lead: 'A button whose glyph is the whole of it, such as close, more, delete or settings. An action that no glyph names is a Button with its word.',
     components: ['IconButton']
   };

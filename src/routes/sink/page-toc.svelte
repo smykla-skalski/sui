@@ -1,7 +1,6 @@
 <script module lang="ts">
   export const section = {
     title: 'Page index',
-    order: 67,
     lead: 'The index beside a long page: where its sections are and which one the reader is in. A short page does without one.',
     components: ['PageToc']
   };

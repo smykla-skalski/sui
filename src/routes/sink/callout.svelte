@@ -1,7 +1,6 @@
 <script module lang="ts">
   export const section = {
     title: 'Callout',
-    order: 63,
     lead: 'A short consequence set beside the work. Where the work itself would have been, reach for an empty state instead.',
     components: ['Callout']
   };

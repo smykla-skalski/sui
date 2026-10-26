@@ -1,6 +1,17 @@
 import assert from 'node:assert/strict';
 import { after, before, suite, test } from 'node:test';
-import { atRest, audit, brief, long, settles, startSink, sweep, together, visit } from './sink.mjs';
+import {
+  allSections,
+  atRest,
+  audit,
+  brief,
+  long,
+  settles,
+  startSink,
+  sweep,
+  together,
+  visit
+} from './sink.mjs';
 
 // The rendered half of docs/laws.md: the kitchen sink's own law audit, asked at every width
 // and theme, plus the laws that need a real keyboard, a media emulation or two renders.
@@ -31,7 +42,7 @@ suite('the kitchen sink', together, () => {
    */
   async function open(width, theme, options = {}) {
     const page = await browser.newPage({ viewport: { width, height: 900 }, ...options });
-    await visit(page, url);
+    await visit(page, allSections(url));
     await page.evaluate(async (name) => {
       document.documentElement.dataset.suiTheme = name;
       await document.fonts.ready;
@@ -199,52 +210,6 @@ suite('the kitchen sink', together, () => {
         );
   });
 
-  test('the page keeps its audit per path and runs it again only on a press', long, async () => {
-    const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
-    try {
-      const kept = {
-        findings: [{ law: 'L-1', where: 'main', detail: 'kept from an earlier run' }],
-        at: '2026-10-01T12:00:00.000Z',
-        width: 1440,
-        theme: 'light'
-      };
-      await page.addInitScript((record) => {
-        localStorage.setItem(`sui:audit:${location.origin}${location.pathname}`, record);
-        localStorage.setItem(`sui:audit:${location.origin}/elsewhere/`, 'not this page');
-      }, JSON.stringify(kept));
-      await page.goto(url);
-      await page.waitForFunction(() => '__suiAudit' in window);
-      const summary = page.locator('.audit .summary');
-      // The kept run shows at once, and no run starts on its own.
-      assert.equal((await summary.textContent())?.trim(), '1 finding against 1 law');
-      await page.waitForTimeout(1500);
-      assert.equal((await summary.textContent())?.trim(), '1 finding against 1 law');
-
-      await page.getByRole('button', { name: 'Run the audit again' }).click();
-      // The run measures the whole page, which takes a CI runner about a minute and a half.
-      await page.waitForFunction(
-        () =>
-          !document.querySelector('.audit .summary')?.textContent?.includes('kept') &&
-          document.querySelector('.audit .summary')?.textContent?.trim() ===
-            'Every law holds on this page',
-        null,
-        { timeout: 240_000 }
-      );
-      const stored = await page.evaluate(() =>
-        JSON.parse(
-          localStorage.getItem(`sui:audit:${location.origin}${location.pathname}`) ?? 'null'
-        )
-      );
-      assert.deepEqual(stored.findings, []);
-      assert.equal(
-        await page.evaluate(() => localStorage.getItem(`sui:audit:${location.origin}/elsewhere/`)),
-        'not this page'
-      );
-    } finally {
-      await page.close();
-    }
-  });
-
   // A tablet wider than a phone still has a coarse pointer, so the touch tier must hold there too.
   for (const width of [820, 1024])
     test(`the law audit finds nothing on a ${width}px touch screen`, long, async () => {
@@ -370,7 +335,7 @@ suite('the kitchen sink', together, () => {
           await page.route('**/*', (route) =>
             route.request().resourceType() === 'script' ? route.abort() : route.continue()
           );
-          await page.goto(url);
+          await page.goto(allSections(url));
           assert.equal(
             await page.evaluate(() => getComputedStyle(document.documentElement).colorScheme),
             'dark'
@@ -639,8 +604,7 @@ suite('the kitchen sink', together, () => {
     // through a logo's clear middle. The running page draws each the same.
     const failed = ['Alan Turing', 'Radia Perlman'];
     const loaded = ['Grace Hopper', 'Platform Team'];
-    const address = new URL(url);
-    address.searchParams.set('audit', 'manual');
+    const address = new URL(allSections(url));
     /** @type {string[]} */
     const problems = [];
     // Linux blends an antialiased edge pixel a level or two apart once the layers under it
@@ -1465,7 +1429,7 @@ suite('the kitchen sink', together, () => {
   test("a reload's first frame that shows text draws it in SUI's own faces", long, async () => {
     const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
     try {
-      await visit(page, url);
+      await visit(page, allSections(url));
       // Every request takes as long as on a slow phone connection, so a face that is fetched
       // arrives after the first frame.
       const cdp = await page.context().newCDPSession(page);
@@ -1522,60 +1486,6 @@ suite('the kitchen sink', together, () => {
         ),
         place
       );
-    } finally {
-      await page.close();
-    }
-  });
-
-  test('a phone reload draws the kept audit at once and shifts nothing', long, async () => {
-    const page = await browser.newPage({ viewport: { width: 375, height: 812 } });
-    try {
-      await visit(page, url);
-      // A kept run, as a returning reader has, which the panel reads only once the page runs.
-      await page.evaluate(() =>
-        localStorage.setItem(
-          `sui:audit:${location.origin}${location.pathname}`,
-          JSON.stringify({
-            findings: [],
-            at: '2026-10-01T12:00:00.000Z',
-            width: 375,
-            theme: 'light'
-          })
-        )
-      );
-      await page.addInitScript(() => {
-        Object.assign(window, { shifted: 0 });
-        new PerformanceObserver((list) => {
-          for (const entry of /** @type {any[]} */ (list.getEntries()))
-            /** @type {any} */ (window).shifted += entry.value;
-        }).observe({ type: 'layout-shift', buffered: true });
-        // The panel's words in the first frame that paints the page.
-        const words = (/** @type {string} */ selector) =>
-          /** @type {HTMLElement | null} */ (document.querySelector(selector))?.innerText.trim();
-        const step = () => {
-          if (
-            document.querySelector('.audit') &&
-            getComputedStyle(document.body).visibility === 'visible'
-          )
-            Object.assign(window, { first: [words('.audit .summary'), words('.audit .badge')] });
-          else requestAnimationFrame(step);
-        };
-        requestAnimationFrame(step);
-      });
-      await page.goto(url);
-      await page.waitForFunction(
-        () =>
-          document.querySelector('.audit .summary')?.textContent?.trim() ===
-          'Every law holds on this page'
-      );
-      await page.evaluate(
-        () => new Promise((done) => requestAnimationFrame(() => requestAnimationFrame(done)))
-      );
-      assert.deepEqual(await page.evaluate(() => /** @type {any} */ (window).first), [
-        'Every law holds on this page',
-        'Passing'
-      ]);
-      assert.equal(await page.evaluate(() => /** @type {any} */ (window).shifted), 0);
     } finally {
       await page.close();
     }

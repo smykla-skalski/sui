@@ -1,7 +1,6 @@
 <script module lang="ts">
   export const section = {
     title: 'Load more',
-    order: 88,
     lead: 'The last row of a long list: how far the reader is, and the button that brings the next page. A data table pages by number instead.',
     components: ['LoadMore']
   };

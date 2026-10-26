@@ -1,7 +1,6 @@
 <script module lang="ts">
   export const section = {
     title: 'Textarea',
-    order: 22,
     lead: 'The one multi-line field, for words a person writes, such as a reason or a note. A single line is a TextInput.',
     components: ['Textarea']
   };

@@ -1,7 +1,15 @@
 import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
 import { after, before, suite, test } from 'node:test';
-import { audit as auditPage, long, settles, startSink, together, visit } from './sink.mjs';
+import {
+  allSections,
+  audit as auditPage,
+  long,
+  settles,
+  startSink,
+  together,
+  visit
+} from './sink.mjs';
 
 // The kitchen sink under the conditions readers bring with them: an accessibility engine's
 // WCAG 2.2 rules, a right-to-left page, forced colors, the WCAG 1.4.12 text spacing and text
@@ -33,7 +41,7 @@ suite('accessibility', together, () => {
    */
   async function open(width, theme, options = {}) {
     const page = await browser.newPage({ viewport: { width, height: 900 }, ...options });
-    await visit(page, url);
+    await visit(page, allSections(url));
     await page.evaluate(async (name) => {
       document.documentElement.dataset.suiTheme = name;
       await document.fonts.ready;
@@ -314,7 +322,7 @@ suite('accessibility', together, () => {
           colorScheme
         });
         try {
-          await visit(page, url);
+          await visit(page, allSections(url));
           const weak = await page.evaluate((name) => {
             if (name) document.documentElement.dataset.suiTheme = name;
             const context = /** @type {CanvasRenderingContext2D} */ (

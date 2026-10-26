@@ -1,7 +1,6 @@
 <script module lang="ts">
   export const section = {
     title: 'Color picker',
-    order: 101,
     lead: "A color as a hex, picked from swatches, an area and a hue rail, for a color that is the user's own data. A theme never needs one.",
     components: ['ColorPicker']
   };

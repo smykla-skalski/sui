@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { after, before, test } from 'node:test';
-import { long, startSink } from '../sink.mjs';
+import { allSections, long, startSink } from '../sink.mjs';
 
 // A reload must paint its final page in its first frame: what the server drew is what the page
 // draws once its script runs, the window stands at the reader's place, and nothing appears,
@@ -21,13 +21,6 @@ after(async () => {
   await browser?.close();
   await server?.close();
 });
-
-/** @param {string} address */
-const manual = (address) => {
-  const page = new URL(address);
-  page.searchParams.set('audit', 'manual');
-  return page.href;
-};
 
 /**
  * The pixels two same-sized PNG shots differ in, beyond the noise of a smoothed edge.
@@ -71,7 +64,7 @@ test('a reload halfway down paints its settled page in its first frame', long, a
     colorScheme: 'dark'
   });
   try {
-    await page.goto(manual(url));
+    await page.goto(allSections(url));
     await page.waitForFunction(() => '__suiAudit' in window);
     const place = await page.evaluate(() => {
       scrollTo(0, Math.round((document.documentElement.scrollHeight - innerHeight) / 2));
@@ -137,11 +130,9 @@ test('the server’s render draws every part as the page draws it once it runs',
         await page.route('**/*', (route) =>
           route.request().resourceType() === 'script' ? route.abort() : route.continue()
         );
-      await page.goto(manual(url));
+      await page.goto(allSections(url));
       if (runs) await page.waitForFunction(() => '__suiAudit' in window);
       await page.evaluate(() => document.fonts.ready);
-      // The bar and the way back up depend on where the window stands, which a shot moves.
-      await page.addStyleTag({ content: '.bar, .to-top { visibility: hidden !important; }' });
       pages.push(page);
     }
     const shoot = async (

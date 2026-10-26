@@ -1,7 +1,6 @@
 <script module lang="ts">
   export const section = {
     title: 'Switch',
-    order: 24,
     lead: 'A boolean that takes effect the moment it flips. A value that a later save writes is a Checkbox.',
     components: ['Switch']
   };

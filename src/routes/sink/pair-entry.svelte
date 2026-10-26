@@ -1,7 +1,6 @@
 <script module lang="ts">
   export const section = {
     title: 'Pair entry',
-    order: 105,
     lead: 'Keys and the values they map to as chips that edit in place, such as aliases and their commands. A list of single values is PatternEntries.',
     components: ['PairEntry']
   };

@@ -1,7 +1,6 @@
 <script module lang="ts">
   export const section = {
     title: 'Choice cards',
-    order: 26,
     lead: 'One answer to one question, where every answer needs a sentence to say what it does. Answers that a word names are a SegmentedControl.',
     components: ['ChoiceCards']
   };

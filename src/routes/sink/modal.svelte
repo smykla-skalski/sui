@@ -1,7 +1,6 @@
 <script module lang="ts">
   export const section = {
     title: 'Modal',
-    order: 50,
     lead: 'A task the reader must finish or abandon before using the page again. Reading belongs on a page or in a panel.',
     components: ['Modal']
   };

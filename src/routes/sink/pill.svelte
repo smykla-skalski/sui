@@ -1,7 +1,6 @@
 <script module lang="ts">
   export const section = {
     title: 'Pill',
-    order: 80,
     lead: 'A status or a standing that nothing presses. A value such as a label, a pattern or a count is a Chip.',
     components: ['Pill']
   };

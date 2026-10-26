@@ -1,7 +1,6 @@
 <script module lang="ts">
   export const section = {
     title: 'Diff block',
-    order: 69,
     lead: 'A small unified diff that shows an excerpt worth reading, never a whole file. Code with nothing to compare is a CodeBlock.',
     components: ['DiffBlock']
   };

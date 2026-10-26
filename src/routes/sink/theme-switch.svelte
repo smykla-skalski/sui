@@ -1,7 +1,6 @@
 <script module lang="ts">
   export const section = {
     title: 'Theme switch',
-    order: 28,
     lead: "Light, dark or the system's theme for the whole page, remembered for the next visit. Any other choice of a few options is a SegmentedControl.",
     components: ['ThemeSwitch']
   };

@@ -2,7 +2,7 @@
 
 Reusable Svelte 5 components for Smykla projects. The shared look follows the [Smyklot panel design system](https://github.com/smykla-skalski/smyklot/blob/main/design-system/smyklot-panel/MASTER.md): neutral surfaces, one ocean blue accent in both themes, Plus Jakarta Sans for interface text, JetBrains Mono for technical values, and semantic status colors. Every component is held to the [SUI design laws](docs/laws.md), which merge the Smyklot sheet with the rules of a companion documentation site.
 
-This repository contains the package and a kitchen sink (`npm run dev`) that shows every component in every state and measures the laws on each render. The shells and page layouts are whole pages under `/layouts`, which the kitchen sink shows in frames at phone, tablet and desktop widths.
+This repository contains the package and a kitchen sink (`npm run dev`): an overview of every component, one page per component in every state, `/all/` with every component on one page, and a law audit on demand on each. The shells and page layouts are whole pages under `/layouts`, which the kitchen sink shows in frames at phone, tablet and desktop widths.
 
 ## Install
 
@@ -94,8 +94,8 @@ setWords({
 [docs/laws.md](docs/laws.md) lists every law with its source and how it is held. [docs/authoring.md](docs/authoring.md) explains how to write a component that meets them.
 
 - `npm test` runs the source laws (`tests/laws.test.mjs`): the palette is the only place a color is written, every token is declared and read, sizes, leading, spacing, radii, layers and durations come from tokens, every moving component has a reduced-motion fallback, and every component has a contract and a kitchen sink section.
-- The kitchen sink runs the rendered laws once per page address and shows each finding: contrast, palette bands, type faces and leading, copy rules, control heights, target sizes, centring, focus, names, the current place and sideways scroll. It keeps the result in the browser until you run it again.
-- `npm run test:browser` is the everyday check, about seven seconds: that audit in Chrome on a phone in light and a desktop in dark, and the checks that every joined name follows `setWords`. It uses the installed Chrome through `playwright-core`; set `SUI_BROWSER_CHANNEL` to use another channel.
+- The kitchen sink runs the rendered laws on the page you are on when you press "Run the law audit" and shows each finding: contrast, palette bands, type faces and leading, copy rules, control heights, target sizes, centring, focus, names, the current place and sideways scroll. A run takes seconds and goes stale with the next edit, so the page never runs or keeps one on its own.
+- The browser suites read `/all/`, the page with every section. `npm run test:browser` is the everyday check, about seven seconds: that audit in Chrome on a phone in light and a desktop in dark, and the checks that every joined name follows `setWords`. It uses the installed Chrome through `playwright-core`; set `SUI_BROWSER_CHANNEL` to use another channel.
 - `npm run test:browser:long` runs everything CI runs: the audit at 320, 375, 768 and 1440px in both themes and on touch tablets, the audit and axe on every layout page, every keyboard stop, menu, press and layer, right to left, forced colors, text spacing and size, axe, the section pictures and the lab performance checks.
 
 ## Development

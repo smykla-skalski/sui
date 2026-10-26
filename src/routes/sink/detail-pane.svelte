@@ -1,7 +1,6 @@
 <script module lang="ts">
   export const section = {
     title: 'Detail pane',
-    order: 64,
     lead: 'One thing beside its list or on its own page: a header band, one alert at most, sections by importance, properties, then rare detail',
     components: ['DetailLayout', 'PageHeader', 'Section', 'FactList']
   };

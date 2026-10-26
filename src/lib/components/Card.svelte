@@ -61,8 +61,10 @@ has a state to say on its title line.
 The box is the base ground, a subtle keyline and a 10px corner. The card owns its 20px inset,
 16px once the card itself is 36rem wide or narrower, and never its outer spacing, so peers
 take their 16px from the container's gap. It fills the width its container gives it and never
-decides that width. It lends that inline inset to its body's direct children through
-`--sui-local-bleed`, so a chart's band can reach the card's edges and pad back by it.
+decides that width. In a grid or flex row it takes the row's height, so peers side by side
+end on one line, and the room a shorter one gains stands under its last ink. It lends its
+inline inset to its body's direct children through `--sui-local-bleed`, so a chart's band can
+reach the card's edges and pad back by it.
 
 Whatever the card holds stands the same inset from all four keylines, to the ink a reader
 sees (L-33): the first ink sits the inset below the top, the last the inset above the bottom,
@@ -98,7 +100,7 @@ title, such as "Danger zone", and holds the acts that cannot be undone, each a `
 - Keyboard: without `href`, none of its own; with it, the card is one tab stop and Enter follows the link; then Tab reaches the controls inside in reading order.
 - Pointer and touch: with `href`, the whole card is the link's target; the controls inside keep their own targets and press feedback.
 - Focus: nothing here moves focus; a focused card link draws the 2px ring flush on the card's keyline, which takes the focus colour, as a bordered control does (L-41).
-- Responsive: a container query on the card's own width steps the inset from 20px to 16px at 36rem, the head's actions stay beside the copy, centred on the title's cap band, while the copy wraps beside them, until the card is under 12rem wide, as with text at twice its size, where they stand under the copy, and the footer's actions stand beside the copy while they fit next to 11rem of it and wrap under it, from its start edge, otherwise.
+- Responsive: in a grid or flex row the card takes the row's height and leaves the extra room under its content; a container query on the card's own width steps the inset from 20px to 16px at 36rem, the head's actions stay beside the copy, centred on the title's cap band, while the copy wraps beside them, until the card is under 12rem wide, as with text at twice its size, where they stand under the copy, and the footer's actions stand beside the copy while they fit next to 11rem of it and wrap under it, from its start edge, otherwise.
 - Accessibility: the unsaved and danger states are said in words, never by the keyline's colour alone, and the copy, the word and the danger title hold 4.5:1; a card link is heard once, by its title, with the rest of the card outside its name.
 - Localization: `unsavedLabel` is a prop with an English default, and `titleName` joins it to the title; the actions sit at the inline end, which mirrors in a right-to-left page.
 - Performance: static layout with no script; each card is its own size container, and hover and press change only the veil, the inset shadow and a 1px sink.
@@ -152,8 +154,12 @@ title, such as "Danger zone", and holds the acts that cannot be undone, each a `
 </div>
 
 <style>
+  /* A grid of one track, so the card takes the box's height, which a grid or flex row stretches
+     to the row's. */
   .sui-card-box {
     container-type: inline-size;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
     min-inline-size: 0;
   }
 
@@ -164,6 +170,7 @@ title, such as "Danger zone", and holds the acts that cannot be undone, each a `
      their frame lands on whole pixels whatever the copy's height and keeps the bottom inset,
      and a line the actions take alone starts at the start edge (L-90). */
   .sui-card {
+    align-content: start;
     align-items: start;
     background: var(--sui-surface-base);
     border: var(--sui-stroke) solid var(--sui-border-subtle);

@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { after, before, suite, test } from 'node:test';
-import { atRest, brief, long, settles, startSink, together, visit } from './sink.mjs';
+import { allSections, atRest, brief, long, settles, startSink, together, visit } from './sink.mjs';
 
 // Focus, keyboard and placement of the floating layers and dialogs, on the kitchen sink.
 
@@ -53,7 +53,7 @@ suite('overlays', together, () => {
   /** @param {import('playwright-core').BrowserContextOptions} [options] */
   async function open(options = {}) {
     const page = await browser.newPage({ viewport: { width: 1280, height: 900 }, ...options });
-    await visit(page, url);
+    await visit(page, allSections(url));
     await page.evaluate(() => document.fonts.ready);
     // A smooth scroll would still be moving a trigger when its layer is measured.
     await page.addStyleTag({ content: 'html { scroll-behavior: auto !important; }' });

@@ -1,7 +1,6 @@
 <script module lang="ts">
   export const section = {
     title: 'Card',
-    order: 61,
     lead: "A box only for a peer summary that links to its page, a feed entry, a bare page's one box or the danger zone. For anything else, reach for a Section.",
     components: ['Card']
   };

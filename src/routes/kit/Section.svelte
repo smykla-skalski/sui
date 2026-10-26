@@ -1,38 +1,37 @@
 <script module lang="ts">
-  /** What a kitchen sink section file exports as `section`. */
+  /** What a kitchen sink section file exports as `section`. Its place comes from the family list
+   * in `sections.ts`. */
   export type SectionMeta = {
     title: string;
-    order: number;
     /** One or two sentences: what the component is for, and when to reach for another. */
     lead: string;
     /** The library components the section shows, linked to their source. */
     components: string[];
   };
 
-  export type SectionContext = { readonly id: string; readonly source: string };
+  export type SectionContext = {
+    readonly id: string;
+    readonly source: string;
+    /** The level of the examples' headings, one under the section's title. */
+    readonly level: 2 | 3;
+  };
 </script>
 
 <script lang="ts">
-  import { setContext, type Component } from 'svelte';
+  import { setContext } from 'svelte';
   import { Link } from '#lib';
+  import { sources, type SinkSection } from './sections';
 
   let {
-    id,
-    family,
-    meta,
-    source,
-    sources,
-    body: Body
+    section,
+    head = true
   }: {
-    id: string;
-    family: string;
-    meta: SectionMeta;
-    /** The section file's own text, which its examples cut their code from. */
-    source: string;
-    /** Each listed component's path in the repository. */
-    sources: Record<string, string>;
-    body: Component;
+    section: SinkSection;
+    /** Draws the title and the lead. A component's own page says both in its page header. */
+    head?: boolean;
   } = $props();
+
+  const { id, meta, source, Body } = $derived(section);
 
   setContext<SectionContext>('sink-section', {
     get id() {
@@ -40,6 +39,9 @@
     },
     get source() {
       return source;
+    },
+    get level() {
+      return head ? 3 : 2;
     }
   });
 
@@ -99,11 +101,14 @@
   }
 </script>
 
-<section {id} class="section" aria-labelledby="{id}-title" {@attach stillWhenAway}>
+<!-- No accessible name, so the sections are headings to jump between, not one landmark region
+     each (L-108). -->
+<section {id} class={['section', { headed: head }]} {@attach stillWhenAway}>
   <header class="head">
-    <p class="family">{family}</p>
-    <h2 id="{id}-title">{meta.title}</h2>
-    <p class="lead">{meta.lead}</p>
+    {#if head}
+      <h2>{meta.title}</h2>
+      <p class="lead">{meta.lead}</p>
+    {/if}
     {#if meta.components.length > 0}
       <p class="sources">
         <span class="sources-label">Source</span>
@@ -122,29 +127,25 @@
 
 <style>
   .section {
-    border-block-start: var(--sui-stroke) solid var(--sui-border-divider);
     box-sizing: border-box;
     display: grid;
     gap: var(--sui-space-8);
     min-inline-size: 0;
+  }
+
+  /* On the page of every section, a line parts one component from the next. */
+  .headed {
+    border-block-start: var(--sui-stroke) solid var(--sui-border-divider);
     padding-block: var(--sui-space-8) var(--sui-space-4);
+  }
+
+  .headed:not(:first-child) {
+    margin-block-start: var(--sui-space-8);
   }
 
   .head {
     display: grid;
     gap: var(--sui-row-copy-gap);
-  }
-
-  .family {
-    align-content: center;
-    block-size: var(--sui-block-snap);
-    color: var(--sui-text-muted);
-    font: var(--sui-weight-semibold) var(--sui-font-size-micro) / var(--sui-leading-micro)
-      var(--sui-sans);
-    letter-spacing: 0.06em;
-    margin: 0;
-    text-box: trim-both cap alphabetic;
-    text-transform: uppercase;
   }
 
   h2 {

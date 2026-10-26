@@ -1,7 +1,6 @@
 <script module lang="ts">
   export const section = {
     title: 'Confirm dialog',
-    order: 52,
     lead: 'A question asked before an act that cannot be undone or would discard work. An act that can be undone just happens and offers Undo.',
     components: ['ConfirmDialog']
   };

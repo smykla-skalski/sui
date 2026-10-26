@@ -1,7 +1,6 @@
 <script module lang="ts">
   export const section = {
     title: 'Chip',
-    order: 81,
     lead: 'A value drawn as a mark, such as a label name, a pattern or a count. A state, a role or a standing is a Pill.',
     components: ['Chip']
   };

@@ -1,7 +1,6 @@
 <script module lang="ts">
   export const section = {
     title: 'Page header',
-    order: 65,
     lead: 'The top of a page: where it is, what it is called, its state, what it is for and the controls that act on it. A part of the page takes a Section heading instead.',
     components: ['PageHeader', 'Breadcrumb', 'BackLink']
   };

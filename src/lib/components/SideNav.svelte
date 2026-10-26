@@ -1,4 +1,5 @@
 <script module lang="ts">
+  import type { Snippet } from 'svelte';
   import type { IconName } from '../icons/Icon.svelte';
 
   export type NavItem = {
@@ -6,7 +7,8 @@
     label: string;
     /** A shorter name for the collapsed strip, taken from the words of `label` so speech input finds it. */
     short?: string;
-    icon: IconName;
+    /** A glyph from the icon set, or the caller's own drawn at `--sui-icon-base` in the same family. */
+    icon: IconName | Snippet;
     /** A count beside the label, in tabular figures. */
     count?: number;
   };
@@ -20,7 +22,7 @@
 
 <script lang="ts">
   import { mark, word } from '../words.js';
-  import { tick, untrack, type Snippet } from 'svelte';
+  import { tick, untrack } from 'svelte';
   import type { HTMLAttributes } from 'svelte/elements';
   import Icon from '../icons/Icon.svelte';
   import Count from '../internal/Count.svelte';
@@ -247,7 +249,7 @@ read aloud. In the phone drawer a close button takes the head's end, rows are 44
 following a row closes the drawer.
 
 - Semantics: a `nav` landmark named "<title> pages" by default that holds the whole sidebar, its title, rows, fold control and foot, so nothing in it stands outside a landmark; the title is a heading at `level`, each section a list labelled by its own heading one level below, and every row a link with `aria-current="page"` on the current one.
-- Content: a title and optional kicker, sections of rows with a glyph, a label, an optional `short` label and an optional count, and an optional `foot`.
+- Content: a title and optional kicker, sections of rows with a glyph from the icon set or the caller's own, a label, an optional `short` label and an optional count, and an optional `foot`.
 - States: rest, hover, pressed (the pressed ground, an inset shadow and a 1px sink), focus (a 2px inset ring) and current (primary ink on the quiet plate, in the rest rows' weight, so it moves nothing); labels wrap rather than being cut.
 - Keyboard: Tab moves through the rows, then the fold or close control; Enter follows a row or presses the control.
 - Pointer and touch: rows are 34px on a desktop pointer and 44px in the drawer and the strip; the close and fold controls are 34px and 44px there, and nothing needs a gesture.
@@ -310,7 +312,12 @@ following a row closes the drawer.
                 aria-current={item.href === here ? 'page' : undefined}
                 onclick={(event) => follow(event, item)}
               >
-                <span class="sui-side-nav-glyph"><Icon name={item.icon} size="base" /></span>
+                <span class="sui-side-nav-glyph"
+                  >{#if typeof item.icon === 'string'}<Icon
+                      name={item.icon}
+                      size="base"
+                    />{:else}{@render item.icon()}{/if}</span
+                >
                 <span class={['sui-side-nav-label', { replaced: item.short }]}>{item.label}</span>
                 {#if item.short}
                   <span class="sui-side-nav-short" aria-hidden="true">{item.short}</span>

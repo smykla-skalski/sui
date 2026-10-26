@@ -1,7 +1,6 @@
 <script module lang="ts">
   export const section = {
     title: 'Fact list',
-    order: 113,
     lead: 'Facts about a thing, each a label and its value: a few headline facts inline, or its properties in rows. A setting the reader changes is a form row instead.',
     components: ['FactList']
   };

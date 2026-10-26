@@ -1,7 +1,6 @@
 <script module lang="ts">
   export const section = {
     title: 'Inherit control',
-    order: 107,
     lead: 'A value inherited from another level until this one overrides it, with the way back. A setting with nothing to inherit takes its control directly.',
     components: ['InheritControl']
   };

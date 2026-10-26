@@ -1,7 +1,6 @@
 <script module lang="ts">
   export const section = {
     title: 'Pattern entries',
-    order: 106,
     lead: 'An editable list of patterns, such as branches or paths to leave alone. A key that maps to a value is a PairEntry.',
     components: ['PatternEntries']
   };

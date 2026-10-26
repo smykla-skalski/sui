@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { after, before, suite, test } from 'node:test';
-import { atRest, brief, long, settles, startSink, together, visit } from './sink.mjs';
+import { allSections, atRest, brief, long, settles, startSink, together, visit } from './sink.mjs';
 
 // Behaviour of the shell, the navigation lists, the tabs and the charts that the law audit
 // cannot see in one still page: focus handoffs, placement by direction, the phone bars,
@@ -57,7 +57,7 @@ suite('navigation', together, () => {
   async function open(width, { rtl = false, forced = false } = {}) {
     const page = await browser.newPage({ viewport: { width, height: 900 } });
     if (forced) await page.emulateMedia({ forcedColors: 'active' });
-    await visit(page, url);
+    await visit(page, allSections(url));
     await page.evaluate(async (rtl) => {
       if (rtl) document.documentElement.dir = 'rtl';
       await document.fonts.ready;
@@ -260,32 +260,40 @@ suite('navigation', together, () => {
     long,
     async () => {
       const page = await open(1440, { forced: true });
+      // The rail lives on the app shell page, which marks its own place as current.
+      const shell = await openLayout('layouts/app-shell/', 1440);
       try {
-        const marks = await page.evaluate(() => {
+        await shell.emulateMedia({ forcedColors: 'active' });
+        const highlight = () => {
           const probe = document.body.appendChild(document.createElement('span'));
           probe.style.color = 'Highlight';
-          const highlight = getComputedStyle(probe).color;
+          const color = getComputedStyle(probe).color;
           probe.remove();
+          return color;
+        };
+        const marks = await page.evaluate(() => {
           const tabs = [...document.querySelectorAll('#tabs .sui-tabs')][0];
           const bar = (/** @type {Element} */ tab) =>
             getComputedStyle(tab, '::after').backgroundColor;
-          // The sink's own rail marks the sink as its current place.
-          const tile = document.querySelector('.sui-rail-tile[aria-current]');
           return {
-            highlight,
             current: bar(/** @type {Element} */ (tabs.querySelector('[aria-current="page"]'))),
-            others: [...tabs.querySelectorAll('.sui-tabs-tab:not([aria-current])')].map(bar),
-            place: tile ? getComputedStyle(tile).backgroundColor : null
+            others: [...tabs.querySelectorAll('.sui-tabs-tab:not([aria-current])')].map(bar)
           };
         });
-        assert.equal(marks.current, marks.highlight);
+        const place = await shell.evaluate(() => {
+          const tile = document.querySelector('.sui-rail-tile[aria-current]');
+          return tile ? getComputedStyle(tile).backgroundColor : null;
+        });
+        const marked = await page.evaluate(highlight);
+        assert.equal(marks.current, marked);
         assert.ok(
-          marks.others.every((color) => color !== marks.highlight),
+          marks.others.every((color) => color !== marked),
           'every tab wears the mark'
         );
-        assert.equal(marks.place, marks.highlight);
+        assert.equal(place, await shell.evaluate(highlight));
       } finally {
         await page.close();
+        await shell.close();
       }
     }
   );
@@ -362,7 +370,7 @@ suite('navigation', together, () => {
       ])) {
         const page = await browser.newPage({ viewport: { width, height: 900 }, reducedMotion });
         try {
-          await visit(page, url);
+          await visit(page, allSections(url));
           // The sink's own shell comes first; the app shell section's specimens follow it.
           if (width < 768) await page.locator('.sui-shell-menu').first().click();
           await page.locator('.sui-side-nav-row', { hasText: 'Data table' }).first().click();
@@ -384,6 +392,25 @@ suite('navigation', together, () => {
       }
     }
   );
+
+  test("an overview card opens its component's own page, which the index marks", async () => {
+    const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
+    try {
+      await visit(page, url);
+      await page.getByRole('link', { name: 'Data table', exact: true }).first().click();
+      await page.waitForURL(/\/data-table\/$/);
+      const shown = await page.evaluate(() => ({
+        title: document.querySelector('h1')?.textContent?.trim(),
+        sections: document.querySelectorAll('main section.section').length,
+        current: document
+          .querySelector('.sui-side-nav-row[aria-current="page"]')
+          ?.textContent?.trim()
+      }));
+      assert.deepEqual(shown, { title: 'Data table', sections: 1, current: 'Data table' });
+    } finally {
+      await page.close();
+    }
+  });
 
   test("the sink's index marks the section the reader has scrolled to", long, async () => {
     const page = await open(1440);
@@ -577,8 +604,8 @@ suite('navigation', together, () => {
       const read = async (/** @type {boolean} */ javaScriptEnabled) => {
         const page = await browser.newPage({ viewport: { width, height: 900 }, javaScriptEnabled });
         try {
-          if (javaScriptEnabled) await visit(page, url);
-          else await page.goto(url);
+          if (javaScriptEnabled) await visit(page, allSections(url));
+          else await page.goto(allSections(url));
           return await page.evaluate(async () => {
             await document.fonts.ready;
             return [...document.querySelectorAll('#charts .sui-chart')].map((chart) => {
@@ -605,7 +632,7 @@ suite('navigation', together, () => {
     const { faceInk } = await import('../../src/lib/charts/geometry.ts');
     const page = await browser.newPage();
     try {
-      await visit(page, url);
+      await visit(page, allSections(url));
       const candidates = [
         [0x20, 0x7e],
         [0xa0, 0x2dc],

@@ -1,7 +1,6 @@
 <script module lang="ts">
   export const section = {
     title: 'Toaster',
-    order: 54,
     lead: 'A toast says what just happened, with at most one way back such as Undo. Unsaved work belongs in a SaveBar.',
     components: ['Toaster']
   };

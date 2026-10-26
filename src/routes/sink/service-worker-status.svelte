@@ -1,7 +1,6 @@
 <script module lang="ts">
   export const section = {
     title: 'Service worker status',
-    order: 105,
     lead: 'Offers a new version once it has installed, and says when the network stops answering. The page keeps its version until the reader reloads.',
     components: ['ServiceWorkerStatus']
   };

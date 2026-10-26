@@ -1019,7 +1019,14 @@ function geometry(root: Document): Finding[] {
     const off = (gap: number) => Math.abs(gap - inset) > 0.5;
     const sideOff = (side: { gap: number; reached: boolean }) =>
       side.reached ? off(side.gap) : side.gap < inset - 0.5;
-    if (off(top) || off(bottom) || sideOff(start) || sideOff(end))
+    // A card in a grid or flex row takes the row's height, so a shorter peer holds more room
+    // under its last ink, and never less than the inset.
+    // ponytail: any extra room passes in a row; compare it with the tallest peer's if a card
+    // ever pads its own foot.
+    const row = card.parentElement?.parentElement;
+    const fillsRow = !!row && /grid|flex/.test(getComputedStyle(row).display);
+    const bottomOff = fillsRow ? bottom < inset - 0.5 : off(bottom);
+    if (off(top) || bottomOff || sideOff(start) || sideOff(end))
       found.push(
         finding(
           'L-33',
@@ -1655,8 +1662,8 @@ function specimens(root: Document): Finding[] {
         finding('L-55', stack, 'stacked specimens use under 60% of their line and fit side by side')
       );
   }
-  // Specimens on one line hang their captions from one line too, under a dashed rule, so a
-  // reader scans the names across without hunting below each specimen.
+  // Specimens on one line hang their captions from one line too, so a reader scans the names
+  // across without hunting below each specimen.
   const lines = new Map<Element, Map<number, number[]>>();
   for (const caption of audited(root, 'figure.specimen > figcaption')) {
     const row = caption.parentElement?.parentElement;
@@ -1665,8 +1672,6 @@ function specimens(root: Document): Finding[] {
     const tops = lines.get(row) ?? new Map<number, number[]>();
     tops.set(top, [...(tops.get(top) ?? []), caption.getBoundingClientRect().top]);
     lines.set(row, tops);
-    if (getComputedStyle(caption, '::before').borderBlockStartStyle !== 'dashed')
-      found.push(finding('L-55', caption, 'a caption has no dashed rule above it'));
   }
   for (const [row, tops] of lines)
     for (const captions of tops.values())

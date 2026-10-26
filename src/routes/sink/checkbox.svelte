@@ -1,7 +1,6 @@
 <script module lang="ts">
   export const section = {
     title: 'Checkbox and check list',
-    order: 25,
     lead: 'A visible box for a multi-choice, a consent or a value that a later save writes. A boolean that takes effect at once is a Switch.',
     components: ['Checkbox', 'CheckList']
   };

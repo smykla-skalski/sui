@@ -1,7 +1,6 @@
 <script module lang="ts">
   export const section = {
     title: 'Plate',
-    order: 62,
     lead: 'A titled ground for one subject that says its state beside its name. A group with no state to say is a Card.',
     components: ['Plate']
   };

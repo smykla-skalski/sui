@@ -58,7 +58,7 @@
   /* The body is a grid as wide as the specimen: a block surface or a field fills it, while
      a mark keeps its own fit-content width (L-43). In a grid of specimens it takes two of the
      grid's rows, so every body on a line shares the tallest body's track and every caption the
-     tallest caption's: their rules and labels start on one line even when a caption wraps. In
+     tallest caption's: their labels start on one line even when a caption wraps. In
      a row or a stack there is no parent grid, the subgrid falls back to two rows of its own,
      and specimens on one line share the tallest one's height with the caption at the bottom. */
   .specimen {
@@ -69,21 +69,6 @@
     grid-template-rows: subgrid;
     margin: 0;
     min-inline-size: 0;
-  }
-
-  /* In a grid, each specimen past the first line draws the dashed rule centred in the gap above
-     it, so the reader sees where the next line starts. Every specimen reaches half the gap up,
-     so the lines stay level whether or not they draw it. */
-  @supports (inline-size: calc(1px * sibling-index())) and (inline-size: calc(1px * (1px / 1px))) {
-    .specimen {
-      --past-first-line: clamp(0, sibling-index() - var(--sui-local-grid-columns, infinity), 1);
-      border-block-start: calc(var(--sui-stroke) * var(--past-first-line)) dashed
-        var(--sui-border-control);
-      margin-block-start: calc(var(--sui-local-grid-gap, 0px) / -2);
-      padding-block-start: calc(
-        var(--sui-local-grid-gap, 0px) / 2 - var(--sui-stroke) * var(--past-first-line)
-      );
-    }
   }
 
   /* One shrinkable column: a surface capped at 100% stays inside a narrow stage. */
@@ -104,67 +89,6 @@
     display: grid;
     gap: var(--sui-row-copy-gap);
     justify-items: start;
-    padding-block-start: var(--sui-space-3);
-    position: relative;
-  }
-
-  /* A dashed rule parts what is shown from what names it. */
-  figcaption::before {
-    border-block-start: var(--sui-stroke) dashed var(--sui-border-control);
-    content: '';
-    inline-size: 100%;
-    inset-block-start: 0;
-    inset-inline-start: 0;
-    position: absolute;
-  }
-
-  /* The rule is as wide as the component or the caption's own words, whichever is wider, laid
-     out by the browser from their boxes, so the server's render draws it at its final length.
-     A closed layer has no box and never counts. Without anchor positioning it runs the
-     caption's width. */
-  @supports (anchor-scope: all) {
-    /* The figure holds its rule, so a layout elsewhere on the page never sends the browser
-       through every specimen's anchored rule. */
-    .specimen {
-      anchor-scope: all;
-      position: relative;
-    }
-
-    .body > :global(:first-child) {
-      anchor-name: --specimen-first;
-    }
-
-    .body > :global(:last-child:not(:first-child)) {
-      anchor-name: --specimen-last;
-    }
-
-    figcaption {
-      anchor-name: --specimen-caption;
-      position: static;
-    }
-
-    .label {
-      anchor-name: --specimen-label;
-    }
-
-    code {
-      anchor-name: --specimen-code;
-    }
-
-    figcaption::before {
-      inline-size: auto;
-      inset-block-start: anchor(--specimen-caption top);
-      inset-inline-end: max(
-        anchor(--specimen-caption end),
-        min(
-          anchor(--specimen-first end, 100%),
-          anchor(--specimen-last end, 100%),
-          anchor(--specimen-label end),
-          anchor(--specimen-code end)
-        )
-      );
-      inset-inline-start: anchor(--specimen-caption start);
-    }
   }
 
   .label {

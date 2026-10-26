@@ -1,9 +1,8 @@
 <script lang="ts">
   import { getContext, type Snippet } from 'svelte';
-  import { Button, CodeBlock, Icon } from '#lib';
+  import { CodeBlock, Disclosure } from '#lib';
   import type { SectionContext } from './Section.svelte';
   import { exampleSource, slug } from './source';
-  import './gap-rule.css';
 
   let {
     title,
@@ -34,6 +33,7 @@
   const section = getContext<SectionContext | undefined>('sink-section');
   const id = $derived(section ? `${section.id}-${slug(title)}` : slug(title));
   const markup = $derived(code && section ? exampleSource(section.source, title) : null);
+  const level = $derived(section?.level ?? 3);
 
   let open = $state(false);
 </script>
@@ -46,38 +46,20 @@ live specimens, not a surface of the design, so it may hold cards and dialogs (L
 
 <div class="example">
   <div class="head">
-    <h3 {id}>{title}</h3>
+    <svelte:element this={`h${level}`} {id} class="title">{title}</svelte:element>
     {#if note}<p class="note">{note}</p>{/if}
   </div>
   <div class="frame">
     <div class="stage" data-ground={ground}>
-      <div class="specimens sink-specimens" data-layout={layout}>{@render children()}</div>
+      <div class="specimens" data-layout={layout}>{@render children()}</div>
     </div>
-    <div class="tools">
-      {#if markup}
-        <Button
-          tone="ghost"
-          aria-expanded={open}
-          aria-controls={open ? `${id}-code` : undefined}
-          onclick={() => (open = !open)}
-        >
-          Show code
-          {#snippet trailing()}<span class="chevron" class:open
-              ><Icon name="chevron-down" size="sm" /></span
-            >{/snippet}
-        </Button>
-      {/if}
-      <!-- A review comment can point at one example. -->
-      <span class="end">
-        <Button tone="ghost" href="#{id}" aria-label="Link to {title}">
-          {#snippet icon()}<Icon name="link" size="sm" />{/snippet}
-          Link
-        </Button>
-      </span>
-    </div>
-    {#if open && markup}
-      <div id="{id}-code" class="code">
-        <CodeBlock code={markup} lang="html" bare />
+    {#if markup}
+      <!-- The markup is drawn only once asked for, so the page never highlights code that no one
+           reads. -->
+      <div class="tools">
+        <Disclosure summary="Code" bind:open>
+          {#if open}<CodeBlock code={markup} lang="html" bare />{/if}
+        </Disclosure>
       </div>
     {/if}
   </div>
@@ -95,7 +77,7 @@ live specimens, not a surface of the design, so it may hold cards and dialogs (L
     gap: var(--sui-row-copy-gap);
   }
 
-  h3 {
+  .title {
     align-content: center;
     block-size: var(--sui-block-snap);
     color: var(--sui-text-primary);
@@ -156,9 +138,6 @@ live specimens, not a surface of the design, so it may hold cards and dialogs (L
     background: var(--sui-canvas);
   }
 
-  /* Each gap between lines of specimens holds the captions' dashed rule (gap-rule.css), so the
-     reader sees where the next line starts. It is only drawn between lines, so a single line
-     has none. */
   .specimens {
     align-items: stretch;
     display: flex;
@@ -177,19 +156,7 @@ live specimens, not a surface of the design, so it may hold cards and dialogs (L
     flex-wrap: nowrap;
   }
 
-  /* Each specimen spans a body row and a caption row, and the gap rule breaks at every item that
-     spans rows, so each specimen draws the rule between lines itself. It needs how many columns
-     fit, counted as auto-fill counts them: the stage's inner width over a column and its gap. */
   .specimens[data-layout='grid'] {
-    --sui-local-grid-columns: max(
-      1,
-      round(
-        down,
-        (100cqi - 2 * var(--stage-pad) + var(--sui-space-5)) / (16rem + var(--sui-space-5)),
-        1
-      )
-    );
-    --sui-local-grid-gap: var(--sui-space-6);
     align-items: stretch;
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(min(100%, 16rem), 1fr));
@@ -198,28 +165,8 @@ live specimens, not a surface of the design, so it may hold cards and dialogs (L
   .tools {
     background: var(--sui-surface-base);
     border-block-start: var(--sui-stroke) solid var(--sui-border-divider);
-    display: flex;
-    gap: var(--sui-space-2);
-    padding: var(--sui-space-2);
-  }
-
-  .end {
-    display: flex;
-    margin-inline-start: auto;
-  }
-
-  .chevron {
-    display: inline-flex;
-    transition: rotate var(--sui-duration-fast) var(--sui-ease-standard);
-  }
-
-  .chevron.open {
-    rotate: 180deg;
-  }
-
-  .code {
-    border-block-start: var(--sui-stroke) solid var(--sui-border-divider);
     min-inline-size: 0;
+    padding: var(--sui-space-2) var(--sui-space-4);
   }
 
   @container sink-stage (max-width: 30rem) {
@@ -229,12 +176,6 @@ live specimens, not a surface of the design, so it may hold cards and dialogs (L
 
     .specimens[data-layout='stack'] {
       --sui-local-stage-pad: var(--sui-space-4);
-    }
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    .chevron {
-      transition: none;
     }
   }
 </style>

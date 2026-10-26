@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { after, before, suite, test } from 'node:test';
-import { long, startSink, together, visit } from './sink.mjs';
+import { allSections, long, startSink, together, visit } from './sink.mjs';
 
 // The actions and form controls in the kitchen sink: focus handoffs, locked and pending states,
 // what a form posts, and placement in a right-to-left page.
@@ -38,7 +38,7 @@ suite('forms', together, () => {
       });
     if (lang)
       await page.route(
-        (address) => `${address.origin}${address.pathname}` === url,
+        (address) => `${address.origin}${address.pathname}` === allSections(url),
         async (route) => {
           const response = await route.fetch();
           const body = (await response.text()).replace(
@@ -48,7 +48,7 @@ suite('forms', together, () => {
           await route.fulfill({ response, body });
         }
       );
-    await visit(page, url);
+    await visit(page, allSections(url));
     await page.evaluate(() => document.fonts.ready);
     await page.waitForFunction(() => '__suiAudit' in window);
     return page;

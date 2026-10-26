@@ -49,7 +49,7 @@ async function serveDev() {
   if (existsSync('node_modules/.vite/deps/_metadata.json')) return { server, url };
   const browser = await launch();
   const page = await browser.newPage();
-  await page.goto(`${url}?audit=manual`);
+  await page.goto(url);
   await page.waitForFunction(() => '__suiAudit' in window, null, { timeout: 120_000 });
   await browser.close();
   return { server, url };
@@ -91,15 +91,18 @@ export async function startSink({ dev = false } = {}) {
 }
 
 /**
- * Loads the sink and waits until it has mounted, so its controls answer a press. The page runs
- * its law audit only when a test asks for it.
+ * The sink's page that draws every section, which the tests read and press.
+ * @param {string} url
+ */
+export const allSections = (url) => new URL('all/', url).href;
+
+/**
+ * Loads the sink and waits until it has mounted, so its controls answer a press.
  * @param {import('playwright-core').Page} page
  * @param {string} url
  */
 export async function visit(page, url) {
-  const address = new URL(url);
-  address.searchParams.set('audit', 'manual');
-  await page.goto(address.href);
+  await page.goto(url);
   await page.waitForFunction(() => '__suiAudit' in window);
 }
 
