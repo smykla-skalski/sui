@@ -239,7 +239,7 @@ way; a busy dialog or a saving pane around it disables it while the work runs.
 
   .sui-checkbox-box {
     align-items: center;
-    background: var(--sui-input-bg);
+    background: var(--sui-control-bg);
     block-size: var(--sui-icon-md);
     border: var(--sui-stroke) solid var(--sui-border-strong);
     border-radius: var(--sui-radius-check);

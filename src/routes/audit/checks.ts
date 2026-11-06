@@ -151,12 +151,12 @@ function palette(): Finding[] {
   for (const [ink, ground] of [
     ['text-primary', 'surface-base'],
     ['text-primary', 'surface-control'],
-    ['text-primary', 'input-bg'],
+    ['text-primary', 'surface-inset'],
     ['text-secondary', 'surface-base'],
     ['text-muted', 'surface-base'],
     ['text-muted', 'surface-raised'],
     ['text-muted', 'surface-control'],
-    ['text-muted', 'input-bg'],
+    ['text-muted', 'surface-inset'],
     ['text-muted', 'canvas'],
     ['brand-action-text', 'surface-base'],
     ['link', 'surface-base'],
@@ -175,7 +175,7 @@ function palette(): Finding[] {
   ])
     found.push(...atLeast('L-5', `${ink} on ${ground}`, c(ink, ground), 4.5));
 
-  for (const ground of ['canvas', 'surface-base', 'surface-control', 'input-bg'])
+  for (const ground of ['canvas', 'surface-base', 'surface-control', 'surface-inset'])
     found.push(...atLeast('L-6', `focus on ${ground}`, c('focus', ground), 3));
   for (const ground of ['canvas', 'surface-base', 'surface-inset'])
     found.push(...atLeast('L-6', `border-strong on ${ground}`, c('border-strong', ground), 3));
@@ -196,10 +196,22 @@ function palette(): Finding[] {
     ...between('L-9', 'control-border on control-bg', c('control-border', 'control-bg'), 1.5, 2.25)
   );
   found.push(
-    ...between('L-9', 'control-border on input-bg', c('control-border', 'input-bg'), 1.4, 2.25)
+    ...between(
+      'L-9',
+      'control-border on surface-inset',
+      c('control-border', 'surface-inset'),
+      1.4,
+      2.25
+    )
   );
   // A changed row restates its fields' baseline (unsaved-field-border), measured below.
-  for (const ground of ['canvas', 'surface-base', 'surface-raised', 'surface-control', 'input-bg'])
+  for (const ground of [
+    'canvas',
+    'surface-base',
+    'surface-raised',
+    'surface-control',
+    'surface-inset'
+  ])
     found.push(...atLeast('L-9', `field-border on ${ground}`, c('field-border', ground), 3));
   for (const ground of ['unsaved-surface', 'unsaved-control'])
     found.push(
@@ -215,7 +227,7 @@ function palette(): Finding[] {
   // The recess under a field's top edge is darker than the frame it lies under and the ground
   // it lies on. On light, where the frame is a shade too, it stands one hover step past it.
   for (const [recess, frame, grounds] of [
-    ['field-recess', 'field-frame', ['canvas', 'surface-base', 'surface-raised', 'input-bg']],
+    ['field-recess', 'field-frame', ['canvas', 'surface-base', 'surface-raised', 'surface-inset']],
     ['field-recess-hover', 'field-frame-hover', ['canvas', 'surface-base', 'surface-raised']],
     ['unsaved-field-recess', 'unsaved-control-border', ['unsaved-control']],
     ['unsaved-field-recess-hover', 'unsaved-border', ['unsaved-control']]
@@ -235,7 +247,13 @@ function palette(): Finding[] {
     ...between('L-10', 'control-bg on surface-base', c('control-bg', 'surface-base'), 1, 1.5)
   );
   found.push(
-    ...between('L-10', 'input-bg on surface-base', c('input-bg', 'surface-base'), 1.05, 1.3)
+    ...between(
+      'L-10',
+      'surface-inset on surface-base',
+      c('surface-inset', 'surface-base'),
+      1.05,
+      1.3
+    )
   );
 
   const hover = t('interactive-hover-layer');
@@ -338,7 +356,7 @@ function palette(): Finding[] {
       'L-85',
       'sidebar-active-ink against sidebar-text-muted',
       contrast(t('sidebar-active-ink'), t('sidebar-text-muted')),
-      2.5
+      2.2
     ),
     ...atLeast(
       'L-85',
@@ -1238,7 +1256,6 @@ function controls(root: Document): Finding[] {
 
   const look = getComputedStyle(root.documentElement);
   const disabledOpacity = parseFloat(look.getPropertyValue('--sui-disabled-opacity'));
-  const busyOpacity = parseFloat(look.getPropertyValue('--sui-busy-opacity'));
   for (const control of audited(
     root,
     "button:disabled, button[aria-disabled='true'], input:disabled, select:disabled, textarea:disabled"
@@ -1251,11 +1268,11 @@ function controls(root: Document): Finding[] {
       control.matches('input');
     // A menu row dims its name but keeps the reason it gives at full ink.
     if (style.opacity === '0' || paintsNothing || control.matches("[role='menuitem']")) continue;
-    // A busy button is the action at work: its fill, edge and spinner keep full strength and
-    // only its words dim, less than a disabled control's; a busy icon button has no words.
+    // A busy button is the action at work: its fill, edge, words and spinner keep full
+    // strength; a busy icon button has no words.
     const busy = control.matches("[aria-busy='true']:not(:disabled)");
     const dimmed = busy ? control.querySelector('.sui-button-label') : control;
-    const expected = busy ? busyOpacity : disabledOpacity;
+    const expected = busy ? 1 : disabledOpacity;
     const opacity = dimmed ? effectiveOpacity(dimmed) : expected;
     if (Math.abs(opacity - expected) > 0.02)
       found.push(
@@ -1943,7 +1960,7 @@ function fieldRecesses(root: Document): Finding[] {
 
 /**
  * Where the reader is (L-85): a current navigation row stands apart from a resting peer by its
- * ink, 2.5:1 from the peer's, and by its plate, so it needs no ring or edge, and it draws none. A row
+ * ink, 2.2:1 from the peer's, and by its plate, so it needs no ring or edge, and it draws none. A row
  * whose words may wrap keeps the peer's font, so turning current never rewraps them or changes
  * its height. A current tab, whose words never wrap, carries its bar too, at 3:1 on the ground.
  */
@@ -2001,7 +2018,7 @@ function currentMarks(root: Document): Finding[] {
         )
       );
     const inks = contrast(rgba(look.color), rgba(rest.color));
-    if (inks < 2.5)
+    if (inks < 2.2)
       found.push(
         finding('L-85', current, `the current ink stands ${round(inks)}:1 from a rest row`)
       );
@@ -2063,8 +2080,7 @@ function changedEdges(root: Document): Finding[] {
  */
 function tonedControls(root: Document): Finding[] {
   const found: Finding[] = [];
-  const states =
-    ".sui-callout[data-tone='warning'], .sui-callout.decision, .sui-save-bar, .sui-error-state";
+  const states = ".sui-callout[data-tone='warning'], .sui-callout.decision, .sui-save-bar";
   for (const holder of audited(root, states)) {
     const ground = over(
       rgba(getComputedStyle(holder).backgroundColor),

@@ -239,8 +239,8 @@ a `Rail` chooses the place and this chooses the page. Every row is a destination
 icon and address, and a heading is only a label.
 
 Current is drawn the same way in every navigation list: the words and the plate carry it. Rest
-rows are muted and the page on screen is primary ink, a step of 2.5:1 or more in lightness,
-with its glyph in the accent ink, on an inset plate a step deeper than a pressed row. Both keep one weight, so turning current never rewraps a label or
+rows are muted and the page on screen is primary ink, a step of 2.2:1 or more in lightness,
+with its glyph in the accent ink, on a plate of the accent tint. Both keep one weight, so turning current never rewraps a label or
 changes a row's height. Under forced colors the plate is `Highlight` and its words `HighlightText`. The plate is measured
 from the current row, does not slide on first paint, and glides to the next row when the page
 changes. Until it is measured the row paints its own plate.
@@ -258,7 +258,7 @@ following a row closes the drawer.
 - Pointer and touch: rows are 34px on a desktop pointer and 44px in the drawer and the strip; the close and fold controls are 34px and 44px there, and nothing needs a gesture.
 - Focus: folding keeps focus on the control; a fold control that leaves as the shell narrows hands focus to the current row, and a row followed in the drawer closes it with focus returned to the menu button.
 - Responsive: the row list scrolls inside the column and brings a new current row into view without scrolling the page, a long label wraps, the strip stacks each glyph over its short label, and the fold control shows only where the shell can fold.
-- Accessibility: a count is read with its words from `countLabel`, joined to the label by `countedName`, every ink holds 4.5:1 on its ground, the current ink stands 2.5:1 from the rest ink in lightness and the plate marks it too, so it is never hue alone (WCAG 1.4.1), and a heading names each group for heading navigation.
+- Accessibility: a count is read with its words from `countLabel`, joined to the label by `countedName`, every ink holds 4.5:1 on its ground, the current ink stands 2.2:1 from the rest ink in lightness and the plate marks it too, so it is never hue alone (WCAG 1.4.1), and a heading names each group for heading navigation.
 - Localization: `label`, `closeLabel`, `collapseLabel`, `expandLabel` and `countLabel` are props with English defaults; counts follow the page language, the plate is measured from the start edge and the fold glyphs mirror in a right-to-left page.
 - Performance: one resize observer measures the plate, which glides with a transform; it suits a sidebar of tens of rows, not thousands.
 - Analytics: `onnavigate(event, item)` reports every followed row; the shell's `oncollapsedchange` reports the fold.

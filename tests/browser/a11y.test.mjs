@@ -251,6 +251,47 @@ suite('accessibility', together, () => {
     }
   });
 
+  test(
+    'a chart that names every line at its end leaves its legend to a screen reader',
+    long,
+    async () => {
+      const page = await open(1440, 'light');
+      try {
+        const legends = await page.locator('#charts .sui-chart').evaluateAll((charts) =>
+          charts.flatMap((chart) => {
+            const legend = chart.querySelector('ul.legend');
+            if (!legend?.children.length) return [];
+            const box = legend.getBoundingClientRect();
+            const look = getComputedStyle(legend);
+            return [
+              {
+                names: chart.querySelectorAll('svg text.name').length,
+                items: legend.children.length,
+                drawn: box.width > 1 && box.height > 1,
+                read: look.display !== 'none' && look.visibility !== 'hidden'
+              }
+            ];
+          })
+        );
+        const named = legends.filter(({ names, items }) => names === items);
+        const unnamed = legends.filter(({ names }) => names === 0);
+        assert.ok(named.length > 0 && unnamed.length > 0, 'the sink lacks one kind of chart');
+        assert.deepEqual(
+          named.filter(({ drawn, read }) => drawn || !read),
+          [],
+          'a legend draws the names its lines already carry, or is lost to a screen reader'
+        );
+        assert.deepEqual(
+          unnamed.filter(({ drawn }) => !drawn),
+          [],
+          'a chart with no names at its lines hides its legend'
+        );
+      } finally {
+        await page.close();
+      }
+    }
+  );
+
   test('a section is never a landmark region', long, async () => {
     const page = await open(1440, 'light');
     try {

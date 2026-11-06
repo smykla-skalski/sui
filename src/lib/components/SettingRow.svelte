@@ -370,7 +370,6 @@ section's ground between them (L-91).
     --sui-text-secondary: var(--sui-unsaved-secondary);
     --sui-text-muted: var(--sui-unsaved-secondary);
     --sui-control-bg: var(--sui-unsaved-control);
-    --sui-input-bg: var(--sui-unsaved-control);
     --sui-control-border: var(--sui-unsaved-control-border);
     --sui-control-border-hover: var(--sui-unsaved-border);
     --sui-field-frame: var(--sui-unsaved-control-border);

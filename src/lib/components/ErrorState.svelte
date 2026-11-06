@@ -121,22 +121,13 @@ of them.
 </div>
 
 <style>
-  /* A failure is a danger tint with an edge of the hue, so it never reads as a field in error.
-     On light the tint is a wash, so its words keep their contrast; on dark the full tint is
-     what sets it apart from the page. The retry is quiet on it, with no ground of its own and
-     a firm edge of the hue (L-92). */
+  /* A failure is a pale wash of the danger tint inside a firm edge of the hue, so the edge
+     carries the state and the words keep their contrast. The retry is the neutral default
+     button, the reader's next step, which is to repeat the request (L-92). */
   .sui-error-state {
-    --sui-local-error-ground: light-dark(
-      color-mix(in srgb, var(--sui-danger-tint) 60%, transparent),
-      var(--sui-danger-tint)
-    );
-    --sui-surface-raised: transparent;
-    --sui-control-border: color-mix(in srgb, var(--sui-danger) 55%, var(--sui-danger-tint));
-    --sui-control-border-hover: color-mix(in srgb, var(--sui-danger) 80%, var(--sui-danger-tint));
-    --sui-interactive-hover-layer: color-mix(in srgb, var(--sui-danger) 10%, transparent);
-    --sui-interactive-pressed: color-mix(in srgb, var(--sui-danger) 16%, transparent);
+    --sui-local-error-ground: color-mix(in srgb, var(--sui-danger-tint) 45%, transparent);
     background: var(--sui-local-error-ground);
-    border: var(--sui-stroke) solid color-mix(in srgb, var(--sui-danger) 30%, transparent);
+    border: var(--sui-stroke) solid color-mix(in srgb, var(--sui-danger) 45%, transparent);
     border-radius: var(--sui-radius-control);
     box-sizing: border-box;
     display: grid;
@@ -176,8 +167,7 @@ of them.
   /* Over a list the failure is a row of its own: it bleeds past the list's edge as a row does
      and pads back by the row's inset, so its words start where the rows' words start and the
      retry ends where their actions end. Its tint is a plate 2px inside that box on every side,
-     as a row's state is (L-91), so it keeps the same room at its top as at its sides, and the
-     retry stays quiet on it (L-92). */
+     as a row's state is (L-91), so it keeps the same room at its top as at its sides. */
   .over {
     align-items: center;
     background: none;

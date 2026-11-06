@@ -68,8 +68,8 @@
   --sui-primitive-dark-inset: #1b1c1f;
   --sui-primitive-dark-code: #101216;
   --sui-primitive-dark-text: #eceef0;
-  --sui-primitive-dark-secondary: #a2a8b0;
-  --sui-primitive-dark-muted: #8a919b;
+  --sui-primitive-dark-secondary: #b0b5bc;
+  --sui-primitive-dark-muted: #99a0a9;
   --sui-primitive-dark-strong: #686a6b;
   /* A field's recess, the shade under its top edge: on light one hover step (L-11) past the
      frame it lies under, at rest and on hover; on dark, where the frame is lighter than the
@@ -256,7 +256,7 @@
   --sui-sidebar-item-pressed: var(--sui-surface-inset);
   /* The current row's plate stands a clear step under a pressed row's, so where the reader is
      shows at a glance (L-85). */
-  --sui-sidebar-active-bg: color-mix(in srgb, #000000 8%, var(--sui-sidebar-bg));
+  --sui-sidebar-active-bg: color-mix(in srgb, var(--sui-brand-action) 12%, var(--sui-sidebar-bg));
   --sui-sidebar-active-ink: var(--sui-sidebar-text);
   --sui-sidebar-active-glyph: var(--sui-brand-action-text);
   --sui-sidebar-focus: var(--sui-focus);
@@ -283,7 +283,6 @@
   );
   --sui-field-recess: var(--sui-primitive-light-recess);
   --sui-field-recess-hover: var(--sui-primitive-light-recess-hover);
-  --sui-input-bg: var(--sui-surface-inset);
   --sui-popover-bg: var(--sui-surface-base);
   --sui-popover-border: var(--sui-border-control);
 
@@ -492,9 +491,6 @@
 
   --sui-field-target-min: max(24px, round(1.5rem, 1px));
   --sui-disabled-opacity: 0.5;
-  /* A busy button's words dim less than a disabled control, so the action at work never reads
-     as unavailable (L-40). */
-  --sui-busy-opacity: 0.7;
   --sui-control-inset: 2px;
 
   /* Icon tiers in rem, rounded to the pixel: 10 to 18px at the default text size, and they grow
@@ -684,7 +680,7 @@
   --sui-sidebar-text-muted: var(--sui-text-muted);
   --sui-sidebar-item-hover: color-mix(in srgb, #ffffff 4%, var(--sui-sidebar-bg));
   --sui-sidebar-item-pressed: var(--sui-surface-inset);
-  --sui-sidebar-active-bg: color-mix(in srgb, #ffffff 9%, var(--sui-sidebar-bg));
+  --sui-sidebar-active-bg: color-mix(in srgb, var(--sui-brand-action) 24%, var(--sui-sidebar-bg));
   --sui-sidebar-active-ink: var(--sui-sidebar-text);
   --sui-sidebar-active-glyph: var(--sui-brand-action-text);
   --sui-sidebar-focus: var(--sui-focus);
@@ -728,7 +724,6 @@
   --sui-switch-thumb: #eceef0;
 
   --sui-control-bg: var(--sui-surface-control);
-  --sui-input-bg: var(--sui-surface-inset);
   --sui-popover-bg: var(--sui-surface-base);
   --sui-dialog-bg: var(--sui-surface-base);
 
@@ -869,7 +864,7 @@
     --sui-sidebar-text-muted: var(--sui-text-muted);
     --sui-sidebar-item-hover: color-mix(in srgb, #ffffff 4%, var(--sui-sidebar-bg));
     --sui-sidebar-item-pressed: var(--sui-surface-inset);
-    --sui-sidebar-active-bg: color-mix(in srgb, #ffffff 9%, var(--sui-sidebar-bg));
+    --sui-sidebar-active-bg: color-mix(in srgb, var(--sui-brand-action) 24%, var(--sui-sidebar-bg));
     --sui-sidebar-active-ink: var(--sui-sidebar-text);
     --sui-sidebar-active-glyph: var(--sui-brand-action-text);
     --sui-sidebar-focus: var(--sui-focus);
@@ -913,7 +908,6 @@
     --sui-switch-thumb: #eceef0;
 
     --sui-control-bg: var(--sui-surface-control);
-    --sui-input-bg: var(--sui-surface-inset);
     --sui-popover-bg: var(--sui-surface-base);
     --sui-dialog-bg: var(--sui-surface-base);
 

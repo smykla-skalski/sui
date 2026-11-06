@@ -47,7 +47,9 @@
 
   /* At least 8px across, and a little larger where there is no line to follow. */
   const MARKER = { line: 8, scatter: 10 };
-  /* Past four lines, names at the line ends crowd each other, so the legend carries them alone. */
+  /* Past four lines, names at the line ends crowd each other, so the legend carries them alone;
+     up to four, the names at the ends carry them and the legend is left to a screen reader,
+     since the plot is one image and its names are not read. */
   const MOST_LABELLED = 4;
   /* A marker needs room to read as a shape: a line keeps its markers while they stand twice
      their size apart on its narrowest plot, the 280px band less its margins, and a denser line
@@ -257,7 +259,13 @@
       {/each}
     </svg>
   {/snippet}
-  <ul class="legend" role="list">
+  <ul
+    class={[
+      'legend',
+      { 'sui-visually-hidden': validSeries.length > 0 && ends.length === validSeries.length }
+    ]}
+    role="list"
+  >
     {#each validSeries as item (item.id)}
       <li>
         <svg class="key" viewBox="0 0 24 12" aria-hidden="true">
@@ -366,6 +374,14 @@
     list-style: none;
     font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-leading-meta)
       var(--sui-sans);
+  }
+  .legend.sui-visually-hidden {
+    block-size: 1px;
+    clip-path: inset(50%);
+    inline-size: 1px;
+    overflow: hidden;
+    position: absolute;
+    white-space: nowrap;
   }
   .legend li {
     display: inline-flex;

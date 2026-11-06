@@ -109,14 +109,25 @@
       // browser alone would focus the first control in tree order, which is Close in the head.
       const named = element.querySelector<HTMLElement>('[autofocus]');
       const field = body ? tabStops(body).find((node) => node.matches(EDITABLE)) : undefined;
-      (
+      const first =
         (named && body?.contains(named) ? named : undefined) ??
         field ??
         named ??
         firstIn(body) ??
         firstIn(foot) ??
-        closeButton
-      )?.focus();
+        closeButton;
+      first?.focus();
+      // A value set by script leaves the caret at its end, so a long address would open
+      // scrolled to its end. Its words are chosen and its start brought back into view, and
+      // typing replaces them, as Radix and a macOS sheet do.
+      if (
+        (first instanceof HTMLInputElement || first instanceof HTMLTextAreaElement) &&
+        first.selectionStart !== null
+      ) {
+        first.setSelectionRange(0, first.value.length, 'backward');
+        first.scrollLeft = 0;
+        first.scrollTop = 0;
+      }
     } else if (!open && element.open) element.close();
   });
 
@@ -259,7 +270,7 @@ dialog, so they are never inert under it.
 - States: closed, open, busy (`aria-busy`, every way out refused, focus on the busy action and every field in it disabled) and failed (`error` in the danger ink with its symbol); the inspector docks to the inline end at full height.
 - Keyboard: Tab stays inside, Escape closes after `beforeClose` unless a layer inside took it, and Enter belongs to the focused control.
 - Pointer and touch: the close button is a 34px target, 44px on a phone or touch screen, and a press outside closes the dialog as Escape does, after `beforeClose`, unless it is busy.
-- Focus: opens on an `[autofocus]` element in the body, else the body's first field, else an `[autofocus]` element in the footer, else the body's first control, then the footer's, then Close; while busy it sits on the busy action, and a press on a disabled field leaves it there, then it returns to the field it came from; on close it returns to the opener, or to `returnFocus`, or to the nearest control left where the opener stood.
+- Focus: opens on an `[autofocus]` element in the body, else the body's first field, else an `[autofocus]` element in the footer, else the body's first control, then the footer's, then Close; a field it opens on that holds a value has its words chosen with their start in view; while busy it sits on the busy action, and a press on a disabled field leaves it there, then it returns to the field it came from; on close it returns to the opener, or to `returnFocus`, or to the nearest control left where the opener stood.
 - Responsive: its parts stand 24px from each other and from every edge, 16px under 48rem, where it fills the width less 8px each side; a body taller than the box scrolls under the footer behind a line, and on a short screen (30rem tall or less) the head, body and footer scroll as one so the footer never covers the fields.
 - Accessibility: the title names it and the description describes it, `error` is announced as an alert, and the scrim follows `--sui-scrim`.
 - Localization: `closeLabel` names the close button, every other word is the caller's, and the inspector docks and slides in from the inline end, mirrored in a right-to-left page.

@@ -304,7 +304,7 @@ when not, records the hash, and moves focus to the section's first heading, or t
 section, so the next Tab starts there.
 
 The current entry wears the current mark every navigation list shares: primary ink against
-muted entries, a step of 2.5:1 or more in lightness, on an inset plate that marks it too, and
+muted entries, a step of 2.2:1 or more in lightness, on an inset plate that marks it too, and
 `Highlight` under forced colors. It keeps the entries' weight, so turning current never
 rewraps it or changes its height. It is announced with `aria-current="location"`. The first
 entry is current from the first paint, as at the top of the page, and then it follows the URL
@@ -324,7 +324,7 @@ phone drawer, and following an entry closes the drawer before focus moves.
 - Pointer and touch: entries are 28px tall on a desktop pointer and 44px on a phone or a coarse pointer, across the column's width.
 - Focus: following an entry moves focus to its section's first heading, or the section, which takes a temporary `tabindex`; in a shell's phone drawer the drawer closes first, so focus lands in the section and never on the menu button.
 - Responsive: the index sticks and scrolls inside itself, keeping the current entry in view; the page decides where it stands.
-- Accessibility: the current entry is announced, every entry's ink holds 4.5:1, and the current ink stands 2.5:1 from the rest ink in lightness and the plate marks it too, so it is never hue alone (WCAG 1.4.1).
+- Accessibility: the current entry is announced, every entry's ink holds 4.5:1, and the current ink stands 2.2:1 from the rest ink in lightness and the plate marks it too, so it is never hue alone (WCAG 1.4.1).
 - Localization: `title` is a prop with an English default; the entries follow the reading direction.
 - Performance: `IntersectionObserver`s report the sections that cross the reading line and those on screen, so a scroll reads no section's place and looks at the box's end only while its last section shows; it suits a thousand sections.
 - Analytics: `onnavigate(event, entry)` reports every followed entry.
