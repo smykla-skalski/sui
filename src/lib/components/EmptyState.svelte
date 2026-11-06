@@ -96,10 +96,10 @@ a step 8px under it.
     border-radius: var(--sui-radius-control);
     box-sizing: border-box;
     display: grid;
-    gap: var(--sui-space-4);
+    gap: var(--sui-space-5);
     justify-items: start;
     min-inline-size: 0;
-    padding: var(--sui-space-5);
+    padding: var(--sui-space-6);
   }
 
   .sui-empty-state-copy {

@@ -420,12 +420,25 @@ following a row closes the drawer.
     text-box: trim-both cap alphabetic;
   }
 
+  /* The rows scroll through the gaps that part them from the title and the foot, and those
+     gaps fade, so a row fades out before it meets the title instead of standing cut under it.
+     The list's ends rest clear of the fade, and focus stops clear of it. The fade is fixed, not
+     driven by the scroll, so the first frame draws it as every later one does. */
   .sui-side-nav-tree {
+    --sui-local-tree-fade: var(--sui-space-4);
     flex: 1 1 auto;
+    margin-block: calc(-1 * var(--sui-local-tree-fade));
     margin-inline: calc(-1 * var(--sui-space-3));
+    mask-image: linear-gradient(
+      transparent,
+      var(--sui-canvas) var(--sui-local-tree-fade),
+      var(--sui-canvas) calc(100% - var(--sui-local-tree-fade)),
+      transparent
+    );
     min-block-size: 0;
     overflow: hidden auto;
-    padding-inline: var(--sui-space-3);
+    padding: var(--sui-local-tree-fade) var(--sui-space-3);
+    scroll-padding-block: var(--sui-local-tree-fade);
     scrollbar-width: thin;
   }
 

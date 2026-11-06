@@ -2128,11 +2128,17 @@ function tonedControls(root: Document): Finding[] {
 
 /**
  * A dialog's parts (L-58): the head, the body, the error and the actions stand one inset from
- * every edge and from each other, measured to the ink. A body that scrolls is cut where the
- * actions begin, and a docked inspector parks them at its foot, so neither gap is weighed.
+ * every edge and from each other, measured to the ink, and the head 8px more from the body. A
+ * body that scrolls is cut where the actions begin, and a docked inspector parks them at its
+ * foot, so neither gap is weighed.
  */
 function dialogInsets(root: Document): Finding[] {
   const found: Finding[] = [];
+  const probe = root.createElement('div');
+  probe.style.blockSize = 'var(--sui-space-2)';
+  root.body.append(probe);
+  const step = probe.getBoundingClientRect().height;
+  probe.remove();
   for (const dialog of audited(root, '.sui-modal')) {
     const head = dialog.querySelector(':scope > .sui-modal-head');
     const title = head?.querySelector('.sui-modal-title');
@@ -2163,8 +2169,9 @@ function dialogInsets(root: Document): Finding[] {
     const laid = (part: Element): Element[] =>
       getComputedStyle(part).display === 'contents' ? [...part.children].flatMap(laid) : [part];
     const inBody = body ? band([...body.children].flatMap(laid)) : null;
+    const top = band([...head.querySelectorAll('.sui-modal-title, .sui-modal-description')]);
     const bands = [
-      band([...head.querySelectorAll('.sui-modal-title, .sui-modal-description')]),
+      top,
       inBody,
       band([...dialog.querySelectorAll(':scope > .sui-modal-error .sui-modal-error-text')]),
       band(buttons)
@@ -2176,19 +2183,21 @@ function dialogInsets(root: Document): Finding[] {
     const gaps = [...bands, null].flatMap((under, at) => {
       const over = bands[at - 1];
       if ((cut && (under === inBody || over === inBody)) || (docked && under === foot)) return [];
-      if (!under) return [box.bottom - parseFloat(look.borderBottomWidth) - over.bottom];
-      if (!over) return [under.top - box.top - parseFloat(look.borderTopWidth)];
-      return [under.top - over.bottom];
+      const want = over === top && under === inBody ? inset + step : inset;
+      if (!under)
+        return [{ gap: box.bottom - parseFloat(look.borderBottomWidth) - over.bottom, want }];
+      if (!over) return [{ gap: under.top - box.top - parseFloat(look.borderTopWidth), want }];
+      return [{ gap: under.top - over.bottom, want }];
     });
     const end = rtl
       ? foot.end - box.left - parseFloat(look.borderLeftWidth)
       : box.right - parseFloat(look.borderRightWidth) - foot.end;
-    if ([...gaps, end].some((gap) => Math.abs(gap - inset) > 0.5))
+    if ([...gaps, { gap: end, want: inset }].some(({ gap, want }) => Math.abs(gap - want) > 0.5))
       found.push(
         finding(
           'L-58',
           dialog,
-          `its parts stand ${gaps.map(round).join(', ')}px apart from top to bottom and its actions ${round(end)}px from the end, not ${inset}px`
+          `its parts stand ${gaps.map(({ gap }) => round(gap)).join(', ')}px apart from top to bottom, not ${gaps.map(({ want }) => want).join(', ')}px, and its actions ${round(end)}px from the end, not ${inset}px`
         )
       );
   }
@@ -2674,6 +2683,16 @@ function chartInk(root: Document): Finding[] {
       if (ratio < 3)
         found.push(finding('L-66', mark, `a data mark holds ${round(ratio)}:1, under 3`));
     }
+  }
+  for (const step of audited(root, ".sui-chart :is(rect, span)[class*='step-']")) {
+    const look = getComputedStyle(step);
+    const ground = paintedGround(step.parentElement ?? step);
+    const paint = rgba(step instanceof SVGElement ? look.fill : look.backgroundColor);
+    const ratio = contrast(over(paint, ground), ground);
+    if (ratio < 1.3)
+      found.push(
+        finding('L-66', step, `a heat step holds ${round(ratio)}:1 on its ground, under 1.3`)
+      );
   }
   return found;
 }

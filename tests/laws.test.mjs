@@ -220,6 +220,27 @@ test('L-107 a scroll edge fades over 24px', () => {
   assert.equal(pixels(tokenMap(stripComments(palette))[fade]), 24);
 });
 
+test('L-59 a state panel pads 24px and stands its next step 20px under its words', () => {
+  const space = tokenMap(stripComments(palette));
+  for (const name of ['empty', 'error']) {
+    const path = `src/lib/components/${name[0].toUpperCase()}${name.slice(1)}State.svelte`;
+    const rule = new RegExp(`\\.sui-${name}-state \\{([^}]*)\\}`).exec(
+      stripComments(styles[path])
+    )?.[1];
+    const length = (/** @type {string} */ property) =>
+      pixels(
+        space[
+          new RegExp(`\\b${property}:\\s*var\\((--sui-space-\\d+)\\)`).exec(rule ?? '')?.[1] ?? ''
+        ]
+      );
+    assert.deepEqual(
+      { padding: length('padding'), gap: length('gap') },
+      { padding: 24, gap: 20 },
+      path
+    );
+  }
+});
+
 test('L-25 the type tiers keep the sizes the law names', () => {
   const sizes = tokenMap(stripComments(palette.slice(0, palette.indexOf(PHONE))));
   const tier = (/** @type {string} */ name) => pixels(sizes[`--sui-font-size-${name}`]);

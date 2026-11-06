@@ -44,7 +44,8 @@
   } = $props();
 
   /* Five steps of the first chart colour. The strongest stops where text ink still holds 4.5:1
-     on it in both themes, because every cell prints its value. */
+     on it in both themes, because every cell prints its value, and the lowest holds 1.3:1 on its
+     ground, so a cell that holds a little never reads as an empty one. */
   const STEPS = 5;
   const COLUMN_MOST = 7;
   const ROW_MOST = 18;
@@ -256,16 +257,16 @@ columns and scrolls sideways in a narrower container.
     fill: var(--sui-text-muted);
   }
   .step-0 {
-    --sui-local-heat: color-mix(in srgb, var(--sui-chart-1) 12%, transparent);
+    --sui-local-heat: color-mix(in srgb, var(--sui-chart-1) 20%, transparent);
   }
   .step-1 {
-    --sui-local-heat: color-mix(in srgb, var(--sui-chart-1) 26%, transparent);
+    --sui-local-heat: color-mix(in srgb, var(--sui-chart-1) 32%, transparent);
   }
   .step-2 {
-    --sui-local-heat: color-mix(in srgb, var(--sui-chart-1) 40%, transparent);
+    --sui-local-heat: color-mix(in srgb, var(--sui-chart-1) 44%, transparent);
   }
   .step-3 {
-    --sui-local-heat: color-mix(in srgb, var(--sui-chart-1) 54%, transparent);
+    --sui-local-heat: color-mix(in srgb, var(--sui-chart-1) 56%, transparent);
   }
   .step-4 {
     --sui-local-heat: color-mix(in srgb, var(--sui-chart-1) 68%, transparent);

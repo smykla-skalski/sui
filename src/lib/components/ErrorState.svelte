@@ -136,10 +136,10 @@ of them.
     border-radius: var(--sui-radius-control);
     box-sizing: border-box;
     display: grid;
-    gap: var(--sui-space-4);
+    gap: var(--sui-space-5);
     justify-items: start;
     min-inline-size: 0;
-    padding: var(--sui-space-5);
+    padding: var(--sui-space-6);
   }
 
   /* Even, so a retry centred beside it in a row lands on the pixel grid (L-95). */

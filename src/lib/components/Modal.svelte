@@ -412,6 +412,12 @@ dialog, so they are never inert under it.
     gap: var(--sui-space-3);
   }
 
+  /* The head stands a step further from the body than the parts stand from each other, so the
+     task's name reads apart from its first field. */
+  .sui-modal-head:has(+ .sui-modal-body) {
+    padding-block-end: calc(var(--sui-local-modal-inset) / 2 + var(--sui-space-2));
+  }
+
   .sui-modal-heading {
     align-items: center;
     display: flex;
