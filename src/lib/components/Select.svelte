@@ -695,6 +695,7 @@ assistive technology, because a native picker cannot be held open.
 
     .sui-select-control:active:not(:disabled, [aria-disabled='true']),
     .sui-select-control:active:not(:disabled, [aria-disabled='true']) + .sui-select-chevron {
+      transition: none;
       translate: none;
     }
 

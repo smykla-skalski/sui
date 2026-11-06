@@ -95,7 +95,6 @@
 
 <script lang="ts">
   import { mark, word } from '../words.js';
-  import { tick } from 'svelte';
   import type { HTMLButtonAttributes } from 'svelte/elements';
   import Icon from '../icons/Icon.svelte';
   import { held, holdAround } from '../internal/held.svelte.js';
@@ -248,16 +247,18 @@
     onclick?.(event);
   }
 
-  $effect(() => {
-    if (!open) return;
-    void tick().then(() => {
-      const first =
-        grid?.querySelector<HTMLInputElement>('input:checked') ??
-        grid?.querySelector<HTMLInputElement>('input') ??
-        area;
-      first?.focus({ preventScroll: true });
-    });
-  });
+  // The browser focuses the panel's `autofocus` control as it shows the panel, so an arrow
+  // pressed right after the press already lands inside; an effect would focus it a task later.
+  function onbeforetoggle(event: ToggleEvent & { currentTarget: HTMLElement }) {
+    if (event.newState !== 'open') return;
+    const first =
+      grid?.querySelector<HTMLInputElement>('input:checked') ??
+      grid?.querySelector<HTMLInputElement>('input') ??
+      area;
+    for (const marked of event.currentTarget.querySelectorAll<HTMLElement>('[autofocus]'))
+      marked.autofocus = false;
+    if (first) first.autofocus = true;
+  }
 
   function keepHue(hex: string): Hsv {
     const read = hexToHsv(hex);
@@ -457,6 +458,7 @@ name is the label and the hex, such as "Label color #0f766e". `name` posts the h
   role="dialog"
   aria-label={dialogLabel}
   onkeydown={keys}
+  {onbeforetoggle}
   closeOnLeave
   onclose={closed}
 >

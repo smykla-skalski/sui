@@ -23,6 +23,7 @@
 - A title stands 12px above its description, through the new `--sui-title-copy-gap`, where copy lines stay 8px apart (L-24): in `EmptyState`, `ErrorState`, `Card`, `Section`, a chart's head, `Callout`, a toast, `SaveBar` and `ServiceWorkerStatus`. An `EmptyState`'s step stays 8px under its explanation.
 - The dark `--sui-border-subtle` steps from 9% to 11% white and `--sui-border-control` from 16% to 20%, so card, button and field edges hold on the dark ground (L-8, L-9). Chart grid lines and the rows of a chart's table draw at `--sui-border-subtle`, a step firmer than a row divider (L-66), and an `ErrorState` edge is 30% of the danger hue, down from 45%.
 - A chart that its holder stretches, as a line of cards does, keeps its legend and data table at its foot, so charts side by side end on one line (L-66). The fade at the edge of a box that scrolls sideways is 24px, down from 32px, so the values beside it stay legible (L-107). An `ErrorState` wash is mixed over the surface, so it stays a clean tint on a warm page.
+- A pressed `Select` no longer eases its inset under reduced motion (L-75). A `ColorPicker` focuses its swatch as its panel shows rather than a task later, so an arrow pressed at once picks a color.
 - A `SideNav` whose `current` is a name every object inherits, such as `constructor`, draws no plate rather than throwing, and a `PageToc` entry with such an id turns current only when the reader reaches its section.
 
 ## 0.4.0
