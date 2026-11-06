@@ -96,6 +96,15 @@
   const listId = `${uid}-list`;
   const optionId = (index: number) => `${uid}-option-${index}`;
 
+  /* Work that runs on the form around it holds the value: the field reads only or is disabled,
+     and the list stays shut so no row can be committed. */
+  const around = holdAround();
+  const holding = $derived(held(element, around));
+
+  /* A hold or a read-only field that arrives while the list is open shuts it, so neither a row
+     nor a typed draft can be committed; a preview keeps its list on show. */
+  const shut = $derived(!preview && Boolean(holding || rest.readonly));
+
   // A hold or a read-only field resets this, so the list never comes back on its own once the
   // field takes input again, and Escape passes to a dialog around it.
   let open = $derived.by(() => {
@@ -146,14 +155,6 @@
   const spoken = $derived(
     note || (open && asked !== '' && hits.length > 0 ? countLabel(hits.length) : '')
   );
-  /* Work that runs on the form around it holds the value: the field reads only or is disabled,
-     and the list stays shut so no row can be committed. */
-  const around = holdAround();
-  const holding = $derived(held(element, around));
-
-  /* A hold or a read-only field that arrives while the list is open shuts it, so neither a row
-     nor a typed draft can be committed; a preview keeps its list on show. */
-  const shut = $derived(!preview && Boolean(holding || rest.readonly));
   const showing = $derived((preview || open) && (rows > 0 || note !== ''));
   const listed = $derived(showing && rows > 0);
   const current = $derived(
