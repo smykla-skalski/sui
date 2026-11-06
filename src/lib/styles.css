@@ -124,7 +124,7 @@
   /* Controls take the ground they stand on. Lines are veils, so one line reads the same on
      the canvas, a surface and an inset. */
   --sui-surface-control: transparent;
-  --sui-border-subtle: rgb(0 0 0 / 9%);
+  --sui-border-subtle: rgb(0 0 0 / 11%);
   --sui-border-control: rgb(0 0 0 / 18%);
   /* A line inside a surface (rows, a head or foot, a tab baseline, a chart grid) is quieter
      than the hairline that frames the surface. */
