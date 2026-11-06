@@ -384,10 +384,14 @@ following a row closes the drawer.
     padding: var(--sui-space-4) var(--sui-space-3);
   }
 
+  /* A hairline parts the title from the rows, as one parts the foot, so a row fading under it
+     never reads as cut by the title. */
   .sui-side-nav-head {
     align-items: center;
+    border-block-end: var(--sui-stroke) solid var(--sui-sidebar-border);
     display: flex;
     gap: var(--sui-space-2);
+    padding-block-end: var(--sui-space-3);
     padding-inline-start: var(--sui-space-3);
   }
 
@@ -654,7 +658,7 @@ following a row closes the drawer.
     --sui-local-count-ink: var(--sui-sidebar-text-secondary);
     display: flex;
     flex: none;
-    font: var(--sui-weight-semibold) var(--sui-font-size-micro) / var(--sui-leading-flat)
+    font: var(--sui-weight-semibold) var(--sui-font-size-compact) / var(--sui-leading-flat)
       var(--sui-sans);
     margin-block: calc((var(--sui-local-line) - round(up, 1cap, 2px) - 2 * var(--sui-space-1)) / 2);
   }

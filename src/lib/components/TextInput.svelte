@@ -59,7 +59,7 @@ tabular figures.
 
 - Semantics: a native `<input>` of the given `type`, named by a `<label for>` or `aria-label`; `invalid`, a caller's `aria-invalid` or a value the browser's check refused sets `aria-invalid`.
 - Content: one line of text the reader types, with an optional placeholder that is an example and never the label.
-- States: rest (the control fill, a quiet frame, a recess under its top edge darker than the frame and a 3:1 baseline), hover (a firmer frame and recess), focus (the rest fill under a flush 2px ring, so a focused field never reads as read-only), invalid (a danger edge on all four sides, kept under hover and focus), read-only (no fill, no baseline and no recess), held (disabled while a busy dialog or a saving pane around it works, read only and focusable with full-strength words while a saving setting row does) and disabled (the read-only well at 0.5 opacity).
+- States: rest (the control fill, a quiet frame, a recess under its top edge darker than the frame and a 3:1 baseline), hover (a firmer frame and recess), focus (the rest fill under a flush 2px ring, so a focused field never reads as read-only), invalid (a danger edge on all four sides, kept under hover and focus), read-only (no fill, no baseline and no recess), held (disabled while a busy dialog or a saving pane around it works, read only and focusable with full-strength words while a saving setting row does) and disabled (the read-only well with its words in the muted ink, all at full strength).
 - Keyboard: the browser's own text editing; Tab moves on.
 - Pointer and touch: 34px tall on a pointer and 44px on a phone or any touch screen, with 16px text on a phone so iOS does not zoom.
 - Focus: it takes focus on a press and never moves it elsewhere.
@@ -136,7 +136,7 @@ tabular figures.
      frame, no strong baseline and no recess, so it never looks like a field to type in. */
   .sui-text-input[readonly]:not(.held, [aria-expanded='true']),
   .sui-text-input[readonly]:not(.held, [aria-expanded='true']):focus,
-  .sui-text-input:disabled:not(.held) {
+  .sui-text-input:disabled:not(.held, .bare) {
     background-color: var(--sui-surface-inset);
     border-color: var(--sui-border-subtle);
     box-shadow: none;
@@ -148,6 +148,17 @@ tabular figures.
 
   .sui-text-input:disabled {
     cursor: default;
+  }
+
+  /* An off field reads as off by its well, its quiet frame and its muted words, all at full
+     strength, so its value stays legible (Radix Themes); a held one dims with the work around
+     it. Safari paints a disabled field's words by their fill colour. */
+  .sui-text-input:disabled:not(.held, .bare) {
+    color: var(--sui-text-muted);
+    -webkit-text-fill-color: currentColor;
+  }
+
+  .sui-text-input.held:disabled {
     opacity: var(--sui-disabled-opacity);
   }
 

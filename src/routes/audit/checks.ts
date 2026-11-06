@@ -1277,8 +1277,10 @@ function controls(root: Document): Finding[] {
     // A busy button is the action at work: its fill, edge, words and spinner keep full
     // strength; a busy icon button has no words.
     const busy = control.matches("[aria-busy='true']:not(:disabled)");
+    // An off text field reads as off by its well and its muted words, at full strength.
+    const well = control.matches(':is(.sui-text-input, .sui-textarea):disabled:not(.held, .bare)');
     const dimmed = busy ? control.querySelector('.sui-button-label') : control;
-    const expected = busy ? 1 : disabledOpacity;
+    const expected = busy || well ? 1 : disabledOpacity;
     const opacity = dimmed ? effectiveOpacity(dimmed) : expected;
     if (Math.abs(opacity - expected) > 0.02)
       found.push(
@@ -1288,6 +1290,12 @@ function controls(root: Document): Finding[] {
           `${busy ? 'busy' : 'disabled'} at opacity ${round(opacity)}, not ${expected}`
         )
       );
+    if (
+      well &&
+      deltaE(rgba(style.color), token('--sui-text-muted', control.parentElement ?? document.body)) >
+        1
+    )
+      found.push(finding('L-40', control, 'a disabled field draws its words in another ink'));
     if (style.cursor === 'pointer')
       found.push(finding('L-40', control, 'a disabled control keeps the pointer cursor'));
     const toned = `.sui-button:is([data-tone='signal'], [data-tone='decision'], [data-tone='stop'],
@@ -1455,7 +1463,17 @@ function controls(root: Document): Finding[] {
     const value = frame.querySelector(
       '.sui-joined-value :is(input:not([type="hidden"]), textarea)'
     );
-    if (!value || !control) continue;
+    if (!value) continue;
+    // The joined frame draws the one ground and edge, so its value draws none in any state.
+    const own = getComputedStyle(value);
+    const edged = ['top', 'right', 'bottom', 'left'].some(
+      (side) =>
+        parseFloat(own.getPropertyValue(`border-${side}-width`)) > 0 &&
+        rgba(own.getPropertyValue(`border-${side}-color`)).a > 0
+    );
+    if (rgba(own.backgroundColor).a > 0 || edged)
+      found.push(finding('L-9', value, "a joined field's value draws a ground or edge of its own"));
+    if (!control) continue;
     const box = frame.getBoundingClientRect();
     const part = value.getBoundingClientRect();
     if (part.height <= control && Math.abs(box.height - control) > 0.5)
@@ -1967,7 +1985,7 @@ function fieldRecesses(root: Document): Finding[] {
       })
       .find(({ x, y, blur, spread }) => x === 0 && y === stroke && blur === 0 && spread === 0);
     const well =
-      '.sui-text-input[readonly]:not(.held, [aria-expanded="true"]), .sui-joined.readonly, :is(.sui-text-input, .sui-textarea):disabled:not(.held)';
+      '.sui-text-input[readonly]:not(.held, [aria-expanded="true"]), .sui-joined.readonly, :is(.sui-text-input, .sui-textarea):disabled:not(.held, .bare)';
     if (field.matches(well)) {
       if (line) found.push(finding('L-9', field, 'a read-only or disabled field draws a recess'));
       continue;
