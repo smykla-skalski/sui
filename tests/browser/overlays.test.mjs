@@ -1092,4 +1092,95 @@ suite('overlays', together, () => {
       }
     }
   );
+
+  test(
+    'a combobox turned read-only while its list is open shuts it and commits nothing',
+    long,
+    async () => {
+      const page = await openMounted();
+      try {
+        await page.evaluate(() => {
+          const { lib, mount, flushSync, state, get, set } = /** @type {any} */ (window);
+          const readonly = state(false);
+          /** @type {string[]} */
+          const picked = [];
+          mount(lib.Combobox, {
+            target: document.body,
+            props: {
+              'aria-label': 'Team',
+              options: [
+                { value: 'alpha', label: 'Alpha' },
+                { value: 'beta', label: 'Beta' }
+              ],
+              get readonly() {
+                return get(readonly);
+              },
+              onselect: (/** @type {string} */ value) => picked.push(value)
+            }
+          });
+          flushSync();
+          Object.assign(window, {
+            picked,
+            lock() {
+              set(readonly, true);
+              flushSync();
+            }
+          });
+        });
+        const field = page.getByRole('combobox', { name: 'Team' });
+        await field.focus();
+        await page.keyboard.press('ArrowDown');
+        assert.equal(await field.getAttribute('aria-expanded'), 'true');
+        await page.evaluate(() => /** @type {any} */ (window).lock());
+        assert.equal(await field.getAttribute('aria-expanded'), 'false');
+        await page.keyboard.press('Enter');
+        assert.deepEqual(await page.evaluate(() => /** @type {any} */ (window).picked), []);
+      } finally {
+        await page.close();
+      }
+    }
+  );
+
+  test('Escape on a caller-disabled select still closes the dialog around it', long, async () => {
+    const page = await openMounted();
+    try {
+      await page.evaluate(() => {
+        const { lib, mount, createRawSnippet, flushSync, state, get, set } = /** @type {any} */ (
+          window
+        );
+        const open = state(true);
+        mount(lib.Modal, {
+          target: document.body,
+          props: {
+            get open() {
+              return get(open);
+            },
+            set open(next) {
+              set(open, next);
+            },
+            title: 'Pick a team',
+            children: createRawSnippet(() => ({ render: () => '<div id="slot"></div>' }))
+          }
+        });
+        flushSync();
+        mount(lib.Select, {
+          target: document.getElementById('slot'),
+          props: {
+            'aria-label': 'Team',
+            'aria-disabled': 'true',
+            options: [
+              { value: 'alpha', label: 'Alpha' },
+              { value: 'beta', label: 'Beta' }
+            ]
+          }
+        });
+        flushSync();
+      });
+      await page.getByRole('combobox', { name: 'Team' }).focus();
+      await page.keyboard.press('Escape');
+      await page.waitForFunction(() => !document.querySelector('dialog[open]'), null, brief);
+    } finally {
+      await page.close();
+    }
+  });
 });

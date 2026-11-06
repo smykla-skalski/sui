@@ -141,7 +141,15 @@
   const spoken = $derived(
     note || (open && asked !== '' && hits.length > 0 ? countLabel(hits.length) : '')
   );
-  const showing = $derived((preview || open) && (rows > 0 || note !== ''));
+  /* Work that runs on the form around it holds the value: the field reads only or is disabled,
+     and the list stays shut so no row can be committed. */
+  const around = holdAround();
+  const holding = $derived(held(element, around));
+
+  /* A hold or a read-only field that arrives while the list is open shuts it, so no row can be
+     committed; a preview keeps its list on show. */
+  const shut = $derived(!preview && Boolean(holding || rest.readonly));
+  const showing = $derived((preview || (open && !shut)) && (rows > 0 || note !== ''));
   const listed = $derived(showing && rows > 0);
   const current = $derived(
     preview
@@ -227,11 +235,6 @@
     onselect?.(next);
   }
 
-  /* Work that runs on the form around it holds the value: the field reads only or is disabled,
-     and the list stays shut so no row can be committed. */
-  const around = holdAround();
-  const holding = $derived(held(element, around));
-
   function show(byKey: boolean): void {
     if (holding || rest.readonly) return;
     if (!drafting) typed = false;
@@ -250,7 +253,7 @@
   }
 
   function take(index: number): void {
-    if (preview) return;
+    if (preview || shut) return;
     if (index === visible.length && offers) commit(asked);
     else {
       const option = visible[index];

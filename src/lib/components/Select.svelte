@@ -100,7 +100,8 @@
      hold it stays a tab stop and refuses the press that opens it and every key but Tab. */
   const around = holdAround();
   const holding = $derived(held(element, around));
-  // A caller's `aria-disabled` refuses the value as a soft hold does.
+  // A caller's `aria-disabled` refuses the value as a soft hold does, but lets Escape reach a
+  // dialog around it, which a hold keeps open while its work runs.
   const refusing = $derived(Boolean(holding) || String(rest['aria-disabled']) === 'true');
 
   function press(event: MouseEvent & { currentTarget: EventTarget & HTMLSelectElement }) {
@@ -109,7 +110,8 @@
   }
 
   function key(event: KeyboardEvent & { currentTarget: EventTarget & HTMLSelectElement }) {
-    if (refusing && event.key !== 'Tab') event.preventDefault();
+    const passes = event.key === 'Tab' || (event.key === 'Escape' && !holding);
+    if (refusing && !passes) event.preventDefault();
     else onkeydown?.(event);
   }
 
