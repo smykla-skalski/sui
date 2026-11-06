@@ -585,9 +585,9 @@ export type HeatmapLayout = {
 };
 
 /**
- * A matrix laid out to its ink in lengths the browser resolves: the longest row name starts
- * at 0, the column names' ink tops the matrix at 0, and the last cell, or a column name wider
- * than it, ends the width. Square cells are 3.25rem, or larger where neighbouring column names
+ * A matrix laid out to its ink in lengths the browser resolves: the longest row name, or a
+ * first column name wider than its cell, starts at 0, the column names' ink tops the matrix at
+ * 0, and the last cell, or a column name wider than it, ends the width. Square cells are 3.25rem, or larger where neighbouring column names
  * would come within half a rem of each other, so the matrix is as wide as its columns.
  */
 export function heatmapLayout(input: {
@@ -604,7 +604,12 @@ export function heatmapLayout(input: {
   const reach = largest(spans.slice(1).map(([start], index) => spans[index][1] - start));
   const size = most(rem(3.25), plus(em(reach), rem(0.5)));
   const columns = lineInk(columnInk);
-  const left = plus(gap, px(-inset), em(largest(rowInk.map((ink) => ink.advance + ink.left))));
+  const gutter = plus(gap, px(-inset), em(largest(rowInk.map((ink) => ink.advance + ink.left))));
+  // A lone first column keeps the 3.25rem cell, so a wider name of its own can reach past 0.
+  const left = most(
+    gutter,
+    ...spans.slice(0, 1).map(([start]) => minus(em(-start), times(size, 0.5)))
+  );
   const columnBaseline = em(columns.ascent);
   const top = plus(columnBaseline, em(columns.descent), gap, px(-inset));
   const ends = columnInk.map((ink, index) =>

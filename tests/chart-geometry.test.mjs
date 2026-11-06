@@ -407,6 +407,17 @@ test('a matrix starts at its longest row name and its column names top it', () =
   assert.ok(box.height - (box.top + rows.length * box.size - layout.inset) < 1);
 });
 
+test('a first column name wider than its cell starts at 0 past a short row name', () => {
+  const columns = ['Weekend and holidays'];
+  const layout = heatmapLayout({ measure, rows: ['I'], columns });
+  const length = at(0);
+  const middle = length(layout.left) + length(layout.size) / 2;
+  const start = inkSpan(pixels(columns[0]), middle, 'middle')[0];
+  assert.ok(Math.abs(start) < 1e-9, `the name starts at ${start}`);
+  const label = inkSpan(pixels('I'), length(layout.labelEnd), 'end')[0];
+  assert.ok(label >= -1e-9, `the row name starts at ${label}`);
+});
+
 test('column names wider than a cell keep half a rem between them', () => {
   const columns = ['Mon', 'Wednesday', 'Thursday'];
   const layout = heatmapLayout({ measure, rows: ['Morning'], columns });
