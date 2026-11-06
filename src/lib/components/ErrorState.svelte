@@ -134,10 +134,10 @@ of them.
     border-radius: var(--sui-radius-control);
     box-sizing: border-box;
     display: grid;
-    gap: var(--sui-space-3);
+    gap: var(--sui-space-4);
     justify-items: start;
     min-inline-size: 0;
-    padding: var(--sui-space-4);
+    padding: var(--sui-space-5);
   }
 
   .sui-error-state-copy {

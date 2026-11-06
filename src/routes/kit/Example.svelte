@@ -77,11 +77,13 @@ live specimens, not a surface of the design, so it may hold cards and dialogs (L
     gap: var(--sui-row-copy-gap);
   }
 
+  /* An example's title stands a clear step over its note and its specimens' words, so a long
+     page reads as titled examples rather than one run of text. */
   .title {
     align-content: center;
     block-size: var(--sui-block-snap);
     color: var(--sui-text-primary);
-    font: var(--sui-weight-semibold) var(--sui-font-size-title) / var(--sui-leading-title)
+    font: var(--sui-weight-semibold) var(--sui-font-size-dialog-title) / var(--sui-leading-title)
       var(--sui-sans);
     margin: 0;
     text-box: trim-both cap alphabetic;

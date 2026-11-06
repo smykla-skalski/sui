@@ -52,7 +52,7 @@ facts) and the actions are a second column centred against the whole stack. Wher
 than 20rem, as on a phone or in a narrow pane, the actions move under the copy, 12px below it
 and packed to the start.
 
-The title is 28px on 32px lines, 24px on 28px lines on a phone, and is the page's one `h1`.
+The title is 32px on 36px lines, 24px on 28px lines on a phone, and is the page's one `h1`.
 The eyebrow stands 8px of ink above it. The description stands one 8px copy gap further below
 the title than the title's own lines stand apart, 19px of ink (18px on a phone), so a title
 that wraps reads as one block and the description as the next. The gap follows the title's

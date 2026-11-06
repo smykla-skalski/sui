@@ -329,7 +329,7 @@
   /* The plot's band is a veil a step under whatever holds it, a card, the canvas or a changed
      row, as an inset sits under its canvas in GitHub Primer in both themes. A marker's ring is
      that band laid on a card, opaque, so it parts a marker from a line it crosses. */
-  --sui-chart-ground: rgb(0 0 0 / 4%);
+  --sui-chart-ground: rgb(0 0 0 / 2.5%);
   --sui-chart-ring: color-mix(in srgb, rgb(0 0 0) 4%, var(--sui-surface-base));
 
   --sui-space-1: 0.25rem;
@@ -401,7 +401,7 @@
 
   --sui-font-size-card-title: 1.0625rem;
   --sui-font-size-dialog-title: 1.25rem;
-  --sui-font-size-page-title: 1.75rem;
+  --sui-font-size-page-title: 2rem;
   --sui-font-size-page-title-compact: 1.5rem;
 
   --sui-leading-flat: 1;
@@ -425,10 +425,10 @@
   /* A card or plate title's lines hold together as one block over its note: 17px on 22px,
      so a descender still clears the next line's ascender by about 5px. */
   --sui-leading-card-title: 1.375rem;
-  /* Display sizes set tighter than copy, about 1.15 rounded to 4px (Atlassian's 28/32 and
-     24/28), so a wrapped title's lines hold together; descenders still clear the next line's
-     ascenders by over 4px. */
-  --sui-leading-page: 2rem;
+  /* Display sizes set tighter than copy, about 1.15 rounded to 4px (32/36 and 24/28, as
+     Atlassian sets its headings), so a wrapped title's lines hold together; descenders still
+     clear the next line's ascenders by over 4px. */
+  --sui-leading-page: 2.25rem;
   --sui-leading-page-compact: 1.75rem;
 
   --sui-radius-pill: 999px;
@@ -582,7 +582,7 @@
   --sui-surface-code: var(--sui-primitive-dark-code);
   --sui-border-subtle: rgb(255 255 255 / 9%);
   --sui-chart-grid: var(--sui-border-divider);
-  --sui-chart-ground: rgb(0 0 0 / 20%);
+  --sui-chart-ground: rgb(0 0 0 / 14%);
   --sui-chart-ring: color-mix(in srgb, rgb(0 0 0) 20%, var(--sui-surface-base));
   --sui-border-control: rgb(255 255 255 / 16%);
   --sui-border-divider: color-mix(in srgb, var(--sui-border-subtle) 60%, transparent);
@@ -760,7 +760,7 @@
     --sui-surface-code: var(--sui-primitive-dark-code);
     --sui-border-subtle: rgb(255 255 255 / 9%);
     --sui-chart-grid: var(--sui-border-divider);
-    --sui-chart-ground: rgb(0 0 0 / 20%);
+    --sui-chart-ground: rgb(0 0 0 / 14%);
     --sui-chart-ring: color-mix(in srgb, rgb(0 0 0) 20%, var(--sui-surface-base));
     --sui-border-control: rgb(255 255 255 / 16%);
     --sui-border-divider: color-mix(in srgb, var(--sui-border-subtle) 60%, transparent);

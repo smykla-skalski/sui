@@ -96,10 +96,10 @@ An empty list is not an error and is not drawn as one; a request that failed is
     border-radius: var(--sui-radius-control);
     box-sizing: border-box;
     display: grid;
-    gap: var(--sui-space-3);
+    gap: var(--sui-space-4);
     justify-items: start;
     min-inline-size: 0;
-    padding: var(--sui-space-4);
+    padding: var(--sui-space-5);
   }
 
   .sui-empty-state-copy {
