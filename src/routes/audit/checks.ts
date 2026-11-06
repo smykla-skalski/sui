@@ -1947,8 +1947,8 @@ function unsavedVeils(root: Document): Finding[] {
 /**
  * Field recesses (L-9): every field frame a reader types or picks in draws one line under its
  * top edge, an inset shadow a stroke deep with no blur, darker than its frame on the field's own
- * ground in every state. A read-only field sits in the inset well, no place to type, and draws
- * none.
+ * ground in every state. A read-only or disabled field sits in the inset well, no place to
+ * type, and draws none.
  */
 function fieldRecesses(root: Document): Finding[] {
   const found: Finding[] = [];
@@ -1967,9 +1967,9 @@ function fieldRecesses(root: Document): Finding[] {
       })
       .find(({ x, y, blur, spread }) => x === 0 && y === stroke && blur === 0 && spread === 0);
     const well =
-      '.sui-text-input[readonly]:not(.held, [aria-expanded="true"]), .sui-joined.readonly';
+      '.sui-text-input[readonly]:not(.held, [aria-expanded="true"]), .sui-joined.readonly, :is(.sui-text-input, .sui-textarea):disabled:not(.held)';
     if (field.matches(well)) {
-      if (line) found.push(finding('L-9', field, 'a read-only field draws a recess'));
+      if (line) found.push(finding('L-9', field, 'a read-only or disabled field draws a recess'));
       continue;
     }
     if (!line?.color) {
@@ -2654,9 +2654,9 @@ function pressSelection(root: Document): Finding[] {
 }
 
 /**
- * What a chart draws (L-5, L-66): its words hold 4.5:1 on the plot's ground, and every mark that
- * carries data holds 3:1 there, unless the mark also prints its value (`data-labelled`). Grid
- * lines are a backdrop and are spared.
+ * What a chart draws (L-5, L-66): its words hold 4.5:1 on the plot's ground, or on the mark whose
+ * value they print, and every mark that carries data holds 3:1 there, unless the mark also
+ * prints its value (`data-labelled`). Grid lines are a backdrop and are spared.
  */
 function chartInk(root: Document): Finding[] {
   const found: Finding[] = [];
@@ -2665,7 +2665,12 @@ function chartInk(root: Document): Finding[] {
     const ground = paintedGround(svg);
     for (const text of svg.querySelectorAll('text')) {
       if (!shown(text) || !text.textContent?.trim()) continue;
-      const ratio = contrast(over(rgba(getComputedStyle(text).fill), ground), ground);
+      // A value printed on its own mark, as a heatmap cell prints it, reads on that mark.
+      const mark = text.previousElementSibling;
+      const under = mark?.matches('rect[data-labelled]')
+        ? over(rgba(getComputedStyle(mark).fill), ground)
+        : ground;
+      const ratio = contrast(over(rgba(getComputedStyle(text).fill), under), under);
       if (ratio < 4.5)
         found.push(finding('L-5', text, `chart text contrast ${round(ratio)} under 4.5`));
     }
@@ -2692,6 +2697,17 @@ function chartInk(root: Document): Finding[] {
     if (ratio < 1.3)
       found.push(
         finding('L-66', step, `a heat step holds ${round(ratio)}:1 on its ground, under 1.3`)
+      );
+  }
+  for (const top of audited(root, '.sui-chart .legend .step-4')) {
+    const under = top.closest('.legend')?.querySelector('.step-3');
+    if (!under) continue;
+    const ground = paintedGround(top.parentElement ?? top);
+    const paint = (swatch: Element) => over(rgba(getComputedStyle(swatch).backgroundColor), ground);
+    const ratio = contrast(paint(top), paint(under));
+    if (ratio < 1.5)
+      found.push(
+        finding('L-66', top, `the top heat step stands ${round(ratio)}:1 from the next, under 1.5`)
       );
   }
   return found;

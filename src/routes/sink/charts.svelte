@@ -117,7 +117,7 @@
   <Specimen label="Scatter, two measures of each item" code="series xLabel yLabel">
     <ScatterChart
       title="Build time by change size"
-      description="Builds that change more files take longer, and a cold cache adds about six minutes"
+      description="Bigger changes build longer, and a cold cache adds about six minutes"
       series={builds}
       xLabel="Changed files"
       yLabel="Build minutes"

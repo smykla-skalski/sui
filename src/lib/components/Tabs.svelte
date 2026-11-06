@@ -287,8 +287,8 @@ never clips it.
   }
 
   .sui-tabs-tab[aria-current='page'] {
-    --sui-local-count-ink: var(--sui-text-primary);
-    color: var(--sui-text-primary);
+    --sui-local-count-ink: var(--sui-text-current);
+    color: var(--sui-text-current);
     font-weight: var(--sui-weight-semibold);
   }
 

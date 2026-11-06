@@ -220,7 +220,7 @@ test('L-107 a scroll edge fades over 24px', () => {
   assert.equal(pixels(tokenMap(stripComments(palette))[fade]), 24);
 });
 
-test('L-59 a state panel pads 24px and stands its next step 20px under its words', () => {
+test('L-59 a state panel pads 24px and stands its action 20px under its words', () => {
   const space = tokenMap(stripComments(palette));
   for (const name of ['empty', 'error']) {
     const path = `src/lib/components/${name[0].toUpperCase()}${name.slice(1)}State.svelte`;
@@ -239,6 +239,32 @@ test('L-59 a state panel pads 24px and stands its next step 20px under its words
       path
     );
   }
+});
+
+test('L-5 the quiet inks stay easy to read on the dark canvas, under the current row', () => {
+  const values = tokenMap(stripComments(palette));
+  const resolve = (/** @type {string} */ value) => {
+    let at = value;
+    while (at?.startsWith('var(')) at = values[/var\((--[\w-]+)\)/.exec(at)?.[1] ?? ''];
+    return at;
+  };
+  const luminance = (/** @type {string} */ hex) => {
+    const [r, g, b] = [1, 3, 5]
+      .map((at) => parseInt(hex.slice(at, at + 2), 16) / 255)
+      .map((c) => (c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4));
+    return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+  };
+  const ratio = (/** @type {string} */ a, /** @type {string} */ b) => {
+    const [high, low] = [luminance(resolve(a)), luminance(resolve(b))].sort((x, y) => y - x);
+    return (high + 0.05) / (low + 0.05);
+  };
+  const canvas = dark['--sui-canvas'];
+  assert.ok(ratio(dark['--sui-text-muted'], canvas) >= 8, 'dark muted ink under 8:1');
+  assert.ok(ratio(dark['--sui-text-secondary'], canvas) >= 10, 'dark secondary ink under 10:1');
+  assert.ok(
+    ratio(dark['--sui-text-current'], dark['--sui-text-muted']) >= 2.2,
+    'the current row stands under 2.2:1 from the rest rows'
+  );
 });
 
 test('L-25 the type tiers keep the sizes the law names', () => {

@@ -455,11 +455,11 @@ phone drawer, and following an entry closes the drawer before focus moves.
     text-box: trim-both cap alphabetic;
   }
 
-  /* The current mark every navigation list shares: primary ink on an inset plate, which
+  /* The current mark every navigation list shares: the current ink on an inset plate, which
      both carry the state. */
   .sui-page-toc-link[aria-current='location'] {
     background: var(--sui-surface-inset);
-    color: var(--sui-text-primary);
+    color: var(--sui-text-current);
   }
 
   @media (max-width: 47.9375rem), (pointer: coarse) {

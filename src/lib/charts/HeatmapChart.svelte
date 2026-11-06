@@ -43,9 +43,10 @@
     rangeLabel?: (from: string, to: string) => string;
   } = $props();
 
-  /* Five steps of the first chart colour. The strongest stops where text ink still holds 4.5:1
-     on it in both themes, because every cell prints its value, and the lowest holds 1.3:1 on its
-     ground, so a cell that holds a little never reads as an empty one. */
+  /* Five steps of the first chart colour. Every cell prints its value, so text ink holds 4.5:1
+     on the four lower steps in both themes, and the top step is the colour itself with its value
+     in the surface's ink, so the peak stands clear. The lowest holds 1.3:1 on its ground, so a
+     cell that holds a little never reads as an empty one. */
   const STEPS = 5;
   const COLUMN_MOST = 7;
   const ROW_MOST = 18;
@@ -194,7 +195,7 @@ columns and scrolls sideways in a narrower container.
               data-labelled><title>{row}{mark('comma')}{column}{mark('colon')}{words}</title></rect
             >
             <text
-              class="value"
+              class="value step-{step(cellValue)}"
               text-anchor="middle"
               style:translate={at(cx, centred(measure(words), cy))}>{words}</text
             >
@@ -260,16 +261,19 @@ columns and scrolls sideways in a narrower container.
     --sui-local-heat: color-mix(in srgb, var(--sui-chart-1) 20%, transparent);
   }
   .step-1 {
-    --sui-local-heat: color-mix(in srgb, var(--sui-chart-1) 32%, transparent);
+    --sui-local-heat: color-mix(in srgb, var(--sui-chart-1) 36%, transparent);
   }
   .step-2 {
-    --sui-local-heat: color-mix(in srgb, var(--sui-chart-1) 44%, transparent);
+    --sui-local-heat: color-mix(in srgb, var(--sui-chart-1) 52%, transparent);
   }
   .step-3 {
-    --sui-local-heat: color-mix(in srgb, var(--sui-chart-1) 56%, transparent);
+    --sui-local-heat: color-mix(in srgb, var(--sui-chart-1) 68%, transparent);
   }
   .step-4 {
-    --sui-local-heat: color-mix(in srgb, var(--sui-chart-1) 68%, transparent);
+    --sui-local-heat: var(--sui-chart-1);
+  }
+  .value.step-4 {
+    fill: var(--sui-surface-base);
   }
   /* Every cell prints its value, so its step is never the only carrier and it needs no edge
      (WCAG 1.4.11): the cells stand as plain fills parted by the surface, and the steps keep

@@ -51,7 +51,7 @@ It has no label of its own. Put it in a `Field` through the `control` snippet, o
 
 - Semantics: a native `<textarea>`, named by a `<label for>` or `aria-label`; `invalid`, a caller's `aria-invalid` or a value the browser's check refused sets `aria-invalid`.
 - Content: free text over several lines, `rows` lines tall before it scrolls, with an optional placeholder that is an example and never the label.
-- States: rest (the control fill, a quiet frame, a recess under its top edge darker than the frame and a 3:1 baseline), hover (a firmer frame and recess), focus (the rest fill under a flush 2px ring, so a focused field never reads as read-only), invalid (a danger edge on all four sides, kept under hover and focus), held (disabled while a busy dialog or a saving pane around it works, read only and focusable while a saving setting row does, 0.5 opacity either way) and disabled (0.5 opacity, no resize).
+- States: rest (the control fill, a quiet frame, a recess under its top edge darker than the frame and a 3:1 baseline), hover (a firmer frame and recess), focus (the rest fill under a flush 2px ring, so a focused field never reads as read-only), invalid (a danger edge on all four sides, kept under hover and focus), held (disabled while a busy dialog or a saving pane around it works, read only and focusable while a saving setting row does, 0.5 opacity either way) and disabled (the inset well under a quiet frame at 0.5 opacity, no resize).
 - Keyboard: the browser's own text editing, Enter included; Tab moves on.
 - Pointer and touch: at least 34px tall, 44px on a phone or any touch screen, with 16px text on a phone so iOS does not zoom; the resize grip is an extra, never the only way to read more.
 - Focus: it takes focus on a press and never moves it elsewhere.
@@ -125,6 +125,14 @@ It has no label of its own. Put it in a `Field` through the `control` snippet, o
 
   .sui-textarea[aria-invalid='true'] {
     border-color: var(--sui-danger);
+  }
+
+  /* A field that is off sits in the inset well with a quiet frame, no strong baseline and no
+     recess, so it never looks like an empty field to type in. */
+  .sui-textarea:disabled:not(.held) {
+    background-color: var(--sui-surface-inset);
+    border-color: var(--sui-border-subtle);
+    box-shadow: none;
   }
 
   .sui-textarea:is(:disabled, .held) {
