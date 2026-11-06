@@ -119,10 +119,10 @@ const isDisabled = (element: Element) =>
 // ---------------------------------------------------------------------------------------
 // Palette laws, measured on the tokens as the active theme resolves them.
 
-function token(name: string): Rgba {
+function token(name: string, scope: Element = document.body): Rgba {
   const probe = document.createElement('span');
   probe.style.color = `var(${name})`;
-  document.body.append(probe);
+  scope.append(probe);
   const color = rgba(getComputedStyle(probe).color);
   probe.remove();
   return color;
@@ -1292,9 +1292,11 @@ function controls(root: Document): Finding[] {
       found.push(finding('L-40', control, 'a disabled control keeps the pointer cursor'));
     const toned = `.sui-button:is([data-tone='signal'], [data-tone='decision'], [data-tone='stop'],
       [data-tone='stop-quiet'])`;
+    // A decision callout or an unsaved row restates the default paint for what it holds, so
+    // the paint is read where the button stands.
     const base = token('--sui-surface-base');
     const differs = (paint: string, name: string) =>
-      deltaE(over(rgba(paint), base), over(token(name), base)) > 1;
+      deltaE(over(rgba(paint), base), over(token(name, control), base)) > 1;
     if (
       !busy &&
       control.matches(toned) &&

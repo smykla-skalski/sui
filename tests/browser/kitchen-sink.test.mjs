@@ -228,6 +228,34 @@ suite('the kitchen sink', together, () => {
       );
   });
 
+  // A decision callout or an unsaved row restates the default paint for the controls it holds,
+  // so a disabled toned button there is right to wear that local paint.
+  test(
+    'L-40 a disabled tone is measured against the paint where its button stands',
+    long,
+    async () => {
+      const page = await open(1440, 'light');
+      try {
+        const restated = await page.evaluate(() => {
+          const buttons = document.querySelectorAll(
+            ".sui-button:is([data-tone='signal'], [data-tone='decision'], [data-tone='stop']):disabled"
+          );
+          for (const button of buttons) {
+            const holder = /** @type {HTMLElement} */ (button.parentElement);
+            holder.style.setProperty('--sui-surface-raised', 'transparent');
+            holder.style.setProperty('--sui-control-border', 'var(--sui-warning)');
+          }
+          return buttons.length;
+        });
+        assert.ok(restated > 0);
+        const kept = (await audit(page)).filter(({ detail }) => detail.includes('keeps its tone'));
+        assert.equal(kept.length, 0, report(kept));
+      } finally {
+        await page.close();
+      }
+    }
+  );
+
   // A tablet wider than a phone still has a coarse pointer, so the touch tier must hold there too.
   test('the law audit finds nothing on a 1024px touch screen', long, async () => {
     const page = await open(1024, 'light', { hasTouch: true, isMobile: true });
