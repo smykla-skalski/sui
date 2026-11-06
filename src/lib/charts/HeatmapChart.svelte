@@ -246,9 +246,10 @@ columns and scrolls sideways in a narrower container.
   .axis {
     fill: var(--sui-text-secondary);
   }
+  /* Proportional figures, as the face's table measures them, so a cell grown to its widest
+     value holds it; a centred value lines up with no other. */
   .value {
     fill: var(--sui-text-primary);
-    font-variant-numeric: tabular-nums;
     font-weight: var(--sui-weight-medium);
   }
   .value.none {
