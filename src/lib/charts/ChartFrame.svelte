@@ -264,7 +264,7 @@
     --sui-local-band-pad: max(var(--sui-local-chart-bleed), var(--sui-space-4));
     background: var(--sui-chart-ground);
     border-radius: var(--sui-radius-control);
-    font: var(--sui-weight-regular) var(--sui-font-size-compact) / var(--sui-leading-flat)
+    font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-leading-flat)
       var(--sui-sans);
     font-variant-ligatures: none;
     margin-inline: calc(-1 * var(--sui-local-chart-bleed));

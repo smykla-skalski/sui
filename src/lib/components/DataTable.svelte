@@ -425,11 +425,9 @@ row in place of the hairlines, for a table wide enough that the eye can lose its
   thead th {
     border-block-end: var(--sui-stroke) solid var(--sui-border-control);
     vertical-align: middle;
-    color: var(--sui-text-secondary);
-    font: var(--sui-weight-semibold) var(--sui-font-size-compact) / var(--sui-leading-compact)
+    color: var(--sui-text-primary);
+    font: var(--sui-weight-semibold) var(--sui-font-size-control) / var(--sui-leading-compact)
       var(--sui-sans);
-    letter-spacing: 0.07em;
-    text-transform: uppercase;
   }
 
   /* A sort heading is a chip-tier control (L-37) whose ground reaches a space past its words.
@@ -450,11 +448,9 @@ row in place of the hairlines, for a table wide enough that the eye can lose its
     font: inherit;
     gap: var(--sui-space-1);
     inline-size: fit-content;
-    letter-spacing: inherit;
     margin: calc(-1 * var(--sui-space-1));
     padding: 0 var(--sui-space-1);
     position: relative;
-    text-transform: inherit;
     user-select: none;
     /* Off the baseline, so the glyph beside the words never moves the heading row's line. */
     vertical-align: top;
