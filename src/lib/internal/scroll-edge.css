@@ -35,7 +35,7 @@
 
 /* Focus and a scroll into view stop clear of the held part and the fade. */
 .sui-scroll-edge {
-  --sui-local-edge-fade: var(--sui-space-8);
+  --sui-local-edge-fade: var(--sui-space-6);
   scroll-padding-inline: calc(var(--sui-local-edge-hold, 0px) + var(--sui-local-edge-fade))
     var(--sui-local-edge-fade);
 }

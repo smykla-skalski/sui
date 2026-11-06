@@ -79,6 +79,11 @@
     min-inline-size: 0;
   }
 
+  /* A chart fills its body, so charts on one line share their foot as well as their top. */
+  .body:has(> :global(.sui-chart)) {
+    align-content: stretch;
+  }
+
   /* What the specimen shows takes the inset a stacked stage lends, as a card lends its own. */
   .body > :global(*) {
     --sui-local-bleed: var(--sui-local-stage-pad, 0px);

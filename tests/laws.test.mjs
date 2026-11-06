@@ -214,6 +214,12 @@ test('L-66 a chart grid draws at the hairline that frames a surface', () => {
   assert.deepEqual(new Set(grids), new Set(['var(--sui-border-subtle)']));
 });
 
+test('L-107 a scroll edge fades over 24px', () => {
+  const sheet = stripComments(read('src/lib/internal/scroll-edge.css'));
+  const fade = /--sui-local-edge-fade:\s*var\((--sui-space-\d+)\)/.exec(sheet)?.[1] ?? '';
+  assert.equal(pixels(tokenMap(stripComments(palette))[fade]), 24);
+});
+
 test('L-25 the type tiers keep the sizes the law names', () => {
   const sizes = tokenMap(stripComments(palette.slice(0, palette.indexOf(PHONE))));
   const tier = (/** @type {string} */ name) => pixels(sizes[`--sui-font-size-${name}`]);

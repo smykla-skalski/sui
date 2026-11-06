@@ -215,10 +215,14 @@
     initial-value: 0px;
   }
 
+  /* A chart is a column whose plot takes any room its holder adds, so a chart stretched to its
+     neighbour's height, in a line of cards or specimens, keeps its legend and table at its foot
+     and charts side by side end on one line. */
   .sui-chart {
     --sui-local-chart-bleed: var(--sui-local-bleed);
     color: var(--sui-text-primary);
-    display: grid;
+    display: flex;
+    flex-direction: column;
     gap: var(--sui-space-4);
     margin: 0;
     min-inline-size: 0;
@@ -267,6 +271,7 @@
     font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-leading-flat)
       var(--sui-sans);
     font-variant-ligatures: none;
+    margin-block-end: auto;
     margin-inline: calc(-1 * var(--sui-local-chart-bleed));
     min-inline-size: 0;
   }

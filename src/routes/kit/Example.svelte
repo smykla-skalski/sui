@@ -169,11 +169,15 @@ live specimens, not a surface of the design, so it may hold cards and dialogs (L
   }
 
   /* A caller whose specimens need more room per column, such as tables, sets
-     `--specimen-min` on the example. */
+     `--specimen-min` on the example, and one whose specimens should keep a measure, such as
+     fields, sets `--specimen-max`. */
   .specimens[data-layout='grid'] {
     align-items: stretch;
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(min(100%, var(--specimen-min, 16rem)), 1fr));
+    grid-template-columns: repeat(
+      auto-fill,
+      minmax(min(100%, var(--specimen-min, 16rem)), var(--specimen-max, 1fr))
+    );
   }
 
   .tools {
