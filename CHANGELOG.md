@@ -15,6 +15,7 @@
 - A pending `Switch` keeps its thumb at full strength and turns an accent spinner inside it, in place of a dark ring over the dimmed track. An invalid `Switch` or `Checkbox` draws a 2px danger edge, which reads on the accent fill too.
 - Peer cards in a grid or flex row take the row's height, so they end on one line; a shorter one holds the extra room under its last ink (L-33).
 - The kitchen sink gives each component a page of its own and opens on an overview of cards, each with its own symbol, which its index row wears too. `/all/` keeps every section on one page. One theme switch sits at the sidebar's foot, the floating bar, "Back to top" and the rail are gone, and each example's markup opens from a Code disclosure. The law audit runs on the page you are on when you press "Run the law audit", says its result beside the page title and is not kept between visits.
+- `PageToc` gives each entry its own current flag and looks only at the sections across the reading line, so a scroll over a thousand sections no longer reruns every entry or checks every section in each callback.
 
 ## 0.4.0
 

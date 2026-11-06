@@ -133,6 +133,11 @@ test('sorting a table of 500 rows answers within 200ms', long, async () => {
  * @param {() => Promise<unknown>} act
  */
 async function frames(page, span, act) {
+  // The setup's garbage, such as the whole sink loaded and removed, is collected first, so a
+  // collection of it never lands in the measure; the act's own garbage still does.
+  const cdp = await page.context().newCDPSession(page);
+  await cdp.send('HeapProfiler.collectGarbage');
+  await cdp.detach();
   const recorded = page.evaluate(
     (span) =>
       new Promise((done) => {

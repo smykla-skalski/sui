@@ -10,7 +10,7 @@
 
 <script lang="ts">
   import { word } from '../words.js';
-  import { flushSync } from 'svelte';
+  import { flushSync, untrack } from 'svelte';
   import type { HTMLAttributes } from 'svelte/elements';
   import { followsInPlace, getShell } from '../internal/shell.svelte.js';
 
@@ -39,6 +39,16 @@
   const shell = getShell();
   // Before the page is read, as in a server render, the reader is at the top, in the first section.
   let here = $derived<string | null>(entries[0]?.id ?? null);
+  // A flag per entry, so a new current entry reruns its own link and the last one, never every
+  // link: on a page of a thousand sections, a rerun of every link holds a frame.
+  let lit = untrack(() => here);
+  const marked: Record<string, boolean> = $state(lit ? { [lit]: true } : {});
+  $effect.pre(() => {
+    if (here === lit) return;
+    if (lit) marked[lit] = false;
+    lit = here;
+    if (lit) marked[lit] = true;
+  });
   let nav = $state<HTMLElement | null>(null);
   const links = $state<Record<string, HTMLAnchorElement | null>>({});
 
@@ -337,7 +347,7 @@ phone drawer, and following an entry closes the drawer before focus moves.
             bind:this={links[entry.id]}
             class="sui-page-toc-link"
             href="#{entry.id}"
-            aria-current={here === entry.id ? 'location' : undefined}
+            aria-current={marked[entry.id] ? 'location' : undefined}
             onclick={(event) => follow(event, entry)}
             ><span class="sui-page-toc-label">{entry.label}</span></a
           >
