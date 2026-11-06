@@ -1094,7 +1094,7 @@ suite('overlays', together, () => {
   );
 
   test(
-    'a combobox turned read-only while its list is open shuts it and commits nothing',
+    'a combobox turned read-only while its list is open shuts it and commits no draft',
     long,
     async () => {
       const page = await openMounted();
@@ -1104,6 +1104,11 @@ suite('overlays', together, () => {
           const readonly = state(false);
           /** @type {string[]} */
           const picked = [];
+          /** @type {boolean[]} */
+          const escapes = [];
+          document.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape') escapes.push(event.defaultPrevented);
+          });
           mount(lib.Combobox, {
             target: document.body,
             props: {
@@ -1121,20 +1126,30 @@ suite('overlays', together, () => {
           flushSync();
           Object.assign(window, {
             picked,
-            lock() {
-              set(readonly, true);
+            escapes,
+            lock(/** @type {boolean} */ on) {
+              set(readonly, on);
               flushSync();
             }
           });
         });
         const field = page.getByRole('combobox', { name: 'Team' });
         await field.focus();
+        await page.keyboard.type('Beta');
         await page.keyboard.press('ArrowDown');
         assert.equal(await field.getAttribute('aria-expanded'), 'true');
-        await page.evaluate(() => /** @type {any} */ (window).lock());
+        await page.evaluate(() => /** @type {any} */ (window).lock(true));
         assert.equal(await field.getAttribute('aria-expanded'), 'false');
         await page.keyboard.press('Enter');
-        assert.deepEqual(await page.evaluate(() => /** @type {any} */ (window).picked), []);
+        await page.keyboard.press('Escape');
+        const seen = await page.evaluate(() => {
+          const { picked, escapes } = /** @type {any} */ (window);
+          return { picked, escapes };
+        });
+        assert.deepEqual(seen.picked, [], 'a draft was committed while read-only');
+        assert.deepEqual(seen.escapes, [false], 'Escape stopped at the shut list');
+        await page.evaluate(() => /** @type {any} */ (window).lock(false));
+        assert.equal(await field.getAttribute('aria-expanded'), 'false');
       } finally {
         await page.close();
       }
