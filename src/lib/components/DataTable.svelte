@@ -158,7 +158,7 @@ row in place of the hairlines, for a table wide enough that the eye can lose its
 -->
 
 {#snippet retry()}
-  {#if onretry}<Button tone="ghost" onclick={onretry}>{retryLabel}</Button>{/if}
+  {#if onretry}<Button onclick={onretry}>{retryLabel}</Button>{/if}
 {/snippet}
 
 <div class={['sui-data-table', className, { striped, scrolls, held: rowHeader }]}>

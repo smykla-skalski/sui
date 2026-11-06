@@ -145,7 +145,7 @@
 
   .head {
     display: grid;
-    gap: var(--sui-row-copy-gap);
+    gap: var(--sui-title-copy-gap);
   }
 
   h2 {

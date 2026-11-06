@@ -198,6 +198,14 @@ test('L-21 sizes and leading come from the scale and land on whole pixels', () =
 const PHONE = '@media (max-width: 47.9375rem)';
 const pixels = (/** @type {string} */ rem) => parseFloat(rem) * 16;
 
+test('L-24 a title stands 12px above its description, copy lines 8px apart', () => {
+  const gaps = tokenMap(stripComments(palette));
+  assert.deepEqual(
+    { copy: pixels(gaps['--sui-row-copy-gap']), title: pixels(gaps['--sui-title-copy-gap']) },
+    { copy: 8, title: 12 }
+  );
+});
+
 test('L-25 the type tiers keep the sizes the law names', () => {
   const sizes = tokenMap(stripComments(palette.slice(0, palette.indexOf(PHONE))));
   const tier = (/** @type {string} */ name) => pixels(sizes[`--sui-font-size-${name}`]);

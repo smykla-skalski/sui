@@ -154,7 +154,7 @@
   .panel {
     display: grid;
     justify-items: start;
-    gap: var(--sui-row-copy-gap);
+    gap: var(--sui-title-copy-gap);
     padding: var(--sui-space-3) var(--sui-space-4);
   }
 

@@ -421,7 +421,7 @@ brings its own room under it, so the scroller needs no end padding.
   .copy {
     display: grid;
     flex: 1 1 18rem;
-    gap: var(--sui-row-copy-gap);
+    gap: var(--sui-title-copy-gap);
     min-inline-size: 0;
   }
 

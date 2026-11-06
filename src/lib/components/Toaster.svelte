@@ -415,7 +415,7 @@ A `danger` toast reports a failure and stays too.
   .sui-toast-copy {
     align-content: center;
     display: grid;
-    gap: var(--sui-row-copy-gap);
+    gap: var(--sui-title-copy-gap);
     justify-self: stretch;
     min-inline-size: 0;
   }

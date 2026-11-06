@@ -32,6 +32,7 @@
   title="States"
   note="Rest, filled with a hint, invalid with its error and disabled with its reason"
   layout="grid"
+  --specimen-min="13rem"
 >
   <Specimen label="Rest" code="placeholder">
     <Field label="Project name" placeholder="your-project" bind:value={project} />

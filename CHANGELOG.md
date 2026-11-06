@@ -19,6 +19,8 @@
 - The `ListToolbar` menu takes focus as it opens rather than a task later, and a `Popover` with `closeOnLeave` closes when focus leaves before the browser's `toggle` event arrives, so a quick Tab or Shift+Tab out of the menu always closes it (L-52).
 - A `Modal` that opens on a field holding a value chooses its words and shows their start, so a long address no longer opens scrolled to its end, and typing replaces it. A line chart that names every line at its end keeps its legend for a screen reader only, unless two lines end too close for each name to stay at its own end (L-66). An unchecked `Checkbox` box takes the control fill, so it no longer reads as disabled.
 - Breaking: the palette drops `--sui-input-bg`. No control reads it any more: a focused field keeps its rest fill, a checkbox box takes `--sui-control-bg`, and a read-only field stands on `--sui-surface-inset` (L-9, L-10).
+- A disabled button with a filled or danger tone takes the default paint at half strength, so an action that cannot run reads as off rather than as a paler colour (L-40). A `DataTable`'s retry is the default button, as an `ErrorState`'s is.
+- A title stands 12px above its description, through the new `--sui-title-copy-gap`, where copy lines stay 8px apart (L-24): in `EmptyState`, `ErrorState`, `Card`, `Section`, a chart's head, `Callout`, a toast, `SaveBar` and `ServiceWorkerStatus`. An `EmptyState`'s step stays 8px under its explanation.
 - A `SideNav` whose `current` is a name every object inherits, such as `constructor`, draws no plate rather than throwing, and a `PageToc` entry with such an id turns current only when the reader reaches its section.
 
 ## 0.4.0

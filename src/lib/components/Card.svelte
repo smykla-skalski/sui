@@ -309,7 +309,7 @@ title, such as "Danger zone", and holds the acts that cannot be undone, each a `
   .sui-card-copy {
     display: grid;
     flex: 1 1 auto;
-    gap: var(--sui-row-copy-gap);
+    gap: var(--sui-title-copy-gap);
     min-inline-size: 0;
   }
 

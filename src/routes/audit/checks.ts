@@ -595,8 +595,14 @@ function copyRhythm(root: Document): Finding[] {
     const b = second.getBoundingClientRect();
     if (b.top < a.bottom - 0.5 || Math.abs(a.left - b.left) > 1) continue;
     const gap = b.top - a.bottom;
-    if (Math.abs(gap - 8) > 0.75 && gap < 16)
-      found.push(finding('L-24', second, `title to description gap is ${round(gap)}px, not 8px`));
+    const titled =
+      /^H[1-6]$/.test(first.tagName) ||
+      [...first.classList].some((name) => name === 'title' || name.endsWith('-title'));
+    const want = titled ? 12 : 8;
+    if (Math.abs(gap - want) > 0.75 && gap < 16)
+      found.push(
+        finding('L-24', second, `title to description gap is ${round(gap)}px, not ${want}px`)
+      );
   }
   return found;
 }
@@ -1284,6 +1290,18 @@ function controls(root: Document): Finding[] {
       );
     if (style.cursor === 'pointer')
       found.push(finding('L-40', control, 'a disabled control keeps the pointer cursor'));
+    const toned = `.sui-button:is([data-tone='signal'], [data-tone='decision'], [data-tone='stop'],
+      [data-tone='stop-quiet'])`;
+    const base = token('--sui-surface-base');
+    const differs = (paint: string, name: string) =>
+      deltaE(over(rgba(paint), base), over(token(name), base)) > 1;
+    if (
+      !busy &&
+      control.matches(toned) &&
+      (differs(style.backgroundColor, '--sui-surface-raised') ||
+        differs(style.borderTopColor, '--sui-control-border'))
+    )
+      found.push(finding('L-40', control, 'a disabled button keeps its tone'));
   }
 
   for (const button of audited(root, 'button, a[href]')) {

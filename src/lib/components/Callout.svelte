@@ -251,7 +251,7 @@ and the unsaved ink, so no neutral block sits on a state (L-92).
     align-content: center;
     display: grid;
     flex: 1;
-    gap: var(--sui-row-copy-gap);
+    gap: var(--sui-title-copy-gap);
     min-inline-size: 0;
   }
 

@@ -125,7 +125,7 @@ under reduced motion. Use it only where the shape of what is coming is already k
           {#if slow && index === 0}
             <!-- Drawn here as the bars are, because the status beside the region speaks it. -->
             <span class="words"
-              ><span class="title">{slowLabel}</span>{#if bars}<span>{slowDescription}</span
+              ><span class="name">{slowLabel}</span>{#if bars}<span>{slowDescription}</span
                 >{/if}</span
             >
           {:else}
@@ -277,7 +277,7 @@ under reduced motion. Use it only where the shape of what is coming is already k
     text-box: trim-both cap alphabetic;
   }
 
-  .title {
+  .name {
     color: var(--sui-text-primary);
     font-weight: var(--sui-weight-semibold);
   }

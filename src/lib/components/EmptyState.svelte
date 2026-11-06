@@ -58,8 +58,8 @@ words when it happens elsewhere, such as waiting for a first run; it cannot be d
 neither.
 
 An empty list is not an error and is not drawn as one; a request that failed is
-`ErrorState`. There is no decorative icon. The title sits above the explanation with the
-8px copy gap.
+`ErrorState`. There is no decorative icon. The title sits 12px above the explanation, and
+a step 8px under it.
 
 - Semantics: a `div` of two paragraphs and the action; with `live` the title and description also reach a polite `status`.
 - Content: a plain title, one sentence of explanation and one next step, as an `action` such as a `Button` that clears the filter, or as `step` when the step happens elsewhere.
@@ -116,8 +116,10 @@ An empty list is not an error and is not drawn as one; a request that failed is
     text-box: trim-both cap alphabetic;
   }
 
+  /* The title stands a title gap above its words; the step keeps the copy gap under them. */
   .sui-empty-state-title {
     color: var(--sui-text-primary);
+    margin-block-end: calc(var(--sui-title-copy-gap) - var(--sui-row-copy-gap));
     font: var(--sui-weight-semibold) var(--sui-font-size-title) / var(--sui-row-copy-leading)
       var(--sui-sans);
   }

@@ -137,9 +137,11 @@ of them.
     padding: var(--sui-space-5);
   }
 
+  /* Even, so a retry centred beside it in a row lands on the pixel grid (L-95). */
   .sui-error-state-copy {
+    block-size: var(--sui-block-snap-even);
     display: grid;
-    gap: var(--sui-row-copy-gap);
+    gap: var(--sui-title-copy-gap);
     min-inline-size: 0;
   }
 

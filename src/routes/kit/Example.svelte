@@ -74,7 +74,7 @@ live specimens, not a surface of the design, so it may hold cards and dialogs (L
 
   .head {
     display: grid;
-    gap: var(--sui-row-copy-gap);
+    gap: var(--sui-title-copy-gap);
   }
 
   /* An example's title stands a clear step over its note and its specimens' words, so a long

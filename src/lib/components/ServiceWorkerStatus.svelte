@@ -284,9 +284,10 @@ dismisses it, and the return says "You are back online" for five seconds.
   /* The copy asks for its one-line width, so the buttons move under it as soon as it would wrap
      beside them, and a bar as wide as its words never wraps them by a rounding. */
   .copy {
+    block-size: var(--sui-block-snap-even);
     display: grid;
     flex: 1 1 auto;
-    gap: var(--sui-row-copy-gap);
+    gap: var(--sui-title-copy-gap);
     min-inline-size: 0;
   }
 

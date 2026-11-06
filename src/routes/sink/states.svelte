@@ -201,6 +201,7 @@
 <Example
   title="Form error"
   note="A server refusal is announced, and a long form's summary takes focus with a link to each field"
+  layout="stack"
 >
   <Specimen label="Refusal">
     <FormError message="The invitation expired before it was accepted" />
@@ -278,8 +279,10 @@
     justify-items: start;
   }
 
+  /* A form keeps a form's measure on a stage as wide as the page. */
   .summary {
     gap: var(--sui-space-4);
     justify-items: stretch;
+    max-inline-size: 40rem;
   }
 </style>
