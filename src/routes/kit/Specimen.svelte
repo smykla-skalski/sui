@@ -64,7 +64,7 @@
   .specimen {
     align-content: space-between;
     display: grid;
-    gap: var(--sui-space-3);
+    gap: var(--sui-space-4);
     grid-row: span 2;
     grid-template-rows: subgrid;
     margin: 0;

@@ -16,10 +16,11 @@
     /** One period-free sentence saying what this example proves. */
     note?: string;
     /**
-     * `row` wraps specimens side by side, `stack` puts each on its own line, and `grid` lays
-     * them in equal columns that fold on a narrow stage.
+     * `row` wraps specimens side by side, `stack` puts each on its own line, `grid` lays
+     * them in equal columns that fold on a narrow stage, and `pairs` sets wide specimens, such
+     * as charts, two to a line on a wide stage and stacks them on a narrow one.
      */
-    layout?: 'row' | 'stack' | 'grid';
+    layout?: 'row' | 'stack' | 'grid' | 'pairs';
     /**
      * The ground the specimens stand on: `surface` for what lives inside a card or panel,
      * `canvas` for surfaces themselves (cards, dialogs, shells), so they read as they will.
@@ -151,7 +152,7 @@ live specimens, not a surface of the design, so it may hold cards and dialogs (L
   /* A wrapping column sizes each line to its widest item, so a stack must not wrap. A stacked
      specimen spans the stage, so it lends the stage's inset to what it shows, such as a
      chart's band, which reaches the frame's edges with it. */
-  .specimens[data-layout='stack'] {
+  .specimens:is([data-layout='stack'], [data-layout='pairs']) {
     --sui-local-stage-pad: var(--sui-space-6);
     align-items: stretch;
     flex-direction: column;
@@ -161,7 +162,7 @@ live specimens, not a surface of the design, so it may hold cards and dialogs (L
 
   /* Stacked specimens, such as charts, are parted by a divider across the whole stage, so one
      specimen's caption never reads as the head of the next. */
-  .specimens[data-layout='stack'] > :global(.specimen + .specimen) {
+  .specimens:is([data-layout='stack'], [data-layout='pairs']) > :global(.specimen + .specimen) {
     border-block-start: var(--sui-stroke) solid var(--sui-border-divider);
     margin-inline: calc(-1 * var(--sui-local-stage-pad));
     padding: var(--sui-local-stage-pad) var(--sui-local-stage-pad) 0;
@@ -187,8 +188,26 @@ live specimens, not a surface of the design, so it may hold cards and dialogs (L
       --stage-pad: var(--sui-space-4);
     }
 
-    .specimens[data-layout='stack'] {
+    .specimens:is([data-layout='stack'], [data-layout='pairs']) {
       --sui-local-stage-pad: var(--sui-space-4);
+    }
+  }
+
+  /* A pair stands side by side once each half holds a range chart's least plot with its
+     insets, 22rem, beside the gap and the stage's inset, and then lends no inset, since a band
+     that reached past its half would cross its neighbour. */
+  @container sink-stage (min-width: 48.25rem) {
+    .specimens[data-layout='pairs'] {
+      --sui-local-stage-pad: 0px;
+      display: grid;
+      gap: var(--sui-space-6) var(--sui-space-5);
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .specimens[data-layout='pairs'] > :global(.specimen + .specimen) {
+      border-block-start: none;
+      margin-inline: 0;
+      padding: 0;
     }
   }
 </style>

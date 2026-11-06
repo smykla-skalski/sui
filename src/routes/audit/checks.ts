@@ -1675,6 +1675,12 @@ function specimens(root: Document): Finding[] {
       });
     });
     if (escaped) found.push(finding('L-55', escaped, 'reaches past its specimen'));
+    // A plot scrolls only on a holder too narrow for it (L-66), so a plot that scrolls on a line
+    // of specimens wide enough to show it whole hides its last values for no reason.
+    const line = specimen.parentElement?.clientWidth ?? 0;
+    for (const plot of panel.querySelectorAll('.sui-chart .plot-scroll'))
+      if (plot.scrollWidth > plot.clientWidth + 1 && plot.scrollWidth <= line)
+        found.push(finding('L-55', plot, 'a chart scrolls its plot while the stage could show it'));
 
     const own = specimen.getBoundingClientRect();
     const holder = specimen.parentElement;

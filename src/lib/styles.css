@@ -335,7 +335,7 @@
   --sui-sans: 'SUI Plus Jakarta Sans', 'Segoe UI Variable', 'Segoe UI', system-ui, sans-serif;
 
   --sui-chart-ink: var(--sui-brand-action);
-  --sui-chart-grid: var(--sui-border-divider);
+  --sui-chart-grid: var(--sui-border-subtle);
   /* The plot's band keeps the ground of whatever holds it, so a chart and its card read as one
      unit. A marker's ring is the card's surface, opaque, so it parts a marker from a line it
      crosses. */
@@ -593,11 +593,11 @@
   --sui-surface-raised: var(--sui-primitive-dark-raised);
   --sui-surface-inset: var(--sui-primitive-dark-inset);
   --sui-surface-code: var(--sui-primitive-dark-code);
-  --sui-border-subtle: rgb(255 255 255 / 9%);
-  --sui-chart-grid: var(--sui-border-divider);
+  --sui-border-subtle: rgb(255 255 255 / 11%);
+  --sui-chart-grid: var(--sui-border-subtle);
   --sui-chart-ground: transparent;
   --sui-chart-ring: var(--sui-surface-base);
-  --sui-border-control: rgb(255 255 255 / 16%);
+  --sui-border-control: rgb(255 255 255 / 20%);
   --sui-border-divider: color-mix(in srgb, var(--sui-border-subtle) 60%, transparent);
   --sui-border-band: var(--sui-border-subtle);
   --sui-border-contrast: rgb(255 255 255 / 40%);
@@ -773,11 +773,11 @@
     --sui-surface-raised: var(--sui-primitive-dark-raised);
     --sui-surface-inset: var(--sui-primitive-dark-inset);
     --sui-surface-code: var(--sui-primitive-dark-code);
-    --sui-border-subtle: rgb(255 255 255 / 9%);
-    --sui-chart-grid: var(--sui-border-divider);
+    --sui-border-subtle: rgb(255 255 255 / 11%);
+    --sui-chart-grid: var(--sui-border-subtle);
     --sui-chart-ground: transparent;
     --sui-chart-ring: var(--sui-surface-base);
-    --sui-border-control: rgb(255 255 255 / 16%);
+    --sui-border-control: rgb(255 255 255 / 20%);
     --sui-border-divider: color-mix(in srgb, var(--sui-border-subtle) 60%, transparent);
     --sui-border-band: var(--sui-border-subtle);
     --sui-border-contrast: rgb(255 255 255 / 40%);

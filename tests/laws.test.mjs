@@ -206,6 +206,14 @@ test('L-24 a title stands 12px above its description, copy lines 8px apart', () 
   );
 });
 
+test('L-66 a chart grid draws at the hairline that frames a surface', () => {
+  const grids = [...stripComments(palette).matchAll(/--sui-chart-grid:\s*([^;]+);/g)].map((match) =>
+    match[1].trim()
+  );
+  assert.ok(grids.length > 0);
+  assert.deepEqual(new Set(grids), new Set(['var(--sui-border-subtle)']));
+});
+
 test('L-25 the type tiers keep the sizes the law names', () => {
   const sizes = tokenMap(stripComments(palette.slice(0, palette.indexOf(PHONE))));
   const tier = (/** @type {string} */ name) => pixels(sizes[`--sui-font-size-${name}`]);

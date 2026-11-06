@@ -103,7 +103,7 @@
 <Example
   title="Series"
   note="Each series has its own shape and dash as well as its color, and short sets name each line at its end"
-  layout="stack"
+  layout="pairs"
 >
   <Specimen label="Line, a series over time" code="series xLabel yLabel">
     <LineChart
@@ -128,7 +128,7 @@
 <Example
   title="Ranges and matrices"
   note="A range marks a diamond inside an interval, and a matrix prints every value, with a dashed cell where one is missing"
-  layout="stack"
+  layout="pairs"
 >
   <Specimen label="Range" code="data valueLabel">
     <RangeChart
@@ -152,6 +152,8 @@
 <Example
   title="States"
   note="Each state says itself in words: a placeholder while loading, a line over updating or aging values, and a way out of a failure"
+  layout="grid"
+  --specimen-min="19.5rem"
 >
   <Specimen label="Loading" code={'status="loading"'}>
     <LineChart

@@ -121,13 +121,13 @@ of them.
 </div>
 
 <style>
-  /* A failure is a pale wash of the danger tint inside a firm edge of the hue, so the edge
+  /* A failure is a pale wash of the danger tint inside a light edge of the hue, so the edge
      carries the state and the words keep their contrast. The retry is the neutral default
      button, the reader's next step, which is to repeat the request (L-92). */
   .sui-error-state {
     --sui-local-error-ground: color-mix(in srgb, var(--sui-danger-tint) 45%, transparent);
     background: var(--sui-local-error-ground);
-    border: var(--sui-stroke) solid color-mix(in srgb, var(--sui-danger) 45%, transparent);
+    border: var(--sui-stroke) solid color-mix(in srgb, var(--sui-danger) 30%, transparent);
     border-radius: var(--sui-radius-control);
     box-sizing: border-box;
     display: grid;
