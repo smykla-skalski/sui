@@ -70,8 +70,8 @@ It is also the boolean of a form that a later save writes. A boolean that takes 
 once is a `Switch`, and several boxes that answer one question go in a `CheckList`.
 
 As the control of a `SettingRow` or a `Field layout="row"`, give it the row's `id`, no label
-and `bare`. The row's label names it, its box lines up with the row's end, and it keeps a
-44px touch target without setting the row's height.
+and `bare`. The row's label names it, its box lines up with a setting row's end or leads a
+field's label, and it keeps a 44px touch target without setting the row's height.
 
 The native input lies over the box without its native paint and wears the focus ring, and
 the whole item is its label, so the item is the hit area. The label is the accessible name and

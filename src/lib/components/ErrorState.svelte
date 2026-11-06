@@ -121,16 +121,22 @@ of them.
 </div>
 
 <style>
-  /* A failure is a danger tint with a quiet edge of the hue, so it never reads as a field in
-     error. The retry is quiet on it, with no ground of its own and an edge of the hue (L-92). */
+  /* A failure is a danger tint with an edge of the hue, so it never reads as a field in error.
+     On light the tint is a wash, so its words keep their contrast; on dark the full tint is
+     what sets it apart from the page. The retry is quiet on it, with no ground of its own and
+     a firm edge of the hue (L-92). */
   .sui-error-state {
+    --sui-local-error-ground: light-dark(
+      color-mix(in srgb, var(--sui-danger-tint) 60%, transparent),
+      var(--sui-danger-tint)
+    );
     --sui-surface-raised: transparent;
-    --sui-control-border: color-mix(in srgb, var(--sui-danger) 40%, var(--sui-danger-tint));
-    --sui-control-border-hover: color-mix(in srgb, var(--sui-danger) 65%, var(--sui-danger-tint));
+    --sui-control-border: color-mix(in srgb, var(--sui-danger) 55%, var(--sui-danger-tint));
+    --sui-control-border-hover: color-mix(in srgb, var(--sui-danger) 80%, var(--sui-danger-tint));
     --sui-interactive-hover-layer: color-mix(in srgb, var(--sui-danger) 10%, transparent);
     --sui-interactive-pressed: color-mix(in srgb, var(--sui-danger) 16%, transparent);
-    background: var(--sui-danger-tint);
-    border: var(--sui-stroke) solid color-mix(in srgb, var(--sui-danger) 20%, transparent);
+    background: var(--sui-local-error-ground);
+    border: var(--sui-stroke) solid color-mix(in srgb, var(--sui-danger) 30%, transparent);
     border-radius: var(--sui-radius-control);
     box-sizing: border-box;
     display: grid;
@@ -188,7 +194,7 @@ of them.
   }
 
   .over::before {
-    background: var(--sui-danger-tint);
+    background: var(--sui-local-error-ground);
     border-radius: inherit;
     content: '';
     inset: calc(var(--sui-space-1) / 2);

@@ -291,9 +291,7 @@ assistive technology, because a native picker cannot be held open.
     padding-block: 0;
     padding-inline: var(--sui-space-2) calc(2 * var(--sui-space-2) + var(--sui-icon-sm));
     text-overflow: ellipsis;
-    transition:
-      translate var(--sui-duration-press) var(--sui-ease-standard),
-      box-shadow var(--sui-duration-press) var(--sui-ease-standard);
+    transition: translate var(--sui-duration-press) var(--sui-ease-standard);
     -webkit-user-select: none;
     user-select: none;
     white-space: nowrap;
@@ -354,7 +352,11 @@ assistive technology, because a native picker cannot be held open.
     }
   }
 
+  /* Only the press eases its inset in; hover swaps the recess at once (L-104). */
   .sui-select-control:active:not(:disabled, [aria-disabled='true']) {
+    transition:
+      translate var(--sui-duration-press) var(--sui-ease-standard),
+      box-shadow var(--sui-duration-press) var(--sui-ease-standard);
     background-image: linear-gradient(
       var(--sui-interactive-pressed),
       var(--sui-interactive-pressed)

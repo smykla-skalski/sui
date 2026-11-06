@@ -189,6 +189,7 @@
   title="States"
   note="Empty, loading, refreshing and failed tables say so in words under their headings"
   layout="grid"
+  --specimen-min="28rem"
 >
   <Specimen label="Empty" code={'rows={[]}'}>
     <DataTable caption="Releases" columns={releaseColumns} rows={[]} />

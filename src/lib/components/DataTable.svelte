@@ -523,8 +523,12 @@ row in place of the hairlines, for a table wide enough that the eye can lose its
 
   /* A faint veil of the ink, so a stripe guides the eye along a row in both themes and never
      reads as a selection. */
+  .striped {
+    --sui-local-stripe: color-mix(in srgb, var(--sui-text-primary) 3.5%, transparent);
+  }
+
   .striped tbody tr:nth-child(even) {
-    background: color-mix(in srgb, var(--sui-text-primary) 3.5%, transparent);
+    background: var(--sui-local-stripe);
   }
 
   .striped :is(th, td):first-child {
@@ -571,7 +575,8 @@ row in place of the hairlines, for a table wide enough that the eye can lose its
     }
 
     .held.striped tbody tr:nth-child(even) > :first-child {
-      background: var(--sui-surface-inset);
+      background:
+        linear-gradient(var(--sui-local-stripe), var(--sui-local-stripe)), var(--sui-surface-base);
     }
 
     .held :is(th, td):first-child::after {
@@ -602,7 +607,8 @@ row in place of the hairlines, for a table wide enough that the eye can lose its
     }
 
     .held.scrolls.striped tbody tr:nth-child(even) > :first-child {
-      background: var(--sui-surface-inset);
+      background:
+        linear-gradient(var(--sui-local-stripe), var(--sui-local-stripe)), var(--sui-surface-base);
     }
 
     .held.scrolls :is(th, td):first-child::after {

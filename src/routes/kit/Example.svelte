@@ -167,10 +167,12 @@ live specimens, not a surface of the design, so it may hold cards and dialogs (L
     padding: var(--sui-local-stage-pad) var(--sui-local-stage-pad) 0;
   }
 
+  /* A caller whose specimens need more room per column, such as tables, sets
+     `--specimen-min` on the example. */
   .specimens[data-layout='grid'] {
     align-items: stretch;
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(min(100%, 16rem), 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, var(--specimen-min, 16rem)), 1fr));
   }
 
   .tools {

@@ -1212,9 +1212,9 @@ function controls(root: Document): Finding[] {
       found.push(finding('L-38', one.target, `its hit area overlaps ${describe(other.target)}'s`));
     }
 
-  const disabledOpacity = parseFloat(
-    getComputedStyle(root.documentElement).getPropertyValue('--sui-disabled-opacity')
-  );
+  const look = getComputedStyle(root.documentElement);
+  const disabledOpacity = parseFloat(look.getPropertyValue('--sui-disabled-opacity'));
+  const busyOpacity = parseFloat(look.getPropertyValue('--sui-busy-opacity'));
   for (const control of audited(
     root,
     "button:disabled, button[aria-disabled='true'], input:disabled, select:disabled, textarea:disabled"
@@ -1228,13 +1228,18 @@ function controls(root: Document): Finding[] {
     // A menu row dims its name but keeps the reason it gives at full ink.
     if (style.opacity === '0' || paintsNothing || control.matches("[role='menuitem']")) continue;
     // A busy button is the action at work: its fill, edge and spinner keep full strength and
-    // only its words dim, so its words carry the dimming; a busy icon button has none.
+    // only its words dim, less than a disabled control's; a busy icon button has no words.
     const busy = control.matches("[aria-busy='true']:not(:disabled)");
     const dimmed = busy ? control.querySelector('.sui-button-label') : control;
-    const opacity = dimmed ? effectiveOpacity(dimmed) : disabledOpacity;
-    if (Math.abs(opacity - disabledOpacity) > 0.02)
+    const expected = busy ? busyOpacity : disabledOpacity;
+    const opacity = dimmed ? effectiveOpacity(dimmed) : expected;
+    if (Math.abs(opacity - expected) > 0.02)
       found.push(
-        finding('L-40', control, `disabled at opacity ${round(opacity)}, not ${disabledOpacity}`)
+        finding(
+          'L-40',
+          control,
+          `${busy ? 'busy' : 'disabled'} at opacity ${round(opacity)}, not ${expected}`
+        )
       );
     if (style.cursor === 'pointer')
       found.push(finding('L-40', control, 'a disabled control keeps the pointer cursor'));

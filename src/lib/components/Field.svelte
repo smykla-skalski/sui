@@ -76,8 +76,8 @@ land on that input.
 
 Any other control goes in the `control` snippet, which receives the `id` the label points at,
 the `describedby` ids of the hint and the error, `invalid` and `required`. Spread them onto a
-`Textarea`, a `Select`, a `Checkbox` or a picker. `layout="row"` sets the label beside a
-checkbox or a switch, both centred on one line.
+`Textarea`, a `Select`, a `Checkbox` or a picker. `layout="row"` sets a checkbox before the
+label and a switch after it, both centred on one line.
 
 `required` writes the word "Required" beside the label, never only an asterisk, and marks
 the control. The word stays out of the accessibility tree, because the control already
@@ -163,6 +163,24 @@ the `control` snippet reports here on its own, and a control of another kind kee
 
   .sui-field[data-layout='row'] > :is(.sui-field-help, .sui-field-error) {
     grid-column: 1 / -1;
+  }
+
+  /* A form's check box leads its label, as a `Checkbox` with words does, so the box reads as
+     the label's own and its hint and error hang under the words; a switch ends the row. */
+  .sui-field[data-layout='row']:has(
+      > .sui-field-control :global(input[type='checkbox']:not([role='switch']))
+    ) {
+    column-gap: var(--sui-space-2);
+    grid-template-columns: auto minmax(0, 1fr);
+
+    > .sui-field-control {
+      --sui-local-checkbox-bleed: initial;
+      grid-area: 1 / 1;
+    }
+
+    > :not(.sui-field-control) {
+      grid-column: 2;
+    }
   }
 
   .sui-field-label {

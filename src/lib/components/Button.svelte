@@ -69,7 +69,7 @@ start.
 
 - Semantics: a native `<button type="button">`, or an `<a href>` with `href`; its words are its name, and a disabled anchor is `role="link"` with `aria-disabled`.
 - Content: a short verb phrase that names the result, an optional leading `icon` and an optional `trailing` mark; a long or translated label wraps onto more lines inside its container.
-- States: rest, hover (a veil and a firmer edge), focus (a 2px ring, flush on bordered tones and 2px off a filled one), pressed (a deeper ground, an inset shadow and a 1px sink), loading (a spinner in the tone's ink on the full fill and edge, the words at 0.5 opacity, busy), locked by `aria-disabled` (0.5 opacity, still a tab stop) and disabled (0.5 opacity, default cursor).
+- States: rest, hover (a veil and a firmer edge), focus (a 2px ring, flush on bordered tones and 2px off a filled one), pressed (a deeper ground, an inset shadow and a 1px sink), loading (a spinner in the tone's ink on the full fill and edge, the words at 0.7 opacity, busy), locked by `aria-disabled` (0.5 opacity, still a tab stop) and disabled (0.5 opacity, default cursor).
 - Keyboard: Tab reaches it, and Enter or Space presses a button while Enter follows an anchor; a loading, locked or disabled one refuses both.
 - Pointer and touch: 34px tall on a pointer and 44px on a phone or any touch screen, at least as wide as its label, and a press is never a drag; a surface may keep it drawn at 34px on a phone with `--sui-local-button-seat`, and its hit area still grows to 44px.
 - Focus: pressing never moves focus, and a loading button keeps it; the caller moves focus when the press removes the button.
@@ -294,7 +294,7 @@ start.
      at full strength, so the spinner keeps the tone's ink on its fill (WCAG 1.4.11), and only
      its words dim (Primer, Polaris, Atlassian). */
   .sui-button.busy > :not(:has(> .sui-button-spinner)) {
-    opacity: var(--sui-disabled-opacity);
+    opacity: var(--sui-busy-opacity);
   }
 
   .sui-button[data-tone='signal'] {
