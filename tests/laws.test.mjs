@@ -195,10 +195,43 @@ test('L-21 sizes and leading come from the scale and land on whole pixels', () =
     );
 });
 
+const PHONE = '@media (max-width: 47.9375rem)';
+const pixels = (/** @type {string} */ rem) => parseFloat(rem) * 16;
+
+test('L-25 the type tiers keep the sizes the law names', () => {
+  const sizes = tokenMap(stripComments(palette.slice(0, palette.indexOf(PHONE))));
+  const tier = (/** @type {string} */ name) => pixels(sizes[`--sui-font-size-${name}`]);
+  assert.deepEqual(
+    {
+      pageTitle: tier('page-title'),
+      dialogTitle: tier('dialog-title'),
+      cardTitle: tier('card-title'),
+      body: tier('body'),
+      control: tier('control')
+    },
+    { pageTitle: 32, dialogTitle: 20, cardTitle: 17, body: 15, control: 14 }
+  );
+  const all = { ...sizes, ...tokenMap(stripComments(palette.slice(palette.indexOf(PHONE)))) };
+  const small = Object.entries(all).filter(
+    ([name, value]) => name.startsWith('--sui-font-size-') && pixels(value) < 11
+  );
+  assert.deepEqual(small, [], 'no text is smaller than 11px');
+  assert.match(
+    styles['src/lib/components/Field.svelte'],
+    /\.sui-field-label\s*\{[^}]*font: var\(--sui-weight-semibold\) var\(--sui-font-size-control\)/
+  );
+  assert.match(
+    styles['src/lib/components/PageHeader.svelte'],
+    /font: var\(--sui-weight-bold\) var\(--sui-font-size-page-title\)/
+  );
+});
+
 test('L-22 the phone reads one step larger and types at 16px', () => {
-  const phone = palette.slice(palette.indexOf('@media (max-width: 47.9375rem)'));
-  for (const name of ['--sui-font-size-body', '--sui-leading-body', '--sui-font-size-page-title'])
+  const phone = palette.slice(palette.indexOf(PHONE));
+  for (const name of ['--sui-font-size-body', '--sui-leading-body'])
     assert.match(phone, new RegExp(`${name}:`));
+  assert.match(phone, /--sui-font-size-page-title:\s*var\(--sui-font-size-page-title-compact\);/);
+  assert.equal(pixels(tokenMap(stripComments(palette))['--sui-font-size-page-title-compact']), 24);
   assert.match(phone, /--sui-font-size-input:\s*1rem;/);
   const entry = /<textarea\b|<input\b(?![^>]*type="(?:checkbox|radio|hidden|range|color)")/;
   const typed = svelteFiles
