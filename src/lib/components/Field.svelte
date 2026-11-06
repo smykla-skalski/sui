@@ -181,6 +181,18 @@ the `control` snippet reports here on its own, and a control of another kind kee
     > :not(.sui-field-control) {
       grid-column: 2;
     }
+
+    /* The warning mark sits in the box's column, so the error's words start on the label's
+       edge as the hint's do. */
+    > .sui-field-error {
+      column-gap: normal;
+      grid-column: 1 / -1;
+      grid-template-columns: subgrid;
+    }
+
+    .sui-field-error-mark {
+      justify-self: center;
+    }
   }
 
   .sui-field-label {

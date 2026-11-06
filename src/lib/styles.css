@@ -337,11 +337,11 @@
 
   --sui-chart-ink: var(--sui-brand-action);
   --sui-chart-grid: var(--sui-border-divider);
-  /* The plot's band is a veil a step under whatever holds it, a card, the canvas or a changed
-     row, as an inset sits under its canvas in GitHub Primer in both themes. A marker's ring is
-     that band laid on a card, opaque, so it parts a marker from a line it crosses. */
-  --sui-chart-ground: rgb(0 0 0 / 2.5%);
-  --sui-chart-ring: color-mix(in srgb, rgb(0 0 0) 4%, var(--sui-surface-base));
+  /* The plot's band keeps the ground of whatever holds it, so a chart and its card read as one
+     unit. A marker's ring is the card's surface, opaque, so it parts a marker from a line it
+     crosses. */
+  --sui-chart-ground: transparent;
+  --sui-chart-ring: var(--sui-surface-base);
 
   --sui-space-1: 0.25rem;
   --sui-space-2: 0.5rem;
@@ -596,8 +596,8 @@
   --sui-surface-code: var(--sui-primitive-dark-code);
   --sui-border-subtle: rgb(255 255 255 / 9%);
   --sui-chart-grid: var(--sui-border-divider);
-  --sui-chart-ground: rgb(0 0 0 / 14%);
-  --sui-chart-ring: color-mix(in srgb, rgb(0 0 0) 20%, var(--sui-surface-base));
+  --sui-chart-ground: transparent;
+  --sui-chart-ring: var(--sui-surface-base);
   --sui-border-control: rgb(255 255 255 / 16%);
   --sui-border-divider: color-mix(in srgb, var(--sui-border-subtle) 60%, transparent);
   --sui-border-band: var(--sui-border-subtle);
@@ -777,8 +777,8 @@
     --sui-surface-code: var(--sui-primitive-dark-code);
     --sui-border-subtle: rgb(255 255 255 / 9%);
     --sui-chart-grid: var(--sui-border-divider);
-    --sui-chart-ground: rgb(0 0 0 / 14%);
-    --sui-chart-ring: color-mix(in srgb, rgb(0 0 0) 20%, var(--sui-surface-base));
+    --sui-chart-ground: transparent;
+    --sui-chart-ring: var(--sui-surface-base);
     --sui-border-control: rgb(255 255 255 / 16%);
     --sui-border-divider: color-mix(in srgb, var(--sui-border-subtle) 60%, transparent);
     --sui-border-band: var(--sui-border-subtle);

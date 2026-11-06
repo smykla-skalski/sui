@@ -253,8 +253,8 @@
     color: var(--sui-text-muted);
   }
 
-  /* The plot stands on a band of the chart's own ground, so a reader sees where the chart
-     starts and ends. The band reaches the edges of the surface that lends its inset, and the
+  /* The plot stands in a band of `--sui-chart-ground`, transparent unless a theme tints it.
+     The band reaches the edges of the surface that lends its inset, and the
      plot pads back by it, so the plot keeps the title's edges and its ink stands the same room
      from all four sides of the band. The plot scrolls inside the band, so an edge fade fades
      the plot and never the band. Chart text is set here, also for a placeholder, whose height
