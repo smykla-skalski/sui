@@ -1030,6 +1030,65 @@ suite('navigation', together, () => {
   });
 
   test(
+    'an index and a side nav read an id that every object inherits as no entry',
+    long,
+    async () => {
+      const page = await openMounted();
+      try {
+        const current = () =>
+          page.evaluate(() =>
+            [...document.querySelectorAll('.sui-page-toc-link[aria-current="location"]')].map(
+              (link) => link.getAttribute('href')
+            )
+          );
+        await page.evaluate(() => {
+          const { lib, mount, flushSync } = /** @type {any} */ (window);
+          const entries = ['intro', 'constructor', 'toString'].map((id) => ({ id, label: id }));
+          const main = document.createElement('main');
+          for (const { id } of entries) {
+            const section = document.createElement('section');
+            section.id = id;
+            section.style.blockSize = '120vh';
+            main.append(section);
+          }
+          const aside = document.createElement('aside');
+          document.body.append(aside, main);
+          mount(lib.PageToc, { target: aside, props: { entries } });
+          flushSync();
+        });
+        assert.deepEqual(await current(), ['#intro']);
+        await page.evaluate(() => document.getElementById('constructor')?.scrollIntoView());
+        await page.waitForFunction(
+          () =>
+            document
+              .querySelector('.sui-page-toc-link[aria-current="location"]')
+              ?.getAttribute('href') === '#constructor'
+        );
+        assert.deepEqual(await current(), ['#constructor']);
+        const plates = await page.evaluate(() => {
+          const { lib, mount, flushSync } = /** @type {any} */ (window);
+          const target = document.createElement('div');
+          document.body.append(target);
+          const sections = [{ items: [{ href: '/a', label: 'A', icon: 'home' }] }];
+          try {
+            mount(lib.SideNav, {
+              target,
+              props: { title: 'App', sections, current: 'constructor' }
+            });
+            flushSync();
+          } catch (error) {
+            return String(error);
+          }
+          return target.querySelectorAll('[aria-current]').length;
+        });
+        assert.equal(plates, 0, 'a current that matches no row drew a plate or threw');
+      } finally {
+        await page.close();
+      }
+    }
+  );
+
+  test(
     'an unrelated navigation with body focus does not pull focus into a list-detail',
     long,
     async () => {

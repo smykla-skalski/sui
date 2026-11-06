@@ -103,7 +103,10 @@
   let thumb = $state({ x: 0, y: 0, width: 0, height: 0 });
   let measured = $state(false);
   let gliding = $state(false);
+  // Rows are kept by their address with a `#` before it, so an address such as `constructor`
+  // never reads what every object inherits.
   const rows = $state<Record<string, HTMLAnchorElement | null>>({});
+  const key = (href: string) => `#${href}`;
 
   // The row of the section the reader has reached, read from the browser's own pick once script
   // runs, so the plate and `aria-current` take the row the first paint already marked.
@@ -160,7 +163,7 @@
 
   /** Lays the selection plate under the current row, measured rather than guessed. */
   function measure() {
-    const row = here ? rows[here] : null;
+    const row = here ? rows[key(here)] : null;
     // A closed drawer draws no rows, so its plate lands afresh when the drawer opens.
     if (!tree || !row || row.getClientRects().length === 0) {
       measured = false;
@@ -220,7 +223,7 @@
      current page's row takes it, so focus never falls to the page. */
   $effect.pre(() => {
     if (folds || !fold || document.activeElement !== fold) return;
-    void tick().then(() => (rows[here ?? ''] ?? Object.values(rows)[0])?.focus());
+    void tick().then(() => ((here ? rows[key(here)] : null) ?? Object.values(rows)[0])?.focus());
   });
 
   function follow(event: MouseEvent, item: NavItem) {
@@ -303,7 +306,7 @@ following a row closes the drawer.
             {@const tip = item.short !== undefined && item.short !== item.label}
             <li>
               <a
-                bind:this={rows[item.href]}
+                bind:this={rows[key(item.href)]}
                 href={item.href}
                 aria-label={item.count === undefined
                   ? undefined
@@ -329,7 +332,7 @@ following a row closes the drawer.
                 {/if}
               </a>
               {#if mode === 'collapsed' && tip}
-                <Tooltip anchor={rows[item.href]} text={item.label} side="inline-end" />
+                <Tooltip anchor={rows[key(item.href)]} text={item.label} side="inline-end" />
               {/if}
             </li>
           {/each}

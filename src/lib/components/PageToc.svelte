@@ -39,15 +39,18 @@
   const shell = getShell();
   // Before the page is read, as in a server render, the reader is at the top, in the first section.
   let here = $derived<string | null>(entries[0]?.id ?? null);
+  // Entries are kept by their id with a `#` before it, so an id such as `constructor` never
+  // reads what every object inherits.
+  const key = (id: string) => `#${id}`;
   // A flag per entry, so a new current entry reruns its own link and the last one, never every
   // link: on a page of a thousand sections, a rerun of every link holds a frame.
   let lit = untrack(() => here);
-  const marked: Record<string, boolean> = $state(lit ? { [lit]: true } : {});
+  const marked: Record<string, boolean> = $state(lit === null ? {} : { [key(lit)]: true });
   $effect.pre(() => {
     if (here === lit) return;
-    if (lit) marked[lit] = false;
+    if (lit !== null) marked[key(lit)] = false;
     lit = here;
-    if (lit) marked[lit] = true;
+    if (lit !== null) marked[key(lit)] = true;
   });
   let nav = $state<HTMLElement | null>(null);
   const links = $state<Record<string, HTMLAnchorElement | null>>({});
@@ -66,7 +69,7 @@
   // visible part is measured on screen, because the index may reach past the viewport
   // before it sticks.
   $effect(() => {
-    const link = here ? links[here] : null;
+    const link = here === null ? null : links[key(here)];
     if (!nav || !link) return;
     const box = nav.getBoundingClientRect();
     const row = link.getBoundingClientRect();
@@ -344,10 +347,10 @@ phone drawer, and following an entry closes the drawer before focus moves.
       {#each group.items as entry (entry.id)}
         <li>
           <a
-            bind:this={links[entry.id]}
+            bind:this={links[key(entry.id)]}
             class="sui-page-toc-link"
             href="#{entry.id}"
-            aria-current={marked[entry.id] ? 'location' : undefined}
+            aria-current={marked[key(entry.id)] ? 'location' : undefined}
             onclick={(event) => follow(event, entry)}
             ><span class="sui-page-toc-label">{entry.label}</span></a
           >

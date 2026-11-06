@@ -17,6 +17,7 @@
 - The kitchen sink gives each component a page of its own and opens on an overview of cards, each with its own symbol, which its index row wears too. `/all/` keeps every section on one page. One theme switch sits at the sidebar's foot, the floating bar, "Back to top" and the rail are gone, and each example's markup opens from a Code disclosure. The law audit runs on the page you are on when you press "Run the law audit", says its result beside the page title and is not kept between visits.
 - `PageToc` gives each entry its own current flag and looks only at the sections across the reading line, so a scroll over a thousand sections no longer reruns every entry or checks every section in each callback.
 - The `ListToolbar` menu takes focus as it opens rather than a task later, and a `Popover` with `closeOnLeave` closes when focus leaves before the browser's `toggle` event arrives, so a quick Tab or Shift+Tab out of the menu always closes it (L-52).
+- A `SideNav` whose `current` is a name every object inherits, such as `constructor`, draws no plate rather than throwing, and a `PageToc` entry with such an id turns current only when the reader reaches its section.
 
 ## 0.4.0
 
