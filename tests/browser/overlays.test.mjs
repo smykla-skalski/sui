@@ -1198,4 +1198,47 @@ suite('overlays', together, () => {
       await page.close();
     }
   });
+
+  test('a caller-disabled switch and select keep focus and refuse a change', long, async () => {
+    const page = await openMounted();
+    try {
+      await page.evaluate(() => {
+        const { lib, mount, flushSync } = /** @type {any} */ (window);
+        mount(lib.Switch, {
+          target: document.body,
+          props: { label: 'Alerts', 'aria-disabled': 'true' }
+        });
+        mount(lib.Select, {
+          target: document.body,
+          props: {
+            'aria-label': 'Team',
+            'aria-disabled': 'true',
+            value: 'alpha',
+            options: [
+              { value: 'alpha', label: 'Alpha' },
+              { value: 'beta', label: 'Beta' }
+            ]
+          }
+        });
+        flushSync();
+      });
+      const toggle = page.getByRole('switch', { name: 'Alerts' });
+      await toggle.click({ force: true });
+      assert.equal(await toggle.isChecked(), false, 'a click flipped the switch');
+      await page.keyboard.press('Space');
+      assert.equal(await toggle.isChecked(), false, 'Space flipped the switch');
+      assert.ok(await toggle.evaluate((element) => document.activeElement === element));
+
+      const team = page.getByRole('combobox', { name: 'Team' });
+      await team.focus();
+      await team.click({ force: true });
+      await page.keyboard.press('ArrowDown');
+      await page.keyboard.press('Enter');
+      assert.equal(await team.inputValue(), 'alpha', 'the select took a new value');
+      assert.equal(await team.evaluate((select) => select.matches(':open')), false);
+      assert.ok(await team.evaluate((element) => document.activeElement === element));
+    } finally {
+      await page.close();
+    }
+  });
 });
