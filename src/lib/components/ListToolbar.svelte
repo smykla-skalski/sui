@@ -13,7 +13,7 @@
 
 <script lang="ts">
   import { mark, word } from '../words.js';
-  import { untrack, type Snippet } from 'svelte';
+  import { flushSync, untrack, type Snippet } from 'svelte';
   import type { HTMLAttributes } from 'svelte/elements';
   import Icon from '../icons/Icon.svelte';
   import { formatCount } from '../internal/locale.js';
@@ -114,17 +114,20 @@
     return () => clearTimeout(timer);
   });
 
-  function onbeforetoggle(event: ToggleEvent) {
-    if (event.newState === 'open') collapsed = segments !== null && !segments.checkVisibility();
-  }
-
-  function ontoggle(event: ToggleEvent & { currentTarget: HTMLElement }) {
+  // The browser focuses the menu's `autofocus` control as it shows the menu, so a key pressed
+  // right after the press already lands inside; `toggle` comes a task later, and on a busy page a
+  // Shift+Tab in between would leave from the tools button with the menu still open.
+  function onbeforetoggle(event: ToggleEvent & { currentTarget: HTMLElement }) {
     if (event.newState !== 'open') return;
+    collapsed = segments !== null && !segments.checkVisibility();
+    flushSync();
     const menu = event.currentTarget;
     const choice =
       menu.querySelector<HTMLInputElement>('input:checked') ??
       menu.querySelector<HTMLInputElement>('input:enabled');
-    choice?.focus({ preventScroll: true });
+    for (const marked of menu.querySelectorAll<HTMLElement>('[autofocus]'))
+      marked.autofocus = false;
+    if (choice) choice.autofocus = true;
   }
 </script>
 
@@ -246,7 +249,6 @@ button. Without `tools` there is no button and the filter never folds.
     aria-label={toolsLabel}
     closeOnLeave
     {onbeforetoggle}
-    {ontoggle}
   >
     <div class="sui-list-toolbar-panel">
       {#if collapsed && filter}{@render group(filter, `${uid}-menu-filter`)}{/if}
