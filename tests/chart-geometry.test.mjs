@@ -407,6 +407,18 @@ test('a matrix starts at its longest row name and its column names top it', () =
   assert.ok(box.height - (box.top + rows.length * box.size - layout.inset) < 1);
 });
 
+test('a cell keeps a quarter rem on each side of its widest printed value', () => {
+  const values = ['7', '123,456,789'];
+  const layout = heatmapLayout({ measure, rows: ['Morning'], columns: ['Mon', 'Tue'], values });
+  const cell = at(0)(layout.size) - 2 * layout.inset;
+  const widest = Math.max(
+    ...values.map(
+      (words) => inkSpan(pixels(words, true), 0)[1] - inkSpan(pixels(words, true), 0)[0]
+    )
+  );
+  assert.ok(cell - widest >= 8 - 1e-9, `the value has ${cell - widest}px of room`);
+});
+
 test('a first column name wider than its cell starts at 0 past a short row name', () => {
   const columns = ['Weekend and holidays'];
   const layout = heatmapLayout({ measure, rows: ['I'], columns });

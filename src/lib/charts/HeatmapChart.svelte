@@ -85,7 +85,13 @@
     return heatmapLayout({
       measure,
       rows: names.map((row) => clip(row, ROW_MOST)),
-      columns: columns.map((column) => clip(column, COLUMN_MOST))
+      columns: columns.map((column) => clip(column, COLUMN_MOST)),
+      values: rows.flatMap((row) =>
+        columns.flatMap((column) => {
+          const cellValue = value(row, column);
+          return cellValue === null ? [] : [formatValue(cellValue)];
+        })
+      )
     });
   }
 
