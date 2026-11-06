@@ -188,7 +188,7 @@
 
 <!--
 @component
-A read-only code window: mono at 13px on the inset ground, colored by the language's own
+A read-only code window: mono at 14px on the inset ground, colored by the language's own
 tokens, with long lines scrolling sideways inside the block rather than widening the page.
 A block that scrolls can take keyboard focus, so it can be scrolled without a pointer.
 

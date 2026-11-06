@@ -398,7 +398,7 @@ dialog, so they are never inert under it.
   .sui-modal-head {
     display: grid;
     flex: none;
-    gap: var(--sui-row-copy-gap);
+    gap: var(--sui-space-3);
   }
 
   .sui-modal-heading {
@@ -565,7 +565,7 @@ dialog, so they are never inert under it.
       --sui-local-modal-inset: var(--sui-space-4);
       inline-size: 100%;
       max-block-size: calc(100dvh - 2 * var(--sui-space-2));
-      max-inline-size: calc(100vw - 2 * var(--sui-space-2));
+      max-inline-size: calc(100vw - 2 * var(--sui-space-4));
     }
 
     .sui-modal[data-size='inspector']:not(.preview) {

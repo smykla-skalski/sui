@@ -154,6 +154,15 @@ live specimens, not a surface of the design, so it may hold cards and dialogs (L
     align-items: stretch;
     flex-direction: column;
     flex-wrap: nowrap;
+    row-gap: var(--sui-local-stage-pad);
+  }
+
+  /* Stacked specimens, such as charts, are parted by a divider across the whole stage, so one
+     specimen's caption never reads as the head of the next. */
+  .specimens[data-layout='stack'] > :global(.specimen + .specimen) {
+    border-block-start: var(--sui-stroke) solid var(--sui-border-divider);
+    margin-inline: calc(-1 * var(--sui-local-stage-pad));
+    padding: var(--sui-local-stage-pad) var(--sui-local-stage-pad) 0;
   }
 
   .specimens[data-layout='grid'] {

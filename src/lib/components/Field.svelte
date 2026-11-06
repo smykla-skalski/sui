@@ -168,7 +168,7 @@ the `control` snippet reports here on its own, and a control of another kind kee
   .sui-field-label {
     align-content: center;
     block-size: var(--sui-block-snap);
-    color: var(--sui-text-secondary);
+    color: var(--sui-text-primary);
     font: var(--sui-weight-semibold) var(--sui-font-size-control) / var(--sui-row-copy-leading)
       var(--sui-sans);
     min-inline-size: 0;

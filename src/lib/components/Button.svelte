@@ -362,10 +362,12 @@ start.
     border-style: dashed;
   }
 
+  /* A faint full track under a quarter arc reads as progress even when reduced motion stops
+     it, where an open ring alone reads as a letter. */
   .sui-button-spinner {
     block-size: var(--sui-icon-sm);
-    border: var(--sui-stroke-bold) solid currentColor;
-    border-inline-end-color: transparent;
+    border: var(--sui-stroke-bold) solid color-mix(in srgb, currentColor 25%, transparent);
+    border-block-start-color: currentColor;
     border-radius: 50%;
     box-sizing: border-box;
     flex: none;

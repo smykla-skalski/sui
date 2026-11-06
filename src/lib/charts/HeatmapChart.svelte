@@ -238,7 +238,7 @@ columns and scrolls sideways in a narrower container.
     display: block;
   }
   .axis {
-    fill: var(--sui-text-muted);
+    fill: var(--sui-text-secondary);
   }
   .value {
     fill: var(--sui-text-primary);

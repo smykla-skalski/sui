@@ -3,6 +3,7 @@
 ## Unreleased
 
 - The peer range is `svelte ^5.47.0`, the first release that compiles every component (`Select` puts a button in its `select`, and controls use attachments).
+- Control, label and meta text is 14px on every screen, as it already was on a phone (L-25, pending the owner's approval). Field labels wear the primary ink, `DataTable` headings are compact type in the secondary ink over primary cells and a lighter stripe, and chart axes read in the secondary ink. A busy spinner turns a quarter arc on a faint full track, so it still reads as progress once reduced motion stops it. An `ErrorState` panel is a danger tint with a quiet edge of the hue, an `EmptyState` or `ErrorState` title takes the card title tier, a dialog head parts its title from its description by 12px, and the dark chart band is a lighter veil.
 - A read-only `Combobox` no longer opens its list. A `Switch` and a `Select` honor a caller's `aria-disabled`: they keep focus and refuse the change. `DurationInput` reads the page language's own digits, such as Arabic-Indic ones. `SaveBar` hands focus back only to a control that can take it. A scrolling `DataTable` with no caption and no `aria-label` is no longer an unnamed region.
 - Breaking: the palette drops `--sui-glass-bar` and `--sui-glass-filter`. Only the kitchen sink's floating bar read them, and no app does. L-17 no longer makes an exception for that bar.
 - A `SideNav` row takes the caller's own glyph as a snippet beside the icon set's names.

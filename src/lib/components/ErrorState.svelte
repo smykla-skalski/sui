@@ -121,19 +121,16 @@ of them.
 </div>
 
 <style>
-  /* The retry takes the danger tone: an edge of the hue on the raised frame, and on the tint
-     no ground of its own, so no neutral block sits on a failure (L-92). */
+  /* A failure is a danger tint with a quiet edge of the hue, so it never reads as a field in
+     error. The retry is quiet on it, with no ground of its own and an edge of the hue (L-92). */
   .sui-error-state {
-    --sui-control-border: color-mix(in srgb, var(--sui-danger) 40%, var(--sui-surface-raised));
-    --sui-control-border-hover: color-mix(
-      in srgb,
-      var(--sui-danger) 65%,
-      var(--sui-surface-raised)
-    );
+    --sui-surface-raised: transparent;
+    --sui-control-border: color-mix(in srgb, var(--sui-danger) 40%, var(--sui-danger-tint));
+    --sui-control-border-hover: color-mix(in srgb, var(--sui-danger) 65%, var(--sui-danger-tint));
     --sui-interactive-hover-layer: color-mix(in srgb, var(--sui-danger) 10%, transparent);
     --sui-interactive-pressed: color-mix(in srgb, var(--sui-danger) 16%, transparent);
-    background: var(--sui-surface-raised);
-    border: var(--sui-stroke) solid color-mix(in srgb, var(--sui-danger) 35%, transparent);
+    background: var(--sui-danger-tint);
+    border: var(--sui-stroke) solid color-mix(in srgb, var(--sui-danger) 20%, transparent);
     border-radius: var(--sui-radius-control);
     box-sizing: border-box;
     display: grid;
@@ -159,7 +156,7 @@ of them.
 
   .sui-error-state-title {
     color: var(--sui-danger);
-    font: var(--sui-weight-semibold) var(--sui-font-size-meta) / var(--sui-row-copy-leading)
+    font: var(--sui-weight-semibold) var(--sui-font-size-title) / var(--sui-row-copy-leading)
       var(--sui-sans);
   }
 
@@ -176,9 +173,6 @@ of them.
      as a row's state is (L-91), so it keeps the same room at its top as at its sides, and the
      retry stays quiet on it (L-92). */
   .over {
-    --sui-surface-raised: transparent;
-    --sui-control-border: color-mix(in srgb, var(--sui-danger) 40%, var(--sui-danger-tint));
-    --sui-control-border-hover: color-mix(in srgb, var(--sui-danger) 65%, var(--sui-danger-tint));
     align-items: center;
     background: none;
     border: 0;

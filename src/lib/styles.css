@@ -393,10 +393,10 @@
 
   --sui-font-size-micro: 0.6875rem;
   --sui-font-size-compact: 0.75rem;
-  --sui-font-size-meta: 0.8125rem;
+  --sui-font-size-meta: 0.875rem;
   --sui-font-size-body: 0.9375rem;
-  --sui-font-size-control: 0.8125rem;
-  --sui-font-size-input: 0.8125rem;
+  --sui-font-size-control: 0.875rem;
+  --sui-font-size-input: 0.875rem;
   --sui-font-size-title: 1rem;
 
   --sui-font-size-card-title: 1.0625rem;
@@ -418,7 +418,7 @@
   --sui-leading-tight: 1rem;
   --sui-leading-micro: 1.0625rem;
   --sui-leading-compact: 1.125rem;
-  --sui-leading-meta: 1.25rem;
+  --sui-leading-meta: 1.375rem;
   --sui-leading-input: 1.25rem;
   --sui-leading-body: 1.4375rem;
   --sui-leading-title: 1.625rem;
@@ -582,8 +582,8 @@
   --sui-surface-code: var(--sui-primitive-dark-code);
   --sui-border-subtle: rgb(255 255 255 / 9%);
   --sui-chart-grid: var(--sui-border-divider);
-  --sui-chart-ground: rgb(0 0 0 / 35%);
-  --sui-chart-ring: color-mix(in srgb, rgb(0 0 0) 35%, var(--sui-surface-base));
+  --sui-chart-ground: rgb(0 0 0 / 20%);
+  --sui-chart-ring: color-mix(in srgb, rgb(0 0 0) 20%, var(--sui-surface-base));
   --sui-border-control: rgb(255 255 255 / 16%);
   --sui-border-divider: color-mix(in srgb, var(--sui-border-subtle) 60%, transparent);
   --sui-border-band: var(--sui-border-subtle);
@@ -760,8 +760,8 @@
     --sui-surface-code: var(--sui-primitive-dark-code);
     --sui-border-subtle: rgb(255 255 255 / 9%);
     --sui-chart-grid: var(--sui-border-divider);
-    --sui-chart-ground: rgb(0 0 0 / 35%);
-    --sui-chart-ring: color-mix(in srgb, rgb(0 0 0) 35%, var(--sui-surface-base));
+    --sui-chart-ground: rgb(0 0 0 / 20%);
+    --sui-chart-ring: color-mix(in srgb, rgb(0 0 0) 20%, var(--sui-surface-base));
     --sui-border-control: rgb(255 255 255 / 16%);
     --sui-border-divider: color-mix(in srgb, var(--sui-border-subtle) 60%, transparent);
     --sui-border-band: var(--sui-border-subtle);
@@ -951,8 +951,6 @@
   [data-sui-theme] {
     --sui-font-size-micro: 0.75rem;
     --sui-font-size-compact: 0.8125rem;
-    --sui-font-size-meta: 0.875rem;
-    --sui-font-size-control: 0.875rem;
     --sui-font-size-body: 1rem;
 
     /* iOS Safari zooms the page into a focused field whose text is under 16px. */
@@ -961,7 +959,6 @@
     --sui-font-size-page-title: var(--sui-font-size-page-title-compact);
     --sui-leading-micro: 1.125rem;
     --sui-leading-compact: 1.25rem;
-    --sui-leading-meta: 1.375rem;
     --sui-leading-body: 1.5rem;
     --sui-leading-title: 1.75rem;
     --sui-leading-page: var(--sui-leading-page-compact);

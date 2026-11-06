@@ -314,8 +314,9 @@ take, under the switch and to a screen reader, while the owner sets `checked` ba
 
   .sui-switch-spinner::before {
     animation: sui-switch-spin var(--sui-duration-spinner) var(--sui-ease-linear) infinite;
-    border: var(--sui-stroke-bold) solid var(--sui-brand-action);
-    border-inline-end-color: transparent;
+    border: var(--sui-stroke-bold) solid
+      color-mix(in srgb, var(--sui-brand-action) 25%, transparent);
+    border-block-start-color: var(--sui-brand-action);
     border-radius: 50%;
     content: '';
     inset: calc(var(--sui-space-1) - var(--sui-stroke));

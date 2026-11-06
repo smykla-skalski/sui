@@ -118,7 +118,7 @@ An empty list is not an error and is not drawn as one; a request that failed is
 
   .sui-empty-state-title {
     color: var(--sui-text-primary);
-    font: var(--sui-weight-semibold) var(--sui-font-size-meta) / var(--sui-row-copy-leading)
+    font: var(--sui-weight-semibold) var(--sui-font-size-title) / var(--sui-row-copy-leading)
       var(--sui-sans);
   }
 

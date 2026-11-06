@@ -270,7 +270,7 @@ cut on the axis without splitting a character and stay whole in the table under 
     width: 1px;
   }
   .axis {
-    fill: var(--sui-text-muted);
+    fill: var(--sui-text-secondary);
   }
   .label {
     font-weight: var(--sui-weight-semibold);

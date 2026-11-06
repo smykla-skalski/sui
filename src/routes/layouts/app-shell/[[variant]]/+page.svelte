@@ -120,7 +120,9 @@
 
   /* The header's band stands flush with the pane's top and sides, and the sections under it
      keep the band's gutter, so their words line up with the header's. */
+  /* A row's status stays within a glance of its name, so the sections stop at 60rem. */
   .body {
+    max-inline-size: 60rem;
     padding: 0 var(--sui-rhythm-pane-gutter) var(--sui-rhythm-pane-gutter);
   }
 

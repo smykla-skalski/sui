@@ -383,8 +383,8 @@ button. Without `tools` there is no button and the filter never folds.
   .sui-list-toolbar-spinner {
     animation: sui-list-toolbar-spin var(--sui-duration-spinner) var(--sui-ease-linear) infinite;
     block-size: var(--sui-icon-sm);
-    border: var(--sui-stroke-bold) solid currentColor;
-    border-inline-end-color: transparent;
+    border: var(--sui-stroke-bold) solid color-mix(in srgb, currentColor 25%, transparent);
+    border-block-start-color: currentColor;
     border-radius: 50%;
     box-sizing: border-box;
     flex: none;

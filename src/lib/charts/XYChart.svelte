@@ -342,7 +342,7 @@
   }
   .axis,
   .label {
-    fill: var(--sui-text-muted);
+    fill: var(--sui-text-secondary);
   }
   .label,
   .name {

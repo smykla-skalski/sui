@@ -425,8 +425,8 @@ row in place of the hairlines, for a table wide enough that the eye can lose its
   thead th {
     border-block-end: var(--sui-stroke) solid var(--sui-border-control);
     vertical-align: middle;
-    color: var(--sui-text-muted);
-    font: var(--sui-weight-semibold) var(--sui-font-size-micro) / var(--sui-leading-micro)
+    color: var(--sui-text-secondary);
+    font: var(--sui-weight-semibold) var(--sui-font-size-compact) / var(--sui-leading-compact)
       var(--sui-sans);
     letter-spacing: 0.07em;
     text-transform: uppercase;
@@ -521,8 +521,10 @@ row in place of the hairlines, for a table wide enough that the eye can lose its
     border-block-start: 0;
   }
 
+  /* A faint veil of the ink, so a stripe guides the eye along a row in both themes and never
+     reads as a selection. */
   .striped tbody tr:nth-child(even) {
-    background: var(--sui-surface-inset);
+    background: color-mix(in srgb, var(--sui-text-primary) 3.5%, transparent);
   }
 
   .striped :is(th, td):first-child {
@@ -534,7 +536,7 @@ row in place of the hairlines, for a table wide enough that the eye can lose its
   }
 
   td {
-    color: var(--sui-text-secondary);
+    color: var(--sui-text-primary);
     font: var(--sui-weight-regular) var(--sui-font-size-body) / var(--sui-leading-body)
       var(--sui-sans);
   }
