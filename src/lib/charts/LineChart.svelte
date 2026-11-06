@@ -11,13 +11,14 @@ A numeric series over a numeric axis, drawn as lines through its points. Dates a
 to timestamps by the caller, with `formatX` to print them. Series never differ by color
 alone: each has its own marker shape, every line after the first its own dash, and with four
 series or fewer each line is named at its end in text ink, and the legend is left to a screen
-reader, so a sighted reader never reads the names twice. Past five series
+reader, so a sighted reader never reads the names twice. While two lines end too close for
+each name to stay at its own end, the legend stays in view to tie each name to its line. Past five series
 the colours come round again with a new shape and dash, though a chart that busy reads better
 split in two. Every chart needs a short `description` that states what the reader should take
 from it, and any values it has are available as a table under "View chart data". Axis ticks
 fall on round numbers, and on whole numbers when every value is whole.
 
-- Semantics: a `figure` named by its title, a heading at `level` (3 by default), with the plot as one `role="img"`, a legend list (read only by a screen reader while every line is named at its end) and a disclosure holding a table of every value.
+- Semantics: a `figure` named by its title, a heading at `level` (3 by default), with the plot as one `role="img"`, a legend list (read only by a screen reader while every line is named at its own end) and a disclosure holding a table of every value.
 - Content: series of numeric points with a label each, axis labels and formatters; a title and a one-sentence description are required.
 - States: shown, empty, loading, refreshing, stale, failed and partial (some points left out); the data control draws hover, pressed and focus.
 - Keyboard: Tab reaches the plot when it scrolls, then "View chart data", where Enter or Space opens the table, and the table itself when it scrolls.

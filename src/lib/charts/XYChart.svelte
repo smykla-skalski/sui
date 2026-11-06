@@ -51,6 +51,10 @@
      up to four, the names at the ends carry them and the legend is left to a screen reader,
      since the plot is one image and its names are not read. */
   const MOST_LABELLED = 4;
+  /* Two names closer than their 1rem gap move apart, and a name moved off its line's end
+     stands beside no line of its own, so while two lines end closer than that gap at twice
+     the text size (WCAG 1.4.4) the legend stays in view to tie each name to its line. */
+  const CROWDED = 32;
   /* A marker needs room to read as a shape: a line keeps its markers while they stand twice
      their size apart on its narrowest plot, the 280px band less its margins, and a denser line
      is drawn alone at every width, its dash still telling it apart, so the marks it draws never
@@ -137,6 +141,14 @@
 
   /** How far down the grid a value stands, in its own pixels. */
   const down = (value: number) => xyGrid - fraction(value, yAxis.domain) * xyGrid;
+
+  let crowded = $derived(
+    ends.some((end, index) =>
+      ends
+        .slice(index + 1)
+        .some((other) => Math.abs(down(end.point.y) - down(other.point.y)) < CROWDED)
+    )
+  );
 
   const x = (value: number, box: XYLayout) =>
     along(box.left, box.right, fraction(value, xAxis.domain));
@@ -262,7 +274,10 @@
   <ul
     class={[
       'legend',
-      { 'sui-visually-hidden': validSeries.length > 0 && ends.length === validSeries.length }
+      {
+        'sui-visually-hidden':
+          validSeries.length > 0 && ends.length === validSeries.length && !crowded
+      }
     ]}
     role="list"
   >

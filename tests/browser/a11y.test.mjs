@@ -292,6 +292,60 @@ suite('accessibility', together, () => {
     }
   );
 
+  test('lines that end too close to name apart keep their legend in view', long, async () => {
+    // The chart is mounted from the library's own modules, which only a dev server serves.
+    const dev = await startSink({ dev: true });
+    const page = await dev.browser.newPage({ viewport: { width: 1440, height: 900 } });
+    try {
+      await visit(page, dev.url);
+      const drawn = await page.evaluate(async () => {
+        const loaded = performance.getEntriesByType('resource').map((entry) => entry.name);
+        const find = (/** @type {RegExp} */ pattern) => loaded.find((name) => pattern.test(name));
+        const lib = await import(/* @vite-ignore */ find(/\/src\/lib\/index\.ts/) ?? '');
+        const { mount, flushSync } = await import(
+          /* @vite-ignore */ find(/\.vite\/deps\/svelte\.js/) ?? ''
+        );
+        const line = (/** @type {string} */ id, /** @type {number[]} */ ys) => ({
+          id,
+          label: id,
+          points: ys.map((y, x) => ({ x, y }))
+        });
+        const legend = (/** @type {number[][]} */ ends) => {
+          const host = document.createElement('div');
+          document.body.replaceChildren(host);
+          mount(lib.LineChart, {
+            target: host,
+            props: {
+              title: 'Builds',
+              description: 'Builds a day',
+              series: ends.map((ys, index) => line(`Line ${index + 1}`, ys))
+            }
+          });
+          flushSync();
+          const box = /** @type {Element} */ (
+            host.querySelector('ul.legend')
+          ).getBoundingClientRect();
+          return box.width > 1 && box.height > 1;
+        };
+        return {
+          apart: legend([
+            [0, 10],
+            [0, 90]
+          ]),
+          together: legend([
+            [0, 50],
+            [10, 50]
+          ])
+        };
+      });
+      assert.deepEqual(drawn, { apart: false, together: true });
+    } finally {
+      await page.close();
+      await dev.browser.close();
+      await dev.server.close();
+    }
+  });
+
   test('a section is never a landmark region', long, async () => {
     const page = await open(1440, 'light');
     try {
