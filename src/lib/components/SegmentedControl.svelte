@@ -854,7 +854,7 @@ itself, so the choice shows from the first frame.
     align-items: center;
     color: var(--sui-text-secondary);
     display: flex;
-    font: var(--sui-weight-semibold) var(--sui-font-size-compact) / var(--sui-leading-flat)
+    font: var(--sui-weight-semibold) var(--sui-font-size-control) / var(--sui-leading-flat)
       var(--sui-sans);
     gap: var(--sui-space-1);
     justify-content: center;

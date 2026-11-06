@@ -27,7 +27,7 @@
 
 <!--
 One field that holds a value and a part that qualifies or acts on it, such as an amount and its
-unit or a link and its copy control. It owns the one frame, the editing ground and the error and
+unit or a link and its copy control. It owns the one frame, the focus ring and the error and
 disabled looks, so the pair reads as a single control. Each part is drawn `bare`: the value
 fills the field, and the end part sits inside it, after the value, with no line between them.
 
@@ -36,7 +36,7 @@ the end part draws its own inset ring while it has focus, so the two never look 
 
 - Semantics: a `<div>` with no role around two native controls, each named on its own.
 - Content: `start`, the value, and `end`, one unit picker or one action, each drawn `bare`.
-- States: rest (the control fill, a quiet frame, a recess under its top edge darker than the frame and a 3:1 baseline), hover anywhere on it (the field veil over both parts and a firmer frame and recess, an end part's own hover over that), the value focused (the inset fill and a flush 2px ring), the end focused (its own inset ring), invalid (a danger edge on all four sides in every state), read-only (the inset well and a quiet frame with no recess), and disabled or held by a busy dialog or a saving pane (0.5 opacity).
+- States: rest (the control fill, a quiet frame, a recess under its top edge darker than the frame and a 3:1 baseline), hover anywhere on it (the field veil over both parts and a firmer frame and recess, an end part's own hover over that), the value focused (the rest fill under a flush 2px ring), the end focused (its own inset ring), invalid (a danger edge on all four sides in every state), read-only (the inset well and a quiet frame with no recess), and disabled or held by a busy dialog or a saving pane (0.5 opacity).
 - Keyboard: Tab moves from the value to the end part, each with its own keys.
 - Pointer and touch: the frame is the control height, 34px or 44px on a phone or any touch screen, and each part keeps its own target.
 - Focus: it never moves focus; each part keeps its own.
@@ -91,11 +91,10 @@ the end part draws its own inset ring while it has focus, so the two never look 
     }
   }
 
-  /* The field takes the editing ground and the ring while the value has focus. A bordered
+  /* The field takes the ring while the value has focus. A bordered
      control is flush: its edge takes the focus color under the 2px ring (L-41). The focused
      part belongs to another component, so the state is looked up globally. */
   .sui-joined:has(.sui-joined-value :global(:focus-visible)) {
-    background-color: var(--sui-input-bg);
     border-color: var(--sui-focus);
     outline: var(--sui-focus-ring-width) solid var(--sui-focus);
     outline-offset: var(--sui-focus-ring-flush);
