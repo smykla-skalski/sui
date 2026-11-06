@@ -406,3 +406,18 @@ test('a matrix starts at its longest row name and its column names top it', () =
   assert.ok(box.width - last >= 0 && box.width - last < 1);
   assert.ok(box.height - (box.top + rows.length * box.size - layout.inset) < 1);
 });
+
+test('column names wider than a cell keep half a rem between them', () => {
+  const columns = ['Mon', 'Wednesday', 'Thursday'];
+  const layout = heatmapLayout({ measure, rows: ['Morning'], columns });
+  const size = at(0)(layout.size);
+  const spans = columns.map((column, index) => inkSpan(pixels(column), index * size, 'middle'));
+  assert.ok(
+    spans[2][0] - spans[1][1] >= 8 - 1e-9,
+    `the names are ${spans[2][0] - spans[1][1]}px apart`
+  );
+  assert.equal(
+    at(0)(heatmapLayout({ measure, rows: ['Morning'], columns: ['Mon', 'Tue'] }).size),
+    52
+  );
+});

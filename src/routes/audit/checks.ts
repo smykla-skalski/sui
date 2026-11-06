@@ -801,7 +801,9 @@ function wordsInk(svg: SVGSVGElement): DOMRect {
     if (part instanceof SVGTextElement) {
       const words = part.textContent ?? '';
       if (!words.trim() || !context || part.getNumberOfChars() === 0) continue;
-      context.font = `${look.fontStyle} ${look.fontWeight} ${look.fontSize} ${look.fontFamily}`;
+      // Some canvases give glyph bounds in whole pixels, which is a pixel of error at chart sizes,
+      // so each glyph is read at a hundred times its size and scaled back.
+      context.font = `${look.fontStyle} ${look.fontWeight} ${parseFloat(look.fontSize) * 100}px ${look.fontFamily}`;
       let index = 0;
       for (const glyph of words) {
         if (index >= part.getNumberOfChars()) break;
@@ -810,10 +812,10 @@ function wordsInk(svg: SVGSVGElement): DOMRect {
           const start = part.getStartPositionOfChar(index);
           add(
             part,
-            start.x - ink.actualBoundingBoxLeft,
-            start.y - ink.actualBoundingBoxAscent,
-            start.x + ink.actualBoundingBoxRight,
-            start.y + ink.actualBoundingBoxDescent
+            start.x - ink.actualBoundingBoxLeft / 100,
+            start.y - ink.actualBoundingBoxAscent / 100,
+            start.x + ink.actualBoundingBoxRight / 100,
+            start.y + ink.actualBoundingBoxDescent / 100
           );
         }
         index += glyph.length;

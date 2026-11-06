@@ -587,7 +587,8 @@ export type HeatmapLayout = {
 /**
  * A matrix laid out to its ink in lengths the browser resolves: the longest row name starts
  * at 0, the column names' ink tops the matrix at 0, and the last cell, or a column name wider
- * than it, ends the width. Cells keep their size, so the matrix is as wide as its columns.
+ * than it, ends the width. Square cells are 3.25rem, or larger where neighbouring column names
+ * would come within half a rem of each other, so the matrix is as wide as its columns.
  */
 export function heatmapLayout(input: {
   measure: Measure;
@@ -595,11 +596,13 @@ export function heatmapLayout(input: {
   columns: string[];
 }): HeatmapLayout {
   const { measure } = input;
-  const size = rem(3.25);
   const inset = 2;
   const gap = rem(0.75);
   const rowInk = input.rows.map((name) => measure(name));
   const columnInk = input.columns.map((name) => measure(name));
+  const spans = columnInk.map((ink) => inkSpan(ink, 0, 'middle'));
+  const reach = largest(spans.slice(1).map(([start], index) => spans[index][1] - start));
+  const size = most(rem(3.25), plus(em(reach), rem(0.5)));
   const columns = lineInk(columnInk);
   const left = plus(gap, px(-inset), em(largest(rowInk.map((ink) => ink.advance + ink.left))));
   const columnBaseline = em(columns.ascent);
