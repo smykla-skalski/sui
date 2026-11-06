@@ -442,7 +442,7 @@ A `danger` toast reports a failure and stays too.
       var(--sui-sans);
     margin-block-start: round(down, calc(round(up, 1cap, 1px) / 2), 1px);
     margin-inline-end: round(
-      calc((var(--sui-icon-sm) - var(--sui-tier-quiet)) / 2 - 5 / 24 * var(--sui-icon-sm)),
+      calc((var(--sui-icon-base) - var(--sui-tier-quiet)) / 2 - 5 / 24 * var(--sui-icon-base)),
       1px
     );
   }

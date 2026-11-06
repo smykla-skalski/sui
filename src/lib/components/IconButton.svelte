@@ -80,7 +80,7 @@ action are a `Button` with the word beside the glyph.
   {#if busy}
     <span class="sui-icon-button-spinner" aria-hidden="true"></span>
   {:else}
-    <Icon name={icon} size="sm" strokeWidth={2} />
+    <Icon name={icon} size="base" strokeWidth={2} />
   {/if}
 </button><Tooltip anchor={element} text={label} />
 
@@ -150,12 +150,12 @@ action are a `Button` with the word beside the glyph.
   }
 
   .sui-icon-button-spinner {
-    block-size: var(--sui-icon-sm);
+    block-size: var(--sui-icon-base);
     border: var(--sui-stroke-bold) solid color-mix(in srgb, currentColor 25%, transparent);
     border-block-start-color: currentColor;
     border-radius: 50%;
     box-sizing: border-box;
-    inline-size: var(--sui-icon-sm);
+    inline-size: var(--sui-icon-base);
     animation: sui-icon-button-spin var(--sui-duration-spinner) var(--sui-ease-linear) infinite;
   }
 

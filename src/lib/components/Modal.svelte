@@ -435,7 +435,7 @@ dialog, so they are never inert under it.
     font: var(--sui-weight-bold) var(--sui-font-size-dialog-title) / var(--sui-leading-flat)
       var(--sui-sans);
     margin-block-start: round(down, calc(round(up, 1cap, 1px) / 2), 1px);
-    margin-inline-end: round(calc((var(--sui-icon-sm) - var(--sui-tier-quiet)) / 2), 1px);
+    margin-inline-end: round(calc((var(--sui-icon-base) - var(--sui-tier-quiet)) / 2), 1px);
   }
 
   .sui-modal-description {

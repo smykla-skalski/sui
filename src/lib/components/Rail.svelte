@@ -80,19 +80,19 @@ and is read as part of the tile's name. Inside an `AppShell` the rail stays besi
 collapsed strip. On a phone it rides in the drawer, or, in a shell with `bottomNav`, it turns
 into the bottom bar: the same tiles side by side, sharing the width.
 
-Current is drawn the same way in every navigation list: the words carry it. Rest tiles are
-muted and the place on screen is primary ink, a step of 3:1 or more in lightness, on a quiet
-plate that only supports it. Both keep one weight, so turning current never rewraps a label or
+Current is drawn the same way in every navigation list: the words and the plate carry it.
+Rest tiles are muted and the place on screen is primary ink, a step of 2.5:1 or more in
+lightness, with its glyph in the accent ink, on an inset plate a step deeper than a pressed tile. Both keep one weight, so turning current never rewraps a label or
 changes a tile's height. Under forced colors the plate is `Highlight` and its words `HighlightText`.
 
 - Semantics: a `nav` landmark named by `label`, holding lists of links (`aria-current="page"`) or buttons (`aria-current="true"`).
 - Content: tiles with a glyph, a label and an optional `short` label and `badge`; an optional `brand` mark above them and `foot` tiles at the end.
-- States: rest, hover, pressed (the plate's ground, an inset shadow and a 1px sink), focus (a 2px offset ring) and current (primary ink on the quiet plate, in the rest tiles' weight, so it moves nothing).
+- States: rest, hover, pressed (the plate's ground, an inset shadow and a 1px sink), focus (a 2px offset ring) and current (primary ink and an accent glyph on the plate, in the rest tiles' weight, so it moves nothing).
 - Keyboard: Tab moves through the tiles in order, and Enter follows a link or presses a button.
 - Pointer and touch: every tile is at least 44 by 44px on every pointer; nothing needs a gesture.
 - Focus: pressing a tile keeps focus on it; following a link inside the phone drawer closes the drawer and the shell returns focus to its menu button.
 - Responsive: in a column shorter than its tiles, as at 400% zoom, the rail scrolls inside itself; text zoom grows the tiles instead of spilling them, and with `bottomNav` on a phone the tiles share one row.
-- Accessibility: each tile's name is its full `label` plus the badge's words, so a `short` label still names it in full; every ink holds 4.5:1 on its ground, and the current ink stands 3:1 from the rest ink in lightness, so it is never hue alone (WCAG 1.4.1).
+- Accessibility: each tile's name is its full `label` plus the badge's words, so a `short` label still names it in full; every ink holds 4.5:1 on its ground, and the current ink stands 2.5:1 from the rest ink in lightness and the plate marks it too, so it is never hue alone (WCAG 1.4.1).
 - Localization: `label` and `badgeLabel` are props with English defaults; the badge's count follows the page language's digits and grouping, and the tooltip opens on the inline end, which is the left in a right-to-left page.
 - Performance: a handful of static tiles; only background, colour and the 1px press move, through transitions that reduced motion removes.
 - Analytics: `onnavigate(event, item)` reports a followed link and `onpick(item)` a pressed button.
@@ -253,12 +253,16 @@ changes a tile's height. Under forced colors the plate is `Highlight` and its wo
     outline-offset: var(--sui-focus-ring-offset);
   }
 
-  /* The quiet plate under the current tile. It supports the tile's ink, which carries the
-     state, so it needs no ring or edge. */
+  /* The plate under the current tile marks the state with the tile's ink and glyph, so it
+     needs no ring or edge. */
   .sui-rail-tile[aria-current] {
     background: var(--sui-sidebar-active-bg);
     box-shadow: var(--sui-sidebar-thumb-shadow);
     color: var(--sui-sidebar-active-ink);
+  }
+
+  .sui-rail-tile[aria-current] .sui-rail-glyph {
+    color: var(--sui-sidebar-active-glyph);
   }
 
   .sui-rail-tile[aria-current]:active {
@@ -379,6 +383,10 @@ changes a tile's height. Under forced colors the plate is `Highlight` and its wo
       color: HighlightText;
       /* Kept as written, or the browser draws a Canvas backplate behind the words on the plate. */
       forced-color-adjust: none;
+    }
+
+    .sui-rail-tile[aria-current] .sui-rail-glyph {
+      color: HighlightText;
     }
 
     .sui-rail-badge {

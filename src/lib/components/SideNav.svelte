@@ -235,9 +235,9 @@ The pages of one place, as rows under section headings: the second level of navi
 a `Rail` chooses the place and this chooses the page. Every row is a destination with its own
 icon and address, and a heading is only a label.
 
-Current is drawn the same way in every navigation list: the words carry it. Rest rows are
-muted and the page on screen is primary ink, a step of 3:1 or more in lightness, on a quiet
-plate that only supports it. Both keep one weight, so turning current never rewraps a label or
+Current is drawn the same way in every navigation list: the words and the plate carry it. Rest
+rows are muted and the page on screen is primary ink, a step of 2.5:1 or more in lightness,
+with its glyph in the accent ink, on an inset plate a step deeper than a pressed row. Both keep one weight, so turning current never rewraps a label or
 changes a row's height. Under forced colors the plate is `Highlight` and its words `HighlightText`. The plate is measured
 from the current row, does not slide on first paint, and glides to the next row when the page
 changes. Until it is measured the row paints its own plate.
@@ -250,12 +250,12 @@ following a row closes the drawer.
 
 - Semantics: a `nav` landmark named "<title> pages" by default that holds the whole sidebar, its title, rows, fold control and foot, so nothing in it stands outside a landmark; the title is a heading at `level`, each section a list labelled by its own heading one level below, and every row a link with `aria-current="page"` on the current one.
 - Content: a title and optional kicker, sections of rows with a glyph from the icon set or the caller's own, a label, an optional `short` label and an optional count, and an optional `foot`.
-- States: rest, hover, pressed (the pressed ground, an inset shadow and a 1px sink), focus (a 2px inset ring) and current (primary ink on the quiet plate, in the rest rows' weight, so it moves nothing); labels wrap rather than being cut.
+- States: rest, hover, pressed (the pressed ground, an inset shadow and a 1px sink), focus (a 2px inset ring) and current (primary ink and an accent glyph on the plate, in the rest rows' weight, so it moves nothing); labels wrap rather than being cut.
 - Keyboard: Tab moves through the rows, then the fold or close control; Enter follows a row or presses the control.
 - Pointer and touch: rows are 34px on a desktop pointer and 44px in the drawer and the strip; the close and fold controls are 34px and 44px there, and nothing needs a gesture.
 - Focus: folding keeps focus on the control; a fold control that leaves as the shell narrows hands focus to the current row, and a row followed in the drawer closes it with focus returned to the menu button.
 - Responsive: the row list scrolls inside the column and brings a new current row into view without scrolling the page, a long label wraps, the strip stacks each glyph over its short label, and the fold control shows only where the shell can fold.
-- Accessibility: a count is read with its words from `countLabel`, joined to the label by `countedName`, every ink holds 4.5:1 on its ground, the current ink stands 3:1 from the rest ink in lightness, so it is never hue alone (WCAG 1.4.1), and a heading names each group for heading navigation.
+- Accessibility: a count is read with its words from `countLabel`, joined to the label by `countedName`, every ink holds 4.5:1 on its ground, the current ink stands 2.5:1 from the rest ink in lightness and the plate marks it too, so it is never hue alone (WCAG 1.4.1), and a heading names each group for heading navigation.
 - Localization: `label`, `closeLabel`, `collapseLabel`, `expandLabel` and `countLabel` are props with English defaults; counts follow the page language, the plate is measured from the start edge and the fold glyphs mirror in a right-to-left page.
 - Performance: one resize observer measures the plate, which glides with a transform; it suits a sidebar of tens of rows, not thousands.
 - Analytics: `onnavigate(event, item)` reports every followed row; the shell's `oncollapsedchange` reports the fold.
@@ -455,8 +455,8 @@ following a row closes the drawer.
     margin-block-start: 0;
   }
 
-  /* The quiet plate under the current row. It supports the row's ink, which carries the
-     state, so it needs no ring or edge. */
+  /* The plate under the current row marks the state with the row's ink and glyph, so it needs
+     no ring or edge. */
   .sui-side-nav-thumb {
     background: var(--sui-sidebar-active-bg);
     block-size: var(--sui-thumb-height);
@@ -542,6 +542,10 @@ following a row closes the drawer.
     color: var(--sui-sidebar-active-ink);
   }
 
+  .sui-side-nav-row[aria-current='page'] .sui-side-nav-glyph {
+    color: var(--sui-sidebar-active-glyph);
+  }
+
   /* Until the plate is measured the current row paints its own, so the first frame is right. */
   .sui-side-nav-list:not(.measured) .sui-side-nav-row[aria-current='page'] {
     background: var(--sui-sidebar-active-bg);
@@ -580,6 +584,10 @@ following a row closes the drawer.
       color: var(--sui-sidebar-active-ink);
     }
 
+    .scroll-targets .sui-side-nav-row:target-current .sui-side-nav-glyph {
+      color: var(--sui-sidebar-active-glyph);
+    }
+
     .scroll-targets .sui-side-nav-list:not(.measured) .sui-side-nav-row:target-current {
       background: var(--sui-sidebar-active-bg);
     }
@@ -593,7 +601,8 @@ following a row closes the drawer.
         background-color: Highlight;
       }
 
-      .scroll-targets .sui-side-nav-row:target-current {
+      .scroll-targets .sui-side-nav-row:target-current,
+      .scroll-targets .sui-side-nav-row:target-current .sui-side-nav-glyph {
         color: HighlightText;
         forced-color-adjust: none;
       }
@@ -737,7 +746,8 @@ following a row closes the drawer.
       background-color: Highlight;
     }
 
-    .sui-side-nav-row[aria-current='page'] {
+    .sui-side-nav-row[aria-current='page'],
+    .sui-side-nav-row[aria-current='page'] .sui-side-nav-glyph {
       color: HighlightText;
       /* Kept as written, or the browser draws a Canvas backplate behind the words on the plate. */
       forced-color-adjust: none;

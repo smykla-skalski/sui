@@ -253,8 +253,8 @@ start.
     }
 
     .sui-button[data-tone='stop']:hover:not(:active):not(:disabled, [aria-disabled='true']) {
-      background-color: var(--sui-danger-hover);
-      border-color: var(--sui-danger-hover);
+      background-color: var(--sui-danger-fill-hover);
+      border-color: var(--sui-danger-fill-hover);
     }
 
     .sui-button[data-tone='stop-quiet']:hover:not(:active):not(:disabled, [aria-disabled='true']) {
@@ -327,9 +327,9 @@ start.
   }
 
   .sui-button[data-tone='stop'] {
-    background-color: var(--sui-danger);
+    background-color: var(--sui-danger-fill);
     background-image: none;
-    border-color: var(--sui-danger);
+    border-color: var(--sui-danger-fill);
     color: var(--sui-on-danger);
   }
 

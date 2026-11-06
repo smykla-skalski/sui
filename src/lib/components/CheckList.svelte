@@ -104,7 +104,7 @@ box. Choosing one lifts it. A caller's `error` always wins.
 - Keyboard: Tab moves from box to box and Space toggles one; a locked group refuses the toggle and keeps focus.
 - Pointer and touch: each item is its own target, 34px tall, 44px with a description, on a phone or any touch screen.
 - Focus: locking the group leaves focus on the box that had it, and a send refused for a required group with none chosen moves focus to its first box when it is the form's first refused control.
-- Responsive: short labels wrap along a line, and options with descriptions stack one per line.
+- Responsive: short labels wrap along a line, and options with descriptions stack one per line, as every option does on a phone, so a wrapped line never leaves one option alone.
 - Accessibility: the legend names the group, the required word is read with it, the hint and error describe it, and the error is spoken when it appears.
 - Localization: `requiredLabel` and `requiredMessage` are props with English defaults, the question, options and messages come from the caller, and the layout is logical.
 - Performance: one checkbox per option; nothing animates beyond the boxes' own states.
@@ -188,6 +188,13 @@ box. Choosing one lifts it. A caller's `error` always wins.
   .stacked {
     flex-direction: column;
     gap: var(--sui-space-1);
+  }
+
+  @media (max-width: 47.9375rem) {
+    .sui-check-list-items {
+      flex-direction: column;
+      gap: var(--sui-space-1);
+    }
   }
 
   .sui-check-list-help,

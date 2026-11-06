@@ -162,7 +162,7 @@ function palette(): Finding[] {
     ['link', 'surface-base'],
     ['brand-action-text', 'brand-action-tint'],
     ['on-brand-action', 'brand-action'],
-    ['on-danger', 'danger'],
+    ['on-danger', 'danger-fill'],
     ['info', 'surface-base'],
     ['info', 'info-tint'],
     ['success', 'success-tint'],
@@ -286,24 +286,40 @@ function palette(): Finding[] {
     found.push(
       ...atLeast('L-13', `on-brand-action on ${label}`, contrast(t('on-brand-action'), ground), 4.5)
     );
-  const fill = (theme: string) => {
+  const fill = (theme: string, name: string) => {
     const probe = document.createElement('span');
     probe.dataset.suiTheme = theme;
-    probe.style.color = 'var(--sui-brand-action)';
+    probe.style.color = `var(--sui-${name})`;
     document.body.append(probe);
     const color = rgba(getComputedStyle(probe).color);
     probe.remove();
     return color;
   };
-  if (deltaE(fill('light'), fill('dark')) > 1)
-    found.push(finding('L-13', null, 'the accent fill is not one color in both themes'));
-  const danger = t('danger');
-  const dangerHover = t('danger-hover');
+  for (const [name, what] of [
+    ['brand-action', 'the accent fill'],
+    ['danger-fill', 'the stop fill']
+  ])
+    if (deltaE(fill('light', name), fill('dark', name)) > 1)
+      found.push(finding('L-13', null, `${what} is not one color in both themes`));
+  const danger = t('danger-fill');
+  const dangerHover = t('danger-fill-hover');
   const expected = lightness(base) > 50 ? -1 : 1;
   if (Math.sign(lightness(dangerHover) - lightness(danger)) !== expected)
     found.push(finding('L-13', null, 'danger hover does not deepen on light or brighten on dark'));
   found.push(
-    ...atLeast('L-13', 'on-danger on danger-hover', contrast(t('on-danger'), dangerHover), 4.5)
+    ...atLeast('L-13', 'on-danger on danger-fill', contrast(t('on-danger'), danger), 4.5),
+    ...atLeast(
+      'L-13',
+      'on-danger on danger-fill-hover',
+      contrast(t('on-danger'), dangerHover),
+      4.5
+    ),
+    ...atLeast(
+      'L-13',
+      'on-danger on danger-pressed',
+      contrast(t('on-danger'), t('danger-pressed')),
+      4.5
+    )
   );
 
   for (const ink of ['sidebar-text', 'sidebar-text-secondary', 'sidebar-text-muted'])
@@ -322,6 +338,12 @@ function palette(): Finding[] {
       'L-85',
       'sidebar-active-ink against sidebar-text-muted',
       contrast(t('sidebar-active-ink'), t('sidebar-text-muted')),
+      2.5
+    ),
+    ...atLeast(
+      'L-85',
+      'sidebar-active-glyph on sidebar-active-bg',
+      c('sidebar-active-glyph', 'sidebar-active-bg'),
       3
     )
   );
@@ -1919,7 +1941,7 @@ function fieldRecesses(root: Document): Finding[] {
 
 /**
  * Where the reader is (L-85): a current navigation row stands apart from a resting peer by its
- * ink, 3:1 from the peer's, so its quiet plate needs no ring or edge, and it draws none. A row
+ * ink, 2.5:1 from the peer's, and by its plate, so it needs no ring or edge, and it draws none. A row
  * whose words may wrap keeps the peer's font, so turning current never rewraps them or changes
  * its height. A current tab, whose words never wrap, carries its bar too, at 3:1 on the ground.
  */
@@ -1977,7 +1999,7 @@ function currentMarks(root: Document): Finding[] {
         )
       );
     const inks = contrast(rgba(look.color), rgba(rest.color));
-    if (inks < 3)
+    if (inks < 2.5)
       found.push(
         finding('L-85', current, `the current ink stands ${round(inks)}:1 from a rest row`)
       );
