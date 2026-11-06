@@ -109,9 +109,11 @@
     new Intl.NumberFormat(locale).formatToParts(1.5).find((part) => part.type === 'decimal')
       ?.value ?? '.';
   const numbers = new Intl.NumberFormat(locale, { useGrouping: false, maximumFractionDigits: 20 });
+  // The page's own digits, such as Arabic-Indic ones, which `Number` reads only in Latin.
+  const digits = new Map(Array.from({ length: 10 }, (_, at) => [numbers.format(at), String(at)]));
 
   function read(text: string): number {
-    const trimmed = text.trim();
+    const trimmed = Array.from(text.trim(), (char) => digits.get(char) ?? char).join('');
     if (decimal !== '.' && trimmed.includes('.')) return Number.NaN;
     return Number(decimal === '.' ? trimmed : trimmed.replace(decimal, '.'));
   }

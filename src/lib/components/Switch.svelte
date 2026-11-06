@@ -17,6 +17,7 @@
     error,
     element = $bindable(null),
     'aria-describedby': describedBy,
+    'aria-disabled': ariaDisabled,
     onclick,
     class: className = '',
     children,
@@ -49,11 +50,13 @@
      one refuses the flip as its own save does. */
   const around = holdAround();
   const holding = $derived(held(element, around));
+  // A caller's `aria-disabled` refuses the flip and keeps focus, as a busy button does.
+  const refused = $derived(String(ariaDisabled) === 'true');
 
   /* A flip that is still saving cannot be undone half way, so a second press waits; the
      switch keeps focus instead of disabling, which would drop it to the body. */
   function press(event: MouseEvent & { currentTarget: EventTarget & HTMLInputElement }) {
-    if (pending || holding) event.preventDefault();
+    if (pending || holding || refused) event.preventDefault();
     else onclick?.(event);
   }
 </script>
@@ -91,7 +94,7 @@ take, under the switch and to a screen reader, while the owner sets `checked` ba
   <label
     class="sui-switch-row"
     class:bare
-    class:disabled
+    class:disabled={disabled || refused}
     class:locked={pending || holding !== null}
   >
     {#if children}
@@ -109,7 +112,7 @@ take, under the switch and to a screen reader, while the owner sets `checked` ba
         disabled={disabled || holding === 'firm'}
         aria-invalid={invalid || undefined}
         aria-busy={pending || undefined}
-        aria-disabled={pending || holding === 'soft' || undefined}
+        aria-disabled={pending || holding === 'soft' || refused || undefined}
         aria-describedby={describedby}
         onclick={press}
       />

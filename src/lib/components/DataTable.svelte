@@ -178,7 +178,7 @@ row in place of the hairlines, for a table wide enough that the eye can lose its
     <div
       {@attach watchOverflow}
       class="frame sui-scroll-edge"
-      role={scrolls ? 'region' : undefined}
+      role={scrolls && (caption || rest['aria-label']) ? 'region' : undefined}
       tabindex={scrolls ? 0 : undefined}
       aria-labelledby={scrolls && caption ? captionId : undefined}
       aria-label={scrolls && !caption ? rest['aria-label'] : undefined}

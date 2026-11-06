@@ -3,6 +3,7 @@
   import { tick } from 'svelte';
   import type { HTMLAttributes } from 'svelte/elements';
   import { clearance as clearanceOf } from '../internal/clearance.js';
+  import { tabStops } from '../internal/focus.js';
   import { holdForWork } from '../internal/held.svelte.js';
   import Button from './Button.svelte';
 
@@ -86,8 +87,6 @@
 
   /** How long a notice with nothing to press stays, as a toast does (L-60). */
   const LINGER_MS = 5000;
-  const FOCUSABLE =
-    'input:not(:disabled), select:not(:disabled), textarea:not(:disabled), button:not(:disabled), [href], [tabindex]:not([tabindex^="-"])';
 
   /** What the bar says once the work is gone from it: saved, or discarded or replaced by a
       reload, with a way back. */
@@ -178,9 +177,7 @@
     if (focused && focused !== document.body && !element?.contains(focused)) return;
     if (focused && element?.contains(focused) && focused.checkVisibility()) return;
     const pane = element?.parentElement;
-    const first = [...(pane?.querySelectorAll<HTMLElement>(FOCUSABLE) ?? [])].find(
-      (node) => !element?.contains(node)
-    );
+    const first = (pane ? tabStops(pane) : []).find((node) => !element?.contains(node));
     (returnTo?.isConnected ? returnTo : (fallback ?? first))?.focus({ preventScroll: true });
   }
 

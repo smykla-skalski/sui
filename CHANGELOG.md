@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- The peer range is `svelte ^5.47.0`, the first release that compiles every component (`Select` puts a button in its `select`, and controls use attachments).
+- A read-only `Combobox` no longer opens its list. A `Switch` and a `Select` honor a caller's `aria-disabled`: they keep focus and refuse the change. `DurationInput` reads the page language's own digits, such as Arabic-Indic ones. `SaveBar` hands focus back only to a control that can take it. A scrolling `DataTable` with no caption and no `aria-label` is no longer an unnamed region.
 - Breaking: the palette drops `--sui-glass-bar` and `--sui-glass-filter`. Only the kitchen sink's floating bar read them, and no app does. L-17 no longer makes an exception for that bar.
 - A `SideNav` row takes the caller's own glyph as a snippet beside the icon set's names.
 - A pending `Switch` keeps its thumb at full strength and turns an accent spinner inside it, in place of a dark ring over the dimmed track. An invalid `Switch` or `Checkbox` draws a 2px danger edge, which reads on the accent fill too.

@@ -233,7 +233,7 @@
   const holding = $derived(held(element, around));
 
   function show(byKey: boolean): void {
-    if (holding) return;
+    if (holding || rest.readonly) return;
     if (!drafting) typed = false;
     open = true;
     navigated = byKey;

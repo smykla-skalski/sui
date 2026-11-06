@@ -100,14 +100,16 @@
      hold it stays a tab stop and refuses the press that opens it and every key but Tab. */
   const around = holdAround();
   const holding = $derived(held(element, around));
+  // A caller's `aria-disabled` refuses the value as a soft hold does.
+  const refusing = $derived(Boolean(holding) || String(rest['aria-disabled']) === 'true');
 
   function press(event: MouseEvent & { currentTarget: EventTarget & HTMLSelectElement }) {
-    if (holding) event.preventDefault();
+    if (refusing) event.preventDefault();
     else onmousedown?.(event);
   }
 
   function key(event: KeyboardEvent & { currentTarget: EventTarget & HTMLSelectElement }) {
-    if (holding && event.key !== 'Tab') event.preventDefault();
+    if (refusing && event.key !== 'Tab') event.preventDefault();
     else onkeydown?.(event);
   }
 
@@ -190,7 +192,7 @@ assistive technology, because a native picker cannot be held open.
       class="sui-select-control"
       aria-invalid={wrong || undefined}
       disabled={rest.disabled || holding === 'firm'}
-      aria-disabled={Boolean(holding) || rest['aria-disabled']}
+      aria-disabled={refusing || undefined}
       onmousedown={press}
       onkeydown={key}
       bind:value={() => value ?? '', (next) => (value = next === '' ? null : next)}
