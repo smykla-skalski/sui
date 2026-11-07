@@ -372,7 +372,7 @@
     font-weight: var(--sui-weight-semibold);
   }
   .name {
-    fill: var(--sui-text-secondary);
+    fill: var(--sui-text-primary);
   }
   /* A ring of the band's ground keeps a marker whole where it crosses another series' line. */
   .marker {
