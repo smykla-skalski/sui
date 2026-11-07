@@ -17,7 +17,7 @@
 
 <Example
   title="Layout"
-  note="The page in its own frame: under 48rem a drawer holds the rail and the pages, and above 64rem Collapse folds them"
+  note="The page in its own frame: under 48 rem a drawer holds the rail and the pages, and above 64 rem Collapse Navigation folds them"
   layout="stack"
   ground="canvas"
   code={false}

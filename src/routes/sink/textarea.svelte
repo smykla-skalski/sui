@@ -63,7 +63,7 @@
   layout="grid"
 >
   <Specimen label="With an error" code="control">
-    <Field label="Why this exception" error="Say why in at least ten words">
+    <Field label="Why this exception" error="Say why in at least 10 words">
       {#snippet control({ id, describedby, invalid })}
         <Textarea {id} aria-describedby={describedby} {invalid} value="Urgent" />
       {/snippet}

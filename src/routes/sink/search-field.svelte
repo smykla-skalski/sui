@@ -1,7 +1,7 @@
 <script module lang="ts">
   export const section = {
     title: 'Search Field',
-    lead: 'A search that narrows what is already on screen. A value picked from suggestions as the reader types is a Combobox.',
+    lead: 'A search that narrows what is already on screen. A value chosen from suggestions as the reader types is a Combobox.',
     components: ['SearchField']
   };
 </script>
@@ -50,7 +50,7 @@
 
 <Example
   title="Tiers"
-  note="34px by default and 44px on phones, and a surface may opt into 40px with the clear button centred"
+  note="34 px by default and 44 px on phones, and a surface may opt into 40 px with the clear button centred"
   layout="grid"
 >
   <Specimen label="Default" code="--sui-control-height-compact">
@@ -79,7 +79,7 @@
         placeholder="deploy…"
         bind:value={audit}
       />
-      <Button type="submit">Search</Button>
+      <Button type="submit">Search Events</Button>
       <Button onclick={() => (audit = 'valid')}>Fix the Audit Query</Button>
     </form>
   </Specimen>

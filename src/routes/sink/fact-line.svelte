@@ -14,7 +14,7 @@
   const synced = new Date(Date.now() - 42.5 * 60_000).toISOString();
 </script>
 
-<Example title="Facts" note="The dot stands 9px from each fact and is read as a comma">
+<Example title="Facts" note="The dot stands 9 px from each fact and is read as a comma">
   <Specimen label="Words" code="children">
     <FactLine><span>Default branch main</span><span>84 files up to date</span></FactLine>
   </Specimen>

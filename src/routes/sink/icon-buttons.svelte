@@ -19,7 +19,7 @@
 
 <Example
   title="Tiers & States"
-  note="The 28px quiet tier and the 34px toolbar tier, at rest, busy with a spinner and disabled"
+  note="The 28 px quiet tier and the 34 px toolbar tier, at rest, busy with a spinner and disabled"
 >
   <Variants
     rows={tiers}

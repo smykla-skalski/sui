@@ -80,7 +80,7 @@
 
 <Example
   title="Narrow Width"
-  note="Below two 14rem columns the cards stack, and long sentences wrap"
+  note="Below 2 columns of 14 rem the cards stack, and long sentences wrap"
   layout="stack"
 >
   <Specimen label="Stacked cards">

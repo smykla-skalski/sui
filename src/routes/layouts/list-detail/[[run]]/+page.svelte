@@ -46,8 +46,7 @@
       when: '12\u00a0min ago',
       took: '48\u00a0seconds',
       ...failed,
-      outcome:
-        'Three repositories differ from the saved settings, so the sync stopped before writing'
+      outcome: '3 repositories differ from the saved settings, so the sync stopped before writing'
     },
     {
       id: '4181',
@@ -83,7 +82,7 @@
       when: '3\u00a0hours ago',
       took: '4\u00a0minutes',
       ...failed,
-      outcome: 'Two browser tests failed on the narrow layout, so the branch cannot merge yet'
+      outcome: '2 browser tests failed on the narrow layout, so the branch cannot merge yet'
     },
     ...['4177', '4176', '4175', '4174', '4173', '4172', '4171'].map((id, index) => ({
       id,

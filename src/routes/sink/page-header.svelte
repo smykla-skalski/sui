@@ -41,7 +41,7 @@
         description="Rules every repository in this workspace is held to"
       >
         {#snippet actions()}
-          <Button>Export</Button>
+          <Button>Export Settings</Button>
           <Button tone="signal">Save Changes</Button>
         {/snippet}
       </PageHeader>

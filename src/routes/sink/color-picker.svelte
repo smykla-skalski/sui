@@ -1,7 +1,7 @@
 <script module lang="ts">
   export const section = {
     title: 'Color Picker',
-    lead: "A color as a hex, picked from swatches, an area and a hue rail, for a color that is the user's own data. A theme never needs one.",
+    lead: "A color as a hex, chosen from swatches, an area and a hue rail, for a color that is the user's own data. A theme never needs one.",
     components: ['ColorPicker']
   };
 </script>
@@ -22,7 +22,7 @@
 
 <Example
   title="States"
-  note="A saturated pick, a pale one, a grey that keeps its hue and a locked one with its reason"
+  note="A saturated color, a pale one, a grey that keeps its hue and a locked one with its reason"
 >
   <Specimen label="Saturated" code="label">
     <ColorPicker label="Label color" bind:value={label} />

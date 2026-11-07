@@ -108,7 +108,7 @@
     <CheckList
       label="Agreement"
       required
-      options={[{ value: 'terms', label: 'I accept the terms of service' }]}
+      options={[{ value: 'terms', label: 'Accept the terms of service' }]}
       error="Accept the terms to continue"
       bind:value={terms}
     />

@@ -164,7 +164,7 @@
   <Specimen label="Actor, status & action" code="actor status action">
     <Timeline events={people} order="oldest" aria-label="Check 4182" />
   </Specimen>
-  <Specimen label="Long words in 32rem">
+  <Specimen label="Long words in 32 rem">
     <div class="measure">
       <Timeline events={people} order="oldest" aria-label="Check 4182" />
     </div>
@@ -236,10 +236,10 @@
 
 <Example
   title="Narrow Width"
-  note="Under 25rem of its own width, each time stands over its words and the pill and action drop under them"
+  note="Under 25 rem of its own width, each time stands over its words and the pill and action drop under them"
   layout="stack"
 >
-  <Specimen label="Phone column, 343px">
+  <Specimen label="Phone column, 343 px">
     <div class="phone">
       <Timeline events={people} order="oldest" aria-label="Check 4182" />
     </div>

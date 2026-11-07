@@ -1,7 +1,7 @@
 <script module lang="ts">
   export const section = {
     title: 'Select',
-    lead: 'One value from six or more options. Two to five that fit are a SegmentedControl, and a list the reader searches is a Combobox.',
+    lead: 'One value from 6 or more options. A SegmentedControl holds 2 to 5 that fit, and a list the reader searches is a Combobox.',
     components: ['Select']
   };
 </script>
@@ -37,8 +37,8 @@
     {
       label: 'Yearly',
       options: [
-        { value: 'starter-year', label: 'Starter', description: '3 seats, one month free' },
-        { value: 'team-year', label: 'Team', description: '10 seats, two months free' },
+        { value: 'starter-year', label: 'Starter', description: '3 seats, 1 month free' },
+        { value: 'team-year', label: 'Team', description: '10 seats, 2 months free' },
         { value: 'org-year', label: 'Organization', description: 'Retired', disabled: true }
       ]
     }
@@ -117,7 +117,7 @@
     </Field>
   </Specimen>
   <Specimen label="Invalid" code="invalid">
-    <Field label="Failover region" error="Pick a region other than the home region">
+    <Field label="Failover region" error="Choose a region other than the home region">
       {#snippet control({ id, describedby, invalid })}
         <Select
           {id}

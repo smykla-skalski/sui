@@ -182,7 +182,7 @@
   confirmLabel="Leave Workspace"
   tone="stop"
   onconfirm={refuse}
-  failedLabel={() => 'The workspace needs one owner, so you cannot leave it yet'}
+  failedLabel={() => 'The workspace needs 1 owner, so you cannot leave it yet'}
 />
 
 <ConfirmDialog

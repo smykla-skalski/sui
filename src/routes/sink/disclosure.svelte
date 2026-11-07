@@ -142,12 +142,12 @@
   layout="grid"
 >
   <Specimen label="Closed" code={'dir="rtl"'}>
-    <Disclosure dir="rtl" summary="Skipped Repositories" hint="Three archived">
+    <Disclosure dir="rtl" summary="Skipped Repositories" hint="3 archived">
       <p class="copy">Archived repositories are left out of every sync</p>
     </Disclosure>
   </Specimen>
   <Specimen label="Open" code={'dir="rtl" open'}>
-    <Disclosure dir="rtl" summary="Skipped Repositories" hint="Three archived" open>
+    <Disclosure dir="rtl" summary="Skipped Repositories" hint="3 archived" open>
       <p class="copy">Archived repositories are left out of every sync</p>
     </Disclosure>
   </Specimen>

@@ -143,7 +143,7 @@
 
 <Example
   title="Narrow Width"
-  note="Long copy wraps with the 8px rhythm and the actions wrap under it"
+  note="Long copy wraps with the 8 px rhythm and the actions wrap under it"
   layout="stack"
   ground="canvas"
 >

@@ -1,7 +1,7 @@
 <script module lang="ts">
   export const section = {
     title: 'List Detail',
-    lead: 'A list beside the item open from it, each at its own address. Under 56rem one pane shows at a time, with a way back to the list.',
+    lead: 'A list beside the item open from it, each at its own address. Under 56 rem one pane shows at a time, with a way back to the list.',
     components: ['ListDetail']
   };
 </script>
@@ -17,7 +17,7 @@
 
 <Example
   title="Layout"
-  note="Every run has its own page, and from 56rem of its own width the list stands beside the open run"
+  note="Every run has its own page, and from 56 rem of its own width the list stands beside the open run"
   layout="stack"
   ground="canvas"
   code={false}

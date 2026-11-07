@@ -37,11 +37,11 @@
 
 <Example
   title="Linked Peers"
-  note="Each card is one link named by its title, a control inside it stays pressable, and peers take their 16px from the grid's gap"
+  note="Each card is one link named by its title, a control inside it stays pressable, and peers take their 16 px from the grid's gap"
   layout="stack"
   ground="canvas"
 >
-  <Specimen label="Three peers" code="href">
+  <Specimen label="3 peers" code="href">
     <div class="peers">
       <Card href="#card" title="Repositories" description="16 in acme" level={4}>
         <p class="copy">3 differ from the saved settings</p>
@@ -69,14 +69,14 @@
   <Specimen label="Framed, menu, ghost, switch, segmented & pill" code="href actions">
     <div class="peers wide">
       <Card href="#card" title="Branch Rules" level={4}>
-        {#snippet actions()}<Button>Edit</Button>{/snippet}
-        <p class="copy">Pull requests into main need one approval</p>
+        {#snippet actions()}<Button>Edit Rules</Button>{/snippet}
+        <p class="copy">Pull requests into main need 1 approval</p>
       </Card>
       <Card href="#card" title="Deploy Keys" level={4}>
         {#snippet actions()}
           <ActionMenu label="Deploy key actions" icon="more" items={rules} align="end" />
         {/snippet}
-        <p class="copy">Two keys can push</p>
+        <p class="copy">2 keys can push</p>
       </Card>
       <Card href="#card" title="Webhooks" level={4}>
         {#snippet actions()}<Button tone="ghost">Refresh</Button>{/snippet}
@@ -185,11 +185,11 @@
 
 <Example
   title="Narrow Width"
-  note="A card 36rem wide or narrower steps its inset from 20px to 16px, by its own width rather than the page's"
+  note="A card 36 rem wide or narrower steps its inset from 20 px to 16 px, by its own width rather than the page's"
   layout="stack"
   ground="canvas"
 >
-  <Specimen label="In 20rem" code="href">
+  <Specimen label="In 20 rem" code="href">
     <div class="narrow">
       <Card href="#card" title="Storage" description="Across every repository" level={4}>
         <p class="copy">84.7&nbsp;MB of 1&nbsp;GB</p>

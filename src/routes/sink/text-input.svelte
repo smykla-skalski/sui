@@ -57,7 +57,10 @@
   </Specimen>
 </Example>
 
-<Example title="Tiers" note="34px by default and 44px on phones, and a surface may opt into 40px">
+<Example
+  title="Tiers"
+  note="34 px by default and 44 px on phones, and a surface may opt into 40 px"
+>
   <Specimen label="Default" code="--sui-control-height-compact">
     <Field label="Filter the projects">
       {#snippet control({ id, describedby })}

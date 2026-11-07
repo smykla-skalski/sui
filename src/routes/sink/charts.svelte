@@ -108,7 +108,7 @@
   <Specimen label="Line, a series over time" code="series xLabel yLabel">
     <LineChart
       title="Weekly Trend"
-      description="North and south grew over four weeks, while east stayed nearly flat"
+      description="North and south grew over 4 weeks, while east stayed nearly flat"
       series={trend}
       xLabel="Week"
       yLabel="Items"
@@ -117,7 +117,7 @@
   <Specimen label="Scatter, two measures of each item" code="series xLabel yLabel">
     <ScatterChart
       title="Build Time by Change Size"
-      description="Bigger changes build longer, and a cold cache adds about six minutes"
+      description="Bigger changes build longer, and a cold cache adds about 6 minutes"
       series={builds}
       xLabel="Changed files"
       yLabel="Build minutes"
@@ -166,7 +166,7 @@
   <Specimen label="Refreshing" code={'status="refreshing"'}>
     <LineChart
       title="Orders by Week"
-      description="North and south grew over four weeks"
+      description="North and south grew over 4 weeks"
       series={trend}
       xLabel="Week"
       yLabel="Orders"
@@ -176,7 +176,7 @@
   <Specimen label="Stale" code={'status="stale" staleLabel'}>
     <LineChart
       title="Deploys by Week"
-      description="North and south grew over four weeks"
+      description="North and south grew over 4 weeks"
       series={trend}
       xLabel="Week"
       yLabel="Deploys"
@@ -204,7 +204,7 @@
     />
   </Specimen>
   <Specimen label="Empty" code={'series={[]} emptyAction'}>
-    <LineChart title="New Project" description="Nothing has been measured yet" series={[]}>
+    <LineChart title="New Project" description="This project has no measurements yet" series={[]}>
       {#snippet emptyAction()}<Button>Connect a Data Source</Button>{/snippet}
     </LineChart>
   </Specimen>
@@ -220,7 +220,7 @@
     <Section title="Delivery" level={4}>
       <RangeChart
         title="Release Windows"
-        description="Build ran longest of the three windows"
+        description="Build ran longest of the 3 windows"
         data={ranges}
         valueLabel="Hours"
         level={5}
@@ -230,7 +230,7 @@
 </Example>
 
 <Example title="Narrow Width" note="Chart text keeps its token size when the chart is narrow">
-  <Specimen label="In 20rem">
+  <Specimen label="In 20 rem">
     <div class="narrow">
       <LineChart
         title="Items by Week"

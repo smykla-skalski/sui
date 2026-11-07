@@ -14,7 +14,7 @@
 
 <Example
   title="Fits & Clipped"
-  note="Each label has 16rem, and only the clipped ones show their whole text on hover and take a tab stop to show it on focus"
+  note="Each label has 16 rem, and only clipped ones show their whole text on hover and take a tab stop to show it on focus"
   layout="grid"
 >
   <Specimen label="Fits">

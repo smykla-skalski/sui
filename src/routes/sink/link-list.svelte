@@ -17,7 +17,7 @@
   ];
 
   const noted: LinkListItem[] = [
-    { href: '#link-list', label: 'Changes from this check', note: 'Three repositories differ' },
+    { href: '#link-list', label: 'Changes from this check', note: '3 repositories differ' },
     { href: '#link-list', label: 'Previous check #4170', note: 'Finished yesterday, all matched' },
     {
       href: 'https://docs.github.com/en/rest',
@@ -38,7 +38,7 @@
 
 <Example
   title="Links"
-  note="Links stand on the heading's edge with no bullets, one target plus 4px apart, and one that leaves the product says so"
+  note="Links stand on the heading's edge with no bullets, one target plus 4 px apart, and one that leaves the product says so"
   layout="grid"
 >
   <Specimen label="Plain">

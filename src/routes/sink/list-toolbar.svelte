@@ -117,10 +117,10 @@
 
 <Example
   title="Narrow Width"
-  note="Under 18rem the filter folds into the tools menu, and the bar names the choice beside the button"
+  note="Under 18 rem the filter folds into the tools menu, and the bar names the choice beside the button"
   layout="stack"
 >
-  <Specimen label="In 17rem">
+  <Specimen label="In 17 rem">
     <div class="narrow">
       <ListToolbar searchLabel="Search repositories" filter={narrow.filter} tools={narrow.tools}>
         {#snippet action()}<Button>Add Repository</Button>{/snippet}

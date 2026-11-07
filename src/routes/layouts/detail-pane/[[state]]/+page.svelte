@@ -171,7 +171,7 @@
     {#snippet main()}
       <Section title="Outcome">
         <p class="lede">
-          3 repositories differ from the saved settings. 12 match and the check skipped 1.
+          3 repositories differ from the saved settings, 12 match and the check skipped 1
         </p>
         <FactList facts={counts} />
       </Section>

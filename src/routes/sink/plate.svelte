@@ -51,7 +51,7 @@
           ><Icon name="warning" size="sm" /><span>2 repositories differ</span></span
         >
       {/snippet}
-      <p class="copy">The two repositories changed their branch rules by hand</p>
+      <p class="copy">The 2 repositories changed their branch rules by hand</p>
     </Plate>
   </Specimen>
 </Example>
@@ -93,7 +93,7 @@
   </Plate>
   <Callout tone="warning" title="Drift blocks the next sync">
     {#snippet icon()}<Icon name="warning" size="sm" />{/snippet}
-    Resolve the two differences before the sync at {clock(2)}
+    Resolve the 2 differences before the sync at {clock(2)}
   </Callout>
 </Example>
 

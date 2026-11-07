@@ -82,7 +82,7 @@
 </Example>
 
 <Example title="Narrow Width" note="A long name or handle wraps and keeps every word">
-  <Specimen label="Long name in 16rem">
+  <Specimen label="Long name in 16 rem">
     <div class="narrow">
       <IdentityRow
         name="Maria Gaetana Agnesi de la Cruz Montgomery-Wellington"

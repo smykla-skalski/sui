@@ -52,7 +52,7 @@
     {#snippet main()}
       <Section title="Outcome" level={4}>
         <p class="copy">
-          3 repositories differ from the saved settings. 12 match and the check skipped 1.
+          3 repositories differ from the saved settings, 12 match and the check skipped 1
         </p>
       </Section>
       <Section title="Repositories" count={16} level={4}>
@@ -84,7 +84,7 @@
   <Specimen label="Title & description" code="title description">
     <Section title="Outcome" description="What the last check found" level={4}>
       <p class="copy">
-        3 repositories differ from the saved settings. 12 match and the check skipped 1.
+        3 repositories differ from the saved settings, 12 match and the check skipped 1
       </p>
     </Section>
   </Specimen>
@@ -106,15 +106,15 @@
 
 <Example
   title="In Sequence"
-  note="Sections that follow each other stand 40px apart, 32px on a phone, with no wrapper and no line between them"
+  note="Sections that follow each other stand 40 px apart, 32 px on a phone, with no wrapper and no line between them"
   layout="stack"
   ground="canvas"
 >
-  <Specimen label="Three sections">
+  <Specimen label="3 sections">
     <div>
       <Section title="Outcome" level={4}>
         <p class="copy">
-          3 repositories differ from the saved settings. 12 match and the check skipped 1.
+          3 repositories differ from the saved settings, 12 match and the check skipped 1
         </p>
       </Section>
       <Section title="Timeline" level={4}>
@@ -131,13 +131,13 @@
 
 <Example
   title="Sub-sections"
-  note="A section inside another takes the 15px title and stands 24px under what comes before it, 20px on a phone"
+  note="A section inside another takes the 15 px title and stands 24 px under what comes before it, 20 px on a phone"
   layout="stack"
   ground="canvas"
 >
   <Specimen label="Nested" code="level">
     <Section title="Access" description="Who can open this workspace" level={4}>
-      <p class="copy">Three teams and two people have access</p>
+      <p class="copy">3 teams and 2 people have access</p>
       <Section title="Teams" count={3} level={5}>
         <p class="copy">Platform, Billing and Support can change settings</p>
       </Section>
@@ -166,14 +166,14 @@
 
 <Example
   title="Detail Layout"
-  note="From 56rem of its own width the aside stands beside the main sections, and under that it follows them"
+  note="From 56 rem of its own width the aside stands beside the main sections, and under that it follows them"
   layout="stack"
   ground="canvas"
 >
   <Specimen label="The stage’s width" code="main aside">
     {@render pane()}
   </Specimen>
-  <Specimen label="In 30rem">
+  <Specimen label="In 30 rem">
     <div class="narrow">{@render pane()}</div>
   </Specimen>
 </Example>

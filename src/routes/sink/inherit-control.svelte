@@ -96,7 +96,7 @@
       label="Retention"
       inherited=""
       source="the organization"
-      error="The organization's value could not load"
+      error="The organization's value could not load, so override it here"
     >
       {#snippet control()}
         <DurationInput label="Retention" value={2_592_000} />

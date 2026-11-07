@@ -47,7 +47,7 @@
 
 <Example
   title="States"
-  note="Off and on, each with its label and a 44px tap box, and a locked switch says beside it why"
+  note="Off and on, each with its label and a 44 px tap box, and a locked switch says beside it why"
 >
   <Variants
     rows={states}
@@ -91,7 +91,7 @@
 
 <Example
   title="Keyboard Focus"
-  note="Tab to a switch and press Space to flip it, and the ring sits 2px off the track"
+  note="Tab to a switch and press Space to flip it, and the ring sits 2 px off the track"
 >
   <Specimen label="Off">
     <Switch label="Require reviews" />
@@ -100,7 +100,7 @@
 
 <Example
   title="In a Section Head"
-  note="A bare switch keeps its 44px hit area as paint, so the head keeps its own rhythm"
+  note="A bare switch keeps its 44 px hit area as paint, so the head keeps its own rhythm"
   layout="grid"
   ground="canvas"
 >
@@ -121,10 +121,7 @@
 >
   <Specimen label="Wrapped label">
     <div class="narrow">
-      <Switch
-        label="Close every stale pull request that has had no activity for thirty days"
-        checked
-      />
+      <Switch label="Close every stale pull request that has had no activity for 30 days" checked />
     </div>
   </Specimen>
 </Example>

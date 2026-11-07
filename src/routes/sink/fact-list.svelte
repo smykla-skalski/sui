@@ -96,10 +96,10 @@
 
 <Example
   title="Narrow Width"
-  note="Under 25rem of its own width, each label stands over its value and the action under it"
+  note="Under 25 rem of its own width, each label stands over its value and the action under it"
   layout="stack"
 >
-  <Specimen label="Rows in 20rem" code={'layout="rows"'}>
+  <Specimen label="Rows in 20 rem" code={'layout="rows"'}>
     <div class="narrow">
       <FactList layout="rows" facts={properties} />
     </div>

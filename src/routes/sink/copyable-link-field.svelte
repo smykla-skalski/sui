@@ -11,7 +11,7 @@
   import Example from '../kit/Example.svelte';
   import Specimen from '../kit/Specimen.svelte';
 
-  let invitation = $state('https://panel.example.com/invite/8f3k2q');
+  let invitation = $state('https://panel.example.com/invite/YOUR_INVITE_TOKEN_HERE');
 </script>
 
 <Example

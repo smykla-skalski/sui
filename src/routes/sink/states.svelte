@@ -46,7 +46,7 @@
   }
 
   function submit() {
-    refused = refused ? null : 'That name is taken by another workspace, so pick another one';
+    refused = refused ? null : 'That name is taken by another workspace, so choose another one';
   }
 
   let workspace = $state('');
@@ -64,7 +64,7 @@
   const summary = $derived(
     problems.length === 0
       ? null
-      : `Fix ${problems.length === 1 ? 'one problem' : `${problems.length} problems`} to create the workspace`
+      : `Fix ${problems.length === 1 ? '1 problem' : `${problems.length} problems`} to create the workspace`
   );
 
   function send(event: SubmitEvent) {

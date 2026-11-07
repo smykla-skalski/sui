@@ -19,7 +19,7 @@
 
 <Example
   title="Layout"
-  note="From 56rem of pane the properties stand beside the main sections, and every zone keeps its order"
+  note="From 56 rem of pane the properties stand beside the main sections, and every zone keeps its order"
   layout="stack"
   ground="canvas"
   code={false}

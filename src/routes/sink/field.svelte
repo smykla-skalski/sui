@@ -152,7 +152,7 @@
 
 <Example
   title="In Context"
-  note="Fields stack 16px apart, and a focused field's own border becomes the ring, so nothing around it clips it"
+  note="Fields stack 16 px apart, and a focused field's own border becomes the ring, so nothing around it clips it"
   layout="grid"
   ground="canvas"
 >
@@ -172,14 +172,14 @@
 
 <Example
   title="Narrow Width"
-  note="Long labels, hints and errors wrap and keep the same 8px gap between lines"
+  note="Long labels, hints and errors wrap and keep the same 8 px gap between lines"
   layout="stack"
 >
   <Specimen label="Wrapped label, hint & error">
     <div class="narrow">
       <Field
         label="The address that hears about every scheduled sync that fails on any repository"
-        hint="One address only, and it can be a shared team inbox that several people read"
+        hint="1 address only, and it can be a shared team inbox that several people read"
         error="This address bounced the last message, so check it before you save"
         value="alerts@example"
       />

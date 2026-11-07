@@ -120,7 +120,7 @@
   layout="grid"
 >
   <Specimen label="Invalid" code="invalid">
-    <Field label="Primary language" error="Ruby is retired, so pick another language">
+    <Field label="Primary language" error="Ruby is retired, so choose another language">
       {#snippet control({ id, describedby, invalid })}
         <Combobox
           {id}
@@ -156,7 +156,7 @@
 
 <Example
   title="In a Form"
-  note="The form posts the chosen value, never its label, and a label typed in full picks its option"
+  note="The form posts the chosen value, never its label, and a label typed in full chooses its option"
 >
   <Specimen label={sent} code="name">
     <form class="form" onsubmit={send}>

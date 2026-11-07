@@ -76,7 +76,7 @@
 
 <Example
   title="In a Setting List"
-  note="Pick a behaviour to set it here, and reset its row to hand it back to the workspace"
+  note="Choose a behaviour to set it here, and reset its row to hand it back to the workspace"
   layout="stack"
   ground="canvas"
 >

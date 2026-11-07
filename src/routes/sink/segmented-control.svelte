@@ -1,7 +1,7 @@
 <script module lang="ts">
   export const section = {
     title: 'Segmented Control',
-    lead: 'One choice from two to five options that all show at once. Six or more belong in a Select, and answers that need a sentence are ChoiceCards.',
+    lead: 'One choice from 2 to 5 options that all show at once. A Select holds 6 or more, and answers that need a sentence are ChoiceCards.',
     components: ['SegmentedControl']
   };
 </script>
@@ -41,7 +41,7 @@
 
 <Example
   title="Options"
-  note="Two to five options, with a thumb as wide as the chosen one that a drag can move"
+  note="2 to 5 options, with a thumb as wide as the chosen one that a drag can move"
 >
   <Specimen label="Words" code="options">
     <SegmentedControl label="Time range" options={range} bind:value={span} />
@@ -108,7 +108,7 @@
 
 <Example
   title="Tiers"
-  note="34px by default and 44px on phones, and a surface may opt into 40px through one custom property"
+  note="34 px by default and 44 px on phones, and a surface may opt into 40 px through 1 custom property"
 >
   <Specimen label="Default" code="--sui-control-height-compact">
     <SegmentedControl label="Time range" options={range} value="month" />

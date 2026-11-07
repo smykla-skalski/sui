@@ -57,7 +57,7 @@
     <ActionMenu items={release}>Release Actions</ActionMenu>
   </Specimen>
   <Specimen label="Ghost trigger" code={'tone="ghost"'}>
-    <ActionMenu items={release} tone="ghost">More</ActionMenu>
+    <ActionMenu items={release} tone="ghost">More Actions</ActionMenu>
   </Specimen>
 </Example>
 

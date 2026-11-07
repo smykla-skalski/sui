@@ -62,7 +62,7 @@
 
 <Example
   title="Long Label"
-  note="A long or translated label wraps inside its container, at most 20rem wide, and every line keeps the one-line inset"
+  note="A long or translated label wraps inside its container, at most 20 rem wide, and every line keeps the one-line inset"
 >
   <Specimen label="Wrapped label">
     <div class="narrow">

@@ -59,9 +59,9 @@
   <Specimen label="Unsaved changes" code="decision">
     <Callout decision title="You have unsaved changes">
       {#snippet icon()}<Icon name="pending" size="sm" />{/snippet}
-      Two settings changed since the last save
+      2 settings changed since the last save
       {#snippet actions()}
-        <Button>Discard</Button>
+        <Button>Discard Changes</Button>
         <Button tone="decision">Save Changes</Button>
       {/snippet}
     </Callout>
@@ -124,7 +124,7 @@
 
 <Example
   title="Narrow Width"
-  note="A callout too narrow for its actions beside an 11rem measure of copy moves them under the copy, from its start edge"
+  note="A callout too narrow for its actions beside an 11 rem measure of copy moves them under the copy, from its start edge"
   layout="grid"
 >
   <Specimen label="Quiet" code="actions">
@@ -141,17 +141,17 @@
       {#snippet icon()}<Icon name="warning" size="sm" />{/snippet}
       The sync stops when it expires
       {#snippet actions()}
-        <Button>Remind Me</Button>
-        <Button>Renew</Button>
+        <Button>Remind Tomorrow</Button>
+        <Button>Renew Token</Button>
       {/snippet}
     </Callout>
   </Specimen>
   <Specimen label="Decision" code="decision actions">
     <Callout decision title="You have unsaved changes">
       {#snippet icon()}<Icon name="pending" size="sm" />{/snippet}
-      Two settings changed since the last save
+      2 settings changed since the last save
       {#snippet actions()}
-        <Button>Discard</Button>
+        <Button>Discard Changes</Button>
         <Button tone="decision">Save Changes</Button>
       {/snippet}
     </Callout>

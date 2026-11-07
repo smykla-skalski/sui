@@ -126,7 +126,7 @@
               >smykla-skalski/an-unusually-long-repository-name-that-has-to-break-somewhere-on-a-phone</span
             >
             <span class="sum"
-              >Three rules would change, and the sentence wraps rather than running under the side</span
+              >3 rules would change, and the sentence wraps rather than running under the side</span
             >
           {/snippet}
           {#snippet side()}

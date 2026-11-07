@@ -102,18 +102,20 @@ grep -rn 'export default' dist 2>/dev/null || echo "No exports"`;
   <Specimen label="Named for what it copies" code={'label="Copy Version"'}>
     <CopyButton text="0.2.1" label="Copy Version" />
   </Specimen>
-  <Specimen label="Toolbar tier, 34px" code="toolbar">
+  <Specimen label="Toolbar tier, 34 px" code="toolbar">
     <CopyButton text="https://sui.smyklot.com" label="Copy Link" toolbar />
   </Specimen>
   <Specimen label="Disabled" code="disabled">
     <div class="copy-locked">
       <CopyButton
-        text="ghp_example"
+        text="YOUR_API_TOKEN_HERE"
         label="Copy Token"
         disabled
         aria-describedby="sink-copy-token-reason"
       />
-      <p id="sink-copy-token-reason" class="copy-reason">The token was revoked</p>
+      <p id="sink-copy-token-reason" class="copy-reason">
+        This token no longer works, so create a new one
+      </p>
     </div>
   </Specimen>
 </Example>

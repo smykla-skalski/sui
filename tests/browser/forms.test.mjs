@@ -591,7 +591,7 @@ suite('forms', together, () => {
       const form = page.locator('#search-field form');
       const field = form.getByRole('searchbox');
       const error = form.locator('.sui-search-field-error');
-      await form.getByRole('button', { name: 'Search', exact: true }).click();
+      await form.getByRole('button', { name: 'Search Events', exact: true }).click();
       await error.waitFor();
       await form
         .getByRole('button', { name: 'Fix the Audit Query' })

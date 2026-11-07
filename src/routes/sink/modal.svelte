@@ -139,7 +139,7 @@
     <Modal
       preview
       title="Edit Webhook"
-      description="Smyklot posts every event you pick to this address"
+      description="Smyklot posts every event you choose to this address"
     >
       <Field label="Payload address">
         {#snippet control({ id, describedby })}
@@ -231,7 +231,7 @@
       preview
       title="Rename Repository"
       description="Links to the old name redirect for a year"
-      error="Another repository in this workspace already has that name"
+      error="Another repository in this workspace has that name, so choose another"
     >
       <Field label="Name" value="smyklot" />
       {#snippet footer()}
@@ -276,7 +276,7 @@
     () => (webhookOpen = false)
   )}
   title="Edit Webhook"
-  description="Smyklot posts every event you pick to this address"
+  description="Smyklot posts every event you choose to this address"
 >
   <form id="sink-webhook" class="form" onsubmit={saveWebhook}>
     <Field label="Payload address">
