@@ -61,6 +61,11 @@ const heaviest = ['a11y', 'kitchen-audit', 'kitchen', 'visual-light', 'visual-da
  * `SUI_LOGS`, or a new temporary folder, and a failed group's tail is printed.
  */
 async function runAll() {
+  const asked = process.env.SUI_JOBS;
+  const jobs = asked ? Number(asked) : Math.max(1, Math.floor(availableParallelism() / 3));
+  // No workers would run no group, and an empty run passes.
+  if (!Number.isInteger(jobs) || jobs < 1)
+    throw new Error(`SUI_JOBS must be a whole number above 0, not ${asked}`);
   const { serveSink } = await import('./sink.mjs');
   const logs = process.env.SUI_LOGS ?? mkdtempSync(join(tmpdir(), 'sui-browser-'));
   mkdirSync(logs, { recursive: true });
@@ -92,7 +97,6 @@ async function runAll() {
         resolve(code === 0);
       });
     });
-  const jobs = Number(process.env.SUI_JOBS) || Math.max(1, Math.floor(availableParallelism() / 3));
   const all = Date.now();
   /** @type {boolean[]} */
   const passed = [];
