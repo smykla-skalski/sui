@@ -969,7 +969,7 @@ suite('lists', together, () => {
     });
 
     test(
-      'L-59 a failed refresh stands inside the rows it leaves, its words clear of its tint',
+      'L-59 a failed refresh stands inside the rows it leaves, and failed panels side by side share their foot',
       long,
       async () => {
         const page = await opened();
@@ -997,6 +997,28 @@ suite('lists', together, () => {
         if (at.words.left - at.strip.left - at.tint < 12) problems.push('the words crowd the tint');
         if (at.strip.right - at.tint - at.retry.right < 12)
           problems.push('the retry crowds the tint');
+
+        // An earlier test may have retried one panel into words, so each retry is weighed
+        // against its own panel's foot rather than against another retry.
+        const feet = await page
+          .locator('#states .specimen .sui-error-state:not(.over)')
+          .evaluateAll((panels) =>
+            panels.map((panel) => {
+              const { bottom } = panel.getBoundingClientRect();
+              const { borderBlockEndWidth, paddingBlockEnd } = getComputedStyle(panel);
+              const retry = panel.querySelector('button')?.getBoundingClientRect().bottom;
+              return {
+                panel: Math.round(bottom),
+                above:
+                  retry &&
+                  bottom - parseFloat(borderBlockEndWidth) - parseFloat(paddingBlockEnd) - retry
+              };
+            })
+          );
+        if (feet.length < 2 || new Set(feet.map(({ panel }) => panel)).size !== 1)
+          problems.push(`the panels on one line end apart: ${feet.map(({ panel }) => panel)}`);
+        if (feet.some(({ above }) => above && Math.abs(above) >= 0.5))
+          problems.push(`a retry stands above its panel's foot: ${feet.map(({ above }) => above)}`);
         assert.deepEqual(problems, []);
       }
     );

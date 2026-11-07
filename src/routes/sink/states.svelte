@@ -123,9 +123,9 @@
   ground="canvas"
 >
   <Specimen label={recovered ? 'Recovered' : 'Retry'} code="onretry busy focusAfterRetry">
-    <div class="loaded">
-      <Section title="Repositories" level={4} id="sink-states-recovered">
-        {#if recovered}
+    <Section title="Repositories" level={4} id="sink-states-recovered">
+      {#if recovered}
+        <div class="loaded">
           <div bind:this={list} tabindex="-1" class="rows">
             <ObjectList aria-labelledby="sink-states-recovered">
               {#each repositories as name (name)}
@@ -135,20 +135,18 @@
               {/each}
             </ObjectList>
           </div>
-        {:else}
-          <ErrorState
-            title="Repositories Could Not Load"
-            description="The server did not answer in time, so nothing on this page has changed"
-            onretry={retry}
-            busy={retrying}
-            focusAfterRetry={() => list}
-          />
-        {/if}
-      </Section>
-      {#if recovered}
-        <div><Button onclick={() => (recovered = false)}>Show the Failure Again</Button></div>
+          <div><Button onclick={() => (recovered = false)}>Show the Failure Again</Button></div>
+        </div>
+      {:else}
+        <ErrorState
+          title="Repositories Could Not Load"
+          description="The server did not answer in time, so nothing on this page has changed"
+          onretry={retry}
+          busy={retrying}
+          focusAfterRetry={() => list}
+        />
       {/if}
-    </div>
+    </Section>
   </Specimen>
   <Specimen label="No retry">
     <Section title="Members" level={4}>

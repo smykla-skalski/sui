@@ -130,6 +130,24 @@ its words on the title's edge.
     min-inline-size: 0;
   }
 
+  /* A holder that stretches the section, as a line of cards does, hands a lone state panel the
+     spare height, so panels side by side share their foot (L-59). */
+  .sui-section:has(
+    > .sui-section-body > :global(.sui-empty-state):only-child,
+    > .sui-section-body > :global(.sui-error-state:not(.over)):only-child
+  ) {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .sui-section-body:has(
+    > :global(.sui-empty-state):only-child,
+    > :global(.sui-error-state:not(.over)):only-child
+  ) {
+    display: grid;
+    flex: 1 1 auto;
+  }
+
   /* The copy and the actions share the head's one line at every width, so the note never runs
      under an action and an action never moves the copy: short of room, each gives up width in
      proportion to its own, so a long title wraps while the controls keep theirs and a segmented
