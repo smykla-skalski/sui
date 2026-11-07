@@ -102,7 +102,7 @@
 
 <Example
   title="With Tabs"
-  note="The band's foot is the tabs' line, so the view under it starts on a clean cut"
+  note="The band’s foot is the tabs’ line, so the view under it starts on a clean cut"
   layout="stack"
   ground="canvas"
 >
@@ -136,7 +136,7 @@
 
 <Example
   title="Breadcrumb & Back Link"
-  note="A breadcrumb or a back link takes the eyebrow's place"
+  note="A breadcrumb or a back link takes the eyebrow’s place"
   layout="grid"
   ground="canvas"
 >
@@ -180,7 +180,7 @@
       <PageHeader
         level={4}
         eyebrow={['Acme', 'Access']}
-        title="Bypass Rules for the Platform Team's Deployment & Release Repositories in Every Region"
+        title="Bypass Rules for the Platform Team’s Deployment & Release Repositories in Every Region"
         description="People and apps listed here can push past the branch rules, and every push they make is written to the audit log"
       >
         {#snippet actions()}

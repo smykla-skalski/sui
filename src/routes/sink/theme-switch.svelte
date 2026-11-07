@@ -31,7 +31,7 @@
 
 <Example
   title="Narrow Width"
-  note="Short of room, the same three choices become a native select that shares the page's one choice"
+  note="Short of room, the same three choices become a native select that shares the page’s one choice"
   layout="stack"
 >
   <Specimen label="As a select">

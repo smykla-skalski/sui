@@ -595,6 +595,8 @@ function copy(root: Document): Finding[] {
   }
   for (const { element, text } of textElements(root)) {
     if (/\.\.\./.test(text)) found.push(finding('L-31', element, 'three dots instead of "…"'));
+    const quote = text.match(/["']/)?.[0];
+    if (quote) found.push(finding('L-31', element, `a straight ${quote} instead of a curly quote`));
     // Plain words a reader gets at once, not an idiom (L-105).
     const idiom = text.match(/\bin step\b/i)?.[0];
     if (idiom) found.push(finding('L-105', element, `"${idiom}" is an idiom; say what it means`));

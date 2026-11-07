@@ -33,7 +33,7 @@
 
 <Example
   title="Bottom Navigation"
-  note="With bottomNav, a phone keeps the rail's few places in a bar along the bottom, and the drawer holds only the pages"
+  note="With bottomNav, a phone keeps the rail’s few places in a bar along the bottom, and the drawer holds only the pages"
   layout="stack"
   ground="canvas"
   code={false}

@@ -45,7 +45,7 @@
 
 <Example
   title="Counts"
-  note="A count rides its label in tabular figures, grouped the way the page's language writes numbers"
+  note="A count rides its label in tabular figures, grouped the way the page’s language writes numbers"
   layout="stack"
 >
   <Specimen label="With counts" code="count">

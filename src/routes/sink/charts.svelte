@@ -212,7 +212,7 @@
 
 <Example
   title="In Context"
-  note="A chart stands in a section with no frame, and its band keeps the section's edges"
+  note="A chart stands in a section with no frame, and its band keeps the section’s edges"
   layout="stack"
   ground="canvas"
 >

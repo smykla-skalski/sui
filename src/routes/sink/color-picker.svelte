@@ -53,7 +53,7 @@
 
 <Example
   title="In a Field"
-  note="The field's label and the hex name the trigger together, and its hint describes it"
+  note="The field’s label and the hex name the trigger together, and its hint describes it"
 >
   <Specimen label="Field label & hint" code="id aria-describedby">
     <Field label="Brand color" hint="Used for links and the one signal button on each view">

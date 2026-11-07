@@ -16,7 +16,7 @@
 
 <Example
   title="Variants"
-  note="The chevron leads the summary's words at the start edge, and a hint says what is inside"
+  note="The chevron leads the summary’s words at the start edge, and a hint says what is inside"
   layout="stack"
 >
   <Specimen label="Default">
@@ -31,14 +31,14 @@
   </Specimen>
   <Specimen label="Inline help" code="inline">
     <Disclosure inline summary="How the Schedule Is Read">
-      <p class="copy">Times are in the workspace's time zone and repeat every week</p>
+      <p class="copy">Times are in the workspace’s time zone and repeat every week</p>
     </Disclosure>
   </Specimen>
 </Example>
 
 <Example
   title="States"
-  note="Open, the chevron turns down and the content hangs under the summary's words"
+  note="Open, the chevron turns down and the content hangs under the summary’s words"
   layout="stack"
 >
   <Specimen label="Closed">
@@ -53,7 +53,7 @@
   </Specimen>
   <Specimen label="Inline help, open" code="inline open">
     <Disclosure inline summary="How the Schedule Is Read" open>
-      <p class="copy">Times are in the workspace's time zone and repeat every week</p>
+      <p class="copy">Times are in the workspace’s time zone and repeat every week</p>
     </Disclosure>
   </Specimen>
 </Example>
@@ -131,14 +131,14 @@
       <p class="copy">Only the files that the shared settings list</p>
     </Disclosure>
     <Disclosure name="sync-help" summary="How to Pause It">
-      <p class="copy">Turn off the sync in the repository's settings</p>
+      <p class="copy">Turn off the sync in the repository’s settings</p>
     </Disclosure>
   </Specimen>
 </Example>
 
 <Example
   title="Right to Left"
-  note="The chevron, the hint and the content's indent mirror, and the chevron turns down"
+  note="The chevron, the hint and the content’s indent mirror, and the chevron turns down"
   layout="grid"
 >
   <Specimen label="Closed" code={'dir="rtl"'}>

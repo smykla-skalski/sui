@@ -232,7 +232,7 @@ suite('the kitchen sink', together, () => {
   // so a disabled toned button there is right to wear that local paint. One audit of a small
   // page reads both laws.
   test(
-    'L-40 a disabled tone is measured against the paint where its button stands, and L-30 a heading or button off Title Case is found while a name, code or quote is not',
+    'L-40 a disabled tone is measured against the paint where its button stands, L-30 a heading or button off Title Case is found while a name, code or quote is not, and L-31 so is a straight quote',
     long,
     async () => {
       const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
@@ -254,7 +254,9 @@ suite('the kitchen sink', together, () => {
             '<button type="button">Save changes</button>',
             '<button type="button">Sign In to the Console</button>',
             '<h2>Install <code>npm</code> on macOS for “my-repo”</h2>',
-            '<button type="button">Sync 6 Repositories</button>'
+            '<button type="button">Sync 6 Repositories</button>',
+            '<p>Don\'t sync <code>"main"</code></p>',
+            '<p>Don’t sync “main”</p>'
           ].join('');
           document.body.append(host);
           return buttons.length;
@@ -272,6 +274,12 @@ suite('the kitchen sink', together, () => {
             '"Tones and states" writes "and" instead of "&"',
             '"Save changes" is not Title Case at "changes"'
           ]
+        );
+        assert.deepEqual(
+          findings
+            .filter(({ law, where }) => law === 'L-31' && where.includes('#title-case'))
+            .map(({ detail }) => detail),
+          ["a straight ' instead of a curly quote"]
         );
       } finally {
         await page.close();

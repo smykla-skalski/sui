@@ -37,7 +37,7 @@
 
 <Example
   title="Linked Peers"
-  note="Each card is one link named by its title, a control inside it stays pressable, and peers take their 16 px from the grid's gap"
+  note="Each card is one link named by its title, a control inside it stays pressable, and peers take their 16 px from the grid’s gap"
   layout="stack"
   ground="canvas"
 >
@@ -109,7 +109,7 @@
 
 <Example
   title="Danger Zone"
-  note="The page's danger zone wears a danger keyline and title, never a filled ground, and holds the acts that cannot be undone"
+  note="The page’s danger zone wears a danger keyline and title, never a filled ground, and holds the acts that cannot be undone"
   layout="stack"
   ground="canvas"
 >
@@ -185,7 +185,7 @@
 
 <Example
   title="Narrow Width"
-  note="A card 36 rem wide or narrower steps its inset from 20 px to 16 px, by its own width rather than the page's"
+  note="A card 36 rem wide or narrower steps its inset from 20 px to 16 px, by its own width rather than the page’s"
   layout="stack"
   ground="canvas"
 >

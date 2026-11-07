@@ -202,7 +202,7 @@
 
 <Example
   title="Form Error"
-  note="A server refusal is announced, and a long form's summary takes focus with a link to each field"
+  note="A server refusal is announced, and a long form’s summary takes focus with a link to each field"
   layout="stack"
 >
   <Specimen label="Refusal">

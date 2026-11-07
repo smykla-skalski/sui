@@ -108,7 +108,7 @@ Write "none" only when an item truly does not apply, and say why. Document each 
 - When an action removes the focused control, move focus to the control that continues the task. Focus never falls to the page body.
 - Keyboard: every custom widget follows its ARIA pattern (combobox, listbox, menu, radio group, switch, dialog). Escape inside a nested layer stops at that layer.
 - Icon-only controls go through `IconButton`, which requires a label.
-- Copy in components and examples: Chicago Title Case on headings, titles, buttons, summaries, tabs and menu items, with "&" for "and", and sentence case everywhere else (L-30), no trailing period on labels, hints, list items and one-sentence paragraphs, at most 25 words a sentence, the real ellipsis `…`.
+- Copy in components and examples: Chicago Title Case on headings, titles, buttons, summaries, tabs and menu items, with "&" for "and", and sentence case everywhere else (L-30), no trailing period on labels, hints, list items and one-sentence paragraphs, at most 25 words a sentence, the real ellipsis `…` and curly quotes `“ ” ’` (L-31).
 
 ## Checking
 

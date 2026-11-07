@@ -62,7 +62,7 @@
 
 <Example
   title="In Context"
-  note="Entries group by the reader's calendar, so one local day keeps one heading across midnight in UTC"
+  note="Entries group by the reader’s calendar, so one local day keeps one heading across midnight in UTC"
   layout="stack"
 >
   <div class="days">

@@ -96,7 +96,7 @@
       label="Retention"
       inherited=""
       source="the organization"
-      error="The organization's value could not load, so override it here"
+      error="The organization’s value could not load, so override it here"
     >
       {#snippet control()}
         <DurationInput label="Retention" value={2_592_000} />
@@ -114,7 +114,7 @@
 
 <Example
   title="In Setting Rows"
-  note="A row is unsaved only while it differs from what is stored, so picking Debug again clears the log level's mark"
+  note="A row is unsaved only while it differs from what is stored, so picking Debug again clears the log level’s mark"
   layout="stack"
   ground="canvas"
 >

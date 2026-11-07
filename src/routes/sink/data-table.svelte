@@ -237,7 +237,7 @@
 
 <Example
   title="First Load"
-  note="Placeholder rows take the table's own cells, each bar where its column's words start, and one light crosses them"
+  note="Placeholder rows take the table’s own cells, each bar where its column’s words start, and one light crosses them"
   layout="stack"
 >
   <Specimen label="Loading, wide" code="rowHeader loading">

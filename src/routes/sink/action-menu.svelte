@@ -42,7 +42,7 @@
 
 <Example
   title="Triggers"
-  note="An icon trigger for a row's end or beside buttons, and a worded trigger with a chevron in the default and ghost tones"
+  note="An icon trigger for a row’s end or beside buttons, and a worded trigger with a chevron in the default and ghost tones"
 >
   <Specimen label="Icon trigger" code={'label icon="more" align="end"'}>
     <ActionMenu label="Repository actions" icon="more" items={repository} align="end" />

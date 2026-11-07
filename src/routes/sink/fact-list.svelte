@@ -49,7 +49,7 @@
 
 <Example
   title="Rows"
-  note="A thing's properties, a label and its value on each row, with hairlines between rows and an action at a row's end"
+  note="A thing’s properties, a label and its value on each row, with hairlines between rows and an action at a row’s end"
   layout="stack"
 >
   <Specimen label="Properties with an action" code={'layout="rows" action'}>

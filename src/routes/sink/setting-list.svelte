@@ -235,7 +235,7 @@
 
 <Example
   title="List States"
-  note="While the settings load, when they fail and when there is nothing to set, the list says so in the rows' place"
+  note="While the settings load, when they fail and when there is nothing to set, the list says so in the rows’ place"
   layout="grid"
   ground="canvas"
 >

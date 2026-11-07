@@ -29,7 +29,7 @@
 
 <Example
   title="Visually Hidden"
-  note="Each button shows only Remove, and a screen reader reads Remove and the member's name"
+  note="Each button shows only Remove, and a screen reader reads Remove and the member’s name"
 >
   <Specimen label="Read as Remove Ada Lovelace" code="VisuallyHidden">
     <Button>Remove <VisuallyHidden>Ada Lovelace</VisuallyHidden></Button>

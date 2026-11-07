@@ -44,7 +44,7 @@
 
 <Example
   title="Pictures"
-  note="A picture covers the initials drawn under it, and a logo's clear ground shows the tint"
+  note="A picture covers the initials drawn under it, and a logo’s clear ground shows the tint"
 >
   <Specimen label="Person" code="src">
     <Avatar name="Grace Hopper" src={portrait} size={32} />

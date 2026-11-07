@@ -38,7 +38,7 @@
 
 <Example
   title="Links"
-  note="Links stand on the heading's edge with no bullets, one target plus 4 px apart, and one that leaves the product says so"
+  note="Links stand on the heading’s edge with no bullets, one target plus 4 px apart, and one that leaves the product says so"
   layout="grid"
 >
   <Specimen label="Plain">
@@ -63,7 +63,7 @@
 
 <Example
   title="In a Section"
-  note="In a pane's aside, the list hangs from its section heading, which names it"
+  note="In a pane’s aside, the list hangs from its section heading, which names it"
   layout="stack"
   ground="canvas"
 >

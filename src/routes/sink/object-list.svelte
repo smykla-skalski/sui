@@ -140,7 +140,7 @@
 
 <Example
   title="In Context"
-  note="Rows stand on hairlines inset by their padding, and their words keep the section title's edge"
+  note="Rows stand on hairlines inset by their padding, and their words keep the section title’s edge"
   layout="stack"
   ground="canvas"
 >

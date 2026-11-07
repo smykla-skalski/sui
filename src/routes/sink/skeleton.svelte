@@ -23,7 +23,7 @@
 
 <Example
   title="Rows"
-  note="Bars stand where a row's name, its line under it and its side will be, plain rows draw one line, and one light crosses them"
+  note="Bars stand where a row’s name, its line under it and its side will be, plain rows draw one line, and one light crosses them"
   layout="grid"
   ground="canvas"
 >
@@ -47,7 +47,7 @@
 
 <Example
   title="Slow"
-  note="A wait that outlasts its patience stops its light and says so in the first row's shape, here from the start"
+  note="A wait that outlasts its patience stops its light and says so in the first row’s shape, here from the start"
   layout="grid"
   ground="canvas"
 >

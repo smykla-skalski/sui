@@ -31,7 +31,7 @@
 
 <Example
   title="First Load"
-  note="The title comes from the row that opened the pane, and placeholders hold each section's place until the check arrives"
+  note="The title comes from the row that opened the pane, and placeholders hold each section’s place until the check arrives"
   layout="stack"
   ground="canvas"
   code={false}

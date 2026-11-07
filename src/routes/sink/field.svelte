@@ -98,7 +98,7 @@
 
 <Example
   title="Label beside a Checkbox"
-  note="A row layout centres the label and a form's checkbox on one line, and the label names the box"
+  note="A row layout centres the label and a form’s checkbox on one line, and the label names the box"
   layout="grid"
 >
   <Specimen label="Checked" code={'layout="row"'}>
@@ -123,7 +123,7 @@
 
 <Example
   title="Refused Send"
-  note="A refused send shows each field's own error in place of the browser's bubble and focuses the first field to fix"
+  note="A refused send shows each field’s own error in place of the browser’s bubble and focuses the first field to fix"
   layout="grid"
 >
   <Specimen label={sent} code="required pattern validationMessage">
@@ -152,7 +152,7 @@
 
 <Example
   title="In Context"
-  note="Fields stack 16 px apart, and a focused field's own border becomes the ring, so nothing around it clips it"
+  note="Fields stack 16 px apart, and a focused field’s own border becomes the ring, so nothing around it clips it"
   layout="grid"
   ground="canvas"
 >

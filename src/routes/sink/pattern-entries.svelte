@@ -128,7 +128,7 @@
 
 <Example
   title="Right to Left"
-  note="The entries flow from the right and each cross sits at its field's left end"
+  note="The entries flow from the right and each cross sits at its field’s left end"
   layout="grid"
 >
   <Specimen label="Right to left" code={'dir="rtl"'}>
@@ -138,7 +138,7 @@
 
 <Example
   title="Narrow Width"
-  note="In a phone's width the entries wrap from the start edge, and a long one takes a line of its own"
+  note="In a phone’s width the entries wrap from the start edge, and a long one takes a line of its own"
   layout="stack"
 >
   <Specimen label="Phone width">

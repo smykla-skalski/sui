@@ -63,7 +63,7 @@
 
 <Example
   title="States"
-  note="The count and the end note hold the start, the button holds the end, and a failure takes the count's place"
+  note="The count and the end note hold the start, the button holds the end, and a failure takes the count’s place"
   layout="grid"
   ground="canvas"
 >
