@@ -61,7 +61,10 @@ A link that is always visible is `Link`, and words that are never shown are `Vis
       var(--sui-sans);
     inset-block-start: max(var(--sui-space-3), env(safe-area-inset-top));
     inset-inline-start: max(var(--sui-space-4), var(--sui-safe-start));
-    max-inline-size: calc(100vw - 2 * var(--sui-space-4));
+    max-inline-size: calc(
+      100vw - max(var(--sui-space-4), var(--sui-safe-start)) -
+        max(var(--sui-space-4), var(--sui-safe-end))
+    );
     padding: var(--sui-space-2) var(--sui-space-3);
     padding-block: calc(var(--sui-space-2) + var(--sui-block-snap-half, 0px))
       calc(var(--sui-space-2) + var(--sui-block-snap-spare, 0px) - var(--sui-block-snap-half, 0px));

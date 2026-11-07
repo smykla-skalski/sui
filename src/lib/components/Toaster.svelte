@@ -319,7 +319,7 @@ A `danger` toast reports a failure and stays too.
     inset-inline-end: var(--sui-safe-end);
     margin: 0;
     max-block-size: 100dvh;
-    max-inline-size: 100vw;
+    max-inline-size: calc(100vw - var(--sui-safe-start) - var(--sui-safe-end));
     overflow-y: auto;
     overscroll-behavior: contain;
     padding: var(--sui-space-4);
@@ -450,7 +450,7 @@ A `danger` toast reports a failure and stays too.
   /* On a phone the stack spans the screen and each toast takes its width. */
   @media (max-width: 47.9375rem) {
     .sui-toaster {
-      inset-inline-start: 0;
+      inset-inline-start: var(--sui-safe-start);
     }
 
     .sui-toast {

@@ -251,7 +251,11 @@ dismisses it, and the return says "You are back online" for five seconds.
     inset-block-end: max(var(--sui-space-4), env(safe-area-inset-bottom));
     inset-inline-start: max(var(--sui-space-4), var(--sui-safe-start));
     margin: 0;
-    max-inline-size: min(28rem, 100vw - 2 * var(--sui-space-4));
+    max-inline-size: min(
+      28rem,
+      100vw - max(var(--sui-space-4), var(--sui-safe-start)) -
+        max(var(--sui-space-4), var(--sui-safe-end))
+    );
     opacity: 0;
     overflow: visible;
     position: fixed;
@@ -326,7 +330,7 @@ dismisses it, and the return says "You are back online" for five seconds.
   @media (max-width: 47.9375rem) {
     .sui-service-worker-status:not(.preview) {
       inline-size: auto;
-      inset-inline-end: var(--sui-space-4);
+      inset-inline-end: max(var(--sui-space-4), var(--sui-safe-end));
       max-inline-size: none;
     }
   }

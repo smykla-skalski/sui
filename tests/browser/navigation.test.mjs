@@ -324,8 +324,10 @@ suite('navigation', together, () => {
               `${name} at ${Math.round(box.x)},${Math.round(box.y)} ${box.width}x${box.height}`
             );
         };
-        await page.keyboard.press('Tab');
         const skip = page.locator('.sui-skip-link');
+        // A long label meets the width cap, which must keep clear of the inset on either side.
+        await skip.evaluate((link) => (link.textContent = 'Skip to the main content '.repeat(8)));
+        await page.keyboard.press('Tab');
         await skip.evaluate((link) => Promise.all(link.getAnimations().map((run) => run.finished)));
         await inside(skip, 'skip link');
         await skip.evaluate((link) => /** @type {HTMLElement} */ (link).blur());
