@@ -123,7 +123,7 @@ outcome tones always come with their word, so color never carries the state alon
     color: var(--sui-text-secondary);
     display: inline-flex;
     flex: none;
-    font: var(--sui-weight-medium) var(--sui-font-size-compact) / var(--sui-leading-tight)
+    font: var(--sui-weight-semibold) var(--sui-font-size-compact) / var(--sui-leading-tight)
       var(--sui-sans);
     gap: var(--sui-space-1);
     inline-size: fit-content;

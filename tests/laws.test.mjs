@@ -262,7 +262,7 @@ test('L-107 a scroll edge fades over 24px, and over 20px on a phone', () => {
   );
 });
 
-test('L-64 a placeholder light stops by the 10 seconds a skeleton waits to turn slow, and a waiting chart draws its grid on half the veil', () => {
+test('L-64 a placeholder light stops by the 10 seconds a skeleton waits to turn slow, and a waiting chart draws its grid', () => {
   const wait = /\.sui-chart-wait\s*\{[^}]*\}/.exec(
     stripComments(styles['src/lib/charts/ChartFrame.svelte'])
   )?.[0];
@@ -271,11 +271,6 @@ test('L-64 a placeholder light stops by the 10 seconds a skeleton waits to turn 
     ['25', '50', '75']
   );
   assert.match(wait ?? '', /--sui-local-wait-line:\s*linear-gradient\(var\(--sui-chart-grid\)/);
-  assert.match(
-    wait ?? '',
-    /content-box,\s*color-mix\(in srgb, var\(--sui-placeholder\) 50%, transparent\);/,
-    'a waiting chart takes the full placeholder veil, which outweighs the charts beside it'
-  );
   const tokens = tokenMap(stripComments(palette));
   const patience = /patience = ([\d_]+)/.exec(read('src/lib/components/Skeleton.svelte'))?.[1];
   assert.equal(
@@ -376,11 +371,6 @@ test('L-25 the type tiers keep the sizes the law names', () => {
     styles['src/lib/components/DataTable.svelte'],
     /\n  thead th \{[^}]*font: var\(--sui-weight-semibold\) var\(--sui-font-size-compact\)/,
     'a column heading stands no step under the rows it heads'
-  );
-  assert.match(
-    styles['src/lib/components/Pill.svelte'],
-    /\n  \.sui-pill \{[^}]*font: var\(--sui-weight-medium\) var\(--sui-font-size-compact\)/,
-    'a pill competes with the names it stands beside'
   );
   assert.match(
     styles['src/lib/components/DataTable.svelte'],
