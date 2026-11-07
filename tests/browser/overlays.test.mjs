@@ -889,9 +889,11 @@ suite('overlays', together, () => {
             get saving() {
               return get(saving);
             },
+            // The save ends when the test says so, so a busy machine cannot end it before
+            // the test reads its busy words.
             onsave() {
               set(saving, true);
-              setTimeout(() => set(saving, false), 50);
+              Object.assign(window, { saved: () => set(saving, false) });
             },
             ondiscard() {
               set(dirty, false);
@@ -903,6 +905,7 @@ suite('overlays', together, () => {
       });
       await page.getByRole('button', { name: 'Save', exact: true }).click();
       await page.getByRole('button', { name: 'Saving…', exact: true }).waitFor();
+      await page.evaluate(() => /** @type {any} */ (window).saved());
       await page.getByRole('button', { name: 'Save', exact: true }).waitFor();
       await page.getByRole('button', { name: 'Discard', exact: true }).click();
       await page.waitForFunction(

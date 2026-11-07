@@ -23,9 +23,13 @@ after(async () => {
   await server?.close();
 });
 
-/** An app page: the library loaded, the sink's own sections gone, the CPU slowed. */
-async function app() {
+/**
+ * An app page: the library loaded, the sink's own sections gone, the CPU slowed.
+ * @param {(page: import('playwright-core').Page) => Promise<unknown>} [prepare] runs before the page loads
+ */
+async function app(prepare) {
   const page = await browser.newPage({ viewport: { width: 1280, height: 900 } });
+  await prepare?.(page);
   await visit(page, allSections(url));
   await page.evaluate(async () => {
     const loaded = performance.getEntriesByType('resource').map((entry) => entry.name);
@@ -192,7 +196,20 @@ async function steadiest(measure) {
 }
 
 test('a clock tick over a list of 100 times drops no frame', long, async () => {
-  const page = await app();
+  // The page's one clock ticks every 30 seconds, from the sink's first time on. Here it ticks
+  // every second, so a run sees the same tick in a second rather than in thirty.
+  const page = await app((page) =>
+    page.addInitScript(() => {
+      const every = window.setInterval;
+      window.setInterval = /** @type {typeof setInterval} */ (
+        (
+          /** @type {TimerHandler} */ handler,
+          /** @type {number} */ wait,
+          /** @type {any[]} */ ...rest
+        ) => every(handler, wait === 30_000 ? 1000 : wait, ...rest)
+      );
+    })
+  );
   try {
     await page.evaluate(async () => {
       const { lib, mount, flushSync } = /** @type {any} */ (window);
@@ -209,9 +226,9 @@ test('a clock tick over a list of 100 times drops no frame', long, async () => {
       flushSync();
       await new Promise((painted) => requestAnimationFrame(() => setTimeout(painted)));
     });
-    // The page's one clock ticks every 30 seconds after its first reader mounts.
+    // Two seconds hold at least one tick.
     const late = await steadiest(async () =>
-      (await frames(page, 31_000, async () => {}))
+      (await frames(page, 2000, async () => {}))
         .filter(({ dropped }) => dropped)
         .map(({ gap }) => `${gap}ms`)
     );
