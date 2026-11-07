@@ -251,10 +251,11 @@
   // The browser focuses the panel's `autofocus` control as it shows the panel, so an arrow
   // pressed right after the press already lands inside; an effect would focus it a task later.
   // The mark goes as the panel closes, or a Modal around it would open on the hidden control.
+  // A drag ends there too, before the browser hands focus back to a trigger the drag made inert.
   function onbeforetoggle(event: ToggleEvent & { currentTarget: HTMLElement }) {
     for (const marked of event.currentTarget.querySelectorAll<HTMLElement>('[autofocus]'))
       marked.autofocus = false;
-    if (event.newState !== 'open') return;
+    if (event.newState !== 'open') return dragEnd();
     const first =
       grid?.querySelector<HTMLInputElement>('input:checked') ??
       grid?.querySelector<HTMLInputElement>('input') ??

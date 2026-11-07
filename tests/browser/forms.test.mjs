@@ -819,7 +819,7 @@ suite('forms', together, () => {
     );
 
     test(
-      'the color picker goes back on Escape, leaving no autofocus mark, moves its hue as a native range, focuses each part from its name, stills the page while dragged, keeps a long hex as typed, and commits a short hex and closes when Tab leaves it',
+      'the color picker goes back on Escape, even mid-drag, leaving no autofocus mark, moves its hue as a native range, focuses each part from its name, stills the page while dragged, keeps a long hex as typed, and commits a short hex and closes when Tab leaves it',
       long,
       async () => {
         const page = await opened();
@@ -913,10 +913,15 @@ suite('forms', together, () => {
           'important'
         );
 
+        // Escape in the middle of a drag closes the picker and gives back the page and focus.
+        await page.mouse.move(area.x + area.width / 2, area.y + area.height / 2);
+        await page.mouse.down();
         await page.keyboard.press('Escape');
         await page.waitForFunction(() => !document.querySelector('.sui-popover:popover-open'));
-        assert.equal((await trigger.textContent())?.trim(), start);
+        assert.equal((await still()).page, 'live', 'the closed picker left the page inert');
         assert.ok(await trigger.evaluate((button) => document.activeElement === button));
+        await page.mouse.up();
+        assert.equal((await trigger.textContent())?.trim(), start);
         assert.equal(await marks(), unmarked, 'the closed picker left an autofocus mark');
 
         await open();
