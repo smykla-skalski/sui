@@ -37,10 +37,11 @@ suite('the kitchen sink', together, () => {
    * @param {number} width
    * @param {string} theme
    * @param {import('playwright-core').BrowserContextOptions} [options]
+   * @param {string} [section] a section's own page, for a test that reads only that section
    */
-  async function open(width, theme, options = {}) {
+  async function open(width, theme, options = {}, section) {
     const page = await browser.newPage({ viewport: { width, height: 900 }, ...options });
-    await visit(page, allSections(url));
+    await visit(page, section ? new URL(`${section}/`, url).href : allSections(url));
     await page.evaluate(async (name) => {
       document.documentElement.dataset.suiTheme = name;
       await document.fonts.ready;
@@ -521,7 +522,7 @@ suite('the kitchen sink', together, () => {
     'L-57 a disclosure opens to its full height at once and fades in its content',
     long,
     async () => {
-      const page = await open(1440, 'light');
+      const page = await open(1440, 'light', {}, 'disclosure');
       try {
         const opened = await page.evaluate(async () => {
           const details = /** @type {HTMLDetailsElement} */ (
@@ -545,7 +546,7 @@ suite('the kitchen sink', together, () => {
 
   // A hint that keeps its seat beside the words squeezes them onto more lines on a phone.
   test("L-57 a disclosure's hint shares the words' line only when both fit", async () => {
-    const page = await open(375, 'light');
+    const page = await open(375, 'light', {}, 'disclosure');
     try {
       const placed = await page.evaluate(() =>
         ['Skipped Repositories', 'More About This Sync'].map((name) => {
@@ -582,7 +583,7 @@ suite('the kitchen sink', together, () => {
       [1440, '100%'],
       [375, '200%']
     ])) {
-      const page = await open(width, 'light');
+      const page = await open(width, 'light', {}, 'pill');
       try {
         await page.evaluate((size) => (document.documentElement.style.fontSize = size), text);
         const off = await page.evaluate(() => {
@@ -1133,7 +1134,7 @@ suite('the kitchen sink', together, () => {
     );
 
   test('L-50 a finger dragging the thumb chooses where it lifts', long, async () => {
-    const page = await open(390, 'light', { hasTouch: true, isMobile: true });
+    const page = await open(390, 'light', { hasTouch: true, isMobile: true }, 'segmented-control');
     try {
       const track = page
         .locator('#segmented-control .sui-segmented-track:not(:disabled)')
@@ -1185,7 +1186,7 @@ suite('the kitchen sink', together, () => {
   });
 
   test('L-50 a dragged thumb chooses on release, and Escape puts it back', long, async () => {
-    const page = await open(1440, 'light');
+    const page = await open(1440, 'light', {}, 'segmented-control');
     try {
       const track = page
         .locator('#segmented-control .sui-segmented-track:not(:disabled)')
@@ -1232,7 +1233,7 @@ suite('the kitchen sink', together, () => {
   });
 
   test('L-80 a clipped label answers its own hover, not the page around it', long, async () => {
-    const page = await open(1440, 'light');
+    const page = await open(1440, 'light', {}, 'clipped-label');
     try {
       const stage = page.locator('#clipped-label .stage').first();
       await stage.scrollIntoViewIfNeeded();
@@ -1260,7 +1261,7 @@ suite('the kitchen sink', together, () => {
   });
 
   test("L-91 and L-89 a row's change of state moves nothing and keeps focus", long, async () => {
-    const page = await open(1440, 'light');
+    const page = await open(1440, 'light', {}, 'setting-list');
     try {
       const list = page.locator('#setting-list .sui-setting-list').first();
       await list.scrollIntoViewIfNeeded();
@@ -1298,7 +1299,7 @@ suite('the kitchen sink', together, () => {
     'L-52 and L-89 a pair chip edits in place and focus never falls to the page',
     long,
     async () => {
-      const page = await open(1440, 'light');
+      const page = await open(1440, 'light', {}, 'pair-entry');
       try {
         const entry = page.locator('#pair-entry .sui-pair-entry').first();
         await entry.scrollIntoViewIfNeeded();
