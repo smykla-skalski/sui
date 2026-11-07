@@ -85,7 +85,7 @@ margins of its own; the form that holds it sets the gap above it.
       {@attach arrive}
     >
       <p class="sui-form-error-message">
-        <span class="sui-form-error-mark"><Icon name="alert" size="xs" /></span>
+        <span class="sui-form-error-mark"><Icon name="alert" size="base" /></span>
         <span class="sui-form-error-text">{message}</span>
       </p>
       {#if problems.length > 0}
@@ -127,7 +127,7 @@ margins of its own; the form that holds it sets the gap above it.
   .sui-form-error-message {
     align-items: start;
     color: var(--sui-danger);
-    column-gap: var(--sui-space-1);
+    column-gap: var(--sui-space-2);
     display: grid;
     font: var(--sui-weight-medium) var(--sui-font-size-body) / var(--sui-row-copy-leading)
       var(--sui-sans);
@@ -138,7 +138,7 @@ margins of its own; the form that holds it sets the gap above it.
   /* Centred on the first line's cap height, however many lines the message wraps to. */
   .sui-form-error-mark {
     display: flex;
-    margin-block: round(calc((1cap - var(--sui-icon-xs)) / 2), 1px);
+    margin-block: round(calc((1cap - var(--sui-icon-base)) / 2), 1px);
   }
 
   .sui-form-error-text {
@@ -159,7 +159,7 @@ margins of its own; the form that holds it sets the gap above it.
     list-style: none;
     margin: 0;
     padding: 0;
-    padding-inline-start: calc(var(--sui-icon-xs) + var(--sui-space-1));
+    padding-inline-start: calc(var(--sui-icon-base) + var(--sui-space-2));
   }
 
   /* 44px hit areas on lines this close would overlap, so a touch screen spaces them out. */
