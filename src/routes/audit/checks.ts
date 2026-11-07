@@ -2367,9 +2367,9 @@ function tonedControls(root: Document): Finding[] {
 /**
  * A dialog's parts (L-58): the head, the body, the error and the actions stand one inset from
  * every edge and from each other, measured to the ink, and the head 8px more from the body. The
- * line that parts the body from the actions is an edge too, so the body stands two insets from
- * what follows it. A body that scrolls is cut where the actions begin, and a docked inspector
- * parks them at its foot, so neither gap is weighed.
+ * line that parts the body from the actions stands half an inset under the body, and what
+ * follows stands one inset under the line. A body that scrolls is cut where the actions begin,
+ * and a docked inspector parks them at its foot, so neither gap is weighed.
  */
 function dialogInsets(root: Document): Finding[] {
   const found: Finding[] = [];
@@ -2429,7 +2429,7 @@ function dialogInsets(root: Document): Finding[] {
         over === top && under === inBody
           ? inset + step
           : lined && over === inBody
-            ? 2 * inset
+            ? 1.5 * inset
             : inset;
       if (!under)
         return [{ gap: box.bottom - parseFloat(look.borderBottomWidth) - over.bottom, want }];
