@@ -377,6 +377,11 @@ suite('forms', together, () => {
       await control.scrollIntoViewIfNeeded();
       const thumb = control.locator('.sui-segmented-thumb');
       await thumb.waitFor();
+      // The travel runs 240ms, less than a busy runner may take between the click and the read,
+      // so it is held long enough to still be running when read.
+      await control.evaluate((node) =>
+        /** @type {HTMLElement} */ (node).style.setProperty('--sui-duration-travel', '60s')
+      );
       const checked = await control.locator('input:checked').getAttribute('value');
       await control
         .locator('label', { hasText: checked === 'users' ? 'Invitations' : 'Users' })
