@@ -1150,6 +1150,26 @@ suite('the kitchen sink', together, () => {
         wanted,
         'lifting the finger over an option did not choose it'
       );
+
+      // A second finger lands on the thumb mid-drag, and both lift.
+      const held = () =>
+        page.evaluate(() => ({
+          inert: document.querySelectorAll('[inert]').length,
+          select: document.documentElement.style.userSelect
+        }));
+      const rest = await held();
+      await touch('touchStart', x1, y);
+      for (let step = 1; step <= 4; step++)
+        await touch('touchMove', x1 + ((x0 - x1) * step) / 4, y);
+      await cdp.send('Input.dispatchTouchEvent', {
+        type: 'touchStart',
+        touchPoints: [
+          { x: x0, y, id: 0 },
+          { x: x0 + 2, y, id: 1 }
+        ]
+      });
+      await touch('touchEnd', x0, y);
+      assert.deepEqual(await held(), rest, 'two fingers on the thumb left the page held');
     } finally {
       await page.close();
     }

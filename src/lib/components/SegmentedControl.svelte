@@ -245,7 +245,9 @@
   }
 
   function grab(event: PointerEvent) {
-    if (disabled || locked || event.button !== 0 || value === null) return;
+    // A second finger on the thumb would take over the drag and lose its release, which keeps
+    // the page inert after both lift.
+    if (drag?.captured || disabled || locked || event.button !== 0 || value === null) return;
     const option = (event.target as Element).closest('label');
     if (!option?.classList.contains('selected')) return;
     drag = { pointer: event.pointerId, x: event.clientX, captured: false };
