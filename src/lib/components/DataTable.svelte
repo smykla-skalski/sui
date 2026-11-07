@@ -455,7 +455,7 @@ row in place of the hairlines, for a table wide enough that the eye can lose its
     border-block-end: var(--sui-stroke) solid var(--sui-border-control);
     vertical-align: middle;
     color: var(--sui-text-primary);
-    font: var(--sui-weight-semibold) var(--sui-font-size-control) / var(--sui-leading-compact)
+    font: var(--sui-weight-semibold) var(--sui-font-size-compact) / var(--sui-leading-compact)
       var(--sui-sans);
   }
 

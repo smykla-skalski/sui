@@ -367,6 +367,11 @@ test('L-25 the type tiers keep the sizes the law names', () => {
     styles['src/lib/components/PageHeader.svelte'],
     /font: var\(--sui-weight-bold\) var\(--sui-font-size-page-title\)/
   );
+  assert.match(
+    styles['src/lib/components/DataTable.svelte'],
+    /\n  thead th \{[^}]*font: var\(--sui-weight-semibold\) var\(--sui-font-size-compact\)/,
+    'a column heading stands no step under the rows it heads'
+  );
 });
 
 test('L-22 the phone reads one step larger and types at 16px', () => {
