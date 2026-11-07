@@ -230,6 +230,22 @@ test('L-107 a scroll edge fades over 24px, and over 12px on a phone', () => {
   );
 });
 
+test('L-64 a placeholder light stops by the 10 seconds a skeleton waits to turn slow', () => {
+  const tokens = tokenMap(stripComments(palette));
+  const patience = /patience = ([\d_]+)/.exec(read('src/lib/components/Skeleton.svelte'))?.[1];
+  assert.equal(
+    Number(tokens['--sui-placeholder-runs']) * parseFloat(tokens['--sui-duration-shimmer']),
+    Number(patience?.replaceAll('_', ''))
+  );
+  for (const path of ['src/lib/components/DataTable.svelte', 'src/lib/charts/ChartFrame.svelte']) {
+    const sheens = [
+      ...stripComments(styles[path]).matchAll(/animation:\s*sui-[\w-]+-sheen\b[^;]*/g)
+    ].map(([rule]) => rule.replace(/\s+/g, ' '));
+    assert.ok(sheens.length > 0, path);
+    for (const rule of sheens) assert.match(rule, /var\(--sui-placeholder-runs\) both$/, path);
+  }
+});
+
 test('L-59 a state panel pads 24px and stands its action 20px under its words', () => {
   const space = tokenMap(stripComments(palette));
   for (const name of ['empty', 'error']) {

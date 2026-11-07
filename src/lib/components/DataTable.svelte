@@ -771,7 +771,8 @@ row in place of the hairlines, for a table wide enough that the eye can lose its
   }
 
   .placeholder .bar::after {
-    animation: sui-data-table-sheen var(--sui-duration-shimmer) var(--sui-ease-linear) infinite;
+    animation: sui-data-table-sheen var(--sui-duration-shimmer) var(--sui-ease-linear)
+      var(--sui-placeholder-runs) both;
     background: var(--sui-placeholder-sheen);
     content: '';
     inset-block: 0;

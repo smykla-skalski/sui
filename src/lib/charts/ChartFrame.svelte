@@ -342,7 +342,8 @@
   }
 
   .sui-chart-wait::after {
-    animation: sui-chart-sheen var(--sui-duration-shimmer) var(--sui-ease-linear) infinite;
+    animation: sui-chart-sheen var(--sui-duration-shimmer) var(--sui-ease-linear)
+      var(--sui-placeholder-runs) both;
     background: var(--sui-placeholder-sheen);
     content: '';
     inset-block: 0;
