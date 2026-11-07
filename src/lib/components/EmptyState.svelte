@@ -67,7 +67,7 @@ a step 8px under it.
 - Keyboard: none of its own; the action takes Tab.
 - Pointer and touch: the action keeps its own 34px and 44px targets.
 - Focus: it never takes focus; when a filter empties a list, focus stays on the field the reader typed in.
-- Responsive: it fills its column, the copy and the actions wrap, and on a phone the panel pads 16px so the words keep the width.
+- Responsive: it fills its column, the copy and the actions wrap, and on a phone the panel pads 20px so the words keep more of the width.
 - Accessibility: the words say why the list is empty, and `live` announces the state when a search or a filter brings it.
 - Localization: every word is the caller's, and it starts at the inline start, mirrored in a right-to-left page.
 - Performance: a static block; `live` sets one short timer when it appears or its words change.
@@ -99,7 +99,7 @@ a step 8px under it.
     gap: var(--sui-space-5);
     justify-items: start;
     min-inline-size: 0;
-    padding: var(--sui-space-8) var(--sui-space-6);
+    padding: var(--sui-space-7) var(--sui-space-6);
   }
 
   .sui-empty-state-copy {
@@ -145,11 +145,11 @@ a step 8px under it.
     gap: var(--sui-space-2);
   }
 
-  /* A phone gives the words the width the panel's inset would take. */
+  /* A phone gives the words some of the width the panel's inset would take. */
   @media (max-width: 47.9375rem) {
     .sui-empty-state {
       gap: var(--sui-space-4);
-      padding: var(--sui-space-4);
+      padding: var(--sui-space-5);
     }
   }
 </style>
