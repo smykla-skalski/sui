@@ -47,7 +47,7 @@
     loading = false,
     placeholders = 3,
     locale,
-    emptyLabel = word('Timeline.emptyLabel', 'Nothing has happened yet'),
+    emptyLabel = word('Timeline.emptyLabel', 'Check back once the first event happens'),
     loadingLabel = word('Timeline.loadingLabel', 'Loading…'),
     class: className = '',
     ...rest

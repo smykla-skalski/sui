@@ -14,7 +14,7 @@
   let {
     items,
     current,
-    label = word('Breadcrumb.label', 'Where this page sits'),
+    label = word('Breadcrumb.label', 'Breadcrumb'),
     onnavigate,
     class: className = '',
     ...rest

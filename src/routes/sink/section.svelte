@@ -52,7 +52,7 @@
     {#snippet main()}
       <Section title="Outcome" level={4}>
         <p class="copy">
-          Three repositories differ from the saved settings. Twelve match and one was not checked.
+          3 repositories differ from the saved settings. 12 match and the check skipped 1.
         </p>
       </Section>
       <Section title="Repositories" count={16} level={4}>
@@ -84,7 +84,7 @@
   <Specimen label="Title & description" code="title description">
     <Section title="Outcome" description="What the last check found" level={4}>
       <p class="copy">
-        Three repositories differ from the saved settings. Twelve match and one was not checked.
+        3 repositories differ from the saved settings. 12 match and the check skipped 1.
       </p>
     </Section>
   </Specimen>
@@ -114,7 +114,7 @@
     <div>
       <Section title="Outcome" level={4}>
         <p class="copy">
-          Three repositories differ from the saved settings. Twelve match and one was not checked.
+          3 repositories differ from the saved settings. 12 match and the check skipped 1.
         </p>
       </Section>
       <Section title="Timeline" level={4}>

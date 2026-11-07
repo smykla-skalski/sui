@@ -26,7 +26,7 @@
     items,
     foot = [],
     current,
-    label = word('Rail.label', 'Places'),
+    label = word('Rail.label', 'Workspaces'),
     badgeLabel = word('Rail.badgeLabel', (count: number) => `${formatCount(count)} waiting`),
     brand,
     onpick,

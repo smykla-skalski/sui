@@ -6,7 +6,7 @@
     text,
     label = word('CopyButton.label', 'Copy'),
     copiedLabel = word('CopyButton.copiedLabel', 'Copied'),
-    failedLabel = word('CopyButton.failedLabel', 'Copy Failed'),
+    failedLabel = word('CopyButton.failedLabel', 'Try Again'),
     toolbar = false,
     bare = false,
     disabled = false,
@@ -84,7 +84,7 @@
 <!--
 @component
 A small bordered button that puts `text` on the clipboard and says "Copied" for 1.6 seconds,
-or "Copy Failed" when the browser refuses the write, which stays until the next press. Name
+or "Try Again" when the browser refuses the write, which stays until the next press. Name
 what it copies in `label`, such as "Copy Link", because a page of buttons all called "Copy"
 tells a screen reader nothing.
 
@@ -107,7 +107,7 @@ in its corner. Beside a 34px field or in a toolbar it takes the control tier wit
 - Localization: `label`, `copiedLabel` and `failedLabel` are props with English defaults, and the shared box fits whichever is longest.
 - Performance: one button and one status per instance, with two timers that clear on unmount; only colours, the inset shadow and the 1px sink move.
 - Analytics: `oncopied` hears each copy that landed and `oncopyfailed` each refused write.
-- Failure: a refused write says "Copy Failed" in danger ink until the next press and calls `oncopyfailed`, so the text can be offered to select by hand.
+- Failure: a refused write says "Try Again" in danger ink until the next press and calls `oncopyfailed`, so the text can be offered to select by hand.
 -->
 
 <button

@@ -11,7 +11,7 @@
     hint,
     copyLabel = word('CopyableLinkField.copyLabel', 'Copy Link'),
     copiedLabel = word('CopyableLinkField.copiedLabel', 'Copied'),
-    failedLabel = word('CopyableLinkField.failedLabel', 'Copy Failed'),
+    failedLabel = word('CopyableLinkField.failedLabel', 'Copy by Hand'),
     oncopied,
     oncopyfailed,
     class: className = '',

@@ -6,7 +6,7 @@ The source laws, the in-page audit and the browser suite catch regressions. They
 
 Run with VoiceOver on macOS and iOS, NVDA and JAWS on Windows, and TalkBack on Android.
 
-- Combobox and the pair entry editor: `aria-activedescendant` into the listbox, the "Searching" and "Nothing matches" status, and the chosen value read back.
+- Combobox and the pair entry editor: `aria-activedescendant` into the listbox, the "Searching" and "No suggestions match" status, and the chosen value read back.
 - Buttons and icon buttons while `loading` or `busy`: the busy state is announced and focus stays.
 - Switch on and off, the checkbox's mixed state, and segmented control selection and its select fallback.
 - The save bar's first appearance, a toast's announcement, ErrorState's alert and its retry label.
@@ -28,7 +28,7 @@ The long browser suite stands in for part of this on emulated touch screens, whi
 Run a moderated task test with five to eight readers per user type, and repeat after each round of changes.
 
 - First use: can a new reader name the main action of a settings page and change a setting, including a list of pairs?
-- Recognition: the `undo`, `filter`, `sort`, `refresh` and sidebar glyphs, the pill's dot and pulse, the "Unsaved" word and gold plate, and the "Override" and "Use inherited value" words.
+- Recognition: the `undo`, `filter`, `sort`, `refresh` and sidebar glyphs, the pill's dot and pulse, the "Unsaved" word and gold plate, and the "Override Value" and "Use Inherited Value" words.
 - Navigation: the rail plus sidebar model on a desktop, and the bottom navigation plus drawer on a phone.
 - Reading: whether the toast's five seconds are enough, and whether a heatmap and a range chart are read correctly with their legends.
 

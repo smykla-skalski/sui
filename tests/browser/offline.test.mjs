@@ -484,7 +484,7 @@ export default {
       await page.evaluate(() => Object.assign(window, { untouched: true }));
       await Promise.all([
         page.waitForEvent('load'),
-        ready.getByRole('button', { name: 'Reload' }).click()
+        ready.getByRole('button', { name: 'Reload', exact: true }).click()
       ]);
       assert.equal(await page.evaluate(() => 'untouched' in window), false);
       assert.equal(

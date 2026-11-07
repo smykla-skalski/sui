@@ -171,7 +171,7 @@
     {#snippet main()}
       <Section title="Outcome">
         <p class="lede">
-          Three repositories differ from the saved settings. Twelve match and one was not checked.
+          3 repositories differ from the saved settings. 12 match and the check skipped 1.
         </p>
         <FactList facts={counts} />
       </Section>
@@ -278,8 +278,8 @@
       <PageHeader title="Sync Check #4182" kicker={back} />
       <div class="zones">
         <ErrorState
-          title="Sync Check #4182 Was Not Found"
-          description="It was deleted or never existed"
+          title="Sync Check #4182 Does Not Exist"
+          description="Someone deleted it or it never existed"
           step="Go back to the queue to open another check"
         />
       </div>
@@ -289,13 +289,13 @@
         {#if view === 'stale'}
           <ErrorState
             overContent
-            title="The Check Could Not Be Refreshed"
+            title="The Check Could Not Refresh"
             description="Showing what loaded a minute ago"
             onretry={refresh}
             busy={refreshing}
           />
         {:else}
-          <Callout tone="warning" title="1 repository was not checked">
+          <Callout tone="warning" title="The check skipped 1 repository">
             {#snippet icon()}<Icon name="warning" size="sm" />{/snippet}
             The app lost access to acme/legacy during the check
             {#snippet actions()}<Button>Fix Access</Button>{/snippet}

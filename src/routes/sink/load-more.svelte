@@ -40,7 +40,7 @@
       loading = false;
       if (shown === PAGE && !failedOnce) {
         failedOnce = true;
-        problem = 'The next page could not be loaded';
+        problem = 'The next page could not load';
         return;
       }
       shown = Math.min(shown + PAGE, EVENTS.length);
@@ -87,7 +87,7 @@
         more
         shown={2}
         total={12}
-        problem="The next page could not be loaded"
+        problem="The next page could not load"
         onmore={() => {}}
       />
     </Section>

@@ -11,10 +11,7 @@
     confirmLabel,
     cancelLabel = word('ConfirmDialog.cancelLabel', 'Cancel'),
     closeLabel = word('ConfirmDialog.closeLabel', 'Close'),
-    failedLabel = word(
-      'ConfirmDialog.failedLabel',
-      () => 'That could not be done, so nothing changed'
-    ),
+    failedLabel = word('ConfirmDialog.failedLabel', () => 'Nothing changed, so you can try again'),
     tone = 'signal',
     onconfirm,
     oncancel,

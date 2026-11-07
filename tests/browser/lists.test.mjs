@@ -892,7 +892,7 @@ suite('lists', together, () => {
     test('K6 a retried error that leaves no control keeps focus where it stood', long, async () => {
       const page = await opened();
       const retry = page
-        .locator('#states .specimen', { hasText: 'Usage Could Not Be Loaded' })
+        .locator('#states .specimen', { hasText: 'Usage Could Not Load' })
         .getByRole('button', { name: 'Try Again' });
       await retry.scrollIntoViewIfNeeded();
       await retry.focus();
@@ -1050,7 +1050,7 @@ suite('lists', together, () => {
       assert.equal(await specimen('Failed').getByRole('button', { name: 'Try Again' }).count(), 1);
       assert.match(
         (await specimen('Nothing to set').textContent()) ?? '',
-        /Settings show here once there are any/
+        /Check back once this part has settings/
       );
     });
 
@@ -1182,7 +1182,7 @@ suite('lists', together, () => {
         // Saving again would be refused, so Reload is the only way on.
         assert.deepEqual(await bar.getByRole('button').allInnerTexts(), ['Reload']);
 
-        const reload = bar.getByRole('button', { name: 'Reload' });
+        const reload = bar.getByRole('button', { name: 'Reload', exact: true });
         await reload.click();
         const busy = bar.getByRole('button', { name: 'Reloading…' });
         assert.equal(await busy.getAttribute('aria-busy'), 'true');
@@ -1198,7 +1198,10 @@ suite('lists', together, () => {
 
         await page.keyboard.press('Enter');
         assert.equal(await field.inputValue(), 'develop', 'Undo did not put the draft back');
-        assert.deepEqual(await bar.getByRole('button').allInnerTexts(), ['Discard', 'Save']);
+        assert.deepEqual(await bar.getByRole('button').allInnerTexts(), [
+          'Discard',
+          'Save Changes'
+        ]);
         assert.match(await focused(page), /^button Save/, 'focus did not land on Save');
       }
     );

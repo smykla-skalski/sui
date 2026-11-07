@@ -24,7 +24,7 @@
     ),
     reloadLabel = word('ServiceWorkerStatus.reloadLabel', 'Reload'),
     reloadingLabel = word('ServiceWorkerStatus.reloadingLabel', 'Reloading…'),
-    laterLabel = word('ServiceWorkerStatus.laterLabel', 'Later'),
+    laterLabel = word('ServiceWorkerStatus.laterLabel', 'Reload Later'),
     offlineTitle = word('ServiceWorkerStatus.offlineTitle', 'You are offline'),
     offlineDescription = word(
       'ServiceWorkerStatus.offlineDescription',
@@ -173,13 +173,13 @@ across from the toasts.
 
 A new version never takes over a page on its own (L-111). The bar says it is ready, and the old
 version keeps serving the page until the reader presses Reload, which lets the new version in and
-reloads the page once it is in control. Later sets the update aside for this page; the next load
+reloads the page once it is in control. Reload Later sets the update aside for this page; the next load
 offers it again. Offline is a lasting state, so it stays until the network answers or the reader
 dismisses it, and the return says "You are back online" for five seconds.
 
 - Semantics: an `aside` named by its title, in the top layer as a manual popover, with native buttons; each notice is said once from a hidden `status` region kept apart from the bar.
 - Content: a title and a description for an update or for offline, a title alone for the return; at most two buttons; words wrap within 28rem.
-- States: ready (Later and Reload), reloading (Reload busy with `reloadingLabel`, Later held), offline (Dismiss), back online (no buttons, leaves after five seconds, held while hovered or focused), hidden while a modal dialog is open, and drawn in place with `preview`.
+- States: ready (Reload Later and Reload), reloading (Reload busy with `reloadingLabel`, Reload Later held), offline (Dismiss), back online (no buttons, leaves after five seconds, held while hovered or focused), hidden while a modal dialog is open, and drawn in place with `preview`.
 - Keyboard: Tab reaches the bar's buttons after the page's own; Enter or Space presses them; Escape returns focus to where it came from and leaves the notice up.
 - Pointer and touch: the buttons are 34px tall on a pointer and 44px on a phone or touch screen; nothing needs a drag.
 - Focus: opening never takes focus; when a pressed button leaves, focus returns to where it came from, else to the next notice's first button.

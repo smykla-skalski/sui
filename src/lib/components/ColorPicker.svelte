@@ -120,7 +120,7 @@
     label,
     disabled = false,
     name,
-    dialogLabel = word('ColorPicker.dialogLabel', 'Pick a color'),
+    dialogLabel = word('ColorPicker.dialogLabel', 'Choose a color'),
     swatchesLabel = word('ColorPicker.swatchesLabel', 'Swatches'),
     colorName = word('ColorPicker.colorName', describeColor),
     swatchName = word(

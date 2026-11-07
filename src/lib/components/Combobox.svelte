@@ -32,7 +32,7 @@
     preview = false,
     limit = 100,
     name,
-    emptyLabel = word('Combobox.emptyLabel', 'Nothing matches that'),
+    emptyLabel = word('Combobox.emptyLabel', 'No suggestions match'),
     searchingLabel = word('Combobox.searchingLabel', 'Searching…'),
     failedLabel = word(
       'Combobox.failedLabel',
@@ -346,7 +346,7 @@
 @component
 A text field that suggests values as the reader types and commits one. It filters `options` by
 label, or asks `search` for suggestions, marks the matched characters, and says "Searching…"
-while an answer is on its way, "Nothing matches that" when nothing does and that suggestions
+while an answer is on its way, "No suggestions match" when nothing does and that suggestions
 could not load when `search` is refused. Each is announced through a polite status that is
 always in the page, and so is the number of suggestions. `free` also offers what was typed as a
 value of its own. Reach for `Select` when the list is short enough to read whole.

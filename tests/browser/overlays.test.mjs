@@ -490,7 +490,7 @@ suite('overlays', together, () => {
       await page.keyboard.press('Tab');
       await oneLayer();
       assert.deepEqual(await layers(), ['editor'], 'Tab out of the field closed the editor');
-      assert.equal(await focused(page), 'Done');
+      assert.equal(await focused(page), 'Save Pair');
 
       await page.keyboard.press('Escape');
       await page.waitForFunction(() => !document.querySelector(':popover-open'));
@@ -889,15 +889,15 @@ suite('overlays', together, () => {
         });
         flushSync();
       });
-      await page.getByRole('button', { name: 'Save', exact: true }).click();
+      await page.getByRole('button', { name: 'Save Changes', exact: true }).click();
       await page.getByRole('button', { name: 'Saving…', exact: true }).waitFor();
       await page.evaluate(() => /** @type {any} */ (window).saved());
-      await page.getByRole('button', { name: 'Save', exact: true }).waitFor();
+      await page.getByRole('button', { name: 'Save Changes', exact: true }).waitFor();
       await page.getByRole('button', { name: 'Discard', exact: true }).click();
       await page.waitForFunction(
         () =>
           document.querySelector('.sui-save-bar .title')?.textContent ===
-          'Your changes were discarded',
+          'You discarded your changes',
         null,
         brief
       );

@@ -40,8 +40,8 @@
     pagesLabel = word('SideNav.pagesLabel', (title: string) => `${title} pages`),
     level = 2,
     closeLabel = word('SideNav.closeLabel', 'Close navigation'),
-    collapseLabel = word('SideNav.collapseLabel', 'Collapse'),
-    expandLabel = word('SideNav.expandLabel', 'Expand'),
+    collapseLabel = word('SideNav.collapseLabel', 'Collapse Navigation'),
+    expandLabel = word('SideNav.expandLabel', 'Expand Navigation'),
     countLabel = word(
       'SideNav.countLabel',
       (count: number) => `${formatCount(count)} ${count === 1 ? 'item' : 'items'}`
@@ -245,8 +245,8 @@ changes a row's height. Under forced colors the plate is `Highlight` and its wor
 from the current row, does not slide on first paint, and glides to the next row when the page
 changes. Until it is measured the row paints its own plate.
 
-Inside an `AppShell` wide enough to fold, a Collapse control at the end of the list folds it
-into a strip where each row is an icon over a short label, and Expand brings it back. A
+Inside an `AppShell` wide enough to fold, a Collapse Navigation control at the end of the list folds it
+into a strip where each row is an icon over a short label, and Expand Navigation brings it back. A
 tooltip with the full name shows only where `short` replaces a label, and a count is still
 read aloud. In the phone drawer a close button takes the head's end, rows are 44px, and
 following a row closes the drawer.

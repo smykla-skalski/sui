@@ -140,12 +140,12 @@ suite('navigation', together, () => {
         await resize(page, 1440);
         const fold = page.locator('.sui-side-nav-fold');
         const mode = () => page.locator('.sui-side-nav').getAttribute('data-mode');
-        assert.equal((await fold.textContent())?.trim(), 'Collapse');
+        assert.equal((await fold.textContent())?.trim(), 'Collapse Navigation');
         await fold.click();
-        assert.equal((await fold.textContent())?.trim(), 'Expand');
+        assert.equal((await fold.textContent())?.trim(), 'Expand Navigation');
         assert.equal(await mode(), 'collapsed');
         await fold.click();
-        assert.equal((await fold.textContent())?.trim(), 'Collapse');
+        assert.equal((await fold.textContent())?.trim(), 'Collapse Navigation');
         assert.equal(await mode(), 'full');
         assert.ok(
           await fold.evaluate((button) => document.activeElement === button),

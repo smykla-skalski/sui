@@ -136,7 +136,7 @@
   </Specimen>
   <Specimen label="Failed">
     <ErrorState
-      title="The Timeline Could Not Be Loaded"
+      title="The Timeline Could Not Load"
       description="The sync service did not answer. Try again in a moment."
       onretry={refresh}
       busy={refreshing}
@@ -146,7 +146,7 @@
     <div class="kept">
       <ErrorState
         overContent
-        title="The Timeline Could Not Be Refreshed"
+        title="The Timeline Could Not Refresh"
         description="Showing what loaded at 12:02"
         onretry={refresh}
         busy={refreshing}

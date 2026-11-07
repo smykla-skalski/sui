@@ -19,7 +19,7 @@
     class: className = '',
     ...rest
   }: {
-    /** What could not be done, as a statement: "Repositories Could Not Be Loaded". */
+    /** What could not be done, as a statement: "Repositories Could Not Load". */
     title: string;
     /** Why, and what the reader can do about it. */
     description: string;

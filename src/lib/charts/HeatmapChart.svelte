@@ -26,7 +26,7 @@
     columns,
     cells,
     rowHeading = word('HeatmapChart.rowHeading', 'Row'),
-    noDataLabel = word('HeatmapChart.noDataLabel', 'No data'),
+    noDataLabel = word('HeatmapChart.noDataLabel', 'No value'),
     formatValue = formatNumber,
     rangeLabel = word('HeatmapChart.rangeLabel', (from: string, to: string) => `${from}–${to}`),
     ...frame

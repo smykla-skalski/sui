@@ -137,7 +137,7 @@
           </div>
         {:else}
           <ErrorState
-            title="Repositories Could Not Be Loaded"
+            title="Repositories Could Not Load"
             description="The server did not answer in time, so nothing on this page has changed"
             onretry={retry}
             busy={retrying}
@@ -165,7 +165,7 @@
         <p class="name">Usage for this month loaded</p>
       {:else}
         <ErrorState
-          title="Usage Could Not Be Loaded"
+          title="Usage Could Not Load"
           description="The server did not answer in time"
           onretry={() => (settled = true)}
         />
@@ -184,7 +184,7 @@
     <Section title="Repositories" level={4}>
       <ErrorState
         overContent
-        title="The List Could Not Be Refreshed"
+        title="The List Could Not Refresh"
         description="Showing what loaded at {clock(14, 2)}"
         onretry={refresh}
         busy={refreshing}

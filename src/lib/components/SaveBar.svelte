@@ -17,15 +17,15 @@
     reloading = false,
     title = word('SaveBar.title', 'You have unsaved changes'),
     subtitle = word('SaveBar.subtitle', 'Save to keep them, or discard to go back'),
-    failedTitle = word('SaveBar.failedTitle', 'Your changes were not saved'),
+    failedTitle = word('SaveBar.failedTitle', 'Save again to keep your changes'),
     savedTitle = word('SaveBar.savedTitle', 'Your changes are saved'),
-    discardedTitle = word('SaveBar.discardedTitle', 'Your changes were discarded'),
+    discardedTitle = word('SaveBar.discardedTitle', 'You discarded your changes'),
     conflictReason = word(
       'SaveBar.conflictReason',
       'Someone else saved first, so reload to see their version before you save again'
     ),
     reloadedTitle = word('SaveBar.reloadedTitle', 'The latest version replaced your changes'),
-    saveLabel = word('SaveBar.saveLabel', 'Save'),
+    saveLabel = word('SaveBar.saveLabel', 'Save Changes'),
     savingLabel = word('SaveBar.savingLabel', 'Saving…'),
     discardLabel = word('SaveBar.discardLabel', 'Discard'),
     reloadLabel = word('SaveBar.reloadLabel', 'Reload'),

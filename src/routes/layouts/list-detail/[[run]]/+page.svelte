@@ -180,8 +180,8 @@
     <PageHeader title="Run #{id}" kicker={back} />
     <div class="zones">
       <ErrorState
-        title="Run #{id} was not found"
-        description="It was deleted or never existed"
+        title="Run #{id} Does Not Exist"
+        description="Someone deleted it or it never existed"
         step="Go back to the runs to open another one"
       />
     </div>

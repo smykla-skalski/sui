@@ -42,7 +42,7 @@
     error = null,
     onretry,
     empty,
-    emptyLabel = word('DataTable.emptyLabel', 'Nothing to show yet'),
+    emptyLabel = word('DataTable.emptyLabel', 'Check back once there are rows'),
     missingLabel = word('DataTable.missingLabel', 'No value'),
     loadingLabel = word('DataTable.loadingLabel', 'Loading…'),
     refreshingLabel = word('DataTable.refreshingLabel', 'Refreshing…'),
