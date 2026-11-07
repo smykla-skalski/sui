@@ -1,12 +1,21 @@
 export type Rgba = { r: number; g: number; b: number; a: number };
 
 let context: CanvasRenderingContext2D | null = null;
+// A detached canvas paints a color the same way every time, and a page computes a few hundred
+// colors at most, so each is painted once.
+const painted = new Map<string, Readonly<Rgba>>();
 
 /**
  * Any CSS color the browser can compute, as 8-bit sRGB. Painting one pixel is the one
  * conversion that handles `color-mix()`, `oklab()` and `color(srgb …)` the same way the page does.
  */
-export function rgba(css: string): Rgba {
+export function rgba(css: string): Readonly<Rgba> {
+  let color = painted.get(css);
+  if (!color) painted.set(css, (color = Object.freeze(paint(css))));
+  return color;
+}
+
+function paint(css: string): Rgba {
   context ??= Object.assign(document.createElement('canvas'), { width: 1, height: 1 }).getContext(
     '2d',
     { willReadFrequently: true }
