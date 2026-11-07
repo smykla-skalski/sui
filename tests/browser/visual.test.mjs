@@ -197,10 +197,23 @@ for (const theme of ['light', 'dark'])
     assert.deepEqual(problems, [], 'sections that look different from their recorded picture');
   });
 
-// Safari's engine has no calc-size() and lays text on fractional metrics, so the sink is held to
-// the laws in WebKit too, at rest and with a dialog and a popover open. The name ends in the
-// theme, so the runner's light process takes it.
-test('WebKit draws the sink by the laws in light', long, async (t) => {
+// Safari's engine has no calc-size(), and Linux WebKit rounds the face's metrics as Chrome does
+// while macOS WebKit does not, so the pages whose components fall back without calc-size() are
+// held to the laws in WebKit too, with a dialog and a menu open. The whole sink takes WebKit
+// longer to load than this group has, so these pages stand for it. The name ends in the theme,
+// so the runner's light process takes it.
+const WEBKIT_PAGES = [
+  'card',
+  'section',
+  'disclosure',
+  'page-header',
+  'states',
+  'pair-entry',
+  'fact-list',
+  'charts'
+];
+
+test('WebKit draws the pages that fall back by the laws in light', long, async (t) => {
   if (!existsSync(webkit.executablePath())) {
     t.skip('WebKit is not installed: run `npx playwright-core install webkit`');
     return;
@@ -211,20 +224,28 @@ test('WebKit draws the sink by the laws in light', long, async (t) => {
       viewport: { width: 1440, height: 900 },
       serviceWorkers: 'block'
     });
-    await visit(page, allSections(url));
-    assert.deepEqual(await audit(page), [], 'at rest');
+    /** @type {string[]} */
+    const found = [];
+    /** @param {string} where */
+    const audited = async (where) =>
+      found.push(...(await audit(page)).map((f) => `${where}: ${f.law} ${f.where}: ${f.detail}`));
+    for (const path of WEBKIT_PAGES) {
+      await visit(page, new URL(`${path}/`, url).href);
+      await audited(path);
+    }
+    await visit(page, new URL('modal/', url).href);
     await page.locator('#modal button:not(.sui-modal *)', { hasText: 'Edit Webhook' }).click();
     await page.waitForFunction(
       () => document.querySelector('dialog[open] > .sui-modal-foot'),
       null,
       brief
     );
-    assert.deepEqual(await audit(page), [], 'with a dialog open');
-    await page.keyboard.press('Escape');
-    await page.waitForFunction(() => !document.querySelector('dialog[open]'), null, brief);
+    await audited('an open dialog');
+    await visit(page, new URL('action-menu/', url).href);
     await page.locator('#action-menu [popovertarget]').first().click();
     await page.waitForFunction(() => document.querySelector('[popover]:popover-open'), null, brief);
-    assert.deepEqual(await audit(page), [], 'with a popover open');
+    await audited('an open menu');
+    assert.deepEqual(found, []);
   } finally {
     await engine.close();
   }

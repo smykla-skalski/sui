@@ -40,7 +40,7 @@ Measure Largest Contentful Paint, Interaction to Next Paint and Cumulative Layou
 
 ## Browsers and devices
 
-The browser suite runs in Chromium, and the visual group (`tests/browser/visual.test.mjs`) also loads the sink in WebKit, Safari's engine, and runs the audit at rest, with a dialog open and with a popover open. Run `npx playwright-core install webkit` once to run it on your machine; without WebKit it skips. Before a release, check by hand:
+The browser suite runs in Chromium, and the visual group (`tests/browser/visual.test.mjs`) also loads, in WebKit, Safari's engine, the pages whose components fall back where calc-size() is missing (card, section, disclosure, page header, states, pair entry, fact list and charts) and runs the audit on each, then on an open dialog and an open menu. Run `npx playwright-core install webkit` once to run it on your machine; without WebKit it skips. Before a release, check by hand:
 
 - macOS Safari, in both themes and with "Show scroll bars" set to "Always", as Windows readers see them.
 - iOS Safari on a phone, with Low Power Mode on, which slows timers and animation frames: a spinner, a skeleton's light, a toast's countdown and a drag still answer, and nothing waits on a frame that does not come.
