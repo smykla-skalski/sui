@@ -89,7 +89,7 @@
       id,
       workflow: index % 2 ? 'Deploy web' : 'Nightly sync',
       branch: 'main',
-      when: `${index + 4} hours ago`,
+      when: `${index + 4}\u00a0hours ago`,
       took: '1\u00a0minute',
       ...passed,
       outcome:
