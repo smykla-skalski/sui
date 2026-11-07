@@ -860,10 +860,15 @@ test('L-53 a shadow that lifts a part is two layers in every palette block', () 
   );
 });
 
-test('L-94 a form error summary, which reads at body size, takes the 16px mark 8px from its words', () => {
+test('L-94 a form error summary, which reads at body size, takes the 16px mark 8px from its words and a 16px inset', () => {
   const path = 'src/lib/components/FormError.svelte';
   assert.match(read(path), /sui-form-error-mark"><Icon name="alert" size="base" \/>/);
   assert.match(styles[path], /\.sui-form-error-message \{[^}]*column-gap: var\(--sui-space-2\)/);
+  assert.match(
+    styles[path],
+    /\.sui-form-error \{[^}]*padding: var\(--sui-space-4\);/,
+    'a 12px inset crowds body-size words and their 16px mark'
+  );
   assert.match(
     styles[path],
     /\.sui-form-error-list \{[^}]*padding-inline-start: calc\(var\(--sui-icon-base\) \+ var\(--sui-space-2\)\)/,

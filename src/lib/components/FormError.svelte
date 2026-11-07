@@ -108,7 +108,7 @@ margins of its own; the form that holds it sets the gap above it.
 <style>
   /* A refusal of the whole form is a pale wash of the danger tint inside a light edge of the
      hue, as an error panel is, so it owns the top of the form and its words keep their
-     contrast. */
+     contrast. Its words read at body size beside a 16px mark, so it pads 16px all round. */
   .sui-form-error {
     background: color-mix(in srgb, var(--sui-danger-tint) 45%, var(--sui-surface-base));
     border: var(--sui-stroke) solid color-mix(in srgb, var(--sui-danger) 40%, transparent);
@@ -116,7 +116,7 @@ margins of its own; the form that holds it sets the gap above it.
     display: grid;
     gap: var(--sui-row-copy-gap);
     min-inline-size: 0;
-    padding: var(--sui-space-3) var(--sui-space-4);
+    padding: var(--sui-space-4);
   }
 
   .sui-form-error:focus-visible {
