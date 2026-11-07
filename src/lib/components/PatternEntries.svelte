@@ -1,6 +1,6 @@
 <script lang="ts">
   import { mark, word } from '../words.js';
-  import { tick } from 'svelte';
+  import { onMount, tick } from 'svelte';
   import type { Attachment } from 'svelte/attachments';
   import type { HTMLAttributes } from 'svelte/elements';
   import Icon from '../icons/Icon.svelte';
@@ -102,6 +102,21 @@
   );
 
   const problemId = (index: number) => `${uid}-problem-${index}`;
+
+  /* Hydration writes each entry's value over its field, so words typed before the page hydrated
+     are read from the server's fields first and put back once the list has mounted. */
+  const typed =
+    typeof document === 'undefined'
+      ? []
+      : [
+          ...(document
+            .getElementById(`${uid}-list`)
+            ?.querySelectorAll<HTMLInputElement>('.sui-pattern-input') ?? [])
+        ].map((input) => (input.value === input.defaultValue ? null : input.value));
+  onMount(() => {
+    if (typed.some((text) => text !== null))
+      value = value.map((pattern, at) => typed[at] ?? pattern);
+  });
   const fields = () => [...(root?.querySelectorAll<HTMLInputElement>('.sui-pattern-input') ?? [])];
 
   // An empty entry already open is the new entry, so Add returns to it instead of minting another.
@@ -264,7 +279,7 @@ a saving pane around it holds it the same way.
 - Localization: every word is a prop, the counted and named ones functions; counts are grouped in the page's language; the entries flow from the inline start with the cross at each field's inline end, and a pattern reads left to right in either direction.
 - Performance: every entry renders and sizes itself to its text with `field-sizing` where the browser has it, else at a fixed width; a keystroke colors one pattern again, and a scroll moves only its copy by a composited shift; `validate` runs for the other entries only when the list they are judged against changes, never at a keystroke in an entry the reader is still typing; keep it to tens of patterns.
 - Analytics: `onadd` hears each pattern added and `onremove` each one removed.
-- Failure: an invalid pattern stays as typed and says why, and a malformed glob, such as an unclosed `[` or `{`, shows as plain characters; an empty list shows only Add; a pending list refuses edits, removals, pastes and Undo until the save ends.
+- Failure: an invalid pattern stays as typed and says why, and a malformed glob, such as an unclosed `[` or `{`, shows as plain characters; an empty list shows only Add; a pending list refuses edits, removals, pastes and Undo until the save ends; text typed before the page hydrates stays and counts.
 -->
 
 <div
@@ -274,7 +289,7 @@ a saving pane around it holds it the same way.
   {...rest}
   class={['sui-pattern-entries', className]}
 >
-  <ul class="sui-pattern-list" role="list">
+  <ul id="{uid}-list" class="sui-pattern-list" role="list">
     {#each value as pattern, index (index)}
       {@const problem = problems[index]}
       {@const removeName = pattern.trim() === '' ? removeEmptyLabel : removeLabel(pattern.trim())}

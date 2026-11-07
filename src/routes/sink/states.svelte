@@ -226,6 +226,7 @@
         id="sink-states-contact"
         label="Contact email"
         type="email"
+        autocomplete="email"
         required
         error={contactProblem}
         bind:value={contact}

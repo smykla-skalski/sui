@@ -140,6 +140,7 @@
         label="Contact email"
         name="contact"
         type="email"
+        autocomplete="email"
         required
         validationMessage="Enter an email address such as you@example.com"
         placeholder="you@example.com"
@@ -158,7 +159,13 @@
   <Section title="New repository" level={4}>
     <div class="form">
       <Field label="Repository name" required placeholder="your-project" />
-      <Field label="Contact email" type="email" required placeholder="you@example.com" />
+      <Field
+        label="Contact email"
+        type="email"
+        autocomplete="email"
+        required
+        placeholder="you@example.com"
+      />
     </div>
   </Section>
 </Example>

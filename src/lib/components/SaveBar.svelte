@@ -34,6 +34,7 @@
     dismissLabel = word('SaveBar.dismissLabel', 'Dismiss'),
     onsave,
     ondiscard,
+    askBeforeLeaving = true,
     onreload,
     element = $bindable(null),
     class: className = '',
@@ -57,7 +58,7 @@
     failedTitle?: string;
     /** Said for 5 seconds once a save lands, by the bar on its way out. */
     savedTitle?: string;
-    /** Said once Discard has thrown the work away, beside Undo when `ondiscard` returns one. */
+    /** Said once Discard has thrown the work away, beside Undo. */
     discardedTitle?: string;
     /** Said under `failedTitle` in a conflict when `error` gives no reason of its own. */
     conflictReason?: string;
@@ -72,8 +73,17 @@
     dismissLabel?: string;
     /** Sends the draft. Also runs on Ctrl+S or Cmd+S inside the bar's pane. */
     onsave: () => void;
-    /** Throws the draft away. Return a function that brings it back, and the bar offers Undo. */
-    ondiscard: () => void | (() => void);
+    /**
+     * Throws the draft away and returns a function that brings it back, which the bar offers as
+     * Undo, so a discard needs no confirmation (L-58).
+     */
+    ondiscard: () => () => void;
+    /**
+     * Has the browser ask before the page unloads while there is work, since leaving drops it
+     * with no Undo. Turn it off where the app already guards its own navigation, or for a bar
+     * that shows a fixed state.
+     */
+    askBeforeLeaving?: boolean;
     /**
      * Loads the latest saved version in place of the draft, after a conflict. Return a function
      * that puts the draft back over it: a reload drops the reader's work, so the bar always
@@ -122,6 +132,14 @@
     }
   });
 
+  // Leaving the page would drop the work with no Undo, so the browser asks first.
+  $effect(() => {
+    if (!dirty || !askBeforeLeaving) return;
+    const ask = (event: BeforeUnloadEvent) => event.preventDefault();
+    addEventListener('beforeunload', ask);
+    return () => removeEventListener('beforeunload', ask);
+  });
+
   $effect(() => {
     if (!notice || notice.undo || hovered || within) return;
     const timer = setTimeout(() => void dismiss(), LINGER_MS);
@@ -135,8 +153,7 @@
 
   async function discard(): Promise<void> {
     asked = null;
-    const back = ondiscard();
-    notice = { kind: 'discarded', undo: typeof back === 'function' ? back : undefined };
+    notice = { kind: 'discarded', undo: ondiscard() };
     await tick();
     (undoButton ?? dismissButton)?.focus({ preventScroll: true });
   }
@@ -286,7 +303,7 @@ brings its own room under it, so the scroller needs no end padding.
 - Localization: every word is a prop with an English default; the actions end the line in the reading direction.
 - Performance: one `ResizeObserver` keeps the scroller's end padding as tall as the bar, and nothing measures it per frame; a fade and 8px rise on entry, removed under reduced motion.
 - Analytics: `onsave` hears each save, the shortcut included, `ondiscard` each discard, `onreload` each reload, and the functions they return each undo.
-- Failure: a failed save keeps the bar up with the reason and the work is never dropped on its own; a conflict offers Reload, which drops the draft only with Undo beside it; a reload that fails is the caller's to say, by keeping `dirty` and setting `error`; without an undo from `ondiscard` the discard still says so before the bar leaves.
+- Failure: a failed save keeps the bar up with the reason and the work is never dropped on its own; a conflict offers Reload, which drops the draft only with Undo beside it; a reload that fails is the caller's to say, by keeping `dirty` and setting `error`; closing or leaving the page while the bar holds work asks first, as the browser does.
 -->
 
 <aside

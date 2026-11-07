@@ -10,7 +10,7 @@
 
 <script lang="ts">
   import { mark, word } from '../words.js';
-  import { flushSync, tick } from 'svelte';
+  import { flushSync, tick, untrack } from 'svelte';
   import type { Attachment } from 'svelte/attachments';
   import type { HTMLInputAttributes } from 'svelte/elements';
   import Icon from '../icons/Icon.svelte';
@@ -190,6 +190,12 @@
     input.setCustomValidity(!free && drafting && asked !== '' && !match ? draftMessage : '');
   };
 
+  /* Text typed before the page hydrated stays in the field, so it counts as typed: the list
+     filters by it and a send sees it. Read once, as the field first mounts. */
+  const keepTyped: Attachment<HTMLInputElement> = (input) => {
+    if (input.value !== untrack(() => (drafting ? query : shown))) draft(input.value);
+  };
+
   /* Disabled options stay in the arrow path, so a reader hears they exist; `take` refuses them. */
   const step = (from: number, by: 1 | -1) => (((from + by) % rows) + rows) % rows;
 
@@ -289,8 +295,12 @@
   }
 
   function oninput(event: Event): void {
+    draft((event.currentTarget as HTMLInputElement).value);
+  }
+
+  function draft(text: string): void {
     if (!drafting) typedFor = value;
-    query = (event.currentTarget as HTMLInputElement).value;
+    query = text;
     typed = true;
     open = true;
     active = 0;
@@ -360,7 +370,7 @@ Name it with a `<label>` or `aria-label`, as any field.
 - Localization: `emptyLabel`, `searchingLabel`, `failedLabel`, `useLabel`, `countLabel`, `moreLabel` and `draftMessage` are props with English defaults, counts follow the page language, and the list hangs from the start edge in either direction.
 - Performance: filtering runs on each keystroke over `options`, `search` waits 180ms and drops late answers, and at most `limit` rows render.
 - Analytics: `onselect` hears each committed value and `onsearcherror` each refused search.
-- Failure: a refused search clears its old suggestions and says so, nothing found is said in words, typed text is never thrown away on blur, and a form refuses a send while the text names no option, with `draftMessage` in the field around it.
+- Failure: a refused search clears its old suggestions and says so, nothing found is said in words, typed text is never thrown away on blur, and a form refuses a send while the text names no option, with `draftMessage` in the field around it; text typed before the page hydrates stays and counts.
 -->
 
 {#snippet marked(label: string)}
@@ -386,6 +396,7 @@ Name it with a `<label>` or `aria-label`, as any field.
     aria-activedescendant={listed && current >= 0 ? optionId(current) : undefined}
     {oninput}
     {@attach draftOnly}
+    {@attach keepTyped}
     onkeydown={preview ? undefined : onkeydown}
     {onfocus}
     {onblur}

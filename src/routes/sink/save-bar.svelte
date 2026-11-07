@@ -98,7 +98,14 @@
   <Specimen label="Saving" code="saving">
     <div class="pane">
       <div class="scroller">
-        <SaveBar dirty saving title="1 setting changed" onsave={noop} ondiscard={noop} />
+        <SaveBar
+          dirty
+          saving
+          askBeforeLeaving={false}
+          title="1 setting changed"
+          onsave={noop}
+          ondiscard={() => noop}
+        />
       </div>
     </div>
   </Specimen>
@@ -107,9 +114,10 @@
       <div class="scroller">
         <SaveBar
           dirty
+          askBeforeLeaving={false}
           error="The server did not answer, so your changes are still here to save again"
           onsave={noop}
-          ondiscard={noop}
+          ondiscard={() => noop}
         />
       </div>
     </div>
@@ -120,6 +128,7 @@
         <Field label="Default branch" bind:value={draft} />
         <SaveBar
           dirty={draft !== loaded}
+          askBeforeLeaving={false}
           conflict={stale}
           {reloading}
           saving={savingDraft}
@@ -143,10 +152,11 @@
       <div class="scroller">
         <SaveBar
           dirty
+          askBeforeLeaving={false}
           title="14 settings changed across merge rules, branch protection and review policy"
           subtitle="Review anywhere in this workspace, then save everything together in one go"
           onsave={noop}
-          ondiscard={noop}
+          ondiscard={() => noop}
         />
       </div>
     </div>
