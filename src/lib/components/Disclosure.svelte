@@ -258,8 +258,20 @@ cells stack their secondary text.
   :where(.sui-disclosure-body) > :global(:where(p, ul, ol, dl, blockquote):only-child) {
     align-content: unsafe end;
     block-size: var(--sui-block-snap-near);
-    padding-block: var(--sui-block-snap-room);
+    padding-block: var(--sui-block-snap-spare) 0;
     text-box: trim-both cap alphabetic;
+  }
+
+  /* Without calc-size() the only block rounds up instead, and an empty box before it gives the
+     pixel back when the nearest pixel is the lower one, so its ink stands where it would. The
+     box measures the cap in the disclosure's face, which the content's words take unless they
+     set their own size. */
+  @supports not (block-size: calc-size(auto, size)) {
+    .sui-disclosure-body:has(> :global(:where(p, ul, ol, dl, blockquote):only-child))::before {
+      content: '';
+      display: block;
+      margin-block-end: calc(round(1cap, 1px) - round(up, 1cap, 1px));
+    }
   }
 
   /* The trailing room, in the summary's face, so a group of disclosures keeps the rhythm of

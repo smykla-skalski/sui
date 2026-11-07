@@ -175,8 +175,11 @@ apart, and the action under the value.
   /* Every row shares the list's columns, so labels and values line up down the list whatever
      each row holds. The label column is as wide as the longest label, up to 16rem, where a
      longer label wraps, so the values stand one gap from the labels however wide the list. */
+  /* A list of rows holds no line of its own, so it takes no room for one where the block that
+     holds it trims and rounds its first or last block. */
   .rows {
     column-gap: var(--sui-space-6);
+    padding-block: 0;
     container: sui-fact-rows / inline-size;
     display: grid;
     grid-template-columns: fit-content(16rem) minmax(0, 1fr);

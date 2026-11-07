@@ -578,8 +578,10 @@ row gives them and fall under the copy on a narrow row.
     cursor: default;
   }
 
+  /* The mono face reaches further above and below its baseline than the words' face, so the
+     key takes no line height and its line stands as tall as a line of words (L-95). */
   .sui-pair-problem code {
-    font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-row-copy-leading)
+    font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-leading-none)
       var(--sui-mono);
   }
 

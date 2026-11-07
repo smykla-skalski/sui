@@ -3,6 +3,7 @@
   import type { Snippet } from 'svelte';
   import type { HTMLAttributes } from 'svelte/elements';
   import Button from './Button.svelte';
+  import { evenHeight } from '../internal/even-height.js';
 
   let {
     title,
@@ -103,7 +104,7 @@ of them.
 - Responsive: the panel fills its column; over content the line wraps its words and its button.
 - Accessibility: the alert announces the failure when it appears, the busy button is announced as busy, and the title wears the danger ink with words that say what failed.
 - Localization: `retryLabel` and `retryingLabel` carry the built-in words, and it starts at the inline start, mirrored in a right-to-left page.
-- Performance: a static block; the retry's spinner is the button's own and stops under reduced motion.
+- Performance: a static block, except where the browser cannot round a box's height in CSS: there one shared observer pads the copy to an even height; the retry's spinner is the button's own and stops under reduced motion.
 - Analytics: `onretry` reports each attempt to recover.
 - Failure: every failure offers a way out: `onretry` for one a retry can fix, `action` for another control, such as one that opens settings, and `step` in words for one that happens elsewhere, such as asking an owner for access; the law audit flags a failure with none.
 -->
@@ -114,7 +115,7 @@ of them.
   class={['sui-error-state', className, { over: overContent }]}
   role="alert"
 >
-  <div class="sui-error-state-copy">
+  <div class="sui-error-state-copy" {@attach evenHeight}>
     <p class="sui-error-state-title">{title}</p>
     <p class="sui-error-state-description">{description}</p>
     {#if step}<p class="sui-error-state-step">{step}</p>{/if}

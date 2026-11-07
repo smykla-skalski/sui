@@ -976,17 +976,16 @@ function wordsInk(svg: SVGSVGElement): DOMRect {
       // Some canvases give glyph bounds in whole pixels, which is a pixel of error at chart sizes,
       // so each glyph is read at a hundred times its size and scaled back.
       context.font = `${look.fontStyle} ${look.fontWeight} ${parseFloat(look.fontSize) * 100}px ${look.fontFamily}`;
-      // A canvas draws no tabular figures, so those are read from the face's table, which the
-      // browser suite holds to what Chrome draws.
-      const tabular =
-        look.fontVariantNumeric.includes('tabular-nums') &&
-        /^["']?SUI Plus Jakarta Sans/.test(look.fontFamily);
+      // A canvas draws no tabular figures, and WebKit's gives a glyph's ink joined to its
+      // advance, so the face's own glyphs are read from its table, which the browser suite
+      // holds to what Chrome draws.
+      const face = /^["']?SUI Plus Jakarta Sans/.test(look.fontFamily);
+      const tabular = look.fontVariantNumeric.includes('tabular-nums');
       const size = parseFloat(look.fontSize) * 100;
       let index = 0;
       for (const glyph of words) {
         if (index >= part.getNumberOfChars()) break;
-        const figure =
-          tabular && /\d/.test(glyph) ? faceInk(glyph, Number(look.fontWeight) >= 600, true) : null;
+        const figure = face ? faceInk(glyph, Number(look.fontWeight) >= 600, tabular) : null;
         const ink = figure
           ? {
               actualBoundingBoxLeft: figure.left * size,

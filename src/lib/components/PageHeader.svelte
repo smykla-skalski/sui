@@ -1,6 +1,7 @@
 <script lang="ts">
   import type { Snippet } from 'svelte';
   import FactLine from './FactLine.svelte';
+  import { evenHeight } from '../internal/even-height.js';
   import type { HTMLAttributes } from 'svelte/elements';
 
   let {
@@ -90,7 +91,7 @@ and the header owes only the difference.
 - Responsive: the header answers to its own width, so the actions wrap under the copy, packed to the start, once the copy would have under 20rem; the title balances its lines, the status moves under a title that leaves it no room, as on a phone, and the copy and the facts wrap.
 - Accessibility: the title is a real heading and the copy holds 4.5:1 on the band; the status is a `role="status"` region, so a change is announced politely and never as part of the heading; the eyebrow is uppercase only for its few words; the foot's hairline is a border, so under forced colors, where the band and the page share one ground, it draws in the system's line colour.
 - Localization: it draws no words of its own; the actions pack to the start, which mirrors in a right-to-left page.
-- Performance: static text with no script.
+- Performance: static text with no script, except where the browser cannot round a box's height in CSS: there one shared observer pads the copy beside the actions to an even height.
 - Analytics: none of its own, because it holds no control; its actions report their own outcomes.
 - Failure: without a description or an eyebrow the stack is the title alone, and an empty eyebrow keeps its line; a status passed only after the first render may not be read, so render it from the start, even as a loading word.
 -->
@@ -101,7 +102,7 @@ and the header owes only the difference.
 
 <header {...rest} class={['sui-page-header', className, { tabbed: tabs !== undefined }]}>
   <div class="sui-page-header-layout">
-    <div class="sui-page-header-copy">
+    <div class="sui-page-header-copy" {@attach actions && evenHeight}>
       {#if kicker}
         {@render kicker()}
       {:else if eyebrow !== undefined}
