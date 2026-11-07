@@ -69,7 +69,7 @@
 
 <Example
   title="Timing"
-  note="A neutral toast leaves after 5 seconds unless hovered or focused, and a failure or one with Undo stays until dismissed"
+  note="A neutral toast leaves after 5 seconds unless hovered or focused, and a failure or one with Undo stays until dismissed"
 >
   <Specimen label="Neutral" code="toast()">
     <Button onclick={() => toast({ title: 'Settings saved' })}>Save Settings</Button>

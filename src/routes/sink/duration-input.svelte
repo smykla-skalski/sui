@@ -64,7 +64,7 @@
     </Field>
   </Specimen>
   <Specimen label="Refused" code="invalid">
-    <Field label="Cache lifetime" error="Enter a lifetime of 1 day or less">
+    <Field label="Cache lifetime" error="Enter a lifetime of 1 day or less">
       {#snippet control({ id, describedby, invalid })}
         <DurationInput {id} aria-describedby={describedby} {invalid} value={300} />
       {/snippet}

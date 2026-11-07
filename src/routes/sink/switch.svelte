@@ -121,7 +121,7 @@
 >
   <Specimen label="Wrapped label">
     <div class="narrow">
-      <Switch label="Close every stale pull request that has had no activity for 30 days" checked />
+      <Switch label="Close every stale pull request that has had no activity for 30 days" checked />
     </div>
   </Specimen>
 </Example>
