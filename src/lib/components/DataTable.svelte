@@ -147,13 +147,13 @@ The caption is drawn above the frame rather than inside the table, so it wraps t
 screen while the table scrolls under it; it still names the table. `striped` tints every other
 row in place of the hairlines, for a table wide enough that the eye can lose its row.
 
-- Semantics: a native `table` named by its caption or `aria-label`, with column headings, row headings under `rowHeader`, and `aria-sort` on the sorted column.
+- Semantics: a native `table` named by its caption or `aria-label`, with column headings in the secondary ink (the sorted one in the primary), row headings under `rowHeader`, and `aria-sort` on the sorted column.
 - Content: `columns` and `rows` of plain values, or any markup through `cell`; numbers print in the page's number format, and other values should come formatted.
 - States: loaded, sorted, empty (`emptyLabel` or `empty`), loading (three placeholder rows built from the table's own cells, so they match the loaded rows, each bar where its column's words start and crossed by the light every placeholder shares), refreshing (rows kept, busy), and failed (`error`, with a retry); a failure over rows already here keeps them, marked as not current.
 - Keyboard: a sortable heading is a button, and Enter or Space sorts by it, then reverses; a frame that scrolls is a tab stop, so the arrow keys scroll it.
 - Pointer and touch: a sortable heading's target is at least 24px tall, and 44px on a phone or a coarse pointer.
 - Focus: sorting keeps focus on the heading; the frame is a stop only while it scrolls.
-- Responsive: columns grow to their widest value and the table scrolls inside its own frame, with a line that says so, a fade on each edge that has more past it, starting past held row headings, and the row headings held in view; numeric and `nowrap` columns never wrap, other text wraps inside its column; a wrapping column is never narrower than its values up to a 16rem measure, 8rem for held row headings (6rem on a phone, where cells also pad 8px at their sides), so on a narrow frame a long value wraps to a few lines while the frame scrolls; a row that wraps reads from its top.
+- Responsive: columns grow to their widest value and the table scrolls inside its own frame, with a line that says so, a fade on each edge that has more past it, starting past held row headings, and the row headings held in view; numeric and `nowrap` columns never wrap, other text wraps inside its column; a wrapping column is never narrower than its values up to a 20rem measure, 8rem for held row headings (6rem on a phone, where cells also pad 8px at their sides), so on a narrow frame a long value wraps to a few lines while the frame scrolls; a row that wraps reads from its top.
 - Accessibility: loading and refreshing mark the table `aria-busy` and are said through a polite status; a failure is an alert in words beside an icon; sorted order is `aria-sort` and an up or down chevron.
 - Localization: every built-in word is a prop with an English default; numbers group in the reader's format and text sorts by the page's language; columns, alignment, the held row headings and the loading light follow the reading direction.
 - Performance: every row renders and is laid out, even off the screen, because a row cannot skip and a frame that skips cannot measure its overflow; key rows with `rowKey`, and page a long table with numbered pages or `LoadMore` rather than drawing thousands; the loading light moves only by `transform`, so the compositor runs it, and holds still under reduced motion.
@@ -405,7 +405,7 @@ row in place of the hairlines, for a table wide enough that the eye can lose its
   /* Separate borders: a collapsed border is split between its two cells, which puts every
      row half a pixel off the grid (L-95). The row lines live on the cells instead. */
   table {
-    --sui-local-measure: 16rem;
+    --sui-local-measure: 20rem;
     --sui-local-held-measure: 8rem;
 
     border-collapse: separate;
@@ -449,11 +449,13 @@ row in place of the hairlines, for a table wide enough that the eye can lose its
   }
 
   /* A heading row holds a sort control as tall as a finger on touch, so every heading centres
-     in the row instead of sitting on that control's baseline (L-102). */
+     in the row instead of sitting on that control's baseline (L-102). The headings wear the
+     secondary ink, so the row of names reads apart from the values; a sorted one keeps the
+     primary (L-25). */
   thead th {
     border-block-end: var(--sui-stroke) solid var(--sui-border-control);
     vertical-align: middle;
-    color: var(--sui-text-primary);
+    color: var(--sui-text-secondary);
     font: var(--sui-weight-semibold) var(--sui-font-size-control) / var(--sui-leading-compact)
       var(--sui-sans);
   }
@@ -549,7 +551,7 @@ row in place of the hairlines, for a table wide enough that the eye can lose its
   /* A faint veil of the ink, so a stripe guides the eye along a row in both themes and never
      reads as a selection. */
   .striped {
-    --sui-local-stripe: color-mix(in srgb, var(--sui-text-primary) 3.5%, transparent);
+    --sui-local-stripe: color-mix(in srgb, var(--sui-text-primary) 4.5%, transparent);
   }
 
   .striped tbody tr:nth-child(even) {

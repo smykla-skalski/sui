@@ -351,6 +351,9 @@ test('L-22 the phone reads one step larger and types at 16px', () => {
     .filter((path) => /\bfont\s*:/.test(styles[path]));
   assert.deepEqual(typed, [], 'a field the reader types in reads --sui-font-size-input');
 });
+  const table = stripComments(styles['src/lib/components/DataTable.svelte']);
+  assert.match(table, /thead th\s*\{[^}]*color: var\(--sui-text-secondary\)/);
+  assert.match(table, /\[aria-sort\] \.sort\s*\{[^}]*color: var\(--sui-text-primary\)/);
 
 test('L-32 spacing comes from the scale', () => {
   const spacing = /^(padding|margin|gap|row-gap|column-gap)(-|$)|^inset/;
