@@ -877,6 +877,10 @@ suite('forms', together, () => {
               ? 'inert'
               : 'live'
           }));
+        // The page's own inline choice comes back with its priority once the drag ends.
+        await page.evaluate(() =>
+          document.documentElement.style.setProperty('-webkit-user-select', 'text', 'important')
+        );
         await page.mouse.move(area.x + area.width / 2, area.y + area.height / 2);
         await page.mouse.down();
         await page.mouse.move(area.x + area.width / 3, area.y + area.height / 3, { steps: 4 });
@@ -886,7 +890,16 @@ suite('forms', together, () => {
           'the drag left the page live'
         );
         await page.mouse.up();
-        assert.deepEqual(await still(), { select: 'auto', page: 'live' }, 'the page stayed held');
+        assert.deepEqual(await still(), { select: 'text', page: 'live' }, 'the page stayed held');
+        assert.equal(
+          await page.evaluate(() => {
+            const { style } = document.documentElement;
+            const kept = style.getPropertyPriority('-webkit-user-select');
+            style.removeProperty('-webkit-user-select');
+            return kept;
+          }),
+          'important'
+        );
 
         await page.keyboard.press('Escape');
         await page.waitForFunction(() => !document.querySelector('.sui-popover:popover-open'));

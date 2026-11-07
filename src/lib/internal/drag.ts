@@ -6,9 +6,11 @@
  */
 export function holdForDrag(control: Element): () => void {
   const root = document.documentElement;
-  const before = root.style.userSelect;
-  root.style.userSelect = 'none';
-  root.style.setProperty('-webkit-user-select', 'none');
+  const before = ['user-select', '-webkit-user-select'].map(
+    (name) =>
+      [name, root.style.getPropertyValue(name), root.style.getPropertyPriority(name)] as const
+  );
+  for (const [name] of before) root.style.setProperty(name, 'none');
   const stilled: HTMLElement[] = [];
   for (let node: Element = control; node.parentElement; node = node.parentElement)
     for (const sibling of node.parentElement.children)
@@ -21,7 +23,6 @@ export function holdForDrag(control: Element): () => void {
     if (!held) return;
     held = false;
     for (const sibling of stilled) sibling.inert = false;
-    root.style.userSelect = before;
-    root.style.removeProperty('-webkit-user-select');
+    for (const [name, value, priority] of before) root.style.setProperty(name, value, priority);
   };
 }
