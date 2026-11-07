@@ -601,9 +601,9 @@
   /* The console's mark hues, ordered so neighbours stay apart under color-vision deficiency. */
   --sui-chart-1: #1467c2;
   --sui-chart-2: #be5a0a;
-  --sui-chart-3: #008e8b;
-  --sui-chart-4: #552f94;
-  --sui-chart-5: #bd3d77;
+  --sui-chart-3: #538f8c;
+  --sui-chart-4: #483a91;
+  --sui-chart-5: #a6346c;
 }
 
 :root[data-theme='dark'],
@@ -789,9 +789,9 @@
     0 24px 60px var(--sui-shadow-color);
   --sui-chart-1: #4990e8;
   --sui-chart-2: #db7431;
-  --sui-chart-3: #00aaa6;
-  --sui-chart-4: #8158c5;
-  --sui-chart-5: #d75f92;
+  --sui-chart-3: #47bbb3;
+  --sui-chart-4: #825ac1;
+  --sui-chart-5: #b76f8b;
 }
 
 /* With no theme chosen on the page, the reader's system preference picks the dark palette. The
@@ -983,9 +983,9 @@
       0 24px 60px var(--sui-shadow-color);
     --sui-chart-1: #4990e8;
     --sui-chart-2: #db7431;
-    --sui-chart-3: #00aaa6;
-    --sui-chart-4: #8158c5;
-    --sui-chart-5: #d75f92;
+    --sui-chart-3: #47bbb3;
+    --sui-chart-4: #825ac1;
+    --sui-chart-5: #b76f8b;
   }
 }
 

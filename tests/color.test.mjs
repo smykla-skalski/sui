@@ -113,7 +113,7 @@ test('L-93 a swatch ring holds 3:1 for every colour on every ground and under it
 });
 
 // Machado, Oliveira and Fernandes (2009) at full severity, on linear sRGB: the series as a reader
-// with no green cones (deutan) or no red cones (protan) sees them, the two common kinds.
+// with no green cones (deutan), no red cones (protan) or no blue cones (tritan) sees them.
 const DICHROMACY = {
   deutan: [
     [0.367322, 0.860646, -0.227968],
@@ -124,10 +124,15 @@ const DICHROMACY = {
     [0.152286, 1.052583, -0.204868],
     [0.114503, 0.786281, 0.099216],
     [-0.003882, -0.048116, 1.051998]
+  ],
+  tritan: [
+    [1.255528, -0.076749, -0.178779],
+    [-0.078411, 0.930809, 0.147602],
+    [0.004733, 0.691367, 0.3039]
   ]
 };
 
-test('L-66 the series colours stay apart for a reader with deutan or protan colour blindness', () => {
+test('L-66 the series colours stay apart for a reader with deutan, protan or tritan colour blindness', () => {
   /** @param {number} c */
   const linear = (c) => (c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4);
   /** @param {number} c */
