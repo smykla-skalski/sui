@@ -109,7 +109,7 @@
     <div class="body">
       <Section title="Health">
         <p class="copy">
-          <span class="mark"><Pill tone="success">Healthy</Pill></span>
+          <Pill tone="success">Healthy</Pill>
           <span class="sentence">Every repository synced 4&nbsp;minutes ago</span>
         </p>
       </Section>
@@ -134,37 +134,27 @@
 
   /* The header's band stands flush with the pane's top and sides, and the sections under it
      keep the band's gutter, so their words line up with the header's. */
-  /* The sections stop at 75rem, wide enough that a wide screen holds no empty half, and a row's
-     status still stands within a glance of its name. */
+  /* A row's status stays within a glance of its name, so the sections stop at 60rem. */
   .body {
-    max-inline-size: 75rem;
+    max-inline-size: 60rem;
     padding: 0 var(--sui-rhythm-pane-gutter) var(--sui-rhythm-pane-gutter);
   }
 
-  /* The pill keeps its sentence beside it on a phone too: the sentence wraps in its own column,
-     and the pill centres on its first line (L-94). */
   .copy {
-    align-items: start;
+    align-items: center;
     color: var(--sui-text-secondary);
-    display: grid;
-    grid-template-columns: auto minmax(0, 1fr);
+    display: flex;
+    flex-wrap: wrap;
     font: var(--sui-weight-regular) var(--sui-font-size-body) / var(--sui-leading-body)
       var(--sui-sans);
     gap: var(--sui-space-2);
     margin: 0;
   }
 
-  /* An even height, so the pill centred on the first line lands on whole pixels. */
+  /* The sentence centres on the pill at an even height, so the pill lands on whole pixels. */
   .sentence {
     align-content: center;
     block-size: var(--sui-block-snap-even);
-  }
-
-  /* The first line's even box less the pill's height, halved, so the pill lands on whole
-     pixels at the line's centre. */
-  .mark {
-    display: flex;
-    margin-block-start: calc((round(up, var(--sui-leading-body), 2px) - var(--sui-tier-mark)) / 2);
   }
 
   .name {
