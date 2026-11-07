@@ -599,7 +599,10 @@ export function heatmapLayout(input: {
   measure: Measure;
   rows: string[];
   columns: string[];
-  /** The cells' printed values; each is measured in the semibold face, which is never narrower. */
+  /**
+   * The cells' printed values. They draw at 500, between the regular and semibold cuts, and a
+   * proportional face can set a value wider in either, so each keeps the wider of the two.
+   */
   values?: string[];
 }): HeatmapLayout {
   const { measure } = input;
@@ -611,8 +614,8 @@ export function heatmapLayout(input: {
   const reach = largest(spans.slice(1).map(([start], index) => spans[index][1] - start));
   const widest = largest(
     (input.values ?? []).map((words) => {
-      const [start, end] = inkSpan(measure(words, true, true), 0);
-      return end - start;
+      const spans = [false, true].map((semibold) => inkSpan(measure(words, semibold, true), 0));
+      return Math.max(...spans.map(([, end]) => end)) - Math.min(...spans.map(([start]) => start));
     })
   );
   const size = most(
