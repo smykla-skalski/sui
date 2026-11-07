@@ -226,12 +226,27 @@ test('L-24 a title stands 12px above its description, copy lines 8px apart, form
   assert.deepEqual(dense, []);
 });
 
-test('L-66 a chart grid draws at the hairline that frames a surface', () => {
+test('L-66 a chart grid draws halfway to a control edge, and every legend at one size', () => {
   const grids = [...stripComments(palette).matchAll(/--sui-chart-grid:\s*([^;]+);/g)].map((match) =>
     match[1].trim()
   );
   assert.ok(grids.length > 0);
-  assert.deepEqual(new Set(grids), new Set(['var(--sui-border-subtle)']));
+  assert.deepEqual(
+    new Set(grids),
+    new Set(['color-mix(in srgb, var(--sui-border-subtle) 50%, var(--sui-border-control))'])
+  );
+  const legends = Object.entries(styles)
+    .filter(([path]) => path.includes('/charts/'))
+    .flatMap(([path, css]) =>
+      [...stripComments(css).matchAll(/^\s*\.legend\s*\{[^}]*?font:\s*([^;]+);/gm)].map(
+        ([, font]) => `${path.split('/').pop()}: ${font.replace(/\s+/g, ' ').trim()}`
+      )
+    );
+  assert.ok(legends.length >= 3, legends.join('\n'));
+  assert.deepEqual(
+    legends.filter((rule) => !rule.includes('var(--sui-font-size-meta) / var(--sui-leading-meta)')),
+    []
+  );
 });
 
 test('L-107 a scroll edge fades over 24px, and over 20px on a phone', () => {
@@ -336,6 +351,9 @@ test('L-25 the type tiers keep the sizes the law names', () => {
     styles['src/lib/components/PageHeader.svelte'],
     /font: var\(--sui-weight-bold\) var\(--sui-font-size-page-title\)/
   );
+  const table = stripComments(styles['src/lib/components/DataTable.svelte']);
+  assert.match(table, /thead th\s*\{[^}]*color: var\(--sui-text-secondary\)/);
+  assert.match(table, /\[aria-sort\] \.sort\s*\{[^}]*color: var\(--sui-text-primary\)/);
 });
 
 test('L-22 the phone reads one step larger and types at 16px', () => {
@@ -351,9 +369,6 @@ test('L-22 the phone reads one step larger and types at 16px', () => {
     .filter((path) => /\bfont\s*:/.test(styles[path]));
   assert.deepEqual(typed, [], 'a field the reader types in reads --sui-font-size-input');
 });
-  const table = stripComments(styles['src/lib/components/DataTable.svelte']);
-  assert.match(table, /thead th\s*\{[^}]*color: var\(--sui-text-secondary\)/);
-  assert.match(table, /\[aria-sort\] \.sort\s*\{[^}]*color: var\(--sui-text-primary\)/);
 
 test('L-32 spacing comes from the scale', () => {
   const spacing = /^(padding|margin|gap|row-gap|column-gap)(-|$)|^inset/;

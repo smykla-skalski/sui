@@ -288,7 +288,7 @@ container.
   .legend {
     display: flex;
     flex-wrap: wrap;
-    font: var(--sui-weight-regular) var(--sui-font-size-compact) / var(--sui-leading-compact)
+    font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-leading-meta)
       var(--sui-sans);
     gap: var(--sui-space-2) var(--sui-space-4);
     list-style: none;
