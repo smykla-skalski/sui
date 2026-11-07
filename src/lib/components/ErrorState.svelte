@@ -101,7 +101,7 @@ of them.
 - Keyboard: the retry takes Tab, Enter and Space; it ignores presses while busy.
 - Pointer and touch: the retry is 34px tall, 44px on a phone or touch screen.
 - Focus: the retry keeps focus while it runs; when the retry succeeds and the panel leaves, focus moves to `focusAfterRetry`, else to the first control where the panel stood, else to the place itself, never to the page.
-- Responsive: the panel fills its column; over content the line wraps its words and its button.
+- Responsive: the panel fills its column and pads 16px on a phone; over content the line wraps its words and its button.
 - Accessibility: the alert announces the failure when it appears, the busy button is announced as busy, and the title wears the danger ink with words that say what failed.
 - Localization: `retryLabel` and `retryingLabel` carry the built-in words, and it starts at the inline start, mirrored in a right-to-left page.
 - Performance: a static block, except where the browser cannot round a box's height in CSS: there one shared observer pads the copy to an even height; the retry's spinner is the button's own and stops under reduced motion.
@@ -151,7 +151,16 @@ of them.
     gap: var(--sui-space-5);
     justify-items: start;
     min-inline-size: 0;
-    padding: var(--sui-space-6);
+    padding: var(--sui-space-8) var(--sui-space-6);
+  }
+
+  /* A phone gives the words the width the panel's inset would take. The row over content keeps
+     its row's inset, below. */
+  @media (max-width: 47.9375rem) {
+    .sui-error-state {
+      gap: var(--sui-space-4);
+      padding: var(--sui-space-4);
+    }
   }
 
   /* Even, so a retry centred beside it in a row lands on the pixel grid (L-95). */

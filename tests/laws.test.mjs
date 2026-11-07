@@ -286,23 +286,31 @@ test('L-64 a placeholder light stops by the 10 seconds a skeleton waits to turn 
   }
 });
 
-test('L-59 a state panel pads 24px and stands its action 20px under its words', () => {
+test('L-59 a state panel pads 32px by 24px, 16px on a phone, its action a step under its words', () => {
   const space = tokenMap(stripComments(palette));
+  const lengths = (/** @type {string | undefined} */ rule, /** @type {string} */ property) =>
+    [
+      ...(new RegExp(`\\b${property}:([^;]*)`).exec(rule ?? '')?.[1] ?? '').matchAll(
+        /var\((--sui-space-\d+)\)/g
+      )
+    ].map(([, token]) => pixels(space[token]));
   for (const name of ['empty', 'error']) {
     const path = `src/lib/components/${name[0].toUpperCase()}${name.slice(1)}State.svelte`;
-    const rule = new RegExp(`\\.sui-${name}-state \\{([^}]*)\\}`).exec(
-      stripComments(styles[path])
+    const css = stripComments(styles[path]);
+    const panel = new RegExp(`\\.sui-${name}-state \\{([^}]*)\\}`);
+    const rest = panel.exec(css)?.[1];
+    const phone = panel.exec(
+      /@media \(max-width: 47\.9375rem\) \{([\s\S]*?\})\s*\}/.exec(css)?.[1] ?? ''
     )?.[1];
-    const length = (/** @type {string} */ property) =>
-      pixels(
-        space[
-          new RegExp(`\\b${property}:\\s*var\\((--sui-space-\\d+)\\)`).exec(rule ?? '')?.[1] ?? ''
-        ]
-      );
     assert.deepEqual(
-      { padding: length('padding'), gap: length('gap') },
-      { padding: 24, gap: 20 },
+      { padding: lengths(rest, 'padding'), gap: lengths(rest, 'gap') },
+      { padding: [32, 24], gap: [20] },
       path
+    );
+    assert.deepEqual(
+      { padding: lengths(phone, 'padding'), gap: lengths(phone, 'gap') },
+      { padding: [16], gap: [16] },
+      `${path} on a phone`
     );
   }
 });
