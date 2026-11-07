@@ -271,7 +271,7 @@ or removed empty line. Two empty sides say `emptyLabel`.
             ><span class="no" aria-hidden="true">{line.op === ' ' ? index + 1 : ''}</span><span
               class="op"
               ><span aria-hidden="true">{glyph[line.op]}</span>{#if line.op !== ' '}<VisuallyHidden
-                  >{opLabels[line.op]}{joiner('space')}</VisuallyHidden
+                  translate="yes">{opLabels[line.op]}{joiner('space')}</VisuallyHidden
                 >{/if}</span
             ><span class="src"
               >{#each emphasize(tokens[index], line.emphasis) as piece, at (at)}{#if piece.word}<svelte:element

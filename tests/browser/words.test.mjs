@@ -338,6 +338,18 @@ suite('words', together, () => {
         await page.locator('[data-words="ListToolbar"] .sui-list-toolbar-chosen').textContent(),
         'UpdatedⓒOpen'
       );
+      // The login is heard as it is drawn, so a page translator leaves it in both copies.
+      assert.deepEqual(
+        await page
+          .locator('[data-words="IdentityRow"] .sui-visually-hidden')
+          .evaluate((heard) =>
+            [...heard.querySelectorAll('*')].map((node) => [
+              node.textContent,
+              /** @type {HTMLElement} */ (node).translate
+            ])
+          ),
+        [['@ada', false]]
+      );
 
       // What a reader hears of a fact line, text by text: the dot's alternative text is the
       // comma mark, and the dot itself is never read. The eyebrow draws its words in capitals,

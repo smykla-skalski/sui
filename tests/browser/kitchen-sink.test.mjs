@@ -233,7 +233,7 @@ suite('the kitchen sink', together, () => {
   // so a disabled toned button there is right to wear that local paint. One audit of a small
   // page reads both laws.
   test(
-    'L-40 a disabled tone is measured against the paint where its button stands, L-30 a heading or button off Title Case is found while a name, code or quote is not, L-31 so is a straight quote or a placeholder without its ellipsis, L-105 a count in words and L-20 a mono value open to translation',
+    'L-40 a disabled tone is measured against the paint where its button stands, L-30 a heading or button off Title Case is found while a name, code or quote is not, L-31 so is a straight quote or a placeholder without its ellipsis, L-105 a count in words and L-20 a mono value open to translation or a heard word shut from it',
     long,
     async () => {
       const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
@@ -262,7 +262,9 @@ suite('the kitchen sink', together, () => {
             '<input aria-label="Name" placeholder="Search repositories…">',
             '<p>Sync three repositories</p>',
             '<p>Sync 3 repositories with a two-way link</p>',
-            '<p>Run <code translate="no">git</code></p>'
+            '<p>Run <code translate="no">git</code></p>',
+            '<pre translate="no"><span class="sui-visually-hidden">Added</span>+ a</pre>',
+            '<pre translate="no"><span class="sui-visually-hidden" translate="yes">Removed</span>- a</pre>'
           ].join('');
           document.body.append(host);
           return buttons.length;
@@ -302,7 +304,8 @@ suite('the kitchen sink', together, () => {
             .map(({ detail }) => detail),
           [
             '"npm" is a mono value a translator can change',
-            '""main"" is a mono value a translator can change'
+            '""main"" is a mono value a translator can change',
+            '"Added" is a heard word a translator cannot change'
           ]
         );
       } finally {

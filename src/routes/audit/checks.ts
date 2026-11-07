@@ -627,14 +627,17 @@ function copy(root: Document): Finding[] {
   return found;
 }
 
-/** A technical value is set in the mono face (L-20), and a page translator leaves it as written. */
+/**
+ * A technical value is set in the mono face (L-20), and a page translator leaves it as written,
+ * while the words heard with it stay open to translation.
+ */
 function untranslated(root: Document): Finding[] {
   const mono = getComputedStyle(root.documentElement)
     .getPropertyValue('--sui-mono')
     .split(',')[0]
     .trim()
     .replace(/["']/g, '');
-  return textElements(root, 'svg, script, style, [data-audit-ignore], [translate="no"]')
+  const open = textElements(root, 'svg, script, style, [data-audit-ignore], [translate="no"]')
     .filter(
       ({ element }) =>
         element.closest('code, kbd, samp, pre') ||
@@ -643,6 +646,16 @@ function untranslated(root: Document): Finding[] {
     .map(({ element, text }) =>
       finding('L-20', element, `"${text.slice(0, 24)}" is a mono value a translator can change`)
     );
+  const shut = [...root.querySelectorAll<HTMLElement>('[translate="no"] .sui-visually-hidden')]
+    .filter((element) => !element.closest('[data-audit-ignore]') && !element.translate)
+    .map((element) =>
+      finding(
+        'L-20',
+        element,
+        `"${(element.textContent ?? '').trim().slice(0, 24)}" is a heard word a translator cannot change`
+      )
+    );
+  return [...open, ...shut];
 }
 
 // Chicago keeps these lower case inside a title: articles, coordinating conjunctions, "to",
