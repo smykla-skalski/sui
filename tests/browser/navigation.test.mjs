@@ -1162,12 +1162,19 @@ suite('navigation', together, () => {
             table.some((value, at) => Math.abs(value * 1000 - tabular.inks[index][at]) > steps[at])
           )
             off.push(`${figure}: ${tabular.inks[index].join(' ')}`);
+          // Nothing kerns, so the run is as long as its glyphs as each is drawn alone, figures
+          // tabular, which holds exactly wherever a glyph's own advance is rounded.
           const run = `${figure}${glyphs.join(figure)}${figure}`;
-          const advance = /** @type {import('../../src/lib/charts/geometry.ts').Ink} */ (
-            faceInk(run, semibold, true)
-          ).advance;
-          if (Math.abs(advance * 1000 - tabular.runs[index]) > 0.005 * run.length)
-            off.push(`pairs with tabular ${figure}: ${tabular.runs[index] - advance * 1000}`);
+          const own = [...run].reduce(
+            (sum, glyph) =>
+              sum +
+              (figures.includes(glyph)
+                ? tabular.inks[figures.indexOf(glyph)][0]
+                : (drawnAdvance.get(glyph) ?? 0)),
+            0
+          );
+          if (Math.abs(own - tabular.runs[index]) > 0.005 * run.length)
+            off.push(`pairs with tabular ${figure}: ${tabular.runs[index] - own}`);
         });
         assert.deepEqual(off, [], semibold ? 'semibold tabular' : 'regular tabular');
       }
