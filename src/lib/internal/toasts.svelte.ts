@@ -50,6 +50,12 @@ export const toaster = $state<{
 export const hosts = $state<Element[]>([]);
 
 /**
+ * The block size of the page's live worker status while it shows. On a narrow screen it would
+ * meet the toasts at the foot, so the toasts stand on it.
+ */
+export const footing = $state({ block: 0 });
+
+/**
  * Makes `dialog` the topmost host until the returned function runs. It is called from an
  * effect, which must not come to depend on the stack it changes.
  */

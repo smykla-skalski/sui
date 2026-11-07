@@ -5,6 +5,7 @@
   import { clearance } from '../internal/clearance.js';
   import {
     dismiss,
+    footing,
     hosts,
     toaster,
     toasts,
@@ -220,7 +221,7 @@ A `danger` toast reports a failure and stays too.
 - Keyboard: the hotkey (F8) moves focus to the newest toast, Tab moves through its action and Dismiss, and Escape returns focus to where it was.
 - Pointer and touch: the action is a 34px target and Dismiss a 28px one, both 44px on a phone or touch screen; the corner around the toasts lets presses through to the page.
 - Focus: closing a toast returns focus to where it was before it entered the stack, or to the next toast's Dismiss when that place is gone; while toasts show, the page's end scroll padding keeps a control that takes focus clear above them.
-- Responsive: the stack is at most the viewport's width less 32px and its height, and scrolls inside past that with the newest toast kept in view. On a phone it spans the screen. Dismiss keeps the inline-end corner beside the title's first line, the action stands under the copy, and the copy moves under a failure's symbol when it would get less than 8rem beside it.
+- Responsive: the stack is at most the viewport's width less 32px and its height, and scrolls inside past that with the newest toast kept in view. On a phone it spans the screen, each toast as wide as the stack. Below the wide breakpoint the stack stands 8px above a showing worker status, so the two never meet. Dismiss keeps the inline-end corner beside the title's first line, the action stands under the copy, and the copy moves under a failure's symbol when it would get less than 8rem beside it.
 - Accessibility: a failure is announced as an alert and anything else politely, each once, and the stack is a landmark a reader can jump to.
 - Localization: `dismissLabel`, `label` and `hotkey` carry the built-in words and key, the stack stands at the inline end, mirrored in a right-to-left page, and its padding is logical.
 - Performance: one stack per page and per open dialog; each toast holds one timer, and the motion is opacity and translate, a fade alone under reduced motion.
@@ -252,7 +253,8 @@ A `danger` toast reports a failure and stays too.
 <div
   bind:this={stack}
   {@attach clearPage}
-  class={['sui-toaster', { preview }]}
+  class={['sui-toaster', { preview, footed: !preview && footing.block > 0 }]}
+  style:--sui-local-footing={footing.block > 0 ? `${footing.block}px` : undefined}
   popover={preview ? undefined : 'manual'}
   data-sui-theme={themeAt(stack?.parentElement)}
   role={preview ? undefined : 'region'}
@@ -447,14 +449,31 @@ A `danger` toast reports a failure and stays too.
     );
   }
 
-  /* On a phone the stack spans the screen and each toast takes its width. */
+  /* Below the wide breakpoint the widest worker status and the widest toast can meet, so the
+     toasts stand 8px above the status, and the stack keeps to the room left above it. */
+  @media not all and (min-width: 64.0625rem) {
+    .sui-toaster.footed {
+      --sui-local-toaster-end: calc(
+        max(var(--sui-space-4), env(safe-area-inset-bottom)) - var(--sui-space-2) +
+          var(--sui-local-footing)
+      );
+
+      inset-block-end: var(--sui-local-toaster-end);
+      max-block-size: calc(100dvh - var(--sui-local-toaster-end));
+    }
+  }
+
+  /* On a phone the stack spans the screen and each toast takes its width. A popover sizes to
+     its content, so the stack takes the width between its insets on purpose. */
   @media (max-width: 47.9375rem) {
     .sui-toaster {
+      inline-size: auto;
       inset-inline-start: var(--sui-safe-start);
     }
 
     .sui-toast {
       inline-size: 100%;
+      max-inline-size: none;
     }
   }
 

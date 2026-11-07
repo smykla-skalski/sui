@@ -291,7 +291,7 @@ suite('navigation', together, () => {
     }
   );
 
-  test('L-118 the shell keeps its bar, pane, drawer and skip link inside the safe area', async () => {
+  test('L-118 the shell keeps its bar, pane, drawer, skip link, toasts and worker status inside the safe area, toasts standing on the status', async () => {
     // A phone upright, with its notch and home indicator, and on its side, notch at the start.
     for (const [width, height, insets] of /** @type {const} */ ([
       [390, 844, { top: 47, right: 0, bottom: 34, left: 0 }],
@@ -343,6 +343,24 @@ suite('navigation', together, () => {
           out.push(`pane across ${pane?.x}-${pane && pane.x + pane.width}`);
         const drawer = await openDrawer(page);
         await inside(drawer.locator('.sui-shell-pages'), 'drawer pages');
+        // A lasting worker status and a toast meet at the foot of a narrow screen, so the toast
+        // stands on the status, and on a phone a short toast still spans the screen.
+        await visit(page, new URL('toaster/', url).href);
+        await page.evaluate(() => dispatchEvent(new Event('offline')));
+        await page.getByRole('button', { name: 'Save Settings' }).first().click();
+        const status = page.locator('.sui-service-worker-status:popover-open');
+        const toast = page.locator('.sui-toaster:popover-open .sui-toast');
+        for (const part of [status, toast])
+          await part.evaluate((node) =>
+            Promise.all(node.getAnimations().map((run) => run.finished))
+          );
+        await inside(status, 'worker status');
+        await inside(toast, 'toast');
+        const [low, high] = [await status.boundingBox(), await toast.boundingBox()];
+        if (!low || !high || high.y + high.height > low.y - 7.5)
+          out.push(`toast foot ${high && high.y + high.height} over status top ${low?.y}`);
+        if (width < 768 && Math.abs((high?.width ?? 0) - (low?.width ?? 0)) > 0.5)
+          out.push(`a short toast is ${high?.width}px wide beside a ${low?.width}px status`);
         assert.deepEqual(out, [], `${width}x${height}`);
       } finally {
         await page.close();

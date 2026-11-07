@@ -8,7 +8,7 @@
   import { tick } from 'svelte';
   import type { HTMLAttributes } from 'svelte/elements';
   import type { ServiceWorkerState } from '../internal/service-worker.svelte.js';
-  import { hosts } from '../internal/toasts.svelte.js';
+  import { footing, hosts } from '../internal/toasts.svelte.js';
   import Button from './Button.svelte';
   import VisuallyHidden from './VisuallyHidden.svelte';
 
@@ -117,6 +117,13 @@
     return () => clearTimeout(timer);
   });
 
+  let block = $state(0);
+  $effect(() => {
+    if (preview !== undefined) return;
+    footing.block = block;
+    return () => (footing.block = 0);
+  });
+
   $effect(() => {
     if (!element || preview !== undefined) return;
     if (shown === element.matches(':popover-open')) return;
@@ -183,7 +190,7 @@ dismisses it, and the return says "You are back online" for five seconds.
 - Keyboard: Tab reaches the bar's buttons after the page's own; Enter or Space presses them; Escape returns focus to where it came from and leaves the notice up.
 - Pointer and touch: the buttons are 34px tall on a pointer and 44px on a phone or touch screen; nothing needs a drag.
 - Focus: opening never takes focus; when a pressed button leaves, focus returns to where it came from, else to the next notice's first button.
-- Responsive: as wide as its words up to 28rem, the buttons wrapping under the copy; on a phone it spans the screen less 16px a side, above the safe area.
+- Responsive: as wide as its words up to 28rem, the buttons wrapping under the copy; on a phone it spans the screen less 16px a side, above the safe area. Below the wide breakpoint the toasts stand above it.
 - Accessibility: the update, offline and return are each announced politely once; the bar's name is its title; text holds 4.5:1 on the popover ground; forced colors keep its edge.
 - Localization: every word is a prop with an English default; the bar stands at the inline start and its buttons end the line in the reading direction, mirrored in a right-to-left page.
 - Performance: one element and one timer; it rises 8px and fades in, and fades out, and under reduced motion it comes and goes at once.
@@ -197,6 +204,7 @@ dismisses it, and the return says "You are back online" for five seconds.
 
 <aside
   bind:this={element}
+  bind:offsetHeight={block}
   {...rest}
   class={['sui-service-worker-status', className, { preview: preview !== undefined }]}
   popover={preview === undefined ? 'manual' : undefined}
