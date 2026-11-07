@@ -58,9 +58,9 @@
 A tone is a job, never a color. `default` does a view's ordinary work, `signal` is the one
 action a view exists for (one per view), `ghost` is low emphasis that supports it, `stop` is
 destructive, and `stop-quiet` is destructive but bordered, for a flow whose filled danger
-button is the final confirmation. `add` is a dashed pill that starts an optional entry; it
-never submits, saves, cancels, removes or navigates. `decision` is the gold action that
-resolves unsaved work, such as Save in a save bar, and nothing else wears it.
+button is the final confirmation. `add` is a pill with a firm dashed edge that starts an
+optional entry; it never submits, saves, cancels, removes or navigates. `decision` is the gold
+action that resolves unsaved work, such as Save in a save bar, and nothing else wears it.
 
 Disabled is a state that any tone can wear, and so is `loading`. A loading button keeps its
 place in the tab order and its focus, is announced as busy and disabled, and ignores presses
@@ -360,7 +360,11 @@ start.
     color: var(--sui-text-primary);
   }
 
+  /* A dash shows only half its length, so it rests at the hover edge to read as firm as a
+     solid one. */
   .sui-button[data-tone='add'] {
+    --sui-control-border: var(--sui-control-border-hover);
+
     background-color: transparent;
     border-radius: var(--sui-radius-pill);
     border-style: dashed;
