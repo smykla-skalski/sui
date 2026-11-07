@@ -1,6 +1,7 @@
 <script lang="ts">
-  import { getContext, type Snippet } from 'svelte';
+  import { getContext, untrack, type Snippet } from 'svelte';
   import { CodeBlock, Disclosure } from '#lib';
+  import { addressed } from './address.svelte.js';
   import type { SectionContext } from './Section.svelte';
   import { exampleSource, slug } from './source';
 
@@ -36,7 +37,16 @@
   const markup = $derived(code && section ? exampleSource(section.source, title) : null);
   const level = $derived(section?.level ?? 3);
 
-  let open = $state(false);
+  // An open code panel is kept in the address, so a shared link opens it again.
+  const shown = addressed(`code-${untrack(() => id)}`, '');
+  const open = {
+    get value() {
+      return shown.value === 'open';
+    },
+    set value(next: boolean) {
+      shown.value = next ? 'open' : '';
+    }
+  };
 </script>
 
 <!--
@@ -58,8 +68,8 @@ live specimens, not a surface of the design, so it may hold cards and dialogs (L
       <!-- The markup is drawn only once asked for, so the page never highlights code that no one
            reads. -->
       <div class="tools">
-        <Disclosure summary="Code" bind:open>
-          {#if open}<CodeBlock code={markup} lang="html" bare />{/if}
+        <Disclosure summary="Code" bind:open={() => open.value, (next) => (open.value = next)}>
+          {#if open.value}<CodeBlock code={markup} lang="html" bare />{/if}
         </Disclosure>
       </div>
     {/if}

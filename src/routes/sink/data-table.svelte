@@ -8,6 +8,7 @@
 
 <script lang="ts">
   import { DataTable, Icon, type DataTableColumn } from '#lib';
+  import { addressed } from '../kit/address.svelte.js';
   import Example from '../kit/Example.svelte';
   import Specimen from '../kit/Specimen.svelte';
 
@@ -143,10 +144,24 @@
     }
   ];
 
-  let sort = $state<{ key: string; direction: 'ascending' | 'descending' } | null>({
-    key: 'merged',
-    direction: 'descending'
-  });
+  // The order is kept in the address as `sort=-merged`, a minus for descending, or `none`.
+  type Sort = { key: string; direction: 'ascending' | 'descending' } | null;
+  const order = addressed('sort', '-merged');
+  const sort = {
+    get value(): Sort {
+      const asked = order.value;
+      if (asked === 'none') return null;
+      const descending = asked.startsWith('-');
+      return {
+        key: descending ? asked.slice(1) : asked,
+        direction: descending ? 'descending' : 'ascending'
+      };
+    },
+    set value(next: Sort) {
+      order.value =
+        next === null ? 'none' : `${next.direction === 'descending' ? '-' : ''}${next.key}`;
+    }
+  };
   let retried = $state(0);
 </script>
 
@@ -161,7 +176,7 @@
       columns={repositoryColumns}
       rows={repositories}
       rowHeader
-      bind:sort
+      bind:sort={() => sort.value, (next) => (sort.value = next)}
     />
   </Specimen>
   <Specimen label="Striped" code="striped">

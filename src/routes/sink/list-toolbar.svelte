@@ -17,6 +17,7 @@
     Pill,
     type ListToolGroup
   } from '#lib';
+  import { addressed } from '../kit/address.svelte.js';
   import Example from '../kit/Example.svelte';
   import Specimen from '../kit/Specimen.svelte';
 
@@ -68,13 +69,14 @@
   const narrow = choices('active', 'name');
   const list = choices('all', 'updated');
 
-  let query = $state('');
+  // The search is kept in the address, so a shared link opens the list as filtered.
+  const search = addressed('q', '');
 
   let context = $state<HTMLElement>();
 
   // The button leaves with the empty state, so focus goes back to the search it cleared.
   async function clear() {
-    query = '';
+    search.value = '';
     list.picked.shown = 'all';
     await tick();
     context?.querySelector<HTMLInputElement>('[role="searchbox"]')?.focus();
@@ -83,7 +85,7 @@
   const rows = $derived(
     repositories
       .filter((repository) => list.picked.shown === 'all' || repository.state === list.picked.shown)
-      .filter((repository) => repository.name.includes(query.trim().toLowerCase()))
+      .filter((repository) => repository.name.includes(search.value.trim().toLowerCase()))
       .sort((a, b) =>
         list.picked.order === 'name' ? a.name.localeCompare(b.name) : a.updated - b.updated
       )
@@ -135,7 +137,7 @@
 >
   <div class="stack" bind:this={context}>
     <ListToolbar
-      bind:query
+      bind:query={() => search.value, (next) => (search.value = next)}
       searchLabel="Search repositories"
       placeholder="sui…"
       filter={list.filter}
