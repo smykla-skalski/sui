@@ -23,6 +23,10 @@ const VIEWPORT_MARGIN = 8;
  * engine SUI supports, so the coordinates are measured here instead. The available block
  * size and the anchor width are published as `--sui-floating-available-block` and
  * `--sui-floating-anchor-inline` for the floating box's own sizing rules.
+ *
+ * Every size is read before the first write, so a placement that follows a scroll lays the page
+ * out once. The box is measured again after a write only when that write can change its size: a
+ * new anchor width, or a new cap on its height that the box reaches.
  */
 export function place(
   floating: HTMLElement,
@@ -39,7 +43,7 @@ export function place(
   const rtl = getComputedStyle(anchor).direction === 'rtl';
   const viewportWidth = document.documentElement.clientWidth;
   const viewportHeight = document.documentElement.clientHeight;
-  floating.style.setProperty('--sui-floating-anchor-inline', `${a.width}px`);
+  publish(floating, '--sui-floating-anchor-inline', a.width);
   if (side === 'inline-start' || side === 'inline-end')
     return beside(floating, a, side, align, offset, viewportWidth, viewportHeight, rtl, keep);
   const below = viewportHeight - a.bottom - offset - VIEWPORT_MARGIN;
@@ -59,9 +63,7 @@ export function place(
         : 'block-end'
       : side;
   const room = placed === 'block-end' ? below : above;
-  floating.style.setProperty('--sui-floating-available-block', `${Math.max(0, room)}px`);
-
-  const box = laidOut(floating);
+  const box = capped(floating, Math.max(0, room));
   const top = placed === 'block-end' ? a.bottom + offset : a.top - offset - box.height;
   const leftEdge = a.left;
   const rightEdge = a.right - box.width;
@@ -109,9 +111,7 @@ function beside(
 ): Side {
   // The box slides along its anchor to stay in the viewport, so all of the viewport's height is
   // its room whatever its alignment.
-  const room = viewportHeight - 2 * VIEWPORT_MARGIN;
-  floating.style.setProperty('--sui-floating-available-block', `${Math.max(0, room)}px`);
-  const box = laidOut(floating);
+  const box = capped(floating, Math.max(0, viewportHeight - 2 * VIEWPORT_MARGIN));
   const rightRoom = viewportWidth - a.right - offset - VIEWPORT_MARGIN;
   const leftRoom = a.left - offset - VIEWPORT_MARGIN;
   // The inline end is on the right in a left-to-right page and on the left otherwise.
@@ -146,6 +146,27 @@ const laidOut = (floating: HTMLElement) => ({
   width: floating.offsetWidth,
   height: floating.offsetHeight
 });
+
+const CAP = '--sui-floating-available-block';
+
+/** Sets a size the box's own rules read, only when it changed, and says whether it did. */
+function publish(floating: HTMLElement, name: string, px: number): boolean {
+  const value = `${px}px`;
+  if (floating.style.getPropertyValue(name) === value) return false;
+  floating.style.setProperty(name, value);
+  return true;
+}
+
+/**
+ * The box's size under a new cap on its height. The size is read under the old cap, and read
+ * again only when the box reaches either cap, since a box shorter than both keeps its size.
+ */
+function capped(floating: HTMLElement, room: number) {
+  const box = laidOut(floating);
+  const before = parseFloat(floating.style.getPropertyValue(CAP));
+  const reaches = box.height >= Math.min(Number.isNaN(before) ? Infinity : before, room) - 0.5;
+  return publish(floating, CAP, room) && reaches ? laidOut(floating) : box;
+}
 
 /**
  * Keeps an open box on its anchor while it is open. The page's own scroll needs nothing, since

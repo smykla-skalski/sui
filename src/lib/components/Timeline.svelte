@@ -123,7 +123,7 @@ only and a `LoadMore` after it lands on the first new one. Page it in the order 
 - Responsive: a container query under 25rem of its own width stands each time over its words and drops the pill and action under them, from the words' edge.
 - Accessibility: name the list with `aria-labelledby` pointing at its section's heading; a busy list is `aria-busy` and a polite status says `loadingLabel`; the actor's avatar is hidden because the name is in the words; times and words hold 4.5:1.
 - Localization: `emptyLabel` and `loadingLabel` are props; the clock follows `locale`, else the page's `lang`, for its hour cycle; the name and the words are joined by `marks.space`, name first; the columns and the light follow the reading direction.
-- Performance: one formatter per timeline and no script per event; every event renders, so page a long history with `LoadMore`; the placeholder light moves only by `transform` and holds still under reduced motion.
+- Performance: one formatter per timeline and no script per event; every event is in the page, but only the words near the screen are laid out and painted (`content-visibility: auto`), while the time column stays laid out to keep its width; page a long history with `LoadMore`; the placeholder light moves only by `transform` and holds still under reduced motion.
 - Analytics: none of its own; actions and `LoadMore` report their own outcomes.
 - Failure: a time that is not a date is shown as given and sorts last; a failed load is an `ErrorState` in the list's place, and a failed refresh an `ErrorState overContent` over the kept events.
 -->
@@ -261,16 +261,26 @@ only and a `LoadMore` after it lands on the first new one. Page it in the order 
     font-variant-numeric: tabular-nums;
   }
 
-  /* The words hang on their own edge, past the avatar, when they wrap. */
+  /* The words hang on their own edge, past the avatar, when they wrap. A long timeline lays out
+     and paints only the words near the screen: the time column stays laid out, so it keeps its
+     one width down the list. The avatar and the words' ink reach past the trimmed box, so the
+     body pads out by a step and takes the step back, and the clip that skipping brings falls
+     outside every ink. */
   .sui-timeline-body {
     align-items: start;
     column-gap: var(--sui-space-2);
+    contain-intrinsic-block-size: auto round(up, 1cap, 1px);
+    content-visibility: auto;
     display: grid;
     grid-template-columns: minmax(0, 1fr);
+    margin: calc(-1 * var(--sui-space-2));
     min-inline-size: 0;
+    padding: var(--sui-space-2);
   }
 
+  /* Until it is first drawn, an event takes one line of words, or the avatar's seat. */
   .sui-timeline-body:has(> .sui-timeline-face) {
+    contain-intrinsic-block-size: auto round(up, 1cap, 2px);
     grid-template-columns: auto minmax(0, 1fr);
   }
 

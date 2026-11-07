@@ -93,10 +93,11 @@ async function drawn(theme) {
     document.documentElement.dataset.suiTheme = name;
     await document.fonts.ready;
   }, theme);
-  // Time-relative words would differ between runs.
+  // Time-relative words would differ between runs. A section taller than the window is shot
+  // past it, where the rows a long list skips would come out blank.
   await page.addStyleTag({
     content:
-      '*, *::before, *::after { caret-color: transparent !important; } time { visibility: hidden !important; }'
+      '*, *::before, *::after { caret-color: transparent !important; content-visibility: visible !important; } time { visibility: hidden !important; }'
   });
   // A skeleton says it is slow after its 10s patience, so every section is shot after it. The
   // page's timers jump there rather than the run waiting for them.

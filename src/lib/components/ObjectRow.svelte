@@ -47,7 +47,7 @@ and the one above as a hovered row does, and keeps the plate under the pointer.
 - Responsive: on a phone the side stays beside the main content while both fit, and drops under it, packed to the start, once they do not; rows grow when their content wraps.
 - Accessibility: the link's name is the main content, so a reader hears the row once; the side stays outside the name; a current row is announced as the current page, and under forced colors its link frames it in `Highlight`.
 - Localization: everything it says is the caller's; the side sits at the inline end and follows the reading direction.
-- Performance: no script; hover and press change only the ground and a 1px sink.
+- Performance: no script; hover and press change only the ground and a 1px sink; off the screen the row is neither laid out nor painted (`content-visibility: auto`).
 - Analytics: none of its own; the row link is a plain `a`, so the page's navigation tracking hears it.
 - Failure: a row with no `main` content has no name, so always pass one; with nothing to open, leave out `href` and it stays still.
 -->
@@ -75,10 +75,15 @@ and the one above as a hovered row does, and keeps the plate under the pointer.
 </li>
 
 <style>
+  /* A long list lays out and paints only the rows near the screen, and a row off it keeps the
+     height it last had, or until it is first drawn the usual name and summary lines. All of a
+     row's ink stays inside its padding, so the clip that skipping brings never cuts any. */
   .sui-object-row {
     align-items: center;
     border-radius: var(--sui-radius-control);
     color: var(--sui-text-primary);
+    contain-intrinsic-block-size: auto calc(1.375rem + var(--sui-row-copy-gap));
+    content-visibility: auto;
     display: grid;
     gap: var(--sui-space-4);
     grid-template-columns: minmax(0, 1fr) auto;

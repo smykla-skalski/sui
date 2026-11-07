@@ -908,6 +908,77 @@ suite('overlays', together, () => {
   });
 
   test(
+    'a box that follows a scrolled anchor reads every size before it writes one',
+    long,
+    async () => {
+      const page = await openMounted({ viewport: { width: 900, height: 600 } });
+      try {
+        const steps = await page.evaluate(async () => {
+          const module = '/src/lib/internal/anchor.ts';
+          const { place } = await import(/* @vite-ignore */ module);
+          const scroller = document.createElement('div');
+          scroller.style.cssText = 'position:fixed;inset:0;overflow:auto';
+          const anchor = document.createElement('button');
+          anchor.style.cssText = 'display:block;margin:200px 100px 2000px;width:100px;height:40px';
+          scroller.append(anchor);
+          const floating = document.createElement('div');
+          floating.style.cssText =
+            'position:absolute;min-width:var(--sui-floating-anchor-inline);max-height:var(--sui-floating-available-block);overflow:auto';
+          floating.append(Object.assign(document.createElement('div'), { style: 'height:100px' }));
+          document.body.append(scroller, floating);
+          place(floating, anchor, {});
+          scroller.scrollTop = 50;
+          void document.body.offsetHeight;
+
+          // Any size read after a style write makes the browser lay the page out again.
+          const log = /** @type {string[]} */ ([]);
+          const style = CSSStyleDeclaration.prototype;
+          const setProperty = style.setProperty;
+          style.setProperty = function (...args) {
+            log.push('write');
+            return setProperty.apply(this, args);
+          };
+          const traps = /** @type {[object, string][]} */ ([
+            [HTMLElement.prototype, 'offsetWidth'],
+            [HTMLElement.prototype, 'offsetHeight'],
+            [Element.prototype, 'scrollHeight']
+          ]);
+          const kept = traps.map(([proto, name]) => {
+            const own = /** @type {PropertyDescriptor} */ (
+              Object.getOwnPropertyDescriptor(proto, name)
+            );
+            Object.defineProperty(proto, name, {
+              configurable: true,
+              get() {
+                log.push('read');
+                return own.get?.call(this);
+              }
+            });
+            return own;
+          });
+          try {
+            place(floating, anchor, {}, true);
+          } finally {
+            style.setProperty = setProperty;
+            traps.forEach(([proto, name], index) =>
+              Object.defineProperty(proto, name, kept[index])
+            );
+          }
+          return log;
+        });
+        assert.ok(steps.includes('write'), 'the scroll left the box cap as it was');
+        assert.equal(
+          steps.indexOf('read', steps.indexOf('write')),
+          -1,
+          `the placement read a size after a write: ${steps.join(' ')}`
+        );
+      } finally {
+        await page.close();
+      }
+    }
+  );
+
+  test(
     'a parent theme binding updates every switch and still follows the system',
     long,
     async () => {

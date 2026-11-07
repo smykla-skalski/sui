@@ -156,7 +156,7 @@ row in place of the hairlines, for a table wide enough that the eye can lose its
 - Responsive: columns grow to their widest value and the table scrolls inside its own frame, with a line that says so, a fade on each edge that has more past it, starting past held row headings, and the row headings held in view; numeric and `nowrap` columns never wrap, other text wraps inside its column; a wrapping column is never narrower than its values up to a 16rem measure, 8rem for held row headings (12rem and 6rem on a phone, where cells also pad 8px at their sides), so on a narrow frame a long value wraps to a few lines while the frame scrolls.
 - Accessibility: loading and refreshing mark the table `aria-busy` and are said through a polite status; a failure is an alert in words beside an icon; sorted order is `aria-sort` and an up or down chevron.
 - Localization: every built-in word is a prop with an English default; numbers group and text sorts by the page's language; columns, alignment, the held row headings and the loading light follow the reading direction.
-- Performance: every row renders; key rows with `rowKey`, and page a long table with numbered pages or `LoadMore` rather than drawing thousands; the loading light moves only by `transform`, so the compositor runs it, and holds still under reduced motion.
+- Performance: every row renders, and a table off the screen is skipped whole (`content-visibility: auto`); key rows with `rowKey`, and page a long table with numbered pages or `LoadMore` rather than drawing thousands, since a row cannot skip alone; the loading light moves only by `transform`, so the compositor runs it, and holds still under reduced motion.
 - Analytics: `onsort` hears each sort, and `onretry` each retry.
 - Failure: no rows says `emptyLabel` or draws `empty` in the body under the headings; a failure says `error` with a retry; a missing value draws a muted dash, is read as `missingLabel` and sorts first.
 -->
@@ -362,8 +362,14 @@ row in place of the hairlines, for a table wide enough that the eye can lose its
     text-box: trim-both cap alphabetic;
   }
 
+  /* A table off the screen is neither laid out nor painted, and keeps the height it last had.
+     Its rows cannot skip one by one: containment does not apply to a table's rows, and a table
+     that draws only some rows loses the rest from Tab, from find in page and from the widths
+     its columns take from every value, so a long table pages instead (L-63). */
   .frame {
+    contain-intrinsic-block-size: auto 9rem;
     container-type: scroll-state;
+    content-visibility: auto;
     min-inline-size: 0;
     overflow-x: auto;
     scroll-timeline: --sui-data-table-frame inline;
