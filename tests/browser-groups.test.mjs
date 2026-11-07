@@ -27,7 +27,7 @@ test('the visual group runs in the Playwright image of playwright-core, as its p
 });
 
 test('a local run takes SUI_JOBS only as a whole number from 1, so no group is left unrun', () => {
-  assert.equal(jobCount(undefined, 12), 4);
+  assert.equal(jobCount('', 12), 4);
   assert.equal(jobCount('', 2), 1);
   assert.equal(jobCount('3', 12), 3);
   for (const asked of ['0', '-1', '0.5', 'two'])
