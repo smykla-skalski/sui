@@ -111,7 +111,7 @@
           aria-describedby={describedby}
           options={regions}
           bind:value={backup}
-          placeholder="Choose a region"
+          placeholder="Choose a region…"
         />
       {/snippet}
     </Field>
@@ -201,7 +201,7 @@
             {required}
             options={zones}
             bind:value={zone}
-            placeholder="Choose a time zone"
+            placeholder="Choose a time zone…"
           />
         {/snippet}
       </Field>

@@ -605,6 +605,22 @@ function copy(root: Document): Finding[] {
     if (text.includes('·') && text.trim() !== '·' && !element.closest('select, option, code, pre'))
       found.push(finding('L-103', element, 'a "·" typed into the words instead of a drawn dot'));
   }
+  // A placeholder says the field is still empty, so it trails off. A select's prompt is its
+  // first option, which shows only in the closed select; one that presumes a value shows that.
+  const prompts = [
+    ...audited(root, 'input[placeholder], textarea[placeholder]').map(
+      (element) => [element, element.getAttribute('placeholder') ?? ''] as const
+    ),
+    ...audited(root, 'select').flatMap((select) => {
+      const prompt = select.querySelector(':scope > .sui-select-placeholder:not(.presumed)');
+      return prompt ? [[select, prompt.textContent ?? ''] as const] : [];
+    })
+  ];
+  for (const [element, said] of prompts)
+    if (said.trim() !== '' && !said.trim().endsWith('…'))
+      found.push(
+        finding('L-31', element, `the placeholder "${said.trim()}" does not end with "…"`)
+      );
   return found;
 }
 

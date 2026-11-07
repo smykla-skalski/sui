@@ -34,7 +34,7 @@
     value = $bindable(null),
     options,
     placeholder,
-    promptLabel = word('Select.promptLabel', 'Choose an option'),
+    promptLabel = word('Select.promptLabel', 'Choose an option…'),
     separator = word('Select.separator', ' · '),
     optionName = word(
       'Select.optionName',

@@ -52,7 +52,7 @@ A law that says "every" means every component, including the ones added after it
 - **L-28** Labels, hints, descriptions, list items, toasts and single-sentence paragraphs end without a period, as Material and GOV.UK write interface text. A paragraph of two or more sentences ends each sentence with a period. `S-241 K-27` `audit`
 - **L-29** A sentence holds at most 25 words, and a paragraph at most 3 sentences. `K-28 K-29` `audit`
 - **L-30** Headings and buttons are Chicago Title Case, as the Vercel Web Interface Guidelines ask: page, section, card, plate, dialog, chart, empty and error state titles, the words of a button or a link drawn as one, a summary, a tab and a menu item. Inside a title, articles, "and", "but", "for", "or", "nor", "to", "as" and prepositions stay lower case, the first and last words are capitalized, and "&" stands for "and". Code, a name with its own casing and a quoted value keep their case. Labels, hints, tooltips, callouts, toasts and running copy stay sentence case. A button is a verb phrase that names its result. An empty state is a plain title, one explanation and a next step, with no decorative icon. A toast description does not repeat its title. `S-232 S-241 K-36` `audit` `review`
-- **L-31** UI copy uses the real ellipsis character "…" and curly quotes (“ ” ‘ ’), never three dots or a straight quote (Vercel Web Interface Guidelines). `K-38` `audit`
+- **L-31** UI copy uses the real ellipsis character "…" and curly quotes (“ ” ‘ ’), never three dots or a straight quote, and a placeholder, a select's prompt too, ends with the ellipsis, since it says the field is still empty (Vercel Web Interface Guidelines). `K-38` `audit`
 
 ## Spacing and rhythm
 
