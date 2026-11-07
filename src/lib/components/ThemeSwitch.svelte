@@ -138,6 +138,10 @@
     const wanted = () => (choice === 'system' ? (query.matches ? 'dark' : 'light') : choice);
     const apply = () => {
       if (root.dataset.suiTheme !== wanted()) root.dataset.suiTheme = wanted();
+      // The browser's own chrome, such as a phone's address bar, takes the page's ground too.
+      const ground = getComputedStyle(root).getPropertyValue('--sui-canvas').trim();
+      for (const meta of document.querySelectorAll<HTMLMetaElement>('meta[name="theme-color"]'))
+        meta.content = ground;
     };
     apply();
     // A theme set on the root from elsewhere is an explicit choice, so the switch shows it
@@ -162,7 +166,7 @@ when the room is too narrow, as every `SegmentedControl` does. Without `system` 
 and dark only, and shows the system's theme, following it live, until the reader picks one;
 pressing the option already shown keeps it as the choice. It owns the page's theme: it sets
 `data-sui-theme` on the root element, keeps the choice in local storage under `sui:theme`, and
-reads it back on the next visit.
+reads it back on the next visit. Every `<meta name="theme-color">` on the page takes the theme's canvas, so the browser's own chrome matches the page.
 
 Every switch on a page shares one choice, and a theme set on the root from elsewhere shows as
 that explicit choice. A page that renders on the server paints its default theme until this

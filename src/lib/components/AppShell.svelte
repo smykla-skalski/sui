@@ -54,7 +54,10 @@
   } & HTMLAttributes<HTMLDivElement> = $props();
 
   const sideId = $props.id();
-  let width = $state(0);
+  /* The content box, as the container queries measure it: the safe-area padding on a phone's
+     side is no room for the layout (L-118). */
+  let box = $state<DOMRectReadOnly | null>(null);
+  const width = $derived(box?.width ?? 0);
   let root = $state<HTMLElement | null>(null);
   let side = $state<HTMLElement | null>(null);
   let topBar = $state<HTMLElement | null>(null);
@@ -244,7 +247,7 @@ viewport. `landmark="none"` keeps the content from claiming the page's one `main
 
 <div
   bind:this={root}
-  bind:clientWidth={width}
+  bind:contentRect={box}
   {...rest}
   class={['sui-shell', className, { contained, 'bottom-nav': bottom, flowing }]}
 >
@@ -302,6 +305,12 @@ viewport. `landmark="none"` keeps the content from claiming the page's one `main
     flex-direction: column;
     min-block-size: 100dvh;
     position: relative;
+  }
+
+  /* A page shell fills the screen, so its grounds run under a notch while its content keeps to
+     the safe area (L-118). */
+  .sui-shell:not(.contained) {
+    padding-inline: var(--sui-safe-start) var(--sui-safe-end);
   }
 
   .contained {
@@ -492,6 +501,18 @@ viewport. `landmark="none"` keeps the content from claiming the page's one `main
       inset-inline-start: var(--sui-drawer-start);
       max-inline-size: 86vw;
       position: fixed;
+    }
+
+    /* The drawer meets the screen's start and foot, so it keeps its rows off the notch and the
+       home indicator (L-118). */
+    .sui-shell:not(.contained) .sui-shell-side:popover-open {
+      padding-block-end: env(safe-area-inset-bottom);
+      padding-inline-start: var(--sui-safe-start);
+    }
+
+    .sui-shell:not(.contained) .sui-shell-bar {
+      min-block-size: calc(var(--sui-top-bar-height) + env(safe-area-inset-top));
+      padding-block-start: calc(var(--sui-space-1) + env(safe-area-inset-top));
     }
 
     /* The pages give way first when the rail beside them leaves less room. */

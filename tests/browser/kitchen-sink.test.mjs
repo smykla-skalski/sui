@@ -444,6 +444,15 @@ suite('the kitchen sink', together, () => {
             await page.evaluate(() => getComputedStyle(document.documentElement).colorScheme),
             'dark'
           );
+          // The browser's own chrome wears the dark canvas too (L-118).
+          assert.deepEqual(
+            await page.evaluate(() =>
+              [...document.querySelectorAll('meta[name="theme-color"]')]
+                .filter((meta) => matchMedia(/** @type {HTMLMetaElement} */ (meta).media).matches)
+                .map((meta) => /** @type {HTMLMetaElement} */ (meta).content)
+            ),
+            ['#0c0e11']
+          );
         } finally {
           await page.close();
         }

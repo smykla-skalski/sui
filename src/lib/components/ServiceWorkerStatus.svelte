@@ -249,7 +249,7 @@ dismisses it, and the return says "You are back online" for five seconds.
   .sui-service-worker-status:not(.preview) {
     inset: auto;
     inset-block-end: max(var(--sui-space-4), env(safe-area-inset-bottom));
-    inset-inline-start: var(--sui-space-4);
+    inset-inline-start: max(var(--sui-space-4), var(--sui-safe-start));
     margin: 0;
     max-inline-size: min(28rem, 100vw - 2 * var(--sui-space-4));
     opacity: 0;

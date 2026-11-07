@@ -59,8 +59,8 @@ A link that is always visible is `Link`, and words that are never shown are `Vis
     color: var(--sui-text-primary);
     font: var(--sui-weight-semibold) var(--sui-font-size-control) / var(--sui-leading-compact)
       var(--sui-sans);
-    inset-block-start: var(--sui-space-3);
-    inset-inline-start: var(--sui-space-4);
+    inset-block-start: max(var(--sui-space-3), env(safe-area-inset-top));
+    inset-inline-start: max(var(--sui-space-4), var(--sui-safe-start));
     max-inline-size: calc(100vw - 2 * var(--sui-space-4));
     padding: var(--sui-space-2) var(--sui-space-3);
     /* The words run from their cap line to their baseline, so the padding is the room above

@@ -1043,3 +1043,18 @@
     overscroll-behavior: none;
   }
 }
+
+/* The page runs under a phone's notch, rounded corners and home indicator (`viewport-fit=cover`),
+   so what stands at a screen edge keeps inside the safe area (L-118). The device names its insets
+   by physical side, and these two follow the reading direction, so a part names its sides
+   logically. */
+:root,
+:where([dir='ltr']) {
+  --sui-safe-start: env(safe-area-inset-left);
+  --sui-safe-end: env(safe-area-inset-right);
+}
+
+:where([dir='rtl']) {
+  --sui-safe-start: env(safe-area-inset-right);
+  --sui-safe-end: env(safe-area-inset-left);
+}

@@ -316,7 +316,7 @@ A `danger` toast reports a failure and stays too.
     inset-block-end: calc(
       max(var(--sui-space-4), env(safe-area-inset-bottom)) - var(--sui-space-4)
     );
-    inset-inline-end: 0;
+    inset-inline-end: var(--sui-safe-end);
     margin: 0;
     max-block-size: 100dvh;
     max-inline-size: 100vw;

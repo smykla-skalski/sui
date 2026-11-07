@@ -721,3 +721,20 @@ test('K9 every built-in word reads through word(), so setWords can replace it', 
       found.push(`${path}: a word outside word()`);
   assert.deepEqual(found, []);
 });
+
+test('L-118 the page covers the screen and its chrome wears each scheme canvas', () => {
+  const app = read('src/app.html');
+  assert.match(app, /<meta name="viewport" content="[^"]*viewport-fit=cover/);
+  for (const scheme of ['light', 'dark']) {
+    const canvas = palette.match(
+      new RegExp(`--sui-primitive-${scheme}-canvas:\\s*(#[0-9a-f]{6})`, 'i')
+    );
+    assert.ok(canvas, `the ${scheme} canvas is a hex`);
+    assert.ok(
+      app.includes(
+        `<meta name="theme-color" content="${canvas[1]}" media="(prefers-color-scheme: ${scheme})" />`
+      ),
+      `the ${scheme} theme-color is ${canvas[1]}`
+    );
+  }
+});
