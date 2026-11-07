@@ -520,7 +520,7 @@ row in place of the hairlines, for a table wide enough that the eye can lose its
   /* A faint veil of the ink, so a stripe guides the eye along a row in both themes and never
      reads as a selection. */
   .striped {
-    --sui-local-stripe: color-mix(in srgb, var(--sui-text-primary) 3.5%, transparent);
+    --sui-local-stripe: color-mix(in srgb, var(--sui-text-primary) 5%, transparent);
   }
 
   .striped tbody tr:nth-child(even) {
