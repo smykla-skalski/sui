@@ -86,7 +86,7 @@ does beside its search. A search that filters is never
 disabled to say nothing matches; the list says that, and the caller puts the number of
 matches in a polite `role="status"` beside it so a screen reader hears it.
 
-- Semantics: a text input with `role="searchbox"`, named by `label`, through a drawn `<label for>` or `aria-label`, with a clear `IconButton` once there is a query.
+- Semantics: a native search input, which is a searchbox, named by `label`, through a drawn `<label for>` or `aria-label`, with a clear `IconButton` once there is a query.
 - Content: one line of query text, an optional placeholder that is an example, and the magnifier at the start. It is `autocomplete="off"` unless the caller says otherwise, so no password manager or form history offers itself for a search.
 - States: empty, filled (with the clear button), focus (a flush 2px ring), invalid (the danger edge and an error under the field) and disabled as `TextInput` draws them.
 - Keyboard: typing narrows, Escape clears a query and passes on when there is none, and Tab reaches the clear button.
@@ -109,8 +109,7 @@ matches in a polite `role="status"` beside it so a screen reader hears it.
       autocomplete="off"
       {...rest}
       {id}
-      type="text"
-      role="searchbox"
+      type="search"
       enterkeyhint="search"
       class="search-input"
       aria-label={hideLabel ? label : undefined}
@@ -173,8 +172,15 @@ matches in a polite `role="status"` beside it so a screen reader hears it.
   }
 
   .sui-search-field-box > :global(.search-input) {
+    appearance: none;
     padding-inline: var(--sui-space-8)
       var(--sui-local-control-height, var(--sui-control-height-compact));
+  }
+
+  /* The field draws its own clear button, so the browser's is hidden. */
+  .sui-search-field-box > :global(.search-input)::-webkit-search-cancel-button,
+  .sui-search-field-box > :global(.search-input)::-webkit-search-decoration {
+    appearance: none;
   }
 
   .sui-search-field-icon {
