@@ -18,8 +18,12 @@ const subscribe = createSubscriber((update) => {
     read();
     update();
   });
-  observer.observe(probe);
+  // The first read often comes from inside another observer's report, as a shell's width
+  // does, and a box nearer the root observed there is one the browser must hold back and
+  // report as a loop, so the probe is observed from the next frame.
+  const frame = requestAnimationFrame(() => observer.observe(probe));
   return () => {
+    cancelAnimationFrame(frame);
     observer.disconnect();
     probe.remove();
   };

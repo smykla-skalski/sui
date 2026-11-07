@@ -37,6 +37,9 @@
       };
       const watcher = new ResizeObserver(check);
       watcher.observe(node);
+      // A row that skips off the screen silences the observer from its first frame, so one
+      // read lands first; every label reads in the same task, after the page is written.
+      queueMicrotask(check);
       return () => watcher.disconnect();
     };
   }

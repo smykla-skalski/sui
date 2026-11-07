@@ -138,9 +138,13 @@
    */
   export function watchOverflow(report: (scrolls: boolean) => void): Attachment<HTMLElement> {
     return (box) => {
-      const observer = new ResizeObserver(() => report(box.scrollWidth > box.clientWidth));
+      const check = () => report(box.scrollWidth > box.clientWidth);
+      const observer = new ResizeObserver(check);
       observer.observe(box);
       if (box.firstElementChild) observer.observe(box.firstElementChild);
+      // A row that skips off the screen silences the observer from its first frame, so one
+      // read lands first; every block reads in the same task, after the page is written.
+      queueMicrotask(check);
       return () => observer.disconnect();
     };
   }
