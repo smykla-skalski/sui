@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import { after, before, suite, test } from 'node:test';
 import {
   allSections,
@@ -207,6 +208,22 @@ suite('navigation', together, () => {
       }
     );
 
+    // It reloads the page, and the test after it sets up the page it needs itself.
+    test(
+      'the rail places are links, and the place one opens stays current through a reload',
+      long,
+      async () => {
+        const page = await shell();
+        await resize(page, 1440);
+        const personal = page.locator('.sui-rail').getByRole('link', { name: 'Personal' });
+        await personal.click();
+        await page.waitForURL((address) => address.searchParams.get('place') === 'personal', brief);
+        assert.equal(await personal.getAttribute('aria-current'), 'page');
+        await visit(page, page.url());
+        assert.equal(await personal.getAttribute('aria-current'), 'page');
+      }
+    );
+
     test('the phone drawer opens from the start edge in a right-to-left page', long, async () => {
       const page = await shell();
       await resize(page, 375);
@@ -274,7 +291,59 @@ suite('navigation', together, () => {
     }
   );
 
-  test("an overview card opens its component's own page, which the index marks", async () => {
+  test('L-118 the shell keeps its bar, pane, drawer and skip link inside the safe area', async () => {
+    // A phone upright, with its notch and home indicator, and on its side, notch at the start.
+    for (const [width, height, insets] of /** @type {const} */ ([
+      [390, 844, { top: 47, right: 0, bottom: 34, left: 0 }],
+      [844, 390, { top: 0, right: 47, bottom: 21, left: 47 }]
+    ])) {
+      const page = await browser.newPage({ viewport: { width, height }, hasTouch: true });
+      try {
+        const cdp = await page.context().newCDPSession(page);
+        await cdp.send('Emulation.setSafeAreaInsetsOverride', { insets });
+        await visit(page, new URL('layouts/app-shell/', url).href);
+        await page.waitForFunction(() => !document.documentElement.dataset.suiFonts);
+        const safe = {
+          top: insets.top,
+          left: insets.left,
+          right: width - insets.right,
+          bottom: height - insets.bottom
+        };
+        /** @type {string[]} */
+        const out = [];
+        const inside = async (/** @type {import('playwright-core').Locator} */ part, name = '') => {
+          const box = await part.boundingBox();
+          if (!box) return out.push(`${name}: no box`);
+          if (
+            box.y < safe.top - 0.5 ||
+            box.x < safe.left - 0.5 ||
+            box.x + box.width > safe.right + 0.5 ||
+            box.y + box.height > safe.bottom + 0.5
+          )
+            out.push(
+              `${name} at ${Math.round(box.x)},${Math.round(box.y)} ${box.width}x${box.height}`
+            );
+        };
+        await page.keyboard.press('Tab');
+        const skip = page.locator('.sui-skip-link');
+        await skip.evaluate((link) => Promise.all(link.getAnimations().map((run) => run.finished)));
+        await inside(skip, 'skip link');
+        await skip.evaluate((link) => /** @type {HTMLElement} */ (link).blur());
+        await inside(page.locator('.sui-shell-menu'), 'menu button');
+        // The pane runs on past the foot of the screen, so only its sides are measured.
+        const pane = await page.locator('.sui-shell-pane').boundingBox();
+        if (!pane || pane.x < safe.left - 0.5 || pane.x + pane.width > safe.right + 0.5)
+          out.push(`pane across ${pane?.x}-${pane && pane.x + pane.width}`);
+        const drawer = await openDrawer(page);
+        await inside(drawer.locator('.sui-shell-pages'), 'drawer pages');
+        assert.deepEqual(out, [], `${width}x${height}`);
+      } finally {
+        await page.close();
+      }
+    }
+  });
+
+  test("an overview card opens its component's own page, which the index marks, and L-59 a wrong address leads back", async () => {
     const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
     try {
       await visit(page, url);
@@ -288,6 +357,16 @@ suite('navigation', together, () => {
           ?.textContent?.trim()
       }));
       assert.deepEqual(shown, { title: 'Data table', sections: 1, current: 'Data table' });
+
+      // The router takes the link, as it takes any in-app link, so its load fails as a missing page.
+      await page.evaluate(() => {
+        const link = Object.assign(document.createElement('a'), { href: '../no-such-component/' });
+        document.body.append(link);
+        link.click();
+      });
+      await page.getByRole('heading', { level: 1, name: 'Page Not Found' }).waitFor(brief);
+      const overview = page.getByRole('link', { name: 'Open the Overview' });
+      assert.equal(new URL((await overview.getAttribute('href')) ?? '', page.url()).href, url);
     } finally {
       await page.close();
     }
@@ -737,6 +816,79 @@ suite('navigation', together, () => {
     );
 
     // Last, since it leaves the drawer open and the page in the other theme.
+    test(
+      'the side nav parts its title by a hairline, cuts its rows cleanly there, and rests each end a gap clear of it (L-107)',
+      long,
+      async () => {
+        const page = await sink();
+        await resize(page, 1440);
+        try {
+          const found = await page.evaluate(async () => {
+            const tree = /** @type {HTMLElement} */ (document.querySelector('.sui-side-nav-tree'));
+            const head = /** @type {Element} */ (document.querySelector('.sui-side-nav-head'));
+            const next = /** @type {Element} */ (tree.nextElementSibling);
+            const list = /** @type {Element} */ (tree.firstElementChild);
+            const frame = () => new Promise(requestAnimationFrame);
+            const box = () => tree.getBoundingClientRect();
+            const rest = async (/** @type {number} */ at) => {
+              tree.scrollTop = at;
+              await frame();
+              await frame();
+            };
+            await rest(0);
+            const top = list.getBoundingClientRect().top - box().top;
+            await rest(tree.scrollHeight);
+            const bottom = box().bottom - list.getBoundingClientRect().bottom;
+            return {
+              scrolls: tree.scrollHeight - tree.clientHeight,
+              top,
+              bottom,
+              underHead: box().top - head.getBoundingClientRect().bottom,
+              overNext: next.getBoundingClientRect().top - box().bottom,
+              gap: parseFloat(getComputedStyle(tree).getPropertyValue('--sui-local-tree-gap')) * 16,
+              masked: getComputedStyle(tree).maskImage !== 'none',
+              lines: [
+                getComputedStyle(head).borderBottom,
+                getComputedStyle(
+                  /** @type {Element} */ (document.querySelector('.sui-side-nav-foot'))
+                ).borderTop
+              ]
+            };
+          });
+          assert.ok(found.scrolls > 100, `the rows scroll only ${found.scrolls}px`);
+          assert.equal(found.masked, false, 'the rows fade as they pass the hairlines');
+          assert.match(found.lines[0], /^1px solid/, 'no hairline parts the title from the rows');
+          assert.equal(
+            found.lines[0],
+            found.lines[1],
+            'the title and the foot draw different lines'
+          );
+          assert.equal(found.gap, 16);
+          assert.ok(
+            Math.abs(found.underHead) <= 0.5,
+            `the rows end ${found.underHead}px under the title`
+          );
+          assert.ok(
+            Math.abs(found.overNext) <= 0.5,
+            `the rows end ${found.overNext}px over the part under them`
+          );
+          assert.ok(
+            Math.abs(found.top - found.gap) <= 0.5,
+            `the first row rests ${found.top}px down`
+          );
+          assert.ok(
+            Math.abs(found.bottom - found.gap) <= 0.5,
+            `the last row rests ${found.bottom}px up`
+          );
+        } finally {
+          await page.evaluate(() => {
+            const tree = document.querySelector('.sui-side-nav-tree');
+            if (tree) tree.scrollTop = 0;
+          });
+        }
+      }
+    );
+
     test('a phone changes the theme from the drawer, far down the page', long, async () => {
       const page = await sink();
       await resize(page, 375);
@@ -750,6 +902,15 @@ suite('navigation', together, () => {
           : 'dark';
       await drawer.getByRole('radio', { name: wanted === 'dark' ? 'Dark' : 'Light' }).check();
       assert.equal(await page.evaluate(() => document.documentElement.dataset.suiTheme), wanted);
+      // The browser's own chrome follows the chosen theme's canvas (L-118).
+      assert.deepEqual(
+        await page.evaluate(() =>
+          [...document.querySelectorAll('meta[name="theme-color"]')].map(
+            (meta) => /** @type {HTMLMetaElement} */ (meta).content
+          )
+        ),
+        wanted === 'dark' ? ['#0c0e11', '#0c0e11'] : ['#f7f7f5', '#f7f7f5']
+      );
     });
   });
 
@@ -762,10 +923,12 @@ suite('navigation', together, () => {
       long,
       async () => {
         const page = await charts();
+        const kinds = new Set();
         for (const width of [1440, 375]) {
           await resize(page, width);
           const bands = await page.evaluate(() =>
             [...document.querySelectorAll('#charts .plot-band')].map((band) => {
+              const chart = /** @type {Element} */ (band.closest('.sui-chart'));
               const box = band.getBoundingClientRect();
               const holder = /** @type {Element} */ (band.closest('.frame'));
               const keyline = parseFloat(getComputedStyle(holder).borderLeftWidth);
@@ -778,12 +941,12 @@ suite('navigation', together, () => {
                 band.closest('.sui-chart')?.querySelector('.sui-chart-title')
               ).getBoundingClientRect();
               return {
-                // A stacked stage lends its inset only to a chart that stands straight in the
-                // specimen, so a chart in a section keeps the section's edges.
+                // A stage lends its inset while its specimens stack, and only to a chart that
+                // stands straight in the specimen, so a chart in a section keeps the section's
+                // edges, and a pair side by side keeps its own.
                 lent:
-                  band
-                    .closest('.sui-chart')
-                    ?.parentElement?.matches('[data-layout="stack"] > .specimen > .body') === true,
+                  parseFloat(getComputedStyle(chart).getPropertyValue('--sui-local-bleed')) > 0 &&
+                  chart.parentElement?.matches('.specimen > .body') === true,
                 start: box.left - room.left - keyline,
                 end: room.right - keyline - box.right,
                 inside:
@@ -794,7 +957,7 @@ suite('navigation', together, () => {
               };
             })
           );
-          assert.ok(bands.some((band) => band.lent) && bands.some((band) => !band.lent));
+          for (const band of bands) kinds.add(band.lent);
           for (const band of bands)
             if (band.lent) {
               assert.ok(
@@ -803,7 +966,19 @@ suite('navigation', together, () => {
               );
               assert.ok(Math.abs(band.plotStart) < 0.5, `the plot keeps the title's edge`);
             } else assert.ok(band.inside, `${width}px: a band leaves its specimen`);
+          if (width !== 1440) continue;
+          // Charts side by side end their data tables on one line.
+          const tops = await page.evaluate(() =>
+            [...document.querySelectorAll('#charts [data-layout="pairs"]')].map((pair) =>
+              [...pair.querySelectorAll('.sui-chart > details > summary')].map((summary) =>
+                Math.round(summary.getBoundingClientRect().top)
+              )
+            )
+          );
+          assert.ok(tops.length > 0 && tops.every((pair) => pair.length === 2));
+          for (const [first, second] of tops) assert.equal(first, second, 'a pair ends apart');
         }
+        assert.deepEqual(kinds, new Set([true, false]));
       }
     );
 
@@ -833,7 +1008,7 @@ suite('navigation', together, () => {
       }
     );
 
-    test('the chart face table holds what Chrome draws, glyph by glyph and pair by pair', async () => {
+    test('the chart face table holds what Chrome draws, glyph by glyph and pair by pair, tabular figures too', async () => {
       const { faceInk } = await import('../../src/lib/charts/geometry.ts');
       const page = await charts();
       const candidates = [
@@ -923,6 +1098,78 @@ suite('navigation', together, () => {
             wrong.push(`pairs with ${run[0]}: ${drawnKerning - tableKerning}`);
         });
         assert.deepEqual(wrong, [], semibold ? 'semibold' : 'regular');
+
+        // A tick's tabular figures, each measured through the face loaded with `tnum` on, and
+        // each beside every glyph in SVG text with `tabular-nums`, where none of them kerns.
+        const figures = [...'0123456789'];
+        const tabular = await page.evaluate(
+          async ({ face, figures, glyphs, weight }) => {
+            const bytes = Uint8Array.from(atob(face), (c) => c.charCodeAt(0));
+            const tnum = new FontFace('SUI tabular probe', bytes, {
+              featureSettings: '"tnum"',
+              weight: '400 700'
+            });
+            document.fonts.add(await tnum.load());
+            const context = /** @type {CanvasRenderingContext2D} */ (
+              document.createElement('canvas').getContext('2d')
+            );
+            context.font = `${weight} 1000px 'SUI tabular probe'`;
+            const ns = 'http://www.w3.org/2000/svg';
+            const svg = document.createElementNS(ns, 'svg');
+            const text = document.createElementNS(ns, 'text');
+            text.setAttribute(
+              'style',
+              `font: ${weight} 1000px 'SUI Plus Jakarta Sans'; font-variant-ligatures: none; font-variant-numeric: tabular-nums; white-space: pre`
+            );
+            svg.append(text);
+            document.body.append(svg);
+            const runs = figures.map((figure) => {
+              text.textContent = `${figure}${glyphs.join(figure)}${figure}`;
+              return text.getComputedTextLength();
+            });
+            svg.remove();
+            return {
+              inks: figures.map((figure) => {
+                const ink = context.measureText(figure);
+                return [
+                  ink.width,
+                  ink.actualBoundingBoxLeft,
+                  ink.actualBoundingBoxRight,
+                  ink.actualBoundingBoxAscent,
+                  ink.actualBoundingBoxDescent
+                ];
+              }),
+              runs
+            };
+          },
+          {
+            face: readFileSync(
+              new URL('../../src/lib/assets/fonts/PlusJakartaSansLatinVF.woff2', import.meta.url)
+            ).toString('base64'),
+            figures,
+            glyphs,
+            weight: semibold ? 600 : 400
+          }
+        );
+        /** @type {string[]} */
+        const off = [];
+        figures.forEach((figure, index) => {
+          const ink = /** @type {import('../../src/lib/charts/geometry.ts').Ink} */ (
+            faceInk(figure, semibold, true)
+          );
+          const table = [ink.advance, ink.left, ink.right, ink.ascent, ink.descent];
+          if (
+            table.some((value, at) => Math.abs(value * 1000 - tabular.inks[index][at]) > steps[at])
+          )
+            off.push(`${figure}: ${tabular.inks[index].join(' ')}`);
+          const run = `${figure}${glyphs.join(figure)}${figure}`;
+          const advance = /** @type {import('../../src/lib/charts/geometry.ts').Ink} */ (
+            faceInk(run, semibold, true)
+          ).advance;
+          if (Math.abs(advance * 1000 - tabular.runs[index]) > 0.005 * run.length)
+            off.push(`pairs with tabular ${figure}: ${tabular.runs[index] - advance * 1000}`);
+        });
+        assert.deepEqual(off, [], semibold ? 'semibold tabular' : 'regular tabular');
       }
     });
   });
@@ -1033,7 +1280,7 @@ suite('navigation', together, () => {
     'an index and a side nav read an id that every object inherits as no entry',
     long,
     async () => {
-      const page = await openMounted();
+      const page = await openMount(browser, url);
       try {
         const current = () =>
           page.evaluate(() =>

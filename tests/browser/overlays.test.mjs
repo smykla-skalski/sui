@@ -52,13 +52,15 @@ suite('overlays', together, () => {
         : (document.activeElement?.textContent ?? '').trim()
     );
 
-  test('on a phone a long press on a time or a cut label shows its tip', long, async () => {
-    const page = await open({
-      viewport: { width: 390, height: 844 },
-      hasTouch: true,
-      isMobile: true
+  suite('on a phone, on one page', inOrder, () => {
+    /** @type {import('playwright-core').Page} */
+    let page;
+    before(async () => {
+      page = await open({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true });
     });
-    try {
+    after(() => page?.close());
+
+    test('a long press on a time or a cut label shows its tip', async () => {
       const cdp = await page.context().newCDPSession(page);
       const cut = await page.evaluate(() =>
         [...document.querySelectorAll('#clipped-label .sui-clipped-label')].findIndex(
@@ -89,9 +91,64 @@ suite('overlays', together, () => {
         );
       }
       assert.deepEqual(found, []);
-    } finally {
-      await page.close();
-    }
+    });
+
+    test('L-58 a dialog that opens holding a long value shows its start, chosen, and stacks its actions at the full width in their reading order', async () => {
+      const opener = page
+        .locator('#modal button:not(.sui-modal *)', { hasText: 'Edit webhook' })
+        .first();
+      await opener.scrollIntoViewIfNeeded();
+      await opener.click();
+      await page.waitForSelector('dialog[open]');
+      const shown = await page.evaluate(
+        () =>
+          new Promise((done) =>
+            requestAnimationFrame(() => {
+              const input = /** @type {HTMLInputElement} */ (document.activeElement);
+              const footer = /** @type {HTMLElement} */ (
+                document.querySelector('dialog[open] > .sui-modal-foot')
+              );
+              const look = getComputedStyle(footer);
+              done({
+                field: {
+                  overflows: input.scrollWidth > input.clientWidth,
+                  scrolled: input.scrollLeft,
+                  chosen: [input.selectionStart, input.selectionEnd],
+                  length: input.value.length
+                },
+                inner:
+                  footer.clientWidth -
+                  parseFloat(look.paddingInlineStart) -
+                  parseFloat(look.paddingInlineEnd),
+                buttons: [...footer.querySelectorAll('button')].map((button) => {
+                  const box = button.getBoundingClientRect();
+                  return { words: button.textContent?.trim(), top: box.top, width: box.width };
+                })
+              });
+            })
+          )
+      );
+      const { field, inner, buttons } =
+        /** @type {{ field: { overflows: boolean, scrolled: number, chosen: number[], length: number }, inner: number, buttons: { words: string, top: number, width: number }[] }} */ (
+          shown
+        );
+      assert.ok(field.overflows, 'the address fits its field, so nothing here is proved');
+      assert.equal(field.scrolled, 0, 'the field opened scrolled away from its start');
+      assert.deepEqual(field.chosen, [0, field.length], 'the value is not chosen');
+      assert.deepEqual(
+        buttons.map((button) => button.words),
+        ['Cancel', 'Save webhook'],
+        'the actions left their reading order'
+      );
+      for (const button of buttons)
+        assert.ok(
+          Math.abs(button.width - inner) <= 0.5,
+          `${button.words} is ${button.width}px of a ${inner}px footer`
+        );
+      assert.ok(buttons[0].top < buttons[1].top, 'the actions share a line');
+      await page.keyboard.press('Escape');
+      await page.waitForFunction(() => !document.querySelector('dialog[open]'));
+    });
   });
 
   suite('dialogs on one page', inOrder, () => {
@@ -183,7 +240,9 @@ suite('overlays', together, () => {
       await opener.click();
       const field = page.locator('dialog[open] input').first();
       await field.focus();
-      await page.keyboard.press('End');
+      // The dialog opens with the words chosen. On macOS End only scrolls, so ArrowRight puts
+      // the caret after them on every platform.
+      await page.keyboard.press('ArrowRight');
       await page.keyboard.type('-next');
       // The sink's work ends in under a second, sooner than a slow runner comes back from a
       // keystroke, so the page notes the hold the frame after the work starts.
@@ -224,6 +283,21 @@ suite('overlays', together, () => {
       await page
         .locator('dialog[open][role="alertdialog"] button', { hasText: 'Discard changes' })
         .click();
+      await page.waitForFunction(() => !document.querySelector('dialog[open]'));
+    });
+
+    test('Ctrl+Enter or Cmd+Enter in a textarea sends its form, and Enter adds a line', async () => {
+      const opener = page
+        .locator('#modal button:not(.sui-modal *)', { hasText: 'Write release notes' })
+        .first();
+      await opener.scrollIntoViewIfNeeded();
+      await opener.click();
+      const notes = page.locator('dialog[open]').getByRole('textbox', { name: 'Release notes' });
+      await notes.waitFor();
+      await notes.fill('Fixed');
+      await notes.press('Enter');
+      assert.equal(await notes.inputValue(), 'Fixed\n', 'Enter did not add a line');
+      await notes.press('ControlOrMeta+Enter');
       await page.waitForFunction(() => !document.querySelector('dialog[open]'));
     });
 
@@ -905,78 +979,117 @@ suite('overlays', together, () => {
       assert.equal(found.height, 300);
       assert.ok(found.bottom <= 592, `the inline box reaches ${found.bottom}px`);
     });
+
+    test('a box that follows a scrolled anchor reads every size before it writes one', async () => {
+      const steps = await page.evaluate(() => {
+        const { place } = /** @type {any} */ (window).anchor;
+        const scroller = document.createElement('div');
+        scroller.style.cssText = 'position:fixed;inset:0;overflow:auto';
+        const anchor = document.createElement('button');
+        anchor.style.cssText = 'display:block;margin:200px 100px 2000px;width:100px;height:40px';
+        scroller.append(anchor);
+        const floating = document.createElement('div');
+        floating.style.cssText =
+          'position:absolute;min-width:var(--sui-floating-anchor-inline);max-height:var(--sui-floating-available-block);overflow:auto';
+        floating.append(Object.assign(document.createElement('div'), { style: 'height:100px' }));
+        document.body.append(scroller, floating);
+        place(floating, anchor, {});
+        scroller.scrollTop = 50;
+        void document.body.offsetHeight;
+
+        // Any size read after a style write makes the browser lay the page out again.
+        const log = /** @type {string[]} */ ([]);
+        const style = CSSStyleDeclaration.prototype;
+        const setProperty = style.setProperty;
+        style.setProperty = function (...args) {
+          log.push('write');
+          return setProperty.apply(this, args);
+        };
+        const traps = /** @type {[object, string][]} */ ([
+          [HTMLElement.prototype, 'offsetWidth'],
+          [HTMLElement.prototype, 'offsetHeight'],
+          [Element.prototype, 'scrollHeight']
+        ]);
+        const kept = traps.map(([proto, name]) => {
+          const own = /** @type {PropertyDescriptor} */ (
+            Object.getOwnPropertyDescriptor(proto, name)
+          );
+          Object.defineProperty(proto, name, {
+            configurable: true,
+            get() {
+              log.push('read');
+              return own.get?.call(this);
+            }
+          });
+          return own;
+        });
+        try {
+          place(floating, anchor, {}, true);
+        } finally {
+          style.setProperty = setProperty;
+          traps.forEach(([proto, name], index) => Object.defineProperty(proto, name, kept[index]));
+          scroller.remove();
+          floating.remove();
+        }
+        return log;
+      });
+      assert.ok(steps.includes('write'), 'the scroll left the box cap as it was');
+      assert.equal(
+        steps.indexOf('read', steps.indexOf('write')),
+        -1,
+        `the placement read a size after a write: ${steps.join(' ')}`
+      );
+    });
   });
 
-  test(
-    'a box that follows a scrolled anchor reads every size before it writes one',
-    long,
-    async () => {
-      const page = await openMounted({ viewport: { width: 900, height: 600 } });
-      try {
-        const steps = await page.evaluate(async () => {
-          const module = '/src/lib/internal/anchor.ts';
-          const { place } = await import(/* @vite-ignore */ module);
-          const scroller = document.createElement('div');
-          scroller.style.cssText = 'position:fixed;inset:0;overflow:auto';
-          const anchor = document.createElement('button');
-          anchor.style.cssText = 'display:block;margin:200px 100px 2000px;width:100px;height:40px';
-          scroller.append(anchor);
-          const floating = document.createElement('div');
-          floating.style.cssText =
-            'position:absolute;min-width:var(--sui-floating-anchor-inline);max-height:var(--sui-floating-available-block);overflow:auto';
-          floating.append(Object.assign(document.createElement('div'), { style: 'height:100px' }));
-          document.body.append(scroller, floating);
-          place(floating, anchor, {});
-          scroller.scrollTop = 50;
-          void document.body.offsetHeight;
+  suite('tips on a held clock, on one mounted page', inOrder, () => {
+    /** @type {import('playwright-core').Page} */
+    let page;
+    before(async () => {
+      page = await openMount(browser, url);
+      await page.clock.install();
+    });
+    after(() => page?.close());
 
-          // Any size read after a style write makes the browser lay the page out again.
-          const log = /** @type {string[]} */ ([]);
-          const style = CSSStyleDeclaration.prototype;
-          const setProperty = style.setProperty;
-          style.setProperty = function (...args) {
-            log.push('write');
-            return setProperty.apply(this, args);
-          };
-          const traps = /** @type {[object, string][]} */ ([
-            [HTMLElement.prototype, 'offsetWidth'],
-            [HTMLElement.prototype, 'offsetHeight'],
-            [Element.prototype, 'scrollHeight']
-          ]);
-          const kept = traps.map(([proto, name]) => {
-            const own = /** @type {PropertyDescriptor} */ (
-              Object.getOwnPropertyDescriptor(proto, name)
-            );
-            Object.defineProperty(proto, name, {
-              configurable: true,
-              get() {
-                log.push('read');
-                return own.get?.call(this);
-              }
-            });
-            return own;
-          });
-          try {
-            place(floating, anchor, {}, true);
-          } finally {
-            style.setProperty = setProperty;
-            traps.forEach(([proto, name], index) =>
-              Object.defineProperty(proto, name, kept[index])
-            );
-          }
-          return log;
-        });
-        assert.ok(steps.includes('write'), 'the scroll left the box cap as it was');
-        assert.equal(
-          steps.indexOf('read', steps.indexOf('write')),
-          -1,
-          `the placement read a size after a write: ${steps.join(' ')}`
+    test('the first tip waits, the next one in the group shows at once, and one long after waits again', async () => {
+      await page.evaluate(() => {
+        const { lib, mount, flushSync } = /** @type {any} */ (window);
+        const row = document.body.appendChild(document.createElement('div'));
+        row.style.cssText = 'display:flex;gap:48px;padding:120px';
+        for (const label of ['Edit', 'Copy', 'Delete'])
+          mount(lib.IconButton, { target: row, props: { icon: 'book', label } });
+        flushSync();
+      });
+      // The tip just left lingers for a moment, so every open tip is read.
+      const shown = () =>
+        page.evaluate(() =>
+          [...document.querySelectorAll('.sui-tooltip:popover-open')].map((tip) =>
+            tip.textContent?.trim()
+          )
         );
-      } finally {
-        await page.close();
-      }
-    }
-  );
+      const over = async (/** @type {string} */ label) => {
+        const box = await page.getByRole('button', { name: label }).boundingBox();
+        assert.ok(box);
+        await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+      };
+      await over('Edit');
+      await page.clock.runFor(200);
+      assert.deepEqual(await shown(), [], 'the first tip showed at once');
+      await page.clock.runFor(100);
+      assert.deepEqual(await shown(), ['Edit'], 'the first tip never showed');
+      await over('Copy');
+      await page.clock.runFor(1);
+      assert.ok((await shown()).includes('Copy'), 'the next tip in the group waited');
+      await page.mouse.move(0, 0);
+      await page.clock.runFor(1000);
+      assert.deepEqual(await shown(), [], 'a tip stayed after the pointer left');
+      await over('Delete');
+      await page.clock.runFor(200);
+      assert.deepEqual(await shown(), [], 'a tip long after the last one showed at once');
+      await page.clock.runFor(100);
+      assert.deepEqual(await shown(), ['Delete']);
+    });
+  });
 
   test(
     'a parent theme binding updates every switch and still follows the system',
@@ -1163,80 +1276,93 @@ suite('overlays', together, () => {
       }
     }
   );
+  suite('controls a caller turns off, on one mounted page', inOrder, () => {
+    /** @type {import('playwright-core').Page} */
+    let page;
+    before(async () => {
+      page = await openMount(browser, url);
+    });
+    after(() => page?.close());
 
-  test(
-    'a combobox turned read-only while its list is open shuts it and commits no draft',
-    long,
-    async () => {
-      const page = await openMounted();
-      try {
-        await page.evaluate(() => {
-          const { lib, mount, flushSync, state, get, set } = /** @type {any} */ (window);
-          const readonly = state(false);
-          /** @type {string[]} */
-          const picked = [];
-          /** @type {boolean[]} */
-          const escapes = [];
-          document.addEventListener('keydown', (event) => {
-            if (event.key === 'Escape') escapes.push(event.defaultPrevented);
-          });
-          mount(lib.Combobox, {
-            target: document.body,
-            props: {
-              'aria-label': 'Team',
-              options: [
-                { value: 'alpha', label: 'Alpha' },
-                { value: 'beta', label: 'Beta' }
-              ],
-              get readonly() {
-                return get(readonly);
-              },
-              onselect: (/** @type {string} */ value) => picked.push(value)
-            }
-          });
-          flushSync();
-          Object.assign(window, {
-            picked,
-            escapes,
-            lock(/** @type {boolean} */ on) {
-              set(readonly, on);
-              flushSync();
-            }
-          });
-        });
-        const field = page.getByRole('combobox', { name: 'Team' });
-        await field.focus();
-        await page.keyboard.type('Beta');
-        await page.keyboard.press('ArrowDown');
-        assert.equal(await field.getAttribute('aria-expanded'), 'true');
-        await page.evaluate(() => /** @type {any} */ (window).lock(true));
-        assert.equal(await field.getAttribute('aria-expanded'), 'false');
-        await page.keyboard.press('Enter');
-        await page.keyboard.press('Escape');
-        const seen = await page.evaluate(() => {
-          const { picked, escapes } = /** @type {any} */ (window);
-          return { picked, escapes };
-        });
-        assert.deepEqual(seen.picked, [], 'a draft was committed while read-only');
-        assert.deepEqual(seen.escapes, [false], 'Escape stopped at the shut list');
-        await page.evaluate(() => /** @type {any} */ (window).lock(false));
-        assert.equal(await field.getAttribute('aria-expanded'), 'false');
-      } finally {
-        await page.close();
-      }
-    }
-  );
+    // Each test mounts into its own host and takes it away, so the next one starts on an empty page.
+    const clear = () =>
+      page.evaluate(() => {
+        const { unmount } = /** @type {any} */ (window);
+        for (const part of /** @type {any} */ (window).parts ?? []) unmount(part);
+        /** @type {any} */ (window).parts = [];
+        document.querySelector('#host')?.remove();
+      });
 
-  test('Escape on a caller-disabled select still closes the dialog around it', long, async () => {
-    const page = await openMounted();
-    try {
+    test('a combobox turned read-only while its list is open shuts it and commits no draft', async () => {
+      await page.evaluate(() => {
+        const { lib, mount, flushSync, state, get, set } = /** @type {any} */ (window);
+        const host = Object.assign(document.body.appendChild(document.createElement('div')), {
+          id: 'host'
+        });
+        const readonly = state(false);
+        /** @type {string[]} */
+        const picked = [];
+        /** @type {boolean[]} */
+        const escapes = [];
+        host.addEventListener('keydown', (event) => {
+          if (event.key === 'Escape') escapes.push(event.defaultPrevented);
+        });
+        const combobox = mount(lib.Combobox, {
+          target: host,
+          props: {
+            'aria-label': 'Team',
+            options: [
+              { value: 'alpha', label: 'Alpha' },
+              { value: 'beta', label: 'Beta' }
+            ],
+            get readonly() {
+              return get(readonly);
+            },
+            onselect: (/** @type {string} */ value) => picked.push(value)
+          }
+        });
+        flushSync();
+        Object.assign(window, {
+          parts: [combobox],
+          picked,
+          escapes,
+          lock(/** @type {boolean} */ on) {
+            set(readonly, on);
+            flushSync();
+          }
+        });
+      });
+      const field = page.getByRole('combobox', { name: 'Team' });
+      await field.focus();
+      await page.keyboard.type('Beta');
+      await page.keyboard.press('ArrowDown');
+      assert.equal(await field.getAttribute('aria-expanded'), 'true');
+      await page.evaluate(() => /** @type {any} */ (window).lock(true));
+      assert.equal(await field.getAttribute('aria-expanded'), 'false');
+      await page.keyboard.press('Enter');
+      await page.keyboard.press('Escape');
+      const seen = await page.evaluate(() => {
+        const { picked, escapes } = /** @type {any} */ (window);
+        return { picked, escapes };
+      });
+      assert.deepEqual(seen.picked, [], 'a draft was committed while read-only');
+      assert.deepEqual(seen.escapes, [false], 'Escape stopped at the shut list');
+      await page.evaluate(() => /** @type {any} */ (window).lock(false));
+      assert.equal(await field.getAttribute('aria-expanded'), 'false');
+      await clear();
+    });
+
+    test('Escape on a caller-disabled select still closes the dialog around it', async () => {
       await page.evaluate(() => {
         const { lib, mount, createRawSnippet, flushSync, state, get, set } = /** @type {any} */ (
           window
         );
+        const host = Object.assign(document.body.appendChild(document.createElement('div')), {
+          id: 'host'
+        });
         const open = state(true);
-        mount(lib.Modal, {
-          target: document.body,
+        const modal = mount(lib.Modal, {
+          target: host,
           props: {
             get open() {
               return get(open);
@@ -1249,7 +1375,7 @@ suite('overlays', together, () => {
           }
         });
         flushSync();
-        mount(lib.Select, {
+        const select = mount(lib.Select, {
           target: document.getElementById('slot'),
           props: {
             'aria-label': 'Team',
@@ -1261,37 +1387,37 @@ suite('overlays', together, () => {
           }
         });
         flushSync();
+        Object.assign(window, { parts: [select, modal] });
       });
       await page.getByRole('combobox', { name: 'Team' }).focus();
       await page.keyboard.press('Escape');
       await page.waitForFunction(() => !document.querySelector('dialog[open]'), null, brief);
-    } finally {
-      await page.close();
-    }
-  });
+      await clear();
+    });
 
-  test('a caller-disabled switch and select keep focus and refuse a change', long, async () => {
-    const page = await openMounted();
-    try {
+    test('a caller-disabled switch and select keep focus and refuse a change', async () => {
       await page.evaluate(() => {
         const { lib, mount, flushSync } = /** @type {any} */ (window);
-        mount(lib.Switch, {
-          target: document.body,
-          props: { label: 'Alerts', 'aria-disabled': 'true' }
+        const host = Object.assign(document.body.appendChild(document.createElement('div')), {
+          id: 'host'
         });
-        mount(lib.Select, {
-          target: document.body,
-          props: {
-            'aria-label': 'Team',
-            'aria-disabled': 'true',
-            value: 'alpha',
-            options: [
-              { value: 'alpha', label: 'Alpha' },
-              { value: 'beta', label: 'Beta' }
-            ]
-          }
-        });
+        const parts = [
+          mount(lib.Switch, { target: host, props: { label: 'Alerts', 'aria-disabled': 'true' } }),
+          mount(lib.Select, {
+            target: host,
+            props: {
+              'aria-label': 'Team',
+              'aria-disabled': 'true',
+              value: 'alpha',
+              options: [
+                { value: 'alpha', label: 'Alpha' },
+                { value: 'beta', label: 'Beta' }
+              ]
+            }
+          })
+        ];
         flushSync();
+        Object.assign(window, { parts });
       });
       const toggle = page.getByRole('switch', { name: 'Alerts' });
       await toggle.click({ force: true });
@@ -1308,8 +1434,7 @@ suite('overlays', together, () => {
       assert.equal(await team.inputValue(), 'alpha', 'the select took a new value');
       assert.equal(await team.evaluate((select) => select.matches(':open')), false);
       assert.ok(await team.evaluate((element) => document.activeElement === element));
-    } finally {
-      await page.close();
-    }
+      await clear();
+    });
   });
 });

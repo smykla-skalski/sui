@@ -77,7 +77,10 @@ test('L-2 every token read is declared and every declared token is read', () => 
   const local = new Set([
     ...[...sources.matchAll(/@property\s+(--sui-[a-z0-9-]+)/g)].map((m) => m[1]),
     ...[...sources.matchAll(/style:(--sui-[a-z0-9-]+)/g)].map((m) => m[1]),
-    ...[...sources.matchAll(/setProperty\(\s*'(--sui-[a-z0-9-]+)'/g)].map((m) => m[1]),
+    // `publish` is the anchor's write that skips a value already there.
+    ...[...sources.matchAll(/(?:setProperty|publish)\(\s*(?:\w+,\s*)?'(--sui-[a-z0-9-]+)'/g)].map(
+      (m) => m[1]
+    ),
     ...[
       ...Object.values(styles)
         .join('\n')

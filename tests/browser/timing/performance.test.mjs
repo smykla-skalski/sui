@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { after, before, test } from 'node:test';
-import { allSections, long, startSink, visit } from '../sink.mjs';
+import { allSections, brief, long, startSink, visit } from '../sink.mjs';
 
 // Lab stand-ins for field data: a page with the library and nothing else, on a CPU about as fast
 // as a mid-range phone's, against the Core Web Vitals "good" limits (CLS 0.1, INP 200ms) and the
@@ -64,7 +64,12 @@ test(
         }).observe({ type: 'layout-shift', buffered: true });
       });
       await visit(page, allSections(url));
-      await page.waitForTimeout(1000);
+      // Every late font, style and script has landed, and the frame after it is drawn.
+      await page.waitForLoadState('networkidle');
+      await page.evaluate(() => document.fonts.ready);
+      await page.evaluate(
+        () => new Promise((done) => requestAnimationFrame(() => requestAnimationFrame(done)))
+      );
       const shifted = await page.evaluate(() => /** @type {any} */ (window).shifted);
       assert.ok(shifted < 0.1, `the page shifted ${shifted}`);
     } finally {
@@ -153,6 +158,7 @@ async function frames(page, span, act) {
   const cdp = await page.context().newCDPSession(page);
   await cdp.send('HeapProfiler.collectGarbage');
   await cdp.detach();
+  await page.evaluate(() => Object.assign(window, { recording: false }));
   const recorded = page.evaluate(
     (span) =>
       new Promise((done) => {
@@ -169,6 +175,7 @@ async function frames(page, span, act) {
         const step = (now) => {
           if (start) seen.push({ at: now, gap: now - (seen.at(-1)?.at ?? start) });
           start ||= now;
+          Object.assign(window, { recording: true });
           if (now - start < span) requestAnimationFrame(step);
           else {
             removeEventListener('click', press, { capture: true });
@@ -180,7 +187,7 @@ async function frames(page, span, act) {
     span
   );
   // The recorder starts on a frame of its own, before the act.
-  await page.waitForTimeout(100);
+  await page.waitForFunction(() => /** @type {any} */ (window).recording, null, brief);
   await act();
   const { seen, clicked } =
     /** @type {{ seen: { at: number, gap: number }[], clicked: number }} */ (await recorded);

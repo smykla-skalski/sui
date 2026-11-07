@@ -364,29 +364,38 @@ suite('lists', together, () => {
   suite('the tools menu', { concurrency: 1 }, () => {
     const opened = sharedPage();
 
-    test('L-52 Tab out of the tools menu closes it', long, async () => {
-      const page = await opened();
-      const trigger = page
-        .locator('#list-toolbar')
-        .getByRole('button', { name: 'Sort and filter' });
-      await trigger.first().scrollIntoViewIfNeeded();
-      await trigger.first().click();
-      await page.locator(':popover-open .sui-list-toolbar-panel').waitFor();
-      const closes = () =>
-        settles(
-          page
-            .locator(':popover-open .sui-list-toolbar-panel')
-            .waitFor({ state: 'detached', ...brief })
-        );
-      await page.keyboard.press('Tab');
-      assert.ok(await closes(), 'Tab left the menu open');
+    test(
+      'L-52 Tab out of the tools menu closes it and leaves no autofocus mark',
+      long,
+      async () => {
+        const page = await opened();
+        const trigger = page
+          .locator('#list-toolbar')
+          .getByRole('button', { name: 'Sort and filter' });
+        // A Modal opens on the first `[autofocus]` it holds, so a mark left in a closed panel
+        // would send a reopened dialog's focus to a hidden control.
+        const marks = () => page.evaluate(() => document.querySelectorAll('[autofocus]').length);
+        const unmarked = await marks();
+        await trigger.first().scrollIntoViewIfNeeded();
+        await trigger.first().click();
+        await page.locator(':popover-open .sui-list-toolbar-panel').waitFor();
+        const closes = () =>
+          settles(
+            page
+              .locator(':popover-open .sui-list-toolbar-panel')
+              .waitFor({ state: 'detached', ...brief })
+          );
+        await page.keyboard.press('Tab');
+        assert.ok(await closes(), 'Tab left the menu open');
 
-      // Opened by a press, Shift+Tab hands focus back to the button, and that is leaving too.
-      await trigger.first().click();
-      await page.locator(':popover-open .sui-list-toolbar-panel').waitFor();
-      await page.keyboard.press('Shift+Tab');
-      assert.ok(await closes(), 'Shift+Tab left the menu open');
-    });
+        // Opened by a press, Shift+Tab hands focus back to the button, and that is leaving too.
+        await trigger.first().click();
+        await page.locator(':popover-open .sui-list-toolbar-panel').waitFor();
+        await page.keyboard.press('Shift+Tab');
+        assert.ok(await closes(), 'Shift+Tab left the menu open');
+        assert.equal(await marks(), unmarked, 'the closed menu left an autofocus mark');
+      }
+    );
 
     test(
       'AC4 a toolbar says its count again after a pick that leaves the count as it was',
@@ -399,6 +408,7 @@ suite('lists', together, () => {
         const counted = bar.last();
         await counted.scrollIntoViewIfNeeded();
         await counted.getByRole('searchbox').fill('sui');
+        await page.waitForURL((address) => address.searchParams.get('q') === 'sui', brief);
         // The bar's own status, not the one its search field keeps for its matches.
         const status = counted.locator(':scope > [role="status"]');
         await settles(
@@ -745,8 +755,12 @@ suite('lists', together, () => {
                 ':scope > li > :is(.sui-timeline-time, .sui-timeline-body, .sui-timeline-words)'
               )
             ].map((part) => {
+              // The body pads out past its ink and takes the room back, so its content box is
+              // the place it holds.
               const box = part.getBoundingClientRect();
-              return `${part.className.split(' ')[0]} ${box.top - top} ${box.height}`;
+              const look = getComputedStyle(part);
+              const [start, end] = [look.paddingTop, look.paddingBottom].map(parseFloat);
+              return `${part.className.split(' ')[0]} ${box.top + start - top} ${box.height - start - end}`;
             })
           ];
         };
@@ -841,18 +855,39 @@ suite('lists', together, () => {
       }
     );
 
-    test('U5 a sortable heading sorts the rows and says so with aria-sort', long, async () => {
-      const page = await opened();
-      const table = page.locator('#data-table table').first();
-      await table.scrollIntoViewIfNeeded();
-      await table.getByRole('button', { name: 'Repository' }).click();
-      assert.equal(
-        await table.locator('th[aria-sort]').evaluate((node) => node.textContent?.trim()),
-        'Repository'
-      );
-      assert.equal(await table.locator('th[aria-sort]').getAttribute('aria-sort'), 'ascending');
-      assert.equal(await table.locator('tbody th').first().textContent(), 'ledger');
-    });
+    test(
+      'U5 a sortable heading sorts the rows and says so with aria-sort, and the order and an open code panel stay through a reload',
+      long,
+      async () => {
+        const page = await opened();
+        const table = page.locator('#data-table table').first();
+        const sorted = async () => {
+          assert.equal(
+            await table.locator('th[aria-sort]').evaluate((node) => node.textContent?.trim()),
+            'Repository'
+          );
+          assert.equal(await table.locator('th[aria-sort]').getAttribute('aria-sort'), 'ascending');
+          assert.equal(await table.locator('tbody th').first().textContent(), 'ledger');
+        };
+        await table.scrollIntoViewIfNeeded();
+        await table.getByRole('button', { name: 'Repository' }).click();
+        await sorted();
+        const code = page.locator('#data-table .example').first().locator('details');
+        await code.locator('summary', { hasText: 'Code' }).click();
+        await page.waitForURL(
+          (address) =>
+            address.searchParams.get('sort') === 'name' &&
+            address.searchParams.get('code-data-table-variants') === 'open',
+          brief
+        );
+        await visit(page, page.url());
+        await sorted();
+        assert.equal(
+          await code.evaluate((details) => /** @type {HTMLDetailsElement} */ (details).open),
+          true
+        );
+      }
+    );
 
     test('K6 a retried error that leaves no control keeps focus where it stood', long, async () => {
       const page = await opened();
@@ -921,6 +956,82 @@ suite('lists', together, () => {
           'the last page dropped focus'
         );
         assert.equal(await more.getByRole('status').textContent(), '4 more loaded, 12 of 12 shown');
+      }
+    );
+
+    // Last in the suite: it grows two lists on the shared page.
+    test(
+      'a long list lays out only what is near the screen and draws it as a plain list does',
+      long,
+      async () => {
+        const page = await opened();
+        /** @type {[string, string, string][]} */
+        const lists = [
+          ['#object-list .sui-object-list', ':scope > li > *', ':scope > li > *'],
+          [
+            '#timeline .sui-timeline:has(.sui-timeline-face)',
+            ':scope > li > .sui-timeline-body',
+            ':scope > li > .sui-timeline-time'
+          ]
+        ];
+        for (const [list, skips, stays] of lists) {
+          // A part off the screen may still hold a guessed height, so each state is shot where
+          // the row stands in it.
+          const first = page.locator(`${list} > li`).first();
+          const shot = async () => {
+            await first.scrollIntoViewIfNeeded();
+            const box = /** @type {{ x: number, y: number, width: number, height: number }} */ (
+              await first.boundingBox()
+            );
+            return page.screenshot({
+              clip: { x: box.x - 16, y: box.y - 16, width: box.width + 32, height: box.height + 32 }
+            });
+          };
+          const skipping = await shot();
+          // Paint containment draws a part at whole pixels, so the drawing to match is the same
+          // containment with its clip edge far out, where any ink the skip cuts comes back.
+          const reach = await page.addStyleTag({
+            content: `${skips.replace(':scope', list)} { content-visibility: visible !important; overflow-clip-margin: 2rem !important; contain: paint !important; }`
+          });
+          assert.ok(
+            skipping.equals(await shot()),
+            `${list} cuts ink it would draw without skipping`
+          );
+          await reach.evaluate((style) => /** @type {Element} */ (style).remove());
+
+          const shown = await page.evaluate(
+            async ([list, skips, stays]) => {
+              const element = /** @type {Element} */ (document.querySelector(list));
+              const row = /** @type {Element} */ (element.lastElementChild);
+              const copies = Array.from(
+                { length: 300 },
+                () => /** @type {Element} */ (row.cloneNode(true))
+              );
+              element.append(...copies);
+              await new Promise((done) => requestAnimationFrame(() => requestAnimationFrame(done)));
+              // A part that skips is still drawn as an empty box; what it holds is not.
+              const seen = (/** @type {string} */ part) =>
+                /** @type {Element} */ (element.querySelector(`${part} > *`)).checkVisibility({
+                  contentVisibilityAuto: true
+                });
+              const last = (/** @type {string} */ part) =>
+                part.replace(':scope > li', ':scope > li:last-child');
+              const found = {
+                near: seen(skips),
+                far: seen(last(skips)),
+                column: seen(last(stays))
+              };
+              for (const copy of copies) copy.remove();
+              return found;
+            },
+            lists.find(([name]) => name === list) ?? lists[0]
+          );
+          assert.deepEqual(
+            shown,
+            { near: true, far: false, column: stays !== skips },
+            `${list} lays out what is far off the screen, or skips what must stay`
+          );
+        }
       }
     );
   });

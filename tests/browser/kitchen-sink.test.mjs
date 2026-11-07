@@ -234,8 +234,10 @@ suite('the kitchen sink', together, () => {
     'L-40 a disabled tone is measured against the paint where its button stands',
     long,
     async () => {
-      const page = await open(1440, 'light');
+      const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
       try {
+        await visit(page, new URL('buttons/', url).href);
+        await page.waitForFunction(() => '__suiAudit' in window);
         const restated = await page.evaluate(() => {
           const buttons = document.querySelectorAll(
             ".sui-button:is([data-tone='signal'], [data-tone='decision'], [data-tone='stop']):disabled"
@@ -247,7 +249,7 @@ suite('the kitchen sink', together, () => {
           }
           return buttons.length;
         });
-        assert.ok(restated > 0);
+        assert.ok(restated > 0, 'the buttons page holds no disabled toned button');
         const kept = (await audit(page)).filter(({ detail }) => detail.includes('keeps its tone'));
         assert.equal(kept.length, 0, report(kept));
       } finally {
@@ -365,7 +367,7 @@ suite('the kitchen sink', together, () => {
   });
 
   test(
-    'L-75 reduced motion removes every transition and endless animation, and L-71 switching the theme moves nothing',
+    'L-75 reduced motion removes every transition and endless animation, at rest and pressed, and L-71 switching the theme moves nothing',
     long,
     async () => {
       // Reduced motion also stops the spinners, whose boxes would otherwise turn between two reads.
@@ -415,6 +417,32 @@ suite('the kitchen sink', together, () => {
           );
           assert.deepEqual(moved.slice(0, 10), [], `${width}px`);
         }
+
+        // A pressed state is a rule of its own, which can outrank the reduced-motion one at rest.
+        const cdp = await page.context().newCDPSession(page);
+        await cdp.send('DOM.enable');
+        await cdp.send('CSS.enable');
+        const { root } = await cdp.send('DOM.getDocument', { depth: 0 });
+        const { nodeIds } = await cdp.send('DOM.querySelectorAll', {
+          nodeId: root.nodeId,
+          selector: 'main :is(button, select, a[href], summary, input, [role="button"])'
+        });
+        await Promise.all(
+          nodeIds.map((nodeId) =>
+            cdp.send('CSS.forcePseudoState', { nodeId, forcedPseudoClasses: ['active'] })
+          )
+        );
+        const pressed = await page.evaluate(() =>
+          [...document.querySelectorAll('main *')].flatMap((element) => {
+            const style = getComputedStyle(element);
+            const durations = style.transitionDuration.split(',').map((part) => parseFloat(part));
+            return durations.some((duration) => duration > 0) && style.transitionProperty !== 'none'
+              ? [`${element.tagName.toLowerCase()}.${[...element.classList].join('.')}`]
+              : [];
+          })
+        );
+        assert.ok(nodeIds.length > 100, `only ${nodeIds.length} controls were pressed`);
+        assert.deepEqual([...new Set(pressed)], [], 'pressed, these still ease');
       } finally {
         await page.close();
       }

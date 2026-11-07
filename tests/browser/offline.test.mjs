@@ -233,7 +233,8 @@ export default {
       if (String(chunk).includes(`${port}`)) break;
     return async () => {
       child.kill();
-      if (child.exitCode === null) await once(child, 'exit');
+      // A child a signal already ended has no exit code and emits no second exit.
+      if (child.exitCode === null && child.signalCode === null) await once(child, 'exit');
     };
   }
 
