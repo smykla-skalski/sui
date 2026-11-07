@@ -291,11 +291,12 @@ suite('navigation', together, () => {
     }
   );
 
-  test('L-118 the shell keeps its bar, pane, drawer, skip link, toasts and worker status inside the safe area, toasts standing on the status', async () => {
-    // A phone upright, with its notch and home indicator, and on its side, notch at the start.
+  test('L-118 the shell keeps its bar, pane, drawer, skip link, toasts and worker status inside the safe area, toasts standing on the status, and so does the error page', async () => {
+    // A phone upright, with its notch and home indicator, and on its side, notch at the start,
+    // narrow enough that the error page's centred column meets the insets.
     for (const [width, height, insets] of /** @type {const} */ ([
       [390, 844, { top: 47, right: 0, bottom: 34, left: 0 }],
-      [844, 390, { top: 0, right: 47, bottom: 21, left: 47 }]
+      [812, 375, { top: 0, right: 44, bottom: 21, left: 44 }]
     ])) {
       const page = await browser.newPage({ viewport: { width, height }, hasTouch: true });
       try {
@@ -361,6 +362,16 @@ suite('navigation', together, () => {
           out.push(`toast foot ${high && high.y + high.height} over status top ${low?.y}`);
         if (width < 768 && Math.abs((high?.width ?? 0) - (low?.width ?? 0)) > 0.5)
           out.push(`a short toast is ${high?.width}px wide beside a ${low?.width}px status`);
+        // The error page stands outside the shell, so it keeps its own words clear of the insets.
+        await page.evaluate(() => {
+          const link = Object.assign(document.createElement('a'), { href: '../no-such-page/' });
+          document.body.append(link);
+          link.click();
+        });
+        const lost = page.getByRole('heading', { level: 1, name: 'Page Not Found' });
+        await lost.waitFor(brief);
+        await inside(lost, 'error page title');
+        await inside(page.locator('.sui-error-state'), 'error page panel');
         assert.deepEqual(out, [], `${width}x${height}`);
       } finally {
         await page.close();

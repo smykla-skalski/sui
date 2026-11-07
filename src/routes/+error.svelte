@@ -35,6 +35,10 @@
     gap: var(--sui-space-6);
     margin-inline: auto;
     max-inline-size: 48rem;
-    padding: var(--sui-space-8) var(--sui-space-4);
+    /* The page stands outside the app shell, so it keeps clear of the insets on its own. */
+    padding-block: calc(var(--sui-space-8) + env(safe-area-inset-top))
+      calc(var(--sui-space-8) + env(safe-area-inset-bottom));
+    padding-inline: calc(var(--sui-space-4) + var(--sui-safe-start))
+      calc(var(--sui-space-4) + var(--sui-safe-end));
   }
 </style>
