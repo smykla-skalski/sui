@@ -160,6 +160,15 @@ live specimens, not a surface of the design, so it may hold cards and dialogs (L
     min-inline-size: 0;
   }
 
+  /* A row specimen is as wide as its words, a fraction of a pixel past a whole one, so each is
+     rounded up to whole pixels and the next one, with the mark it shows, starts on the pixel
+     grid, where an edge draws the same however the layers above it change. */
+  @supports (inline-size: calc-size(fit-content, size)) {
+    .specimens[data-layout='row'] > :global(.specimen) {
+      inline-size: calc-size(fit-content, round(up, size, 1px));
+    }
+  }
+
   /* A wrapping column sizes each line to its widest item, so a stack must not wrap. A stacked
      specimen spans the stage, so it lends the stage's inset to what it shows, such as a
      chart's band, which reaches the frame's edges with it. */

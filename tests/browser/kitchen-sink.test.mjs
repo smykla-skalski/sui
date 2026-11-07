@@ -817,6 +817,10 @@ suite('the kitchen sink', together, () => {
             .locator('#avatar .example', { hasText: /^(Pictures|Fallbacks)/ })
             .getByRole('img', { name, exact: true });
           await avatar.scrollIntoViewIfNeeded();
+          // An edge off the pixel grid blends a few levels apart once the layers above it change,
+          // so a shot is only a fair witness of an avatar standing on whole pixels.
+          const x = (await avatar.boundingBox())?.x ?? 0;
+          if (!Number.isInteger(x)) problems.push(`${name} stands at x ${x}`);
           // A lazy picture may not have started when decode() settles on a busy page, so it
           // loads now and the shot waits for it to fail or draw, and for the faces.
           for (const img of await avatar.locator('img').all())
