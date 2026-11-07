@@ -89,13 +89,22 @@ async function runAll() {
       const started = Date.now();
       const file = join(logs, `${name}.log`);
       const out = openSync(file, 'w');
-      const child = spawn(process.execPath, args, { env, stdio: ['ignore', out, out] });
-      child.on('exit', (code) => {
+      let settled = false;
+      // A group that fails to start emits `error`, and may emit no `exit` after it.
+      /** @param {number | null} code @param {Error} [error] */
+      const settle = (code, error) => {
+        if (settled) return;
+        settled = true;
         closeSync(out);
         console.log(`${code === 0 ? 'pass' : 'FAIL'} ${name} ${seconds(started)}s`);
-        if (code !== 0) console.log(readFileSync(file, 'utf8').split('\n').slice(-40).join('\n'));
+        if (error) console.log(error.message);
+        else if (code !== 0)
+          console.log(readFileSync(file, 'utf8').split('\n').slice(-40).join('\n'));
         resolve(code === 0);
-      });
+      };
+      const child = spawn(process.execPath, args, { env, stdio: ['ignore', out, out] });
+      child.on('error', (error) => settle(null, error));
+      child.on('exit', (code) => settle(code));
     });
   const all = Date.now();
   /** @type {boolean[]} */
