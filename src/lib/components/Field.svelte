@@ -222,11 +222,12 @@ the `control` snippet reports here on its own, and a control of another kind kee
     min-inline-size: 0;
   }
 
+  /* A step under the label, so the mark reads as a note on the question, not a second label. */
   .sui-field-required {
     align-content: center;
     block-size: var(--sui-block-snap);
     color: var(--sui-text-muted);
-    font: var(--sui-weight-regular) var(--sui-font-size-control) / var(--sui-row-copy-leading)
+    font: var(--sui-weight-medium) var(--sui-font-size-compact) / var(--sui-row-copy-leading)
       var(--sui-sans);
     padding-block: var(--sui-block-snap-room);
     text-box: trim-both cap alphabetic;

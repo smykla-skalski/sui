@@ -399,7 +399,7 @@ test('L-32 spacing comes from the scale', () => {
   );
 });
 
-test('L-35 a field label and every group name wear one ink at one weight', () => {
+test('L-35 a field label and every group name wear one ink at one weight, over a compact "Required"', () => {
   const names = {
     'src/lib/components/Field.svelte': 'sui-field-label',
     'src/lib/components/CheckList.svelte': 'sui-check-list-legend',
@@ -415,6 +415,14 @@ test('L-35 a field label and every group name wear one ink at one weight', () =>
       `${name} is set in another weight or size`
     );
   }
+  const required = /\n  \.sui-field-required \{([^}]*)\}/.exec(
+    styles['src/lib/components/Field.svelte']
+  )?.[1];
+  assert.match(
+    required ?? '',
+    /\bfont: var\(--sui-weight-medium\) var\(--sui-font-size-compact\)/,
+    '"Required" stands no step under the label it marks'
+  );
 });
 
 test('L-35 every error line is set at 500, a step over its hint', () => {
