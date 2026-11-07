@@ -288,7 +288,8 @@ changes a tile's height. Under forced colors the plate is `Highlight` and its wo
     text-wrap: balance;
   }
 
-  /* Something waiting is information, not a fault, so it wears the accent. */
+  /* Something waiting is information, not a fault, so it wears the accent. A one-figure count
+     centres on the glyph's top-end corner, so it covers no more than that corner. */
   .sui-rail-badge {
     align-items: center;
     background: var(--sui-brand-action);
@@ -301,7 +302,7 @@ changes a tile's height. Under forced colors the plate is `Highlight` and its wo
     font: var(--sui-weight-semibold) var(--sui-font-size-micro) / var(--sui-leading-flat)
       var(--sui-sans);
     font-variant-numeric: tabular-nums;
-    inset-block-start: calc(-1 * var(--sui-space-1));
+    inset-block-start: calc(-1 * var(--sui-space-2));
     inset-inline-start: calc(100% - var(--sui-space-2));
     justify-content: center;
     min-inline-size: var(--sui-icon-base);
