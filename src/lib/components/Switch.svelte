@@ -3,6 +3,7 @@
   import type { HTMLInputAttributes } from 'svelte/elements';
   import Icon from '../icons/Icon.svelte';
   import { held, holdAround } from '../internal/held.svelte.js';
+  import { shownWait } from '../internal/shown-wait.svelte.js';
   import VisuallyHidden from './VisuallyHidden.svelte';
 
   const uid = $props.id();
@@ -41,6 +42,7 @@
     /** Richer words than `label` can carry. */
     children?: Snippet;
   } & Omit<HTMLInputAttributes, 'type' | 'checked' | 'role' | 'children'> = $props();
+  const spinning = shownWait(() => pending);
 
   const describedby = $derived(
     [describedBy, error && `${uid}-error`].filter(Boolean).join(' ') || undefined
@@ -123,7 +125,7 @@ take, under the switch and to a screen reader, while the owner sets `checked` ba
         class:held={holding !== null}
         aria-hidden="true"
       ></span>
-      {#if pending}<span class="sui-switch-spinner" aria-hidden="true"></span>{/if}
+      {#if spinning.current}<span class="sui-switch-spinner" aria-hidden="true"></span>{/if}
     </span>
   </label>
   <!-- The status speaks the error, so the drawn copy stays out of the tree; the switch's

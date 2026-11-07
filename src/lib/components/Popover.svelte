@@ -295,6 +295,7 @@ close control, because only Escape and that control end it.
     max-inline-size: calc(100vw - 2 * var(--sui-space-2));
     opacity: 1;
     overflow: auto;
+    overscroll-behavior: contain;
     padding: 0;
     /* In the top layer this is the page, so the box scrolls with the page and its trigger. */
     position: absolute;

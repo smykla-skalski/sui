@@ -201,12 +201,16 @@
 
   // Ctrl+S or Cmd+S anywhere in the pane saves, so a reader need not tab to the bar's end.
   // While the bar holds work it never opens the browser's own save, even when a save cannot
-  // run now: one is on its way, a reload is, or a conflict would refuse it.
+  // run now: one is on its way, a reload is, or a conflict would refuse it. The S is the one
+  // the layout types, as on Dvorak, and the key in the S place stands in only for a layout
+  // with no Latin letters, as the browser's own shortcuts do.
   function shortcut(bar: HTMLElement) {
     const pane = bar.parentElement;
     if (!pane) return;
     const onkeydown = (event: KeyboardEvent) => {
-      if (event.code !== 'KeyS' || !(event.metaKey || event.ctrlKey)) return;
+      const latin = /^[a-z]$/i.test(event.key);
+      const s = latin ? event.key.toLowerCase() === 's' : event.code === 'KeyS';
+      if (!s || !(event.metaKey || event.ctrlKey)) return;
       if (event.altKey || event.shiftKey || !dirty) return;
       event.preventDefault();
       if (!saving && !reloading && !reloadable) save();

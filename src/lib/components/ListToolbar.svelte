@@ -17,6 +17,7 @@
   import type { HTMLAttributes } from 'svelte/elements';
   import Icon from '../icons/Icon.svelte';
   import { formatCount } from '../internal/locale.js';
+  import { shownWait } from '../internal/shown-wait.svelte.js';
   import Button from './Button.svelte';
   import Popover from './Popover.svelte';
   import SearchField from './SearchField.svelte';
@@ -66,6 +67,7 @@
     onsearch?: (query: string) => void;
     class?: HTMLAttributes<HTMLDivElement>['class'];
   } & Omit<HTMLAttributes<HTMLDivElement>, 'children'> = $props();
+  const searching = shownWait(() => pending);
 
   const popupId = `${uid}-tools`;
 
@@ -190,7 +192,7 @@ button. Without `tools` there is no button and the filter never folds.
       </span>
     </div>
     <!-- Seen while a search is on its way; the status says it to a screen reader. -->
-    {#if pending}
+    {#if searching.current}
       <span class="sui-list-toolbar-pending" aria-hidden="true">
         <span class="sui-list-toolbar-spinner"></span><span>{pendingLabel}</span>
       </span>

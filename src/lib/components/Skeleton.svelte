@@ -3,6 +3,7 @@
   import type { Snippet } from 'svelte';
   import type { HTMLAttributes } from 'svelte/elements';
   import VisuallyHidden from './VisuallyHidden.svelte';
+  import { shownWait } from '../internal/shown-wait.svelte.js';
 
   let {
     loading = true,
@@ -39,6 +40,7 @@
     /** The loaded content, drawn in the same busy region once `loading` ends. */
     children?: Snippet;
   } & Omit<HTMLAttributes<HTMLDivElement>, 'children'> = $props();
+  const waitShown = shownWait(() => loading);
 
   /* Many screen readers skip a live region that enters the page with its words, so the
      words wait until the region has been in the page a moment. 100ms is the delay React
@@ -114,7 +116,7 @@ under reduced motion. Use it only where the shape of what is coming is already k
 -->
 
 <div {...rest} class={['sui-skeleton', className]} aria-busy={loading}>
-  {#if loading}
+  {#if waitShown.current}
     <div
       class={['sui-skeleton-rows', { bars, slow }]}
       style:--sui-skeleton-row={rowHeight}

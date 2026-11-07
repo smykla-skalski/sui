@@ -977,9 +977,6 @@
     --sui-font-size-compact: 0.8125rem;
     --sui-font-size-body: 1rem;
 
-    /* iOS Safari zooms the page into a focused field whose text is under 16px. */
-    --sui-font-size-input: 1rem;
-    --sui-leading-input: 1.5rem;
     --sui-font-size-page-title: var(--sui-font-size-page-title-compact);
     --sui-leading-micro: 1.125rem;
     --sui-leading-compact: 1.25rem;
@@ -1001,5 +998,48 @@
   [data-sui-theme] {
     --sui-control-height-compact: max(44px, round(2.75rem, 1px));
     --sui-control-height: max(44px, round(2.75rem, 1px));
+
+    /* iOS Safari zooms the page into a focused field whose text is under 16px, on an iPad as
+       much as on a phone. */
+    --sui-font-size-input: 1rem;
+    --sui-leading-input: 1.5rem;
+  }
+}
+
+/* A tap acts at once: no control waits out the double-tap zoom gesture, and the browser's grey
+   tap flash gives way to each control's own pressed state (L-116). A control that pans, such as
+   a segmented track, names its own `touch-action`, which wins over this zero-weight default. */
+:where(
+  a[href],
+  button,
+  input,
+  select,
+  textarea,
+  label,
+  summary,
+  [role='button'],
+  [role='checkbox'],
+  [role='combobox'],
+  [role='menuitem'],
+  [role='menuitemcheckbox'],
+  [role='menuitemradio'],
+  [role='option'],
+  [role='radio'],
+  [role='slider'],
+  [role='switch'],
+  [role='tab']
+) {
+  touch-action: manipulation;
+}
+
+:root {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* A mouse or trackpad page holds still at its ends instead of bouncing. A touch screen keeps
+   the bounce, so pull to refresh and the swipe back still work there (L-116). */
+@media (pointer: fine) {
+  :root {
+    overscroll-behavior: none;
   }
 }

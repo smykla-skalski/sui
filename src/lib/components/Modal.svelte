@@ -476,6 +476,7 @@ dialog, so they are never inert under it.
     grid-template-columns: minmax(0, 1fr);
     min-block-size: 0;
     overflow-y: auto;
+    overscroll-behavior: contain;
   }
 
   /* The failure sits between the fields and the actions that will try again. */
@@ -609,6 +610,7 @@ dialog, so they are never inert under it.
     .sui-modal[open],
     .sui-modal.preview {
       overflow-y: auto;
+      overscroll-behavior: contain;
     }
 
     .sui-modal-body {

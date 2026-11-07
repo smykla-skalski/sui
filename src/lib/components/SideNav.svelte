@@ -435,6 +435,7 @@ following a row closes the drawer.
     margin-inline: calc(-1 * var(--sui-space-3));
     min-block-size: 0;
     overflow: hidden auto;
+    overscroll-behavior: contain;
     padding: var(--sui-local-tree-gap) var(--sui-space-3);
     scroll-padding-block: var(--sui-local-tree-gap);
     scrollbar-width: thin;

@@ -25,6 +25,7 @@
   import type { HTMLAttributes } from 'svelte/elements';
   import Icon from '../icons/Icon.svelte';
   import Count from '../internal/Count.svelte';
+  import { holdForDrag } from '../internal/drag.js';
   import { held as heldIn, holdAround } from '../internal/held.svelte.js';
   import { formatCount } from '../internal/locale.js';
   import Select from './Select.svelte';
@@ -210,7 +211,7 @@
   }
 
   const DRAG_THRESHOLD = 4;
-  let drag: { pointer: number; x: number; captured: boolean } | null = null;
+  let drag: { pointer: number; x: number; captured: boolean; release?: () => void } | null = null;
 
   // The enabled option nearest the pointer, whichever way the options run.
   function optionAt(x: number): string | null {
@@ -244,6 +245,7 @@
       if (Math.abs(event.clientX - drag.x) < DRAG_THRESHOLD) return;
       track.setPointerCapture(event.pointerId);
       drag.captured = true;
+      drag.release = holdForDrag(track);
     }
     const over = optionAt(event.clientX);
     if (over !== null) held = over === value ? null : over;
@@ -259,7 +261,11 @@
     input?.focus({ preventScroll: true });
   }
 
+  // A control removed under a drag still gives the page back.
+  $effect(() => () => drag?.release?.());
+
   function drop() {
+    drag?.release?.();
     drag = null;
     held = null;
   }

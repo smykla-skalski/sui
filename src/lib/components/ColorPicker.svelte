@@ -97,6 +97,7 @@
   import { mark, word } from '../words.js';
   import type { HTMLButtonAttributes } from 'svelte/elements';
   import Icon from '../icons/Icon.svelte';
+  import { holdForDrag } from '../internal/drag.js';
   import { held, holdAround } from '../internal/held.svelte.js';
   import { pageLocale } from '../internal/locale.js';
   import Button from './Button.svelte';
@@ -208,7 +209,7 @@
   let grid = $state<HTMLElement | null>(null);
   let area = $state<HTMLElement | null>(null);
   let box = $state<HTMLElement | null>(null);
-  let drag: { target: HTMLElement; kind: 'area' | 'hue' } | null = null;
+  let drag: { target: HTMLElement; kind: 'area' | 'hue'; release: () => void } | null = null;
   // The color the popover opened on, which Escape goes back to.
   let start = { hex: '', hsv: { h: 0, s: 0, v: 0 } };
 
@@ -299,7 +300,8 @@
 
   function dragStart(event: PointerEvent, kind: 'area' | 'hue') {
     const target = event.currentTarget as HTMLElement;
-    drag = { target, kind };
+    drag?.release();
+    drag = { target, kind, release: holdForDrag(target) };
     target.setPointerCapture(event.pointerId);
     target.focus({ preventScroll: true });
     dragMove(event);
@@ -307,8 +309,12 @@
   }
 
   function dragEnd() {
+    drag?.release();
     drag = null;
   }
+
+  // A panel that closes under a drag still gives the page back.
+  $effect(() => () => drag?.release());
 
   function step(event: KeyboardEvent): number {
     if (event.key === 'ArrowRight' || event.key === 'ArrowUp') return 1;
@@ -515,6 +521,7 @@ name is the label and the hex, such as "Label color #0f766e". `name` posts the h
         onpointermove={dragMove}
         onpointerup={dragEnd}
         onpointercancel={dragEnd}
+        onlostpointercapture={dragEnd}
         onkeydown={areaKeys}
       >
         <span class="knob"></span>
@@ -538,6 +545,7 @@ name is the label and the hex, such as "Label color #0f766e". `name` posts the h
         onpointermove={dragMove}
         onpointerup={dragEnd}
         onpointercancel={dragEnd}
+        onlostpointercapture={dragEnd}
         onkeydown={hueKeys}
       >
         <span class="thumb"></span>

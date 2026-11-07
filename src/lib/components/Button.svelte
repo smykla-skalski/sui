@@ -6,6 +6,7 @@
 <script lang="ts" generics="Href extends string | undefined = undefined">
   import type { Snippet } from 'svelte';
   import type { HTMLAnchorAttributes, HTMLAttributes, HTMLButtonAttributes } from 'svelte/elements';
+  import { shownWait } from '../internal/shown-wait.svelte.js';
 
   type NativeElement = Href extends string ? HTMLAnchorElement : HTMLButtonElement;
   type NativeAttributes = HTMLAttributes<NativeElement> &
@@ -45,6 +46,7 @@
      such as a control held while a busy dialog or a saving pane around it works. */
   const busy = $derived(loading && !disabled);
   const locked = $derived(busy || ariaDisabled === true || ariaDisabled === 'true');
+  const spinning = shownWait(() => loading);
 
   function refuse(event: MouseEvent) {
     event.preventDefault();
@@ -82,7 +84,7 @@ start.
 -->
 
 {#snippet body()}
-  {#if loading}
+  {#if spinning.current}
     <span class="sui-button-part"><span class="sui-button-spinner" aria-hidden="true"></span></span>
   {:else if icon}
     <span class="sui-button-part">{@render icon()}</span>

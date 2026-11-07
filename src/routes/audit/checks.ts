@@ -3189,6 +3189,34 @@ function timelines(root: Document): Finding[] {
   return found;
 }
 
+// L-116: a tap acts at once, flashes no browser grey, and a scrolling overlay keeps its scroll.
+function taps(root: Document): Finding[] {
+  const found: Finding[] = [];
+  for (const target of audited(root, `${INTERACTIVE}, label, [role='slider']`)) {
+    const look = getComputedStyle(target);
+    if (look.touchAction === 'auto')
+      found.push(
+        finding('L-116', target, 'a tap waits out the double-tap zoom (touch-action: auto)')
+      );
+    const flash = look.getPropertyValue('-webkit-tap-highlight-color');
+    if (flash && rgba(flash).a > 0)
+      found.push(finding('L-116', target, 'a tap flashes the browser highlight'));
+  }
+  for (const box of audited(root, 'dialog, dialog *, [popover], [popover] *')) {
+    const look = getComputedStyle(box);
+    if (!['auto', 'scroll'].includes(look.overflowY) || box.scrollHeight <= box.clientHeight)
+      continue;
+    if (look.overscrollBehaviorY === 'auto')
+      found.push(finding('L-116', box, 'reaching its end scrolls the page under it'));
+  }
+  if (
+    matchMedia('(pointer: fine)').matches &&
+    getComputedStyle(root.documentElement).overscrollBehaviorY !== 'none'
+  )
+    found.push(finding('L-116', root.documentElement, 'a mouse page bounces at its ends'));
+  return found;
+}
+
 register(
   separators,
   palette,
@@ -3232,5 +3260,6 @@ register(
   framedSettings,
   disclosedCards,
   cardHeads,
-  timelines
+  timelines,
+  taps
 );

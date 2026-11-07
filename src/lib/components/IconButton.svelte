@@ -2,6 +2,7 @@
   import type { HTMLButtonAttributes } from 'svelte/elements';
   import Icon, { type IconName } from '../icons/Icon.svelte';
   import Tooltip from './Tooltip.svelte';
+  import { shownWait } from '../internal/shown-wait.svelte.js';
 
   let {
     icon,
@@ -27,6 +28,7 @@
     element?: HTMLButtonElement | null;
     class?: HTMLButtonAttributes['class'];
   } & Omit<HTMLButtonAttributes, 'children' | 'aria-label'> = $props();
+  const spinning = shownWait(() => busy);
 
   /* `disabled` would drop a focused button's focus to the body, so a busy or soft-disabled one
      keeps its place in the tab order and refuses the press itself, as `Button` does. */
@@ -77,7 +79,7 @@ action are a `Button` with the word beside the glyph.
   {disabled}
   onclick={press}
 >
-  {#if busy}
+  {#if spinning.current}
     <span class="sui-icon-button-spinner" aria-hidden="true"></span>
   {:else}
     <Icon name={icon} size="base" strokeWidth={2} />
