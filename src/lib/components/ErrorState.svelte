@@ -183,7 +183,7 @@ of them.
   .sui-error-state-title {
     text-wrap: balance;
     color: var(--sui-danger);
-    font: var(--sui-weight-semibold) var(--sui-font-size-title) / var(--sui-row-copy-leading)
+    font: var(--sui-weight-semibold) var(--sui-font-size-card-title) / var(--sui-row-copy-leading)
       var(--sui-sans);
   }
 
@@ -234,6 +234,11 @@ of them.
 
   .over > :is(.sui-error-state-copy, .sui-error-state-retry) {
     position: relative;
+  }
+
+  /* A line over a list heads only its own words, so its title keeps a panel's step quieter. */
+  .over .sui-error-state-title {
+    font-size: var(--sui-font-size-title);
   }
 
   /* High contrast drops the tint, so the plate keeps its shape by an outline. */

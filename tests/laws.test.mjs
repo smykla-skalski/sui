@@ -377,6 +377,17 @@ test('L-25 the type tiers keep the sizes the law names', () => {
     /@media \(max-width: 47\.9375rem\) \{[^@]*\n    thead th \{\s*font-size: var\(--sui-font-size-control\);/,
     'a column heading on a phone keeps the compact size under rows that read larger'
   );
+  for (const path of ['EmptyState', 'ErrorState'])
+    assert.match(
+      styles[`src/lib/components/${path}.svelte`],
+      /-title \{[^}]*font: var\(--sui-weight-semibold\) var\(--sui-font-size-card-title\)/,
+      `an ${path} panel's title stands a tier over the words it heads`
+    );
+  assert.match(
+    styles['src/lib/components/ErrorState.svelte'],
+    /\.over \.sui-error-state-title \{\s*font-size: var\(--sui-font-size-title\);/,
+    'a failed refresh over a list stays a quiet line'
+  );
 });
 
 test('L-22 the phone reads one step larger and types at 16px', () => {
