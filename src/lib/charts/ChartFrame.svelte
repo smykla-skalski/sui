@@ -77,34 +77,52 @@
      Words in a face it does not hold, such as another script's, are guessed until the chart is
      on the page, then measured in the face they draw in, and again when a face loads. */
   const drawn = new Map<string, Ink>();
-  // ponytail: words outside the table are measured with proportional figures, which a tick's
-  // fallback face may draw a little narrower or wider; measure through a `tnum` face if it shows.
   const measure: Measure = (text, semibold = false, tabular = false) =>
     faceInk(text, semibold, tabular) ??
-    (mounted && band ? measured(band, text, semibold) : guessInk(text));
+    (mounted && band ? measured(band, text, semibold, tabular) : guessInk(text));
 
-  function measured(band: HTMLElement, text: string, semibold: boolean): Ink {
+  function measured(band: HTMLElement, text: string, semibold: boolean, tabular: boolean): Ink {
     const look = getComputedStyle(band);
     const weight = semibold
       ? look.getPropertyValue('--sui-weight-semibold').trim()
       : look.fontWeight;
     const font = `${weight} 100px ${look.fontFamily}`;
-    const key = `${faces} ${font} ${text}`;
+    const key = `${faces} ${font} ${tabular} ${text}`;
     const known = drawn.get(key);
     if (known) return known;
     const context = document.createElement('canvas').getContext('2d');
     if (!context) return guessInk(text);
     context.font = font;
     const metrics = context.measureText(text);
+    // A canvas draws no tabular figures, so tabular text takes its advance from SVG text set as
+    // a tick is, and its ink's end moves by what the figures add. The ink's start keeps the
+    // proportional first glyph's, at most half a figure's spare off.
+    const advance = tabular ? tabularAdvance(band, font, text) : metrics.width;
     const ink = {
-      advance: metrics.width / 100,
+      advance: advance / 100,
       left: metrics.actualBoundingBoxLeft / 100,
-      right: metrics.actualBoundingBoxRight / 100,
+      right: (metrics.actualBoundingBoxRight + advance - metrics.width) / 100,
       ascent: metrics.actualBoundingBoxAscent / 100,
       descent: metrics.actualBoundingBoxDescent / 100
     };
     drawn.set(key, ink);
     return ink;
+  }
+
+  function tabularAdvance(band: HTMLElement, font: string, text: string): number {
+    const ns = 'http://www.w3.org/2000/svg';
+    const svg = document.createElementNS(ns, 'svg');
+    const words = document.createElementNS(ns, 'text');
+    words.setAttribute(
+      'style',
+      `font: ${font}; font-variant-numeric: tabular-nums; font-variant-ligatures: none; white-space: pre`
+    );
+    words.textContent = text;
+    svg.append(words);
+    band.append(svg);
+    const advance = words.getComputedTextLength();
+    svg.remove();
+    return advance;
   }
 
   const note = $derived(

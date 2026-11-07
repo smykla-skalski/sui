@@ -324,6 +324,49 @@ suite('accessibility', together, () => {
     );
 
     test(
+      "a tick in a face outside the chart's table is laid out with the tabular figures it draws",
+      long,
+      async () => {
+        const page = await mounted();
+        // A yen sign is outside SUI's face, so the whole tick is measured in the face that draws
+        // it; its ones are tabular there, wider than the proportional ones a canvas draws.
+        const starts = await page.evaluate(async () => {
+          const { lib, mount, unmount, flushSync } = /** @type {any} */ (window);
+          /** @param {((value: number) => string) | undefined} formatY */
+          const start = async (formatY) => {
+            const host = document.body.appendChild(document.createElement('div'));
+            host.style.inlineSize = '40rem';
+            const chart = mount(lib.LineChart, {
+              target: host,
+              props: {
+                title: 'Spend',
+                description: 'Spend a day',
+                ...(formatY && { formatY }),
+                series: [{ id: 'a', label: 'A', points: [0, 400, 1100].map((y, x) => ({ x, y })) }]
+              }
+            });
+            flushSync();
+            await document.fonts.ready;
+            await new Promise((done) => requestAnimationFrame(() => requestAnimationFrame(done)));
+            const ticks = host.querySelectorAll('svg.plot text.tick[text-anchor="end"]');
+            const left = Math.min(...[...ticks].map((tick) => tick.getBoundingClientRect().left));
+            unmount(chart);
+            host.remove();
+            return left;
+          };
+          return {
+            face: await start(undefined),
+            outside: await start((value) => `${value.toLocaleString('en').replace(/\d/g, '1')}円`)
+          };
+        });
+        assert.ok(
+          Math.abs(starts.outside - starts.face) <= 0.5,
+          `the widest tick starts at ${starts.outside}px, not at ${starts.face}px`
+        );
+      }
+    );
+
+    test(
       'a cut label and a code block that scrolls stay tab stops in a row that skips off the screen',
       long,
       async () => {
