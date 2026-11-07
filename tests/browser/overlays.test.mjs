@@ -1061,7 +1061,10 @@ suite('overlays', together, () => {
     let page;
     before(async () => {
       page = await openMount(browser, url);
-      await page.clock.install();
+      // An installed clock still runs in real time until paused, so a slow runner would pass a
+      // tip's delay between two steps of a test.
+      await page.clock.install({ time: 0 });
+      await page.clock.pauseAt(1000);
     });
     after(() => page?.close());
 
