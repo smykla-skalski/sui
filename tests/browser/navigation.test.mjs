@@ -331,6 +331,11 @@ suite('navigation', together, () => {
         await skip.evaluate((link) => Promise.all(link.getAnimations().map((run) => run.finished)));
         await inside(skip, 'skip link');
         await skip.evaluate((link) => /** @type {HTMLElement} */ (link).blur());
+        await skip.evaluate((link) => Promise.all(link.getAnimations().map((run) => run.finished)));
+        // At rest the link waits wholly above the screen, its notch room too.
+        const rest = await skip.boundingBox();
+        if (!rest || rest.y + rest.height > 0)
+          out.push(`the resting skip link reaches ${rest && rest.y + rest.height}px down`);
         await inside(page.locator('.sui-shell-menu'), 'menu button');
         // The pane runs on past the foot of the screen, so only its sides are measured.
         const pane = await page.locator('.sui-shell-pane').boundingBox();

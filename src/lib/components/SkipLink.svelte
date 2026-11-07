@@ -50,7 +50,10 @@ A link that is always visible is `Link`, and words that are never shown are `Vis
 >
 
 <style>
+  /* At rest it waits above its own top offset as well, so none of it shows beside a notch. */
   .sui-skip-link {
+    --sui-local-skip-top: max(var(--sui-space-3), env(safe-area-inset-top));
+
     align-content: center;
     background: var(--sui-surface-base);
     border: var(--sui-stroke) solid var(--sui-focus);
@@ -59,7 +62,7 @@ A link that is always visible is `Link`, and words that are never shown are `Vis
     color: var(--sui-text-primary);
     font: var(--sui-weight-semibold) var(--sui-font-size-control) / var(--sui-leading-compact)
       var(--sui-sans);
-    inset-block-start: max(var(--sui-space-3), env(safe-area-inset-top));
+    inset-block-start: var(--sui-local-skip-top);
     inset-inline-start: max(var(--sui-space-4), var(--sui-safe-start));
     max-inline-size: calc(
       100vw - max(var(--sui-space-4), var(--sui-safe-start)) -
@@ -75,7 +78,7 @@ A link that is always visible is `Link`, and words that are never shown are `Vis
     position: fixed;
     text-decoration: none;
     transition: translate var(--sui-duration-fast) var(--sui-ease-out);
-    translate: 0 calc(-100% - var(--sui-space-6));
+    translate: 0 calc(-100% - var(--sui-space-6) - var(--sui-local-skip-top));
     z-index: var(--sui-layer-skip);
   }
 
