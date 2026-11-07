@@ -144,7 +144,7 @@ of them.
       var(--sui-surface-base)
     );
     background: var(--sui-local-error-ground);
-    border: var(--sui-stroke) solid color-mix(in srgb, var(--sui-danger) 30%, transparent);
+    border: var(--sui-stroke) solid color-mix(in srgb, var(--sui-danger) 40%, transparent);
     border-radius: var(--sui-radius-control);
     box-sizing: border-box;
     display: grid;
@@ -192,7 +192,7 @@ of them.
   .sui-error-state-description {
     color: var(--sui-text-secondary);
     max-inline-size: var(--sui-measure);
-    font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-row-copy-leading)
+    font: var(--sui-weight-regular) var(--sui-font-size-body) / var(--sui-row-copy-leading)
       var(--sui-sans);
   }
 
