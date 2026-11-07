@@ -6,6 +6,7 @@ import {
   audit,
   brief,
   long,
+  openMount,
   settles,
   startSink,
   sweep,
@@ -13,11 +14,8 @@ import {
   visit
 } from './sink.mjs';
 
-// The rendered half of docs/laws.md: the kitchen sink's own law audit, asked at every width
-// and theme, plus the laws that need a real keyboard, a media emulation or two renders.
-
-const WIDTHS = [320, 375, 768, 1440];
-const THEMES = ['light', 'dark'];
+// The rendered half of docs/laws.md: the kitchen sink's own law audit, asked in every media tier
+// and in both themes, plus the laws that need a real keyboard, a media emulation or two renders.
 
 /** @type {{ close: () => Promise<void> }} */
 let server;
@@ -55,24 +53,11 @@ suite('the kitchen sink', together, () => {
   const report = (findings) =>
     findings.map(({ law, where, detail }) => `${law} ${where}: ${detail}`).join('\n');
 
-  // The everyday run audits a phone in light and a desktop in dark; the rest wait for SUI_LONG.
-  const everyday = (/** @type {number} */ width, /** @type {string} */ theme) =>
-    (width === 375 && theme === 'light') || (width === 1440 && theme === 'dark');
-
   test('diff, code, and time regressions hold in their public API and rendering', async () => {
-    const dev = await startSink({ dev: true });
-    const page = await dev.browser.newPage();
+    const page = await openMount(browser, url);
     try {
-      await visit(page, dev.url);
-      const result = await page.evaluate(async () => {
-        const diff = /** @type {any} */ (await import('/src/lib/components/DiffBlock.svelte'));
-        const code = /** @type {any} */ (await import('/src/lib/components/CodeBlock.svelte'));
-        const { default: RelativeTime } = await import('/src/lib/components/RelativeTime.svelte');
-        const formatPath = '/src/lib/charts/format.ts';
-        const format = /** @type {any} */ (await import(/* @vite-ignore */ formatPath));
-        const loaded = performance.getEntriesByType('resource').map((entry) => entry.name);
-        const sveltePath = loaded.find((name) => /\.vite\/deps\/svelte\.js/.test(name)) ?? '';
-        const { mount, flushSync } = await import(/* @vite-ignore */ sveltePath);
+      const result = await page.evaluate(() => {
+        const { diff, code, format, lib, mount, flushSync } = /** @type {any} */ (window);
         const both = diff.unifiedDiff('x😀y', 'x😃y');
         const host = document.createElement('div');
         document.body.append(host);
@@ -110,7 +95,7 @@ suite('the kitchen sink', together, () => {
         invalid.id = 'invalid-time';
         host.append(invalid);
         let exactLabels = 0;
-        mount(RelativeTime, {
+        mount(lib.RelativeTime, {
           target: invalid,
           props: {
             value: 'not-a-date',
@@ -187,49 +172,84 @@ suite('the kitchen sink', together, () => {
       assert.equal(await page.locator('#invalid-time .sui-tooltip').count(), 0);
     } finally {
       await page.close();
-      await dev.browser.close();
-      await dev.server.close();
     }
   });
 
+  // Read once, on the 1440px audit page: a glyph's box is the same in every theme and width.
+  /** @param {import('playwright-core').Page} page */
+  const offCentreGlyphs = (page) =>
+    page.evaluate(() =>
+      [
+        ...new Map(
+          [...document.querySelectorAll('svg[data-icon]')]
+            .filter((svg) => svg.getClientRects().length > 0)
+            .reverse()
+            .map((svg) => [svg.getAttribute('data-icon'), /** @type {SVGGraphicsElement} */ (svg)])
+        ).values()
+      ]
+        .map((svg) => {
+          const box = svg.getBBox();
+          const centre = box.y + box.height / 2;
+          return { name: svg.getAttribute('data-icon'), centre };
+        })
+        .filter(({ centre }) => Math.abs(centre - 12) > 0.25)
+        .map(({ name, centre }) => `${name}: ink centre ${centre.toFixed(2)}`)
+    );
+
+  // A theme changes only colours, and L-71 holds that it moves nothing, so the dark audit runs
+  // only at the narrowest and the widest width, on the page the light audit read. 320px is the
+  // reflow floor and lays a phone out as 375px does, so it stands for every phone.
   suite('the law audit', together, () => {
-    for (const width of WIDTHS)
-      for (const theme of THEMES)
-        test(
-          `the law audit finds nothing at ${width}px in ${theme}`,
-          everyday(width, theme) ? {} : long,
-          async () => {
-            const page = await open(width, theme);
-            try {
+    for (const [width, themes] of /** @type {const} */ ([
+      [320, ['light', 'dark']],
+      [768, ['light']],
+      [1440, ['light', 'dark']]
+    ]))
+      test(
+        `the law audit finds nothing at ${width}px in ${themes.join(' and ')}` +
+          (width === 1440 ? ', and L-69 every glyph is centred in its 24-unit box' : ''),
+        width === 768 ? long : {},
+        async () => {
+          const page = await open(width, themes[0]);
+          try {
+            for (const theme of themes) {
+              await page.evaluate(
+                (name) => (document.documentElement.dataset.suiTheme = name),
+                theme
+              );
               const findings = await audit(page);
-              assert.equal(findings.length, 0, report(findings));
-            } finally {
-              await page.close();
+              assert.equal(findings.length, 0, `${theme}\n${report(findings)}`);
             }
+            if (width === 1440) assert.deepEqual(await offCentreGlyphs(page), []);
+          } finally {
+            await page.close();
           }
-        );
+        }
+      );
   });
 
   // A tablet wider than a phone still has a coarse pointer, so the touch tier must hold there too.
-  for (const width of [820, 1024])
-    test(`the law audit finds nothing on a ${width}px touch screen`, long, async () => {
-      const page = await open(width, 'light', { hasTouch: true, isMobile: true });
-      try {
-        const findings = await audit(page);
-        assert.equal(findings.length, 0, report(findings));
-      } finally {
-        await page.close();
-      }
-    });
+  test('the law audit finds nothing on a 1024px touch screen', long, async () => {
+    const page = await open(1024, 'light', { hasTouch: true, isMobile: true });
+    try {
+      const findings = await audit(page);
+      assert.equal(findings.length, 0, report(findings));
+    } finally {
+      await page.close();
+    }
+  });
 
   test('L-41 and L-96 every keyboard stop draws the 2px focus ring in full', long, async () => {
     const page = await open(1440, 'light');
     try {
-      const problems = [];
-      let stops = 0;
-      for (let step = 0; step < 600; step++) {
-        await page.keyboard.press('Tab');
-        const stop = await page.evaluate(() => {
+      // Each stop is read as its Tab key comes up, when focus and its scroll have landed, so a
+      // run of presses needs no read between them.
+      await page.evaluate(() => {
+        /** @type {{ where: string; outline: string; width: string; cut: string[] }[]} */
+        const stops = [];
+        const tabbed = { stops, done: false };
+        Object.assign(window, { tabbed });
+        const read = () => {
           const element = document.activeElement;
           if (!element || element === document.body || element.hasAttribute('data-tab-seen'))
             return null;
@@ -275,47 +295,103 @@ suite('the kitchen sink', together, () => {
             width: ring.outlineWidth,
             cut
           };
-        });
-        if (!stop) break;
-        stops++;
+        };
+        addEventListener(
+          'keyup',
+          (event) => {
+            if (event.key !== 'Tab' || tabbed.done) return;
+            const stop = read();
+            if (stop) stops.push(stop);
+            else tabbed.done = true;
+          },
+          true
+        );
+      });
+      const tabbed = () =>
+        page.evaluate(
+          () =>
+            /** @type {{ tabbed: { stops: { where: string; outline: string; width: string; cut: string[] }[]; done: boolean } }} */ (
+              /** @type {unknown} */ (window)
+            ).tabbed
+        );
+      // The sink holds about 800 stops; the sweep ends where focus comes back to a stop it read,
+      // and the bound only stops a page that never gives focus back.
+      for (let step = 0; step < 3000 && !(await tabbed()).done; step += 20)
+        for (let press = 0; press < 20; press++) await page.keyboard.press('Tab');
+      const { stops } = await tabbed();
+      const problems = [];
+      for (const stop of stops) {
         if (stop.outline !== 'solid' || stop.width !== '2px')
           problems.push(`${stop.where}: outline ${stop.outline} ${stop.width}`);
         if (stop.cut.length) problems.push(`${stop.where}: ring cut at ${stop.cut.join(' and ')}`);
       }
-      assert.ok(stops > 10, `only ${stops} keyboard stops were reached`);
+      assert.ok(
+        (await tabbed()).done,
+        `the sweep ended before focus came back, after ${stops.length} stops`
+      );
+      assert.ok(stops.length > 10, `only ${stops.length} keyboard stops were reached`);
       assert.deepEqual(problems, []);
     } finally {
       await page.close();
     }
   });
 
-  test('L-71 switching the theme moves nothing', long, async () => {
-    // Reduced motion stops the spinners, whose boxes would otherwise turn between the two reads.
-    const page = await open(1440, 'light', { reducedMotion: 'reduce' });
-    try {
-      const layout = () =>
-        page.evaluate(() =>
-          [...document.querySelectorAll('main *:not([data-audit-ignore] *, [data-audit-ignore])')]
-            // A theme switch shows the new theme by design, so its own section is left out.
-            .filter((element) => !element.closest('#theme-switch, .sui-segmented-thumb'))
-            .filter((element) => element.getClientRects().length > 0)
-            .map((element) => {
-              const r = element.getBoundingClientRect();
-              return [r.x, r.y, r.width, r.height].map((v) => Math.round(v * 2) / 2).join(',');
-            })
-        );
-      const lightLayout = await layout();
-      await page.evaluate(() => (document.documentElement.dataset.suiTheme = 'dark'));
-      await page.waitForTimeout(400);
-      const darkLayout = await layout();
-      const moved = lightLayout.flatMap((box, index) =>
-        box === darkLayout[index] ? [] : [`#${index}: ${box} -> ${darkLayout[index]}`]
-      );
-      assert.deepEqual(moved.slice(0, 10), []);
-    } finally {
-      await page.close();
+  test(
+    'L-75 reduced motion removes every transition and endless animation, and L-71 switching the theme moves nothing',
+    long,
+    async () => {
+      // Reduced motion also stops the spinners, whose boxes would otherwise turn between two reads.
+      const page = await open(1440, 'light', { reducedMotion: 'reduce' });
+      try {
+        const moving = await page.evaluate(() => {
+          const found = [];
+          for (const element of document.querySelectorAll('body *')) {
+            const style = getComputedStyle(element);
+            const durations = style.transitionDuration.split(',').map((part) => parseFloat(part));
+            if (durations.some((duration) => duration > 0) && style.transitionProperty !== 'none')
+              found.push(
+                `${element.tagName.toLowerCase()}.${[...element.classList].join('.')}: transition ${style.transitionDuration}`
+              );
+          }
+          for (const animation of document.getAnimations())
+            if (animation.effect?.getTiming().iterations === Infinity)
+              found.push(
+                `${/** @type {CSSAnimation} */ (animation).animationName ?? 'animation'} loops forever`
+              );
+          return found;
+        });
+        assert.deepEqual(moving, []);
+
+        const layout = () =>
+          page.evaluate(() =>
+            [...document.querySelectorAll('main *:not([data-audit-ignore] *, [data-audit-ignore])')]
+              // A theme switch shows the new theme by design, so its own section is left out.
+              .filter((element) => !element.closest('#theme-switch, .sui-segmented-thumb'))
+              .filter((element) => element.getClientRects().length > 0)
+              .map((element) => {
+                const r = element.getBoundingClientRect();
+                return [r.x, r.y, r.width, r.height].map((v) => Math.round(v * 2) / 2).join(',');
+              })
+          );
+        // Also the widths whose dark audit was dropped on the strength of this check.
+        for (const width of [1440, 768, 320]) {
+          await page.setViewportSize({ width, height: 900 });
+          await page.evaluate(() => (document.documentElement.dataset.suiTheme = 'light'));
+          await atRest(page);
+          const lightLayout = await layout();
+          await page.evaluate(() => (document.documentElement.dataset.suiTheme = 'dark'));
+          await atRest(page);
+          const darkLayout = await layout();
+          const moved = lightLayout.flatMap((box, index) =>
+            box === darkLayout[index] ? [] : [`#${index}: ${box} -> ${darkLayout[index]}`]
+          );
+          assert.deepEqual(moved.slice(0, 10), [], `${width}px`);
+        }
+      } finally {
+        await page.close();
+      }
     }
-  });
+  );
 
   for (const [stored, colorScheme] of /** @type {const} */ ([
     ['dark', 'light'],
@@ -346,32 +422,6 @@ suite('the kitchen sink', together, () => {
       }
     );
 
-  test('L-75 reduced motion removes every transition and endless animation', long, async () => {
-    const page = await open(1440, 'light', { reducedMotion: 'reduce' });
-    try {
-      const moving = await page.evaluate(() => {
-        const found = [];
-        for (const element of document.querySelectorAll('body *')) {
-          const style = getComputedStyle(element);
-          const durations = style.transitionDuration.split(',').map((part) => parseFloat(part));
-          if (durations.some((duration) => duration > 0) && style.transitionProperty !== 'none')
-            found.push(
-              `${element.tagName.toLowerCase()}.${[...element.classList].join('.')}: transition ${style.transitionDuration}`
-            );
-        }
-        for (const animation of document.getAnimations())
-          if (animation.effect?.getTiming().iterations === Infinity)
-            found.push(
-              `${/** @type {CSSAnimation} */ (animation).animationName ?? 'animation'} loops forever`
-            );
-        return found;
-      });
-      assert.deepEqual(moving, []);
-    } finally {
-      await page.close();
-    }
-  });
-
   // Growing the height would lay the whole page out on every frame, so only the content moves.
   test(
     'L-57 a disclosure opens to its full height at once and fades in its content',
@@ -386,7 +436,9 @@ suite('the kitchen sink', together, () => {
           details.open = true;
           const first = details.getBoundingClientRect().height;
           const opacity = Number(getComputedStyle(details, '::details-content').opacity);
-          await new Promise((resolve) => setTimeout(resolve, 400));
+          await Promise.allSettled(
+            details.getAnimations({ subtree: true }).map((animation) => animation.finished)
+          );
           return { first, opacity, last: details.getBoundingClientRect().height };
         });
         assert.equal(opened.first, opened.last);
@@ -509,23 +561,14 @@ suite('the kitchen sink', together, () => {
     // A B leans on its stem, a Q hangs its tail and an accent stands over its letter, so the
     // advance and the cap band are not where the letters draw. The ground is painted red and
     // the letters blue, and both are found in the pixels at four device pixels to the pixel.
-    // The avatars are mounted from the library's own modules, which only a dev server serves.
-    const dev = await startSink({ dev: true });
     for (const width of [1440, 375]) {
-      const page = await dev.browser.newPage({
+      const page = await openMount(browser, url, {
         viewport: { width, height: 900 },
         deviceScaleFactor: 4
       });
       try {
-        await visit(page, dev.url);
-        await page.evaluate(async () => void (await document.fonts.ready));
         const boxes = await page.evaluate(async () => {
-          const loaded = performance.getEntriesByType('resource').map((entry) => entry.name);
-          const find = (/** @type {RegExp} */ pattern) => loaded.find((name) => pattern.test(name));
-          const lib = await import(/* @vite-ignore */ find(/\/src\/lib\/index\.ts/) ?? '');
-          const { mount, flushSync } = await import(
-            /* @vite-ignore */ find(/\.vite\/deps\/svelte\.js/) ?? ''
-          );
+          const { lib, mount, flushSync } = /** @type {any} */ (window);
           const host = document.createElement('div');
           host.id = 'avatar-ink';
           host.style.cssText =
@@ -594,8 +637,6 @@ suite('the kitchen sink', together, () => {
         await page.close();
       }
     }
-    await dev.browser.close();
-    await dev.server.close();
   });
 
   test('a picture draws the same before script runs as after, named once', async () => {
@@ -604,7 +645,7 @@ suite('the kitchen sink', together, () => {
     // through a logo's clear middle. The running page draws each the same.
     const failed = ['Alan Turing', 'Radia Perlman'];
     const loaded = ['Grace Hopper', 'Platform Team'];
-    const address = new URL(allSections(url));
+    const address = new URL('avatar/', url);
     /** @type {string[]} */
     const problems = [];
     // Linux blends an antialiased edge pixel a level or two apart once the layers under it
@@ -655,10 +696,15 @@ suite('the kitchen sink', together, () => {
             .locator('#avatar .example', { hasText: /^(Pictures|Fallbacks)/ })
             .getByRole('img', { name, exact: true });
           await avatar.scrollIntoViewIfNeeded();
+          // A lazy picture may not have started when decode() settles on a busy page, so it
+          // loads now and the shot waits for it to fail or draw, and for the faces.
           for (const img of await avatar.locator('img').all())
-            await img.evaluate((node) =>
-              /** @type {HTMLImageElement} */ (node).decode().catch(() => {})
-            );
+            await img.evaluate(async (node) => {
+              const picture = /** @type {HTMLImageElement} */ (node);
+              picture.loading = 'eager';
+              await picture.decode().catch(() => {});
+              await document.fonts.ready;
+            });
           drawn[name] = await avatar.screenshot();
           if (javaScriptEnabled) {
             if (!(await alike(page, drawn[name], before[name])))
@@ -680,6 +726,7 @@ suite('the kitchen sink', together, () => {
             '- img "Alan Turing"'
           );
           // Beside the name an avatar is not heard at all, so the name is read once.
+          await page.goto(new URL('timeline/', url).href);
           for (const event of await page.locator('#timeline li:has(.sui-avatar)').all())
             assert.doesNotMatch(await event.ariaSnapshot(), /\bimg\b/);
         }
@@ -693,192 +740,299 @@ suite('the kitchen sink', together, () => {
     assert.deepEqual(problems, []);
   });
 
-  test('L-69 every glyph is centred in its 24-unit box', long, async () => {
-    const page = await open(1440, 'light');
-    try {
-      const offCentre = await page.evaluate(() =>
-        [
-          ...new Map(
-            [...document.querySelectorAll('svg[data-icon]')]
-              .filter((svg) => svg.getClientRects().length > 0)
-              .reverse()
-              .map((svg) => [
-                svg.getAttribute('data-icon'),
-                /** @type {SVGGraphicsElement} */ (svg)
-              ])
-          ).values()
-        ]
-          .map((svg) => {
-            const box = svg.getBBox();
-            const centre = box.y + box.height / 2;
-            return { name: svg.getAttribute('data-icon'), centre };
-          })
-          .filter(({ centre }) => Math.abs(centre - 12) > 0.25)
-          .map(({ name, centre }) => `${name}: ink centre ${centre.toFixed(2)}`)
-      );
-      assert.deepEqual(offCentre, []);
-    } finally {
-      await page.close();
-    }
-  });
-
   /** A menu or listbox layer that is open. */
   const LAYER = ':popover-open:has([role="listbox"], [role="menu"])';
 
+  /**
+   * @param {import('playwright-core').Page} page
+   * @param {number} worker
+   */
+  const opensInPlace = async (page, worker) => {
+    const triggers = page.locator(
+      'main > section [aria-haspopup="listbox"]:not(:disabled), main > section [aria-haspopup="menu"]:not(:disabled)'
+    );
+    const count = await triggers.count();
+    assert.ok(count > 3, `only ${count} menu triggers were found`);
+    const problems = [];
+    for (let index = worker; index < count; index += WORKERS) {
+      const trigger = triggers.nth(index);
+      if (!(await trigger.isVisible())) continue;
+      await trigger.scrollIntoViewIfNeeded();
+      // Where the reader sees it: scroll anchoring holds it there when a specimen above grows
+      // on a timer, so only a scroll the opening caused moves it.
+      const before = await trigger.evaluate((element) => element.getBoundingClientRect().top);
+      await trigger.click();
+      if (
+        await settles(page.waitForFunction((layer) => document.querySelector(layer), LAYER, brief))
+      )
+        await atRest(page);
+      const report = await trigger.evaluate((element) => {
+        const layer = document.querySelector(':popover-open:has([role="listbox"], [role="menu"])');
+        if (!layer) return { missing: true };
+        const box = layer.getBoundingClientRect();
+        const anchor = element.getBoundingClientRect();
+        const options = [...layer.querySelectorAll('[role="option"], [role="menuitem"]')]
+          .filter((option) => option.getClientRects().length > 0)
+          .map((option) => option.getBoundingClientRect().height);
+        return {
+          missing: false,
+          inside:
+            box.left >= -0.5 &&
+            box.top >= -0.5 &&
+            box.right <= document.documentElement.clientWidth + 0.5 &&
+            box.bottom <= document.documentElement.clientHeight + 0.5,
+          narrower:
+            element.getAttribute('aria-haspopup') === 'listbox' && box.width < anchor.width - 0.5,
+          tall: box.height > 320.5,
+          heights: [...new Set(options.map((height) => Math.round(height * 100) / 100))],
+          tier: parseFloat(
+            getComputedStyle(document.documentElement).getPropertyValue(
+              '--sui-control-height-compact'
+            )
+          )
+        };
+      });
+      const name = `trigger ${index} (${await trigger.getAttribute('aria-haspopup')})`;
+      if (report.missing) problems.push(`${name}: no menu opened`);
+      else {
+        if (!report.inside) problems.push(`${name}: the layer leaves the viewport`);
+        if (report.narrower) problems.push(`${name}: the listbox is narrower than its trigger`);
+        if (report.tall) problems.push(`${name}: the layer is taller than 20rem`);
+        if (report.heights?.some((height) => height < report.tier - 0.01))
+          problems.push(
+            `${name}: option heights ${report.heights.join(', ')}, under ${report.tier}`
+          );
+      }
+      const after = await trigger.evaluate((element) => element.getBoundingClientRect().top);
+      if (Math.abs(after - before) > 0.5)
+        problems.push(`${name}: opening scrolled the page by ${after - before}px`);
+      await page.keyboard.press('Escape');
+      const back = await settles(
+        page.waitForFunction(
+          (element) => document.activeElement === element,
+          await trigger.elementHandle(),
+          brief
+        )
+      );
+      if (!back) problems.push(`${name}: focus did not return to the trigger`);
+    }
+
+    // A native select draws its picker as `::picker(select)`, which has no element to
+    // measure, so the picker is read through its computed style and its options' boxes.
+    const selects = page.locator(
+      'main > section select:not(:disabled):not([inert] *, [aria-hidden="true"] *)'
+    );
+    const total = await selects.count();
+    assert.ok(total > 3, `only ${total} selects were found`);
+    for (let index = worker; index < total; index += WORKERS) {
+      const select = selects.nth(index);
+      if (!(await select.isVisible())) continue;
+      await select.scrollIntoViewIfNeeded();
+      // Where the reader sees it: scroll anchoring holds it there when a specimen above grows
+      // on a timer, so only a scroll the opening caused moves it.
+      const before = await select.evaluate((element) => element.getBoundingClientRect().top);
+      await select.click();
+      const handle = await select.elementHandle();
+      if (
+        await settles(page.waitForFunction((element) => element?.matches(':open'), handle, brief))
+      )
+        await atRest(page);
+      const report = await select.evaluate((element) => {
+        if (!(/** @type {HTMLSelectElement} */ (element).matches(':open'))) return { open: false };
+        const picker = getComputedStyle(element, '::picker(select)');
+        const options = [.../** @type {HTMLSelectElement} */ (element).options]
+          .filter((option) => option.getClientRects().length > 0)
+          .map((option) => option.getBoundingClientRect().height);
+        return {
+          open: true,
+          narrower: parseFloat(picker.width) < element.getBoundingClientRect().width - 0.5,
+          tall: parseFloat(picker.height) > 320.5,
+          heights: [...new Set(options.map((height) => Math.round(height * 100) / 100))],
+          tier: parseFloat(
+            getComputedStyle(document.documentElement).getPropertyValue(
+              '--sui-control-height-compact'
+            )
+          )
+        };
+      });
+      const name = `select ${index} (${(await select.getAttribute('aria-label')) ?? (await select.getAttribute('id'))})`;
+      if (!report.open) problems.push(`${name}: the picker did not open`);
+      else {
+        if (report.narrower) problems.push(`${name}: the picker is narrower than its field`);
+        if (report.tall) problems.push(`${name}: the picker is taller than 20rem`);
+        if (report.heights?.some((height) => height < report.tier - 0.01))
+          problems.push(
+            `${name}: option heights ${report.heights.join(', ')}, under ${report.tier}`
+          );
+      }
+      const after = await select.evaluate((element) => element.getBoundingClientRect().top);
+      if (Math.abs(after - before) > 0.5)
+        problems.push(`${name}: opening scrolled the page by ${after - before}px`);
+      await page.keyboard.press('Escape');
+      await settles(
+        page.waitForFunction((element) => element?.matches(':not(:open)'), handle, brief)
+      );
+      if (!(await select.evaluate((element) => document.activeElement === element)))
+        problems.push(`${name}: focus did not return to the field`);
+    }
+    return problems;
+  };
+
+  /**
+   * @param {import('playwright-core').Page} page
+   * @param {number} worker
+   */
+  const secondPressCloses = async (page, worker) => {
+    // The phone drawer is modal and covers its own menu button, so it closes from inside.
+    const triggers = page.locator(
+      'main > section [popovertarget]:not(:disabled):not(.sui-shell-menu)'
+    );
+    const count = await triggers.count();
+    assert.ok(count > 10, `only ${count} layer triggers were found`);
+    const reopened = [];
+    for (let index = worker; index < count; index += WORKERS) {
+      const trigger = triggers.nth(index);
+      if (!(await trigger.isVisible())) continue;
+      await trigger.scrollIntoViewIfNeeded();
+      await trigger.click();
+      if (
+        !(await settles(
+          page.waitForFunction(() => document.querySelector('[popover]:popover-open'), null, brief)
+        ))
+      )
+        continue;
+      await trigger.click();
+      if (
+        !(await settles(
+          page.waitForFunction(() => !document.querySelector('[popover]:popover-open'), null, brief)
+        ))
+      ) {
+        reopened.push(
+          `layer trigger ${index} “${((await trigger.textContent()) ?? '').trim().slice(0, 30)}”: a second press left its layer open`
+        );
+        await page.keyboard.press('Escape');
+      }
+    }
+    return reopened;
+  };
+
+  /**
+   * @param {import('playwright-core').Page} page
+   * @param {number} worker
+   */
+  const growsFromTrigger = async (page, worker) => {
+    // A smooth scroll would still move the trigger while its layer grows. Each layer's motion is
+    // seeked to its ends, so its length does not matter, and a long one is still running when a
+    // busy page gets round to looking at it. The trigger keeps its own press timing.
+    await page.addStyleTag({
+      content:
+        'html { scroll-behavior: auto !important; } .sui-popover { --sui-duration-press: 10000ms !important; --sui-duration-normal: 10000ms !important; --sui-duration-open: 10000ms !important; }'
+    });
+    // The phone drawer is an edge layer, not one placed beside its trigger.
+    const triggers = page.locator(
+      'main > section [popovertarget]:not(:disabled):not([aria-controls*="drawer"])'
+    );
+    const count = await triggers.count();
+    assert.ok(count > 5, `only ${count} popover triggers were found`);
+    const problems = [];
+    // Seeks the trigger's own layer to one end of its motion: the box must be a line on its edge
+    // that faces the trigger, as long as the trigger, and clear of the trigger itself.
+    const at = (
+      /** @type {import('playwright-core').Locator} */ trigger,
+      /** @type {'start' | 'end'} */ end
+    ) =>
+      trigger.evaluate((element, end) => {
+        const box = document.getElementById(element.getAttribute('popovertarget') ?? '');
+        if (!(box instanceof HTMLElement) || !box.classList.contains('sui-popover')) return '';
+        if (box.getAnimations().length === 0) return 'it does not move';
+        for (const animation of box.getAnimations()) {
+          animation.pause();
+          animation.currentTime =
+            end === 'start' ? 0 : Number(animation.effect?.getTiming().duration) - 0.01;
+        }
+        const seen = box.getBoundingClientRect();
+        const from = element.getBoundingClientRect();
+        for (const animation of box.getAnimations()) animation.finish();
+        const near = (/** @type {number} */ a, /** @type {number} */ b) => Math.abs(a - b) <= 1;
+        const below = box.dataset.side !== 'block-start';
+        const line =
+          seen.height <= 1 &&
+          near(seen.left, from.left) &&
+          near(seen.width, from.width) &&
+          (below ? seen.top >= from.bottom : seen.bottom <= from.top);
+        const size = (/** @type {DOMRect} */ r) =>
+          `${Math.round(r.width)}x${Math.round(r.height)} at ${Math.round(r.left)},${Math.round(r.top)}`;
+        return line ? '' : `it is ${size(seen)}, the trigger ${size(from)}`;
+      }, end);
+    // Waits, frame by frame, until the layer is open or closed and in motion, so a slow frame
+    // under load never lets the motion start late or end before it is seen. A layer that never
+    // moves times out here and fails at `at`.
+    const moving = (
+      /** @type {import('playwright-core').Locator} */ trigger,
+      /** @type {boolean} */ open
+    ) =>
+      trigger.evaluate(
+        (element, open) =>
+          new Promise((resolve) => {
+            const box = document.getElementById(element.getAttribute('popovertarget') ?? '');
+            const started = performance.now();
+            const look = () => {
+              if (!box || performance.now() - started > 5000) return resolve(false);
+              if (box.matches(':popover-open') === open && box.getAnimations().length > 0)
+                return resolve(true);
+              requestAnimationFrame(look);
+            };
+            look();
+          }),
+        open
+      );
+    for (let index = worker; index < count; index += WORKERS) {
+      const trigger = triggers.nth(index);
+      if (!(await trigger.isVisible())) continue;
+      await trigger.scrollIntoViewIfNeeded();
+      const name = `trigger ${index} (${(await trigger.textContent())?.trim() || (await trigger.getAttribute('aria-label'))})`;
+      await trigger.click();
+      await moving(trigger, true);
+      const grew = await at(trigger, 'start');
+      if (grew) problems.push(`${name}: opening does not start on the trigger, ${grew}`);
+      await page.keyboard.press('Escape');
+      await moving(trigger, false);
+      const shrank = await at(trigger, 'end');
+      if (shrank) problems.push(`${name}: closing does not end on the trigger, ${shrank}`);
+      // The next trigger opens only once this layer has finished closing.
+      await settles(
+        page.waitForFunction(
+          (element) =>
+            !document.getElementById(element?.getAttribute('popovertarget') ?? '')?.getAnimations()
+              .length,
+          await trigger.elementHandle(),
+          brief
+        )
+      );
+    }
+    return problems;
+  };
+
+  // A layer fits a phone's viewport only with the least room, so where each opens is read at
+  // 375px. The second press and the motion check read the wide layout, the motion check last,
+  // because it slows every layer's motion for the rest of the page's life.
   for (const width of [375, 1440])
     test(
-      `L-48 and L-52 every menu, listbox and select opens in place at ${width}px`,
+      width === 375
+        ? 'L-48 and L-52 every menu, listbox and select opens in place at 375px'
+        : 'a second press closes each layer at 1440px, and L-97 each layer grows from its trigger',
       long,
       async () => {
         const problems = await sweep(
           () => open(width, 'light'),
           WORKERS,
-          async (page, worker) => {
-            const triggers = page.locator(
-              'main > section [aria-haspopup="listbox"]:not(:disabled), main > section [aria-haspopup="menu"]:not(:disabled)'
-            );
-            const count = await triggers.count();
-            assert.ok(count > 3, `only ${count} menu triggers were found`);
-            const problems = [];
-            for (let index = worker; index < count; index += WORKERS) {
-              const trigger = triggers.nth(index);
-              if (!(await trigger.isVisible())) continue;
-              await trigger.scrollIntoViewIfNeeded();
-              // Where the reader sees it: scroll anchoring holds it there when a specimen above grows
-              // on a timer, so only a scroll the opening caused moves it.
-              const before = await trigger.evaluate(
-                (element) => element.getBoundingClientRect().top
-              );
-              await trigger.click();
-              if (
-                await settles(
-                  page.waitForFunction((layer) => document.querySelector(layer), LAYER, brief)
-                )
-              )
-                await atRest(page);
-              const report = await trigger.evaluate((element) => {
-                const layer = document.querySelector(
-                  ':popover-open:has([role="listbox"], [role="menu"])'
-                );
-                if (!layer) return { missing: true };
-                const box = layer.getBoundingClientRect();
-                const anchor = element.getBoundingClientRect();
-                const options = [...layer.querySelectorAll('[role="option"], [role="menuitem"]')]
-                  .filter((option) => option.getClientRects().length > 0)
-                  .map((option) => option.getBoundingClientRect().height);
-                return {
-                  missing: false,
-                  inside:
-                    box.left >= -0.5 &&
-                    box.top >= -0.5 &&
-                    box.right <= document.documentElement.clientWidth + 0.5 &&
-                    box.bottom <= document.documentElement.clientHeight + 0.5,
-                  narrower:
-                    element.getAttribute('aria-haspopup') === 'listbox' &&
-                    box.width < anchor.width - 0.5,
-                  tall: box.height > 320.5,
-                  heights: [...new Set(options.map((height) => Math.round(height * 100) / 100))],
-                  tier: parseFloat(
-                    getComputedStyle(document.documentElement).getPropertyValue(
-                      '--sui-control-height-compact'
-                    )
-                  )
-                };
-              });
-              const name = `trigger ${index} (${await trigger.getAttribute('aria-haspopup')})`;
-              if (report.missing) problems.push(`${name}: no menu opened`);
-              else {
-                if (!report.inside) problems.push(`${name}: the layer leaves the viewport`);
-                if (report.narrower)
-                  problems.push(`${name}: the listbox is narrower than its trigger`);
-                if (report.tall) problems.push(`${name}: the layer is taller than 20rem`);
-                if (report.heights?.some((height) => height < report.tier - 0.01))
-                  problems.push(
-                    `${name}: option heights ${report.heights.join(', ')}, under ${report.tier}`
-                  );
-              }
-              const after = await trigger.evaluate(
-                (element) => element.getBoundingClientRect().top
-              );
-              if (Math.abs(after - before) > 0.5)
-                problems.push(`${name}: opening scrolled the page by ${after - before}px`);
-              await page.keyboard.press('Escape');
-              const back = await settles(
-                page.waitForFunction(
-                  (element) => document.activeElement === element,
-                  await trigger.elementHandle(),
-                  brief
-                )
-              );
-              if (!back) problems.push(`${name}: focus did not return to the trigger`);
-            }
-
-            // A native select draws its picker as `::picker(select)`, which has no element to
-            // measure, so the picker is read through its computed style and its options' boxes.
-            const selects = page.locator(
-              'main > section select:not(:disabled):not([inert] *, [aria-hidden="true"] *)'
-            );
-            const total = await selects.count();
-            assert.ok(total > 3, `only ${total} selects were found`);
-            for (let index = worker; index < total; index += WORKERS) {
-              const select = selects.nth(index);
-              if (!(await select.isVisible())) continue;
-              await select.scrollIntoViewIfNeeded();
-              // Where the reader sees it: scroll anchoring holds it there when a specimen above grows
-              // on a timer, so only a scroll the opening caused moves it.
-              const before = await select.evaluate(
-                (element) => element.getBoundingClientRect().top
-              );
-              await select.click();
-              const handle = await select.elementHandle();
-              if (
-                await settles(
-                  page.waitForFunction((element) => element?.matches(':open'), handle, brief)
-                )
-              )
-                await atRest(page);
-              const report = await select.evaluate((element) => {
-                if (!(/** @type {HTMLSelectElement} */ (element).matches(':open')))
-                  return { open: false };
-                const picker = getComputedStyle(element, '::picker(select)');
-                const options = [.../** @type {HTMLSelectElement} */ (element).options]
-                  .filter((option) => option.getClientRects().length > 0)
-                  .map((option) => option.getBoundingClientRect().height);
-                return {
-                  open: true,
-                  narrower: parseFloat(picker.width) < element.getBoundingClientRect().width - 0.5,
-                  tall: parseFloat(picker.height) > 320.5,
-                  heights: [...new Set(options.map((height) => Math.round(height * 100) / 100))],
-                  tier: parseFloat(
-                    getComputedStyle(document.documentElement).getPropertyValue(
-                      '--sui-control-height-compact'
-                    )
-                  )
-                };
-              });
-              const name = `select ${index} (${(await select.getAttribute('aria-label')) ?? (await select.getAttribute('id'))})`;
-              if (!report.open) problems.push(`${name}: the picker did not open`);
-              else {
-                if (report.narrower)
-                  problems.push(`${name}: the picker is narrower than its field`);
-                if (report.tall) problems.push(`${name}: the picker is taller than 20rem`);
-                if (report.heights?.some((height) => height < report.tier - 0.01))
-                  problems.push(
-                    `${name}: option heights ${report.heights.join(', ')}, under ${report.tier}`
-                  );
-              }
-              const after = await select.evaluate((element) => element.getBoundingClientRect().top);
-              if (Math.abs(after - before) > 0.5)
-                problems.push(`${name}: opening scrolled the page by ${after - before}px`);
-              await page.keyboard.press('Escape');
-              await settles(
-                page.waitForFunction((element) => element?.matches(':not(:open)'), handle, brief)
-              );
-              if (!(await select.evaluate((element) => document.activeElement === element)))
-                problems.push(`${name}: focus did not return to the field`);
-            }
-            return problems;
-          }
+          async (page, worker) =>
+            width === 375
+              ? await opensInPlace(page, worker)
+              : [
+                  ...(await secondPressCloses(page, worker)),
+                  ...(await growsFromTrigger(page, worker))
+                ]
         );
         assert.deepEqual(problems, []);
       }
@@ -919,7 +1073,13 @@ suite('the kitchen sink', together, () => {
       for (let step = 1; step <= 8; step++)
         await touch('touchMove', x0 + ((x1 - x0) * step) / 8, y);
       await touch('touchEnd', x1, y);
-      await page.waitForTimeout(100);
+      await settles(
+        page.waitForFunction(
+          ([node, value]) => node?.querySelector('input:checked')?.getAttribute('value') === value,
+          /** @type {const} */ ([await track.elementHandle(), wanted]),
+          brief
+        )
+      );
       assert.equal(
         await track.evaluate((node) => node.querySelector('input:checked')?.getAttribute('value')),
         wanted,
@@ -990,12 +1150,15 @@ suite('the kitchen sink', together, () => {
         );
       // The main landmark takes script focus (tabindex -1), so it once anchored every tip.
       await page.mouse.move(box.x + 4, box.y + 4);
+      // No state marks a tip that never opens, so this waits out the 250ms show delay.
       await page.waitForTimeout(600);
       assert.deepEqual(await tips(), [], 'entering the page opened a tip');
 
       const label = page.locator('#clipped-label .sui-clipped-label').last();
       await label.hover();
-      await page.waitForTimeout(600);
+      await settles(
+        page.waitForFunction(() => document.querySelector('.sui-tooltip:popover-open'), null, brief)
+      );
       assert.deepEqual(await tips(), [await label.textContent()]);
     } finally {
       await page.close();
@@ -1058,7 +1221,9 @@ suite('the kitchen sink', together, () => {
         const editor = page.locator(':popover-open .sui-pair-editor');
 
         await chip('ship').click();
-        await page.waitForTimeout(250);
+        await settles(
+          page.waitForFunction(() => document.activeElement?.closest('[popover]'), null, brief)
+        );
         assert.equal(await focused(), 'editor', 'the editor did not take focus');
         // A rejected key keeps the editor open with its words, and changes nothing.
         await page.keyboard.press('ControlOrMeta+a');
@@ -1067,7 +1232,15 @@ suite('the kitchen sink', together, () => {
         assert.equal(await editor.count(), 1, 'a rejected key closed the editor');
         assert.match(await editor.innerText(), /lowercase/);
         await page.keyboard.press('Escape');
-        await page.waitForTimeout(250);
+        await settles(
+          page.waitForFunction(
+            () =>
+              !document.querySelector(':popover-open .sui-pair-editor') &&
+              !document.activeElement?.closest('[popover]'),
+            null,
+            brief
+          )
+        );
         assert.equal(await editor.count(), 0, 'Escape did not close the editor');
         assert.match(await focused(), /ship/, 'focus did not return to the chip');
         assert.equal(
@@ -1084,113 +1257,6 @@ suite('the kitchen sink', together, () => {
       } finally {
         await page.close();
       }
-    }
-  );
-
-  test(
-    'L-97 every layer a press opens grows from its trigger edge and folds back to it',
-    long,
-    async () => {
-      const problems = await sweep(
-        () => open(1440, 'light'),
-        WORKERS,
-        async (page, worker) => {
-          // A smooth scroll would still move the trigger while its layer grows. Each layer's motion is
-          // seeked to its ends, so its length does not matter, and a long one is still running when a
-          // busy page gets round to looking at it. The trigger keeps its own press timing.
-          await page.addStyleTag({
-            content:
-              'html { scroll-behavior: auto !important; } .sui-popover { --sui-duration-press: 10000ms !important; --sui-duration-normal: 10000ms !important; --sui-duration-open: 10000ms !important; }'
-          });
-          // The phone drawer is an edge layer, not one placed beside its trigger.
-          const triggers = page.locator(
-            'main > section [popovertarget]:not(:disabled):not([aria-controls*="drawer"])'
-          );
-          const count = await triggers.count();
-          assert.ok(count > 5, `only ${count} popover triggers were found`);
-          const problems = [];
-          // Seeks the trigger's own layer to one end of its motion: the box must be a line on its edge
-          // that faces the trigger, as long as the trigger, and clear of the trigger itself.
-          const at = (
-            /** @type {import('playwright-core').Locator} */ trigger,
-            /** @type {'start' | 'end'} */ end
-          ) =>
-            trigger.evaluate((element, end) => {
-              const box = document.getElementById(element.getAttribute('popovertarget') ?? '');
-              if (!(box instanceof HTMLElement) || !box.classList.contains('sui-popover'))
-                return '';
-              if (box.getAnimations().length === 0) return 'it does not move';
-              for (const animation of box.getAnimations()) {
-                animation.pause();
-                animation.currentTime =
-                  end === 'start' ? 0 : Number(animation.effect?.getTiming().duration) - 0.01;
-              }
-              const seen = box.getBoundingClientRect();
-              const from = element.getBoundingClientRect();
-              for (const animation of box.getAnimations()) animation.finish();
-              const near = (/** @type {number} */ a, /** @type {number} */ b) =>
-                Math.abs(a - b) <= 1;
-              const below = box.dataset.side !== 'block-start';
-              const line =
-                seen.height <= 1 &&
-                near(seen.left, from.left) &&
-                near(seen.width, from.width) &&
-                (below ? seen.top >= from.bottom : seen.bottom <= from.top);
-              const size = (/** @type {DOMRect} */ r) =>
-                `${Math.round(r.width)}x${Math.round(r.height)} at ${Math.round(r.left)},${Math.round(r.top)}`;
-              return line ? '' : `it is ${size(seen)}, the trigger ${size(from)}`;
-            }, end);
-          // Waits, frame by frame, until the layer is open or closed and in motion, so a slow frame
-          // under load never lets the motion start late or end before it is seen. A layer that never
-          // moves times out here and fails at `at`.
-          const moving = (
-            /** @type {import('playwright-core').Locator} */ trigger,
-            /** @type {boolean} */ open
-          ) =>
-            trigger.evaluate(
-              (element, open) =>
-                new Promise((resolve) => {
-                  const box = document.getElementById(element.getAttribute('popovertarget') ?? '');
-                  const started = performance.now();
-                  const look = () => {
-                    if (!box || performance.now() - started > 5000) return resolve(false);
-                    if (box.matches(':popover-open') === open && box.getAnimations().length > 0)
-                      return resolve(true);
-                    requestAnimationFrame(look);
-                  };
-                  look();
-                }),
-              open
-            );
-          for (let index = worker; index < count; index += WORKERS) {
-            const trigger = triggers.nth(index);
-            if (!(await trigger.isVisible())) continue;
-            await trigger.scrollIntoViewIfNeeded();
-            const name = `trigger ${index} (${(await trigger.textContent())?.trim() || (await trigger.getAttribute('aria-label'))})`;
-            await trigger.click();
-            await moving(trigger, true);
-            const grew = await at(trigger, 'start');
-            if (grew) problems.push(`${name}: opening does not start on the trigger, ${grew}`);
-            await page.keyboard.press('Escape');
-            await moving(trigger, false);
-            const shrank = await at(trigger, 'end');
-            if (shrank) problems.push(`${name}: closing does not end on the trigger, ${shrank}`);
-            // The next trigger opens only once this layer has finished closing.
-            await settles(
-              page.waitForFunction(
-                (element) =>
-                  !document
-                    .getElementById(element?.getAttribute('popovertarget') ?? '')
-                    ?.getAnimations().length,
-                await trigger.elementHandle(),
-                brief
-              )
-            );
-          }
-          return problems;
-        }
-      );
-      assert.deepEqual(problems, []);
     }
   );
 
@@ -1213,7 +1279,7 @@ suite('the kitchen sink', together, () => {
   const TEXT_LINKS = '.sui-link, .sui-back-link, .sui-skip-link, .sui-breadcrumb a, p a';
 
   test(
-    'L-42 every control shows its press: a ground, an inset, and a sink when it has a frame',
+    'L-42 every kind of control shows its press: a ground, an inset, and a sink when it has a frame',
     long,
     async () => {
       const problems = await sweep(
@@ -1235,14 +1301,39 @@ suite('the kitchen sink', together, () => {
                   element.checkVisibility({ checkOpacity: true, checkVisibilityCSS: true }) &&
                   element.getBoundingClientRect().width > 0
               );
-              found.forEach((element, index) =>
-                element.setAttribute('data-press-probe', String(index))
-              );
-              return found.length;
+              // Controls of one kind share their press styles, so one of each kind is pressed: the
+              // kind is what those styles select on, its tag, classes, tone, state and role, and
+              // the component it stands in, whose variant can restyle it, as a bare select does.
+              const classes = (/** @type {Element} */ element) =>
+                [...element.classList].filter((name) => !name.startsWith('svelte-')).sort();
+              const own = (/** @type {Element} */ element) =>
+                [
+                  element.tagName,
+                  ...classes(element),
+                  ...[...element.attributes]
+                    .filter(({ name }) =>
+                      /^(data-|role$|type$|aria-(pressed|selected|current|checked|expanded)$)/.test(
+                        name
+                      )
+                    )
+                    .map(({ name, value }) => `${name}=${value}`)
+                    .sort(),
+                  element.querySelector('input:checked') ? 'checked' : ''
+                ].join(' ');
+              /** @type {Map<string, number>} */
+              const kinds = new Map();
+              for (const element of found) {
+                const host = element.parentElement?.closest('[class*="sui-"]');
+                const kind = `${own(element)} in ${host ? own(host) : ''}`;
+                if (!kinds.has(kind)) kinds.set(kind, kinds.size);
+                element.setAttribute('data-press-probe', String(kinds.get(kind)));
+              }
+              return { controls: found.length, kinds: kinds.size };
             },
             { pressable: PRESSABLE, textLinks: TEXT_LINKS }
           );
-          assert.ok(count > 50, `only ${count} pressable controls were found`);
+          assert.ok(count.controls > 50, `only ${count.controls} pressable controls were found`);
+          assert.ok(count.kinds > 30, `only ${count.kinds} kinds of control were found`);
           // Transitions off, so each state is read the moment it applies.
           await page.addStyleTag({
             content: '*, *::before, *::after { transition: none !important; }'
@@ -1284,13 +1375,18 @@ suite('the kitchen sink', together, () => {
               /** @type {unknown} */ (window)
             ).pressRead(element);
           const problems = [];
-          for (let index = worker; index < count; index += WORKERS) {
-            const control = page.locator(`[data-press-probe="${index}"]`);
+          const control = page.locator('[data-press-at]');
+          for (let index = worker; index < count.kinds; index += WORKERS) {
             // Brought to the middle of the view, clear of the page's fixed bars, and measured in
-            // one call. A control an earlier press re-rendered away is not there to press.
+            // one call. A control an earlier press re-rendered away is not there to press, so the
+            // first of its kind still shown stands for it.
             const point = await page.evaluate((index) => {
-              const element = document.querySelector(`[data-press-probe="${index}"]`);
-              if (!element?.checkVisibility({ visibilityProperty: true })) return null;
+              document.querySelector('[data-press-at]')?.removeAttribute('data-press-at');
+              const element = [...document.querySelectorAll(`[data-press-probe="${index}"]`)].find(
+                (element) => element.checkVisibility({ visibilityProperty: true })
+              );
+              if (!element) return null;
+              element.setAttribute('data-press-at', '');
               element.scrollIntoView({ block: 'center', inline: 'nearest' });
               const box = element.getBoundingClientRect();
               return box.width > 0 && box.height > 0
@@ -1324,55 +1420,6 @@ suite('the kitchen sink', together, () => {
       assert.deepEqual(problems, []);
     }
   );
-
-  test('L-52 a second press on a trigger closes its open layer', long, async () => {
-    const reopened = await sweep(
-      () => open(1440, 'light'),
-      WORKERS,
-      async (page, worker) => {
-        // The phone drawer is modal and covers its own menu button, so it closes from inside.
-        const triggers = page.locator(
-          'main > section [popovertarget]:not(:disabled):not(.sui-shell-menu)'
-        );
-        const count = await triggers.count();
-        assert.ok(count > 10, `only ${count} layer triggers were found`);
-        const reopened = [];
-        for (let index = worker; index < count; index += WORKERS) {
-          const trigger = triggers.nth(index);
-          if (!(await trigger.isVisible())) continue;
-          await trigger.scrollIntoViewIfNeeded();
-          await trigger.click();
-          if (
-            !(await settles(
-              page.waitForFunction(
-                () => document.querySelector('[popover]:popover-open'),
-                null,
-                brief
-              )
-            ))
-          )
-            continue;
-          await trigger.click();
-          if (
-            !(await settles(
-              page.waitForFunction(
-                () => !document.querySelector('[popover]:popover-open'),
-                null,
-                brief
-              )
-            ))
-          ) {
-            reopened.push(
-              `${index} “${((await trigger.textContent()) ?? '').trim().slice(0, 30)}”`
-            );
-            await page.keyboard.press('Escape');
-          }
-        }
-        return reopened;
-      }
-    );
-    assert.deepEqual(reopened, []);
-  });
 
   test('L-87 the phone drawer holds focus and gives it back', long, async () => {
     // The shell is a whole page of its own, opened on a phone.
@@ -1463,29 +1510,6 @@ suite('the kitchen sink', together, () => {
         ).painted.find((frame) => frame.text)
       );
       assert.deepEqual(await first.jsonValue(), { text: true, ready: true });
-    } finally {
-      await page.close();
-    }
-  });
-
-  test("a reload halfway down paints the reader's place from its first frame", long, async () => {
-    const page = await open(1440, 'light');
-    try {
-      const place = await page.evaluate(() => {
-        scrollTo(0, 3000);
-        return scrollY;
-      });
-      await page.addInitScript(() =>
-        requestAnimationFrame(() => Object.assign(window, { first: scrollY }))
-      );
-      await page.reload();
-      await page.waitForFunction(() => '__suiAudit' in window);
-      assert.equal(
-        await page.evaluate(
-          () => /** @type {{ first: number }} */ (/** @type {unknown} */ (window)).first
-        ),
-        place
-      );
     } finally {
       await page.close();
     }

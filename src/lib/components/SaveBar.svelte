@@ -186,8 +186,15 @@
 
   function onfocusin(event: FocusEvent): void {
     within = true;
+    // Only a control of the bar's own pane is a way back; one from another pane would pull the
+    // reader out of the work the bar holds.
     const from = event.relatedTarget;
-    if (from instanceof HTMLElement && !element?.contains(from)) returnTo = from;
+    if (
+      from instanceof HTMLElement &&
+      !element?.contains(from) &&
+      element?.parentElement?.contains(from)
+    )
+      returnTo = from;
   }
 
   function onfocusout(event: FocusEvent): void {

@@ -70,7 +70,9 @@ test('a reload halfway down paints its settled page in its first frame', long, a
       scrollTo(0, Math.round((document.documentElement.scrollHeight - innerHeight) / 2));
       return scrollY;
     });
-    await page.waitForTimeout(500);
+    await page.evaluate(
+      () => new Promise((done) => requestAnimationFrame(() => requestAnimationFrame(done)))
+    );
     const cdp = await page.context().newCDPSession(page);
     /** @type {{ data: string; at: number }[]} */
     const shots = [];
@@ -81,6 +83,8 @@ test('a reload halfway down paints its settled page in its first frame', long, a
     await cdp.send('Page.startScreencast', { format: 'png', maxWidth: 1341, maxHeight: 1091 });
     await page.reload();
     await page.waitForFunction(() => '__suiAudit' in window);
+    // A window to watch, not a wait for a state: a part that moves late moves after any state
+    // the page could report.
     await page.waitForTimeout(2500);
     await cdp.send('Page.stopScreencast');
     const { origin, painted, y } = await page.evaluate(() => ({
@@ -102,7 +106,8 @@ test('a reload halfway down paints its settled page in its first frame', long, a
 
 // Sections whose parts used to change once the page ran: a control's form, a theme picker's
 // choice, a partly chosen box, a table's line that says it scrolls, a tab row's place, a slow
-// wait, times read from now, and a matrix that folded.
+// wait, times read from now, and a matrix that folded. The charts are compared by the boxes of
+// their parts instead, which a shot clipped to the window would cut off.
 const sections = [
   'segmented-control',
   'theme-switch',
@@ -114,6 +119,20 @@ const sections = [
   'buttons',
   'callout'
 ];
+
+/** Where each chart draws every part of its plot, from the chart's own corner. */
+const chartParts = () =>
+  [...document.querySelectorAll('#charts .sui-chart')].map((chart) => {
+    const corner = chart.getBoundingClientRect();
+    return [chart, ...chart.querySelectorAll('.plot-band, .plot-band svg :not(title)')]
+      .map((part) => {
+        const box = part.getBoundingClientRect();
+        return [box.x - corner.x, box.y - corner.y, box.width, box.height]
+          .map((value) => value.toFixed(2))
+          .join(' ');
+      })
+      .join(', ');
+  });
 
 test('the server’s render draws every part as the page draws it once it runs', long, async () => {
   /** @type {string[]} */
@@ -143,8 +162,8 @@ test('the server’s render draws every part as the page draws it once it runs',
       await section.evaluate((el) =>
         scrollTo({ top: el.getBoundingClientRect().top + scrollY, behavior: 'instant' })
       );
-      await page.waitForTimeout(100);
-      await page.evaluate(() => {
+      await page.evaluate(async () => {
+        await new Promise((done) => requestAnimationFrame(() => requestAnimationFrame(done)));
         for (const animation of document.getAnimations())
           if (animation.timeline instanceof DocumentTimeline) {
             animation.pause();
@@ -157,6 +176,12 @@ test('the server’s render draws every part as the page draws it once it runs',
       });
       return (await page.screenshot({ clip: box })).toString('base64');
     };
+    const [drawn, ran] = await Promise.all(pages.map((page) => page.evaluate(chartParts)));
+    if (drawn.length === 0 || ran.length !== drawn.length)
+      changed.push(`#charts at ${width}px: ${drawn.length} charts, then ${ran.length}`);
+    drawn.forEach((parts, at) => {
+      if (parts !== ran[at]) changed.push(`chart ${at + 1} of #charts at ${width}px`);
+    });
     for (const id of sections) {
       const count = await differing(pages[1], await shoot(pages[0], id), await shoot(pages[1], id));
       if (count > 0) changed.push(`${id} at ${width}px: ${count}px`);

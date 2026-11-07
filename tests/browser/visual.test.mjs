@@ -122,6 +122,12 @@ for (const theme of ['light', 'dark'])
         const found = [];
         for (const id of ids.filter((_, index) => index % PAGES === worker)) {
           const section = page.locator(`main > section#${id}`);
+          // A shot taller than the window lays out the whole page again, so the page holds only
+          // this section while it is shot: a fifth of the time, and the same pixels.
+          await page.evaluate((id) => {
+            for (const other of document.querySelectorAll('main > section[id]'))
+              /** @type {HTMLElement} */ (other).style.display = other.id === id ? '' : 'none';
+          }, id);
           await section.scrollIntoViewIfNeeded();
           // A layout page in a frame loads once it nears the window, and is shot once it has
           // started and its faces have arrived.

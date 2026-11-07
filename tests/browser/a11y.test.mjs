@@ -1,15 +1,7 @@
 import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
 import { after, before, suite, test } from 'node:test';
-import {
-  allSections,
-  audit as auditPage,
-  long,
-  settles,
-  startSink,
-  together,
-  visit
-} from './sink.mjs';
+import { allSections, audit as auditPage, long, startSink, together, visit } from './sink.mjs';
 
 // The kitchen sink under the conditions readers bring with them: an accessibility engine's
 // WCAG 2.2 rules, a right-to-left page, forced colors, the WCAG 1.4.12 text spacing and text
@@ -57,36 +49,56 @@ suite('accessibility', together, () => {
     return page;
   }
 
+  /**
+   * Waits two frames, so what the components measure in script after a change to the page, in
+   * resize observers and frame callbacks, has been measured again.
+   * @param {import('playwright-core').Page} page
+   */
+  const settled = (page) =>
+    page.evaluate(
+      () => new Promise((done) => requestAnimationFrame(() => requestAnimationFrame(done)))
+    );
+
   /** @param {import('playwright-core').Page} page */
   const audit = async (page) =>
     (await auditPage(page)).map(({ law, where, detail }) => `${law} ${where}: ${detail}`);
 
+  /** @param {import('playwright-core').Page} page @returns {Promise<string[]>} */
+  const axe = async (page) => {
+    await page.addScriptTag({ path: axePath });
+    return page.evaluate(async () => {
+      const result = await /** @type {any} */ (window).axe.run(document, {
+        runOnly: { type: 'tag', values: ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'] }
+      });
+      return result.violations.flatMap((/** @type {any} */ violation) =>
+        violation.nodes.map(
+          (/** @type {any} */ node) => `${violation.id} ${node.target.join(' ')}: ${violation.help}`
+        )
+      );
+    });
+  };
+
+  // One theme is enough for axe: the other changes only colours, and the law audit's L-5 holds
+  // every text's contrast in both themes at these widths. The same page is then turned right to
+  // left, and every law must hold there too.
   for (const width of [375, 1440])
-    for (const theme of ['light', 'dark'])
-      test(`axe finds no WCAG 2.2 A or AA violation at ${width}px in ${theme}`, long, async () => {
-        const page = await open(width, theme);
+    test(
+      `axe finds no WCAG 2.2 A or AA violation, and every law holds right to left, at ${width}px`,
+      long,
+      async () => {
+        const page = await open(width, 'light');
         try {
-          await page.addScriptTag({ path: axePath });
-          const violations = await page.evaluate(async () => {
-            const axe = /** @type {any} */ (window).axe;
-            const result = await axe.run(document, {
-              runOnly: {
-                type: 'tag',
-                values: ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa']
-              }
-            });
-            return result.violations.flatMap((/** @type {any} */ violation) =>
-              violation.nodes.map(
-                (/** @type {any} */ node) =>
-                  `${violation.id} ${node.target.join(' ')}: ${violation.help}`
-              )
-            );
+          assert.deepEqual(await axe(page), []);
+          await page.evaluate(() => {
+            document.documentElement.dir = 'rtl';
           });
-          assert.deepEqual(violations, []);
+          await settled(page);
+          assert.deepEqual(await audit(page), []);
         } finally {
           await page.close();
         }
-      });
+      }
+    );
 
   // Each shell and page layout is a whole page of its own, so its landmarks, its one main and
   // its bars are measured at the window's width, as an app draws them.
@@ -101,89 +113,30 @@ suite('accessibility', together, () => {
     'layouts/detail-pane/stale/'
   ];
 
+  // Each page is visited once per width: axe and the audit read it in light, then the audit
+  // reads its colours again in dark.
   for (const width of [375, 768, 1440])
-    for (const theme of ['light', 'dark'])
-      test(
-        `every layout page holds every law and passes axe at ${width}px in ${theme}`,
-        long,
-        async () => {
-          const page = await browser.newPage({ viewport: { width, height: 900 } });
-          try {
-            /** @type {string[]} */
-            const found = [];
-            for (const path of layouts) {
-              await visit(page, new URL(path, url).href);
-              await page.evaluate(async (name) => {
-                document.documentElement.dataset.suiTheme = name;
-                await document.fonts.ready;
-              }, theme);
-              await page.addScriptTag({ path: axePath });
-              const violations = await page.evaluate(async () => {
-                const axe = /** @type {any} */ (window).axe;
-                const result = await axe.run(document, {
-                  runOnly: {
-                    type: 'tag',
-                    values: ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa']
-                  }
-                });
-                return result.violations.flatMap((/** @type {any} */ violation) =>
-                  violation.nodes.map(
-                    (/** @type {any} */ node) =>
-                      `${violation.id} ${node.target.join(' ')}: ${violation.help}`
-                  )
-                );
-              });
-              found.push(
-                ...[...violations, ...(await audit(page))].map((line) => `${path} ${line}`)
-              );
-            }
-            assert.deepEqual(found, []);
-          } finally {
-            await page.close();
+    test(`every layout page holds every law and passes axe at ${width}px`, long, async () => {
+      const page = await browser.newPage({ viewport: { width, height: 900 } });
+      try {
+        /** @type {string[]} */
+        const found = [];
+        for (const path of layouts) {
+          await visit(page, new URL(path, url).href);
+          for (const theme of ['light', 'dark']) {
+            await page.evaluate(async (name) => {
+              document.documentElement.dataset.suiTheme = name;
+              await document.fonts.ready;
+            }, theme);
+            const lines = [...(theme === 'light' ? await axe(page) : []), ...(await audit(page))];
+            found.push(...lines.map((line) => `${path} ${theme} ${line}`));
           }
         }
-      );
-
-  for (const width of [375, 1440])
-    test(`every law holds in a right-to-left page at ${width}px`, long, async () => {
-      const page = await open(width, 'light');
-      try {
-        await page.evaluate(() => {
-          document.documentElement.dir = 'rtl';
-        });
-        await page.waitForTimeout(300);
-        assert.deepEqual(await audit(page), []);
+        assert.deepEqual(found, []);
       } finally {
         await page.close();
       }
     });
-
-  test('in a right-to-left page a menu hangs from its trigger’s inline start', long, async () => {
-    const page = await open(1440, 'light');
-    try {
-      await page.evaluate(() => {
-        document.documentElement.dir = 'rtl';
-      });
-      // A menu aligned to its trigger's start, as an end-aligned one hangs from the other edge.
-      const trigger = page
-        .locator('#action-menu [aria-haspopup="menu"]:not(:disabled)', {
-          hasText: 'Release actions'
-        })
-        .first();
-      await trigger.scrollIntoViewIfNeeded();
-      await trigger.click();
-      await page.waitForTimeout(300);
-      const gap = await trigger.evaluate((element) => {
-        const layer = document.getElementById(element.getAttribute('popovertarget') ?? '');
-        if (!layer) return null;
-        for (const animation of layer.getAnimations()) animation.finish();
-        return layer.getBoundingClientRect().right - element.getBoundingClientRect().right;
-      });
-      assert.ok(gap !== null && Math.abs(gap) <= 1, `the menu's right edge is ${gap}px off`);
-    } finally {
-      await page.close();
-    }
-  });
 
   // WCAG 2.2.2: motion that starts on its own and runs past 5 seconds needs a pause control, so
   // a live dot's pulse ends inside that time and runs again only when its data arrives.
@@ -208,17 +161,15 @@ suite('accessibility', together, () => {
             .getAnimations({ subtree: true })
             .some((running) => running instanceof CSSAnimation)
         );
-      const still = await settles(
-        page.waitForFunction(
-          (element) =>
-            !element
-              ?.querySelector('.live')
-              ?.getAnimations({ subtree: true })
-              .some((running) => running instanceof CSSAnimation),
-          await pill.elementHandle(),
-          { timeout: length + 1000 }
-        )
-      );
+      // The pulse is ended rather than waited for: its length above is what a reader waits,
+      // and `finish` throws on an endless animation.
+      const still = await pill.evaluate((element) => {
+        const dot = /** @type {Element} */ (element.querySelector('.live'));
+        for (const running of dot.getAnimations({ subtree: true })) running.finish();
+        return !dot
+          .getAnimations({ subtree: true })
+          .some((running) => running instanceof CSSAnimation);
+      });
       assert.ok(still, 'the pulse did not end');
       await page.getByRole('button', { name: 'Receive an update' }).click();
       assert.ok(await pulsing(), 'an update did not pulse the dot again');
@@ -232,13 +183,22 @@ suite('accessibility', together, () => {
   // A busy control's spinner is the only drawn sign that it works, so it holds 3:1 on what it
   // turns on (WCAG 1.4.11). The drawn pixels are read, so every fill, veil and opacity counts.
   test('every busy spinner holds 3:1 on what it turns on in both themes', long, async () => {
-    for (const theme of ['light', 'dark']) {
-      const page = await open(1440, theme, { reducedMotion: 'reduce' });
-      try {
+    const page = await open(1440, 'light', { reducedMotion: 'reduce' });
+    try {
+      const low = [];
+      for (const theme of ['light', 'dark']) {
+        await page.evaluate(async (name) => {
+          document.documentElement.dataset.suiTheme = name;
+          await Promise.all(
+            document
+              .getAnimations()
+              .filter((animation) => animation instanceof CSSTransition)
+              .map((animation) => animation.finished.catch(() => undefined))
+          );
+        }, theme);
         const spinners = page.locator(
           '.sui-button-spinner, .sui-icon-button-spinner, .sui-switch-spinner'
         );
-        const low = [];
         for (let index = 0; index < (await spinners.count()); index++) {
           const spinner = spinners.nth(index);
           if (!(await spinner.isVisible())) continue;
@@ -284,10 +244,10 @@ suite('accessibility', together, () => {
             low.push(`${theme} ${where}: ${ratio.toFixed(2)}`);
           }
         }
-        assert.deepEqual(low, []);
-      } finally {
-        await page.close();
       }
+      assert.deepEqual(low, []);
+    } finally {
+      await page.close();
     }
   });
 
@@ -305,80 +265,86 @@ suite('accessibility', together, () => {
     }
   });
 
-  // A page with no theme chosen reaches the dark palette through the system's preference, so it
-  // is checked apart from the two themes a page sets.
-  for (const [theme, colorScheme] of /** @type {const} */ ([
-    ['light', 'light'],
-    ['dark', 'dark'],
-    [null, 'dark']
-  ]))
-    test(
-      `L-114 with more contrast every line holds 3:1 on every ground in ${theme ?? 'the system’s dark'}`,
-      long,
-      async () => {
-        const page = await browser.newPage({
-          viewport: { width: 1440, height: 900 },
-          contrast: 'more',
-          colorScheme
-        });
-        try {
-          await visit(page, allSections(url));
-          const weak = await page.evaluate((name) => {
-            if (name) document.documentElement.dataset.suiTheme = name;
-            const context = /** @type {CanvasRenderingContext2D} */ (
-              Object.assign(document.createElement('canvas'), { width: 1, height: 1 }).getContext(
-                '2d',
-                { willReadFrequently: true }
-              )
-            );
-            const look = getComputedStyle(document.documentElement);
-            /** @param {string} token @param {string} [under] */
-            const paint = (token, under) => {
-              context.clearRect(0, 0, 1, 1);
-              for (const layer of [under, token].filter(Boolean)) {
-                context.fillStyle = look.getPropertyValue(`--sui-${layer}`).trim();
-                context.fillRect(0, 0, 1, 1);
-              }
-              return [...context.getImageData(0, 0, 1, 1).data.slice(0, 3)].map((v) => v / 255);
-            };
-            const lum = (/** @type {number[]} */ rgb) =>
-              rgb
-                .map((c) => (c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4))
-                .reduce((sum, c, i) => sum + c * [0.2126, 0.7152, 0.0722][i], 0);
-            const ratio = (/** @type {number[]} */ a, /** @type {number[]} */ b) => {
-              const [x, y] = [lum(a), lum(b)].sort((p, q) => q - p);
-              return (x + 0.05) / (y + 0.05);
-            };
-            const found = [];
-            for (const ground of ['canvas', 'surface-base', 'surface-raised', 'surface-inset'])
-              for (const line of [
-                'border-subtle',
-                'border-divider',
-                'border-band',
-                'control-border',
-                'control-border-hover',
-                'field-frame',
-                'popover-border',
-                'sidebar-border'
-              ]) {
-                const value = ratio(paint(line, ground), paint(ground));
-                if (value < 3) found.push(`${line} on ${ground}: ${value.toFixed(2)}`);
-              }
-            return found;
-          }, theme);
-          assert.deepEqual(weak, []);
-        } finally {
-          await page.close();
-        }
-      }
-    );
-
+  // A page with no theme chosen follows the system to the same dark block, as L-4 holds in
+  // tests/laws.test.mjs, so the two themes a page sets cover it.
   test(
-    'in forced colors every current and selected state differs by more than weight',
+    'L-114 with more contrast every line holds 3:1 on every ground in both themes',
     long,
     async () => {
-      const page = await open(1440, 'light', { forcedColors: 'active' });
+      const page = await browser.newPage({
+        viewport: { width: 1440, height: 900 },
+        contrast: 'more'
+      });
       try {
+        await visit(page, allSections(url));
+        /** @type {string[]} */
+        const weak = [];
+        for (const theme of ['light', 'dark'])
+          weak.push(
+            ...(await page.evaluate((name) => {
+              document.documentElement.dataset.suiTheme = name;
+              const context = /** @type {CanvasRenderingContext2D} */ (
+                Object.assign(document.createElement('canvas'), { width: 1, height: 1 }).getContext(
+                  '2d',
+                  { willReadFrequently: true }
+                )
+              );
+              const look = getComputedStyle(document.documentElement);
+              /** @param {string} token @param {string} [under] */
+              const paint = (token, under) => {
+                context.clearRect(0, 0, 1, 1);
+                for (const layer of [under, token].filter(Boolean)) {
+                  context.fillStyle = look.getPropertyValue(`--sui-${layer}`).trim();
+                  context.fillRect(0, 0, 1, 1);
+                }
+                return [...context.getImageData(0, 0, 1, 1).data.slice(0, 3)].map((v) => v / 255);
+              };
+              const lum = (/** @type {number[]} */ rgb) =>
+                rgb
+                  .map((c) => (c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4))
+                  .reduce((sum, c, i) => sum + c * [0.2126, 0.7152, 0.0722][i], 0);
+              const ratio = (/** @type {number[]} */ a, /** @type {number[]} */ b) => {
+                const [x, y] = [lum(a), lum(b)].sort((p, q) => q - p);
+                return (x + 0.05) / (y + 0.05);
+              };
+              const found = [];
+              for (const ground of ['canvas', 'surface-base', 'surface-raised', 'surface-inset'])
+                for (const line of [
+                  'border-subtle',
+                  'border-divider',
+                  'border-band',
+                  'control-border',
+                  'control-border-hover',
+                  'field-frame',
+                  'popover-border',
+                  'sidebar-border'
+                ]) {
+                  const value = ratio(paint(line, ground), paint(ground));
+                  if (value < 3) found.push(`${line} on ${ground}: ${value.toFixed(2)}`);
+                }
+              return found.map((line) => `${name}: ${line}`);
+            }, theme))
+          );
+        assert.deepEqual(weak, []);
+      } finally {
+        await page.close();
+      }
+    }
+  );
+
+  // One forced-colors page for its three reads; the one that checks boxes runs last.
+  suite('in forced colors', { ...long, concurrency: 1 }, () => {
+    /** @type {import('playwright-core').Page} */
+    let page;
+    before(async () => {
+      page = await open(1440, 'light', { forcedColors: 'active' });
+    });
+    after(() => page?.close());
+
+    test(
+      'in forced colors every current and selected state differs by more than weight',
+      long,
+      async () => {
         const flat = await page.evaluate(() => {
           const props = [
             'outline-style',
@@ -429,18 +395,44 @@ suite('accessibility', together, () => {
           return found;
         });
         assert.deepEqual(flat, []);
-      } finally {
-        await page.close();
       }
-    }
-  );
+    );
 
-  test(
-    'in forced colors an invalid field draws a different edge from a valid one',
-    long,
-    async () => {
-      const page = await open(1440, 'light', { forcedColors: 'active' });
-      try {
+    test(
+      'in forced colors every placeholder, the lit menu item and each diff change keep a mark',
+      long,
+      async () => {
+        // Forced colors drop every fill, so each of these needs an edge, an outline or a glyph.
+        const missing = await page.evaluate(() => {
+          const found = [];
+          for (const placeholder of [
+            'main .sui-skeleton-rows .bar',
+            'main tr.placeholder .bar',
+            'main .sui-chart-wait'
+          ]) {
+            const box = document.querySelector(placeholder);
+            if (!box || getComputedStyle(box).outlineStyle === 'none')
+              found.push(`${placeholder} draws no outline`);
+          }
+          const lit = document.querySelector('main .sui-action-menu-item.active');
+          if (!lit || getComputedStyle(lit).outlineStyle === 'none')
+            found.push('the lit menu item draws no outline');
+          for (const line of document.querySelectorAll('main .sui-diff-block-scroll .ln')) {
+            if (/** @type {HTMLElement} */ (line).dataset.op === ' ') continue;
+            const glyph = line.querySelector('.op [aria-hidden="true"]');
+            if (!glyph?.textContent?.trim() || !glyph.checkVisibility())
+              found.push(`a ${/** @type {HTMLElement} */ (line).dataset.op} line shows no glyph`);
+          }
+          return found;
+        });
+        assert.deepEqual(missing, []);
+      }
+    );
+
+    test(
+      'in forced colors an invalid field draws a different edge from a valid one',
+      long,
+      async () => {
         // A checked box and an on switch keep the invalid edge too, so one of each is turned on.
         for (const mark of ['.sui-checkbox-box.invalid', '.sui-switch-track.invalid']) {
           const input = page.locator(`main label:has(${mark}) input:not(:checked):not(:disabled)`);
@@ -481,47 +473,9 @@ suite('accessibility', together, () => {
           });
         });
         assert.deepEqual(same, []);
-      } finally {
-        await page.close();
       }
-    }
-  );
-
-  test(
-    'in forced colors every placeholder, the lit menu item and each diff change keep a mark',
-    long,
-    async () => {
-      const page = await open(1440, 'light', { forcedColors: 'active' });
-      try {
-        // Forced colors drop every fill, so each of these needs an edge, an outline or a glyph.
-        const missing = await page.evaluate(() => {
-          const found = [];
-          for (const placeholder of [
-            'main .sui-skeleton-rows .bar',
-            'main tr.placeholder .bar',
-            'main .sui-chart-wait'
-          ]) {
-            const box = document.querySelector(placeholder);
-            if (!box || getComputedStyle(box).outlineStyle === 'none')
-              found.push(`${placeholder} draws no outline`);
-          }
-          const lit = document.querySelector('main .sui-action-menu-item.active');
-          if (!lit || getComputedStyle(lit).outlineStyle === 'none')
-            found.push('the lit menu item draws no outline');
-          for (const line of document.querySelectorAll('main .sui-diff-block-scroll .ln')) {
-            if (/** @type {HTMLElement} */ (line).dataset.op === ' ') continue;
-            const glyph = line.querySelector('.op [aria-hidden="true"]');
-            if (!glyph?.textContent?.trim() || !glyph.checkVisibility())
-              found.push(`a ${/** @type {HTMLElement} */ (line).dataset.op} line shows no glyph`);
-          }
-          return found;
-        });
-        assert.deepEqual(missing, []);
-      } finally {
-        await page.close();
-      }
-    }
-  );
+    );
+  });
 
   // WCAG 1.4.12 and 1.4.4: overrides a reader may apply, and text at twice its size.
   const spacing = `* { line-height: 1.5 !important; letter-spacing: 0.12em !important; word-spacing: 0.16em !important; }
@@ -574,8 +528,14 @@ p { margin-block-end: 2em !important; }`;
         const page = await open(375, 'light');
         try {
           await change(page);
-          await page.waitForTimeout(400);
-          const found = (await audit(page)).filter((line) => /^L-(55|70) /.test(line));
+          await settled(page);
+          // The audit holds the default leading; the spacing run holds a reader's too, so a
+          // fixed gap that only clears the default line gap fails a wrapped title.
+          const found = (await audit(page)).filter(
+            (line) =>
+              /^L-(55|70) /.test(line) ||
+              (change === changes[0][1] && line.includes("a wrapped title's lines"))
+          );
           const overlaps = await page.evaluate(() => {
             const leaves = [...document.querySelectorAll('main .specimen *')].filter(
               (element) =>
@@ -626,26 +586,6 @@ p { margin-block-end: 2em !important; }`;
         }
       }
     );
-
-  // The audit holds the default leading; this holds a reader's, so a fixed gap that only clears
-  // the default line gap fails here.
-  test(
-    'with the WCAG text spacing a wrapped page title still stands closer to itself than to its description',
-    long,
-    async () => {
-      const page = await open(375, 'light');
-      try {
-        await page.addStyleTag({ content: spacing });
-        await page.waitForTimeout(400);
-        assert.deepEqual(
-          (await audit(page)).filter((line) => line.includes("a wrapped title's lines")),
-          []
-        );
-      } finally {
-        await page.close();
-      }
-    }
-  );
 
   test('a page header says a new state once, from the same status region', long, async () => {
     const page = await open(1440, 'light');

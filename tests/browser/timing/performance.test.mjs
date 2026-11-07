@@ -13,9 +13,9 @@ let server;
 let browser;
 let url = '';
 
-// Its tests mount the library's own modules, which only a dev server serves.
+// The built site, as field data comes from a production build, not a dev server's modules.
 before(async () => {
-  ({ server, browser, url } = await startSink({ dev: true }));
+  ({ server, browser, url } = await startSink());
 });
 
 after(async () => {
@@ -24,23 +24,15 @@ after(async () => {
 });
 
 /**
- * An app page: the library loaded, the sink's own sections gone, the CPU slowed.
+ * An app page: the library loaded, nothing else on it, the CPU slowed.
  * @param {(page: import('playwright-core').Page) => Promise<unknown>} [prepare] runs before the page loads
  */
 async function app(prepare) {
   const page = await browser.newPage({ viewport: { width: 1280, height: 900 } });
   await prepare?.(page);
-  await visit(page, allSections(url));
-  await page.evaluate(async () => {
-    const loaded = performance.getEntriesByType('resource').map((entry) => entry.name);
-    const find = (/** @type {RegExp} */ pattern) => loaded.find((name) => pattern.test(name));
-    const lib = await import(/* @vite-ignore */ find(/\/src\/lib\/index\.ts/) ?? '');
-    const { mount, flushSync } = await import(
-      /* @vite-ignore */ find(/\.vite\/deps\/svelte\.js/) ?? ''
-    );
-    Object.assign(window, { lib, mount, flushSync });
-    for (const element of [...document.body.children]) element.remove();
-  });
+  await page.goto(new URL('mount/', url).href);
+  await page.waitForFunction(() => 'mount' in window && 'lib' in window);
+  await page.evaluate(() => document.body.replaceChildren());
   const cdp = await page.context().newCDPSession(page);
   await cdp.send('Emulation.setCPUThrottlingRate', { rate: slowdown });
   return page;
@@ -293,44 +285,50 @@ test(
   }
 );
 
-// Each layer opens twice in its own section of the sink, the rest of the sink removed so the
-// page is as small as an app's. The first open pays once for the layer's first style and paint,
+// Each layer opens twice in its section of the sink, the sink's other sections removed so the
+// page is as small as an app's. One section stands for each way a layer grows: a popover
+// (an action menu's, as the overlays section's), a select's picker, a modal (a confirm
+// dialog's too) and a toast. The first open pays once for the layer's first style and paint,
 // so the one frame that draws them may run long and every other frame is held to 60fps; every
 // later open is held to it from the press.
-for (const [id, trigger] of [
+const layers = /** @type {const} */ ([
   ['action-menu', '[aria-haspopup="menu"]'],
   ['select', 'select:not([disabled])'],
-  ['overlays', 'button[popovertarget]'],
-  ['confirm-dialog', 'button:has-text("Publish release")'],
   ['modal', 'button:has-text("webhook")'],
   ['toaster', 'button:has-text("Save settings")']
-]) {
-  test(`the ${id} layer grows at 60 frames a second`, long, async () => {
-    const late = await steadiest(async () => {
-      const page = await browser.newPage({ viewport: { width: 1280, height: 900 } });
-      try {
-        await visit(page, allSections(url));
-        await page.evaluate((id) => {
+]);
+
+test('every layer grows at 60 frames a second', long, async () => {
+  const late = await steadiest(async () => {
+    const page = await browser.newPage({ viewport: { width: 1280, height: 900 } });
+    try {
+      await visit(page, allSections(url));
+      await page.evaluate(
+        (kept) => {
           for (const section of document.querySelectorAll('main section[id]'))
-            if (section.id !== id) section.remove();
-        }, id);
-        const cdp = await page.context().newCDPSession(page);
-        await cdp.send('Emulation.setCPUThrottlingRate', { rate: slowdown });
+            if (!kept.includes(section.id)) section.remove();
+        },
+        layers.map(([id]) => /** @type {string} */ (id))
+      );
+      const cdp = await page.context().newCDPSession(page);
+      await cdp.send('Emulation.setCPUThrottlingRate', { rate: slowdown });
+      /** @type {string[]} */
+      const found = [];
+      for (const [id, trigger] of layers) {
         const press = page.locator(`#${id} ${trigger}`).first();
-        /** @type {string[]} */
-        const found = [];
+        await press.scrollIntoViewIfNeeded();
         for (const open of ['first', 'later']) {
           await page.waitForTimeout(500);
           for (const { gap, dropped, answer } of await frames(page, 800, () => press.click()))
             if (dropped && !(answer && open === 'first'))
-              found.push(`${gap}ms on the ${open} open`);
+              found.push(`${id}: ${gap}ms on the ${open} open`);
           await page.keyboard.press('Escape');
         }
-        return found;
-      } finally {
-        await page.close();
       }
-    });
-    assert.deepEqual(late, [], `frames held for ${late.join(', ')}`);
+      return found;
+    } finally {
+      await page.close();
+    }
   });
-}
+  assert.deepEqual(late, [], `frames held for ${late.join(', ')}`);
+});

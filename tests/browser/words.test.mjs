@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { after, before, suite, test } from 'node:test';
-import { allSections, long, startSink, together, visit } from './sink.mjs';
+import { allSections, long, openMount, startSink, together, visit } from './sink.mjs';
 
 // A language that joins words with no spaces, or with its own commas, must hear exactly its
 // own marks. Chrome adds a space on each side of any box that is not inline text when it builds
@@ -12,9 +12,8 @@ let server;
 let browser;
 let url = '';
 
-// Its tests mount the library's own modules, which only a dev server serves.
 before(async () => {
-  ({ server, browser, url } = await startSink({ dev: true }));
+  ({ server, browser, url } = await startSink());
 });
 
 after(async () => {
@@ -90,18 +89,62 @@ suite('words', together, () => {
     }
   });
 
-  test('with every mark replaced, each joined name reads the marks and nothing between them', async () => {
-    const page = await browser.newPage();
-    try {
-      await visit(page, allSections(url));
-      await page.evaluate(async () => {
-        // The sink's own copies, so the components share its Svelte runtime.
-        const loaded = performance.getEntriesByType('resource').map((entry) => entry.name);
-        const find = (/** @type {RegExp} */ pattern) => loaded.find((name) => pattern.test(name));
-        const lib = await import(/* @vite-ignore */ find(/\/src\/lib\/index\.ts/) ?? '');
-        const { mount, createRawSnippet, flushSync } = await import(
-          /* @vite-ignore */ find(/\.vite\/deps\/svelte\.js/) ?? ''
-        );
+  // These tests only mount components. The space test runs first, because the next one
+  // replaces the marks for the whole page.
+  suite('mounted on one page', { concurrency: 1 }, () => {
+    /** @type {import('playwright-core').Page} */
+    let page;
+    before(async () => {
+      page = await openMount(browser, url);
+    });
+    after(() => page?.close());
+
+    test('a control inside a sentence adds no space of its own to it', async () => {
+      const spaced = await page.evaluate(() => {
+        const { lib, mount, flushSync } = /** @type {any} */ (window);
+        /** @type {[string, Record<string, unknown>][]} */
+        const controls = [
+          ['RelativeTime', { value: Date.now() - 60_000 }],
+          ['HelpTip', { label: 'About drift', text: 'Drift means the files differ' }],
+          ['CopyButton', { text: 'abc' }],
+          ['IconButton', { label: 'Delete', icon: 'trash' }],
+          ['ActionMenu', { label: 'More', items: [] }],
+          ['AdditionPicker', { label: 'Add', choices: [], onadd: () => {} }],
+          ['ColorPicker', { value: '#0e8a16', 'aria-label': 'Color' }],
+          // Narrowed, because at full width a trailing space hangs at the line's end undrawn.
+          [
+            'Combobox',
+            {
+              'aria-label': 'Language',
+              name: 'language',
+              options: [{ value: 'ts', label: 'TypeScript' }],
+              style: 'inline-size: 9rem'
+            }
+          ]
+        ];
+        return controls.flatMap(([name, props]) => {
+          const sentence = document.createElement('p');
+          document.body.prepend(sentence);
+          sentence.append('Before');
+          mount(lib[name], { target: sentence, props });
+          flushSync();
+          sentence.append('after.');
+          // A space the component writes beside its own root is drawn between the words around it.
+          const drawn = [...sentence.childNodes].filter((node) => {
+            if (node.nodeType !== Node.TEXT_NODE || node.textContent?.trim()) return false;
+            const range = document.createRange();
+            range.selectNodeContents(node);
+            return range.getClientRects().length > 0;
+          });
+          return drawn.length > 0 ? [name] : [];
+        });
+      });
+      assert.deepEqual(spaced, []);
+    });
+
+    test('with every mark replaced, each joined name reads the marks and nothing between them', async () => {
+      await page.evaluate(() => {
+        const { lib, mount, createRawSnippet, flushSync } = /** @type {any} */ (window);
         lib.setWords({
           'marks.comma': 'ⓒ',
           'marks.space': 'ⓟ',
@@ -346,62 +389,6 @@ suite('words', together, () => {
         .allTextContents();
       assert.equal(shown.length, 2, 'the hint or the problem is not drawn');
       assert.equal(duration.description, shown.map((text) => text.trim()).join('ⓢ'));
-    } finally {
-      await page.close();
-    }
-  });
-
-  test('a control inside a sentence adds no space of its own to it', async () => {
-    const page = await browser.newPage();
-    try {
-      await visit(page, allSections(url));
-      const spaced = await page.evaluate(async () => {
-        const loaded = performance.getEntriesByType('resource').map((entry) => entry.name);
-        const find = (/** @type {RegExp} */ pattern) => loaded.find((name) => pattern.test(name));
-        const lib = await import(/* @vite-ignore */ find(/\/src\/lib\/index\.ts/) ?? '');
-        const { mount, flushSync } = await import(
-          /* @vite-ignore */ find(/\.vite\/deps\/svelte\.js/) ?? ''
-        );
-        /** @type {[string, Record<string, unknown>][]} */
-        const controls = [
-          ['RelativeTime', { value: Date.now() - 60_000 }],
-          ['HelpTip', { label: 'About drift', text: 'Drift means the files differ' }],
-          ['CopyButton', { text: 'abc' }],
-          ['IconButton', { label: 'Delete', icon: 'trash' }],
-          ['ActionMenu', { label: 'More', items: [] }],
-          ['AdditionPicker', { label: 'Add', choices: [], onadd: () => {} }],
-          ['ColorPicker', { value: '#0e8a16', 'aria-label': 'Color' }],
-          // Narrowed, because at full width a trailing space hangs at the line's end undrawn.
-          [
-            'Combobox',
-            {
-              'aria-label': 'Language',
-              name: 'language',
-              options: [{ value: 'ts', label: 'TypeScript' }],
-              style: 'inline-size: 9rem'
-            }
-          ]
-        ];
-        return controls.flatMap(([name, props]) => {
-          const sentence = document.createElement('p');
-          document.body.prepend(sentence);
-          sentence.append('Before');
-          mount(lib[name], { target: sentence, props });
-          flushSync();
-          sentence.append('after.');
-          // A space the component writes beside its own root is drawn between the words around it.
-          const drawn = [...sentence.childNodes].filter((node) => {
-            if (node.nodeType !== Node.TEXT_NODE || node.textContent?.trim()) return false;
-            const range = document.createRange();
-            range.selectNodeContents(node);
-            return range.getClientRects().length > 0;
-          });
-          return drawn.length > 0 ? [name] : [];
-        });
-      });
-      assert.deepEqual(spaced, []);
-    } finally {
-      await page.close();
-    }
+    });
   });
 });

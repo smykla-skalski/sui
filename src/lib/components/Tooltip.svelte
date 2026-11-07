@@ -100,8 +100,12 @@
     const onenter = (event: PointerEvent) => {
       if (hovers(event)) show(SHOW_DELAY);
     };
+    // No timer on focus: an Escape pressed before a timer fired would pass the tip and close
+    // the dialog around it.
     const onfocus = () => {
-      if (control.matches(':focus-visible')) show(0);
+      if (!control.matches(':focus-visible')) return;
+      close();
+      open = true;
     };
     // A tap shows nothing and its click lands as usual. A hold shows the tip, which stays a
     // moment after the finger lifts.
