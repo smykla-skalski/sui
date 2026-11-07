@@ -378,6 +378,11 @@ test('L-25 the type tiers keep the sizes the law names', () => {
     'a column heading stands no step under the rows it heads'
   );
   assert.match(
+    styles['src/lib/components/Pill.svelte'],
+    /\n  \.sui-pill \{[^}]*font: var\(--sui-weight-medium\) var\(--sui-font-size-compact\)/,
+    'a pill competes with the names it stands beside'
+  );
+  assert.match(
     styles['src/lib/components/DataTable.svelte'],
     /@media \(max-width: 47\.9375rem\) \{[^@]*\n    thead th \{\s*font-size: var\(--sui-font-size-control\);/,
     'a column heading on a phone keeps the compact size under rows that read larger'
