@@ -296,7 +296,7 @@ suite('lists', together, () => {
         assert.ok(scrolls, 'the table no longer scrolls inside its frame');
         const lines = rows.map((row) => row.lines);
         assert.ok(
-          lines.every((count) => count <= 3),
+          lines.every((count) => count <= 2),
           `the long values wrap to ${lines.join(' and ')} lines`
         );
         for (const { firsts } of rows)
