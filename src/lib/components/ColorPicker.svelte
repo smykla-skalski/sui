@@ -500,7 +500,11 @@ name is the label and the hex, such as "Label color #0f766e". `name` posts the h
     {/if}
 
     <div class="part">
-      <span id="{uid}-area-label" class="part-label">{areaLabel}</span>
+      <!-- A label can only name a native control, so a click on this name focuses the area by
+           hand; the area takes the keyboard itself. -->
+      <!-- svelte-ignore a11y_click_events_have_key_events, a11y_no_static_element_interactions -->
+      <span id="{uid}-area-label" class="part-label" onclick={() => area?.focus()}>{areaLabel}</span
+      >
       <div
         bind:this={area}
         class="area"
@@ -525,17 +529,17 @@ name is the label and the hex, such as "Label color #0f766e". `name` posts the h
     </div>
 
     <div class="part">
-      <span id="{uid}-hue-label" class="part-label">{hueLabel}</span>
+      <label for="{uid}-hue" class="part-label">{hueLabel}</label>
       <!-- A native range under the drawn rail: the browser gives it the slider's role, keys and
            drag, and its thumb is the drawn one's size, so the pointer lands on the same hue. -->
       <div class="hue" dir="ltr" style:background-image={HUE_RAIL}>
         <input
+          id="{uid}-hue"
           class="hue-range"
           type="range"
           min="0"
           max="359"
           value={Math.round(hsv.h)}
-          aria-labelledby="{uid}-hue-label"
           aria-valuetext={hueValue(Math.round(hsv.h))}
           oninput={(event) => apply({ ...hsv, h: event.currentTarget.valueAsNumber })}
           onkeydown={hueKeys}
@@ -555,7 +559,6 @@ name is the label and the hex, such as "Label color #0f766e". `name` posts the h
         aria-describedby={hexInvalid ? errorId : undefined}
         spellcheck="false"
         autocomplete="off"
-        maxlength={7}
         oninput={typeHex}
         onblur={commitHex}
       />

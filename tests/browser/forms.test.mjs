@@ -819,7 +819,7 @@ suite('forms', together, () => {
     );
 
     test(
-      'the color picker goes back on Escape, leaving no autofocus mark, moves its hue as a native range, stills the page while dragged, and commits a short hex and closes when Tab leaves it',
+      'the color picker goes back on Escape, leaving no autofocus mark, moves its hue as a native range, focuses each part from its name, stills the page while dragged, keeps a long hex as typed, and commits a short hex and closes when Tab leaves it',
       long,
       async () => {
         const page = await opened();
@@ -866,6 +866,18 @@ suite('forms', together, () => {
         await hue.press('Shift+ArrowLeft');
         assert.equal(Number(await hue.inputValue()), half - 18);
 
+        // A click on a part's name focuses that part, as a label does.
+        for (const [name, part] of [
+          ['Hue', '.hue-range'],
+          ['Saturation & brightness', '.area']
+        ]) {
+          await page.locator(':popover-open .part-label').getByText(name, { exact: true }).click();
+          assert.ok(
+            await page.evaluate((part) => document.activeElement?.matches(part), part),
+            `a click on "${name}" left focus elsewhere`
+          );
+        }
+
         // L-116 a drag chooses no text and stills the rest of the page until it ends.
         const area = /** @type {{ x: number, y: number, width: number, height: number }} */ (
           await page.locator(':popover-open .area').boundingBox()
@@ -908,7 +920,10 @@ suite('forms', together, () => {
         assert.equal(await marks(), unmarked, 'the closed picker left an autofocus mark');
 
         await open();
-        await page.locator('.sui-popover:popover-open input.sui-text-input').fill('#abc');
+        const hex = page.locator('.sui-popover:popover-open input.sui-text-input');
+        await hex.fill('#0e8a16ff');
+        assert.equal(await hex.inputValue(), '#0e8a16ff', 'the field cut what was typed');
+        await hex.fill('#abc');
         await page.keyboard.press('Tab');
         await page.waitForFunction(() => !document.querySelector('.sui-popover:popover-open'));
         assert.ok(
