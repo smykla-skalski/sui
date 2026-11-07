@@ -303,6 +303,7 @@ row in place of the hairlines, for a table wide enough that the eye can lose its
   /* The caption names the table, so it reads a step over the scroll hint under it. */
   .caption:not(.hint) {
     color: var(--sui-text-secondary);
+    font-size: var(--sui-font-size-body);
     font-weight: var(--sui-weight-medium);
   }
 
@@ -535,6 +536,18 @@ row in place of the hairlines, for a table wide enough that the eye can lose its
 
   [aria-sort] .sort {
     color: var(--sui-text-primary);
+  }
+
+  /* An unsorted heading's glyph rests in the muted ink, so only the sorted column's arrow
+     carries weight; a hovered heading lifts it with its words. */
+  th:not([aria-sort]) > .sort > :global(svg) {
+    color: var(--sui-text-muted);
+  }
+
+  @media (hover: hover) {
+    th:not([aria-sort]) > .sort:hover > :global(svg) {
+      color: inherit;
+    }
   }
 
   tbody tr + tr > :is(th, td) {
