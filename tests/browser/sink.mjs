@@ -107,6 +107,22 @@ export async function visit(page, url) {
 }
 
 /**
+ * Opens the built site's blank `mount/` page, where a test mounts the library's components
+ * itself: it puts `lib`, `mount`, `unmount`, `flushSync`, `createRawSnippet`, the reactive
+ * `state`, `get` and `set`, and the `format`, `anchor`, `focus`, `code` and `diff` modules on
+ * `window`.
+ * @param {SinkBrowser} browser
+ * @param {string} url
+ * @param {import('playwright-core').BrowserContextOptions} [options]
+ */
+export async function openMount(browser, url, options) {
+  const page = await browser.newPage({ viewport: { width: 1280, height: 900 }, ...options });
+  await page.goto(new URL('mount/', url).href);
+  await page.waitForFunction(() => 'mount' in window && 'lib' in window);
+  return page;
+}
+
+/**
  * Spreads a sweep over several pages of the sink, each taking every `workers`th item from its own
  * `worker` on, so a sweep that waits on the browser for each item runs side by side. Every page
  * holds the same items in the same order, and the problems each one finds are joined.

@@ -4,53 +4,31 @@ import { availableParallelism, tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 
-const audits = 'the law audit finds|the page keeps its audit';
-const sweeps = 'L-41 and L-96|L-102 an avatar|L-48 and L-52|L-97';
-const press = 'L-42 every control';
-const clock = 'a clock tick over a list';
-const layers = 'layer grows at 60 frames a second';
-const navigationLayout = 'a chart|the chart|the detail pane page';
-const kitchen = 'tests/browser/kitchen-sink.test.mjs';
-const performance = 'tests/browser/timing/performance.test.mjs';
-
-/** @type {Record<string, { file: string; pattern?: string; skip?: string }>} */
+/** Each CI group runs one browser test file in a job of its own. */
 export const groups = {
-  a11y: { file: 'tests/browser/a11y.test.mjs' },
-  forms: { file: 'tests/browser/forms.test.mjs' },
-  lists: { file: 'tests/browser/lists.test.mjs' },
-  navigation: { file: 'tests/browser/navigation.test.mjs', skip: navigationLayout },
-  'navigation-layout': { file: 'tests/browser/navigation.test.mjs', pattern: navigationLayout },
-  overlays: { file: 'tests/browser/overlays.test.mjs' },
-  words: { file: 'tests/browser/words.test.mjs' },
-  offline: { file: 'tests/browser/offline.test.mjs' },
-  visual: { file: 'tests/browser/visual.test.mjs' },
-  'kitchen-audit': { file: kitchen, pattern: audits },
-  'kitchen-sweeps': { file: kitchen, pattern: sweeps },
-  'kitchen-press': { file: kitchen, pattern: press },
-  kitchen: { file: kitchen, skip: `${audits}|${sweeps}|${press}` },
-  performance: { file: performance, skip: `${clock}|${layers}` },
-  clock: { file: performance, pattern: clock },
-  motion: { file: performance, pattern: layers },
-  reload: { file: 'tests/browser/timing/reload.test.mjs' }
+  a11y: 'tests/browser/a11y.test.mjs',
+  forms: 'tests/browser/forms.test.mjs',
+  lists: 'tests/browser/lists.test.mjs',
+  navigation: 'tests/browser/navigation.test.mjs',
+  overlays: 'tests/browser/overlays.test.mjs',
+  words: 'tests/browser/words.test.mjs',
+  offline: 'tests/browser/offline.test.mjs',
+  visual: 'tests/browser/visual.test.mjs',
+  kitchen: 'tests/browser/kitchen-sink.test.mjs',
+  performance: 'tests/browser/timing/performance.test.mjs',
+  reload: 'tests/browser/timing/reload.test.mjs'
 };
 
 /** @param {string} name */
 export function argumentsFor(name) {
-  const group = Object.hasOwn(groups, name) ? groups[name] : undefined;
-  if (!group) throw new Error(`Unknown browser test group: ${name}`);
-  return [
-    '--test',
-    '--test-concurrency=1',
-    ...('pattern' in group ? [`--test-name-pattern=${group.pattern}`] : []),
-    ...('skip' in group ? [`--test-skip-pattern=${group.skip}`] : []),
-    group.file
-  ];
+  if (!Object.hasOwn(groups, name)) throw new Error(`Unknown browser test group: ${name}`);
+  return ['--test', '--test-concurrency=1', groups[/** @type {keyof typeof groups} */ (name)]];
 }
 
-const timing = new Set(['performance', 'clock', 'motion', 'reload']);
+const timing = new Set(['performance', 'reload']);
 
 /** The groups that take longest alone, which start first so none starts last and runs alone. */
-const heaviest = ['a11y', 'kitchen-audit', 'kitchen', 'visual-light', 'visual-dark', 'offline'];
+const heaviest = ['a11y', 'kitchen', 'offline', 'visual-light', 'visual-dark'];
 
 /**
  * Every group on one machine against one build. The groups that only read the page run
@@ -66,17 +44,20 @@ async function runAll() {
   // No workers would run no group, and an empty run passes.
   if (!Number.isInteger(jobs) || jobs < 1)
     throw new Error(`SUI_JOBS must be a whole number above 0, not ${asked}`);
-  const { serveSink } = await import('./sink.mjs');
+  const { serveSink, startSink } = await import('./sink.mjs');
   const logs = process.env.SUI_LOGS ?? mkdtempSync(join(tmpdir(), 'sui-browser-'));
   mkdirSync(logs, { recursive: true });
   const built = Date.now();
   const { server, url } = await serveSink();
+  // Groups that start a dev server each fill a missing dependency cache, and several filling
+  // the same cache at once can leave one that fails every server render, so it is filled here.
+  await (await startSink({ dev: true })).server.close();
   console.log(`built and served in ${seconds(built)}s, logs in ${logs}`);
   const env = { ...process.env, SUI_LONG: '1', SUI_SINK_URL: url };
   /** @type {Map<string, string[]>} */
   const side = new Map();
   for (const theme of ['light', 'dark'])
-    side.set(`visual-${theme}`, ['--test', `--test-name-pattern=in ${theme}$`, groups.visual.file]);
+    side.set(`visual-${theme}`, ['--test', `--test-name-pattern=in ${theme}$`, groups.visual]);
   for (const name of Object.keys(groups))
     if (name !== 'visual' && !timing.has(name)) side.set(name, argumentsFor(name));
   const order = [

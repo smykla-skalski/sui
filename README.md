@@ -95,8 +95,8 @@ setWords({
 
 - `npm test` runs the source laws (`tests/laws.test.mjs`): the palette is the only place a color is written, every token is declared and read, sizes, leading, spacing, radii, layers and durations come from tokens, every moving component has a reduced-motion fallback, and every component has a contract and a kitchen sink section.
 - The kitchen sink runs the rendered laws on the page you are on when you press "Run the law audit" and shows each finding: contrast, palette bands, type faces and leading, copy rules, control heights, target sizes, centring, focus, names, the current place and sideways scroll. A run takes seconds and goes stale with the next edit, so the page never runs or keeps one on its own.
-- The browser suites read `/all/`, the page with every section. `npm run test:browser` is the everyday check, about seven seconds: that audit in Chrome on a phone in light and a desktop in dark, and the checks that every joined name follows `setWords`. It uses the installed Chrome through `playwright-core`; set `SUI_BROWSER_CHANNEL` to use another channel.
-- `npm run test:browser:long` runs everything CI runs: the audit at 320, 375, 768 and 1440px in both themes and on touch tablets, the audit and axe on every layout page, every keyboard stop, menu, press and layer, right to left, forced colors, text spacing and size, axe, the section pictures and the lab performance checks.
+- The browser suites read `/all/`, the page with every section. `npm run test:browser` is the everyday check, about seven seconds: that audit in Chrome on a phone and a desktop in both themes, and the checks that every joined name follows `setWords`. It uses the installed Chrome through `playwright-core`; set `SUI_BROWSER_CHANNEL` to use another channel.
+- `npm run test:browser:long` runs everything CI runs: the audit at 320, 375, 768 and 1440px, in both themes at 375 and 1440px, and on a touch tablet, the audit and axe on every layout page, every keyboard stop, menu, press and layer, right to left, forced colors, text spacing and size, axe, the section pictures and the lab performance checks.
 
 ## Development
 

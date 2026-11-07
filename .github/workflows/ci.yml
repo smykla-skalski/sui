@@ -34,18 +34,12 @@ jobs:
           - forms
           - lists
           - navigation
-          - navigation-layout
           - overlays
           - words
           - offline
           - visual
-          - kitchen-audit
-          - kitchen-sweeps
-          - kitchen-press
           - kitchen
           - performance
-          - clock
-          - motion
           - reload
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
