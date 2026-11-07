@@ -39,7 +39,7 @@ A shell or a page layout is never drawn inline. It owns the page's one `main`, i
 - `Example` is one titled point with a one-sentence `note` that says what it proves. Its specimens stand on a framed stage, and its markup opens under the stage from the frame's Code disclosure, so write the markup a reader would copy: literal props, no sink-only wrappers. `layout` is `row` for marks and controls, `grid` for fields and other things that fill a column, and `stack` for wide compositions. `ground="canvas"` is for specimens that are surfaces themselves (cards, plates, dialogs, toasts, shells, framed lists), so they read against the page as they will in a product.
 - `Specimen` names one specimen: `label` is the variant or state in words ("Disabled"), and `code` is the props that draw it as written in the markup (`tone="stop" disabled`). Every specimen is named. Only an "In context" example, which shows one composition, may stand without a caption.
 - `Variants` is a matrix for two axes at once: one prop down the side (`rows`, `axis`, `rowLabel`) and its states or options across the top (`columns`), drawn by the `cell` snippet. It folds into labelled blocks on a narrow stage.
-- Examples come in this order, using only the ones that apply: variants or tones, states, sizes or tiers, content (icons, long text, empty), behaviour and open states, in context, narrow width. Titles are short nouns in sentence case.
+- Examples come in this order, using only the ones that apply: variants or tones, states, sizes or tiers, content (icons, long text, empty), behaviour and open states, in context, narrow width. Titles are short nouns in Title Case.
 - Use the library's own components for any frame a specimen needs, a `Card` for a card, and never a local imitation.
 
 ## Contract
@@ -108,7 +108,7 @@ Write "none" only when an item truly does not apply, and say why. Document each 
 - When an action removes the focused control, move focus to the control that continues the task. Focus never falls to the page body.
 - Keyboard: every custom widget follows its ARIA pattern (combobox, listbox, menu, radio group, switch, dialog). Escape inside a nested layer stops at that layer.
 - Icon-only controls go through `IconButton`, which requires a label.
-- Copy in components and examples: sentence case, no trailing period on labels, hints, list items and one-sentence paragraphs, at most 25 words a sentence, the real ellipsis `…`.
+- Copy in components and examples: Chicago Title Case on headings, titles, buttons, summaries, tabs and menu items, with "&" for "and", and sentence case everywhere else (L-30), no trailing period on labels, hints, list items and one-sentence paragraphs, at most 25 words a sentence, the real ellipsis `…` and curly quotes `“ ” ’` (L-31).
 
 ## Checking
 

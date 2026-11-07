@@ -2,6 +2,7 @@
   import type { HTMLButtonAttributes } from 'svelte/elements';
   import Icon, { type IconName } from '../icons/Icon.svelte';
   import Tooltip from './Tooltip.svelte';
+  import { shownWait } from '../internal/shown-wait.svelte.js';
 
   let {
     icon,
@@ -27,6 +28,7 @@
     element?: HTMLButtonElement | null;
     class?: HTMLButtonAttributes['class'];
   } & Omit<HTMLButtonAttributes, 'children' | 'aria-label'> = $props();
+  const spinning = shownWait(() => busy);
 
   /* `disabled` would drop a focused button's focus to the body, so a busy or soft-disabled one
      keeps its place in the tab order and refuses the press itself, as `Button` does. */
@@ -77,10 +79,10 @@ action are a `Button` with the word beside the glyph.
   {disabled}
   onclick={press}
 >
-  {#if busy}
+  {#if spinning.current}
     <span class="sui-icon-button-spinner" aria-hidden="true"></span>
   {:else}
-    <Icon name={icon} size="sm" strokeWidth={2} />
+    <Icon name={icon} size="base" strokeWidth={2} />
   {/if}
 </button><Tooltip anchor={element} text={label} />
 
@@ -91,7 +93,7 @@ action are a `Button` with the word beside the glyph.
     block-size: var(--sui-tier-quiet);
     border: 0;
     border-radius: var(--sui-radius-control);
-    color: var(--sui-text-muted);
+    color: var(--sui-local-icon-rest, var(--sui-text-muted));
     cursor: pointer;
     display: inline-flex;
     flex: none;
@@ -118,13 +120,13 @@ action are a `Button` with the word beside the glyph.
   @media (hover: hover) {
     .sui-icon-button:hover:not(:disabled, [aria-disabled='true']) {
       background-color: var(--sui-interactive-hover-layer);
-      color: var(--sui-text-primary);
+      color: var(--sui-hover-ink);
     }
   }
 
   .sui-icon-button[aria-expanded='true']:not(:disabled) {
     background-color: var(--sui-interactive-hover-layer);
-    color: var(--sui-text-primary);
+    color: var(--sui-hover-ink);
   }
 
   .sui-icon-button:active:not(:disabled, [aria-disabled='true']) {
@@ -150,12 +152,12 @@ action are a `Button` with the word beside the glyph.
   }
 
   .sui-icon-button-spinner {
-    block-size: var(--sui-icon-sm);
-    border: var(--sui-stroke-bold) solid currentColor;
-    border-inline-end-color: transparent;
+    block-size: var(--sui-icon-base);
+    border: var(--sui-stroke-bold) solid color-mix(in srgb, currentColor 25%, transparent);
+    border-block-start-color: currentColor;
     border-radius: 50%;
     box-sizing: border-box;
-    inline-size: var(--sui-icon-sm);
+    inline-size: var(--sui-icon-base);
     animation: sui-icon-button-spin var(--sui-duration-spinner) var(--sui-ease-linear) infinite;
   }
 

@@ -3,7 +3,11 @@
   <head>
     <meta charset="utf-8" />
     <link rel="icon" href="data:," />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <!-- The browser's own chrome, such as a phone's address bar, wears the page's ground: the
+         palette's light and dark canvas, which tests/laws.test.mjs holds equal to the tokens. -->
+    <meta name="theme-color" content="#f7f7f5" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#0c0e11" media="(prefers-color-scheme: dark)" />
     <script>
       // Paints the first frame in the theme ThemeSwitch would pick, which it can only set
       // once the app has started. Keep the key the same as ThemeSwitch uses. Without a stored
@@ -14,8 +18,11 @@
         try {
           theme = localStorage.getItem('sui:theme');
         } catch {}
-        if (theme === 'light' || theme === 'dark')
+        if (theme === 'light' || theme === 'dark') {
           document.documentElement.dataset.suiTheme = theme;
+          const grounds = document.querySelectorAll('meta[name="theme-color"]');
+          for (const meta of grounds) meta.content = grounds[theme === 'dark' ? 1 : 0].content;
+        }
       }
     </script>
     <style>

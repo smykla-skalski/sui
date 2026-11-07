@@ -3,7 +3,8 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { availableParallelism, tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { after, before, test } from 'node:test';
-import { allSections, long, startSink, sweep, visit } from './sink.mjs';
+import { webkit } from 'playwright-core';
+import { allSections, audit, brief, long, startSink, sweep, visit } from './sink.mjs';
 
 // Visual regression: each kitchen-sink section, drawn in both themes, must match the picture
 // recorded for this platform. Fonts rasterize differently per operating system, so pictures are
@@ -93,10 +94,11 @@ async function drawn(theme) {
     document.documentElement.dataset.suiTheme = name;
     await document.fonts.ready;
   }, theme);
-  // Time-relative words would differ between runs.
+  // Time-relative words would differ between runs. A section taller than the window is shot
+  // past it, where the rows a long list skips would come out blank.
   await page.addStyleTag({
     content:
-      '*, *::before, *::after { caret-color: transparent !important; } time { visibility: hidden !important; }'
+      '*, *::before, *::after { caret-color: transparent !important; content-visibility: visible !important; } time { visibility: hidden !important; }'
   });
   // A skeleton says it is slow after its 10s patience, so every section is shot after it. The
   // page's timers jump there rather than the run waiting for them.
@@ -194,3 +196,57 @@ for (const theme of ['light', 'dark'])
     );
     assert.deepEqual(problems, [], 'sections that look different from their recorded picture');
   });
+
+// Safari's engine has no calc-size(), and Linux WebKit rounds the face's metrics as Chrome does
+// while macOS WebKit does not, so the pages whose components fall back without calc-size() are
+// held to the laws in WebKit too, with a dialog and a menu open. The whole sink takes WebKit
+// longer to load than this group has, so these pages stand for it. The name ends in the theme,
+// so the runner's light process takes it.
+const WEBKIT_PAGES = [
+  'card',
+  'section',
+  'disclosure',
+  'page-header',
+  'states',
+  'pair-entry',
+  'fact-list',
+  'charts'
+];
+
+test('WebKit draws the pages that fall back by the laws in light', long, async (t) => {
+  if (!existsSync(webkit.executablePath())) {
+    t.skip('WebKit is not installed: run `npx playwright-core install webkit`');
+    return;
+  }
+  const engine = await webkit.launch();
+  try {
+    const page = await engine.newPage({
+      viewport: { width: 1440, height: 900 },
+      serviceWorkers: 'block'
+    });
+    /** @type {string[]} */
+    const found = [];
+    /** @param {string} where */
+    const audited = async (where) =>
+      found.push(...(await audit(page)).map((f) => `${where}: ${f.law} ${f.where}: ${f.detail}`));
+    for (const path of WEBKIT_PAGES) {
+      await visit(page, new URL(`${path}/`, url).href);
+      await audited(path);
+    }
+    await visit(page, new URL('modal/', url).href);
+    await page.locator('#modal button:not(.sui-modal *)', { hasText: 'Edit Webhook' }).click();
+    await page.waitForFunction(
+      () => document.querySelector('dialog[open] > .sui-modal-foot'),
+      null,
+      brief
+    );
+    await audited('an open dialog');
+    await visit(page, new URL('action-menu/', url).href);
+    await page.locator('#action-menu [popovertarget]').first().click();
+    await page.waitForFunction(() => document.querySelector('[popover]:popover-open'), null, brief);
+    await audited('an open menu');
+    assert.deepEqual(found, []);
+  } finally {
+    await engine.close();
+  }
+});

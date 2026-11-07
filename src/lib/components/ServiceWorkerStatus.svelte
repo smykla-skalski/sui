@@ -8,7 +8,7 @@
   import { tick } from 'svelte';
   import type { HTMLAttributes } from 'svelte/elements';
   import type { ServiceWorkerState } from '../internal/service-worker.svelte.js';
-  import { hosts } from '../internal/toasts.svelte.js';
+  import { footing, hosts } from '../internal/toasts.svelte.js';
   import Button from './Button.svelte';
   import VisuallyHidden from './VisuallyHidden.svelte';
 
@@ -24,7 +24,7 @@
     ),
     reloadLabel = word('ServiceWorkerStatus.reloadLabel', 'Reload'),
     reloadingLabel = word('ServiceWorkerStatus.reloadingLabel', 'Reloading…'),
-    laterLabel = word('ServiceWorkerStatus.laterLabel', 'Later'),
+    laterLabel = word('ServiceWorkerStatus.laterLabel', 'Reload Later'),
     offlineTitle = word('ServiceWorkerStatus.offlineTitle', 'You are offline'),
     offlineDescription = word(
       'ServiceWorkerStatus.offlineDescription',
@@ -117,6 +117,13 @@
     return () => clearTimeout(timer);
   });
 
+  let block = $state(0);
+  $effect(() => {
+    if (preview !== undefined) return;
+    footing.block = block;
+    return () => (footing.block = 0);
+  });
+
   $effect(() => {
     if (!element || preview !== undefined) return;
     if (shown === element.matches(':popover-open')) return;
@@ -173,17 +180,17 @@ across from the toasts.
 
 A new version never takes over a page on its own (L-111). The bar says it is ready, and the old
 version keeps serving the page until the reader presses Reload, which lets the new version in and
-reloads the page once it is in control. Later sets the update aside for this page; the next load
+reloads the page once it is in control. Reload Later sets the update aside for this page; the next load
 offers it again. Offline is a lasting state, so it stays until the network answers or the reader
 dismisses it, and the return says "You are back online" for five seconds.
 
 - Semantics: an `aside` named by its title, in the top layer as a manual popover, with native buttons; each notice is said once from a hidden `status` region kept apart from the bar.
 - Content: a title and a description for an update or for offline, a title alone for the return; at most two buttons; words wrap within 28rem.
-- States: ready (Later and Reload), reloading (Reload busy with `reloadingLabel`, Later held), offline (Dismiss), back online (no buttons, leaves after five seconds, held while hovered or focused), hidden while a modal dialog is open, and drawn in place with `preview`.
+- States: ready (Reload Later and Reload), reloading (Reload busy with `reloadingLabel`, Reload Later held), offline (Dismiss), back online (no buttons, leaves after five seconds, held while hovered or focused), hidden while a modal dialog is open, and drawn in place with `preview`.
 - Keyboard: Tab reaches the bar's buttons after the page's own; Enter or Space presses them; Escape returns focus to where it came from and leaves the notice up.
 - Pointer and touch: the buttons are 34px tall on a pointer and 44px on a phone or touch screen; nothing needs a drag.
 - Focus: opening never takes focus; when a pressed button leaves, focus returns to where it came from, else to the next notice's first button.
-- Responsive: as wide as its words up to 28rem, the buttons wrapping under the copy; on a phone it spans the screen less 16px a side, above the safe area.
+- Responsive: as wide as its words up to 28rem, the buttons wrapping under the copy; on a phone it spans the screen less 16px a side, above the safe area. Below the wide breakpoint the toasts stand above it.
 - Accessibility: the update, offline and return are each announced politely once; the bar's name is its title; text holds 4.5:1 on the popover ground; forced colors keep its edge.
 - Localization: every word is a prop with an English default; the bar stands at the inline start and its buttons end the line in the reading direction, mirrored in a right-to-left page.
 - Performance: one element and one timer; it rises 8px and fades in, and fades out, and under reduced motion it comes and goes at once.
@@ -197,6 +204,7 @@ dismisses it, and the return says "You are back online" for five seconds.
 
 <aside
   bind:this={element}
+  bind:offsetHeight={block}
   {...rest}
   class={['sui-service-worker-status', className, { preview: preview !== undefined }]}
   popover={preview === undefined ? 'manual' : undefined}
@@ -249,9 +257,13 @@ dismisses it, and the return says "You are back online" for five seconds.
   .sui-service-worker-status:not(.preview) {
     inset: auto;
     inset-block-end: max(var(--sui-space-4), env(safe-area-inset-bottom));
-    inset-inline-start: var(--sui-space-4);
+    inset-inline-start: max(var(--sui-space-4), var(--sui-safe-start));
     margin: 0;
-    max-inline-size: min(28rem, 100vw - 2 * var(--sui-space-4));
+    max-inline-size: min(
+      28rem,
+      100vw - max(var(--sui-space-4), var(--sui-safe-start)) -
+        max(var(--sui-space-4), var(--sui-safe-end))
+    );
     opacity: 0;
     overflow: visible;
     position: fixed;
@@ -284,9 +296,10 @@ dismisses it, and the return says "You are back online" for five seconds.
   /* The copy asks for its one-line width, so the buttons move under it as soon as it would wrap
      beside them, and a bar as wide as its words never wraps them by a rounding. */
   .copy {
+    block-size: var(--sui-block-snap-even);
     display: grid;
     flex: 1 1 auto;
-    gap: var(--sui-row-copy-gap);
+    gap: var(--sui-title-copy-gap);
     min-inline-size: 0;
   }
 
@@ -296,6 +309,7 @@ dismisses it, and the return says "You are back online" for five seconds.
     block-size: var(--sui-block-snap);
     margin: 0;
     overflow-wrap: anywhere;
+    padding-block: var(--sui-block-snap-room);
     text-box: trim-both cap alphabetic;
   }
 
@@ -324,7 +338,7 @@ dismisses it, and the return says "You are back online" for five seconds.
   @media (max-width: 47.9375rem) {
     .sui-service-worker-status:not(.preview) {
       inline-size: auto;
-      inset-inline-end: var(--sui-space-4);
+      inset-inline-end: max(var(--sui-space-4), var(--sui-safe-end));
       max-inline-size: none;
     }
   }

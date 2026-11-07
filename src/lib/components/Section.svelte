@@ -20,7 +20,7 @@
     children,
     ...rest
   }: {
-    /** The heading, in sentence case. */
+    /** The heading, in Title Case. */
     title: string;
     /** The heading level, so the section fits the outline of the page; it never changes the title's size. */
     level?: 2 | 3 | 4 | 5 | 6;
@@ -50,7 +50,7 @@ with no frame, ground or line. A card is earned by one of its few uses; everythi
 lists, settings, facts, charts and mixed content, stands in a section, and hierarchy comes
 from type and space alone.
 
-The title is 17px 600 in the caller's sentence case, and 15px 600 in a sub-section, a
+The title is 17px 600 in the caller's Title Case, and 15px 600 in a sub-section, a
 section inside another one's content; the content stands 16px under the title's ink. The
 size follows the nesting a reader sees and `level` the page's outline, so a pane whose
 sections start at h3 still draws them at the section tier. A `description` is the title's
@@ -145,7 +145,7 @@ its words on the title's edge.
   .sui-section-copy {
     display: grid;
     flex: 1 1 auto;
-    gap: var(--sui-row-copy-gap);
+    gap: var(--sui-title-copy-gap);
     min-inline-size: 0;
   }
 
@@ -168,6 +168,7 @@ its words on the title's edge.
     block-size: var(--sui-block-snap);
     min-inline-size: 0;
     overflow-wrap: break-word;
+    padding-block: var(--sui-block-snap-room);
     text-box: trim-both cap alphabetic;
     text-wrap: balance;
   }
@@ -263,6 +264,7 @@ its words on the title's edge.
     font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-row-copy-leading)
       var(--sui-sans);
     margin: 0;
+    padding-block: var(--sui-block-snap-room);
     text-box: trim-both cap alphabetic;
     text-wrap: pretty;
   }
@@ -285,18 +287,21 @@ its words on the title's edge.
   }
 
   :where(.sui-section-body) > :global(:where(p, ul, ol, dl, blockquote):first-child) {
-    text-box: trim-start cap alphabetic;
+    padding-block: var(--sui-block-snap-room-start);
+    text-box: var(--sui-block-snap-trim, trim-start cap alphabetic);
   }
 
   :where(.sui-section-body)
     > :global(:where(p, ul, ol, dl, blockquote):where(:last-child, :has(+ .sui-section))) {
-    text-box: trim-end cap alphabetic;
+    padding-block: var(--sui-block-snap-room-end-top);
+    text-box: var(--sui-block-snap-trim, trim-end cap alphabetic);
   }
 
   :where(.sui-section-body)
     > :global(
       :where(p, ul, ol, dl, blockquote):first-child:where(:last-child, :has(+ .sui-section))
     ) {
+    padding-block-end: var(--sui-block-snap-spare);
     text-box: trim-both cap alphabetic;
   }
 </style>

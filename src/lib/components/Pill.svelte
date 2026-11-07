@@ -4,7 +4,7 @@
 
 <script lang="ts">
   import { mark, word } from '../words.js';
-  import type { Snippet } from 'svelte';
+  import { untrack, type Snippet } from 'svelte';
   import type { HTMLAttributes } from 'svelte/elements';
   import Icon, { type IconName } from '../icons/Icon.svelte';
   import VisuallyHidden from './VisuallyHidden.svelte';
@@ -29,7 +29,7 @@
     dot?: boolean;
     /** Pulses the dot when it appears, for a state arriving as it happens. */
     live?: boolean;
-    /** Changes each time live data arrives, and the dot pulses again. */
+    /** Changes each time live data arrives, and the dot pulses again once it has been still. */
     beat?: unknown;
     /** Said after the label for `dot`, so the mark is heard as well as seen. */
     dotLabel?: string;
@@ -38,6 +38,27 @@
     class?: HTMLAttributes<HTMLSpanElement>['class'];
     children: Snippet;
   } & Omit<HTMLAttributes<HTMLSpanElement>, 'children'> = $props();
+
+  /* A beat restarts the pulse only once the dot has been still for 5 seconds, and runs it once,
+     so data that streams in never keeps the dot moving (WCAG 2.2.2). */
+  const STILL_FOR = 5000;
+  let pulse = $state(0);
+  let moving = true;
+  let stillSince = 0;
+  let seen = untrack(() => beat);
+  $effect(() => {
+    const next = beat;
+    if (next === seen) return;
+    seen = next;
+    if (moving || performance.now() - stillSince < STILL_FOR) return;
+    moving = true;
+    pulse++;
+  });
+
+  function settle(): void {
+    moving = false;
+    stillSince = performance.now();
+  }
 </script>
 
 <!--
@@ -53,14 +74,14 @@ outcome tones always come with their word, so color never carries the state alon
 
 - Semantics: a `span` of text; give it `role="status"` when its state changes while the reader is on the page, so the new word is spoken.
 - Content: one short status word or phrase, with an optional icon, `dot` or `live` mark before it; a long label wraps inside the pill, so no word is cut.
-- States: one per tone; `dot` marks a state true right now, and `live` pulses that dot three times when it appears and again each time `beat` changes, each run under 5 seconds, then keeps it still (WCAG 2.2.2).
+- States: one per tone; `dot` marks a state true right now, and `live` pulses that dot three times when it appears, under 5 seconds, then keeps it still; a change of `beat` pulses it once more, but only once the dot has been still for 5 seconds, so streaming data never keeps it moving (WCAG 2.2.2).
 - Keyboard: none, because nothing in it is pressable.
 - Pointer and touch: none, because it is not a target.
 - Focus: never takes focus.
 - Responsive: as wide as its words, up to its container, and taller by whole lines as they wrap, each line keeping the one-line inset inside corners that keep the one-line radius.
 - Accessibility: the word carries the state; `dotLabel` or `liveLabel` is spoken after it, so the mark is not color or motion alone; each tone's ink holds 4.5:1 on its tint.
 - Localization: `dotLabel` and `liveLabel` are props with English defaults; the mark sits at the inline start and follows the reading direction.
-- Performance: no script; the pulse animates only scale and opacity.
+- Performance: no timer; the pulse animates only scale and opacity, and its end is the browser's `animationend`.
 - Analytics: none, because a reader does nothing with a pill.
 - Failure: an empty label draws a bare mark, so always pass the word; under reduced motion the pulse never runs and the dot stays.
 -->
@@ -70,8 +91,12 @@ outcome tones always come with their word, so color never carries the state alon
     <Icon name={icon} size="xs" strokeWidth={2} />
   {/if}
   {#if live}
-    <!-- A new dot for each beat restarts its pulse. -->
-    {#key beat}<span class="sui-pill-dot live" aria-hidden="true"></span>{/key}
+    <!-- A new dot restarts the pulse. -->
+    {#key pulse}<span
+        class={['sui-pill-dot live', { once: pulse > 0 }]}
+        aria-hidden="true"
+        onanimationend={settle}
+      ></span>{/key}
   {:else if dot}
     <span class="sui-pill-dot" aria-hidden="true"></span>
   {/if}
@@ -98,7 +123,7 @@ outcome tones always come with their word, so color never carries the state alon
     color: var(--sui-text-secondary);
     display: inline-flex;
     flex: none;
-    font: var(--sui-weight-semibold) var(--sui-font-size-micro) / var(--sui-leading-tight)
+    font: var(--sui-weight-semibold) var(--sui-font-size-compact) / var(--sui-leading-tight)
       var(--sui-sans);
     gap: var(--sui-space-1);
     inline-size: fit-content;
@@ -121,6 +146,7 @@ outcome tones always come with their word, so color never carries the state alon
     block-size: var(--sui-block-snap-even);
     min-inline-size: 0;
     overflow-wrap: anywhere;
+    padding-block: var(--sui-block-snap-room-even);
     text-box: trim-both cap alphabetic;
   }
 
@@ -162,7 +188,7 @@ outcome tones always come with their word, so color never carries the state alon
 
   /* The ring grows and fades through scale and opacity, so the pulse moves nothing else and
      never paints a glow. It beats three times, under 5 seconds, because motion that lasts
-     longer needs a pause control (WCAG 2.2.2); each new beat of the data starts it again. */
+     longer needs a pause control (WCAG 2.2.2); a beat of the data runs it once more. */
   .live::after {
     animation: sui-pill-live var(--sui-duration-live) var(--sui-ease-standard) 3;
     background: currentColor;
@@ -171,6 +197,10 @@ outcome tones always come with their word, so color never carries the state alon
     inset: 0;
     opacity: 0;
     position: absolute;
+  }
+
+  .live.once::after {
+    animation-iteration-count: 1;
   }
 
   @keyframes sui-pill-live {

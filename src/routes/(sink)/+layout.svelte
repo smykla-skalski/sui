@@ -31,7 +31,7 @@
     {
       items: [
         { href: resolve('/(sink)'), label: 'Overview', icon: 'book' },
-        { href: `${resolve('/(sink)/all')}/`, label: 'All components', icon: glyphSnippet('all') }
+        { href: `${resolve('/(sink)/all')}/`, label: 'All Components', icon: glyphSnippet('all') }
       ]
     },
     ...families.map((members) => ({
@@ -71,13 +71,13 @@
 
 <SkipLink href="#content" />
 
-<AppShell title={page.data.section?.meta.title ?? 'Kitchen sink'} landmark="none" bind:drawerOpen>
+<AppShell title={page.data.section?.meta.title ?? 'Kitchen Sink'} landmark="none" bind:drawerOpen>
   {#snippet sidebar()}
     <!-- The sidebar stays in view at every width, in the drawer on a phone, so the theme lives
          once, at its foot. Two choices fit the sidebar's width as a segmented control. -->
     <SideNav
       kicker="SUI"
-      title="Kitchen sink"
+      title="Kitchen Sink"
       label="Components"
       sections={index}
       current={page.url.pathname}

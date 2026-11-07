@@ -44,10 +44,10 @@ and the one above as a hovered row does, and keeps the plate under the pointer.
 - Keyboard: the row link is one tab stop, then each control inside the row; Enter follows the link.
 - Pointer and touch: the whole row is the link's target, at least 44px tall with its padding; controls inside keep their own targets.
 - Focus: the ring is drawn inside the row, so a list that clips never cuts it.
-- Responsive: on a phone the side drops under the main content and packs to the start; rows grow when their content wraps.
+- Responsive: on a phone the side stays beside the main content while both fit, and drops under it, packed to the start, once they do not; rows grow when their content wraps.
 - Accessibility: the link's name is the main content, so a reader hears the row once; the side stays outside the name; a current row is announced as the current page, and under forced colors its link frames it in `Highlight`.
 - Localization: everything it says is the caller's; the side sits at the inline end and follows the reading direction.
-- Performance: no script; hover and press change only the ground and a 1px sink.
+- Performance: no script; hover and press change only the ground and a 1px sink; off the screen the row is neither laid out nor painted (`content-visibility: auto`).
 - Analytics: none of its own; the row link is a plain `a`, so the page's navigation tracking hears it.
 - Failure: a row with no `main` content has no name, so always pass one; with nothing to open, leave out `href` and it stays still.
 -->
@@ -75,10 +75,15 @@ and the one above as a hovered row does, and keeps the plate under the pointer.
 </li>
 
 <style>
+  /* A long list lays out and paints only the rows near the screen, and a row off it keeps the
+     height it last had, or until it is first drawn the usual name and summary lines. All of a
+     row's ink stays inside its padding, so the clip that skipping brings never cuts any. */
   .sui-object-row {
     align-items: center;
     border-radius: var(--sui-radius-control);
     color: var(--sui-text-primary);
+    contain-intrinsic-block-size: auto calc(1.375rem + var(--sui-row-copy-gap));
+    content-visibility: auto;
     display: grid;
     gap: var(--sui-space-4);
     grid-template-columns: minmax(0, 1fr) auto;
@@ -192,9 +197,16 @@ and the one above as a hovered row does, and keeps the plate under the pointer.
     outline-offset: var(--sui-focus-ring-inset);
   }
 
+  /* On a phone the side stays beside the name while both fit, so a short row keeps one line,
+     and drops under it, packed to the start, once they do not. */
   @media (max-width: 47.9375rem) {
     .sui-object-row {
-      grid-template-columns: minmax(0, 1fr);
+      display: flex;
+      flex-wrap: wrap;
+    }
+
+    .sui-object-row-main {
+      flex: 1 1 10rem;
     }
 
     .sui-object-row-side {

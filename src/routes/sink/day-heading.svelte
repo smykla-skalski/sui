@@ -1,12 +1,13 @@
 <script module lang="ts">
   export const section = {
-    title: 'Day heading',
-    lead: "The heading over a run of entries from one day, in the reader's own calendar. A single time inside a row is a RelativeTime.",
+    title: 'Day Heading',
+    lead: 'The heading over a run of entries from one day, in the reader’s own calendar. A single time inside a row is a RelativeTime.',
     components: ['DayHeading']
   };
 </script>
 
 <script lang="ts">
+  import { formatLocale } from '../../lib/internal/locale.js';
   import { DayHeading, dayKey } from '#lib';
   import Example from '../kit/Example.svelte';
   import Specimen from '../kit/Specimen.svelte';
@@ -44,7 +45,7 @@
   }
 
   const clock = (at: Date) =>
-    at.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
+    at.toLocaleTimeString(formatLocale(), { hour: '2-digit', minute: '2-digit' });
 </script>
 
 <Example
@@ -60,8 +61,8 @@
 </Example>
 
 <Example
-  title="In context"
-  note="Entries group by the reader's calendar, so one local day keeps one heading across midnight in UTC"
+  title="In Context"
+  note="Entries group by the reader’s calendar, so one local day keeps one heading across midnight in UTC"
   layout="stack"
 >
   <div class="days">
@@ -72,7 +73,9 @@
           {#each day.entries as entry (entry.what)}
             <li>
               <span class="what">{entry.what}</span>
-              <time class="time" datetime={entry.at.toISOString()}>{clock(entry.at)}</time>
+              <time class="time" translate="no" datetime={entry.at.toISOString()}
+                >{clock(entry.at)}</time
+              >
             </li>
           {/each}
         </ul>

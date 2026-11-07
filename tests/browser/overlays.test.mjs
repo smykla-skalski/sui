@@ -52,13 +52,15 @@ suite('overlays', together, () => {
         : (document.activeElement?.textContent ?? '').trim()
     );
 
-  test('on a phone a long press on a time or a cut label shows its tip', long, async () => {
-    const page = await open({
-      viewport: { width: 390, height: 844 },
-      hasTouch: true,
-      isMobile: true
+  suite('on a phone, on one page', inOrder, () => {
+    /** @type {import('playwright-core').Page} */
+    let page;
+    before(async () => {
+      page = await open({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true });
     });
-    try {
+    after(() => page?.close());
+
+    test('a long press on a time or a cut label shows its tip', async () => {
       const cdp = await page.context().newCDPSession(page);
       const cut = await page.evaluate(() =>
         [...document.querySelectorAll('#clipped-label .sui-clipped-label')].findIndex(
@@ -89,9 +91,64 @@ suite('overlays', together, () => {
         );
       }
       assert.deepEqual(found, []);
-    } finally {
-      await page.close();
-    }
+    });
+
+    test('L-58 a dialog that opens holding a long value shows its start, chosen, and stacks its actions at the full width in their reading order', async () => {
+      const opener = page
+        .locator('#modal button:not(.sui-modal *)', { hasText: 'Edit Webhook' })
+        .first();
+      await opener.scrollIntoViewIfNeeded();
+      await opener.click();
+      await page.waitForSelector('dialog[open]');
+      const shown = await page.evaluate(
+        () =>
+          new Promise((done) =>
+            requestAnimationFrame(() => {
+              const input = /** @type {HTMLInputElement} */ (document.activeElement);
+              const footer = /** @type {HTMLElement} */ (
+                document.querySelector('dialog[open] > .sui-modal-foot')
+              );
+              const look = getComputedStyle(footer);
+              done({
+                field: {
+                  overflows: input.scrollWidth > input.clientWidth,
+                  scrolled: input.scrollLeft,
+                  chosen: [input.selectionStart, input.selectionEnd],
+                  length: input.value.length
+                },
+                inner:
+                  footer.clientWidth -
+                  parseFloat(look.paddingInlineStart) -
+                  parseFloat(look.paddingInlineEnd),
+                buttons: [...footer.querySelectorAll('button')].map((button) => {
+                  const box = button.getBoundingClientRect();
+                  return { words: button.textContent?.trim(), top: box.top, width: box.width };
+                })
+              });
+            })
+          )
+      );
+      const { field, inner, buttons } =
+        /** @type {{ field: { overflows: boolean, scrolled: number, chosen: number[], length: number }, inner: number, buttons: { words: string, top: number, width: number }[] }} */ (
+          shown
+        );
+      assert.ok(field.overflows, 'the address fits its field, so nothing here is proved');
+      assert.equal(field.scrolled, 0, 'the field opened scrolled away from its start');
+      assert.deepEqual(field.chosen, [0, field.length], 'the value is not chosen');
+      assert.deepEqual(
+        buttons.map((button) => button.words),
+        ['Cancel', 'Save Webhook'],
+        'the actions left their reading order'
+      );
+      for (const button of buttons)
+        assert.ok(
+          Math.abs(button.width - inner) <= 0.5,
+          `${button.words} is ${button.width}px of a ${inner}px footer`
+        );
+      assert.ok(buttons[0].top < buttons[1].top, 'the actions share a line');
+      await page.keyboard.press('Escape');
+      await page.waitForFunction(() => !document.querySelector('dialog[open]'));
+    });
   });
 
   suite('dialogs on one page', inOrder, () => {
@@ -120,15 +177,15 @@ suite('overlays', together, () => {
         await page.waitForFunction(() => !document.querySelector('dialog[open]'));
         return at;
       };
-      assert.equal(await opensOn('Revoke token'), 'its first field');
-      assert.equal(await opensOn('Delete repository'), 'Cancel');
+      assert.equal(await opensOn('Revoke Token'), 'its first field');
+      assert.equal(await opensOn('Delete Repository'), 'Cancel');
     });
 
     test('S3 a refused confirmation stays open, pending and then failed, never closing on Escape', async () => {
-      const opener = page.locator('#confirm-dialog button', { hasText: 'Leave workspace' }).first();
+      const opener = page.locator('#confirm-dialog button', { hasText: 'Leave Workspace' }).first();
       await opener.scrollIntoViewIfNeeded();
       await opener.click();
-      const confirm = page.locator('dialog[open] button', { hasText: 'Leave workspace' });
+      const confirm = page.locator('dialog[open] button', { hasText: 'Leave Workspace' });
       await confirm.click();
       const dialog = page.locator('dialog[open]');
       assert.equal(await dialog.getAttribute('aria-busy'), 'true');
@@ -136,24 +193,24 @@ suite('overlays', together, () => {
       assert.equal(await dialog.count(), 1, 'Escape closed a pending dialog');
       await page.waitForFunction(() => document.querySelector('dialog[open] .sui-modal-error p'));
       assert.match((await dialog.locator('.sui-modal-error').textContent()) ?? '', /cannot leave/);
-      assert.equal(await focused(page), 'Leave workspace');
+      assert.equal(await focused(page), 'Leave Workspace');
       await page.keyboard.press('Escape');
       await page.waitForFunction(() => !document.querySelector('dialog[open]'));
-      assert.equal(await focused(page), 'Leave workspace', 'focus did not return to the opener');
+      assert.equal(await focused(page), 'Leave Workspace', 'focus did not return to the opener');
     });
 
     test('L-89 a confirmed act that removes its opener hands focus to the next row', async () => {
-      const opener = page.locator('#confirm-dialog button', { hasText: 'Revoke Release script' });
+      const opener = page.locator('#confirm-dialog button', { hasText: 'Revoke Release Script' });
       await opener.scrollIntoViewIfNeeded();
       await opener.click();
-      await page.locator('dialog[open] button', { hasText: 'Revoke token' }).click();
+      await page.locator('dialog[open] button', { hasText: 'Revoke Token' }).click();
       await page.waitForFunction(() => !document.querySelector('dialog[open]'));
-      assert.equal(await focused(page), 'Revoke Nightly backup');
+      assert.equal(await focused(page), 'Revoke Nightly Backup');
     });
 
     test('L-58 a press outside closes a form dialog as Escape does: a pristine one at once, a changed one after asking', async () => {
       const opener = page
-        .locator('#modal button:not(.sui-modal *)', { hasText: 'Edit webhook' })
+        .locator('#modal button:not(.sui-modal *)', { hasText: 'Edit Webhook' })
         .first();
       const shown = () => page.locator('dialog[open]').count();
       await opener.scrollIntoViewIfNeeded();
@@ -170,20 +227,22 @@ suite('overlays', together, () => {
       await page.waitForSelector('dialog[open][role="alertdialog"]');
       assert.equal(await shown(), 2, 'a press outside threw a changed form away');
       await page
-        .locator('dialog[open][role="alertdialog"] button', { hasText: 'Discard changes' })
+        .locator('dialog[open][role="alertdialog"] button', { hasText: 'Discard Changes' })
         .click();
       await page.waitForFunction(() => !document.querySelector('dialog[open]'));
     });
 
     test('L-58 a busy dialog hands focus to its busy action and disables its fields until the work ends', async () => {
       const opener = page
-        .locator('#modal button:not(.sui-modal *)', { hasText: 'Rename repository' })
+        .locator('#modal button:not(.sui-modal *)', { hasText: 'Rename Repository' })
         .first();
       await opener.scrollIntoViewIfNeeded();
       await opener.click();
       const field = page.locator('dialog[open] input').first();
       await field.focus();
-      await page.keyboard.press('End');
+      // The dialog opens with the words chosen. On macOS End only scrolls, so ArrowRight puts
+      // the caret after them on every platform.
+      await page.keyboard.press('ArrowRight');
       await page.keyboard.type('-next');
       // The sink's work ends in under a second, sooner than a slow runner comes back from a
       // keystroke, so the page notes the hold the frame after the work starts.
@@ -222,32 +281,61 @@ suite('overlays', together, () => {
       // The sink refuses every rename, so the dialog is still open on the changed name.
       await page.keyboard.press('Escape');
       await page
-        .locator('dialog[open][role="alertdialog"] button', { hasText: 'Discard changes' })
+        .locator('dialog[open][role="alertdialog"] button', { hasText: 'Discard Changes' })
         .click();
       await page.waitForFunction(() => !document.querySelector('dialog[open]'));
     });
 
-    test('L-58 a line parts a dialog body from its actions only while the body scrolls under them', async () => {
-      const opener = page.locator('#modal button', { hasText: 'Edit webhook' }).first();
+    test('Ctrl+Enter or Cmd+Enter in a textarea sends its form, and Enter adds a line', async () => {
+      const opener = page
+        .locator('#modal button:not(.sui-modal *)', { hasText: 'Write Release Notes' })
+        .first();
+      await opener.scrollIntoViewIfNeeded();
+      await opener.click();
+      const notes = page.locator('dialog[open]').getByRole('textbox', { name: 'Release notes' });
+      await notes.waitFor();
+      await notes.fill('Fixed');
+      await notes.press('Enter');
+      assert.equal(await notes.inputValue(), 'Fixed\n', 'Enter did not add a line');
+      await notes.press('ControlOrMeta+Enter');
+      await page.waitForFunction(() => !document.querySelector('dialog[open]'));
+    });
+
+    test('L-58 a line parts a dialog body from its actions whether the body fits or scrolls, one inset above them as below', async () => {
+      const opener = page.locator('#modal button', { hasText: 'Edit Webhook' }).first();
       await opener.scrollIntoViewIfNeeded();
       await opener.click();
       await page.waitForSelector('dialog[open] .sui-modal-body');
+      const band = await page.evaluate(() => {
+        const dialog = /** @type {Element} */ (document.querySelector('dialog[open]'));
+        const line = /** @type {Element} */ (dialog.querySelector('.sui-modal-error'));
+        const buttons = [...dialog.querySelectorAll('.sui-modal-foot button')].map((button) =>
+          button.getBoundingClientRect()
+        );
+        return {
+          above: Math.min(...buttons.map((box) => box.top)) - line.getBoundingClientRect().top,
+          below:
+            dialog.getBoundingClientRect().bottom -
+            Math.max(...buttons.map((box) => box.bottom)) -
+            parseFloat(getComputedStyle(dialog).borderBottomWidth)
+        };
+      });
+      assert.ok(
+        Math.abs(band.above - band.below) <= 0.5,
+        `the actions stand ${band.above}px under the line and ${band.below}px over the foot`
+      );
       const cut = () => {
         const after = document.querySelector('dialog[open] .sui-modal-body + .sui-modal-error');
         const line = after && getComputedStyle(after, '::before');
         return line ? Number(line.opacity) * parseFloat(line.borderTopWidth) : 0;
       };
-      assert.equal(await page.evaluate(cut), 0, 'a body that fits draws a line over the actions');
-      // A form longer than the screen, so the body scrolls under the actions.
+      assert.ok((await page.evaluate(cut)) > 0, 'a body that fits draws no line over the actions');
       await page.evaluate(() => {
         const rest = document.createElement('div');
         rest.style.blockSize = '200vh';
         document.querySelector('dialog[open] .sui-modal-body')?.append(rest);
       });
-      // The scroll timeline takes the new length on the next frame.
-      await page
-        .waitForFunction(cut, undefined, { timeout: 5000 })
-        .catch(() => assert.fail('a body cut by the actions draws no line'));
+      assert.ok((await page.evaluate(cut)) > 0, 'a body cut by the actions draws no line');
     });
   });
 
@@ -258,7 +346,7 @@ suite('overlays', together, () => {
       const page = await open({ viewport: { width: 1440, height: 700 } });
       try {
         // A layer taller than its room scrolls inside, and that scroll stays where the wheel left it.
-        const tall = page.getByRole('button', { name: 'Show every change' });
+        const tall = page.getByRole('button', { name: 'Show Every Change' });
         await tall.scrollIntoViewIfNeeded();
         await tall.click();
         await page.waitForFunction(() => document.querySelector('#sink-popover-tall:popover-open'));
@@ -347,7 +435,7 @@ suite('overlays', together, () => {
 
     test("L-72 a layer opened from a changed row wears the page's palette, not the row's", async () => {
       const look = async (/** @type {import('playwright-core').Locator} */ entry) => {
-        const add = entry.getByRole('button', { name: 'Add an alias' });
+        const add = entry.getByRole('button', { name: 'Add an Alias' });
         await add.scrollIntoViewIfNeeded();
         await add.click();
         const editor = page.locator(':popover-open:has(> .sui-pair-editor)');
@@ -371,7 +459,7 @@ suite('overlays', together, () => {
     });
 
     test('L-52 a list open in a layer closes alone on a press inside the layer, Escape and Tab', async () => {
-      const add = page.locator('#pair-entry').getByRole('button', { name: 'Add an alias' }).first();
+      const add = page.locator('#pair-entry').getByRole('button', { name: 'Add an Alias' }).first();
       await add.scrollIntoViewIfNeeded();
       const editor = page.locator(':popover-open:has(> .sui-pair-editor)');
       const field = editor.getByRole('combobox');
@@ -416,18 +504,18 @@ suite('overlays', together, () => {
       await page.keyboard.press('Tab');
       await oneLayer();
       assert.deepEqual(await layers(), ['editor'], 'Tab out of the field closed the editor');
-      assert.equal(await focused(page), 'Done');
+      assert.equal(await focused(page), 'Save Pair');
 
       await page.keyboard.press('Escape');
       await page.waitForFunction(() => !document.querySelector(':popover-open'));
       await settles(
         page.waitForFunction(
-          () => document.activeElement?.textContent?.trim() === 'Add an alias',
+          () => document.activeElement?.textContent?.trim() === 'Add an Alias',
           null,
           brief
         )
       );
-      assert.equal(await focused(page), 'Add an alias');
+      assert.equal(await focused(page), 'Add an Alias');
     });
 
     test('K9 in a right-to-left page menus hang from the mirrored edge and code stays left to right', async () => {
@@ -477,7 +565,7 @@ suite('overlays', together, () => {
         `align="end" hangs ${end?.left}px off the left edge`
       );
       const start = await edges(
-        page.locator('#action-menu button', { hasText: 'Release actions' }).first()
+        page.locator('#action-menu button', { hasText: 'Release Actions' }).first()
       );
       assert.ok(
         start && Math.abs(start.right) <= 1,
@@ -532,7 +620,7 @@ suite('overlays', together, () => {
       const described = await page.evaluate(() => {
         const icon = document.querySelector('#overlays button[aria-label="Refresh the list"]');
         const sync = [...document.querySelectorAll('#overlays button')].find(
-          (button) => button.textContent?.trim() === 'Sync now'
+          (button) => button.textContent?.trim() === 'Sync Now'
         );
         const tip = (/** @type {Element | null | undefined} */ button) =>
           document
@@ -545,7 +633,7 @@ suite('overlays', together, () => {
     });
 
     test('AC15 a manual layer survives an outside press and closes on Escape back to its trigger', async () => {
-      const trigger = page.locator('#overlays button', { hasText: 'Pin the notes' });
+      const trigger = page.locator('#overlays button', { hasText: 'Pin the Notes' });
       await trigger.scrollIntoViewIfNeeded();
       await trigger.click();
       const layer = page.locator('#sink-popover-pinned');
@@ -562,12 +650,12 @@ suite('overlays', together, () => {
       );
       await settles(
         page.waitForFunction(
-          () => document.activeElement?.textContent?.trim() === 'Pin the notes',
+          () => document.activeElement?.textContent?.trim() === 'Pin the Notes',
           null,
           brief
         )
       );
-      assert.equal(await focused(page), 'Pin the notes');
+      assert.equal(await focused(page), 'Pin the Notes');
     });
 
     test('AC2 a cut label outside any control takes a tab stop and shows its whole text', async () => {
@@ -638,7 +726,7 @@ suite('overlays', together, () => {
     async () => {
       const page = await open({ viewport: { width: 320, height: 640 } });
       try {
-        const raise = page.locator('#toaster button', { hasText: 'Sync repositories' });
+        const raise = page.locator('#toaster button', { hasText: 'Sync Repositories' });
         await raise.scrollIntoViewIfNeeded();
         await raise.focus();
         for (let count = 0; count < 12; count++) await page.keyboard.press('Enter');
@@ -681,7 +769,7 @@ suite('overlays', together, () => {
     try {
       // The sink pads its own foot for its floating button, which would clear the toast too.
       await page.addStyleTag({ content: ':root { scroll-padding-block-end: 0; }' });
-      await page.locator('#toaster button', { hasText: 'Sync repositories' }).click();
+      await page.locator('#toaster button', { hasText: 'Sync Repositories' }).click();
       await page.waitForSelector('.sui-toaster:popover-open .sui-toast');
       await page.evaluate(() => {
         /** @type {HTMLElement | null} */ (document.activeElement)?.blur();
@@ -815,15 +903,15 @@ suite('overlays', together, () => {
         });
         flushSync();
       });
-      await page.getByRole('button', { name: 'Save', exact: true }).click();
+      await page.getByRole('button', { name: 'Save Changes', exact: true }).click();
       await page.getByRole('button', { name: 'Saving…', exact: true }).waitFor();
       await page.evaluate(() => /** @type {any} */ (window).saved());
-      await page.getByRole('button', { name: 'Save', exact: true }).waitFor();
+      await page.getByRole('button', { name: 'Save Changes', exact: true }).waitFor();
       await page.getByRole('button', { name: 'Discard', exact: true }).click();
       await page.waitForFunction(
         () =>
           document.querySelector('.sui-save-bar .title')?.textContent ===
-          'Your changes were discarded',
+          'You discarded your changes',
         null,
         brief
       );
@@ -904,6 +992,116 @@ suite('overlays', together, () => {
       assert.equal(found.available, '584px');
       assert.equal(found.height, 300);
       assert.ok(found.bottom <= 592, `the inline box reaches ${found.bottom}px`);
+    });
+
+    test('a box that follows a scrolled anchor reads every size before it writes one', async () => {
+      const steps = await page.evaluate(() => {
+        const { place } = /** @type {any} */ (window).anchor;
+        const scroller = document.createElement('div');
+        scroller.style.cssText = 'position:fixed;inset:0;overflow:auto';
+        const anchor = document.createElement('button');
+        anchor.style.cssText = 'display:block;margin:200px 100px 2000px;width:100px;height:40px';
+        scroller.append(anchor);
+        const floating = document.createElement('div');
+        floating.style.cssText =
+          'position:absolute;min-width:var(--sui-floating-anchor-inline);max-height:var(--sui-floating-available-block);overflow:auto';
+        floating.append(Object.assign(document.createElement('div'), { style: 'height:100px' }));
+        document.body.append(scroller, floating);
+        place(floating, anchor, {});
+        scroller.scrollTop = 50;
+        void document.body.offsetHeight;
+
+        // Any size read after a style write makes the browser lay the page out again.
+        const log = /** @type {string[]} */ ([]);
+        const style = CSSStyleDeclaration.prototype;
+        const setProperty = style.setProperty;
+        style.setProperty = function (...args) {
+          log.push('write');
+          return setProperty.apply(this, args);
+        };
+        const traps = /** @type {[object, string][]} */ ([
+          [HTMLElement.prototype, 'offsetWidth'],
+          [HTMLElement.prototype, 'offsetHeight'],
+          [Element.prototype, 'scrollHeight']
+        ]);
+        const kept = traps.map(([proto, name]) => {
+          const own = /** @type {PropertyDescriptor} */ (
+            Object.getOwnPropertyDescriptor(proto, name)
+          );
+          Object.defineProperty(proto, name, {
+            configurable: true,
+            get() {
+              log.push('read');
+              return own.get?.call(this);
+            }
+          });
+          return own;
+        });
+        try {
+          place(floating, anchor, {}, true);
+        } finally {
+          style.setProperty = setProperty;
+          traps.forEach(([proto, name], index) => Object.defineProperty(proto, name, kept[index]));
+          scroller.remove();
+          floating.remove();
+        }
+        return log;
+      });
+      assert.ok(steps.includes('write'), 'the scroll left the box cap as it was');
+      assert.equal(
+        steps.indexOf('read', steps.indexOf('write')),
+        -1,
+        `the placement read a size after a write: ${steps.join(' ')}`
+      );
+    });
+  });
+
+  suite('tips on a held clock, on one mounted page', inOrder, () => {
+    /** @type {import('playwright-core').Page} */
+    let page;
+    before(async () => {
+      page = await openMount(browser, url);
+      await page.clock.install();
+    });
+    after(() => page?.close());
+
+    test('the first tip waits, the next one in the group shows at once, and one long after waits again', async () => {
+      await page.evaluate(() => {
+        const { lib, mount, flushSync } = /** @type {any} */ (window);
+        const row = document.body.appendChild(document.createElement('div'));
+        row.style.cssText = 'display:flex;gap:48px;padding:120px';
+        for (const label of ['Edit', 'Copy', 'Delete'])
+          mount(lib.IconButton, { target: row, props: { icon: 'book', label } });
+        flushSync();
+      });
+      // The tip just left lingers for a moment, so every open tip is read.
+      const shown = () =>
+        page.evaluate(() =>
+          [...document.querySelectorAll('.sui-tooltip:popover-open')].map((tip) =>
+            tip.textContent?.trim()
+          )
+        );
+      const over = async (/** @type {string} */ label) => {
+        const box = await page.getByRole('button', { name: label }).boundingBox();
+        assert.ok(box);
+        await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+      };
+      await over('Edit');
+      await page.clock.runFor(200);
+      assert.deepEqual(await shown(), [], 'the first tip showed at once');
+      await page.clock.runFor(100);
+      assert.deepEqual(await shown(), ['Edit'], 'the first tip never showed');
+      await over('Copy');
+      await page.clock.runFor(1);
+      assert.ok((await shown()).includes('Copy'), 'the next tip in the group waited');
+      await page.mouse.move(0, 0);
+      await page.clock.runFor(1000);
+      assert.deepEqual(await shown(), [], 'a tip stayed after the pointer left');
+      await over('Delete');
+      await page.clock.runFor(200);
+      assert.deepEqual(await shown(), [], 'a tip long after the last one showed at once');
+      await page.clock.runFor(100);
+      assert.deepEqual(await shown(), ['Delete']);
     });
   });
 
@@ -1092,4 +1290,165 @@ suite('overlays', together, () => {
       }
     }
   );
+  suite('controls a caller turns off, on one mounted page', inOrder, () => {
+    /** @type {import('playwright-core').Page} */
+    let page;
+    before(async () => {
+      page = await openMount(browser, url);
+    });
+    after(() => page?.close());
+
+    // Each test mounts into its own host and takes it away, so the next one starts on an empty page.
+    const clear = () =>
+      page.evaluate(() => {
+        const { unmount } = /** @type {any} */ (window);
+        for (const part of /** @type {any} */ (window).parts ?? []) unmount(part);
+        /** @type {any} */ (window).parts = [];
+        document.querySelector('#host')?.remove();
+      });
+
+    test('a combobox turned read-only while its list is open shuts it and commits no draft', async () => {
+      await page.evaluate(() => {
+        const { lib, mount, flushSync, state, get, set } = /** @type {any} */ (window);
+        const host = Object.assign(document.body.appendChild(document.createElement('div')), {
+          id: 'host'
+        });
+        const readonly = state(false);
+        /** @type {string[]} */
+        const picked = [];
+        /** @type {boolean[]} */
+        const escapes = [];
+        host.addEventListener('keydown', (event) => {
+          if (event.key === 'Escape') escapes.push(event.defaultPrevented);
+        });
+        const combobox = mount(lib.Combobox, {
+          target: host,
+          props: {
+            'aria-label': 'Team',
+            options: [
+              { value: 'alpha', label: 'Alpha' },
+              { value: 'beta', label: 'Beta' }
+            ],
+            get readonly() {
+              return get(readonly);
+            },
+            onselect: (/** @type {string} */ value) => picked.push(value)
+          }
+        });
+        flushSync();
+        Object.assign(window, {
+          parts: [combobox],
+          picked,
+          escapes,
+          lock(/** @type {boolean} */ on) {
+            set(readonly, on);
+            flushSync();
+          }
+        });
+      });
+      const field = page.getByRole('combobox', { name: 'Team' });
+      await field.focus();
+      await page.keyboard.type('Beta');
+      await page.keyboard.press('ArrowDown');
+      assert.equal(await field.getAttribute('aria-expanded'), 'true');
+      await page.evaluate(() => /** @type {any} */ (window).lock(true));
+      assert.equal(await field.getAttribute('aria-expanded'), 'false');
+      await page.keyboard.press('Enter');
+      await page.keyboard.press('Escape');
+      const seen = await page.evaluate(() => {
+        const { picked, escapes } = /** @type {any} */ (window);
+        return { picked, escapes };
+      });
+      assert.deepEqual(seen.picked, [], 'a draft was committed while read-only');
+      assert.deepEqual(seen.escapes, [false], 'Escape stopped at the shut list');
+      await page.evaluate(() => /** @type {any} */ (window).lock(false));
+      assert.equal(await field.getAttribute('aria-expanded'), 'false');
+      await clear();
+    });
+
+    test('Escape on a caller-disabled select still closes the dialog around it', async () => {
+      await page.evaluate(() => {
+        const { lib, mount, createRawSnippet, flushSync, state, get, set } = /** @type {any} */ (
+          window
+        );
+        const host = Object.assign(document.body.appendChild(document.createElement('div')), {
+          id: 'host'
+        });
+        const open = state(true);
+        const modal = mount(lib.Modal, {
+          target: host,
+          props: {
+            get open() {
+              return get(open);
+            },
+            set open(next) {
+              set(open, next);
+            },
+            title: 'Pick a team',
+            children: createRawSnippet(() => ({ render: () => '<div id="slot"></div>' }))
+          }
+        });
+        flushSync();
+        const select = mount(lib.Select, {
+          target: document.getElementById('slot'),
+          props: {
+            'aria-label': 'Team',
+            'aria-disabled': 'true',
+            options: [
+              { value: 'alpha', label: 'Alpha' },
+              { value: 'beta', label: 'Beta' }
+            ]
+          }
+        });
+        flushSync();
+        Object.assign(window, { parts: [select, modal] });
+      });
+      await page.getByRole('combobox', { name: 'Team' }).focus();
+      await page.keyboard.press('Escape');
+      await page.waitForFunction(() => !document.querySelector('dialog[open]'), null, brief);
+      await clear();
+    });
+
+    test('a caller-disabled switch and select keep focus and refuse a change', async () => {
+      await page.evaluate(() => {
+        const { lib, mount, flushSync } = /** @type {any} */ (window);
+        const host = Object.assign(document.body.appendChild(document.createElement('div')), {
+          id: 'host'
+        });
+        const parts = [
+          mount(lib.Switch, { target: host, props: { label: 'Alerts', 'aria-disabled': 'true' } }),
+          mount(lib.Select, {
+            target: host,
+            props: {
+              'aria-label': 'Team',
+              'aria-disabled': 'true',
+              value: 'alpha',
+              options: [
+                { value: 'alpha', label: 'Alpha' },
+                { value: 'beta', label: 'Beta' }
+              ]
+            }
+          })
+        ];
+        flushSync();
+        Object.assign(window, { parts });
+      });
+      const toggle = page.getByRole('switch', { name: 'Alerts' });
+      await toggle.click({ force: true });
+      assert.equal(await toggle.isChecked(), false, 'a click flipped the switch');
+      await page.keyboard.press('Space');
+      assert.equal(await toggle.isChecked(), false, 'Space flipped the switch');
+      assert.ok(await toggle.evaluate((element) => document.activeElement === element));
+
+      const team = page.getByRole('combobox', { name: 'Team' });
+      await team.focus();
+      await team.click({ force: true });
+      await page.keyboard.press('ArrowDown');
+      await page.keyboard.press('Enter');
+      assert.equal(await team.inputValue(), 'alpha', 'the select took a new value');
+      assert.equal(await team.evaluate((select) => select.matches(':open')), false);
+      assert.ok(await team.evaluate((element) => document.activeElement === element));
+      await clear();
+    });
+  });
 });

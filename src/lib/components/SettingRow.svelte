@@ -370,7 +370,6 @@ section's ground between them (L-91).
     --sui-text-secondary: var(--sui-unsaved-secondary);
     --sui-text-muted: var(--sui-unsaved-secondary);
     --sui-control-bg: var(--sui-unsaved-control);
-    --sui-input-bg: var(--sui-unsaved-control);
     --sui-control-border: var(--sui-unsaved-control-border);
     --sui-control-border-hover: var(--sui-unsaved-border);
     --sui-field-frame: var(--sui-unsaved-control-border);
@@ -435,6 +434,7 @@ section's ground between them (L-91).
       var(--sui-sans);
     margin: 0;
     overflow-wrap: anywhere;
+    padding-block: var(--sui-block-snap-room);
     text-box: trim-both cap alphabetic;
   }
 
@@ -446,9 +446,11 @@ section's ground between them (L-91).
     cursor: pointer;
   }
 
+  /* The name's words are snapped lines of their own, so the name takes no room for one. */
   .sui-setting-name {
     color: var(--sui-text-primary);
     font-weight: var(--sui-weight-semibold);
+    padding-block: 0;
     text-wrap: balance;
   }
 
@@ -467,6 +469,10 @@ section's ground between them (L-91).
     min-inline-size: 0;
   }
 
+  .sui-setting-problem > span {
+    font-weight: var(--sui-weight-medium);
+  }
+
   /* The name and the word "Unsaved" are one wrapping row: the column gap parts them, and a
      narrow row moves the word to the next line, flush with the name and one line's leading
      under it. Trim does not reach into a flex row, so each part trims its own words. */
@@ -481,6 +487,7 @@ section's ground between them (L-91).
   .sui-setting-words > span {
     align-content: center;
     block-size: var(--sui-block-snap);
+    padding-block: var(--sui-block-snap-room);
     text-box: trim-both cap alphabetic;
   }
 

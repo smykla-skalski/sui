@@ -26,7 +26,7 @@ export type ChartFrameProps = {
   status?: ChartStatus;
   /** Why a failed chart failed and what the reader can do about it. */
   error?: string;
-  /** Draws "Try again" on a failed chart. */
+  /** Draws "Try Again" on a failed chart. */
   onretry?: () => void;
   /** The next step an empty chart offers, usually a `Button`; without it the chart says `emptyStep`. */
   emptyAction?: Snippet;

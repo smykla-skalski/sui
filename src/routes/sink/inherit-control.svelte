@@ -1,6 +1,6 @@
 <script module lang="ts">
   export const section = {
-    title: 'Inherit control',
+    title: 'Inherit Control',
     lead: 'A value inherited from another level until this one overrides it, with the way back. A setting with nothing to inherit takes its control directly.',
     components: ['InheritControl']
   };
@@ -44,11 +44,11 @@
   title="States"
   note="An inherited value is muted with its source, an override shows the control with a way back, and a locked one says why"
 >
-  <Specimen label="Inherited" code={'inherited="1 hour" source="the workspace"'}>
+  <Specimen label="Inherited" code={'inherited="1\u00a0hour" source="the workspace"'}>
     <InheritControl
       bind:overridden={lifetimeOverridden}
       label="Session lifetime"
-      inherited="1 hour"
+      inherited="1&nbsp;hour"
       source="the workspace"
     >
       {#snippet control()}
@@ -70,7 +70,7 @@
   </Specimen>
   <Specimen label="Disabled" code="disabled">
     <div class="locked">
-      <InheritControl label="Retention" inherited="30 days" source="the organization" disabled>
+      <InheritControl label="Retention" inherited="30&nbsp;days" source="the organization" disabled>
         {#snippet control()}
           <DurationInput label="Retention" value={2_592_000} />
         {/snippet}
@@ -81,7 +81,7 @@
 </Example>
 
 <Example
-  title="Unknown values"
+  title="Unknown Values"
   note="A loading, failed or empty inherited value is said in words, and Override still works"
 >
   <Specimen label="Loading" code="loading">
@@ -96,7 +96,7 @@
       label="Retention"
       inherited=""
       source="the organization"
-      error="The organization's value could not load"
+      error="The organization’s value could not load, so override it here"
     >
       {#snippet control()}
         <DurationInput label="Retention" value={2_592_000} />
@@ -113,8 +113,8 @@
 </Example>
 
 <Example
-  title="In setting rows"
-  note="A row is unsaved only while it differs from what is stored, so picking Debug again clears the log level's mark"
+  title="In Setting Rows"
+  note="A row is unsaved only while it differs from what is stored, so picking Debug again clears the log level’s mark"
   layout="stack"
   ground="canvas"
 >
@@ -130,7 +130,7 @@
             bind:overridden={lifetimeOverridden}
             {id}
             label="Session lifetime"
-            inherited="1 hour"
+            inherited="1&nbsp;hour"
             source="the workspace"
           >
             {#snippet control()}
@@ -168,7 +168,7 @@
 </Example>
 
 <Example
-  title="Narrow width"
+  title="Narrow Width"
   note="A long source wraps beside its marker and Override stays in view"
   layout="stack"
 >
@@ -176,7 +176,7 @@
     <div class="narrow">
       <InheritControl
         label="Retention"
-        inherited="30 days"
+        inherited="30&nbsp;days"
         source="the retention policy of the whole organization"
       >
         {#snippet control()}
@@ -201,6 +201,7 @@
     font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-row-copy-leading)
       var(--sui-sans);
     margin: 0;
+    padding-block: var(--sui-block-snap-room);
     text-box: trim-both cap alphabetic;
   }
 

@@ -7,6 +7,7 @@ import {
   chartMarker,
   extent,
   fraction,
+  heatSteps,
   heatmapLayout,
   inkSpan,
   markerPath,
@@ -405,4 +406,91 @@ test('a matrix starts at its longest row name and its column names top it', () =
   const last = box.left + columns.length * box.size - layout.inset;
   assert.ok(box.width - last >= 0 && box.width - last < 1);
   assert.ok(box.height - (box.top + rows.length * box.size - layout.inset) < 1);
+});
+
+test('a cell keeps a quarter rem on each side of its widest printed value', () => {
+  const values = ['7', '123,456,789'];
+  const widest = Math.max(
+    ...values.map(
+      (words) => inkSpan(pixels(words, true), 0)[1] - inkSpan(pixels(words, true), 0)[0]
+    )
+  );
+  // A value draws at 500, between the two cuts, and a proportional face may set a value wider
+  // in its regular cut than in its semibold one.
+  const regularWider = (/** @type {string} */ text, semibold = false) => measure(text, !semibold);
+  for (const face of [measure, regularWider]) {
+    const layout = heatmapLayout({
+      measure: face,
+      rows: ['Morning'],
+      columns: ['Mon', 'Tue'],
+      values
+    });
+    const cell = at(0)(layout.size) - 2 * layout.inset;
+    assert.ok(cell - widest >= 8 - 1e-9, `the value has ${cell - widest}px of room`);
+  }
+});
+
+test('a first column name wider than its cell starts at 0 past a short row name', () => {
+  const columns = ['Weekend and holidays'];
+  const layout = heatmapLayout({ measure, rows: ['I'], columns });
+  const length = at(0);
+  const middle = length(layout.left) + length(layout.size) / 2;
+  const start = inkSpan(pixels(columns[0]), middle, 'middle')[0];
+  assert.ok(Math.abs(start) < 1e-9, `the name starts at ${start}`);
+  const label = inkSpan(pixels('I'), length(layout.labelEnd), 'end')[0];
+  assert.ok(label >= -1e-9, `the row name starts at ${label}`);
+});
+
+test('column names wider than a cell keep half a rem between them', () => {
+  const columns = ['Mon', 'Wednesday', 'Thursday'];
+  const layout = heatmapLayout({ measure, rows: ['Morning'], columns });
+  const size = at(0)(layout.size);
+  const spans = columns.map((column, index) => inkSpan(pixels(column), index * size, 'middle'));
+  assert.ok(
+    spans[2][0] - spans[1][1] >= 8 - 1e-9,
+    `the names are ${spans[2][0] - spans[1][1]}px apart`
+  );
+  assert.equal(
+    at(0)(heatmapLayout({ measure, rows: ['Morning'], columns: ['Mon', 'Tue'] }).size),
+    52
+  );
+});
+
+test('heat steps hold every value once, and whole numbers name steps that share no end', () => {
+  // Edges between whole numbers, and edges on them.
+  /** @type {[number[], [number, number][]][]} */
+  const cases = [
+    [
+      [12, 19, 24, 20, 31],
+      [
+        [12, 15],
+        [16, 19],
+        [20, 23],
+        [24, 27],
+        [28, 31]
+      ]
+    ],
+    [
+      [0, 10],
+      [
+        [0, 1],
+        [2, 3],
+        [4, 5],
+        [6, 7],
+        [8, 10]
+      ]
+    ]
+  ];
+  for (const [counts, want] of cases) {
+    const { step, ranges } = heatSteps(counts, 5);
+    assert.deepEqual(ranges, want);
+    for (let count = Math.min(...counts); count <= Math.max(...counts); count++) {
+      const [from, to] = ranges[step(count)];
+      assert.ok(from <= count && count <= to, `${count} falls in step ${step(count)}`);
+    }
+  }
+  // Steps under one wide, or values with fractions, keep their exact edges.
+  assert.deepEqual(heatSteps([1, 3], 5).ranges[1], [1.4, 1.8]);
+  assert.deepEqual(heatSteps([0, 2.5, 10], 5).ranges[1], [2, 4]);
+  assert.equal(heatSteps([0, 2.5, 10], 5).step(2.5), 1);
 });

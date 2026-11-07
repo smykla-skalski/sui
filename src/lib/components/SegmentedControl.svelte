@@ -25,6 +25,7 @@
   import type { HTMLAttributes } from 'svelte/elements';
   import Icon from '../icons/Icon.svelte';
   import Count from '../internal/Count.svelte';
+  import { holdForDrag } from '../internal/drag.js';
   import { held as heldIn, holdAround } from '../internal/held.svelte.js';
   import { formatCount } from '../internal/locale.js';
   import Select from './Select.svelte';
@@ -71,6 +72,7 @@
   // `start` runs from the track's inline-start edge, so a placement holds in either direction.
   let thumb = $state<{ option: string; start: number; width: number } | null>(null);
   let ready = $state(false);
+  let thumbElement = $state<HTMLElement | null>(null);
   // The option a dragged thumb is held over. The thumb and the words follow it, and the
   // value only takes it when the pointer lets go.
   let held = $state<string | null>(null);
@@ -175,8 +177,22 @@
     if (thumb?.start === next.start && thumb.width === next.width) return;
     // Only a new selection travels. The same option measuring differently (a font landed, a
     // count arrived, a neighbour grew) is placed again, so nothing slides under a still reader.
+    const from = ready && thumb && thumb.option !== next.option ? thumb.width : null;
     if (thumb?.option === next.option) ready = false;
     thumb = next;
+    if (from !== null && from !== next.width) void tick().then(() => grow(from / next.width));
+  }
+
+  // The thumb takes its new width at once and is scaled back from the old one, so the travel
+  // animates a transform alone, never the layout (L-74). It keeps the translate's timing, which
+  // reduced motion sets to nothing.
+  function grow(ratio: number): void {
+    if (!thumbElement) return;
+    const style = getComputedStyle(thumbElement);
+    const duration = parseFloat(style.transitionDuration) * 1000;
+    const easing = style.transitionTimingFunction.match(/^[^,(]+(\([^)]*\))?/)?.[0];
+    if (!duration) return;
+    thumbElement.animate([{ scale: `${ratio} 1` }, { scale: '1 1' }], { duration, easing });
   }
 
   $effect(() => {
@@ -210,7 +226,7 @@
   }
 
   const DRAG_THRESHOLD = 4;
-  let drag: { pointer: number; x: number; captured: boolean } | null = null;
+  let drag: { pointer: number; x: number; captured: boolean; release?: () => void } | null = null;
 
   // The enabled option nearest the pointer, whichever way the options run.
   function optionAt(x: number): string | null {
@@ -229,7 +245,9 @@
   }
 
   function grab(event: PointerEvent) {
-    if (disabled || locked || event.button !== 0 || value === null) return;
+    // A second finger on the thumb would take over the drag and lose its release, which keeps
+    // the page inert after both lift.
+    if (drag?.captured || disabled || locked || event.button !== 0 || value === null) return;
     const option = (event.target as Element).closest('label');
     if (!option?.classList.contains('selected')) return;
     drag = { pointer: event.pointerId, x: event.clientX, captured: false };
@@ -244,6 +262,7 @@
       if (Math.abs(event.clientX - drag.x) < DRAG_THRESHOLD) return;
       track.setPointerCapture(event.pointerId);
       drag.captured = true;
+      drag.release = holdForDrag(track);
     }
     const over = optionAt(event.clientX);
     if (over !== null) held = over === value ? null : over;
@@ -259,7 +278,11 @@
     input?.focus({ preventScroll: true });
   }
 
+  // A control removed under a drag still gives the page back.
+  $effect(() => () => drag?.release?.());
+
   function drop() {
+    drag?.release?.();
     drag = null;
     held = null;
   }
@@ -325,8 +348,8 @@ itself, so the choice shows from the first frame.
 - Focus: choosing keeps focus on the option; when the segments turn into the select, or back, focus moves to the other form instead of falling to the page.
 - Responsive: as wide as its words or its room, whichever is less; short of room it turns into a `Select`, because a hidden option is a lost option.
 - Accessibility: `label` is drawn above the segments, 8px from them, unless `hideLabel` is set or `aria-labelledby` names a label that is already drawn; `aria-describedby` reaches the group or the select; counts are part of each option's name.
-- Localization: `label`, option words and `countedLabel` are the caller's; numeric counts are grouped in the page's language; the thumb is placed from the inline-start edge and the drag finds the option under the pointer, so both hold right to left.
-- Performance: two `ResizeObserver`s per control, for the thumb and for focus when the form changes; the form itself is chosen by a scroll timeline, the thumb moves by `translate` and its width, and reduced motion drops every transition.
+- Localization: `label`, option words and `countedLabel` are the caller's; numeric counts are grouped in the reader's format; the thumb is placed from the inline-start edge and the drag finds the option under the pointer, so both hold right to left.
+- Performance: two `ResizeObserver`s per control, for the thumb and for focus when the form changes; the form itself is chosen by a scroll timeline, the thumb moves by `translate` and grows by `scale` from its old width, never animating its layout, and reduced motion drops every transition.
 - Analytics: the outer box hears a native `change` event for every pick, in either form, through `onchange`.
 - Failure: a value no option has draws no thumb and an empty select; disabled options stay visible while the keyboard skips them.
 -->
@@ -378,6 +401,7 @@ itself, so the choice shows from the first frame.
     <legend class="sui-segmented-legend">{label}</legend>
     {#if thumb}
       <span
+        bind:this={thumbElement}
         class="sui-segmented-thumb"
         style:--sui-segmented-start="{thumb.start}px"
         style:inline-size="{thumb.width}px"
@@ -452,11 +476,12 @@ itself, so the choice shows from the first frame.
   .sui-segmented-caption {
     align-content: center;
     block-size: var(--sui-block-snap);
-    color: var(--sui-text-secondary);
+    color: var(--sui-text-primary);
     font: var(--sui-weight-semibold) var(--sui-font-size-control) / var(--sui-row-copy-leading)
       var(--sui-sans);
     min-inline-size: 0;
     overflow-wrap: anywhere;
+    padding-block: var(--sui-block-snap-room);
     text-box: trim-both cap alphabetic;
   }
 
@@ -632,12 +657,14 @@ itself, so the choice shows from the first frame.
     inset-inline-start: 0;
     pointer-events: none;
     position: absolute;
+    transform-origin: left;
     translate: calc(var(--sui-segmented-start) * var(--sui-segmented-sign)) 0;
     z-index: var(--sui-layer-inner-plate);
   }
 
   .sui-segmented-thumb:dir(rtl) {
     --sui-segmented-sign: -1;
+    transform-origin: right;
   }
 
   /* Until script has measured the thumb, as in the server's render, the chosen option paints
@@ -725,7 +752,6 @@ itself, so the choice shows from the first frame.
   .ready .sui-segmented-thumb {
     transition:
       translate var(--sui-duration-travel) var(--sui-ease-travel),
-      inline-size var(--sui-duration-travel) var(--sui-ease-travel),
       background-color var(--sui-duration-fast) var(--sui-ease-standard),
       box-shadow var(--sui-duration-press) var(--sui-ease-standard);
   }
@@ -854,7 +880,7 @@ itself, so the choice shows from the first frame.
     align-items: center;
     color: var(--sui-text-secondary);
     display: flex;
-    font: var(--sui-weight-semibold) var(--sui-font-size-compact) / var(--sui-leading-flat)
+    font: var(--sui-weight-semibold) var(--sui-font-size-control) / var(--sui-leading-flat)
       var(--sui-sans);
     gap: var(--sui-space-1);
     justify-content: center;
@@ -873,6 +899,7 @@ itself, so the choice shows from the first frame.
   .sui-segmented-word {
     align-content: center;
     block-size: var(--sui-block-snap);
+    padding-block: var(--sui-block-snap-room);
     text-box: trim-both cap alphabetic;
   }
 

@@ -95,11 +95,11 @@
 
 <script lang="ts">
   import { mark, word } from '../words.js';
-  import { tick } from 'svelte';
   import type { HTMLButtonAttributes } from 'svelte/elements';
   import Icon from '../icons/Icon.svelte';
+  import { holdForDrag } from '../internal/drag.js';
   import { held, holdAround } from '../internal/held.svelte.js';
-  import { pageLocale } from '../internal/locale.js';
+  import { formatLocale } from '../internal/locale.js';
   import Button from './Button.svelte';
   import Field, { type FieldControl } from './Field.svelte';
   import Popover from './Popover.svelte';
@@ -107,8 +107,8 @@
   import VisuallyHidden from './VisuallyHidden.svelte';
 
   const uid = $props.id();
-  const percent = new Intl.NumberFormat(pageLocale(), { style: 'percent' });
-  const whole = new Intl.NumberFormat(pageLocale());
+  const percent = new Intl.NumberFormat(formatLocale(), { style: 'percent' });
+  const whole = new Intl.NumberFormat(formatLocale());
 
   let {
     value = $bindable(),
@@ -120,14 +120,14 @@
     label,
     disabled = false,
     name,
-    dialogLabel = word('ColorPicker.dialogLabel', 'Pick a color'),
+    dialogLabel = word('ColorPicker.dialogLabel', 'Choose a color'),
     swatchesLabel = word('ColorPicker.swatchesLabel', 'Swatches'),
     colorName = word('ColorPicker.colorName', describeColor),
     swatchName = word(
       'ColorPicker.swatchName',
       (hex: string, named?: string) => `${named ?? colorName(hex)}${mark('comma')}${hex}`
     ),
-    areaLabel = word('ColorPicker.areaLabel', 'Saturation and brightness'),
+    areaLabel = word('ColorPicker.areaLabel', 'Saturation & brightness'),
     areaValue = word(
       'ColorPicker.areaValue',
       (saturation: number, brightness: number) =>
@@ -209,7 +209,7 @@
   let grid = $state<HTMLElement | null>(null);
   let area = $state<HTMLElement | null>(null);
   let box = $state<HTMLElement | null>(null);
-  let drag: { target: HTMLElement; kind: 'area' | 'hue' } | null = null;
+  let drag: { target: HTMLElement; release: () => void } | null = null;
   // The color the popover opened on, which Escape goes back to.
   let start = { hex: '', hsv: { h: 0, s: 0, v: 0 } };
 
@@ -248,16 +248,20 @@
     onclick?.(event);
   }
 
-  $effect(() => {
-    if (!open) return;
-    void tick().then(() => {
-      const first =
-        grid?.querySelector<HTMLInputElement>('input:checked') ??
-        grid?.querySelector<HTMLInputElement>('input') ??
-        area;
-      first?.focus({ preventScroll: true });
-    });
-  });
+  // The browser focuses the panel's `autofocus` control as it shows the panel, so an arrow
+  // pressed right after the press already lands inside; an effect would focus it a task later.
+  // The mark goes as the panel closes, or a Modal around it would open on the hidden control.
+  // A drag ends there too, before the browser hands focus back to a trigger the drag made inert.
+  function onbeforetoggle(event: ToggleEvent & { currentTarget: HTMLElement }) {
+    for (const marked of event.currentTarget.querySelectorAll<HTMLElement>('[autofocus]'))
+      marked.autofocus = false;
+    if (event.newState !== 'open') return dragEnd();
+    const first =
+      grid?.querySelector<HTMLInputElement>('input:checked') ??
+      grid?.querySelector<HTMLInputElement>('input') ??
+      area;
+    if (first) first.autofocus = true;
+  }
 
   function keepHue(hex: string): Hsv {
     const read = hexToHsv(hex);
@@ -291,13 +295,13 @@
     if (!drag) return;
     const bounds = drag.target.getBoundingClientRect();
     const x = clamp((event.clientX - bounds.left) / bounds.width);
-    if (drag.kind === 'hue') apply({ ...hsv, h: x * 360 });
-    else apply({ ...hsv, s: x, v: 1 - clamp((event.clientY - bounds.top) / bounds.height) });
+    apply({ ...hsv, s: x, v: 1 - clamp((event.clientY - bounds.top) / bounds.height) });
   }
 
-  function dragStart(event: PointerEvent, kind: 'area' | 'hue') {
+  function dragStart(event: PointerEvent) {
     const target = event.currentTarget as HTMLElement;
-    drag = { target, kind };
+    drag?.release();
+    drag = { target, release: holdForDrag(target) };
     target.setPointerCapture(event.pointerId);
     target.focus({ preventScroll: true });
     dragMove(event);
@@ -305,8 +309,12 @@
   }
 
   function dragEnd() {
+    drag?.release();
     drag = null;
   }
+
+  // A panel that closes under a drag still gives the page back.
+  $effect(() => () => drag?.release());
 
   function step(event: KeyboardEvent): number {
     if (event.key === 'ArrowRight' || event.key === 'ArrowUp') return 1;
@@ -328,11 +336,8 @@
     else apply({ ...hsv, v: clamp(hsv.v + direction * amount) });
   }
 
+  /* The range steps a degree; an arrow takes two and Shift twenty, and the hue wraps round. */
   function hueKeys(event: KeyboardEvent) {
-    if (event.key === 'Home' || event.key === 'End') {
-      event.preventDefault();
-      return apply({ ...hsv, h: event.key === 'End' ? 359 : 0 });
-    }
     const direction = step(event);
     if (direction === 0) return;
     event.preventDefault();
@@ -398,7 +403,7 @@ of text, so they read left to right in every direction, as a chart's plot does.
 the field's `id` and `describedby` onto it and leave `label` off. Either way the trigger's
 name is the label and the hex, such as "Label color #0f766e". `name` posts the hex.
 
-- Semantics: a `Button` with `aria-haspopup="dialog"` and `aria-expanded`, a `role="dialog"` popover named by `dialogLabel`, a radio group of swatches, two `role="slider"` controls, a hex text field, and a hidden input that posts the hex.
+- Semantics: a `Button` with `aria-haspopup="dialog"` and `aria-expanded`, a `role="dialog"` popover named by `dialogLabel`, a radio group of swatches, a `role="slider"` saturation and brightness area, a native range for the hue, a hex text field, and a hidden input that posts the hex.
 - Content: the caller's swatches, named or by hex, the area, the rail and the hex field, each with its drawn words.
 - States: closed, open, a checked swatch (a check mark), hover and pressed swatches, dragging, an invalid hex (an error with a warning mark) and a disabled trigger.
 - Keyboard: Enter or Space opens it, Tab walks the swatches, area, rail and hex, the arrows move each, Enter commits, Escape goes back and closes, and Tab past the hex closes it.
@@ -430,7 +435,7 @@ name is the label and the hex, such as "Label color #0f766e". `name` posts the h
     {#snippet icon()}
       <span class="mark" style:--sui-color-picker-value={current}></span>
     {/snippet}
-    <code class="hex">{current}</code>
+    <code class="hex" translate="no">{current}</code>
     {#snippet trailing()}
       <Icon name="chevron-down" size="sm" />
     {/snippet}
@@ -457,6 +462,7 @@ name is the label and the hex, such as "Label color #0f766e". `name` posts the h
   role="dialog"
   aria-label={dialogLabel}
   onkeydown={keys}
+  {onbeforetoggle}
   closeOnLeave
   onclose={closed}
 >
@@ -495,7 +501,11 @@ name is the label and the hex, such as "Label color #0f766e". `name` posts the h
     {/if}
 
     <div class="part">
-      <span id="{uid}-area-label" class="part-label">{areaLabel}</span>
+      <!-- A label can only name a native control, so a click on this name focuses the area by
+           hand; the area takes the keyboard itself. -->
+      <!-- svelte-ignore a11y_click_events_have_key_events, a11y_no_static_element_interactions -->
+      <span id="{uid}-area-label" class="part-label" onclick={() => area?.focus()}>{areaLabel}</span
+      >
       <div
         bind:this={area}
         class="area"
@@ -508,10 +518,11 @@ name is the label and the hex, such as "Label color #0f766e". `name` posts the h
         aria-valuenow={saturation}
         aria-valuetext={areaValue(saturation, brightness)}
         style:background-image={plane(hueColor)}
-        onpointerdown={(event) => dragStart(event, 'area')}
+        onpointerdown={(event) => dragStart(event)}
         onpointermove={dragMove}
         onpointerup={dragEnd}
         onpointercancel={dragEnd}
+        onlostpointercapture={dragEnd}
         onkeydown={areaKeys}
       >
         <span class="knob"></span>
@@ -519,24 +530,21 @@ name is the label and the hex, such as "Label color #0f766e". `name` posts the h
     </div>
 
     <div class="part">
-      <span id="{uid}-hue-label" class="part-label">{hueLabel}</span>
-      <div
-        class="hue"
-        dir="ltr"
-        role="slider"
-        tabindex="0"
-        aria-labelledby="{uid}-hue-label"
-        aria-valuemin={0}
-        aria-valuemax={360}
-        aria-valuenow={Math.round(hsv.h)}
-        aria-valuetext={hueValue(Math.round(hsv.h))}
-        style:background-image={HUE_RAIL}
-        onpointerdown={(event) => dragStart(event, 'hue')}
-        onpointermove={dragMove}
-        onpointerup={dragEnd}
-        onpointercancel={dragEnd}
-        onkeydown={hueKeys}
-      >
+      <label for="{uid}-hue" class="part-label">{hueLabel}</label>
+      <!-- A native range under the drawn rail: the browser gives it the slider's role, keys and
+           drag, and its thumb is the drawn one's size, so the pointer lands on the same hue. -->
+      <div class="hue" dir="ltr" style:background-image={HUE_RAIL}>
+        <input
+          id="{uid}-hue"
+          class="hue-range"
+          type="range"
+          min="0"
+          max="359"
+          value={Math.round(hsv.h)}
+          aria-valuetext={hueValue(Math.round(hsv.h))}
+          oninput={(event) => apply({ ...hsv, h: event.currentTarget.valueAsNumber })}
+          onkeydown={hueKeys}
+        />
         <span class="thumb"></span>
       </div>
     </div>
@@ -552,7 +560,6 @@ name is the label and the hex, such as "Label color #0f766e". `name` posts the h
         aria-describedby={hexInvalid ? errorId : undefined}
         spellcheck="false"
         autocomplete="off"
-        maxlength={7}
         oninput={typeHex}
         onblur={commitHex}
       />
@@ -631,6 +638,7 @@ name is the label and the hex, such as "Label color #0f766e". `name` posts the h
     color: var(--sui-text-secondary);
     font: var(--sui-weight-semibold) var(--sui-font-size-control) / var(--sui-row-copy-leading)
       var(--sui-sans);
+    padding-block: var(--sui-block-snap-room);
     text-box: trim-both cap alphabetic;
   }
 
@@ -684,7 +692,7 @@ name is the label and the hex, such as "Label color #0f766e". `name` posts the h
 
   .swatch:focus-visible,
   .area:focus-visible,
-  .hue:focus-visible {
+  .hue:has(:focus-visible) {
     outline: var(--sui-focus-ring-width) solid var(--sui-focus);
     outline-offset: var(--sui-focus-ring-offset);
   }
@@ -744,6 +752,31 @@ name is the label and the hex, such as "Label color #0f766e". `name` posts the h
     user-select: none;
   }
 
+  /* Clear, and half a thumb past each end of the rail, as far as the thumb's centre travels. */
+  .hue-range {
+    appearance: none;
+    background: none;
+    block-size: 100%;
+    cursor: pointer;
+    inset-block: 0;
+    inset-inline: calc(-1 * var(--sui-color-picker-hue-thumb) / 2);
+    margin: 0;
+    opacity: 0;
+    position: absolute;
+  }
+
+  .hue-range::-webkit-slider-thumb {
+    appearance: none;
+    block-size: var(--sui-color-picker-hue-thumb);
+    inline-size: var(--sui-color-picker-hue-thumb);
+  }
+
+  .hue-range::-moz-range-thumb {
+    block-size: var(--sui-color-picker-hue-thumb);
+    border: 0;
+    inline-size: var(--sui-color-picker-hue-thumb);
+  }
+
   .thumb {
     background-color: var(--sui-color-picker-hue);
     block-size: var(--sui-color-picker-hue-thumb);
@@ -757,7 +790,7 @@ name is the label and the hex, such as "Label color #0f766e". `name` posts the h
     color: var(--sui-danger);
     column-gap: var(--sui-space-1);
     display: grid;
-    font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-row-copy-leading)
+    font: var(--sui-weight-medium) var(--sui-font-size-meta) / var(--sui-leading-note)
       var(--sui-sans);
     grid-template-columns: auto minmax(0, 1fr);
     margin: 0;
@@ -774,6 +807,7 @@ name is the label and the hex, such as "Label color #0f766e". `name` posts the h
     block-size: var(--sui-block-snap);
     min-inline-size: 0;
     overflow-wrap: anywhere;
+    padding-block: var(--sui-block-snap-room);
     text-box: trim-both cap alphabetic;
   }
 
@@ -807,11 +841,9 @@ name is the label and the hex, such as "Label color #0f766e". `name` posts the h
       inline-size: var(--sui-touch-target);
     }
 
-    .hue::before {
-      content: '';
+    .hue-range {
+      block-size: auto;
       inset-block: calc((100% - var(--sui-touch-target)) / 2);
-      inset-inline: calc(-1 * var(--sui-color-picker-hue-thumb) / 2);
-      position: absolute;
     }
   }
 

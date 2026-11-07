@@ -10,13 +10,13 @@
 
 <script lang="ts">
   import { word } from '../words.js';
-  import { flushSync } from 'svelte';
+  import { flushSync, untrack } from 'svelte';
   import type { HTMLAttributes } from 'svelte/elements';
   import { followsInPlace, getShell } from '../internal/shell.svelte.js';
 
   let {
     entries,
-    title = word('PageToc.title', 'On this page'),
+    title = word('PageToc.title', 'On This Page'),
     level = 2,
     offset,
     onnavigate,
@@ -39,6 +39,19 @@
   const shell = getShell();
   // Before the page is read, as in a server render, the reader is at the top, in the first section.
   let here = $derived<string | null>(entries[0]?.id ?? null);
+  // Entries are kept by their id with a `#` before it, so an id such as `constructor` never
+  // reads what every object inherits.
+  const key = (id: string) => `#${id}`;
+  // A flag per entry, so a new current entry reruns its own link and the last one, never every
+  // link: on a page of a thousand sections, a rerun of every link holds a frame.
+  let lit = untrack(() => here);
+  const marked: Record<string, boolean> = $state(lit === null ? {} : { [key(lit)]: true });
+  $effect.pre(() => {
+    if (here === lit) return;
+    if (lit !== null) marked[key(lit)] = false;
+    lit = here;
+    if (lit !== null) marked[key(lit)] = true;
+  });
   let nav = $state<HTMLElement | null>(null);
   const links = $state<Record<string, HTMLAnchorElement | null>>({});
 
@@ -56,7 +69,7 @@
   // visible part is measured on screen, because the index may reach past the viewport
   // before it sticks.
   $effect(() => {
-    const link = here ? links[here] : null;
+    const link = here === null ? null : links[key(here)];
     if (!nav || !link) return;
     const box = nav.getBoundingClientRect();
     const row = link.getBoundingClientRect();
@@ -291,7 +304,7 @@ when not, records the hash, and moves focus to the section's first heading, or t
 section, so the next Tab starts there.
 
 The current entry wears the current mark every navigation list shares: primary ink against
-muted entries, a step of 3:1 or more in lightness, on a quiet plate that only supports it, and
+muted entries, a step of 2:1 or more in lightness, on an inset plate that marks it too, and
 `Highlight` under forced colors. It keeps the entries' weight, so turning current never
 rewraps it or changes its height. It is announced with `aria-current="location"`. The first
 entry is current from the first paint, as at the top of the page, and then it follows the URL
@@ -311,7 +324,7 @@ phone drawer, and following an entry closes the drawer before focus moves.
 - Pointer and touch: entries are 28px tall on a desktop pointer and 44px on a phone or a coarse pointer, across the column's width.
 - Focus: following an entry moves focus to its section's first heading, or the section, which takes a temporary `tabindex`; in a shell's phone drawer the drawer closes first, so focus lands in the section and never on the menu button.
 - Responsive: the index sticks and scrolls inside itself, keeping the current entry in view; the page decides where it stands.
-- Accessibility: the current entry is announced, every entry's ink holds 4.5:1, and the current ink stands 3:1 from the rest ink in lightness, so it is never hue alone (WCAG 1.4.1).
+- Accessibility: the current entry is announced, every entry's ink holds 4.5:1, and the current ink stands 2:1 from the rest ink in lightness and the plate marks it too, so it is never hue alone (WCAG 1.4.1).
 - Localization: `title` is a prop with an English default; the entries follow the reading direction.
 - Performance: `IntersectionObserver`s report the sections that cross the reading line and those on screen, so a scroll reads no section's place and looks at the box's end only while its last section shows; it suits a thousand sections.
 - Analytics: `onnavigate(event, entry)` reports every followed entry.
@@ -334,10 +347,10 @@ phone drawer, and following an entry closes the drawer before focus moves.
       {#each group.items as entry (entry.id)}
         <li>
           <a
-            bind:this={links[entry.id]}
+            bind:this={links[key(entry.id)]}
             class="sui-page-toc-link"
             href="#{entry.id}"
-            aria-current={here === entry.id ? 'location' : undefined}
+            aria-current={marked[key(entry.id)] ? 'location' : undefined}
             onclick={(event) => follow(event, entry)}
             ><span class="sui-page-toc-label">{entry.label}</span></a
           >
@@ -378,6 +391,7 @@ phone drawer, and following an entry closes the drawer before focus moves.
     font: var(--sui-weight-semibold) var(--sui-font-size-compact) / var(--sui-leading-compact)
       var(--sui-sans);
     margin: var(--sui-space-5) 0 var(--sui-space-2);
+    padding-block: var(--sui-block-snap-room);
     text-box: trim-both cap alphabetic;
   }
 
@@ -389,6 +403,7 @@ phone drawer, and following an entry closes the drawer before focus moves.
       var(--sui-sans);
     letter-spacing: 0.06em;
     margin: 0 0 var(--sui-space-2);
+    padding-block: var(--sui-block-snap-room);
     text-box: trim-both cap alphabetic;
     text-transform: uppercase;
   }
@@ -439,14 +454,15 @@ phone drawer, and following an entry closes the drawer before focus moves.
   .sui-page-toc-label {
     align-content: center;
     block-size: var(--sui-block-snap);
+    padding-block: var(--sui-block-snap-room);
     text-box: trim-both cap alphabetic;
   }
 
-  /* The current mark every navigation list shares: primary ink, which carries the state, on a
-     quiet plate that only supports it. */
+  /* The current mark every navigation list shares: the current ink on an inset plate, which
+     both carry the state. */
   .sui-page-toc-link[aria-current='location'] {
     background: var(--sui-surface-inset);
-    color: var(--sui-text-primary);
+    color: var(--sui-text-current);
   }
 
   @media (max-width: 47.9375rem), (pointer: coarse) {

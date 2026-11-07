@@ -1,7 +1,7 @@
 <script module lang="ts">
   export const section = {
-    title: 'Color picker',
-    lead: "A color as a hex, picked from swatches, an area and a hue rail, for a color that is the user's own data. A theme never needs one.",
+    title: 'Color Picker',
+    lead: 'A color as a hex, chosen from swatches, an area and a hue rail, for a color that is the user’s own data. A theme never needs one.',
     components: ['ColorPicker']
   };
 </script>
@@ -22,7 +22,7 @@
 
 <Example
   title="States"
-  note="A saturated pick, a pale one, a grey that keeps its hue and a locked one with its reason"
+  note="A saturated color, a pale one, a grey that keeps its hue and a locked one with its reason"
 >
   <Specimen label="Saturated" code="label">
     <ColorPicker label="Label color" bind:value={label} />
@@ -43,7 +43,7 @@
 </Example>
 
 <Example
-  title="Own swatches"
+  title="Own Swatches"
   note="A caller replaces the swatch list, and a color off the list checks no swatch"
 >
   <Specimen label="Chart series" code="swatches">
@@ -52,10 +52,10 @@
 </Example>
 
 <Example
-  title="In a field"
-  note="The field's label and the hex name the trigger together, and its hint describes it"
+  title="In a Field"
+  note="The field’s label and the hex name the trigger together, and its hint describes it"
 >
-  <Specimen label="Field label and hint" code="id aria-describedby">
+  <Specimen label="Field label & hint" code="id aria-describedby">
     <Field label="Brand color" hint="Used for links and the one signal button on each view">
       {#snippet control(field)}
         <ColorPicker id={field.id} aria-describedby={field.describedby} bind:value={brand} />

@@ -37,10 +37,11 @@ suite('the kitchen sink', together, () => {
    * @param {number} width
    * @param {string} theme
    * @param {import('playwright-core').BrowserContextOptions} [options]
+   * @param {string} [section] a section's own page, for a test that reads only that section
    */
-  async function open(width, theme, options = {}) {
+  async function open(width, theme, options = {}, section) {
     const page = await browser.newPage({ viewport: { width, height: 900 }, ...options });
-    await visit(page, allSections(url));
+    await visit(page, section ? new URL(`${section}/`, url).href : allSections(url));
     await page.evaluate(async (name) => {
       document.documentElement.dataset.suiTheme = name;
       await document.fonts.ready;
@@ -228,6 +229,91 @@ suite('the kitchen sink', together, () => {
       );
   });
 
+  // A decision callout or an unsaved row restates the default paint for the controls it holds,
+  // so a disabled toned button there is right to wear that local paint. One audit of a small
+  // page reads both laws.
+  test(
+    'L-40 a disabled tone is measured against the paint where its button stands, L-30 a heading or button off Title Case is found while a name, code or quote is not, L-31 so is a straight quote or a placeholder without its ellipsis, L-105 a count in words and L-20 a mono value open to translation or a heard word shut from it',
+    long,
+    async () => {
+      const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
+      try {
+        await visit(page, new URL('buttons/', url).href);
+        const restated = await page.evaluate(() => {
+          const buttons = document.querySelectorAll(
+            ".sui-button:is([data-tone='signal'], [data-tone='decision'], [data-tone='stop']):disabled"
+          );
+          for (const button of buttons) {
+            const holder = /** @type {HTMLElement} */ (button.parentElement);
+            holder.style.setProperty('--sui-surface-raised', 'transparent');
+            holder.style.setProperty('--sui-control-border', 'var(--sui-warning)');
+          }
+          const host = document.createElement('div');
+          host.id = 'title-case';
+          host.innerHTML = [
+            '<h2>Tones and states</h2>',
+            '<button type="button">Save changes</button>',
+            '<button type="button">Sign In to the Console</button>',
+            '<h2>Install <code>npm</code> on macOS for “my-repo”</h2>',
+            '<button type="button">Sync 6 Repositories</button>',
+            '<p>Don\'t sync <code>"main"</code></p>',
+            '<p>Don’t sync “main”</p>',
+            '<input aria-label="Name" placeholder="Search repositories">',
+            '<input aria-label="Name" placeholder="Search repositories…">',
+            '<p>Sync three repositories</p>',
+            '<p>Sync 3 repositories with a two-way link</p>',
+            '<p>Run <code translate="no">git</code></p>',
+            '<pre translate="no"><span class="sui-visually-hidden">Added</span>+ a</pre>',
+            '<pre translate="no"><span class="sui-visually-hidden" translate="yes">Removed</span>- a</pre>'
+          ].join('');
+          document.body.append(host);
+          return buttons.length;
+        });
+        assert.ok(restated > 0, 'the buttons page holds no disabled toned button');
+        const findings = await audit(page);
+        const kept = findings.filter(({ detail }) => detail.includes('keeps its tone'));
+        assert.equal(kept.length, 0, report(kept));
+        assert.deepEqual(
+          findings
+            .filter(({ law, where }) => law === 'L-30' && where.includes('#title-case'))
+            .map(({ detail }) => detail),
+          [
+            '"Tones and states" is not Title Case at "states"',
+            '"Tones and states" writes "and" instead of "&"',
+            '"Save changes" is not Title Case at "changes"'
+          ]
+        );
+        assert.deepEqual(
+          findings
+            .filter(({ law, where }) => law === 'L-31' && where.includes('#title-case'))
+            .map(({ detail }) => detail),
+          [
+            "a straight ' instead of a curly quote",
+            'the placeholder "Search repositories" does not end with "…"'
+          ]
+        );
+        assert.deepEqual(
+          findings
+            .filter(({ law, where }) => law === 'L-105' && where.includes('#title-case'))
+            .map(({ detail }) => detail),
+          ['"three" is a count in words, not figures']
+        );
+        assert.deepEqual(
+          findings
+            .filter(({ law, where }) => law === 'L-20' && where.includes('#title-case'))
+            .map(({ detail }) => detail),
+          [
+            '"npm" is a mono value a translator can change',
+            '""main"" is a mono value a translator can change',
+            '"Added" is a heard word a translator cannot change'
+          ]
+        );
+      } finally {
+        await page.close();
+      }
+    }
+  );
+
   // A tablet wider than a phone still has a coarse pointer, so the touch tier must hold there too.
   test('the law audit finds nothing on a 1024px touch screen', long, async () => {
     const page = await open(1024, 'light', { hasTouch: true, isMobile: true });
@@ -337,7 +423,7 @@ suite('the kitchen sink', together, () => {
   });
 
   test(
-    'L-75 reduced motion removes every transition and endless animation, and L-71 switching the theme moves nothing',
+    'L-75 reduced motion removes every transition and endless animation, at rest and pressed, and L-71 switching the theme moves nothing',
     long,
     async () => {
       // Reduced motion also stops the spinners, whose boxes would otherwise turn between two reads.
@@ -387,6 +473,32 @@ suite('the kitchen sink', together, () => {
           );
           assert.deepEqual(moved.slice(0, 10), [], `${width}px`);
         }
+
+        // A pressed state is a rule of its own, which can outrank the reduced-motion one at rest.
+        const cdp = await page.context().newCDPSession(page);
+        await cdp.send('DOM.enable');
+        await cdp.send('CSS.enable');
+        const { root } = await cdp.send('DOM.getDocument', { depth: 0 });
+        const { nodeIds } = await cdp.send('DOM.querySelectorAll', {
+          nodeId: root.nodeId,
+          selector: 'main :is(button, select, a[href], summary, input, [role="button"])'
+        });
+        await Promise.all(
+          nodeIds.map((nodeId) =>
+            cdp.send('CSS.forcePseudoState', { nodeId, forcedPseudoClasses: ['active'] })
+          )
+        );
+        const pressed = await page.evaluate(() =>
+          [...document.querySelectorAll('main *')].flatMap((element) => {
+            const style = getComputedStyle(element);
+            const durations = style.transitionDuration.split(',').map((part) => parseFloat(part));
+            return durations.some((duration) => duration > 0) && style.transitionProperty !== 'none'
+              ? [`${element.tagName.toLowerCase()}.${[...element.classList].join('.')}`]
+              : [];
+          })
+        );
+        assert.ok(nodeIds.length > 100, `only ${nodeIds.length} controls were pressed`);
+        assert.deepEqual([...new Set(pressed)], [], 'pressed, these still ease');
       } finally {
         await page.close();
       }
@@ -416,6 +528,15 @@ suite('the kitchen sink', together, () => {
             await page.evaluate(() => getComputedStyle(document.documentElement).colorScheme),
             'dark'
           );
+          // The browser's own chrome wears the dark canvas too (L-118).
+          assert.deepEqual(
+            await page.evaluate(() =>
+              [...document.querySelectorAll('meta[name="theme-color"]')]
+                .filter((meta) => matchMedia(/** @type {HTMLMetaElement} */ (meta).media).matches)
+                .map((meta) => /** @type {HTMLMetaElement} */ (meta).content)
+            ),
+            ['#0c0e11']
+          );
         } finally {
           await page.close();
         }
@@ -427,7 +548,7 @@ suite('the kitchen sink', together, () => {
     'L-57 a disclosure opens to its full height at once and fades in its content',
     long,
     async () => {
-      const page = await open(1440, 'light');
+      const page = await open(1440, 'light', {}, 'disclosure');
       try {
         const opened = await page.evaluate(async () => {
           const details = /** @type {HTMLDetailsElement} */ (
@@ -451,10 +572,10 @@ suite('the kitchen sink', together, () => {
 
   // A hint that keeps its seat beside the words squeezes them onto more lines on a phone.
   test("L-57 a disclosure's hint shares the words' line only when both fit", async () => {
-    const page = await open(375, 'light');
+    const page = await open(375, 'light', {}, 'disclosure');
     try {
       const placed = await page.evaluate(() =>
-        ['Skipped repositories', 'More about this sync'].map((name) => {
+        ['Skipped Repositories', 'More About This Sync'].map((name) => {
           const words = [...document.querySelectorAll('#disclosure .sui-disclosure-label')].find(
             (label) => label.textContent === name
           );
@@ -488,7 +609,7 @@ suite('the kitchen sink', together, () => {
       [1440, '100%'],
       [375, '200%']
     ])) {
-      const page = await open(width, 'light');
+      const page = await open(width, 'light', {}, 'pill');
       try {
         await page.evaluate((size) => (document.documentElement.style.fontSize = size), text);
         const off = await page.evaluate(() => {
@@ -882,45 +1003,7 @@ suite('the kitchen sink', together, () => {
    * @param {import('playwright-core').Page} page
    * @param {number} worker
    */
-  const secondPressCloses = async (page, worker) => {
-    // The phone drawer is modal and covers its own menu button, so it closes from inside.
-    const triggers = page.locator(
-      'main > section [popovertarget]:not(:disabled):not(.sui-shell-menu)'
-    );
-    const count = await triggers.count();
-    assert.ok(count > 10, `only ${count} layer triggers were found`);
-    const reopened = [];
-    for (let index = worker; index < count; index += WORKERS) {
-      const trigger = triggers.nth(index);
-      if (!(await trigger.isVisible())) continue;
-      await trigger.scrollIntoViewIfNeeded();
-      await trigger.click();
-      if (
-        !(await settles(
-          page.waitForFunction(() => document.querySelector('[popover]:popover-open'), null, brief)
-        ))
-      )
-        continue;
-      await trigger.click();
-      if (
-        !(await settles(
-          page.waitForFunction(() => !document.querySelector('[popover]:popover-open'), null, brief)
-        ))
-      ) {
-        reopened.push(
-          `layer trigger ${index} “${((await trigger.textContent()) ?? '').trim().slice(0, 30)}”: a second press left its layer open`
-        );
-        await page.keyboard.press('Escape');
-      }
-    }
-    return reopened;
-  };
-
-  /**
-   * @param {import('playwright-core').Page} page
-   * @param {number} worker
-   */
-  const growsFromTrigger = async (page, worker) => {
+  const layersOnTrigger = async (page, worker) => {
     // A smooth scroll would still move the trigger while its layer grows. Each layer's motion is
     // seeked to its ends, so its length does not matter, and a long one is still running when a
     // busy page gets round to looking at it. The trigger keeps its own press timing.
@@ -928,9 +1011,10 @@ suite('the kitchen sink', together, () => {
       content:
         'html { scroll-behavior: auto !important; } .sui-popover { --sui-duration-press: 10000ms !important; --sui-duration-normal: 10000ms !important; --sui-duration-open: 10000ms !important; }'
     });
-    // The phone drawer is an edge layer, not one placed beside its trigger.
+    // The phone drawer is an edge layer, not one placed beside its trigger, and modal over its
+    // own menu button, so it closes from inside.
     const triggers = page.locator(
-      'main > section [popovertarget]:not(:disabled):not([aria-controls*="drawer"])'
+      'main > section [popovertarget]:not(:disabled):not(.sui-shell-menu, [aria-controls*="drawer"])'
     );
     const count = await triggers.count();
     assert.ok(count > 5, `only ${count} popover triggers were found`);
@@ -995,7 +1079,15 @@ suite('the kitchen sink', together, () => {
       await moving(trigger, true);
       const grew = await at(trigger, 'start');
       if (grew) problems.push(`${name}: opening does not start on the trigger, ${grew}`);
-      await page.keyboard.press('Escape');
+      await trigger.click();
+      if (
+        !(await settles(
+          page.waitForFunction(() => !document.querySelector('[popover]:popover-open'), null, brief)
+        ))
+      ) {
+        problems.push(`${name}: a second press left its layer open`);
+        await page.keyboard.press('Escape');
+      }
       await moving(trigger, false);
       const shrank = await at(trigger, 'end');
       if (shrank) problems.push(`${name}: closing does not end on the trigger, ${shrank}`);
@@ -1014,8 +1106,7 @@ suite('the kitchen sink', together, () => {
   };
 
   // A layer fits a phone's viewport only with the least room, so where each opens is read at
-  // 375px. The second press and the motion check read the wide layout, the motion check last,
-  // because it slows every layer's motion for the rest of the page's life.
+  // 375px. The second press and the motion read the wide layout, in one pass over the triggers.
   for (const width of [375, 1440])
     test(
       width === 375
@@ -1027,19 +1118,14 @@ suite('the kitchen sink', together, () => {
           () => open(width, 'light'),
           WORKERS,
           async (page, worker) =>
-            width === 375
-              ? await opensInPlace(page, worker)
-              : [
-                  ...(await secondPressCloses(page, worker)),
-                  ...(await growsFromTrigger(page, worker))
-                ]
+            width === 375 ? await opensInPlace(page, worker) : await layersOnTrigger(page, worker)
         );
         assert.deepEqual(problems, []);
       }
     );
 
   test('L-50 a finger dragging the thumb chooses where it lifts', long, async () => {
-    const page = await open(390, 'light', { hasTouch: true, isMobile: true });
+    const page = await open(390, 'light', { hasTouch: true, isMobile: true }, 'segmented-control');
     try {
       const track = page
         .locator('#segmented-control .sui-segmented-track:not(:disabled)')
@@ -1085,13 +1171,33 @@ suite('the kitchen sink', together, () => {
         wanted,
         'lifting the finger over an option did not choose it'
       );
+
+      // A second finger lands on the thumb mid-drag, and both lift.
+      const held = () =>
+        page.evaluate(() => ({
+          inert: document.querySelectorAll('[inert]').length,
+          select: document.documentElement.style.userSelect
+        }));
+      const rest = await held();
+      await touch('touchStart', x1, y);
+      for (let step = 1; step <= 4; step++)
+        await touch('touchMove', x1 + ((x0 - x1) * step) / 4, y);
+      await cdp.send('Input.dispatchTouchEvent', {
+        type: 'touchStart',
+        touchPoints: [
+          { x: x0, y, id: 0 },
+          { x: x0 + 2, y, id: 1 }
+        ]
+      });
+      await touch('touchEnd', x0, y);
+      assert.deepEqual(await held(), rest, 'two fingers on the thumb left the page held');
     } finally {
       await page.close();
     }
   });
 
   test('L-50 a dragged thumb chooses on release, and Escape puts it back', long, async () => {
-    const page = await open(1440, 'light');
+    const page = await open(1440, 'light', {}, 'segmented-control');
     try {
       const track = page
         .locator('#segmented-control .sui-segmented-track:not(:disabled)')
@@ -1138,7 +1244,7 @@ suite('the kitchen sink', together, () => {
   });
 
   test('L-80 a clipped label answers its own hover, not the page around it', long, async () => {
-    const page = await open(1440, 'light');
+    const page = await open(1440, 'light', {}, 'clipped-label');
     try {
       const stage = page.locator('#clipped-label .stage').first();
       await stage.scrollIntoViewIfNeeded();
@@ -1166,7 +1272,7 @@ suite('the kitchen sink', together, () => {
   });
 
   test("L-91 and L-89 a row's change of state moves nothing and keeps focus", long, async () => {
-    const page = await open(1440, 'light');
+    const page = await open(1440, 'light', {}, 'setting-list');
     try {
       const list = page.locator('#setting-list .sui-setting-list').first();
       await list.scrollIntoViewIfNeeded();
@@ -1204,7 +1310,7 @@ suite('the kitchen sink', together, () => {
     'L-52 and L-89 a pair chip edits in place and focus never falls to the page',
     long,
     async () => {
-      const page = await open(1440, 'light');
+      const page = await open(1440, 'light', {}, 'pair-entry');
       try {
         const entry = page.locator('#pair-entry .sui-pair-entry').first();
         await entry.scrollIntoViewIfNeeded();
@@ -1253,15 +1359,16 @@ suite('the kitchen sink', together, () => {
         await entry.getByRole('button', { name: 'Remove ship' }).click();
         assert.match(await focused(), /\bgo\b/, 'focus did not move to the next pair');
         await entry.getByRole('button', { name: 'Remove go' }).click();
-        assert.match(await focused(), /Add an alias/, 'focus did not move to Add');
+        assert.match(await focused(), /Add an Alias/, 'focus did not move to Add');
       } finally {
         await page.close();
       }
     }
   );
 
-  // A sweep over every control of a kind runs on this many pages side by side.
-  const WORKERS = 4;
+  // A sweep over every control of a kind runs on this many pages side by side. Each page loads
+  // the whole sink, and on a four-core runner a third and fourth page cost more than they save.
+  const WORKERS = 2;
 
   // Every control a reader presses, save text links: buttons, select triggers, summaries, menu
   // items, options, tabs, navigation rows, chips and check rows.

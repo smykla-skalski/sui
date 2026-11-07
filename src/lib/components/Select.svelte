@@ -34,7 +34,7 @@
     value = $bindable(null),
     options,
     placeholder,
-    promptLabel = word('Select.promptLabel', 'Choose an option'),
+    promptLabel = word('Select.promptLabel', 'Choose an option…'),
     separator = word('Select.separator', ' · '),
     optionName = word(
       'Select.optionName',
@@ -100,14 +100,18 @@
      hold it stays a tab stop and refuses the press that opens it and every key but Tab. */
   const around = holdAround();
   const holding = $derived(held(element, around));
+  // A caller's `aria-disabled` refuses the value as a soft hold does, but lets Escape reach a
+  // dialog around it, which a hold keeps open while its work runs.
+  const refusing = $derived(Boolean(holding) || String(rest['aria-disabled']) === 'true');
 
   function press(event: MouseEvent & { currentTarget: EventTarget & HTMLSelectElement }) {
-    if (holding) event.preventDefault();
+    if (refusing) event.preventDefault();
     else onmousedown?.(event);
   }
 
   function key(event: KeyboardEvent & { currentTarget: EventTarget & HTMLSelectElement }) {
-    if (holding && event.key !== 'Tab') event.preventDefault();
+    const passes = event.key === 'Tab' || (event.key === 'Escape' && !holding);
+    if (refusing && !passes) event.preventDefault();
     else onkeydown?.(event);
   }
 
@@ -190,7 +194,7 @@ assistive technology, because a native picker cannot be held open.
       class="sui-select-control"
       aria-invalid={wrong || undefined}
       disabled={rest.disabled || holding === 'firm'}
-      aria-disabled={Boolean(holding) || rest['aria-disabled']}
+      aria-disabled={refusing || undefined}
       onmousedown={press}
       onkeydown={key}
       bind:value={() => value ?? '', (next) => (value = next === '' ? null : next)}
@@ -289,9 +293,7 @@ assistive technology, because a native picker cannot be held open.
     padding-block: 0;
     padding-inline: var(--sui-space-2) calc(2 * var(--sui-space-2) + var(--sui-icon-sm));
     text-overflow: ellipsis;
-    transition:
-      translate var(--sui-duration-press) var(--sui-ease-standard),
-      box-shadow var(--sui-duration-press) var(--sui-ease-standard);
+    transition: translate var(--sui-duration-press) var(--sui-ease-standard);
     -webkit-user-select: none;
     user-select: none;
     white-space: nowrap;
@@ -352,7 +354,11 @@ assistive technology, because a native picker cannot be held open.
     }
   }
 
+  /* Only the press eases its inset in; hover swaps the recess at once (L-104). */
   .sui-select-control:active:not(:disabled, [aria-disabled='true']) {
+    transition:
+      translate var(--sui-duration-press) var(--sui-ease-standard),
+      box-shadow var(--sui-duration-press) var(--sui-ease-standard);
     background-image: linear-gradient(
       var(--sui-interactive-pressed),
       var(--sui-interactive-pressed)
@@ -416,6 +422,7 @@ assistive technology, because a native picker cannot be held open.
 
   .bare .sui-select-control:open {
     background-color: var(--sui-interactive-hover-layer);
+    color: var(--sui-hover-ink);
   }
 
   .bare .sui-select-control:active:not(:disabled, [aria-disabled='true']) {
@@ -441,6 +448,7 @@ assistive technology, because a native picker cannot be held open.
   @media (hover: hover) {
     .bare .sui-select-control:hover:not(:disabled, [aria-disabled='true'], :active) {
       background-color: var(--sui-interactive-hover-layer);
+      color: var(--sui-hover-ink);
     }
 
     .bare:has(.sui-select-control:hover:not(:disabled, [aria-disabled='true'])) .sui-select-control,
@@ -514,9 +522,15 @@ assistive technology, because a native picker cannot be held open.
         block-size: var(--sui-block-snap-even);
         min-inline-size: 0;
         overflow-x: clip;
+        padding-block: var(--sui-block-snap-room-even);
         text-box: trim-both cap alphabetic;
         text-overflow: ellipsis;
         white-space: nowrap;
+      }
+
+      /* An empty choice draws no line, so it takes no room for one. */
+      .sui-select-value:empty {
+        padding-block: 0;
       }
 
       .sui-select-value .sui-select-check,
@@ -589,7 +603,7 @@ assistive technology, because a native picker cannot be held open.
      the colors and the font here. */
   .sui-select-option {
     align-items: center;
-    border-radius: var(--sui-radius-control);
+    border-radius: var(--sui-radius-popover-row);
     box-sizing: border-box;
     color: var(--sui-text-primary);
     cursor: pointer;
@@ -644,6 +658,7 @@ assistive technology, because a native picker cannot be held open.
     flex: 1 1 auto;
     min-inline-size: 0;
     overflow-wrap: anywhere;
+    padding-block: var(--sui-block-snap-room-even);
     text-box: trim-both cap alphabetic;
   }
 
@@ -689,6 +704,7 @@ assistive technology, because a native picker cannot be held open.
 
     .sui-select-control:active:not(:disabled, [aria-disabled='true']),
     .sui-select-control:active:not(:disabled, [aria-disabled='true']) + .sui-select-chevron {
+      transition: none;
       translate: none;
     }
 

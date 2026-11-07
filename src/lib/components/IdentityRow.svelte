@@ -29,6 +29,11 @@
     handleName?: (name: string, handle: string) => string;
     class?: HTMLAttributes<HTMLSpanElement>['class'];
   } & Omit<HTMLAttributes<HTMLSpanElement>, 'children'> = $props();
+
+  // The handle goes in as a private-use mark, so the words joined around it stay open to a
+  // page translator while the login itself is heard as written, as it is drawn.
+  const HANDLE = '\uE000';
+  const heard = $derived(handle ? handleName(name, HANDLE).split(HANDLE) : []);
 </script>
 
 <!--
@@ -46,7 +51,7 @@ the handle under them.
 - Focus: never takes focus.
 - Responsive: a long name or handle wraps inside the room it is given, so every character can be read without a tooltip and nothing runs under what stands beside the row.
 - Accessibility: the full name and handle are always drawn as text; the name holds 4.5:1 and the muted handle 4.5:1 on the surface.
-- Localization: the name and handle are the caller's, and `handleName` joins them; the avatar sits at the inline start and follows the reading direction.
+- Localization: the name and handle are the caller's, and `handleName` joins them; a page translator leaves the handle as written, both drawn and heard; the avatar sits at the inline start and follows the reading direction.
 - Performance: one avatar picture per row, loaded lazily.
 - Analytics: none, because a reader does nothing with it on its own.
 - Failure: a picture that fails falls back to initials; an empty handle draws no second line.
@@ -58,14 +63,17 @@ the handle under them.
   <span class="sui-identity-copy" aria-hidden={handle ? 'true' : undefined}>
     <span class="sui-identity-name">{name}</span>
     {#if handle}
-      <span class="sui-identity-handle">{handle}</span>
+      <span class="sui-identity-handle" translate="no">{handle}</span>
     {/if}
   </span>
   <!-- After the name in the source, so the name can anchor it; drawn at the inline start. -->
   <span class="sui-identity-face"
     ><Avatar {name} handle={handle ?? ''} {src} {shape} {size} alt="" /></span
   >
-  {#if handle}<VisuallyHidden>{handleName(name, handle)}</VisuallyHidden>{/if}
+  {#if handle}<VisuallyHidden
+      >{#each heard as words, index (index)}{#if index > 0}<span translate="no">{handle}</span
+          >{/if}{words}{/each}</VisuallyHidden
+    >{/if}
 </span>
 
 <style>
@@ -120,6 +128,7 @@ the handle under them.
     block-size: var(--sui-block-snap);
     min-inline-size: 0;
     overflow-wrap: anywhere;
+    padding-block: var(--sui-block-snap-room);
     text-box: trim-both cap alphabetic;
   }
 

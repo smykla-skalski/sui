@@ -34,7 +34,7 @@ const FAMILIES: [string, string[]][] = [
     ]
   ],
   [
-    'Pickers and editors',
+    'Pickers & Editors',
     [
       'select',
       'combobox',
@@ -53,7 +53,7 @@ const FAMILIES: [string, string[]][] = [
     ['overlays', 'modal', 'confirm-dialog', 'toaster', 'save-bar', 'service-worker-status']
   ],
   [
-    'Surfaces and content',
+    'Surfaces & Content',
     [
       'card',
       'plate',
@@ -74,7 +74,7 @@ const FAMILIES: [string, string[]][] = [
     ]
   ],
   ['Marks', ['pill', 'chip', 'avatar', 'clipped-label', 'relative-time', 'day-heading', 'icons']],
-  ['Lists and states', ['object-list', 'list-toolbar', 'skeleton', 'load-more', 'states']],
+  ['Lists & States', ['object-list', 'list-toolbar', 'skeleton', 'load-more', 'states']],
   ['Charts', ['charts']],
   ['Shell', ['app-shell']]
 ];

@@ -1,6 +1,6 @@
 <script module lang="ts">
   export const section = {
-    title: 'Relative time',
+    title: 'Relative Time',
     lead: 'A time read as how long ago or how soon, with the whole instant in a tooltip. The day over a run of entries is a DayHeading.',
     components: ['RelativeTime']
   };
@@ -58,7 +58,7 @@
 </Example>
 
 <Example
-  title="In context"
+  title="In Context"
   note="The time stays one word in a sentence, and every instance reads one page clock"
 >
   <p class="line">

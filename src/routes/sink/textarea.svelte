@@ -58,12 +58,12 @@
 </Example>
 
 <Example
-  title="In a field"
+  title="In a Field"
   note="An error names what is wrong and the textarea is described by it"
   layout="grid"
 >
   <Specimen label="With an error" code="control">
-    <Field label="Why this exception" error="Say why in at least ten words">
+    <Field label="Why this exception" error="Say why in at least 10 words">
       {#snippet control({ id, describedby, invalid })}
         <Textarea {id} aria-describedby={describedby} {invalid} value="Urgent" />
       {/snippet}
@@ -72,7 +72,7 @@
 </Example>
 
 <Example
-  title="Narrow width"
+  title="Narrow Width"
   note="Long words wrap inside the box, and the reader can drag it taller but never wider"
   layout="stack"
 >
@@ -100,6 +100,7 @@
     font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-row-copy-leading)
       var(--sui-sans);
     margin: 0;
+    padding-block: var(--sui-block-snap-room);
     text-box: trim-both cap alphabetic;
   }
 

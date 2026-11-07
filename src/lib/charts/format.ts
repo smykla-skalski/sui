@@ -1,10 +1,10 @@
-import { pageLocale } from '../internal/locale.js';
+import { formatLocale, pageLocale } from '../internal/locale.js';
 
 const formats = new Map<string, Intl.NumberFormat>();
 
 /** A value in the page language's digits and grouping, with at most two decimals. */
 export function formatNumber(value: number): string {
-  const locale = pageLocale() ?? '';
+  const locale = formatLocale() ?? '';
   let format = formats.get(locale);
   if (!format) {
     format = new Intl.NumberFormat(locale || undefined, { maximumFractionDigits: 2 });

@@ -33,7 +33,7 @@
 </script>
 
 <Example
-  title="Tones and actions"
+  title="Tones & Actions"
   note="A neutral toast, a failure and one with an action, drawn in place with no timers"
   ground="canvas"
   layout="grid"
@@ -46,8 +46,8 @@
       preview
       items={[
         {
-          title: 'Sync failed',
-          description: 'GitHub answered 502, try again in a minute',
+          title: 'The sync needs another try',
+          description: 'GitHub answered 502, so try again in a minute',
           tone: 'danger'
         }
       ]}
@@ -69,30 +69,30 @@
 
 <Example
   title="Timing"
-  note="A neutral toast leaves after five seconds unless hovered or focused, and a failure or one with Undo stays until dismissed"
+  note="A neutral toast leaves after 5 seconds unless hovered or focused, and a failure or one with Undo stays until dismissed"
 >
   <Specimen label="Neutral" code="toast()">
-    <Button onclick={() => toast({ title: 'Settings saved' })}>Save settings</Button>
+    <Button onclick={() => toast({ title: 'Settings saved' })}>Save Settings</Button>
   </Specimen>
   <Specimen label="Danger" code="tone: 'danger'">
     <Button
       onclick={() =>
         toast({
-          title: 'Sync failed',
-          description: 'GitHub answered 502, try again in a minute',
+          title: 'The sync needs another try',
+          description: 'GitHub answered 502, so try again in a minute',
           tone: 'danger'
-        })}>Sync repositories</Button
+        })}>Sync Repositories</Button
     >
   </Specimen>
   <Specimen label={removed ? 'Removed, with Restore on the page' : 'With Undo'} code="action">
     <Button tone={removed ? 'default' : 'stop-quiet'} onclick={removed ? restoreRule : removeRule}
-      >{removed ? 'Restore' : 'Remove rule'}</Button
+      >{removed ? 'Restore' : 'Remove Rule'}</Button
     >
   </Specimen>
 </Example>
 
 <Example
-  title="Reaching the stack"
+  title="Reaching the Stack"
   note="F8 moves focus to the newest toast and Escape hands it back, and a stack taller than the screen scrolls"
 >
   <Specimen label="Many toasts" code="hotkey">
@@ -100,11 +100,11 @@
       onclick={() => {
         for (const name of ['sui', 'smyklot', 'ledger', 'atlas', 'harbor', 'relay'])
           toast({
-            title: `Sync failed for ${name}`,
-            description: 'GitHub answered 502, try again in a minute',
+            title: `The ${name} sync needs another try`,
+            description: 'GitHub answered 502, so try again in a minute',
             tone: 'danger'
           });
-      }}>Sync six repositories</Button
+      }}>Sync 6 Repositories</Button
     >
   </Specimen>
 </Example>

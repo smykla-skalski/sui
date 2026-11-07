@@ -70,8 +70,8 @@ It is also the boolean of a form that a later save writes. A boolean that takes 
 once is a `Switch`, and several boxes that answer one question go in a `CheckList`.
 
 As the control of a `SettingRow` or a `Field layout="row"`, give it the row's `id`, no label
-and `bare`. The row's label names it, its box lines up with the row's end, and it keeps a
-44px touch target without setting the row's height.
+and `bare`. The row's label names it, its box lines up with a setting row's end or leads a
+field's label, and it keeps a 44px touch target without setting the row's height.
 
 The native input lies over the box without its native paint and wears the focus ring, and
 the whole item is its label, so the item is the hit area. The label is the accessible name and
@@ -239,7 +239,7 @@ way; a busy dialog or a saving pane around it disables it while the work runs.
 
   .sui-checkbox-box {
     align-items: center;
-    background: var(--sui-input-bg);
+    background: var(--sui-control-bg);
     block-size: var(--sui-icon-md);
     border: var(--sui-stroke) solid var(--sui-border-strong);
     border-radius: var(--sui-radius-check);
@@ -285,6 +285,8 @@ way; a busy dialog or a saving pane around it disables it while the work runs.
     min-inline-size: 0;
   }
 
+  /* The copy rounds to an even height, which a browser without calc-size() cannot, so there
+     each of its lines takes the room to an even height itself. */
   .sui-checkbox-label {
     align-content: center;
     block-size: var(--sui-block-snap);
@@ -293,6 +295,7 @@ way; a busy dialog or a saving pane around it disables it while the work runs.
       var(--sui-sans);
     min-inline-size: 0;
     overflow-wrap: anywhere;
+    padding-block: var(--sui-block-snap-room-even);
     text-box: trim-both cap alphabetic;
   }
 
@@ -302,6 +305,7 @@ way; a busy dialog or a saving pane around it disables it while the work runs.
     color: var(--sui-text-secondary);
     font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-row-copy-leading)
       var(--sui-sans);
+    padding-block: var(--sui-block-snap-room-even);
     text-box: trim-both cap alphabetic;
   }
 

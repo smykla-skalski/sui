@@ -138,8 +138,8 @@
   <Specimen label="Dialog" code="preview">
     <Modal
       preview
-      title="Edit webhook"
-      description="Smyklot posts every event you pick to this address"
+      title="Edit Webhook"
+      description="Smyklot posts every event you choose to this address"
     >
       <Field label="Payload address">
         {#snippet control({ id, describedby })}
@@ -155,7 +155,7 @@
       <SegmentedControl label="Events" options={eventOptions} value="push" />
       {#snippet footer()}
         <Button>Cancel</Button>
-        <Button tone="signal">Save webhook</Button>
+        <Button tone="signal">Save Webhook</Button>
       {/snippet}
     </Modal>
   </Specimen>
@@ -163,20 +163,22 @@
     <Modal
       preview
       size="inspector"
-      title="Edit run settings"
+      title="Edit Run Settings"
       description="Applies to every run of smyklot from the next push"
     >
-      <Field label="Branch" value="main" />
+      <Field label="Branch" spellcheck="false" autocapitalize="off" value="main" />
       <Field
         label="Timeout in minutes"
-        type="number"
+        inputmode="numeric"
+        pattern="[1-9][0-9]*"
+        validationMessage="Enter the minutes as a whole number from 1"
         value="30"
-        hint="A run that takes longer is stopped and marked failed"
+        hint="The runner stops a longer run and marks it failed"
       />
       <CheckList label="Run on" options={triggerOptions} value={['push', 'pull']} />
       {#snippet footer()}
         <Button>Cancel</Button>
-        <Button tone="signal">Save settings</Button>
+        <Button tone="signal">Save Settings</Button>
       {/snippet}
     </Modal>
   </Specimen>
@@ -184,7 +186,7 @@
     <Modal
       preview
       size="wide"
-      title="Write release notes"
+      title="Write Release Notes"
       description="Shown on the release page and in the changelog for 0.3.0"
     >
       <Field label="Release notes">
@@ -200,7 +202,7 @@
       </Field>
       {#snippet footer()}
         <Button>Cancel</Button>
-        <Button tone="signal">Save notes</Button>
+        <Button tone="signal">Save Notes</Button>
       {/snippet}
     </Modal>
   </Specimen>
@@ -216,27 +218,27 @@
     <Modal
       preview
       busy
-      title="Rename repository"
+      title="Rename Repository"
       description="Links to the old name redirect for a year"
     >
       <Field label="Name" value="smyklot-next" />
       {#snippet footer()}
         <Button>Cancel</Button>
-        <Button tone="signal" loading>Rename repository</Button>
+        <Button tone="signal" loading>Rename Repository</Button>
       {/snippet}
     </Modal>
   </Specimen>
   <Specimen label="Save failed" code="error preview">
     <Modal
       preview
-      title="Rename repository"
+      title="Rename Repository"
       description="Links to the old name redirect for a year"
-      error="Another repository in this workspace already has that name"
+      error="Another repository in this workspace has that name, so choose another"
     >
       <Field label="Name" value="smyklot" />
       {#snippet footer()}
         <Button>Cancel</Button>
-        <Button tone="signal">Rename repository</Button>
+        <Button tone="signal">Rename Repository</Button>
       {/snippet}
     </Modal>
   </Specimen>
@@ -247,25 +249,25 @@
   note="Each size opens over a scrim on a copy of its record, and only Save writes the copy back"
 >
   <Specimen label="Dialog" code="bind:open">
-    <Button onclick={editWebhook}>Edit webhook</Button>
+    <Button onclick={editWebhook}>Edit Webhook</Button>
   </Specimen>
   <Specimen label="Inspector" code={'size="inspector"'}>
-    <Button onclick={editRun}>Edit run settings</Button>
+    <Button onclick={editRun}>Edit Run Settings</Button>
   </Specimen>
   <Specimen label="Wide" code={'size="wide"'}>
-    <Button onclick={writeNotes}>Write release notes</Button>
+    <Button onclick={writeNotes}>Write Release Notes</Button>
   </Specimen>
 </Example>
 
 <Example
-  title="Guarded close"
+  title="Guarded Close"
   note="Escape, the close button and a press outside ask before throwing away a note, and close a blank one at once"
 >
   <Specimen label="Guarded" code="beforeClose">
-    <Button onclick={() => (guarded = true)}>Write a note</Button>
+    <Button onclick={() => (guarded = true)}>Write a Note</Button>
   </Specimen>
   <Specimen label="Failing save" code="busy error">
-    <Button onclick={rename}>Rename repository</Button>
+    <Button onclick={rename}>Rename Repository</Button>
   </Specimen>
 </Example>
 
@@ -275,8 +277,8 @@
     () => !same(webhookDraft, webhook),
     () => (webhookOpen = false)
   )}
-  title="Edit webhook"
-  description="Smyklot posts every event you pick to this address"
+  title="Edit Webhook"
+  description="Smyklot posts every event you choose to this address"
 >
   <form id="sink-webhook" class="form" onsubmit={saveWebhook}>
     <Field label="Payload address">
@@ -295,7 +297,7 @@
   </form>
   {#snippet footer()}
     <Button onclick={() => (webhookOpen = false)}>Cancel</Button>
-    <Button tone="signal" type="submit" form="sink-webhook">Save webhook</Button>
+    <Button tone="signal" type="submit" form="sink-webhook">Save Webhook</Button>
   {/snippet}
 </Modal>
 
@@ -306,23 +308,24 @@
     () => (runOpen = false)
   )}
   size="inspector"
-  title="Edit run settings"
+  title="Edit Run Settings"
   description="Applies to every run of smyklot from the next push"
 >
   <form id="sink-run" class="form" onsubmit={saveRun}>
-    <Field label="Branch" bind:value={runDraft.branch} />
+    <Field label="Branch" spellcheck="false" autocapitalize="off" bind:value={runDraft.branch} />
     <Field
       label="Timeout in minutes"
-      type="number"
-      min="1"
+      inputmode="numeric"
+      pattern="[1-9][0-9]*"
+      validationMessage="Enter the minutes as a whole number from 1"
       bind:value={runDraft.timeout}
-      hint="A run that takes longer is stopped and marked failed"
+      hint="The runner stops a longer run and marks it failed"
     />
     <CheckList label="Run on" options={triggerOptions} bind:value={runDraft.triggers} />
   </form>
   {#snippet footer()}
     <Button onclick={() => (runOpen = false)}>Cancel</Button>
-    <Button tone="signal" type="submit" form="sink-run">Save settings</Button>
+    <Button tone="signal" type="submit" form="sink-run">Save Settings</Button>
   {/snippet}
 </Modal>
 
@@ -333,7 +336,7 @@
     () => (notesOpen = false)
   )}
   size="wide"
-  title="Write release notes"
+  title="Write Release Notes"
   description="Shown on the release page and in the changelog for 0.3.0"
 >
   <form id="sink-notes" class="form" onsubmit={saveNotes}>
@@ -344,7 +347,7 @@
           aria-describedby={describedby}
           {invalid}
           rows={12}
-          placeholder="What changed, and what a reader has to do about it…"
+          placeholder="Renames the sync setting, so update your config…"
           bind:value={notesDraft}
         />
       {/snippet}
@@ -352,13 +355,13 @@
   </form>
   {#snippet footer()}
     <Button onclick={() => (notesOpen = false)}>Cancel</Button>
-    <Button tone="signal" type="submit" form="sink-notes">Save notes</Button>
+    <Button tone="signal" type="submit" form="sink-notes">Save Notes</Button>
   {/snippet}
 </Modal>
 
 <Modal
   bind:open={guarded}
-  title="Write a note"
+  title="Write a Note"
   beforeClose={guard(
     () => note.trim() !== '',
     () => {
@@ -368,16 +371,16 @@
   )}
 >
   <form id="sink-note" class="form" onsubmit={keepNote}>
-    <Field label="Note" bind:value={note} placeholder="Type something, then press Escape" />
+    <Field label="Note" bind:value={note} placeholder="Thanks for the review…" />
   </form>
   {#snippet footer()}
     <Button
       onclick={() => {
         note = '';
         guarded = false;
-      }}>Discard note</Button
+      }}>Discard Note</Button
     >
-    <Button tone="signal" type="submit" form="sink-note">Keep note</Button>
+    <Button tone="signal" type="submit" form="sink-note">Keep Note</Button>
   {/snippet}
 </Modal>
 
@@ -390,7 +393,7 @@
       renaming = false;
     }
   )}
-  title="Rename repository"
+  title="Rename Repository"
   description="Links to the old name redirect for a year"
   busy={renameBusy}
   error={renameError}
@@ -401,7 +404,7 @@
   {#snippet footer()}
     <Button disabled={renameBusy} onclick={() => (renaming = false)}>Cancel</Button>
     <Button tone="signal" type="submit" form="sink-rename" loading={renameBusy}
-      >Rename repository</Button
+      >Rename Repository</Button
     >
   {/snippet}
 </Modal>
@@ -413,9 +416,9 @@
       if (!next) leaving = null;
     }
   }
-  title="Discard your changes?"
+  title="Discard Your Changes?"
   consequence="What you changed is gone once the dialog closes"
-  confirmLabel="Discard changes"
+  confirmLabel="Discard Changes"
   tone="stop"
   onconfirm={() => leaving?.()}
 />

@@ -7,6 +7,7 @@
 </script>
 
 <script lang="ts">
+  import { clock } from '../kit/format.js';
   import { Section, Switch } from '#lib';
   import Example from '../kit/Example.svelte';
   import Specimen from '../kit/Specimen.svelte';
@@ -17,7 +18,7 @@
   const switches = {
     Off: {
       label: 'Archive old runs',
-      reason: 'The workspace keeps every run for 90 days',
+      reason: 'The workspace keeps every run for 90\u00a0days',
       id: 'sink-switch-archive-reason'
     },
     On: {
@@ -46,7 +47,7 @@
 
 <Example
   title="States"
-  note="Off and on, each with its label and a 44px tap box, and a locked switch says beside it why"
+  note="Off and on, each with its label and a 44 px tap box, and a locked switch says beside it why"
 >
   <Variants
     rows={states}
@@ -89,8 +90,8 @@
 </Example>
 
 <Example
-  title="Keyboard focus"
-  note="Tab to a switch and press Space to flip it, and the ring sits 2px off the track"
+  title="Keyboard Focus"
+  note="Tab to a switch and press Space to flip it, and the ring sits 2 px off the track"
 >
   <Specimen label="Off">
     <Switch label="Require reviews" />
@@ -98,32 +99,29 @@
 </Example>
 
 <Example
-  title="In a section head"
-  note="A bare switch keeps its 44px hit area as paint, so the head keeps its own rhythm"
+  title="In a Section Head"
+  note="A bare switch keeps its 44 px hit area as paint, so the head keeps its own rhythm"
   layout="grid"
   ground="canvas"
 >
   <Specimen label="Bare" code="bare">
-    <Section title="Scheduled syncs" level={4}>
+    <Section title="Scheduled Syncs" level={4}>
       {#snippet actions()}
         <Switch aria-label="Run scheduled syncs" bare bind:checked={scheduled} />
       {/snippet}
-      <p class="copy">Every repository syncs at 02:00 in its own time zone</p>
+      <p class="copy">Every repository syncs at {clock(2)} in its own time zone</p>
     </Section>
   </Specimen>
 </Example>
 
 <Example
-  title="Narrow width"
-  note="A long label wraps beside the track and the two stay centred"
+  title="Narrow Width"
+  note="A long label wraps beside the track and both stay centred"
   layout="stack"
 >
   <Specimen label="Wrapped label">
     <div class="narrow">
-      <Switch
-        label="Close every stale pull request that has had no activity for thirty days"
-        checked
-      />
+      <Switch label="Close every stale pull request that has had no activity for 30 days" checked />
     </div>
   </Specimen>
 </Example>
@@ -142,6 +140,7 @@
     font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-row-copy-leading)
       var(--sui-sans);
     margin: 0;
+    padding-block: var(--sui-block-snap-room);
     text-box: trim-both cap alphabetic;
   }
 

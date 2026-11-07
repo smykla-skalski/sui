@@ -9,7 +9,7 @@
   import type { HTMLAttributes, HTMLInputAttributes } from 'svelte/elements';
   import Icon from '../icons/Icon.svelte';
   import JoinedField from '../internal/JoinedField.svelte';
-  import { pageLocale } from '../internal/locale.js';
+  import { formatLocale } from '../internal/locale.js';
   import { setRefusals } from '../internal/refusals.svelte.js';
   import Select from './Select.svelte';
   import TextInput from './TextInput.svelte';
@@ -32,7 +32,7 @@
     name,
     durationName = word(
       'DurationInput.durationName',
-      (amount: string, unit: string) => `${amount}${mark('space')}${unit}`
+      (amount: string, unit: string) => `${amount}${mark('unit')}${unit}`
     ),
     unitLabel = word('DurationInput.unitLabel', (unit: DurationUnit, amount: number) =>
       amount === 1 ? unit.slice(0, -1) : unit
@@ -101,17 +101,19 @@
     'value' | 'type' | 'min' | 'max' | 'disabled' | 'class' | 'name' | 'onchange'
   > = $props();
 
-  /* Amounts read and print in the page's language, so "1,5" is a minute and a half where the
+  /* Amounts read and print in the reader's format, so "1,5" is a minute and a half where the
      comma is the decimal mark. A full stop there is a group mark, which an amount never needs,
      so it is refused rather than read as something else. */
-  const locale = pageLocale();
+  const locale = formatLocale();
   const decimal =
     new Intl.NumberFormat(locale).formatToParts(1.5).find((part) => part.type === 'decimal')
       ?.value ?? '.';
   const numbers = new Intl.NumberFormat(locale, { useGrouping: false, maximumFractionDigits: 20 });
+  // The page's own digits, such as Arabic-Indic ones, which `Number` reads only in Latin.
+  const digits = new Map(Array.from({ length: 10 }, (_, at) => [numbers.format(at), String(at)]));
 
   function read(text: string): number {
-    const trimmed = text.trim();
+    const trimmed = Array.from(text.trim(), (char) => digits.get(char) ?? char).join('');
     if (decimal !== '.' && trimmed.includes('.')) return Number.NaN;
     return Number(decimal === '.' ? trimmed : trimmed.replace(decimal, '.'));
   }
@@ -361,7 +363,7 @@ land on the amount.
   .sui-duration-hint,
   .sui-duration-problem {
     contain: inline-size;
-    font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-row-copy-leading)
+    font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-leading-note)
       var(--sui-sans);
     justify-self: stretch;
     margin: 0;
@@ -373,6 +375,7 @@ land on the amount.
     block-size: var(--sui-block-snap);
     min-inline-size: 0;
     overflow-wrap: anywhere;
+    padding-block: var(--sui-block-snap-room);
     text-box: trim-both cap alphabetic;
   }
 
@@ -385,6 +388,7 @@ land on the amount.
     color: var(--sui-danger);
     column-gap: var(--sui-space-1);
     display: grid;
+    font-weight: var(--sui-weight-medium);
     grid-template-columns: auto minmax(0, 1fr);
   }
 

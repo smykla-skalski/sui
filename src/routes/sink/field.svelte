@@ -32,9 +32,11 @@
   title="States"
   note="Rest, filled with a hint, invalid with its error and disabled with its reason"
   layout="grid"
+  --specimen-min="21rem"
+  --specimen-max="22rem"
 >
   <Specimen label="Rest" code="placeholder">
-    <Field label="Project name" placeholder="your-project" bind:value={project} />
+    <Field label="Project name" placeholder="acme-web…" bind:value={project} />
   </Specimen>
   <Specimen label="Filled, with a hint" code="hint">
     <Field
@@ -54,6 +56,8 @@
   <Specimen label="Disabled" code="disabled">
     <Field
       label="Default branch"
+      spellcheck="false"
+      autocapitalize="off"
       hint="Only an owner can rename the default branch"
       value="main"
       disabled
@@ -65,9 +69,18 @@
   title="Required"
   note="A required field says so in a word beside its label, and an optional one says nothing"
   layout="grid"
+  --specimen-min="21rem"
+  --specimen-max="22rem"
 >
   <Specimen label="Required" code="required">
-    <Field label="Repository name" required placeholder="your-project" bind:value={repository} />
+    <Field
+      label="Repository name"
+      spellcheck="false"
+      autocapitalize="off"
+      required
+      placeholder="acme-web…"
+      bind:value={repository}
+    />
   </Specimen>
   <Specimen label="Optional">
     <Field label="Description" hint="Shown under the name in every list" bind:value={summary} />
@@ -75,9 +88,11 @@
 </Example>
 
 <Example
-  title="Any control"
+  title="Any Control"
   note="The control snippet takes the id, the description ids and the invalid flag"
   layout="grid"
+  --specimen-min="21rem"
+  --specimen-max="40rem"
 >
   <Specimen label="Textarea" code="control">
     <Field label="Reason" hint="Shown in the audit log next to the change">
@@ -86,7 +101,7 @@
           {id}
           aria-describedby={describedby}
           {invalid}
-          placeholder="Explain the change…"
+          placeholder="Moves the retry into the queue…"
           bind:value={reason}
         />
       {/snippet}
@@ -95,9 +110,11 @@
 </Example>
 
 <Example
-  title="Label beside a checkbox"
-  note="A row layout centres the label and a form's checkbox on one line, and the label names the box"
+  title="Label beside a Checkbox"
+  note="A row layout centres the label and a form’s checkbox on one line, and the label names the box"
   layout="grid"
+  --specimen-min="21rem"
+  --specimen-max="22rem"
 >
   <Specimen label="Checked" code={'layout="row"'}>
     <Field label="Sync on every push" layout="row" hint="Runs within a minute of each push">
@@ -120,57 +137,76 @@
 </Example>
 
 <Example
-  title="Refused send"
-  note="A refused send shows each field's own error in place of the browser's bubble and focuses the first field to fix"
+  title="Refused Send"
+  note="A refused send shows each field’s own error in place of the browser’s bubble and focuses the first field to fix"
   layout="grid"
+  --specimen-min="21rem"
+  --specimen-max="22rem"
 >
   <Specimen label={sent} code="required pattern validationMessage">
     <form class="form" onsubmit={send}>
       <Field
         label="Repository name"
+        spellcheck="false"
+        autocapitalize="off"
         name="repository"
         required
         pattern="[a-z0-9\-]+"
         validationMessage="Enter a name of lowercase letters, digits and dashes"
-        placeholder="your-project"
+        placeholder="acme-web…"
       />
       <Field
         label="Contact email"
         name="contact"
         type="email"
+        autocomplete="email"
         required
         validationMessage="Enter an email address such as you@example.com"
-        placeholder="you@example.com"
+        placeholder="jane@example.com…"
       />
-      <Button type="submit">Create the repository</Button>
+      <Button type="submit" tone="signal">Create the Repository</Button>
     </form>
   </Specimen>
 </Example>
 
 <Example
-  title="In context"
-  note="Fields stack 16px apart, and a focused field's own border becomes the ring, so nothing around it clips it"
+  title="In Context"
+  note="Fields stack 16 px apart, and a focused field’s own border becomes the ring, so nothing around it clips it"
   layout="grid"
+  --specimen-min="21rem"
+  --specimen-max="22rem"
   ground="canvas"
 >
-  <Section title="New repository" level={4}>
+  <Section title="New Repository" level={4}>
     <div class="form">
-      <Field label="Repository name" required placeholder="your-project" />
-      <Field label="Contact email" type="email" required placeholder="you@example.com" />
+      <Field
+        label="Repository name"
+        spellcheck="false"
+        autocapitalize="off"
+        required
+        placeholder="acme-web…"
+      />
+      <Field
+        label="Contact email"
+        type="email"
+        autocomplete="email"
+        required
+        placeholder="jane@example.com…"
+      />
     </div>
   </Section>
 </Example>
 
 <Example
-  title="Narrow width"
-  note="Long labels, hints and errors wrap and keep the same 8px gap between lines"
+  title="Narrow Width"
+  note="Long labels, hints and errors wrap and keep the same 8 px gap between lines"
   layout="stack"
 >
-  <Specimen label="Wrapped label, hint and error">
+  <Specimen label="Wrapped label, hint & error">
     <div class="narrow">
       <Field
         label="The address that hears about every scheduled sync that fails on any repository"
-        hint="One address only, and it can be a shared team inbox that several people read"
+        hint="1 address only, and it can be a shared team inbox that several people read"
         error="This address bounced the last message, so check it before you save"
         value="alerts@example"
       />

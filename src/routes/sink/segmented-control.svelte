@@ -1,7 +1,7 @@
 <script module lang="ts">
   export const section = {
-    title: 'Segmented control',
-    lead: 'One choice from two to five options that all show at once. Six or more belong in a Select, and answers that need a sentence are ChoiceCards.',
+    title: 'Segmented Control',
+    lead: 'One choice from 2 to 5 options that all show at once. A Select holds 6 or more, and answers that need a sentence are ChoiceCards.',
     components: ['SegmentedControl']
   };
 </script>
@@ -41,12 +41,12 @@
 
 <Example
   title="Options"
-  note="Two to five options, with a thumb as wide as the chosen one that a drag can move"
+  note="2 to 5 options, with a thumb as wide as the chosen one that a drag can move"
 >
   <Specimen label="Words" code="options">
     <SegmentedControl label="Time range" options={range} bind:value={span} />
   </Specimen>
-  <Specimen label="Icons and counts" code="icon count">
+  <Specimen label="Icons & counts" code="icon count">
     <SegmentedControl label="People" options={people} bind:value={tab} />
   </Specimen>
 </Example>
@@ -108,7 +108,7 @@
 
 <Example
   title="Tiers"
-  note="34px by default and 44px on phones, and a surface may opt into 40px through one custom property"
+  note="34 px by default and 44 px on phones, and a surface may opt into 40 px through 1 custom property"
 >
   <Specimen label="Default" code="--sui-control-height-compact">
     <SegmentedControl label="Time range" options={range} value="month" />
@@ -121,7 +121,7 @@
 </Example>
 
 <Example
-  title="Narrow width"
+  title="Narrow Width"
   note="Short of room, the same choice becomes a native select, with icons dropped and counts in brackets"
 >
   <Specimen label="Words as a select">
@@ -161,6 +161,7 @@
     color: var(--sui-text-secondary);
     font: var(--sui-weight-semibold) var(--sui-font-size-control) / var(--sui-leading-flat)
       var(--sui-sans);
+    padding-block: var(--sui-block-snap-room);
     text-box: trim-both cap alphabetic;
   }
 
@@ -178,6 +179,7 @@
     font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-row-copy-leading)
       var(--sui-sans);
     margin: 0;
+    padding-block: var(--sui-block-snap-room);
     text-box: trim-both cap alphabetic;
   }
 </style>

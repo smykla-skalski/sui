@@ -1,7 +1,7 @@
 <script module lang="ts">
   export const section = {
     title: 'Tabs',
-    lead: "Links between the pages of one place, such as a repository's overview, runs and settings. Views that swap inside one page are a SegmentedControl.",
+    lead: 'Links between the pages of one place, such as a repository’s overview, runs and settings. Views that swap inside one page are a SegmentedControl.',
     components: ['Tabs']
   };
 </script>
@@ -34,7 +34,7 @@
 </script>
 
 <Example
-  title="Current tab"
+  title="Current Tab"
   note="The page being shown wears the brand underline and is announced as the current page"
   layout="stack"
 >
@@ -45,7 +45,7 @@
 
 <Example
   title="Counts"
-  note="A count rides its label in tabular figures, grouped the way the page's language writes numbers"
+  note="A count rides its label in tabular figures, grouped the way the page’s language writes numbers"
   layout="stack"
 >
   <Specimen label="With counts" code="count">
@@ -54,7 +54,7 @@
 </Example>
 
 <Example
-  title="Narrow width"
+  title="Narrow Width"
   note="Short of room, the row scrolls in its own track, fades an edge with more tabs past it and starts on the current tab"
   layout="stack"
 >

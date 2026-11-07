@@ -138,9 +138,13 @@
    */
   export function watchOverflow(report: (scrolls: boolean) => void): Attachment<HTMLElement> {
     return (box) => {
-      const observer = new ResizeObserver(() => report(box.scrollWidth > box.clientWidth));
+      const check = () => report(box.scrollWidth > box.clientWidth);
+      const observer = new ResizeObserver(check);
       observer.observe(box);
       if (box.firstElementChild) observer.observe(box.firstElementChild);
+      // A row that skips off the screen silences the observer from its first frame, so one
+      // read lands first; every block reads in the same task, after the page is written.
+      queueMicrotask(check);
       return () => observer.disconnect();
     };
   }
@@ -160,7 +164,7 @@
     copy = true,
     bare = false,
     regionLabel = word('CodeBlock.regionLabel', 'Code'),
-    copyLabel = word('CodeBlock.copyLabel', 'Copy code'),
+    copyLabel = word('CodeBlock.copyLabel', 'Copy Code'),
     class: className = '',
     ...rest
   }: {
@@ -188,7 +192,7 @@
 
 <!--
 @component
-A read-only code window: mono at 13px on the inset ground, colored by the language's own
+A read-only code window: mono at 14px on the inset ground, colored by the language's own
 tokens, with long lines scrolling sideways inside the block rather than widening the page.
 A block that scrolls can take keyboard focus, so it can be scrolled without a pointer.
 
@@ -219,12 +223,13 @@ from the corner and centred on the first line, or in the file name's row when th
 
 <figure {...rest} class={['sui-code-block', { bare, labelled: label !== undefined }, className]}>
   {#if label !== undefined}
-    <figcaption class="sui-code-block-label">{label}</figcaption>
+    <figcaption class="sui-code-block-label" translate="no">{label}</figcaption>
     {#if copy}{@render copier()}{/if}
   {/if}
   <!-- A block that scrolls sideways must be reachable by keyboard to be scrolled. -->
   <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
   <pre
+    translate="no"
     {@attach watchOverflow((value) => (scrolls = value))}
     class="sui-code-block-scroll sui-scroll-edge"
     style:--sui-local-code-digits={String(lines.length).length}

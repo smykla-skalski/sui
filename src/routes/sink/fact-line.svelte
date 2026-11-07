@@ -1,6 +1,6 @@
 <script module lang="ts">
   export const section = {
-    title: 'Fact line',
+    title: 'Fact Line',
     lead: 'Facts on one line parted by a drawn middle dot. Facts that each need a label are a FactList.',
     components: ['FactLine']
   };
@@ -14,7 +14,7 @@
   const synced = new Date(Date.now() - 42.5 * 60_000).toISOString();
 </script>
 
-<Example title="Facts" note="The dot stands 9px from each fact and is read as a comma">
+<Example title="Facts" note="The dot stands 9 px from each fact and is read as a comma">
   <Specimen label="Words" code="children">
     <FactLine><span>Default branch main</span><span>84 files up to date</span></FactLine>
   </Specimen>
@@ -26,7 +26,7 @@
   </Specimen>
 </Example>
 
-<Example title="Narrow width" note="A long line wraps after a dot, never before one" layout="stack">
+<Example title="Narrow Width" note="A long line wraps after a dot, never before one" layout="stack">
   <Specimen label="Wrapping" code="children">
     <div class="narrow">
       <FactLine

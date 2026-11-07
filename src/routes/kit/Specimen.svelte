@@ -45,7 +45,7 @@
       {#if label}<span class="label">{label}</span>{:else}<span class="label" aria-hidden="true"
           >&nbsp;</span
         >{/if}
-      {#if code}{@const props = propsOf(code)}<code
+      {#if code}{@const props = propsOf(code)}<code translate="no"
           >{#each props as prop, index (index)}<span
               >{index < props.length - 1 ? `${prop} ` : prop}</span
             >{/each}</code
@@ -64,7 +64,7 @@
   .specimen {
     align-content: space-between;
     display: grid;
-    gap: var(--sui-space-3);
+    gap: var(--sui-space-4);
     grid-row: span 2;
     grid-template-rows: subgrid;
     margin: 0;
@@ -77,6 +77,11 @@
     display: grid;
     grid-template-columns: minmax(0, 1fr);
     min-inline-size: 0;
+  }
+
+  /* A chart fills its body, so charts on one line share their foot as well as their top. */
+  .body:has(> :global(.sui-chart)) {
+    align-content: stretch;
   }
 
   /* What the specimen shows takes the inset a stacked stage lends, as a card lends its own. */
@@ -97,6 +102,7 @@
     color: var(--sui-text-secondary);
     font: var(--sui-weight-medium) var(--sui-font-size-compact) / var(--sui-leading-compact)
       var(--sui-sans);
+    padding-block: var(--sui-block-snap-room);
     text-box: trim-both cap alphabetic;
   }
 
@@ -118,6 +124,7 @@
     block-size: var(--sui-block-snap);
     min-inline-size: 0;
     overflow-wrap: anywhere;
+    padding-block: var(--sui-block-snap-room);
     text-box: trim-both cap alphabetic;
     white-space: pre-wrap;
   }

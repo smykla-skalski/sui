@@ -77,7 +77,10 @@ test('L-2 every token read is declared and every declared token is read', () => 
   const local = new Set([
     ...[...sources.matchAll(/@property\s+(--sui-[a-z0-9-]+)/g)].map((m) => m[1]),
     ...[...sources.matchAll(/style:(--sui-[a-z0-9-]+)/g)].map((m) => m[1]),
-    ...[...sources.matchAll(/setProperty\(\s*'(--sui-[a-z0-9-]+)'/g)].map((m) => m[1]),
+    // `publish` is the anchor's write that skips a value already there.
+    ...[...sources.matchAll(/(?:setProperty|publish)\(\s*(?:\w+,\s*)?'(--sui-[a-z0-9-]+)'/g)].map(
+      (m) => m[1]
+    ),
     ...[
       ...Object.values(styles)
         .join('\n')
@@ -195,10 +198,175 @@ test('L-21 sizes and leading come from the scale and land on whole pixels', () =
     );
 });
 
+const PHONE = '@media (max-width: 47.9375rem)';
+const pixels = (/** @type {string} */ rem) => parseFloat(rem) * 16;
+
+test('L-24 a title stands 12px above its description, copy lines 8px apart, form notes 20px', () => {
+  const gaps = tokenMap(stripComments(palette));
+  assert.deepEqual(
+    {
+      copy: pixels(gaps['--sui-row-copy-gap']),
+      title: pixels(gaps['--sui-title-copy-gap']),
+      note: pixels(gaps['--sui-leading-note'])
+    },
+    { copy: 8, title: 12, note: 20 }
+  );
+  // A control's help and error lines, not a whole state's or form's error, nor a setting row's
+  // problem, which is a line of the row's copy.
+  const dense = globSync('src/lib/components/*.svelte').flatMap((path) =>
+    [...stripComments(read(path)).matchAll(/\n {2}([^\n{}]+)\{([^}]*)\}/g)]
+      .filter(
+        ([, selector, body]) =>
+          /-(help|error|hint|problem)\b/.test(selector) &&
+          !/error-state|form-error|problem-words|setting-problem/.test(selector) &&
+          /font:[^;]*--sui-row-copy-leading/.test(body)
+      )
+      .map(([, selector]) => `${path} ${selector.trim()}`)
+  );
+  assert.deepEqual(dense, []);
+});
+
+test('L-66 a chart grid draws halfway to a control edge, and every legend at one size', () => {
+  const grids = [...stripComments(palette).matchAll(/--sui-chart-grid:\s*([^;]+);/g)].map((match) =>
+    match[1].trim()
+  );
+  assert.ok(grids.length > 0);
+  assert.deepEqual(
+    new Set(grids),
+    new Set(['color-mix(in srgb, var(--sui-border-subtle) 50%, var(--sui-border-control))'])
+  );
+  const legends = Object.entries(styles)
+    .filter(([path]) => path.includes('/charts/'))
+    .flatMap(([path, css]) =>
+      [...stripComments(css).matchAll(/^\s*\.legend\s*\{[^}]*?font:\s*([^;]+);/gm)].map(
+        ([, font]) => `${path.split('/').pop()}: ${font.replace(/\s+/g, ' ').trim()}`
+      )
+    );
+  assert.ok(legends.length >= 3, legends.join('\n'));
+  assert.deepEqual(
+    legends.filter((rule) => !rule.includes('var(--sui-font-size-meta) / var(--sui-leading-meta)')),
+    []
+  );
+});
+
+test('L-107 a scroll edge fades over 24px, and over 20px on a phone', () => {
+  const sheet = stripComments(read('src/lib/internal/scroll-edge.css'));
+  const space = tokenMap(stripComments(palette));
+  const fades = [...sheet.matchAll(/--sui-local-edge-fade:\s*var\((--sui-space-\d+)\)/g)].map(
+    ([, token]) => pixels(space[token])
+  );
+  assert.deepEqual(fades, [24, 20]);
+  assert.match(
+    sheet,
+    /@media \(max-width: 29\.9375rem\) \{\s*\.sui-scroll-edge \{\s*--sui-local-edge-fade/
+  );
+});
+
+test('L-64 a placeholder light stops by the 10 seconds a skeleton waits to turn slow, and a waiting chart draws its grid', () => {
+  const wait = /\.sui-chart-wait\s*\{[^}]*\}/.exec(
+    stripComments(styles['src/lib/charts/ChartFrame.svelte'])
+  )?.[0];
+  assert.deepEqual(
+    [...(wait ?? '').matchAll(/var\(--sui-local-wait-line\) 0 (\d+)%/g)].map(([, at]) => at),
+    ['25', '50', '75']
+  );
+  assert.match(wait ?? '', /--sui-local-wait-line:\s*linear-gradient\(var\(--sui-chart-grid\)/);
+  const tokens = tokenMap(stripComments(palette));
+  const patience = /patience = ([\d_]+)/.exec(read('src/lib/components/Skeleton.svelte'))?.[1];
+  assert.equal(
+    Number(tokens['--sui-placeholder-runs']) * parseFloat(tokens['--sui-duration-shimmer']),
+    Number(patience?.replaceAll('_', ''))
+  );
+  for (const path of ['src/lib/components/DataTable.svelte', 'src/lib/charts/ChartFrame.svelte']) {
+    const sheens = [
+      ...stripComments(styles[path]).matchAll(/animation:\s*sui-[\w-]+-sheen\b[^;]*/g)
+    ].map(([rule]) => rule.replace(/\s+/g, ' '));
+    assert.ok(sheens.length > 0, path);
+    for (const rule of sheens) assert.match(rule, /var\(--sui-placeholder-runs\) both$/, path);
+  }
+});
+
+test('L-59 a state panel pads 24px and stands its action 20px under its words', () => {
+  const space = tokenMap(stripComments(palette));
+  for (const name of ['empty', 'error']) {
+    const path = `src/lib/components/${name[0].toUpperCase()}${name.slice(1)}State.svelte`;
+    const rule = new RegExp(`\\.sui-${name}-state \\{([^}]*)\\}`).exec(
+      stripComments(styles[path])
+    )?.[1];
+    const length = (/** @type {string} */ property) =>
+      pixels(
+        space[
+          new RegExp(`\\b${property}:\\s*var\\((--sui-space-\\d+)\\)`).exec(rule ?? '')?.[1] ?? ''
+        ]
+      );
+    assert.deepEqual(
+      { padding: length('padding'), gap: length('gap') },
+      { padding: 24, gap: 20 },
+      path
+    );
+  }
+});
+
+test('L-5 the quiet inks stay easy to read on the dark canvas, under the current row', () => {
+  const values = tokenMap(stripComments(palette));
+  const resolve = (/** @type {string} */ value) => {
+    let at = value;
+    while (at?.startsWith('var(')) at = values[/var\((--[\w-]+)\)/.exec(at)?.[1] ?? ''];
+    return at;
+  };
+  const luminance = (/** @type {string} */ hex) => {
+    const [r, g, b] = [1, 3, 5]
+      .map((at) => parseInt(hex.slice(at, at + 2), 16) / 255)
+      .map((c) => (c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4));
+    return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+  };
+  const ratio = (/** @type {string} */ a, /** @type {string} */ b) => {
+    const [high, low] = [luminance(resolve(a)), luminance(resolve(b))].sort((x, y) => y - x);
+    return (high + 0.05) / (low + 0.05);
+  };
+  const canvas = dark['--sui-canvas'];
+  assert.ok(ratio(dark['--sui-text-muted'], canvas) >= 8, 'dark muted ink under 8:1');
+  assert.ok(ratio(dark['--sui-text-secondary'], canvas) >= 10, 'dark secondary ink under 10:1');
+  assert.ok(
+    ratio(dark['--sui-text-current'], dark['--sui-text-muted']) >= 2,
+    'the current row stands under 2:1 from the rest rows'
+  );
+});
+
+test('L-25 the type tiers keep the sizes the law names', () => {
+  const sizes = tokenMap(stripComments(palette.slice(0, palette.indexOf(PHONE))));
+  const tier = (/** @type {string} */ name) => pixels(sizes[`--sui-font-size-${name}`]);
+  assert.deepEqual(
+    {
+      pageTitle: tier('page-title'),
+      dialogTitle: tier('dialog-title'),
+      cardTitle: tier('card-title'),
+      body: tier('body'),
+      control: tier('control')
+    },
+    { pageTitle: 32, dialogTitle: 20, cardTitle: 17, body: 15, control: 14 }
+  );
+  const all = { ...sizes, ...tokenMap(stripComments(palette.slice(palette.indexOf(PHONE)))) };
+  const small = Object.entries(all).filter(
+    ([name, value]) => name.startsWith('--sui-font-size-') && pixels(value) < 11
+  );
+  assert.deepEqual(small, [], 'no text is smaller than 11px');
+  assert.match(
+    styles['src/lib/components/Field.svelte'],
+    /\.sui-field-label\s*\{[^}]*font: var\(--sui-weight-semibold\) var\(--sui-font-size-control\)/
+  );
+  assert.match(
+    styles['src/lib/components/PageHeader.svelte'],
+    /font: var\(--sui-weight-bold\) var\(--sui-font-size-page-title\)/
+  );
+});
+
 test('L-22 the phone reads one step larger and types at 16px', () => {
-  const phone = palette.slice(palette.indexOf('@media (max-width: 47.9375rem)'));
-  for (const name of ['--sui-font-size-body', '--sui-leading-body', '--sui-font-size-page-title'])
+  const phone = palette.slice(palette.indexOf(PHONE));
+  for (const name of ['--sui-font-size-body', '--sui-leading-body'])
     assert.match(phone, new RegExp(`${name}:`));
+  assert.match(phone, /--sui-font-size-page-title:\s*var\(--sui-font-size-page-title-compact\);/);
+  assert.equal(pixels(tokenMap(stripComments(palette))['--sui-font-size-page-title-compact']), 24);
   assert.match(phone, /--sui-font-size-input:\s*1rem;/);
   const entry = /<textarea\b|<input\b(?![^>]*type="(?:checkbox|radio|hidden|range|color)")/;
   const typed = svelteFiles
@@ -223,6 +391,57 @@ test('L-32 spacing comes from the scale', () => {
   );
 });
 
+test('L-35 a field label and every group name wear one ink at one weight', () => {
+  const names = {
+    'src/lib/components/Field.svelte': 'sui-field-label',
+    'src/lib/components/CheckList.svelte': 'sui-check-list-legend',
+    'src/lib/components/ChoiceCards.svelte': 'sui-choice-cards-legend',
+    'src/lib/components/SegmentedControl.svelte': 'sui-segmented-caption'
+  };
+  for (const [path, name] of Object.entries(names)) {
+    const rule = new RegExp(`\\n  \\.${name} \\{([^}]*)\\}`).exec(styles[path])?.[1] ?? '';
+    assert.match(rule, /\bcolor: var\(--sui-text-primary\);/, `${name} wears another ink`);
+    assert.match(
+      rule,
+      /\bfont: var\(--sui-weight-semibold\) var\(--sui-font-size-control\)/,
+      `${name} is set in another weight or size`
+    );
+  }
+});
+
+test('L-35 every error line is set at 500, a step over its hint', () => {
+  const lines = Object.entries(styles).flatMap(([path, css]) => {
+    const rules = [...stripComments(css).matchAll(/([^{}]+)\{([^{}]*)\}/g)].map(
+      ([, head, body]) => ({ selectors: head.split(',').map((each) => each.trim()), body })
+    );
+    // A line's ink and its type can come from different rules, such as a font it shares with
+    // the hint beside it, so each danger ink is followed to the last font set on its words.
+    return rules
+      .filter(({ body }) => /(?:^|[\s;])color: var\(--sui-danger\);/.test(body))
+      .flatMap(({ selectors }) => selectors)
+      .flatMap((selector) => {
+        const words = [`${selector} > span`, selector]
+          .map((target) => rules.filter(({ selectors }) => selectors.includes(target)))
+          .find((targeting) => targeting.some(({ body }) => /\bfont(-weight)?:/.test(body)));
+        let size, weight;
+        for (const { body } of words ?? []) {
+          const font = /\bfont: var\(--sui-weight-(\w+)\) var\(--sui-font-size-(\w+)\)/.exec(body);
+          if (font) [, weight, size] = font;
+          weight = /\bfont-weight: var\(--sui-weight-(\w+)\)/.exec(body)?.[1] ?? weight;
+        }
+        return size === 'meta' ? [`${path} ${selector}: ${weight}`] : [];
+      });
+  });
+  assert.ok(
+    lines.length >= 10,
+    `only ${lines.length} error lines found, so nothing here is proved`
+  );
+  assert.deepEqual(
+    lines.filter((line) => !line.endsWith(': medium')),
+    []
+  );
+});
+
 test('L-40 a disabled control draws at the disabled opacity', () => {
   /** @type {string[]} */
   const found = [];
@@ -238,7 +457,12 @@ test('L-40 a disabled control draws at the disabled opacity', () => {
 test('L-43 a mark is as wide as what it says', () => {
   for (const name of ['Button', 'Chip', 'Pill', 'StatusPill', 'Link', 'Switch']) {
     const path = `src/lib/components/${name}.svelte`;
-    if (existsSync(path)) assert.match(styles[path], /(inline-size|width):\s*fit-content/, path);
+    if (existsSync(path))
+      assert.match(
+        styles[path],
+        /(inline-size|width):\s*(fit-content|var\(--sui-local-button-span, fit-content\))/,
+        path
+      );
   }
 });
 
@@ -258,7 +482,7 @@ test('L-53 radii come from the radius tokens', () => {
   assert.deepEqual(
     violations(({ property, value }) =>
       /^border(-[a-z-]+)?-radius$/.test(property) &&
-      !/^(var\(--sui-(radius|r)-[a-z]+\)|50%|0|inherit)$/.test(value)
+      !/^(var\(--sui-(radius|r)-[a-z-]+\)|50%|0|inherit)$/.test(value)
         ? 'radius off the scale'
         : null
     ),
@@ -555,4 +779,45 @@ test('K9 every built-in word reads through word(), so setWords can replace it', 
     if (sentence.test(read(path).replace(/\/\*[\s\S]*?\*\/|\/\/[^\n]*/g, '')))
       found.push(`${path}: a word outside word()`);
   assert.deepEqual(found, []);
+});
+
+test('L-118 the page covers the screen and its chrome wears each scheme canvas', () => {
+  const app = read('src/app.html');
+  assert.match(app, /<meta name="viewport" content="[^"]*viewport-fit=cover/);
+  for (const scheme of ['light', 'dark']) {
+    const canvas = palette.match(
+      new RegExp(`--sui-primitive-${scheme}-canvas:\\s*(#[0-9a-f]{6})`, 'i')
+    );
+    assert.ok(canvas, `the ${scheme} canvas is a hex`);
+    assert.ok(
+      app.includes(
+        `<meta name="theme-color" content="${canvas[1]}" media="(prefers-color-scheme: ${scheme})" />`
+      ),
+      `the ${scheme} theme-color is ${canvas[1]}`
+    );
+  }
+});
+
+test('L-53 a shadow that lifts a part is two layers in every palette block', () => {
+  /** @param {string} value */
+  const layers = (value) => {
+    let depth = 0;
+    let count = 1;
+    for (const char of value) {
+      if (char === '(') depth++;
+      else if (char === ')') depth--;
+      else if (char === ',' && depth === 0) count++;
+    }
+    return count;
+  };
+  const found = [
+    ...palette.matchAll(
+      /--sui-(shadow-plate|shadow-popover|shadow-dialog|segment-thumb-shadow):([^;]+);/g
+    )
+  ];
+  assert.equal(found.length, 12, 'four shadows in each of three palette blocks');
+  assert.deepEqual(
+    found.filter(([, , value]) => layers(value) < 2).map(([, name]) => name),
+    []
+  );
 });

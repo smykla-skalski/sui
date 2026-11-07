@@ -16,7 +16,7 @@
   title="Breadcrumb"
   note="The nearest ancestor is the last link, and a lone ancestor leads with a chevron so it reads as Up"
 >
-  <Specimen label="Ancestors and the page" code="items current">
+  <Specimen label="Ancestors & the page" code="items current">
     <Breadcrumb
       items={[
         { label: 'Acme', href: '#navigation' },
@@ -43,7 +43,7 @@
   </Specimen>
 </Example>
 
-<Example title="Back link" note="The way back from a page that stands inside a list">
+<Example title="Back Link" note="The way back from a page that stands inside a list">
   <Specimen label="Default" code="href label">
     <BackLink href="#navigation" label="All runs" />
   </Specimen>
@@ -70,12 +70,12 @@
   <Specimen label="Outside a sentence" code="standalone">
     <div class="links">
       <Link href="#callout" standalone>Callout</Link>
-      <Link href="#code-block" standalone>Code block</Link>
+      <Link href="#code-block" standalone>Code Block</Link>
     </div>
   </Specimen>
 </Example>
 
-<Example title="Narrow width" note="A long link wraps with its sentence" layout="stack">
+<Example title="Narrow Width" note="A long link wraps with its sentence" layout="stack">
   <Specimen label="Wrapped link">
     <p class="copy narrow">
       Before you change a default, read

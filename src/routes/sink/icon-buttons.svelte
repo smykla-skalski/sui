@@ -1,6 +1,6 @@
 <script module lang="ts">
   export const section = {
-    title: 'Icon button',
+    title: 'Icon Button',
     lead: 'A button whose glyph is the whole of it, such as close, more, delete or settings. An action that no glyph names is a Button with its word.',
     components: ['IconButton']
   };
@@ -18,8 +18,8 @@
 </script>
 
 <Example
-  title="Tiers and states"
-  note="The 28px quiet tier and the 34px toolbar tier, at rest, busy with a spinner and disabled"
+  title="Tiers & States"
+  note="The 28 px quiet tier and the 34 px toolbar tier, at rest, busy with a spinner and disabled"
 >
   <Variants
     rows={tiers}
@@ -52,7 +52,7 @@
   note="Only glyphs every reader reads the same way stand alone, and any other action is a Button with its word"
 >
   <Specimen label="Settings" code={'icon="settings"'}>
-    <IconButton icon="settings" label="Open settings" />
+    <IconButton icon="settings" label="Open Settings" />
   </Specimen>
   <Specimen label="Delete" code={'icon="trash"'}>
     <IconButton icon="trash" label="Remove the rule" />

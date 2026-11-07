@@ -81,8 +81,8 @@
           />
         {/snippet}
       </Field>
-      <Button onclick={() => (language = 'go')}>Replace the language</Button>
-      <Button onclick={() => (languageLimit = 1)}>Limit the language suggestions</Button>
+      <Button onclick={() => (language = 'go')}>Replace the Language</Button>
+      <Button onclick={() => (languageLimit = 1)}>Limit the Language Suggestions</Button>
     </div>
   </Specimen>
   <Specimen label="Free entry" code="free">
@@ -94,7 +94,7 @@
           free
           options={labels}
           bind:value={label}
-          placeholder="bug"
+          placeholder="bug…"
         />
       {/snippet}
     </Field>
@@ -107,7 +107,7 @@
           aria-describedby={describedby}
           search={findAccounts}
           bind:value={reviewer}
-          placeholder="octocat"
+          placeholder="octocat…"
         />
       {/snippet}
     </Field>
@@ -120,7 +120,7 @@
   layout="grid"
 >
   <Specimen label="Invalid" code="invalid">
-    <Field label="Primary language" error="Ruby is retired, so pick another language">
+    <Field label="Primary language" error="Ruby is retired, so choose another language">
       {#snippet control({ id, describedby, invalid })}
         <Combobox
           {id}
@@ -140,7 +140,7 @@
           aria-describedby={describedby}
           search={offline}
           bind:value={owner}
-          placeholder="octocat"
+          placeholder="octocat…"
         />
       {/snippet}
     </Field>
@@ -155,8 +155,8 @@
 </Example>
 
 <Example
-  title="In a form"
-  note="The form posts the chosen value, never its label, and a label typed in full picks its option"
+  title="In a Form"
+  note="The form posts the chosen value, never its label, and a label typed in full chooses its option"
 >
   <Specimen label={sent} code="name">
     <form class="form" onsubmit={send}>
@@ -171,7 +171,7 @@
           />
         {/snippet}
       </Field>
-      <Button type="submit">Save the runtime</Button>
+      <Button type="submit">Save the Runtime</Button>
     </form>
   </Specimen>
 </Example>

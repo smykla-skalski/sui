@@ -13,10 +13,10 @@
     retrying = false,
     empty = false,
     loadingLabel = word('SettingList.loadingLabel', 'Loading the settings…'),
-    failedTitle = word('SettingList.failedTitle', 'The settings could not load'),
-    emptyTitle = word('SettingList.emptyTitle', 'Nothing to set here'),
+    failedTitle = word('SettingList.failedTitle', 'The Settings Could Not Load'),
+    emptyTitle = word('SettingList.emptyTitle', 'Nothing to Set Here'),
     emptyDescription = word('SettingList.emptyDescription', 'This part has no settings of its own'),
-    emptyStep = word('SettingList.emptyStep', 'Settings show here once there are any'),
+    emptyStep = word('SettingList.emptyStep', 'Check back once this part has settings'),
     class: className = '',
     children,
     ...rest

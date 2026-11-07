@@ -245,7 +245,7 @@ or removed empty line. Two empty sides say `emptyLabel`.
 <figure {...rest} class={['sui-diff-block', className]}>
   {#if label !== undefined || labels}
     <figcaption class="sui-diff-block-legend">
-      {#if label !== undefined}<span class="sui-diff-block-name">{label}</span>{/if}
+      {#if label !== undefined}<span class="sui-diff-block-name" translate="no">{label}</span>{/if}
       {#if labels}
         <span class="sui-diff-block-sources">
           <span><span class="del" aria-hidden="true">−</span>{joiner('space')}{labels.before}</span>
@@ -260,6 +260,7 @@ or removed empty line. Two empty sides say `emptyLabel`.
     <!-- A block that scrolls sideways must be reachable by keyboard to be scrolled. -->
     <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
     <pre
+      translate="no"
       {@attach watchOverflow((value) => (scrolls = value))}
       dir="ltr"
       class="sui-diff-block-scroll sui-scroll-edge"
@@ -270,7 +271,7 @@ or removed empty line. Two empty sides say `emptyLabel`.
             ><span class="no" aria-hidden="true">{line.op === ' ' ? index + 1 : ''}</span><span
               class="op"
               ><span aria-hidden="true">{glyph[line.op]}</span>{#if line.op !== ' '}<VisuallyHidden
-                  >{opLabels[line.op]}{joiner('space')}</VisuallyHidden
+                  translate="yes">{opLabels[line.op]}{joiner('space')}</VisuallyHidden
                 >{/if}</span
             ><span class="src"
               >{#each emphasize(tokens[index], line.emphasis) as piece, at (at)}{#if piece.word}<svelte:element
@@ -328,6 +329,8 @@ or removed empty line. Two empty sides say `emptyLabel`.
       var(--sui-sans);
     margin: 0;
     padding: var(--sui-space-3);
+    padding-block: calc(var(--sui-space-3) + var(--sui-block-snap-half, 0px))
+      calc(var(--sui-space-3) + var(--sui-block-snap-spare, 0px) - var(--sui-block-snap-half, 0px));
     text-box: trim-both cap alphabetic;
   }
 

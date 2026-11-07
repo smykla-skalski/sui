@@ -1,7 +1,7 @@
 <script module lang="ts">
   export const section = {
-    title: 'Search field',
-    lead: 'A search that narrows what is already on screen. A value picked from suggestions as the reader types is a Combobox.',
+    title: 'Search Field',
+    lead: 'A search that narrows what is already on screen. A value chosen from suggestions as the reader types is a Combobox.',
     components: ['SearchField']
   };
 </script>
@@ -35,13 +35,13 @@
   layout="grid"
 >
   <Specimen label="Empty" code="placeholder">
-    <SearchField label="Search the projects" placeholder="Search projects" bind:value={query} />
+    <SearchField label="Search the projects" placeholder="acme-web…" bind:value={query} />
   </Specimen>
   <Specimen label="Filled" code="bind:value">
-    <SearchField label="Search the people" placeholder="Search people" bind:value={people} />
+    <SearchField label="Search the people" placeholder="Jane Doe…" bind:value={people} />
   </Specimen>
   <Specimen label="Example placeholder" code="placeholder">
-    <SearchField label="Search the teams" placeholder="Platform" bind:value={teams} />
+    <SearchField label="Search the teams" placeholder="platform…" bind:value={teams} />
   </Specimen>
   <Specimen label="Disabled" code="disabled">
     <SearchField label="Search the locked projects" value="Locked" disabled />
@@ -50,21 +50,21 @@
 
 <Example
   title="Tiers"
-  note="34px by default and 44px on phones, and a surface may opt into 40px with the clear button centred"
+  note="34 px by default and 44 px on phones, and a surface may opt into 40 px with the clear button centred"
   layout="grid"
 >
   <Specimen label="Default" code="--sui-control-height-compact">
-    <SearchField label="Search the teams" placeholder="Search teams" value="Platform" />
+    <SearchField label="Search the teams" placeholder="Platform team…" value="Platform" />
   </Specimen>
   <Specimen label="Tall" code="--sui-local-control-height">
     <div class="tall">
-      <SearchField label="Search the members" placeholder="Search members" value="Bart" />
+      <SearchField label="Search the members" placeholder="octocat…" value="Bart" />
     </div>
   </Specimen>
 </Example>
 
 <Example
-  title="In a form"
+  title="In a Form"
   note="A search the form sends refuses a query its constraints reject and says why under the field"
   layout="grid"
 >
@@ -76,17 +76,17 @@
         required
         minlength={3}
         validationMessage="Enter at least 3 characters to search"
-        placeholder="Search events"
+        placeholder="deploy…"
         bind:value={audit}
       />
-      <Button type="submit">Search</Button>
-      <Button onclick={() => (audit = 'valid')}>Fix the audit query</Button>
+      <Button type="submit">Search Events</Button>
+      <Button onclick={() => (audit = 'valid')}>Fix the Audit Query</Button>
     </form>
   </Specimen>
 </Example>
 
 <Example
-  title="Soft hold"
+  title="Soft Hold"
   note="A saving setting keeps the clear action in place but refuses it"
   layout="stack"
 >
@@ -108,22 +108,18 @@
 </Example>
 
 <Example
-  title="In context"
+  title="In Context"
   note="A status under the field says how many match and a screen reader hears it, so the field never disables itself"
   layout="grid"
 >
   <div class="filter">
-    <SearchField
-      label="Filter the repositories"
-      placeholder="Filter repositories"
-      bind:value={filter}
-    />
+    <SearchField label="Filter the repositories" placeholder="sui…" bind:value={filter} />
     <p class="result" role="status">{matches.length} of {repositories.length} repositories match</p>
   </div>
 </Example>
 
 <Example
-  title="Narrow width"
+  title="Narrow Width"
   note="The field fills the room it has, and a long query scrolls inside it"
   layout="stack"
 >

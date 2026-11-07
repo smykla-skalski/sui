@@ -32,7 +32,7 @@
     {#each iconNames as name (name)}
       <li>
         <Icon {name} size="md" />
-        <span class="name">{name}</span>
+        <span class="name" translate="no">{name}</span>
       </li>
     {/each}
   </ul>
@@ -40,7 +40,7 @@
 
 <Example
   title="Sizes"
-  note="Five tiers from 10 to 18px at the default text size, growing with the reader's own text size"
+  note="5 tiers from 10 to 18 px at the default text size, growing with the reader’s own text size"
 >
   <Variants rows={glyphs} columns={sizes} axis="name" rowLabel={(name) => `"${name}"`}>
     {#snippet cell(name, size)}

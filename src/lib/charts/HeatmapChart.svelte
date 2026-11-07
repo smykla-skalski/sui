@@ -7,7 +7,7 @@
     centred,
     css,
     em,
-    extent,
+    heatSteps,
     heatmapLayout,
     minus,
     plus,
@@ -26,7 +26,7 @@
     columns,
     cells,
     rowHeading = word('HeatmapChart.rowHeading', 'Row'),
-    noDataLabel = word('HeatmapChart.noDataLabel', 'No data'),
+    noDataLabel = word('HeatmapChart.noDataLabel', 'No value'),
     formatValue = formatNumber,
     rangeLabel = word('HeatmapChart.rangeLabel', (from: string, to: string) => `${from}–${to}`),
     ...frame
@@ -43,8 +43,10 @@
     rangeLabel?: (from: string, to: string) => string;
   } = $props();
 
-  /* Five steps of the first chart colour. The strongest stops where text ink still holds 4.5:1
-     on it in both themes, because every cell prints its value. */
+  /* Five steps of the first chart colour. Every cell prints its value, so text ink holds 4.5:1
+     on the four lower steps in both themes, and the top step is the colour itself with its value
+     in the surface's ink, so the peak stands clear. The lowest holds 1.3:1 on its ground, so a
+     cell that holds a little never reads as an empty one. */
   const STEPS = 5;
   const COLUMN_MOST = 7;
   const ROW_MOST = 18;
@@ -54,8 +56,11 @@
   let lookup = $derived(
     new Map(cells.map((cell) => [`${cell.row}\u0000${cell.column}`, cell.value]))
   );
-  let domain = $derived(
-    extent(rows.flatMap((row) => columns.map((column) => value(row, column) ?? NaN)))
+  let steps = $derived(
+    heatSteps(
+      rows.flatMap((row) => columns.flatMap((column) => value(row, column) ?? [])),
+      STEPS
+    )
   );
   let empty = $derived(!rows.some((row) => columns.some((column) => value(row, column) !== null)));
   let missing = $derived(
@@ -65,13 +70,9 @@
     )
   );
   let legend = $derived(
-    Array.from({ length: STEPS }, (_, step) => {
-      const size = (domain[1] - domain[0]) / STEPS;
-      return rangeLabel(
-        formatValue(domain[0] + step * size),
-        formatValue(domain[0] + (step + 1) * size)
-      );
-    })
+    steps.ranges.map(([from, to]) =>
+      from === to ? formatValue(from) : rangeLabel(formatValue(from), formatValue(to))
+    )
   );
 
   function value(row: string, column: string): number | null {
@@ -85,32 +86,34 @@
     return heatmapLayout({
       measure,
       rows: names.map((row) => clip(row, ROW_MOST)),
-      columns: columns.map((column) => clip(column, COLUMN_MOST))
+      columns: columns.map((column) => clip(column, COLUMN_MOST)),
+      values: rows.flatMap((row) =>
+        columns.flatMap((column) => {
+          const cellValue = value(row, column);
+          return cellValue === null ? [] : [formatValue(cellValue)];
+        })
+      )
     });
   }
 
   /** A place for the `translate` property. */
   const at = (across: Length, below: Length) => `${css(across)} ${css(below)}`;
-
-  function step(cellValue: number): number {
-    const fraction = (cellValue - domain[0]) / (domain[1] - domain[0]);
-    return Math.min(STEPS - 1, Math.max(0, Math.floor(fraction * STEPS)));
-  }
 </script>
 
 <!--
 @component
 A matrix of numbers, where a stronger colour means a higher value. Colour is never the only
 carrier: every cell prints its value, a legend under the matrix names the range each of the
-five colour steps covers, and a cell with no value is drawn with a dashed edge and a dash,
-named in the legend and the table. Cells keep their size, so the matrix is as wide as its
-columns and scrolls sideways in a narrower container.
+five colour steps covers, in whole numbers when every value is one (12–15, 16–19), and a cell
+with no value is drawn with a dashed edge and a dash, named in the legend and the table. Cells
+keep their size, so the matrix is as wide as its columns and scrolls sideways in a narrower
+container.
 
 - Semantics: a `figure` named by its title, a heading at `level` (3 by default), with the matrix as one `role="img"`, a legend list and a disclosure holding a table of every cell.
 - Content: row and column names, cells with a number or `null`, and a formatter; a title and a one-sentence description are required.
 - States: shown, empty, loading, refreshing, stale, failed and partial (cells with no value); the data control draws hover, pressed and focus.
-- Keyboard: Tab reaches the matrix when it scrolls, then "View chart data", where Enter or Space opens the table, and the table itself when it scrolls.
-- Pointer and touch: "View chart data" is 24px tall on a desktop pointer and 44px on a phone or a coarse pointer; nothing needs hover, since each cell prints its value.
+- Keyboard: Tab reaches the matrix when it scrolls, then "View Chart Data", where Enter or Space opens the table, and the table itself when it scrolls.
+- Pointer and touch: "View Chart Data" is 24px tall on a desktop pointer and 44px on a phone or a coarse pointer; nothing needs hover, since each cell prints its value.
 - Focus: opening the table keeps focus on its control; retrying a failed chart is the error state's button.
 - Responsive: the matrix stands on a band of the chart ground that reaches the edges of a card holding it, and starts exactly at the band's inner edge; cells keep their size and the matrix scrolls sideways with a fade on each edge that has more past it; cells and margins grow with the reader's text size, and long names are cut without splitting a character and stay whole in the table; the server draws the matrix where it stands once the page runs.
 - Accessibility: the printed value carries each cell's number, with ink at 4.5:1 on every step, so a cell needs no edge; a cell with no value has a dashed edge at 3:1, forced colors outline every cell, and the table has the title as its caption and names an empty cell in words.
@@ -183,13 +186,13 @@ columns and scrolls sideways in a narrower container.
               style:width={css(cell)}
               style:height={css(cell)}
               rx="5"
-              class="cell step-{step(cellValue)}"
+              class="cell step-{steps.step(cellValue)}"
               data-labelled><title>{row}{mark('comma')}{column}{mark('colon')}{words}</title></rect
             >
             <text
-              class="value"
+              class="value step-{steps.step(cellValue)}"
               text-anchor="middle"
-              style:translate={at(cx, centred(measure(words), cy))}>{words}</text
+              style:translate={at(cx, centred(measure(words, false, true), cy))}>{words}</text
             >
           {/if}
         {/each}
@@ -238,8 +241,10 @@ columns and scrolls sideways in a narrower container.
     display: block;
   }
   .axis {
-    fill: var(--sui-text-muted);
+    fill: var(--sui-text-secondary);
   }
+  /* Tabular figures, which the face's table measures too, so values of one length stand as wide
+     as each other and a cell grown to its widest value holds it. */
   .value {
     fill: var(--sui-text-primary);
     font-variant-numeric: tabular-nums;
@@ -249,19 +254,22 @@ columns and scrolls sideways in a narrower container.
     fill: var(--sui-text-muted);
   }
   .step-0 {
-    --sui-local-heat: color-mix(in srgb, var(--sui-chart-1) 12%, transparent);
+    --sui-local-heat: color-mix(in srgb, var(--sui-chart-1) 20%, transparent);
   }
   .step-1 {
-    --sui-local-heat: color-mix(in srgb, var(--sui-chart-1) 26%, transparent);
+    --sui-local-heat: color-mix(in srgb, var(--sui-chart-1) 36%, transparent);
   }
   .step-2 {
-    --sui-local-heat: color-mix(in srgb, var(--sui-chart-1) 40%, transparent);
+    --sui-local-heat: color-mix(in srgb, var(--sui-chart-1) 52%, transparent);
   }
   .step-3 {
-    --sui-local-heat: color-mix(in srgb, var(--sui-chart-1) 54%, transparent);
+    --sui-local-heat: color-mix(in srgb, var(--sui-chart-1) 68%, transparent);
   }
   .step-4 {
-    --sui-local-heat: color-mix(in srgb, var(--sui-chart-1) 68%, transparent);
+    --sui-local-heat: var(--sui-chart-1);
+  }
+  .value.step-4 {
+    fill: var(--sui-surface-base);
   }
   /* Every cell prints its value, so its step is never the only carrier and it needs no edge
      (WCAG 1.4.11): the cells stand as plain fills parted by the surface, and the steps keep
@@ -280,7 +288,7 @@ columns and scrolls sideways in a narrower container.
   .legend {
     display: flex;
     flex-wrap: wrap;
-    font: var(--sui-weight-regular) var(--sui-font-size-compact) / var(--sui-leading-compact)
+    font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-leading-meta)
       var(--sui-sans);
     gap: var(--sui-space-2) var(--sui-space-4);
     list-style: none;

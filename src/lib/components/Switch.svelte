@@ -3,6 +3,7 @@
   import type { HTMLInputAttributes } from 'svelte/elements';
   import Icon from '../icons/Icon.svelte';
   import { held, holdAround } from '../internal/held.svelte.js';
+  import { shownWait } from '../internal/shown-wait.svelte.js';
   import VisuallyHidden from './VisuallyHidden.svelte';
 
   const uid = $props.id();
@@ -17,6 +18,7 @@
     error,
     element = $bindable(null),
     'aria-describedby': describedBy,
+    'aria-disabled': ariaDisabled,
     onclick,
     class: className = '',
     children,
@@ -40,6 +42,7 @@
     /** Richer words than `label` can carry. */
     children?: Snippet;
   } & Omit<HTMLInputAttributes, 'type' | 'checked' | 'role' | 'children'> = $props();
+  const spinning = shownWait(() => pending);
 
   const describedby = $derived(
     [describedBy, error && `${uid}-error`].filter(Boolean).join(' ') || undefined
@@ -49,11 +52,13 @@
      one refuses the flip as its own save does. */
   const around = holdAround();
   const holding = $derived(held(element, around));
+  // A caller's `aria-disabled` refuses the flip and keeps focus, as a busy button does.
+  const refused = $derived(String(ariaDisabled) === 'true');
 
   /* A flip that is still saving cannot be undone half way, so a second press waits; the
      switch keeps focus instead of disabling, which would drop it to the body. */
   function press(event: MouseEvent & { currentTarget: EventTarget & HTMLInputElement }) {
-    if (pending || holding) event.preventDefault();
+    if (pending || holding || refused) event.preventDefault();
     else onclick?.(event);
   }
 </script>
@@ -91,7 +96,7 @@ take, under the switch and to a screen reader, while the owner sets `checked` ba
   <label
     class="sui-switch-row"
     class:bare
-    class:disabled
+    class:disabled={disabled || refused}
     class:locked={pending || holding !== null}
   >
     {#if children}
@@ -109,7 +114,7 @@ take, under the switch and to a screen reader, while the owner sets `checked` ba
         disabled={disabled || holding === 'firm'}
         aria-invalid={invalid || undefined}
         aria-busy={pending || undefined}
-        aria-disabled={pending || holding === 'soft' || undefined}
+        aria-disabled={pending || holding === 'soft' || refused || undefined}
         aria-describedby={describedby}
         onclick={press}
       />
@@ -120,7 +125,7 @@ take, under the switch and to a screen reader, while the owner sets `checked` ba
         class:held={holding !== null}
         aria-hidden="true"
       ></span>
-      {#if pending}<span class="sui-switch-spinner" aria-hidden="true"></span>{/if}
+      {#if spinning.current}<span class="sui-switch-spinner" aria-hidden="true"></span>{/if}
     </span>
   </label>
   <!-- The status speaks the error, so the drawn copy stays out of the tree; the switch's
@@ -170,6 +175,7 @@ take, under the switch and to a screen reader, while the owner sets `checked` ba
     font: var(--sui-weight-regular) var(--sui-font-size-control) / var(--sui-row-copy-leading)
       var(--sui-sans);
     min-inline-size: 0;
+    padding-block: var(--sui-block-snap-room-even);
     text-box: trim-both cap alphabetic;
   }
 
@@ -311,8 +317,9 @@ take, under the switch and to a screen reader, while the owner sets `checked` ba
 
   .sui-switch-spinner::before {
     animation: sui-switch-spin var(--sui-duration-spinner) var(--sui-ease-linear) infinite;
-    border: var(--sui-stroke-bold) solid var(--sui-brand-action);
-    border-inline-end-color: transparent;
+    border: var(--sui-stroke-bold) solid
+      color-mix(in srgb, var(--sui-brand-action) 25%, transparent);
+    border-block-start-color: var(--sui-brand-action);
     border-radius: 50%;
     content: '';
     inset: calc(var(--sui-space-1) - var(--sui-stroke));
@@ -339,7 +346,7 @@ take, under the switch and to a screen reader, while the owner sets `checked` ba
     color: var(--sui-danger);
     column-gap: var(--sui-space-1);
     display: grid;
-    font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-row-copy-leading)
+    font: var(--sui-weight-medium) var(--sui-font-size-meta) / var(--sui-leading-note)
       var(--sui-sans);
     grid-template-columns: auto minmax(0, 1fr);
   }
@@ -355,6 +362,7 @@ take, under the switch and to a screen reader, while the owner sets `checked` ba
     block-size: var(--sui-block-snap);
     min-inline-size: 0;
     overflow-wrap: anywhere;
+    padding-block: var(--sui-block-snap-room);
     text-box: trim-both cap alphabetic;
   }
 

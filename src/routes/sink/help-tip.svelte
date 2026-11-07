@@ -1,6 +1,6 @@
 <script module lang="ts">
   export const section = {
-    title: 'Help tip',
+    title: 'Help Tip',
     lead: 'A small mark beside a label that holds one short explanation. Anything longer, or anything the reader must act on, belongs on the page.',
     components: ['HelpTip']
   };
@@ -71,6 +71,7 @@
   .words {
     align-content: center;
     block-size: var(--sui-block-snap-even);
+    padding-block: var(--sui-block-snap-room-even);
     text-box: trim-both cap alphabetic;
   }
 

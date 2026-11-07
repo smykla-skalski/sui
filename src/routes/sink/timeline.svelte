@@ -136,7 +136,7 @@
   </Specimen>
   <Specimen label="Failed">
     <ErrorState
-      title="The timeline could not be loaded"
+      title="The Timeline Could Not Load"
       description="The sync service did not answer. Try again in a moment."
       onretry={refresh}
       busy={refreshing}
@@ -146,7 +146,7 @@
     <div class="kept">
       <ErrorState
         overContent
-        title="The timeline could not be refreshed"
+        title="The Timeline Could Not Refresh"
         description="Showing what loaded at 12:02"
         onretry={refresh}
         busy={refreshing}
@@ -161,10 +161,10 @@
   note="An actor leads the words, a pill and an action sit on the first line, and long words hang on their own edge"
   layout="stack"
 >
-  <Specimen label="Actor, status and action" code="actor status action">
+  <Specimen label="Actor, status & action" code="actor status action">
     <Timeline events={people} order="oldest" aria-label="Check 4182" />
   </Specimen>
-  <Specimen label="Long words in 32rem">
+  <Specimen label="Long words in 32 rem">
     <div class="measure">
       <Timeline events={people} order="oldest" aria-label="Check 4182" />
     </div>
@@ -185,7 +185,7 @@
 </Example>
 
 <Example
-  title="Long history"
+  title="Long History"
   note="A LoadMore after the list closes it under a hairline and counts the events shown"
   layout="stack"
 >
@@ -210,7 +210,7 @@
 </Example>
 
 <Example
-  title="In a section"
+  title="In a Section"
   note="The timeline hangs from its section heading, which names the list"
   layout="stack"
   ground="canvas"
@@ -223,11 +223,11 @@
 </Example>
 
 <Example
-  title="Right to left"
+  title="Right to Left"
   note="The time column, the actor and the end of the row mirror"
   layout="stack"
 >
-  <Specimen label="Actor, status and action" code={'dir="rtl"'}>
+  <Specimen label="Actor, status & action" code={'dir="rtl"'}>
     <div dir="rtl">
       <Timeline events={people} order="oldest" aria-label="Check 4182" />
     </div>
@@ -235,11 +235,11 @@
 </Example>
 
 <Example
-  title="Narrow width"
-  note="Under 25rem of its own width, each time stands over its words and the pill and action drop under them"
+  title="Narrow Width"
+  note="Under 25 rem of its own width, each time stands over its words and the pill and action drop under them"
   layout="stack"
 >
-  <Specimen label="Phone column, 343px">
+  <Specimen label="Phone column, 343 px">
     <div class="phone">
       <Timeline events={people} order="oldest" aria-label="Check 4182" />
     </div>

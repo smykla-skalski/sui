@@ -1,6 +1,6 @@
 <script module lang="ts">
   export const section = {
-    title: 'Fact list',
+    title: 'Fact List',
     lead: 'Facts about a thing, each a label and its value: a few headline facts inline, or its properties in rows. A setting the reader changes is a form row instead.',
     components: ['FactList']
   };
@@ -34,7 +34,7 @@
   note="Facts wrap one by one with space between them, and technical values are mono"
   layout="stack"
 >
-  <Specimen label="Text, mono, time, status and link" code="mono href">
+  <Specimen label="Text, mono, time, status & link" code="mono href">
     <FactList
       facts={[
         { label: 'Branch', value: 'main', mono: true },
@@ -49,7 +49,7 @@
 
 <Example
   title="Rows"
-  note="A thing's properties, a label and its value on each row, with hairlines between rows and an action at a row's end"
+  note="A thing’s properties, a label and its value on each row, with hairlines between rows and an action at a row’s end"
   layout="stack"
 >
   <Specimen label="Properties with an action" code={'layout="rows" action'}>
@@ -58,11 +58,11 @@
 </Example>
 
 <Example
-  title="Long values"
+  title="Long Values"
   note="A long value breaks inside its own fact and never pushes the row wider"
   layout="grid"
 >
-  <Specimen label="Path, hash and sentence">
+  <Specimen label="Path, hash & sentence">
     <FactList
       facts={[
         {
@@ -81,25 +81,26 @@
 </Example>
 
 <Example
-  title="Missing value"
+  title="Missing Value"
   note="An absent value says so in words instead of leaving its fact empty"
 >
   <Specimen label="Null value" code="value: null">
     <FactList
       facts={[
         { label: 'Branch', value: 'main', mono: true },
-        { label: 'Owner', value: null }
+        { label: 'Owner', value: null },
+        { label: 'Commit', value: null, mono: true }
       ]}
     />
   </Specimen>
 </Example>
 
 <Example
-  title="Narrow width"
-  note="Under 25rem of its own width, each label stands over its value and the action under it"
+  title="Narrow Width"
+  note="Under 25 rem of its own width, each label stands over its value and the action under it"
   layout="stack"
 >
-  <Specimen label="Rows in 20rem" code={'layout="rows"'}>
+  <Specimen label="Rows in 20 rem" code={'layout="rows"'}>
     <div class="narrow">
       <FactList layout="rows" facts={properties} />
     </div>

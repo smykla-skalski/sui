@@ -3,6 +3,7 @@
   import { tick } from 'svelte';
   import type { HTMLAttributes } from 'svelte/elements';
   import { clearance as clearanceOf } from '../internal/clearance.js';
+  import { tabStops } from '../internal/focus.js';
   import { holdForWork } from '../internal/held.svelte.js';
   import Button from './Button.svelte';
 
@@ -16,15 +17,15 @@
     reloading = false,
     title = word('SaveBar.title', 'You have unsaved changes'),
     subtitle = word('SaveBar.subtitle', 'Save to keep them, or discard to go back'),
-    failedTitle = word('SaveBar.failedTitle', 'Your changes were not saved'),
+    failedTitle = word('SaveBar.failedTitle', 'Save again to keep your changes'),
     savedTitle = word('SaveBar.savedTitle', 'Your changes are saved'),
-    discardedTitle = word('SaveBar.discardedTitle', 'Your changes were discarded'),
+    discardedTitle = word('SaveBar.discardedTitle', 'You discarded your changes'),
     conflictReason = word(
       'SaveBar.conflictReason',
       'Someone else saved first, so reload to see their version before you save again'
     ),
     reloadedTitle = word('SaveBar.reloadedTitle', 'The latest version replaced your changes'),
-    saveLabel = word('SaveBar.saveLabel', 'Save'),
+    saveLabel = word('SaveBar.saveLabel', 'Save Changes'),
     savingLabel = word('SaveBar.savingLabel', 'Saving…'),
     discardLabel = word('SaveBar.discardLabel', 'Discard'),
     reloadLabel = word('SaveBar.reloadLabel', 'Reload'),
@@ -33,6 +34,7 @@
     dismissLabel = word('SaveBar.dismissLabel', 'Dismiss'),
     onsave,
     ondiscard,
+    askBeforeLeaving = true,
     onreload,
     element = $bindable(null),
     class: className = '',
@@ -56,7 +58,7 @@
     failedTitle?: string;
     /** Said for 5 seconds once a save lands, by the bar on its way out. */
     savedTitle?: string;
-    /** Said once Discard has thrown the work away, beside Undo when `ondiscard` returns one. */
+    /** Said once Discard has thrown the work away, beside Undo. */
     discardedTitle?: string;
     /** Said under `failedTitle` in a conflict when `error` gives no reason of its own. */
     conflictReason?: string;
@@ -71,8 +73,18 @@
     dismissLabel?: string;
     /** Sends the draft. Also runs on Ctrl+S or Cmd+S inside the bar's pane. */
     onsave: () => void;
-    /** Throws the draft away. Return a function that brings it back, and the bar offers Undo. */
-    ondiscard: () => void | (() => void);
+    /**
+     * Throws the draft away and returns a function that brings it back, which the bar offers as
+     * Undo, so a discard needs no confirmation (L-58).
+     */
+    ondiscard: () => () => void;
+    /**
+     * Has the browser ask before the page unloads while there is work, since leaving drops it
+     * with no Undo. A move inside the app never unloads the page, so the app's router asks then,
+     * as SvelteKit's `beforeNavigate` can. Turn it off where the app already guards its own
+     * navigation, or for a bar that shows a fixed state.
+     */
+    askBeforeLeaving?: boolean;
     /**
      * Loads the latest saved version in place of the draft, after a conflict. Return a function
      * that puts the draft back over it: a reload drops the reader's work, so the bar always
@@ -86,8 +98,6 @@
 
   /** How long a notice with nothing to press stays, as a toast does (L-60). */
   const LINGER_MS = 5000;
-  const FOCUSABLE =
-    'input:not(:disabled), select:not(:disabled), textarea:not(:disabled), button:not(:disabled), [href], [tabindex]:not([tabindex^="-"])';
 
   /** What the bar says once the work is gone from it: saved, or discarded or replaced by a
       reload, with a way back. */
@@ -123,6 +133,14 @@
     }
   });
 
+  // Leaving the page would drop the work with no Undo, so the browser asks first.
+  $effect(() => {
+    if (!dirty || !askBeforeLeaving) return;
+    const ask = (event: BeforeUnloadEvent) => event.preventDefault();
+    addEventListener('beforeunload', ask);
+    return () => removeEventListener('beforeunload', ask);
+  });
+
   $effect(() => {
     if (!notice || notice.undo || hovered || within) return;
     const timer = setTimeout(() => void dismiss(), LINGER_MS);
@@ -136,8 +154,7 @@
 
   async function discard(): Promise<void> {
     asked = null;
-    const back = ondiscard();
-    notice = { kind: 'discarded', undo: typeof back === 'function' ? back : undefined };
+    notice = { kind: 'discarded', undo: ondiscard() };
     await tick();
     (undoButton ?? dismissButton)?.focus({ preventScroll: true });
   }
@@ -178,9 +195,7 @@
     if (focused && focused !== document.body && !element?.contains(focused)) return;
     if (focused && element?.contains(focused) && focused.checkVisibility()) return;
     const pane = element?.parentElement;
-    const first = [...(pane?.querySelectorAll<HTMLElement>(FOCUSABLE) ?? [])].find(
-      (node) => !element?.contains(node)
-    );
+    const first = (pane ? tabStops(pane) : []).find((node) => !element?.contains(node));
     (returnTo?.isConnected ? returnTo : (fallback ?? first))?.focus({ preventScroll: true });
   }
 
@@ -204,12 +219,16 @@
 
   // Ctrl+S or Cmd+S anywhere in the pane saves, so a reader need not tab to the bar's end.
   // While the bar holds work it never opens the browser's own save, even when a save cannot
-  // run now: one is on its way, a reload is, or a conflict would refuse it.
+  // run now: one is on its way, a reload is, or a conflict would refuse it. The S is the one
+  // the layout types, as on Dvorak, and the key in the S place stands in only for a layout
+  // with no Latin letters, as the browser's own shortcuts do.
   function shortcut(bar: HTMLElement) {
     const pane = bar.parentElement;
     if (!pane) return;
     const onkeydown = (event: KeyboardEvent) => {
-      if (event.code !== 'KeyS' || !(event.metaKey || event.ctrlKey)) return;
+      const latin = /^[a-z]$/i.test(event.key);
+      const s = latin ? event.key.toLowerCase() === 's' : event.code === 'KeyS';
+      if (!s || !(event.metaKey || event.ctrlKey)) return;
       if (event.altKey || event.shiftKey || !dirty) return;
       event.preventDefault();
       if (!saving && !reloading && !reloadable) save();
@@ -285,7 +304,7 @@ brings its own room under it, so the scroller needs no end padding.
 - Localization: every word is a prop with an English default; the actions end the line in the reading direction.
 - Performance: one `ResizeObserver` keeps the scroller's end padding as tall as the bar, and nothing measures it per frame; a fade and 8px rise on entry, removed under reduced motion.
 - Analytics: `onsave` hears each save, the shortcut included, `ondiscard` each discard, `onreload` each reload, and the functions they return each undo.
-- Failure: a failed save keeps the bar up with the reason and the work is never dropped on its own; a conflict offers Reload, which drops the draft only with Undo beside it; a reload that fails is the caller's to say, by keeping `dirty` and setting `error`; without an undo from `ondiscard` the discard still says so before the bar leaves.
+- Failure: a failed save keeps the bar up with the reason and the work is never dropped on its own; a conflict offers Reload, which drops the draft only with Undo beside it; a reload that fails is the caller's to say, by keeping `dirty` and setting `error`; closing or leaving the page while the bar holds work asks first, as the browser does.
 -->
 
 <aside
@@ -424,7 +443,7 @@ brings its own room under it, so the scroller needs no end padding.
   .copy {
     display: grid;
     flex: 1 1 18rem;
-    gap: var(--sui-row-copy-gap);
+    gap: var(--sui-title-copy-gap);
     min-inline-size: 0;
   }
 
@@ -434,6 +453,7 @@ brings its own room under it, so the scroller needs no end padding.
     block-size: var(--sui-block-snap);
     margin: 0;
     overflow-wrap: anywhere;
+    padding-block: var(--sui-block-snap-room);
     text-box: trim-both cap alphabetic;
   }
 

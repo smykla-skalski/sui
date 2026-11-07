@@ -36,7 +36,7 @@
 </script>
 
 <Example
-  title="Tones and marks"
+  title="Tones & Marks"
   note="A status wears its word, a dot marks a state true now, and a live dot pulses as it appears unless motion is reduced"
 >
   <Variants rows={tones} columns={marks} axis="tone" rowLabel={(tone) => `"${tone}"`}>
@@ -54,7 +54,7 @@
 </Example>
 
 <Example
-  title="Long status"
+  title="Long Status"
   note="A long status wraps inside the pill, so no word is cut"
   layout="grid"
 >
@@ -64,19 +64,19 @@
 </Example>
 
 <Example
-  title="Live updates"
-  note="A live dot pulses again each time its data arrives, each run under 5 seconds, so it never needs a pause control"
+  title="Live Updates"
+  note="A live dot pulses again once it has been still for 5&nbsp;seconds, each run under 5&nbsp;seconds, so it never needs a pause control"
 >
   <Specimen label="Pulses on each update" code="live beat">
     <span class="row">
       <Pill tone="success" live beat={updates}>Syncing</Pill>
-      <Button onclick={() => updates++}>Receive an update</Button>
+      <Button onclick={() => updates++}>Receive an Update</Button>
     </span>
   </Specimen>
 </Example>
 
 <Example
-  title="Changing status"
+  title="Changing Status"
   note="A pill whose state changes in place is a status region, so its new word is spoken"
 >
   <Specimen label="Spoken on change" code={'role="status" dot'}>
@@ -84,7 +84,7 @@
       <Pill role="status" tone={healthy ? 'success' : 'warning'} dot>
         {healthy ? 'Healthy' : 'Degraded'}
       </Pill>
-      <Button onclick={() => (healthy = !healthy)}>Change the status</Button>
+      <Button onclick={() => (healthy = !healthy)}>Change the Status</Button>
     </span>
   </Specimen>
 </Example>

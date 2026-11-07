@@ -17,12 +17,12 @@
     disabled = false,
     loading = false,
     error = null,
-    overrideLabel = word('InheritControl.overrideLabel', 'Override'),
+    overrideLabel = word('InheritControl.overrideLabel', 'Override Value'),
     overrideFor = word(
       'InheritControl.overrideFor',
       (action: string, field: string) => `${action}${mark('space')}${field}`
     ),
-    inheritLabel = word('InheritControl.inheritLabel', 'Use inherited value'),
+    inheritLabel = word('InheritControl.inheritLabel', 'Use Inherited Value'),
     overrideName,
     inheritName,
     inheritFor = word(
@@ -45,7 +45,7 @@
     overridden?: boolean;
     /** The setting's name, such as "Log level", which each button's accessible name carries. */
     label: string;
-    /** Lands on Override while the value is inherited, so a row's `<label for>` points at a control. */
+    /** Lands on Override Value while the value is inherited, so a row's `<label for>` points at a control. */
     id?: string;
     /** The value that applies while nothing is set here, said as a reader would say it. Empty when nothing is set there either. */
     inherited: string;
@@ -54,11 +54,11 @@
     disabled?: boolean;
     /** The inherited value is on its way. */
     loading?: boolean;
-    /** Why the inherited value could not be read. Override still works. */
+    /** Why the inherited value could not be read. Override Value still works. */
     error?: string | null;
     overrideLabel?: string;
     inheritLabel?: string;
-    /** Override's accessible name, given `label`. It defaults to `overrideLabel` and `label`. */
+    /** Override Value's accessible name, given `label`. It defaults to `overrideLabel` and `label`. */
     overrideName?: (label: string) => string;
     /** Joins the action and the field into the override's accessible name when `overrideName` is not given. */
     overrideFor?: (action: string, field: string) => string;
@@ -123,29 +123,29 @@
 @component
 A value that comes from somewhere else until this level overrides it, and the way back. While it
 inherits, it says the value in muted ink and where it comes from, beside an `add` button named
-Override. Overriding draws the caller's `control` in its place and moves focus into it; the way
-back, a bordered button, takes it away and returns focus to Override. Its frame keeps it in line
+Override Value. Overriding draws the caller's `control` in its place and moves focus into it; the way
+back, a bordered button, takes it away and returns focus to Override Value. Its frame keeps it in line
 with the control's edge when it wraps under the control on a narrow row. Both moves keep the
 page still.
 
 An override is not a change by itself. Mark the row unsaved, with `SettingRow`'s `unsaved`, only
 when the setting differs from its saved value, never because it differs from the inherited one.
 Seed the control with the inherited value once, when it has no value of its own, and keep its
-value when the reader goes back: Override then brings the last override back, which is the undo
+value when the reader goes back: Override Value then brings the last override back, which is the undo
 for a press of the way back.
 
-- Semantics: a `div` holding the sentence and a native button, or the caller's control and a native button; pass the row's `id` here and to the control, and it lands on Override while inheriting, so pressing the setting's name overrides.
+- Semantics: a `div` holding the sentence and a native button, or the caller's control and a native button; pass the row's `id` here and to the control, and it lands on Override Value while inheriting, so pressing the setting's name overrides.
 - Content: the inherited value and its source as one sentence, or the caller's control.
 - States: inheriting (the value in muted ink beside a link mark), overridden (the control beside a broken link mark), loading, failed (`error` with an alert mark), nothing set at the source, and disabled.
-- Keyboard: Tab reaches Override or the control and then the way back; Enter or Space on either button switches.
+- Keyboard: Tab reaches Override Value or the control and then the way back; Enter or Space on either button switches.
 - Pointer and touch: both buttons are 34px tall, 44px on a phone.
-- Focus: overriding moves focus into the control, onto its chosen option first; going back moves it to Override.
+- Focus: overriding moves focus into the control, onto its chosen option first; going back moves it to Override Value.
 - Responsive: the sentence wraps beside its mark, and the button wraps under it when the room is short.
 - Accessibility: each button's name carries `label`, so a screen reader hears which setting it acts on; the mark is decorative and the sentence says the state.
 - Localization: every word is a prop; the sentence is one function of the value and the source, so a language can place them in its own order, and the value keeps its weight wherever it lands.
 - Performance: the control mounts only while overridden.
 - Analytics: `onoverride` hears each override and `oninherit` each return to the inherited value.
-- Failure: `loading` says `loadingLabel`, `error` says why the inherited value is unknown while Override still works, and an empty `inherited` says `unknownLabel`.
+- Failure: `loading` says `loadingLabel`, `error` says why the inherited value is unknown while Override Value still works, and an empty `inherited` says `unknownLabel`.
 -->
 
 <div bind:this={root} {...rest} class={['sui-inherit', className, { overridden }]}>
@@ -247,6 +247,7 @@ for a press of the way back.
       var(--sui-sans);
     min-inline-size: 0;
     overflow-wrap: anywhere;
+    padding-block: var(--sui-block-snap-room-even);
     text-box: trim-both cap alphabetic;
   }
 
@@ -259,7 +260,7 @@ for a press of the way back.
     align-items: start;
     color: var(--sui-danger);
     display: flex;
-    font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-row-copy-leading)
+    font: var(--sui-weight-medium) var(--sui-font-size-meta) / var(--sui-leading-note)
       var(--sui-sans);
     gap: var(--sui-space-1);
     min-inline-size: 0;

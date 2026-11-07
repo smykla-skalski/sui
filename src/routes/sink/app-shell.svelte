@@ -1,6 +1,6 @@
 <script module lang="ts">
   export const section = {
-    title: 'App shell',
+    title: 'App Shell',
     lead: 'The frame of an application, with a rail for the place, a sidebar for the page, and the content. Views inside one page switch with Tabs.',
     components: ['AppShell', 'Rail', 'SideNav']
   };
@@ -17,7 +17,7 @@
 
 <Example
   title="Layout"
-  note="The page in its own frame: under 48rem a drawer holds the rail and the pages, and above 64rem Collapse folds them"
+  note="The page in its own frame: under 48 rem a drawer holds the rail and the pages, and above 64 rem Collapse Navigation folds them"
   layout="stack"
   ground="canvas"
   code={false}
@@ -32,8 +32,8 @@
 </Example>
 
 <Example
-  title="Bottom navigation"
-  note="With bottomNav, a phone keeps the rail's few places in a bar along the bottom, and the drawer holds only the pages"
+  title="Bottom Navigation"
+  note="With bottomNav, a phone keeps the rail’s few places in a bar along the bottom, and the drawer holds only the pages"
   layout="stack"
   ground="canvas"
   code={false}

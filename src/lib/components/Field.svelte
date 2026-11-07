@@ -70,14 +70,14 @@
 
 <!--
 @component
-A label, its control, and the help and error under it, 8px apart as rendered ink. With no
-`control` it draws a `TextInput`, and every native input attribute, `bind:value` and `class`
+A label, its control and the help under it, 8px apart as rendered ink, and an error 12px
+under the help. With no `control` it draws a `TextInput`, and every native input attribute, `bind:value` and `class`
 land on that input.
 
 Any other control goes in the `control` snippet, which receives the `id` the label points at,
 the `describedby` ids of the hint and the error, `invalid` and `required`. Spread them onto a
-`Textarea`, a `Select`, a `Checkbox` or a picker. `layout="row"` sets the label beside a
-checkbox or a switch, both centred on one line.
+`Textarea`, a `Select`, a `Checkbox` or a picker. `layout="row"` sets a checkbox before the
+label and a switch after it, both centred on one line.
 
 `required` writes the word "Required" beside the label, never only an asterisk, and marks
 the control. The word stays out of the accessibility tree, because the control already
@@ -165,13 +165,44 @@ the `control` snippet reports here on its own, and a control of another kind kee
     grid-column: 1 / -1;
   }
 
+  /* A form's check box leads its label, as a `Checkbox` with words does, so the box reads as
+     the label's own and its hint and error hang under the words; a switch ends the row. */
+  .sui-field[data-layout='row']:has(
+      > .sui-field-control :global(input[type='checkbox']:not([role='switch']))
+    ) {
+    column-gap: var(--sui-space-2);
+    grid-template-columns: auto minmax(0, 1fr);
+
+    > .sui-field-control {
+      --sui-local-checkbox-bleed: initial;
+      grid-area: 1 / 1;
+    }
+
+    > :not(.sui-field-control) {
+      grid-column: 2;
+    }
+
+    /* The warning mark sits in the box's column, so the error's words start on the label's
+       edge as the hint's do. */
+    > .sui-field-error {
+      column-gap: normal;
+      grid-column: 1 / -1;
+      grid-template-columns: subgrid;
+    }
+
+    .sui-field-error-mark {
+      justify-self: center;
+    }
+  }
+
   .sui-field-label {
     align-content: center;
     block-size: var(--sui-block-snap);
-    color: var(--sui-text-secondary);
+    color: var(--sui-text-primary);
     font: var(--sui-weight-semibold) var(--sui-font-size-control) / var(--sui-row-copy-leading)
       var(--sui-sans);
     min-inline-size: 0;
+    padding-block: var(--sui-block-snap-room);
     text-box: trim-both cap alphabetic;
   }
 
@@ -197,6 +228,7 @@ the `control` snippet reports here on its own, and a control of another kind kee
     color: var(--sui-text-muted);
     font: var(--sui-weight-regular) var(--sui-font-size-control) / var(--sui-row-copy-leading)
       var(--sui-sans);
+    padding-block: var(--sui-block-snap-room);
     text-box: trim-both cap alphabetic;
   }
 
@@ -221,13 +253,20 @@ the `control` snippet reports here on its own, and a control of another kind kee
     margin: 0;
     min-inline-size: 0;
     overflow-wrap: anywhere;
+    padding-block: var(--sui-block-snap-room);
     text-box: trim-both cap alphabetic;
   }
 
   .sui-field-help {
     color: var(--sui-text-secondary);
-    font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-row-copy-leading)
+    font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-leading-note)
       var(--sui-sans);
+  }
+
+  /* An error stands a step further from the hint over it than the hint from its control, so
+     the two quiet lines never read as one block (L-35). */
+  .sui-field-help + .sui-field-error {
+    margin-block-start: var(--sui-space-1);
   }
 
   .sui-field-error {
@@ -235,7 +274,7 @@ the `control` snippet reports here on its own, and a control of another kind kee
     color: var(--sui-danger);
     column-gap: var(--sui-space-1);
     display: grid;
-    font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-row-copy-leading)
+    font: var(--sui-weight-medium) var(--sui-font-size-meta) / var(--sui-leading-note)
       var(--sui-sans);
     grid-template-columns: auto minmax(0, 1fr);
     margin: 0;

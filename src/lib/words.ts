@@ -24,9 +24,10 @@ export function word<T extends Word>(key: string, fallback: T): T {
 /**
  * The marks that join words a component puts together, such as a name and its count ("Queue,
  * 3 items") or a series and its value ("North: 12"). A language sets its own with the keys
- * `marks.comma`, `marks.colon`, `marks.stop` and `marks.space`.
+ * `marks.comma`, `marks.colon`, `marks.stop`, `marks.space` and `marks.unit`, the space between
+ * a number and its unit ("30\u00a0s"), which never breaks.
  */
-const MARKS = { comma: ', ', colon: ': ', stop: '. ', space: ' ' } as const;
+const MARKS = { comma: ', ', colon: ': ', stop: '. ', space: ' ', unit: '\u00a0' } as const;
 
 export function mark(name: keyof typeof MARKS): string {
   return word(`marks.${name}`, MARKS[name]);

@@ -177,11 +177,12 @@ save keeps it. A busy dialog or a saving pane around it disables the radios whil
   .sui-choice-cards-legend {
     align-content: center;
     block-size: var(--sui-block-snap);
-    color: var(--sui-text-secondary);
+    color: var(--sui-text-primary);
     float: inline-start;
     font: var(--sui-weight-semibold) var(--sui-font-size-control) / var(--sui-row-copy-leading)
       var(--sui-sans);
     padding: 0;
+    padding-block: var(--sui-block-snap-room);
     text-box: trim-both cap alphabetic;
   }
 
@@ -334,6 +335,7 @@ save keeps it. A busy dialog or a saving pane around it disables the radios whil
     color: var(--sui-text-primary);
     font: var(--sui-weight-semibold) var(--sui-font-size-meta) / var(--sui-row-copy-leading)
       var(--sui-sans);
+    padding-block: var(--sui-block-snap-room-even);
     text-box: trim-both cap alphabetic;
     text-wrap: pretty;
   }
@@ -345,6 +347,7 @@ save keeps it. A busy dialog or a saving pane around it disables the radios whil
     font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-row-copy-leading)
       var(--sui-sans);
     grid-column: 1;
+    padding-block: var(--sui-block-snap-room);
     text-box: trim-both cap alphabetic;
     text-wrap: pretty;
   }
@@ -361,12 +364,13 @@ save keeps it. A busy dialog or a saving pane around it disables the radios whil
     margin: 0;
     min-inline-size: 0;
     overflow-wrap: anywhere;
+    padding-block: var(--sui-block-snap-room);
     text-box: trim-both cap alphabetic;
   }
 
   .sui-choice-cards-help {
     color: var(--sui-text-secondary);
-    font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-row-copy-leading)
+    font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-leading-note)
       var(--sui-sans);
   }
 
@@ -375,7 +379,7 @@ save keeps it. A busy dialog or a saving pane around it disables the radios whil
     color: var(--sui-danger);
     column-gap: var(--sui-space-1);
     display: grid;
-    font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-row-copy-leading)
+    font: var(--sui-weight-medium) var(--sui-font-size-meta) / var(--sui-leading-note)
       var(--sui-sans);
     grid-template-columns: auto minmax(0, 1fr);
     margin: 0;

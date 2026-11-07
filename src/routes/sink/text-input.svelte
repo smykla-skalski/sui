@@ -1,6 +1,6 @@
 <script module lang="ts">
   export const section = {
-    title: 'Text input',
+    title: 'Text Input',
     lead: 'A single line the reader types. Inside a form, wrap it in a Field so it has a label, help and an error.',
     components: ['TextInput']
   };
@@ -23,12 +23,7 @@
   <Specimen label="Rest" code="placeholder">
     <Field label="Project name">
       {#snippet control({ id, describedby })}
-        <TextInput
-          {id}
-          aria-describedby={describedby}
-          placeholder="your-project"
-          bind:value={name}
-        />
+        <TextInput {id} aria-describedby={describedby} placeholder="acme-web…" bind:value={name} />
       {/snippet}
     </Field>
   </Specimen>
@@ -47,7 +42,7 @@
     </Field>
   </Specimen>
   <Specimen label="Read only" code="readonly">
-    <Field label="Repository ID" hint="Set when the repository was created">
+    <Field label="Repository ID" hint="The repository keeps this ID from the day you create it">
       {#snippet control({ id, describedby })}
         <TextInput {id} aria-describedby={describedby} mono readonly value="R_kgDOJ8x2Qw" />
       {/snippet}
@@ -62,11 +57,14 @@
   </Specimen>
 </Example>
 
-<Example title="Tiers" note="34px by default and 44px on phones, and a surface may opt into 40px">
+<Example
+  title="Tiers"
+  note="34 px by default and 44 px on phones, and a surface may opt into 40 px"
+>
   <Specimen label="Default" code="--sui-control-height-compact">
     <Field label="Filter the projects">
       {#snippet control({ id, describedby })}
-        <TextInput {id} aria-describedby={describedby} placeholder="api" />
+        <TextInput {id} aria-describedby={describedby} placeholder="api…" />
       {/snippet}
     </Field>
   </Specimen>
@@ -74,7 +72,7 @@
     <div class="tall">
       <Field label="Search the projects">
         {#snippet control({ id, describedby })}
-          <TextInput {id} aria-describedby={describedby} type="search" placeholder="platform" />
+          <TextInput {id} aria-describedby={describedby} type="search" placeholder="platform…" />
         {/snippet}
       </Field>
     </div>

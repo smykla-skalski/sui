@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { after, before, test } from 'node:test';
-import { allSections, long, startSink, visit } from '../sink.mjs';
+import { allSections, brief, long, startSink, visit } from '../sink.mjs';
 
 // Lab stand-ins for field data: a page with the library and nothing else, on a CPU about as fast
 // as a mid-range phone's, against the Core Web Vitals "good" limits (CLS 0.1, INP 200ms) and the
@@ -38,25 +38,45 @@ async function app(prepare) {
   return page;
 }
 
-test('loading the sink shifts no layout past the CLS limit', long, async () => {
-  const page = await browser.newPage({ viewport: { width: 1280, height: 900 } });
-  try {
-    await page.addInitScript(() => {
-      Object.assign(window, { shifted: 0 });
-      new PerformanceObserver((list) => {
-        for (const entry of /** @type {any[]} */ (list.getEntries()))
-          if (!entry.hadRecentInput)
-            /** @type {any} */ (window).shifted += entry.value;
-      }).observe({ type: 'layout-shift', buffered: true });
-    });
-    await visit(page, allSections(url));
-    await page.waitForTimeout(1000);
-    const shifted = await page.evaluate(() => /** @type {any} */ (window).shifted);
-    assert.ok(shifted < 0.1, `the page shifted ${shifted}`);
-  } finally {
-    await page.close();
+// A phone on a slow mobile network: 4 Mbps down, 100ms each way, and the CPU slowed, so late
+// fonts, styles and scripts land while the page is already drawn.
+test(
+  'loading the sink on a slow network and CPU shifts no layout past the CLS limit',
+  long,
+  async () => {
+    const page = await browser.newPage({ viewport: { width: 1280, height: 900 } });
+    try {
+      const cdp = await page.context().newCDPSession(page);
+      await cdp.send('Network.enable');
+      await cdp.send('Network.emulateNetworkConditions', {
+        offline: false,
+        latency: 100,
+        downloadThroughput: (4_000_000 / 8) | 0,
+        uploadThroughput: (1_000_000 / 8) | 0
+      });
+      await cdp.send('Emulation.setCPUThrottlingRate', { rate: slowdown });
+      await page.addInitScript(() => {
+        Object.assign(window, { shifted: 0 });
+        new PerformanceObserver((list) => {
+          for (const entry of /** @type {any[]} */ (list.getEntries()))
+            if (!entry.hadRecentInput)
+              /** @type {any} */ (window).shifted += entry.value;
+        }).observe({ type: 'layout-shift', buffered: true });
+      });
+      await visit(page, allSections(url));
+      // Every late font, style and script has landed, and the frame after it is drawn.
+      await page.waitForLoadState('networkidle');
+      await page.evaluate(() => document.fonts.ready);
+      await page.evaluate(
+        () => new Promise((done) => requestAnimationFrame(() => requestAnimationFrame(done)))
+      );
+      const shifted = await page.evaluate(() => /** @type {any} */ (window).shifted);
+      assert.ok(shifted < 0.1, `the page shifted ${shifted}`);
+    } finally {
+      await page.close();
+    }
   }
-});
+);
 
 test('a keystroke in a combobox of 5000 options answers within 200ms', long, async () => {
   const page = await app();
@@ -133,6 +153,12 @@ test('sorting a table of 500 rows answers within 200ms', long, async () => {
  * @param {() => Promise<unknown>} act
  */
 async function frames(page, span, act) {
+  // The setup's garbage, such as the whole sink loaded and removed, is collected first, so a
+  // collection of it never lands in the measure; the act's own garbage still does.
+  const cdp = await page.context().newCDPSession(page);
+  await cdp.send('HeapProfiler.collectGarbage');
+  await cdp.detach();
+  await page.evaluate(() => Object.assign(window, { recording: false }));
   const recorded = page.evaluate(
     (span) =>
       new Promise((done) => {
@@ -149,6 +175,7 @@ async function frames(page, span, act) {
         const step = (now) => {
           if (start) seen.push({ at: now, gap: now - (seen.at(-1)?.at ?? start) });
           start ||= now;
+          Object.assign(window, { recording: true });
           if (now - start < span) requestAnimationFrame(step);
           else {
             removeEventListener('click', press, { capture: true });
@@ -160,7 +187,7 @@ async function frames(page, span, act) {
     span
   );
   // The recorder starts on a frame of its own, before the act.
-  await page.waitForTimeout(100);
+  await page.waitForFunction(() => /** @type {any} */ (window).recording, null, brief);
   await act();
   const { seen, clicked } =
     /** @type {{ seen: { at: number, gap: number }[], clicked: number }} */ (await recorded);
@@ -295,7 +322,7 @@ const layers = /** @type {const} */ ([
   ['action-menu', '[aria-haspopup="menu"]'],
   ['select', 'select:not([disabled])'],
   ['modal', 'button:has-text("webhook")'],
-  ['toaster', 'button:has-text("Save settings")']
+  ['toaster', 'button:has-text("Save Settings")']
 ]);
 
 test('every layer grows at 60 frames a second', long, async () => {

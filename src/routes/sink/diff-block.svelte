@@ -1,6 +1,6 @@
 <script module lang="ts">
   export const section = {
-    title: 'Diff block',
+    title: 'Diff Block',
     lead: 'A small unified diff that shows an excerpt worth reading, never a whole file. Code with nothing to compare is a CodeBlock.',
     components: ['DiffBlock']
   };
@@ -37,7 +37,7 @@
   layout="stack"
   ground="canvas"
 >
-  <Specimen label="From two texts" code="before after labels">
+  <Specimen label="From 2 texts" code="before after labels">
     <DiffBlock
       {before}
       {after}
@@ -46,14 +46,14 @@
       labels={{ before: 'Template', after: 'Repository' }}
     />
   </Specimen>
-  <Specimen label="Prepared lines, one changed in place" code="lines">
+  <Specimen label="Prepared lines, 1 changed in place" code="lines">
     <DiffBlock lines={prepared} lang="yaml" />
   </Specimen>
 </Example>
 
 <Example
   title="Empty"
-  note="Two empty sides say there is nothing to compare"
+  note="2 empty sides say there is nothing to compare"
   layout="stack"
   ground="canvas"
 >

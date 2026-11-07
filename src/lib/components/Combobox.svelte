@@ -10,7 +10,7 @@
 
 <script lang="ts">
   import { mark, word } from '../words.js';
-  import { flushSync, tick } from 'svelte';
+  import { flushSync, tick, untrack } from 'svelte';
   import type { Attachment } from 'svelte/attachments';
   import type { HTMLInputAttributes } from 'svelte/elements';
   import Icon from '../icons/Icon.svelte';
@@ -32,7 +32,7 @@
     preview = false,
     limit = 100,
     name,
-    emptyLabel = word('Combobox.emptyLabel', 'Nothing matches that'),
+    emptyLabel = word('Combobox.emptyLabel', 'No suggestions match'),
     searchingLabel = word('Combobox.searchingLabel', 'Searching…'),
     failedLabel = word(
       'Combobox.failedLabel',
@@ -96,7 +96,21 @@
   const listId = `${uid}-list`;
   const optionId = (index: number) => `${uid}-option-${index}`;
 
-  let open = $state(false);
+  /* Work that runs on the form around it holds the value: the field reads only or is disabled,
+     and the list stays shut so no row can be committed. */
+  const around = holdAround();
+  const holding = $derived(held(element, around));
+
+  /* A hold or a read-only field that arrives while the list is open shuts it, so neither a row
+     nor a typed draft can be committed; a preview keeps its list on show. */
+  const shut = $derived(!preview && Boolean(holding || rest.readonly));
+
+  // A hold or a read-only field resets this, so the list never comes back on its own once the
+  // field takes input again, and Escape passes to a dialog around it.
+  let open = $derived.by(() => {
+    void shut;
+    return false;
+  });
   /* The field shows `query` instead of the committed label. A draft the reader left behind
      holds only while `value` is still what the draft left, so an owner's new value shows. */
   let typed = $state(false);
@@ -176,6 +190,12 @@
     input.setCustomValidity(!free && drafting && asked !== '' && !match ? draftMessage : '');
   };
 
+  /* Text typed before the page hydrated stays in the field, so it counts as typed: the list
+     filters by it and a send sees it. Read once, as the field first mounts. */
+  const keepTyped: Attachment<HTMLInputElement> = (input) => {
+    if (input.value !== untrack(() => (drafting ? query : shown))) draft(input.value);
+  };
+
   /* Disabled options stay in the arrow path, so a reader hears they exist; `take` refuses them. */
   const step = (from: number, by: 1 | -1) => (((from + by) % rows) + rows) % rows;
 
@@ -227,13 +247,8 @@
     onselect?.(next);
   }
 
-  /* Work that runs on the form around it holds the value: the field reads only or is disabled,
-     and the list stays shut so no row can be committed. */
-  const around = holdAround();
-  const holding = $derived(held(element, around));
-
   function show(byKey: boolean): void {
-    if (holding) return;
+    if (holding || rest.readonly) return;
     if (!drafting) typed = false;
     open = true;
     navigated = byKey;
@@ -250,7 +265,7 @@
   }
 
   function take(index: number): void {
-    if (preview) return;
+    if (preview || shut) return;
     if (index === visible.length && offers) commit(asked);
     else {
       const option = visible[index];
@@ -264,7 +279,7 @@
      typed in full picks its option, free text is the value, and anything else stays on
      screen as a draft while the value it replaced is cleared. */
   function settle(): void {
-    if (!typed) return;
+    if (!typed || shut) return;
     if (!drafting) {
       typed = false;
       return;
@@ -280,8 +295,12 @@
   }
 
   function oninput(event: Event): void {
+    draft((event.currentTarget as HTMLInputElement).value);
+  }
+
+  function draft(text: string): void {
     if (!drafting) typedFor = value;
-    query = (event.currentTarget as HTMLInputElement).value;
+    query = text;
     typed = true;
     open = true;
     active = 0;
@@ -327,7 +346,7 @@
 @component
 A text field that suggests values as the reader types and commits one. It filters `options` by
 label, or asks `search` for suggestions, marks the matched characters, and says "Searching…"
-while an answer is on its way, "Nothing matches that" when nothing does and that suggestions
+while an answer is on its way, "No suggestions match" when nothing does and that suggestions
 could not load when `search` is refused. Each is announced through a polite status that is
 always in the page, and so is the number of suggestions. `free` also offers what was typed as a
 value of its own. Reach for `Select` when the list is short enough to read whole.
@@ -351,7 +370,7 @@ Name it with a `<label>` or `aria-label`, as any field.
 - Localization: `emptyLabel`, `searchingLabel`, `failedLabel`, `useLabel`, `countLabel`, `moreLabel` and `draftMessage` are props with English defaults, counts follow the page language, and the list hangs from the start edge in either direction.
 - Performance: filtering runs on each keystroke over `options`, `search` waits 180ms and drops late answers, and at most `limit` rows render.
 - Analytics: `onselect` hears each committed value and `onsearcherror` each refused search.
-- Failure: a refused search clears its old suggestions and says so, nothing found is said in words, typed text is never thrown away on blur, and a form refuses a send while the text names no option, with `draftMessage` in the field around it.
+- Failure: a refused search clears its old suggestions and says so, nothing found is said in words, typed text is never thrown away on blur, and a form refuses a send while the text names no option, with `draftMessage` in the field around it; text typed before the page hydrates stays and counts.
 -->
 
 {#snippet marked(label: string)}
@@ -377,6 +396,7 @@ Name it with a `<label>` or `aria-label`, as any field.
     aria-activedescendant={listed && current >= 0 ? optionId(current) : undefined}
     {oninput}
     {@attach draftOnly}
+    {@attach keepTyped}
     onkeydown={preview ? undefined : onkeydown}
     {onfocus}
     {onblur}
@@ -494,7 +514,7 @@ Name it with a `<label>` or `aria-label`, as any field.
   .sui-combobox-option {
     align-content: center;
     align-items: start;
-    border-radius: var(--sui-radius-control);
+    border-radius: var(--sui-radius-popover-row);
     box-sizing: border-box;
     color: var(--sui-text-primary);
     column-gap: var(--sui-space-2);
@@ -521,6 +541,7 @@ Name it with a `<label>` or `aria-label`, as any field.
 
   .sui-combobox-option.active:not(:active) {
     background-color: var(--sui-interactive-hover-layer);
+    color: var(--sui-hover-ink);
   }
 
   .sui-combobox-option:active:not([aria-disabled='true']) {
@@ -553,6 +574,7 @@ Name it with a `<label>` or `aria-label`, as any field.
     block-size: var(--sui-block-snap-even);
     min-inline-size: 0;
     overflow-wrap: anywhere;
+    padding-block: var(--sui-block-snap-room-even);
     text-box: trim-both cap alphabetic;
   }
 

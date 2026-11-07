@@ -17,7 +17,7 @@
 </script>
 
 <Example
-  title="Tones and states"
+  title="Tones & States"
   note="Every tone at rest, disabled and loading, and a view has one signal"
 >
   <Variants rows={tones} columns={states} axis="tone" rowLabel={(tone) => `"${tone}"`}>
@@ -25,11 +25,11 @@
       {#if tone === 'add'}
         <Button {tone} disabled={state === 'Disabled'} loading={state === 'Loading'}>
           {#snippet icon()}<Icon name="plus" size="sm" />{/snippet}
-          {state === 'Loading' ? 'Adding a rule' : 'Add a rule'}
+          {state === 'Loading' ? 'Adding a Rule' : 'Add a Rule'}
         </Button>
       {:else}
         <Button {tone} disabled={state === 'Disabled'} loading={state === 'Loading'}>
-          {state === 'Loading' ? 'Saving' : 'Save changes'}
+          {state === 'Loading' ? 'Saving' : 'Save Changes'}
         </Button>
       {/if}
     {/snippet}
@@ -55,44 +55,44 @@
   <Specimen label="Optional addition" code={'tone="add"'}>
     <Button tone="add">
       {#snippet icon()}<Icon name="plus" size="sm" />{/snippet}
-      Add a rule
+      Add a Rule
     </Button>
   </Specimen>
 </Example>
 
 <Example
-  title="Long label"
-  note="A long or translated label wraps inside its container, at most 20rem wide, and every line keeps the one-line inset"
+  title="Long Label"
+  note="A long or translated label wraps inside its container, at most 20 rem wide, and every line keeps the one-line inset"
 >
   <Specimen label="Wrapped label">
     <div class="narrow">
-      <Button>Move repositories to the new organization</Button>
+      <Button>Move Repositories to the New Organization</Button>
     </div>
   </Specimen>
   <Specimen label="Wrapped with an icon" code="icon">
     <div class="narrow">
       <Button>
         {#snippet icon()}<Icon name="repositories" size="sm" />{/snippet}
-        Move repositories to the new organization
+        Move Repositories to the New Organization
       </Button>
     </div>
   </Specimen>
 </Example>
 
 <Example
-  title="As a link"
+  title="As a Link"
   note="A destination draws an anchor with the same paint, and a disabled one cannot be followed"
 >
   <Specimen label="Link" code="href">
-    <Button href="#buttons">Read the guide</Button>
+    <Button href="#buttons">Read the Guide</Button>
   </Specimen>
   <Specimen label="Signal link" code={'href tone="signal"'}>
-    <Button href="#buttons" tone="signal">Open the project</Button>
+    <Button href="#buttons" tone="signal">Open the Project</Button>
   </Specimen>
   <Specimen label="Disabled link" code="href disabled">
     <div class="locked">
       <Button href="#buttons" disabled aria-describedby="sink-button-billing-reason"
-        >Open billing</Button
+        >Open Billing</Button
       >
       <p id="sink-button-billing-reason" class="reason">Only an owner can see billing</p>
     </div>
@@ -118,6 +118,7 @@
     font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-row-copy-leading)
       var(--sui-sans);
     margin: 0;
+    padding-block: var(--sui-block-snap-room);
     text-box: trim-both cap alphabetic;
   }
 </style>

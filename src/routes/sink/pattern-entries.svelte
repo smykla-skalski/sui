@@ -1,6 +1,6 @@
 <script module lang="ts">
   export const section = {
-    title: 'Pattern entries',
+    title: 'Pattern Entries',
     lead: 'An editable list of patterns, such as branches or paths to leave alone. A key that maps to a value is a PairEntry.',
     components: ['PatternEntries']
   };
@@ -68,7 +68,7 @@
       bind:value={branches}
       {validate}
       aria-label="Branches to skip"
-      addLabel="Add a branch pattern"
+      addLabel="Add a Branch Pattern"
     />
   </Specimen>
   <Specimen label="Empty" code="bind:value">
@@ -83,7 +83,7 @@
     <PatternEntries
       bind:value={few}
       aria-label="Branches to skip"
-      addLabel="Add a branch pattern"
+      addLabel="Add a Branch Pattern"
     />
   </Specimen>
   <Specimen label="Saving" code="pending">
@@ -127,8 +127,8 @@
 </Example>
 
 <Example
-  title="Right to left"
-  note="The entries flow from the right and each cross sits at its field's left end"
+  title="Right to Left"
+  note="The entries flow from the right and each cross sits at its field’s left end"
   layout="grid"
 >
   <Specimen label="Right to left" code={'dir="rtl"'}>
@@ -137,8 +137,8 @@
 </Example>
 
 <Example
-  title="Narrow width"
-  note="In a phone's width the entries wrap from the start edge, and a long one takes a line of its own"
+  title="Narrow Width"
+  note="In a phone’s width the entries wrap from the start edge, and a long one takes a line of its own"
   layout="stack"
 >
   <Specimen label="Phone width">
@@ -162,6 +162,7 @@
     font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-row-copy-leading)
       var(--sui-sans);
     margin: 0;
+    padding-block: var(--sui-block-snap-room);
     text-box: trim-both cap alphabetic;
   }
 

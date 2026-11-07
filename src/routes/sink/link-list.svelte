@@ -1,7 +1,7 @@
 <script module lang="ts">
   export const section = {
-    title: 'Link list',
-    lead: "Links to other pages about the same thing, such as a pane's related pages. Things a reader opens with their standings are an ObjectList.",
+    title: 'Link List',
+    lead: 'Links to other pages about the same thing, such as a pane’s related pages. Things a reader opens with their standings are an ObjectList.',
     components: ['LinkList']
   };
 </script>
@@ -17,7 +17,7 @@
   ];
 
   const noted: LinkListItem[] = [
-    { href: '#link-list', label: 'Changes from this check', note: 'Three repositories differ' },
+    { href: '#link-list', label: 'Changes from this check', note: '3 repositories differ' },
     { href: '#link-list', label: 'Previous check #4170', note: 'Finished yesterday, all matched' },
     {
       href: 'https://docs.github.com/en/rest',
@@ -29,7 +29,7 @@
   const long: LinkListItem[] = [
     {
       href: '#link-list',
-      label: 'Every change made to the saved settings of acme/api since it was connected',
+      label: 'Every change made to the saved settings of acme/api since you connected it',
       note: 'Labels and notes wrap at their own edge'
     },
     { href: '#link-list', label: 'Previous check #4170' }
@@ -38,19 +38,19 @@
 
 <Example
   title="Links"
-  note="Links stand on the heading's edge with no bullets, one target plus 4px apart, and one that leaves the product says so"
+  note="Links stand on the heading’s edge with no bullets, one target plus 4 px apart, and one that leaves the product says so"
   layout="grid"
 >
   <Specimen label="Plain">
     <LinkList links={related} aria-label="Related" />
   </Specimen>
-  <Specimen label="With notes and an external link" code="note external">
+  <Specimen label="With notes & an external link" code="note external">
     <LinkList links={noted} aria-label="Related" />
   </Specimen>
 </Example>
 
 <Example
-  title="Long words"
+  title="Long Words"
   note="A label or note that does not fit wraps at its own edge"
   layout="stack"
 >
@@ -62,8 +62,8 @@
 </Example>
 
 <Example
-  title="In a section"
-  note="In a pane's aside, the list hangs from its section heading, which names it"
+  title="In a Section"
+  note="In a pane’s aside, the list hangs from its section heading, which names it"
   layout="stack"
   ground="canvas"
 >
@@ -76,8 +76,8 @@
   </Specimen>
 </Example>
 
-<Example title="Right to left" note="The list starts at the inline start and the arrow mirrors">
-  <Specimen label="With notes and an external link" code={'dir="rtl"'}>
+<Example title="Right to Left" note="The list starts at the inline start and the arrow mirrors">
+  <Specimen label="With notes & an external link" code={'dir="rtl"'}>
     <div dir="rtl">
       <LinkList links={noted} aria-label="Related" />
     </div>

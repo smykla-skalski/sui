@@ -1,6 +1,6 @@
 <script module lang="ts">
   export const section = {
-    title: 'Load more',
+    title: 'Load More',
     lead: 'The last row of a long list: how far the reader is, and the button that brings the next page. A data table pages by number instead.',
     components: ['LoadMore']
   };
@@ -40,7 +40,7 @@
       loading = false;
       if (shown === PAGE && !failedOnce) {
         failedOnce = true;
-        problem = 'The next page could not be loaded';
+        problem = 'The next page could not load';
         return;
       }
       shown = Math.min(shown + PAGE, EVENTS.length);
@@ -63,7 +63,7 @@
 
 <Example
   title="States"
-  note="The count and the end note hold the start, the button holds the end, and a failure takes the count's place"
+  note="The count and the end note hold the start, the button holds the end, and a failure takes the count’s place"
   layout="grid"
   ground="canvas"
 >
@@ -87,7 +87,7 @@
         more
         shown={2}
         total={12}
-        problem="The next page could not be loaded"
+        problem="The next page could not load"
         onmore={() => {}}
       />
     </Section>
@@ -115,7 +115,7 @@
 </Example>
 
 <Example
-  title="On demand"
+  title="On Demand"
   note="A press brings the next page and moves focus to its first row, a failure waits for a retry, and a whole list says so"
   layout="stack"
   ground="canvas"
@@ -155,6 +155,7 @@
     font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-row-copy-leading)
       var(--sui-sans);
     overflow-wrap: anywhere;
+    padding-block: var(--sui-block-snap-room);
     text-box: trim-both cap alphabetic;
   }
 
