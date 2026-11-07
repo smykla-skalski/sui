@@ -116,17 +116,18 @@
 
   // The browser focuses the menu's `autofocus` control as it shows the menu, so a key pressed
   // right after the press already lands inside; `toggle` comes a task later, and on a busy page a
-  // Shift+Tab in between would leave from the tools button with the menu still open.
+  // Shift+Tab in between would leave from the tools button with the menu still open. The mark
+  // goes as the menu closes, or a Modal around it would open on the hidden control.
   function onbeforetoggle(event: ToggleEvent & { currentTarget: HTMLElement }) {
+    const menu = event.currentTarget;
+    for (const marked of menu.querySelectorAll<HTMLElement>('[autofocus]'))
+      marked.autofocus = false;
     if (event.newState !== 'open') return;
     collapsed = segments !== null && !segments.checkVisibility();
     flushSync();
-    const menu = event.currentTarget;
     const choice =
       menu.querySelector<HTMLInputElement>('input:checked') ??
       menu.querySelector<HTMLInputElement>('input:enabled');
-    for (const marked of menu.querySelectorAll<HTMLElement>('[autofocus]'))
-      marked.autofocus = false;
     if (choice) choice.autofocus = true;
   }
 </script>

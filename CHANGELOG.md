@@ -32,6 +32,7 @@
 - On dark, muted ink holds 8:1 on the canvas and secondary ink 10:1 (L-5), and the current `SideNav`, `Rail`, `Tabs` and `PageToc` entry wears the new `--sui-text-current`, white on dark, so it still stands 2.2:1 from the rest (L-85). A disabled `TextInput` or `Textarea` sits in the read-only inset well with no recess or strong baseline, so it never reads as an empty field (L-40, L-9). An `ErrorState overContent` sets its detail in the secondary ink, as the panel does, under its danger title.
 - A pressed `Select` no longer eases its inset under reduced motion (L-75). A `ColorPicker` focuses its swatch as its panel shows rather than a task later, so an arrow pressed at once picks a color.
 - A `SideNav` whose `current` is a name every object inherits, such as `constructor`, draws no plate rather than throwing, and a `PageToc` entry with such an id turns current only when the reader reaches its section.
+- A closed `ColorPicker` panel or `ListToolbar` menu no longer keeps the `autofocus` mark it sets on open, so a `Modal` around one opens on its own field again, not on the hidden control.
 
 ## 0.4.0
 
