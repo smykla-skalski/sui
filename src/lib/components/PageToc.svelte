@@ -93,6 +93,14 @@
       .filter((section): section is HTMLElement => section?.checkVisibility() ?? false);
   }
 
+  /** The last shown section, read from the end, so a scroll asks one or two sections. */
+  function lastShown(): HTMLElement | undefined {
+    for (let index = entries.length - 1; index >= 0; index--) {
+      const section = document.getElementById(entries[index].id);
+      if (section?.checkVisibility()) return section;
+    }
+  }
+
   /** Whether the box the sections scroll in, a pane or the page, is scrolled to its end. */
   function atEnd(pane: HTMLElement | null): boolean {
     const [scrolled, seen, whole] = pane
@@ -185,9 +193,19 @@
     let nearEnd = false;
     let ended = false;
     let frame = 0;
+    const order = new Map<Element, number>();
+    // Only the one or two sections across the line are asked whether they show.
+    const lastAcross = () => {
+      let last: Element | undefined;
+      let at = -1;
+      for (const section of across) {
+        const index = order.get(section) ?? -1;
+        if (index > at && section.checkVisibility()) [last, at] = [section, index];
+      }
+      return last;
+    };
     const settle = () => {
-      const sections = shownSections();
-      const last = ended ? sections.at(-1) : sections.findLast((section) => across.has(section));
+      const last = ended ? lastShown() : lastAcross();
       if (last) here = last.id;
       else mark();
     };
@@ -224,15 +242,17 @@
       view = new IntersectionObserver(
         (records) => {
           showing(records);
-          const last = shownSections().at(-1);
+          const last = lastShown();
           nearEnd = last !== undefined && onScreen.has(last);
           if (!held) look();
         },
         { root }
       );
-      for (const entry of entries) {
+      order.clear();
+      for (const [index, entry] of entries.entries()) {
         const section = document.getElementById(entry.id);
         if (!section) continue;
+        order.set(section, index);
         band.observe(section);
         view.observe(section);
       }
