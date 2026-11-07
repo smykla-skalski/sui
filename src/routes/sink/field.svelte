@@ -156,7 +156,7 @@
         validationMessage="Enter an email address such as you@example.com"
         placeholder="jane@example.com…"
       />
-      <Button type="submit">Create the Repository</Button>
+      <Button type="submit" tone="signal">Create the Repository</Button>
     </form>
   </Specimen>
 </Example>

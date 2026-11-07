@@ -85,7 +85,7 @@
       title="No Repositories Match This Filter"
       description="Clear the filter or search for another name to see the rest of the list"
     >
-      {#snippet action()}<Button>Clear the Filter</Button>{/snippet}
+      {#snippet action()}<Button tone="signal">Clear the Filter</Button>{/snippet}
     </EmptyState>
   </Specimen>
   <Specimen label="Nothing here yet">
@@ -93,7 +93,7 @@
       title="No Invitations Yet"
       description="People you invite to this workspace appear here until they accept"
     >
-      {#snippet action()}<Button>Invite People</Button>{/snippet}
+      {#snippet action()}<Button tone="signal">Invite People</Button>{/snippet}
     </EmptyState>
   </Specimen>
   <Specimen label={filtered ? 'Emptied by a filter' : 'Filtered list'} code="live">
@@ -107,7 +107,7 @@
           title="No Archived Repositories"
           description="Archive a repository from its settings and it appears here"
         >
-          {#snippet action()}<Button>Open Repository Settings</Button>{/snippet}
+          {#snippet action()}<Button tone="signal">Open Repository Settings</Button>{/snippet}
         </EmptyState>
       {:else}
         <p class="name">smykla-skalski/sui</p>
@@ -233,7 +233,7 @@
         error={contactProblem}
         bind:value={contact}
       />
-      <Button type="submit">Create the Workspace</Button>
+      <Button type="submit" tone="signal">Create the Workspace</Button>
     </form>
   </Specimen>
 </Example>
