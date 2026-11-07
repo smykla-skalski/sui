@@ -199,6 +199,9 @@ suite('navigation', together, () => {
           side.querySelector('a[href], button')?.textContent?.trim()
         );
         assert.equal(landed, first, 'Tab from the last stop left the drawer');
+        // The first stop is a rail tile, whose tip shows on focus and takes the first Escape.
+        await page.keyboard.press('Escape');
+        assert.ok(await drawer.isVisible(), 'the Escape that closed the tip closed the drawer');
         await page.keyboard.press('Escape');
         await drawer.waitFor({ state: 'detached' });
       }
