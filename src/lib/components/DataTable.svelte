@@ -499,7 +499,7 @@ row in place of the hairlines, for a table wide enough that the eye can lose its
   @media (hover: hover) {
     .sort:hover:not(:active) {
       background-color: var(--sui-interactive-hover-layer);
-      color: var(--sui-text-primary);
+      color: var(--sui-hover-ink);
     }
   }
 

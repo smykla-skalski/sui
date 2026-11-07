@@ -72,6 +72,7 @@
   // `start` runs from the track's inline-start edge, so a placement holds in either direction.
   let thumb = $state<{ option: string; start: number; width: number } | null>(null);
   let ready = $state(false);
+  let thumbElement = $state<HTMLElement | null>(null);
   // The option a dragged thumb is held over. The thumb and the words follow it, and the
   // value only takes it when the pointer lets go.
   let held = $state<string | null>(null);
@@ -176,8 +177,22 @@
     if (thumb?.start === next.start && thumb.width === next.width) return;
     // Only a new selection travels. The same option measuring differently (a font landed, a
     // count arrived, a neighbour grew) is placed again, so nothing slides under a still reader.
+    const from = ready && thumb && thumb.option !== next.option ? thumb.width : null;
     if (thumb?.option === next.option) ready = false;
     thumb = next;
+    if (from !== null && from !== next.width) void tick().then(() => grow(from / next.width));
+  }
+
+  // The thumb takes its new width at once and is scaled back from the old one, so the travel
+  // animates a transform alone, never the layout (L-74). It keeps the translate's timing, which
+  // reduced motion sets to nothing.
+  function grow(ratio: number): void {
+    if (!thumbElement) return;
+    const style = getComputedStyle(thumbElement);
+    const duration = parseFloat(style.transitionDuration) * 1000;
+    const easing = style.transitionTimingFunction.match(/^[^,(]+(\([^)]*\))?/)?.[0];
+    if (!duration) return;
+    thumbElement.animate([{ scale: `${ratio} 1` }, { scale: '1 1' }], { duration, easing });
   }
 
   $effect(() => {
@@ -332,7 +347,7 @@ itself, so the choice shows from the first frame.
 - Responsive: as wide as its words or its room, whichever is less; short of room it turns into a `Select`, because a hidden option is a lost option.
 - Accessibility: `label` is drawn above the segments, 8px from them, unless `hideLabel` is set or `aria-labelledby` names a label that is already drawn; `aria-describedby` reaches the group or the select; counts are part of each option's name.
 - Localization: `label`, option words and `countedLabel` are the caller's; numeric counts are grouped in the page's language; the thumb is placed from the inline-start edge and the drag finds the option under the pointer, so both hold right to left.
-- Performance: two `ResizeObserver`s per control, for the thumb and for focus when the form changes; the form itself is chosen by a scroll timeline, the thumb moves by `translate` and its width, and reduced motion drops every transition.
+- Performance: two `ResizeObserver`s per control, for the thumb and for focus when the form changes; the form itself is chosen by a scroll timeline, the thumb moves by `translate` and grows by `scale` from its old width, never animating its layout, and reduced motion drops every transition.
 - Analytics: the outer box hears a native `change` event for every pick, in either form, through `onchange`.
 - Failure: a value no option has draws no thumb and an empty select; disabled options stay visible while the keyboard skips them.
 -->
@@ -384,6 +399,7 @@ itself, so the choice shows from the first frame.
     <legend class="sui-segmented-legend">{label}</legend>
     {#if thumb}
       <span
+        bind:this={thumbElement}
         class="sui-segmented-thumb"
         style:--sui-segmented-start="{thumb.start}px"
         style:inline-size="{thumb.width}px"
@@ -638,12 +654,14 @@ itself, so the choice shows from the first frame.
     inset-inline-start: 0;
     pointer-events: none;
     position: absolute;
+    transform-origin: left;
     translate: calc(var(--sui-segmented-start) * var(--sui-segmented-sign)) 0;
     z-index: var(--sui-layer-inner-plate);
   }
 
   .sui-segmented-thumb:dir(rtl) {
     --sui-segmented-sign: -1;
+    transform-origin: right;
   }
 
   /* Until script has measured the thumb, as in the server's render, the chosen option paints
@@ -731,7 +749,6 @@ itself, so the choice shows from the first frame.
   .ready .sui-segmented-thumb {
     transition:
       translate var(--sui-duration-travel) var(--sui-ease-travel),
-      inline-size var(--sui-duration-travel) var(--sui-ease-travel),
       background-color var(--sui-duration-fast) var(--sui-ease-standard),
       box-shadow var(--sui-duration-press) var(--sui-ease-standard);
   }

@@ -284,11 +284,13 @@ new control after `onadd` is the caller's.
 
   .sui-addition-choice:focus-visible:not(:active) {
     background-color: var(--sui-interactive-hover-layer);
+    color: var(--sui-hover-ink);
   }
 
   @media (hover: hover) {
     .sui-addition-choice:hover:not(:active) {
       background-color: var(--sui-interactive-hover-layer);
+      color: var(--sui-hover-ink);
     }
   }
 

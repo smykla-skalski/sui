@@ -69,10 +69,10 @@
   --sui-primitive-dark-code: #101216;
   --sui-primitive-dark-text: #eceef0;
   /* Where the reader is, on dark: a step past the text ink, so the muted rest rows can stay
-     light enough to read and still stand 2.2:1 under it (L-85). */
+     light enough to read and still stand 2:1 under it (L-85). */
   --sui-primitive-dark-bright: #ffffff;
   --sui-primitive-dark-secondary: #bcc1c8;
-  --sui-primitive-dark-muted: #a5acb5;
+  --sui-primitive-dark-muted: #aeb5be;
   --sui-primitive-dark-strong: #686a6b;
   /* A field's recess, the shade under its top edge: on light one hover step (L-11) past the
      frame it lies under, at rest and on hover; on dark, where the frame is lighter than the
@@ -98,7 +98,7 @@
   --sui-primitive-warning-dark-tint: #28221a;
   --sui-primitive-danger-light: #bb3844;
   --sui-primitive-danger-light-tint: #f2e6e5;
-  --sui-primitive-danger-dark: #ff7a85;
+  --sui-primitive-danger-dark: #ff9da6;
   --sui-primitive-danger-dark-tint: #342328;
   --sui-primitive-info-light-tint: #dbe2ec;
   --sui-primitive-info-dark-tint: #1b222e;
@@ -145,7 +145,7 @@
   --sui-text-primary: var(--sui-primitive-light-text);
   --sui-text-secondary: var(--sui-primitive-light-secondary);
   --sui-text-muted: var(--sui-primitive-light-muted);
-  /* Where the reader is: the current nav row, tab and index entry, 2.2:1 from muted ink (L-85). */
+  /* Where the reader is: the current nav row, tab and index entry, 2:1 from muted ink (L-85). */
   --sui-text-current: var(--sui-text-primary);
   --sui-brand-action: var(--sui-primitive-ocean-500);
   --sui-brand-action-hover: var(--sui-primitive-ocean-600);
@@ -248,6 +248,9 @@
   --sui-interactive-hover: color-mix(in srgb, #000000 3.5%, var(--sui-surface-base));
 
   --sui-interactive-hover-layer: rgb(0 0 0 / 9%);
+  /* Words on a hover veil: the rest ink in light, where the veil darkens the ground under them, and
+     the bright ink in dark, so a lighter ground never takes contrast away. */
+  --sui-hover-ink: var(--sui-text-primary);
   --sui-interactive-pressed: rgb(0 0 0 / 14%);
   --sui-scrim: rgb(0 0 0 / 56%);
   --sui-scrim-blur: 8px;
@@ -456,6 +459,11 @@
   --sui-radius-control: 8px;
   --sui-radius-surface: 10px;
   --sui-radius-popover: 12px;
+  /* A row inside a popover's 1px edge and 4px padding: the popover's curve less both, so the
+     two curves stay concentric (L-53). */
+  --sui-radius-popover-row: calc(
+    var(--sui-radius-popover) - var(--sui-stroke) - var(--sui-space-1)
+  );
   --sui-radius-dialog: 14px;
   --sui-radius-check: 5px;
 
@@ -558,9 +566,15 @@
 
   --sui-layer-top-bar: 35;
   --sui-layer-skip: 120;
-  --sui-shadow-plate: 0 1px 2px var(--sui-shadow-color);
-  --sui-shadow-popover: 0 16px 42px var(--sui-shadow-color);
-  --sui-shadow-dialog: 0 24px 60px var(--sui-shadow-color);
+  --sui-shadow-plate:
+    0 1px 2px var(--sui-shadow-color),
+    0 2px 8px color-mix(in srgb, var(--sui-shadow-color) 25%, transparent);
+  --sui-shadow-popover:
+    0 2px 6px color-mix(in srgb, var(--sui-shadow-color) 40%, transparent),
+    0 16px 42px var(--sui-shadow-color);
+  --sui-shadow-dialog:
+    0 4px 12px color-mix(in srgb, var(--sui-shadow-color) 40%, transparent),
+    0 24px 60px var(--sui-shadow-color);
 
   --sui-segment-track: color-mix(in srgb, var(--sui-text-primary) 5%, transparent);
 
@@ -568,7 +582,9 @@
   --sui-segment-thumb-ink: var(--sui-on-brand-action);
   --sui-segment-hover: var(--sui-interactive-hover-layer);
   --sui-segment-pressed: var(--sui-interactive-pressed);
-  --sui-segment-thumb-shadow: 0 1px 3px color-mix(in srgb, var(--sui-shadow-color) 72%, transparent);
+  --sui-segment-thumb-shadow:
+    0 1px 1px color-mix(in srgb, var(--sui-shadow-color) 40%, transparent),
+    0 1px 3px color-mix(in srgb, var(--sui-shadow-color) 72%, transparent);
 
   /* A pressed segment sinks into the track: a deep top rim, shallower side rims and a lit
      foot. Black and white on every palette, because a recess is darker on every ground. */
@@ -679,6 +695,7 @@
   --sui-interactive-hover: color-mix(in srgb, #ffffff 4%, var(--sui-surface-base));
 
   --sui-interactive-hover-layer: rgb(255 255 255 / 8.5%);
+  --sui-hover-ink: var(--sui-primitive-dark-bright);
   --sui-interactive-pressed: rgb(255 255 255 / 13.5%);
   --sui-scrim: rgb(0 0 0 / 62%);
 
@@ -741,7 +758,9 @@
   --sui-segment-thumb-ink: var(--sui-on-brand-action);
   --sui-segment-hover: var(--sui-interactive-hover-layer);
   --sui-segment-pressed: var(--sui-interactive-pressed);
-  --sui-segment-thumb-shadow: 0 1px 3px color-mix(in srgb, var(--sui-shadow-color) 72%, transparent);
+  --sui-segment-thumb-shadow:
+    0 1px 1px color-mix(in srgb, var(--sui-shadow-color) 40%, transparent),
+    0 1px 3px color-mix(in srgb, var(--sui-shadow-color) 72%, transparent);
 
   --sui-border-strong: var(--sui-primitive-dark-strong);
 
@@ -758,9 +777,15 @@
   --sui-field-recess-hover: var(--sui-primitive-dark-recess);
   --sui-popover-border: var(--sui-border-control);
   --sui-dialog-border: var(--sui-border-control);
-  --sui-shadow-plate: 0 1px 2px var(--sui-shadow-color);
-  --sui-shadow-popover: 0 16px 42px var(--sui-shadow-color);
-  --sui-shadow-dialog: 0 24px 60px var(--sui-shadow-color);
+  --sui-shadow-plate:
+    0 1px 2px var(--sui-shadow-color),
+    0 2px 8px color-mix(in srgb, var(--sui-shadow-color) 25%, transparent);
+  --sui-shadow-popover:
+    0 2px 6px color-mix(in srgb, var(--sui-shadow-color) 40%, transparent),
+    0 16px 42px var(--sui-shadow-color);
+  --sui-shadow-dialog:
+    0 4px 12px color-mix(in srgb, var(--sui-shadow-color) 40%, transparent),
+    0 24px 60px var(--sui-shadow-color);
   --sui-chart-1: #4990e8;
   --sui-chart-2: #db7431;
   --sui-chart-3: #07aaa3;
@@ -864,6 +889,7 @@
     --sui-interactive-hover: color-mix(in srgb, #ffffff 4%, var(--sui-surface-base));
 
     --sui-interactive-hover-layer: rgb(255 255 255 / 8.5%);
+    --sui-hover-ink: var(--sui-primitive-dark-bright);
     --sui-interactive-pressed: rgb(255 255 255 / 13.5%);
     --sui-scrim: rgb(0 0 0 / 62%);
 
@@ -926,8 +952,9 @@
     --sui-segment-thumb-ink: var(--sui-on-brand-action);
     --sui-segment-hover: var(--sui-interactive-hover-layer);
     --sui-segment-pressed: var(--sui-interactive-pressed);
-    --sui-segment-thumb-shadow: 0 1px 3px
-      color-mix(in srgb, var(--sui-shadow-color) 72%, transparent);
+    --sui-segment-thumb-shadow:
+      0 1px 1px color-mix(in srgb, var(--sui-shadow-color) 40%, transparent),
+      0 1px 3px color-mix(in srgb, var(--sui-shadow-color) 72%, transparent);
 
     --sui-border-strong: var(--sui-primitive-dark-strong);
 
@@ -944,9 +971,15 @@
     --sui-field-recess-hover: var(--sui-primitive-dark-recess);
     --sui-popover-border: var(--sui-border-control);
     --sui-dialog-border: var(--sui-border-control);
-    --sui-shadow-plate: 0 1px 2px var(--sui-shadow-color);
-    --sui-shadow-popover: 0 16px 42px var(--sui-shadow-color);
-    --sui-shadow-dialog: 0 24px 60px var(--sui-shadow-color);
+    --sui-shadow-plate:
+      0 1px 2px var(--sui-shadow-color),
+      0 2px 8px color-mix(in srgb, var(--sui-shadow-color) 25%, transparent);
+    --sui-shadow-popover:
+      0 2px 6px color-mix(in srgb, var(--sui-shadow-color) 40%, transparent),
+      0 16px 42px var(--sui-shadow-color);
+    --sui-shadow-dialog:
+      0 4px 12px color-mix(in srgb, var(--sui-shadow-color) 40%, transparent),
+      0 24px 60px var(--sui-shadow-color);
     --sui-chart-1: #4990e8;
     --sui-chart-2: #db7431;
     --sui-chart-3: #07aaa3;

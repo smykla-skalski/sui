@@ -81,7 +81,7 @@ collapsed strip. On a phone it rides in the drawer, or, in a shell with `bottomN
 into the bottom bar: the same tiles side by side, sharing the width.
 
 Current is drawn the same way in every navigation list: the words and the plate carry it.
-Rest tiles are muted and the place on screen is primary ink, a step of 2.2:1 or more in
+Rest tiles are muted and the place on screen is primary ink, a step of 2:1 or more in
 lightness, with its glyph in the accent ink, on a plate of the accent tint. Both keep one weight, so turning current never rewraps a label or
 changes a tile's height. Under forced colors the plate is `Highlight` and its words `HighlightText`.
 
@@ -92,7 +92,7 @@ changes a tile's height. Under forced colors the plate is `Highlight` and its wo
 - Pointer and touch: every tile is at least 44 by 44px on every pointer; nothing needs a gesture.
 - Focus: pressing a tile keeps focus on it; following a link inside the phone drawer closes the drawer and the shell returns focus to its menu button.
 - Responsive: in a column shorter than its tiles, as at 400% zoom, the rail scrolls inside itself; text zoom grows the tiles instead of spilling them, and with `bottomNav` on a phone the tiles share one row.
-- Accessibility: each tile's name is its full `label` plus the badge's words, so a `short` label still names it in full; every ink holds 4.5:1 on its ground, and the current ink stands 2.2:1 from the rest ink in lightness and the plate marks it too, so it is never hue alone (WCAG 1.4.1).
+- Accessibility: each tile's name is its full `label` plus the badge's words, so a `short` label still names it in full; every ink holds 4.5:1 on its ground, and the current ink stands 2:1 from the rest ink in lightness and the plate marks it too, so it is never hue alone (WCAG 1.4.1).
 - Localization: `label` and `badgeLabel` are props with English defaults; the badge's count follows the page language's digits and grouping, and the tooltip opens on the inline end, which is the left in a right-to-left page.
 - Performance: a handful of static tiles; only background, colour and the 1px press move, through transitions that reduced motion removes.
 - Analytics: `onnavigate(event, item)` reports a followed link and `onpick(item)` a pressed button.

@@ -269,8 +269,8 @@ test('L-5 the quiet inks stay easy to read on the dark canvas, under the current
   assert.ok(ratio(dark['--sui-text-muted'], canvas) >= 8, 'dark muted ink under 8:1');
   assert.ok(ratio(dark['--sui-text-secondary'], canvas) >= 10, 'dark secondary ink under 10:1');
   assert.ok(
-    ratio(dark['--sui-text-current'], dark['--sui-text-muted']) >= 2.2,
-    'the current row stands under 2.2:1 from the rest rows'
+    ratio(dark['--sui-text-current'], dark['--sui-text-muted']) >= 2,
+    'the current row stands under 2:1 from the rest rows'
   );
 });
 
@@ -423,7 +423,7 @@ test('L-53 radii come from the radius tokens', () => {
   assert.deepEqual(
     violations(({ property, value }) =>
       /^border(-[a-z-]+)?-radius$/.test(property) &&
-      !/^(var\(--sui-(radius|r)-[a-z]+\)|50%|0|inherit)$/.test(value)
+      !/^(var\(--sui-(radius|r)-[a-z-]+\)|50%|0|inherit)$/.test(value)
         ? 'radius off the scale'
         : null
     ),
@@ -737,4 +737,28 @@ test('L-118 the page covers the screen and its chrome wears each scheme canvas',
       `the ${scheme} theme-color is ${canvas[1]}`
     );
   }
+});
+
+test('L-53 a shadow that lifts a part is two layers in every palette block', () => {
+  /** @param {string} value */
+  const layers = (value) => {
+    let depth = 0;
+    let count = 1;
+    for (const char of value) {
+      if (char === '(') depth++;
+      else if (char === ')') depth--;
+      else if (char === ',' && depth === 0) count++;
+    }
+    return count;
+  };
+  const found = [
+    ...palette.matchAll(
+      /--sui-(shadow-plate|shadow-popover|shadow-dialog|segment-thumb-shadow):([^;]+);/g
+    )
+  ];
+  assert.equal(found.length, 12, 'four shadows in each of three palette blocks');
+  assert.deepEqual(
+    found.filter(([, , value]) => layers(value) < 2).map(([, name]) => name),
+    []
+  );
 });

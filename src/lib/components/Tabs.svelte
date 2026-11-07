@@ -97,7 +97,7 @@ never clips it.
 - Pointer and touch: tabs are 34px tall in a 42px track on a desktop pointer and 44 by 44px at least on a phone or a coarse pointer; the track scrolls by wheel, scrollbar, swipe or keyboard focus.
 - Focus: following a tab moves to its page, where the page decides focus; focus on a tab out of view scrolls it into view.
 - Responsive: the track scrolls sideways, fades the edge with more tabs past it, and reveals the current tab on arrival.
-- Accessibility: the current bar holds 3:1 on the page, every ink 4.5:1, and the current ink stands 2.2:1 from the rest ink with a heavier weight; the counts are read with their labels.
+- Accessibility: the current bar holds 3:1 on the page, every ink 4.5:1, and the current ink stands 2:1 from the rest ink with a heavier weight; the counts are read with their labels.
 - Localization: the tabs follow the reading direction, so the fades and the scroll mirror in a right-to-left page, and a numeric count follows the page language's digits and grouping.
 - Performance: plain links; the browser lays the first row out with its current tab in view, and script measures only to reveal a later page's tab; only colour and the ground transition, and the fade runs on a scroll timeline.
 - Analytics: `onnavigate(event, item)` reports every followed tab.

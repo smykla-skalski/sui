@@ -596,7 +596,7 @@ a saving pane around it holds it the same way.
 
   @media (hover: hover) {
     .sui-pattern-remove:hover:not(:active, :disabled, [aria-disabled='true']) {
-      color: var(--sui-text-primary);
+      color: var(--sui-hover-ink);
     }
 
     .sui-pattern-remove:hover:not(:active, :disabled, [aria-disabled='true'])::before {

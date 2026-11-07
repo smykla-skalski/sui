@@ -422,6 +422,7 @@ assistive technology, because a native picker cannot be held open.
 
   .bare .sui-select-control:open {
     background-color: var(--sui-interactive-hover-layer);
+    color: var(--sui-hover-ink);
   }
 
   .bare .sui-select-control:active:not(:disabled, [aria-disabled='true']) {
@@ -447,6 +448,7 @@ assistive technology, because a native picker cannot be held open.
   @media (hover: hover) {
     .bare .sui-select-control:hover:not(:disabled, [aria-disabled='true'], :active) {
       background-color: var(--sui-interactive-hover-layer);
+      color: var(--sui-hover-ink);
     }
 
     .bare:has(.sui-select-control:hover:not(:disabled, [aria-disabled='true'])) .sui-select-control,
@@ -595,7 +597,7 @@ assistive technology, because a native picker cannot be held open.
      the colors and the font here. */
   .sui-select-option {
     align-items: center;
-    border-radius: var(--sui-radius-control);
+    border-radius: var(--sui-radius-popover-row);
     box-sizing: border-box;
     color: var(--sui-text-primary);
     cursor: pointer;

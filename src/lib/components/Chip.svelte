@@ -1,11 +1,12 @@
 <script module lang="ts">
   type Rgb = [number, number, number];
 
-  /* The luminance at which black and white ink read equally, about 4.58:1 each, so the better
-     of the two always holds 4.5:1 on a fill as it is. */
-  const CROSSOVER = Math.sqrt(1.05 * 0.05) - 0.05;
-  /* A little over 4.5:1, so rounding the ink to whole channels never lands under it. */
+  /* A little over 4.5:1 and APCA Lc 60, so rounding the ink to whole channels never lands under
+     either. */
   const FLOOR = 4.6;
+  const LC_FLOOR = 61;
+  const BLACK: Rgb = [0, 0, 0];
+  const WHITE: Rgb = [255, 255, 255];
   /* The dark theme's tint of the chip's color, as GitHub draws a label in the dark. */
   const TINT = 0.18;
   /* The lightest dark ground a chip stands on (`--sui-surface-inset`): its tint is lightest
@@ -25,6 +26,22 @@
   const luminance = ([r, g, b]: Rgb) =>
     0.2126 * channel(r) + 0.7152 * channel(g) + 0.0722 * channel(b);
   const contrast = (a: number, b: number) => (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05);
+  /* APCA-W3's screen luminance, with its soft clamp near black. */
+  const screen = ([r, g, b]: Rgb) => {
+    const y =
+      0.2126729 * (r / 255) ** 2.4 + 0.7151522 * (g / 255) ** 2.4 + 0.072175 * (b / 255) ** 2.4;
+    return y < 0.022 ? y + (0.022 - y) ** 1.414 : y;
+  };
+  /** The APCA lightness contrast of ink on a ground, without its sign. */
+  function lc(ink: Rgb, ground: Rgb): number {
+    const [text, back] = [screen(ink), screen(ground)];
+    if (Math.abs(back - text) < 0.0005) return 0;
+    const scaled =
+      back > text ? (back ** 0.56 - text ** 0.57) * 1.14 : (text ** 0.62 - back ** 0.65) * 1.14;
+    return scaled < 0.1 ? 0 : (scaled - 0.027) * 100;
+  }
+  const reads = (ink: Rgb, ground: Rgb) =>
+    contrast(luminance(ink), luminance(ground)) >= FLOOR && lc(ink, ground) >= LC_FLOOR;
   const hex = (rgb: Rgb) => `#${rgb.map((c) => c.toString(16).padStart(2, '0')).join('')}`;
 
   function parse(color: string): Rgb | null {
@@ -75,26 +92,41 @@
     return linear(L, low, h).map(encode) as Rgb;
   }
 
+  /** The color moved along its own hue, one step at a time, until `ink` reads on it. */
+  function settle(rgb: Rgb, ink: Rgb, step: number): { fill: Rgb; steps: number } {
+    const [L, C, h] = oklch(rgb);
+    let fill = rgb;
+    let steps = 0;
+    for (let at = L; !reads(ink, fill) && at > 0 && at < 1; steps++) {
+      at = Math.min(1, Math.max(0, at + step));
+      fill = shade(at, C, h);
+    }
+    return { fill, steps };
+  }
+
   /**
-   * A painted chip in each theme. In the light one it wears the color as it is, with black or
-   * white ink, whichever reads better, and an edge only when the fill is near white. In the
-   * dark one it wears an 18% tint of the color, and its ink is the color itself, lifted in
-   * lightness along its own hue until it reads 4.6:1 on that tint.
+   * A painted chip in each theme. In the light one it wears the color with black or white ink,
+   * and an edge only when the fill is near white. A mid-tone fill on which neither ink reads
+   * 4.6:1 and Lc 61 moves along its hue, darker under white or lighter under black, whichever
+   * is the shorter way. In the dark one it wears an 18% tint of the color, and its ink is the
+   * color itself, lifted in lightness along its own hue until it reads on that tint.
    */
   function paint(rgb: Rgb) {
-    const own = luminance(rgb);
-    const lightInk = own > CROSSOVER ? '#000000' : '#ffffff';
-    const [L, C, h] = oklch(rgb);
-    const edge = contrast(own, 1) < PALE ? hex(shade(Math.max(0, L - 0.2), C, h)) : undefined;
-    const tint = luminance(
-      rgb.map((c, at) => Math.round(c * TINT + DARK_GROUND[at] * (1 - TINT))) as Rgb
-    );
+    const white = settle(rgb, WHITE, -0.01);
+    const black = settle(rgb, BLACK, 0.01);
+    const { fill } = white.steps <= black.steps ? white : black;
+    const lightInk = white.steps <= black.steps ? '#ffffff' : '#000000';
+    const [L, C, h] = oklch(fill);
+    const pale = contrast(luminance(fill), 1) < PALE;
+    const edge = pale ? hex(shade(Math.max(0, L - 0.2), C, h)) : undefined;
+    const tint = rgb.map((c, at) => Math.round(c * TINT + DARK_GROUND[at] * (1 - TINT))) as Rgb;
+    const [own, chroma, hue] = oklch(rgb);
     let ink = rgb;
-    for (let lift = L; contrast(luminance(ink), tint) < FLOOR && lift < 1;) {
+    for (let lift = own; !reads(ink, tint) && lift < 1;) {
       lift = Math.min(1, lift + 0.01);
-      ink = shade(lift, C, h);
+      ink = shade(lift, chroma, hue);
     }
-    return { fill: hex(rgb), lightInk, darkInk: hex(ink), edge };
+    return { fill: hex(fill), hue: hex(rgb), lightInk, darkInk: hex(ink), edge };
   }
 
   /* A removed chip takes its own markup with it, so the news is read from a short-lived region
@@ -183,11 +215,11 @@ A value drawn as a mark: a label name, a pattern, a count. It never carries a st
 `Pill` for a state, a role or a standing. `color` paints the chip in a color somebody else
 chose, such as a GitHub label's, and is how a reader recognises it in a list.
 
-A painted chip is drawn as GitHub draws a label. In the light theme it wears the color as it
-is, with black or white ink, whichever reads better, and either reads 4.5:1 on any fill at the
-point where they read the same. In the dark theme it wears an 18% tint of the color, and its
-ink is the color itself, lifted in lightness along its own hue until it reads 4.5:1, so a
-label keeps its hue in both themes. Only a near-white fill draws an edge, so it still shows on
+A painted chip is drawn as GitHub draws a label. In the light theme it wears the color with
+black or white ink. On a mid-tone fill where neither ink reads 4.5:1 and APCA Lc 60, the fill
+moves along its own hue, the shorter way, until one does. In the dark theme it wears an 18%
+tint of the color, and its ink is the color itself, lifted in lightness along its own hue
+until it reads 4.5:1 and Lc 60, so a label keeps its hue in both themes. Only a near-white fill draws an edge, so it still shows on
 a white card. Anything but hex digits draws the plain chip, so a stored value never writes a
 style declaration.
 
@@ -198,7 +230,7 @@ style declaration.
 - Pointer and touch: the remove target is 24px; on a phone or a coarse pointer a removable chip grows to 44px tall around a 44px square control, so the targets of chips on wrapped lines never overlap.
 - Focus: after a removal it moves to the next remove control in the chip's parent, then the previous one, then the parent itself, which gets `tabindex="-1"` when it has none.
 - Responsive: as wide as its value, up to its container, and taller as a long value wraps.
-- Accessibility: the remove control is named by `removeLabel`, which is also its tooltip, and a polite status says `removedLabel` once the chip has gone; a painted chip's ink holds 4.5:1 in both themes, and under forced colors every chip keeps an outline.
+- Accessibility: the remove control is named by `removeLabel`, which is also its tooltip, and a polite status says `removedLabel` once the chip has gone; a painted chip's ink holds 4.5:1 and APCA Lc 60 in both themes, and under forced colors every chip keeps an outline.
 - Localization: `removeLabel` and `removedLabel` are functions of the value with English defaults; the remove control sits at the inline end, so it moves to the left in a right-to-left page.
 - Performance: a painted chip computes its paint for both themes once per color, and the theme picks one with `light-dark()`; a remove control mounts one tooltip.
 - Analytics: `onremove` hears each removal.
@@ -209,6 +241,7 @@ style declaration.
   {...rest}
   class={['sui-chip', className, { small, mono, painted, removable: onremove !== undefined }]}
   style:--sui-chip-fill={painted?.fill}
+  style:--sui-chip-hue={painted?.hue}
   style:--sui-chip-ink-light={painted?.lightInk}
   style:--sui-chip-ink-dark={painted?.darkInk}
   style:--sui-chip-edge={painted?.edge}
@@ -282,7 +315,7 @@ style declaration.
   .painted {
     background: light-dark(
       var(--sui-chip-fill),
-      color-mix(in srgb, var(--sui-chip-fill) 18%, transparent)
+      color-mix(in srgb, var(--sui-chip-hue) 18%, transparent)
     );
     box-shadow: inset 0 0 0 var(--sui-stroke)
       light-dark(var(--sui-chip-edge, transparent), transparent);

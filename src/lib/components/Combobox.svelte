@@ -514,7 +514,7 @@ Name it with a `<label>` or `aria-label`, as any field.
   .sui-combobox-option {
     align-content: center;
     align-items: start;
-    border-radius: var(--sui-radius-control);
+    border-radius: var(--sui-radius-popover-row);
     box-sizing: border-box;
     color: var(--sui-text-primary);
     column-gap: var(--sui-space-2);
@@ -541,6 +541,7 @@ Name it with a `<label>` or `aria-label`, as any field.
 
   .sui-combobox-option.active:not(:active) {
     background-color: var(--sui-interactive-hover-layer);
+    color: var(--sui-hover-ink);
   }
 
   .sui-combobox-option:active:not([aria-disabled='true']) {

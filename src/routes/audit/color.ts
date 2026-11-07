@@ -39,6 +39,23 @@ export function contrast(a: Rgba, b: Rgba): number {
   return (light + 0.05) / (dark + 0.05);
 }
 
+/**
+ * The APCA lightness contrast (Lc) of text on its ground, as APCA-W3 0.1.9 gives it, without
+ * the sign. A light ink on a dark ground and a dark ink on a light one read with different
+ * curves, which WCAG 2's one ratio cannot say.
+ */
+export function apca(text: Rgba, ground: Rgba): number {
+  const y = ({ r, g, b }: Rgba) => {
+    const value = 0.2126729 * r ** 2.4 + 0.7151522 * g ** 2.4 + 0.072175 * b ** 2.4;
+    return value < 0.022 ? value + (0.022 - value) ** 1.414 : value;
+  };
+  const [ink, back] = [y(text), y(ground)];
+  if (Math.abs(back - ink) < 0.0005) return 0;
+  const scaled =
+    back > ink ? (back ** 0.56 - ink ** 0.57) * 1.14 : (ink ** 0.62 - back ** 0.65) * 1.14;
+  return scaled < 0.1 ? 0 : (scaled - 0.027) * 100;
+}
+
 export type Lab = [number, number, number];
 
 export function lab({ r, g, b }: Rgba): Lab {

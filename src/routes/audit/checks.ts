@@ -1,5 +1,5 @@
 import { describe, register, shown, type Finding } from './audit.js';
-import { contrast, deltaE, lab, lightness, over, rgba, type Rgba } from './color.js';
+import { apca, contrast, deltaE, lab, lightness, over, rgba, type Rgba } from './color.js';
 
 const IGNORED = '[data-audit-ignore], [data-audit-ignore] *';
 const INTERACTIVE =
@@ -175,6 +175,34 @@ function palette(): Finding[] {
   ])
     found.push(...atLeast('L-5', `${ink} on ${ground}`, c(ink, ground), 4.5));
 
+  // APCA reads a light ink on a dark ground as it is seen, where WCAG 2 overrates it, so each
+  // pair also holds an APCA floor: Lc 75 for the body ink, Lc 60 for every other word.
+  const lc = (a: string, b: string) => {
+    const ground = over(t(b), t('surface-base'));
+    return apca(over(t(a), ground), ground);
+  };
+  for (const ground of [
+    'canvas',
+    'surface-base',
+    'surface-raised',
+    'surface-control',
+    'surface-inset'
+  ])
+    found.push(
+      ...atLeast('L-5', `text-primary on ${ground} in APCA`, lc('text-primary', ground), 75)
+    );
+  for (const ink of [
+    'text-secondary',
+    'text-muted',
+    'info',
+    'success',
+    'warning',
+    'danger',
+    'link'
+  ])
+    for (const ground of ['canvas', 'surface-base', 'surface-raised', 'surface-inset'])
+      found.push(...atLeast('L-5', `${ink} on ${ground} in APCA`, lc(ink, ground), 60));
+
   for (const ground of ['canvas', 'surface-base', 'surface-control', 'surface-inset'])
     found.push(...atLeast('L-6', `focus on ${ground}`, c('focus', ground), 3));
   for (const ground of ['canvas', 'surface-base', 'surface-inset'])
@@ -274,6 +302,20 @@ function palette(): Finding[] {
     const pressStep = deltaE(ground, over(pressed, ground));
     found.push(...between('L-11', `hover step on ${name}`, hoverStep, hoverBand[0], hoverBand[1]));
     found.push(...between('L-11', `press step on ${name}`, pressStep, pressBand[0], pressBand[1]));
+    // A dark veil lightens the ground, so the words on it rise to the hover ink to gain
+    // contrast. A light veil darkens the ground and no ink is darker than the rest ink.
+    if (!light) {
+      const resting = apca(t('text-primary'), ground);
+      const lifted = apca(t('hover-ink'), over(hover, ground));
+      if (lifted < resting)
+        found.push(
+          finding(
+            'L-11',
+            null,
+            `hover ink on ${name} reads Lc ${round(lifted, 1)}, under its rest Lc ${round(resting, 1)}`
+          )
+        );
+    }
   }
 
   const base = t('surface-base');
@@ -356,7 +398,7 @@ function palette(): Finding[] {
       'L-85',
       'sidebar-active-ink against sidebar-text-muted',
       contrast(t('sidebar-active-ink'), t('sidebar-text-muted')),
-      2.2
+      2
     ),
     ...atLeast(
       'L-85',
@@ -396,6 +438,10 @@ function textContrast(root: Document): Finding[] {
     const floor = large ? 3 : 4.5;
     if (ratio < floor)
       found.push(finding('L-5', element, `text contrast ${round(ratio)} under ${floor}`));
+    const lc = apca(painted, ground);
+    const lcFloor = large ? 45 : 60;
+    if (lc < lcFloor)
+      found.push(finding('L-5', element, `text reads Lc ${round(lc, 1)} under Lc ${lcFloor}`));
   }
   return found;
 }
@@ -2004,7 +2050,7 @@ function fieldRecesses(root: Document): Finding[] {
 
 /**
  * Where the reader is (L-85): a current navigation row stands apart from a resting peer by its
- * ink, 2.2:1 from the peer's, and by its plate, so it needs no ring or edge, and it draws none. A row
+ * ink, 2:1 from the peer's, and by its plate, so it needs no ring or edge, and it draws none. A row
  * whose words may wrap keeps the peer's font, so turning current never rewraps them or changes
  * its height. A current tab, whose words never wrap, carries its bar too, at 3:1 on the ground.
  */
@@ -2062,7 +2108,7 @@ function currentMarks(root: Document): Finding[] {
         )
       );
     const inks = contrast(rgba(look.color), rgba(rest.color));
-    if (inks < 2.2)
+    if (inks < 2)
       found.push(
         finding('L-85', current, `the current ink stands ${round(inks)}:1 from a rest row`)
       );

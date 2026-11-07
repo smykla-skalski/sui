@@ -120,13 +120,13 @@ action are a `Button` with the word beside the glyph.
   @media (hover: hover) {
     .sui-icon-button:hover:not(:disabled, [aria-disabled='true']) {
       background-color: var(--sui-interactive-hover-layer);
-      color: var(--sui-text-primary);
+      color: var(--sui-hover-ink);
     }
   }
 
   .sui-icon-button[aria-expanded='true']:not(:disabled) {
     background-color: var(--sui-interactive-hover-layer);
-    color: var(--sui-text-primary);
+    color: var(--sui-hover-ink);
   }
 
   .sui-icon-button:active:not(:disabled, [aria-disabled='true']) {
