@@ -2366,9 +2366,10 @@ function tonedControls(root: Document): Finding[] {
 
 /**
  * A dialog's parts (L-58): the head, the body, the error and the actions stand one inset from
- * every edge and from each other, measured to the ink, and the head 8px more from the body. A
- * body that scrolls is cut where the actions begin, and a docked inspector parks them at its
- * foot, so neither gap is weighed.
+ * every edge and from each other, measured to the ink, and the head 8px more from the body. The
+ * line that parts the body from the actions is an edge too, so the body stands two insets from
+ * what follows it. A body that scrolls is cut where the actions begin, and a docked inspector
+ * parks them at its foot, so neither gap is weighed.
  */
 function dialogInsets(root: Document): Finding[] {
   const found: Finding[] = [];
@@ -2417,11 +2418,19 @@ function dialogInsets(root: Document): Finding[] {
     const foot = bands[bands.length - 1];
     const cut = body !== null && inBody !== null && body.scrollHeight > body.clientHeight + 1;
     const docked = dialog.matches("[data-size='inspector']:not(.preview)");
+    const lined = dialog.querySelector(
+      ':scope > .sui-modal-body + .sui-modal-error + .sui-modal-foot'
+    );
     // Each gap is weighed against the band under it, and the last against the bottom edge.
     const gaps = [...bands, null].flatMap((under, at) => {
       const over = bands[at - 1];
       if ((cut && (under === inBody || over === inBody)) || (docked && under === foot)) return [];
-      const want = over === top && under === inBody ? inset + step : inset;
+      const want =
+        over === top && under === inBody
+          ? inset + step
+          : lined && over === inBody
+            ? 2 * inset
+            : inset;
       if (!under)
         return [{ gap: box.bottom - parseFloat(look.borderBottomWidth) - over.bottom, want }];
       if (!over) return [{ gap: under.top - box.top - parseFloat(look.borderTopWidth), want }];

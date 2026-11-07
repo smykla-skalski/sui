@@ -488,7 +488,17 @@ dialog, so they are never inert under it.
   }
 
   /* A line always parts the task from its answer, so the actions read as one band whether the
-     body fits or scrolls under them. */
+     body fits or scrolls under them. The line counts as an edge: the body pads a full inset
+     over it and the band a full inset under it, so it stands as far from the last field as
+     from the actions, and they as far from it as from the foot. */
+  .sui-modal-body:has(+ .sui-modal-error + .sui-modal-foot) {
+    padding-block-end: var(--sui-local-modal-inset);
+  }
+
+  .sui-modal-body + .sui-modal-error:has(+ .sui-modal-foot) {
+    padding-block-start: calc(var(--sui-local-modal-inset) / 2);
+  }
+
   .sui-modal-body + .sui-modal-error:has(+ .sui-modal-foot)::before {
     border-block-start: var(--sui-stroke) solid var(--sui-border-subtle);
     content: '';

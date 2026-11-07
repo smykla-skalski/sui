@@ -301,11 +301,29 @@ suite('overlays', together, () => {
       await page.waitForFunction(() => !document.querySelector('dialog[open]'));
     });
 
-    test('L-58 a line parts a dialog body from its actions whether the body fits or scrolls', async () => {
+    test('L-58 a line parts a dialog body from its actions whether the body fits or scrolls, one inset above them as below', async () => {
       const opener = page.locator('#modal button', { hasText: 'Edit Webhook' }).first();
       await opener.scrollIntoViewIfNeeded();
       await opener.click();
       await page.waitForSelector('dialog[open] .sui-modal-body');
+      const band = await page.evaluate(() => {
+        const dialog = /** @type {Element} */ (document.querySelector('dialog[open]'));
+        const line = /** @type {Element} */ (dialog.querySelector('.sui-modal-error'));
+        const buttons = [...dialog.querySelectorAll('.sui-modal-foot button')].map((button) =>
+          button.getBoundingClientRect()
+        );
+        return {
+          above: Math.min(...buttons.map((box) => box.top)) - line.getBoundingClientRect().top,
+          below:
+            dialog.getBoundingClientRect().bottom -
+            Math.max(...buttons.map((box) => box.bottom)) -
+            parseFloat(getComputedStyle(dialog).borderBottomWidth)
+        };
+      });
+      assert.ok(
+        Math.abs(band.above - band.below) <= 0.5,
+        `the actions stand ${band.above}px under the line and ${band.below}px over the foot`
+      );
       const cut = () => {
         const after = document.querySelector('dialog[open] .sui-modal-body + .sui-modal-error');
         const line = after && getComputedStyle(after, '::before');
