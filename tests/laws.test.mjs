@@ -879,3 +879,10 @@ test('L-39 a stop-quiet edge stays the danger hue on a dark ground', () => {
     /\[data-tone='stop-quiet'\] \{\s*border-color: color-mix\(\s*in srgb,\s*var\(--sui-danger\) var\(--sui-stop-quiet-edge-mix\),\s*var\(--sui-control-border\)\s*\);/
   );
 });
+
+test('L-85 the current row stands on a plate a light theme does not wash out', () => {
+  const plate = (/** @type {string} */ share) =>
+    `color-mix(in srgb, var(--sui-brand-action) ${share}, var(--sui-sidebar-bg))`;
+  assert.equal(light['--sui-sidebar-active-bg'], plate('18%'), 'a 12% plate reads as hover');
+  assert.equal(dark['--sui-sidebar-active-bg'], plate('24%'));
+});
