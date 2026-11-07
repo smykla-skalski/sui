@@ -160,7 +160,7 @@ only and a `LoadMore` after it lands on the first new one. Page it in the order 
               <RelativeTime value={at} {locale} />
             {:else}
               <!-- The language's own direction, so a time keeps its order in a right-to-left page. -->
-              <time dir="auto" datetime={at.toISOString()}>{clock.format(at)}</time>
+              <time dir="auto" translate="no" datetime={at.toISOString()}>{clock.format(at)}</time>
             {/if}
           </div>
           <div class="sui-timeline-body">

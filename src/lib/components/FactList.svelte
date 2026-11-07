@@ -85,7 +85,12 @@ apart, and the action under the value.
   {#each facts as fact, index (index)}
     <div class="sui-fact-list-fact">
       <dt class="sui-fact-list-label">{fact.label}</dt>
-      <dd class="sui-fact-list-value" class:mono={fact.mono} class:missing={absent(fact)}>
+      <dd
+        class="sui-fact-list-value"
+        class:mono={fact.mono}
+        class:missing={absent(fact)}
+        translate={fact.mono ? 'no' : undefined}
+      >
         {#if absent(fact)}
           {missingLabel}
         {:else if typeof fact.value === 'function'}

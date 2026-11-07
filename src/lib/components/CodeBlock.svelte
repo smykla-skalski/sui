@@ -223,7 +223,7 @@ from the corner and centred on the first line, or in the file name's row when th
 
 <figure {...rest} class={['sui-code-block', { bare, labelled: label !== undefined }, className]}>
   {#if label !== undefined}
-    <figcaption class="sui-code-block-label">{label}</figcaption>
+    <figcaption class="sui-code-block-label" translate="no">{label}</figcaption>
     {#if copy}{@render copier()}{/if}
   {/if}
   <!-- A block that scrolls sideways must be reachable by keyboard to be scrolled. -->

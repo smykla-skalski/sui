@@ -74,9 +74,7 @@
   layout="stack"
 >
   <Specimen label="Wrapping title & a link">
-    <Callout
-      title="Archived repositories are skipped during every sync, including the scheduled one"
-    >
+    <Callout title="Every sync skips archived repositories, including the scheduled one">
       {#snippet icon()}<Icon name="info" size="sm" />{/snippet}
       Unarchive a repository to bring it back into the sync, and read
       <Link href="#callout">how archiving works</Link> before you change the setting for the whole workspace
@@ -90,7 +88,7 @@
   </Specimen>
   <Specimen label="Long copy beside an action" code="actions">
     <Callout
-      title="Archived repositories are skipped during every sync, including the scheduled one that runs at night"
+      title="Every sync skips archived repositories, including the scheduled one that runs at night"
     >
       {#snippet icon()}<Icon name="info" size="sm" />{/snippet}
       Unarchive a repository to bring it back into the sync, with the branch rules it had before it was

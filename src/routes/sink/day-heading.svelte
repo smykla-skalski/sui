@@ -73,7 +73,9 @@
           {#each day.entries as entry (entry.what)}
             <li>
               <span class="what">{entry.what}</span>
-              <time class="time" datetime={entry.at.toISOString()}>{clock(entry.at)}</time>
+              <time class="time" translate="no" datetime={entry.at.toISOString()}
+                >{clock(entry.at)}</time
+              >
             </li>
           {/each}
         </ul>

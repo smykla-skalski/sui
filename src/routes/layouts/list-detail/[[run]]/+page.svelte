@@ -162,7 +162,7 @@
               {#each steps as step (step.name)}
                 <ObjectRow>
                   {#snippet main()}<span class="step">{step.name}</span>{/snippet}
-                  {#snippet side()}<span class="took">{step.took}</span>{/snippet}
+                  {#snippet side()}<span class="took" translate="no">{step.took}</span>{/snippet}
                 </ObjectRow>
               {/each}
             </ObjectList>

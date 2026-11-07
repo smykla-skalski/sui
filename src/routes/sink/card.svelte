@@ -31,7 +31,7 @@
 
   const rules: ActionMenuItem[] = [
     { label: 'Add a Rule', icon: 'plus', onselect: nothing },
-    { label: 'Show the history', icon: 'history', onselect: nothing }
+    { label: 'Show the History', icon: 'history', onselect: nothing }
   ];
 </script>
 

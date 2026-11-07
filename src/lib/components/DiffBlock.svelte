@@ -245,7 +245,7 @@ or removed empty line. Two empty sides say `emptyLabel`.
 <figure {...rest} class={['sui-diff-block', className]}>
   {#if label !== undefined || labels}
     <figcaption class="sui-diff-block-legend">
-      {#if label !== undefined}<span class="sui-diff-block-name">{label}</span>{/if}
+      {#if label !== undefined}<span class="sui-diff-block-name" translate="no">{label}</span>{/if}
       {#if labels}
         <span class="sui-diff-block-sources">
           <span><span class="del" aria-hidden="true">−</span>{joiner('space')}{labels.before}</span>

@@ -116,7 +116,7 @@
 
 <Example
   title="Narrow Width"
-  note="A long label wraps beside the track and the two stay centred"
+  note="A long label wraps beside the track and both stay centred"
   layout="stack"
 >
   <Specimen label="Wrapped label">

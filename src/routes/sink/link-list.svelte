@@ -29,7 +29,7 @@
   const long: LinkListItem[] = [
     {
       href: '#link-list',
-      label: 'Every change made to the saved settings of acme/api since it was connected',
+      label: 'Every change made to the saved settings of acme/api since you connected it',
       note: 'Labels and notes wrap at their own edge'
     },
     { href: '#link-list', label: 'Previous check #4170' }

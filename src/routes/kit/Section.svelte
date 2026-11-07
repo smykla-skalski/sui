@@ -114,9 +114,9 @@
         <span class="sources-label">Source</span>
         {#each meta.components as name (name)}
           {#if sources[name]}
-            <Link href={REPOSITORY + sources[name]} standalone>{name}</Link>
+            <Link href={REPOSITORY + sources[name]} standalone translate="no">{name}</Link>
           {:else}
-            <span class="name">{name}</span>
+            <span class="name" translate="no">{name}</span>
           {/if}
         {/each}
       </p>

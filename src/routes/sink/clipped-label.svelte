@@ -28,7 +28,7 @@
     </div>
   </Specimen>
   <Specimen label="Clipped identifier" code="mono">
-    <div class="frame mono">
+    <div class="frame mono" translate="no">
       <ClippedLabel mono text="smykla-skalski/sui/src/lib/components/ClippedLabel.svelte" />
     </div>
   </Specimen>

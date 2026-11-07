@@ -206,7 +206,7 @@
   layout="stack"
 >
   <Specimen label="Refusal">
-    <FormError message="The invitation expired before it was accepted" />
+    <FormError message="The invitation expired before anyone accepted it" />
   </Specimen>
   <Specimen label="On submit" code="message">
     <div class="form">

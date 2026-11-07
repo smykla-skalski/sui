@@ -145,7 +145,7 @@
       <PageHeader
         level={4}
         title="Sync Schedule"
-        description="When this repository is checked against its template"
+        description="When the sync checks this repository against its template"
       >
         {#snippet kicker()}
           <Breadcrumb
@@ -181,7 +181,7 @@
         level={4}
         eyebrow={['Acme', 'Access']}
         title="Bypass Rules for the Platform Team’s Deployment & Release Repositories in Every Region"
-        description="People and apps listed here can push past the branch rules, and every push they make is written to the audit log"
+        description="People and apps listed here can push past the branch rules, and the audit log records every push they make"
       >
         {#snippet actions()}
           <Button tone="signal">Add a Rule</Button>

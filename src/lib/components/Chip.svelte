@@ -246,7 +246,7 @@ style declaration.
   style:--sui-chip-ink-dark={painted?.darkInk}
   style:--sui-chip-edge={painted?.edge}
 >
-  <span class="sui-chip-label">{label}</span>
+  <span class="sui-chip-label" translate={mono ? 'no' : undefined}>{label}</span>
   {#if onremove !== undefined}
     <button
       bind:this={remover}

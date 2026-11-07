@@ -84,14 +84,14 @@ wide matrix on a wider stage scrolls inside it with the row values held, as a da
 
 {#snippet matrix()}
   <div class="corner">
-    {#if axis}<code>{axis}</code>{/if}
+    {#if axis}<code translate="no">{axis}</code>{/if}
   </div>
   {#each columns as column (column)}
     <div class="column">{columnLabel(column)}</div>
   {/each}
   {#each rows as row (row)}
     <div class="row">
-      <code class="row-label">{rowLabel(row)}</code>
+      <code class="row-label" translate="no">{rowLabel(row)}</code>
       {#each columns as column (column)}
         <div class="cell">
           <span class="cell-label">{columnLabel(column)}</span>

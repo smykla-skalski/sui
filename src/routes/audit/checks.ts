@@ -600,6 +600,9 @@ function copy(root: Document): Finding[] {
     // Plain words a reader gets at once, not an idiom (L-105).
     const idiom = text.match(/\bin step\b/i)?.[0];
     if (idiom) found.push(finding('L-105', element, `"${idiom}" is an idiom; say what it means`));
+    const spelled = text.match(/\b(?:two|three|four|five|six|seven|eight|nine|ten)\b(?!-)/i)?.[0];
+    if (spelled)
+      found.push(finding('L-105', element, `"${spelled}" is a count in words, not figures`));
     // Facts are parted by a drawn dot, never one typed into the words (L-103); a native
     // option is a string-only place and keeps its typed separator.
     if (text.includes('·') && text.trim() !== '·' && !element.closest('select, option, code, pre'))
@@ -622,6 +625,24 @@ function copy(root: Document): Finding[] {
         finding('L-31', element, `the placeholder "${said.trim()}" does not end with "…"`)
       );
   return found;
+}
+
+/** A technical value is set in the mono face (L-20), and a page translator leaves it as written. */
+function untranslated(root: Document): Finding[] {
+  const mono = getComputedStyle(root.documentElement)
+    .getPropertyValue('--sui-mono')
+    .split(',')[0]
+    .trim()
+    .replace(/["']/g, '');
+  return textElements(root, 'svg, script, style, [data-audit-ignore], [translate="no"]')
+    .filter(
+      ({ element }) =>
+        element.closest('code, kbd, samp, pre') ||
+        (mono !== '' && getComputedStyle(element).fontFamily.replace(/["']/g, '').startsWith(mono))
+    )
+    .map(({ element, text }) =>
+      finding('L-20', element, `"${text.slice(0, 24)}" is a mono value a translator can change`)
+    );
 }
 
 // Chicago keeps these lower case inside a title: articles, coordinating conjunctions, "to",
@@ -3458,6 +3479,7 @@ function taps(root: Document): Finding[] {
 }
 
 register(
+  untranslated,
   separators,
   palette,
   textContrast,

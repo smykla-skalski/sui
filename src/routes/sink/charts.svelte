@@ -114,7 +114,7 @@
       yLabel="Items"
     />
   </Specimen>
-  <Specimen label="Scatter, two measures of each item" code="series xLabel yLabel">
+  <Specimen label="Scatter, 2 measures of each item" code="series xLabel yLabel">
     <ScatterChart
       title="Build Time by Change Size"
       description="Bigger changes build longer, and a cold cache adds about 6 minutes"

@@ -45,7 +45,7 @@
       {#if label}<span class="label">{label}</span>{:else}<span class="label" aria-hidden="true"
           >&nbsp;</span
         >{/if}
-      {#if code}{@const props = propsOf(code)}<code
+      {#if code}{@const props = propsOf(code)}<code translate="no"
           >{#each props as prop, index (index)}<span
               >{index < props.length - 1 ? `${prop} ` : prop}</span
             >{/each}</code

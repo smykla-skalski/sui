@@ -233,7 +233,7 @@ suite('the kitchen sink', together, () => {
   // so a disabled toned button there is right to wear that local paint. One audit of a small
   // page reads both laws.
   test(
-    'L-40 a disabled tone is measured against the paint where its button stands, L-30 a heading or button off Title Case is found while a name, code or quote is not, and L-31 so is a straight quote or a placeholder without its ellipsis',
+    'L-40 a disabled tone is measured against the paint where its button stands, L-30 a heading or button off Title Case is found while a name, code or quote is not, L-31 so is a straight quote or a placeholder without its ellipsis, L-105 a count in words and L-20 a mono value open to translation',
     long,
     async () => {
       const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
@@ -259,7 +259,10 @@ suite('the kitchen sink', together, () => {
             '<p>Don\'t sync <code>"main"</code></p>',
             '<p>Don’t sync “main”</p>',
             '<input aria-label="Name" placeholder="Search repositories">',
-            '<input aria-label="Name" placeholder="Search repositories…">'
+            '<input aria-label="Name" placeholder="Search repositories…">',
+            '<p>Sync three repositories</p>',
+            '<p>Sync 3 repositories with a two-way link</p>',
+            '<p>Run <code translate="no">git</code></p>'
           ].join('');
           document.body.append(host);
           return buttons.length;
@@ -285,6 +288,21 @@ suite('the kitchen sink', together, () => {
           [
             "a straight ' instead of a curly quote",
             'the placeholder "Search repositories" does not end with "…"'
+          ]
+        );
+        assert.deepEqual(
+          findings
+            .filter(({ law, where }) => law === 'L-105' && where.includes('#title-case'))
+            .map(({ detail }) => detail),
+          ['"three" is a count in words, not figures']
+        );
+        assert.deepEqual(
+          findings
+            .filter(({ law, where }) => law === 'L-20' && where.includes('#title-case'))
+            .map(({ detail }) => detail),
+          [
+            '"npm" is a mono value a translator can change',
+            '""main"" is a mono value a translator can change'
           ]
         );
       } finally {

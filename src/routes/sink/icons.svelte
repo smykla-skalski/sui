@@ -32,7 +32,7 @@
     {#each iconNames as name (name)}
       <li>
         <Icon {name} size="md" />
-        <span class="name">{name}</span>
+        <span class="name" translate="no">{name}</span>
       </li>
     {/each}
   </ul>

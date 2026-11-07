@@ -42,7 +42,7 @@
     </Field>
   </Specimen>
   <Specimen label="Read only" code="readonly">
-    <Field label="Repository ID" hint="Set when the repository was created">
+    <Field label="Repository ID" hint="The repository keeps this ID from the day you create it">
       {#snippet control({ id, describedby })}
         <TextInput {id} aria-describedby={describedby} mono readonly value="R_kgDOJ8x2Qw" />
       {/snippet}
