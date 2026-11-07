@@ -42,7 +42,7 @@
     value,
     level = 3,
     locale,
-    unknownLabel = word('DayHeading.unknownLabel', 'Unknown day'),
+    unknownLabel = word('DayHeading.unknownLabel', 'Unknown Day'),
     class: className = '',
     ...rest
   }: {

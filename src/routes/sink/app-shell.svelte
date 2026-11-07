@@ -1,6 +1,6 @@
 <script module lang="ts">
   export const section = {
-    title: 'App shell',
+    title: 'App Shell',
     lead: 'The frame of an application, with a rail for the place, a sidebar for the page, and the content. Views inside one page switch with Tabs.',
     components: ['AppShell', 'Rail', 'SideNav']
   };
@@ -32,7 +32,7 @@
 </Example>
 
 <Example
-  title="Bottom navigation"
+  title="Bottom Navigation"
   note="With bottomNav, a phone keeps the rail's few places in a bar along the bottom, and the drawer holds only the pages"
   layout="stack"
   ground="canvas"

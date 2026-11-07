@@ -1,6 +1,6 @@
 <script module lang="ts">
   export const section = {
-    title: 'Theme switch',
+    title: 'Theme Switch',
     lead: "Light, dark or the system's theme for the whole page, remembered for the next visit. Any other choice of a few options is a SegmentedControl.",
     components: ['ThemeSwitch']
   };
@@ -15,7 +15,7 @@
 </script>
 
 <Example
-  title="Page theme"
+  title="Page Theme"
   note="Sets the theme of this page, remembers it for the next visit and follows the system live"
 >
   <Specimen label="Light, dark and system" code="bind:value">
@@ -30,7 +30,7 @@
 </Example>
 
 <Example
-  title="Narrow width"
+  title="Narrow Width"
   note="Short of room, the same three choices become a native select that shares the page's one choice"
   layout="stack"
 >

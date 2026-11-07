@@ -13,13 +13,13 @@
     busy = false,
     focusAfterRetry,
     overContent = false,
-    retryLabel = word('ErrorState.retryLabel', 'Try again'),
-    retryingLabel = word('ErrorState.retryingLabel', 'Trying again…'),
+    retryLabel = word('ErrorState.retryLabel', 'Try Again'),
+    retryingLabel = word('ErrorState.retryingLabel', 'Trying Again…'),
     element = $bindable(null),
     class: className = '',
     ...rest
   }: {
-    /** What could not be done, as a statement: "Repositories could not be loaded". */
+    /** What could not be done, as a statement: "Repositories Could Not Be Loaded". */
     title: string;
     /** Why, and what the reader can do about it. */
     description: string;

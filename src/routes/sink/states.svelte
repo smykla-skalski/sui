@@ -1,6 +1,6 @@
 <script module lang="ts">
   export const section = {
-    title: 'Empty and error states',
+    title: 'Empty & Error States',
     lead: 'What a collection says when it has nothing to show, or when its request failed, with a next step. A form the server refused shows a FormError.',
     components: ['EmptyState', 'ErrorState', 'FormError']
   };
@@ -75,39 +75,39 @@
 </script>
 
 <Example
-  title="Empty state"
+  title="Empty State"
   note="A plain title, one explanation and a next step, with no decorative icon"
   layout="grid"
   ground="canvas"
 >
   <Specimen label="Next step" code="action">
     <EmptyState
-      title="No repositories match this filter"
+      title="No Repositories Match This Filter"
       description="Clear the filter or search for another name to see the rest of the list"
     >
-      {#snippet action()}<Button>Clear the filter</Button>{/snippet}
+      {#snippet action()}<Button>Clear the Filter</Button>{/snippet}
     </EmptyState>
   </Specimen>
   <Specimen label="Nothing here yet">
     <EmptyState
-      title="No invitations yet"
+      title="No Invitations Yet"
       description="People you invite to this workspace appear here until they accept"
     >
-      {#snippet action()}<Button>Invite people</Button>{/snippet}
+      {#snippet action()}<Button>Invite People</Button>{/snippet}
     </EmptyState>
   </Specimen>
   <Specimen label={filtered ? 'Emptied by a filter' : 'Filtered list'} code="live">
     <div class="filtered">
       <Button onclick={() => (filtered = !filtered)}
-        >{filtered ? 'Show every repository' : 'Show archived only'}</Button
+        >{filtered ? 'Show Every Repository' : 'Show Archived Only'}</Button
       >
       {#if filtered}
         <EmptyState
           live
-          title="No archived repositories"
+          title="No Archived Repositories"
           description="Archive a repository from its settings and it appears here"
         >
-          {#snippet action()}<Button>Open repository settings</Button>{/snippet}
+          {#snippet action()}<Button>Open Repository Settings</Button>{/snippet}
         </EmptyState>
       {:else}
         <p class="name">smykla-skalski/sui</p>
@@ -117,7 +117,7 @@
 </Example>
 
 <Example
-  title="Error state"
+  title="Error State"
   note="The retry keeps focus while it runs, and the loaded rows take focus when it succeeds"
   layout="grid"
   ground="canvas"
@@ -137,7 +137,7 @@
           </div>
         {:else}
           <ErrorState
-            title="Repositories could not be loaded"
+            title="Repositories Could Not Be Loaded"
             description="The server did not answer in time, so nothing on this page has changed"
             onretry={retry}
             busy={retrying}
@@ -146,14 +146,14 @@
         {/if}
       </Section>
       {#if recovered}
-        <div><Button onclick={() => (recovered = false)}>Show the failure again</Button></div>
+        <div><Button onclick={() => (recovered = false)}>Show the Failure Again</Button></div>
       {/if}
     </div>
   </Specimen>
   <Specimen label="No retry">
     <Section title="Members" level={4}>
       <ErrorState
-        title="Access is not available"
+        title="Access Is Not Available"
         description="Only viewers and owners of this workspace see its members"
         step="Ask an owner to give you the viewer role"
       />
@@ -165,7 +165,7 @@
         <p class="name">Usage for this month loaded</p>
       {:else}
         <ErrorState
-          title="Usage could not be loaded"
+          title="Usage Could Not Be Loaded"
           description="The server did not answer in time"
           onretry={() => (settled = true)}
         />
@@ -175,7 +175,7 @@
 </Example>
 
 <Example
-  title="Over loaded content"
+  title="Over Loaded Content"
   note="A failed refresh becomes one line above the rows it leaves in place"
   layout="stack"
   ground="canvas"
@@ -184,7 +184,7 @@
     <Section title="Repositories" level={4}>
       <ErrorState
         overContent
-        title="The list could not be refreshed"
+        title="The List Could Not Be Refreshed"
         description="Showing what loaded at {clock(14, 2)}"
         onretry={refresh}
         busy={refreshing}
@@ -201,7 +201,7 @@
 </Example>
 
 <Example
-  title="Form error"
+  title="Form Error"
   note="A server refusal is announced, and a long form's summary takes focus with a link to each field"
   layout="stack"
 >
@@ -210,7 +210,7 @@
   </Specimen>
   <Specimen label="On submit" code="message">
     <div class="form">
-      <Button onclick={submit}>{refused ? 'Clear the refusal' : 'Submit the form'}</Button>
+      <Button onclick={submit}>{refused ? 'Clear the Refusal' : 'Submit the Form'}</Button>
       <FormError message={refused} />
     </div>
   </Specimen>
@@ -233,7 +233,7 @@
         error={contactProblem}
         bind:value={contact}
       />
-      <Button type="submit">Create the workspace</Button>
+      <Button type="submit">Create the Workspace</Button>
     </form>
   </Specimen>
 </Example>

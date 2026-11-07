@@ -1,6 +1,6 @@
 <script module lang="ts">
   export const section = {
-    title: 'Fact list',
+    title: 'Fact List',
     lead: 'Facts about a thing, each a label and its value: a few headline facts inline, or its properties in rows. A setting the reader changes is a form row instead.',
     components: ['FactList']
   };
@@ -58,7 +58,7 @@
 </Example>
 
 <Example
-  title="Long values"
+  title="Long Values"
   note="A long value breaks inside its own fact and never pushes the row wider"
   layout="grid"
 >
@@ -81,7 +81,7 @@
 </Example>
 
 <Example
-  title="Missing value"
+  title="Missing Value"
   note="An absent value says so in words instead of leaving its fact empty"
 >
   <Specimen label="Null value" code="value: null">
@@ -95,7 +95,7 @@
 </Example>
 
 <Example
-  title="Narrow width"
+  title="Narrow Width"
   note="Under 25rem of its own width, each label stands over its value and the action under it"
   layout="stack"
 >

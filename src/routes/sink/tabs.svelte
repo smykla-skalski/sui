@@ -34,7 +34,7 @@
 </script>
 
 <Example
-  title="Current tab"
+  title="Current Tab"
   note="The page being shown wears the brand underline and is announced as the current page"
   layout="stack"
 >
@@ -54,7 +54,7 @@
 </Example>
 
 <Example
-  title="Narrow width"
+  title="Narrow Width"
   note="Short of room, the row scrolls in its own track, fades an edge with more tabs past it and starts on the current tab"
   layout="stack"
 >

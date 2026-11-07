@@ -107,7 +107,7 @@
 >
   <Specimen label="Line, a series over time" code="series xLabel yLabel">
     <LineChart
-      title="Weekly trend"
+      title="Weekly Trend"
       description="North and south grew over four weeks, while east stayed nearly flat"
       series={trend}
       xLabel="Week"
@@ -116,7 +116,7 @@
   </Specimen>
   <Specimen label="Scatter, two measures of each item" code="series xLabel yLabel">
     <ScatterChart
-      title="Build time by change size"
+      title="Build Time by Change Size"
       description="Bigger changes build longer, and a cold cache adds about six minutes"
       series={builds}
       xLabel="Changed files"
@@ -126,13 +126,13 @@
 </Example>
 
 <Example
-  title="Ranges and matrices"
+  title="Ranges & Matrices"
   note="A range marks a diamond inside an interval, and a matrix prints every value, with a dashed cell where one is missing"
   layout="pairs"
 >
   <Specimen label="Range" code="data valueLabel">
     <RangeChart
-      title="Work ranges"
+      title="Work Ranges"
       description="Each diamond shows when work started inside its planned window"
       data={ranges}
       valueLabel="Hours"
@@ -157,7 +157,7 @@
 >
   <Specimen label="Loading" code={'status="loading"'}>
     <LineChart
-      title="Signups by week"
+      title="Signups by Week"
       description="Signups each region added per week"
       series={[]}
       status="loading"
@@ -165,7 +165,7 @@
   </Specimen>
   <Specimen label="Refreshing" code={'status="refreshing"'}>
     <LineChart
-      title="Orders by week"
+      title="Orders by Week"
       description="North and south grew over four weeks"
       series={trend}
       xLabel="Week"
@@ -175,7 +175,7 @@
   </Specimen>
   <Specimen label="Stale" code={'status="stale" staleLabel'}>
     <LineChart
-      title="Deploys by week"
+      title="Deploys by Week"
       description="North and south grew over four weeks"
       series={trend}
       xLabel="Week"
@@ -186,7 +186,7 @@
   </Specimen>
   <Specimen label="Failed" code={'status="failed" error onretry'}>
     <LineChart
-      title="Errors by week"
+      title="Errors by Week"
       description="Errors each region reported per week"
       series={[]}
       status="failed"
@@ -196,7 +196,7 @@
   </Specimen>
   <Specimen label="Partial" code="series">
     <LineChart
-      title="Daily readings"
+      title="Daily Readings"
       description="North kept rising on the days it reported"
       series={gappy}
       xLabel="Day"
@@ -204,14 +204,14 @@
     />
   </Specimen>
   <Specimen label="Empty" code={'series={[]} emptyAction'}>
-    <LineChart title="New project" description="Nothing has been measured yet" series={[]}>
-      {#snippet emptyAction()}<Button>Connect a data source</Button>{/snippet}
+    <LineChart title="New Project" description="Nothing has been measured yet" series={[]}>
+      {#snippet emptyAction()}<Button>Connect a Data Source</Button>{/snippet}
     </LineChart>
   </Specimen>
 </Example>
 
 <Example
-  title="In context"
+  title="In Context"
   note="A chart stands in a section with no frame, and its band keeps the section's edges"
   layout="stack"
   ground="canvas"
@@ -219,7 +219,7 @@
   <Specimen label="In a section">
     <Section title="Delivery" level={4}>
       <RangeChart
-        title="Release windows"
+        title="Release Windows"
         description="Build ran longest of the three windows"
         data={ranges}
         valueLabel="Hours"
@@ -229,11 +229,11 @@
   </Specimen>
 </Example>
 
-<Example title="Narrow width" note="Chart text keeps its token size when the chart is narrow">
+<Example title="Narrow Width" note="Chart text keeps its token size when the chart is narrow">
   <Specimen label="In 20rem">
     <div class="narrow">
       <LineChart
-        title="Items by week"
+        title="Items by Week"
         description="North stayed ahead of the other regions in every week"
         series={trend}
         xLabel="Week"

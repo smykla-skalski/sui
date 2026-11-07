@@ -1,6 +1,6 @@
 <script module lang="ts">
   export const section = {
-    title: 'Save bar',
+    title: 'Save Bar',
     lead: "The one place a pane's unsaved work is saved or thrown away. A setting that applies at once needs no bar.",
     components: ['SaveBar']
   };
@@ -142,7 +142,7 @@
 </Example>
 
 <Example
-  title="Narrow width"
+  title="Narrow Width"
   note="Long copy wraps with the 8px rhythm and the actions wrap under it"
   layout="stack"
   ground="canvas"

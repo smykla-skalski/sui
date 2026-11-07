@@ -1,6 +1,6 @@
 <script module lang="ts">
   export const section = {
-    title: 'Pattern entries',
+    title: 'Pattern Entries',
     lead: 'An editable list of patterns, such as branches or paths to leave alone. A key that maps to a value is a PairEntry.',
     components: ['PatternEntries']
   };
@@ -68,7 +68,7 @@
       bind:value={branches}
       {validate}
       aria-label="Branches to skip"
-      addLabel="Add a branch pattern"
+      addLabel="Add a Branch Pattern"
     />
   </Specimen>
   <Specimen label="Empty" code="bind:value">
@@ -83,7 +83,7 @@
     <PatternEntries
       bind:value={few}
       aria-label="Branches to skip"
-      addLabel="Add a branch pattern"
+      addLabel="Add a Branch Pattern"
     />
   </Specimen>
   <Specimen label="Saving" code="pending">
@@ -127,7 +127,7 @@
 </Example>
 
 <Example
-  title="Right to left"
+  title="Right to Left"
   note="The entries flow from the right and each cross sits at its field's left end"
   layout="grid"
 >
@@ -137,7 +137,7 @@
 </Example>
 
 <Example
-  title="Narrow width"
+  title="Narrow Width"
   note="In a phone's width the entries wrap from the start edge, and a long one takes a line of its own"
   layout="stack"
 >

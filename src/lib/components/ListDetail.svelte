@@ -16,7 +16,7 @@
     onback,
     landmark = 'none',
     contained = false,
-    emptyTitle = word('ListDetail.emptyTitle', 'Nothing open'),
+    emptyTitle = word('ListDetail.emptyTitle', 'Nothing Open'),
     emptyDescription = word(
       'ListDetail.emptyDescription',
       'What you open in the list shows here with its details'

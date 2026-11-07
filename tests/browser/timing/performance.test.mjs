@@ -322,7 +322,7 @@ const layers = /** @type {const} */ ([
   ['action-menu', '[aria-haspopup="menu"]'],
   ['select', 'select:not([disabled])'],
   ['modal', 'button:has-text("webhook")'],
-  ['toaster', 'button:has-text("Save settings")']
+  ['toaster', 'button:has-text("Save Settings")']
 ]);
 
 test('every layer grows at 60 frames a second', long, async () => {

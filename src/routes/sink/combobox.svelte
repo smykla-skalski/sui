@@ -81,8 +81,8 @@
           />
         {/snippet}
       </Field>
-      <Button onclick={() => (language = 'go')}>Replace the language</Button>
-      <Button onclick={() => (languageLimit = 1)}>Limit the language suggestions</Button>
+      <Button onclick={() => (language = 'go')}>Replace the Language</Button>
+      <Button onclick={() => (languageLimit = 1)}>Limit the Language Suggestions</Button>
     </div>
   </Specimen>
   <Specimen label="Free entry" code="free">
@@ -155,7 +155,7 @@
 </Example>
 
 <Example
-  title="In a form"
+  title="In a Form"
   note="The form posts the chosen value, never its label, and a label typed in full picks its option"
 >
   <Specimen label={sent} code="name">
@@ -171,7 +171,7 @@
           />
         {/snippet}
       </Field>
-      <Button type="submit">Save the runtime</Button>
+      <Button type="submit">Save the Runtime</Button>
     </form>
   </Specimen>
 </Example>

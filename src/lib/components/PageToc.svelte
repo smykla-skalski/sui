@@ -16,7 +16,7 @@
 
   let {
     entries,
-    title = word('PageToc.title', 'On this page'),
+    title = word('PageToc.title', 'On This Page'),
     level = 2,
     offset,
     onnavigate,

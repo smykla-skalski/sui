@@ -58,7 +58,7 @@
 </Example>
 
 <Example
-  title="In a field"
+  title="In a Field"
   note="An error names what is wrong and the textarea is described by it"
   layout="grid"
 >
@@ -72,7 +72,7 @@
 </Example>
 
 <Example
-  title="Narrow width"
+  title="Narrow Width"
   note="Long words wrap inside the box, and the reader can drag it taller but never wider"
   layout="stack"
 >

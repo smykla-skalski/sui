@@ -23,11 +23,11 @@
     children
   }: {
     open?: boolean;
-    /** The question, such as "Delete this repository?". */
+    /** The question, such as "Delete This Repository?". */
     title: string;
     /** One sentence saying what happens if the reader confirms. */
     consequence: string;
-    /** A verb phrase naming the result, such as "Delete repository". */
+    /** A verb phrase naming the result, such as "Delete Repository". */
     confirmLabel: string;
     cancelLabel?: string;
     /** The close button's name and tooltip. */

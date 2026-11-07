@@ -1,6 +1,6 @@
 <script module lang="ts">
   export const section = {
-    title: 'Inherit control',
+    title: 'Inherit Control',
     lead: 'A value inherited from another level until this one overrides it, with the way back. A setting with nothing to inherit takes its control directly.',
     components: ['InheritControl']
   };
@@ -81,7 +81,7 @@
 </Example>
 
 <Example
-  title="Unknown values"
+  title="Unknown Values"
   note="A loading, failed or empty inherited value is said in words, and Override still works"
 >
   <Specimen label="Loading" code="loading">
@@ -113,7 +113,7 @@
 </Example>
 
 <Example
-  title="In setting rows"
+  title="In Setting Rows"
   note="A row is unsaved only while it differs from what is stored, so picking Debug again clears the log level's mark"
   layout="stack"
   ground="canvas"
@@ -168,7 +168,7 @@
 </Example>
 
 <Example
-  title="Narrow width"
+  title="Narrow Width"
   note="A long source wraps beside its marker and Override stays in view"
   layout="stack"
 >

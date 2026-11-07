@@ -136,7 +136,7 @@
   </Specimen>
   <Specimen label="Failed">
     <ErrorState
-      title="The timeline could not be loaded"
+      title="The Timeline Could Not Be Loaded"
       description="The sync service did not answer. Try again in a moment."
       onretry={refresh}
       busy={refreshing}
@@ -146,7 +146,7 @@
     <div class="kept">
       <ErrorState
         overContent
-        title="The timeline could not be refreshed"
+        title="The Timeline Could Not Be Refreshed"
         description="Showing what loaded at 12:02"
         onretry={refresh}
         busy={refreshing}
@@ -185,7 +185,7 @@
 </Example>
 
 <Example
-  title="Long history"
+  title="Long History"
   note="A LoadMore after the list closes it under a hairline and counts the events shown"
   layout="stack"
 >
@@ -210,7 +210,7 @@
 </Example>
 
 <Example
-  title="In a section"
+  title="In a Section"
   note="The timeline hangs from its section heading, which names the list"
   layout="stack"
   ground="canvas"
@@ -223,7 +223,7 @@
 </Example>
 
 <Example
-  title="Right to left"
+  title="Right to Left"
   note="The time column, the actor and the end of the row mirror"
   layout="stack"
 >
@@ -235,7 +235,7 @@
 </Example>
 
 <Example
-  title="Narrow width"
+  title="Narrow Width"
   note="Under 25rem of its own width, each time stands over its words and the pill and action drop under them"
   layout="stack"
 >

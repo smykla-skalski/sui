@@ -78,7 +78,7 @@ suite('lists', together, () => {
         const problems = () => list.locator('.sui-pattern-problem').count();
         const before = await problems();
 
-        await list.getByRole('button', { name: 'Add a branch pattern' }).click();
+        await list.getByRole('button', { name: 'Add a Branch Pattern' }).click();
         await page.keyboard.type('a b');
         assert.equal(await problems(), before, 'a half-typed pattern was judged at once');
         await page.keyboard.press('Tab');
@@ -181,7 +181,7 @@ suite('lists', together, () => {
         await page.keyboard.press('Enter');
         assert.match(await focused(page), /^input Pattern 2 release\/\*$/);
 
-        await list.getByRole('button', { name: 'Add a branch pattern' }).click();
+        await list.getByRole('button', { name: 'Add a Branch Pattern' }).click();
         await page.keyboard.press('Backspace');
         assert.match(await focused(page), /^input Pattern 2 release\/\*$/);
         assert.equal(await list.getByRole('textbox').count(), 2, 'the empty entry stayed');
@@ -202,7 +202,7 @@ suite('lists', together, () => {
         .locator('#pattern-entries .specimen')
         .filter({ has: page.locator('#sink-pattern-added') })
         .locator('.sui-pattern-entries');
-      await list.getByRole('button', { name: 'Add a pattern' }).click();
+      await list.getByRole('button', { name: 'Add a Pattern' }).click();
       await list.getByRole('textbox').evaluate((input) => {
         const data = new DataTransfer();
         data.setData('text', 'a\nb');
@@ -371,7 +371,7 @@ suite('lists', together, () => {
         const page = await opened();
         const trigger = page
           .locator('#list-toolbar')
-          .getByRole('button', { name: 'Sort and filter' });
+          .getByRole('button', { name: 'Sort & Filter' });
         // A Modal opens on the first `[autofocus]` it holds, so a mark left in a closed panel
         // would send a reopened dialog's focus to a hidden control.
         const marks = () => page.evaluate(() => document.querySelectorAll('[autofocus]').length);
@@ -464,7 +464,7 @@ suite('lists', together, () => {
           );
           const triggers = page
             .locator('#list-toolbar')
-            .getByRole('button', { name: 'Sort and filter' });
+            .getByRole('button', { name: 'Sort & Filter' });
           const count = await triggers.count();
           for (let index = 0; index < count; index++) {
             const trigger = triggers.nth(index);
@@ -574,7 +574,7 @@ suite('lists', together, () => {
         const page = await opened();
         const add = page
           .locator('#pair-entry')
-          .getByRole('button', { name: 'Add an alias' })
+          .getByRole('button', { name: 'Add an Alias' })
           .first();
         await add.scrollIntoViewIfNeeded();
         const editor = page.locator(':popover-open .sui-pair-editor');
@@ -892,8 +892,8 @@ suite('lists', together, () => {
     test('K6 a retried error that leaves no control keeps focus where it stood', long, async () => {
       const page = await opened();
       const retry = page
-        .locator('#states .specimen', { hasText: 'Usage could not be loaded' })
-        .getByRole('button', { name: 'Try again' });
+        .locator('#states .specimen', { hasText: 'Usage Could Not Be Loaded' })
+        .getByRole('button', { name: 'Try Again' });
       await retry.scrollIntoViewIfNeeded();
       await retry.focus();
       await page.keyboard.press('Enter');
@@ -932,7 +932,7 @@ suite('lists', together, () => {
         await more.getByRole('alert').waitFor();
         assert.match(
           await focused(page),
-          /^button Try again/,
+          /^button Try Again/,
           'the failure took focus off the retry'
         );
 
@@ -1041,13 +1041,13 @@ suite('lists', together, () => {
 
     test('S2 a setting list says when it loads, fails or has nothing to set', long, async () => {
       const page = await opened();
-      const states = page.locator('#setting-list .example', { hasText: 'List states' });
+      const states = page.locator('#setting-list .example', { hasText: 'List States' });
       await states.scrollIntoViewIfNeeded();
       const specimen = (/** @type {string} */ name) =>
         states.locator('.specimen').filter({ hasText: name });
       assert.equal(await specimen('Loading').locator('[aria-busy="true"]').count(), 1);
       assert.equal(await specimen('Failed').getByRole('alert').count(), 1);
-      assert.equal(await specimen('Failed').getByRole('button', { name: 'Try again' }).count(), 1);
+      assert.equal(await specimen('Failed').getByRole('button', { name: 'Try Again' }).count(), 1);
       assert.match(
         (await specimen('Nothing to set').textContent()) ?? '',
         /Settings show here once there are any/
@@ -1210,7 +1210,7 @@ suite('lists', together, () => {
       async () => {
         const page = await opened();
         const trigger = page.locator('#addition-picker').getByRole('button', {
-          name: 'Override another'
+          name: 'Override Another'
         });
         await trigger.scrollIntoViewIfNeeded();
         await trigger.click();

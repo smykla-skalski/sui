@@ -17,7 +17,7 @@
   let {
     value = $bindable([]),
     validate,
-    addLabel = word('PatternEntries.addLabel', 'Add a pattern'),
+    addLabel = word('PatternEntries.addLabel', 'Add a Pattern'),
     entryLabel = word('PatternEntries.entryLabel', (position: number) => `Pattern ${position}`),
     removeLabel = word('PatternEntries.removeLabel', (pattern: string) => `Remove ${pattern}`),
     removeEmptyLabel = word('PatternEntries.removeEmptyLabel', 'Remove the empty pattern'),

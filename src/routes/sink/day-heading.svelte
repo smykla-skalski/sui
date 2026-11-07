@@ -1,6 +1,6 @@
 <script module lang="ts">
   export const section = {
-    title: 'Day heading',
+    title: 'Day Heading',
     lead: "The heading over a run of entries from one day, in the reader's own calendar. A single time inside a row is a RelativeTime.",
     components: ['DayHeading']
   };
@@ -61,7 +61,7 @@
 </Example>
 
 <Example
-  title="In context"
+  title="In Context"
   note="Entries group by the reader's calendar, so one local day keeps one heading across midnight in UTC"
   layout="stack"
 >

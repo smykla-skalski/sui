@@ -90,7 +90,7 @@
 </Example>
 
 <Example
-  title="Keyboard focus"
+  title="Keyboard Focus"
   note="Tab to a switch and press Space to flip it, and the ring sits 2px off the track"
 >
   <Specimen label="Off">
@@ -99,13 +99,13 @@
 </Example>
 
 <Example
-  title="In a section head"
+  title="In a Section Head"
   note="A bare switch keeps its 44px hit area as paint, so the head keeps its own rhythm"
   layout="grid"
   ground="canvas"
 >
   <Specimen label="Bare" code="bare">
-    <Section title="Scheduled syncs" level={4}>
+    <Section title="Scheduled Syncs" level={4}>
       {#snippet actions()}
         <Switch aria-label="Run scheduled syncs" bare bind:checked={scheduled} />
       {/snippet}
@@ -115,7 +115,7 @@
 </Example>
 
 <Example
-  title="Narrow width"
+  title="Narrow Width"
   note="A long label wraps beside the track and the two stay centred"
   layout="stack"
 >

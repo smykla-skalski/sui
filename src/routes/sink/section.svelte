@@ -105,7 +105,7 @@
 </Example>
 
 <Example
-  title="In sequence"
+  title="In Sequence"
   note="Sections that follow each other stand 40px apart, 32px on a phone, with no wrapper and no line between them"
   layout="stack"
   ground="canvas"
@@ -149,7 +149,7 @@
 </Example>
 
 <Example
-  title="With a list"
+  title="With a List"
   note="A list hangs from the section: its words keep the title’s edge and a hovered row’s ground reaches past it"
   layout="stack"
   ground="canvas"
@@ -165,7 +165,7 @@
 </Example>
 
 <Example
-  title="Detail layout"
+  title="Detail Layout"
   note="From 56rem of its own width the aside stands beside the main sections, and under that it follows them"
   layout="stack"
   ground="canvas"

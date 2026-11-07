@@ -1,6 +1,6 @@
 <script module lang="ts">
   export const section = {
-    title: 'Page index',
+    title: 'Page Index',
     lead: 'The index beside a long page: where its sections are and which one the reader is in. A short page does without one.',
     components: ['PageToc']
   };
@@ -12,14 +12,14 @@
 
   const entries = [
     { id: 'toc-overview', label: 'Overview' },
-    { id: 'toc-access', label: 'Who can change the branch rules' },
-    { id: 'toc-checks', label: 'Required checks' },
+    { id: 'toc-access', label: 'Who Can Change the Branch Rules' },
+    { id: 'toc-checks', label: 'Required Checks' },
     { id: 'toc-history', label: 'History' }
   ];
 </script>
 
 <Example
-  title="In context"
+  title="In Context"
   note="The current entry turns primary on a quiet plate as the page scrolls, and a link opens a folded section and focuses its heading"
   layout="stack"
   ground="canvas"
@@ -46,7 +46,7 @@
         </div>
       </section>
       <section id="toc-access" class="part">
-        <h4>Who can change the branch rules</h4>
+        <h4>Who Can Change the Branch Rules</h4>
         <div class="text">
           <p class="copy">Workspace owners and the platform team can edit them</p>
           <p class="copy" lang="la">
@@ -61,7 +61,7 @@
         </div>
       </section>
       <section id="toc-checks" class="part">
-        <h4>Required checks</h4>
+        <h4>Required Checks</h4>
         <div class="text">
           <p class="copy">Lint, unit tests and the kitchen sink audit must pass before a merge</p>
           <p class="copy" lang="la">
@@ -75,7 +75,7 @@
           </p>
         </div>
       </section>
-      <Disclosure summary="Older changes">
+      <Disclosure summary="Older Changes">
         <section id="toc-history" class="part">
           <h4>History</h4>
           <div class="text">

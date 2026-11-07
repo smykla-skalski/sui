@@ -347,7 +347,7 @@ suite('navigation', together, () => {
     const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
     try {
       await visit(page, url);
-      await page.getByRole('link', { name: 'Data table', exact: true }).first().click();
+      await page.getByRole('link', { name: 'Data Table', exact: true }).first().click();
       await page.waitForURL(/\/data-table\/$/);
       const shown = await page.evaluate(() => ({
         title: document.querySelector('h1')?.textContent?.trim(),
@@ -356,7 +356,7 @@ suite('navigation', together, () => {
           .querySelector('.sui-side-nav-row[aria-current="page"]')
           ?.textContent?.trim()
       }));
-      assert.deepEqual(shown, { title: 'Data table', sections: 1, current: 'Data table' });
+      assert.deepEqual(shown, { title: 'Data Table', sections: 1, current: 'Data Table' });
 
       // The router takes the link, as it takes any in-app link, so its load fails as a missing page.
       await page.evaluate(() => {
@@ -428,12 +428,12 @@ suite('navigation', together, () => {
           () =>
             document
               .querySelector('.sui-shell-side .sui-side-nav-row[aria-current="page"]')
-              ?.textContent?.trim() === 'Data table',
+              ?.textContent?.trim() === 'Data Table',
           null,
           brief
         )
       );
-      assert.equal(await marked(), 'Data table');
+      assert.equal(await marked(), 'Data Table');
     });
 
     test('under forced colors the current tab is marked in Highlight', long, async () => {
@@ -749,7 +749,7 @@ suite('navigation', together, () => {
       });
       try {
         // The pane stands well below the viewport's top quarter, so only its own reading line
-        // can make "Required checks" current.
+        // can make "Required Checks" current.
         await page.evaluate(() => {
           const pane = /** @type {HTMLElement} */ (document.querySelector('#page-toc .sections'));
           scrollBy(0, pane.getBoundingClientRect().top - 400);
@@ -767,12 +767,12 @@ suite('navigation', together, () => {
             () =>
               document
                 .querySelector('#page-toc .sui-page-toc-link[aria-current="location"]')
-                ?.textContent?.trim() === 'Required checks',
+                ?.textContent?.trim() === 'Required Checks',
             null,
             brief
           )
         );
-        assert.equal(await current(), 'Required checks');
+        assert.equal(await current(), 'Required Checks');
       } finally {
         await pane.evaluate((tag) => /** @type {Element} */ (tag).remove());
       }
@@ -787,7 +787,7 @@ suite('navigation', together, () => {
         const page = await sink();
         try {
           for (const [width, reducedMotion, name] of /** @type {const} */ ([
-            [375, 'no-preference', 'Data table'],
+            [375, 'no-preference', 'Data Table'],
             [1440, 'reduce', 'Tabs']
           ])) {
             await resize(page, width);
@@ -1004,7 +1004,7 @@ suite('navigation', together, () => {
         }
         // Opening the table does the same at every width, so it opens once, at the end.
         await chart.locator('summary').click();
-        assert.equal(await chart.locator('table caption').textContent(), 'Items by week');
+        assert.equal(await chart.locator('table caption').textContent(), 'Items by Week');
       }
     );
 
@@ -1206,7 +1206,7 @@ suite('navigation', together, () => {
           ),
           'opening a run left focus on its row'
         );
-        assert.equal(await focused(page), 'Deploy web #4174', 'focus is not on the run title');
+        assert.equal(await focused(page), 'Deploy Web #4174', 'focus is not on the run title');
         assert.equal(new URL(page.url()).pathname, '/layouts/list-detail/4174/');
         assert.equal(
           await page.locator('.sui-list-detail-list').isVisible(),
@@ -1257,7 +1257,7 @@ suite('navigation', together, () => {
         ),
         'opening a run left focus on its row'
       );
-      assert.equal(await focused(page), 'Deploy web #4176', 'focus is not on the run title');
+      assert.equal(await focused(page), 'Deploy Web #4176', 'focus is not on the run title');
       assert.equal(await list.evaluate((pane) => pane.scrollTop), 120, 'the list lost its place');
       assert.deepEqual(
         await pair

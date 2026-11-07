@@ -30,7 +30,7 @@
     loadingLabel = word('AdditionPicker.loadingLabel', 'Loading the choices…'),
     error = null,
     onretry,
-    retryLabel = word('AdditionPicker.retryLabel', 'Try again'),
+    retryLabel = word('AdditionPicker.retryLabel', 'Try Again'),
     optionName = word(
       'AdditionPicker.optionName',
       (label: string, description: string) => `${label}${mark('comma')}${description}`
@@ -39,7 +39,7 @@
     class: className = '',
     ...rest
   }: {
-    /** The trigger's words, specific to what it adds, such as "Override another setting". */
+    /** The trigger's words, specific to what it adds, such as "Override Another Setting". */
     label: string;
     choices: readonly AdditionChoice[];
     /** Values already added. They are not offered again. */

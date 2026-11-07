@@ -31,7 +31,7 @@
         `${key}${mark('colon')}${value}${mark('comma')}${keyLabel}${mark('colon')}${valueLabel}`
     ),
     validate,
-    addLabel = word('PairEntry.addLabel', 'Add a pair'),
+    addLabel = word('PairEntry.addLabel', 'Add a Pair'),
     doneLabel = word('PairEntry.doneLabel', 'Done'),
     removeLabel = word('PairEntry.removeLabel', 'Remove'),
     removeName = word(

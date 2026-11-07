@@ -1,6 +1,6 @@
 <script module lang="ts">
   export const section = {
-    title: 'Copyable link field',
+    title: 'Copyable Link Field',
     lead: 'A generated link or token in a read-only field, copied in one press or selected by hand. A value the reader edits is a TextInput.',
     components: ['CopyableLinkField']
   };
@@ -30,20 +30,20 @@
         (invitation =
           'https://panel.example.com/invite/a-much-longer-one-time-invitation-token-that-wraps')}
     >
-      Lengthen the invitation
+      Lengthen the Invitation
     </Button>
   </Specimen>
   <Specimen label="Without a label" code="aria-label copyLabel">
     <CopyableLinkField
       aria-label="Clone address"
       value="git@github.com:smykla-skalski/sui.git"
-      copyLabel="Copy address"
+      copyLabel="Copy Address"
     />
   </Specimen>
 </Example>
 
 <Example
-  title="Long value"
+  title="Long Value"
   note="A long token wraps onto more lines, so all of it shows, never widens the row, and copies whole"
   layout="stack"
 >
@@ -51,7 +51,7 @@
     <div class="narrow">
       <CopyableLinkField
         label="Webhook secret"
-        copyLabel="Copy secret"
+        copyLabel="Copy Secret"
         value="whsec_9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08"
       />
     </div>

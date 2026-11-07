@@ -181,7 +181,7 @@
 </Example>
 
 <Example
-  title="In a form"
+  title="In a Form"
   note="Native validation stops a send without a time zone and says why under the field, and the values submit by name, numbers included"
 >
   <Specimen label={sent} code="name required validationMessage">
@@ -216,7 +216,7 @@
           />
         {/snippet}
       </Field>
-      <Button type="submit">Save the report</Button>
+      <Button type="submit">Save the Report</Button>
     </form>
   </Specimen>
 </Example>

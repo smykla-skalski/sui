@@ -1,6 +1,6 @@
 <script module lang="ts">
   export const section = {
-    title: 'Action menu',
+    title: 'Action Menu',
     lead: 'A menu of acts behind one trigger, with a destructive act last. A place to go is a link on the page, never a menu item.',
     components: ['ActionMenu']
   };
@@ -17,26 +17,26 @@
   const nothing = () => {};
 
   const repository: ActionMenuItem[] = [
-    { label: 'Sync now', icon: 'refresh', onselect: nothing },
-    { label: 'Open settings', icon: 'settings', onselect: nothing },
+    { label: 'Sync Now', icon: 'refresh', onselect: nothing },
+    { label: 'Open Settings', icon: 'settings', onselect: nothing },
     {
-      label: 'Transfer ownership',
+      label: 'Transfer Ownership',
       icon: 'owner',
       disabled: true,
       description: 'Only owners can transfer',
       onselect: nothing
     },
     { separator: true },
-    { label: 'Delete repository…', icon: 'trash', tone: 'stop', onselect: () => (deleting = true) }
+    { label: 'Delete Repository…', icon: 'trash', tone: 'stop', onselect: () => (deleting = true) }
   ];
 
   const release: ActionMenuItem[] = [
-    { label: 'Copy version', onselect: nothing },
+    { label: 'Copy Version', onselect: nothing },
     {
-      label: 'Compare with the release published before it, file by file',
+      label: 'Compare with the Release Published before It, File by File',
       onselect: nothing
     },
-    { label: 'Yank release…', tone: 'stop', onselect: () => (yanking = true) }
+    { label: 'Yank Release…', tone: 'stop', onselect: () => (yanking = true) }
   ];
 </script>
 
@@ -49,12 +49,12 @@
   </Specimen>
   <Specimen label="Beside buttons" code={'label icon="more" toolbar align="end"'}>
     <div class="actions">
-      <Button>Edit release</Button>
+      <Button>Edit Release</Button>
       <ActionMenu label="Release actions" icon="more" toolbar items={release} align="end" />
     </div>
   </Specimen>
   <Specimen label="Button trigger" code="children">
-    <ActionMenu items={release}>Release actions</ActionMenu>
+    <ActionMenu items={release}>Release Actions</ActionMenu>
   </Specimen>
   <Specimen label="Ghost trigger" code={'tone="ghost"'}>
     <ActionMenu items={release} tone="ghost">More</ActionMenu>
@@ -73,7 +73,7 @@
   </Specimen>
   <Specimen label="Disabled button trigger" code="disabled">
     <div class="locked">
-      <ActionMenu items={release} disabled>Release actions</ActionMenu>
+      <ActionMenu items={release} disabled>Release Actions</ActionMenu>
       <p class="reason">Read-only while the repository is archived</p>
     </div>
   </Specimen>
@@ -87,15 +87,15 @@
     <ActionMenu label="Repository actions" icon="more" items={repository} align="end" preview />
   </Specimen>
   <Specimen label="Open with a long item" code="preview">
-    <ActionMenu items={release} preview>Release actions</ActionMenu>
+    <ActionMenu items={release} preview>Release Actions</ActionMenu>
   </Specimen>
 </Example>
 
 <ConfirmDialog
   bind:open={deleting}
-  title="Delete this repository?"
+  title="Delete This Repository?"
   consequence="Its settings, history and webhooks are removed for good"
-  confirmLabel="Delete repository"
+  confirmLabel="Delete Repository"
   tone="stop"
 />
 
@@ -103,7 +103,7 @@
   bind:open={yanking}
   title="Yank 0.3.0?"
   consequence="Nobody can install 0.3.0 again, and the version number is never reused"
-  confirmLabel="Yank release"
+  confirmLabel="Yank Release"
   tone="stop"
 />
 

@@ -41,7 +41,7 @@
   const runs: Run[] = [
     {
       id: '4182',
-      workflow: 'Nightly sync',
+      workflow: 'Nightly Sync',
       branch: 'main',
       when: '12\u00a0min ago',
       took: '48\u00a0seconds',
@@ -51,7 +51,7 @@
     },
     {
       id: '4181',
-      workflow: 'Deploy web',
+      workflow: 'Deploy Web',
       branch: 'main',
       when: '40\u00a0min ago',
       took: '2\u00a0minutes',
@@ -87,7 +87,7 @@
     },
     ...['4177', '4176', '4175', '4174', '4173', '4172', '4171'].map((id, index) => ({
       id,
-      workflow: index % 2 ? 'Deploy web' : 'Nightly sync',
+      workflow: index % 2 ? 'Deploy Web' : 'Nightly Sync',
       branch: 'main',
       when: `${index + 4}\u00a0hours ago`,
       took: '1\u00a0minute',
@@ -153,7 +153,7 @@
     <PageHeader title={name(run)} description={run.outcome} kicker={back}>
       {#snippet status()}<Pill tone={run.tone}>{run.state}</Pill>{/snippet}
       {#snippet facts()}<FactList facts={headline(run)} />{/snippet}
-      {#snippet actions()}<Button tone="signal">Run again</Button>{/snippet}
+      {#snippet actions()}<Button tone="signal">Run Again</Button>{/snippet}
     </PageHeader>
     <div class="zones">
       <DetailLayout>
@@ -206,7 +206,7 @@
       backHref={runsHref}
       current={id ? resolve('/layouts/list-detail/[[run]]', { run: id }) + '/' : undefined}
       detail={id ? opened : undefined}
-      emptyTitle="No run open"
+      emptyTitle="No Run Open"
       emptyDescription="The run you open in the list shows here with its steps and details"
       emptyStep="Choose a run in the list"
     >

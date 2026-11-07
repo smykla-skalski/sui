@@ -22,7 +22,7 @@
       'InheritControl.overrideFor',
       (action: string, field: string) => `${action}${mark('space')}${field}`
     ),
-    inheritLabel = word('InheritControl.inheritLabel', 'Use inherited value'),
+    inheritLabel = word('InheritControl.inheritLabel', 'Use Inherited Value'),
     overrideName,
     inheritName,
     inheritFor = word(

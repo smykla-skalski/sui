@@ -16,9 +16,9 @@
     loading = false,
     problem = null,
     onmore,
-    moreLabel = word('LoadMore.moreLabel', 'Load more'),
+    moreLabel = word('LoadMore.moreLabel', 'Load More'),
     loadingLabel = word('LoadMore.loadingLabel', 'Loading…'),
-    retryLabel = word('LoadMore.retryLabel', 'Try again'),
+    retryLabel = word('LoadMore.retryLabel', 'Try Again'),
     countLabel = word(
       'LoadMore.countLabel',
       (shown: number, total: number | undefined, shownText: string, totalText?: string) =>

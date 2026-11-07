@@ -8,7 +8,7 @@
 
 <!-- The way in: every component as a card that leads to its own page, under its family. A card
      summarises one peer and leads to it, the one use a card has on an overview (L-55). -->
-<Page title="Kitchen sink" description="Every SUI component on a page of its own, in every state">
+<Page title="Kitchen Sink" description="Every SUI component on a page of its own, in every state">
   {#each families as members (members[0].family)}
     <Section title={members[0].family} count={members.length}>
       <div class="cards">

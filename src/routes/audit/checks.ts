@@ -606,6 +606,67 @@ function copy(root: Document): Finding[] {
   return found;
 }
 
+// Chicago keeps these lower case inside a title: articles, coordinating conjunctions, "to",
+// "as" and prepositions of any length. A preposition used as an adverb ("Sign In") is
+// capitalized, so the check only reports a word that should be capitalized and is not.
+const MINOR = new Set(
+  'a an the and but for or nor to as vs via per about above across after against along amid among around at before behind below beneath beside besides between beyond by despite down during except from in inside into like near of off on onto opposite out outside over past round since than through throughout till toward towards under underneath unlike until up upon with within without'.split(
+    ' '
+  )
+);
+const TITLED =
+  'h1, h2, h3, h4, h5, h6, .sui-card-title, .sui-section-title, .sui-plate-title, .sui-modal-title, .sui-page-header-title, .sui-chart-title, .sui-empty-state-title, .sui-error-state-title, button, .sui-button, summary, [role="tab"], [role="menuitem"], [role="menuitemradio"], [role="menuitemcheckbox"]';
+
+/**
+ * The words a reader sees as a title, leaving out code, what is only heard, a label held in
+ * reserve for another state and the line of description under a menu item or summary.
+ */
+function titleWords(element: Element): string {
+  let text = '';
+  for (const node of element.childNodes) {
+    if (node.nodeType === Node.TEXT_NODE) text += node.textContent;
+    else if (!(node instanceof Element)) continue;
+    // Code keeps its place as a word, so the word before it is not taken for the last.
+    else if (node.matches('code, kbd, samp, var, [translate="no"]')) text += ' Value ';
+    else if (
+      !node.matches(
+        'svg, input, select, textarea, .sui-visually-hidden, [class*="-description"], [class*="-hint"], [class*="-note"]'
+      ) &&
+      getComputedStyle(node).visibility !== 'hidden'
+    )
+      text += ` ${titleWords(node)} `;
+  }
+  return text;
+}
+
+/** Headings and buttons are Chicago Title Case, with "&" for "and" (L-30). */
+function titleCase(root: Document): Finding[] {
+  const found: Finding[] = [];
+  for (const element of audited(root, TITLED)) {
+    if (element.closest(TEXT_EXEMPT) || heardOnly(element)) continue;
+    // A menu that has nothing to offer says so in a disabled item, which is a sentence.
+    if (element.matches('[role="menuitem"]:not(button)[aria-disabled="true"]')) continue;
+    const words = titleWords(element)
+      .replace(/[“"][^”"]*[”"]|‘[^’]*’|(?<=^|\s)'[^']*'(?=\s|$|[,.:;!?])/g, ' Value ')
+      .split(/\s+/)
+      .map((word) => word.replace(/^[^\p{L}\p{N}]+|[^\p{L}\p{N}]+$/gu, ''))
+      .filter(Boolean);
+    const low = words.filter((word, index) => {
+      // A value, a version or a name with its own casing (iOS, macOS) keeps it.
+      if (/[\p{N}._/@#:=]/u.test(word) || /.\p{Lu}/u.test(word)) return false;
+      const head = word.split('-')[0];
+      if (!/^\p{Ll}/u.test(head)) return false;
+      return index === 0 || index === words.length - 1 || !MINOR.has(head);
+    });
+    const title = `"${words.join(' ')}"`;
+    if (low.length > 0)
+      found.push(finding('L-30', element, `${title} is not Title Case at "${low.join('", "')}"`));
+    if (words.includes('and'))
+      found.push(finding('L-30', element, `${title} writes "and" instead of "&"`));
+  }
+  return found;
+}
+
 /** The room on each side of a separator dot, from the token, in pixels. */
 function sepSpace(root: Document): number {
   const probe = root.createElement('span');
@@ -2989,7 +3050,7 @@ function sectionHeads(root: Document): Finding[] {
     const shouted =
       [title, words].some((part) => getComputedStyle(part).textTransform !== 'none') ||
       (!/\p{Ll}/u.test(text) && (text.match(/\p{Lu}/gu)?.length ?? 0) > 3);
-    if (shouted) found.push(finding('L-108', title, 'a section title is not sentence case'));
+    if (shouted) found.push(finding('L-108', title, 'a section title is uppercase'));
     const line = [head, ...head.querySelectorAll('*')].find(
       (part) => !part.closest('.sui-section-actions') && lined(part)
     );
@@ -3376,6 +3437,7 @@ register(
   edgeStrips,
   typeFaces,
   copy,
+  titleCase,
   copyRhythm,
   titleProximity,
   geometry,

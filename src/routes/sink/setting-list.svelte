@@ -1,6 +1,6 @@
 <script module lang="ts">
   export const section = {
-    title: 'Setting list',
+    title: 'Setting List',
     lead: 'The settings of one section, each a row with its name, a why line and its controls. A short form stacks Fields instead.',
     components: ['SettingList', 'SettingRow']
   };
@@ -75,7 +75,7 @@
 </script>
 
 <Example
-  title="In a section"
+  title="In a Section"
   note="A checkbox, a segmented control, a field, a duration, a list and a read-only fact, with a 5px strip between the two changed rows"
   layout="stack"
   ground="canvas"
@@ -181,7 +181,7 @@
         {#snippet control({ labelledby })}
           <PatternEntries
             bind:value={ignore}
-            addLabel="Add a path pattern"
+            addLabel="Add a Path Pattern"
             aria-labelledby={labelledby}
           />
         {/snippet}
@@ -234,7 +234,7 @@
 </Example>
 
 <Example
-  title="List states"
+  title="List States"
   note="While the settings load, when they fail and when there is nothing to set, the list says so in the rows' place"
   layout="grid"
   ground="canvas"
@@ -253,7 +253,7 @@
 </Example>
 
 <Example
-  title="Narrow width"
+  title="Narrow Width"
   note="Below a readable copy width the controls take the next line, and the checkbox stays beside its copy"
   layout="stack"
   ground="canvas"

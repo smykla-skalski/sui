@@ -117,8 +117,8 @@ columns and scrolls sideways in a narrower container.
 - Semantics: a `figure` named by its title, a heading at `level` (3 by default), with the matrix as one `role="img"`, a legend list and a disclosure holding a table of every cell.
 - Content: row and column names, cells with a number or `null`, and a formatter; a title and a one-sentence description are required.
 - States: shown, empty, loading, refreshing, stale, failed and partial (cells with no value); the data control draws hover, pressed and focus.
-- Keyboard: Tab reaches the matrix when it scrolls, then "View chart data", where Enter or Space opens the table, and the table itself when it scrolls.
-- Pointer and touch: "View chart data" is 24px tall on a desktop pointer and 44px on a phone or a coarse pointer; nothing needs hover, since each cell prints its value.
+- Keyboard: Tab reaches the matrix when it scrolls, then "View Chart Data", where Enter or Space opens the table, and the table itself when it scrolls.
+- Pointer and touch: "View Chart Data" is 24px tall on a desktop pointer and 44px on a phone or a coarse pointer; nothing needs hover, since each cell prints its value.
 - Focus: opening the table keeps focus on its control; retrying a failed chart is the error state's button.
 - Responsive: the matrix stands on a band of the chart ground that reaches the edges of a card holding it, and starts exactly at the band's inner edge; cells keep their size and the matrix scrolls sideways with a fade on each edge that has more past it; cells and margins grow with the reader's text size, and long names are cut without splitting a character and stay whole in the table; the server draws the matrix where it stands once the page runs.
 - Accessibility: the printed value carries each cell's number, with ink at 4.5:1 on every step, so a cell needs no edge; a cell with no value has a dashed edge at 3:1, forced colors outline every cell, and the table has the title as its caption and names an empty cell in words.

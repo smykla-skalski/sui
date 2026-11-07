@@ -16,20 +16,20 @@
 </script>
 
 <Example
-  title="Head and body"
+  title="Head & Body"
   note="An empty plate still names its subject and state, and a body adds a title step and a rule"
   layout="stack"
   ground="canvas"
 >
   <Specimen label="Head only" code="status">
-    <Plate title="Nightly backup" level={4}>
+    <Plate title="Nightly Backup" level={4}>
       {#snippet status()}
         <span class="state"><Icon name="pending" size="sm" /><span>Not run yet</span></span>
       {/snippet}
     </Plate>
   </Specimen>
   <Specimen label="With a body">
-    <Plate title="Sync status" level={4}>
+    <Plate title="Sync Status" level={4}>
       {#snippet status()}
         <span class="state"><Icon name="success" size="sm" /><span>Up to date</span></span>
       {/snippet}
@@ -39,13 +39,13 @@
 </Example>
 
 <Example
-  title="Long title"
+  title="Long Title"
   note="A long title wraps beside the state, which stays on its first line and never moves the title"
   layout="grid"
   ground="canvas"
 >
   <Specimen label="Wrapping title">
-    <Plate title="Configuration drift across repositories in the platform organisation" level={4}>
+    <Plate title="Configuration Drift across Repositories in the Platform Organisation" level={4}>
       {#snippet status()}
         <span class="state"
           ><Icon name="warning" size="sm" /><span>2 repositories differ</span></span
@@ -57,14 +57,14 @@
 </Example>
 
 <Example
-  title="Changing state"
+  title="Changing State"
   note="The state sits in a polite status region, so a screen reader hears it change while focus stays on the button"
   layout="stack"
   ground="canvas"
 >
   <Specimen label="Announced" code="status">
     <div class="change">
-      <Plate title="Template sync" level={4}>
+      <Plate title="Template Sync" level={4}>
         {#snippet status()}
           {#if synced}
             <span class="state"><Icon name="success" size="sm" /><span>Up to date</span></span>
@@ -75,18 +75,18 @@
           {/if}
         {/snippet}
       </Plate>
-      <Button onclick={() => (synced = !synced)}>{synced ? 'Undo the sync' : 'Sync now'}</Button>
+      <Button onclick={() => (synced = !synced)}>{synced ? 'Undo the Sync' : 'Sync Now'}</Button>
     </div>
   </Specimen>
 </Example>
 
 <Example
-  title="In context"
+  title="In Context"
   note="A callout about a plate stands beside it, never inside it, so surfaces do not nest"
   layout="stack"
   ground="canvas"
 >
-  <Plate title="Configuration drift" level={4}>
+  <Plate title="Configuration Drift" level={4}>
     {#snippet status()}
       <span class="state"><Icon name="warning" size="sm" /><span>2 differ</span></span>
     {/snippet}

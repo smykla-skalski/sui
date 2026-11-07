@@ -32,7 +32,7 @@
     placeholder,
     filter,
     tools = [],
-    toolsLabel = word('ListToolbar.toolsLabel', 'Sort and filter'),
+    toolsLabel = word('ListToolbar.toolsLabel', 'Sort & Filter'),
     action,
     count,
     pending = false,

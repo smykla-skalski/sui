@@ -1,6 +1,6 @@
 <script module lang="ts">
   export const section = {
-    title: 'Load more',
+    title: 'Load More',
     lead: 'The last row of a long list: how far the reader is, and the button that brings the next page. A data table pages by number instead.',
     components: ['LoadMore']
   };
@@ -115,7 +115,7 @@
 </Example>
 
 <Example
-  title="On demand"
+  title="On Demand"
   note="A press brings the next page and moves focus to its first row, a failure waits for a retry, and a whole list says so"
   layout="stack"
   ground="canvas"

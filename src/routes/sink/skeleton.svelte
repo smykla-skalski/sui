@@ -64,13 +64,13 @@
 </Example>
 
 <Example
-  title="First load"
+  title="First Load"
   note="The region is busy while placeholder rows reserve the loaded height, and the rows take their place"
   layout="stack"
   ground="canvas"
 >
   <Button onclick={() => (loading ? (loading = false) : reload())}>
-    {loading ? 'Show the rows' : 'Load again'}
+    {loading ? 'Show the Rows' : 'Load Again'}
   </Button>
   <Specimen label={loading ? 'Loading' : 'Loaded'} code="loading">
     <Section title="Repositories" level={4}>

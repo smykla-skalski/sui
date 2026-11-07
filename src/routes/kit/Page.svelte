@@ -42,7 +42,7 @@
     {#snippet actions()}
       <Button tone="ghost" loading={audit.running} onclick={() => audit.measure()}>
         {#snippet icon()}<Icon name="refresh" size="sm" />{/snippet}
-        Run the law audit
+        Run the Law Audit
       </Button>
     {/snippet}
   </PageHeader>

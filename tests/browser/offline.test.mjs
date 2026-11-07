@@ -388,7 +388,7 @@ export default {
       await page.reload();
       assert.equal(await page.evaluate(() => navigator.onLine), true);
       assert.equal(await page.locator('meta[name="sui-build"]').getAttribute('content'), 'first');
-      assert.equal(await page.getByRole('heading', { level: 1 }).textContent(), 'Kitchen sink');
+      assert.equal(await page.getByRole('heading', { level: 1 }).textContent(), 'Kitchen Sink');
       const faces = await page.evaluate(async () => {
         await document.fonts.load('16px "SUI Plus Jakarta Sans"', 'Ąą');
         await document.fonts.load('16px "SUI JetBrains Mono"', 'Ąą');

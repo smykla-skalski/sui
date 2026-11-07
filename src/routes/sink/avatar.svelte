@@ -26,7 +26,7 @@
 </script>
 
 <Example
-  title="Shapes and sizes"
+  title="Shapes & Sizes"
   note="Without a picture, initials sit on the brand tint at a type step for each size"
 >
   <Variants
@@ -69,7 +69,7 @@
   </Specimen>
 </Example>
 
-<Example title="Identity row" note="The name with the handle in mono under it" layout="grid">
+<Example title="Identity Row" note="The name with the handle in mono under it" layout="grid">
   <Specimen label="Person" code="handle">
     <IdentityRow name="Ada Lovelace" handle="@ada" />
   </Specimen>
@@ -81,7 +81,7 @@
   </Specimen>
 </Example>
 
-<Example title="Narrow width" note="A long name or handle wraps and keeps every word">
+<Example title="Narrow Width" note="A long name or handle wraps and keeps every word">
   <Specimen label="Long name in 16rem">
     <div class="narrow">
       <IdentityRow

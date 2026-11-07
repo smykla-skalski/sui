@@ -30,13 +30,13 @@
   ];
 
   const rules: ActionMenuItem[] = [
-    { label: 'Add a rule', icon: 'plus', onselect: nothing },
+    { label: 'Add a Rule', icon: 'plus', onselect: nothing },
     { label: 'Show the history', icon: 'history', onselect: nothing }
   ];
 </script>
 
 <Example
-  title="Linked peers"
+  title="Linked Peers"
   note="Each card is one link named by its title, a control inside it stays pressable, and peers take their 16px from the grid's gap"
   layout="stack"
   ground="canvas"
@@ -61,18 +61,18 @@
 </Example>
 
 <Example
-  title="Head actions"
+  title="Head Actions"
   note="Whatever stands beside the title centres on its cap band and never moves the title, its note or the content"
   layout="stack"
   ground="canvas"
 >
   <Specimen label="Framed, menu, ghost, switch, segmented and pill" code="href actions">
     <div class="peers wide">
-      <Card href="#card" title="Branch rules" level={4}>
+      <Card href="#card" title="Branch Rules" level={4}>
         {#snippet actions()}<Button>Edit</Button>{/snippet}
         <p class="copy">Pull requests into main need one approval</p>
       </Card>
-      <Card href="#card" title="Deploy keys" level={4}>
+      <Card href="#card" title="Deploy Keys" level={4}>
         {#snippet actions()}
           <ActionMenu label="Deploy key actions" icon="more" items={rules} align="end" />
         {/snippet}
@@ -82,7 +82,7 @@
         {#snippet actions()}<Button tone="ghost">Refresh</Button>{/snippet}
         <p class="copy">All 18 deliveries succeeded</p>
       </Card>
-      <Card href="#card" title="Nightly sync" level={4}>
+      <Card href="#card" title="Nightly Sync" level={4}>
         {#snippet actions()}
           <Switch aria-label="Run the nightly sync" bare bind:checked={nightly} />
         {/snippet}
@@ -108,34 +108,34 @@
 </Example>
 
 <Example
-  title="Danger zone"
+  title="Danger Zone"
   note="The page's danger zone wears a danger keyline and title, never a filled ground, and holds the acts that cannot be undone"
   layout="stack"
   ground="canvas"
 >
   <Specimen label="Danger zone" code={'tone="danger" footer'}>
     <Card
-      title="Danger zone"
+      title="Danger Zone"
       description="Deleting the workspace removes the rules and history of its 16 repositories for everyone"
       tone="danger"
       level={4}
     >
-      {#snippet footer()}<Button tone="stop-quiet">Delete the workspace</Button>{/snippet}
+      {#snippet footer()}<Button tone="stop-quiet">Delete the Workspace</Button>{/snippet}
     </Card>
   </Specimen>
 </Example>
 
 <Example
-  title="Bare page"
+  title="Bare Page"
   note="The one box on a page that holds nothing else, with its actions beside the copy at its foot while they fit"
   layout="stack"
   ground="canvas"
 >
   <Specimen label="An expired invite" code="title description footer">
     <div class="bare">
-      <Card title="This invite has expired" description="Invites last 7&nbsp;days" level={4}>
+      <Card title="This Invite Has Expired" description="Invites last 7&nbsp;days" level={4}>
         <p class="copy">Ask an owner of acme to send you a new one</p>
-        {#snippet footer()}<Button tone="signal">Ask for a new invite</Button>{/snippet}
+        {#snippet footer()}<Button tone="signal">Ask for a New Invite</Button>{/snippet}
       </Card>
     </div>
   </Specimen>
@@ -164,7 +164,7 @@
 </Example>
 
 <Example
-  title="Long title"
+  title="Long Title"
   note="A long title balances its lines and keeps its action on the first line"
   layout="stack"
   ground="canvas"
@@ -172,7 +172,7 @@
   <Specimen label="Wrapping title and description" code="href actions">
     <Card
       href="#card"
-      title="Required status checks that every pull request into a protected branch must pass before it can merge"
+      title="Required Status Checks That Every Pull Request into a Protected Branch Must Pass Before It Can Merge"
       description="Checks that report from a fork count the same as checks from the repository itself"
       level={4}
     >
@@ -184,7 +184,7 @@
 </Example>
 
 <Example
-  title="Narrow width"
+  title="Narrow Width"
   note="A card 36rem wide or narrower steps its inset from 20px to 16px, by its own width rather than the page's"
   layout="stack"
   ground="canvas"

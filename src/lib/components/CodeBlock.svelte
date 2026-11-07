@@ -164,7 +164,7 @@
     copy = true,
     bare = false,
     regionLabel = word('CodeBlock.regionLabel', 'Code'),
-    copyLabel = word('CodeBlock.copyLabel', 'Copy code'),
+    copyLabel = word('CodeBlock.copyLabel', 'Copy Code'),
     class: className = '',
     ...rest
   }: {

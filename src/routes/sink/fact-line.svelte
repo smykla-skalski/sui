@@ -1,6 +1,6 @@
 <script module lang="ts">
   export const section = {
-    title: 'Fact line',
+    title: 'Fact Line',
     lead: 'Facts on one line parted by a drawn middle dot. Facts that each need a label are a FactList.',
     components: ['FactLine']
   };
@@ -26,7 +26,7 @@
   </Specimen>
 </Example>
 
-<Example title="Narrow width" note="A long line wraps after a dot, never before one" layout="stack">
+<Example title="Narrow Width" note="A long line wraps after a dot, never before one" layout="stack">
   <Specimen label="Wrapping" code="children">
     <div class="narrow">
       <FactLine

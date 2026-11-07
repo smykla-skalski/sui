@@ -1,6 +1,6 @@
 <script module lang="ts">
   export const section = {
-    title: 'Link list',
+    title: 'Link List',
     lead: "Links to other pages about the same thing, such as a pane's related pages. Things a reader opens with their standings are an ObjectList.",
     components: ['LinkList']
   };
@@ -50,7 +50,7 @@
 </Example>
 
 <Example
-  title="Long words"
+  title="Long Words"
   note="A label or note that does not fit wraps at its own edge"
   layout="stack"
 >
@@ -62,7 +62,7 @@
 </Example>
 
 <Example
-  title="In a section"
+  title="In a Section"
   note="In a pane's aside, the list hangs from its section heading, which names it"
   layout="stack"
   ground="canvas"
@@ -76,7 +76,7 @@
   </Specimen>
 </Example>
 
-<Example title="Right to left" note="The list starts at the inline start and the arrow mirrors">
+<Example title="Right to Left" note="The list starts at the inline start and the arrow mirrors">
   <Specimen label="With notes and an external link" code={'dir="rtl"'}>
     <div dir="rtl">
       <LinkList links={noted} aria-label="Related" />

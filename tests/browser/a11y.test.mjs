@@ -719,7 +719,7 @@ p { margin-block-end: 2em !important; }`;
           subtree: true
         });
       });
-      await header.getByRole('button', { name: 'Check again' }).click();
+      await header.getByRole('button', { name: 'Check Again' }).click();
       assert.match(await region.innerText(), /Up to date/);
       await page.evaluate(
         () => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)))

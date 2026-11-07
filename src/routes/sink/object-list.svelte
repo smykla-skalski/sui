@@ -1,6 +1,6 @@
 <script module lang="ts">
   export const section = {
-    title: 'Object list',
+    title: 'Object List',
     lead: 'The things a page is about, as rows that grow with their content. Values a reader compares across columns belong in a DataTable.',
     components: ['ObjectList', 'ObjectRow']
   };
@@ -139,7 +139,7 @@
 </Example>
 
 <Example
-  title="In context"
+  title="In Context"
   note="Rows stand on hairlines inset by their padding, and their words keep the section title's edge"
   layout="stack"
   ground="canvas"

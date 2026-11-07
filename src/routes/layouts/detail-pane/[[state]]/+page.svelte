@@ -74,9 +74,9 @@
   ];
 
   const menu: ActionMenuItem[] = [
-    { label: 'Copy the check ID', onselect: nothing },
-    { label: 'Download the report', onselect: nothing },
-    { label: 'Delete this check', tone: 'stop', onselect: nothing }
+    { label: 'Copy the Check ID', onselect: nothing },
+    { label: 'Download the Report', onselect: nothing },
+    { label: 'Delete This Check', tone: 'stop', onselect: nothing }
   ];
 
   const nav: NavSection[] = [
@@ -153,14 +153,14 @@
 
 {#snippet header()}
   <PageHeader
-    title="Sync check #4182"
+    title="Sync Check #4182"
     description="Compared 16 repositories in acme with the saved settings"
     kicker={back}
   >
     {#snippet status()}<Pill tone="warning" dot>3 differ</Pill>{/snippet}
     {#snippet facts()}<FactList facts={headline} />{/snippet}
     {#snippet actions()}
-      <Button tone="signal">Check again</Button>
+      <Button tone="signal">Check Again</Button>
       <ActionMenu label="More actions" icon="more" toolbar items={menu} align="end" />
     {/snippet}
   </PageHeader>
@@ -208,14 +208,14 @@
       </Section>
     {/snippet}
   </DetailLayout>
-  <Disclosure summary="More about this check" hint="ID, worker and version">
+  <Disclosure summary="More About This Check" hint="ID, worker and version">
     <FactList layout="rows" facts={more} />
   </Disclosure>
 {/snippet}
 
 <SkipLink href="#content" />
 
-<AppShell title="Sync check #4182" landmark="none" label="Workspace navigation">
+<AppShell title="Sync Check #4182" landmark="none" label="Workspace navigation">
   {#snippet rail()}
     <Rail items={places} {foot} current={place} onpick={(item) => (place = item.label)} />
   {/snippet}
@@ -225,7 +225,7 @@
 
   <main id="content" tabindex="-1">
     {#if view === 'loading'}
-      <PageHeader title="Sync check #4182" kicker={back}>
+      <PageHeader title="Sync Check #4182" kicker={back}>
         <!-- The status region is there from the first render, so the state is read once it arrives. -->
         {#snippet status()}{/snippet}
       </PageHeader>
@@ -275,10 +275,10 @@
         </DetailLayout>
       </div>
     {:else if view === 'missing'}
-      <PageHeader title="Sync check #4182" kicker={back} />
+      <PageHeader title="Sync Check #4182" kicker={back} />
       <div class="zones">
         <ErrorState
-          title="Sync check #4182 was not found"
+          title="Sync Check #4182 Was Not Found"
           description="It was deleted or never existed"
           step="Go back to the queue to open another check"
         />
@@ -289,7 +289,7 @@
         {#if view === 'stale'}
           <ErrorState
             overContent
-            title="The check could not be refreshed"
+            title="The Check Could Not Be Refreshed"
             description="Showing what loaded a minute ago"
             onretry={refresh}
             busy={refreshing}
@@ -298,7 +298,7 @@
           <Callout tone="warning" title="1 repository was not checked">
             {#snippet icon()}<Icon name="warning" size="sm" />{/snippet}
             The app lost access to acme/legacy during the check
-            {#snippet actions()}<Button>Fix access</Button>{/snippet}
+            {#snippet actions()}<Button>Fix Access</Button>{/snippet}
           </Callout>
         {/if}
         {@render body()}

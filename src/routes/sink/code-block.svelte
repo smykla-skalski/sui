@@ -1,6 +1,6 @@
 <script module lang="ts">
   export const section = {
-    title: 'Code block',
+    title: 'Code Block',
     lead: 'A read-only window of code, colored by its language, with a copy control in the corner. A change between two texts is a DiffBlock.',
     components: ['CodeBlock', 'CopyButton']
   };
@@ -85,7 +85,7 @@ grep -rn 'export default' dist 2>/dev/null || echo "No exports"`;
 </Example>
 
 <Example
-  title="Long line"
+  title="Long Line"
   note="A long line scrolls inside the block, which then takes keyboard focus"
   layout="stack"
   ground="canvas"
@@ -95,21 +95,21 @@ grep -rn 'export default' dist 2>/dev/null || echo "No exports"`;
   </Specimen>
 </Example>
 
-<Example title="Copy control" note="It names what it copies and says Copied for 1.6&nbsp;seconds">
+<Example title="Copy Control" note="It names what it copies and says Copied for 1.6&nbsp;seconds">
   <Specimen label="Default name" code="text">
     <CopyButton text="npm install @smykla-skalski/sui" />
   </Specimen>
-  <Specimen label="Named for what it copies" code={'label="Copy version"'}>
-    <CopyButton text="0.2.1" label="Copy version" />
+  <Specimen label="Named for what it copies" code={'label="Copy Version"'}>
+    <CopyButton text="0.2.1" label="Copy Version" />
   </Specimen>
   <Specimen label="Toolbar tier, 34px" code="toolbar">
-    <CopyButton text="https://sui.smyklot.com" label="Copy link" toolbar />
+    <CopyButton text="https://sui.smyklot.com" label="Copy Link" toolbar />
   </Specimen>
   <Specimen label="Disabled" code="disabled">
     <div class="copy-locked">
       <CopyButton
         text="ghp_example"
-        label="Copy token"
+        label="Copy Token"
         disabled
         aria-describedby="sink-copy-token-reason"
       />

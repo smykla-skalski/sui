@@ -230,7 +230,7 @@
   function closed(): void {
     open = false;
     // The browser has already handed focus back to the opener when it could. When another layer
-    // closed in the same turn, as the dialog a "Discard changes" question closes, that layer has
+    // closed in the same turn, as the dialog a "Discard Changes" question closes, that layer has
     // placed focus by now, and it stays there.
     const at = document.activeElement;
     if (!(at instanceof HTMLElement) || at === document.body || !at.checkVisibility())

@@ -1,6 +1,6 @@
 <script module lang="ts">
   export const section = {
-    title: 'Segmented control',
+    title: 'Segmented Control',
     lead: 'One choice from two to five options that all show at once. Six or more belong in a Select, and answers that need a sentence are ChoiceCards.',
     components: ['SegmentedControl']
   };
@@ -121,7 +121,7 @@
 </Example>
 
 <Example
-  title="Narrow width"
+  title="Narrow Width"
   note="Short of room, the same choice becomes a native select, with icons dropped and counts in brackets"
 >
   <Specimen label="Words as a select">

@@ -229,15 +229,15 @@ suite('the kitchen sink', together, () => {
   });
 
   // A decision callout or an unsaved row restates the default paint for the controls it holds,
-  // so a disabled toned button there is right to wear that local paint.
+  // so a disabled toned button there is right to wear that local paint. One audit of a small
+  // page reads both laws.
   test(
-    'L-40 a disabled tone is measured against the paint where its button stands',
+    'L-40 a disabled tone is measured against the paint where its button stands, and L-30 a heading or button off Title Case is found while a name, code or quote is not',
     long,
     async () => {
       const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
       try {
         await visit(page, new URL('buttons/', url).href);
-        await page.waitForFunction(() => '__suiAudit' in window);
         const restated = await page.evaluate(() => {
           const buttons = document.querySelectorAll(
             ".sui-button:is([data-tone='signal'], [data-tone='decision'], [data-tone='stop']):disabled"
@@ -247,11 +247,32 @@ suite('the kitchen sink', together, () => {
             holder.style.setProperty('--sui-surface-raised', 'transparent');
             holder.style.setProperty('--sui-control-border', 'var(--sui-warning)');
           }
+          const host = document.createElement('div');
+          host.id = 'title-case';
+          host.innerHTML = [
+            '<h2>Tones and states</h2>',
+            '<button type="button">Save changes</button>',
+            '<button type="button">Sign In to the Console</button>',
+            '<h2>Install <code>npm</code> on macOS for “my-repo”</h2>',
+            '<button type="button">Sync 6 Repositories</button>'
+          ].join('');
+          document.body.append(host);
           return buttons.length;
         });
         assert.ok(restated > 0, 'the buttons page holds no disabled toned button');
-        const kept = (await audit(page)).filter(({ detail }) => detail.includes('keeps its tone'));
+        const findings = await audit(page);
+        const kept = findings.filter(({ detail }) => detail.includes('keeps its tone'));
         assert.equal(kept.length, 0, report(kept));
+        assert.deepEqual(
+          findings
+            .filter(({ law, where }) => law === 'L-30' && where.includes('#title-case'))
+            .map(({ detail }) => detail),
+          [
+            '"Tones and states" is not Title Case at "states"',
+            '"Tones and states" writes "and" instead of "&"',
+            '"Save changes" is not Title Case at "changes"'
+          ]
+        );
       } finally {
         await page.close();
       }
@@ -519,7 +540,7 @@ suite('the kitchen sink', together, () => {
     const page = await open(375, 'light');
     try {
       const placed = await page.evaluate(() =>
-        ['Skipped repositories', 'More about this sync'].map((name) => {
+        ['Skipped Repositories', 'More About This Sync'].map((name) => {
           const words = [...document.querySelectorAll('#disclosure .sui-disclosure-label')].find(
             (label) => label.textContent === name
           );
@@ -1318,7 +1339,7 @@ suite('the kitchen sink', together, () => {
         await entry.getByRole('button', { name: 'Remove ship' }).click();
         assert.match(await focused(), /\bgo\b/, 'focus did not move to the next pair');
         await entry.getByRole('button', { name: 'Remove go' }).click();
-        assert.match(await focused(), /Add an alias/, 'focus did not move to Add');
+        assert.match(await focused(), /Add an Alias/, 'focus did not move to Add');
       } finally {
         await page.close();
       }

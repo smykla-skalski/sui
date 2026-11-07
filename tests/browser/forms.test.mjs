@@ -483,7 +483,7 @@ suite('forms', together, () => {
       const field = page.getByRole('combobox', { name: 'Language', exact: true }).first();
       await field.fill('Pyth');
       await page
-        .getByRole('button', { name: 'Replace the language' })
+        .getByRole('button', { name: 'Replace the Language' })
         .evaluate((button) => /** @type {HTMLButtonElement} */ (button).click());
       assert.equal(await field.inputValue(), 'Go');
       assert.ok(await field.evaluate((input) => document.activeElement === input));
@@ -497,7 +497,7 @@ suite('forms', together, () => {
       await field.fill('o');
       await page.keyboard.press('ArrowUp');
       await page
-        .getByRole('button', { name: 'Limit the language suggestions' })
+        .getByRole('button', { name: 'Limit the Language Suggestions' })
         .evaluate((button) => /** @type {HTMLButtonElement} */ (button).click());
       const active = await field.getAttribute('aria-activedescendant');
       assert.ok(active?.endsWith('-option-0'), `dangling active row: ${active}`);
@@ -594,7 +594,7 @@ suite('forms', together, () => {
       await form.getByRole('button', { name: 'Search', exact: true }).click();
       await error.waitFor();
       await form
-        .getByRole('button', { name: 'Fix the audit query' })
+        .getByRole('button', { name: 'Fix the Audit Query' })
         .evaluate((button) => /** @type {HTMLButtonElement} */ (button).click());
       await error.waitFor({ state: 'detached' });
       assert.equal(await field.inputValue(), 'valid');
@@ -707,13 +707,13 @@ suite('forms', together, () => {
       const amount = page.getByRole('textbox', { name: 'Check cadence' });
       await amount.fill('0.5');
       await amount.blur();
-      const discard = page.getByRole('button', { name: 'Discard the cadence' });
+      const discard = page.getByRole('button', { name: 'Discard the Cadence' });
       await discard.click();
       assert.equal(await discard.getAttribute('data-reset'), '1');
       assert.equal(await amount.inputValue(), '30');
       // The owner heard the draft's problem, so it hears the problem go with it: Save then saves
       // instead of sending focus back to the amount.
-      await page.getByRole('button', { name: 'Save the cadence' }).click();
+      await page.getByRole('button', { name: 'Save the Cadence' }).click();
       assert.equal(await amount.evaluate((node) => node === document.activeElement), false);
     });
 
@@ -966,7 +966,7 @@ suite('forms', together, () => {
         root.style.inlineSize = '16rem';
       });
       const before = await field.evaluate((area) => area.getBoundingClientRect().height);
-      await page.getByRole('button', { name: 'Lengthen the invitation' }).click();
+      await page.getByRole('button', { name: 'Lengthen the Invitation' }).click();
       await page.waitForFunction(
         ({ area, height }) => area.getBoundingClientRect().height > height,
         { area: await field.elementHandle(), height: before }

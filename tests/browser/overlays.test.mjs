@@ -95,7 +95,7 @@ suite('overlays', together, () => {
 
     test('L-58 a dialog that opens holding a long value shows its start, chosen, and stacks its actions at the full width in their reading order', async () => {
       const opener = page
-        .locator('#modal button:not(.sui-modal *)', { hasText: 'Edit webhook' })
+        .locator('#modal button:not(.sui-modal *)', { hasText: 'Edit Webhook' })
         .first();
       await opener.scrollIntoViewIfNeeded();
       await opener.click();
@@ -137,7 +137,7 @@ suite('overlays', together, () => {
       assert.deepEqual(field.chosen, [0, field.length], 'the value is not chosen');
       assert.deepEqual(
         buttons.map((button) => button.words),
-        ['Cancel', 'Save webhook'],
+        ['Cancel', 'Save Webhook'],
         'the actions left their reading order'
       );
       for (const button of buttons)
@@ -177,15 +177,15 @@ suite('overlays', together, () => {
         await page.waitForFunction(() => !document.querySelector('dialog[open]'));
         return at;
       };
-      assert.equal(await opensOn('Revoke token'), 'its first field');
-      assert.equal(await opensOn('Delete repository'), 'Cancel');
+      assert.equal(await opensOn('Revoke Token'), 'its first field');
+      assert.equal(await opensOn('Delete Repository'), 'Cancel');
     });
 
     test('S3 a refused confirmation stays open, pending and then failed, never closing on Escape', async () => {
-      const opener = page.locator('#confirm-dialog button', { hasText: 'Leave workspace' }).first();
+      const opener = page.locator('#confirm-dialog button', { hasText: 'Leave Workspace' }).first();
       await opener.scrollIntoViewIfNeeded();
       await opener.click();
-      const confirm = page.locator('dialog[open] button', { hasText: 'Leave workspace' });
+      const confirm = page.locator('dialog[open] button', { hasText: 'Leave Workspace' });
       await confirm.click();
       const dialog = page.locator('dialog[open]');
       assert.equal(await dialog.getAttribute('aria-busy'), 'true');
@@ -193,24 +193,24 @@ suite('overlays', together, () => {
       assert.equal(await dialog.count(), 1, 'Escape closed a pending dialog');
       await page.waitForFunction(() => document.querySelector('dialog[open] .sui-modal-error p'));
       assert.match((await dialog.locator('.sui-modal-error').textContent()) ?? '', /cannot leave/);
-      assert.equal(await focused(page), 'Leave workspace');
+      assert.equal(await focused(page), 'Leave Workspace');
       await page.keyboard.press('Escape');
       await page.waitForFunction(() => !document.querySelector('dialog[open]'));
-      assert.equal(await focused(page), 'Leave workspace', 'focus did not return to the opener');
+      assert.equal(await focused(page), 'Leave Workspace', 'focus did not return to the opener');
     });
 
     test('L-89 a confirmed act that removes its opener hands focus to the next row', async () => {
-      const opener = page.locator('#confirm-dialog button', { hasText: 'Revoke Release script' });
+      const opener = page.locator('#confirm-dialog button', { hasText: 'Revoke Release Script' });
       await opener.scrollIntoViewIfNeeded();
       await opener.click();
-      await page.locator('dialog[open] button', { hasText: 'Revoke token' }).click();
+      await page.locator('dialog[open] button', { hasText: 'Revoke Token' }).click();
       await page.waitForFunction(() => !document.querySelector('dialog[open]'));
-      assert.equal(await focused(page), 'Revoke Nightly backup');
+      assert.equal(await focused(page), 'Revoke Nightly Backup');
     });
 
     test('L-58 a press outside closes a form dialog as Escape does: a pristine one at once, a changed one after asking', async () => {
       const opener = page
-        .locator('#modal button:not(.sui-modal *)', { hasText: 'Edit webhook' })
+        .locator('#modal button:not(.sui-modal *)', { hasText: 'Edit Webhook' })
         .first();
       const shown = () => page.locator('dialog[open]').count();
       await opener.scrollIntoViewIfNeeded();
@@ -227,14 +227,14 @@ suite('overlays', together, () => {
       await page.waitForSelector('dialog[open][role="alertdialog"]');
       assert.equal(await shown(), 2, 'a press outside threw a changed form away');
       await page
-        .locator('dialog[open][role="alertdialog"] button', { hasText: 'Discard changes' })
+        .locator('dialog[open][role="alertdialog"] button', { hasText: 'Discard Changes' })
         .click();
       await page.waitForFunction(() => !document.querySelector('dialog[open]'));
     });
 
     test('L-58 a busy dialog hands focus to its busy action and disables its fields until the work ends', async () => {
       const opener = page
-        .locator('#modal button:not(.sui-modal *)', { hasText: 'Rename repository' })
+        .locator('#modal button:not(.sui-modal *)', { hasText: 'Rename Repository' })
         .first();
       await opener.scrollIntoViewIfNeeded();
       await opener.click();
@@ -281,14 +281,14 @@ suite('overlays', together, () => {
       // The sink refuses every rename, so the dialog is still open on the changed name.
       await page.keyboard.press('Escape');
       await page
-        .locator('dialog[open][role="alertdialog"] button', { hasText: 'Discard changes' })
+        .locator('dialog[open][role="alertdialog"] button', { hasText: 'Discard Changes' })
         .click();
       await page.waitForFunction(() => !document.querySelector('dialog[open]'));
     });
 
     test('Ctrl+Enter or Cmd+Enter in a textarea sends its form, and Enter adds a line', async () => {
       const opener = page
-        .locator('#modal button:not(.sui-modal *)', { hasText: 'Write release notes' })
+        .locator('#modal button:not(.sui-modal *)', { hasText: 'Write Release Notes' })
         .first();
       await opener.scrollIntoViewIfNeeded();
       await opener.click();
@@ -302,7 +302,7 @@ suite('overlays', together, () => {
     });
 
     test('L-58 a line parts a dialog body from its actions only while the body scrolls under them', async () => {
-      const opener = page.locator('#modal button', { hasText: 'Edit webhook' }).first();
+      const opener = page.locator('#modal button', { hasText: 'Edit Webhook' }).first();
       await opener.scrollIntoViewIfNeeded();
       await opener.click();
       await page.waitForSelector('dialog[open] .sui-modal-body');
@@ -332,7 +332,7 @@ suite('overlays', together, () => {
       const page = await open({ viewport: { width: 1440, height: 700 } });
       try {
         // A layer taller than its room scrolls inside, and that scroll stays where the wheel left it.
-        const tall = page.getByRole('button', { name: 'Show every change' });
+        const tall = page.getByRole('button', { name: 'Show Every Change' });
         await tall.scrollIntoViewIfNeeded();
         await tall.click();
         await page.waitForFunction(() => document.querySelector('#sink-popover-tall:popover-open'));
@@ -421,7 +421,7 @@ suite('overlays', together, () => {
 
     test("L-72 a layer opened from a changed row wears the page's palette, not the row's", async () => {
       const look = async (/** @type {import('playwright-core').Locator} */ entry) => {
-        const add = entry.getByRole('button', { name: 'Add an alias' });
+        const add = entry.getByRole('button', { name: 'Add an Alias' });
         await add.scrollIntoViewIfNeeded();
         await add.click();
         const editor = page.locator(':popover-open:has(> .sui-pair-editor)');
@@ -445,7 +445,7 @@ suite('overlays', together, () => {
     });
 
     test('L-52 a list open in a layer closes alone on a press inside the layer, Escape and Tab', async () => {
-      const add = page.locator('#pair-entry').getByRole('button', { name: 'Add an alias' }).first();
+      const add = page.locator('#pair-entry').getByRole('button', { name: 'Add an Alias' }).first();
       await add.scrollIntoViewIfNeeded();
       const editor = page.locator(':popover-open:has(> .sui-pair-editor)');
       const field = editor.getByRole('combobox');
@@ -496,12 +496,12 @@ suite('overlays', together, () => {
       await page.waitForFunction(() => !document.querySelector(':popover-open'));
       await settles(
         page.waitForFunction(
-          () => document.activeElement?.textContent?.trim() === 'Add an alias',
+          () => document.activeElement?.textContent?.trim() === 'Add an Alias',
           null,
           brief
         )
       );
-      assert.equal(await focused(page), 'Add an alias');
+      assert.equal(await focused(page), 'Add an Alias');
     });
 
     test('K9 in a right-to-left page menus hang from the mirrored edge and code stays left to right', async () => {
@@ -551,7 +551,7 @@ suite('overlays', together, () => {
         `align="end" hangs ${end?.left}px off the left edge`
       );
       const start = await edges(
-        page.locator('#action-menu button', { hasText: 'Release actions' }).first()
+        page.locator('#action-menu button', { hasText: 'Release Actions' }).first()
       );
       assert.ok(
         start && Math.abs(start.right) <= 1,
@@ -606,7 +606,7 @@ suite('overlays', together, () => {
       const described = await page.evaluate(() => {
         const icon = document.querySelector('#overlays button[aria-label="Refresh the list"]');
         const sync = [...document.querySelectorAll('#overlays button')].find(
-          (button) => button.textContent?.trim() === 'Sync now'
+          (button) => button.textContent?.trim() === 'Sync Now'
         );
         const tip = (/** @type {Element | null | undefined} */ button) =>
           document
@@ -619,7 +619,7 @@ suite('overlays', together, () => {
     });
 
     test('AC15 a manual layer survives an outside press and closes on Escape back to its trigger', async () => {
-      const trigger = page.locator('#overlays button', { hasText: 'Pin the notes' });
+      const trigger = page.locator('#overlays button', { hasText: 'Pin the Notes' });
       await trigger.scrollIntoViewIfNeeded();
       await trigger.click();
       const layer = page.locator('#sink-popover-pinned');
@@ -636,12 +636,12 @@ suite('overlays', together, () => {
       );
       await settles(
         page.waitForFunction(
-          () => document.activeElement?.textContent?.trim() === 'Pin the notes',
+          () => document.activeElement?.textContent?.trim() === 'Pin the Notes',
           null,
           brief
         )
       );
-      assert.equal(await focused(page), 'Pin the notes');
+      assert.equal(await focused(page), 'Pin the Notes');
     });
 
     test('AC2 a cut label outside any control takes a tab stop and shows its whole text', async () => {
@@ -712,7 +712,7 @@ suite('overlays', together, () => {
     async () => {
       const page = await open({ viewport: { width: 320, height: 640 } });
       try {
-        const raise = page.locator('#toaster button', { hasText: 'Sync repositories' });
+        const raise = page.locator('#toaster button', { hasText: 'Sync Repositories' });
         await raise.scrollIntoViewIfNeeded();
         await raise.focus();
         for (let count = 0; count < 12; count++) await page.keyboard.press('Enter');
@@ -755,7 +755,7 @@ suite('overlays', together, () => {
     try {
       // The sink pads its own foot for its floating button, which would clear the toast too.
       await page.addStyleTag({ content: ':root { scroll-padding-block-end: 0; }' });
-      await page.locator('#toaster button', { hasText: 'Sync repositories' }).click();
+      await page.locator('#toaster button', { hasText: 'Sync Repositories' }).click();
       await page.waitForSelector('.sui-toaster:popover-open .sui-toast');
       await page.evaluate(() => {
         /** @type {HTMLElement | null} */ (document.activeElement)?.blur();

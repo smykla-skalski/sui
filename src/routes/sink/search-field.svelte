@@ -1,6 +1,6 @@
 <script module lang="ts">
   export const section = {
-    title: 'Search field',
+    title: 'Search Field',
     lead: 'A search that narrows what is already on screen. A value picked from suggestions as the reader types is a Combobox.',
     components: ['SearchField']
   };
@@ -64,7 +64,7 @@
 </Example>
 
 <Example
-  title="In a form"
+  title="In a Form"
   note="A search the form sends refuses a query its constraints reject and says why under the field"
   layout="grid"
 >
@@ -80,13 +80,13 @@
         bind:value={audit}
       />
       <Button type="submit">Search</Button>
-      <Button onclick={() => (audit = 'valid')}>Fix the audit query</Button>
+      <Button onclick={() => (audit = 'valid')}>Fix the Audit Query</Button>
     </form>
   </Specimen>
 </Example>
 
 <Example
-  title="Soft hold"
+  title="Soft Hold"
   note="A saving setting keeps the clear action in place but refuses it"
   layout="stack"
 >
@@ -108,7 +108,7 @@
 </Example>
 
 <Example
-  title="In context"
+  title="In Context"
   note="A status under the field says how many match and a screen reader hears it, so the field never disables itself"
   layout="grid"
 >
@@ -119,7 +119,7 @@
 </Example>
 
 <Example
-  title="Narrow width"
+  title="Narrow Width"
   note="The field fills the room it has, and a long query scrolls inside it"
   layout="stack"
 >

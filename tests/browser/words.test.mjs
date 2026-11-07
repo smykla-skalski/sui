@@ -226,7 +226,7 @@ suite('words', together, () => {
           children: html('<p>x</p>')
         });
         put(lib.AdditionPicker, 'AdditionPicker', {
-          label: 'Add a check',
+          label: 'Add a Check',
           choices: [{ value: 'a', label: 'Auto merge', description: 'Once green' }],
           onadd: () => {}
         });

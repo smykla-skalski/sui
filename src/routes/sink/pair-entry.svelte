@@ -1,6 +1,6 @@
 <script module lang="ts">
   export const section = {
-    title: 'Pair entry',
+    title: 'Pair Entry',
     lead: 'Keys and the values they map to as chips that edit in place, such as aliases and their commands. A list of single values is PatternEntries.',
     components: ['PairEntry']
   };
@@ -58,7 +58,7 @@
   }
 </script>
 
-<!-- The section of "In a setting row" again, for the narrow example, whose markup is the same. -->
+<!-- The section of "In a Setting Row" again, for the narrow example, whose markup is the same. -->
 {#snippet aliases()}
   <Section title="Commands" level={4}>
     <SettingList>
@@ -77,7 +77,7 @@
             options={commands}
             keyLabel="Alias"
             valueLabel="Command"
-            addLabel="Add an alias"
+            addLabel="Add an Alias"
             validate={problem}
             aria-labelledby={labelledby}
           />
@@ -98,7 +98,7 @@
       options={commands}
       keyLabel="Alias"
       valueLabel="Command"
-      addLabel="Add an alias"
+      addLabel="Add an Alias"
       validate={problem}
       aria-label="Aliases"
     />
@@ -109,7 +109,7 @@
       options={commands}
       keyLabel="Alias"
       valueLabel="Command"
-      addLabel="Add an alias"
+      addLabel="Add an Alias"
       validate={problem}
       aria-label="Aliases"
     />
@@ -120,7 +120,7 @@
       options={commands}
       keyLabel="Alias"
       valueLabel="Command"
-      addLabel="Add an alias"
+      addLabel="Add an Alias"
       validate={problem}
       aria-label="Aliases"
     />
@@ -131,7 +131,7 @@
       options={commands}
       keyLabel="Alias"
       valueLabel="Command"
-      addLabel="Add an alias"
+      addLabel="Add an Alias"
       disabled
       reason="Set by the organization, so only an owner can change it"
       aria-label="Locked aliases"
@@ -140,7 +140,7 @@
 </Example>
 
 <Example
-  title="In a setting row"
+  title="In a Setting Row"
   note="The chips stand beside the copy and wrap, and a change marks the row until it is reset"
   layout="stack"
   ground="canvas"
@@ -149,7 +149,7 @@
 </Example>
 
 <Example
-  title="Narrow width"
+  title="Narrow Width"
   note="In a narrow section the chips take the line under the copy and pack to its start"
   layout="stack"
   ground="canvas"

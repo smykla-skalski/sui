@@ -1,6 +1,6 @@
 <script module lang="ts">
   export const section = {
-    title: 'Page header',
+    title: 'Page Header',
     lead: 'The top of a page: where it is, what it is called, its state, what it is for and the controls that act on it. A part of the page takes a Section heading instead.',
     components: ['PageHeader', 'Breadcrumb', 'BackLink']
   };
@@ -37,12 +37,12 @@
       <PageHeader
         level={4}
         eyebrow={['Acme', 'Sync']}
-        title="Repository settings"
+        title="Repository Settings"
         description="Rules every repository in this workspace is held to"
       >
         {#snippet actions()}
           <Button>Export</Button>
-          <Button tone="signal">Save changes</Button>
+          <Button tone="signal">Save Changes</Button>
         {/snippet}
       </PageHeader>
       <p class="view">Every new repository starts with these rules</p>
@@ -57,7 +57,7 @@
 </Example>
 
 <Example
-  title="State and facts"
+  title="State & Facts"
   note="The state stands beside the title and is said once when it changes, and headline facts close the copy"
   layout="stack"
   ground="canvas"
@@ -66,7 +66,7 @@
     <div class="page">
       <PageHeader
         level={4}
-        title="Sync check #4182"
+        title="Sync Check #4182"
         description="Compared 16 repositories in acme with the saved settings"
       >
         {#snippet kicker()}<BackLink href="#page-header" label="Queue" />{/snippet}
@@ -87,7 +87,7 @@
         {/snippet}
         {#snippet actions()}
           <Button tone="signal" onclick={() => (checked = !checked)}>
-            {checked ? 'Undo the check' : 'Check again'}
+            {checked ? 'Undo the Check' : 'Check Again'}
           </Button>
         {/snippet}
       </PageHeader>
@@ -101,7 +101,7 @@
 </Example>
 
 <Example
-  title="With tabs"
+  title="With Tabs"
   note="The band's foot is the tabs' line, so the view under it starts on a clean cut"
   layout="stack"
   ground="canvas"
@@ -115,7 +115,7 @@
         description="The component library and its kitchen sink"
       >
         {#snippet actions()}
-          <Button>Sync now</Button>
+          <Button>Sync Now</Button>
         {/snippet}
         {#snippet tabs()}
           <Tabs
@@ -135,7 +135,7 @@
 </Example>
 
 <Example
-  title="Breadcrumb and back link"
+  title="Breadcrumb & Back Link"
   note="A breadcrumb or a back link takes the eyebrow's place"
   layout="grid"
   ground="canvas"
@@ -144,7 +144,7 @@
     <div class="page">
       <PageHeader
         level={4}
-        title="Sync schedule"
+        title="Sync Schedule"
         description="When this repository is checked against its template"
       >
         {#snippet kicker()}
@@ -170,7 +170,7 @@
 </Example>
 
 <Example
-  title="Long title"
+  title="Long Title"
   note="The title balances its lines and holds them closer together than the description under them"
   layout="stack"
   ground="canvas"
@@ -180,11 +180,11 @@
       <PageHeader
         level={4}
         eyebrow={['Acme', 'Access']}
-        title="Bypass rules for the platform team's deployment and release repositories in every region"
+        title="Bypass Rules for the Platform Team's Deployment & Release Repositories in Every Region"
         description="People and apps listed here can push past the branch rules, and every push they make is written to the audit log"
       >
         {#snippet actions()}
-          <Button tone="signal">Add a rule</Button>
+          <Button tone="signal">Add a Rule</Button>
         {/snippet}
       </PageHeader>
       <p class="view">2 people and 1 app can bypass the rules</p>

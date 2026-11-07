@@ -1,6 +1,6 @@
 <script module lang="ts">
   export const section = {
-    title: 'List toolbar',
+    title: 'List Toolbar',
     lead: 'The bar over a list, with a search, an optional filter and tools, and one action. A search outside a list is a SearchField.',
     components: ['ListToolbar']
   };
@@ -99,7 +99,7 @@
 >
   <Specimen label="Search and action" code="action">
     <ListToolbar searchLabel="Search members" placeholder="octocat…">
-      {#snippet action()}<Button>Invite member</Button>{/snippet}
+      {#snippet action()}<Button>Invite Member</Button>{/snippet}
     </ListToolbar>
   </Specimen>
   <Specimen label="Filter and tools" code="filter tools">
@@ -116,21 +116,21 @@
 </Example>
 
 <Example
-  title="Narrow width"
+  title="Narrow Width"
   note="Under 18rem the filter folds into the tools menu, and the bar names the choice beside the button"
   layout="stack"
 >
   <Specimen label="In 17rem">
     <div class="narrow">
       <ListToolbar searchLabel="Search repositories" filter={narrow.filter} tools={narrow.tools}>
-        {#snippet action()}<Button>Add repository</Button>{/snippet}
+        {#snippet action()}<Button>Add Repository</Button>{/snippet}
       </ListToolbar>
     </div>
   </Specimen>
 </Example>
 
 <Example
-  title="In context"
+  title="In Context"
   note="The bar stands over the list it filters, owns no list state and says how many rows are left after a pause"
   layout="stack"
   ground="canvas"
@@ -144,7 +144,7 @@
       tools={list.tools}
       count={rows.length}
     >
-      {#snippet action()}<Button tone="signal">Add repository</Button>{/snippet}
+      {#snippet action()}<Button tone="signal">Add Repository</Button>{/snippet}
     </ListToolbar>
     {#if rows.length > 0}
       <ObjectList>
@@ -162,10 +162,10 @@
       </ObjectList>
     {:else}
       <EmptyState
-        title="No repositories match"
+        title="No Repositories Match"
         description="Clear the search and show every state to see the rest"
       >
-        {#snippet action()}<Button onclick={clear}>Show every repository</Button>{/snippet}
+        {#snippet action()}<Button onclick={clear}>Show Every Repository</Button>{/snippet}
       </EmptyState>
     {/if}
   </div>

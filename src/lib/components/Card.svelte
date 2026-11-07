@@ -92,7 +92,7 @@ With `href` the whole card is one link through a layer under its content, as an 
 is: the title names it, the card takes the row's hover ground and the press, and the focus
 ring draws on the card's own keyline. A control inside it, such as an `ActionMenu`, stays
 pressable above the layer and never follows the link. A danger zone says what it is in its
-title, such as "Danger zone", and holds the acts that cannot be undone, each a `stop` button.
+title, such as "Danger Zone", and holds the acts that cannot be undone, each a `stop` button.
 
 - Semantics: a plain grouping box; the title is a heading at `level`; with `href`, an `a` under the content, named by the title through `aria-labelledby`.
 - Content: an optional title, description, head actions, body and footer actions; the title and the description wrap; a linked card needs a title to name its link.

@@ -9,9 +9,9 @@
     value,
     label,
     hint,
-    copyLabel = word('CopyableLinkField.copyLabel', 'Copy link'),
+    copyLabel = word('CopyableLinkField.copyLabel', 'Copy Link'),
     copiedLabel = word('CopyableLinkField.copiedLabel', 'Copied'),
-    failedLabel = word('CopyableLinkField.failedLabel', 'Copy failed'),
+    failedLabel = word('CopyableLinkField.failedLabel', 'Copy Failed'),
     oncopied,
     oncopyfailed,
     class: className = '',
@@ -61,7 +61,7 @@ the value with all of it selected.
 
 The field and its `CopyButton` are one control: the copy action is a chip inside the field's
 end, under one frame. The chip shows the short "Copy", so the value keeps the width, and is
-named by `copyLabel`, such as "Copy link", which starts with the shown word (WCAG 2.5.3). The
+named by `copyLabel`, such as "Copy Link", which starts with the shown word (WCAG 2.5.3). The
 copy part confirms with "Copied". A long value wraps onto more lines
 at any character, so all of it shows and it never widens the row. With `label` the pair sits in a `Field`, and the label names
 the text field.

@@ -46,7 +46,7 @@
     missingLabel = word('DataTable.missingLabel', 'No value'),
     loadingLabel = word('DataTable.loadingLabel', 'Loading…'),
     refreshingLabel = word('DataTable.refreshingLabel', 'Refreshing…'),
-    retryLabel = word('DataTable.retryLabel', 'Try again'),
+    retryLabel = word('DataTable.retryLabel', 'Try Again'),
     scrollHint = word('DataTable.scrollHint', 'Scroll sideways to see every column'),
     class: className = '',
     ...rest

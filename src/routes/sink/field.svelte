@@ -77,7 +77,7 @@
 </Example>
 
 <Example
-  title="Any control"
+  title="Any Control"
   note="The control snippet takes the id, the description ids and the invalid flag"
   layout="grid"
 >
@@ -97,7 +97,7 @@
 </Example>
 
 <Example
-  title="Label beside a checkbox"
+  title="Label beside a Checkbox"
   note="A row layout centres the label and a form's checkbox on one line, and the label names the box"
   layout="grid"
 >
@@ -122,7 +122,7 @@
 </Example>
 
 <Example
-  title="Refused send"
+  title="Refused Send"
   note="A refused send shows each field's own error in place of the browser's bubble and focuses the first field to fix"
   layout="grid"
 >
@@ -145,18 +145,18 @@
         validationMessage="Enter an email address such as you@example.com"
         placeholder="jane@example.com…"
       />
-      <Button type="submit">Create the repository</Button>
+      <Button type="submit">Create the Repository</Button>
     </form>
   </Specimen>
 </Example>
 
 <Example
-  title="In context"
+  title="In Context"
   note="Fields stack 16px apart, and a focused field's own border becomes the ring, so nothing around it clips it"
   layout="grid"
   ground="canvas"
 >
-  <Section title="New repository" level={4}>
+  <Section title="New Repository" level={4}>
     <div class="form">
       <Field label="Repository name" required placeholder="acme-web…" />
       <Field
@@ -171,7 +171,7 @@
 </Example>
 
 <Example
-  title="Narrow width"
+  title="Narrow Width"
   note="Long labels, hints and errors wrap and keep the same 8px gap between lines"
   layout="stack"
 >

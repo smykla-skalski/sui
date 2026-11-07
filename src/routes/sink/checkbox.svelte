@@ -1,6 +1,6 @@
 <script module lang="ts">
   export const section = {
-    title: 'Checkbox and check list',
+    title: 'Checkbox & Check List',
     lead: 'A visible box for a multi-choice, a consent or a value that a later save writes. A boolean that takes effect at once is a Switch.',
     components: ['Checkbox', 'CheckList']
   };
@@ -79,7 +79,7 @@
 </Example>
 
 <Example
-  title="Check list"
+  title="Check List"
   note="Short labels run along one line, a description puts each on its own line, and a saving list stays focusable"
 >
   <Specimen label="Short labels" code="options">
@@ -100,7 +100,7 @@
 </Example>
 
 <Example
-  title="Required and invalid"
+  title="Required & Invalid"
   note="A required group says so after its question, and an error under it names what is missing"
   layout="stack"
 >
@@ -116,7 +116,7 @@
 </Example>
 
 <Example
-  title="In context"
+  title="In Context"
   note="A parent box shows a partial choice of the list under it, and a press chooses all or none"
   layout="stack"
 >
@@ -132,7 +132,7 @@
 </Example>
 
 <Example
-  title="Narrow width"
+  title="Narrow Width"
   note="Long labels wrap and the box stays on the first line"
   layout="stack"
 >

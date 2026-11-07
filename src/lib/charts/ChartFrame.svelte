@@ -26,17 +26,17 @@
     onretry,
     emptyAction,
     ontableopenchange,
-    emptyTitle = word('ChartFrame.emptyTitle', 'No chart data yet'),
+    emptyTitle = word('ChartFrame.emptyTitle', 'No Chart Data Yet'),
     emptyDescription = word(
       'ChartFrame.emptyDescription',
       'Nothing has been recorded for this chart'
     ),
     emptyStep = word('ChartFrame.emptyStep', 'Values show here once they are recorded'),
-    dataLabel = word('ChartFrame.dataLabel', 'View chart data'),
+    dataLabel = word('ChartFrame.dataLabel', 'View Chart Data'),
     loadingLabel = word('ChartFrame.loadingLabel', 'Loading chart data…'),
     refreshingLabel = word('ChartFrame.refreshingLabel', 'Updating…'),
     staleLabel = word('ChartFrame.staleLabel', 'These values may be out of date'),
-    failedTitle = word('ChartFrame.failedTitle', 'Chart data could not load'),
+    failedTitle = word('ChartFrame.failedTitle', 'Chart Data Could Not Load'),
     failedDescription = word('ChartFrame.failedDescription', 'Try again in a moment'),
     missingLabel = word('ChartFrame.missingLabel', (count: number) =>
       count === 1

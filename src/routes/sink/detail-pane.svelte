@@ -1,6 +1,6 @@
 <script module lang="ts">
   export const section = {
-    title: 'Detail pane',
+    title: 'Detail Pane',
     lead: 'One thing beside its list or on its own page: a header band, one alert at most, sections by importance, properties, then rare detail',
     components: ['DetailLayout', 'PageHeader', 'Section', 'FactList']
   };
@@ -30,7 +30,7 @@
 </Example>
 
 <Example
-  title="First load"
+  title="First Load"
   note="The title comes from the row that opened the pane, and placeholders hold each section's place until the check arrives"
   layout="stack"
   ground="canvas"
@@ -42,7 +42,7 @@
 </Example>
 
 <Example
-  title="Not found"
+  title="Not Found"
   note="A check that no longer exists keeps its header and back link, and the failure stands in place of the body"
   layout="stack"
   ground="canvas"
@@ -54,7 +54,7 @@
 </Example>
 
 <Example
-  title="Refresh failed"
+  title="Refresh Failed"
   note="A refresh that fails takes the alert slot as one line, and the check that loaded earlier stays under it"
   layout="stack"
   ground="canvas"
@@ -66,7 +66,7 @@
 </Example>
 
 <Example
-  title="Empty section"
+  title="Empty Section"
   note="A section with nothing to show says so in one quiet sentence and keeps its heading"
   layout="stack"
   ground="canvas"

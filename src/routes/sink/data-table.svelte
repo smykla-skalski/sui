@@ -1,6 +1,6 @@
 <script module lang="ts">
   export const section = {
-    title: 'Data table',
+    title: 'Data Table',
     lead: 'A table of numbers and facts that a reader compares across rows. Things a reader opens or acts on belong in an ObjectList.',
     components: ['DataTable']
   };
@@ -191,7 +191,7 @@
 </Example>
 
 <Example
-  title="Long values"
+  title="Long Values"
   note="Long text wraps inside its own column, so no cell draws past the column it belongs to"
   layout="stack"
 >
@@ -236,7 +236,7 @@
 </Example>
 
 <Example
-  title="First load"
+  title="First Load"
   note="Placeholder rows take the table's own cells, each bar where its column's words start, and one light crosses them"
   layout="stack"
 >
@@ -252,7 +252,7 @@
 </Example>
 
 <Example
-  title="Narrow width"
+  title="Narrow Width"
   note="Columns that outgrow the room scroll inside the frame, which says so and keeps the row headings in view"
   layout="grid"
 >

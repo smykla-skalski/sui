@@ -1,6 +1,6 @@
 <script module lang="ts">
   export const section = {
-    title: 'Color picker',
+    title: 'Color Picker',
     lead: "A color as a hex, picked from swatches, an area and a hue rail, for a color that is the user's own data. A theme never needs one.",
     components: ['ColorPicker']
   };
@@ -43,7 +43,7 @@
 </Example>
 
 <Example
-  title="Own swatches"
+  title="Own Swatches"
   note="A caller replaces the swatch list, and a color off the list checks no swatch"
 >
   <Specimen label="Chart series" code="swatches">
@@ -52,7 +52,7 @@
 </Example>
 
 <Example
-  title="In a field"
+  title="In a Field"
   note="The field's label and the hex name the trigger together, and its hint describes it"
 >
   <Specimen label="Field label and hint" code="id aria-describedby">

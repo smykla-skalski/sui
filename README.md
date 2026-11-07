@@ -34,7 +34,7 @@ export default defineConfig({
   let project = $state('');
 </script>
 
-<Card title="New project" description="Give it a short name">
+<Card title="New Project" description="Give it a short name">
   <Field label="Project name" bind:value={project} required />
   {#snippet footer()}
     <Button tone="signal" onclick={() => console.log(project)}>Create</Button>

@@ -21,13 +21,13 @@
         icon: 'pending',
         title: 'Sync paused',
         text: 'Nothing is pushed until the sync resumes',
-        action: 'Resume sync'
+        action: 'Resume Sync'
       },
       warning: {
         icon: 'warning',
         title: 'Token expires in 2\u00a0days',
         text: 'The sync stops when it expires',
-        action: 'Renew token'
+        action: 'Renew Token'
       }
     };
 </script>
@@ -62,14 +62,14 @@
       Two settings changed since the last save
       {#snippet actions()}
         <Button>Discard</Button>
-        <Button tone="decision">Save changes</Button>
+        <Button tone="decision">Save Changes</Button>
       {/snippet}
     </Callout>
   </Specimen>
 </Example>
 
 <Example
-  title="Long copy"
+  title="Long Copy"
   note="Long copy starts at the symbol's tile however many lines follow, and an action beside it centres on the message"
   layout="stack"
 >
@@ -95,20 +95,20 @@
       {#snippet icon()}<Icon name="info" size="sm" />{/snippet}
       Unarchive a repository to bring it back into the sync, with the branch rules it had before it was
       archived
-      {#snippet actions()}<Button>Show archived</Button>{/snippet}
+      {#snippet actions()}<Button>Show Archived</Button>{/snippet}
     </Callout>
   </Specimen>
 </Example>
 
 <Example
-  title="Appearing after an edit"
+  title="Appearing after an Edit"
   note="A callout that an edit brings is announced once it appears, and one that loads with the page stays quiet"
   layout="stack"
 >
   <Specimen label={expiring ? 'Announced' : 'Not shown'} code="live">
     <div class="appear">
       <Button onclick={() => (expiring = !expiring)}
-        >{expiring ? 'Keep the token' : 'Shorten the token to 2\u00a0days'}</Button
+        >{expiring ? 'Keep the Token' : 'Shorten the Token to 2\u00a0Days'}</Button
       >
       {#if expiring}
         <div class="full">
@@ -123,7 +123,7 @@
 </Example>
 
 <Example
-  title="Narrow width"
+  title="Narrow Width"
   note="A callout too narrow for its actions beside an 11rem measure of copy moves them under the copy, from its start edge"
   layout="grid"
 >
@@ -132,7 +132,7 @@
       {#snippet icon()}<Icon name="pending" size="sm" />{/snippet}
       Nothing is pushed until the sync resumes
       {#snippet actions()}
-        <Button>Resume sync</Button>
+        <Button>Resume Sync</Button>
       {/snippet}
     </Callout>
   </Specimen>
@@ -141,7 +141,7 @@
       {#snippet icon()}<Icon name="warning" size="sm" />{/snippet}
       The sync stops when it expires
       {#snippet actions()}
-        <Button>Remind me</Button>
+        <Button>Remind Me</Button>
         <Button>Renew</Button>
       {/snippet}
     </Callout>
@@ -152,7 +152,7 @@
       Two settings changed since the last save
       {#snippet actions()}
         <Button>Discard</Button>
-        <Button tone="decision">Save changes</Button>
+        <Button tone="decision">Save Changes</Button>
       {/snippet}
     </Callout>
   </Specimen>

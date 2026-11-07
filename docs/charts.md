@@ -20,7 +20,7 @@ SUI ships four SVG chart components. They accept generic data and use `--sui-cha
 </script>
 
 <LineChart
-  title="Requests by week"
+  title="Requests by Week"
   description="Requests rose during the three weeks shown."
   {series}
   xLabel="Week"
