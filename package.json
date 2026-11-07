@@ -53,6 +53,7 @@
     "prepack": "npm run build",
     "test:browser": "node --test --test-concurrency=1 --test-global-setup=tests/browser/setup.mjs tests/browser/*.test.mjs && node --test --test-concurrency=1 --test-global-setup=tests/browser/setup.mjs tests/browser/timing/*.test.mjs",
     "test:browser:long": "SUI_LONG=1 npm run test:browser",
+    "test:browser:all": "node tests/browser/run.mjs all",
     "test:browser:ci": "node tests/browser/run.mjs"
   },
   "peerDependencies": {

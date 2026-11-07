@@ -1,9 +1,9 @@
 import assert from 'node:assert/strict';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
-import { tmpdir } from 'node:os';
+import { availableParallelism, tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { after, before, test } from 'node:test';
-import { allSections, long, startSink, visit } from './sink.mjs';
+import { allSections, long, startSink, sweep, visit } from './sink.mjs';
 
 // Visual regression: each kitchen-sink section, drawn in both themes, must match the picture
 // recorded for this platform. Fonts rasterize differently per operating system, so pictures are
@@ -69,6 +69,41 @@ after(async () => {
   await server?.close();
 });
 
+/**
+ * Pages that each draw the whole sink, so a theme's sections are shot side by side. A page lays
+ * out the whole sink, so a machine with few cores shoots on one.
+ */
+const PAGES = Math.max(1, Math.min(3, Math.floor(availableParallelism() / 4)));
+
+/**
+ * A page of the whole sink in `theme`, drawn as it stands once every skeleton's 10-second
+ * patience has passed.
+ * @param {string} theme
+ */
+async function drawn(theme) {
+  const page = await browser.newPage({
+    viewport: { width: 1440, height: 900 },
+    deviceScaleFactor: 1,
+    reducedMotion: 'reduce'
+  });
+  // A time's words and width follow the clock, so every run reads the same instant.
+  await page.clock.setFixedTime(new Date('2026-10-01T12:00:00Z'));
+  await visit(page, allSections(url));
+  await page.evaluate(async (name) => {
+    document.documentElement.dataset.suiTheme = name;
+    await document.fonts.ready;
+  }, theme);
+  // Time-relative words would differ between runs.
+  await page.addStyleTag({
+    content:
+      '*, *::before, *::after { caret-color: transparent !important; } time { visibility: hidden !important; }'
+  });
+  // A skeleton says it is slow after its 10s patience, so every section is shot after it. The
+  // page's timers jump there rather than the run waiting for them.
+  await page.clock.fastForward(10_500);
+  return page;
+}
+
 for (const theme of ['light', 'dark'])
   test(`every section looks as recorded in ${theme}`, long, async (t) => {
     if (!UPDATE && !existsSync(BASELINES)) {
@@ -76,96 +111,80 @@ for (const theme of ['light', 'dark'])
       return;
     }
     mkdirSync(BASELINES, { recursive: true });
-    const page = await browser.newPage({
-      viewport: { width: 1440, height: 900 },
-      deviceScaleFactor: 1,
-      reducedMotion: 'reduce'
-    });
-    try {
-      // A time's words and width follow the clock, so every run reads the same instant.
-      await page.clock.setFixedTime(new Date('2026-10-01T12:00:00Z'));
-      const loaded = Date.now();
-      await visit(page, allSections(url));
-      await page.evaluate(async (name) => {
-        document.documentElement.dataset.suiTheme = name;
-        await document.fonts.ready;
-      }, theme);
-      // Time-relative words would differ between runs.
-      await page.addStyleTag({
-        content:
-          '*, *::before, *::after { caret-color: transparent !important; } time { visibility: hidden !important; }'
-      });
-      // A skeleton says it is slow after its 10s patience, so every section is shot after it.
-      await page.waitForTimeout(Math.max(0, loaded + 10_500 - Date.now()));
-      const ids = await page
-        .locator('main > section[id]')
-        .evaluateAll((sections) => sections.map((section) => section.id));
-      assert.ok(ids.length > 40, `only ${ids.length} sections were found`);
-      const changed = [];
-      const missing = [];
-      for (const id of ids) {
-        const section = page.locator(`main > section#${id}`);
-        await section.scrollIntoViewIfNeeded();
-        // A layout page in a frame loads once it nears the window, and is shot once it has
-        // started and its faces have arrived.
-        await page.waitForFunction(
-          (id) =>
-            [...document.querySelectorAll(`#${id} iframe`)].every((frame) => {
-              const inner = /** @type {HTMLIFrameElement} */ (frame).contentWindow;
-              return (
-                inner && '__suiAudit' in inner && !inner.document.documentElement.dataset.suiFonts
-              );
-            }),
-          id
-        );
-        // A scroll can flip the sink's bar, which a busy page lays out a frame or two later.
-        await page.evaluate(
-          () => new Promise((done) => requestAnimationFrame(() => requestAnimationFrame(done)))
-        );
-        // Live pulses and growing layers end, and anything endless stops, in the page and in
-        // its frames. A scroll-driven animation runs on, since it draws a state, such as the
-        // form a control takes.
-        await page.evaluate(() => {
-          const documents = [
-            document,
-            ...[...document.querySelectorAll('iframe')].flatMap(
-              (frame) => frame.contentDocument ?? []
-            )
-          ];
-          for (const each of documents) {
-            // A frame's timelines are its own window's, so they match its own class.
-            const Timeline = each.defaultView?.DocumentTimeline ?? DocumentTimeline;
-            for (const animation of each.getAnimations()) {
-              if (!(animation.timeline instanceof Timeline)) continue;
-              if (animation.effect?.getTiming().iterations === Infinity) animation.cancel();
-              else animation.finish();
+    const problems = await sweep(
+      () => drawn(theme),
+      PAGES,
+      async (page, worker) => {
+        const ids = await page
+          .locator('main > section[id]')
+          .evaluateAll((sections) => sections.map((section) => section.id));
+        assert.ok(ids.length > 40, `only ${ids.length} sections were found`);
+        const found = [];
+        for (const id of ids.filter((_, index) => index % PAGES === worker)) {
+          const section = page.locator(`main > section#${id}`);
+          await section.scrollIntoViewIfNeeded();
+          // A layout page in a frame loads once it nears the window, and is shot once it has
+          // started and its faces have arrived.
+          await page.waitForFunction(
+            (id) =>
+              [...document.querySelectorAll(`#${id} iframe`)].every((frame) => {
+                const inner = /** @type {HTMLIFrameElement} */ (frame).contentWindow;
+                return (
+                  inner && '__suiAudit' in inner && !inner.document.documentElement.dataset.suiFonts
+                );
+              }),
+            id
+          );
+          // A scroll can flip the sink's bar, which a busy page lays out a frame or two later.
+          await page.evaluate(
+            () => new Promise((done) => requestAnimationFrame(() => requestAnimationFrame(done)))
+          );
+          // Live pulses and growing layers end, and anything endless stops, in the page and in
+          // its frames. A scroll-driven animation runs on, since it draws a state, such as the
+          // form a control takes.
+          await page.evaluate(() => {
+            const documents = [
+              document,
+              ...[...document.querySelectorAll('iframe')].flatMap(
+                (frame) => frame.contentDocument ?? []
+              )
+            ];
+            for (const each of documents) {
+              // A frame's timelines are its own window's, so they match its own class.
+              const Timeline = each.defaultView?.DocumentTimeline ?? DocumentTimeline;
+              for (const animation of each.getAnimations()) {
+                if (!(animation.timeline instanceof Timeline)) continue;
+                if (animation.effect?.getTiming().iterations === Infinity) animation.cancel();
+                else animation.finish();
+              }
             }
+          });
+          const picture = await section.screenshot({ animations: 'allow' });
+          const file = join(BASELINES, `${id}-${theme}.png`);
+          if (!existsSync(file)) {
+            if (UPDATE) writeFileSync(file, picture);
+            else found.push(`${id}: no recorded picture`);
+            continue;
           }
-        });
-        const picture = await section.screenshot({ animations: 'allow' });
-        const file = join(BASELINES, `${id}-${theme}.png`);
-        if (!existsSync(file)) {
-          if (UPDATE) writeFileSync(file, picture);
-          else missing.push(id);
-          continue;
+          const recorded = readFileSync(file);
+          // The same pixels encode to the same bytes, so most sections need no decoding.
+          if (picture.equals(recorded)) continue;
+          const pixels = await changedPixels(page, picture, recorded);
+          if (pixels !== -1 && pixels <= NOISE_PIXELS) continue;
+          // An update rewrites only what changed past the noise, so the diff holds only real
+          // changes rather than every picture redrawn.
+          if (UPDATE) {
+            writeFileSync(file, picture);
+            continue;
+          }
+          const seen = join(tmpdir(), `sui-visual-${id}-${theme}.png`);
+          writeFileSync(seen, picture);
+          found.push(
+            `${id}: ${pixels === -1 ? 'a new size' : `${pixels} pixels`} (now in ${seen})`
+          );
         }
-        const pixels = await changedPixels(page, picture, readFileSync(file));
-        if (pixels !== -1 && pixels <= NOISE_PIXELS) continue;
-        // An update rewrites only what changed past the noise, so the diff holds only real
-        // changes rather than every picture redrawn.
-        if (UPDATE) {
-          writeFileSync(file, picture);
-          continue;
-        }
-        const seen = join(tmpdir(), `sui-visual-${id}-${theme}.png`);
-        writeFileSync(seen, picture);
-        changed.push(
-          `${id}: ${pixels === -1 ? 'a new size' : `${pixels} pixels`} (now in ${seen})`
-        );
+        return found;
       }
-      assert.deepEqual(missing, [], 'sections with no recorded picture');
-      assert.deepEqual(changed, [], 'sections that look different from their recorded picture');
-    } finally {
-      await page.close();
-    }
+    );
+    assert.deepEqual(problems, [], 'sections that look different from their recorded picture');
   });
