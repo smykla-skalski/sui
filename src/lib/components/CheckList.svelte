@@ -163,7 +163,7 @@ box. Choosing one lifts it. A caller's `error` always wins.
   .sui-check-list-legend {
     align-content: center;
     block-size: var(--sui-block-snap);
-    color: var(--sui-text-secondary);
+    color: var(--sui-text-primary);
     float: inline-start;
     font: var(--sui-weight-semibold) var(--sui-font-size-control) / var(--sui-row-copy-leading)
       var(--sui-sans);

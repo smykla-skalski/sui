@@ -452,7 +452,7 @@ itself, so the choice shows from the first frame.
   .sui-segmented-caption {
     align-content: center;
     block-size: var(--sui-block-snap);
-    color: var(--sui-text-secondary);
+    color: var(--sui-text-primary);
     font: var(--sui-weight-semibold) var(--sui-font-size-control) / var(--sui-row-copy-leading)
       var(--sui-sans);
     min-inline-size: 0;

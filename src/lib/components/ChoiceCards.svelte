@@ -177,7 +177,7 @@ save keeps it. A busy dialog or a saving pane around it disables the radios whil
   .sui-choice-cards-legend {
     align-content: center;
     block-size: var(--sui-block-snap);
-    color: var(--sui-text-secondary);
+    color: var(--sui-text-primary);
     float: inline-start;
     font: var(--sui-weight-semibold) var(--sui-font-size-control) / var(--sui-row-copy-leading)
       var(--sui-sans);

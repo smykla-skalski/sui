@@ -91,7 +91,7 @@ action are a `Button` with the word beside the glyph.
     block-size: var(--sui-tier-quiet);
     border: 0;
     border-radius: var(--sui-radius-control);
-    color: var(--sui-text-muted);
+    color: var(--sui-local-icon-rest, var(--sui-text-muted));
     cursor: pointer;
     display: inline-flex;
     flex: none;

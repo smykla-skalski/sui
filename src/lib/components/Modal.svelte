@@ -442,8 +442,11 @@ dialog, so they are never inert under it.
      the even-height button centred on it lands on whole pixels (L-95) and stays by the first
      line when the title wraps. The title's face makes `1cap` its cap height. The button reaches
      past the head's inset by its own padding, so its glyph stands on the content's edge, as
-     far from the dialog's side as the title is from the other, square to the corner. */
+     far from the dialog's side as the title is from the other, square to the corner. Its glyph
+     rests in the secondary ink, a step over a row action's muted one, so the way out reads
+     beside the bold title. */
   .sui-modal-close {
+    --sui-local-icon-rest: var(--sui-text-secondary);
     align-items: center;
     align-self: flex-start;
     block-size: 0;

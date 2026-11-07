@@ -325,6 +325,24 @@ test('L-32 spacing comes from the scale', () => {
   );
 });
 
+test('L-35 a field label and every group name wear one ink at one weight', () => {
+  const names = {
+    'src/lib/components/Field.svelte': 'sui-field-label',
+    'src/lib/components/CheckList.svelte': 'sui-check-list-legend',
+    'src/lib/components/ChoiceCards.svelte': 'sui-choice-cards-legend',
+    'src/lib/components/SegmentedControl.svelte': 'sui-segmented-caption'
+  };
+  for (const [path, name] of Object.entries(names)) {
+    const rule = new RegExp(`\\n  \\.${name} \\{([^}]*)\\}`).exec(styles[path])?.[1] ?? '';
+    assert.match(rule, /\bcolor: var\(--sui-text-primary\);/, `${name} wears another ink`);
+    assert.match(
+      rule,
+      /\bfont: var\(--sui-weight-semibold\) var\(--sui-font-size-control\)/,
+      `${name} is set in another weight or size`
+    );
+  }
+});
+
 test('L-40 a disabled control draws at the disabled opacity', () => {
   /** @type {string[]} */
   const found = [];
