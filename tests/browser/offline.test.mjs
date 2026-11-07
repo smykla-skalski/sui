@@ -325,10 +325,11 @@ export default {
       t.after(async () => {
         for (const step of cleanup.reverse()) await step().catch(() => {});
       });
-      const [first, second] = await Promise.all([
-        buildSink('first', cleanup),
-        buildSink('second', cleanup)
-      ]);
+      // Both builds settle before a failure reaches the cleanup, which would otherwise delete a
+      // directory the other build is still writing.
+      const builds = [buildSink('first', cleanup), buildSink('second', cleanup)];
+      await Promise.allSettled(builds);
+      const [first, second] = await Promise.all(builds);
       assert.notEqual(first.version, second.version);
 
       const port = /** @type {number} */ (await freePort());
