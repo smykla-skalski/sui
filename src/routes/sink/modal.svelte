@@ -344,7 +344,7 @@
           aria-describedby={describedby}
           {invalid}
           rows={12}
-          placeholder="What changed, and what a reader has to do about it…"
+          placeholder="Renames the sync setting, so update your config…"
           bind:value={notesDraft}
         />
       {/snippet}
@@ -368,7 +368,7 @@
   )}
 >
   <form id="sink-note" class="form" onsubmit={keepNote}>
-    <Field label="Note" bind:value={note} placeholder="Type something, then press Escape" />
+    <Field label="Note" bind:value={note} placeholder="Thanks for the review…" />
   </form>
   {#snippet footer()}
     <Button

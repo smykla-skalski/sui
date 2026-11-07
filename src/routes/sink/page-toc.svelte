@@ -79,7 +79,7 @@
         <section id="toc-history" class="part">
           <h4>History</h4>
           <div class="text">
-            <p class="copy">The rules were last changed 12 days ago</p>
+            <p class="copy">The rules were last changed 12&nbsp;days ago</p>
             <p class="copy" lang="la">
               Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor
               incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud

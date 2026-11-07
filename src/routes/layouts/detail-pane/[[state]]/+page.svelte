@@ -106,7 +106,7 @@
   const headline: Fact[] = [
     { label: 'Workspace', value: 'acme' },
     { label: 'Started', value: startedAt },
-    { label: 'Took', value: '48 seconds' },
+    { label: 'Took', value: '48\u00a0seconds' },
     { label: 'Requested by', value: 'Bart' }
   ];
 
@@ -128,7 +128,7 @@
     { label: 'Check ID', value: 'sc_01JAZ4182', mono: true },
     { label: 'Worker', value: 'sync-worker-3', mono: true },
     { label: 'Settings version', value: 'v41', mono: true },
-    { label: 'Waited in queue', value: '2 seconds' }
+    { label: 'Waited in queue', value: '2\u00a0seconds' }
   ];
 
   // Each state of the pane has an address of its own: loading, missing, stale, or loaded.

@@ -23,7 +23,7 @@
   let opens = $state(0);
   let synced = $state(false);
 
-  const syncHint = $derived(synced ? 'Last synced just now' : 'Last synced 4 minutes ago');
+  const syncHint = $derived(synced ? 'Last synced just now' : 'Last synced 4\u00a0minutes ago');
   const pressed = $derived(
     opens === 0 ? 'Name tip' : opens === 1 ? 'Pressed once' : `Pressed ${opens} times`
   );

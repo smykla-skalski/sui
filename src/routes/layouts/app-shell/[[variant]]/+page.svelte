@@ -96,7 +96,7 @@
       <Section title="Health">
         <p class="copy">
           <Pill tone="success">Healthy</Pill>
-          <span class="sentence">Every repository synced 4 minutes ago</span>
+          <span class="sentence">Every repository synced 4&nbsp;minutes ago</span>
         </p>
       </Section>
       <Section title="Repositories" count={repositories.length} id="repositories-title">

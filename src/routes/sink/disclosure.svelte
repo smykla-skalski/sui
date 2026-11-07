@@ -111,7 +111,7 @@
   layout="stack"
   ground="canvas"
 >
-  <Section title="Invites" description="Invites last 7 days" level={4}>
+  <Section title="Invites" description="Invites last 7&nbsp;days" level={4}>
     <Disclosure summary="Why invites expire" open>
       <p class="copy">A link that never expires could let the wrong person join the workspace</p>
     </Disclosure>

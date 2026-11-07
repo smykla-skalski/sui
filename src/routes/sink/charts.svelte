@@ -181,7 +181,7 @@
       xLabel="Week"
       yLabel="Deploys"
       status="stale"
-      staleLabel="Last updated 3 hours ago"
+      staleLabel="Last updated 3&nbsp;hours ago"
     />
   </Specimen>
   <Specimen label="Failed" code={'status="failed" error onretry'}>

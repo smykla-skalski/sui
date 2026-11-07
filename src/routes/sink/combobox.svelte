@@ -94,7 +94,7 @@
           free
           options={labels}
           bind:value={label}
-          placeholder="bug"
+          placeholder="bug…"
         />
       {/snippet}
     </Field>
@@ -107,7 +107,7 @@
           aria-describedby={describedby}
           search={findAccounts}
           bind:value={reviewer}
-          placeholder="octocat"
+          placeholder="octocat…"
         />
       {/snippet}
     </Field>
@@ -140,7 +140,7 @@
           aria-describedby={describedby}
           search={offline}
           bind:value={owner}
-          placeholder="octocat"
+          placeholder="octocat…"
         />
       {/snippet}
     </Field>

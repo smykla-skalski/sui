@@ -33,14 +33,17 @@
   title="Units"
   note="A value shows in the largest unit that holds it whole, and a unit that says it plainly keeps its seconds"
 >
-  <Specimen label="Stored as {retry} {retry === 1 ? 'second' : 'seconds'}" code="bind:value max">
+  <Specimen
+    label="Stored as {retry}&nbsp;{retry === 1 ? 'second' : 'seconds'}"
+    code="bind:value max"
+  >
     <Field label="Retry delay">
       {#snippet control({ id, describedby })}
         <DurationInput {id} aria-describedby={describedby} bind:value={retry} max={86400} />
       {/snippet}
     </Field>
   </Specimen>
-  <Specimen label="Stored as {merge} {merge === 1 ? 'second' : 'seconds'}" code="bind:value">
+  <Specimen label="Stored as {merge}&nbsp;{merge === 1 ? 'second' : 'seconds'}" code="bind:value">
     <Field label="Merge window">
       {#snippet control({ id, describedby })}
         <DurationInput {id} aria-describedby={describedby} bind:value={merge} />
@@ -80,7 +83,7 @@
   title="Saving with a problem"
   note="Type 0.5 and save: the button stays enabled and sends focus to the amount, where the reason shows"
 >
-  <Specimen label="Saved as {saved} {saved === 1 ? 'second' : 'seconds'}" code="onproblem">
+  <Specimen label="Saved as {saved}&nbsp;{saved === 1 ? 'second' : 'seconds'}" code="onproblem">
     <div class="save">
       <Field id="sink-duration-cadence" label="Check cadence">
         {#snippet control({ id, describedby })}

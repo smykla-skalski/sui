@@ -7,6 +7,7 @@
 </script>
 
 <script lang="ts">
+  import { clock } from '../kit/format.js';
   import { Button, Callout, Icon, Plate } from '#lib';
   import Example from '../kit/Example.svelte';
   import Specimen from '../kit/Specimen.svelte';
@@ -92,7 +93,7 @@
   </Plate>
   <Callout tone="warning" title="Drift blocks the next sync">
     {#snippet icon()}<Icon name="warning" size="sm" />{/snippet}
-    Resolve the two differences before the sync at 02:00
+    Resolve the two differences before the sync at {clock(2)}
   </Callout>
 </Example>
 

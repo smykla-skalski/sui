@@ -35,13 +35,13 @@
   layout="grid"
 >
   <Specimen label="Empty" code="placeholder">
-    <SearchField label="Search the projects" placeholder="Search projects" bind:value={query} />
+    <SearchField label="Search the projects" placeholder="acme-web…" bind:value={query} />
   </Specimen>
   <Specimen label="Filled" code="bind:value">
-    <SearchField label="Search the people" placeholder="Search people" bind:value={people} />
+    <SearchField label="Search the people" placeholder="Jane Doe…" bind:value={people} />
   </Specimen>
   <Specimen label="Example placeholder" code="placeholder">
-    <SearchField label="Search the teams" placeholder="Platform" bind:value={teams} />
+    <SearchField label="Search the teams" placeholder="platform…" bind:value={teams} />
   </Specimen>
   <Specimen label="Disabled" code="disabled">
     <SearchField label="Search the locked projects" value="Locked" disabled />
@@ -54,11 +54,11 @@
   layout="grid"
 >
   <Specimen label="Default" code="--sui-control-height-compact">
-    <SearchField label="Search the teams" placeholder="Search teams" value="Platform" />
+    <SearchField label="Search the teams" placeholder="Platform team…" value="Platform" />
   </Specimen>
   <Specimen label="Tall" code="--sui-local-control-height">
     <div class="tall">
-      <SearchField label="Search the members" placeholder="Search members" value="Bart" />
+      <SearchField label="Search the members" placeholder="octocat…" value="Bart" />
     </div>
   </Specimen>
 </Example>
@@ -76,7 +76,7 @@
         required
         minlength={3}
         validationMessage="Enter at least 3 characters to search"
-        placeholder="Search events"
+        placeholder="deploy…"
         bind:value={audit}
       />
       <Button type="submit">Search</Button>
@@ -113,11 +113,7 @@
   layout="grid"
 >
   <div class="filter">
-    <SearchField
-      label="Filter the repositories"
-      placeholder="Filter repositories"
-      bind:value={filter}
-    />
+    <SearchField label="Filter the repositories" placeholder="sui…" bind:value={filter} />
     <p class="result" role="status">{matches.length} of {repositories.length} repositories match</p>
   </div>
 </Example>

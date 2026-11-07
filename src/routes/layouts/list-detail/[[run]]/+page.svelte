@@ -43,8 +43,8 @@
       id: '4182',
       workflow: 'Nightly sync',
       branch: 'main',
-      when: '12 min ago',
-      took: '48 seconds',
+      when: '12\u00a0min ago',
+      took: '48\u00a0seconds',
       ...failed,
       outcome:
         'Three repositories differ from the saved settings, so the sync stopped before writing'
@@ -53,8 +53,8 @@
       id: '4181',
       workflow: 'Deploy web',
       branch: 'main',
-      when: '40 min ago',
-      took: '2 minutes',
+      when: '40\u00a0min ago',
+      took: '2\u00a0minutes',
       ...passed,
       outcome: 'The web app went out to every region and answered its health checks'
     },
@@ -62,8 +62,8 @@
       id: '4180',
       workflow: 'Lint and test',
       branch: 'fix/labels',
-      when: '1 hour ago',
-      took: '3 minutes',
+      when: '1\u00a0hour ago',
+      took: '3\u00a0minutes',
       ...passed,
       outcome: 'Every check passed on the branch, so it is ready for review'
     },
@@ -71,8 +71,8 @@
       id: '4179',
       workflow: 'Release notes',
       branch: 'main',
-      when: '2 hours ago',
-      took: '21 seconds',
+      when: '2\u00a0hours ago',
+      took: '21\u00a0seconds',
       ...passed,
       outcome: 'The notes for version 2.4 were drafted from 18 merged changes'
     },
@@ -80,8 +80,8 @@
       id: '4178',
       workflow: 'Lint and test',
       branch: 'feat/list-detail',
-      when: '3 hours ago',
-      took: '4 minutes',
+      when: '3\u00a0hours ago',
+      took: '4\u00a0minutes',
       ...failed,
       outcome: 'Two browser tests failed on the narrow layout, so the branch cannot merge yet'
     },
@@ -90,7 +90,7 @@
       workflow: index % 2 ? 'Deploy web' : 'Nightly sync',
       branch: 'main',
       when: `${index + 4} hours ago`,
-      took: '1 minute',
+      took: '1\u00a0minute',
       ...passed,
       outcome:
         index % 2
@@ -100,9 +100,9 @@
   ];
 
   const steps = [
-    { name: 'Read the saved settings', took: '2 s' },
-    { name: 'Compare 16 repositories', took: '41 s' },
-    { name: 'Report the differences', took: '5 s' }
+    { name: 'Read the saved settings', took: '2\u00a0s' },
+    { name: 'Compare 16 repositories', took: '41\u00a0s' },
+    { name: 'Report the differences', took: '5\u00a0s' }
   ];
 
   const runsHref = resolve('/layouts/list-detail/[[run]]', {}) + '/';

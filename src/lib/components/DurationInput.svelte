@@ -32,7 +32,7 @@
     name,
     durationName = word(
       'DurationInput.durationName',
-      (amount: string, unit: string) => `${amount}${mark('space')}${unit}`
+      (amount: string, unit: string) => `${amount}${mark('unit')}${unit}`
     ),
     unitLabel = word('DurationInput.unitLabel', (unit: DurationUnit, amount: number) =>
       amount === 1 ? unit.slice(0, -1) : unit

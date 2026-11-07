@@ -65,7 +65,7 @@
 
 <Example
   title="Live updates"
-  note="A live dot pulses again each time its data arrives, each run under 5 seconds, so it never needs a pause control"
+  note="A live dot pulses again each time its data arrives, each run under 5&nbsp;seconds, so it never needs a pause control"
 >
   <Specimen label="Pulses on each update" code="live beat">
     <span class="row">

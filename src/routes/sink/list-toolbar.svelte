@@ -96,25 +96,20 @@
   layout="stack"
 >
   <Specimen label="Search and action" code="action">
-    <ListToolbar searchLabel="Search members" placeholder="Search members…">
+    <ListToolbar searchLabel="Search members" placeholder="octocat…">
       {#snippet action()}<Button>Invite member</Button>{/snippet}
     </ListToolbar>
   </Specimen>
   <Specimen label="Filter and tools" code="filter tools">
     <ListToolbar
       searchLabel="Search repositories"
-      placeholder="Search repositories…"
+      placeholder="sui…"
       filter={parts.filter}
       tools={parts.tools}
     />
   </Specimen>
   <Specimen label="Searching" code="pending">
-    <ListToolbar
-      searchLabel="Search repositories"
-      placeholder="Search repositories…"
-      query="sm"
-      pending
-    />
+    <ListToolbar searchLabel="Search repositories" placeholder="sui…" query="sm" pending />
   </Specimen>
 </Example>
 
@@ -142,7 +137,7 @@
     <ListToolbar
       bind:query
       searchLabel="Search repositories"
-      placeholder="Search repositories…"
+      placeholder="sui…"
       filter={list.filter}
       tools={list.tools}
       count={rows.length}
@@ -155,7 +150,7 @@
           <ObjectRow>
             {#snippet main()}
               <span class="name">{repository.name}</span>
-              <span class="sum">Updated {repository.updated} days ago</span>
+              <span class="sum">Updated {repository.updated}&nbsp;days ago</span>
             {/snippet}
             {#snippet side()}
               {#if repository.state === 'archived'}<Pill>Archived</Pill>{/if}

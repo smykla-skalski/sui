@@ -7,6 +7,7 @@
 </script>
 
 <script lang="ts">
+  import { clock } from '../kit/format.js';
   import { Section, Switch } from '#lib';
   import Example from '../kit/Example.svelte';
   import Specimen from '../kit/Specimen.svelte';
@@ -17,7 +18,7 @@
   const switches = {
     Off: {
       label: 'Archive old runs',
-      reason: 'The workspace keeps every run for 90 days',
+      reason: 'The workspace keeps every run for 90\u00a0days',
       id: 'sink-switch-archive-reason'
     },
     On: {
@@ -108,7 +109,7 @@
       {#snippet actions()}
         <Switch aria-label="Run scheduled syncs" bare bind:checked={scheduled} />
       {/snippet}
-      <p class="copy">Every repository syncs at 02:00 in its own time zone</p>
+      <p class="copy">Every repository syncs at {clock(2)} in its own time zone</p>
     </Section>
   </Specimen>
 </Example>

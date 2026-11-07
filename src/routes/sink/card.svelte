@@ -7,6 +7,7 @@
 </script>
 
 <script lang="ts">
+  import { clock, formatCount } from '../kit/format.js';
   import {
     ActionMenu,
     Button,
@@ -24,8 +25,8 @@
   let nightly = $state(true);
   let span = $state('7d');
   const spans = [
-    { value: '7d', label: '7 days' },
-    { value: '30d', label: '30 days' }
+    { value: '7d', label: '7\u00a0days' },
+    { value: '30d', label: '30\u00a0days' }
   ];
 
   const rules: ActionMenuItem[] = [
@@ -85,13 +86,13 @@
         {#snippet actions()}
           <Switch aria-label="Run the nightly sync" bare bind:checked={nightly} />
         {/snippet}
-        <p class="copy">Runs at 02:00 every day</p>
+        <p class="copy">Runs at {clock(2)} every day</p>
       </Card>
       <Card href="#card" title="Usage" description="Runs across every repository" level={4}>
         {#snippet actions()}
           <SegmentedControl label="Time range" hideLabel options={spans} bind:value={span} />
         {/snippet}
-        <p class="copy">{span === '7d' ? '214 runs' : '1,032 runs'}</p>
+        <p class="copy">{formatCount(span === '7d' ? 214 : 1032)} runs</p>
       </Card>
       <Card
         href="#card"
@@ -100,7 +101,7 @@
         level={4}
       >
         {#snippet actions()}<Pill tone="warning">Paused</Pill>{/snippet}
-        <p class="copy">Last copied 3 days ago</p>
+        <p class="copy">Last copied 3&nbsp;days ago</p>
       </Card>
     </div>
   </Specimen>
@@ -132,7 +133,7 @@
 >
   <Specimen label="An expired invite" code="title description footer">
     <div class="bare">
-      <Card title="This invite has expired" description="Invites last 7 days" level={4}>
+      <Card title="This invite has expired" description="Invites last 7&nbsp;days" level={4}>
         <p class="copy">Ask an owner of acme to send you a new one</p>
         {#snippet footer()}<Button tone="signal">Ask for a new invite</Button>{/snippet}
       </Card>
@@ -148,7 +149,7 @@
 >
   <Specimen label="Rest">
     <div class="bare">
-      <Card title="Workspace" description="Saved 2 minutes ago" level={4}>
+      <Card title="Workspace" description="Saved 2&nbsp;minutes ago" level={4}>
         <Field label="Workspace name" value="acme" />
       </Card>
     </div>
@@ -191,7 +192,7 @@
   <Specimen label="In 20rem" code="href">
     <div class="narrow">
       <Card href="#card" title="Storage" description="Across every repository" level={4}>
-        <p class="copy">84.7 MB of 1 GB</p>
+        <p class="copy">84.7&nbsp;MB of 1&nbsp;GB</p>
       </Card>
     </div>
   </Specimen>

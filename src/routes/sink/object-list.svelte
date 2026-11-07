@@ -7,6 +7,7 @@
 </script>
 
 <script lang="ts">
+  import { clock } from '../kit/format.js';
   import {
     Button,
     FactLine,
@@ -64,7 +65,7 @@
         <ObjectRow>
           {#snippet main()}
             <span class="name">Audit log export</span>
-            <span class="sum">Written every night at 02:00</span>
+            <span class="sum">Written every night at {clock(2)}</span>
           {/snippet}
         </ObjectRow>
       </ObjectList>

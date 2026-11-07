@@ -79,7 +79,7 @@
       confirmLabel="Yank release"
       tone="stop"
     >
-      <Field label="Reason" placeholder="Ships a broken migration" />
+      <Field label="Reason" placeholder="Ships a broken migration…" />
     </ConfirmDialog>
   </Specimen>
 </Example>
@@ -171,7 +171,7 @@
 >
   <!-- A form of its own, so the reason is one form's field, and Enter in it never revokes. -->
   <form class="form" onsubmit={(event) => event.preventDefault()}>
-    <Field label="Reason" bind:value={reason} placeholder="Leaked in a build log" />
+    <Field label="Reason" bind:value={reason} placeholder="Leaked in a build log…" />
   </form>
 </ConfirmDialog>
 

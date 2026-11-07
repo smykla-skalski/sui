@@ -32,9 +32,9 @@
     { key: 'review', label: 'Median review', numeric: true }
   ];
   const repositories: Repository[] = [
-    { name: 'smyklot', open: 12, merged: 1_284, review: '3 h 20 min' },
-    { name: 'sui', open: 4, merged: 96, review: '45 min' },
-    { name: 'ledger', open: 31, merged: 7_402, review: '1 d 2 h' }
+    { name: 'smyklot', open: 12, merged: 1_284, review: '3\u00a0h 20\u00a0min' },
+    { name: 'sui', open: 4, merged: 96, review: '45\u00a0min' },
+    { name: 'ledger', open: 31, merged: 7_402, review: '1 d 2\u00a0h' }
   ];
 
   const releaseColumns: DataTableColumn<Release>[] = [
@@ -44,9 +44,9 @@
     { key: 'published', label: 'Published', nowrap: true }
   ];
   const releases: Release[] = [
-    { version: '0.3.0', status: 'Current', size: '84.7 kB', published: '17 October 2026' },
-    { version: '0.2.1', status: 'Superseded', size: '79.2 kB', published: '2 September 2026' },
-    { version: '0.2.0', status: 'Withdrawn', size: '79.0 kB', published: '28 August 2026' }
+    { version: '0.3.0', status: 'Current', size: '84.7\u00a0kB', published: '17 October 2026' },
+    { version: '0.2.1', status: 'Superseded', size: '79.2\u00a0kB', published: '2 September 2026' },
+    { version: '0.2.0', status: 'Withdrawn', size: '79.0\u00a0kB', published: '28 August 2026' }
   ];
 
   const checkColumns: DataTableColumn<Check>[] = [
@@ -84,62 +84,62 @@
     {
       branch: 'main',
       runner: 'linux-x64',
-      queued: '4 s',
-      duration: '6 min 12 s',
+      queued: '4\u00a0s',
+      duration: '6\u00a0min 12\u00a0s',
       tests: 1_284,
       failed: 0,
       cache: '92%',
-      size: '84.7 MB'
+      size: '84.7\u00a0MB'
     },
     {
       branch: 'release/0.3',
       runner: 'linux-x64',
-      queued: '11 s',
-      duration: '7 min 40 s',
+      queued: '11\u00a0s',
+      duration: '7\u00a0min 40\u00a0s',
       tests: 1_284,
       failed: 2,
       cache: '88%',
-      size: '84.9 MB'
+      size: '84.9\u00a0MB'
     },
     {
       branch: 'feat/charts',
       runner: 'macos-arm64',
-      queued: '1 min 3 s',
-      duration: '9 min 5 s',
+      queued: '1\u00a0min 3\u00a0s',
+      duration: '9\u00a0min 5\u00a0s',
       tests: 1_302,
       failed: 0,
       cache: '71%',
-      size: '85.3 MB'
+      size: '85.3\u00a0MB'
     },
     {
       branch: 'fix/focus',
       runner: 'linux-arm64',
-      queued: '9 s',
-      duration: '5 min 58 s',
+      queued: '9\u00a0s',
+      duration: '5\u00a0min 58\u00a0s',
       tests: 1_286,
       failed: 1,
       cache: '94%',
-      size: '84.7 MB'
+      size: '84.7\u00a0MB'
     },
     {
       branch: 'chore/deps',
       runner: 'linux-x64',
-      queued: '6 s',
-      duration: '8 min 21 s',
+      queued: '6\u00a0s',
+      duration: '8\u00a0min 21\u00a0s',
       tests: 1_284,
       failed: 0,
       cache: '43%',
-      size: '86.1 MB'
+      size: '86.1\u00a0MB'
     },
     {
       branch: 'feat/pager',
       runner: 'windows-x64',
-      queued: '2 min 40 s',
-      duration: '12 min 9 s',
+      queued: '2\u00a0min 40\u00a0s',
+      duration: '12\u00a0min 9\u00a0s',
       tests: 1_290,
       failed: 5,
       cache: '65%',
-      size: '85.0 MB'
+      size: '85.0\u00a0MB'
     }
   ];
 
@@ -157,7 +157,7 @@
 >
   <Specimen label="Row headers, sortable" code="caption rowHeader sortable bind:sort">
     <DataTable
-      caption="Pull requests over the last 90 days"
+      caption="Pull requests over the last 90&nbsp;days"
       columns={repositoryColumns}
       rows={repositories}
       rowHeader

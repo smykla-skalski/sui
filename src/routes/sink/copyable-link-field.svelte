@@ -22,7 +22,7 @@
   <Specimen label="With a label" code="label hint">
     <CopyableLinkField
       label="Invitation link"
-      hint="It works once and expires in 7 days"
+      hint="It works once and expires in 7&nbsp;days"
       value={invitation}
     />
     <Button

@@ -23,12 +23,7 @@
   <Specimen label="Rest" code="placeholder">
     <Field label="Project name">
       {#snippet control({ id, describedby })}
-        <TextInput
-          {id}
-          aria-describedby={describedby}
-          placeholder="your-project"
-          bind:value={name}
-        />
+        <TextInput {id} aria-describedby={describedby} placeholder="acme-web…" bind:value={name} />
       {/snippet}
     </Field>
   </Specimen>
@@ -66,7 +61,7 @@
   <Specimen label="Default" code="--sui-control-height-compact">
     <Field label="Filter the projects">
       {#snippet control({ id, describedby })}
-        <TextInput {id} aria-describedby={describedby} placeholder="api" />
+        <TextInput {id} aria-describedby={describedby} placeholder="api…" />
       {/snippet}
     </Field>
   </Specimen>
@@ -74,7 +69,7 @@
     <div class="tall">
       <Field label="Search the projects">
         {#snippet control({ id, describedby })}
-          <TextInput {id} aria-describedby={describedby} type="search" placeholder="platform" />
+          <TextInput {id} aria-describedby={describedby} type="search" placeholder="platform…" />
         {/snippet}
       </Field>
     </div>

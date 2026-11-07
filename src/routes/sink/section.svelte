@@ -97,7 +97,7 @@
     </Section>
   </Specimen>
   <Specimen label="Quiet button" code="actions">
-    <Section title="Webhooks" description="Deliveries in the last 24 hours" level={4}>
+    <Section title="Webhooks" description="Deliveries in the last 24&nbsp;hours" level={4}>
       {#snippet actions()}<Button tone="ghost">Refresh</Button>{/snippet}
       <p class="copy">All 18 deliveries succeeded</p>
     </Section>
@@ -118,7 +118,7 @@
         </p>
       </Section>
       <Section title="Timeline" level={4}>
-        <p class="copy">Requested by Bart at 12:01 and finished 48 seconds later</p>
+        <p class="copy">Requested by Bart at 12:01 and finished 48&nbsp;seconds later</p>
       </Section>
       <Section title="Related" level={4}>
         <p class="copy">

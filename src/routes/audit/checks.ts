@@ -3122,6 +3122,21 @@ function nestedFrames(root: Document): Finding[] {
   return found;
 }
 
+/* A number and its unit are one atom (L-27): "84.7\u00a0MB" never breaks between them. */
+const UNIT =
+  /\d (?:B|kB|KB|MB|GB|TB|KiB|MiB|GiB|TiB|ms|s|min|h|px|rem|em|pt|fps|Hz|kHz|MHz|GHz|seconds?|minutes?|hours?|days?|weeks?)(?![\p{L}\d])/u;
+function unitSpaces(root: Document): Finding[] {
+  return textElements(root)
+    .filter(({ text }) => UNIT.test(text))
+    .map(({ element, text }) =>
+      finding(
+        'L-27',
+        element,
+        `"${UNIT.exec(text)?.[0]}" can break between the number and its unit`
+      )
+    );
+}
+
 /* A failure is never a dead end (L-59): it offers a retry, another control or a step in words. */
 function failureExits(root: Document): Finding[] {
   return audited(root, '.sui-error-state')
@@ -3334,6 +3349,7 @@ register(
   rowGrounds,
   nestedFrames,
   failureExits,
+  unitSpaces,
   earnedCards,
   framedSettings,
   disclosedCards,

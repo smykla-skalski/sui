@@ -25,7 +25,7 @@
       },
       warning: {
         icon: 'warning',
-        title: 'Token expires in 2 days',
+        title: 'Token expires in 2\u00a0days',
         text: 'The sync stops when it expires',
         action: 'Renew token'
       }
@@ -108,11 +108,11 @@
   <Specimen label={expiring ? 'Announced' : 'Not shown'} code="live">
     <div class="appear">
       <Button onclick={() => (expiring = !expiring)}
-        >{expiring ? 'Keep the token' : 'Shorten the token to 2 days'}</Button
+        >{expiring ? 'Keep the token' : 'Shorten the token to 2\u00a0days'}</Button
       >
       {#if expiring}
         <div class="full">
-          <Callout live tone="warning" title="Token expires in 2 days">
+          <Callout live tone="warning" title="Token expires in 2&nbsp;days">
             {#snippet icon()}<Icon name="warning" size="sm" />{/snippet}
             The sync stops when it expires
           </Callout>
@@ -137,7 +137,7 @@
     </Callout>
   </Specimen>
   <Specimen label="Warning" code={'tone="warning" actions'}>
-    <Callout tone="warning" title="Token expires in 2 days">
+    <Callout tone="warning" title="Token expires in 2&nbsp;days">
       {#snippet icon()}<Icon name="warning" size="sm" />{/snippet}
       The sync stops when it expires
       {#snippet actions()}

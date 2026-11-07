@@ -7,6 +7,7 @@
 </script>
 
 <script lang="ts">
+  import { clock } from '../kit/format.js';
   import {
     Button,
     EmptyState,
@@ -184,7 +185,7 @@
       <ErrorState
         overContent
         title="The list could not be refreshed"
-        description="Showing what loaded at 14:02"
+        description="Showing what loaded at {clock(14, 2)}"
         onretry={refresh}
         busy={refreshing}
       />

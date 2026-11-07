@@ -1,4 +1,5 @@
 <script module lang="ts">
+  import { keepUnit } from '../internal/locale.js';
   const MINUTE = 60_000;
   const HOUR = 60 * MINUTE;
   const DAY = 24 * HOUR;
@@ -30,9 +31,9 @@
         `now ${locale}`,
         () => new Intl.RelativeTimeFormat(locale, { numeric: 'auto' })
       ).format(0, 'second');
-    if (span < HOUR) return counted.format(sign * Math.floor(span / MINUTE), 'minute');
-    if (span < DAY) return counted.format(sign * Math.floor(span / HOUR), 'hour');
-    if (span < 7 * DAY) return counted.format(sign * Math.floor(span / DAY), 'day');
+    if (span < HOUR) return keepUnit(counted.format(sign * Math.floor(span / MINUTE), 'minute'));
+    if (span < DAY) return keepUnit(counted.format(sign * Math.floor(span / HOUR), 'hour'));
+    if (span < 7 * DAY) return keepUnit(counted.format(sign * Math.floor(span / DAY), 'day'));
     return once(
       `date ${locale}`,
       () => new Intl.DateTimeFormat(locale, { day: 'numeric', month: 'short', year: 'numeric' })

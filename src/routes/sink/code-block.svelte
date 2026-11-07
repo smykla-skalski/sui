@@ -95,7 +95,7 @@ grep -rn 'export default' dist 2>/dev/null || echo "No exports"`;
   </Specimen>
 </Example>
 
-<Example title="Copy control" note="It names what it copies and says Copied for 1.6 seconds">
+<Example title="Copy control" note="It names what it copies and says Copied for 1.6&nbsp;seconds">
   <Specimen label="Default name" code="text">
     <CopyButton text="npm install @smykla-skalski/sui" />
   </Specimen>

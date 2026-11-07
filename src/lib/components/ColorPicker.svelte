@@ -209,7 +209,7 @@
   let grid = $state<HTMLElement | null>(null);
   let area = $state<HTMLElement | null>(null);
   let box = $state<HTMLElement | null>(null);
-  let drag: { target: HTMLElement; kind: 'area' | 'hue'; release: () => void } | null = null;
+  let drag: { target: HTMLElement; release: () => void } | null = null;
   // The color the popover opened on, which Escape goes back to.
   let start = { hex: '', hsv: { h: 0, s: 0, v: 0 } };
 
@@ -294,14 +294,13 @@
     if (!drag) return;
     const bounds = drag.target.getBoundingClientRect();
     const x = clamp((event.clientX - bounds.left) / bounds.width);
-    if (drag.kind === 'hue') apply({ ...hsv, h: x * 360 });
-    else apply({ ...hsv, s: x, v: 1 - clamp((event.clientY - bounds.top) / bounds.height) });
+    apply({ ...hsv, s: x, v: 1 - clamp((event.clientY - bounds.top) / bounds.height) });
   }
 
-  function dragStart(event: PointerEvent, kind: 'area' | 'hue') {
+  function dragStart(event: PointerEvent) {
     const target = event.currentTarget as HTMLElement;
     drag?.release();
-    drag = { target, kind, release: holdForDrag(target) };
+    drag = { target, release: holdForDrag(target) };
     target.setPointerCapture(event.pointerId);
     target.focus({ preventScroll: true });
     dragMove(event);
@@ -336,11 +335,8 @@
     else apply({ ...hsv, v: clamp(hsv.v + direction * amount) });
   }
 
+  /* The range steps a degree; an arrow takes two and Shift twenty, and the hue wraps round. */
   function hueKeys(event: KeyboardEvent) {
-    if (event.key === 'Home' || event.key === 'End') {
-      event.preventDefault();
-      return apply({ ...hsv, h: event.key === 'End' ? 359 : 0 });
-    }
     const direction = step(event);
     if (direction === 0) return;
     event.preventDefault();
@@ -406,7 +402,7 @@ of text, so they read left to right in every direction, as a chart's plot does.
 the field's `id` and `describedby` onto it and leave `label` off. Either way the trigger's
 name is the label and the hex, such as "Label color #0f766e". `name` posts the hex.
 
-- Semantics: a `Button` with `aria-haspopup="dialog"` and `aria-expanded`, a `role="dialog"` popover named by `dialogLabel`, a radio group of swatches, two `role="slider"` controls, a hex text field, and a hidden input that posts the hex.
+- Semantics: a `Button` with `aria-haspopup="dialog"` and `aria-expanded`, a `role="dialog"` popover named by `dialogLabel`, a radio group of swatches, a `role="slider"` saturation and brightness area, a native range for the hue, a hex text field, and a hidden input that posts the hex.
 - Content: the caller's swatches, named or by hex, the area, the rail and the hex field, each with its drawn words.
 - States: closed, open, a checked swatch (a check mark), hover and pressed swatches, dragging, an invalid hex (an error with a warning mark) and a disabled trigger.
 - Keyboard: Enter or Space opens it, Tab walks the swatches, area, rail and hex, the arrows move each, Enter commits, Escape goes back and closes, and Tab past the hex closes it.
@@ -517,7 +513,7 @@ name is the label and the hex, such as "Label color #0f766e". `name` posts the h
         aria-valuenow={saturation}
         aria-valuetext={areaValue(saturation, brightness)}
         style:background-image={plane(hueColor)}
-        onpointerdown={(event) => dragStart(event, 'area')}
+        onpointerdown={(event) => dragStart(event)}
         onpointermove={dragMove}
         onpointerup={dragEnd}
         onpointercancel={dragEnd}
@@ -530,24 +526,20 @@ name is the label and the hex, such as "Label color #0f766e". `name` posts the h
 
     <div class="part">
       <span id="{uid}-hue-label" class="part-label">{hueLabel}</span>
-      <div
-        class="hue"
-        dir="ltr"
-        role="slider"
-        tabindex="0"
-        aria-labelledby="{uid}-hue-label"
-        aria-valuemin={0}
-        aria-valuemax={360}
-        aria-valuenow={Math.round(hsv.h)}
-        aria-valuetext={hueValue(Math.round(hsv.h))}
-        style:background-image={HUE_RAIL}
-        onpointerdown={(event) => dragStart(event, 'hue')}
-        onpointermove={dragMove}
-        onpointerup={dragEnd}
-        onpointercancel={dragEnd}
-        onlostpointercapture={dragEnd}
-        onkeydown={hueKeys}
-      >
+      <!-- A native range under the drawn rail: the browser gives it the slider's role, keys and
+           drag, and its thumb is the drawn one's size, so the pointer lands on the same hue. -->
+      <div class="hue" dir="ltr" style:background-image={HUE_RAIL}>
+        <input
+          class="hue-range"
+          type="range"
+          min="0"
+          max="359"
+          value={Math.round(hsv.h)}
+          aria-labelledby="{uid}-hue-label"
+          aria-valuetext={hueValue(Math.round(hsv.h))}
+          oninput={(event) => apply({ ...hsv, h: event.currentTarget.valueAsNumber })}
+          onkeydown={hueKeys}
+        />
         <span class="thumb"></span>
       </div>
     </div>
@@ -695,7 +687,7 @@ name is the label and the hex, such as "Label color #0f766e". `name` posts the h
 
   .swatch:focus-visible,
   .area:focus-visible,
-  .hue:focus-visible {
+  .hue:has(:focus-visible) {
     outline: var(--sui-focus-ring-width) solid var(--sui-focus);
     outline-offset: var(--sui-focus-ring-offset);
   }
@@ -753,6 +745,31 @@ name is the label and the hex, such as "Label color #0f766e". `name` posts the h
     touch-action: none;
     -webkit-user-select: none;
     user-select: none;
+  }
+
+  /* Clear, and half a thumb past each end of the rail, as far as the thumb's centre travels. */
+  .hue-range {
+    appearance: none;
+    background: none;
+    block-size: 100%;
+    cursor: pointer;
+    inset-block: 0;
+    inset-inline: calc(-1 * var(--sui-color-picker-hue-thumb) / 2);
+    margin: 0;
+    opacity: 0;
+    position: absolute;
+  }
+
+  .hue-range::-webkit-slider-thumb {
+    appearance: none;
+    block-size: var(--sui-color-picker-hue-thumb);
+    inline-size: var(--sui-color-picker-hue-thumb);
+  }
+
+  .hue-range::-moz-range-thumb {
+    block-size: var(--sui-color-picker-hue-thumb);
+    border: 0;
+    inline-size: var(--sui-color-picker-hue-thumb);
   }
 
   .thumb {
@@ -818,11 +835,9 @@ name is the label and the hex, such as "Label color #0f766e". `name` posts the h
       inline-size: var(--sui-touch-target);
     }
 
-    .hue::before {
-      content: '';
+    .hue-range {
+      block-size: auto;
       inset-block: calc((100% - var(--sui-touch-target)) / 2);
-      inset-inline: calc(-1 * var(--sui-color-picker-hue-thumb) / 2);
-      position: absolute;
     }
   }
 

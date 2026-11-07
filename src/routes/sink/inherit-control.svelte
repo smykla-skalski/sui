@@ -44,11 +44,11 @@
   title="States"
   note="An inherited value is muted with its source, an override shows the control with a way back, and a locked one says why"
 >
-  <Specimen label="Inherited" code={'inherited="1 hour" source="the workspace"'}>
+  <Specimen label="Inherited" code={'inherited="1\u00a0hour" source="the workspace"'}>
     <InheritControl
       bind:overridden={lifetimeOverridden}
       label="Session lifetime"
-      inherited="1 hour"
+      inherited="1&nbsp;hour"
       source="the workspace"
     >
       {#snippet control()}
@@ -70,7 +70,7 @@
   </Specimen>
   <Specimen label="Disabled" code="disabled">
     <div class="locked">
-      <InheritControl label="Retention" inherited="30 days" source="the organization" disabled>
+      <InheritControl label="Retention" inherited="30&nbsp;days" source="the organization" disabled>
         {#snippet control()}
           <DurationInput label="Retention" value={2_592_000} />
         {/snippet}
@@ -130,7 +130,7 @@
             bind:overridden={lifetimeOverridden}
             {id}
             label="Session lifetime"
-            inherited="1 hour"
+            inherited="1&nbsp;hour"
             source="the workspace"
           >
             {#snippet control()}
@@ -176,7 +176,7 @@
     <div class="narrow">
       <InheritControl
         label="Retention"
-        inherited="30 days"
+        inherited="30&nbsp;days"
         source="the retention policy of the whole organization"
       >
         {#snippet control()}

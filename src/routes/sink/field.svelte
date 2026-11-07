@@ -36,7 +36,7 @@
   --specimen-max="22rem"
 >
   <Specimen label="Rest" code="placeholder">
-    <Field label="Project name" placeholder="your-project" bind:value={project} />
+    <Field label="Project name" placeholder="acme-web…" bind:value={project} />
   </Specimen>
   <Specimen label="Filled, with a hint" code="hint">
     <Field
@@ -69,7 +69,7 @@
   layout="grid"
 >
   <Specimen label="Required" code="required">
-    <Field label="Repository name" required placeholder="your-project" bind:value={repository} />
+    <Field label="Repository name" required placeholder="acme-web…" bind:value={repository} />
   </Specimen>
   <Specimen label="Optional">
     <Field label="Description" hint="Shown under the name in every list" bind:value={summary} />
@@ -88,7 +88,7 @@
           {id}
           aria-describedby={describedby}
           {invalid}
-          placeholder="Explain the change…"
+          placeholder="Moves the retry into the queue…"
           bind:value={reason}
         />
       {/snippet}
@@ -134,7 +134,7 @@
         required
         pattern="[a-z0-9\-]+"
         validationMessage="Enter a name of lowercase letters, digits and dashes"
-        placeholder="your-project"
+        placeholder="acme-web…"
       />
       <Field
         label="Contact email"
@@ -143,7 +143,7 @@
         autocomplete="email"
         required
         validationMessage="Enter an email address such as you@example.com"
-        placeholder="you@example.com"
+        placeholder="jane@example.com…"
       />
       <Button type="submit">Create the repository</Button>
     </form>
@@ -158,13 +158,13 @@
 >
   <Section title="New repository" level={4}>
     <div class="form">
-      <Field label="Repository name" required placeholder="your-project" />
+      <Field label="Repository name" required placeholder="acme-web…" />
       <Field
         label="Contact email"
         type="email"
         autocomplete="email"
         required
-        placeholder="you@example.com"
+        placeholder="jane@example.com…"
       />
     </div>
   </Section>

@@ -51,7 +51,7 @@
   <Specimen label="Title only" code="title">
     <div class="page">
       <PageHeader level={4} title="Activity" />
-      <p class="view">Nothing happened in the last 7 days</p>
+      <p class="view">Nothing happened in the last 7&nbsp;days</p>
     </div>
   </Specimen>
 </Example>
@@ -80,7 +80,7 @@
             facts={[
               { label: 'Workspace', value: 'acme' },
               { label: 'Started', value: startedAt },
-              { label: 'Took', value: '48 seconds' },
+              { label: 'Took', value: '48\u00a0seconds' },
               { label: 'Requested by', value: 'Alex Kim' }
             ]}
           />
@@ -164,7 +164,7 @@
       <PageHeader level={4} title="Run 1842">
         {#snippet kicker()}<BackLink href="#page-header" label="All runs" />{/snippet}
       </PageHeader>
-      <p class="view">Finished in 4 minutes with no changes</p>
+      <p class="view">Finished in 4&nbsp;minutes with no changes</p>
     </div>
   </Specimen>
 </Example>
