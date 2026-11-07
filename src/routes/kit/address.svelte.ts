@@ -1,4 +1,4 @@
-import { replaceState } from '$app/navigation';
+import { afterNavigate, replaceState } from '$app/navigation';
 import { page } from '$app/state';
 import { onMount } from 'svelte';
 
@@ -14,6 +14,12 @@ export function addressed(key: string, fallback: string) {
   onMount(() => {
     running = true;
     return () => clearTimeout(pending);
+  });
+  // A link to this page with another query is a new address, which wins over the last choice.
+  // The choice's own write is shallow and starts no navigation.
+  afterNavigate(() => {
+    chosen = null;
+    clearTimeout(pending);
   });
   return {
     get value(): string {

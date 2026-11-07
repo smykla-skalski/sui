@@ -460,6 +460,20 @@ suite('lists', together, () => {
           said.includes('1 result'),
           `after the pick the status said ${JSON.stringify(said)}`
         );
+
+        // A link to the same page with another query shows that query, not the last one typed.
+        await page.evaluate(() => {
+          const link = Object.assign(document.createElement('a'), { href: '?q=kong' });
+          document.querySelector('body > div')?.append(link);
+          link.click();
+          link.remove();
+        });
+        await page.waitForURL((address) => address.searchParams.get('q') === 'kong', brief);
+        await page.waitForFunction(
+          (element) => /** @type {HTMLInputElement} */ (element).value === 'kong',
+          await counted.getByRole('searchbox').elementHandle(),
+          brief
+        );
       }
     );
 
