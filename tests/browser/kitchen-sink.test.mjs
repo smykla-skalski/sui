@@ -977,45 +977,7 @@ suite('the kitchen sink', together, () => {
    * @param {import('playwright-core').Page} page
    * @param {number} worker
    */
-  const secondPressCloses = async (page, worker) => {
-    // The phone drawer is modal and covers its own menu button, so it closes from inside.
-    const triggers = page.locator(
-      'main > section [popovertarget]:not(:disabled):not(.sui-shell-menu)'
-    );
-    const count = await triggers.count();
-    assert.ok(count > 10, `only ${count} layer triggers were found`);
-    const reopened = [];
-    for (let index = worker; index < count; index += WORKERS) {
-      const trigger = triggers.nth(index);
-      if (!(await trigger.isVisible())) continue;
-      await trigger.scrollIntoViewIfNeeded();
-      await trigger.click();
-      if (
-        !(await settles(
-          page.waitForFunction(() => document.querySelector('[popover]:popover-open'), null, brief)
-        ))
-      )
-        continue;
-      await trigger.click();
-      if (
-        !(await settles(
-          page.waitForFunction(() => !document.querySelector('[popover]:popover-open'), null, brief)
-        ))
-      ) {
-        reopened.push(
-          `layer trigger ${index} “${((await trigger.textContent()) ?? '').trim().slice(0, 30)}”: a second press left its layer open`
-        );
-        await page.keyboard.press('Escape');
-      }
-    }
-    return reopened;
-  };
-
-  /**
-   * @param {import('playwright-core').Page} page
-   * @param {number} worker
-   */
-  const growsFromTrigger = async (page, worker) => {
+  const layersOnTrigger = async (page, worker) => {
     // A smooth scroll would still move the trigger while its layer grows. Each layer's motion is
     // seeked to its ends, so its length does not matter, and a long one is still running when a
     // busy page gets round to looking at it. The trigger keeps its own press timing.
@@ -1023,9 +985,10 @@ suite('the kitchen sink', together, () => {
       content:
         'html { scroll-behavior: auto !important; } .sui-popover { --sui-duration-press: 10000ms !important; --sui-duration-normal: 10000ms !important; --sui-duration-open: 10000ms !important; }'
     });
-    // The phone drawer is an edge layer, not one placed beside its trigger.
+    // The phone drawer is an edge layer, not one placed beside its trigger, and modal over its
+    // own menu button, so it closes from inside.
     const triggers = page.locator(
-      'main > section [popovertarget]:not(:disabled):not([aria-controls*="drawer"])'
+      'main > section [popovertarget]:not(:disabled):not(.sui-shell-menu, [aria-controls*="drawer"])'
     );
     const count = await triggers.count();
     assert.ok(count > 5, `only ${count} popover triggers were found`);
@@ -1090,7 +1053,15 @@ suite('the kitchen sink', together, () => {
       await moving(trigger, true);
       const grew = await at(trigger, 'start');
       if (grew) problems.push(`${name}: opening does not start on the trigger, ${grew}`);
-      await page.keyboard.press('Escape');
+      await trigger.click();
+      if (
+        !(await settles(
+          page.waitForFunction(() => !document.querySelector('[popover]:popover-open'), null, brief)
+        ))
+      ) {
+        problems.push(`${name}: a second press left its layer open`);
+        await page.keyboard.press('Escape');
+      }
       await moving(trigger, false);
       const shrank = await at(trigger, 'end');
       if (shrank) problems.push(`${name}: closing does not end on the trigger, ${shrank}`);
@@ -1109,8 +1080,7 @@ suite('the kitchen sink', together, () => {
   };
 
   // A layer fits a phone's viewport only with the least room, so where each opens is read at
-  // 375px. The second press and the motion check read the wide layout, the motion check last,
-  // because it slows every layer's motion for the rest of the page's life.
+  // 375px. The second press and the motion read the wide layout, in one pass over the triggers.
   for (const width of [375, 1440])
     test(
       width === 375
@@ -1122,12 +1092,7 @@ suite('the kitchen sink', together, () => {
           () => open(width, 'light'),
           WORKERS,
           async (page, worker) =>
-            width === 375
-              ? await opensInPlace(page, worker)
-              : [
-                  ...(await secondPressCloses(page, worker)),
-                  ...(await growsFromTrigger(page, worker))
-                ]
+            width === 375 ? await opensInPlace(page, worker) : await layersOnTrigger(page, worker)
         );
         assert.deepEqual(problems, []);
       }
