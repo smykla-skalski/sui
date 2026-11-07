@@ -31,8 +31,22 @@ export function describe(element: Element): string {
   return parts.join(' > ');
 }
 
+// A run judges a page at rest, so each element is asked once per run. Outside a run, a check
+// still gives the page no turn until it returns, so the answers last as long as it does.
+let seen: Map<Element, boolean> | undefined;
+let running = false;
 export function shown(element: Element): boolean {
-  return element.checkVisibility({ opacityProperty: false }) && element.getClientRects().length > 0;
+  if (!seen) {
+    seen = new Map();
+    if (!running) queueMicrotask(() => (seen = undefined));
+  }
+  let answer = seen.get(element);
+  if (answer === undefined) {
+    answer =
+      element.checkVisibility({ opacityProperty: false }) && element.getClientRects().length > 0;
+    seen.set(element, answer);
+  }
+  return answer;
 }
 
 /**
@@ -44,14 +58,30 @@ export async function runAudit(
   stale: () => boolean = () => false
 ): Promise<Finding[] | null> {
   const found: Finding[] = [];
-  for (const check of checks.values()) {
-    await new Promise((resolve) => setTimeout(resolve));
-    if (stale()) return null;
-    try {
-      found.push(...check(root));
-    } catch (error) {
-      found.push({ law: 'audit', where: check.name || 'check', detail: String(error) });
+  // A long list skips what is off the screen, whose words then read as none, so the run judges
+  // every part as it draws on the screen. A part keeps the height it last drew at afterwards.
+  const drawn = root.createElement('style');
+  drawn.textContent = '* { content-visibility: visible !important; }';
+  root.head.append(drawn);
+  running = true;
+  seen = undefined;
+  try {
+    // A timer set from a timer waits at least 4ms, which a hundred checks add up to half a
+    // second of; `scheduler.yield` hands the page the same turn without that wait.
+    const turn = (globalThis as { scheduler?: { yield?: () => Promise<void> } }).scheduler;
+    for (const check of checks.values()) {
+      await (turn?.yield?.() ?? new Promise((resolve) => setTimeout(resolve)));
+      if (stale()) return null;
+      try {
+        found.push(...check(root));
+      } catch (error) {
+        found.push({ law: 'audit', where: check.name || 'check', detail: String(error) });
+      }
     }
+  } finally {
+    running = false;
+    seen = undefined;
+    drawn.remove();
   }
   return found;
 }

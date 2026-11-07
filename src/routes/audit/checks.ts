@@ -17,31 +17,61 @@ const finding = (law: string, element: Element | null, detail: string): Finding 
 
 // A box still growing or fading is measured between its two states, so nothing inside one is
 // judged until its motion ends. An animation driven by scrolling, such as an edge fade, is
-// not motion: it holds still while the page does.
-const audited = (root: Document, selector: string) => {
-  const moving = root
-    .getAnimations()
-    .filter((animation) => animation.timeline instanceof DocumentTimeline)
-    .map((animation) => (animation.effect as KeyframeEffect | null)?.target)
-    .filter((target): target is Element => target instanceof Element);
-  return [...root.querySelectorAll(selector)].filter(
-    (element) =>
-      !element.matches(IGNORED) &&
-      shown(element) &&
-      !moving.some((target) => target.contains(element))
+// not motion: it holds still while the page does. A check asks about the same elements many
+// times, so each answer is worked out once per check.
+let judging: { moving: Set<Element>; still: Map<Element, boolean> } | undefined;
+function still(root: Document, element: Element): boolean {
+  if (!judging) {
+    const moving = root
+      .getAnimations()
+      .filter((animation) => animation.timeline instanceof DocumentTimeline)
+      .map((animation) => (animation.effect as KeyframeEffect | null)?.target)
+      .filter((target): target is Element => target instanceof Element);
+    judging = { moving: new Set(moving), still: new Map() };
+    queueMicrotask(() => (judging = undefined));
+  }
+  let answer = judging.still.get(element);
+  if (answer === undefined) {
+    const parent = element.parentElement;
+    answer = !judging.moving.has(element) && (parent === null || still(root, parent));
+    judging.still.set(element, answer);
+  }
+  return answer;
+}
+
+const audited = (root: Document, selector: string) =>
+  [...root.querySelectorAll(selector)].filter(
+    (element) => !element.matches(IGNORED) && shown(element) && still(root, element)
   );
-};
 
 const round = (value: number, places = 2) => Number(value.toFixed(places));
 
-// Words that are only heard sit in a box clipped to a pixel, and are never drawn.
+// Words that are only heard sit in a box clipped to a pixel, and are never drawn. Boxes hold
+// still while one check runs, since the page gets no turn inside it, so each ancestor is asked
+// once per check: the answers go when the check returns.
+let heard: Map<Element, boolean> | undefined;
 function heardOnly(element: Element): boolean {
-  for (let node: Element | null = element; node; node = node.parentElement) {
-    const box = node.getBoundingClientRect();
-    if (box.width <= 1 && box.height <= 1 && getComputedStyle(node).overflow !== 'visible')
-      return true;
+  if (!heard) {
+    heard = new Map();
+    queueMicrotask(() => (heard = undefined));
   }
-  return false;
+  const path: Element[] = [];
+  let answer = false;
+  for (let node: Element | null = element; node; node = node.parentElement) {
+    const known = heard.get(node);
+    if (known !== undefined) {
+      answer = known;
+      break;
+    }
+    path.push(node);
+    const box = node.getBoundingClientRect();
+    if (box.width <= 1 && box.height <= 1 && getComputedStyle(node).overflow !== 'visible') {
+      answer = true;
+      break;
+    }
+  }
+  for (const node of path) heard.set(node, answer);
+  return answer;
 }
 
 /** Elements that paint text of their own, with that text. */
@@ -1250,17 +1280,26 @@ function controls(root: Document): Finding[] {
   const hits: { target: Element; own: DOMRect; hit: DOMRect }[] = [];
   // A target scrolled out of a box that clips it cannot be pressed there, so its own box and
   // its hit area count only where its clipping ancestors show them.
+  // Targets share most of their ancestors, so each ancestor's clip is read once.
+  const clips = new Map<Element, { x: boolean; y: boolean; edge: DOMRect } | null>();
+  const clipOf = (node: Element) => {
+    if (!clips.has(node)) {
+      const look = getComputedStyle(node);
+      const x = look.display !== 'contents' && look.overflowX !== 'visible';
+      const y = look.display !== 'contents' && look.overflowY !== 'visible';
+      clips.set(node, x || y ? { x, y, edge: node.getBoundingClientRect() } : null);
+    }
+    return clips.get(node);
+  };
   const clipped = (element: Element, area: DOMRect) => {
     let { left, top, right, bottom } = area;
     for (let node = element.parentElement; node; node = node.parentElement) {
-      const look = getComputedStyle(node);
-      if (look.display === 'contents') continue;
-      if (look.overflowX === 'visible' && look.overflowY === 'visible') continue;
-      const edge = node.getBoundingClientRect();
-      if (look.overflowX !== 'visible')
-        [left, right] = [Math.max(left, edge.left), Math.min(right, edge.right)];
-      if (look.overflowY !== 'visible')
-        [top, bottom] = [Math.max(top, edge.top), Math.min(bottom, edge.bottom)];
+      const clip = clipOf(node);
+      if (!clip) continue;
+      if (clip.x)
+        [left, right] = [Math.max(left, clip.edge.left), Math.min(right, clip.edge.right)];
+      if (clip.y)
+        [top, bottom] = [Math.max(top, clip.edge.top), Math.min(bottom, clip.edge.bottom)];
     }
     return new DOMRect(left, top, Math.max(0, right - left), Math.max(0, bottom - top));
   };
@@ -1323,10 +1362,12 @@ function controls(root: Document): Finding[] {
   const meet = (a: DOMRect, b: DOMRect) =>
     Math.min(a.right, b.right) - Math.max(a.left, b.left) > 0.5 &&
     Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top) > 0.5;
-  for (const [index, one] of hits.entries())
-    for (const other of hits.slice(index + 1)) {
+  // Boxes first: they rule out nearly every pair without asking the document anything.
+  for (let index = 0; index < hits.length; index++)
+    for (let next = index + 1; next < hits.length; next++) {
+      const [one, other] = [hits[index], hits[next]];
+      if (!meet(one.hit, other.hit) || meet(one.own, other.own)) continue;
       if (one.target.contains(other.target) || other.target.contains(one.target)) continue;
-      if (meet(one.own, other.own) || !meet(one.hit, other.hit)) continue;
       found.push(finding('L-38', one.target, `its hit area overlaps ${describe(other.target)}'s`));
     }
 
@@ -2565,14 +2606,19 @@ function leadingIcons(root: Document): Finding[] {
 function wholePixels(root: Document): Finding[] {
   const found: Finding[] = [];
   const fractional = (value: number) => Math.abs(value - Math.round(value)) > 0.02;
+  const counted = new Map<Element, boolean>();
   const counts = (element: Element) => {
-    const look = getComputedStyle(element);
-    return (
-      !/^(inline|contents)$/.test(look.display) &&
-      look.transform === 'none' &&
-      look.animationName === 'none' &&
-      !/^(absolute|fixed)$/.test(look.position)
-    );
+    let answer = counted.get(element);
+    if (answer === undefined) {
+      const look = getComputedStyle(element);
+      answer =
+        !/^(inline|contents)$/.test(look.display) &&
+        look.transform === 'none' &&
+        look.animationName === 'none' &&
+        !/^(absolute|fixed)$/.test(look.position);
+      counted.set(element, answer);
+    }
+    return answer;
   };
   // SVG content is drawn in user units, not laid out in boxes: a text's box is its glyphs' own
   // extent and is fractional by nature, so only the svg element itself is measured.
@@ -2591,14 +2637,20 @@ function wholePixels(root: Document): Finding[] {
   // A whole box can still be centred into an odd remainder. Only an edge shows it, so each
   // border, outline or ground drawn off the grid names the box where the half pixel enters.
   const top = (element: Element) => element.getBoundingClientRect().top + scrollY;
-  const still = (element: Element) => {
-    for (let node: Element | null = element; node; node = node.parentElement) {
-      const look = getComputedStyle(node);
-      if (!counts(node) && look.display !== 'inline' && look.display !== 'contents') return false;
-      if (/^(fixed|sticky)$/.test(look.position)) return false;
-      if ([look.translate, look.scale, look.rotate].some((value) => value !== 'none')) return false;
+  const settled = new Map<Element, boolean>();
+  const still = (element: Element): boolean => {
+    let answer = settled.get(element);
+    if (answer === undefined) {
+      const look = getComputedStyle(element);
+      const parent = element.parentElement;
+      answer =
+        (counts(element) || look.display === 'inline' || look.display === 'contents') &&
+        !/^(fixed|sticky)$/.test(look.position) &&
+        [look.translate, look.scale, look.rotate].every((value) => value === 'none') &&
+        (parent === null || still(parent));
+      settled.set(element, answer);
     }
-    return true;
+    return answer;
   };
   const edged = (element: Element) => {
     const look = getComputedStyle(element);
@@ -2956,10 +3008,17 @@ function sectionHeads(root: Document): Finding[] {
 function boundaryLines(root: Document): Finding[] {
   const found: Finding[] = [];
   const rules: { element: Element; top: number; left: number; right: number }[] = [];
-  const pinned = (element: Element) => {
-    for (let node: Element | null = element; node; node = node.parentElement)
-      if (/^(fixed|sticky)$/.test(getComputedStyle(node).position)) return true;
-    return false;
+  const held = new Map<Element, boolean>();
+  const pinned = (element: Element): boolean => {
+    if (!held.has(element)) {
+      const parent = element.parentElement;
+      held.set(
+        element,
+        /^(fixed|sticky)$/.test(getComputedStyle(element).position) ||
+          (parent !== null && pinned(parent))
+      );
+    }
+    return held.get(element) as boolean;
   };
   const clipped = (element: Element, top: number) => {
     for (let node = element.parentElement; node; node = node.parentElement)
@@ -3006,7 +3065,8 @@ function boundaryLines(root: Document): Finding[] {
     .filter((rule) => !pinned(rule.element) && !clipped(rule.element, rule.top))
     .sort((one, other) => one.top - other.top);
   for (const [index, one] of page.entries())
-    for (const other of page.slice(index + 1)) {
+    for (let next = index + 1; next < page.length; next++) {
+      const other = page[next];
       const gap = other.top - one.top;
       if (gap > 8) break;
       if (Math.min(one.right, other.right) - Math.max(one.left, other.left) <= 0.5) continue;
