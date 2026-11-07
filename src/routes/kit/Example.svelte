@@ -35,7 +35,6 @@
   const section = getContext<SectionContext | undefined>('sink-section');
   const id = $derived(section ? `${section.id}-${slug(title)}` : slug(title));
   const markup = $derived(code && section ? exampleSource(section.source, title) : null);
-  const level = $derived(section?.level ?? 3);
 
   // An open code panel is kept in the address, so a shared link opens it again.
   const shown = addressed(`code-${untrack(() => id)}`, '');
@@ -57,7 +56,7 @@ live specimens, not a surface of the design, so it may hold cards and dialogs (L
 
 <div class="example">
   <div class="head">
-    <svelte:element this={`h${level}`} {id} class="title">{title}</svelte:element>
+    <h3 {id} class="title">{title}</h3>
     {#if note}<p class="note">{note}</p>{/if}
   </div>
   <div class="frame">

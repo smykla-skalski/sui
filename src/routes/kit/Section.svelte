@@ -12,14 +12,12 @@
   export type SectionContext = {
     readonly id: string;
     readonly source: string;
-    /** The level of the examples' headings, one under the section's title. */
-    readonly level: 2 | 3;
   };
 </script>
 
 <script lang="ts">
   import { setContext } from 'svelte';
-  import { Link } from '#lib';
+  import { Link, VisuallyHidden } from '#lib';
   import { sources, type SinkSection } from './sections';
 
   let {
@@ -39,9 +37,6 @@
     },
     get source() {
       return source;
-    },
-    get level() {
-      return head ? 3 : 2;
     }
   });
 
@@ -105,9 +100,14 @@
      each (L-108). -->
 <section {id} class={['section', { headed: head }]} {@attach stillWhenAway}>
   <header class="head">
+    <!-- A component's own page says the title in its page header, and its examples still stand
+         a level under a heading of their own, so the levels a demo gives its components fit
+         both pages (L-78). -->
     {#if head}
       <h2>{meta.title}</h2>
       <p class="lead">{meta.lead}</p>
+    {:else}
+      <VisuallyHidden><h2>Examples</h2></VisuallyHidden>
     {/if}
     {#if meta.components.length > 0}
       <p class="sources">
