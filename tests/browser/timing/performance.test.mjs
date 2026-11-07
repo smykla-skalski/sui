@@ -38,25 +38,40 @@ async function app(prepare) {
   return page;
 }
 
-test('loading the sink shifts no layout past the CLS limit', long, async () => {
-  const page = await browser.newPage({ viewport: { width: 1280, height: 900 } });
-  try {
-    await page.addInitScript(() => {
-      Object.assign(window, { shifted: 0 });
-      new PerformanceObserver((list) => {
-        for (const entry of /** @type {any[]} */ (list.getEntries()))
-          if (!entry.hadRecentInput)
-            /** @type {any} */ (window).shifted += entry.value;
-      }).observe({ type: 'layout-shift', buffered: true });
-    });
-    await visit(page, allSections(url));
-    await page.waitForTimeout(1000);
-    const shifted = await page.evaluate(() => /** @type {any} */ (window).shifted);
-    assert.ok(shifted < 0.1, `the page shifted ${shifted}`);
-  } finally {
-    await page.close();
+// A phone on a slow mobile network: 4 Mbps down, 100ms each way, and the CPU slowed, so late
+// fonts, styles and scripts land while the page is already drawn.
+test(
+  'loading the sink on a slow network and CPU shifts no layout past the CLS limit',
+  long,
+  async () => {
+    const page = await browser.newPage({ viewport: { width: 1280, height: 900 } });
+    try {
+      const cdp = await page.context().newCDPSession(page);
+      await cdp.send('Network.enable');
+      await cdp.send('Network.emulateNetworkConditions', {
+        offline: false,
+        latency: 100,
+        downloadThroughput: (4_000_000 / 8) | 0,
+        uploadThroughput: (1_000_000 / 8) | 0
+      });
+      await cdp.send('Emulation.setCPUThrottlingRate', { rate: slowdown });
+      await page.addInitScript(() => {
+        Object.assign(window, { shifted: 0 });
+        new PerformanceObserver((list) => {
+          for (const entry of /** @type {any[]} */ (list.getEntries()))
+            if (!entry.hadRecentInput)
+              /** @type {any} */ (window).shifted += entry.value;
+        }).observe({ type: 'layout-shift', buffered: true });
+      });
+      await visit(page, allSections(url));
+      await page.waitForTimeout(1000);
+      const shifted = await page.evaluate(() => /** @type {any} */ (window).shifted);
+      assert.ok(shifted < 0.1, `the page shifted ${shifted}`);
+    } finally {
+      await page.close();
+    }
   }
-});
+);
 
 test('a keystroke in a combobox of 5000 options answers within 200ms', long, async () => {
   const page = await app();
