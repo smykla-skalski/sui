@@ -147,7 +147,7 @@ The caption is drawn above the frame rather than inside the table, so it wraps t
 screen while the table scrolls under it; it still names the table. `striped` tints every other
 row in place of the hairlines, for a table wide enough that the eye can lose its row.
 
-- Semantics: a native `table` named by its caption or `aria-label`, with column headings in the secondary ink (the sorted one in the primary), row headings under `rowHeader`, and `aria-sort` on the sorted column.
+- Semantics: a native `table` named by its caption or `aria-label`, with column headings, row headings under `rowHeader`, and `aria-sort` on the sorted column.
 - Content: `columns` and `rows` of plain values, or any markup through `cell`; numbers print in the page's number format, and other values should come formatted.
 - States: loaded, sorted, empty (`emptyLabel` or `empty`), loading (three placeholder rows built from the table's own cells, so they match the loaded rows, each bar where its column's words start and crossed by the light every placeholder shares), refreshing (rows kept, busy), and failed (`error`, with a retry); a failure over rows already here keeps them, marked as not current.
 - Keyboard: a sortable heading is a button, and Enter or Space sorts by it, then reverses; a frame that scrolls is a tab stop, so the arrow keys scroll it.
@@ -449,13 +449,11 @@ row in place of the hairlines, for a table wide enough that the eye can lose its
   }
 
   /* A heading row holds a sort control as tall as a finger on touch, so every heading centres
-     in the row instead of sitting on that control's baseline (L-102). The headings wear the
-     secondary ink, so the row of names reads apart from the values; a sorted one keeps the
-     primary (L-25). */
+     in the row instead of sitting on that control's baseline (L-102). */
   thead th {
     border-block-end: var(--sui-stroke) solid var(--sui-border-control);
     vertical-align: middle;
-    color: var(--sui-text-secondary);
+    color: var(--sui-text-primary);
     font: var(--sui-weight-semibold) var(--sui-font-size-control) / var(--sui-leading-compact)
       var(--sui-sans);
   }

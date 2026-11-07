@@ -351,9 +351,6 @@ test('L-25 the type tiers keep the sizes the law names', () => {
     styles['src/lib/components/PageHeader.svelte'],
     /font: var\(--sui-weight-bold\) var\(--sui-font-size-page-title\)/
   );
-  const table = stripComments(styles['src/lib/components/DataTable.svelte']);
-  assert.match(table, /thead th\s*\{[^}]*color: var\(--sui-text-secondary\)/);
-  assert.match(table, /\[aria-sort\] \.sort\s*\{[^}]*color: var\(--sui-text-primary\)/);
 });
 
 test('L-22 the phone reads one step larger and types at 16px', () => {
