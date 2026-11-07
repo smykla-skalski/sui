@@ -969,6 +969,39 @@ suite('lists', together, () => {
     });
 
     test(
+      'L-59 a failed refresh stands inside the rows it leaves, its words clear of its tint',
+      long,
+      async () => {
+        const page = await opened();
+        const strip = page
+          .locator('#states .specimen', { hasText: 'Refresh failed' })
+          .locator('.over');
+        await strip.scrollIntoViewIfNeeded();
+        const at = await strip.evaluate((node) => {
+          const box = (/** @type {Element | null} */ element) => {
+            const { left, right } = /** @type {Element} */ (element).getBoundingClientRect();
+            return { left, right };
+          };
+          const tint = parseFloat(getComputedStyle(node, '::before').insetInlineStart);
+          return {
+            strip: box(node),
+            tint,
+            rows: box(node.parentElement?.querySelector('.sui-object-list') ?? null),
+            words: box(node.querySelector('.sui-error-state-title')),
+            retry: box(node.querySelector('button'))
+          };
+        });
+        const problems = [];
+        if (at.strip.left < at.rows.left || at.strip.right > at.rows.right)
+          problems.push('the strip reaches past the rows');
+        if (at.words.left - at.strip.left - at.tint < 12) problems.push('the words crowd the tint');
+        if (at.strip.right - at.tint - at.retry.right < 12)
+          problems.push('the retry crowds the tint');
+        assert.deepEqual(problems, []);
+      }
+    );
+
+    test(
       'L-63 a loaded page takes focus to its first new row and says how many rows came',
       long,
       async () => {

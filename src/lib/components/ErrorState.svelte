@@ -205,11 +205,10 @@ of them.
       var(--sui-sans);
   }
 
-  /* Over a list the failure is a row of its own: it bleeds past the list's edge as a row does
-     and pads back by the row's inset, so its words start where the rows' words start and the
-     retry ends where their actions end. Its tint is a plate 2px inside that box on every side,
-     as a row's state is (L-91), so it keeps the same room at its top as at its sides. It stands
-     8px clear of the first row, so the failure never reads as that row's state. */
+  /* Over a list the failure is a line of its own inside the list's edges, its words and its
+     retry a step inside its tint, so they never crowd the tint's edge. Its tint is a plate 2px
+     inside that box on every side, as a row's state is (L-91). It stands 8px clear of the first
+     row, so the failure never reads as that row's state. */
   .over {
     align-items: center;
     background: none;
@@ -221,8 +220,7 @@ of them.
     /* A holder that asks for its lead gets the padding back, as a row list hands it back. */
     margin-block-start: var(--sui-local-row-lead, 0px);
     margin-block-end: var(--sui-space-2);
-    margin-inline: calc(-1 * var(--sui-row-pad-default));
-    padding: var(--sui-row-pad-default);
+    padding: var(--sui-space-3) var(--sui-space-4);
     position: relative;
   }
 
