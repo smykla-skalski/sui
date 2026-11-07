@@ -706,6 +706,11 @@ row in place of the hairlines, for a table wide enough that the eye can lose its
     td {
       padding-inline: var(--sui-space-2);
     }
+
+    /* The rows read a step larger on a phone, so the headings take the control size back. */
+    thead th {
+      font-size: var(--sui-font-size-control);
+    }
   }
 
   [data-align='end'] {
