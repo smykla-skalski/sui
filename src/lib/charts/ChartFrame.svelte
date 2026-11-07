@@ -344,8 +344,9 @@
   }
 
   /* While the data loads, the band itself is the placeholder: it keeps the band's place, size
-     and shape, so nothing moves when the plot arrives, takes the placeholder veil, and the light
-     that crosses every placeholder crosses it. Three grid lines at the quarters of the plot
+     and shape, so nothing moves when the plot arrives, takes half the placeholder veil, since a
+     whole plot of it outweighs the charts beside it, and the light that crosses every
+     placeholder crosses it. Three grid lines at the quarters of the plot
      stand under the light, so the wait reads as the chart to come, never a blank block, and they
      draw no mark a reader could take for data (L-64). Only the light moves, by transform, so the
      compositor runs it. */
@@ -355,7 +356,7 @@
       var(--sui-local-wait-line) 0 25% / 100% var(--sui-stroke) no-repeat content-box,
       var(--sui-local-wait-line) 0 50% / 100% var(--sui-stroke) no-repeat content-box,
       var(--sui-local-wait-line) 0 75% / 100% var(--sui-stroke) no-repeat content-box,
-      var(--sui-placeholder);
+      color-mix(in srgb, var(--sui-placeholder) 50%, transparent);
     block-size: calc(var(--sui-local-plot) + 2 * var(--sui-local-band-pad));
     box-sizing: border-box;
     overflow: clip;
