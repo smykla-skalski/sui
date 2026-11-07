@@ -262,7 +262,15 @@ test('L-107 a scroll edge fades over 24px, and over 20px on a phone', () => {
   );
 });
 
-test('L-64 a placeholder light stops by the 10 seconds a skeleton waits to turn slow', () => {
+test('L-64 a placeholder light stops by the 10 seconds a skeleton waits to turn slow, and a waiting chart draws its grid', () => {
+  const wait = /\.sui-chart-wait\s*\{[^}]*\}/.exec(
+    stripComments(styles['src/lib/charts/ChartFrame.svelte'])
+  )?.[0];
+  assert.deepEqual(
+    [...(wait ?? '').matchAll(/var\(--sui-local-wait-line\) 0 (\d+)%/g)].map(([, at]) => at),
+    ['25', '50', '75']
+  );
+  assert.match(wait ?? '', /--sui-local-wait-line:\s*linear-gradient\(var\(--sui-chart-grid\)/);
   const tokens = tokenMap(stripComments(palette));
   const patience = /patience = ([\d_]+)/.exec(read('src/lib/components/Skeleton.svelte'))?.[1];
   assert.equal(
