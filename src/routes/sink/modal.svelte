@@ -166,12 +166,14 @@
       title="Edit Run Settings"
       description="Applies to every run of smyklot from the next push"
     >
-      <Field label="Branch" value="main" />
+      <Field label="Branch" spellcheck="false" autocapitalize="off" value="main" />
       <Field
         label="Timeout in minutes"
-        type="number"
+        inputmode="numeric"
+        pattern="[1-9][0-9]*"
+        validationMessage="Enter the minutes as a whole number from 1"
         value="30"
-        hint="A run that takes longer is stopped and marked failed"
+        hint="The runner stops a longer run and marks it failed"
       />
       <CheckList label="Run on" options={triggerOptions} value={['push', 'pull']} />
       {#snippet footer()}
@@ -310,13 +312,14 @@
   description="Applies to every run of smyklot from the next push"
 >
   <form id="sink-run" class="form" onsubmit={saveRun}>
-    <Field label="Branch" bind:value={runDraft.branch} />
+    <Field label="Branch" spellcheck="false" autocapitalize="off" bind:value={runDraft.branch} />
     <Field
       label="Timeout in minutes"
-      type="number"
-      min="1"
+      inputmode="numeric"
+      pattern="[1-9][0-9]*"
+      validationMessage="Enter the minutes as a whole number from 1"
       bind:value={runDraft.timeout}
-      hint="A run that takes longer is stopped and marked failed"
+      hint="The runner stops a longer run and marks it failed"
     />
     <CheckList label="Run on" options={triggerOptions} bind:value={runDraft.triggers} />
   </form>

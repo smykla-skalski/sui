@@ -82,8 +82,8 @@
   <Specimen label="Unsaved" code="dirty">
     <div class="pane">
       <div class="scroller">
-        <Field label="Repository name" bind:value={name} />
-        <Field label="Default branch" bind:value={branch} />
+        <Field label="Repository name" spellcheck="false" autocapitalize="off" bind:value={name} />
+        <Field label="Default branch" spellcheck="false" autocapitalize="off" bind:value={branch} />
         <SaveBar
           {dirty}
           {saving}
@@ -125,7 +125,7 @@
   <Specimen label="Conflict" code="conflict onreload">
     <div class="pane">
       <div class="scroller">
-        <Field label="Default branch" bind:value={draft} />
+        <Field label="Default branch" spellcheck="false" autocapitalize="off" bind:value={draft} />
         <SaveBar
           dirty={draft !== loaded}
           askBeforeLeaving={false}

@@ -56,6 +56,8 @@
   <Specimen label="Disabled" code="disabled">
     <Field
       label="Default branch"
+      spellcheck="false"
+      autocapitalize="off"
       hint="Only an owner can rename the default branch"
       value="main"
       disabled
@@ -69,7 +71,14 @@
   layout="grid"
 >
   <Specimen label="Required" code="required">
-    <Field label="Repository name" required placeholder="acme-web…" bind:value={repository} />
+    <Field
+      label="Repository name"
+      spellcheck="false"
+      autocapitalize="off"
+      required
+      placeholder="acme-web…"
+      bind:value={repository}
+    />
   </Specimen>
   <Specimen label="Optional">
     <Field label="Description" hint="Shown under the name in every list" bind:value={summary} />
@@ -130,6 +139,8 @@
     <form class="form" onsubmit={send}>
       <Field
         label="Repository name"
+        spellcheck="false"
+        autocapitalize="off"
         name="repository"
         required
         pattern="[a-z0-9\-]+"
@@ -158,7 +169,13 @@
 >
   <Section title="New Repository" level={4}>
     <div class="form">
-      <Field label="Repository name" required placeholder="acme-web…" />
+      <Field
+        label="Repository name"
+        spellcheck="false"
+        autocapitalize="off"
+        required
+        placeholder="acme-web…"
+      />
       <Field
         label="Contact email"
         type="email"
