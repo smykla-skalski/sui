@@ -769,8 +769,9 @@ suite('the kitchen sink', together, () => {
     const address = new URL('avatar/', url);
     /** @type {string[]} */
     const problems = [];
-    // Linux blends an antialiased edge pixel a level or two apart once the layers under it
-    // change, though nothing under it shows; what a part draws changes far more.
+    // A busy machine rasters a rounded edge's antialiased pixels up to five levels apart between
+    // two shots of the same avatar on whole pixels, though nothing new shows there; what a part
+    // draws changes far more.
     /**
      * @param {import('playwright-core').Page} page
      * @param {Buffer} one
@@ -794,7 +795,7 @@ suite('the kitchen sink', together, () => {
           return (
             a.width === b.width &&
             a.height === b.height &&
-            a.data.every((level, index) => Math.abs(level - b.data[index]) <= 2)
+            a.data.every((level, index) => Math.abs(level - b.data[index]) <= 6)
           );
         },
         [one.toString('base64'), two.toString('base64')]
