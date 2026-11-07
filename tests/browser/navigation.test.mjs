@@ -1251,39 +1251,82 @@ suite('navigation', together, () => {
     }
   );
 
-  test('a wide list-detail keeps its list in place and marks the run it opens', long, async () => {
-    // A short window, so the list scrolls in its own pane.
-    const page = await openLayout('layouts/list-detail/4182/', 1440, { height: 560 });
-    try {
-      const pair = page.locator('.sui-list-detail');
-      const list = pair.locator('.sui-list-detail-list');
-      // The row stands whole in the scrolled list, so the press scrolls nothing itself.
-      await list.evaluate((pane) => (pane.scrollTop = 120));
-      await pair.locator('a[href="/layouts/list-detail/4176/"]').click();
-      assert.ok(
-        await settles(
-          page.waitForFunction(() => document.activeElement?.matches('h1, h2, h3, h4'), null, brief)
-        ),
-        'opening a run left focus on its row'
-      );
-      assert.equal(await focused(page), 'Deploy Web #4176', 'focus is not on the run title');
-      assert.equal(await list.evaluate((pane) => pane.scrollTop), 120, 'the list lost its place');
-      assert.deepEqual(
-        await pair
-          .locator('[aria-current="page"]')
-          .evaluateAll((rows) => rows.map((row) => row.getAttribute('href'))),
-        ['/layouts/list-detail/4176/'],
-        'the opened run is not the one current row'
-      );
-      assert.equal(
-        await pair.getByRole('link', { name: 'Runs' }).count(),
-        0,
-        'the way back shows beside the list'
-      );
-    } finally {
-      await page.close();
+  test(
+    'a wide list-detail keeps its list in place, marks the run it opens, and Back puts both panes where they stood',
+    long,
+    async () => {
+      // A short window, so the list and the detail each scroll in their own pane.
+      const page = await openLayout('layouts/list-detail/4182/', 1440, { height: 420 });
+      try {
+        const pair = page.locator('.sui-list-detail');
+        const list = pair.locator('.sui-list-detail-list');
+        const detail = pair.locator('.sui-list-detail-detail');
+        const stand = () =>
+          pair.evaluate((node) =>
+            [...node.querySelectorAll('.sui-list-detail-list, .sui-list-detail-detail')].map(
+              (pane) => pane.scrollTop
+            )
+          );
+        // The row stands whole in the scrolled list, so the press scrolls nothing itself.
+        await list.evaluate((pane) => (pane.scrollTop = 120));
+        await detail.evaluate((pane) => (pane.scrollTop = 40));
+        const stood = await stand();
+        assert.ok(stood[1] > 0, 'the run detail is too short to scroll');
+        await pair.locator('a[href="/layouts/list-detail/4176/"]').click();
+        assert.ok(
+          await settles(
+            page.waitForFunction(
+              () => document.activeElement?.matches('h1, h2, h3, h4'),
+              null,
+              brief
+            )
+          ),
+          'opening a run left focus on its row'
+        );
+        assert.equal(await focused(page), 'Deploy Web #4176', 'focus is not on the run title');
+        assert.equal(await list.evaluate((pane) => pane.scrollTop), 120, 'the list lost its place');
+        assert.deepEqual(
+          await pair
+            .locator('[aria-current="page"]')
+            .evaluateAll((rows) => rows.map((row) => row.getAttribute('href'))),
+          ['/layouts/list-detail/4176/'],
+          'the opened run is not the one current row'
+        );
+        assert.equal(
+          await pair.getByRole('link', { name: 'Runs' }).count(),
+          0,
+          'the way back shows beside the list'
+        );
+
+        const returns = async () => {
+          await page.waitForURL(/\/layouts\/list-detail\/4182\/$/);
+          await page.waitForFunction(
+            (top) => document.querySelector('.sui-list-detail-detail')?.scrollTop === top,
+            stood[1],
+            brief
+          );
+        };
+        await page.goBack();
+        await settles(returns());
+        assert.deepEqual(await stand(), stood, 'Back left the panes elsewhere');
+        // The router takes an injected link as its own, so this leaves the page in place.
+        await page.evaluate(() => {
+          const away = Object.assign(document.createElement('a'), {
+            href: '/layouts/detail-pane/'
+          });
+          away.textContent = 'Away';
+          document.body.append(away);
+          away.click();
+        });
+        await page.waitForURL(/\/layouts\/detail-pane\/$/);
+        await page.goBack();
+        await settles(returns());
+        assert.deepEqual(await stand(), stood, 'a return to the page left the panes elsewhere');
+      } finally {
+        await page.close();
+      }
     }
-  });
+  );
 
   test(
     'an index and a side nav read an id that every object inherits as no entry',

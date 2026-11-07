@@ -1,3 +1,16 @@
+<script module lang="ts">
+  // Where each pair's panes stood at each item, for this visit, so the browser's back and
+  // forward put the reader where they were, as the browser does for the page's own scroll.
+  const stood = new Map<string, { list: number; detail: number }>();
+  // The address a back or forward reached. A click starts a new move, which opens at the top.
+  let traversed: string | undefined;
+  if (typeof window !== 'undefined') {
+    addEventListener('popstate', () => (traversed = location.href));
+    addEventListener('click', () => (traversed = undefined), true);
+  }
+  const returned = () => traversed !== undefined && traversed === location.href;
+</script>
+
 <script lang="ts">
   import { word } from '../words.js';
   import { untrack, type Snippet } from 'svelte';
@@ -79,6 +92,22 @@
     if (shown === undefined) place = scroller()?.scrollTop ?? 0;
   });
 
+  const spot = (item: string | undefined) => `${label}\n${backHref}\n${item ?? ''}`;
+
+  function keep(): void {
+    if (listPane && detailPane)
+      stood.set(spot(shown), { list: listPane.scrollTop, detail: detailPane.scrollTop });
+  }
+
+  $effect(() => {
+    if (!listPane || !detailPane) return;
+    const at = returned() ? untrack(() => stood.get(spot(shown))) : undefined;
+    if (at) {
+      listPane.scrollTop = at.list;
+      detailPane.scrollTop = at.detail;
+    }
+  });
+
   $effect(() => {
     const next = current;
     if (next === shown) return;
@@ -87,7 +116,7 @@
     if (!root || !listPane || !detailPane) return;
     if (next !== undefined) {
       root.scrollTop = 0;
-      detailPane.scrollTop = 0;
+      detailPane.scrollTop = (returned() && stood.get(spot(next))?.detail) || 0;
       if (held) land(detailPane.querySelector<HTMLElement>('h1, h2, h3, h4, h5, h6') ?? detailPane);
     } else {
       const box = scroller();
@@ -117,7 +146,8 @@ address as `current`.
 Once the layout itself is 56rem wide or wider, the list stands at the start, `clamp(20rem,
 32%, 26rem)` wide, the detail fills the rest, and one hairline parts them. Each pane scrolls on
 its own there, the one exception to a page's single scroll, so the list keeps its place while
-the detail changes. The pair fills the viewport's height, or with `contained` the box around
+the detail changes, and the browser's back and forward put each pane where it stood at that
+item, also on a return to the page. The pair fills the viewport's height, or with `contained` the box around
 it. The open item's row marks it as current (`ObjectRow current`), and with nothing open the
 detail says so in an `EmptyState`.
 
@@ -156,12 +186,13 @@ around it.
 
 <div bind:this={root} {...rest} class={['sui-list-detail', className, { contained }]}>
   <div class={['sui-list-detail-panes', { open: detail !== undefined }]}>
-    <nav bind:this={listPane} class="sui-list-detail-list" aria-label={label}>
+    <nav bind:this={listPane} class="sui-list-detail-list" aria-label={label} onscroll={keep}>
       {@render list()}
     </nav>
     <svelte:element
       this={landmark === 'main' ? 'main' : 'div'}
       bind:this={detailPane}
+      onscroll={keep}
       class="sui-list-detail-detail"
     >
       {#if detail}
