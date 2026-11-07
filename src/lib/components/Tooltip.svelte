@@ -1,7 +1,6 @@
 <script module lang="ts">
   /* The first tip in a group waits, and while a tip shows or has just closed the next one shows
-     at once, so a reader sweeping a toolbar is not made to wait at each button (Radix, Vercel
-     Web Interface Guidelines). */
+     at once, so a reader sweeping a toolbar is not made to wait at each button (Radix). */
   const WARM_FOR = 300;
   let showing = 0;
   let warmUntil = 0;

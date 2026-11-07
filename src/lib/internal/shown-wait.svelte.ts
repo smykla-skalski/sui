@@ -6,7 +6,7 @@ export const SHOW_FOR = 400;
 /**
  * A wait as the reader sees it (L-117): its spinner or placeholder is drawn only once the work
  * has run `SHOW_AFTER`, and then for at least `SHOW_FOR`, so a fast answer never flashes one
- * (Vercel Web Interface Guidelines, React's Suspense). A wait already running when the component
+ * (React's Suspense). A wait already running when the component
  * first draws shows at once, since nothing changes under the reader. Only the drawing waits: the
  * state the work sets (`aria-busy`, a refused press) follows `waiting` at once.
  */

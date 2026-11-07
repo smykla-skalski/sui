@@ -1,7 +1,7 @@
 /**
  * Holds the page still under a drag (L-116): no text is chosen as the pointer sweeps past it,
  * and everything outside the dragged control is `inert`, so no other part takes hover or a
- * press until the drag ends (Vercel Web Interface Guidelines). Returns the release, which puts
+ * press until the drag ends. Returns the release, which puts
  * back what it changed and is safe to call twice.
  */
 export function holdForDrag(control: Element): () => void {
