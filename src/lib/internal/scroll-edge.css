@@ -43,10 +43,11 @@
     var(--sui-local-edge-fade);
 }
 
-/* A phone's box shows few values, so the fade is half as wide and the last one stays legible. */
+/* A phone's box shows few values, so the fade is narrower and the last one stays legible, yet
+   wide enough to read as more past the edge at a thumb's distance. */
 @media (max-width: 29.9375rem) {
   .sui-scroll-edge {
-    --sui-local-edge-fade: var(--sui-space-3);
+    --sui-local-edge-fade: var(--sui-space-5);
   }
 }
 

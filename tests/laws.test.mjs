@@ -217,13 +217,13 @@ test('L-66 a chart grid draws at the hairline that frames a surface', () => {
   assert.deepEqual(new Set(grids), new Set(['var(--sui-border-subtle)']));
 });
 
-test('L-107 a scroll edge fades over 24px, and over 12px on a phone', () => {
+test('L-107 a scroll edge fades over 24px, and over 20px on a phone', () => {
   const sheet = stripComments(read('src/lib/internal/scroll-edge.css'));
   const space = tokenMap(stripComments(palette));
   const fades = [...sheet.matchAll(/--sui-local-edge-fade:\s*var\((--sui-space-\d+)\)/g)].map(
     ([, token]) => pixels(space[token])
   );
-  assert.deepEqual(fades, [24, 12]);
+  assert.deepEqual(fades, [24, 20]);
   assert.match(
     sheet,
     /@media \(max-width: 29\.9375rem\) \{\s*\.sui-scroll-edge \{\s*--sui-local-edge-fade/

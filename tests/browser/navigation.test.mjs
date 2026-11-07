@@ -604,7 +604,7 @@ suite('navigation', together, () => {
     );
 
     test(
-      'every sideways scroller fades only the edges with more past them, mirrored right to left (L-107)',
+      'every sideways scroller fades only the edges with more past them, 20px on a phone, mirrored right to left (L-107)',
       long,
       async () => {
         const page = await sink();
@@ -630,7 +630,7 @@ suite('navigation', together, () => {
                 box.scrollWidth - box.clientWidth >= 4
               );
             });
-            /** @type {boolean[][][]} */
+            /** @type {number[][][]} */
             const states = boxes.map(() => []);
             // Each scroller's fade follows only its own scroll, so all of them move at once.
             for (const share of [0, 0.5, 1]) {
@@ -640,22 +640,25 @@ suite('navigation', together, () => {
               }
               await frame();
               await frame();
-              boxes.forEach((box, at) => states[at].push(fades(box).map((width) => width > 0)));
+              boxes.forEach((box, at) => states[at].push(fades(box)));
             }
             const wrong = [];
             for (const [at, box] of boxes.entries()) {
               box.scrollLeft = 0;
               const look = getComputedStyle(box);
               const name = `${box.closest('section')?.id} ${box.className}`;
+              const shown = states[at].map((widths) => widths.map((width) => width > 0));
               if (
-                JSON.stringify(states[at]) !==
+                JSON.stringify(shown) !==
                 JSON.stringify([
                   [false, true],
                   [true, true],
                   [true, false]
                 ])
               )
-                wrong.push(`${name}: ${JSON.stringify(states[at])}`);
+                wrong.push(`${name}: ${JSON.stringify(shown)}`);
+              if (states[at][1].some((width) => width !== 20))
+                wrong.push(`${name}: the fades are ${states[at][1].join(' and ')}px wide`);
               if (look.direction === 'rtl' && !look.maskImage.includes('to left'))
                 wrong.push(`${name}: the fade does not mirror`);
             }
