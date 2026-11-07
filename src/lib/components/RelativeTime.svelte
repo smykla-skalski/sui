@@ -62,7 +62,7 @@
   import { mark, word } from '../words.js';
   import type { HTMLTimeAttributes } from 'svelte/elements';
   import { pageNow } from '../internal/clock.svelte.js';
-  import { pageLocale } from '../internal/locale.js';
+  import { formatLocale } from '../internal/locale.js';
   import Tooltip from './Tooltip.svelte';
   import VisuallyHidden from './VisuallyHidden.svelte';
 
@@ -82,7 +82,7 @@
     value: string | number | Date;
     /** Show the whole instant in place, for a surface whose reader chose that. */
     exact?: boolean;
-    /** The language the time is written in. The page's `lang` when left out. */
+    /** The language the time is written in. The reader's locale in the page's `lang` when left out. */
     locale?: string;
     /** What a screen reader hears after the relative reading, given the whole instant. */
     exactLabel?: (time: string) => string;
@@ -101,7 +101,7 @@
   // writes both readings in the new one within half a minute.
   const language = $derived.by(() => {
     pageNow();
-    return locale ?? pageLocale();
+    return locale ?? formatLocale();
   });
   const resting = $derived(valid ? relative(at, pageNow(), language) : String(value));
   const whole = $derived(valid ? exact(at, language) : String(value));
@@ -132,7 +132,7 @@ tooltip.
 - Focus: outside any control it takes focus and wears the 2px ring; it never moves focus.
 - Responsive: the relative reading never breaks inside, and the exact one wraps where a column is narrow.
 - Accessibility: the whole instant is in its words for a screen reader, and the tip repeats it, so the tip stays out of the accessibility tree.
-- Localization: words, numbers, the hour cycle and the zone follow `locale`, else the page's `lang`; `exactLabel` carries the joining words; the underline and hover area are symmetric, so nothing mirrors.
+- Localization: words, numbers, the hour cycle and the zone follow `locale`, else the reader's locale in the page's `lang`; `exactLabel` carries the joining words; the underline and hover area are symmetric, so nothing mirrors.
 - Performance: every instance shares the page's one 30-second clock, and the tooltip exists only once the time is in the page.
 - Analytics: none; a time reports no outcome.
 - Failure: a value that is not a date is shown as given, with no `datetime`, exact reading, tab stop or tip, so a bad record never reads "Invalid Date".

@@ -31,7 +31,7 @@
 <script lang="ts">
   import { mark, word } from '../words.js';
   import type { HTMLOlAttributes } from 'svelte/elements';
-  import { pageLocale } from '../internal/locale.js';
+  import { formatLocale } from '../internal/locale.js';
   import Avatar from './Avatar.svelte';
   import DayHeading, { dayKey } from './DayHeading.svelte';
   import Pill from './Pill.svelte';
@@ -69,7 +69,7 @@
     loading?: boolean;
     /** How many placeholder events stand in while the first events load. */
     placeholders?: number;
-    /** The language the times are written in. The page's `lang` when left out. */
+    /** The language the times are written in. The reader's locale in the page's `lang` when left out. */
     locale?: string;
     /** The one quiet sentence in the list's place when nothing has happened. */
     emptyLabel?: string;
@@ -79,7 +79,7 @@
   } & Omit<HTMLOlAttributes, 'children'> = $props();
 
   const sorted = $derived(events.toSorted(compare(order)));
-  const language = $derived(locale ?? pageLocale());
+  const language = $derived(locale ?? formatLocale());
   /* A time of day alone would read as today, so ungrouped events from several days carry the
      date as well. */
   const dated = $derived(!days && new Set(sorted.map((event) => dayKey(event.at))).size > 1);
@@ -122,7 +122,7 @@ only and a `LoadMore` after it lands on the first new one. Page it in the order 
 - Focus: nothing here moves focus; a `LoadMore` after the list moves it to the first new event.
 - Responsive: a container query under 25rem of its own width stands each time over its words and drops the pill and action under them, from the words' edge.
 - Accessibility: name the list with `aria-labelledby` pointing at its section's heading; a busy list is `aria-busy` and a polite status says `loadingLabel`; the actor's avatar is hidden because the name is in the words; times and words hold 4.5:1.
-- Localization: `emptyLabel` and `loadingLabel` are props; the clock follows `locale`, else the page's `lang`, for its hour cycle; the name and the words are joined by `marks.space`, name first; the columns and the light follow the reading direction.
+- Localization: `emptyLabel` and `loadingLabel` are props; the clock follows `locale`, else the reader's locale in the page's `lang`, for its hour cycle; the name and the words are joined by `marks.space`, name first; the columns and the light follow the reading direction.
 - Performance: one formatter per timeline and no script per event; every event is in the page, but only the words near the screen are laid out and painted (`content-visibility: auto`), while the time column stays laid out to keep its width; page a long history with `LoadMore`; the placeholder light moves only by `transform` and holds still under reduced motion.
 - Analytics: none of its own; actions and `LoadMore` report their own outcomes.
 - Failure: a time that is not a date is shown as given and sorts last; a failed load is an `ErrorState` in the list's place, and a failed refresh an `ErrorState overContent` over the kept events.

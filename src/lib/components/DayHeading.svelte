@@ -36,7 +36,7 @@
   import { word } from '../words.js';
   import type { HTMLAttributes } from 'svelte/elements';
   import { pageNow } from '../internal/clock.svelte.js';
-  import { pageLocale } from '../internal/locale.js';
+  import { formatLocale } from '../internal/locale.js';
 
   let {
     value,
@@ -50,7 +50,7 @@
     value: string | number | Date;
     /** The heading level, one below the heading of the list the days belong to. */
     level?: 2 | 3 | 4 | 5 | 6;
-    /** The language the day is written in. The page's `lang` when left out. */
+    /** The language the day is written in. The reader's locale in the page's `lang` when left out. */
     locale?: string;
     /** The heading over entries whose time is not a date. */
     unknownLabel?: string;
@@ -60,7 +60,7 @@
   const at = $derived(new Date(value));
   const known = $derived(!Number.isNaN(at.getTime()));
   const name = $derived(
-    known ? dayName(at, new Date(pageNow()), locale ?? pageLocale()) : unknownLabel
+    known ? dayName(at, new Date(pageNow()), locale ?? formatLocale()) : unknownLabel
   );
 </script>
 
@@ -82,7 +82,7 @@ one local day never opens two headings because its entries cross midnight in UTC
 - Focus: it never takes focus.
 - Responsive: a long date wraps rather than clipping.
 - Accessibility: a real heading in the outline, one level below its list's heading, read exactly as drawn.
-- Localization: the words and the date follow `locale`, else the page's `lang`; `unknownLabel` carries the built-in words; it starts at the inline start.
+- Localization: the words and the date follow `locale`, else the reader's locale in the page's `lang`; `unknownLabel` carries the built-in words; it starts at the inline start.
 - Performance: every heading shares the page's one clock, which wakes every 30 seconds.
 - Analytics: none; a heading reports no outcome.
 - Failure: a value that is not a date says `unknownLabel` with no `datetime`, never "Invalid Date".

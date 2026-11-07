@@ -99,7 +99,7 @@
   import Icon from '../icons/Icon.svelte';
   import { holdForDrag } from '../internal/drag.js';
   import { held, holdAround } from '../internal/held.svelte.js';
-  import { pageLocale } from '../internal/locale.js';
+  import { formatLocale } from '../internal/locale.js';
   import Button from './Button.svelte';
   import Field, { type FieldControl } from './Field.svelte';
   import Popover from './Popover.svelte';
@@ -107,8 +107,8 @@
   import VisuallyHidden from './VisuallyHidden.svelte';
 
   const uid = $props.id();
-  const percent = new Intl.NumberFormat(pageLocale(), { style: 'percent' });
-  const whole = new Intl.NumberFormat(pageLocale());
+  const percent = new Intl.NumberFormat(formatLocale(), { style: 'percent' });
+  const whole = new Intl.NumberFormat(formatLocale());
 
   let {
     value = $bindable(),

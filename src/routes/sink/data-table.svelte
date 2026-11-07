@@ -9,6 +9,7 @@
 <script lang="ts">
   import { DataTable, Icon, type DataTableColumn } from '#lib';
   import { addressed } from '../kit/address.svelte.js';
+  import { amount, day } from '../kit/format.js';
   import Example from '../kit/Example.svelte';
   import Specimen from '../kit/Specimen.svelte';
 
@@ -45,9 +46,14 @@
     { key: 'published', label: 'Published', nowrap: true }
   ];
   const releases: Release[] = [
-    { version: '0.3.0', status: 'Current', size: '84.7\u00a0kB', published: '17 October 2026' },
-    { version: '0.2.1', status: 'Superseded', size: '79.2\u00a0kB', published: '2 September 2026' },
-    { version: '0.2.0', status: 'Withdrawn', size: '79.0\u00a0kB', published: '28 August 2026' }
+    { version: '0.3.0', status: 'Current', size: amount(84.7, 'kB'), published: day(2026, 10, 17) },
+    {
+      version: '0.2.1',
+      status: 'Superseded',
+      size: amount(79.2, 'kB'),
+      published: day(2026, 9, 2)
+    },
+    { version: '0.2.0', status: 'Withdrawn', size: amount(79, 'kB'), published: day(2026, 8, 28) }
   ];
 
   const checkColumns: DataTableColumn<Check>[] = [

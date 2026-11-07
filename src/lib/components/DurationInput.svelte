@@ -9,7 +9,7 @@
   import type { HTMLAttributes, HTMLInputAttributes } from 'svelte/elements';
   import Icon from '../icons/Icon.svelte';
   import JoinedField from '../internal/JoinedField.svelte';
-  import { pageLocale } from '../internal/locale.js';
+  import { formatLocale } from '../internal/locale.js';
   import { setRefusals } from '../internal/refusals.svelte.js';
   import Select from './Select.svelte';
   import TextInput from './TextInput.svelte';
@@ -101,10 +101,10 @@
     'value' | 'type' | 'min' | 'max' | 'disabled' | 'class' | 'name' | 'onchange'
   > = $props();
 
-  /* Amounts read and print in the page's language, so "1,5" is a minute and a half where the
+  /* Amounts read and print in the reader's format, so "1,5" is a minute and a half where the
      comma is the decimal mark. A full stop there is a group mark, which an amount never needs,
      so it is refused rather than read as something else. */
-  const locale = pageLocale();
+  const locale = formatLocale();
   const decimal =
     new Intl.NumberFormat(locale).formatToParts(1.5).find((part) => part.type === 'decimal')
       ?.value ?? '.';

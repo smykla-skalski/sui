@@ -146,7 +146,7 @@ struggling. The reason takes the count's place and the button retries until the 
 - Focus: the button keeps focus while a page loads; when it lands, focus moves to the first new row's link or control (WCAG 2.4.3), or stays on the button when that row has none, and moves to the end note when the button leaves.
 - Responsive: the words lead and the button ends their line; when both do not fit, the button takes the next line from the start, so words beside it never wrap.
 - Accessibility: the count describes the button, arrivals are said through a polite status with how many came and how many show, and a failure is an alert in words beside an icon; set `aria-busy` on the list while `loading` is true.
-- Localization: every word is a prop, and the counted ones are functions given the counts for plural rules and formatted in the page's language; the row follows the reading direction.
+- Localization: every word is a prop, and the counted ones are functions given the counts for plural rules and formatted in the reader's format; the row follows the reading direction.
 - Performance: no cost while idle, and one lookup in the list when a page lands; the caller decides the page size.
 - Analytics: `onmore` hears every request, a retry included.
 - Failure: `problem` shows its reason as an alert and turns the button into a retry; nothing retries on its own.

@@ -7,7 +7,7 @@
 </script>
 
 <script lang="ts">
-  import { pageLocale } from '../../lib/internal/locale.js';
+  import { formatLocale } from '../../lib/internal/locale.js';
   import { DayHeading, dayKey } from '#lib';
   import Example from '../kit/Example.svelte';
   import Specimen from '../kit/Specimen.svelte';
@@ -45,7 +45,7 @@
   }
 
   const clock = (at: Date) =>
-    at.toLocaleTimeString(pageLocale(), { hour: '2-digit', minute: '2-digit' });
+    at.toLocaleTimeString(formatLocale(), { hour: '2-digit', minute: '2-digit' });
 </script>
 
 <Example
