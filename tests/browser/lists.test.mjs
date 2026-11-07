@@ -928,41 +928,6 @@ suite('lists', together, () => {
   suite('settings and save bars', { concurrency: 1 }, () => {
     const opened = sharedPage();
 
-    // First, while focus comes from nowhere: a bar hands focus back to the control it came from,
-    // even one in another pane.
-    test(
-      'L-16 and L-89 a conflicted save offers Reload, which replaces the draft with Undo',
-      long,
-      async () => {
-        const page = await opened();
-        const specimen = page.locator('#save-bar .specimen', { hasText: 'Conflict' }).first();
-        const field = specimen.getByLabel('Default branch');
-        const bar = specimen.locator('.sui-save-bar');
-        await field.scrollIntoViewIfNeeded();
-        // Saving again would be refused, so Reload is the only way on.
-        assert.deepEqual(await bar.getByRole('button').allInnerTexts(), ['Reload']);
-
-        const reload = bar.getByRole('button', { name: 'Reload' });
-        await reload.click();
-        const busy = bar.getByRole('button', { name: 'Reloading…' });
-        assert.equal(await busy.getAttribute('aria-busy'), 'true');
-        const holder = await busy.evaluate((node) =>
-          node === document.activeElement
-            ? null
-            : `${document.activeElement?.tagName} ${document.activeElement?.textContent?.trim().slice(0, 40)}`
-        );
-        assert.equal(holder, null, `the busy Reload let go of focus to ${holder}`);
-        await bar.getByText('The latest version replaced your changes').waitFor({ timeout: 4000 });
-        assert.equal(await field.inputValue(), 'trunk', 'the reload did not bring the latest');
-        assert.match(await focused(page), /^button Undo/, 'focus did not move to Undo');
-
-        await page.keyboard.press('Enter');
-        assert.equal(await field.inputValue(), 'develop', 'Undo did not put the draft back');
-        assert.deepEqual(await bar.getByRole('button').allInnerTexts(), ['Discard', 'Save']);
-        assert.match(await focused(page), /^button Save/, 'focus did not land on Save');
-      }
-    );
-
     test('S2 a setting list says when it loads, fails or has nothing to set', long, async () => {
       const page = await opened();
       const states = page.locator('#setting-list .example', { hasText: 'List states' });
@@ -1091,6 +1056,41 @@ suite('lists', together, () => {
         'focus did not return to the field'
       );
     });
+
+    // After the discard test, so focus comes into this bar from another pane's field, which is
+    // no way back: Undo hands focus to Save.
+    test(
+      'L-16 and L-89 a conflicted save offers Reload, which replaces the draft with Undo',
+      long,
+      async () => {
+        const page = await opened();
+        const specimen = page.locator('#save-bar .specimen', { hasText: 'Conflict' }).first();
+        const field = specimen.getByLabel('Default branch');
+        const bar = specimen.locator('.sui-save-bar');
+        await field.scrollIntoViewIfNeeded();
+        // Saving again would be refused, so Reload is the only way on.
+        assert.deepEqual(await bar.getByRole('button').allInnerTexts(), ['Reload']);
+
+        const reload = bar.getByRole('button', { name: 'Reload' });
+        await reload.click();
+        const busy = bar.getByRole('button', { name: 'Reloading…' });
+        assert.equal(await busy.getAttribute('aria-busy'), 'true');
+        const holder = await busy.evaluate((node) =>
+          node === document.activeElement
+            ? null
+            : `${document.activeElement?.tagName} ${document.activeElement?.textContent?.trim().slice(0, 40)}`
+        );
+        assert.equal(holder, null, `the busy Reload let go of focus to ${holder}`);
+        await bar.getByText('The latest version replaced your changes').waitFor({ timeout: 4000 });
+        assert.equal(await field.inputValue(), 'trunk', 'the reload did not bring the latest');
+        assert.match(await focused(page), /^button Undo/, 'focus did not move to Undo');
+
+        await page.keyboard.press('Enter');
+        assert.equal(await field.inputValue(), 'develop', 'Undo did not put the draft back');
+        assert.deepEqual(await bar.getByRole('button').allInnerTexts(), ['Discard', 'Save']);
+        assert.match(await focused(page), /^button Save/, 'focus did not land on Save');
+      }
+    );
 
     // Last, because it leaves its menu open.
     test(
