@@ -138,6 +138,12 @@ It has no label of its own. Put it in a `Field` through the `control` snippet, o
     -webkit-text-fill-color: currentColor;
   }
 
+  /* An invalid field keeps its danger edge when it is off too, over the well's quiet frame,
+     since it still says it is wrong (L-9). */
+  .sui-textarea[aria-invalid='true']:disabled {
+    border-color: var(--sui-danger);
+  }
+
   .sui-textarea:is(:disabled, .held) {
     cursor: default;
     resize: none;

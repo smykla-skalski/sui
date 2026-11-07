@@ -146,6 +146,12 @@ tabular figures.
     border-color: var(--sui-danger);
   }
 
+  /* An invalid field keeps its danger edge when it is off or only reads too, over the well's
+     quiet frame, since it still says it is wrong (L-9). */
+  .sui-text-input[aria-invalid='true']:is(:disabled, [readonly]):not(.bare) {
+    border-color: var(--sui-danger);
+  }
+
   .sui-text-input:disabled {
     cursor: default;
   }
