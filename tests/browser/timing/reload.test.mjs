@@ -163,12 +163,14 @@ test('the server’s render draws every part as the page draws it once it runs',
         scrollTo({ top: el.getBoundingClientRect().top + scrollY, behavior: 'instant' })
       );
       await page.evaluate(async () => {
-        await new Promise((done) => requestAnimationFrame(() => requestAnimationFrame(done)));
+        const frames = () =>
+          new Promise((done) => requestAnimationFrame(() => requestAnimationFrame(done)));
+        await frames();
+        // Both pages draw every part as it rests. A paused spinner still turns on the
+        // compositor in Chrome, where the page reports it at its start, so it is cancelled.
         for (const animation of document.getAnimations())
-          if (animation.timeline instanceof DocumentTimeline) {
-            animation.pause();
-            animation.currentTime = 0;
-          }
+          if (animation.timeline instanceof DocumentTimeline) animation.cancel();
+        await frames();
       });
       const box = await section.evaluate((el) => {
         const r = el.getBoundingClientRect();
