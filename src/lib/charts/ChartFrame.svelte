@@ -171,7 +171,13 @@
     <p>{description}</p>
   </figcaption>
   {#if note}
-    <p class="sui-chart-note" aria-hidden="true">{note}</p>
+    <p
+      class="sui-chart-note"
+      data-status={status === 'refreshing' || status === 'stale' ? status : undefined}
+      aria-hidden="true"
+    >
+      {note}
+    </p>
   {/if}
   <VisuallyHidden role="status">{settled ? (note ?? '') : ''}</VisuallyHidden>
   {#if status === 'failed'}
@@ -275,6 +281,14 @@
 
   .sui-chart-note {
     color: var(--sui-text-muted);
+  }
+
+  /* Values on their way or out of date are a state of the whole plot, so its note reads a step
+     over a count of missing points. The marks keep their full strength, as a dimmed plot would
+     drop them under the 3:1 they hold (L-66). */
+  .sui-chart-note[data-status] {
+    color: var(--sui-text-secondary);
+    font-weight: var(--sui-weight-medium);
   }
 
   /* The plot stands in a band of `--sui-chart-ground`, transparent unless a theme tints it.
