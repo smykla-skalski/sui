@@ -69,6 +69,8 @@
   title="Required"
   note="A required field says so in a word beside its label, and an optional one says nothing"
   layout="grid"
+  --specimen-min="21rem"
+  --specimen-max="22rem"
 >
   <Specimen label="Required" code="required">
     <Field
@@ -89,6 +91,8 @@
   title="Any Control"
   note="The control snippet takes the id, the description ids and the invalid flag"
   layout="grid"
+  --specimen-min="21rem"
+  --specimen-max="22rem"
 >
   <Specimen label="Textarea" code="control">
     <Field label="Reason" hint="Shown in the audit log next to the change">
@@ -109,6 +113,8 @@
   title="Label beside a Checkbox"
   note="A row layout centres the label and a form’s checkbox on one line, and the label names the box"
   layout="grid"
+  --specimen-min="21rem"
+  --specimen-max="22rem"
 >
   <Specimen label="Checked" code={'layout="row"'}>
     <Field label="Sync on every push" layout="row" hint="Runs within a minute of each push">
@@ -134,6 +140,8 @@
   title="Refused Send"
   note="A refused send shows each field’s own error in place of the browser’s bubble and focuses the first field to fix"
   layout="grid"
+  --specimen-min="21rem"
+  --specimen-max="22rem"
 >
   <Specimen label={sent} code="required pattern validationMessage">
     <form class="form" onsubmit={send}>
@@ -165,6 +173,8 @@
   title="In Context"
   note="Fields stack 16 px apart, and a focused field’s own border becomes the ring, so nothing around it clips it"
   layout="grid"
+  --specimen-min="21rem"
+  --specimen-max="22rem"
   ground="canvas"
 >
   <Section title="New Repository" level={4}>
