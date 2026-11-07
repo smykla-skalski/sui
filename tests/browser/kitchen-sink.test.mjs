@@ -197,18 +197,18 @@ suite('the kitchen sink', together, () => {
     );
 
   // A theme changes only colours, and L-71 holds that it moves nothing, so the dark audit runs
-  // only at 375px and 1440px, on the page the light audit read.
+  // only at the narrowest and the widest width, on the page the light audit read. 320px is the
+  // reflow floor and lays a phone out as 375px does, so it stands for every phone.
   suite('the law audit', together, () => {
     for (const [width, themes] of /** @type {const} */ ([
-      [320, ['light']],
-      [375, ['light', 'dark']],
+      [320, ['light', 'dark']],
       [768, ['light']],
       [1440, ['light', 'dark']]
     ]))
       test(
         `the law audit finds nothing at ${width}px in ${themes.join(' and ')}` +
           (width === 1440 ? ', and L-69 every glyph is centred in its 24-unit box' : ''),
-        width === 375 || width === 1440 ? {} : long,
+        width === 768 ? long : {},
         async () => {
           const page = await open(width, themes[0]);
           try {
@@ -645,7 +645,7 @@ suite('the kitchen sink', together, () => {
     // through a logo's clear middle. The running page draws each the same.
     const failed = ['Alan Turing', 'Radia Perlman'];
     const loaded = ['Grace Hopper', 'Platform Team'];
-    const address = new URL(allSections(url));
+    const address = new URL('avatar/', url);
     /** @type {string[]} */
     const problems = [];
     // Linux blends an antialiased edge pixel a level or two apart once the layers under it
@@ -696,10 +696,15 @@ suite('the kitchen sink', together, () => {
             .locator('#avatar .example', { hasText: /^(Pictures|Fallbacks)/ })
             .getByRole('img', { name, exact: true });
           await avatar.scrollIntoViewIfNeeded();
+          // A lazy picture may not have started when decode() settles on a busy page, so it
+          // loads now and the shot waits for it to fail or draw, and for the faces.
           for (const img of await avatar.locator('img').all())
-            await img.evaluate((node) =>
-              /** @type {HTMLImageElement} */ (node).decode().catch(() => {})
-            );
+            await img.evaluate(async (node) => {
+              const picture = /** @type {HTMLImageElement} */ (node);
+              picture.loading = 'eager';
+              await picture.decode().catch(() => {});
+              await document.fonts.ready;
+            });
           drawn[name] = await avatar.screenshot();
           if (javaScriptEnabled) {
             if (!(await alike(page, drawn[name], before[name])))
@@ -721,6 +726,7 @@ suite('the kitchen sink', together, () => {
             '- img "Alan Turing"'
           );
           // Beside the name an avatar is not heard at all, so the name is read once.
+          await page.goto(new URL('timeline/', url).href);
           for (const event of await page.locator('#timeline li:has(.sui-avatar)').all())
             assert.doesNotMatch(await event.ariaSnapshot(), /\bimg\b/);
         }
@@ -1007,28 +1013,26 @@ suite('the kitchen sink', together, () => {
     return problems;
   };
 
-  // At 1440px the same pages then take the second press, and last the layer motion check, which
-  // slows every layer's motion for the rest of the page's life.
+  // A layer fits a phone's viewport only with the least room, so where each opens is read at
+  // 375px. The second press and the motion check read the wide layout, the motion check last,
+  // because it slows every layer's motion for the rest of the page's life.
   for (const width of [375, 1440])
     test(
-      `L-48 and L-52 every menu, listbox and select opens in place at ${width}px` +
-        (width === 1440
-          ? ', a second press closes each layer, and L-97 each layer grows from its trigger'
-          : ''),
+      width === 375
+        ? 'L-48 and L-52 every menu, listbox and select opens in place at 375px'
+        : 'a second press closes each layer at 1440px, and L-97 each layer grows from its trigger',
       long,
       async () => {
         const problems = await sweep(
           () => open(width, 'light'),
           WORKERS,
-          async (page, worker) => [
-            ...(await opensInPlace(page, worker)),
-            ...(width === 1440
-              ? [
+          async (page, worker) =>
+            width === 375
+              ? await opensInPlace(page, worker)
+              : [
                   ...(await secondPressCloses(page, worker)),
                   ...(await growsFromTrigger(page, worker))
                 ]
-              : [])
-          ]
         );
         assert.deepEqual(problems, []);
       }
@@ -1298,8 +1302,8 @@ suite('the kitchen sink', together, () => {
                   element.getBoundingClientRect().width > 0
               );
               // Controls of one kind share their press styles, so one of each kind is pressed: the
-              // kind is what those styles select on, its tag, classes, tone, state and role, and,
-              // for a bare control, the component it stands in.
+              // kind is what those styles select on, its tag, classes, tone, state and role, and
+              // the component it stands in, whose variant can restyle it, as a bare select does.
               const classes = (/** @type {Element} */ element) =>
                 [...element.classList].filter((name) => !name.startsWith('svelte-')).sort();
               const own = (/** @type {Element} */ element) =>
@@ -1319,9 +1323,7 @@ suite('the kitchen sink', together, () => {
               /** @type {Map<string, number>} */
               const kinds = new Map();
               for (const element of found) {
-                const host = classes(element).some((name) => name.startsWith('sui-'))
-                  ? null
-                  : element.parentElement?.closest('[class*="sui-"]');
+                const host = element.parentElement?.closest('[class*="sui-"]');
                 const kind = `${own(element)} in ${host ? own(host) : ''}`;
                 if (!kinds.has(kind)) kinds.set(kind, kinds.size);
                 element.setAttribute('data-press-probe', String(kinds.get(kind)));
