@@ -30,10 +30,9 @@
     class?: HTMLAttributes<HTMLSpanElement>['class'];
   } & Omit<HTMLAttributes<HTMLSpanElement>, 'children'> = $props();
 
-  // The handle goes in as a private-use mark, so the words joined around it stay open to a
+  // The joined words are parted wherever the login stands in them, so the words stay open to a
   // page translator while the login itself is heard as written, as it is drawn.
-  const HANDLE = '\uE000';
-  const heard = $derived(handle ? handleName(name, HANDLE).split(HANDLE) : []);
+  const heard = $derived(handle ? handleName(name, handle).split(handle) : []);
 </script>
 
 <!--

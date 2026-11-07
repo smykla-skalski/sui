@@ -278,6 +278,17 @@ suite('words', together, () => {
         });
         put(lib.DurationInput, 'DurationInput', { label: 'Delay', value: 5, min: 60, max: 86_400 });
         put(lib.IdentityRow, 'IdentityRow', { name: 'Ada Lovelace', handle: '@ada' }, 'button');
+        put(
+          lib.IdentityRow,
+          'IdentityHandle',
+          {
+            name: 'Ada Lovelace',
+            handle: '@ada',
+            handleName: (/** @type {string} */ name, /** @type {string} */ handle) =>
+              handle.startsWith('@') ? `${name} on GitHub, ${handle}` : name
+          },
+          'button'
+        );
         put(lib.PageHeader, 'FactLine', { title: 'Repository', eyebrow: ['main', '84 files'] });
         flushSync();
       });
@@ -338,18 +349,24 @@ suite('words', together, () => {
         await page.locator('[data-words="ListToolbar"] .sui-list-toolbar-chosen').textContent(),
         'UpdatedⓒOpen'
       );
-      // The login is heard as it is drawn, so a page translator leaves it in both copies.
-      assert.deepEqual(
-        await page
-          .locator('[data-words="IdentityRow"] .sui-visually-hidden')
-          .evaluate((heard) =>
-            [...heard.querySelectorAll('*')].map((node) => [
-              node.textContent,
-              /** @type {HTMLElement} */ (node).translate
-            ])
-          ),
-        [['@ada', false]]
-      );
+      // The login is heard as it is drawn, so a page translator leaves it in both copies, and
+      // the caller's words are given the login itself.
+      for (const [row, said] of [
+        ['IdentityRow', 'Ada Lovelaceⓒ@ada'],
+        ['IdentityHandle', 'Ada Lovelace on GitHub, @ada']
+      ])
+        assert.deepEqual(
+          await page
+            .locator(`[data-words="${row}"] .sui-visually-hidden`)
+            .evaluate((heard) => [
+              heard.textContent,
+              [...heard.querySelectorAll('*')].map((node) => [
+                node.textContent,
+                /** @type {HTMLElement} */ (node).translate
+              ])
+            ]),
+          [said, [['@ada', false]]]
+        );
 
       // What a reader hears of a fact line, text by text: the dot's alternative text is the
       // comma mark, and the dot itself is never read. The eyebrow draws its words in capitals,
