@@ -859,3 +859,12 @@ test('L-94 a form error summary, which reads at body size, takes the 16px mark 8
     'the summary links leave the line its mark and gap take'
   );
 });
+
+test('L-39 a stop-quiet edge stays the danger hue on a dark ground', () => {
+  assert.equal(light['--sui-stop-quiet-edge-mix'], '45%');
+  assert.equal(dark['--sui-stop-quiet-edge-mix'], '60%', 'a dark ground turns a 45% edge pink');
+  assert.match(
+    styles['src/lib/components/Button.svelte'],
+    /\[data-tone='stop-quiet'\] \{\s*border-color: color-mix\(\s*in srgb,\s*var\(--sui-danger\) var\(--sui-stop-quiet-edge-mix\),\s*var\(--sui-control-border\)\s*\);/
+  );
+});

@@ -344,6 +344,7 @@
 
   --sui-chart-ink: var(--sui-brand-action);
   --sui-chart-grid: color-mix(in srgb, var(--sui-border-subtle) 35%, var(--sui-border-control));
+  --sui-stop-quiet-edge-mix: 45%;
   /* The plot's band keeps the ground of whatever holds it, so a chart and its card read as one
      unit. A marker's ring is the card's surface, opaque, so it parts a marker from a line it
      crosses. */
@@ -623,6 +624,7 @@
   --sui-surface-code: var(--sui-primitive-dark-code);
   --sui-border-subtle: rgb(255 255 255 / 11%);
   --sui-chart-grid: color-mix(in srgb, var(--sui-border-subtle) 35%, var(--sui-border-control));
+  --sui-stop-quiet-edge-mix: 60%;
   --sui-chart-ground: transparent;
   --sui-chart-ring: var(--sui-surface-base);
   --sui-border-control: rgb(255 255 255 / 20%);
@@ -813,6 +815,7 @@
     --sui-surface-code: var(--sui-primitive-dark-code);
     --sui-border-subtle: rgb(255 255 255 / 11%);
     --sui-chart-grid: color-mix(in srgb, var(--sui-border-subtle) 35%, var(--sui-border-control));
+    --sui-stop-quiet-edge-mix: 60%;
     --sui-chart-ground: transparent;
     --sui-chart-ring: var(--sui-surface-base);
     --sui-border-control: rgb(255 255 255 / 20%);

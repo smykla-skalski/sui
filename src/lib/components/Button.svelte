@@ -336,7 +336,11 @@ start.
   }
 
   .sui-button[data-tone='stop-quiet'] {
-    border-color: color-mix(in srgb, var(--sui-danger) 45%, var(--sui-control-border));
+    border-color: color-mix(
+      in srgb,
+      var(--sui-danger) var(--sui-stop-quiet-edge-mix),
+      var(--sui-control-border)
+    );
     color: var(--sui-danger);
   }
 
