@@ -699,6 +699,32 @@ export function sieve<T>(points: T[], at: (point: T) => [number, number], cell: 
   });
 }
 
+/**
+ * The steps a heatmap splits its values into, each holding the values at or past its lower edge
+ * and short of the next. Whole numbers name each step by the whole numbers it holds, so no two
+ * steps share an end (12–15, 16–19), once each step is at least one wide.
+ */
+export function heatSteps(
+  values: number[],
+  steps: number
+): { step: (value: number) => number; ranges: [number, number][] } {
+  const [low, high] = extent(values);
+  const size = (high - low) / steps;
+  const edges = Array.from({ length: steps - 1 }, (_, index) => low + (index + 1) * size);
+  const whole = [low, high, ...values].every(Number.isInteger) && size >= 1;
+  return {
+    step: (value) => edges.filter((edge) => value >= edge).length,
+    ranges: Array.from({ length: steps }, (_, index) =>
+      whole
+        ? [
+            index === 0 ? low : Math.ceil(edges[index - 1]),
+            index === steps - 1 ? high : Math.ceil(edges[index]) - 1
+          ]
+        : [low + index * size, low + (index + 1) * size]
+    )
+  };
+}
+
 export function extent(values: number[], includeZero = false): [number, number] {
   let minimum = Infinity;
   let maximum = -Infinity;

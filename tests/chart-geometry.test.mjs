@@ -7,6 +7,7 @@ import {
   chartMarker,
   extent,
   fraction,
+  heatSteps,
   heatmapLayout,
   inkSpan,
   markerPath,
@@ -443,4 +444,43 @@ test('column names wider than a cell keep half a rem between them', () => {
     at(0)(heatmapLayout({ measure, rows: ['Morning'], columns: ['Mon', 'Tue'] }).size),
     52
   );
+});
+
+test('heat steps hold every value once, and whole numbers name steps that share no end', () => {
+  // Edges between whole numbers, and edges on them.
+  /** @type {[number[], [number, number][]][]} */
+  const cases = [
+    [
+      [12, 19, 24, 20, 31],
+      [
+        [12, 15],
+        [16, 19],
+        [20, 23],
+        [24, 27],
+        [28, 31]
+      ]
+    ],
+    [
+      [0, 10],
+      [
+        [0, 1],
+        [2, 3],
+        [4, 5],
+        [6, 7],
+        [8, 10]
+      ]
+    ]
+  ];
+  for (const [counts, want] of cases) {
+    const { step, ranges } = heatSteps(counts, 5);
+    assert.deepEqual(ranges, want);
+    for (let count = Math.min(...counts); count <= Math.max(...counts); count++) {
+      const [from, to] = ranges[step(count)];
+      assert.ok(from <= count && count <= to, `${count} falls in step ${step(count)}`);
+    }
+  }
+  // Steps under one wide, or values with fractions, keep their exact edges.
+  assert.deepEqual(heatSteps([1, 3], 5).ranges[1], [1.4, 1.8]);
+  assert.deepEqual(heatSteps([0, 2.5, 10], 5).ranges[1], [2, 4]);
+  assert.equal(heatSteps([0, 2.5, 10], 5).step(2.5), 1);
 });

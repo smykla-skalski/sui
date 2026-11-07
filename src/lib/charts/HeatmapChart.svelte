@@ -7,7 +7,7 @@
     centred,
     css,
     em,
-    extent,
+    heatSteps,
     heatmapLayout,
     minus,
     plus,
@@ -56,8 +56,11 @@
   let lookup = $derived(
     new Map(cells.map((cell) => [`${cell.row}\u0000${cell.column}`, cell.value]))
   );
-  let domain = $derived(
-    extent(rows.flatMap((row) => columns.map((column) => value(row, column) ?? NaN)))
+  let steps = $derived(
+    heatSteps(
+      rows.flatMap((row) => columns.flatMap((column) => value(row, column) ?? [])),
+      STEPS
+    )
   );
   let empty = $derived(!rows.some((row) => columns.some((column) => value(row, column) !== null)));
   let missing = $derived(
@@ -67,13 +70,9 @@
     )
   );
   let legend = $derived(
-    Array.from({ length: STEPS }, (_, step) => {
-      const size = (domain[1] - domain[0]) / STEPS;
-      return rangeLabel(
-        formatValue(domain[0] + step * size),
-        formatValue(domain[0] + (step + 1) * size)
-      );
-    })
+    steps.ranges.map(([from, to]) =>
+      from === to ? formatValue(from) : rangeLabel(formatValue(from), formatValue(to))
+    )
   );
 
   function value(row: string, column: string): number | null {
@@ -99,20 +98,16 @@
 
   /** A place for the `translate` property. */
   const at = (across: Length, below: Length) => `${css(across)} ${css(below)}`;
-
-  function step(cellValue: number): number {
-    const fraction = (cellValue - domain[0]) / (domain[1] - domain[0]);
-    return Math.min(STEPS - 1, Math.max(0, Math.floor(fraction * STEPS)));
-  }
 </script>
 
 <!--
 @component
 A matrix of numbers, where a stronger colour means a higher value. Colour is never the only
 carrier: every cell prints its value, a legend under the matrix names the range each of the
-five colour steps covers, and a cell with no value is drawn with a dashed edge and a dash,
-named in the legend and the table. Cells keep their size, so the matrix is as wide as its
-columns and scrolls sideways in a narrower container.
+five colour steps covers, in whole numbers when every value is one (12–15, 16–19), and a cell
+with no value is drawn with a dashed edge and a dash, named in the legend and the table. Cells
+keep their size, so the matrix is as wide as its columns and scrolls sideways in a narrower
+container.
 
 - Semantics: a `figure` named by its title, a heading at `level` (3 by default), with the matrix as one `role="img"`, a legend list and a disclosure holding a table of every cell.
 - Content: row and column names, cells with a number or `null`, and a formatter; a title and a one-sentence description are required.
@@ -191,11 +186,11 @@ columns and scrolls sideways in a narrower container.
               style:width={css(cell)}
               style:height={css(cell)}
               rx="5"
-              class="cell step-{step(cellValue)}"
+              class="cell step-{steps.step(cellValue)}"
               data-labelled><title>{row}{mark('comma')}{column}{mark('colon')}{words}</title></rect
             >
             <text
-              class="value step-{step(cellValue)}"
+              class="value step-{steps.step(cellValue)}"
               text-anchor="middle"
               style:translate={at(cx, centred(measure(words, false, true), cy))}>{words}</text
             >
