@@ -473,7 +473,7 @@ test('L-35 every error line is set at 500, a step over its hint', () => {
   );
 });
 
-test('L-40 a disabled control draws at the disabled opacity', () => {
+test('L-40 a disabled control draws at the disabled opacity, 0.6', () => {
   /** @type {string[]} */
   const found = [];
   for (const [path, css] of Object.entries(styles))
@@ -483,6 +483,7 @@ test('L-40 a disabled control draws at the disabled opacity', () => {
           if (property === 'opacity' && /^0?\.\d+$/.test(value))
             found.push(`${path}: ${selector.trim()} { opacity: ${value} }`);
   assert.deepEqual(found, []);
+  assert.equal(tokenMap(stripComments(palette))['--sui-disabled-opacity'], '0.6');
 });
 
 test('L-43 a mark is as wide as what it says', () => {

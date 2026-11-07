@@ -510,7 +510,7 @@
   --sui-breakpoint-detail: 56rem;
 
   --sui-field-target-min: max(24px, round(1.5rem, 1px));
-  --sui-disabled-opacity: 0.5;
+  --sui-disabled-opacity: 0.6;
   --sui-control-inset: 2px;
 
   /* Icon tiers in rem, rounded to the pixel: 10 to 18px at the default text size, and they grow
