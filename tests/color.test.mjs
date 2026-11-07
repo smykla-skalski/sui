@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import test from 'node:test';
-import { contrast, deltaE2000, lab, over } from '../src/routes/audit/color.ts';
+import { apca, contrast, deltaE2000, lab, over } from '../src/routes/audit/color.ts';
 
 // Reference pairs from Sharma, Wu and Dalal (2005), the published CIEDE2000 test data.
 /** @type {[[number, number, number], [number, number, number], number][]} */
@@ -13,6 +13,40 @@ const pairs = [
   [[60.2574, -34.0099, 36.2677], [60.4626, -34.1751, 39.4387], 1.2644],
   [[22.7233, 20.0904, -46.694], [23.0331, 14.973, -42.5619], 2.0373]
 ];
+
+// Text, ground and Lc, the sign dropped. The first eight are APCA-W3 0.1.9's published values in
+// both polarities, a near-black pair among them. The last three fall under its 0.0005 luminance
+// step or its 0.1 clip, so they read 0.
+/** @type {[string, string, number][]} */
+const lightness = [
+  ['#888', '#fff', 63.056469930209424],
+  ['#fff', '#888', 68.54146436644962],
+  ['#000', '#aaa', 58.146262578561334],
+  ['#aaa', '#000', 56.24113336839742],
+  ['#123', '#def', 91.66830811481631],
+  ['#def', '#123', 93.06770049484275],
+  ['#123', '#444', 8.32326136957393],
+  ['#444', '#123', 7.526878460278154],
+  ['#444', '#454545', 0],
+  ['#444', '#555', 0],
+  ['#000', '#111', 0]
+];
+
+test('APCA matches the published reference values in both polarities', () => {
+  const rgba = (/** @type {string} */ hex) => {
+    const [r, g, b] = (
+      hex.length === 4
+        ? [...hex.slice(1)].map((digit) => digit + digit)
+        : (hex.slice(1).match(/../g) ?? [])
+    ).map((pair) => parseInt(pair, 16) / 255);
+    return { r, g, b, a: 1 };
+  };
+  for (const [text, ground, expected] of lightness)
+    assert.ok(
+      Math.abs(apca(rgba(text), rgba(ground)) - expected) < 1e-9,
+      `${text} on ${ground}: ${apca(rgba(text), rgba(ground))}, not ${expected}`
+    );
+});
 
 test('CIEDE2000 matches the published reference pairs', () => {
   for (const [first, second, expected] of pairs)
