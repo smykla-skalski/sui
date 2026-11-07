@@ -90,6 +90,7 @@ it a bounded width anywhere else.
     display: block;
     min-inline-size: 0;
     overflow-x: clip;
+    padding-block: var(--sui-block-snap-room);
     text-box: trim-both cap alphabetic;
     text-overflow: ellipsis;
     white-space: nowrap;

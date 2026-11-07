@@ -168,6 +168,7 @@ its words on the title's edge.
     block-size: var(--sui-block-snap);
     min-inline-size: 0;
     overflow-wrap: break-word;
+    padding-block: var(--sui-block-snap-room);
     text-box: trim-both cap alphabetic;
     text-wrap: balance;
   }
@@ -263,6 +264,7 @@ its words on the title's edge.
     font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-row-copy-leading)
       var(--sui-sans);
     margin: 0;
+    padding-block: var(--sui-block-snap-room);
     text-box: trim-both cap alphabetic;
     text-wrap: pretty;
   }
@@ -285,11 +287,13 @@ its words on the title's edge.
   }
 
   :where(.sui-section-body) > :global(:where(p, ul, ol, dl, blockquote):first-child) {
+    padding-block-end: var(--sui-block-snap-spare-start);
     text-box: trim-start cap alphabetic;
   }
 
   :where(.sui-section-body)
     > :global(:where(p, ul, ol, dl, blockquote):where(:last-child, :has(+ .sui-section))) {
+    padding-block-end: var(--sui-block-snap-spare-end);
     text-box: trim-end cap alphabetic;
   }
 
@@ -297,6 +301,7 @@ its words on the title's edge.
     > :global(
       :where(p, ul, ol, dl, blockquote):first-child:where(:last-child, :has(+ .sui-section))
     ) {
+    padding-block-end: var(--sui-block-snap-spare);
     text-box: trim-both cap alphabetic;
   }
 </style>

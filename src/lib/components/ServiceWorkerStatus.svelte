@@ -297,6 +297,7 @@ dismisses it, and the return says "You are back online" for five seconds.
     block-size: var(--sui-block-snap);
     margin: 0;
     overflow-wrap: anywhere;
+    padding-block: var(--sui-block-snap-room);
     text-box: trim-both cap alphabetic;
   }
 

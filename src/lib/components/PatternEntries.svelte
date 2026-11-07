@@ -639,6 +639,7 @@ a saving pane around it holds it the same way.
     justify-self: stretch;
     margin: 0;
     overflow-wrap: anywhere;
+    padding-block: var(--sui-block-snap-room);
     text-box: trim-both cap alphabetic;
   }
 
@@ -663,6 +664,7 @@ a saving pane around it holds it the same way.
       var(--sui-sans);
     min-inline-size: 0;
     overflow-wrap: anywhere;
+    padding-block: var(--sui-block-snap-room);
     text-box: trim-both cap alphabetic;
   }
 

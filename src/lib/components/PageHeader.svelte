@@ -198,6 +198,7 @@ and the header owes only the difference.
       var(--sui-sans);
     letter-spacing: 0.07em;
     margin: 0;
+    padding-block: var(--sui-block-snap-room);
     text-box: trim-both cap alphabetic;
     text-transform: uppercase;
   }
@@ -211,6 +212,7 @@ and the header owes only the difference.
     letter-spacing: -0.015em;
     margin: 0;
     overflow-wrap: break-word;
+    padding-block: var(--sui-block-snap-room);
     text-box: trim-both cap alphabetic;
     text-wrap: balance;
   }
@@ -278,6 +280,7 @@ and the header owes only the difference.
       var(--sui-sans);
     margin: 0;
     max-inline-size: var(--sui-measure);
+    padding-block: var(--sui-block-snap-room);
     text-box: trim-both cap alphabetic;
     text-wrap: pretty;
   }

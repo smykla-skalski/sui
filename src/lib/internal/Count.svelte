@@ -36,6 +36,7 @@ centres on its line at whole pixels (L-95).
   .sui-count > span {
     align-content: center;
     block-size: var(--sui-block-snap-even);
+    padding-block: var(--sui-block-snap-room-even);
     text-box: trim-both cap alphabetic;
   }
 </style>

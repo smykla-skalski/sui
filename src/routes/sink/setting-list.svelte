@@ -319,6 +319,7 @@
     color: var(--sui-text-secondary);
     font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-leading-flat)
       var(--sui-sans);
+    padding-block-start: var(--sui-block-snap-spare-even);
     text-box: trim-both cap alphabetic;
   }
 

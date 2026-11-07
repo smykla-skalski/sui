@@ -33,9 +33,12 @@
   inherits: false;
 }
 
-/* Focus and a scroll into view stop clear of the held part and the fade. */
+/* Focus and a scroll into view stop clear of the held part and the fade. WebKit lets a
+   scroller with scroll padding widen the page by the width it scrolls, so the box contains its
+   paint, which clips what a scroller clips anyway. */
 .sui-scroll-edge {
   --sui-local-edge-fade: var(--sui-space-6);
+  contain: paint;
   scroll-padding-inline: calc(var(--sui-local-edge-hold, 0px) + var(--sui-local-edge-fade))
     var(--sui-local-edge-fade);
 }

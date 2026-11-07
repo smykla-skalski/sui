@@ -182,6 +182,7 @@ save keeps it. A busy dialog or a saving pane around it disables the radios whil
     font: var(--sui-weight-semibold) var(--sui-font-size-control) / var(--sui-row-copy-leading)
       var(--sui-sans);
     padding: 0;
+    padding-block: var(--sui-block-snap-room);
     text-box: trim-both cap alphabetic;
   }
 
@@ -334,6 +335,7 @@ save keeps it. A busy dialog or a saving pane around it disables the radios whil
     color: var(--sui-text-primary);
     font: var(--sui-weight-semibold) var(--sui-font-size-meta) / var(--sui-row-copy-leading)
       var(--sui-sans);
+    padding-block: var(--sui-block-snap-room-even);
     text-box: trim-both cap alphabetic;
     text-wrap: pretty;
   }
@@ -345,6 +347,7 @@ save keeps it. A busy dialog or a saving pane around it disables the radios whil
     font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-row-copy-leading)
       var(--sui-sans);
     grid-column: 1;
+    padding-block: var(--sui-block-snap-room);
     text-box: trim-both cap alphabetic;
     text-wrap: pretty;
   }
@@ -361,6 +364,7 @@ save keeps it. A busy dialog or a saving pane around it disables the radios whil
     margin: 0;
     min-inline-size: 0;
     overflow-wrap: anywhere;
+    padding-block: var(--sui-block-snap-room);
     text-box: trim-both cap alphabetic;
   }
 

@@ -97,6 +97,7 @@ live specimens, not a surface of the design, so it may hold cards and dialogs (L
     font: var(--sui-weight-semibold) var(--sui-font-size-dialog-title) / var(--sui-leading-title)
       var(--sui-sans);
     margin: 0;
+    padding-block: var(--sui-block-snap-room);
     text-box: trim-both cap alphabetic;
   }
 
@@ -107,6 +108,7 @@ live specimens, not a surface of the design, so it may hold cards and dialogs (L
     font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-row-copy-leading)
       var(--sui-sans);
     margin: 0;
+    padding-block: var(--sui-block-snap-room);
     text-box: trim-both cap alphabetic;
     text-wrap: pretty;
   }

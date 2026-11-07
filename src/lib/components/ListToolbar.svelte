@@ -356,6 +356,7 @@ button. Without `tools` there is no button and the filter never folds.
       var(--sui-sans);
     min-inline-size: 0;
     overflow-wrap: anywhere;
+    padding-block: var(--sui-block-snap-room-even);
     text-box: trim-both cap alphabetic;
   }
 
@@ -453,6 +454,7 @@ button. Without `tools` there is no button and the filter never folds.
       var(--sui-sans);
     letter-spacing: 0.07em;
     margin: 0;
+    padding-block: var(--sui-block-snap-room-even);
     text-box: trim-both cap alphabetic;
     text-transform: uppercase;
   }

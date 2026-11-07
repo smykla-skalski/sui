@@ -314,6 +314,7 @@ never clips it.
     align-content: center;
     block-size: var(--sui-block-snap);
     grid-area: 1 / 1;
+    padding-block: var(--sui-block-snap-room);
     text-box: trim-both cap alphabetic;
   }
 

@@ -410,6 +410,7 @@ following a row closes the drawer.
       var(--sui-sans);
     letter-spacing: 0.07em;
     margin: 0;
+    padding-block: var(--sui-block-snap-room);
     text-box: trim-both cap alphabetic;
     text-transform: uppercase;
   }
@@ -421,6 +422,7 @@ following a row closes the drawer.
       var(--sui-sans);
     margin: 0;
     overflow-wrap: anywhere;
+    padding-block: var(--sui-block-snap-room);
     text-box: trim-both cap alphabetic;
   }
 
@@ -462,6 +464,7 @@ following a row closes the drawer.
       var(--sui-sans);
     letter-spacing: 0.07em;
     margin: var(--sui-space-5) var(--sui-space-3) var(--sui-space-2);
+    padding-block: var(--sui-block-snap-room);
     text-box: trim-both cap alphabetic;
     text-transform: uppercase;
   }
@@ -637,6 +640,7 @@ following a row closes the drawer.
     flex: 1;
     min-inline-size: 0;
     overflow-wrap: anywhere;
+    padding-block: var(--sui-block-snap-room-even);
     text-box: trim-both cap alphabetic;
   }
 
@@ -738,6 +742,7 @@ following a row closes the drawer.
       align-content: center;
       block-size: var(--sui-block-snap);
       display: block;
+      padding-block: var(--sui-block-snap-room);
       text-box: trim-both cap alphabetic;
     }
 

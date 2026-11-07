@@ -434,6 +434,7 @@ section's ground between them (L-91).
       var(--sui-sans);
     margin: 0;
     overflow-wrap: anywhere;
+    padding-block: var(--sui-block-snap-room);
     text-box: trim-both cap alphabetic;
   }
 
@@ -445,9 +446,11 @@ section's ground between them (L-91).
     cursor: pointer;
   }
 
+  /* The name's words are snapped lines of their own, so the name takes no room for one. */
   .sui-setting-name {
     color: var(--sui-text-primary);
     font-weight: var(--sui-weight-semibold);
+    padding-block: 0;
     text-wrap: balance;
   }
 
@@ -484,6 +487,7 @@ section's ground between them (L-91).
   .sui-setting-words > span {
     align-content: center;
     block-size: var(--sui-block-snap);
+    padding-block: var(--sui-block-snap-room);
     text-box: trim-both cap alphabetic;
   }
 

@@ -203,6 +203,7 @@ cells stack their secondary text.
   }
 
   .sui-disclosure-label {
+    padding-block: var(--sui-block-snap-room-even);
     text-wrap: balance;
     align-content: center;
     block-size: var(--sui-block-snap-even);
@@ -219,6 +220,7 @@ cells stack their secondary text.
       var(--sui-sans);
     min-inline-size: 0;
     overflow-wrap: break-word;
+    padding-block: var(--sui-block-snap-room-even);
     text-box: trim-both cap alphabetic;
   }
 
@@ -239,12 +241,14 @@ cells stack their secondary text.
   :where(.sui-disclosure-body) > :global(:where(p, ul, ol, dl, blockquote):first-child) {
     align-content: start;
     block-size: var(--sui-block-snap);
+    padding-block-end: var(--sui-block-snap-spare-start);
     text-box: trim-start cap alphabetic;
   }
 
   :where(.sui-disclosure-body) > :global(:where(p, ul, ol, dl, blockquote):last-child) {
     align-content: end;
     block-size: var(--sui-block-snap);
+    padding-block-start: var(--sui-block-snap-spare-end);
     text-box: trim-end cap alphabetic;
   }
 
@@ -254,6 +258,7 @@ cells stack their secondary text.
   :where(.sui-disclosure-body) > :global(:where(p, ul, ol, dl, blockquote):only-child) {
     align-content: unsafe end;
     block-size: var(--sui-block-snap-near);
+    padding-block: var(--sui-block-snap-room);
     text-box: trim-both cap alphabetic;
   }
 

@@ -330,6 +330,7 @@
       var(--sui-sans);
     margin: 0;
     margin-block-end: calc(round(calc(1lh - 1cap), 1px) + var(--sui-row-copy-gap));
+    padding-block: var(--sui-block-snap-room);
     text-box: trim-both cap alphabetic;
   }
 
@@ -346,6 +347,7 @@
     font: var(--sui-weight-medium) var(--sui-font-size-body) / var(--sui-row-copy-leading)
       var(--sui-sans);
     overflow-wrap: anywhere;
+    padding-block: var(--sui-block-snap-room);
     text-box: trim-both cap alphabetic;
   }
 </style>

@@ -248,6 +248,7 @@ only and a `LoadMore` after it lands on the first new one. Page it in the order 
     block-size: var(--sui-block-snap);
     margin: 0;
     min-inline-size: 0;
+    padding-block-start: var(--sui-block-snap-spare);
     text-box: trim-both cap alphabetic;
   }
 
@@ -311,6 +312,7 @@ only and a `LoadMore` after it lands on the first new one. Page it in the order 
   .sui-timeline-action {
     align-content: center;
     block-size: var(--sui-block-snap-even);
+    padding-block: var(--sui-block-snap-room-even);
     text-box: trim-both cap alphabetic;
     white-space: nowrap;
   }
@@ -338,6 +340,7 @@ only and a `LoadMore` after it lands on the first new one. Page it in the order 
     font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-row-copy-leading)
       var(--sui-sans);
     margin: 0;
+    padding-block: var(--sui-block-snap-room);
     text-box: trim-both cap alphabetic;
   }
 
@@ -346,6 +349,11 @@ only and a `LoadMore` after it lands on the first new one. Page it in the order 
   .sui-timeline:has(> .placeholder) {
     overflow: clip;
     position: relative;
+  }
+
+  /* A bar is already a whole cap tall, so its line takes no room for one. */
+  .placeholder > div {
+    padding-block-start: 0;
   }
 
   .bar {

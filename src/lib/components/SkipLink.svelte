@@ -63,6 +63,8 @@ A link that is always visible is `Link`, and words that are never shown are `Vis
     inset-inline-start: max(var(--sui-space-4), var(--sui-safe-start));
     max-inline-size: calc(100vw - 2 * var(--sui-space-4));
     padding: var(--sui-space-2) var(--sui-space-3);
+    padding-block: calc(var(--sui-space-2) + var(--sui-block-snap-half, 0px))
+      calc(var(--sui-space-2) + var(--sui-block-snap-spare, 0px) - var(--sui-block-snap-half, 0px));
     /* The words run from their cap line to their baseline, so the padding is the room above
        and under them alike (L-102). */
     text-box: trim-both cap alphabetic;

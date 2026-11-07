@@ -1,7 +1,7 @@
 <script module lang="ts">
   export const section = {
     title: 'Save Bar',
-    lead: "The one place a pane's unsaved work is saved or thrown away. A setting that applies at once needs no bar.",
+    lead: 'The one place a pane’s unsaved work is saved or thrown away. A setting that applies at once needs no bar.',
     components: ['SaveBar']
   };
 </script>

@@ -282,6 +282,7 @@ changes a tile's height. Under forced colors the plate is `Highlight` and its wo
     hyphens: auto;
     max-inline-size: 100%;
     overflow-wrap: break-word;
+    padding-block: var(--sui-block-snap-room);
     text-align: center;
     text-box: trim-both cap alphabetic;
     text-wrap: balance;
@@ -313,6 +314,7 @@ changes a tile's height. Under forced colors the plate is `Highlight` and its wo
   .sui-rail-badge > span {
     align-content: center;
     block-size: var(--sui-block-snap);
+    padding-block: var(--sui-block-snap-room);
     text-box: trim-both cap alphabetic;
   }
 

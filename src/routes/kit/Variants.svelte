@@ -166,6 +166,7 @@ wide matrix on a wider stage scrolls inside it with the row values held, as a da
     font: var(--sui-weight-semibold) var(--sui-font-size-micro) / var(--sui-leading-micro)
       var(--sui-sans);
     letter-spacing: 0.06em;
+    padding-block: var(--sui-block-snap-room);
     text-box: trim-both cap alphabetic;
     text-transform: uppercase;
   }
@@ -184,6 +185,7 @@ wide matrix on a wider stage scrolls inside it with the row values held, as a da
     font: var(--sui-weight-regular) var(--sui-font-size-micro) / var(--sui-leading-micro)
       var(--sui-mono);
     font-variant-numeric: tabular-nums;
+    padding-block: var(--sui-block-snap-room);
     text-box: trim-both cap alphabetic;
   }
 

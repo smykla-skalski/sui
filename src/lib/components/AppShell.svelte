@@ -369,6 +369,7 @@ viewport. `landmark="none"` keeps the content from claiming the page's one `main
   .sui-shell-menu-label {
     align-content: center;
     block-size: var(--sui-block-snap);
+    padding-block: var(--sui-block-snap-room);
     text-box: trim-both cap alphabetic;
   }
 
@@ -402,6 +403,7 @@ viewport. `landmark="none"` keeps the content from claiming the page's one `main
        where the page's language allows, else at the edge. */
     hyphens: auto;
     overflow-wrap: break-word;
+    padding-block: var(--sui-block-snap-room);
     text-box: trim-both cap alphabetic;
     text-wrap: balance;
   }

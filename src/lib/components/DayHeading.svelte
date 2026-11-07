@@ -101,6 +101,7 @@ one local day never opens two headings because its entries cross midnight in UTC
       var(--sui-sans);
     margin: 0;
     overflow-wrap: anywhere;
+    padding-block: var(--sui-block-snap-room);
     text-box: trim-both cap alphabetic;
   }
 </style>

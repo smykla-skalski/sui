@@ -329,6 +329,8 @@ or removed empty line. Two empty sides say `emptyLabel`.
       var(--sui-sans);
     margin: 0;
     padding: var(--sui-space-3);
+    padding-block: calc(var(--sui-space-3) + var(--sui-block-snap-half, 0px))
+      calc(var(--sui-space-3) + var(--sui-block-snap-spare, 0px) - var(--sui-block-snap-half, 0px));
     text-box: trim-both cap alphabetic;
   }
 

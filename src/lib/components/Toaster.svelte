@@ -466,6 +466,7 @@ A `danger` toast reports a failure and stays too.
       var(--sui-sans);
     margin: 0;
     overflow-wrap: anywhere;
+    padding-block: var(--sui-block-snap-room);
     text-box: trim-both cap alphabetic;
   }
 

@@ -522,9 +522,15 @@ assistive technology, because a native picker cannot be held open.
         block-size: var(--sui-block-snap-even);
         min-inline-size: 0;
         overflow-x: clip;
+        padding-block: var(--sui-block-snap-room-even);
         text-box: trim-both cap alphabetic;
         text-overflow: ellipsis;
         white-space: nowrap;
+      }
+
+      /* An empty choice draws no line, so it takes no room for one. */
+      .sui-select-value:empty {
+        padding-block: 0;
       }
 
       .sui-select-value .sui-select-check,
@@ -652,6 +658,7 @@ assistive technology, because a native picker cannot be held open.
     flex: 1 1 auto;
     min-inline-size: 0;
     overflow-wrap: anywhere;
+    padding-block: var(--sui-block-snap-room-even);
     text-box: trim-both cap alphabetic;
   }
 

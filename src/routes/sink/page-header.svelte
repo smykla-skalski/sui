@@ -210,6 +210,8 @@
       var(--sui-sans);
     margin: 0;
     padding: 0 var(--sui-rhythm-pane-gutter) var(--sui-space-6);
+    padding-block: var(--sui-block-snap-half, 0px)
+      calc(var(--sui-space-6) + var(--sui-block-snap-spare, 0px) - var(--sui-block-snap-half, 0px));
     text-box: trim-both cap alphabetic;
   }
 </style>

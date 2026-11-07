@@ -414,6 +414,7 @@ returns focus there too. Labels wrap rather than being cut short.
     align-content: center;
     block-size: var(--sui-block-snap-even);
     overflow-wrap: anywhere;
+    padding-block: var(--sui-block-snap-room-even);
     text-box: trim-both cap alphabetic;
   }
 
@@ -424,6 +425,7 @@ returns focus there too. Labels wrap rather than being cut short.
     font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-leading-meta)
       var(--sui-sans);
     overflow-wrap: anywhere;
+    padding-block: var(--sui-block-snap-room);
     text-box: trim-both cap alphabetic;
   }
 

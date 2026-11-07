@@ -146,6 +146,7 @@ outcome tones always come with their word, so color never carries the state alon
     block-size: var(--sui-block-snap-even);
     min-inline-size: 0;
     overflow-wrap: anywhere;
+    padding-block: var(--sui-block-snap-room-even);
     text-box: trim-both cap alphabetic;
   }
 

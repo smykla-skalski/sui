@@ -341,6 +341,7 @@ row in place of the hairlines, for a table wide enough that the eye can lose its
       var(--sui-sans);
     margin: 0;
     overflow-wrap: anywhere;
+    padding-block: var(--sui-block-snap-room);
     text-box: trim-both cap alphabetic;
   }
 
@@ -359,6 +360,7 @@ row in place of the hairlines, for a table wide enough that the eye can lose its
       var(--sui-sans);
     min-inline-size: 0;
     overflow-wrap: anywhere;
+    padding-block: var(--sui-block-snap-room);
     text-box: trim-both cap alphabetic;
   }
 
@@ -428,6 +430,7 @@ row in place of the hairlines, for a table wide enough that the eye can lose its
     align-content: center;
     block-size: var(--sui-block-snap);
     display: block;
+    padding-block: var(--sui-block-snap-room);
     text-box: trim-both cap alphabetic;
   }
 
@@ -480,6 +483,7 @@ row in place of the hairlines, for a table wide enough that the eye can lose its
   .sort > span {
     align-content: center;
     block-size: var(--sui-block-snap-even);
+    padding-block: var(--sui-block-snap-room-even);
     text-box: trim-both cap alphabetic;
   }
 
@@ -726,6 +730,13 @@ row in place of the hairlines, for a table wide enough that the eye can lose its
      a little short of its heading, a little more or less on each row, as words do; a number's
      bar is short and sits at the end. The light is laid out on the rows, so only the bar's
      clip path, not its overflow, keeps it inside the bar. */
+  /* A placeholder's bar is a whole cap tall, and a value that holds a part of its own, such as
+     a pill, lands on whole pixels with it, so neither takes room for a line. */
+  .placeholder .value,
+  .value:has(> :global(*)) {
+    padding-block: 0;
+  }
+
   .placeholder .bar {
     background: var(--sui-placeholder);
     block-size: round(up, 1cap, 1px);

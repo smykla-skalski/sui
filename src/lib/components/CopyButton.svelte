@@ -248,6 +248,7 @@ in its corner. Beside a 34px field or in a toolbar it takes the control tier wit
     align-content: center;
     block-size: var(--sui-block-snap);
     grid-area: 1 / 1;
+    padding-block: var(--sui-block-snap-room);
     text-align: center;
     text-box: trim-both cap alphabetic;
   }

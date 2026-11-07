@@ -546,6 +546,7 @@ row gives them and fall under the copy on a narrow row.
     font-variant-numeric: tabular-nums;
     min-inline-size: 0;
     overflow-wrap: anywhere;
+    padding-block: var(--sui-block-snap-room-even);
     text-box: trim-both cap alphabetic;
   }
 
@@ -561,6 +562,7 @@ row gives them and fall under the copy on a narrow row.
     color: var(--sui-text-muted);
     flex: none;
     font-family: var(--sui-sans);
+    padding-block: var(--sui-block-snap-room-even);
     text-box: trim-both cap alphabetic;
   }
 
@@ -589,6 +591,7 @@ row gives them and fall under the copy on a narrow row.
       var(--sui-sans);
     margin: 0;
     overflow-wrap: anywhere;
+    padding-block: var(--sui-block-snap-room);
     text-box: trim-both cap alphabetic;
   }
 
@@ -600,6 +603,7 @@ row gives them and fall under the copy on a narrow row.
       var(--sui-sans);
     margin: 0;
     overflow-wrap: anywhere;
+    padding-block: var(--sui-block-snap-room);
     text-box: trim-both cap alphabetic;
   }
 

@@ -285,6 +285,8 @@ does, stays out of the accessibility tree. Any other tip describes the control t
        a scroller that Tab can enter. It is one short line that never scrolls. */
     overflow: visible;
     padding: var(--sui-space-2) var(--sui-space-3);
+    padding-block: calc(var(--sui-space-2) + var(--sui-block-snap-half, 0px))
+      calc(var(--sui-space-2) + var(--sui-block-snap-spare, 0px) - var(--sui-block-snap-half, 0px));
     /* The words run from their cap line to their baseline, so the padding is the room above
        and under them alike (L-102). */
     text-box: trim-both cap alphabetic;

@@ -177,6 +177,7 @@ start.
     margin-block: calc((var(--sui-local-button-line) - round(up, 1cap, 2px)) / 2);
     min-inline-size: 0;
     overflow-wrap: anywhere;
+    padding-block: var(--sui-block-snap-room-even);
     text-box: trim-both cap alphabetic;
     text-wrap: balance;
   }

@@ -164,6 +164,7 @@ eyebrow's place in a `PageHeader`.
     align-content: center;
     block-size: var(--sui-block-snap);
     overflow-wrap: anywhere;
+    padding-block: var(--sui-block-snap-room);
     text-box: trim-both cap alphabetic;
   }
 
@@ -180,6 +181,7 @@ eyebrow's place in a `PageHeader`.
     color: var(--sui-text-muted);
     font: var(--sui-weight-regular) var(--sui-font-size-compact) / var(--sui-leading-flat)
       var(--sui-sans);
+    padding-block: var(--sui-block-snap-room);
     text-box: trim-both cap alphabetic;
   }
 

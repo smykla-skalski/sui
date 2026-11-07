@@ -479,6 +479,7 @@ itself, so the choice shows from the first frame.
       var(--sui-sans);
     min-inline-size: 0;
     overflow-wrap: anywhere;
+    padding-block: var(--sui-block-snap-room);
     text-box: trim-both cap alphabetic;
   }
 
@@ -896,6 +897,7 @@ itself, so the choice shows from the first frame.
   .sui-segmented-word {
     align-content: center;
     block-size: var(--sui-block-snap);
+    padding-block: var(--sui-block-snap-room);
     text-box: trim-both cap alphabetic;
   }
 

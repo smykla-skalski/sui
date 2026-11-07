@@ -574,6 +574,7 @@ Name it with a `<label>` or `aria-label`, as any field.
     block-size: var(--sui-block-snap-even);
     min-inline-size: 0;
     overflow-wrap: anywhere;
+    padding-block: var(--sui-block-snap-room-even);
     text-box: trim-both cap alphabetic;
   }
 

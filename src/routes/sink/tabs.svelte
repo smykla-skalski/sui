@@ -1,7 +1,7 @@
 <script module lang="ts">
   export const section = {
     title: 'Tabs',
-    lead: "Links between the pages of one place, such as a repository's overview, runs and settings. Views that swap inside one page are a SegmentedControl.",
+    lead: 'Links between the pages of one place, such as a repository’s overview, runs and settings. Views that swap inside one page are a SegmentedControl.',
     components: ['Tabs']
   };
 </script>

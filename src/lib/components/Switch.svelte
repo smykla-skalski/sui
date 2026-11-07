@@ -175,6 +175,7 @@ take, under the switch and to a screen reader, while the owner sets `checked` ba
     font: var(--sui-weight-regular) var(--sui-font-size-control) / var(--sui-row-copy-leading)
       var(--sui-sans);
     min-inline-size: 0;
+    padding-block: var(--sui-block-snap-room-even);
     text-box: trim-both cap alphabetic;
   }
 
@@ -361,6 +362,7 @@ take, under the switch and to a screen reader, while the owner sets `checked` ba
     block-size: var(--sui-block-snap);
     min-inline-size: 0;
     overflow-wrap: anywhere;
+    padding-block: var(--sui-block-snap-room);
     text-box: trim-both cap alphabetic;
   }
 

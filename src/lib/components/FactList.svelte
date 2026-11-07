@@ -145,6 +145,7 @@ apart, and the action under the value.
   .inline .sui-fact-list-label,
   .inline .sui-fact-list-value {
     align-content: start;
+    padding-block: 0 var(--sui-block-snap-spare-even);
   }
 
   /* A fact that holds a target, a link or a time that shows its instant, is as tall as the
@@ -196,6 +197,16 @@ apart, and the action under the value.
     padding-block: var(--sui-row-pad-default);
   }
 
+  /* Without calc-size() a fact cannot round the offset between two faces' baselines up to the
+     pixel, so its label and value meet at their tops instead, a fifth of a pixel off one
+     baseline at most. */
+  @supports not (block-size: calc-size(auto, size)) {
+    .inline > .sui-fact-list-fact,
+    .rows > .sui-fact-list-fact {
+      align-items: start;
+    }
+  }
+
   .rows > .sui-fact-list-fact:not(:last-child) {
     border-block-end: var(--sui-row-hairline) solid var(--sui-border-divider);
   }
@@ -218,6 +229,7 @@ apart, and the action under the value.
       var(--sui-sans);
     margin: 0;
     min-inline-size: 0;
+    padding-block: var(--sui-block-snap-room-even);
     text-box: trim-both cap alphabetic;
   }
 
@@ -246,6 +258,7 @@ apart, and the action under the value.
       var(--sui-sans);
     justify-self: end;
     margin: 0;
+    padding-block: var(--sui-block-snap-room-even);
     text-box: trim-both cap alphabetic;
   }
 
@@ -255,6 +268,7 @@ apart, and the action under the value.
   .sui-fact-list-value:has(> :global(:is(.sui-pill, .sui-chip))) {
     align-items: center;
     display: flex;
+    padding-block: 0;
   }
 
   .sui-fact-list-value.missing {

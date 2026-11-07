@@ -285,6 +285,7 @@ title, such as "Danger Zone", and holds the acts that cannot be undone, each a `
     align-content: center;
     block-size: var(--sui-block-snap);
     min-inline-size: 0;
+    padding-block: var(--sui-block-snap-room);
     text-box: trim-both cap alphabetic;
   }
 
@@ -425,6 +426,7 @@ title, such as "Danger Zone", and holds the acts that cannot be undone, each a `
     font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-row-copy-leading)
       var(--sui-sans);
     margin: 0;
+    padding-block: var(--sui-block-snap-room);
     text-box: trim-both cap alphabetic;
     text-wrap: pretty;
   }
@@ -441,17 +443,20 @@ title, such as "Danger Zone", and holds the acts that cannot be undone, each a `
      under its baseline. */
   :where(.sui-card-main > :first-child) :global(:where(p, ul, ol, dl, blockquote):first-child) {
     block-size: var(--sui-block-snap);
+    padding-block-end: var(--sui-block-snap-spare-start);
     text-box: trim-start cap alphabetic;
   }
 
   :where(.sui-card-main > :last-child) :global(:where(p, ul, ol, dl, blockquote):last-child) {
     align-content: end;
     block-size: var(--sui-block-snap);
+    padding-block-start: var(--sui-block-snap-spare-end);
     text-box: trim-end cap alphabetic;
   }
 
   :where(.sui-card-main > :only-child) :global(:where(p, ul, ol, dl, blockquote):only-child) {
     align-content: center;
+    padding-block: var(--sui-block-snap-room);
     text-box: trim-both cap alphabetic;
   }
 

@@ -276,6 +276,7 @@ under reduced motion. Use it only where the shape of what is coming is already k
   .words > span {
     align-content: center;
     block-size: var(--sui-block-snap);
+    padding-block: var(--sui-block-snap-room);
     text-box: trim-both cap alphabetic;
   }
 

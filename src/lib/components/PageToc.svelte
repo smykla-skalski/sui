@@ -391,6 +391,7 @@ phone drawer, and following an entry closes the drawer before focus moves.
     font: var(--sui-weight-semibold) var(--sui-font-size-compact) / var(--sui-leading-compact)
       var(--sui-sans);
     margin: var(--sui-space-5) 0 var(--sui-space-2);
+    padding-block: var(--sui-block-snap-room);
     text-box: trim-both cap alphabetic;
   }
 
@@ -402,6 +403,7 @@ phone drawer, and following an entry closes the drawer before focus moves.
       var(--sui-sans);
     letter-spacing: 0.06em;
     margin: 0 0 var(--sui-space-2);
+    padding-block: var(--sui-block-snap-room);
     text-box: trim-both cap alphabetic;
     text-transform: uppercase;
   }
@@ -452,6 +454,7 @@ phone drawer, and following an entry closes the drawer before focus moves.
   .sui-page-toc-label {
     align-content: center;
     block-size: var(--sui-block-snap);
+    padding-block: var(--sui-block-snap-room);
     text-box: trim-both cap alphabetic;
   }
 

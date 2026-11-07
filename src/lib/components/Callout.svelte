@@ -268,6 +268,7 @@ and the unsaved ink, so no neutral block sits on a state (L-92).
     max-inline-size: var(--sui-measure);
     min-inline-size: 0;
     overflow-wrap: anywhere;
+    padding-block: var(--sui-block-snap-room);
     text-box: trim-both cap alphabetic;
   }
 

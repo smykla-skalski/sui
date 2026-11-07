@@ -95,6 +95,7 @@ grown hit areas never meet, and a note stands one copy gap under its link.
     block-size: var(--sui-block-snap-even);
     min-inline-size: 0;
     overflow-wrap: anywhere;
+    padding-block: var(--sui-block-snap-room-even);
     text-box: trim-both cap alphabetic;
   }
 

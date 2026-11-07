@@ -306,7 +306,13 @@ style declaration.
     block-size: var(--sui-block-snap-even);
     min-inline-size: 0;
     overflow-wrap: anywhere;
-    padding-block: calc((var(--sui-local-chip) - round(up, 1cap, 2px)) / 2);
+    padding-block: calc(
+        (var(--sui-local-chip) - round(up, 1cap, 2px)) / 2 + var(--sui-block-snap-half-even, 0px)
+      )
+      calc(
+        (var(--sui-local-chip) - round(up, 1cap, 2px)) / 2 + var(--sui-block-snap-spare-even, 0px) -
+          var(--sui-block-snap-half-even, 0px)
+      );
     text-box: trim-both cap alphabetic;
   }
 

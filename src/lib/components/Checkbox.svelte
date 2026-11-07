@@ -285,6 +285,8 @@ way; a busy dialog or a saving pane around it disables it while the work runs.
     min-inline-size: 0;
   }
 
+  /* The copy rounds to an even height, which a browser without calc-size() cannot, so there
+     each of its lines takes the room to an even height itself. */
   .sui-checkbox-label {
     align-content: center;
     block-size: var(--sui-block-snap);
@@ -293,6 +295,7 @@ way; a busy dialog or a saving pane around it disables it while the work runs.
       var(--sui-sans);
     min-inline-size: 0;
     overflow-wrap: anywhere;
+    padding-block: var(--sui-block-snap-room-even);
     text-box: trim-both cap alphabetic;
   }
 
@@ -302,6 +305,7 @@ way; a busy dialog or a saving pane around it disables it while the work runs.
     color: var(--sui-text-secondary);
     font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-row-copy-leading)
       var(--sui-sans);
+    padding-block: var(--sui-block-snap-room-even);
     text-box: trim-both cap alphabetic;
   }
 

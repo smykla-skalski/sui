@@ -399,8 +399,8 @@
   --sui-title-copy-gap: 0.75rem;
 
   /* A trimmed line is as tall as its cap height, which is rarely a whole pixel; this rounds the
-     block up so every edge under it lands on the pixel grid and draws crisp (L-95). Browsers
-     without calc-size() ignore it and keep the fractional height. */
+     block up so every edge under it lands on the pixel grid and draws crisp (L-95). Without
+     calc-size() the spare is padding (`--sui-block-snap-room`). */
   --sui-block-snap: calc-size(auto, round(up, size, 1px));
 
   /* A box centred in an even height (every control height, target and floor here is even)
@@ -410,6 +410,7 @@
   /* A trimmed line whose ink must stand within half a pixel of both of its box's edges rounds
      to the nearest pixel instead, so its ink overhangs or falls short by half a pixel at most. */
   --sui-block-snap-near: calc-size(auto, round(size, 1px));
+
   --sui-row-copy-leading: round(calc(1cap + var(--sui-row-copy-gap)), 1px);
 
   --sui-font-size-micro: 0.6875rem;
@@ -1037,6 +1038,33 @@
     --sui-font-size-input: 1rem;
     --sui-leading-input: 1.5rem;
   }
+}
+
+/* Without calc-size() a trimmed line's spare fraction, rounded up on the 1/64px it lies on, is
+   padding. A line trimmed at one end keeps the rest of its line box, from the face's ascent and
+   descent (1.038em, 0.222em). */
+@supports not (block-size: calc-size(auto, size)) {
+  :root {
+    --sui-block-snap-spare: calc(round(up, 1cap, 1px) - round(down, 1cap, 0.015625px));
+    --sui-block-snap-spare-even: calc(round(up, 1cap, 2px) - round(down, 1cap, 0.015625px));
+    --sui-block-snap-half: round(down, calc(var(--sui-block-snap-spare) / 2), 0.015625px);
+    --sui-block-snap-half-even: round(down, calc(var(--sui-block-snap-spare-even) / 2), 0.015625px);
+    --sui-block-snap-spare-start: calc(
+      round(up, 1cap + 0.5lh - 0.408em, 1px) - round(down, 1cap + 0.5lh - 0.408em, 0.015625px)
+    );
+    --sui-block-snap-spare-end: calc(
+      round(up, 0.5lh + 0.408em, 1px) - round(down, 0.5lh + 0.408em, 0.015625px)
+    );
+    --sui-block-snap-room: var(--sui-block-snap-half)
+      calc(var(--sui-block-snap-spare) - var(--sui-block-snap-half));
+    --sui-block-snap-room-even: var(--sui-block-snap-half-even)
+      calc(var(--sui-block-snap-spare-even) - var(--sui-block-snap-half-even));
+  }
+}
+
+/* WebKit leaves a link's cursor at `auto` (L-100). */
+:where(a[href]) {
+  cursor: pointer;
 }
 
 /* A tap acts at once: no control waits out the double-tap zoom gesture, and the browser's grey
