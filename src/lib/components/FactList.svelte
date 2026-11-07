@@ -87,9 +87,9 @@ apart, and the action under the value.
       <dt class="sui-fact-list-label">{fact.label}</dt>
       <dd
         class="sui-fact-list-value"
-        class:mono={fact.mono}
+        class:mono={fact.mono && !absent(fact)}
         class:missing={absent(fact)}
-        translate={fact.mono ? 'no' : undefined}
+        translate={fact.mono && !absent(fact) ? 'no' : undefined}
       >
         {#if absent(fact)}
           {missingLabel}

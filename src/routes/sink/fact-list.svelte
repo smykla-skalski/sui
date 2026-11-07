@@ -88,7 +88,8 @@
     <FactList
       facts={[
         { label: 'Branch', value: 'main', mono: true },
-        { label: 'Owner', value: null }
+        { label: 'Owner', value: null },
+        { label: 'Commit', value: null, mono: true }
       ]}
     />
   </Specimen>

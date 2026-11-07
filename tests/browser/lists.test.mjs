@@ -836,6 +836,28 @@ suite('lists', together, () => {
       }
     );
 
+    test('a missing fact says so in words a translator may change, a technical one too', async () => {
+      const page = await opened();
+      const missing = await page
+        .locator('#fact-list .sui-fact-list-value.missing')
+        .evaluateAll((values) =>
+          values.map((value) => ({
+            text: value.textContent?.trim(),
+            translatable: /** @type {HTMLElement} */ (value).translate,
+            face: getComputedStyle(value).fontFamily
+          }))
+        );
+      const mono = await page.evaluate(() =>
+        getComputedStyle(document.documentElement).getPropertyValue('--sui-mono').trim()
+      );
+      assert.ok(missing.length >= 2, `${missing.length} missing facts on the page`);
+      for (const { text, translatable, face } of missing)
+        assert.ok(
+          translatable && face !== mono,
+          `"${text}" in ${face}, translatable ${translatable}`
+        );
+    });
+
     test(
       'fact rows line their values up past the longest label and stack each pair under 25rem of their own width',
       long,
