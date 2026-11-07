@@ -343,7 +343,7 @@ take, under the switch and to a screen reader, while the owner sets `checked` ba
     color: var(--sui-danger);
     column-gap: var(--sui-space-1);
     display: grid;
-    font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-row-copy-leading)
+    font: var(--sui-weight-medium) var(--sui-font-size-meta) / var(--sui-row-copy-leading)
       var(--sui-sans);
     grid-template-columns: auto minmax(0, 1fr);
   }

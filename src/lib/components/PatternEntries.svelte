@@ -619,7 +619,7 @@ a saving pane around it holds it the same way.
     block-size: var(--sui-block-snap);
     color: var(--sui-danger);
     contain: inline-size;
-    font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-row-copy-leading)
+    font: var(--sui-weight-medium) var(--sui-font-size-meta) / var(--sui-row-copy-leading)
       var(--sui-sans);
     justify-self: stretch;
     margin: 0;

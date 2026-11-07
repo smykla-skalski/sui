@@ -259,7 +259,7 @@ for a press of the way back.
     align-items: start;
     color: var(--sui-danger);
     display: flex;
-    font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-row-copy-leading)
+    font: var(--sui-weight-medium) var(--sui-font-size-meta) / var(--sui-row-copy-leading)
       var(--sui-sans);
     gap: var(--sui-space-1);
     min-inline-size: 0;

@@ -218,7 +218,7 @@ box. Choosing one lifts it. A caller's `error` always wins.
     color: var(--sui-danger);
     column-gap: var(--sui-space-1);
     display: grid;
-    font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-row-copy-leading)
+    font: var(--sui-weight-medium) var(--sui-font-size-meta) / var(--sui-row-copy-leading)
       var(--sui-sans);
     grid-template-columns: auto minmax(0, 1fr);
     margin: 0;

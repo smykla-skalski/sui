@@ -588,6 +588,14 @@ dialog, so they are never inert under it.
       max-inline-size: calc(100vw - 2 * var(--sui-space-4));
     }
 
+    /* On a phone the actions stack at the full width in their reading order, so each is a
+       whole thumb's target and none sits alone at the end (Material, Apple sheets). */
+    .sui-modal-foot {
+      --sui-local-button-span: 100%;
+      align-items: stretch;
+      flex-direction: column;
+    }
+
     .sui-modal[data-size='inspector']:not(.preview) {
       inline-size: 100%;
       max-block-size: none;

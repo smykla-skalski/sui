@@ -214,10 +214,17 @@ test('L-66 a chart grid draws at the hairline that frames a surface', () => {
   assert.deepEqual(new Set(grids), new Set(['var(--sui-border-subtle)']));
 });
 
-test('L-107 a scroll edge fades over 24px', () => {
+test('L-107 a scroll edge fades over 24px, and over 12px on a phone', () => {
   const sheet = stripComments(read('src/lib/internal/scroll-edge.css'));
-  const fade = /--sui-local-edge-fade:\s*var\((--sui-space-\d+)\)/.exec(sheet)?.[1] ?? '';
-  assert.equal(pixels(tokenMap(stripComments(palette))[fade]), 24);
+  const space = tokenMap(stripComments(palette));
+  const fades = [...sheet.matchAll(/--sui-local-edge-fade:\s*var\((--sui-space-\d+)\)/g)].map(
+    ([, token]) => pixels(space[token])
+  );
+  assert.deepEqual(fades, [24, 12]);
+  assert.match(
+    sheet,
+    /@media \(max-width: 29\.9375rem\) \{\s*\.sui-scroll-edge \{\s*--sui-local-edge-fade/
+  );
 });
 
 test('L-59 a state panel pads 24px and stands its action 20px under its words', () => {
@@ -343,6 +350,28 @@ test('L-35 a field label and every group name wear one ink at one weight', () =>
   }
 });
 
+test('L-35 every error line is set at 500, a step over its hint', () => {
+  const lines = Object.entries(styles).flatMap(([path, css]) =>
+    [...stripComments(css).matchAll(/\{([^{}]*)\}/g)]
+      .map(([, rule]) => rule)
+      .filter((rule) => /\bcolor: var\(--sui-danger\);/.test(rule))
+      .flatMap((rule) => {
+        const weight = /\bfont: var\(--sui-weight-(\w+)\) var\(--sui-font-size-meta\)/.exec(
+          rule
+        )?.[1];
+        return weight ? [`${path}: ${weight}`] : [];
+      })
+  );
+  assert.ok(
+    lines.length >= 10,
+    `only ${lines.length} error lines found, so nothing here is proved`
+  );
+  assert.deepEqual(
+    lines.filter((line) => !line.endsWith(': medium')),
+    []
+  );
+});
+
 test('L-40 a disabled control draws at the disabled opacity', () => {
   /** @type {string[]} */
   const found = [];
@@ -358,7 +387,12 @@ test('L-40 a disabled control draws at the disabled opacity', () => {
 test('L-43 a mark is as wide as what it says', () => {
   for (const name of ['Button', 'Chip', 'Pill', 'StatusPill', 'Link', 'Switch']) {
     const path = `src/lib/components/${name}.svelte`;
-    if (existsSync(path)) assert.match(styles[path], /(inline-size|width):\s*fit-content/, path);
+    if (existsSync(path))
+      assert.match(
+        styles[path],
+        /(inline-size|width):\s*(fit-content|var\(--sui-local-button-span, fit-content\))/,
+        path
+      );
   }
 });
 

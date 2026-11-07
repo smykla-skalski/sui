@@ -63,7 +63,7 @@ margins of its own; the form that holds it sets the gap above it.
 
 - Semantics: a `role="alert"` box with the message, and a list of links when it summarises `problems`.
 - Content: `message`, one sentence that says what happened, and `problems`, one short message per field in the order the fields stand.
-- States: absent while `message` is empty, a one-line refusal, and a summary with links; each draws a warning mark beside the message.
+- States: absent while `message` is empty, a one-line refusal, and a summary with links; each draws a warning mark beside the message, on a pale wash of the danger tint inside a light edge of the hue.
 - Keyboard: a summary takes focus, Tab walks its links, and Enter on a link focuses that field.
 - Pointer and touch: each link's target is 24px tall, and 44px on a phone or any touch screen.
 - Focus: a summary takes focus when it appears and again on each `attempt`; a link moves focus to its field.
@@ -106,11 +106,17 @@ margins of its own; the form that holds it sets the gap above it.
 {/key}
 
 <style>
+  /* A refusal of the whole form is a pale wash of the danger tint inside a light edge of the
+     hue, as an error panel is, so it owns the top of the form and its words keep their
+     contrast. */
   .sui-form-error {
+    background: color-mix(in srgb, var(--sui-danger-tint) 45%, var(--sui-surface-base));
+    border: var(--sui-stroke) solid color-mix(in srgb, var(--sui-danger) 30%, transparent);
     border-radius: var(--sui-radius-control);
     display: grid;
     gap: var(--sui-row-copy-gap);
     min-inline-size: 0;
+    padding: var(--sui-space-3) var(--sui-space-4);
   }
 
   .sui-form-error:focus-visible {
@@ -123,7 +129,7 @@ margins of its own; the form that holds it sets the gap above it.
     color: var(--sui-danger);
     column-gap: var(--sui-space-1);
     display: grid;
-    font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-row-copy-leading)
+    font: var(--sui-weight-medium) var(--sui-font-size-meta) / var(--sui-row-copy-leading)
       var(--sui-sans);
     grid-template-columns: auto minmax(0, 1fr);
     margin: 0;

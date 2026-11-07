@@ -40,6 +40,13 @@
     var(--sui-local-edge-fade);
 }
 
+/* A phone's box shows few values, so the fade is half as wide and the last one stays legible. */
+@media (max-width: 29.9375rem) {
+  .sui-scroll-edge {
+    --sui-local-edge-fade: var(--sui-space-3);
+  }
+}
+
 @supports (animation-timeline: scroll()) {
   .sui-scroll-edge {
     --sui-local-edge-side: to right;
