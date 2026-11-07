@@ -271,7 +271,7 @@ dialog, so they are never inert under it.
 - Keyboard: Tab stays inside, Escape closes after `beforeClose` unless a layer inside took it, and Enter belongs to the focused control.
 - Pointer and touch: the close button is a 34px target, 44px on a phone or touch screen, and a press outside closes the dialog as Escape does, after `beforeClose`, unless it is busy.
 - Focus: opens on an `[autofocus]` element in the body, else the body's first field, else an `[autofocus]` element in the footer, else the body's first control, then the footer's, then Close; a field it opens on that holds a value has its words chosen with their start in view; while busy it sits on the busy action, and a press on a disabled field leaves it there, then it returns to the field it came from; on close it returns to the opener, or to `returnFocus`, or to the nearest control left where the opener stood.
-- Responsive: its parts stand 24px from each other and from every edge, 16px under 48rem, where it fills the width less 8px each side; a body taller than the box scrolls under the footer behind a line, and on a short screen (30rem tall or less) the head, body and footer scroll as one so the footer never covers the fields.
+- Responsive: its parts stand 24px from each other and from every edge, 16px under 48rem, where it fills the width less 8px each side; a subtle line always parts the body from the footer, a body taller than the box scrolls under it, and on a short screen (30rem tall or less) the head, body and footer scroll as one so the footer never covers the fields.
 - Accessibility: the title names it and the description describes it, `error` is announced as an alert, and the scrim follows `--sui-scrim`.
 - Localization: `closeLabel` names the close button, every other word is the caller's, and the inspector docks and slides in from the inline end, mirrored in a right-to-left page.
 - Performance: the box enters with one 220ms fade and short slide on transform and opacity, removed under reduced motion; opening scans nothing outside the box, and closing searches for a control to take focus only when the opener is gone; a closed dialog keeps no listeners. A field outside any form costs its first focus a scan of every field outside a form on the page, which Chrome's autofill makes, so the form above also keeps the first open short.
@@ -487,38 +487,14 @@ dialog, so they are never inert under it.
     position: relative;
   }
 
-  /* A body taller than the box is cut where the error and the actions begin, and a line marks
-     the cut. A body that fits is never cut, so it draws no line, as Primer and Material do.
-     Where scroll timelines are missing, the line always shows. */
-  .sui-modal-body + .sui-modal-error::before {
-    border-block-start: var(--sui-stroke) solid var(--sui-border-divider);
+  /* A line always parts the task from its answer, so the actions read as one band whether the
+     body fits or scrolls under them. */
+  .sui-modal-body + .sui-modal-error:has(+ .sui-modal-foot)::before {
+    border-block-start: var(--sui-stroke) solid var(--sui-border-subtle);
     content: '';
     inset-block-start: 0;
     inset-inline: 0;
     position: absolute;
-  }
-
-  @supports (animation-timeline: scroll()) {
-    .sui-modal {
-      timeline-scope: --sui-modal-body;
-    }
-
-    .sui-modal-body {
-      scroll-timeline: --sui-modal-body block;
-    }
-
-    .sui-modal-body + .sui-modal-error::before {
-      animation: sui-modal-cut var(--sui-ease-linear) both;
-      animation-timeline: --sui-modal-body;
-      opacity: 0;
-    }
-  }
-
-  @keyframes sui-modal-cut {
-    from,
-    to {
-      opacity: 1;
-    }
   }
 
   .sui-modal-error-line {
