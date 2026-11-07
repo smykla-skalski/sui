@@ -398,7 +398,7 @@ suite('lists', together, () => {
     );
 
     test(
-      'AC4 a toolbar says its count again after a pick that leaves the count as it was',
+      'AC4 a toolbar says nothing until something changes, and its count again after a pick that leaves the count as it was',
       long,
       async () => {
         const page = await opened();
@@ -407,10 +407,22 @@ suite('lists', together, () => {
         });
         const counted = bar.last();
         await counted.scrollIntoViewIfNeeded();
-        await counted.getByRole('searchbox').fill('sui');
-        await page.waitForURL((address) => address.searchParams.get('q') === 'sui', brief);
         // The bar's own status, not the one its search field keeps for its matches.
         const status = counted.locator(':scope > [role="status"]');
+        // A count comes 600ms after a change, so a page that loaded a second ago says none.
+        assert.equal(
+          await settles(
+            page.waitForFunction(
+              (element) => element?.textContent?.trim() !== '',
+              await status.elementHandle(),
+              { timeout: 1000 }
+            )
+          ),
+          false,
+          'the bar said its count with nothing changed'
+        );
+        await counted.getByRole('searchbox').fill('sui');
+        await page.waitForURL((address) => address.searchParams.get('q') === 'sui', brief);
         await settles(
           page.waitForFunction(
             (element) => element?.textContent?.trim() === '1 result',

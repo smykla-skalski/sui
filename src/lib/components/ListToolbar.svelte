@@ -88,23 +88,24 @@
   const described = $derived(list([current, ...tools.map(labelOf)]));
 
   /* Said a moment after the last keystroke or pick, so a reader typing hears one count, and
-     never on first paint, when nothing has changed yet. A pick that leaves the count as it was
-     is said again, so the reader knows the list answered; `onsearch` hears only a new query. */
+     never on first paint, when nothing has changed yet, nor when the holder renders again with
+     the same values. A pick that leaves the count as it was is said again, so the reader knows
+     the list answered; `onsearch` hears only a new query. */
   const PAUSE = 600;
   let said = $state('');
   let told = $state(0);
-  let primed = false;
+  let heard: string | undefined;
+  let timer: ReturnType<typeof setTimeout> | undefined;
   let searched = untrack(() => query);
   $effect(() => {
     const settled = query;
     const waiting = pending;
     const total = count;
-    void [current, chosen];
-    if (!primed) {
-      primed = true;
-      return;
-    }
-    const timer = setTimeout(() => {
+    const now = JSON.stringify([settled, waiting, total, current, chosen]);
+    if (now === (heard ??= now)) return;
+    heard = now;
+    clearTimeout(timer);
+    timer = setTimeout(() => {
       said = untrack(() =>
         waiting ? pendingLabel : total === undefined ? '' : countLabel(total, formatCount(total))
       );
@@ -113,8 +114,8 @@
       searched = settled;
       onsearch?.(settled);
     }, PAUSE);
-    return () => clearTimeout(timer);
   });
+  $effect(() => () => clearTimeout(timer));
 
   // The browser focuses the menu's `autofocus` control as it shows the menu, so a key pressed
   // right after the press already lands inside; `toggle` comes a task later, and on a busy page a
