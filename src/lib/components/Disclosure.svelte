@@ -241,15 +241,15 @@ cells stack their secondary text.
   :where(.sui-disclosure-body) > :global(:where(p, ul, ol, dl, blockquote):first-child) {
     align-content: start;
     block-size: var(--sui-block-snap);
-    padding-block-end: var(--sui-block-snap-spare-start);
-    text-box: trim-start cap alphabetic;
+    padding-block: var(--sui-block-snap-room-start);
+    text-box: var(--sui-block-snap-trim, trim-start cap alphabetic);
   }
 
   :where(.sui-disclosure-body) > :global(:where(p, ul, ol, dl, blockquote):last-child) {
     align-content: end;
     block-size: var(--sui-block-snap);
-    padding-block-start: var(--sui-block-snap-spare-end);
-    text-box: trim-end cap alphabetic;
+    padding-block: var(--sui-block-snap-room-end);
+    text-box: var(--sui-block-snap-trim, trim-end cap alphabetic);
   }
 
   /* An only block keeps its baseline on its box's end even when its ink overhangs, so its last

@@ -2034,6 +2034,10 @@ function plates(root: Document): Finding[] {
  */
 function settingResets(root: Document): Finding[] {
   const found: Finding[] = [];
+  // A row above the window that shrinks for a moment would scroll the page to keep the window
+  // still, which moves every row and wakes whatever follows the scroll.
+  const anchor = root.documentElement.style.overflowAnchor;
+  root.documentElement.style.overflowAnchor = 'none';
   for (const row of audited(root, '.sui-setting-row')) {
     const side = row.querySelector(':scope > .sui-setting-value');
     const controls = side?.querySelector(':scope > .sui-setting-control');
@@ -2048,10 +2052,15 @@ function settingResets(root: Document): Finding[] {
     const stacked = row.classList.contains('stacked');
     // The copy stands where it stands with no control beside it: taken out for a moment, the
     // controls and the reset must leave every line of the copy where it was. The copy keeps its
-    // width meanwhile, so it keeps its lines and only the controls' height could move it.
+    // width meanwhile, so it keeps its lines and only the controls' height could move it. Each
+    // line is read from the row's top at that moment, since a page scrolled to its end scrolls
+    // back as it shortens.
     const say = row.querySelector<HTMLElement>(':scope > .sui-setting-say');
     const lines = [...(say?.children ?? [])].filter(shown);
-    const at = () => lines.map((line) => line.getBoundingClientRect().top - box.top);
+    const at = () => {
+      const top = row.getBoundingClientRect().top;
+      return lines.map((line) => line.getBoundingClientRect().top - top);
+    };
     const placed = at();
     const parts = [...side.children] as HTMLElement[];
     const shows = parts.map((part) => part.style.display);
@@ -2104,6 +2113,7 @@ function settingResets(root: Document): Finding[] {
     if (taller > 0.5)
       found.push(finding('L-36', reset, `the reset makes its row ${round(taller)}px taller`));
   }
+  root.documentElement.style.overflowAnchor = anchor;
   return found;
 }
 

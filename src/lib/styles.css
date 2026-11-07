@@ -1042,19 +1042,25 @@
 
 /* Without calc-size() a trimmed line's spare fraction, rounded up on the 1/64px it lies on, is
    padding. A line trimmed at one end keeps the rest of its line box, from the face's ascent and
-   descent (1.038em, 0.222em). */
+   descent (1.038em, 0.222em), which some platforms round to the pixel and some do not, so such a
+   line trims both ends and that rest, rounded as Chrome rounds it, is padding too. */
 @supports not (block-size: calc-size(auto, size)) {
   :root {
-    --sui-block-snap-spare: calc(round(up, 1cap, 1px) - round(down, 1cap, 0.015625px));
-    --sui-block-snap-spare-even: calc(round(up, 1cap, 2px) - round(down, 1cap, 0.015625px));
+    --sui-block-snap-cap: round(down, 1cap, 0.015625px);
+    --sui-block-snap-spare: calc(round(up, 1cap, 1px) - var(--sui-block-snap-cap));
+    --sui-block-snap-spare-even: calc(round(up, 1cap, 2px) - var(--sui-block-snap-cap));
     --sui-block-snap-half: round(down, calc(var(--sui-block-snap-spare) / 2), 0.015625px);
     --sui-block-snap-half-even: round(down, calc(var(--sui-block-snap-spare-even) / 2), 0.015625px);
-    --sui-block-snap-spare-start: calc(
-      round(up, 1cap + 0.5lh - 0.408em, 1px) - round(down, 1cap + 0.5lh - 0.408em, 0.015625px)
-    );
-    --sui-block-snap-spare-end: calc(
-      round(up, 0.5lh + 0.408em, 1px) - round(down, 0.5lh + 0.408em, 0.015625px)
-    );
+    --sui-block-snap-lead: calc(0.5lh + (round(1.038em, 1px) - round(0.222em, 1px)) / 2);
+    --sui-block-snap-trim: trim-both cap alphabetic;
+    --sui-block-snap-room-start: 0
+      calc(round(up, 1cap + 1lh - var(--sui-block-snap-lead), 1px) - var(--sui-block-snap-cap));
+    --sui-block-snap-room-end: calc(
+        round(up, var(--sui-block-snap-lead), 1px) - var(--sui-block-snap-cap)
+      )
+      0;
+    --sui-block-snap-room-end-top: calc(var(--sui-block-snap-lead) - var(--sui-block-snap-cap))
+      calc(round(up, var(--sui-block-snap-lead), 1px) - var(--sui-block-snap-lead));
     --sui-block-snap-room: var(--sui-block-snap-half)
       calc(var(--sui-block-snap-spare) - var(--sui-block-snap-half));
     --sui-block-snap-room-even: var(--sui-block-snap-half-even)

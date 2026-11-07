@@ -443,15 +443,15 @@ title, such as "Danger Zone", and holds the acts that cannot be undone, each a `
      under its baseline. */
   :where(.sui-card-main > :first-child) :global(:where(p, ul, ol, dl, blockquote):first-child) {
     block-size: var(--sui-block-snap);
-    padding-block-end: var(--sui-block-snap-spare-start);
-    text-box: trim-start cap alphabetic;
+    padding-block: var(--sui-block-snap-room-start);
+    text-box: var(--sui-block-snap-trim, trim-start cap alphabetic);
   }
 
   :where(.sui-card-main > :last-child) :global(:where(p, ul, ol, dl, blockquote):last-child) {
     align-content: end;
     block-size: var(--sui-block-snap);
-    padding-block-start: var(--sui-block-snap-spare-end);
-    text-box: trim-end cap alphabetic;
+    padding-block: var(--sui-block-snap-room-end);
+    text-box: var(--sui-block-snap-trim, trim-end cap alphabetic);
   }
 
   :where(.sui-card-main > :only-child) :global(:where(p, ul, ol, dl, blockquote):only-child) {

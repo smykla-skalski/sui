@@ -3,7 +3,8 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { availableParallelism, tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { after, before, test } from 'node:test';
-import { allSections, long, startSink, sweep, visit } from './sink.mjs';
+import { webkit } from 'playwright-core';
+import { allSections, audit, brief, long, startSink, sweep, visit } from './sink.mjs';
 
 // Visual regression: each kitchen-sink section, drawn in both themes, must match the picture
 // recorded for this platform. Fonts rasterize differently per operating system, so pictures are
@@ -195,3 +196,36 @@ for (const theme of ['light', 'dark'])
     );
     assert.deepEqual(problems, [], 'sections that look different from their recorded picture');
   });
+
+// Safari's engine has no calc-size() and lays text on fractional metrics, so the sink is held to
+// the laws in WebKit too, at rest and with a dialog and a popover open. The name ends in the
+// theme, so the runner's light process takes it.
+test('WebKit draws the sink by the laws in light', long, async (t) => {
+  if (!existsSync(webkit.executablePath())) {
+    t.skip('WebKit is not installed: run `npx playwright-core install webkit`');
+    return;
+  }
+  const engine = await webkit.launch();
+  try {
+    const page = await engine.newPage({
+      viewport: { width: 1440, height: 900 },
+      serviceWorkers: 'block'
+    });
+    await visit(page, allSections(url));
+    assert.deepEqual(await audit(page), [], 'at rest');
+    await page.locator('#modal button:not(.sui-modal *)', { hasText: 'Edit Webhook' }).click();
+    await page.waitForFunction(
+      () => document.querySelector('dialog[open] > .sui-modal-foot'),
+      null,
+      brief
+    );
+    assert.deepEqual(await audit(page), [], 'with a dialog open');
+    await page.keyboard.press('Escape');
+    await page.waitForFunction(() => !document.querySelector('dialog[open]'), null, brief);
+    await page.locator('#action-menu [popovertarget]').first().click();
+    await page.waitForFunction(() => document.querySelector('[popover]:popover-open'), null, brief);
+    assert.deepEqual(await audit(page), [], 'with a popover open');
+  } finally {
+    await engine.close();
+  }
+});

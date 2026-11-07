@@ -287,14 +287,14 @@ its words on the title's edge.
   }
 
   :where(.sui-section-body) > :global(:where(p, ul, ol, dl, blockquote):first-child) {
-    padding-block-end: var(--sui-block-snap-spare-start);
-    text-box: trim-start cap alphabetic;
+    padding-block: var(--sui-block-snap-room-start);
+    text-box: var(--sui-block-snap-trim, trim-start cap alphabetic);
   }
 
   :where(.sui-section-body)
     > :global(:where(p, ul, ol, dl, blockquote):where(:last-child, :has(+ .sui-section))) {
-    padding-block-end: var(--sui-block-snap-spare-end);
-    text-box: trim-end cap alphabetic;
+    padding-block: var(--sui-block-snap-room-end-top);
+    text-box: var(--sui-block-snap-trim, trim-end cap alphabetic);
   }
 
   :where(.sui-section-body)
