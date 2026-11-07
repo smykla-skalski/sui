@@ -92,7 +92,7 @@
   note="The control snippet takes the id, the description ids and the invalid flag"
   layout="grid"
   --specimen-min="21rem"
-  --specimen-max="22rem"
+  --specimen-max="40rem"
 >
   <Specimen label="Textarea" code="control">
     <Field label="Reason" hint="Shown in the audit log next to the change">
