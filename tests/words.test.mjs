@@ -28,7 +28,7 @@ test('K9 the marks that join words follow the language set for the app', () => {
   assert.equal(mark('stop'), '. ');
 });
 
-test("a number or date takes the reader's own region of the page's language, never another language or script", () => {
+test("a number or date takes the reader's own region of the page's language, never another language or script, each tag read once", () => {
   const browser = Object.getOwnPropertyDescriptor(globalThis, 'navigator');
   const reads = (/** @type {string} */ lang, /** @type {string[]} */ languages) => {
     Object.assign(globalThis, { document: { documentElement: { lang } } });
@@ -42,6 +42,24 @@ test("a number or date takes the reader's own region of the page's language, nev
     assert.equal(reads('sr-Latn', ['sr-Cyrl-RS', 'sr-Latn-RS']), 'sr-Latn-RS');
     assert.equal(reads('sr-Latn', ['sr-RS']), 'sr-Latn');
     assert.equal(reads('zh-Hant', ['zh-CN', 'zh-TW']), 'zh-TW');
+    // A chart formats every value it draws, so a tag already met costs no new locale.
+    const { Locale } = Intl;
+    let built = 0;
+    Object.assign(Intl, {
+      Locale: class extends Locale {
+        /** @param {ConstructorParameters<typeof Locale>} args */
+        constructor(...args) {
+          super(...args);
+          built++;
+        }
+      }
+    });
+    try {
+      for (let value = 0; value < 100; value++) reads('en', ['de-DE', 'en-GB', 'en-US']);
+    } finally {
+      Object.assign(Intl, { Locale });
+    }
+    assert.equal(built, 0, 'the same tags were read again for each value');
   } finally {
     Reflect.deleteProperty(globalThis, 'document');
     if (browser) Object.defineProperty(globalThis, 'navigator', browser);

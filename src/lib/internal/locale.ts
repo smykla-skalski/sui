@@ -5,15 +5,22 @@
 export const pageLocale = (): string | undefined =>
   (typeof document !== 'undefined' && document.documentElement.lang) || undefined;
 
+const writings = new Map<string, string | undefined>();
+
 // The language and its script, the script filled in where a tag leaves it out, so "sr-RS" is
-// Cyrillic and never matches a page in "sr-Latn".
+// Cyrillic and never matches a page in "sr-Latn". A chart formats every value it draws, so each
+// tag is read once.
 const writingOf = (tag: string): string | undefined => {
+  if (writings.has(tag)) return writings.get(tag);
+  let writing: string | undefined;
   try {
     const { language, script } = new Intl.Locale(tag).maximize();
-    return `${language}-${script}`;
+    writing = `${language}-${script}`;
   } catch {
-    return undefined;
+    writing = undefined;
   }
+  writings.set(tag, writing);
+  return writing;
 };
 
 /**
