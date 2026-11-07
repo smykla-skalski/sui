@@ -28,7 +28,7 @@ test('K9 the marks that join words follow the language set for the app', () => {
   assert.equal(mark('stop'), '. ');
 });
 
-test("a number or date takes the reader's own region of the page's language, never another language", () => {
+test("a number or date takes the reader's own region of the page's language, never another language or script", () => {
   const browser = Object.getOwnPropertyDescriptor(globalThis, 'navigator');
   const reads = (/** @type {string} */ lang, /** @type {string[]} */ languages) => {
     Object.assign(globalThis, { document: { documentElement: { lang } } });
@@ -39,6 +39,9 @@ test("a number or date takes the reader's own region of the page's language, nev
     assert.equal(reads('en', ['de-DE', 'en-GB', 'en-US']), 'en-GB');
     assert.equal(reads('en', ['de-DE']), 'en');
     assert.equal(reads('pl', ['en-US', 'pl-PL']), 'pl-PL');
+    assert.equal(reads('sr-Latn', ['sr-Cyrl-RS', 'sr-Latn-RS']), 'sr-Latn-RS');
+    assert.equal(reads('sr-Latn', ['sr-RS']), 'sr-Latn');
+    assert.equal(reads('zh-Hant', ['zh-CN', 'zh-TW']), 'zh-TW');
   } finally {
     Reflect.deleteProperty(globalThis, 'document');
     if (browser) Object.defineProperty(globalThis, 'navigator', browser);
