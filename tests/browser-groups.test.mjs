@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { globSync, readFileSync } from 'node:fs';
 import test from 'node:test';
-import { argumentsFor, groups } from './browser/run.mjs';
+import { argumentsFor, groups, jobCount } from './browser/run.mjs';
 
 test('CI runs every browser file in exactly one group', () => {
   const files = globSync('tests/browser/**/*.test.mjs').sort();
@@ -24,4 +24,12 @@ test('the visual group runs in the Playwright image of playwright-core, as its p
   assert.ok(ci && recording, 'CI and the recording task name a pinned Playwright image');
   assert.equal(ci[0], recording[0], 'CI compares pictures recorded in another image');
   assert.equal(ci[1], core, 'the image ships browsers for another playwright-core');
+});
+
+test('a local run takes SUI_JOBS only as a whole number from 1, so no group is left unrun', () => {
+  assert.equal(jobCount(undefined, 12), 4);
+  assert.equal(jobCount('', 2), 1);
+  assert.equal(jobCount('3', 12), 3);
+  for (const asked of ['0', '-1', '0.5', 'two'])
+    assert.throws(() => jobCount(asked, 12), /SUI_JOBS/, `SUI_JOBS=${asked} was taken`);
 });

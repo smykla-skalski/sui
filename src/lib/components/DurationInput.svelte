@@ -387,6 +387,7 @@ land on the amount.
     color: var(--sui-danger);
     column-gap: var(--sui-space-1);
     display: grid;
+    font-weight: var(--sui-weight-medium);
     grid-template-columns: auto minmax(0, 1fr);
   }
 

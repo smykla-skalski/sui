@@ -466,6 +466,10 @@ section's ground between them (L-91).
     min-inline-size: 0;
   }
 
+  .sui-setting-problem > span {
+    font-weight: var(--sui-weight-medium);
+  }
+
   /* The name and the word "Unsaved" are one wrapping row: the column gap parts them, and a
      narrow row moves the word to the next line, flush with the name and one line's leading
      under it. Trim does not reach into a flex row, so each part trims its own words. */

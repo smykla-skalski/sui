@@ -351,17 +351,28 @@ test('L-35 a field label and every group name wear one ink at one weight', () =>
 });
 
 test('L-35 every error line is set at 500, a step over its hint', () => {
-  const lines = Object.entries(styles).flatMap(([path, css]) =>
-    [...stripComments(css).matchAll(/\{([^{}]*)\}/g)]
-      .map(([, rule]) => rule)
-      .filter((rule) => /\bcolor: var\(--sui-danger\);/.test(rule))
-      .flatMap((rule) => {
-        const weight = /\bfont: var\(--sui-weight-(\w+)\) var\(--sui-font-size-meta\)/.exec(
-          rule
-        )?.[1];
-        return weight ? [`${path}: ${weight}`] : [];
-      })
-  );
+  const lines = Object.entries(styles).flatMap(([path, css]) => {
+    const rules = [...stripComments(css).matchAll(/([^{}]+)\{([^{}]*)\}/g)].map(
+      ([, head, body]) => ({ selectors: head.split(',').map((each) => each.trim()), body })
+    );
+    // A line's ink and its type can come from different rules, such as a font it shares with
+    // the hint beside it, so each danger ink is followed to the last font set on its words.
+    return rules
+      .filter(({ body }) => /(?:^|[\s;])color: var\(--sui-danger\);/.test(body))
+      .flatMap(({ selectors }) => selectors)
+      .flatMap((selector) => {
+        const words = [`${selector} > span`, selector]
+          .map((target) => rules.filter(({ selectors }) => selectors.includes(target)))
+          .find((targeting) => targeting.some(({ body }) => /\bfont(-weight)?:/.test(body)));
+        let size, weight;
+        for (const { body } of words ?? []) {
+          const font = /\bfont: var\(--sui-weight-(\w+)\) var\(--sui-font-size-(\w+)\)/.exec(body);
+          if (font) [, weight, size] = font;
+          weight = /\bfont-weight: var\(--sui-weight-(\w+)\)/.exec(body)?.[1] ?? weight;
+        }
+        return size === 'meta' ? [`${path} ${selector}: ${weight}`] : [];
+      });
+  });
   assert.ok(
     lines.length >= 10,
     `only ${lines.length} error lines found, so nothing here is proved`
