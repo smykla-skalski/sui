@@ -272,30 +272,38 @@ suite('lists', together, () => {
 
     // Columns squeezed to their longest word once wrapped a sentence a word a line on a phone.
     test(
-      'a table that scrolls wraps a long value to a few lines, not a word a line',
+      'a table that scrolls wraps a long value to a few lines, not a word a line, read from the top of its row',
       long,
       async () => {
         const page = await opened();
         const table = page.locator('#data-table table[aria-label="Law checks"]');
         await table.scrollIntoViewIfNeeded();
-        const { scrolls, lines } = await table.evaluate((element) => {
+        const { scrolls, rows } = await table.evaluate((element) => {
           const frame = /** @type {HTMLElement} */ (element.parentElement);
+          const lineTops = (/** @type {Element} */ cell) => {
+            const range = document.createRange();
+            range.selectNodeContents(/** @type {Element} */ (cell.querySelector('.value')));
+            return [...new Set([...range.getClientRects()].map((line) => Math.round(line.top)))];
+          };
           return {
             scrolls: frame.scrollWidth > frame.clientWidth,
-            lines: [.../** @type {HTMLTableElement} */ (element).tBodies[0].rows].map((row) => {
-              const range = document.createRange();
-              range.selectNodeContents(
-                /** @type {Element} */ (row.cells[2].querySelector('.value'))
-              );
-              return new Set([...range.getClientRects()].map((line) => Math.round(line.top))).size;
-            })
+            rows: [.../** @type {HTMLTableElement} */ (element).tBodies[0].rows].map((row) => ({
+              lines: lineTops(row.cells[2]).length,
+              firsts: [...row.cells].map((cell) => lineTops(cell)[0])
+            }))
           };
         });
         assert.ok(scrolls, 'the table no longer scrolls inside its frame');
+        const lines = rows.map((row) => row.lines);
         assert.ok(
-          lines.every((count) => count <= 4),
+          lines.every((count) => count <= 3),
           `the long values wrap to ${lines.join(' and ')} lines`
         );
+        for (const { firsts } of rows)
+          assert.ok(
+            Math.max(...firsts) - Math.min(...firsts) <= 1,
+            `the first lines of one row start at ${firsts.join(', ')}px`
+          );
       }
     );
 

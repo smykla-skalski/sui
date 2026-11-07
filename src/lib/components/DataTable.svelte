@@ -153,7 +153,7 @@ row in place of the hairlines, for a table wide enough that the eye can lose its
 - Keyboard: a sortable heading is a button, and Enter or Space sorts by it, then reverses; a frame that scrolls is a tab stop, so the arrow keys scroll it.
 - Pointer and touch: a sortable heading's target is at least 24px tall, and 44px on a phone or a coarse pointer.
 - Focus: sorting keeps focus on the heading; the frame is a stop only while it scrolls.
-- Responsive: columns grow to their widest value and the table scrolls inside its own frame, with a line that says so, a fade on each edge that has more past it, starting past held row headings, and the row headings held in view; numeric and `nowrap` columns never wrap, other text wraps inside its column; a wrapping column is never narrower than its values up to a 16rem measure, 8rem for held row headings (12rem and 6rem on a phone, where cells also pad 8px at their sides), so on a narrow frame a long value wraps to a few lines while the frame scrolls.
+- Responsive: columns grow to their widest value and the table scrolls inside its own frame, with a line that says so, a fade on each edge that has more past it, starting past held row headings, and the row headings held in view; numeric and `nowrap` columns never wrap, other text wraps inside its column; a wrapping column is never narrower than its values up to a 16rem measure, 8rem for held row headings (6rem on a phone, where cells also pad 8px at their sides), so on a narrow frame a long value wraps to a few lines while the frame scrolls; a row that wraps reads from its top.
 - Accessibility: loading and refreshing mark the table `aria-busy` and are said through a polite status; a failure is an alert in words beside an icon; sorted order is `aria-sort` and an up or down chevron.
 - Localization: every built-in word is a prop with an English default; numbers group in the reader's format and text sorts by the page's language; columns, alignment, the held row headings and the loading light follow the reading direction.
 - Performance: every row renders and is laid out, even off the screen, because a row cannot skip and a frame that skips cannot measure its overflow; key rows with `rowKey`, and page a long table with numbered pages or `LoadMore` rather than drawing thousands; the loading light moves only by `transform`, so the compositor runs it, and holds still under reduced motion.
@@ -434,6 +434,12 @@ row in place of the hairlines, for a table wide enough that the eye can lose its
     text-box: trim-both cap alphabetic;
   }
 
+  /* A row that wraps reads from its top, as a list of facts does, so a short value never floats
+     in the middle of a tall row. */
+  tbody :is(th, td) {
+    align-content: start;
+  }
+
   :is(th, td):first-child {
     padding-inline-start: 0;
   }
@@ -675,11 +681,11 @@ row in place of the hairlines, for a table wide enough that the eye can lose its
     }
   }
 
-  /* On a phone the columns pack closer and wrap sooner, as a compact table does, so more of a
-     wide table shows before the frame scrolls. */
+  /* On a phone the columns pack closer and a held heading wraps sooner, as a compact table
+     does, so more of a wide table shows before the frame scrolls. A long value keeps the full
+     measure, so its row stays a few lines tall. */
   @media (max-width: 47.9375rem) {
     table {
-      --sui-local-measure: 12rem;
       --sui-local-held-measure: 6rem;
     }
 
