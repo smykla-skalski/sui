@@ -845,7 +845,7 @@ suite('navigation', together, () => {
 
     // Last, since it leaves the drawer open and the page in the other theme.
     test(
-      'the side nav parts its title by a hairline, cuts its rows cleanly there, and rests each end a gap clear of it (L-107)',
+      'the side nav parts its title and the part under its rows by hairlines, cuts its rows cleanly at both, and rests each end a gap clear of them (L-107)',
       long,
       async () => {
         const page = await sink();
@@ -875,12 +875,7 @@ suite('navigation', together, () => {
               overNext: next.getBoundingClientRect().top - box().bottom,
               gap: parseFloat(getComputedStyle(tree).getPropertyValue('--sui-local-tree-gap')) * 16,
               masked: getComputedStyle(tree).maskImage !== 'none',
-              lines: [
-                getComputedStyle(head).borderBottom,
-                getComputedStyle(
-                  /** @type {Element} */ (document.querySelector('.sui-side-nav-foot'))
-                ).borderTop
-              ]
+              lines: [getComputedStyle(head).borderBottom, getComputedStyle(next).borderTop]
             };
           });
           assert.ok(found.scrolls > 100, `the rows scroll only ${found.scrolls}px`);
@@ -889,7 +884,7 @@ suite('navigation', together, () => {
           assert.equal(
             found.lines[0],
             found.lines[1],
-            'the title and the foot draw different lines'
+            "the part under the rows draws no line, or not the title's"
           );
           assert.equal(found.gap, 16);
           assert.ok(

@@ -341,24 +341,29 @@ following a row closes the drawer.
     </div>
   </div>
 
-  <!-- Drawn wherever there is a shell, so the server's render has it; the shell's own width
+  <!-- The fold stands under the foot's hairline, so the rows are cut at a line there too. It is
+       drawn wherever there is a shell, so the server's render has it; the shell's own width
        shows it only where the shell can fold. -->
-  {#if shell}
-    <button
-      bind:this={fold}
-      type="button"
-      class="sui-side-nav-row sui-side-nav-fold"
-      onclick={() => shell.toggleCollapsed()}
-    >
-      <span class="sui-side-nav-glyph"
-        ><Icon name={shell.collapsed ? 'sidebar-expand' : 'sidebar-collapse'} size="base" /></span
-      >
-      <span class="sui-side-nav-label">{shell.collapsed ? expandLabel : collapseLabel}</span>
-    </button>
-  {/if}
-
-  {#if foot}
-    <div class="sui-side-nav-foot">{@render foot()}</div>
+  {#if shell || foot}
+    <div class="sui-side-nav-foot">
+      {#if shell}
+        <button
+          bind:this={fold}
+          type="button"
+          class="sui-side-nav-row sui-side-nav-fold"
+          onclick={() => shell.toggleCollapsed()}
+        >
+          <span class="sui-side-nav-glyph"
+            ><Icon
+              name={shell.collapsed ? 'sidebar-expand' : 'sidebar-collapse'}
+              size="base"
+            /></span
+          >
+          <span class="sui-side-nav-label">{shell.collapsed ? expandLabel : collapseLabel}</span>
+        </button>
+      {/if}
+      {#if foot}{@render foot()}{/if}
+    </div>
   {/if}
 </nav>
 
@@ -670,10 +675,16 @@ following a row closes the drawer.
     .sui-side-nav-fold {
       display: none;
     }
+
+    .sui-side-nav-foot:not(:has(> :not(.sui-side-nav-fold))) {
+      display: none;
+    }
   }
 
   .sui-side-nav-foot {
     border-block-start: var(--sui-stroke) solid var(--sui-sidebar-border);
+    display: grid;
+    gap: var(--sui-space-4);
     padding-block-start: var(--sui-space-3);
   }
 
