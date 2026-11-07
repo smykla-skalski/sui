@@ -601,7 +601,7 @@ row gives them and fall under the copy on a narrow row.
     align-content: center;
     block-size: var(--sui-block-snap);
     color: var(--sui-danger);
-    font: var(--sui-weight-medium) var(--sui-font-size-meta) / var(--sui-row-copy-leading)
+    font: var(--sui-weight-medium) var(--sui-font-size-meta) / var(--sui-leading-note)
       var(--sui-sans);
     margin: 0;
     overflow-wrap: anywhere;

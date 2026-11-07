@@ -441,6 +441,9 @@
   --sui-leading-micro: 1.0625rem;
   --sui-leading-compact: 1.125rem;
   --sui-leading-meta: 1.375rem;
+  /* A form's help and error lines wrap a little looser than a row's copy, so a long hint stays
+     a quiet note and never a dense block under its control. */
+  --sui-leading-note: 1.25rem;
   --sui-leading-input: 1.25rem;
   --sui-leading-body: 1.4375rem;
   --sui-leading-title: 1.625rem;

@@ -201,12 +201,29 @@ test('L-21 sizes and leading come from the scale and land on whole pixels', () =
 const PHONE = '@media (max-width: 47.9375rem)';
 const pixels = (/** @type {string} */ rem) => parseFloat(rem) * 16;
 
-test('L-24 a title stands 12px above its description, copy lines 8px apart', () => {
+test('L-24 a title stands 12px above its description, copy lines 8px apart, form notes 20px', () => {
   const gaps = tokenMap(stripComments(palette));
   assert.deepEqual(
-    { copy: pixels(gaps['--sui-row-copy-gap']), title: pixels(gaps['--sui-title-copy-gap']) },
-    { copy: 8, title: 12 }
+    {
+      copy: pixels(gaps['--sui-row-copy-gap']),
+      title: pixels(gaps['--sui-title-copy-gap']),
+      note: pixels(gaps['--sui-leading-note'])
+    },
+    { copy: 8, title: 12, note: 20 }
   );
+  // A control's help and error lines, not a whole state's or form's error, nor a setting row's
+  // problem, which is a line of the row's copy.
+  const dense = globSync('src/lib/components/*.svelte').flatMap((path) =>
+    [...stripComments(read(path)).matchAll(/\n {2}([^\n{}]+)\{([^}]*)\}/g)]
+      .filter(
+        ([, selector, body]) =>
+          /-(help|error|hint|problem)\b/.test(selector) &&
+          !/error-state|form-error|problem-words|setting-problem/.test(selector) &&
+          /font:[^;]*--sui-row-copy-leading/.test(body)
+      )
+      .map(([, selector]) => `${path} ${selector.trim()}`)
+  );
+  assert.deepEqual(dense, []);
 });
 
 test('L-66 a chart grid draws at the hairline that frames a surface', () => {

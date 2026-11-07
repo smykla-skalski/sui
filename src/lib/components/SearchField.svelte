@@ -196,7 +196,7 @@ matches in a polite `role="status"` beside it so a screen reader hears it.
     color: var(--sui-danger);
     column-gap: var(--sui-space-1);
     display: grid;
-    font: var(--sui-weight-medium) var(--sui-font-size-meta) / var(--sui-row-copy-leading)
+    font: var(--sui-weight-medium) var(--sui-font-size-meta) / var(--sui-leading-note)
       var(--sui-sans);
     grid-template-columns: auto minmax(0, 1fr);
     margin: 0;

@@ -211,7 +211,7 @@ box. Choosing one lifts it. A caller's `error` always wins.
 
   .sui-check-list-help {
     color: var(--sui-text-secondary);
-    font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-row-copy-leading)
+    font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-leading-note)
       var(--sui-sans);
   }
 
@@ -220,7 +220,7 @@ box. Choosing one lifts it. A caller's `error` always wins.
     color: var(--sui-danger);
     column-gap: var(--sui-space-1);
     display: grid;
-    font: var(--sui-weight-medium) var(--sui-font-size-meta) / var(--sui-row-copy-leading)
+    font: var(--sui-weight-medium) var(--sui-font-size-meta) / var(--sui-leading-note)
       var(--sui-sans);
     grid-template-columns: auto minmax(0, 1fr);
     margin: 0;
