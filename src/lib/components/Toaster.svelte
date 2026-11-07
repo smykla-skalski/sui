@@ -470,6 +470,7 @@ A `danger` toast reports a failure and stays too.
   }
 
   .sui-toast-title {
+    text-wrap: balance;
     font-weight: var(--sui-weight-semibold);
   }
 

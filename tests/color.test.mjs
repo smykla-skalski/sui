@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import test from 'node:test';
-import { contrast, deltaE2000, over } from '../src/routes/audit/color.ts';
+import { contrast, deltaE2000, lab, over } from '../src/routes/audit/color.ts';
 
 // Reference pairs from Sharma, Wu and Dalal (2005), the published CIEDE2000 test data.
 /** @type {[[number, number, number], [number, number, number], number][]} */
@@ -110,4 +110,54 @@ test('L-93 a swatch ring holds 3:1 for every colour on every ground and under it
       `${theme}: the ring of ${worst.color} holds ${worst.ratio.toFixed(2)}:1`
     );
   }
+});
+
+// Machado, Oliveira and Fernandes (2009) at full severity, on linear sRGB: the series as a reader
+// with no green cones (deutan) or no red cones (protan) sees them, the two common kinds.
+const DICHROMACY = {
+  deutan: [
+    [0.367322, 0.860646, -0.227968],
+    [0.280085, 0.672501, 0.047413],
+    [-0.01182, 0.04294, 0.968881]
+  ],
+  protan: [
+    [0.152286, 1.052583, -0.204868],
+    [0.114503, 0.786281, 0.099216],
+    [-0.003882, -0.048116, 1.051998]
+  ]
+};
+
+test('L-66 the series colours stay apart for a reader with deutan or protan colour blindness', () => {
+  /** @param {number} c */
+  const linear = (c) => (c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4);
+  /** @param {number} c */
+  const encode = (c) => {
+    const v = Math.min(1, Math.max(0, c));
+    return v <= 0.0031308 ? 12.92 * v : 1.055 * v ** (1 / 2.4) - 0.055;
+  };
+  /** @param {{ r: number; g: number; b: number }} color @param {number[][]} matrix */
+  const seen = ({ r, g, b }, matrix) => {
+    const l = [r, g, b].map(linear);
+    const [red, green, blue] = matrix.map((row) =>
+      encode(row[0] * l[0] + row[1] * l[1] + row[2] * l[2])
+    );
+    return { r: red, g: green, b: blue, a: 1 };
+  };
+  /** @type {string[]} */
+  const close = [];
+  for (const [theme, block] of Object.entries(blocks)) {
+    const series = [1, 2, 3, 4, 5].map((n) => parse(token(block, `chart-${n}`)));
+    for (const [kind, matrix] of Object.entries(DICHROMACY)) {
+      const views = series.map((color) => lab(seen(color, matrix)));
+      for (let i = 0; i < views.length; i++)
+        for (let j = i + 1; j < views.length; j++) {
+          const apart = deltaE2000(views[i], views[j]);
+          if (apart < 10)
+            close.push(
+              `${theme} chart-${i + 1} and chart-${j + 1} under ${kind}: ${apart.toFixed(1)}`
+            );
+        }
+    }
+  }
+  assert.deepEqual(close, []);
 });

@@ -225,6 +225,7 @@ from the corner and centred on the first line, or in the file name's row when th
   <!-- A block that scrolls sideways must be reachable by keyboard to be scrolled. -->
   <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
   <pre
+    translate="no"
     {@attach watchOverflow((value) => (scrolls = value))}
     class="sui-code-block-scroll sui-scroll-edge"
     style:--sui-local-code-digits={String(lines.length).length}

@@ -260,6 +260,7 @@ or removed empty line. Two empty sides say `emptyLabel`.
     <!-- A block that scrolls sideways must be reachable by keyboard to be scrolled. -->
     <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
     <pre
+      translate="no"
       {@attach watchOverflow((value) => (scrolls = value))}
       dir="ltr"
       class="sui-diff-block-scroll sui-scroll-edge"

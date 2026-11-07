@@ -600,9 +600,9 @@
   /* The console's mark hues, ordered so neighbours stay apart under color-vision deficiency. */
   --sui-chart-1: #1467c2;
   --sui-chart-2: #be5a0a;
-  --sui-chart-3: #018d87;
-  --sui-chart-4: #7444b4;
-  --sui-chart-5: #b94082;
+  --sui-chart-3: #008e8b;
+  --sui-chart-4: #552f94;
+  --sui-chart-5: #bd3d77;
 }
 
 :root[data-theme='dark'],
@@ -788,9 +788,9 @@
     0 24px 60px var(--sui-shadow-color);
   --sui-chart-1: #4990e8;
   --sui-chart-2: #db7431;
-  --sui-chart-3: #07aaa3;
-  --sui-chart-4: #8e60d2;
-  --sui-chart-5: #d4609d;
+  --sui-chart-3: #00aaa6;
+  --sui-chart-4: #8158c5;
+  --sui-chart-5: #d75f92;
 }
 
 /* With no theme chosen on the page, the reader's system preference picks the dark palette. The
@@ -982,9 +982,9 @@
       0 24px 60px var(--sui-shadow-color);
     --sui-chart-1: #4990e8;
     --sui-chart-2: #db7431;
-    --sui-chart-3: #07aaa3;
-    --sui-chart-4: #8e60d2;
-    --sui-chart-5: #d4609d;
+    --sui-chart-3: #00aaa6;
+    --sui-chart-4: #8158c5;
+    --sui-chart-5: #d75f92;
   }
 }
 
@@ -1067,6 +1067,22 @@
 
 :root {
   -webkit-tap-highlight-color: transparent;
+}
+
+/* A heading or a label wraps to lines of near equal length, and running copy never leaves one
+   word alone on its last line. Zero weight, so a part's own `text-wrap` wins. */
+:where(h1, h2, h3, h4, h5, h6, summary, legend, caption, [role='heading']) {
+  text-wrap: balance;
+}
+
+:where(p, li, dd, figcaption, blockquote) {
+  text-wrap: pretty;
+}
+
+/* A heading reached by its fragment lands a step below the edge, or below the sticky bars the
+   page's scroll padding clears, so it never touches what covers the page. */
+:where(h1, h2, h3, h4, h5, h6, section)[id] {
+  scroll-margin-block-start: var(--sui-space-4);
 }
 
 /* A mouse or trackpad page holds still at its ends instead of bouncing. A touch screen keeps

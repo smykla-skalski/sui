@@ -158,8 +158,10 @@ cut on the axis without splitting a character and stay whole in the table under 
     >
       {#each valueAxis.ticks as tick (tick)}
         <rect class="grid" style:x={css(minus(x(tick, box), px(0.5)))} style:height={css(rows)} />
-        <text class="axis" text-anchor="middle" style:translate={at(x(tick, box), box.tickBaseline)}
-          >{formatValue(tick)}</text
+        <text
+          class="axis tick"
+          text-anchor="middle"
+          style:translate={at(x(tick, box), box.tickBaseline)}>{formatValue(tick)}</text
         >
       {/each}
       {#each validData as item, index (index)}
@@ -271,6 +273,9 @@ cut on the axis without splitting a character and stay whole in the table under 
   }
   .axis {
     fill: var(--sui-text-secondary);
+  }
+  .tick {
+    font-variant-numeric: tabular-nums;
   }
   .label {
     font-weight: var(--sui-weight-semibold);

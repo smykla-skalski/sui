@@ -80,8 +80,11 @@
      Words in a face it does not hold, such as another script's, are guessed until the chart is
      on the page, then measured in the face they draw in, and again when a face loads. */
   const drawn = new Map<string, Ink>();
-  const measure: Measure = (text, semibold = false) =>
-    faceInk(text, semibold) ?? (mounted && band ? measured(band, text, semibold) : guessInk(text));
+  // ponytail: words outside the table are measured with proportional figures, which a tick's
+  // fallback face may draw a little narrower or wider; measure through a `tnum` face if it shows.
+  const measure: Measure = (text, semibold = false, tabular = false) =>
+    faceInk(text, semibold, tabular) ??
+    (mounted && band ? measured(band, text, semibold) : guessInk(text));
 
   function measured(band: HTMLElement, text: string, semibold: boolean): Ink {
     const look = getComputedStyle(band);

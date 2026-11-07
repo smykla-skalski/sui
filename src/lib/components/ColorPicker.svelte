@@ -438,7 +438,7 @@ name is the label and the hex, such as "Label color #0f766e". `name` posts the h
     {#snippet icon()}
       <span class="mark" style:--sui-color-picker-value={current}></span>
     {/snippet}
-    <code class="hex">{current}</code>
+    <code class="hex" translate="no">{current}</code>
     {#snippet trailing()}
       <Icon name="chevron-down" size="sm" />
     {/snippet}

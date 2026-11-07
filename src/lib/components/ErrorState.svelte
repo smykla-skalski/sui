@@ -1,5 +1,6 @@
 <script lang="ts">
   import { word } from '../words.js';
+  import type { Snippet } from 'svelte';
   import type { HTMLAttributes } from 'svelte/elements';
   import Button from './Button.svelte';
 
@@ -7,6 +8,8 @@
     title,
     description,
     onretry,
+    action,
+    step,
     busy = false,
     focusAfterRetry,
     overContent = false,
@@ -22,6 +25,10 @@
     description: string;
     /** Draws the retry button, for a failure that repeating the request can fix. */
     onretry?: () => void;
+    /** Another way out, beside the retry or in its place, such as a `Button` that opens settings. */
+    action?: Snippet;
+    /** The next step in words, when it happens elsewhere and no control here can take it, such as asking an owner for access. */
+    step?: string;
     /** The retry is running, so the button keeps focus and ignores a second press. */
     busy?: boolean;
     /** What takes focus when a retry succeeds and this state leaves, such as the list it gave way to. */
@@ -98,7 +105,7 @@ of them.
 - Localization: `retryLabel` and `retryingLabel` carry the built-in words, and it starts at the inline start, mirrored in a right-to-left page.
 - Performance: a static block; the retry's spinner is the button's own and stops under reduced motion.
 - Analytics: `onretry` reports each attempt to recover.
-- Failure: with no `onretry` it explains and offers no button, for a failure a retry cannot fix, such as missing access.
+- Failure: every failure offers a way out: `onretry` for one a retry can fix, `action` for another control, such as one that opens settings, and `step` in words for one that happens elsewhere, such as asking an owner for access; the law audit flags a failure with none.
 -->
 
 <div
@@ -110,12 +117,16 @@ of them.
   <div class="sui-error-state-copy">
     <p class="sui-error-state-title">{title}</p>
     <p class="sui-error-state-description">{description}</p>
+    {#if step}<p class="sui-error-state-step">{step}</p>{/if}
   </div>
-  {#if onretry}
+  {#if onretry || action}
     <div class="sui-error-state-retry">
-      <Button loading={busy} onclick={retry}>
-        {busy ? retryingLabel : retryLabel}
-      </Button>
+      {#if onretry}
+        <Button loading={busy} onclick={retry}>
+          {busy ? retryingLabel : retryLabel}
+        </Button>
+      {/if}
+      {@render action?.()}
     </div>
   {/if}
 </div>
@@ -159,8 +170,20 @@ of them.
   }
 
   .sui-error-state-title {
+    text-wrap: balance;
     color: var(--sui-danger);
     font: var(--sui-weight-semibold) var(--sui-font-size-title) / var(--sui-row-copy-leading)
+      var(--sui-sans);
+  }
+
+  /* The title stands a title gap above its words; the step keeps the copy gap under them. */
+  .sui-error-state-description:has(+ .sui-error-state-step) {
+    margin-block-end: calc(var(--sui-row-copy-gap) - var(--sui-title-copy-gap));
+  }
+
+  .sui-error-state-step {
+    color: var(--sui-text-primary);
+    font: var(--sui-weight-medium) var(--sui-font-size-meta) / var(--sui-row-copy-leading)
       var(--sui-sans);
   }
 

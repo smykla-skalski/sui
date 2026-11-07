@@ -13,7 +13,7 @@
     label = word('Skeleton.label', 'Loading…'),
     loadedLabel = word('Skeleton.loadedLabel', 'Loaded'),
     patience = 10_000,
-    slowLabel = word('Skeleton.slowLabel', 'Still loading'),
+    slowLabel = word('Skeleton.slowLabel', 'Still loading…'),
     slowDescription = word('Skeleton.slowDescription', 'This is taking longer than usual'),
     class: className = '',
     children,
@@ -75,7 +75,7 @@
       ? ''
       : loading
         ? slow
-          ? `${slowLabel}${mark('stop')}${slowDescription}`
+          ? `${slowLabel}${mark(slowLabel.endsWith('…') ? 'space' : 'stop')}${slowDescription}`
           : label
         : waited
           ? loadedLabel
@@ -109,7 +109,7 @@ under reduced motion. Use it only where the shape of what is coming is already k
 - Focus: it never takes focus, and the loaded rows arrive without moving it.
 - Responsive: the bars are fractions of the row's width, capped in rem, so they fit any column.
 - Accessibility: the placeholders are hidden from assistive technology, and the status says what is awaited, when the wait is slow and when it ends; under forced colors each bar keeps an outline.
-- Localization: `label`, `loadedLabel`, `slowLabel` and `slowDescription` carry the built-in words, and the slow words are announced joined by `marks.stop`; the bars start at the inline start, the side bar sits at the inline end and the light crosses in the reading direction, all mirrored in a right-to-left page.
+- Localization: `label`, `loadedLabel`, `slowLabel` and `slowDescription` carry the built-in words, and the slow words are announced joined by `marks.stop`, or by `marks.space` after a label that ends in its own ellipsis; the bars start at the inline start, the side bar sits at the inline end and the light crosses in the reading direction, all mirrored in a right-to-left page.
 - Performance: each bar shows its part of one light that only `transform` moves, so the compositor runs it, for at most `patience` milliseconds, and none under reduced motion.
 - Analytics: none; the list it holds reports its own outcomes.
 - Failure: a wait past `patience` says it is slow in words instead of sweeping forever; a failed load is the caller's `ErrorState` in its place.

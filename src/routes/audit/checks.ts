@@ -1,5 +1,6 @@
 import { describe, register, shown, type Finding } from './audit.js';
 import { apca, contrast, deltaE, lab, lightness, over, rgba, type Rgba } from './color.js';
+import { faceInk } from '../../lib/charts/geometry.js';
 
 const IGNORED = '[data-audit-ignore], [data-audit-ignore] *';
 const INTERACTIVE =
@@ -501,6 +502,14 @@ function typeFaces(root: Document): Finding[] {
       );
     if (mono && /\d/.test(text) && !style.fontVariantNumeric.includes('tabular-nums'))
       found.push(finding('L-20', element, 'a technical value with digits lacks tabular figures'));
+    // A number on a chart is read against its neighbours: a tick down an axis, a cell in a row.
+    if (
+      element.closest('svg') &&
+      /\d/.test(text) &&
+      !/\p{L}/u.test(text) &&
+      !style.fontVariantNumeric.includes('tabular-nums')
+    )
+      found.push(finding('L-20', element, 'a number on a chart lacks tabular figures'));
     if (!element.closest('svg')) {
       const leading = style.lineHeight;
       if (leading === 'normal')
@@ -874,10 +883,25 @@ function wordsInk(svg: SVGSVGElement): DOMRect {
       // Some canvases give glyph bounds in whole pixels, which is a pixel of error at chart sizes,
       // so each glyph is read at a hundred times its size and scaled back.
       context.font = `${look.fontStyle} ${look.fontWeight} ${parseFloat(look.fontSize) * 100}px ${look.fontFamily}`;
+      // A canvas draws no tabular figures, so those are read from the face's table, which the
+      // browser suite holds to what Chrome draws.
+      const tabular =
+        look.fontVariantNumeric.includes('tabular-nums') &&
+        /^["']?SUI Plus Jakarta Sans/.test(look.fontFamily);
+      const size = parseFloat(look.fontSize) * 100;
       let index = 0;
       for (const glyph of words) {
         if (index >= part.getNumberOfChars()) break;
-        const ink = context.measureText(glyph);
+        const figure =
+          tabular && /\d/.test(glyph) ? faceInk(glyph, Number(look.fontWeight) >= 600, true) : null;
+        const ink = figure
+          ? {
+              actualBoundingBoxLeft: figure.left * size,
+              actualBoundingBoxRight: figure.right * size,
+              actualBoundingBoxAscent: figure.ascent * size,
+              actualBoundingBoxDescent: figure.descent * size
+            }
+          : context.measureText(glyph);
         if (ink.actualBoundingBoxLeft + ink.actualBoundingBoxRight > 0) {
           const start = part.getStartPositionOfChar(index);
           add(
@@ -3098,6 +3122,13 @@ function nestedFrames(root: Document): Finding[] {
   return found;
 }
 
+/* A failure is never a dead end (L-59): it offers a retry, another control or a step in words. */
+function failureExits(root: Document): Finding[] {
+  return audited(root, '.sui-error-state')
+    .filter((state) => !state.querySelector('.sui-error-state-retry, .sui-error-state-step'))
+    .map((state) => finding('L-59', state, 'a failure offers no retry, action or step'));
+}
+
 /**
  * Cards are earned (L-55): a card links to its page, is the danger zone, stands among its card
  * peers, or is the one box on a bare page, whose nearest ground holds nothing but it. The kitchen
@@ -3302,6 +3333,7 @@ register(
   detailPanes,
   rowGrounds,
   nestedFrames,
+  failureExits,
   earnedCards,
   framedSettings,
   disclosedCards,

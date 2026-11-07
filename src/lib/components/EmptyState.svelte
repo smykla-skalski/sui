@@ -118,6 +118,7 @@ a step 8px under it.
 
   /* The title stands a title gap above its words; the step keeps the copy gap under them. */
   .sui-empty-state-title {
+    text-wrap: balance;
     color: var(--sui-text-primary);
     margin-block-end: calc(var(--sui-title-copy-gap) - var(--sui-row-copy-gap));
     font: var(--sui-weight-semibold) var(--sui-font-size-title) / var(--sui-row-copy-leading)

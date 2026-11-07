@@ -272,6 +272,7 @@ and the unsaved ink, so no neutral block sits on a state (L-92).
   }
 
   .sui-callout-title {
+    text-wrap: balance;
     color: var(--sui-text-primary);
     font-weight: var(--sui-weight-semibold);
   }

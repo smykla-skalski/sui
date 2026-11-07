@@ -197,7 +197,7 @@ columns and scrolls sideways in a narrower container.
             <text
               class="value step-{step(cellValue)}"
               text-anchor="middle"
-              style:translate={at(cx, centred(measure(words), cy))}>{words}</text
+              style:translate={at(cx, centred(measure(words, false, true), cy))}>{words}</text
             >
           {/if}
         {/each}
@@ -248,10 +248,11 @@ columns and scrolls sideways in a narrower container.
   .axis {
     fill: var(--sui-text-secondary);
   }
-  /* Proportional figures, as the face's table measures them, so a cell grown to its widest
-     value holds it; a centred value lines up with no other. */
+  /* Tabular figures, which the face's table measures too, so values of one length stand as wide
+     as each other and a cell grown to its widest value holds it. */
   .value {
     fill: var(--sui-text-primary);
+    font-variant-numeric: tabular-nums;
     font-weight: var(--sui-weight-medium);
   }
   .value.none {

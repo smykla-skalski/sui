@@ -153,7 +153,8 @@
     <Section title="Members" level={4}>
       <ErrorState
         title="Access is not available"
-        description="Ask an owner of this workspace to give you the viewer role"
+        description="Only viewers and owners of this workspace see its members"
+        step="Ask an owner to give you the viewer role"
       />
     </Section>
   </Specimen>

@@ -259,9 +259,9 @@ row gives them and fall under the copy on a narrow row.
           >
             {#if problems[index]}<span class="sui-pair-mark"><Icon name="alert" size="xs" /></span
               >{/if}
-            <code class="sui-pair-key">{pair.key}</code>
+            <code class="sui-pair-key" translate="no">{pair.key}</code>
             <span class="sui-pair-arrow" aria-hidden="true">→</span>
-            <code class="sui-pair-value">{labelOf(pair.value)}</code>
+            <code class="sui-pair-value" translate="no">{labelOf(pair.value)}</code>
           </button>
           <button
             type="button"
@@ -297,7 +297,7 @@ row gives them and fall under the copy on a narrow row.
   {#each value as pair, index (index)}
     {#if problems[index]}
       <p id={problemId(index)} class="sui-pair-problem">
-        <code>{pair.key}</code>{mark('colon')}{problems[index]}
+        <code translate="no">{pair.key}</code>{mark('colon')}{problems[index]}
       </p>
     {/if}
   {/each}

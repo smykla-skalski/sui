@@ -309,7 +309,7 @@ a saving pane around it holds it the same way.
               <!-- A field's value cannot be painted in parts, so its own text is clear and a
                    colored copy that no reader hears lies under it. -->
               <span class={['sui-pattern-text', { composing: composing === index }]}>
-                <code class="sui-pattern-copy" dir="ltr" aria-hidden="true"
+                <code class="sui-pattern-copy" dir="ltr" translate="no" aria-hidden="true"
                   ><span class="sui-pattern-line"
                     >{#each tokenizeGlob(pattern) as piece, at (at)}<span class={piece.cls}
                         >{piece.text}</span
@@ -370,7 +370,7 @@ a saving pane around it holds it the same way.
   {#each problems as problem, index (index)}
     {#if problem !== null}
       <p id={problemId(index)} class="sui-pattern-problem">
-        <code dir="ltr">{value[index]?.trim()}</code>{mark('colon')}{problem}
+        <code dir="ltr" translate="no">{value[index]?.trim()}</code>{mark('colon')}{problem}
       </p>
     {/if}
   {/each}

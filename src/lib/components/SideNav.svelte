@@ -274,7 +274,7 @@ following a row closes the drawer.
 >
   <div class="sui-side-nav-head">
     <div class="sui-side-nav-names">
-      {#if kicker}<p class="sui-side-nav-kicker">{kicker}</p>{/if}
+      {#if kicker}<p class="sui-side-nav-kicker" translate="no">{kicker}</p>{/if}
       <svelte:element this={`h${level}`} class="sui-side-nav-title">{title}</svelte:element>
     </div>
     {#if shell && mode === 'drawer'}

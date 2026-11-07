@@ -203,6 +203,7 @@ cells stack their secondary text.
   }
 
   .sui-disclosure-label {
+    text-wrap: balance;
     align-content: center;
     block-size: var(--sui-block-snap-even);
     min-inline-size: 0;

@@ -43,6 +43,7 @@
     onretry,
     empty,
     emptyLabel = word('DataTable.emptyLabel', 'Nothing to show yet'),
+    missingLabel = word('DataTable.missingLabel', 'No value'),
     loadingLabel = word('DataTable.loadingLabel', 'Loading…'),
     refreshingLabel = word('DataTable.refreshingLabel', 'Refreshing…'),
     retryLabel = word('DataTable.retryLabel', 'Try again'),
@@ -77,6 +78,8 @@
     /** Drawn in the body when there are no rows, in place of `emptyLabel`, such as a next step. */
     empty?: Snippet;
     emptyLabel?: string;
+    /** Read in place of a cell with no value, which draws a dash. */
+    missingLabel?: string;
     loadingLabel?: string;
     refreshingLabel?: string;
     retryLabel?: string;
@@ -131,6 +134,7 @@
   }
 
   const plain = (value: unknown) => (typeof value === 'number' ? formatCount(value) : value);
+  const absent = (value: unknown) => value === undefined || value === null || value === '';
   const status = $derived(loading ? loadingLabel : refreshing ? refreshingLabel : '');
 </script>
 
@@ -154,8 +158,15 @@ row in place of the hairlines, for a table wide enough that the eye can lose its
 - Localization: every built-in word is a prop with an English default; numbers group and text sorts by the page's language; columns, alignment, the held row headings and the loading light follow the reading direction.
 - Performance: every row renders; key rows with `rowKey`, and page a long table with numbered pages or `LoadMore` rather than drawing thousands; the loading light moves only by `transform`, so the compositor runs it, and holds still under reduced motion.
 - Analytics: `onsort` hears each sort, and `onretry` each retry.
-- Failure: no rows says `emptyLabel` or draws `empty` in the body under the headings; a failure says `error` with a retry; a missing value prints blank and sorts first.
+- Failure: no rows says `emptyLabel` or draws `empty` in the body under the headings; a failure says `error` with a retry; a missing value draws a muted dash, is read as `missingLabel` and sorts first.
 -->
+
+{#snippet value(row: Row, column: DataTableColumn<Row>)}
+  {#if cell}{@render cell(row, column)}{:else if absent(row[column.key])}<span
+      class="missing"
+      aria-hidden="true">—</span
+    ><VisuallyHidden>{missingLabel}</VisuallyHidden>{:else}{plain(row[column.key])}{/if}
+{/snippet}
 
 {#snippet retry()}
   {#if onretry}<Button onclick={onretry}>{retryLabel}</Button>{/if}
@@ -254,21 +265,13 @@ row in place of the hairlines, for a table wide enough that the eye can lose its
                       scope="row"
                       data-align={alignOf(column)}
                       class={{ numeric: column.numeric, nowrap: column.nowrap || column.numeric }}
-                      ><span class="value"
-                        >{#if cell}{@render cell(row, column)}{:else}{plain(
-                            row[column.key]
-                          )}{/if}</span
-                      ></th
+                      ><span class="value">{@render value(row, column)}</span></th
                     >
                   {:else}
                     <td
                       data-align={alignOf(column)}
                       class={{ numeric: column.numeric, nowrap: column.nowrap || column.numeric }}
-                      ><span class="value"
-                        >{#if cell}{@render cell(row, column)}{:else}{plain(
-                            row[column.key]
-                          )}{/if}</span
-                      ></td
+                      ><span class="value">{@render value(row, column)}</span></td
                     >
                   {/if}
                 {/each}
@@ -282,6 +285,10 @@ row in place of the hairlines, for a table wide enough that the eye can lose its
 </div>
 
 <style>
+  .missing {
+    color: var(--sui-text-muted);
+  }
+
   .sui-data-table {
     display: grid;
     gap: var(--sui-row-copy-gap);

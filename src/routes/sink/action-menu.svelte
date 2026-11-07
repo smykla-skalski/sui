@@ -27,7 +27,7 @@
       onselect: nothing
     },
     { separator: true },
-    { label: 'Delete repository', icon: 'trash', tone: 'stop', onselect: () => (deleting = true) }
+    { label: 'Delete repository…', icon: 'trash', tone: 'stop', onselect: () => (deleting = true) }
   ];
 
   const release: ActionMenuItem[] = [
@@ -36,7 +36,7 @@
       label: 'Compare with the release published before it, file by file',
       onselect: nothing
     },
-    { label: 'Yank release', tone: 'stop', onselect: () => (yanking = true) }
+    { label: 'Yank release…', tone: 'stop', onselect: () => (yanking = true) }
   ];
 </script>
 

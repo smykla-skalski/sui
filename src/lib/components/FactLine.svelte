@@ -37,7 +37,7 @@ option) keeps its own typed separator instead.
 - Keyboard: none of its own; a fact may hold a link or a time.
 - Pointer and touch: none of its own.
 - Focus: none of its own.
-- Responsive: the line wraps after a dot, never before one.
+- Responsive: the line wraps after a dot, never before one, and a fact longer than the line, such as a long ID or address, breaks inside itself, so it never runs past its container.
 - Accessibility: the dot is read as the comma of `marks.comma`, its alternative text, so the facts are heard apart without a symbol read aloud. In a name built from content, such as a link holding the line, Chrome puts a space before that comma.
 - Localization: the spoken join is `marks.comma`; the dot and its spacing are logical and hold right to left.
 - Performance: no script beyond the spoken join.
@@ -52,6 +52,11 @@ option) keeps its own typed separator instead.
 >
 
 <style>
+  .sui-fact-line {
+    min-inline-size: 0;
+    overflow-wrap: anywhere;
+  }
+
   /* The dot ends the fact before it, with a break after it, so a wrapped line never starts with
      a dot, and its margins are the only space beside it (L-103). */
   .sui-fact-line > :global(:not(:last-child))::after {

@@ -223,8 +223,8 @@ export const thinWidth = 1920;
  */
 export type Ink = { advance: number; left: number; right: number; ascent: number; descent: number };
 
-/** Measures chart text, in the regular or the semibold face. */
-export type Measure = (text: string, semibold?: boolean) => Ink;
+/** Measures chart text, in the regular or the semibold face, with tabular figures for a tick. */
+export type Measure = (text: string, semibold?: boolean, tabular?: boolean) => Ink;
 
 /* The face's table, read into lookups when a chart first measures its words. */
 let lookups:
@@ -260,8 +260,9 @@ function faceLookups() {
  * union of the glyphs' ink. Null when a character is not in the face, so it is drawn in
  * another one whose glyphs only the browser knows.
  */
-export function faceInk(text: string, semibold = false): Ink | null {
+export function faceInk(text: string, semibold = false, tabular = false): Ink | null {
   const face = semibold ? SEMIBOLD : REGULAR;
+  const figures = TABULAR[Number(semibold)];
   const { glyphs, first, second, kerning } = faceLookups();
   let pen = 0;
   let start = Infinity;
@@ -272,9 +273,11 @@ export function faceInk(text: string, semibold = false): Ink | null {
   for (const glyph of text) {
     const index = glyphs.get(glyph);
     if (index === undefined) return null;
-    const pair = kerning.get(`${first.get(previous)} ${second.get(glyph)}`);
+    const figure = tabular ? FIGURES.indexOf(glyph) : -1;
+    const pair = figure < 0 && kerning.get(`${first.get(previous)} ${second.get(glyph)}`);
     if (pair) pen += pair[Number(semibold)];
-    const [advance, left, right, up, down] = face.slice(index * 5, index * 5 + 5);
+    const [advance, left, right, up, down] =
+      figure < 0 ? face.slice(index * 5, index * 5 + 5) : figures.slice(figure * 5, figure * 5 + 5);
     if (left + right > 0) {
       start = Math.min(start, pen - left);
       end = Math.max(end, pen + right);
@@ -282,7 +285,8 @@ export function faceInk(text: string, semibold = false): Ink | null {
       descent = Math.max(descent, down);
     }
     pen += advance;
-    previous = glyph;
+    // A tabular figure kerns with nothing, before it or after it.
+    previous = figure < 0 ? glyph : '';
   }
   if (end === -Infinity) return { advance: pen / 1000, left: 0, right: 0, ascent: 0, descent: 0 };
   return {
@@ -410,8 +414,8 @@ export function xyLayout(input: {
   const tickGap = rem(0.5);
   const titleGap = rem(0.75);
   const nameGap = rem(0.75);
-  const xInk = xTicks.map((tick) => measure(tick.text));
-  const yInk = yTicks.map((tick) => measure(tick.text));
+  const xInk = xTicks.map((tick) => measure(tick.text, false, true));
+  const yInk = yTicks.map((tick) => measure(tick.text, false, true));
   const nameInk = input.names.map((name) => measure(name.text, true));
   const yTitle = input.yLabel ? measure(input.yLabel, true) : null;
   const xTitle = input.xLabel ? measure(input.xLabel, true) : null;
@@ -529,7 +533,7 @@ export function rangeLayout(input: {
   const titleGap = rem(0.75);
   const row = rem(2.625);
   const labelInk = input.labels.map((label) => measure(label));
-  const tickInk = ticks.map((tick) => measure(tick.text));
+  const tickInk = ticks.map((tick) => measure(tick.text, false, true));
   const title = input.valueLabel ? measure(input.valueLabel, true) : null;
   const left = named(
     '--sui-local-plot-start',
@@ -607,7 +611,7 @@ export function heatmapLayout(input: {
   const reach = largest(spans.slice(1).map(([start], index) => spans[index][1] - start));
   const widest = largest(
     (input.values ?? []).map((words) => {
-      const [start, end] = inkSpan(measure(words, true), 0);
+      const [start, end] = inkSpan(measure(words, true, true), 0);
       return end - start;
     })
   );
@@ -893,6 +897,23 @@ export function spread(values: number[], gap: Length, min: number, max: number):
 
 const GLYPHS =
   ' !"#$%&\'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~ ¡¢£¤¥¦§¨©ª«¬®¯°±²³´µ¶·¸¹º»¼½¾¿ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖ×ØÙÚÛÜÝÞßàáâãäåæçèéêëìíîïðñòóôõö÷øùúûüýþÿıŒœˆ˚˜           –—‘’‚“”„•… ′″‹› €™↑↓−∕';
+
+/* The tabular figures, 0 to 9, which a tick sets with `tabular-nums` so values in a column line
+   up: each is one advance wide, drawn anew rather than respaced, and kerns with nothing. Measured
+   as the table above, through a face loaded with the `tnum` feature on. Regular, then semibold. */
+const FIGURES = '0123456789';
+const TABULAR = [
+  [
+    600, -39, 561, 757, 12, 600, -57, 543, 745, 0, 600, -57, 536, 757, 0, 600, -49, 534, 745, 12,
+    600, -43, 559, 745, 0, 600, -53, 536, 745, 12, 600, -66, 538, 745, 12, 600, -65, 533, 745, 0,
+    600, -61, 539, 757, 12, 600, -62, 534, 757, 0
+  ],
+  [
+    600, -33, 567, 757, 12, 600, -42.5, 557, 745, 0, 600, -50.5, 540, 757, 0, 600, -39, 543.5, 745,
+    12, 600, -31, 570.5, 745, 0, 600, -45.5, 543.5, 745, 12, 600, -53.5, 548.5, 745, 12, 600, -54,
+    543.5, 745, 0, 600, -51.5, 548.5, 757, 12, 600, -51.5, 546.5, 757, 0
+  ]
+];
 
 /* Five numbers a glyph, in thousandths of an em: its advance, how far its ink reaches before its
    start point and past it, and above and below its baseline. */

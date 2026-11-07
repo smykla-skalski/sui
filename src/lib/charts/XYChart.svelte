@@ -206,14 +206,15 @@
         {@const words = formatY(tick)}
         <rect class="grid" style:y={css(minus(y(tick, box), px(0.5)))} />
         <text
-          class="axis"
+          class="axis tick"
           text-anchor="end"
-          style:translate={at(box.tickEnd, centred(measure(words), y(tick, box)))}>{words}</text
+          style:translate={at(box.tickEnd, centred(measure(words, false, true), y(tick, box)))}
+          >{words}</text
         >
       {/each}
       {#each xAxis.ticks as tick (tick)}
         <text
-          class="axis"
+          class="axis tick"
           text-anchor="middle"
           style:translate={at(x(tick, box), box.xTickBaseline)}>{formatX(tick)}</text
         >
@@ -366,6 +367,9 @@
   .axis,
   .label {
     fill: var(--sui-text-secondary);
+  }
+  .tick {
+    font-variant-numeric: tabular-nums;
   }
   .label,
   .name {

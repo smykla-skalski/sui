@@ -58,7 +58,7 @@ the handle under them.
   <span class="sui-identity-copy" aria-hidden={handle ? 'true' : undefined}>
     <span class="sui-identity-name">{name}</span>
     {#if handle}
-      <span class="sui-identity-handle">{handle}</span>
+      <span class="sui-identity-handle" translate="no">{handle}</span>
     {/if}
   </span>
   <!-- After the name in the source, so the name can anchor it; drawn at the inline start. -->

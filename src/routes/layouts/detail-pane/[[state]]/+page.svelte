@@ -279,7 +279,8 @@
       <div class="zones">
         <ErrorState
           title="Sync check #4182 was not found"
-          description="It was deleted or never existed, so go back to the queue to open another check"
+          description="It was deleted or never existed"
+          step="Go back to the queue to open another check"
         />
       </div>
     {:else}
