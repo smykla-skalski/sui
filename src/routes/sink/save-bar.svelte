@@ -7,6 +7,7 @@
 </script>
 
 <script lang="ts">
+  import { beforeNavigate } from '$app/navigation';
   import { Field, SaveBar } from '#lib';
   import Example from '../kit/Example.svelte';
   import Specimen from '../kit/Specimen.svelte';
@@ -18,6 +19,25 @@
   let branch = $state('main');
   let saving = $state(false);
   const dirty = $derived(name !== saved.name || branch !== saved.branch);
+  // The example opens with unsaved work to show the bar, so only work the reader made is asked
+  // about.
+  const edited = $derived(dirty && (name !== 'smyklot-panel' || branch !== 'main'));
+
+  // A move inside the app never unloads the page, so the browser's own question never comes,
+  // and the app asks before the move drops the work.
+  beforeNavigate((navigation) => {
+    if (navigation.type === 'leave' || !edited) return;
+    if (!confirm('Leave this page and drop your unsaved settings?')) navigation.cancel();
+  });
+
+  // The save keys as the reader's platform names them, once the page runs and can tell.
+  let saveKeys = $state('Ctrl+S');
+  $effect(() => {
+    const platform =
+      (navigator as Navigator & { userAgentData?: { platform: string } }).userAgentData?.platform ??
+      navigator.platform;
+    if (/mac|iphone|ipad/i.test(platform)) saveKeys = '⌘S';
+  });
 
   function save() {
     saving = true;
@@ -75,7 +95,7 @@
 
 <Example
   title="States"
-  note="Editing raises the bar, Ctrl+S saves, a discard offers Undo, a failure stays up, and a conflict reloads with Undo"
+  note="Editing raises the bar, {saveKeys} saves, a discard offers Undo, a failure stays up, and a conflict reloads with Undo"
   layout="stack"
   ground="canvas"
 >

@@ -1008,10 +1008,15 @@ suite('forms', together, () => {
     }
   });
 
-  test('the save shortcut follows the letter the layout types, and unsaved work asks before the page goes', async () => {
+  test('the save shortcut follows the letter the layout types and is named for the platform, and unsaved work asks before the page or the app moves on', async () => {
     const page = await open({ path: 'save-bar/' });
     try {
       const field = page.locator('#save-bar input').first();
+      const apple = await page.evaluate(() => /mac|iphone|ipad/i.test(navigator.platform));
+      assert.match(
+        (await page.locator('#save-bar .note').first().textContent()) ?? '',
+        apple ? /⌘S saves/ : /Ctrl\+S saves/
+      );
       await field.click();
       await page.keyboard.type('-x');
       // On Dvorak the S sits where QWERTY has the semicolon, and the O where QWERTY has the S.
@@ -1042,11 +1047,25 @@ suite('forms', together, () => {
         asked.push(dialog.type());
         void dialog.dismiss();
       });
+      // A move inside the app never unloads the page, so the app asks, and a refusal stays.
+      // The router takes an injected link as its own, as it takes any in-app link.
+      await Promise.all([
+        page.waitForEvent('dialog'),
+        page.evaluate(() => {
+          const away = Object.assign(document.createElement('a'), { href: '../buttons/' });
+          away.textContent = 'Buttons';
+          document.body.append(away);
+          away.click();
+        })
+      ]);
+      await page.evaluate(() => new Promise(requestAnimationFrame));
+      assert.deepEqual(asked, ['confirm'], 'the app moved on with no question');
+      assert.match(page.url(), /\/save-bar\/$/, 'a refused move still left the page');
       await page.goto('about:blank').catch(() => {});
-      assert.deepEqual(asked, ['beforeunload'], 'the page went with no question');
+      assert.deepEqual(asked, ['confirm', 'beforeunload'], 'the page went with no question');
       await page.locator('#save-bar').getByRole('button', { name: 'Discard' }).first().click();
       await page.goto('about:blank');
-      assert.deepEqual(asked, ['beforeunload'], 'a clean pane still asked');
+      assert.deepEqual(asked, ['confirm', 'beforeunload'], 'a clean pane still asked');
     } finally {
       await page.close();
     }

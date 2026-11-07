@@ -80,8 +80,9 @@
     ondiscard: () => () => void;
     /**
      * Has the browser ask before the page unloads while there is work, since leaving drops it
-     * with no Undo. Turn it off where the app already guards its own navigation, or for a bar
-     * that shows a fixed state.
+     * with no Undo. A move inside the app never unloads the page, so the app's router asks then,
+     * as SvelteKit's `beforeNavigate` can. Turn it off where the app already guards its own
+     * navigation, or for a bar that shows a fixed state.
      */
     askBeforeLeaving?: boolean;
     /**
