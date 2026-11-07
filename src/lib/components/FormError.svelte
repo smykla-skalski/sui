@@ -129,7 +129,7 @@ margins of its own; the form that holds it sets the gap above it.
     color: var(--sui-danger);
     column-gap: var(--sui-space-1);
     display: grid;
-    font: var(--sui-weight-medium) var(--sui-font-size-meta) / var(--sui-row-copy-leading)
+    font: var(--sui-weight-medium) var(--sui-font-size-body) / var(--sui-row-copy-leading)
       var(--sui-sans);
     grid-template-columns: auto minmax(0, 1fr);
     margin: 0;
