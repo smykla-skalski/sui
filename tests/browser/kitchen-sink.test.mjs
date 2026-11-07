@@ -1320,8 +1320,9 @@ suite('the kitchen sink', together, () => {
     }
   );
 
-  // A sweep over every control of a kind runs on this many pages side by side.
-  const WORKERS = 4;
+  // A sweep over every control of a kind runs on this many pages side by side. Each page loads
+  // the whole sink, and on a four-core runner a third and fourth page cost more than they save.
+  const WORKERS = 2;
 
   // Every control a reader presses, save text links: buttons, select triggers, summaries, menu
   // items, options, tabs, navigation rows, chips and check rows.
