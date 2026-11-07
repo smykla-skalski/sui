@@ -143,7 +143,7 @@
   note="Headed groups with notes, a retired plan that cannot be chosen, and a long branch cut in the field but wrapped in the picker"
   layout="grid"
 >
-  <Specimen label="Groups and notes">
+  <Specimen label="Groups & notes">
     <Field label="Plan">
       {#snippet control({ id, describedby })}
         <Select {id} aria-describedby={describedby} options={plans} bind:value={plan} />

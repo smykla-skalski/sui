@@ -127,7 +127,7 @@
       'ColorPicker.swatchName',
       (hex: string, named?: string) => `${named ?? colorName(hex)}${mark('comma')}${hex}`
     ),
-    areaLabel = word('ColorPicker.areaLabel', 'Saturation and brightness'),
+    areaLabel = word('ColorPicker.areaLabel', 'Saturation & brightness'),
     areaValue = word(
       'ColorPicker.areaValue',
       (saturation: number, brightness: number) =>

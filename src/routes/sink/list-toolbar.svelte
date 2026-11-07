@@ -97,12 +97,12 @@
   note="The search leads, a filter stands beside its heading with its tools button and their choices, and one action may end the bar"
   layout="stack"
 >
-  <Specimen label="Search and action" code="action">
+  <Specimen label="Search & action" code="action">
     <ListToolbar searchLabel="Search members" placeholder="octocat…">
       {#snippet action()}<Button>Invite Member</Button>{/snippet}
     </ListToolbar>
   </Specimen>
-  <Specimen label="Filter and tools" code="filter tools">
+  <Specimen label="Filter & tools" code="filter tools">
     <ListToolbar
       searchLabel="Search repositories"
       placeholder="sui…"

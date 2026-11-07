@@ -79,7 +79,7 @@
   layout="stack"
   ground="canvas"
 >
-  <Specimen label="Status and action" code="side">
+  <Specimen label="Status & action" code="side">
     <Section title="Repositories" level={4}>
       <ObjectList>
         <ObjectRow href="#object-list">

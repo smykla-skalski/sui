@@ -99,7 +99,7 @@
   title="Removable"
   note="Each remove control names its value, a removal is announced, and focus moves to the next control"
 >
-  <Specimen label="Remove and refocus" code="onremove">
+  <Specimen label="Remove & refocus" code="onremove">
     <div class="group" role="group" aria-label="Labels">
       {#each labels as label (label)}
         <Chip mono {label} onremove={() => (labels = labels.filter((other) => other !== label))} />
@@ -108,7 +108,7 @@
       {/each}
     </div>
   </Specimen>
-  <Specimen label="Unkeyed remove and refocus" code="onremove">
+  <Specimen label="Unkeyed remove & refocus" code="onremove">
     <div class="group" role="group" aria-label="Unkeyed labels">
       <!-- Unkeyed on purpose: a browser test proves a chip hands focus on when a caller forgets the key. -->
       {#each unkeyed as label}

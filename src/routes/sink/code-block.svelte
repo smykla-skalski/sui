@@ -76,7 +76,7 @@ grep -rn 'export default' dist 2>/dev/null || echo "No exports"`;
   layout="stack"
   ground="canvas"
 >
-  <Specimen label="File label and line numbers" code="label lineNumbers">
+  <Specimen label="File label & line numbers" code="label lineNumbers">
     <CodeBlock code={json} lang="json" label="renovate.json" lineNumbers />
   </Specimen>
   <Specimen label="Without a copy control" code={'copy={false}'}>

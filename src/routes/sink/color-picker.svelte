@@ -55,7 +55,7 @@
   title="In a Field"
   note="The field's label and the hex name the trigger together, and its hint describes it"
 >
-  <Specimen label="Field label and hint" code="id aria-describedby">
+  <Specimen label="Field label & hint" code="id aria-describedby">
     <Field label="Brand color" hint="Used for links and the one signal button on each view">
       {#snippet control(field)}
         <ColorPicker id={field.id} aria-describedby={field.describedby} bind:value={brand} />

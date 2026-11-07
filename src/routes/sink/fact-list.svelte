@@ -34,7 +34,7 @@
   note="Facts wrap one by one with space between them, and technical values are mono"
   layout="stack"
 >
-  <Specimen label="Text, mono, time, status and link" code="mono href">
+  <Specimen label="Text, mono, time, status & link" code="mono href">
     <FactList
       facts={[
         { label: 'Branch', value: 'main', mono: true },
@@ -62,7 +62,7 @@
   note="A long value breaks inside its own fact and never pushes the row wider"
   layout="grid"
 >
-  <Specimen label="Path, hash and sentence">
+  <Specimen label="Path, hash & sentence">
     <FactList
       facts={[
         {

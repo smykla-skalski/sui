@@ -16,7 +16,7 @@
   title="Breadcrumb"
   note="The nearest ancestor is the last link, and a lone ancestor leads with a chevron so it reads as Up"
 >
-  <Specimen label="Ancestors and the page" code="items current">
+  <Specimen label="Ancestors & the page" code="items current">
     <Breadcrumb
       items={[
         { label: 'Acme', href: '#navigation' },

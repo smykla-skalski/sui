@@ -73,7 +73,7 @@
   note="Long copy starts at the symbol's tile however many lines follow, and an action beside it centres on the message"
   layout="stack"
 >
-  <Specimen label="Wrapping title and a link">
+  <Specimen label="Wrapping title & a link">
     <Callout
       title="Archived repositories are skipped during every sync, including the scheduled one"
     >

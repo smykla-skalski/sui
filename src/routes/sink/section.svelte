@@ -81,14 +81,14 @@
   layout="grid"
   ground="canvas"
 >
-  <Specimen label="Title and description" code="title description">
+  <Specimen label="Title & description" code="title description">
     <Section title="Outcome" description="What the last check found" level={4}>
       <p class="copy">
         Three repositories differ from the saved settings. Twelve match and one was not checked.
       </p>
     </Section>
   </Specimen>
-  <Specimen label="Count and link" code="count actions">
+  <Specimen label="Count & link" code="count actions">
     <Section title="Repositories" count={16} level={4}>
       {#snippet actions()}
         <Link href="#section-parts" standalone>Open sync page</Link>

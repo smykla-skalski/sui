@@ -175,7 +175,7 @@
   note="Long labels, hints and errors wrap and keep the same 8px gap between lines"
   layout="stack"
 >
-  <Specimen label="Wrapped label, hint and error">
+  <Specimen label="Wrapped label, hint & error">
     <div class="narrow">
       <Field
         label="The address that hears about every scheduled sync that fails on any repository"

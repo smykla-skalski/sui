@@ -161,7 +161,7 @@
   note="An actor leads the words, a pill and an action sit on the first line, and long words hang on their own edge"
   layout="stack"
 >
-  <Specimen label="Actor, status and action" code="actor status action">
+  <Specimen label="Actor, status & action" code="actor status action">
     <Timeline events={people} order="oldest" aria-label="Check 4182" />
   </Specimen>
   <Specimen label="Long words in 32rem">
@@ -227,7 +227,7 @@
   note="The time column, the actor and the end of the row mirror"
   layout="stack"
 >
-  <Specimen label="Actor, status and action" code={'dir="rtl"'}>
+  <Specimen label="Actor, status & action" code={'dir="rtl"'}>
     <div dir="rtl">
       <Timeline events={people} order="oldest" aria-label="Check 4182" />
     </div>

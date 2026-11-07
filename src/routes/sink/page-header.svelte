@@ -32,7 +32,7 @@
   layout="stack"
   ground="canvas"
 >
-  <Specimen label="Eyebrow, description and actions" code="eyebrow description actions">
+  <Specimen label="Eyebrow, description & actions" code="eyebrow description actions">
     <div class="page">
       <PageHeader
         level={4}
@@ -62,7 +62,7 @@
   layout="stack"
   ground="canvas"
 >
-  <Specimen label="Status, description and facts" code="kicker status description facts actions">
+  <Specimen label="Status, description & facts" code="kicker status description facts actions">
     <div class="page">
       <PageHeader
         level={4}
@@ -175,7 +175,7 @@
   layout="stack"
   ground="canvas"
 >
-  <Specimen label="Wrapping title and description">
+  <Specimen label="Wrapping title & description">
     <div class="page">
       <PageHeader
         level={4}

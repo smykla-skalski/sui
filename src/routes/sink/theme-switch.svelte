@@ -18,10 +18,10 @@
   title="Page Theme"
   note="Sets the theme of this page, remembers it for the next visit and follows the system live"
 >
-  <Specimen label="Light, dark and system" code="bind:value">
+  <Specimen label="Light, dark & system" code="bind:value">
     <ThemeSwitch name="sink-theme" bind:value={theme} />
   </Specimen>
-  <Specimen label="Light and dark" code={'system={false}'}>
+  <Specimen label="Light & dark" code={'system={false}'}>
     <ThemeSwitch name="sink-theme-two" system={false} />
   </Specimen>
   <Specimen label="Label drawn" code={'hideLabel={false}'}>

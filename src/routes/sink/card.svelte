@@ -66,7 +66,7 @@
   layout="stack"
   ground="canvas"
 >
-  <Specimen label="Framed, menu, ghost, switch, segmented and pill" code="href actions">
+  <Specimen label="Framed, menu, ghost, switch, segmented & pill" code="href actions">
     <div class="peers wide">
       <Card href="#card" title="Branch Rules" level={4}>
         {#snippet actions()}<Button>Edit</Button>{/snippet}
@@ -169,7 +169,7 @@
   layout="stack"
   ground="canvas"
 >
-  <Specimen label="Wrapping title and description" code="href actions">
+  <Specimen label="Wrapping title & description" code="href actions">
     <Card
       href="#card"
       title="Required Status Checks That Every Pull Request into a Protected Branch Must Pass Before It Can Merge"

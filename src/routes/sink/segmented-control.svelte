@@ -46,7 +46,7 @@
   <Specimen label="Words" code="options">
     <SegmentedControl label="Time range" options={range} bind:value={span} />
   </Specimen>
-  <Specimen label="Icons and counts" code="icon count">
+  <Specimen label="Icons & counts" code="icon count">
     <SegmentedControl label="People" options={people} bind:value={tab} />
   </Specimen>
 </Example>
