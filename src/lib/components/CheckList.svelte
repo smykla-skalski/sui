@@ -170,6 +170,7 @@ box. Choosing one lifts it. A caller's `error` always wins.
     padding: 0;
     padding-block: var(--sui-block-snap-room);
     text-box: trim-both cap alphabetic;
+    text-wrap: pretty;
   }
 
   .sui-check-list-required {

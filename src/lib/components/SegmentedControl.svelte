@@ -483,6 +483,7 @@ itself, so the choice shows from the first frame.
     overflow-wrap: anywhere;
     padding-block: var(--sui-block-snap-room);
     text-box: trim-both cap alphabetic;
+    text-wrap: pretty;
   }
 
   /* A pixel tall, because a box with no height reports no overflow to its scroll timeline; it

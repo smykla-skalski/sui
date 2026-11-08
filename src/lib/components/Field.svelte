@@ -216,6 +216,7 @@ the `control` snippet reports here on its own, and a control of another kind kee
     min-inline-size: 0;
     padding-block: var(--sui-block-snap-room);
     text-box: trim-both cap alphabetic;
+    text-wrap: pretty;
   }
 
   /* The label of a box or a switch flips it on a click, so it shows the pointer (L-100). */
@@ -226,11 +227,12 @@ the `control` snippet reports here on its own, and a control of another kind kee
     cursor: pointer;
   }
 
+  /* "Required" that wraps under a long label stands a copy gap under it (L-24). */
   .sui-field-head {
     align-items: baseline;
     display: flex;
     flex-wrap: wrap;
-    gap: var(--sui-space-1) var(--sui-space-2);
+    gap: var(--sui-space-2);
     min-inline-size: 0;
   }
 

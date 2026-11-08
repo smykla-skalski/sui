@@ -157,6 +157,7 @@ matches in a polite `role="status"` beside it so a screen reader hears it.
       var(--sui-sans);
     padding-block: var(--sui-block-snap-room);
     text-box: trim-both cap alphabetic;
+    text-wrap: pretty;
   }
 
   .sui-search-field-box {
