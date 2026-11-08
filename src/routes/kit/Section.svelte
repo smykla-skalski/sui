@@ -16,7 +16,7 @@
 </script>
 
 <script lang="ts">
-  import { setContext } from 'svelte';
+  import { getContext, setContext, type Snippet } from 'svelte';
   import { Link, VisuallyHidden } from '#lib';
   import { sources, type SinkSection } from './sections';
 
@@ -30,6 +30,7 @@
   } = $props();
 
   const { id, meta, source, Body } = $derived(section);
+  const audit = getContext<Snippet | undefined>('sink-audit');
 
   setContext<SectionContext>('sink-section', {
     get id() {
@@ -121,6 +122,7 @@
             <span class="name" translate="no">{name}</span>
           {/if}
         {/each}
+        {#if !head && audit}<span class="audit">{@render audit()}</span>{/if}
       </p>
     {/if}
   </header>
@@ -143,6 +145,11 @@
 
   .headed:not(:first-child) {
     margin-block-start: var(--sui-space-8);
+  }
+
+  /* A component's own page has only its source row over the examples. */
+  .section:not(.headed) {
+    gap: var(--sui-space-6);
   }
 
   .head {
@@ -206,5 +213,9 @@
 
   .name {
     color: var(--sui-text-secondary);
+  }
+
+  .audit {
+    margin-inline-start: auto;
   }
 </style>

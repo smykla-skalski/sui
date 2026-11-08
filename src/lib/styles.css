@@ -419,6 +419,8 @@
 
   --sui-font-size-micro: 0.6875rem;
   --sui-font-size-compact: 0.75rem;
+  /* A caption under a shown example, 13px at every width, a step under the help it shows. */
+  --sui-font-size-caption: 0.8125rem;
   --sui-font-size-meta: 0.875rem;
   /* A form's help and hint lines, half a step under the 14px label they explain (L-25). */
   --sui-font-size-note: 0.84375rem;
