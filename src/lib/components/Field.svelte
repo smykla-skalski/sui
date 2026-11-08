@@ -260,7 +260,7 @@ the `control` snippet reports here on its own, and a control of another kind kee
 
   .sui-field-help {
     color: var(--sui-text-secondary);
-    font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-leading-note)
+    font: var(--sui-weight-regular) var(--sui-font-size-note) / var(--sui-leading-note)
       var(--sui-sans);
   }
 

@@ -370,7 +370,7 @@ save keeps it. A busy dialog or a saving pane around it disables the radios whil
 
   .sui-choice-cards-help {
     color: var(--sui-text-secondary);
-    font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-leading-note)
+    font: var(--sui-weight-regular) var(--sui-font-size-note) / var(--sui-leading-note)
       var(--sui-sans);
   }
 

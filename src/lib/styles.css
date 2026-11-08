@@ -419,6 +419,8 @@
   --sui-font-size-micro: 0.6875rem;
   --sui-font-size-compact: 0.75rem;
   --sui-font-size-meta: 0.875rem;
+  /* A form's help and hint lines, a step under the 14px label they explain (L-25). */
+  --sui-font-size-note: 0.8125rem;
   --sui-font-size-body: 0.9375rem;
   --sui-font-size-control: 0.875rem;
   --sui-font-size-input: 0.875rem;
@@ -1026,6 +1028,7 @@
   [data-sui-theme] {
     --sui-font-size-micro: 0.75rem;
     --sui-font-size-compact: 0.8125rem;
+    --sui-font-size-note: var(--sui-font-size-meta);
     --sui-font-size-body: 1rem;
 
     --sui-font-size-page-title: var(--sui-font-size-page-title-compact);

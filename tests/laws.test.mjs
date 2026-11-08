@@ -402,6 +402,38 @@ test('L-25 the type tiers keep the sizes the law names', () => {
     ([name, value]) => name.startsWith('--sui-font-size-') && pixels(value) < 11
   );
   assert.deepEqual(small, [], 'no text is smaller than 11px');
+  const phone = tokenMap(stripComments(palette.slice(palette.indexOf(PHONE))));
+  assert.deepEqual(
+    { desktop: tier('note'), phone: phone['--sui-font-size-note'] },
+    { desktop: 13, phone: 'var(--sui-font-size-meta)' },
+    "a form's help reads a step under its 14px label, and at the label's size on a phone"
+  );
+  const notes = [
+    ['Field', 'sui-field-help'],
+    ['CheckList', 'sui-check-list-help'],
+    ['ChoiceCards', 'sui-choice-cards-help'],
+    ['DurationInput', 'sui-duration-hint']
+  ].map(([name, line]) =>
+    [
+      ...stripComments(styles[`src/lib/components/${name}.svelte`]).matchAll(
+        /([^{}]+)\{([^{}]*)\}/g
+      )
+    ]
+      .filter(([, head]) => head.split(',').some((each) => each.trim() === `.${line}`))
+      .flatMap(([, , body]) => [
+        ...body.matchAll(
+          /(?:font: var\(--sui-weight-\w+\)|font-size:) var\(--sui-font-size-(\w+)\)/g
+        )
+      ])
+      .map(([, size]) => `${line} ${size}`)
+      .at(-1)
+  );
+  assert.deepEqual(notes, [
+    'sui-field-help note',
+    'sui-check-list-help note',
+    'sui-choice-cards-help note',
+    'sui-duration-hint note'
+  ]);
   assert.match(
     styles['src/lib/components/Field.svelte'],
     /\.sui-field-label\s*\{[^}]*font: var\(--sui-weight-semibold\) var\(--sui-font-size-control\)/

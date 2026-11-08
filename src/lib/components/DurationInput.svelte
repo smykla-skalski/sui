@@ -381,6 +381,7 @@ land on the amount.
 
   .sui-duration-hint {
     color: var(--sui-text-secondary);
+    font-size: var(--sui-font-size-note);
   }
 
   .sui-duration-problem {
