@@ -383,13 +383,13 @@ test('L-25 the type tiers keep the sizes the law names', () => {
   );
   assert.match(
     styles['src/lib/components/DataTable.svelte'],
-    /\n  thead th \{[^}]*font: var\(--sui-weight-semibold\) var\(--sui-font-size-compact\)/,
-    'a column heading stands no step under the rows it heads'
+    /\n  thead th \{[^}]*font: var\(--sui-weight-semibold\) var\(--sui-font-size-control\)/,
+    'a column heading takes control type, a step under the rows it heads'
   );
-  assert.match(
+  assert.doesNotMatch(
     styles['src/lib/components/DataTable.svelte'],
-    /@media \(max-width: 47\.9375rem\) \{[^@]*\n    thead th \{\s*font-size: var\(--sui-font-size-control\);/,
-    'a column heading on a phone keeps the compact size under rows that read larger'
+    /\n    thead th \{\s*font-size/,
+    'a column heading keeps control type on a phone, where control type does not change'
   );
   for (const path of ['EmptyState', 'ErrorState'])
     assert.match(

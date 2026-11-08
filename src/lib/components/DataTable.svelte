@@ -455,7 +455,7 @@ row in place of the hairlines, for a table wide enough that the eye can lose its
     border-block-end: var(--sui-stroke) solid var(--sui-border-control);
     vertical-align: middle;
     color: var(--sui-text-primary);
-    font: var(--sui-weight-semibold) var(--sui-font-size-compact) / var(--sui-leading-compact)
+    font: var(--sui-weight-semibold) var(--sui-font-size-control) / var(--sui-leading-meta)
       var(--sui-sans);
   }
 
@@ -712,11 +712,6 @@ row in place of the hairlines, for a table wide enough that the eye can lose its
 
     .state {
       padding-block: var(--sui-space-5);
-    }
-
-    /* The rows read a step larger on a phone, so the headings take the control size back. */
-    thead th {
-      font-size: var(--sui-font-size-control);
     }
   }
 
