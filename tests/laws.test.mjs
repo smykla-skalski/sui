@@ -313,6 +313,20 @@ test('L-59 a state panel pads 28px by 24px, 20px on a phone, its action a step u
       `${path} on a phone`
     );
   }
+  const table = stripComments(styles['src/lib/components/DataTable.svelte']);
+  assert.deepEqual(
+    [
+      lengths(/\n {2}\.state \{([^}]*)\}/.exec(table)?.[1], 'padding-block'),
+      lengths(
+        /\.state \{([^}]*)\}/.exec(
+          /@media \(max-width: 47\.9375rem\) \{([\s\S]*?\})\s*\}/.exec(table)?.[1] ?? ''
+        )?.[1],
+        'padding-block'
+      )
+    ],
+    [[28], [20]],
+    "a table with no rows says so with a panel's room above and below its words"
+  );
 });
 
 test('L-5 the quiet inks stay easy to read on the dark canvas, under the current row', () => {
