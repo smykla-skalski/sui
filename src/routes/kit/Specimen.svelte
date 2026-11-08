@@ -114,7 +114,7 @@
     color: var(--sui-text-muted);
     display: flex;
     flex-wrap: wrap;
-    font: var(--sui-weight-regular) var(--sui-font-size-micro) / var(--sui-leading-micro)
+    font: var(--sui-weight-regular) var(--sui-font-size-compact) / var(--sui-leading-compact)
       var(--sui-mono);
     font-variant-numeric: tabular-nums;
     row-gap: var(--sui-row-copy-gap);

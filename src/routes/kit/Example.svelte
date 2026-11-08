@@ -191,9 +191,12 @@ live specimens, not a surface of the design, so it may hold cards and dialogs (L
   /* A caller whose specimens need more room per column, such as tables, sets
      `--specimen-min` on the example, and one whose specimens should keep a measure, such as
      fields, sets `--specimen-max`. */
+  /* Rows of a grid stand further apart than a caption stands under its specimen, so a
+     caption pushed to the foot of a tall row still reads with its own specimen. */
   .specimens[data-layout='grid'] {
     align-items: stretch;
     display: grid;
+    row-gap: var(--sui-space-8);
     grid-template-columns: repeat(
       auto-fill,
       minmax(min(100%, var(--specimen-min, 16rem)), var(--specimen-max, 1fr))
