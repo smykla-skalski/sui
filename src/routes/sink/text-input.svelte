@@ -65,18 +65,16 @@
   </Specimen>
 </Example>
 
-<!-- Each tier says the height it draws here: a touch screen lifts both to 44px. -->
+<!-- Each tier says the height it draws, and on a touch screen, which lifts both, that 44px too. -->
 {#snippet defaultTier()}<FactLine
-    ><span>Default</span><span
-      ><span class="fine">34 px</span><span class="coarse">44 px</span></span
-    ></FactLine
+    ><span>Default</span><span>34 px<span class="coarse">, 44 px here</span></span></FactLine
   >{/snippet}
 {#snippet tallTier()}<FactLine
-    ><span>Tall</span><span><span class="fine">40 px</span><span class="coarse">44 px</span></span
-    ></FactLine
+    ><span>Tall</span><span>40 px<span class="coarse">, 44 px here</span></span></FactLine
   >{/snippet}
 
 <Example
+  --specimen-min="22rem"
   title="Tiers"
   note="34 px by default and 44 px on phones, and a surface may opt into 40 px"
   layout="grid"
@@ -111,10 +109,6 @@
   }
 
   @media (max-width: 47.9375rem), (pointer: coarse) {
-    .fine {
-      display: none;
-    }
-
     .coarse {
       display: inline;
     }
