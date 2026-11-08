@@ -88,7 +88,7 @@ matches in a polite `role="status"` beside it so a screen reader hears it.
 
 - Semantics: a native search input, which is a searchbox, named by `label`, through a drawn `<label for>` or `aria-label`, with a clear `IconButton` once there is a query.
 - Content: one line of query text, an optional placeholder that is an example, and the magnifier at the start. It is `autocomplete="off"` unless the caller says otherwise, so no password manager or form history offers itself for a search.
-- States: empty, filled (with the clear button), focus (a 2px ring 1px off its frame), invalid (the danger edge and an error under the field) and disabled as `TextInput` draws them.
+- States: empty, filled (with the clear button), focus (a 2px ring 2px off its frame), invalid (the danger edge and an error under the field) and disabled as `TextInput` draws them.
 - Keyboard: typing narrows, Escape clears a query and passes on when there is none, and Tab reaches the clear button.
 - Pointer and touch: 34px tall, 44px on a phone or any touch screen, and the clear button keeps a 44px hit area there.
 - Focus: clearing by the button puts focus back in the field, and Escape keeps it there; a send refused for the query moves focus into the field when it is the form's first refused control.

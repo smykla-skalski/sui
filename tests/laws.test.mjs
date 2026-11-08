@@ -1085,7 +1085,7 @@ test('L-10 a read-only field frames its value between a keyline and an editable 
     );
 });
 
-test('L-41 a field keeps its frame and wears one ring 1px off it in every state', () => {
+test('L-41 a field keeps its frame and wears one ring 2px off it in every state', () => {
   for (const [path, rule] of [
     ['src/lib/components/TextInput.svelte', '.sui-text-input:focus-visible'],
     ['src/lib/components/Textarea.svelte', '.sui-textarea:focus-visible'],
@@ -1097,9 +1097,9 @@ test('L-41 a field keeps its frame and wears one ring 1px off it in every state'
   ]) {
     assert.ok(
       styles[path].includes(
-        `${rule} {\n    outline: var(--sui-focus-ring-width) solid var(--sui-focus);\n    outline-offset: var(--sui-focus-ring-gap);\n  }`
+        `${rule} {\n    outline: var(--sui-focus-ring-width) solid var(--sui-focus);\n    outline-offset: var(--sui-focus-ring-offset);\n  }`
       ),
-      `${path} stands its ring 1px off its own frame`
+      `${path} stands its ring 2px off its own frame, as a free-standing control does`
     );
     assert.doesNotMatch(
       styles[path],

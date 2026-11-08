@@ -39,7 +39,7 @@ the end part draws its own inset ring while it has focus, so the two never look 
 
 - Semantics: a `<div>` with no role around two native controls, each named on its own.
 - Content: `start`, the value, and `end`, one unit picker or one action, each drawn `bare`.
-- States: rest (the control fill, a quiet frame, a recess under its top edge darker than the frame and a 3:1 baseline), hover anywhere on it (the field veil over both parts and a firmer frame and recess, an end part's own hover over that), the value focused (the rest fill and frame with a 2px ring 1px off it), the end focused (its own inset ring), invalid (a danger edge on all four sides in every state), read-only (a lighter tint of the field well and a quiet frame with no recess) and disabled (the full field well with no frame or recess, its words in the muted ink, at full strength), and pending or held by a busy dialog or a saving pane (0.6 opacity).
+- States: rest (the control fill, a quiet frame, a recess under its top edge darker than the frame and a 3:1 baseline), hover anywhere on it (the field veil over both parts and a firmer frame and recess, an end part's own hover over that), the value focused (the rest fill and frame with a 2px ring 2px off it), the end focused (its own inset ring), invalid (a danger edge on all four sides in every state), read-only (a lighter tint of the field well and a quiet frame with no recess) and disabled (the full field well with no frame or recess, its words in the muted ink, at full strength), and pending or held by a busy dialog or a saving pane (0.6 opacity).
 - Keyboard: Tab moves from the value to the end part, each with its own keys.
 - Pointer and touch: the frame is the control height, 34px or 44px on a phone or any touch screen, and each part keeps its own target.
 - Focus: it never moves focus; each part keeps its own.
@@ -97,12 +97,12 @@ the end part draws its own inset ring while it has focus, so the two never look 
     }
   }
 
-  /* The field takes the ring while the value has focus, 1px off the frame it keeps, as a text
+  /* The field takes the ring while the value has focus, 2px off the frame it keeps, as a text
      field does (L-41). The focused part belongs to another component, so the state is looked
      up globally. */
   .sui-joined:has(.sui-joined-value :global(:focus-visible)) {
     outline: var(--sui-focus-ring-width) solid var(--sui-focus);
-    outline-offset: var(--sui-focus-ring-gap);
+    outline-offset: var(--sui-focus-ring-offset);
   }
 
   /* A value that only reads, or a field that is off, has no recess, as a read-only or disabled
