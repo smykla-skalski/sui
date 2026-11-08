@@ -567,7 +567,7 @@ name is the label and the hex, such as "Label color #0f766e". `name` posts the h
            description still reads it. -->
       {#if hexInvalid}
         <p id={errorId} class="error" aria-hidden="true">
-          <span class="error-mark"><Icon name="alert" size="xs" /></span>
+          <span class="error-mark"><Icon name="alert" size="base" /></span>
           <span class="error-words">{hexError}</span>
         </p>
       {/if}
@@ -799,7 +799,7 @@ name is the label and the hex, such as "Label color #0f766e". `name` posts the h
   /* Centred on the first line's cap height, however many lines the error wraps to. */
   .error-mark {
     display: flex;
-    margin-block: round(calc((1cap - var(--sui-icon-xs)) / 2), 1px);
+    margin-block: round(calc((1cap - var(--sui-icon-base)) / 2), 1px);
   }
 
   .error-words {

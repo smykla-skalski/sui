@@ -132,7 +132,7 @@ take, under the switch and to a screen reader, while the owner sets `checked` ba
        description still reads it. -->
   {#if error}
     <span id="{uid}-error" class="sui-switch-error" aria-hidden="true">
-      <span class="sui-switch-mark"><Icon name="alert" size="xs" /></span>
+      <span class="sui-switch-mark"><Icon name="alert" size="base" /></span>
       <span class="sui-switch-words">{error}</span>
     </span>
   {/if}
@@ -354,7 +354,7 @@ take, under the switch and to a screen reader, while the owner sets `checked` ba
   /* Centred on the first line's cap height, however many lines the error wraps to. */
   .sui-switch-mark {
     display: flex;
-    margin-block: round(calc((1cap - var(--sui-icon-xs)) / 2), 1px);
+    margin-block: round(calc((1cap - var(--sui-icon-base)) / 2), 1px);
   }
 
   .sui-switch-words {

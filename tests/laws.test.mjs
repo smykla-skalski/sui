@@ -1020,6 +1020,31 @@ test('L-53 a shadow that lifts a part is two layers in every palette block', () 
   );
 });
 
+test('L-94 a field or group message takes the 16px mark 4px from its words', () => {
+  const marks = {
+    Field: 'sui-field-error-mark',
+    CheckList: 'sui-check-list-mark',
+    ChoiceCards: 'sui-choice-cards-mark',
+    ColorPicker: 'error-mark',
+    DurationInput: 'sui-duration-mark',
+    SearchField: 'sui-search-field-error-mark',
+    Switch: 'sui-switch-mark'
+  };
+  for (const [name, mark] of Object.entries(marks)) {
+    const path = `src/lib/components/${name}.svelte`;
+    assert.ok(
+      read(path).includes(`<span class="${mark}"><Icon name="alert" size="base" /></span>`),
+      `${name}'s message mark is not the 16px glyph`
+    );
+    assert.ok(
+      new RegExp(
+        `\\.${mark} \\{[^}]*margin-block: round\\(calc\\(\\(1cap - var\\(--sui-icon-base\\)\\) / 2\\), 1px\\)`
+      ).test(styles[path]),
+      `${name}'s mark is not centred on the cap as a 16px glyph`
+    );
+  }
+});
+
 test('L-94 a form error summary and an error state take the 16px mark 8px from their words', () => {
   const path = 'src/lib/components/FormError.svelte';
   assert.match(read(path), /sui-form-error-mark"><Icon name="alert" size="base" \/>/);

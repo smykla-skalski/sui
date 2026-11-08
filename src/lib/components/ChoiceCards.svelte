@@ -157,7 +157,7 @@ save keeps it. A busy dialog or a saving pane around it disables the radios whil
        description still reads it. -->
   {#if shown}
     <p id="{id}-error" class="sui-choice-cards-error" aria-hidden="true">
-      <span class="sui-choice-cards-mark"><Icon name="alert" size="xs" /></span>
+      <span class="sui-choice-cards-mark"><Icon name="alert" size="base" /></span>
       <span class="sui-choice-cards-words">{shown}</span>
     </p>
   {/if}
@@ -388,7 +388,7 @@ save keeps it. A busy dialog or a saving pane around it disables the radios whil
   /* Centred on the first line's cap height, however many lines the error wraps to. */
   .sui-choice-cards-mark {
     display: flex;
-    margin-block: round(calc((1cap - var(--sui-icon-xs)) / 2), 1px);
+    margin-block: round(calc((1cap - var(--sui-icon-base)) / 2), 1px);
   }
 
   @media (prefers-reduced-motion: reduce) {

@@ -337,7 +337,7 @@ land on the amount.
   <!-- The status speaks the problem, so the drawn copy stays out of the tree. -->
   {#if said}
     <p class="sui-duration-problem" aria-hidden="true">
-      <span class="sui-duration-mark"><Icon name="alert" size="xs" /></span>
+      <span class="sui-duration-mark"><Icon name="alert" size="base" /></span>
       <span class="sui-duration-words">{said}</span>
     </p>
   {/if}
@@ -402,6 +402,6 @@ land on the amount.
   /* Centred on the first line's cap height, however many lines the reason wraps to. */
   .sui-duration-mark {
     display: flex;
-    margin-block: round(calc((1cap - var(--sui-icon-xs)) / 2), 1px);
+    margin-block: round(calc((1cap - var(--sui-icon-base)) / 2), 1px);
   }
 </style>

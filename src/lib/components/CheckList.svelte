@@ -143,7 +143,7 @@ box. Choosing one lifts it. A caller's `error` always wins.
        description still reads it. -->
   {#if shown}
     <p id="{id}-error" class="sui-check-list-error" aria-hidden="true">
-      <span class="sui-check-list-mark"><Icon name="alert" size="xs" /></span>
+      <span class="sui-check-list-mark"><Icon name="alert" size="base" /></span>
       <span class="sui-check-list-words">{shown}</span>
     </p>
   {/if}
@@ -230,6 +230,6 @@ box. Choosing one lifts it. A caller's `error` always wins.
   /* Centred on the first line's cap height, however many lines the error wraps to. */
   .sui-check-list-mark {
     display: flex;
-    margin-block: round(calc((1cap - var(--sui-icon-xs)) / 2), 1px);
+    margin-block: round(calc((1cap - var(--sui-icon-base)) / 2), 1px);
   }
 </style>

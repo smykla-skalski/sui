@@ -134,7 +134,7 @@ matches in a polite `role="status"` beside it so a screen reader hears it.
        description still reads it. -->
   {#if shown}
     <p id="{uid}-error" class="sui-search-field-error" aria-hidden="true">
-      <span class="sui-search-field-error-mark"><Icon name="alert" size="xs" /></span>
+      <span class="sui-search-field-error-mark"><Icon name="alert" size="base" /></span>
       <span class="sui-search-field-error-text">{shown}</span>
     </p>
   {/if}
@@ -205,7 +205,7 @@ matches in a polite `role="status"` beside it so a screen reader hears it.
   /* Centred on the first line's cap height, however many lines the error wraps to. */
   .sui-search-field-error-mark {
     display: flex;
-    margin-block: round(calc((1cap - var(--sui-icon-xs)) / 2), 1px);
+    margin-block: round(calc((1cap - var(--sui-icon-base)) / 2), 1px);
   }
 
   .sui-search-field-error-text {

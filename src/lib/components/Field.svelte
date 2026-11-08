@@ -141,7 +141,7 @@ the `control` snippet reports here on its own, and a control of another kind kee
        description still reads it. -->
   {#if shown}
     <p id="{id}-error" class="sui-field-error" aria-hidden="true">
-      <span class="sui-field-error-mark"><Icon name="alert" size="xs" /></span>
+      <span class="sui-field-error-mark"><Icon name="alert" size="base" /></span>
       <span class="sui-field-error-text">{shown}</span>
     </p>
   {/if}
@@ -284,6 +284,6 @@ the `control` snippet reports here on its own, and a control of another kind kee
   /* Centred on the first line's cap height, however many lines the error wraps to. */
   .sui-field-error-mark {
     display: flex;
-    margin-block: round(calc((1cap - var(--sui-icon-xs)) / 2), 1px);
+    margin-block: round(calc((1cap - var(--sui-icon-base)) / 2), 1px);
   }
 </style>
