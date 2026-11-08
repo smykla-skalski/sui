@@ -39,7 +39,7 @@ the end part draws its own inset ring while it has focus, so the two never look 
 
 - Semantics: a `<div>` with no role around two native controls, each named on its own.
 - Content: `start`, the value, and `end`, one unit picker or one action, each drawn `bare`.
-- States: rest (the control fill, a quiet frame, a recess under its top edge darker than the frame and a 3:1 baseline), hover anywhere on it (the field veil over both parts and a firmer frame and recess, an end part's own hover over that), the value focused (the rest fill under a flush 2px ring), the end focused (its own inset ring), invalid (a danger edge on all four sides in every state), read-only (65% of the field well and a quiet frame with no recess) and disabled (the full field well and a quiet frame with no recess, its words in the muted ink, at full strength), and pending or held by a busy dialog or a saving pane (0.6 opacity).
+- States: rest (the control fill, a quiet frame, a recess under its top edge darker than the frame and a 3:1 baseline), hover anywhere on it (the field veil over both parts and a firmer frame and recess, an end part's own hover over that), the value focused (the rest fill under a flush 2px ring), the end focused (its own inset ring), invalid (a danger edge on all four sides in every state), read-only (a lighter tint of the field well and a quiet frame with no recess) and disabled (the full field well with no frame or recess, its words in the muted ink, at full strength), and pending or held by a busy dialog or a saving pane (0.6 opacity).
 - Keyboard: Tab moves from the value to the end part, each with its own keys.
 - Pointer and touch: the frame is the control height, 34px or 44px on a phone or any touch screen, and each part keeps its own target.
 - Focus: it never moves focus; each part keeps its own.
@@ -106,9 +106,10 @@ the end part draws its own inset ring while it has focus, so the two never look 
     outline-offset: var(--sui-focus-ring-flush);
   }
 
-  /* A value that only reads, or a field that is off, has a quiet frame and no recess, as a
-     read-only or disabled text field does, so it never looks like a field to type in: an off
-     field in the field well, a value that only reads in a lighter tint of it (L-10, L-40). */
+  /* A value that only reads, or a field that is off, has no recess, as a read-only or disabled
+     text field does, so it never looks like a field to type in: an off field fills the field
+     well with no frame, a value that only reads keeps a quiet frame over a lighter tint of it
+     (L-10, L-40). */
   .readonly,
   .readonly:has(.sui-joined-value :global(:focus-visible)) {
     background-color: var(--sui-field-readonly);
@@ -120,7 +121,7 @@ the end part draws its own inset ring while it has focus, so the two never look 
      selector's weight, and the read-only tint would win. */
   .disabled {
     background-color: var(--sui-field-well);
-    border-color: var(--sui-border-subtle);
+    border-color: transparent;
     box-shadow: none;
   }
 
