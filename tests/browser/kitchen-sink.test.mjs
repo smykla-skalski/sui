@@ -1,4 +1,7 @@
 import assert from 'node:assert/strict';
+import { writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { after, before, suite, test } from 'node:test';
 import {
   allSections,
@@ -814,6 +817,21 @@ suite('the kitchen sink', together, () => {
         },
         [one.toString('base64'), two.toString('base64')]
       );
+    // A busy machine can show a frame or more before a change is painted, so the witness is a
+    // shot that the next one repeats.
+    /**
+     * @param {import('playwright-core').Page} page
+     * @param {import('playwright-core').Locator} avatar
+     */
+    const settled = async (page, avatar) => {
+      let shot = await avatar.screenshot();
+      for (let tries = 0; tries < 10; tries += 1) {
+        const next = await avatar.screenshot();
+        if (await alike(page, next, shot)) return next;
+        shot = next;
+      }
+      return shot;
+    };
     /** @type {Record<string, Buffer>} */
     let before = {};
     /** @param {boolean} javaScriptEnabled */
@@ -845,15 +863,7 @@ suite('the kitchen sink', together, () => {
               await picture.decode().catch(() => {});
               await document.fonts.ready;
             });
-          // A busy compositor can show a decoded picture a frame or more late, so the witness is
-          // a shot that the next one repeats.
-          let shot = await avatar.screenshot();
-          for (let tries = 0; tries < 10; tries += 1) {
-            const next = await avatar.screenshot();
-            if (await alike(page, next, shot)) break;
-            shot = next;
-          }
-          drawn[name] = shot;
+          drawn[name] = await settled(page, avatar);
           if (javaScriptEnabled) {
             if (!(await alike(page, drawn[name], before[name])))
               problems.push(`${name} changes once script runs`);
@@ -862,10 +872,17 @@ suite('the kitchen sink', together, () => {
           // What a part adds is what disappears with it.
           const part = avatar.locator(failed.includes(name) ? 'img' : 'svg');
           await part.evaluate((node) => node.style.setProperty('display', 'none'));
-          if (!(await alike(page, await avatar.screenshot(), drawn[name])))
-            problems.push(
-              `${name}: the ${failed.includes(name) ? 'failed picture' : 'covered initials'} drew something`
+          const without = await settled(page, avatar);
+          if (!(await alike(page, without, drawn[name]))) {
+            const shots = ['with', 'without'].map((kind) =>
+              join(tmpdir(), `sui-avatar-${name.replace(/\W+/g, '-')}-${kind}.png`)
             );
+            writeFileSync(shots[0], drawn[name]);
+            writeFileSync(shots[1], without);
+            problems.push(
+              `${name}: the ${failed.includes(name) ? 'failed picture' : 'covered initials'} drew something, see ${shots.join(' and ')}`
+            );
+          }
           await part.evaluate((node) => node.style.removeProperty('display'));
         }
         if (!javaScriptEnabled) {
