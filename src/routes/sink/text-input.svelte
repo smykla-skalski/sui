@@ -50,14 +50,14 @@
     </Field>
   </Specimen>
   <Specimen label="Read only">
-    <Field label="Repository ID" hint="The repository keeps this ID from the day you create it">
+    <Field label="Repository ID" hint="Fixed when the repository was created">
       {#snippet control({ id, describedby })}
         <TextInput {id} aria-describedby={describedby} mono readonly value="R_kgDOJ8x2Qw" />
       {/snippet}
     </Field>
   </Specimen>
   <Specimen label="Disabled">
-    <Field label="Owner" hint="Only an owner can move the repository to another account">
+    <Field label="Owner" hint="Only an owner can transfer the repository">
       {#snippet control({ id, describedby })}
         <TextInput {id} aria-describedby={describedby} value="smykla-skalski" disabled />
       {/snippet}
