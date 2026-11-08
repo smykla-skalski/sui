@@ -811,7 +811,7 @@
   --sui-pressed-inset: inset 0 1px 2px rgb(0 0 0 / 34%);
 
   --sui-row-hover: color-mix(in srgb, #ffffff 6.8%, transparent);
-  --sui-field-hover: color-mix(in srgb, #ffffff 1.6%, transparent);
+  --sui-field-hover: color-mix(in srgb, #ffffff 2.2%, transparent);
   /* The dark inset ground is within a level of the raised one, so on dark the well is a veil
      that stands apart on every ground a field stands on (L-10). */
   --sui-field-well: color-mix(in srgb, #ffffff 7%, transparent);
@@ -1043,7 +1043,7 @@
     --sui-pressed-inset: inset 0 1px 2px rgb(0 0 0 / 34%);
 
     --sui-row-hover: color-mix(in srgb, #ffffff 6.8%, transparent);
-    --sui-field-hover: color-mix(in srgb, #ffffff 1.6%, transparent);
+    --sui-field-hover: color-mix(in srgb, #ffffff 2.2%, transparent);
     /* The dark inset ground is within a level of the raised one, so on dark the well is a veil
        that stands apart on every ground a field stands on (L-10). */
     --sui-field-well: color-mix(in srgb, #ffffff 7%, transparent);
