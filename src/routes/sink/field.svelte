@@ -259,7 +259,7 @@
   <Example
     title="In Context"
     --example-max="35rem"
-    note="Fields stack 20 px apart, and every control in the form keeps one label, hint and error"
+    note="Fields stack 20 px apart, and each control keeps one label, hint and error"
     layout="grid"
     --specimen-min="21rem"
     ground="canvas"
@@ -335,9 +335,14 @@
     gap: var(--sui-space-6);
   }
 
+  /* Each frame keeps its measure, and the last example takes the rest of its line, so its
+     note reads at full width once the pair wraps on a phone. */
   .measured :global(.example) {
-    flex: 1 1 var(--example-max);
-    max-inline-size: var(--example-max);
+    flex: 0 1 var(--example-max);
+  }
+
+  .measured > :global(:last-child) > :global(.example) {
+    flex-grow: 1;
   }
 
   .narrow {

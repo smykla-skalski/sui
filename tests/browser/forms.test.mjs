@@ -303,6 +303,16 @@ suite('forms', together, () => {
       );
       assert.ok(tops.every((top) => typeof top === 'number'));
       assert.equal(tops[0], tops[1]);
+      const phone = await open({ width: 390 });
+      const widths = await phone.evaluate(() =>
+        ['in-context', 'narrow-width'].map(
+          (name) =>
+            document.getElementById(`field-${name}`)?.closest('.example')?.getBoundingClientRect()
+              .width
+        )
+      );
+      await phone.close();
+      assert.equal(widths[1], widths[0], 'a wrapped example keeps its note to its frame');
     });
 
     test(
