@@ -280,7 +280,7 @@ suite('forms', together, () => {
     });
 
     test(
-      'a checkbox row centres its box on the label, its notes 8px under it, an error mark under the box',
+      'a checkbox row centres its box on the label, its notes 8px under the box, an error mark under it',
       long,
       async () => {
         const page = await opened();
@@ -295,7 +295,7 @@ suite('forms', together, () => {
             const label = box('.sui-field-label');
             const check = box('.sui-checkbox-box');
             return {
-              gap: box(':is(.sui-field-help, .sui-field-error-text)').top - label.bottom,
+              gap: box(':is(.sui-field-help, .sui-field-error-text)').top - check.bottom,
               offCentre: check.top + check.height / 2 - (label.top + label.height / 2)
             };
           })

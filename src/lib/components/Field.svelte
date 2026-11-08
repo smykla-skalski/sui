@@ -78,7 +78,7 @@ Any other control goes in the `control` snippet, which receives the `id` the lab
 the `describedby` ids of the hint and the error, `invalid` and `required`. Spread them onto a
 `Textarea`, a `Select`, a `Checkbox` or a picker. `layout="row"` sets a checkbox before the
 label and a switch after it, both centred on one line, and a checkbox row's hint or error
-stands 8px under the label, as a `Checkbox`'s description does.
+stands 8px under the box, as under any other control.
 
 `required` writes the word "Required" beside the label, never only an asterisk, and marks
 the control. The word stays out of the accessibility tree, because the control already
@@ -174,16 +174,13 @@ the `control` snippet reports here on its own, and a control of another kind kee
     column-gap: var(--sui-space-2);
     grid-template-columns: auto minmax(0, 1fr);
 
-    /* The control row is one cap of the label's face tall, so the box centres on the label's
-       first line, its 34px or 44px target standing past the row as a `Checkbox`'s does, and
-       the hint or error stands the copy gap under the label, not under that target. The cap
-       rounds to an even height, as the label's box does, so the even box centres on whole
-       pixels (L-95). */
+    /* The control row is as tall as the box, not its 34px or 44px target, which stands past
+       the row, so the hint or error stands the copy gap under the box as it does under any
+       other control. The label's box rounds to an even height, as the box's is, so the label
+       centres on whole pixels (L-95). */
     > .sui-field-control {
       --sui-local-checkbox-bleed: initial;
-      block-size: round(up, 1cap, 2px);
-      font: var(--sui-weight-semibold) var(--sui-font-size-control) / var(--sui-leading-note)
-        var(--sui-sans);
+      block-size: var(--sui-icon-md);
       grid-area: 1 / 1;
       min-block-size: 0;
     }
