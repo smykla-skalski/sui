@@ -550,6 +550,7 @@ test('L-45 the add tone labels its entry in the primary ink inside its dashed ed
 test('L-35 a field label and every group name wear one ink at one weight, over a compact "Required"', () => {
   const names = {
     'src/lib/components/Field.svelte': 'sui-field-label',
+    'src/lib/components/SearchField.svelte': 'sui-search-field-label',
     'src/lib/components/CheckList.svelte': 'sui-check-list-legend',
     'src/lib/components/ChoiceCards.svelte': 'sui-choice-cards-legend',
     'src/lib/components/SegmentedControl.svelte': 'sui-segmented-caption'
