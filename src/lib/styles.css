@@ -79,7 +79,7 @@
      frame is lighter than the field, a shade that reads apart from the ground without a hard
      line. */
   --sui-primitive-light-recess: rgb(0 0 0 / 21%);
-  --sui-primitive-light-recess-hover: rgb(0 0 0 / 37%);
+  --sui-primitive-light-recess-hover: rgb(0 0 0 / 42%);
   --sui-primitive-dark-recess: rgb(0 0 0 / 65%);
   --sui-primitive-dark-recess-hover: rgb(0 0 0 / 85%);
 
@@ -305,7 +305,9 @@
      on every ground it stands on, the cue WCAG 1.4.11 asks of a text input (L-9). A recess
      under its top edge sinks it into the ground. */
   --sui-field-frame: rgb(0 0 0 / 18%);
-  --sui-field-frame-hover: var(--sui-control-border-hover);
+  /* A field's frame firms on hover past a button's, so a field answers the pointer at a glance
+     while its ground only just moves (L-9, L-12). */
+  --sui-field-frame-hover: rgb(0 0 0 / 36%);
   /* Lighter than the strong border, so a field is not heavy at its foot, and still 3:1 on every
      ground (L-9). */
   --sui-field-border: rgb(0 0 0 / 46%);
@@ -854,7 +856,7 @@
 
   --sui-control-border: var(--sui-border-control);
   --sui-field-frame: rgb(255 255 255 / 24%);
-  --sui-field-frame-hover: var(--sui-control-border-hover);
+  --sui-field-frame-hover: rgb(255 255 255 / 38%);
   /* A step brighter than the strong border, so a dark field keeps a line to type on that reads
      apart from its frame (L-9). */
   --sui-field-border: rgb(255 255 255 / 40%);
@@ -1080,7 +1082,7 @@
 
     --sui-control-border: var(--sui-border-control);
     --sui-field-frame: rgb(255 255 255 / 24%);
-    --sui-field-frame-hover: var(--sui-control-border-hover);
+    --sui-field-frame-hover: rgb(255 255 255 / 38%);
     --sui-field-border: rgb(255 255 255 / 40%);
     --sui-field-border-hover: color-mix(
       in srgb,
@@ -1129,6 +1131,7 @@
     --sui-field-frame: var(--sui-border-contrast) !important;
     --sui-field-readonly-frame: var(--sui-border-contrast) !important;
     --sui-control-border-hover: var(--sui-border-contrast-hover) !important;
+    --sui-field-frame-hover: var(--sui-border-contrast-hover) !important;
   }
 }
 
