@@ -556,7 +556,7 @@ test('a side that differs from its opposite is written along the reading directi
   );
 });
 
-test('L-68 icon sizes are named tiers that grow with the text and land on whole pixels', () => {
+test("L-68 icon sizes are named tiers that grow with the text and land on whole pixels, 16px beside a control's words", () => {
   for (const [name, value] of Object.entries(tokenMap(stripComments(palette))).filter(([name]) =>
     name.startsWith('--sui-icon-')
   )) {
@@ -569,6 +569,24 @@ test('L-68 icon sizes are named tiers that grow with the text and land on whole 
       .map(([match]) => `${path}: ${match}`)
   );
   assert.deepEqual(literal, []);
+
+  const smallBesideWords = svelteFiles.flatMap((path) =>
+    [...read(path).matchAll(/<Button\b[\s\S]*?<\/Button\s*>/g)].flatMap(([button]) =>
+      [...button.matchAll(/<Icon\b[^>]*\bsize="(?!base")[a-z]+"/g)].map(
+        ([match]) => `${path}: ${match}`
+      )
+    )
+  );
+  assert.deepEqual(smallBesideWords, [], 'a glyph in a button takes the 16px tier of its words');
+  assert.match(
+    read('src/lib/components/Select.svelte'),
+    /<Icon name="chevron-down" size="base" \/>/
+  );
+  assert.match(
+    styles['src/lib/components/Button.svelte'],
+    /\.sui-button-spinner \{[^}]*block-size: var\(--sui-icon-base\)/,
+    'a busy button swaps its glyph for a spinner of the same size'
+  );
 });
 
 test('L-72 stacking order comes from the layer tokens', () => {

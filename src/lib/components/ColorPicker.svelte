@@ -437,7 +437,7 @@ name is the label and the hex, such as "Label color #0f766e". `name` posts the h
     {/snippet}
     <code class="hex" translate="no">{current}</code>
     {#snippet trailing()}
-      <Icon name="chevron-down" size="sm" />
+      <Icon name="chevron-down" size="base" />
     {/snippet}
   </Button>
 {/snippet}

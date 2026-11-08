@@ -208,7 +208,7 @@ returns focus there too. Labels wrap rather than being cut short.
   {#if children}
     <Button bind:element={button} id={triggerId} {tone} {disabled} {...triggerProps}>
       {@render children()}
-      {#snippet trailing()}<Icon name="chevron-down" size="sm" />{/snippet}
+      {#snippet trailing()}<Icon name="chevron-down" size="base" />{/snippet}
     </Button>
   {:else if label && icon}
     <IconButton

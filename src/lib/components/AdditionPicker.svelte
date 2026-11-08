@@ -186,7 +186,7 @@ new control after `onadd` is the caller's.
   popovertarget={popupId}
   onclick={toggle}
 >
-  {#snippet icon()}<Icon name="plus" size="sm" />{/snippet}
+  {#snippet icon()}<Icon name="plus" size="base" />{/snippet}
   {label}
 </Button><Popover id={popupId} anchor={trigger} bind:open {onclose} width="min-trigger">
   <div

@@ -24,7 +24,7 @@
     {#snippet cell(tone, state)}
       {#if tone === 'add'}
         <Button {tone} disabled={state === 'Disabled'} loading={state === 'Loading'}>
-          {#snippet icon()}<Icon name="plus" size="sm" />{/snippet}
+          {#snippet icon()}<Icon name="plus" size="base" />{/snippet}
           {state === 'Loading' ? 'Adding a Rule' : 'Add a Rule'}
         </Button>
       {:else}
@@ -42,19 +42,19 @@
 >
   <Specimen label="Leading icon" code="icon">
     <Button>
-      {#snippet icon()}<Icon name="refresh" size="sm" />{/snippet}
+      {#snippet icon()}<Icon name="refresh" size="base" />{/snippet}
       Refresh
     </Button>
   </Specimen>
   <Specimen label="Trailing icon" code="trailing">
     <Button>
       Options
-      {#snippet trailing()}<Icon name="chevron-down" size="sm" />{/snippet}
+      {#snippet trailing()}<Icon name="chevron-down" size="base" />{/snippet}
     </Button>
   </Specimen>
   <Specimen label="Optional addition" code={'tone="add"'}>
     <Button tone="add">
-      {#snippet icon()}<Icon name="plus" size="sm" />{/snippet}
+      {#snippet icon()}<Icon name="plus" size="base" />{/snippet}
       Add a Rule
     </Button>
   </Specimen>
@@ -72,7 +72,7 @@
   <Specimen label="Wrapped with an icon" code="icon">
     <div class="narrow">
       <Button>
-        {#snippet icon()}<Icon name="repositories" size="sm" />{/snippet}
+        {#snippet icon()}<Icon name="repositories" size="base" />{/snippet}
         Move Repositories to the New Organization
       </Button>
     </div>

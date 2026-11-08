@@ -233,7 +233,7 @@ assistive technology, because a native picker cannot be held open.
         {/if}
       {/each}
     </select>
-    <span class="sui-select-chevron"><Icon name="chevron-down" size="sm" /></span>
+    <span class="sui-select-chevron"><Icon name="chevron-down" size="base" /></span>
   </span>
 {/snippet}
 
@@ -291,7 +291,7 @@ assistive technology, because a native picker cannot be held open.
     min-inline-size: 0;
     overflow: hidden;
     padding-block: 0;
-    padding-inline: var(--sui-space-2) calc(2 * var(--sui-space-2) + var(--sui-icon-sm));
+    padding-inline: var(--sui-space-2) calc(2 * var(--sui-space-2) + var(--sui-icon-base));
     text-overflow: ellipsis;
     transition: translate var(--sui-duration-press) var(--sui-ease-standard);
     -webkit-user-select: none;

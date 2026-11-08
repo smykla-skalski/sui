@@ -33,7 +33,7 @@
   <Specimen label="Toggled by its trigger" code={'popovertarget width="min-trigger"'}>
     <Button bind:element={trigger} popovertarget="sink-popover">
       Show Details
-      {#snippet trailing()}<Icon name="chevron-down" size="sm" />{/snippet}
+      {#snippet trailing()}<Icon name="chevron-down" size="base" />{/snippet}
     </Button>
     <Popover
       id="sink-popover"
@@ -51,7 +51,7 @@
   <Specimen label="Above, flipped below when there is no room" code={'side="block-start"'}>
     <Button bind:element={above} popovertarget="sink-popover-above">
       Show the Author
-      {#snippet trailing()}<Icon name="chevron-up" size="sm" />{/snippet}
+      {#snippet trailing()}<Icon name="chevron-up" size="base" />{/snippet}
     </Button>
     <Popover
       id="sink-popover-above"
@@ -69,7 +69,7 @@
   <Specimen label="Manual, closed by its button or Escape" code={'dismiss="manual"'}>
     <Button bind:element={pinned} popovertarget="sink-popover-pinned">
       Pin the Notes
-      {#snippet trailing()}<Icon name="chevron-down" size="sm" />{/snippet}
+      {#snippet trailing()}<Icon name="chevron-down" size="base" />{/snippet}
     </Button>
     <Popover
       id="sink-popover-pinned"
@@ -89,7 +89,7 @@
   <Specimen label="Taller than its room, scrolling inside">
     <Button bind:element={tall} popovertarget="sink-popover-tall">
       Show Every Change
-      {#snippet trailing()}<Icon name="chevron-down" size="sm" />{/snippet}
+      {#snippet trailing()}<Icon name="chevron-down" size="base" />{/snippet}
     </Button>
     <Popover
       id="sink-popover-tall"
@@ -126,7 +126,7 @@
     <div class="open">
       <Button aria-expanded="true" aria-controls="sink-popover-open">
         Show Details
-        {#snippet trailing()}<Icon name="chevron-down" size="sm" />{/snippet}
+        {#snippet trailing()}<Icon name="chevron-down" size="base" />{/snippet}
       </Button>
       <Popover
         id="sink-popover-open"

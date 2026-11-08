@@ -286,7 +286,7 @@ row gives them and fall under the copy on a narrow row.
         aria-disabled={Boolean(holding) || undefined}
         onclick={(event: MouseEvent & { currentTarget: HTMLElement }) => seed(-1, event)}
       >
-        {#snippet icon()}<Icon name="plus" size="sm" />{/snippet}
+        {#snippet icon()}<Icon name="plus" size="base" />{/snippet}
         {addLabel}
       </Button>
     </li>

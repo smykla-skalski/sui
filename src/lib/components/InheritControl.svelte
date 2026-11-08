@@ -183,7 +183,7 @@ for a press of the way back.
       aria-label={overrideName?.(label) ?? overrideFor(overrideLabel, label)}
       onclick={override}
     >
-      {#snippet icon()}<Icon name="plus" size="sm" />{/snippet}
+      {#snippet icon()}<Icon name="plus" size="base" />{/snippet}
       {overrideLabel}
     </Button>
   {/if}

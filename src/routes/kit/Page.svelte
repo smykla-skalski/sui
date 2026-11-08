@@ -41,7 +41,7 @@
     {/snippet}
     {#snippet actions()}
       <Button tone="ghost" loading={audit.running} onclick={() => audit.measure()}>
-        {#snippet icon()}<Icon name="refresh" size="sm" />{/snippet}
+        {#snippet icon()}<Icon name="refresh" size="base" />{/snippet}
         Run the Law Audit
       </Button>
     {/snippet}

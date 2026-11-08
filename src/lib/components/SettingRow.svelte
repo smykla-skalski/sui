@@ -267,7 +267,7 @@ section's ground between them (L-91).
           aria-disabled={holding === 'soft' || undefined}
           onclick={clear}
         >
-          {#snippet icon()}<Icon name="undo" size="sm" />{/snippet}
+          {#snippet icon()}<Icon name="undo" size="base" />{/snippet}
           {resetLabel}
         </Button>
       </span>

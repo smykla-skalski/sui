@@ -216,7 +216,7 @@ button. Without `tools` there is no button and the filter never folds.
                 aria-controls={popupId}
                 aria-describedby={`${uid}-described`}
               >
-                {#snippet icon()}<Icon name="sliders" size="sm" />{/snippet}
+                {#snippet icon()}<Icon name="sliders" size="base" />{/snippet}
                 {toolsLabel}
               </Button>
             </span>

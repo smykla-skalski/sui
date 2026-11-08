@@ -362,7 +362,7 @@ a saving pane around it holds it the same way.
         loading={busy}
         onclick={add}
       >
-        {#snippet icon()}<Icon name="plus" size="sm" />{/snippet}
+        {#snippet icon()}<Icon name="plus" size="base" />{/snippet}
         {addLabel}
       </Button>
     </li>
@@ -378,7 +378,7 @@ a saving pane around it holds it the same way.
     <div class="sui-pattern-removed">
       <span class="sui-pattern-said">{removedLabel(removed.pattern)}</span>
       <Button tone="ghost" disabled={disabled || firm} loading={busy} onclick={undo}>
-        {#snippet icon()}<Icon name="undo" size="sm" />{/snippet}
+        {#snippet icon()}<Icon name="undo" size="base" />{/snippet}
         {undoLabel}
       </Button>
     </div>

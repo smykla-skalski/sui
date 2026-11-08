@@ -95,7 +95,7 @@
           {#snippet side()}
             <Pill tone="success">Up to date</Pill>
             <Button loading={syncing} aria-label="Sync smykla-skalski/sui" onclick={sync}>
-              {#snippet icon()}<Icon name="refresh" size="sm" />{/snippet}
+              {#snippet icon()}<Icon name="refresh" size="base" />{/snippet}
               Sync
             </Button>
           {/snippet}
