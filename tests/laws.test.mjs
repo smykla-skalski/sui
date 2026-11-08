@@ -262,6 +262,15 @@ test('L-107 a scroll edge fades over 24px, and over 20px on a phone', () => {
   );
 });
 
+test('L-62 a stripe is a 3% veil of the ink, which keeps the place without banding the words', () => {
+  assert.equal(
+    /\.striped \{\s*--sui-local-stripe: ([^;]*);/.exec(
+      stripComments(styles['src/lib/components/DataTable.svelte'])
+    )?.[1],
+    'color-mix(in srgb, var(--sui-text-primary) 3%, transparent)'
+  );
+});
+
 test('L-64 a placeholder light stops by the 10 seconds a skeleton waits to turn slow, and a waiting chart draws its grid', () => {
   const wait = /\.sui-chart-wait\s*\{[^}]*\}/.exec(
     stripComments(styles['src/lib/charts/ChartFrame.svelte'])
