@@ -21,7 +21,7 @@
 </figure>
 
 <style>
-  /* The name stands over what it shows, 12px above it, a step past the 8px between a field's
+  /* The name stands over what it shows, 16px above it, twice the 8px between a field's
      label and its control, so it reads as the example's head and not as a line of the label,
      and it reads with its own specimen however tall the specimens beside it run. The body is a
      grid as wide as the specimen: a block surface or a field fills it, while a mark keeps its
@@ -32,7 +32,7 @@
   .specimen {
     align-content: start;
     display: grid;
-    gap: var(--sui-space-3);
+    gap: var(--sui-space-4);
     grid-row: span 2;
     grid-template-rows: subgrid;
     margin: 0;
