@@ -171,7 +171,7 @@
           />
         {/snippet}
       </Field>
-      <Button type="submit">Save the Runtime</Button>
+      <Button type="submit" class="action">Save the Runtime</Button>
     </form>
   </Specimen>
 </Example>
@@ -196,5 +196,11 @@
     gap: var(--sui-space-5);
     justify-items: stretch;
     min-inline-size: 0;
+  }
+
+  /* The action ends the form a step past the fields' own gap, so it reads as the form's
+     close and not as one more field (L-35). */
+  .form > :global(.action) {
+    margin-block-start: var(--sui-space-1);
   }
 </style>

@@ -570,6 +570,26 @@ test('L-35 a form stacks its fields 20px apart and a dialog 24px, both a step ov
       /\.form \{\s*display: grid;\s*gap: var\(--sui-space-5\);/,
       `the ${page} page's form stacks its fields another distance apart`
     );
+  const forms = svelteFiles
+    .filter((path) => path.startsWith('src/routes/sink/'))
+    .flatMap((path) =>
+      (read(path).match(/<form class="form"[\s\S]*?<\/form>/g) ?? [])
+        .filter((form) => /<Button[^>]*type="submit"/.test(form))
+        .map((form) => [path, form])
+    );
+  assert.ok(forms.length >= 3);
+  for (const [path, form] of forms) {
+    assert.match(
+      form,
+      /<Button[^>]*type="submit"[^>]*class="action"/,
+      `${path} ends a form on a bare action`
+    );
+    assert.match(
+      styles[path],
+      /\.form > :global\(\.action\) \{\s*margin-block-start: var\(--sui-space-1\);/,
+      `${path} sets its action at the fields' gap`
+    );
+  }
 });
 
 test('L-45 the add tone labels its entry in the primary ink inside its dashed edge', () => {

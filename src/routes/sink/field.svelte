@@ -230,7 +230,7 @@
         validationMessage="Enter an email address such as you@example.com"
         placeholder="jane@example.com…"
       />
-      <Button type="submit" tone="signal">Create the Repository</Button>
+      <Button type="submit" tone="signal" class="action">Create the Repository</Button>
     </form>
   </Specimen>
   <Specimen label="Refused, both left empty">
@@ -289,7 +289,7 @@
           <Checkbox {id} aria-describedby={describedby} {invalid} bare bind:checked={notify} />
         {/snippet}
       </Field>
-      <div><Button tone="signal">Create the Repository</Button></div>
+      <div class="action"><Button tone="signal">Create the Repository</Button></div>
     </div>
   </Section>
 </Example>
@@ -316,6 +316,12 @@
   .form {
     display: grid;
     gap: var(--sui-space-5);
+  }
+
+  /* The action ends the form a step past the fields' own gap, so it reads as the form's
+     close and not as one more field (L-35). */
+  .form > :global(.action) {
+    margin-block-start: var(--sui-space-1);
   }
 
   .narrow {
