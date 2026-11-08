@@ -495,6 +495,18 @@ test('L-20 a duration amount reads in the words face with figures of one width',
   );
 });
 
+test('L-55 a specimen name stands a field gap over its specimen, closer than any row of specimens', () => {
+  const specimen = styles['src/routes/kit/Specimen.svelte'];
+  assert.match(specimen, /\.specimen \{[^}]*gap: var\(--sui-space-3\);/);
+  assert.match(specimen, /figcaption \{[^}]*var\(--sui-font-size-compact\)/);
+  const rows = svelteFiles
+    .filter((path) => path.startsWith('src/routes/sink/'))
+    .flatMap((path) => [...read(path).matchAll(/--specimen-row-gap="var\(--sui-space-(\d+)\)"/g)]);
+  assert.ok(rows.length > 0);
+  for (const [, step] of rows)
+    assert.ok(Number(step) > 3, `a row gap of space-${step} reads as close as a name`);
+});
+
 test('L-22 the phone reads one step larger and types at 16px', () => {
   const phone = palette.slice(palette.indexOf(PHONE));
   for (const name of ['--sui-font-size-body', '--sui-leading-body'])

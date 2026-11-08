@@ -21,9 +21,9 @@
 </figure>
 
 <style>
-  /* The name stands over what it shows, 16px above it, twice the 8px between a field's
-     label and its control, so it reads as the example's head and not as a line of the label,
-     and it reads with its own specimen however tall the specimens beside it run. The body is a
+  /* The name stands 12px over what it shows, as a field's label over its control, and a type
+     step quieter than a label, so it reads as the specimen's head and not as a line of the
+     label, with its own specimen however tall the specimens beside it run. The body is a
      grid as wide as the specimen: a block surface or a field fills it, while a mark keeps its
      own fit-content width (L-43). In a grid of specimens it takes two of the grid's rows, so every name on a line
      shares the tallest name's track and every body the tallest body's: their bodies start on
@@ -32,7 +32,7 @@
   .specimen {
     align-content: start;
     display: grid;
-    gap: var(--sui-space-4);
+    gap: var(--sui-space-3);
     grid-row: span 2;
     grid-template-rows: subgrid;
     margin: 0;
