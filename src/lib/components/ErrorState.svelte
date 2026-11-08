@@ -168,7 +168,8 @@ of them.
   }
 
   /* Even, so a retry centred beside it in a row lands on the pixel grid (L-95). The warning
-     mark stands before the title, as a form error's does, and the words line up past it. */
+     mark stands before the title, as a form error's does, while the explanation and step keep
+     the panel's whole width, so they wrap no sooner than they would without it. */
   .sui-error-state-copy {
     block-size: var(--sui-block-snap-even);
     display: grid;
@@ -178,6 +179,10 @@ of them.
   }
 
   .sui-error-state-copy > p {
+    grid-column: 1 / -1;
+  }
+
+  .sui-error-state-copy > .sui-error-state-title {
     grid-column: 2;
   }
 
@@ -191,10 +196,6 @@ of them.
     font: var(--sui-weight-semibold) var(--sui-font-size-card-title) / var(--sui-row-copy-leading)
       var(--sui-sans);
     margin-block: round(calc((round(up, 1cap, 1px) - var(--sui-icon-base)) / 2), 1px);
-  }
-
-  .sui-error-state:not(.over) > .sui-error-state-retry {
-    margin-inline-start: calc(var(--sui-icon-base) + var(--sui-space-2));
   }
 
   p {

@@ -900,9 +900,10 @@ test('L-94 a form error summary and an error state take the 16px mark 8px from t
   );
   assert.match(
     styles[state],
-    /\.sui-error-state:not\(\.over\) > \.sui-error-state-retry \{\s*margin-inline-start: calc\(var\(--sui-icon-base\) \+ var\(--sui-space-2\)\)/,
-    'the retry lines up with the words past the mark'
+    /\.sui-error-state-copy > p \{\s*grid-column: 1 \/ -1;/,
+    'the explanation and step keep the whole width, so the mark never narrows them'
   );
+  assert.doesNotMatch(styles[state], /-retry \{\s*margin-inline-start/);
 });
 
 test('L-39 a stop-quiet edge stays the danger hue on a dark ground', () => {
