@@ -65,13 +65,15 @@
   </Specimen>
 </Example>
 
-<!-- Each tier says the height it draws, and on a touch screen, which lifts both to the touch
-     height the third shows, that 44px too. -->
+<!-- Each tier says the height it draws: a touch screen lifts the first two to the touch height. -->
 {#snippet defaultTier()}<FactLine
-    ><span>Default</span><span>34 px<span class="coarse">, 44 px here</span></span></FactLine
+    ><span>Default</span><span
+      ><span class="fine">34 px</span><span class="coarse">44 px</span></span
+    ></FactLine
   >{/snippet}
 {#snippet tallTier()}<FactLine
-    ><span>Tall</span><span>40 px<span class="coarse">, 44 px here</span></span></FactLine
+    ><span>Tall</span><span><span class="fine">40 px</span><span class="coarse">44 px</span></span
+    ></FactLine
   >{/snippet}
 {#snippet touchTier()}<FactLine><span>Touch</span><span>44 px</span></FactLine>{/snippet}
 
@@ -127,6 +129,10 @@
   }
 
   @media (max-width: 47.9375rem), (pointer: coarse) {
+    .fine {
+      display: none;
+    }
+
     .coarse {
       display: inline;
     }
