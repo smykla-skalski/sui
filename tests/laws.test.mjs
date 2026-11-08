@@ -656,6 +656,17 @@ test("L-68 icon sizes are named tiers that grow with the text and land on whole 
     /\.sui-button-spinner \{[^}]*block-size: var\(--sui-icon-base\)/,
     'a busy button swaps its glyph for a spinner of the same size'
   );
+  for (const [path, name] of [
+    ['src/lib/components/Button.svelte', 'button'],
+    ['src/lib/components/IconButton.svelte', 'icon-button']
+  ])
+    assert.match(
+      styles[path],
+      new RegExp(
+        `\\.sui-${name}-spinner \\{[^}]*solid color-mix\\(in srgb, currentColor 40%, transparent\\);`
+      ),
+      `${path}: the spinner's track keeps 40% of its ink, so the ring stays whole on a fill`
+    );
 });
 
 test('L-72 stacking order comes from the layer tokens', () => {

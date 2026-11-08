@@ -153,7 +153,7 @@ action are a `Button` with the word beside the glyph.
 
   .sui-icon-button-spinner {
     block-size: var(--sui-icon-base);
-    border: var(--sui-stroke-bold) solid color-mix(in srgb, currentColor 25%, transparent);
+    border: var(--sui-stroke-bold) solid color-mix(in srgb, currentColor 40%, transparent);
     border-block-start-color: currentColor;
     border-radius: 50%;
     box-sizing: border-box;
