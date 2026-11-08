@@ -305,8 +305,8 @@ section, so the next Tab starts there.
 
 The current entry wears the current mark every navigation list shares: primary ink against
 muted entries, a step of 2:1 or more in lightness, on an inset plate that marks it too, and
-`Highlight` under forced colors. It keeps the entries' weight, so turning current never
-rewraps it or changes its height. It is announced with `aria-current="location"`. The first
+`Highlight` under forced colors, its words at 500. Every entry holds the room its words take
+at 500, so turning current never rewraps it or changes its height. It is announced with `aria-current="location"`. The first
 entry is current from the first paint, as at the top of the page, and then it follows the URL
 hash on arrival, then the last section whose top has crossed the top quarter of the
 box the sections scroll in, the page or a pane, and the last section once that box is
@@ -319,7 +319,7 @@ phone drawer, and following an entry closes the drawer before focus moves.
 
 - Semantics: a `nav` landmark named by `title`, with the title as a heading at `level`, group headings one level below, and lists of fragment links, the current one with `aria-current="location"`.
 - Content: entries with an id and a label that wraps, optionally grouped under a heading.
-- States: rest, hover (a row ground), pressed (the pressed ground and an inset shadow), focus (a 2px inset ring) and current (primary ink on the quiet plate, in the entries' weight, so it moves nothing).
+- States: rest, hover (a row ground), pressed (the pressed ground and an inset shadow), focus (a 2px inset ring) and current (primary ink at 500 on the quiet plate, in room every entry holds, so it moves nothing).
 - Keyboard: Tab moves through the entries and Enter follows one, moving focus to the section's heading.
 - Pointer and touch: entries are 28px tall on a desktop pointer and 44px on a phone or a coarse pointer, across the column's width.
 - Focus: following an entry moves focus to its section's first heading, or the section, which takes a temporary `tabindex`; in a shell's phone drawer the drawer closes first, so focus lands in the section and never on the menu button.
@@ -352,7 +352,9 @@ phone drawer, and following an entry closes the drawer before focus moves.
             href="#{entry.id}"
             aria-current={marked[key(entry.id)] ? 'location' : undefined}
             onclick={(event) => follow(event, entry)}
-            ><span class="sui-page-toc-label">{entry.label}</span></a
+            ><span class="sui-page-toc-label" data-label={entry.label}
+              ><span>{entry.label}</span></span
+            ></a
           >
         </li>
       {/each}
@@ -451,11 +453,32 @@ phone drawer, and following an entry closes the drawer before focus moves.
     outline-offset: var(--sui-focus-ring-inset);
   }
 
+  /* A hidden copy of the words at the current weight shares their cell, so every entry already
+     holds the room its words take once current, and turning current never rewraps them (L-85). */
   .sui-page-toc-label {
     align-content: center;
     block-size: var(--sui-block-snap);
+    display: grid;
+  }
+
+  .sui-page-toc-label > span,
+  .sui-page-toc-label::after {
+    align-content: center;
+    block-size: var(--sui-block-snap);
+    grid-area: 1 / 1;
+    min-inline-size: 0;
     padding-block: var(--sui-block-snap-room);
     text-box: trim-both cap alphabetic;
+  }
+
+  .sui-page-toc-label::after {
+    content: attr(data-label) / '';
+    font-weight: var(--sui-weight-medium);
+    visibility: hidden;
+  }
+
+  .sui-page-toc-link[aria-current] .sui-page-toc-label > span {
+    font-weight: var(--sui-weight-medium);
   }
 
   /* The current mark every navigation list shares: the current ink on an inset plate, which

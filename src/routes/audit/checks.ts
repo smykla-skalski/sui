@@ -2263,8 +2263,8 @@ function fieldRecesses(root: Document): Finding[] {
 /**
  * Where the reader is (L-85): a current navigation row stands apart from a resting peer by its
  * ink, 2:1 from the peer's, and by its plate, so it needs no ring or edge, and it draws none. A row
- * whose words may wrap keeps the peer's font, so turning current never rewraps them or changes
- * its height. A current tab, whose words never wrap, carries its bar too, at 3:1 on the ground.
+ * whose words may wrap keeps the peer's face, and every row holds a hidden copy of its words at
+ * the current weight, so turning current never rewraps them or changes its height. A current tab, whose words never wrap, carries its bar too, at 3:1 on the ground.
  */
 function currentMarks(root: Document): Finding[] {
   const found: Finding[] = [];
@@ -2311,12 +2311,19 @@ function currentMarks(root: Document): Finding[] {
       style.letterSpacing,
       style.fontFamily
     ];
-    if (!current.matches('.sui-tabs-tab') && face(look).join() !== face(rest).join())
+    // The hidden copy is the `::after` of the box that holds the words.
+    const room = getComputedStyle(words(peer).parentElement ?? peer, '::after');
+    const held =
+      room.content !== 'none' && room.visibility === 'hidden' ? room.fontWeight : rest.fontWeight;
+    if (
+      !current.matches('.sui-tabs-tab') &&
+      (look.fontWeight !== held || face(look).slice(1).join() !== face(rest).slice(1).join())
+    )
       found.push(
         finding(
           'L-85',
           current,
-          `the current words take ${face(look)[0]}, a rest row ${face(rest)[0]}, so they can rewrap`
+          `the current words take ${look.fontWeight}, a rest row holds room for ${held}, so they can rewrap`
         )
       );
     const inks = contrast(rgba(look.color), rgba(rest.color));

@@ -1032,4 +1032,32 @@ test('L-85 the current row stands on a plate a light theme does not wash out', (
     `color-mix(in srgb, var(--sui-brand-action) ${share}, var(--sui-sidebar-bg))`;
   assert.equal(light['--sui-sidebar-active-bg'], plate('18%'), 'a 12% plate reads as hover');
   assert.equal(dark['--sui-sidebar-active-bg'], plate('24%'));
+  // Every row holds a hidden copy of its words at the current weight in the words' own cell,
+  // so the current row's words step up to 500 and turning current never rewraps a label.
+  for (const [name, label] of [
+    ['SideNav', 'sui-side-nav-label'],
+    ['Rail', 'sui-rail-label'],
+    ['PageToc', 'sui-page-toc-label']
+  ]) {
+    const path = `src/lib/components/${name}.svelte`;
+    const css = stripComments(styles[path]);
+    assert.ok(
+      new RegExp(`class=[^>]*${label}[^>]*data-label=\\{[^}]+\\}\\s*><span>`).test(read(path)),
+      `${path}: the words stand in a span beside a data-label copy`
+    );
+    assert.match(
+      css,
+      new RegExp(
+        `\\.${label}::after \\{[^}]*content: attr\\(data-label\\) / '';[^}]*font-weight: var\\(--sui-weight-medium\\);[^}]*visibility: hidden;`
+      ),
+      path
+    );
+    assert.match(
+      css,
+      new RegExp(
+        `\\[aria-current[^\\]]*\\] \\.${label} > span \\{\\s*font-weight: var\\(--sui-weight-medium\\);`
+      ),
+      path
+    );
+  }
 });

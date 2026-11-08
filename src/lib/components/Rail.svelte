@@ -82,12 +82,12 @@ into the bottom bar: the same tiles side by side, sharing the width.
 
 Current is drawn the same way in every navigation list: the words and the plate carry it.
 Rest tiles are muted and the place on screen is primary ink, a step of 2:1 or more in
-lightness, with its glyph in the accent ink, on a plate of the accent tint. Both keep one weight, so turning current never rewraps a label or
-changes a tile's height. Under forced colors the plate is `Highlight` and its words `HighlightText`.
+lightness, with its glyph in the accent ink, on a plate of the accent tint, its words at 500. Every tile holds the room its words take at
+500, so turning current never rewraps a label or changes a tile's height. Under forced colors the plate is `Highlight` and its words `HighlightText`.
 
 - Semantics: a `nav` landmark named by `label`, holding lists of links (`aria-current="page"`) or buttons (`aria-current="true"`).
 - Content: tiles with a glyph, a label and an optional `short` label and `badge`; an optional `brand` mark above them and `foot` tiles at the end.
-- States: rest, hover, pressed (the pressed ground, an inset shadow and a 1px sink), focus (a 2px offset ring) and current (primary ink and an accent glyph on the plate, in the rest tiles' weight, so it moves nothing).
+- States: rest, hover, pressed (the pressed ground, an inset shadow and a 1px sink), focus (a 2px offset ring) and current (primary ink at 500 and an accent glyph on the plate, in room every tile holds, so it moves nothing).
 - Keyboard: Tab moves through the tiles in order, and Enter follows a link or presses a button.
 - Pointer and touch: every tile is at least 44 by 44px on every pointer; nothing needs a gesture.
 - Focus: pressing a tile keeps focus on it; following a link inside the phone drawer closes the drawer and the shell returns focus to its menu button.
@@ -143,7 +143,9 @@ changes a tile's height. Under forced colors the plate is `Highlight` and its wo
         ><span data-count={formatCount(item.badge)}></span></span
       >{/if}
   </span>
-  <span class="sui-rail-label">{item.short ?? item.label}</span>
+  <span class="sui-rail-label" data-label={item.short ?? item.label}
+    ><span>{item.short ?? item.label}</span></span
+  >
 {/snippet}
 
 <nav {...rest} class={['sui-rail', className]} aria-label={label} data-bar={bar || undefined}>
@@ -274,18 +276,39 @@ changes a tile's height. Under forced colors the plate is `Highlight` and its wo
     position: relative;
   }
 
+  /* A hidden copy of the words at the current weight shares their cell, so every tile already
+     holds the room its words take once current, and turning current never rewraps them (L-85). */
   .sui-rail-label {
     align-content: center;
     block-size: var(--sui-block-snap);
+    display: grid;
     font: var(--sui-weight-regular) var(--sui-font-size-compact) / var(--sui-leading-compact)
       var(--sui-sans);
     hyphens: auto;
     max-inline-size: 100%;
     overflow-wrap: break-word;
-    padding-block: var(--sui-block-snap-room);
     text-align: center;
-    text-box: trim-both cap alphabetic;
     text-wrap: balance;
+  }
+
+  .sui-rail-label > span,
+  .sui-rail-label::after {
+    align-content: center;
+    block-size: var(--sui-block-snap);
+    grid-area: 1 / 1;
+    min-inline-size: 0;
+    padding-block: var(--sui-block-snap-room);
+    text-box: trim-both cap alphabetic;
+  }
+
+  .sui-rail-label::after {
+    content: attr(data-label) / '';
+    font-weight: var(--sui-weight-medium);
+    visibility: hidden;
+  }
+
+  .sui-rail-tile[aria-current] .sui-rail-label > span {
+    font-weight: var(--sui-weight-medium);
   }
 
   /* Something waiting is information, not a fault, so it wears the accent. A one-figure count

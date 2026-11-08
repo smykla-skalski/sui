@@ -240,8 +240,8 @@ icon and address, and a heading is only a label.
 
 Current is drawn the same way in every navigation list: the words and the plate carry it. Rest
 rows are muted and the page on screen is primary ink, a step of 2:1 or more in lightness,
-with its glyph in the accent ink, on a plate of the accent tint. Both keep one weight, so turning current never rewraps a label or
-changes a row's height. Under forced colors the plate is `Highlight` and its words `HighlightText`. The plate is measured
+with its glyph in the accent ink, on a plate of the accent tint, its words at 500. Every row holds the room its words take at
+500, so turning current never rewraps a label or changes a row's height. Under forced colors the plate is `Highlight` and its words `HighlightText`. The plate is measured
 from the current row, does not slide on first paint, and glides to the next row when the page
 changes. Until it is measured the row paints its own plate.
 
@@ -253,7 +253,7 @@ following a row closes the drawer.
 
 - Semantics: a `nav` landmark named "<title> pages" by default that holds the whole sidebar, its title, rows, fold control and foot, so nothing in it stands outside a landmark; the title is a heading at `level`, each section a list labelled by its own heading one level below, and every row a link with `aria-current="page"` on the current one.
 - Content: a title and optional kicker, sections of rows with a glyph from the icon set or the caller's own, a label, an optional `short` label and an optional count, and an optional `foot`.
-- States: rest, hover, pressed (the pressed ground, an inset shadow and a 1px sink), focus (a 2px inset ring) and current (primary ink and an accent glyph on the plate, in the rest rows' weight, so it moves nothing); labels wrap rather than being cut.
+- States: rest, hover, pressed (the pressed ground, an inset shadow and a 1px sink), focus (a 2px inset ring) and current (primary ink at 500 and an accent glyph on the plate, in room every row holds, so it moves nothing); labels wrap rather than being cut.
 - Keyboard: Tab moves through the rows, then the fold or close control; Enter follows a row or presses the control.
 - Pointer and touch: rows are 34px on a desktop pointer and 44px in the drawer and the strip; the close and fold controls are 34px and 44px there, and nothing needs a gesture.
 - Focus: folding keeps focus on the control; a fold control that leaves as the shell narrows hands focus to the current row, and a row followed in the drawer closes it with focus returned to the menu button.
@@ -321,7 +321,10 @@ following a row closes the drawer.
                       size="base"
                     />{:else}{@render item.icon()}{/if}</span
                 >
-                <span class={['sui-side-nav-label', { replaced: item.short }]}>{item.label}</span>
+                <span
+                  class={['sui-side-nav-label', { replaced: item.short }]}
+                  data-label={item.label}><span>{item.label}</span></span
+                >
                 {#if item.short}
                   <span class="sui-side-nav-short" aria-hidden="true">{item.short}</span>
                 {/if}
@@ -359,7 +362,11 @@ following a row closes the drawer.
               size="base"
             /></span
           >
-          <span class="sui-side-nav-label">{shell.collapsed ? expandLabel : collapseLabel}</span>
+          <span
+            class="sui-side-nav-label"
+            data-label={shell.collapsed ? expandLabel : collapseLabel}
+            ><span>{shell.collapsed ? expandLabel : collapseLabel}</span></span
+          >
         </button>
       {/if}
       {#if foot}{@render foot()}{/if}
@@ -611,6 +618,10 @@ following a row closes the drawer.
       color: var(--sui-sidebar-active-glyph);
     }
 
+    .scroll-targets .sui-side-nav-row:target-current .sui-side-nav-label > span {
+      font-weight: var(--sui-weight-medium);
+    }
+
     .scroll-targets .sui-side-nav-list:not(.measured) .sui-side-nav-row:target-current {
       background: var(--sui-sidebar-active-bg);
     }
@@ -639,14 +650,36 @@ following a row closes the drawer.
     margin-block: calc((var(--sui-local-line) - var(--sui-icon-base)) / 2);
   }
 
+  /* A hidden copy of the words at the current weight shares their cell, so every row already
+     holds the room its words take once current, and turning current never rewraps a label or
+     changes a row's height (L-85). */
   .sui-side-nav-label {
     align-content: center;
     block-size: var(--sui-block-snap-even);
+    display: grid;
     flex: 1;
     min-inline-size: 0;
     overflow-wrap: anywhere;
+  }
+
+  .sui-side-nav-label > span,
+  .sui-side-nav-label::after {
+    align-content: center;
+    block-size: var(--sui-block-snap-even);
+    grid-area: 1 / 1;
+    min-inline-size: 0;
     padding-block: var(--sui-block-snap-room-even);
     text-box: trim-both cap alphabetic;
+  }
+
+  .sui-side-nav-label::after {
+    content: attr(data-label) / '';
+    font-weight: var(--sui-weight-medium);
+    visibility: hidden;
+  }
+
+  .sui-side-nav-row[aria-current] .sui-side-nav-label > span {
+    font-weight: var(--sui-weight-medium);
   }
 
   .sui-side-nav-short {
