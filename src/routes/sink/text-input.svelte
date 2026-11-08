@@ -69,11 +69,11 @@
      height, so there one specimen stands for all three. -->
 {#snippet defaultTier()}<FactLine
     ><span><span class="fine">Default</span><span class="coarse">All tiers</span></span><span
-      ><span class="fine">34 px</span><span class="coarse">44 px</span></span
+      ><span class="fine">34 px</span><span class="coarse">44 px</span></span
     ></FactLine
   >{/snippet}
-{#snippet tallTier()}<FactLine><span>Tall</span><span>40 px</span></FactLine>{/snippet}
-{#snippet touchTier()}<FactLine><span>Touch</span><span>44 px</span></FactLine>{/snippet}
+{#snippet tallTier()}<FactLine><span>Tall</span><span>40 px</span></FactLine>{/snippet}
+{#snippet touchTier()}<FactLine><span>Touch</span><span>44 px</span></FactLine>{/snippet}
 
 <Example
   title="Tiers"
