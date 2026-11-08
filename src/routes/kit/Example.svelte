@@ -196,11 +196,12 @@ live specimens, not a surface of the design, so it may hold cards and dialogs (L
      `--specimen-min` on the example, and one whose specimens should keep a measure, such as
      fields, sets `--specimen-max`. */
   /* Rows of a grid stand further apart than a name stands over its specimen, so each name
-     reads as the head of the specimen under it. */
+     reads as the head of the specimen under it. A grid of short specimens, such as fields,
+     may set a closer `--specimen-row-gap` that still keeps that order. */
   .specimens[data-layout='grid'] {
     align-items: stretch;
     display: grid;
-    row-gap: var(--sui-space-8);
+    row-gap: var(--specimen-row-gap, var(--sui-space-8));
     grid-template-columns: repeat(
       auto-fill,
       minmax(min(100%, var(--specimen-min, 16rem)), var(--specimen-max, 1fr))

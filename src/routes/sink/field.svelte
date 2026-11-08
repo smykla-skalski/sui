@@ -54,6 +54,7 @@
 <Example
   title="States"
   --example-max="54rem"
+  --specimen-row-gap="var(--sui-space-6)"
   note="Rest, filled with a hint, required by a word beside its label, invalid with its error, read only and disabled with its reason"
   layout="grid"
   --specimen-min="21rem"
@@ -115,6 +116,7 @@
 <Example
   title="Any Control"
   --example-max="54rem"
+  --specimen-row-gap="var(--sui-space-6)"
   note="The control snippet takes the id, the description ids and the invalid flag, so every input keeps one label, hint and error"
   layout="grid"
   --specimen-min="21rem"
@@ -202,7 +204,7 @@
 
 <Example
   title="Refused Send"
-  --example-max="35rem"
+  --example-max="54rem"
   note="A refused send shows each field’s own error in place of the browser’s bubble and focuses the first field to fix"
   layout="grid"
   --specimen-min="21rem"
@@ -230,6 +232,26 @@
       />
       <Button type="submit" tone="signal">Create the Repository</Button>
     </form>
+  </Specimen>
+  <Specimen label="Refused, both left empty">
+    <div class="form">
+      <Field
+        label="Repository name"
+        spellcheck="false"
+        autocapitalize="off"
+        required
+        error="Enter a name of lowercase letters, digits and dashes"
+        placeholder="acme-web…"
+      />
+      <Field
+        label="Contact email"
+        type="email"
+        autocomplete="email"
+        required
+        error="Enter an email address such as you@example.com"
+        placeholder="jane@example.com…"
+      />
+    </div>
   </Specimen>
 </Example>
 
