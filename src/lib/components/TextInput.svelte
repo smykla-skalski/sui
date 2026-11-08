@@ -158,7 +158,7 @@ tabular figures.
   .sui-text-input[readonly]:not(.held, [aria-expanded='true'], :disabled),
   .sui-text-input[readonly]:not(.held, [aria-expanded='true'], :disabled):focus {
     background-color: var(--sui-field-readonly);
-    border-color: var(--sui-border-subtle);
+    border-color: var(--sui-field-readonly-frame);
     box-shadow: none;
     /* Its quiet frame is not the ring's color, so a ring draws its whole 2px past it. */
     outline-width: var(--sui-focus-ring-width);

@@ -114,7 +114,7 @@ the end part draws its own inset ring while it has focus, so the two never look 
   .readonly,
   .readonly:has(.sui-joined-value :global(:focus-visible)) {
     background-color: var(--sui-field-readonly);
-    border-color: var(--sui-border-subtle);
+    border-color: var(--sui-field-readonly-frame);
     box-shadow: none;
     /* Its quiet frame is not the ring's color, so a ring draws its whole 2px past it. */
     outline-width: var(--sui-focus-ring-width);

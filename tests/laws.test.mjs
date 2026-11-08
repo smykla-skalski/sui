@@ -1020,6 +1020,36 @@ test('L-53 a shadow that lifts a part is two layers in every palette block', () 
   );
 });
 
+test('L-10 a read-only field frames its value between a keyline and an editable frame', () => {
+  const alpha = (/** @type {string} */ name) =>
+    [...palette.matchAll(new RegExp(`--sui-${name}: rgb\\(\\d+ \\d+ \\d+ / (\\d+)%\\);`, 'g'))].map(
+      ([, value]) => Number(value)
+    );
+  const [frames, keylines, editable] = [
+    alpha('field-readonly-frame'),
+    alpha('border-subtle'),
+    alpha('field-frame')
+  ];
+  assert.equal(frames.length, 3, 'the light, dark and system dark blocks');
+  frames.forEach((frame, index) => {
+    assert.ok(frame > keylines[index], `read-only frame ${frame}% is no firmer than a keyline`);
+    assert.ok(
+      frame < editable[index],
+      `read-only frame ${frame}% is no lighter than a field frame`
+    );
+  });
+  for (const path of [
+    'src/lib/components/TextInput.svelte',
+    'src/lib/components/Textarea.svelte',
+    'src/lib/internal/JoinedField.svelte'
+  ])
+    assert.match(
+      styles[path],
+      /background-color: var\(--sui-field-readonly\);\s*border-color: var\(--sui-field-readonly-frame\);/,
+      `${path} frames a read-only value with another edge`
+    );
+});
+
 test('L-9 a field under a focus ring eases its recess to two thirds in every theme', () => {
   const eased =
     /--sui-field-recess-focus: color-mix\(in srgb, var\(--sui-field-recess\) 67%, transparent\);/g;

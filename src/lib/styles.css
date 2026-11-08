@@ -307,6 +307,9 @@
   /* A field that is off sits in this well, and one that only reads in a lighter tint of it (L-10). */
   --sui-field-well: var(--sui-surface-inset);
   --sui-field-readonly: color-mix(in srgb, var(--sui-field-well) 50%, transparent);
+  /* A read-only field's frame: firmer than a card's keyline, so its value keeps a contour, and
+     lighter than an editable field's frame, so it never reads as one to type in (L-10). */
+  --sui-field-readonly-frame: rgb(0 0 0 / 14%);
 
   --sui-row-pressed: color-mix(in srgb, var(--sui-text-primary) 10.9%, transparent);
   --sui-dialog-bg: var(--sui-surface-base);
@@ -751,6 +754,7 @@
      that stands apart on every ground a field stands on (L-10). */
   --sui-field-well: color-mix(in srgb, #ffffff 9%, transparent);
   --sui-field-readonly: color-mix(in srgb, var(--sui-field-well) 40%, transparent);
+  --sui-field-readonly-frame: rgb(255 255 255 / 14%);
   --sui-row-pressed: color-mix(in srgb, #ffffff 12.4%, transparent);
 
   --sui-changed: var(--sui-link);
@@ -951,6 +955,7 @@
        that stands apart on every ground a field stands on (L-10). */
     --sui-field-well: color-mix(in srgb, #ffffff 9%, transparent);
     --sui-field-readonly: color-mix(in srgb, var(--sui-field-well) 40%, transparent);
+    --sui-field-readonly-frame: rgb(255 255 255 / 14%);
     --sui-row-pressed: color-mix(in srgb, #ffffff 12.4%, transparent);
 
     --sui-changed: var(--sui-link);
@@ -1039,6 +1044,7 @@
     --sui-border-band: var(--sui-border-contrast) !important;
     --sui-border-control: var(--sui-border-contrast) !important;
     --sui-field-frame: var(--sui-border-contrast) !important;
+    --sui-field-readonly-frame: var(--sui-border-contrast) !important;
     --sui-control-border-hover: var(--sui-border-contrast-hover) !important;
   }
 }
