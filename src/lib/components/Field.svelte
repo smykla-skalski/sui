@@ -78,7 +78,7 @@ Any other control goes in the `control` snippet, which receives the `id` the lab
 the `describedby` ids of the hint and the error, `invalid` and `required`. Spread them onto a
 `Textarea`, a `Select`, a `Checkbox` or a picker. `layout="row"` sets a checkbox before the
 label and a switch after it, both centred on one line, and a checkbox row's hint or error
-stands 8px under the box, as under any other control.
+stands 12px under the box, as under any other control.
 
 `required` writes the word "Required" beside the label, never only an asterisk, and marks
 the control. The word stays out of the accessibility tree, because the control already
@@ -156,12 +156,9 @@ the `control` snippet reports here on its own, and a control of another kind kee
     min-inline-size: 0;
   }
 
-  /* A row's control draws its ring around itself, clear of the words beside it, so its notes
-     keep the copy gap. */
   .sui-field[data-layout='row'] {
     align-items: center;
     column-gap: var(--sui-space-4);
-    row-gap: var(--sui-row-copy-gap);
     grid-template-columns: minmax(0, 1fr) auto;
   }
 
@@ -178,7 +175,7 @@ the `control` snippet reports here on its own, and a control of another kind kee
     grid-template-columns: auto minmax(0, 1fr);
 
     /* The control row is as tall as the box, not its 34px or 44px target, which stands past
-       the row, so the hint or error stands the copy gap under the box as it does under any
+       the row, so the hint or error stands the field gap under the box as it does under any
        other control. The label's box rounds to an even height, as the box's is, so the label
        centres on whole pixels (L-95). */
     > .sui-field-control {

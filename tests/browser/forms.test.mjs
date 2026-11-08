@@ -280,7 +280,7 @@ suite('forms', together, () => {
     });
 
     test(
-      'a checkbox row centres its box on the label, its notes 8px under the box, an error mark under it',
+      'a checkbox row centres its box on the label, its notes 12px under the box, an error mark under it',
       long,
       async () => {
         const page = await opened();
@@ -302,7 +302,7 @@ suite('forms', together, () => {
         );
         assert.ok(rows.length > 1, 'no checkbox rows');
         for (const row of rows) {
-          assert.ok(Math.abs(row.gap - 8) <= 0.5, JSON.stringify(row));
+          assert.ok(Math.abs(row.gap - 12) <= 0.5, JSON.stringify(row));
           assert.ok(Math.abs(row.offCentre) <= 1, JSON.stringify(row));
         }
         const edges = await page
