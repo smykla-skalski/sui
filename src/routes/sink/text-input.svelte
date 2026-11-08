@@ -65,19 +65,17 @@
   </Specimen>
 </Example>
 
-<!-- Each tier says the height it draws, and on a touch screen, which lifts both, that 44px too. -->
+<!-- Each tier says the height it draws, and on a touch screen, which lifts both to the touch
+     height the third shows, that 44px too. -->
 {#snippet defaultTier()}<FactLine
     ><span>Default</span><span>34 px<span class="coarse">, 44 px here</span></span></FactLine
   >{/snippet}
 {#snippet tallTier()}<FactLine
     ><span>Tall</span><span>40 px<span class="coarse">, 44 px here</span></span></FactLine
   >{/snippet}
+{#snippet touchTier()}<FactLine><span>Touch</span><span>44 px</span></FactLine>{/snippet}
 
-<!-- The tiers stand as wide as the states above, each centred in half the panel. -->
 <Example
-  --specimen-fill="auto-fit"
-  --specimen-justify="space-around"
-  --specimen-max="calc((100% - 2 * var(--sui-space-5)) / 3)"
   title="Tiers"
   note="34 px by default and 44 px on phones, and a surface may opt into 40 px"
   layout="grid"
@@ -98,13 +96,30 @@
       </Field>
     </div>
   </Specimen>
+  <Specimen label={touchTier} code="--sui-touch-target">
+    <div class="touch">
+      <Field label="Find a repository">
+        {#snippet control({ id, describedby })}
+          <TextInput {id} aria-describedby={describedby} placeholder="sui…" />
+        {/snippet}
+      </Field>
+    </div>
+  </Specimen>
 </Example>
 
 <style>
-  .tall {
-    --sui-local-control-height: var(--sui-control-height);
+  .tall,
+  .touch {
     display: grid;
     inline-size: 100%;
+  }
+
+  .tall {
+    --sui-local-control-height: var(--sui-control-height);
+  }
+
+  .touch {
+    --sui-local-control-height: var(--sui-touch-target);
   }
 
   .coarse {
