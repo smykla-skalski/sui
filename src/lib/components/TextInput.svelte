@@ -65,8 +65,8 @@
 The one text field. It rests on the control fill, keeps it while it has focus,
 and is 34px tall unless the surface it sits on asks for the 40px tier through
 `--sui-local-control-height`. Focus turns its own border into the ring, so the ring is never
-clipped by a card. A `readonly` field sits in the field well with a quiet frame and no strong baseline, so a value that
-only reads never looks like one to type into.
+clipped by a card. A `readonly` field sits in a light tint of the field well with a quiet frame and no strong
+baseline, so a value that only reads never looks like one to type into, nor like one that is off.
 
 It has no label of its own. Put it inside `Field`, or give it `aria-label` when the words
 that name it are already on screen. `mono` sets technical values in the mono face with
@@ -74,7 +74,7 @@ tabular figures.
 
 - Semantics: a native `<input>` of the given `type`, named by a `<label for>` or `aria-label`; `invalid`, a caller's `aria-invalid` or a value the browser's check refused sets `aria-invalid`.
 - Content: one line of text the reader types, with an optional placeholder that is an example and never the label. Spaces at either end go once the value is committed, so a text replacement never fails a pattern and spaces alone never pass `required`; a password keeps them. A `mono`, email or URL field is never spellchecked or capitalized.
-- States: rest (the control fill, a quiet frame, a recess under its top edge darker than the frame and a 3:1 baseline), hover (a firmer frame and recess), focus (the rest fill under a flush 2px ring, so a focused field never reads as read-only), invalid (a danger edge on all four sides, kept under hover and focus), read-only (no fill, no baseline and no recess), held (disabled while a busy dialog or a saving pane around it works, read only and focusable with full-strength words while a saving setting row does) and disabled (the read-only well with its words in the muted ink, all at full strength).
+- States: rest (the control fill, a quiet frame, a recess under its top edge darker than the frame and a 3:1 baseline), hover (a firmer frame and recess), focus (the rest fill under a flush 2px ring, so a focused field never reads as read-only), invalid (a danger edge on all four sides, kept under hover and focus), read-only (40% of the field well, a quiet frame, no baseline and no recess), held (disabled while a busy dialog or a saving pane around it works, read only and focusable with full-strength words while a saving setting row does) and disabled (the full field well with its words in the muted ink, all at full strength).
 - Keyboard: the browser's own text editing; Tab moves on.
 - Pointer and touch: 34px tall on a pointer and 44px on a phone or any touch screen, with 16px text on a phone so iOS does not zoom.
 - Focus: it takes focus on a press and never moves it elsewhere.
@@ -149,11 +149,17 @@ tabular figures.
     outline-offset: var(--sui-focus-ring-flush);
   }
 
-  /* An open list means the field is in use, so a combobox's preview keeps the editing look. */
-  /* A value that only reads, or a field that is off, sits in the field well with a quiet
-     frame, no strong baseline and no recess, so it never looks like a field to type in. */
-  .sui-text-input[readonly]:not(.held, [aria-expanded='true']),
-  .sui-text-input[readonly]:not(.held, [aria-expanded='true']):focus,
+  /* A value that only reads, or a field that is off, has a quiet frame, no strong baseline and
+     no recess, so it never looks like a field to type in. An off field sits in the field well
+     and a value that only reads in a lighter tint of it, so a value to copy never looks off.
+     An open list means the field is in use, so a combobox's preview keeps the editing look. */
+  .sui-text-input[readonly]:not(.held, [aria-expanded='true'], :disabled),
+  .sui-text-input[readonly]:not(.held, [aria-expanded='true'], :disabled):focus {
+    background-color: var(--sui-field-readonly);
+    border-color: var(--sui-border-subtle);
+    box-shadow: none;
+  }
+
   .sui-text-input:disabled:not(.held, .bare) {
     background-color: var(--sui-field-well);
     border-color: var(--sui-border-subtle);
