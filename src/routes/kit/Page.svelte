@@ -120,12 +120,15 @@
     margin-block-end: var(--sui-space-8);
   }
 
-  /* The audit stands a section's step under the last example, at the end edge where the source
-     row's action stood, its result just before it. */
+  /* The audit is the page's foot: a hairline a section's step under the last example parts it
+     from the examples, and it stands at the end edge where the source row's action stood, its
+     result just before it. */
   .audit {
+    border-block-start: var(--sui-stroke) solid var(--sui-border-divider);
     display: grid;
     gap: var(--sui-space-4);
     margin-block-start: var(--sui-space-8);
+    padding-block-start: var(--sui-space-6);
   }
 
   .audit-run {
