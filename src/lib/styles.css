@@ -855,7 +855,9 @@
   --sui-control-border: var(--sui-border-control);
   --sui-field-frame: rgb(255 255 255 / 24%);
   --sui-field-frame-hover: var(--sui-control-border-hover);
-  --sui-field-border: var(--sui-border-strong);
+  /* A step brighter than the strong border, so a dark field keeps a line to type on that reads
+     apart from its frame (L-9). */
+  --sui-field-border: rgb(255 255 255 / 40%);
   --sui-field-border-hover: color-mix(
     in srgb,
     var(--sui-field-border) 60%,
@@ -1079,7 +1081,7 @@
     --sui-control-border: var(--sui-border-control);
     --sui-field-frame: rgb(255 255 255 / 24%);
     --sui-field-frame-hover: var(--sui-control-border-hover);
-    --sui-field-border: var(--sui-border-strong);
+    --sui-field-border: rgb(255 255 255 / 40%);
     --sui-field-border-hover: color-mix(
       in srgb,
       var(--sui-field-border) 60%,
