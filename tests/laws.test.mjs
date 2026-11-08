@@ -491,7 +491,7 @@ test('L-22 the phone reads one step larger and types at 16px', () => {
   // The mono face reads larger than the words' face at one size, so a typed technical value
   // steps under them where the size is the page's own choice, and joins them where iOS zooms.
   const desktop = tokenMap(stripComments(palette.slice(0, palette.indexOf(PHONE))));
-  assert.equal(pixels(desktop['--sui-font-size-input-mono']), 13.25);
+  assert.equal(pixels(desktop['--sui-font-size-input-mono']), 13.5);
   assert.match(phone, /--sui-font-size-input-mono:\s*1rem;/);
   for (const path of [
     'src/lib/components/TextInput.svelte',

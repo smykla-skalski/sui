@@ -466,9 +466,8 @@
   --sui-font-size-control: 0.875rem;
   --sui-font-size-input: 0.875rem;
   /* The mono face reads larger than the words' face at one size, so a typed technical value
-     stands three quarters of a pixel under the words beside it, so its taller x-height matches
-     theirs. */
-  --sui-font-size-input-mono: 0.828125rem;
+     stands half a pixel under the words beside it, so its taller x-height matches theirs. */
+  --sui-font-size-input-mono: 0.84375rem;
   --sui-font-size-title: 1rem;
 
   --sui-font-size-card-title: 1.0625rem;
