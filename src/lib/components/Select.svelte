@@ -351,7 +351,7 @@ assistive technology, because a native picker cannot be held open.
         :focus-visible
       ) {
       background-color: var(--sui-field-danger-hover);
-      border-color: var(--sui-danger-hover);
+      border-color: var(--sui-danger-edge-hover);
     }
   }
 
@@ -388,7 +388,7 @@ assistive technology, because a native picker cannot be held open.
   }
 
   .sui-select-control:is([aria-invalid='true'], :user-invalid) {
-    border-color: var(--sui-danger);
+    border-color: var(--sui-danger-edge);
   }
 
   .sui-select-control:is(:disabled, [aria-disabled='true']) {

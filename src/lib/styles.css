@@ -204,7 +204,7 @@
 
   /* An invalid field's ring: the danger hue a step under its edge, so the two read as one
      state and not as two red outlines (L-41). */
-  --sui-focus-danger: color-mix(in srgb, var(--sui-danger) 80%, transparent);
+  --sui-focus-danger: color-mix(in srgb, var(--sui-danger-edge) 80%, transparent);
   --sui-focus-ring-width: 2px;
   --sui-focus-ring-offset: 2px;
   --sui-focus-ring-inset: -2px;
@@ -227,6 +227,9 @@
   --sui-on-danger: #ffffff;
 
   --sui-danger-hover: #a33039;
+  /* A field's danger edge. On light it is the danger ink. */
+  --sui-danger-edge: var(--sui-danger);
+  --sui-danger-edge-hover: var(--sui-danger-hover);
   /* The hover veil of a part in the danger state, so its hover keeps the state's hue. */
   --sui-danger-hover-layer: color-mix(in srgb, var(--sui-danger) 9%, transparent);
   --sui-field-danger-hover: color-mix(in srgb, var(--sui-danger) 4.5%, transparent);
@@ -712,12 +715,24 @@
   --sui-warning: var(--sui-primitive-warning-dark);
   --sui-warning-tint: var(--sui-primitive-warning-dark-tint);
   --sui-danger: var(--sui-primitive-danger-dark);
-  --sui-focus-danger: color-mix(in srgb, var(--sui-danger) 80%, transparent);
+  --sui-focus-danger: color-mix(in srgb, var(--sui-danger-edge) 80%, transparent);
   --sui-danger-tint: var(--sui-primitive-danger-dark-tint);
   --sui-danger-fill: var(--sui-primitive-danger-light);
   --sui-danger-fill-hover: #c8434e;
   --sui-on-danger: #ffffff;
   --sui-danger-hover: #ff929b;
+  /* The pastel danger ink would draw a pink edge on dark, so a field's edge mixes in the light
+     danger red and reads as the same red as on light, still 3:1 on every ground. */
+  --sui-danger-edge: color-mix(
+    in srgb,
+    var(--sui-primitive-danger-dark) 55%,
+    var(--sui-primitive-danger-light)
+  );
+  --sui-danger-edge-hover: color-mix(
+    in srgb,
+    var(--sui-primitive-danger-dark) 70%,
+    var(--sui-primitive-danger-light)
+  );
   --sui-danger-hover-layer: color-mix(in srgb, var(--sui-danger) 12%, transparent);
   --sui-field-danger-hover: color-mix(in srgb, var(--sui-danger) 6%, transparent);
   --sui-danger-pressed: color-mix(in srgb, var(--sui-danger-fill) 82%, #000000);
@@ -913,12 +928,22 @@
     --sui-warning: var(--sui-primitive-warning-dark);
     --sui-warning-tint: var(--sui-primitive-warning-dark-tint);
     --sui-danger: var(--sui-primitive-danger-dark);
-    --sui-focus-danger: color-mix(in srgb, var(--sui-danger) 80%, transparent);
+    --sui-focus-danger: color-mix(in srgb, var(--sui-danger-edge) 80%, transparent);
     --sui-danger-tint: var(--sui-primitive-danger-dark-tint);
     --sui-danger-fill: var(--sui-primitive-danger-light);
     --sui-danger-fill-hover: #c8434e;
     --sui-on-danger: #ffffff;
     --sui-danger-hover: #ff929b;
+    --sui-danger-edge: color-mix(
+      in srgb,
+      var(--sui-primitive-danger-dark) 55%,
+      var(--sui-primitive-danger-light)
+    );
+    --sui-danger-edge-hover: color-mix(
+      in srgb,
+      var(--sui-primitive-danger-dark) 70%,
+      var(--sui-primitive-danger-light)
+    );
     --sui-danger-hover-layer: color-mix(in srgb, var(--sui-danger) 12%, transparent);
     --sui-field-danger-hover: color-mix(in srgb, var(--sui-danger) 6%, transparent);
     --sui-danger-pressed: color-mix(in srgb, var(--sui-danger-fill) 82%, #000000);

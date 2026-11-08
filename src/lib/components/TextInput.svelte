@@ -139,7 +139,7 @@ tabular figures.
 
     .sui-text-input[aria-invalid='true']:hover:not(:disabled, :focus, .bare, [readonly]) {
       background-color: var(--sui-field-danger-hover);
-      border-color: var(--sui-danger-hover);
+      border-color: var(--sui-danger-edge-hover);
     }
   }
 
@@ -175,13 +175,13 @@ tabular figures.
   }
 
   .sui-text-input[aria-invalid='true'] {
-    border-color: var(--sui-danger);
+    border-color: var(--sui-danger-edge);
   }
 
   /* An invalid field keeps its danger edge when it is off or only reads too, over the well's
      tint, since it still says it is wrong (L-9). */
   .sui-text-input[aria-invalid='true']:is(:disabled, [readonly]):not(.bare) {
-    border-color: var(--sui-danger);
+    border-color: var(--sui-danger-edge);
   }
 
   .sui-text-input:disabled {

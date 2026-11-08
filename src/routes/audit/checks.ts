@@ -238,7 +238,8 @@ function palette(): Finding[] {
   for (const ground of ['canvas', 'surface-base', 'surface-control', 'surface-inset'])
     found.push(
       ...atLeast('L-6', `focus on ${ground}`, c('focus', ground), 3),
-      ...atLeast('L-6', `focus-danger on ${ground}`, c('focus-danger', ground), 3)
+      ...atLeast('L-6', `focus-danger on ${ground}`, c('focus-danger', ground), 3),
+      ...atLeast('L-6', `danger-edge on ${ground}`, c('danger-edge', ground), 3)
     );
   for (const ground of ['canvas', 'surface-base', 'surface-inset'])
     found.push(...atLeast('L-6', `border-strong on ${ground}`, c('border-strong', ground), 3));

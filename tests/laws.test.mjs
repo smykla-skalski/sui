@@ -1114,6 +1114,16 @@ test('L-41 a field keeps its frame and wears one ring 2px off it in every state'
       /(\[aria-invalid='true'\]|\.invalid)[^{]*focus-visible[^{]*\{\s*outline-color: var\(--sui-focus-danger\);\s*\}/,
       `${path} rings an invalid field in the danger color`
     );
+    assert.match(
+      styles[path],
+      /border-color: var\(--sui-danger-edge\);/,
+      `${path} draws its danger edge from --sui-danger-edge`
+    );
+    assert.doesNotMatch(
+      styles[path],
+      /border-color: var\(--sui-danger(-hover)?\);/,
+      `${path} never draws a pastel danger ink as its edge on dark`
+    );
     assert.doesNotMatch(
       styles[path],
       /--sui-focus-ring-edge|outline-width:|border-color: var\(--sui-focus\)/,

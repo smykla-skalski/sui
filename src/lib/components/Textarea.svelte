@@ -126,7 +126,7 @@ It has no label of its own. Put it in a `Field` through the `control` snippet, o
 
     .sui-textarea[aria-invalid='true']:hover:not(:disabled, :focus, [readonly]) {
       background-color: var(--sui-field-danger-hover);
-      border-color: var(--sui-danger-hover);
+      border-color: var(--sui-danger-edge-hover);
     }
   }
 
@@ -144,7 +144,7 @@ It has no label of its own. Put it in a `Field` through the `control` snippet, o
   }
 
   .sui-textarea[aria-invalid='true'] {
-    border-color: var(--sui-danger);
+    border-color: var(--sui-danger-edge);
   }
 
   /* A value that only reads sits in a light tint of the field well with a quiet frame and no
@@ -168,7 +168,7 @@ It has no label of its own. Put it in a `Field` through the `control` snippet, o
   /* An invalid field keeps its danger edge when it is off too, over the well's quiet frame,
      since it still says it is wrong (L-9). */
   .sui-textarea[aria-invalid='true']:disabled {
-    border-color: var(--sui-danger);
+    border-color: var(--sui-danger-edge);
   }
 
   .sui-textarea:is(:disabled, .held) {

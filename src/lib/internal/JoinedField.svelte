@@ -93,7 +93,7 @@ the end part draws its own inset ring while it has focus, so the two never look 
 
     .sui-joined.invalid:hover:not(.disabled, .held, .readonly, :has(:global(:focus-visible))) {
       background-color: var(--sui-field-danger-hover);
-      border-color: var(--sui-danger-hover);
+      border-color: var(--sui-danger-edge-hover);
     }
   }
 
@@ -130,7 +130,7 @@ the end part draws its own inset ring while it has focus, so the two never look 
   }
 
   .invalid {
-    border-color: var(--sui-danger);
+    border-color: var(--sui-danger-edge);
   }
 
   /* An off field's words take the muted ink at full strength in both parts, as a disabled text
