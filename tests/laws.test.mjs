@@ -697,22 +697,29 @@ test("L-68 icon sizes are named tiers that grow with the text and land on whole 
     read('src/lib/components/Select.svelte'),
     /<Icon name="chevron-down" size="base" \/>/
   );
-  assert.match(
-    styles['src/lib/components/Button.svelte'],
-    /\.sui-button-spinner \{[^}]*block-size: var\(--sui-icon-base\)/,
-    'a busy button swaps its glyph for a spinner of the same size'
-  );
   for (const [path, name] of [
     ['src/lib/components/Button.svelte', 'button'],
     ['src/lib/components/IconButton.svelte', 'icon-button']
-  ])
-    assert.match(
-      styles[path],
-      new RegExp(
-        `\\.sui-${name}-spinner \\{[^}]*solid color-mix\\(in srgb, currentColor 40%, transparent\\);`
+  ]) {
+    const spinner =
+      new RegExp(`\\.sui-${name}-spinner \\{([^}]*)\\}`).exec(styles[path])?.[1] ?? '';
+    assert.deepEqual(
+      ['block-size', 'inline-size', 'margin'].map(
+        (property) => new RegExp(`(?:^|\\s)${property}: ([^;]*);`).exec(spinner)?.[1]
       ),
+      [
+        'calc(var(--sui-icon-base) - 2 * var(--sui-stroke))',
+        'calc(var(--sui-icon-base) - 2 * var(--sui-stroke))',
+        'var(--sui-stroke)'
+      ],
+      `${path}: the spinner is a 14px ring in the glyph's 16px slot, as light as the glyphs`
+    );
+    assert.match(
+      spinner,
+      /solid color-mix\(in srgb, currentColor 40%, transparent\);/,
       `${path}: the spinner's track keeps 40% of its ink, so the ring stays whole on a fill`
     );
+  }
 });
 
 test('L-72 stacking order comes from the layer tokens', () => {

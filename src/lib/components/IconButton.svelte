@@ -152,12 +152,13 @@ action are a `Button` with the word beside the glyph.
   }
 
   .sui-icon-button-spinner {
-    block-size: var(--sui-icon-base);
+    block-size: calc(var(--sui-icon-base) - 2 * var(--sui-stroke));
     border: var(--sui-stroke-bold) solid color-mix(in srgb, currentColor 40%, transparent);
     border-block-start-color: currentColor;
     border-radius: 50%;
     box-sizing: border-box;
-    inline-size: var(--sui-icon-base);
+    inline-size: calc(var(--sui-icon-base) - 2 * var(--sui-stroke));
+    margin: var(--sui-stroke);
     animation: sui-icon-button-spin var(--sui-duration-spinner) var(--sui-ease-linear) infinite;
   }
 

@@ -376,15 +376,17 @@ start.
 
   /* A full track under a quarter arc reads as progress even when reduced motion stops it,
      where an open ring alone reads as a letter. The track keeps 40% of the ink, so the ring
-     stays whole on a coloured fill. */
+     stays whole on a coloured fill. The ring stands a stroke inside the glyph's slot, so its
+     bold line weighs no more than a glyph's. */
   .sui-button-spinner {
-    block-size: var(--sui-icon-base);
+    block-size: calc(var(--sui-icon-base) - 2 * var(--sui-stroke));
     border: var(--sui-stroke-bold) solid color-mix(in srgb, currentColor 40%, transparent);
     border-block-start-color: currentColor;
     border-radius: 50%;
     box-sizing: border-box;
     flex: none;
-    inline-size: var(--sui-icon-base);
+    inline-size: calc(var(--sui-icon-base) - 2 * var(--sui-stroke));
+    margin: var(--sui-stroke);
     animation: sui-button-spin var(--sui-duration-spinner) var(--sui-ease-linear) infinite;
   }
 

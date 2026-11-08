@@ -115,7 +115,7 @@ A law that says "every" means every component, including the ones added after it
 ## Icons
 
 - **L-67** One outline family on a 24-unit grid with a 1.75 stroke and round caps, from a closed name list. Every glyph is `aria-hidden`, so the words beside it carry its meaning. `S-171 K-133` `audit`
-- **L-68** Icon sizes are the tiers 10, 12, 13, 16 and 18px at the default text size (`--sui-icon-*`), and they grow with the reader's text size, rounded to the pixel. A glyph beside a control's words, a button's icon, its trailing chevron and its busy spinner, and a select's chevron, takes the 16px tier, so it carries the weight of the 14px words beside it. A busy spinner is a quarter arc of its ink over a full track at 40% of that ink, so the ring stays whole on a coloured fill. `S-52 S-173` `source`
+- **L-68** Icon sizes are the tiers 10, 12, 13, 16 and 18px at the default text size (`--sui-icon-*`), and they grow with the reader's text size, rounded to the pixel. A glyph beside a control's words, a button's icon, its trailing chevron and its busy spinner, and a select's chevron, takes the 16px tier, so it carries the weight of the 14px words beside it. A busy spinner is a quarter arc of its ink over a full track at 40% of that ink, so the ring stays whole on a coloured fill, and it is a 14px ring a stroke inside its 16px slot, so its bold line weighs no more than a glyph's. `S-52 S-173` `source`
 - **L-69** Every glyph's ink is centred in its 24-unit box within 0.25 units. `S-174` `source`
 
 ## Layout
