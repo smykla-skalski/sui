@@ -132,12 +132,17 @@ It has no label of its own. Put it in a `Field` through the `control` snippet, o
 
   .sui-textarea:focus-visible {
     border-color: var(--sui-focus);
-    outline: var(--sui-focus-ring-width) solid var(--sui-focus);
+    outline: var(--sui-focus-ring-edge) solid var(--sui-focus);
     outline-offset: var(--sui-focus-ring-flush);
   }
 
   .sui-textarea[aria-invalid='true'] {
     border-color: var(--sui-danger);
+  }
+
+  /* A danger edge is not the ring's color, so the outline draws the whole 2px ring past it. */
+  .sui-textarea[aria-invalid='true']:focus-visible {
+    outline-width: var(--sui-focus-ring-width);
   }
 
   /* A value that only reads sits in a light tint of the field well with a quiet frame and no
@@ -146,6 +151,8 @@ It has no label of its own. Put it in a `Field` through the `control` snippet, o
     background-color: var(--sui-field-readonly);
     border-color: var(--sui-border-subtle);
     box-shadow: none;
+    /* Its quiet frame is not the ring's color, so a ring draws its whole 2px past it. */
+    outline-width: var(--sui-focus-ring-width);
   }
 
   /* A field that is off fills the field well with no frame, baseline or recess, its words in the muted ink at full strength, so it never looks like an empty field

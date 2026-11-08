@@ -376,13 +376,18 @@ assistive technology, because a native picker cannot be held open.
 
   .sui-select-control:focus-visible {
     border-color: var(--sui-focus);
-    outline: var(--sui-focus-ring-width) solid var(--sui-focus);
+    outline: var(--sui-focus-ring-edge) solid var(--sui-focus);
     outline-offset: var(--sui-focus-ring-flush);
   }
 
   /* After focus, so a refused value keeps its edge under the ring, as a text field does. */
   .sui-select-control:is([aria-invalid='true'], :user-invalid) {
     border-color: var(--sui-danger);
+  }
+
+  /* A danger edge is not the ring's color, so the outline draws the whole 2px ring past it. */
+  .sui-select-control:is([aria-invalid='true'], :user-invalid):focus-visible {
+    outline-width: var(--sui-focus-ring-width);
   }
 
   .sui-select-control:is(:disabled, [aria-disabled='true']) {

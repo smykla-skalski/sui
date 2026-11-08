@@ -410,7 +410,7 @@ row gives them and fall under the copy on a narrow row.
   /* A bordered control's ring is flush, its edge taking the ring's color unless it is invalid
      (L-9, L-41). */
   .sui-pair-chip:has(> .sui-pair-edit:focus-visible) {
-    outline: var(--sui-focus-ring-width) solid var(--sui-focus);
+    outline: var(--sui-focus-ring-edge) solid var(--sui-focus);
     outline-offset: var(--sui-focus-ring-flush);
   }
 
@@ -421,6 +421,11 @@ row gives them and fall under the copy on a narrow row.
 
   .sui-pair-chip.invalid {
     --sui-pair-edge: var(--sui-danger);
+  }
+
+  /* A danger edge is not the ring's color, so the outline draws the whole 2px ring past it. */
+  .sui-pair-chip.invalid:has(> .sui-pair-edit:focus-visible) {
+    outline-width: var(--sui-focus-ring-width);
   }
 
   .sui-pair-edit,

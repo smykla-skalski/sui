@@ -256,7 +256,7 @@ title, such as "Danger Zone", and holds the acts that cannot be undone, each a `
 
   .sui-card:has(> .sui-card-hit:focus-visible) {
     border-color: var(--sui-focus);
-    outline: var(--sui-focus-ring-width) solid var(--sui-focus);
+    outline: var(--sui-focus-ring-edge) solid var(--sui-focus);
     outline-offset: var(--sui-focus-ring-flush);
   }
 

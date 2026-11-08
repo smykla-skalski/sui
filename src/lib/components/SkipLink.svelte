@@ -87,7 +87,7 @@ A link that is always visible is `Link`, and words that are never shown are `Vis
   }
 
   .sui-skip-link:focus-visible {
-    outline: var(--sui-focus-ring-width) solid var(--sui-focus);
+    outline: var(--sui-focus-ring-edge) solid var(--sui-focus);
     outline-offset: var(--sui-focus-ring-flush);
   }
 

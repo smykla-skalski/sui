@@ -378,10 +378,21 @@ suite('the kitchen sink', together, () => {
             /** @type {{ __suiRingCut: (element: Element, look: CSSStyleDeclaration) => string[] }} */ (
               /** @type {unknown} */ (window)
             ).__suiRingCut(wearer, ring);
+          // A flush border in the ring's color, its own or one an overlay draws over its edge, is
+          // the ring's inner pixel (L-41).
+          const over = getComputedStyle(wearer, '::after');
+          const edge =
+            parseFloat(ring.outlineOffset) !== 0
+              ? 0
+              : ring.borderTopColor === ring.outlineColor
+                ? parseFloat(ring.borderTopWidth)
+                : over.position === 'absolute' && over.borderTopColor === ring.outlineColor
+                  ? parseFloat(over.borderTopWidth)
+                  : 0;
           return {
             where: path.join(' > '),
             outline: ring.outlineStyle,
-            width: ring.outlineWidth,
+            width: `${parseFloat(ring.outlineWidth) + edge}px`,
             cut
           };
         };

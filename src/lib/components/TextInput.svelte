@@ -145,7 +145,7 @@ tabular figures.
 
   .sui-text-input:focus-visible {
     border-color: var(--sui-focus);
-    outline: var(--sui-focus-ring-width) solid var(--sui-focus);
+    outline: var(--sui-focus-ring-edge) solid var(--sui-focus);
     outline-offset: var(--sui-focus-ring-flush);
   }
 
@@ -159,6 +159,8 @@ tabular figures.
     background-color: var(--sui-field-readonly);
     border-color: var(--sui-border-subtle);
     box-shadow: none;
+    /* Its quiet frame is not the ring's color, so a ring draws its whole 2px past it. */
+    outline-width: var(--sui-focus-ring-width);
   }
 
   .sui-text-input:disabled:not(.held, .bare) {
@@ -169,6 +171,11 @@ tabular figures.
 
   .sui-text-input[aria-invalid='true'] {
     border-color: var(--sui-danger);
+  }
+
+  /* A danger edge is not the ring's color, so the outline draws the whole 2px ring past it. */
+  .sui-text-input[aria-invalid='true']:focus-visible {
+    outline-width: var(--sui-focus-ring-width);
   }
 
   /* An invalid field keeps its danger edge when it is off or only reads too, over the well's

@@ -179,7 +179,7 @@ in its corner. Beside a 34px field or in a toolbar it takes the control tier wit
 
   .sui-copy-button:focus-visible {
     border-color: var(--sui-focus);
-    outline: var(--sui-focus-ring-width) solid var(--sui-focus);
+    outline: var(--sui-focus-ring-edge) solid var(--sui-focus);
     outline-offset: var(--sui-focus-ring-flush);
   }
 

@@ -102,7 +102,7 @@ the end part draws its own inset ring while it has focus, so the two never look 
      part belongs to another component, so the state is looked up globally. */
   .sui-joined:has(.sui-joined-value :global(:focus-visible)) {
     border-color: var(--sui-focus);
-    outline: var(--sui-focus-ring-width) solid var(--sui-focus);
+    outline: var(--sui-focus-ring-edge) solid var(--sui-focus);
     outline-offset: var(--sui-focus-ring-flush);
   }
 
@@ -115,6 +115,8 @@ the end part draws its own inset ring while it has focus, so the two never look 
     background-color: var(--sui-field-readonly);
     border-color: var(--sui-border-subtle);
     box-shadow: none;
+    /* Its quiet frame is not the ring's color, so a ring draws its whole 2px past it. */
+    outline-width: var(--sui-focus-ring-width);
   }
 
   /* Its own rule: a list holding the focused read-only selector would lend the off field that
@@ -128,6 +130,11 @@ the end part draws its own inset ring while it has focus, so the two never look 
   .invalid,
   .invalid:has(.sui-joined-value :global(:focus-visible)) {
     border-color: var(--sui-danger);
+  }
+
+  /* A danger edge is not the ring's color, so the outline draws the whole 2px ring past it. */
+  .invalid:has(.sui-joined-value :global(:focus-visible)) {
+    outline-width: var(--sui-focus-ring-width);
   }
 
   /* An off field's words take the muted ink at full strength in both parts, as a disabled text

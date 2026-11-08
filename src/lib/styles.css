@@ -204,6 +204,9 @@
   --sui-focus-ring-offset: 2px;
   --sui-focus-ring-inset: -2px;
   --sui-focus-ring-flush: 0;
+  /* A bordered control's border takes the focus color, so its outline adds only the rest of
+     the 2px ring (L-41). */
+  --sui-focus-ring-edge: calc(var(--sui-focus-ring-width) - var(--sui-stroke));
   --sui-info: var(--sui-link);
   --sui-info-tint: var(--sui-primitive-info-light-tint);
   --sui-success: var(--sui-primitive-success-light);

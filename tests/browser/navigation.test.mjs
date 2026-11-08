@@ -751,7 +751,7 @@ suite('navigation', together, () => {
             const look = getComputedStyle(card);
             return `${look.outlineStyle} ${look.outlineWidth} ${look.outlineColor === look.borderTopColor}`;
           });
-        assert.equal(ring, 'solid 2px true', 'the focused link does not ring its card');
+        assert.equal(ring, 'solid 1px true', 'the focused link does not ring its card');
 
         const before = await page.evaluate(() => location.hash);
         await peers.getByRole('button', { name: 'Rule actions' }).click();

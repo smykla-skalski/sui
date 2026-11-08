@@ -271,7 +271,7 @@ start.
 
   .sui-button:focus-visible {
     border-color: var(--sui-focus);
-    outline: var(--sui-focus-ring-width) solid var(--sui-focus);
+    outline: var(--sui-focus-ring-edge) solid var(--sui-focus);
     outline-offset: var(--sui-focus-ring-flush);
   }
 
@@ -279,6 +279,7 @@ start.
      2px; standing 2px off, the ring shows against the ground the button sits on. */
   .sui-button:is([data-tone='signal'], [data-tone='stop'], [data-tone='decision']):focus-visible {
     outline-offset: var(--sui-focus-ring-offset);
+    outline-width: var(--sui-focus-ring-width);
   }
 
   .sui-button:is(:disabled, [aria-disabled='true']) {
@@ -345,6 +346,12 @@ start.
     --sui-control-state-layer: color-mix(in srgb, var(--sui-danger) 12%, transparent);
     background-color: var(--sui-danger-tint);
     border-color: var(--sui-danger);
+  }
+
+  /* A ghost's edge is clear and a quiet stop's keeps its danger, so neither is the ring's color,
+     and the outline draws the whole 2px ring past it (L-41). */
+  .sui-button:is([data-tone='ghost'], [data-tone='stop-quiet']):focus-visible {
+    outline-width: var(--sui-focus-ring-width);
   }
 
   /* A disabled tone takes the default paint, dimmed as every disabled control is, so an action
