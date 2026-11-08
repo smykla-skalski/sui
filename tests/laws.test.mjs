@@ -318,6 +318,11 @@ test('L-59 a state panel pads 28px by 24px, 20px on a phone, its action a step u
     /\.over \{[^}]*justify-content: start;/,
     "a failed refresh's retry stands right after its words, not at the line's far end"
   );
+  assert.match(
+    stripComments(styles['src/lib/components/ErrorState.svelte']),
+    /\.sui-error-state-title \{[^}]*color: var\(--sui-text-primary\);/,
+    'the mark, edge and wash carry the failure, so its title reads in the primary ink'
+  );
   const table = stripComments(styles['src/lib/components/DataTable.svelte']);
   assert.deepEqual(
     [

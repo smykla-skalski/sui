@@ -207,9 +207,11 @@ of them.
     text-box: trim-both cap alphabetic;
   }
 
+  /* The mark, the edge and the wash carry the failure, so the title reads in the primary ink and
+     the panel never turns into a block of red. */
   .sui-error-state-title {
     text-wrap: balance;
-    color: var(--sui-danger);
+    color: var(--sui-text-primary);
     font: var(--sui-weight-semibold) var(--sui-font-size-card-title) / var(--sui-row-copy-leading)
       var(--sui-sans);
   }
