@@ -209,6 +209,7 @@ box. Choosing one lifts it. A caller's `error` always wins.
     overflow-wrap: anywhere;
     padding-block: var(--sui-block-snap-room);
     text-box: trim-both cap alphabetic;
+    text-wrap: pretty;
   }
 
   .sui-check-list-help {

@@ -367,6 +367,7 @@ save keeps it. A busy dialog or a saving pane around it disables the radios whil
     overflow-wrap: anywhere;
     padding-block: var(--sui-block-snap-room);
     text-box: trim-both cap alphabetic;
+    text-wrap: pretty;
   }
 
   .sui-choice-cards-help {

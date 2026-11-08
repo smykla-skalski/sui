@@ -229,6 +229,11 @@ tabular figures.
     opacity: 1;
   }
 
+  /* A typed number keeps one width per figure, so the value never shifts as it grows. */
+  .sui-text-input:is([inputmode='decimal'], [inputmode='numeric'], [type='number']) {
+    font-variant-numeric: tabular-nums;
+  }
+
   /* The mono face's code ligatures would join a typed path's slash and stars, so `/**` shows
      as typed. */
   .mono {

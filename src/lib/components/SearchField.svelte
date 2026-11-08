@@ -215,6 +215,7 @@ matches in a polite `role="status"` beside it so a screen reader hears it.
     overflow-wrap: anywhere;
     padding-block: var(--sui-block-snap-room);
     text-box: trim-both cap alphabetic;
+    text-wrap: pretty;
   }
 
   .sui-search-field-clear {

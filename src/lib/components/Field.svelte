@@ -259,6 +259,7 @@ the `control` snippet reports here on its own, and a control of another kind kee
     min-block-size: var(--sui-control-height-compact);
   }
 
+  /* A note that wraps keeps more than one word on its last line. */
   .sui-field-help,
   .sui-field-error-text {
     align-content: center;
@@ -268,6 +269,7 @@ the `control` snippet reports here on its own, and a control of another kind kee
     overflow-wrap: anywhere;
     padding-block: var(--sui-block-snap-room);
     text-box: trim-both cap alphabetic;
+    text-wrap: pretty;
   }
 
   .sui-field-help {

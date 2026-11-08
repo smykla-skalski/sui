@@ -298,7 +298,6 @@ land on the amount.
           bind:element={amount}
           {...rest}
           bare
-          mono
           inputmode="decimal"
           autocomplete="off"
           spellcheck="false"
@@ -354,6 +353,7 @@ land on the amount.
     min-inline-size: 0;
   }
 
+  /* An amount reads as one phrase with its unit word, so it keeps the sans face (L-20). */
   .sui-duration-amount {
     display: grid;
     inline-size: 4.5rem;
@@ -377,11 +377,13 @@ land on the amount.
     overflow-wrap: anywhere;
     padding-block: var(--sui-block-snap-room);
     text-box: trim-both cap alphabetic;
+    text-wrap: pretty;
   }
 
   .sui-duration-hint {
     color: var(--sui-text-secondary);
     font-size: var(--sui-font-size-note);
+    text-wrap: pretty;
   }
 
   /* A problem stands a step further from the hint over it than the hint from its controls, so

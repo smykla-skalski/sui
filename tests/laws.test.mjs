@@ -482,6 +482,19 @@ test('L-25 the type tiers keep the sizes the law names', () => {
   );
 });
 
+test('L-20 a duration amount reads in the words face with figures of one width', () => {
+  assert.doesNotMatch(
+    read('src/lib/components/DurationInput.svelte'),
+    /<TextInput\b[^>]*\bmono\b/,
+    'a duration amount is not mono'
+  );
+  assert.match(
+    styles['src/lib/components/TextInput.svelte'],
+    /\.sui-text-input:is\(\[inputmode='decimal'\], \[inputmode='numeric'\], \[type='number'\]\) \{\s*font-variant-numeric: tabular-nums;/,
+    'a field that takes a number keeps one width per figure as it is typed'
+  );
+});
+
 test('L-22 the phone reads one step larger and types at 16px', () => {
   const phone = palette.slice(palette.indexOf(PHONE));
   for (const name of ['--sui-font-size-body', '--sui-leading-body'])

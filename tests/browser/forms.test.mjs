@@ -263,21 +263,34 @@ suite('forms', together, () => {
     });
 
     // Last, because it turns the whole page right to left.
-    test('L-47 a focused text field keeps its rest fill', long, async () => {
-      const page = await opened();
-      await page.mouse.move(0, 0);
-      for (const [selector, typed] of [
-        ['#text-input .sui-text-input', '#text-input .sui-text-input'],
-        ['#textarea .sui-textarea', '#textarea .sui-textarea'],
-        ['#duration-input .sui-joined', '#duration-input .sui-joined input']
-      ]) {
-        const field = page.locator(selector).first();
-        const ground = () => field.evaluate((element) => getComputedStyle(element).backgroundColor);
-        const rest = await ground();
-        await page.locator(typed).first().focus();
-        assert.equal(await ground(), rest, `${selector} changes its fill on focus`);
+    test(
+      'L-47 a light text field fills the surface white at rest, keeps it on focus and stays opaque on hover (L-10)',
+      long,
+      async () => {
+        const page = await opened();
+        for (const [selector, typed] of [
+          ['#text-input .sui-text-input', '#text-input .sui-text-input'],
+          ['#textarea .sui-textarea', '#textarea .sui-textarea'],
+          ['#duration-input .sui-joined', '#duration-input .sui-joined input']
+        ]) {
+          await page.mouse.move(0, 0);
+          const field = page.locator(selector).first();
+          const ground = () =>
+            field.evaluate((element) => getComputedStyle(element).backgroundColor);
+          const rest = await ground();
+          assert.equal(rest, 'rgb(255, 255, 255)', `${selector} rests on another fill`);
+          await field.hover();
+          assert.doesNotMatch(
+            await ground(),
+            /rgba|\//,
+            `${selector} lets the ground through on hover`
+          );
+          await page.mouse.move(0, 0);
+          await page.locator(typed).first().focus();
+          assert.equal(await ground(), rest, `${selector} changes its fill on focus`);
+        }
       }
-    });
+    );
 
     test(
       'a checkbox row centres its box on the label, its notes 12px under the box, an error mark under it',

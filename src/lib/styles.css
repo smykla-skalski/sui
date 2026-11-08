@@ -75,8 +75,7 @@
   --sui-primitive-dark-muted: #aeb5be;
   --sui-primitive-dark-strong: #686a6b;
   /* A field's recess, the shade under its top edge: on light a third to a half of a hover step
-     (L-11) past the frame it lies under at rest and a whole step on hover; on dark, where the
-     frame is lighter than the field, a shade that reads apart from the ground without a hard
+     (L-11) past its frame, a whole step on hover; on dark, apart from the ground without a hard
      line. */
   --sui-primitive-light-recess: rgb(0 0 0 / 21%);
   --sui-primitive-light-recess-hover: rgb(0 0 0 / 42%);
@@ -126,9 +125,8 @@
   --sui-surface-raised: var(--sui-primitive-light-surface);
   --sui-surface-inset: var(--sui-primitive-light-inset);
   --sui-surface-code: var(--sui-primitive-light-surface);
-  /* Controls take the ground they stand on. Lines are veils, so one line reads the same on
-     the canvas, a surface and an inset. */
-  --sui-surface-control: transparent;
+  /* One white well on any ground (L-10). Lines are veils, so they read the same on each. */
+  --sui-surface-control: var(--sui-surface-base);
   --sui-border-subtle: rgb(0 0 0 / 11%);
   --sui-border-control: rgb(0 0 0 / 18%);
   /* A line inside a surface (rows, a head or foot, a tab baseline) is quieter than the
@@ -186,7 +184,11 @@
   /* A row's hover and press veils in the row's own ink, a step and two steps off the plate as
      a neutral row's are off the card (L-12, L-16). */
   --sui-unsaved-row-hover: color-mix(in srgb, var(--sui-unsaved-ink) 6%, transparent);
-  --sui-unsaved-field-hover: color-mix(in srgb, var(--sui-unsaved-ink) 3%, transparent);
+  --sui-unsaved-field-hover: color-mix(
+    in srgb,
+    var(--sui-unsaved-ink) 3%,
+    var(--sui-unsaved-control)
+  );
   --sui-unsaved-row-pressed: color-mix(in srgb, var(--sui-unsaved-ink) 12%, transparent);
   --sui-decision-accent-hover: color-mix(
     in srgb,
@@ -244,7 +246,7 @@
   );
   /* The hover veil of a part in the danger state, so its hover keeps the state's hue. */
   --sui-danger-hover-layer: color-mix(in srgb, var(--sui-danger) 9%, transparent);
-  --sui-field-danger-hover: color-mix(in srgb, var(--sui-danger) 4.5%, transparent);
+  --sui-field-danger-hover: color-mix(in srgb, var(--sui-danger) 4.5%, var(--sui-control-bg));
   --sui-danger-pressed: color-mix(
     in srgb,
     var(--sui-danger-fill-hover) 82%,
@@ -330,7 +332,7 @@
   --sui-row-hover: color-mix(in srgb, var(--sui-text-primary) 5.4%, transparent);
   /* A field shows hover by firming its frame, so its ground only just moves, well short of the
      read-only tint (L-10, L-12). */
-  --sui-field-hover: color-mix(in srgb, var(--sui-text-primary) 1.5%, transparent);
+  --sui-field-hover: color-mix(in srgb, var(--sui-text-primary) 1.5%, var(--sui-control-bg));
   /* A field that is off or only reads sits in a tint of this well (L-10). */
   --sui-field-well: var(--sui-surface-inset);
   --sui-field-readonly: color-mix(in srgb, var(--sui-field-well) 55%, transparent);
@@ -714,7 +716,11 @@
   --sui-swatch-edge-ceiling: 1;
   --sui-unsaved-border: #a5772c;
   --sui-unsaved-row-hover: color-mix(in srgb, var(--sui-unsaved-ink) 8%, transparent);
-  --sui-unsaved-field-hover: color-mix(in srgb, var(--sui-unsaved-ink) 4%, transparent);
+  --sui-unsaved-field-hover: color-mix(
+    in srgb,
+    var(--sui-unsaved-ink) 4%,
+    var(--sui-unsaved-control)
+  );
   --sui-unsaved-row-pressed: color-mix(in srgb, var(--sui-unsaved-ink) 16%, transparent);
   --sui-decision-accent-hover: color-mix(
     in srgb,
@@ -842,6 +848,7 @@
   --sui-switch-track-on: var(--sui-brand-action);
   --sui-switch-thumb: #eceef0;
 
+  --sui-surface-control: transparent;
   --sui-control-bg: var(--sui-surface-control);
   --sui-popover-bg: var(--sui-surface-base);
   --sui-dialog-bg: var(--sui-surface-base);
@@ -945,7 +952,11 @@
     --sui-swatch-edge-ceiling: 1;
     --sui-unsaved-border: #a5772c;
     --sui-unsaved-row-hover: color-mix(in srgb, var(--sui-unsaved-ink) 8%, transparent);
-    --sui-unsaved-field-hover: color-mix(in srgb, var(--sui-unsaved-ink) 4%, transparent);
+    --sui-unsaved-field-hover: color-mix(
+      in srgb,
+      var(--sui-unsaved-ink) 4%,
+      var(--sui-unsaved-control)
+    );
     --sui-unsaved-row-pressed: color-mix(in srgb, var(--sui-unsaved-ink) 16%, transparent);
     --sui-decision-accent-hover: color-mix(
       in srgb,
@@ -1069,6 +1080,7 @@
     --sui-switch-track-on: var(--sui-brand-action);
     --sui-switch-thumb: #eceef0;
 
+    --sui-surface-control: transparent;
     --sui-control-bg: var(--sui-surface-control);
     --sui-popover-bg: var(--sui-surface-base);
     --sui-dialog-bg: var(--sui-surface-base);
