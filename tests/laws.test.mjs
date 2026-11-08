@@ -1037,7 +1037,7 @@ test('L-53 a shadow that lifts a part is two layers in every palette block', () 
   );
 });
 
-test("L-9 a control's edge firms one step on hover, the same in every theme", () => {
+test("L-9 a control's edge firms one step on hover, the same in every theme, and a light field wears a button's edge", () => {
   const alpha = (/** @type {string} */ name) =>
     [...palette.matchAll(new RegExp(`--sui-${name}: rgb\\(\\d+ \\d+ \\d+ / (\\d+)%\\);`, 'g'))].map(
       ([, value]) => Number(value)
@@ -1047,6 +1047,11 @@ test("L-9 a control's edge firms one step on hover, the same in every theme", ()
   assert.deepEqual(
     rest.map((value, index) => hover[index] - value),
     [12, 12, 12]
+  );
+  const frames = alpha('field-frame');
+  assert.equal(frames[0], rest[0], 'a light field and a button share one edge');
+  frames.forEach((frame, index) =>
+    assert.ok(frame >= rest[index], `a field's ${frame}% frame is lighter than a button's edge`)
   );
 });
 

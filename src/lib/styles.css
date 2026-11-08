@@ -78,7 +78,7 @@
      (L-11) past the frame it lies under at rest and a whole step on hover; on dark, where the
      frame is lighter than the field, a shade that reads apart from the ground without a hard
      line. */
-  --sui-primitive-light-recess: rgb(0 0 0 / 23%);
+  --sui-primitive-light-recess: rgb(0 0 0 / 21%);
   --sui-primitive-light-recess-hover: rgb(0 0 0 / 37%);
   --sui-primitive-dark-recess: rgb(0 0 0 / 65%);
 
@@ -286,7 +286,7 @@
   /* A field is a quiet frame with a baseline: the frame shapes it, and the baseline holds 3:1
      on every ground it stands on, the cue WCAG 1.4.11 asks of a text input (L-9). A recess
      under its top edge sinks it into the ground. */
-  --sui-field-frame: rgb(0 0 0 / 20%);
+  --sui-field-frame: rgb(0 0 0 / 18%);
   --sui-field-frame-hover: var(--sui-control-border-hover);
   --sui-field-border: var(--sui-border-strong);
   --sui-field-border-hover: color-mix(
