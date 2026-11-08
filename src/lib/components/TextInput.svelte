@@ -64,8 +64,8 @@
 @component
 The one text field. It rests on the control fill, keeps it while it has focus,
 and is 34px tall unless the surface it sits on asks for the 40px tier through
-`--sui-local-control-height`. Focus turns its own border into the ring, so the ring is never
-clipped by a card. A `readonly` field sits in a light tint of the field well with a quiet frame and no strong
+`--sui-local-control-height`. Focus keeps the frame and draws a 2px ring 2px off it. A
+`readonly` field sits in a light tint of the field well with a quiet frame and no strong
 baseline, so a value that only reads never looks like one to type into, nor like one that is off.
 
 It has no label of its own. Put it inside `Field`, or give it `aria-label` when the words
