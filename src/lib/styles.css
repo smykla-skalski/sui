@@ -757,7 +757,7 @@
      that stands apart on every ground a field stands on (L-10). */
   --sui-field-well: color-mix(in srgb, #ffffff 7%, transparent);
   --sui-field-readonly: color-mix(in srgb, var(--sui-field-well) 40%, transparent);
-  --sui-field-readonly-frame: rgb(255 255 255 / 14%);
+  --sui-field-readonly-frame: rgb(255 255 255 / 16%);
   --sui-row-pressed: color-mix(in srgb, #ffffff 12.4%, transparent);
 
   --sui-changed: var(--sui-link);
@@ -957,7 +957,7 @@
        that stands apart on every ground a field stands on (L-10). */
     --sui-field-well: color-mix(in srgb, #ffffff 7%, transparent);
     --sui-field-readonly: color-mix(in srgb, var(--sui-field-well) 40%, transparent);
-    --sui-field-readonly-frame: rgb(255 255 255 / 14%);
+    --sui-field-readonly-frame: rgb(255 255 255 / 16%);
     --sui-row-pressed: color-mix(in srgb, #ffffff 12.4%, transparent);
 
     --sui-changed: var(--sui-link);
