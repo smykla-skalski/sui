@@ -1057,6 +1057,9 @@
     --sui-font-size-page-title: var(--sui-font-size-page-title-compact);
     --sui-leading-micro: 1.125rem;
     --sui-leading-compact: 1.25rem;
+    /* A note under a 44px control wraps a step looser, so it never reads as a band pressed
+       under the taller field. */
+    --sui-leading-note: 1.375rem;
     --sui-leading-body: 1.5rem;
     --sui-leading-title: 1.75rem;
     --sui-leading-page: var(--sui-leading-page-compact);

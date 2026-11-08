@@ -202,14 +202,16 @@ const PHONE = '@media (max-width: 47.9375rem)';
 const pixels = (/** @type {string} */ rem) => parseFloat(rem) * 16;
 
 test('L-24 a title stands 12px above its description, copy lines 8px apart, form notes 20px', () => {
-  const gaps = tokenMap(stripComments(palette));
+  const gaps = tokenMap(stripComments(palette.slice(0, palette.indexOf(PHONE))));
+  const phone = tokenMap(stripComments(palette.slice(palette.indexOf(PHONE))));
   assert.deepEqual(
     {
       copy: pixels(gaps['--sui-row-copy-gap']),
       title: pixels(gaps['--sui-title-copy-gap']),
-      note: pixels(gaps['--sui-leading-note'])
+      note: pixels(gaps['--sui-leading-note']),
+      phoneNote: pixels(phone['--sui-leading-note'])
     },
-    { copy: 8, title: 12, note: 20 }
+    { copy: 8, title: 12, note: 20, phoneNote: 22 }
   );
   // A control's help and error lines, not a whole state's or form's error, nor a setting row's
   // problem, which is a line of the row's copy.
