@@ -285,12 +285,18 @@ function palette(): Finding[] {
       )
     );
   // The recess under a field's top edge is darker than the frame it lies under and the ground
-  // it lies on. On light, where the frame is a shade too, it stands one hover step past it.
-  for (const [recess, frame, grounds] of [
-    ['field-recess', 'field-frame', ['canvas', 'surface-base', 'surface-raised', 'surface-inset']],
-    ['field-recess-hover', 'field-frame-hover', ['canvas', 'surface-base', 'surface-raised']],
-    ['unsaved-field-recess', 'unsaved-control-border', ['unsaved-control']],
-    ['unsaved-field-recess-hover', 'unsaved-border', ['unsaved-control']]
+  // it lies on. On light, where the frame is a shade too, it stands past it by a hover step, and
+  // a field at rest by half of one, so its top edge reads no heavier than its sides.
+  for (const [recess, frame, grounds, steps] of [
+    [
+      'field-recess',
+      'field-frame',
+      ['canvas', 'surface-base', 'surface-raised', 'surface-inset'],
+      0.5
+    ],
+    ['field-recess-hover', 'field-frame-hover', ['canvas', 'surface-base', 'surface-raised'], 1],
+    ['unsaved-field-recess', 'unsaved-control-border', ['unsaved-control'], 1],
+    ['unsaved-field-recess-hover', 'unsaved-border', ['unsaved-control'], 1]
   ] as const)
     for (const name of grounds) {
       const ground = over(t(name), t('surface-base'));
@@ -300,7 +306,13 @@ function palette(): Finding[] {
         found.push(finding('L-9', null, `${recess} on ${name} is no darker than ${frame}`));
       if (lightness(ground) > 50)
         found.push(
-          ...between('L-9', `${recess} past ${frame} on ${name}`, deltaE(line, edge), 4.4, 5.4)
+          ...between(
+            'L-9',
+            `${recess} past ${frame} on ${name}`,
+            deltaE(line, edge),
+            4.4 * steps,
+            5.4 * steps
+          )
         );
     }
   found.push(

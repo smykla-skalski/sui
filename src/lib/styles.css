@@ -74,10 +74,10 @@
   --sui-primitive-dark-secondary: #bcc1c8;
   --sui-primitive-dark-muted: #aeb5be;
   --sui-primitive-dark-strong: #686a6b;
-  /* A field's recess, the shade under its top edge: on light one hover step (L-11) past the
-     frame it lies under, at rest and on hover; on dark, where the frame is lighter than the
-     field, as deep a shade as still reads apart from the ground. */
-  --sui-primitive-light-recess: rgb(0 0 0 / 26%);
+  /* A field's recess, the shade under its top edge: on light half a hover step (L-11) past the
+     frame it lies under at rest and a whole step on hover; on dark, where the frame is lighter
+     than the field, as deep a shade as still reads apart from the ground. */
+  --sui-primitive-light-recess: rgb(0 0 0 / 22%);
   --sui-primitive-light-recess-hover: rgb(0 0 0 / 37%);
   --sui-primitive-dark-recess: rgb(0 0 0 / 80%);
 
