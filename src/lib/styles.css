@@ -518,6 +518,8 @@
   --sui-breakpoint-detail: 56rem;
 
   --sui-field-target-min: max(24px, round(1.5rem, 1px));
+  /* A field's words stand as far in from its frame as a button's. */
+  --sui-field-inset: var(--sui-space-3);
   --sui-disabled-opacity: 0.6;
   --sui-control-inset: 2px;
 

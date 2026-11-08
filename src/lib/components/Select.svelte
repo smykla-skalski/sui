@@ -291,7 +291,8 @@ assistive technology, because a native picker cannot be held open.
     min-inline-size: 0;
     overflow: hidden;
     padding-block: 0;
-    padding-inline: var(--sui-space-2) calc(2 * var(--sui-space-2) + var(--sui-icon-base));
+    padding-inline: var(--sui-field-inset)
+      calc(var(--sui-field-inset) + var(--sui-icon-base) + var(--sui-space-2));
     text-overflow: ellipsis;
     transition: translate var(--sui-duration-press) var(--sui-ease-standard);
     -webkit-user-select: none;
@@ -409,7 +410,7 @@ assistive technology, because a native picker cannot be held open.
     color: var(--sui-text-secondary);
     margin-block: calc(-1 * var(--sui-stroke));
     /* The field's own text inset, so the unit's words sit as far in as a value's would. */
-    padding-inline-start: var(--sui-space-2);
+    padding-inline-start: var(--sui-field-inset);
     translate: none;
   }
 
@@ -478,7 +479,7 @@ assistive technology, because a native picker cannot be held open.
     color: var(--sui-text-muted);
     display: inline-flex;
     justify-self: end;
-    margin-inline-end: var(--sui-space-2);
+    margin-inline-end: var(--sui-field-inset);
     pointer-events: none;
     transition: rotate var(--sui-duration-open) var(--sui-ease-standard);
   }

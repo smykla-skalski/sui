@@ -180,7 +180,7 @@ the text field.
           ) /
           2
       )
-      var(--sui-space-2);
+      var(--sui-field-inset);
     word-break: break-all;
   }
 

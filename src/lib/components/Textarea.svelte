@@ -105,7 +105,7 @@ It has no label of its own. Put it in a `Field` through the `control` snippet, o
     margin: 0;
     min-block-size: var(--sui-control-height-compact);
     min-inline-size: var(--sui-field-target-min);
-    padding: var(--sui-space-2);
+    padding: var(--sui-space-2) var(--sui-field-inset);
     resize: vertical;
   }
 

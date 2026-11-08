@@ -473,7 +473,7 @@ a saving pane around it holds it the same way.
       ),
       1px
     );
-    padding-inline: var(--sui-space-2);
+    padding-inline: var(--sui-field-inset);
     text-align: match-parent;
   }
 

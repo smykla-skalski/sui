@@ -119,7 +119,7 @@ tabular figures.
     inline-size: 100%;
     margin: 0;
     min-inline-size: var(--sui-field-target-min);
-    padding: 0 var(--sui-space-2);
+    padding: 0 var(--sui-field-inset);
   }
 
   .sui-text-input::placeholder {
