@@ -292,6 +292,19 @@ suite('forms', together, () => {
       }
     );
 
+    test('L-55 two examples that keep a measure share a row where both fit', long, async () => {
+      const page = await opened();
+      const tops = await page.evaluate(() =>
+        ['in-context', 'narrow-width'].map(
+          (name) =>
+            document.getElementById(`field-${name}`)?.closest('.example')?.getBoundingClientRect()
+              .top
+        )
+      );
+      assert.ok(tops.every((top) => typeof top === 'number'));
+      assert.equal(tops[0], tops[1]);
+    });
+
     test(
       'a checkbox row centres its box on the label, its notes 12px under the box, an error mark under it',
       long,

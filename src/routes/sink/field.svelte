@@ -255,62 +255,64 @@
   </Specimen>
 </Example>
 
-<Example
-  title="In Context"
-  --example-max="35rem"
-  note="Fields stack 20 px apart, and every control in the form keeps one label, hint and error"
-  layout="grid"
-  --specimen-min="21rem"
-  ground="canvas"
->
-  <Section title="New Repository" level={4}>
-    <div class="form">
-      <Field
-        label="Repository name"
-        spellcheck="false"
-        autocapitalize="off"
-        required
-        placeholder="acme-web…"
-      />
-      <Field
-        label="Contact email"
-        type="email"
-        autocomplete="email"
-        required
-        placeholder="jane@example.com…"
-      />
-      <Field label="Setup notes" hint="Shown to the reviewers of the first pull request">
-        {#snippet control({ id, describedby, invalid })}
-          <Textarea {id} aria-describedby={describedby} {invalid} bind:value={notes} />
-        {/snippet}
-      </Field>
-      <Field label="Email me about failed syncs" layout="row">
-        {#snippet control({ id, describedby, invalid })}
-          <Checkbox {id} aria-describedby={describedby} {invalid} bare bind:checked={notify} />
-        {/snippet}
-      </Field>
-      <div class="action"><Button tone="signal">Create the Repository</Button></div>
-    </div>
-  </Section>
-</Example>
+<div class="measured">
+  <Example
+    title="In Context"
+    --example-max="35rem"
+    note="Fields stack 20 px apart, and every control in the form keeps one label, hint and error"
+    layout="grid"
+    --specimen-min="21rem"
+    ground="canvas"
+  >
+    <Section title="New Repository" level={4}>
+      <div class="form">
+        <Field
+          label="Repository name"
+          spellcheck="false"
+          autocapitalize="off"
+          required
+          placeholder="acme-web…"
+        />
+        <Field
+          label="Contact email"
+          type="email"
+          autocomplete="email"
+          required
+          placeholder="jane@example.com…"
+        />
+        <Field label="Setup notes" hint="Shown to the reviewers of the first pull request">
+          {#snippet control({ id, describedby, invalid })}
+            <Textarea {id} aria-describedby={describedby} {invalid} bind:value={notes} />
+          {/snippet}
+        </Field>
+        <Field label="Email me about failed syncs" layout="row">
+          {#snippet control({ id, describedby, invalid })}
+            <Checkbox {id} aria-describedby={describedby} {invalid} bare bind:checked={notify} />
+          {/snippet}
+        </Field>
+        <div class="action"><Button tone="signal">Create the Repository</Button></div>
+      </div>
+    </Section>
+  </Example>
 
-<Example
-  title="Narrow Width"
-  --example-max="calc(16rem + 2 * var(--sui-space-6) + 2 * var(--sui-stroke))"
-  note="Long labels, hints and errors wrap at one 20 px leading"
-  layout="stack"
->
-  <Specimen label="Wrapped label, hint & error">
-    <div class="narrow">
-      <Field
-        label="The address that hears about every scheduled sync that fails on any repository"
-        hint="1 address only, and it can be a shared team inbox that several people read"
-        error="This address bounced the last message, so check it before you save"
-        value="alerts@example"
-      />
-    </div>
-  </Specimen>
-</Example>
+  <Example
+    title="Narrow Width"
+    --example-max="calc(16rem + 2 * var(--sui-space-6) + 2 * var(--sui-stroke))"
+    note="Long labels, hints and errors wrap at one 20 px leading"
+    layout="stack"
+  >
+    <Specimen label="Wrapped label, hint & error">
+      <div class="narrow">
+        <Field
+          label="The address that hears about every scheduled sync that fails on any repository"
+          hint="1 address only, and it can be a shared team inbox that several people read"
+          error="This address bounced the last message, so check it before you save"
+          value="alerts@example"
+        />
+      </div>
+    </Specimen>
+  </Example>
+</div>
 
 <style>
   .form {
@@ -322,6 +324,20 @@
      close and not as one more field (L-35). */
   .form > :global(.action) {
     margin-block-start: var(--sui-space-1);
+  }
+
+  /* Two examples that keep a measure share a row where both fit, so the page does not end
+     on a narrow tail beside an empty half (L-55). */
+  .measured {
+    align-items: start;
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--sui-space-6);
+  }
+
+  .measured :global(.example) {
+    flex: 1 1 var(--example-max);
+    max-inline-size: var(--example-max);
   }
 
   .narrow {
