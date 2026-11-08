@@ -12,25 +12,26 @@
 </script>
 
 <figure class="specimen">
-  <div class="body">{@render children()}</div>
   {#if label}
     <figcaption>
       {#if typeof label === 'function'}{@render label()}{:else}{label}{/if}
     </figcaption>
   {/if}
+  <div class="body">{@render children()}</div>
 </figure>
 
 <style>
-  /* The body is a grid as wide as the specimen: a block surface or a field fills it, while
-     a mark keeps its own fit-content width (L-43). In a grid of specimens it takes two of the
-     grid's rows, so every body on a line shares the tallest body's track and every caption the
-     tallest caption's: their labels start on one line even when a caption wraps. In
-     a row or a stack there is no parent grid, the subgrid falls back to two rows of its own,
-     and specimens on one line share the tallest one's height with the caption at the bottom. */
+  /* The name stands over what it shows, a copy gap above it, so it reads with its own
+     specimen however tall the specimens beside it run. The body is a grid as wide as the
+     specimen: a block surface or a field fills it, while a mark keeps its own fit-content width
+     (L-43). In a grid of specimens it takes two of the grid's rows, so every name on a line
+     shares the tallest name's track and every body the tallest body's: their bodies start on
+     one line even when a name wraps. In a row or a stack there is no parent grid, and the
+     subgrid falls back to two rows of its own at the specimen's top. */
   .specimen {
-    align-content: space-between;
+    align-content: start;
     display: grid;
-    gap: var(--sui-space-4);
+    gap: var(--sui-row-copy-gap);
     grid-row: span 2;
     grid-template-rows: subgrid;
     margin: 0;
@@ -60,16 +61,9 @@
     align-content: center;
     block-size: var(--sui-block-snap);
     color: var(--sui-text-secondary);
-    font: var(--sui-weight-semibold) var(--sui-font-size-caption) / var(--sui-leading-compact)
+    font: var(--sui-weight-medium) var(--sui-font-size-caption) / var(--sui-leading-compact)
       var(--sui-sans);
     padding-block: var(--sui-block-snap-room);
     text-box: trim-both cap alphabetic;
-  }
-
-  /* A one-column stage on a phone keeps each caption close under its own specimen. */
-  @container sink-stage (max-width: 30rem) {
-    .specimen {
-      gap: var(--sui-space-3);
-    }
   }
 </style>
