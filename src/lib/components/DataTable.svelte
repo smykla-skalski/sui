@@ -300,11 +300,12 @@ row in place of the hairlines, for a table wide enough that the eye can lose its
      timeline is active only while the frame has somewhere to scroll, and the browser settles it
      before it paints, so a server-rendered table draws the line from its first frame. Without
      scroll timelines the line follows the measure script. */
-  /* The caption names the table, so it reads a step over the scroll hint under it. */
+  /* The caption names the table as a sub-section title does (L-25), so it reads over the column
+     headings under it and the scroll hint beside them. */
   .caption:not(.hint) {
-    color: var(--sui-text-secondary);
-    font-size: var(--sui-font-size-body);
-    font-weight: var(--sui-weight-medium);
+    color: var(--sui-text-primary);
+    font: var(--sui-weight-semibold) var(--sui-font-size-body) / var(--sui-row-copy-leading)
+      var(--sui-sans);
   }
 
   .hint {

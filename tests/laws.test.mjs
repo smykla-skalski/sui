@@ -391,6 +391,11 @@ test('L-25 the type tiers keep the sizes the law names', () => {
     /\n    thead th \{\s*font-size/,
     'a column heading keeps control type on a phone, where control type does not change'
   );
+  assert.match(
+    styles['src/lib/components/DataTable.svelte'],
+    /\.caption:not\(\.hint\) \{\s*color: var\(--sui-text-primary\);\s*font: var\(--sui-weight-semibold\) var\(--sui-font-size-body\)/,
+    "a table's caption names it as a sub-section title does, over its column headings"
+  );
   for (const path of ['EmptyState', 'ErrorState'])
     assert.match(
       styles[`src/lib/components/${path}.svelte`],
