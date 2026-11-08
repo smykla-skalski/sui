@@ -92,10 +92,11 @@
     --sui-local-bleed: var(--sui-local-stage-pad, 0px);
   }
 
+  /* The state and its props read as one caption, so their lines stand closer than copy lines. */
   figcaption {
     align-content: start;
     display: grid;
-    gap: var(--sui-row-copy-gap);
+    gap: var(--sui-space-1);
     justify-items: start;
   }
 
@@ -103,7 +104,7 @@
     align-content: center;
     block-size: var(--sui-block-snap);
     color: var(--sui-text-secondary);
-    font: var(--sui-weight-medium) var(--sui-font-size-caption) / var(--sui-leading-compact)
+    font: var(--sui-weight-semibold) var(--sui-font-size-caption) / var(--sui-leading-compact)
       var(--sui-sans);
     padding-block: var(--sui-block-snap-room);
     text-box: trim-both cap alphabetic;

@@ -207,7 +207,7 @@ live specimens, not a surface of the design, so it may hold cards and dialogs (L
     background: var(--sui-surface-base);
     border-block-start: var(--sui-stroke) solid var(--sui-border-divider);
     min-inline-size: 0;
-    padding: var(--sui-space-2) var(--sui-space-4);
+    padding: var(--sui-space-1) var(--sui-space-4);
   }
 
   @container sink-stage (max-width: 30rem) {
