@@ -324,6 +324,20 @@ suite('forms', together, () => {
           Math.abs(narrow.end - states.end) < 1,
           `the pair ends at ${narrow.end}, the cards above at ${states.end}`
         );
+        const insets = await page.evaluate(() => {
+          const stage = document
+            .getElementById('field-narrow-width')
+            ?.closest('.example')
+            ?.querySelector('.stage');
+          const box = stage?.getBoundingClientRect();
+          const field = stage?.querySelector('.sui-field')?.getBoundingClientRect();
+          return box && field && [field.left - box.left, box.right - field.right];
+        });
+        assert.ok(insets);
+        assert.ok(
+          Math.abs(insets[0] - insets[1]) < 1,
+          `the narrow field stands ${insets[0]}px and ${insets[1]}px inside its frame`
+        );
         const phone = await open({ width: 390 });
         const [, small, wrapped] = await frames(phone);
         await phone.close();

@@ -55,19 +55,12 @@
   title="States"
   --example-max="54rem"
   --specimen-row-gap="var(--sui-space-6)"
-  note="Rest, filled with a hint, required by a word beside its label, invalid with its error, read only and disabled with its reason"
+  note="Rest, required by a word beside its label, filled with a hint, read only, disabled with its reason and invalid with its error"
   layout="grid"
   --specimen-min="21rem"
 >
   <Specimen label="Rest">
     <Field label="Project name" placeholder="acme-web…" bind:value={project} />
-  </Specimen>
-  <Specimen label="Filled, with a hint">
-    <Field
-      label="Owner"
-      hint="The organization or user that owns the repository"
-      bind:value={owner}
-    />
   </Specimen>
   <Specimen label="Required">
     <Field
@@ -79,12 +72,11 @@
       bind:value={repository}
     />
   </Specimen>
-  <Specimen label="Invalid">
+  <Specimen label="Filled, with a hint">
     <Field
-      label="Team name"
-      hint="Shown on every review request"
-      error="Use letters, digits and dashes only"
-      bind:value={team}
+      label="Owner"
+      hint="The organization or user that owns the repository"
+      bind:value={owner}
     />
   </Specimen>
   <Specimen label="Read only">
@@ -109,6 +101,14 @@
       hint="Only an owner can rename the default branch"
       value="main"
       disabled
+    />
+  </Specimen>
+  <Specimen label="Invalid">
+    <Field
+      label="Team name"
+      hint="Shown on every review request"
+      error="Use letters, digits and dashes only"
+      bind:value={team}
     />
   </Specimen>
 </Example>
@@ -329,9 +329,10 @@
   /* Two examples that keep a measure share a row on the cards' 54rem, so the page does not end
      on a narrow tail beside an empty half and the pair stops at the edge the cards above keep.
      On a phone they stack and both frames fill the column, as every other frame does; the
-     narrow field keeps its own 16rem inside (L-55). */
+     narrow field keeps its own 16rem inside (L-55). A stage under 30rem pads 16px, so the
+     narrow frame is the field and that pad on each side. */
   .measured {
-    --narrow-frame: calc(16rem + 2 * var(--sui-space-6));
+    --narrow-frame: calc(16rem + 2 * var(--sui-space-4));
     align-items: start;
     display: grid;
     gap: var(--sui-space-6);
