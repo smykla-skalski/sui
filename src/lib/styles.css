@@ -202,9 +202,9 @@
   --sui-decision-border-width: 2px;
   --sui-focus: var(--sui-brand-action);
 
-  /* An invalid field's ring: the danger hue a step under its edge, so the two read as one
-     state and not as two red outlines (L-41). */
-  --sui-focus-danger: color-mix(in srgb, var(--sui-danger-edge) 80%, transparent);
+  /* An invalid field's ring: its edge's own red, as strong as the calm ring, so the edge and
+     the ring read as one state (L-41). */
+  --sui-focus-danger: var(--sui-danger-edge);
   --sui-focus-ring-width: 2px;
   --sui-focus-ring-offset: 2px;
   --sui-focus-ring-inset: -2px;
@@ -733,7 +733,7 @@
   --sui-warning: var(--sui-primitive-warning-dark);
   --sui-warning-tint: var(--sui-primitive-warning-dark-tint);
   --sui-danger: var(--sui-primitive-danger-dark);
-  --sui-focus-danger: color-mix(in srgb, var(--sui-danger-edge) 80%, transparent);
+  --sui-focus-danger: var(--sui-danger-edge);
   --sui-danger-tint: var(--sui-primitive-danger-dark-tint);
   --sui-danger-fill: var(--sui-primitive-danger-light);
   --sui-danger-fill-hover: #c8434e;
@@ -961,7 +961,7 @@
     --sui-warning: var(--sui-primitive-warning-dark);
     --sui-warning-tint: var(--sui-primitive-warning-dark-tint);
     --sui-danger: var(--sui-primitive-danger-dark);
-    --sui-focus-danger: color-mix(in srgb, var(--sui-danger-edge) 80%, transparent);
+    --sui-focus-danger: var(--sui-danger-edge);
     --sui-danger-tint: var(--sui-primitive-danger-dark-tint);
     --sui-danger-fill: var(--sui-primitive-danger-light);
     --sui-danger-fill-hover: #c8434e;
