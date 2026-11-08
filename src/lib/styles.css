@@ -331,7 +331,7 @@
   /* A field shows hover by firming its frame, so its ground only just moves, well short of the
      read-only tint (L-10, L-12). */
   --sui-field-hover: color-mix(in srgb, var(--sui-text-primary) 1.5%, transparent);
-  /* A field that is off sits in this well, and one that only reads in a lighter tint of it (L-10). */
+  /* A field that is off or only reads sits in a tint of this well (L-10). */
   --sui-field-well: var(--sui-surface-inset);
   --sui-field-readonly: color-mix(in srgb, var(--sui-field-well) 55%, transparent);
   --sui-field-disabled: color-mix(in srgb, var(--sui-field-well) 75%, transparent);
@@ -439,8 +439,7 @@
   /* A title stands half a copy gap further from its description than copy lines stand apart,
      so the two read as a title and its text, not as one paragraph (L-24). */
   --sui-title-copy-gap: 0.75rem;
-  /* A field's label, control and help stand 12px apart, so a focus ring 2px off the control
-     keeps 6px clear of the words over and under it (L-35). */
+  /* Clear of a field's focus ring (L-35). */
   --sui-field-gap: 0.75rem;
 
   /* A trimmed line is as tall as its cap height, which is rarely a whole pixel; this rounds the
