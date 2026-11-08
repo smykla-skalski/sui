@@ -7,7 +7,16 @@
 </script>
 
 <script lang="ts">
-  import { Button, Checkbox, Field, Section, Textarea } from '#lib';
+  import {
+    Button,
+    Checkbox,
+    Combobox,
+    DurationInput,
+    Field,
+    Section,
+    Select,
+    Textarea
+  } from '#lib';
   import Example from '../kit/Example.svelte';
   import Specimen from '../kit/Specimen.svelte';
 
@@ -17,9 +26,23 @@
   let repository = $state('');
   let summary = $state('');
   let reason = $state('');
+  let region = $state('eu-west');
+  let label = $state('');
+  let timeout = $state(259200);
+  let notes = $state('');
+  let notify = $state(true);
   let sync = $state(true);
   let protect = $state(false);
   let sent = $state('Nothing sent yet');
+
+  const regions = [
+    { value: 'eu-west', label: 'Europe west', description: 'Dublin' },
+    { value: 'us-east', label: 'United States east', description: 'Virginia' }
+  ];
+  const labels = [
+    { value: 'bug', label: 'bug' },
+    { value: 'documentation', label: 'documentation' }
+  ];
 
   function send(event: SubmitEvent & { currentTarget: HTMLFormElement }): void {
     event.preventDefault();
@@ -87,11 +110,45 @@
 
 <Example
   title="Any Control"
-  note="The control snippet takes the id, the description ids and the invalid flag"
+  note="The control snippet takes the id, the description ids and the invalid flag, so every input keeps one label, hint and error"
   layout="grid"
   --specimen-min="21rem"
-  --specimen-max="40rem"
 >
+  <Specimen label="Select">
+    <Field label="Storage region" hint="Where the workspace keeps its data">
+      {#snippet control({ id, describedby, invalid })}
+        <Select
+          {id}
+          aria-describedby={describedby}
+          {invalid}
+          options={regions}
+          bind:value={region}
+        />
+      {/snippet}
+    </Field>
+  </Specimen>
+  <Specimen label="Combobox">
+    <Field label="Default label" hint="Added to every new issue">
+      {#snippet control({ id, describedby, invalid })}
+        <Combobox
+          {id}
+          aria-describedby={describedby}
+          {invalid}
+          free
+          options={labels}
+          bind:value={label}
+          placeholder="bug…"
+        />
+      {/snippet}
+    </Field>
+  </Specimen>
+  <Specimen label="Duration Input">
+    <Field label="Review timeout" hint="Closes a review left open this long">
+      {#snippet control({ id, describedby, invalid })}
+        <DurationInput {id} aria-describedby={describedby} {invalid} bind:value={timeout} />
+      {/snippet}
+    </Field>
+  </Specimen>
   <Specimen label="Textarea">
     <Field label="Reason" hint="Shown in the audit log next to the change">
       {#snippet control({ id, describedby, invalid })}
@@ -167,7 +224,7 @@
 
 <Example
   title="In Context"
-  note="Fields stack 16 px apart, and a focused field’s own border becomes the ring, so nothing around it clips it"
+  note="Fields stack 16 px apart, and every control in the form keeps one label, hint and error"
   layout="grid"
   --specimen-min="21rem"
   ground="canvas"
@@ -188,13 +245,24 @@
         required
         placeholder="jane@example.com…"
       />
+      <Field label="Setup notes" hint="Shown to the reviewers of the first pull request">
+        {#snippet control({ id, describedby, invalid })}
+          <Textarea {id} aria-describedby={describedby} {invalid} bind:value={notes} />
+        {/snippet}
+      </Field>
+      <Field label="Email me about failed syncs" layout="row">
+        {#snippet control({ id, describedby, invalid })}
+          <Checkbox {id} aria-describedby={describedby} {invalid} bare bind:checked={notify} />
+        {/snippet}
+      </Field>
+      <div><Button tone="signal">Create the Repository</Button></div>
     </div>
   </Section>
 </Example>
 
 <Example
   title="Narrow Width"
-  note="Long labels, hints and errors wrap and keep the same 8 px gap between lines"
+  note="Long labels, hints and errors wrap at one 20 px leading"
   layout="stack"
 >
   <Specimen label="Wrapped label, hint & error">
