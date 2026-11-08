@@ -405,7 +405,7 @@ test('L-25 the type tiers keep the sizes the law names', () => {
   const phone = tokenMap(stripComments(palette.slice(palette.indexOf(PHONE))));
   assert.deepEqual(
     { desktop: tier('note'), phone: phone['--sui-font-size-note'] },
-    { desktop: 13, phone: 'var(--sui-font-size-meta)' },
+    { desktop: 13.5, phone: 'var(--sui-font-size-meta)' },
     "a form's help reads a step under its 14px label, and at the label's size on a phone"
   );
   const notes = [
