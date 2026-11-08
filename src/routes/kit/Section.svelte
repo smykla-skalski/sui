@@ -154,7 +154,7 @@
 
   @media (max-width: 47.9375rem) {
     .section:not(.headed) {
-      gap: var(--sui-space-4);
+      gap: var(--sui-space-3);
     }
   }
 
