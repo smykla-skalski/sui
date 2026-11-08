@@ -1037,6 +1037,19 @@ test('L-53 a shadow that lifts a part is two layers in every palette block', () 
   );
 });
 
+test("L-9 a control's edge firms one step on hover, the same in every theme", () => {
+  const alpha = (/** @type {string} */ name) =>
+    [...palette.matchAll(new RegExp(`--sui-${name}: rgb\\(\\d+ \\d+ \\d+ / (\\d+)%\\);`, 'g'))].map(
+      ([, value]) => Number(value)
+    );
+  const [rest, hover] = [alpha('border-control'), alpha('control-border-hover')];
+  assert.equal(rest.length, 3, 'the light, dark and system dark blocks');
+  assert.deepEqual(
+    rest.map((value, index) => hover[index] - value),
+    [12, 12, 12]
+  );
+});
+
 test('L-10 a read-only field frames its value between a keyline and an editable frame', () => {
   const alpha = (/** @type {string} */ name) =>
     [...palette.matchAll(new RegExp(`--sui-${name}: rgb\\(\\d+ \\d+ \\d+ / (\\d+)%\\);`, 'g'))].map(

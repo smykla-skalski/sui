@@ -655,7 +655,7 @@
   --sui-border-band: var(--sui-border-subtle);
   --sui-border-contrast: rgb(255 255 255 / 40%);
   --sui-border-contrast-hover: rgb(255 255 255 / 55%);
-  --sui-control-border-hover: rgb(255 255 255 / 28%);
+  --sui-control-border-hover: rgb(255 255 255 / 32%);
   --sui-avatar-ring: rgb(255 255 255 / 20%);
   --sui-text-primary: var(--sui-primitive-dark-text);
   --sui-text-secondary: var(--sui-primitive-dark-secondary);
@@ -853,7 +853,7 @@
     --sui-border-band: var(--sui-border-subtle);
     --sui-border-contrast: rgb(255 255 255 / 40%);
     --sui-border-contrast-hover: rgb(255 255 255 / 55%);
-    --sui-control-border-hover: rgb(255 255 255 / 28%);
+    --sui-control-border-hover: rgb(255 255 255 / 32%);
     --sui-avatar-ring: rgb(255 255 255 / 20%);
     --sui-text-primary: var(--sui-primitive-dark-text);
     --sui-text-secondary: var(--sui-primitive-dark-secondary);
