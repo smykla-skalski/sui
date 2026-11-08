@@ -845,7 +845,15 @@ suite('the kitchen sink', together, () => {
               await picture.decode().catch(() => {});
               await document.fonts.ready;
             });
-          drawn[name] = await avatar.screenshot();
+          // A busy compositor can show a decoded picture a frame or more late, so the witness is
+          // a shot that the next one repeats.
+          let shot = await avatar.screenshot();
+          for (let tries = 0; tries < 10; tries += 1) {
+            const next = await avatar.screenshot();
+            if (await alike(page, next, shot)) break;
+            shot = next;
+          }
+          drawn[name] = shot;
           if (javaScriptEnabled) {
             if (!(await alike(page, drawn[name], before[name])))
               problems.push(`${name} changes once script runs`);
