@@ -679,7 +679,9 @@
     var(--sui-text-primary)
   );
   --sui-on-decision-accent: #0c0e11;
-  --sui-focus: var(--sui-brand-action);
+  /* On a dark ground the action fill is too deep to read as a ring beside bright text, so the
+     ring takes the brand's light blue. */
+  --sui-focus: var(--sui-primitive-ocean-200);
   --sui-info: var(--sui-link);
   --sui-info-tint: var(--sui-primitive-info-dark-tint);
   --sui-success: var(--sui-primitive-success-dark);
@@ -878,7 +880,7 @@
       var(--sui-text-primary)
     );
     --sui-on-decision-accent: #0c0e11;
-    --sui-focus: var(--sui-brand-action);
+    --sui-focus: var(--sui-primitive-ocean-200);
     --sui-info: var(--sui-link);
     --sui-info-tint: var(--sui-primitive-info-dark-tint);
     --sui-success: var(--sui-primitive-success-dark);
