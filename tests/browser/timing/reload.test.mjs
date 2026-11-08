@@ -1,4 +1,7 @@
 import assert from 'node:assert/strict';
+import { writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { after, before, test } from 'node:test';
 import { allSections, long, startSink } from '../sink.mjs';
 
@@ -185,8 +188,16 @@ test('the server’s render draws every part as the page draws it once it runs',
       if (parts !== ran[at]) changed.push(`chart ${at + 1} of #charts at ${width}px`);
     });
     for (const id of sections) {
-      const count = await differing(pages[1], await shoot(pages[0], id), await shoot(pages[1], id));
-      if (count > 0) changed.push(`${id} at ${width}px: ${count}px`);
+      const shots = [await shoot(pages[0], id), await shoot(pages[1], id)];
+      const count = await differing(pages[1], shots[0], shots[1]);
+      if (count === 0) continue;
+      // Both frames are kept, so a redraw that only shows up under load can be read afterwards.
+      const [served, run] = ['served', 'run'].map((kind) =>
+        join(tmpdir(), `sui-reload-${id}-${width}-${kind}.png`)
+      );
+      writeFileSync(served, Buffer.from(shots[0], 'base64'));
+      writeFileSync(run, Buffer.from(shots[1], 'base64'));
+      changed.push(`${id} at ${width}px: ${count}px (${served}, ${run})`);
     }
     for (const page of pages) await page.close();
   }
