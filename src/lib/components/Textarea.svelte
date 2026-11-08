@@ -140,7 +140,7 @@ It has no label of its own. Put it in a `Field` through the `control` snippet, o
   /* An invalid field's ring takes the danger color, so focus never reads as a second, calm
      state beside the red edge (L-41). */
   .sui-textarea[aria-invalid='true']:focus-visible {
-    outline-color: var(--sui-danger);
+    outline-color: var(--sui-focus-danger);
   }
 
   .sui-textarea[aria-invalid='true'] {

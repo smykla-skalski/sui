@@ -236,7 +236,10 @@ function palette(): Finding[] {
       found.push(...atLeast('L-5', `${ink} on ${ground} in APCA`, lc(ink, ground), 60));
 
   for (const ground of ['canvas', 'surface-base', 'surface-control', 'surface-inset'])
-    found.push(...atLeast('L-6', `focus on ${ground}`, c('focus', ground), 3));
+    found.push(
+      ...atLeast('L-6', `focus on ${ground}`, c('focus', ground), 3),
+      ...atLeast('L-6', `focus-danger on ${ground}`, c('focus-danger', ground), 3)
+    );
   for (const ground of ['canvas', 'surface-base', 'surface-inset'])
     found.push(...atLeast('L-6', `border-strong on ${ground}`, c('border-strong', ground), 3));
 

@@ -153,7 +153,7 @@ tabular figures.
   /* An invalid field's ring takes the danger color, so focus never reads as a second, calm
      state beside the red edge (L-41). */
   .sui-text-input[aria-invalid='true']:focus-visible {
-    outline-color: var(--sui-danger);
+    outline-color: var(--sui-focus-danger);
   }
 
   /* A value that only reads, or a field that is off, has no strong baseline and no recess, so

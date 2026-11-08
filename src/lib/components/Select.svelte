@@ -384,7 +384,7 @@ assistive technology, because a native picker cannot be held open.
   /* An invalid field's ring takes the danger color, so focus never reads as a second, calm
      state beside the red edge (L-41). */
   .sui-select-control:is([aria-invalid='true'], :user-invalid):focus-visible {
-    outline-color: var(--sui-danger);
+    outline-color: var(--sui-focus-danger);
   }
 
   .sui-select-control:is([aria-invalid='true'], :user-invalid) {

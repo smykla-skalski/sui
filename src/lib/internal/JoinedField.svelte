@@ -108,7 +108,7 @@ the end part draws its own inset ring while it has focus, so the two never look 
   /* An invalid field's ring takes the danger color, so focus never reads as a second, calm
      state beside the red edge (L-41). */
   .sui-joined.invalid:has(.sui-joined-value :global(:focus-visible)) {
-    outline-color: var(--sui-danger);
+    outline-color: var(--sui-focus-danger);
   }
 
   /* A value that only reads, or a field that is off, has no recess, as a read-only or disabled
