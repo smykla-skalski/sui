@@ -81,6 +81,7 @@
   --sui-primitive-light-recess: rgb(0 0 0 / 21%);
   --sui-primitive-light-recess-hover: rgb(0 0 0 / 37%);
   --sui-primitive-dark-recess: rgb(0 0 0 / 65%);
+  --sui-primitive-dark-recess-hover: rgb(0 0 0 / 85%);
 
   /* One ocean blue fills the accent in both themes: white ink holds 4.5:1 on it and it holds 3:1 as a
      ring on the light and the dark grounds. Only its text shade changes with the theme. */
@@ -818,7 +819,7 @@
     var(--sui-text-primary)
   );
   --sui-field-recess: var(--sui-primitive-dark-recess);
-  --sui-field-recess-hover: var(--sui-primitive-dark-recess);
+  --sui-field-recess-hover: var(--sui-primitive-dark-recess-hover);
   --sui-popover-border: var(--sui-border-control);
   --sui-dialog-border: var(--sui-border-control);
   --sui-shadow-plate:
@@ -1019,7 +1020,7 @@
       var(--sui-text-primary)
     );
     --sui-field-recess: var(--sui-primitive-dark-recess);
-    --sui-field-recess-hover: var(--sui-primitive-dark-recess);
+    --sui-field-recess-hover: var(--sui-primitive-dark-recess-hover);
     --sui-popover-border: var(--sui-border-control);
     --sui-dialog-border: var(--sui-border-control);
     --sui-shadow-plate:

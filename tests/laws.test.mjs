@@ -1053,6 +1053,14 @@ test("L-9 a control's edge firms one step on hover, the same in every theme, and
   frames.forEach((frame, index) =>
     assert.ok(frame >= rest[index], `a field's ${frame}% frame is lighter than a button's edge`)
   );
+  const recesses = [...palette.matchAll(/--sui-field-recess(-hover)?: var\((--sui-[a-z-]+)\);/g)];
+  const [still, deeper] = [false, true].map((hovered) =>
+    recesses.filter(([, hover]) => Boolean(hover) === hovered).map(([, , token]) => token)
+  );
+  assert.equal(still.length, 3, 'the light, dark and system dark blocks');
+  still.forEach((token, index) =>
+    assert.notEqual(deeper[index], token, `the recess deepens on hover with its frame (${token})`)
+  );
 });
 
 test('L-10 a read-only field frames its value between a keyline and an editable frame', () => {
