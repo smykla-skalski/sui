@@ -448,6 +448,13 @@ test('L-32 spacing comes from the scale', () => {
   );
 });
 
+test("L-38 a phone stacks a check list's options edge to edge, one 44px row each", () => {
+  const phone = /@media \(max-width: 47\.9375rem\) \{\s*\.sui-check-list-items \{([^}]*)\}/.exec(
+    styles['src/lib/components/CheckList.svelte']
+  )?.[1];
+  assert.match(phone ?? '', /\bgap: 0;/);
+});
+
 test('L-35 a field label and every group name wear one ink at one weight, over a compact "Required"', () => {
   const names = {
     'src/lib/components/Field.svelte': 'sui-field-label',

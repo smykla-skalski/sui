@@ -191,10 +191,11 @@ box. Choosing one lifts it. A caller's `error` always wins.
     gap: var(--sui-space-1);
   }
 
+  /* Each option is already a finger's 44px row, so the stack reads as one list (L-38). */
   @media (max-width: 47.9375rem) {
     .sui-check-list-items {
       flex-direction: column;
-      gap: var(--sui-space-1);
+      gap: 0;
     }
   }
 
