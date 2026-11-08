@@ -20,7 +20,14 @@
   title="Tones & States"
   note="Every tone at rest, disabled and loading, and a view has one signal"
 >
-  <Variants rows={tones} columns={states} axis="tone" rowLabel={(tone) => `"${tone}"`}>
+  <!-- One width for every state, so a state reads by its look and never by its width (L-43). -->
+  <Variants
+    rows={tones}
+    columns={states}
+    axis="tone"
+    rowLabel={(tone) => `"${tone}"`}
+    --sui-local-button-span="9rem"
+  >
     {#snippet cell(tone, state)}
       {#if tone === 'add'}
         <Button {tone} disabled={state === 'Disabled'} loading={state === 'Loading'}>
