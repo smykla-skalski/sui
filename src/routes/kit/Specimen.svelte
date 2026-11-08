@@ -7,7 +7,7 @@
     children
   }: {
     /** The state or variant in words, such as "Disabled". */
-    label?: string;
+    label?: string | Snippet;
     /** The props that draw it, such as `tone="signal"`. */
     code?: string;
     children: Snippet;
@@ -42,8 +42,10 @@
   {#if label || code}
     <!-- Both lines always take their room, so captions side by side start on one line. -->
     <figcaption>
-      {#if label}<span class="label">{label}</span>{:else}<span class="label" aria-hidden="true"
-          >&nbsp;</span
+      {#if typeof label === 'function'}<span class="label">{@render label()}</span
+        >{:else if label}<span class="label">{label}</span>{:else}<span
+          class="label"
+          aria-hidden="true">&nbsp;</span
         >{/if}
       {#if code}{@const props = propsOf(code)}<code translate="no"
           >{#each props as prop, index (index)}<span
@@ -101,7 +103,7 @@
     align-content: center;
     block-size: var(--sui-block-snap);
     color: var(--sui-text-secondary);
-    font: var(--sui-weight-medium) var(--sui-font-size-compact) / var(--sui-leading-compact)
+    font: var(--sui-weight-medium) var(--sui-font-size-caption) / var(--sui-leading-compact)
       var(--sui-sans);
     padding-block: var(--sui-block-snap-room);
     text-box: trim-both cap alphabetic;
@@ -114,7 +116,7 @@
     color: var(--sui-text-muted);
     display: flex;
     flex-wrap: wrap;
-    font: var(--sui-weight-regular) var(--sui-font-size-compact) / var(--sui-leading-compact)
+    font: var(--sui-weight-regular) var(--sui-font-size-caption) / var(--sui-leading-compact)
       var(--sui-mono);
     font-variant-numeric: tabular-nums;
     row-gap: var(--sui-row-copy-gap);
@@ -128,5 +130,12 @@
     padding-block: var(--sui-block-snap-room);
     text-box: trim-both cap alphabetic;
     white-space: pre-wrap;
+  }
+
+  /* A one-column stage on a phone keeps each caption close under its own specimen. */
+  @container sink-stage (max-width: 30rem) {
+    .specimen {
+      gap: var(--sui-space-3);
+    }
   }
 </style>

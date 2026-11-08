@@ -218,6 +218,10 @@ live specimens, not a surface of the design, so it may hold cards and dialogs (L
     .specimens:is([data-layout='stack'], [data-layout='pairs']) {
       --sui-local-stage-pad: var(--sui-space-4);
     }
+
+    .specimens[data-layout='grid'] {
+      row-gap: var(--sui-space-6);
+    }
   }
 
   /* A pair stands side by side once each half holds a range chart's least plot with its
