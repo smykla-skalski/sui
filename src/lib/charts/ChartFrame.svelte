@@ -240,8 +240,8 @@
   }
 
   /* A chart stretched to a taller neighbour's height, in a line of cards or specimens, keeps its
-     legend and table one gap under its own plot, and the room it gains falls under its foot, so
-     no blank band parts a plot from its own table. */
+     legend one gap under its own plot and its closed table at its foot, so charts side by side
+     end on one line. An open table follows its plot. */
   .sui-chart {
     --sui-local-chart-bleed: var(--sui-local-bleed);
     color: var(--sui-text-primary);
@@ -402,6 +402,10 @@
         outline: none;
       }
     }
+  }
+
+  details:not([open]) {
+    margin-block-start: auto;
   }
 
   /* A block-level flex box, so no line box rounds the disclosure's height off the pixel. It has
