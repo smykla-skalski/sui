@@ -230,7 +230,8 @@ of them.
   /* Over a list the failure is a line of its own inside the list's edges, its words and its
      retry a step inside its tint, so they never crowd the tint's edge. Its tint is a plate 2px
      inside that box on every side, as a row's state is (L-91). It stands 8px clear of the first
-     row, so the failure never reads as that row's state. */
+     row, so the failure never reads as that row's state. Its retry stands one gap after its
+     words, so the way out reads with the failure. */
   .over {
     align-items: center;
     background: none;
@@ -238,7 +239,7 @@ of them.
     display: flex;
     flex-wrap: wrap;
     gap: var(--sui-space-3);
-    justify-content: space-between;
+    justify-content: start;
     /* A holder that asks for its lead gets the padding back, as a row list hands it back. */
     margin-block-start: var(--sui-local-row-lead, 0px);
     margin-block-end: var(--sui-space-2);

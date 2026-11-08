@@ -313,6 +313,11 @@ test('L-59 a state panel pads 28px by 24px, 20px on a phone, its action a step u
       `${path} on a phone`
     );
   }
+  assert.match(
+    stripComments(styles['src/lib/components/ErrorState.svelte']),
+    /\.over \{[^}]*justify-content: start;/,
+    "a failed refresh's retry stands right after its words, not at the line's far end"
+  );
   const table = stripComments(styles['src/lib/components/DataTable.svelte']);
   assert.deepEqual(
     [
