@@ -374,8 +374,8 @@ function palette(): Finding[] {
       ? between('L-12', 'row hover step on surface-base', rowStep, 2, 3)
       : between('L-12', 'row hover step on surface-base', rowStep, 4.5, 5.5)),
     ...(lightness(base) > 50
-      ? between('L-12', 'field hover step on surface-base', fieldStep, 0.7, 1.1)
-      : between('L-12', 'field hover step on surface-base', fieldStep, 2.2, 2.8))
+      ? between('L-12', 'field hover step on surface-base', fieldStep, 0.4, 0.7)
+      : between('L-12', 'field hover step on surface-base', fieldStep, 0.8, 1.2))
   );
   // A hovered field and one that only reads both tint the control fill, so the read-only tint
   // stands clearly past the hover's, or a field under the pointer looks locked.

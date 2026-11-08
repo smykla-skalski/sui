@@ -301,9 +301,9 @@
   --sui-popover-border: var(--sui-border-control);
 
   --sui-row-hover: color-mix(in srgb, var(--sui-text-primary) 5.4%, transparent);
-  /* A field already firms its frame on hover, so its ground moves a third of a row's step, well
-     short of the read-only tint (L-10). */
-  --sui-field-hover: color-mix(in srgb, var(--sui-text-primary) 1.6%, transparent);
+  /* A field shows hover by firming its frame, so its ground only just moves, well short of the
+     read-only tint (L-10, L-12). */
+  --sui-field-hover: color-mix(in srgb, var(--sui-text-primary) 1%, transparent);
   /* A field that is off sits in this well, and one that only reads in a lighter tint of it (L-10). */
   --sui-field-well: var(--sui-surface-inset);
   --sui-field-readonly: color-mix(in srgb, var(--sui-field-well) 50%, transparent);
@@ -752,7 +752,7 @@
   --sui-pressed-inset: inset 0 1px 2px rgb(0 0 0 / 34%);
 
   --sui-row-hover: color-mix(in srgb, #ffffff 6.8%, transparent);
-  --sui-field-hover: color-mix(in srgb, #ffffff 3.4%, transparent);
+  --sui-field-hover: color-mix(in srgb, #ffffff 1.6%, transparent);
   /* The dark inset ground is within a level of the raised one, so on dark the well is a veil
      that stands apart on every ground a field stands on (L-10). */
   --sui-field-well: color-mix(in srgb, #ffffff 7%, transparent);
@@ -952,7 +952,7 @@
     --sui-pressed-inset: inset 0 1px 2px rgb(0 0 0 / 34%);
 
     --sui-row-hover: color-mix(in srgb, #ffffff 6.8%, transparent);
-    --sui-field-hover: color-mix(in srgb, #ffffff 3.4%, transparent);
+    --sui-field-hover: color-mix(in srgb, #ffffff 1.6%, transparent);
     /* The dark inset ground is within a level of the raised one, so on dark the well is a veil
        that stands apart on every ground a field stands on (L-10). */
     --sui-field-well: color-mix(in srgb, #ffffff 7%, transparent);
