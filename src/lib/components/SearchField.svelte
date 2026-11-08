@@ -144,7 +144,7 @@ matches in a polite `role="status"` beside it so a screen reader hears it.
 <style>
   .sui-search-field {
     display: grid;
-    gap: var(--sui-row-copy-gap);
+    gap: var(--sui-field-gap);
     inline-size: 100%;
     min-inline-size: 0;
   }

@@ -70,8 +70,8 @@
 
 <!--
 @component
-A label, its control and the help under it, 8px apart as rendered ink, and an error 12px
-under the help. With no `control` it draws a `TextInput`, and every native input attribute, `bind:value` and `class`
+A label, its control and the help under it, 12px apart as rendered ink, so the focus ring
+keeps clear of the words, and an error 20px under the help. With no `control` it draws a `TextInput`, and every native input attribute, `bind:value` and `class`
 land on that input.
 
 Any other control goes in the `control` snippet, which receives the `id` the label points at,
@@ -152,13 +152,16 @@ the `control` snippet reports here on its own, and a control of another kind kee
 <style>
   .sui-field {
     display: grid;
-    gap: var(--sui-row-copy-gap);
+    gap: var(--sui-field-gap);
     min-inline-size: 0;
   }
 
+  /* A row's control draws its ring around itself, clear of the words beside it, so its notes
+     keep the copy gap. */
   .sui-field[data-layout='row'] {
     align-items: center;
     column-gap: var(--sui-space-4);
+    row-gap: var(--sui-row-copy-gap);
     grid-template-columns: minmax(0, 1fr) auto;
   }
 

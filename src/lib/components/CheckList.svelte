@@ -154,7 +154,7 @@ box. Choosing one lifts it. A caller's `error` always wins.
   .sui-check-list {
     border: 0;
     display: grid;
-    gap: var(--sui-row-copy-gap);
+    gap: var(--sui-field-gap);
     margin: 0;
     min-inline-size: 0;
     padding: 0;

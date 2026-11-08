@@ -347,7 +347,7 @@ land on the amount.
 <style>
   .sui-duration-input {
     display: grid;
-    gap: var(--sui-row-copy-gap);
+    gap: var(--sui-field-gap);
     inline-size: fit-content;
     justify-items: start;
     max-inline-size: 100%;

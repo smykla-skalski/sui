@@ -438,6 +438,9 @@
   /* A title stands half a copy gap further from its description than copy lines stand apart,
      so the two read as a title and its text, not as one paragraph (L-24). */
   --sui-title-copy-gap: 0.75rem;
+  /* A field's label, control and help stand 12px apart, so a focus ring 2px off the control
+     keeps 6px clear of the words over and under it (L-35). */
+  --sui-field-gap: 0.75rem;
 
   /* A trimmed line is as tall as its cap height, which is rarely a whole pixel; this rounds the
      block up so every edge under it lands on the pixel grid and draws crisp (L-95). Without

@@ -168,7 +168,7 @@ save keeps it. A busy dialog or a saving pane around it disables the radios whil
   .sui-choice-cards {
     border: 0;
     display: grid;
-    gap: var(--sui-row-copy-gap);
+    gap: var(--sui-field-gap);
     margin: 0;
     min-inline-size: 0;
     padding: 0;
