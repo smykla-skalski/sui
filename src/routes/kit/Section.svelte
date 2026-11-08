@@ -189,6 +189,7 @@
     font: var(--sui-weight-regular) var(--sui-font-size-body) / var(--sui-row-copy-leading)
       var(--sui-sans);
     margin: 0;
+    max-inline-size: var(--sui-measure);
     padding-block: var(--sui-block-snap-room);
     text-box: trim-both cap alphabetic;
     text-wrap: pretty;
