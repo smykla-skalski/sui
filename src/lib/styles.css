@@ -205,6 +205,7 @@
   --sui-focus-ring-offset: 2px;
   --sui-focus-ring-inset: -2px;
   --sui-focus-ring-flush: 0;
+  --sui-focus-ring-gap: 1px;
   /* A bordered control's border takes the focus color, so its outline adds only the rest of
      the 2px ring (L-41). */
   --sui-focus-ring-edge: calc(var(--sui-focus-ring-width) - var(--sui-stroke));
@@ -297,7 +298,6 @@
   --sui-field-recess-hover: var(--sui-primitive-light-recess-hover);
   /* Under a focus ring the recess eases to two thirds, so the ring leads the top edge and the
      field still sits in its ground (L-9). */
-  --sui-field-recess-focus: color-mix(in srgb, var(--sui-field-recess) 67%, transparent);
   --sui-popover-bg: var(--sui-surface-base);
   --sui-popover-border: var(--sui-border-control);
 
@@ -811,7 +811,6 @@
   );
   --sui-field-recess: var(--sui-primitive-dark-recess);
   --sui-field-recess-hover: var(--sui-primitive-dark-recess);
-  --sui-field-recess-focus: color-mix(in srgb, var(--sui-field-recess) 67%, transparent);
   --sui-popover-border: var(--sui-border-control);
   --sui-dialog-border: var(--sui-border-control);
   --sui-shadow-plate:
@@ -1012,7 +1011,6 @@
     );
     --sui-field-recess: var(--sui-primitive-dark-recess);
     --sui-field-recess-hover: var(--sui-primitive-dark-recess);
-    --sui-field-recess-focus: color-mix(in srgb, var(--sui-field-recess) 67%, transparent);
     --sui-popover-border: var(--sui-border-control);
     --sui-dialog-border: var(--sui-border-control);
     --sui-shadow-plate:

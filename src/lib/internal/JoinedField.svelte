@@ -97,27 +97,22 @@ the end part draws its own inset ring while it has focus, so the two never look 
     }
   }
 
-  /* The field takes the ring while the value has focus. A bordered
-     control is flush: its edge takes the focus color under the 2px ring (L-41). The focused
-     part belongs to another component, so the state is looked up globally. */
+  /* The field takes the ring while the value has focus, 1px off the frame it keeps, as a text
+     field does (L-41). The focused part belongs to another component, so the state is looked
+     up globally. */
   .sui-joined:has(.sui-joined-value :global(:focus-visible)) {
-    border-color: var(--sui-focus);
-    outline: var(--sui-focus-ring-edge) solid var(--sui-focus);
-    outline-offset: var(--sui-focus-ring-flush);
-    box-shadow: inset 0 var(--sui-stroke) 0 var(--sui-field-recess-focus);
+    outline: var(--sui-focus-ring-width) solid var(--sui-focus);
+    outline-offset: var(--sui-focus-ring-gap);
   }
 
   /* A value that only reads, or a field that is off, has no recess, as a read-only or disabled
      text field does, so it never looks like a field to type in: an off field fills the field
      well with no frame, a value that only reads keeps a quiet frame over a lighter tint of it
      (L-10, L-40). */
-  .readonly,
-  .readonly:has(.sui-joined-value :global(:focus-visible)) {
+  .readonly {
     background-color: var(--sui-field-readonly);
     border-color: var(--sui-field-readonly-frame);
     box-shadow: none;
-    /* Its quiet frame is not the ring's color, so a ring draws its whole 2px past it. */
-    outline-width: var(--sui-focus-ring-width);
   }
 
   /* Its own rule: a list holding the focused read-only selector would lend the off field that
@@ -128,14 +123,8 @@ the end part draws its own inset ring while it has focus, so the two never look 
     box-shadow: none;
   }
 
-  .invalid,
-  .invalid:has(.sui-joined-value :global(:focus-visible)) {
+  .invalid {
     border-color: var(--sui-danger);
-  }
-
-  /* A danger edge is not the ring's color, so the outline draws the whole 2px ring past it. */
-  .invalid:has(.sui-joined-value :global(:focus-visible)) {
-    outline-width: var(--sui-focus-ring-width);
   }
 
   /* An off field's words take the muted ink at full strength in both parts, as a disabled text

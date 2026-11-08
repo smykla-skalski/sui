@@ -61,7 +61,7 @@ It has no label of its own. Put it in a `Field` through the `control` snippet, o
 
 - Semantics: a native `<textarea>`, named by a `<label for>` or `aria-label`; `invalid`, a caller's `aria-invalid` or a value the browser's check refused sets `aria-invalid`.
 - Content: free text over several lines, `rows` lines tall before it scrolls, with an optional placeholder that is an example and never the label. `mono` text is never spellchecked or capitalized.
-- States: rest (the control fill, a quiet frame, a recess under its top edge darker than the frame and a 3:1 baseline), hover (a firmer frame and recess), focus (the rest fill under a flush 2px ring, so a focused field never reads as read-only), invalid (a danger edge on all four sides, kept under hover and focus), held (disabled while a busy dialog or a saving pane around it works, read only and focusable while a saving setting row does, 0.6 opacity either way) and read-only (a lighter tint of the field well under a quiet frame, no recess), disabled (the full field well with no frame and its words in the muted ink at full strength, no resize).
+- States: rest (the control fill, a quiet frame, a recess under its top edge darker than the frame and a 3:1 baseline), hover (a firmer frame and recess), focus (the rest fill and frame with a 2px ring 1px off it, so a focused field never reads as read-only), invalid (a danger edge on all four sides, kept under hover and focus), held (disabled while a busy dialog or a saving pane around it works, read only and focusable while a saving setting row does, 0.6 opacity either way) and read-only (a lighter tint of the field well under a quiet frame, no recess), disabled (the full field well with no frame and its words in the muted ink at full strength, no resize).
 - Keyboard: the browser's own text editing, Enter included; Ctrl+Enter or Cmd+Enter sends the form around it; Tab moves on.
 - Pointer and touch: at least 34px tall, 44px on a phone or any touch screen, with 16px text on a phone so iOS does not zoom; the resize grip is an extra, never the only way to read more.
 - Focus: it takes focus on a press and never moves it elsewhere.
@@ -130,20 +130,15 @@ It has no label of its own. Put it in a `Field` through the `control` snippet, o
     }
   }
 
+  /* A field keeps its own frame, editable, danger or read-only, and the ring stands 1px off it,
+     so every state wears one ring and the frame's color still shows (L-41). */
   .sui-textarea:focus-visible {
-    border-color: var(--sui-focus);
-    outline: var(--sui-focus-ring-edge) solid var(--sui-focus);
-    outline-offset: var(--sui-focus-ring-flush);
-    box-shadow: inset 0 var(--sui-stroke) 0 var(--sui-field-recess-focus);
+    outline: var(--sui-focus-ring-width) solid var(--sui-focus);
+    outline-offset: var(--sui-focus-ring-gap);
   }
 
   .sui-textarea[aria-invalid='true'] {
     border-color: var(--sui-danger);
-  }
-
-  /* A danger edge is not the ring's color, so the outline draws the whole 2px ring past it. */
-  .sui-textarea[aria-invalid='true']:focus-visible {
-    outline-width: var(--sui-focus-ring-width);
   }
 
   /* A value that only reads sits in a light tint of the field well with a quiet frame and no
@@ -152,8 +147,6 @@ It has no label of its own. Put it in a `Field` through the `control` snippet, o
     background-color: var(--sui-field-readonly);
     border-color: var(--sui-field-readonly-frame);
     box-shadow: none;
-    /* Its quiet frame is not the ring's color, so a ring draws its whole 2px past it. */
-    outline-width: var(--sui-focus-ring-width);
   }
 
   /* A field that is off fills the field well with no frame, baseline or recess, its words in the muted ink at full strength, so it never looks like an empty field

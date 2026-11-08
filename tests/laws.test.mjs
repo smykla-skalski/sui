@@ -1050,10 +1050,7 @@ test('L-10 a read-only field frames its value between a keyline and an editable 
     );
 });
 
-test('L-9 a field under a focus ring eases its recess to two thirds in every theme', () => {
-  const eased =
-    /--sui-field-recess-focus: color-mix\(in srgb, var\(--sui-field-recess\) 67%, transparent\);/g;
-  assert.equal(palette.match(eased)?.length, 3, 'the light, dark and system dark blocks');
+test('L-41 a field keeps its frame and wears one ring 1px off it in every state', () => {
   for (const [path, rule] of [
     ['src/lib/components/TextInput.svelte', '.sui-text-input:focus-visible'],
     ['src/lib/components/Textarea.svelte', '.sui-textarea:focus-visible'],
@@ -1062,13 +1059,19 @@ test('L-9 a field under a focus ring eases its recess to two thirds in every the
       'src/lib/internal/JoinedField.svelte',
       '.sui-joined:has(.sui-joined-value :global(:focus-visible))'
     ]
-  ])
+  ]) {
     assert.ok(
       styles[path].includes(
-        `${rule} {\n    border-color: var(--sui-focus);\n    outline: var(--sui-focus-ring-edge) solid var(--sui-focus);\n    outline-offset: var(--sui-focus-ring-flush);\n    box-shadow: inset 0 var(--sui-stroke) 0 var(--sui-field-recess-focus);`
+        `${rule} {\n    outline: var(--sui-focus-ring-width) solid var(--sui-focus);\n    outline-offset: var(--sui-focus-ring-gap);\n  }`
       ),
-      `${path} keeps the rest recess under its ring`
+      `${path} stands its ring 1px off its own frame`
     );
+    assert.doesNotMatch(
+      styles[path],
+      /--sui-focus-ring-edge|outline-width:|border-color: var\(--sui-focus\)/,
+      `${path} draws one ring whatever its frame's state`
+    );
+  }
 });
 
 test('L-94 a field or group message takes the 16px mark 8px from its words', () => {
