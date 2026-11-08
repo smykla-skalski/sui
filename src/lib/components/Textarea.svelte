@@ -137,6 +137,12 @@ It has no label of its own. Put it in a `Field` through the `control` snippet, o
     outline-offset: var(--sui-focus-ring-offset);
   }
 
+  /* An invalid field's ring takes the danger color, so focus never reads as a second, calm
+     state beside the red edge (L-41). */
+  .sui-textarea[aria-invalid='true']:focus-visible {
+    outline-color: var(--sui-danger);
+  }
+
   .sui-textarea[aria-invalid='true'] {
     border-color: var(--sui-danger);
   }

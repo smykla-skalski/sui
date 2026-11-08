@@ -1101,6 +1101,11 @@ test('L-41 a field keeps its frame and wears one ring 2px off it in every state'
       ),
       `${path} stands its ring 2px off its own frame, as a free-standing control does`
     );
+    assert.match(
+      styles[path],
+      /(\[aria-invalid='true'\]|\.invalid)[^{]*focus-visible[^{]*\{\s*outline-color: var\(--sui-danger\);\s*\}/,
+      `${path} rings an invalid field in the danger color`
+    );
     assert.doesNotMatch(
       styles[path],
       /--sui-focus-ring-edge|outline-width:|border-color: var\(--sui-focus\)/,
