@@ -301,8 +301,9 @@
   --sui-popover-border: var(--sui-border-control);
 
   --sui-row-hover: color-mix(in srgb, var(--sui-text-primary) 5.4%, transparent);
-  /* A field already firms its frame on hover, so its ground moves half a row's step. */
-  --sui-field-hover: color-mix(in srgb, var(--sui-text-primary) 2.7%, transparent);
+  /* A field already firms its frame on hover, so its ground moves a third of a row's step, well
+     short of the read-only tint (L-10). */
+  --sui-field-hover: color-mix(in srgb, var(--sui-text-primary) 1.6%, transparent);
   /* A field that is off sits in this well, and one that only reads in a lighter tint of it (L-10). */
   --sui-field-well: var(--sui-surface-inset);
   --sui-field-readonly: color-mix(in srgb, var(--sui-field-well) 50%, transparent);
@@ -755,8 +756,8 @@
   /* The dark inset ground is within a level of the raised one, so on dark the well is a veil
      that stands apart on every ground a field stands on (L-10). */
   --sui-field-well: color-mix(in srgb, #ffffff 7%, transparent);
-  --sui-field-readonly: color-mix(in srgb, var(--sui-field-well) 40%, transparent);
-  --sui-field-readonly-frame: rgb(255 255 255 / 16%);
+  --sui-field-readonly: color-mix(in srgb, var(--sui-field-well) 65%, transparent);
+  --sui-field-readonly-frame: rgb(255 255 255 / 13%);
   --sui-row-pressed: color-mix(in srgb, #ffffff 12.4%, transparent);
 
   --sui-changed: var(--sui-link);
@@ -955,8 +956,8 @@
     /* The dark inset ground is within a level of the raised one, so on dark the well is a veil
        that stands apart on every ground a field stands on (L-10). */
     --sui-field-well: color-mix(in srgb, #ffffff 7%, transparent);
-    --sui-field-readonly: color-mix(in srgb, var(--sui-field-well) 40%, transparent);
-    --sui-field-readonly-frame: rgb(255 255 255 / 16%);
+    --sui-field-readonly: color-mix(in srgb, var(--sui-field-well) 65%, transparent);
+    --sui-field-readonly-frame: rgb(255 255 255 / 13%);
     --sui-row-pressed: color-mix(in srgb, #ffffff 12.4%, transparent);
 
     --sui-changed: var(--sui-link);
