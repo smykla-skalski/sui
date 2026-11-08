@@ -33,7 +33,7 @@
   note="Rest, filled with a hint, invalid with its error and disabled with its reason"
   layout="grid"
   --specimen-min="21rem"
-  --specimen-max="22rem"
+  --specimen-max="26rem"
 >
   <Specimen label="Rest" code="placeholder">
     <Field label="Project name" placeholder="acme-web…" bind:value={project} />
@@ -70,7 +70,7 @@
   note="A required field says so in a word beside its label, and an optional one says nothing"
   layout="grid"
   --specimen-min="21rem"
-  --specimen-max="22rem"
+  --specimen-max="26rem"
 >
   <Specimen label="Required" code="required">
     <Field
@@ -114,7 +114,7 @@
   note="A row layout centres the label and a form’s checkbox on one line, and the label names the box"
   layout="grid"
   --specimen-min="21rem"
-  --specimen-max="22rem"
+  --specimen-max="26rem"
 >
   <Specimen label="Checked" code={'layout="row"'}>
     <Field label="Sync on every push" layout="row" hint="Runs within a minute of each push">
@@ -141,7 +141,7 @@
   note="A refused send shows each field’s own error in place of the browser’s bubble and focuses the first field to fix"
   layout="grid"
   --specimen-min="21rem"
-  --specimen-max="22rem"
+  --specimen-max="26rem"
 >
   <Specimen label={sent} code="required pattern validationMessage">
     <form class="form" onsubmit={send}>
@@ -174,7 +174,7 @@
   note="Fields stack 16 px apart, and a focused field’s own border becomes the ring, so nothing around it clips it"
   layout="grid"
   --specimen-min="21rem"
-  --specimen-max="22rem"
+  --specimen-max="26rem"
   ground="canvas"
 >
   <Section title="New Repository" level={4}>
