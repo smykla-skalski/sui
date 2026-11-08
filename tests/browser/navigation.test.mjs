@@ -1001,16 +1001,21 @@ suite('navigation', together, () => {
               assert.ok(Math.abs(band.plotStart) < 0.5, `the plot keeps the title's edge`);
             } else assert.ok(band.inside, `${width}px: a band leaves its specimen`);
           if (width !== 1440) continue;
-          // Charts side by side end their data tables on one line.
-          const tops = await page.evaluate(() =>
+          // A chart stretched beside a taller one keeps its table one gap under its own plot
+          // and legend, and the room it gains falls under its foot.
+          const gaps = await page.evaluate(() =>
             [...document.querySelectorAll('#charts [data-layout="pairs"]')].map((pair) =>
-              [...pair.querySelectorAll('.sui-chart > details > summary')].map((summary) =>
-                Math.round(summary.getBoundingClientRect().top)
-              )
+              [...pair.querySelectorAll('.sui-chart > details')].map((details) => {
+                // A legend that only a screen reader reads draws no box to stand under.
+                let above = /** @type {Element} */ (details.previousElementSibling);
+                while (above.getBoundingClientRect().height <= 1)
+                  above = /** @type {Element} */ (above.previousElementSibling);
+                return details.getBoundingClientRect().top - above.getBoundingClientRect().bottom;
+              })
             )
           );
-          assert.ok(tops.length > 0 && tops.every((pair) => pair.length === 2));
-          for (const [first, second] of tops) assert.equal(first, second, 'a pair ends apart');
+          assert.ok(gaps.length > 0 && gaps.every((pair) => pair.length === 2));
+          for (const gap of gaps.flat()) assert.ok(Math.abs(gap - 16) < 0.5, `${gap}px gap`);
         }
         assert.deepEqual(kinds, new Set([true, false]));
       }

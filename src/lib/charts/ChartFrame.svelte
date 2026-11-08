@@ -239,9 +239,9 @@
     initial-value: 0px;
   }
 
-  /* A chart is a column whose plot takes any room its holder adds, so a chart stretched to its
-     neighbour's height, in a line of cards or specimens, keeps its legend and table at its foot
-     and charts side by side end on one line. */
+  /* A chart stretched to a taller neighbour's height, in a line of cards or specimens, keeps its
+     legend and table one gap under its own plot, and the room it gains falls under its foot, so
+     no blank band parts a plot from its own table. */
   .sui-chart {
     --sui-local-chart-bleed: var(--sui-local-bleed);
     color: var(--sui-text-primary);
@@ -305,7 +305,6 @@
     font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-leading-flat)
       var(--sui-sans);
     font-variant-ligatures: none;
-    margin-block-end: auto;
     margin-inline: calc(-1 * var(--sui-local-chart-bleed));
     min-inline-size: 0;
   }
