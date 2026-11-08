@@ -326,7 +326,7 @@ suite('forms', together, () => {
     );
 
     test(
-      'a field error stands 16px under its hint, which stands 12px under the control (L-35)',
+      'a field error stands 20px under its hint, which stands 12px under the control (L-35)',
       long,
       async () => {
         const page = await opened();
@@ -346,7 +346,7 @@ suite('forms', together, () => {
         assert.ok(gaps.length > 0, 'no field shows a hint and an error');
         for (const { hint, error } of gaps) {
           assert.ok(Math.abs(hint - 12) <= 0.5, `the hint stands ${hint}px under the control`);
-          assert.ok(Math.abs(error - 16) <= 0.5, `the error stands ${error}px under the hint`);
+          assert.ok(Math.abs(error - 20) <= 0.5, `the error stands ${error}px under the hint`);
         }
       }
     );

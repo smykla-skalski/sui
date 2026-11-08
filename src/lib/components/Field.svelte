@@ -71,7 +71,7 @@
 <!--
 @component
 A label, its control and the help under it, 12px apart as rendered ink, so the focus ring
-keeps clear of the words, and an error 16px under the help. With no `control` it draws a `TextInput`, and every native input attribute, `bind:value` and `class`
+keeps clear of the words, and an error 20px under the help. With no `control` it draws a `TextInput`, and every native input attribute, `bind:value` and `class`
 land on that input.
 
 Any other control goes in the `control` snippet, which receives the `id` the label points at,
@@ -279,7 +279,7 @@ the `control` snippet reports here on its own, and a control of another kind kee
   /* An error stands a step further from the hint over it than the hint from its control, so
      the two quiet lines never read as one block (L-35). */
   .sui-field-help + .sui-field-error {
-    margin-block-start: var(--sui-space-1);
+    margin-block-start: var(--sui-space-2);
   }
 
   .sui-field-error {

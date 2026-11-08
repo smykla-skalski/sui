@@ -581,7 +581,7 @@ test('L-35 a field label and every group name wear one ink at one weight and lea
   }
 });
 
-test('L-35 an error under a hint stands a step further from it than the hint from its control', () => {
+test('L-35 an error under a hint stands a copy gap further from it than the hint from its control', () => {
   for (const [name, pair] of [
     ['Field', '.sui-field-help + .sui-field-error'],
     ['DurationInput', '.sui-duration-hint + .sui-duration-problem']
@@ -589,7 +589,7 @@ test('L-35 an error under a hint stands a step further from it than the hint fro
     assert.match(
       stripComments(styles[`src/lib/components/${name}.svelte`]),
       new RegExp(
-        `${pair.replace(/[.+]/g, (c) => `\\${c}`)} \\{\\s*margin-block-start: var\\(--sui-space-1\\);`
+        `${pair.replace(/[.+]/g, (c) => `\\${c}`)} \\{\\s*margin-block-start: var\\(--sui-space-2\\);`
       ),
       name
     );
