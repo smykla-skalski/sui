@@ -135,7 +135,7 @@
   layout="stack"
   ground="canvas"
 >
-  <Specimen label="Dialog" code="preview">
+  <Specimen label="Dialog">
     <Modal
       preview
       title="Edit Webhook"
@@ -159,7 +159,7 @@
       {/snippet}
     </Modal>
   </Specimen>
-  <Specimen label="Inspector" code={'size="inspector" preview'}>
+  <Specimen label="Inspector">
     <Modal
       preview
       size="inspector"
@@ -182,7 +182,7 @@
       {/snippet}
     </Modal>
   </Specimen>
-  <Specimen label="Wide" code={'size="wide" preview'}>
+  <Specimen label="Wide">
     <Modal
       preview
       size="wide"
@@ -214,7 +214,7 @@
   layout="stack"
   ground="canvas"
 >
-  <Specimen label="Saving" code="busy preview">
+  <Specimen label="Saving">
     <Modal
       preview
       busy
@@ -228,7 +228,7 @@
       {/snippet}
     </Modal>
   </Specimen>
-  <Specimen label="Save failed" code="error preview">
+  <Specimen label="Save failed">
     <Modal
       preview
       title="Rename Repository"
@@ -248,13 +248,13 @@
   title="Opening"
   note="Each size opens over a scrim on a copy of its record, and only Save writes the copy back"
 >
-  <Specimen label="Dialog" code="bind:open">
+  <Specimen label="Dialog">
     <Button onclick={editWebhook}>Edit Webhook</Button>
   </Specimen>
-  <Specimen label="Inspector" code={'size="inspector"'}>
+  <Specimen label="Inspector">
     <Button onclick={editRun}>Edit Run Settings</Button>
   </Specimen>
-  <Specimen label="Wide" code={'size="wide"'}>
+  <Specimen label="Wide">
     <Button onclick={writeNotes}>Write Release Notes</Button>
   </Specimen>
 </Example>
@@ -263,10 +263,10 @@
   title="Guarded Close"
   note="Escape, the close button and a press outside ask before throwing away a note, and close a blank one at once"
 >
-  <Specimen label="Guarded" code="beforeClose">
+  <Specimen label="Guarded">
     <Button onclick={() => (guarded = true)}>Write a Note</Button>
   </Specimen>
-  <Specimen label="Failing save" code="busy error">
+  <Specimen label="Failing save">
     <Button onclick={rename}>Rename Repository</Button>
   </Specimen>
 </Example>

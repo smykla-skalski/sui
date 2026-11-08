@@ -34,7 +34,7 @@
   note="Facts wrap one by one with space between them, and technical values are mono"
   layout="stack"
 >
-  <Specimen label="Text, mono, time, status & link" code="mono href">
+  <Specimen label="Text, mono, time, status & link">
     <FactList
       facts={[
         { label: 'Branch', value: 'main', mono: true },
@@ -52,7 +52,7 @@
   note="A thing’s properties, a label and its value on each row, with hairlines between rows and an action at a row’s end"
   layout="stack"
 >
-  <Specimen label="Properties with an action" code={'layout="rows" action'}>
+  <Specimen label="Properties with an action">
     <FactList layout="rows" facts={properties} />
   </Specimen>
 </Example>
@@ -84,7 +84,7 @@
   title="Missing Value"
   note="An absent value says so in words instead of leaving its fact empty"
 >
-  <Specimen label="Null value" code="value: null">
+  <Specimen label="Null value">
     <FactList
       facts={[
         { label: 'Branch', value: 'main', mono: true },
@@ -100,7 +100,7 @@
   note="Under 25 rem of its own width, each label stands over its value and the action under it"
   layout="stack"
 >
-  <Specimen label="Rows in 20 rem" code={'layout="rows"'}>
+  <Specimen label="Rows in 20 rem">
     <div class="narrow">
       <FactList layout="rows" facts={properties} />
     </div>

@@ -21,42 +21,42 @@
   note="Rest, filled, invalid, read only and disabled, each under its label, and the locked ones say why"
   layout="grid"
 >
-  <Specimen label="Rest" code="placeholder">
+  <Specimen label="Rest">
     <Field label="Project name">
       {#snippet control({ id, describedby })}
         <TextInput {id} aria-describedby={describedby} placeholder="acme-web…" bind:value={name} />
       {/snippet}
     </Field>
   </Specimen>
-  <Specimen label="Filled" code="value">
+  <Specimen label="Filled">
     <Field label="Display name">
       {#snippet control({ id, describedby })}
         <TextInput {id} aria-describedby={describedby} bind:value={display} />
       {/snippet}
     </Field>
   </Specimen>
-  <Specimen label="Filled, technical value" code="mono">
+  <Specimen label="Filled, technical value">
     <Field label="Image digest">
       {#snippet control({ id, describedby })}
         <TextInput {id} aria-describedby={describedby} mono bind:value={digest} />
       {/snippet}
     </Field>
   </Specimen>
-  <Specimen label="Invalid" code="invalid">
+  <Specimen label="Invalid">
     <Field label="Team name" error="Use letters, digits and dashes only">
       {#snippet control({ id, describedby, invalid })}
         <TextInput {id} aria-describedby={describedby} {invalid} value="Team with spaces" />
       {/snippet}
     </Field>
   </Specimen>
-  <Specimen label="Read only" code="readonly">
+  <Specimen label="Read only">
     <Field label="Repository ID" hint="The repository keeps this ID from the day you create it">
       {#snippet control({ id, describedby })}
         <TextInput {id} aria-describedby={describedby} mono readonly value="R_kgDOJ8x2Qw" />
       {/snippet}
     </Field>
   </Specimen>
-  <Specimen label="Disabled" code="disabled">
+  <Specimen label="Disabled">
     <Field label="Owner" hint="Only an owner can move the repository to another account">
       {#snippet control({ id, describedby })}
         <TextInput {id} aria-describedby={describedby} value="smykla-skalski" disabled />
@@ -80,14 +80,14 @@
   note="34 px by default and 44 px on phones, and a surface may opt into 40 px"
   layout="grid"
 >
-  <Specimen label={defaultTier} code="--sui-control-height-compact">
+  <Specimen label={defaultTier}>
     <Field label="Filter the projects">
       {#snippet control({ id, describedby })}
         <TextInput {id} aria-describedby={describedby} placeholder="api…" />
       {/snippet}
     </Field>
   </Specimen>
-  <Specimen label={tallTier} code="--sui-local-control-height">
+  <Specimen label={tallTier}>
     <div class="tall">
       <Field label="Search the projects">
         {#snippet control({ id, describedby })}
@@ -96,7 +96,7 @@
       </Field>
     </div>
   </Specimen>
-  <Specimen label={touchTier} code="--sui-touch-target">
+  <Specimen label={touchTier}>
     <div class="touch">
       <Field label="Find a repository">
         {#snippet control({ id, describedby })}

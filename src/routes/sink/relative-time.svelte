@@ -54,7 +54,7 @@
   title="Exact"
   note="The whole instant shows in place, for a reader who chose it, and the tooltip goes away"
 >
-  <Specimen label="Whole instant" code="exact"><RelativeTime value={instant} exact /></Specimen>
+  <Specimen label="Whole instant"><RelativeTime value={instant} exact /></Specimen>
 </Example>
 
 <Example

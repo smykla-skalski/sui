@@ -24,7 +24,7 @@
   ground="canvas"
   code={false}
 >
-  <Specimen label="Loaded" code="main aside">
+  <Specimen label="Loaded">
     <LayoutPreview href={pane()} {source} title="Detail pane page" />
   </Specimen>
 </Example>
@@ -36,7 +36,7 @@
   ground="canvas"
   code={false}
 >
-  <Specimen label="Loading" code="rowHeight loading status">
+  <Specimen label="Loading">
     <LayoutPreview href={pane('loading')} {source} title="Detail pane page while it loads" />
   </Specimen>
 </Example>
@@ -60,7 +60,7 @@
   ground="canvas"
   code={false}
 >
-  <Specimen label="Stale content" code="overContent">
+  <Specimen label="Stale content">
     <LayoutPreview href={pane('stale')} {source} title="Detail pane page after a failed refresh" />
   </Specimen>
 </Example>

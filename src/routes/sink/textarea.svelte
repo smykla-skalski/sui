@@ -21,7 +21,7 @@
   note="Rest, filled, technical text in mono, invalid and disabled with its reason, at control size"
   layout="grid"
 >
-  <Specimen label="Rest" code="placeholder">
+  <Specimen label="Rest">
     <Field label="Note for the reviewers">
       {#snippet control({ id, describedby })}
         <Textarea
@@ -36,13 +36,13 @@
   <Specimen label="Filled">
     <Textarea aria-label="Reason" bind:value={reason} />
   </Specimen>
-  <Specimen label="Technical text" code={'mono rows={4}'}>
+  <Specimen label="Technical text">
     <Textarea aria-label="Branch rules" mono rows={4} bind:value={config} />
   </Specimen>
-  <Specimen label="Invalid" code="invalid">
+  <Specimen label="Invalid">
     <Textarea aria-label="Summary" value="Fix the typo" invalid />
   </Specimen>
-  <Specimen label="Disabled" code="disabled">
+  <Specimen label="Disabled">
     <div class="locked">
       <Textarea
         aria-label="Archived note"
@@ -62,7 +62,7 @@
   note="An error names what is wrong and the textarea is described by it"
   layout="grid"
 >
-  <Specimen label="With an error" code="control">
+  <Specimen label="With an error">
     <Field label="Why this exception" error="Say why in at least 10 words">
       {#snippet control({ id, describedby, invalid })}
         <Textarea {id} aria-describedby={describedby} {invalid} value="Urgent" />
@@ -76,7 +76,7 @@
   note="Long words wrap inside the box, and the reader can drag it taller but never wider"
   layout="stack"
 >
-  <Specimen label="Wrapped text" code={'rows={2}'}>
+  <Specimen label="Wrapped text">
     <div class="narrow">
       <Textarea
         aria-label="Release notes"

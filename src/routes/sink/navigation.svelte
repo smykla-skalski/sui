@@ -16,7 +16,7 @@
   title="Breadcrumb"
   note="The nearest ancestor is the last link, and a lone ancestor leads with a chevron so it reads as Up"
 >
-  <Specimen label="Ancestors & the page" code="items current">
+  <Specimen label="Ancestors & the page">
     <Breadcrumb
       items={[
         { label: 'Acme', href: '#navigation' },
@@ -26,7 +26,7 @@
       current="Settings"
     />
   </Specimen>
-  <Specimen label="One ancestor" code="items">
+  <Specimen label="One ancestor">
     <Breadcrumb items={[{ label: 'Repositories', href: '#navigation' }]} />
   </Specimen>
   <Specimen label="Wrapped path, one target per line">
@@ -44,10 +44,10 @@
 </Example>
 
 <Example title="Back Link" note="The way back from a page that stands inside a list">
-  <Specimen label="Default" code="href label">
+  <Specimen label="Default">
     <BackLink href="#navigation" label="All runs" />
   </Specimen>
-  <Specimen label="Quiet, beside tabs" code={'tone="quiet"'}>
+  <Specimen label="Quiet, beside tabs">
     <BackLink href="#navigation" label="All runs" tone="quiet" />
   </Specimen>
 </Example>
@@ -56,18 +56,18 @@
   title="Link"
   note="An underlined link in the action ink, an arrow after one that leaves, and a full-size target for one that stands alone"
 >
-  <Specimen label="Inside a sentence" code="href">
+  <Specimen label="Inside a sentence">
     <p class="copy">
       Read the <Link href="#callout">callout guidance</Link> before you write a new pattern
     </p>
   </Specimen>
-  <Specimen label="Leaves the product" code={'href="https://…"'}>
+  <Specimen label="Leaves the product">
     <p class="copy">
       Follow the <Link href="https://www.w3.org/WAI/ARIA/apg/">ARIA authoring practices</Link> before
       you build a new widget
     </p>
   </Specimen>
-  <Specimen label="Outside a sentence" code="standalone">
+  <Specimen label="Outside a sentence">
     <div class="links">
       <Link href="#callout" standalone>Callout</Link>
       <Link href="#code-block" standalone>Code Block</Link>

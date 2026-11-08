@@ -72,10 +72,10 @@
   title="Saving"
   note="A flip takes effect at once, so the thumb turns while it saves and a refused change flips back and says why"
 >
-  <Specimen label="Pending" code="pending">
+  <Specimen label="Pending">
     <Switch label="Send weekly digests" checked pending />
   </Specimen>
-  <Specimen label="Refused" code="error">
+  <Specimen label="Refused">
     <Switch
       label="Mirror to the backup region"
       bind:checked={mirror}
@@ -84,7 +84,7 @@
       onchange={flip}
     />
   </Specimen>
-  <Specimen label="Invalid, kept when on" code="invalid">
+  <Specimen label="Invalid, kept when on">
     <Switch label="Allow public forks" checked invalid />
   </Specimen>
 </Example>
@@ -104,7 +104,7 @@
   layout="grid"
   ground="canvas"
 >
-  <Specimen label="Bare" code="bare">
+  <Specimen label="Bare">
     <Section title="Scheduled Syncs" level={4}>
       {#snippet actions()}
         <Switch aria-label="Run scheduled syncs" bare bind:checked={scheduled} />

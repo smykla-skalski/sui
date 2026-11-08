@@ -24,7 +24,7 @@
   title="States"
   note="A saturated color, a pale one, a grey that keeps its hue and a locked one with its reason"
 >
-  <Specimen label="Saturated" code="label">
+  <Specimen label="Saturated">
     <ColorPicker label="Label color" bind:value={label} />
   </Specimen>
   <Specimen label="Pale">
@@ -33,7 +33,7 @@
   <Specimen label="Grey">
     <ColorPicker label="Muted color" bind:value={grey} />
   </Specimen>
-  <Specimen label="Disabled" code="disabled">
+  <Specimen label="Disabled">
     <Field label="Locked color" hint="The workspace theme sets it, so only an owner can change it">
       {#snippet control(field)}
         <ColorPicker id={field.id} aria-describedby={field.describedby} value="#5319e7" disabled />
@@ -46,7 +46,7 @@
   title="Own Swatches"
   note="A caller replaces the swatch list, and a color off the list checks no swatch"
 >
-  <Specimen label="Chart series" code="swatches">
+  <Specimen label="Chart series">
     <ColorPicker label="Series color" swatches={chartSwatches} bind:value={chart} />
   </Specimen>
 </Example>
@@ -55,7 +55,7 @@
   title="In a Field"
   note="The field’s label and the hex name the trigger together, and its hint describes it"
 >
-  <Specimen label="Field label & hint" code="id aria-describedby">
+  <Specimen label="Field label & hint">
     <Field label="Brand color" hint="Used for links and the one signal button on each view">
       {#snippet control(field)}
         <ColorPicker id={field.id} aria-describedby={field.describedby} bind:value={brand} />

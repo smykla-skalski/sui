@@ -44,7 +44,7 @@
   <Specimen label="Plain">
     <LinkList links={related} aria-label="Related" />
   </Specimen>
-  <Specimen label="With notes & an external link" code="note external">
+  <Specimen label="With notes & an external link">
     <LinkList links={noted} aria-label="Related" />
   </Specimen>
 </Example>
@@ -77,7 +77,7 @@
 </Example>
 
 <Example title="Right to Left" note="The list starts at the inline start and the arrow mirrors">
-  <Specimen label="With notes & an external link" code={'dir="rtl"'}>
+  <Specimen label="With notes & an external link">
     <div dir="rtl">
       <LinkList links={noted} aria-label="Related" />
     </div>

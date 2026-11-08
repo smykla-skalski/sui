@@ -32,7 +32,7 @@
       <Skeleton rows={2} patience={Infinity} label="Loading repositories…" />
     </Section>
   </Specimen>
-  <Specimen label="Plain rows" code={'bars={false} rowHeight="2.75rem"'}>
+  <Specimen label="Plain rows">
     <Section title="Members" level={4}>
       <Skeleton
         rows={2}
@@ -51,12 +51,12 @@
   layout="grid"
   ground="canvas"
 >
-  <Specimen label="Two-line rows" code={'patience={0}'}>
+  <Specimen label="Two-line rows">
     <Section title="Repositories" level={4}>
       <Skeleton rows={2} patience={0} label="Loading repositories…" />
     </Section>
   </Specimen>
-  <Specimen label="Plain rows" code={'bars={false} rowHeight="2.75rem" patience={0}'}>
+  <Specimen label="Plain rows">
     <Section title="Members" level={4}>
       <Skeleton rows={2} rowHeight="2.75rem" bars={false} patience={0} label="Loading members…" />
     </Section>
@@ -72,7 +72,7 @@
   <Button onclick={() => (loading ? (loading = false) : reload())}>
     {loading ? 'Show the Rows' : 'Load Again'}
   </Button>
-  <Specimen label={loading ? 'Loading' : 'Loaded'} code="loading">
+  <Specimen label={loading ? 'Loading' : 'Loaded'}>
     <Section title="Repositories" level={4}>
       <Skeleton {loading} rows={3} label="Loading repositories…">
         <ObjectList>

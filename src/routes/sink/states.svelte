@@ -80,7 +80,7 @@
   layout="grid"
   ground="canvas"
 >
-  <Specimen label="Next step" code="action">
+  <Specimen label="Next step">
     <EmptyState
       title="No Repositories Match This Filter"
       description="Clear the filter or search for another name to see the rest of the list"
@@ -96,7 +96,7 @@
       {#snippet action()}<Button tone="signal">Invite People</Button>{/snippet}
     </EmptyState>
   </Specimen>
-  <Specimen label={filtered ? 'Emptied by a filter' : 'Filtered list'} code="live">
+  <Specimen label={filtered ? 'Emptied by a filter' : 'Filtered list'}>
     <div class="filtered">
       <Button onclick={() => (filtered = !filtered)}
         >{filtered ? 'Show Every Repository' : 'Show Archived Only'}</Button
@@ -122,7 +122,7 @@
   layout="grid"
   ground="canvas"
 >
-  <Specimen label={recovered ? 'Recovered' : 'Retry'} code="onretry busy focusAfterRetry">
+  <Specimen label={recovered ? 'Recovered' : 'Retry'}>
     <Section title="Repositories" level={4} id="sink-states-recovered">
       {#if recovered}
         <div class="loaded">
@@ -178,7 +178,7 @@
   layout="stack"
   ground="canvas"
 >
-  <Specimen label="Refresh failed" code="overContent">
+  <Specimen label="Refresh failed">
     <Section title="Repositories" level={4}>
       <ErrorState
         overContent
@@ -206,13 +206,13 @@
   <Specimen label="Refusal">
     <FormError message="The invitation expired before anyone accepted it" />
   </Specimen>
-  <Specimen label="On submit" code="message">
+  <Specimen label="On submit">
     <div class="form">
       <Button onclick={submit}>{refused ? 'Clear the Refusal' : 'Submit the Form'}</Button>
       <FormError message={refused} />
     </div>
   </Specimen>
-  <Specimen label="Summary of fields to fix" code="problems attempt">
+  <Specimen label="Summary of fields to fix">
     <form class="form summary" novalidate onsubmit={send}>
       <FormError message={summary} {problems} attempt={attempts} />
       <Field

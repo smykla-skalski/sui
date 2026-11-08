@@ -99,7 +99,7 @@
   layout="stack"
   ground="canvas"
 >
-  <Specimen label="Unsaved" code="dirty">
+  <Specimen label="Unsaved">
     <div class="pane">
       <div class="scroller">
         <Field label="Repository name" spellcheck="false" autocapitalize="off" bind:value={name} />
@@ -115,7 +115,7 @@
       </div>
     </div>
   </Specimen>
-  <Specimen label="Saving" code="saving">
+  <Specimen label="Saving">
     <div class="pane">
       <div class="scroller">
         <SaveBar
@@ -129,7 +129,7 @@
       </div>
     </div>
   </Specimen>
-  <Specimen label="Failed save" code="error">
+  <Specimen label="Failed save">
     <div class="pane">
       <div class="scroller">
         <SaveBar
@@ -142,7 +142,7 @@
       </div>
     </div>
   </Specimen>
-  <Specimen label="Conflict" code="conflict onreload">
+  <Specimen label="Conflict">
     <div class="pane">
       <div class="scroller">
         <Field label="Default branch" spellcheck="false" autocapitalize="off" bind:value={draft} />

@@ -39,7 +39,7 @@
   note="A chosen answer, a disabled one the keyboard skips, a required answer still missing and a group locked while it saves"
   layout="stack"
 >
-  <Specimen label="Chosen, with a disabled answer" code="bind:value">
+  <Specimen label="Chosen, with a disabled answer">
     <ChoiceCards
       label="How pull requests merge"
       hint="Turn on linear history in the branch rules to offer rebase"
@@ -47,7 +47,7 @@
       bind:value={method}
     />
   </Specimen>
-  <Specimen label="Required, still unanswered" code="required error">
+  <Specimen label="Required, still unanswered">
     <ChoiceCards
       label="Who can approve"
       required
@@ -67,7 +67,7 @@
       bind:value={pending}
     />
   </Specimen>
-  <Specimen label="Disabled" code="disabled">
+  <Specimen label="Disabled">
     <ChoiceCards
       label="How pull requests merge"
       hint="Saving the merge method…"

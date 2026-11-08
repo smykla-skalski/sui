@@ -239,15 +239,15 @@
   layout="grid"
   ground="canvas"
 >
-  <Specimen label="Loading" code="loading">
+  <Specimen label="Loading">
     <Section title="Webhooks" level={4}><SettingList loading /></Section>
   </Specimen>
-  <Specimen label="Failed" code="error onretry">
+  <Specimen label="Failed">
     <Section title="Webhooks" level={4}>
       <SettingList error="The server did not answer in time" onretry={() => {}} />
     </Section>
   </Specimen>
-  <Specimen label="Nothing to set" code="empty">
+  <Specimen label="Nothing to set">
     <Section title="Webhooks" level={4}><SettingList empty /></Section>
   </Specimen>
 </Example>

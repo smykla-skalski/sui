@@ -44,19 +44,19 @@
   title="Triggers"
   note="An icon trigger for a row’s end or beside buttons, and a worded trigger with a chevron in the default and ghost tones"
 >
-  <Specimen label="Icon trigger" code={'label icon="more" align="end"'}>
+  <Specimen label="Icon trigger">
     <ActionMenu label="Repository actions" icon="more" items={repository} align="end" />
   </Specimen>
-  <Specimen label="Beside buttons" code={'label icon="more" toolbar align="end"'}>
+  <Specimen label="Beside buttons">
     <div class="actions">
       <Button>Edit Release</Button>
       <ActionMenu label="Release actions" icon="more" toolbar items={release} align="end" />
     </div>
   </Specimen>
-  <Specimen label="Button trigger" code="children">
+  <Specimen label="Button trigger">
     <ActionMenu items={release}>Release Actions</ActionMenu>
   </Specimen>
-  <Specimen label="Ghost trigger" code={'tone="ghost"'}>
+  <Specimen label="Ghost trigger">
     <ActionMenu items={release} tone="ghost">More Actions</ActionMenu>
   </Specimen>
 </Example>
@@ -65,13 +65,13 @@
   title="States"
   note="A menu whose acts are unavailable keeps its trigger in view, with the reason beside it"
 >
-  <Specimen label="Disabled icon trigger" code="disabled">
+  <Specimen label="Disabled icon trigger">
     <div class="locked">
       <ActionMenu label="Repository actions" icon="more" items={repository} disabled />
       <p class="reason">Read-only while the repository is archived</p>
     </div>
   </Specimen>
-  <Specimen label="Disabled button trigger" code="disabled">
+  <Specimen label="Disabled button trigger">
     <div class="locked">
       <ActionMenu items={release} disabled>Release Actions</ActionMenu>
       <p class="reason">Read-only while the repository is archived</p>
@@ -83,10 +83,10 @@
   title="Open"
   note="Icons, a disabled item with its reason, a destructive item last and a long item that wraps, with the first item lit"
 >
-  <Specimen label="Open with icons" code="preview">
+  <Specimen label="Open with icons">
     <ActionMenu label="Repository actions" icon="more" items={repository} align="end" preview />
   </Specimen>
-  <Specimen label="Open with a long item" code="preview">
+  <Specimen label="Open with a long item">
     <ActionMenu items={release} preview>Release Actions</ActionMenu>
   </Specimen>
 </Example>

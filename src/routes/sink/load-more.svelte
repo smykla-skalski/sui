@@ -67,19 +67,19 @@
   layout="grid"
   ground="canvas"
 >
-  <Specimen label="More to load" code="more shown total">
+  <Specimen label="More to load">
     <Section title="Activity" level={4} id="load-more-ready-title">
       {@render events('load-more-ready', 2)}
       <LoadMore list="load-more-ready" more shown={2} total={12} onmore={() => {}} />
     </Section>
   </Specimen>
-  <Specimen label="Loading" code="loading">
+  <Specimen label="Loading">
     <Section title="Activity" level={4} id="load-more-loading-title">
       {@render events('load-more-loading', 2, true)}
       <LoadMore list="load-more-loading" more shown={2} total={12} loading onmore={() => {}} />
     </Section>
   </Specimen>
-  <Specimen label="Failed" code="problem">
+  <Specimen label="Failed">
     <Section title="Activity" level={4} id="load-more-failed-title">
       {@render events('load-more-failed', 2)}
       <LoadMore
@@ -92,7 +92,7 @@
       />
     </Section>
   </Specimen>
-  <Specimen label="Whole" code={'more={false}'}>
+  <Specimen label="Whole">
     <Section title="Activity" level={4} id="load-more-whole-title">
       {@render events('load-more-whole', 2)}
       <LoadMore list="load-more-whole" more={false} shown={2} onmore={() => {}} />
@@ -106,7 +106,7 @@
   layout="grid"
   ground="canvas"
 >
-  <Specimen label="Total unknown" code="more shown">
+  <Specimen label="Total unknown">
     <Section title="Activity" level={4} id="load-more-open-title">
       {@render events('load-more-open', 2)}
       <LoadMore list="load-more-open" more shown={2} onmore={() => {}} />

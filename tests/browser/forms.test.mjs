@@ -447,7 +447,7 @@ suite('forms', together, () => {
       await page.keyboard.press('Enter');
       await error.waitFor();
       assert.equal(
-        await page.locator('#combobox figcaption .label', { hasText: /^Sent/ }).count(),
+        await page.locator('#combobox figcaption', { hasText: /^Sent/ }).count(),
         0,
         'the draft was sent'
       );
@@ -467,7 +467,7 @@ suite('forms', together, () => {
         assert.equal(await field.inputValue(), 'Pyth', 'the typed text was dropped');
         await field.fill('go');
         await page.keyboard.press('Enter');
-        await page.locator('#combobox figcaption .label', { hasText: /^Sent go$/ }).waitFor();
+        await page.locator('#combobox figcaption', { hasText: /^Sent go$/ }).waitFor();
         assert.equal(await field.inputValue(), 'Go');
       }
     );
@@ -614,7 +614,7 @@ suite('forms', together, () => {
       await contact.fill('you@example.com');
       await contact.press('Enter');
       await page
-        .locator('#field figcaption .label', { hasText: /^Sent my-repo for you@example\.com$/ })
+        .locator('#field figcaption', { hasText: /^Sent my-repo for you@example\.com$/ })
         .waitFor();
       await name.fill('   ');
       await contact.focus();

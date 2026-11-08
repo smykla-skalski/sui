@@ -176,7 +176,7 @@
   note="Row headers name each row, numbers sit at the end, and a wide table may stripe its rows"
   layout="stack"
 >
-  <Specimen label="Row headers, sortable" code="caption rowHeader sortable bind:sort">
+  <Specimen label="Row headers, sortable">
     <DataTable
       caption="Pull requests over the last 90&nbsp;days"
       columns={repositoryColumns}
@@ -185,7 +185,7 @@
       bind:sort={() => sort.value, (next) => (sort.value = next)}
     />
   </Specimen>
-  <Specimen label="Striped" code="striped">
+  <Specimen label="Striped">
     <DataTable
       caption="Builds in the last hour"
       columns={buildColumns}
@@ -201,7 +201,7 @@
   note="Long text wraps inside its own column, so no cell draws past the column it belongs to"
   layout="stack"
 >
-  <Specimen label="Wrapping text, named without a caption" code="aria-label">
+  <Specimen label="Wrapping text, named without a caption">
     <DataTable aria-label="Law checks" columns={checkColumns} rows={checks} />
   </Specimen>
 </Example>
@@ -212,16 +212,16 @@
   layout="grid"
   --specimen-min="28rem"
 >
-  <Specimen label="Empty" code={'rows={[]}'}>
+  <Specimen label="Empty">
     <DataTable caption="Releases" columns={releaseColumns} rows={[]} />
   </Specimen>
-  <Specimen label="Loading" code="loading">
+  <Specimen label="Loading">
     <DataTable caption="Releases" columns={releaseColumns} rows={[]} loading />
   </Specimen>
-  <Specimen label="Refreshing" code="refreshing">
+  <Specimen label="Refreshing">
     <DataTable caption="Releases" columns={releaseColumns} rows={releases} refreshing />
   </Specimen>
-  <Specimen label="Failed" code="error onretry">
+  <Specimen label="Failed">
     <DataTable
       caption="Releases"
       columns={releaseColumns}
@@ -230,7 +230,7 @@
       onretry={() => retried++}
     />
   </Specimen>
-  <Specimen label="Failed over old rows" code="error onretry">
+  <Specimen label="Failed over old rows">
     <DataTable
       caption="Releases"
       columns={releaseColumns}
@@ -246,7 +246,7 @@
   note="Placeholder rows take the table’s own cells, each bar where its column’s words start, and one light crosses them"
   layout="stack"
 >
-  <Specimen label="Loading, wide" code="rowHeader loading">
+  <Specimen label="Loading, wide">
     <DataTable
       caption="Builds in the last hour"
       columns={buildColumns}
@@ -262,7 +262,7 @@
   note="Columns that outgrow the room scroll inside the frame, which says so and keeps the row headings in view"
   layout="grid"
 >
-  <Specimen label="Scrolls, with drawn cells" code="cell">
+  <Specimen label="Scrolls, with drawn cells">
     <DataTable caption="Releases" columns={releaseColumns} rows={releases} rowHeader>
       {#snippet cell(row, column)}
         {#if column.key === 'status'}

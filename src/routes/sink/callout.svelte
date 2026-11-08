@@ -56,7 +56,7 @@
   note="The gold surface belongs to unsaved work and the one action that resolves it"
   layout="stack"
 >
-  <Specimen label="Unsaved changes" code="decision">
+  <Specimen label="Unsaved changes">
     <Callout decision title="You have unsaved changes">
       {#snippet icon()}<Icon name="pending" size="sm" />{/snippet}
       2 settings changed since the last save
@@ -86,7 +86,7 @@
       A description can stand on its own without a title
     </Callout>
   </Specimen>
-  <Specimen label="Long copy beside an action" code="actions">
+  <Specimen label="Long copy beside an action">
     <Callout
       title="Every sync skips archived repositories, including the scheduled one that runs at night"
     >
@@ -103,7 +103,7 @@
   note="A callout that an edit brings is announced once it appears, and one that loads with the page stays quiet"
   layout="stack"
 >
-  <Specimen label={expiring ? 'Announced' : 'Not shown'} code="live">
+  <Specimen label={expiring ? 'Announced' : 'Not shown'}>
     <div class="appear">
       <Button onclick={() => (expiring = !expiring)}
         >{expiring ? 'Keep the Token' : 'Shorten the Token to 2\u00a0Days'}</Button
@@ -125,7 +125,7 @@
   note="A callout too narrow for its actions beside an 11 rem measure of copy moves them under the copy, from its start edge"
   layout="grid"
 >
-  <Specimen label="Quiet" code="actions">
+  <Specimen label="Quiet">
     <Callout title="Sync paused">
       {#snippet icon()}<Icon name="pending" size="sm" />{/snippet}
       Nothing is pushed until the sync resumes
@@ -134,7 +134,7 @@
       {/snippet}
     </Callout>
   </Specimen>
-  <Specimen label="Warning" code={'tone="warning" actions'}>
+  <Specimen label="Warning">
     <Callout tone="warning" title="Token expires in 2&nbsp;days">
       {#snippet icon()}<Icon name="warning" size="sm" />{/snippet}
       The sync stops when it expires
@@ -144,7 +144,7 @@
       {/snippet}
     </Callout>
   </Specimen>
-  <Specimen label="Decision" code="decision actions">
+  <Specimen label="Decision">
     <Callout decision title="You have unsaved changes">
       {#snippet icon()}<Icon name="pending" size="sm" />{/snippet}
       2 settings changed since the last save

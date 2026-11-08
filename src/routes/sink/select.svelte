@@ -96,14 +96,14 @@
   note="A chosen value, a prompt before anything is chosen, a refused value and a locked field with its reason"
   layout="grid"
 >
-  <Specimen label="Chosen" code="bind:value">
+  <Specimen label="Chosen">
     <Field label="Region">
       {#snippet control({ id, describedby })}
         <Select {id} aria-describedby={describedby} options={regions} bind:value={region} />
       {/snippet}
     </Field>
   </Specimen>
-  <Specimen label="Placeholder" code="placeholder">
+  <Specimen label="Placeholder">
     <Field label="Backup region">
       {#snippet control({ id, describedby })}
         <Select
@@ -116,7 +116,7 @@
       {/snippet}
     </Field>
   </Specimen>
-  <Specimen label="Invalid" code="invalid">
+  <Specimen label="Invalid">
     <Field label="Failover region" error="Choose a region other than the home region">
       {#snippet control({ id, describedby, invalid })}
         <Select
@@ -129,7 +129,7 @@
       {/snippet}
     </Field>
   </Specimen>
-  <Specimen label="Disabled" code="disabled">
+  <Specimen label="Disabled">
     <Field label="Home region" hint="Fixed once the workspace holds data">
       {#snippet control({ id, describedby })}
         <Select {id} aria-describedby={describedby} options={regions} value="eu-west" disabled />
@@ -164,14 +164,14 @@
   note="A static copy of the open picker under each field, with the value checked and the next option active"
   layout="grid"
 >
-  <Specimen label="Open" code="preview">
+  <Specimen label="Open">
     <Field label="Region">
       {#snippet control({ id, describedby })}
         <Select {id} aria-describedby={describedby} options={regions} value="eu-central" preview />
       {/snippet}
     </Field>
   </Specimen>
-  <Specimen label="Open with groups" code="preview">
+  <Specimen label="Open with groups">
     <Field label="Plan">
       {#snippet control({ id, describedby })}
         <Select {id} aria-describedby={describedby} options={plans} value="team-month" preview />
@@ -184,7 +184,7 @@
   title="In a Form"
   note="Native validation stops a send without a time zone and says why under the field, and the values submit by name, numbers included"
 >
-  <Specimen label={sent} code="name required validationMessage">
+  <Specimen label={sent}>
     <form class="form" onsubmit={send}>
       <Field
         label="Report time zone"

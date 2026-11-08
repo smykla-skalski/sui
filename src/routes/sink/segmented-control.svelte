@@ -43,10 +43,10 @@
   title="Options"
   note="2 to 5 options, with a thumb as wide as the chosen one that a drag can move"
 >
-  <Specimen label="Words" code="options">
+  <Specimen label="Words">
     <SegmentedControl label="Time range" options={range} bind:value={span} />
   </Specimen>
-  <Specimen label="Icons & counts" code="icon count">
+  <Specimen label="Icons & counts">
     <SegmentedControl label="People" options={people} bind:value={tab} />
   </Specimen>
 </Example>
@@ -55,10 +55,10 @@
   title="Label"
   note="The label stands above the options, unless a visible name beside the control already says it"
 >
-  <Specimen label="Drawn" code="label">
+  <Specimen label="Drawn">
     <SegmentedControl label="Time range" options={range} bind:value={span} />
   </Specimen>
-  <Specimen label="Named beside it" code="aria-labelledby">
+  <Specimen label="Named beside it">
     <div class="beside">
       <span id="sink-segmented-name" class="name">Time range</span>
       <SegmentedControl
@@ -75,10 +75,10 @@
   title="States"
   note="A null value draws no thumb, the arrow keys skip a disabled option, and a locked control says why"
 >
-  <Specimen label="Nothing chosen" code={'value={null}'}>
+  <Specimen label="Nothing chosen">
     <SegmentedControl label="Time range" options={range} bind:value={inherited} />
   </Specimen>
-  <Specimen label="Disabled option" code="disabled: true">
+  <Specimen label="Disabled option">
     <div class="locked">
       <SegmentedControl
         label="Log level"
@@ -89,10 +89,10 @@
       <p id="sink-segmented-debug" class="reason">Debug needs a support plan</p>
     </div>
   </Specimen>
-  <Specimen label="Selected disabled option" code="disabled: true">
+  <Specimen label="Selected disabled option">
     <SegmentedControl label="Locked log level" options={levels} bind:value={disabledLevel} />
   </Specimen>
-  <Specimen label="Disabled" code="disabled">
+  <Specimen label="Disabled">
     <div class="locked">
       <SegmentedControl
         label="Log level"
@@ -110,10 +110,10 @@
   title="Tiers"
   note="34 px by default and 44 px on phones, and a surface may opt into 40 px through 1 custom property"
 >
-  <Specimen label="Default" code="--sui-control-height-compact">
+  <Specimen label="Default">
     <SegmentedControl label="Time range" options={range} value="month" />
   </Specimen>
-  <Specimen label="Tall" code="--sui-local-control-height">
+  <Specimen label="Tall">
     <div class="tall">
       <SegmentedControl label="Time range" options={range} value="month" />
     </div>

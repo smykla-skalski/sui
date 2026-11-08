@@ -105,7 +105,7 @@
   note="Each series has its own shape and dash as well as its color, and short sets name each line at its end"
   layout="pairs"
 >
-  <Specimen label="Line, a series over time" code="series xLabel yLabel">
+  <Specimen label="Line, a series over time">
     <LineChart
       title="Weekly Trend"
       description="North and south grew over 4 weeks, while east stayed nearly flat"
@@ -114,7 +114,7 @@
       yLabel="Items"
     />
   </Specimen>
-  <Specimen label="Scatter, 2 measures of each item" code="series xLabel yLabel">
+  <Specimen label="Scatter, 2 measures of each item">
     <ScatterChart
       title="Build Time by Change Size"
       description="Bigger changes build longer, and a cold cache adds about 6 minutes"
@@ -130,7 +130,7 @@
   note="A range marks a diamond inside an interval, and a matrix prints every value, with a dashed cell where one is missing"
   layout="pairs"
 >
-  <Specimen label="Range" code="data valueLabel">
+  <Specimen label="Range">
     <RangeChart
       title="Work Ranges"
       description="Each diamond shows when work started inside its planned window"
@@ -138,7 +138,7 @@
       valueLabel="Hours"
     />
   </Specimen>
-  <Specimen label="Heatmap" code="rows columns cells">
+  <Specimen label="Heatmap">
     <HeatmapChart
       title="Activity"
       description="Tuesday afternoon has the most activity"
@@ -155,7 +155,7 @@
   layout="grid"
   --specimen-min="19.5rem"
 >
-  <Specimen label="Loading" code={'status="loading"'}>
+  <Specimen label="Loading">
     <LineChart
       title="Signups by Week"
       description="Signups each region added per week"
@@ -163,7 +163,7 @@
       status="loading"
     />
   </Specimen>
-  <Specimen label="Refreshing" code={'status="refreshing"'}>
+  <Specimen label="Refreshing">
     <LineChart
       title="Orders by Week"
       description="North and south grew over 4 weeks"
@@ -173,7 +173,7 @@
       status="refreshing"
     />
   </Specimen>
-  <Specimen label="Stale" code={'status="stale" staleLabel'}>
+  <Specimen label="Stale">
     <LineChart
       title="Deploys by Week"
       description="North and south grew over 4 weeks"
@@ -184,7 +184,7 @@
       staleLabel="Last updated 3&nbsp;hours ago"
     />
   </Specimen>
-  <Specimen label="Failed" code={'status="failed" error onretry'}>
+  <Specimen label="Failed">
     <LineChart
       title="Errors by Week"
       description="Errors each region reported per week"
@@ -194,7 +194,7 @@
       onretry={() => {}}
     />
   </Specimen>
-  <Specimen label="Partial" code="series">
+  <Specimen label="Partial">
     <LineChart
       title="Daily Readings"
       description="North kept rising on the days it reported"
@@ -203,7 +203,7 @@
       yLabel="Items"
     />
   </Specimen>
-  <Specimen label="Empty" code={'series={[]} emptyAction'}>
+  <Specimen label="Empty">
     <LineChart title="New Project" description="This project has no measurements yet" series={[]}>
       {#snippet emptyAction()}<Button>Connect a Data Source</Button>{/snippet}
     </LineChart>

@@ -46,7 +46,7 @@
   layout="stack"
   ground="canvas"
 >
-  <Specimen label="Destructive" code={'tone="stop" preview'}>
+  <Specimen label="Destructive">
     <ConfirmDialog
       preview
       title="Delete This Repository?"
@@ -55,7 +55,7 @@
       tone="stop"
     />
   </Specimen>
-  <Specimen label="Affirmative" code="preview">
+  <Specimen label="Affirmative">
     <ConfirmDialog
       preview
       title="Publish 0.3.0?"
@@ -71,7 +71,7 @@
   layout="stack"
   ground="canvas"
 >
-  <Specimen label="Reason field" code="children">
+  <Specimen label="Reason field">
     <ConfirmDialog
       preview
       title="Yank 0.2.1?"
@@ -88,13 +88,13 @@
   title="Asking"
   note="Cancel opens focused on a destructive question, and the confirm action opens focused on an affirmative one"
 >
-  <Specimen label="Destructive" code={'tone="stop"'}>
+  <Specimen label="Destructive">
     <Button tone="stop-quiet" onclick={() => (remove = true)}>Delete Repository</Button>
   </Specimen>
-  <Specimen label="Affirmative" code={'tone="signal"'}>
+  <Specimen label="Affirmative">
     <Button onclick={() => (publish = true)}>Publish Release</Button>
   </Specimen>
-  <Specimen label="With a reason" code="children">
+  <Specimen label="With a reason">
     <Button tone="stop-quiet" onclick={() => (revoke = true)}>Revoke Token</Button>
   </Specimen>
 </Example>
@@ -103,7 +103,7 @@
   title="Pending & Failed"
   note="The act runs before the dialog closes, so a refusal keeps the question open and says so"
 >
-  <Specimen label="Refused" code="onconfirm returns a promise">
+  <Specimen label="Refused">
     <Button tone="stop-quiet" onclick={() => (leaving = true)}>Leave Workspace</Button>
   </Specimen>
 </Example>

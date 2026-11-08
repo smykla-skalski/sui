@@ -34,17 +34,17 @@
   layout="grid"
   --specimen-min="21rem"
 >
-  <Specimen label="Rest" code="placeholder">
+  <Specimen label="Rest">
     <Field label="Project name" placeholder="acme-web…" bind:value={project} />
   </Specimen>
-  <Specimen label="Filled, with a hint" code="hint">
+  <Specimen label="Filled, with a hint">
     <Field
       label="Owner"
       hint="The organization or user that owns the repository"
       bind:value={owner}
     />
   </Specimen>
-  <Specimen label="Invalid" code="error">
+  <Specimen label="Invalid">
     <Field
       label="Team name"
       hint="Shown on every review request"
@@ -52,7 +52,7 @@
       bind:value={team}
     />
   </Specimen>
-  <Specimen label="Disabled" code="disabled">
+  <Specimen label="Disabled">
     <Field
       label="Default branch"
       spellcheck="false"
@@ -70,7 +70,7 @@
   layout="grid"
   --specimen-min="21rem"
 >
-  <Specimen label="Required" code="required">
+  <Specimen label="Required">
     <Field
       label="Repository name"
       spellcheck="false"
@@ -92,7 +92,7 @@
   --specimen-min="21rem"
   --specimen-max="40rem"
 >
-  <Specimen label="Textarea" code="control">
+  <Specimen label="Textarea">
     <Field label="Reason" hint="Shown in the audit log next to the change">
       {#snippet control({ id, describedby, invalid })}
         <Textarea
@@ -113,14 +113,14 @@
   layout="grid"
   --specimen-min="21rem"
 >
-  <Specimen label="Checked" code={'layout="row"'}>
+  <Specimen label="Checked">
     <Field label="Sync on every push" layout="row" hint="Runs within a minute of each push">
       {#snippet control({ id, describedby, invalid })}
         <Checkbox {id} aria-describedby={describedby} {invalid} bare bind:checked={sync} />
       {/snippet}
     </Field>
   </Specimen>
-  <Specimen label="Invalid" code={'layout="row" error'}>
+  <Specimen label="Invalid">
     <Field
       label="Protect the default branch"
       layout="row"
@@ -139,7 +139,7 @@
   layout="grid"
   --specimen-min="21rem"
 >
-  <Specimen label={sent} code="required pattern validationMessage">
+  <Specimen label={sent}>
     <form class="form" onsubmit={send}>
       <Field
         label="Repository name"

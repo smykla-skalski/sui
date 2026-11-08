@@ -44,7 +44,7 @@
   title="States"
   note="An inherited value is muted with its source, an override shows the control with a way back, and a locked one says why"
 >
-  <Specimen label="Inherited" code={'inherited="1\u00a0hour" source="the workspace"'}>
+  <Specimen label="Inherited">
     <InheritControl
       bind:overridden={lifetimeOverridden}
       label="Session lifetime"
@@ -56,7 +56,7 @@
       {/snippet}
     </InheritControl>
   </Specimen>
-  <Specimen label="Overridden" code="bind:overridden">
+  <Specimen label="Overridden">
     <InheritControl
       bind:overridden={levelOverridden}
       label="Log level"
@@ -68,7 +68,7 @@
       {/snippet}
     </InheritControl>
   </Specimen>
-  <Specimen label="Disabled" code="disabled">
+  <Specimen label="Disabled">
     <div class="locked">
       <InheritControl label="Retention" inherited="30&nbsp;days" source="the organization" disabled>
         {#snippet control()}
@@ -84,14 +84,14 @@
   title="Unknown Values"
   note="A loading, failed or empty inherited value is said in words, and Override still works"
 >
-  <Specimen label="Loading" code="loading">
+  <Specimen label="Loading">
     <InheritControl label="Retention" inherited="" source="the organization" loading>
       {#snippet control()}
         <DurationInput label="Retention" value={2_592_000} />
       {/snippet}
     </InheritControl>
   </Specimen>
-  <Specimen label="Failed" code="error">
+  <Specimen label="Failed">
     <InheritControl
       label="Retention"
       inherited=""
@@ -103,7 +103,7 @@
       {/snippet}
     </InheritControl>
   </Specimen>
-  <Specimen label="Nothing set" code={'inherited=""'}>
+  <Specimen label="Nothing set">
     <InheritControl label="Retention" inherited="" source="the organization">
       {#snippet control()}
         <DurationInput label="Retention" value={2_592_000} />

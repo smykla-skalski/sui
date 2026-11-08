@@ -16,13 +16,13 @@
   title="Placement"
   note="Hover pauses before the tip shows, focus shows it at once, and a tap or click toggles it"
 >
-  <Specimen label="Above" code={'side="block-start"'}>
+  <Specimen label="Above">
     <span class="label">
       <span class="words">Retention</span>
       <HelpTip label="About retention" text="Runs older than this are deleted every night" />
     </span>
   </Specimen>
-  <Specimen label="Below" code={'side="block-end"'}>
+  <Specimen label="Below">
     <span class="label">
       <span class="words">Required reviewers</span>
       <HelpTip
@@ -38,7 +38,7 @@
   title="Open"
   note="A tapped or clicked mark stays pressed on its veil while its tip is open, drawn here in place"
 >
-  <Specimen label="Open" code="preview">
+  <Specimen label="Open">
     <span class="label wrap">
       <span class="words">Retention</span>
       <HelpTip

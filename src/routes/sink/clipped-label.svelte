@@ -27,7 +27,7 @@
       <ClippedLabel text="Platform engineering and developer experience" />
     </div>
   </Specimen>
-  <Specimen label="Clipped identifier" code="mono">
+  <Specimen label="Clipped identifier">
     <div class="frame mono" translate="no">
       <ClippedLabel mono text="smykla-skalski/sui/src/lib/components/ClippedLabel.svelte" />
     </div>

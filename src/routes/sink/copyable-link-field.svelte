@@ -19,7 +19,7 @@
   note="A label names the field, or an accessible name does where the words on screen already name it"
   layout="stack"
 >
-  <Specimen label="With a label" code="label hint">
+  <Specimen label="With a label">
     <CopyableLinkField
       label="Invitation link"
       hint="It works once and expires in 7&nbsp;days"
@@ -33,7 +33,7 @@
       Lengthen the Invitation
     </Button>
   </Specimen>
-  <Specimen label="Without a label" code="aria-label copyLabel">
+  <Specimen label="Without a label">
     <CopyableLinkField
       aria-label="Clone address"
       value="git@github.com:smykla-skalski/sui.git"
@@ -47,7 +47,7 @@
   note="A long token wraps onto more lines, so all of it shows, never widens the row, and copies whole"
   layout="stack"
 >
-  <Specimen label="Wrapped token" code="copyLabel">
+  <Specimen label="Wrapped token">
     <div class="narrow">
       <CopyableLinkField
         label="Webhook secret"

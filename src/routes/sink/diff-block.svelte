@@ -37,7 +37,7 @@
   layout="stack"
   ground="canvas"
 >
-  <Specimen label="From 2 texts" code="before after labels">
+  <Specimen label="From 2 texts">
     <DiffBlock
       {before}
       {after}
@@ -46,7 +46,7 @@
       labels={{ before: 'Template', after: 'Repository' }}
     />
   </Specimen>
-  <Specimen label="Prepared lines, 1 changed in place" code="lines">
+  <Specimen label="Prepared lines, 1 changed in place">
     <DiffBlock lines={prepared} lang="yaml" />
   </Specimen>
 </Example>
@@ -57,7 +57,7 @@
   layout="stack"
   ground="canvas"
 >
-  <Specimen label="No changes" code={'before="" after=""'}>
+  <Specimen label="No changes">
     <DiffBlock before="" after="" />
   </Specimen>
 </Example>

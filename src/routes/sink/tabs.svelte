@@ -38,7 +38,7 @@
   note="The page being shown wears the brand underline and is announced as the current page"
   layout="stack"
 >
-  <Specimen label="Current" code="current">
+  <Specimen label="Current">
     <Tabs label="Repository" items={pages} current="#tabs-runs" />
   </Specimen>
 </Example>
@@ -48,7 +48,7 @@
   note="A count rides its label in tabular figures, grouped the way the page’s language writes numbers"
   layout="stack"
 >
-  <Specimen label="With counts" code="count">
+  <Specimen label="With counts">
     <Tabs label="Pull requests" items={counted} current="#tabs-open" />
   </Specimen>
 </Example>

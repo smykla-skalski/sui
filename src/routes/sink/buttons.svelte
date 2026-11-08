@@ -47,19 +47,19 @@
   title="Icons"
   note="A leading glyph starts where a word would start, and a trailing one hints at what opens"
 >
-  <Specimen label="Leading icon" code="icon">
+  <Specimen label="Leading icon">
     <Button>
       {#snippet icon()}<Icon name="refresh" size="base" />{/snippet}
       Refresh
     </Button>
   </Specimen>
-  <Specimen label="Trailing icon" code="trailing">
+  <Specimen label="Trailing icon">
     <Button>
       Options
       {#snippet trailing()}<Icon name="chevron-down" size="base" />{/snippet}
     </Button>
   </Specimen>
-  <Specimen label="Optional addition" code={'tone="add"'}>
+  <Specimen label="Optional addition">
     <Button tone="add">
       {#snippet icon()}<Icon name="plus" size="base" />{/snippet}
       Add a Rule
@@ -76,7 +76,7 @@
       <Button>Move Repositories to the New Organization</Button>
     </div>
   </Specimen>
-  <Specimen label="Wrapped with an icon" code="icon">
+  <Specimen label="Wrapped with an icon">
     <div class="narrow">
       <Button>
         {#snippet icon()}<Icon name="repositories" size="base" />{/snippet}
@@ -90,13 +90,13 @@
   title="As a Link"
   note="A destination draws an anchor with the same paint, and a disabled one cannot be followed"
 >
-  <Specimen label="Link" code="href">
+  <Specimen label="Link">
     <Button href="#buttons">Read the Guide</Button>
   </Specimen>
-  <Specimen label="Signal link" code={'href tone="signal"'}>
+  <Specimen label="Signal link">
     <Button href="#buttons" tone="signal">Open the Project</Button>
   </Specimen>
-  <Specimen label="Disabled link" code="href disabled">
+  <Specimen label="Disabled link">
     <div class="locked">
       <Button href="#buttons" disabled aria-describedby="sink-button-billing-reason"
         >Open Billing</Button

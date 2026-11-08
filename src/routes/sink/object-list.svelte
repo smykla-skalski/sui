@@ -44,7 +44,7 @@
   layout="grid"
   ground="canvas"
 >
-  <Specimen label="Linked" code="href">
+  <Specimen label="Linked">
     <Section title="Repositories" level={4}>
       <ObjectList>
         <ObjectRow href="#object-list">
@@ -79,7 +79,7 @@
   layout="stack"
   ground="canvas"
 >
-  <Specimen label="Status & action" code="side">
+  <Specimen label="Status & action">
     <Section title="Repositories" level={4}>
       <ObjectList>
         <ObjectRow href="#object-list">

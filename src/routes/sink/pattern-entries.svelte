@@ -63,7 +63,7 @@
   note="A problem shows once its entry is left, a removal offers Undo, and a pasted list adds one entry per line"
   layout="grid"
 >
-  <Specimen label="Invalid" code="validate">
+  <Specimen label="Invalid">
     <PatternEntries
       bind:value={branches}
       {validate}
@@ -71,7 +71,7 @@
       addLabel="Add a Branch Pattern"
     />
   </Specimen>
-  <Specimen label="Empty" code="bind:value">
+  <Specimen label="Empty">
     <PatternEntries
       bind:value={paths}
       aria-label="Paths to skip"
@@ -79,14 +79,14 @@
     />
     <output id="sink-pattern-added">{added.join(',')}</output>
   </Specimen>
-  <Specimen label="A few entries" code="bind:value">
+  <Specimen label="A few entries">
     <PatternEntries
       bind:value={few}
       aria-label="Branches to skip"
       addLabel="Add a Branch Pattern"
     />
   </Specimen>
-  <Specimen label="Saving" code="pending">
+  <Specimen label="Saving">
     <div class="with-reason">
       <PatternEntries
         value={['docs/**', 'CHANGELOG.md']}
@@ -97,7 +97,7 @@
       <p id="sink-pattern-saving" class="reason">Saving…</p>
     </div>
   </Specimen>
-  <Specimen label="Disabled" code="disabled">
+  <Specimen label="Disabled">
     <div class="with-reason">
       <PatternEntries
         value={['docs/**', 'CHANGELOG.md']}
@@ -131,7 +131,7 @@
   note="The entries flow from the right and each cross sits at its field’s left end"
   layout="grid"
 >
-  <Specimen label="Right to left" code={'dir="rtl"'}>
+  <Specimen label="Right to left">
     <PatternEntries bind:value={mirrored} dir="rtl" aria-label="Branches to skip" />
   </Specimen>
 </Example>

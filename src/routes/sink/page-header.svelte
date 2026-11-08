@@ -32,7 +32,7 @@
   layout="stack"
   ground="canvas"
 >
-  <Specimen label="Eyebrow, description & actions" code="eyebrow description actions">
+  <Specimen label="Eyebrow, description & actions">
     <div class="page">
       <PageHeader
         level={4}
@@ -48,7 +48,7 @@
       <p class="view">Every new repository starts with these rules</p>
     </div>
   </Specimen>
-  <Specimen label="Title only" code="title">
+  <Specimen label="Title only">
     <div class="page">
       <PageHeader level={4} title="Activity" />
       <p class="view">Nothing happened in the last 7&nbsp;days</p>
@@ -62,7 +62,7 @@
   layout="stack"
   ground="canvas"
 >
-  <Specimen label="Status, description & facts" code="kicker status description facts actions">
+  <Specimen label="Status, description & facts">
     <div class="page">
       <PageHeader
         level={4}
@@ -106,7 +106,7 @@
   layout="stack"
   ground="canvas"
 >
-  <Specimen label="Views of one page" code="tabs">
+  <Specimen label="Views of one page">
     <div class="page">
       <PageHeader
         level={4}
@@ -140,7 +140,7 @@
   layout="grid"
   ground="canvas"
 >
-  <Specimen label="Breadcrumb" code="kicker">
+  <Specimen label="Breadcrumb">
     <div class="page">
       <PageHeader
         level={4}
@@ -159,7 +159,7 @@
       <p class="view">Checked every day at 06:00</p>
     </div>
   </Specimen>
-  <Specimen label="Back link" code="kicker">
+  <Specimen label="Back link">
     <div class="page">
       <PageHeader level={4} title="Run 1842">
         {#snippet kicker()}<BackLink href="#page-header" label="All runs" />{/snippet}

@@ -58,7 +58,7 @@
       {#each directional as name (name)}<Icon {name} size="md" />{/each}
     </span>
   </Specimen>
-  <Specimen label="Right to left" code={'dir="rtl"'}>
+  <Specimen label="Right to left">
     <span class="row" dir="rtl">
       {#each directional as name (name)}<Icon {name} size="md" />{/each}
     </span>

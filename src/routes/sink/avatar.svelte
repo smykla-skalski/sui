@@ -46,10 +46,10 @@
   title="Pictures"
   note="A picture covers the initials drawn under it, and a logo’s clear ground shows the tint"
 >
-  <Specimen label="Person" code="src">
+  <Specimen label="Person">
     <Avatar name="Grace Hopper" src={portrait} size={32} />
   </Specimen>
-  <Specimen label="Workspace" code={'src shape="workspace"'}>
+  <Specimen label="Workspace">
     <Avatar name="Platform Team" src={logo} shape="workspace" size={32} />
   </Specimen>
 </Example>
@@ -58,22 +58,22 @@
   title="Fallbacks"
   note="A picture that does not load shows the initials under it, and a missing name draws them from the handle"
 >
-  <Specimen label="Picture does not load" code="src">
+  <Specimen label="Picture does not load">
     <Avatar name="Alan Turing" src={broken} size={32} />
   </Specimen>
-  <Specimen label="Workspace picture does not load" code={'src shape="workspace"'}>
+  <Specimen label="Workspace picture does not load">
     <Avatar name="Radia Perlman" src={broken} shape="workspace" size={32} />
   </Specimen>
-  <Specimen label="Handle without a name" code={'name="" handle'}>
+  <Specimen label="Handle without a name">
     <Avatar name="" handle="octocat" size={32} />
   </Specimen>
 </Example>
 
 <Example title="Identity Row" note="The name with the handle in mono under it" layout="grid">
-  <Specimen label="Person" code="handle">
+  <Specimen label="Person">
     <IdentityRow name="Ada Lovelace" handle="@ada" />
   </Specimen>
-  <Specimen label="Workspace" code={'handle shape="workspace"'}>
+  <Specimen label="Workspace">
     <IdentityRow name="Platform Team 01" handle="platform-team" shape="workspace" />
   </Specimen>
   <Specimen label="Name alone">

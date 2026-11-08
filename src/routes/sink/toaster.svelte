@@ -38,10 +38,10 @@
   ground="canvas"
   layout="grid"
 >
-  <Specimen label="Neutral" code="preview">
+  <Specimen label="Neutral">
     <Toaster preview items={[{ title: 'Settings saved' }]} />
   </Specimen>
-  <Specimen label="Danger" code="tone: 'danger'">
+  <Specimen label="Danger">
     <Toaster
       preview
       items={[
@@ -53,7 +53,7 @@
       ]}
     />
   </Specimen>
-  <Specimen label="With an action" code="action">
+  <Specimen label="With an action">
     <Toaster
       preview
       items={[
@@ -71,10 +71,10 @@
   title="Timing"
   note="A neutral toast leaves after 5 seconds unless hovered or focused, and a failure or one with Undo stays until dismissed"
 >
-  <Specimen label="Neutral" code="toast()">
+  <Specimen label="Neutral">
     <Button onclick={() => toast({ title: 'Settings saved' })}>Save Settings</Button>
   </Specimen>
-  <Specimen label="Danger" code="tone: 'danger'">
+  <Specimen label="Danger">
     <Button
       onclick={() =>
         toast({
@@ -84,7 +84,7 @@
         })}>Sync Repositories</Button
     >
   </Specimen>
-  <Specimen label={removed ? 'Removed, with Restore on the page' : 'With Undo'} code="action">
+  <Specimen label={removed ? 'Removed, with Restore on the page' : 'With Undo'}>
     <Button tone={removed ? 'default' : 'stop-quiet'} onclick={removed ? restoreRule : removeRule}
       >{removed ? 'Restore' : 'Remove Rule'}</Button
     >
@@ -95,7 +95,7 @@
   title="Reaching the Stack"
   note="F8 moves focus to the newest toast and Escape hands it back, and a stack taller than the screen scrolls"
 >
-  <Specimen label="Many toasts" code="hotkey">
+  <Specimen label="Many toasts">
     <Button
       onclick={() => {
         for (const name of ['sui', 'smyklot', 'ledger', 'atlas', 'harbor', 'relay'])

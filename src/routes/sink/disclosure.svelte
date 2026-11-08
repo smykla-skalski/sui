@@ -24,12 +24,12 @@
       <p class="copy">The default branch deploys on every merge, so it is never left untested</p>
     </Disclosure>
   </Specimen>
-  <Specimen label="With a hint" code={'hint="3 archived"'}>
+  <Specimen label="With a hint">
     <Disclosure summary="Skipped Repositories" hint="3 archived">
       <p class="copy">Archived repositories are left out of every sync</p>
     </Disclosure>
   </Specimen>
-  <Specimen label="Inline help" code="inline">
+  <Specimen label="Inline help">
     <Disclosure inline summary="How the Schedule Is Read">
       <p class="copy">Times are in the workspace’s time zone and repeat every week</p>
     </Disclosure>
@@ -46,12 +46,12 @@
       <p class="copy">They are skipped until someone unarchives them</p>
     </Disclosure>
   </Specimen>
-  <Specimen label={open ? 'Open, bound' : 'Closed, bound'} code="bind:open">
+  <Specimen label={open ? 'Open, bound' : 'Closed, bound'}>
     <Disclosure summary="What Happens to Open Pull Requests" bind:open>
       <p class="copy">They keep the rules they were opened with until they are updated</p>
     </Disclosure>
   </Specimen>
-  <Specimen label="Inline help, open" code="inline open">
+  <Specimen label="Inline help, open">
     <Disclosure inline summary="How the Schedule Is Read" open>
       <p class="copy">Times are in the workspace’s time zone and repeat every week</p>
     </Disclosure>
@@ -70,7 +70,7 @@
       <p class="copy">A rule change applies to pull requests opened after it</p>
     </Disclosure>
   </Specimen>
-  <Specimen label="Long summary, open with a hint" code={'hint="2 rules" open'}>
+  <Specimen label="Long summary, open with a hint">
     <Disclosure
       summary="Rules That a Parent Workspace Sets & This Repository Cannot Change"
       hint="2 rules"
@@ -79,7 +79,7 @@
       <p class="copy">Ask an owner of the parent workspace to change them</p>
     </Disclosure>
   </Specimen>
-  <Specimen label="Long hint" code={'hint="ID, worker and settings version"'}>
+  <Specimen label="Long hint">
     <Disclosure summary="More About This Sync" hint="ID, worker and settings version">
       <p class="copy">Support asks for these when a sync fails</p>
     </Disclosure>
@@ -91,7 +91,7 @@
   note="The controls a disclosure reveals sit straight in it under its words, never in a card"
   layout="stack"
 >
-  <Specimen label="Open with fields" code={'hint="2 fields" open'}>
+  <Specimen label="Open with fields">
     <Disclosure summary="Advanced Settings" hint="2 fields" open>
       <div class="fields">
         <Field
@@ -123,7 +123,7 @@
   note="Disclosures that share a name open one at a time, as the browser keeps the group"
   layout="stack"
 >
-  <Specimen label="One open at a time" code={'name="sync-help"'}>
+  <Specimen label="One open at a time">
     <Disclosure name="sync-help" summary="When the Sync Runs" open>
       <p class="copy">On every push to the default branch, and once a night</p>
     </Disclosure>
@@ -141,12 +141,12 @@
   note="The chevron, the hint and the content’s indent mirror, and the chevron turns down"
   layout="grid"
 >
-  <Specimen label="Closed" code={'dir="rtl"'}>
+  <Specimen label="Closed">
     <Disclosure dir="rtl" summary="Skipped Repositories" hint="3 archived">
       <p class="copy">Archived repositories are left out of every sync</p>
     </Disclosure>
   </Specimen>
-  <Specimen label="Open" code={'dir="rtl" open'}>
+  <Specimen label="Open">
     <Disclosure dir="rtl" summary="Skipped Repositories" hint="3 archived" open>
       <p class="copy">Archived repositories are left out of every sync</p>
     </Disclosure>

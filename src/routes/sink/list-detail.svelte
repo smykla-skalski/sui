@@ -22,7 +22,7 @@
   ground="canvas"
   code={false}
 >
-  <Specimen label="Run open" code="current detail">
+  <Specimen label="Run open">
     <LayoutPreview
       href={resolve('/layouts/list-detail/[[run]]', { run: '4182' }) + '/'}
       {source}
@@ -38,7 +38,7 @@
   ground="canvas"
   code={false}
 >
-  <Specimen label="No run open" code="emptyTitle emptyDescription emptyStep">
+  <Specimen label="No run open">
     <LayoutPreview
       href={resolve('/layouts/list-detail/[[run]]', {}) + '/'}
       {source}

@@ -92,7 +92,7 @@
   note="A chip opens its editor, a refused key marks its chip and says why, removals are announced, and a locked set says why"
   layout="grid"
 >
-  <Specimen label="Pairs" code="keyLabel valueLabel">
+  <Specimen label="Pairs">
     <PairEntry
       bind:value={few}
       options={commands}
@@ -103,7 +103,7 @@
       aria-label="Aliases"
     />
   </Specimen>
-  <Specimen label="Empty" code="value={[]}">
+  <Specimen label="Empty">
     <PairEntry
       bind:value={none}
       options={commands}
@@ -114,7 +114,7 @@
       aria-label="Aliases"
     />
   </Specimen>
-  <Specimen label="Invalid" code="validate">
+  <Specimen label="Invalid">
     <PairEntry
       bind:value={wrong}
       options={commands}
@@ -125,7 +125,7 @@
       aria-label="Aliases"
     />
   </Specimen>
-  <Specimen label="Disabled" code="disabled reason">
+  <Specimen label="Disabled">
     <PairEntry
       value={[{ key: 'hold', value: 'merge' }]}
       options={commands}

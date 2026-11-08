@@ -1873,8 +1873,8 @@ function inkWidth(box: Element): number {
 }
 
 /**
- * The kitchen sink's specimens (L-55): a component stays inside its specimen, and the name and
- * props under it stay inside it too. Where a specimen sizes to its content, a caption line wraps
+ * The kitchen sink's specimens (L-55): a component stays inside its specimen, and the name
+ * under it stays inside it too. Where a specimen sizes to its content, a caption line wraps
  * only when the specimen could not grow wider. A stack is for specimens that use their line:
  * ones that each fill under 60% of it and would fit side by side share a row.
  */
@@ -1975,24 +1975,18 @@ function specimens(root: Document): Finding[] {
     const caption = specimen.querySelector(':scope > figcaption');
     if (!caption) continue;
     const grows = holder !== null && getComputedStyle(holder).display.includes('flex');
-    for (const part of caption.children) {
-      // A part a layout leaves out draws no box, so it runs past nothing.
-      if (part.getClientRects().length === 0) continue;
-      const box = part.getBoundingClientRect();
-      if (box.left < own.left - 0.5 || box.right > own.right + 0.5)
-        found.push(finding('L-55', part, 'the caption runs past its specimen'));
-      const range = document.createRange();
-      range.selectNodeContents(part);
-      /* A caption's props are boxes of their own, a pixel off its text, so only a step of half
-         a line or more starts a new line. */
-      const tops = [...range.getClientRects()].map((line) => line.top).sort((a, b) => a - b);
-      const half = parseFloat(getComputedStyle(part).lineHeight) / 2;
-      const lines = tops.filter(
-        (top, index) => index === 0 || top - tops[index - 1] >= half
-      ).length;
-      if (lines > 1 && grows && own.width < room - 1)
-        found.push(finding('L-55', part, 'the caption wraps while its specimen has room to grow'));
-    }
+    const range = document.createRange();
+    range.selectNodeContents(caption);
+    const boxes = [...range.getClientRects()].filter((box) => box.width > 0);
+    if (boxes.some((box) => box.left < own.left - 0.5 || box.right > own.right + 0.5))
+      found.push(finding('L-55', caption, 'the caption runs past its specimen'));
+    /* A caption's parts are boxes of their own, a pixel off its text, so only a step of half
+       a line or more starts a new line. */
+    const tops = boxes.map((box) => box.top).sort((a, b) => a - b);
+    const half = parseFloat(getComputedStyle(caption).lineHeight) / 2;
+    const lines = tops.filter((top, index) => index === 0 || top - tops[index - 1] >= half).length;
+    if (lines > 1 && grows && own.width < room - 1)
+      found.push(finding('L-55', caption, 'the caption wraps while its specimen has room to grow'));
   }
 
   for (const stack of audited(root, ".specimens[data-layout='stack']")) {
@@ -2005,12 +1999,7 @@ function specimens(root: Document): Finding[] {
       const space = getComputedStyle(body);
       const pad = parseFloat(space.paddingLeft) + parseFloat(space.paddingRight);
       const ink = inkWidth(body);
-      const bandWidth = band
-        ? [...band.children].reduce((sum, part) => sum + part.getBoundingClientRect().width, 0) +
-          parseFloat(getComputedStyle(band).columnGap || '0') * (band.children.length - 1) +
-          parseFloat(getComputedStyle(band).paddingLeft) +
-          parseFloat(getComputedStyle(band).paddingRight)
-        : 0;
+      const bandWidth = band ? inkWidth(band) : 0;
       return { share: ink / (body.clientWidth - pad), natural: Math.max(ink + pad, bandWidth) + 1 };
     });
     const fits = sizes.reduce((sum, size) => sum + size.natural, 0) <= stack.clientWidth;

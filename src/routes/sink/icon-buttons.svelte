@@ -36,7 +36,7 @@
       />
     {/snippet}
   </Variants>
-  <Specimen label="Soft disabled" code={'aria-disabled="true"'}>
+  <Specimen label="Soft disabled">
     <IconButton
       icon="trash"
       label="Soft disabled action"
@@ -51,19 +51,19 @@
   title="Glyphs"
   note="Only glyphs every reader reads the same way stand alone, and any other action is a Button with its word"
 >
-  <Specimen label="Settings" code={'icon="settings"'}>
+  <Specimen label="Settings">
     <IconButton icon="settings" label="Open Settings" />
   </Specimen>
-  <Specimen label="Delete" code={'icon="trash"'}>
+  <Specimen label="Delete">
     <IconButton icon="trash" label="Remove the rule" />
   </Specimen>
-  <Specimen label="More" code={'icon="more"'}>
+  <Specimen label="More">
     <IconButton icon="more" label="More actions" />
   </Specimen>
-  <Specimen label="Close" code={'icon="close"'}>
+  <Specimen label="Close">
     <IconButton icon="close" label="Close the panel" />
   </Specimen>
-  <Specimen label="Search" code={'icon="search"'}>
+  <Specimen label="Search">
     <IconButton icon="search" label="Search the list" />
   </Specimen>
 </Example>

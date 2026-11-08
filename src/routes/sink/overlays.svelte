@@ -30,7 +30,7 @@
 </script>
 
 <Example title="Popover" note="The browser toggles it, keeps it in the top layer and returns focus">
-  <Specimen label="Toggled by its trigger" code={'popovertarget width="min-trigger"'}>
+  <Specimen label="Toggled by its trigger">
     <Button bind:element={trigger} popovertarget="sink-popover">
       Show Details
       {#snippet trailing()}<Icon name="chevron-down" size="base" />{/snippet}
@@ -48,7 +48,7 @@
       </div>
     </Popover>
   </Specimen>
-  <Specimen label="Above, flipped below when there is no room" code={'side="block-start"'}>
+  <Specimen label="Above, flipped below when there is no room">
     <Button bind:element={above} popovertarget="sink-popover-above">
       Show the Author
       {#snippet trailing()}<Icon name="chevron-up" size="base" />{/snippet}
@@ -66,7 +66,7 @@
       </div>
     </Popover>
   </Specimen>
-  <Specimen label="Manual, closed by its button or Escape" code={'dismiss="manual"'}>
+  <Specimen label="Manual, closed by its button or Escape">
     <Button bind:element={pinned} popovertarget="sink-popover-pinned">
       Pin the Notes
       {#snippet trailing()}<Icon name="chevron-down" size="base" />{/snippet}
@@ -109,10 +109,10 @@
   title="Tooltip"
   note="Hover pauses before it shows, focus shows it at once, and a long press shows it on touch"
 >
-  <Specimen label={pressed} code={'icon="settings" label'}>
+  <Specimen label={pressed}>
     <IconButton icon="settings" label="Open the settings" onclick={() => (opens += 1)} />
   </Specimen>
-  <Specimen label="Description tip, words the button lacks" code="text">
+  <Specimen label="Description tip, words the button lacks">
     <Button bind:element={sync} onclick={() => (synced = true)}>Sync Now</Button>
     <Tooltip anchor={sync} text={syncHint} />
   </Specimen>
@@ -122,7 +122,7 @@
   title="Open"
   note="The popover and a described tip drawn in place, so a review needs no click or hover"
 >
-  <Specimen label="Open popover" code="inline">
+  <Specimen label="Open popover">
     <div class="open">
       <Button aria-expanded="true" aria-controls="sink-popover-open">
         Show Details
@@ -142,7 +142,7 @@
       </Popover>
     </div>
   </Specimen>
-  <Specimen label="Open tip" code="preview">
+  <Specimen label="Open tip">
     <div class="open">
       <Button bind:element={openSync} onclick={() => (synced = true)}>Sync Now</Button>
       <Tooltip anchor={openSync} preview text={syncHint} />

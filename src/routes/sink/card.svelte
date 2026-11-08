@@ -41,7 +41,7 @@
   layout="stack"
   ground="canvas"
 >
-  <Specimen label="3 peers" code="href">
+  <Specimen label="3 peers">
     <div class="peers">
       <Card href="#card" title="Repositories" description="16 in acme" level={4}>
         <p class="copy">3 differ from the saved settings</p>
@@ -66,7 +66,7 @@
   layout="stack"
   ground="canvas"
 >
-  <Specimen label="Framed, menu, ghost, switch, segmented & pill" code="href actions">
+  <Specimen label="Framed, menu, ghost, switch, segmented & pill">
     <div class="peers wide">
       <Card href="#card" title="Branch Rules" level={4}>
         {#snippet actions()}<Button>Edit Rules</Button>{/snippet}
@@ -113,7 +113,7 @@
   layout="stack"
   ground="canvas"
 >
-  <Specimen label="Danger zone" code={'tone="danger" footer'}>
+  <Specimen label="Danger zone">
     <Card
       title="Danger Zone"
       description="Deleting the workspace removes the rules and history of its 16 repositories for everyone"
@@ -131,7 +131,7 @@
   layout="stack"
   ground="canvas"
 >
-  <Specimen label="An expired invite" code="title description footer">
+  <Specimen label="An expired invite">
     <div class="bare">
       <Card title="This Invite Has Expired" description="Invites last 7&nbsp;days" level={4}>
         <p class="copy">Ask an owner of acme to send you a new one</p>
@@ -154,7 +154,7 @@
       </Card>
     </div>
   </Specimen>
-  <Specimen label="Unsaved" code="unsaved">
+  <Specimen label="Unsaved">
     <div class="bare">
       <Card title="Workspace" description="Changed since the last save" level={4} unsaved>
         <Field label="Workspace name" value="acme-platform" />
@@ -169,7 +169,7 @@
   layout="stack"
   ground="canvas"
 >
-  <Specimen label="Wrapping title & description" code="href actions">
+  <Specimen label="Wrapping title & description">
     <Card
       href="#card"
       title="Required Status Checks That Every Pull Request into a Protected Branch Must Pass Before It Can Merge"
@@ -189,7 +189,7 @@
   layout="stack"
   ground="canvas"
 >
-  <Specimen label="In 20 rem" code="href">
+  <Specimen label="In 20 rem">
     <div class="narrow">
       <Card href="#card" title="Storage" description="Across every repository" level={4}>
         <p class="copy">84.7&nbsp;MB of 1&nbsp;GB</p>

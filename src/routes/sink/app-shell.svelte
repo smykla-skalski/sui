@@ -38,7 +38,7 @@
   ground="canvas"
   code={false}
 >
-  <Specimen label="Phone" code="bottomNav">
+  <Specimen label="Phone">
     <LayoutPreview
       href={resolve('/layouts/app-shell/[[variant]]', { variant: 'bottom-nav' }) + '/'}
       {source}

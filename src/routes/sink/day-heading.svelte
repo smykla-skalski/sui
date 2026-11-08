@@ -56,8 +56,7 @@
   {#each readings as day (day.label)}
     <Specimen label={day.label}><DayHeading value={day.value} level={4} /></Specimen>
   {/each}
-  <Specimen label="Not a date" code={'value="soon"'}><DayHeading value="soon" level={4} /></Specimen
-  >
+  <Specimen label="Not a date"><DayHeading value="soon" level={4} /></Specimen>
 </Example>
 
 <Example

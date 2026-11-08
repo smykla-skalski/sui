@@ -15,10 +15,10 @@
 </script>
 
 <Example title="Facts" note="The dot stands 9 px from each fact and is read as a comma">
-  <Specimen label="Words" code="children">
+  <Specimen label="Words">
     <FactLine><span>Default branch main</span><span>84 files up to date</span></FactLine>
   </Specimen>
-  <Specimen label="With a time" code="children">
+  <Specimen label="With a time">
     <FactLine
       ><span>Synced <RelativeTime value={synced} /></span><span>3 rules would change</span
       ></FactLine
@@ -27,7 +27,7 @@
 </Example>
 
 <Example title="Narrow Width" note="A long line wraps after a dot, never before one" layout="stack">
-  <Specimen label="Wrapping" code="children">
+  <Specimen label="Wrapping">
     <div class="narrow">
       <FactLine
         ><span>Default branch release/2026-10</span><span>1,284 files up to date</span><span

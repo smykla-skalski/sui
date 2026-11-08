@@ -34,16 +34,16 @@
   note="Empty, filled with its clear button and with an example query, each under its drawn label, and Escape clears the query before it closes anything"
   layout="grid"
 >
-  <Specimen label="Empty" code="placeholder">
+  <Specimen label="Empty">
     <SearchField label="Search the projects" placeholder="acme-web…" bind:value={query} />
   </Specimen>
-  <Specimen label="Filled" code="bind:value">
+  <Specimen label="Filled">
     <SearchField label="Search the people" placeholder="Jane Doe…" bind:value={people} />
   </Specimen>
-  <Specimen label="Example placeholder" code="placeholder">
+  <Specimen label="Example placeholder">
     <SearchField label="Search the teams" placeholder="platform…" bind:value={teams} />
   </Specimen>
-  <Specimen label="Disabled" code="disabled">
+  <Specimen label="Disabled">
     <SearchField label="Search the locked projects" value="Locked" disabled />
   </Specimen>
 </Example>
@@ -53,10 +53,10 @@
   note="34 px by default and 44 px on phones, and a surface may opt into 40 px with the clear button centred"
   layout="grid"
 >
-  <Specimen label="Default" code="--sui-control-height-compact">
+  <Specimen label="Default">
     <SearchField label="Search the teams" placeholder="Platform team…" value="Platform" />
   </Specimen>
-  <Specimen label="Tall" code="--sui-local-control-height">
+  <Specimen label="Tall">
     <div class="tall">
       <SearchField label="Search the members" placeholder="octocat…" value="Bart" />
     </div>
@@ -68,7 +68,7 @@
   note="A search the form sends refuses a query its constraints reject and says why under the field"
   layout="grid"
 >
-  <Specimen label={searched} code="required minlength validationMessage">
+  <Specimen label={searched}>
     <form class="search" onsubmit={search}>
       <SearchField
         label="Search the audit log"

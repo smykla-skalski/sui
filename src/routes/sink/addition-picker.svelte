@@ -43,10 +43,10 @@
   title="States"
   note="Loading, failed, empty and used-up lists say so inside the menu, and a locked picker says why"
 >
-  <Specimen label="Loading" code="loading">
+  <Specimen label="Loading">
     <AdditionPicker label="Add a Check" choices={[]} loading onadd={() => {}} />
   </Specimen>
-  <Specimen label="Failed" code="error onretry">
+  <Specimen label="Failed">
     <AdditionPicker
       label="Add a Check"
       choices={failed ? [] : behaviours}
@@ -55,10 +55,10 @@
       onadd={() => {}}
     />
   </Specimen>
-  <Specimen label="Nothing to add" code={'choices={[]}'}>
+  <Specimen label="Nothing to add">
     <AdditionPicker label="Add a Check" choices={[]} onadd={() => {}} />
   </Specimen>
-  <Specimen label="Everything added" code="added">
+  <Specimen label="Everything added">
     <AdditionPicker
       label="Add a Check"
       choices={behaviours}
@@ -66,7 +66,7 @@
       onadd={() => {}}
     />
   </Specimen>
-  <Specimen label="Disabled" code="disabled">
+  <Specimen label="Disabled">
     <div class="locked">
       <AdditionPicker label="Override a Behaviour" choices={behaviours} disabled onadd={() => {}} />
       <p class="reason">The workspace locks these behaviours for every repository</p>

@@ -67,7 +67,7 @@
   title="Live Updates"
   note="A live dot pulses again once it has been still for 5&nbsp;seconds, each run under 5&nbsp;seconds, so it never needs a pause control"
 >
-  <Specimen label="Pulses on each update" code="live beat">
+  <Specimen label="Pulses on each update">
     <span class="row">
       <Pill tone="success" live beat={updates}>Syncing</Pill>
       <Button onclick={() => updates++}>Receive an Update</Button>
@@ -79,7 +79,7 @@
   title="Changing Status"
   note="A pill whose state changes in place is a status region, so its new word is spoken"
 >
-  <Specimen label="Spoken on change" code={'role="status" dot'}>
+  <Specimen label="Spoken on change">
     <span class="row">
       <Pill role="status" tone={healthy ? 'success' : 'warning'} dot>
         {healthy ? 'Healthy' : 'Degraded'}

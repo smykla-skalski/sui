@@ -82,13 +82,13 @@
   title="Check List"
   note="Short labels run along one line, a description puts each on its own line, and a saving list stays focusable"
 >
-  <Specimen label="Short labels" code="options">
+  <Specimen label="Short labels">
     <CheckList label="Labels on the pull request" options={kinds} bind:value={labels} />
   </Specimen>
-  <Specimen label="With descriptions" code="description">
+  <Specimen label="With descriptions">
     <CheckList label="Permissions" options={scopes} bind:value={granted} />
   </Specimen>
-  <Specimen label="Locked while saving" code="disabled">
+  <Specimen label="Locked while saving">
     <CheckList
       label="Labels on the issue"
       hint="Saving the labels…"
@@ -104,7 +104,7 @@
   note="A required group says so after its question, and an error under it names what is missing"
   layout="stack"
 >
-  <Specimen label="Required, still unanswered" code="required error">
+  <Specimen label="Required, still unanswered">
     <CheckList
       label="Agreement"
       required

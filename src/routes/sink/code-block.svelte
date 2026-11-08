@@ -53,19 +53,19 @@ grep -rn 'export default' dist 2>/dev/null || echo "No exports"`;
   layout="stack"
   ground="canvas"
 >
-  <Specimen label="YAML" code={'lang="yaml"'}>
+  <Specimen label="YAML">
     <CodeBlock code={yaml} lang="yaml" />
   </Specimen>
-  <Specimen label="TOML" code={'lang="toml"'}>
+  <Specimen label="TOML">
     <CodeBlock code={toml} lang="toml" />
   </Specimen>
-  <Specimen label="Markdown" code={'lang="markdown"'}>
+  <Specimen label="Markdown">
     <CodeBlock code={markdown} lang="markdown" />
   </Specimen>
-  <Specimen label="Shell" code={'lang="shell"'}>
+  <Specimen label="Shell">
     <CodeBlock code={shell} lang="shell" />
   </Specimen>
-  <Specimen label="Plain text" code={'lang="text"'}>
+  <Specimen label="Plain text">
     <CodeBlock code="SUI_THEME=dark" lang="text" />
   </Specimen>
 </Example>
@@ -76,10 +76,10 @@ grep -rn 'export default' dist 2>/dev/null || echo "No exports"`;
   layout="stack"
   ground="canvas"
 >
-  <Specimen label="File label & line numbers" code="label lineNumbers">
+  <Specimen label="File label & line numbers">
     <CodeBlock code={json} lang="json" label="renovate.json" lineNumbers />
   </Specimen>
-  <Specimen label="Without a copy control" code={'copy={false}'}>
+  <Specimen label="Without a copy control">
     <CodeBlock code="npm run check" lang="shell" copy={false} />
   </Specimen>
 </Example>
@@ -96,16 +96,16 @@ grep -rn 'export default' dist 2>/dev/null || echo "No exports"`;
 </Example>
 
 <Example title="Copy Control" note="It names what it copies and says Copied for 1.6&nbsp;seconds">
-  <Specimen label="Default name" code="text">
+  <Specimen label="Default name">
     <CopyButton text="npm install @smykla-skalski/sui" />
   </Specimen>
-  <Specimen label="Named for what it copies" code={'label="Copy Version"'}>
+  <Specimen label="Named for what it copies">
     <CopyButton text="0.2.1" label="Copy Version" />
   </Specimen>
-  <Specimen label="Toolbar tier, 34 px" code="toolbar">
+  <Specimen label="Toolbar tier, 34 px">
     <CopyButton text="https://sui.smyklot.com" label="Copy Link" toolbar />
   </Specimen>
-  <Specimen label="Disabled" code="disabled">
+  <Specimen label="Disabled">
     <div class="copy-locked">
       <CopyButton
         text="YOUR_API_TOKEN_HERE"

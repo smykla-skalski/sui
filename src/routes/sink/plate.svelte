@@ -21,7 +21,7 @@
   layout="stack"
   ground="canvas"
 >
-  <Specimen label="Head only" code="status">
+  <Specimen label="Head only">
     <Plate title="Nightly Backup" level={4}>
       {#snippet status()}
         <span class="state"><Icon name="pending" size="sm" /><span>Not run yet</span></span>
@@ -62,7 +62,7 @@
   layout="stack"
   ground="canvas"
 >
-  <Specimen label="Announced" code="status">
+  <Specimen label="Announced">
     <div class="change">
       <Plate title="Template Sync" level={4}>
         {#snippet status()}

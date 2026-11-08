@@ -81,14 +81,14 @@
   layout="grid"
   ground="canvas"
 >
-  <Specimen label="Title & description" code="title description">
+  <Specimen label="Title & description">
     <Section title="Outcome" description="What the last check found" level={4}>
       <p class="copy">
         3 repositories differ from the saved settings, 12 match and the check skipped 1
       </p>
     </Section>
   </Specimen>
-  <Specimen label="Count & link" code="count actions">
+  <Specimen label="Count & link">
     <Section title="Repositories" count={16} level={4}>
       {#snippet actions()}
         <Link href="#section-parts" standalone>Open sync page</Link>
@@ -96,7 +96,7 @@
       <p class="copy">Every repository in the acme workspace</p>
     </Section>
   </Specimen>
-  <Specimen label="Quiet button" code="actions">
+  <Specimen label="Quiet button">
     <Section title="Webhooks" description="Deliveries in the last 24&nbsp;hours" level={4}>
       {#snippet actions()}<Button tone="ghost">Refresh</Button>{/snippet}
       <p class="copy">All 18 deliveries succeeded</p>
@@ -135,7 +135,7 @@
   layout="stack"
   ground="canvas"
 >
-  <Specimen label="Nested" code="level">
+  <Specimen label="Nested">
     <Section title="Access" description="Who can open this workspace" level={4}>
       <p class="copy">3 teams and 2 people have access</p>
       <Section title="Teams" count={3} level={5}>
@@ -170,7 +170,7 @@
   layout="stack"
   ground="canvas"
 >
-  <Specimen label="The stage’s width" code="main aside">
+  <Specimen label="The stage’s width">
     {@render pane()}
   </Specimen>
   <Specimen label="In 30 rem">
