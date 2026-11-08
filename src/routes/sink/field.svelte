@@ -251,6 +251,7 @@
         error="Enter an email address such as you@example.com"
         placeholder="jane@example.com…"
       />
+      <Button tone="signal" class="action">Create the Repository</Button>
     </div>
   </Specimen>
 </Example>
