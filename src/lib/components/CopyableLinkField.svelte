@@ -68,7 +68,7 @@ the text field.
 
 - Semantics: a read-only text area named by its `Field` label or `aria-label`, and a copy button named by `copyLabel`, which starts with its shown word, inside one joined field.
 - Content: one link or token in the mono face, and the copy action's three short labels.
-- States: rest (the inset well and a quiet frame, because it only reads), focus on the value (the field's ring, the value selected), focus on the copy action (its own inset ring), pressed copy action (a deeper veil and an inset shadow), copied and failed.
+- States: rest (the field well and a quiet frame, because it only reads), focus on the value (the field's ring, the value selected), focus on the copy action (its own inset ring), pressed copy action (a deeper veil and an inset shadow), copied and failed.
 - Keyboard: Tab selects the value and moves on to the copy action, Enter or Space copies, and the platform's own copy works on the selection.
 - Pointer and touch: 34px tall, 44px on a phone or any touch screen, and the copy action keeps a 44px hit area there.
 - Focus: copying keeps focus on the action, and a refused copy moves it to the value, selected.

@@ -188,6 +188,7 @@ function palette(): Finding[] {
     ['text-muted', 'surface-raised'],
     ['text-muted', 'surface-control'],
     ['text-muted', 'surface-inset'],
+    ['text-muted', 'field-well'],
     ['text-muted', 'canvas'],
     ['brand-action-text', 'surface-base'],
     ['link', 'surface-base'],
@@ -314,6 +315,9 @@ function palette(): Finding[] {
       1.3
     )
   );
+  // A field that is off or only reads keeps its well apart from every ground a field stands on.
+  for (const ground of ['canvas', 'surface-base', 'surface-raised'])
+    found.push(...between('L-10', `field-well on ${ground}`, c('field-well', ground), 1.05, 1.3));
 
   const hover = t('interactive-hover-layer');
   const pressed = t('interactive-pressed');
