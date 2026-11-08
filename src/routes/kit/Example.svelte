@@ -82,7 +82,9 @@ live specimens, not a surface of the design, so it may hold cards and dialogs (L
     min-inline-size: 0;
   }
 
+  /* A head that a row of examples stretches keeps its title and note at its top. */
   .head {
+    align-content: start;
     display: grid;
     gap: var(--sui-title-copy-gap);
   }

@@ -308,7 +308,16 @@ suite('forms', together, () => {
               return box && { top: box.top, end: box.right, width: box.width };
             })
           );
-        const [states, context, narrow] = await frames(await opened());
+        const page = await opened();
+        const heads = await page.evaluate(() =>
+          ['in-context', 'narrow-width'].map((name) => {
+            const title = document.getElementById(`field-${name}`);
+            const note = title?.closest('.head')?.querySelector('.note');
+            return [title?.getBoundingClientRect().top, note?.getBoundingClientRect().top];
+          })
+        );
+        assert.deepEqual(heads[1], heads[0], 'the two titles and notes start on one line');
+        const [states, context, narrow] = await frames(page);
         assert.ok(states && context && narrow);
         assert.equal(context.top, narrow.top, 'the pair stands on one row');
         assert.ok(
