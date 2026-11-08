@@ -15,7 +15,8 @@
     Field,
     Section,
     Select,
-    Textarea
+    Textarea,
+    TextInput
   } from '#lib';
   import Example from '../kit/Example.svelte';
   import Specimen from '../kit/Specimen.svelte';
@@ -24,7 +25,6 @@
   let owner = $state('smykla-skalski');
   let team = $state('Team with spaces');
   let repository = $state('');
-  let summary = $state('');
   let reason = $state('');
   let region = $state('eu-west');
   let label = $state('triage');
@@ -54,7 +54,7 @@
 <Example
   title="States"
   --example-max="54rem"
-  note="Rest, filled with a hint, invalid with its error and disabled with its reason"
+  note="Rest, filled with a hint, required by a word beside its label, invalid with its error, read only and disabled with its reason"
   layout="grid"
   --specimen-min="21rem"
 >
@@ -68,33 +68,6 @@
       bind:value={owner}
     />
   </Specimen>
-  <Specimen label="Invalid">
-    <Field
-      label="Team name"
-      hint="Shown on every review request"
-      error="Use letters, digits and dashes only"
-      bind:value={team}
-    />
-  </Specimen>
-  <Specimen label="Disabled">
-    <Field
-      label="Default branch"
-      spellcheck="false"
-      autocapitalize="off"
-      hint="Only an owner can rename the default branch"
-      value="main"
-      disabled
-    />
-  </Specimen>
-</Example>
-
-<Example
-  title="Required"
-  --example-max="54rem"
-  note="A required field says so in a word beside its label, and an optional one says nothing"
-  layout="grid"
-  --specimen-min="21rem"
->
   <Specimen label="Required">
     <Field
       label="Repository name"
@@ -105,8 +78,37 @@
       bind:value={repository}
     />
   </Specimen>
-  <Specimen label="Optional">
-    <Field label="Description" hint="Shown under the name in every list" bind:value={summary} />
+  <Specimen label="Invalid">
+    <Field
+      label="Team name"
+      hint="Shown on every review request"
+      error="Use letters, digits and dashes only"
+      bind:value={team}
+    />
+  </Specimen>
+  <Specimen label="Read only">
+    <Field label="Repository ID" hint="Sent with every call to the API">
+      {#snippet control({ id, describedby, invalid })}
+        <TextInput
+          {id}
+          aria-describedby={describedby}
+          {invalid}
+          mono
+          value="R_kgDOL8q2Zw"
+          readonly
+        />
+      {/snippet}
+    </Field>
+  </Specimen>
+  <Specimen label="Disabled">
+    <Field
+      label="Default branch"
+      spellcheck="false"
+      autocapitalize="off"
+      hint="Only an owner can rename the default branch"
+      value="main"
+      disabled
+    />
   </Specimen>
 </Example>
 
@@ -272,7 +274,7 @@
 
 <Example
   title="Narrow Width"
-  --example-max="24rem"
+  --example-max="calc(16rem + 2 * var(--sui-space-6) + 2 * var(--sui-stroke))"
   note="Long labels, hints and errors wrap at one 20 px leading"
   layout="stack"
 >
