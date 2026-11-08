@@ -18,7 +18,7 @@
 
 <Example
   title="States"
-  note="Rest, filled, invalid, read only and disabled, each under its label, and the locked ones say why"
+  note="Rest, filled, invalid, read only and disabled, and the locked ones say why"
   layout="grid"
 >
   <Specimen label="Rest">
