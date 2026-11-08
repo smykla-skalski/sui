@@ -1095,6 +1095,31 @@ test('L-10 a read-only field frames its value between a keyline and an editable 
     );
 });
 
+test('L-10 a disabled field sits in a quieter tint of the well, firmer than a read-only one', () => {
+  const share = (/** @type {string} */ name) =>
+    [
+      ...palette.matchAll(
+        new RegExp(`--sui-${name}: color-mix\\(in srgb, var\\(--sui-field-well\\) (\\d+)%`, 'g')
+      )
+    ].map(([, value]) => Number(value));
+  const [off, reads] = [share('field-disabled'), share('field-readonly')];
+  assert.equal(off.length, 3, 'the light, dark and system dark blocks');
+  off.forEach((value, index) => {
+    assert.ok(value < 100, `a disabled field fills the whole well (${value}%)`);
+    assert.ok(value > reads[index], `a disabled field is no firmer than a read-only one`);
+  });
+  for (const path of [
+    'src/lib/components/TextInput.svelte',
+    'src/lib/components/Textarea.svelte',
+    'src/lib/internal/JoinedField.svelte'
+  ])
+    assert.match(
+      styles[path],
+      /background-color: var\(--sui-field-disabled\);\s*border-color: transparent;/,
+      `${path} fills a disabled field another way`
+    );
+});
+
 test('L-41 a field keeps its frame and wears one ring 2px off it in every state', () => {
   for (const [path, rule] of [
     ['src/lib/components/TextInput.svelte', '.sui-text-input:focus-visible'],

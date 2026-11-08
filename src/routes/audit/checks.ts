@@ -348,7 +348,8 @@ function palette(): Finding[] {
   );
   // A field that is off or only reads keeps its well apart from every ground a field stands on.
   for (const ground of ['canvas', 'surface-base', 'surface-raised'])
-    found.push(...between('L-10', `field-well on ${ground}`, c('field-well', ground), 1.05, 1.3));
+    for (const well of ['field-well', 'field-disabled'])
+      found.push(...between('L-10', `${well} on ${ground}`, c(well, ground), 1.05, 1.3));
 
   const hover = t('interactive-hover-layer');
   const pressed = t('interactive-pressed');
@@ -2284,7 +2285,7 @@ function fieldRecesses(root: Document): Finding[] {
     if (field.matches(`${off}, ${reads}`)) {
       if (line) found.push(finding('L-9', field, 'a read-only or disabled field draws a recess'));
       const [token, words] = field.matches(off)
-        ? ['--sui-field-well', 'a disabled field leaves the field well']
+        ? ['--sui-field-disabled', "a disabled field leaves the well's quieter tint"]
         : ['--sui-field-readonly', "a read-only field leaves the well's lighter tint"];
       const [fill, want] = [rgba(look.backgroundColor), rgba(look.getPropertyValue(token))];
       if (fill.r !== want.r || fill.g !== want.g || fill.b !== want.b || fill.a !== want.a)

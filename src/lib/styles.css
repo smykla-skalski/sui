@@ -334,6 +334,7 @@
   /* A field that is off sits in this well, and one that only reads in a lighter tint of it (L-10). */
   --sui-field-well: var(--sui-surface-inset);
   --sui-field-readonly: color-mix(in srgb, var(--sui-field-well) 55%, transparent);
+  --sui-field-disabled: color-mix(in srgb, var(--sui-field-well) 75%, transparent);
   /* A read-only field's frame: firmer than a card's keyline, so its value keeps a contour, and
      lighter than an editable field's frame, so it never reads as one to type in (L-10). */
   --sui-field-readonly-frame: rgb(0 0 0 / 16%);
@@ -810,6 +811,7 @@
      that stands apart on every ground a field stands on (L-10). */
   --sui-field-well: color-mix(in srgb, #ffffff 7%, transparent);
   --sui-field-readonly: color-mix(in srgb, var(--sui-field-well) 55%, transparent);
+  --sui-field-disabled: color-mix(in srgb, var(--sui-field-well) 75%, transparent);
   --sui-field-readonly-frame: rgb(255 255 255 / 20%);
   --sui-row-pressed: color-mix(in srgb, #ffffff 12.4%, transparent);
 
@@ -1036,6 +1038,7 @@
        that stands apart on every ground a field stands on (L-10). */
     --sui-field-well: color-mix(in srgb, #ffffff 7%, transparent);
     --sui-field-readonly: color-mix(in srgb, var(--sui-field-well) 55%, transparent);
+    --sui-field-disabled: color-mix(in srgb, var(--sui-field-well) 75%, transparent);
     --sui-field-readonly-frame: rgb(255 255 255 / 20%);
     --sui-row-pressed: color-mix(in srgb, #ffffff 12.4%, transparent);
 
