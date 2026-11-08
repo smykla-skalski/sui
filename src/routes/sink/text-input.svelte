@@ -12,18 +12,26 @@
   import Specimen from '../kit/Specimen.svelte';
 
   let name = $state('');
+  let display = $state('Acme Web');
   let digest = $state('sha256:9f86d081884c7d65');
 </script>
 
 <Example
   title="States"
-  note="Rest, filled, invalid, read only and disabled, each under its label, and the locked one says why"
+  note="Rest, filled, invalid, read only and disabled, each under its label, and the locked ones say why"
   layout="grid"
 >
   <Specimen label="Rest" code="placeholder">
     <Field label="Project name">
       {#snippet control({ id, describedby })}
         <TextInput {id} aria-describedby={describedby} placeholder="acme-web…" bind:value={name} />
+      {/snippet}
+    </Field>
+  </Specimen>
+  <Specimen label="Filled" code="value">
+    <Field label="Display name">
+      {#snippet control({ id, describedby })}
+        <TextInput {id} aria-describedby={describedby} bind:value={display} />
       {/snippet}
     </Field>
   </Specimen>
@@ -60,6 +68,7 @@
 <Example
   title="Tiers"
   note="34 px by default and 44 px on phones, and a surface may opt into 40 px"
+  layout="grid"
 >
   <Specimen label="Default" code="--sui-control-height-compact">
     <Field label="Filter the projects">
@@ -72,7 +81,7 @@
     <div class="tall">
       <Field label="Search the projects">
         {#snippet control({ id, describedby })}
-          <TextInput {id} aria-describedby={describedby} type="search" placeholder="platform…" />
+          <TextInput {id} aria-describedby={describedby} placeholder="platform…" />
         {/snippet}
       </Field>
     </div>
