@@ -1124,6 +1124,11 @@ test('L-41 a field keeps its frame and wears one ring 2px off it in every state'
       /--sui-field-recess: var\(--sui-field-danger-recess\);\s*--sui-field-recess-hover: var\(--sui-field-danger-recess-hover\);\s*border-color: var\(--sui-danger-edge\);/,
       `${path} tints an invalid field's recess with its edge's red`
     );
+    assert.match(
+      styles[path],
+      /:not\([^{]*\{\s*border-color: var\(--sui-field-frame-focus\);\s*border-block-end-color: var\(--sui-field-border-focus\);\s*\}/,
+      `${path} leans an editable frame and its baseline toward the ring on focus`
+    );
     assert.doesNotMatch(
       styles[path],
       /border-color: var\(--sui-danger(-hover)?\);/,

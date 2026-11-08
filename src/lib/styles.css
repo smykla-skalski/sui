@@ -314,8 +314,10 @@
   );
   --sui-field-recess: var(--sui-primitive-light-recess);
   --sui-field-recess-hover: var(--sui-primitive-light-recess-hover);
-  /* Under a focus ring the recess eases to two thirds, so the ring leads the top edge and the
-     field still sits in its ground (L-9). */
+  /* A focused editable field leans its frame and baseline toward the ring, so the field and
+     its ring read as one (L-41). */
+  --sui-field-frame-focus: color-mix(in srgb, var(--sui-focus) 40%, var(--sui-field-frame));
+  --sui-field-border-focus: color-mix(in srgb, var(--sui-focus) 40%, var(--sui-field-border));
   --sui-popover-bg: var(--sui-surface-base);
   --sui-popover-border: var(--sui-border-control);
 
@@ -857,6 +859,8 @@
   );
   --sui-field-recess: var(--sui-primitive-dark-recess);
   --sui-field-recess-hover: var(--sui-primitive-dark-recess-hover);
+  --sui-field-frame-focus: color-mix(in srgb, var(--sui-focus) 40%, var(--sui-field-frame));
+  --sui-field-border-focus: color-mix(in srgb, var(--sui-focus) 40%, var(--sui-field-border));
   --sui-popover-border: var(--sui-border-control);
   --sui-dialog-border: var(--sui-border-control);
   --sui-shadow-plate:
@@ -1078,6 +1082,8 @@
     );
     --sui-field-recess: var(--sui-primitive-dark-recess);
     --sui-field-recess-hover: var(--sui-primitive-dark-recess-hover);
+    --sui-field-frame-focus: color-mix(in srgb, var(--sui-focus) 40%, var(--sui-field-frame));
+    --sui-field-border-focus: color-mix(in srgb, var(--sui-focus) 40%, var(--sui-field-border));
     --sui-popover-border: var(--sui-border-control);
     --sui-dialog-border: var(--sui-border-control);
     --sui-shadow-plate:

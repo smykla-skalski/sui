@@ -276,7 +276,10 @@ function palette(): Finding[] {
     'surface-control',
     'surface-inset'
   ])
-    found.push(...atLeast('L-9', `field-border on ${ground}`, c('field-border', ground), 3));
+    found.push(
+      ...atLeast('L-9', `field-border on ${ground}`, c('field-border', ground), 3),
+      ...atLeast('L-9', `field-border-focus on ${ground}`, c('field-border-focus', ground), 3)
+    );
   for (const ground of ['unsaved-surface', 'unsaved-control'])
     found.push(
       ...atLeast('L-9', `unsaved-field-border on ${ground}`, c('unsaved-field-border', ground), 3),

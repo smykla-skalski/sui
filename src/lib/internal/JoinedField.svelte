@@ -105,6 +105,11 @@ the end part draws its own inset ring while it has focus, so the two never look 
     outline-offset: var(--sui-focus-ring-offset);
   }
 
+  .sui-joined:not(.invalid, .readonly):has(.sui-joined-value :global(:focus-visible)) {
+    border-color: var(--sui-field-frame-focus);
+    border-block-end-color: var(--sui-field-border-focus);
+  }
+
   /* An invalid field's ring takes the danger color, so focus never reads as a second, calm
      state beside the red edge (L-41). */
   .sui-joined.invalid:has(.sui-joined-value :global(:focus-visible)) {

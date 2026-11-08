@@ -61,7 +61,7 @@ It has no label of its own. Put it in a `Field` through the `control` snippet, o
 
 - Semantics: a native `<textarea>`, named by a `<label for>` or `aria-label`; `invalid`, a caller's `aria-invalid` or a value the browser's check refused sets `aria-invalid`.
 - Content: free text over several lines, `rows` lines tall before it scrolls, with an optional placeholder that is an example and never the label. `mono` text is never spellchecked or capitalized.
-- States: rest (the control fill, a quiet frame, a recess under its top edge darker than the frame and a 3:1 baseline), hover (a firmer frame and recess), focus (the rest fill and frame with a 2px ring 2px off it, so a focused field never reads as read-only), invalid (a danger edge on all four sides, kept under hover and focus), held (disabled while a busy dialog or a saving pane around it works, read only and focusable while a saving setting row does, 0.6 opacity either way) and read-only (a lighter tint of the field well under a quiet frame, no recess), disabled (the full field well with no frame and its words in the muted ink at full strength, no resize).
+- States: rest (the control fill, a quiet frame, a recess under its top edge darker than the frame and a 3:1 baseline), hover (a firmer frame and recess), focus (the rest fill, a frame and baseline leaning toward the ring, and a 2px ring 2px off it, so a focused field never reads as read-only), invalid (a danger edge on all four sides, kept under hover and focus), held (disabled while a busy dialog or a saving pane around it works, read only and focusable while a saving setting row does, 0.6 opacity either way) and read-only (a lighter tint of the field well under a quiet frame, no recess), disabled (the full field well with no frame and its words in the muted ink at full strength, no resize).
 - Keyboard: the browser's own text editing, Enter included; Ctrl+Enter or Cmd+Enter sends the form around it; Tab moves on.
 - Pointer and touch: at least 34px tall, 44px on a phone or any touch screen, with 16px text on a phone so iOS does not zoom; the resize grip is an extra, never the only way to read more.
 - Focus: it takes focus on a press and never moves it elsewhere.
@@ -135,6 +135,11 @@ It has no label of its own. Put it in a `Field` through the `control` snippet, o
   .sui-textarea:focus-visible {
     outline: var(--sui-focus-ring-width) solid var(--sui-focus);
     outline-offset: var(--sui-focus-ring-offset);
+  }
+
+  .sui-textarea:focus-visible:not([aria-invalid='true'], [readonly]) {
+    border-color: var(--sui-field-frame-focus);
+    border-block-end-color: var(--sui-field-border-focus);
   }
 
   /* An invalid field's ring takes the danger color, so focus never reads as a second, calm
