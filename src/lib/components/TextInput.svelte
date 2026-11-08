@@ -151,6 +151,7 @@ tabular figures.
   }
 
   .sui-text-input:focus-visible:not([aria-invalid='true'], [readonly], .bare) {
+    --sui-field-recess: var(--sui-field-recess-focus);
     border-color: var(--sui-field-frame-focus);
     border-block-end-color: var(--sui-field-border-focus);
   }

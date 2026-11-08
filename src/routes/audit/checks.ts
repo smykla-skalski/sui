@@ -323,6 +323,17 @@ function palette(): Finding[] {
           )
         );
     }
+  // A focused field's recess leans toward the ring with its frame and stays the darker line.
+  for (const name of ['canvas', 'surface-base', 'surface-raised', 'surface-inset']) {
+    const ground = over(t(name), t('surface-base'));
+    if (
+      lightness(over(t('field-recess-focus'), ground)) >=
+      lightness(over(t('field-frame-focus'), ground))
+    )
+      found.push(
+        finding('L-9', null, `field-recess-focus on ${name} is no darker than field-frame-focus`)
+      );
+  }
   found.push(
     ...between('L-10', 'control-bg on surface-base', c('control-bg', 'surface-base'), 1, 1.5)
   );

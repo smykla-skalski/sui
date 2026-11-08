@@ -106,6 +106,7 @@ the end part draws its own inset ring while it has focus, so the two never look 
   }
 
   .sui-joined:not(.invalid, .readonly):has(.sui-joined-value :global(:focus-visible)) {
+    --sui-field-recess: var(--sui-field-recess-focus);
     border-color: var(--sui-field-frame-focus);
     border-block-end-color: var(--sui-field-border-focus);
   }
