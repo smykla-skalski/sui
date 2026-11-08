@@ -2268,6 +2268,8 @@ function fieldRecesses(root: Document): Finding[] {
       found.push(finding('L-9', field, 'a field draws no recess under its top edge'));
       continue;
     }
+    // Under a focus ring the recess eases, and the ring, not the frame, is the edge over it.
+    if (field.matches(':focus-visible, :has(:focus-visible)')) continue;
     const ground = paintedGround(field);
     const frame = rgba(look.getPropertyValue('--sui-field-frame'));
     if (lightness(over(rgba(line.color), ground)) >= lightness(over(frame, ground)))

@@ -378,6 +378,7 @@ section's ground between them (L-91).
     --sui-field-border-hover: var(--sui-unsaved-field-border-hover);
     --sui-field-recess: var(--sui-unsaved-field-recess);
     --sui-field-recess-hover: var(--sui-unsaved-field-recess-hover);
+    --sui-field-recess-focus: color-mix(in srgb, var(--sui-unsaved-field-recess) 67%, transparent);
     --sui-border-strong: var(--sui-unsaved-field-border);
     --sui-switch-track-off-border: var(--sui-unsaved-field-border);
     --sui-brand-action: var(--sui-decision-accent);

@@ -104,6 +104,7 @@ the end part draws its own inset ring while it has focus, so the two never look 
     border-color: var(--sui-focus);
     outline: var(--sui-focus-ring-edge) solid var(--sui-focus);
     outline-offset: var(--sui-focus-ring-flush);
+    box-shadow: inset 0 var(--sui-stroke) 0 var(--sui-field-recess-focus);
   }
 
   /* A value that only reads, or a field that is off, has no recess, as a read-only or disabled

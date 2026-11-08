@@ -134,6 +134,7 @@ It has no label of its own. Put it in a `Field` through the `control` snippet, o
     border-color: var(--sui-focus);
     outline: var(--sui-focus-ring-edge) solid var(--sui-focus);
     outline-offset: var(--sui-focus-ring-flush);
+    box-shadow: inset 0 var(--sui-stroke) 0 var(--sui-field-recess-focus);
   }
 
   .sui-textarea[aria-invalid='true'] {

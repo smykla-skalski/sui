@@ -378,6 +378,7 @@ assistive technology, because a native picker cannot be held open.
     border-color: var(--sui-focus);
     outline: var(--sui-focus-ring-edge) solid var(--sui-focus);
     outline-offset: var(--sui-focus-ring-flush);
+    box-shadow: inset 0 var(--sui-stroke) 0 var(--sui-field-recess-focus);
   }
 
   /* After focus, so a refused value keeps its edge under the ring, as a text field does. */

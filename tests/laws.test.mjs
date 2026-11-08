@@ -1020,6 +1020,27 @@ test('L-53 a shadow that lifts a part is two layers in every palette block', () 
   );
 });
 
+test('L-9 a field under a focus ring eases its recess to two thirds in every theme', () => {
+  const eased =
+    /--sui-field-recess-focus: color-mix\(in srgb, var\(--sui-field-recess\) 67%, transparent\);/g;
+  assert.equal(palette.match(eased)?.length, 3, 'the light, dark and system dark blocks');
+  for (const [path, rule] of [
+    ['src/lib/components/TextInput.svelte', '.sui-text-input:focus-visible'],
+    ['src/lib/components/Textarea.svelte', '.sui-textarea:focus-visible'],
+    ['src/lib/components/Select.svelte', '.sui-select-control:focus-visible'],
+    [
+      'src/lib/internal/JoinedField.svelte',
+      '.sui-joined:has(.sui-joined-value :global(:focus-visible))'
+    ]
+  ])
+    assert.ok(
+      styles[path].includes(
+        `${rule} {\n    border-color: var(--sui-focus);\n    outline: var(--sui-focus-ring-edge) solid var(--sui-focus);\n    outline-offset: var(--sui-focus-ring-flush);\n    box-shadow: inset 0 var(--sui-stroke) 0 var(--sui-field-recess-focus);`
+      ),
+      `${path} keeps the rest recess under its ring`
+    );
+});
+
 test('L-94 a field or group message takes the 16px mark 8px from its words', () => {
   const marks = {
     Field: ['sui-field-error-mark', 'sui-field-error'],
