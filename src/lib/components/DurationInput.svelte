@@ -384,6 +384,12 @@ land on the amount.
     font-size: var(--sui-font-size-note);
   }
 
+  /* A problem stands a step further from the hint over it than the hint from its controls, so
+     the two quiet lines never read as one block (L-35). */
+  .sui-duration-hint + .sui-duration-problem {
+    margin-block-start: var(--sui-space-2);
+  }
+
   .sui-duration-problem {
     align-items: start;
     color: var(--sui-danger);

@@ -547,6 +547,20 @@ test('L-35 a field label and every group name wear one ink at one weight, over a
   );
 });
 
+test('L-35 an error under a hint stands a copy gap further from it than the hint from its control', () => {
+  for (const [name, pair] of [
+    ['Field', '.sui-field-help + .sui-field-error'],
+    ['DurationInput', '.sui-duration-hint + .sui-duration-problem']
+  ])
+    assert.match(
+      stripComments(styles[`src/lib/components/${name}.svelte`]),
+      new RegExp(
+        `${pair.replace(/[.+]/g, (c) => `\\${c}`)} \\{\\s*margin-block-start: var\\(--sui-space-2\\);`
+      ),
+      name
+    );
+});
+
 test('L-35 every error line is set at 500, a step over its hint', () => {
   const lines = Object.entries(styles).flatMap(([path, css]) => {
     const rules = [...stripComments(css).matchAll(/([^{}]+)\{([^{}]*)\}/g)].map(
