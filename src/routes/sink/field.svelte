@@ -27,8 +27,8 @@
   let summary = $state('');
   let reason = $state('');
   let region = $state('eu-west');
-  let label = $state('');
-  let timeout = $state(259200);
+  let label = $state('triage');
+  let timeout = $state(3456000);
   let notes = $state('');
   let notify = $state(true);
   let sync = $state(true);
@@ -53,6 +53,7 @@
 
 <Example
   title="States"
+  --example-max="54rem"
   note="Rest, filled with a hint, invalid with its error and disabled with its reason"
   layout="grid"
   --specimen-min="21rem"
@@ -89,6 +90,7 @@
 
 <Example
   title="Required"
+  --example-max="54rem"
   note="A required field says so in a word beside its label, and an optional one says nothing"
   layout="grid"
   --specimen-min="21rem"
@@ -110,6 +112,7 @@
 
 <Example
   title="Any Control"
+  --example-max="54rem"
   note="The control snippet takes the id, the description ids and the invalid flag, so every input keeps one label, hint and error"
   layout="grid"
   --specimen-min="21rem"
@@ -127,8 +130,12 @@
       {/snippet}
     </Field>
   </Specimen>
-  <Specimen label="Combobox">
-    <Field label="Default label" hint="Added to every new issue">
+  <Specimen label="Combobox, invalid">
+    <Field
+      label="Default label"
+      hint="Added to every new issue"
+      error="Choose a label the repository has"
+    >
       {#snippet control({ id, describedby, invalid })}
         <Combobox
           {id}
@@ -142,8 +149,8 @@
       {/snippet}
     </Field>
   </Specimen>
-  <Specimen label="Duration Input">
-    <Field label="Review timeout" hint="Closes a review left open this long">
+  <Specimen label="Duration Input, invalid">
+    <Field label="Review timeout" error="Enter a timeout of 30&nbsp;days or less">
       {#snippet control({ id, describedby, invalid })}
         <DurationInput {id} aria-describedby={describedby} {invalid} bind:value={timeout} />
       {/snippet}
@@ -166,6 +173,7 @@
 
 <Example
   title="Label beside a Checkbox"
+  --example-max="54rem"
   note="A row layout centres the label and a form’s checkbox on one line, and the label names the box"
   layout="grid"
   --specimen-min="21rem"
@@ -192,6 +200,7 @@
 
 <Example
   title="Refused Send"
+  --example-max="35rem"
   note="A refused send shows each field’s own error in place of the browser’s bubble and focuses the first field to fix"
   layout="grid"
   --specimen-min="21rem"
@@ -224,6 +233,7 @@
 
 <Example
   title="In Context"
+  --example-max="35rem"
   note="Fields stack 16 px apart, and every control in the form keeps one label, hint and error"
   layout="grid"
   --specimen-min="21rem"
@@ -262,6 +272,7 @@
 
 <Example
   title="Narrow Width"
+  --example-max="24rem"
   note="Long labels, hints and errors wrap at one 20 px leading"
   layout="stack"
 >

@@ -115,12 +115,15 @@ live specimens, not a surface of the design, so it may hold cards and dialogs (L
 
   /* Its own stacking context, so a specimen's sticky bar or shell bar stacks inside the frame
      and never over the page's own bar. */
+  /* A page whose specimens keep a measure, such as one form, sets `--example-max`, so the
+     frame fits them and no wide empty stage leaves them stranded at its start. */
   .frame {
     border: var(--sui-stroke) solid var(--sui-border-subtle);
     border-radius: var(--sui-radius-surface);
     container: sink-stage / inline-size;
     display: grid;
     isolation: isolate;
+    max-inline-size: var(--example-max, none);
     min-inline-size: 0;
   }
 
