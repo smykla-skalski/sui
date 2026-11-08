@@ -65,16 +65,14 @@
   </Specimen>
 </Example>
 
-<!-- Each tier says the height it draws: a touch screen lifts the first two to the touch height. -->
+<!-- Each tier says the height it draws. A phone or a touch screen lifts every tier to the touch
+     height, so there one specimen stands for all three. -->
 {#snippet defaultTier()}<FactLine
-    ><span>Default</span><span
+    ><span><span class="fine">Default</span><span class="coarse">All tiers</span></span><span
       ><span class="fine">34 px</span><span class="coarse">44 px</span></span
     ></FactLine
   >{/snippet}
-{#snippet tallTier()}<FactLine
-    ><span>Tall</span><span><span class="fine">40 px</span><span class="coarse">44 px</span></span
-    ></FactLine
-  >{/snippet}
+{#snippet tallTier()}<FactLine><span>Tall</span><span>40 px</span></FactLine>{/snippet}
 {#snippet touchTier()}<FactLine><span>Touch</span><span>44 px</span></FactLine>{/snippet}
 
 <Example
@@ -129,7 +127,8 @@
   }
 
   @media (max-width: 47.9375rem), (pointer: coarse) {
-    .fine {
+    .fine,
+    :global(.specimen):has(.tall, .touch) {
       display: none;
     }
 
