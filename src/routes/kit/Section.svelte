@@ -152,9 +152,11 @@
     gap: var(--sui-space-6);
   }
 
+  /* On a phone the source row stands 12px over the first example, so it reads as their head,
+     while the examples keep 24px between them, so each reads apart from the next. */
   @media (max-width: 47.9375rem) {
-    .section:not(.headed) {
-      gap: var(--sui-space-3);
+    .section:not(.headed) > .head {
+      margin-block-end: calc(var(--sui-space-3) - var(--sui-space-6));
     }
   }
 
