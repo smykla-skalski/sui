@@ -285,12 +285,15 @@ container.
     stroke-dasharray: 4 3;
     stroke-width: var(--sui-stroke);
   }
+  /* About three keys a line, so the legend stays near the matrix's width and the no-value key
+     joins the steps' lines instead of wrapping alone; a narrow band or larger text wraps sooner. */
   .legend {
     display: flex;
     flex-wrap: wrap;
     font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-leading-meta)
       var(--sui-sans);
     gap: var(--sui-space-2) var(--sui-space-4);
+    max-inline-size: 20rem;
     list-style: none;
     margin: 0;
     padding: 0;
