@@ -955,6 +955,36 @@ suite('lists', together, () => {
       }
     );
 
+    test(
+      "a striped table keeps the plain table's text edge, and its stripes reach past it",
+      long,
+      async () => {
+        const page = await opened();
+        const [plain, striped] = await page
+          .locator('#data-table .example')
+          .first()
+          .locator('table')
+          .evaluateAll((tables) =>
+            tables.map((table) => {
+              const cell = /** @type {Element} */ (
+                table.querySelector('tbody tr:nth-child(2) > th')
+              );
+              const box = cell.getBoundingClientRect();
+              const stripe = /** @type {Element} */ (cell.parentElement).getBoundingClientRect();
+              return {
+                words: box.left + parseFloat(getComputedStyle(cell).paddingLeft),
+                stripe: stripe.left
+              };
+            })
+          );
+        assert.ok(
+          Math.abs(striped.words - plain.words) < 0.5,
+          `${striped.words} vs ${plain.words}`
+        );
+        assert.ok(Math.abs(striped.words - striped.stripe - 12) < 0.5, 'the stripe hugs the words');
+      }
+    );
+
     test('K6 a retried error that leaves no control keeps focus where it stood', long, async () => {
       const page = await opened();
       const retry = page

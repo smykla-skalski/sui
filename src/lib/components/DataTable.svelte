@@ -561,7 +561,6 @@ row in place of the hairlines, for a table wide enough that the eye can lose its
     border-block-start: var(--sui-stroke) solid var(--sui-border-divider);
   }
 
-  /* A tinted row needs room inside its tint, so the outer cells take back their inset. */
   .striped tbody tr + tr > :is(th, td) {
     border-block-start: 0;
   }
@@ -574,6 +573,12 @@ row in place of the hairlines, for a table wide enough that the eye can lose its
 
   .striped tbody tr:nth-child(even) {
     background: var(--sui-local-stripe);
+  }
+
+  /* The outer cells' inset reaches past the words, as a list row's ground does (L-33), so a
+     striped table's words keep a plain table's edge. */
+  .striped > .viewport {
+    margin-inline: calc(-1 * var(--sui-space-3));
   }
 
   .striped :is(th, td):first-child {

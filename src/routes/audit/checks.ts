@@ -1871,10 +1871,16 @@ function specimens(root: Document): Finding[] {
     };
     // Only ink counts, and only sideways: a link's or summary's hit area may bleed past the
     // specimen unseen, and trimmed text paints its ascenders above its own box by design.
-    const outside = (box: DOMRect) =>
+    const outside = (box: DOMRect, reach = 0) =>
       box.width > 1 &&
       box.height > 1 &&
-      (box.left < edge.left - 0.5 || box.right > edge.right + 0.5);
+      (box.left < edge.left - reach - 0.5 || box.right > edge.right + reach + 0.5);
+    // A striped table's stripes reach a row's inset past its words, as a list row's ground does
+    // (L-33), and its frame reaches with them.
+    const stripeReach = (element: Element) => {
+      const viewport = element.closest('.sui-data-table.striped > .viewport');
+      return viewport ? -parseFloat(getComputedStyle(viewport).marginInlineStart) : 0;
+    };
     // A stacked stage lends its inset to what a specimen shows (L-66), so a chart's band may
     // span the specimen and exactly that inset on both sides, and nothing reaches further.
     const spansLent = (element: Element) => {
@@ -1913,10 +1919,14 @@ function specimens(root: Document): Finding[] {
         rgba(look.backgroundColor).a > 0 ||
         parseFloat(look.borderLeftWidth) > 0 ||
         parseFloat(look.borderTopWidth) > 0;
-      if ((painted || element.matches(CARD_CONTENT)) && outside(element.getBoundingClientRect()))
+      const reach = stripeReach(element);
+      if (
+        (painted || element.matches(CARD_CONTENT)) &&
+        outside(element.getBoundingClientRect(), reach)
+      )
         return true;
       // Text an element clips to its own box paints no further than that box.
-      if (look.overflowX !== 'visible') return outside(element.getBoundingClientRect());
+      if (look.overflowX !== 'visible') return outside(element.getBoundingClientRect(), reach);
       return [...element.childNodes].some((node) => {
         if (node.nodeType !== Node.TEXT_NODE || !node.textContent?.trim()) return false;
         const range = document.createRange();
