@@ -130,6 +130,8 @@ the end part draws its own inset ring while it has focus, so the two never look 
   }
 
   .invalid {
+    --sui-field-recess: var(--sui-field-danger-recess);
+    --sui-field-recess-hover: var(--sui-field-danger-recess-hover);
     border-color: var(--sui-danger-edge);
   }
 

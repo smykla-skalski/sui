@@ -1119,6 +1119,11 @@ test('L-41 a field keeps its frame and wears one ring 2px off it in every state'
       /border-color: var\(--sui-danger-edge\);/,
       `${path} draws its danger edge from --sui-danger-edge`
     );
+    assert.match(
+      styles[path],
+      /--sui-field-recess: var\(--sui-field-danger-recess\);\s*--sui-field-recess-hover: var\(--sui-field-danger-recess-hover\);\s*border-color: var\(--sui-danger-edge\);/,
+      `${path} tints an invalid field's recess with its edge's red`
+    );
     assert.doesNotMatch(
       styles[path],
       /border-color: var\(--sui-danger(-hover)?\);/,

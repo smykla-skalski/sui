@@ -388,6 +388,8 @@ assistive technology, because a native picker cannot be held open.
   }
 
   .sui-select-control:is([aria-invalid='true'], :user-invalid) {
+    --sui-field-recess: var(--sui-field-danger-recess);
+    --sui-field-recess-hover: var(--sui-field-danger-recess-hover);
     border-color: var(--sui-danger-edge);
   }
 

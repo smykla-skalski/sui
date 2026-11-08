@@ -175,6 +175,8 @@ tabular figures.
   }
 
   .sui-text-input[aria-invalid='true'] {
+    --sui-field-recess: var(--sui-field-danger-recess);
+    --sui-field-recess-hover: var(--sui-field-danger-recess-hover);
     border-color: var(--sui-danger-edge);
   }
 

@@ -230,6 +230,18 @@
   /* A field's danger edge. On light it is the danger ink. */
   --sui-danger-edge: var(--sui-danger);
   --sui-danger-edge-hover: var(--sui-danger-hover);
+  /* An invalid field's recess takes a share of its edge's red, so a gray line never sits inside
+     a red frame, and it stays a darker line under the top edge. */
+  --sui-field-danger-recess: color-mix(
+    in srgb,
+    var(--sui-danger-edge) 35%,
+    var(--sui-field-recess)
+  );
+  --sui-field-danger-recess-hover: color-mix(
+    in srgb,
+    var(--sui-danger-edge) 35%,
+    var(--sui-field-recess-hover)
+  );
   /* The hover veil of a part in the danger state, so its hover keeps the state's hue. */
   --sui-danger-hover-layer: color-mix(in srgb, var(--sui-danger) 9%, transparent);
   --sui-field-danger-hover: color-mix(in srgb, var(--sui-danger) 4.5%, transparent);
@@ -733,6 +745,16 @@
     var(--sui-primitive-danger-dark) 70%,
     var(--sui-primitive-danger-light)
   );
+  --sui-field-danger-recess: color-mix(
+    in srgb,
+    var(--sui-danger-edge) 35%,
+    var(--sui-field-recess)
+  );
+  --sui-field-danger-recess-hover: color-mix(
+    in srgb,
+    var(--sui-danger-edge) 35%,
+    var(--sui-field-recess-hover)
+  );
   --sui-danger-hover-layer: color-mix(in srgb, var(--sui-danger) 12%, transparent);
   --sui-field-danger-hover: color-mix(in srgb, var(--sui-danger) 6%, transparent);
   --sui-danger-pressed: color-mix(in srgb, var(--sui-danger-fill) 82%, #000000);
@@ -943,6 +965,16 @@
       in srgb,
       var(--sui-primitive-danger-dark) 70%,
       var(--sui-primitive-danger-light)
+    );
+    --sui-field-danger-recess: color-mix(
+      in srgb,
+      var(--sui-danger-edge) 35%,
+      var(--sui-field-recess)
+    );
+    --sui-field-danger-recess-hover: color-mix(
+      in srgb,
+      var(--sui-danger-edge) 35%,
+      var(--sui-field-recess-hover)
     );
     --sui-danger-hover-layer: color-mix(in srgb, var(--sui-danger) 12%, transparent);
     --sui-field-danger-hover: color-mix(in srgb, var(--sui-danger) 6%, transparent);

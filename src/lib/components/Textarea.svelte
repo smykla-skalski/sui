@@ -144,6 +144,8 @@ It has no label of its own. Put it in a `Field` through the `control` snippet, o
   }
 
   .sui-textarea[aria-invalid='true'] {
+    --sui-field-recess: var(--sui-field-danger-recess);
+    --sui-field-recess-hover: var(--sui-field-danger-recess-hover);
     border-color: var(--sui-danger-edge);
   }
 
