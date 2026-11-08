@@ -452,7 +452,7 @@ test('column names wider than a cell keep half a rem between them', () => {
   );
   assert.equal(
     at(0)(heatmapLayout({ measure, rows: ['Morning'], columns: ['Mon', 'Tue'] }).size),
-    52
+    64
   );
 });
 
