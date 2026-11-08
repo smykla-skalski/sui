@@ -1976,6 +1976,8 @@ function specimens(root: Document): Finding[] {
     if (!caption) continue;
     const grows = holder !== null && getComputedStyle(holder).display.includes('flex');
     for (const part of caption.children) {
+      // A part a layout leaves out draws no box, so it runs past nothing.
+      if (part.getClientRects().length === 0) continue;
       const box = part.getBoundingClientRect();
       if (box.left < own.left - 0.5 || box.right > own.right + 0.5)
         found.push(finding('L-55', part, 'the caption runs past its specimen'));

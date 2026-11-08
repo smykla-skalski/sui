@@ -193,12 +193,15 @@ live specimens, not a surface of the design, so it may hold cards and dialogs (L
      fields, sets `--specimen-max`. */
   /* Rows of a grid stand further apart than a caption stands under its specimen, so a
      caption pushed to the foot of a tall row still reads with its own specimen. */
+  /* A caller with fewer specimens than columns, such as two field tiers, may set
+     `--specimen-fill: auto-fit` and `--specimen-justify` to centre them in the room left. */
   .specimens[data-layout='grid'] {
     align-items: stretch;
     display: grid;
+    justify-content: var(--specimen-justify, normal);
     row-gap: var(--sui-space-8);
     grid-template-columns: repeat(
-      auto-fill,
+      var(--specimen-fill, auto-fill),
       minmax(min(100%, var(--specimen-min, 16rem)), var(--specimen-max, 1fr))
     );
   }
@@ -219,7 +222,9 @@ live specimens, not a surface of the design, so it may hold cards and dialogs (L
       --sui-local-stage-pad: var(--sui-space-4);
     }
 
+    /* One column fills the stage on a phone, whatever measure a caller keeps on a wider one. */
     .specimens[data-layout='grid'] {
+      --specimen-max: 1fr;
       row-gap: var(--sui-space-6);
     }
   }

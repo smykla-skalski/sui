@@ -73,8 +73,11 @@
     ><span>Tall</span><span>40 px<span class="coarse">, 44 px here</span></span></FactLine
   >{/snippet}
 
+<!-- The tiers stand as wide as the states above, each centred in half the panel. -->
 <Example
-  --specimen-min="22rem"
+  --specimen-fill="auto-fit"
+  --specimen-justify="space-around"
+  --specimen-max="calc((100% - 2 * var(--sui-space-5)) / 3)"
   title="Tiers"
   note="34 px by default and 44 px on phones, and a surface may opt into 40 px"
   layout="grid"

@@ -13,6 +13,12 @@
     children: Snippet;
   } = $props();
 
+  /* Props that only repeat the state's name, as `disabled` under "Disabled", say nothing new, so
+     the caption leaves them to the example's code. */
+  const repeats = (name: string, props: string) =>
+    name.toLowerCase().replace(/[^a-z0-9]/g, '') === props.toLowerCase().replace(/[^a-z0-9]/g, '');
+  const shown = $derived(typeof label === 'string' && code && repeats(label, code) ? '' : code);
+
   /* The caption's props, split at the spaces between them and never inside a quoted or braced
      value, so a line breaks between props and `patience={0}` never loses its `{0}`. */
   const propsOf = (source: string) => {
@@ -40,18 +46,19 @@
 <figure class="specimen">
   <div class="body">{@render children()}</div>
   {#if label || code}
-    <!-- Both lines always take their room, so captions side by side start on one line. -->
+    <!-- Both lines take their room in a row or a stack, so captions side by side start on one
+         line; a grid's shared rows line them up without it. -->
     <figcaption>
       {#if typeof label === 'function'}<span class="label">{@render label()}</span
         >{:else if label}<span class="label">{label}</span>{:else}<span
           class="label"
           aria-hidden="true">&nbsp;</span
         >{/if}
-      {#if code}{@const props = propsOf(code)}<code translate="no"
+      {#if shown}{@const props = propsOf(shown)}<code translate="no"
           >{#each props as prop, index (index)}<span
               >{index < props.length - 1 ? `${prop} ` : prop}</span
             >{/each}</code
-        >{:else}<code aria-hidden="true"><span>&nbsp;</span></code>{/if}
+        >{:else}<code class="blank" aria-hidden="true"><span>&nbsp;</span></code>{/if}
     </figcaption>
   {/if}
 </figure>
@@ -137,5 +144,9 @@
     .specimen {
       gap: var(--sui-space-3);
     }
+  }
+
+  :global(.specimens[data-layout='grid']) > .specimen .blank {
+    display: none;
   }
 </style>
