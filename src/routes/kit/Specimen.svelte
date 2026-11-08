@@ -92,11 +92,10 @@
     --sui-local-bleed: var(--sui-local-stage-pad, 0px);
   }
 
-  /* The state and its props read as one caption, so their lines stand closer than copy lines. */
   figcaption {
     align-content: start;
     display: grid;
-    gap: var(--sui-space-1);
+    gap: var(--sui-row-copy-gap);
     justify-items: start;
   }
 
