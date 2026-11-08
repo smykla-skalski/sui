@@ -539,6 +539,12 @@ row in place of the hairlines, for a table wide enough that the eye can lose its
     color: var(--sui-text-primary);
   }
 
+  /* The sorted column's arrow wears the accent's text ink, as the side nav's current glyph does,
+     so the order's column reads from across the table. */
+  [aria-sort] .sort > :global(svg) {
+    color: var(--sui-brand-action-text);
+  }
+
   /* An unsorted heading's glyph rests in the muted ink, so only the sorted column's arrow
      carries weight; a hovered heading lifts it with its words. */
   th:not([aria-sort]) > .sort > :global(svg) {

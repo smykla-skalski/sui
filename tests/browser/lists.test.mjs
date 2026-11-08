@@ -924,6 +924,16 @@ suite('lists', together, () => {
           );
           assert.equal(await table.locator('th[aria-sort]').getAttribute('aria-sort'), 'ascending');
           assert.equal(await table.locator('tbody th').first().textContent(), 'ledger');
+          // Only the sorted column's arrow wears the accent's text ink.
+          const [glyph, accent] = await table.locator('th[aria-sort] svg').evaluate((svg) => {
+            const probe = document.createElement('i');
+            probe.style.color = 'var(--sui-brand-action-text)';
+            svg.after(probe);
+            const inks = [getComputedStyle(svg).color, getComputedStyle(probe).color];
+            probe.remove();
+            return inks;
+          });
+          assert.equal(glyph, accent);
         };
         await table.scrollIntoViewIfNeeded();
         await table.getByRole('button', { name: 'Repository' }).click();
