@@ -455,6 +455,20 @@ test("L-38 a phone stacks a check list's options edge to edge, one 44px row each
   assert.match(phone ?? '', /\bgap: 0;/);
 });
 
+test('L-35 a dialog stacks its fields 20px apart, a step over a page form, under its 24px inset', () => {
+  assert.match(
+    stripComments(styles['src/lib/components/Modal.svelte']),
+    /\.sui-modal-body \{[^}]*gap: var\(--sui-space-5\);/
+  );
+});
+
+test('L-45 the add tone labels its entry in the primary ink inside its dashed edge', () => {
+  assert.match(
+    stripComments(styles['src/lib/components/Button.svelte']),
+    /\.sui-button\[data-tone='add'\] \{[^}]*border-style: dashed;\s*color: var\(--sui-text-primary\);/
+  );
+});
+
 test('L-35 a field label and every group name wear one ink at one weight, over a compact "Required"', () => {
   const names = {
     'src/lib/components/Field.svelte': 'sui-field-label',

@@ -367,7 +367,7 @@ start.
 
     background-color: transparent;
     border-style: dashed;
-    color: var(--sui-text-secondary);
+    color: var(--sui-text-primary);
   }
 
   .sui-button[data-tone='add']:focus-visible {
