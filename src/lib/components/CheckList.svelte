@@ -174,7 +174,8 @@ box. Choosing one lifts it. A caller's `error` always wins.
 
   .sui-check-list-required {
     color: var(--sui-text-muted);
-    font-weight: var(--sui-weight-regular);
+    font-size: var(--sui-font-size-caption);
+    font-weight: var(--sui-weight-medium);
     margin-inline-start: var(--sui-space-1);
   }
 

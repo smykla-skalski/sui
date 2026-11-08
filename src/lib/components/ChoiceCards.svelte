@@ -188,7 +188,8 @@ save keeps it. A busy dialog or a saving pane around it disables the radios whil
 
   .sui-choice-cards-required {
     color: var(--sui-text-muted);
-    font-weight: var(--sui-weight-regular);
+    font-size: var(--sui-font-size-caption);
+    font-weight: var(--sui-weight-medium);
     margin-inline-start: var(--sui-space-1);
   }
 

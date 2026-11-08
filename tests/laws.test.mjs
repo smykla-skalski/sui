@@ -565,17 +565,23 @@ test('L-35 a field label and every group name wear one ink at one weight and lea
       `${name} is set in another weight, size or leading`
     );
   }
-  const required = /\n  \.sui-field-required \{([^}]*)\}/.exec(
-    styles['src/lib/components/Field.svelte']
-  )?.[1];
-  assert.match(
-    required ?? '',
-    /\bfont: var\(--sui-weight-medium\) var\(--sui-font-size-compact\)/,
-    '"Required" stands no step under the label it marks'
-  );
+  for (const [path, name] of [
+    ['src/lib/components/Field.svelte', 'sui-field-required'],
+    ['src/lib/components/CheckList.svelte', 'sui-check-list-required'],
+    ['src/lib/components/ChoiceCards.svelte', 'sui-choice-cards-required']
+  ]) {
+    const rule = new RegExp(`\\n  \\.${name} \\{([^}]*)\\}`).exec(styles[path])?.[1] ?? '';
+    assert.match(rule, /\bcolor: var\(--sui-text-muted\);/, `${name} wears another ink`);
+    assert.match(
+      rule,
+      /\bfont(?:-size)?: (?:var\(--sui-weight-medium\) )?var\(--sui-font-size-caption\)/,
+      `${name} is not a caption step under the label it marks`
+    );
+    assert.match(rule, /var\(--sui-weight-medium\)/, `${name} is set in another weight`);
+  }
 });
 
-test('L-35 an error under a hint stands a copy gap further from it than the hint from its control', () => {
+test('L-35 an error under a hint stands a step further from it than the hint from its control', () => {
   for (const [name, pair] of [
     ['Field', '.sui-field-help + .sui-field-error'],
     ['DurationInput', '.sui-duration-hint + .sui-duration-problem']
@@ -583,7 +589,7 @@ test('L-35 an error under a hint stands a copy gap further from it than the hint
     assert.match(
       stripComments(styles[`src/lib/components/${name}.svelte`]),
       new RegExp(
-        `${pair.replace(/[.+]/g, (c) => `\\${c}`)} \\{\\s*margin-block-start: var\\(--sui-space-2\\);`
+        `${pair.replace(/[.+]/g, (c) => `\\${c}`)} \\{\\s*margin-block-start: var\\(--sui-space-1\\);`
       ),
       name
     );
