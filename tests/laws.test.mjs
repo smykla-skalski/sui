@@ -559,11 +559,17 @@ test("L-38 a phone stacks a check list's options edge to edge, one 44px row each
   assert.match(phone ?? '', /\bgap: 0;/);
 });
 
-test('L-35 a dialog stacks its fields 20px apart, a step over a page form, under its 24px inset', () => {
+test('L-35 a form stacks its fields 20px apart and a dialog 24px, both a step over the 12px inside a field', () => {
   assert.match(
     stripComments(styles['src/lib/components/Modal.svelte']),
-    /\.sui-modal-body \{[^}]*gap: var\(--sui-space-5\);/
+    /\.sui-modal-body \{[^}]*gap: var\(--sui-space-6\);/
   );
+  for (const page of ['combobox', 'select', 'field'])
+    assert.match(
+      styles[`src/routes/sink/${page}.svelte`],
+      /\.form \{\s*display: grid;\s*gap: var\(--sui-space-5\);/,
+      `the ${page} page's form stacks its fields another distance apart`
+    );
 });
 
 test('L-45 the add tone labels its entry in the primary ink inside its dashed edge', () => {

@@ -470,13 +470,13 @@ dialog, so they are never inert under it.
     text-box: trim-both cap alphabetic;
   }
 
-  /* A dialog's 24px inset would crowd fields a page form's 16px apart, so they stand a step
+  /* A dialog's 24px inset would crowd fields a page form's 20px apart, so they stand a step
      further (L-35). */
   .sui-modal-body {
     align-content: start;
     display: grid;
     flex: 1 1 auto;
-    gap: var(--sui-space-5);
+    gap: var(--sui-space-6);
     grid-template-columns: minmax(0, 1fr);
     min-block-size: 0;
     overflow-y: auto;

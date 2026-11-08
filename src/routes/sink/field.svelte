@@ -258,7 +258,7 @@
 <Example
   title="In Context"
   --example-max="35rem"
-  note="Fields stack 16 px apart, and every control in the form keeps one label, hint and error"
+  note="Fields stack 20 px apart, and every control in the form keeps one label, hint and error"
   layout="grid"
   --specimen-min="21rem"
   ground="canvas"
@@ -315,7 +315,7 @@
 <style>
   .form {
     display: grid;
-    gap: var(--sui-space-4);
+    gap: var(--sui-space-5);
   }
 
   .narrow {

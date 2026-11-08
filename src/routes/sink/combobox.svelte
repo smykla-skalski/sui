@@ -193,7 +193,7 @@
 <style>
   .form {
     display: grid;
-    gap: var(--sui-space-4);
+    gap: var(--sui-space-5);
     justify-items: stretch;
     min-inline-size: 0;
   }
