@@ -275,7 +275,7 @@ the `control` snippet reports here on its own, and a control of another kind kee
     color: var(--sui-danger);
     column-gap: var(--sui-space-1);
     display: grid;
-    font: var(--sui-weight-medium) var(--sui-font-size-meta) / var(--sui-leading-note)
+    font: var(--sui-weight-medium) var(--sui-font-size-note) / var(--sui-leading-note)
       var(--sui-sans);
     grid-template-columns: auto minmax(0, 1fr);
     margin: 0;

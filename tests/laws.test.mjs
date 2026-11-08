@@ -590,7 +590,7 @@ test('L-35 every error line is set at 500, a step over its hint', () => {
           if (font) [, weight, size] = font;
           weight = /\bfont-weight: var\(--sui-weight-(\w+)\)/.exec(body)?.[1] ?? weight;
         }
-        return size === 'meta' ? [`${path} ${selector}: ${weight}`] : [];
+        return size === 'note' ? [`${path} ${selector}: ${weight}`] : [];
       });
   });
   assert.ok(

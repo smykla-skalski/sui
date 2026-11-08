@@ -346,7 +346,7 @@ take, under the switch and to a screen reader, while the owner sets `checked` ba
     color: var(--sui-danger);
     column-gap: var(--sui-space-1);
     display: grid;
-    font: var(--sui-weight-medium) var(--sui-font-size-meta) / var(--sui-leading-note)
+    font: var(--sui-weight-medium) var(--sui-font-size-note) / var(--sui-leading-note)
       var(--sui-sans);
     grid-template-columns: auto minmax(0, 1fr);
   }

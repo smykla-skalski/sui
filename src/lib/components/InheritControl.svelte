@@ -260,7 +260,7 @@ for a press of the way back.
     align-items: start;
     color: var(--sui-danger);
     display: flex;
-    font: var(--sui-weight-medium) var(--sui-font-size-meta) / var(--sui-leading-note)
+    font: var(--sui-weight-medium) var(--sui-font-size-note) / var(--sui-leading-note)
       var(--sui-sans);
     gap: var(--sui-space-1);
     min-inline-size: 0;
