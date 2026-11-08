@@ -7,7 +7,7 @@
 </script>
 
 <script lang="ts">
-  import { Field, TextInput } from '#lib';
+  import { FactLine, Field, TextInput } from '#lib';
   import Example from '../kit/Example.svelte';
   import Specimen from '../kit/Specimen.svelte';
 
@@ -65,19 +65,30 @@
   </Specimen>
 </Example>
 
+<!-- Each tier says the height it draws here: a touch screen lifts both to 44px. -->
+{#snippet defaultTier()}<FactLine
+    ><span>Default</span><span
+      ><span class="fine">34 px</span><span class="coarse">44 px</span></span
+    ></FactLine
+  >{/snippet}
+{#snippet tallTier()}<FactLine
+    ><span>Tall</span><span><span class="fine">40 px</span><span class="coarse">44 px</span></span
+    ></FactLine
+  >{/snippet}
+
 <Example
   title="Tiers"
   note="34 px by default and 44 px on phones, and a surface may opt into 40 px"
   layout="grid"
 >
-  <Specimen label="Default" code="--sui-control-height-compact">
+  <Specimen label={defaultTier} code="--sui-control-height-compact">
     <Field label="Filter the projects">
       {#snippet control({ id, describedby })}
         <TextInput {id} aria-describedby={describedby} placeholder="api…" />
       {/snippet}
     </Field>
   </Specimen>
-  <Specimen label="Tall" code="--sui-local-control-height">
+  <Specimen label={tallTier} code="--sui-local-control-height">
     <div class="tall">
       <Field label="Search the projects">
         {#snippet control({ id, describedby })}
@@ -93,5 +104,19 @@
     --sui-local-control-height: var(--sui-control-height);
     display: grid;
     inline-size: 100%;
+  }
+
+  .coarse {
+    display: none;
+  }
+
+  @media (max-width: 47.9375rem), (pointer: coarse) {
+    .fine {
+      display: none;
+    }
+
+    .coarse {
+      display: inline;
+    }
   }
 </style>
