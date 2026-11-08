@@ -385,7 +385,7 @@ test('L-25 the type tiers keep the sizes the law names', () => {
     );
   assert.match(
     styles['src/lib/components/ErrorState.svelte'],
-    /\.over \.sui-error-state-title \{\s*font-size: var\(--sui-font-size-title\);/,
+    /\.over :is\(\.sui-error-state-title, \.sui-error-state-mark\) \{\s*font-size: var\(--sui-font-size-title\);/,
     'a failed refresh over a list stays a quiet line'
   );
 });
@@ -878,7 +878,7 @@ test('L-53 a shadow that lifts a part is two layers in every palette block', () 
   );
 });
 
-test('L-94 a form error summary, which reads at body size, takes the 16px mark 8px from its words and a 16px inset', () => {
+test('L-94 a form error summary and an error state take the 16px mark 8px from their words', () => {
   const path = 'src/lib/components/FormError.svelte';
   assert.match(read(path), /sui-form-error-mark"><Icon name="alert" size="base" \/>/);
   assert.match(styles[path], /\.sui-form-error-message \{[^}]*column-gap: var\(--sui-space-2\)/);
@@ -891,6 +891,17 @@ test('L-94 a form error summary, which reads at body size, takes the 16px mark 8
     styles[path],
     /\.sui-form-error-list \{[^}]*padding-inline-start: calc\(var\(--sui-icon-base\) \+ var\(--sui-space-2\)\)/,
     'the summary links leave the line its mark and gap take'
+  );
+  const state = 'src/lib/components/ErrorState.svelte';
+  assert.match(read(state), /sui-error-state-mark"><Icon name="alert" size="base" \/>/);
+  assert.match(
+    styles[state],
+    /\.sui-error-state-copy \{[^}]*gap: var\(--sui-title-copy-gap\) var\(--sui-space-2\)/
+  );
+  assert.match(
+    styles[state],
+    /\.sui-error-state:not\(\.over\) > \.sui-error-state-retry \{\s*margin-inline-start: calc\(var\(--sui-icon-base\) \+ var\(--sui-space-2\)\)/,
+    'the retry lines up with the words past the mark'
   );
 });
 

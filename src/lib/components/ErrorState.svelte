@@ -3,6 +3,7 @@
   import type { Snippet } from 'svelte';
   import type { HTMLAttributes } from 'svelte/elements';
   import Button from './Button.svelte';
+  import Icon from '../icons/Icon.svelte';
   import { evenHeight } from '../internal/even-height.js';
 
   let {
@@ -102,7 +103,7 @@ of them.
 - Pointer and touch: the retry is 34px tall, 44px on a phone or touch screen.
 - Focus: the retry keeps focus while it runs; when the retry succeeds and the panel leaves, focus moves to `focusAfterRetry`, else to the first control where the panel stood, else to the place itself, never to the page.
 - Responsive: the panel fills its column and pads 20px on a phone; over content the line wraps its words and its button.
-- Accessibility: the alert announces the failure when it appears, the busy button is announced as busy, and the title wears the danger ink with words that say what failed.
+- Accessibility: the alert announces the failure when it appears, the busy button is announced as busy, and a warning mark and the danger ink stand beside words that say what failed.
 - Localization: `retryLabel` and `retryingLabel` carry the built-in words, and it starts at the inline start, mirrored in a right-to-left page.
 - Performance: a static block, except where the browser cannot round a box's height in CSS: there one shared observer pads the copy to an even height; the retry's spinner is the button's own and stops under reduced motion.
 - Analytics: `onretry` reports each attempt to recover.
@@ -116,6 +117,7 @@ of them.
   role="alert"
 >
   <div class="sui-error-state-copy" {@attach evenHeight}>
+    <span class="sui-error-state-mark"><Icon name="alert" size="base" /></span>
     <p class="sui-error-state-title">{title}</p>
     <p class="sui-error-state-description">{description}</p>
     {#if step}<p class="sui-error-state-step">{step}</p>{/if}
@@ -165,12 +167,34 @@ of them.
     }
   }
 
-  /* Even, so a retry centred beside it in a row lands on the pixel grid (L-95). */
+  /* Even, so a retry centred beside it in a row lands on the pixel grid (L-95). The warning
+     mark stands before the title, as a form error's does, and the words line up past it. */
   .sui-error-state-copy {
     block-size: var(--sui-block-snap-even);
     display: grid;
-    gap: var(--sui-title-copy-gap);
+    gap: var(--sui-title-copy-gap) var(--sui-space-2);
+    grid-template-columns: auto minmax(0, 1fr);
     min-inline-size: 0;
+  }
+
+  .sui-error-state-copy > p {
+    grid-column: 2;
+  }
+
+  /* Centred on the title's first line, so it takes the title's face to measure that line's cap.
+     The line is snapped up to a whole pixel with its cap in the middle, so the mark centres on
+     the snapped box rather than on the bare cap. */
+  .sui-error-state-mark {
+    align-self: start;
+    color: var(--sui-danger);
+    display: flex;
+    font: var(--sui-weight-semibold) var(--sui-font-size-card-title) / var(--sui-row-copy-leading)
+      var(--sui-sans);
+    margin-block: round(calc((round(up, 1cap, 1px) - var(--sui-icon-base)) / 2), 1px);
+  }
+
+  .sui-error-state:not(.over) > .sui-error-state-retry {
+    margin-inline-start: calc(var(--sui-icon-base) + var(--sui-space-2));
   }
 
   p {
@@ -239,7 +263,7 @@ of them.
   }
 
   /* A line over a list heads only its own words, so its title keeps a panel's step quieter. */
-  .over .sui-error-state-title {
+  .over :is(.sui-error-state-title, .sui-error-state-mark) {
     font-size: var(--sui-font-size-title);
   }
 
