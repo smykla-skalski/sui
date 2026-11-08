@@ -355,9 +355,12 @@ row in place of the hairlines, for a table wide enough that the eye can lose its
     gap: var(--sui-space-2);
   }
 
+  /* The mark carries the failure, so the words read in the primary ink, as an error panel's
+     title does. */
   .problem-words {
     align-content: center;
     block-size: var(--sui-block-snap);
+    color: var(--sui-text-primary);
     font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-row-copy-leading)
       var(--sui-sans);
     min-inline-size: 0;

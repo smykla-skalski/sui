@@ -324,6 +324,16 @@ test('L-59 a state panel pads 28px by 24px, 20px on a phone, its action a step u
     'the mark, edge and wash carry the failure, so its title reads in the primary ink'
   );
   const table = stripComments(styles['src/lib/components/DataTable.svelte']);
+  const refusal = stripComments(styles['src/lib/components/FormError.svelte']);
+  assert.deepEqual(
+    [
+      /\.problem-words \{[^}]*color: ([^;]*);/.exec(table)?.[1],
+      /\.sui-form-error-message \{[^}]*color: ([^;]*);/.exec(refusal)?.[1],
+      /\.sui-form-error-mark \{[^}]*color: ([^;]*);/.exec(refusal)?.[1]
+    ],
+    ['var(--sui-text-primary)', 'var(--sui-text-primary)', 'var(--sui-danger)'],
+    "a table's failed line and a form's refusal say it in the primary ink beside the danger mark"
+  );
   assert.deepEqual(
     [
       lengths(/\n {2}\.state \{([^}]*)\}/.exec(table)?.[1], 'padding-block'),

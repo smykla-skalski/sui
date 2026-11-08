@@ -124,9 +124,11 @@ margins of its own; the form that holds it sets the gap above it.
     outline-offset: var(--sui-focus-ring-offset);
   }
 
+  /* The mark, the edge and the wash carry the refusal, so its words read in the primary ink, as
+     an error panel's title does. */
   .sui-form-error-message {
     align-items: start;
-    color: var(--sui-danger);
+    color: var(--sui-text-primary);
     column-gap: var(--sui-space-2);
     display: grid;
     font: var(--sui-weight-medium) var(--sui-font-size-body) / var(--sui-row-copy-leading)
@@ -137,6 +139,7 @@ margins of its own; the form that holds it sets the gap above it.
 
   /* Centred on the first line's cap height, however many lines the message wraps to. */
   .sui-form-error-mark {
+    color: var(--sui-danger);
     display: flex;
     margin-block: round(calc((1cap - var(--sui-icon-base)) / 2), 1px);
   }
