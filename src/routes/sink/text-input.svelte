@@ -83,7 +83,7 @@
   <Specimen label={defaultTier}>
     <Field label="Filter the projects">
       {#snippet control({ id, describedby })}
-        <TextInput {id} aria-describedby={describedby} placeholder="api…" />
+        <TextInput {id} aria-describedby={describedby} placeholder="api…" value="api-gateway" />
       {/snippet}
     </Field>
   </Specimen>
@@ -91,7 +91,7 @@
     <div class="tall">
       <Field label="Search the projects">
         {#snippet control({ id, describedby })}
-          <TextInput {id} aria-describedby={describedby} placeholder="platform…" />
+          <TextInput {id} aria-describedby={describedby} placeholder="platform…" value="platform" />
         {/snippet}
       </Field>
     </div>
@@ -100,7 +100,7 @@
     <div class="touch">
       <Field label="Find a repository">
         {#snippet control({ id, describedby })}
-          <TextInput {id} aria-describedby={describedby} placeholder="sui…" />
+          <TextInput {id} aria-describedby={describedby} placeholder="sui…" value="sui" />
         {/snippet}
       </Field>
     </div>
