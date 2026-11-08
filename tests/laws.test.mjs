@@ -488,6 +488,21 @@ test('L-22 the phone reads one step larger and types at 16px', () => {
   assert.match(phone, /--sui-font-size-page-title:\s*var\(--sui-font-size-page-title-compact\);/);
   assert.equal(pixels(tokenMap(stripComments(palette))['--sui-font-size-page-title-compact']), 24);
   assert.match(phone, /--sui-font-size-input:\s*1rem;/);
+  // The mono face reads larger than the words' face at one size, so a typed technical value
+  // steps under them where the size is the page's own choice, and joins them where iOS zooms.
+  const desktop = tokenMap(stripComments(palette.slice(0, palette.indexOf(PHONE))));
+  assert.equal(pixels(desktop['--sui-font-size-input-mono']), 13);
+  assert.match(phone, /--sui-font-size-input-mono:\s*1rem;/);
+  for (const path of [
+    'src/lib/components/TextInput.svelte',
+    'src/lib/components/Textarea.svelte',
+    'src/lib/components/CopyableLinkField.svelte',
+    'src/lib/components/PatternEntries.svelte'
+  ])
+    assert.ok(
+      styles[path].includes('var(--sui-font-size-input-mono)'),
+      `${path} types its technical value at the mono input size`
+    );
   const entry = /<textarea\b|<input\b(?![^>]*type="(?:checkbox|radio|hidden|range|color)")/;
   const typed = svelteFiles
     .filter((path) => entry.test(read(path)) && !styles[path].includes('--sui-font-size-input'))

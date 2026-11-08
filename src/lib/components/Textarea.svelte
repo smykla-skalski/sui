@@ -176,6 +176,8 @@ It has no label of its own. Put it in a `Field` through the `control` snippet, o
 
   .mono {
     font-family: var(--sui-mono);
+    font-size: var(--sui-font-size-input-mono);
+    font-variant-ligatures: none;
     font-variant-numeric: tabular-nums;
   }
 

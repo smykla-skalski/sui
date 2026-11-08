@@ -457,7 +457,7 @@ a saving pane around it holds it the same way.
   .sui-pattern-input,
   .sui-pattern-copy {
     box-sizing: border-box;
-    font: var(--sui-weight-regular) var(--sui-font-size-input) / var(--sui-leading-input)
+    font: var(--sui-weight-regular) var(--sui-font-size-input-mono) / var(--sui-leading-input)
       var(--sui-mono);
     font-variant-ligatures: none;
     font-variant-numeric: tabular-nums;
