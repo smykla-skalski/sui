@@ -37,8 +37,8 @@
     {
       label: 'Yearly',
       options: [
-        { value: 'starter-year', label: 'Starter', description: '3 seats, 1 month free' },
-        { value: 'team-year', label: 'Team', description: '10 seats, 2 months free' },
+        { value: 'starter-year', label: 'Starter', description: '3 seats, 1\u00a0month free' },
+        { value: 'team-year', label: 'Team', description: '10 seats, 2\u00a0months free' },
         { value: 'org-year', label: 'Organization', description: 'Retired', disabled: true }
       ]
     }

@@ -3340,7 +3340,7 @@ function nestedFrames(root: Document): Finding[] {
 
 /* A number and its unit are one atom (L-27): "84.7\u00a0MB" never breaks between them. */
 const UNIT =
-  /\d (?:B|kB|KB|MB|GB|TB|KiB|MiB|GiB|TiB|ms|s|min|h|px|rem|em|pt|fps|Hz|kHz|MHz|GHz|seconds?|minutes?|hours?|days?|weeks?)(?![\p{L}\d])/u;
+  /\d (?:B|kB|KB|MB|GB|TB|KiB|MiB|GiB|TiB|ms|s|min|h|px|rem|em|pt|fps|Hz|kHz|MHz|GHz|seconds?|minutes?|hours?|days?|weeks?|months?|years?)(?![\p{L}\d])/u;
 function unitSpaces(root: Document): Finding[] {
   return textElements(root)
     .filter(({ text }) => UNIT.test(text))
