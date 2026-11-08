@@ -299,7 +299,7 @@ a saving pane around it holds it the same way.
         onfocusout={(event) => settle(index, event)}
         onpaste={(event) => paste(index, event)}
       >
-        <JoinedField invalid={problem !== null} disabled={disabled || busy}>
+        <JoinedField invalid={problem !== null} {disabled} pending={busy}>
           {#snippet start()}
             <!-- A label, so a press on the mark lands in the field it marks. -->
             <label class="sui-pattern-value">

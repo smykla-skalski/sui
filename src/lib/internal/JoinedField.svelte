@@ -5,12 +5,15 @@
   let {
     invalid = false,
     disabled = false,
+    pending = false,
     readonly = false,
     start,
     end
   }: {
     invalid?: boolean;
     disabled?: boolean;
+    /** Work on the value runs, such as its own save, so the field dims as a held one does. */
+    pending?: boolean;
     /** The value only reads, so the field drops its fill and its strong baseline. */
     readonly?: boolean;
     /** The part a reader types or reads in, drawn `bare`. */
@@ -20,9 +23,9 @@
   } = $props();
 
   let root = $state<HTMLDivElement | null>(null);
-  /* Work that runs on the form around it holds both parts, which dims the field as disabled. */
+  /* Work that runs on the value or on the form around it holds both parts, which dims them. */
   const around = holdAround();
-  const holding = $derived(held(root, around));
+  const holding = $derived(pending || held(root, around));
 </script>
 
 <!--
@@ -36,7 +39,7 @@ the end part draws its own inset ring while it has focus, so the two never look 
 
 - Semantics: a `<div>` with no role around two native controls, each named on its own.
 - Content: `start`, the value, and `end`, one unit picker or one action, each drawn `bare`.
-- States: rest (the control fill, a quiet frame, a recess under its top edge darker than the frame and a 3:1 baseline), hover anywhere on it (the field veil over both parts and a firmer frame and recess, an end part's own hover over that), the value focused (the rest fill under a flush 2px ring), the end focused (its own inset ring), invalid (a danger edge on all four sides in every state), read-only (the field well and a quiet frame with no recess), and disabled or held by a busy dialog or a saving pane (0.6 opacity).
+- States: rest (the control fill, a quiet frame, a recess under its top edge darker than the frame and a 3:1 baseline), hover anywhere on it (the field veil over both parts and a firmer frame and recess, an end part's own hover over that), the value focused (the rest fill under a flush 2px ring), the end focused (its own inset ring), invalid (a danger edge on all four sides in every state), read-only and disabled (the field well and a quiet frame with no recess, a disabled field's words in the muted ink, at full strength), and pending or held by a busy dialog or a saving pane (0.6 opacity).
 - Keyboard: Tab moves from the value to the end part, each with its own keys.
 - Pointer and touch: the frame is the control height, 34px or 44px on a phone or any touch screen, and each part keeps its own target.
 - Focus: it never moves focus; each part keeps its own.
@@ -48,7 +51,10 @@ the end part draws its own inset ring while it has focus, so the two never look 
 - Failure: an invalid value keeps the danger edge whichever part has focus, and the words that say why belong to the host.
 -->
 
-<div bind:this={root} class={['sui-joined', { invalid, disabled: disabled || holding, readonly }]}>
+<div
+  bind:this={root}
+  class={['sui-joined', { invalid, disabled: disabled && !holding, held: holding, readonly }]}
+>
   <div class="sui-joined-value">{@render start()}</div>
   <div class="sui-joined-end">{@render end()}</div>
 </div>
@@ -78,14 +84,14 @@ the end part draws its own inset ring while it has focus, so the two never look 
      deeper (L-9). An end part that lights its own ground, such as a unit or a remove chip, shows
      it over the field's veil, so the reader still sees which part the pointer is on. */
   @media (hover: hover) {
-    .sui-joined:hover:not(.disabled, .readonly, :has(:global(:focus-visible))) {
+    .sui-joined:hover:not(.disabled, .held, .readonly, :has(:global(:focus-visible))) {
       background-color: var(--sui-field-hover);
       border-color: var(--sui-field-frame-hover);
       border-block-end-color: var(--sui-field-border-hover);
       box-shadow: inset 0 var(--sui-stroke) 0 var(--sui-field-recess-hover);
     }
 
-    .sui-joined.invalid:hover:not(.disabled, .readonly, :has(:global(:focus-visible))) {
+    .sui-joined.invalid:hover:not(.disabled, .held, .readonly, :has(:global(:focus-visible))) {
       background-color: var(--sui-field-danger-hover);
       border-color: var(--sui-danger-hover);
     }
@@ -100,8 +106,10 @@ the end part draws its own inset ring while it has focus, so the two never look 
     outline-offset: var(--sui-focus-ring-flush);
   }
 
-  /* A value that only reads sits in the field well with a quiet frame and no recess, as a
-     read-only text field does, so it never looks like a field to type in. */
+  /* A value that only reads, or a field that is off, sits in the field well with a quiet frame
+     and no recess, as a read-only or disabled text field does, so it never looks like a field
+     to type in (L-10, L-40). */
+  .disabled,
   .readonly,
   .readonly:has(.sui-joined-value :global(:focus-visible)) {
     background-color: var(--sui-field-well);
@@ -114,7 +122,19 @@ the end part draws its own inset ring while it has focus, so the two never look 
     border-color: var(--sui-danger);
   }
 
+  /* An off field's words take the muted ink at full strength in both parts, as a disabled text
+     field's do, so the value stays legible; Safari paints a disabled field's words by their fill
+     colour. */
   .disabled {
+    --sui-local-joined-off-ink: var(--sui-text-muted);
+  }
+
+  .disabled :global(:disabled) {
+    color: var(--sui-text-muted);
+    -webkit-text-fill-color: currentColor;
+  }
+
+  .held {
     opacity: var(--sui-disabled-opacity);
   }
 

@@ -463,6 +463,11 @@ assistive technology, because a native picker cannot be held open.
     opacity: 1;
   }
 
+  /* A joined field that is off names the muted ink its words take (L-40). */
+  .bare .sui-select-control:is(:disabled, [aria-disabled='true']) {
+    color: var(--sui-local-joined-off-ink, var(--sui-text-secondary));
+  }
+
   /* The chevron turns over while the picker is open. */
   .sui-select-control:open + .sui-select-chevron {
     rotate: 180deg;

@@ -1504,8 +1504,11 @@ function controls(root: Document): Finding[] {
     // A busy button is the action at work: its fill, edge, words and spinner keep full
     // strength; a busy icon button has no words.
     const busy = control.matches("[aria-busy='true']:not(:disabled)");
-    // An off text field reads as off by its well and its muted words, at full strength.
-    const well = control.matches(':is(.sui-text-input, .sui-textarea):disabled:not(.held, .bare)');
+    // An off text field reads as off by its well and its muted words, at full strength, and so
+    // do both parts of an off joined field.
+    const well = control.matches(
+      ':is(.sui-text-input, .sui-textarea):disabled:not(.held, .bare), .sui-joined.disabled :disabled'
+    );
     const dimmed = busy ? control.querySelector('.sui-button-label') : control;
     const expected = busy || well ? 1 : disabledOpacity;
     const opacity = dimmed ? effectiveOpacity(dimmed) : expected;
@@ -2202,8 +2205,8 @@ function unsavedVeils(root: Document): Finding[] {
 /**
  * Field recesses (L-9): every field frame a reader types or picks in draws one line under its
  * top edge, an inset shadow a stroke deep with no blur, darker than its frame on the field's own
- * ground in every state. A read-only or disabled field sits in the inset well, no place to
- * type, and draws none.
+ * ground in every state. A read-only or disabled field sits in the field well (L-10), no place
+ * to type, and draws none.
  */
 function fieldRecesses(root: Document): Finding[] {
   const found: Finding[] = [];
@@ -2222,9 +2225,15 @@ function fieldRecesses(root: Document): Finding[] {
       })
       .find(({ x, y, blur, spread }) => x === 0 && y === stroke && blur === 0 && spread === 0);
     const well =
-      '.sui-text-input[readonly]:not(.held, [aria-expanded="true"]), .sui-joined.readonly, :is(.sui-text-input, .sui-textarea):disabled:not(.held, .bare)';
+      '.sui-text-input[readonly]:not(.held, [aria-expanded="true"]), .sui-joined:is(.readonly, .disabled), :is(.sui-text-input, .sui-textarea):disabled:not(.held, .bare)';
     if (field.matches(well)) {
       if (line) found.push(finding('L-9', field, 'a read-only or disabled field draws a recess'));
+      const [fill, want] = [
+        rgba(look.backgroundColor),
+        rgba(look.getPropertyValue('--sui-field-well'))
+      ];
+      if (fill.r !== want.r || fill.g !== want.g || fill.b !== want.b || fill.a !== want.a)
+        found.push(finding('L-10', field, 'a read-only or disabled field leaves the field well'));
       continue;
     }
     if (!line?.color) {
