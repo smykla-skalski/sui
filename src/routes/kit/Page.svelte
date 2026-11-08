@@ -68,7 +68,7 @@
       <div class="audit">
         <div class="audit-run">
           <div class="audit-result" role="status">{@render result()}</div>
-          {@render runAudit()}
+          <div class="audit-hang">{@render runAudit()}</div>
         </div>
         {#if audit.findings && found > 0}
           <Findings findings={audit.findings} />
@@ -137,6 +137,13 @@
     flex-wrap: wrap;
     gap: var(--sui-space-3);
     justify-content: end;
+  }
+
+  /* A ghost button draws no box at rest, so it hangs its inline padding past the end and its
+     words end on the edge the examples and the hairline end on. */
+  .audit-hang {
+    display: flex;
+    margin-inline-end: calc(-1 * var(--sui-space-3));
   }
 
   /* The pill is the line, so no line box of the page's leading rounds its height off the pixel
