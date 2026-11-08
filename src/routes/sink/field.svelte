@@ -257,7 +257,7 @@
 
 <Example
   title="In Context"
-  --example-max="54rem"
+  --example-max="35rem"
   note="Fields stack 16 px apart, and every control in the form keeps one label, hint and error"
   layout="grid"
   --specimen-min="21rem"
@@ -296,7 +296,7 @@
 
 <Example
   title="Narrow Width"
-  --example-max="54rem"
+  --example-max="calc(16rem + 2 * var(--sui-space-6) + 2 * var(--sui-stroke))"
   note="Long labels, hints and errors wrap at one 20 px leading"
   layout="stack"
 >
