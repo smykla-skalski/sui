@@ -58,7 +58,7 @@
 A tone is a job, never a color. `default` does a view's ordinary work, `signal` is the one
 action a view exists for (one per view), `ghost` is low emphasis that supports it, `stop` is
 destructive, and `stop-quiet` is destructive but bordered, for a flow whose filled danger
-button is the final confirmation. `add` is a pill with a firm dashed edge that starts an
+button is the final confirmation. `add` has a firm dashed edge and starts an
 optional entry; it never submits, saves, cancels, removes or navigates. `decision` is the gold
 action that resolves unsaved work, such as Save in a save bar, and nothing else wears it.
 
@@ -178,15 +178,11 @@ start.
     min-inline-size: 0;
     overflow-wrap: anywhere;
     padding-block: var(--sui-block-snap-room-even);
+    /* A wrapped label fills the button, so its lines start on one edge, at an icon or a mark
+       when there is one. A one-line label is as wide as its words, so the button centres it. */
+    text-align: start;
     text-box: trim-both cap alphabetic;
     text-wrap: balance;
-  }
-
-  /* A wrapped label fills the button, so beside an icon or a mark its lines start at that part
-     rather than centring away from it. */
-  .sui-button-part + .sui-button-label,
-  .sui-button-label:has(+ .sui-button-part) {
-    text-align: start;
   }
 
   .sui-button-part {
@@ -370,7 +366,6 @@ start.
     --sui-control-border: var(--sui-control-border-hover);
 
     background-color: transparent;
-    border-radius: var(--sui-radius-pill);
     border-style: dashed;
     color: var(--sui-text-secondary);
   }
