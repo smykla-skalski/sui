@@ -203,11 +203,13 @@ live specimens, not a surface of the design, so it may hold cards and dialogs (L
     );
   }
 
+  /* The Code row is as tall as its disclosure's own target, so the frame's chrome stays
+     lighter than the specimens it closes. */
   .tools {
     background: var(--sui-surface-base);
     border-block-start: var(--sui-stroke) solid var(--sui-border-divider);
     min-inline-size: 0;
-    padding: var(--sui-space-1) var(--sui-space-4);
+    padding: 0 var(--sui-space-4);
   }
 
   @container sink-stage (max-width: 30rem) {
