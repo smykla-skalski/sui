@@ -800,7 +800,9 @@ function copyRhythm(root: Document): Finding[] {
     const titled =
       /^H[1-6]$/.test(first.tagName) ||
       [...first.classList].some((name) => name === 'title' || name.endsWith('-title'));
-    const want = titled ? 12 : 8;
+    // A state's step in words stands apart from the explanation over it, as words do from a title.
+    const step = [...second.classList].some((name) => name.endsWith('-state-step'));
+    const want = titled || step ? 12 : 8;
     if (Math.abs(gap - want) > 0.75 && gap < 16)
       found.push(
         finding('L-24', second, `title to description gap is ${round(gap)}px, not ${want}px`)

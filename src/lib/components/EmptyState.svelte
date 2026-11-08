@@ -105,9 +105,11 @@ a step 8px under it.
     padding: var(--sui-space-7) var(--sui-space-6);
   }
 
+  /* The title stands a title gap above its words, and a step in words stands one under them,
+     so the reader's next move reads apart from why the list is empty (L-59). */
   .sui-empty-state-copy {
     display: grid;
-    gap: var(--sui-row-copy-gap);
+    gap: var(--sui-title-copy-gap);
     min-inline-size: 0;
   }
 
@@ -120,11 +122,9 @@ a step 8px under it.
     text-box: trim-both cap alphabetic;
   }
 
-  /* The title stands a title gap above its words; the step keeps the copy gap under them. */
   .sui-empty-state-title {
     text-wrap: balance;
     color: var(--sui-text-primary);
-    margin-block-end: calc(var(--sui-title-copy-gap) - var(--sui-row-copy-gap));
     font: var(--sui-weight-semibold) var(--sui-font-size-card-title) / var(--sui-row-copy-leading)
       var(--sui-sans);
   }

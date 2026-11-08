@@ -214,11 +214,6 @@ of them.
       var(--sui-sans);
   }
 
-  /* The title stands a title gap above its words; the step keeps the copy gap under them. */
-  .sui-error-state-description:has(+ .sui-error-state-step) {
-    margin-block-end: calc(var(--sui-row-copy-gap) - var(--sui-title-copy-gap));
-  }
-
   .sui-error-state-step {
     color: var(--sui-text-primary);
     font: var(--sui-weight-medium) var(--sui-font-size-meta) / var(--sui-row-copy-leading)

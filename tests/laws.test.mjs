@@ -327,6 +327,15 @@ test('L-59 a state panel pads 28px by 24px, 20px on a phone, its action a step u
     [[20], [16]],
     'a table with no rows says so with more room than a row above and below its words'
   );
+  for (const name of ['Empty', 'Error']) {
+    const css = styles[`src/lib/components/${name}State.svelte`];
+    assert.match(css, /-state-copy \{[^}]*gap: var\(--sui-title-copy-gap\)/, `${name}State`);
+    assert.doesNotMatch(
+      css,
+      /calc\(var\(--sui-(row|title)-copy-gap\) - var\(--sui-(title|row)-copy-gap\)\)/,
+      `${name}State: a step in words stands the title gap under the explanation, apart from it`
+    );
+  }
 });
 
 test('L-5 the quiet inks stay easy to read on the dark canvas, under the current row', () => {
