@@ -219,7 +219,7 @@ box. Choosing one lifts it. A caller's `error` always wins.
   .sui-check-list-error {
     align-items: start;
     color: var(--sui-danger);
-    column-gap: var(--sui-space-1);
+    column-gap: var(--sui-space-2);
     display: grid;
     font: var(--sui-weight-medium) var(--sui-font-size-note) / var(--sui-leading-note)
       var(--sui-sans);

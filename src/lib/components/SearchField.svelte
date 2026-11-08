@@ -194,7 +194,7 @@ matches in a polite `role="status"` beside it so a screen reader hears it.
   .sui-search-field-error {
     align-items: start;
     color: var(--sui-danger);
-    column-gap: var(--sui-space-1);
+    column-gap: var(--sui-space-2);
     display: grid;
     font: var(--sui-weight-medium) var(--sui-font-size-note) / var(--sui-leading-note)
       var(--sui-sans);

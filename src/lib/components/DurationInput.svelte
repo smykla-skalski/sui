@@ -393,7 +393,7 @@ land on the amount.
   .sui-duration-problem {
     align-items: start;
     color: var(--sui-danger);
-    column-gap: var(--sui-space-1);
+    column-gap: var(--sui-space-2);
     display: grid;
     font-weight: var(--sui-weight-medium);
     grid-template-columns: auto minmax(0, 1fr);

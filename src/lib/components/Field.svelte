@@ -273,7 +273,7 @@ the `control` snippet reports here on its own, and a control of another kind kee
   .sui-field-error {
     align-items: start;
     color: var(--sui-danger);
-    column-gap: var(--sui-space-1);
+    column-gap: var(--sui-space-2);
     display: grid;
     font: var(--sui-weight-medium) var(--sui-font-size-note) / var(--sui-leading-note)
       var(--sui-sans);

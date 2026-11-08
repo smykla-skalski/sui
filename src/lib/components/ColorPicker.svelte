@@ -788,7 +788,7 @@ name is the label and the hex, such as "Label color #0f766e". `name` posts the h
   .error {
     align-items: start;
     color: var(--sui-danger);
-    column-gap: var(--sui-space-1);
+    column-gap: var(--sui-space-2);
     display: grid;
     font: var(--sui-weight-medium) var(--sui-font-size-note) / var(--sui-leading-note)
       var(--sui-sans);

@@ -377,7 +377,7 @@ save keeps it. A busy dialog or a saving pane around it disables the radios whil
   .sui-choice-cards-error {
     align-items: start;
     color: var(--sui-danger);
-    column-gap: var(--sui-space-1);
+    column-gap: var(--sui-space-2);
     display: grid;
     font: var(--sui-weight-medium) var(--sui-font-size-note) / var(--sui-leading-note)
       var(--sui-sans);

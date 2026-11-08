@@ -1020,18 +1020,23 @@ test('L-53 a shadow that lifts a part is two layers in every palette block', () 
   );
 });
 
-test('L-94 a field or group message takes the 16px mark 4px from its words', () => {
+test('L-94 a field or group message takes the 16px mark 8px from its words', () => {
   const marks = {
-    Field: 'sui-field-error-mark',
-    CheckList: 'sui-check-list-mark',
-    ChoiceCards: 'sui-choice-cards-mark',
-    ColorPicker: 'error-mark',
-    DurationInput: 'sui-duration-mark',
-    SearchField: 'sui-search-field-error-mark',
-    Switch: 'sui-switch-mark'
+    Field: ['sui-field-error-mark', 'sui-field-error'],
+    CheckList: ['sui-check-list-mark', 'sui-check-list-error'],
+    ChoiceCards: ['sui-choice-cards-mark', 'sui-choice-cards-error'],
+    ColorPicker: ['error-mark', 'error'],
+    DurationInput: ['sui-duration-mark', 'sui-duration-problem'],
+    SearchField: ['sui-search-field-error-mark', 'sui-search-field-error'],
+    Switch: ['sui-switch-mark', 'sui-switch-error']
   };
-  for (const [name, mark] of Object.entries(marks)) {
+  for (const [name, [mark, line]] of Object.entries(marks)) {
     const path = `src/lib/components/${name}.svelte`;
+    assert.match(
+      styles[path],
+      new RegExp(`\\.${line} \\{[^}]*column-gap: var\\(--sui-space-2\\)`),
+      `${name}'s message mark does not stand 8px from its words, as a button's icon does`
+    );
     assert.ok(
       read(path).includes(`<span class="${mark}"><Icon name="alert" size="base" /></span>`),
       `${name}'s message mark is not the 16px glyph`
