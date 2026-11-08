@@ -615,6 +615,7 @@ test('L-35 a field label and every group name wear one ink at one weight and lea
       /\bfont: var\(--sui-weight-semibold\) var\(--sui-font-size-control\) \/ var\(--sui-leading-note\)/,
       `${name} is set in another weight, size or leading`
     );
+    assert.match(rule, /\btext-wrap: pretty;/, `${name} can leave one word on its last line`);
   }
   for (const [path, name] of [
     ['src/lib/components/Field.svelte', 'sui-field-required'],

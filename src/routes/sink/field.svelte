@@ -297,7 +297,7 @@
 
   <Example
     title="Narrow Width"
-    --example-max="calc(16rem + 2 * var(--sui-space-6) + 2 * var(--sui-stroke))"
+    --example-max="var(--narrow-frame)"
     note="Long labels, hints and errors wrap at one 20 px leading"
     layout="stack"
   >
@@ -326,23 +326,41 @@
     margin-block-start: var(--sui-space-1);
   }
 
-  /* Two examples that keep a measure share a row where both fit, so the page does not end
-     on a narrow tail beside an empty half (L-55). */
+  /* Two examples that keep a measure share a row on the cards' 54rem, so the page does not end
+     on a narrow tail beside an empty half and the pair stops at the edge the cards above keep.
+     On a phone they stack and both frames fill the column, as every other frame does; the
+     narrow field keeps its own 16rem inside (L-55). */
   .measured {
+    --narrow-frame: calc(16rem + 2 * var(--sui-space-6));
     align-items: start;
-    display: flex;
-    flex-wrap: wrap;
+    display: grid;
     gap: var(--sui-space-6);
+    grid-template-columns: minmax(0, 1fr) calc(var(--narrow-frame) + 2 * var(--sui-stroke));
+    /* A frame's measure is its content box, inside its two strokes. */
+    max-inline-size: calc(54rem + 2 * var(--sui-stroke));
   }
 
-  /* Each frame keeps its measure, and the last example takes the rest of its line, so its
-     note reads at full width once the pair wraps on a phone. */
+  /* Each example takes a head row and a frame row, so the heads share the taller one and the
+     frames start on one line however the notes wrap. */
   .measured :global(.example) {
-    flex: 0 1 var(--example-max);
+    grid-row: span 2;
+    grid-template-rows: subgrid;
   }
 
-  .measured > :global(:last-child) > :global(.example) {
-    flex-grow: 1;
+  /* A frame keeps its own height, not the taller one beside it, so its parts keep whole pixels
+     (L-95). */
+  .measured :global(.frame) {
+    align-self: start;
+  }
+
+  @media (max-width: 47.9375rem) {
+    .measured {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .measured :global(.example) {
+      --example-max: none;
+    }
   }
 
   .narrow {

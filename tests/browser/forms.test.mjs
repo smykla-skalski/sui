@@ -292,28 +292,36 @@ suite('forms', together, () => {
       }
     );
 
-    test('L-55 two examples that keep a measure share a row where both fit', long, async () => {
-      const page = await opened();
-      const tops = await page.evaluate(() =>
-        ['in-context', 'narrow-width'].map(
-          (name) =>
-            document.getElementById(`field-${name}`)?.closest('.example')?.getBoundingClientRect()
-              .top
-        )
-      );
-      assert.ok(tops.every((top) => typeof top === 'number'));
-      assert.equal(tops[0], tops[1]);
-      const phone = await open({ width: 390 });
-      const widths = await phone.evaluate(() =>
-        ['in-context', 'narrow-width'].map(
-          (name) =>
-            document.getElementById(`field-${name}`)?.closest('.example')?.getBoundingClientRect()
-              .width
-        )
-      );
-      await phone.close();
-      assert.equal(widths[1], widths[0], 'a wrapped example keeps its note to its frame');
-    });
+    test(
+      'L-55 two measured examples share a row that ends where the cards above end, and fill a phone line',
+      long,
+      async () => {
+        /** @param {import('playwright-core').Page} page */
+        const frames = (page) =>
+          page.evaluate(() =>
+            ['states', 'in-context', 'narrow-width'].map((name) => {
+              const box = document
+                .getElementById(`field-${name}`)
+                ?.closest('.example')
+                ?.querySelector('.frame')
+                ?.getBoundingClientRect();
+              return box && { top: box.top, end: box.right, width: box.width };
+            })
+          );
+        const [states, context, narrow] = await frames(await opened());
+        assert.ok(states && context && narrow);
+        assert.equal(context.top, narrow.top, 'the pair stands on one row');
+        assert.ok(
+          Math.abs(narrow.end - states.end) < 1,
+          `the pair ends at ${narrow.end}, the cards above at ${states.end}`
+        );
+        const phone = await open({ width: 390 });
+        const [, small, wrapped] = await frames(phone);
+        await phone.close();
+        assert.ok(small && wrapped);
+        assert.equal(wrapped.width, small.width, 'a wrapped frame keeps a narrow measure');
+      }
+    );
 
     test(
       'a checkbox row centres its box on the label, its notes 12px under the box, an error mark under it',
