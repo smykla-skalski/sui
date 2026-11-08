@@ -594,13 +594,13 @@ row in place of the hairlines, for a table wide enough that the eye can lose its
     color: var(--sui-text-muted);
   }
 
-  /* A body with no rows, or whose request failed, is one place that says so, with a state
-     panel's room above and below its words, so it never reads as a lone first row (L-59). */
+  /* A body with no rows, or whose request failed, is one place that says so, with more room
+     than a row above and below its words, so it never reads as a lone first row (L-59). */
   .state {
     color: var(--sui-text-muted);
     font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-leading-meta)
       var(--sui-sans);
-    padding-block: var(--sui-space-7);
+    padding-block: var(--sui-space-5);
   }
 
   /* While the columns scroll, the row headings stay at the start on the table's own ground,
@@ -711,7 +711,7 @@ row in place of the hairlines, for a table wide enough that the eye can lose its
     }
 
     .state {
-      padding-block: var(--sui-space-5);
+      padding-block: var(--sui-space-4);
     }
   }
 

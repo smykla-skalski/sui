@@ -324,8 +324,8 @@ test('L-59 a state panel pads 28px by 24px, 20px on a phone, its action a step u
         'padding-block'
       )
     ],
-    [[28], [20]],
-    "a table with no rows says so with a panel's room above and below its words"
+    [[20], [16]],
+    'a table with no rows says so with more room than a row above and below its words'
   );
 });
 
