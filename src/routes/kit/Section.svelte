@@ -152,6 +152,12 @@
     gap: var(--sui-space-6);
   }
 
+  @media (max-width: 47.9375rem) {
+    .section:not(.headed) {
+      gap: var(--sui-space-4);
+    }
+  }
+
   .head {
     display: grid;
     gap: var(--sui-title-copy-gap);

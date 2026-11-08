@@ -41,7 +41,7 @@
 <!-- A sink page: its header, a law audit on what the page draws, and its content. The audit
      says its result beside the title and adds a list under the header only when a law breaks, so
      a page that holds draws nothing more. -->
-<div class="sink">
+<div class={['sink', { sourced }]}>
   <PageHeader class="head" {eyebrow} {title} {description} actions={sourced ? undefined : runAudit}>
     {#snippet status()}
       {#if audit.running}
@@ -77,6 +77,14 @@
     /* A phone's header stands its side inset from the top and foot as well, on whole pixels so
        the page under it stays on the grid. */
     padding-block: round(min(var(--sink-gutter), var(--sui-rhythm-pane-gutter)), 1px);
+  }
+
+  /* On a phone a component page's source row stands closer under the header, so the first
+     specimen comes sooner. */
+  @media (max-width: 47.9375rem) {
+    .sourced > :global(.head) {
+      margin-block-end: var(--sui-space-3);
+    }
   }
 
   main {
