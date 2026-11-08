@@ -264,7 +264,9 @@ suite('the kitchen sink', together, () => {
             '<p>Sync 3 repositories with a two-way link</p>',
             '<p>Run <code translate="no">git</code></p>',
             '<pre translate="no"><span class="sui-visually-hidden">Added</span>+ a</pre>',
-            '<pre translate="no"><span class="sui-visually-hidden" translate="yes">Removed</span>- a</pre>'
+            '<pre translate="no"><span class="sui-visually-hidden" translate="yes">Removed</span>- a</pre>',
+            '<a href="#" translate="no" aria-describedby="title-case-away">Badge<span id="title-case-away" hidden>(opens another site)</span></a>',
+            '<a href="#" aria-describedby="title-case-off"><span translate="no">Badge</span><span id="title-case-off" hidden>(opens another site)</span></a>'
           ].join('');
           document.body.append(host);
           return buttons.length;
@@ -305,7 +307,8 @@ suite('the kitchen sink', together, () => {
           [
             '"npm" is a mono value a translator can change',
             '""main"" is a mono value a translator can change',
-            '"Added" is a heard word a translator cannot change'
+            '"Added" is a heard word a translator cannot change',
+            '"(opens another site)" is a heard word a translator cannot change'
           ]
         );
       } finally {

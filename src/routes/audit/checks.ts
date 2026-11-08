@@ -650,8 +650,19 @@ function untranslated(root: Document): Finding[] {
     .map(({ element, text }) =>
       finding('L-20', element, `"${text.slice(0, 24)}" is a mono value a translator can change`)
     );
-  const shut = [...root.querySelectorAll<HTMLElement>('[translate="no"] .sui-visually-hidden')]
-    .filter((element) => !element.closest('[data-audit-ignore]') && !element.translate)
+  // A hidden element is heard only as the name or description of the control that points to it.
+  const heard = (element: HTMLElement) =>
+    element.matches('.sui-visually-hidden') ||
+    (element.id !== '' &&
+      root.querySelector(
+        `[aria-describedby~="${CSS.escape(element.id)}"], [aria-labelledby~="${CSS.escape(element.id)}"]`
+      ) !== null);
+  const shut = [
+    ...root.querySelectorAll<HTMLElement>('[translate="no"] :is(.sui-visually-hidden, [hidden])')
+  ]
+    .filter(
+      (element) => !element.closest('[data-audit-ignore]') && !element.translate && heard(element)
+    )
     .map((element) =>
       finding(
         'L-20',
