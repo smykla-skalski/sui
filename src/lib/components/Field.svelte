@@ -77,7 +77,8 @@ land on that input.
 Any other control goes in the `control` snippet, which receives the `id` the label points at,
 the `describedby` ids of the hint and the error, `invalid` and `required`. Spread them onto a
 `Textarea`, a `Select`, a `Checkbox` or a picker. `layout="row"` sets a checkbox before the
-label and a switch after it, both centred on one line.
+label and a switch after it, both centred on one line, and a checkbox row's hint or error
+stands 8px under the label, as a `Checkbox`'s description does.
 
 `required` writes the word "Required" beside the label, never only an asterisk, and marks
 the control. The word stays out of the accessibility tree, because the control already
@@ -103,7 +104,7 @@ the `control` snippet reports here on its own, and a control of another kind kee
 - Keyboard: a press on the label focuses the control; the control brings its own keys.
 - Pointer and touch: the label is part of a text control's target, and the control keeps its own sizes.
 - Focus: a send the browser's check refuses moves focus to the first refused control and scrolls its field into view, clear of the page's sticky bars through the page's scroll padding.
-- Responsive: it fills its column, and a long label, hint or error wraps with the same 8px gap between lines; `row` keeps a switch or checkbox beside a label that wraps.
+- Responsive: it fills its column, and a long label, hint or error wraps at the hint's 20px leading; `row` keeps a switch or checkbox beside a label that wraps.
 - Accessibility: the label names the control, hint and error describe it, the error is spoken when it appears, and every line holds 4.5:1.
 - Localization: `requiredLabel` is a prop with an English default, the label, hint, error and `validationMessage` come from the caller, a refusal without `validationMessage` is in the browser's words for the reader's language, and the layout is logical.
 - Performance: static markup and one status per field; nothing animates.
@@ -173,13 +174,27 @@ the `control` snippet reports here on its own, and a control of another kind kee
     column-gap: var(--sui-space-2);
     grid-template-columns: auto minmax(0, 1fr);
 
+    /* The control row is one cap of the label's face tall, so the box centres on the label's
+       first line, its 34px or 44px target standing past the row as a `Checkbox`'s does, and
+       the hint or error stands the copy gap under the label, not under that target. The cap
+       rounds to an even height, as the label's box does, so the even box centres on whole
+       pixels (L-95). */
     > .sui-field-control {
       --sui-local-checkbox-bleed: initial;
+      block-size: round(up, 1cap, 2px);
+      font: var(--sui-weight-semibold) var(--sui-font-size-control) / var(--sui-leading-note)
+        var(--sui-sans);
       grid-area: 1 / 1;
+      min-block-size: 0;
     }
 
     > :not(.sui-field-control) {
       grid-column: 2;
+    }
+
+    .sui-field-label {
+      block-size: var(--sui-block-snap-even);
+      padding-block: var(--sui-block-snap-room-even);
     }
 
     /* The warning mark sits in the box's column, so the error's words start on the label's
@@ -199,7 +214,7 @@ the `control` snippet reports here on its own, and a control of another kind kee
     align-content: center;
     block-size: var(--sui-block-snap);
     color: var(--sui-text-primary);
-    font: var(--sui-weight-semibold) var(--sui-font-size-control) / var(--sui-row-copy-leading)
+    font: var(--sui-weight-semibold) var(--sui-font-size-control) / var(--sui-leading-note)
       var(--sui-sans);
     min-inline-size: 0;
     padding-block: var(--sui-block-snap-room);

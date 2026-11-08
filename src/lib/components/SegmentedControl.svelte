@@ -477,7 +477,7 @@ itself, so the choice shows from the first frame.
     align-content: center;
     block-size: var(--sui-block-snap);
     color: var(--sui-text-primary);
-    font: var(--sui-weight-semibold) var(--sui-font-size-control) / var(--sui-row-copy-leading)
+    font: var(--sui-weight-semibold) var(--sui-font-size-control) / var(--sui-leading-note)
       var(--sui-sans);
     min-inline-size: 0;
     overflow-wrap: anywhere;

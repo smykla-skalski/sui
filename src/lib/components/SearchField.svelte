@@ -153,7 +153,7 @@ matches in a polite `role="status"` beside it so a screen reader hears it.
     align-content: center;
     block-size: var(--sui-block-snap);
     color: var(--sui-text-primary);
-    font: var(--sui-weight-semibold) var(--sui-font-size-control) / var(--sui-row-copy-leading)
+    font: var(--sui-weight-semibold) var(--sui-font-size-control) / var(--sui-leading-note)
       var(--sui-sans);
     padding-block: var(--sui-block-snap-room);
     text-box: trim-both cap alphabetic;

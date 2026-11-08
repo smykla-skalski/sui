@@ -280,10 +280,31 @@ suite('forms', together, () => {
     });
 
     test(
-      'a checkbox row error starts its words on the label edge, its mark under the box',
+      'a checkbox row centres its box on the label, its notes 8px under it, an error mark under the box',
       long,
       async () => {
         const page = await opened();
+        const rows = await page.evaluate(() =>
+          [
+            ...document.querySelectorAll(
+              "#field .sui-field[data-layout='row']:has(input[type='checkbox']):has(.sui-field-help, .sui-field-error)"
+            )
+          ].map((field) => {
+            const box = (/** @type {string} */ selector) =>
+              /** @type {Element} */ (field.querySelector(selector)).getBoundingClientRect();
+            const label = box('.sui-field-label');
+            const check = box('.sui-checkbox-box');
+            return {
+              gap: box(':is(.sui-field-help, .sui-field-error-text)').top - label.bottom,
+              offCentre: check.top + check.height / 2 - (label.top + label.height / 2)
+            };
+          })
+        );
+        assert.ok(rows.length > 1, 'no checkbox rows');
+        for (const row of rows) {
+          assert.ok(Math.abs(row.gap - 8) <= 0.5, JSON.stringify(row));
+          assert.ok(Math.abs(row.offCentre) <= 1, JSON.stringify(row));
+        }
         const edges = await page
           .locator("#field .sui-field[data-layout='row']:has(.sui-field-error)")
           .first()

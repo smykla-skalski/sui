@@ -547,7 +547,7 @@ test('L-45 the add tone labels its entry in the primary ink inside its dashed ed
   );
 });
 
-test('L-35 a field label and every group name wear one ink at one weight, over a compact "Required"', () => {
+test('L-35 a field label and every group name wear one ink at one weight and leading, over a compact "Required"', () => {
   const names = {
     'src/lib/components/Field.svelte': 'sui-field-label',
     'src/lib/components/SearchField.svelte': 'sui-search-field-label',
@@ -560,8 +560,8 @@ test('L-35 a field label and every group name wear one ink at one weight, over a
     assert.match(rule, /\bcolor: var\(--sui-text-primary\);/, `${name} wears another ink`);
     assert.match(
       rule,
-      /\bfont: var\(--sui-weight-semibold\) var\(--sui-font-size-control\)/,
-      `${name} is set in another weight or size`
+      /\bfont: var\(--sui-weight-semibold\) var\(--sui-font-size-control\) \/ var\(--sui-leading-note\)/,
+      `${name} is set in another weight, size or leading`
     );
   }
   const required = /\n  \.sui-field-required \{([^}]*)\}/.exec(

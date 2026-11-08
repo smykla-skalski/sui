@@ -165,7 +165,7 @@ box. Choosing one lifts it. A caller's `error` always wins.
     block-size: var(--sui-block-snap);
     color: var(--sui-text-primary);
     float: inline-start;
-    font: var(--sui-weight-semibold) var(--sui-font-size-control) / var(--sui-row-copy-leading)
+    font: var(--sui-weight-semibold) var(--sui-font-size-control) / var(--sui-leading-note)
       var(--sui-sans);
     padding: 0;
     padding-block: var(--sui-block-snap-room);
