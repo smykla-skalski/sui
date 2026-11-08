@@ -306,7 +306,9 @@
      under its top edge sinks it into the ground. */
   --sui-field-frame: rgb(0 0 0 / 18%);
   --sui-field-frame-hover: var(--sui-control-border-hover);
-  --sui-field-border: var(--sui-border-strong);
+  /* Lighter than the strong border, so a field is not heavy at its foot, and still 3:1 on every
+     ground (L-9). */
+  --sui-field-border: rgb(0 0 0 / 46%);
   --sui-field-border-hover: color-mix(
     in srgb,
     var(--sui-field-border) 60%,
