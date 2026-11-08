@@ -242,5 +242,39 @@ wide matrix on a wider stage scrolls inside it with the row values held, as a da
     .cell-label {
       display: block;
     }
+
+    /* A mark sized by its words takes a line of its own beside its column's name, so the
+       states of a row stand as an even list and none wraps alone under the others. The names
+       share one column across the rows, so every mark starts on one edge. */
+    .grid:not(.fill) {
+      column-gap: var(--sui-space-4);
+      grid-template-columns: max-content minmax(0, 1fr);
+      row-gap: var(--sui-space-2);
+    }
+
+    .grid:not(.fill) .row {
+      display: contents;
+    }
+
+    .grid:not(.fill) .row-label {
+      grid-column: 1 / -1;
+    }
+
+    .grid:not(.fill) .row + .row .row-label {
+      margin-block-start: var(--sui-space-4);
+    }
+
+    /* A line is a finger's target tall, so a smaller mark's grown hit area stays on its own
+       line (L-38). */
+    .grid:not(.fill) .cell {
+      align-items: center;
+      grid-column: 1 / -1;
+      grid-template-columns: subgrid;
+      min-block-size: var(--sui-touch-target);
+    }
+
+    .grid:not(.fill) .cell > :global(:not(.cell-label)) {
+      grid-column: 2;
+    }
   }
 </style>
