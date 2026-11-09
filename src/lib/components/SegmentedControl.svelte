@@ -932,6 +932,13 @@ itself, so the choice shows from the first frame.
     color: var(--sui-segment-thumb-ink);
   }
 
+  /* On the filled thumb the count wears the thumb's ink on a veil of the opposite lightness,
+     which only deepens the ink's contrast with the fill, whatever the fill's hue. */
+  .sui-segmented-option.selected {
+    --sui-local-count-ground: oklch(from var(--sui-segment-thumb-ink) calc(1 - l) 0 0 / 22%);
+    --sui-local-count-ink: var(--sui-segment-thumb-ink);
+  }
+
   /* A disabled control is drawn as a disabled field is: the field's quieter fill with no frame
      and its words in the muted ink, at full strength. A disabled option among live ones keeps
      the disabled opacity, since the muted ink alone sits too close to its neighbours' to set it
@@ -976,13 +983,6 @@ itself, so the choice shows from the first frame.
     color: var(--sui-text-secondary);
   }
 
-  /* On the filled thumb the count wears the thumb's ink on a veil of the opposite lightness,
-     which only deepens the ink's contrast with the fill, whatever the fill's hue. */
-  .sui-segmented-option.selected {
-    --sui-local-count-ground: oklch(from var(--sui-segment-thumb-ink) calc(1 - l) 0 0 / 22%);
-    --sui-local-count-ink: var(--sui-segment-thumb-ink);
-  }
-
   /* A finger's target is at least 44px each way (L-38), so each option's target reaches over
      the track's rim beside it. */
   @media (max-width: 47.9375rem), (pointer: coarse) {
@@ -1024,7 +1024,10 @@ itself, so the choice shows from the first frame.
     }
 
     .off > .sui-segmented-thumb,
-    .sui-segmented-track:has(> .selected.disabled) > .sui-segmented-thumb {
+    .sui-segmented-track:has(> .selected.disabled) > .sui-segmented-thumb,
+    .sui-segmented-track.off:not(:has(> .sui-segmented-thumb)) > .sui-segmented-option.selected,
+    .sui-segmented-track:not(:has(> .sui-segmented-thumb))
+      > .sui-segmented-option.selected.disabled {
       background: Canvas;
       outline: var(--sui-stroke-bold) solid GrayText;
       outline-offset: calc(-1 * var(--sui-stroke-bold));
@@ -1035,6 +1038,11 @@ itself, so the choice shows from the first frame.
     .sui-segmented-track.off .selected .sui-segmented-label,
     .sui-segmented-option.selected.disabled .sui-segmented-label {
       color: GrayText;
+    }
+
+    .off > .selected,
+    .selected.disabled {
+      --sui-local-count-ink: GrayText;
     }
 
     :global(:root[data-sui-theme='light'])

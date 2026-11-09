@@ -454,6 +454,55 @@ suite('forms', together, () => {
       );
     });
 
+    // No specimen pairs a count with a chosen disabled option, so the test sets the classes the
+    // component would, and drops the thumb to stand in for the render before script measures it.
+    test("a chosen disabled segment's count and unmeasured plate drop the live thumb's inks", async () => {
+      const page = await opened();
+      const control = page.locator('#segmented-control .sui-segmented:has(.sui-count)').first();
+      /** @param {string} which */
+      const countInk = (which) =>
+        control
+          .locator(`.sui-segmented-option${which} .sui-count`)
+          .first()
+          .evaluate((count) => getComputedStyle(count).color);
+      const resting = await countInk(':not(.selected)');
+      await control
+        .locator('.sui-segmented-option.selected')
+        .evaluate((option) => option.classList.add('disabled'));
+      assert.equal(
+        await countInk('.selected'),
+        resting,
+        'a chosen disabled count wears the resting count ink, not the thumb ink'
+      );
+      await page.emulateMedia({ forcedColors: 'active' });
+      try {
+        const off = page
+          .locator('#segmented-control .sui-segmented > .sui-segmented-track.off')
+          .first();
+        /** @param {Element} plate */
+        const paint = (plate) => {
+          const style = getComputedStyle(plate);
+          return [style.backgroundColor, style.outlineStyle, style.outlineColor];
+        };
+        const measured = await off.locator('.sui-segmented-thumb').evaluate(paint);
+        await off.evaluate((track) => track.querySelector('.sui-segmented-thumb')?.remove());
+        assert.equal(
+          await off.locator('.sui-segmented-option.selected').evaluate(paint),
+          measured,
+          'in high contrast an unmeasured disabled choice is Canvas edged in GrayText, as the measured thumb is'
+        );
+        assert.equal(
+          await countInk('.selected'),
+          await control
+            .locator('.sui-segmented-option.selected .sui-segmented-label')
+            .evaluate((label) => getComputedStyle(label).color),
+          'in high contrast a chosen disabled count is GrayText, as its words are'
+        );
+      } finally {
+        await page.emulateMedia({ forcedColors: null });
+      }
+    });
+
     test('a segmented control that turns into a select keeps the width it had', async () => {
       const page = await opened();
       const widths = await page
