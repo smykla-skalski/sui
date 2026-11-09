@@ -698,7 +698,7 @@
   --sui-brand-action-hover: var(--sui-primitive-ocean-600);
 
   --sui-brand-action-pressed: var(--sui-primitive-ocean-700);
-  --sui-brand-action-tint: color-mix(in srgb, var(--sui-brand-action) 10%, var(--sui-surface-base));
+  --sui-brand-action-tint: color-mix(in srgb, var(--sui-brand-action) 16%, var(--sui-surface-base));
   --sui-brand-action-text: var(--sui-primitive-ocean-200);
   --sui-on-brand-action: #ffffff;
   --sui-link: var(--sui-brand-action-text);
@@ -932,7 +932,7 @@
     --sui-brand-action-pressed: var(--sui-primitive-ocean-700);
     --sui-brand-action-tint: color-mix(
       in srgb,
-      var(--sui-brand-action) 10%,
+      var(--sui-brand-action) 16%,
       var(--sui-surface-base)
     );
     --sui-brand-action-text: var(--sui-primitive-ocean-200);

@@ -1262,6 +1262,12 @@ test('L-41 a field keeps its frame and wears one ring 2px off it in every state'
   );
 });
 
+test("L-12 a choice card hovers with a row's step, not a control's", () => {
+  const cards = styles['src/lib/components/ChoiceCards.svelte'];
+  assert.match(cards, /linear-gradient\(var\(--sui-row-hover\), var\(--sui-row-hover\)\)/);
+  assert.doesNotMatch(cards, /--sui-interactive-hover-layer/);
+});
+
 test('L-94 a field or group message takes the 16px mark 8px from its words', () => {
   const marks = {
     Field: ['sui-field-error-mark', 'sui-field-error'],

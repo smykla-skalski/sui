@@ -116,7 +116,7 @@ suite('forms', together, () => {
       );
     });
 
-    test('a focused chosen card keeps its brand edge with its ring 2px clear', long, async () => {
+    test('a focused chosen card keeps a 1px brand edge with its ring 2px clear', long, async () => {
       const page = await opened();
       await page.keyboard.press('Shift');
       const chosen = page
@@ -135,7 +135,7 @@ suite('forms', together, () => {
           offset: getComputedStyle(input).outlineOffset
         };
       });
-      assert.ok(edge.includes(brand) && edge.includes(' 2px'), `the chosen edge became ${edge}`);
+      assert.ok(edge.includes(brand) && edge.includes(' 1px'), `the chosen edge became ${edge}`);
       assert.equal(offset, '2px');
     });
 
