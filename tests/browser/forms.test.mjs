@@ -521,7 +521,7 @@ suite('forms', together, () => {
         };
         const measured = await off.locator('.sui-segmented-thumb').evaluate(paint);
         await off.evaluate((track) => track.querySelector('.sui-segmented-thumb')?.remove());
-        assert.equal(
+        assert.deepEqual(
           await off.locator('.sui-segmented-option.selected').evaluate(paint),
           measured,
           'in high contrast an unmeasured disabled choice is Canvas edged in GrayText, as the measured thumb is'
