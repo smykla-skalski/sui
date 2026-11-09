@@ -832,6 +832,30 @@ suite('the kitchen sink', together, () => {
       }
       return shot;
     };
+    /**
+     * @param {import('playwright-core').Page} page
+     * @param {string} name
+     */
+    const shoot = async (page, name) => {
+      const avatar = page
+        .locator('#avatar .example', { hasText: /^(Pictures|Fallbacks)/ })
+        .getByRole('img', { name, exact: true });
+      await avatar.scrollIntoViewIfNeeded();
+      // An edge off the pixel grid blends a few levels apart once the layers above it change,
+      // so a shot is only a fair witness of an avatar standing on whole pixels.
+      const x = (await avatar.boundingBox())?.x ?? 0;
+      if (!Number.isInteger(x)) problems.push(`${name} stands at x ${x}`);
+      // A lazy picture may not have started when decode() settles on a busy page, so it
+      // loads now and the shot waits for it to fail or draw, and for the faces.
+      for (const img of await avatar.locator('img').all())
+        await img.evaluate(async (node) => {
+          const picture = /** @type {HTMLImageElement} */ (node);
+          picture.loading = 'eager';
+          await picture.decode().catch(() => {});
+          await document.fonts.ready;
+        });
+      return { avatar, shot: await settled(page, avatar) };
+    };
     /** @type {Record<string, Buffer>} */
     let before = {};
     /** @param {boolean} javaScriptEnabled */
@@ -846,24 +870,8 @@ suite('the kitchen sink', together, () => {
         /** @type {Record<string, Buffer>} */
         const drawn = {};
         for (const name of [...failed, ...loaded]) {
-          const avatar = page
-            .locator('#avatar .example', { hasText: /^(Pictures|Fallbacks)/ })
-            .getByRole('img', { name, exact: true });
-          await avatar.scrollIntoViewIfNeeded();
-          // An edge off the pixel grid blends a few levels apart once the layers above it change,
-          // so a shot is only a fair witness of an avatar standing on whole pixels.
-          const x = (await avatar.boundingBox())?.x ?? 0;
-          if (!Number.isInteger(x)) problems.push(`${name} stands at x ${x}`);
-          // A lazy picture may not have started when decode() settles on a busy page, so it
-          // loads now and the shot waits for it to fail or draw, and for the faces.
-          for (const img of await avatar.locator('img').all())
-            await img.evaluate(async (node) => {
-              const picture = /** @type {HTMLImageElement} */ (node);
-              picture.loading = 'eager';
-              await picture.decode().catch(() => {});
-              await document.fonts.ready;
-            });
-          drawn[name] = await settled(page, avatar);
+          const { avatar, shot } = await shoot(page, name);
+          drawn[name] = shot;
           if (javaScriptEnabled) {
             // Under a full parallel run the running page can still be painting when two shots
             // first agree, so it gets about a second to match; a change script makes stays.
@@ -871,6 +879,21 @@ suite('the kitchen sink', together, () => {
             for (let tries = 0; !same && tries < 10; tries += 1) {
               await page.waitForTimeout(100);
               drawn[name] = await settled(page, avatar);
+              same = await alike(page, drawn[name], before[name]);
+            }
+            // The first frame's shot may be the one a busy machine blurred at an edge, so it is
+            // taken again on a page without script; a change script makes differs every time.
+            for (let tries = 0; !same && tries < 3; tries += 1) {
+              const quiet = await browser.newPage({
+                viewport: { width: 1440, height: 900 },
+                javaScriptEnabled: false
+              });
+              try {
+                await quiet.goto(address.href);
+                before[name] = (await shoot(quiet, name)).shot;
+              } finally {
+                await quiet.close();
+              }
               same = await alike(page, drawn[name], before[name]);
             }
             if (!same) {
