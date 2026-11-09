@@ -114,19 +114,14 @@
     <div class="tree">
       <div class="bleed">
         <Checkbox
-          label="Sync on every available event"
+          label="Every available event"
           checked={all}
           indeterminate={some}
           onchange={(event) => (chosen = event.currentTarget.checked ? available : [])}
         />
       </div>
       <div class="children">
-        <CheckList
-          label="Events that start a sync"
-          hideLabel
-          options={events}
-          bind:value={chosen}
-        />
+        <CheckList label="Events that start a sync" options={events} bind:value={chosen} />
       </div>
     </div>
   </Specimen>
