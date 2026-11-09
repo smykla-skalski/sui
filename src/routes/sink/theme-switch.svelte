@@ -23,7 +23,13 @@
     <ThemeSwitch name="sink-theme" bind:value={theme} />
   </Specimen>
   <Specimen label="Light & dark">
-    <ThemeSwitch name="sink-theme-two" system={false} hint="Follows the system" />
+    <!-- The hint swaps words rather than leaving, so the page never moves once the stored choice
+         is read. -->
+    <ThemeSwitch
+      name="sink-theme-two"
+      system={false}
+      hint={theme === 'system' ? 'Follows the system' : 'Stays as chosen'}
+    />
   </Specimen>
 </Example>
 

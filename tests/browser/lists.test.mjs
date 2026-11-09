@@ -1381,17 +1381,18 @@ suite('lists', together, () => {
       const group = page
         .locator('#theme-switch fieldset')
         .filter({ has: page.locator('input[name="sink-theme-two"]') });
-      // Its hint says why the shown theme is the system's, and is read with the group.
-      assert.equal(
-        await group.evaluate((element) =>
+      // Its hint says whether the shown theme is the system's or a choice, and is read with the
+      // group.
+      const hint = () =>
+        group.evaluate((element) =>
           element.ariaDescribedByElements?.map((hint) => hint.textContent).join(' ')
-        ),
-        'Follows the system'
-      );
+        );
+      assert.equal(await hint(), 'Follows the system');
       const dark = group.locator('label', { hasText: 'Dark' });
       await dark.scrollIntoViewIfNeeded();
       await dark.click();
       assert.equal(await page.evaluate(() => localStorage.getItem('sui:theme')), 'dark');
+      assert.equal(await hint(), 'Stays as chosen');
     } finally {
       await page.close();
     }
