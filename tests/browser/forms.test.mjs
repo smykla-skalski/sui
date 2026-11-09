@@ -114,6 +114,23 @@ suite('forms', together, () => {
         await group.evaluate((fieldset) => fieldset.contains(document.activeElement)),
         `focus left the group for ${await focused(page)}`
       );
+      const strength = await group
+        .locator('.sui-choice-card')
+        .evaluateAll((cards) =>
+          cards.map((card) => [
+            card.querySelector('input')?.checked,
+            getComputedStyle(card).opacity
+          ])
+        );
+      assert.deepEqual(
+        strength.filter(([chosen]) => chosen).map(([, opacity]) => opacity),
+        ['1'],
+        'the answer that saves keeps full strength'
+      );
+      assert.ok(
+        strength.filter(([chosen]) => !chosen).every(([, opacity]) => opacity === '0.6'),
+        `the refused answers dim: ${JSON.stringify(strength)}`
+      );
     });
 
     test('a focused chosen card keeps a 1px brand edge with its ring 2px clear', long, async () => {

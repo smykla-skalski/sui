@@ -98,7 +98,7 @@ save keeps it. A busy dialog or a saving pane around it disables the radios whil
 
 - Semantics: a `<fieldset role="radiogroup">` named by its `<legend>`, described by the hint and the error, holding native radios each named by its label and described by its sentence, with a polite `role="status"` that speaks the error.
 - Content: a question as the legend and two to six answers, each a short label and one sentence; an optional hint and an error.
-- States: unchosen (a quiet edge), chosen (a brand tint, a 2px brand edge and a filled dot), hover (a row's veil and a firmer edge), focus (a flush 2px ring on a focus-coloured edge, and 2px clear of a chosen card's brand edge, which thins to 1px), pressed (a deeper ground, an inset shadow and a 1px sink), required (the word after the legend), invalid (a danger edge on every unchosen card and an error with a warning mark, from `error` or from a refused send), locked and disabled answers (0.6 opacity).
+- States: unchosen (a quiet edge), chosen (a brand tint, a 2px brand edge and a filled dot), hover (a row's veil and a firmer edge), focus (a flush 2px ring on a focus-coloured edge, and 2px clear of a chosen card's brand edge, which thins to 1px), pressed (a deeper ground, an inset shadow and a 1px sink), required (the word after the legend), invalid (a danger edge on every unchosen card and an error with a warning mark, from `error` or from a refused send), disabled answers and the answers a locked group refuses (0.6 opacity), while a locked group's chosen answer keeps full strength.
 - Keyboard: Tab enters the group at the chosen answer, the arrows move the choice and skip disabled answers, and Space chooses; a locked group refuses all of them and keeps focus.
 - Pointer and touch: every card is its own target, at least 72px tall.
 - Focus: locking the group leaves focus on the radio that had it, and a send that leaves a required question unanswered moves focus to its first radio when it is the form's first refused control.
@@ -319,10 +319,12 @@ save keeps it. A busy dialog or a saving pane around it disables the radios whil
     outline-color: var(--sui-focus-danger);
   }
 
+  /* An empty dot draws the 1px strong edge of an empty check box, so the marks stay quieter than
+     the labels; the chosen dot takes the 2px brand ring. */
   .sui-choice-card-dot {
     background: var(--sui-surface-base);
     block-size: var(--sui-icon-base);
-    border: var(--sui-stroke-bold) solid var(--sui-border-strong);
+    border: var(--sui-stroke) solid var(--sui-border-strong);
     border-radius: 50%;
     box-sizing: border-box;
     /* The label's face, so `1cap` is the label's cap height and the dot centres on its
@@ -337,7 +339,7 @@ save keeps it. A busy dialog or a saving pane around it disables the radios whil
   }
 
   .sui-choice-card:has(input:checked) .sui-choice-card-dot {
-    border-color: var(--sui-brand-action);
+    border: var(--sui-stroke-bold) solid var(--sui-brand-action);
   }
 
   .sui-choice-card:has(input:checked) .sui-choice-card-dot::after {
@@ -374,6 +376,13 @@ save keeps it. A busy dialog or a saving pane around it disables the radios whil
   .disabled {
     cursor: default;
     opacity: var(--sui-disabled-opacity);
+  }
+
+  /* A group locked while its answer saves keeps that answer at full strength, as a field a
+     saving row holds keeps its words (L-10), so the reader still sees what is saving; only the
+     answers it refuses dim (L-40). */
+  .sui-choice-cards[aria-disabled='true'] .sui-choice-card:has(input:checked) {
+    opacity: 1;
   }
 
   .sui-choice-cards-help,
