@@ -978,9 +978,15 @@ suite('the kitchen sink', together, () => {
         await settles(page.waitForFunction((layer) => document.querySelector(layer), LAYER, brief))
       )
         await atRest(page);
+      await page.mouse.move(0, 0);
       const report = await trigger.evaluate((element) => {
         const layer = document.querySelector(':popover-open:has([role="listbox"], [role="menu"])');
         if (!layer) return { missing: true };
+        const probe = document.createElement('span');
+        probe.style.color = 'var(--sui-interactive-hover-layer)';
+        element.append(probe);
+        const veil = getComputedStyle(probe).color;
+        probe.remove();
         const box = layer.getBoundingClientRect();
         const anchor = element.getBoundingClientRect();
         const options = [...layer.querySelectorAll('[role="option"], [role="menuitem"]')]
@@ -996,6 +1002,9 @@ suite('the kitchen sink', together, () => {
           narrower:
             element.getAttribute('aria-haspopup') === 'listbox' && box.width < anchor.width - 0.5,
           tall: box.height > 320.5,
+          lit:
+            !element.matches('.sui-button:not(.field)') ||
+            getComputedStyle(element).backgroundImage.includes(veil),
           heights: [...new Set(options.map((height) => Math.round(height * 100) / 100))],
           tier: parseFloat(
             getComputedStyle(document.documentElement).getPropertyValue(
@@ -1010,6 +1019,7 @@ suite('the kitchen sink', together, () => {
         if (!report.inside) problems.push(`${name}: the layer leaves the viewport`);
         if (report.narrower) problems.push(`${name}: the listbox is narrower than its trigger`);
         if (report.tall) problems.push(`${name}: the layer is taller than 20rem`);
+        if (!report.lit) problems.push(`${name}: the open trigger lost its hover paint`);
         if (report.heights?.some((height) => height < report.tier - 0.01))
           problems.push(
             `${name}: option heights ${report.heights.join(', ')}, under ${report.tier}`
@@ -1201,7 +1211,7 @@ suite('the kitchen sink', together, () => {
   for (const width of [375, 1440])
     test(
       width === 375
-        ? 'L-48 and L-52 every menu, listbox and select opens in place at 375px'
+        ? 'L-48 and L-52 every menu, listbox and select opens in place at 375px, its button trigger kept in its hover paint'
         : 'a second press closes each layer at 1440px, and L-97 each layer grows from its trigger',
       long,
       async () => {

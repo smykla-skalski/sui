@@ -403,7 +403,7 @@ of text, so they read left to right in every direction, as a chart's plot does.
 the field's `id` and `describedby` onto it and leave `label` off. Either way the trigger's
 name is the label and the hex, such as "Label color #0f766e". `name` posts the hex.
 
-- Semantics: a `Button` with `aria-haspopup="dialog"` and `aria-expanded`, a `role="dialog"` popover named by `dialogLabel`, a radio group of swatches, a `role="slider"` saturation and brightness area, a native range for the hue, a hex text field, and a hidden input that posts the hex.
+- Semantics: a `Button`, drawn as a field as a `Select` is, since it holds a value, with `aria-haspopup="dialog"` and `aria-expanded`, a `role="dialog"` popover named by `dialogLabel`, a radio group of swatches, a `role="slider"` saturation and brightness area, a native range for the hue, a hex text field, and a hidden input that posts the hex.
 - Content: the caller's swatches, named or by hex, the area, the rail and the hex field, each with its drawn words.
 - States: closed, open, a checked swatch (a check mark), hover and pressed swatches, dragging, an invalid hex (an error with a warning mark) and a disabled trigger.
 - Keyboard: Enter or Space opens it, Tab walks the swatches, area, rail and hex, the arrows move each, Enter commits, Escape goes back and closes, and Tab past the hex closes it.
@@ -424,6 +424,7 @@ name is the label and the hex, such as "Label color #0f766e". `name` posts the h
     id={field?.id ?? rest.id}
     aria-describedby={field?.describedby ?? rest['aria-describedby']}
     aria-label={accessibleName}
+    field
     class={field ? undefined : ['sui-color-picker', className]}
     disabled={disabled || holding === 'firm'}
     aria-disabled={Boolean(holding) || rest['aria-disabled']}
@@ -598,10 +599,13 @@ name is the label and the hex, such as "Label color #0f766e". `name` posts the h
     inline-size: var(--sui-icon-base);
   }
 
+  /* The hex field's size, up to a control's: a phone grows typed text to 16px against zoom,
+     which a trigger's words never need, and the trigger's marks centre on a control's cap. */
   .hex {
-    font-family: var(--sui-mono);
+    font: var(--sui-weight-regular)
+      min(var(--sui-font-size-input-mono), var(--sui-font-size-control)) / var(--sui-leading-flat)
+      var(--sui-mono);
     font-variant-numeric: tabular-nums;
-    font-weight: var(--sui-weight-regular);
   }
 
   /* The picker's own geometry, which no other component draws, so it stays here rather than
@@ -609,7 +613,7 @@ name is the label and the hex, such as "Label color #0f766e". `name` posts the h
   .panel {
     --sui-color-picker-cell: 26px;
     --sui-color-picker-cols: 8;
-    --sui-color-picker-gap: var(--sui-space-1);
+    --sui-color-picker-gap: var(--sui-space-2);
     --sui-color-picker-pad: var(--sui-space-3);
     --sui-color-picker-width: calc(
       var(--sui-color-picker-cell) * var(--sui-color-picker-cols) + var(--sui-color-picker-gap) *
@@ -822,10 +826,11 @@ name is the label and the hex, such as "Label color #0f766e". `name` posts the h
     }
   }
 
-  /* A finger needs 44px targets (L-38): six swatches a row at the touch size, which with an
-     8px inset keeps the popover inside a 320px screen, and a rail whose hit area grows past its drawn height. */
+  /* A finger needs 44px targets (L-38): six swatches a row at the touch size, which with a
+     4px gap and an 8px inset keeps the popover inside a 320px screen, and a rail whose hit area grows past its drawn height. */
   @media (pointer: coarse), (max-width: 47.9375rem) {
     .panel {
+      --sui-color-picker-gap: var(--sui-space-1);
       --sui-color-picker-pad: var(--sui-space-2);
       inline-size: calc(
         6 * var(--sui-touch-target) + 5 * var(--sui-color-picker-gap) + 2 *

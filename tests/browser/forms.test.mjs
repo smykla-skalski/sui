@@ -1949,7 +1949,7 @@ suite('forms', together, () => {
 
     // Last, because it leaves its picker open.
     test(
-      'I4 swatches given as bare hex are named by their colour, not only their code, and the open picker keeps its trigger in the hover paint and its knob clear of its edge',
+      "I4 swatches given as bare hex are named by their colour, not only their code, and a picker's trigger wears a field's edge, its knob and a focused swatch's ring kept clear",
       long,
       async () => {
         const page = await opened();
@@ -1968,23 +1968,32 @@ suite('forms', together, () => {
           ['Blue', 'Green', 'Orange', 'Red', 'Violet', 'Teal']
         );
 
+        // A trigger holds a value, so it wears a Select's field edge and baseline: the rest
+        // ones at rest, and the open one in a field's hover edge.
         await page.mouse.move(0, 0);
-        const open = await trigger.evaluate((button) => {
-          const paint = (/** @type {string} */ token) => {
-            const probe = document.createElement('span');
-            probe.style.color = `var(${token})`;
-            button.append(probe);
-            const color = getComputedStyle(probe).color;
-            probe.remove();
-            return color;
-          };
-          const look = getComputedStyle(button);
-          return {
-            layer: look.backgroundImage.includes(paint('--sui-interactive-hover-layer')),
-            edge: look.borderTopColor === paint('--sui-control-border-hover')
-          };
-        });
-        assert.deepEqual(open, { layer: true, edge: true }, 'the open trigger lost its paint');
+        const edges = () =>
+          page.locator('#color-picker button[aria-haspopup="dialog"]').evaluateAll((buttons) =>
+            buttons.map((button) => {
+              const paint = (/** @type {string} */ token) => {
+                const probe = document.createElement('span');
+                probe.style.color = `var(${token})`;
+                button.append(probe);
+                const color = getComputedStyle(probe).color;
+                probe.remove();
+                return color;
+              };
+              const look = getComputedStyle(button);
+              const [frame, base] =
+                button.getAttribute('aria-expanded') === 'true'
+                  ? ['--sui-field-frame-hover', '--sui-field-border-hover']
+                  : ['--sui-field-frame', '--sui-field-border'];
+              return (
+                button.matches(':disabled') ||
+                (look.borderTopColor === paint(frame) && look.borderBottomColor === paint(base))
+              );
+            })
+          );
+        assert.ok((await edges()).every(Boolean), 'a trigger wears a button edge, not a field one');
         // The knob's centre reaches the area's edges, so the panel's inset must hold half a knob
         // and still leave it room.
         const clear = await page.evaluate(() => {
@@ -1999,6 +2008,19 @@ suite('forms', together, () => {
           return Math.min(area.left - box.left, box.right - area.right) - knob.width / 2;
         });
         assert.ok(clear >= 4, `a knob at the area's edge stands ${clear}px from the panel's`);
+        // The focused swatch's ring stays clear of the next swatch.
+        await page.keyboard.press('ArrowRight');
+        const room = await page.evaluate(() => {
+          const swatch = /** @type {Element} */ (document.activeElement);
+          const ring = getComputedStyle(swatch);
+          const grid = /** @type {Element} */ (swatch.closest('.swatches'));
+          return (
+            parseFloat(getComputedStyle(grid).columnGap) -
+            parseFloat(ring.outlineWidth) -
+            parseFloat(ring.outlineOffset)
+          );
+        });
+        assert.ok(room > 0, `a focused swatch's ring stands ${room}px from the next one`);
       }
     );
   });
