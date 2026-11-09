@@ -371,7 +371,7 @@ suite('forms', together, () => {
     );
 
     test(
-      'the Textarea states start their boxes on one line, no specimen cuts a line of its text, and a divider parts the stacked field pair',
+      'the Textarea states start their boxes on one line, no specimen cuts a line of its text, a divider parts the stacked field pair, and no line of the lead ends on a one-letter word',
       long,
       async () => {
         /** @param {import('playwright-core').Page} page */
@@ -401,6 +401,24 @@ suite('forms', together, () => {
         assert.equal(divider, '1px', 'a divider parts the stacked field pair');
         for (const box of [...wide, ...narrow])
           assert.ok(box.cut <= 0, `a textarea hides ${box.cut}px of its text`);
+        // At 1440 the lead's line break falls right after its one-letter word "A".
+        const own = await open({ path: 'textarea/' });
+        const dangling = await own.evaluate(() => {
+          const text = document.querySelector('.sui-page-header-description')?.firstChild;
+          if (!(text instanceof Text)) return ['no lead'];
+          /** @param {number} at */
+          const top = (at) => {
+            const range = document.createRange();
+            range.setStart(text, at);
+            range.setEnd(text, at + 1);
+            return range.getBoundingClientRect().top;
+          };
+          return [...text.data.matchAll(/(?<=^|\s)\p{L}(?=\s)/gu)]
+            .filter((word) => top(word.index) !== top(word.index + 2))
+            .map((word) => text.data.slice(word.index, word.index + 12));
+        });
+        await own.close();
+        assert.deepEqual(dangling, [], 'a one-letter word ends a line of the lead');
       }
     );
 

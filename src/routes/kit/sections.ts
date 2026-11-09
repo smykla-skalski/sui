@@ -104,7 +104,11 @@ export const sections: SinkSection[] = Object.entries(modules)
     const [name, ids] = FAMILIES[family] ?? ['More', []];
     return {
       id,
-      meta: module.section,
+      // A one-letter word such as "A" never ends a line of the lead, as print typesetting keeps it.
+      meta: {
+        ...module.section,
+        lead: module.section.lead.replace(/(?<=^|\s)(\p{L}) /gu, '$1 ')
+      },
       source: texts[path] ?? '',
       family: name,
       rank: (family < 0 ? FAMILIES.length : family) * 100 + ids.indexOf(id),
