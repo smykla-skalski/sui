@@ -31,6 +31,8 @@
   ];
 
   let span = $state<string | null>('week');
+  let drawn = $state<string | null>('week');
+  let beside = $state<string | null>('week');
   let tab = $state<string | null>('users');
   let level = $state<string | null>('warnings');
   let inherited = $state<string | null>(null);
@@ -58,7 +60,7 @@
   note="The label stands above the options, unless a visible name beside the control already says it"
 >
   <Specimen label="Drawn">
-    <SegmentedControl label="Time range" options={range} bind:value={span} />
+    <SegmentedControl label="Time range" options={range} bind:value={drawn} />
   </Specimen>
   <Specimen label="Named beside it">
     <div class="beside">
@@ -67,7 +69,7 @@
         label="Time range"
         aria-labelledby="sink-segmented-name"
         options={range}
-        bind:value={span}
+        bind:value={beside}
       />
     </div>
   </Specimen>

@@ -454,6 +454,41 @@ suite('forms', together, () => {
       );
     });
 
+    test("a segmented control's chosen words weigh more and no option resizes on a choice", async () => {
+      const page = await opened();
+      const track = page
+        .locator('#segmented-control .sui-segmented > .sui-segmented-track:not(:disabled)')
+        .first();
+      const read = () =>
+        track.evaluate((element) =>
+          [...element.querySelectorAll('.sui-segmented-option')].map((option) => ({
+            width: option.getBoundingClientRect().width,
+            weight: getComputedStyle(
+              /** @type {Element} */ (option.querySelector('.sui-segmented-word > span'))
+            ).fontWeight,
+            chosen: option.classList.contains('selected')
+          }))
+        );
+      const before = await read();
+      assert.deepEqual(
+        before.map(({ weight, chosen }) => (chosen ? weight === '600' : weight === '500')),
+        before.map(() => true),
+        "the chosen words are semibold and the others medium, as a button's"
+      );
+      await track.locator('.sui-segmented-option:not(.selected)').first().click();
+      const after = await read();
+      assert.notDeepEqual(
+        after.map(({ chosen }) => chosen),
+        before.map(({ chosen }) => chosen),
+        'the click moved the choice'
+      );
+      assert.deepEqual(
+        after.map(({ width }) => width),
+        before.map(({ width }) => width),
+        'every option keeps its width when the heavier weight moves'
+      );
+    });
+
     // No specimen pairs a count with a chosen disabled option, so the test sets the classes the
     // component would, and drops the thumb to stand in for the render before script measures it.
     test("a chosen disabled segment's count and unmeasured plate drop the live thumb's inks", async () => {

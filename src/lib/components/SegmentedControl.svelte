@@ -356,7 +356,7 @@ itself, so the choice shows from the first frame.
 
 {#snippet face(option: SegmentOption)}
   {#if option.icon}<Icon name={option.icon} size="base" />{/if}
-  <span class="sui-segmented-word">{option.label}</span>
+  <span class="sui-segmented-word" data-label={option.label}><span>{option.label}</span></span>
   {#if option.count !== undefined}
     <Count value={option.count} />
   {/if}
@@ -714,6 +714,7 @@ itself, so the choice shows from the first frame.
     > .sui-segmented-option[data-scheme='system']
     .sui-segmented-label {
     color: var(--sui-segment-thumb-ink);
+    font-weight: var(--sui-weight-semibold);
   }
 
   @media (prefers-color-scheme: light) {
@@ -732,6 +733,7 @@ itself, so the choice shows from the first frame.
       > .sui-segmented-option[data-scheme='light']
       .sui-segmented-label {
       color: var(--sui-segment-thumb-ink);
+      font-weight: var(--sui-weight-semibold);
     }
   }
 
@@ -751,6 +753,7 @@ itself, so the choice shows from the first frame.
       > .sui-segmented-option[data-scheme='dark']
       .sui-segmented-label {
       color: var(--sui-segment-thumb-ink);
+      font-weight: var(--sui-weight-semibold);
     }
   }
 
@@ -891,7 +894,7 @@ itself, so the choice shows from the first frame.
     align-items: center;
     color: var(--sui-text-secondary);
     display: flex;
-    font: var(--sui-weight-semibold) var(--sui-font-size-control) / var(--sui-leading-flat)
+    font: var(--sui-weight-medium) var(--sui-font-size-control) / var(--sui-leading-flat)
       var(--sui-sans);
     gap: var(--sui-space-1);
     justify-content: center;
@@ -907,11 +910,28 @@ itself, so the choice shows from the first frame.
     margin-inline-start: calc(-1 * var(--sui-icon-ink-start, 0px));
   }
 
+  /* An option's words are a button's weight and the chosen one's a current tab's, so the thumb
+     leads. A hidden semibold copy shares the words' cell, so an option already holds the room
+     the chosen weight needs and neither it nor the thumb resizes on a choice (L-91). */
   .sui-segmented-word {
     align-content: center;
     block-size: var(--sui-block-snap);
+    display: grid;
+  }
+
+  .sui-segmented-word > span,
+  .sui-segmented-word::after {
+    align-content: center;
+    block-size: var(--sui-block-snap);
+    grid-area: 1 / 1;
     padding-block: var(--sui-block-snap-room);
     text-box: trim-both cap alphabetic;
+  }
+
+  .sui-segmented-word::after {
+    content: attr(data-label) / '';
+    font-weight: var(--sui-weight-semibold);
+    visibility: hidden;
   }
 
   /* A keyboard press lands on the pressed surface with no hover before it, so press lifts
@@ -930,6 +950,7 @@ itself, so the choice shows from the first frame.
 
   .selected .sui-segmented-label {
     color: var(--sui-segment-thumb-ink);
+    font-weight: var(--sui-weight-semibold);
   }
 
   /* On the filled thumb the count wears the thumb's ink on a veil of the opposite lightness,
