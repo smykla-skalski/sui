@@ -133,10 +133,17 @@ suite('forms', together, () => {
           /** @type {HTMLElement} */ (element).click();
           await new Promise((done) => setTimeout(done));
           const busy = box.getAttribute('aria-busy') === 'true';
+          const track = element.querySelector('.sui-switch-track');
+          const strength = getComputedStyle(/** @type {Element} */ (track)).opacity;
           /** @type {HTMLElement} */ (element).click();
-          return { busy, checked: box.checked };
+          return { busy, strength, checked: box.checked };
         });
-        assert.deepEqual(second, { busy: true, checked: true }, 'a second flip ran while saving');
+        // A save at work keeps the track at full strength, as a busy button does (L-40).
+        assert.deepEqual(
+          second,
+          { busy: true, strength: '1', checked: true },
+          'a second flip ran while saving, or the saving track dimmed'
+        );
         assert.ok(await input.evaluate((element) => document.activeElement === element));
         await page.waitForFunction(
           (element) => element && !element.hasAttribute('aria-busy'),

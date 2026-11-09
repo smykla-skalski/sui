@@ -73,6 +73,8 @@
 <Example
   title="Saving"
   --example-max="54rem"
+  layout="grid"
+  --specimen-min="14rem"
   note="A flip takes effect at once, so the thumb turns while it saves and a refused change flips back and says why"
 >
   <Specimen label="Pending">

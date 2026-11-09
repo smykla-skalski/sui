@@ -80,7 +80,7 @@ take, under the switch and to a screen reader, while the owner sets `checked` ba
 
 - Semantics: a native `<input type="checkbox" role="switch">` inside its `<label>`, described by `error`, with a polite `role="status"` that speaks the error.
 - Content: a short label that names what turns on, or richer `children`, and an optional one-sentence error.
-- States: off, on (the track fills and the thumb travels 14px), hover (a veil on the track), focus (a 2px ring 2px off the track), pressed (a deeper veil, an inset shadow and a 1px sink), pending (the track dims, the thumb keeps full strength and a spinner in the accent turns inside it, busy), failed (an error with a warning mark), invalid (a 2px danger edge, kept when on), held (the track dims; disabled while a busy dialog or a saving pane around it works, and a tab stop that refuses the flip while a saving setting row does) and disabled (0.6 opacity).
+- States: off, on (the track fills and the thumb travels 14px), hover (a veil on the track), focus (a 2px ring 2px off the track), pressed (a deeper veil, an inset shadow and a 1px sink), pending (the track keeps full strength as a busy button does and a spinner in the accent turns inside the thumb, busy), failed (an error with a warning mark), invalid (a 2px danger edge, kept when on), held (the track dims; disabled while a busy dialog or a saving pane around it works, and a tab stop that refuses the flip while a saving setting row does) and disabled (0.6 opacity).
 - Keyboard: Tab reaches it and Space flips it; a pending or held switch refuses the flip and keeps focus.
 - Pointer and touch: a 34 by 20px track with a 44px hit area, and a 44px row unless `bare`; the label is part of the target.
 - Focus: a flip never moves focus, and neither does a pending or failed save.
@@ -283,8 +283,9 @@ take, under the switch and to a screen reader, while the owner sets `checked` ba
     translate: 0 1px;
   }
 
-  /* A pending or held switch dims its track (L-40) and never answers the pointer. */
-  .sui-switch-track:is(.pending, .held) {
+  /* A switch held by work around it dims its track (L-40). A pending one is its own change at
+     work, as a busy button is, so its track keeps full strength; neither answers the pointer. */
+  .sui-switch-track.held {
     opacity: var(--sui-disabled-opacity);
   }
 
@@ -292,16 +293,15 @@ take, under the switch and to a screen reader, while the owner sets `checked` ba
     cursor: default;
   }
 
-  /* While the flip saves, the thumb stands where it went at full strength, out of the track's
-     dimming, and a ring with one side open turns inside it in the accent, which holds 3:1 on
-     the thumb in either theme (WCAG 1.4.11), as Ant Design's loading switch turns its spinner
-     in the handle. */
+  /* While the flip saves, the thumb stands where it went, and a ring with one side open turns
+     inside it in the accent, which holds 3:1 on the thumb in either theme (WCAG 1.4.11), as Ant
+     Design's loading switch turns its spinner in the handle. */
   .sui-switch-track.pending::after {
     visibility: hidden;
   }
 
-  /* Positioned, so it paints over the track, which its opacity lifts into the positioned
-     layer. Only the ring inside turns, so the thumb keeps its place. */
+  /* Positioned, so it paints over the track, which is positioned too. Only the ring inside
+     turns, so the thumb keeps its place. */
   .sui-switch-spinner {
     align-self: center;
     background: var(--sui-switch-thumb);
