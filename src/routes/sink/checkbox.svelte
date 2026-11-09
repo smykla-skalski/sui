@@ -84,7 +84,6 @@
   title="Check List"
   --example-max="54rem"
   note="Short labels run along one line, a description puts each on its own line, and a saving list stays focusable"
-  layout="stack"
 >
   <Specimen label="Short labels">
     <CheckList label="Labels on the pull request" options={kinds} bind:value={labels} />
