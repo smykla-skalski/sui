@@ -887,13 +887,15 @@ test('L-72 stacking order comes from the layer tokens', () => {
   );
 });
 
-test('L-72 a floating layer on dark stands off its ground by the hovered control edge', () => {
-  for (const selector of [":root[data-theme='dark']", ':root:not([data-theme], [data-sui-theme])'])
-    assert.equal(
-      tokenMap(stripComments(block(selector)))['--sui-popover-border'],
-      'var(--sui-control-border-hover)',
-      selector
-    );
+test('L-72 a floating layer on dark stands off its ground by the raised ground and the hovered control edge', () => {
+  for (const selector of [
+    ":root[data-theme='dark']",
+    ':root:not([data-theme], [data-sui-theme])'
+  ]) {
+    const tokens = tokenMap(stripComments(block(selector)));
+    assert.equal(tokens['--sui-popover-border'], 'var(--sui-control-border-hover)', selector);
+    assert.equal(tokens['--sui-popover-bg'], 'var(--sui-surface-raised)', selector);
+  }
   assert.equal(
     tokenMap(stripComments(block("[data-sui-theme='light']")))['--sui-popover-border'],
     'var(--sui-border-control)'

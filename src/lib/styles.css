@@ -852,7 +852,7 @@
 
   --sui-surface-control: transparent;
   --sui-control-bg: var(--sui-surface-control);
-  --sui-popover-bg: var(--sui-surface-base);
+  --sui-popover-bg: var(--sui-surface-raised);
   --sui-dialog-bg: var(--sui-surface-base);
 
   --sui-segment-track: var(--sui-field-well);
@@ -1084,7 +1084,7 @@
 
     --sui-surface-control: transparent;
     --sui-control-bg: var(--sui-surface-control);
-    --sui-popover-bg: var(--sui-surface-base);
+    --sui-popover-bg: var(--sui-surface-raised);
     --sui-dialog-bg: var(--sui-surface-base);
 
     --sui-segment-track: var(--sui-field-well);
