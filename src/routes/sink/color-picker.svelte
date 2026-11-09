@@ -85,4 +85,12 @@
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(min(100%, 8.5rem), 1fr));
   }
+
+  /* A frame with room for five columns gives the disabled state two, so its reason reads in
+     two lines; under that, as on a phone or at large text, it keeps one. */
+  @container sink-stage (min-width: 40rem) {
+    .states :global(.specimen:last-child) {
+      grid-column: span 2;
+    }
+  }
 </style>
