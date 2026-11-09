@@ -983,13 +983,25 @@ suite('forms', together, () => {
         const [parent, child] = [...(stage?.querySelectorAll('.sui-checkbox') ?? [])];
         const left = (/** @type {Element | null | undefined} */ node) =>
           node?.getBoundingClientRect().left;
+        const legend = stage?.querySelector('.sui-check-list legend');
         return {
           words: left(parent?.querySelector('.sui-checkbox-label')),
-          box: left(child?.querySelector('.sui-checkbox-box'))
+          box: left(child?.querySelector('.sui-checkbox-box')),
+          gap:
+            (legend?.getBoundingClientRect().top ?? NaN) -
+            (parent?.getBoundingClientRect().bottom ?? NaN),
+          fieldGap: parseFloat(
+            getComputedStyle(document.documentElement).getPropertyValue('--sui-field-gap')
+          )
         };
       });
       assert.ok(edges.words !== undefined, 'the parent box has words');
       assert.equal(edges.box, edges.words, 'the first child box starts where the parent words do');
+      assert.equal(
+        edges.gap,
+        edges.fieldGap * 16,
+        "the list's legend stands a field gap under the parent, as its options under it"
+      );
     });
 
     test("a section head's switch ends where its stage ends, as the head's action does on a pane", async () => {

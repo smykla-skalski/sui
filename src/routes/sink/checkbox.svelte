@@ -185,17 +185,11 @@
   }
 
   /* The list a parent box chooses for stands under the parent's words, so the indent says
-     which box holds the others, and the parent takes the list's own rhythm: one row gap on a
-     wide page, edge to edge on a phone (L-38). */
+     which box holds the others. Its legend stands a field gap under the parent, as the
+     options stand under the legend. */
   .tree {
     display: grid;
-    gap: var(--sui-space-1);
-  }
-
-  @media (max-width: 47.9375rem) {
-    .tree {
-      gap: 0;
-    }
+    gap: var(--sui-field-gap);
   }
 
   .children {
