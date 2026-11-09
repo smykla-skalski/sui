@@ -124,7 +124,7 @@ way; a busy dialog or a saving pane around it disables it while the work runs.
       {#if indeterminate}
         <span class="sui-checkbox-dash"></span>
       {:else}
-        <Icon name="check" size="micro" strokeWidth={2} />
+        <Icon name="check" size="xs" strokeWidth={3} />
       {/if}
     </span>
   </span>
