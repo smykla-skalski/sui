@@ -185,6 +185,16 @@ suite('forms', together, () => {
           ['1', await ink(off.locator('.sui-choice-card:not(:has(input:checked))').first())],
           'a disabled answer draws as a disabled group does, at full strength in the muted ink'
         );
+        await page.emulateMedia({ forcedColors: 'active' });
+        try {
+          assert.equal(
+            await ink(off.locator('.sui-choice-card:has(input:checked)')),
+            await ink(off.locator('.sui-choice-card:not(:has(input:checked))').first()),
+            "in high contrast a disabled group's chosen answer is GrayText as its others are"
+          );
+        } finally {
+          await page.emulateMedia({ forcedColors: null });
+        }
         /** @param {import('playwright-core').Locator} where */
         const paint = (where) =>
           where

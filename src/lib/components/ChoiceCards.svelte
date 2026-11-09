@@ -514,7 +514,9 @@ and `pending` locks it the same way while the chosen answer saves, with its dot 
       outline-color: GrayText;
     }
 
-    .off :is(.sui-choice-card-label, .sui-choice-card-description) {
+    .sui-choice-card.off :is(.sui-choice-card-label, .sui-choice-card-description),
+    .sui-choice-card.off:has(input:checked)
+      :is(.sui-choice-card-label, .sui-choice-card-description) {
       color: GrayText;
     }
 
