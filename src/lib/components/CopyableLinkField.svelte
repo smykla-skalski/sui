@@ -63,8 +63,9 @@ The field and its `CopyButton` are one control: the copy action is a chip inside
 end, under one frame. The chip shows the short "Copy", so the value keeps the width, and is
 named by `copyLabel`, such as "Copy Link", which starts with the shown word (WCAG 2.5.3). The
 copy part confirms with "Copied". A long value wraps onto more lines
-at any character, so all of it shows and it never widens the row. With `label` the pair sits in a `Field`, and the label names
-the text field.
+after a hyphen, or at any character inside a part longer than a line, so all of it shows and
+it never widens the row. With `label` the pair sits in a `Field`, and the label
+names the text field.
 
 - Semantics: a read-only text area named by its `Field` label or `aria-label`, and a copy button named by `copyLabel`, which starts with its shown word, inside one joined field.
 - Content: one link or token in the mono face, and the copy action's three short labels.
@@ -181,7 +182,6 @@ the text field.
           2
       )
       var(--sui-field-inset);
-    word-break: break-all;
   }
 
   /* The ground, edge and ring are the joined field's. */
