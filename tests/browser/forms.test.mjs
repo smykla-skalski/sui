@@ -438,6 +438,16 @@ suite('forms', together, () => {
           { opacity: '1', thumb: false, chosen: '1', other: '1' },
           `${name} stays at full strength and its thumb drops the accent`
         );
+      /** @param {import('playwright-core').Locator} track */
+      const seat = (track) =>
+        track
+          .locator('.sui-segmented-thumb')
+          .evaluate((thumb) => getComputedStyle(thumb).boxShadow !== 'none');
+      assert.deepEqual(
+        [await seat(whole), await seat(option)],
+        [false, true],
+        'a disabled whole draws its chosen plate flat, and a chosen disabled option keeps its seat'
+      );
       const among = page
         .locator('#segmented-control .sui-segmented > .sui-segmented-track:not(:disabled)')
         .filter({ has: page.locator('.disabled:not(.selected)') })

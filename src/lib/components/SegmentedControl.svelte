@@ -342,7 +342,7 @@ itself, so the choice shows from the first frame.
 
 - Semantics: a `fieldset` of native radios named by `label`, or by `aria-labelledby` when it is passed; the fallback is a native `select` with the same name.
 - Content: two to five options, each a short word with an optional icon and count; a long word never wraps, so the control turns into the select instead.
-- States: rest, hover (a fill that keeps the thumb's curve), pressed (the fill sinks, the thumb darkens and creases), selected (the thumb), focus (a 2px ring 2px off the track, and the hover fill on a focused option the thumb is not under), a disabled option (its words in the muted ink at the disabled opacity), a disabled whole (the disabled field's fill with no frame, its words in the muted ink at full strength), a chosen disabled option (a plain plate with the thumb's seat and the control border ink on its edge), held (the whole at the disabled opacity: disabled while a busy dialog or a saving pane around it works, and refusing every press, arrow and drag with focus kept while a saving setting row does), and `null` with no thumb.
+- States: rest, hover (a fill that keeps the thumb's curve), pressed (the fill sinks, the thumb darkens and creases), selected (the thumb), focus (a 2px ring 2px off the track, and the hover fill on a focused option the thumb is not under), a disabled option (its words in the muted ink at the disabled opacity), a disabled whole (the disabled field's fill with no frame, its words in the muted ink at full strength), a chosen disabled option (a plain plate with the thumb's seat and the control border ink on its edge, and flat with neither in a disabled whole), held (the whole at the disabled opacity: disabled while a busy dialog or a saving pane around it works, and refusing every press, arrow and drag with focus kept while a saving setting row does), and `null` with no thumb.
 - Keyboard: Tab reaches the checked option, or the first one when nothing is chosen; the arrow keys move the choice and skip disabled options; Escape puts a dragged thumb back.
 - Pointer and touch: a click chooses any option and a drag of the thumb chooses on release, so the drag is never the only way (WCAG 2.5.7); on a phone or a coarse pointer each option is at least 44 by 44px.
 - Focus: choosing keeps focus on the option; when the segments turn into the select, or back, focus moves to the other form instead of falling to the page.
@@ -966,7 +966,9 @@ itself, so the choice shows from the first frame.
      apart. A chosen disabled option drops the accent for a plain plate, seated as the live thumb
      is, with the control border ink on its edge and its words in the secondary ink, as a
      disabled filled button drops its tone, so it never reads as a live choice (L-40). Options
-     at rest have no edge, so the control ink is enough to mark it and stays quiet. */
+     at rest have no edge, so the control ink is enough to mark it and stays quiet. The chosen
+     plate of a disabled control is flat, with no edge or seat, as a disabled field has no
+     frame, so a whole that is off never reads as one with a single option off. */
   .sui-segmented-track.off {
     background: var(--sui-field-disabled);
     box-shadow: none;
@@ -991,6 +993,11 @@ itself, so the choice shows from the first frame.
     box-shadow:
       inset 0 0 0 var(--sui-stroke) var(--sui-border-control),
       var(--sui-segment-thumb-shadow);
+  }
+
+  .sui-segmented-track.off:has(> .selected) > .sui-segmented-thumb,
+  .sui-segmented-track.off:not(:has(> .sui-segmented-thumb)) > .sui-segmented-option.selected {
+    box-shadow: none;
   }
 
   .off > .selected,
