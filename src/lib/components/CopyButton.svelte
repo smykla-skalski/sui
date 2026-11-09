@@ -98,7 +98,7 @@ in its corner. Beside a 34px field or in a toolbar it takes the control tier wit
 
 - Semantics: a native `<button type="button">` whose visible words are its name, with a polite `role="status"` beside it.
 - Content: `label`, `copiedLabel` and `failedLabel`, each a short phrase; the button is as wide as the longest of the three.
-- States: rest, hover (a veil and a firmer edge), focus (a flush 2px ring, or an inset one when `bare`), pressed (a deeper veil, an inset shadow and a 1px sink), copied (success ink on its tint), failed (danger ink on its tint) and disabled (0.6 opacity).
+- States: rest, hover (a veil and a firmer edge), focus (a flush 2px ring, or an inset one when `bare`), pressed (a deeper veil, an inset shadow and a 1px sink), copied (success ink on its tint, over any veil), failed (danger ink on its tint, over any veil) and disabled (0.6 opacity).
 - Keyboard: Tab reaches it and Enter or Space copies; focus stays on it through the answer.
 - Pointer and touch: 28px tall, or 34px with `toolbar`, and a 44px hit area on a phone or any touch screen.
 - Focus: copying never moves focus; `oncopyfailed` is where a caller sends focus to the text to select by hand.
@@ -132,11 +132,11 @@ in its corner. Beside a 34px field or in a toolbar it takes the control tier wit
     align-items: center;
     background-color: var(--sui-surface-base);
     background-image:
-      linear-gradient(var(--sui-control-state-layer), var(--sui-control-state-layer)),
       linear-gradient(
         var(--sui-local-copy-outcome, transparent),
         var(--sui-local-copy-outcome, transparent)
-      );
+      ),
+      linear-gradient(var(--sui-control-state-layer), var(--sui-control-state-layer));
     block-size: var(--sui-tier-quiet);
     border: var(--sui-stroke) solid var(--sui-control-border);
     border-radius: var(--sui-radius-control);
@@ -236,8 +236,9 @@ in its corner. Beside a 34px field or in a toolbar it takes the control tier wit
     outline-offset: var(--sui-focus-ring-inset);
   }
 
-  /* The outcome tints the ground under the veil and inks the words, so a hover or a press
-     that sets the button's own ground and ink never hides it. */
+  /* The outcome lays its opaque tint over the veil and inks the words, so the words keep the
+     4.5:1 a pill holds on that tint while a hover or a press would darken the ground; a press
+     still shows by its inset shadow. */
   .sui-copy-button[data-copied] {
     --sui-local-copy-outcome: var(--sui-success-tint);
   }

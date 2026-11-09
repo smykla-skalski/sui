@@ -2021,15 +2021,19 @@ suite('forms', together, () => {
     }
   });
 
-  test('a link field says a copy in the success ink on its tint, and a refusal in the danger ink on its tint with the value handed over selected', async () => {
+  test('a link field says a copy in the success ink on its tint, and a refusal in the danger ink on its tint with the value handed over selected, each 4.5:1 at rest, hovered and pressed', async () => {
     const page = await open({ path: 'copyable-link-field/' });
     try {
       const field = page.getByRole('textbox', { name: 'Invitation link' });
       const copy = page.getByRole('button', { name: 'Copy Link' });
+      // The words against the ground as painted: each background layer, top first, blended in a
+      // canvas over the grounds under the button down to the first opaque one.
       const said = () =>
         copy.evaluate((button) => {
-          const shown = [...button.querySelectorAll('.sui-copy-button-labels > span')].find(
-            (label) => getComputedStyle(label).visibility === 'visible'
+          const shown = /** @type {HTMLElement} */ (
+            [...button.querySelectorAll('.sui-copy-button-labels > span')].find(
+              (label) => getComputedStyle(label).visibility === 'visible'
+            )
           );
           const ink = (/** @type {string} */ token) => {
             const probe = document.createElement('span');
@@ -2039,10 +2043,40 @@ suite('forms', together, () => {
             probe.remove();
             return color;
           };
+          /** @type {string[]} */
+          const layers = [];
+          for (let box = /** @type {Element | null} */ (button); box; box = box.parentElement) {
+            const look = getComputedStyle(box);
+            const colors = look.backgroundImage.match(/[a-z]+\([^()]*\)/g) ?? [];
+            layers.push(...colors.filter((_, index) => index % 2 === 0), look.backgroundColor);
+          }
+          const pen = /** @type {CanvasRenderingContext2D} */ (
+            document.createElement('canvas').getContext('2d', { willReadFrequently: true })
+          );
+          const paint = (/** @type {string[]} */ colors) => {
+            pen.clearRect(0, 0, 1, 1);
+            for (const color of colors) {
+              pen.fillStyle = color;
+              pen.fillRect(0, 0, 1, 1);
+            }
+            return [...pen.getImageData(0, 0, 1, 1).data.slice(0, 3)];
+          };
+          const opaque = layers.findIndex(
+            (color) => String(paint(['#fff', color])) === String(paint(['#000', color]))
+          );
+          const ground = paint(layers.slice(0, opaque + 1).reverse());
+          const words = paint([getComputedStyle(shown).color]);
+          const light = (/** @type {number[]} */ rgb) =>
+            rgb
+              .map((value) => value / 255)
+              .map((c) => (c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4))
+              .reduce((sum, c, index) => sum + c * [0.2126, 0.7152, 0.0722][index], 0);
+          const [high, low] = [light(ground), light(words)].sort((a, b) => b - a);
           return {
-            words: shown?.textContent,
-            ink: shown && getComputedStyle(shown).color,
-            ground: getComputedStyle(button).backgroundImage,
+            words: shown.textContent,
+            ink: getComputedStyle(shown).color,
+            image: getComputedStyle(button).backgroundImage,
+            contrast: (high + 0.05) / (low + 0.05),
             success: ink('--sui-success'),
             danger: ink('--sui-danger'),
             successTint: ink('--sui-success-tint'),
@@ -2054,14 +2088,33 @@ suite('forms', together, () => {
           navigator.clipboard.writeText = () =>
             lands ? Promise.resolve() : Promise.reject(new DOMException('', 'NotAllowedError'));
         }, lands);
+      const readable = async (/** @type {string} */ outcome) => {
+        await page.mouse.move(0, 0);
+        const rest = await said();
+        await copy.hover();
+        const hovered = await said();
+        await page.mouse.down();
+        const pressed = await said();
+        await page.mouse.move(0, 0);
+        await page.mouse.up();
+        for (const [state, look] of Object.entries({ rest, hovered, pressed }))
+          assert.ok(
+            look.contrast >= 4.5,
+            `${outcome} ${state} reads ${look.contrast.toFixed(2)}:1 on its ground`
+          );
+        return rest;
+      };
 
-      await answer(true);
-      await copy.click();
-      await page.waitForFunction(() => document.querySelector('[data-copied]'));
-      const copied = await said();
-      assert.equal(copied.words, 'Copied');
-      assert.equal(copied.ink, copied.success, 'a copy is not said in the success ink');
-      assert.ok(copied.ground.includes(copied.successTint), 'a copy does not tint the ground');
+      for (const scheme of /** @type {const} */ (['light', 'dark'])) {
+        await page.emulateMedia({ colorScheme: scheme });
+        await answer(true);
+        await copy.click();
+        await page.waitForFunction(() => document.querySelector('[data-copied]'));
+        const copied = await readable(`${scheme} copied`);
+        assert.equal(copied.words, 'Copied');
+        assert.equal(copied.ink, copied.success, 'a copy is not said in the success ink');
+        assert.ok(copied.image.includes(copied.successTint), 'a copy does not tint the ground');
+      }
 
       const tall = () =>
         field.evaluate((area) => area.closest('.sui-joined')?.getBoundingClientRect().height);
@@ -2070,10 +2123,6 @@ suite('forms', together, () => {
       await copy.click();
       await page.waitForFunction(() => document.querySelector('[data-failed]'));
       assert.equal(await tall(), rest, 'the refusal stacked its words taller than the field');
-      const failed = await said();
-      assert.equal(failed.words, 'Copy by Hand');
-      assert.equal(failed.ink, failed.danger, 'a refusal is not said in the danger ink');
-      assert.ok(failed.ground.includes(failed.dangerTint), 'a refusal does not tint the ground');
       assert.deepEqual(
         await field.evaluate((/** @type {HTMLTextAreaElement} */ area) => ({
           focused: document.activeElement === area,
@@ -2082,6 +2131,13 @@ suite('forms', together, () => {
         { focused: true, selected: true },
         'a refusal did not hand the value over selected'
       );
+      for (const scheme of /** @type {const} */ (['light', 'dark'])) {
+        await page.emulateMedia({ colorScheme: scheme });
+        const failed = await readable(`${scheme} refused`);
+        assert.equal(failed.words, 'Copy by Hand');
+        assert.equal(failed.ink, failed.danger, 'a refusal is not said in the danger ink');
+        assert.ok(failed.image.includes(failed.dangerTint), 'a refusal does not tint the ground');
+      }
     } finally {
       await page.close();
     }
