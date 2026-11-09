@@ -293,7 +293,7 @@ suite('forms', together, () => {
     );
 
     test(
-      'L-55 two measured examples share a row that ends where the cards above end, and fill a phone line',
+      'L-55 two measured examples share a row that ends where the cards above end, and fill a phone line, where two forms stand further apart than an action from its fields',
       long,
       async () => {
         /** @param {import('playwright-core').Page} page */
@@ -340,7 +340,29 @@ suite('forms', together, () => {
         );
         const phone = await open({ width: 390 });
         const [, small, wrapped] = await frames(phone);
+        const forms = await phone.evaluate(() => {
+          const example = document.getElementById('field-refused-send')?.closest('.example');
+          const [sent, refused] = [...(example?.querySelectorAll('figure') ?? [])].map((figure) =>
+            figure.getBoundingClientRect()
+          );
+          const form = example?.querySelector('form');
+          const action = form?.querySelector('.action')?.getBoundingClientRect();
+          const last = form
+            ?.querySelector('.action')
+            ?.previousElementSibling?.getBoundingClientRect();
+          return (
+            action &&
+            last &&
+            sent &&
+            refused && { between: refused.top - sent.bottom, close: action.top - last.bottom }
+          );
+        });
         await phone.close();
+        assert.ok(forms);
+        assert.ok(
+          forms.between > forms.close,
+          `two forms stand ${forms.between}px apart, as close as an action to its fields (${forms.close}px)`
+        );
         assert.ok(small && wrapped);
         assert.equal(wrapped.width, small.width, 'a wrapped frame keeps a narrow measure');
       }

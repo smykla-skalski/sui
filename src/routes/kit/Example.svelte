@@ -199,7 +199,8 @@ live specimens, not a surface of the design, so it may hold cards and dialogs (L
      fields, sets `--specimen-max`. */
   /* Rows of a grid stand further apart than a name stands over its specimen, so each name
      reads as the head of the specimen under it. A grid of short specimens, such as fields,
-     may set a closer `--specimen-row-gap` that still keeps that order. */
+     may set a closer `--specimen-row-gap` that still keeps that order, and a grid of forms a
+     wider one, kept on a phone, so two forms never read as one. */
   .specimens[data-layout='grid'] {
     align-items: stretch;
     display: grid;
@@ -229,7 +230,7 @@ live specimens, not a surface of the design, so it may hold cards and dialogs (L
     }
 
     .specimens[data-layout='grid'] {
-      row-gap: var(--sui-space-6);
+      row-gap: var(--specimen-row-gap, var(--sui-space-6));
     }
   }
 
