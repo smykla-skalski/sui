@@ -1274,6 +1274,14 @@ test('L-55 a choice card takes the field radius, not a surface card radius', () 
   assert.match(cards, /\.sui-choice-card \{[^}]*border-radius: var\(--sui-radius-control\);/);
 });
 
+test("L-12 a choice card's dot draws no ground of its own, so it takes the card's", () => {
+  const dot = /^\s*\.sui-choice-card-dot \{([^}]*)\}/m.exec(
+    styles['src/lib/components/ChoiceCards.svelte']
+  );
+  assert.ok(dot, 'the dot rule');
+  assert.doesNotMatch(dot[1], /background/);
+});
+
 test("L-12 a choice card hovers as a field does, not with a control's veil", () => {
   const cards = styles['src/lib/components/ChoiceCards.svelte'];
   assert.match(cards, /background-color: var\(--sui-field-hover\);/);

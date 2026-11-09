@@ -356,9 +356,9 @@ and `pending` locks it the same way while the chosen answer saves, with its dot 
   }
 
   /* An empty dot draws the 1px strong edge of an empty check box, so the marks stay quieter than
-     the labels; the chosen dot takes the 2px brand ring. */
+     the labels; the chosen dot takes the 2px brand ring. It has no ground of its own, so its
+     inside takes the card's ground in every state, hover, press, chosen or disabled (L-12). */
   .sui-choice-card-dot {
-    background: var(--sui-surface-base);
     block-size: var(--sui-icon-base);
     border: var(--sui-stroke) solid var(--sui-border-strong);
     border-radius: 50%;
