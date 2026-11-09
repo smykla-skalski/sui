@@ -281,11 +281,13 @@ way; a busy dialog or a saving pane around it disables it while the work runs.
     outline: none;
   }
 
+  /* The dash spans what the 12px check spans with its round caps, about 10px, so a partly
+     chosen box holds as much ink as a checked one. */
   .sui-checkbox-dash {
     background: currentColor;
     block-size: 2px;
     border-radius: var(--sui-radius-pill);
-    inline-size: var(--sui-space-2);
+    inline-size: calc(var(--sui-icon-md) - 2 * var(--sui-space-1));
   }
 
   .sui-checkbox-copy {
