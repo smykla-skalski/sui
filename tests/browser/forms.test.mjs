@@ -118,7 +118,7 @@ suite('forms', together, () => {
           `focus left the group for ${await focused(page)}`
         );
         const strength = await group
-          .locator('.sui-choice-card')
+          .locator('.sui-choice-card:not(:has(input:disabled))')
           .evaluateAll((cards) =>
             cards.map((card) => [
               card.querySelector('input')?.checked,
@@ -174,6 +174,16 @@ suite('forms', together, () => {
           await ink(off.locator('.sui-choice-card:not(:has(input:checked))').first()),
           await ink(group.locator('.sui-choice-card:has(input:checked)')),
           "a disabled group's answers take the muted ink"
+        );
+        const answer = page
+          .locator(
+            '#choice-cards fieldset:not([aria-disabled]) .sui-choice-card:has(input:disabled)'
+          )
+          .first();
+        assert.deepEqual(
+          [await answer.evaluate((card) => getComputedStyle(card).opacity), await ink(answer)],
+          ['1', await ink(off.locator('.sui-choice-card:not(:has(input:checked))').first())],
+          'a disabled answer draws as a disabled group does, at full strength in the muted ink'
         );
         /** @param {import('playwright-core').Locator} where */
         const paint = (where) =>

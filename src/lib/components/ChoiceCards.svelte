@@ -103,7 +103,7 @@ and `pending` locks it the same way while the chosen answer saves, with its dot 
 
 - Semantics: a `<fieldset role="radiogroup">` named by its `<legend>`, described by the hint and the error, holding native radios each named by its label and described by its sentence, with a polite `role="status"` that speaks the error.
 - Content: a question as the legend and two to six answers, each a short label and one sentence; an optional hint and an error.
-- States: unchosen (a quiet edge), chosen (a brand tint, a 2px brand edge and a filled dot), hover (a field's faint ground and a firmer edge on an unchosen card), focus (a 2px ring 2px off the card's own edge, a chosen card's brand edge thinning to 1px under it), pressed (a deeper ground, an inset shadow and a 1px sink), required (the word after the legend), invalid (a danger edge on every unchosen card and its dot and an error with a warning mark, from `error` or from a refused send), pending (the chosen card keeps full strength, its dot's ring turns in the accent around its filled centre and the group is busy), disabled answers and the answers a pending group refuses (0.6 opacity), and a disabled group (full strength in the muted ink, its chosen card's 2px edge and dot in the secondary ink).
+- States: unchosen (a quiet edge), chosen (a brand tint, a 2px brand edge and a filled dot), hover (a field's faint ground and a firmer edge on an unchosen card), focus (a 2px ring 2px off the card's own edge, a chosen card's brand edge thinning to 1px under it), pressed (a deeper ground, an inset shadow and a 1px sink), required (the word after the legend), invalid (a danger edge on every unchosen card and an error with a warning mark, from `error` or from a refused send), pending (the chosen card keeps full strength, its dot's ring turns in the accent around its filled centre and the group is busy), the answers a pending group refuses (0.6 opacity), and disabled answers and a disabled group (full strength in the muted ink, a chosen card's 2px edge and dot in the secondary ink).
 - Keyboard: Tab enters the group at the chosen answer, the arrows move the choice and skip disabled answers, and Space chooses; a locked group refuses all of them and keeps focus.
 - Pointer and touch: every card is its own target, at least 72px tall.
 - Focus: locking the group leaves focus on the radio that had it, and a send that leaves a required question unanswered moves focus to its first radio when it is the form's first refused control.
@@ -118,7 +118,7 @@ and `pending` locks it the same way while the chosen answer saves, with its dot 
 <fieldset
   bind:this={group}
   {...rest}
-  class={['sui-choice-cards', { pending, off: disabled }, className]}
+  class={['sui-choice-cards', { pending }, className]}
   role="radiogroup"
   aria-describedby={describedby}
   aria-busy={pending || undefined}
@@ -134,7 +134,11 @@ and `pending` locks it the same way while the chosen answer saves, with its dot 
   >
   <div class={['sui-choice-cards-grid', { invalid: Boolean(shown) }]}>
     {#each options as option, index (option.value)}
-      <label class="sui-choice-card" class:disabled={locked || option.disabled}>
+      <label
+        class="sui-choice-card"
+        class:disabled={locked || option.disabled}
+        class:off={disabled || option.disabled}
+      >
         <input
           type="radio"
           {name}
@@ -312,12 +316,14 @@ and `pending` locks it the same way while the chosen answer saves, with its dot 
     box-shadow: inset 0 0 0 var(--sui-stroke) var(--sui-brand-action);
   }
 
-  /* A disabled group is framed as a disabled field is: at full strength with its words in the
-     muted ink, so it never reads as one to answer and its words stay legible (L-40, Radix
-     Themes). Its chosen answer drops the accent, as a disabled filled button drops its tone, and
+  /* A disabled answer, or every answer of a disabled group, is framed as a disabled field is: at
+     full strength in its quieter fill with its words in the muted ink, so it never reads as one to answer and its
+     words stay legible, while an answer that work holds dims as a held field does (L-40, Radix
+     Themes). A chosen one drops the accent, as a disabled filled button drops its tone, and
      keeps its 2px edge and filled dot in the secondary ink, so the answer that stands still
      reads. */
-  .off .sui-choice-card {
+  .sui-choice-card.off {
+    background-color: var(--sui-field-disabled);
     opacity: 1;
   }
 
@@ -326,22 +332,21 @@ and `pending` locks it the same way while the chosen answer saves, with its dot 
     color: var(--sui-text-muted);
   }
 
-  .off .sui-choice-card:has(input:checked) {
-    background-color: var(--sui-control-bg);
+  .sui-choice-card.off:has(input:checked) {
+    background-color: var(--sui-field-disabled);
     box-shadow: inset 0 0 0 var(--sui-stroke-bold) var(--sui-text-secondary);
   }
 
-  .off
-    .sui-choice-card:has(input:checked)
+  .sui-choice-card.off:has(input:checked)
     :is(.sui-choice-card-label, .sui-choice-card-description) {
     color: var(--sui-text-secondary);
   }
 
-  .off .sui-choice-card:has(input:checked) .sui-choice-card-dot {
+  .sui-choice-card.off:has(input:checked) .sui-choice-card-dot {
     border-color: var(--sui-text-secondary);
   }
 
-  .off .sui-choice-card:has(input:checked) .sui-choice-card-dot::after {
+  .sui-choice-card.off:has(input:checked) .sui-choice-card-dot::after {
     background: var(--sui-text-secondary);
   }
 
@@ -367,12 +372,6 @@ and `pending` locks it the same way while the chosen answer saves, with its dot 
     inline-size: var(--sui-icon-base);
     margin-block: calc((round(up, 1cap, 2px) - var(--sui-icon-base)) / 2);
     position: relative;
-  }
-
-  /* An answer still missing marks every empty dot as it marks its card, as an invalid check box
-     draws its box in the danger edge (L-9). */
-  .invalid .sui-choice-card:not(:has(input:checked)) .sui-choice-card-dot {
-    border-color: var(--sui-danger-edge);
   }
 
   .sui-choice-card:has(input:checked) .sui-choice-card-dot {
@@ -510,16 +509,16 @@ and `pending` locks it the same way while the chosen answer saves, with its dot 
       forced-color-adjust: none;
     }
 
-    .off .sui-choice-card,
-    .off .sui-choice-card:has(input:checked) {
+    .sui-choice-card.off,
+    .sui-choice-card.off:has(input:checked) {
       outline-color: GrayText;
     }
 
-    .off .sui-choice-card :is(.sui-choice-card-label, .sui-choice-card-description) {
+    .off :is(.sui-choice-card-label, .sui-choice-card-description) {
       color: GrayText;
     }
 
-    .off .sui-choice-card:has(input:checked) .sui-choice-card-dot::after {
+    .sui-choice-card.off:has(input:checked) .sui-choice-card-dot::after {
       background: GrayText;
     }
 
