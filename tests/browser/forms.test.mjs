@@ -2021,7 +2021,7 @@ suite('forms', together, () => {
     }
   });
 
-  test('a link field says a copy in the success ink, and a refusal in the danger ink with the value handed over selected', async () => {
+  test('a link field says a copy in the success ink on its tint, and a refusal in the danger ink on its tint with the value handed over selected', async () => {
     const page = await open({ path: 'copyable-link-field/' });
     try {
       const field = page.getByRole('textbox', { name: 'Invitation link' });
@@ -2042,8 +2042,11 @@ suite('forms', together, () => {
           return {
             words: shown?.textContent,
             ink: shown && getComputedStyle(shown).color,
+            ground: getComputedStyle(button).backgroundImage,
             success: ink('--sui-success'),
-            danger: ink('--sui-danger')
+            danger: ink('--sui-danger'),
+            successTint: ink('--sui-success-tint'),
+            dangerTint: ink('--sui-danger-tint')
           };
         });
       const answer = (/** @type {boolean} */ lands) =>
@@ -2058,13 +2061,19 @@ suite('forms', together, () => {
       const copied = await said();
       assert.equal(copied.words, 'Copied');
       assert.equal(copied.ink, copied.success, 'a copy is not said in the success ink');
+      assert.ok(copied.ground.includes(copied.successTint), 'a copy does not tint the ground');
 
+      const tall = () =>
+        field.evaluate((area) => area.closest('.sui-joined')?.getBoundingClientRect().height);
+      const rest = await tall();
       await answer(false);
       await copy.click();
       await page.waitForFunction(() => document.querySelector('[data-failed]'));
+      assert.equal(await tall(), rest, 'the refusal stacked its words taller than the field');
       const failed = await said();
       assert.equal(failed.words, 'Copy by Hand');
       assert.equal(failed.ink, failed.danger, 'a refusal is not said in the danger ink');
+      assert.ok(failed.ground.includes(failed.dangerTint), 'a refusal does not tint the ground');
       assert.deepEqual(
         await field.evaluate((/** @type {HTMLTextAreaElement} */ area) => ({
           focused: document.activeElement === area,

@@ -91,14 +91,14 @@ tells a screen reader nothing.
 Each outcome is also announced through a polite live region, a second copy included, so a
 reader who cannot see the label change still hears it. The labels share one box, so the
 button does not change width when it answers; a `bare` one is as wide as its resting and
-copied words, and the failure wraps inside that width.
+copied words, and widens to the failure's words only while they show.
 
 It is 28px tall on its own opaque ground, so it can sit over code. `CodeBlock` places one
 in its corner. Beside a 34px field or in a toolbar it takes the control tier with `toolbar`.
 
 - Semantics: a native `<button type="button">` whose visible words are its name, with a polite `role="status"` beside it.
 - Content: `label`, `copiedLabel` and `failedLabel`, each a short phrase; the button is as wide as the longest of the three.
-- States: rest, hover (a veil and a firmer edge), focus (a flush 2px ring, or an inset one when `bare`), pressed (a deeper veil, an inset shadow and a 1px sink), copied (success ink), failed (danger ink) and disabled (0.6 opacity).
+- States: rest, hover (a veil and a firmer edge), focus (a flush 2px ring, or an inset one when `bare`), pressed (a deeper veil, an inset shadow and a 1px sink), copied (success ink on its tint), failed (danger ink on its tint) and disabled (0.6 opacity).
 - Keyboard: Tab reaches it and Enter or Space copies; focus stays on it through the answer.
 - Pointer and touch: 28px tall, or 34px with `toolbar`, and a 44px hit area on a phone or any touch screen.
 - Focus: copying never moves focus; `oncopyfailed` is where a caller sends focus to the text to select by hand.
@@ -131,10 +131,12 @@ in its corner. Beside a 34px field or in a toolbar it takes the control tier wit
     --sui-control-state-layer: transparent;
     align-items: center;
     background-color: var(--sui-surface-base);
-    background-image: linear-gradient(
-      var(--sui-control-state-layer),
-      var(--sui-control-state-layer)
-    );
+    background-image:
+      linear-gradient(var(--sui-control-state-layer), var(--sui-control-state-layer)),
+      linear-gradient(
+        var(--sui-local-copy-outcome, transparent),
+        var(--sui-local-copy-outcome, transparent)
+      );
     block-size: var(--sui-tier-quiet);
     border: var(--sui-stroke) solid var(--sui-control-border);
     border-radius: var(--sui-radius-control);
@@ -234,7 +236,16 @@ in its corner. Beside a 34px field or in a toolbar it takes the control tier wit
     outline-offset: var(--sui-focus-ring-inset);
   }
 
-  /* On the words, so a hover or a press that sets the button's ink never hides the outcome. */
+  /* The outcome tints the ground under the veil and inks the words, so a hover or a press
+     that sets the button's own ground and ink never hides it. */
+  .sui-copy-button[data-copied] {
+    --sui-local-copy-outcome: var(--sui-success-tint);
+  }
+
+  .sui-copy-button[data-failed] {
+    --sui-local-copy-outcome: var(--sui-danger-tint);
+  }
+
   .sui-copy-button[data-copied] .sui-copy-button-labels {
     color: var(--sui-success);
   }
@@ -261,12 +272,8 @@ in its corner. Beside a 34px field or in a toolbar it takes the control tier wit
   }
 
   /* Inside a field the chip keeps the width its resting and copied words need, so the value
-     keeps its room; the rarer failure wraps inside that width instead of widening it, and
-     takes no room at all while it is hidden. */
-  .bare .sui-copy-button-labels > :last-child {
-    contain: inline-size;
-  }
-
+     keeps its room. The rarer failure takes no room while it is hidden, and widens the chip
+     while it shows, since its words wrapped into that width stand taller than the field. */
   .bare .sui-copy-button-labels > .off:last-child {
     contain: size;
   }

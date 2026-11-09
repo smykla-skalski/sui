@@ -73,7 +73,7 @@ names the text field.
 - Keyboard: Tab selects the value and moves on to the copy action, Enter or Space copies, and the platform's own copy works on the selection.
 - Pointer and touch: 34px tall, 44px on a phone or any touch screen, and the copy action keeps a 44px hit area there.
 - Focus: copying keeps focus on the action, and a refused copy moves it to the value, selected.
-- Responsive: it fills its container, a long value wraps onto more lines with the copy action level with the first one, and the copy action keeps the width of "Copy" or "Copied"; a longer failure wraps inside it.
+- Responsive: it fills its container, a long value wraps onto more lines with the copy action level with the first one, and the copy action keeps the width of "Copy" or "Copied", widening only while a longer failure shows.
 - Accessibility: each part has its own name, the outcome is spoken through the copy action's status, and the value's text holds 4.5:1.
 - Localization: `copyLabel`, `copiedLabel` and `failedLabel` are props with English defaults, and the copy action sits at the inline end in either direction.
 - Performance: one text area and one button; a hidden copy of the value sets the height in CSS, so no script measures it.
