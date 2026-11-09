@@ -518,6 +518,7 @@ assistive technology, because a native picker cannot be held open.
 
       .sui-select:not(.bare)
         .sui-select-control:open:not(:focus-visible, [aria-invalid='true'], :user-invalid) {
+        background-color: var(--sui-field-hover);
         border-color: var(--sui-field-frame-hover);
         border-block-end-color: var(--sui-field-border-hover);
       }

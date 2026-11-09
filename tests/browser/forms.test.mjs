@@ -1983,17 +1983,22 @@ suite('forms', together, () => {
                 return color;
               };
               const look = getComputedStyle(button);
-              const [frame, base] =
+              const [ground, frame, base] =
                 button.getAttribute('aria-expanded') === 'true'
-                  ? ['--sui-field-frame-hover', '--sui-field-border-hover']
-                  : ['--sui-field-frame', '--sui-field-border'];
+                  ? ['--sui-field-hover', '--sui-field-frame-hover', '--sui-field-border-hover']
+                  : ['--sui-control-bg', '--sui-field-frame', '--sui-field-border'];
               return (
                 button.matches(':disabled') ||
-                (look.borderTopColor === paint(frame) && look.borderBottomColor === paint(base))
+                (look.backgroundColor === paint(ground) &&
+                  look.borderTopColor === paint(frame) &&
+                  look.borderBottomColor === paint(base))
               );
             })
           );
-        assert.ok((await edges()).every(Boolean), 'a trigger wears a button edge, not a field one');
+        assert.ok(
+          (await edges()).every(Boolean),
+          "a trigger wears a button's paint, not a field's"
+        );
         // The knob's centre reaches the area's edges, so the panel's inset must hold half a knob
         // and still leave it room.
         const clear = await page.evaluate(() => {
@@ -2005,9 +2010,17 @@ suite('forms', together, () => {
           const knob = /** @type {Element} */ (
             panel.querySelector('.knob')
           ).getBoundingClientRect();
-          return Math.min(area.left - box.left, box.right - area.right) - knob.width / 2;
+          const thumb = /** @type {Element} */ (panel.querySelector('.thumb'));
+          return {
+            room: Math.min(area.left - box.left, box.right - area.right) - knob.width / 2,
+            sizes: [knob.width, thumb.getBoundingClientRect().width]
+          };
         });
-        assert.ok(clear >= 4, `a knob at the area's edge stands ${clear}px from the panel's`);
+        assert.ok(
+          clear.room >= 4,
+          `a knob at the area's edge stands ${clear.room}px from the panel's`
+        );
+        assert.equal(clear.sizes[0], clear.sizes[1], "the area's knob and the hue's thumb differ");
         // The focused swatch's ring stays clear of the next swatch.
         await page.keyboard.press('ArrowRight');
         const room = await page.evaluate(() => {

@@ -472,6 +472,7 @@ start.
       :focus-visible
     ) {
     --sui-control-state-layer: transparent;
+    background-color: var(--sui-field-hover);
     border-color: var(--sui-field-frame-hover);
     border-block-end-color: var(--sui-field-border-hover);
     box-shadow: inset 0 var(--sui-stroke) 0 var(--sui-field-recess-hover);

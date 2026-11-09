@@ -622,7 +622,7 @@ name is the label and the hex, such as "Label color #0f766e". `name` posts the h
     --sui-color-picker-hue-height: 24px;
     --sui-color-picker-hue-thumb: 16px;
     --sui-color-picker-area-height: 10rem;
-    --sui-color-picker-knob: 14px;
+    --sui-color-picker-knob: var(--sui-color-picker-hue-thumb);
     box-sizing: border-box;
     display: grid;
     gap: var(--sui-space-4);
