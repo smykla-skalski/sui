@@ -108,19 +108,21 @@
   note="A parent box shows a partial choice of the list under it, and a press chooses all or none"
   layout="stack"
 >
-  <div class="tree">
-    <div class="bleed">
-      <Checkbox
-        label="Every available event"
-        checked={all}
-        indeterminate={some}
-        onchange={(event) => (chosen = event.currentTarget.checked ? available : [])}
-      />
+  <Specimen label="Parent, partly chosen">
+    <div class="tree">
+      <div class="bleed">
+        <Checkbox
+          label="Every available event"
+          checked={all}
+          indeterminate={some}
+          onchange={(event) => (chosen = event.currentTarget.checked ? available : [])}
+        />
+      </div>
+      <div class="children">
+        <CheckList label="Events that start a sync" options={events} bind:value={chosen} />
+      </div>
     </div>
-    <div class="children">
-      <CheckList label="Events that start a sync" options={events} bind:value={chosen} />
-    </div>
-  </div>
+  </Specimen>
 </Example>
 
 <Pair narrow>
