@@ -1079,8 +1079,7 @@ itself, so the choice shows from the first frame.
   /* A disabled control is drawn as a disabled field is: the field's quieter fill with no frame
      and its words in the muted ink, at full strength. A disabled option among live ones keeps
      the disabled opacity, since the muted ink alone sits too close to its neighbours' to set it
-     apart. The options a chosen disabled one holds have no live neighbour, so they stand at full
-     strength, as a disabled whole's do. A chosen disabled option drops the accent and the seat for a flat plain plate, with the
+     apart. A chosen disabled option drops the accent and the seat for a flat plain plate, with the
      control border ink on its edge and its words in the secondary ink, as a
      disabled filled button drops its tone, so it never reads as a live choice (L-40). Options
      at rest have no edge, so the control ink is enough to mark it and stays quiet. The chosen
@@ -1098,7 +1097,7 @@ itself, so the choice shows from the first frame.
     color: var(--sui-text-muted);
   }
 
-  .sui-segmented-track:not(.off, :has(> .selected.disabled))
+  .sui-segmented-track:not(.off)
     .sui-segmented-option.disabled:not(.selected)
     .sui-segmented-label {
     opacity: var(--sui-disabled-opacity);
