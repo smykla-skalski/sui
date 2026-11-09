@@ -272,7 +272,7 @@ a saving pane around it holds it the same way.
 - Content: one pattern per entry of any length; a paste of several lines adds one entry per line.
 - States: rest (the pattern in its syntax colors, each 4.5:1 on every ground the field takes, in a changed row too), hover and focus on the field (its ring) and on the cross (its own inset ring, a selection as opaque as a code block's), pressed cross (a deeper veil and an inset shadow), invalid (the danger edge, an alert mark and the problem under the entries), removed (`removedLabel` with Undo), pending (busy, every entry read only at the disabled opacity, and Add and Undo loading) and disabled.
 - Keyboard: Tab walks each field and its cross, then Add, then Undo; typing, selection, undo and input methods are the field's own; Backspace in an empty entry moves to the end of the one before; Enter in a field does nothing of its own, so a surrounding form can submit.
-- Pointer and touch: the field, its cross and Add are one height, 34px, or 44px on a phone or any touch screen; the cross is a square of the field's height with its chip 4px inside the frame, so its target reaches the frame and never the pattern's.
+- Pointer and touch: the field, its cross and Add are one height, 34px, or 44px on a phone or any touch screen; the cross is a square of the field's height with its chip a field chip's inset inside the frame, so its target reaches the frame and never the pattern's.
 - Focus: Add moves focus to the new entry; a removal moves it to the entry that took its place, else the one before, else Add; Undo moves it back to the restored entry; a pending list keeps focus where it is.
 - Responsive: each field is as wide as its pattern, at least a few characters and at most the list's width, and the entries wrap from the start edge, Add after the last one on its line or on a line of its own; a pattern longer than the line scrolls inside its field.
 - Accessibility: the group is named by the caller and is `aria-busy` while pending; a screen reader hears each field's plain value, never the colored copy; problems, removals and pastes are said through a polite status; each problem describes its field and names the pattern it is about.
@@ -554,8 +554,8 @@ a saving pane around it holds it the same way.
 
   /* The cross takes the field's whole end: a square as tall as the field that lies over its
      frame, so a line of entries and Add is one height (L-101) and on touch the box itself is
-     the 44px target. Its quiet chip stands 4px inside the frame, as the copy chip in a link field
-     does: the ground under the glyph, and over it the inset ring, so focus on it never looks
+     the 44px target. Its quiet chip stands a field chip's inset inside the frame, as the copy chip
+     in a link field does: the ground under the glyph, and over it the inset ring, so focus on it never looks
      like focus on the pattern. A part of a shared frame presses without a sink (L-42). */
   .sui-pattern-remove {
     align-items: center;
@@ -584,7 +584,7 @@ a saving pane around it holds it the same way.
   .sui-pattern-remove::after {
     border-radius: var(--sui-radius-field-chip);
     content: '';
-    inset: calc(var(--sui-stroke) + var(--sui-space-1));
+    inset: calc(var(--sui-stroke) + var(--sui-field-chip-inset));
     position: absolute;
   }
 

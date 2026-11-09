@@ -517,11 +517,12 @@
   --sui-radius-control: 8px;
   --sui-radius-surface: 10px;
   --sui-radius-popover: 12px;
-  /* The outer curve less its edge and 4px inset, so the curves stay concentric (L-53). */
   --sui-radius-popover-row: calc(
     var(--sui-radius-popover) - var(--sui-stroke) - var(--sui-space-1)
   );
-  --sui-radius-field-chip: calc(var(--sui-radius-control) - var(--sui-stroke) - var(--sui-space-1));
+  --sui-radius-field-chip: calc(
+    var(--sui-radius-control) - var(--sui-stroke) - var(--sui-field-chip-inset)
+  );
   --sui-radius-dialog: 14px;
   --sui-radius-check: 5px;
 
@@ -568,6 +569,7 @@
   --sui-field-inset: var(--sui-space-3);
   --sui-disabled-opacity: 0.6;
   --sui-control-inset: 2px;
+  --sui-field-chip-inset: var(--sui-control-inset);
 
   /* Icon tiers in rem, rounded to the pixel: 10 to 18px at the default text size, and they grow
      with the reader's text size, together with every box drawn at a tier (L-68). */
@@ -1188,6 +1190,7 @@
     --sui-font-size-input: 1rem;
     --sui-font-size-input-mono: 1rem;
     --sui-leading-input: 1.5rem;
+    --sui-field-chip-inset: var(--sui-space-1);
   }
 }
 

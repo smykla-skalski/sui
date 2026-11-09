@@ -780,7 +780,7 @@ test('L-53 a chip inside a field takes the field radius less its edge and inset'
   const tokens = read('src/lib/styles.css');
   assert.match(
     tokens,
-    /--sui-radius-field-chip: calc\(\s*var\(--sui-radius-control\) - var\(--sui-stroke\) - var\(--sui-space-1\)\s*\);/
+    /--sui-radius-field-chip: calc\(\s*var\(--sui-radius-control\) - var\(--sui-stroke\) - var\(--sui-field-chip-inset\)\s*\);/
   );
   assert.match(
     read('src/lib/components/CopyButton.svelte'),

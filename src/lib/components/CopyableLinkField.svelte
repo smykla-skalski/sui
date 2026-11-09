@@ -129,14 +129,14 @@ names the text field.
 </div>
 
 <style>
-  /* The copy chip stands 4px inside the frame on every side, and is as tall as that leaves of
-     one line, so the field keeps its height; at a large text size it wraps its words and still
-     keeps clear of the frame. */
+  /* The copy chip stands a field chip's inset inside the frame on every side, and is as tall as
+     that leaves of one line, so the field keeps its height; at a large text size it wraps its
+     words and still keeps clear of the frame. */
   .sui-copyable-link-field {
-    --sui-local-joined-end-inset: var(--sui-space-1);
+    --sui-local-joined-end-inset: var(--sui-field-chip-inset);
     --sui-local-copy-chip: calc(
       var(--sui-local-control-height, var(--sui-control-height-compact)) - 2 * var(--sui-stroke) -
-        2 * var(--sui-space-1)
+        2 * var(--sui-field-chip-inset)
     );
     min-inline-size: 0;
   }
