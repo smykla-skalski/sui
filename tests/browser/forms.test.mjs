@@ -215,7 +215,7 @@ suite('forms', together, () => {
     );
 
     test(
-      "every focused card rings 2px off its edge, a chosen one over an unchosen card's edge",
+      'every focused card rings 2px off its edge, a chosen one with no edge of its own',
       long,
       async () => {
         const page = await opened();
@@ -232,12 +232,12 @@ suite('forms', together, () => {
               getComputedStyle(radio).outlineOffset
             ];
           });
-        const [openEdge, openOffset] = await ring(open);
+        const [, openOffset] = await ring(open);
         const [chosenEdge, chosenOffset] = await ring(chosen);
         assert.deepEqual(
           [chosenEdge, chosenOffset, openOffset],
-          [openEdge, '2px', '2px'],
-          'under focus the ring alone carries the blue, over the frame an unchosen card has'
+          ['none', '2px', '2px'],
+          'under focus the ring alone carries the blue, and the chosen tint meets it with no edge'
         );
       }
     );
