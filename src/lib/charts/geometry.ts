@@ -223,8 +223,8 @@ export const thinWidth = 1920;
  */
 export type Ink = { advance: number; left: number; right: number; ascent: number; descent: number };
 
-/** Measures chart text, in the regular or the semibold face. */
-export type Measure = (text: string, semibold?: boolean) => Ink;
+/** Measures chart text, in the regular or the semibold face, with tabular figures for a tick. */
+export type Measure = (text: string, semibold?: boolean, tabular?: boolean) => Ink;
 
 /* The face's table, read into lookups when a chart first measures its words. */
 let lookups:
@@ -260,8 +260,9 @@ function faceLookups() {
  * union of the glyphs' ink. Null when a character is not in the face, so it is drawn in
  * another one whose glyphs only the browser knows.
  */
-export function faceInk(text: string, semibold = false): Ink | null {
+export function faceInk(text: string, semibold = false, tabular = false): Ink | null {
   const face = semibold ? SEMIBOLD : REGULAR;
+  const figures = TABULAR[Number(semibold)];
   const { glyphs, first, second, kerning } = faceLookups();
   let pen = 0;
   let start = Infinity;
@@ -272,9 +273,11 @@ export function faceInk(text: string, semibold = false): Ink | null {
   for (const glyph of text) {
     const index = glyphs.get(glyph);
     if (index === undefined) return null;
-    const pair = kerning.get(`${first.get(previous)} ${second.get(glyph)}`);
+    const figure = tabular ? FIGURES.indexOf(glyph) : -1;
+    const pair = figure < 0 && kerning.get(`${first.get(previous)} ${second.get(glyph)}`);
     if (pair) pen += pair[Number(semibold)];
-    const [advance, left, right, up, down] = face.slice(index * 5, index * 5 + 5);
+    const [advance, left, right, up, down] =
+      figure < 0 ? face.slice(index * 5, index * 5 + 5) : figures.slice(figure * 5, figure * 5 + 5);
     if (left + right > 0) {
       start = Math.min(start, pen - left);
       end = Math.max(end, pen + right);
@@ -282,7 +285,8 @@ export function faceInk(text: string, semibold = false): Ink | null {
       descent = Math.max(descent, down);
     }
     pen += advance;
-    previous = glyph;
+    // A tabular figure kerns with nothing, before it or after it.
+    previous = figure < 0 ? glyph : '';
   }
   if (end === -Infinity) return { advance: pen / 1000, left: 0, right: 0, ascent: 0, descent: 0 };
   return {
@@ -410,8 +414,8 @@ export function xyLayout(input: {
   const tickGap = rem(0.5);
   const titleGap = rem(0.75);
   const nameGap = rem(0.75);
-  const xInk = xTicks.map((tick) => measure(tick.text));
-  const yInk = yTicks.map((tick) => measure(tick.text));
+  const xInk = xTicks.map((tick) => measure(tick.text, false, true));
+  const yInk = yTicks.map((tick) => measure(tick.text, false, true));
   const nameInk = input.names.map((name) => measure(name.text, true));
   const yTitle = input.yLabel ? measure(input.yLabel, true) : null;
   const xTitle = input.xLabel ? measure(input.xLabel, true) : null;
@@ -529,7 +533,7 @@ export function rangeLayout(input: {
   const titleGap = rem(0.75);
   const row = rem(2.625);
   const labelInk = input.labels.map((label) => measure(label));
-  const tickInk = ticks.map((tick) => measure(tick.text));
+  const tickInk = ticks.map((tick) => measure(tick.text, false, true));
   const title = input.valueLabel ? measure(input.valueLabel, true) : null;
   const left = named(
     '--sui-local-plot-start',
@@ -585,23 +589,43 @@ export type HeatmapLayout = {
 };
 
 /**
- * A matrix laid out to its ink in lengths the browser resolves: the longest row name starts
- * at 0, the column names' ink tops the matrix at 0, and the last cell, or a column name wider
- * than it, ends the width. Cells keep their size, so the matrix is as wide as its columns.
+ * A matrix laid out to its ink in lengths the browser resolves: the longest row name, or a
+ * first column name wider than its cell, starts at 0, the column names' ink tops the matrix at
+ * 0, and the last cell, or a column name wider than it, ends the width. Square cells are
+ * 4rem, or larger where neighbouring column names would come within half a rem of each
+ * other or a printed value would come within a quarter rem of its cell's edge.
  */
 export function heatmapLayout(input: {
   measure: Measure;
   rows: string[];
   columns: string[];
+  /**
+   * The cells' printed values. They draw at 500, between the regular and semibold cuts, and a
+   * proportional face can set a value wider in either, so each keeps the wider of the two.
+   */
+  values?: string[];
 }): HeatmapLayout {
   const { measure } = input;
-  const size = rem(3.25);
   const inset = 2;
   const gap = rem(0.75);
   const rowInk = input.rows.map((name) => measure(name));
   const columnInk = input.columns.map((name) => measure(name));
+  const spans = columnInk.map((ink) => inkSpan(ink, 0, 'middle'));
+  const reach = largest(spans.slice(1).map(([start], index) => spans[index][1] - start));
+  const widest = largest(
+    (input.values ?? []).map((words) => {
+      const spans = [false, true].map((semibold) => inkSpan(measure(words, semibold, true), 0));
+      return Math.max(...spans.map(([, end]) => end)) - Math.min(...spans.map(([start]) => start));
+    })
+  );
+  const size = most(rem(4), plus(em(reach), rem(0.5)), plus(em(widest), rem(0.5), px(2 * inset)));
   const columns = lineInk(columnInk);
-  const left = plus(gap, px(-inset), em(largest(rowInk.map((ink) => ink.advance + ink.left))));
+  const gutter = plus(gap, px(-inset), em(largest(rowInk.map((ink) => ink.advance + ink.left))));
+  // A lone first column keeps the 4rem cell, so a wider name of its own can reach past 0.
+  const left = most(
+    gutter,
+    ...spans.slice(0, 1).map(([start]) => minus(em(-start), times(size, 0.5)))
+  );
   const columnBaseline = em(columns.ascent);
   const top = plus(columnBaseline, em(columns.descent), gap, px(-inset));
   const ends = columnInk.map((ink, index) =>
@@ -672,6 +696,32 @@ export function sieve<T>(points: T[], at: (point: T) => [number, number], cell: 
     taken.add(key);
     return true;
   });
+}
+
+/**
+ * The steps a heatmap splits its values into, each holding the values at or past its lower edge
+ * and short of the next. Whole numbers name each step by the whole numbers it holds, so no two
+ * steps share an end (12–15, 16–19), once each step is at least one wide.
+ */
+export function heatSteps(
+  values: number[],
+  steps: number
+): { step: (value: number) => number; ranges: [number, number][] } {
+  const [low, high] = extent(values);
+  const size = (high - low) / steps;
+  const edges = Array.from({ length: steps - 1 }, (_, index) => low + (index + 1) * size);
+  const whole = [low, high, ...values].every(Number.isInteger) && size >= 1;
+  return {
+    step: (value) => edges.filter((edge) => value >= edge).length,
+    ranges: Array.from({ length: steps }, (_, index) =>
+      whole
+        ? [
+            index === 0 ? low : Math.ceil(edges[index - 1]),
+            index === steps - 1 ? high : Math.ceil(edges[index]) - 1
+          ]
+        : [low + index * size, low + (index + 1) * size]
+    )
+  };
 }
 
 export function extent(values: number[], includeZero = false): [number, number] {
@@ -872,6 +922,23 @@ export function spread(values: number[], gap: Length, min: number, max: number):
 
 const GLYPHS =
   ' !"#$%&\'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~ ¡¢£¤¥¦§¨©ª«¬®¯°±²³´µ¶·¸¹º»¼½¾¿ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖ×ØÙÚÛÜÝÞßàáâãäåæçèéêëìíîïðñòóôõö÷øùúûüýþÿıŒœˆ˚˜           –—‘’‚“”„•… ′″‹› €™↑↓−∕';
+
+/* The tabular figures, 0 to 9, which a tick sets with `tabular-nums` so values in a column line
+   up: each is one advance wide, drawn anew rather than respaced, and kerns with nothing. Measured
+   as the table above, through a face loaded with the `tnum` feature on. Regular, then semibold. */
+const FIGURES = '0123456789';
+const TABULAR = [
+  [
+    600, -39, 561, 757, 12, 600, -57, 543, 745, 0, 600, -57, 536, 757, 0, 600, -49, 534, 745, 12,
+    600, -43, 559, 745, 0, 600, -53, 536, 745, 12, 600, -66, 538, 745, 12, 600, -65, 533, 745, 0,
+    600, -61, 539, 757, 12, 600, -62, 534, 757, 0
+  ],
+  [
+    600, -33, 567, 757, 12, 600, -42.5, 557, 745, 0, 600, -50.5, 540, 757, 0, 600, -39, 543.5, 745,
+    12, 600, -31, 570.5, 745, 0, 600, -45.5, 543.5, 745, 12, 600, -53.5, 548.5, 745, 12, 600, -54,
+    543.5, 745, 0, 600, -51.5, 548.5, 757, 12, 600, -51.5, 546.5, 757, 0
+  ]
+];
 
 /* Five numbers a glyph, in thousandths of an em: its advance, how far its ink reaches before its
    start point and past it, and above and below its baseline. */

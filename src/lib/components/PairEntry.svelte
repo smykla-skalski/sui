@@ -31,13 +31,10 @@
         `${key}${mark('colon')}${value}${mark('comma')}${keyLabel}${mark('colon')}${valueLabel}`
     ),
     validate,
-    addLabel = word('PairEntry.addLabel', 'Add a pair'),
-    doneLabel = word('PairEntry.doneLabel', 'Done'),
-    removeLabel = word('PairEntry.removeLabel', 'Remove'),
-    removeName = word(
-      'PairEntry.removeName',
-      (key: string) => `${removeLabel}${mark('space')}${key}`
-    ),
+    addLabel = word('PairEntry.addLabel', 'Add a Pair'),
+    doneLabel = word('PairEntry.doneLabel', 'Save Pair'),
+    removeLabel = word('PairEntry.removeLabel', 'Remove Pair'),
+    removeName = word('PairEntry.removeName', (key: string) => `Remove${mark('space')}${key}`),
     removedLabel = word('PairEntry.removedLabel', (key: string) => `Removed ${key}`),
     reason,
     onadd,
@@ -75,9 +72,9 @@
     removedLabel?: (key: string) => string;
     /** Why the pairs are read only, drawn under them and tied to every chip and to Add. */
     reason?: string;
-    /** Hears each new pair once Done accepts it. */
+    /** Hears each new pair once Save Pair accepts it. */
     onadd?: (pair: Pair) => void;
-    /** Hears each changed pair once Done accepts it, with its place. */
+    /** Hears each changed pair once Save Pair accepts it, with its place. */
     onedit?: (pair: Pair, index: number) => void;
     /** Hears each removed pair. */
     onremove?: (pair: Pair) => void;
@@ -119,7 +116,7 @@
   const focusKey = () => form?.querySelector('input')?.focus({ preventScroll: true });
 
   /* A draft left by a press outside or by Tab waits for the same chip or Add to open again, so
-     a stray press never throws typing away (P8); Escape, Done and Remove leave nothing behind. */
+     a stray press never throws typing away (P8); Escape, Save Pair and Remove Pair leave nothing behind. */
   let kept: { index: number; draft: Pair } | null = null;
   let settled = false;
 
@@ -208,11 +205,11 @@
 @component
 Pairs of a key and the value it maps to, such as aliases and the commands they run, as chips
 that wrap side by side: "ship → deploy". Pressing a chip opens an editor beside it with a field
-for the key and a picker of `options` for the value; Done checks the key with `validate` and
+for the key and a picker of `options` for the value; Save Pair checks the key with `validate` and
 keeps the editor open, focused on the key, while it is wrong. Escape closes the editor and drops
 its draft, and focus returns to the chip. A press outside or Tab out of the editor closes it
 and keeps the draft, which the same chip or Add opens with next time. `addLabel` opens the same editor
-for a new pair, which joins the end of the row on Done.
+for a new pair, which joins the end of the row on Save Pair.
 
 In a `SettingRow`, give the row's `labelledby` to this group. The chips wrap within the room the
 row gives them and fall under the copy on a narrow row.
@@ -220,7 +217,7 @@ row gives them and fall under the copy on a narrow row.
 - Semantics: a `div` with `role="group"` holding a list of chips, each an edit `button` with `aria-haspopup="dialog"` and a remove `button`, an `add` button, and a dialog `Popover` with a `Field` and a `Combobox`.
 - Content: pairs of a short key and one of `options`; a long key or value wraps inside its chip, so all of it shows.
 - States: rest; hover, pressed and focus on the edit part paint the whole chip (a veil, a deeper veil with an inset shadow, a flush ring), and the remove part's quiet plate takes its own (a veil, a deeper veil with an inset shadow, an inset ring); open (the chip's edge takes the focus color), invalid (the danger edge, an alert mark and the problem in words under the row), and disabled with `reason`.
-- Keyboard: Tab walks each chip's edit and remove parts, then Add; Enter or Space opens the editor; Delete or Backspace on a chip removes it; in the editor Enter is Done, and Escape closes the value's list first and then the editor.
+- Keyboard: Tab walks each chip's edit and remove parts, then Add; Enter or Space opens the editor; Delete or Backspace on a chip removes it; in the editor Enter is Save Pair, and Escape closes the value's list first and then the editor.
 - Pointer and touch: the chip is 28px tall and the remove part a 28px square over its end, both 44px on a phone or a coarse pointer; a press on that square is the remove part's alone, and the edit part's words keep clear of it; a press on the editor's words or padding closes only the value's list.
 - Focus: the editor opens on the key field, keeps focus inside when its words or padding are pressed, and returns focus to its chip on close; after a removal focus moves to the next chip, the one before, or Add.
 - Responsive: chips wrap one by one within the row's room, a pair too long for its line grows by whole lines with the remove part on the first, and the editor is at most 20rem wide and inside the viewport.
@@ -259,9 +256,9 @@ row gives them and fall under the copy on a narrow row.
           >
             {#if problems[index]}<span class="sui-pair-mark"><Icon name="alert" size="xs" /></span
               >{/if}
-            <code class="sui-pair-key">{pair.key}</code>
+            <code class="sui-pair-key" translate="no">{pair.key}</code>
             <span class="sui-pair-arrow" aria-hidden="true">→</span>
-            <code class="sui-pair-value">{labelOf(pair.value)}</code>
+            <code class="sui-pair-value" translate="no">{labelOf(pair.value)}</code>
           </button>
           <button
             type="button"
@@ -289,7 +286,7 @@ row gives them and fall under the copy on a narrow row.
         aria-disabled={Boolean(holding) || undefined}
         onclick={(event: MouseEvent & { currentTarget: HTMLElement }) => seed(-1, event)}
       >
-        {#snippet icon()}<Icon name="plus" size="sm" />{/snippet}
+        {#snippet icon()}<Icon name="plus" size="base" />{/snippet}
         {addLabel}
       </Button>
     </li>
@@ -297,7 +294,7 @@ row gives them and fall under the copy on a narrow row.
   {#each value as pair, index (index)}
     {#if problems[index]}
       <p id={problemId(index)} class="sui-pair-problem">
-        <code>{pair.key}</code>{mark('colon')}{problems[index]}
+        <code translate="no">{pair.key}</code>{mark('colon')}{problems[index]}
       </p>
     {/if}
   {/each}
@@ -413,7 +410,7 @@ row gives them and fall under the copy on a narrow row.
   /* A bordered control's ring is flush, its edge taking the ring's color unless it is invalid
      (L-9, L-41). */
   .sui-pair-chip:has(> .sui-pair-edit:focus-visible) {
-    outline: var(--sui-focus-ring-width) solid var(--sui-focus);
+    outline: var(--sui-focus-ring-edge) solid var(--sui-focus);
     outline-offset: var(--sui-focus-ring-flush);
   }
 
@@ -424,6 +421,11 @@ row gives them and fall under the copy on a narrow row.
 
   .sui-pair-chip.invalid {
     --sui-pair-edge: var(--sui-danger);
+  }
+
+  /* A danger edge is not the ring's color, so the outline draws the whole 2px ring past it. */
+  .sui-pair-chip.invalid:has(> .sui-pair-edit:focus-visible) {
+    outline-width: var(--sui-focus-ring-width);
   }
 
   .sui-pair-edit,
@@ -549,6 +551,7 @@ row gives them and fall under the copy on a narrow row.
     font-variant-numeric: tabular-nums;
     min-inline-size: 0;
     overflow-wrap: anywhere;
+    padding-block: var(--sui-block-snap-room-even);
     text-box: trim-both cap alphabetic;
   }
 
@@ -564,6 +567,7 @@ row gives them and fall under the copy on a narrow row.
     color: var(--sui-text-muted);
     flex: none;
     font-family: var(--sui-sans);
+    padding-block: var(--sui-block-snap-room-even);
     text-box: trim-both cap alphabetic;
   }
 
@@ -579,8 +583,10 @@ row gives them and fall under the copy on a narrow row.
     cursor: default;
   }
 
+  /* The mono face reaches further above and below its baseline than the words' face, so the
+     key takes no line height and its line stands as tall as a line of words (L-95). */
   .sui-pair-problem code {
-    font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-row-copy-leading)
+    font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-leading-none)
       var(--sui-mono);
   }
 
@@ -592,6 +598,7 @@ row gives them and fall under the copy on a narrow row.
       var(--sui-sans);
     margin: 0;
     overflow-wrap: anywhere;
+    padding-block: var(--sui-block-snap-room);
     text-box: trim-both cap alphabetic;
   }
 
@@ -599,10 +606,11 @@ row gives them and fall under the copy on a narrow row.
     align-content: center;
     block-size: var(--sui-block-snap);
     color: var(--sui-danger);
-    font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-row-copy-leading)
+    font: var(--sui-weight-medium) var(--sui-font-size-note) / var(--sui-leading-note)
       var(--sui-sans);
     margin: 0;
     overflow-wrap: anywhere;
+    padding-block: var(--sui-block-snap-room);
     text-box: trim-both cap alphabetic;
   }
 

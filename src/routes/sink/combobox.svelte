@@ -68,7 +68,7 @@
   note="Typing narrows the options, free entry offers what was typed, and a slow search says it is searching or that nothing matches"
   layout="grid"
 >
-  <Specimen label="Filtered options" code="options">
+  <Specimen label="Filtered options">
     <div class="form">
       <Field label="Language">
         {#snippet control({ id, describedby })}
@@ -81,11 +81,11 @@
           />
         {/snippet}
       </Field>
-      <Button onclick={() => (language = 'go')}>Replace the language</Button>
-      <Button onclick={() => (languageLimit = 1)}>Limit the language suggestions</Button>
+      <Button onclick={() => (language = 'go')}>Replace the Language</Button>
+      <Button onclick={() => (languageLimit = 1)}>Limit the Language Suggestions</Button>
     </div>
   </Specimen>
-  <Specimen label="Free entry" code="free">
+  <Specimen label="Free entry">
     <Field label="Label">
       {#snippet control({ id, describedby })}
         <Combobox
@@ -94,12 +94,12 @@
           free
           options={labels}
           bind:value={label}
-          placeholder="bug"
+          placeholder="bug…"
         />
       {/snippet}
     </Field>
   </Specimen>
-  <Specimen label="Search" code="search">
+  <Specimen label="Search">
     <Field label="Reviewer">
       {#snippet control({ id, describedby })}
         <Combobox
@@ -107,7 +107,7 @@
           aria-describedby={describedby}
           search={findAccounts}
           bind:value={reviewer}
-          placeholder="octocat"
+          placeholder="octocat…"
         />
       {/snippet}
     </Field>
@@ -119,8 +119,8 @@
   note="A refused value keeps its danger edge, a refused search says so, and a disabled field says why under it"
   layout="grid"
 >
-  <Specimen label="Invalid" code="invalid">
-    <Field label="Primary language" error="Ruby is retired, so pick another language">
+  <Specimen label="Invalid">
+    <Field label="Primary language" error="Ruby is retired, so choose another language">
       {#snippet control({ id, describedby, invalid })}
         <Combobox
           {id}
@@ -132,7 +132,7 @@
       {/snippet}
     </Field>
   </Specimen>
-  <Specimen label="Search refused" code="search">
+  <Specimen label="Search refused">
     <Field label="Owner" hint="Type a name to look it up">
       {#snippet control({ id, describedby })}
         <Combobox
@@ -140,12 +140,12 @@
           aria-describedby={describedby}
           search={offline}
           bind:value={owner}
-          placeholder="octocat"
+          placeholder="octocat…"
         />
       {/snippet}
     </Field>
   </Specimen>
-  <Specimen label="Disabled" code="disabled">
+  <Specimen label="Disabled">
     <Field label="Language" hint="The template sets the language for every new repository">
       {#snippet control({ id, describedby })}
         <Combobox {id} aria-describedby={describedby} options={languages} value="go" disabled />
@@ -155,10 +155,10 @@
 </Example>
 
 <Example
-  title="In a form"
-  note="The form posts the chosen value, never its label, and a label typed in full picks its option"
+  title="In a Form"
+  note="The form posts the chosen value, never its label, and a label typed in full chooses its option"
 >
-  <Specimen label={sent} code="name">
+  <Specimen label={sent}>
     <form class="form" onsubmit={send}>
       <Field label="Runtime">
         {#snippet control({ id, describedby })}
@@ -171,7 +171,7 @@
           />
         {/snippet}
       </Field>
-      <Button type="submit">Save the runtime</Button>
+      <Button type="submit" class="action">Save the Runtime</Button>
     </form>
   </Specimen>
 </Example>
@@ -181,7 +181,7 @@
   note="The open list drawn in place, with the current value as the active row and its check"
   layout="grid"
 >
-  <Specimen label="Open" code="preview">
+  <Specimen label="Open">
     <Field label="Language">
       {#snippet control({ id, describedby })}
         <Combobox {id} aria-describedby={describedby} options={languages} value="ts" preview />
@@ -193,8 +193,14 @@
 <style>
   .form {
     display: grid;
-    gap: var(--sui-space-4);
+    gap: var(--sui-space-5);
     justify-items: stretch;
     min-inline-size: 0;
+  }
+
+  /* The action ends the form a step past the fields' own gap, so it reads as the form's
+     close and not as one more field (L-35). */
+  .form > :global(.action) {
+    margin-block-start: var(--sui-space-1);
   }
 </style>

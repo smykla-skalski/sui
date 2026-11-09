@@ -3,6 +3,7 @@
   import type { HTMLInputAttributes } from 'svelte/elements';
   import Icon from '../icons/Icon.svelte';
   import { held, holdAround } from '../internal/held.svelte.js';
+  import { shownWait } from '../internal/shown-wait.svelte.js';
   import VisuallyHidden from './VisuallyHidden.svelte';
 
   const uid = $props.id();
@@ -17,6 +18,7 @@
     error,
     element = $bindable(null),
     'aria-describedby': describedBy,
+    'aria-disabled': ariaDisabled,
     onclick,
     class: className = '',
     children,
@@ -27,7 +29,7 @@
     label?: string;
     /** Drops the 44px tap box from layout, for a head or row that sets its own rhythm. */
     bare?: boolean;
-    /** Marks the value as wrong; pair it with an error the field describes. */
+    /** Marks the value as wrong; pair it with words that say why, its own `error` or a field's. */
     invalid?: boolean;
     disabled?: boolean;
     /** The change is being saved: the thumb turns, the switch is busy and refuses another flip. */
@@ -40,6 +42,7 @@
     /** Richer words than `label` can carry. */
     children?: Snippet;
   } & Omit<HTMLInputAttributes, 'type' | 'checked' | 'role' | 'children'> = $props();
+  const spinning = shownWait(() => pending);
 
   const describedby = $derived(
     [describedBy, error && `${uid}-error`].filter(Boolean).join(' ') || undefined
@@ -49,11 +52,13 @@
      one refuses the flip as its own save does. */
   const around = holdAround();
   const holding = $derived(held(element, around));
+  // A caller's `aria-disabled` refuses the flip and keeps focus, as a busy button does.
+  const refused = $derived(String(ariaDisabled) === 'true');
 
   /* A flip that is still saving cannot be undone half way, so a second press waits; the
      switch keeps focus instead of disabling, which would drop it to the body. */
   function press(event: MouseEvent & { currentTarget: EventTarget & HTMLInputElement }) {
-    if (pending || holding) event.preventDefault();
+    if (pending || holding || refused) event.preventDefault();
     else onclick?.(event);
   }
 </script>
@@ -75,7 +80,7 @@ take, under the switch and to a screen reader, while the owner sets `checked` ba
 
 - Semantics: a native `<input type="checkbox" role="switch">` inside its `<label>`, described by `error`, with a polite `role="status"` that speaks the error.
 - Content: a short label that names what turns on, or richer `children`, and an optional one-sentence error.
-- States: off, on (the track fills and the thumb travels 14px), hover (a veil on the track), focus (a 2px ring 2px off the track), pressed (a deeper veil, an inset shadow and a 1px sink), pending (the track dims, the thumb keeps full strength and a spinner in the accent turns inside it, busy), failed (an error with a warning mark), invalid (a 2px danger edge, kept when on), held (the track dims; disabled while a busy dialog or a saving pane around it works, and a tab stop that refuses the flip while a saving setting row does) and disabled (0.5 opacity).
+- States: off, on (the track fills and the thumb travels 14px), hover (a veil on the track, and the action's hover fill when on), focus (a 2px ring 2px off the track), pressed (a deeper veil, an inset shadow and a 1px sink), pending (the track keeps full strength as a busy button does and a spinner in the accent turns inside the thumb, busy), failed (an error with a warning mark), invalid (a 2px danger edge, kept when on, and 1px inside the red ring when focused), held (the track dims; disabled while a busy dialog or a saving pane around it works, and a tab stop that refuses the flip while a saving setting row does) and disabled (0.6 opacity).
 - Keyboard: Tab reaches it and Space flips it; a pending or held switch refuses the flip and keeps focus.
 - Pointer and touch: a 34 by 20px track with a 44px hit area, and a 44px row unless `bare`; the label is part of the target.
 - Focus: a flip never moves focus, and neither does a pending or failed save.
@@ -91,7 +96,7 @@ take, under the switch and to a screen reader, while the owner sets `checked` ba
   <label
     class="sui-switch-row"
     class:bare
-    class:disabled
+    class:disabled={disabled || refused}
     class:locked={pending || holding !== null}
   >
     {#if children}
@@ -109,7 +114,7 @@ take, under the switch and to a screen reader, while the owner sets `checked` ba
         disabled={disabled || holding === 'firm'}
         aria-invalid={invalid || undefined}
         aria-busy={pending || undefined}
-        aria-disabled={pending || holding === 'soft' || undefined}
+        aria-disabled={pending || holding === 'soft' || refused || undefined}
         aria-describedby={describedby}
         onclick={press}
       />
@@ -120,14 +125,14 @@ take, under the switch and to a screen reader, while the owner sets `checked` ba
         class:held={holding !== null}
         aria-hidden="true"
       ></span>
-      {#if pending}<span class="sui-switch-spinner" aria-hidden="true"></span>{/if}
+      {#if spinning.current}<span class="sui-switch-spinner" aria-hidden="true"></span>{/if}
     </span>
   </label>
   <!-- The status speaks the error, so the drawn copy stays out of the tree; the switch's
        description still reads it. -->
   {#if error}
     <span id="{uid}-error" class="sui-switch-error" aria-hidden="true">
-      <span class="sui-switch-mark"><Icon name="alert" size="xs" /></span>
+      <span class="sui-switch-mark"><Icon name="alert" size="base" /></span>
       <span class="sui-switch-words">{error}</span>
     </span>
   {/if}
@@ -170,6 +175,7 @@ take, under the switch and to a screen reader, while the owner sets `checked` ba
     font: var(--sui-weight-regular) var(--sui-font-size-control) / var(--sui-row-copy-leading)
       var(--sui-sans);
     min-inline-size: 0;
+    padding-block: var(--sui-block-snap-room-even);
     text-box: trim-both cap alphabetic;
   }
 
@@ -198,6 +204,11 @@ take, under the switch and to a screen reader, while the owner sets `checked` ba
   .sui-switch-row input:focus-visible {
     outline: var(--sui-focus-ring-width) solid var(--sui-focus);
     outline-offset: var(--sui-focus-ring-offset);
+  }
+
+  /* An invalid switch rings in its edge's red, as an invalid field does (L-41). */
+  .sui-switch-row input[aria-invalid='true']:focus-visible {
+    outline-color: var(--sui-focus-danger);
   }
 
   .sui-switch-track {
@@ -252,11 +263,17 @@ take, under the switch and to a screen reader, while the owner sets `checked` ba
 
   /* As specific as the checked rule and after it, so a switch that is on keeps its danger edge.
      The outline doubles the edge outward, so it reads against the accent fill as well as the
-     off track, and stays clear of the focus ring 2px further out. */
+     off track. */
   .sui-switch-row input + .sui-switch-track.invalid {
-    border-color: var(--sui-danger);
-    outline: var(--sui-stroke-bold) solid var(--sui-danger);
+    border-color: var(--sui-danger-edge);
+    outline: var(--sui-stroke-bold) solid var(--sui-danger-edge);
     outline-offset: calc(-1 * var(--sui-stroke));
+  }
+
+  /* Focused, the ring carries the red, so the edge drops its outward double and the ring
+     stands its 2px clear of the 1px edge, as it does off an invalid field (L-41). */
+  .sui-switch-row input:focus-visible + .sui-switch-track.invalid {
+    outline: none;
   }
 
   @media (hover: hover) {
@@ -265,6 +282,18 @@ take, under the switch and to a screen reader, while the owner sets `checked` ba
         var(--sui-interactive-hover-layer),
         var(--sui-interactive-hover-layer)
       );
+    }
+
+    /* An on track is the action's fill, so it takes the action's hover fill, as a filled
+       button does, and a danger edge keeps its own colour. */
+    .sui-switch-row:hover:not(:active, .disabled, .locked) input:checked + .sui-switch-track {
+      background: var(--sui-brand-action-hover);
+    }
+
+    .sui-switch-row:hover:not(:active, .disabled, .locked)
+      input:checked
+      + .sui-switch-track:not(.invalid) {
+      border-color: var(--sui-brand-action-hover);
     }
   }
 
@@ -277,8 +306,9 @@ take, under the switch and to a screen reader, while the owner sets `checked` ba
     translate: 0 1px;
   }
 
-  /* A pending or held switch dims its track (L-40) and never answers the pointer. */
-  .sui-switch-track:is(.pending, .held) {
+  /* A switch held by work around it dims its track (L-40). A pending one is its own change at
+     work, as a busy button is, so its track keeps full strength; neither answers the pointer. */
+  .sui-switch-track.held {
     opacity: var(--sui-disabled-opacity);
   }
 
@@ -286,16 +316,15 @@ take, under the switch and to a screen reader, while the owner sets `checked` ba
     cursor: default;
   }
 
-  /* While the flip saves, the thumb stands where it went at full strength, out of the track's
-     dimming, and a ring with one side open turns inside it in the accent, which holds 3:1 on
-     the thumb in either theme (WCAG 1.4.11), as Ant Design's loading switch turns its spinner
-     in the handle. */
+  /* While the flip saves, the thumb stands where it went, and a ring with one side open turns
+     inside it in the accent, which holds 3:1 on the thumb in either theme (WCAG 1.4.11), as Ant
+     Design's loading switch turns its spinner in the handle. */
   .sui-switch-track.pending::after {
     visibility: hidden;
   }
 
-  /* Positioned, so it paints over the track, which its opacity lifts into the positioned
-     layer. Only the ring inside turns, so the thumb keeps its place. */
+  /* Positioned, so it paints over the track, which is positioned too. Only the ring inside
+     turns, so the thumb keeps its place. */
   .sui-switch-spinner {
     align-self: center;
     background: var(--sui-switch-thumb);
@@ -311,11 +340,14 @@ take, under the switch and to a screen reader, while the owner sets `checked` ba
 
   .sui-switch-spinner::before {
     animation: sui-switch-spin var(--sui-duration-spinner) var(--sui-ease-linear) infinite;
-    border: var(--sui-stroke-bold) solid var(--sui-brand-action);
-    border-inline-end-color: transparent;
+    border: var(--sui-stroke-bold) solid
+      color-mix(in srgb, var(--sui-brand-action) 25%, transparent);
+    border-block-start-color: var(--sui-brand-action);
     border-radius: 50%;
     content: '';
-    inset: calc(var(--sui-space-1) - var(--sui-stroke));
+    /* A 12px ring leaves the thumb's middle open, so a still frame reads as a turn under way
+       and not as a target. */
+    inset: var(--sui-stroke-bold);
     position: absolute;
   }
 
@@ -337,9 +369,9 @@ take, under the switch and to a screen reader, while the owner sets `checked` ba
   .sui-switch-error {
     align-items: start;
     color: var(--sui-danger);
-    column-gap: var(--sui-space-1);
+    column-gap: var(--sui-space-2);
     display: grid;
-    font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-row-copy-leading)
+    font: var(--sui-weight-medium) var(--sui-font-size-note) / var(--sui-leading-note)
       var(--sui-sans);
     grid-template-columns: auto minmax(0, 1fr);
   }
@@ -347,7 +379,7 @@ take, under the switch and to a screen reader, while the owner sets `checked` ba
   /* Centred on the first line's cap height, however many lines the error wraps to. */
   .sui-switch-mark {
     display: flex;
-    margin-block: round(calc((1cap - var(--sui-icon-xs)) / 2), 1px);
+    margin-block: round(calc((1cap - var(--sui-icon-base)) / 2), 1px);
   }
 
   .sui-switch-words {
@@ -355,7 +387,9 @@ take, under the switch and to a screen reader, while the owner sets `checked` ba
     block-size: var(--sui-block-snap);
     min-inline-size: 0;
     overflow-wrap: anywhere;
+    padding-block: var(--sui-block-snap-room);
     text-box: trim-both cap alphabetic;
+    text-wrap: pretty;
   }
 
   @media (prefers-reduced-motion: reduce) {

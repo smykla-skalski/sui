@@ -20,7 +20,11 @@
         { outline: '3px solid var(--sui-danger)', outlineOffset: '2px' },
         { outline: '3px solid transparent', outlineOffset: '2px' }
       ],
-      { duration: 1600 }
+      // Under reduced motion the outline holds and then goes, with no fade between.
+      {
+        duration: 1600,
+        easing: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'step-end' : 'linear'
+      }
     );
   }
 </script>

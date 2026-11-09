@@ -1,7 +1,7 @@
 <script module lang="ts">
   export const section = {
     title: 'Select',
-    lead: 'One value from six or more options. Two to five that fit are a SegmentedControl, and a list the reader searches is a Combobox.',
+    lead: 'One value from 6 or more options. A SegmentedControl holds 2 to 5 that fit, and a list the reader searches is a Combobox.',
     components: ['Select']
   };
 </script>
@@ -37,8 +37,8 @@
     {
       label: 'Yearly',
       options: [
-        { value: 'starter-year', label: 'Starter', description: '3 seats, one month free' },
-        { value: 'team-year', label: 'Team', description: '10 seats, two months free' },
+        { value: 'starter-year', label: 'Starter', description: '3 seats, 1\u00a0month free' },
+        { value: 'team-year', label: 'Team', description: '10 seats, 2\u00a0months free' },
         { value: 'org-year', label: 'Organization', description: 'Retired', disabled: true }
       ]
     }
@@ -96,14 +96,14 @@
   note="A chosen value, a prompt before anything is chosen, a refused value and a locked field with its reason"
   layout="grid"
 >
-  <Specimen label="Chosen" code="bind:value">
+  <Specimen label="Chosen">
     <Field label="Region">
       {#snippet control({ id, describedby })}
         <Select {id} aria-describedby={describedby} options={regions} bind:value={region} />
       {/snippet}
     </Field>
   </Specimen>
-  <Specimen label="Placeholder" code="placeholder">
+  <Specimen label="Placeholder">
     <Field label="Backup region">
       {#snippet control({ id, describedby })}
         <Select
@@ -111,13 +111,13 @@
           aria-describedby={describedby}
           options={regions}
           bind:value={backup}
-          placeholder="Choose a region"
+          placeholder="Choose a region…"
         />
       {/snippet}
     </Field>
   </Specimen>
-  <Specimen label="Invalid" code="invalid">
-    <Field label="Failover region" error="Pick a region other than the home region">
+  <Specimen label="Invalid">
+    <Field label="Failover region" error="Choose a region other than the home region">
       {#snippet control({ id, describedby, invalid })}
         <Select
           {id}
@@ -129,7 +129,7 @@
       {/snippet}
     </Field>
   </Specimen>
-  <Specimen label="Disabled" code="disabled">
+  <Specimen label="Disabled">
     <Field label="Home region" hint="Fixed once the workspace holds data">
       {#snippet control({ id, describedby })}
         <Select {id} aria-describedby={describedby} options={regions} value="eu-west" disabled />
@@ -143,7 +143,7 @@
   note="Headed groups with notes, a retired plan that cannot be chosen, and a long branch cut in the field but wrapped in the picker"
   layout="grid"
 >
-  <Specimen label="Groups and notes">
+  <Specimen label="Groups & notes">
     <Field label="Plan">
       {#snippet control({ id, describedby })}
         <Select {id} aria-describedby={describedby} options={plans} bind:value={plan} />
@@ -164,14 +164,14 @@
   note="A static copy of the open picker under each field, with the value checked and the next option active"
   layout="grid"
 >
-  <Specimen label="Open" code="preview">
+  <Specimen label="Open">
     <Field label="Region">
       {#snippet control({ id, describedby })}
         <Select {id} aria-describedby={describedby} options={regions} value="eu-central" preview />
       {/snippet}
     </Field>
   </Specimen>
-  <Specimen label="Open with groups" code="preview">
+  <Specimen label="Open with groups">
     <Field label="Plan">
       {#snippet control({ id, describedby })}
         <Select {id} aria-describedby={describedby} options={plans} value="team-month" preview />
@@ -181,10 +181,10 @@
 </Example>
 
 <Example
-  title="In a form"
+  title="In a Form"
   note="Native validation stops a send without a time zone and says why under the field, and the values submit by name, numbers included"
 >
-  <Specimen label={sent} code="name required validationMessage">
+  <Specimen label={sent}>
     <form class="form" onsubmit={send}>
       <Field
         label="Report time zone"
@@ -201,7 +201,7 @@
             {required}
             options={zones}
             bind:value={zone}
-            placeholder="Choose a time zone"
+            placeholder="Choose a time zone…"
           />
         {/snippet}
       </Field>
@@ -216,7 +216,7 @@
           />
         {/snippet}
       </Field>
-      <Button type="submit">Save the report</Button>
+      <Button type="submit" class="action">Save the Report</Button>
     </form>
   </Specimen>
 </Example>
@@ -224,8 +224,14 @@
 <style>
   .form {
     display: grid;
-    gap: var(--sui-space-4);
+    gap: var(--sui-space-5);
     justify-items: start;
     min-inline-size: 0;
+  }
+
+  /* The action ends the form a step past the fields' own gap, so it reads as the form's
+     close and not as one more field (L-35). */
+  .form > :global(.action) {
+    margin-block-start: var(--sui-space-1);
   }
 </style>

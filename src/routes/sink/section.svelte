@@ -52,7 +52,7 @@
     {#snippet main()}
       <Section title="Outcome" level={4}>
         <p class="copy">
-          Three repositories differ from the saved settings. Twelve match and one was not checked.
+          3 repositories differ from the saved settings, 12 match and the check skipped 1
         </p>
       </Section>
       <Section title="Repositories" count={16} level={4}>
@@ -81,14 +81,14 @@
   layout="grid"
   ground="canvas"
 >
-  <Specimen label="Title and description" code="title description">
+  <Specimen label="Title & description">
     <Section title="Outcome" description="What the last check found" level={4}>
       <p class="copy">
-        Three repositories differ from the saved settings. Twelve match and one was not checked.
+        3 repositories differ from the saved settings, 12 match and the check skipped 1
       </p>
     </Section>
   </Specimen>
-  <Specimen label="Count and link" code="count actions">
+  <Specimen label="Count & link">
     <Section title="Repositories" count={16} level={4}>
       {#snippet actions()}
         <Link href="#section-parts" standalone>Open sync page</Link>
@@ -96,8 +96,8 @@
       <p class="copy">Every repository in the acme workspace</p>
     </Section>
   </Specimen>
-  <Specimen label="Quiet button" code="actions">
-    <Section title="Webhooks" description="Deliveries in the last 24 hours" level={4}>
+  <Specimen label="Quiet button">
+    <Section title="Webhooks" description="Deliveries in the last 24&nbsp;hours" level={4}>
       {#snippet actions()}<Button tone="ghost">Refresh</Button>{/snippet}
       <p class="copy">All 18 deliveries succeeded</p>
     </Section>
@@ -105,20 +105,20 @@
 </Example>
 
 <Example
-  title="In sequence"
-  note="Sections that follow each other stand 40px apart, 32px on a phone, with no wrapper and no line between them"
+  title="In Sequence"
+  note="Sections that follow each other stand 40 px apart, 32 px on a phone, with no wrapper and no line between them"
   layout="stack"
   ground="canvas"
 >
-  <Specimen label="Three sections">
+  <Specimen label="3 sections">
     <div>
       <Section title="Outcome" level={4}>
         <p class="copy">
-          Three repositories differ from the saved settings. Twelve match and one was not checked.
+          3 repositories differ from the saved settings, 12 match and the check skipped 1
         </p>
       </Section>
       <Section title="Timeline" level={4}>
-        <p class="copy">Requested by Bart at 12:01 and finished 48 seconds later</p>
+        <p class="copy">Requested by Bart at 12:01 and finished 48&nbsp;seconds later</p>
       </Section>
       <Section title="Related" level={4}>
         <p class="copy">
@@ -131,13 +131,13 @@
 
 <Example
   title="Sub-sections"
-  note="A section inside another takes the 15px title and stands 24px under what comes before it, 20px on a phone"
+  note="A section inside another takes the 15 px title and stands 24 px under what comes before it, 20 px on a phone"
   layout="stack"
   ground="canvas"
 >
-  <Specimen label="Nested" code="level">
+  <Specimen label="Nested">
     <Section title="Access" description="Who can open this workspace" level={4}>
-      <p class="copy">Three teams and two people have access</p>
+      <p class="copy">3 teams and 2 people have access</p>
       <Section title="Teams" count={3} level={5}>
         <p class="copy">Platform, Billing and Support can change settings</p>
       </Section>
@@ -149,7 +149,7 @@
 </Example>
 
 <Example
-  title="With a list"
+  title="With a List"
   note="A list hangs from the section: its words keep the title’s edge and a hovered row’s ground reaches past it"
   layout="stack"
   ground="canvas"
@@ -165,15 +165,15 @@
 </Example>
 
 <Example
-  title="Detail layout"
-  note="From 56rem of its own width the aside stands beside the main sections, and under that it follows them"
+  title="Detail Layout"
+  note="From 56 rem of its own width the aside stands beside the main sections, and under that it follows them"
   layout="stack"
   ground="canvas"
 >
-  <Specimen label="The stage’s width" code="main aside">
+  <Specimen label="The stage’s width">
     {@render pane()}
   </Specimen>
-  <Specimen label="In 30rem">
+  <Specimen label="In 30 rem">
     <div class="narrow">{@render pane()}</div>
   </Specimen>
 </Example>
@@ -193,6 +193,7 @@
     font: var(--sui-weight-medium) var(--sui-font-size-body) / var(--sui-row-copy-leading)
       var(--sui-sans);
     overflow-wrap: anywhere;
+    padding-block: var(--sui-block-snap-room);
     text-box: trim-both cap alphabetic;
   }
 

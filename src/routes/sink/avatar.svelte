@@ -26,7 +26,7 @@
 </script>
 
 <Example
-  title="Shapes and sizes"
+  title="Shapes & Sizes"
   note="Without a picture, initials sit on the brand tint at a type step for each size"
 >
   <Variants
@@ -44,12 +44,12 @@
 
 <Example
   title="Pictures"
-  note="A picture covers the initials drawn under it, and a logo's clear ground shows the tint"
+  note="A picture covers the initials drawn under it, and a logo’s clear ground shows the tint"
 >
-  <Specimen label="Person" code="src">
+  <Specimen label="Person">
     <Avatar name="Grace Hopper" src={portrait} size={32} />
   </Specimen>
-  <Specimen label="Workspace" code={'src shape="workspace"'}>
+  <Specimen label="Workspace">
     <Avatar name="Platform Team" src={logo} shape="workspace" size={32} />
   </Specimen>
 </Example>
@@ -58,22 +58,22 @@
   title="Fallbacks"
   note="A picture that does not load shows the initials under it, and a missing name draws them from the handle"
 >
-  <Specimen label="Picture does not load" code="src">
+  <Specimen label="Picture does not load">
     <Avatar name="Alan Turing" src={broken} size={32} />
   </Specimen>
-  <Specimen label="Workspace picture does not load" code={'src shape="workspace"'}>
+  <Specimen label="Workspace picture does not load">
     <Avatar name="Radia Perlman" src={broken} shape="workspace" size={32} />
   </Specimen>
-  <Specimen label="Handle without a name" code={'name="" handle'}>
+  <Specimen label="Handle without a name">
     <Avatar name="" handle="octocat" size={32} />
   </Specimen>
 </Example>
 
-<Example title="Identity row" note="The name with the handle in mono under it" layout="grid">
-  <Specimen label="Person" code="handle">
+<Example title="Identity Row" note="The name with the handle in mono under it" layout="grid">
+  <Specimen label="Person">
     <IdentityRow name="Ada Lovelace" handle="@ada" />
   </Specimen>
-  <Specimen label="Workspace" code={'handle shape="workspace"'}>
+  <Specimen label="Workspace">
     <IdentityRow name="Platform Team 01" handle="platform-team" shape="workspace" />
   </Specimen>
   <Specimen label="Name alone">
@@ -81,8 +81,8 @@
   </Specimen>
 </Example>
 
-<Example title="Narrow width" note="A long name or handle wraps and keeps every word">
-  <Specimen label="Long name in 16rem">
+<Example title="Narrow Width" note="A long name or handle wraps and keeps every word">
+  <Specimen label="Long name in 16 rem">
     <div class="narrow">
       <IdentityRow
         name="Maria Gaetana Agnesi de la Cruz Montgomery-Wellington"

@@ -92,7 +92,7 @@ With `href` the whole card is one link through a layer under its content, as an 
 is: the title names it, the card takes the row's hover ground and the press, and the focus
 ring draws on the card's own keyline. A control inside it, such as an `ActionMenu`, stays
 pressable above the layer and never follows the link. A danger zone says what it is in its
-title, such as "Danger zone", and holds the acts that cannot be undone, each a `stop` button.
+title, such as "Danger Zone", and holds the acts that cannot be undone, each a `stop` button.
 
 - Semantics: a plain grouping box; the title is a heading at `level`; with `href`, an `a` under the content, named by the title through `aria-labelledby`.
 - Content: an optional title, description, head actions, body and footer actions; the title and the description wrap; a linked card needs a title to name its link.
@@ -256,7 +256,7 @@ title, such as "Danger zone", and holds the acts that cannot be undone, each a `
 
   .sui-card:has(> .sui-card-hit:focus-visible) {
     border-color: var(--sui-focus);
-    outline: var(--sui-focus-ring-width) solid var(--sui-focus);
+    outline: var(--sui-focus-ring-edge) solid var(--sui-focus);
     outline-offset: var(--sui-focus-ring-flush);
   }
 
@@ -285,6 +285,7 @@ title, such as "Danger zone", and holds the acts that cannot be undone, each a `
     align-content: center;
     block-size: var(--sui-block-snap);
     min-inline-size: 0;
+    padding-block: var(--sui-block-snap-room);
     text-box: trim-both cap alphabetic;
   }
 
@@ -309,7 +310,7 @@ title, such as "Danger zone", and holds the acts that cannot be undone, each a `
   .sui-card-copy {
     display: grid;
     flex: 1 1 auto;
-    gap: var(--sui-row-copy-gap);
+    gap: var(--sui-title-copy-gap);
     min-inline-size: 0;
   }
 
@@ -425,6 +426,7 @@ title, such as "Danger zone", and holds the acts that cannot be undone, each a `
     font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-row-copy-leading)
       var(--sui-sans);
     margin: 0;
+    padding-block: var(--sui-block-snap-room);
     text-box: trim-both cap alphabetic;
     text-wrap: pretty;
   }
@@ -441,17 +443,20 @@ title, such as "Danger zone", and holds the acts that cannot be undone, each a `
      under its baseline. */
   :where(.sui-card-main > :first-child) :global(:where(p, ul, ol, dl, blockquote):first-child) {
     block-size: var(--sui-block-snap);
-    text-box: trim-start cap alphabetic;
+    padding-block: var(--sui-block-snap-room-start);
+    text-box: var(--sui-block-snap-trim, trim-start cap alphabetic);
   }
 
   :where(.sui-card-main > :last-child) :global(:where(p, ul, ol, dl, blockquote):last-child) {
     align-content: end;
     block-size: var(--sui-block-snap);
-    text-box: trim-end cap alphabetic;
+    padding-block: var(--sui-block-snap-room-end);
+    text-box: var(--sui-block-snap-trim, trim-end cap alphabetic);
   }
 
   :where(.sui-card-main > :only-child) :global(:where(p, ul, ol, dl, blockquote):only-child) {
     align-content: center;
+    padding-block: var(--sui-block-snap-room);
     text-box: trim-both cap alphabetic;
   }
 

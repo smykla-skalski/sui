@@ -32,6 +32,7 @@
     requiredLabel = word('CheckList.requiredLabel', 'Required'),
     requiredMessage = word('CheckList.requiredMessage', 'Choose at least one option'),
     disabled = false,
+    hideLabel = false,
     onchange,
     'aria-describedby': describedBy,
     class: className = '',
@@ -54,6 +55,11 @@
     requiredMessage?: string;
     /** Locks every box while the group cannot change, such as during a save; focus stays where it is. */
     disabled?: boolean;
+    /**
+     * Keeps the legend for a screen reader only, for a list whose question a box above it
+     * already asks, as a parent box does for the list it chooses for.
+     */
+    hideLabel?: boolean;
     /** Hears the chosen values after each toggle. */
     onchange?: (value: string[]) => void;
     class?: HTMLFieldsetAttributes['class'];
@@ -104,8 +110,8 @@ box. Choosing one lifts it. A caller's `error` always wins.
 - Keyboard: Tab moves from box to box and Space toggles one; a locked group refuses the toggle and keeps focus.
 - Pointer and touch: each item is its own target, 34px tall, 44px with a description, on a phone or any touch screen.
 - Focus: locking the group leaves focus on the box that had it, and a send refused for a required group with none chosen moves focus to its first box when it is the form's first refused control.
-- Responsive: short labels wrap along a line, and options with descriptions stack one per line.
-- Accessibility: the legend names the group, the required word is read with it, the hint and error describe it, and the error is spoken when it appears.
+- Responsive: short labels wrap along a line, and options with descriptions stack one per line, as every option does on a phone, so a wrapped line never leaves one option alone.
+- Accessibility: the legend names the group, drawn unless `hideLabel` leaves it to a screen reader, the required word is read with it, the hint and error describe it, and the error is spoken when it appears.
 - Localization: `requiredLabel` and `requiredMessage` are props with English defaults, the question, options and messages come from the caller, and the layout is logical.
 - Performance: one checkbox per option; nothing animates beyond the boxes' own states.
 - Analytics: `onchange` hears the chosen values after each toggle.
@@ -118,7 +124,7 @@ box. Choosing one lifts it. A caller's `error` always wins.
   aria-describedby={describedby}
   {@attach refusals.area}
 >
-  <legend class="sui-check-list-legend"
+  <legend class={['sui-check-list-legend', { hidden: hideLabel }]}
     >{label}{#if required}<span class="sui-check-list-required">{mark('space')}{requiredLabel}</span
       >{/if}</legend
   >
@@ -143,7 +149,7 @@ box. Choosing one lifts it. A caller's `error` always wins.
        description still reads it. -->
   {#if shown}
     <p id="{id}-error" class="sui-check-list-error" aria-hidden="true">
-      <span class="sui-check-list-mark"><Icon name="alert" size="xs" /></span>
+      <span class="sui-check-list-mark"><Icon name="alert" size="base" /></span>
       <span class="sui-check-list-words">{shown}</span>
     </p>
   {/if}
@@ -154,7 +160,7 @@ box. Choosing one lifts it. A caller's `error` always wins.
   .sui-check-list {
     border: 0;
     display: grid;
-    gap: var(--sui-row-copy-gap);
+    gap: var(--sui-field-gap);
     margin: 0;
     min-inline-size: 0;
     padding: 0;
@@ -163,17 +169,30 @@ box. Choosing one lifts it. A caller's `error` always wins.
   .sui-check-list-legend {
     align-content: center;
     block-size: var(--sui-block-snap);
-    color: var(--sui-text-secondary);
+    color: var(--sui-text-primary);
     float: inline-start;
-    font: var(--sui-weight-semibold) var(--sui-font-size-control) / var(--sui-row-copy-leading)
+    font: var(--sui-weight-semibold) var(--sui-font-size-control) / var(--sui-leading-note)
       var(--sui-sans);
     padding: 0;
+    padding-block: var(--sui-block-snap-room);
     text-box: trim-both cap alphabetic;
+    text-wrap: pretty;
+  }
+
+  .sui-check-list-legend.hidden {
+    block-size: 1px;
+    clip-path: inset(50%);
+    inline-size: 1px;
+    overflow: hidden;
+    padding: 0;
+    position: absolute;
+    white-space: nowrap;
   }
 
   .sui-check-list-required {
     color: var(--sui-text-muted);
-    font-weight: var(--sui-weight-regular);
+    font-size: var(--sui-font-size-caption);
+    font-weight: var(--sui-weight-medium);
     margin-inline-start: var(--sui-space-1);
   }
 
@@ -190,6 +209,14 @@ box. Choosing one lifts it. A caller's `error` always wins.
     gap: var(--sui-space-1);
   }
 
+  /* Each option is already a finger's 44px row, so the stack reads as one list (L-38). */
+  @media (max-width: 47.9375rem) {
+    .sui-check-list-items {
+      flex-direction: column;
+      gap: 0;
+    }
+  }
+
   .sui-check-list-help,
   .sui-check-list-words {
     align-content: center;
@@ -197,21 +224,23 @@ box. Choosing one lifts it. A caller's `error` always wins.
     margin: 0;
     min-inline-size: 0;
     overflow-wrap: anywhere;
+    padding-block: var(--sui-block-snap-room);
     text-box: trim-both cap alphabetic;
+    text-wrap: pretty;
   }
 
   .sui-check-list-help {
     color: var(--sui-text-secondary);
-    font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-row-copy-leading)
+    font: var(--sui-weight-regular) var(--sui-font-size-note) / var(--sui-leading-note)
       var(--sui-sans);
   }
 
   .sui-check-list-error {
     align-items: start;
     color: var(--sui-danger);
-    column-gap: var(--sui-space-1);
+    column-gap: var(--sui-space-2);
     display: grid;
-    font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-row-copy-leading)
+    font: var(--sui-weight-medium) var(--sui-font-size-note) / var(--sui-leading-note)
       var(--sui-sans);
     grid-template-columns: auto minmax(0, 1fr);
     margin: 0;
@@ -220,6 +249,6 @@ box. Choosing one lifts it. A caller's `error` always wins.
   /* Centred on the first line's cap height, however many lines the error wraps to. */
   .sui-check-list-mark {
     display: flex;
-    margin-block: round(calc((1cap - var(--sui-icon-xs)) / 2), 1px);
+    margin-block: round(calc((1cap - var(--sui-icon-base)) / 2), 1px);
   }
 </style>

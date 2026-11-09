@@ -55,11 +55,10 @@
 
 <!--
 A matrix of one component: one prop down the side, one state or option across the top, so
-every pair is seen at once and a missing pair stands out. A matrix of surfaces that share the
-width folds each row into a block whose cells carry their own column names once its stage is
-narrower than 34rem, by a container query, so the server's render already has the right form.
-A matrix sized by its cells never folds: wider than its stage, it scrolls inside it with the
-row values held, as a data table does.
+every pair is seen at once and a missing pair stands out. Once its stage is narrower than
+34rem, each row folds into a block whose cells carry their own column names, by a container
+query, so the server's render already has the right form and no cell is cut at the edge. A
+wide matrix on a wider stage scrolls inside it with the row values held, as a data table does.
 -->
 
 {#if fill}
@@ -85,14 +84,14 @@ row values held, as a data table does.
 
 {#snippet matrix()}
   <div class="corner">
-    {#if axis}<code>{axis}</code>{/if}
+    {#if axis}<code translate="no">{axis}</code>{/if}
   </div>
   {#each columns as column (column)}
     <div class="column">{columnLabel(column)}</div>
   {/each}
   {#each rows as row (row)}
     <div class="row">
-      <code class="row-label">{rowLabel(row)}</code>
+      <code class="row-label" translate="no">{rowLabel(row)}</code>
       {#each columns as column (column)}
         <div class="cell">
           <span class="cell-label">{columnLabel(column)}</span>
@@ -127,18 +126,20 @@ row values held, as a data table does.
      takes its row's height and paints the stage's own ground past its box, over half of each
      row gap, the gap after the values and the frame's padding, without taking that room, so
      the held column is one solid strip and the start fade begins at its edge. */
-  .scrolls :is(.corner, .row-label) {
-    align-self: stretch;
-    block-size: auto;
-    border-image: linear-gradient(
-        var(--sui-local-stage-ground, var(--sui-surface-base)),
-        var(--sui-local-stage-ground, var(--sui-surface-base))
-      )
-      fill 0 / 0 / calc(var(--sui-space-4) / 2) var(--sui-space-6) calc(var(--sui-space-4) / 2)
-      var(--sui-space-1);
-    inset-inline-start: 0;
-    position: sticky;
-    z-index: var(--sui-layer-inner-plate);
+  @container variants (width >= 34rem) {
+    .scrolls :is(.corner, .row-label) {
+      align-self: stretch;
+      block-size: auto;
+      border-image: linear-gradient(
+          var(--sui-local-stage-ground, var(--sui-surface-base)),
+          var(--sui-local-stage-ground, var(--sui-surface-base))
+        )
+        fill 0 / 0 / calc(var(--sui-space-4) / 2) var(--sui-space-6) calc(var(--sui-space-4) / 2)
+        var(--sui-space-1);
+      inset-inline-start: 0;
+      position: sticky;
+      z-index: var(--sui-layer-inner-plate);
+    }
   }
 
   .grid {
@@ -148,7 +149,7 @@ row values held, as a data table does.
     grid-template-columns: max-content repeat(var(--columns), max-content);
   }
 
-  .grid.fill {
+  .fill {
     grid-template-columns: max-content repeat(var(--columns), minmax(0, 1fr));
   }
 
@@ -165,6 +166,7 @@ row values held, as a data table does.
     font: var(--sui-weight-semibold) var(--sui-font-size-micro) / var(--sui-leading-micro)
       var(--sui-sans);
     letter-spacing: 0.06em;
+    padding-block: var(--sui-block-snap-room);
     text-box: trim-both cap alphabetic;
     text-transform: uppercase;
   }
@@ -183,6 +185,7 @@ row values held, as a data table does.
     font: var(--sui-weight-regular) var(--sui-font-size-micro) / var(--sui-leading-micro)
       var(--sui-mono);
     font-variant-numeric: tabular-nums;
+    padding-block: var(--sui-block-snap-room);
     text-box: trim-both cap alphabetic;
   }
 
@@ -201,39 +204,77 @@ row values held, as a data table does.
   }
 
   /* Folded, below 34rem: each row is a block, its value on top and its cells wrapping under
-     it. */
+     it, each under its column's name. */
   @container variants (width < 34rem) {
-    .grid.fill {
+    .grid {
       gap: var(--sui-space-6);
       grid-template-columns: minmax(0, 1fr);
     }
 
-    .fill .corner,
-    .fill .column {
+    .corner,
+    .column {
       display: none;
     }
 
-    .fill .row {
+    .row {
       align-items: flex-start;
       display: flex;
       flex-wrap: wrap;
       gap: var(--sui-space-4) var(--sui-space-5);
     }
 
-    .fill .row-label {
+    .row-label {
       flex-basis: 100%;
+    }
+
+    .cell {
+      display: grid;
+      gap: var(--sui-space-2);
+      justify-items: start;
     }
 
     /* A surface that fills what it is given takes the whole folded line. */
     .fill .cell {
-      display: grid;
       flex: 1 1 100%;
-      gap: var(--sui-space-2);
       justify-items: stretch;
     }
 
-    .fill .cell-label {
+    .cell-label {
       display: block;
+    }
+
+    /* A mark sized by its words takes a line of its own beside its column's name, so the
+       states of a row stand as an even list and none wraps alone under the others. The names
+       share one column across the rows, so every mark starts on one edge. */
+    .grid:not(.fill) {
+      column-gap: var(--sui-space-4);
+      grid-template-columns: max-content minmax(0, 1fr);
+      row-gap: var(--sui-space-2);
+    }
+
+    .grid:not(.fill) .row {
+      display: contents;
+    }
+
+    .grid:not(.fill) .row-label {
+      grid-column: 1 / -1;
+    }
+
+    .grid:not(.fill) .row + .row .row-label {
+      margin-block-start: var(--sui-space-4);
+    }
+
+    /* A line is a finger's target tall, so a smaller mark's grown hit area stays on its own
+       line (L-38). */
+    .grid:not(.fill) .cell {
+      align-items: center;
+      grid-column: 1 / -1;
+      grid-template-columns: subgrid;
+      min-block-size: var(--sui-touch-target);
+    }
+
+    .grid:not(.fill) .cell > :global(:not(.cell-label)) {
+      grid-column: 2;
     }
   }
 </style>

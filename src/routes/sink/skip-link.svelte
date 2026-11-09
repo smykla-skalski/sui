@@ -1,6 +1,6 @@
 <script module lang="ts">
   export const section = {
-    title: 'Skip link and visually hidden',
+    title: 'Skip Link & Visually Hidden',
     lead: 'Words for keyboard and screen reader users: a link past the chrome that shows on focus, and text only a screen reader reads. Words that always show are a Link or plain text.',
     components: ['SkipLink', 'VisuallyHidden']
   };
@@ -13,14 +13,14 @@
 </script>
 
 <Example
-  title="Skip link"
+  title="Skip Link"
   note="The link waits above the window and comes into the corner while it has focus"
 >
-  <Specimen label="Waiting above the window" code="href">
+  <Specimen label="Waiting above the window">
     <p class="copy">Click this sentence, then press Tab to reveal the skip link</p>
     <SkipLink href="#skip-link-target">Skip to the example target</SkipLink>
   </Specimen>
-  <Specimen label="Where focus lands" code={'tabindex="-1"'}>
+  <Specimen label="Where focus lands">
     <p id="skip-link-target" class="copy target" tabindex="-1">
       Press Enter on the skip link and focus lands on this sentence
     </p>
@@ -28,13 +28,13 @@
 </Example>
 
 <Example
-  title="Visually hidden"
-  note="Each button shows only Remove, and a screen reader reads Remove and the member's name"
+  title="Visually Hidden"
+  note="Each button shows only Remove, and a screen reader reads Remove and the member’s name"
 >
-  <Specimen label="Read as Remove Ada Lovelace" code="VisuallyHidden">
+  <Specimen label="Read as Remove Ada Lovelace">
     <Button>Remove <VisuallyHidden>Ada Lovelace</VisuallyHidden></Button>
   </Specimen>
-  <Specimen label="Read as Remove Grace Hopper" code="VisuallyHidden">
+  <Specimen label="Read as Remove Grace Hopper">
     <Button>Remove <VisuallyHidden>Grace Hopper</VisuallyHidden></Button>
   </Specimen>
 </Example>

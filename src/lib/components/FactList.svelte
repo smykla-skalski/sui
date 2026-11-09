@@ -85,7 +85,12 @@ apart, and the action under the value.
   {#each facts as fact, index (index)}
     <div class="sui-fact-list-fact">
       <dt class="sui-fact-list-label">{fact.label}</dt>
-      <dd class="sui-fact-list-value" class:mono={fact.mono} class:missing={absent(fact)}>
+      <dd
+        class="sui-fact-list-value"
+        class:mono={fact.mono && !absent(fact)}
+        class:missing={absent(fact)}
+        translate={fact.mono && !absent(fact) ? 'no' : undefined}
+      >
         {#if absent(fact)}
           {missingLabel}
         {:else if typeof fact.value === 'function'}
@@ -145,6 +150,7 @@ apart, and the action under the value.
   .inline .sui-fact-list-label,
   .inline .sui-fact-list-value {
     align-content: start;
+    padding-block: 0 var(--sui-block-snap-spare-even);
   }
 
   /* A fact that holds a target, a link or a time that shows its instant, is as tall as the
@@ -174,8 +180,11 @@ apart, and the action under the value.
   /* Every row shares the list's columns, so labels and values line up down the list whatever
      each row holds. The label column is as wide as the longest label, up to 16rem, where a
      longer label wraps, so the values stand one gap from the labels however wide the list. */
+  /* A list of rows holds no line of its own, so it takes no room for one where the block that
+     holds it trims and rounds its first or last block. */
   .rows {
     column-gap: var(--sui-space-6);
+    padding-block: 0;
     container: sui-fact-rows / inline-size;
     display: grid;
     grid-template-columns: fit-content(16rem) minmax(0, 1fr);
@@ -194,6 +203,16 @@ apart, and the action under the value.
     grid-column: 1 / -1;
     grid-template-columns: subgrid;
     padding-block: var(--sui-row-pad-default);
+  }
+
+  /* Without calc-size() a fact cannot round the offset between two faces' baselines up to the
+     pixel, so its label and value meet at their tops instead, a fifth of a pixel off one
+     baseline at most. */
+  @supports not (block-size: calc-size(auto, size)) {
+    .inline > .sui-fact-list-fact,
+    .rows > .sui-fact-list-fact {
+      align-items: start;
+    }
   }
 
   .rows > .sui-fact-list-fact:not(:last-child) {
@@ -218,6 +237,7 @@ apart, and the action under the value.
       var(--sui-sans);
     margin: 0;
     min-inline-size: 0;
+    padding-block: var(--sui-block-snap-room-even);
     text-box: trim-both cap alphabetic;
   }
 
@@ -246,6 +266,7 @@ apart, and the action under the value.
       var(--sui-sans);
     justify-self: end;
     margin: 0;
+    padding-block: var(--sui-block-snap-room-even);
     text-box: trim-both cap alphabetic;
   }
 
@@ -255,6 +276,7 @@ apart, and the action under the value.
   .sui-fact-list-value:has(> :global(:is(.sui-pill, .sui-chip))) {
     align-items: center;
     display: flex;
+    padding-block: 0;
   }
 
   .sui-fact-list-value.missing {

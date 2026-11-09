@@ -233,7 +233,8 @@ export default {
       if (String(chunk).includes(`${port}`)) break;
     return async () => {
       child.kill();
-      if (child.exitCode === null) await once(child, 'exit');
+      // A child a signal already ended has no exit code and emits no second exit.
+      if (child.exitCode === null && child.signalCode === null) await once(child, 'exit');
     };
   }
 
@@ -387,7 +388,7 @@ export default {
       await page.reload();
       assert.equal(await page.evaluate(() => navigator.onLine), true);
       assert.equal(await page.locator('meta[name="sui-build"]').getAttribute('content'), 'first');
-      assert.equal(await page.getByRole('heading', { level: 1 }).textContent(), 'Kitchen sink');
+      assert.equal(await page.getByRole('heading', { level: 1 }).textContent(), 'Kitchen Sink');
       const faces = await page.evaluate(async () => {
         await document.fonts.load('16px "SUI Plus Jakarta Sans"', 'Ąą');
         await document.fonts.load('16px "SUI JetBrains Mono"', 'Ąą');
@@ -483,7 +484,7 @@ export default {
       await page.evaluate(() => Object.assign(window, { untouched: true }));
       await Promise.all([
         page.waitForEvent('load'),
-        ready.getByRole('button', { name: 'Reload' }).click()
+        ready.getByRole('button', { name: 'Reload', exact: true }).click()
       ]);
       assert.equal(await page.evaluate(() => 'untouched' in window), false);
       assert.equal(

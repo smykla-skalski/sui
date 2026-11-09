@@ -1,7 +1,7 @@
 <script module lang="ts">
   export const section = {
-    title: 'Code block',
-    lead: 'A read-only window of code, colored by its language, with a copy control in the corner. A change between two texts is a DiffBlock.',
+    title: 'Code Block',
+    lead: 'A read-only window of code, colored by its language, with a copy control in the corner. A change from one text to another is a DiffBlock.',
     components: ['CodeBlock', 'CopyButton']
   };
 </script>
@@ -53,19 +53,19 @@ grep -rn 'export default' dist 2>/dev/null || echo "No exports"`;
   layout="stack"
   ground="canvas"
 >
-  <Specimen label="YAML" code={'lang="yaml"'}>
+  <Specimen label="YAML">
     <CodeBlock code={yaml} lang="yaml" />
   </Specimen>
-  <Specimen label="TOML" code={'lang="toml"'}>
+  <Specimen label="TOML">
     <CodeBlock code={toml} lang="toml" />
   </Specimen>
-  <Specimen label="Markdown" code={'lang="markdown"'}>
+  <Specimen label="Markdown">
     <CodeBlock code={markdown} lang="markdown" />
   </Specimen>
-  <Specimen label="Shell" code={'lang="shell"'}>
+  <Specimen label="Shell">
     <CodeBlock code={shell} lang="shell" />
   </Specimen>
-  <Specimen label="Plain text" code={'lang="text"'}>
+  <Specimen label="Plain text">
     <CodeBlock code="SUI_THEME=dark" lang="text" />
   </Specimen>
 </Example>
@@ -76,16 +76,16 @@ grep -rn 'export default' dist 2>/dev/null || echo "No exports"`;
   layout="stack"
   ground="canvas"
 >
-  <Specimen label="File label and line numbers" code="label lineNumbers">
+  <Specimen label="File label & line numbers">
     <CodeBlock code={json} lang="json" label="renovate.json" lineNumbers />
   </Specimen>
-  <Specimen label="Without a copy control" code={'copy={false}'}>
+  <Specimen label="Without a copy control">
     <CodeBlock code="npm run check" lang="shell" copy={false} />
   </Specimen>
 </Example>
 
 <Example
-  title="Long line"
+  title="Long Line"
   note="A long line scrolls inside the block, which then takes keyboard focus"
   layout="stack"
   ground="canvas"
@@ -95,25 +95,27 @@ grep -rn 'export default' dist 2>/dev/null || echo "No exports"`;
   </Specimen>
 </Example>
 
-<Example title="Copy control" note="It names what it copies and says Copied for 1.6 seconds">
-  <Specimen label="Default name" code="text">
+<Example title="Copy Control" note="It names what it copies and says Copied for 1.6&nbsp;seconds">
+  <Specimen label="Default name">
     <CopyButton text="npm install @smykla-skalski/sui" />
   </Specimen>
-  <Specimen label="Named for what it copies" code={'label="Copy version"'}>
-    <CopyButton text="0.2.1" label="Copy version" />
+  <Specimen label="Named for what it copies">
+    <CopyButton text="0.2.1" label="Copy Version" />
   </Specimen>
-  <Specimen label="Toolbar tier, 34px" code="toolbar">
-    <CopyButton text="https://sui.smyklot.com" label="Copy link" toolbar />
+  <Specimen label="Toolbar tier, 34 px">
+    <CopyButton text="https://sui.smyklot.com" label="Copy Link" toolbar />
   </Specimen>
-  <Specimen label="Disabled" code="disabled">
+  <Specimen label="Disabled">
     <div class="copy-locked">
       <CopyButton
-        text="ghp_example"
-        label="Copy token"
+        text="YOUR_API_TOKEN_HERE"
+        label="Copy Token"
         disabled
         aria-describedby="sink-copy-token-reason"
       />
-      <p id="sink-copy-token-reason" class="copy-reason">The token was revoked</p>
+      <p id="sink-copy-token-reason" class="copy-reason">
+        This token no longer works, so create a new one
+      </p>
     </div>
   </Specimen>
 </Example>
@@ -132,6 +134,7 @@ grep -rn 'export default' dist 2>/dev/null || echo "No exports"`;
     font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-row-copy-leading)
       var(--sui-sans);
     margin: 0;
+    padding-block: var(--sui-block-snap-room);
     text-box: trim-both cap alphabetic;
   }
 </style>

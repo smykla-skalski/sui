@@ -26,22 +26,19 @@
     onretry,
     emptyAction,
     ontableopenchange,
-    emptyTitle = word('ChartFrame.emptyTitle', 'No chart data yet'),
-    emptyDescription = word(
-      'ChartFrame.emptyDescription',
-      'Nothing has been recorded for this chart'
-    ),
-    emptyStep = word('ChartFrame.emptyStep', 'Values show here once they are recorded'),
-    dataLabel = word('ChartFrame.dataLabel', 'View chart data'),
+    emptyTitle = word('ChartFrame.emptyTitle', 'No Chart Data Yet'),
+    emptyDescription = word('ChartFrame.emptyDescription', 'This chart has no values yet'),
+    emptyStep = word('ChartFrame.emptyStep', 'Check back once the first values arrive'),
+    dataLabel = word('ChartFrame.dataLabel', 'View Chart Data'),
     loadingLabel = word('ChartFrame.loadingLabel', 'Loading chart data…'),
-    refreshingLabel = word('ChartFrame.refreshingLabel', 'Updating…'),
+    refreshingLabel = word('ChartFrame.refreshingLabel', 'Refreshing…'),
     staleLabel = word('ChartFrame.staleLabel', 'These values may be out of date'),
-    failedTitle = word('ChartFrame.failedTitle', 'Chart data could not load'),
+    failedTitle = word('ChartFrame.failedTitle', 'Chart Data Could Not Load'),
     failedDescription = word('ChartFrame.failedDescription', 'Try again in a moment'),
     missingLabel = word('ChartFrame.missingLabel', (count: number) =>
       count === 1
-        ? '1 missing value is left out'
-        : `${formatCount(count)} missing values are left out`
+        ? 'The chart leaves out 1 missing value'
+        : `The chart leaves out ${formatCount(count)} missing values`
     ),
     empty,
     missing = 0,
@@ -80,31 +77,52 @@
      Words in a face it does not hold, such as another script's, are guessed until the chart is
      on the page, then measured in the face they draw in, and again when a face loads. */
   const drawn = new Map<string, Ink>();
-  const measure: Measure = (text, semibold = false) =>
-    faceInk(text, semibold) ?? (mounted && band ? measured(band, text, semibold) : guessInk(text));
+  const measure: Measure = (text, semibold = false, tabular = false) =>
+    faceInk(text, semibold, tabular) ??
+    (mounted && band ? measured(band, text, semibold, tabular) : guessInk(text));
 
-  function measured(band: HTMLElement, text: string, semibold: boolean): Ink {
+  function measured(band: HTMLElement, text: string, semibold: boolean, tabular: boolean): Ink {
     const look = getComputedStyle(band);
     const weight = semibold
       ? look.getPropertyValue('--sui-weight-semibold').trim()
       : look.fontWeight;
     const font = `${weight} 100px ${look.fontFamily}`;
-    const key = `${faces} ${font} ${text}`;
+    const key = `${faces} ${font} ${tabular} ${text}`;
     const known = drawn.get(key);
     if (known) return known;
     const context = document.createElement('canvas').getContext('2d');
     if (!context) return guessInk(text);
     context.font = font;
     const metrics = context.measureText(text);
+    // A canvas draws no tabular figures, so tabular text takes its advance from SVG text set as
+    // a tick is, and its ink's end moves by what the figures add. The ink's start keeps the
+    // proportional first glyph's, at most half a figure's spare off.
+    const advance = tabular ? tabularAdvance(band, font, text) : metrics.width;
     const ink = {
-      advance: metrics.width / 100,
+      advance: advance / 100,
       left: metrics.actualBoundingBoxLeft / 100,
-      right: metrics.actualBoundingBoxRight / 100,
+      right: (metrics.actualBoundingBoxRight + advance - metrics.width) / 100,
       ascent: metrics.actualBoundingBoxAscent / 100,
       descent: metrics.actualBoundingBoxDescent / 100
     };
     drawn.set(key, ink);
     return ink;
+  }
+
+  function tabularAdvance(band: HTMLElement, font: string, text: string): number {
+    const ns = 'http://www.w3.org/2000/svg';
+    const svg = document.createElementNS(ns, 'svg');
+    const words = document.createElementNS(ns, 'text');
+    words.setAttribute(
+      'style',
+      `font: ${font}; font-variant-numeric: tabular-nums; font-variant-ligatures: none; white-space: pre`
+    );
+    words.textContent = text;
+    svg.append(words);
+    band.append(svg);
+    const advance = words.getComputedTextLength();
+    svg.remove();
+    return advance;
   }
 
   const note = $derived(
@@ -153,7 +171,13 @@
     <p>{description}</p>
   </figcaption>
   {#if note}
-    <p class="sui-chart-note" aria-hidden="true">{note}</p>
+    <p
+      class="sui-chart-note"
+      data-status={status === 'refreshing' || status === 'stale' ? status : undefined}
+      aria-hidden="true"
+    >
+      {note}
+    </p>
   {/if}
   <VisuallyHidden role="status">{settled ? (note ?? '') : ''}</VisuallyHidden>
   {#if status === 'failed'}
@@ -215,10 +239,14 @@
     initial-value: 0px;
   }
 
+  /* A chart stretched to a taller neighbour's height, in a line of cards or specimens, keeps its
+     legend one gap under its own plot and its closed table at its foot, so charts side by side
+     end on one line. An open table follows its plot. */
   .sui-chart {
     --sui-local-chart-bleed: var(--sui-local-bleed);
     color: var(--sui-text-primary);
-    display: grid;
+    display: flex;
+    flex-direction: column;
     gap: var(--sui-space-4);
     margin: 0;
     min-inline-size: 0;
@@ -226,7 +254,7 @@
 
   figcaption {
     display: grid;
-    gap: var(--sui-row-copy-gap);
+    gap: var(--sui-title-copy-gap);
   }
 
   .sui-chart-title {
@@ -235,6 +263,7 @@
     font: var(--sui-weight-semibold) var(--sui-font-size-title) / var(--sui-leading-title)
       var(--sui-sans);
     margin: 0;
+    padding-block: var(--sui-block-snap-room);
     text-box: trim-both cap alphabetic;
   }
 
@@ -246,6 +275,7 @@
     font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-row-copy-leading)
       var(--sui-sans);
     margin: 0;
+    padding-block: var(--sui-block-snap-room);
     text-box: trim-both cap alphabetic;
   }
 
@@ -253,8 +283,16 @@
     color: var(--sui-text-muted);
   }
 
-  /* The plot stands on a band of the chart's own ground, so a reader sees where the chart
-     starts and ends. The band reaches the edges of the surface that lends its inset, and the
+  /* Values on their way or out of date are a state of the whole plot, so its note reads a step
+     over a count of missing points. The marks keep their full strength, as a dimmed plot would
+     drop them under the 3:1 they hold (L-66). */
+  .sui-chart-note[data-status] {
+    color: var(--sui-text-secondary);
+    font-weight: var(--sui-weight-medium);
+  }
+
+  /* The plot stands in a band of `--sui-chart-ground`, transparent unless a theme tints it.
+     The band reaches the edges of the surface that lends its inset, and the
      plot pads back by it, so the plot keeps the title's edges and its ink stands the same room
      from all four sides of the band. The plot scrolls inside the band, so an edge fade fades
      the plot and never the band. Chart text is set here, also for a placeholder, whose height
@@ -264,7 +302,7 @@
     --sui-local-band-pad: max(var(--sui-local-chart-bleed), var(--sui-space-4));
     background: var(--sui-chart-ground);
     border-radius: var(--sui-radius-control);
-    font: var(--sui-weight-regular) var(--sui-font-size-compact) / var(--sui-leading-flat)
+    font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-leading-flat)
       var(--sui-sans);
     font-variant-ligatures: none;
     margin-inline: calc(-1 * var(--sui-local-chart-bleed));
@@ -306,18 +344,27 @@
 
   /* While the data loads, the band itself is the placeholder: it keeps the band's place, size
      and shape, so nothing moves when the plot arrives, takes the placeholder veil, and the light
-     that crosses every placeholder crosses it. Only the light moves, by transform, so the
+     that crosses every placeholder crosses it. Three grid lines at the quarters of the plot
+     stand under the light, so the wait reads as the chart to come, never a blank block, and they
+     draw no mark a reader could take for data (L-64). Only the light moves, by transform, so the
      compositor runs it. */
   .sui-chart-wait {
-    background: var(--sui-placeholder);
+    --sui-local-wait-line: linear-gradient(var(--sui-chart-grid), var(--sui-chart-grid));
+    background:
+      var(--sui-local-wait-line) 0 25% / 100% var(--sui-stroke) no-repeat content-box,
+      var(--sui-local-wait-line) 0 50% / 100% var(--sui-stroke) no-repeat content-box,
+      var(--sui-local-wait-line) 0 75% / 100% var(--sui-stroke) no-repeat content-box,
+      var(--sui-placeholder);
     block-size: calc(var(--sui-local-plot) + 2 * var(--sui-local-band-pad));
     box-sizing: border-box;
     overflow: clip;
+    padding-block: var(--sui-local-band-pad);
     position: relative;
   }
 
   .sui-chart-wait::after {
-    animation: sui-chart-sheen var(--sui-duration-shimmer) var(--sui-ease-linear) infinite;
+    animation: sui-chart-sheen var(--sui-duration-shimmer) var(--sui-ease-linear)
+      var(--sui-placeholder-runs) both;
     background: var(--sui-placeholder-sheen);
     content: '';
     inset-block: 0;
@@ -357,6 +404,10 @@
     }
   }
 
+  details:not([open]) {
+    margin-block-start: auto;
+  }
+
   /* A block-level flex box, so no line box rounds the disclosure's height off the pixel. It has
      no frame or ground at rest, so it hands back the room above and below its words: they
      stand one gap under the legend and their baseline, to the nearest pixel, on a card's
@@ -390,6 +441,7 @@
   summary > span {
     align-content: center;
     block-size: var(--sui-block-snap-even);
+    padding-block: var(--sui-block-snap-room-even);
     text-box: trim-both cap alphabetic;
   }
 

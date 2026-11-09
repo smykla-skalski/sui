@@ -78,7 +78,7 @@ suite('lists', together, () => {
         const problems = () => list.locator('.sui-pattern-problem').count();
         const before = await problems();
 
-        await list.getByRole('button', { name: 'Add a branch pattern' }).click();
+        await list.getByRole('button', { name: 'Add a Branch Pattern' }).click();
         await page.keyboard.type('a b');
         assert.equal(await problems(), before, 'a half-typed pattern was judged at once');
         await page.keyboard.press('Tab');
@@ -181,7 +181,7 @@ suite('lists', together, () => {
         await page.keyboard.press('Enter');
         assert.match(await focused(page), /^input Pattern 2 release\/\*$/);
 
-        await list.getByRole('button', { name: 'Add a branch pattern' }).click();
+        await list.getByRole('button', { name: 'Add a Branch Pattern' }).click();
         await page.keyboard.press('Backspace');
         assert.match(await focused(page), /^input Pattern 2 release\/\*$/);
         assert.equal(await list.getByRole('textbox').count(), 2, 'the empty entry stayed');
@@ -202,7 +202,7 @@ suite('lists', together, () => {
         .locator('#pattern-entries .specimen')
         .filter({ has: page.locator('#sink-pattern-added') })
         .locator('.sui-pattern-entries');
-      await list.getByRole('button', { name: 'Add a pattern' }).click();
+      await list.getByRole('button', { name: 'Add a Pattern' }).click();
       await list.getByRole('textbox').evaluate((input) => {
         const data = new DataTransfer();
         data.setData('text', 'a\nb');
@@ -272,30 +272,38 @@ suite('lists', together, () => {
 
     // Columns squeezed to their longest word once wrapped a sentence a word a line on a phone.
     test(
-      'a table that scrolls wraps a long value to a few lines, not a word a line',
+      'a table that scrolls wraps a long value to a few lines, not a word a line, read from the top of its row',
       long,
       async () => {
         const page = await opened();
         const table = page.locator('#data-table table[aria-label="Law checks"]');
         await table.scrollIntoViewIfNeeded();
-        const { scrolls, lines } = await table.evaluate((element) => {
+        const { scrolls, rows } = await table.evaluate((element) => {
           const frame = /** @type {HTMLElement} */ (element.parentElement);
+          const lineTops = (/** @type {Element} */ cell) => {
+            const range = document.createRange();
+            range.selectNodeContents(/** @type {Element} */ (cell.querySelector('.value')));
+            return [...new Set([...range.getClientRects()].map((line) => Math.round(line.top)))];
+          };
           return {
             scrolls: frame.scrollWidth > frame.clientWidth,
-            lines: [.../** @type {HTMLTableElement} */ (element).tBodies[0].rows].map((row) => {
-              const range = document.createRange();
-              range.selectNodeContents(
-                /** @type {Element} */ (row.cells[2].querySelector('.value'))
-              );
-              return new Set([...range.getClientRects()].map((line) => Math.round(line.top))).size;
-            })
+            rows: [.../** @type {HTMLTableElement} */ (element).tBodies[0].rows].map((row) => ({
+              lines: lineTops(row.cells[2]).length,
+              firsts: [...row.cells].map((cell) => lineTops(cell)[0])
+            }))
           };
         });
         assert.ok(scrolls, 'the table no longer scrolls inside its frame');
+        const lines = rows.map((row) => row.lines);
         assert.ok(
-          lines.every((count) => count <= 4),
+          lines.every((count) => count <= 2),
           `the long values wrap to ${lines.join(' and ')} lines`
         );
+        for (const { firsts } of rows)
+          assert.ok(
+            Math.max(...firsts) - Math.min(...firsts) <= 1,
+            `the first lines of one row start at ${firsts.join(', ')}px`
+          );
       }
     );
 
@@ -364,32 +372,41 @@ suite('lists', together, () => {
   suite('the tools menu', { concurrency: 1 }, () => {
     const opened = sharedPage();
 
-    test('L-52 Tab out of the tools menu closes it', long, async () => {
-      const page = await opened();
-      const trigger = page
-        .locator('#list-toolbar')
-        .getByRole('button', { name: 'Sort and filter' });
-      await trigger.first().scrollIntoViewIfNeeded();
-      await trigger.first().click();
-      await page.locator(':popover-open .sui-list-toolbar-panel').waitFor();
-      const closes = () =>
-        settles(
-          page
-            .locator(':popover-open .sui-list-toolbar-panel')
-            .waitFor({ state: 'detached', ...brief })
-        );
-      await page.keyboard.press('Tab');
-      assert.ok(await closes(), 'Tab left the menu open');
+    test(
+      'L-52 Tab out of the tools menu closes it and leaves no autofocus mark',
+      long,
+      async () => {
+        const page = await opened();
+        const trigger = page
+          .locator('#list-toolbar')
+          .getByRole('button', { name: 'Sort & Filter' });
+        // A Modal opens on the first `[autofocus]` it holds, so a mark left in a closed panel
+        // would send a reopened dialog's focus to a hidden control.
+        const marks = () => page.evaluate(() => document.querySelectorAll('[autofocus]').length);
+        const unmarked = await marks();
+        await trigger.first().scrollIntoViewIfNeeded();
+        await trigger.first().click();
+        await page.locator(':popover-open .sui-list-toolbar-panel').waitFor();
+        const closes = () =>
+          settles(
+            page
+              .locator(':popover-open .sui-list-toolbar-panel')
+              .waitFor({ state: 'detached', ...brief })
+          );
+        await page.keyboard.press('Tab');
+        assert.ok(await closes(), 'Tab left the menu open');
 
-      // Opened by a press, Shift+Tab hands focus back to the button, and that is leaving too.
-      await trigger.first().click();
-      await page.locator(':popover-open .sui-list-toolbar-panel').waitFor();
-      await page.keyboard.press('Shift+Tab');
-      assert.ok(await closes(), 'Shift+Tab left the menu open');
-    });
+        // Opened by a press, Shift+Tab hands focus back to the button, and that is leaving too.
+        await trigger.first().click();
+        await page.locator(':popover-open .sui-list-toolbar-panel').waitFor();
+        await page.keyboard.press('Shift+Tab');
+        assert.ok(await closes(), 'Shift+Tab left the menu open');
+        assert.equal(await marks(), unmarked, 'the closed menu left an autofocus mark');
+      }
+    );
 
     test(
-      'AC4 a toolbar says its count again after a pick that leaves the count as it was',
+      'AC4 a toolbar says nothing until something changes, and its count again after a pick that leaves the count as it was',
       long,
       async () => {
         const page = await opened();
@@ -398,9 +415,22 @@ suite('lists', together, () => {
         });
         const counted = bar.last();
         await counted.scrollIntoViewIfNeeded();
-        await counted.getByRole('searchbox').fill('sui');
         // The bar's own status, not the one its search field keeps for its matches.
         const status = counted.locator(':scope > [role="status"]');
+        // A count comes 600ms after a change, so a page that loaded a second ago says none.
+        assert.equal(
+          await settles(
+            page.waitForFunction(
+              (element) => element?.textContent?.trim() !== '',
+              await status.elementHandle(),
+              { timeout: 1000 }
+            )
+          ),
+          false,
+          'the bar said its count with nothing changed'
+        );
+        await counted.getByRole('searchbox').fill('sui');
+        await page.waitForURL((address) => address.searchParams.get('q') === 'sui', brief);
         await settles(
           page.waitForFunction(
             (element) => element?.textContent?.trim() === '1 result',
@@ -438,6 +468,20 @@ suite('lists', together, () => {
           said.includes('1 result'),
           `after the pick the status said ${JSON.stringify(said)}`
         );
+
+        // A link to the same page with another query shows that query, not the last one typed.
+        await page.evaluate(() => {
+          const link = Object.assign(document.createElement('a'), { href: '?q=kong' });
+          document.querySelector('body > div')?.append(link);
+          link.click();
+          link.remove();
+        });
+        await page.waitForURL((address) => address.searchParams.get('q') === 'kong', brief);
+        await page.waitForFunction(
+          (element) => /** @type {HTMLInputElement} */ (element).value === 'kong',
+          await counted.getByRole('searchbox').elementHandle(),
+          brief
+        );
       }
     );
 
@@ -454,7 +498,7 @@ suite('lists', together, () => {
           );
           const triggers = page
             .locator('#list-toolbar')
-            .getByRole('button', { name: 'Sort and filter' });
+            .getByRole('button', { name: 'Sort & Filter' });
           const count = await triggers.count();
           for (let index = 0; index < count; index++) {
             const trigger = triggers.nth(index);
@@ -564,7 +608,7 @@ suite('lists', together, () => {
         const page = await opened();
         const add = page
           .locator('#pair-entry')
-          .getByRole('button', { name: 'Add an alias' })
+          .getByRole('button', { name: 'Add an Alias' })
           .first();
         await add.scrollIntoViewIfNeeded();
         const editor = page.locator(':popover-open .sui-pair-editor');
@@ -745,8 +789,12 @@ suite('lists', together, () => {
                 ':scope > li > :is(.sui-timeline-time, .sui-timeline-body, .sui-timeline-words)'
               )
             ].map((part) => {
+              // The body pads out past its ink and takes the room back, so its content box is
+              // the place it holds.
               const box = part.getBoundingClientRect();
-              return `${part.className.split(' ')[0]} ${box.top - top} ${box.height}`;
+              const look = getComputedStyle(part);
+              const [start, end] = [look.paddingTop, look.paddingBottom].map(parseFloat);
+              return `${part.className.split(' ')[0]} ${box.top + start - top} ${box.height - start - end}`;
             })
           ];
         };
@@ -787,6 +835,28 @@ suite('lists', together, () => {
         assert.deepEqual(shape.times, shape.times.toSorted().reverse(), 'newest first');
       }
     );
+
+    test('a missing fact says so in words a translator may change, a technical one too', async () => {
+      const page = await opened();
+      const missing = await page
+        .locator('#fact-list .sui-fact-list-value.missing')
+        .evaluateAll((values) =>
+          values.map((value) => ({
+            text: value.textContent?.trim(),
+            translatable: /** @type {HTMLElement} */ (value).translate,
+            face: getComputedStyle(value).fontFamily
+          }))
+        );
+      const mono = await page.evaluate(() =>
+        getComputedStyle(document.documentElement).getPropertyValue('--sui-mono').trim()
+      );
+      assert.ok(missing.length >= 2, `${missing.length} missing facts on the page`);
+      for (const { text, translatable, face } of missing)
+        assert.ok(
+          translatable && face !== mono,
+          `"${text}" in ${face}, translatable ${translatable}`
+        );
+    });
 
     test(
       'fact rows line their values up past the longest label and stack each pair under 25rem of their own width',
@@ -841,24 +911,85 @@ suite('lists', together, () => {
       }
     );
 
-    test('U5 a sortable heading sorts the rows and says so with aria-sort', long, async () => {
-      const page = await opened();
-      const table = page.locator('#data-table table').first();
-      await table.scrollIntoViewIfNeeded();
-      await table.getByRole('button', { name: 'Repository' }).click();
-      assert.equal(
-        await table.locator('th[aria-sort]').evaluate((node) => node.textContent?.trim()),
-        'Repository'
-      );
-      assert.equal(await table.locator('th[aria-sort]').getAttribute('aria-sort'), 'ascending');
-      assert.equal(await table.locator('tbody th').first().textContent(), 'ledger');
-    });
+    test(
+      'U5 a sortable heading sorts the rows and says so with aria-sort, and the order and an open code panel stay through a reload',
+      long,
+      async () => {
+        const page = await opened();
+        const table = page.locator('#data-table table').first();
+        const sorted = async () => {
+          assert.equal(
+            await table.locator('th[aria-sort]').evaluate((node) => node.textContent?.trim()),
+            'Repository'
+          );
+          assert.equal(await table.locator('th[aria-sort]').getAttribute('aria-sort'), 'ascending');
+          assert.equal(await table.locator('tbody th').first().textContent(), 'ledger');
+          // Only the sorted column's arrow wears the accent's text ink.
+          const [glyph, accent] = await table.locator('th[aria-sort] svg').evaluate((svg) => {
+            const probe = document.createElement('i');
+            probe.style.color = 'var(--sui-brand-action-text)';
+            svg.after(probe);
+            const inks = [getComputedStyle(svg).color, getComputedStyle(probe).color];
+            probe.remove();
+            return inks;
+          });
+          assert.equal(glyph, accent);
+        };
+        await table.scrollIntoViewIfNeeded();
+        await table.getByRole('button', { name: 'Repository' }).click();
+        await sorted();
+        const code = page.locator('#data-table .example').first().locator('details');
+        await code.locator('summary', { hasText: 'Code' }).click();
+        await page.waitForURL(
+          (address) =>
+            address.searchParams.get('sort') === 'name' &&
+            address.searchParams.get('code-data-table-variants') === 'open',
+          brief
+        );
+        await visit(page, page.url());
+        await sorted();
+        assert.equal(
+          await code.evaluate((details) => /** @type {HTMLDetailsElement} */ (details).open),
+          true
+        );
+      }
+    );
+
+    test(
+      "a striped table keeps the plain table's text edge, and its stripes reach past it",
+      long,
+      async () => {
+        const page = await opened();
+        const [plain, striped] = await page
+          .locator('#data-table .example')
+          .first()
+          .locator('table')
+          .evaluateAll((tables) =>
+            tables.map((table) => {
+              const cell = /** @type {Element} */ (
+                table.querySelector('tbody tr:nth-child(2) > th')
+              );
+              const box = cell.getBoundingClientRect();
+              const stripe = /** @type {Element} */ (cell.parentElement).getBoundingClientRect();
+              return {
+                words: box.left + parseFloat(getComputedStyle(cell).paddingLeft),
+                stripe: stripe.left
+              };
+            })
+          );
+        assert.ok(
+          Math.abs(striped.words - plain.words) < 0.5,
+          `${striped.words} vs ${plain.words}`
+        );
+        assert.ok(Math.abs(striped.words - striped.stripe - 12) < 0.5, 'the stripe hugs the words');
+      }
+    );
 
     test('K6 a retried error that leaves no control keeps focus where it stood', long, async () => {
       const page = await opened();
       const retry = page
-        .locator('#states .specimen', { hasText: 'Usage could not be loaded' })
-        .getByRole('button', { name: 'Try again' });
+        .locator('#states .specimen', { hasText: 'Usage Could Not Load' })
+        .getByRole('button', { name: 'Try Again' });
       await retry.scrollIntoViewIfNeeded();
       await retry.focus();
       await page.keyboard.press('Enter');
@@ -876,6 +1007,61 @@ suite('lists', together, () => {
       assert.equal(at.body, false, 'focus fell to the page');
       assert.match(at.words ?? '', /Usage for this month loaded/);
     });
+
+    test(
+      'L-59 a failed refresh stands inside the rows it leaves, and failed panels side by side share their foot',
+      long,
+      async () => {
+        const page = await opened();
+        const strip = page
+          .locator('#states .specimen', { hasText: 'Refresh failed' })
+          .locator('.over');
+        await strip.scrollIntoViewIfNeeded();
+        const at = await strip.evaluate((node) => {
+          const box = (/** @type {Element | null} */ element) => {
+            const { left, right } = /** @type {Element} */ (element).getBoundingClientRect();
+            return { left, right };
+          };
+          const tint = parseFloat(getComputedStyle(node, '::before').insetInlineStart);
+          return {
+            strip: box(node),
+            tint,
+            rows: box(node.parentElement?.querySelector('.sui-object-list') ?? null),
+            words: box(node.querySelector('.sui-error-state-title')),
+            retry: box(node.querySelector('button'))
+          };
+        });
+        const problems = [];
+        if (at.strip.left < at.rows.left || at.strip.right > at.rows.right)
+          problems.push('the strip reaches past the rows');
+        if (at.words.left - at.strip.left - at.tint < 12) problems.push('the words crowd the tint');
+        if (at.strip.right - at.tint - at.retry.right < 12)
+          problems.push('the retry crowds the tint');
+
+        // An earlier test may have retried one panel into words, so each retry is weighed
+        // against its own panel's foot rather than against another retry.
+        const feet = await page
+          .locator('#states .specimen .sui-error-state:not(.over)')
+          .evaluateAll((panels) =>
+            panels.map((panel) => {
+              const { bottom } = panel.getBoundingClientRect();
+              const { borderBlockEndWidth, paddingBlockEnd } = getComputedStyle(panel);
+              const retry = panel.querySelector('button')?.getBoundingClientRect().bottom;
+              return {
+                panel: Math.round(bottom),
+                above:
+                  retry &&
+                  bottom - parseFloat(borderBlockEndWidth) - parseFloat(paddingBlockEnd) - retry
+              };
+            })
+          );
+        if (feet.length < 2 || new Set(feet.map(({ panel }) => panel)).size !== 1)
+          problems.push(`the panels on one line end apart: ${feet.map(({ panel }) => panel)}`);
+        if (feet.some(({ above }) => above && Math.abs(above) >= 0.5))
+          problems.push(`a retry stands above its panel's foot: ${feet.map(({ above }) => above)}`);
+        assert.deepEqual(problems, []);
+      }
+    );
 
     test(
       'L-63 a loaded page takes focus to its first new row and says how many rows came',
@@ -897,7 +1083,7 @@ suite('lists', together, () => {
         await more.getByRole('alert').waitFor();
         assert.match(
           await focused(page),
-          /^button Try again/,
+          /^button Try Again/,
           'the failure took focus off the retry'
         );
 
@@ -923,6 +1109,82 @@ suite('lists', together, () => {
         assert.equal(await more.getByRole('status').textContent(), '4 more loaded, 12 of 12 shown');
       }
     );
+
+    // Last in the suite: it grows two lists on the shared page.
+    test(
+      'a long list lays out only what is near the screen and draws it as a plain list does',
+      long,
+      async () => {
+        const page = await opened();
+        /** @type {[string, string, string][]} */
+        const lists = [
+          ['#object-list .sui-object-list', ':scope > li > *', ':scope > li > *'],
+          [
+            '#timeline .sui-timeline:has(.sui-timeline-face)',
+            ':scope > li > .sui-timeline-body',
+            ':scope > li > .sui-timeline-time'
+          ]
+        ];
+        for (const [list, skips, stays] of lists) {
+          // A part off the screen may still hold a guessed height, so each state is shot where
+          // the row stands in it.
+          const first = page.locator(`${list} > li`).first();
+          const shot = async () => {
+            await first.scrollIntoViewIfNeeded();
+            const box = /** @type {{ x: number, y: number, width: number, height: number }} */ (
+              await first.boundingBox()
+            );
+            return page.screenshot({
+              clip: { x: box.x - 16, y: box.y - 16, width: box.width + 32, height: box.height + 32 }
+            });
+          };
+          const skipping = await shot();
+          // Paint containment draws a part at whole pixels, so the drawing to match is the same
+          // containment with its clip edge far out, where any ink the skip cuts comes back.
+          const reach = await page.addStyleTag({
+            content: `${skips.replace(':scope', list)} { content-visibility: visible !important; overflow-clip-margin: 2rem !important; contain: paint !important; }`
+          });
+          assert.ok(
+            skipping.equals(await shot()),
+            `${list} cuts ink it would draw without skipping`
+          );
+          await reach.evaluate((style) => /** @type {Element} */ (style).remove());
+
+          const shown = await page.evaluate(
+            async ([list, skips, stays]) => {
+              const element = /** @type {Element} */ (document.querySelector(list));
+              const row = /** @type {Element} */ (element.lastElementChild);
+              const copies = Array.from(
+                { length: 300 },
+                () => /** @type {Element} */ (row.cloneNode(true))
+              );
+              element.append(...copies);
+              await new Promise((done) => requestAnimationFrame(() => requestAnimationFrame(done)));
+              // A part that skips is still drawn as an empty box; what it holds is not.
+              const seen = (/** @type {string} */ part) =>
+                /** @type {Element} */ (element.querySelector(`${part} > *`)).checkVisibility({
+                  contentVisibilityAuto: true
+                });
+              const last = (/** @type {string} */ part) =>
+                part.replace(':scope > li', ':scope > li:last-child');
+              const found = {
+                near: seen(skips),
+                far: seen(last(skips)),
+                column: seen(last(stays))
+              };
+              for (const copy of copies) copy.remove();
+              return found;
+            },
+            lists.find(([name]) => name === list) ?? lists[0]
+          );
+          assert.deepEqual(
+            shown,
+            { near: true, far: false, column: stays !== skips },
+            `${list} lays out what is far off the screen, or skips what must stay`
+          );
+        }
+      }
+    );
   });
 
   suite('settings and save bars', { concurrency: 1 }, () => {
@@ -930,16 +1192,16 @@ suite('lists', together, () => {
 
     test('S2 a setting list says when it loads, fails or has nothing to set', long, async () => {
       const page = await opened();
-      const states = page.locator('#setting-list .example', { hasText: 'List states' });
+      const states = page.locator('#setting-list .example', { hasText: 'List States' });
       await states.scrollIntoViewIfNeeded();
       const specimen = (/** @type {string} */ name) =>
         states.locator('.specimen').filter({ hasText: name });
       assert.equal(await specimen('Loading').locator('[aria-busy="true"]').count(), 1);
       assert.equal(await specimen('Failed').getByRole('alert').count(), 1);
-      assert.equal(await specimen('Failed').getByRole('button', { name: 'Try again' }).count(), 1);
+      assert.equal(await specimen('Failed').getByRole('button', { name: 'Try Again' }).count(), 1);
       assert.match(
         (await specimen('Nothing to set').textContent()) ?? '',
-        /Settings show here once there are any/
+        /Check back once this part has settings/
       );
     });
 
@@ -1071,7 +1333,7 @@ suite('lists', together, () => {
         // Saving again would be refused, so Reload is the only way on.
         assert.deepEqual(await bar.getByRole('button').allInnerTexts(), ['Reload']);
 
-        const reload = bar.getByRole('button', { name: 'Reload' });
+        const reload = bar.getByRole('button', { name: 'Reload', exact: true });
         await reload.click();
         const busy = bar.getByRole('button', { name: 'Reloading…' });
         assert.equal(await busy.getAttribute('aria-busy'), 'true');
@@ -1087,7 +1349,10 @@ suite('lists', together, () => {
 
         await page.keyboard.press('Enter');
         assert.equal(await field.inputValue(), 'develop', 'Undo did not put the draft back');
-        assert.deepEqual(await bar.getByRole('button').allInnerTexts(), ['Discard', 'Save']);
+        assert.deepEqual(await bar.getByRole('button').allInnerTexts(), [
+          'Discard',
+          'Save Changes'
+        ]);
         assert.match(await focused(page), /^button Save/, 'focus did not land on Save');
       }
     );
@@ -1099,7 +1364,7 @@ suite('lists', together, () => {
       async () => {
         const page = await opened();
         const trigger = page.locator('#addition-picker').getByRole('button', {
-          name: 'Override another'
+          name: 'Override Another'
         });
         await trigger.scrollIntoViewIfNeeded();
         await trigger.click();

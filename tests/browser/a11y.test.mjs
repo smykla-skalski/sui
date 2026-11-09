@@ -1,7 +1,15 @@
 import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
 import { after, before, suite, test } from 'node:test';
-import { allSections, audit as auditPage, long, startSink, together, visit } from './sink.mjs';
+import {
+  allSections,
+  audit as auditPage,
+  long,
+  openMount,
+  startSink,
+  together,
+  visit
+} from './sink.mjs';
 
 // The kitchen sink under the conditions readers bring with them: an accessibility engine's
 // WCAG 2.2 rules, a right-to-left page, forced colors, the WCAG 1.4.12 text spacing and text
@@ -100,6 +108,16 @@ suite('accessibility', together, () => {
       }
     );
 
+  // 2560px stands in for an ultra-wide screen, or a laptop zoomed out to 50%.
+  test('every law holds on an ultra-wide screen, or a laptop zoomed out to 50%', long, async () => {
+    const page = await open(2560, 'light');
+    try {
+      assert.deepEqual(await audit(page), []);
+    } finally {
+      await page.close();
+    }
+  });
+
   // Each shell and page layout is a whole page of its own, so its landmarks, its one main and
   // its bars are measured at the window's width, as an app draws them.
   const layouts = [
@@ -139,8 +157,8 @@ suite('accessibility', together, () => {
     });
 
   // WCAG 2.2.2: motion that starts on its own and runs past 5 seconds needs a pause control, so
-  // a live dot's pulse ends inside that time and runs again only when its data arrives.
-  test('a live dot pulses under 5 seconds and again on each update', long, async () => {
+  // a live dot's pulse ends inside that time. When it runs again is held on a clock in words.
+  test('a live dot pulses under 5 seconds and then holds still', long, async () => {
     const page = await open(1440, 'light');
     try {
       const pill = page.locator('#pill .sui-pill:has(.live)', { hasText: 'Syncing' });
@@ -155,12 +173,6 @@ suite('accessibility', together, () => {
         return parseFloat(look.animationDuration) * 1000 * Number(look.animationIterationCount);
       });
       assert.ok(length > 0 && length < 5000, `the pulse runs ${length}ms`);
-      const pulsing = () =>
-        pill.evaluate((element) =>
-          /** @type {Element} */ (element.querySelector('.live'))
-            .getAnimations({ subtree: true })
-            .some((running) => running instanceof CSSAnimation)
-        );
       // The pulse is ended rather than waited for: its length above is what a reader waits,
       // and `finish` throws on an endless animation.
       const still = await pill.evaluate((element) => {
@@ -171,8 +183,6 @@ suite('accessibility', together, () => {
           .some((running) => running instanceof CSSAnimation);
       });
       assert.ok(still, 'the pulse did not end');
-      await page.getByRole('button', { name: 'Receive an update' }).click();
-      assert.ok(await pulsing(), 'an update did not pulse the dot again');
     } finally {
       await page.close();
     }
@@ -249,6 +259,147 @@ suite('accessibility', together, () => {
     } finally {
       await page.close();
     }
+  });
+
+  suite('mounted alone', { concurrency: 1 }, () => {
+    /** @type {import('playwright-core').Page | undefined} */
+    let shared;
+    const mounted = async () =>
+      (shared ??= await openMount(browser, url, { viewport: { width: 1440, height: 900 } }));
+    after(async () => {
+      await shared?.close();
+    });
+
+    test(
+      'a line chart leaves its legend to a screen reader only while each line ends named apart',
+      long,
+      async () => {
+        const page = await mounted();
+        const legends = await page.evaluate(() => {
+          const { lib, mount, unmount, flushSync } = /** @type {any} */ (window);
+          const line = (/** @type {string} */ id, /** @type {number[]} */ ys) => ({
+            id,
+            label: id,
+            points: ys.map((y, x) => ({ x, y }))
+          });
+          /** @param {number[][]} ends */
+          const legend = (ends) => {
+            const host = document.body.appendChild(document.createElement('div'));
+            const chart = mount(lib.LineChart, {
+              target: host,
+              props: {
+                title: 'Builds',
+                description: 'Builds a day',
+                series: ends.map((ys, index) => line(`Line ${index + 1}`, ys))
+              }
+            });
+            flushSync();
+            const list = /** @type {Element} */ (host.querySelector('ul.legend'));
+            const box = list.getBoundingClientRect();
+            const look = getComputedStyle(list);
+            const found = {
+              drawn: box.width > 1 && box.height > 1,
+              read: list.children.length === ends.length && look.display !== 'none'
+            };
+            unmount(chart);
+            host.remove();
+            return found;
+          };
+          return {
+            apart: legend([
+              [0, 10],
+              [0, 90]
+            ]),
+            together: legend([
+              [0, 50],
+              [10, 50]
+            ])
+          };
+        });
+        assert.deepEqual(legends, {
+          apart: { drawn: false, read: true },
+          together: { drawn: true, read: true }
+        });
+      }
+    );
+
+    test(
+      "a tick in a face outside the chart's table is laid out with the tabular figures it draws",
+      long,
+      async () => {
+        const page = await mounted();
+        // A yen sign is outside SUI's face, so the whole tick is measured in the face that draws
+        // it; its ones are tabular there, wider than the proportional ones a canvas draws.
+        const starts = await page.evaluate(async () => {
+          const { lib, mount, unmount, flushSync } = /** @type {any} */ (window);
+          /** @param {((value: number) => string) | undefined} formatY */
+          const start = async (formatY) => {
+            const host = document.body.appendChild(document.createElement('div'));
+            host.style.inlineSize = '40rem';
+            const chart = mount(lib.LineChart, {
+              target: host,
+              props: {
+                title: 'Spend',
+                description: 'Spend a day',
+                ...(formatY && { formatY }),
+                series: [{ id: 'a', label: 'A', points: [0, 400, 1100].map((y, x) => ({ x, y })) }]
+              }
+            });
+            flushSync();
+            await document.fonts.ready;
+            await new Promise((done) => requestAnimationFrame(() => requestAnimationFrame(done)));
+            const ticks = host.querySelectorAll('svg.plot text.tick[text-anchor="end"]');
+            const left = Math.min(...[...ticks].map((tick) => tick.getBoundingClientRect().left));
+            unmount(chart);
+            host.remove();
+            return left;
+          };
+          return {
+            face: await start(undefined),
+            outside: await start((value) => `${value.toLocaleString('en').replace(/\d/g, '1')}円`)
+          };
+        });
+        assert.ok(
+          Math.abs(starts.outside - starts.face) <= 0.5,
+          `the widest tick starts at ${starts.outside}px, not at ${starts.face}px`
+        );
+      }
+    );
+
+    test(
+      'a cut label and a code block that scrolls stay tab stops in a row that skips off the screen',
+      long,
+      async () => {
+        const page = await mounted();
+        const found = await page.evaluate(async () => {
+          const { lib, mount, unmount } = /** @type {any} */ (window);
+          const far = document.body.appendChild(document.createElement('div'));
+          far.style.cssText =
+            'content-visibility: auto; inline-size: 6rem; margin-block-start: 300vh';
+          const parts = [
+            mount(lib.ClippedLabel, {
+              target: far,
+              props: { text: 'a label far wider than its row' }
+            }),
+            mount(lib.CodeBlock, {
+              target: far,
+              props: { code: 'npm install a-package-wider-than-its-row' }
+            })
+          ];
+          await new Promise((done) => requestAnimationFrame(() => requestAnimationFrame(done)));
+          const label = /** @type {HTMLElement} */ (far.querySelector('.sui-clipped-label'));
+          const result = {
+            skipped: !label.checkVisibility({ contentVisibilityAuto: true }),
+            label: label.getAttribute('tabindex'),
+            code: far.querySelector('pre')?.getAttribute('role')
+          };
+          for (const part of parts) unmount(part);
+          far.remove();
+          return result;
+        });
+        assert.deepEqual(found, { skipped: true, label: '0', code: 'region' });
+      }
+    );
   });
 
   test('a section is never a landmark region', long, async () => {
@@ -611,7 +762,7 @@ p { margin-block-end: 2em !important; }`;
           subtree: true
         });
       });
-      await header.getByRole('button', { name: 'Check again' }).click();
+      await header.getByRole('button', { name: 'Check Again' }).click();
       assert.match(await region.innerText(), /Up to date/);
       await page.evaluate(
         () => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)))

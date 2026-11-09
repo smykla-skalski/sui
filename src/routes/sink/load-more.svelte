@@ -1,6 +1,6 @@
 <script module lang="ts">
   export const section = {
-    title: 'Load more',
+    title: 'Load More',
     lead: 'The last row of a long list: how far the reader is, and the button that brings the next page. A data table pages by number instead.',
     components: ['LoadMore']
   };
@@ -40,7 +40,7 @@
       loading = false;
       if (shown === PAGE && !failedOnce) {
         failedOnce = true;
-        problem = 'The next page could not be loaded';
+        problem = 'The next page could not load';
         return;
       }
       shown = Math.min(shown + PAGE, EVENTS.length);
@@ -63,23 +63,23 @@
 
 <Example
   title="States"
-  note="The count and the end note hold the start, the button holds the end, and a failure takes the count's place"
+  note="The count and the end note hold the start, the button holds the end, and a failure takes the count’s place"
   layout="grid"
   ground="canvas"
 >
-  <Specimen label="More to load" code="more shown total">
+  <Specimen label="More to load">
     <Section title="Activity" level={4} id="load-more-ready-title">
       {@render events('load-more-ready', 2)}
       <LoadMore list="load-more-ready" more shown={2} total={12} onmore={() => {}} />
     </Section>
   </Specimen>
-  <Specimen label="Loading" code="loading">
+  <Specimen label="Loading">
     <Section title="Activity" level={4} id="load-more-loading-title">
       {@render events('load-more-loading', 2, true)}
       <LoadMore list="load-more-loading" more shown={2} total={12} loading onmore={() => {}} />
     </Section>
   </Specimen>
-  <Specimen label="Failed" code="problem">
+  <Specimen label="Failed">
     <Section title="Activity" level={4} id="load-more-failed-title">
       {@render events('load-more-failed', 2)}
       <LoadMore
@@ -87,12 +87,12 @@
         more
         shown={2}
         total={12}
-        problem="The next page could not be loaded"
+        problem="The next page could not load"
         onmore={() => {}}
       />
     </Section>
   </Specimen>
-  <Specimen label="Whole" code={'more={false}'}>
+  <Specimen label="Whole">
     <Section title="Activity" level={4} id="load-more-whole-title">
       {@render events('load-more-whole', 2)}
       <LoadMore list="load-more-whole" more={false} shown={2} onmore={() => {}} />
@@ -106,7 +106,7 @@
   layout="grid"
   ground="canvas"
 >
-  <Specimen label="Total unknown" code="more shown">
+  <Specimen label="Total unknown">
     <Section title="Activity" level={4} id="load-more-open-title">
       {@render events('load-more-open', 2)}
       <LoadMore list="load-more-open" more shown={2} onmore={() => {}} />
@@ -115,7 +115,7 @@
 </Example>
 
 <Example
-  title="On demand"
+  title="On Demand"
   note="A press brings the next page and moves focus to its first row, a failure waits for a retry, and a whole list says so"
   layout="stack"
   ground="canvas"
@@ -155,6 +155,7 @@
     font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-row-copy-leading)
       var(--sui-sans);
     overflow-wrap: anywhere;
+    padding-block: var(--sui-block-snap-room);
     text-box: trim-both cap alphabetic;
   }
 

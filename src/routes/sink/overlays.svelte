@@ -1,6 +1,6 @@
 <script module lang="ts">
   export const section = {
-    title: 'Popover and tooltip',
+    title: 'Popover & Tooltip',
     lead: 'A floating box beside its trigger, and a short tip on a control that does something. A task that needs an answer is a Modal.',
     components: ['Popover', 'Tooltip']
   };
@@ -23,17 +23,17 @@
   let opens = $state(0);
   let synced = $state(false);
 
-  const syncHint = $derived(synced ? 'Last synced just now' : 'Last synced 4 minutes ago');
+  const syncHint = $derived(synced ? 'Last synced just now' : 'Last synced 4\u00a0minutes ago');
   const pressed = $derived(
     opens === 0 ? 'Name tip' : opens === 1 ? 'Pressed once' : `Pressed ${opens} times`
   );
 </script>
 
 <Example title="Popover" note="The browser toggles it, keeps it in the top layer and returns focus">
-  <Specimen label="Toggled by its trigger" code={'popovertarget width="min-trigger"'}>
+  <Specimen label="Toggled by its trigger">
     <Button bind:element={trigger} popovertarget="sink-popover">
-      Show details
-      {#snippet trailing()}<Icon name="chevron-down" size="sm" />{/snippet}
+      Show Details
+      {#snippet trailing()}<Icon name="chevron-down" size="base" />{/snippet}
     </Button>
     <Popover
       id="sink-popover"
@@ -48,10 +48,10 @@
       </div>
     </Popover>
   </Specimen>
-  <Specimen label="Above, flipped below when there is no room" code={'side="block-start"'}>
+  <Specimen label="Above, flipped below when there is no room">
     <Button bind:element={above} popovertarget="sink-popover-above">
-      Show the author
-      {#snippet trailing()}<Icon name="chevron-up" size="sm" />{/snippet}
+      Show the Author
+      {#snippet trailing()}<Icon name="chevron-up" size="base" />{/snippet}
     </Button>
     <Popover
       id="sink-popover-above"
@@ -66,10 +66,10 @@
       </div>
     </Popover>
   </Specimen>
-  <Specimen label="Manual, closed by its button or Escape" code={'dismiss="manual"'}>
+  <Specimen label="Manual, closed by its button or Escape">
     <Button bind:element={pinned} popovertarget="sink-popover-pinned">
-      Pin the notes
-      {#snippet trailing()}<Icon name="chevron-down" size="sm" />{/snippet}
+      Pin the Notes
+      {#snippet trailing()}<Icon name="chevron-down" size="base" />{/snippet}
     </Button>
     <Popover
       id="sink-popover-pinned"
@@ -82,14 +82,14 @@
       <div class="panel">
         <p id="sink-popover-pinned-title" class="panel-title">Notes stay open</p>
         <p class="panel-copy">A press outside leaves them in place</p>
-        <Button onclick={() => (pinnedOpen = false)}>Close the notes</Button>
+        <Button onclick={() => (pinnedOpen = false)}>Close the Notes</Button>
       </div>
     </Popover>
   </Specimen>
   <Specimen label="Taller than its room, scrolling inside">
     <Button bind:element={tall} popovertarget="sink-popover-tall">
-      Show every change
-      {#snippet trailing()}<Icon name="chevron-down" size="sm" />{/snippet}
+      Show Every Change
+      {#snippet trailing()}<Icon name="chevron-down" size="base" />{/snippet}
     </Button>
     <Popover
       id="sink-popover-tall"
@@ -109,11 +109,11 @@
   title="Tooltip"
   note="Hover pauses before it shows, focus shows it at once, and a long press shows it on touch"
 >
-  <Specimen label={pressed} code={'icon="settings" label'}>
+  <Specimen label={pressed}>
     <IconButton icon="settings" label="Open the settings" onclick={() => (opens += 1)} />
   </Specimen>
-  <Specimen label="Description tip, words the button lacks" code="text">
-    <Button bind:element={sync} onclick={() => (synced = true)}>Sync now</Button>
+  <Specimen label="Description tip, words the button lacks">
+    <Button bind:element={sync} onclick={() => (synced = true)}>Sync Now</Button>
     <Tooltip anchor={sync} text={syncHint} />
   </Specimen>
 </Example>
@@ -122,11 +122,11 @@
   title="Open"
   note="The popover and a described tip drawn in place, so a review needs no click or hover"
 >
-  <Specimen label="Open popover" code="inline">
+  <Specimen label="Open popover">
     <div class="open">
       <Button aria-expanded="true" aria-controls="sink-popover-open">
-        Show details
-        {#snippet trailing()}<Icon name="chevron-down" size="sm" />{/snippet}
+        Show Details
+        {#snippet trailing()}<Icon name="chevron-down" size="base" />{/snippet}
       </Button>
       <Popover
         id="sink-popover-open"
@@ -142,9 +142,9 @@
       </Popover>
     </div>
   </Specimen>
-  <Specimen label="Open tip" code="preview">
+  <Specimen label="Open tip">
     <div class="open">
-      <Button bind:element={openSync} onclick={() => (synced = true)}>Sync now</Button>
+      <Button bind:element={openSync} onclick={() => (synced = true)}>Sync Now</Button>
       <Tooltip anchor={openSync} preview text={syncHint} />
     </div>
   </Specimen>
@@ -154,7 +154,7 @@
   .panel {
     display: grid;
     justify-items: start;
-    gap: var(--sui-row-copy-gap);
+    gap: var(--sui-title-copy-gap);
     padding: var(--sui-space-3) var(--sui-space-4);
   }
 
@@ -164,6 +164,7 @@
     font: var(--sui-weight-semibold) var(--sui-font-size-meta) / var(--sui-leading-meta)
       var(--sui-sans);
     margin: 0;
+    padding-block: var(--sui-block-snap-room);
     text-box: trim-both cap alphabetic;
   }
 
@@ -174,6 +175,7 @@
     font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-row-copy-leading)
       var(--sui-sans);
     margin: 0;
+    padding-block: var(--sui-block-snap-room);
     text-box: trim-both cap alphabetic;
   }
 

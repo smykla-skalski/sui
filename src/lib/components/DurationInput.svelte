@@ -9,7 +9,7 @@
   import type { HTMLAttributes, HTMLInputAttributes } from 'svelte/elements';
   import Icon from '../icons/Icon.svelte';
   import JoinedField from '../internal/JoinedField.svelte';
-  import { pageLocale } from '../internal/locale.js';
+  import { formatLocale } from '../internal/locale.js';
   import { setRefusals } from '../internal/refusals.svelte.js';
   import Select from './Select.svelte';
   import TextInput from './TextInput.svelte';
@@ -32,7 +32,7 @@
     name,
     durationName = word(
       'DurationInput.durationName',
-      (amount: string, unit: string) => `${amount}${mark('space')}${unit}`
+      (amount: string, unit: string) => `${amount}${mark('unit')}${unit}`
     ),
     unitLabel = word('DurationInput.unitLabel', (unit: DurationUnit, amount: number) =>
       amount === 1 ? unit.slice(0, -1) : unit
@@ -101,17 +101,19 @@
     'value' | 'type' | 'min' | 'max' | 'disabled' | 'class' | 'name' | 'onchange'
   > = $props();
 
-  /* Amounts read and print in the page's language, so "1,5" is a minute and a half where the
+  /* Amounts read and print in the reader's format, so "1,5" is a minute and a half where the
      comma is the decimal mark. A full stop there is a group mark, which an amount never needs,
      so it is refused rather than read as something else. */
-  const locale = pageLocale();
+  const locale = formatLocale();
   const decimal =
     new Intl.NumberFormat(locale).formatToParts(1.5).find((part) => part.type === 'decimal')
       ?.value ?? '.';
   const numbers = new Intl.NumberFormat(locale, { useGrouping: false, maximumFractionDigits: 20 });
+  // The page's own digits, such as Arabic-Indic ones, which `Number` reads only in Latin.
+  const digits = new Map(Array.from({ length: 10 }, (_, at) => [numbers.format(at), String(at)]));
 
   function read(text: string): number {
-    const trimmed = text.trim();
+    const trimmed = Array.from(text.trim(), (char) => digits.get(char) ?? char).join('');
     if (decimal !== '.' && trimmed.includes('.')) return Number.NaN;
     return Number(decimal === '.' ? trimmed : trimmed.replace(decimal, '.'));
   }
@@ -276,7 +278,7 @@ land on the amount.
 
 - Semantics: a text input for the amount and a native `<select>` for the unit, inside one joined field, with a hidden input that posts the seconds.
 - Content: an amount in the page's number format, one of three units named for that amount, an optional range hint and a problem line.
-- States: rest, focus on the amount (the field's ring), focus on the unit (its own inset ring), pressed unit, a hint for the range, invalid (a danger edge and a problem with a warning mark) and disabled (0.5 opacity).
+- States: rest, focus on the amount (the field's ring), focus on the unit (its own inset ring), pressed unit, a hint for the range, invalid (a danger edge and a problem with a warning mark) and disabled (the field well under a quiet frame, the amount and the unit in the muted ink at full strength).
 - Keyboard: the amount takes typing in the page's decimal mark, Tab moves to the unit, and the unit takes the select's own keys.
 - Pointer and touch: 34px tall, 44px on a phone or any touch screen, and a phone opens its own unit picker.
 - Focus: a Save that hears a problem through `onproblem` sends focus to the amount, and a form send the problem refused moves focus there when it is the form's first refused control.
@@ -296,7 +298,6 @@ land on the amount.
           bind:element={amount}
           {...rest}
           bare
-          mono
           inputmode="decimal"
           autocomplete="off"
           spellcheck="false"
@@ -335,7 +336,7 @@ land on the amount.
   <!-- The status speaks the problem, so the drawn copy stays out of the tree. -->
   {#if said}
     <p class="sui-duration-problem" aria-hidden="true">
-      <span class="sui-duration-mark"><Icon name="alert" size="xs" /></span>
+      <span class="sui-duration-mark"><Icon name="alert" size="base" /></span>
       <span class="sui-duration-words">{said}</span>
     </p>
   {/if}
@@ -345,13 +346,14 @@ land on the amount.
 <style>
   .sui-duration-input {
     display: grid;
-    gap: var(--sui-row-copy-gap);
+    gap: var(--sui-field-gap);
     inline-size: fit-content;
     justify-items: start;
     max-inline-size: 100%;
     min-inline-size: 0;
   }
 
+  /* An amount reads as one phrase with its unit word, so it keeps the sans face (L-20). */
   .sui-duration-amount {
     display: grid;
     inline-size: 4.5rem;
@@ -361,7 +363,7 @@ land on the amount.
   .sui-duration-hint,
   .sui-duration-problem {
     contain: inline-size;
-    font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-row-copy-leading)
+    font: var(--sui-weight-regular) var(--sui-font-size-note) / var(--sui-leading-note)
       var(--sui-sans);
     justify-self: stretch;
     margin: 0;
@@ -373,24 +375,35 @@ land on the amount.
     block-size: var(--sui-block-snap);
     min-inline-size: 0;
     overflow-wrap: anywhere;
+    padding-block: var(--sui-block-snap-room);
     text-box: trim-both cap alphabetic;
+    text-wrap: pretty;
   }
 
   .sui-duration-hint {
     color: var(--sui-text-secondary);
+    font-size: var(--sui-font-size-note);
+    text-wrap: pretty;
+  }
+
+  /* A problem stands a step further from the hint over it than the hint from its controls, so
+     the two quiet lines never read as one block (L-35). */
+  .sui-duration-hint + .sui-duration-problem {
+    margin-block-start: var(--sui-space-2);
   }
 
   .sui-duration-problem {
     align-items: start;
     color: var(--sui-danger);
-    column-gap: var(--sui-space-1);
+    column-gap: var(--sui-space-2);
     display: grid;
+    font-weight: var(--sui-weight-medium);
     grid-template-columns: auto minmax(0, 1fr);
   }
 
   /* Centred on the first line's cap height, however many lines the reason wraps to. */
   .sui-duration-mark {
     display: flex;
-    margin-block: round(calc((1cap - var(--sui-icon-xs)) / 2), 1px);
+    margin-block: round(calc((1cap - var(--sui-icon-base)) / 2), 1px);
   }
 </style>

@@ -112,10 +112,10 @@
   note="Clock times in mono line up in one column, and relative times show the whole instant in a tip"
   layout="grid"
 >
-  <Specimen label="Clock, oldest first" code={'time="clock" order="oldest"'}>
+  <Specimen label="Clock, oldest first">
     <Timeline events={log} order="oldest" aria-label="Check 4182" />
   </Specimen>
-  <Specimen label="Relative, newest first" code={'time="relative"'}>
+  <Specimen label="Relative, newest first">
     <Timeline events={recent} time="relative" aria-label="Workspace activity" />
   </Specimen>
 </Example>
@@ -125,28 +125,28 @@
   note="An empty timeline says so in one quiet sentence, a loading one holds its final shape, and a failure stands in its place"
   layout="stack"
 >
-  <Specimen label="Empty" code={'events={[]}'}>
+  <Specimen label="Empty">
     <Timeline events={[]} />
   </Specimen>
-  <Specimen label="Loading" code="loading">
+  <Specimen label="Loading">
     <Timeline events={[]} loading aria-label="Check 4182" />
   </Specimen>
-  <Specimen label="Refreshing" code="loading">
+  <Specimen label="Refreshing">
     <Timeline events={log} order="oldest" loading aria-label="Check 4182" />
   </Specimen>
   <Specimen label="Failed">
     <ErrorState
-      title="The timeline could not be loaded"
+      title="The Timeline Could Not Load"
       description="The sync service did not answer. Try again in a moment."
       onretry={refresh}
       busy={refreshing}
     />
   </Specimen>
-  <Specimen label="Refresh failed" code="overContent">
+  <Specimen label="Refresh failed">
     <div class="kept">
       <ErrorState
         overContent
-        title="The timeline could not be refreshed"
+        title="The Timeline Could Not Refresh"
         description="Showing what loaded at 12:02"
         onretry={refresh}
         busy={refreshing}
@@ -161,10 +161,10 @@
   note="An actor leads the words, a pill and an action sit on the first line, and long words hang on their own edge"
   layout="stack"
 >
-  <Specimen label="Actor, status and action" code="actor status action">
+  <Specimen label="Actor, status & action">
     <Timeline events={people} order="oldest" aria-label="Check 4182" />
   </Specimen>
-  <Specimen label="Long words in 32rem">
+  <Specimen label="Long words in 32 rem">
     <div class="measure">
       <Timeline events={people} order="oldest" aria-label="Check 4182" />
     </div>
@@ -176,7 +176,7 @@
   note="Grouped, each local day takes a heading; ungrouped events from several days carry their date"
   layout="grid"
 >
-  <Specimen label="Grouped by day" code="days">
+  <Specimen label="Grouped by day">
     <Timeline events={history} days level={4} aria-label="Workspace history" />
   </Specimen>
   <Specimen label="Across days, ungrouped">
@@ -185,11 +185,11 @@
 </Example>
 
 <Example
-  title="Long history"
+  title="Long History"
   note="A LoadMore after the list closes it under a hairline and counts the events shown"
   layout="stack"
 >
-  <Specimen label="Paged" code="id LoadMore">
+  <Specimen label="Paged">
     <div>
       <Timeline
         id="timeline-paged"
@@ -210,7 +210,7 @@
 </Example>
 
 <Example
-  title="In a section"
+  title="In a Section"
   note="The timeline hangs from its section heading, which names the list"
   layout="stack"
   ground="canvas"
@@ -223,11 +223,11 @@
 </Example>
 
 <Example
-  title="Right to left"
+  title="Right to Left"
   note="The time column, the actor and the end of the row mirror"
   layout="stack"
 >
-  <Specimen label="Actor, status and action" code={'dir="rtl"'}>
+  <Specimen label="Actor, status & action">
     <div dir="rtl">
       <Timeline events={people} order="oldest" aria-label="Check 4182" />
     </div>
@@ -235,11 +235,11 @@
 </Example>
 
 <Example
-  title="Narrow width"
-  note="Under 25rem of its own width, each time stands over its words and the pill and action drop under them"
+  title="Narrow Width"
+  note="Under 25 rem of its own width, each time stands over its words and the pill and action drop under them"
   layout="stack"
 >
-  <Specimen label="Phone column, 343px">
+  <Specimen label="Phone column, 343 px">
     <div class="phone">
       <Timeline events={people} order="oldest" aria-label="Check 4182" />
     </div>

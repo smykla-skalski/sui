@@ -1,6 +1,6 @@
 <script module lang="ts">
   export const section = {
-    title: 'Confirm dialog',
+    title: 'Confirm Dialog',
     lead: 'A question asked before an act that cannot be undone or would discard work. An act that can be undone just happens and offers Undo.',
     components: ['ConfirmDialog']
   };
@@ -17,7 +17,7 @@
   let archived = $state(false);
   let reason = $state('');
   let leaving = $state(false);
-  let tokens = $state(['Deploy bot', 'Release script', 'Nightly backup']);
+  let tokens = $state(['Deploy Bot', 'Release Script', 'Nightly Backup']);
   let revoking = $state('');
   let revokeOpen = $state(false);
 
@@ -46,40 +46,40 @@
   layout="stack"
   ground="canvas"
 >
-  <Specimen label="Destructive" code={'tone="stop" preview'}>
+  <Specimen label="Destructive">
     <ConfirmDialog
       preview
-      title="Delete this repository?"
+      title="Delete This Repository?"
       consequence="Its settings, history and webhooks are removed for good"
-      confirmLabel="Delete repository"
+      confirmLabel="Delete Repository"
       tone="stop"
     />
   </Specimen>
-  <Specimen label="Affirmative" code="preview">
+  <Specimen label="Affirmative">
     <ConfirmDialog
       preview
       title="Publish 0.3.0?"
       consequence="Everyone who installs the package gets this version from now on"
-      confirmLabel="Publish release"
+      confirmLabel="Publish Release"
     />
   </Specimen>
 </Example>
 
 <Example
-  title="With a reason"
+  title="With a Reason"
   note="Anything the answer needs goes in the body under the consequence"
   layout="stack"
   ground="canvas"
 >
-  <Specimen label="Reason field" code="children">
+  <Specimen label="Reason field">
     <ConfirmDialog
       preview
       title="Yank 0.2.1?"
       consequence="Nobody can install 0.2.1 again, and the version number is never reused"
-      confirmLabel="Yank release"
+      confirmLabel="Yank Release"
       tone="stop"
     >
-      <Field label="Reason" placeholder="Ships a broken migration" />
+      <Field label="Reason" placeholder="Ships a broken migration…" />
     </ConfirmDialog>
   </Specimen>
 </Example>
@@ -88,28 +88,28 @@
   title="Asking"
   note="Cancel opens focused on a destructive question, and the confirm action opens focused on an affirmative one"
 >
-  <Specimen label="Destructive" code={'tone="stop"'}>
-    <Button tone="stop-quiet" onclick={() => (remove = true)}>Delete repository</Button>
+  <Specimen label="Destructive">
+    <Button tone="stop-quiet" onclick={() => (remove = true)}>Delete Repository</Button>
   </Specimen>
-  <Specimen label="Affirmative" code={'tone="signal"'}>
-    <Button onclick={() => (publish = true)}>Publish release</Button>
+  <Specimen label="Affirmative">
+    <Button onclick={() => (publish = true)}>Publish Release</Button>
   </Specimen>
-  <Specimen label="With a reason" code="children">
-    <Button tone="stop-quiet" onclick={() => (revoke = true)}>Revoke token</Button>
+  <Specimen label="With a reason">
+    <Button tone="stop-quiet" onclick={() => (revoke = true)}>Revoke Token</Button>
   </Specimen>
 </Example>
 
 <Example
-  title="Pending and failed"
+  title="Pending & Failed"
   note="The act runs before the dialog closes, so a refusal keeps the question open and says so"
 >
-  <Specimen label="Refused" code="onconfirm returns a promise">
-    <Button tone="stop-quiet" onclick={() => (leaving = true)}>Leave workspace</Button>
+  <Specimen label="Refused">
+    <Button tone="stop-quiet" onclick={() => (leaving = true)}>Leave Workspace</Button>
   </Specimen>
 </Example>
 
 <Example
-  title="Removing the opener"
+  title="Removing the Opener"
   note="When the confirmed act removes the row that asked, focus moves to the next row and never to the page"
   layout="stack"
 >
@@ -129,29 +129,29 @@
       {/each}
     </ul>
     {#if tokens.length === 0}
-      <Button onclick={() => (tokens = ['Deploy bot', 'Release script', 'Nightly backup'])}
-        >Restore the tokens</Button
+      <Button onclick={() => (tokens = ['Deploy Bot', 'Release Script', 'Nightly Backup'])}
+        >Restore the Tokens</Button
       >
     {/if}
   </Specimen>
 </Example>
 
 <Example
-  title="No question"
+  title="No Question"
   note="An act that can be undone just happens and offers Undo in a toast"
 >
   <Specimen label={archived ? 'Archived' : 'Active'}>
     <Button onclick={archived ? restore : archive}
-      >{archived ? 'Restore repository' : 'Archive repository'}</Button
+      >{archived ? 'Restore Repository' : 'Archive Repository'}</Button
     >
   </Specimen>
 </Example>
 
 <ConfirmDialog
   bind:open={remove}
-  title="Delete this repository?"
+  title="Delete This Repository?"
   consequence="Its settings, history and webhooks are removed for good"
-  confirmLabel="Delete repository"
+  confirmLabel="Delete Repository"
   tone="stop"
 />
 
@@ -159,37 +159,37 @@
   bind:open={publish}
   title="Publish 0.3.0?"
   consequence="Everyone who installs the package gets this version from now on"
-  confirmLabel="Publish release"
+  confirmLabel="Publish Release"
 />
 
 <ConfirmDialog
   bind:open={revoke}
-  title="Revoke this token?"
+  title="Revoke This Token?"
   consequence="Every script that signs in with it stops working at once, and it cannot be restored"
-  confirmLabel="Revoke token"
+  confirmLabel="Revoke Token"
   tone="stop"
 >
   <!-- A form of its own, so the reason is one form's field, and Enter in it never revokes. -->
   <form class="form" onsubmit={(event) => event.preventDefault()}>
-    <Field label="Reason" bind:value={reason} placeholder="Leaked in a build log" />
+    <Field label="Reason" bind:value={reason} placeholder="Leaked in a build log…" />
   </form>
 </ConfirmDialog>
 
 <ConfirmDialog
   bind:open={leaving}
-  title="Leave this workspace?"
+  title="Leave This Workspace?"
   consequence="You lose access to its repositories until an owner invites you again"
-  confirmLabel="Leave workspace"
+  confirmLabel="Leave Workspace"
   tone="stop"
   onconfirm={refuse}
-  failedLabel={() => 'The workspace needs one owner, so you cannot leave it yet'}
+  failedLabel={() => 'The workspace needs 1 owner, so you cannot leave it yet'}
 />
 
 <ConfirmDialog
   bind:open={revokeOpen}
   title={`Revoke ${revoking}?`}
   consequence="Every script that signs in with it stops working at once"
-  confirmLabel="Revoke token"
+  confirmLabel="Revoke Token"
   tone="stop"
   onconfirm={() => {
     tokens = tokens.filter((token) => token !== revoking);

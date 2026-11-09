@@ -1,12 +1,13 @@
 <script module lang="ts">
   export const section = {
-    title: 'Save bar',
-    lead: "The one place a pane's unsaved work is saved or thrown away. A setting that applies at once needs no bar.",
+    title: 'Save Bar',
+    lead: 'The one place a pane’s unsaved work is saved or thrown away. A setting that applies at once needs no bar.',
     components: ['SaveBar']
   };
 </script>
 
 <script lang="ts">
+  import { beforeNavigate } from '$app/navigation';
   import { Field, SaveBar } from '#lib';
   import Example from '../kit/Example.svelte';
   import Specimen from '../kit/Specimen.svelte';
@@ -18,6 +19,25 @@
   let branch = $state('main');
   let saving = $state(false);
   const dirty = $derived(name !== saved.name || branch !== saved.branch);
+  // The example opens with unsaved work to show the bar, so only work the reader made is asked
+  // about.
+  const edited = $derived(dirty && (name !== 'smyklot-panel' || branch !== 'main'));
+
+  // A move inside the app never unloads the page, so the browser's own question never comes,
+  // and the app asks before the move drops the work.
+  beforeNavigate((navigation) => {
+    if (navigation.type === 'leave' || !edited) return;
+    if (!confirm('Leave this page and drop your unsaved settings?')) navigation.cancel();
+  });
+
+  // The save keys as the reader's platform names them, once the page runs and can tell.
+  let saveKeys = $state('Ctrl+S');
+  $effect(() => {
+    const platform =
+      (navigator as Navigator & { userAgentData?: { platform: string } }).userAgentData?.platform ??
+      navigator.platform;
+    if (/mac|iphone|ipad/i.test(platform)) saveKeys = '⌘S';
+  });
 
   function save() {
     saving = true;
@@ -75,15 +95,15 @@
 
 <Example
   title="States"
-  note="Editing raises the bar, Ctrl+S saves, a discard offers Undo, a failure stays up, and a conflict reloads with Undo"
+  note="Editing raises the bar, {saveKeys} saves, a discard offers Undo, a failure stays up, and a conflict reloads with Undo"
   layout="stack"
   ground="canvas"
 >
-  <Specimen label="Unsaved" code="dirty">
+  <Specimen label="Unsaved">
     <div class="pane">
       <div class="scroller">
-        <Field label="Repository name" bind:value={name} />
-        <Field label="Default branch" bind:value={branch} />
+        <Field label="Repository name" spellcheck="false" autocapitalize="off" bind:value={name} />
+        <Field label="Default branch" spellcheck="false" autocapitalize="off" bind:value={branch} />
         <SaveBar
           {dirty}
           {saving}
@@ -95,31 +115,40 @@
       </div>
     </div>
   </Specimen>
-  <Specimen label="Saving" code="saving">
-    <div class="pane">
-      <div class="scroller">
-        <SaveBar dirty saving title="1 setting changed" onsave={noop} ondiscard={noop} />
-      </div>
-    </div>
-  </Specimen>
-  <Specimen label="Failed save" code="error">
+  <Specimen label="Saving">
     <div class="pane">
       <div class="scroller">
         <SaveBar
           dirty
-          error="The server did not answer, so your changes are still here to save again"
+          saving
+          askBeforeLeaving={false}
+          title="1 setting changed"
           onsave={noop}
-          ondiscard={noop}
+          ondiscard={() => noop}
         />
       </div>
     </div>
   </Specimen>
-  <Specimen label="Conflict" code="conflict onreload">
+  <Specimen label="Failed save">
     <div class="pane">
       <div class="scroller">
-        <Field label="Default branch" bind:value={draft} />
+        <SaveBar
+          dirty
+          askBeforeLeaving={false}
+          error="The server did not answer, so your changes are still here to save again"
+          onsave={noop}
+          ondiscard={() => noop}
+        />
+      </div>
+    </div>
+  </Specimen>
+  <Specimen label="Conflict">
+    <div class="pane">
+      <div class="scroller">
+        <Field label="Default branch" spellcheck="false" autocapitalize="off" bind:value={draft} />
         <SaveBar
           dirty={draft !== loaded}
+          askBeforeLeaving={false}
           conflict={stale}
           {reloading}
           saving={savingDraft}
@@ -133,8 +162,8 @@
 </Example>
 
 <Example
-  title="Narrow width"
-  note="Long copy wraps with the 8px rhythm and the actions wrap under it"
+  title="Narrow Width"
+  note="Long copy wraps with the 8 px rhythm and the actions wrap under it"
   layout="stack"
   ground="canvas"
 >
@@ -143,10 +172,11 @@
       <div class="scroller">
         <SaveBar
           dirty
+          askBeforeLeaving={false}
           title="14 settings changed across merge rules, branch protection and review policy"
           subtitle="Review anywhere in this workspace, then save everything together in one go"
           onsave={noop}
-          ondiscard={noop}
+          ondiscard={() => noop}
         />
       </div>
     </div>

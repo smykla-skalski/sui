@@ -208,7 +208,7 @@ returns focus there too. Labels wrap rather than being cut short.
   {#if children}
     <Button bind:element={button} id={triggerId} {tone} {disabled} {...triggerProps}>
       {@render children()}
-      {#snippet trailing()}<Icon name="chevron-down" size="sm" />{/snippet}
+      {#snippet trailing()}<Icon name="chevron-down" size="base" />{/snippet}
     </Button>
   {:else if label && icon}
     <IconButton
@@ -325,7 +325,7 @@ returns focus there too. Labels wrap rather than being cut short.
     background-color: transparent;
     min-block-size: var(--sui-control-height-compact);
     border: 0;
-    border-radius: var(--sui-radius-control);
+    border-radius: var(--sui-radius-popover-row);
     box-sizing: border-box;
     color: var(--sui-text-primary);
     cursor: pointer;
@@ -351,6 +351,14 @@ returns focus there too. Labels wrap rather than being cut short.
   .sui-action-menu-item:focus:not(:active):not([aria-disabled='true']),
   .sui-action-menu-item.active:not(:active) {
     background-color: var(--sui-interactive-hover-layer);
+  }
+
+  /* The words rise to the hover ink, so the row gains contrast; a stop keeps its danger ink. */
+  .sui-action-menu-item:not([data-tone='stop']):is(
+      :focus:not(:active):not([aria-disabled='true']),
+      .active:not(:active)
+    ) {
+    color: var(--sui-hover-ink);
   }
 
   .sui-action-menu-item:focus-visible {
@@ -406,6 +414,7 @@ returns focus there too. Labels wrap rather than being cut short.
     align-content: center;
     block-size: var(--sui-block-snap-even);
     overflow-wrap: anywhere;
+    padding-block: var(--sui-block-snap-room-even);
     text-box: trim-both cap alphabetic;
   }
 
@@ -416,6 +425,7 @@ returns focus there too. Labels wrap rather than being cut short.
     font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-leading-meta)
       var(--sui-sans);
     overflow-wrap: anywhere;
+    padding-block: var(--sui-block-snap-room);
     text-box: trim-both cap alphabetic;
   }
 

@@ -13,10 +13,11 @@
 
 <script lang="ts">
   import { mark, word } from '../words.js';
-  import { untrack, type Snippet } from 'svelte';
+  import { flushSync, untrack, type Snippet } from 'svelte';
   import type { HTMLAttributes } from 'svelte/elements';
   import Icon from '../icons/Icon.svelte';
   import { formatCount } from '../internal/locale.js';
+  import { shownWait } from '../internal/shown-wait.svelte.js';
   import Button from './Button.svelte';
   import Popover from './Popover.svelte';
   import SearchField from './SearchField.svelte';
@@ -31,7 +32,7 @@
     placeholder,
     filter,
     tools = [],
-    toolsLabel = word('ListToolbar.toolsLabel', 'Sort and filter'),
+    toolsLabel = word('ListToolbar.toolsLabel', 'Sort & Filter'),
     action,
     count,
     pending = false,
@@ -66,6 +67,7 @@
     onsearch?: (query: string) => void;
     class?: HTMLAttributes<HTMLDivElement>['class'];
   } & Omit<HTMLAttributes<HTMLDivElement>, 'children'> = $props();
+  const searching = shownWait(() => pending);
 
   const popupId = `${uid}-tools`;
 
@@ -86,23 +88,24 @@
   const described = $derived(list([current, ...tools.map(labelOf)]));
 
   /* Said a moment after the last keystroke or pick, so a reader typing hears one count, and
-     never on first paint, when nothing has changed yet. A pick that leaves the count as it was
-     is said again, so the reader knows the list answered; `onsearch` hears only a new query. */
+     never on first paint, when nothing has changed yet, nor when the holder renders again with
+     the same values. A pick that leaves the count as it was is said again, so the reader knows
+     the list answered; `onsearch` hears only a new query. */
   const PAUSE = 600;
   let said = $state('');
   let told = $state(0);
-  let primed = false;
+  let heard: string | undefined;
+  let timer: ReturnType<typeof setTimeout> | undefined;
   let searched = untrack(() => query);
   $effect(() => {
     const settled = query;
     const waiting = pending;
     const total = count;
-    void [current, chosen];
-    if (!primed) {
-      primed = true;
-      return;
-    }
-    const timer = setTimeout(() => {
+    const now = JSON.stringify([settled, waiting, total, current, chosen]);
+    if (now === (heard ??= now)) return;
+    heard = now;
+    clearTimeout(timer);
+    timer = setTimeout(() => {
       said = untrack(() =>
         waiting ? pendingLabel : total === undefined ? '' : countLabel(total, formatCount(total))
       );
@@ -111,20 +114,24 @@
       searched = settled;
       onsearch?.(settled);
     }, PAUSE);
-    return () => clearTimeout(timer);
   });
+  $effect(() => () => clearTimeout(timer));
 
-  function onbeforetoggle(event: ToggleEvent) {
-    if (event.newState === 'open') collapsed = segments !== null && !segments.checkVisibility();
-  }
-
-  function ontoggle(event: ToggleEvent & { currentTarget: HTMLElement }) {
-    if (event.newState !== 'open') return;
+  // The browser focuses the menu's `autofocus` control as it shows the menu, so a key pressed
+  // right after the press already lands inside; `toggle` comes a task later, and on a busy page a
+  // Shift+Tab in between would leave from the tools button with the menu still open. The mark
+  // goes as the menu closes, or a Modal around it would open on the hidden control.
+  function onbeforetoggle(event: ToggleEvent & { currentTarget: HTMLElement }) {
     const menu = event.currentTarget;
+    for (const marked of menu.querySelectorAll<HTMLElement>('[autofocus]'))
+      marked.autofocus = false;
+    if (event.newState !== 'open') return;
+    collapsed = segments !== null && !segments.checkVisibility();
+    flushSync();
     const choice =
       menu.querySelector<HTMLInputElement>('input:checked') ??
       menu.querySelector<HTMLInputElement>('input:enabled');
-    choice?.focus({ preventScroll: true });
+    if (choice) choice.autofocus = true;
   }
 </script>
 
@@ -150,7 +157,7 @@ button. Without `tools` there is no button and the filter never folds.
 - Focus: opening the menu moves focus to its first chosen option; closing it with Escape returns focus to the tools button.
 - Responsive: a container query folds the filter into the menu under 18rem; the search, the filter unit and the action wrap as whole pieces.
 - Accessibility: each group's heading is drawn and names it; `count` and `pending` are said through a polite status a moment after the reader pauses; the tools button is described by the choices it holds.
-- Localization: `toolsLabel`, `pendingLabel` and `countLabel`, a function of the count with the count formatted in the page's language, are props with English defaults; the tools' choices are joined as a list in the page's language, the folded filter is set off by a dot rather than a written mark, and the bar follows the reading direction.
+- Localization: `toolsLabel`, `pendingLabel` and `countLabel`, a function of the count with the count in the reader's format, are props with English defaults; the tools' choices are joined as a list in the page's language, the folded filter is set off by a dot rather than a written mark, and the bar follows the reading direction.
 - Performance: one container query and one short timer per bar; the menu mounts only with `tools`.
 - Analytics: each group's `onchange` hears its pick, and `onsearch` hears a new query once the reader pauses, never a repeat of the last one.
 - Failure: `pending` says `pendingLabel`, and a count of 0 says `countLabel(0)`, while the list below draws its own empty state with the way out.
@@ -186,7 +193,7 @@ button. Without `tools` there is no button and the filter never folds.
       </span>
     </div>
     <!-- Seen while a search is on its way; the status says it to a screen reader. -->
-    {#if pending}
+    {#if searching.current}
       <span class="sui-list-toolbar-pending" aria-hidden="true">
         <span class="sui-list-toolbar-spinner"></span><span>{pendingLabel}</span>
       </span>
@@ -209,7 +216,7 @@ button. Without `tools` there is no button and the filter never folds.
                 aria-controls={popupId}
                 aria-describedby={`${uid}-described`}
               >
-                {#snippet icon()}<Icon name="sliders" size="sm" />{/snippet}
+                {#snippet icon()}<Icon name="sliders" size="base" />{/snippet}
                 {toolsLabel}
               </Button>
             </span>
@@ -246,7 +253,6 @@ button. Without `tools` there is no button and the filter never folds.
     aria-label={toolsLabel}
     closeOnLeave
     {onbeforetoggle}
-    {ontoggle}
   >
     <div class="sui-list-toolbar-panel">
       {#if collapsed && filter}{@render group(filter, `${uid}-menu-filter`)}{/if}
@@ -351,6 +357,7 @@ button. Without `tools` there is no button and the filter never folds.
       var(--sui-sans);
     min-inline-size: 0;
     overflow-wrap: anywhere;
+    padding-block: var(--sui-block-snap-room-even);
     text-box: trim-both cap alphabetic;
   }
 
@@ -383,8 +390,8 @@ button. Without `tools` there is no button and the filter never folds.
   .sui-list-toolbar-spinner {
     animation: sui-list-toolbar-spin var(--sui-duration-spinner) var(--sui-ease-linear) infinite;
     block-size: var(--sui-icon-sm);
-    border: var(--sui-stroke-bold) solid currentColor;
-    border-inline-end-color: transparent;
+    border: var(--sui-stroke-bold) solid color-mix(in srgb, currentColor 25%, transparent);
+    border-block-start-color: currentColor;
     border-radius: 50%;
     box-sizing: border-box;
     flex: none;
@@ -448,6 +455,7 @@ button. Without `tools` there is no button and the filter never folds.
       var(--sui-sans);
     letter-spacing: 0.07em;
     margin: 0;
+    padding-block: var(--sui-block-snap-room-even);
     text-box: trim-both cap alphabetic;
     text-transform: uppercase;
   }

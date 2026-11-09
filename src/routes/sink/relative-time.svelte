@@ -1,6 +1,6 @@
 <script module lang="ts">
   export const section = {
-    title: 'Relative time',
+    title: 'Relative Time',
     lead: 'A time read as how long ago or how soon, with the whole instant in a tooltip. The day over a run of entries is a DayHeading.',
     components: ['RelativeTime']
   };
@@ -54,11 +54,11 @@
   title="Exact"
   note="The whole instant shows in place, for a reader who chose it, and the tooltip goes away"
 >
-  <Specimen label="Whole instant" code="exact"><RelativeTime value={instant} exact /></Specimen>
+  <Specimen label="Whole instant"><RelativeTime value={instant} exact /></Specimen>
 </Example>
 
 <Example
-  title="In context"
+  title="In Context"
   note="The time stays one word in a sentence, and every instance reads one page clock"
 >
   <p class="line">

@@ -12,14 +12,12 @@
   export type SectionContext = {
     readonly id: string;
     readonly source: string;
-    /** The level of the examples' headings, one under the section's title. */
-    readonly level: 2 | 3;
   };
 </script>
 
 <script lang="ts">
   import { setContext } from 'svelte';
-  import { Link } from '#lib';
+  import { Link, VisuallyHidden } from '#lib';
   import { sources, type SinkSection } from './sections';
 
   let {
@@ -39,9 +37,6 @@
     },
     get source() {
       return source;
-    },
-    get level() {
-      return head ? 3 : 2;
     }
   });
 
@@ -105,18 +100,25 @@
      each (L-108). -->
 <section {id} class={['section', { headed: head }]} {@attach stillWhenAway}>
   <header class="head">
+    <!-- A component's own page says the title in its page header, and its examples still stand
+         a level under a heading of their own, so the levels a demo gives its components fit
+         both pages (L-78). -->
     {#if head}
       <h2>{meta.title}</h2>
       <p class="lead">{meta.lead}</p>
+    {:else}
+      <VisuallyHidden><h2>Examples</h2></VisuallyHidden>
     {/if}
     {#if meta.components.length > 0}
       <p class="sources">
         <span class="sources-label">Source</span>
         {#each meta.components as name (name)}
           {#if sources[name]}
-            <Link href={REPOSITORY + sources[name]} standalone>{name}</Link>
+            <Link href={REPOSITORY + sources[name]} standalone
+              ><span translate="no">{name}</span></Link
+            >
           {:else}
-            <span class="name">{name}</span>
+            <span class="name" translate="no">{name}</span>
           {/if}
         {/each}
       </p>
@@ -143,9 +145,22 @@
     margin-block-start: var(--sui-space-8);
   }
 
+  /* A component's own page has only its source row over the examples. */
+  .section:not(.headed) {
+    gap: var(--sui-space-6);
+  }
+
+  /* On a phone the source row stands 12px over the first example, so it reads as their head,
+     while the examples keep 24px between them, so each reads apart from the next. */
+  @media (max-width: 47.9375rem) {
+    .section:not(.headed) > .head {
+      margin-block-end: calc(var(--sui-space-3) - var(--sui-space-6));
+    }
+  }
+
   .head {
     display: grid;
-    gap: var(--sui-row-copy-gap);
+    gap: var(--sui-title-copy-gap);
   }
 
   h2 {
@@ -156,6 +171,7 @@
       var(--sui-sans);
     letter-spacing: -0.015em;
     margin: 0;
+    padding-block: var(--sui-block-snap-room);
     text-box: trim-both cap alphabetic;
   }
 
@@ -173,6 +189,8 @@
     font: var(--sui-weight-regular) var(--sui-font-size-body) / var(--sui-row-copy-leading)
       var(--sui-sans);
     margin: 0;
+    max-inline-size: var(--sui-measure);
+    padding-block: var(--sui-block-snap-room);
     text-box: trim-both cap alphabetic;
     text-wrap: pretty;
   }

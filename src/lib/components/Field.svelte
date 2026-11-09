@@ -70,14 +70,15 @@
 
 <!--
 @component
-A label, its control, and the help and error under it, 8px apart as rendered ink. With no
-`control` it draws a `TextInput`, and every native input attribute, `bind:value` and `class`
+A label, its control and the help under it, 12px apart as rendered ink, so the focus ring
+keeps clear of the words, and an error 20px under the help. With no `control` it draws a `TextInput`, and every native input attribute, `bind:value` and `class`
 land on that input.
 
 Any other control goes in the `control` snippet, which receives the `id` the label points at,
 the `describedby` ids of the hint and the error, `invalid` and `required`. Spread them onto a
-`Textarea`, a `Select`, a `Checkbox` or a picker. `layout="row"` sets the label beside a
-checkbox or a switch, both centred on one line.
+`Textarea`, a `Select`, a `Checkbox` or a picker. `layout="row"` sets a checkbox before the
+label and a switch after it, both centred on one line, and a checkbox row's hint or error
+stands 12px under the box, as under any other control.
 
 `required` writes the word "Required" beside the label, never only an asterisk, and marks
 the control. The word stays out of the accessibility tree, because the control already
@@ -103,7 +104,7 @@ the `control` snippet reports here on its own, and a control of another kind kee
 - Keyboard: a press on the label focuses the control; the control brings its own keys.
 - Pointer and touch: the label is part of a text control's target, and the control keeps its own sizes.
 - Focus: a send the browser's check refuses moves focus to the first refused control and scrolls its field into view, clear of the page's sticky bars through the page's scroll padding.
-- Responsive: it fills its column, and a long label, hint or error wraps with the same 8px gap between lines; `row` keeps a switch or checkbox beside a label that wraps.
+- Responsive: it fills its column, and a long label, hint or error wraps at the hint's 20px leading; `row` keeps a switch or checkbox beside a label that wraps.
 - Accessibility: the label names the control, hint and error describe it, the error is spoken when it appears, and every line holds 4.5:1.
 - Localization: `requiredLabel` is a prop with an English default, the label, hint, error and `validationMessage` come from the caller, a refusal without `validationMessage` is in the browser's words for the reader's language, and the layout is logical.
 - Performance: static markup and one status per field; nothing animates.
@@ -141,7 +142,7 @@ the `control` snippet reports here on its own, and a control of another kind kee
        description still reads it. -->
   {#if shown}
     <p id="{id}-error" class="sui-field-error" aria-hidden="true">
-      <span class="sui-field-error-mark"><Icon name="alert" size="xs" /></span>
+      <span class="sui-field-error-mark"><Icon name="alert" size="base" /></span>
       <span class="sui-field-error-text">{shown}</span>
     </p>
   {/if}
@@ -151,7 +152,7 @@ the `control` snippet reports here on its own, and a control of another kind kee
 <style>
   .sui-field {
     display: grid;
-    gap: var(--sui-row-copy-gap);
+    gap: var(--sui-field-gap);
     min-inline-size: 0;
   }
 
@@ -165,14 +166,57 @@ the `control` snippet reports here on its own, and a control of another kind kee
     grid-column: 1 / -1;
   }
 
+  /* A form's check box leads its label, as a `Checkbox` with words does, so the box reads as
+     the label's own and its hint and error hang under the words; a switch ends the row. */
+  .sui-field[data-layout='row']:has(
+      > .sui-field-control :global(input[type='checkbox']:not([role='switch']))
+    ) {
+    column-gap: var(--sui-space-2);
+    grid-template-columns: auto minmax(0, 1fr);
+
+    /* The control row is as tall as the box, not its 34px or 44px target, which stands past
+       the row, so the hint or error stands the field gap under the box as it does under any
+       other control. The label's box rounds to an even height, as the box's is, so the label
+       centres on whole pixels (L-95). */
+    > .sui-field-control {
+      --sui-local-checkbox-bleed: initial;
+      block-size: var(--sui-icon-md);
+      grid-area: 1 / 1;
+      min-block-size: 0;
+    }
+
+    > :not(.sui-field-control) {
+      grid-column: 2;
+    }
+
+    .sui-field-label {
+      block-size: var(--sui-block-snap-even);
+      padding-block: var(--sui-block-snap-room-even);
+    }
+
+    /* The warning mark sits in the box's column, so the error's words start on the label's
+       edge as the hint's do. */
+    > .sui-field-error {
+      column-gap: normal;
+      grid-column: 1 / -1;
+      grid-template-columns: subgrid;
+    }
+
+    .sui-field-error-mark {
+      justify-self: center;
+    }
+  }
+
   .sui-field-label {
     align-content: center;
     block-size: var(--sui-block-snap);
-    color: var(--sui-text-secondary);
-    font: var(--sui-weight-semibold) var(--sui-font-size-control) / var(--sui-row-copy-leading)
+    color: var(--sui-text-primary);
+    font: var(--sui-weight-semibold) var(--sui-font-size-control) / var(--sui-leading-note)
       var(--sui-sans);
     min-inline-size: 0;
+    padding-block: var(--sui-block-snap-room);
     text-box: trim-both cap alphabetic;
+    text-wrap: pretty;
   }
 
   /* The label of a box or a switch flips it on a click, so it shows the pointer (L-100). */
@@ -183,20 +227,23 @@ the `control` snippet reports here on its own, and a control of another kind kee
     cursor: pointer;
   }
 
+  /* "Required" that wraps under a long label stands a copy gap under it (L-24). */
   .sui-field-head {
     align-items: baseline;
     display: flex;
     flex-wrap: wrap;
-    gap: var(--sui-space-1) var(--sui-space-2);
+    gap: var(--sui-space-2);
     min-inline-size: 0;
   }
 
+  /* A step under the label, so the mark reads as a note on the question, not a second label. */
   .sui-field-required {
     align-content: center;
     block-size: var(--sui-block-snap);
     color: var(--sui-text-muted);
-    font: var(--sui-weight-regular) var(--sui-font-size-control) / var(--sui-row-copy-leading)
+    font: var(--sui-weight-medium) var(--sui-font-size-caption) / var(--sui-row-copy-leading)
       var(--sui-sans);
+    padding-block: var(--sui-block-snap-room);
     text-box: trim-both cap alphabetic;
   }
 
@@ -214,6 +261,7 @@ the `control` snippet reports here on its own, and a control of another kind kee
     min-block-size: var(--sui-control-height-compact);
   }
 
+  /* A note that wraps keeps more than one word on its last line. */
   .sui-field-help,
   .sui-field-error-text {
     align-content: center;
@@ -221,21 +269,29 @@ the `control` snippet reports here on its own, and a control of another kind kee
     margin: 0;
     min-inline-size: 0;
     overflow-wrap: anywhere;
+    padding-block: var(--sui-block-snap-room);
     text-box: trim-both cap alphabetic;
+    text-wrap: pretty;
   }
 
   .sui-field-help {
     color: var(--sui-text-secondary);
-    font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-row-copy-leading)
+    font: var(--sui-weight-regular) var(--sui-font-size-note) / var(--sui-leading-note)
       var(--sui-sans);
+  }
+
+  /* An error stands a step further from the hint over it than the hint from its control, so
+     the two quiet lines never read as one block (L-35). */
+  .sui-field-help + .sui-field-error {
+    margin-block-start: var(--sui-space-2);
   }
 
   .sui-field-error {
     align-items: start;
     color: var(--sui-danger);
-    column-gap: var(--sui-space-1);
+    column-gap: var(--sui-space-2);
     display: grid;
-    font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-row-copy-leading)
+    font: var(--sui-weight-medium) var(--sui-font-size-note) / var(--sui-leading-note)
       var(--sui-sans);
     grid-template-columns: auto minmax(0, 1fr);
     margin: 0;
@@ -244,6 +300,6 @@ the `control` snippet reports here on its own, and a control of another kind kee
   /* Centred on the first line's cap height, however many lines the error wraps to. */
   .sui-field-error-mark {
     display: flex;
-    margin-block: round(calc((1cap - var(--sui-icon-xs)) / 2), 1px);
+    margin-block: round(calc((1cap - var(--sui-icon-base)) / 2), 1px);
   }
 </style>

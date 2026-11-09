@@ -34,7 +34,7 @@
     value = $bindable(null),
     options,
     placeholder,
-    promptLabel = word('Select.promptLabel', 'Choose an option'),
+    promptLabel = word('Select.promptLabel', 'Choose an option…'),
     separator = word('Select.separator', ' · '),
     optionName = word(
       'Select.optionName',
@@ -100,14 +100,18 @@
      hold it stays a tab stop and refuses the press that opens it and every key but Tab. */
   const around = holdAround();
   const holding = $derived(held(element, around));
+  // A caller's `aria-disabled` refuses the value as a soft hold does, but lets Escape reach a
+  // dialog around it, which a hold keeps open while its work runs.
+  const refusing = $derived(Boolean(holding) || String(rest['aria-disabled']) === 'true');
 
   function press(event: MouseEvent & { currentTarget: EventTarget & HTMLSelectElement }) {
-    if (holding) event.preventDefault();
+    if (refusing) event.preventDefault();
     else onmousedown?.(event);
   }
 
   function key(event: KeyboardEvent & { currentTarget: EventTarget & HTMLSelectElement }) {
-    if (holding && event.key !== 'Tab') event.preventDefault();
+    const passes = event.key === 'Tab' || (event.key === 'Escape' && !holding);
+    if (refusing && !passes) event.preventDefault();
     else onkeydown?.(event);
   }
 
@@ -139,7 +143,7 @@ assistive technology, because a native picker cannot be held open.
 
 - Semantics: a native `<select>` with `<option>` and `<optgroup>` children, named by a `<label for>` or `aria-label`; `invalid` or a value the browser's check refused sets `aria-invalid`.
 - Content: six or more options with short labels and optional notes, in optional headed groups; disabled options stay in view.
-- States: rest (the control fill, a quiet frame, a recess under its top edge darker than the frame and a 3:1 baseline), hover (a firmer frame and recess), open, focus (a flush 2px ring), pressed (a deeper ground, an inset shadow and a 1px sink), invalid (a danger edge kept under focus), prompt (muted ink), held (disabled while a busy dialog or a saving pane around it works, a tab stop that refuses every change while a saving setting row does, 0.5 opacity either way) and disabled (0.5 opacity); in the picker an option is active (a veil) or checked (a check mark).
+- States: rest (the control fill, a quiet frame, a recess under its top edge darker than the frame and a 3:1 baseline), hover (a firmer frame and recess), open, focus (a frame and baseline leaning toward the ring, and a 2px ring 2px off it), pressed (a deeper ground, an inset shadow and a 1px sink), invalid (a danger edge kept under focus), prompt (muted ink), held (disabled while a busy dialog or a saving pane around it works, a tab stop that refuses every change while a saving setting row does, 0.6 opacity either way) and disabled (0.6 opacity); in the picker an option is active (a veil) or checked (a check mark).
 - Keyboard: the browser's own select keys: Space, Enter and the arrows open it and move, typing jumps to a label, and Escape closes it; a held select refuses all of them but Tab.
 - Pointer and touch: the trigger is 34px tall on a pointer and 44px on a phone or any touch screen, every option at least that tall, and a phone opens its own picker.
 - Focus: focus stays on the trigger while the picker opens and closes.
@@ -190,7 +194,7 @@ assistive technology, because a native picker cannot be held open.
       class="sui-select-control"
       aria-invalid={wrong || undefined}
       disabled={rest.disabled || holding === 'firm'}
-      aria-disabled={Boolean(holding) || rest['aria-disabled']}
+      aria-disabled={refusing || undefined}
       onmousedown={press}
       onkeydown={key}
       bind:value={() => value ?? '', (next) => (value = next === '' ? null : next)}
@@ -229,7 +233,7 @@ assistive technology, because a native picker cannot be held open.
         {/if}
       {/each}
     </select>
-    <span class="sui-select-chevron"><Icon name="chevron-down" size="sm" /></span>
+    <span class="sui-select-chevron"><Icon name="chevron-down" size="base" /></span>
   </span>
 {/snippet}
 
@@ -287,11 +291,10 @@ assistive technology, because a native picker cannot be held open.
     min-inline-size: 0;
     overflow: hidden;
     padding-block: 0;
-    padding-inline: var(--sui-space-2) calc(2 * var(--sui-space-2) + var(--sui-icon-sm));
+    padding-inline: var(--sui-field-inset)
+      calc(var(--sui-field-inset) + var(--sui-icon-base) + var(--sui-space-2));
     text-overflow: ellipsis;
-    transition:
-      translate var(--sui-duration-press) var(--sui-ease-standard),
-      box-shadow var(--sui-duration-press) var(--sui-ease-standard);
+    transition: translate var(--sui-duration-press) var(--sui-ease-standard);
     -webkit-user-select: none;
     user-select: none;
     white-space: nowrap;
@@ -348,11 +351,15 @@ assistive technology, because a native picker cannot be held open.
         :focus-visible
       ) {
       background-color: var(--sui-field-danger-hover);
-      border-color: var(--sui-danger-hover);
+      border-color: var(--sui-danger-edge-hover);
     }
   }
 
+  /* Only the press eases its inset in; hover swaps the recess at once (L-104). */
   .sui-select-control:active:not(:disabled, [aria-disabled='true']) {
+    transition:
+      translate var(--sui-duration-press) var(--sui-ease-standard),
+      box-shadow var(--sui-duration-press) var(--sui-ease-standard);
     background-image: linear-gradient(
       var(--sui-interactive-pressed),
       var(--sui-interactive-pressed)
@@ -367,15 +374,29 @@ assistive technology, because a native picker cannot be held open.
     translate: 0 1px;
   }
 
+  /* A field keeps its own frame, editable, danger or read-only, and the ring stands 2px off it,
+     so every state wears one ring and the frame's color still shows (L-41). */
   .sui-select-control:focus-visible {
-    border-color: var(--sui-focus);
     outline: var(--sui-focus-ring-width) solid var(--sui-focus);
-    outline-offset: var(--sui-focus-ring-flush);
+    outline-offset: var(--sui-focus-ring-offset);
   }
 
-  /* After focus, so a refused value keeps its edge under the ring, as a text field does. */
+  .sui-select-control:focus-visible:not([aria-invalid='true'], :user-invalid) {
+    --sui-field-recess: var(--sui-field-recess-focus);
+    border-color: var(--sui-field-frame-focus);
+    border-block-end-color: var(--sui-field-border-focus);
+  }
+
+  /* An invalid field's ring takes the danger color, so focus never reads as a second, calm
+     state beside the red edge (L-41). */
+  .sui-select-control:is([aria-invalid='true'], :user-invalid):focus-visible {
+    outline-color: var(--sui-focus-danger);
+  }
+
   .sui-select-control:is([aria-invalid='true'], :user-invalid) {
-    border-color: var(--sui-danger);
+    --sui-field-recess: var(--sui-field-danger-recess);
+    --sui-field-recess-hover: var(--sui-field-danger-recess-hover);
+    border-color: var(--sui-danger-edge);
   }
 
   .sui-select-control:is(:disabled, [aria-disabled='true']) {
@@ -403,7 +424,7 @@ assistive technology, because a native picker cannot be held open.
     color: var(--sui-text-secondary);
     margin-block: calc(-1 * var(--sui-stroke));
     /* The field's own text inset, so the unit's words sit as far in as a value's would. */
-    padding-inline-start: var(--sui-space-2);
+    padding-inline-start: var(--sui-field-inset);
     translate: none;
   }
 
@@ -416,6 +437,7 @@ assistive technology, because a native picker cannot be held open.
 
   .bare .sui-select-control:open {
     background-color: var(--sui-interactive-hover-layer);
+    color: var(--sui-hover-ink);
   }
 
   .bare .sui-select-control:active:not(:disabled, [aria-disabled='true']) {
@@ -441,6 +463,7 @@ assistive technology, because a native picker cannot be held open.
   @media (hover: hover) {
     .bare .sui-select-control:hover:not(:disabled, [aria-disabled='true'], :active) {
       background-color: var(--sui-interactive-hover-layer);
+      color: var(--sui-hover-ink);
     }
 
     .bare:has(.sui-select-control:hover:not(:disabled, [aria-disabled='true'])) .sui-select-control,
@@ -455,6 +478,11 @@ assistive technology, because a native picker cannot be held open.
     opacity: 1;
   }
 
+  /* A joined field that is off names the muted ink its words take (L-40). */
+  .bare .sui-select-control:is(:disabled, [aria-disabled='true']) {
+    color: var(--sui-local-joined-off-ink, var(--sui-text-secondary));
+  }
+
   /* The chevron turns over while the picker is open. */
   .sui-select-control:open + .sui-select-chevron {
     rotate: 180deg;
@@ -465,7 +493,7 @@ assistive technology, because a native picker cannot be held open.
     color: var(--sui-text-muted);
     display: inline-flex;
     justify-self: end;
-    margin-inline-end: var(--sui-space-2);
+    margin-inline-end: var(--sui-field-inset);
     pointer-events: none;
     transition: rotate var(--sui-duration-open) var(--sui-ease-standard);
   }
@@ -514,9 +542,15 @@ assistive technology, because a native picker cannot be held open.
         block-size: var(--sui-block-snap-even);
         min-inline-size: 0;
         overflow-x: clip;
+        padding-block: var(--sui-block-snap-room-even);
         text-box: trim-both cap alphabetic;
         text-overflow: ellipsis;
         white-space: nowrap;
+      }
+
+      /* An empty choice draws no line, so it takes no room for one. */
+      .sui-select-value:empty {
+        padding-block: 0;
       }
 
       .sui-select-value .sui-select-check,
@@ -589,7 +623,7 @@ assistive technology, because a native picker cannot be held open.
      the colors and the font here. */
   .sui-select-option {
     align-items: center;
-    border-radius: var(--sui-radius-control);
+    border-radius: var(--sui-radius-popover-row);
     box-sizing: border-box;
     color: var(--sui-text-primary);
     cursor: pointer;
@@ -644,6 +678,7 @@ assistive technology, because a native picker cannot be held open.
     flex: 1 1 auto;
     min-inline-size: 0;
     overflow-wrap: anywhere;
+    padding-block: var(--sui-block-snap-room-even);
     text-box: trim-both cap alphabetic;
   }
 
@@ -689,6 +724,7 @@ assistive technology, because a native picker cannot be held open.
 
     .sui-select-control:active:not(:disabled, [aria-disabled='true']),
     .sui-select-control:active:not(:disabled, [aria-disabled='true']) + .sui-select-chevron {
+      transition: none;
       translate: none;
     }
 

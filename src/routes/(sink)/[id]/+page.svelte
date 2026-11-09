@@ -9,6 +9,7 @@
   eyebrow={data.section.family}
   title={data.section.meta.title}
   description={data.section.meta.lead}
+  sourced
 >
   <Section section={data.section} head={false} />
 </Page>

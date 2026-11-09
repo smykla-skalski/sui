@@ -1,3 +1,11 @@
+<script module lang="ts">
+  /* The first tip in a group waits, and while a tip shows or has just closed the next one shows
+     at once, so a reader sweeping a toolbar is not made to wait at each button (Radix). */
+  const WARM_FOR = 300;
+  let showing = 0;
+  let warmUntil = 0;
+</script>
+
 <script lang="ts">
   import { follow, place, type Placement } from '../internal/anchor.js';
   import { themeAt } from '../internal/theme.svelte.js';
@@ -98,7 +106,7 @@
     const control = owner;
     if (!target || !control || preview) return;
     const onenter = (event: PointerEvent) => {
-      if (hovers(event)) show(SHOW_DELAY);
+      if (hovers(event)) show(showing > 0 || performance.now() < warmUntil ? 0 : SHOW_DELAY);
     };
     // No timer on focus: an Escape pressed before a timer fired would pass the tip and close
     // the dialog around it.
@@ -190,6 +198,15 @@
   });
 
   $effect(() => {
+    if (!open || preview) return;
+    showing += 1;
+    return () => {
+      showing -= 1;
+      warmUntil = performance.now() + WARM_FOR;
+    };
+  });
+
+  $effect(() => {
     if (!element || preview) return;
     const shown = element.matches(':popover-open');
     if (open && !shown) element.showPopover();
@@ -267,6 +284,8 @@ does, stays out of the accessibility tree. Any other tip describes the control t
        a scroller that Tab can enter. It is one short line that never scrolls. */
     overflow: visible;
     padding: var(--sui-space-2) var(--sui-space-3);
+    padding-block: calc(var(--sui-space-2) + var(--sui-block-snap-half, 0px))
+      calc(var(--sui-space-2) + var(--sui-block-snap-spare, 0px) - var(--sui-block-snap-half, 0px));
     /* The words run from their cap line to their baseline, so the padding is the room above
        and under them alike (L-102). */
     text-box: trim-both cap alphabetic;

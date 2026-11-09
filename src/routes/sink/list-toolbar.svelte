@@ -1,6 +1,6 @@
 <script module lang="ts">
   export const section = {
-    title: 'List toolbar',
+    title: 'List Toolbar',
     lead: 'The bar over a list, with a search, an optional filter and tools, and one action. A search outside a list is a SearchField.',
     components: ['ListToolbar']
   };
@@ -17,6 +17,7 @@
     Pill,
     type ListToolGroup
   } from '#lib';
+  import { addressed } from '../kit/address.svelte.js';
   import Example from '../kit/Example.svelte';
   import Specimen from '../kit/Specimen.svelte';
 
@@ -68,13 +69,14 @@
   const narrow = choices('active', 'name');
   const list = choices('all', 'updated');
 
-  let query = $state('');
+  // The search is kept in the address, so a shared link opens the list as filtered.
+  const search = addressed('q', '');
 
   let context = $state<HTMLElement>();
 
   // The button leaves with the empty state, so focus goes back to the search it cleared.
   async function clear() {
-    query = '';
+    search.value = '';
     list.picked.shown = 'all';
     await tick();
     context?.querySelector<HTMLInputElement>('[role="searchbox"]')?.focus();
@@ -83,7 +85,7 @@
   const rows = $derived(
     repositories
       .filter((repository) => list.picked.shown === 'all' || repository.state === list.picked.shown)
-      .filter((repository) => repository.name.includes(query.trim().toLowerCase()))
+      .filter((repository) => repository.name.includes(search.value.trim().toLowerCase()))
       .sort((a, b) =>
         list.picked.order === 'name' ? a.name.localeCompare(b.name) : a.updated - b.updated
       )
@@ -95,59 +97,54 @@
   note="The search leads, a filter stands beside its heading with its tools button and their choices, and one action may end the bar"
   layout="stack"
 >
-  <Specimen label="Search and action" code="action">
-    <ListToolbar searchLabel="Search members" placeholder="Search members…">
-      {#snippet action()}<Button>Invite member</Button>{/snippet}
+  <Specimen label="Search & action">
+    <ListToolbar searchLabel="Search members" placeholder="octocat…">
+      {#snippet action()}<Button>Invite Member</Button>{/snippet}
     </ListToolbar>
   </Specimen>
-  <Specimen label="Filter and tools" code="filter tools">
+  <Specimen label="Filter & tools">
     <ListToolbar
       searchLabel="Search repositories"
-      placeholder="Search repositories…"
+      placeholder="sui…"
       filter={parts.filter}
       tools={parts.tools}
     />
   </Specimen>
-  <Specimen label="Searching" code="pending">
-    <ListToolbar
-      searchLabel="Search repositories"
-      placeholder="Search repositories…"
-      query="sm"
-      pending
-    />
+  <Specimen label="Searching">
+    <ListToolbar searchLabel="Search repositories" placeholder="sui…" query="sm" pending />
   </Specimen>
 </Example>
 
 <Example
-  title="Narrow width"
-  note="Under 18rem the filter folds into the tools menu, and the bar names the choice beside the button"
+  title="Narrow Width"
+  note="Under 18 rem the filter folds into the tools menu, and the bar names the choice beside the button"
   layout="stack"
 >
-  <Specimen label="In 17rem">
+  <Specimen label="In 17 rem">
     <div class="narrow">
       <ListToolbar searchLabel="Search repositories" filter={narrow.filter} tools={narrow.tools}>
-        {#snippet action()}<Button>Add repository</Button>{/snippet}
+        {#snippet action()}<Button>Add Repository</Button>{/snippet}
       </ListToolbar>
     </div>
   </Specimen>
 </Example>
 
 <Example
-  title="In context"
+  title="In Context"
   note="The bar stands over the list it filters, owns no list state and says how many rows are left after a pause"
   layout="stack"
   ground="canvas"
 >
   <div class="stack" bind:this={context}>
     <ListToolbar
-      bind:query
+      bind:query={() => search.value, (next) => (search.value = next)}
       searchLabel="Search repositories"
-      placeholder="Search repositories…"
+      placeholder="sui…"
       filter={list.filter}
       tools={list.tools}
       count={rows.length}
     >
-      {#snippet action()}<Button tone="signal">Add repository</Button>{/snippet}
+      {#snippet action()}<Button tone="signal">Add Repository</Button>{/snippet}
     </ListToolbar>
     {#if rows.length > 0}
       <ObjectList>
@@ -155,7 +152,7 @@
           <ObjectRow>
             {#snippet main()}
               <span class="name">{repository.name}</span>
-              <span class="sum">Updated {repository.updated} days ago</span>
+              <span class="sum">Updated {repository.updated}&nbsp;days ago</span>
             {/snippet}
             {#snippet side()}
               {#if repository.state === 'archived'}<Pill>Archived</Pill>{/if}
@@ -165,10 +162,10 @@
       </ObjectList>
     {:else}
       <EmptyState
-        title="No repositories match"
+        title="No Repositories Match"
         description="Clear the search and show every state to see the rest"
       >
-        {#snippet action()}<Button onclick={clear}>Show every repository</Button>{/snippet}
+        {#snippet action()}<Button onclick={clear}>Show Every Repository</Button>{/snippet}
       </EmptyState>
     {/if}
   </div>
@@ -192,6 +189,7 @@
     font: var(--sui-weight-semibold) var(--sui-font-size-meta) / var(--sui-row-copy-leading)
       var(--sui-sans);
     overflow-wrap: anywhere;
+    padding-block: var(--sui-block-snap-room);
     text-box: trim-both cap alphabetic;
   }
 
@@ -202,6 +200,7 @@
     font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-row-copy-leading)
       var(--sui-sans);
     overflow-wrap: anywhere;
+    padding-block: var(--sui-block-snap-room);
     text-box: trim-both cap alphabetic;
   }
 </style>

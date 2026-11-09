@@ -1,12 +1,21 @@
 export type Rgba = { r: number; g: number; b: number; a: number };
 
 let context: CanvasRenderingContext2D | null = null;
+// A detached canvas paints a color the same way every time, and a page computes a few hundred
+// colors at most, so each is painted once.
+const painted = new Map<string, Readonly<Rgba>>();
 
 /**
  * Any CSS color the browser can compute, as 8-bit sRGB. Painting one pixel is the one
  * conversion that handles `color-mix()`, `oklab()` and `color(srgb …)` the same way the page does.
  */
-export function rgba(css: string): Rgba {
+export function rgba(css: string): Readonly<Rgba> {
+  let color = painted.get(css);
+  if (!color) painted.set(css, (color = Object.freeze(paint(css))));
+  return color;
+}
+
+function paint(css: string): Rgba {
   context ??= Object.assign(document.createElement('canvas'), { width: 1, height: 1 }).getContext(
     '2d',
     { willReadFrequently: true }
@@ -37,6 +46,23 @@ export function luminance({ r, g, b }: Rgba): number {
 export function contrast(a: Rgba, b: Rgba): number {
   const [light, dark] = [luminance(a), luminance(b)].sort((x, y) => y - x);
   return (light + 0.05) / (dark + 0.05);
+}
+
+/**
+ * The APCA lightness contrast (Lc) of text on its ground, as APCA-W3 0.1.9 gives it, without
+ * the sign. A light ink on a dark ground and a dark ink on a light one read with different
+ * curves, which WCAG 2's one ratio cannot say.
+ */
+export function apca(text: Rgba, ground: Rgba): number {
+  const y = ({ r, g, b }: Rgba) => {
+    const value = 0.2126729 * r ** 2.4 + 0.7151522 * g ** 2.4 + 0.072175 * b ** 2.4;
+    return value < 0.022 ? value + (0.022 - value) ** 1.414 : value;
+  };
+  const [ink, back] = [y(text), y(ground)];
+  if (Math.abs(back - ink) < 0.0005) return 0;
+  const scaled =
+    back > ink ? (back ** 0.56 - ink ** 0.57) * 1.14 : (ink ** 0.62 - back ** 0.65) * 1.14;
+  return scaled < 0.1 ? 0 : (scaled - 0.027) * 100;
 }
 
 export type Lab = [number, number, number];

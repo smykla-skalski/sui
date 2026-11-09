@@ -1,6 +1,6 @@
 <script module lang="ts">
   export const section = {
-    title: 'Duration input',
+    title: 'Duration Input',
     lead: 'A duration stored in seconds and said as an amount and a unit. A count of anything else is a TextInput.',
     components: ['DurationInput']
   };
@@ -33,14 +33,14 @@
   title="Units"
   note="A value shows in the largest unit that holds it whole, and a unit that says it plainly keeps its seconds"
 >
-  <Specimen label="Stored as {retry} {retry === 1 ? 'second' : 'seconds'}" code="bind:value max">
+  <Specimen label="Stored as {retry}&nbsp;{retry === 1 ? 'second' : 'seconds'}">
     <Field label="Retry delay">
       {#snippet control({ id, describedby })}
         <DurationInput {id} aria-describedby={describedby} bind:value={retry} max={86400} />
       {/snippet}
     </Field>
   </Specimen>
-  <Specimen label="Stored as {merge} {merge === 1 ? 'second' : 'seconds'}" code="bind:value">
+  <Specimen label="Stored as {merge}&nbsp;{merge === 1 ? 'second' : 'seconds'}">
     <Field label="Merge window">
       {#snippet control({ id, describedby })}
         <DurationInput {id} aria-describedby={describedby} bind:value={merge} />
@@ -53,21 +53,21 @@
   title="States"
   note="The range shows before anything goes wrong, text outside it keeps its reason, and a locked field says why"
 >
-  <Specimen label="Out of range" code="min max">
+  <Specimen label="Out of range">
     <Field label="Sweep interval">
       {#snippet control({ id, describedby })}
         <DurationInput {id} aria-describedby={describedby} value={0} min={60} max={86400} />
       {/snippet}
     </Field>
   </Specimen>
-  <Specimen label="Refused" code="invalid">
-    <Field label="Cache lifetime" error="The server refused this lifetime">
+  <Specimen label="Refused">
+    <Field label="Cache lifetime" error="Enter a lifetime of 1 day or less">
       {#snippet control({ id, describedby, invalid })}
-        <DurationInput {id} aria-describedby={describedby} {invalid} value={300} />
+        <DurationInput {id} aria-describedby={describedby} {invalid} value={172800} />
       {/snippet}
     </Field>
   </Specimen>
-  <Specimen label="Disabled" code="disabled">
+  <Specimen label="Disabled">
     <Field label="Lock timeout" hint="Only an owner can change the lock timeout">
       {#snippet control({ id, describedby })}
         <DurationInput {id} aria-describedby={describedby} value={600} disabled />
@@ -77,10 +77,10 @@
 </Example>
 
 <Example
-  title="Saving with a problem"
+  title="Saving with a Problem"
   note="Type 0.5 and save: the button stays enabled and sends focus to the amount, where the reason shows"
 >
-  <Specimen label="Saved as {saved} {saved === 1 ? 'second' : 'seconds'}" code="onproblem">
+  <Specimen label="Saved as {saved}&nbsp;{saved === 1 ? 'second' : 'seconds'}">
     <div class="save">
       <Field id="sink-duration-cadence" label="Check cadence">
         {#snippet control({ id, describedby })}
@@ -94,18 +94,18 @@
           />
         {/snippet}
       </Field>
-      <Button onclick={save}>Save the cadence</Button>
-      <Button onclick={discard} data-reset={cadenceReset}>Discard the cadence</Button>
+      <Button onclick={save}>Save the Cadence</Button>
+      <Button onclick={discard} data-reset={cadenceReset}>Discard the Cadence</Button>
     </div>
   </Specimen>
 </Example>
 
 <Example
-  title="Narrow width"
+  title="Narrow Width"
   note="A long hint or reason wraps under the controls instead of widening the field"
   layout="stack"
 >
-  <Specimen label="Long reason" code="min max">
+  <Specimen label="Long reason">
     <div class="narrow">
       <Field label="Backoff">
         {#snippet control({ id, describedby })}

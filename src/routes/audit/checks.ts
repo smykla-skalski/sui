@@ -1,5 +1,6 @@
 import { describe, register, shown, type Finding } from './audit.js';
-import { contrast, deltaE, lab, lightness, over, rgba, type Rgba } from './color.js';
+import { apca, contrast, deltaE, lab, lightness, over, rgba, type Rgba } from './color.js';
+import { faceInk } from '../../lib/charts/geometry.js';
 
 const IGNORED = '[data-audit-ignore], [data-audit-ignore] *';
 const INTERACTIVE =
@@ -16,31 +17,61 @@ const finding = (law: string, element: Element | null, detail: string): Finding 
 
 // A box still growing or fading is measured between its two states, so nothing inside one is
 // judged until its motion ends. An animation driven by scrolling, such as an edge fade, is
-// not motion: it holds still while the page does.
-const audited = (root: Document, selector: string) => {
-  const moving = root
-    .getAnimations()
-    .filter((animation) => animation.timeline instanceof DocumentTimeline)
-    .map((animation) => (animation.effect as KeyframeEffect | null)?.target)
-    .filter((target): target is Element => target instanceof Element);
-  return [...root.querySelectorAll(selector)].filter(
-    (element) =>
-      !element.matches(IGNORED) &&
-      shown(element) &&
-      !moving.some((target) => target.contains(element))
+// not motion: it holds still while the page does. A check asks about the same elements many
+// times, so each answer is worked out once per check.
+let judging: { moving: Set<Element>; still: Map<Element, boolean> } | undefined;
+function still(root: Document, element: Element): boolean {
+  if (!judging) {
+    const moving = root
+      .getAnimations()
+      .filter((animation) => animation.timeline instanceof DocumentTimeline)
+      .map((animation) => (animation.effect as KeyframeEffect | null)?.target)
+      .filter((target): target is Element => target instanceof Element);
+    judging = { moving: new Set(moving), still: new Map() };
+    queueMicrotask(() => (judging = undefined));
+  }
+  let answer = judging.still.get(element);
+  if (answer === undefined) {
+    const parent = element.parentElement;
+    answer = !judging.moving.has(element) && (parent === null || still(root, parent));
+    judging.still.set(element, answer);
+  }
+  return answer;
+}
+
+const audited = (root: Document, selector: string) =>
+  [...root.querySelectorAll(selector)].filter(
+    (element) => !element.matches(IGNORED) && shown(element) && still(root, element)
   );
-};
 
 const round = (value: number, places = 2) => Number(value.toFixed(places));
 
-// Words that are only heard sit in a box clipped to a pixel, and are never drawn.
+// Words that are only heard sit in a box clipped to a pixel, and are never drawn. Boxes hold
+// still while one check runs, since the page gets no turn inside it, so each ancestor is asked
+// once per check: the answers go when the check returns.
+let heard: Map<Element, boolean> | undefined;
 function heardOnly(element: Element): boolean {
-  for (let node: Element | null = element; node; node = node.parentElement) {
-    const box = node.getBoundingClientRect();
-    if (box.width <= 1 && box.height <= 1 && getComputedStyle(node).overflow !== 'visible')
-      return true;
+  if (!heard) {
+    heard = new Map();
+    queueMicrotask(() => (heard = undefined));
   }
-  return false;
+  const path: Element[] = [];
+  let answer = false;
+  for (let node: Element | null = element; node; node = node.parentElement) {
+    const known = heard.get(node);
+    if (known !== undefined) {
+      answer = known;
+      break;
+    }
+    path.push(node);
+    const box = node.getBoundingClientRect();
+    if (box.width <= 1 && box.height <= 1 && getComputedStyle(node).overflow !== 'visible') {
+      answer = true;
+      break;
+    }
+  }
+  for (const node of path) heard.set(node, answer);
+  return answer;
 }
 
 /** Elements that paint text of their own, with that text. */
@@ -119,10 +150,10 @@ const isDisabled = (element: Element) =>
 // ---------------------------------------------------------------------------------------
 // Palette laws, measured on the tokens as the active theme resolves them.
 
-function token(name: string): Rgba {
+function token(name: string, scope: Element = document.body): Rgba {
   const probe = document.createElement('span');
   probe.style.color = `var(${name})`;
-  document.body.append(probe);
+  scope.append(probe);
   const color = rgba(getComputedStyle(probe).color);
   probe.remove();
   return color;
@@ -151,18 +182,19 @@ function palette(): Finding[] {
   for (const [ink, ground] of [
     ['text-primary', 'surface-base'],
     ['text-primary', 'surface-control'],
-    ['text-primary', 'input-bg'],
+    ['text-primary', 'surface-inset'],
     ['text-secondary', 'surface-base'],
     ['text-muted', 'surface-base'],
     ['text-muted', 'surface-raised'],
     ['text-muted', 'surface-control'],
-    ['text-muted', 'input-bg'],
+    ['text-muted', 'surface-inset'],
+    ['text-muted', 'field-well'],
     ['text-muted', 'canvas'],
     ['brand-action-text', 'surface-base'],
     ['link', 'surface-base'],
     ['brand-action-text', 'brand-action-tint'],
     ['on-brand-action', 'brand-action'],
-    ['on-danger', 'danger'],
+    ['on-danger', 'danger-fill'],
     ['info', 'surface-base'],
     ['info', 'info-tint'],
     ['success', 'success-tint'],
@@ -175,8 +207,40 @@ function palette(): Finding[] {
   ])
     found.push(...atLeast('L-5', `${ink} on ${ground}`, c(ink, ground), 4.5));
 
-  for (const ground of ['canvas', 'surface-base', 'surface-control', 'input-bg'])
-    found.push(...atLeast('L-6', `focus on ${ground}`, c('focus', ground), 3));
+  // APCA reads a light ink on a dark ground as it is seen, where WCAG 2 overrates it, so each
+  // pair also holds an APCA floor: Lc 75 for the body ink, Lc 60 for every other word.
+  const lc = (a: string, b: string) => {
+    const ground = over(t(b), t('surface-base'));
+    return apca(over(t(a), ground), ground);
+  };
+  for (const ground of [
+    'canvas',
+    'surface-base',
+    'surface-raised',
+    'surface-control',
+    'surface-inset'
+  ])
+    found.push(
+      ...atLeast('L-5', `text-primary on ${ground} in APCA`, lc('text-primary', ground), 75)
+    );
+  for (const ink of [
+    'text-secondary',
+    'text-muted',
+    'info',
+    'success',
+    'warning',
+    'danger',
+    'link'
+  ])
+    for (const ground of ['canvas', 'surface-base', 'surface-raised', 'surface-inset'])
+      found.push(...atLeast('L-5', `${ink} on ${ground} in APCA`, lc(ink, ground), 60));
+
+  for (const ground of ['canvas', 'surface-base', 'surface-control', 'surface-inset'])
+    found.push(
+      ...atLeast('L-6', `focus on ${ground}`, c('focus', ground), 3),
+      ...atLeast('L-6', `focus-danger on ${ground}`, c('focus-danger', ground), 3),
+      ...atLeast('L-6', `danger-edge on ${ground}`, c('danger-edge', ground), 3)
+    );
   for (const ground of ['canvas', 'surface-base', 'surface-inset'])
     found.push(...atLeast('L-6', `border-strong on ${ground}`, c('border-strong', ground), 3));
 
@@ -196,11 +260,26 @@ function palette(): Finding[] {
     ...between('L-9', 'control-border on control-bg', c('control-border', 'control-bg'), 1.5, 2.25)
   );
   found.push(
-    ...between('L-9', 'control-border on input-bg', c('control-border', 'input-bg'), 1.4, 2.25)
+    ...between(
+      'L-9',
+      'control-border on surface-inset',
+      c('control-border', 'surface-inset'),
+      1.4,
+      2.25
+    )
   );
   // A changed row restates its fields' baseline (unsaved-field-border), measured below.
-  for (const ground of ['canvas', 'surface-base', 'surface-raised', 'surface-control', 'input-bg'])
-    found.push(...atLeast('L-9', `field-border on ${ground}`, c('field-border', ground), 3));
+  for (const ground of [
+    'canvas',
+    'surface-base',
+    'surface-raised',
+    'surface-control',
+    'surface-inset'
+  ])
+    found.push(
+      ...atLeast('L-9', `field-border on ${ground}`, c('field-border', ground), 3),
+      ...atLeast('L-9', `field-border-focus on ${ground}`, c('field-border-focus', ground), 3)
+    );
   for (const ground of ['unsaved-surface', 'unsaved-control'])
     found.push(
       ...atLeast('L-9', `unsaved-field-border on ${ground}`, c('unsaved-field-border', ground), 3),
@@ -213,12 +292,19 @@ function palette(): Finding[] {
       )
     );
   // The recess under a field's top edge is darker than the frame it lies under and the ground
-  // it lies on. On light, where the frame is a shade too, it stands one hover step past it.
-  for (const [recess, frame, grounds] of [
-    ['field-recess', 'field-frame', ['canvas', 'surface-base', 'surface-raised', 'input-bg']],
-    ['field-recess-hover', 'field-frame-hover', ['canvas', 'surface-base', 'surface-raised']],
-    ['unsaved-field-recess', 'unsaved-control-border', ['unsaved-control']],
-    ['unsaved-field-recess-hover', 'unsaved-border', ['unsaved-control']]
+  // it lies on. On light, where the frame is a shade too, it stands past it by a hover step, and
+  // a field at rest by a third to a half of one, so its top edge reads no heavier than its sides.
+  for (const [recess, frame, grounds, least, most] of [
+    [
+      'field-recess',
+      'field-frame',
+      ['canvas', 'surface-base', 'surface-raised', 'surface-inset'],
+      1 / 3,
+      0.5
+    ],
+    ['field-recess-hover', 'field-frame-hover', ['canvas', 'surface-base', 'surface-raised'], 1, 1],
+    ['unsaved-field-recess', 'unsaved-control-border', ['unsaved-control'], 1, 1],
+    ['unsaved-field-recess-hover', 'unsaved-border', ['unsaved-control'], 1, 1]
   ] as const)
     for (const name of grounds) {
       const ground = over(t(name), t('surface-base'));
@@ -228,15 +314,42 @@ function palette(): Finding[] {
         found.push(finding('L-9', null, `${recess} on ${name} is no darker than ${frame}`));
       if (lightness(ground) > 50)
         found.push(
-          ...between('L-9', `${recess} past ${frame} on ${name}`, deltaE(line, edge), 4.4, 5.4)
+          ...between(
+            'L-9',
+            `${recess} past ${frame} on ${name}`,
+            deltaE(line, edge),
+            4.4 * least,
+            5.4 * most
+          )
         );
     }
+  // A focused field's recess leans toward the ring with its frame and stays the darker line.
+  for (const name of ['canvas', 'surface-base', 'surface-raised', 'surface-inset']) {
+    const ground = over(t(name), t('surface-base'));
+    if (
+      lightness(over(t('field-recess-focus'), ground)) >=
+      lightness(over(t('field-frame-focus'), ground))
+    )
+      found.push(
+        finding('L-9', null, `field-recess-focus on ${name} is no darker than field-frame-focus`)
+      );
+  }
   found.push(
     ...between('L-10', 'control-bg on surface-base', c('control-bg', 'surface-base'), 1, 1.5)
   );
   found.push(
-    ...between('L-10', 'input-bg on surface-base', c('input-bg', 'surface-base'), 1.05, 1.3)
+    ...between(
+      'L-10',
+      'surface-inset on surface-base',
+      c('surface-inset', 'surface-base'),
+      1.05,
+      1.3
+    )
   );
+  // A field that is off or only reads keeps its well apart from every ground a field stands on.
+  for (const ground of ['canvas', 'surface-base', 'surface-raised'])
+    for (const well of ['field-well', 'field-disabled'])
+      found.push(...between('L-10', `${well} on ${ground}`, c(well, ground), 1.05, 1.3));
 
   const hover = t('interactive-hover-layer');
   const pressed = t('interactive-pressed');
@@ -256,6 +369,20 @@ function palette(): Finding[] {
     const pressStep = deltaE(ground, over(pressed, ground));
     found.push(...between('L-11', `hover step on ${name}`, hoverStep, hoverBand[0], hoverBand[1]));
     found.push(...between('L-11', `press step on ${name}`, pressStep, pressBand[0], pressBand[1]));
+    // A dark veil lightens the ground, so the words on it rise to the hover ink to gain
+    // contrast. A light veil darkens the ground and no ink is darker than the rest ink.
+    if (!light) {
+      const resting = apca(t('text-primary'), ground);
+      const lifted = apca(t('hover-ink'), over(hover, ground));
+      if (lifted < resting)
+        found.push(
+          finding(
+            'L-11',
+            null,
+            `hover ink on ${name} reads Lc ${round(lifted, 1)}, under its rest Lc ${round(resting, 1)}`
+          )
+        );
+    }
   }
 
   const base = t('surface-base');
@@ -266,8 +393,16 @@ function palette(): Finding[] {
       ? between('L-12', 'row hover step on surface-base', rowStep, 2, 3)
       : between('L-12', 'row hover step on surface-base', rowStep, 4.5, 5.5)),
     ...(lightness(base) > 50
-      ? between('L-12', 'field hover step on surface-base', fieldStep, 1, 1.5)
-      : between('L-12', 'field hover step on surface-base', fieldStep, 2.2, 2.8))
+      ? between('L-12', 'field hover step on surface-base', fieldStep, 0.7, 1)
+      : between('L-12', 'field hover step on surface-base', fieldStep, 1.5, 1.9))
+  );
+  // A hovered field and one that only reads both tint the control fill, so the read-only tint
+  // stands clearly past the hover's, or a field under the pointer looks locked.
+  const control = over(t('control-bg'), base);
+  const hoverTint = deltaE(control, over(t('field-hover'), control));
+  const readTint = deltaE(control, over(t('field-readonly'), control));
+  found.push(
+    ...atLeast('L-10', 'read-only tint past the field hover tint', readTint - hoverTint, 0.6)
   );
 
   const [rest, hovered, press] = ['brand-action', 'brand-action-hover', 'brand-action-pressed'].map(
@@ -286,24 +421,40 @@ function palette(): Finding[] {
     found.push(
       ...atLeast('L-13', `on-brand-action on ${label}`, contrast(t('on-brand-action'), ground), 4.5)
     );
-  const fill = (theme: string) => {
+  const fill = (theme: string, name: string) => {
     const probe = document.createElement('span');
     probe.dataset.suiTheme = theme;
-    probe.style.color = 'var(--sui-brand-action)';
+    probe.style.color = `var(--sui-${name})`;
     document.body.append(probe);
     const color = rgba(getComputedStyle(probe).color);
     probe.remove();
     return color;
   };
-  if (deltaE(fill('light'), fill('dark')) > 1)
-    found.push(finding('L-13', null, 'the accent fill is not one color in both themes'));
-  const danger = t('danger');
-  const dangerHover = t('danger-hover');
+  for (const [name, what] of [
+    ['brand-action', 'the accent fill'],
+    ['danger-fill', 'the stop fill']
+  ])
+    if (deltaE(fill('light', name), fill('dark', name)) > 1)
+      found.push(finding('L-13', null, `${what} is not one color in both themes`));
+  const danger = t('danger-fill');
+  const dangerHover = t('danger-fill-hover');
   const expected = lightness(base) > 50 ? -1 : 1;
   if (Math.sign(lightness(dangerHover) - lightness(danger)) !== expected)
     found.push(finding('L-13', null, 'danger hover does not deepen on light or brighten on dark'));
   found.push(
-    ...atLeast('L-13', 'on-danger on danger-hover', contrast(t('on-danger'), dangerHover), 4.5)
+    ...atLeast('L-13', 'on-danger on danger-fill', contrast(t('on-danger'), danger), 4.5),
+    ...atLeast(
+      'L-13',
+      'on-danger on danger-fill-hover',
+      contrast(t('on-danger'), dangerHover),
+      4.5
+    ),
+    ...atLeast(
+      'L-13',
+      'on-danger on danger-pressed',
+      contrast(t('on-danger'), t('danger-pressed')),
+      4.5
+    )
   );
 
   for (const ink of ['sidebar-text', 'sidebar-text-secondary', 'sidebar-text-muted'])
@@ -322,6 +473,12 @@ function palette(): Finding[] {
       'L-85',
       'sidebar-active-ink against sidebar-text-muted',
       contrast(t('sidebar-active-ink'), t('sidebar-text-muted')),
+      2
+    ),
+    ...atLeast(
+      'L-85',
+      'sidebar-active-glyph on sidebar-active-bg',
+      c('sidebar-active-glyph', 'sidebar-active-bg'),
       3
     )
   );
@@ -356,6 +513,10 @@ function textContrast(root: Document): Finding[] {
     const floor = large ? 3 : 4.5;
     if (ratio < floor)
       found.push(finding('L-5', element, `text contrast ${round(ratio)} under ${floor}`));
+    const lc = apca(painted, ground);
+    const lcFloor = large ? 45 : 60;
+    if (lc < lcFloor)
+      found.push(finding('L-5', element, `text reads Lc ${round(lc, 1)} under Lc ${lcFloor}`));
   }
   return found;
 }
@@ -415,6 +576,14 @@ function typeFaces(root: Document): Finding[] {
       );
     if (mono && /\d/.test(text) && !style.fontVariantNumeric.includes('tabular-nums'))
       found.push(finding('L-20', element, 'a technical value with digits lacks tabular figures'));
+    // A number on a chart is read against its neighbours: a tick down an axis, a cell in a row.
+    if (
+      element.closest('svg') &&
+      /\d/.test(text) &&
+      !/\p{L}/u.test(text) &&
+      !style.fontVariantNumeric.includes('tabular-nums')
+    )
+      found.push(finding('L-20', element, 'a number on a chart lacks tabular figures'));
     if (!element.closest('svg')) {
       const leading = style.lineHeight;
       if (leading === 'normal')
@@ -470,13 +639,137 @@ function copy(root: Document): Finding[] {
   }
   for (const { element, text } of textElements(root)) {
     if (/\.\.\./.test(text)) found.push(finding('L-31', element, 'three dots instead of "…"'));
+    const quote = text.match(/["']/)?.[0];
+    if (quote) found.push(finding('L-31', element, `a straight ${quote} instead of a curly quote`));
     // Plain words a reader gets at once, not an idiom (L-105).
     const idiom = text.match(/\bin step\b/i)?.[0];
     if (idiom) found.push(finding('L-105', element, `"${idiom}" is an idiom; say what it means`));
+    const spelled = text.match(/\b(?:two|three|four|five|six|seven|eight|nine|ten)\b(?!-)/i)?.[0];
+    if (spelled)
+      found.push(finding('L-105', element, `"${spelled}" is a count in words, not figures`));
     // Facts are parted by a drawn dot, never one typed into the words (L-103); a native
     // option is a string-only place and keeps its typed separator.
     if (text.includes('·') && text.trim() !== '·' && !element.closest('select, option, code, pre'))
       found.push(finding('L-103', element, 'a "·" typed into the words instead of a drawn dot'));
+  }
+  // A placeholder says the field is still empty, so it trails off. A select's prompt is its
+  // first option, which shows only in the closed select; one that presumes a value shows that.
+  const prompts = [
+    ...audited(root, 'input[placeholder], textarea[placeholder]').map(
+      (element) => [element, element.getAttribute('placeholder') ?? ''] as const
+    ),
+    ...audited(root, 'select').flatMap((select) => {
+      const prompt = select.querySelector(':scope > .sui-select-placeholder:not(.presumed)');
+      return prompt ? [[select, prompt.textContent ?? ''] as const] : [];
+    })
+  ];
+  for (const [element, said] of prompts)
+    if (said.trim() !== '' && !said.trim().endsWith('…'))
+      found.push(
+        finding('L-31', element, `the placeholder "${said.trim()}" does not end with "…"`)
+      );
+  return found;
+}
+
+/**
+ * A technical value is set in the mono face (L-20), and a page translator leaves it as written,
+ * while the words heard with it stay open to translation.
+ */
+function untranslated(root: Document): Finding[] {
+  const mono = getComputedStyle(root.documentElement)
+    .getPropertyValue('--sui-mono')
+    .split(',')[0]
+    .trim()
+    .replace(/["']/g, '');
+  const open = textElements(root, 'svg, script, style, [data-audit-ignore], [translate="no"]')
+    .filter(
+      ({ element }) =>
+        element.closest('code, kbd, samp, pre') ||
+        (mono !== '' && getComputedStyle(element).fontFamily.replace(/["']/g, '').startsWith(mono))
+    )
+    .map(({ element, text }) =>
+      finding('L-20', element, `"${text.slice(0, 24)}" is a mono value a translator can change`)
+    );
+  // A hidden element is heard only as the name or description of the control that points to it.
+  const heard = (element: HTMLElement) =>
+    element.matches('.sui-visually-hidden') ||
+    (element.id !== '' &&
+      root.querySelector(
+        `[aria-describedby~="${CSS.escape(element.id)}"], [aria-labelledby~="${CSS.escape(element.id)}"]`
+      ) !== null);
+  const shut = [
+    ...root.querySelectorAll<HTMLElement>('[translate="no"] :is(.sui-visually-hidden, [hidden])')
+  ]
+    .filter(
+      (element) => !element.closest('[data-audit-ignore]') && !element.translate && heard(element)
+    )
+    .map((element) =>
+      finding(
+        'L-20',
+        element,
+        `"${(element.textContent ?? '').trim().slice(0, 24)}" is a heard word a translator cannot change`
+      )
+    );
+  return [...open, ...shut];
+}
+
+// Chicago keeps these lower case inside a title: articles, coordinating conjunctions, "to",
+// "as" and prepositions of any length. A preposition used as an adverb ("Sign In") is
+// capitalized, so the check only reports a word that should be capitalized and is not.
+const MINOR = new Set(
+  'a an the and but for or nor to as vs via per about above across after against along amid among around at before behind below beneath beside besides between beyond by despite down during except from in inside into like near of off on onto opposite out outside over past round since than through throughout till toward towards under underneath unlike until up upon with within without'.split(
+    ' '
+  )
+);
+const TITLED =
+  'h1, h2, h3, h4, h5, h6, .sui-card-title, .sui-section-title, .sui-plate-title, .sui-modal-title, .sui-page-header-title, .sui-chart-title, .sui-empty-state-title, .sui-error-state-title, button, .sui-button, summary, [role="tab"], [role="menuitem"], [role="menuitemradio"], [role="menuitemcheckbox"]';
+
+/**
+ * The words a reader sees as a title, leaving out code, what is only heard, a label held in
+ * reserve for another state and the line of description under a menu item or summary.
+ */
+function titleWords(element: Element): string {
+  let text = '';
+  for (const node of element.childNodes) {
+    if (node.nodeType === Node.TEXT_NODE) text += node.textContent;
+    else if (!(node instanceof Element)) continue;
+    // Code keeps its place as a word, so the word before it is not taken for the last.
+    else if (node.matches('code, kbd, samp, var, [translate="no"]')) text += ' Value ';
+    else if (
+      !node.matches(
+        'svg, input, select, textarea, .sui-visually-hidden, [class*="-description"], [class*="-hint"], [class*="-note"]'
+      ) &&
+      getComputedStyle(node).visibility !== 'hidden'
+    )
+      text += ` ${titleWords(node)} `;
+  }
+  return text;
+}
+
+/** Headings and buttons are Chicago Title Case, with "&" for "and" (L-30). */
+function titleCase(root: Document): Finding[] {
+  const found: Finding[] = [];
+  for (const element of audited(root, TITLED)) {
+    if (element.closest(TEXT_EXEMPT) || heardOnly(element)) continue;
+    // A menu that has nothing to offer says so in a disabled item, which is a sentence.
+    if (element.matches('[role="menuitem"]:not(button)[aria-disabled="true"]')) continue;
+    const words = titleWords(element)
+      .replace(/[“"][^”"]*[”"]|‘[^’]*’|(?<=^|\s)'[^']*'(?=\s|$|[,.:;!?])/g, ' Value ')
+      .split(/\s+/)
+      .map((word) => word.replace(/^[^\p{L}\p{N}]+|[^\p{L}\p{N}]+$/gu, ''))
+      .filter(Boolean);
+    const low = words.filter((word, index) => {
+      // A value, a version or a name with its own casing (iOS, macOS) keeps it.
+      if (/[\p{N}._/@#:=]/u.test(word) || /.\p{Lu}/u.test(word)) return false;
+      const head = word.split('-')[0];
+      if (!/^\p{Ll}/u.test(head)) return false;
+      return index === 0 || index === words.length - 1 || !MINOR.has(head);
+    });
+    const title = `"${words.join(' ')}"`;
+    if (low.length > 0)
+      found.push(finding('L-30', element, `${title} is not Title Case at "${low.join('", "')}"`));
+    if (words.includes('and'))
+      found.push(finding('L-30', element, `${title} writes "and" instead of "&"`));
   }
   return found;
 }
@@ -555,8 +848,16 @@ function copyRhythm(root: Document): Finding[] {
     const b = second.getBoundingClientRect();
     if (b.top < a.bottom - 0.5 || Math.abs(a.left - b.left) > 1) continue;
     const gap = b.top - a.bottom;
-    if (Math.abs(gap - 8) > 0.75 && gap < 16)
-      found.push(finding('L-24', second, `title to description gap is ${round(gap)}px, not 8px`));
+    const titled =
+      /^H[1-6]$/.test(first.tagName) ||
+      [...first.classList].some((name) => name === 'title' || name.endsWith('-title'));
+    // A state's step in words stands apart from the explanation over it, as words do from a title.
+    const step = [...second.classList].some((name) => name.endsWith('-state-step'));
+    const want = titled || step ? 12 : 8;
+    if (Math.abs(gap - want) > 0.75 && gap < 16)
+      found.push(
+        finding('L-24', second, `title to description gap is ${round(gap)}px, not ${want}px`)
+      );
   }
   return found;
 }
@@ -779,19 +1080,35 @@ function wordsInk(svg: SVGSVGElement): DOMRect {
     if (part instanceof SVGTextElement) {
       const words = part.textContent ?? '';
       if (!words.trim() || !context || part.getNumberOfChars() === 0) continue;
-      context.font = `${look.fontStyle} ${look.fontWeight} ${look.fontSize} ${look.fontFamily}`;
+      // Some canvases give glyph bounds in whole pixels, which is a pixel of error at chart sizes,
+      // so each glyph is read at a hundred times its size and scaled back.
+      context.font = `${look.fontStyle} ${look.fontWeight} ${parseFloat(look.fontSize) * 100}px ${look.fontFamily}`;
+      // A canvas draws no tabular figures, and WebKit's gives a glyph's ink joined to its
+      // advance, so the face's own glyphs are read from its table, which the browser suite
+      // holds to what Chrome draws.
+      const face = /^["']?SUI Plus Jakarta Sans/.test(look.fontFamily);
+      const tabular = look.fontVariantNumeric.includes('tabular-nums');
+      const size = parseFloat(look.fontSize) * 100;
       let index = 0;
       for (const glyph of words) {
         if (index >= part.getNumberOfChars()) break;
-        const ink = context.measureText(glyph);
+        const figure = face ? faceInk(glyph, Number(look.fontWeight) >= 600, tabular) : null;
+        const ink = figure
+          ? {
+              actualBoundingBoxLeft: figure.left * size,
+              actualBoundingBoxRight: figure.right * size,
+              actualBoundingBoxAscent: figure.ascent * size,
+              actualBoundingBoxDescent: figure.descent * size
+            }
+          : context.measureText(glyph);
         if (ink.actualBoundingBoxLeft + ink.actualBoundingBoxRight > 0) {
           const start = part.getStartPositionOfChar(index);
           add(
             part,
-            start.x - ink.actualBoundingBoxLeft,
-            start.y - ink.actualBoundingBoxAscent,
-            start.x + ink.actualBoundingBoxRight,
-            start.y + ink.actualBoundingBoxDescent
+            start.x - ink.actualBoundingBoxLeft / 100,
+            start.y - ink.actualBoundingBoxAscent / 100,
+            start.x + ink.actualBoundingBoxRight / 100,
+            start.y + ink.actualBoundingBoxDescent / 100
           );
         }
         index += glyph.length;
@@ -1132,17 +1449,26 @@ function controls(root: Document): Finding[] {
   const hits: { target: Element; own: DOMRect; hit: DOMRect }[] = [];
   // A target scrolled out of a box that clips it cannot be pressed there, so its own box and
   // its hit area count only where its clipping ancestors show them.
+  // Targets share most of their ancestors, so each ancestor's clip is read once.
+  const clips = new Map<Element, { x: boolean; y: boolean; edge: DOMRect } | null>();
+  const clipOf = (node: Element) => {
+    if (!clips.has(node)) {
+      const look = getComputedStyle(node);
+      const x = look.display !== 'contents' && look.overflowX !== 'visible';
+      const y = look.display !== 'contents' && look.overflowY !== 'visible';
+      clips.set(node, x || y ? { x, y, edge: node.getBoundingClientRect() } : null);
+    }
+    return clips.get(node);
+  };
   const clipped = (element: Element, area: DOMRect) => {
     let { left, top, right, bottom } = area;
     for (let node = element.parentElement; node; node = node.parentElement) {
-      const look = getComputedStyle(node);
-      if (look.display === 'contents') continue;
-      if (look.overflowX === 'visible' && look.overflowY === 'visible') continue;
-      const edge = node.getBoundingClientRect();
-      if (look.overflowX !== 'visible')
-        [left, right] = [Math.max(left, edge.left), Math.min(right, edge.right)];
-      if (look.overflowY !== 'visible')
-        [top, bottom] = [Math.max(top, edge.top), Math.min(bottom, edge.bottom)];
+      const clip = clipOf(node);
+      if (!clip) continue;
+      if (clip.x)
+        [left, right] = [Math.max(left, clip.edge.left), Math.min(right, clip.edge.right)];
+      if (clip.y)
+        [top, bottom] = [Math.max(top, clip.edge.top), Math.min(bottom, clip.edge.bottom)];
     }
     return new DOMRect(left, top, Math.max(0, right - left), Math.max(0, bottom - top));
   };
@@ -1205,16 +1531,17 @@ function controls(root: Document): Finding[] {
   const meet = (a: DOMRect, b: DOMRect) =>
     Math.min(a.right, b.right) - Math.max(a.left, b.left) > 0.5 &&
     Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top) > 0.5;
-  for (const [index, one] of hits.entries())
-    for (const other of hits.slice(index + 1)) {
+  // Boxes first: they rule out nearly every pair without asking the document anything.
+  for (let index = 0; index < hits.length; index++)
+    for (let next = index + 1; next < hits.length; next++) {
+      const [one, other] = [hits[index], hits[next]];
+      if (!meet(one.hit, other.hit) || meet(one.own, other.own)) continue;
       if (one.target.contains(other.target) || other.target.contains(one.target)) continue;
-      if (meet(one.own, other.own) || !meet(one.hit, other.hit)) continue;
       found.push(finding('L-38', one.target, `its hit area overlaps ${describe(other.target)}'s`));
     }
 
-  const disabledOpacity = parseFloat(
-    getComputedStyle(root.documentElement).getPropertyValue('--sui-disabled-opacity')
-  );
+  const look = getComputedStyle(root.documentElement);
+  const disabledOpacity = parseFloat(look.getPropertyValue('--sui-disabled-opacity'));
   for (const control of audited(
     root,
     "button:disabled, button[aria-disabled='true'], input:disabled, select:disabled, textarea:disabled"
@@ -1227,17 +1554,47 @@ function controls(root: Document): Finding[] {
       control.matches('input');
     // A menu row dims its name but keeps the reason it gives at full ink.
     if (style.opacity === '0' || paintsNothing || control.matches("[role='menuitem']")) continue;
-    // A busy button is the action at work: its fill, edge and spinner keep full strength and
-    // only its words dim, so its words carry the dimming; a busy icon button has none.
+    // A busy button is the action at work: its fill, edge, words and spinner keep full
+    // strength; a busy icon button has no words.
     const busy = control.matches("[aria-busy='true']:not(:disabled)");
+    // An off text field reads as off by its well and its muted words, at full strength, and so
+    // do both parts of an off joined field.
+    const well = control.matches(
+      ':is(.sui-text-input, .sui-textarea):disabled:not(.held, .bare), .sui-joined.disabled :disabled'
+    );
     const dimmed = busy ? control.querySelector('.sui-button-label') : control;
-    const opacity = dimmed ? effectiveOpacity(dimmed) : disabledOpacity;
-    if (Math.abs(opacity - disabledOpacity) > 0.02)
+    const expected = busy || well ? 1 : disabledOpacity;
+    const opacity = dimmed ? effectiveOpacity(dimmed) : expected;
+    if (Math.abs(opacity - expected) > 0.02)
       found.push(
-        finding('L-40', control, `disabled at opacity ${round(opacity)}, not ${disabledOpacity}`)
+        finding(
+          'L-40',
+          control,
+          `${busy ? 'busy' : 'disabled'} at opacity ${round(opacity)}, not ${expected}`
+        )
       );
+    if (
+      well &&
+      deltaE(rgba(style.color), token('--sui-text-muted', control.parentElement ?? document.body)) >
+        1
+    )
+      found.push(finding('L-40', control, 'a disabled field draws its words in another ink'));
     if (style.cursor === 'pointer')
       found.push(finding('L-40', control, 'a disabled control keeps the pointer cursor'));
+    const toned = `.sui-button:is([data-tone='signal'], [data-tone='decision'], [data-tone='stop'],
+      [data-tone='stop-quiet'])`;
+    // A decision callout or an unsaved row restates the default paint for what it holds, so
+    // the paint is read where the button stands.
+    const base = token('--sui-surface-base');
+    const differs = (paint: string, name: string) =>
+      deltaE(over(rgba(paint), base), over(token(name, control), base)) > 1;
+    if (
+      !busy &&
+      control.matches(toned) &&
+      (differs(style.backgroundColor, '--sui-surface-raised') ||
+        differs(style.borderTopColor, '--sui-control-border'))
+    )
+      found.push(finding('L-40', control, 'a disabled button keeps its tone'));
   }
 
   for (const button of audited(root, 'button, a[href]')) {
@@ -1389,7 +1746,17 @@ function controls(root: Document): Finding[] {
     const value = frame.querySelector(
       '.sui-joined-value :is(input:not([type="hidden"]), textarea)'
     );
-    if (!value || !control) continue;
+    if (!value) continue;
+    // The joined frame draws the one ground and edge, so its value draws none in any state.
+    const own = getComputedStyle(value);
+    const edged = ['top', 'right', 'bottom', 'left'].some(
+      (side) =>
+        parseFloat(own.getPropertyValue(`border-${side}-width`)) > 0 &&
+        rgba(own.getPropertyValue(`border-${side}-color`)).a > 0
+    );
+    if (rgba(own.backgroundColor).a > 0 || edged)
+      found.push(finding('L-9', value, "a joined field's value draws a ground or edge of its own"));
+    if (!control) continue;
     const box = frame.getBoundingClientRect();
     const part = value.getBoundingClientRect();
     if (part.height <= control && Math.abs(box.height - control) > 0.5)
@@ -1534,8 +1901,8 @@ function inkWidth(box: Element): number {
 }
 
 /**
- * The kitchen sink's specimens (L-55): a component stays inside its specimen, and the name and
- * props under it stay inside it too. Where a specimen sizes to its content, a caption line wraps
+ * The kitchen sink's specimens (L-55): a component stays inside its specimen, and the name
+ * under it stays inside it too. Where a specimen sizes to its content, a caption line wraps
  * only when the specimen could not grow wider. A stack is for specimens that use their line:
  * ones that each fill under 60% of it and would fit side by side share a row.
  */
@@ -1555,10 +1922,16 @@ function specimens(root: Document): Finding[] {
     };
     // Only ink counts, and only sideways: a link's or summary's hit area may bleed past the
     // specimen unseen, and trimmed text paints its ascenders above its own box by design.
-    const outside = (box: DOMRect) =>
+    const outside = (box: DOMRect, reach = 0) =>
       box.width > 1 &&
       box.height > 1 &&
-      (box.left < edge.left - 0.5 || box.right > edge.right + 0.5);
+      (box.left < edge.left - reach - 0.5 || box.right > edge.right + reach + 0.5);
+    // A striped table's stripes reach a row's inset past its words, as a list row's ground does
+    // (L-33), and its frame reaches with them.
+    const stripeReach = (element: Element) => {
+      const viewport = element.closest('.sui-data-table.striped > .viewport');
+      return viewport ? -parseFloat(getComputedStyle(viewport).marginInlineStart) : 0;
+    };
     // A stacked stage lends its inset to what a specimen shows (L-66), so a chart's band may
     // span the specimen and exactly that inset on both sides, and nothing reaches further.
     const spansLent = (element: Element) => {
@@ -1597,10 +1970,14 @@ function specimens(root: Document): Finding[] {
         rgba(look.backgroundColor).a > 0 ||
         parseFloat(look.borderLeftWidth) > 0 ||
         parseFloat(look.borderTopWidth) > 0;
-      if ((painted || element.matches(CARD_CONTENT)) && outside(element.getBoundingClientRect()))
+      const reach = stripeReach(element);
+      if (
+        (painted || element.matches(CARD_CONTENT)) &&
+        outside(element.getBoundingClientRect(), reach)
+      )
         return true;
       // Text an element clips to its own box paints no further than that box.
-      if (look.overflowX !== 'visible') return outside(element.getBoundingClientRect());
+      if (look.overflowX !== 'visible') return outside(element.getBoundingClientRect(), reach);
       return [...element.childNodes].some((node) => {
         if (node.nodeType !== Node.TEXT_NODE || !node.textContent?.trim()) return false;
         const range = document.createRange();
@@ -1609,6 +1986,12 @@ function specimens(root: Document): Finding[] {
       });
     });
     if (escaped) found.push(finding('L-55', escaped, 'reaches past its specimen'));
+    // A plot scrolls only on a holder too narrow for it (L-66), so a plot that scrolls on a line
+    // of specimens wide enough to show it whole hides its last values for no reason.
+    const line = specimen.parentElement?.clientWidth ?? 0;
+    for (const plot of panel.querySelectorAll('.sui-chart .plot-scroll'))
+      if (plot.scrollWidth > plot.clientWidth + 1 && plot.scrollWidth <= line)
+        found.push(finding('L-55', plot, 'a chart scrolls its plot while the stage could show it'));
 
     const own = specimen.getBoundingClientRect();
     const holder = specimen.parentElement;
@@ -1620,22 +2003,18 @@ function specimens(root: Document): Finding[] {
     const caption = specimen.querySelector(':scope > figcaption');
     if (!caption) continue;
     const grows = holder !== null && getComputedStyle(holder).display.includes('flex');
-    for (const part of caption.children) {
-      const box = part.getBoundingClientRect();
-      if (box.left < own.left - 0.5 || box.right > own.right + 0.5)
-        found.push(finding('L-55', part, 'the caption runs past its specimen'));
-      const range = document.createRange();
-      range.selectNodeContents(part);
-      /* A caption's props are boxes of their own, a pixel off its text, so only a step of half
-         a line or more starts a new line. */
-      const tops = [...range.getClientRects()].map((line) => line.top).sort((a, b) => a - b);
-      const half = parseFloat(getComputedStyle(part).lineHeight) / 2;
-      const lines = tops.filter(
-        (top, index) => index === 0 || top - tops[index - 1] >= half
-      ).length;
-      if (lines > 1 && grows && own.width < room - 1)
-        found.push(finding('L-55', part, 'the caption wraps while its specimen has room to grow'));
-    }
+    const range = document.createRange();
+    range.selectNodeContents(caption);
+    const boxes = [...range.getClientRects()].filter((box) => box.width > 0);
+    if (boxes.some((box) => box.left < own.left - 0.5 || box.right > own.right + 0.5))
+      found.push(finding('L-55', caption, 'the caption runs past its specimen'));
+    /* A caption's parts are boxes of their own, a pixel off its text, so only a step of half
+       a line or more starts a new line. */
+    const tops = boxes.map((box) => box.top).sort((a, b) => a - b);
+    const half = parseFloat(getComputedStyle(caption).lineHeight) / 2;
+    const lines = tops.filter((top, index) => index === 0 || top - tops[index - 1] >= half).length;
+    if (lines > 1 && grows && own.width < room - 1)
+      found.push(finding('L-55', caption, 'the caption wraps while its specimen has room to grow'));
   }
 
   for (const stack of audited(root, ".specimens[data-layout='stack']")) {
@@ -1648,12 +2027,7 @@ function specimens(root: Document): Finding[] {
       const space = getComputedStyle(body);
       const pad = parseFloat(space.paddingLeft) + parseFloat(space.paddingRight);
       const ink = inkWidth(body);
-      const bandWidth = band
-        ? [...band.children].reduce((sum, part) => sum + part.getBoundingClientRect().width, 0) +
-          parseFloat(getComputedStyle(band).columnGap || '0') * (band.children.length - 1) +
-          parseFloat(getComputedStyle(band).paddingLeft) +
-          parseFloat(getComputedStyle(band).paddingRight)
-        : 0;
+      const bandWidth = band ? inkWidth(band) : 0;
       return { share: ink / (body.clientWidth - pad), natural: Math.max(ink + pad, bandWidth) + 1 };
     });
     const fits = sizes.reduce((sum, size) => sum + size.natural, 0) <= stack.clientWidth;
@@ -1771,6 +2145,10 @@ function plates(root: Document): Finding[] {
  */
 function settingResets(root: Document): Finding[] {
   const found: Finding[] = [];
+  // A row above the window that shrinks for a moment would scroll the page to keep the window
+  // still, which moves every row and wakes whatever follows the scroll.
+  const anchor = root.documentElement.style.overflowAnchor;
+  root.documentElement.style.overflowAnchor = 'none';
   for (const row of audited(root, '.sui-setting-row')) {
     const side = row.querySelector(':scope > .sui-setting-value');
     const controls = side?.querySelector(':scope > .sui-setting-control');
@@ -1785,10 +2163,15 @@ function settingResets(root: Document): Finding[] {
     const stacked = row.classList.contains('stacked');
     // The copy stands where it stands with no control beside it: taken out for a moment, the
     // controls and the reset must leave every line of the copy where it was. The copy keeps its
-    // width meanwhile, so it keeps its lines and only the controls' height could move it.
+    // width meanwhile, so it keeps its lines and only the controls' height could move it. Each
+    // line is read from the row's top at that moment, since a page scrolled to its end scrolls
+    // back as it shortens.
     const say = row.querySelector<HTMLElement>(':scope > .sui-setting-say');
     const lines = [...(say?.children ?? [])].filter(shown);
-    const at = () => lines.map((line) => line.getBoundingClientRect().top - box.top);
+    const at = () => {
+      const top = row.getBoundingClientRect().top;
+      return lines.map((line) => line.getBoundingClientRect().top - top);
+    };
     const placed = at();
     const parts = [...side.children] as HTMLElement[];
     const shows = parts.map((part) => part.style.display);
@@ -1841,6 +2224,7 @@ function settingResets(root: Document): Finding[] {
     if (taller > 0.5)
       found.push(finding('L-36', reset, `the reset makes its row ${round(taller)}px taller`));
   }
+  root.documentElement.style.overflowAnchor = anchor;
   return found;
 }
 
@@ -1875,8 +2259,8 @@ function unsavedVeils(root: Document): Finding[] {
 /**
  * Field recesses (L-9): every field frame a reader types or picks in draws one line under its
  * top edge, an inset shadow a stroke deep with no blur, darker than its frame on the field's own
- * ground in every state. A read-only field sits in the inset well, no place to type, and draws
- * none.
+ * ground in every state. A disabled field sits in the field well and a read-only one in its
+ * lighter tint (L-10), no place to type, and draws none.
  */
 function fieldRecesses(root: Document): Finding[] {
   const found: Finding[] = [];
@@ -1894,10 +2278,18 @@ function fieldRecesses(root: Document): Finding[] {
         return { color: shadow.match(/[a-z-]+\([^)]*\)/)?.[0], x, y, blur, spread };
       })
       .find(({ x, y, blur, spread }) => x === 0 && y === stroke && blur === 0 && spread === 0);
-    const well =
-      '.sui-text-input[readonly]:not(.held, [aria-expanded="true"]), .sui-joined.readonly';
-    if (field.matches(well)) {
-      if (line) found.push(finding('L-9', field, 'a read-only field draws a recess'));
+    const off =
+      '.sui-joined.disabled, :is(.sui-text-input, .sui-textarea):disabled:not(.held, .bare)';
+    const reads =
+      '.sui-text-input[readonly]:not(:disabled, [aria-expanded="true"]), .sui-textarea[readonly]:not(:disabled), .sui-joined.readonly';
+    if (field.matches(`${off}, ${reads}`)) {
+      if (line) found.push(finding('L-9', field, 'a read-only or disabled field draws a recess'));
+      const [token, words] = field.matches(off)
+        ? ['--sui-field-disabled', "a disabled field leaves the well's quieter tint"]
+        : ['--sui-field-readonly', "a read-only field leaves the well's lighter tint"];
+      const [fill, want] = [rgba(look.backgroundColor), rgba(look.getPropertyValue(token))];
+      if (fill.r !== want.r || fill.g !== want.g || fill.b !== want.b || fill.a !== want.a)
+        found.push(finding('L-10', field, words));
       continue;
     }
     if (!line?.color) {
@@ -1914,9 +2306,9 @@ function fieldRecesses(root: Document): Finding[] {
 
 /**
  * Where the reader is (L-85): a current navigation row stands apart from a resting peer by its
- * ink, 3:1 from the peer's, so its quiet plate needs no ring or edge, and it draws none. A row
- * whose words may wrap keeps the peer's font, so turning current never rewraps them or changes
- * its height. A current tab, whose words never wrap, carries its bar too, at 3:1 on the ground.
+ * ink, 2:1 from the peer's, and by its plate, so it needs no ring or edge, and it draws none. A row
+ * whose words may wrap keeps the peer's face, and every row holds a hidden copy of its words at
+ * the current weight, so turning current never rewraps them or changes its height. A current tab, whose words never wrap, carries its bar too, at 3:1 on the ground.
  */
 function currentMarks(root: Document): Finding[] {
   const found: Finding[] = [];
@@ -1963,16 +2355,23 @@ function currentMarks(root: Document): Finding[] {
       style.letterSpacing,
       style.fontFamily
     ];
-    if (!current.matches('.sui-tabs-tab') && face(look).join() !== face(rest).join())
+    // The hidden copy is the `::after` of the box that holds the words.
+    const room = getComputedStyle(words(peer).parentElement ?? peer, '::after');
+    const held =
+      room.content !== 'none' && room.visibility === 'hidden' ? room.fontWeight : rest.fontWeight;
+    if (
+      !current.matches('.sui-tabs-tab') &&
+      (look.fontWeight !== held || face(look).slice(1).join() !== face(rest).slice(1).join())
+    )
       found.push(
         finding(
           'L-85',
           current,
-          `the current words take ${face(look)[0]}, a rest row ${face(rest)[0]}, so they can rewrap`
+          `the current words take ${look.fontWeight}, a rest row holds room for ${held}, so they can rewrap`
         )
       );
     const inks = contrast(rgba(look.color), rgba(rest.color));
-    if (inks < 3)
+    if (inks < 2)
       found.push(
         finding('L-85', current, `the current ink stands ${round(inks)}:1 from a rest row`)
       );
@@ -2034,8 +2433,7 @@ function changedEdges(root: Document): Finding[] {
  */
 function tonedControls(root: Document): Finding[] {
   const found: Finding[] = [];
-  const states =
-    ".sui-callout[data-tone='warning'], .sui-callout.decision, .sui-save-bar, .sui-error-state";
+  const states = ".sui-callout[data-tone='warning'], .sui-callout.decision, .sui-save-bar";
   for (const holder of audited(root, states)) {
     const ground = over(
       rgba(getComputedStyle(holder).backgroundColor),
@@ -2057,11 +2455,18 @@ function tonedControls(root: Document): Finding[] {
 
 /**
  * A dialog's parts (L-58): the head, the body, the error and the actions stand one inset from
- * every edge and from each other, measured to the ink. A body that scrolls is cut where the
- * actions begin, and a docked inspector parks them at its foot, so neither gap is weighed.
+ * every edge and from each other, measured to the ink, and the head 8px more from the body. The
+ * line that parts the body from the actions stands half an inset under the body, and what
+ * follows stands one inset under the line. A body that scrolls is cut where the actions begin,
+ * and a docked inspector parks them at its foot, so neither gap is weighed.
  */
 function dialogInsets(root: Document): Finding[] {
   const found: Finding[] = [];
+  const probe = root.createElement('div');
+  probe.style.blockSize = 'var(--sui-space-2)';
+  root.body.append(probe);
+  const step = probe.getBoundingClientRect().height;
+  probe.remove();
   for (const dialog of audited(root, '.sui-modal')) {
     const head = dialog.querySelector(':scope > .sui-modal-head');
     const title = head?.querySelector('.sui-modal-title');
@@ -2092,8 +2497,9 @@ function dialogInsets(root: Document): Finding[] {
     const laid = (part: Element): Element[] =>
       getComputedStyle(part).display === 'contents' ? [...part.children].flatMap(laid) : [part];
     const inBody = body ? band([...body.children].flatMap(laid)) : null;
+    const top = band([...head.querySelectorAll('.sui-modal-title, .sui-modal-description')]);
     const bands = [
-      band([...head.querySelectorAll('.sui-modal-title, .sui-modal-description')]),
+      top,
       inBody,
       band([...dialog.querySelectorAll(':scope > .sui-modal-error .sui-modal-error-text')]),
       band(buttons)
@@ -2101,23 +2507,33 @@ function dialogInsets(root: Document): Finding[] {
     const foot = bands[bands.length - 1];
     const cut = body !== null && inBody !== null && body.scrollHeight > body.clientHeight + 1;
     const docked = dialog.matches("[data-size='inspector']:not(.preview)");
+    const lined = dialog.querySelector(
+      ':scope > .sui-modal-body + .sui-modal-error + .sui-modal-foot'
+    );
     // Each gap is weighed against the band under it, and the last against the bottom edge.
     const gaps = [...bands, null].flatMap((under, at) => {
       const over = bands[at - 1];
       if ((cut && (under === inBody || over === inBody)) || (docked && under === foot)) return [];
-      if (!under) return [box.bottom - parseFloat(look.borderBottomWidth) - over.bottom];
-      if (!over) return [under.top - box.top - parseFloat(look.borderTopWidth)];
-      return [under.top - over.bottom];
+      const want =
+        over === top && under === inBody
+          ? inset + step
+          : lined && over === inBody
+            ? 1.5 * inset
+            : inset;
+      if (!under)
+        return [{ gap: box.bottom - parseFloat(look.borderBottomWidth) - over.bottom, want }];
+      if (!over) return [{ gap: under.top - box.top - parseFloat(look.borderTopWidth), want }];
+      return [{ gap: under.top - over.bottom, want }];
     });
     const end = rtl
       ? foot.end - box.left - parseFloat(look.borderLeftWidth)
       : box.right - parseFloat(look.borderRightWidth) - foot.end;
-    if ([...gaps, end].some((gap) => Math.abs(gap - inset) > 0.5))
+    if ([...gaps, { gap: end, want: inset }].some(({ gap, want }) => Math.abs(gap - want) > 0.5))
       found.push(
         finding(
           'L-58',
           dialog,
-          `its parts stand ${gaps.map(round).join(', ')}px apart from top to bottom and its actions ${round(end)}px from the end, not ${inset}px`
+          `its parts stand ${gaps.map(({ gap }) => round(gap)).join(', ')}px apart from top to bottom, not ${gaps.map(({ want }) => want).join(', ')}px, and its actions ${round(end)}px from the end, not ${inset}px`
         )
       );
   }
@@ -2397,14 +2813,19 @@ function leadingIcons(root: Document): Finding[] {
 function wholePixels(root: Document): Finding[] {
   const found: Finding[] = [];
   const fractional = (value: number) => Math.abs(value - Math.round(value)) > 0.02;
+  const counted = new Map<Element, boolean>();
   const counts = (element: Element) => {
-    const look = getComputedStyle(element);
-    return (
-      !/^(inline|contents)$/.test(look.display) &&
-      look.transform === 'none' &&
-      look.animationName === 'none' &&
-      !/^(absolute|fixed)$/.test(look.position)
-    );
+    let answer = counted.get(element);
+    if (answer === undefined) {
+      const look = getComputedStyle(element);
+      answer =
+        !/^(inline|contents)$/.test(look.display) &&
+        look.transform === 'none' &&
+        look.animationName === 'none' &&
+        !/^(absolute|fixed)$/.test(look.position);
+      counted.set(element, answer);
+    }
+    return answer;
   };
   // SVG content is drawn in user units, not laid out in boxes: a text's box is its glyphs' own
   // extent and is fractional by nature, so only the svg element itself is measured.
@@ -2423,14 +2844,20 @@ function wholePixels(root: Document): Finding[] {
   // A whole box can still be centred into an odd remainder. Only an edge shows it, so each
   // border, outline or ground drawn off the grid names the box where the half pixel enters.
   const top = (element: Element) => element.getBoundingClientRect().top + scrollY;
-  const still = (element: Element) => {
-    for (let node: Element | null = element; node; node = node.parentElement) {
-      const look = getComputedStyle(node);
-      if (!counts(node) && look.display !== 'inline' && look.display !== 'contents') return false;
-      if (/^(fixed|sticky)$/.test(look.position)) return false;
-      if ([look.translate, look.scale, look.rotate].some((value) => value !== 'none')) return false;
+  const settled = new Map<Element, boolean>();
+  const still = (element: Element): boolean => {
+    let answer = settled.get(element);
+    if (answer === undefined) {
+      const look = getComputedStyle(element);
+      const parent = element.parentElement;
+      answer =
+        (counts(element) || look.display === 'inline' || look.display === 'contents') &&
+        !/^(fixed|sticky)$/.test(look.position) &&
+        [look.translate, look.scale, look.rotate].every((value) => value === 'none') &&
+        (parent === null || still(parent));
+      settled.set(element, answer);
     }
-    return true;
+    return answer;
   };
   const edged = (element: Element) => {
     const look = getComputedStyle(element);
@@ -2574,9 +3001,9 @@ function pressSelection(root: Document): Finding[] {
 }
 
 /**
- * What a chart draws (L-5, L-66): its words hold 4.5:1 on the plot's ground, and every mark that
- * carries data holds 3:1 there, unless the mark also prints its value (`data-labelled`). Grid
- * lines are a backdrop and are spared.
+ * What a chart draws (L-5, L-66): its words hold 4.5:1 on the plot's ground, or on the mark whose
+ * value they print, and every mark that carries data holds 3:1 there, unless the mark also
+ * prints its value (`data-labelled`). Grid lines are a backdrop and are spared.
  */
 function chartInk(root: Document): Finding[] {
   const found: Finding[] = [];
@@ -2585,7 +3012,12 @@ function chartInk(root: Document): Finding[] {
     const ground = paintedGround(svg);
     for (const text of svg.querySelectorAll('text')) {
       if (!shown(text) || !text.textContent?.trim()) continue;
-      const ratio = contrast(over(rgba(getComputedStyle(text).fill), ground), ground);
+      // A value printed on its own mark, as a heatmap cell prints it, reads on that mark.
+      const mark = text.previousElementSibling;
+      const under = mark?.matches('rect[data-labelled]')
+        ? over(rgba(getComputedStyle(mark).fill), ground)
+        : ground;
+      const ratio = contrast(over(rgba(getComputedStyle(text).fill), under), under);
       if (ratio < 4.5)
         found.push(finding('L-5', text, `chart text contrast ${round(ratio)} under 4.5`));
     }
@@ -2603,6 +3035,27 @@ function chartInk(root: Document): Finding[] {
       if (ratio < 3)
         found.push(finding('L-66', mark, `a data mark holds ${round(ratio)}:1, under 3`));
     }
+  }
+  for (const step of audited(root, ".sui-chart :is(rect, span)[class*='step-']")) {
+    const look = getComputedStyle(step);
+    const ground = paintedGround(step.parentElement ?? step);
+    const paint = rgba(step instanceof SVGElement ? look.fill : look.backgroundColor);
+    const ratio = contrast(over(paint, ground), ground);
+    if (ratio < 1.3)
+      found.push(
+        finding('L-66', step, `a heat step holds ${round(ratio)}:1 on its ground, under 1.3`)
+      );
+  }
+  for (const top of audited(root, '.sui-chart .legend .step-4')) {
+    const under = top.closest('.legend')?.querySelector('.step-3');
+    if (!under) continue;
+    const ground = paintedGround(top.parentElement ?? top);
+    const paint = (swatch: Element) => over(rgba(getComputedStyle(swatch).backgroundColor), ground);
+    const ratio = contrast(paint(top), paint(under));
+    if (ratio < 1.5)
+      found.push(
+        finding('L-66', top, `the top heat step stands ${round(ratio)}:1 from the next, under 1.5`)
+      );
   }
   return found;
 }
@@ -2743,7 +3196,7 @@ function sectionHeads(root: Document): Finding[] {
     const shouted =
       [title, words].some((part) => getComputedStyle(part).textTransform !== 'none') ||
       (!/\p{Ll}/u.test(text) && (text.match(/\p{Lu}/gu)?.length ?? 0) > 3);
-    if (shouted) found.push(finding('L-108', title, 'a section title is not sentence case'));
+    if (shouted) found.push(finding('L-108', title, 'a section title is uppercase'));
     const line = [head, ...head.querySelectorAll('*')].find(
       (part) => !part.closest('.sui-section-actions') && lined(part)
     );
@@ -2762,10 +3215,17 @@ function sectionHeads(root: Document): Finding[] {
 function boundaryLines(root: Document): Finding[] {
   const found: Finding[] = [];
   const rules: { element: Element; top: number; left: number; right: number }[] = [];
-  const pinned = (element: Element) => {
-    for (let node: Element | null = element; node; node = node.parentElement)
-      if (/^(fixed|sticky)$/.test(getComputedStyle(node).position)) return true;
-    return false;
+  const held = new Map<Element, boolean>();
+  const pinned = (element: Element): boolean => {
+    if (!held.has(element)) {
+      const parent = element.parentElement;
+      held.set(
+        element,
+        /^(fixed|sticky)$/.test(getComputedStyle(element).position) ||
+          (parent !== null && pinned(parent))
+      );
+    }
+    return held.get(element) as boolean;
   };
   const clipped = (element: Element, top: number) => {
     for (let node = element.parentElement; node; node = node.parentElement)
@@ -2812,7 +3272,8 @@ function boundaryLines(root: Document): Finding[] {
     .filter((rule) => !pinned(rule.element) && !clipped(rule.element, rule.top))
     .sort((one, other) => one.top - other.top);
   for (const [index, one] of page.entries())
-    for (const other of page.slice(index + 1)) {
+    for (let next = index + 1; next < page.length; next++) {
+      const other = page[next];
       const gap = other.top - one.top;
       if (gap > 8) break;
       if (Math.min(one.right, other.right) - Math.max(one.left, other.left) <= 0.5) continue;
@@ -2926,6 +3387,28 @@ function nestedFrames(root: Document): Finding[] {
     );
   }
   return found;
+}
+
+/* A number and its unit are one atom (L-27): "84.7\u00a0MB" never breaks between them. */
+const UNIT =
+  /\d (?:B|kB|KB|MB|GB|TB|KiB|MiB|GiB|TiB|ms|s|min|h|px|rem|em|pt|fps|Hz|kHz|MHz|GHz|seconds?|minutes?|hours?|days?|weeks?|months?|years?)(?![\p{L}\d])/u;
+function unitSpaces(root: Document): Finding[] {
+  return textElements(root)
+    .filter(({ text }) => UNIT.test(text))
+    .map(({ element, text }) =>
+      finding(
+        'L-27',
+        element,
+        `"${UNIT.exec(text)?.[0]}" can break between the number and its unit`
+      )
+    );
+}
+
+/* A failure is never a dead end (L-59): it offers a retry, another control or a step in words. */
+function failureExits(root: Document): Finding[] {
+  return audited(root, '.sui-error-state')
+    .filter((state) => !state.querySelector('.sui-error-state-retry, .sui-error-state-step'))
+    .map((state) => finding('L-59', state, 'a failure offers no retry, action or step'));
 }
 
 /**
@@ -3065,13 +3548,43 @@ function timelines(root: Document): Finding[] {
   return found;
 }
 
+// L-116: a tap acts at once, flashes no browser grey, and a scrolling overlay keeps its scroll.
+function taps(root: Document): Finding[] {
+  const found: Finding[] = [];
+  for (const target of audited(root, `${INTERACTIVE}, label, [role='slider']`)) {
+    const look = getComputedStyle(target);
+    if (look.touchAction === 'auto')
+      found.push(
+        finding('L-116', target, 'a tap waits out the double-tap zoom (touch-action: auto)')
+      );
+    const flash = look.getPropertyValue('-webkit-tap-highlight-color');
+    if (flash && rgba(flash).a > 0)
+      found.push(finding('L-116', target, 'a tap flashes the browser highlight'));
+  }
+  for (const box of audited(root, 'dialog, dialog *, [popover], [popover] *')) {
+    const look = getComputedStyle(box);
+    if (!['auto', 'scroll'].includes(look.overflowY) || box.scrollHeight <= box.clientHeight)
+      continue;
+    if (look.overscrollBehaviorY === 'auto')
+      found.push(finding('L-116', box, 'reaching its end scrolls the page under it'));
+  }
+  if (
+    matchMedia('(pointer: fine)').matches &&
+    getComputedStyle(root.documentElement).overscrollBehaviorY !== 'none'
+  )
+    found.push(finding('L-116', root.documentElement, 'a mouse page bounces at its ends'));
+  return found;
+}
+
 register(
+  untranslated,
   separators,
   palette,
   textContrast,
   edgeStrips,
   typeFaces,
   copy,
+  titleCase,
   copyRhythm,
   titleProximity,
   geometry,
@@ -3104,9 +3617,12 @@ register(
   detailPanes,
   rowGrounds,
   nestedFrames,
+  failureExits,
+  unitSpaces,
   earnedCards,
   framedSettings,
   disclosedCards,
   cardHeads,
-  timelines
+  timelines,
+  taps
 );

@@ -24,13 +24,13 @@
     choices,
     added = [],
     onadd,
-    done = word('AdditionPicker.done', 'Every choice is already added'),
+    done = word('AdditionPicker.done', 'You added every option'),
     none = word('AdditionPicker.none', 'Nothing to add'),
     loading = false,
-    loadingLabel = word('AdditionPicker.loadingLabel', 'Loading the choices…'),
+    loadingLabel = word('AdditionPicker.loadingLabel', 'Loading the options…'),
     error = null,
     onretry,
-    retryLabel = word('AdditionPicker.retryLabel', 'Try again'),
+    retryLabel = word('AdditionPicker.retryLabel', 'Try Again'),
     optionName = word(
       'AdditionPicker.optionName',
       (label: string, description: string) => `${label}${mark('comma')}${description}`
@@ -39,7 +39,7 @@
     class: className = '',
     ...rest
   }: {
-    /** The trigger's words, specific to what it adds, such as "Override another setting". */
+    /** The trigger's words, specific to what it adds, such as "Override Another Setting". */
     label: string;
     choices: readonly AdditionChoice[];
     /** Values already added. They are not offered again. */
@@ -186,7 +186,7 @@ new control after `onadd` is the caller's.
   popovertarget={popupId}
   onclick={toggle}
 >
-  {#snippet icon()}<Icon name="plus" size="sm" />{/snippet}
+  {#snippet icon()}<Icon name="plus" size="base" />{/snippet}
   {label}
 </Button><Popover id={popupId} anchor={trigger} bind:open {onclose} width="min-trigger">
   <div
@@ -284,11 +284,13 @@ new control after `onadd` is the caller's.
 
   .sui-addition-choice:focus-visible:not(:active) {
     background-color: var(--sui-interactive-hover-layer);
+    color: var(--sui-hover-ink);
   }
 
   @media (hover: hover) {
     .sui-addition-choice:hover:not(:active) {
       background-color: var(--sui-interactive-hover-layer);
+      color: var(--sui-hover-ink);
     }
   }
 

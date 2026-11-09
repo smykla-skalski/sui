@@ -1,6 +1,6 @@
 <script module lang="ts">
   export const section = {
-    title: 'Detail pane',
+    title: 'Detail Pane',
     lead: 'One thing beside its list or on its own page: a header band, one alert at most, sections by importance, properties, then rare detail',
     components: ['DetailLayout', 'PageHeader', 'Section', 'FactList']
   };
@@ -19,30 +19,30 @@
 
 <Example
   title="Layout"
-  note="From 56rem of pane the properties stand beside the main sections, and every zone keeps its order"
+  note="From 56 rem of pane the properties stand beside the main sections, and every zone keeps its order"
   layout="stack"
   ground="canvas"
   code={false}
 >
-  <Specimen label="Loaded" code="main aside">
+  <Specimen label="Loaded">
     <LayoutPreview href={pane()} {source} title="Detail pane page" />
   </Specimen>
 </Example>
 
 <Example
-  title="First load"
-  note="The title comes from the row that opened the pane, and placeholders hold each section's place until the check arrives"
+  title="First Load"
+  note="The title comes from the row that opened the pane, and placeholders hold each section’s place until the check arrives"
   layout="stack"
   ground="canvas"
   code={false}
 >
-  <Specimen label="Loading" code="rowHeight loading status">
+  <Specimen label="Loading">
     <LayoutPreview href={pane('loading')} {source} title="Detail pane page while it loads" />
   </Specimen>
 </Example>
 
 <Example
-  title="Not found"
+  title="Not Found"
   note="A check that no longer exists keeps its header and back link, and the failure stands in place of the body"
   layout="stack"
   ground="canvas"
@@ -54,19 +54,19 @@
 </Example>
 
 <Example
-  title="Refresh failed"
+  title="Refresh Failed"
   note="A refresh that fails takes the alert slot as one line, and the check that loaded earlier stays under it"
   layout="stack"
   ground="canvas"
   code={false}
 >
-  <Specimen label="Stale content" code="overContent">
+  <Specimen label="Stale content">
     <LayoutPreview href={pane('stale')} {source} title="Detail pane page after a failed refresh" />
   </Specimen>
 </Example>
 
 <Example
-  title="Empty section"
+  title="Empty Section"
   note="A section with nothing to show says so in one quiet sentence and keeps its heading"
   layout="stack"
   ground="canvas"

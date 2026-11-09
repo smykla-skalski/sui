@@ -41,20 +41,19 @@
   const runs: Run[] = [
     {
       id: '4182',
-      workflow: 'Nightly sync',
+      workflow: 'Nightly Sync',
       branch: 'main',
-      when: '12 min ago',
-      took: '48 seconds',
+      when: '12\u00a0min ago',
+      took: '48\u00a0seconds',
       ...failed,
-      outcome:
-        'Three repositories differ from the saved settings, so the sync stopped before writing'
+      outcome: '3 repositories differ from the saved settings, so the sync stopped before writing'
     },
     {
       id: '4181',
-      workflow: 'Deploy web',
+      workflow: 'Deploy Web',
       branch: 'main',
-      when: '40 min ago',
-      took: '2 minutes',
+      when: '40\u00a0min ago',
+      took: '2\u00a0minutes',
       ...passed,
       outcome: 'The web app went out to every region and answered its health checks'
     },
@@ -62,8 +61,8 @@
       id: '4180',
       workflow: 'Lint and test',
       branch: 'fix/labels',
-      when: '1 hour ago',
-      took: '3 minutes',
+      when: '1\u00a0hour ago',
+      took: '3\u00a0minutes',
       ...passed,
       outcome: 'Every check passed on the branch, so it is ready for review'
     },
@@ -71,8 +70,8 @@
       id: '4179',
       workflow: 'Release notes',
       branch: 'main',
-      when: '2 hours ago',
-      took: '21 seconds',
+      when: '2\u00a0hours ago',
+      took: '21\u00a0seconds',
       ...passed,
       outcome: 'The notes for version 2.4 were drafted from 18 merged changes'
     },
@@ -80,17 +79,17 @@
       id: '4178',
       workflow: 'Lint and test',
       branch: 'feat/list-detail',
-      when: '3 hours ago',
-      took: '4 minutes',
+      when: '3\u00a0hours ago',
+      took: '4\u00a0minutes',
       ...failed,
-      outcome: 'Two browser tests failed on the narrow layout, so the branch cannot merge yet'
+      outcome: '2 browser tests failed on the narrow layout, so the branch cannot merge yet'
     },
     ...['4177', '4176', '4175', '4174', '4173', '4172', '4171'].map((id, index) => ({
       id,
-      workflow: index % 2 ? 'Deploy web' : 'Nightly sync',
+      workflow: index % 2 ? 'Deploy Web' : 'Nightly Sync',
       branch: 'main',
-      when: `${index + 4} hours ago`,
-      took: '1 minute',
+      when: `${index + 4}\u00a0hours ago`,
+      took: '1\u00a0minute',
       ...passed,
       outcome:
         index % 2
@@ -100,9 +99,9 @@
   ];
 
   const steps = [
-    { name: 'Read the saved settings', took: '2 s' },
-    { name: 'Compare 16 repositories', took: '41 s' },
-    { name: 'Report the differences', took: '5 s' }
+    { name: 'Read the saved settings', took: '2\u00a0s' },
+    { name: 'Compare 16 repositories', took: '41\u00a0s' },
+    { name: 'Report the differences', took: '5\u00a0s' }
   ];
 
   const runsHref = resolve('/layouts/list-detail/[[run]]', {}) + '/';
@@ -153,7 +152,7 @@
     <PageHeader title={name(run)} description={run.outcome} kicker={back}>
       {#snippet status()}<Pill tone={run.tone}>{run.state}</Pill>{/snippet}
       {#snippet facts()}<FactList facts={headline(run)} />{/snippet}
-      {#snippet actions()}<Button tone="signal">Run again</Button>{/snippet}
+      {#snippet actions()}<Button tone="signal">Run Again</Button>{/snippet}
     </PageHeader>
     <div class="zones">
       <DetailLayout>
@@ -163,7 +162,7 @@
               {#each steps as step (step.name)}
                 <ObjectRow>
                   {#snippet main()}<span class="step">{step.name}</span>{/snippet}
-                  {#snippet side()}<span class="took">{step.took}</span>{/snippet}
+                  {#snippet side()}<span class="took" translate="no">{step.took}</span>{/snippet}
                 </ObjectRow>
               {/each}
             </ObjectList>
@@ -180,8 +179,9 @@
     <PageHeader title="Run #{id}" kicker={back} />
     <div class="zones">
       <ErrorState
-        title="Run #{id} was not found"
-        description="It was deleted or never existed, so go back to the runs to open another one"
+        title="Run #{id} Does Not Exist"
+        description="Someone deleted it or it never existed"
+        step="Go back to the runs to open another one"
       />
     </div>
   {/if}
@@ -205,7 +205,7 @@
       backHref={runsHref}
       current={id ? resolve('/layouts/list-detail/[[run]]', { run: id }) + '/' : undefined}
       detail={id ? opened : undefined}
-      emptyTitle="No run open"
+      emptyTitle="No Run Open"
       emptyDescription="The run you open in the list shows here with its steps and details"
       emptyStep="Choose a run in the list"
     >
@@ -257,6 +257,7 @@
     font: var(--sui-weight-semibold) var(--sui-font-size-meta) / var(--sui-row-copy-leading)
       var(--sui-sans);
     overflow-wrap: anywhere;
+    padding-block: var(--sui-block-snap-room);
     text-box: trim-both cap alphabetic;
   }
 
@@ -272,6 +273,7 @@
     font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-row-copy-leading)
       var(--sui-sans);
     overflow-wrap: anywhere;
+    padding-block: var(--sui-block-snap-room);
     text-box: trim-both cap alphabetic;
   }
 

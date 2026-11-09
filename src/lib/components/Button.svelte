@@ -6,6 +6,7 @@
 <script lang="ts" generics="Href extends string | undefined = undefined">
   import type { Snippet } from 'svelte';
   import type { HTMLAnchorAttributes, HTMLAttributes, HTMLButtonAttributes } from 'svelte/elements';
+  import { shownWait } from '../internal/shown-wait.svelte.js';
 
   type NativeElement = Href extends string ? HTMLAnchorElement : HTMLButtonElement;
   type NativeAttributes = HTMLAttributes<NativeElement> &
@@ -45,6 +46,7 @@
      such as a control held while a busy dialog or a saving pane around it works. */
   const busy = $derived(loading && !disabled);
   const locked = $derived(busy || ariaDisabled === true || ariaDisabled === 'true');
+  const spinning = shownWait(() => loading);
 
   function refuse(event: MouseEvent) {
     event.preventDefault();
@@ -56,9 +58,9 @@
 A tone is a job, never a color. `default` does a view's ordinary work, `signal` is the one
 action a view exists for (one per view), `ghost` is low emphasis that supports it, `stop` is
 destructive, and `stop-quiet` is destructive but bordered, for a flow whose filled danger
-button is the final confirmation. `add` is a dashed pill that starts an optional entry; it
-never submits, saves, cancels, removes or navigates. `decision` is the gold action that
-resolves unsaved work, such as Save in a save bar, and nothing else wears it.
+button is the final confirmation. `add` has a firm dashed edge and starts an
+optional entry; it never submits, saves, cancels, removes or navigates. `decision` is the gold
+action that resolves unsaved work, such as Save in a save bar, and nothing else wears it.
 
 Disabled is a state that any tone can wear, and so is `loading`. A loading button keeps its
 place in the tab order and its focus, is announced as busy and disabled, and ignores presses
@@ -69,11 +71,11 @@ start.
 
 - Semantics: a native `<button type="button">`, or an `<a href>` with `href`; its words are its name, and a disabled anchor is `role="link"` with `aria-disabled`.
 - Content: a short verb phrase that names the result, an optional leading `icon` and an optional `trailing` mark; a long or translated label wraps onto more lines inside its container.
-- States: rest, hover (a veil and a firmer edge), focus (a 2px ring, flush on bordered tones and 2px off a filled one), pressed (a deeper ground, an inset shadow and a 1px sink), loading (a spinner in the tone's ink on the full fill and edge, the words at 0.5 opacity, busy), locked by `aria-disabled` (0.5 opacity, still a tab stop) and disabled (0.5 opacity, default cursor).
+- States: rest, hover (a veil and a firmer edge), focus (a 2px ring, flush on bordered tones and 2px off a filled one), pressed (a deeper ground, an inset shadow and a 1px sink), loading (a spinner in the tone's ink on the full fill and edge, the words at full ink, busy), locked by `aria-disabled` (still a tab stop) and disabled (default cursor), both at 0.6 opacity, a filled or danger tone in the default paint.
 - Keyboard: Tab reaches it, and Enter or Space presses a button while Enter follows an anchor; a loading, locked or disabled one refuses both.
 - Pointer and touch: 34px tall on a pointer and 44px on a phone or any touch screen, at least as wide as its label, and a press is never a drag; a surface may keep it drawn at 34px on a phone with `--sui-local-button-seat`, and its hit area still grows to 44px.
 - Focus: pressing never moves focus, and a loading button keeps it; the caller moves focus when the press removes the button.
-- Responsive: as wide as its words up to its container or 20rem, and wider words wrap onto more lines, each keeping the one-line inset, instead of scrolling the page.
+- Responsive: as wide as its words up to its container or 20rem, and wider words wrap onto more lines, each keeping the one-line inset, instead of scrolling the page. A surface may stretch it to a length of its own with `--sui-local-button-span`, as a dialog's footer does on a phone.
 - Accessibility: the label is the name, `loading` sets `aria-busy` and `aria-disabled`, every tone's ink holds 4.5:1 on its fill, and forced colours draw hover with a highlight edge.
 - Localization: it draws no words of its own; the leading icon and the gap follow the reading direction, and directional glyphs mirror in a right-to-left page.
 - Performance: one element, and only colours, the inset shadow and the 1px sink move, with no movement under reduced motion.
@@ -82,7 +84,7 @@ start.
 -->
 
 {#snippet body()}
-  {#if loading}
+  {#if spinning.current}
     <span class="sui-button-part"><span class="sui-button-spinner" aria-hidden="true"></span></span>
   {:else if icon}
     <span class="sui-button-part">{@render icon()}</span>
@@ -148,10 +150,10 @@ start.
     font: var(--sui-weight-medium) var(--sui-font-size-control) / var(--sui-leading-flat)
       var(--sui-sans);
     gap: var(--sui-space-2);
-    inline-size: fit-content;
+    inline-size: var(--sui-local-button-span, fit-content);
     justify-content: center;
     margin: 0;
-    max-inline-size: min(100%, 20rem);
+    max-inline-size: var(--sui-local-button-span, min(100%, 20rem));
     min-block-size: var(
       --sui-local-button-seat,
       var(--sui-local-control-height, var(--sui-control-height-compact))
@@ -175,15 +177,12 @@ start.
     margin-block: calc((var(--sui-local-button-line) - round(up, 1cap, 2px)) / 2);
     min-inline-size: 0;
     overflow-wrap: anywhere;
+    padding-block: var(--sui-block-snap-room-even);
+    /* A wrapped label fills the button, so its lines start on one edge, at an icon or a mark
+       when there is one. A one-line label is as wide as its words, so the button centres it. */
+    text-align: start;
     text-box: trim-both cap alphabetic;
     text-wrap: balance;
-  }
-
-  /* A wrapped label fills the button, so beside an icon or a mark its lines start at that part
-     rather than centring away from it. */
-  .sui-button-part + .sui-button-label,
-  .sui-button-label:has(+ .sui-button-part) {
-    text-align: start;
   }
 
   .sui-button-part {
@@ -253,8 +252,8 @@ start.
     }
 
     .sui-button[data-tone='stop']:hover:not(:active):not(:disabled, [aria-disabled='true']) {
-      background-color: var(--sui-danger-hover);
-      border-color: var(--sui-danger-hover);
+      background-color: var(--sui-danger-fill-hover);
+      border-color: var(--sui-danger-fill-hover);
     }
 
     .sui-button[data-tone='stop-quiet']:hover:not(:active):not(:disabled, [aria-disabled='true']) {
@@ -272,7 +271,7 @@ start.
 
   .sui-button:focus-visible {
     border-color: var(--sui-focus);
-    outline: var(--sui-focus-ring-width) solid var(--sui-focus);
+    outline: var(--sui-focus-ring-edge) solid var(--sui-focus);
     outline-offset: var(--sui-focus-ring-flush);
   }
 
@@ -280,6 +279,7 @@ start.
      2px; standing 2px off, the ring shows against the ground the button sits on. */
   .sui-button:is([data-tone='signal'], [data-tone='stop'], [data-tone='decision']):focus-visible {
     outline-offset: var(--sui-focus-ring-offset);
+    outline-width: var(--sui-focus-ring-width);
   }
 
   .sui-button:is(:disabled, [aria-disabled='true']) {
@@ -287,13 +287,6 @@ start.
   }
 
   .sui-button:is(:disabled, [aria-disabled='true']):not(.busy) {
-    opacity: var(--sui-disabled-opacity);
-  }
-
-  /* A busy button is the action at work, not a disabled one: its fill, edge and spinner stay
-     at full strength, so the spinner keeps the tone's ink on its fill (WCAG 1.4.11), and only
-     its words dim (Primer, Polaris, Atlassian). */
-  .sui-button.busy > :not(:has(> .sui-button-spinner)) {
     opacity: var(--sui-disabled-opacity);
   }
 
@@ -327,9 +320,9 @@ start.
   }
 
   .sui-button[data-tone='stop'] {
-    background-color: var(--sui-danger);
+    background-color: var(--sui-danger-fill);
     background-image: none;
-    border-color: var(--sui-danger);
+    border-color: var(--sui-danger-fill);
     color: var(--sui-on-danger);
   }
 
@@ -340,7 +333,11 @@ start.
   }
 
   .sui-button[data-tone='stop-quiet'] {
-    border-color: color-mix(in srgb, var(--sui-danger) 45%, var(--sui-control-border));
+    border-color: color-mix(
+      in srgb,
+      var(--sui-danger) var(--sui-stop-quiet-edge-mix),
+      var(--sui-control-border)
+    );
     color: var(--sui-danger);
   }
 
@@ -351,25 +348,52 @@ start.
     border-color: var(--sui-danger);
   }
 
+  /* A ghost's edge is clear and a quiet stop's keeps its danger, so neither is the ring's color,
+     and the outline draws the whole 2px ring past it (L-41). */
+  .sui-button:is([data-tone='ghost'], [data-tone='stop-quiet']):focus-visible {
+    outline-width: var(--sui-focus-ring-width);
+  }
+
+  /* A disabled tone takes the default paint, dimmed as every disabled control is, so an action
+     that cannot run reads as off, never as a paler colour of itself (Radix). */
+  .sui-button:is(
+      [data-tone='signal'],
+      [data-tone='decision'],
+      [data-tone='stop'],
+      [data-tone='stop-quiet']
+    ):is(:disabled, [aria-disabled='true']):not(.busy) {
+    background-color: var(--sui-surface-raised);
+    border-color: var(--sui-control-border);
+    color: var(--sui-text-primary);
+  }
+
+  /* A dash shows only half its length, so it rests at the hover edge to read as firm as a
+     solid one. */
   .sui-button[data-tone='add'] {
+    --sui-control-border: var(--sui-control-border-hover);
+
     background-color: transparent;
-    border-radius: var(--sui-radius-pill);
     border-style: dashed;
-    color: var(--sui-text-secondary);
+    color: var(--sui-text-primary);
   }
 
   .sui-button[data-tone='add']:focus-visible {
     border-style: dashed;
   }
 
+  /* A full track under a quarter arc reads as progress even when reduced motion stops it,
+     where an open ring alone reads as a letter. The track keeps 40% of the ink, so the ring
+     stays whole on a coloured fill. The ring stands a stroke inside the glyph's slot, so its
+     bold line weighs no more than a glyph's. */
   .sui-button-spinner {
-    block-size: var(--sui-icon-sm);
-    border: var(--sui-stroke-bold) solid currentColor;
-    border-inline-end-color: transparent;
+    block-size: calc(var(--sui-icon-base) - 2 * var(--sui-stroke));
+    border: var(--sui-stroke-bold) solid color-mix(in srgb, currentColor 40%, transparent);
+    border-block-start-color: currentColor;
     border-radius: 50%;
     box-sizing: border-box;
     flex: none;
-    inline-size: var(--sui-icon-sm);
+    inline-size: calc(var(--sui-icon-base) - 2 * var(--sui-stroke));
+    margin: var(--sui-stroke);
     animation: sui-button-spin var(--sui-duration-spinner) var(--sui-ease-linear) infinite;
   }
 

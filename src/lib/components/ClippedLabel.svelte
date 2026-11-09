@@ -37,6 +37,9 @@
       };
       const watcher = new ResizeObserver(check);
       watcher.observe(node);
+      // A row that skips off the screen silences the observer from its first frame, so one
+      // read lands first; every label reads in the same task, after the page is written.
+      queueMicrotask(check);
       return () => watcher.disconnect();
     };
   }
@@ -87,6 +90,7 @@ it a bounded width anywhere else.
     display: block;
     min-inline-size: 0;
     overflow-x: clip;
+    padding-block: var(--sui-block-snap-room);
     text-box: trim-both cap alphabetic;
     text-overflow: ellipsis;
     white-space: nowrap;

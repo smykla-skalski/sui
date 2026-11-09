@@ -226,7 +226,7 @@ suite('words', together, () => {
           children: html('<p>x</p>')
         });
         put(lib.AdditionPicker, 'AdditionPicker', {
-          label: 'Add a check',
+          label: 'Add a Check',
           choices: [{ value: 'a', label: 'Auto merge', description: 'Once green' }],
           onadd: () => {}
         });
@@ -278,6 +278,17 @@ suite('words', together, () => {
         });
         put(lib.DurationInput, 'DurationInput', { label: 'Delay', value: 5, min: 60, max: 86_400 });
         put(lib.IdentityRow, 'IdentityRow', { name: 'Ada Lovelace', handle: '@ada' }, 'button');
+        put(
+          lib.IdentityRow,
+          'IdentityHandle',
+          {
+            name: 'Ada Lovelace',
+            handle: '@ada',
+            handleName: (/** @type {string} */ name, /** @type {string} */ handle) =>
+              handle.startsWith('@') ? `${name} on GitHub, ${handle}` : name
+          },
+          'button'
+        );
         put(lib.PageHeader, 'FactLine', { title: 'Repository', eyebrow: ['main', '84 files'] });
         flushSync();
       });
@@ -338,6 +349,24 @@ suite('words', together, () => {
         await page.locator('[data-words="ListToolbar"] .sui-list-toolbar-chosen').textContent(),
         'UpdatedⓒOpen'
       );
+      // The login is heard as it is drawn, so a page translator leaves it in both copies, and
+      // the caller's words are given the login itself.
+      for (const [row, said] of [
+        ['IdentityRow', 'Ada Lovelaceⓒ@ada'],
+        ['IdentityHandle', 'Ada Lovelace on GitHub, @ada']
+      ])
+        assert.deepEqual(
+          await page
+            .locator(`[data-words="${row}"] .sui-visually-hidden`)
+            .evaluate((heard) => [
+              heard.textContent,
+              [...heard.querySelectorAll('*')].map((node) => [
+                node.textContent,
+                /** @type {HTMLElement} */ (node).translate
+              ])
+            ]),
+          [said, [['@ada', false]]]
+        );
 
       // What a reader hears of a fact line, text by text: the dot's alternative text is the
       // comma mark, and the dot itself is never read. The eyebrow draws its words in capitals,
@@ -389,6 +418,124 @@ suite('words', together, () => {
         .allTextContents();
       assert.equal(shown.length, 2, 'the hint or the problem is not drawn');
       assert.equal(duration.description, shown.map((text) => text.trim()).join('ⓢ'));
+    });
+  });
+
+  // Waits measured in seconds, moved on by the page's clock instead of waited out.
+  suite('mounted on a held clock', { concurrency: 1 }, () => {
+    /** @type {import('playwright-core').Page} */
+    let page;
+    before(async () => {
+      page = await openMount(browser, url);
+      // An installed clock still runs in real time until paused, so a slow runner would pass a
+      // 150ms wait between two steps of a test.
+      await page.clock.install({ time: 0 });
+      await page.clock.pauseAt(1000);
+    });
+    after(() => page?.close());
+
+    test('L-117 a spinner waits out a fast answer and stays a moment once drawn', async () => {
+      await page.evaluate(() => {
+        const { lib, mount, flushSync, createRawSnippet, state, get } = /** @type {any} */ (window);
+        const loading = state(false);
+        const target = Object.assign(document.createElement('div'), { id: 'spinning' });
+        document.body.prepend(target);
+        mount(lib.Button, {
+          target,
+          props: {
+            get loading() {
+              return get(loading);
+            },
+            children: createRawSnippet(() => ({ render: () => '<span>Go</span>' }))
+          }
+        });
+        flushSync();
+        Object.assign(window, { loading });
+      });
+      /** @param {boolean} on */
+      const set = (on) =>
+        page.evaluate((on) => {
+          const { set, flushSync, loading } = /** @type {any} */ (window);
+          set(loading, on);
+          flushSync();
+        }, on);
+      const spins = () => page.locator('#spinning .sui-button-spinner').isVisible();
+      const marks = [];
+      // A 60ms answer draws nothing.
+      await set(true);
+      await page.clock.runFor(60);
+      marks.push(await spins());
+      await set(false);
+      await page.clock.runFor(200);
+      marks.push(await spins());
+      // A slow one draws the spinner, and an end right after it keeps the spinner a moment.
+      await set(true);
+      await page.clock.runFor(80);
+      marks.push(await spins());
+      await page.clock.runFor(170);
+      marks.push(await spins());
+      await set(false);
+      await page.clock.runFor(100);
+      marks.push(await spins());
+      await page.clock.runFor(500);
+      marks.push(await spins());
+      assert.deepEqual(marks, [false, false, false, true, true, false]);
+    });
+
+    test('a live pill pulses again on a beat only once its dot has been still for 5 seconds', async () => {
+      await page.evaluate(() => {
+        const { lib, mount, flushSync, createRawSnippet, state, get } = /** @type {any} */ (window);
+        const beat = state(0);
+        const target = Object.assign(document.createElement('div'), { id: 'beating' });
+        document.body.prepend(target);
+        mount(lib.Pill, {
+          target,
+          props: {
+            live: true,
+            get beat() {
+              return get(beat);
+            },
+            children: createRawSnippet(() => ({ render: () => '<span>Syncing</span>' }))
+          }
+        });
+        flushSync();
+        Object.assign(window, { beat });
+      });
+      const pulse = () =>
+        page.evaluate(
+          () =>
+            document
+              .querySelector('#beating .sui-pill-dot')
+              ?.getAnimations({ subtree: true })
+              .filter((run) => run.playState === 'running')
+              .map((run) => run.effect?.getTiming().iterations) ?? []
+        );
+      const beatOnce = () =>
+        page.evaluate(() => {
+          const { set, get, flushSync, beat } = /** @type {any} */ (window);
+          set(beat, get(beat) + 1);
+          flushSync();
+        });
+      const seen = [await pulse()];
+      // The dot is still from its `animationend`, which the browser sends with its next frame.
+      await page.evaluate(async () => {
+        const dot = /** @type {Element} */ (document.querySelector('#beating .sui-pill-dot'));
+        const ended = new Promise((done) =>
+          dot.addEventListener('animationend', done, { once: true })
+        );
+        for (const run of dot.getAnimations({ subtree: true })) run.finish();
+        await ended;
+      });
+      await beatOnce();
+      seen.push(await pulse());
+      await page.clock.runFor(5000);
+      await beatOnce();
+      seen.push(await pulse());
+      await beatOnce();
+      seen.push(await pulse());
+      // Three runs on arrival, none for a beat while the dot is fresh, one after 5 still
+      // seconds, and none for a beat while that run still moves.
+      assert.deepEqual(seen, [[3], [], [1], [1]]);
     });
   });
 });

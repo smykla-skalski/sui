@@ -98,7 +98,7 @@ save keeps it. A busy dialog or a saving pane around it disables the radios whil
 
 - Semantics: a `<fieldset role="radiogroup">` named by its `<legend>`, described by the hint and the error, holding native radios each named by its label and described by its sentence, with a polite `role="status"` that speaks the error.
 - Content: a question as the legend and two to six answers, each a short label and one sentence; an optional hint and an error.
-- States: unchosen (a quiet edge), chosen (a brand tint, a 2px brand edge and a filled dot), hover (a veil and a firmer edge), focus (a flush 2px ring on a focus-coloured edge), pressed (a deeper ground, an inset shadow and a 1px sink), required (the word after the legend), invalid (a danger edge on every unchosen card and an error with a warning mark, from `error` or from a refused send), locked and disabled answers (0.5 opacity).
+- States: unchosen (a quiet edge), chosen (a brand tint, a 2px brand edge and a filled dot), hover (a veil and a firmer edge), focus (a flush 2px ring on a focus-coloured edge), pressed (a deeper ground, an inset shadow and a 1px sink), required (the word after the legend), invalid (a danger edge on every unchosen card and an error with a warning mark, from `error` or from a refused send), locked and disabled answers (0.6 opacity).
 - Keyboard: Tab enters the group at the chosen answer, the arrows move the choice and skip disabled answers, and Space chooses; a locked group refuses all of them and keeps focus.
 - Pointer and touch: every card is its own target, at least 72px tall.
 - Focus: locking the group leaves focus on the radio that had it, and a send that leaves a required question unanswered moves focus to its first radio when it is the form's first refused control.
@@ -157,7 +157,7 @@ save keeps it. A busy dialog or a saving pane around it disables the radios whil
        description still reads it. -->
   {#if shown}
     <p id="{id}-error" class="sui-choice-cards-error" aria-hidden="true">
-      <span class="sui-choice-cards-mark"><Icon name="alert" size="xs" /></span>
+      <span class="sui-choice-cards-mark"><Icon name="alert" size="base" /></span>
       <span class="sui-choice-cards-words">{shown}</span>
     </p>
   {/if}
@@ -168,7 +168,7 @@ save keeps it. A busy dialog or a saving pane around it disables the radios whil
   .sui-choice-cards {
     border: 0;
     display: grid;
-    gap: var(--sui-row-copy-gap);
+    gap: var(--sui-field-gap);
     margin: 0;
     min-inline-size: 0;
     padding: 0;
@@ -177,17 +177,20 @@ save keeps it. A busy dialog or a saving pane around it disables the radios whil
   .sui-choice-cards-legend {
     align-content: center;
     block-size: var(--sui-block-snap);
-    color: var(--sui-text-secondary);
+    color: var(--sui-text-primary);
     float: inline-start;
-    font: var(--sui-weight-semibold) var(--sui-font-size-control) / var(--sui-row-copy-leading)
+    font: var(--sui-weight-semibold) var(--sui-font-size-control) / var(--sui-leading-note)
       var(--sui-sans);
     padding: 0;
+    padding-block: var(--sui-block-snap-room);
     text-box: trim-both cap alphabetic;
+    text-wrap: pretty;
   }
 
   .sui-choice-cards-required {
     color: var(--sui-text-muted);
-    font-weight: var(--sui-weight-regular);
+    font-size: var(--sui-font-size-caption);
+    font-weight: var(--sui-weight-medium);
     margin-inline-start: var(--sui-space-1);
   }
 
@@ -224,7 +227,7 @@ save keeps it. A busy dialog or a saving pane around it disables the radios whil
 
   /* An answer still missing marks every card, as an invalid field marks its frame. */
   .invalid .sui-choice-card:not(:has(input:checked)) {
-    box-shadow: inset 0 0 0 var(--sui-stroke) var(--sui-danger);
+    box-shadow: inset 0 0 0 var(--sui-stroke) var(--sui-danger-edge);
   }
 
   /* Hover and press lay a veil over the card's own ground, its rest fill or its brand tint. */
@@ -299,6 +302,11 @@ save keeps it. A busy dialog or a saving pane around it disables the radios whil
     outline-offset: var(--sui-focus-ring-flush);
   }
 
+  /* A card that draws the danger edge rings in its red, as an invalid field does (L-41). */
+  .invalid .sui-choice-card:not(:has(input:checked)) input:focus-visible {
+    outline-color: var(--sui-focus-danger);
+  }
+
   .sui-choice-card-dot {
     background: var(--sui-surface-base);
     block-size: var(--sui-icon-base);
@@ -334,6 +342,7 @@ save keeps it. A busy dialog or a saving pane around it disables the radios whil
     color: var(--sui-text-primary);
     font: var(--sui-weight-semibold) var(--sui-font-size-meta) / var(--sui-row-copy-leading)
       var(--sui-sans);
+    padding-block: var(--sui-block-snap-room-even);
     text-box: trim-both cap alphabetic;
     text-wrap: pretty;
   }
@@ -345,6 +354,7 @@ save keeps it. A busy dialog or a saving pane around it disables the radios whil
     font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-row-copy-leading)
       var(--sui-sans);
     grid-column: 1;
+    padding-block: var(--sui-block-snap-room);
     text-box: trim-both cap alphabetic;
     text-wrap: pretty;
   }
@@ -361,21 +371,23 @@ save keeps it. A busy dialog or a saving pane around it disables the radios whil
     margin: 0;
     min-inline-size: 0;
     overflow-wrap: anywhere;
+    padding-block: var(--sui-block-snap-room);
     text-box: trim-both cap alphabetic;
+    text-wrap: pretty;
   }
 
   .sui-choice-cards-help {
     color: var(--sui-text-secondary);
-    font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-row-copy-leading)
+    font: var(--sui-weight-regular) var(--sui-font-size-note) / var(--sui-leading-note)
       var(--sui-sans);
   }
 
   .sui-choice-cards-error {
     align-items: start;
     color: var(--sui-danger);
-    column-gap: var(--sui-space-1);
+    column-gap: var(--sui-space-2);
     display: grid;
-    font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-row-copy-leading)
+    font: var(--sui-weight-medium) var(--sui-font-size-note) / var(--sui-leading-note)
       var(--sui-sans);
     grid-template-columns: auto minmax(0, 1fr);
     margin: 0;
@@ -384,7 +396,7 @@ save keeps it. A busy dialog or a saving pane around it disables the radios whil
   /* Centred on the first line's cap height, however many lines the error wraps to. */
   .sui-choice-cards-mark {
     display: flex;
-    margin-block: round(calc((1cap - var(--sui-icon-xs)) / 2), 1px);
+    margin-block: round(calc((1cap - var(--sui-icon-base)) / 2), 1px);
   }
 
   @media (prefers-reduced-motion: reduce) {

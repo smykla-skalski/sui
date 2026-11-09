@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import { after, before, suite, test } from 'node:test';
 import {
   allSections,
@@ -139,12 +140,12 @@ suite('navigation', together, () => {
         await resize(page, 1440);
         const fold = page.locator('.sui-side-nav-fold');
         const mode = () => page.locator('.sui-side-nav').getAttribute('data-mode');
-        assert.equal((await fold.textContent())?.trim(), 'Collapse');
+        assert.equal((await fold.textContent())?.trim(), 'Collapse Navigation');
         await fold.click();
-        assert.equal((await fold.textContent())?.trim(), 'Expand');
+        assert.equal((await fold.textContent())?.trim(), 'Expand Navigation');
         assert.equal(await mode(), 'collapsed');
         await fold.click();
-        assert.equal((await fold.textContent())?.trim(), 'Collapse');
+        assert.equal((await fold.textContent())?.trim(), 'Collapse Navigation');
         assert.equal(await mode(), 'full');
         assert.ok(
           await fold.evaluate((button) => document.activeElement === button),
@@ -204,6 +205,22 @@ suite('navigation', together, () => {
         assert.ok(await drawer.isVisible(), 'the Escape that closed the tip closed the drawer');
         await page.keyboard.press('Escape');
         await drawer.waitFor({ state: 'detached' });
+      }
+    );
+
+    // It reloads the page, and the test after it sets up the page it needs itself.
+    test(
+      'the rail places are links, and the place one opens stays current through a reload',
+      long,
+      async () => {
+        const page = await shell();
+        await resize(page, 1440);
+        const personal = page.locator('.sui-rail').getByRole('link', { name: 'Personal' });
+        await personal.click();
+        await page.waitForURL((address) => address.searchParams.get('place') === 'personal', brief);
+        assert.equal(await personal.getAttribute('aria-current'), 'page');
+        await visit(page, page.url());
+        assert.equal(await personal.getAttribute('aria-current'), 'page');
       }
     );
 
@@ -274,11 +291,99 @@ suite('navigation', together, () => {
     }
   );
 
-  test("an overview card opens its component's own page, which the index marks", async () => {
+  test('L-118 the shell keeps its bar, pane, drawer, skip link, toasts and worker status inside the safe area, toasts standing on the status, and so does the error page', async () => {
+    // A phone upright, with its notch and home indicator, and on its side, notch at the start,
+    // narrow enough that the error page's centred column meets the insets.
+    for (const [width, height, insets] of /** @type {const} */ ([
+      [390, 844, { top: 47, right: 0, bottom: 34, left: 0 }],
+      [812, 375, { top: 0, right: 44, bottom: 21, left: 44 }]
+    ])) {
+      const page = await browser.newPage({ viewport: { width, height }, hasTouch: true });
+      try {
+        const cdp = await page.context().newCDPSession(page);
+        await cdp.send('Emulation.setSafeAreaInsetsOverride', { insets });
+        await visit(page, new URL('layouts/app-shell/', url).href);
+        await page.waitForFunction(() => !document.documentElement.dataset.suiFonts);
+        const safe = {
+          top: insets.top,
+          left: insets.left,
+          right: width - insets.right,
+          bottom: height - insets.bottom
+        };
+        /** @type {string[]} */
+        const out = [];
+        const inside = async (/** @type {import('playwright-core').Locator} */ part, name = '') => {
+          const box = await part.boundingBox();
+          if (!box) return out.push(`${name}: no box`);
+          if (
+            box.y < safe.top - 0.5 ||
+            box.x < safe.left - 0.5 ||
+            box.x + box.width > safe.right + 0.5 ||
+            box.y + box.height > safe.bottom + 0.5
+          )
+            out.push(
+              `${name} at ${Math.round(box.x)},${Math.round(box.y)} ${box.width}x${box.height}`
+            );
+        };
+        const skip = page.locator('.sui-skip-link');
+        // A long label meets the width cap, which must keep clear of the inset on either side.
+        await skip.evaluate((link) => (link.textContent = 'Skip to the main content '.repeat(8)));
+        await page.keyboard.press('Tab');
+        await skip.evaluate((link) => Promise.all(link.getAnimations().map((run) => run.finished)));
+        await inside(skip, 'skip link');
+        await skip.evaluate((link) => /** @type {HTMLElement} */ (link).blur());
+        await skip.evaluate((link) => Promise.all(link.getAnimations().map((run) => run.finished)));
+        // At rest the link waits wholly above the screen, its notch room too.
+        const rest = await skip.boundingBox();
+        if (!rest || rest.y + rest.height > 0)
+          out.push(`the resting skip link reaches ${rest && rest.y + rest.height}px down`);
+        await inside(page.locator('.sui-shell-menu'), 'menu button');
+        // The pane runs on past the foot of the screen, so only its sides are measured.
+        const pane = await page.locator('.sui-shell-pane').boundingBox();
+        if (!pane || pane.x < safe.left - 0.5 || pane.x + pane.width > safe.right + 0.5)
+          out.push(`pane across ${pane?.x}-${pane && pane.x + pane.width}`);
+        const drawer = await openDrawer(page);
+        await inside(drawer.locator('.sui-shell-pages'), 'drawer pages');
+        // A lasting worker status and a toast meet at the foot of a narrow screen, so the toast
+        // stands on the status, and on a phone a short toast still spans the screen.
+        await visit(page, new URL('toaster/', url).href);
+        await page.evaluate(() => dispatchEvent(new Event('offline')));
+        await page.getByRole('button', { name: 'Save Settings' }).first().click();
+        const status = page.locator('.sui-service-worker-status:popover-open');
+        const toast = page.locator('.sui-toaster:popover-open .sui-toast');
+        for (const part of [status, toast])
+          await part.evaluate((node) =>
+            Promise.all(node.getAnimations().map((run) => run.finished))
+          );
+        await inside(status, 'worker status');
+        await inside(toast, 'toast');
+        const [low, high] = [await status.boundingBox(), await toast.boundingBox()];
+        if (!low || !high || high.y + high.height > low.y - 7.5)
+          out.push(`toast foot ${high && high.y + high.height} over status top ${low?.y}`);
+        if (width < 768 && Math.abs((high?.width ?? 0) - (low?.width ?? 0)) > 0.5)
+          out.push(`a short toast is ${high?.width}px wide beside a ${low?.width}px status`);
+        // The error page stands outside the shell, so it keeps its own words clear of the insets.
+        await page.evaluate(() => {
+          const link = Object.assign(document.createElement('a'), { href: '../no-such-page/' });
+          document.body.append(link);
+          link.click();
+        });
+        const lost = page.getByRole('heading', { level: 1, name: 'Page Not Found' });
+        await lost.waitFor(brief);
+        await inside(lost, 'error page title');
+        await inside(page.locator('.sui-error-state'), 'error page panel');
+        assert.deepEqual(out, [], `${width}x${height}`);
+      } finally {
+        await page.close();
+      }
+    }
+  });
+
+  test("an overview card opens its component's own page, which the index marks, and L-59 a wrong address leads back", async () => {
     const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
     try {
       await visit(page, url);
-      await page.getByRole('link', { name: 'Data table', exact: true }).first().click();
+      await page.getByRole('link', { name: 'Data Table', exact: true }).first().click();
       await page.waitForURL(/\/data-table\/$/);
       const shown = await page.evaluate(() => ({
         title: document.querySelector('h1')?.textContent?.trim(),
@@ -287,7 +392,17 @@ suite('navigation', together, () => {
           .querySelector('.sui-side-nav-row[aria-current="page"]')
           ?.textContent?.trim()
       }));
-      assert.deepEqual(shown, { title: 'Data table', sections: 1, current: 'Data table' });
+      assert.deepEqual(shown, { title: 'Data Table', sections: 1, current: 'Data Table' });
+
+      // The router takes the link, as it takes any in-app link, so its load fails as a missing page.
+      await page.evaluate(() => {
+        const link = Object.assign(document.createElement('a'), { href: '../no-such-component/' });
+        document.body.append(link);
+        link.click();
+      });
+      await page.getByRole('heading', { level: 1, name: 'Page Not Found' }).waitFor(brief);
+      const overview = page.getByRole('link', { name: 'Open the Overview' });
+      assert.equal(new URL((await overview.getAttribute('href')) ?? '', page.url()).href, url);
     } finally {
       await page.close();
     }
@@ -349,12 +464,12 @@ suite('navigation', together, () => {
           () =>
             document
               .querySelector('.sui-shell-side .sui-side-nav-row[aria-current="page"]')
-              ?.textContent?.trim() === 'Data table',
+              ?.textContent?.trim() === 'Data Table',
           null,
           brief
         )
       );
-      assert.equal(await marked(), 'Data table');
+      assert.equal(await marked(), 'Data Table');
     });
 
     test('under forced colors the current tab is marked in Highlight', long, async () => {
@@ -523,7 +638,7 @@ suite('navigation', together, () => {
     );
 
     test(
-      'every sideways scroller fades only the edges with more past them, mirrored right to left (L-107)',
+      'every sideways scroller fades only the edges with more past them, 20px on a phone, mirrored right to left (L-107)',
       long,
       async () => {
         const page = await sink();
@@ -549,7 +664,7 @@ suite('navigation', together, () => {
                 box.scrollWidth - box.clientWidth >= 4
               );
             });
-            /** @type {boolean[][][]} */
+            /** @type {number[][][]} */
             const states = boxes.map(() => []);
             // Each scroller's fade follows only its own scroll, so all of them move at once.
             for (const share of [0, 0.5, 1]) {
@@ -559,22 +674,25 @@ suite('navigation', together, () => {
               }
               await frame();
               await frame();
-              boxes.forEach((box, at) => states[at].push(fades(box).map((width) => width > 0)));
+              boxes.forEach((box, at) => states[at].push(fades(box)));
             }
             const wrong = [];
             for (const [at, box] of boxes.entries()) {
               box.scrollLeft = 0;
               const look = getComputedStyle(box);
               const name = `${box.closest('section')?.id} ${box.className}`;
+              const shown = states[at].map((widths) => widths.map((width) => width > 0));
               if (
-                JSON.stringify(states[at]) !==
+                JSON.stringify(shown) !==
                 JSON.stringify([
                   [false, true],
                   [true, true],
                   [true, false]
                 ])
               )
-                wrong.push(`${name}: ${JSON.stringify(states[at])}`);
+                wrong.push(`${name}: ${JSON.stringify(shown)}`);
+              if (states[at][1].some((width) => width !== 20))
+                wrong.push(`${name}: the fades are ${states[at][1].join(' and ')}px wide`);
               if (look.direction === 'rtl' && !look.maskImage.includes('to left'))
                 wrong.push(`${name}: the fade does not mirror`);
             }
@@ -633,7 +751,7 @@ suite('navigation', together, () => {
             const look = getComputedStyle(card);
             return `${look.outlineStyle} ${look.outlineWidth} ${look.outlineColor === look.borderTopColor}`;
           });
-        assert.equal(ring, 'solid 2px true', 'the focused link does not ring its card');
+        assert.equal(ring, 'solid 1px true', 'the focused link does not ring its card');
 
         const before = await page.evaluate(() => location.hash);
         await peers.getByRole('button', { name: 'Rule actions' }).click();
@@ -670,7 +788,7 @@ suite('navigation', together, () => {
       });
       try {
         // The pane stands well below the viewport's top quarter, so only its own reading line
-        // can make "Required checks" current.
+        // can make "Required Checks" current.
         await page.evaluate(() => {
           const pane = /** @type {HTMLElement} */ (document.querySelector('#page-toc .sections'));
           scrollBy(0, pane.getBoundingClientRect().top - 400);
@@ -688,12 +806,12 @@ suite('navigation', together, () => {
             () =>
               document
                 .querySelector('#page-toc .sui-page-toc-link[aria-current="location"]')
-                ?.textContent?.trim() === 'Required checks',
+                ?.textContent?.trim() === 'Required Checks',
             null,
             brief
           )
         );
-        assert.equal(await current(), 'Required checks');
+        assert.equal(await current(), 'Required Checks');
       } finally {
         await pane.evaluate((tag) => /** @type {Element} */ (tag).remove());
       }
@@ -708,7 +826,7 @@ suite('navigation', together, () => {
         const page = await sink();
         try {
           for (const [width, reducedMotion, name] of /** @type {const} */ ([
-            [375, 'no-preference', 'Data table'],
+            [375, 'no-preference', 'Data Table'],
             [1440, 'reduce', 'Tabs']
           ])) {
             await resize(page, width);
@@ -737,6 +855,74 @@ suite('navigation', together, () => {
     );
 
     // Last, since it leaves the drawer open and the page in the other theme.
+    test(
+      'the side nav parts its title and the part under its rows by hairlines, cuts its rows cleanly at both, and rests each end a gap clear of them (L-107)',
+      long,
+      async () => {
+        const page = await sink();
+        await resize(page, 1440);
+        try {
+          const found = await page.evaluate(async () => {
+            const tree = /** @type {HTMLElement} */ (document.querySelector('.sui-side-nav-tree'));
+            const head = /** @type {Element} */ (document.querySelector('.sui-side-nav-head'));
+            const next = /** @type {Element} */ (tree.nextElementSibling);
+            const list = /** @type {Element} */ (tree.firstElementChild);
+            const frame = () => new Promise(requestAnimationFrame);
+            const box = () => tree.getBoundingClientRect();
+            const rest = async (/** @type {number} */ at) => {
+              tree.scrollTop = at;
+              await frame();
+              await frame();
+            };
+            await rest(0);
+            const top = list.getBoundingClientRect().top - box().top;
+            await rest(tree.scrollHeight);
+            const bottom = box().bottom - list.getBoundingClientRect().bottom;
+            return {
+              scrolls: tree.scrollHeight - tree.clientHeight,
+              top,
+              bottom,
+              underHead: box().top - head.getBoundingClientRect().bottom,
+              overNext: next.getBoundingClientRect().top - box().bottom,
+              gap: parseFloat(getComputedStyle(tree).getPropertyValue('--sui-local-tree-gap')) * 16,
+              masked: getComputedStyle(tree).maskImage !== 'none',
+              lines: [getComputedStyle(head).borderBottom, getComputedStyle(next).borderTop]
+            };
+          });
+          assert.ok(found.scrolls > 100, `the rows scroll only ${found.scrolls}px`);
+          assert.equal(found.masked, false, 'the rows fade as they pass the hairlines');
+          assert.match(found.lines[0], /^1px solid/, 'no hairline parts the title from the rows');
+          assert.equal(
+            found.lines[0],
+            found.lines[1],
+            "the part under the rows draws no line, or not the title's"
+          );
+          assert.equal(found.gap, 16);
+          assert.ok(
+            Math.abs(found.underHead) <= 0.5,
+            `the rows end ${found.underHead}px under the title`
+          );
+          assert.ok(
+            Math.abs(found.overNext) <= 0.5,
+            `the rows end ${found.overNext}px over the part under them`
+          );
+          assert.ok(
+            Math.abs(found.top - found.gap) <= 0.5,
+            `the first row rests ${found.top}px down`
+          );
+          assert.ok(
+            Math.abs(found.bottom - found.gap) <= 0.5,
+            `the last row rests ${found.bottom}px up`
+          );
+        } finally {
+          await page.evaluate(() => {
+            const tree = document.querySelector('.sui-side-nav-tree');
+            if (tree) tree.scrollTop = 0;
+          });
+        }
+      }
+    );
+
     test('a phone changes the theme from the drawer, far down the page', long, async () => {
       const page = await sink();
       await resize(page, 375);
@@ -750,6 +936,15 @@ suite('navigation', together, () => {
           : 'dark';
       await drawer.getByRole('radio', { name: wanted === 'dark' ? 'Dark' : 'Light' }).check();
       assert.equal(await page.evaluate(() => document.documentElement.dataset.suiTheme), wanted);
+      // The browser's own chrome follows the chosen theme's canvas (L-118).
+      assert.deepEqual(
+        await page.evaluate(() =>
+          [...document.querySelectorAll('meta[name="theme-color"]')].map(
+            (meta) => /** @type {HTMLMetaElement} */ (meta).content
+          )
+        ),
+        wanted === 'dark' ? ['#0c0e11', '#0c0e11'] : ['#f7f7f5', '#f7f7f5']
+      );
     });
   });
 
@@ -762,10 +957,12 @@ suite('navigation', together, () => {
       long,
       async () => {
         const page = await charts();
+        const kinds = new Set();
         for (const width of [1440, 375]) {
           await resize(page, width);
           const bands = await page.evaluate(() =>
             [...document.querySelectorAll('#charts .plot-band')].map((band) => {
+              const chart = /** @type {Element} */ (band.closest('.sui-chart'));
               const box = band.getBoundingClientRect();
               const holder = /** @type {Element} */ (band.closest('.frame'));
               const keyline = parseFloat(getComputedStyle(holder).borderLeftWidth);
@@ -778,12 +975,12 @@ suite('navigation', together, () => {
                 band.closest('.sui-chart')?.querySelector('.sui-chart-title')
               ).getBoundingClientRect();
               return {
-                // A stacked stage lends its inset only to a chart that stands straight in the
-                // specimen, so a chart in a section keeps the section's edges.
+                // A stage lends its inset while its specimens stack, and only to a chart that
+                // stands straight in the specimen, so a chart in a section keeps the section's
+                // edges, and a pair side by side keeps its own.
                 lent:
-                  band
-                    .closest('.sui-chart')
-                    ?.parentElement?.matches('[data-layout="stack"] > .specimen > .body') === true,
+                  parseFloat(getComputedStyle(chart).getPropertyValue('--sui-local-bleed')) > 0 &&
+                  chart.parentElement?.matches('.specimen > .body') === true,
                 start: box.left - room.left - keyline,
                 end: room.right - keyline - box.right,
                 inside:
@@ -794,7 +991,7 @@ suite('navigation', together, () => {
               };
             })
           );
-          assert.ok(bands.some((band) => band.lent) && bands.some((band) => !band.lent));
+          for (const band of bands) kinds.add(band.lent);
           for (const band of bands)
             if (band.lent) {
               assert.ok(
@@ -803,7 +1000,38 @@ suite('navigation', together, () => {
               );
               assert.ok(Math.abs(band.plotStart) < 0.5, `the plot keeps the title's edge`);
             } else assert.ok(band.inside, `${width}px: a band leaves its specimen`);
+          if (width !== 1440) continue;
+          // Charts side by side end their closed data tables on one line, and each legend
+          // stands one gap under its own plot, whatever room the chart gains.
+          const pairs = await page.evaluate(() =>
+            [...document.querySelectorAll('#charts [data-layout="pairs"]')].map((pair) =>
+              [...pair.querySelectorAll('.sui-chart')].map((chart) => {
+                const band = /** @type {Element} */ (chart.querySelector('.plot-band'));
+                const legend = band.nextElementSibling;
+                const shown = legend && !legend.matches('details') && legend.clientHeight > 1;
+                return {
+                  link: chart.querySelector('details > summary')?.getBoundingClientRect().top,
+                  legendGap: shown
+                    ? legend.getBoundingClientRect().top - band.getBoundingClientRect().bottom
+                    : 16
+                };
+              })
+            )
+          );
+          assert.ok(pairs.length > 0 && pairs.every((pair) => pair.length === 2));
+          for (const [first, second] of pairs) {
+            assert.ok(
+              Math.abs(Number(first.link) - Number(second.link)) < 0.5,
+              'a pair ends apart'
+            );
+            for (const chart of [first, second])
+              assert.ok(
+                Math.abs(chart.legendGap - 16) < 0.5,
+                `a legend ${chart.legendGap}px under`
+              );
+          }
         }
+        assert.deepEqual(kinds, new Set([true, false]));
       }
     );
 
@@ -829,11 +1057,11 @@ suite('navigation', together, () => {
         }
         // Opening the table does the same at every width, so it opens once, at the end.
         await chart.locator('summary').click();
-        assert.equal(await chart.locator('table caption').textContent(), 'Items by week');
+        assert.equal(await chart.locator('table caption').textContent(), 'Items by Week');
       }
     );
 
-    test('the chart face table holds what Chrome draws, glyph by glyph and pair by pair', async () => {
+    test('the chart face table holds what Chrome draws, glyph by glyph and pair by pair, tabular figures too', async () => {
       const { faceInk } = await import('../../src/lib/charts/geometry.ts');
       const page = await charts();
       const candidates = [
@@ -923,6 +1151,85 @@ suite('navigation', together, () => {
             wrong.push(`pairs with ${run[0]}: ${drawnKerning - tableKerning}`);
         });
         assert.deepEqual(wrong, [], semibold ? 'semibold' : 'regular');
+
+        // A tick's tabular figures, each measured through the face loaded with `tnum` on, and
+        // each beside every glyph in SVG text with `tabular-nums`, where none of them kerns.
+        const figures = [...'0123456789'];
+        const tabular = await page.evaluate(
+          async ({ face, figures, glyphs, weight }) => {
+            const bytes = Uint8Array.from(atob(face), (c) => c.charCodeAt(0));
+            const tnum = new FontFace('SUI tabular probe', bytes, {
+              featureSettings: '"tnum"',
+              weight: '400 700'
+            });
+            document.fonts.add(await tnum.load());
+            const context = /** @type {CanvasRenderingContext2D} */ (
+              document.createElement('canvas').getContext('2d')
+            );
+            context.font = `${weight} 1000px 'SUI tabular probe'`;
+            const ns = 'http://www.w3.org/2000/svg';
+            const svg = document.createElementNS(ns, 'svg');
+            const text = document.createElementNS(ns, 'text');
+            text.setAttribute(
+              'style',
+              `font: ${weight} 1000px 'SUI Plus Jakarta Sans'; font-variant-ligatures: none; font-variant-numeric: tabular-nums; white-space: pre`
+            );
+            svg.append(text);
+            document.body.append(svg);
+            const runs = figures.map((figure) => {
+              text.textContent = `${figure}${glyphs.join(figure)}${figure}`;
+              return text.getComputedTextLength();
+            });
+            svg.remove();
+            return {
+              inks: figures.map((figure) => {
+                const ink = context.measureText(figure);
+                return [
+                  ink.width,
+                  ink.actualBoundingBoxLeft,
+                  ink.actualBoundingBoxRight,
+                  ink.actualBoundingBoxAscent,
+                  ink.actualBoundingBoxDescent
+                ];
+              }),
+              runs
+            };
+          },
+          {
+            face: readFileSync(
+              new URL('../../src/lib/assets/fonts/PlusJakartaSansLatinVF.woff2', import.meta.url)
+            ).toString('base64'),
+            figures,
+            glyphs,
+            weight: semibold ? 600 : 400
+          }
+        );
+        /** @type {string[]} */
+        const off = [];
+        figures.forEach((figure, index) => {
+          const ink = /** @type {import('../../src/lib/charts/geometry.ts').Ink} */ (
+            faceInk(figure, semibold, true)
+          );
+          const table = [ink.advance, ink.left, ink.right, ink.ascent, ink.descent];
+          if (
+            table.some((value, at) => Math.abs(value * 1000 - tabular.inks[index][at]) > steps[at])
+          )
+            off.push(`${figure}: ${tabular.inks[index].join(' ')}`);
+          // Nothing kerns, so the run is as long as its glyphs as each is drawn alone, figures
+          // tabular, which holds exactly wherever a glyph's own advance is rounded.
+          const run = `${figure}${glyphs.join(figure)}${figure}`;
+          const own = [...run].reduce(
+            (sum, glyph) =>
+              sum +
+              (figures.includes(glyph)
+                ? tabular.inks[figures.indexOf(glyph)][0]
+                : (drawnAdvance.get(glyph) ?? 0)),
+            0
+          );
+          if (Math.abs(own - tabular.runs[index]) > 0.005 * run.length)
+            off.push(`pairs with tabular ${figure}: ${tabular.runs[index] - own}`);
+        });
+        assert.deepEqual(off, [], semibold ? 'semibold tabular' : 'regular tabular');
       }
     });
   });
@@ -959,7 +1266,7 @@ suite('navigation', together, () => {
           ),
           'opening a run left focus on its row'
         );
-        assert.equal(await focused(page), 'Deploy web #4174', 'focus is not on the run title');
+        assert.equal(await focused(page), 'Deploy Web #4174', 'focus is not on the run title');
         assert.equal(new URL(page.url()).pathname, '/layouts/list-detail/4174/');
         assert.equal(
           await page.locator('.sui-list-detail-list').isVisible(),
@@ -995,39 +1302,141 @@ suite('navigation', together, () => {
     }
   );
 
-  test('a wide list-detail keeps its list in place and marks the run it opens', long, async () => {
-    // A short window, so the list scrolls in its own pane.
-    const page = await openLayout('layouts/list-detail/4182/', 1440, { height: 560 });
-    try {
-      const pair = page.locator('.sui-list-detail');
-      const list = pair.locator('.sui-list-detail-list');
-      // The row stands whole in the scrolled list, so the press scrolls nothing itself.
-      await list.evaluate((pane) => (pane.scrollTop = 120));
-      await pair.locator('a[href="/layouts/list-detail/4176/"]').click();
-      assert.ok(
-        await settles(
-          page.waitForFunction(() => document.activeElement?.matches('h1, h2, h3, h4'), null, brief)
-        ),
-        'opening a run left focus on its row'
-      );
-      assert.equal(await focused(page), 'Deploy web #4176', 'focus is not on the run title');
-      assert.equal(await list.evaluate((pane) => pane.scrollTop), 120, 'the list lost its place');
-      assert.deepEqual(
-        await pair
-          .locator('[aria-current="page"]')
-          .evaluateAll((rows) => rows.map((row) => row.getAttribute('href'))),
-        ['/layouts/list-detail/4176/'],
-        'the opened run is not the one current row'
-      );
-      assert.equal(
-        await pair.getByRole('link', { name: 'Runs' }).count(),
-        0,
-        'the way back shows beside the list'
-      );
-    } finally {
-      await page.close();
+  test(
+    'a wide list-detail keeps its list in place, marks the run it opens, and Back puts both panes where they stood',
+    long,
+    async () => {
+      // A short window, so the list and the detail each scroll in their own pane.
+      const page = await openLayout('layouts/list-detail/4182/', 1440, { height: 420 });
+      try {
+        const pair = page.locator('.sui-list-detail');
+        const list = pair.locator('.sui-list-detail-list');
+        const detail = pair.locator('.sui-list-detail-detail');
+        const stand = () =>
+          pair.evaluate((node) =>
+            [...node.querySelectorAll('.sui-list-detail-list, .sui-list-detail-detail')].map(
+              (pane) => pane.scrollTop
+            )
+          );
+        // The row stands whole in the scrolled list, so the press scrolls nothing itself.
+        await list.evaluate((pane) => (pane.scrollTop = 120));
+        await detail.evaluate((pane) => (pane.scrollTop = 40));
+        const stood = await stand();
+        assert.ok(stood[1] > 0, 'the run detail is too short to scroll');
+        await pair.locator('a[href="/layouts/list-detail/4176/"]').click();
+        assert.ok(
+          await settles(
+            page.waitForFunction(
+              () => document.activeElement?.matches('h1, h2, h3, h4'),
+              null,
+              brief
+            )
+          ),
+          'opening a run left focus on its row'
+        );
+        assert.equal(await focused(page), 'Deploy Web #4176', 'focus is not on the run title');
+        assert.equal(await list.evaluate((pane) => pane.scrollTop), 120, 'the list lost its place');
+        assert.deepEqual(
+          await pair
+            .locator('[aria-current="page"]')
+            .evaluateAll((rows) => rows.map((row) => row.getAttribute('href'))),
+          ['/layouts/list-detail/4176/'],
+          'the opened run is not the one current row'
+        );
+        assert.equal(
+          await pair.getByRole('link', { name: 'Runs' }).count(),
+          0,
+          'the way back shows beside the list'
+        );
+
+        const returns = async () => {
+          await page.waitForURL(/\/layouts\/list-detail\/4182\/$/);
+          await page.waitForFunction(
+            (top) => document.querySelector('.sui-list-detail-detail')?.scrollTop === top,
+            stood[1],
+            brief
+          );
+        };
+        await page.goBack();
+        await settles(returns());
+        assert.deepEqual(await stand(), stood, 'Back left the panes elsewhere');
+        // The router takes an injected link as its own, so this leaves the page in place.
+        await page.evaluate(() => {
+          const away = Object.assign(document.createElement('a'), {
+            href: '/layouts/detail-pane/'
+          });
+          away.textContent = 'Away';
+          document.body.append(away);
+          away.click();
+        });
+        await page.waitForURL(/\/layouts\/detail-pane\/$/);
+        await page.goBack();
+        await settles(returns());
+        assert.deepEqual(await stand(), stood, 'a return to the page left the panes elsewhere');
+      } finally {
+        await page.close();
+      }
     }
-  });
+  );
+
+  test(
+    'an index and a side nav read an id that every object inherits as no entry',
+    long,
+    async () => {
+      const page = await openMount(browser, url);
+      try {
+        const current = () =>
+          page.evaluate(() =>
+            [...document.querySelectorAll('.sui-page-toc-link[aria-current="location"]')].map(
+              (link) => link.getAttribute('href')
+            )
+          );
+        await page.evaluate(() => {
+          const { lib, mount, flushSync } = /** @type {any} */ (window);
+          const entries = ['intro', 'constructor', 'toString'].map((id) => ({ id, label: id }));
+          const main = document.createElement('main');
+          for (const { id } of entries) {
+            const section = document.createElement('section');
+            section.id = id;
+            section.style.blockSize = '120vh';
+            main.append(section);
+          }
+          const aside = document.createElement('aside');
+          document.body.append(aside, main);
+          mount(lib.PageToc, { target: aside, props: { entries } });
+          flushSync();
+        });
+        assert.deepEqual(await current(), ['#intro']);
+        await page.evaluate(() => document.getElementById('constructor')?.scrollIntoView());
+        await page.waitForFunction(
+          () =>
+            document
+              .querySelector('.sui-page-toc-link[aria-current="location"]')
+              ?.getAttribute('href') === '#constructor'
+        );
+        assert.deepEqual(await current(), ['#constructor']);
+        const plates = await page.evaluate(() => {
+          const { lib, mount, flushSync } = /** @type {any} */ (window);
+          const target = document.createElement('div');
+          document.body.append(target);
+          const sections = [{ items: [{ href: '/a', label: 'A', icon: 'home' }] }];
+          try {
+            mount(lib.SideNav, {
+              target,
+              props: { title: 'App', sections, current: 'constructor' }
+            });
+            flushSync();
+          } catch (error) {
+            return String(error);
+          }
+          return target.querySelectorAll('[aria-current]').length;
+        });
+        assert.equal(plates, 0, 'a current that matches no row drew a plate or threw');
+      } finally {
+        await page.close();
+      }
+    }
+  );
 
   test(
     'an unrelated navigation with body focus does not pull focus into a list-detail',

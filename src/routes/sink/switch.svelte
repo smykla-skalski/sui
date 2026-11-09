@@ -7,8 +7,10 @@
 </script>
 
 <script lang="ts">
+  import { clock } from '../kit/format.js';
   import { Section, Switch } from '#lib';
   import Example from '../kit/Example.svelte';
+  import Pair from '../kit/Pair.svelte';
   import Specimen from '../kit/Specimen.svelte';
   import Variants from '../kit/Variants.svelte';
 
@@ -17,7 +19,7 @@
   const switches = {
     Off: {
       label: 'Archive old runs',
-      reason: 'The workspace keeps every run for 90 days',
+      reason: 'The workspace keeps every run for 90\u00a0days',
       id: 'sink-switch-archive-reason'
     },
     On: {
@@ -46,7 +48,8 @@
 
 <Example
   title="States"
-  note="Off and on, each with its label and a 44px tap box, and a locked switch says beside it why"
+  --example-max="54rem"
+  note="Off and on, each with its label and a 44 px tap box, and a locked switch says beside it why"
 >
   <Variants
     rows={states}
@@ -69,12 +72,15 @@
 
 <Example
   title="Saving"
+  --example-max="54rem"
+  layout="grid"
+  --specimen-min="14rem"
   note="A flip takes effect at once, so the thumb turns while it saves and a refused change flips back and says why"
 >
-  <Specimen label="Pending" code="pending">
+  <Specimen label="Pending">
     <Switch label="Send weekly digests" checked pending />
   </Specimen>
-  <Specimen label="Refused" code="error">
+  <Specimen label="Refused">
     <Switch
       label="Mirror to the backup region"
       bind:checked={mirror}
@@ -83,55 +89,65 @@
       onchange={flip}
     />
   </Specimen>
-  <Specimen label="Invalid, kept when on" code="invalid">
-    <Switch label="Allow public forks" checked invalid />
+  <Specimen label="Invalid, kept when on">
+    <Switch
+      label="Allow public forks"
+      checked
+      invalid
+      error="A private repository cannot allow public forks"
+    />
   </Specimen>
 </Example>
 
 <Example
-  title="Keyboard focus"
-  note="Tab to a switch and press Space to flip it, and the ring sits 2px off the track"
->
-  <Specimen label="Off">
-    <Switch label="Require reviews" />
-  </Specimen>
-</Example>
-
-<Example
-  title="In a section head"
-  note="A bare switch keeps its 44px hit area as paint, so the head keeps its own rhythm"
-  layout="grid"
+  title="In a Section Head"
+  --example-max="54rem"
+  note="A bare switch keeps its 44 px hit area as paint, so the head keeps its own rhythm"
+  layout="stack"
   ground="canvas"
 >
-  <Specimen label="Bare" code="bare">
-    <Section title="Scheduled syncs" level={4}>
+  <Specimen label="Bare">
+    <Section title="Scheduled Syncs" level={4}>
       {#snippet actions()}
         <Switch aria-label="Run scheduled syncs" bare bind:checked={scheduled} />
       {/snippet}
-      <p class="copy">Every repository syncs at 02:00 in its own time zone</p>
+      <p class="copy">Every repository syncs at {clock(2)} in its own time zone</p>
     </Section>
   </Specimen>
 </Example>
 
-<Example
-  title="Narrow width"
-  note="A long label wraps beside the track and the two stay centred"
-  layout="stack"
->
-  <Specimen label="Wrapped label">
-    <div class="narrow">
-      <Switch
-        label="Close every stale pull request that has had no activity for thirty days"
-        checked
-      />
-    </div>
-  </Specimen>
-</Example>
+<Pair narrow>
+  <Example
+    title="Keyboard Focus"
+    note="Tab to a switch and press Space to flip it, and the ring sits 2 px off the track"
+  >
+    <Specimen label="Off">
+      <Switch label="Require reviews" />
+    </Specimen>
+  </Example>
+
+  <Example
+    title="Narrow Width"
+    --example-max="var(--narrow-frame)"
+    note="A long label wraps beside the track and both stay centred"
+    layout="stack"
+  >
+    <Specimen label="Wrapped label">
+      <div class="narrow">
+        <Switch
+          label="Close every stale pull request that has had no activity for 30 days"
+          checked
+        />
+      </div>
+    </Specimen>
+  </Example>
+</Pair>
 
 <style>
+  /* The reason stands where the switch's own error does, straight under its 44px row, so every
+     note under a switch keeps one distance from the track. */
   .locked {
     display: grid;
-    gap: var(--sui-row-copy-gap);
     justify-items: start;
   }
 
@@ -142,6 +158,7 @@
     font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-row-copy-leading)
       var(--sui-sans);
     margin: 0;
+    padding-block: var(--sui-block-snap-room);
     text-box: trim-both cap alphabetic;
   }
 

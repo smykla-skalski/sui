@@ -97,13 +97,32 @@ export async function startSink({ dev = false } = {}) {
 export const allSections = (url) => new URL('all/', url).href;
 
 /**
- * Loads the sink and waits until it has mounted, so its controls answer a press.
+ * Loads the sink and waits until it has mounted, so its controls answer a press. A page that
+ * throws while it loads fails the visit.
  * @param {import('playwright-core').Page} page
  * @param {string} url
  */
 export async function visit(page, url) {
+  // A resize loop is reported only as the window's error event, never as a thrown error.
+  await page.addInitScript(() => {
+    const seen = /** @type {any} */ (window);
+    if (seen.__suiThrown) return;
+    seen.__suiThrown = [];
+    addEventListener('error', (event) => seen.__suiThrown.push(event.message));
+  });
   await page.goto(url);
   await page.waitForFunction(() => '__suiAudit' in window);
+  // What the first measures raise lands in the frames after mount.
+  const thrown = await page.evaluate(
+    () =>
+      new Promise((done) =>
+        requestAnimationFrame(() =>
+          requestAnimationFrame(() => done(/** @type {any} */ (window).__suiThrown))
+        )
+      )
+  );
+  if (/** @type {string[]} */ (thrown).length > 0)
+    throw new Error(`${url} threw while it loaded: ${/** @type {string[]} */ (thrown).join('; ')}`);
 }
 
 /**

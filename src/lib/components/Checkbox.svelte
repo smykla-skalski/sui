@@ -70,8 +70,8 @@ It is also the boolean of a form that a later save writes. A boolean that takes 
 once is a `Switch`, and several boxes that answer one question go in a `CheckList`.
 
 As the control of a `SettingRow` or a `Field layout="row"`, give it the row's `id`, no label
-and `bare`. The row's label names it, its box lines up with the row's end, and it keeps a
-44px touch target without setting the row's height.
+and `bare`. The row's label names it, its box lines up with a setting row's end or leads a
+field's label, and it keeps a 44px touch target without setting the row's height.
 
 The native input lies over the box without its native paint and wears the focus ring, and
 the whole item is its label, so the item is the hit area. The label is the accessible name and
@@ -82,7 +82,7 @@ way; a busy dialog or a saving pane around it disables it while the work runs.
 
 - Semantics: a native `<input type="checkbox">` inside its `<label>`, named by the label and described by the description.
 - Content: a short label and an optional one-sentence description, or richer `children`.
-- States: unchecked, checked (a filled box with a check), partly chosen (a dash), hover (a row ground), focus (a 2px ring 2px off the box), pressed (a deeper ground, an inset shadow and a 1px sink), invalid (a 2px danger edge, kept when checked), locked and disabled (0.5 opacity).
+- States: unchecked, checked (a filled box with a check), partly chosen (a dash), hover (a row ground), focus (a 2px ring 2px off the box), pressed (a deeper ground, an inset shadow and a 1px sink), invalid (a 2px danger edge, kept when checked, and 1px inside the red ring when focused), locked and disabled (0.6 opacity).
 - Keyboard: Tab reaches it and Space toggles it; a locked or disabled box refuses the toggle.
 - Pointer and touch: the whole item is the target, 34px tall, 44px with a description, on a phone or on any touch screen, and `bare` is a square as tall as a control, 34px or 44px on touch, which is both its ground and its hit area.
 - Focus: a press never moves focus, and a locked box keeps it.
@@ -124,7 +124,7 @@ way; a busy dialog or a saving pane around it disables it while the work runs.
       {#if indeterminate}
         <span class="sui-checkbox-dash"></span>
       {:else}
-        <Icon name="check" size="micro" strokeWidth={2} />
+        <Icon name="check" size="xs" strokeWidth={3} />
       {/if}
     </span>
   </span>
@@ -237,9 +237,14 @@ way; a busy dialog or a saving pane around it disables it while the work runs.
     outline-offset: var(--sui-focus-ring-offset);
   }
 
+  /* An invalid box rings in its edge's red, as an invalid field does (L-41). */
+  .sui-checkbox input[aria-invalid='true']:focus-visible {
+    outline-color: var(--sui-focus-danger);
+  }
+
   .sui-checkbox-box {
     align-items: center;
-    background: var(--sui-input-bg);
+    background: var(--sui-control-bg);
     block-size: var(--sui-icon-md);
     border: var(--sui-stroke) solid var(--sui-border-strong);
     border-radius: var(--sui-radius-check);
@@ -263,18 +268,26 @@ way; a busy dialog or a saving pane around it disables it while the work runs.
 
   /* As specific as the checked rule and after it, so a checked box keeps its danger edge. The
      outline doubles the edge outward, so it reads against the accent fill as well as the empty
-     box, and stays clear of the focus ring 2px further out. */
+     box. */
   .sui-checkbox input + .sui-checkbox-box.invalid {
-    border-color: var(--sui-danger);
-    outline: var(--sui-stroke-bold) solid var(--sui-danger);
+    border-color: var(--sui-danger-edge);
+    outline: var(--sui-stroke-bold) solid var(--sui-danger-edge);
     outline-offset: calc(-1 * var(--sui-stroke));
   }
 
+  /* Focused, the ring carries the red, so the edge drops its outward double and the ring
+     stands its 2px clear of the 1px edge, as it does off an invalid field (L-41). */
+  .sui-checkbox input:focus-visible + .sui-checkbox-box.invalid {
+    outline: none;
+  }
+
+  /* The dash spans what the 12px check spans with its round caps, about 10px, so a partly
+     chosen box holds as much ink as a checked one. */
   .sui-checkbox-dash {
     background: currentColor;
     block-size: 2px;
     border-radius: var(--sui-radius-pill);
-    inline-size: var(--sui-space-2);
+    inline-size: calc(var(--sui-icon-md) - 2 * var(--sui-space-1));
   }
 
   .sui-checkbox-copy {
@@ -285,6 +298,8 @@ way; a busy dialog or a saving pane around it disables it while the work runs.
     min-inline-size: 0;
   }
 
+  /* The copy rounds to an even height, which a browser without calc-size() cannot, so there
+     each of its lines takes the room to an even height itself. */
   .sui-checkbox-label {
     align-content: center;
     block-size: var(--sui-block-snap);
@@ -293,7 +308,9 @@ way; a busy dialog or a saving pane around it disables it while the work runs.
       var(--sui-sans);
     min-inline-size: 0;
     overflow-wrap: anywhere;
+    padding-block: var(--sui-block-snap-room-even);
     text-box: trim-both cap alphabetic;
+    text-wrap: pretty;
   }
 
   .sui-checkbox-description {
@@ -302,7 +319,9 @@ way; a busy dialog or a saving pane around it disables it while the work runs.
     color: var(--sui-text-secondary);
     font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-row-copy-leading)
       var(--sui-sans);
+    padding-block: var(--sui-block-snap-room-even);
     text-box: trim-both cap alphabetic;
+    text-wrap: pretty;
   }
 
   .disabled {

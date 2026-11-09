@@ -3,66 +3,34 @@
 
   let {
     label,
-    code,
     children
   }: {
     /** The state or variant in words, such as "Disabled". */
-    label?: string;
-    /** The props that draw it, such as `tone="signal"`. */
-    code?: string;
+    label?: string | Snippet;
     children: Snippet;
   } = $props();
-
-  /* The caption's props, split at the spaces between them and never inside a quoted or braced
-     value, so a line breaks between props and `patience={0}` never loses its `{0}`. */
-  const propsOf = (source: string) => {
-    const parts: string[] = [];
-    let part = '';
-    let depth = 0;
-    let quote = '';
-    for (const char of source) {
-      if (quote) quote = char === quote ? '' : quote;
-      else if (`"'\``.includes(char)) quote = char;
-      else if ('{[('.includes(char)) depth++;
-      else if ('}])'.includes(char)) depth--;
-      else if (/\s/.test(char) && depth === 0) {
-        if (part) parts.push(part);
-        part = '';
-        continue;
-      }
-      part += char;
-    }
-    if (part) parts.push(part);
-    return parts;
-  };
 </script>
 
 <figure class="specimen">
-  <div class="body">{@render children()}</div>
-  {#if label || code}
-    <!-- Both lines always take their room, so captions side by side start on one line. -->
+  {#if label}
     <figcaption>
-      {#if label}<span class="label">{label}</span>{:else}<span class="label" aria-hidden="true"
-          >&nbsp;</span
-        >{/if}
-      {#if code}{@const props = propsOf(code)}<code
-          >{#each props as prop, index (index)}<span
-              >{index < props.length - 1 ? `${prop} ` : prop}</span
-            >{/each}</code
-        >{:else}<code aria-hidden="true"><span>&nbsp;</span></code>{/if}
+      {#if typeof label === 'function'}{@render label()}{:else}{label}{/if}
     </figcaption>
   {/if}
+  <div class="body">{@render children()}</div>
 </figure>
 
 <style>
-  /* The body is a grid as wide as the specimen: a block surface or a field fills it, while
-     a mark keeps its own fit-content width (L-43). In a grid of specimens it takes two of the
-     grid's rows, so every body on a line shares the tallest body's track and every caption the
-     tallest caption's: their labels start on one line even when a caption wraps. In
-     a row or a stack there is no parent grid, the subgrid falls back to two rows of its own,
-     and specimens on one line share the tallest one's height with the caption at the bottom. */
+  /* The name stands 12px over what it shows, as a field's label over its control, and a type
+     step quieter than a label, so it reads as the specimen's head and not as a line of the
+     label, with its own specimen however tall the specimens beside it run. The body is a
+     grid as wide as the specimen: a block surface or a field fills it, while a mark keeps its
+     own fit-content width (L-43). In a grid of specimens it takes two of the grid's rows, so every name on a line
+     shares the tallest name's track and every body the tallest body's: their bodies start on
+     one line even when a name wraps. In a row or a stack there is no parent grid, and the
+     subgrid falls back to two rows of its own at the specimen's top. */
   .specimen {
-    align-content: space-between;
+    align-content: start;
     display: grid;
     gap: var(--sui-space-3);
     grid-row: span 2;
@@ -79,46 +47,24 @@
     min-inline-size: 0;
   }
 
+  /* A chart, a state panel or a section fills its body, so those on one line share their foot as
+     well as their top. */
+  .body:has(> :global(:is(.sui-chart, .sui-section, .sui-empty-state, .sui-error-state))) {
+    align-content: stretch;
+  }
+
   /* What the specimen shows takes the inset a stacked stage lends, as a card lends its own. */
   .body > :global(*) {
     --sui-local-bleed: var(--sui-local-stage-pad, 0px);
   }
 
   figcaption {
-    align-content: start;
-    display: grid;
-    gap: var(--sui-row-copy-gap);
-    justify-items: start;
-  }
-
-  .label {
     align-content: center;
     block-size: var(--sui-block-snap);
     color: var(--sui-text-secondary);
     font: var(--sui-weight-medium) var(--sui-font-size-compact) / var(--sui-leading-compact)
       var(--sui-sans);
+    padding-block: var(--sui-block-snap-room);
     text-box: trim-both cap alphabetic;
-  }
-
-  /* Each prop is a word of the caption: a line breaks between props, and only a prop longer
-     than the whole line breaks inside, under its own first line. A prop keeps its trailing
-     space in its text, so the caption copies and reads with its spaces. */
-  code {
-    color: var(--sui-text-muted);
-    display: flex;
-    flex-wrap: wrap;
-    font: var(--sui-weight-regular) var(--sui-font-size-micro) / var(--sui-leading-micro)
-      var(--sui-mono);
-    font-variant-numeric: tabular-nums;
-    row-gap: var(--sui-row-copy-gap);
-  }
-
-  code > span {
-    align-content: center;
-    block-size: var(--sui-block-snap);
-    min-inline-size: 0;
-    overflow-wrap: anywhere;
-    text-box: trim-both cap alphabetic;
-    white-space: pre-wrap;
   }
 </style>

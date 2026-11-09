@@ -6,7 +6,7 @@
     text,
     label = word('CopyButton.label', 'Copy'),
     copiedLabel = word('CopyButton.copiedLabel', 'Copied'),
-    failedLabel = word('CopyButton.failedLabel', 'Copy failed'),
+    failedLabel = word('CopyButton.failedLabel', 'Try Again'),
     toolbar = false,
     bare = false,
     disabled = false,
@@ -17,7 +17,7 @@
   }: {
     /** What lands on the clipboard. */
     text: string;
-    /** The resting label, naming what is copied, such as "Copy link". */
+    /** The resting label, naming what is copied, such as "Copy Link". */
     label?: string;
     /** Said for 1.6 seconds after each copy. */
     copiedLabel?: string;
@@ -84,8 +84,8 @@
 <!--
 @component
 A small bordered button that puts `text` on the clipboard and says "Copied" for 1.6 seconds,
-or "Copy failed" when the browser refuses the write, which stays until the next press. Name
-what it copies in `label`, such as "Copy link", because a page of buttons all called "Copy"
+or "Try Again" when the browser refuses the write, which stays until the next press. Name
+what it copies in `label`, such as "Copy Link", because a page of buttons all called "Copy"
 tells a screen reader nothing.
 
 Each outcome is also announced through a polite live region, a second copy included, so a
@@ -98,7 +98,7 @@ in its corner. Beside a 34px field or in a toolbar it takes the control tier wit
 
 - Semantics: a native `<button type="button">` whose visible words are its name, with a polite `role="status"` beside it.
 - Content: `label`, `copiedLabel` and `failedLabel`, each a short phrase; the button is as wide as the longest of the three.
-- States: rest, hover (a veil and a firmer edge), focus (a flush 2px ring, or an inset one when `bare`), pressed (a deeper veil, an inset shadow and a 1px sink), copied, failed (danger ink) and disabled (0.5 opacity).
+- States: rest, hover (a veil and a firmer edge), focus (a flush 2px ring, or an inset one when `bare`), pressed (a deeper veil, an inset shadow and a 1px sink), copied, failed (danger ink) and disabled (0.6 opacity).
 - Keyboard: Tab reaches it and Enter or Space copies; focus stays on it through the answer.
 - Pointer and touch: 28px tall, or 34px with `toolbar`, and a 44px hit area on a phone or any touch screen.
 - Focus: copying never moves focus; `oncopyfailed` is where a caller sends focus to the text to select by hand.
@@ -107,7 +107,7 @@ in its corner. Beside a 34px field or in a toolbar it takes the control tier wit
 - Localization: `label`, `copiedLabel` and `failedLabel` are props with English defaults, and the shared box fits whichever is longest.
 - Performance: one button and one status per instance, with two timers that clear on unmount; only colours, the inset shadow and the 1px sink move.
 - Analytics: `oncopied` hears each copy that landed and `oncopyfailed` each refused write.
-- Failure: a refused write says "Copy failed" in danger ink until the next press and calls `oncopyfailed`, so the text can be offered to select by hand.
+- Failure: a refused write says "Try Again" in danger ink until the next press and calls `oncopyfailed`, so the text can be offered to select by hand.
 -->
 
 <button
@@ -179,7 +179,7 @@ in its corner. Beside a 34px field or in a toolbar it takes the control tier wit
 
   .sui-copy-button:focus-visible {
     border-color: var(--sui-focus);
-    outline: var(--sui-focus-ring-width) solid var(--sui-focus);
+    outline: var(--sui-focus-ring-edge) solid var(--sui-focus);
     outline-offset: var(--sui-focus-ring-flush);
   }
 
@@ -248,6 +248,7 @@ in its corner. Beside a 34px field or in a toolbar it takes the control tier wit
     align-content: center;
     block-size: var(--sui-block-snap);
     grid-area: 1 / 1;
+    padding-block: var(--sui-block-snap-room);
     text-align: center;
     text-box: trim-both cap alphabetic;
   }

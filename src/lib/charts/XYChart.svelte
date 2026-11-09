@@ -47,8 +47,14 @@
 
   /* At least 8px across, and a little larger where there is no line to follow. */
   const MARKER = { line: 8, scatter: 10 };
-  /* Past four lines, names at the line ends crowd each other, so the legend carries them alone. */
+  /* Past four lines, names at the line ends crowd each other, so the legend carries them alone;
+     up to four, the names at the ends carry them and the legend is left to a screen reader,
+     since the plot is one image and its names are not read. */
   const MOST_LABELLED = 4;
+  /* Two names closer than their 1rem gap move apart, and a name moved off its line's end
+     stands beside no line of its own, so while two lines end closer than that gap at twice
+     the text size (WCAG 1.4.4) the legend stays in view to tie each name to its line. */
+  const CROWDED = 32;
   /* A marker needs room to read as a shape: a line keeps its markers while they stand twice
      their size apart on its narrowest plot, the 280px band less its margins, and a denser line
      is drawn alone at every width, its dash still telling it apart, so the marks it draws never
@@ -136,6 +142,14 @@
   /** How far down the grid a value stands, in its own pixels. */
   const down = (value: number) => xyGrid - fraction(value, yAxis.domain) * xyGrid;
 
+  let crowded = $derived(
+    ends.some((end, index) =>
+      ends
+        .slice(index + 1)
+        .some((other) => Math.abs(down(end.point.y) - down(other.point.y)) < CROWDED)
+    )
+  );
+
   const x = (value: number, box: XYLayout) =>
     along(box.left, box.right, fraction(value, xAxis.domain));
 
@@ -192,14 +206,15 @@
         {@const words = formatY(tick)}
         <rect class="grid" style:y={css(minus(y(tick, box), px(0.5)))} />
         <text
-          class="axis"
+          class="axis tick"
           text-anchor="end"
-          style:translate={at(box.tickEnd, centred(measure(words), y(tick, box)))}>{words}</text
+          style:translate={at(box.tickEnd, centred(measure(words, false, true), y(tick, box)))}
+          >{words}</text
         >
       {/each}
       {#each xAxis.ticks as tick (tick)}
         <text
-          class="axis"
+          class="axis tick"
           text-anchor="middle"
           style:translate={at(x(tick, box), box.xTickBaseline)}>{formatX(tick)}</text
         >
@@ -257,7 +272,16 @@
       {/each}
     </svg>
   {/snippet}
-  <ul class="legend" role="list">
+  <ul
+    class={[
+      'legend',
+      {
+        'sui-visually-hidden':
+          validSeries.length > 0 && ends.length === validSeries.length && !crowded
+      }
+    ]}
+    role="list"
+  >
     {#each validSeries as item (item.id)}
       <li>
         <svg class="key" viewBox="0 0 24 12" aria-hidden="true">
@@ -342,14 +366,17 @@
   }
   .axis,
   .label {
-    fill: var(--sui-text-muted);
+    fill: var(--sui-text-secondary);
+  }
+  .tick {
+    font-variant-numeric: tabular-nums;
   }
   .label,
   .name {
     font-weight: var(--sui-weight-semibold);
   }
   .name {
-    fill: var(--sui-text-secondary);
+    fill: var(--sui-text-primary);
   }
   /* A ring of the band's ground keeps a marker whole where it crosses another series' line. */
   .marker {
@@ -366,6 +393,14 @@
     list-style: none;
     font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-leading-meta)
       var(--sui-sans);
+  }
+  .legend.sui-visually-hidden {
+    block-size: 1px;
+    clip-path: inset(50%);
+    inline-size: 1px;
+    overflow: hidden;
+    position: absolute;
+    white-space: nowrap;
   }
   .legend li {
     display: inline-flex;

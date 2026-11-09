@@ -6,7 +6,7 @@ The source laws, the in-page audit and the browser suite catch regressions. They
 
 Run with VoiceOver on macOS and iOS, NVDA and JAWS on Windows, and TalkBack on Android.
 
-- Combobox and the pair entry editor: `aria-activedescendant` into the listbox, the "Searching" and "Nothing matches" status, and the chosen value read back.
+- Combobox and the pair entry editor: `aria-activedescendant` into the listbox, the "Searching" and "No suggestions match" status, and the chosen value read back.
 - Buttons and icon buttons while `loading` or `busy`: the busy state is announced and focus stays.
 - Switch on and off, the checkbox's mixed state, and segmented control selection and its select fallback.
 - The save bar's first appearance, a toast's announcement, ErrorState's alert and its retry label.
@@ -28,7 +28,7 @@ The long browser suite stands in for part of this on emulated touch screens, whi
 Run a moderated task test with five to eight readers per user type, and repeat after each round of changes.
 
 - First use: can a new reader name the main action of a settings page and change a setting, including a list of pairs?
-- Recognition: the `undo`, `filter`, `sort`, `refresh` and sidebar glyphs, the pill's dot and pulse, the "Unsaved" word and gold plate, and the "Override" and "Use inherited value" words.
+- Recognition: the `undo`, `filter`, `sort`, `refresh` and sidebar glyphs, the pill's dot and pulse, the "Unsaved" word and gold plate, and the "Override Value" and "Use Inherited Value" words.
 - Navigation: the rail plus sidebar model on a desktop, and the bottom navigation plus drawer on a phone.
 - Reading: whether the toast's five seconds are enough, and whether a heatmap and a range chart are read correctly with their legends.
 
@@ -36,4 +36,14 @@ Run a moderated task test with five to eight readers per user type, and repeat a
 
 Measure Largest Contentful Paint, Interaction to Next Paint and Cumulative Layout Shift at the 75th percentile on mobile and desktop in the products that use SUI, and profile long option lists, large tables and many relative times on one page.
 
-`tests/browser/timing/performance.test.mjs` holds lab stand-ins on the built site, on a CPU about as fast as a mid-range phone (a laptop slowed four times, a CI runner as it is): loading the sink shifts layout by less than 0.1, a keystroke in a combobox of 5000 options and a sort of 500 table rows answer within 200ms, and a clock tick over 100 relative times holds no task past 50ms. Field data at the 75th percentile still decides.
+`tests/browser/timing/performance.test.mjs` holds lab stand-ins on the built site, on a CPU about as fast as a mid-range phone (a laptop slowed four times, a CI runner as it is): loading the sink over a slow mobile network (4 Mbps down, 100ms each way) shifts layout by less than 0.1, a keystroke in a combobox of 5000 options and a sort of 500 table rows answer within 200ms, and a clock tick over 100 relative times holds no task past 50ms. Field data at the 75th percentile still decides.
+
+## Browsers and devices
+
+The browser suite runs in Chromium, and the visual group (`tests/browser/visual.test.mjs`) also loads, in WebKit, Safari's engine, the pages whose components fall back where calc-size() is missing (card, section, disclosure, page header, states, pair entry, fact list and charts) and runs the audit on each, then on an open dialog and an open menu. Run `npx playwright-core install webkit` once to run it on your machine; without WebKit it skips. Before a release, check by hand:
+
+- macOS Safari, in both themes and with "Show scroll bars" set to "Always", as Windows readers see them.
+- iOS Safari on a phone, with Low Power Mode on, which slows timers and animation frames: a spinner, a skeleton's light, a toast's countdown and a drag still answer, and nothing waits on a frame that does not come.
+- An iPad with a keyboard and a trackpad, a hybrid device whose primary pointer may be coarse or fine.
+- The sink zoomed out to 50%, which stands in for an ultra-wide screen.
+- Chrome's network throttling on its slowest mobile preset, with the CPU slowed four times.

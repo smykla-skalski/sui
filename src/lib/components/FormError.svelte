@@ -63,7 +63,7 @@ margins of its own; the form that holds it sets the gap above it.
 
 - Semantics: a `role="alert"` box with the message, and a list of links when it summarises `problems`.
 - Content: `message`, one sentence that says what happened, and `problems`, one short message per field in the order the fields stand.
-- States: absent while `message` is empty, a one-line refusal, and a summary with links; each draws a warning mark beside the message.
+- States: absent while `message` is empty, a one-line refusal, and a summary with links; each draws a warning mark beside the message, on a pale wash of the danger tint inside a light edge of the hue.
 - Keyboard: a summary takes focus, Tab walks its links, and Enter on a link focuses that field.
 - Pointer and touch: each link's target is 24px tall, and 44px on a phone or any touch screen.
 - Focus: a summary takes focus when it appears and again on each `attempt`; a link moves focus to its field.
@@ -85,7 +85,7 @@ margins of its own; the form that holds it sets the gap above it.
       {@attach arrive}
     >
       <p class="sui-form-error-message">
-        <span class="sui-form-error-mark"><Icon name="alert" size="xs" /></span>
+        <span class="sui-form-error-mark"><Icon name="alert" size="base" /></span>
         <span class="sui-form-error-text">{message}</span>
       </p>
       {#if problems.length > 0}
@@ -106,11 +106,17 @@ margins of its own; the form that holds it sets the gap above it.
 {/key}
 
 <style>
+  /* A refusal of the whole form is a pale wash of the danger tint inside a light edge of the
+     hue, as an error panel is, so it owns the top of the form and its words keep their
+     contrast. Its words read at body size beside a 16px mark, so it pads 16px all round. */
   .sui-form-error {
+    background: color-mix(in srgb, var(--sui-danger-tint) 45%, var(--sui-surface-base));
+    border: var(--sui-stroke) solid color-mix(in srgb, var(--sui-danger) 40%, transparent);
     border-radius: var(--sui-radius-control);
     display: grid;
     gap: var(--sui-row-copy-gap);
     min-inline-size: 0;
+    padding: var(--sui-space-4);
   }
 
   .sui-form-error:focus-visible {
@@ -118,12 +124,14 @@ margins of its own; the form that holds it sets the gap above it.
     outline-offset: var(--sui-focus-ring-offset);
   }
 
+  /* The mark, the edge and the wash carry the refusal, so its words read in the primary ink, as
+     an error panel's title does. */
   .sui-form-error-message {
     align-items: start;
-    color: var(--sui-danger);
-    column-gap: var(--sui-space-1);
+    color: var(--sui-text-primary);
+    column-gap: var(--sui-space-2);
     display: grid;
-    font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-row-copy-leading)
+    font: var(--sui-weight-medium) var(--sui-font-size-body) / var(--sui-row-copy-leading)
       var(--sui-sans);
     grid-template-columns: auto minmax(0, 1fr);
     margin: 0;
@@ -131,8 +139,9 @@ margins of its own; the form that holds it sets the gap above it.
 
   /* Centred on the first line's cap height, however many lines the message wraps to. */
   .sui-form-error-mark {
+    color: var(--sui-danger);
     display: flex;
-    margin-block: round(calc((1cap - var(--sui-icon-xs)) / 2), 1px);
+    margin-block: round(calc((1cap - var(--sui-icon-base)) / 2), 1px);
   }
 
   .sui-form-error-text {
@@ -140,6 +149,7 @@ margins of its own; the form that holds it sets the gap above it.
     block-size: var(--sui-block-snap);
     min-inline-size: 0;
     overflow-wrap: anywhere;
+    padding-block: var(--sui-block-snap-room);
     text-box: trim-both cap alphabetic;
   }
 
@@ -152,7 +162,7 @@ margins of its own; the form that holds it sets the gap above it.
     list-style: none;
     margin: 0;
     padding: 0;
-    padding-inline-start: calc(var(--sui-icon-xs) + var(--sui-space-1));
+    padding-inline-start: calc(var(--sui-icon-base) + var(--sui-space-2));
   }
 
   /* 44px hit areas on lines this close would overlap, so a touch screen spaces them out. */

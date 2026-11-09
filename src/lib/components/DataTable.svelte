@@ -42,10 +42,11 @@
     error = null,
     onretry,
     empty,
-    emptyLabel = word('DataTable.emptyLabel', 'Nothing to show yet'),
+    emptyLabel = word('DataTable.emptyLabel', 'Check back once there are rows'),
+    missingLabel = word('DataTable.missingLabel', 'No value'),
     loadingLabel = word('DataTable.loadingLabel', 'Loading…'),
     refreshingLabel = word('DataTable.refreshingLabel', 'Refreshing…'),
-    retryLabel = word('DataTable.retryLabel', 'Try again'),
+    retryLabel = word('DataTable.retryLabel', 'Try Again'),
     scrollHint = word('DataTable.scrollHint', 'Scroll sideways to see every column'),
     class: className = '',
     ...rest
@@ -77,6 +78,8 @@
     /** Drawn in the body when there are no rows, in place of `emptyLabel`, such as a next step. */
     empty?: Snippet;
     emptyLabel?: string;
+    /** Read in place of a cell with no value, which draws a dash. */
+    missingLabel?: string;
     loadingLabel?: string;
     refreshingLabel?: string;
     retryLabel?: string;
@@ -131,6 +134,7 @@
   }
 
   const plain = (value: unknown) => (typeof value === 'number' ? formatCount(value) : value);
+  const absent = (value: unknown) => value === undefined || value === null || value === '';
   const status = $derived(loading ? loadingLabel : refreshing ? refreshingLabel : '');
 </script>
 
@@ -149,16 +153,23 @@ row in place of the hairlines, for a table wide enough that the eye can lose its
 - Keyboard: a sortable heading is a button, and Enter or Space sorts by it, then reverses; a frame that scrolls is a tab stop, so the arrow keys scroll it.
 - Pointer and touch: a sortable heading's target is at least 24px tall, and 44px on a phone or a coarse pointer.
 - Focus: sorting keeps focus on the heading; the frame is a stop only while it scrolls.
-- Responsive: columns grow to their widest value and the table scrolls inside its own frame, with a line that says so, a fade on each edge that has more past it, starting past held row headings, and the row headings held in view; numeric and `nowrap` columns never wrap, other text wraps inside its column; a wrapping column is never narrower than its values up to a 16rem measure, 8rem for held row headings, so on a narrow frame a long value wraps to a few lines while the frame scrolls.
+- Responsive: columns grow to their widest value and the table scrolls inside its own frame, with a line that says so, a fade on each edge that has more past it, starting past held row headings, and the row headings held in view; numeric and `nowrap` columns never wrap, other text wraps inside its column; a wrapping column is never narrower than its values up to a 20rem measure, 8rem for held row headings (6rem on a phone, where cells also pad 8px at their sides), so on a narrow frame a long value wraps to a few lines while the frame scrolls; a row that wraps reads from its top.
 - Accessibility: loading and refreshing mark the table `aria-busy` and are said through a polite status; a failure is an alert in words beside an icon; sorted order is `aria-sort` and an up or down chevron.
-- Localization: every built-in word is a prop with an English default; numbers group and text sorts by the page's language; columns, alignment, the held row headings and the loading light follow the reading direction.
-- Performance: every row renders; key rows with `rowKey`, and page a long table with numbered pages or `LoadMore` rather than drawing thousands; the loading light moves only by `transform`, so the compositor runs it, and holds still under reduced motion.
+- Localization: every built-in word is a prop with an English default; numbers group in the reader's format and text sorts by the page's language; columns, alignment, the held row headings and the loading light follow the reading direction.
+- Performance: every row renders and is laid out, even off the screen, because a row cannot skip and a frame that skips cannot measure its overflow; key rows with `rowKey`, and page a long table with numbered pages or `LoadMore` rather than drawing thousands; the loading light moves only by `transform`, so the compositor runs it, and holds still under reduced motion.
 - Analytics: `onsort` hears each sort, and `onretry` each retry.
-- Failure: no rows says `emptyLabel` or draws `empty` in the body under the headings; a failure says `error` with a retry; a missing value prints blank and sorts first.
+- Failure: no rows says `emptyLabel` or draws `empty` in the body under the headings; a failure says `error` with a retry; a missing value draws a muted dash, is read as `missingLabel` and sorts first.
 -->
 
+{#snippet value(row: Row, column: DataTableColumn<Row>)}
+  {#if cell}{@render cell(row, column)}{:else if absent(row[column.key])}<span
+      class="missing"
+      aria-hidden="true">—</span
+    ><VisuallyHidden>{missingLabel}</VisuallyHidden>{:else}{plain(row[column.key])}{/if}
+{/snippet}
+
 {#snippet retry()}
-  {#if onretry}<Button tone="ghost" onclick={onretry}>{retryLabel}</Button>{/if}
+  {#if onretry}<Button onclick={onretry}>{retryLabel}</Button>{/if}
 {/snippet}
 
 <div class={['sui-data-table', className, { striped, scrolls, held: rowHeader }]}>
@@ -178,7 +189,7 @@ row in place of the hairlines, for a table wide enough that the eye can lose its
     <div
       {@attach watchOverflow}
       class="frame sui-scroll-edge"
-      role={scrolls ? 'region' : undefined}
+      role={scrolls && (caption || rest['aria-label']) ? 'region' : undefined}
       tabindex={scrolls ? 0 : undefined}
       aria-labelledby={scrolls && caption ? captionId : undefined}
       aria-label={scrolls && !caption ? rest['aria-label'] : undefined}
@@ -254,21 +265,13 @@ row in place of the hairlines, for a table wide enough that the eye can lose its
                       scope="row"
                       data-align={alignOf(column)}
                       class={{ numeric: column.numeric, nowrap: column.nowrap || column.numeric }}
-                      ><span class="value"
-                        >{#if cell}{@render cell(row, column)}{:else}{plain(
-                            row[column.key]
-                          )}{/if}</span
-                      ></th
+                      ><span class="value">{@render value(row, column)}</span></th
                     >
                   {:else}
                     <td
                       data-align={alignOf(column)}
                       class={{ numeric: column.numeric, nowrap: column.nowrap || column.numeric }}
-                      ><span class="value"
-                        >{#if cell}{@render cell(row, column)}{:else}{plain(
-                            row[column.key]
-                          )}{/if}</span
-                      ></td
+                      ><span class="value">{@render value(row, column)}</span></td
                     >
                   {/if}
                 {/each}
@@ -282,6 +285,10 @@ row in place of the hairlines, for a table wide enough that the eye can lose its
 </div>
 
 <style>
+  .missing {
+    color: var(--sui-text-muted);
+  }
+
   .sui-data-table {
     display: grid;
     gap: var(--sui-row-copy-gap);
@@ -293,6 +300,14 @@ row in place of the hairlines, for a table wide enough that the eye can lose its
      timeline is active only while the frame has somewhere to scroll, and the browser settles it
      before it paints, so a server-rendered table draws the line from its first frame. Without
      scroll timelines the line follows the measure script. */
+  /* The caption names the table as a sub-section title does (L-25), so it reads over the column
+     headings under it and the scroll hint beside them. */
+  .caption:not(.hint) {
+    color: var(--sui-text-primary);
+    font: var(--sui-weight-semibold) var(--sui-font-size-body) / var(--sui-row-copy-leading)
+      var(--sui-sans);
+  }
+
   .hint {
     display: none;
   }
@@ -328,6 +343,7 @@ row in place of the hairlines, for a table wide enough that the eye can lose its
       var(--sui-sans);
     margin: 0;
     overflow-wrap: anywhere;
+    padding-block: var(--sui-block-snap-room);
     text-box: trim-both cap alphabetic;
   }
 
@@ -339,16 +355,23 @@ row in place of the hairlines, for a table wide enough that the eye can lose its
     gap: var(--sui-space-2);
   }
 
+  /* The mark carries the failure, so the words read in the primary ink, as an error panel's
+     title does. */
   .problem-words {
     align-content: center;
     block-size: var(--sui-block-snap);
+    color: var(--sui-text-primary);
     font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-row-copy-leading)
       var(--sui-sans);
     min-inline-size: 0;
     overflow-wrap: anywhere;
+    padding-block: var(--sui-block-snap-room);
     text-box: trim-both cap alphabetic;
   }
 
+  /* A table is always laid out, so a long one pages instead (L-63). Its rows cannot skip, as
+     containment does not apply to a table's rows, and a frame that skips cannot measure its
+     overflow, so off the screen it would lose its tab stop and its region. */
   .frame {
     container-type: scroll-state;
     min-inline-size: 0;
@@ -387,6 +410,9 @@ row in place of the hairlines, for a table wide enough that the eye can lose its
   /* Separate borders: a collapsed border is split between its two cells, which puts every
      row half a pixel off the grid (L-95). The row lines live on the cells instead. */
   table {
+    --sui-local-measure: 20rem;
+    --sui-local-held-measure: 8rem;
+
     border-collapse: separate;
     border-spacing: 0;
     inline-size: 100%;
@@ -409,7 +435,14 @@ row in place of the hairlines, for a table wide enough that the eye can lose its
     align-content: center;
     block-size: var(--sui-block-snap);
     display: block;
+    padding-block: var(--sui-block-snap-room);
     text-box: trim-both cap alphabetic;
+  }
+
+  /* A row that wraps reads from its top, as a list of facts does, so a short value never floats
+     in the middle of a tall row. */
+  tbody :is(th, td) {
+    align-content: start;
   }
 
   :is(th, td):first-child {
@@ -425,11 +458,9 @@ row in place of the hairlines, for a table wide enough that the eye can lose its
   thead th {
     border-block-end: var(--sui-stroke) solid var(--sui-border-control);
     vertical-align: middle;
-    color: var(--sui-text-muted);
-    font: var(--sui-weight-semibold) var(--sui-font-size-micro) / var(--sui-leading-micro)
+    color: var(--sui-text-primary);
+    font: var(--sui-weight-semibold) var(--sui-font-size-control) / var(--sui-leading-meta)
       var(--sui-sans);
-    letter-spacing: 0.07em;
-    text-transform: uppercase;
   }
 
   /* A sort heading is a chip-tier control (L-37) whose ground reaches a space past its words.
@@ -450,11 +481,9 @@ row in place of the hairlines, for a table wide enough that the eye can lose its
     font: inherit;
     gap: var(--sui-space-1);
     inline-size: fit-content;
-    letter-spacing: inherit;
     margin: calc(-1 * var(--sui-space-1));
     padding: 0 var(--sui-space-1);
     position: relative;
-    text-transform: inherit;
     user-select: none;
     /* Off the baseline, so the glyph beside the words never moves the heading row's line. */
     vertical-align: top;
@@ -465,6 +494,7 @@ row in place of the hairlines, for a table wide enough that the eye can lose its
   .sort > span {
     align-content: center;
     block-size: var(--sui-block-snap-even);
+    padding-block: var(--sui-block-snap-room-even);
     text-box: trim-both cap alphabetic;
   }
 
@@ -494,7 +524,7 @@ row in place of the hairlines, for a table wide enough that the eye can lose its
   @media (hover: hover) {
     .sort:hover:not(:active) {
       background-color: var(--sui-interactive-hover-layer);
-      color: var(--sui-text-primary);
+      color: var(--sui-hover-ink);
     }
   }
 
@@ -512,17 +542,46 @@ row in place of the hairlines, for a table wide enough that the eye can lose its
     color: var(--sui-text-primary);
   }
 
+  /* The sorted column's arrow wears the accent's text ink, as the side nav's current glyph does,
+     so the order's column reads from across the table. */
+  [aria-sort] .sort > :global(svg) {
+    color: var(--sui-brand-action-text);
+  }
+
+  /* An unsorted heading's glyph rests in the muted ink, so only the sorted column's arrow
+     carries weight; a hovered heading lifts it with its words. */
+  th:not([aria-sort]) > .sort > :global(svg) {
+    color: var(--sui-text-muted);
+  }
+
+  @media (hover: hover) {
+    th:not([aria-sort]) > .sort:hover > :global(svg) {
+      color: inherit;
+    }
+  }
+
   tbody tr + tr > :is(th, td) {
     border-block-start: var(--sui-stroke) solid var(--sui-border-divider);
   }
 
-  /* A tinted row needs room inside its tint, so the outer cells take back their inset. */
   .striped tbody tr + tr > :is(th, td) {
     border-block-start: 0;
   }
 
+  /* A faint veil of the ink, so a stripe guides the eye along a row in both themes and never
+     reads as a selection. */
+  .striped {
+    --sui-local-stripe: color-mix(in srgb, var(--sui-text-primary) 3%, transparent);
+  }
+
   .striped tbody tr:nth-child(even) {
-    background: var(--sui-surface-inset);
+    background: var(--sui-local-stripe);
+  }
+
+  /* The outer cells' inset reaches past the words, as a list row's ground does (L-33), so a
+     striped table's words keep a plain table's edge. */
+  .striped > .viewport {
+    margin-inline: calc(-1 * var(--sui-space-3));
   }
 
   .striped :is(th, td):first-child {
@@ -534,7 +593,7 @@ row in place of the hairlines, for a table wide enough that the eye can lose its
   }
 
   td {
-    color: var(--sui-text-secondary);
+    color: var(--sui-text-primary);
     font: var(--sui-weight-regular) var(--sui-font-size-body) / var(--sui-leading-body)
       var(--sui-sans);
   }
@@ -550,10 +609,13 @@ row in place of the hairlines, for a table wide enough that the eye can lose its
     color: var(--sui-text-muted);
   }
 
+  /* A body with no rows, or whose request failed, is one place that says so, with more room
+     than a row above and below its words, so it never reads as a lone first row (L-59). */
   .state {
     color: var(--sui-text-muted);
     font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-leading-meta)
       var(--sui-sans);
+    padding-block: var(--sui-space-5);
   }
 
   /* While the columns scroll, the row headings stay at the start on the table's own ground,
@@ -569,7 +631,8 @@ row in place of the hairlines, for a table wide enough that the eye can lose its
     }
 
     .held.striped tbody tr:nth-child(even) > :first-child {
-      background: var(--sui-surface-inset);
+      background:
+        linear-gradient(var(--sui-local-stripe), var(--sui-local-stripe)), var(--sui-surface-base);
     }
 
     .held :is(th, td):first-child::after {
@@ -600,7 +663,8 @@ row in place of the hairlines, for a table wide enough that the eye can lose its
     }
 
     .held.scrolls.striped tbody tr:nth-child(even) > :first-child {
-      background: var(--sui-surface-inset);
+      background:
+        linear-gradient(var(--sui-local-stripe), var(--sui-local-stripe)), var(--sui-surface-base);
     }
 
     .held.scrolls :is(th, td):first-child::after {
@@ -627,11 +691,11 @@ row in place of the hairlines, for a table wide enough that the eye can lose its
      value wraps to a few lines while the frame scrolls, and a wide frame lays out as before. A
      held row heading keeps a shorter measure, so the columns keep most of the frame. */
   :is(th, td):not(.nowrap) > .value {
-    min-inline-size: calc-size(max-content, min(size, 16rem));
+    min-inline-size: calc-size(max-content, min(size, var(--sui-local-measure)));
   }
 
   .held :is(th, td):first-child:not(.nowrap) > .value {
-    min-inline-size: calc-size(max-content, min(size, 8rem));
+    min-inline-size: calc-size(max-content, min(size, var(--sui-local-held-measure)));
   }
 
   /* Without calc-size(), a value counts its own width up to the measure for its column, and a
@@ -639,12 +703,30 @@ row in place of the hairlines, for a table wide enough that the eye can lose its
   @supports not (min-inline-size: calc-size(max-content, size)) {
     :is(th, td):not(.nowrap) > .value {
       inline-size: max-content;
-      max-inline-size: 16rem;
+      max-inline-size: var(--sui-local-measure);
       min-inline-size: 100%;
     }
 
     .held :is(th, td):first-child:not(.nowrap) > .value {
-      max-inline-size: 8rem;
+      max-inline-size: var(--sui-local-held-measure);
+    }
+  }
+
+  /* On a phone the columns pack closer and a held heading wraps sooner, as a compact table
+     does, so more of a wide table shows before the frame scrolls. A long value keeps the full
+     measure, so its row stays a few lines tall. */
+  @media (max-width: 47.9375rem) {
+    table {
+      --sui-local-held-measure: 6rem;
+    }
+
+    th,
+    td {
+      padding-inline: var(--sui-space-2);
+    }
+
+    .state {
+      padding-block: var(--sui-space-4);
     }
   }
 
@@ -689,6 +771,13 @@ row in place of the hairlines, for a table wide enough that the eye can lose its
      a little short of its heading, a little more or less on each row, as words do; a number's
      bar is short and sits at the end. The light is laid out on the rows, so only the bar's
      clip path, not its overflow, keeps it inside the bar. */
+  /* A placeholder's bar is a whole cap tall, and a value that holds a part of its own, such as
+     a pill, lands on whole pixels with it, so neither takes room for a line. */
+  .placeholder .value,
+  .value:has(> :global(*)) {
+    padding-block: 0;
+  }
+
   .placeholder .bar {
     background: var(--sui-placeholder);
     block-size: round(up, 1cap, 1px);
@@ -723,7 +812,8 @@ row in place of the hairlines, for a table wide enough that the eye can lose its
   }
 
   .placeholder .bar::after {
-    animation: sui-data-table-sheen var(--sui-duration-shimmer) var(--sui-ease-linear) infinite;
+    animation: sui-data-table-sheen var(--sui-duration-shimmer) var(--sui-ease-linear)
+      var(--sui-placeholder-runs) both;
     background: var(--sui-placeholder-sheen);
     content: '';
     inset-block: 0;

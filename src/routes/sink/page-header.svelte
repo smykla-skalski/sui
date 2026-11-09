@@ -1,6 +1,6 @@
 <script module lang="ts">
   export const section = {
-    title: 'Page header',
+    title: 'Page Header',
     lead: 'The top of a page: where it is, what it is called, its state, what it is for and the controls that act on it. A part of the page takes a Section heading instead.',
     components: ['PageHeader', 'Breadcrumb', 'BackLink']
   };
@@ -32,41 +32,41 @@
   layout="stack"
   ground="canvas"
 >
-  <Specimen label="Eyebrow, description and actions" code="eyebrow description actions">
+  <Specimen label="Eyebrow, description & actions">
     <div class="page">
       <PageHeader
         level={4}
         eyebrow={['Acme', 'Sync']}
-        title="Repository settings"
+        title="Repository Settings"
         description="Rules every repository in this workspace is held to"
       >
         {#snippet actions()}
-          <Button>Export</Button>
-          <Button tone="signal">Save changes</Button>
+          <Button>Export Settings</Button>
+          <Button tone="signal">Save Changes</Button>
         {/snippet}
       </PageHeader>
       <p class="view">Every new repository starts with these rules</p>
     </div>
   </Specimen>
-  <Specimen label="Title only" code="title">
+  <Specimen label="Title only">
     <div class="page">
       <PageHeader level={4} title="Activity" />
-      <p class="view">Nothing happened in the last 7 days</p>
+      <p class="view">Nothing happened in the last 7&nbsp;days</p>
     </div>
   </Specimen>
 </Example>
 
 <Example
-  title="State and facts"
+  title="State & Facts"
   note="The state stands beside the title and is said once when it changes, and headline facts close the copy"
   layout="stack"
   ground="canvas"
 >
-  <Specimen label="Status, description and facts" code="kicker status description facts actions">
+  <Specimen label="Status, description & facts">
     <div class="page">
       <PageHeader
         level={4}
-        title="Sync check #4182"
+        title="Sync Check #4182"
         description="Compared 16 repositories in acme with the saved settings"
       >
         {#snippet kicker()}<BackLink href="#page-header" label="Queue" />{/snippet}
@@ -80,14 +80,14 @@
             facts={[
               { label: 'Workspace', value: 'acme' },
               { label: 'Started', value: startedAt },
-              { label: 'Took', value: '48 seconds' },
+              { label: 'Took', value: '48\u00a0seconds' },
               { label: 'Requested by', value: 'Alex Kim' }
             ]}
           />
         {/snippet}
         {#snippet actions()}
           <Button tone="signal" onclick={() => (checked = !checked)}>
-            {checked ? 'Undo the check' : 'Check again'}
+            {checked ? 'Undo the Check' : 'Check Again'}
           </Button>
         {/snippet}
       </PageHeader>
@@ -101,12 +101,12 @@
 </Example>
 
 <Example
-  title="With tabs"
-  note="The band's foot is the tabs' line, so the view under it starts on a clean cut"
+  title="With Tabs"
+  note="The band’s foot is the tabs’ line, so the view under it starts on a clean cut"
   layout="stack"
   ground="canvas"
 >
-  <Specimen label="Views of one page" code="tabs">
+  <Specimen label="Views of one page">
     <div class="page">
       <PageHeader
         level={4}
@@ -115,7 +115,7 @@
         description="The component library and its kitchen sink"
       >
         {#snippet actions()}
-          <Button>Sync now</Button>
+          <Button>Sync Now</Button>
         {/snippet}
         {#snippet tabs()}
           <Tabs
@@ -135,17 +135,17 @@
 </Example>
 
 <Example
-  title="Breadcrumb and back link"
-  note="A breadcrumb or a back link takes the eyebrow's place"
+  title="Breadcrumb & Back Link"
+  note="A breadcrumb or a back link takes the eyebrow’s place"
   layout="grid"
   ground="canvas"
 >
-  <Specimen label="Breadcrumb" code="kicker">
+  <Specimen label="Breadcrumb">
     <div class="page">
       <PageHeader
         level={4}
-        title="Sync schedule"
-        description="When this repository is checked against its template"
+        title="Sync Schedule"
+        description="When the sync checks this repository against its template"
       >
         {#snippet kicker()}
           <Breadcrumb
@@ -159,32 +159,32 @@
       <p class="view">Checked every day at 06:00</p>
     </div>
   </Specimen>
-  <Specimen label="Back link" code="kicker">
+  <Specimen label="Back link">
     <div class="page">
       <PageHeader level={4} title="Run 1842">
         {#snippet kicker()}<BackLink href="#page-header" label="All runs" />{/snippet}
       </PageHeader>
-      <p class="view">Finished in 4 minutes with no changes</p>
+      <p class="view">Finished in 4&nbsp;minutes with no changes</p>
     </div>
   </Specimen>
 </Example>
 
 <Example
-  title="Long title"
+  title="Long Title"
   note="The title balances its lines and holds them closer together than the description under them"
   layout="stack"
   ground="canvas"
 >
-  <Specimen label="Wrapping title and description">
+  <Specimen label="Wrapping title & description">
     <div class="page">
       <PageHeader
         level={4}
         eyebrow={['Acme', 'Access']}
-        title="Bypass rules for the platform team's deployment and release repositories in every region"
-        description="People and apps listed here can push past the branch rules, and every push they make is written to the audit log"
+        title="Bypass Rules for the Platform Team’s Deployment & Release Repositories in Every Region"
+        description="People and apps listed here can push past the branch rules, and the audit log records every push they make"
       >
         {#snippet actions()}
-          <Button tone="signal">Add a rule</Button>
+          <Button tone="signal">Add a Rule</Button>
         {/snippet}
       </PageHeader>
       <p class="view">2 people and 1 app can bypass the rules</p>
@@ -210,6 +210,8 @@
       var(--sui-sans);
     margin: 0;
     padding: 0 var(--sui-rhythm-pane-gutter) var(--sui-space-6);
+    padding-block: var(--sui-block-snap-half, 0px)
+      calc(var(--sui-space-6) + var(--sui-block-snap-spare, 0px) - var(--sui-block-snap-half, 0px));
     text-box: trim-both cap alphabetic;
   }
 </style>

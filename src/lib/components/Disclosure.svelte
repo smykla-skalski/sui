@@ -203,6 +203,8 @@ cells stack their secondary text.
   }
 
   .sui-disclosure-label {
+    padding-block: var(--sui-block-snap-room-even);
+    text-wrap: balance;
     align-content: center;
     block-size: var(--sui-block-snap-even);
     min-inline-size: 0;
@@ -218,6 +220,7 @@ cells stack their secondary text.
       var(--sui-sans);
     min-inline-size: 0;
     overflow-wrap: break-word;
+    padding-block: var(--sui-block-snap-room-even);
     text-box: trim-both cap alphabetic;
   }
 
@@ -238,13 +241,15 @@ cells stack their secondary text.
   :where(.sui-disclosure-body) > :global(:where(p, ul, ol, dl, blockquote):first-child) {
     align-content: start;
     block-size: var(--sui-block-snap);
-    text-box: trim-start cap alphabetic;
+    padding-block: var(--sui-block-snap-room-start);
+    text-box: var(--sui-block-snap-trim, trim-start cap alphabetic);
   }
 
   :where(.sui-disclosure-body) > :global(:where(p, ul, ol, dl, blockquote):last-child) {
     align-content: end;
     block-size: var(--sui-block-snap);
-    text-box: trim-end cap alphabetic;
+    padding-block: var(--sui-block-snap-room-end);
+    text-box: var(--sui-block-snap-trim, trim-end cap alphabetic);
   }
 
   /* An only block keeps its baseline on its box's end even when its ink overhangs, so its last
@@ -253,7 +258,20 @@ cells stack their secondary text.
   :where(.sui-disclosure-body) > :global(:where(p, ul, ol, dl, blockquote):only-child) {
     align-content: unsafe end;
     block-size: var(--sui-block-snap-near);
+    padding-block: var(--sui-block-snap-spare) 0;
     text-box: trim-both cap alphabetic;
+  }
+
+  /* Without calc-size() the only block rounds up instead, and an empty box before it gives the
+     pixel back when the nearest pixel is the lower one, so its ink stands where it would. The
+     box measures the cap in the disclosure's face, which the content's words take unless they
+     set their own size. */
+  @supports not (block-size: calc-size(auto, size)) {
+    .sui-disclosure-body:has(> :global(:where(p, ul, ol, dl, blockquote):only-child))::before {
+      content: '';
+      display: block;
+      margin-block-end: calc(round(1cap, 1px) - round(up, 1cap, 1px));
+    }
   }
 
   /* The trailing room, in the summary's face, so a group of disclosures keeps the rhythm of

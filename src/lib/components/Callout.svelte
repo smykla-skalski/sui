@@ -251,7 +251,7 @@ and the unsaved ink, so no neutral block sits on a state (L-92).
     align-content: center;
     display: grid;
     flex: 1;
-    gap: var(--sui-row-copy-gap);
+    gap: var(--sui-title-copy-gap);
     min-inline-size: 0;
   }
 
@@ -268,10 +268,12 @@ and the unsaved ink, so no neutral block sits on a state (L-92).
     max-inline-size: var(--sui-measure);
     min-inline-size: 0;
     overflow-wrap: anywhere;
+    padding-block: var(--sui-block-snap-room);
     text-box: trim-both cap alphabetic;
   }
 
   .sui-callout-title {
+    text-wrap: balance;
     color: var(--sui-text-primary);
     font-weight: var(--sui-weight-semibold);
   }

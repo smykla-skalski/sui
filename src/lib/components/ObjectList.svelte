@@ -37,7 +37,7 @@ it is its last row instead, so the list keeps that padding and draws the hairlin
 - Responsive: rows take the full width and drop their side under the main content on a phone.
 - Accessibility: a screen reader hears it as a list with its count; name it with `aria-label` or `aria-labelledby` when the page has more than one.
 - Localization: everything it says is the caller's; the rows follow the reading direction.
-- Performance: every row renders; past a few hundred, page the list with `LoadMore` rather than drawing everything.
+- Performance: every row is in the page, but only the rows near the screen are laid out and painted (`content-visibility: auto`), and a row off it keeps the height it last had; past a few hundred, page the list with `LoadMore`.
 - Analytics: none of its own; rows and `LoadMore` report what the reader opens and asks for.
 - Failure: draw an `EmptyState` in its place when there are no rows, a `Skeleton` while the first page loads, and an `ErrorState` when it failed, never an empty `ul`.
 -->

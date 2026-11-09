@@ -119,6 +119,7 @@ first render, because a region that arrives with its words is often not read.
     margin: 0;
     min-inline-size: auto;
     overflow-wrap: break-word;
+    padding-block: var(--sui-block-snap-room);
     text-box: trim-both cap alphabetic;
     text-wrap: balance;
   }
@@ -185,17 +186,20 @@ first render, because a region that arrives with its words is often not read.
      trimmed edge, and an only paragraph splits that spare above its cap and under its baseline. */
   :where(.sui-plate-body) :global(:where(p, ul, ol, dl, blockquote):first-child) {
     block-size: var(--sui-block-snap);
-    text-box: trim-start cap alphabetic;
+    padding-block: var(--sui-block-snap-room-start);
+    text-box: var(--sui-block-snap-trim, trim-start cap alphabetic);
   }
 
   :where(.sui-plate-body) :global(:where(p, ul, ol, dl, blockquote):last-child) {
     align-content: end;
     block-size: var(--sui-block-snap);
-    text-box: trim-end cap alphabetic;
+    padding-block: var(--sui-block-snap-room-end);
+    text-box: var(--sui-block-snap-trim, trim-end cap alphabetic);
   }
 
   :where(.sui-plate-body) :global(:where(p, ul, ol, dl, blockquote):only-child) {
     align-content: center;
+    padding-block: var(--sui-block-snap-room);
     text-box: trim-both cap alphabetic;
   }
 </style>

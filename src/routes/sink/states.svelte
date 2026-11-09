@@ -1,12 +1,13 @@
 <script module lang="ts">
   export const section = {
-    title: 'Empty and error states',
+    title: 'Empty & Error States',
     lead: 'What a collection says when it has nothing to show, or when its request failed, with a next step. A form the server refused shows a FormError.',
     components: ['EmptyState', 'ErrorState', 'FormError']
   };
 </script>
 
 <script lang="ts">
+  import { clock } from '../kit/format.js';
   import {
     Button,
     EmptyState,
@@ -45,7 +46,7 @@
   }
 
   function submit() {
-    refused = refused ? null : 'That name is taken by another workspace, so pick another one';
+    refused = refused ? null : 'That name is taken by another workspace, so choose another one';
   }
 
   let workspace = $state('');
@@ -63,7 +64,7 @@
   const summary = $derived(
     problems.length === 0
       ? null
-      : `Fix ${problems.length === 1 ? 'one problem' : `${problems.length} problems`} to create the workspace`
+      : `Fix ${problems.length === 1 ? '1 problem' : `${problems.length} problems`} to create the workspace`
   );
 
   function send(event: SubmitEvent) {
@@ -74,39 +75,39 @@
 </script>
 
 <Example
-  title="Empty state"
+  title="Empty State"
   note="A plain title, one explanation and a next step, with no decorative icon"
   layout="grid"
   ground="canvas"
 >
-  <Specimen label="Next step" code="action">
+  <Specimen label="Next step">
     <EmptyState
-      title="No repositories match this filter"
+      title="No Repositories Match This Filter"
       description="Clear the filter or search for another name to see the rest of the list"
     >
-      {#snippet action()}<Button>Clear the filter</Button>{/snippet}
+      {#snippet action()}<Button tone="signal">Clear the Filter</Button>{/snippet}
     </EmptyState>
   </Specimen>
   <Specimen label="Nothing here yet">
     <EmptyState
-      title="No invitations yet"
+      title="No Invitations Yet"
       description="People you invite to this workspace appear here until they accept"
     >
-      {#snippet action()}<Button>Invite people</Button>{/snippet}
+      {#snippet action()}<Button tone="signal">Invite People</Button>{/snippet}
     </EmptyState>
   </Specimen>
-  <Specimen label={filtered ? 'Emptied by a filter' : 'Filtered list'} code="live">
+  <Specimen label={filtered ? 'Emptied by a filter' : 'Filtered list'}>
     <div class="filtered">
       <Button onclick={() => (filtered = !filtered)}
-        >{filtered ? 'Show every repository' : 'Show archived only'}</Button
+        >{filtered ? 'Show Every Repository' : 'Show Archived Only'}</Button
       >
       {#if filtered}
         <EmptyState
           live
-          title="No archived repositories"
+          title="No Archived Repositories"
           description="Archive a repository from its settings and it appears here"
         >
-          {#snippet action()}<Button>Open repository settings</Button>{/snippet}
+          {#snippet action()}<Button tone="signal">Open Repository Settings</Button>{/snippet}
         </EmptyState>
       {:else}
         <p class="name">smykla-skalski/sui</p>
@@ -116,15 +117,15 @@
 </Example>
 
 <Example
-  title="Error state"
+  title="Error State"
   note="The retry keeps focus while it runs, and the loaded rows take focus when it succeeds"
   layout="grid"
   ground="canvas"
 >
-  <Specimen label={recovered ? 'Recovered' : 'Retry'} code="onretry busy focusAfterRetry">
-    <div class="loaded">
-      <Section title="Repositories" level={4} id="sink-states-recovered">
-        {#if recovered}
+  <Specimen label={recovered ? 'Recovered' : 'Retry'}>
+    <Section title="Repositories" level={4} id="sink-states-recovered">
+      {#if recovered}
+        <div class="loaded">
           <div bind:this={list} tabindex="-1" class="rows">
             <ObjectList aria-labelledby="sink-states-recovered">
               {#each repositories as name (name)}
@@ -134,26 +135,25 @@
               {/each}
             </ObjectList>
           </div>
-        {:else}
-          <ErrorState
-            title="Repositories could not be loaded"
-            description="The server did not answer in time, so nothing on this page has changed"
-            onretry={retry}
-            busy={retrying}
-            focusAfterRetry={() => list}
-          />
-        {/if}
-      </Section>
-      {#if recovered}
-        <div><Button onclick={() => (recovered = false)}>Show the failure again</Button></div>
+          <div><Button onclick={() => (recovered = false)}>Show the Failure Again</Button></div>
+        </div>
+      {:else}
+        <ErrorState
+          title="Repositories Could Not Load"
+          description="The server did not answer in time, so nothing on this page has changed"
+          onretry={retry}
+          busy={retrying}
+          focusAfterRetry={() => list}
+        />
       {/if}
-    </div>
+    </Section>
   </Specimen>
   <Specimen label="No retry">
     <Section title="Members" level={4}>
       <ErrorState
-        title="Access is not available"
-        description="Ask an owner of this workspace to give you the viewer role"
+        title="Access Is Not Available"
+        description="Only viewers and owners of this workspace see its members"
+        step="Ask an owner to give you the viewer role"
       />
     </Section>
   </Specimen>
@@ -163,7 +163,7 @@
         <p class="name">Usage for this month loaded</p>
       {:else}
         <ErrorState
-          title="Usage could not be loaded"
+          title="Usage Could Not Load"
           description="The server did not answer in time"
           onretry={() => (settled = true)}
         />
@@ -173,17 +173,17 @@
 </Example>
 
 <Example
-  title="Over loaded content"
+  title="Over Loaded Content"
   note="A failed refresh becomes one line above the rows it leaves in place"
   layout="stack"
   ground="canvas"
 >
-  <Specimen label="Refresh failed" code="overContent">
+  <Specimen label="Refresh failed">
     <Section title="Repositories" level={4}>
       <ErrorState
         overContent
-        title="The list could not be refreshed"
-        description="Showing what loaded at 14:02"
+        title="The List Could Not Refresh"
+        description="Showing what loaded at {clock(14, 2)}"
         onretry={refresh}
         busy={refreshing}
       />
@@ -199,19 +199,20 @@
 </Example>
 
 <Example
-  title="Form error"
-  note="A server refusal is announced, and a long form's summary takes focus with a link to each field"
+  title="Form Error"
+  note="A server refusal is announced, and a long form’s summary takes focus with a link to each field"
+  layout="stack"
 >
   <Specimen label="Refusal">
-    <FormError message="The invitation expired before it was accepted" />
+    <FormError message="The invitation expired before anyone accepted it" />
   </Specimen>
-  <Specimen label="On submit" code="message">
+  <Specimen label="On submit">
     <div class="form">
-      <Button onclick={submit}>{refused ? 'Clear the refusal' : 'Submit the form'}</Button>
+      <Button onclick={submit}>{refused ? 'Clear the Refusal' : 'Submit the Form'}</Button>
       <FormError message={refused} />
     </div>
   </Specimen>
-  <Specimen label="Summary of fields to fix" code="problems attempt">
+  <Specimen label="Summary of fields to fix">
     <form class="form summary" novalidate onsubmit={send}>
       <FormError message={summary} {problems} attempt={attempts} />
       <Field
@@ -225,11 +226,12 @@
         id="sink-states-contact"
         label="Contact email"
         type="email"
+        autocomplete="email"
         required
         error={contactProblem}
         bind:value={contact}
       />
-      <Button type="submit">Create the workspace</Button>
+      <Button type="submit" tone="signal">Create the Workspace</Button>
     </form>
   </Specimen>
 </Example>
@@ -269,6 +271,7 @@
     color: var(--sui-text-primary);
     font: var(--sui-weight-semibold) var(--sui-font-size-meta) / var(--sui-row-copy-leading)
       var(--sui-sans);
+    padding-block: var(--sui-block-snap-room);
     text-box: trim-both cap alphabetic;
   }
 
@@ -278,8 +281,10 @@
     justify-items: start;
   }
 
+  /* A form keeps a form's measure on a stage as wide as the page. */
   .summary {
     gap: var(--sui-space-4);
     justify-items: stretch;
+    max-inline-size: 40rem;
   }
 </style>

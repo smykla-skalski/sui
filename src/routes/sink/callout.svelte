@@ -21,13 +21,13 @@
         icon: 'pending',
         title: 'Sync paused',
         text: 'Nothing is pushed until the sync resumes',
-        action: 'Resume sync'
+        action: 'Resume Sync'
       },
       warning: {
         icon: 'warning',
-        title: 'Token expires in 2 days',
+        title: 'Token expires in 2\u00a0days',
         text: 'The sync stops when it expires',
-        action: 'Renew token'
+        action: 'Renew Token'
       }
     };
 </script>
@@ -56,27 +56,25 @@
   note="The gold surface belongs to unsaved work and the one action that resolves it"
   layout="stack"
 >
-  <Specimen label="Unsaved changes" code="decision">
+  <Specimen label="Unsaved changes">
     <Callout decision title="You have unsaved changes">
       {#snippet icon()}<Icon name="pending" size="sm" />{/snippet}
-      Two settings changed since the last save
+      2 settings changed since the last save
       {#snippet actions()}
-        <Button>Discard</Button>
-        <Button tone="decision">Save changes</Button>
+        <Button>Discard Changes</Button>
+        <Button tone="decision">Save Changes</Button>
       {/snippet}
     </Callout>
   </Specimen>
 </Example>
 
 <Example
-  title="Long copy"
-  note="Long copy starts at the symbol's tile however many lines follow, and an action beside it centres on the message"
+  title="Long Copy"
+  note="Long copy starts at the symbol’s tile however many lines follow, and an action beside it centres on the message"
   layout="stack"
 >
-  <Specimen label="Wrapping title and a link">
-    <Callout
-      title="Archived repositories are skipped during every sync, including the scheduled one"
-    >
+  <Specimen label="Wrapping title & a link">
+    <Callout title="Every sync skips archived repositories, including the scheduled one">
       {#snippet icon()}<Icon name="info" size="sm" />{/snippet}
       Unarchive a repository to bring it back into the sync, and read
       <Link href="#callout">how archiving works</Link> before you change the setting for the whole workspace
@@ -88,31 +86,31 @@
       A description can stand on its own without a title
     </Callout>
   </Specimen>
-  <Specimen label="Long copy beside an action" code="actions">
+  <Specimen label="Long copy beside an action">
     <Callout
-      title="Archived repositories are skipped during every sync, including the scheduled one that runs at night"
+      title="Every sync skips archived repositories, including the scheduled one that runs at night"
     >
       {#snippet icon()}<Icon name="info" size="sm" />{/snippet}
       Unarchive a repository to bring it back into the sync, with the branch rules it had before it was
       archived
-      {#snippet actions()}<Button>Show archived</Button>{/snippet}
+      {#snippet actions()}<Button>Show Archived</Button>{/snippet}
     </Callout>
   </Specimen>
 </Example>
 
 <Example
-  title="Appearing after an edit"
+  title="Appearing after an Edit"
   note="A callout that an edit brings is announced once it appears, and one that loads with the page stays quiet"
   layout="stack"
 >
-  <Specimen label={expiring ? 'Announced' : 'Not shown'} code="live">
+  <Specimen label={expiring ? 'Announced' : 'Not shown'}>
     <div class="appear">
       <Button onclick={() => (expiring = !expiring)}
-        >{expiring ? 'Keep the token' : 'Shorten the token to 2 days'}</Button
+        >{expiring ? 'Keep the Token' : 'Shorten the Token to 2\u00a0Days'}</Button
       >
       {#if expiring}
         <div class="full">
-          <Callout live tone="warning" title="Token expires in 2 days">
+          <Callout live tone="warning" title="Token expires in 2&nbsp;days">
             {#snippet icon()}<Icon name="warning" size="sm" />{/snippet}
             The sync stops when it expires
           </Callout>
@@ -123,36 +121,36 @@
 </Example>
 
 <Example
-  title="Narrow width"
-  note="A callout too narrow for its actions beside an 11rem measure of copy moves them under the copy, from its start edge"
+  title="Narrow Width"
+  note="A callout too narrow for its actions beside an 11 rem measure of copy moves them under the copy, from its start edge"
   layout="grid"
 >
-  <Specimen label="Quiet" code="actions">
+  <Specimen label="Quiet">
     <Callout title="Sync paused">
       {#snippet icon()}<Icon name="pending" size="sm" />{/snippet}
       Nothing is pushed until the sync resumes
       {#snippet actions()}
-        <Button>Resume sync</Button>
+        <Button>Resume Sync</Button>
       {/snippet}
     </Callout>
   </Specimen>
-  <Specimen label="Warning" code={'tone="warning" actions'}>
-    <Callout tone="warning" title="Token expires in 2 days">
+  <Specimen label="Warning">
+    <Callout tone="warning" title="Token expires in 2&nbsp;days">
       {#snippet icon()}<Icon name="warning" size="sm" />{/snippet}
       The sync stops when it expires
       {#snippet actions()}
-        <Button>Remind me</Button>
-        <Button>Renew</Button>
+        <Button>Remind Tomorrow</Button>
+        <Button>Renew Token</Button>
       {/snippet}
     </Callout>
   </Specimen>
-  <Specimen label="Decision" code="decision actions">
+  <Specimen label="Decision">
     <Callout decision title="You have unsaved changes">
       {#snippet icon()}<Icon name="pending" size="sm" />{/snippet}
-      Two settings changed since the last save
+      2 settings changed since the last save
       {#snippet actions()}
-        <Button>Discard</Button>
-        <Button tone="decision">Save changes</Button>
+        <Button>Discard Changes</Button>
+        <Button tone="decision">Save Changes</Button>
       {/snippet}
     </Callout>
   </Specimen>

@@ -82,6 +82,9 @@
     const next = event.relatedTarget;
     if (!(next instanceof Node) || element?.contains(next)) return;
     if (pressed && anchor?.contains(next)) return;
+    // `open` follows the `toggle` event, a task after the box shows, so a reader who leaves
+    // before it comes would find `open` still false and the box would stay; it is hidden here.
+    if (element?.matches(':popover-open')) element.hidePopover();
     open = false;
   }
 
@@ -292,6 +295,7 @@ close control, because only Escape and that control end it.
     max-inline-size: calc(100vw - 2 * var(--sui-space-2));
     opacity: 1;
     overflow: auto;
+    overscroll-behavior: contain;
     padding: 0;
     /* In the top layer this is the page, so the box scrolls with the page and its trigger. */
     position: absolute;

@@ -43,23 +43,38 @@
      only. */
   const around = holdAround();
   const holding = $derived(held(element, around));
+
+  /* An address, a code or a path is never a word, so no checker marks it and no keyboard
+     capitalizes its first letter. */
+  const technical = $derived(mono || type === 'email' || type === 'url');
+
+  /* A text replacement or a paste can leave spaces at the ends, which would fail a pattern or
+     pass a required check with nothing in it. A password keeps every character it was given. */
+  function commit(event: Event & { currentTarget: HTMLInputElement }): void {
+    const field = event.currentTarget;
+    if (type !== 'password' && type !== 'number' && field.value !== field.value.trim()) {
+      field.value = field.value.trim();
+      value = field.value;
+    }
+    rest.onchange?.(event);
+  }
 </script>
 
 <!--
 @component
-The one text field. It rests on the control fill, takes the inset fill while it has focus,
+The one text field. It rests on the control fill, keeps it while it has focus,
 and is 34px tall unless the surface it sits on asks for the 40px tier through
-`--sui-local-control-height`. Focus turns its own border into the ring, so the ring is never
-clipped by a card. A `readonly` field sits in the inset well with a quiet frame and no strong baseline, so a value that
-only reads never looks like one to type into.
+`--sui-local-control-height`. Focus leans the frame toward the ring and draws a 2px ring 2px off it. A
+`readonly` field sits in a light tint of the field well with a quiet frame and no strong
+baseline, so a value that only reads never looks like one to type into, nor like one that is off.
 
 It has no label of its own. Put it inside `Field`, or give it `aria-label` when the words
 that name it are already on screen. `mono` sets technical values in the mono face with
 tabular figures.
 
 - Semantics: a native `<input>` of the given `type`, named by a `<label for>` or `aria-label`; `invalid`, a caller's `aria-invalid` or a value the browser's check refused sets `aria-invalid`.
-- Content: one line of text the reader types, with an optional placeholder that is an example and never the label.
-- States: rest (the control fill, a quiet frame, a recess under its top edge darker than the frame and a 3:1 baseline), hover (a firmer frame and recess), focus (the inset fill and a flush 2px ring), invalid (a danger edge on all four sides, kept under hover and focus), read-only (no fill, no baseline and no recess), held (disabled while a busy dialog or a saving pane around it works, read only and focusable with full-strength words while a saving setting row does) and disabled (0.5 opacity).
+- Content: one line of text the reader types, with an optional placeholder that is an example and never the label. Spaces at either end go once the value is committed, so a text replacement never fails a pattern and spaces alone never pass `required`; a password keeps them. A `mono`, email or URL field is never spellchecked or capitalized.
+- States: rest (the control fill, a quiet frame, a recess under its top edge darker than the frame and a 3:1 baseline), hover (a firmer frame and recess), focus (the rest fill, a frame and baseline leaning toward the ring, and a 2px ring 2px off it, so a focused field never reads as read-only), invalid (a danger edge on all four sides, kept under hover and focus), read-only (a lighter tint of the field well, a quiet frame, no baseline and no recess), held (disabled and dimmed while a busy dialog or a saving pane around it works, read only and focusable in the read-only paint with full-strength words while a saving setting row does) and disabled (a quieter tint of the field well, 75% of it, with no frame and its words in the muted ink, all at full strength).
 - Keyboard: the browser's own text editing; Tab moves on.
 - Pointer and touch: 34px tall on a pointer and 44px on a phone or any touch screen, with 16px text on a phone so iOS does not zoom.
 - Focus: it takes focus on a press and never moves it elsewhere.
@@ -75,7 +90,10 @@ tabular figures.
   bind:this={element}
   bind:value
   {type}
+  spellcheck={technical ? false : undefined}
+  autocapitalize={technical ? 'off' : undefined}
   {...rest}
+  onchange={commit}
   disabled={rest.disabled || holding === 'firm'}
   readonly={readonly || holding !== null}
   {@attach refusals?.watch}
@@ -101,7 +119,10 @@ tabular figures.
     inline-size: 100%;
     margin: 0;
     min-inline-size: var(--sui-field-target-min);
-    padding: 0 var(--sui-space-2);
+    padding: 0 var(--sui-field-inset);
+    /* A value longer than the field ends in an ellipsis at rest, so it reads as cut and not as
+       whole; with focus it scrolls as typed. */
+    text-overflow: ellipsis;
   }
 
   .sui-text-input::placeholder {
@@ -121,40 +142,77 @@ tabular figures.
 
     .sui-text-input[aria-invalid='true']:hover:not(:disabled, :focus, .bare, [readonly]) {
       background-color: var(--sui-field-danger-hover);
-      border-color: var(--sui-danger-hover);
+      border-color: var(--sui-danger-edge-hover);
     }
   }
 
-  .sui-text-input:focus {
-    background-color: var(--sui-input-bg);
-  }
-
+  /* A field keeps its own frame, editable, danger or read-only, and the ring stands 2px off it,
+     so every state wears one ring and the frame's color still shows (L-41). */
   .sui-text-input:focus-visible {
-    border-color: var(--sui-focus);
     outline: var(--sui-focus-ring-width) solid var(--sui-focus);
-    outline-offset: var(--sui-focus-ring-flush);
+    outline-offset: var(--sui-focus-ring-offset);
   }
 
-  /* An open list means the field is in use, so a combobox's preview keeps the editing look. */
-  /* A value that only reads sits in the inset well with a quiet frame, no strong baseline and
-     no recess, so it never looks like a field to type in. */
-  .sui-text-input[readonly]:not(.held, [aria-expanded='true']),
-  .sui-text-input[readonly]:not(.held, [aria-expanded='true']):focus {
-    background-color: var(--sui-surface-inset);
-    border-color: var(--sui-border-subtle);
+  .sui-text-input:focus-visible:not([aria-invalid='true'], [readonly], .bare) {
+    --sui-field-recess: var(--sui-field-recess-focus);
+    border-color: var(--sui-field-frame-focus);
+    border-block-end-color: var(--sui-field-border-focus);
+  }
+
+  /* An invalid field's ring takes the danger color, so focus never reads as a second, calm
+     state beside the red edge (L-41). */
+  .sui-text-input[aria-invalid='true']:focus-visible {
+    outline-color: var(--sui-focus-danger);
+  }
+
+  /* A value that only reads, or a field that is off, has no strong baseline and no recess, so
+     it never looks like a field to type in. An off field fills a quieter tint of the field well with no frame,
+     and a value that only reads keeps a quiet frame over a lighter tint of it, so a value to
+     copy never looks off. A field a saving row holds wears the same paint, so it never looks
+     open to typing while its value saves.
+     An open list means the field is in use, so a combobox's preview keeps the editing look. */
+  .sui-text-input[readonly]:not([aria-expanded='true'], :disabled),
+  .sui-text-input[readonly]:not([aria-expanded='true'], :disabled):focus {
+    background-color: var(--sui-field-readonly);
+    border-color: var(--sui-field-readonly-frame);
+    box-shadow: none;
+  }
+
+  .sui-text-input:disabled:not(.held, .bare) {
+    background-color: var(--sui-field-disabled);
+    border-color: transparent;
     box-shadow: none;
   }
 
   .sui-text-input[aria-invalid='true'] {
-    border-color: var(--sui-danger);
+    --sui-field-recess: var(--sui-field-danger-recess);
+    --sui-field-recess-hover: var(--sui-field-danger-recess-hover);
+    border-color: var(--sui-danger-edge);
+  }
+
+  /* An invalid field keeps its danger edge when it is off or only reads too, over the well's
+     tint, since it still says it is wrong (L-9). */
+  .sui-text-input[aria-invalid='true']:is(:disabled, [readonly]):not(.bare) {
+    border-color: var(--sui-danger-edge);
   }
 
   .sui-text-input:disabled {
     cursor: default;
+  }
+
+  /* An off field reads as off by its well, its missing frame and its muted words, all at full
+     strength, so its value stays legible (Radix Themes); a held one dims with the work around
+     it. Safari paints a disabled field's words by their fill colour. */
+  .sui-text-input:disabled:not(.held, .bare) {
+    color: var(--sui-text-muted);
+    -webkit-text-fill-color: currentColor;
+  }
+
+  .sui-text-input.held:disabled {
     opacity: var(--sui-disabled-opacity);
   }
 
-  /* A soft hold keeps the words readable; native disabled paint above supplies the dimming. */
+  /* A soft hold keeps its words at full strength in the read-only paint; a firm one dims (above). */
   .sui-text-input.held {
     cursor: default;
   }
@@ -175,10 +233,16 @@ tabular figures.
     opacity: 1;
   }
 
+  /* A typed number keeps one width per figure, so the value never shifts as it grows. */
+  .sui-text-input:is([inputmode='decimal'], [inputmode='numeric'], [type='number']) {
+    font-variant-numeric: tabular-nums;
+  }
+
   /* The mono face's code ligatures would join a typed path's slash and stars, so `/**` shows
      as typed. */
   .mono {
     font-family: var(--sui-mono);
+    font-size: var(--sui-font-size-input-mono);
     font-variant-ligatures: none;
     font-variant-numeric: tabular-nums;
   }

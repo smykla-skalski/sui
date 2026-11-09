@@ -1,7 +1,7 @@
 <script module lang="ts">
   export const section = {
-    title: 'List detail',
-    lead: 'A list beside the item open from it, each at its own address. Under 56rem one pane shows at a time, with a way back to the list.',
+    title: 'List Detail',
+    lead: 'A list beside the item open from it, each at its own address. Under 56 rem one pane shows at a time, with a way back to the list.',
     components: ['ListDetail']
   };
 </script>
@@ -17,12 +17,12 @@
 
 <Example
   title="Layout"
-  note="Every run has its own page, and from 56rem of its own width the list stands beside the open run"
+  note="Every run has its own page, and from 56 rem of its own width the list stands beside the open run"
   layout="stack"
   ground="canvas"
   code={false}
 >
-  <Specimen label="Run open" code="current detail">
+  <Specimen label="Run open">
     <LayoutPreview
       href={resolve('/layouts/list-detail/[[run]]', { run: '4182' }) + '/'}
       {source}
@@ -32,13 +32,13 @@
 </Example>
 
 <Example
-  title="Nothing open"
+  title="Nothing Open"
   note="With no run open the detail says so beside the list, and a press on a run opens it there"
   layout="stack"
   ground="canvas"
   code={false}
 >
-  <Specimen label="No run open" code="emptyTitle emptyDescription emptyStep">
+  <Specimen label="No run open">
     <LayoutPreview
       href={resolve('/layouts/list-detail/[[run]]', {}) + '/'}
       {source}

@@ -205,7 +205,7 @@ section's ground between them (L-91).
 
 - Semantics: an `li`; the name is a `label` for a single control that carries the given `id`, and otherwise a plain name whose id the group takes through `aria-labelledby`.
 - Content: a name, an optional one-sentence why line, and the controls in `control`, which receives the ids and the `disabled`, `readonly` and `invalid` flags to pass on.
-- States: rest, unsaved (gold plate and the `unsavedLabel` word), pending (`pendingLabel` under the copy, busy, and its controls held until the save ends: dimmed, focusable and refusing changes, as are the reset and its Undo), refused (`error` under the copy with an alert mark), disabled and read only (with `reason` under the copy), and after a reset an Undo in the reset's seat.
+- States: rest, unsaved (gold plate and the `unsavedLabel` word), pending (`pendingLabel` under the copy, busy, and its controls held until the save ends: dimmed, or a field in its read-only paint, focusable and refusing changes, as are the reset and its Undo), refused (`error` under the copy with an alert mark), disabled and read only (with `reason` under the copy), and after a reset an Undo in the reset's seat.
 - Keyboard: Tab follows the visual order (L-79, WCAG 2.4.3): the reset or Undo, then the controls it stands before; with `stacked`, the controls, then the reset that ends their first line; Enter or Space resets or undoes.
 - Pointer and touch: the row is at least 44px tall and its whole box is the name's target; the reset and Undo are as tall as the controls' first line, 34px, 28px beside chips, 44px on a phone.
 - Focus: after a reset focus moves to the first control instead of falling to the page; after Undo it moves to the reset, or to the first control when the reset is gone.
@@ -267,7 +267,7 @@ section's ground between them (L-91).
           aria-disabled={holding === 'soft' || undefined}
           onclick={clear}
         >
-          {#snippet icon()}<Icon name="undo" size="sm" />{/snippet}
+          {#snippet icon()}<Icon name="undo" size="base" />{/snippet}
           {resetLabel}
         </Button>
       </span>
@@ -370,7 +370,6 @@ section's ground between them (L-91).
     --sui-text-secondary: var(--sui-unsaved-secondary);
     --sui-text-muted: var(--sui-unsaved-secondary);
     --sui-control-bg: var(--sui-unsaved-control);
-    --sui-input-bg: var(--sui-unsaved-control);
     --sui-control-border: var(--sui-unsaved-control-border);
     --sui-control-border-hover: var(--sui-unsaved-border);
     --sui-field-frame: var(--sui-unsaved-control-border);
@@ -435,6 +434,7 @@ section's ground between them (L-91).
       var(--sui-sans);
     margin: 0;
     overflow-wrap: anywhere;
+    padding-block: var(--sui-block-snap-room);
     text-box: trim-both cap alphabetic;
   }
 
@@ -446,9 +446,11 @@ section's ground between them (L-91).
     cursor: pointer;
   }
 
+  /* The name's words are snapped lines of their own, so the name takes no room for one. */
   .sui-setting-name {
     color: var(--sui-text-primary);
     font-weight: var(--sui-weight-semibold);
+    padding-block: 0;
     text-wrap: balance;
   }
 
@@ -467,6 +469,10 @@ section's ground between them (L-91).
     min-inline-size: 0;
   }
 
+  .sui-setting-problem > span {
+    font-weight: var(--sui-weight-medium);
+  }
+
   /* The name and the word "Unsaved" are one wrapping row: the column gap parts them, and a
      narrow row moves the word to the next line, flush with the name and one line's leading
      under it. Trim does not reach into a flex row, so each part trims its own words. */
@@ -481,6 +487,7 @@ section's ground between them (L-91).
   .sui-setting-words > span {
     align-content: center;
     block-size: var(--sui-block-snap);
+    padding-block: var(--sui-block-snap-room);
     text-box: trim-both cap alphabetic;
   }
 

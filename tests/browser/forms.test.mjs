@@ -21,24 +21,13 @@ after(async () => {
 });
 
 suite('forms', together, () => {
-  /** @param {{ lang?: string; width?: number; fallbackFieldSizing?: boolean }} [options] */
-  async function open({ lang, width = 1440, fallbackFieldSizing = false } = {}) {
+  /** @param {{ lang?: string; width?: number; path?: string }} [options] */
+  async function open({ lang, width = 1440, path = 'all/' } = {}) {
+    const address = new URL(path, url).href;
     const page = await browser.newPage({ viewport: { width, height: 900 } });
-    if (fallbackFieldSizing)
-      await page.addInitScript(() => {
-        const supports = CSS.supports.bind(CSS);
-        CSS.supports = /** @type {typeof CSS.supports} */ (
-          (property, value) =>
-            property === 'field-sizing' && value === 'content'
-              ? false
-              : value === undefined
-                ? supports(property)
-                : supports(property, value)
-        );
-      });
     if (lang)
       await page.route(
-        (address) => `${address.origin}${address.pathname}` === allSections(url),
+        (asked) => `${asked.origin}${asked.pathname}` === address,
         async (route) => {
           const response = await route.fetch();
           const body = (await response.text()).replace(
@@ -48,7 +37,7 @@ suite('forms', together, () => {
           await route.fulfill({ response, body });
         }
       );
-    await visit(page, allSections(url));
+    await visit(page, address);
     await page.evaluate(() => document.fonts.ready);
     return page;
   }
@@ -144,10 +133,17 @@ suite('forms', together, () => {
           /** @type {HTMLElement} */ (element).click();
           await new Promise((done) => setTimeout(done));
           const busy = box.getAttribute('aria-busy') === 'true';
+          const track = element.querySelector('.sui-switch-track');
+          const strength = getComputedStyle(/** @type {Element} */ (track)).opacity;
           /** @type {HTMLElement} */ (element).click();
-          return { busy, checked: box.checked };
+          return { busy, strength, checked: box.checked };
         });
-        assert.deepEqual(second, { busy: true, checked: true }, 'a second flip ran while saving');
+        // A save at work keeps the track at full strength, as a busy button does (L-40).
+        assert.deepEqual(
+          second,
+          { busy: true, strength: '1', checked: true },
+          'a second flip ran while saving, or the saving track dimmed'
+        );
         assert.ok(await input.evaluate((element) => document.activeElement === element));
         await page.waitForFunction(
           (element) => element && !element.hasAttribute('aria-busy'),
@@ -161,6 +157,25 @@ suite('forms', together, () => {
         assert.match(status ?? '', /mirroring stayed off/);
       }
     );
+
+    test('every note under a switch, a reason or an error, stands one distance from its track', async () => {
+      const page = await opened();
+      const gaps = await page.evaluate(() =>
+        [
+          ...document.querySelectorAll(
+            '#switch :is(div.locked, .sui-switch:has(.sui-switch-error))'
+          )
+        ].map((holder) => {
+          const track = holder.querySelector('.sui-switch-track')?.getBoundingClientRect();
+          const words = holder.querySelector('.reason, .sui-switch-words');
+          const range = document.createRange();
+          range.selectNodeContents(/** @type {Node} */ (words));
+          return Math.round(range.getBoundingClientRect().top - (track?.bottom ?? 0));
+        })
+      );
+      assert.ok(gaps.length >= 4, `only ${gaps.length} notes under a switch`);
+      assert.equal(new Set(gaps).size, 1, `the notes stand ${gaps.join(', ')}px from their tracks`);
+    });
 
     test('a form error summary takes focus and each link focuses its field', long, async () => {
       const page = await opened();
@@ -275,6 +290,378 @@ suite('forms', together, () => {
 
     // Last, because it turns the whole page right to left.
     test(
+      'L-47 a light text field fills the surface white at rest, keeps it on focus and stays opaque on hover (L-10)',
+      long,
+      async () => {
+        const page = await opened();
+        for (const [selector, typed] of [
+          ['#text-input .sui-text-input', '#text-input .sui-text-input'],
+          ['#textarea .sui-textarea', '#textarea .sui-textarea'],
+          ['#duration-input .sui-joined', '#duration-input .sui-joined input']
+        ]) {
+          await page.mouse.move(0, 0);
+          const field = page.locator(selector).first();
+          const ground = () =>
+            field.evaluate((element) => getComputedStyle(element).backgroundColor);
+          const rest = await ground();
+          assert.equal(rest, 'rgb(255, 255, 255)', `${selector} rests on another fill`);
+          await field.hover();
+          assert.doesNotMatch(
+            await ground(),
+            /rgba|\//,
+            `${selector} lets the ground through on hover`
+          );
+          await page.mouse.move(0, 0);
+          await page.locator(typed).first().focus();
+          assert.equal(await ground(), rest, `${selector} changes its fill on focus`);
+        }
+      }
+    );
+
+    test(
+      'L-55 two measured examples share a row that ends where the cards above end, and fill a phone line, where a divider parts two forms further than an action from its fields',
+      long,
+      async () => {
+        /** @param {import('playwright-core').Page} page */
+        const frames = (page) =>
+          page.evaluate(() =>
+            ['states', 'in-context', 'narrow-width'].map((name) => {
+              const box = document
+                .getElementById(`field-${name}`)
+                ?.closest('.example')
+                ?.querySelector('.frame')
+                ?.getBoundingClientRect();
+              return box && { top: box.top, end: box.right, width: box.width };
+            })
+          );
+        const page = await opened();
+        const heads = await page.evaluate(() =>
+          ['in-context', 'narrow-width'].map((name) => {
+            const title = document.getElementById(`field-${name}`);
+            const note = title?.closest('.head')?.querySelector('.note');
+            return [title?.getBoundingClientRect().top, note?.getBoundingClientRect().top];
+          })
+        );
+        assert.deepEqual(heads[1], heads[0], 'the two titles and notes start on one line');
+        const [states, context, narrow] = await frames(page);
+        assert.ok(states && context && narrow);
+        assert.equal(context.top, narrow.top, 'the pair stands on one row');
+        assert.ok(
+          Math.abs(narrow.end - states.end) < 1,
+          `the pair ends at ${narrow.end}, the cards above at ${states.end}`
+        );
+        const insets = await page.evaluate(() => {
+          const stage = document
+            .getElementById('field-narrow-width')
+            ?.closest('.example')
+            ?.querySelector('.stage');
+          const box = stage?.getBoundingClientRect();
+          const field = stage?.querySelector('.sui-field')?.getBoundingClientRect();
+          return box && field && [field.left - box.left, box.right - field.right];
+        });
+        assert.ok(insets);
+        assert.ok(
+          Math.abs(insets[0] - insets[1]) < 1,
+          `the narrow field stands ${insets[0]}px and ${insets[1]}px inside its frame`
+        );
+        const phone = await open({ width: 390 });
+        const [, small, wrapped] = await frames(phone);
+        const forms = await phone.evaluate(() => {
+          const example = document.getElementById('field-refused-send')?.closest('.example');
+          const refused = example?.querySelectorAll('figure')[1];
+          const action = example?.querySelector('form .action');
+          const caption = refused?.querySelector('figcaption')?.getBoundingClientRect();
+          const end = action?.getBoundingClientRect();
+          const last = action?.previousElementSibling?.getBoundingClientRect();
+          return (
+            refused &&
+            caption &&
+            end &&
+            last && {
+              between: caption.top - end.bottom,
+              close: end.top - last.bottom,
+              divider: getComputedStyle(refused).borderBlockStartWidth
+            }
+          );
+        });
+        await phone.close();
+        assert.ok(forms);
+        assert.ok(
+          forms.between > forms.close,
+          `two forms stand ${forms.between}px apart, as close as an action to its fields (${forms.close}px)`
+        );
+        assert.equal(forms.divider, '1px', 'a divider parts the two forms');
+        assert.ok(small && wrapped);
+        assert.equal(wrapped.width, small.width, 'a wrapped frame keeps a narrow measure');
+      }
+    );
+
+    test(
+      'the Textarea states start their boxes on one line, no specimen cuts a line of its text, a divider parts the stacked field pair, and no line of the lead ends on a one-letter word',
+      long,
+      async () => {
+        /** @param {import('playwright-core').Page} page */
+        const boxes = (page) =>
+          page.evaluate(() =>
+            [...document.querySelectorAll('#textarea .sui-textarea')].map((box) => ({
+              top: box.getBoundingClientRect().top,
+              cut: box.scrollHeight - box.clientHeight,
+              states: Boolean(box.closest('.example')?.querySelector('#textarea-states'))
+            }))
+          );
+        const wide = await boxes(await opened());
+        const row = wide.filter((box) => box.states).slice(0, 3);
+        assert.equal(row.length, 3);
+        assert.ok(
+          row.every((box) => box.top === row[0].top),
+          `the first states row starts at ${row.map((box) => box.top)}`
+        );
+        const phone = await open({ width: 390 });
+        const narrow = await boxes(phone);
+        const divider = await phone.evaluate(() => {
+          const pair = document.getElementById('textarea-in-a-field')?.closest('.example');
+          const second = pair?.querySelectorAll('figure')[1];
+          return second && getComputedStyle(second).borderBlockStartWidth;
+        });
+        await phone.close();
+        assert.equal(divider, '1px', 'a divider parts the stacked field pair');
+        for (const box of [...wide, ...narrow])
+          assert.ok(box.cut <= 0, `a textarea hides ${box.cut}px of its text`);
+        // At 1440 the lead's line break falls right after its one-letter word "A".
+        const own = await open({ path: 'textarea/' });
+        const dangling = await own.evaluate(() => {
+          const text = document.querySelector('.sui-page-header-description')?.firstChild;
+          if (!(text instanceof Text)) return ['no lead'];
+          /** @param {number} at */
+          const top = (at) => {
+            const range = document.createRange();
+            range.setStart(text, at);
+            range.setEnd(text, at + 1);
+            return range.getBoundingClientRect().top;
+          };
+          return [...text.data.matchAll(/(?<=^|\s)\p{L}(?=\s)/gu)]
+            .filter((word) => top(word.index) !== top(word.index + 2))
+            .map((word) => text.data.slice(word.index, word.index + 12));
+        });
+        await own.close();
+        assert.deepEqual(dangling, [], 'a one-letter word ends a line of the lead');
+      }
+    );
+
+    test(
+      'a checkbox row centres its box on the label, its notes 12px under the box, an error mark under it',
+      long,
+      async () => {
+        const page = await opened();
+        const rows = await page.evaluate(() =>
+          [
+            ...document.querySelectorAll(
+              "#field .sui-field[data-layout='row']:has(input[type='checkbox']):has(.sui-field-help, .sui-field-error)"
+            )
+          ].map((field) => {
+            const box = (/** @type {string} */ selector) =>
+              /** @type {Element} */ (field.querySelector(selector)).getBoundingClientRect();
+            const label = box('.sui-field-label');
+            const check = box('.sui-checkbox-box');
+            return {
+              gap: box(':is(.sui-field-help, .sui-field-error-text)').top - check.bottom,
+              offCentre: check.top + check.height / 2 - (label.top + label.height / 2)
+            };
+          })
+        );
+        assert.ok(rows.length > 1, 'no checkbox rows');
+        for (const row of rows) {
+          assert.ok(Math.abs(row.gap - 12) <= 0.5, JSON.stringify(row));
+          assert.ok(Math.abs(row.offCentre) <= 1, JSON.stringify(row));
+        }
+        const edges = await page
+          .locator("#field .sui-field[data-layout='row']:has(.sui-field-error)")
+          .first()
+          .evaluate((field) => {
+            const box = (/** @type {string} */ selector) =>
+              /** @type {Element} */ (field.querySelector(selector)).getBoundingClientRect();
+            const check = box('input[type="checkbox"]');
+            const mark = box('.sui-field-error-mark');
+            return {
+              label: box('.sui-field-label').left,
+              words: box('.sui-field-error-text').left,
+              markMiddle: mark.left + mark.width / 2,
+              checkMiddle: check.left + check.width / 2
+            };
+          });
+        assert.ok(Math.abs(edges.words - edges.label) < 0.5, JSON.stringify(edges));
+        assert.ok(Math.abs(edges.markMiddle - edges.checkMiddle) < 1, JSON.stringify(edges));
+      }
+    );
+
+    test(
+      'a field error stands 20px under its hint, which stands 12px under the control (L-35)',
+      long,
+      async () => {
+        const page = await opened();
+        const gaps = await page.evaluate(() =>
+          [
+            ...document.querySelectorAll('.sui-field:has(> .sui-field-help + .sui-field-error)')
+          ].map((field) => {
+            const box = (/** @type {string} */ selector) =>
+              /** @type {Element} */ (field.querySelector(selector)).getBoundingClientRect();
+            const help = box(':scope > .sui-field-help');
+            return {
+              hint: help.top - box(':scope > .sui-field-control').bottom,
+              error: box(':scope > .sui-field-error .sui-field-error-text').top - help.bottom
+            };
+          })
+        );
+        assert.ok(gaps.length > 0, 'no field shows a hint and an error');
+        for (const { hint, error } of gaps) {
+          assert.ok(Math.abs(hint - 12) <= 0.5, `the hint stands ${hint}px under the control`);
+          assert.ok(Math.abs(error - 20) <= 0.5, `the error stands ${error}px under the hint`);
+        }
+      }
+    );
+
+    test(
+      'an invalid field keeps its danger edge when it is off or only reads (L-9)',
+      long,
+      async () => {
+        const page = await opened();
+        const edges = await page.evaluate(() => {
+          const probe = document.body.appendChild(document.createElement('i'));
+          probe.style.color = 'var(--sui-danger)';
+          const danger = getComputedStyle(probe).color;
+          probe.remove();
+          /** @param {string} selector @param {(field: HTMLInputElement) => void} state */
+          const edge = (selector, state) => {
+            const field = /** @type {HTMLInputElement} */ (
+              document.querySelector(`${selector}:not(.bare, .held, :disabled, [readonly])`)
+            );
+            state(field);
+            field.setAttribute('aria-invalid', 'true');
+            const style = getComputedStyle(field);
+            const sides = ['top', 'right', 'bottom', 'left'].map((side) =>
+              style.getPropertyValue(`border-${side}-color`)
+            );
+            // The page is shared, so the field goes back as it was.
+            field.disabled = false;
+            field.readOnly = false;
+            field.removeAttribute('aria-invalid');
+            return sides.every((color) => color === danger) ? 'danger' : sides.join(' ');
+          };
+          return {
+            'an off text input': edge('.sui-text-input', (field) => (field.disabled = true)),
+            'a read-only text input': edge('.sui-text-input', (field) => (field.readOnly = true)),
+            'an off text area': edge('.sui-textarea', (field) => (field.disabled = true))
+          };
+        });
+        for (const [field, color] of Object.entries(edges))
+          assert.equal(color, 'danger', `${field} drew a ${color} edge`);
+      }
+    );
+
+    test('every invalid input draws one danger edge in both themes, a switch and a box too', async () => {
+      const page = await opened();
+      const edges = await page.evaluate(() => {
+        const root = document.documentElement;
+        const theme = root.dataset.theme;
+        /** @type {Record<string, string[]>} */
+        const drawn = {};
+        for (const scheme of ['light', 'dark']) {
+          root.dataset.theme = scheme;
+          const probe = document.body.appendChild(document.createElement('i'));
+          probe.style.color = 'var(--sui-danger-edge)';
+          const edge = getComputedStyle(probe).color;
+          probe.remove();
+          /** @param {string} selector @param {(style: CSSStyleDeclaration) => string} paint */
+          const off = (selector, paint) => {
+            const element = document.querySelector(selector);
+            return element && paint(getComputedStyle(element)).includes(edge) ? [] : [selector];
+          };
+          drawn[scheme] = [
+            ...off('#text-input .sui-text-input[aria-invalid="true"]', (s) => s.borderTopColor),
+            ...off('#switch .sui-switch-track.invalid', (s) => s.borderTopColor + s.outlineColor),
+            ...off('#field .sui-checkbox-box.invalid', (s) => s.borderTopColor + s.outlineColor)
+          ];
+        }
+        if (theme) root.dataset.theme = theme;
+        else delete root.dataset.theme;
+        return drawn;
+      });
+      assert.deepEqual(edges, { light: [], dark: [] }, 'these drew an edge of another red');
+    });
+
+    test('a focused invalid switch or box keeps one red edge and its ring 2px clear of it', async () => {
+      const page = await opened();
+      const drawn = await page.evaluate(() =>
+        ['#switch .sui-switch-track.invalid', '#field .sui-checkbox-box.invalid'].map(
+          (selector) => {
+            const part = /** @type {HTMLElement} */ (document.querySelector(selector));
+            const input = /** @type {HTMLInputElement} */ (part.previousElementSibling);
+            input.focus();
+            const style = getComputedStyle(part);
+            const shown = {
+              selector,
+              focused: input.matches(':focus-visible'),
+              edge: style.borderTopWidth,
+              doubled: style.outlineStyle !== 'none'
+            };
+            input.blur();
+            return shown;
+          }
+        )
+      );
+      assert.deepEqual(drawn, [
+        {
+          selector: '#switch .sui-switch-track.invalid',
+          focused: true,
+          edge: '1px',
+          doubled: false
+        },
+        { selector: '#field .sui-checkbox-box.invalid', focused: true, edge: '1px', doubled: false }
+      ]);
+    });
+
+    test('L-74 a segmented thumb travels by translate and scale, never by its width', async () => {
+      const page = await opened();
+      const control = page
+        .locator('#segmented-control .sui-segmented')
+        .filter({ has: page.locator('input[value="invitations"]') })
+        .first();
+      await control.scrollIntoViewIfNeeded();
+      const thumb = control.locator('.sui-segmented-thumb');
+      await thumb.waitFor();
+      // The travel runs 240ms, less than a busy runner may take between the click and the read,
+      // so it is held long enough to still be running when read.
+      await control.evaluate((node) =>
+        /** @type {HTMLElement} */ (node).style.setProperty('--sui-duration-travel', '60s')
+      );
+      const checked = await control.locator('input:checked').getAttribute('value');
+      await control
+        .locator('label', { hasText: checked === 'users' ? 'Invitations' : 'Users' })
+        .click();
+      const moved = await thumb.evaluate((node) =>
+        node
+          .getAnimations()
+          .flatMap((animation) =>
+            animation instanceof CSSTransition
+              ? [animation.transitionProperty]
+              : (animation.effect instanceof KeyframeEffect ? animation.effect.getKeyframes() : [])
+                  .flatMap((frame) => Object.keys(frame))
+                  .filter(
+                    (key) => !['offset', 'computedOffset', 'easing', 'composite'].includes(key)
+                  )
+          )
+      );
+      assert.ok(moved.includes('translate') && moved.includes('scale'), `moved by ${moved}`);
+      assert.deepEqual(
+        moved.filter(
+          (property) => !['translate', 'scale', 'background-color', 'box-shadow'].includes(property)
+        ),
+        [],
+        'the thumb animated its layout'
+      );
+    });
+
+    test(
       'an on switch keeps its thumb inside the track in a right-to-left page',
       long,
       async () => {
@@ -312,7 +699,7 @@ suite('forms', together, () => {
       await page.keyboard.press('Enter');
       await error.waitFor();
       assert.equal(
-        await page.locator('#combobox figcaption .label', { hasText: /^Sent/ }).count(),
+        await page.locator('#combobox figcaption', { hasText: /^Sent/ }).count(),
         0,
         'the draft was sent'
       );
@@ -332,7 +719,7 @@ suite('forms', together, () => {
         assert.equal(await field.inputValue(), 'Pyth', 'the typed text was dropped');
         await field.fill('go');
         await page.keyboard.press('Enter');
-        await page.locator('#combobox figcaption .label', { hasText: /^Sent go$/ }).waitFor();
+        await page.locator('#combobox figcaption', { hasText: /^Sent go$/ }).waitFor();
         assert.equal(await field.inputValue(), 'Go');
       }
     );
@@ -353,7 +740,7 @@ suite('forms', together, () => {
       const field = page.getByRole('combobox', { name: 'Language', exact: true }).first();
       await field.fill('Pyth');
       await page
-        .getByRole('button', { name: 'Replace the language' })
+        .getByRole('button', { name: 'Replace the Language' })
         .evaluate((button) => /** @type {HTMLButtonElement} */ (button).click());
       assert.equal(await field.inputValue(), 'Go');
       assert.ok(await field.evaluate((input) => document.activeElement === input));
@@ -367,7 +754,7 @@ suite('forms', together, () => {
       await field.fill('o');
       await page.keyboard.press('ArrowUp');
       await page
-        .getByRole('button', { name: 'Limit the language suggestions' })
+        .getByRole('button', { name: 'Limit the Language Suggestions' })
         .evaluate((button) => /** @type {HTMLButtonElement} */ (button).click());
       const active = await field.getAttribute('aria-activedescendant');
       assert.ok(active?.endsWith('-option-0'), `dangling active row: ${active}`);
@@ -427,19 +814,22 @@ suite('forms', together, () => {
       }
     );
 
-    test('a disabled search cannot be cleared', async () => {
+    test('a disabled search draws no clear button, and a long query ends in an ellipsis at rest', async () => {
       const page = await opened();
       const field = page.getByRole('searchbox', { name: 'Search the locked projects' });
       const root = field.locator('xpath=ancestor::div[contains(@class,"sui-search-field")][1]');
-      const clear = root.getByRole('button', { name: 'Clear the search' });
-      assert.equal(await clear.isDisabled(), true);
-      await clear.evaluate((button) =>
-        button.dispatchEvent(new MouseEvent('click', { bubbles: true }))
-      );
+      assert.equal(await root.getByRole('button', { name: 'Clear the search' }).count(), 0);
+      await field.press('Escape').catch(() => {});
       assert.equal(await field.inputValue(), 'Locked');
+      const long = page.locator('#search-field .narrow input');
+      assert.ok(await long.evaluate((input) => input.scrollWidth > input.clientWidth));
+      assert.equal(
+        await long.evaluate((input) => getComputedStyle(input).textOverflow),
+        'ellipsis'
+      );
     });
 
-    test('a soft-held search keeps focus and refuses its clear action', async () => {
+    test('a soft-held search keeps focus, refuses its clear action and wears the read-only paint', async () => {
       const page = await opened();
       const field = page.getByRole('searchbox', { name: 'Search the held projects' });
       const root = field.locator('xpath=ancestor::div[contains(@class,"sui-search-field")][1]');
@@ -454,6 +844,18 @@ suite('forms', together, () => {
       assert.equal(await clear.getAttribute('aria-disabled'), 'true');
       assert.equal(await field.inputValue(), 'Held');
       assert.ok(await clear.evaluate((button) => document.activeElement === button));
+      const paint = (/** @type {import('playwright-core').Locator} */ input) =>
+        input.evaluate((node) => {
+          const style = getComputedStyle(node);
+          return [
+            style.backgroundColor,
+            style.borderInlineStartColor,
+            style.boxShadow,
+            style.color
+          ];
+        });
+      const readOnly = page.locator('#text-input input[readonly]').first();
+      assert.deepEqual(await paint(field), await paint(readOnly));
     });
 
     test('a programmatic search fix clears its refusal and invalid state', async () => {
@@ -461,14 +863,182 @@ suite('forms', together, () => {
       const form = page.locator('#search-field form');
       const field = form.getByRole('searchbox');
       const error = form.locator('.sui-search-field-error');
-      await form.getByRole('button', { name: 'Search', exact: true }).click();
+      await form.getByRole('button', { name: 'Search Events', exact: true }).click();
       await error.waitFor();
       await form
-        .getByRole('button', { name: 'Fix the audit query' })
+        .getByRole('button', { name: 'Fix the Audit Query' })
         .evaluate((button) => /** @type {HTMLButtonElement} */ (button).click());
       await error.waitFor({ state: 'detached' });
       assert.equal(await field.inputValue(), 'valid');
       assert.equal(await field.getAttribute('aria-invalid'), null);
+    });
+
+    test("a search says a caller's error under it, and its words start 8px past its 16px magnifier", async () => {
+      const page = await opened();
+      const field = page.getByRole('searchbox', { name: 'Search the teams' }).first();
+      assert.equal(await field.getAttribute('aria-invalid'), 'true');
+      const said = await field.evaluate((input) =>
+        (input.getAttribute('aria-describedby') ?? '')
+          .split(' ')
+          .map((id) => document.getElementById(id)?.textContent?.trim())
+          .join(' ')
+      );
+      assert.match(said, /Enter at least 3 characters to search/);
+      const inset = await field.evaluate((input) => {
+        const icon = input.parentElement?.querySelector('.sui-search-field-icon svg');
+        const box = input.getBoundingClientRect();
+        const glyph = icon?.getBoundingClientRect();
+        return {
+          size: glyph?.width,
+          start: (glyph?.left ?? 0) - box.left,
+          gap:
+            box.left + parseFloat(getComputedStyle(input).paddingInlineStart) - (glyph?.right ?? 0)
+        };
+      });
+      assert.deepEqual(inset, { size: 16, start: 12, gap: 8 });
+    });
+
+    test('paired examples share a row on a wide page, pad 24px like every wide frame and stack on a phone', async () => {
+      const pairs = [
+        ['#search-field-soft-hold', '#search-field-in-context'],
+        ['#field-in-context', '#field-narrow-width'],
+        ['#switch-keyboard-focus', '#switch-narrow-width'],
+        ['#checkbox-required-invalid', '#checkbox-narrow-width']
+      ];
+      /** @param {import('playwright-core').Page} page */
+      const frames = (page) =>
+        page.evaluate(
+          (ids) =>
+            ids.map((id) => {
+              const frame = document
+                .querySelector(id)
+                ?.closest('.example')
+                ?.querySelector('.frame');
+              const box = frame?.getBoundingClientRect();
+              const stage = frame?.querySelector('.stage');
+              const pad = stage ? parseFloat(getComputedStyle(stage).paddingInlineStart) : NaN;
+              return { top: box?.top, left: box?.left, pad };
+            }),
+          [...pairs.flat(), '#search-field-narrow-width']
+        );
+      const wide = await frames(await opened());
+      for (const [index, [first, second]] of pairs.entries()) {
+        const [one, two] = wide.slice(index * 2, index * 2 + 2);
+        assert.equal(one.top, two.top, `${first} and ${second} start on one line`);
+        assert.ok((two.left ?? 0) > (one.left ?? 0), `${second} stands beside ${first}`);
+      }
+      assert.deepEqual(
+        new Set(wide.map(({ pad }) => pad)),
+        new Set([24]),
+        'a wide page pads every stage 24px, however narrow its frame'
+      );
+      const phone = await open({ width: 390 });
+      const narrow = await frames(phone);
+      await phone.close();
+      for (const [index, [first, second]] of pairs.entries()) {
+        const [one, two] = narrow.slice(index * 2, index * 2 + 2);
+        assert.equal(one.left, two.left, `on a phone ${first} and ${second} stack`);
+      }
+      assert.equal(narrow[0].pad, 16, 'a phone pads its stages 16px');
+    });
+
+    test("a check box matrix's column heads stand on their boxes' edge", async () => {
+      const page = await opened();
+      const offsets = await page.evaluate(() => {
+        const grid = document
+          .querySelector('#checkbox-states')
+          ?.closest('.example')
+          ?.querySelector('.variants .grid');
+        const heads = [...(grid?.querySelectorAll(':scope > .column') ?? [])];
+        const boxes = [
+          ...(grid?.querySelector('.row')?.querySelectorAll('.sui-checkbox-box') ?? [])
+        ];
+        return heads.map(
+          (head, index) =>
+            (boxes[index]?.getBoundingClientRect().left ?? NaN) - head.getBoundingClientRect().left
+        );
+      });
+      assert.deepEqual(offsets, [0, 0, 0], 'each box starts where its column head does');
+    });
+
+    test("a list a parent box chooses for stands under the parent's words, its question heard, not drawn", async () => {
+      const page = await opened();
+      const edges = await page.evaluate(() => {
+        const stage = document
+          .querySelector('#checkbox-in-context')
+          ?.closest('.example')
+          ?.querySelector('.stage');
+        const [parent, child] = [...(stage?.querySelectorAll('.sui-checkbox') ?? [])];
+        const left = (/** @type {Element | null | undefined} */ node) =>
+          node?.getBoundingClientRect().left;
+        const legend = child?.closest('fieldset')?.querySelector('legend');
+        return {
+          words: left(parent?.querySelector('.sui-checkbox-label')),
+          box: left(child?.querySelector('.sui-checkbox-box')),
+          legend: legend?.getBoundingClientRect().width
+        };
+      });
+      assert.ok(edges.words !== undefined, 'the parent box has words');
+      assert.equal(edges.box, edges.words, 'the first child box starts where the parent words do');
+      assert.ok(
+        (edges.legend ?? 2) <= 1,
+        'the parent asks the question, so the legend draws nothing'
+      );
+      const group = page
+        .locator('#checkbox-in-context')
+        .locator('xpath=ancestor::*[contains(@class, "example")][1]')
+        .getByRole('group', { name: 'Events that start a sync' });
+      assert.equal(await group.count(), 1, 'a screen reader still hears the list named');
+    });
+
+    test("a section head's switch ends where its stage ends, as the head's action does on a pane", async () => {
+      const page = await opened();
+      const gap = await page.evaluate(() => {
+        const track = document
+          .querySelector('#switch-in-a-section-head')
+          ?.closest('.example')
+          ?.querySelector('.sui-section .sui-switch-track');
+        const stage = track?.closest('.stage');
+        if (!track || !stage) return NaN;
+        const inner =
+          stage.getBoundingClientRect().right -
+          parseFloat(getComputedStyle(stage).paddingInlineEnd);
+        return Math.round(inner - track.getBoundingClientRect().right);
+      });
+      assert.equal(gap, 0, `the switch stops ${gap}px short of the stage's inner edge`);
+    });
+
+    test('an on switch under the pointer takes the action hover fill, as a filled button does', async () => {
+      const page = await opened();
+      const row = page.locator('#switch .sui-switch-row', { hasText: 'Keep audit log' }).first();
+      await row.hover();
+      const fills = await row.evaluate(async (element) => {
+        const box = /** @type {Element} */ (element.querySelector('.sui-switch-track'));
+        await Promise.all(box.getAnimations().map((animation) => animation.finished));
+        const probe = document.body.appendChild(document.createElement('i'));
+        probe.style.color = 'var(--sui-brand-action-hover)';
+        const hover = getComputedStyle(probe).color;
+        probe.remove();
+        const track = getComputedStyle(box);
+        return { hover, fill: track.backgroundColor, edge: track.borderTopColor };
+      });
+      await page.mouse.move(0, 0);
+      assert.deepEqual([fills.fill, fills.edge], [fills.hover, fills.hover]);
+    });
+
+    test('a committed value loses the spaces at its ends, so a pattern takes it', async () => {
+      const page = await opened();
+      const name = page.locator('#field input[name="repository"]');
+      const contact = page.locator('#field input[name="contact"]');
+      await name.fill('my-repo ');
+      await contact.fill('you@example.com');
+      await contact.press('Enter');
+      await page
+        .locator('#field figcaption', { hasText: /^Sent my-repo for you@example\.com$/ })
+        .waitFor();
+      await name.fill('   ');
+      await contact.focus();
+      assert.equal(await name.inputValue(), '', 'spaces alone stayed as a value');
     });
   });
 
@@ -515,14 +1085,14 @@ suite('forms', together, () => {
       const specimen = retryDelay(page);
       const amount = specimen.getByRole('textbox', { name: 'Retry delay' });
       await amount.fill('4503599627370495.5');
-      assert.match((await specimen.textContent()) ?? '', /Stored as 90 seconds/);
+      assert.match((await specimen.textContent()) ?? '', /Stored as 90\sseconds/);
       await specimen.locator('select').selectOption('hours');
       await amount.fill('0.0002777777777777778');
-      assert.match((await specimen.textContent()) ?? '', /Stored as 1 second/);
+      assert.match((await specimen.textContent()) ?? '', /Stored as 1\ssecond/);
       // 8.2 × 60 is 491.99999999999994: the noise grows with the seconds, not the unit.
       await specimen.locator('select').selectOption('minutes');
       await amount.fill('8.2');
-      assert.match((await specimen.textContent()) ?? '', /Stored as 492 seconds/);
+      assert.match((await specimen.textContent()) ?? '', /Stored as 492\sseconds/);
     });
 
     test('66 seconds becomes 1.1 minutes without changing the seconds', async () => {
@@ -534,7 +1104,7 @@ suite('forms', together, () => {
       await amount.fill('66');
       await specimen.locator('select').selectOption('minutes');
       assert.equal(await amount.inputValue(), '1.1');
-      assert.match((await specimen.textContent()) ?? '', /Stored as 66 seconds/);
+      assert.match((await specimen.textContent()) ?? '', /Stored as 66\sseconds/);
     });
 
     test('a joined field rings the part that holds focus', long, async () => {
@@ -562,13 +1132,13 @@ suite('forms', together, () => {
       const amount = page.getByRole('textbox', { name: 'Check cadence' });
       await amount.fill('0.5');
       await amount.blur();
-      const discard = page.getByRole('button', { name: 'Discard the cadence' });
+      const discard = page.getByRole('button', { name: 'Discard the Cadence' });
       await discard.click();
       assert.equal(await discard.getAttribute('data-reset'), '1');
       assert.equal(await amount.inputValue(), '30');
       // The owner heard the draft's problem, so it hears the problem go with it: Save then saves
       // instead of sending focus back to the amount.
-      await page.getByRole('button', { name: 'Save the cadence' }).click();
+      await page.getByRole('button', { name: 'Save the Cadence' }).click();
       assert.equal(await amount.evaluate((node) => node === document.activeElement), false);
     });
 
@@ -674,7 +1244,7 @@ suite('forms', together, () => {
     );
 
     test(
-      'the color picker goes back on Escape, and commits a short hex and closes when Tab leaves it',
+      'the color picker goes back on Escape, even mid-drag, leaving no autofocus mark, moves its hue as a native range, focuses each part from its name, stills the page while dragged, keeps a long hex as typed, and commits a short hex and closes when Tab leaves it',
       long,
       async () => {
         const page = await opened();
@@ -687,16 +1257,103 @@ suite('forms', together, () => {
             document.activeElement?.closest('.sui-popover:popover-open')
           );
         };
+        // A Modal opens on the first `[autofocus]` it holds, so a mark left in a closed panel
+        // would send a reopened dialog's focus to a hidden control.
+        const marks = () => page.evaluate(() => document.querySelectorAll('[autofocus]').length);
+        const unmarked = await marks();
         await open();
         await page.keyboard.press('ArrowRight');
         assert.notEqual((await trigger.textContent())?.trim(), start, 'the arrow picked nothing');
+
+        const hue = page.locator(':popover-open').getByRole('slider', { name: 'Hue' });
+        assert.equal(
+          await hue.evaluate((node) => node instanceof HTMLInputElement && node.type),
+          'range'
+        );
+        // Hover waits for the panel to stop growing, so the press lands where it is read.
+        await page.locator(':popover-open .hue').hover();
+        const rail = /** @type {{ x: number, y: number, width: number, height: number }} */ (
+          await page.locator(':popover-open .hue').boundingBox()
+        );
+        // A point along the drawn rail is that far round the wheel, so the native thumb's travel
+        // matches the drawing. A press on the thumb itself keeps the value, so the quarter comes
+        // first, away from the sample's hue near the middle.
+        const at = async (/** @type {number} */ part) => {
+          await page.mouse.click(rail.x + rail.width * part, rail.y + rail.height / 2);
+          return Number(await hue.inputValue());
+        };
+        const quarter = await at(0.25);
+        assert.ok(Math.abs(quarter - 90) <= 2, `a quarter along the rail reads ${quarter}°`);
+        const half = await at(0.5);
+        assert.ok(Math.abs(half - 180) <= 2, `the middle of the rail reads ${half}°`);
+        await hue.press('ArrowRight');
+        assert.equal(Number(await hue.inputValue()), half + 2);
+        await hue.press('Shift+ArrowLeft');
+        assert.equal(Number(await hue.inputValue()), half - 18);
+
+        // A click on a part's name focuses that part, as a label does.
+        for (const [name, part] of [
+          ['Hue', '.hue-range'],
+          ['Saturation & brightness', '.area']
+        ]) {
+          await page.locator(':popover-open .part-label').getByText(name, { exact: true }).click();
+          assert.ok(
+            await page.evaluate((part) => document.activeElement?.matches(part), part),
+            `a click on "${name}" left focus elsewhere`
+          );
+        }
+
+        // L-116 a drag chooses no text and stills the rest of the page until it ends.
+        const area = /** @type {{ x: number, y: number, width: number, height: number }} */ (
+          await page.locator(':popover-open .area').boundingBox()
+        );
+        const still = () =>
+          page.evaluate(() => ({
+            select: getComputedStyle(document.documentElement).userSelect,
+            page: /** @type {HTMLElement} */ (document.querySelector('#buttons')).closest('[inert]')
+              ? 'inert'
+              : 'live'
+          }));
+        // The page's own inline choice comes back with its priority once the drag ends.
+        await page.evaluate(() =>
+          document.documentElement.style.setProperty('-webkit-user-select', 'text', 'important')
+        );
+        await page.mouse.move(area.x + area.width / 2, area.y + area.height / 2);
+        await page.mouse.down();
+        await page.mouse.move(area.x + area.width / 3, area.y + area.height / 3, { steps: 4 });
+        assert.deepEqual(
+          await still(),
+          { select: 'none', page: 'inert' },
+          'the drag left the page live'
+        );
+        await page.mouse.up();
+        assert.deepEqual(await still(), { select: 'text', page: 'live' }, 'the page stayed held');
+        assert.equal(
+          await page.evaluate(() => {
+            const { style } = document.documentElement;
+            const kept = style.getPropertyPriority('-webkit-user-select');
+            style.removeProperty('-webkit-user-select');
+            return kept;
+          }),
+          'important'
+        );
+
+        // Escape in the middle of a drag closes the picker and gives back the page and focus.
+        await page.mouse.move(area.x + area.width / 2, area.y + area.height / 2);
+        await page.mouse.down();
         await page.keyboard.press('Escape');
         await page.waitForFunction(() => !document.querySelector('.sui-popover:popover-open'));
-        assert.equal((await trigger.textContent())?.trim(), start);
+        assert.equal((await still()).page, 'live', 'the closed picker left the page inert');
         assert.ok(await trigger.evaluate((button) => document.activeElement === button));
+        await page.mouse.up();
+        assert.equal((await trigger.textContent())?.trim(), start);
+        assert.equal(await marks(), unmarked, 'the closed picker left an autofocus mark');
 
         await open();
-        await page.locator('.sui-popover:popover-open input.sui-text-input').fill('#abc');
+        const hex = page.locator('.sui-popover:popover-open input.sui-text-input');
+        await hex.fill('#0e8a16ff');
+        assert.equal(await hex.inputValue(), '#0e8a16ff', 'the field cut what was typed');
+        await hex.fill('#abc');
         await page.keyboard.press('Tab');
         await page.waitForFunction(() => !document.querySelector('.sui-popover:popover-open'));
         assert.ok(
@@ -753,9 +1410,11 @@ suite('forms', together, () => {
     }
   );
 
-  test('the link field fallback remeasures when its value changes', async () => {
-    const page = await open({ fallbackFieldSizing: true });
+  test('the link field grows by its lines as its value lengthens, in CSS alone', async () => {
+    const page = await open();
     try {
+      // A browser without `field-sizing` keeps a text area at its rows, so the field must not
+      // lean on it.
       await page.addStyleTag({
         content: '.sui-copyable-link-value { field-sizing: fixed !important; }'
       });
@@ -765,7 +1424,7 @@ suite('forms', together, () => {
         root.style.inlineSize = '16rem';
       });
       const before = await field.evaluate((area) => area.getBoundingClientRect().height);
-      await page.getByRole('button', { name: 'Lengthen the invitation' }).click();
+      await page.getByRole('button', { name: 'Lengthen the Invitation' }).click();
       await page.waitForFunction(
         ({ area, height }) => area.getBoundingClientRect().height > height,
         { area: await field.elementHandle(), height: before }
@@ -774,6 +1433,114 @@ suite('forms', together, () => {
         await field.evaluate((area) => area.scrollHeight <= area.clientHeight + 1),
         'the new value remains clipped'
       );
+    } finally {
+      await page.close();
+    }
+  });
+
+  test('the save shortcut follows the letter the layout types and is named for the platform, and unsaved work asks before the page or the app moves on', async () => {
+    const page = await open({ path: 'save-bar/' });
+    try {
+      const field = page.locator('#save-bar input').first();
+      const apple = await page.evaluate(() => /mac|iphone|ipad/i.test(navigator.platform));
+      assert.match(
+        (await page.locator('#save-bar .note').first().textContent()) ?? '',
+        apple ? /⌘S saves/ : /Ctrl\+S saves/
+      );
+      await field.click();
+      await page.keyboard.type('-x');
+      // On Dvorak the S sits where QWERTY has the semicolon, and the O where QWERTY has the S.
+      const saves = (/** @type {string} */ key, /** @type {string} */ code) =>
+        field.evaluate(
+          (input, [key, code]) =>
+            !input.dispatchEvent(
+              new KeyboardEvent('keydown', {
+                key,
+                code,
+                ctrlKey: true,
+                metaKey: true,
+                bubbles: true,
+                cancelable: true
+              })
+            ),
+          [key, code]
+        );
+      assert.equal(await saves('o', 'KeyS'), false, 'Cmd+O on Dvorak saved');
+      assert.equal(await saves('s', 'Semicolon'), true, 'Cmd+S on Dvorak did not save');
+
+      // The save ran; a click waits until the field takes input again, and new words make work.
+      await field.click();
+      await page.keyboard.type('-y');
+      /** @type {string[]} */
+      const asked = [];
+      page.on('dialog', (dialog) => {
+        asked.push(dialog.type());
+        void dialog.dismiss();
+      });
+      // A move inside the app never unloads the page, so the app asks, and a refusal stays.
+      // The router takes an injected link as its own, as it takes any in-app link.
+      await Promise.all([
+        page.waitForEvent('dialog'),
+        page.evaluate(() => {
+          const away = Object.assign(document.createElement('a'), { href: '../buttons/' });
+          away.textContent = 'Buttons';
+          document.body.append(away);
+          away.click();
+        })
+      ]);
+      await page.evaluate(() => new Promise(requestAnimationFrame));
+      assert.deepEqual(asked, ['confirm'], 'the app moved on with no question');
+      assert.match(page.url(), /\/save-bar\/$/, 'a refused move still left the page');
+      await page.goto('about:blank').catch(() => {});
+      assert.deepEqual(asked, ['confirm', 'beforeunload'], 'the page went with no question');
+      await page.locator('#save-bar').getByRole('button', { name: 'Discard' }).first().click();
+      await page.goto('about:blank');
+      assert.deepEqual(asked, ['confirm', 'beforeunload'], 'a clean pane still asked');
+    } finally {
+      await page.close();
+    }
+  });
+
+  test('text typed before the page hydrates stays and counts', async () => {
+    const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
+    try {
+      /** @type {() => void} */
+      let release = () => {};
+      const held = new Promise((done) => (release = () => done(undefined)));
+      await page.route('**/_app/immutable/**/*.js', async (route) => {
+        await held;
+        await route.continue();
+      });
+      await page.goto(allSections(url), { waitUntil: 'commit' });
+      const pattern = page.locator('#pattern-entries .sui-pattern-input').first();
+      const runtime = page.getByRole('combobox', { name: 'Runtime' });
+      await pattern.fill('trunk/*');
+      await runtime.fill('Pyth');
+      release();
+      await page.waitForFunction(() => '__suiAudit' in window);
+      assert.equal(await pattern.inputValue(), 'trunk/*', 'hydration wrote over the pattern');
+      assert.equal(
+        await page.locator('#pattern-entries .sui-pattern-copy').first().textContent(),
+        'trunk/*',
+        'the list never heard the typed pattern'
+      );
+      assert.equal(await runtime.inputValue(), 'Pyth');
+      assert.equal(await runtime.getAttribute('aria-expanded'), 'true', 'the combobox ignored it');
+    } finally {
+      await page.close();
+    }
+  });
+
+  test('a duration amount reads the page language own digits', long, async () => {
+    const page = await open({ lang: 'ar-EG', path: 'duration-input/' });
+    try {
+      const amount = page.getByRole('textbox', { name: 'Merge window' });
+      const root = amount.locator('xpath=ancestor::div[contains(@class,"sui-duration-input")][1]');
+      await amount.fill('٣');
+      await page.keyboard.press('Tab');
+      await page.locator('#duration-input figcaption', { hasText: '10800 seconds' }).waitFor();
+      assert.equal(await root.locator('.sui-duration-problem').count(), 0);
+      assert.equal(await amount.getAttribute('aria-invalid'), null);
     } finally {
       await page.close();
     }

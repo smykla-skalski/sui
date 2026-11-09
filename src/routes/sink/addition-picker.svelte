@@ -1,6 +1,6 @@
 <script module lang="ts">
   export const section = {
-    title: 'Addition picker',
+    title: 'Addition Picker',
     lead: 'An add button that opens what is left to add, such as settings a level can override. A single new entry is an add Button.',
     components: ['AdditionPicker']
   };
@@ -43,40 +43,40 @@
   title="States"
   note="Loading, failed, empty and used-up lists say so inside the menu, and a locked picker says why"
 >
-  <Specimen label="Loading" code="loading">
-    <AdditionPicker label="Add a check" choices={[]} loading onadd={() => {}} />
+  <Specimen label="Loading">
+    <AdditionPicker label="Add a Check" choices={[]} loading onadd={() => {}} />
   </Specimen>
-  <Specimen label="Failed" code="error onretry">
+  <Specimen label="Failed">
     <AdditionPicker
-      label="Add a check"
+      label="Add a Check"
       choices={failed ? [] : behaviours}
       error={failed ? 'The checks could not load' : null}
       onretry={() => (failed = false)}
       onadd={() => {}}
     />
   </Specimen>
-  <Specimen label="Nothing to add" code={'choices={[]}'}>
-    <AdditionPicker label="Add a check" choices={[]} onadd={() => {}} />
+  <Specimen label="Nothing to add">
+    <AdditionPicker label="Add a Check" choices={[]} onadd={() => {}} />
   </Specimen>
-  <Specimen label="Everything added" code="added">
+  <Specimen label="Everything added">
     <AdditionPicker
-      label="Add a check"
+      label="Add a Check"
       choices={behaviours}
       added={behaviours.map((behaviour) => behaviour.value)}
       onadd={() => {}}
     />
   </Specimen>
-  <Specimen label="Disabled" code="disabled">
+  <Specimen label="Disabled">
     <div class="locked">
-      <AdditionPicker label="Override a behaviour" choices={behaviours} disabled onadd={() => {}} />
+      <AdditionPicker label="Override a Behaviour" choices={behaviours} disabled onadd={() => {}} />
       <p class="reason">The workspace locks these behaviours for every repository</p>
     </div>
   </Specimen>
 </Example>
 
 <Example
-  title="In a setting list"
-  note="Pick a behaviour to set it here, and reset its row to hand it back to the workspace"
+  title="In a Setting List"
+  note="Choose a behaviour to set it here, and reset its row to hand it back to the workspace"
   layout="stack"
   ground="canvas"
 >
@@ -100,7 +100,7 @@
         {#snippet control()}
           <AdditionPicker
             id="sink-addition-more"
-            label="Override another"
+            label="Override Another"
             choices={behaviours}
             {added}
             done="Every behaviour is already set here"
@@ -126,6 +126,7 @@
     font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-row-copy-leading)
       var(--sui-sans);
     margin: 0;
+    padding-block: var(--sui-block-snap-room);
     text-box: trim-both cap alphabetic;
   }
 </style>

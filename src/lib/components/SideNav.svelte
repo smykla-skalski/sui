@@ -40,8 +40,8 @@
     pagesLabel = word('SideNav.pagesLabel', (title: string) => `${title} pages`),
     level = 2,
     closeLabel = word('SideNav.closeLabel', 'Close navigation'),
-    collapseLabel = word('SideNav.collapseLabel', 'Collapse'),
-    expandLabel = word('SideNav.expandLabel', 'Expand'),
+    collapseLabel = word('SideNav.collapseLabel', 'Collapse Navigation'),
+    expandLabel = word('SideNav.expandLabel', 'Expand Navigation'),
     countLabel = word(
       'SideNav.countLabel',
       (count: number) => `${formatCount(count)} ${count === 1 ? 'item' : 'items'}`
@@ -103,7 +103,10 @@
   let thumb = $state({ x: 0, y: 0, width: 0, height: 0 });
   let measured = $state(false);
   let gliding = $state(false);
+  // Rows are kept by their address with a `#` before it, so an address such as `constructor`
+  // never reads what every object inherits.
   const rows = $state<Record<string, HTMLAnchorElement | null>>({});
+  const key = (href: string) => `#${href}`;
 
   // The row of the section the reader has reached, read from the browser's own pick once script
   // runs, so the plate and `aria-current` take the row the first paint already marked.
@@ -160,7 +163,7 @@
 
   /** Lays the selection plate under the current row, measured rather than guessed. */
   function measure() {
-    const row = here ? rows[here] : null;
+    const row = here ? rows[key(here)] : null;
     // A closed drawer draws no rows, so its plate lands afresh when the drawer opens.
     if (!tree || !row || row.getClientRects().length === 0) {
       measured = false;
@@ -220,7 +223,7 @@
      current page's row takes it, so focus never falls to the page. */
   $effect.pre(() => {
     if (folds || !fold || document.activeElement !== fold) return;
-    void tick().then(() => (rows[here ?? ''] ?? Object.values(rows)[0])?.focus());
+    void tick().then(() => ((here ? rows[key(here)] : null) ?? Object.values(rows)[0])?.focus());
   });
 
   function follow(event: MouseEvent, item: NavItem) {
@@ -235,27 +238,27 @@ The pages of one place, as rows under section headings: the second level of navi
 a `Rail` chooses the place and this chooses the page. Every row is a destination with its own
 icon and address, and a heading is only a label.
 
-Current is drawn the same way in every navigation list: the words carry it. Rest rows are
-muted and the page on screen is primary ink, a step of 3:1 or more in lightness, on a quiet
-plate that only supports it. Both keep one weight, so turning current never rewraps a label or
-changes a row's height. Under forced colors the plate is `Highlight` and its words `HighlightText`. The plate is measured
+Current is drawn the same way in every navigation list: the words and the plate carry it. Rest
+rows are muted and the page on screen is primary ink, a step of 2:1 or more in lightness,
+with its glyph in the accent ink, on a plate of the accent tint, its words at 500. Every row holds the room its words take at
+500, so turning current never rewraps a label or changes a row's height. Under forced colors the plate is `Highlight` and its words `HighlightText`. The plate is measured
 from the current row, does not slide on first paint, and glides to the next row when the page
 changes. Until it is measured the row paints its own plate.
 
-Inside an `AppShell` wide enough to fold, a Collapse control at the end of the list folds it
-into a strip where each row is an icon over a short label, and Expand brings it back. A
+Inside an `AppShell` wide enough to fold, a Collapse Navigation control at the end of the list folds it
+into a strip where each row is an icon over a short label, and Expand Navigation brings it back. A
 tooltip with the full name shows only where `short` replaces a label, and a count is still
 read aloud. In the phone drawer a close button takes the head's end, rows are 44px, and
 following a row closes the drawer.
 
 - Semantics: a `nav` landmark named "<title> pages" by default that holds the whole sidebar, its title, rows, fold control and foot, so nothing in it stands outside a landmark; the title is a heading at `level`, each section a list labelled by its own heading one level below, and every row a link with `aria-current="page"` on the current one.
 - Content: a title and optional kicker, sections of rows with a glyph from the icon set or the caller's own, a label, an optional `short` label and an optional count, and an optional `foot`.
-- States: rest, hover, pressed (the pressed ground, an inset shadow and a 1px sink), focus (a 2px inset ring) and current (primary ink on the quiet plate, in the rest rows' weight, so it moves nothing); labels wrap rather than being cut.
+- States: rest, hover, pressed (the pressed ground, an inset shadow and a 1px sink), focus (a 2px inset ring) and current (primary ink at 500 and an accent glyph on the plate, in room every row holds, so it moves nothing); labels wrap rather than being cut.
 - Keyboard: Tab moves through the rows, then the fold or close control; Enter follows a row or presses the control.
 - Pointer and touch: rows are 34px on a desktop pointer and 44px in the drawer and the strip; the close and fold controls are 34px and 44px there, and nothing needs a gesture.
 - Focus: folding keeps focus on the control; a fold control that leaves as the shell narrows hands focus to the current row, and a row followed in the drawer closes it with focus returned to the menu button.
 - Responsive: the row list scrolls inside the column and brings a new current row into view without scrolling the page, a long label wraps, the strip stacks each glyph over its short label, and the fold control shows only where the shell can fold.
-- Accessibility: a count is read with its words from `countLabel`, joined to the label by `countedName`, every ink holds 4.5:1 on its ground, the current ink stands 3:1 from the rest ink in lightness, so it is never hue alone (WCAG 1.4.1), and a heading names each group for heading navigation.
+- Accessibility: a count is read with its words from `countLabel`, joined to the label by `countedName`, every ink holds 4.5:1 on its ground, the current ink stands 2:1 from the rest ink in lightness and the plate marks it too, so it is never hue alone (WCAG 1.4.1), and a heading names each group for heading navigation.
 - Localization: `label`, `closeLabel`, `collapseLabel`, `expandLabel` and `countLabel` are props with English defaults; counts follow the page language, the plate is measured from the start edge and the fold glyphs mirror in a right-to-left page.
 - Performance: one resize observer measures the plate, which glides with a transform; it suits a sidebar of tens of rows, not thousands.
 - Analytics: `onnavigate(event, item)` reports every followed row; the shell's `oncollapsedchange` reports the fold.
@@ -271,7 +274,7 @@ following a row closes the drawer.
 >
   <div class="sui-side-nav-head">
     <div class="sui-side-nav-names">
-      {#if kicker}<p class="sui-side-nav-kicker">{kicker}</p>{/if}
+      {#if kicker}<p class="sui-side-nav-kicker" translate="no">{kicker}</p>{/if}
       <svelte:element this={`h${level}`} class="sui-side-nav-title">{title}</svelte:element>
     </div>
     {#if shell && mode === 'drawer'}
@@ -303,7 +306,7 @@ following a row closes the drawer.
             {@const tip = item.short !== undefined && item.short !== item.label}
             <li>
               <a
-                bind:this={rows[item.href]}
+                bind:this={rows[key(item.href)]}
                 href={item.href}
                 aria-label={item.count === undefined
                   ? undefined
@@ -318,7 +321,10 @@ following a row closes the drawer.
                       size="base"
                     />{:else}{@render item.icon()}{/if}</span
                 >
-                <span class={['sui-side-nav-label', { replaced: item.short }]}>{item.label}</span>
+                <span
+                  class={['sui-side-nav-label', { replaced: item.short }]}
+                  data-label={item.label}><span>{item.label}</span></span
+                >
                 {#if item.short}
                   <span class="sui-side-nav-short" aria-hidden="true">{item.short}</span>
                 {/if}
@@ -329,7 +335,7 @@ following a row closes the drawer.
                 {/if}
               </a>
               {#if mode === 'collapsed' && tip}
-                <Tooltip anchor={rows[item.href]} text={item.label} side="inline-end" />
+                <Tooltip anchor={rows[key(item.href)]} text={item.label} side="inline-end" />
               {/if}
             </li>
           {/each}
@@ -338,24 +344,33 @@ following a row closes the drawer.
     </div>
   </div>
 
-  <!-- Drawn wherever there is a shell, so the server's render has it; the shell's own width
+  <!-- The fold stands under the foot's hairline, so the rows are cut at a line there too. It is
+       drawn wherever there is a shell, so the server's render has it; the shell's own width
        shows it only where the shell can fold. -->
-  {#if shell}
-    <button
-      bind:this={fold}
-      type="button"
-      class="sui-side-nav-row sui-side-nav-fold"
-      onclick={() => shell.toggleCollapsed()}
-    >
-      <span class="sui-side-nav-glyph"
-        ><Icon name={shell.collapsed ? 'sidebar-expand' : 'sidebar-collapse'} size="base" /></span
-      >
-      <span class="sui-side-nav-label">{shell.collapsed ? expandLabel : collapseLabel}</span>
-    </button>
-  {/if}
-
-  {#if foot}
-    <div class="sui-side-nav-foot">{@render foot()}</div>
+  {#if shell || foot}
+    <div class="sui-side-nav-foot">
+      {#if shell}
+        <button
+          bind:this={fold}
+          type="button"
+          class="sui-side-nav-row sui-side-nav-fold"
+          onclick={() => shell.toggleCollapsed()}
+        >
+          <span class="sui-side-nav-glyph"
+            ><Icon
+              name={shell.collapsed ? 'sidebar-expand' : 'sidebar-collapse'}
+              size="base"
+            /></span
+          >
+          <span
+            class="sui-side-nav-label"
+            data-label={shell.collapsed ? expandLabel : collapseLabel}
+            ><span>{shell.collapsed ? expandLabel : collapseLabel}</span></span
+          >
+        </button>
+      {/if}
+      {#if foot}{@render foot()}{/if}
+    </div>
   {/if}
 </nav>
 
@@ -381,10 +396,14 @@ following a row closes the drawer.
     padding: var(--sui-space-4) var(--sui-space-3);
   }
 
+  /* A hairline parts the title from the rows, as one parts the foot, so a row fading under it
+     never reads as cut by the title. */
   .sui-side-nav-head {
     align-items: center;
+    border-block-end: var(--sui-stroke) solid var(--sui-sidebar-border);
     display: flex;
     gap: var(--sui-space-2);
+    padding-block-end: var(--sui-space-3);
     padding-inline-start: var(--sui-space-3);
   }
 
@@ -403,6 +422,7 @@ following a row closes the drawer.
       var(--sui-sans);
     letter-spacing: 0.07em;
     margin: 0;
+    padding-block: var(--sui-block-snap-room);
     text-box: trim-both cap alphabetic;
     text-transform: uppercase;
   }
@@ -414,15 +434,24 @@ following a row closes the drawer.
       var(--sui-sans);
     margin: 0;
     overflow-wrap: anywhere;
+    padding-block: var(--sui-block-snap-room);
     text-box: trim-both cap alphabetic;
   }
 
+  /* The rows scroll through the gaps that part them from the title and the foot and are cut
+     cleanly at the hairlines, as a page scrolls under a sticky header, so a row passing the
+     title never reads as a faded ghost. The list's ends rest a gap clear of the hairlines, and
+     focus stops clear of them. */
   .sui-side-nav-tree {
+    --sui-local-tree-gap: var(--sui-space-4);
     flex: 1 1 auto;
+    margin-block: calc(-1 * var(--sui-local-tree-gap));
     margin-inline: calc(-1 * var(--sui-space-3));
     min-block-size: 0;
     overflow: hidden auto;
-    padding-inline: var(--sui-space-3);
+    overscroll-behavior: contain;
+    padding: var(--sui-local-tree-gap) var(--sui-space-3);
+    scroll-padding-block: var(--sui-local-tree-gap);
     scrollbar-width: thin;
   }
 
@@ -447,6 +476,7 @@ following a row closes the drawer.
       var(--sui-sans);
     letter-spacing: 0.07em;
     margin: var(--sui-space-5) var(--sui-space-3) var(--sui-space-2);
+    padding-block: var(--sui-block-snap-room);
     text-box: trim-both cap alphabetic;
     text-transform: uppercase;
   }
@@ -455,8 +485,8 @@ following a row closes the drawer.
     margin-block-start: 0;
   }
 
-  /* The quiet plate under the current row. It supports the row's ink, which carries the
-     state, so it needs no ring or edge. */
+  /* The plate under the current row marks the state with the row's ink and glyph, so it needs
+     no ring or edge. */
   .sui-side-nav-thumb {
     background: var(--sui-sidebar-active-bg);
     block-size: var(--sui-thumb-height);
@@ -542,6 +572,10 @@ following a row closes the drawer.
     color: var(--sui-sidebar-active-ink);
   }
 
+  .sui-side-nav-row[aria-current='page'] .sui-side-nav-glyph {
+    color: var(--sui-sidebar-active-glyph);
+  }
+
   /* Until the plate is measured the current row paints its own, so the first frame is right. */
   .sui-side-nav-list:not(.measured) .sui-side-nav-row[aria-current='page'] {
     background: var(--sui-sidebar-active-bg);
@@ -580,6 +614,14 @@ following a row closes the drawer.
       color: var(--sui-sidebar-active-ink);
     }
 
+    .scroll-targets .sui-side-nav-row:target-current .sui-side-nav-glyph {
+      color: var(--sui-sidebar-active-glyph);
+    }
+
+    .scroll-targets .sui-side-nav-row:target-current .sui-side-nav-label > span {
+      font-weight: var(--sui-weight-medium);
+    }
+
     .scroll-targets .sui-side-nav-list:not(.measured) .sui-side-nav-row:target-current {
       background: var(--sui-sidebar-active-bg);
     }
@@ -593,7 +635,8 @@ following a row closes the drawer.
         background-color: Highlight;
       }
 
-      .scroll-targets .sui-side-nav-row:target-current {
+      .scroll-targets .sui-side-nav-row:target-current,
+      .scroll-targets .sui-side-nav-row:target-current .sui-side-nav-glyph {
         color: HighlightText;
         forced-color-adjust: none;
       }
@@ -607,13 +650,36 @@ following a row closes the drawer.
     margin-block: calc((var(--sui-local-line) - var(--sui-icon-base)) / 2);
   }
 
+  /* A hidden copy of the words at the current weight shares their cell, so every row already
+     holds the room its words take once current, and turning current never rewraps a label or
+     changes a row's height (L-85). */
   .sui-side-nav-label {
     align-content: center;
     block-size: var(--sui-block-snap-even);
+    display: grid;
     flex: 1;
     min-inline-size: 0;
     overflow-wrap: anywhere;
+  }
+
+  .sui-side-nav-label > span,
+  .sui-side-nav-label::after {
+    align-content: center;
+    block-size: var(--sui-block-snap-even);
+    grid-area: 1 / 1;
+    min-inline-size: 0;
+    padding-block: var(--sui-block-snap-room-even);
     text-box: trim-both cap alphabetic;
+  }
+
+  .sui-side-nav-label::after {
+    content: attr(data-label) / '';
+    font-weight: var(--sui-weight-medium);
+    visibility: hidden;
+  }
+
+  .sui-side-nav-row[aria-current] .sui-side-nav-label > span {
+    font-weight: var(--sui-weight-medium);
   }
 
   .sui-side-nav-short {
@@ -629,7 +695,7 @@ following a row closes the drawer.
     --sui-local-count-ink: var(--sui-sidebar-text-secondary);
     display: flex;
     flex: none;
-    font: var(--sui-weight-semibold) var(--sui-font-size-micro) / var(--sui-leading-flat)
+    font: var(--sui-weight-semibold) var(--sui-font-size-compact) / var(--sui-leading-flat)
       var(--sui-sans);
     margin-block: calc((var(--sui-local-line) - round(up, 1cap, 2px) - 2 * var(--sui-space-1)) / 2);
   }
@@ -642,10 +708,16 @@ following a row closes the drawer.
     .sui-side-nav-fold {
       display: none;
     }
+
+    .sui-side-nav-foot:not(:has(> :not(.sui-side-nav-fold))) {
+      display: none;
+    }
   }
 
   .sui-side-nav-foot {
     border-block-start: var(--sui-stroke) solid var(--sui-sidebar-border);
+    display: grid;
+    gap: var(--sui-space-4);
     padding-block-start: var(--sui-space-3);
   }
 
@@ -714,6 +786,7 @@ following a row closes the drawer.
       align-content: center;
       block-size: var(--sui-block-snap);
       display: block;
+      padding-block: var(--sui-block-snap-room);
       text-box: trim-both cap alphabetic;
     }
 
@@ -737,7 +810,8 @@ following a row closes the drawer.
       background-color: Highlight;
     }
 
-    .sui-side-nav-row[aria-current='page'] {
+    .sui-side-nav-row[aria-current='page'],
+    .sui-side-nav-row[aria-current='page'] .sui-side-nav-glyph {
       color: HighlightText;
       /* Kept as written, or the browser draws a Canvas backplate behind the words on the plate. */
       forced-color-adjust: none;

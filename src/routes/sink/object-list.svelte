@@ -1,12 +1,13 @@
 <script module lang="ts">
   export const section = {
-    title: 'Object list',
+    title: 'Object List',
     lead: 'The things a page is about, as rows that grow with their content. Values a reader compares across columns belong in a DataTable.',
     components: ['ObjectList', 'ObjectRow']
   };
 </script>
 
 <script lang="ts">
+  import { clock } from '../kit/format.js';
   import {
     Button,
     FactLine,
@@ -43,7 +44,7 @@
   layout="grid"
   ground="canvas"
 >
-  <Specimen label="Linked" code="href">
+  <Specimen label="Linked">
     <Section title="Repositories" level={4}>
       <ObjectList>
         <ObjectRow href="#object-list">
@@ -64,7 +65,7 @@
         <ObjectRow>
           {#snippet main()}
             <span class="name">Audit log export</span>
-            <span class="sum">Written every night at 02:00</span>
+            <span class="sum">Written every night at {clock(2)}</span>
           {/snippet}
         </ObjectRow>
       </ObjectList>
@@ -78,7 +79,7 @@
   layout="stack"
   ground="canvas"
 >
-  <Specimen label="Status and action" code="side">
+  <Specimen label="Status & action">
     <Section title="Repositories" level={4}>
       <ObjectList>
         <ObjectRow href="#object-list">
@@ -94,7 +95,7 @@
           {#snippet side()}
             <Pill tone="success">Up to date</Pill>
             <Button loading={syncing} aria-label="Sync smykla-skalski/sui" onclick={sync}>
-              {#snippet icon()}<Icon name="refresh" size="sm" />{/snippet}
+              {#snippet icon()}<Icon name="refresh" size="base" />{/snippet}
               Sync
             </Button>
           {/snippet}
@@ -125,7 +126,7 @@
               >smykla-skalski/an-unusually-long-repository-name-that-has-to-break-somewhere-on-a-phone</span
             >
             <span class="sum"
-              >Three rules would change, and the sentence wraps rather than running under the side</span
+              >3 rules would change, and the sentence wraps rather than running under the side</span
             >
           {/snippet}
           {#snippet side()}
@@ -138,8 +139,8 @@
 </Example>
 
 <Example
-  title="In context"
-  note="Rows stand on hairlines inset by their padding, and their words keep the section title's edge"
+  title="In Context"
+  note="Rows stand on hairlines inset by their padding, and their words keep the section title’s edge"
   layout="stack"
   ground="canvas"
 >
@@ -169,6 +170,7 @@
     font: var(--sui-weight-semibold) var(--sui-font-size-meta) / var(--sui-row-copy-leading)
       var(--sui-sans);
     overflow-wrap: anywhere;
+    padding-block: var(--sui-block-snap-room);
     text-box: trim-both cap alphabetic;
   }
 
@@ -179,6 +181,7 @@
     font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-row-copy-leading)
       var(--sui-sans);
     overflow-wrap: anywhere;
+    padding-block: var(--sui-block-snap-room);
     text-box: trim-both cap alphabetic;
   }
 </style>

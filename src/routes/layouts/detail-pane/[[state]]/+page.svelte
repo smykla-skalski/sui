@@ -74,9 +74,9 @@
   ];
 
   const menu: ActionMenuItem[] = [
-    { label: 'Copy the check ID', onselect: nothing },
-    { label: 'Download the report', onselect: nothing },
-    { label: 'Delete this check', tone: 'stop', onselect: nothing }
+    { label: 'Copy the Check ID', onselect: nothing },
+    { label: 'Download the Report', onselect: nothing },
+    { label: 'Delete This Check', tone: 'stop', onselect: nothing }
   ];
 
   const nav: NavSection[] = [
@@ -106,7 +106,7 @@
   const headline: Fact[] = [
     { label: 'Workspace', value: 'acme' },
     { label: 'Started', value: startedAt },
-    { label: 'Took', value: '48 seconds' },
+    { label: 'Took', value: '48\u00a0seconds' },
     { label: 'Requested by', value: 'Bart' }
   ];
 
@@ -128,7 +128,7 @@
     { label: 'Check ID', value: 'sc_01JAZ4182', mono: true },
     { label: 'Worker', value: 'sync-worker-3', mono: true },
     { label: 'Settings version', value: 'v41', mono: true },
-    { label: 'Waited in queue', value: '2 seconds' }
+    { label: 'Waited in queue', value: '2\u00a0seconds' }
   ];
 
   // Each state of the pane has an address of its own: loading, missing, stale, or loaded.
@@ -153,14 +153,14 @@
 
 {#snippet header()}
   <PageHeader
-    title="Sync check #4182"
+    title="Sync Check #4182"
     description="Compared 16 repositories in acme with the saved settings"
     kicker={back}
   >
     {#snippet status()}<Pill tone="warning" dot>3 differ</Pill>{/snippet}
     {#snippet facts()}<FactList facts={headline} />{/snippet}
     {#snippet actions()}
-      <Button tone="signal">Check again</Button>
+      <Button tone="signal">Check Again</Button>
       <ActionMenu label="More actions" icon="more" toolbar items={menu} align="end" />
     {/snippet}
   </PageHeader>
@@ -171,7 +171,7 @@
     {#snippet main()}
       <Section title="Outcome">
         <p class="lede">
-          Three repositories differ from the saved settings. Twelve match and one was not checked.
+          3 repositories differ from the saved settings, 12 match and the check skipped 1
         </p>
         <FactList facts={counts} />
       </Section>
@@ -208,14 +208,14 @@
       </Section>
     {/snippet}
   </DetailLayout>
-  <Disclosure summary="More about this check" hint="ID, worker and version">
+  <Disclosure summary="More About This Check" hint="ID, worker and version">
     <FactList layout="rows" facts={more} />
   </Disclosure>
 {/snippet}
 
 <SkipLink href="#content" />
 
-<AppShell title="Sync check #4182" landmark="none" label="Workspace navigation">
+<AppShell title="Sync Check #4182" landmark="none" label="Workspace navigation">
   {#snippet rail()}
     <Rail items={places} {foot} current={place} onpick={(item) => (place = item.label)} />
   {/snippet}
@@ -225,7 +225,7 @@
 
   <main id="content" tabindex="-1">
     {#if view === 'loading'}
-      <PageHeader title="Sync check #4182" kicker={back}>
+      <PageHeader title="Sync Check #4182" kicker={back}>
         <!-- The status region is there from the first render, so the state is read once it arrives. -->
         {#snippet status()}{/snippet}
       </PageHeader>
@@ -275,11 +275,12 @@
         </DetailLayout>
       </div>
     {:else if view === 'missing'}
-      <PageHeader title="Sync check #4182" kicker={back} />
+      <PageHeader title="Sync Check #4182" kicker={back} />
       <div class="zones">
         <ErrorState
-          title="Sync check #4182 was not found"
-          description="It was deleted or never existed, so go back to the queue to open another check"
+          title="Sync Check #4182 Does Not Exist"
+          description="Someone deleted it or it never existed"
+          step="Go back to the queue to open another check"
         />
       </div>
     {:else}
@@ -288,16 +289,16 @@
         {#if view === 'stale'}
           <ErrorState
             overContent
-            title="The check could not be refreshed"
+            title="The Check Could Not Refresh"
             description="Showing what loaded a minute ago"
             onretry={refresh}
             busy={refreshing}
           />
         {:else}
-          <Callout tone="warning" title="1 repository was not checked">
+          <Callout tone="warning" title="The check skipped 1 repository">
             {#snippet icon()}<Icon name="warning" size="sm" />{/snippet}
             The app lost access to acme/legacy during the check
-            {#snippet actions()}<Button>Fix access</Button>{/snippet}
+            {#snippet actions()}<Button>Fix Access</Button>{/snippet}
           </Callout>
         {/if}
         {@render body()}
@@ -329,6 +330,7 @@
       var(--sui-sans);
     margin: 0;
     margin-block-end: calc(round(calc(1lh - 1cap), 1px) + var(--sui-row-copy-gap));
+    padding-block: var(--sui-block-snap-room);
     text-box: trim-both cap alphabetic;
   }
 
@@ -345,6 +347,7 @@
     font: var(--sui-weight-medium) var(--sui-font-size-body) / var(--sui-row-copy-leading)
       var(--sui-sans);
     overflow-wrap: anywhere;
+    padding-block: var(--sui-block-snap-room);
     text-box: trim-both cap alphabetic;
   }
 </style>

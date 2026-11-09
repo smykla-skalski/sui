@@ -42,7 +42,7 @@
 </script>
 
 <Example
-  title="Kinds and sizes"
+  title="Kinds & Sizes"
   note="Technical values are mono, a painted chip wears a chosen color, and a small one sits in a line of text"
 >
   <Variants
@@ -62,35 +62,35 @@
 </Example>
 
 <Example
-  title="Label colors"
+  title="Label Colors"
   note="The light theme shows the color with black or white ink, and the dark one a tint with ink in its hue"
 >
   {#each github as [label, color, name] (label)}
-    <Specimen label={name} code={`color="${color}"`}>
+    <Specimen label={name}>
       <Chip {label} {color} />
     </Specimen>
   {/each}
 </Example>
 
 <Example
-  title="Pale and dark"
+  title="Pale & Dark"
   note="Only a near-white chip draws an edge, so it still shows on a white card"
 >
   {#each extremes as [label, color, name] (label)}
-    <Specimen label={name} code={`color="${color}"`}>
+    <Specimen label={name}>
       <Chip {label} {color} />
     </Specimen>
   {/each}
 </Example>
 
 <Example
-  title="Unreadable color"
+  title="Unreadable Color"
   note="Anything but hex digits draws the plain chip, so a stored value never writes a style"
 >
-  <Specimen label="CSS variable" code={'color="var(--brand)"'}>
+  <Specimen label="CSS variable">
     <Chip label="imported" color="var(--brand)" />
   </Specimen>
-  <Specimen label="Empty" code={'color=""'}>
+  <Specimen label="Empty">
     <Chip label="empty" color="" />
   </Specimen>
 </Example>
@@ -99,7 +99,7 @@
   title="Removable"
   note="Each remove control names its value, a removal is announced, and focus moves to the next control"
 >
-  <Specimen label="Remove and refocus" code="onremove">
+  <Specimen label="Remove & refocus">
     <div class="group" role="group" aria-label="Labels">
       {#each labels as label (label)}
         <Chip mono {label} onremove={() => (labels = labels.filter((other) => other !== label))} />
@@ -108,7 +108,7 @@
       {/each}
     </div>
   </Specimen>
-  <Specimen label="Unkeyed remove and refocus" code="onremove">
+  <Specimen label="Unkeyed remove & refocus">
     <div class="group" role="group" aria-label="Unkeyed labels">
       <!-- Unkeyed on purpose: a browser test proves a chip hands focus on when a caller forgets the key. -->
       {#each unkeyed as label}
@@ -120,7 +120,7 @@
       {/each}
     </div>
   </Specimen>
-  <Specimen label="Disabled" code="onremove disabled">
+  <Specimen label="Disabled">
     <div class="held">
       <div class="group" role="group" aria-label="Locked labels" aria-describedby="sink-chip-held">
         <Chip mono label="team:platform" onremove={() => {}} disabled />
@@ -132,18 +132,18 @@
 </Example>
 
 <Example
-  title="Long value"
+  title="Long Value"
   note="A long value wraps inside the chip rather than being cut"
   layout="grid"
 >
-  <Specimen label="Mono, removable" code="mono onremove">
+  <Specimen label="Mono, removable">
     <Chip
       mono
       label="registry.example.com/platform/control-plane/server:2.9.1-rc.3"
       onremove={() => {}}
     />
   </Specimen>
-  <Specimen label="Painted" code={'color="c5def5"'}>
+  <Specimen label="Painted">
     <Chip
       label="area: control plane, multizone, global and zone sync, and the inspect API"
       color="c5def5"

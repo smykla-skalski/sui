@@ -58,8 +58,8 @@ words when it happens elsewhere, such as waiting for a first run; it cannot be d
 neither.
 
 An empty list is not an error and is not drawn as one; a request that failed is
-`ErrorState`. There is no decorative icon. The title sits above the explanation with the
-8px copy gap.
+`ErrorState`. There is no decorative icon. The title sits 12px above the explanation, and
+a step 8px under it.
 
 - Semantics: a `div` of two paragraphs and the action; with `live` the title and description also reach a polite `status`.
 - Content: a plain title, one sentence of explanation and one next step, as an `action` such as a `Button` that clears the filter, or as `step` when the step happens elsewhere.
@@ -67,7 +67,7 @@ An empty list is not an error and is not drawn as one; a request that failed is
 - Keyboard: none of its own; the action takes Tab.
 - Pointer and touch: the action keeps its own 34px and 44px targets.
 - Focus: it never takes focus; when a filter empties a list, focus stays on the field the reader typed in.
-- Responsive: it fills its column, and the copy and the actions wrap.
+- Responsive: it fills its column, the copy and the actions wrap, and on a phone the panel pads 20px so the words keep more of the width.
 - Accessibility: the words say why the list is empty, and `live` announces the state when a search or a filter brings it.
 - Localization: every word is the caller's, and it starts at the inline start, mirrored in a right-to-left page.
 - Performance: a static block; `live` sets one short timer when it appears or its words change.
@@ -90,21 +90,26 @@ An empty list is not an error and is not drawn as one; a request that failed is
 {/if}
 
 <style>
+  /* Stretched beside a taller panel, its words keep to the top and its action to the foot, so
+     the actions of panels on one line share it (L-59). */
   .sui-empty-state {
+    align-content: space-between;
     background: var(--sui-surface-raised);
     border: var(--sui-stroke) solid var(--sui-border-subtle);
     border-radius: var(--sui-radius-control);
     box-sizing: border-box;
     display: grid;
-    gap: var(--sui-space-3);
+    gap: var(--sui-space-5);
     justify-items: start;
     min-inline-size: 0;
-    padding: var(--sui-space-4);
+    padding: var(--sui-space-7) var(--sui-space-6);
   }
 
+  /* The title stands a title gap above its words, and a step in words stands one under them,
+     so the reader's next move reads apart from why the list is empty (L-59). */
   .sui-empty-state-copy {
     display: grid;
-    gap: var(--sui-row-copy-gap);
+    gap: var(--sui-title-copy-gap);
     min-inline-size: 0;
   }
 
@@ -113,19 +118,21 @@ An empty list is not an error and is not drawn as one; a request that failed is
     block-size: var(--sui-block-snap);
     margin: 0;
     overflow-wrap: anywhere;
+    padding-block: var(--sui-block-snap-room);
     text-box: trim-both cap alphabetic;
   }
 
   .sui-empty-state-title {
+    text-wrap: balance;
     color: var(--sui-text-primary);
-    font: var(--sui-weight-semibold) var(--sui-font-size-meta) / var(--sui-row-copy-leading)
+    font: var(--sui-weight-semibold) var(--sui-font-size-card-title) / var(--sui-row-copy-leading)
       var(--sui-sans);
   }
 
   .sui-empty-state-description {
     color: var(--sui-text-secondary);
     max-inline-size: var(--sui-measure);
-    font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-row-copy-leading)
+    font: var(--sui-weight-regular) var(--sui-font-size-body) / var(--sui-row-copy-leading)
       var(--sui-sans);
   }
 
@@ -139,5 +146,13 @@ An empty list is not an error and is not drawn as one; a request that failed is
     display: flex;
     flex-wrap: wrap;
     gap: var(--sui-space-2);
+  }
+
+  /* A phone gives the words some of the width the panel's inset would take. */
+  @media (max-width: 47.9375rem) {
+    .sui-empty-state {
+      gap: var(--sui-space-4);
+      padding: var(--sui-space-5);
+    }
   }
 </style>

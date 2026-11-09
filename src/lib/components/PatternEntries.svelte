@@ -1,6 +1,6 @@
 <script lang="ts">
   import { mark, word } from '../words.js';
-  import { tick } from 'svelte';
+  import { onMount, tick } from 'svelte';
   import type { Attachment } from 'svelte/attachments';
   import type { HTMLAttributes } from 'svelte/elements';
   import Icon from '../icons/Icon.svelte';
@@ -17,7 +17,7 @@
   let {
     value = $bindable([]),
     validate,
-    addLabel = word('PatternEntries.addLabel', 'Add a pattern'),
+    addLabel = word('PatternEntries.addLabel', 'Add a Pattern'),
     entryLabel = word('PatternEntries.entryLabel', (position: number) => `Pattern ${position}`),
     removeLabel = word('PatternEntries.removeLabel', (pattern: string) => `Remove ${pattern}`),
     removeEmptyLabel = word('PatternEntries.removeEmptyLabel', 'Remove the empty pattern'),
@@ -102,6 +102,21 @@
   );
 
   const problemId = (index: number) => `${uid}-problem-${index}`;
+
+  /* Hydration writes each entry's value over its field, so words typed before the page hydrated
+     are read from the server's fields first and put back once the list has mounted. */
+  const typed =
+    typeof document === 'undefined'
+      ? []
+      : [
+          ...(document
+            .getElementById(`${uid}-list`)
+            ?.querySelectorAll<HTMLInputElement>('.sui-pattern-input') ?? [])
+        ].map((input) => (input.value === input.defaultValue ? null : input.value));
+  onMount(() => {
+    if (typed.some((text) => text !== null))
+      value = value.map((pattern, at) => typed[at] ?? pattern);
+  });
   const fields = () => [...(root?.querySelectorAll<HTMLInputElement>('.sui-pattern-input') ?? [])];
 
   // An empty entry already open is the new entry, so Add returns to it instead of minting another.
@@ -261,10 +276,10 @@ a saving pane around it holds it the same way.
 - Focus: Add moves focus to the new entry; a removal moves it to the entry that took its place, else the one before, else Add; Undo moves it back to the restored entry; a pending list keeps focus where it is.
 - Responsive: each field is as wide as its pattern, at least a few characters and at most the list's width, and the entries wrap from the start edge, Add after the last one on its line or on a line of its own; a pattern longer than the line scrolls inside its field.
 - Accessibility: the group is named by the caller and is `aria-busy` while pending; a screen reader hears each field's plain value, never the colored copy; problems, removals and pastes are said through a polite status; each problem describes its field and names the pattern it is about.
-- Localization: every word is a prop, the counted and named ones functions; counts are grouped in the page's language; the entries flow from the inline start with the cross at each field's inline end, and a pattern reads left to right in either direction.
+- Localization: every word is a prop, the counted and named ones functions; counts are grouped in the reader's format; the entries flow from the inline start with the cross at each field's inline end, and a pattern reads left to right in either direction.
 - Performance: every entry renders and sizes itself to its text with `field-sizing` where the browser has it, else at a fixed width; a keystroke colors one pattern again, and a scroll moves only its copy by a composited shift; `validate` runs for the other entries only when the list they are judged against changes, never at a keystroke in an entry the reader is still typing; keep it to tens of patterns.
 - Analytics: `onadd` hears each pattern added and `onremove` each one removed.
-- Failure: an invalid pattern stays as typed and says why, and a malformed glob, such as an unclosed `[` or `{`, shows as plain characters; an empty list shows only Add; a pending list refuses edits, removals, pastes and Undo until the save ends.
+- Failure: an invalid pattern stays as typed and says why, and a malformed glob, such as an unclosed `[` or `{`, shows as plain characters; an empty list shows only Add; a pending list refuses edits, removals, pastes and Undo until the save ends; text typed before the page hydrates stays and counts.
 -->
 
 <div
@@ -274,7 +289,7 @@ a saving pane around it holds it the same way.
   {...rest}
   class={['sui-pattern-entries', className]}
 >
-  <ul class="sui-pattern-list" role="list">
+  <ul id="{uid}-list" class="sui-pattern-list" role="list">
     {#each value as pattern, index (index)}
       {@const problem = problems[index]}
       {@const removeName = pattern.trim() === '' ? removeEmptyLabel : removeLabel(pattern.trim())}
@@ -284,7 +299,7 @@ a saving pane around it holds it the same way.
         onfocusout={(event) => settle(index, event)}
         onpaste={(event) => paste(index, event)}
       >
-        <JoinedField invalid={problem !== null} disabled={disabled || busy}>
+        <JoinedField invalid={problem !== null} {disabled} pending={busy}>
           {#snippet start()}
             <!-- A label, so a press on the mark lands in the field it marks. -->
             <label class="sui-pattern-value">
@@ -294,7 +309,7 @@ a saving pane around it holds it the same way.
               <!-- A field's value cannot be painted in parts, so its own text is clear and a
                    colored copy that no reader hears lies under it. -->
               <span class={['sui-pattern-text', { composing: composing === index }]}>
-                <code class="sui-pattern-copy" dir="ltr" aria-hidden="true"
+                <code class="sui-pattern-copy" dir="ltr" translate="no" aria-hidden="true"
                   ><span class="sui-pattern-line"
                     >{#each tokenizeGlob(pattern) as piece, at (at)}<span class={piece.cls}
                         >{piece.text}</span
@@ -347,7 +362,7 @@ a saving pane around it holds it the same way.
         loading={busy}
         onclick={add}
       >
-        {#snippet icon()}<Icon name="plus" size="sm" />{/snippet}
+        {#snippet icon()}<Icon name="plus" size="base" />{/snippet}
         {addLabel}
       </Button>
     </li>
@@ -355,7 +370,7 @@ a saving pane around it holds it the same way.
   {#each problems as problem, index (index)}
     {#if problem !== null}
       <p id={problemId(index)} class="sui-pattern-problem">
-        <code dir="ltr">{value[index]?.trim()}</code>{mark('colon')}{problem}
+        <code dir="ltr" translate="no">{value[index]?.trim()}</code>{mark('colon')}{problem}
       </p>
     {/if}
   {/each}
@@ -363,7 +378,7 @@ a saving pane around it holds it the same way.
     <div class="sui-pattern-removed">
       <span class="sui-pattern-said">{removedLabel(removed.pattern)}</span>
       <Button tone="ghost" disabled={disabled || firm} loading={busy} onclick={undo}>
-        {#snippet icon()}<Icon name="undo" size="sm" />{/snippet}
+        {#snippet icon()}<Icon name="undo" size="base" />{/snippet}
         {undoLabel}
       </Button>
     </div>
@@ -442,7 +457,7 @@ a saving pane around it holds it the same way.
   .sui-pattern-input,
   .sui-pattern-copy {
     box-sizing: border-box;
-    font: var(--sui-weight-regular) var(--sui-font-size-input) / var(--sui-leading-input)
+    font: var(--sui-weight-regular) var(--sui-font-size-input-mono) / var(--sui-leading-input)
       var(--sui-mono);
     font-variant-ligatures: none;
     font-variant-numeric: tabular-nums;
@@ -458,7 +473,7 @@ a saving pane around it holds it the same way.
       ),
       1px
     );
-    padding-inline: var(--sui-space-2);
+    padding-inline: var(--sui-field-inset);
     text-align: match-parent;
   }
 
@@ -581,7 +596,7 @@ a saving pane around it holds it the same way.
 
   @media (hover: hover) {
     .sui-pattern-remove:hover:not(:active, :disabled, [aria-disabled='true']) {
-      color: var(--sui-text-primary);
+      color: var(--sui-hover-ink);
     }
 
     .sui-pattern-remove:hover:not(:active, :disabled, [aria-disabled='true'])::before {
@@ -619,16 +634,19 @@ a saving pane around it holds it the same way.
     block-size: var(--sui-block-snap);
     color: var(--sui-danger);
     contain: inline-size;
-    font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-row-copy-leading)
+    font: var(--sui-weight-medium) var(--sui-font-size-note) / var(--sui-leading-note)
       var(--sui-sans);
     justify-self: stretch;
     margin: 0;
     overflow-wrap: anywhere;
+    padding-block: var(--sui-block-snap-room);
     text-box: trim-both cap alphabetic;
   }
 
+  /* The mono face reaches further above and below its baseline than the words' face, so the
+     pattern takes no line height and its line stands as tall as a line of words (L-95). */
   .sui-pattern-problem code {
-    font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-row-copy-leading)
+    font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-leading-none)
       var(--sui-mono);
   }
 
@@ -648,6 +666,7 @@ a saving pane around it holds it the same way.
       var(--sui-sans);
     min-inline-size: 0;
     overflow-wrap: anywhere;
+    padding-block: var(--sui-block-snap-room);
     text-box: trim-both cap alphabetic;
   }
 

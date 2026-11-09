@@ -1,6 +1,6 @@
 <script module lang="ts">
   export const section = {
-    title: 'Data table',
+    title: 'Data Table',
     lead: 'A table of numbers and facts that a reader compares across rows. Things a reader opens or acts on belong in an ObjectList.',
     components: ['DataTable']
   };
@@ -8,6 +8,8 @@
 
 <script lang="ts">
   import { DataTable, Icon, type DataTableColumn } from '#lib';
+  import { addressed } from '../kit/address.svelte.js';
+  import { amount, day } from '../kit/format.js';
   import Example from '../kit/Example.svelte';
   import Specimen from '../kit/Specimen.svelte';
 
@@ -32,9 +34,9 @@
     { key: 'review', label: 'Median review', numeric: true }
   ];
   const repositories: Repository[] = [
-    { name: 'smyklot', open: 12, merged: 1_284, review: '3 h 20 min' },
-    { name: 'sui', open: 4, merged: 96, review: '45 min' },
-    { name: 'ledger', open: 31, merged: 7_402, review: '1 d 2 h' }
+    { name: 'smyklot', open: 12, merged: 1_284, review: '3\u00a0h 20\u00a0min' },
+    { name: 'sui', open: 4, merged: 96, review: '45\u00a0min' },
+    { name: 'ledger', open: 31, merged: 7_402, review: '1 d 2\u00a0h' }
   ];
 
   const releaseColumns: DataTableColumn<Release>[] = [
@@ -44,9 +46,14 @@
     { key: 'published', label: 'Published', nowrap: true }
   ];
   const releases: Release[] = [
-    { version: '0.3.0', status: 'Current', size: '84.7 kB', published: '17 October 2026' },
-    { version: '0.2.1', status: 'Superseded', size: '79.2 kB', published: '2 September 2026' },
-    { version: '0.2.0', status: 'Withdrawn', size: '79.0 kB', published: '28 August 2026' }
+    { version: '0.3.0', status: 'Current', size: amount(84.7, 'kB'), published: day(2026, 10, 17) },
+    {
+      version: '0.2.1',
+      status: 'Superseded',
+      size: amount(79.2, 'kB'),
+      published: day(2026, 9, 2)
+    },
+    { version: '0.2.0', status: 'Withdrawn', size: amount(79, 'kB'), published: day(2026, 8, 28) }
   ];
 
   const checkColumns: DataTableColumn<Check>[] = [
@@ -84,69 +91,83 @@
     {
       branch: 'main',
       runner: 'linux-x64',
-      queued: '4 s',
-      duration: '6 min 12 s',
+      queued: '4\u00a0s',
+      duration: '6\u00a0min 12\u00a0s',
       tests: 1_284,
       failed: 0,
       cache: '92%',
-      size: '84.7 MB'
+      size: '84.7\u00a0MB'
     },
     {
       branch: 'release/0.3',
       runner: 'linux-x64',
-      queued: '11 s',
-      duration: '7 min 40 s',
+      queued: '11\u00a0s',
+      duration: '7\u00a0min 40\u00a0s',
       tests: 1_284,
       failed: 2,
       cache: '88%',
-      size: '84.9 MB'
+      size: '84.9\u00a0MB'
     },
     {
       branch: 'feat/charts',
       runner: 'macos-arm64',
-      queued: '1 min 3 s',
-      duration: '9 min 5 s',
+      queued: '1\u00a0min 3\u00a0s',
+      duration: '9\u00a0min 5\u00a0s',
       tests: 1_302,
       failed: 0,
       cache: '71%',
-      size: '85.3 MB'
+      size: '85.3\u00a0MB'
     },
     {
       branch: 'fix/focus',
       runner: 'linux-arm64',
-      queued: '9 s',
-      duration: '5 min 58 s',
+      queued: '9\u00a0s',
+      duration: '5\u00a0min 58\u00a0s',
       tests: 1_286,
       failed: 1,
       cache: '94%',
-      size: '84.7 MB'
+      size: '84.7\u00a0MB'
     },
     {
       branch: 'chore/deps',
       runner: 'linux-x64',
-      queued: '6 s',
-      duration: '8 min 21 s',
+      queued: '6\u00a0s',
+      duration: '8\u00a0min 21\u00a0s',
       tests: 1_284,
       failed: 0,
       cache: '43%',
-      size: '86.1 MB'
+      size: '86.1\u00a0MB'
     },
     {
       branch: 'feat/pager',
       runner: 'windows-x64',
-      queued: '2 min 40 s',
-      duration: '12 min 9 s',
+      queued: '2\u00a0min 40\u00a0s',
+      duration: '12\u00a0min 9\u00a0s',
       tests: 1_290,
       failed: 5,
       cache: '65%',
-      size: '85.0 MB'
+      size: '85.0\u00a0MB'
     }
   ];
 
-  let sort = $state<{ key: string; direction: 'ascending' | 'descending' } | null>({
-    key: 'merged',
-    direction: 'descending'
-  });
+  // The order is kept in the address as `sort=-merged`, a minus for descending, or `none`.
+  type Sort = { key: string; direction: 'ascending' | 'descending' } | null;
+  const order = addressed('sort', '-merged');
+  const sort = {
+    get value(): Sort {
+      const asked = order.value;
+      if (asked === 'none') return null;
+      const descending = asked.startsWith('-');
+      return {
+        key: descending ? asked.slice(1) : asked,
+        direction: descending ? 'descending' : 'ascending'
+      };
+    },
+    set value(next: Sort) {
+      order.value =
+        next === null ? 'none' : `${next.direction === 'descending' ? '-' : ''}${next.key}`;
+    }
+  };
   let retried = $state(0);
 </script>
 
@@ -155,16 +176,16 @@
   note="Row headers name each row, numbers sit at the end, and a wide table may stripe its rows"
   layout="stack"
 >
-  <Specimen label="Row headers, sortable" code="caption rowHeader sortable bind:sort">
+  <Specimen label="Row headers, sortable">
     <DataTable
-      caption="Pull requests over the last 90 days"
+      caption="Pull requests over the last 90&nbsp;days"
       columns={repositoryColumns}
       rows={repositories}
       rowHeader
-      bind:sort
+      bind:sort={() => sort.value, (next) => (sort.value = next)}
     />
   </Specimen>
-  <Specimen label="Striped" code="striped">
+  <Specimen label="Striped">
     <DataTable
       caption="Builds in the last hour"
       columns={buildColumns}
@@ -176,11 +197,11 @@
 </Example>
 
 <Example
-  title="Long values"
+  title="Long Values"
   note="Long text wraps inside its own column, so no cell draws past the column it belongs to"
   layout="stack"
 >
-  <Specimen label="Wrapping text, named without a caption" code="aria-label">
+  <Specimen label="Wrapping text, named without a caption">
     <DataTable aria-label="Law checks" columns={checkColumns} rows={checks} />
   </Specimen>
 </Example>
@@ -189,17 +210,18 @@
   title="States"
   note="Empty, loading, refreshing and failed tables say so in words under their headings"
   layout="grid"
+  --specimen-min="28rem"
 >
-  <Specimen label="Empty" code={'rows={[]}'}>
+  <Specimen label="Empty">
     <DataTable caption="Releases" columns={releaseColumns} rows={[]} />
   </Specimen>
-  <Specimen label="Loading" code="loading">
+  <Specimen label="Loading">
     <DataTable caption="Releases" columns={releaseColumns} rows={[]} loading />
   </Specimen>
-  <Specimen label="Refreshing" code="refreshing">
+  <Specimen label="Refreshing">
     <DataTable caption="Releases" columns={releaseColumns} rows={releases} refreshing />
   </Specimen>
-  <Specimen label="Failed" code="error onretry">
+  <Specimen label="Failed">
     <DataTable
       caption="Releases"
       columns={releaseColumns}
@@ -208,7 +230,7 @@
       onretry={() => retried++}
     />
   </Specimen>
-  <Specimen label="Failed over old rows" code="error onretry">
+  <Specimen label="Failed over old rows">
     <DataTable
       caption="Releases"
       columns={releaseColumns}
@@ -220,11 +242,11 @@
 </Example>
 
 <Example
-  title="First load"
-  note="Placeholder rows take the table's own cells, each bar where its column's words start, and one light crosses them"
+  title="First Load"
+  note="Placeholder rows take the table’s own cells, each bar where its column’s words start, and one light crosses them"
   layout="stack"
 >
-  <Specimen label="Loading, wide" code="rowHeader loading">
+  <Specimen label="Loading, wide">
     <DataTable
       caption="Builds in the last hour"
       columns={buildColumns}
@@ -236,11 +258,11 @@
 </Example>
 
 <Example
-  title="Narrow width"
+  title="Narrow Width"
   note="Columns that outgrow the room scroll inside the frame, which says so and keeps the row headings in view"
   layout="grid"
 >
-  <Specimen label="Scrolls, with drawn cells" code="cell">
+  <Specimen label="Scrolls, with drawn cells">
     <DataTable caption="Releases" columns={releaseColumns} rows={releases} rowHeader>
       {#snippet cell(row, column)}
         {#if column.key === 'status'}
@@ -277,6 +299,7 @@
   .status > span {
     align-content: center;
     block-size: var(--sui-block-snap-even);
+    padding-block: var(--sui-block-snap-room-even);
     text-box: trim-both cap alphabetic;
   }
 </style>

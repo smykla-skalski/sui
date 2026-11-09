@@ -91,6 +91,7 @@ fits the eyebrow's place in a `PageHeader`.
   .sui-back-link-label {
     align-content: center;
     block-size: var(--sui-block-snap);
+    padding-block: var(--sui-block-snap-room);
     text-box: trim-both cap alphabetic;
   }
 

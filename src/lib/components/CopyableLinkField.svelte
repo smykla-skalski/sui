@@ -9,9 +9,9 @@
     value,
     label,
     hint,
-    copyLabel = word('CopyableLinkField.copyLabel', 'Copy link'),
+    copyLabel = word('CopyableLinkField.copyLabel', 'Copy Link'),
     copiedLabel = word('CopyableLinkField.copiedLabel', 'Copied'),
-    failedLabel = word('CopyableLinkField.failedLabel', 'Copy failed'),
+    failedLabel = word('CopyableLinkField.failedLabel', 'Copy by Hand'),
     oncopied,
     oncopyfailed,
     class: className = '',
@@ -42,37 +42,6 @@
   // extended by that press from the value's start to the pointer instead.
   let pressing = false;
 
-  /* The value wraps at any character, and the box is as tall as its lines, so a long token is
-     never cut. A browser that sizes a field to its content does it in CSS alone. Elsewhere the
-     height is measured again when the width or value changes. Width changes wait for the next
-     frame, so the height they set is not a change the watcher is still reporting. */
-  let measure: (() => void) | undefined;
-  function fit(node: HTMLTextAreaElement) {
-    if (CSS.supports('field-sizing', 'content')) return;
-    const size = () => {
-      node.style.blockSize = '0px';
-      node.style.blockSize = `${node.scrollHeight}px`;
-    };
-    measure = size;
-    size();
-    let frame = 0;
-    const observer = new ResizeObserver(() => {
-      cancelAnimationFrame(frame);
-      frame = requestAnimationFrame(size);
-    });
-    observer.observe(node.parentElement ?? node);
-    return () => {
-      if (measure === size) measure = undefined;
-      cancelAnimationFrame(frame);
-      observer.disconnect();
-    };
-  }
-
-  $effect(() => {
-    void value;
-    measure?.();
-  });
-
   /* Selecting by hand is the way out when the clipboard refuses, so the value is handed over
      selected, ready for the platform's own copy. */
   function offer(error: unknown) {
@@ -92,21 +61,21 @@ the value with all of it selected.
 
 The field and its `CopyButton` are one control: the copy action is a chip inside the field's
 end, under one frame. The chip shows the short "Copy", so the value keeps the width, and is
-named by `copyLabel`, such as "Copy link", which starts with the shown word (WCAG 2.5.3). The
+named by `copyLabel`, such as "Copy Link", which starts with the shown word (WCAG 2.5.3). The
 copy part confirms with "Copied". A long value wraps onto more lines
 at any character, so all of it shows and it never widens the row. With `label` the pair sits in a `Field`, and the label names
 the text field.
 
 - Semantics: a read-only text area named by its `Field` label or `aria-label`, and a copy button named by `copyLabel`, which starts with its shown word, inside one joined field.
 - Content: one link or token in the mono face, and the copy action's three short labels.
-- States: rest (the inset well and a quiet frame, because it only reads), focus on the value (the field's ring, the value selected), focus on the copy action (its own inset ring), pressed copy action (a deeper veil and an inset shadow), copied and failed.
+- States: rest (the field well and a quiet frame, because it only reads), focus on the value (the field's ring, the value selected), focus on the copy action (its own inset ring), pressed copy action (a deeper veil and an inset shadow), copied and failed.
 - Keyboard: Tab selects the value and moves on to the copy action, Enter or Space copies, and the platform's own copy works on the selection.
 - Pointer and touch: 34px tall, 44px on a phone or any touch screen, and the copy action keeps a 44px hit area there.
 - Focus: copying keeps focus on the action, and a refused copy moves it to the value, selected.
 - Responsive: it fills its container, a long value wraps onto more lines with the copy action level with the first one, and the copy action keeps the width of "Copy" or "Copied"; a longer failure wraps inside it.
 - Accessibility: each part has its own name, the outcome is spoken through the copy action's status, and the value's text holds 4.5:1.
 - Localization: `copyLabel`, `copiedLabel` and `failedLabel` are props with English defaults, and the copy action sits at the inline end in either direction.
-- Performance: one text area and one button; without `field-sizing`, the text area is measured again only when its width or value changes.
+- Performance: one text area and one button; a hidden copy of the value sets the height in CSS, so no script measures it.
 - Analytics: `oncopied` hears each copy and `oncopyfailed` each refusal.
 - Failure: a refused copy says so and hands the value over selected, so the reader can still copy it by hand.
 -->
@@ -114,24 +83,27 @@ the text field.
 {#snippet row(control?: FieldControl)}
   <JoinedField readonly>
     {#snippet start()}
-      <!-- Focus by Tab selects the whole value, as a field does. -->
-      <textarea
-        bind:this={input}
-        {...rest}
-        id={control?.id ?? rest.id}
-        aria-describedby={control?.describedby ?? rest['aria-describedby']}
-        class="sui-copyable-link-value"
-        {value}
-        readonly
-        rows="1"
-        spellcheck="false"
-        {@attach fit}
-        onpointerdown={() => (pressing = true)}
-        onfocus={(event) => {
-          if (!pressing) event.currentTarget.select();
-          pressing = false;
-        }}
-        onblur={() => (pressing = false)}></textarea>
+      <!-- A hidden copy of the value in the same grid cell makes the box as tall as its lines,
+           so a long token is never cut and no script measures it. -->
+      <div class="sui-copyable-link-fit" data-value={value}>
+        <!-- Focus by Tab selects the whole value, as a field does. -->
+        <textarea
+          bind:this={input}
+          {...rest}
+          id={control?.id ?? rest.id}
+          aria-describedby={control?.describedby ?? rest['aria-describedby']}
+          class="sui-copyable-link-value"
+          {value}
+          readonly
+          rows="1"
+          spellcheck="false"
+          onpointerdown={() => (pressing = true)}
+          onfocus={(event) => {
+            if (!pressing) event.currentTarget.select();
+            pressing = false;
+          }}
+          onblur={() => (pressing = false)}></textarea>
+      </div>
     {/snippet}
     {#snippet end()}
       <CopyButton
@@ -176,26 +148,30 @@ the text field.
     }
   }
 
-  /* The ground, edge and ring are the joined field's. The lines keep the control's text
-     inset, so one line sits where a one-line field's value would. */
+  .sui-copyable-link-fit {
+    display: grid;
+  }
+
+  .sui-copyable-link-fit::after {
+    content: attr(data-value) ' ';
+    visibility: hidden;
+    white-space: pre-wrap;
+  }
+
+  /* The copy and the value wrap alike, so the copy's lines are the value's. The lines keep the
+     control's text inset, so one line sits where a one-line field's value would. */
+  .sui-copyable-link-fit::after,
   .sui-copyable-link-value {
-    background: transparent;
-    border: 0;
     box-sizing: border-box;
-    color: var(--sui-text-primary);
-    display: block;
-    field-sizing: content;
-    font: var(--sui-weight-regular) var(--sui-font-size-input) / var(--sui-leading-input)
+    font: var(--sui-weight-regular) var(--sui-font-size-input-mono) / var(--sui-leading-input)
       var(--sui-mono);
     font-variant-ligatures: none;
     font-variant-numeric: tabular-nums;
-    inline-size: 100%;
-    margin: 0;
+    grid-area: 1 / 1;
     min-block-size: calc(
       var(--sui-local-control-height, var(--sui-control-height-compact)) - 2 * var(--sui-stroke)
     );
-    outline: none;
-    overflow: hidden;
+    min-inline-size: 0;
     overflow-wrap: anywhere;
     padding: calc(
         (
@@ -204,8 +180,18 @@ the text field.
           ) /
           2
       )
-      var(--sui-space-2);
-    resize: none;
+      var(--sui-field-inset);
     word-break: break-all;
+  }
+
+  /* The ground, edge and ring are the joined field's. */
+  .sui-copyable-link-value {
+    background: transparent;
+    border: 0;
+    color: var(--sui-text-primary);
+    margin: 0;
+    outline: none;
+    overflow: hidden;
+    resize: none;
   }
 </style>

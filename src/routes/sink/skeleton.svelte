@@ -23,7 +23,7 @@
 
 <Example
   title="Rows"
-  note="Bars stand where a row's name, its line under it and its side will be, plain rows draw one line, and one light crosses them"
+  note="Bars stand where a row’s name, its line under it and its side will be, plain rows draw one line, and one light crosses them"
   layout="grid"
   ground="canvas"
 >
@@ -32,7 +32,7 @@
       <Skeleton rows={2} patience={Infinity} label="Loading repositories…" />
     </Section>
   </Specimen>
-  <Specimen label="Plain rows" code={'bars={false} rowHeight="2.75rem"'}>
+  <Specimen label="Plain rows">
     <Section title="Members" level={4}>
       <Skeleton
         rows={2}
@@ -47,16 +47,16 @@
 
 <Example
   title="Slow"
-  note="A wait that outlasts its patience stops its light and says so in the first row's shape, here from the start"
+  note="A wait that outlasts its patience stops its light and says so in the first row’s shape, here from the start"
   layout="grid"
   ground="canvas"
 >
-  <Specimen label="Two-line rows" code={'patience={0}'}>
+  <Specimen label="Two-line rows">
     <Section title="Repositories" level={4}>
       <Skeleton rows={2} patience={0} label="Loading repositories…" />
     </Section>
   </Specimen>
-  <Specimen label="Plain rows" code={'bars={false} rowHeight="2.75rem" patience={0}'}>
+  <Specimen label="Plain rows">
     <Section title="Members" level={4}>
       <Skeleton rows={2} rowHeight="2.75rem" bars={false} patience={0} label="Loading members…" />
     </Section>
@@ -64,15 +64,15 @@
 </Example>
 
 <Example
-  title="First load"
+  title="First Load"
   note="The region is busy while placeholder rows reserve the loaded height, and the rows take their place"
   layout="stack"
   ground="canvas"
 >
   <Button onclick={() => (loading ? (loading = false) : reload())}>
-    {loading ? 'Show the rows' : 'Load again'}
+    {loading ? 'Show the Rows' : 'Load Again'}
   </Button>
-  <Specimen label={loading ? 'Loading' : 'Loaded'} code="loading">
+  <Specimen label={loading ? 'Loading' : 'Loaded'}>
     <Section title="Repositories" level={4}>
       <Skeleton {loading} rows={3} label="Loading repositories…">
         <ObjectList>
@@ -101,6 +101,7 @@
     font: var(--sui-weight-semibold) var(--sui-font-size-meta) / var(--sui-row-copy-leading)
       var(--sui-sans);
     overflow-wrap: anywhere;
+    padding-block: var(--sui-block-snap-room);
     text-box: trim-both cap alphabetic;
   }
 
@@ -111,6 +112,7 @@
     font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-row-copy-leading)
       var(--sui-sans);
     overflow-wrap: anywhere;
+    padding-block: var(--sui-block-snap-room);
     text-box: trim-both cap alphabetic;
   }
 </style>

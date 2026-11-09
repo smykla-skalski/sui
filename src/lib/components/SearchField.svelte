@@ -17,6 +17,7 @@
     hideLabel = false,
     clearLabel = word('SearchField.clearLabel', 'Clear the search'),
     onclear,
+    error,
     validationMessage,
     element = $bindable(null),
     id = `${uid}-input`,
@@ -34,6 +35,8 @@
     clearLabel?: string;
     /** Hears each clear, by the button or by Escape. */
     onclear?: () => void;
+    /** Said under the field at all times, such as a query the caller refused; it marks the field invalid. */
+    error?: string;
     /** Said in place of the browser's own words when its check refuses the query, such as "Enter at least 3 characters". */
     validationMessage?: string;
     element?: HTMLInputElement | null;
@@ -42,7 +45,7 @@
     class?: HTMLInputAttributes['class'];
   } & Omit<HTMLInputAttributes, 'value' | 'type' | 'aria-label' | 'id'> = $props();
 
-  const shown = $derived(refusals.message(undefined, validationMessage));
+  const shown = $derived(refusals.message(error, validationMessage));
   const describedby = $derived(
     [describedBy, shown && `${uid}-error`].filter(Boolean).join(' ') || undefined
   );
@@ -78,7 +81,7 @@ A search that narrows what is already on screen. It holds the query in `bind:val
 reports every keystroke through `oninput`; waiting before acting on it belongs to the caller,
 which is the only side that knows whether an answer costs a request.
 
-A clear button shows once there is a query, and Escape clears it too. An Escape with nothing
+A clear button shows once there is a query in a field that is on, and Escape clears it too. An Escape with nothing
 to clear passes on, so the dialog or popover around the field still closes. `label` is the
 accessible name and is drawn above the field, so the field never relies on its placeholder;
 `hideLabel` hides it only for a caller that draws the visible label itself, as `ListToolbar`
@@ -86,9 +89,9 @@ does beside its search. A search that filters is never
 disabled to say nothing matches; the list says that, and the caller puts the number of
 matches in a polite `role="status"` beside it so a screen reader hears it.
 
-- Semantics: a text input with `role="searchbox"`, named by `label`, through a drawn `<label for>` or `aria-label`, with a clear `IconButton` once there is a query.
-- Content: one line of query text, an optional placeholder that is an example, and the magnifier at the start.
-- States: empty, filled (with the clear button), focus (a flush 2px ring), invalid (the danger edge and an error under the field) and disabled as `TextInput` draws them.
+- Semantics: a native search input, which is a searchbox, named by `label`, through a drawn `<label for>` or `aria-label`, with a clear `IconButton` once there is a query.
+- Content: one line of query text, an optional placeholder that is an example, and the magnifier at the start. It is `autocomplete="off"` unless the caller says otherwise, so no password manager or form history offers itself for a search.
+- States: empty, filled (with the clear button), focus (a 2px ring 2px off its frame), invalid (the danger edge and an error under the field) and disabled as `TextInput` draws them.
 - Keyboard: typing narrows, Escape clears a query and passes on when there is none, and Tab reaches the clear button.
 - Pointer and touch: 34px tall, 44px on a phone or any touch screen, and the clear button keeps a 44px hit area there.
 - Focus: clearing by the button puts focus back in the field, and Escape keeps it there; a send refused for the query moves focus into the field when it is the form's first refused control.
@@ -97,7 +100,7 @@ matches in a polite `role="status"` beside it so a screen reader hears it.
 - Localization: `clearLabel` is a prop with an English default, a refusal reads `validationMessage` or else the browser's words in the reader's language, and the magnifier and the button sit at the start and end in either direction.
 - Performance: one input and a button that mounts with the first character; it never waits or requests on its own.
 - Analytics: `oninput` reports each keystroke and `onclear` each clear.
-- Failure: no matches are the list's to say; the field stays enabled and keeps the query, and a query its own constraints (`required`, `minlength`, `pattern`) refuse on a send is said under it, with a warning mark, in place of the browser's bubble.
+- Failure: no matches are the list's to say; the field stays enabled and keeps the query, and a query its own constraints (`required`, `minlength`, `pattern`) refuse on a send is said under it, with a warning mark, in place of the browser's bubble, as a caller's own `error` is.
 -->
 
 <div class={['sui-search-field', className]} {@attach refusals.area}>
@@ -106,10 +109,10 @@ matches in a polite `role="status"` beside it so a screen reader hears it.
     <TextInput
       bind:element
       bind:value
+      autocomplete="off"
       {...rest}
       {id}
-      type="text"
-      role="searchbox"
+      type="search"
       enterkeyhint="search"
       class="search-input"
       aria-label={hideLabel ? label : undefined}
@@ -117,13 +120,13 @@ matches in a polite `role="status"` beside it so a screen reader hears it.
       invalid={Boolean(shown)}
       onkeydown={onkeydownInput}
     />
-    <span class="sui-search-field-icon"><Icon name="search" size="sm" strokeWidth={2} /></span>
-    {#if value}
+    <span class="sui-search-field-icon"><Icon name="search" size="base" strokeWidth={2} /></span>
+    {#if value && !rest.disabled}
       <span class="sui-search-field-clear">
         <IconButton
           icon="close"
           label={clearLabel}
-          disabled={holding === 'firm' || Boolean(rest.disabled)}
+          disabled={holding === 'firm'}
           aria-disabled={holding === 'soft' || undefined}
           onclick={clear}
         />
@@ -134,7 +137,7 @@ matches in a polite `role="status"` beside it so a screen reader hears it.
        description still reads it. -->
   {#if shown}
     <p id="{uid}-error" class="sui-search-field-error" aria-hidden="true">
-      <span class="sui-search-field-error-mark"><Icon name="alert" size="xs" /></span>
+      <span class="sui-search-field-error-mark"><Icon name="alert" size="base" /></span>
       <span class="sui-search-field-error-text">{shown}</span>
     </p>
   {/if}
@@ -144,7 +147,7 @@ matches in a polite `role="status"` beside it so a screen reader hears it.
 <style>
   .sui-search-field {
     display: grid;
-    gap: var(--sui-row-copy-gap);
+    gap: var(--sui-field-gap);
     inline-size: 100%;
     min-inline-size: 0;
   }
@@ -152,10 +155,12 @@ matches in a polite `role="status"` beside it so a screen reader hears it.
   .sui-search-field-label {
     align-content: center;
     block-size: var(--sui-block-snap);
-    color: var(--sui-text-secondary);
-    font: var(--sui-weight-semibold) var(--sui-font-size-control) / var(--sui-row-copy-leading)
+    color: var(--sui-text-primary);
+    font: var(--sui-weight-semibold) var(--sui-font-size-control) / var(--sui-leading-note)
       var(--sui-sans);
+    padding-block: var(--sui-block-snap-room);
     text-box: trim-both cap alphabetic;
+    text-wrap: pretty;
   }
 
   .sui-search-field-box {
@@ -171,24 +176,32 @@ matches in a polite `role="status"` beside it so a screen reader hears it.
   }
 
   .sui-search-field-box > :global(.search-input) {
-    padding-inline: var(--sui-space-8)
+    appearance: none;
+    /* The words start 8px past the 16px magnifier, as a button's words stand off its icon (L-94). */
+    padding-inline: calc(var(--sui-field-inset) + var(--sui-icon-base) + var(--sui-space-2))
       var(--sui-local-control-height, var(--sui-control-height-compact));
+  }
+
+  /* The field draws its own clear button, so the browser's is hidden. */
+  .sui-search-field-box > :global(.search-input)::-webkit-search-cancel-button,
+  .sui-search-field-box > :global(.search-input)::-webkit-search-decoration {
+    appearance: none;
   }
 
   .sui-search-field-icon {
     color: var(--sui-text-muted);
     display: flex;
     justify-self: start;
-    margin-inline-start: var(--sui-space-3);
+    margin-inline-start: var(--sui-field-inset);
     pointer-events: none;
   }
 
   .sui-search-field-error {
     align-items: start;
     color: var(--sui-danger);
-    column-gap: var(--sui-space-1);
+    column-gap: var(--sui-space-2);
     display: grid;
-    font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-row-copy-leading)
+    font: var(--sui-weight-medium) var(--sui-font-size-note) / var(--sui-leading-note)
       var(--sui-sans);
     grid-template-columns: auto minmax(0, 1fr);
     margin: 0;
@@ -197,7 +210,7 @@ matches in a polite `role="status"` beside it so a screen reader hears it.
   /* Centred on the first line's cap height, however many lines the error wraps to. */
   .sui-search-field-error-mark {
     display: flex;
-    margin-block: round(calc((1cap - var(--sui-icon-xs)) / 2), 1px);
+    margin-block: round(calc((1cap - var(--sui-icon-base)) / 2), 1px);
   }
 
   .sui-search-field-error-text {
@@ -205,7 +218,9 @@ matches in a polite `role="status"` beside it so a screen reader hears it.
     block-size: var(--sui-block-snap);
     min-inline-size: 0;
     overflow-wrap: anywhere;
+    padding-block: var(--sui-block-snap-room);
     text-box: trim-both cap alphabetic;
+    text-wrap: pretty;
   }
 
   .sui-search-field-clear {

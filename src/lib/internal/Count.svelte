@@ -8,7 +8,7 @@
 The one count beside a label, as tabs, segments and sidebar rows carry: a pill of tabular
 figures on a veil. The place it stands in sets its inks through `--sui-local-count-ink` and
 `--sui-local-count-ground`, so a current tab or a selected segment recolours the count without
-reshaping it. A number is grouped in the page's language, so 1284 reads "1,284" in English
+reshaping it. A number is grouped in the reader's format, so 1284 reads "1,284" in English
 and "1 284" in French; a string is drawn as given. The pill rounds to an even height, so it
 centres on its line at whole pixels (L-95).
 -->
@@ -36,6 +36,7 @@ centres on its line at whole pixels (L-95).
   .sui-count > span {
     align-content: center;
     block-size: var(--sui-block-snap-even);
+    padding-block: var(--sui-block-snap-room-even);
     text-box: trim-both cap alphabetic;
   }
 </style>
