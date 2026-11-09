@@ -646,7 +646,7 @@ name is the label and the hex, such as "Label color #0f766e". `name` posts the h
         (var(--sui-color-picker-cols) - 1) + var(--sui-color-picker-pad) * 2 + 2 * var(--sui-stroke)
     );
     --sui-color-picker-hue-height: 12px;
-    --sui-color-picker-hue-thumb: 16px;
+    --sui-color-picker-hue-thumb: 18px;
     --sui-color-picker-area-height: 10rem;
     --sui-color-picker-knob: var(--sui-color-picker-hue-thumb);
     box-sizing: border-box;
@@ -666,7 +666,7 @@ name is the label and the hex, such as "Label color #0f766e". `name` posts the h
     align-content: center;
     block-size: var(--sui-block-snap);
     color: var(--sui-text-primary);
-    font: var(--sui-weight-semibold) var(--sui-font-size-control) / var(--sui-leading-note)
+    font: var(--sui-weight-medium) var(--sui-font-size-control) / var(--sui-leading-note)
       var(--sui-sans);
     padding-block: var(--sui-block-snap-room);
     text-box: trim-both cap alphabetic;

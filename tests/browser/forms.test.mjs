@@ -2051,20 +2051,20 @@ suite('forms', together, () => {
           names.map((name) => name.split(',')[0]),
           ['Blue', 'Green', 'Orange', 'Red', 'Violet', 'Teal']
         );
-        // Every part of the panel, the swatches too, is named by a label in view that sets as a
-        // field's label does (L-35).
+        // Every part of the panel, the swatches too, is named by a label in view in a field
+        // label's size, leading and ink, a weight under it, so the picker's own label leads (L-35).
         const parts = await page.evaluate(() => {
           const panel = /** @type {Element} */ (document.querySelector(':popover-open'));
           const field = /** @type {Element} */ (document.querySelector('.sui-field-label'));
-          const set = (/** @type {Element} */ label) => {
+          const set = (/** @type {Element} */ label, step = 0) => {
             const look = getComputedStyle(label);
-            return `${look.fontWeight} ${look.fontSize}/${look.lineHeight} ${look.color}`;
+            return `${Number(look.fontWeight) - step} ${look.fontSize}/${look.lineHeight} ${look.color}`;
           };
           const named = panel.querySelector('[role="radiogroup"]')?.getAttribute('aria-labelledby');
           return {
             swatches: named ? document.getElementById(named)?.checkVisibility() : false,
-            sets: [...panel.querySelectorAll('.part-label')].map(set),
-            field: set(field)
+            sets: [...panel.querySelectorAll('.part-label')].map((label) => set(label)),
+            field: set(field, 100)
           };
         });
         assert.ok(parts.swatches, 'the swatches have no label in view');
