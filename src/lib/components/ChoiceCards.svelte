@@ -103,7 +103,7 @@ and `pending` locks it the same way while the chosen answer saves, with its dot 
 
 - Semantics: a `<fieldset role="radiogroup">` named by its `<legend>`, described by the hint and the error, holding native radios each named by its label and described by its sentence, with a polite `role="status"` that speaks the error.
 - Content: a question as the legend and two to six answers, each a short label and one sentence; an optional hint and an error.
-- States: unchosen (a quiet edge), chosen (a brand tint, a 2px brand edge and a filled dot), hover (a field's faint ground and a firmer edge on an unchosen card), focus (a 2px ring 2px off the card's own edge, a chosen card's brand edge thinning to 1px under it), pressed (a deeper ground, an inset shadow and a 1px sink), required (the word after the legend), invalid (a danger edge on every unchosen card and an error with a warning mark, from `error` or from a refused send), pending (the chosen card keeps full strength, its dot turns in the accent and the group is busy), and disabled answers, a disabled group and the answers a pending group refuses (0.6 opacity).
+- States: unchosen (a quiet edge), chosen (a brand tint, a 2px brand edge and a filled dot), hover (a field's faint ground and a firmer edge on an unchosen card), focus (a 2px ring 2px off the card's own edge, a chosen card's brand edge thinning to 1px under it), pressed (a deeper ground, an inset shadow and a 1px sink), required (the word after the legend), invalid (a danger edge on every unchosen card and its dot and an error with a warning mark, from `error` or from a refused send), pending (the chosen card keeps full strength, its dot's ring turns in the accent around its filled centre and the group is busy), and disabled answers, a disabled group and the answers a pending group refuses (0.6 opacity).
 - Keyboard: Tab enters the group at the chosen answer, the arrows move the choice and skip disabled answers, and Space chooses; a locked group refuses all of them and keeps focus.
 - Pointer and touch: every card is its own target, at least 72px tall.
 - Focus: locking the group leaves focus on the radio that had it, and a send that leaves a required question unanswered moves focus to its first radio when it is the form's first refused control.
@@ -336,6 +336,12 @@ and `pending` locks it the same way while the chosen answer saves, with its dot 
     position: relative;
   }
 
+  /* An answer still missing marks every empty dot as it marks its card, as an invalid check box
+     draws its box in the danger edge (L-9). */
+  .invalid .sui-choice-card:not(:has(input:checked)) .sui-choice-card-dot {
+    border-color: var(--sui-danger-edge);
+  }
+
   .sui-choice-card:has(input:checked) .sui-choice-card-dot {
     border: var(--sui-stroke-bold) solid var(--sui-brand-action);
   }
@@ -383,15 +389,12 @@ and `pending` locks it the same way while the chosen answer saves, with its dot 
   }
 
   /* While the answer saves, its dot's ring turns with one side in the accent, as a pending
-     switch's thumb does, and holds 3:1 on the card in either theme (WCAG 1.4.11). */
+     switch's thumb does, and holds 3:1 on the card in either theme (WCAG 1.4.11). The filled
+     centre stays, so a still frame still reads as the chosen answer. */
   .sui-choice-card-dot.spinning {
     animation: sui-choice-spin var(--sui-duration-spinner) var(--sui-ease-linear) infinite;
     border-color: color-mix(in srgb, var(--sui-brand-action) 25%, transparent);
     border-block-start-color: var(--sui-brand-action);
-  }
-
-  .sui-choice-card-dot.spinning::after {
-    visibility: hidden;
   }
 
   @keyframes sui-choice-spin {

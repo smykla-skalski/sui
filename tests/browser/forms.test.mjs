@@ -141,6 +141,13 @@ suite('forms', together, () => {
           'none',
           'the saving answer turns its dot'
         );
+        assert.equal(
+          await group
+            .locator('.sui-choice-card:has(input:checked) .sui-choice-card-dot')
+            .evaluate((dot) => getComputedStyle(dot, '::after').visibility),
+          'visible',
+          'the turning dot keeps its filled centre'
+        );
         const off = page.locator('#choice-cards fieldset[aria-disabled="true"]:not([aria-busy])');
         assert.deepEqual(
           [

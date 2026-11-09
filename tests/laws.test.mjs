@@ -1262,6 +1262,13 @@ test('L-41 a field keeps its frame and wears one ring 2px off it in every state'
   );
 });
 
+test('L-9 an invalid choice card marks its empty dot with the danger edge too', () => {
+  assert.match(
+    styles['src/lib/components/ChoiceCards.svelte'],
+    /\.invalid \.sui-choice-card:not\(:has\(input:checked\)\) \.sui-choice-card-dot \{\s*border-color: var\(--sui-danger-edge\);\s*\}/
+  );
+});
+
 test('L-55 a choice card takes the field radius, not a surface card radius', () => {
   const cards = styles['src/lib/components/ChoiceCards.svelte'];
   assert.match(cards, /\.sui-choice-card \{[^}]*border-radius: var\(--sui-radius-control\);/);
