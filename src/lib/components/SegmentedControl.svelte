@@ -250,6 +250,9 @@
     if (drag?.captured || disabled || locked || event.button !== 0 || value === null) return;
     const option = (event.target as Element).closest('label');
     if (!option?.classList.contains('selected')) return;
+    // A chosen option that is disabled, or whose radios a form around it disables, holds its
+    // choice: a drag would move what no click on it could.
+    if (option.querySelector('input')?.matches(':disabled')) return;
     drag = { pointer: event.pointerId, x: event.clientX, captured: false };
   }
 
@@ -344,7 +347,7 @@ itself, so the choice shows from the first frame.
 - Content: two to five options, each a short word with an optional icon and count; a long word never wraps, so the control turns into the select instead.
 - States: rest, hover (a fill that keeps the thumb's curve), pressed (the fill sinks, the thumb darkens and creases), selected (the thumb), focus (a 2px ring 2px off the track, and the hover fill on a focused option the thumb is not under), a disabled option (its words in the muted ink at the disabled opacity), a disabled whole (the disabled field's fill with no frame, its words in the muted ink at full strength), a chosen disabled option (a plain plate with the thumb's seat and the control border ink on its edge, and flat, with the edge but no seat, in a disabled whole), held (the whole at the disabled opacity: disabled while a busy dialog or a saving pane around it works, and refusing every press, arrow and drag with focus kept while a saving setting row does), and `null` with no thumb.
 - Keyboard: Tab reaches the checked option, or the first one when nothing is chosen; the arrow keys move the choice and skip disabled options; Escape puts a dragged thumb back.
-- Pointer and touch: a click chooses any option and a drag of the thumb chooses on release, so the drag is never the only way (WCAG 2.5.7); on a phone or a coarse pointer each option is at least 44 by 44px.
+- Pointer and touch: a click chooses any option and a drag of the thumb chooses on release, while a chosen disabled option and a disabled or held control refuse the drag and show no grab, so the drag is never the only way (WCAG 2.5.7); on a phone or a coarse pointer each option is at least 44 by 44px.
 - Focus: choosing keeps focus on the option; when the segments turn into the select, or back, focus moves to the other form instead of falling to the page.
 - Responsive: as wide as its words or its room, whichever is less; short of room it turns into a `Select`, because a hidden option is a lost option.
 - Accessibility: `label` is drawn above the segments, 8px from them, unless `hideLabel` is set or `aria-labelledby` names a label that is already drawn; `aria-describedby` reaches the group or the select; counts are part of each option's name.
@@ -632,7 +635,7 @@ itself, so the choice shows from the first frame.
     cursor: grabbing;
   }
 
-  .sui-segmented-track:not(:disabled, .locked) .sui-segmented-option.selected {
+  .sui-segmented-track:not(:disabled, .locked) .sui-segmented-option.selected:not(.disabled) {
     cursor: grab;
   }
 
@@ -826,6 +829,23 @@ itself, so the choice shows from the first frame.
 
     border-end-end-radius: 0;
     border-start-end-radius: 0;
+  }
+
+  /* A chosen disabled plate is not the live thumb: it wears an edge and draws no states, so a
+     fill run under it would show in its corners. Beside it the fill keeps its own curve and
+     stops the thumb's 2px inset short of the plate, as the plate stands off the track. */
+  .selected.disabled + .sui-segmented-option::before {
+    --sui-local-bleed-start: calc(-1 * var(--sui-control-inset));
+
+    border-end-start-radius: var(--sui-radius-control);
+    border-start-start-radius: var(--sui-radius-control);
+  }
+
+  .sui-segmented-option:has(+ .selected.disabled)::before {
+    --sui-local-bleed-end: calc(-1 * var(--sui-control-inset));
+
+    border-end-end-radius: var(--sui-radius-control);
+    border-start-end-radius: var(--sui-radius-control);
   }
 
   /* The selected option draws no fill: the thumb is its ground and carries its states. */

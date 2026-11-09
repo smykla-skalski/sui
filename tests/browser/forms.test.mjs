@@ -505,6 +505,62 @@ suite('forms', together, () => {
       );
     });
 
+    test("a disabled segmented thumb refuses a drag and its neighbour's hover stays its own", async () => {
+      const page = await opened();
+      const tracks = page.locator('#segmented-control .sui-segmented > .sui-segmented-track');
+      const option = tracks.filter({ has: page.locator('.selected.disabled') }).first();
+      const whole = page
+        .locator('#segmented-control .sui-segmented > .sui-segmented-track.off')
+        .first();
+      try {
+        for (const [name, track] of /** @type {const} */ ([
+          ['a chosen disabled option', option],
+          ['a disabled whole', whole]
+        ])) {
+          await track.scrollIntoViewIfNeeded();
+          const chosen = () =>
+            track.evaluate((node) => node.querySelector('input:checked')?.getAttribute('value'));
+          const before = await chosen();
+          const from = await track.locator('label.selected').boundingBox();
+          const to = await track
+            .locator('label:not(.selected):not(.disabled)')
+            .first()
+            .boundingBox();
+          assert.ok(from && to);
+          assert.equal(
+            await track
+              .locator('label.selected')
+              .evaluate((label) => getComputedStyle(label).cursor),
+            'default',
+            `${name} offers no grab`
+          );
+          await page.mouse.move(from.x + from.width / 2, from.y + from.height / 2);
+          await page.mouse.down();
+          await page.mouse.move(to.x + to.width / 2, to.y + to.height / 2, { steps: 8 });
+          await page.mouse.up();
+          assert.equal(await chosen(), before, `${name} let a drag move its choice`);
+        }
+        const beside = option.locator('label:has(+ label.selected)');
+        await beside.hover();
+        assert.deepEqual(
+          await beside.evaluate((label) => {
+            const fill = getComputedStyle(label, '::before');
+            const box = label.getBoundingClientRect();
+            const plate = /** @type {Element} */ (label.nextElementSibling).getBoundingClientRect();
+            return {
+              square: fill.borderStartEndRadius === '0px' || fill.borderEndEndRadius === '0px',
+              under: box.right - parseFloat(fill.right) > plate.left
+            };
+          }),
+          { square: false, under: false },
+          'a hover beside a chosen disabled plate keeps its own curve and stops short of the plate'
+        );
+      } finally {
+        await page.mouse.move(0, 0);
+        await page.keyboard.press('Shift');
+      }
+    });
+
     // No specimen pairs a count with a chosen disabled option, so the test sets the classes the
     // component would, and drops the thumb to stand in for the render before script measures it.
     test("a chosen disabled segment's count and unmeasured plate drop the live thumb's inks", async () => {
