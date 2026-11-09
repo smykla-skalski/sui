@@ -704,6 +704,14 @@ test('L-40 a disabled control draws at the disabled opacity, 0.6', () => {
   assert.equal(tokenMap(stripComments(palette))['--sui-disabled-opacity'], '0.6');
 });
 
+test('L-49 an off switch track sits in the field well in every theme', () => {
+  const tracks = [...stripComments(palette).matchAll(/--sui-switch-track-off:\s*([^;]+);/g)].map(
+    ([, value]) => value.trim()
+  );
+  assert.ok(tracks.length >= 2, 'a light and a dark track');
+  assert.deepEqual(new Set(tracks), new Set(['var(--sui-field-well)']));
+});
+
 test('L-43 a mark is as wide as what it says', () => {
   for (const name of ['Button', 'Chip', 'Pill', 'StatusPill', 'Link', 'Switch']) {
     const path = `src/lib/components/${name}.svelte`;

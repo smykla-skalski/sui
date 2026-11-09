@@ -375,7 +375,7 @@
 
   --sui-match-ink: var(--sui-brand-action-text);
 
-  --sui-switch-track-off: var(--sui-surface-inset);
+  --sui-switch-track-off: var(--sui-field-well);
   --sui-switch-track-off-border: var(--sui-border-strong);
   --sui-switch-track-on: var(--sui-brand-action);
   --sui-switch-thumb: #ffffff;
@@ -843,7 +843,7 @@
   --sui-code-comment: color-mix(in srgb, var(--sui-text-muted) 85%, var(--sui-text-primary));
   --sui-code-punct: var(--sui-text-secondary);
   --sui-match-ink: var(--sui-brand-action-text);
-  --sui-switch-track-off: var(--sui-surface-inset);
+  --sui-switch-track-off: var(--sui-field-well);
   --sui-switch-track-off-border: var(--sui-border-strong);
   --sui-switch-track-on: var(--sui-brand-action);
   --sui-switch-thumb: #eceef0;
@@ -1075,7 +1075,7 @@
     --sui-code-comment: color-mix(in srgb, var(--sui-text-muted) 85%, var(--sui-text-primary));
     --sui-code-punct: var(--sui-text-secondary);
     --sui-match-ink: var(--sui-brand-action-text);
-    --sui-switch-track-off: var(--sui-surface-inset);
+    --sui-switch-track-off: var(--sui-field-well);
     --sui-switch-track-off-border: var(--sui-border-strong);
     --sui-switch-track-on: var(--sui-brand-action);
     --sui-switch-thumb: #eceef0;
