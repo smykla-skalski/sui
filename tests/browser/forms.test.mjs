@@ -164,8 +164,16 @@ suite('forms', together, () => {
                 .evaluateAll((cards) => cards.map((card) => getComputedStyle(card).opacity))
             )
           ],
-          ['0.6'],
-          'a disabled group dims every card, the chosen one too'
+          ['1'],
+          'a disabled group draws at full strength, as a disabled field does'
+        );
+        /** @param {import('playwright-core').Locator} card */
+        const ink = (card) =>
+          card.locator('.sui-choice-card-label').evaluate((label) => getComputedStyle(label).color);
+        assert.notEqual(
+          await ink(off.locator('.sui-choice-card:not(:has(input:checked))').first()),
+          await ink(group.locator('.sui-choice-card:has(input:checked)')),
+          "a disabled group's answers take the muted ink"
         );
         /** @param {import('playwright-core').Locator} where */
         const paint = (where) =>
