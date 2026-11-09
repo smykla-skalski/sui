@@ -29,8 +29,10 @@
   // travels, so the hue drawn under a point is the hue a press there picks.
   const HUE_RAIL =
     'linear-gradient(to right, #ff0000 calc(var(--sui-color-picker-hue-thumb) / 2), #ffff00, #00ff00, #00ffff, #0000ff, #ff00ff, #ff0000 calc(100% - var(--sui-color-picker-hue-thumb) / 2))';
+  // The plane runs between the knob's centres at its edges, as the wheel does, so the knob stays
+  // inside the area and the colour drawn under a point is the colour a press there picks.
   const plane = (hue: string) =>
-    `linear-gradient(to top, #000000, transparent), linear-gradient(to right, #ffffff, ${hue})`;
+    `linear-gradient(to top, #000000 calc(var(--sui-color-picker-knob) / 2), transparent calc(100% - var(--sui-color-picker-knob) / 2)), linear-gradient(to right, #ffffff calc(var(--sui-color-picker-knob) / 2), ${hue} calc(100% - var(--sui-color-picker-knob) / 2))`;
 
   function hexToHsv(hex: string): Hsv {
     const n = parseInt(hex.slice(1), 16);
@@ -296,8 +298,13 @@
   function dragMove(event: PointerEvent) {
     if (!drag) return;
     const bounds = drag.target.getBoundingClientRect();
-    const x = clamp((event.clientX - bounds.left) / bounds.width);
-    apply({ ...hsv, s: x, v: 1 - clamp((event.clientY - bounds.top) / bounds.height) });
+    const reach = (drag.target.querySelector('.knob')?.getBoundingClientRect().width ?? 0) / 2;
+    const along = (offset: number, size: number) => clamp((offset - reach) / (size - 2 * reach));
+    apply({
+      ...hsv,
+      s: along(event.clientX - bounds.left, bounds.width),
+      v: 1 - along(event.clientY - bounds.top, bounds.height)
+    });
   }
 
   function dragStart(event: PointerEvent) {
@@ -473,8 +480,8 @@ name is the label and the hex, such as "Label color #0f766e". `name` posts the h
     class="panel"
     style:--sui-color-picker-value={current}
     style:--sui-color-picker-hue={hueColor}
-    style:--sui-color-picker-x="{hsv.s * 100}%"
-    style:--sui-color-picker-y="{(1 - hsv.v) * 100}%"
+    style:--sui-color-picker-x={hsv.s}
+    style:--sui-color-picker-y={1 - hsv.v}
     style:--sui-color-picker-h={hsv.h / 360}
   >
     {#if palette.length > 0}
@@ -599,7 +606,7 @@ name is the label and the hex, such as "Label color #0f766e". `name` posts the h
 <style>
   .mark,
   .panel {
-    --sui-color-picker-hairline: color-mix(in srgb, var(--sui-text-primary) 14%, transparent);
+    --sui-color-picker-hairline: var(--sui-border-control);
   }
 
   /* A swatch's ring is its own colour, its lightness clamped into the band that holds 3:1 on
@@ -759,8 +766,14 @@ name is the label and the hex, such as "Label color #0f766e". `name` posts the h
     background-color: var(--sui-color-picker-value);
     block-size: var(--sui-color-picker-knob);
     inline-size: var(--sui-color-picker-knob);
-    inset-block-start: var(--sui-color-picker-y);
-    inset-inline-start: var(--sui-color-picker-x);
+    inset-block-start: calc(
+      var(--sui-color-picker-knob) / 2 + (100% - var(--sui-color-picker-knob)) *
+        var(--sui-color-picker-y)
+    );
+    inset-inline-start: calc(
+      var(--sui-color-picker-knob) / 2 + (100% - var(--sui-color-picker-knob)) *
+        var(--sui-color-picker-x)
+    );
   }
 
   /* As wide as the area and the hex field, and thinner than its thumb, so the thumb reads as

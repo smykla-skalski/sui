@@ -1924,6 +1924,28 @@ suite('forms', together, () => {
         const area = /** @type {{ x: number, y: number, width: number, height: number }} */ (
           await page.locator(':popover-open .area').boundingBox()
         );
+        // As on the rail, the plane is drawn between the knob's centres, so the knob stays inside
+        // the area at its corners and a press picks the colour drawn under it.
+        const knob = page.locator(':popover-open .knob');
+        const reach = await knob.evaluate((element) => element.getBoundingClientRect().width / 2);
+        const saturation = () =>
+          page
+            .locator(':popover-open .area')
+            .evaluate((element) => Number(element.getAttribute('aria-valuenow')));
+        await page.mouse.click(area.x + area.width - 1, area.y + 1);
+        const corner = /** @type {{ x: number, y: number, width: number, height: number }} */ (
+          await knob.boundingBox()
+        );
+        assert.ok(
+          corner.x + corner.width <= area.x + area.width + 0.5 && corner.y >= area.y - 0.5,
+          'the knob hangs past the area at its corner'
+        );
+        await page.mouse.click(
+          area.x + reach + (area.width - 2 * reach) * 0.25,
+          area.y + area.height / 2
+        );
+        const across = await saturation();
+        assert.ok(Math.abs(across - 25) <= 2, `a quarter across the drawn plane reads ${across}%`);
         const still = () =>
           page.evaluate(() => ({
             select: getComputedStyle(document.documentElement).userSelect,
@@ -1983,16 +2005,22 @@ suite('forms', together, () => {
 
     // The page's frames share one measure, as each kit page's do, and the four states keep one
     // row in it, the disabled one's reason wrapped under its own trigger.
-    test('the colour picker page frames its examples alike and its states in one row', async () => {
+    test('the colour picker page frames its examples alike, its states in one row and a locked reason in two lines', async () => {
       const page = await opened();
-      const { widths, tops } = await page.evaluate(() => {
+      const { widths, tops, reasonLines } = await page.evaluate(() => {
         const section = /** @type {Element} */ (document.querySelector('#color-picker'));
+        const reason = /** @type {HTMLElement} */ (
+          section.querySelector('.states .specimen:last-child [id$="-hint"]')
+        );
         return {
           widths: [...section.querySelectorAll('.frame')].map(
             (frame) => frame.getBoundingClientRect().width
           ),
           tops: [...section.querySelectorAll('.states .specimen')].map(
             (specimen) => specimen.getBoundingClientRect().top
+          ),
+          reasonLines: Math.round(
+            reason.getBoundingClientRect().height / parseFloat(getComputedStyle(reason).lineHeight)
           )
         };
       });
@@ -2000,6 +2028,7 @@ suite('forms', together, () => {
       assert.equal(new Set(widths).size, 1, `the frames are ${widths.join(', ')}px wide`);
       assert.equal(tops.length, 4);
       assert.equal(new Set(tops).size, 1, 'a state left the row');
+      assert.ok(reasonLines <= 2, `the locked state's reason takes ${reasonLines} lines`);
     });
 
     // Last, because it leaves the page in its own state.
@@ -2072,14 +2101,16 @@ suite('forms', together, () => {
           (await edges()).every(Boolean),
           "a trigger wears a button's paint, not a field's"
         );
-        // The knob's centre reaches the area's edges, so the panel's inset must hold half a knob
-        // and still leave it room.
         const clear = await page.evaluate(() => {
           const panel = /** @type {Element} */ (document.querySelector(':popover-open'));
-          const box = panel.getBoundingClientRect();
           const area = /** @type {Element} */ (
             panel.querySelector('.area')
           ).getBoundingClientRect();
+          const probe = document.createElement('span');
+          probe.style.color = 'var(--sui-border-control)';
+          panel.append(probe);
+          const edge = getComputedStyle(probe).color;
+          probe.remove();
           const knob = /** @type {Element} */ (
             panel.querySelector('.knob')
           ).getBoundingClientRect();
@@ -2094,17 +2125,17 @@ suite('forms', together, () => {
             rims: [hue, panel.querySelector('.area')].map(
               (part) => getComputedStyle(/** @type {Element} */ (part)).boxShadow
             ),
-            room: Math.min(area.left - box.left, box.right - area.right) - knob.width / 2,
+            edge,
             sizes: [knob.width, thumb.getBoundingClientRect().width]
           };
         });
-        assert.ok(
-          clear.room >= 4,
-          `a knob at the area's edge stands ${clear.room}px from the panel's`
-        );
         assert.equal(clear.sizes[0], clear.sizes[1], "the area's knob and the hue's thumb differ");
         assert.ok(clear.aligned, "the hue rail stops short of the area's edges");
         assert.equal(clear.rims[0], clear.rims[1], "the hue rail lacks the area's rim");
+        assert.ok(
+          clear.rims[0].includes(clear.edge),
+          "the area's rim is fainter than a control's edge"
+        );
         assert.ok(clear.reach >= 24, `the hue rail takes a press only ${clear.reach}px tall`);
         // The focused swatch's ring stays clear of the next swatch.
         await page.keyboard.press('ArrowRight');
