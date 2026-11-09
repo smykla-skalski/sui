@@ -39,6 +39,7 @@
     system = true,
     label = word('ThemeSwitch.label', 'Theme'),
     hideLabel = true,
+    hint,
     lightLabel = word('ThemeSwitch.lightLabel', 'Light'),
     darkLabel = word('ThemeSwitch.darkLabel', 'Dark'),
     systemLabel = word('ThemeSwitch.systemLabel', 'System'),
@@ -58,6 +59,8 @@
     label?: string;
     /** Set false to draw `label` above the options. */
     hideLabel?: boolean;
+    /** A line under the options, such as why the shown theme is the system's. */
+    hint?: string;
     lightLabel?: string;
     darkLabel?: string;
     systemLabel?: string;
@@ -175,7 +178,7 @@ mounts, so a small script in the document head sets `data-sui-theme` on the root
 switch then marks that choice from its first paint, before it runs.
 
 - Semantics: a `SegmentedControl` of native radios named `label`, or its fallback `select`.
-- Content: two or three options, each a sun, moon or system glyph beside its word.
+- Content: two or three options, each a sun, moon or system glyph beside its word, and an optional hint under them.
 - States: those of `SegmentedControl`; the thumb marks the theme the page wears, which is the system's until a choice is made, and on a page rendered ahead of time the option for the theme the root wears is marked until the switch runs and reads the stored choice.
 - Keyboard: Tab reaches the group and the arrow keys choose, as in any radio group; Space on the shown option makes it the choice.
 - Pointer and touch: a press or a thumb drag chooses; on a phone or a coarse pointer each option is 44 by 44px.
@@ -198,6 +201,7 @@ switch then marks that choice from its first paint, before it runs.
   {name}
   {label}
   {hideLabel}
+  {hint}
   {options}
   class={className}
   onclick={pick}

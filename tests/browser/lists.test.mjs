@@ -1378,10 +1378,17 @@ suite('lists', together, () => {
   test('P7 a two-way theme switch keeps the shown theme when it is pressed', long, async () => {
     const page = await open({ colorScheme: 'dark' });
     try {
-      const dark = page
+      const group = page
         .locator('#theme-switch fieldset')
-        .filter({ has: page.locator('input[name="sink-theme-two"]') })
-        .locator('label', { hasText: 'Dark' });
+        .filter({ has: page.locator('input[name="sink-theme-two"]') });
+      // Its hint says why the shown theme is the system's, and is read with the group.
+      assert.equal(
+        await group.evaluate((element) =>
+          element.ariaDescribedByElements?.map((hint) => hint.textContent).join(' ')
+        ),
+        'Follows the system'
+      );
+      const dark = group.locator('label', { hasText: 'Dark' });
       await dark.scrollIntoViewIfNeeded();
       await dark.click();
       assert.equal(await page.evaluate(() => localStorage.getItem('sui:theme')), 'dark');
