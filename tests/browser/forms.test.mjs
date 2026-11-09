@@ -167,6 +167,20 @@ suite('forms', together, () => {
           ['0.6'],
           'a disabled group dims every card, the chosen one too'
         );
+        /** @param {import('playwright-core').Locator} where */
+        const paint = (where) =>
+          where
+            .locator('.sui-choice-card:has(input:checked)')
+            .evaluate((card) => [
+              getComputedStyle(card).backgroundColor,
+              getComputedStyle(card.querySelector('.sui-choice-card-dot') ?? card, '::after')
+                .backgroundColor
+            ]);
+        const [[liveGround, liveDot], [offGround, offDot]] = [await paint(group), await paint(off)];
+        assert.ok(
+          liveGround !== offGround && liveDot !== offDot,
+          `a disabled group's chosen card drops the accent tint and dot: ${offGround} ${offDot}`
+        );
       }
     );
 
