@@ -429,13 +429,15 @@ suite('forms', together, () => {
       const option = page
         .locator('#segmented-control .sui-segmented > .sui-segmented-track:not(:disabled)')
         .filter({ has: page.locator('.selected.disabled') });
-      for (const [name, track] of /** @type {const} */ ([
-        ['a disabled control', whole],
-        ['a chosen disabled option', option]
+      // A chosen disabled option holds its control, so the options beside it are off as single
+      // disabled options are, while a disabled whole keeps every word at full strength.
+      for (const [name, track, other] of /** @type {const} */ ([
+        ['a disabled control', whole, '1'],
+        ['a chosen disabled option', option, '0.6']
       ]))
         assert.deepEqual(
           { ...(await look(track)), thumb: (await look(track)).thumb === accent },
-          { opacity: '1', thumb: false, chosen: '1', other: '1' },
+          { opacity: '1', thumb: false, chosen: '1', other },
           `${name} stays at full strength and its thumb drops the accent`
         );
       /** @param {import('playwright-core').Locator} track */
@@ -505,7 +507,7 @@ suite('forms', together, () => {
       );
     });
 
-    test("a disabled segmented thumb refuses a drag and its neighbour's hover stays its own", async () => {
+    test('a segmented control whose choice is disabled holds it against a drag, a click and a hover', async () => {
       const page = await opened();
       const tracks = page.locator('#segmented-control .sui-segmented > .sui-segmented-track');
       const option = tracks.filter({ has: page.locator('.selected.disabled') }).first();
@@ -521,40 +523,35 @@ suite('forms', together, () => {
           const chosen = () =>
             track.evaluate((node) => node.querySelector('input:checked')?.getAttribute('value'));
           const before = await chosen();
+          const other = track.locator('label:not(.selected)').first();
           const from = await track.locator('label.selected').boundingBox();
-          const to = await track
-            .locator('label:not(.selected):not(.disabled)')
-            .first()
-            .boundingBox();
+          const to = await other.boundingBox();
           assert.ok(from && to);
-          assert.equal(
-            await track
-              .locator('label.selected')
-              .evaluate((label) => getComputedStyle(label).cursor),
-            'default',
-            `${name} offers no grab`
+          assert.deepEqual(
+            await track.evaluate((node) => ({
+              grab: getComputedStyle(/** @type {Element} */ (node.querySelector('label.selected')))
+                .cursor,
+              live: /** @type {Element} */ (node.parentElement).querySelectorAll(
+                'input:enabled, select:enabled'
+              ).length
+            })),
+            { grab: 'default', live: 0 },
+            `${name} offers no grab and no option to move to`
           );
           await page.mouse.move(from.x + from.width / 2, from.y + from.height / 2);
           await page.mouse.down();
           await page.mouse.move(to.x + to.width / 2, to.y + to.height / 2, { steps: 8 });
           await page.mouse.up();
           assert.equal(await chosen(), before, `${name} let a drag move its choice`);
+          await other.click({ force: true });
+          assert.equal(await chosen(), before, `${name} let a click move its choice`);
+          await other.hover();
+          assert.equal(
+            await other.evaluate((label) => getComputedStyle(label, '::before').opacity),
+            '0',
+            `${name} answers a hover`
+          );
         }
-        const beside = option.locator('label:has(+ label.selected)');
-        await beside.hover();
-        assert.deepEqual(
-          await beside.evaluate((label) => {
-            const fill = getComputedStyle(label, '::before');
-            const box = label.getBoundingClientRect();
-            const plate = /** @type {Element} */ (label.nextElementSibling).getBoundingClientRect();
-            return {
-              square: fill.borderStartEndRadius === '0px' || fill.borderEndEndRadius === '0px',
-              under: box.right - parseFloat(fill.right) > plate.left
-            };
-          }),
-          { square: false, under: false },
-          'a hover beside a chosen disabled plate keeps its own curve and stops short of the plate'
-        );
       } finally {
         await page.mouse.move(0, 0);
         await page.keyboard.press('Shift');
@@ -657,11 +654,12 @@ suite('forms', together, () => {
         assert.equal(select, box, 'the select fills the room the segments had');
     });
 
-    test('select-to-radio focus skips a checked disabled option', async () => {
+    test('select-to-radio focus lands on the first option when nothing is chosen', async () => {
       const page = await opened();
-      const control = page.locator('#segmented-control .sui-segmented').filter({
-        has: page.locator('input[value="debug"]:checked')
-      });
+      const control = page
+        .locator('#segmented-control .sui-segmented')
+        .filter({ hasNot: page.locator('input:checked') })
+        .first();
       await control.evaluate((node) => {
         if (node.parentElement) node.parentElement.style.inlineSize = '4rem';
       });
@@ -678,13 +676,7 @@ suite('forms', together, () => {
       );
       assert.equal(
         await page.evaluate(() => /** @type {HTMLInputElement} */ (document.activeElement).value),
-        'off'
-      );
-      assert.equal(
-        await page.evaluate(
-          () => /** @type {HTMLInputElement} */ (document.activeElement).disabled
-        ),
-        false
+        'day'
       );
     });
 
