@@ -1504,12 +1504,9 @@ suite('forms', together, () => {
           `${state}: the held row heads cover the ring's start side`
         );
       };
-      const scroller = input.locator('xpath=ancestor::*[contains(@class, "variants")][1]');
-      const scrolls = () => scroller.evaluate((box) => box.scrollWidth > box.clientWidth);
-      try {
-        assert.equal(await scrolls(), false, 'the matrix fits a wide page');
-        await ringShows('fitting');
-        // The hover ground bleeds into the gap as far as the box does, and shows whole there.
+      // The hover ground bleeds into the gap as far as the box does, and shows whole there.
+      /** @param {string} state */
+      const hoverShows = async (state) => {
         const row = input.locator('xpath=ancestor::label[1]');
         await input.evaluate((element) => /** @type {HTMLElement} */ (element).blur());
         await row.hover();
@@ -1520,9 +1517,16 @@ suite('forms', together, () => {
         assert.equal(
           await pixel(left, middle),
           await pixel(right, middle),
-          "the held row heads cover the hover ground's start"
+          `${state}: the held row heads cover the hover ground's start`
         );
         await page.mouse.move(0, 0);
+      };
+      const scroller = input.locator('xpath=ancestor::*[contains(@class, "variants")][1]');
+      const scrolls = () => scroller.evaluate((box) => box.scrollWidth > box.clientWidth);
+      try {
+        assert.equal(await scrolls(), false, 'the matrix fits a wide page');
+        await ringShows('fitting');
+        await hoverShows('fitting');
         await page.setViewportSize({ width: 1024, height: 900 });
         await page.waitForFunction(
           (box) => box.scrollWidth > box.clientWidth,
@@ -1530,6 +1534,7 @@ suite('forms', together, () => {
         );
         await scroller.evaluate((box) => box.scrollTo({ left: 0 }));
         await ringShows('scrolling, at its start');
+        await hoverShows('scrolling, at its start');
         await scroller.evaluate((box) => box.scrollTo({ left: box.scrollWidth }));
         await ringShows('scrolled past the first column');
       } finally {

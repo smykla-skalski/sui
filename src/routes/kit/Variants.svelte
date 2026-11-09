@@ -124,7 +124,8 @@ wide matrix on a wider stage scrolls inside it with the row values held, as a da
 
   /* While the matrix scrolls, the row values and the corner stay at the start and the cells
      scroll under them. Each takes its row's height and paints the stage's own ground past its
-     box, over half of each row gap, the gap after the values but for a focus ring's room, and
+     box, over half of each row gap, the gap after the values but for the room a first cell's
+     hover ground (8px, as a check list's) or focus ring takes, whichever is wider, and
      the frame's padding, without taking that room, so the held column is one solid strip and
      the start fade begins at its edge. A matrix that fits holds nothing and paints nothing, so
      a first cell's ring and hover ground draw whole in the gap. */
@@ -137,7 +138,10 @@ wide matrix on a wider stage scrolls inside it with the row values held, as a da
           var(--sui-local-stage-ground, var(--sui-surface-base))
         )
         fill 0 / 0 / calc(var(--sui-space-4) / 2)
-        calc(var(--sui-space-6) - var(--sui-focus-ring-width) - var(--sui-focus-ring-offset))
+        calc(
+          var(--sui-space-6) -
+            max(var(--sui-space-2), var(--sui-focus-ring-width) + var(--sui-focus-ring-offset))
+        )
         calc(var(--sui-space-4) / 2) var(--sui-space-1);
       inset-inline-start: 0;
       position: sticky;
