@@ -10,6 +10,7 @@
   import { clock } from '../kit/format.js';
   import { Section, Switch } from '#lib';
   import Example from '../kit/Example.svelte';
+  import Pair from '../kit/Pair.svelte';
   import Specimen from '../kit/Specimen.svelte';
   import Variants from '../kit/Variants.svelte';
 
@@ -47,6 +48,7 @@
 
 <Example
   title="States"
+  --example-max="54rem"
   note="Off and on, each with its label and a 44 px tap box, and a locked switch says beside it why"
 >
   <Variants
@@ -70,6 +72,7 @@
 
 <Example
   title="Saving"
+  --example-max="54rem"
   note="A flip takes effect at once, so the thumb turns while it saves and a refused change flips back and says why"
 >
   <Specimen label="Pending">
@@ -85,51 +88,65 @@
     />
   </Specimen>
   <Specimen label="Invalid, kept when on">
-    <Switch label="Allow public forks" checked invalid />
+    <Switch
+      label="Allow public forks"
+      checked
+      invalid
+      error="A private repository cannot allow public forks"
+    />
   </Specimen>
 </Example>
 
-<Example
-  title="Keyboard Focus"
-  note="Tab to a switch and press Space to flip it, and the ring sits 2 px off the track"
->
-  <Specimen label="Off">
-    <Switch label="Require reviews" />
-  </Specimen>
-</Example>
+<Pair>
+  <Example
+    title="Keyboard Focus"
+    note="Tab to a switch and press Space to flip it, and the ring sits 2 px off the track"
+  >
+    <Specimen label="Off">
+      <Switch label="Require reviews" />
+    </Specimen>
+  </Example>
 
-<Example
-  title="In a Section Head"
-  note="A bare switch keeps its 44 px hit area as paint, so the head keeps its own rhythm"
-  layout="grid"
-  ground="canvas"
->
-  <Specimen label="Bare">
-    <Section title="Scheduled Syncs" level={4}>
-      {#snippet actions()}
-        <Switch aria-label="Run scheduled syncs" bare bind:checked={scheduled} />
-      {/snippet}
-      <p class="copy">Every repository syncs at {clock(2)} in its own time zone</p>
-    </Section>
-  </Specimen>
-</Example>
+  <Example
+    title="In a Section Head"
+    note="A bare switch keeps its 44 px hit area as paint, so the head keeps its own rhythm"
+    layout="grid"
+    ground="canvas"
+  >
+    <Specimen label="Bare">
+      <Section title="Scheduled Syncs" level={4}>
+        {#snippet actions()}
+          <Switch aria-label="Run scheduled syncs" bare bind:checked={scheduled} />
+        {/snippet}
+        <p class="copy">Every repository syncs at {clock(2)} in its own time zone</p>
+      </Section>
+    </Specimen>
+  </Example>
+</Pair>
 
-<Example
-  title="Narrow Width"
-  note="A long label wraps beside the track and both stay centred"
-  layout="stack"
->
-  <Specimen label="Wrapped label">
-    <div class="narrow">
-      <Switch label="Close every stale pull request that has had no activity for 30 days" checked />
-    </div>
-  </Specimen>
-</Example>
+<div class="fill">
+  <Example
+    title="Narrow Width"
+    --example-max="calc(16rem + 2 * var(--sui-space-6))"
+    note="A long label wraps beside the track and both stay centred"
+    layout="stack"
+  >
+    <Specimen label="Wrapped label">
+      <div class="narrow">
+        <Switch
+          label="Close every stale pull request that has had no activity for 30 days"
+          checked
+        />
+      </div>
+    </Specimen>
+  </Example>
+</div>
 
 <style>
+  /* The reason stands where the switch's own error does, straight under its 44px row, so every
+     note under a switch keeps one distance from the track. */
   .locked {
     display: grid;
-    gap: var(--sui-row-copy-gap);
     justify-items: start;
   }
 
@@ -153,5 +170,13 @@
 
   .narrow {
     inline-size: min(100%, 16rem);
+  }
+
+  /* The narrow frame keeps the switch's 16rem and the stage's 24px pad on a wide page; on a
+     phone it fills the column, as every other frame does (L-55). */
+  @media (max-width: 47.9375rem) {
+    .fill :global(.example) {
+      --example-max: none;
+    }
   }
 </style>

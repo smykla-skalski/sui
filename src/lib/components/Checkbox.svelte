@@ -265,8 +265,8 @@ way; a busy dialog or a saving pane around it disables it while the work runs.
      outline doubles the edge outward, so it reads against the accent fill as well as the empty
      box, and stays clear of the focus ring 2px further out. */
   .sui-checkbox input + .sui-checkbox-box.invalid {
-    border-color: var(--sui-danger);
-    outline: var(--sui-stroke-bold) solid var(--sui-danger);
+    border-color: var(--sui-danger-edge);
+    outline: var(--sui-stroke-bold) solid var(--sui-danger-edge);
     outline-offset: calc(-1 * var(--sui-stroke));
   }
 

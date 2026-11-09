@@ -151,6 +151,25 @@ suite('forms', together, () => {
       }
     );
 
+    test('every note under a switch, a reason or an error, stands one distance from its track', async () => {
+      const page = await opened();
+      const gaps = await page.evaluate(() =>
+        [
+          ...document.querySelectorAll(
+            '#switch :is(div.locked, .sui-switch:has(.sui-switch-error))'
+          )
+        ].map((holder) => {
+          const track = holder.querySelector('.sui-switch-track')?.getBoundingClientRect();
+          const words = holder.querySelector('.reason, .sui-switch-words');
+          const range = document.createRange();
+          range.selectNodeContents(/** @type {Node} */ (words));
+          return Math.round(range.getBoundingClientRect().top - (track?.bottom ?? 0));
+        })
+      );
+      assert.ok(gaps.length >= 4, `only ${gaps.length} notes under a switch`);
+      assert.equal(new Set(gaps).size, 1, `the notes stand ${gaps.join(', ')}px from their tracks`);
+    });
+
     test('a form error summary takes focus and each link focuses its field', long, async () => {
       const page = await opened();
       await page.locator('#states form button[type="submit"]').click();
@@ -531,6 +550,37 @@ suite('forms', together, () => {
           assert.equal(color, 'danger', `${field} drew a ${color} edge`);
       }
     );
+
+    test('every invalid input draws one danger edge in both themes, a switch and a box too', async () => {
+      const page = await opened();
+      const edges = await page.evaluate(() => {
+        const root = document.documentElement;
+        const theme = root.dataset.theme;
+        /** @type {Record<string, string[]>} */
+        const drawn = {};
+        for (const scheme of ['light', 'dark']) {
+          root.dataset.theme = scheme;
+          const probe = document.body.appendChild(document.createElement('i'));
+          probe.style.color = 'var(--sui-danger-edge)';
+          const edge = getComputedStyle(probe).color;
+          probe.remove();
+          /** @param {string} selector @param {(style: CSSStyleDeclaration) => string} paint */
+          const off = (selector, paint) => {
+            const element = document.querySelector(selector);
+            return element && paint(getComputedStyle(element)).includes(edge) ? [] : [selector];
+          };
+          drawn[scheme] = [
+            ...off('#text-input .sui-text-input[aria-invalid="true"]', (s) => s.borderTopColor),
+            ...off('#switch .sui-switch-track.invalid', (s) => s.borderTopColor + s.outlineColor),
+            ...off('#field .sui-checkbox-box.invalid', (s) => s.borderTopColor + s.outlineColor)
+          ];
+        }
+        if (theme) root.dataset.theme = theme;
+        else delete root.dataset.theme;
+        return drawn;
+      });
+      assert.deepEqual(edges, { light: [], dark: [] }, 'these drew an edge of another red');
+    });
 
     test('L-74 a segmented thumb travels by translate and scale, never by its width', async () => {
       const page = await opened();

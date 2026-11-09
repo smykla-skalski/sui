@@ -227,7 +227,7 @@ save keeps it. A busy dialog or a saving pane around it disables the radios whil
 
   /* An answer still missing marks every card, as an invalid field marks its frame. */
   .invalid .sui-choice-card:not(:has(input:checked)) {
-    box-shadow: inset 0 0 0 var(--sui-stroke) var(--sui-danger);
+    box-shadow: inset 0 0 0 var(--sui-stroke) var(--sui-danger-edge);
   }
 
   /* Hover and press lay a veil over the card's own ground, its rest fill or its brand tint. */

@@ -29,7 +29,7 @@
     label?: string;
     /** Drops the 44px tap box from layout, for a head or row that sets its own rhythm. */
     bare?: boolean;
-    /** Marks the value as wrong; pair it with an error the field describes. */
+    /** Marks the value as wrong; pair it with words that say why, its own `error` or a field's. */
     invalid?: boolean;
     disabled?: boolean;
     /** The change is being saved: the thumb turns, the switch is busy and refuses another flip. */
@@ -260,8 +260,8 @@ take, under the switch and to a screen reader, while the owner sets `checked` ba
      The outline doubles the edge outward, so it reads against the accent fill as well as the
      off track, and stays clear of the focus ring 2px further out. */
   .sui-switch-row input + .sui-switch-track.invalid {
-    border-color: var(--sui-danger);
-    outline: var(--sui-stroke-bold) solid var(--sui-danger);
+    border-color: var(--sui-danger-edge);
+    outline: var(--sui-stroke-bold) solid var(--sui-danger-edge);
     outline-offset: calc(-1 * var(--sui-stroke));
   }
 
@@ -364,6 +364,7 @@ take, under the switch and to a screen reader, while the owner sets `checked` ba
     overflow-wrap: anywhere;
     padding-block: var(--sui-block-snap-room);
     text-box: trim-both cap alphabetic;
+    text-wrap: pretty;
   }
 
   @media (prefers-reduced-motion: reduce) {
