@@ -82,27 +82,27 @@
       "matchPackageNames": ["playwright-core", "mcr.microsoft.com/playwright"]
     }
   ],
+  "vulnerabilityAlerts": {
+    "automerge": false
+  },
   "customManagers": [
     {
       "customType": "regex",
+      "datasourceTemplate": "docker",
       "description": "The Playwright image of the visual group in CI and of its recording task",
       "managerFilePatterns": ["/^\\.github/workflows/ci\\.yml$/", "/^\\.mise\\.toml$/"],
       "matchStrings": [
         "(?<depName>mcr\\.microsoft\\.com/playwright):(?<currentValue>v[0-9.]+-noble)@(?<currentDigest>sha256:[a-f0-9]{64})"
-      ],
-      "datasourceTemplate": "docker"
+      ]
     },
     {
       "customType": "regex",
-      "description": "The flyctl the preview deploy installs; its FLYCTL_SHA256 moves by hand",
-      "managerFilePatterns": ["/^\\.github/workflows/preview\\.yml$/"],
-      "matchStrings": ["FLYCTL_VERSION: (?<currentValue>[0-9.]+)"],
-      "depNameTemplate": "superfly/flyctl",
       "datasourceTemplate": "github-releases",
-      "extractVersionTemplate": "^v(?<version>.+)$"
+      "depNameTemplate": "superfly/flyctl",
+      "description": "The flyctl the preview deploy installs; its FLYCTL_SHA256 moves by hand",
+      "extractVersionTemplate": "^v(?<version>.+)$",
+      "managerFilePatterns": ["/^\\.github/workflows/preview\\.yml$/"],
+      "matchStrings": ["FLYCTL_VERSION: (?<currentValue>[0-9.]+)"]
     }
-  ],
-  "vulnerabilityAlerts": {
-    "automerge": false
-  }
+  ]
 }
