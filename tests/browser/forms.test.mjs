@@ -673,6 +673,42 @@ suite('forms', together, () => {
       assert.equal(edges[0], edges[1], 'the track and its select wear one edge');
     });
 
+    test('a segmented hairline parts bare options and gives way beside the thumb and a hover', async () => {
+      const page = await opened();
+      const track = page
+        .locator('#segmented-control .sui-segmented-track:not(:disabled, .locked)')
+        .filter({ has: page.locator('input[value="warnings"]:checked') })
+        .filter({ has: page.locator('input[value="debug"]:disabled') })
+        .first();
+      const parts = () =>
+        track.evaluate((element) =>
+          [
+            ...element.querySelectorAll(
+              ':scope > .sui-segmented-option:has(+ .sui-segmented-option)'
+            )
+          ]
+            .map((option) => getComputedStyle(option, '::after'))
+            .map((line) => (line.content === 'none' ? 0 : Number(line.opacity)))
+            .join(' ')
+        );
+      // Off | Errors, Errors | Warnings (thumb), Warnings | Info (thumb), Info | Debug.
+      assert.equal(await parts(), '1 0 0 1');
+      await track.locator('.sui-segmented-option').first().hover();
+      await page.waitForFunction(
+        (element) =>
+          getComputedStyle(
+            /** @type {Element} */ (
+              /** @type {Element} */ (element).querySelector('.sui-segmented-option')
+            ),
+            '::after'
+          ).opacity === '0',
+        await track.elementHandle()
+      );
+      assert.equal(await parts(), '0 0 0 1', 'a hovered option drops the line beside its fill');
+      await page.mouse.move(0, 0);
+      await page.keyboard.press('Shift');
+    });
+
     test('a segmented control that turns into a select keeps the width it had', async () => {
       const page = await opened();
       const widths = await page

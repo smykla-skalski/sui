@@ -354,7 +354,7 @@ itself, so the choice shows from the first frame.
 
 - Semantics: a `fieldset` of native radios named by `label`, or by `aria-labelledby` when it is passed; the fallback is a native `select` with the same name.
 - Content: two to five options, each a short word with an optional icon and count, and an optional hint under them; a long word never wraps, so the control turns into the select instead.
-- States: rest, hover (a fill that keeps the thumb's curve), pressed (the fill sinks, the thumb darkens and creases), selected (the thumb), focus (a 2px ring 2px off the track, and the hover fill on a focused option the thumb is not under), a disabled option (its words in the muted ink at the disabled opacity), a disabled whole (the disabled field's fill with no frame, its words in the muted ink at full strength), a chosen disabled option (a plain plate with the thumb's seat and the control border ink on its edge, and flat, with the edge but no seat, in a disabled whole; it holds the control, so every other option is off with it), held (the whole at the disabled opacity: disabled while a busy dialog or a saving pane around it works, and refusing every press, arrow and drag with focus kept while a saving setting row does), and `null` with no thumb.
+- States: rest (a hairline in the subtle border between two bare options, gone beside the thumb, a fill or a focused option), hover (a fill that keeps the thumb's curve), pressed (the fill sinks, the thumb darkens and creases), selected (the thumb), focus (a 2px ring 2px off the track, and the hover fill on a focused option the thumb is not under), a disabled option (its words in the muted ink at the disabled opacity), a disabled whole (the disabled field's fill with no frame, its words in the muted ink at full strength), a chosen disabled option (a plain plate with the thumb's seat and the control border ink on its edge, and flat, with the edge but no seat, in a disabled whole; it holds the control, so every other option is off with it), held (the whole at the disabled opacity: disabled while a busy dialog or a saving pane around it works, and refusing every press, arrow and drag with focus kept while a saving setting row does), and `null` with no thumb.
 - Keyboard: Tab reaches the checked option, or the first one when nothing is chosen; the arrow keys move the choice and skip disabled options; Escape puts a dragged thumb back.
 - Pointer and touch: a click chooses any option and a drag of the thumb chooses on release, while a chosen disabled option and a disabled or held control refuse the drag and show no grab, so the drag is never the only way (WCAG 2.5.7); on a phone or a coarse pointer each option is at least 44 by 44px.
 - Focus: choosing keeps focus on the option; when the segments turn into the select, or back, focus moves to the other form instead of falling to the page.
@@ -871,6 +871,41 @@ itself, so the choice shows from the first frame.
 
     border-end-end-radius: 0;
     border-start-end-radius: 0;
+  }
+
+  /* A hairline parts two bare options, so a row of words reads as separate choices. It is the
+     end edge of the first, so it reads as the boundary between two and never as a strip on the
+     second's start (L-17). It gives way beside the thumb and beside a fill, whose own edge
+     already parts them, and fades as the thumb travels so it never pops in under it. */
+  .sui-segmented-option:has(+ .sui-segmented-option)::after {
+    background: var(--sui-border-subtle);
+    content: '';
+    inline-size: var(--sui-stroke);
+    inset-block: 25%;
+    inset-inline-end: 0;
+    pointer-events: none;
+    position: absolute;
+    transition: opacity var(--sui-duration-fast) var(--sui-ease-standard);
+  }
+
+  .sui-segmented-option.selected::after,
+  .sui-segmented-option:has(+ .selected)::after,
+  .sui-segmented-option:has(> .sui-segmented-input:focus-visible)::after,
+  .sui-segmented-option:has(+ .sui-segmented-option > .sui-segmented-input:focus-visible)::after,
+  .sui-segmented-option:active:has(> input:enabled:not([aria-disabled='true']))::after,
+  .sui-segmented-option:has(
+      + .sui-segmented-option:active > input:enabled:not([aria-disabled='true'])
+    )::after {
+    opacity: 0;
+  }
+
+  @media (hover: hover) {
+    .sui-segmented-option:hover:has(> input:enabled:not([aria-disabled='true']))::after,
+    .sui-segmented-option:has(
+        + .sui-segmented-option:hover > input:enabled:not([aria-disabled='true'])
+      )::after {
+      opacity: 0;
+    }
   }
 
   /* The selected option draws no fill: the thumb is its ground and carries its states. */
