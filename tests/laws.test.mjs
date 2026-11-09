@@ -887,6 +887,19 @@ test('L-72 stacking order comes from the layer tokens', () => {
   );
 });
 
+test('L-72 a floating layer on dark stands off its ground by the hovered control edge', () => {
+  for (const selector of [":root[data-theme='dark']", ':root:not([data-theme], [data-sui-theme])'])
+    assert.equal(
+      tokenMap(stripComments(block(selector)))['--sui-popover-border'],
+      'var(--sui-control-border-hover)',
+      selector
+    );
+  assert.equal(
+    tokenMap(stripComments(block("[data-sui-theme='light']")))['--sui-popover-border'],
+    'var(--sui-border-control)'
+  );
+});
+
 test('L-73 every duration and easing reads a token', () => {
   const literalTime = /(?<![\w-])(?!0s\b|0\.01ms\b)\d*\.?\d+m?s\b/;
   const literalEase = /\b(?:ease|ease-in|ease-out|ease-in-out|linear|cubic-bezier\(|steps\()/;
