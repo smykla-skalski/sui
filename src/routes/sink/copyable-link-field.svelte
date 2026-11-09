@@ -16,11 +16,9 @@
 
 <Example
   title="Names"
-  --example-max="54rem"
-  --specimen-row-gap="var(--sui-space-6)"
+  --example-max="40rem"
   note="A label names the field, or an accessible name does where the words on screen already name it"
-  layout="grid"
-  --specimen-min="21rem"
+  layout="stack"
 >
   <Specimen label="With a label">
     <div class="invite">
