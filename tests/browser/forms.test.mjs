@@ -770,6 +770,31 @@ suite('forms', together, () => {
       assert.equal(await field.getAttribute('aria-invalid'), null);
     });
 
+    test("a search says a caller's error under it, and its words start 8px past its 16px magnifier", async () => {
+      const page = await opened();
+      const field = page.getByRole('searchbox', { name: 'Search the teams' }).first();
+      assert.equal(await field.getAttribute('aria-invalid'), 'true');
+      const said = await field.evaluate((input) =>
+        (input.getAttribute('aria-describedby') ?? '')
+          .split(' ')
+          .map((id) => document.getElementById(id)?.textContent?.trim())
+          .join(' ')
+      );
+      assert.match(said, /Enter at least 3 characters to search/);
+      const inset = await field.evaluate((input) => {
+        const icon = input.parentElement?.querySelector('.sui-search-field-icon svg');
+        const box = input.getBoundingClientRect();
+        const glyph = icon?.getBoundingClientRect();
+        return {
+          size: glyph?.width,
+          start: (glyph?.left ?? 0) - box.left,
+          gap:
+            box.left + parseFloat(getComputedStyle(input).paddingInlineStart) - (glyph?.right ?? 0)
+        };
+      });
+      assert.deepEqual(inset, { size: 16, start: 12, gap: 8 });
+    });
+
     test('a committed value loses the spaces at its ends, so a pattern takes it', async () => {
       const page = await opened();
       const name = page.locator('#field input[name="repository"]');
