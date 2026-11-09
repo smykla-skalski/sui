@@ -120,6 +120,9 @@ tabular figures.
     margin: 0;
     min-inline-size: var(--sui-field-target-min);
     padding: 0 var(--sui-field-inset);
+    /* A value longer than the field ends in an ellipsis at rest, so it reads as cut and not as
+       whole; with focus it scrolls as typed. */
+    text-overflow: ellipsis;
   }
 
   .sui-text-input::placeholder {

@@ -81,7 +81,7 @@ A search that narrows what is already on screen. It holds the query in `bind:val
 reports every keystroke through `oninput`; waiting before acting on it belongs to the caller,
 which is the only side that knows whether an answer costs a request.
 
-A clear button shows once there is a query, and Escape clears it too. An Escape with nothing
+A clear button shows once there is a query in a field that is on, and Escape clears it too. An Escape with nothing
 to clear passes on, so the dialog or popover around the field still closes. `label` is the
 accessible name and is drawn above the field, so the field never relies on its placeholder;
 `hideLabel` hides it only for a caller that draws the visible label itself, as `ListToolbar`
@@ -121,12 +121,12 @@ matches in a polite `role="status"` beside it so a screen reader hears it.
       onkeydown={onkeydownInput}
     />
     <span class="sui-search-field-icon"><Icon name="search" size="base" strokeWidth={2} /></span>
-    {#if value}
+    {#if value && !rest.disabled}
       <span class="sui-search-field-clear">
         <IconButton
           icon="close"
           label={clearLabel}
-          disabled={holding === 'firm' || Boolean(rest.disabled)}
+          disabled={holding === 'firm'}
           aria-disabled={holding === 'soft' || undefined}
           onclick={clear}
         />

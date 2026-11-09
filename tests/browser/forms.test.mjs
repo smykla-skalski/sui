@@ -726,16 +726,19 @@ suite('forms', together, () => {
       }
     );
 
-    test('a disabled search cannot be cleared', async () => {
+    test('a disabled search draws no clear button, and a long query ends in an ellipsis at rest', async () => {
       const page = await opened();
       const field = page.getByRole('searchbox', { name: 'Search the locked projects' });
       const root = field.locator('xpath=ancestor::div[contains(@class,"sui-search-field")][1]');
-      const clear = root.getByRole('button', { name: 'Clear the search' });
-      assert.equal(await clear.isDisabled(), true);
-      await clear.evaluate((button) =>
-        button.dispatchEvent(new MouseEvent('click', { bubbles: true }))
-      );
+      assert.equal(await root.getByRole('button', { name: 'Clear the search' }).count(), 0);
+      await field.press('Escape').catch(() => {});
       assert.equal(await field.inputValue(), 'Locked');
+      const long = page.locator('#search-field .narrow input');
+      assert.ok(await long.evaluate((input) => input.scrollWidth > input.clientWidth));
+      assert.equal(
+        await long.evaluate((input) => getComputedStyle(input).textOverflow),
+        'ellipsis'
+      );
     });
 
     test('a soft-held search keeps focus and refuses its clear action', async () => {
