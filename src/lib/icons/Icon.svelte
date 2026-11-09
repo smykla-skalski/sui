@@ -149,8 +149,8 @@
     sliders: 2,
     sort: 8,
     success: 3.5,
-    sun: 2.5,
-    'sun-moon': 2.5,
+    sun: 2,
+    'sun-moon': 2,
     system: 3,
     tag: [3.5, 2.46],
     trash: 4,
@@ -382,7 +382,7 @@ word would start.
   {:else if name === 'sun-moon'}
     <path d="M12 8a2.8 2.8 0 0 0 4 4 4 4 0 1 1-4-4" />
     <path
-      d="M12 2.5v2.5M12 19v2.5M2.5 12h2.5M19 12h2.5M5.3 5.3l1.75 1.75M16.95 16.95l1.75 1.75M18.7 5.3l-1.75 1.75M7.05 16.95l-1.75 1.75"
+      d="M12 2v3M12 19v3M2 12h3M19 12h3M4.93 4.93l2.12 2.12M16.95 16.95l2.12 2.12M19.07 4.93l-2.12 2.12M7.05 16.95l-2.12 2.12"
     />
   {:else if name === 'shield-slash'}
     <path
@@ -392,9 +392,9 @@ word would start.
   {:else if name === 'sign-out'}
     <path d="M10 5H5v14h5M14 8l4 4-4 4M8 12h10" />
   {:else if name === 'sun'}
-    <circle cx="12" cy="12" r="3.5" />
+    <circle cx="12" cy="12" r="3.25" />
     <path
-      d="M12 2.5v2.5M12 19v2.5M2.5 12h2.5M19 12h2.5M5.3 5.3l1.75 1.75M16.95 16.95l1.75 1.75M18.7 5.3l-1.75 1.75M7.05 16.95l-1.75 1.75"
+      d="M12 2v3M12 19v3M2 12h3M19 12h3M4.93 4.93l2.12 2.12M16.95 16.95l2.12 2.12M19.07 4.93l-2.12 2.12M7.05 16.95l-2.12 2.12"
     />
   {:else if name === 'moon'}
     <!-- Dropped 0.55: the crescent's own extrema, not its endpoints, put the
