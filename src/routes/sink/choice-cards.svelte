@@ -36,7 +36,7 @@
 
 <Example
   title="States"
-  note="A chosen answer, a disabled one the keyboard skips, a required answer still missing and a group locked while it saves"
+  note="A chosen answer, a disabled one the keyboard skips, a missing required answer, an answer that saves and a disabled group"
   layout="stack"
 >
   <Specimen label="Chosen, with a disabled answer">
@@ -72,10 +72,19 @@
       bind:value={pending}
     />
   </Specimen>
-  <Specimen label="Locked while it saves">
+  <Specimen label="Saving the chosen answer">
     <ChoiceCards
       label="How pull requests merge"
       hint="Saving the merge method…"
+      options={methods}
+      value="merge"
+      pending
+    />
+  </Specimen>
+  <Specimen label="Disabled, with its reason">
+    <ChoiceCards
+      label="How pull requests merge"
+      hint="Only owners of the repository can change how pull requests merge"
       options={methods}
       value="merge"
       disabled
