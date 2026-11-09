@@ -70,7 +70,7 @@ wide matrix on a wider stage scrolls inside it with the row values held, as a da
 {:else}
   <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
   <div
-    class="variants sui-scroll-edge scrolls"
+    class={['variants sui-scroll-edge scrolls', { held: scrolls }]}
     role={scrolls ? 'region' : undefined}
     tabindex={scrolls ? 0 : undefined}
     aria-label={scrolls ? `${axis ?? 'Variants'} by state` : undefined}
@@ -122,20 +122,23 @@ wide matrix on a wider stage scrolls inside it with the row values held, as a da
     scrollbar-width: thin;
   }
 
-  /* The row values and the corner stay at the start while the cells scroll under them. Each
-     takes its row's height and paints the stage's own ground past its box, over half of each
-     row gap, the gap after the values and the frame's padding, without taking that room, so
-     the held column is one solid strip and the start fade begins at its edge. */
+  /* While the matrix scrolls, the row values and the corner stay at the start and the cells
+     scroll under them. Each takes its row's height and paints the stage's own ground past its
+     box, over half of each row gap, the gap after the values but for a focus ring's room, and
+     the frame's padding, without taking that room, so the held column is one solid strip and
+     the start fade begins at its edge. A matrix that fits holds nothing and paints nothing, so
+     a first cell's ring and hover ground draw whole in the gap. */
   @container variants (width >= 34rem) {
-    .scrolls :is(.corner, .row-label) {
+    .held :is(.corner, .row-label) {
       align-self: stretch;
       block-size: auto;
       border-image: linear-gradient(
           var(--sui-local-stage-ground, var(--sui-surface-base)),
           var(--sui-local-stage-ground, var(--sui-surface-base))
         )
-        fill 0 / 0 / calc(var(--sui-space-4) / 2) var(--sui-space-6) calc(var(--sui-space-4) / 2)
-        var(--sui-space-1);
+        fill 0 / 0 / calc(var(--sui-space-4) / 2)
+        calc(var(--sui-space-6) - var(--sui-focus-ring-width) - var(--sui-focus-ring-offset))
+        calc(var(--sui-space-4) / 2) var(--sui-space-1);
       inset-inline-start: 0;
       position: sticky;
       z-index: var(--sui-layer-inner-plate);

@@ -973,6 +973,90 @@ suite('forms', together, () => {
       assert.deepEqual(offsets, [0, 0, 0], 'each box starts where its column head does');
     });
 
+    // The held row heads once painted the whole column gap, over the first column's ring.
+    test("a matrix's held row heads cover no focus ring or hover ground", async () => {
+      const page = await opened();
+      const input = page
+        .locator('#checkbox-states')
+        .locator('xpath=ancestor::*[contains(@class, "example")]')
+        .locator('.variants .row')
+        .first()
+        .locator('input')
+        .first();
+      /** @param {number} x @param {number} y */
+      const pixel = async (x, y) => {
+        const shot = await page.screenshot({ clip: { x: x - 0.5, y, width: 1, height: 1 } });
+        return page.evaluate(
+          async (data) => {
+            const image = await createImageBitmap(await (await fetch(data)).blob());
+            const context = new OffscreenCanvas(1, 1).getContext('2d');
+            context?.drawImage(image, 0, 0);
+            const [r, g, b] = context?.getImageData(0, 0, 1, 1).data ?? [];
+            return `rgb(${r}, ${g}, ${b})`;
+          },
+          `data:image/png;base64,${shot.toString('base64')}`
+        );
+      };
+      /** @param {string} state */
+      const ringShows = async (state) => {
+        await input.evaluate((element) => /** @type {HTMLElement} */ (element).blur());
+        // A key first, so the focus that follows is a keyboard's and draws the ring. The page's
+        // own focus, which scrolls only as the browser does; the driver's scrolls it into view.
+        await page.keyboard.press('Shift');
+        await input.evaluate((element) => /** @type {HTMLElement} */ (element).focus());
+        const { x, y, ring, onBox } = await input.evaluate((element) => {
+          const style = getComputedStyle(element);
+          const rect = element.getBoundingClientRect();
+          const y = rect.top + rect.height / 2;
+          const top = document.elementFromPoint(rect.left + rect.width / 2, y);
+          return {
+            x: rect.left - parseFloat(style.outlineOffset) - parseFloat(style.outlineWidth) / 2,
+            y,
+            ring: style.outlineColor,
+            onBox: Boolean(top && element.closest('label')?.contains(top))
+          };
+        });
+        assert.ok(onBox, `${state}: the focused box stands under the held row heads`);
+        assert.equal(
+          await pixel(x, y),
+          ring,
+          `${state}: the held row heads cover the ring's start side`
+        );
+      };
+      const scroller = input.locator('xpath=ancestor::*[contains(@class, "variants")][1]');
+      const scrolls = () => scroller.evaluate((box) => box.scrollWidth > box.clientWidth);
+      try {
+        assert.equal(await scrolls(), false, 'the matrix fits a wide page');
+        await ringShows('fitting');
+        // The hover ground bleeds into the gap as far as the box does, and shows whole there.
+        const row = input.locator('xpath=ancestor::label[1]');
+        await input.evaluate((element) => /** @type {HTMLElement} */ (element).blur());
+        await row.hover();
+        const { left, right, middle } = await row.evaluate((element) => {
+          const rect = element.getBoundingClientRect();
+          return { left: rect.left + 1, right: rect.right - 1, middle: rect.top + rect.height / 2 };
+        });
+        assert.equal(
+          await pixel(left, middle),
+          await pixel(right, middle),
+          "the held row heads cover the hover ground's start"
+        );
+        await page.mouse.move(0, 0);
+        await page.setViewportSize({ width: 1024, height: 900 });
+        await page.waitForFunction(
+          (box) => box.scrollWidth > box.clientWidth,
+          await scroller.elementHandle()
+        );
+        await scroller.evaluate((box) => box.scrollTo({ left: 0 }));
+        await ringShows('scrolling, at its start');
+        await scroller.evaluate((box) => box.scrollTo({ left: box.scrollWidth }));
+        await ringShows('scrolled past the first column');
+      } finally {
+        await input.evaluate((element) => /** @type {HTMLElement} */ (element).blur());
+        await page.setViewportSize({ width: 1440, height: 900 });
+      }
+    });
+
     test("a list a parent box chooses for stands under the parent's words", async () => {
       const page = await opened();
       const edges = await page.evaluate(() => {
