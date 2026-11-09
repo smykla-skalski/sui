@@ -74,7 +74,7 @@ start.
 
 - Semantics: a native `<button type="button">`, or an `<a href>` with `href`; its words are its name, and a disabled anchor is `role="link"` with `aria-disabled`.
 - Content: a short verb phrase that names the result, an optional leading `icon` and an optional `trailing` mark; a long or translated label wraps onto more lines inside its container.
-- States: rest, hover (a veil and a firmer edge), open (the hover paint while `aria-expanded`), as a `field` a Select's edge, recess and ring in each of them, focus (a 2px ring, flush on bordered tones and 2px off a filled one), pressed (a deeper ground, an inset shadow and a 1px sink), loading (a spinner in the tone's ink on the full fill and edge, the words at full ink, busy), locked by `aria-disabled` (still a tab stop) and disabled (default cursor), both at 0.6 opacity, a filled or danger tone in the default paint.
+- States: rest, hover (a veil and a firmer edge), open (the hover paint while `aria-expanded`), as a `field` a Select's edge, recess and ring in each of them, open in its focus edge without the ring, focus (a 2px ring, flush on bordered tones and 2px off a filled one), pressed (a deeper ground, an inset shadow and a 1px sink), loading (a spinner in the tone's ink on the full fill and edge, the words at full ink, busy), locked by `aria-disabled` (still a tab stop) and disabled (default cursor), both at 0.6 opacity, a filled or danger tone in the default paint.
 - Keyboard: Tab reaches it, and Enter or Space presses a button while Enter follows an anchor; a loading, locked or disabled one refuses both.
 - Pointer and touch: 34px tall on a pointer and 44px on a phone or any touch screen, at least as wide as its label, and a press is never a drag; a surface may keep it drawn at 34px on a phone with `--sui-local-button-seat`, and its hit area still grows to 44px.
 - Focus: pressing never moves focus, and a loading button keeps it; the caller moves focus when the press removes the button.
@@ -465,6 +465,8 @@ start.
     }
   }
 
+  /* An open field wears its focus edge without the ring, as an open Select does, so it stands
+     apart from a hovered neighbour and from keyboard focus alike. */
   .sui-button.field[aria-expanded='true']:not(
       :active,
       :disabled,
@@ -472,10 +474,10 @@ start.
       :focus-visible
     ) {
     --sui-control-state-layer: transparent;
-    background-color: var(--sui-field-hover);
-    border-color: var(--sui-field-frame-hover);
-    border-block-end-color: var(--sui-field-border-hover);
-    box-shadow: inset 0 var(--sui-stroke) 0 var(--sui-field-recess-hover);
+    background-color: var(--sui-control-bg);
+    border-color: var(--sui-field-frame-focus);
+    border-block-end-color: var(--sui-field-border-focus);
+    box-shadow: inset 0 var(--sui-stroke) 0 var(--sui-field-recess-focus);
   }
 
   .sui-button.field:active:not(:disabled, [aria-disabled='true']) {

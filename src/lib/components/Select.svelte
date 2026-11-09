@@ -518,9 +518,9 @@ assistive technology, because a native picker cannot be held open.
 
       .sui-select:not(.bare)
         .sui-select-control:open:not(:focus-visible, [aria-invalid='true'], :user-invalid) {
-        background-color: var(--sui-field-hover);
-        border-color: var(--sui-field-frame-hover);
-        border-block-end-color: var(--sui-field-border-hover);
+        background-color: var(--sui-control-bg);
+        border-color: var(--sui-field-frame-focus);
+        border-block-end-color: var(--sui-field-border-focus);
       }
 
       /* The press that opens the picker keeps its own inset until it lets go (L-42). */
@@ -531,7 +531,7 @@ assistive technology, because a native picker cannot be held open.
           [aria-invalid='true'],
           :user-invalid
         ) {
-        box-shadow: inset 0 var(--sui-stroke) 0 var(--sui-field-recess-hover);
+        box-shadow: inset 0 var(--sui-stroke) 0 var(--sui-field-recess-focus);
       }
 
       /* The full label shows in the picker, so the closed field may cut it, at its end only, so

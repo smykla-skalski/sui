@@ -1064,9 +1064,9 @@ suite('the kitchen sink', together, () => {
         if (!(/** @type {HTMLSelectElement} */ (element).matches(':open'))) return { open: false };
         const picker = getComputedStyle(element, '::picker(select)');
         const probe = document.createElement('span');
-        probe.style.color = 'var(--sui-field-hover)';
+        probe.style.color = 'var(--sui-field-frame-focus)';
         element.after(probe);
-        const hover = getComputedStyle(probe).color;
+        const edge = getComputedStyle(probe).color;
         probe.remove();
         const options = [.../** @type {HTMLSelectElement} */ (element).options]
           .filter((option) => option.getClientRects().length > 0)
@@ -1077,7 +1077,7 @@ suite('the kitchen sink', together, () => {
           tall: parseFloat(picker.height) > 320.5,
           lit:
             !element.matches('.sui-select:not(.bare) select:not([aria-invalid="true"])') ||
-            getComputedStyle(element).backgroundColor === hover,
+            getComputedStyle(element).borderTopColor === edge,
           heights: [...new Set(options.map((height) => Math.round(height * 100) / 100))],
           tier: parseFloat(
             getComputedStyle(document.documentElement).getPropertyValue(
@@ -1091,7 +1091,7 @@ suite('the kitchen sink', together, () => {
       else {
         if (report.narrower) problems.push(`${name}: the picker is narrower than its field`);
         if (report.tall) problems.push(`${name}: the picker is taller than 20rem`);
-        if (!report.lit) problems.push(`${name}: the open field lost its hover ground`);
+        if (!report.lit) problems.push(`${name}: the open field lost its focus edge`);
         if (report.heights?.some((height) => height < report.tier - 0.01))
           problems.push(
             `${name}: option heights ${report.heights.join(', ')}, under ${report.tier}`

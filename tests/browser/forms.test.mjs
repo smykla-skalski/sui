@@ -1858,11 +1858,17 @@ suite('forms', together, () => {
         const rail = /** @type {{ x: number, y: number, width: number, height: number }} */ (
           await page.locator(':popover-open .hue').boundingBox()
         );
-        // A point along the drawn rail is that far round the wheel, so the native thumb's travel
-        // matches the drawing. A press on the thumb itself keeps the value, so the quarter comes
+        // The wheel is drawn between the thumb's centres at the two ends, so a press picks the
+        // hue drawn under it. A press on the thumb itself keeps the value, so the quarter comes
         // first, away from the sample's hue near the middle.
+        const inset = await page
+          .locator(':popover-open .thumb')
+          .evaluate((thumb) => thumb.getBoundingClientRect().width / 2);
         const at = async (/** @type {number} */ part) => {
-          await page.mouse.click(rail.x + rail.width * part, rail.y + rail.height / 2);
+          await page.mouse.click(
+            rail.x + inset + (rail.width - 2 * inset) * part,
+            rail.y + rail.height / 2
+          );
           return Number(await hue.inputValue());
         };
         const quarter = await at(0.25);
@@ -1969,7 +1975,7 @@ suite('forms', together, () => {
         );
 
         // A trigger holds a value, so it wears a Select's field edge and baseline: the rest
-        // ones at rest, and the open one in a field's hover edge.
+        // ones at rest, and the open one in a field's focus edge, its ring left to the keys.
         await page.mouse.move(0, 0);
         const edges = () =>
           page.locator('#color-picker button[aria-haspopup="dialog"]').evaluateAll((buttons) =>
@@ -1985,7 +1991,7 @@ suite('forms', together, () => {
               const look = getComputedStyle(button);
               const [ground, frame, base] =
                 button.getAttribute('aria-expanded') === 'true'
-                  ? ['--sui-field-hover', '--sui-field-frame-hover', '--sui-field-border-hover']
+                  ? ['--sui-control-bg', '--sui-field-frame-focus', '--sui-field-border-focus']
                   : ['--sui-control-bg', '--sui-field-frame', '--sui-field-border'];
               return (
                 button.matches(':disabled') ||
@@ -2011,7 +2017,9 @@ suite('forms', together, () => {
             panel.querySelector('.knob')
           ).getBoundingClientRect();
           const thumb = /** @type {Element} */ (panel.querySelector('.thumb'));
+          const rail = /** @type {Element} */ (panel.querySelector('.hue')).getBoundingClientRect();
           return {
+            aligned: rail.left === area.left && rail.right === area.right,
             room: Math.min(area.left - box.left, box.right - area.right) - knob.width / 2,
             sizes: [knob.width, thumb.getBoundingClientRect().width]
           };
@@ -2021,6 +2029,7 @@ suite('forms', together, () => {
           `a knob at the area's edge stands ${clear.room}px from the panel's`
         );
         assert.equal(clear.sizes[0], clear.sizes[1], "the area's knob and the hue's thumb differ");
+        assert.ok(clear.aligned, "the hue rail stops short of the area's edges");
         // The focused swatch's ring stays clear of the next swatch.
         await page.keyboard.press('ArrowRight');
         const room = await page.evaluate(() => {

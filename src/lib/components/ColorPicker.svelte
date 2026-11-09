@@ -25,8 +25,10 @@
     { value: '#bfd4f2', label: 'Lavender blue' },
     { value: '#d4c5f9', label: 'Lavender' }
   ];
+  // The wheel runs between the thumb's centres at the two ends, where the native range's thumb
+  // travels, so the hue drawn under a point is the hue a press there picks.
   const HUE_RAIL =
-    'linear-gradient(to right, #ff0000, #ffff00, #00ff00, #00ffff, #0000ff, #ff00ff, #ff0000)';
+    'linear-gradient(to right, #ff0000 calc(var(--sui-color-picker-hue-thumb) / 2), #ffff00, #00ff00, #00ffff, #0000ff, #ff00ff, #ff0000 calc(100% - var(--sui-color-picker-hue-thumb) / 2))';
   const plane = (hue: string) =>
     `linear-gradient(to top, #000000, transparent), linear-gradient(to right, #ffffff, ${hue})`;
 
@@ -473,7 +475,7 @@ name is the label and the hex, such as "Label color #0f766e". `name` posts the h
     style:--sui-color-picker-hue={hueColor}
     style:--sui-color-picker-x="{hsv.s * 100}%"
     style:--sui-color-picker-y="{(1 - hsv.v) * 100}%"
-    style:--sui-color-picker-h="{(hsv.h / 360) * 100}%"
+    style:--sui-color-picker-h={hsv.h / 360}
   >
     {#if palette.length > 0}
       <div bind:this={grid} class="swatches" role="radiogroup" aria-label={swatchesLabel}>
@@ -619,7 +621,7 @@ name is the label and the hex, such as "Label color #0f766e". `name` posts the h
       var(--sui-color-picker-cell) * var(--sui-color-picker-cols) + var(--sui-color-picker-gap) *
         (var(--sui-color-picker-cols) - 1) + var(--sui-color-picker-pad) * 2 + 2 * var(--sui-stroke)
     );
-    --sui-color-picker-hue-height: 24px;
+    --sui-color-picker-hue-height: 12px;
     --sui-color-picker-hue-thumb: 16px;
     --sui-color-picker-area-height: 10rem;
     --sui-color-picker-knob: var(--sui-color-picker-hue-thumb);
@@ -744,26 +746,26 @@ name is the label and the hex, such as "Label color #0f766e". `name` posts the h
     inset-inline-start: var(--sui-color-picker-x);
   }
 
+  /* As wide as the area and the hex field, and thinner than its thumb, so the thumb reads as
+     the handle; the thumb's centre travels half a thumb inside each end, as the native one does. */
   .hue {
     block-size: var(--sui-color-picker-hue-height);
     border-radius: var(--sui-radius-pill);
     cursor: pointer;
-    /* The thumb's own radius, so its centre reaches both ends of the rail. */
-    margin-inline: calc(var(--sui-color-picker-hue-thumb) / 2);
     position: relative;
     touch-action: none;
     -webkit-user-select: none;
     user-select: none;
   }
 
-  /* Clear, and half a thumb past each end of the rail, as far as the thumb's centre travels. */
+  /* Clear, and as tall as the thumb, so a press anywhere the thumb reaches lands on it. */
   .hue-range {
     appearance: none;
     background: none;
-    block-size: 100%;
+    block-size: auto;
     cursor: pointer;
-    inset-block: 0;
-    inset-inline: calc(-1 * var(--sui-color-picker-hue-thumb) / 2);
+    inset-block: calc((100% - var(--sui-color-picker-hue-thumb)) / 2);
+    inset-inline: 0;
     margin: 0;
     opacity: 0;
     position: absolute;
@@ -786,7 +788,10 @@ name is the label and the hex, such as "Label color #0f766e". `name` posts the h
     block-size: var(--sui-color-picker-hue-thumb);
     inline-size: var(--sui-color-picker-hue-thumb);
     inset-block-start: 50%;
-    inset-inline-start: var(--sui-color-picker-h);
+    inset-inline-start: calc(
+      var(--sui-color-picker-hue-thumb) / 2 + (100% - var(--sui-color-picker-hue-thumb)) *
+        var(--sui-color-picker-h)
+    );
   }
 
   .error {
