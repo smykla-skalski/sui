@@ -654,6 +654,25 @@ suite('forms', together, () => {
       );
     });
 
+    test('a segmented track wears the edge of the select it turns into', async () => {
+      const page = await opened();
+      const edges = await page.evaluate(() => {
+        const track = /** @type {Element} */ (
+          document.querySelector('#segmented-control .sui-segmented > .sui-segmented-track')
+        );
+        const shown = /** @type {Element} */ (
+          [...document.querySelectorAll('#segmented-control .sui-segmented-picker select')].find(
+            (select) => select.checkVisibility()
+          )
+        );
+        return [
+          getComputedStyle(track).boxShadow.split(' 0px')[0],
+          getComputedStyle(shown).borderTopColor
+        ];
+      });
+      assert.equal(edges[0], edges[1], 'the track and its select wear one edge');
+    });
+
     test('a segmented control that turns into a select keeps the width it had', async () => {
       const page = await opened();
       const widths = await page

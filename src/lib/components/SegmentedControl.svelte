@@ -651,7 +651,9 @@ itself, so the choice shows from the first frame.
     border: 0;
     /* A surface radius around a control-radius thumb, 2px in, keeps the two curves concentric. */
     border-radius: var(--sui-radius-surface);
-    box-shadow: inset 0 0 0 var(--sui-stroke) var(--sui-border-subtle);
+    /* A control's edge, as the select it turns into wears, so both forms read as one control,
+       and in the dark theme the well stands off the card it sits on. */
+    box-shadow: inset 0 0 0 var(--sui-stroke) var(--sui-border-control);
     box-sizing: border-box;
     display: flex;
     /* Fills, thumb and words stack inside the track alone: fill, then thumb, then words. */

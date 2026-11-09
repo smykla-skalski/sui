@@ -45,6 +45,7 @@
   title="Options"
   --example-max="54rem"
   --specimen-min="21rem"
+  --specimen-row-gap="var(--sui-space-6)"
   layout="grid"
   note="2 to 5 options, with a thumb as wide as the chosen one that a drag can move"
 >
@@ -60,6 +61,7 @@
   title="Label"
   --example-max="54rem"
   --specimen-min="21rem"
+  --specimen-row-gap="var(--sui-space-6)"
   layout="grid"
   note="The label stands above the options, unless a visible name beside the control already says it"
 >
@@ -83,6 +85,7 @@
   title="States"
   --example-max="54rem"
   --specimen-min="21rem"
+  --specimen-row-gap="var(--sui-space-6)"
   layout="grid"
   note="A null value draws no thumb, the arrow keys skip a disabled option, and a locked control says why"
 >
@@ -115,6 +118,7 @@
   title="Tiers"
   --example-max="54rem"
   --specimen-min="21rem"
+  --specimen-row-gap="var(--sui-space-6)"
   layout="grid"
   note="34 px by default and 44 px on phones, and a surface may opt into 40 px through 1 custom property"
 >
@@ -134,6 +138,7 @@
   title="Narrow Width"
   --example-max="54rem"
   --specimen-min="21rem"
+  --specimen-row-gap="var(--sui-space-6)"
   layout="grid"
   note="Short of room, the same choice becomes a native select, with icons dropped and counts in brackets"
 >
