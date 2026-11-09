@@ -873,6 +873,38 @@ suite('overlays', together, () => {
     }
   });
 
+  // An open trigger keeps its hover paint whatever its tone, so a filled one never takes a grey
+  // edge while its menu is open.
+  test('an open menu trigger of every tone wears its hover paint', long, async () => {
+    const page = await open();
+    try {
+      const trigger = page
+        .locator('#action-menu button.sui-button[aria-expanded]:not([data-tone="ghost"])')
+        .first();
+      await trigger.scrollIntoViewIfNeeded();
+      const paint = () =>
+        trigger.evaluate((button) => {
+          const look = getComputedStyle(button);
+          return `${look.backgroundColor} ${look.backgroundImage} ${look.borderTopColor}`;
+        });
+      for (const tone of ['default', 'signal', 'decision', 'stop', 'stop-quiet']) {
+        await trigger.evaluate((button, tone) => button.setAttribute('data-tone', tone), tone);
+        await trigger.hover();
+        await atRest(page);
+        const hovered = await paint();
+        await trigger.click();
+        await page.locator('.sui-popover:popover-open').waitFor();
+        await page.mouse.move(0, 0);
+        await atRest(page);
+        assert.equal(await paint(), hovered, `an open ${tone} trigger leaves its hover paint`);
+        await page.keyboard.press('Escape');
+        await trigger.evaluate((button) => button.blur());
+      }
+    } finally {
+      await page.close();
+    }
+  });
+
   test('a discard after a failed save keeps its notice and Undo', long, async () => {
     const page = await openMount(browser, url);
     try {

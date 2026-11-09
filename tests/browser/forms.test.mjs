@@ -2122,6 +2122,21 @@ suite('forms', together, () => {
         } finally {
           await page.emulateMedia({ forcedColors: null });
         }
+
+        // A focused trigger keeps its focus edge under the pointer, as a focused Select does.
+        const first = page.locator('#color-picker button[aria-haspopup="dialog"]').first();
+        await page.mouse.move(0, 0);
+        await page.keyboard.press('Shift');
+        await first.focus();
+        const look = () =>
+          first.evaluate((button) => {
+            const style = getComputedStyle(button);
+            return `${style.backgroundColor} ${style.backgroundImage} ${style.borderTopColor} ${style.borderBottomColor}`;
+          });
+        const focused = await look();
+        await first.hover();
+        await atRest(page);
+        assert.equal(await look(), focused, 'a hover took a focused trigger out of its focus edge');
       }
     );
   });

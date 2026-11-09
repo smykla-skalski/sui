@@ -233,7 +233,7 @@ start.
   }
 
   @media (hover: hover) {
-    .sui-button:hover:not(:active):not(:disabled, [aria-disabled='true']) {
+    .sui-button:hover:not(:active, .field:focus-visible):not(:disabled, [aria-disabled='true']) {
       --sui-control-state-layer: var(--sui-interactive-hover-layer);
       border-color: var(--sui-control-border-hover);
     }
@@ -268,7 +268,12 @@ start.
 
   /* While the layer it opens is open, the trigger keeps its hover paint, as an open select or
      icon button does, so the part the layer belongs to stays marked. */
-  .sui-button[aria-expanded='true']:not(:active, :disabled, [aria-disabled='true']) {
+  .sui-button[aria-expanded='true']:not(
+      :active,
+      :disabled,
+      [aria-disabled='true'],
+      .field:focus-visible
+    ) {
     --sui-control-state-layer: var(--sui-interactive-hover-layer);
   }
 
@@ -280,6 +285,43 @@ start.
       [aria-disabled='true']
     ) {
     border-color: var(--sui-control-border-hover);
+  }
+
+  .sui-button[data-tone='signal'][aria-expanded='true']:not(
+      :active,
+      :disabled,
+      [aria-disabled='true']
+    ) {
+    background-color: var(--sui-brand-action-hover);
+    border-color: var(--sui-brand-action-hover);
+  }
+
+  .sui-button[data-tone='decision'][aria-expanded='true']:not(
+      :active,
+      :disabled,
+      [aria-disabled='true']
+    ) {
+    background-color: var(--sui-decision-accent-hover);
+    border-color: var(--sui-decision-accent-hover);
+  }
+
+  .sui-button[data-tone='stop'][aria-expanded='true']:not(
+      :active,
+      :disabled,
+      [aria-disabled='true']
+    ) {
+    background-color: var(--sui-danger-fill-hover);
+    border-color: var(--sui-danger-fill-hover);
+  }
+
+  .sui-button[data-tone='stop-quiet'][aria-expanded='true']:not(
+      :active,
+      :disabled,
+      [aria-disabled='true']
+    ) {
+    --sui-control-state-layer: transparent;
+    background-color: var(--sui-danger-tint);
+    border-color: var(--sui-danger);
   }
 
   .sui-button:active:not(:disabled, [aria-disabled='true']) {
