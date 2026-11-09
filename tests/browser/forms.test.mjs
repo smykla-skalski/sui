@@ -454,6 +454,25 @@ suite('forms', together, () => {
       );
     });
 
+    test('a segmented control that turns into a select keeps the width it had', async () => {
+      const page = await opened();
+      const widths = await page
+        .locator('#segmented-control .sui-segmented:has(.sui-segmented-picker select:visible)')
+        .evaluateAll((boxes) =>
+          boxes.map((box) => [
+            Math.round(box.getBoundingClientRect().width),
+            Math.round(
+              /** @type {Element} */ (
+                box.querySelector('.sui-select-control')
+              ).getBoundingClientRect().width
+            )
+          ])
+        );
+      assert.ok(widths.length >= 2, 'the page shows no segmented control as a select');
+      for (const [box, select] of widths)
+        assert.equal(select, box, 'the select fills the room the segments had');
+    });
+
     test('select-to-radio focus skips a checked disabled option', async () => {
       const page = await opened();
       const control = page.locator('#segmented-control .sui-segmented').filter({

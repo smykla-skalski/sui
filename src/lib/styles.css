@@ -646,8 +646,8 @@
   --sui-segment-hover: var(--sui-interactive-hover-layer);
   --sui-segment-pressed: var(--sui-interactive-pressed);
   --sui-segment-thumb-shadow:
-    0 1px 1px color-mix(in srgb, var(--sui-shadow-color) 40%, transparent),
-    0 1px 3px color-mix(in srgb, var(--sui-shadow-color) 72%, transparent);
+    0 1px 1px color-mix(in srgb, var(--sui-shadow-color) 25%, transparent),
+    0 1px 3px color-mix(in srgb, var(--sui-shadow-color) 45%, transparent);
 
   /* A pressed segment sinks into the track: a deep top rim, shallower side rims and a lit
      foot. Black and white on every palette, because a recess is darker on every ground. */

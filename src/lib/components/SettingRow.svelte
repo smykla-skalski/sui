@@ -542,7 +542,7 @@ section's ground between them (L-91).
      turned into its select ends at the row's end too. */
   .sui-setting-control {
     --sui-local-checkbox-bleed: 0px;
-    --sui-local-segmented-align: flex-end;
+    --sui-local-segmented-align: end;
     align-items: center;
     display: flex;
     flex-wrap: wrap;

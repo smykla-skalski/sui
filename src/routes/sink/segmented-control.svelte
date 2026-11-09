@@ -76,6 +76,8 @@
 <Example
   title="States"
   --example-max="54rem"
+  --specimen-min="21rem"
+  layout="grid"
   note="A null value draws no thumb, the arrow keys skip a disabled option, and a locked control says why"
 >
   <Specimen label="Nothing chosen">

@@ -335,7 +335,7 @@ counts in brackets, such as "Users (24)". Both forms are drawn, and an inert, hi
 segments, with no inputs, decides which shows: its scroll timeline is active only while it
 overflows the room, so the browser shows the right form before the first paint. A host that sets
 a part before the control can give it its room in `--sui-local-segmented-room`, so the select
-alone sets the short form's width; `--sui-local-segmented-align` ends a select in a wider box.
+alone sets the short form's width; `--sui-local-segmented-align: end` ends a select at its own width in a wider box, where it otherwise stretches to the box.
 The thumb is measured from the checked option because CSS cannot size one box from a sibling.
 Until it is measured, as in a server render, the checked option paints the thumb's ground
 itself, so the choice shows from the first frame.
@@ -500,12 +500,15 @@ itself, so the choice shows from the first frame.
   }
 
   /* Holds no width of its own, so the select never widens the box it was measured against. A
-     hidden form is clipped to the box, so it never widens the page either. A host that ends its
-     controls at an edge, such as a setting row, sets `--sui-local-segmented-align: flex-end`. */
+     hidden form is clipped to the box, so it never widens the page either. The select stretches
+     over the room the segments had, so a control that turns into one keeps its width and
+     selects on one page line up; a host that ends its controls at an edge, such as a setting
+     row, sets `--sui-local-segmented-align: end`, and the select keeps its own width there. */
   .sui-segmented-picker {
     contain: inline-size;
-    display: flex;
-    justify-content: var(--sui-local-segmented-align, flex-start);
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    justify-items: var(--sui-local-segmented-align, stretch);
     min-inline-size: 0;
     overflow: clip;
     visibility: hidden;
