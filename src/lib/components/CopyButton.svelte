@@ -98,7 +98,7 @@ in its corner. Beside a 34px field or in a toolbar it takes the control tier wit
 
 - Semantics: a native `<button type="button">` whose visible words are its name, with a polite `role="status"` beside it.
 - Content: `label`, `copiedLabel` and `failedLabel`, each a short phrase; the button is as wide as the longest of the three.
-- States: rest (accent words when `bare`), hover (a veil and a firmer edge), focus (a flush 2px ring, or an inset one when `bare`), pressed (a deeper veil, an inset shadow and a 1px sink), copied (success ink on its tint, over any veil), failed (danger ink on its tint, over any veil) and disabled (0.6 opacity).
+- States: rest, hover (a veil and a firmer edge), focus (a flush 2px ring, or an inset one when `bare`), pressed (a deeper veil, an inset shadow and a 1px sink), copied (success ink on its tint, over any veil), failed (danger ink on its tint, over any veil) and disabled (0.6 opacity).
 - Keyboard: Tab reaches it and Enter or Space copies; focus stays on it through the answer.
 - Pointer and touch: 28px tall, or 34px with `toolbar`, and a 44px hit area on a phone or any touch screen.
 - Focus: copying never moves focus; `oncopyfailed` is where a caller sends focus to the text to select by hand.
@@ -199,7 +199,7 @@ in its corner. Beside a 34px field or in a toolbar it takes the control tier wit
     background-color: transparent;
     border-width: 0;
     border-radius: var(--sui-radius-field-chip);
-    color: var(--sui-link);
+    color: var(--sui-text-primary);
     translate: none;
   }
 
@@ -225,12 +225,6 @@ in its corner. Beside a 34px field or in a toolbar it takes the control tier wit
     min-inline-size: 0;
     padding-block: var(--sui-space-1);
     white-space: normal;
-  }
-
-  /* The deeper veil of a press would take the accent words under 4.5:1, so they deepen as a
-     pressed link does. */
-  .sui-copy-button.bare:active:not(:disabled) {
-    color: color-mix(in oklab, var(--sui-link) 70%, var(--sui-text-primary));
   }
 
   .sui-copy-button.bare:focus-visible:not(:active) {
