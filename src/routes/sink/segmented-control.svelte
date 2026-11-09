@@ -106,7 +106,12 @@
     />
   </Specimen>
   <Specimen label="Selected disabled option">
-    <SegmentedControl label="Locked log level" options={levels} bind:value={disabledLevel} />
+    <SegmentedControl
+      label="Locked log level"
+      options={levels}
+      bind:value={disabledLevel}
+      hint="Held at Debug by support"
+    />
   </Specimen>
   <Specimen label="Disabled">
     <SegmentedControl
