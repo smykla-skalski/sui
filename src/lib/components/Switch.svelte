@@ -322,7 +322,9 @@ take, under the switch and to a screen reader, while the owner sets `checked` ba
     border-block-start-color: var(--sui-brand-action);
     border-radius: 50%;
     content: '';
-    inset: calc(var(--sui-space-1) - var(--sui-stroke));
+    /* A 12px ring leaves the thumb's middle open, so a still frame reads as a turn under way
+       and not as a target. */
+    inset: var(--sui-stroke-bold);
     position: absolute;
   }
 

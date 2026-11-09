@@ -450,6 +450,17 @@ test('L-25 the type tiers keep the sizes the law names', () => {
     styles['src/lib/components/Field.svelte'],
     /\.sui-field-label\s*\{[^}]*font: var\(--sui-weight-semibold\) var\(--sui-font-size-control\)/
   );
+  for (const [name, words] of [
+    ['Switch', 'sui-switch-label'],
+    ['Checkbox', 'sui-checkbox-label']
+  ])
+    assert.match(
+      styles[`src/lib/components/${name}.svelte`],
+      new RegExp(
+        `\\.${words}\\s*\\{[^}]*font: var\\(--sui-weight-regular\\) var\\(--sui-font-size-control\\)`
+      ),
+      `the words beside a ${name} are the option, at the regular weight`
+    );
   assert.match(
     styles['src/lib/components/PageHeader.svelte'],
     /font: var\(--sui-weight-bold\) var\(--sui-font-size-page-title\)/
