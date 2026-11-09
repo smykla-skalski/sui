@@ -509,7 +509,10 @@ test('L-20 a duration amount reads in the words face with figures of one width',
 test('L-55 a specimen name stands a field gap over its specimen, closer than any row of specimens', () => {
   const specimen = styles['src/routes/kit/Specimen.svelte'];
   assert.match(specimen, /\.specimen \{[^}]*gap: var\(--sui-space-3\);/);
-  assert.match(specimen, /figcaption \{[^}]*var\(--sui-font-size-compact\)/);
+  assert.match(
+    specimen,
+    /figcaption \{[^}]*var\(--sui-weight-regular\) var\(--sui-font-size-compact\)/
+  );
   const rows = svelteFiles
     .filter((path) => path.startsWith('src/routes/sink/'))
     .flatMap((path) => [...read(path).matchAll(/--specimen-row-gap="var\(--sui-space-(\d+)\)"/g)]);
