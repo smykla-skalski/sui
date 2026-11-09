@@ -127,11 +127,11 @@
   layout="grid"
   note="34 px by default and 44 px on phones, and a surface may opt into 40 px through 1 custom property"
 >
-  <Specimen label="Default, 34 px">
+  <Specimen label="Default">
     <SegmentedControl label="Time range" options={range} value="month" />
   </Specimen>
   <div class="wide-only">
-    <Specimen label="Tall, 40 px">
+    <Specimen label="Tall">
       <div class="tall">
         <SegmentedControl label="Time range" options={range} value="month" />
       </div>
