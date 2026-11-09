@@ -913,6 +913,36 @@ itself, so the choice shows from the first frame.
     }
   }
 
+  /* Until the value is known, the option drawn as chosen for the page's scheme parts no
+     hairline either, as the thumb it stands in for would not. */
+  :global(:root[data-sui-theme='light'])
+    .sui-segmented-track:not(:has(> .selected))
+    > :is([data-scheme='light'], :has(+ [data-scheme='light']))::after,
+  :global(:root[data-sui-theme='dark'])
+    .sui-segmented-track:not(:has(> .selected))
+    > :is([data-scheme='dark'], :has(+ [data-scheme='dark']))::after,
+  :global(:root:not([data-sui-theme]))
+    .sui-segmented-track:not(:has(> .selected))
+    > :is([data-scheme='system'], :has(+ [data-scheme='system']))::after {
+    opacity: 0;
+  }
+
+  @media (prefers-color-scheme: light) {
+    :global(:root:not([data-sui-theme]))
+      .sui-segmented-track:not(:has(> .selected, > [data-scheme='system']))
+      > :is([data-scheme='light'], :has(+ [data-scheme='light']))::after {
+      opacity: 0;
+    }
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :global(:root:not([data-sui-theme]))
+      .sui-segmented-track:not(:has(> .selected, > [data-scheme='system']))
+      > :is([data-scheme='dark'], :has(+ [data-scheme='dark']))::after {
+      opacity: 0;
+    }
+  }
+
   /* The selected option draws no fill: the thumb is its ground and carries its states. */
   @media (hover: hover) {
     .sui-segmented-option:hover:has(> input:enabled:not([aria-disabled='true'])):not(
