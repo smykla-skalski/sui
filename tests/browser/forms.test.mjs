@@ -438,6 +438,20 @@ suite('forms', together, () => {
           { opacity: '1', thumb: false, chosen: '1', other: '1' },
           `${name} stays at full strength and its thumb drops the accent`
         );
+      const among = page
+        .locator('#segmented-control .sui-segmented > .sui-segmented-track:not(:disabled)')
+        .filter({ has: page.locator('.disabled:not(.selected)') })
+        .first();
+      assert.equal(
+        (await look(among)).other,
+        '0.6',
+        'a disabled option among live ones keeps the disabled opacity'
+      );
+      assert.notEqual(
+        await whole.evaluate((element) => getComputedStyle(element).backgroundColor),
+        await live.evaluate((element) => getComputedStyle(element).backgroundColor),
+        "a disabled control takes the disabled field's fill"
+      );
     });
 
     test('select-to-radio focus skips a checked disabled option', async () => {

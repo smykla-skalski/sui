@@ -166,10 +166,17 @@
     padding-block-start: calc(round(up, 1cap, 1px) + var(--sui-field-gap));
   }
 
+  /* A phone stacks the specimens, so there is no drawn label beside it to line up with. */
+  @media (max-width: 47.9375rem) {
+    .beside {
+      padding-block-start: 0;
+    }
+  }
+
   .name {
     align-content: center;
     block-size: var(--sui-block-snap);
-    color: var(--sui-text-secondary);
+    color: var(--sui-text-primary);
     font: var(--sui-weight-semibold) var(--sui-font-size-control) / var(--sui-leading-flat)
       var(--sui-sans);
     padding-block: var(--sui-block-snap-room);
