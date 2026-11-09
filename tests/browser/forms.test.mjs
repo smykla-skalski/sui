@@ -475,8 +475,12 @@ suite('forms', together, () => {
         before.map(() => true),
         "the chosen words are semibold and the others medium, as a button's"
       );
-      await track.locator('.sui-segmented-option:not(.selected)').first().click();
+      // Keys, not a click, so later tests on this page still see keyboard focus.
+      const radio = track.locator('input:checked');
+      await radio.evaluate((input) => /** @type {HTMLInputElement} */ (input).focus());
+      await page.keyboard.press('ArrowRight');
       const after = await read();
+      await page.keyboard.press('ArrowLeft');
       assert.notDeepEqual(
         after.map(({ chosen }) => chosen),
         before.map(({ chosen }) => chosen),
