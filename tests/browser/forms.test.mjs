@@ -2017,9 +2017,13 @@ suite('forms', together, () => {
             panel.querySelector('.knob')
           ).getBoundingClientRect();
           const thumb = /** @type {Element} */ (panel.querySelector('.thumb'));
-          const rail = /** @type {Element} */ (panel.querySelector('.hue')).getBoundingClientRect();
+          const hue = /** @type {Element} */ (panel.querySelector('.hue'));
+          const rail = hue.getBoundingClientRect();
           return {
             aligned: rail.left === area.left && rail.right === area.right,
+            rims: [hue, panel.querySelector('.area')].map(
+              (part) => getComputedStyle(/** @type {Element} */ (part)).boxShadow
+            ),
             room: Math.min(area.left - box.left, box.right - area.right) - knob.width / 2,
             sizes: [knob.width, thumb.getBoundingClientRect().width]
           };
@@ -2030,6 +2034,7 @@ suite('forms', together, () => {
         );
         assert.equal(clear.sizes[0], clear.sizes[1], "the area's knob and the hue's thumb differ");
         assert.ok(clear.aligned, "the hue rail stops short of the area's edges");
+        assert.equal(clear.rims[0], clear.rims[1], "the hue rail lacks the area's rim");
         // The focused swatch's ring stays clear of the next swatch.
         await page.keyboard.press('ArrowRight');
         const room = await page.evaluate(() => {

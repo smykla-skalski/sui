@@ -751,6 +751,7 @@ name is the label and the hex, such as "Label color #0f766e". `name` posts the h
   .hue {
     block-size: var(--sui-color-picker-hue-height);
     border-radius: var(--sui-radius-pill);
+    box-shadow: inset 0 0 0 var(--sui-stroke) var(--sui-color-picker-hairline);
     cursor: pointer;
     position: relative;
     touch-action: none;
