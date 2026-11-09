@@ -437,14 +437,6 @@ start.
     }
   }
 
-  /* High contrast paints every button alike, so hover draws the edge in the system's
-     highlight; press keeps its 1px sink. */
-  @media (hover: hover) and (forced-colors: active) {
-    .sui-button:hover:not(:disabled, [aria-disabled='true']) {
-      border-color: Highlight;
-    }
-  }
-
   /* A button that holds a value wears a Select's field edge, baseline and recess in every
      state rather than a button's, and its ring stands 2px off the frame (L-9, L-41). */
   .sui-button.field {
@@ -494,8 +486,23 @@ start.
     outline-offset: var(--sui-focus-ring-offset);
   }
 
+  /* High contrast paints every button alike and drops the veils and recesses, so hover and an
+     open layer draw the edge in the system's highlight, an open field's too, which needs its
+     own selector to outrank the field's focus edge; press keeps its 1px sink. */
+  @media (hover: hover) and (forced-colors: active) {
+    .sui-button:hover:not(:disabled, [aria-disabled='true']) {
+      border-color: Highlight;
+    }
+  }
+
   @media (forced-colors: active) {
-    .sui-button[aria-expanded='true']:not(:focus-visible) {
+    .sui-button[aria-expanded='true']:not(:focus-visible),
+    .sui-button.field[aria-expanded='true']:not(
+        :active,
+        :disabled,
+        [aria-disabled='true'],
+        :focus-visible
+      ) {
       border-color: Highlight;
     }
   }

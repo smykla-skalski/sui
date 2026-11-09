@@ -1953,9 +1953,9 @@ suite('forms', together, () => {
       }
     );
 
-    // Last, because it leaves its picker open.
+    // Last, because it leaves the page in its own state.
     test(
-      "I4 swatches given as bare hex are named by their colour, not only their code, and a picker's trigger wears a field's edge, its knob and a focused swatch's ring kept clear",
+      "I4 swatches given as bare hex are named by their colour, not only their code, and a picker's trigger wears a field's edge, marked in forced colors, its knob and a focused swatch's ring kept clear",
       long,
       async () => {
         const page = await opened();
@@ -2043,6 +2043,30 @@ suite('forms', together, () => {
           );
         });
         assert.ok(room > 0, `a focused swatch's ring stands ${room}px from the next one`);
+
+        // High contrast drops the recess and the veil, so the open trigger and a hovered one
+        // draw their edge in the system's highlight.
+        await page.emulateMedia({ forcedColors: 'active' });
+        try {
+          const marked = () =>
+            page.locator('#color-picker button[aria-haspopup="dialog"]').evaluateAll((buttons) => {
+              const probe = document.createElement('span');
+              probe.style.color = 'Highlight';
+              document.body.append(probe);
+              const highlight = getComputedStyle(probe).color;
+              probe.remove();
+              return buttons
+                .filter((button) => button.matches(':hover, [aria-expanded="true"]'))
+                .map((button) => getComputedStyle(button).borderTopColor === highlight);
+            });
+          await page.mouse.move(0, 0);
+          assert.deepEqual(await marked(), [true], 'forced colors left the open trigger unmarked');
+          await page.keyboard.press('Escape');
+          await page.locator('#color-picker button[aria-haspopup="dialog"]').first().hover();
+          assert.deepEqual(await marked(), [true], 'forced colors left a hovered trigger unmarked');
+        } finally {
+          await page.emulateMedia({ forcedColors: null });
+        }
       }
     );
   });
