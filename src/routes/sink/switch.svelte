@@ -99,7 +99,24 @@
   </Specimen>
 </Example>
 
-<Pair>
+<Example
+  title="In a Section Head"
+  --example-max="54rem"
+  note="A bare switch keeps its 44 px hit area as paint, so the head keeps its own rhythm"
+  layout="grid"
+  ground="canvas"
+>
+  <Specimen label="Bare">
+    <Section title="Scheduled Syncs" level={4}>
+      {#snippet actions()}
+        <Switch aria-label="Run scheduled syncs" bare bind:checked={scheduled} />
+      {/snippet}
+      <p class="copy">Every repository syncs at {clock(2)} in its own time zone</p>
+    </Section>
+  </Specimen>
+</Example>
+
+<Pair narrow>
   <Example
     title="Keyboard Focus"
     note="Tab to a switch and press Space to flip it, and the ring sits 2 px off the track"
@@ -110,26 +127,8 @@
   </Example>
 
   <Example
-    title="In a Section Head"
-    note="A bare switch keeps its 44 px hit area as paint, so the head keeps its own rhythm"
-    layout="grid"
-    ground="canvas"
-  >
-    <Specimen label="Bare">
-      <Section title="Scheduled Syncs" level={4}>
-        {#snippet actions()}
-          <Switch aria-label="Run scheduled syncs" bare bind:checked={scheduled} />
-        {/snippet}
-        <p class="copy">Every repository syncs at {clock(2)} in its own time zone</p>
-      </Section>
-    </Specimen>
-  </Example>
-</Pair>
-
-<div class="fill">
-  <Example
     title="Narrow Width"
-    --example-max="calc(16rem + 2 * var(--sui-space-6))"
+    --example-max="var(--narrow-frame)"
     note="A long label wraps beside the track and both stay centred"
     layout="stack"
   >
@@ -142,7 +141,7 @@
       </div>
     </Specimen>
   </Example>
-</div>
+</Pair>
 
 <style>
   /* The reason stands where the switch's own error does, straight under its 44px row, so every
@@ -172,13 +171,5 @@
 
   .narrow {
     inline-size: min(100%, 16rem);
-  }
-
-  /* The narrow frame keeps the switch's 16rem and the stage's 24px pad on a wide page; on a
-     phone it fills the column, as every other frame does (L-55). */
-  @media (max-width: 47.9375rem) {
-    .fill :global(.example) {
-      --example-max: none;
-    }
   }
 </style>

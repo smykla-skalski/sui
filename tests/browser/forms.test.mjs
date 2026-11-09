@@ -867,12 +867,17 @@ suite('forms', together, () => {
       assert.deepEqual(inset, { size: 16, start: 12, gap: 8 });
     });
 
-    test('the Search Field Soft Hold and In Context frames share a row on a wide page, pad 24px like every wide frame and stack on a phone', async () => {
+    test('paired examples share a row on a wide page, pad 24px like every wide frame and stack on a phone', async () => {
+      const pairs = [
+        ['#search-field-soft-hold', '#search-field-in-context'],
+        ['#field-in-context', '#field-narrow-width'],
+        ['#switch-keyboard-focus', '#switch-narrow-width']
+      ];
       /** @param {import('playwright-core').Page} page */
       const frames = (page) =>
-        page.evaluate(() =>
-          ['#search-field-soft-hold', '#search-field-in-context', '#search-field-narrow-width'].map(
-            (id) => {
+        page.evaluate(
+          (ids) =>
+            ids.map((id) => {
               const frame = document
                 .querySelector(id)
                 ?.closest('.example')
@@ -881,22 +886,46 @@ suite('forms', together, () => {
               const stage = frame?.querySelector('.stage');
               const pad = stage ? parseFloat(getComputedStyle(stage).paddingInlineStart) : NaN;
               return { top: box?.top, left: box?.left, pad };
-            }
-          )
+            }),
+          [...pairs.flat(), '#search-field-narrow-width']
         );
-      const [hold, context, narrow] = await frames(await opened());
-      assert.equal(hold.top, context.top, 'the two frames start on one line');
-      assert.ok((context.left ?? 0) > (hold.left ?? 0), 'In Context stands beside Soft Hold');
+      const wide = await frames(await opened());
+      for (const [index, [first, second]] of pairs.entries()) {
+        const [one, two] = wide.slice(index * 2, index * 2 + 2);
+        assert.equal(one.top, two.top, `${first} and ${second} start on one line`);
+        assert.ok((two.left ?? 0) > (one.left ?? 0), `${second} stands beside ${first}`);
+      }
       assert.deepEqual(
-        [hold.pad, context.pad, narrow.pad],
-        [24, 24, 24],
+        new Set(wide.map(({ pad }) => pad)),
+        new Set([24]),
         'a wide page pads every stage 24px, however narrow its frame'
       );
       const phone = await open({ width: 390 });
-      const [held, filter] = await frames(phone);
+      const narrow = await frames(phone);
       await phone.close();
-      assert.equal(held.left, filter.left, 'on a phone the two frames stack');
-      assert.equal(held.pad, 16, 'a phone pads its stages 16px');
+      for (const [index, [first, second]] of pairs.entries()) {
+        const [one, two] = narrow.slice(index * 2, index * 2 + 2);
+        assert.equal(one.left, two.left, `on a phone ${first} and ${second} stack`);
+      }
+      assert.equal(narrow[0].pad, 16, 'a phone pads its stages 16px');
+    });
+
+    test('an on switch under the pointer takes the action hover fill, as a filled button does', async () => {
+      const page = await opened();
+      const row = page.locator('#switch .sui-switch-row', { hasText: 'Keep audit log' }).first();
+      await row.hover();
+      const fills = await row.evaluate(async (element) => {
+        const box = /** @type {Element} */ (element.querySelector('.sui-switch-track'));
+        await Promise.all(box.getAnimations().map((animation) => animation.finished));
+        const probe = document.body.appendChild(document.createElement('i'));
+        probe.style.color = 'var(--sui-brand-action-hover)';
+        const hover = getComputedStyle(probe).color;
+        probe.remove();
+        const track = getComputedStyle(box);
+        return { hover, fill: track.backgroundColor, edge: track.borderTopColor };
+      });
+      await page.mouse.move(0, 0);
+      assert.deepEqual([fills.fill, fills.edge], [fills.hover, fills.hover]);
     });
 
     test('a committed value loses the spaces at its ends, so a pattern takes it', async () => {

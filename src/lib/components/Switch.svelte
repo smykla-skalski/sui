@@ -80,7 +80,7 @@ take, under the switch and to a screen reader, while the owner sets `checked` ba
 
 - Semantics: a native `<input type="checkbox" role="switch">` inside its `<label>`, described by `error`, with a polite `role="status"` that speaks the error.
 - Content: a short label that names what turns on, or richer `children`, and an optional one-sentence error.
-- States: off, on (the track fills and the thumb travels 14px), hover (a veil on the track), focus (a 2px ring 2px off the track), pressed (a deeper veil, an inset shadow and a 1px sink), pending (the track keeps full strength as a busy button does and a spinner in the accent turns inside the thumb, busy), failed (an error with a warning mark), invalid (a 2px danger edge, kept when on), held (the track dims; disabled while a busy dialog or a saving pane around it works, and a tab stop that refuses the flip while a saving setting row does) and disabled (0.6 opacity).
+- States: off, on (the track fills and the thumb travels 14px), hover (a veil on the track, and the action's hover fill when on), focus (a 2px ring 2px off the track), pressed (a deeper veil, an inset shadow and a 1px sink), pending (the track keeps full strength as a busy button does and a spinner in the accent turns inside the thumb, busy), failed (an error with a warning mark), invalid (a 2px danger edge, kept when on), held (the track dims; disabled while a busy dialog or a saving pane around it works, and a tab stop that refuses the flip while a saving setting row does) and disabled (0.6 opacity).
 - Keyboard: Tab reaches it and Space flips it; a pending or held switch refuses the flip and keeps focus.
 - Pointer and touch: a 34 by 20px track with a 44px hit area, and a 44px row unless `bare`; the label is part of the target.
 - Focus: a flip never moves focus, and neither does a pending or failed save.
@@ -271,6 +271,18 @@ take, under the switch and to a screen reader, while the owner sets `checked` ba
         var(--sui-interactive-hover-layer),
         var(--sui-interactive-hover-layer)
       );
+    }
+
+    /* An on track is the action's fill, so it takes the action's hover fill, as a filled
+       button does, and a danger edge keeps its own colour. */
+    .sui-switch-row:hover:not(:active, .disabled, .locked) input:checked + .sui-switch-track {
+      background: var(--sui-brand-action-hover);
+    }
+
+    .sui-switch-row:hover:not(:active, .disabled, .locked)
+      input:checked
+      + .sui-switch-track:not(.invalid) {
+      border-color: var(--sui-brand-action-hover);
     }
   }
 
