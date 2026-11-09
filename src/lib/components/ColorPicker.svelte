@@ -407,7 +407,7 @@ name is the label and the hex, such as "Label color #0f766e". `name` posts the h
 
 - Semantics: a `Button`, drawn as a field as a `Select` is, since it holds a value, with `aria-haspopup="dialog"` and `aria-expanded`, a `role="dialog"` popover named by `dialogLabel`, a radio group of swatches, a `role="slider"` saturation and brightness area, a native range for the hue, a hex text field, and a hidden input that posts the hex.
 - Content: the caller's swatches, named or by hex, the area, the rail and the hex field, each with its drawn words.
-- States: closed, open, a checked swatch (a check mark), hover and pressed swatches, dragging, an invalid hex (an error with a warning mark) and a disabled trigger.
+- States: closed, open, a checked swatch (a check mark), hover and pressed swatches, dragging, an invalid hex (an error with a warning mark) and a disabled trigger (an off field's well and muted words, its colour mark at full strength).
 - Keyboard: Enter or Space opens it, Tab walks the swatches, area, rail and hex, the arrows move each, Enter commits, Escape goes back and closes, and Tab past the hex closes it.
 - Pointer and touch: the trigger is 34px, or 44px on a phone or any touch screen, where swatches are 44px and the rail's hit area 44px tall; every drag has keys.
 - Focus: opening focuses the checked swatch, or the first, or the area; Enter, a swatch press and Escape return focus to the trigger, and Tab out lets it move on.
@@ -478,28 +478,42 @@ name is the label and the hex, such as "Label color #0f766e". `name` posts the h
     style:--sui-color-picker-h={hsv.h / 360}
   >
     {#if palette.length > 0}
-      <div bind:this={grid} class="swatches" role="radiogroup" aria-label={swatchesLabel}>
-        {#each palette as swatch (swatch.hex)}
-          <span class="cell" style:--sui-color-picker-swatch={swatch.hex}>
-            <input
-              type="radio"
-              class="swatch"
-              name="{uid}-swatch"
-              value={swatch.hex}
-              aria-label={swatchName(swatch.hex, swatch.named)}
-              checked={swatch.hex === current}
-              onchange={() => pick(swatch.hex)}
-              onclick={(event) => {
-                if (event.detail > 0) close();
-              }}
-            />
-            {#if swatch.hex === current}
-              <span class="check" aria-hidden="true"
-                ><Icon name="check" size="sm" strokeWidth={2.5} /></span
-              >
-            {/if}
-          </span>
-        {/each}
+      <div class="part">
+        <!-- svelte-ignore a11y_click_events_have_key_events, a11y_no_static_element_interactions -->
+        <span
+          id="{uid}-swatches-label"
+          class="part-label"
+          onclick={() => grid?.querySelector<HTMLElement>('input:checked, input')?.focus()}
+          >{swatchesLabel}</span
+        >
+        <div
+          bind:this={grid}
+          class="swatches"
+          role="radiogroup"
+          aria-labelledby="{uid}-swatches-label"
+        >
+          {#each palette as swatch (swatch.hex)}
+            <span class="cell" style:--sui-color-picker-swatch={swatch.hex}>
+              <input
+                type="radio"
+                class="swatch"
+                name="{uid}-swatch"
+                value={swatch.hex}
+                aria-label={swatchName(swatch.hex, swatch.named)}
+                checked={swatch.hex === current}
+                onchange={() => pick(swatch.hex)}
+                onclick={(event) => {
+                  if (event.detail > 0) close();
+                }}
+              />
+              {#if swatch.hex === current}
+                <span class="check" aria-hidden="true"
+                  ><Icon name="check" size="sm" strokeWidth={2.5} /></span
+                >
+              {/if}
+            </span>
+          {/each}
+        </div>
       </div>
     {/if}
 
@@ -642,7 +656,7 @@ name is the label and the hex, such as "Label color #0f766e". `name` posts the h
     align-content: center;
     block-size: var(--sui-block-snap);
     color: var(--sui-text-primary);
-    font: var(--sui-weight-semibold) var(--sui-font-size-control) / var(--sui-row-copy-leading)
+    font: var(--sui-weight-semibold) var(--sui-font-size-control) / var(--sui-leading-note)
       var(--sui-sans);
     padding-block: var(--sui-block-snap-room);
     text-box: trim-both cap alphabetic;

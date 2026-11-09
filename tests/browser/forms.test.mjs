@@ -1756,6 +1756,34 @@ suite('forms', together, () => {
     });
 
     test(
+      'an off select and an off colour trigger draw as an off text field does, at full strength',
+      long,
+      async () => {
+        const page = await opened();
+        const looks = await page.evaluate(() =>
+          [
+            '#text-input input.sui-text-input:disabled',
+            '#select .sui-select-control:disabled',
+            '#color-picker button[aria-haspopup="dialog"]:disabled'
+          ].map((selector) => {
+            const field = /** @type {Element} */ (document.querySelector(selector));
+            const look = getComputedStyle(field);
+            const chevron = field.parentElement?.querySelector('.sui-select-chevron');
+            return [
+              look.backgroundColor,
+              look.borderTopColor,
+              look.boxShadow,
+              look.color,
+              look.opacity,
+              chevron ? getComputedStyle(chevron).opacity : '1'
+            ].join(' | ');
+          })
+        );
+        assert.deepEqual(looks.slice(1), [looks[0], looks[0]]);
+      }
+    );
+
+    test(
       'a hover on either part of a pair chip lights the whole chip, and the remove part over it',
       long,
       async () => {
@@ -1973,6 +2001,24 @@ suite('forms', together, () => {
           names.map((name) => name.split(',')[0]),
           ['Blue', 'Green', 'Orange', 'Red', 'Violet', 'Teal']
         );
+        // Every part of the panel, the swatches too, is named by a label in view that sets as a
+        // field's label does (L-35).
+        const parts = await page.evaluate(() => {
+          const panel = /** @type {Element} */ (document.querySelector(':popover-open'));
+          const field = /** @type {Element} */ (document.querySelector('.sui-field-label'));
+          const set = (/** @type {Element} */ label) => {
+            const look = getComputedStyle(label);
+            return `${look.fontWeight} ${look.fontSize}/${look.lineHeight} ${look.color}`;
+          };
+          const named = panel.querySelector('[role="radiogroup"]')?.getAttribute('aria-labelledby');
+          return {
+            swatches: named ? document.getElementById(named)?.checkVisibility() : false,
+            sets: [...panel.querySelectorAll('.part-label')].map(set),
+            field: set(field)
+          };
+        });
+        assert.ok(parts.swatches, 'the swatches have no label in view');
+        assert.deepEqual(new Set(parts.sets), new Set([parts.field]));
 
         // A trigger holds a value, so it wears a Select's field edge and baseline: the rest
         // ones at rest, and the open one in a field's focus edge, its ring left to the keys.

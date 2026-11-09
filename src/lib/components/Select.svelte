@@ -143,7 +143,7 @@ assistive technology, because a native picker cannot be held open.
 
 - Semantics: a native `<select>` with `<option>` and `<optgroup>` children, named by a `<label for>` or `aria-label`; `invalid` or a value the browser's check refused sets `aria-invalid`.
 - Content: six or more options with short labels and optional notes, in optional headed groups; disabled options stay in view.
-- States: rest (the control fill, a quiet frame, a recess under its top edge darker than the frame and a 3:1 baseline), hover (a firmer frame and recess), open, focus (a frame and baseline leaning toward the ring, and a 2px ring 2px off it), pressed (a deeper ground, an inset shadow and a 1px sink), invalid (a danger edge kept under focus), prompt (muted ink), held (disabled while a busy dialog or a saving pane around it works, a tab stop that refuses every change while a saving setting row does, 0.6 opacity either way) and disabled (0.6 opacity); in the picker an option is active (a veil) or checked (a check mark).
+- States: rest (the control fill, a quiet frame, a recess under its top edge darker than the frame and a 3:1 baseline), hover (a firmer frame and recess), open, focus (a frame and baseline leaning toward the ring, and a 2px ring 2px off it), pressed (a deeper ground, an inset shadow and a 1px sink), invalid (a danger edge kept under focus), prompt (muted ink), held (disabled while a busy dialog or a saving pane around it works, a tab stop that refuses every change while a saving setting row does, 0.6 opacity either way) and disabled (an off text field's well with no frame and muted words, at full strength); in the picker an option is active (a veil) or checked (a check mark).
 - Keyboard: the browser's own select keys: Space, Enter and the arrows open it and move, typing jumps to a label, and Escape closes it; a held select refuses all of them but Tab.
 - Pointer and touch: the trigger is 34px tall on a pointer and 44px on a phone or any touch screen, every option at least that tall, and a phone opens its own picker.
 - Focus: focus stays on the trigger while the picker opens and closes.
@@ -406,6 +406,28 @@ assistive technology, because a native picker cannot be held open.
   .sui-select-control:is(:disabled, [aria-disabled='true']),
   .sui-select-control:is(:disabled, [aria-disabled='true']) + .sui-select-chevron {
     opacity: var(--sui-disabled-opacity);
+  }
+
+  /* An off select reads as an off text field does, by its well, its missing frame and its
+     muted words at full strength, so its value stays legible (L-40); a held one, which also
+     refuses by `aria-disabled`, dims with the work around it, and an invalid one keeps its
+     danger edge. */
+  .sui-select:not(.bare) .sui-select-control:disabled:not([aria-disabled='true']) {
+    background-color: var(--sui-field-disabled);
+    border-color: transparent;
+    box-shadow: none;
+    color: var(--sui-text-muted);
+  }
+
+  .sui-select:not(.bare) .sui-select-control:disabled:not([aria-disabled='true']),
+  .sui-select:not(.bare)
+    .sui-select-control:disabled:not([aria-disabled='true'])
+    + .sui-select-chevron {
+    opacity: 1;
+  }
+
+  .sui-select:not(.bare) .sui-select-control[aria-invalid='true']:disabled {
+    border-color: var(--sui-danger-edge);
   }
 
   /* The end of a joined field: words that finish the value's phrase, such as the unit in

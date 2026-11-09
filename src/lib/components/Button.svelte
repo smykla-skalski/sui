@@ -74,7 +74,7 @@ start.
 
 - Semantics: a native `<button type="button">`, or an `<a href>` with `href`; its words are its name, and a disabled anchor is `role="link"` with `aria-disabled`.
 - Content: a short verb phrase that names the result, an optional leading `icon` and an optional `trailing` mark; a long or translated label wraps onto more lines inside its container.
-- States: rest, hover (a veil and a firmer edge), open (the hover paint while `aria-expanded`), as a `field` a Select's edge, recess and ring in each of them, open in its focus edge without the ring, focus (a 2px ring, flush on bordered tones and 2px off a filled one), pressed (a deeper ground, an inset shadow and a 1px sink), loading (a spinner in the tone's ink on the full fill and edge, the words at full ink, busy), locked by `aria-disabled` (still a tab stop) and disabled (default cursor), both at 0.6 opacity, a filled or danger tone in the default paint.
+- States: rest, hover (a veil and a firmer edge), open (the hover paint while `aria-expanded`), as a `field` a Select's edge, recess and ring in each of them, open in its focus edge without the ring, focus (a 2px ring, flush on bordered tones and 2px off a filled one), pressed (a deeper ground, an inset shadow and a 1px sink), loading (a spinner in the tone's ink on the full fill and edge, the words at full ink, busy), locked by `aria-disabled` (still a tab stop) and disabled (default cursor), both at 0.6 opacity, a filled or danger tone in the default paint, and a disabled `field` in an off field's well with muted words at full strength.
 - Keyboard: Tab reaches it, and Enter or Space presses a button while Enter follows an anchor; a loading, locked or disabled one refuses both.
 - Pointer and touch: 34px tall on a pointer and 44px on a phone or any touch screen, at least as wide as its label, and a press is never a drag; a surface may keep it drawn at 34px on a phone with `--sui-local-button-seat`, and its hit area still grows to 44px.
 - Focus: pressing never moves focus, and a loading button keeps it; the caller moves focus when the press removes the button.
@@ -489,6 +489,17 @@ start.
   /* High contrast paints every button alike and drops the veils and recesses, so hover and an
      open layer draw the edge in the system's highlight, an open field's too, which needs its
      own selector to outrank the field's focus edge; press keeps its 1px sink. */
+  /* An off field reads by its well, its missing frame and its muted words at full strength, as
+     an off text field does, so its value, a picked colour included, stays legible (L-40); a
+     held one dims with the work around it. */
+  .sui-button.field:disabled:not([aria-disabled='true']) {
+    background-color: var(--sui-field-disabled);
+    border-color: transparent;
+    box-shadow: none;
+    color: var(--sui-text-muted);
+    opacity: 1;
+  }
+
   @media (hover: hover) and (forced-colors: active) {
     .sui-button:hover:not(:disabled, [aria-disabled='true']) {
       border-color: Highlight;
