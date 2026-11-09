@@ -110,21 +110,19 @@
   note="A parent box shows a partial choice of the list under it, and a press chooses all or none"
   layout="stack"
 >
-  <Specimen label="Parent, partly chosen">
-    <div class="tree">
-      <div class="bleed">
-        <Checkbox
-          label="Every available event"
-          checked={all}
-          indeterminate={some}
-          onchange={(event) => (chosen = event.currentTarget.checked ? available : [])}
-        />
-      </div>
-      <div class="children">
-        <CheckList label="Events that start a sync" options={events} bind:value={chosen} />
-      </div>
+  <div class="tree">
+    <div class="bleed">
+      <Checkbox
+        label="Every available event"
+        checked={all}
+        indeterminate={some}
+        onchange={(event) => (chosen = event.currentTarget.checked ? available : [])}
+      />
     </div>
-  </Specimen>
+    <div class="children">
+      <CheckList label="Events that start a sync" options={events} bind:value={chosen} />
+    </div>
+  </div>
 </Example>
 
 <Pair narrow>
@@ -177,11 +175,12 @@
   }
 
   /* A matrix column's head names the box, so the box's hover ground bleeds into the column gap
-     and the box stands on the head's edge, as a check list's boxes stand on its legend's. A
-     folded matrix keeps the room after each state's name. */
+     and the box stands on the head's edge, as a check list's boxes stand on its legend's. The
+     room comes back at the end, so the columns keep their width. A folded matrix keeps its
+     room after each state's name. */
   @container variants (width >= 34rem) {
     .on-head {
-      margin-inline-start: calc(-1 * var(--sui-space-2));
+      margin-inline: calc(-1 * var(--sui-space-2)) var(--sui-space-2);
     }
   }
 
