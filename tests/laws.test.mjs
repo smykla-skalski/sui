@@ -783,6 +783,11 @@ test("L-68 icon sizes are named tiers that grow with the text and land on whole 
     read('src/lib/components/Select.svelte'),
     /<Icon name="chevron-down" size="base" \/>/
   );
+  assert.match(
+    read('src/lib/components/SearchField.svelte'),
+    /<Icon name="search" size="base"/,
+    "a search field's magnifier takes the 16px tier of the words beside it"
+  );
   for (const [path, name] of [
     ['src/lib/components/Button.svelte', 'button'],
     ['src/lib/components/IconButton.svelte', 'icon-button']

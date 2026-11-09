@@ -17,6 +17,7 @@
     hideLabel = false,
     clearLabel = word('SearchField.clearLabel', 'Clear the search'),
     onclear,
+    error,
     validationMessage,
     element = $bindable(null),
     id = `${uid}-input`,
@@ -34,6 +35,8 @@
     clearLabel?: string;
     /** Hears each clear, by the button or by Escape. */
     onclear?: () => void;
+    /** Said under the field at all times, such as a query the caller refused; it marks the field invalid. */
+    error?: string;
     /** Said in place of the browser's own words when its check refuses the query, such as "Enter at least 3 characters". */
     validationMessage?: string;
     element?: HTMLInputElement | null;
@@ -42,7 +45,7 @@
     class?: HTMLInputAttributes['class'];
   } & Omit<HTMLInputAttributes, 'value' | 'type' | 'aria-label' | 'id'> = $props();
 
-  const shown = $derived(refusals.message(undefined, validationMessage));
+  const shown = $derived(refusals.message(error, validationMessage));
   const describedby = $derived(
     [describedBy, shown && `${uid}-error`].filter(Boolean).join(' ') || undefined
   );
@@ -97,7 +100,7 @@ matches in a polite `role="status"` beside it so a screen reader hears it.
 - Localization: `clearLabel` is a prop with an English default, a refusal reads `validationMessage` or else the browser's words in the reader's language, and the magnifier and the button sit at the start and end in either direction.
 - Performance: one input and a button that mounts with the first character; it never waits or requests on its own.
 - Analytics: `oninput` reports each keystroke and `onclear` each clear.
-- Failure: no matches are the list's to say; the field stays enabled and keeps the query, and a query its own constraints (`required`, `minlength`, `pattern`) refuse on a send is said under it, with a warning mark, in place of the browser's bubble.
+- Failure: no matches are the list's to say; the field stays enabled and keeps the query, and a query its own constraints (`required`, `minlength`, `pattern`) refuse on a send is said under it, with a warning mark, in place of the browser's bubble, as a caller's own `error` is.
 -->
 
 <div class={['sui-search-field', className]} {@attach refusals.area}>
@@ -117,7 +120,7 @@ matches in a polite `role="status"` beside it so a screen reader hears it.
       invalid={Boolean(shown)}
       onkeydown={onkeydownInput}
     />
-    <span class="sui-search-field-icon"><Icon name="search" size="sm" strokeWidth={2} /></span>
+    <span class="sui-search-field-icon"><Icon name="search" size="base" strokeWidth={2} /></span>
     {#if value}
       <span class="sui-search-field-clear">
         <IconButton
@@ -174,7 +177,8 @@ matches in a polite `role="status"` beside it so a screen reader hears it.
 
   .sui-search-field-box > :global(.search-input) {
     appearance: none;
-    padding-inline: var(--sui-space-8)
+    /* The words start 8px past the 16px magnifier, as a button's words stand off its icon (L-94). */
+    padding-inline: calc(var(--sui-field-inset) + var(--sui-icon-base) + var(--sui-space-2))
       var(--sui-local-control-height, var(--sui-control-height-compact));
   }
 
@@ -188,7 +192,7 @@ matches in a polite `role="status"` beside it so a screen reader hears it.
     color: var(--sui-text-muted);
     display: flex;
     justify-self: start;
-    margin-inline-start: var(--sui-space-3);
+    margin-inline-start: var(--sui-field-inset);
     pointer-events: none;
   }
 
