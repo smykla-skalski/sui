@@ -1044,7 +1044,7 @@ itself, so the choice shows from the first frame.
   }
 
   .sui-segmented-word::after {
-    content: attr(data-label) / '';
+    content: attr(data-label);
     font-weight: var(--sui-weight-semibold);
     visibility: hidden;
   }
