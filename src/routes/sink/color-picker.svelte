@@ -23,6 +23,7 @@
 <div class="states">
   <Example
     title="States"
+    --example-max="54rem"
     note="A saturated color, a pale one, a grey that keeps its hue and a locked one with its reason"
   >
     <Specimen label="Saturated">
@@ -54,7 +55,7 @@
 
 <Example
   title="Own Swatches"
-  --example-max="40rem"
+  --example-max="54rem"
   note="A caller replaces the swatch list, and a color off the list checks no swatch"
 >
   <Specimen label="Chart series">
@@ -64,7 +65,7 @@
 
 <Example
   title="In a Field"
-  --example-max="40rem"
+  --example-max="54rem"
   note="The field’s label and the hex name the trigger together, and its hint describes it"
 >
   <Specimen label="Field label & hint">
@@ -77,12 +78,11 @@
 </Example>
 
 <style>
-  /* A phone sets the four states two by two, so the wide disabled one, with its reason under
-     it, never leaves the grey one alone on a row; larger text drops them to one column. */
-  @media (max-width: 47.9375rem) {
-    .states :global(.specimens) {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(min(100%, 8.5rem), 1fr));
-    }
+  /* The four states share a grid, so the wide disabled one, its reason wrapped under it, keeps
+     its row beside the others in the page's common frame; a phone sets them two by two and
+     larger text drops them to one column. */
+  .states :global(.specimens) {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 8.5rem), 1fr));
   }
 </style>

@@ -1981,6 +1981,27 @@ suite('forms', together, () => {
       }
     );
 
+    // The page's frames share one measure, as each kit page's do, and the four states keep one
+    // row in it, the disabled one's reason wrapped under its own trigger.
+    test('the colour picker page frames its examples alike and its states in one row', async () => {
+      const page = await opened();
+      const { widths, tops } = await page.evaluate(() => {
+        const section = /** @type {Element} */ (document.querySelector('#color-picker'));
+        return {
+          widths: [...section.querySelectorAll('.frame')].map(
+            (frame) => frame.getBoundingClientRect().width
+          ),
+          tops: [...section.querySelectorAll('.states .specimen')].map(
+            (specimen) => specimen.getBoundingClientRect().top
+          )
+        };
+      });
+      assert.equal(widths.length, 3);
+      assert.equal(new Set(widths).size, 1, `the frames are ${widths.join(', ')}px wide`);
+      assert.equal(tops.length, 4);
+      assert.equal(new Set(tops).size, 1, 'a state left the row');
+    });
+
     // Last, because it leaves the page in its own state.
     test(
       "I4 swatches given as bare hex are named by their colour, not only their code, and a picker's trigger wears a field's edge, marked in forced colors, its knob and a focused swatch's ring kept clear",
