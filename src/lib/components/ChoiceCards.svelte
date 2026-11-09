@@ -448,7 +448,7 @@ and `pending` locks it the same way while the chosen answer saves, with its dot 
       translate: none;
     }
 
-    .sui-choice-card-dot.spinning {
+    .sui-choice-card:has(input:checked) .sui-choice-card-dot.spinning {
       animation: none;
     }
   }
