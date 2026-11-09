@@ -440,13 +440,15 @@ suite('forms', together, () => {
         );
       /** @param {import('playwright-core').Locator} track */
       const seat = (track) =>
-        track
-          .locator('.sui-segmented-thumb')
-          .evaluate((thumb) => getComputedStyle(thumb).boxShadow !== 'none');
+        track.locator('.sui-segmented-thumb').evaluate((thumb) =>
+          getComputedStyle(thumb)
+            .boxShadow.split(/,(?![^(]*\))/)
+            .map((layer) => layer.includes('inset'))
+        );
       assert.deepEqual(
         [await seat(whole), await seat(option)],
-        [false, true],
-        'a disabled whole draws its chosen plate flat, and a chosen disabled option keeps its seat'
+        [[true], [true, false, false]],
+        'a disabled whole draws its chosen plate flat with its edge, and a chosen disabled option keeps its seat'
       );
       const among = page
         .locator('#segmented-control .sui-segmented > .sui-segmented-track:not(:disabled)')
