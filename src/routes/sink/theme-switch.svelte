@@ -30,9 +30,9 @@
 <Example
   title="Label"
   --example-max="36rem"
-  note="The options already say what they are, so the label is spoken unless a page draws it"
+  note="The options already say what they are, so the label is spoken unless a page draws it, as here"
 >
-  <Specimen label="Drawn">
+  <Specimen>
     <ThemeSwitch name="sink-theme-labelled" hideLabel={false} />
   </Specimen>
 </Example>
