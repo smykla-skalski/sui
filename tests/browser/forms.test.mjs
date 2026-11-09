@@ -94,44 +94,67 @@ suite('forms', together, () => {
       }
     );
 
-    test('a locked choice group keeps focus and refuses a new answer', long, async () => {
-      const page = await opened();
-      const group = page.locator('#choice-cards fieldset[aria-disabled="true"]').first();
-      const chosen = group.locator('input:checked');
-      const before = await chosen.getAttribute('value');
-      await chosen.focus();
-      await page.keyboard.press('ArrowDown');
-      await page.keyboard.press('Space');
-      assert.equal(await group.locator('input:checked').getAttribute('value'), before);
-      // Forced, because a locked card is not enabled to the test runner either.
-      await group
-        .locator('.sui-choice-card')
-        .filter({ hasNot: page.locator('input:checked') })
-        .first()
-        .click({ force: true });
-      assert.equal(await group.locator('input:checked').getAttribute('value'), before);
-      assert.ok(
-        await group.evaluate((fieldset) => fieldset.contains(document.activeElement)),
-        `focus left the group for ${await focused(page)}`
-      );
-      const strength = await group
-        .locator('.sui-choice-card')
-        .evaluateAll((cards) =>
-          cards.map((card) => [
-            card.querySelector('input')?.checked,
-            getComputedStyle(card).opacity
-          ])
+    test(
+      'a pending choice group keeps focus, refuses a new answer and turns its dot',
+      long,
+      async () => {
+        const page = await opened();
+        const group = page.locator('#choice-cards fieldset[aria-busy="true"]');
+        const chosen = group.locator('input:checked');
+        const before = await chosen.getAttribute('value');
+        await chosen.focus();
+        await page.keyboard.press('ArrowDown');
+        await page.keyboard.press('Space');
+        assert.equal(await group.locator('input:checked').getAttribute('value'), before);
+        // Forced, because a locked card is not enabled to the test runner either.
+        await group
+          .locator('.sui-choice-card')
+          .filter({ hasNot: page.locator('input:checked') })
+          .first()
+          .click({ force: true });
+        assert.equal(await group.locator('input:checked').getAttribute('value'), before);
+        assert.ok(
+          await group.evaluate((fieldset) => fieldset.contains(document.activeElement)),
+          `focus left the group for ${await focused(page)}`
         );
-      assert.deepEqual(
-        strength.filter(([chosen]) => chosen).map(([, opacity]) => opacity),
-        ['1'],
-        'the answer that saves keeps full strength'
-      );
-      assert.ok(
-        strength.filter(([chosen]) => !chosen).every(([, opacity]) => opacity === '0.6'),
-        `the refused answers dim: ${JSON.stringify(strength)}`
-      );
-    });
+        const strength = await group
+          .locator('.sui-choice-card')
+          .evaluateAll((cards) =>
+            cards.map((card) => [
+              card.querySelector('input')?.checked,
+              getComputedStyle(card).opacity
+            ])
+          );
+        assert.deepEqual(
+          strength.filter(([chosen]) => chosen).map(([, opacity]) => opacity),
+          ['1'],
+          'the answer that saves keeps full strength'
+        );
+        assert.ok(
+          strength.filter(([chosen]) => !chosen).every(([, opacity]) => opacity === '0.6'),
+          `the refused answers dim: ${JSON.stringify(strength)}`
+        );
+        assert.notEqual(
+          await group
+            .locator('.sui-choice-card:has(input:checked) .sui-choice-card-dot')
+            .evaluate((dot) => getComputedStyle(dot).animationName),
+          'none',
+          'the saving answer turns its dot'
+        );
+        const off = page.locator('#choice-cards fieldset[aria-disabled="true"]:not([aria-busy])');
+        assert.deepEqual(
+          [
+            ...new Set(
+              await off
+                .locator('.sui-choice-card')
+                .evaluateAll((cards) => cards.map((card) => getComputedStyle(card).opacity))
+            )
+          ],
+          ['0.6'],
+          'a disabled group dims every card, the chosen one too'
+        );
+      }
+    );
 
     test(
       'every focused card rings 2px off its edge, a chosen one over a 1px brand edge',

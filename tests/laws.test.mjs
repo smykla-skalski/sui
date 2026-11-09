@@ -1262,6 +1262,11 @@ test('L-41 a field keeps its frame and wears one ring 2px off it in every state'
   );
 });
 
+test('L-55 a choice card takes the field radius, not a surface card radius', () => {
+  const cards = styles['src/lib/components/ChoiceCards.svelte'];
+  assert.match(cards, /\.sui-choice-card \{[^}]*border-radius: var\(--sui-radius-control\);/);
+});
+
 test("L-12 a choice card hovers as a field does, not with a control's veil", () => {
   const cards = styles['src/lib/components/ChoiceCards.svelte'];
   assert.match(cards, /background-color: var\(--sui-field-hover\);/);
