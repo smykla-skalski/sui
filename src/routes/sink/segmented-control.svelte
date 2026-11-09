@@ -90,7 +90,12 @@
   note="A null value draws no thumb, the arrow keys skip a disabled option, and a locked control says why"
 >
   <Specimen label="Nothing chosen">
-    <SegmentedControl label="Time range" options={range} bind:value={inherited} />
+    <SegmentedControl
+      label="Time range"
+      options={range}
+      bind:value={inherited}
+      hint="Workspace range until set"
+    />
   </Specimen>
   <Specimen label="Disabled option">
     <SegmentedControl
@@ -122,11 +127,11 @@
   layout="grid"
   note="34 px by default and 44 px on phones, and a surface may opt into 40 px through 1 custom property"
 >
-  <Specimen label="Default">
+  <Specimen label="Default, 34 px">
     <SegmentedControl label="Time range" options={range} value="month" />
   </Specimen>
   <div class="wide-only">
-    <Specimen label="Tall">
+    <Specimen label="Tall, 40 px">
       <div class="tall">
         <SegmentedControl label="Time range" options={range} value="month" />
       </div>

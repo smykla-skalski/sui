@@ -976,7 +976,7 @@ itself, so the choice shows from the first frame.
     display: flex;
     font: var(--sui-weight-medium) var(--sui-font-size-control) / var(--sui-leading-flat)
       var(--sui-sans);
-    gap: var(--sui-space-1);
+    gap: var(--sui-space-2);
     justify-content: center;
     padding: 0 var(--sui-space-3);
     pointer-events: none;

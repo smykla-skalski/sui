@@ -1335,6 +1335,20 @@ test('L-94 a field or group message takes the 16px mark 8px from its words', () 
   }
 });
 
+test("L-94 a segmented option's and a tab's icon and count stand 8px off, as a button's do", () => {
+  const rows = {
+    Button: 'sui-button',
+    Tabs: 'sui-tabs-tab',
+    SegmentedControl: 'sui-segmented-label'
+  };
+  for (const [name, row] of Object.entries(rows))
+    assert.match(
+      styles[`src/lib/components/${name}.svelte`],
+      new RegExp(`\\n  \\.${row} \\{[^}]*\\n    gap: var\\(--sui-space-2\\);`),
+      `${name}'s marks do not stand 8px from its words`
+    );
+});
+
 test('L-94 a form error summary and an error state take the 16px mark 8px from their words', () => {
   const path = 'src/lib/components/FormError.svelte';
   assert.match(read(path), /sui-form-error-mark"><Icon name="alert" size="base" \/>/);
