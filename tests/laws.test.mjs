@@ -655,7 +655,7 @@ test('L-35 every label and group name stands the field gap over its control', ()
     ],
     [
       'src/lib/components/SegmentedControl.svelte',
-      /\n  \.captioned \{\s*row-gap: var\(--sui-field-gap\);/
+      /\n  \.sui-segmented \{\s*row-gap: var\(--sui-field-gap\);/
     ]
   ]))
     assert.match(styles[path], rule, `${path} sets its name another gap over its control`);

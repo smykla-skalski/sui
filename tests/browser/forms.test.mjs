@@ -610,6 +610,34 @@ suite('forms', together, () => {
       }
     });
 
+    test('a segmented hint stands the field gap under its control and describes it', async () => {
+      const page = await opened();
+      const control = page
+        .locator('#segmented-control .sui-segmented:has(.sui-segmented-help)')
+        .first();
+      const placed = await control.evaluate((box) => {
+        const track = /** @type {HTMLFieldSetElement} */ (
+          box.querySelector(':scope > .sui-segmented-track')
+        );
+        const help = /** @type {HTMLElement} */ (box.querySelector('.sui-segmented-help'));
+        const width = track.getBoundingClientRect().width;
+        const words = help.textContent;
+        help.textContent = `${words} `.repeat(6);
+        const widened = track.getBoundingClientRect().width !== width;
+        help.textContent = words;
+        return {
+          described: (track.getAttribute('aria-describedby') ?? '').split(' ').includes(help.id),
+          gap: Math.round(help.getBoundingClientRect().top - track.getBoundingClientRect().bottom),
+          widened
+        };
+      });
+      assert.deepEqual(
+        placed,
+        { described: true, gap: 12, widened: false },
+        'the hint describes the group, stands 12px under it and never widens it'
+      );
+    });
+
     test('a segmented control that turns into a select keeps the width it had', async () => {
       const page = await opened();
       const widths = await page

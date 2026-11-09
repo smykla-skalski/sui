@@ -90,30 +90,24 @@
     <SegmentedControl label="Time range" options={range} bind:value={inherited} />
   </Specimen>
   <Specimen label="Disabled option">
-    <div class="locked">
-      <SegmentedControl
-        label="Log level"
-        options={levels}
-        bind:value={level}
-        aria-describedby="sink-segmented-debug"
-      />
-      <p id="sink-segmented-debug" class="reason">Debug needs a support plan</p>
-    </div>
+    <SegmentedControl
+      label="Log level"
+      options={levels}
+      bind:value={level}
+      hint="Debug needs a support plan"
+    />
   </Specimen>
   <Specimen label="Selected disabled option">
     <SegmentedControl label="Locked log level" options={levels} bind:value={disabledLevel} />
   </Specimen>
   <Specimen label="Disabled">
-    <div class="locked">
-      <SegmentedControl
-        label="Log level"
-        options={levels}
-        value="errors"
-        disabled
-        aria-describedby="sink-segmented-saving"
-      />
-      <p id="sink-segmented-saving" class="reason">Locked until the save finishes</p>
-    </div>
+    <SegmentedControl
+      label="Log level"
+      options={levels}
+      value="errors"
+      disabled
+      hint="Locked until the save finishes"
+    />
   </Specimen>
 </Example>
 
@@ -205,24 +199,6 @@
     color: var(--sui-text-primary);
     font: var(--sui-weight-semibold) var(--sui-font-size-control) / var(--sui-leading-flat)
       var(--sui-sans);
-    padding-block: var(--sui-block-snap-room);
-    text-box: trim-both cap alphabetic;
-  }
-
-  .locked {
-    display: grid;
-    gap: var(--sui-row-copy-gap);
-    justify-items: start;
-    min-inline-size: 0;
-  }
-
-  .reason {
-    align-content: center;
-    block-size: var(--sui-block-snap);
-    color: var(--sui-text-secondary);
-    font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-row-copy-leading)
-      var(--sui-sans);
-    margin: 0;
     padding-block: var(--sui-block-snap-room);
     text-box: trim-both cap alphabetic;
   }

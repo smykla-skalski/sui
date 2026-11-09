@@ -39,6 +39,7 @@
     value = $bindable(null),
     name = id,
     disabled = false,
+    hint,
     countedLabel = word(
       'SegmentedControl.countedLabel',
       (word: string, count: string) => `${word}${mark('space')}(${count})`
@@ -59,6 +60,8 @@
     value?: string | null;
     name?: string;
     disabled?: boolean;
+    /** Help under the control, such as why an option is off, read as its description. */
+    hint?: string;
     /** The fallback select's words for an option with a count, given the count already formatted. */
     countedLabel?: (label: string, count: string) => string;
     /** The outer box, which holds the segments or, short of room, the select. */
@@ -68,6 +71,9 @@
   } & Omit<HTMLAttributes<HTMLDivElement>, 'children'> = $props();
 
   let track = $state<HTMLFieldSetElement | null>(null);
+  const described = $derived(
+    [describedby, hint && `${id}-hint`].filter(Boolean).join(' ') || undefined
+  );
   let fits = $state(true);
   // `start` runs from the track's inline-start edge, so a placement holds in either direction.
   let thumb = $state<{ option: string; start: number; width: number } | null>(null);
@@ -344,13 +350,13 @@ Until it is measured, as in a server render, the checked option paints the thumb
 itself, so the choice shows from the first frame.
 
 - Semantics: a `fieldset` of native radios named by `label`, or by `aria-labelledby` when it is passed; the fallback is a native `select` with the same name.
-- Content: two to five options, each a short word with an optional icon and count; a long word never wraps, so the control turns into the select instead.
+- Content: two to five options, each a short word with an optional icon and count, and an optional hint under them; a long word never wraps, so the control turns into the select instead.
 - States: rest, hover (a fill that keeps the thumb's curve), pressed (the fill sinks, the thumb darkens and creases), selected (the thumb), focus (a 2px ring 2px off the track, and the hover fill on a focused option the thumb is not under), a disabled option (its words in the muted ink at the disabled opacity), a disabled whole (the disabled field's fill with no frame, its words in the muted ink at full strength), a chosen disabled option (a plain plate with the thumb's seat and the control border ink on its edge, and flat, with the edge but no seat, in a disabled whole), held (the whole at the disabled opacity: disabled while a busy dialog or a saving pane around it works, and refusing every press, arrow and drag with focus kept while a saving setting row does), and `null` with no thumb.
 - Keyboard: Tab reaches the checked option, or the first one when nothing is chosen; the arrow keys move the choice and skip disabled options; Escape puts a dragged thumb back.
 - Pointer and touch: a click chooses any option and a drag of the thumb chooses on release, while a chosen disabled option and a disabled or held control refuse the drag and show no grab, so the drag is never the only way (WCAG 2.5.7); on a phone or a coarse pointer each option is at least 44 by 44px.
 - Focus: choosing keeps focus on the option; when the segments turn into the select, or back, focus moves to the other form instead of falling to the page.
 - Responsive: as wide as its words or its room, whichever is less; short of room it turns into a `Select`, because a hidden option is a lost option.
-- Accessibility: `label` is drawn above the segments, 8px from them, unless `hideLabel` is set or `aria-labelledby` names a label that is already drawn; `aria-describedby` reaches the group or the select; counts are part of each option's name.
+- Accessibility: `label` is drawn above the segments, 12px from them, unless `hideLabel` is set or `aria-labelledby` names a label that is already drawn; `aria-describedby` and the hint reach the group or the select; counts are part of each option's name.
 - Localization: `label`, option words and `countedLabel` are the caller's; numeric counts are grouped in the reader's format; the thumb is placed from the inline-start edge and the drag finds the option under the pointer, so both hold right to left.
 - Performance: two `ResizeObserver`s per control, for the thumb and for focus when the form changes; the form itself is chosen by a scroll timeline, the thumb moves by `translate` and grows by `scale` from its old width, never animating its layout, and reduced motion drops every transition.
 - Analytics: the outer box hears a native `change` event for every pick, in either form, through `onchange`.
@@ -394,7 +400,7 @@ itself, so the choice shows from the first frame.
     disabled={disabled || heldIn(element, around) === 'firm'}
     aria-disabled={locked || undefined}
     aria-labelledby={labelledby}
-    aria-describedby={describedby}
+    aria-describedby={described}
     onpointerdown={grab}
     onpointermove={follow}
     onpointerup={release}
@@ -441,10 +447,11 @@ itself, so the choice shows from the first frame.
       bind:value
       aria-label={labelledby ? undefined : label}
       aria-labelledby={labelledby}
-      aria-describedby={describedby}
+      aria-describedby={described}
       {disabled}
     />
   </div>
+  {#if hint}<p id="{id}-hint" class="sui-segmented-help">{hint}</p>{/if}
 </div>
 
 <style>
@@ -464,7 +471,7 @@ itself, so the choice shows from the first frame.
     grid-area: 1 / 1;
   }
 
-  .captioned {
+  .sui-segmented {
     row-gap: var(--sui-field-gap);
   }
 
@@ -474,6 +481,31 @@ itself, so the choice shows from the first frame.
 
   .captioned > .sui-segmented-caption {
     grid-area: 1 / 1;
+  }
+
+  .sui-segmented > .sui-segmented-help {
+    grid-area: 2 / 1;
+  }
+
+  .captioned > .sui-segmented-help {
+    grid-area: 3 / 1;
+  }
+
+  /* A field's help, 12px under the control as under a field (L-35). It wraps to the control's
+     width and never widens it. */
+  .sui-segmented-help {
+    align-content: center;
+    block-size: var(--sui-block-snap);
+    color: var(--sui-text-secondary);
+    contain: inline-size;
+    font: var(--sui-weight-regular) var(--sui-font-size-note) / var(--sui-leading-note)
+      var(--sui-sans);
+    margin: 0;
+    min-inline-size: 0;
+    overflow-wrap: anywhere;
+    padding-block: var(--sui-block-snap-room);
+    text-box: trim-both cap alphabetic;
+    text-wrap: pretty;
   }
 
   .sui-segmented-caption {
