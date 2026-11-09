@@ -103,7 +103,7 @@ and `pending` locks it the same way while the chosen answer saves, with its dot 
 
 - Semantics: a `<fieldset role="radiogroup">` named by its `<legend>`, described by the hint and the error, holding native radios each named by its label and described by its sentence, with a polite `role="status"` that speaks the error.
 - Content: a question as the legend and two to six answers, each a short label and one sentence; an optional hint and an error.
-- States: unchosen (a quiet edge), chosen (a brand tint, a 2px brand edge and a filled dot), hover (a field's faint ground and a firmer edge on an unchosen card), focus (a 2px ring 2px off the card's own edge, a chosen card dropping its brand edge under it, so its tint meets the ring), pressed (a deeper ground, an inset shadow and a 1px sink), required (the word after the legend), invalid (a danger edge on every unchosen card and an error with a warning mark, from `error` or from a refused send), pending (the chosen card keeps full strength, its dot's ring turns in the accent around its filled centre and the group is busy), the answers a pending group refuses (full strength in the muted ink), and disabled answers and a disabled group (full strength on the disabled field's fill in the muted ink, a chosen card's 2px edge and dot in the strong border ink).
+- States: unchosen (a quiet edge), chosen (a brand tint, a 2px brand edge and a filled dot), hover (a field's faint ground and a firmer edge on an unchosen card), focus (a 2px ring 2px off the card's own edge, a chosen card's brand edge thinning to 1px under it), pressed (a deeper ground, an inset shadow and a 1px sink), required (the word after the legend), invalid (a danger edge on every unchosen card and an error with a warning mark, from `error` or from a refused send), pending (the chosen card keeps full strength, its dot's ring turns in the accent around its filled centre and the group is busy), the answers a pending group refuses (full strength in the muted ink), and disabled answers and a disabled group (full strength on the disabled field's fill in the muted ink, a chosen card's 2px edge and dot in the strong border ink).
 - Keyboard: Tab enters the group at the chosen answer, the arrows move the choice and skip disabled answers, and Space chooses; a locked group refuses all of them and keeps focus.
 - Pointer and touch: every card is its own target, at least 72px tall.
 - Focus: locking the group leaves focus on the radio that had it, and a send that leaves a required question unanswered moves focus to its first radio when it is the form's first refused control.
@@ -309,11 +309,11 @@ and `pending` locks it the same way while the chosen answer saves, with its dot 
     outline-offset: var(--sui-focus-ring-offset);
   }
 
-  /* Under focus the ring alone draws the blue and the tint runs to the card's edge, so a chosen
-     card wears neither two blue outlines nor a gray seam on its tint; the tint and the dot still
-     say it is chosen. */
+  /* On light the chosen brand edge is the focus colour, so under focus it thins to 1px and
+     never merges with the ring into one thick band; the tint and the dot still say it is
+     chosen. */
   .sui-choice-card:has(input:checked:focus-visible) {
-    box-shadow: none;
+    box-shadow: inset 0 0 0 var(--sui-stroke) var(--sui-brand-action);
   }
 
   /* A disabled answer, or every answer of a disabled group, is framed as a disabled field is: at
