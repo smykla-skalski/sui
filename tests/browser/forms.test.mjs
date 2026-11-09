@@ -215,34 +215,30 @@ suite('forms', together, () => {
     );
 
     test(
-      'every focused card rings 2px off its edge, a chosen one over a 1px brand edge',
+      "every focused card rings 2px off its edge, a chosen one over an unchosen card's edge",
       long,
       async () => {
         const page = await opened();
         await page.keyboard.press('Shift');
-        const chosen = page
-          .locator('#choice-cards fieldset:not([aria-disabled]) input:checked')
-          .first();
-        await chosen.evaluate((input) => input.focus());
-        const { edge, brand, offset } = await chosen.evaluate((input) => {
-          const probe = document.createElement('i');
-          probe.style.color = 'var(--sui-brand-action)';
-          input.after(probe);
-          const brand = getComputedStyle(probe).color;
-          probe.remove();
-          return {
-            edge: getComputedStyle(/** @type {Element} */ (input.parentElement)).boxShadow,
-            brand,
-            offset: getComputedStyle(input).outlineOffset
-          };
-        });
-        assert.ok(edge.includes(brand) && edge.includes(' 1px'), `the chosen edge became ${edge}`);
-        assert.equal(offset, '2px');
-        const open = page
-          .locator('#choice-cards fieldset:not([aria-disabled]) input:not(:checked):not(:disabled)')
-          .first();
-        await open.evaluate((input) => input.focus());
-        assert.equal(await open.evaluate((input) => getComputedStyle(input).outlineOffset), '2px');
+        const group = page.locator('#choice-cards fieldset:not([aria-disabled])').first();
+        const chosen = group.locator('input:checked');
+        const open = group.locator('input:not(:checked):not(:disabled)').first();
+        /** @param {import('playwright-core').Locator} input */
+        const ring = (input) =>
+          input.evaluate((radio) => {
+            radio.focus();
+            return [
+              getComputedStyle(/** @type {Element} */ (radio.parentElement)).boxShadow,
+              getComputedStyle(radio).outlineOffset
+            ];
+          });
+        const [openEdge, openOffset] = await ring(open);
+        const [chosenEdge, chosenOffset] = await ring(chosen);
+        assert.deepEqual(
+          [chosenEdge, chosenOffset, openOffset],
+          [openEdge, '2px', '2px'],
+          'under focus the ring alone carries the blue, over the frame an unchosen card has'
+        );
       }
     );
 
