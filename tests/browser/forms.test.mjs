@@ -2021,6 +2021,9 @@ suite('forms', together, () => {
           const rail = hue.getBoundingClientRect();
           return {
             aligned: rail.left === area.left && rail.right === area.right,
+            reach: /** @type {Element} */ (
+              panel.querySelector('.hue-range')
+            ).getBoundingClientRect().height,
             rims: [hue, panel.querySelector('.area')].map(
               (part) => getComputedStyle(/** @type {Element} */ (part)).boxShadow
             ),
@@ -2035,6 +2038,7 @@ suite('forms', together, () => {
         assert.equal(clear.sizes[0], clear.sizes[1], "the area's knob and the hue's thumb differ");
         assert.ok(clear.aligned, "the hue rail stops short of the area's edges");
         assert.equal(clear.rims[0], clear.rims[1], "the hue rail lacks the area's rim");
+        assert.ok(clear.reach >= 24, `the hue rail takes a press only ${clear.reach}px tall`);
         // The focused swatch's ring stays clear of the next swatch.
         await page.keyboard.press('ArrowRight');
         const room = await page.evaluate(() => {

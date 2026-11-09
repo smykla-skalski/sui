@@ -759,13 +759,16 @@ name is the label and the hex, such as "Label color #0f766e". `name` posts the h
     user-select: none;
   }
 
-  /* Clear, and as tall as the thumb, so a press anywhere the thumb reaches lands on it. */
+  /* Clear, and as tall as the thumb or the 24px a pointer target needs (L-38), so a press
+     anywhere the thumb reaches lands on it. */
   .hue-range {
     appearance: none;
     background: none;
     block-size: auto;
     cursor: pointer;
-    inset-block: calc((100% - var(--sui-color-picker-hue-thumb)) / 2);
+    inset-block: calc(
+      (100% - max(var(--sui-color-picker-hue-thumb), var(--sui-field-target-min))) / 2
+    );
     inset-inline: 0;
     margin: 0;
     opacity: 0;
