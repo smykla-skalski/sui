@@ -122,17 +122,19 @@ suite('forms', together, () => {
           .evaluateAll((cards) =>
             cards.map((card) => [
               card.querySelector('input')?.checked,
-              getComputedStyle(card).opacity
+              getComputedStyle(card).opacity,
+              getComputedStyle(card.querySelector('.sui-choice-card-label') ?? card).color
             ])
           );
         assert.deepEqual(
-          strength.filter(([chosen]) => chosen).map(([, opacity]) => opacity),
+          [...new Set(strength.map(([, opacity]) => opacity))],
           ['1'],
-          'the answer that saves keeps full strength'
+          'the answer that saves and the answers it refuses keep full strength'
         );
+        const [chosenInk] = strength.filter(([chosen]) => chosen).map(([, , ink]) => ink);
         assert.ok(
-          strength.filter(([chosen]) => !chosen).every(([, opacity]) => opacity === '0.6'),
-          `the refused answers dim: ${JSON.stringify(strength)}`
+          strength.filter(([chosen]) => !chosen).every(([, , ink]) => ink !== chosenInk),
+          `the refused answers take the muted ink: ${JSON.stringify(strength)}`
         );
         assert.notEqual(
           await group
