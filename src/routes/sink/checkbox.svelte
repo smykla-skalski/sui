@@ -69,13 +69,15 @@
     rowLabel={(state) => (state === 'disabled' ? 'disabled' : 'disabled={false}')}
   >
     {#snippet cell(state, value)}
-      <Checkbox
-        label="Delete merged branches"
-        description={state === 'disabled' ? 'Only an owner can set it' : undefined}
-        checked={value === 'Checked'}
-        indeterminate={value === 'Partly chosen'}
-        disabled={state === 'disabled'}
-      />
+      <div class="on-head">
+        <Checkbox
+          label="Delete merged branches"
+          description={state === 'disabled' ? 'Only an owner can set it' : undefined}
+          checked={value === 'Checked'}
+          indeterminate={value === 'Partly chosen'}
+          disabled={state === 'disabled'}
+        />
+      </div>
     {/snippet}
   </Variants>
 </Example>
@@ -179,11 +181,27 @@
     margin-inline-start: calc(-1 * var(--sui-space-2));
   }
 
+  /* A matrix column's head names the box, so the box's hover ground bleeds into the column gap
+     and the box stands on the head's edge, as a check list's boxes stand on its legend's. A
+     folded matrix keeps the room after each state's name. */
+  @container variants (width >= 34rem) {
+    .on-head {
+      margin-inline-start: calc(-1 * var(--sui-space-2));
+    }
+  }
+
   /* The list a parent box chooses for stands under the parent's words, so the indent says
-     which box holds the others. */
+     which box holds the others, and the parent takes the list's own rhythm: one row gap on a
+     wide page, edge to edge on a phone (L-38). */
   .tree {
     display: grid;
-    gap: var(--sui-space-3);
+    gap: var(--sui-space-1);
+  }
+
+  @media (max-width: 47.9375rem) {
+    .tree {
+      gap: 0;
+    }
   }
 
   .children {

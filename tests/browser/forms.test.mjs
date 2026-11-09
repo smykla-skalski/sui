@@ -942,6 +942,25 @@ suite('forms', together, () => {
       assert.equal(narrow[0].pad, 16, 'a phone pads its stages 16px');
     });
 
+    test("a check box matrix's column heads stand on their boxes' edge", async () => {
+      const page = await opened();
+      const offsets = await page.evaluate(() => {
+        const grid = document
+          .querySelector('#checkbox-states')
+          ?.closest('.example')
+          ?.querySelector('.variants .grid');
+        const heads = [...(grid?.querySelectorAll(':scope > .column') ?? [])];
+        const boxes = [
+          ...(grid?.querySelector('.row')?.querySelectorAll('.sui-checkbox-box') ?? [])
+        ];
+        return heads.map(
+          (head, index) =>
+            (boxes[index]?.getBoundingClientRect().left ?? NaN) - head.getBoundingClientRect().left
+        );
+      });
+      assert.deepEqual(offsets, [0, 0, 0], 'each box starts where its column head does');
+    });
+
     test("a list a parent box chooses for stands under the parent's words, its question heard, not drawn", async () => {
       const page = await opened();
       const edges = await page.evaluate(() => {
