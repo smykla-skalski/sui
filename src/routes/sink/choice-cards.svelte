@@ -58,6 +58,11 @@
           description: 'Only people who own the repository'
         },
         {
+          value: 'maintainers',
+          label: 'Maintainers',
+          description: 'People with the maintain or admin role'
+        },
+        {
           value: 'members',
           label: 'Any member',
           description: 'Anybody in the organization with write access'
@@ -98,11 +103,16 @@
     inline-size: min(100%, 16rem);
   }
 
-  /* The narrow frame keeps the cards' 16rem and the stage's 24px pad on a wide page; on a
-     phone it fills the column, as every other frame does (L-55). */
+  /* The narrow frame keeps the cards' 16rem and the stage's 24px pad on a wide page. A phone
+     column is under two cards' 14rem, so the cards stack there at any width, and the frame and
+     its cards fill the column, as every other frame does (L-55). */
   @media (max-width: 47.9375rem) {
     .fill :global(.example) {
       --example-max: none;
+    }
+
+    .narrow {
+      inline-size: 100%;
     }
   }
 </style>
