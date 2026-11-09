@@ -610,7 +610,7 @@ name is the label and the hex, such as "Label color #0f766e". `name` posts the h
     --sui-color-picker-cell: 26px;
     --sui-color-picker-cols: 8;
     --sui-color-picker-gap: var(--sui-space-1);
-    --sui-color-picker-pad: var(--sui-space-2);
+    --sui-color-picker-pad: var(--sui-space-3);
     --sui-color-picker-width: calc(
       var(--sui-color-picker-cell) * var(--sui-color-picker-cols) + var(--sui-color-picker-gap) *
         (var(--sui-color-picker-cols) - 1) + var(--sui-color-picker-pad) * 2 + 2 * var(--sui-stroke)
@@ -621,7 +621,7 @@ name is the label and the hex, such as "Label color #0f766e". `name` posts the h
     --sui-color-picker-knob: 14px;
     box-sizing: border-box;
     display: grid;
-    gap: var(--sui-space-3);
+    gap: var(--sui-space-4);
     inline-size: calc(var(--sui-color-picker-width) - 2 * var(--sui-stroke));
     padding: var(--sui-color-picker-pad);
   }
@@ -635,7 +635,7 @@ name is the label and the hex, such as "Label color #0f766e". `name` posts the h
   .part-label {
     align-content: center;
     block-size: var(--sui-block-snap);
-    color: var(--sui-text-secondary);
+    color: var(--sui-text-primary);
     font: var(--sui-weight-semibold) var(--sui-font-size-control) / var(--sui-row-copy-leading)
       var(--sui-sans);
     padding-block: var(--sui-block-snap-room);
@@ -822,10 +822,11 @@ name is the label and the hex, such as "Label color #0f766e". `name` posts the h
     }
   }
 
-  /* A finger needs 44px targets (L-38): six swatches a row at the touch size, which keeps the
-     popover inside a 320px screen, and a rail whose hit area grows past its drawn height. */
+  /* A finger needs 44px targets (L-38): six swatches a row at the touch size, which with an
+     8px inset keeps the popover inside a 320px screen, and a rail whose hit area grows past its drawn height. */
   @media (pointer: coarse), (max-width: 47.9375rem) {
     .panel {
+      --sui-color-picker-pad: var(--sui-space-2);
       inline-size: calc(
         6 * var(--sui-touch-target) + 5 * var(--sui-color-picker-gap) + 2 *
           var(--sui-color-picker-pad)

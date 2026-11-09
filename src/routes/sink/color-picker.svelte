@@ -44,6 +44,7 @@
 
 <Example
   title="Own Swatches"
+  --example-max="40rem"
   note="A caller replaces the swatch list, and a color off the list checks no swatch"
 >
   <Specimen label="Chart series">
@@ -53,6 +54,7 @@
 
 <Example
   title="In a Field"
+  --example-max="40rem"
   note="The field’s label and the hex name the trigger together, and its hint describes it"
 >
   <Specimen label="Field label & hint">

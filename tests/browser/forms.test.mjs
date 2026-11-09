@@ -1949,7 +1949,7 @@ suite('forms', together, () => {
 
     // Last, because it leaves its picker open.
     test(
-      'I4 swatches given as bare hex are named by their colour, not only their code',
+      'I4 swatches given as bare hex are named by their colour, not only their code, and the open picker keeps its trigger in the hover paint and its knob clear of its edge',
       long,
       async () => {
         const page = await opened();
@@ -1967,6 +1967,38 @@ suite('forms', together, () => {
           names.map((name) => name.split(',')[0]),
           ['Blue', 'Green', 'Orange', 'Red', 'Violet', 'Teal']
         );
+
+        await page.mouse.move(0, 0);
+        const open = await trigger.evaluate((button) => {
+          const paint = (/** @type {string} */ token) => {
+            const probe = document.createElement('span');
+            probe.style.color = `var(${token})`;
+            button.append(probe);
+            const color = getComputedStyle(probe).color;
+            probe.remove();
+            return color;
+          };
+          const look = getComputedStyle(button);
+          return {
+            layer: look.backgroundImage.includes(paint('--sui-interactive-hover-layer')),
+            edge: look.borderTopColor === paint('--sui-control-border-hover')
+          };
+        });
+        assert.deepEqual(open, { layer: true, edge: true }, 'the open trigger lost its paint');
+        // The knob's centre reaches the area's edges, so the panel's inset must hold half a knob
+        // and still leave it room.
+        const clear = await page.evaluate(() => {
+          const panel = /** @type {Element} */ (document.querySelector(':popover-open'));
+          const box = panel.getBoundingClientRect();
+          const area = /** @type {Element} */ (
+            panel.querySelector('.area')
+          ).getBoundingClientRect();
+          const knob = /** @type {Element} */ (
+            panel.querySelector('.knob')
+          ).getBoundingClientRect();
+          return Math.min(area.left - box.left, box.right - area.right) - knob.width / 2;
+        });
+        assert.ok(clear >= 4, `a knob at the area's edge stands ${clear}px from the panel's`);
       }
     );
   });
