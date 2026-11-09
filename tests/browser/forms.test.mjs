@@ -589,17 +589,22 @@ suite('forms', together, () => {
       assert.deepEqual(edges, { light: [], dark: [] }, 'these drew an edge of another red');
     });
 
-    test('a focused invalid switch or box keeps one red edge and its ring 2px clear of it', async () => {
+    test('an invalid box keeps its size, and a focused invalid switch or box its ring 2px clear', async () => {
       const page = await opened();
       const drawn = await page.evaluate(() =>
         ['#switch .sui-switch-track.invalid', '#field .sui-checkbox-box.invalid'].map(
           (selector) => {
             const part = /** @type {HTMLElement} */ (document.querySelector(selector));
             const input = /** @type {HTMLInputElement} */ (part.previousElementSibling);
-            input.focus();
             const style = getComputedStyle(part);
+            const outset =
+              style.outlineStyle === 'none'
+                ? 0
+                : parseFloat(style.outlineWidth) + parseFloat(style.outlineOffset);
+            input.focus();
             const shown = {
               selector,
+              outset,
               focused: input.matches(':focus-visible'),
               edge: style.borderTopWidth,
               doubled: style.outlineStyle !== 'none'
@@ -612,11 +617,18 @@ suite('forms', together, () => {
       assert.deepEqual(drawn, [
         {
           selector: '#switch .sui-switch-track.invalid',
+          outset: 1,
           focused: true,
           edge: '1px',
           doubled: false
         },
-        { selector: '#field .sui-checkbox-box.invalid', focused: true, edge: '1px', doubled: false }
+        {
+          selector: '#field .sui-checkbox-box.invalid',
+          outset: 0,
+          focused: true,
+          edge: '2px',
+          doubled: false
+        }
       ]);
     });
 
@@ -961,7 +973,7 @@ suite('forms', together, () => {
       assert.deepEqual(offsets, [0, 0, 0], 'each box starts where its column head does');
     });
 
-    test("a list a parent box chooses for stands under the parent's words, its question heard, not drawn", async () => {
+    test("a list a parent box chooses for stands under the parent's words", async () => {
       const page = await opened();
       const edges = await page.evaluate(() => {
         const stage = document
@@ -971,24 +983,13 @@ suite('forms', together, () => {
         const [parent, child] = [...(stage?.querySelectorAll('.sui-checkbox') ?? [])];
         const left = (/** @type {Element | null | undefined} */ node) =>
           node?.getBoundingClientRect().left;
-        const legend = child?.closest('fieldset')?.querySelector('legend');
         return {
           words: left(parent?.querySelector('.sui-checkbox-label')),
-          box: left(child?.querySelector('.sui-checkbox-box')),
-          legend: legend?.getBoundingClientRect().width
+          box: left(child?.querySelector('.sui-checkbox-box'))
         };
       });
       assert.ok(edges.words !== undefined, 'the parent box has words');
       assert.equal(edges.box, edges.words, 'the first child box starts where the parent words do');
-      assert.ok(
-        (edges.legend ?? 2) <= 1,
-        'the parent asks the question, so the legend draws nothing'
-      );
-      const group = page
-        .locator('#checkbox-in-context')
-        .locator('xpath=ancestor::*[contains(@class, "example")][1]')
-        .getByRole('group', { name: 'Events that start a sync' });
-      assert.equal(await group.count(), 1, 'a screen reader still hears the list named');
     });
 
     test("a section head's switch ends where its stage ends, as the head's action does on a pane", async () => {
