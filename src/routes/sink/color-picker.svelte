@@ -20,27 +20,37 @@
   const chartSwatches = ['#2f6f9f', '#4f8a3c', '#b7791f', '#a33a45', '#6d4fb3', '#3b7f7a'];
 </script>
 
-<Example
-  title="States"
-  note="A saturated color, a pale one, a grey that keeps its hue and a locked one with its reason"
->
-  <Specimen label="Saturated">
-    <ColorPicker label="Label color" bind:value={label} />
-  </Specimen>
-  <Specimen label="Pale">
-    <ColorPicker label="Highlight color" bind:value={pale} />
-  </Specimen>
-  <Specimen label="Grey">
-    <ColorPicker label="Muted color" bind:value={grey} />
-  </Specimen>
-  <Specimen label="Disabled">
-    <Field label="Locked color" hint="The workspace theme sets it, so only an owner can change it">
-      {#snippet control(field)}
-        <ColorPicker id={field.id} aria-describedby={field.describedby} value="#5319e7" disabled />
-      {/snippet}
-    </Field>
-  </Specimen>
-</Example>
+<div class="states">
+  <Example
+    title="States"
+    note="A saturated color, a pale one, a grey that keeps its hue and a locked one with its reason"
+  >
+    <Specimen label="Saturated">
+      <ColorPicker label="Label color" bind:value={label} />
+    </Specimen>
+    <Specimen label="Pale">
+      <ColorPicker label="Highlight color" bind:value={pale} />
+    </Specimen>
+    <Specimen label="Grey">
+      <ColorPicker label="Muted color" bind:value={grey} />
+    </Specimen>
+    <Specimen label="Disabled">
+      <Field
+        label="Locked color"
+        hint="The workspace theme sets it, so only an owner can change it"
+      >
+        {#snippet control(field)}
+          <ColorPicker
+            id={field.id}
+            aria-describedby={field.describedby}
+            value="#5319e7"
+            disabled
+          />
+        {/snippet}
+      </Field>
+    </Specimen>
+  </Example>
+</div>
 
 <Example
   title="Own Swatches"
@@ -65,3 +75,14 @@
     </Field>
   </Specimen>
 </Example>
+
+<style>
+  /* A phone sets the four states two by two, so the wide disabled one, with its reason under
+     it, never leaves the grey one alone on a row; larger text drops them to one column. */
+  @media (max-width: 47.9375rem) {
+    .states :global(.specimens) {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(min(100%, 8.5rem), 1fr));
+    }
+  }
+</style>
