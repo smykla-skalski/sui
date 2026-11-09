@@ -25,7 +25,7 @@
     {
       value: 'rebase',
       label: 'Rebase',
-      description: 'Needs linear history, then replays each commit on top of the base branch',
+      description: 'Replays each commit on top of the base branch',
       disabled: true
     }
   ];
