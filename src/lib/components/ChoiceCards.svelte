@@ -98,7 +98,7 @@ save keeps it. A busy dialog or a saving pane around it disables the radios whil
 
 - Semantics: a `<fieldset role="radiogroup">` named by its `<legend>`, described by the hint and the error, holding native radios each named by its label and described by its sentence, with a polite `role="status"` that speaks the error.
 - Content: a question as the legend and two to six answers, each a short label and one sentence; an optional hint and an error.
-- States: unchosen (a quiet edge), chosen (a brand tint, a 2px brand edge and a filled dot), hover (a veil and a firmer edge), focus (a flush 2px ring on a focus-coloured edge), pressed (a deeper ground, an inset shadow and a 1px sink), required (the word after the legend), invalid (a danger edge on every unchosen card and an error with a warning mark, from `error` or from a refused send), locked and disabled answers (0.6 opacity).
+- States: unchosen (a quiet edge), chosen (a brand tint, a 2px brand edge and a filled dot), hover (a veil and a firmer edge), focus (a flush 2px ring on a focus-coloured edge, and 2px clear of a chosen card's brand edge), pressed (a deeper ground, an inset shadow and a 1px sink), required (the word after the legend), invalid (a danger edge on every unchosen card and an error with a warning mark, from `error` or from a refused send), locked and disabled answers (0.6 opacity).
 - Keyboard: Tab enters the group at the chosen answer, the arrows move the choice and skip disabled answers, and Space chooses; a locked group refuses all of them and keeps focus.
 - Pointer and touch: every card is its own target, at least 72px tall.
 - Focus: locking the group leaves focus on the radio that had it, and a send that leaves a required question unanswered moves focus to its first radio when it is the form's first refused control.
@@ -202,8 +202,9 @@ save keeps it. A busy dialog or a saving pane around it disables the radios whil
     grid-template-columns: repeat(auto-fit, minmax(min(14rem, 100%), 1fr));
   }
 
-  /* The label and the sentence take the start column and the dot the top end corner, on the
-     label's first line (L-94). */
+  /* The label takes the start column and the dot the top end corner, on the label's first line
+     (L-94); the sentence under them runs the card's whole width, as the dot stands beside the
+     label alone. */
   .sui-choice-card {
     align-content: start;
     align-items: start;
@@ -254,6 +255,10 @@ save keeps it. A busy dialog or a saving pane around it disables the radios whil
     }
   }
 
+  .sui-choice-card:has(input:focus-visible) {
+    box-shadow: inset 0 0 0 var(--sui-stroke) var(--sui-focus);
+  }
+
   /* The chosen answer says so three ways at once: a brand tint, a 2px brand edge and a filled
      dot, so the choice never rests on colour alone. The edge is drawn inside the card, so
      choosing moves nothing. */
@@ -293,13 +298,16 @@ save keeps it. A busy dialog or a saving pane around it disables the radios whil
     position: absolute;
   }
 
-  .sui-choice-card:has(input:focus-visible) {
-    box-shadow: inset 0 0 0 var(--sui-stroke) var(--sui-focus);
-  }
-
   .sui-choice-card input:focus-visible {
     outline: var(--sui-focus-ring-width) solid var(--sui-focus);
     outline-offset: var(--sui-focus-ring-flush);
+  }
+
+  /* The chosen card keeps its 2px brand edge under focus, and on light that edge is the focus
+     colour, so its ring stands 2px clear of it, as a field's does, and never merges into one
+     thicker edge (L-41). */
+  .sui-choice-card input:checked:focus-visible {
+    outline-offset: var(--sui-focus-ring-offset);
   }
 
   /* A card that draws the danger edge rings in its red, as an invalid field does (L-41). */
@@ -353,7 +361,7 @@ save keeps it. A busy dialog or a saving pane around it disables the radios whil
     color: var(--sui-text-secondary);
     font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-row-copy-leading)
       var(--sui-sans);
-    grid-column: 1;
+    grid-column: 1 / -1;
     padding-block: var(--sui-block-snap-room);
     text-box: trim-both cap alphabetic;
     text-wrap: pretty;

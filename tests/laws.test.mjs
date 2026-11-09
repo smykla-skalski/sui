@@ -1255,6 +1255,11 @@ test('L-41 a field keeps its frame and wears one ring 2px off it in every state'
       /(\[aria-invalid='true'\]|\.invalid)[^{]*focus-visible[^{]*\{\s*outline-color: var\(--sui-focus-danger\);\s*\}/,
       `a ${name} that says it is invalid rings in its edge's red, as a field does`
     );
+  assert.match(
+    styles['src/lib/components/ChoiceCards.svelte'],
+    /input:checked:focus-visible \{\s*outline-offset: var\(--sui-focus-ring-offset\);\s*\}/,
+    "a chosen card's ring stands 2px clear of its brand edge, which is the focus colour on light"
+  );
 });
 
 test('L-94 a field or group message takes the 16px mark 8px from its words', () => {
