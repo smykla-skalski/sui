@@ -517,11 +517,11 @@
   --sui-radius-control: 8px;
   --sui-radius-surface: 10px;
   --sui-radius-popover: 12px;
-  /* A row inside a popover's 1px edge and 4px padding: the popover's curve less both, so the
-     two curves stay concentric (L-53). */
+  /* The outer curve less its edge and 4px inset, so the curves stay concentric (L-53). */
   --sui-radius-popover-row: calc(
     var(--sui-radius-popover) - var(--sui-stroke) - var(--sui-space-1)
   );
+  --sui-radius-field-chip: calc(var(--sui-radius-control) - var(--sui-stroke) - var(--sui-space-1));
   --sui-radius-dialog: 14px;
   --sui-radius-check: 5px;
 

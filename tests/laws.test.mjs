@@ -776,6 +776,22 @@ test('L-53 radii come from the radius tokens', () => {
   );
 });
 
+test('L-53 a chip inside a field takes the field radius less its edge and inset', () => {
+  const tokens = read('src/lib/styles.css');
+  assert.match(
+    tokens,
+    /--sui-radius-field-chip: calc\(\s*var\(--sui-radius-control\) - var\(--sui-stroke\) - var\(--sui-space-1\)\s*\);/
+  );
+  assert.match(
+    read('src/lib/components/CopyButton.svelte'),
+    /\.sui-copy-button\.bare,[^{]*\{[^}]*border-radius: var\(--sui-radius-field-chip\);/
+  );
+  assert.match(
+    read('src/lib/components/PatternEntries.svelte'),
+    /\.sui-pattern-remove::before,[^{]*\{[^}]*border-radius: var\(--sui-radius-field-chip\);/
+  );
+});
+
 test('L-53 edges are a stroke token wide', () => {
   assert.deepEqual(
     violations(({ property, value }) => {

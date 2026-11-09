@@ -196,7 +196,7 @@ in its corner. Beside a 34px field or in a toolbar it takes the control tier wit
   .sui-copy-button.bare:is(:active, :focus-visible) {
     background-color: transparent;
     border-width: 0;
-    border-radius: var(--sui-radius-chip);
+    border-radius: var(--sui-radius-field-chip);
     color: var(--sui-text-primary);
     translate: none;
   }

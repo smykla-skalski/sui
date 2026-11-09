@@ -582,7 +582,7 @@ a saving pane around it holds it the same way.
 
   .sui-pattern-remove::before,
   .sui-pattern-remove::after {
-    border-radius: var(--sui-radius-chip);
+    border-radius: var(--sui-radius-field-chip);
     content: '';
     inset: calc(var(--sui-stroke) + var(--sui-space-1));
     position: absolute;
