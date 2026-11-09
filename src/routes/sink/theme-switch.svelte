@@ -16,10 +16,7 @@
 
 <Example
   title="Page Theme"
-  --example-max="54rem"
-  --specimen-min="21rem"
-  --specimen-row-gap="var(--sui-space-6)"
-  layout="grid"
+  --example-max="36rem"
   note="Sets the theme of this page, remembers it for the next visit and follows the system live"
 >
   <Specimen label="Light, dark & system">
@@ -32,10 +29,7 @@
 
 <Example
   title="Label"
-  --example-max="54rem"
-  --specimen-min="21rem"
-  --specimen-row-gap="var(--sui-space-6)"
-  layout="grid"
+  --example-max="36rem"
   note="The options already say what they are, so the label is spoken unless a page draws it"
 >
   <Specimen label="Drawn">
@@ -45,10 +39,7 @@
 
 <Example
   title="Narrow Width"
-  --example-max="54rem"
-  --specimen-min="21rem"
-  --specimen-row-gap="var(--sui-space-6)"
-  layout="grid"
+  --example-max="36rem"
   note="Short of room, the same 3 choices become a native select that shares the page’s one choice"
 >
   <Specimen label="As a select">
