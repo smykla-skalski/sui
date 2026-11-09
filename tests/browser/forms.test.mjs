@@ -449,8 +449,8 @@ suite('forms', together, () => {
         );
       assert.deepEqual(
         [await seat(whole), await seat(option)],
-        [[true], [true, false, false]],
-        'a disabled whole draws its chosen plate flat with its edge, and a chosen disabled option keeps its seat'
+        [[true], [true]],
+        'a chosen disabled plate lies flat with its edge, among live options and in a disabled whole'
       );
       const among = page
         .locator('#segmented-control .sui-segmented > .sui-segmented-track:not(:disabled)')
