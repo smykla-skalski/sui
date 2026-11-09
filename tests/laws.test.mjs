@@ -1249,6 +1249,12 @@ test('L-41 a field keeps its frame and wears one ring 2px off it in every state'
       `${path} draws one ring whatever its frame's state`
     );
   }
+  for (const name of ['Switch', 'Checkbox', 'ChoiceCards'])
+    assert.match(
+      styles[`src/lib/components/${name}.svelte`],
+      /(\[aria-invalid='true'\]|\.invalid)[^{]*focus-visible[^{]*\{\s*outline-color: var\(--sui-focus-danger\);\s*\}/,
+      `a ${name} that says it is invalid rings in its edge's red, as a field does`
+    );
 });
 
 test('L-94 a field or group message takes the 16px mark 8px from its words', () => {

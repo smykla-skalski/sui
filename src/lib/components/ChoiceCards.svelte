@@ -302,6 +302,11 @@ save keeps it. A busy dialog or a saving pane around it disables the radios whil
     outline-offset: var(--sui-focus-ring-flush);
   }
 
+  /* A card that draws the danger edge rings in its red, as an invalid field does (L-41). */
+  .invalid .sui-choice-card:not(:has(input:checked)) input:focus-visible {
+    outline-color: var(--sui-focus-danger);
+  }
+
   .sui-choice-card-dot {
     background: var(--sui-surface-base);
     block-size: var(--sui-icon-base);

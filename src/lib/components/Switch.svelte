@@ -206,6 +206,11 @@ take, under the switch and to a screen reader, while the owner sets `checked` ba
     outline-offset: var(--sui-focus-ring-offset);
   }
 
+  /* An invalid switch rings in its edge's red, as an invalid field does (L-41). */
+  .sui-switch-row input[aria-invalid='true']:focus-visible {
+    outline-color: var(--sui-focus-danger);
+  }
+
   .sui-switch-track {
     background: var(--sui-switch-track-off);
     block-size: 20px;

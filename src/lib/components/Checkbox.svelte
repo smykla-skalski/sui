@@ -237,6 +237,11 @@ way; a busy dialog or a saving pane around it disables it while the work runs.
     outline-offset: var(--sui-focus-ring-offset);
   }
 
+  /* An invalid box rings in its edge's red, as an invalid field does (L-41). */
+  .sui-checkbox input[aria-invalid='true']:focus-visible {
+    outline-color: var(--sui-focus-danger);
+  }
+
   .sui-checkbox-box {
     align-items: center;
     background: var(--sui-control-bg);
