@@ -310,6 +310,7 @@ way; a busy dialog or a saving pane around it disables it while the work runs.
     overflow-wrap: anywhere;
     padding-block: var(--sui-block-snap-room-even);
     text-box: trim-both cap alphabetic;
+    text-wrap: pretty;
   }
 
   .sui-checkbox-description {
@@ -320,6 +321,7 @@ way; a busy dialog or a saving pane around it disables it while the work runs.
       var(--sui-sans);
     padding-block: var(--sui-block-snap-room-even);
     text-box: trim-both cap alphabetic;
+    text-wrap: pretty;
   }
 
   .disabled {
