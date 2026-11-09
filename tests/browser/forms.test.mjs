@@ -293,7 +293,7 @@ suite('forms', together, () => {
     );
 
     test(
-      'L-55 two measured examples share a row that ends where the cards above end, and fill a phone line, where two forms stand further apart than an action from its fields',
+      'L-55 two measured examples share a row that ends where the cards above end, and fill a phone line, where a divider parts two forms further than an action from its fields',
       long,
       async () => {
         /** @param {import('playwright-core').Page} page */
@@ -342,19 +342,20 @@ suite('forms', together, () => {
         const [, small, wrapped] = await frames(phone);
         const forms = await phone.evaluate(() => {
           const example = document.getElementById('field-refused-send')?.closest('.example');
-          const [sent, refused] = [...(example?.querySelectorAll('figure') ?? [])].map((figure) =>
-            figure.getBoundingClientRect()
-          );
-          const form = example?.querySelector('form');
-          const action = form?.querySelector('.action')?.getBoundingClientRect();
-          const last = form
-            ?.querySelector('.action')
-            ?.previousElementSibling?.getBoundingClientRect();
+          const refused = example?.querySelectorAll('figure')[1];
+          const action = example?.querySelector('form .action');
+          const caption = refused?.querySelector('figcaption')?.getBoundingClientRect();
+          const end = action?.getBoundingClientRect();
+          const last = action?.previousElementSibling?.getBoundingClientRect();
           return (
-            action &&
-            last &&
-            sent &&
-            refused && { between: refused.top - sent.bottom, close: action.top - last.bottom }
+            refused &&
+            caption &&
+            end &&
+            last && {
+              between: caption.top - end.bottom,
+              close: end.top - last.bottom,
+              divider: getComputedStyle(refused).borderBlockStartWidth
+            }
           );
         });
         await phone.close();
@@ -363,6 +364,7 @@ suite('forms', together, () => {
           forms.between > forms.close,
           `two forms stand ${forms.between}px apart, as close as an action to its fields (${forms.close}px)`
         );
+        assert.equal(forms.divider, '1px', 'a divider parts the two forms');
         assert.ok(small && wrapped);
         assert.equal(wrapped.width, small.width, 'a wrapped frame keeps a narrow measure');
       }

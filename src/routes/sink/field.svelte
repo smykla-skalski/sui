@@ -205,10 +205,8 @@
 <Example
   title="Refused Send"
   --example-max="54rem"
-  --specimen-row-gap="var(--sui-space-8)"
   note="A refused send shows each field’s own error in place of the browser’s bubble and focuses the first field to fix"
-  layout="grid"
-  --specimen-min="21rem"
+  layout="pairs"
 >
   <Specimen label={sent}>
     <form class="form" onsubmit={send}>
