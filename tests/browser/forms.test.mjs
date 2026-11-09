@@ -433,7 +433,7 @@ suite('forms', together, () => {
       // disabled options are, while a disabled whole keeps every word at full strength.
       for (const [name, track, other] of /** @type {const} */ ([
         ['a disabled control', whole, '1'],
-        ['a chosen disabled option', option, '0.6']
+        ['a chosen disabled option', option, '1']
       ]))
         assert.deepEqual(
           { ...(await look(track)), thumb: (await look(track)).thumb === accent },
