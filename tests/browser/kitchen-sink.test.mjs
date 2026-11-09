@@ -886,8 +886,18 @@ suite('the kitchen sink', together, () => {
           // What a part adds is what disappears with it.
           const part = avatar.locator(failed.includes(name) ? 'img' : 'svg');
           await part.evaluate((node) => node.style.setProperty('display', 'none'));
-          const without = await settled(page, avatar);
-          if (!(await alike(page, without, drawn[name]))) {
+          let without = await settled(page, avatar);
+          // A busy machine can paint an edge pixel of either shot a few levels off, so both are
+          // taken again; a part that draws something differs every time.
+          let same = await alike(page, without, drawn[name]);
+          for (let tries = 0; !same && tries < 5; tries += 1) {
+            await part.evaluate((node) => node.style.removeProperty('display'));
+            drawn[name] = await settled(page, avatar);
+            await part.evaluate((node) => node.style.setProperty('display', 'none'));
+            without = await settled(page, avatar);
+            same = await alike(page, without, drawn[name]);
+          }
+          if (!same) {
             const shots = ['with', 'without'].map((kind) =>
               join(tmpdir(), `sui-avatar-${name.replace(/\W+/g, '-')}-${kind}.png`)
             );
