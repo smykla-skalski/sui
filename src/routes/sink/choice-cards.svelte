@@ -67,7 +67,7 @@
       bind:value={pending}
     />
   </Specimen>
-  <Specimen label="Disabled">
+  <Specimen label="Locked while it saves">
     <ChoiceCards
       label="How pull requests merge"
       hint="Saving the merge method…"
@@ -78,20 +78,31 @@
   </Specimen>
 </Example>
 
-<Example
-  title="Narrow Width"
-  note="Below 2 columns of 14 rem the cards stack, and long sentences wrap"
-  layout="stack"
->
-  <Specimen label="Stacked cards">
-    <div class="narrow">
-      <ChoiceCards label="How pull requests merge" options={methods} value="merge" />
-    </div>
-  </Specimen>
-</Example>
+<div class="fill">
+  <Example
+    title="Narrow Width"
+    --example-max="calc(16rem + 2 * var(--sui-space-6))"
+    note="Below 2 columns of 14 rem the cards stack, and long sentences wrap"
+    layout="stack"
+  >
+    <Specimen label="Stacked cards">
+      <div class="narrow">
+        <ChoiceCards label="How pull requests merge" options={methods} value="merge" />
+      </div>
+    </Specimen>
+  </Example>
+</div>
 
 <style>
   .narrow {
     inline-size: min(100%, 16rem);
+  }
+
+  /* The narrow frame keeps the cards' 16rem and the stage's 24px pad on a wide page; on a
+     phone it fills the column, as every other frame does (L-55). */
+  @media (max-width: 47.9375rem) {
+    .fill :global(.example) {
+      --example-max: none;
+    }
   }
 </style>
