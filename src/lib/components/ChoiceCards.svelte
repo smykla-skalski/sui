@@ -327,7 +327,7 @@ save keeps it. A busy dialog or a saving pane around it disables the radios whil
     box-sizing: border-box;
     /* The label's face, so `1cap` is the label's cap height and the dot centres on its
        snapped first line however many lines it wraps to. */
-    font: var(--sui-weight-medium) var(--sui-font-size-meta) / var(--sui-leading-flat)
+    font: var(--sui-weight-semibold) var(--sui-font-size-meta) / var(--sui-leading-flat)
       var(--sui-sans);
     grid-column: 2;
     grid-row: 1;
@@ -352,7 +352,7 @@ save keeps it. A busy dialog or a saving pane around it disables the radios whil
     align-content: center;
     block-size: var(--sui-block-snap-even);
     color: var(--sui-text-primary);
-    font: var(--sui-weight-medium) var(--sui-font-size-meta) / var(--sui-row-copy-leading)
+    font: var(--sui-weight-semibold) var(--sui-font-size-meta) / var(--sui-row-copy-leading)
       var(--sui-sans);
     padding-block: var(--sui-block-snap-room-even);
     text-box: trim-both cap alphabetic;
