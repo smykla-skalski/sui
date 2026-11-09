@@ -133,28 +133,37 @@ suite('forms', together, () => {
       );
     });
 
-    test('a focused chosen card keeps a 1px brand edge with its ring 2px clear', long, async () => {
-      const page = await opened();
-      await page.keyboard.press('Shift');
-      const chosen = page
-        .locator('#choice-cards fieldset:not([aria-disabled]) input:checked')
-        .first();
-      await chosen.evaluate((input) => input.focus());
-      const { edge, brand, offset } = await chosen.evaluate((input) => {
-        const probe = document.createElement('i');
-        probe.style.color = 'var(--sui-brand-action)';
-        input.after(probe);
-        const brand = getComputedStyle(probe).color;
-        probe.remove();
-        return {
-          edge: getComputedStyle(/** @type {Element} */ (input.parentElement)).boxShadow,
-          brand,
-          offset: getComputedStyle(input).outlineOffset
-        };
-      });
-      assert.ok(edge.includes(brand) && edge.includes(' 1px'), `the chosen edge became ${edge}`);
-      assert.equal(offset, '2px');
-    });
+    test(
+      'every focused card rings 2px off its edge, a chosen one over a 1px brand edge',
+      long,
+      async () => {
+        const page = await opened();
+        await page.keyboard.press('Shift');
+        const chosen = page
+          .locator('#choice-cards fieldset:not([aria-disabled]) input:checked')
+          .first();
+        await chosen.evaluate((input) => input.focus());
+        const { edge, brand, offset } = await chosen.evaluate((input) => {
+          const probe = document.createElement('i');
+          probe.style.color = 'var(--sui-brand-action)';
+          input.after(probe);
+          const brand = getComputedStyle(probe).color;
+          probe.remove();
+          return {
+            edge: getComputedStyle(/** @type {Element} */ (input.parentElement)).boxShadow,
+            brand,
+            offset: getComputedStyle(input).outlineOffset
+          };
+        });
+        assert.ok(edge.includes(brand) && edge.includes(' 1px'), `the chosen edge became ${edge}`);
+        assert.equal(offset, '2px');
+        const open = page
+          .locator('#choice-cards fieldset:not([aria-disabled]) input:not(:checked):not(:disabled)')
+          .first();
+        await open.evaluate((input) => input.focus());
+        assert.equal(await open.evaluate((input) => getComputedStyle(input).outlineOffset), '2px');
+      }
+    );
 
     test(
       'a pending switch refuses a second flip, keeps focus, and a refusal is spoken',

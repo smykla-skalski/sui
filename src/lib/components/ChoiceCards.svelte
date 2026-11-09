@@ -98,7 +98,7 @@ save keeps it. A busy dialog or a saving pane around it disables the radios whil
 
 - Semantics: a `<fieldset role="radiogroup">` named by its `<legend>`, described by the hint and the error, holding native radios each named by its label and described by its sentence, with a polite `role="status"` that speaks the error.
 - Content: a question as the legend and two to six answers, each a short label and one sentence; an optional hint and an error.
-- States: unchosen (a quiet edge), chosen (a brand tint, a 2px brand edge and a filled dot), hover (a row's veil and a firmer edge), focus (a flush 2px ring on a focus-coloured edge, and 2px clear of a chosen card's brand edge, which thins to 1px), pressed (a deeper ground, an inset shadow and a 1px sink), required (the word after the legend), invalid (a danger edge on every unchosen card and an error with a warning mark, from `error` or from a refused send), disabled answers and the answers a locked group refuses (0.6 opacity), while a locked group's chosen answer keeps full strength.
+- States: unchosen (a quiet edge), chosen (a brand tint, a 2px brand edge and a filled dot), hover (a row's veil and a firmer edge), focus (a 2px ring 2px off the card's own edge, a chosen card's brand edge thinning to 1px under it), pressed (a deeper ground, an inset shadow and a 1px sink), required (the word after the legend), invalid (a danger edge on every unchosen card and an error with a warning mark, from `error` or from a refused send), disabled answers and the answers a locked group refuses (0.6 opacity), while a locked group's chosen answer keeps full strength.
 - Keyboard: Tab enters the group at the chosen answer, the arrows move the choice and skip disabled answers, and Space chooses; a locked group refuses all of them and keeps focus.
 - Pointer and touch: every card is its own target, at least 72px tall.
 - Focus: locking the group leaves focus on the radio that had it, and a send that leaves a required question unanswered moves focus to its first radio when it is the form's first refused control.
@@ -254,10 +254,6 @@ save keeps it. A busy dialog or a saving pane around it disables the radios whil
     }
   }
 
-  .sui-choice-card:has(input:focus-visible) {
-    box-shadow: inset 0 0 0 var(--sui-stroke) var(--sui-focus);
-  }
-
   /* The chosen answer says so three ways at once: a brand tint, a 2px brand edge and a filled
      dot, so the choice never rests on colour alone. The edge is drawn inside the card, so
      choosing moves nothing. */
@@ -284,8 +280,8 @@ save keeps it. A busy dialog or a saving pane around it disables the radios whil
   }
 
   /* The radio is the focus target and wears the ring, so it covers the card without its
-     native paint. The card is framed, so the ring is flush and its edge takes the focus
-     colour under it (L-41). */
+     native paint. A card is framed as a field is, so its ring stands 2px off its own edge,
+     chosen or not, and the ring keeps one shape as the choice moves (L-41). */
   .sui-choice-card input {
     appearance: none;
     background: none;
@@ -299,19 +295,14 @@ save keeps it. A busy dialog or a saving pane around it disables the radios whil
 
   .sui-choice-card input:focus-visible {
     outline: var(--sui-focus-ring-width) solid var(--sui-focus);
-    outline-offset: var(--sui-focus-ring-flush);
+    outline-offset: var(--sui-focus-ring-offset);
   }
 
-  /* The chosen card keeps its brand edge under focus, and on light that edge is the focus
-     colour, so its ring stands 2px clear of a 1px edge, as a field's stands off its frame, and
-     never merges with it into one thick band; the tint and the dot still say it is chosen
-     (L-41). */
+  /* On light the chosen brand edge is the focus colour, so under focus it thins to 1px and
+     never merges with the ring into one thick band; the tint and the dot still say it is
+     chosen. */
   .sui-choice-card:has(input:checked:focus-visible) {
     box-shadow: inset 0 0 0 var(--sui-stroke) var(--sui-brand-action);
-  }
-
-  .sui-choice-card input:checked:focus-visible {
-    outline-offset: var(--sui-focus-ring-offset);
   }
 
   /* A card that draws the danger edge rings in its red, as an invalid field does (L-41). */

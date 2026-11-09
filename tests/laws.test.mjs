@@ -1257,8 +1257,8 @@ test('L-41 a field keeps its frame and wears one ring 2px off it in every state'
     );
   assert.match(
     styles['src/lib/components/ChoiceCards.svelte'],
-    /input:checked:focus-visible \{\s*outline-offset: var\(--sui-focus-ring-offset\);\s*\}/,
-    "a chosen card's ring stands 2px clear of its brand edge, which is the focus colour on light"
+    /\.sui-choice-card input:focus-visible \{\s*outline: var\(--sui-focus-ring-width\) solid var\(--sui-focus\);\s*outline-offset: var\(--sui-focus-ring-offset\);\s*\}/,
+    "every choice card's ring stands 2px off its own edge, as a field's does"
   );
 });
 
