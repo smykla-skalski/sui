@@ -141,6 +141,13 @@ suite('forms', together, () => {
           'none',
           'the saving answer turns its dot'
         );
+        const [arc, rest] = await group
+          .locator('.sui-choice-card:has(input:checked) .sui-choice-card-dot')
+          .evaluate((dot) => {
+            const style = getComputedStyle(dot);
+            return [style.borderTopColor, style.borderRightColor];
+          });
+        assert.notEqual(arc, rest, 'the turning ring draws one side in the accent');
         assert.equal(
           await group
             .locator('.sui-choice-card:has(input:checked) .sui-choice-card-dot')

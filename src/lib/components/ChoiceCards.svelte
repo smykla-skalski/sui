@@ -390,8 +390,9 @@ and `pending` locks it the same way while the chosen answer saves, with its dot 
 
   /* While the answer saves, its dot's ring turns with one side in the accent, as a pending
      switch's thumb does, and holds 3:1 on the card in either theme (WCAG 1.4.11). The filled
-     centre stays, so a still frame still reads as the chosen answer. */
-  .sui-choice-card-dot.spinning {
+     centre stays, so a still frame still reads as the chosen answer. The chosen dot's own ring
+     is the more specific rule, so the spinner names the chosen card too. */
+  .sui-choice-card:has(input:checked) .sui-choice-card-dot.spinning {
     animation: sui-choice-spin var(--sui-duration-spinner) var(--sui-ease-linear) infinite;
     border-color: color-mix(in srgb, var(--sui-brand-action) 25%, transparent);
     border-block-start-color: var(--sui-brand-action);
@@ -476,7 +477,7 @@ and `pending` locks it the same way while the chosen answer saves, with its dot 
       forced-color-adjust: none;
     }
 
-    .sui-choice-card-dot.spinning {
+    .sui-choice-card:has(input:checked) .sui-choice-card-dot.spinning {
       border-color: GrayText;
       border-block-start-color: Highlight;
       forced-color-adjust: none;
