@@ -123,40 +123,42 @@
   </Specimen>
 </Example>
 
-<Example
-  title="Soft Hold"
-  --example-max="35rem"
-  note="A saving setting keeps the clear action in place but refuses it"
-  layout="stack"
->
-  <Specimen label="Pending">
-    <SettingList>
-      <SettingRow name="Saved search" pending stacked>
-        {#snippet control({ id, describedby })}
-          <SearchField
-            {id}
-            aria-describedby={describedby}
-            label="Search the held projects"
-            hideLabel
-            value="Held"
-          />
-        {/snippet}
-      </SettingRow>
-    </SettingList>
-  </Specimen>
-</Example>
+<div class="pair">
+  <Example
+    title="Soft Hold"
+    note="A saving setting keeps the clear action in place but refuses it"
+    layout="stack"
+  >
+    <Specimen label="Pending">
+      <SettingList>
+        <SettingRow name="Saved search" pending stacked>
+          {#snippet control({ id, describedby })}
+            <SearchField
+              {id}
+              aria-describedby={describedby}
+              label="Search the held projects"
+              hideLabel
+              value="Held"
+            />
+          {/snippet}
+        </SettingRow>
+      </SettingList>
+    </Specimen>
+  </Example>
 
-<Example
-  title="In Context"
-  --example-max="35rem"
-  note="A status under the field says how many match and a screen reader hears it, so the field never disables itself"
-  layout="grid"
->
-  <div class="filter">
-    <SearchField label="Filter the repositories" placeholder="sui…" bind:value={filter} />
-    <p class="result" role="status">{matches.length} of {repositories.length} repositories match</p>
-  </div>
-</Example>
+  <Example
+    title="In Context"
+    note="A status under the field says how many match and a screen reader hears it, so the field never disables itself"
+    layout="grid"
+  >
+    <div class="filter">
+      <SearchField label="Filter the repositories" placeholder="sui…" bind:value={filter} />
+      <p class="result" role="status">
+        {matches.length} of {repositories.length} repositories match
+      </p>
+    </div>
+  </Example>
+</div>
 
 <div class="fill">
   <Example
@@ -203,6 +205,34 @@
 
     .coarse {
       display: inline;
+    }
+  }
+
+  /* Two examples that each hold one field share a row on the cards' 54rem, so the page does
+     not step down to a narrower frame under them; on a phone they stack (L-55). */
+  .pair {
+    align-items: start;
+    display: grid;
+    gap: var(--sui-space-6);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    /* A frame's measure is its content box, inside its two strokes. */
+    max-inline-size: calc(54rem + 2 * var(--sui-stroke));
+  }
+
+  /* Each example takes a head row and a frame row, so the heads share the taller one and the
+     frames start on one line however the notes wrap. */
+  .pair :global(.example) {
+    grid-row: span 2;
+    grid-template-rows: subgrid;
+  }
+
+  .pair :global(.frame) {
+    align-self: start;
+  }
+
+  @media (max-width: 47.9375rem) {
+    .pair {
+      grid-template-columns: minmax(0, 1fr);
     }
   }
 

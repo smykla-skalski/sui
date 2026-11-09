@@ -810,6 +810,28 @@ suite('forms', together, () => {
       assert.deepEqual(inset, { size: 16, start: 12, gap: 8 });
     });
 
+    test('the Search Field Soft Hold and In Context frames share a row on a wide page and stack on a phone', async () => {
+      /** @param {import('playwright-core').Page} page */
+      const frames = (page) =>
+        page.evaluate(() =>
+          ['#search-field-soft-hold', '#search-field-in-context'].map((id) => {
+            const box = document
+              .querySelector(id)
+              ?.closest('.example')
+              ?.querySelector('.frame')
+              ?.getBoundingClientRect();
+            return { top: box?.top, left: box?.left };
+          })
+        );
+      const [hold, context] = await frames(await opened());
+      assert.equal(hold.top, context.top, 'the two frames start on one line');
+      assert.ok((context.left ?? 0) > (hold.left ?? 0), 'In Context stands beside Soft Hold');
+      const phone = await open({ width: 390 });
+      const [held, filter] = await frames(phone);
+      await phone.close();
+      assert.equal(held.left, filter.left, 'on a phone the two frames stack');
+    });
+
     test('a committed value loses the spaces at its ends, so a pattern takes it', async () => {
       const page = await opened();
       const name = page.locator('#field input[name="repository"]');
