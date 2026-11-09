@@ -589,6 +589,37 @@ suite('forms', together, () => {
       assert.deepEqual(edges, { light: [], dark: [] }, 'these drew an edge of another red');
     });
 
+    test('a focused invalid switch or box keeps one red edge and its ring 2px clear of it', async () => {
+      const page = await opened();
+      const drawn = await page.evaluate(() =>
+        ['#switch .sui-switch-track.invalid', '#field .sui-checkbox-box.invalid'].map(
+          (selector) => {
+            const part = /** @type {HTMLElement} */ (document.querySelector(selector));
+            const input = /** @type {HTMLInputElement} */ (part.previousElementSibling);
+            input.focus();
+            const style = getComputedStyle(part);
+            const shown = {
+              selector,
+              focused: input.matches(':focus-visible'),
+              edge: style.borderTopWidth,
+              doubled: style.outlineStyle !== 'none'
+            };
+            input.blur();
+            return shown;
+          }
+        )
+      );
+      assert.deepEqual(drawn, [
+        {
+          selector: '#switch .sui-switch-track.invalid',
+          focused: true,
+          edge: '1px',
+          doubled: false
+        },
+        { selector: '#field .sui-checkbox-box.invalid', focused: true, edge: '1px', doubled: false }
+      ]);
+    });
+
     test('L-74 a segmented thumb travels by translate and scale, never by its width', async () => {
       const page = await opened();
       const control = page
