@@ -558,6 +558,25 @@ suite('forms', together, () => {
       }
     });
 
+    test('a segmented count on the track wears an edge and one on the thumb none', async () => {
+      const page = await opened();
+      const control = page.locator('#segmented-control .sui-segmented:has(.sui-count)').first();
+      /** @param {string} which */
+      const edged = (which) =>
+        control
+          .locator(`.sui-segmented-track .sui-segmented-option${which} .sui-count`)
+          .first()
+          .evaluate((count) => {
+            const [color] = getComputedStyle(count).boxShadow.split(' 0px');
+            return !/rgba\(\d+, \d+, \d+, 0\)/.test(color) && color !== 'none';
+          });
+      assert.deepEqual(
+        [await edged(':not(.selected)'), await edged('.selected')],
+        [true, false],
+        'a count on the track draws its edge, and the thumb veil needs none'
+      );
+    });
+
     // No specimen pairs a count with a chosen disabled option, so the test sets the classes the
     // component would, and drops the thumb to stand in for the render before script measures it.
     test("a chosen disabled segment's count and unmeasured plate drop the live thumb's inks", async () => {

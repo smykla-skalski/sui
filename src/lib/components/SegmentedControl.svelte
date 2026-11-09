@@ -459,8 +459,10 @@ itself, so the choice shows from the first frame.
 
 <style>
   /* The track is an inset ground, so a darkening veil would sink a count's ink under 4.5:1;
-     its pill lifts toward the surface instead. */
+     its pill lifts toward the surface instead, with a subtle edge, since in the dark theme the
+     surface and the track nearly match. */
   .sui-segmented {
+    --sui-local-count-edge: inset 0 0 0 var(--sui-stroke) var(--sui-border-subtle);
     --sui-local-count-ground: var(--sui-surface-base);
     display: inline-grid;
     grid-template-columns: minmax(0, max-content);
@@ -734,6 +736,7 @@ itself, so the choice shows from the first frame.
     > .sui-segmented-option[data-scheme='system'] {
     --sui-local-count-ground: oklch(from var(--sui-segment-thumb-ink) calc(1 - l) 0 0 / 22%);
     --sui-local-count-ink: var(--sui-segment-thumb-ink);
+    --sui-local-count-edge: none;
     background: var(--sui-segment-thumb);
     border-radius: var(--sui-radius-control);
     box-shadow: var(--sui-segment-thumb-shadow);
@@ -761,6 +764,7 @@ itself, so the choice shows from the first frame.
       > .sui-segmented-option[data-scheme='light'] {
       --sui-local-count-ground: oklch(from var(--sui-segment-thumb-ink) calc(1 - l) 0 0 / 22%);
       --sui-local-count-ink: var(--sui-segment-thumb-ink);
+      --sui-local-count-edge: none;
       background: var(--sui-segment-thumb);
       border-radius: var(--sui-radius-control);
       box-shadow: var(--sui-segment-thumb-shadow);
@@ -781,6 +785,7 @@ itself, so the choice shows from the first frame.
       > .sui-segmented-option[data-scheme='dark'] {
       --sui-local-count-ground: oklch(from var(--sui-segment-thumb-ink) calc(1 - l) 0 0 / 22%);
       --sui-local-count-ink: var(--sui-segment-thumb-ink);
+      --sui-local-count-edge: none;
       background: var(--sui-segment-thumb);
       border-radius: var(--sui-radius-control);
       box-shadow: var(--sui-segment-thumb-shadow);
@@ -996,6 +1001,7 @@ itself, so the choice shows from the first frame.
   .sui-segmented-option.selected {
     --sui-local-count-ground: oklch(from var(--sui-segment-thumb-ink) calc(1 - l) 0 0 / 22%);
     --sui-local-count-ink: var(--sui-segment-thumb-ink);
+    --sui-local-count-edge: none;
   }
 
   /* A disabled control is drawn as a disabled field is: the field's quieter fill with no frame
