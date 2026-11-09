@@ -371,7 +371,7 @@ suite('forms', together, () => {
     );
 
     test(
-      'the Textarea states start their boxes on one line, and no specimen cuts a line of its text',
+      'the Textarea states start their boxes on one line, no specimen cuts a line of its text, and a divider parts the stacked field pair',
       long,
       async () => {
         /** @param {import('playwright-core').Page} page */
@@ -392,7 +392,13 @@ suite('forms', together, () => {
         );
         const phone = await open({ width: 390 });
         const narrow = await boxes(phone);
+        const divider = await phone.evaluate(() => {
+          const pair = document.getElementById('textarea-in-a-field')?.closest('.example');
+          const second = pair?.querySelectorAll('figure')[1];
+          return second && getComputedStyle(second).borderBlockStartWidth;
+        });
         await phone.close();
+        assert.equal(divider, '1px', 'a divider parts the stacked field pair');
         for (const box of [...wide, ...narrow])
           assert.ok(box.cut <= 0, `a textarea hides ${box.cut}px of its text`);
       }

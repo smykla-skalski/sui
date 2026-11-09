@@ -50,9 +50,7 @@
         value="Archived with the old project"
         disabled
       />
-      <p id="sink-textarea-archived-reason" class="reason">
-        The project is archived, so its notes are locked
-      </p>
+      <p id="sink-textarea-archived-reason" class="reason">The archived project locks its notes</p>
     </div>
   </Specimen>
 </Example>
@@ -60,9 +58,8 @@
 <Example
   title="In a Field"
   --example-max="54rem"
-  --specimen-min="21rem"
   note="The label names the textarea, and its hint or error describes it"
-  layout="grid"
+  layout="pairs"
 >
   <Specimen label="With a hint">
     <Field label="Note for the reviewers" hint="Shown above the diff in the review">
