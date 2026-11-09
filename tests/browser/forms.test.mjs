@@ -810,26 +810,36 @@ suite('forms', together, () => {
       assert.deepEqual(inset, { size: 16, start: 12, gap: 8 });
     });
 
-    test('the Search Field Soft Hold and In Context frames share a row on a wide page and stack on a phone', async () => {
+    test('the Search Field Soft Hold and In Context frames share a row on a wide page, pad 24px like every wide frame and stack on a phone', async () => {
       /** @param {import('playwright-core').Page} page */
       const frames = (page) =>
         page.evaluate(() =>
-          ['#search-field-soft-hold', '#search-field-in-context'].map((id) => {
-            const box = document
-              .querySelector(id)
-              ?.closest('.example')
-              ?.querySelector('.frame')
-              ?.getBoundingClientRect();
-            return { top: box?.top, left: box?.left };
-          })
+          ['#search-field-soft-hold', '#search-field-in-context', '#search-field-narrow-width'].map(
+            (id) => {
+              const frame = document
+                .querySelector(id)
+                ?.closest('.example')
+                ?.querySelector('.frame');
+              const box = frame?.getBoundingClientRect();
+              const stage = frame?.querySelector('.stage');
+              const pad = stage ? parseFloat(getComputedStyle(stage).paddingInlineStart) : NaN;
+              return { top: box?.top, left: box?.left, pad };
+            }
+          )
         );
-      const [hold, context] = await frames(await opened());
+      const [hold, context, narrow] = await frames(await opened());
       assert.equal(hold.top, context.top, 'the two frames start on one line');
       assert.ok((context.left ?? 0) > (hold.left ?? 0), 'In Context stands beside Soft Hold');
+      assert.deepEqual(
+        [hold.pad, context.pad, narrow.pad],
+        [24, 24, 24],
+        'a wide page pads every stage 24px, however narrow its frame'
+      );
       const phone = await open({ width: 390 });
       const [held, filter] = await frames(phone);
       await phone.close();
       assert.equal(held.left, filter.left, 'on a phone the two frames stack');
+      assert.equal(held.pad, 16, 'a phone pads its stages 16px');
     });
 
     test('a committed value loses the spaces at its ends, so a pattern takes it', async () => {

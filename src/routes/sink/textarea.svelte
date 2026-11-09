@@ -85,7 +85,7 @@
 <div class="fill">
   <Example
     title="Narrow Width"
-    --example-max="calc(16rem + 2 * var(--sui-space-4))"
+    --example-max="calc(16rem + 2 * var(--sui-space-6))"
     note="Long words wrap inside the box, and the reader can drag it taller but never wider"
     layout="stack"
   >
@@ -121,7 +121,7 @@
     inline-size: min(100%, 16rem);
   }
 
-  /* The narrow frame keeps the field's 16rem and the stage's 16px pad on a wide page; on a
+  /* The narrow frame keeps the field's 16rem and the stage's 24px pad on a wide page; on a
      phone it fills the column, as every other frame does (L-55). */
   @media (max-width: 47.9375rem) {
     .fill :global(.example) {

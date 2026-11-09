@@ -329,10 +329,10 @@
   /* Two examples that keep a measure share a row on the cards' 54rem, so the page does not end
      on a narrow tail beside an empty half and the pair stops at the edge the cards above keep.
      On a phone they stack and both frames fill the column, as every other frame does; the
-     narrow field keeps its own 16rem inside (L-55). A stage under 30rem pads 16px, so the
+     narrow field keeps its own 16rem inside (L-55). A wide page pads every stage 24px, so the
      narrow frame is the field and that pad on each side. */
   .measured {
-    --narrow-frame: calc(16rem + 2 * var(--sui-space-4));
+    --narrow-frame: calc(16rem + 2 * var(--sui-space-6));
     align-items: start;
     display: grid;
     gap: var(--sui-space-6);

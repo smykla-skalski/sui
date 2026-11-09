@@ -151,19 +151,21 @@
     note="A status under the field says how many match and a screen reader hears it, so the field never disables itself"
     layout="grid"
   >
-    <div class="filter">
-      <SearchField label="Filter the repositories" placeholder="sui…" bind:value={filter} />
-      <p class="result" role="status">
-        {matches.length} of {repositories.length} repositories match
-      </p>
-    </div>
+    <Specimen label="Filtered">
+      <div class="filter">
+        <SearchField label="Filter the repositories" placeholder="sui…" bind:value={filter} />
+        <p class="result" role="status">
+          {matches.length} of {repositories.length} repositories match
+        </p>
+      </div>
+    </Specimen>
   </Example>
 </div>
 
 <div class="fill">
   <Example
     title="Narrow Width"
-    --example-max="calc(16rem + 2 * var(--sui-space-4))"
+    --example-max="calc(16rem + 2 * var(--sui-space-6))"
     note="The field fills the room it has, and a long query scrolls inside it"
     layout="stack"
   >
@@ -266,7 +268,7 @@
     margin: 0;
   }
 
-  /* The narrow frame keeps the field's 16rem and the stage's 16px pad on a wide page; on a
+  /* The narrow frame keeps the field's 16rem and the stage's 24px pad on a wide page; on a
      phone it fills the column, as every other frame does (L-55). */
   @media (max-width: 47.9375rem) {
     .fill :global(.example) {
