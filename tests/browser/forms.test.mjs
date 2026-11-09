@@ -2021,7 +2021,7 @@ suite('forms', together, () => {
     }
   });
 
-  test('a link field says a copy in the success ink on its tint, and a refusal in the danger ink on its tint with the value handed over selected, each 4.5:1 at rest, hovered and pressed', async () => {
+  test('a link field offers its copy in the accent ink, says a copy in the success ink on its tint, and a refusal in the danger ink on its tint with the value handed over selected, each 4.5:1 at rest, hovered and pressed', async () => {
     const page = await open({ path: 'copyable-link-field/' });
     try {
       const field = page.getByRole('textbox', { name: 'Invitation link' });
@@ -2077,6 +2077,7 @@ suite('forms', together, () => {
             ink: getComputedStyle(shown).color,
             image: getComputedStyle(button).backgroundImage,
             contrast: (high + 0.05) / (low + 0.05),
+            link: ink('--sui-link'),
             success: ink('--sui-success'),
             danger: ink('--sui-danger'),
             successTint: ink('--sui-success-tint'),
@@ -2104,6 +2105,13 @@ suite('forms', together, () => {
           );
         return rest;
       };
+
+      for (const scheme of /** @type {const} */ (['light', 'dark'])) {
+        await page.emulateMedia({ colorScheme: scheme });
+        const resting = await readable(`${scheme} resting`);
+        assert.equal(resting.words, 'Copy');
+        assert.equal(resting.ink, resting.link, 'the resting action is not in the accent ink');
+      }
 
       for (const scheme of /** @type {const} */ (['light', 'dark'])) {
         await page.emulateMedia({ colorScheme: scheme });
