@@ -6,8 +6,9 @@ import { getContext, setContext, tick, untrack } from 'svelte';
  * are disabled, out of the tab order and out of reach of a press, as WCAG and the HTML `disabled`
  * state expect of a control that cannot be used. `soft`, for a setting row whose own change is
  * saving: the control the reader just changed holds focus, so the controls stay focusable and
- * refuse changes as a read-only or `aria-disabled` control does (L-89). Both dim as a busy button
- * does (L-40), and the work's own container says it is busy with `aria-busy`.
+ * refuse changes as a read-only or `aria-disabled` control does (L-89). A firm hold dims as a busy
+ * button does (L-40); a soft-held field wears the read-only paint with its words at full strength,
+ * and the work's own container says it is busy with `aria-busy`.
  */
 export type Hold = 'firm' | 'soft';
 

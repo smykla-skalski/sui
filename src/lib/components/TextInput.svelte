@@ -74,7 +74,7 @@ tabular figures.
 
 - Semantics: a native `<input>` of the given `type`, named by a `<label for>` or `aria-label`; `invalid`, a caller's `aria-invalid` or a value the browser's check refused sets `aria-invalid`.
 - Content: one line of text the reader types, with an optional placeholder that is an example and never the label. Spaces at either end go once the value is committed, so a text replacement never fails a pattern and spaces alone never pass `required`; a password keeps them. A `mono`, email or URL field is never spellchecked or capitalized.
-- States: rest (the control fill, a quiet frame, a recess under its top edge darker than the frame and a 3:1 baseline), hover (a firmer frame and recess), focus (the rest fill, a frame and baseline leaning toward the ring, and a 2px ring 2px off it, so a focused field never reads as read-only), invalid (a danger edge on all four sides, kept under hover and focus), read-only (a lighter tint of the field well, a quiet frame, no baseline and no recess), held (disabled while a busy dialog or a saving pane around it works, read only and focusable with full-strength words while a saving setting row does) and disabled (a quieter tint of the field well, 75% of it, with no frame and its words in the muted ink, all at full strength).
+- States: rest (the control fill, a quiet frame, a recess under its top edge darker than the frame and a 3:1 baseline), hover (a firmer frame and recess), focus (the rest fill, a frame and baseline leaning toward the ring, and a 2px ring 2px off it, so a focused field never reads as read-only), invalid (a danger edge on all four sides, kept under hover and focus), read-only (a lighter tint of the field well, a quiet frame, no baseline and no recess), held (disabled and dimmed while a busy dialog or a saving pane around it works, read only and focusable in the read-only paint with full-strength words while a saving setting row does) and disabled (a quieter tint of the field well, 75% of it, with no frame and its words in the muted ink, all at full strength).
 - Keyboard: the browser's own text editing; Tab moves on.
 - Pointer and touch: 34px tall on a pointer and 44px on a phone or any touch screen, with 16px text on a phone so iOS does not zoom.
 - Focus: it takes focus on a press and never moves it elsewhere.
@@ -168,10 +168,11 @@ tabular figures.
   /* A value that only reads, or a field that is off, has no strong baseline and no recess, so
      it never looks like a field to type in. An off field fills a quieter tint of the field well with no frame,
      and a value that only reads keeps a quiet frame over a lighter tint of it, so a value to
-     copy never looks off.
+     copy never looks off. A field a saving row holds wears the same paint, so it never looks
+     open to typing while its value saves.
      An open list means the field is in use, so a combobox's preview keeps the editing look. */
-  .sui-text-input[readonly]:not(.held, [aria-expanded='true'], :disabled),
-  .sui-text-input[readonly]:not(.held, [aria-expanded='true'], :disabled):focus {
+  .sui-text-input[readonly]:not([aria-expanded='true'], :disabled),
+  .sui-text-input[readonly]:not([aria-expanded='true'], :disabled):focus {
     background-color: var(--sui-field-readonly);
     border-color: var(--sui-field-readonly-frame);
     box-shadow: none;
@@ -211,7 +212,7 @@ tabular figures.
     opacity: var(--sui-disabled-opacity);
   }
 
-  /* A soft hold keeps the words readable; native disabled paint above supplies the dimming. */
+  /* A soft hold keeps its words at full strength in the read-only paint; a firm one dims (above). */
   .sui-text-input.held {
     cursor: default;
   }

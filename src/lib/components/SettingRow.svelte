@@ -205,7 +205,7 @@ section's ground between them (L-91).
 
 - Semantics: an `li`; the name is a `label` for a single control that carries the given `id`, and otherwise a plain name whose id the group takes through `aria-labelledby`.
 - Content: a name, an optional one-sentence why line, and the controls in `control`, which receives the ids and the `disabled`, `readonly` and `invalid` flags to pass on.
-- States: rest, unsaved (gold plate and the `unsavedLabel` word), pending (`pendingLabel` under the copy, busy, and its controls held until the save ends: dimmed, focusable and refusing changes, as are the reset and its Undo), refused (`error` under the copy with an alert mark), disabled and read only (with `reason` under the copy), and after a reset an Undo in the reset's seat.
+- States: rest, unsaved (gold plate and the `unsavedLabel` word), pending (`pendingLabel` under the copy, busy, and its controls held until the save ends: dimmed, or a field in its read-only paint, focusable and refusing changes, as are the reset and its Undo), refused (`error` under the copy with an alert mark), disabled and read only (with `reason` under the copy), and after a reset an Undo in the reset's seat.
 - Keyboard: Tab follows the visual order (L-79, WCAG 2.4.3): the reset or Undo, then the controls it stands before; with `stacked`, the controls, then the reset that ends their first line; Enter or Space resets or undoes.
 - Pointer and touch: the row is at least 44px tall and its whole box is the name's target; the reset and Undo are as tall as the controls' first line, 34px, 28px beside chips, 44px on a phone.
 - Focus: after a reset focus moves to the first control instead of falling to the page; after Undo it moves to the reset, or to the first control when the reset is gone.

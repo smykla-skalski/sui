@@ -2281,7 +2281,7 @@ function fieldRecesses(root: Document): Finding[] {
     const off =
       '.sui-joined.disabled, :is(.sui-text-input, .sui-textarea):disabled:not(.held, .bare)';
     const reads =
-      '.sui-text-input[readonly]:not(.held, [aria-expanded="true"]), .sui-textarea[readonly]:not(.held), .sui-joined.readonly';
+      '.sui-text-input[readonly]:not(:disabled, [aria-expanded="true"]), .sui-textarea[readonly]:not(:disabled), .sui-joined.readonly';
     if (field.matches(`${off}, ${reads}`)) {
       if (line) found.push(finding('L-9', field, 'a read-only or disabled field draws a recess'));
       const [token, words] = field.matches(off)

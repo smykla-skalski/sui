@@ -741,7 +741,7 @@ suite('forms', together, () => {
       );
     });
 
-    test('a soft-held search keeps focus and refuses its clear action', async () => {
+    test('a soft-held search keeps focus, refuses its clear action and wears the read-only paint', async () => {
       const page = await opened();
       const field = page.getByRole('searchbox', { name: 'Search the held projects' });
       const root = field.locator('xpath=ancestor::div[contains(@class,"sui-search-field")][1]');
@@ -756,6 +756,18 @@ suite('forms', together, () => {
       assert.equal(await clear.getAttribute('aria-disabled'), 'true');
       assert.equal(await field.inputValue(), 'Held');
       assert.ok(await clear.evaluate((button) => document.activeElement === button));
+      const paint = (/** @type {import('playwright-core').Locator} */ input) =>
+        input.evaluate((node) => {
+          const style = getComputedStyle(node);
+          return [
+            style.backgroundColor,
+            style.borderInlineStartColor,
+            style.boxShadow,
+            style.color
+          ];
+        });
+      const readOnly = page.locator('#text-input input[readonly]').first();
+      assert.deepEqual(await paint(field), await paint(readOnly));
     });
 
     test('a programmatic search fix clears its refusal and invalid state', async () => {
