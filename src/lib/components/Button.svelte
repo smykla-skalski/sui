@@ -233,7 +233,7 @@ start.
   }
 
   @media (hover: hover) {
-    .sui-button:hover:not(:active, .field:focus-visible):not(:disabled, [aria-disabled='true']) {
+    .sui-button:hover:not(:active, .field):not(:disabled, [aria-disabled='true']) {
       --sui-control-state-layer: var(--sui-interactive-hover-layer);
       border-color: var(--sui-control-border-hover);
     }
@@ -268,12 +268,7 @@ start.
 
   /* While the layer it opens is open, the trigger keeps its hover paint, as an open select or
      icon button does, so the part the layer belongs to stays marked. */
-  .sui-button[aria-expanded='true']:not(
-      :active,
-      :disabled,
-      [aria-disabled='true'],
-      .field:focus-visible
-    ) {
+  .sui-button[aria-expanded='true']:not(:active, :disabled, [aria-disabled='true'], .field) {
     --sui-control-state-layer: var(--sui-interactive-hover-layer);
   }
 

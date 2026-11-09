@@ -483,8 +483,11 @@ name is the label and the hex, such as "Label color #0f766e". `name` posts the h
         <span
           id="{uid}-swatches-label"
           class="part-label"
-          onclick={() => grid?.querySelector<HTMLElement>('input:checked, input')?.focus()}
-          >{swatchesLabel}</span
+          onclick={() =>
+            (
+              grid?.querySelector<HTMLElement>('input:checked') ??
+              grid?.querySelector<HTMLElement>('input')
+            )?.focus()}>{swatchesLabel}</span
         >
         <div
           bind:this={grid}

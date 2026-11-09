@@ -2119,6 +2119,22 @@ suite('forms', together, () => {
           );
         });
         assert.ok(room > 0, `a focused swatch's ring stands ${room}px from the next one`);
+        // The swatches' name hands focus to the checked one, where the arrows go on from, never
+        // back to the first.
+        await page.locator(':popover-open .swatches').evaluate((grid) => {
+          const name = document.getElementById(grid.getAttribute('aria-labelledby') ?? '');
+          /** @type {HTMLElement} */ (name).click();
+        });
+        assert.ok(
+          await page.evaluate(() => {
+            const swatch = document.activeElement;
+            return (
+              swatch?.matches('.swatch:checked') &&
+              swatch !== swatch.closest('.swatches')?.querySelector('.swatch')
+            );
+          }),
+          "the swatches' name left focus off the checked swatch"
+        );
 
         // High contrast drops the recess and the veil, so the open trigger and a hovered one
         // draw their edge in the system's highlight.
@@ -2158,6 +2174,28 @@ suite('forms', together, () => {
         await first.hover();
         await atRest(page);
         assert.equal(await look(), focused, 'a hover took a focused trigger out of its focus edge');
+        // A hovered trigger wears a field's hover, never a button's veil and edge.
+        await page.evaluate(() => /** @type {HTMLElement} */ (document.activeElement).blur());
+        const hovered = await first.evaluate((button) => {
+          const paint = (/** @type {string} */ token) => {
+            const probe = document.createElement('span');
+            probe.style.color = `var(${token})`;
+            button.append(probe);
+            const color = getComputedStyle(probe).color;
+            probe.remove();
+            return color;
+          };
+          const style = getComputedStyle(button);
+          return (
+            [
+              style.backgroundColor,
+              style.borderTopColor,
+              style.backgroundImage.includes('0)')
+            ].join(' ') ===
+            [paint('--sui-field-hover'), paint('--sui-field-frame-hover'), true].join(' ')
+          );
+        });
+        assert.ok(hovered, "a hovered trigger wears a button's hover, not a field's");
       }
     );
   });
