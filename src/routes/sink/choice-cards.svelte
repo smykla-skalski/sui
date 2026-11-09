@@ -30,6 +30,8 @@
     }
   ];
 
+  const open = methods.map((option) => ({ ...option, disabled: false }));
+
   let method = $state<string | null>('squash');
   let pending = $state<string | null>(null);
 </script>
@@ -77,7 +79,7 @@
     <ChoiceCards
       label="How pull requests merge"
       hint="Saving the merge method…"
-      options={methods}
+      options={open}
       value="merge"
       pending
     />
@@ -86,7 +88,7 @@
     <ChoiceCards
       label="How pull requests merge"
       hint="Only owners of the repository can change how pull requests merge"
-      options={methods}
+      options={open}
       value="merge"
       disabled
     />
@@ -102,7 +104,7 @@
   >
     <Specimen label="Stacked cards">
       <div class="narrow">
-        <ChoiceCards label="How pull requests merge" options={methods} value="merge" />
+        <ChoiceCards label="How pull requests merge" options={open} value="merge" />
       </div>
     </Specimen>
   </Example>
