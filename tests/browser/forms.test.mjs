@@ -371,6 +371,34 @@ suite('forms', together, () => {
     );
 
     test(
+      'the Textarea states start their boxes on one line, and no specimen cuts a line of its text',
+      long,
+      async () => {
+        /** @param {import('playwright-core').Page} page */
+        const boxes = (page) =>
+          page.evaluate(() =>
+            [...document.querySelectorAll('#textarea .sui-textarea')].map((box) => ({
+              top: box.getBoundingClientRect().top,
+              cut: box.scrollHeight - box.clientHeight,
+              states: Boolean(box.closest('.example')?.querySelector('#textarea-states'))
+            }))
+          );
+        const wide = await boxes(await opened());
+        const row = wide.filter((box) => box.states).slice(0, 3);
+        assert.equal(row.length, 3);
+        assert.ok(
+          row.every((box) => box.top === row[0].top),
+          `the first states row starts at ${row.map((box) => box.top)}`
+        );
+        const phone = await open({ width: 390 });
+        const narrow = await boxes(phone);
+        await phone.close();
+        for (const box of [...wide, ...narrow])
+          assert.ok(box.cut <= 0, `a textarea hides ${box.cut}px of its text`);
+      }
+    );
+
+    test(
       'a checkbox row centres its box on the label, its notes 12px under the box, an error mark under it',
       long,
       async () => {
