@@ -942,7 +942,7 @@ suite('forms', together, () => {
       assert.equal(narrow[0].pad, 16, 'a phone pads its stages 16px');
     });
 
-    test("a list a parent box chooses for stands under the parent's words", async () => {
+    test("a list a parent box chooses for stands under the parent's words, its question heard, not drawn", async () => {
       const page = await opened();
       const edges = await page.evaluate(() => {
         const stage = document
@@ -952,13 +952,24 @@ suite('forms', together, () => {
         const [parent, child] = [...(stage?.querySelectorAll('.sui-checkbox') ?? [])];
         const left = (/** @type {Element | null | undefined} */ node) =>
           node?.getBoundingClientRect().left;
+        const legend = child?.closest('fieldset')?.querySelector('legend');
         return {
           words: left(parent?.querySelector('.sui-checkbox-label')),
-          box: left(child?.querySelector('.sui-checkbox-box'))
+          box: left(child?.querySelector('.sui-checkbox-box')),
+          legend: legend?.getBoundingClientRect().width
         };
       });
       assert.ok(edges.words !== undefined, 'the parent box has words');
       assert.equal(edges.box, edges.words, 'the first child box starts where the parent words do');
+      assert.ok(
+        (edges.legend ?? 2) <= 1,
+        'the parent asks the question, so the legend draws nothing'
+      );
+      const group = page
+        .locator('#checkbox-in-context')
+        .locator('xpath=ancestor::*[contains(@class, "example")][1]')
+        .getByRole('group', { name: 'Events that start a sync' });
+      assert.equal(await group.count(), 1, 'a screen reader still hears the list named');
     });
 
     test("a section head's switch ends where its stage ends, as the head's action does on a pane", async () => {
