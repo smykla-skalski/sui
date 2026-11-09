@@ -729,6 +729,14 @@ test('L-49 an off switch track sits in the field well in every theme', () => {
   assert.deepEqual(new Set(tracks), new Set(['var(--sui-field-well)']));
 });
 
+test('L-50 a dark segmented track sits in the well an off switch does', () => {
+  const tracks = [...stripComments(palette).matchAll(/--sui-segment-track:\s*([^;]+);/g)].map(
+    ([, value]) => value.trim()
+  );
+  assert.equal(tracks.length, 3, 'a light track and two dark ones');
+  assert.deepEqual(tracks.slice(1), ['var(--sui-field-well)', 'var(--sui-field-well)']);
+});
+
 test('L-43 a mark is as wide as what it says', () => {
   for (const name of ['Button', 'Chip', 'Pill', 'StatusPill', 'Link', 'Switch']) {
     const path = `src/lib/components/${name}.svelte`;

@@ -853,7 +853,8 @@
   --sui-popover-bg: var(--sui-surface-base);
   --sui-dialog-bg: var(--sui-surface-base);
 
-  --sui-segment-track: rgb(0 0 0 / 30%);
+  /* An off switch's well, so the track reads as one of the family on a dark ground. */
+  --sui-segment-track: var(--sui-field-well);
   --sui-segment-thumb: var(--sui-brand-action);
   --sui-segment-thumb-ink: var(--sui-on-brand-action);
   --sui-segment-hover: var(--sui-interactive-hover-layer);
@@ -1085,7 +1086,8 @@
     --sui-popover-bg: var(--sui-surface-base);
     --sui-dialog-bg: var(--sui-surface-base);
 
-    --sui-segment-track: rgb(0 0 0 / 30%);
+    /* An off switch's well, so the track reads as one of the family on a dark ground. */
+    --sui-segment-track: var(--sui-field-well);
     --sui-segment-thumb: var(--sui-brand-action);
     --sui-segment-thumb-ink: var(--sui-on-brand-action);
     --sui-segment-hover: var(--sui-interactive-hover-layer);
