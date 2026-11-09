@@ -98,7 +98,7 @@ in its corner. Beside a 34px field or in a toolbar it takes the control tier wit
 
 - Semantics: a native `<button type="button">` whose visible words are its name, with a polite `role="status"` beside it.
 - Content: `label`, `copiedLabel` and `failedLabel`, each a short phrase; the button is as wide as the longest of the three.
-- States: rest, hover (a veil and a firmer edge), focus (a flush 2px ring, or an inset one when `bare`), pressed (a deeper veil, an inset shadow and a 1px sink), copied, failed (danger ink) and disabled (0.6 opacity).
+- States: rest, hover (a veil and a firmer edge), focus (a flush 2px ring, or an inset one when `bare`), pressed (a deeper veil, an inset shadow and a 1px sink), copied (success ink), failed (danger ink) and disabled (0.6 opacity).
 - Keyboard: Tab reaches it and Enter or Space copies; focus stays on it through the answer.
 - Pointer and touch: 28px tall, or 34px with `toolbar`, and a 44px hit area on a phone or any touch screen.
 - Focus: copying never moves focus; `oncopyfailed` is where a caller sends focus to the text to select by hand.
@@ -189,14 +189,15 @@ in its corner. Beside a 34px field or in a toolbar it takes the control tier wit
   }
 
   /* A chip inside the end of a joined field: a quiet tinted button at the 28px tier, its
-     corners following the field's, with no frame and no sink. It draws its own inset ring,
-     so the reader sees that focus left the value for the copy action. */
+     corners following the field's, with no frame and no sink. Its words wear the primary
+     ink a button's do, since on its tint the secondary ink reads as unavailable. It draws its
+     own inset ring, so the reader sees that focus left the value for the copy action. */
   .sui-copy-button.bare,
   .sui-copy-button.bare:is(:active, :focus-visible) {
     background-color: transparent;
     border-width: 0;
     border-radius: var(--sui-radius-chip);
-    color: var(--sui-text-secondary);
+    color: var(--sui-text-primary);
     translate: none;
   }
 
@@ -208,7 +209,6 @@ in its corner. Beside a 34px field or in a toolbar it takes the control tier wit
 
     .sui-copy-button.bare:hover:not(:active, :disabled) {
       --sui-control-state-layer: var(--sui-interactive-hover-layer);
-      color: var(--sui-text-primary);
     }
   }
 
@@ -230,12 +230,15 @@ in its corner. Beside a 34px field or in a toolbar it takes the control tier wit
   }
 
   .sui-copy-button.bare:focus-visible {
-    color: var(--sui-text-primary);
     outline: var(--sui-focus-ring-width) solid var(--sui-focus);
     outline-offset: var(--sui-focus-ring-inset);
   }
 
-  /* On the words, so a hover or a press that sets the button's ink never hides the failure. */
+  /* On the words, so a hover or a press that sets the button's ink never hides the outcome. */
+  .sui-copy-button[data-copied] .sui-copy-button-labels {
+    color: var(--sui-success);
+  }
+
   .sui-copy-button[data-failed] .sui-copy-button-labels {
     color: var(--sui-danger);
   }

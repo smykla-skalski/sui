@@ -2021,6 +2021,63 @@ suite('forms', together, () => {
     }
   });
 
+  test('a link field says a copy in the success ink, and a refusal in the danger ink with the value handed over selected', async () => {
+    const page = await open({ path: 'copyable-link-field/' });
+    try {
+      const field = page.getByRole('textbox', { name: 'Invitation link' });
+      const copy = page.getByRole('button', { name: 'Copy Link' });
+      const said = () =>
+        copy.evaluate((button) => {
+          const shown = [...button.querySelectorAll('.sui-copy-button-labels > span')].find(
+            (label) => getComputedStyle(label).visibility === 'visible'
+          );
+          const ink = (/** @type {string} */ token) => {
+            const probe = document.createElement('span');
+            probe.style.color = `var(${token})`;
+            button.append(probe);
+            const color = getComputedStyle(probe).color;
+            probe.remove();
+            return color;
+          };
+          return {
+            words: shown?.textContent,
+            ink: shown && getComputedStyle(shown).color,
+            success: ink('--sui-success'),
+            danger: ink('--sui-danger')
+          };
+        });
+      const answer = (/** @type {boolean} */ lands) =>
+        page.evaluate((lands) => {
+          navigator.clipboard.writeText = () =>
+            lands ? Promise.resolve() : Promise.reject(new DOMException('', 'NotAllowedError'));
+        }, lands);
+
+      await answer(true);
+      await copy.click();
+      await page.waitForFunction(() => document.querySelector('[data-copied]'));
+      const copied = await said();
+      assert.equal(copied.words, 'Copied');
+      assert.equal(copied.ink, copied.success, 'a copy is not said in the success ink');
+
+      await answer(false);
+      await copy.click();
+      await page.waitForFunction(() => document.querySelector('[data-failed]'));
+      const failed = await said();
+      assert.equal(failed.words, 'Copy by Hand');
+      assert.equal(failed.ink, failed.danger, 'a refusal is not said in the danger ink');
+      assert.deepEqual(
+        await field.evaluate((/** @type {HTMLTextAreaElement} */ area) => ({
+          focused: document.activeElement === area,
+          selected: area.value.slice(area.selectionStart, area.selectionEnd) === area.value
+        })),
+        { focused: true, selected: true },
+        'a refusal did not hand the value over selected'
+      );
+    } finally {
+      await page.close();
+    }
+  });
+
   test('the save shortcut follows the letter the layout types and is named for the platform, and unsaved work asks before the page or the app moves on', async () => {
     const page = await open({ path: 'save-bar/' });
     try {
