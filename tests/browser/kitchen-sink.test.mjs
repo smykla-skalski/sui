@@ -865,8 +865,22 @@ suite('the kitchen sink', together, () => {
             });
           drawn[name] = await settled(page, avatar);
           if (javaScriptEnabled) {
-            if (!(await alike(page, drawn[name], before[name])))
-              problems.push(`${name} changes once script runs`);
+            // Under a full parallel run the running page can still be painting when two shots
+            // first agree, so it gets about a second to match; a change script makes stays.
+            let same = await alike(page, drawn[name], before[name]);
+            for (let tries = 0; !same && tries < 10; tries += 1) {
+              await page.waitForTimeout(100);
+              drawn[name] = await settled(page, avatar);
+              same = await alike(page, drawn[name], before[name]);
+            }
+            if (!same) {
+              const shots = ['before', 'after'].map((kind) =>
+                join(tmpdir(), `sui-avatar-${name.replace(/\W+/g, '-')}-script-${kind}.png`)
+              );
+              writeFileSync(shots[0], before[name]);
+              writeFileSync(shots[1], drawn[name]);
+              problems.push(`${name} changes once script runs, see ${shots.join(' and ')}`);
+            }
             continue;
           }
           // What a part adds is what disappears with it.
