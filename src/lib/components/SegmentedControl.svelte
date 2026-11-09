@@ -873,19 +873,24 @@ itself, so the choice shows from the first frame.
     border-start-end-radius: 0;
   }
 
-  /* A hairline parts two bare options, so a row of words reads as separate choices. It is the
-     end edge of the first, so it reads as the boundary between two and never as a strip on the
-     second's start (L-17). It gives way beside the thumb and beside a fill, whose own edge
-     already parts them, and fades as the thumb travels so it never pops in under it. */
-  .sui-segmented-option:has(+ .sui-segmented-option)::after {
-    background: var(--sui-border-subtle);
+  /* A hairline parts two bare options, so a row of words reads as separate choices. It is drawn
+     on the end edge of the first, the boundary between two and never a strip on the second's
+     start (L-17), inside the option's whole box, which on a phone is also its finger's target.
+     It gives way at once beside the thumb and beside a fill, whose own edge already parts them
+     (L-104). */
+  .sui-segmented-option::after {
     content: '';
-    inline-size: var(--sui-stroke);
-    inset-block: 25%;
-    inset-inline-end: 0;
-    pointer-events: none;
+    inset: 0;
     position: absolute;
-    transition: opacity var(--sui-duration-fast) var(--sui-ease-standard);
+  }
+
+  .sui-segmented-option:has(+ .sui-segmented-option)::after {
+    background: linear-gradient(var(--sui-border-subtle), var(--sui-border-subtle)) right center /
+      var(--sui-stroke) 50% no-repeat;
+  }
+
+  .sui-segmented-option:dir(rtl):has(+ .sui-segmented-option)::after {
+    background-position: left center;
   }
 
   .sui-segmented-option.selected::after,
@@ -1102,10 +1107,7 @@ itself, so the choice shows from the first frame.
     }
 
     .sui-segmented-option::after {
-      content: '';
       inset-block: calc((100% - var(--sui-touch-target)) / 2);
-      inset-inline: 0;
-      position: absolute;
     }
   }
 
