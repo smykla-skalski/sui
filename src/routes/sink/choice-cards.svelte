@@ -36,6 +36,7 @@
 
 <Example
   title="States"
+  --example-max="54rem"
   note="A chosen answer, a disabled one the keyboard skips, a missing required answer, an answer that saves and a disabled group"
   layout="stack"
 >
