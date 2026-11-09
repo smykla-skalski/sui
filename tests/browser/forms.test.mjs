@@ -598,6 +598,15 @@ suite('forms', together, () => {
         'a chosen disabled count wears the resting count ink, not the thumb ink'
       );
       await page.emulateMedia({ forcedColors: 'active' });
+      // The plate's ground eases into the system colours, so its paint is read once it lands.
+      await page.evaluate(() =>
+        Promise.all(
+          document
+            .getAnimations()
+            .filter((animation) => animation instanceof CSSTransition)
+            .map((animation) => animation.finished.catch(() => undefined))
+        )
+      );
       try {
         const off = page
           .locator('#segmented-control .sui-segmented > .sui-segmented-track.off')
