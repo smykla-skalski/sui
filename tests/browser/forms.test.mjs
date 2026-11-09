@@ -902,7 +902,8 @@ suite('forms', together, () => {
       const pairs = [
         ['#search-field-soft-hold', '#search-field-in-context'],
         ['#field-in-context', '#field-narrow-width'],
-        ['#switch-keyboard-focus', '#switch-narrow-width']
+        ['#switch-keyboard-focus', '#switch-narrow-width'],
+        ['#checkbox-required-invalid', '#checkbox-narrow-width']
       ];
       /** @param {import('playwright-core').Page} page */
       const frames = (page) =>
@@ -939,6 +940,25 @@ suite('forms', together, () => {
         assert.equal(one.left, two.left, `on a phone ${first} and ${second} stack`);
       }
       assert.equal(narrow[0].pad, 16, 'a phone pads its stages 16px');
+    });
+
+    test("a list a parent box chooses for stands under the parent's words", async () => {
+      const page = await opened();
+      const edges = await page.evaluate(() => {
+        const stage = document
+          .querySelector('#checkbox-in-context')
+          ?.closest('.example')
+          ?.querySelector('.stage');
+        const [parent, child] = [...(stage?.querySelectorAll('.sui-checkbox') ?? [])];
+        const left = (/** @type {Element | null | undefined} */ node) =>
+          node?.getBoundingClientRect().left;
+        return {
+          words: left(parent?.querySelector('.sui-checkbox-label')),
+          box: left(child?.querySelector('.sui-checkbox-box'))
+        };
+      });
+      assert.ok(edges.words !== undefined, 'the parent box has words');
+      assert.equal(edges.box, edges.words, 'the first child box starts where the parent words do');
     });
 
     test("a section head's switch ends where its stage ends, as the head's action does on a pane", async () => {
