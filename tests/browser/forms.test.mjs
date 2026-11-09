@@ -434,12 +434,14 @@ suite('forms', together, () => {
       for (const [name, track, other] of /** @type {const} */ ([
         ['a disabled control', whole, '1'],
         ['a chosen disabled option', option, '0.6']
-      ]))
+      ])) {
+        const seen = await look(track);
         assert.deepEqual(
-          { ...(await look(track)), thumb: (await look(track)).thumb === accent },
+          { ...seen, thumb: seen.thumb === accent },
           { opacity: '1', thumb: false, chosen: '1', other },
           `${name} stays at full strength and its thumb drops the accent`
         );
+      }
       /** @param {import('playwright-core').Locator} track */
       const seat = (track) =>
         track.locator('.sui-segmented-thumb').evaluate((thumb) =>
@@ -1071,18 +1073,20 @@ suite('forms', together, () => {
           (selector) => {
             const part = /** @type {HTMLElement} */ (document.querySelector(selector));
             const input = /** @type {HTMLInputElement} */ (part.previousElementSibling);
-            const style = getComputedStyle(part);
-            const outset =
-              style.outlineStyle === 'none'
+            const rest = getComputedStyle(part);
+            const restOutset =
+              rest.outlineStyle === 'none'
                 ? 0
-                : parseFloat(style.outlineWidth) + parseFloat(style.outlineOffset);
+                : parseFloat(rest.outlineWidth) + parseFloat(rest.outlineOffset);
             input.focus();
+            const focused = getComputedStyle(part);
             const shown = {
               selector,
-              outset,
+              restOutset,
               focused: input.matches(':focus-visible'),
-              edge: style.borderTopWidth,
-              doubled: style.outlineStyle !== 'none'
+              edge: focused.borderTopWidth,
+              doubled: focused.outlineStyle !== 'none',
+              ringOffset: getComputedStyle(input).outlineOffset
             };
             input.blur();
             return shown;
@@ -1092,17 +1096,19 @@ suite('forms', together, () => {
       assert.deepEqual(drawn, [
         {
           selector: '#switch .sui-switch-track.invalid',
-          outset: 1,
+          restOutset: 1,
           focused: true,
           edge: '1px',
-          doubled: false
+          doubled: false,
+          ringOffset: '2px'
         },
         {
           selector: '#field .sui-checkbox-box.invalid',
-          outset: 0,
+          restOutset: 0,
           focused: true,
           edge: '2px',
-          doubled: false
+          doubled: false,
+          ringOffset: '2px'
         }
       ]);
     });
