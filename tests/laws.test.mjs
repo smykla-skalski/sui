@@ -1357,6 +1357,13 @@ test("L-94 a segmented option's and a tab's icon and count stand 8px off, as a b
     );
 });
 
+test('L-25 a count beside a label is compact type at 600', () => {
+  assert.match(
+    styles['src/lib/internal/Count.svelte'],
+    /font: var\(--sui-weight-semibold\) var\(--sui-font-size-compact\) \//
+  );
+});
+
 test('L-94 a form error summary and an error state take the 16px mark 8px from their words', () => {
   const path = 'src/lib/components/FormError.svelte';
   assert.match(read(path), /sui-form-error-mark"><Icon name="alert" size="base" \/>/);

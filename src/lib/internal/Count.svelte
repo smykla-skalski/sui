@@ -25,7 +25,7 @@ centres on its line at whole pixels (L-95).
     color: var(--sui-local-count-ink, var(--sui-text-secondary));
     display: inline-grid;
     flex: none;
-    font: var(--sui-weight-semibold) var(--sui-font-size-micro) / var(--sui-leading-flat)
+    font: var(--sui-weight-semibold) var(--sui-font-size-compact) / var(--sui-leading-flat)
       var(--sui-sans);
     font-variant-numeric: tabular-nums;
     min-inline-size: var(--sui-space-4);
