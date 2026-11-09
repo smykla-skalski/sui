@@ -910,6 +910,23 @@ suite('forms', together, () => {
       assert.equal(narrow[0].pad, 16, 'a phone pads its stages 16px');
     });
 
+    test("a section head's switch ends where its stage ends, as the head's action does on a pane", async () => {
+      const page = await opened();
+      const gap = await page.evaluate(() => {
+        const track = document
+          .querySelector('#switch-in-a-section-head')
+          ?.closest('.example')
+          ?.querySelector('.sui-section .sui-switch-track');
+        const stage = track?.closest('.stage');
+        if (!track || !stage) return NaN;
+        const inner =
+          stage.getBoundingClientRect().right -
+          parseFloat(getComputedStyle(stage).paddingInlineEnd);
+        return Math.round(inner - track.getBoundingClientRect().right);
+      });
+      assert.equal(gap, 0, `the switch stops ${gap}px short of the stage's inner edge`);
+    });
+
     test('an on switch under the pointer takes the action hover fill, as a filled button does', async () => {
       const page = await opened();
       const row = page.locator('#switch .sui-switch-row', { hasText: 'Keep audit log' }).first();

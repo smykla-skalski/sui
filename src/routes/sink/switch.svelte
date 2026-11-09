@@ -103,7 +103,7 @@
   title="In a Section Head"
   --example-max="54rem"
   note="A bare switch keeps its 44 px hit area as paint, so the head keeps its own rhythm"
-  layout="grid"
+  layout="stack"
   ground="canvas"
 >
   <Specimen label="Bare">
