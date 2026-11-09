@@ -342,7 +342,7 @@ itself, so the choice shows from the first frame.
 
 - Semantics: a `fieldset` of native radios named by `label`, or by `aria-labelledby` when it is passed; the fallback is a native `select` with the same name.
 - Content: two to five options, each a short word with an optional icon and count; a long word never wraps, so the control turns into the select instead.
-- States: rest, hover (a fill that keeps the thumb's curve), pressed (the fill sinks, the thumb darkens and creases), selected (the thumb), focus (an inset ring on the option), disabled options and a disabled whole at the disabled opacity, held (the whole at the disabled opacity: disabled while a busy dialog or a saving pane around it works, and refusing every press, arrow and drag with focus kept while a saving setting row does), and `null` with no thumb.
+- States: rest, hover (a fill that keeps the thumb's curve), pressed (the fill sinks, the thumb darkens and creases), selected (the thumb), focus (a 2px ring 2px off the track, and the hover fill on a focused option the thumb is not under), disabled options and a disabled whole (full strength in the muted ink, a chosen one on a plain plate with the strong border ink on its edge), held (the whole at the disabled opacity: disabled while a busy dialog or a saving pane around it works, and refusing every press, arrow and drag with focus kept while a saving setting row does), and `null` with no thumb.
 - Keyboard: Tab reaches the checked option, or the first one when nothing is chosen; the arrow keys move the choice and skip disabled options; Escape puts a dragged thumb back.
 - Pointer and touch: a click chooses any option and a drag of the thumb chooses on release, so the drag is never the only way (WCAG 2.5.7); on a phone or a coarse pointer each option is at least 44 by 44px.
 - Focus: choosing keeps focus on the option; when the segments turn into the select, or back, focus moves to the other form instead of falling to the page.
@@ -387,7 +387,7 @@ itself, so the choice shows from the first frame.
   <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
   <fieldset
     bind:this={track}
-    class={['sui-segmented-track', { ready, dragging: held !== null, locked }]}
+    class={['sui-segmented-track', { ready, dragging: held !== null, locked, off: disabled }]}
     disabled={disabled || heldIn(element, around) === 'firm'}
     aria-disabled={locked || undefined}
     aria-labelledby={labelledby}
@@ -462,7 +462,7 @@ itself, so the choice shows from the first frame.
   }
 
   .captioned {
-    row-gap: var(--sui-space-2);
+    row-gap: var(--sui-field-gap);
   }
 
   .captioned > * {
@@ -633,7 +633,8 @@ itself, so the choice shows from the first frame.
     cursor: grab;
   }
 
-  .sui-segmented-track:is(:disabled, .locked) {
+  /* A control that work around it holds dims as a held field does (L-40). */
+  .sui-segmented-track:is(:disabled, .locked):not(.off) {
     opacity: var(--sui-disabled-opacity);
   }
 
@@ -854,8 +855,10 @@ itself, so the choice shows from the first frame.
     opacity: 0;
   }
 
-  /* The radio is the focus target and wears the ring, so it covers its option without its
-     native paint. The label above it is transparent, and the track clips, so the ring is inset. */
+  /* The radio is the focus target and covers its option without its native paint. The track
+     wears the ring, 2px off its own edge as every free-standing control does (L-41): the thumb
+     already marks the option that holds focus, and a focused option the thumb is not under
+     takes the hover fill. */
   .sui-segmented-input {
     appearance: none;
     background: none;
@@ -869,12 +872,16 @@ itself, so the choice shows from the first frame.
   }
 
   .sui-segmented-input:focus-visible {
-    outline: var(--sui-focus-ring-width) solid var(--sui-focus);
-    outline-offset: var(--sui-focus-ring-inset);
+    outline: none;
   }
 
-  .selected .sui-segmented-input:focus-visible {
-    outline-color: var(--sui-segment-thumb-ink);
+  .sui-segmented-track:has(> .sui-segmented-option > .sui-segmented-input:focus-visible) {
+    outline: var(--sui-focus-ring-width) solid var(--sui-focus);
+    outline-offset: var(--sui-focus-ring-offset);
+  }
+
+  .sui-segmented-option:has(> .sui-segmented-input:focus-visible):not(.selected)::before {
+    opacity: 1;
   }
 
   .sui-segmented-label {
@@ -922,8 +929,32 @@ itself, so the choice shows from the first frame.
     color: var(--sui-segment-thumb-ink);
   }
 
+  /* A disabled option, or every option of a disabled control, is drawn as a disabled choice
+     card is: at full strength in the muted ink, and the chosen one drops the accent for a
+     plain plate with the strong border ink on its edge and its words in the secondary ink, as
+     a disabled filled button drops its tone, so it never reads as a live choice (L-40). */
+  .off .sui-segmented-label,
   .disabled .sui-segmented-label {
-    opacity: var(--sui-disabled-opacity);
+    color: var(--sui-text-muted);
+  }
+
+  .off > .sui-segmented-thumb,
+  .sui-segmented-track:has(> .selected.disabled) > .sui-segmented-thumb,
+  .sui-segmented-track.off:not(:has(> .sui-segmented-thumb)) > .sui-segmented-option.selected,
+  .sui-segmented-track:not(:has(> .sui-segmented-thumb)) > .sui-segmented-option.selected.disabled {
+    background: var(--sui-control-bg);
+    box-shadow: inset 0 0 0 var(--sui-stroke) var(--sui-border-strong);
+  }
+
+  .off > .selected,
+  .selected.disabled {
+    --sui-local-count-ground: initial;
+    --sui-local-count-ink: initial;
+  }
+
+  .sui-segmented-track.off .selected .sui-segmented-label,
+  .sui-segmented-option.selected.disabled .sui-segmented-label {
+    color: var(--sui-text-secondary);
   }
 
   /* On the filled thumb the count wears the thumb's ink on a veil of the opposite lightness,
@@ -971,6 +1002,20 @@ itself, so the choice shows from the first frame.
     .selected .sui-segmented-label {
       color: HighlightText;
       forced-color-adjust: none;
+    }
+
+    .off > .sui-segmented-thumb,
+    .sui-segmented-track:has(> .selected.disabled) > .sui-segmented-thumb {
+      background: Canvas;
+      outline: var(--sui-stroke-bold) solid GrayText;
+      outline-offset: calc(-1 * var(--sui-stroke-bold));
+    }
+
+    .off .sui-segmented-label,
+    .disabled .sui-segmented-label,
+    .sui-segmented-track.off .selected .sui-segmented-label,
+    .sui-segmented-option.selected.disabled .sui-segmented-label {
+      color: GrayText;
     }
 
     :global(:root[data-sui-theme='light'])

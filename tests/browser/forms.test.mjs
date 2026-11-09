@@ -387,6 +387,59 @@ suite('forms', together, () => {
       }
     });
 
+    test('a segmented control rings its track and draws a disabled choice without the accent', async () => {
+      const page = await opened();
+      await page.keyboard.press('Shift');
+      const live = page
+        .locator('#segmented-control .sui-segmented > .sui-segmented-track:not(:disabled)')
+        .first();
+      const radio = live.locator('input:checked');
+      await radio.evaluate((input) => /** @type {HTMLInputElement} */ (input).focus());
+      assert.deepEqual(
+        await radio.evaluate((input) => {
+          const track = /** @type {Element} */ (input.closest('.sui-segmented-track'));
+          return [
+            getComputedStyle(input).outlineStyle,
+            getComputedStyle(track).outlineStyle,
+            getComputedStyle(track).outlineOffset
+          ];
+        }),
+        ['none', 'solid', '2px'],
+        'the ring stands 2px off the track, as off every free-standing control'
+      );
+      /** @param {import('playwright-core').Locator} track */
+      const look = (track) =>
+        track.evaluate((element) => {
+          const thumb = element.querySelector('.sui-segmented-thumb');
+          const label = element.querySelector(
+            '.sui-segmented-option.selected .sui-segmented-label'
+          );
+          const off = element.querySelector('.sui-segmented-option.disabled .sui-segmented-label');
+          return {
+            opacity: getComputedStyle(element).opacity,
+            thumb: thumb ? getComputedStyle(thumb).backgroundColor : '',
+            chosen: label ? getComputedStyle(label).opacity : '',
+            other: off ? getComputedStyle(off).opacity : '1'
+          };
+        });
+      const accent = (await look(live)).thumb;
+      const whole = page
+        .locator('#segmented-control .sui-segmented > .sui-segmented-track.off')
+        .first();
+      const option = page
+        .locator('#segmented-control .sui-segmented > .sui-segmented-track:not(:disabled)')
+        .filter({ has: page.locator('.selected.disabled') });
+      for (const [name, track] of /** @type {const} */ ([
+        ['a disabled control', whole],
+        ['a chosen disabled option', option]
+      ]))
+        assert.deepEqual(
+          { ...(await look(track)), thumb: (await look(track)).thumb === accent },
+          { opacity: '1', thumb: false, chosen: '1', other: '1' },
+          `${name} stays at full strength and its thumb drops the accent`
+        );
+    });
+
     test('select-to-radio focus skips a checked disabled option', async () => {
       const page = await opened();
       const control = page.locator('#segmented-control .sui-segmented').filter({

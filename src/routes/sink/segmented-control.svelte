@@ -41,6 +41,7 @@
 
 <Example
   title="Options"
+  --example-max="54rem"
   note="2 to 5 options, with a thumb as wide as the chosen one that a drag can move"
 >
   <Specimen label="Words">
@@ -53,6 +54,7 @@
 
 <Example
   title="Label"
+  --example-max="54rem"
   note="The label stands above the options, unless a visible name beside the control already says it"
 >
   <Specimen label="Drawn">
@@ -73,6 +75,7 @@
 
 <Example
   title="States"
+  --example-max="54rem"
   note="A null value draws no thumb, the arrow keys skip a disabled option, and a locked control says why"
 >
   <Specimen label="Nothing chosen">
@@ -108,6 +111,7 @@
 
 <Example
   title="Tiers"
+  --example-max="54rem"
   note="34 px by default and 44 px on phones, and a surface may opt into 40 px through 1 custom property"
 >
   <Specimen label="Default">
@@ -122,6 +126,7 @@
 
 <Example
   title="Narrow Width"
+  --example-max="54rem"
   note="Short of room, the same choice becomes a native select, with icons dropped and counts in brackets"
 >
   <Specimen label="Words as a select">
@@ -147,12 +152,18 @@
     inline-size: min(100%, 12rem);
   }
 
+  /* The control named beside it stands on the line of the one whose label is drawn over it, a
+     caption and a field gap down, so the two compare at a glance. */
   .beside {
     align-items: center;
     display: flex;
     flex-wrap: wrap;
     gap: var(--sui-space-3);
+    /* The caption's font, so 1cap is the cap height its snapped line rounds up from. */
+    font: var(--sui-weight-semibold) var(--sui-font-size-control) / var(--sui-leading-note)
+      var(--sui-sans);
     min-inline-size: 0;
+    padding-block-start: calc(round(up, 1cap, 1px) + var(--sui-field-gap));
   }
 
   .name {

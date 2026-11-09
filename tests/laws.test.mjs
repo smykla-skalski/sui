@@ -644,6 +644,23 @@ test('L-35 a field label and every group name wear one ink at one weight and lea
   }
 });
 
+test('L-35 every label and group name stands the field gap over its control', () => {
+  for (const [path, rule] of /** @type {[string, RegExp][]} */ ([
+    ['src/lib/components/Field.svelte', /\n  \.sui-field \{[^}]*\bgap: var\(--sui-field-gap\);/],
+    ['src/lib/components/SearchField.svelte', /\bgap: var\(--sui-field-gap\);/],
+    ['src/lib/components/CheckList.svelte', /\bgap: var\(--sui-field-gap\);/],
+    [
+      'src/lib/components/ChoiceCards.svelte',
+      /\n  \.sui-choice-cards \{[^}]*\bgap: var\(--sui-field-gap\);/
+    ],
+    [
+      'src/lib/components/SegmentedControl.svelte',
+      /\n  \.captioned \{\s*row-gap: var\(--sui-field-gap\);/
+    ]
+  ]))
+    assert.match(styles[path], rule, `${path} sets its name another gap over its control`);
+});
+
 test('L-35 an error under a hint stands a copy gap further from it than the hint from its control', () => {
   for (const [name, pair] of [
     ['Field', '.sui-field-help + .sui-field-error'],
