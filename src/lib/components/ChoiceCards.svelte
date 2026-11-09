@@ -98,7 +98,7 @@ save keeps it. A busy dialog or a saving pane around it disables the radios whil
 
 - Semantics: a `<fieldset role="radiogroup">` named by its `<legend>`, described by the hint and the error, holding native radios each named by its label and described by its sentence, with a polite `role="status"` that speaks the error.
 - Content: a question as the legend and two to six answers, each a short label and one sentence; an optional hint and an error.
-- States: unchosen (a quiet edge), chosen (a brand tint, a 2px brand edge and a filled dot), hover (a row's veil and a firmer edge), focus (a 2px ring 2px off the card's own edge, a chosen card's brand edge thinning to 1px under it), pressed (a deeper ground, an inset shadow and a 1px sink), required (the word after the legend), invalid (a danger edge on every unchosen card and an error with a warning mark, from `error` or from a refused send), disabled answers and the answers a locked group refuses (0.6 opacity), while a locked group's chosen answer keeps full strength.
+- States: unchosen (a quiet edge), chosen (a brand tint, a 2px brand edge and a filled dot), hover (a field's faint ground and a firmer edge on an unchosen card), focus (a 2px ring 2px off the card's own edge, a chosen card's brand edge thinning to 1px under it), pressed (a deeper ground, an inset shadow and a 1px sink), required (the word after the legend), invalid (a danger edge on every unchosen card and an error with a warning mark, from `error` or from a refused send), disabled answers and the answers a locked group refuses (0.6 opacity), while a locked group's chosen answer keeps full strength.
 - Keyboard: Tab enters the group at the chosen answer, the arrows move the choice and skip disabled answers, and Space chooses; a locked group refuses all of them and keeps focus.
 - Pointer and touch: every card is its own target, at least 72px tall.
 - Focus: locking the group leaves focus on the radio that had it, and a send that leaves a required question unanswered moves focus to its first radio when it is the form's first refused control.
@@ -231,15 +231,12 @@ save keeps it. A busy dialog or a saving pane around it disables the radios whil
     box-shadow: inset 0 0 0 var(--sui-stroke) var(--sui-danger-edge);
   }
 
-  /* Hover and press lay a veil over the card's own ground, its rest fill or its brand tint. A
-     card is a surface the size of a row, so it hovers with a row's half step and its firmer
-     edge carries the rest, so a hovered card never outweighs the chosen one (L-12). */
+  /* A card is framed as a field is and hovers as one: its ground only just moves and its firmer
+     edge carries the hover, so a hovered card never looks sunk or outweighs the chosen one
+     (L-12). The chosen card does not answer, as choosing it again changes nothing. */
   @media (hover: hover) {
-    .sui-choice-card:hover:not(:active, .disabled) {
-      background-image: linear-gradient(var(--sui-row-hover), var(--sui-row-hover));
-    }
-
     .sui-choice-card:hover:not(:active, .disabled, :has(input:checked)) {
+      background-color: var(--sui-field-hover);
       box-shadow: inset 0 0 0 var(--sui-stroke) var(--sui-control-border-hover);
     }
 

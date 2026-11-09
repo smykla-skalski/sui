@@ -1262,9 +1262,9 @@ test('L-41 a field keeps its frame and wears one ring 2px off it in every state'
   );
 });
 
-test("L-12 a choice card hovers with a row's step, not a control's", () => {
+test("L-12 a choice card hovers as a field does, not with a control's veil", () => {
   const cards = styles['src/lib/components/ChoiceCards.svelte'];
-  assert.match(cards, /linear-gradient\(var\(--sui-row-hover\), var\(--sui-row-hover\)\)/);
+  assert.match(cards, /background-color: var\(--sui-field-hover\);/);
   assert.doesNotMatch(cards, /--sui-interactive-hover-layer/);
 });
 
