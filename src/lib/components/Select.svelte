@@ -641,6 +641,8 @@ assistive technology, because a native picker cannot be held open.
     box-sizing: border-box;
     color: var(--sui-text-primary);
     justify-self: stretch;
+    max-block-size: 20rem;
+    overflow: hidden;
     padding: var(--sui-space-1);
   }
 
@@ -682,6 +684,12 @@ assistive technology, because a native picker cannot be held open.
 
   .sui-select-option:is(:disabled, [aria-disabled='true']) {
     cursor: default;
+  }
+
+  /* As a menu item does, an option that cannot be chosen dims its name and keeps the reason it
+     gives at full contrast (L-40). */
+  .sui-select-option:is(:disabled, [aria-disabled='true'])
+    :is(.sui-select-check, .sui-select-label) {
     opacity: var(--sui-disabled-opacity);
   }
 
@@ -741,6 +749,17 @@ assistive technology, because a native picker cannot be held open.
     padding-inline: calc(var(--sui-space-3) + var(--sui-icon-base) + var(--sui-space-2))
       var(--sui-space-3);
     text-transform: uppercase;
+  }
+
+  /* A group that follows a row stands under a line, as a menu parts its groups, so where one
+     group ends reads before its heading does. */
+  :is(option, optgroup) + optgroup > .sui-select-heading,
+  .sui-select-sheet > :not(.sui-select-heading) + .sui-select-heading {
+    border-block-start: var(--sui-stroke) solid var(--sui-border-control);
+    margin-block-start: var(--sui-space-1);
+    margin-inline: calc(-1 * var(--sui-space-1));
+    padding-inline: calc(var(--sui-space-4) + var(--sui-icon-base) + var(--sui-space-2))
+      var(--sui-space-4);
   }
 
   @media (prefers-reduced-motion: reduce) {

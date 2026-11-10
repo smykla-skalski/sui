@@ -1256,7 +1256,7 @@ suite('forms', together, () => {
       assert.equal(await field.inputValue(), 'Go');
     });
 
-    test('an open select copy is the closed field turned over, with its picker as wide and its headings on the names', async () => {
+    test('an open select copy is the closed field turned over, as wide and tall as its picker, its groups lined and headed on the names, an off option dimming its name only', async () => {
       const page = await opened();
       const look = await page.evaluate(() => {
         const section = /** @type {Element} */ (document.querySelector('#select'));
@@ -1280,11 +1280,36 @@ suite('forms', together, () => {
           range.selectNodeContents(node);
           return range.getBoundingClientRect().left;
         };
+        const strength = (/** @type {Element} */ node) => {
+          let opacity = 1;
+          for (let at = /** @type {Element | null} */ (node); at; at = at.parentElement)
+            opacity *= parseFloat(getComputedStyle(at).opacity);
+          return opacity;
+        };
+        const off = /** @type {Element} */ (
+          section.querySelector('.sui-select-sheet [aria-disabled="true"]:has(.sui-select-note)')
+        );
+        const lines = (/** @type {ParentNode} */ list) =>
+          [...list.querySelectorAll('.sui-select-heading')].map(
+            (heading) => getComputedStyle(heading).borderBlockStartWidth
+          );
+        const live = /** @type {HTMLSelectElement} */ (
+          [...section.querySelectorAll('select')].find((select) => select.querySelector('optgroup'))
+        );
         return {
           closed: width(closed),
           copies,
           heading: start(/** @type {Element} */ (sheet.querySelector('.sui-select-heading'))),
-          name: start(/** @type {Element} */ (sheet.querySelector('.sui-select-label')))
+          name: start(/** @type {Element} */ (sheet.querySelector('.sui-select-label'))),
+          off: {
+            name: strength(/** @type {Element} */ (off.querySelector('.sui-select-label'))),
+            reason: strength(/** @type {Element} */ (off.querySelector('.sui-select-note')))
+          },
+          lines: { copy: lines(sheet), live: lines(live) },
+          tall: [...section.querySelectorAll('.sui-select-sheet')].map((node) => ({
+            height: node.getBoundingClientRect().height,
+            cut: node.scrollHeight > node.clientHeight
+          }))
         };
       });
       assert.ok(look.copies.length >= 3, 'the page shows the open copies');
@@ -1296,6 +1321,19 @@ suite('forms', together, () => {
       assert.ok(
         Math.abs(look.heading - look.name) < 1,
         'a group heading starts where the names do'
+      );
+      // An option that cannot be chosen dims its name, never the reason it gives (L-40).
+      assert.ok(Math.abs(look.off.name - 0.6) < 0.01, `an off name stands at ${look.off.name}`);
+      assert.equal(look.off.reason, 1, 'an off option keeps its reason at full contrast');
+      // A group after a row stands under a line, in the copy and in the live picker alike.
+      assert.deepEqual(look.lines.copy, ['1px', '1px']);
+      assert.deepEqual(look.lines.live, ['1px', '1px']);
+      // The copy stops where the real picker does, so a long list is cut as it is.
+      for (const sheet of look.tall)
+        assert.ok(sheet.height <= 320, `a copy runs ${sheet.height}px`);
+      assert.ok(
+        look.tall.some((sheet) => sheet.cut),
+        'a long list is cut at the picker height'
       );
     });
 
