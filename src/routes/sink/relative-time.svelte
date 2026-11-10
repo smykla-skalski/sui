@@ -22,7 +22,10 @@
     { label: 'Minutes ago', value: at(-4.5 * MINUTE) },
     { label: 'Hours ago', value: at(-3.5 * HOUR) },
     { label: 'Days ago', value: at(-2.5 * DAY) },
-    { label: 'A month ago', value: at(-30 * DAY) }
+    // Past a week a time reads as its date, and a date counted from now turns over once a day,
+    // which could fall between the server's render and the page's. A fixed day at noon UTC is
+    // the same date in every zone a reader is likely to be in.
+    { label: 'Weeks ago', value: '2026-03-14T12:00:00Z' }
   ];
   // Half a step past a whole count, as the past ones are, so the moments between the server's
   // render and the page's never cross into the next count.
