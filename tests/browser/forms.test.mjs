@@ -1324,7 +1324,11 @@ suite('forms', together, () => {
           ...document.querySelectorAll(
             '#combobox .sui-combobox-preview .sui-combobox-option.active'
           )
-        ].map((row) => row.textContent?.trim()),
+        ].map((row) => [
+          row.textContent?.trim(),
+          getComputedStyle(/** @type {Element} */ (row.querySelector('mark'))).color ===
+            getComputedStyle(row).color
+        ]),
         checked: document.querySelectorAll('#combobox .sui-combobox-preview [aria-selected="true"]')
           .length,
         readonly: getComputedStyle(
@@ -1337,8 +1341,8 @@ suite('forms', together, () => {
       }));
       assert.deepEqual(
         quiet,
-        { lit: ['Rust'], checked: 1, readonly: 'hidden' },
-        'only the copy asked to lights its row, the value keeps its check, and a field that only reads drops its chevron'
+        { lit: [['Rust', true]], checked: 2, readonly: 'hidden' },
+        'only the copy asked to lights its row, its match in the row ink, the value keeps its check, and a field that only reads drops its chevron'
       );
       assert.equal(look.offMark, look.offName, 'a match in an off option draws as its name');
       await page.waitForFunction(
@@ -1347,7 +1351,7 @@ suite('forms', together, () => {
         { timeout: 2000 }
       );
       assert.deepEqual((await read()).notes, [
-        '3 more, so keep typing to narrow them',
+        '4 more, so keep typing to narrow them',
         'No suggestions match',
         'Searching…',
         'Suggestions could not load, so keep typing to try again'

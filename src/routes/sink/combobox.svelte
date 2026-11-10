@@ -158,7 +158,7 @@
           aria-describedby={describedby}
           options={languages}
           value="ts"
-          limit={4}
+          limit={3}
           preview
         />
       {/snippet}
@@ -172,7 +172,7 @@
           aria-describedby={describedby}
           options={languages}
           value="ts"
-          previewText="ru"
+          previewText="r"
           previewActive={0}
           preview
         />
