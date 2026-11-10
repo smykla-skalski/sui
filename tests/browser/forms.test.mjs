@@ -1217,6 +1217,21 @@ suite('forms', together, () => {
       }
     );
 
+    // `hidden` lands on the input, so the field around it must follow or its chevron stays.
+    test('a hidden combobox draws no field and no chevron', async () => {
+      const page = await opened();
+      const box = await page.evaluate(() => {
+        const field = /** @type {HTMLElement} */ (
+          document.querySelector('#combobox .sui-combobox-field:not(.sui-combobox-preview *)')
+        );
+        /** @type {HTMLInputElement} */ (field.querySelector('input')).hidden = true;
+        const { width, height } = field.getBoundingClientRect();
+        field.querySelector('input')?.removeAttribute('hidden');
+        return [width, height];
+      });
+      assert.deepEqual(box, [0, 0]);
+    });
+
     test('a combobox wears a Select chevron that turns while its list or its note alone shows, an open copy draws every row in the editing paint, and an off option keeps its reason at full contrast', async () => {
       const page = await opened();
       // The search copies open once their searches have run, so every copy settles first.

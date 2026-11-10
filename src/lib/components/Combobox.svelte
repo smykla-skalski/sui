@@ -558,6 +558,11 @@ Name it with a `<label>` or `aria-label`, as any field.
     vertical-align: middle;
   }
 
+  /* `hidden` lands on the input, so the field and its chevron follow it. */
+  .sui-combobox-field:has(> :global(input[hidden])) {
+    display: none;
+  }
+
   .sui-combobox-field > :global(*) {
     grid-area: 1 / 1;
   }
