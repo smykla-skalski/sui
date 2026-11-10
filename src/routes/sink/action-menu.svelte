@@ -91,18 +91,10 @@
   note="Icons, a disabled item with its reason, a destructive item last and a long item that wraps, with the first item lit"
 >
   <Specimen label="Open with icons">
-    <!-- The trigger ends the row it acts on, as in Triggers, and is one control tall, as the
-         button trigger beside it is, so the two menus start on one line. -->
+    <!-- The trigger ends the row it acts on, as in Triggers. -->
     <div class="row open">
       <span class="lead"><span class="name">web-console</span></span>
-      <ActionMenu
-        label="Repository actions"
-        icon="more"
-        toolbar
-        items={repository}
-        align="end"
-        preview
-      />
+      <ActionMenu label="Repository actions" icon="more" items={repository} align="end" preview />
     </div>
   </Specimen>
   <Specimen label="Open with a long item">

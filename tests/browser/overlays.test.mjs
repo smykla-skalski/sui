@@ -931,6 +931,16 @@ suite('overlays', together, () => {
           'a disabled icon trigger is dimmer than its button'
         );
         assert.equal(inks.icon, inks.label, 'a disabled item icon is dimmer than its name');
+        // The open copy is the live row: its trigger is the quiet one the live row ends with.
+        const sizes = await page.evaluate(() =>
+          ['.row:not(.open) .sui-icon-button', '.open .sui-icon-button'].map(
+            (selector) =>
+              /** @type {Element} */ (
+                document.querySelector(`#action-menu ${selector}`)
+              ).getBoundingClientRect().height
+          )
+        );
+        assert.equal(sizes[1], sizes[0], "the open copy's trigger is another size");
         // A copy's lit item is where the keyboard is, so it wears the ring, as a select's and a
         // combobox's lit row do.
         const rings = await page.evaluate(() =>

@@ -295,8 +295,12 @@ returns focus there too. Labels wrap rather than being cut short.
     min-inline-size: min(calc(13rem + 2 * var(--sui-stroke)), 100%);
   }
 
+  /* One control tall, so a quiet icon trigger's copy hangs its menu on the line a button
+     trigger's copy does. */
   .sui-action-menu-trigger {
+    align-items: center;
     display: flex;
+    min-block-size: var(--sui-control-height-compact);
   }
 
   .sui-action-menu-preview[data-align='end'] > .sui-action-menu-trigger {
