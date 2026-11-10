@@ -2298,7 +2298,12 @@ function fieldRecesses(root: Document): Finding[] {
       continue;
     }
     const ground = paintedGround(field);
-    const frame = rgba(look.getPropertyValue('--sui-field-frame'));
+    // A select copy is drawn open, so it is held to the open frame it draws.
+    const frame = rgba(
+      look.getPropertyValue(
+        field.closest('.sui-select-preview') ? '--sui-field-frame-focus' : '--sui-field-frame'
+      )
+    );
     if (lightness(over(rgba(line.color), ground)) >= lightness(over(frame, ground)))
       found.push(finding('L-9', field, 'its recess is no darker than its frame'));
   }

@@ -1256,7 +1256,7 @@ suite('forms', together, () => {
       assert.equal(await field.inputValue(), 'Go');
     });
 
-    test('an open select copy is the closed field turned over, as wide as its picker, its groups lined and headed on the names, a check on the first line, an off option dimming its name and inking its reason as a menu does', async () => {
+    test('an open select copy is the closed field turned over, as wide as its picker, its groups lined and headed on the names, set as the field with the check on its words and on the first line of a wrapped name, an off option dimming its name and inking its reason as a menu does', async () => {
       const page = await opened();
       const look = await page.evaluate(() => {
         const section = /** @type {Element} */ (document.querySelector('#select'));
@@ -1308,7 +1308,37 @@ suite('forms', together, () => {
           };
         };
         const checked = [...section.querySelectorAll('.sui-select-sheet .checked')].map(mark);
+        const copy = /** @type {Element} */ (section.querySelector('.sui-select-preview'));
+        const control = /** @type {Element} */ (copy.querySelector('.sui-select-control'));
+        const box = getComputedStyle(control);
+        const row = /** @type {Element} */ (copy.querySelector('.sui-select-sheet .checked'));
+        const type = (/** @type {Element} */ node) => {
+          const style = getComputedStyle(node);
+          return `${style.fontSize} ${style.fontWeight}`;
+        };
+        const probe = document.createElement('span');
+        probe.style.color = 'var(--sui-focus)';
+        copy.append(probe);
+        const focus = getComputedStyle(probe).color;
+        probe.remove();
+        const field = {
+          type: type(control),
+          text:
+            control.getBoundingClientRect().left +
+            parseFloat(box.borderInlineStartWidth) +
+            parseFloat(box.paddingInlineStart),
+          baseline: box.borderBlockEndColor,
+          focus
+        };
+        const option = {
+          type: type(/** @type {Element} */ (row.querySelector('.sui-select-label'))),
+          check: /** @type {Element} */ (
+            row.querySelector('.sui-select-check')
+          ).getBoundingClientRect().left
+        };
         return {
+          field,
+          option,
           checked,
           closed: width(closed),
           copies,
@@ -1337,6 +1367,14 @@ suite('forms', together, () => {
         assert.equal(copy.sheet, copy.field, 'its picker is as wide as its field');
         assert.equal(copy.chevron, '180deg', 'its chevron is turned over');
       }
+      // An option is the value itself, so it is set as the field sets it (L-25), its check
+      // stands on the field's text line, and the copy's field wears the open accent baseline.
+      assert.equal(look.option.type, look.field.type, 'an option is set as its field');
+      assert.ok(
+        Math.abs(look.option.check - look.field.text) < 1,
+        `the check starts at ${look.option.check}, the field's words at ${look.field.text}`
+      );
+      assert.equal(look.field.baseline, look.field.focus, 'an open field draws an accent baseline');
       // A check marks the first line of a wrapped name as it does a one-line name, as a menu
       // icon does.
       const one = look.checked.find((row) => row.lines === 1);

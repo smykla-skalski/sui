@@ -542,7 +542,7 @@ assistive technology, because a native picker cannot be held open.
         .sui-select-control:open:not(:focus-visible, [aria-invalid='true'], :user-invalid) {
         background-color: var(--sui-control-bg);
         border-color: var(--sui-field-frame-focus);
-        border-block-end-color: var(--sui-field-border-focus);
+        border-block-end-color: var(--sui-focus);
       }
 
       /* The press that opens the picker keeps its own inset until it lets go (L-42). */
@@ -553,7 +553,9 @@ assistive technology, because a native picker cannot be held open.
           [aria-invalid='true'],
           :user-invalid
         ) {
-        box-shadow: inset 0 var(--sui-stroke) 0 var(--sui-field-recess-focus);
+        box-shadow:
+          inset 0 var(--sui-stroke) 0 var(--sui-field-recess-focus),
+          inset 0 calc(-1 * var(--sui-stroke)) 0 var(--sui-focus);
       }
 
       /* The full label shows in the picker, so the closed field may cut it, at its end only, so
@@ -627,6 +629,17 @@ assistive technology, because a native picker cannot be held open.
     max-inline-size: 100%;
   }
 
+  /* The copy's field is drawn as the field it hangs from looks while open. */
+  .sui-select-preview
+    .sui-select:not(.bare)
+    .sui-select-control:not(:active, :focus-visible, :disabled, [aria-invalid='true']) {
+    border-color: var(--sui-field-frame-focus);
+    border-block-end-color: var(--sui-focus);
+    box-shadow:
+      inset 0 var(--sui-stroke) 0 var(--sui-field-recess-focus),
+      inset 0 calc(-1 * var(--sui-stroke)) 0 var(--sui-focus);
+  }
+
   /* The copy is open, so its chevron is turned over as an open picker's is. */
   .sui-select-preview .sui-select-chevron {
     rotate: 180deg;
@@ -655,12 +668,12 @@ assistive technology, because a native picker cannot be held open.
     color: var(--sui-text-primary);
     cursor: pointer;
     display: flex;
-    font: var(--sui-weight-medium) var(--sui-font-size-control) / var(--sui-leading-meta)
+    font: var(--sui-weight-regular) var(--sui-font-size-input) / var(--sui-leading-input)
       var(--sui-sans);
     gap: var(--sui-space-2);
     min-block-size: var(--sui-control-height-compact);
     padding-block: calc((var(--sui-control-height-compact) - round(up, 1cap, 2px)) / 2);
-    padding-inline: var(--sui-space-3);
+    padding-inline: calc(var(--sui-field-inset) - var(--sui-space-1)) var(--sui-space-3);
     white-space: normal;
   }
 
@@ -749,11 +762,13 @@ assistive technology, because a native picker cannot be held open.
 
   .sui-select-heading {
     color: var(--sui-text-muted);
-    font: var(--sui-weight-semibold) var(--sui-font-size-micro) / var(--sui-leading-micro)
+    font: var(--sui-weight-semibold) var(--sui-font-size-compact) / var(--sui-leading-compact)
       var(--sui-sans);
-    letter-spacing: 0.06em;
+    letter-spacing: 0.04em;
     padding-block: var(--sui-space-2) var(--sui-space-1);
-    padding-inline: calc(var(--sui-space-3) + var(--sui-icon-base) + var(--sui-space-2))
+    padding-inline: calc(
+        var(--sui-field-inset) - var(--sui-space-1) + var(--sui-icon-base) + var(--sui-space-2)
+      )
       var(--sui-space-3);
     text-transform: uppercase;
   }
@@ -765,7 +780,7 @@ assistive technology, because a native picker cannot be held open.
     border-block-start: var(--sui-stroke) solid var(--sui-border-control);
     margin-block-start: var(--sui-space-1);
     margin-inline: calc(-1 * var(--sui-space-1));
-    padding-inline: calc(var(--sui-space-4) + var(--sui-icon-base) + var(--sui-space-2))
+    padding-inline: calc(var(--sui-field-inset) + var(--sui-icon-base) + var(--sui-space-2))
       var(--sui-space-4);
   }
 

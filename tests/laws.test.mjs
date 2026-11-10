@@ -1156,7 +1156,7 @@ test('L-118 the page covers the screen and its chrome wears each scheme canvas',
   }
 });
 
-test('L-53 a shadow that lifts a part is two layers in every palette block', () => {
+test('L-53 a shadow that lifts a part is two layers in every palette block, and L-54 a light popover lifts on a tight one', () => {
   /** @param {string} value */
   const layers = (value) => {
     let depth = 0;
@@ -1174,6 +1174,10 @@ test('L-53 a shadow that lifts a part is two layers in every palette block', () 
     )
   ];
   assert.equal(found.length, 12, 'four shadows in each of three palette blocks');
+  const lift = /** @type {string} */ (found.find(([, name]) => name === 'shadow-popover')?.[2]);
+  for (const [, y, blur] of lift.matchAll(/(?:^|,)\s*0 (\d+)px (\d+)px/g)) {
+    assert.ok(Number(y) <= 8 && Number(blur) <= 20, `a light popover lifts ${y}px with ${blur}px`);
+  }
   assert.deepEqual(
     found.filter(([, , value]) => layers(value) < 2).map(([, name]) => name),
     []

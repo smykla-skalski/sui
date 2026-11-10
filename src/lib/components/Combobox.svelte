@@ -520,7 +520,7 @@ Name it with a `<label>` or `aria-label`, as any field.
     column-gap: var(--sui-space-2);
     cursor: pointer;
     display: grid;
-    font: var(--sui-weight-medium) var(--sui-font-size-control) / var(--sui-leading-meta)
+    font: var(--sui-weight-regular) var(--sui-font-size-input) / var(--sui-leading-input)
       var(--sui-sans);
     grid-template-columns: var(--sui-icon-base) minmax(0, 1fr);
     min-block-size: var(--sui-control-height-compact);
