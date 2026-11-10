@@ -3237,9 +3237,10 @@ suite('forms', together, () => {
   });
 
   // The mark and the way back once stood on the middle of a field and its hint, under the field,
-  // and a button that wrapped on a phone ran back under the mark, off the words' edge.
+  // and a button that wrapped on a phone ran back under the mark, off the words' edge. The mark
+  // once stood 7px in from the specimen's edge and 12px off its words, at 13px.
   test(
-    'an inherit control keeps its mark and buttons on the value or control row and edge',
+    'an inherit control keeps its mark and buttons on the value or control row and edge, its 16px mark 8px off its words on its own edge',
     long,
     async () => {
       const page = await open({ width: 390, path: 'inherit-control/' });
@@ -3251,15 +3252,26 @@ suite('forms', together, () => {
               .map((root) => {
                 const words = root.querySelector('.sui-inherit-value, .sui-inherit-control > *');
                 const button = [...root.querySelectorAll('button')].at(-1);
-                const [w, b] = [words, button].map((part) =>
+                const glyph = root.querySelector('.sui-inherit-marker svg');
+                const [w, b, g, r] = [words, button, glyph, root].map((part) =>
                   /** @type {Element} */ (part).getBoundingClientRect()
                 );
-                return { words: w.left, button: b.left, wrapped: b.top >= w.bottom };
+                return {
+                  words: w.left,
+                  button: b.left,
+                  wrapped: b.top >= w.bottom,
+                  mark: [g.width, g.left - r.left, w.left - g.right]
+                };
               })
           );
-        for (const { words, button, wrapped } of await edges()) {
+        for (const { words, button, wrapped, mark } of await edges()) {
           assert.ok(wrapped, 'the phone row has room for its button beside the words');
           assert.equal(button, words, 'a wrapped button stands off the edge of the words over it');
+          assert.deepEqual(
+            mark,
+            [16, 0, 8],
+            'the mark is not 16px on its edge, 8px off its words (L-94)'
+          );
         }
         await page.setViewportSize({ width: 1440, height: 900 });
         const root = page.locator('#inherit-control .sui-inherit').first();

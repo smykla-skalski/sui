@@ -152,7 +152,7 @@ for a press of the way back.
 <div bind:this={root} {...rest} class={['sui-inherit', className, { overridden, failed }]}>
   <span class="sui-inherit-subject">
     <span class="sui-inherit-marker" aria-hidden="true">
-      <Icon name={overridden ? 'link-off' : failed ? 'alert' : 'link'} size="sm" />
+      <Icon name={overridden ? 'link-off' : failed ? 'alert' : 'link'} size="base" />
     </span>
     {#if overridden}
       <span class="sui-inherit-control">{@render control()}</span>
@@ -193,8 +193,8 @@ for a press of the way back.
      control's edge, not under the mark. */
   .sui-inherit {
     --sui-inherit-marker-size: 26px;
-    --sui-inherit-marker-gap: 6px;
-    --sui-local-inherit-hang: calc(var(--sui-inherit-marker-size) + var(--sui-inherit-marker-gap));
+    --sui-inherit-marker-gap: var(--sui-space-2);
+    --sui-local-inherit-hang: calc(var(--sui-icon-base) + var(--sui-inherit-marker-gap));
     align-items: center;
     box-sizing: border-box;
     display: flex;
@@ -222,7 +222,10 @@ for a press of the way back.
     flex: none;
     font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-row-copy-leading)
       var(--sui-sans);
-    inline-size: var(--sui-inherit-marker-size);
+    /* As wide as its 16px glyph, so the glyph stands on the control's edge and 8px off the
+       words, as every mark beside 14px words does (L-94); as tall as a chip, so it centres on
+       the words' first line. */
+    inline-size: var(--sui-icon-base);
     margin-block: calc((round(up, 1cap, 2px) - var(--sui-inherit-marker-size)) / 2);
     place-items: center;
   }
