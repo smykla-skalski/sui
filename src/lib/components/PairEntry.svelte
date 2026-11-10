@@ -473,12 +473,13 @@ chips take the whole line under the copy and wrap within it.
 
   /* The remove part lies over the edit part's end, as a clear button lies in a field: a square
      as tall as a one-line chip, on the first line however many the words wrap to (L-44, L-94).
-     Its plate stands the control inset inside it, as a copy chip stands inside a joined field:
-     quiet at rest, with its own hover, press and an inset ring on the plate (L-42, L-47). On a
+     Its plate stands the control inset inside it, as a copy chip stands inside a joined field.
+     Like the Chip and pattern crosses it has no plate at rest, only its own hover, press and an
+     inset ring on the plate (L-42, L-47). On a
      pointer the chip radius is the control radius less that inset, so the plate's corners are
      concentric with the chip's. */
   .sui-pair-remove {
-    --sui-pair-plate: var(--sui-row-hover);
+    --sui-pair-plate: transparent;
     block-size: var(--sui-pair-chip);
     border-radius: var(--sui-radius-control);
     color: var(--sui-text-muted);

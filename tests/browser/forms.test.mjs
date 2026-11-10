@@ -2360,7 +2360,7 @@ suite('forms', together, () => {
     );
 
     test(
-      'a hover on either part of a pair chip lights the whole chip, and the remove part over it',
+      'a hover on either part of a pair chip lights the whole chip, and the bare cross its plate',
       long,
       async () => {
         const page = await opened();
@@ -2371,6 +2371,7 @@ suite('forms', together, () => {
           remove.evaluate((element) => getComputedStyle(element, '::before').backgroundColor);
         const rest = await ground();
         const plateRest = await plate();
+        assert.equal(plateRest, 'rgba(0, 0, 0, 0)', 'the remove part draws a plate at rest');
         await chip.locator('.sui-pair-key').hover();
         const lit = await ground();
         assert.notEqual(lit, rest, 'the edit part did not light its chip');
