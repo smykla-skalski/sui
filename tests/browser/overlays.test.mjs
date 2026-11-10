@@ -856,6 +856,22 @@ suite('overlays', together, () => {
           return Math.abs(n.top + n.height / 2 - (t.top + t.height / 2)) < 1;
         });
         assert.equal(row, true, 'the open icon copy has a name centred on its trigger');
+        // A menu item that wraps never leaves one word alone on its last line.
+        const lone = await page.evaluate(() =>
+          [...document.querySelectorAll('#action-menu .sui-action-menu-label')].flatMap((label) => {
+            const text = label.firstChild;
+            if (!(text instanceof Text)) return [];
+            const tops = [...text.data.matchAll(/\S+/g)].map(({ index, 0: word }) => {
+              const range = document.createRange();
+              range.setStart(text, index);
+              range.setEnd(text, index + word.length);
+              return Math.round(range.getBoundingClientRect().top);
+            });
+            const last = tops.filter((top) => top === tops.at(-1)).length;
+            return new Set(tops).size > 1 && last < 2 ? [text.data] : [];
+          })
+        );
+        assert.deepEqual(lone, []);
         // A menu item is set at the regular weight, as an option in a list is (L-25).
         const weights = await page.evaluate(() => [
           ...new Set(
