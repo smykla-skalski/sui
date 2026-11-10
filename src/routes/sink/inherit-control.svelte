@@ -46,50 +46,57 @@
   const levelUnsaved = $derived((levelOverridden ? level : null) !== saved.level);
 </script>
 
-<Example
-  title="States"
-  note="An inherited value is muted with its source, an override shows the control with a way back, and a locked one says why"
-  layout="grid"
-  --specimen-min="21rem"
-  --specimen-row-gap="var(--sui-space-6)"
->
-  <Specimen label="Inherited">
-    <InheritControl
-      bind:overridden={shownLifetimeOverridden}
-      label="Session lifetime"
-      inherited="1&nbsp;hour"
-      source="the workspace"
-    >
-      {#snippet control()}
-        <DurationInput label="Session lifetime" bind:value={shownLifetime} min={60} />
-      {/snippet}
-    </InheritControl>
-  </Specimen>
-  <Specimen label="Overridden">
-    <InheritControl
-      bind:overridden={shownLevelOverridden}
-      label="Log level"
-      inherited="Info"
-      source="the organization"
-    >
-      {#snippet control()}
-        <SegmentedControl label="Log level" hideLabel options={levels} bind:value={shownLevel} />
-      {/snippet}
-    </InheritControl>
-  </Specimen>
-  <Specimen label="Disabled">
-    <div class="locked">
-      <InheritControl label="Retention" inherited="30&nbsp;days" source="the organization" disabled>
+<div class="wide-last">
+  <Example
+    title="States"
+    note="An inherited value is muted with its source, an override shows the control with a way back, and a locked one says why"
+    layout="grid"
+    --specimen-min="21rem"
+    --specimen-row-gap="var(--sui-space-6)"
+  >
+    <Specimen label="Inherited">
+      <InheritControl
+        bind:overridden={shownLifetimeOverridden}
+        label="Session lifetime"
+        inherited="1&nbsp;hour"
+        source="the workspace"
+      >
         {#snippet control()}
-          <DurationInput label="Retention" value={2_592_000} />
+          <DurationInput label="Session lifetime" bind:value={shownLifetime} min={60} />
         {/snippet}
       </InheritControl>
-      <p class="reason">Only an owner can override the retention</p>
-    </div>
-  </Specimen>
-</Example>
+    </Specimen>
+    <Specimen label="Disabled">
+      <div class="locked">
+        <InheritControl
+          label="Retention"
+          inherited="30&nbsp;days"
+          source="the organization"
+          disabled
+        >
+          {#snippet control()}
+            <DurationInput label="Retention" value={2_592_000} />
+          {/snippet}
+        </InheritControl>
+        <p class="reason">Only an owner can override the retention</p>
+      </div>
+    </Specimen>
+    <Specimen label="Overridden">
+      <InheritControl
+        bind:overridden={shownLevelOverridden}
+        label="Log level"
+        inherited="Info"
+        source="the organization"
+      >
+        {#snippet control()}
+          <SegmentedControl label="Log level" hideLabel options={levels} bind:value={shownLevel} />
+        {/snippet}
+      </InheritControl>
+    </Specimen>
+  </Example>
+</div>
 
-<div class="unknown">
+<div class="wide-last">
   <Example
     title="Unknown Values"
     note="A loading, failed or empty inherited value is said in words, and Override still works"
@@ -201,9 +208,9 @@
 </Example>
 
 <style>
-  /* The failed value, its sentence the longest, takes the last row whole, so its Override
-     Value stays on the sentence's line. */
-  .unknown :global(.specimen:last-child) {
+  /* The widest state, the overridden control or the failed sentence, takes the last row whole,
+     so its button stays on its line and no state leaves a hole beside it. */
+  .wide-last :global(.specimen:last-child) {
     grid-column: 1 / -1;
   }
 
