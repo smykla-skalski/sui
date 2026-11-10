@@ -202,13 +202,7 @@ assistive technology, because a native picker cannot be held open.
       onkeydown={key}
       bind:value={() => value ?? '', (next) => (value = next === '' ? null : next)}
     >
-      <button
-        ><selectedcontent class="sui-select-value"
-        ></selectedcontent>{#if bare}{#each flat as option (option.value)}{#each [option.label, ...(option.forms ?? [])] as form, index (index)}<span
-                class="sui-select-size"
-                aria-hidden="true">{form}</span
-              >{/each}{/each}{/if}</button
-      >
+      <button><selectedcontent class="sui-select-value"></selectedcontent></button>
       {#if prompt !== undefined}
         <option
           class={['sui-select-option', 'sui-select-placeholder', { presumed: presumed.length > 0 }]}
@@ -244,6 +238,14 @@ assistive technology, because a native picker cannot be held open.
       {/each}
     </select>
     <span class="sui-select-chevron"><Icon name="chevron-down" size="base" /></span>
+    {#if bare}
+      <span class="sui-select-room" aria-hidden="true">
+        {#each flat as option (option.value)}
+          {#each [option.label, ...(option.forms ?? [])] as form, index (index)}<span>{form}</span
+            >{/each}
+        {/each}
+      </span>
+    {/if}
   </span>
 {/snippet}
 
@@ -460,6 +462,29 @@ assistive technology, because a native picker cannot be held open.
     translate: none;
   }
 
+  /* A bare unit joined to a field holds the width of the longest form of any option, with the
+     control's own type and insets, in the browser's own picker too, so a new pick or a label
+     that turns plural never resizes the field around it. */
+  .bare .sui-select-control {
+    justify-self: stretch;
+  }
+
+  .sui-select-room {
+    block-size: 0;
+    display: grid;
+    font: var(--sui-weight-regular) var(--sui-font-size-input) / var(--sui-leading-input)
+      var(--sui-sans);
+    grid-area: 1 / 1;
+    /* The browser's own picker rounds its width up to a whole pixel, so the room does too. */
+    inline-size: calc-size(max-content, round(up, size, 1px));
+    overflow: hidden;
+    padding-inline: var(--sui-space-2)
+      calc(var(--sui-field-inset) + var(--sui-icon-base) + var(--sui-space-2));
+    pointer-events: none;
+    visibility: hidden;
+    white-space: nowrap;
+  }
+
   /* While its picker is open the unit keeps the lit ground and ink, as an icon button does
      while its menu is open, so the part the list belongs to stays marked. */
   .bare .sui-select-control:open,
@@ -581,23 +606,6 @@ assistive technology, because a native picker cannot be held open.
         padding-block: var(--sui-block-snap-room-even);
         text-box: trim-both cap alphabetic;
         text-overflow: ellipsis;
-        white-space: nowrap;
-      }
-
-      /* A bare unit joined to a field holds the width of its longest option, as a classic
-         select does, so a new pick never resizes the field around it. */
-      .bare .sui-select-control {
-        display: grid;
-      }
-
-      .bare .sui-select-control > button > * {
-        grid-area: 1 / 1;
-      }
-
-      .sui-select-size {
-        block-size: 0;
-        overflow: hidden;
-        visibility: hidden;
         white-space: nowrap;
       }
 

@@ -21,10 +21,14 @@ after(async () => {
 });
 
 suite('forms', together, () => {
-  /** @param {{ lang?: string; width?: number; path?: string }} [options] */
-  async function open({ lang, width = 1440, path = 'all/' } = {}) {
+  /** @param {{ lang?: string; width?: number; path?: string; touch?: boolean }} [options] */
+  async function open({ lang, width = 1440, path = 'all/', touch = false } = {}) {
     const address = new URL(path, url).href;
-    const page = await browser.newPage({ viewport: { width, height: 900 } });
+    const page = await browser.newPage({
+      viewport: { width, height: 900 },
+      hasTouch: touch,
+      isMobile: touch
+    });
     if (lang)
       await page.route(
         (asked) => `${asked.origin}${asked.pathname}` === address,
@@ -2221,6 +2225,24 @@ suite('forms', together, () => {
       await specimen.locator('select').selectOption('seconds');
       assert.equal(await amount.inputValue(), '60');
       assert.equal(await width(), wide, 'a plural unit list resized the field');
+    });
+
+    test("a touch screen's own unit picker holds one width over singular and plural", async () => {
+      const touch = await open({ width: 1024, path: 'duration-input/', touch: true });
+      try {
+        const specimen = retryDelay(touch);
+        const amount = specimen.getByRole('textbox', { name: 'Retry delay' });
+        const unit = specimen.locator('select');
+        const width = async () => (await specimen.locator('.sui-joined').boundingBox())?.width;
+        await unit.selectOption('minutes');
+        await amount.fill('1');
+        const one = await width();
+        await unit.selectOption('seconds');
+        assert.equal(await amount.inputValue(), '60');
+        assert.equal(await width(), one, 'the plural units resized the field');
+      } finally {
+        await touch.close();
+      }
     });
 
     test('a duration fits five digits on a phone and says its range on one line', async () => {
