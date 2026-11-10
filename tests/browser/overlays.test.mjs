@@ -885,15 +885,33 @@ suite('overlays', together, () => {
         await page.keyboard.press('Shift');
         await mark.focus();
         await page.locator('.sui-tooltip:popover-open').waitFor();
+        // The live tip once wrapped a one-sentence tip in a box wider than its words, rose over
+        // the specimen's name, and the mark's ring touched the label's last letter.
         const live = await page.evaluate(() => {
           const button = /** @type {Element} */ (document.activeElement);
-          const [m, t] = [
+          const tip = /** @type {Element} */ (document.querySelector('.sui-tooltip:popover-open'));
+          const specimen = /** @type {Element} */ (button.closest('figure'));
+          const [m, t, name, w] = [
             button,
-            /** @type {Element} */ (document.querySelector('.sui-tooltip:popover-open'))
-          ].map((part) => part.getBoundingClientRect());
-          return Math.round(m.top - t.bottom);
+            tip,
+            specimen.querySelector('figcaption'),
+            button.closest('.label')?.querySelector('.words')
+          ].map((part) => /** @type {Element} */ (part).getBoundingClientRect());
+          const style = getComputedStyle(button);
+          const ring = parseFloat(style.outlineOffset) + parseFloat(style.outlineWidth);
+          const range = document.createRange();
+          range.selectNodeContents(tip);
+          return {
+            gap: Math.round(m.top - t.bottom),
+            lines: new Set([...range.getClientRects()].map((line) => Math.round(line.top))).size,
+            clearOfName: t.top >= name.bottom,
+            ringRoom: m.left - ring - w.right
+          };
         });
-        assert.equal(live, copyGap, 'the copy stands off its mark unlike the live tip');
+        assert.equal(live.gap, copyGap, 'the copy stands off its mark unlike the live tip');
+        assert.equal(live.lines, 1, 'a one-sentence tip wraps');
+        assert.ok(live.clearOfName, 'the live tip covers its specimen name');
+        assert.ok(live.ringRoom > 0, 'the focus ring touches the label words');
       } finally {
         await page.close();
       }

@@ -233,12 +233,12 @@ does, stays out of the accessibility tree. Any other tip describes the control t
 `aria-describedby`; `describe` forces either way.
 
 - Semantics: a `tooltip` in the top layer, tied to its control by `aria-describedby` when it adds words, and `aria-hidden` when it repeats them.
-- Content: one short line of plain text, wrapping at 17rem; `mono` for a tip that is one identifier.
+- Content: one short line of plain text, wrapping at 20rem; `mono` for a tip that is one identifier.
 - States: hidden, waiting (250ms on hover), shown, lingering (120ms after the pointer leaves, 1.5s after a long press), and drawn in place with `preview`.
 - Keyboard: focus on its control shows it at once, blur hides it, and Escape hides it without reaching a dialog around it.
 - Pointer and touch: hover shows it after a pause and the pointer may move onto it; on touch a 500ms press shows it and a tap passes through as a click.
 - Focus: it never takes focus; the control keeps it.
-- Responsive: placed beside the anchor, flipped to the side with room and held 8px inside the viewport; it wraps rather than widening past 17rem.
+- Responsive: placed beside the anchor, flipped to the side with room and held 8px inside the viewport; it wraps rather than widening past 20rem.
 - Accessibility: hoverable, dismissable and persistent as WCAG 1.4.13 asks, read as a description only when it adds words.
 - Localization: `text` is the caller's words, and the inline sides and `start`/`end` alignment follow the reading direction.
 - Performance: one element per instance with listeners on its anchor and control, and on the page only while it is shown or about to be; placement runs only while shown, and the fade is opacity alone, removed under reduced motion.
@@ -280,7 +280,7 @@ does, stays out of the accessibility tree. Any other tip describes the control t
     inline-size: max-content;
     inset: auto;
     margin: 0;
-    max-inline-size: min(17rem, calc(100vw - 3rem));
+    max-inline-size: min(20rem, calc(100vw - 3rem));
     opacity: 1;
     /* A popover scrolls by default, and the trimmed words overhang the box, so the tip would be
        a scroller that Tab can enter. It is one short line that never scrolls. */
@@ -315,7 +315,7 @@ does, stays out of the accessibility tree. Any other tip describes the control t
   }
 
   .preview {
-    max-inline-size: min(17rem, 100%);
+    max-inline-size: min(20rem, 100%);
     position: static;
   }
 

@@ -54,7 +54,7 @@ on the page instead.
 - Localization: `label` and `text` are the caller's words, and the tip's placement follows the reading direction.
 - Performance: one button and one tooltip per mark, with a colour fade removed under reduced motion.
 - Analytics: `open` is bindable, so a caller can count how often an explanation is read.
-- Failure: an empty `text` still opens an empty tip, so always pass the sentence; a long one wraps at 17rem.
+- Failure: an empty `text` still opens an empty tip, so always pass the sentence; a long one wraps at 20rem.
 -->
 
 {#snippet mark()}

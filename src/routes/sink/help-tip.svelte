@@ -71,7 +71,14 @@
     display: inline-flex;
     font: var(--sui-weight-semibold) var(--sui-font-size-control) / var(--sui-leading-meta)
       var(--sui-sans);
-    gap: var(--sui-space-1);
+    /* The mark's focus ring stands clear of the words instead of touching their last letter. */
+    gap: calc(var(--sui-focus-ring-offset) + var(--sui-focus-ring-width) + var(--sui-space-1) / 2);
+  }
+
+  /* A live tip opens over its mark, so both placed labels keep a tip's height under their
+     names and sit on one line, and the tip opens in empty card space, clear of the name. */
+  .label:not(.wrap) {
+    margin-block-start: var(--sui-space-8);
   }
 
   /* The words run cap to baseline, so the mark centres on them (L-94). */
