@@ -50,7 +50,6 @@
   title="States"
   note="An inherited value is muted with its source, an override shows the control with a way back, and a locked one says why"
   layout="grid"
-  --example-max="54rem"
   --specimen-min="21rem"
   --specimen-row-gap="var(--sui-space-6)"
 >
@@ -90,41 +89,42 @@
   </Specimen>
 </Example>
 
-<Example
-  title="Unknown Values"
-  note="A loading, failed or empty inherited value is said in words, and Override still works"
-  layout="grid"
-  --example-max="54rem"
-  --specimen-min="21rem"
-  --specimen-row-gap="var(--sui-space-6)"
->
-  <Specimen label="Loading">
-    <InheritControl label="Retention" inherited="" source="the organization" loading>
-      {#snippet control()}
-        <DurationInput label="Retention" value={2_592_000} />
-      {/snippet}
-    </InheritControl>
-  </Specimen>
-  <Specimen label="Failed">
-    <InheritControl
-      label="Retention"
-      inherited=""
-      source="the organization"
-      error="The organization’s value could not load, so override it here"
-    >
-      {#snippet control()}
-        <DurationInput label="Retention" value={2_592_000} />
-      {/snippet}
-    </InheritControl>
-  </Specimen>
-  <Specimen label="Nothing set">
-    <InheritControl label="Retention" inherited="" source="the organization">
-      {#snippet control()}
-        <DurationInput label="Retention" value={2_592_000} />
-      {/snippet}
-    </InheritControl>
-  </Specimen>
-</Example>
+<div class="unknown">
+  <Example
+    title="Unknown Values"
+    note="A loading, failed or empty inherited value is said in words, and Override still works"
+    layout="grid"
+    --specimen-min="21rem"
+    --specimen-row-gap="var(--sui-space-6)"
+  >
+    <Specimen label="Loading">
+      <InheritControl label="Retention" inherited="" source="the organization" loading>
+        {#snippet control()}
+          <DurationInput label="Retention" value={2_592_000} />
+        {/snippet}
+      </InheritControl>
+    </Specimen>
+    <Specimen label="Nothing set">
+      <InheritControl label="Retention" inherited="" source="the organization">
+        {#snippet control()}
+          <DurationInput label="Retention" value={2_592_000} />
+        {/snippet}
+      </InheritControl>
+    </Specimen>
+    <Specimen label="Failed">
+      <InheritControl
+        label="Retention"
+        inherited=""
+        source="the organization"
+        error="The organization’s value could not load, so override it here"
+      >
+        {#snippet control()}
+          <DurationInput label="Retention" value={2_592_000} />
+        {/snippet}
+      </InheritControl>
+    </Specimen>
+  </Example>
+</div>
 
 <Example
   title="In Setting Rows"
@@ -201,6 +201,12 @@
 </Example>
 
 <style>
+  /* The failed value, its sentence the longest, takes the last row whole, so its Override
+     Value stays on the sentence's line. */
+  .unknown :global(.specimen:last-child) {
+    grid-column: 1 / -1;
+  }
+
   .locked {
     display: grid;
     gap: var(--sui-row-copy-gap);
