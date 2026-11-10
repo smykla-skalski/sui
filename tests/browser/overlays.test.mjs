@@ -868,6 +868,34 @@ suite('overlays', together, () => {
         assert.ok(look.beside, 'the mark drops under its label');
         assert.ok(look.lastLine > 1, 'the tip ends on a lone word');
         assert.ok(look.ink, 'the tip is not in the primary ink');
+        // The copy is the live tip drawn in place: one gap under the mark, and the same start.
+        await page.setViewportSize({ width: 1440, height: 900 });
+        const copyGap = await page.evaluate(() => {
+          const copy = /** @type {Element} */ (
+            document.querySelector('#help-tip .sui-help-tip-preview')
+          );
+          const [mark, tip] = ['.sui-help-tip', '.sui-tooltip'].map((part) =>
+            /** @type {Element} */ (copy.querySelector(part)).getBoundingClientRect()
+          );
+          // The live tip lands on the pixel grid, so both are read to the whole pixel.
+          return {
+            gap: Math.round(tip.top - mark.bottom),
+            start: Math.round(tip.left - mark.left) + 0
+          };
+        });
+        const mark = page.locator('#help-tip .sui-help-tip:not(.sui-help-tip-preview *)').first();
+        await page.keyboard.press('Shift');
+        await mark.focus();
+        await page.locator('.sui-tooltip:popover-open').waitFor();
+        const live = await page.evaluate(() => {
+          const button = /** @type {Element} */ (document.activeElement);
+          const [m, t] = [
+            button,
+            /** @type {Element} */ (document.querySelector('.sui-tooltip:popover-open'))
+          ].map((part) => part.getBoundingClientRect());
+          return { gap: Math.round(m.top - t.bottom), start: Math.round(t.left - m.left) + 0 };
+        });
+        assert.deepEqual(live, copyGap, 'the copy stands off its mark unlike the live tip');
       } finally {
         await page.close();
       }
