@@ -2408,6 +2408,50 @@ suite('forms', together, () => {
     );
 
     test(
+      'a focused pair chip wears a field ring 2px off its frame, red on a refused chip (L-41)',
+      long,
+      async () => {
+        const page = await opened();
+        const ring = async (/** @type {string} */ specimen, /** @type {number} */ at) => {
+          const chip = page
+            .locator('#pair-entry .specimen', { hasText: specimen })
+            .locator('.sui-pair-chip')
+            .nth(at);
+          await page.keyboard.press('Shift');
+          await chip.locator('.sui-pair-edit').focus();
+          return chip.evaluate((element) => {
+            const probe = document.createElement('span');
+            probe.style.color = 'var(--sui-focus)';
+            probe.style.backgroundColor = 'var(--sui-focus-danger)';
+            element.append(probe);
+            const want = getComputedStyle(probe);
+            const look = getComputedStyle(element);
+            const ring = {
+              width: look.outlineWidth,
+              offset: look.outlineOffset,
+              calm: look.outlineColor === want.color,
+              red: look.outlineColor === want.backgroundColor
+            };
+            probe.remove();
+            return ring;
+          });
+        };
+        assert.deepEqual(await ring('Pairs', 0), {
+          width: '2px',
+          offset: '2px',
+          calm: true,
+          red: false
+        });
+        assert.deepEqual(await ring('Invalid', 1), {
+          width: '2px',
+          offset: '2px',
+          calm: false,
+          red: true
+        });
+      }
+    );
+
+    test(
       'an off pair chip takes the off field paint at full strength, also under a hover (L-40)',
       long,
       async () => {

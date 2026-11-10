@@ -216,7 +216,7 @@ chips take the whole line under the copy and wrap within it.
 
 - Semantics: a `div` with `role="group"` holding a list of chips, each an edit `button` with `aria-haspopup="dialog"` and a remove `button`, an `add` button, and a dialog `Popover` with a `Field` and a `Combobox`.
 - Content: pairs of a short key and one of `options`; a long key or value wraps inside its chip, so all of it shows.
-- States: rest in a field's frame, baseline and recess; hover, pressed and focus on the edit part paint the whole chip (the field's hover, a deeper veil with an inset shadow, a flush ring), and the remove part's quiet plate takes its own (a veil, a deeper veil with an inset shadow, an inset ring); open (the chip's edge takes the focus color), invalid (the danger edge, an alert mark and the problem in words under the row), and disabled with `reason` (the off field's well with no edge and muted words, as an off pattern entry is).
+- States: rest in a field's frame, baseline and recess; hover, pressed and focus on the edit part paint the whole chip (the field's hover, a deeper veil with an inset shadow, a 2px ring 2px off the frame, red on an invalid chip), and the remove part's plate shows only for its own (a veil, a deeper veil with an inset shadow, an inset ring); open (the frame leans to the focus color without the ring, as an open Select's trigger does), invalid (the danger edge, an alert mark and the problem in words under the row), and disabled with `reason` (the off field's well with no edge and muted words, as an off pattern entry is).
 - Keyboard: Tab walks each chip's edit and remove parts, then Add; Enter or Space opens the editor; Delete or Backspace on a chip removes it; in the editor Enter is Save Pair, and Escape closes the value's list first and then the editor.
 - Pointer and touch: the chip is 28px tall and the remove part a 28px square over its end, both 44px on a phone or a coarse pointer, where the remove part's plate keeps its 24px in the middle of the square; a press on that square is the remove part's alone, and the edit part's words keep clear of it; a press on the editor's words or padding closes only the value's list.
 - Focus: the editor opens on the key field, keeps focus inside when its words or padding are pressed, and returns focus to its chip on close; after a removal focus moves to the next chip, the one before, or Add.
@@ -404,17 +404,26 @@ chips take the whole line under the copy and wrap within it.
      field lights whole: the frame firms while the ground only just moves, and the remove part's
      own plate steps up over that. An invalid chip hovers in its danger hue (L-9, L-12). */
   @media (hover: hover) {
-    .sui-pair-chip:hover:not(.invalid, .open, :has(> :is(:disabled, [aria-disabled='true']))) {
+    .sui-pair-chip:hover:not(
+        .invalid,
+        .open,
+        :has(> :is(:disabled, [aria-disabled='true'])),
+        :has(> .sui-pair-edit:focus-visible)
+      ) {
       --sui-pair-edge: var(--sui-field-frame-hover);
       --sui-pair-baseline: var(--sui-field-border-hover);
       --sui-pair-recess: var(--sui-field-recess-hover);
       background-color: var(--sui-field-hover);
     }
 
-    .sui-pair-chip.invalid:hover:not(:has(> :is(:disabled, [aria-disabled='true']))) {
-      --sui-pair-edge: var(--sui-danger-hover);
-      --sui-pair-baseline: var(--sui-danger-hover);
-      --sui-pair-layer: var(--sui-danger-hover-layer);
+    .sui-pair-chip.invalid:hover:not(
+        :has(> :is(:disabled, [aria-disabled='true'])),
+        :has(> .sui-pair-edit:focus-visible)
+      ) {
+      --sui-pair-edge: var(--sui-danger-edge-hover);
+      --sui-pair-baseline: var(--sui-danger-edge-hover);
+      --sui-pair-recess: var(--sui-field-danger-recess-hover);
+      background-color: var(--sui-field-danger-hover);
     }
   }
 
@@ -423,28 +432,30 @@ chips take the whole line under the copy and wrap within it.
     box-shadow: var(--sui-pressed-inset);
   }
 
-  /* A bordered control's ring is flush, its edge taking the ring's color unless it is invalid
-     (L-9, L-41). */
+  /* A field keeps its frame under focus and wears the ring 2px off it, the frame leaning
+     toward the focus color; an open chip leans the same way without the ring, as an open
+     Select's trigger does (L-41). */
   .sui-pair-chip:has(> .sui-pair-edit:focus-visible) {
-    outline: var(--sui-focus-ring-edge) solid var(--sui-focus);
-    outline-offset: var(--sui-focus-ring-flush);
+    outline: var(--sui-focus-ring-width) solid var(--sui-focus);
+    outline-offset: var(--sui-focus-ring-offset);
   }
 
   .sui-pair-chip.open,
-  .sui-pair-chip:has(> .sui-pair-edit:focus-visible):not(.invalid) {
-    --sui-pair-edge: var(--sui-focus);
-    --sui-pair-baseline: var(--sui-focus);
+  .sui-pair-chip:has(> .sui-pair-edit:focus-visible) {
+    --sui-pair-edge: var(--sui-field-frame-focus);
+    --sui-pair-baseline: var(--sui-field-border-focus);
     --sui-pair-recess: var(--sui-field-recess-focus);
   }
 
+  /* An invalid chip keeps its red edge in every state, and its ring takes that red (L-41). */
   .sui-pair-chip.invalid {
-    --sui-pair-edge: var(--sui-danger);
-    --sui-pair-baseline: var(--sui-danger);
+    --sui-pair-edge: var(--sui-danger-edge);
+    --sui-pair-baseline: var(--sui-danger-edge);
+    --sui-pair-recess: var(--sui-field-danger-recess);
   }
 
-  /* A danger edge is not the ring's color, so the outline draws the whole 2px ring past it. */
   .sui-pair-chip.invalid:has(> .sui-pair-edit:focus-visible) {
-    outline-width: var(--sui-focus-ring-width);
+    outline-color: var(--sui-focus-danger);
   }
 
   .sui-pair-edit,
