@@ -48,6 +48,11 @@
     );
   }
 
+  /* A search that never answers, so a copy stays on "Searching…". */
+  function waiting(): Promise<typeof accounts> {
+    return new Promise(() => {});
+  }
+
   let language = $state('ts');
   let label = $state('');
   let reviewer = $state('');
@@ -65,7 +70,7 @@
 <Example
   title="Suggestions"
   --example-max="54rem"
-  --specimen-min="21rem"
+  --specimen-min="15rem"
   --specimen-row-gap="var(--sui-space-6)"
   note="Typing narrows the options, free entry offers what was typed, and a slow search says it is searching or that nothing matches"
   layout="grid"
@@ -109,7 +114,7 @@
 <Example
   title="States"
   --example-max="54rem"
-  --specimen-min="21rem"
+  --specimen-min="15rem"
   --specimen-row-gap="var(--sui-space-6)"
   note="A refused value keeps its danger edge, a refused search says so, and a disabled field says why under it"
   layout="grid"
@@ -154,13 +159,20 @@
   --example-max="54rem"
   --specimen-min="21rem"
   --specimen-row-gap="var(--sui-space-6)"
-  note="Static copies of the open list under each field. The value opens lit and checked, and typed letters are marked in the names they match. Free entry offers the typed text, and text that matches nothing says so"
+  note="Static copies of the open list under each field. The value opens lit and checked over a count of the rows past the limit, and typed letters are marked in the names they match. Free entry offers the typed text, and the notes say that nothing matches, that a search waits or that it was refused"
   layout="grid"
 >
-  <Specimen label="Chosen">
+  <Specimen label="Chosen & limited">
     <Field label="Language">
       {#snippet control({ id, describedby })}
-        <Combobox {id} aria-describedby={describedby} options={languages} value="ts" preview />
+        <Combobox
+          {id}
+          aria-describedby={describedby}
+          options={languages}
+          value="ts"
+          limit={4}
+          preview
+        />
       {/snippet}
     </Field>
   </Specimen>
@@ -202,6 +214,20 @@
           previewText="zig"
           preview
         />
+      {/snippet}
+    </Field>
+  </Specimen>
+  <Specimen label="Searching">
+    <Field label="Reviewer">
+      {#snippet control({ id, describedby })}
+        <Combobox {id} aria-describedby={describedby} search={waiting} previewText="octo" preview />
+      {/snippet}
+    </Field>
+  </Specimen>
+  <Specimen label="Search refused">
+    <Field label="Owner">
+      {#snippet control({ id, describedby })}
+        <Combobox {id} aria-describedby={describedby} search={offline} previewText="octo" preview />
       {/snippet}
     </Field>
   </Specimen>

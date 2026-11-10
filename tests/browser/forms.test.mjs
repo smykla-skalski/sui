@@ -1219,7 +1219,7 @@ suite('forms', together, () => {
 
     test('a refused combobox search says so', long, async () => {
       const page = await opened();
-      const field = page.getByRole('combobox', { name: 'Owner' });
+      const field = page.getByRole('combobox', { name: 'Owner' }).first();
       await field.fill('oct');
       await page.waitForFunction(() =>
         [...document.querySelectorAll('#combobox [role="status"]')].some((status) =>
@@ -1244,7 +1244,9 @@ suite('forms', together, () => {
             document.querySelector('#combobox .sui-combobox-preview [role="listbox"]')
           );
           const off = /** @type {Element} */ (
-            list.querySelector('[aria-disabled="true"]:has(.sui-combobox-note)')
+            document.querySelector(
+              '#combobox .sui-combobox-preview [aria-disabled="true"]:has(.sui-combobox-note)'
+            )
           );
           // Opacity does not inherit, so a part's strength is its own times every box up to the row.
           const opacity = (/** @type {string} */ part) => {
@@ -1255,7 +1257,28 @@ suite('forms', together, () => {
             }
             return strength;
           };
+          const previews = [...document.querySelectorAll('#combobox .sui-combobox-preview')];
+          const offMark = /** @type {Element} */ (
+            document.querySelector('#combobox .sui-combobox-preview [aria-disabled="true"] mark')
+          );
           return {
+            notes: previews.flatMap((preview) =>
+              [...preview.querySelectorAll('.sui-combobox-empty')].map((node) =>
+                node.textContent?.trim()
+              )
+            ),
+            spoken: previews.map((preview) =>
+              preview.querySelector('[role="status"]')?.textContent?.trim()
+            ),
+            offMark: [getComputedStyle(offMark).color, getComputedStyle(offMark).fontWeight].join(
+              ' '
+            ),
+            offName: (() => {
+              const name = getComputedStyle(
+                /** @type {Element} */ (offMark.closest('.sui-combobox-label'))
+              );
+              return [name.color, name.fontWeight].join(' ');
+            })(),
             live: turn(/** @type {Element} */ (fields.find((field) => !copies.includes(field)))),
             copies: copies.map(turn),
             ground: getComputedStyle(/** @type {Element} */ (empty.querySelector('input')))
@@ -1282,7 +1305,7 @@ suite('forms', together, () => {
         });
       const look = await read();
       assert.equal(look.live, 'none', 'a closed field points its chevron down');
-      assert.equal(look.copies.length, 4);
+      assert.equal(look.copies.length, 6);
       assert.deepEqual(new Set(look.copies), new Set(['180deg']), 'every open copy turns it over');
       assert.notEqual(look.ground, 'rgba(0, 0, 0, 0)');
       assert.equal(
@@ -1297,6 +1320,19 @@ suite('forms', together, () => {
         'a copy with only a note keeps the editing ground, not the read-only tint'
       );
       assert.equal(look.cut, 0, 'the open copy draws every row');
+      assert.equal(look.offMark, look.offName, 'a match in an off option draws as its name');
+      await page.waitForFunction(
+        () => document.querySelector('#combobox')?.textContent?.includes('could not load'),
+        undefined,
+        { timeout: 2000 }
+      );
+      assert.deepEqual((await read()).notes, [
+        '3 more, so keep typing to narrow them',
+        'No suggestions match',
+        'Searching…',
+        'Suggestions could not load, so keep typing to try again'
+      ]);
+      assert.deepEqual(new Set(look.spoken), new Set(['']), 'a copy never speaks');
       assert.equal(look.off.name, 0.6);
       assert.equal(look.off.note, 1, 'an off option keeps its reason at full strength');
       assert.equal(look.off.ink, look.secondary, 'in the reason ink');
