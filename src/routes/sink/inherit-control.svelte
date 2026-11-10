@@ -213,8 +213,11 @@
     justify-items: start;
   }
 
+  /* The reason explains the sentence, so it starts under the words, past the control's 16px
+     mark and its 8px gap. */
   .reason {
     align-content: center;
+    padding-inline-start: calc(var(--sui-icon-base) + var(--sui-space-2));
     block-size: var(--sui-block-snap);
     color: var(--sui-text-secondary);
     font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-row-copy-leading)
