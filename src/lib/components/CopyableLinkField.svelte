@@ -63,8 +63,9 @@ The field and its `CopyButton` are one control: the copy action is a chip inside
 end, under one frame. The chip shows the short "Copy", so the value keeps the width, and is
 named by `copyLabel`, such as "Copy Link", which starts with the shown word (WCAG 2.5.3). The
 copy part confirms with "Copied". A long value wraps onto more lines
-at any character, so all of it shows and it never widens the row. With `label` the pair sits in a `Field`, and the label names
-the text field.
+after a hyphen, or at any character inside a part longer than a line, so all of it shows and
+it never widens the row. With `label` the pair sits in a `Field`, and the label
+names the text field.
 
 - Semantics: a read-only text area named by its `Field` label or `aria-label`, and a copy button named by `copyLabel`, which starts with its shown word, inside one joined field.
 - Content: one link or token in the mono face, and the copy action's three short labels.
@@ -72,7 +73,7 @@ the text field.
 - Keyboard: Tab selects the value and moves on to the copy action, Enter or Space copies, and the platform's own copy works on the selection.
 - Pointer and touch: 34px tall, 44px on a phone or any touch screen, and the copy action keeps a 44px hit area there.
 - Focus: copying keeps focus on the action, and a refused copy moves it to the value, selected.
-- Responsive: it fills its container, a long value wraps onto more lines with the copy action level with the first one, and the copy action keeps the width of "Copy" or "Copied"; a longer failure wraps inside it.
+- Responsive: it fills its container, a long value wraps onto more lines with the copy action level with the first one, and the copy action keeps the width of "Copy" or "Copied", widening only while a longer failure shows.
 - Accessibility: each part has its own name, the outcome is spoken through the copy action's status, and the value's text holds 4.5:1.
 - Localization: `copyLabel`, `copiedLabel` and `failedLabel` are props with English defaults, and the copy action sits at the inline end in either direction.
 - Performance: one text area and one button; a hidden copy of the value sets the height in CSS, so no script measures it.
@@ -128,14 +129,14 @@ the text field.
 </div>
 
 <style>
-  /* The copy chip stands 4px inside the frame on every side, and is as tall as that leaves of
-     one line, so the field keeps its height; at a large text size it wraps its words and still
-     keeps clear of the frame. */
+  /* The copy chip stands a field chip's inset inside the frame on every side, and is as tall as
+     that leaves of one line, so the field keeps its height; at a large text size it wraps its
+     words and still keeps clear of the frame. */
   .sui-copyable-link-field {
-    --sui-local-joined-end-inset: var(--sui-space-1);
+    --sui-local-joined-end-inset: var(--sui-field-chip-inset);
     --sui-local-copy-chip: calc(
       var(--sui-local-control-height, var(--sui-control-height-compact)) - 2 * var(--sui-stroke) -
-        2 * var(--sui-space-1)
+        2 * var(--sui-field-chip-inset)
     );
     min-inline-size: 0;
   }
@@ -181,7 +182,6 @@ the text field.
           2
       )
       var(--sui-field-inset);
-    word-break: break-all;
   }
 
   /* The ground, edge and ring are the joined field's. */

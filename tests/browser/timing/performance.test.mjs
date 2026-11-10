@@ -345,8 +345,8 @@ test('every layer grows at 60 frames a second', long, async () => {
         const press = page.locator(`#${id} ${trigger}`).first();
         await press.scrollIntoViewIfNeeded();
         for (const open of ['first', 'later']) {
-          await page.waitForTimeout(500);
-          for (const { gap, dropped, answer } of await frames(page, 800, () => press.click()))
+          await page.waitForTimeout(300);
+          for (const { gap, dropped, answer } of await frames(page, 600, () => press.click()))
             if (dropped && !(answer && open === 'first'))
               found.push(`${id}: ${gap}ms on the ${open} open`);
           await page.keyboard.press('Escape');

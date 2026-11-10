@@ -31,6 +31,8 @@
   ];
 
   let span = $state<string | null>('week');
+  let drawn = $state<string | null>('week');
+  let beside = $state<string | null>('week');
   let tab = $state<string | null>('users');
   let level = $state<string | null>('warnings');
   let inherited = $state<string | null>(null);
@@ -41,6 +43,10 @@
 
 <Example
   title="Options"
+  --example-max="54rem"
+  --specimen-min="21rem"
+  --specimen-row-gap="var(--sui-space-6)"
+  layout="grid"
   note="2 to 5 options, with a thumb as wide as the chosen one that a drag can move"
 >
   <Specimen label="Words">
@@ -53,10 +59,14 @@
 
 <Example
   title="Label"
+  --example-max="54rem"
+  --specimen-min="21rem"
+  --specimen-row-gap="var(--sui-space-6)"
+  layout="grid"
   note="The label stands above the options, unless a visible name beside the control already says it"
 >
   <Specimen label="Drawn">
-    <SegmentedControl label="Time range" options={range} bind:value={span} />
+    <SegmentedControl label="Time range" options={range} bind:value={drawn} />
   </Specimen>
   <Specimen label="Named beside it">
     <div class="beside">
@@ -65,7 +75,7 @@
         label="Time range"
         aria-labelledby="sink-segmented-name"
         options={range}
-        bind:value={span}
+        bind:value={beside}
       />
     </div>
   </Specimen>
@@ -73,55 +83,73 @@
 
 <Example
   title="States"
+  --example-max="54rem"
+  --specimen-min="21rem"
+  --specimen-row-gap="var(--sui-space-6)"
+  layout="grid"
   note="A null value draws no thumb, the arrow keys skip a disabled option, and a locked control says why"
 >
   <Specimen label="Nothing chosen">
-    <SegmentedControl label="Time range" options={range} bind:value={inherited} />
+    <SegmentedControl
+      label="Time range"
+      options={range}
+      bind:value={inherited}
+      hint="Workspace range until set"
+    />
   </Specimen>
   <Specimen label="Disabled option">
-    <div class="locked">
-      <SegmentedControl
-        label="Log level"
-        options={levels}
-        bind:value={level}
-        aria-describedby="sink-segmented-debug"
-      />
-      <p id="sink-segmented-debug" class="reason">Debug needs a support plan</p>
-    </div>
+    <SegmentedControl
+      label="Log level"
+      options={levels}
+      bind:value={level}
+      hint="Debug needs a support plan"
+    />
   </Specimen>
   <Specimen label="Selected disabled option">
-    <SegmentedControl label="Locked log level" options={levels} bind:value={disabledLevel} />
+    <SegmentedControl
+      label="Locked log level"
+      options={levels}
+      bind:value={disabledLevel}
+      hint="Held at Debug by support"
+    />
   </Specimen>
   <Specimen label="Disabled">
-    <div class="locked">
-      <SegmentedControl
-        label="Log level"
-        options={levels}
-        value="errors"
-        disabled
-        aria-describedby="sink-segmented-saving"
-      />
-      <p id="sink-segmented-saving" class="reason">Locked until the save finishes</p>
-    </div>
+    <SegmentedControl
+      label="Log level"
+      options={levels}
+      value="errors"
+      disabled
+      hint="Locked until the save finishes"
+    />
   </Specimen>
 </Example>
 
 <Example
   title="Tiers"
+  --example-max="54rem"
+  --specimen-min="21rem"
+  --specimen-row-gap="var(--sui-space-6)"
+  layout="grid"
   note="34 px by default and 44 px on phones, and a surface may opt into 40 px through 1 custom property"
 >
   <Specimen label="Default">
     <SegmentedControl label="Time range" options={range} value="month" />
   </Specimen>
-  <Specimen label="Tall">
-    <div class="tall">
-      <SegmentedControl label="Time range" options={range} value="month" />
-    </div>
-  </Specimen>
+  <div class="wide-only">
+    <Specimen label="Tall">
+      <div class="tall">
+        <SegmentedControl label="Time range" options={range} value="month" />
+      </div>
+    </Specimen>
+  </div>
 </Example>
 
 <Example
   title="Narrow Width"
+  --example-max="54rem"
+  --specimen-min="21rem"
+  --specimen-row-gap="var(--sui-space-6)"
+  layout="grid"
   note="Short of room, the same choice becomes a native select, with icons dropped and counts in brackets"
 >
   <Specimen label="Words as a select">
@@ -142,43 +170,50 @@
     display: grid;
   }
 
+  /* A phone draws every tier at the 44px touch height, so a taller specimen there would show
+     the same control twice. */
+  .wide-only {
+    display: contents;
+  }
+
+  @media (max-width: 47.9375rem) {
+    .wide-only {
+      display: none;
+    }
+  }
+
   .narrow {
     display: flex;
     inline-size: min(100%, 12rem);
   }
 
+  /* The control named beside it stands on the line of the one whose label is drawn over it, a
+     caption and a field gap down, so the two compare at a glance. */
   .beside {
     align-items: center;
     display: flex;
     flex-wrap: wrap;
     gap: var(--sui-space-3);
+    /* The caption's font, so 1cap is the cap height its snapped line rounds up from. */
+    font: var(--sui-weight-semibold) var(--sui-font-size-control) / var(--sui-leading-note)
+      var(--sui-sans);
     min-inline-size: 0;
+    padding-block-start: calc(round(up, 1cap, 1px) + var(--sui-field-gap));
+  }
+
+  /* A phone stacks the specimens, so there is no drawn label beside it to line up with. */
+  @media (max-width: 47.9375rem) {
+    .beside {
+      padding-block-start: 0;
+    }
   }
 
   .name {
     align-content: center;
     block-size: var(--sui-block-snap);
-    color: var(--sui-text-secondary);
+    color: var(--sui-text-primary);
     font: var(--sui-weight-semibold) var(--sui-font-size-control) / var(--sui-leading-flat)
       var(--sui-sans);
-    padding-block: var(--sui-block-snap-room);
-    text-box: trim-both cap alphabetic;
-  }
-
-  .locked {
-    display: grid;
-    gap: var(--sui-row-copy-gap);
-    justify-items: start;
-    min-inline-size: 0;
-  }
-
-  .reason {
-    align-content: center;
-    block-size: var(--sui-block-snap);
-    color: var(--sui-text-secondary);
-    font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-row-copy-leading)
-      var(--sui-sans);
-    margin: 0;
     padding-block: var(--sui-block-snap-room);
     text-box: trim-both cap alphabetic;
   }

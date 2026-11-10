@@ -652,8 +652,19 @@ suite('navigation', together, () => {
                 parseFloat(look.getPropertyValue(name))
               );
             };
+            // The empty room a box keeps after its content (L-107), which no end fade covers.
+            const trail = (/** @type {Element} */ box) => {
+              const probe = document.createElement('div');
+              probe.style.cssText =
+                'position: absolute; inline-size: var(--sui-local-edge-trail, 0px)';
+              box.append(probe);
+              const width = probe.getBoundingClientRect().width;
+              probe.remove();
+              return width;
+            };
             // A component's own scroller: it, or one of the two boxes it sits in, wears a
-            // `sui-` class, as a chart's plot sits in its band inside the chart.
+            // `sui-` class, as a chart's plot sits in its band inside the chart. Its content,
+            // not only its trailing room, runs past its edge.
             const boxes = [...document.querySelectorAll('[class]')].filter((box) => {
               const owned = [box, box.parentElement, box.parentElement?.parentElement].some(
                 (node) => [...(node?.classList ?? [])].some((name) => name.startsWith('sui-'))
@@ -661,16 +672,19 @@ suite('navigation', together, () => {
               return (
                 owned &&
                 /auto|scroll/.test(getComputedStyle(box).overflowX) &&
-                box.scrollWidth - box.clientWidth >= 4
+                box.scrollWidth - box.clientWidth - trail(box) >= 4
               );
             });
+            const rooms = boxes.map(trail);
             /** @type {number[][][]} */
             const states = boxes.map(() => []);
             // Each scroller's fade follows only its own scroll, so all of them move at once.
+            // The middle is halfway along the content, short of the trailing room.
             for (const share of [0, 0.5, 1]) {
-              for (const box of boxes) {
+              for (const [at, box] of boxes.entries()) {
                 const sign = getComputedStyle(box).direction === 'rtl' ? -1 : 1;
-                box.scrollLeft = sign * share * (box.scrollWidth - box.clientWidth);
+                const range = box.scrollWidth - box.clientWidth;
+                box.scrollLeft = sign * (share === 1 ? range : share * (range - rooms[at]));
               }
               await frame();
               await frame();

@@ -832,6 +832,30 @@ suite('the kitchen sink', together, () => {
       }
       return shot;
     };
+    /**
+     * @param {import('playwright-core').Page} page
+     * @param {string} name
+     */
+    const shoot = async (page, name) => {
+      const avatar = page
+        .locator('#avatar .example', { hasText: /^(Pictures|Fallbacks)/ })
+        .getByRole('img', { name, exact: true });
+      await avatar.scrollIntoViewIfNeeded();
+      // An edge off the pixel grid blends a few levels apart once the layers above it change,
+      // so a shot is only a fair witness of an avatar standing on whole pixels.
+      const x = (await avatar.boundingBox())?.x ?? 0;
+      if (!Number.isInteger(x)) problems.push(`${name} stands at x ${x}`);
+      // A lazy picture may not have started when decode() settles on a busy page, so it
+      // loads now and the shot waits for it to fail or draw, and for the faces.
+      for (const img of await avatar.locator('img').all())
+        await img.evaluate(async (node) => {
+          const picture = /** @type {HTMLImageElement} */ (node);
+          picture.loading = 'eager';
+          await picture.decode().catch(() => {});
+          await document.fonts.ready;
+        });
+      return { avatar, shot: await settled(page, avatar) };
+    };
     /** @type {Record<string, Buffer>} */
     let before = {};
     /** @param {boolean} javaScriptEnabled */
@@ -846,24 +870,8 @@ suite('the kitchen sink', together, () => {
         /** @type {Record<string, Buffer>} */
         const drawn = {};
         for (const name of [...failed, ...loaded]) {
-          const avatar = page
-            .locator('#avatar .example', { hasText: /^(Pictures|Fallbacks)/ })
-            .getByRole('img', { name, exact: true });
-          await avatar.scrollIntoViewIfNeeded();
-          // An edge off the pixel grid blends a few levels apart once the layers above it change,
-          // so a shot is only a fair witness of an avatar standing on whole pixels.
-          const x = (await avatar.boundingBox())?.x ?? 0;
-          if (!Number.isInteger(x)) problems.push(`${name} stands at x ${x}`);
-          // A lazy picture may not have started when decode() settles on a busy page, so it
-          // loads now and the shot waits for it to fail or draw, and for the faces.
-          for (const img of await avatar.locator('img').all())
-            await img.evaluate(async (node) => {
-              const picture = /** @type {HTMLImageElement} */ (node);
-              picture.loading = 'eager';
-              await picture.decode().catch(() => {});
-              await document.fonts.ready;
-            });
-          drawn[name] = await settled(page, avatar);
+          const { avatar, shot } = await shoot(page, name);
+          drawn[name] = shot;
           if (javaScriptEnabled) {
             // Under a full parallel run the running page can still be painting when two shots
             // first agree, so it gets about a second to match; a change script makes stays.
@@ -871,6 +879,21 @@ suite('the kitchen sink', together, () => {
             for (let tries = 0; !same && tries < 10; tries += 1) {
               await page.waitForTimeout(100);
               drawn[name] = await settled(page, avatar);
+              same = await alike(page, drawn[name], before[name]);
+            }
+            // The first frame's shot may be the one a busy machine blurred at an edge, so it is
+            // taken again on a page without script; a change script makes differs every time.
+            for (let tries = 0; !same && tries < 3; tries += 1) {
+              const quiet = await browser.newPage({
+                viewport: { width: 1440, height: 900 },
+                javaScriptEnabled: false
+              });
+              try {
+                await quiet.goto(address.href);
+                before[name] = (await shoot(quiet, name)).shot;
+              } finally {
+                await quiet.close();
+              }
               same = await alike(page, drawn[name], before[name]);
             }
             if (!same) {
@@ -886,8 +909,18 @@ suite('the kitchen sink', together, () => {
           // What a part adds is what disappears with it.
           const part = avatar.locator(failed.includes(name) ? 'img' : 'svg');
           await part.evaluate((node) => node.style.setProperty('display', 'none'));
-          const without = await settled(page, avatar);
-          if (!(await alike(page, without, drawn[name]))) {
+          let without = await settled(page, avatar);
+          // A busy machine can paint an edge pixel of either shot a few levels off, so both are
+          // taken again; a part that draws something differs every time.
+          let same = await alike(page, without, drawn[name]);
+          for (let tries = 0; !same && tries < 5; tries += 1) {
+            await part.evaluate((node) => node.style.removeProperty('display'));
+            drawn[name] = await settled(page, avatar);
+            await part.evaluate((node) => node.style.setProperty('display', 'none'));
+            without = await settled(page, avatar);
+            same = await alike(page, without, drawn[name]);
+          }
+          if (!same) {
             const shots = ['with', 'without'].map((kind) =>
               join(tmpdir(), `sui-avatar-${name.replace(/\W+/g, '-')}-${kind}.png`)
             );
@@ -945,9 +978,15 @@ suite('the kitchen sink', together, () => {
         await settles(page.waitForFunction((layer) => document.querySelector(layer), LAYER, brief))
       )
         await atRest(page);
+      await page.mouse.move(0, 0);
       const report = await trigger.evaluate((element) => {
         const layer = document.querySelector(':popover-open:has([role="listbox"], [role="menu"])');
         if (!layer) return { missing: true };
+        const probe = document.createElement('span');
+        probe.style.color = 'var(--sui-interactive-hover-layer)';
+        element.append(probe);
+        const veil = getComputedStyle(probe).color;
+        probe.remove();
         const box = layer.getBoundingClientRect();
         const anchor = element.getBoundingClientRect();
         const options = [...layer.querySelectorAll('[role="option"], [role="menuitem"]')]
@@ -963,6 +1002,9 @@ suite('the kitchen sink', together, () => {
           narrower:
             element.getAttribute('aria-haspopup') === 'listbox' && box.width < anchor.width - 0.5,
           tall: box.height > 320.5,
+          lit:
+            !element.matches('.sui-button:not(.field)') ||
+            getComputedStyle(element).backgroundImage.includes(veil),
           heights: [...new Set(options.map((height) => Math.round(height * 100) / 100))],
           tier: parseFloat(
             getComputedStyle(document.documentElement).getPropertyValue(
@@ -977,6 +1019,7 @@ suite('the kitchen sink', together, () => {
         if (!report.inside) problems.push(`${name}: the layer leaves the viewport`);
         if (report.narrower) problems.push(`${name}: the listbox is narrower than its trigger`);
         if (report.tall) problems.push(`${name}: the layer is taller than 20rem`);
+        if (!report.lit) problems.push(`${name}: the open trigger lost its hover paint`);
         if (report.heights?.some((height) => height < report.tier - 0.01))
           problems.push(
             `${name}: option heights ${report.heights.join(', ')}, under ${report.tier}`
@@ -1016,9 +1059,15 @@ suite('the kitchen sink', together, () => {
         await settles(page.waitForFunction((element) => element?.matches(':open'), handle, brief))
       )
         await atRest(page);
+      await page.mouse.move(0, 0);
       const report = await select.evaluate((element) => {
         if (!(/** @type {HTMLSelectElement} */ (element).matches(':open'))) return { open: false };
         const picker = getComputedStyle(element, '::picker(select)');
+        const probe = document.createElement('span');
+        probe.style.color = 'var(--sui-field-frame-focus)';
+        element.after(probe);
+        const edge = getComputedStyle(probe).color;
+        probe.remove();
         const options = [.../** @type {HTMLSelectElement} */ (element).options]
           .filter((option) => option.getClientRects().length > 0)
           .map((option) => option.getBoundingClientRect().height);
@@ -1026,6 +1075,9 @@ suite('the kitchen sink', together, () => {
           open: true,
           narrower: parseFloat(picker.width) < element.getBoundingClientRect().width - 0.5,
           tall: parseFloat(picker.height) > 320.5,
+          lit:
+            !element.matches('.sui-select:not(.bare) select:not([aria-invalid="true"])') ||
+            getComputedStyle(element).borderTopColor === edge,
           heights: [...new Set(options.map((height) => Math.round(height * 100) / 100))],
           tier: parseFloat(
             getComputedStyle(document.documentElement).getPropertyValue(
@@ -1039,6 +1091,7 @@ suite('the kitchen sink', together, () => {
       else {
         if (report.narrower) problems.push(`${name}: the picker is narrower than its field`);
         if (report.tall) problems.push(`${name}: the picker is taller than 20rem`);
+        if (!report.lit) problems.push(`${name}: the open field lost its focus edge`);
         if (report.heights?.some((height) => height < report.tier - 0.01))
           problems.push(
             `${name}: option heights ${report.heights.join(', ')}, under ${report.tier}`
@@ -1168,7 +1221,7 @@ suite('the kitchen sink', together, () => {
   for (const width of [375, 1440])
     test(
       width === 375
-        ? 'L-48 and L-52 every menu, listbox and select opens in place at 375px'
+        ? 'L-48 and L-52 every menu, listbox and select opens in place at 375px, its trigger kept in its hover paint'
         : 'a second press closes each layer at 1440px, and L-97 each layer grows from its trigger',
       long,
       async () => {

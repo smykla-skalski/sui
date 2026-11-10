@@ -16,6 +16,7 @@
   import Icon from '../icons/Icon.svelte';
   import { held, holdAround } from '../internal/held.svelte.js';
   import { setRefusals } from '../internal/refusals.svelte.js';
+  import { shownWait } from '../internal/shown-wait.svelte.js';
   import VisuallyHidden from './VisuallyHidden.svelte';
 
   const id = $props.id();
@@ -32,6 +33,7 @@
     required = false,
     requiredLabel = word('ChoiceCards.requiredLabel', 'Required'),
     disabled = false,
+    pending = false,
     onchange,
     'aria-describedby': describedBy,
     class: className = '',
@@ -52,8 +54,10 @@
     required?: boolean;
     /** The word after the legend of a question that must be answered. */
     requiredLabel?: string;
-    /** Locks the answers while they cannot change, such as during a save; focus stays where it is. */
+    /** Locks the answers while they cannot change, such as without permission; focus stays where it is. */
     disabled?: boolean;
+    /** The chosen answer is saving: its dot turns, the group says it is busy and holds off another choice. */
+    pending?: boolean;
     /** Hears each answer the reader picks. */
     onchange?: (value: string) => void;
     class?: HTMLFieldsetAttributes['class'];
@@ -65,7 +69,8 @@
   /* Work that runs on the form around it locks the group as `disabled` does, and a busy dialog
      or a saving pane, which has moved focus to its busy action, disables the radios too. */
   const around = holdAround();
-  const locked = $derived(disabled || held(group, around) !== null);
+  const locked = $derived(disabled || pending || held(group, around) !== null);
+  const spinning = shownWait(() => pending);
 
   /* `disabled` on the group would drop a focused radio's focus to the body, so a locked group
      keeps its radios focusable and refuses every press and arrow that would change the answer. */
@@ -93,17 +98,17 @@ sees at once how many answers there are. They sit side by side while each has 14
 when they do not. The chosen card wears a brand tint, a 2px brand edge and a filled dot
 together, so the choice never rests on colour alone, and choosing moves nothing.
 These are native radios, so the arrow keys move the choice and skip disabled answers.
-`disabled` locks the whole group with `aria-disabled`, so a radio that holds focus during a
-save keeps it. A busy dialog or a saving pane around it disables the radios while the work runs.
+`disabled` locks the whole group with `aria-disabled`, so a radio that holds focus keeps it,
+and `pending` locks it the same way while the chosen answer saves, with its dot turning. A busy dialog or a saving pane around it disables the radios while the work runs.
 
 - Semantics: a `<fieldset role="radiogroup">` named by its `<legend>`, described by the hint and the error, holding native radios each named by its label and described by its sentence, with a polite `role="status"` that speaks the error.
 - Content: a question as the legend and two to six answers, each a short label and one sentence; an optional hint and an error.
-- States: unchosen (a quiet edge), chosen (a brand tint, a 2px brand edge and a filled dot), hover (a veil and a firmer edge), focus (a flush 2px ring on a focus-coloured edge), pressed (a deeper ground, an inset shadow and a 1px sink), required (the word after the legend), invalid (a danger edge on every unchosen card and an error with a warning mark, from `error` or from a refused send), locked and disabled answers (0.6 opacity).
+- States: unchosen (a quiet edge), chosen (a brand tint, a 2px brand edge and a filled dot), hover (a field's faint ground and a firmer edge on an unchosen card), focus (a 2px ring 2px off the card's own edge, a chosen card's brand edge thinning to 1px under it), pressed (a deeper ground, an inset shadow and a 1px sink), required (the word after the legend), invalid (a danger edge on every unchosen card and an error with a warning mark, from `error` or from a refused send), pending (the chosen card keeps full strength, its dot's ring turns in the accent around its filled centre and the group is busy), the answers a pending group refuses (full strength in the muted ink), and disabled answers and a disabled group (full strength on the disabled field's fill in the muted ink, a chosen card's 2px edge and dot in the strong border ink).
 - Keyboard: Tab enters the group at the chosen answer, the arrows move the choice and skip disabled answers, and Space chooses; a locked group refuses all of them and keeps focus.
 - Pointer and touch: every card is its own target, at least 72px tall.
 - Focus: locking the group leaves focus on the radio that had it, and a send that leaves a required question unanswered moves focus to its first radio when it is the form's first refused control.
 - Responsive: the cards sit side by side while each has 14rem and stack when they do not; long sentences wrap.
-- Accessibility: the legend names the group, the required word is read with it, each card's label names its radio and its sentence describes it, and the error is spoken when it appears.
+- Accessibility: the legend names the group, the required word is read with it, each card's label names its radio and its sentence describes it, the error is spoken when it appears, and `pending` sets `aria-busy` and `aria-disabled` as a busy button does.
 - Localization: `requiredLabel` is a prop with an English default, the question, answers and `validationMessage` come from the caller, a refusal without `validationMessage` is in the browser's words for the reader's language, and the dot and the layout follow the reading direction.
 - Performance: one radio per answer; colours and edges change at once, and only the 1px sink moves.
 - Analytics: `onchange` hears each answer the reader picks.
@@ -113,9 +118,10 @@ save keeps it. A busy dialog or a saving pane around it disables the radios whil
 <fieldset
   bind:this={group}
   {...rest}
-  class={['sui-choice-cards', className]}
+  class={['sui-choice-cards', { pending }, className]}
   role="radiogroup"
   aria-describedby={describedby}
+  aria-busy={pending || undefined}
   aria-disabled={locked || undefined}
   aria-invalid={shown ? true : undefined}
   aria-required={required || undefined}
@@ -128,7 +134,11 @@ save keeps it. A busy dialog or a saving pane around it disables the radios whil
   >
   <div class={['sui-choice-cards-grid', { invalid: Boolean(shown) }]}>
     {#each options as option, index (option.value)}
-      <label class="sui-choice-card" class:disabled={locked || option.disabled}>
+      <label
+        class="sui-choice-card"
+        class:disabled={locked || option.disabled}
+        class:off={disabled || option.disabled}
+      >
         <input
           type="radio"
           {name}
@@ -145,7 +155,11 @@ save keeps it. A busy dialog or a saving pane around it disables the radios whil
           {@attach refusals.watch}
         />
         <span id="{id}-{index}-label" class="sui-choice-card-label">{option.label}</span>
-        <span class="sui-choice-card-dot" aria-hidden="true"></span>
+        <span
+          class="sui-choice-card-dot"
+          class:spinning={spinning.current && value === option.value}
+          aria-hidden="true"
+        ></span>
         <span id="{id}-{index}-description" class="sui-choice-card-description"
           >{option.description}</span
         >
@@ -202,13 +216,14 @@ save keeps it. A busy dialog or a saving pane around it disables the radios whil
     grid-template-columns: repeat(auto-fit, minmax(min(14rem, 100%), 1fr));
   }
 
-  /* The label and the sentence take the start column and the dot the top end corner, on the
-     label's first line (L-94). */
+  /* The label takes the start column and the dot the top end corner, on the label's first line
+     (L-94); the sentence under them runs the card's whole width, as the dot stands beside the
+     label alone. */
   .sui-choice-card {
     align-content: start;
     align-items: start;
     background-color: var(--sui-control-bg);
-    border-radius: var(--sui-radius-surface);
+    border-radius: var(--sui-radius-control);
     box-shadow: inset 0 0 0 var(--sui-stroke) var(--sui-control-border);
     box-sizing: border-box;
     cursor: pointer;
@@ -230,16 +245,12 @@ save keeps it. A busy dialog or a saving pane around it disables the radios whil
     box-shadow: inset 0 0 0 var(--sui-stroke) var(--sui-danger-edge);
   }
 
-  /* Hover and press lay a veil over the card's own ground, its rest fill or its brand tint. */
+  /* A card is framed as a field is and hovers as one: its ground only just moves and its firmer
+     edge carries the hover, so a hovered card never looks sunk or outweighs the chosen one
+     (L-12). The chosen card does not answer, as choosing it again changes nothing. */
   @media (hover: hover) {
-    .sui-choice-card:hover:not(:active, .disabled) {
-      background-image: linear-gradient(
-        var(--sui-interactive-hover-layer),
-        var(--sui-interactive-hover-layer)
-      );
-    }
-
     .sui-choice-card:hover:not(:active, .disabled, :has(input:checked)) {
+      background-color: var(--sui-field-hover);
       box-shadow: inset 0 0 0 var(--sui-stroke) var(--sui-control-border-hover);
     }
 
@@ -280,8 +291,8 @@ save keeps it. A busy dialog or a saving pane around it disables the radios whil
   }
 
   /* The radio is the focus target and wears the ring, so it covers the card without its
-     native paint. The card is framed, so the ring is flush and its edge takes the focus
-     colour under it (L-41). */
+     native paint. A card is framed as a field is, so its ring stands 2px off its own edge,
+     chosen or not, and the ring keeps one shape as the choice moves (L-41). */
   .sui-choice-card input {
     appearance: none;
     background: none;
@@ -293,13 +304,50 @@ save keeps it. A busy dialog or a saving pane around it disables the radios whil
     position: absolute;
   }
 
-  .sui-choice-card:has(input:focus-visible) {
-    box-shadow: inset 0 0 0 var(--sui-stroke) var(--sui-focus);
-  }
-
   .sui-choice-card input:focus-visible {
     outline: var(--sui-focus-ring-width) solid var(--sui-focus);
-    outline-offset: var(--sui-focus-ring-flush);
+    outline-offset: var(--sui-focus-ring-offset);
+  }
+
+  /* On light the chosen brand edge is the focus colour, so under focus it thins to 1px and
+     never merges with the ring into one thick band; the tint and the dot still say it is
+     chosen. */
+  .sui-choice-card:has(input:checked:focus-visible) {
+    box-shadow: inset 0 0 0 var(--sui-stroke) var(--sui-brand-action);
+  }
+
+  /* A disabled answer, or every answer of a disabled group, is framed as a disabled field is: at
+     full strength in its quieter fill with its words in the muted ink, so it never reads as one to answer and its
+     words stay legible, while an answer that work holds dims as a held field does (L-40, Radix
+     Themes). A chosen one drops the accent, as a disabled filled button drops its tone, and
+     keeps its 2px edge and filled dot in the strong border ink, quieter than a live choice, so
+     the answer that stands still reads. */
+  .sui-choice-card.off {
+    background-color: var(--sui-field-disabled);
+    opacity: 1;
+  }
+
+  .off .sui-choice-card-label,
+  .off .sui-choice-card-description {
+    color: var(--sui-text-muted);
+  }
+
+  .sui-choice-card.off:has(input:checked) {
+    background-color: var(--sui-field-disabled);
+    box-shadow: inset 0 0 0 var(--sui-stroke-bold) var(--sui-border-strong);
+  }
+
+  .sui-choice-card.off:has(input:checked)
+    :is(.sui-choice-card-label, .sui-choice-card-description) {
+    color: var(--sui-text-secondary);
+  }
+
+  .sui-choice-card.off:has(input:checked) .sui-choice-card-dot {
+    border-color: var(--sui-border-strong);
+  }
+
+  .sui-choice-card.off:has(input:checked) .sui-choice-card-dot::after {
+    background: var(--sui-border-strong);
   }
 
   /* A card that draws the danger edge rings in its red, as an invalid field does (L-41). */
@@ -307,10 +355,12 @@ save keeps it. A busy dialog or a saving pane around it disables the radios whil
     outline-color: var(--sui-focus-danger);
   }
 
+  /* An empty dot draws the 1px strong edge of an empty check box, so the marks stay quieter than
+     the labels; the chosen dot takes the 2px brand ring. It has no ground of its own, so its
+     inside takes the card's ground in every state, hover, press, chosen or disabled (L-12). */
   .sui-choice-card-dot {
-    background: var(--sui-surface-base);
     block-size: var(--sui-icon-base);
-    border: var(--sui-stroke-bold) solid var(--sui-border-strong);
+    border: var(--sui-stroke) solid var(--sui-border-strong);
     border-radius: 50%;
     box-sizing: border-box;
     /* The label's face, so `1cap` is the label's cap height and the dot centres on its
@@ -325,7 +375,7 @@ save keeps it. A busy dialog or a saving pane around it disables the radios whil
   }
 
   .sui-choice-card:has(input:checked) .sui-choice-card-dot {
-    border-color: var(--sui-brand-action);
+    border: var(--sui-stroke-bold) solid var(--sui-brand-action);
   }
 
   .sui-choice-card:has(input:checked) .sui-choice-card-dot::after {
@@ -353,7 +403,7 @@ save keeps it. A busy dialog or a saving pane around it disables the radios whil
     color: var(--sui-text-secondary);
     font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-row-copy-leading)
       var(--sui-sans);
-    grid-column: 1;
+    grid-column: 1 / -1;
     padding-block: var(--sui-block-snap-room);
     text-box: trim-both cap alphabetic;
     text-wrap: pretty;
@@ -362,6 +412,35 @@ save keeps it. A busy dialog or a saving pane around it disables the radios whil
   .disabled {
     cursor: default;
     opacity: var(--sui-disabled-opacity);
+  }
+
+  /* A pending group is its own answer at work, as a pending switch is, so the chosen card keeps
+     full strength, and the answers it refuses keep their shape and take the muted ink, as a
+     disabled answer does without its fill, since they open again once the answer saves (L-40). */
+  .pending .sui-choice-card {
+    opacity: 1;
+  }
+
+  .pending
+    .sui-choice-card:not(:has(input:checked))
+    :is(.sui-choice-card-label, .sui-choice-card-description) {
+    color: var(--sui-text-muted);
+  }
+
+  /* While the answer saves, its dot's ring turns with one side in the accent, as a pending
+     switch's thumb does, and holds 3:1 on the card in either theme (WCAG 1.4.11). The filled
+     centre stays, so a still frame still reads as the chosen answer. The chosen dot's own ring
+     is the more specific rule, so the spinner names the chosen card too. */
+  .sui-choice-card:has(input:checked) .sui-choice-card-dot.spinning {
+    animation: sui-choice-spin var(--sui-duration-spinner) var(--sui-ease-linear) infinite;
+    border-color: color-mix(in srgb, var(--sui-brand-action) 45%, transparent);
+    border-block-start-color: var(--sui-brand-action);
+  }
+
+  @keyframes sui-choice-spin {
+    to {
+      rotate: 1turn;
+    }
   }
 
   .sui-choice-cards-help,
@@ -407,6 +486,10 @@ save keeps it. A busy dialog or a saving pane around it disables the radios whil
     .sui-choice-card:active:not(.disabled) {
       translate: none;
     }
+
+    .sui-choice-card:has(input:checked) .sui-choice-card-dot.spinning {
+      animation: none;
+    }
   }
 
   /* High contrast drops the grounds, the edges and the dot's fill, so every card draws an
@@ -430,6 +513,30 @@ save keeps it. A busy dialog or a saving pane around it disables the radios whil
 
     .sui-choice-card:has(input:checked) .sui-choice-card-dot::after {
       background: Highlight;
+      forced-color-adjust: none;
+    }
+
+    .sui-choice-card.off,
+    .sui-choice-card.off:has(input:checked) {
+      outline-color: GrayText;
+    }
+
+    .pending
+      .sui-choice-card:not(:has(input:checked))
+      :is(.sui-choice-card-label, .sui-choice-card-description),
+    .sui-choice-card.off :is(.sui-choice-card-label, .sui-choice-card-description),
+    .sui-choice-card.off:has(input:checked)
+      :is(.sui-choice-card-label, .sui-choice-card-description) {
+      color: GrayText;
+    }
+
+    .sui-choice-card.off:has(input:checked) .sui-choice-card-dot::after {
+      background: GrayText;
+    }
+
+    .sui-choice-card:has(input:checked) .sui-choice-card-dot.spinning {
+      border-color: GrayText;
+      border-block-start-color: Highlight;
       forced-color-adjust: none;
     }
   }

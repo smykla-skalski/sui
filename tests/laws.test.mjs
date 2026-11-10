@@ -509,7 +509,10 @@ test('L-20 a duration amount reads in the words face with figures of one width',
 test('L-55 a specimen name stands a field gap over its specimen, closer than any row of specimens', () => {
   const specimen = styles['src/routes/kit/Specimen.svelte'];
   assert.match(specimen, /\.specimen \{[^}]*gap: var\(--sui-space-3\);/);
-  assert.match(specimen, /figcaption \{[^}]*var\(--sui-font-size-compact\)/);
+  assert.match(
+    specimen,
+    /figcaption \{[^}]*var\(--sui-weight-regular\) var\(--sui-font-size-compact\)/
+  );
   const rows = svelteFiles
     .filter((path) => path.startsWith('src/routes/sink/'))
     .flatMap((path) => [...read(path).matchAll(/--specimen-row-gap="var\(--sui-space-(\d+)\)"/g)]);
@@ -644,6 +647,23 @@ test('L-35 a field label and every group name wear one ink at one weight and lea
   }
 });
 
+test('L-35 every label and group name stands the field gap over its control', () => {
+  for (const [path, rule] of /** @type {[string, RegExp][]} */ ([
+    ['src/lib/components/Field.svelte', /\n  \.sui-field \{[^}]*\bgap: var\(--sui-field-gap\);/],
+    ['src/lib/components/SearchField.svelte', /\bgap: var\(--sui-field-gap\);/],
+    ['src/lib/components/CheckList.svelte', /\bgap: var\(--sui-field-gap\);/],
+    [
+      'src/lib/components/ChoiceCards.svelte',
+      /\n  \.sui-choice-cards \{[^}]*\bgap: var\(--sui-field-gap\);/
+    ],
+    [
+      'src/lib/components/SegmentedControl.svelte',
+      /\n  \.sui-segmented \{\s*row-gap: var\(--sui-field-gap\);/
+    ]
+  ]))
+    assert.match(styles[path], rule, `${path} sets its name another gap over its control`);
+});
+
 test('L-35 an error under a hint stands a copy gap further from it than the hint from its control', () => {
   for (const [name, pair] of [
     ['Field', '.sui-field-help + .sui-field-error'],
@@ -712,6 +732,14 @@ test('L-49 an off switch track sits in the field well in every theme', () => {
   assert.deepEqual(new Set(tracks), new Set(['var(--sui-field-well)']));
 });
 
+test('L-50 a dark segmented track sits in the well an off switch does', () => {
+  const tracks = [...stripComments(palette).matchAll(/--sui-segment-track:\s*([^;]+);/g)].map(
+    ([, value]) => value.trim()
+  );
+  assert.equal(tracks.length, 3, 'a light track and two dark ones');
+  assert.deepEqual(tracks.slice(1), ['var(--sui-field-well)', 'var(--sui-field-well)']);
+});
+
 test('L-43 a mark is as wide as what it says', () => {
   for (const name of ['Button', 'Chip', 'Pill', 'StatusPill', 'Link', 'Switch']) {
     const path = `src/lib/components/${name}.svelte`;
@@ -745,6 +773,22 @@ test('L-53 radii come from the radius tokens', () => {
         : null
     ),
     []
+  );
+});
+
+test('L-53 a chip inside a field takes the field radius less its edge and inset', () => {
+  const tokens = read('src/lib/styles.css');
+  assert.match(
+    tokens,
+    /--sui-radius-field-chip: calc\(\s*var\(--sui-radius-control\) - var\(--sui-stroke\) - var\(--sui-field-chip-inset\)\s*\);/
+  );
+  assert.match(
+    read('src/lib/components/CopyButton.svelte'),
+    /\.sui-copy-button\.bare,[^{]*\{[^}]*border-radius: var\(--sui-radius-field-chip\);/
+  );
+  assert.match(
+    read('src/lib/components/PatternEntries.svelte'),
+    /\.sui-pattern-remove::before,[^{]*\{[^}]*border-radius: var\(--sui-radius-field-chip\);/
   );
 });
 
@@ -840,6 +884,21 @@ test('L-72 stacking order comes from the layer tokens', () => {
         : null
     ),
     []
+  );
+});
+
+test('L-72 a floating layer on dark stands off its ground by the raised ground and the hovered control edge', () => {
+  for (const selector of [
+    ":root[data-theme='dark']",
+    ':root:not([data-theme], [data-sui-theme])'
+  ]) {
+    const tokens = tokenMap(stripComments(block(selector)));
+    assert.equal(tokens['--sui-popover-border'], 'var(--sui-control-border-hover)', selector);
+    assert.equal(tokens['--sui-popover-bg'], 'var(--sui-surface-raised)', selector);
+  }
+  assert.equal(
+    tokenMap(stripComments(block("[data-sui-theme='light']")))['--sui-popover-border'],
+    'var(--sui-border-control)'
   );
 });
 
@@ -1255,6 +1314,37 @@ test('L-41 a field keeps its frame and wears one ring 2px off it in every state'
       /(\[aria-invalid='true'\]|\.invalid)[^{]*focus-visible[^{]*\{\s*outline-color: var\(--sui-focus-danger\);\s*\}/,
       `a ${name} that says it is invalid rings in its edge's red, as a field does`
     );
+  assert.match(
+    styles['src/lib/components/ChoiceCards.svelte'],
+    /\.sui-choice-card input:focus-visible \{\s*outline: var\(--sui-focus-ring-width\) solid var\(--sui-focus\);\s*outline-offset: var\(--sui-focus-ring-offset\);\s*\}/,
+    "every choice card's ring stands 2px off its own edge, as a field's does"
+  );
+});
+
+test('L-9 an invalid choice card keeps its empty dot neutral', () => {
+  assert.doesNotMatch(
+    styles['src/lib/components/ChoiceCards.svelte'],
+    /\.invalid[^{}]*\.sui-choice-card-dot \{[^}]*--sui-danger/
+  );
+});
+
+test('L-55 a choice card takes the field radius, not a surface card radius', () => {
+  const cards = styles['src/lib/components/ChoiceCards.svelte'];
+  assert.match(cards, /\.sui-choice-card \{[^}]*border-radius: var\(--sui-radius-control\);/);
+});
+
+test("L-12 a choice card's dot draws no ground of its own, so it takes the card's", () => {
+  const dot = /^\s*\.sui-choice-card-dot \{([^}]*)\}/m.exec(
+    styles['src/lib/components/ChoiceCards.svelte']
+  );
+  assert.ok(dot, 'the dot rule');
+  assert.doesNotMatch(dot[1], /background/);
+});
+
+test("L-12 a choice card hovers as a field does, not with a control's veil", () => {
+  const cards = styles['src/lib/components/ChoiceCards.svelte'];
+  assert.match(cards, /background-color: var\(--sui-field-hover\);/);
+  assert.doesNotMatch(cards, /--sui-interactive-hover-layer/);
 });
 
 test('L-94 a field or group message takes the 16px mark 8px from its words', () => {
@@ -1285,6 +1375,27 @@ test('L-94 a field or group message takes the 16px mark 8px from its words', () 
       `${name}'s mark is not centred on the cap as a 16px glyph`
     );
   }
+});
+
+test("L-94 a segmented option's and a tab's icon and count stand 8px off, as a button's do", () => {
+  const rows = {
+    Button: 'sui-button',
+    Tabs: 'sui-tabs-tab',
+    SegmentedControl: 'sui-segmented-label'
+  };
+  for (const [name, row] of Object.entries(rows))
+    assert.match(
+      styles[`src/lib/components/${name}.svelte`],
+      new RegExp(`\\n  \\.${row} \\{[^}]*\\n    gap: var\\(--sui-space-2\\);`),
+      `${name}'s marks do not stand 8px from its words`
+    );
+});
+
+test('L-25 a count beside a label is compact type at 600', () => {
+  assert.match(
+    styles['src/lib/internal/Count.svelte'],
+    /font: var\(--sui-weight-semibold\) var\(--sui-font-size-compact\) \//
+  );
 });
 
 test('L-94 a form error summary and an error state take the 16px mark 8px from their words', () => {

@@ -20,30 +20,42 @@
   const chartSwatches = ['#2f6f9f', '#4f8a3c', '#b7791f', '#a33a45', '#6d4fb3', '#3b7f7a'];
 </script>
 
-<Example
-  title="States"
-  note="A saturated color, a pale one, a grey that keeps its hue and a locked one with its reason"
->
-  <Specimen label="Saturated">
-    <ColorPicker label="Label color" bind:value={label} />
-  </Specimen>
-  <Specimen label="Pale">
-    <ColorPicker label="Highlight color" bind:value={pale} />
-  </Specimen>
-  <Specimen label="Grey">
-    <ColorPicker label="Muted color" bind:value={grey} />
-  </Specimen>
-  <Specimen label="Disabled">
-    <Field label="Locked color" hint="The workspace theme sets it, so only an owner can change it">
-      {#snippet control(field)}
-        <ColorPicker id={field.id} aria-describedby={field.describedby} value="#5319e7" disabled />
-      {/snippet}
-    </Field>
-  </Specimen>
-</Example>
+<div class="states">
+  <Example
+    title="States"
+    --example-max="54rem"
+    note="A saturated color, a pale one, a grey that keeps its hue and a locked one with its reason"
+  >
+    <Specimen label="Saturated">
+      <ColorPicker label="Label color" bind:value={label} />
+    </Specimen>
+    <Specimen label="Pale">
+      <ColorPicker label="Highlight color" bind:value={pale} />
+    </Specimen>
+    <Specimen label="Grey">
+      <ColorPicker label="Muted color" bind:value={grey} />
+    </Specimen>
+    <Specimen label="Disabled">
+      <Field
+        label="Locked color"
+        hint="The workspace theme sets it, so only an owner can change it"
+      >
+        {#snippet control(field)}
+          <ColorPicker
+            id={field.id}
+            aria-describedby={field.describedby}
+            value="#5319e7"
+            disabled
+          />
+        {/snippet}
+      </Field>
+    </Specimen>
+  </Example>
+</div>
 
 <Example
   title="Own Swatches"
+  --example-max="54rem"
   note="A caller replaces the swatch list, and a color off the list checks no swatch"
 >
   <Specimen label="Chart series">
@@ -53,6 +65,7 @@
 
 <Example
   title="In a Field"
+  --example-max="54rem"
   note="The field’s label and the hex name the trigger together, and its hint describes it"
 >
   <Specimen label="Field label & hint">
@@ -63,3 +76,21 @@
     </Field>
   </Specimen>
 </Example>
+
+<style>
+  /* The four states share a grid, so the wide disabled one, its reason wrapped under it, keeps
+     its row beside the others in the page's common frame; a phone sets them two by two and
+     larger text drops them to one column. */
+  .states :global(.specimens) {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 8.5rem), 1fr));
+  }
+
+  /* A frame with room for five columns gives the disabled state two, so its reason reads in
+     two lines; under that, as on a phone or at large text, it keeps one. */
+  @container sink-stage (min-width: 40rem) {
+    .states :global(.specimen:last-child) {
+      grid-column: span 2;
+    }
+  }
+</style>

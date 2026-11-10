@@ -25,10 +25,14 @@
     { value: '#bfd4f2', label: 'Lavender blue' },
     { value: '#d4c5f9', label: 'Lavender' }
   ];
+  // The wheel runs between the thumb's centres at the two ends, where the native range's thumb
+  // travels, so the hue drawn under a point is the hue a press there picks.
   const HUE_RAIL =
-    'linear-gradient(to right, #ff0000, #ffff00, #00ff00, #00ffff, #0000ff, #ff00ff, #ff0000)';
+    'linear-gradient(to right, #ff0000 calc(var(--sui-color-picker-hue-thumb) / 2), #ffff00, #00ff00, #00ffff, #0000ff, #ff00ff, #ff0000 calc(100% - var(--sui-color-picker-hue-thumb) / 2))';
+  // The plane runs between the knob's centres at its edges, as the wheel does, so the knob stays
+  // inside the area and the colour drawn under a point is the colour a press there picks.
   const plane = (hue: string) =>
-    `linear-gradient(to top, #000000, transparent), linear-gradient(to right, #ffffff, ${hue})`;
+    `linear-gradient(to top, #000000 calc(var(--sui-color-picker-knob) / 2), transparent calc(100% - var(--sui-color-picker-knob) / 2)), linear-gradient(to right, #ffffff calc(var(--sui-color-picker-knob) / 2), ${hue} calc(100% - var(--sui-color-picker-knob) / 2))`;
 
   function hexToHsv(hex: string): Hsv {
     const n = parseInt(hex.slice(1), 16);
@@ -294,8 +298,13 @@
   function dragMove(event: PointerEvent) {
     if (!drag) return;
     const bounds = drag.target.getBoundingClientRect();
-    const x = clamp((event.clientX - bounds.left) / bounds.width);
-    apply({ ...hsv, s: x, v: 1 - clamp((event.clientY - bounds.top) / bounds.height) });
+    const reach = (drag.target.querySelector('.knob')?.getBoundingClientRect().width ?? 0) / 2;
+    const along = (offset: number, size: number) => clamp((offset - reach) / (size - 2 * reach));
+    apply({
+      ...hsv,
+      s: along(event.clientX - bounds.left, bounds.width),
+      v: 1 - along(event.clientY - bounds.top, bounds.height)
+    });
   }
 
   function dragStart(event: PointerEvent) {
@@ -403,9 +412,9 @@ of text, so they read left to right in every direction, as a chart's plot does.
 the field's `id` and `describedby` onto it and leave `label` off. Either way the trigger's
 name is the label and the hex, such as "Label color #0f766e". `name` posts the hex.
 
-- Semantics: a `Button` with `aria-haspopup="dialog"` and `aria-expanded`, a `role="dialog"` popover named by `dialogLabel`, a radio group of swatches, a `role="slider"` saturation and brightness area, a native range for the hue, a hex text field, and a hidden input that posts the hex.
+- Semantics: a `Button`, drawn as a field as a `Select` is, since it holds a value, with `aria-haspopup="dialog"` and `aria-expanded`, a `role="dialog"` popover named by `dialogLabel`, a radio group of swatches, a `role="slider"` saturation and brightness area, a native range for the hue, a hex text field, and a hidden input that posts the hex.
 - Content: the caller's swatches, named or by hex, the area, the rail and the hex field, each with its drawn words.
-- States: closed, open, a checked swatch (a check mark), hover and pressed swatches, dragging, an invalid hex (an error with a warning mark) and a disabled trigger.
+- States: closed, open, a checked swatch (a check mark), hover and pressed swatches, dragging, an invalid hex (an error with a warning mark) and a disabled trigger (an off field's well and muted words, its colour mark at full strength).
 - Keyboard: Enter or Space opens it, Tab walks the swatches, area, rail and hex, the arrows move each, Enter commits, Escape goes back and closes, and Tab past the hex closes it.
 - Pointer and touch: the trigger is 34px, or 44px on a phone or any touch screen, where swatches are 44px and the rail's hit area 44px tall; every drag has keys.
 - Focus: opening focuses the checked swatch, or the first, or the area; Enter, a swatch press and Escape return focus to the trigger, and Tab out lets it move on.
@@ -424,6 +433,7 @@ name is the label and the hex, such as "Label color #0f766e". `name` posts the h
     id={field?.id ?? rest.id}
     aria-describedby={field?.describedby ?? rest['aria-describedby']}
     aria-label={accessibleName}
+    field
     class={field ? undefined : ['sui-color-picker', className]}
     disabled={disabled || holding === 'firm'}
     aria-disabled={Boolean(holding) || rest['aria-disabled']}
@@ -470,33 +480,50 @@ name is the label and the hex, such as "Label color #0f766e". `name` posts the h
     class="panel"
     style:--sui-color-picker-value={current}
     style:--sui-color-picker-hue={hueColor}
-    style:--sui-color-picker-x="{hsv.s * 100}%"
-    style:--sui-color-picker-y="{(1 - hsv.v) * 100}%"
-    style:--sui-color-picker-h="{(hsv.h / 360) * 100}%"
+    style:--sui-color-picker-x={hsv.s}
+    style:--sui-color-picker-y={1 - hsv.v}
+    style:--sui-color-picker-h={hsv.h / 360}
   >
     {#if palette.length > 0}
-      <div bind:this={grid} class="swatches" role="radiogroup" aria-label={swatchesLabel}>
-        {#each palette as swatch (swatch.hex)}
-          <span class="cell" style:--sui-color-picker-swatch={swatch.hex}>
-            <input
-              type="radio"
-              class="swatch"
-              name="{uid}-swatch"
-              value={swatch.hex}
-              aria-label={swatchName(swatch.hex, swatch.named)}
-              checked={swatch.hex === current}
-              onchange={() => pick(swatch.hex)}
-              onclick={(event) => {
-                if (event.detail > 0) close();
-              }}
-            />
-            {#if swatch.hex === current}
-              <span class="check" aria-hidden="true"
-                ><Icon name="check" size="sm" strokeWidth={2.5} /></span
-              >
-            {/if}
-          </span>
-        {/each}
+      <div class="part">
+        <!-- svelte-ignore a11y_click_events_have_key_events, a11y_no_static_element_interactions -->
+        <span
+          id="{uid}-swatches-label"
+          class="part-label"
+          onclick={() =>
+            (
+              grid?.querySelector<HTMLElement>('input:checked') ??
+              grid?.querySelector<HTMLElement>('input')
+            )?.focus()}>{swatchesLabel}</span
+        >
+        <div
+          bind:this={grid}
+          class="swatches"
+          role="radiogroup"
+          aria-labelledby="{uid}-swatches-label"
+        >
+          {#each palette as swatch (swatch.hex)}
+            <span class="cell" style:--sui-color-picker-swatch={swatch.hex}>
+              <input
+                type="radio"
+                class="swatch"
+                name="{uid}-swatch"
+                value={swatch.hex}
+                aria-label={swatchName(swatch.hex, swatch.named)}
+                checked={swatch.hex === current}
+                onchange={() => pick(swatch.hex)}
+                onclick={(event) => {
+                  if (event.detail > 0) close();
+                }}
+              />
+              {#if swatch.hex === current}
+                <span class="check" aria-hidden="true"
+                  ><Icon name="check" size="sm" strokeWidth={2.5} /></span
+                >
+              {/if}
+            </span>
+          {/each}
+        </div>
       </div>
     {/if}
 
@@ -579,7 +606,7 @@ name is the label and the hex, such as "Label color #0f766e". `name` posts the h
 <style>
   .mark,
   .panel {
-    --sui-color-picker-hairline: color-mix(in srgb, var(--sui-text-primary) 14%, transparent);
+    --sui-color-picker-hairline: var(--sui-border-control);
   }
 
   /* A swatch's ring is its own colour, its lightness clamped into the band that holds 3:1 on
@@ -598,10 +625,13 @@ name is the label and the hex, such as "Label color #0f766e". `name` posts the h
     inline-size: var(--sui-icon-base);
   }
 
+  /* The hex field's size, up to a control's: a phone grows typed text to 16px against zoom,
+     which a trigger's words never need, and the trigger's marks centre on a control's cap. */
   .hex {
-    font-family: var(--sui-mono);
+    font: var(--sui-weight-regular)
+      min(var(--sui-font-size-input-mono), var(--sui-font-size-control)) / var(--sui-leading-flat)
+      var(--sui-mono);
     font-variant-numeric: tabular-nums;
-    font-weight: var(--sui-weight-regular);
   }
 
   /* The picker's own geometry, which no other component draws, so it stays here rather than
@@ -609,19 +639,19 @@ name is the label and the hex, such as "Label color #0f766e". `name` posts the h
   .panel {
     --sui-color-picker-cell: 26px;
     --sui-color-picker-cols: 8;
-    --sui-color-picker-gap: var(--sui-space-1);
-    --sui-color-picker-pad: var(--sui-space-2);
+    --sui-color-picker-gap: var(--sui-space-2);
+    --sui-color-picker-pad: var(--sui-space-3);
     --sui-color-picker-width: calc(
       var(--sui-color-picker-cell) * var(--sui-color-picker-cols) + var(--sui-color-picker-gap) *
         (var(--sui-color-picker-cols) - 1) + var(--sui-color-picker-pad) * 2 + 2 * var(--sui-stroke)
     );
-    --sui-color-picker-hue-height: 24px;
-    --sui-color-picker-hue-thumb: 16px;
+    --sui-color-picker-hue-height: 12px;
+    --sui-color-picker-hue-thumb: 18px;
     --sui-color-picker-area-height: 10rem;
-    --sui-color-picker-knob: 14px;
+    --sui-color-picker-knob: var(--sui-color-picker-hue-thumb);
     box-sizing: border-box;
     display: grid;
-    gap: var(--sui-space-3);
+    gap: var(--sui-space-4);
     inline-size: calc(var(--sui-color-picker-width) - 2 * var(--sui-stroke));
     padding: var(--sui-color-picker-pad);
   }
@@ -635,8 +665,8 @@ name is the label and the hex, such as "Label color #0f766e". `name` posts the h
   .part-label {
     align-content: center;
     block-size: var(--sui-block-snap);
-    color: var(--sui-text-secondary);
-    font: var(--sui-weight-semibold) var(--sui-font-size-control) / var(--sui-row-copy-leading)
+    color: var(--sui-text-primary);
+    font: var(--sui-weight-medium) var(--sui-font-size-control) / var(--sui-leading-note)
       var(--sui-sans);
     padding-block: var(--sui-block-snap-room);
     text-box: trim-both cap alphabetic;
@@ -736,30 +766,40 @@ name is the label and the hex, such as "Label color #0f766e". `name` posts the h
     background-color: var(--sui-color-picker-value);
     block-size: var(--sui-color-picker-knob);
     inline-size: var(--sui-color-picker-knob);
-    inset-block-start: var(--sui-color-picker-y);
-    inset-inline-start: var(--sui-color-picker-x);
+    inset-block-start: calc(
+      var(--sui-color-picker-knob) / 2 + (100% - var(--sui-color-picker-knob)) *
+        var(--sui-color-picker-y)
+    );
+    inset-inline-start: calc(
+      var(--sui-color-picker-knob) / 2 + (100% - var(--sui-color-picker-knob)) *
+        var(--sui-color-picker-x)
+    );
   }
 
+  /* As wide as the area and the hex field, and thinner than its thumb, so the thumb reads as
+     the handle; the thumb's centre travels half a thumb inside each end, as the native one does. */
   .hue {
     block-size: var(--sui-color-picker-hue-height);
     border-radius: var(--sui-radius-pill);
+    box-shadow: inset 0 0 0 var(--sui-stroke) var(--sui-color-picker-hairline);
     cursor: pointer;
-    /* The thumb's own radius, so its centre reaches both ends of the rail. */
-    margin-inline: calc(var(--sui-color-picker-hue-thumb) / 2);
     position: relative;
     touch-action: none;
     -webkit-user-select: none;
     user-select: none;
   }
 
-  /* Clear, and half a thumb past each end of the rail, as far as the thumb's centre travels. */
+  /* Clear, and as tall as the thumb or the 24px a pointer target needs (L-38), so a press
+     anywhere the thumb reaches lands on it. */
   .hue-range {
     appearance: none;
     background: none;
-    block-size: 100%;
+    block-size: auto;
     cursor: pointer;
-    inset-block: 0;
-    inset-inline: calc(-1 * var(--sui-color-picker-hue-thumb) / 2);
+    inset-block: calc(
+      (100% - max(var(--sui-color-picker-hue-thumb), var(--sui-field-target-min))) / 2
+    );
+    inset-inline: 0;
     margin: 0;
     opacity: 0;
     position: absolute;
@@ -782,7 +822,10 @@ name is the label and the hex, such as "Label color #0f766e". `name` posts the h
     block-size: var(--sui-color-picker-hue-thumb);
     inline-size: var(--sui-color-picker-hue-thumb);
     inset-block-start: 50%;
-    inset-inline-start: var(--sui-color-picker-h);
+    inset-inline-start: calc(
+      var(--sui-color-picker-hue-thumb) / 2 + (100% - var(--sui-color-picker-hue-thumb)) *
+        var(--sui-color-picker-h)
+    );
   }
 
   .error {
@@ -822,10 +865,12 @@ name is the label and the hex, such as "Label color #0f766e". `name` posts the h
     }
   }
 
-  /* A finger needs 44px targets (L-38): six swatches a row at the touch size, which keeps the
-     popover inside a 320px screen, and a rail whose hit area grows past its drawn height. */
+  /* A finger needs 44px targets (L-38): six swatches a row at the touch size, which with a
+     4px gap and an 8px inset keeps the popover inside a 320px screen, and a rail whose hit area grows past its drawn height. */
   @media (pointer: coarse), (max-width: 47.9375rem) {
     .panel {
+      --sui-color-picker-gap: var(--sui-space-1);
+      --sui-color-picker-pad: var(--sui-space-2);
       inline-size: calc(
         6 * var(--sui-touch-target) + 5 * var(--sui-color-picker-gap) + 2 *
           var(--sui-color-picker-pad)

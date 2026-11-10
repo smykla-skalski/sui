@@ -430,7 +430,7 @@ returns focus there too. Labels wrap rather than being cut short.
   }
 
   .sui-action-menu-separator {
-    background-color: var(--sui-popover-border);
+    background-color: var(--sui-border-control);
     block-size: var(--sui-stroke);
     margin: var(--sui-space-1) calc(-1 * var(--sui-space-1));
   }

@@ -517,10 +517,11 @@
   --sui-radius-control: 8px;
   --sui-radius-surface: 10px;
   --sui-radius-popover: 12px;
-  /* A row inside a popover's 1px edge and 4px padding: the popover's curve less both, so the
-     two curves stay concentric (L-53). */
   --sui-radius-popover-row: calc(
     var(--sui-radius-popover) - var(--sui-stroke) - var(--sui-space-1)
+  );
+  --sui-radius-field-chip: calc(
+    var(--sui-radius-control) - var(--sui-stroke) - var(--sui-field-chip-inset)
   );
   --sui-radius-dialog: 14px;
   --sui-radius-check: 5px;
@@ -568,6 +569,7 @@
   --sui-field-inset: var(--sui-space-3);
   --sui-disabled-opacity: 0.6;
   --sui-control-inset: 2px;
+  --sui-field-chip-inset: var(--sui-control-inset);
 
   /* Icon tiers in rem, rounded to the pixel: 10 to 18px at the default text size, and they grow
      with the reader's text size, together with every box drawn at a tier (L-68). */
@@ -646,8 +648,8 @@
   --sui-segment-hover: var(--sui-interactive-hover-layer);
   --sui-segment-pressed: var(--sui-interactive-pressed);
   --sui-segment-thumb-shadow:
-    0 1px 1px color-mix(in srgb, var(--sui-shadow-color) 40%, transparent),
-    0 1px 3px color-mix(in srgb, var(--sui-shadow-color) 72%, transparent);
+    0 1px 1px color-mix(in srgb, var(--sui-shadow-color) 25%, transparent),
+    0 1px 3px color-mix(in srgb, var(--sui-shadow-color) 45%, transparent);
 
   /* A pressed segment sinks into the track: a deep top rim, shallower side rims and a lit
      foot. Black and white on every palette, because a recess is darker on every ground. */
@@ -698,7 +700,7 @@
   --sui-brand-action-hover: var(--sui-primitive-ocean-600);
 
   --sui-brand-action-pressed: var(--sui-primitive-ocean-700);
-  --sui-brand-action-tint: color-mix(in srgb, var(--sui-brand-action) 10%, var(--sui-surface-base));
+  --sui-brand-action-tint: color-mix(in srgb, var(--sui-brand-action) 16%, var(--sui-surface-base));
   --sui-brand-action-text: var(--sui-primitive-ocean-200);
   --sui-on-brand-action: #ffffff;
   --sui-link: var(--sui-brand-action-text);
@@ -850,17 +852,17 @@
 
   --sui-surface-control: transparent;
   --sui-control-bg: var(--sui-surface-control);
-  --sui-popover-bg: var(--sui-surface-base);
+  --sui-popover-bg: var(--sui-surface-raised);
   --sui-dialog-bg: var(--sui-surface-base);
 
-  --sui-segment-track: rgb(0 0 0 / 30%);
+  --sui-segment-track: var(--sui-field-well);
   --sui-segment-thumb: var(--sui-brand-action);
   --sui-segment-thumb-ink: var(--sui-on-brand-action);
   --sui-segment-hover: var(--sui-interactive-hover-layer);
   --sui-segment-pressed: var(--sui-interactive-pressed);
   --sui-segment-thumb-shadow:
-    0 1px 1px color-mix(in srgb, var(--sui-shadow-color) 40%, transparent),
-    0 1px 3px color-mix(in srgb, var(--sui-shadow-color) 72%, transparent);
+    0 1px 1px color-mix(in srgb, var(--sui-shadow-color) 25%, transparent),
+    0 1px 3px color-mix(in srgb, var(--sui-shadow-color) 45%, transparent);
 
   --sui-border-strong: var(--sui-primitive-dark-strong);
 
@@ -880,7 +882,7 @@
   --sui-field-frame-focus: color-mix(in srgb, var(--sui-focus) 40%, var(--sui-field-frame));
   --sui-field-border-focus: color-mix(in srgb, var(--sui-focus) 40%, var(--sui-field-border));
   --sui-field-recess-focus: color-mix(in srgb, var(--sui-focus) 40%, var(--sui-field-recess-hover));
-  --sui-popover-border: var(--sui-border-control);
+  --sui-popover-border: var(--sui-control-border-hover);
   --sui-dialog-border: var(--sui-border-control);
   --sui-shadow-plate:
     0 1px 2px var(--sui-shadow-color),
@@ -932,7 +934,7 @@
     --sui-brand-action-pressed: var(--sui-primitive-ocean-700);
     --sui-brand-action-tint: color-mix(
       in srgb,
-      var(--sui-brand-action) 10%,
+      var(--sui-brand-action) 16%,
       var(--sui-surface-base)
     );
     --sui-brand-action-text: var(--sui-primitive-ocean-200);
@@ -1082,17 +1084,17 @@
 
     --sui-surface-control: transparent;
     --sui-control-bg: var(--sui-surface-control);
-    --sui-popover-bg: var(--sui-surface-base);
+    --sui-popover-bg: var(--sui-surface-raised);
     --sui-dialog-bg: var(--sui-surface-base);
 
-    --sui-segment-track: rgb(0 0 0 / 30%);
+    --sui-segment-track: var(--sui-field-well);
     --sui-segment-thumb: var(--sui-brand-action);
     --sui-segment-thumb-ink: var(--sui-on-brand-action);
     --sui-segment-hover: var(--sui-interactive-hover-layer);
     --sui-segment-pressed: var(--sui-interactive-pressed);
     --sui-segment-thumb-shadow:
-      0 1px 1px color-mix(in srgb, var(--sui-shadow-color) 40%, transparent),
-      0 1px 3px color-mix(in srgb, var(--sui-shadow-color) 72%, transparent);
+      0 1px 1px color-mix(in srgb, var(--sui-shadow-color) 25%, transparent),
+      0 1px 3px color-mix(in srgb, var(--sui-shadow-color) 45%, transparent);
 
     --sui-border-strong: var(--sui-primitive-dark-strong);
 
@@ -1114,7 +1116,7 @@
       var(--sui-focus) 40%,
       var(--sui-field-recess-hover)
     );
-    --sui-popover-border: var(--sui-border-control);
+    --sui-popover-border: var(--sui-control-border-hover);
     --sui-dialog-border: var(--sui-border-control);
     --sui-shadow-plate:
       0 1px 2px var(--sui-shadow-color),
@@ -1188,6 +1190,7 @@
     --sui-font-size-input: 1rem;
     --sui-font-size-input-mono: 1rem;
     --sui-leading-input: 1.5rem;
+    --sui-field-chip-inset: var(--sui-space-1);
   }
 }
 

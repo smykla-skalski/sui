@@ -16,23 +16,37 @@
 
 <Example
   title="Page Theme"
+  --example-max="36rem"
   note="Sets the theme of this page, remembers it for the next visit and follows the system live"
 >
   <Specimen label="Light, dark & system">
     <ThemeSwitch name="sink-theme" bind:value={theme} />
   </Specimen>
   <Specimen label="Light & dark">
-    <ThemeSwitch name="sink-theme-two" system={false} />
+    <!-- The hint swaps words rather than leaving, so the page never moves once the stored choice
+         is read. -->
+    <ThemeSwitch
+      name="sink-theme-two"
+      system={false}
+      hint={theme === 'system' ? 'Follows the system' : 'Stays as chosen'}
+    />
   </Specimen>
-  <Specimen label="Label drawn">
+</Example>
+
+<Example
+  title="Label"
+  --example-max="36rem"
+  note="The options already say what they are, so the label is spoken unless a page draws it, as here"
+>
+  <Specimen>
     <ThemeSwitch name="sink-theme-labelled" hideLabel={false} />
   </Specimen>
 </Example>
 
 <Example
   title="Narrow Width"
+  --example-max="36rem"
   note="Short of room, the same 3 choices become a native select that shares the page’s one choice"
-  layout="stack"
 >
   <Specimen label="As a select">
     <div class="narrow">

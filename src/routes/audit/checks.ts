@@ -6,6 +6,10 @@ const IGNORED = '[data-audit-ignore], [data-audit-ignore] *';
 const INTERACTIVE =
   "a[href], button, input:not([type='hidden']), select, textarea, summary, [role='button'], [role='option'], [role='menuitem'], [role='tab'], [role='switch'], [role='checkbox'], [role='radio'], [role='combobox']";
 const TEXT_EXEMPT = 'code, pre, kbd, samp, svg, script, style, [data-audit-ignore]';
+// A field that is off, not held by the work around it: a text field, text area or select, or a
+// button drawn as a field (L-40).
+const OFF_FIELD =
+  ":is(.sui-text-input, .sui-textarea):disabled:not(.held, .bare), .sui-select:not(.bare) > .sui-select-control:disabled:not([aria-disabled='true']), .sui-button.field:disabled:not([aria-disabled='true'])";
 const PAINT_EXEMPT = 'svg, script, style, [data-audit-ignore]';
 
 const finding = (law: string, element: Element | null, detail: string): Finding => ({
@@ -1557,11 +1561,9 @@ function controls(root: Document): Finding[] {
     // A busy button is the action at work: its fill, edge, words and spinner keep full
     // strength; a busy icon button has no words.
     const busy = control.matches("[aria-busy='true']:not(:disabled)");
-    // An off text field reads as off by its well and its muted words, at full strength, and so
-    // do both parts of an off joined field.
-    const well = control.matches(
-      ':is(.sui-text-input, .sui-textarea):disabled:not(.held, .bare), .sui-joined.disabled :disabled'
-    );
+    // An off field reads as off by its well and its muted words, at full strength, and so do
+    // both parts of an off joined field.
+    const well = control.matches(`${OFF_FIELD}, .sui-joined.disabled :disabled`);
     const dimmed = busy ? control.querySelector('.sui-button-label') : control;
     const expected = busy || well ? 1 : disabledOpacity;
     const opacity = dimmed ? effectiveOpacity(dimmed) : expected;
@@ -2278,8 +2280,7 @@ function fieldRecesses(root: Document): Finding[] {
         return { color: shadow.match(/[a-z-]+\([^)]*\)/)?.[0], x, y, blur, spread };
       })
       .find(({ x, y, blur, spread }) => x === 0 && y === stroke && blur === 0 && spread === 0);
-    const off =
-      '.sui-joined.disabled, :is(.sui-text-input, .sui-textarea):disabled:not(.held, .bare)';
+    const off = `.sui-joined.disabled, ${OFF_FIELD}`;
     const reads =
       '.sui-text-input[readonly]:not(:disabled, [aria-expanded="true"]), .sui-textarea[readonly]:not(:disabled), .sui-joined.readonly';
     if (field.matches(`${off}, ${reads}`)) {

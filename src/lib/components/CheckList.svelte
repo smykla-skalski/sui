@@ -32,7 +32,6 @@
     requiredLabel = word('CheckList.requiredLabel', 'Required'),
     requiredMessage = word('CheckList.requiredMessage', 'Choose at least one option'),
     disabled = false,
-    hideLabel = false,
     onchange,
     'aria-describedby': describedBy,
     class: className = '',
@@ -55,11 +54,6 @@
     requiredMessage?: string;
     /** Locks every box while the group cannot change, such as during a save; focus stays where it is. */
     disabled?: boolean;
-    /**
-     * Keeps the legend for a screen reader only, for a list whose question a box above it
-     * already asks, as a parent box does for the list it chooses for.
-     */
-    hideLabel?: boolean;
     /** Hears the chosen values after each toggle. */
     onchange?: (value: string[]) => void;
     class?: HTMLFieldsetAttributes['class'];
@@ -111,7 +105,7 @@ box. Choosing one lifts it. A caller's `error` always wins.
 - Pointer and touch: each item is its own target, 34px tall, 44px with a description, on a phone or any touch screen.
 - Focus: locking the group leaves focus on the box that had it, and a send refused for a required group with none chosen moves focus to its first box when it is the form's first refused control.
 - Responsive: short labels wrap along a line, and options with descriptions stack one per line, as every option does on a phone, so a wrapped line never leaves one option alone.
-- Accessibility: the legend names the group, drawn unless `hideLabel` leaves it to a screen reader, the required word is read with it, the hint and error describe it, and the error is spoken when it appears.
+- Accessibility: the legend names the group, the required word is read with it, the hint and error describe it, and the error is spoken when it appears.
 - Localization: `requiredLabel` and `requiredMessage` are props with English defaults, the question, options and messages come from the caller, and the layout is logical.
 - Performance: one checkbox per option; nothing animates beyond the boxes' own states.
 - Analytics: `onchange` hears the chosen values after each toggle.
@@ -124,7 +118,7 @@ box. Choosing one lifts it. A caller's `error` always wins.
   aria-describedby={describedby}
   {@attach refusals.area}
 >
-  <legend class={['sui-check-list-legend', { hidden: hideLabel }]}
+  <legend class="sui-check-list-legend"
     >{label}{#if required}<span class="sui-check-list-required">{mark('space')}{requiredLabel}</span
       >{/if}</legend
   >
@@ -177,16 +171,6 @@ box. Choosing one lifts it. A caller's `error` always wins.
     padding-block: var(--sui-block-snap-room);
     text-box: trim-both cap alphabetic;
     text-wrap: pretty;
-  }
-
-  .sui-check-list-legend.hidden {
-    block-size: 1px;
-    clip-path: inset(50%);
-    inline-size: 1px;
-    overflow: hidden;
-    padding: 0;
-    position: absolute;
-    white-space: nowrap;
   }
 
   .sui-check-list-required {

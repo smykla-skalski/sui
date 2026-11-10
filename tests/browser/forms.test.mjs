@@ -94,27 +94,157 @@ suite('forms', together, () => {
       }
     );
 
-    test('a locked choice group keeps focus and refuses a new answer', long, async () => {
-      const page = await opened();
-      const group = page.locator('#choice-cards fieldset[aria-disabled="true"]').first();
-      const chosen = group.locator('input:checked');
-      const before = await chosen.getAttribute('value');
-      await chosen.focus();
-      await page.keyboard.press('ArrowDown');
-      await page.keyboard.press('Space');
-      assert.equal(await group.locator('input:checked').getAttribute('value'), before);
-      // Forced, because a locked card is not enabled to the test runner either.
-      await group
-        .locator('.sui-choice-card')
-        .filter({ hasNot: page.locator('input:checked') })
-        .first()
-        .click({ force: true });
-      assert.equal(await group.locator('input:checked').getAttribute('value'), before);
-      assert.ok(
-        await group.evaluate((fieldset) => fieldset.contains(document.activeElement)),
-        `focus left the group for ${await focused(page)}`
-      );
-    });
+    test(
+      'a pending choice group keeps focus, refuses a new answer and turns its dot',
+      long,
+      async () => {
+        const page = await opened();
+        const group = page.locator('#choice-cards fieldset[aria-busy="true"]');
+        const chosen = group.locator('input:checked');
+        const before = await chosen.getAttribute('value');
+        await chosen.focus();
+        await page.keyboard.press('ArrowDown');
+        await page.keyboard.press('Space');
+        assert.equal(await group.locator('input:checked').getAttribute('value'), before);
+        // Forced, because a locked card is not enabled to the test runner either.
+        await group
+          .locator('.sui-choice-card')
+          .filter({ hasNot: page.locator('input:checked') })
+          .first()
+          .click({ force: true });
+        assert.equal(await group.locator('input:checked').getAttribute('value'), before);
+        assert.ok(
+          await group.evaluate((fieldset) => fieldset.contains(document.activeElement)),
+          `focus left the group for ${await focused(page)}`
+        );
+        const strength = await group
+          .locator('.sui-choice-card:not(:has(input:disabled))')
+          .evaluateAll((cards) =>
+            cards.map((card) => [
+              card.querySelector('input')?.checked,
+              getComputedStyle(card).opacity,
+              getComputedStyle(card.querySelector('.sui-choice-card-label') ?? card).color
+            ])
+          );
+        assert.deepEqual(
+          [...new Set(strength.map(([, opacity]) => opacity))],
+          ['1'],
+          'the answer that saves and the answers it refuses keep full strength'
+        );
+        const [chosenInk] = strength.filter(([chosen]) => chosen).map(([, , ink]) => ink);
+        assert.ok(
+          strength.filter(([chosen]) => !chosen).every(([, , ink]) => ink !== chosenInk),
+          `the refused answers take the muted ink: ${JSON.stringify(strength)}`
+        );
+        assert.notEqual(
+          await group
+            .locator('.sui-choice-card:has(input:checked) .sui-choice-card-dot')
+            .evaluate((dot) => getComputedStyle(dot).animationName),
+          'none',
+          'the saving answer turns its dot'
+        );
+        const [arc, rest] = await group
+          .locator('.sui-choice-card:has(input:checked) .sui-choice-card-dot')
+          .evaluate((dot) => {
+            const style = getComputedStyle(dot);
+            return [style.borderTopColor, style.borderRightColor];
+          });
+        assert.notEqual(arc, rest, 'the turning ring draws one side in the accent');
+        assert.equal(
+          await group
+            .locator('.sui-choice-card:has(input:checked) .sui-choice-card-dot')
+            .evaluate((dot) => getComputedStyle(dot, '::after').visibility),
+          'visible',
+          'the turning dot keeps its filled centre'
+        );
+        const off = page.locator('#choice-cards fieldset[aria-disabled="true"]:not([aria-busy])');
+        assert.deepEqual(
+          [
+            ...new Set(
+              await off
+                .locator('.sui-choice-card')
+                .evaluateAll((cards) => cards.map((card) => getComputedStyle(card).opacity))
+            )
+          ],
+          ['1'],
+          'a disabled group draws at full strength, as a disabled field does'
+        );
+        /** @param {import('playwright-core').Locator} card */
+        const ink = (card) =>
+          card.locator('.sui-choice-card-label').evaluate((label) => getComputedStyle(label).color);
+        assert.notEqual(
+          await ink(off.locator('.sui-choice-card:not(:has(input:checked))').first()),
+          await ink(group.locator('.sui-choice-card:has(input:checked)')),
+          "a disabled group's answers take the muted ink"
+        );
+        const answer = page
+          .locator(
+            '#choice-cards fieldset:not([aria-disabled]) .sui-choice-card:has(input:disabled)'
+          )
+          .first();
+        assert.deepEqual(
+          [await answer.evaluate((card) => getComputedStyle(card).opacity), await ink(answer)],
+          ['1', await ink(off.locator('.sui-choice-card:not(:has(input:checked))').first())],
+          'a disabled answer draws as a disabled group does, at full strength in the muted ink'
+        );
+        await page.emulateMedia({ forcedColors: 'active' });
+        try {
+          assert.equal(
+            await ink(off.locator('.sui-choice-card:has(input:checked)')),
+            await ink(off.locator('.sui-choice-card:not(:has(input:checked))').first()),
+            "in high contrast a disabled group's chosen answer is GrayText as its others are"
+          );
+        } finally {
+          await page.emulateMedia({ forcedColors: null });
+        }
+        /** @param {import('playwright-core').Locator} where */
+        const paint = (where) =>
+          where
+            .locator('.sui-choice-card:has(input:checked)')
+            .evaluate((card) => [
+              getComputedStyle(card).backgroundColor,
+              getComputedStyle(card.querySelector('.sui-choice-card-dot') ?? card, '::after')
+                .backgroundColor
+            ]);
+        const [[liveGround, liveDot], [offGround, offDot]] = [await paint(group), await paint(off)];
+        assert.ok(
+          liveGround !== offGround && liveDot !== offDot,
+          `a disabled group's chosen card drops the accent tint and dot: ${offGround} ${offDot}`
+        );
+      }
+    );
+
+    test(
+      'every focused card rings 2px off its edge, a chosen one over a 1px brand edge',
+      long,
+      async () => {
+        const page = await opened();
+        await page.keyboard.press('Shift');
+        const chosen = page
+          .locator('#choice-cards fieldset:not([aria-disabled]) input:checked')
+          .first();
+        await chosen.evaluate((input) => input.focus());
+        const { edge, brand, offset } = await chosen.evaluate((input) => {
+          const probe = document.createElement('i');
+          probe.style.color = 'var(--sui-brand-action)';
+          input.after(probe);
+          const brand = getComputedStyle(probe).color;
+          probe.remove();
+          return {
+            edge: getComputedStyle(/** @type {Element} */ (input.parentElement)).boxShadow,
+            brand,
+            offset: getComputedStyle(input).outlineOffset
+          };
+        });
+        assert.ok(edge.includes(brand) && edge.includes(' 1px'), `the chosen edge became ${edge}`);
+        assert.equal(offset, '2px');
+        const open = page
+          .locator('#choice-cards fieldset:not([aria-disabled]) input:not(:checked):not(:disabled)')
+          .first();
+        await open.evaluate((input) => input.focus());
+        assert.equal(await open.evaluate((input) => getComputedStyle(input).outlineOffset), '2px');
+      }
+    );
 
     test(
       'a pending switch refuses a second flip, keeps focus, and a refusal is spoken',
@@ -257,11 +387,364 @@ suite('forms', together, () => {
       }
     });
 
-    test('select-to-radio focus skips a checked disabled option', async () => {
+    test('a segmented control rings its track and draws a disabled choice without the accent', async () => {
       const page = await opened();
-      const control = page.locator('#segmented-control .sui-segmented').filter({
-        has: page.locator('input[value="debug"]:checked')
+      await page.keyboard.press('Shift');
+      const live = page
+        .locator('#segmented-control .sui-segmented > .sui-segmented-track:not(:disabled)')
+        .first();
+      const radio = live.locator('input:checked');
+      await radio.evaluate((input) => /** @type {HTMLInputElement} */ (input).focus());
+      assert.deepEqual(
+        await radio.evaluate((input) => {
+          const track = /** @type {Element} */ (input.closest('.sui-segmented-track'));
+          return [
+            getComputedStyle(input).outlineStyle,
+            getComputedStyle(track).outlineStyle,
+            getComputedStyle(track).outlineOffset
+          ];
+        }),
+        ['none', 'solid', '2px'],
+        'the ring stands 2px off the track, as off every free-standing control'
+      );
+      /** @param {import('playwright-core').Locator} track */
+      const look = (track) =>
+        track.evaluate((element) => {
+          const thumb = element.querySelector('.sui-segmented-thumb');
+          const label = element.querySelector(
+            '.sui-segmented-option.selected .sui-segmented-label'
+          );
+          const off = element.querySelector('.sui-segmented-option.disabled .sui-segmented-label');
+          return {
+            opacity: getComputedStyle(element).opacity,
+            thumb: thumb ? getComputedStyle(thumb).backgroundColor : '',
+            chosen: label ? getComputedStyle(label).opacity : '',
+            other: off ? getComputedStyle(off).opacity : '1'
+          };
+        });
+      const accent = (await look(live)).thumb;
+      const whole = page
+        .locator('#segmented-control .sui-segmented > .sui-segmented-track.off')
+        .first();
+      const option = page
+        .locator('#segmented-control .sui-segmented > .sui-segmented-track:not(:disabled)')
+        .filter({ has: page.locator('.selected.disabled') });
+      // A chosen disabled option holds its control, so the options beside it are off as single
+      // disabled options are, while a disabled whole keeps every word at full strength.
+      for (const [name, track, other] of /** @type {const} */ ([
+        ['a disabled control', whole, '1'],
+        ['a chosen disabled option', option, '0.6']
+      ])) {
+        const seen = await look(track);
+        assert.deepEqual(
+          { ...seen, thumb: seen.thumb === accent },
+          { opacity: '1', thumb: false, chosen: '1', other },
+          `${name} stays at full strength and its thumb drops the accent`
+        );
+      }
+      /** @param {import('playwright-core').Locator} track */
+      const seat = (track) =>
+        track.locator('.sui-segmented-thumb').evaluate((thumb) =>
+          getComputedStyle(thumb)
+            .boxShadow.split(/,(?![^(]*\))/)
+            .map((layer) => layer.includes('inset'))
+        );
+      assert.deepEqual(
+        [await seat(whole), await seat(option)],
+        [[true], [true]],
+        'a chosen disabled plate lies flat with its edge, among live options and in a disabled whole'
+      );
+      const among = page
+        .locator('#segmented-control .sui-segmented > .sui-segmented-track:not(:disabled)')
+        .filter({ has: page.locator('.disabled:not(.selected)') })
+        .first();
+      assert.equal(
+        (await look(among)).other,
+        '0.6',
+        'a disabled option among live ones keeps the disabled opacity'
+      );
+      assert.notEqual(
+        await whole.evaluate((element) => getComputedStyle(element).backgroundColor),
+        await live.evaluate((element) => getComputedStyle(element).backgroundColor),
+        "a disabled control takes the disabled field's fill"
+      );
+    });
+
+    test("a segmented control's chosen words weigh more and no option resizes on a choice", async () => {
+      const page = await opened();
+      const track = page
+        .locator('#segmented-control .sui-segmented > .sui-segmented-track:not(:disabled)')
+        .first();
+      const read = () =>
+        track.evaluate((element) =>
+          [...element.querySelectorAll('.sui-segmented-option')].map((option) => ({
+            width: option.getBoundingClientRect().width,
+            weight: getComputedStyle(
+              /** @type {Element} */ (option.querySelector('.sui-segmented-word > span'))
+            ).fontWeight,
+            chosen: option.classList.contains('selected')
+          }))
+        );
+      const before = await read();
+      assert.deepEqual(
+        before.map(({ weight, chosen }) => (chosen ? weight === '600' : weight === '500')),
+        before.map(() => true),
+        "the chosen words are semibold and the others medium, as a button's"
+      );
+      // Keys, not a click, so later tests on this page still see keyboard focus.
+      const radio = track.locator('input:checked');
+      await radio.evaluate((input) => /** @type {HTMLInputElement} */ (input).focus());
+      await page.keyboard.press('ArrowRight');
+      const after = await read();
+      await page.keyboard.press('ArrowLeft');
+      assert.notDeepEqual(
+        after.map(({ chosen }) => chosen),
+        before.map(({ chosen }) => chosen),
+        'the click moved the choice'
+      );
+      assert.deepEqual(
+        after.map(({ width }) => width),
+        before.map(({ width }) => width),
+        'every option keeps its width when the heavier weight moves'
+      );
+    });
+
+    test('a segmented control whose choice is disabled holds it against a drag, a click and a hover', async () => {
+      const page = await opened();
+      const tracks = page.locator('#segmented-control .sui-segmented > .sui-segmented-track');
+      const option = tracks.filter({ has: page.locator('.selected.disabled') }).first();
+      const whole = page
+        .locator('#segmented-control .sui-segmented > .sui-segmented-track.off')
+        .first();
+      try {
+        for (const [name, track] of /** @type {const} */ ([
+          ['a chosen disabled option', option],
+          ['a disabled whole', whole]
+        ])) {
+          await track.scrollIntoViewIfNeeded();
+          const chosen = () =>
+            track.evaluate((node) => node.querySelector('input:checked')?.getAttribute('value'));
+          const before = await chosen();
+          const other = track.locator('label:not(.selected)').first();
+          const from = await track.locator('label.selected').boundingBox();
+          const to = await other.boundingBox();
+          assert.ok(from && to);
+          assert.deepEqual(
+            await track.evaluate((node) => ({
+              grab: getComputedStyle(/** @type {Element} */ (node.querySelector('label.selected')))
+                .cursor,
+              live: /** @type {Element} */ (node.parentElement).querySelectorAll(
+                'input:enabled, select:enabled'
+              ).length
+            })),
+            { grab: 'default', live: 0 },
+            `${name} offers no grab and no option to move to`
+          );
+          await page.mouse.move(from.x + from.width / 2, from.y + from.height / 2);
+          await page.mouse.down();
+          await page.mouse.move(to.x + to.width / 2, to.y + to.height / 2, { steps: 8 });
+          await page.mouse.up();
+          assert.equal(await chosen(), before, `${name} let a drag move its choice`);
+          await other.click({ force: true });
+          assert.equal(await chosen(), before, `${name} let a click move its choice`);
+          await other.hover();
+          assert.equal(
+            await other.evaluate((label) => getComputedStyle(label, '::before').opacity),
+            '0',
+            `${name} answers a hover`
+          );
+        }
+      } finally {
+        await page.mouse.move(0, 0);
+        await page.keyboard.press('Shift');
+      }
+    });
+
+    test('a segmented count on the track wears an edge and one on the thumb none', async () => {
+      const page = await opened();
+      const control = page.locator('#segmented-control .sui-segmented:has(.sui-count)').first();
+      /** @param {string} which */
+      const edged = (which) =>
+        control
+          .locator(`.sui-segmented-track .sui-segmented-option${which} .sui-count`)
+          .first()
+          .evaluate((count) => {
+            const [color] = getComputedStyle(count).boxShadow.split(' 0px');
+            return !/rgba\(\d+, \d+, \d+, 0\)/.test(color) && color !== 'none';
+          });
+      assert.deepEqual(
+        [await edged(':not(.selected)'), await edged('.selected')],
+        [true, false],
+        'a count on the track draws its edge, and the thumb veil needs none'
+      );
+    });
+
+    // No specimen pairs a count with a chosen disabled option, so the test sets the classes the
+    // component would, and drops the thumb to stand in for the render before script measures it.
+    test("a chosen disabled segment's count and unmeasured plate drop the live thumb's inks", async () => {
+      const page = await opened();
+      const control = page.locator('#segmented-control .sui-segmented:has(.sui-count)').first();
+      /** @param {string} which */
+      const countInk = (which) =>
+        control
+          .locator(`.sui-segmented-option${which} .sui-count`)
+          .first()
+          .evaluate((count) => getComputedStyle(count).color);
+      const resting = await countInk(':not(.selected)');
+      await control
+        .locator('.sui-segmented-option.selected')
+        .evaluate((option) => option.classList.add('disabled'));
+      assert.equal(
+        await countInk('.selected'),
+        resting,
+        'a chosen disabled count wears the resting count ink, not the thumb ink'
+      );
+      await page.emulateMedia({ forcedColors: 'active' });
+      // The plate's ground eases into the system colours, so its paint is read once it lands.
+      await page.evaluate(() =>
+        Promise.all(
+          document
+            .getAnimations()
+            .filter((animation) => animation instanceof CSSTransition)
+            .map((animation) => animation.finished.catch(() => undefined))
+        )
+      );
+      try {
+        const off = page
+          .locator('#segmented-control .sui-segmented > .sui-segmented-track.off')
+          .first();
+        /** @param {Element} plate */
+        const paint = (plate) => {
+          const style = getComputedStyle(plate);
+          return [style.backgroundColor, style.outlineStyle, style.outlineColor];
+        };
+        const measured = await off.locator('.sui-segmented-thumb').evaluate(paint);
+        await off.evaluate((track) => track.querySelector('.sui-segmented-thumb')?.remove());
+        assert.deepEqual(
+          await off.locator('.sui-segmented-option.selected').evaluate(paint),
+          measured,
+          'in high contrast an unmeasured disabled choice is Canvas edged in GrayText, as the measured thumb is'
+        );
+        assert.equal(
+          await countInk('.selected'),
+          await control
+            .locator('.sui-segmented-option.selected .sui-segmented-label')
+            .evaluate((label) => getComputedStyle(label).color),
+          'in high contrast a chosen disabled count is GrayText, as its words are'
+        );
+      } finally {
+        await page.emulateMedia({ forcedColors: null });
+      }
+    });
+
+    test('a segmented hint stands the field gap under its control and describes it', async () => {
+      const page = await opened();
+      const control = page
+        .locator('#segmented-control .sui-segmented:has(.sui-segmented-help)')
+        .first();
+      const placed = await control.evaluate((box) => {
+        const track = /** @type {HTMLFieldSetElement} */ (
+          box.querySelector(':scope > .sui-segmented-track')
+        );
+        const help = /** @type {HTMLElement} */ (box.querySelector('.sui-segmented-help'));
+        const width = track.getBoundingClientRect().width;
+        const words = help.textContent;
+        help.textContent = `${words} `.repeat(6);
+        const widened = track.getBoundingClientRect().width !== width;
+        help.textContent = words;
+        return {
+          described: (track.getAttribute('aria-describedby') ?? '').split(' ').includes(help.id),
+          gap: Math.round(help.getBoundingClientRect().top - track.getBoundingClientRect().bottom),
+          widened
+        };
       });
+      assert.deepEqual(
+        placed,
+        { described: true, gap: 12, widened: false },
+        'the hint describes the group, stands 12px under it and never widens it'
+      );
+    });
+
+    test('a segmented track wears the edge of the select it turns into', async () => {
+      const page = await opened();
+      const edges = await page.evaluate(() => {
+        const track = /** @type {Element} */ (
+          document.querySelector('#segmented-control .sui-segmented > .sui-segmented-track')
+        );
+        const shown = /** @type {Element} */ (
+          [...document.querySelectorAll('#segmented-control .sui-segmented-picker select')].find(
+            (select) => select.checkVisibility()
+          )
+        );
+        return [
+          getComputedStyle(track).boxShadow.split(' 0px')[0],
+          getComputedStyle(shown).borderTopColor
+        ];
+      });
+      assert.equal(edges[0], edges[1], 'the track and its select wear one edge');
+    });
+
+    test('a segmented hairline parts bare options and gives way beside the thumb and a hover', async () => {
+      const page = await opened();
+      const track = page
+        .locator('#segmented-control .sui-segmented-track:not(:disabled, .locked)')
+        .filter({ has: page.locator('input[value="warnings"]:checked') })
+        .filter({ has: page.locator('input[value="debug"]:disabled') })
+        .first();
+      const parts = () =>
+        track.evaluate((element) =>
+          [
+            ...element.querySelectorAll(
+              ':scope > .sui-segmented-option:has(+ .sui-segmented-option)'
+            )
+          ]
+            .map((option) => getComputedStyle(option, '::after'))
+            .map((line) => (line.content === 'none' ? 0 : Number(line.opacity)))
+            .join(' ')
+        );
+      // Off | Errors, Errors | Warnings (thumb), Warnings | Info (thumb), Info | Debug.
+      assert.equal(await parts(), '1 0 0 1');
+      await track.locator('.sui-segmented-option').first().hover();
+      await page.waitForFunction(
+        (element) =>
+          getComputedStyle(
+            /** @type {Element} */ (
+              /** @type {Element} */ (element).querySelector('.sui-segmented-option')
+            ),
+            '::after'
+          ).opacity === '0',
+        await track.elementHandle()
+      );
+      assert.equal(await parts(), '0 0 0 1', 'a hovered option drops the line beside its fill');
+      await page.mouse.move(0, 0);
+      await page.keyboard.press('Shift');
+    });
+
+    test('a segmented control that turns into a select keeps the width it had', async () => {
+      const page = await opened();
+      const widths = await page
+        .locator('#segmented-control .sui-segmented:has(.sui-segmented-picker select:visible)')
+        .evaluateAll((boxes) =>
+          boxes.map((box) => [
+            Math.round(box.getBoundingClientRect().width),
+            Math.round(
+              /** @type {Element} */ (
+                box.querySelector('.sui-select-control')
+              ).getBoundingClientRect().width
+            )
+          ])
+        );
+      assert.ok(widths.length >= 2, 'the page shows no segmented control as a select');
+      for (const [box, select] of widths)
+        assert.equal(select, box, 'the select fills the room the segments had');
+    });
+
+    test('select-to-radio focus lands on the first option when nothing is chosen', async () => {
+      const page = await opened();
+      const control = page
+        .locator('#segmented-control .sui-segmented')
+        .filter({ hasNot: page.locator('input:checked') })
+        .first();
       await control.evaluate((node) => {
         if (node.parentElement) node.parentElement.style.inlineSize = '4rem';
       });
@@ -278,13 +761,7 @@ suite('forms', together, () => {
       );
       assert.equal(
         await page.evaluate(() => /** @type {HTMLInputElement} */ (document.activeElement).value),
-        'off'
-      );
-      assert.equal(
-        await page.evaluate(
-          () => /** @type {HTMLInputElement} */ (document.activeElement).disabled
-        ),
-        false
+        'day'
       );
     });
 
@@ -589,20 +1066,27 @@ suite('forms', together, () => {
       assert.deepEqual(edges, { light: [], dark: [] }, 'these drew an edge of another red');
     });
 
-    test('a focused invalid switch or box keeps one red edge and its ring 2px clear of it', async () => {
+    test('an invalid box keeps its size, and a focused invalid switch or box its ring 2px clear', async () => {
       const page = await opened();
       const drawn = await page.evaluate(() =>
         ['#switch .sui-switch-track.invalid', '#field .sui-checkbox-box.invalid'].map(
           (selector) => {
             const part = /** @type {HTMLElement} */ (document.querySelector(selector));
             const input = /** @type {HTMLInputElement} */ (part.previousElementSibling);
+            const rest = getComputedStyle(part);
+            const restOutset =
+              rest.outlineStyle === 'none'
+                ? 0
+                : parseFloat(rest.outlineWidth) + parseFloat(rest.outlineOffset);
             input.focus();
-            const style = getComputedStyle(part);
+            const focused = getComputedStyle(part);
             const shown = {
               selector,
+              restOutset,
               focused: input.matches(':focus-visible'),
-              edge: style.borderTopWidth,
-              doubled: style.outlineStyle !== 'none'
+              edge: focused.borderTopWidth,
+              doubled: focused.outlineStyle !== 'none',
+              ringOffset: getComputedStyle(input).outlineOffset
             };
             input.blur();
             return shown;
@@ -612,11 +1096,20 @@ suite('forms', together, () => {
       assert.deepEqual(drawn, [
         {
           selector: '#switch .sui-switch-track.invalid',
+          restOutset: 1,
           focused: true,
           edge: '1px',
-          doubled: false
+          doubled: false,
+          ringOffset: '2px'
         },
-        { selector: '#field .sui-checkbox-box.invalid', focused: true, edge: '1px', doubled: false }
+        {
+          selector: '#field .sui-checkbox-box.invalid',
+          restOutset: 0,
+          focused: true,
+          edge: '2px',
+          doubled: false,
+          ringOffset: '2px'
+        }
       ]);
     });
 
@@ -961,7 +1454,96 @@ suite('forms', together, () => {
       assert.deepEqual(offsets, [0, 0, 0], 'each box starts where its column head does');
     });
 
-    test("a list a parent box chooses for stands under the parent's words, its question heard, not drawn", async () => {
+    // The held row heads once painted the whole column gap, over the first column's ring.
+    test("a matrix's held row heads cover no focus ring or hover ground", async () => {
+      const page = await opened();
+      const input = page
+        .locator('#checkbox-states')
+        .locator('xpath=ancestor::*[contains(@class, "example")]')
+        .locator('.variants .row')
+        .first()
+        .locator('input')
+        .first();
+      /** @param {number} x @param {number} y */
+      const pixel = async (x, y) => {
+        const shot = await page.screenshot({ clip: { x: x - 0.5, y, width: 1, height: 1 } });
+        return page.evaluate(
+          async (data) => {
+            const image = await createImageBitmap(await (await fetch(data)).blob());
+            const context = new OffscreenCanvas(1, 1).getContext('2d');
+            context?.drawImage(image, 0, 0);
+            const [r, g, b] = context?.getImageData(0, 0, 1, 1).data ?? [];
+            return `rgb(${r}, ${g}, ${b})`;
+          },
+          `data:image/png;base64,${shot.toString('base64')}`
+        );
+      };
+      /** @param {string} state */
+      const ringShows = async (state) => {
+        await input.evaluate((element) => /** @type {HTMLElement} */ (element).blur());
+        // A key first, so the focus that follows is a keyboard's and draws the ring. The page's
+        // own focus, which scrolls only as the browser does; the driver's scrolls it into view.
+        await page.keyboard.press('Shift');
+        await input.evaluate((element) => /** @type {HTMLElement} */ (element).focus());
+        const { x, y, ring, onBox } = await input.evaluate((element) => {
+          const style = getComputedStyle(element);
+          const rect = element.getBoundingClientRect();
+          const y = rect.top + rect.height / 2;
+          const top = document.elementFromPoint(rect.left + rect.width / 2, y);
+          return {
+            x: rect.left - parseFloat(style.outlineOffset) - parseFloat(style.outlineWidth) / 2,
+            y,
+            ring: style.outlineColor,
+            onBox: Boolean(top && element.closest('label')?.contains(top))
+          };
+        });
+        assert.ok(onBox, `${state}: the focused box stands under the held row heads`);
+        assert.equal(
+          await pixel(x, y),
+          ring,
+          `${state}: the held row heads cover the ring's start side`
+        );
+      };
+      // The hover ground bleeds into the gap as far as the box does, and shows whole there.
+      /** @param {string} state */
+      const hoverShows = async (state) => {
+        const row = input.locator('xpath=ancestor::label[1]');
+        await input.evaluate((element) => /** @type {HTMLElement} */ (element).blur());
+        await row.hover();
+        const { left, right, middle } = await row.evaluate((element) => {
+          const rect = element.getBoundingClientRect();
+          return { left: rect.left + 1, right: rect.right - 1, middle: rect.top + rect.height / 2 };
+        });
+        assert.equal(
+          await pixel(left, middle),
+          await pixel(right, middle),
+          `${state}: the held row heads cover the hover ground's start`
+        );
+        await page.mouse.move(0, 0);
+      };
+      const scroller = input.locator('xpath=ancestor::*[contains(@class, "variants")][1]');
+      const scrolls = () => scroller.evaluate((box) => box.scrollWidth > box.clientWidth);
+      try {
+        assert.equal(await scrolls(), false, 'the matrix fits a wide page');
+        await ringShows('fitting');
+        await hoverShows('fitting');
+        await page.setViewportSize({ width: 1024, height: 900 });
+        await page.waitForFunction(
+          (box) => box.scrollWidth > box.clientWidth,
+          await scroller.elementHandle()
+        );
+        await scroller.evaluate((box) => box.scrollTo({ left: 0 }));
+        await ringShows('scrolling, at its start');
+        await hoverShows('scrolling, at its start');
+        await scroller.evaluate((box) => box.scrollTo({ left: box.scrollWidth }));
+        await ringShows('scrolled past the first column');
+      } finally {
+        await input.evaluate((element) => /** @type {HTMLElement} */ (element).blur());
+        await page.setViewportSize({ width: 1440, height: 900 });
+      }
+    });
+
+    test("a list a parent box chooses for stands under the parent's words", async () => {
       const page = await opened();
       const edges = await page.evaluate(() => {
         const stage = document
@@ -971,24 +1553,25 @@ suite('forms', together, () => {
         const [parent, child] = [...(stage?.querySelectorAll('.sui-checkbox') ?? [])];
         const left = (/** @type {Element | null | undefined} */ node) =>
           node?.getBoundingClientRect().left;
-        const legend = child?.closest('fieldset')?.querySelector('legend');
+        const legend = stage?.querySelector('.sui-check-list legend');
         return {
           words: left(parent?.querySelector('.sui-checkbox-label')),
           box: left(child?.querySelector('.sui-checkbox-box')),
-          legend: legend?.getBoundingClientRect().width
+          gap:
+            (legend?.getBoundingClientRect().top ?? NaN) -
+            (parent?.getBoundingClientRect().bottom ?? NaN),
+          fieldGap: parseFloat(
+            getComputedStyle(document.documentElement).getPropertyValue('--sui-field-gap')
+          )
         };
       });
       assert.ok(edges.words !== undefined, 'the parent box has words');
       assert.equal(edges.box, edges.words, 'the first child box starts where the parent words do');
-      assert.ok(
-        (edges.legend ?? 2) <= 1,
-        'the parent asks the question, so the legend draws nothing'
+      assert.equal(
+        edges.gap,
+        edges.fieldGap * 16,
+        "the list's legend stands a field gap under the parent, as its options under it"
       );
-      const group = page
-        .locator('#checkbox-in-context')
-        .locator('xpath=ancestor::*[contains(@class, "example")][1]')
-        .getByRole('group', { name: 'Events that start a sync' });
-      assert.equal(await group.count(), 1, 'a screen reader still hears the list named');
     });
 
     test("a section head's switch ends where its stage ends, as the head's action does on a pane", async () => {
@@ -1173,6 +1756,34 @@ suite('forms', together, () => {
     });
 
     test(
+      'an off select and an off colour trigger draw as an off text field does, at full strength',
+      long,
+      async () => {
+        const page = await opened();
+        const looks = await page.evaluate(() =>
+          [
+            '#text-input input.sui-text-input:disabled',
+            '#select .sui-select-control:disabled',
+            '#color-picker button[aria-haspopup="dialog"]:disabled'
+          ].map((selector) => {
+            const field = /** @type {Element} */ (document.querySelector(selector));
+            const look = getComputedStyle(field);
+            const chevron = field.parentElement?.querySelector('.sui-select-chevron');
+            return [
+              look.backgroundColor,
+              look.borderTopColor,
+              look.boxShadow,
+              look.color,
+              look.opacity,
+              chevron ? getComputedStyle(chevron).opacity : '1'
+            ].join(' | ');
+          })
+        );
+        assert.deepEqual(looks.slice(1), [looks[0], looks[0]]);
+      }
+    );
+
+    test(
       'a hover on either part of a pair chip lights the whole chip, and the remove part over it',
       long,
       async () => {
@@ -1275,11 +1886,17 @@ suite('forms', together, () => {
         const rail = /** @type {{ x: number, y: number, width: number, height: number }} */ (
           await page.locator(':popover-open .hue').boundingBox()
         );
-        // A point along the drawn rail is that far round the wheel, so the native thumb's travel
-        // matches the drawing. A press on the thumb itself keeps the value, so the quarter comes
+        // The wheel is drawn between the thumb's centres at the two ends, so a press picks the
+        // hue drawn under it. A press on the thumb itself keeps the value, so the quarter comes
         // first, away from the sample's hue near the middle.
+        const inset = await page
+          .locator(':popover-open .thumb')
+          .evaluate((thumb) => thumb.getBoundingClientRect().width / 2);
         const at = async (/** @type {number} */ part) => {
-          await page.mouse.click(rail.x + rail.width * part, rail.y + rail.height / 2);
+          await page.mouse.click(
+            rail.x + inset + (rail.width - 2 * inset) * part,
+            rail.y + rail.height / 2
+          );
           return Number(await hue.inputValue());
         };
         const quarter = await at(0.25);
@@ -1307,6 +1924,28 @@ suite('forms', together, () => {
         const area = /** @type {{ x: number, y: number, width: number, height: number }} */ (
           await page.locator(':popover-open .area').boundingBox()
         );
+        // As on the rail, the plane is drawn between the knob's centres, so the knob stays inside
+        // the area at its corners and a press picks the colour drawn under it.
+        const knob = page.locator(':popover-open .knob');
+        const reach = await knob.evaluate((element) => element.getBoundingClientRect().width / 2);
+        const saturation = () =>
+          page
+            .locator(':popover-open .area')
+            .evaluate((element) => Number(element.getAttribute('aria-valuenow')));
+        await page.mouse.click(area.x + area.width - 1, area.y + 1);
+        const corner = /** @type {{ x: number, y: number, width: number, height: number }} */ (
+          await knob.boundingBox()
+        );
+        assert.ok(
+          corner.x + corner.width <= area.x + area.width + 0.5 && corner.y >= area.y - 0.5,
+          'the knob hangs past the area at its corner'
+        );
+        await page.mouse.click(
+          area.x + reach + (area.width - 2 * reach) * 0.25,
+          area.y + area.height / 2
+        );
+        const across = await saturation();
+        assert.ok(Math.abs(across - 25) <= 2, `a quarter across the drawn plane reads ${across}%`);
         const still = () =>
           page.evaluate(() => ({
             select: getComputedStyle(document.documentElement).userSelect,
@@ -1364,9 +2003,37 @@ suite('forms', together, () => {
       }
     );
 
-    // Last, because it leaves its picker open.
+    // The page's frames share one measure, as each kit page's do, and the four states keep one
+    // row in it, the disabled one's reason wrapped under its own trigger.
+    test('the colour picker page frames its examples alike, its states in one row and a locked reason in two lines', async () => {
+      const page = await opened();
+      const { widths, tops, reasonLines } = await page.evaluate(() => {
+        const section = /** @type {Element} */ (document.querySelector('#color-picker'));
+        const reason = /** @type {HTMLElement} */ (
+          section.querySelector('.states .specimen:last-child [id$="-hint"]')
+        );
+        return {
+          widths: [...section.querySelectorAll('.frame')].map(
+            (frame) => frame.getBoundingClientRect().width
+          ),
+          tops: [...section.querySelectorAll('.states .specimen')].map(
+            (specimen) => specimen.getBoundingClientRect().top
+          ),
+          reasonLines: Math.round(
+            reason.getBoundingClientRect().height / parseFloat(getComputedStyle(reason).lineHeight)
+          )
+        };
+      });
+      assert.equal(widths.length, 3);
+      assert.equal(new Set(widths).size, 1, `the frames are ${widths.join(', ')}px wide`);
+      assert.equal(tops.length, 4);
+      assert.equal(new Set(tops).size, 1, 'a state left the row');
+      assert.ok(reasonLines <= 2, `the locked state's reason takes ${reasonLines} lines`);
+    });
+
+    // Last, because it leaves the page in its own state.
     test(
-      'I4 swatches given as bare hex are named by their colour, not only their code',
+      "I4 swatches given as bare hex are named by their colour, not only their code, and a picker's trigger wears a field's edge, marked in forced colors, its knob and a focused swatch's ring kept clear",
       long,
       async () => {
         const page = await opened();
@@ -1384,6 +2051,182 @@ suite('forms', together, () => {
           names.map((name) => name.split(',')[0]),
           ['Blue', 'Green', 'Orange', 'Red', 'Violet', 'Teal']
         );
+        // Every part of the panel, the swatches too, is named by a label in view in a field
+        // label's size, leading and ink, a weight under it, so the picker's own label leads (L-35).
+        const parts = await page.evaluate(() => {
+          const panel = /** @type {Element} */ (document.querySelector(':popover-open'));
+          const field = /** @type {Element} */ (document.querySelector('.sui-field-label'));
+          const set = (/** @type {Element} */ label, step = 0) => {
+            const look = getComputedStyle(label);
+            return `${Number(look.fontWeight) - step} ${look.fontSize}/${look.lineHeight} ${look.color}`;
+          };
+          const named = panel.querySelector('[role="radiogroup"]')?.getAttribute('aria-labelledby');
+          return {
+            swatches: named ? document.getElementById(named)?.checkVisibility() : false,
+            sets: [...panel.querySelectorAll('.part-label')].map((label) => set(label)),
+            field: set(field, 100)
+          };
+        });
+        assert.ok(parts.swatches, 'the swatches have no label in view');
+        assert.deepEqual(new Set(parts.sets), new Set([parts.field]));
+
+        // A trigger holds a value, so it wears a Select's field edge and baseline: the rest
+        // ones at rest, and the open one in a field's focus edge, its ring left to the keys.
+        await page.mouse.move(0, 0);
+        const edges = () =>
+          page.locator('#color-picker button[aria-haspopup="dialog"]').evaluateAll((buttons) =>
+            buttons.map((button) => {
+              const paint = (/** @type {string} */ token) => {
+                const probe = document.createElement('span');
+                probe.style.color = `var(${token})`;
+                button.append(probe);
+                const color = getComputedStyle(probe).color;
+                probe.remove();
+                return color;
+              };
+              const look = getComputedStyle(button);
+              const [ground, frame, base] =
+                button.getAttribute('aria-expanded') === 'true'
+                  ? ['--sui-control-bg', '--sui-field-frame-focus', '--sui-field-border-focus']
+                  : ['--sui-control-bg', '--sui-field-frame', '--sui-field-border'];
+              return (
+                button.matches(':disabled') ||
+                (look.backgroundColor === paint(ground) &&
+                  look.borderTopColor === paint(frame) &&
+                  look.borderBottomColor === paint(base))
+              );
+            })
+          );
+        assert.ok(
+          (await edges()).every(Boolean),
+          "a trigger wears a button's paint, not a field's"
+        );
+        const clear = await page.evaluate(() => {
+          const panel = /** @type {Element} */ (document.querySelector(':popover-open'));
+          const area = /** @type {Element} */ (
+            panel.querySelector('.area')
+          ).getBoundingClientRect();
+          const probe = document.createElement('span');
+          probe.style.color = 'var(--sui-border-control)';
+          panel.append(probe);
+          const edge = getComputedStyle(probe).color;
+          probe.remove();
+          const knob = /** @type {Element} */ (
+            panel.querySelector('.knob')
+          ).getBoundingClientRect();
+          const thumb = /** @type {Element} */ (panel.querySelector('.thumb'));
+          const hue = /** @type {Element} */ (panel.querySelector('.hue'));
+          const rail = hue.getBoundingClientRect();
+          return {
+            aligned: rail.left === area.left && rail.right === area.right,
+            reach: /** @type {Element} */ (
+              panel.querySelector('.hue-range')
+            ).getBoundingClientRect().height,
+            rims: [hue, panel.querySelector('.area')].map(
+              (part) => getComputedStyle(/** @type {Element} */ (part)).boxShadow
+            ),
+            edge,
+            sizes: [knob.width, thumb.getBoundingClientRect().width]
+          };
+        });
+        assert.equal(clear.sizes[0], clear.sizes[1], "the area's knob and the hue's thumb differ");
+        assert.ok(clear.aligned, "the hue rail stops short of the area's edges");
+        assert.equal(clear.rims[0], clear.rims[1], "the hue rail lacks the area's rim");
+        assert.ok(
+          clear.rims[0].includes(clear.edge),
+          "the area's rim is fainter than a control's edge"
+        );
+        assert.ok(clear.reach >= 24, `the hue rail takes a press only ${clear.reach}px tall`);
+        // The focused swatch's ring stays clear of the next swatch.
+        await page.keyboard.press('ArrowRight');
+        const room = await page.evaluate(() => {
+          const swatch = /** @type {Element} */ (document.activeElement);
+          const ring = getComputedStyle(swatch);
+          const grid = /** @type {Element} */ (swatch.closest('.swatches'));
+          return (
+            parseFloat(getComputedStyle(grid).columnGap) -
+            parseFloat(ring.outlineWidth) -
+            parseFloat(ring.outlineOffset)
+          );
+        });
+        assert.ok(room > 0, `a focused swatch's ring stands ${room}px from the next one`);
+        // The swatches' name hands focus to the checked one, where the arrows go on from, never
+        // back to the first.
+        await page.locator(':popover-open .swatches').evaluate((grid) => {
+          const name = document.getElementById(grid.getAttribute('aria-labelledby') ?? '');
+          /** @type {HTMLElement} */ (name).click();
+        });
+        assert.ok(
+          await page.evaluate(() => {
+            const swatch = document.activeElement;
+            return (
+              swatch?.matches('.swatch:checked') &&
+              swatch !== swatch.closest('.swatches')?.querySelector('.swatch')
+            );
+          }),
+          "the swatches' name left focus off the checked swatch"
+        );
+
+        // High contrast drops the recess and the veil, so the open trigger and a hovered one
+        // draw their edge in the system's highlight.
+        await page.emulateMedia({ forcedColors: 'active' });
+        try {
+          const marked = () =>
+            page.locator('#color-picker button[aria-haspopup="dialog"]').evaluateAll((buttons) => {
+              const probe = document.createElement('span');
+              probe.style.color = 'Highlight';
+              document.body.append(probe);
+              const highlight = getComputedStyle(probe).color;
+              probe.remove();
+              return buttons
+                .filter((button) => button.matches(':hover, [aria-expanded="true"]'))
+                .map((button) => getComputedStyle(button).borderTopColor === highlight);
+            });
+          await page.mouse.move(0, 0);
+          assert.deepEqual(await marked(), [true], 'forced colors left the open trigger unmarked');
+          await page.keyboard.press('Escape');
+          await page.locator('#color-picker button[aria-haspopup="dialog"]').first().hover();
+          assert.deepEqual(await marked(), [true], 'forced colors left a hovered trigger unmarked');
+        } finally {
+          await page.emulateMedia({ forcedColors: null });
+        }
+
+        // A focused trigger keeps its focus edge under the pointer, as a focused Select does.
+        const first = page.locator('#color-picker button[aria-haspopup="dialog"]').first();
+        await page.mouse.move(0, 0);
+        await page.keyboard.press('Shift');
+        await first.focus();
+        const look = () =>
+          first.evaluate((button) => {
+            const style = getComputedStyle(button);
+            return `${style.backgroundColor} ${style.backgroundImage} ${style.borderTopColor} ${style.borderBottomColor}`;
+          });
+        const focused = await look();
+        await first.hover();
+        await atRest(page);
+        assert.equal(await look(), focused, 'a hover took a focused trigger out of its focus edge');
+        // A hovered trigger wears a field's hover, never a button's veil and edge.
+        await page.evaluate(() => /** @type {HTMLElement} */ (document.activeElement).blur());
+        const hovered = await first.evaluate((button) => {
+          const paint = (/** @type {string} */ token) => {
+            const probe = document.createElement('span');
+            probe.style.color = `var(${token})`;
+            button.append(probe);
+            const color = getComputedStyle(probe).color;
+            probe.remove();
+            return color;
+          };
+          const style = getComputedStyle(button);
+          return (
+            [
+              style.backgroundColor,
+              style.borderTopColor,
+              style.backgroundImage.includes('0)')
+            ].join(' ') ===
+            [paint('--sui-field-hover'), paint('--sui-field-frame-hover'), true].join(' ')
+          );
+        });
+        assert.ok(hovered, "a hovered trigger wears a button's hover, not a field's");
       }
     );
   });
@@ -1433,6 +2276,128 @@ suite('forms', together, () => {
         await field.evaluate((area) => area.scrollHeight <= area.clientHeight + 1),
         'the new value remains clipped'
       );
+    } finally {
+      await page.close();
+    }
+  });
+
+  test('a link field says a copy in the success ink on its tint, and a refusal in the danger ink on its tint with the value handed over selected, each 4.5:1 at rest, hovered and pressed', async () => {
+    const page = await open({ path: 'copyable-link-field/' });
+    try {
+      const field = page.getByRole('textbox', { name: 'Invitation link' });
+      const copy = page.getByRole('button', { name: 'Copy Link' });
+      // The words against the ground as painted: each background layer, top first, blended in a
+      // canvas over the grounds under the button down to the first opaque one.
+      const said = () =>
+        copy.evaluate((button) => {
+          const shown = /** @type {HTMLElement} */ (
+            [...button.querySelectorAll('.sui-copy-button-labels > span')].find(
+              (label) => getComputedStyle(label).visibility === 'visible'
+            )
+          );
+          const ink = (/** @type {string} */ token) => {
+            const probe = document.createElement('span');
+            probe.style.color = `var(${token})`;
+            button.append(probe);
+            const color = getComputedStyle(probe).color;
+            probe.remove();
+            return color;
+          };
+          /** @type {string[]} */
+          const layers = [];
+          for (let box = /** @type {Element | null} */ (button); box; box = box.parentElement) {
+            const look = getComputedStyle(box);
+            const colors = look.backgroundImage.match(/[a-z]+\([^()]*\)/g) ?? [];
+            layers.push(...colors.filter((_, index) => index % 2 === 0), look.backgroundColor);
+          }
+          const pen = /** @type {CanvasRenderingContext2D} */ (
+            document.createElement('canvas').getContext('2d', { willReadFrequently: true })
+          );
+          const paint = (/** @type {string[]} */ colors) => {
+            pen.clearRect(0, 0, 1, 1);
+            for (const color of colors) {
+              pen.fillStyle = color;
+              pen.fillRect(0, 0, 1, 1);
+            }
+            return [...pen.getImageData(0, 0, 1, 1).data.slice(0, 3)];
+          };
+          const opaque = layers.findIndex(
+            (color) => String(paint(['#fff', color])) === String(paint(['#000', color]))
+          );
+          const ground = paint(layers.slice(0, opaque + 1).reverse());
+          const words = paint([getComputedStyle(shown).color]);
+          const light = (/** @type {number[]} */ rgb) =>
+            rgb
+              .map((value) => value / 255)
+              .map((c) => (c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4))
+              .reduce((sum, c, index) => sum + c * [0.2126, 0.7152, 0.0722][index], 0);
+          const [high, low] = [light(ground), light(words)].sort((a, b) => b - a);
+          return {
+            words: shown.textContent,
+            ink: getComputedStyle(shown).color,
+            image: getComputedStyle(button).backgroundImage,
+            contrast: (high + 0.05) / (low + 0.05),
+            success: ink('--sui-success'),
+            danger: ink('--sui-danger'),
+            successTint: ink('--sui-success-tint'),
+            dangerTint: ink('--sui-danger-tint')
+          };
+        });
+      const answer = (/** @type {boolean} */ lands) =>
+        page.evaluate((lands) => {
+          navigator.clipboard.writeText = () =>
+            lands ? Promise.resolve() : Promise.reject(new DOMException('', 'NotAllowedError'));
+        }, lands);
+      const readable = async (/** @type {string} */ outcome) => {
+        await page.mouse.move(0, 0);
+        const rest = await said();
+        await copy.hover();
+        const hovered = await said();
+        await page.mouse.down();
+        const pressed = await said();
+        await page.mouse.move(0, 0);
+        await page.mouse.up();
+        for (const [state, look] of Object.entries({ rest, hovered, pressed }))
+          assert.ok(
+            look.contrast >= 4.5,
+            `${outcome} ${state} reads ${look.contrast.toFixed(2)}:1 on its ground`
+          );
+        return rest;
+      };
+
+      for (const scheme of /** @type {const} */ (['light', 'dark'])) {
+        await page.emulateMedia({ colorScheme: scheme });
+        await answer(true);
+        await copy.click();
+        await page.waitForFunction(() => document.querySelector('[data-copied]'));
+        const copied = await readable(`${scheme} copied`);
+        assert.equal(copied.words, 'Copied');
+        assert.equal(copied.ink, copied.success, 'a copy is not said in the success ink');
+        assert.ok(copied.image.includes(copied.successTint), 'a copy does not tint the ground');
+      }
+
+      const tall = () =>
+        field.evaluate((area) => area.closest('.sui-joined')?.getBoundingClientRect().height);
+      const rest = await tall();
+      await answer(false);
+      await copy.click();
+      await page.waitForFunction(() => document.querySelector('[data-failed]'));
+      assert.equal(await tall(), rest, 'the refusal stacked its words taller than the field');
+      assert.deepEqual(
+        await field.evaluate((/** @type {HTMLTextAreaElement} */ area) => ({
+          focused: document.activeElement === area,
+          selected: area.value.slice(area.selectionStart, area.selectionEnd) === area.value
+        })),
+        { focused: true, selected: true },
+        'a refusal did not hand the value over selected'
+      );
+      for (const scheme of /** @type {const} */ (['light', 'dark'])) {
+        await page.emulateMedia({ colorScheme: scheme });
+        const failed = await readable(`${scheme} refused`);
+        assert.equal(failed.words, 'Copy by Hand');
+        assert.equal(failed.ink, failed.danger, 'a refusal is not said in the danger ink');
+        assert.ok(failed.image.includes(failed.dangerTint), 'a refusal does not tint the ground');
+      }
     } finally {
       await page.close();
     }
