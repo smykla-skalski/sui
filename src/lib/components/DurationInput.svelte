@@ -364,7 +364,8 @@ land on the amount.
      width while a reader types. */
   .sui-duration-amount > :global(input) {
     box-sizing: border-box;
-    inline-size: calc(5ch + 2 * var(--sui-field-inset));
+    /* Never under the joined value's 4rem flex basis, or the unit wraps to a line of its own. */
+    inline-size: max(4rem, 5ch + var(--sui-field-inset));
     padding-inline-end: 0;
     text-align: end;
   }
