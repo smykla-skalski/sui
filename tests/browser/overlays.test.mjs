@@ -963,6 +963,19 @@ suite('overlays', together, () => {
           'select: 1 reason ink',
           'combobox: 1 reason ink'
         ]);
+        // A lit item's glyph rises with its words, as an icon button's glyph does on hover.
+        const lit = await page.evaluate(() => {
+          const item = /** @type {Element} */ (
+            document.querySelector(
+              '#action-menu .sui-action-menu-item.active:has(.sui-action-menu-icon)'
+            )
+          );
+          return [
+            item.querySelector('.sui-action-menu-icon'),
+            item.querySelector('.sui-action-menu-label')
+          ].map((part) => getComputedStyle(/** @type {Element} */ (part)).color);
+        });
+        assert.equal(lit[0], lit[1], "a lit item's glyph stays at rest under its risen words");
         // A copy's lit item is where the keyboard is, so it wears the ring, as a select's and a
         // combobox's lit row do.
         const rings = await page.evaluate(() =>
@@ -1010,18 +1023,22 @@ suite('overlays', together, () => {
           )
         ]);
         assert.deepEqual(weights, ['400']);
-        // A phone line holds the icon trigger's reason but not the button trigger's, so both drop.
+        // On a phone the icon trigger keeps its reason beside it, wrapping there, while the wider
+        // button trigger's reason drops under it.
         await page.setViewportSize({ width: 390, height: 800 });
         const reasons = await page.evaluate(() =>
           [...document.querySelectorAll('#action-menu .locked')].map((locked) => {
             const trigger = /** @type {Element} */ (locked.querySelector('button'));
             const reason = /** @type {Element} */ (locked.querySelector('.reason'));
             const [t, r] = [trigger, reason].map((node) => node.getBoundingClientRect());
-            return { under: r.top >= t.bottom, start: r.left === t.left };
+            return r.top >= t.bottom && r.left === t.left
+              ? 'under'
+              : r.left >= t.right && r.top < t.bottom
+                ? 'beside'
+                : `at ${r.left - t.left}, ${r.top - t.top}`;
           })
         );
-        assert.equal(reasons.length, 2, `the section shows ${reasons.length} disabled triggers`);
-        for (const reason of reasons) assert.deepEqual(reason, { under: true, start: true });
+        assert.deepEqual(reasons, ['beside', 'under']);
       } finally {
         await page.close();
       }

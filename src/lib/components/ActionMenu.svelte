@@ -370,6 +370,15 @@ returns focus there too. Labels wrap rather than being cut short.
     color: var(--sui-hover-ink);
   }
 
+  /* The glyph rises with the words, as an icon button's glyph does on hover. */
+  .sui-action-menu-item:not([data-tone='stop']):is(
+      :focus:not(:active):not([aria-disabled='true']),
+      .active:not(:active)
+    )
+    .sui-action-menu-icon {
+    color: inherit;
+  }
+
   /* A copy's lit item is where the keyboard is, so it wears the ring as Select's and Combobox's
      lit rows do. */
   .sui-action-menu-item:is(:focus-visible, .active) {
