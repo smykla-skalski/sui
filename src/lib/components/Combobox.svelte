@@ -742,6 +742,13 @@ Name it with a `<label>` or `aria-label`, as any field.
     );
   }
 
+  /* With no rows over it, the note sits where a row would, inside the list's inset, so a list of
+     one note is as tall as a list of one row and its words still start where the names do. */
+  .sui-combobox-list[hidden] + .sui-combobox-empty {
+    margin: var(--sui-space-1);
+    padding-inline: var(--sui-space-2);
+  }
+
   .sui-combobox-empty.refused {
     color: var(--sui-danger);
   }

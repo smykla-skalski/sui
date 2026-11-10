@@ -1409,12 +1409,17 @@ suite('forms', together, () => {
           notes: [
             ...document.querySelectorAll(`${copy} .sui-combobox-empty:not(.count, .refused)`)
           ].map(height),
-          count: height(document.querySelector(`${copy} .sui-combobox-empty.count`))
+          count: height(document.querySelector(`${copy} .sui-combobox-empty.count`)),
+          // A list of one note and a list of one offered row are one height.
+          layers: [
+            ...document.querySelectorAll(`${copy} .sui-combobox-empty:not(.count, .refused)`),
+            ...document.querySelectorAll(`${copy} .sui-combobox-option:only-child`)
+          ].map((part) => height(part.closest('.sui-popover')))
         };
       });
       await page.setViewportSize({ width: 1440, height: 900 });
       const { count, ...lone } = rows;
-      assert.deepEqual(lone, { option: 44, notes: [44, 44] });
+      assert.deepEqual(lone, { option: 44, notes: [44, 44], layers: [54, 54, 54] });
       assert.ok(Number(count) < 44, `the count foot stands ${count}px, as tall as a row`);
       assert.equal(look.off.name, 0.6);
       assert.equal(look.off.note, 1, 'an off option keeps its reason at full strength');
