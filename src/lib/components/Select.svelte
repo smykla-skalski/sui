@@ -646,8 +646,10 @@ assistive technology, because a native picker cannot be held open.
 
   /* Rows of the picker and of the preview's copy. A browser with the native picker reads only
      the colors and the font here. */
+  /* As a menu item does, the row's room centres the name's first cap line, so a wrapped name
+     keeps its check on that line. */
   .sui-select-option {
-    align-items: center;
+    align-items: flex-start;
     border-radius: var(--sui-radius-popover-row);
     box-sizing: border-box;
     color: var(--sui-text-primary);
@@ -657,7 +659,8 @@ assistive technology, because a native picker cannot be held open.
       var(--sui-sans);
     gap: var(--sui-space-2);
     min-block-size: var(--sui-control-height-compact);
-    padding: var(--sui-space-1) var(--sui-space-3);
+    padding-block: calc((var(--sui-control-height-compact) - round(up, 1cap, 2px)) / 2);
+    padding-inline: var(--sui-space-3);
     white-space: normal;
   }
 
@@ -696,6 +699,8 @@ assistive technology, because a native picker cannot be held open.
   }
 
   .sui-select-check {
+    align-items: center;
+    block-size: round(up, 1cap, 2px);
     display: inline-flex;
     flex: none;
     inline-size: var(--sui-icon-base);

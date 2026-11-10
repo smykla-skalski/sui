@@ -1256,7 +1256,7 @@ suite('forms', together, () => {
       assert.equal(await field.inputValue(), 'Go');
     });
 
-    test('an open select copy is the closed field turned over, as wide as its picker, its groups lined and headed on the names, an off option dimming its name and inking its reason as a menu does', async () => {
+    test('an open select copy is the closed field turned over, as wide as its picker, its groups lined and headed on the names, a check on the first line, an off option dimming its name and inking its reason as a menu does', async () => {
       const page = await opened();
       const look = await page.evaluate(() => {
         const section = /** @type {Element} */ (document.querySelector('#select'));
@@ -1296,7 +1296,20 @@ suite('forms', together, () => {
         const live = /** @type {HTMLSelectElement} */ (
           [...section.querySelectorAll('select')].find((select) => select.querySelector('optgroup'))
         );
+        // How far a checked row's check centre falls under the top of its name's first line.
+        const mark = (/** @type {Element} */ row) => {
+          const check = row.querySelector('.sui-select-check')?.getBoundingClientRect();
+          const range = document.createRange();
+          range.selectNodeContents(/** @type {Element} */ (row.querySelector('.sui-select-label')));
+          const lines = range.getClientRects();
+          return {
+            drop: (check?.top ?? 0) + (check?.height ?? 0) / 2 - lines[0].top,
+            lines: new Set([...lines].map((line) => Math.round(line.top))).size
+          };
+        };
+        const checked = [...section.querySelectorAll('.sui-select-sheet .checked')].map(mark);
         return {
+          checked,
           closed: width(closed),
           copies,
           heading: start(/** @type {Element} */ (sheet.querySelector('.sui-select-heading'))),
@@ -1324,6 +1337,15 @@ suite('forms', together, () => {
         assert.equal(copy.sheet, copy.field, 'its picker is as wide as its field');
         assert.equal(copy.chevron, '180deg', 'its chevron is turned over');
       }
+      // A check marks the first line of a wrapped name as it does a one-line name, as a menu
+      // icon does.
+      const one = look.checked.find((row) => row.lines === 1);
+      const wrapped = look.checked.find((row) => row.lines > 1);
+      assert.ok(one && wrapped, 'the page checks a one-line and a wrapped name');
+      assert.ok(
+        Math.abs(wrapped.drop - one.drop) < 0.5,
+        `a wrapped name's check drops ${wrapped.drop}px, a one-line name's ${one.drop}px`
+      );
       assert.ok(
         Math.abs(look.heading - look.name) < 1,
         'a group heading starts where the names do'
