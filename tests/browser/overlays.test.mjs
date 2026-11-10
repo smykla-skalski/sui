@@ -1460,6 +1460,70 @@ suite('overlays', together, () => {
       await clear();
     });
 
+    test('a combobox copy keeps its typed text and offer when focus passes through it, and a sized combobox in a sentence keeps its chevron inside it', async () => {
+      await page.evaluate(() => {
+        const { lib, mount, flushSync } = /** @type {any} */ (window);
+        const host = Object.assign(document.body.appendChild(document.createElement('div')), {
+          id: 'host'
+        });
+        /** @type {string[]} */
+        const picked = [];
+        const copy = mount(lib.Combobox, {
+          target: host,
+          props: {
+            'aria-label': 'Label',
+            free: true,
+            options: [{ value: 'bug', label: 'bug' }],
+            previewText: 'feature',
+            preview: true,
+            onselect: (/** @type {string} */ value) => picked.push(value)
+          }
+        });
+        const sentence = host.appendChild(document.createElement('p'));
+        sentence.append('Before ');
+        const sized = mount(lib.Combobox, {
+          target: sentence,
+          props: {
+            'aria-label': 'Language',
+            options: [{ value: 'ts', label: 'TypeScript' }],
+            style: 'inline-size: 9rem'
+          }
+        });
+        sentence.append(' after.');
+        flushSync();
+        Object.assign(window, { parts: [copy, sized], picked });
+      });
+      const copy = page.getByRole('combobox', { name: 'Label' });
+      await copy.focus();
+      await copy.evaluate((input) => input.blur());
+      const seen = await page.evaluate(() => {
+        const box = (/** @type {Element} */ node) => node.getBoundingClientRect();
+        const input = /** @type {Element} */ (document.querySelector('#host p input'));
+        const chevron = box(
+          /** @type {Element} */ (input.parentElement?.querySelector('.sui-combobox-chevron'))
+        );
+        const field = box(input);
+        const sentence = /** @type {Element} */ (document.querySelector('#host p'));
+        return {
+          picked: /** @type {any} */ (window).picked,
+          shown: /** @type {HTMLInputElement} */ (
+            document.querySelector('#host > .sui-combobox-preview input')
+          ).value,
+          offer: document.querySelectorAll('#host > .sui-combobox-preview [role="option"]').length,
+          inside: chevron.left >= field.left && chevron.right <= field.right,
+          wrapper: box(/** @type {Element} */ (input.parentElement)).width - field.width,
+          beside: field.left - box(sentence).left
+        };
+      });
+      assert.deepEqual(seen.picked, [], 'focus passing through a copy commits nothing');
+      assert.equal(seen.shown, 'feature');
+      assert.equal(seen.offer, 1, 'the copy keeps its offer row');
+      assert.ok(seen.inside, 'the chevron stands inside the sized field');
+      assert.equal(seen.wrapper, 0, "the chevron's box is as wide as the field");
+      assert.ok(seen.beside > 0, 'the field sits in the sentence, after its first word');
+      await clear();
+    });
+
     test('Escape on a caller-disabled select still closes the dialog around it', async () => {
       await page.evaluate(() => {
         const { lib, mount, createRawSnippet, flushSync, state, get, set } = /** @type {any} */ (

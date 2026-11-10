@@ -404,7 +404,7 @@ Name it with a `<label>` or `aria-label`, as any field.
       {@attach keepTyped}
       onkeydown={preview ? undefined : onkeydown}
       {onfocus}
-      {onblur}
+      onblur={preview ? undefined : onblur}
       onclick={() => {
         if (!open && !preview) show(false);
       }}
@@ -500,10 +500,14 @@ Name it with a `<label>` or `aria-label`, as any field.
 
   /* The chevron says a list opens here, as a Select's does; a press on it lands on the field,
      which opens the list. The end padding keeps the text clear of it. */
+  /* Inline, as a Select is, so the field sits in a sentence and a size set on it sizes the
+     chevron's box too; a field's grid stretches it to the row. */
   .sui-combobox-field {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr);
+    display: inline-grid;
+    grid-template-columns: minmax(0, auto);
+    max-inline-size: 100%;
     min-inline-size: 0;
+    vertical-align: middle;
   }
 
   .sui-combobox-field > :global(*) {
