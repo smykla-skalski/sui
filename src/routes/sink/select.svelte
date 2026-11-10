@@ -93,6 +93,9 @@
 
 <Example
   title="States"
+  --example-max="54rem"
+  --specimen-min="21rem"
+  --specimen-row-gap="var(--sui-space-6)"
   note="A chosen value, a prompt before anything is chosen, a refused value and a locked field with its reason"
   layout="grid"
 >
@@ -140,7 +143,10 @@
 
 <Example
   title="Content"
-  note="Headed groups with notes, a retired plan that cannot be chosen, and a long branch cut in the field but wrapped in the picker"
+  --example-max="54rem"
+  --specimen-min="21rem"
+  --specimen-row-gap="var(--sui-space-6)"
+  note="Headed groups with notes, a retired plan that cannot be chosen, and a long branch cut in the field but wrapped in its open picker"
   layout="grid"
 >
   <Specimen label="Groups & notes">
@@ -153,7 +159,13 @@
   <Specimen label="Long label">
     <Field label="Branch">
       {#snippet control({ id, describedby })}
-        <Select {id} aria-describedby={describedby} options={branches} bind:value={branch} />
+        <Select
+          {id}
+          aria-describedby={describedby}
+          options={branches}
+          bind:value={branch}
+          preview
+        />
       {/snippet}
     </Field>
   </Specimen>
@@ -161,6 +173,9 @@
 
 <Example
   title="Open"
+  --example-max="54rem"
+  --specimen-min="21rem"
+  --specimen-row-gap="var(--sui-space-6)"
   note="A static copy of the open picker under each field, with the value checked and the next option active"
   layout="grid"
 >
@@ -182,6 +197,10 @@
 
 <Example
   title="In a Form"
+  --example-max="54rem"
+  --specimen-min="21rem"
+  --specimen-row-gap="var(--sui-space-6)"
+  layout="grid"
   note="Native validation stops a send without a time zone and says why under the field, and the values submit by name, numbers included"
 >
   <Specimen label={sent}>
@@ -225,13 +244,13 @@
   .form {
     display: grid;
     gap: var(--sui-space-5);
-    justify-items: start;
     min-inline-size: 0;
   }
 
   /* The action ends the form a step past the fields' own gap, so it reads as the form's
      close and not as one more field (L-35). */
   .form > :global(.action) {
+    justify-self: start;
     margin-block-start: var(--sui-space-1);
   }
 </style>

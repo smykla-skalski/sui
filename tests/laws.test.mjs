@@ -600,7 +600,7 @@ test('L-35 a form stacks its fields 20px apart and a dialog 24px, both a step ov
     );
     assert.match(
       styles[path],
-      /\.form > :global\(\.action\) \{\s*margin-block-start: var\(--sui-space-1\);/,
+      /\.form > :global\(\.action\) \{[^}]*margin-block-start: var\(--sui-space-1\);/,
       `${path} sets its action at the fields' gap`
     );
   }
