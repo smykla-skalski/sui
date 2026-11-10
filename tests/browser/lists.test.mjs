@@ -1237,6 +1237,28 @@ suite('lists', together, () => {
     );
 
     test(
+      "a stacked row's reset stands over the name's hit area and answers a press",
+      long,
+      async () => {
+        const page = await opened();
+        const row = page.locator('#setting-list .sui-setting-row', { hasText: 'Commit footer' });
+        await row.scrollIntoViewIfNeeded();
+        const field = row.getByRole('textbox', { name: 'Commit footer' });
+        const saved = await field.inputValue();
+        await field.fill(`${saved}.`);
+        const reset = row.getByRole('button', { name: /^Reset / });
+        const hit = await reset.evaluate((button) => {
+          const box = button.getBoundingClientRect();
+          const top = document.elementFromPoint(box.x + box.width / 2, box.y + box.height / 2);
+          return button.contains(top);
+        });
+        assert.ok(hit, "the name's hit area covers the reset");
+        await reset.click();
+        assert.equal(await field.inputValue(), saved, 'the reset did not put the footer back');
+      }
+    );
+
+    test(
       'L-36 a press anywhere on a setting row reaches the control its name labels once',
       long,
       async () => {

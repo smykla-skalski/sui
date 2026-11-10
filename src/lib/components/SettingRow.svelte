@@ -351,7 +351,8 @@ section's ground between them (L-91).
     position: absolute;
   }
 
-  .sui-setting-value {
+  .sui-setting-value,
+  .sui-setting-row > .sui-setting-reset {
     pointer-events: none;
     position: relative;
   }

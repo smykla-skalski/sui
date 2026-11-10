@@ -16,6 +16,7 @@
     SettingList,
     SettingRow,
     Switch,
+    Textarea,
     TextInput
   } from '#lib';
   import Example from '../kit/Example.svelte';
@@ -33,7 +34,8 @@
     level: 'info',
     prefix: '/bot',
     session: 3600,
-    ignore: ['vendor/**']
+    ignore: ['vendor/**'],
+    footer: 'Formatted by smyklot'
   };
 
   // Two neighbours start changed, so the sink always shows adjacent unsaved rows.
@@ -42,6 +44,7 @@
   let prefix = $state(saved.prefix);
   let session = $state(saved.session);
   let ignore = $state([...saved.ignore]);
+  let footer = $state(saved.footer);
   const ignoreChanged = $derived(JSON.stringify(ignore) !== JSON.stringify(saved.ignore));
 
   // A reset hands back a way to put the change back, so the row can offer Undo.
@@ -184,6 +187,24 @@
             addLabel="Add a Path Pattern"
             aria-labelledby={labelledby}
           />
+        {/snippet}
+      </SettingRow>
+      <SettingRow
+        name="Commit footer"
+        why="Closes every commit the bot makes"
+        unsaved={footer !== saved.footer}
+        onclear={footer !== saved.footer
+          ? resetter(
+              () => footer,
+              (value) => (footer = value),
+              saved.footer
+            )
+          : undefined}
+        resettable
+        stacked
+      >
+        {#snippet control({ id, describedby })}
+          <Textarea {id} aria-describedby={describedby} rows={2} bind:value={footer} />
         {/snippet}
       </SettingRow>
       <SettingRow name="Merge method" readonly reason="Set by the organization and read only here">
