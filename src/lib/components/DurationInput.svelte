@@ -296,7 +296,8 @@ land on the amount.
 - Failure: text that is empty, not a whole number of seconds or out of range is kept with its reason, never written, and refuses a form's send, and `invalid` marks a value the server refused.
 -->
 
-<div class={['sui-duration-input', className]} {@attach refusals.area}>
+<!-- A direction passed for the field reaches its unit as well as the amount. -->
+<div class={['sui-duration-input', className]} dir={rest.dir} {@attach refusals.area}>
   <JoinedField invalid={wrong} {disabled}>
     {#snippet start()}
       <span class="sui-duration-amount">

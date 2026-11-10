@@ -415,7 +415,8 @@ Name it with a `<label>` or `aria-label`, as any field.
 {/snippet}
 
 {#snippet control()}
-  <span class="sui-combobox-field"
+  <!-- A direction passed for the field reaches its chevron as well as the control. -->
+  <span class="sui-combobox-field" dir={rest.dir}
     ><TextInput
       bind:element
       {...rest}

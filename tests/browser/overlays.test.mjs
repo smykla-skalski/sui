@@ -1493,6 +1493,36 @@ suite('overlays', together, () => {
         assert.equal(arrow, facing, `the arrow of the ${name} points away from it`);
     });
 
+    // A `dir` passed to a field reached only its inner control, so its chevron or unit kept the
+    // page's direction and stood over the words.
+    test('a field set right to left on a left-to-right page ends with its chevron or unit', async () => {
+      const found = await page.evaluate(() => {
+        const { lib, mount, flushSync } = /** @type {any} */ (window);
+        const options = [
+          { value: 'alpha', label: 'Alpha' },
+          { value: 'beta', label: 'Beta' }
+        ];
+        const fields = [
+          [lib.Select, { label: 'Team', value: 'alpha', options }, '.sui-select-chevron'],
+          [lib.Combobox, { 'aria-label': 'Team', options }, '.sui-combobox-chevron'],
+          [lib.DurationInput, { label: 'Delay', value: 90 }, 'select']
+        ];
+        return fields.map(([component, props, end]) => {
+          const host = document.body.appendChild(document.createElement('div'));
+          host.style.cssText = 'inline-size:20rem';
+          mount(component, { target: host, props: { ...props, dir: 'rtl' } });
+          flushSync();
+          const [field, part] = [host.firstElementChild, host.querySelector(end)].map((each) =>
+            /** @type {Element} */ (each).getBoundingClientRect()
+          );
+          host.remove();
+          return { end, left: part.left + part.width / 2 < field.left + field.width / 2 };
+        });
+      });
+      for (const { end, left } of found)
+        assert.ok(left, `the ${end} of a right-to-left field stands at its right, over the words`);
+    });
+
     test('a box that follows a scrolled anchor reads every size before it writes one', async () => {
       const steps = await page.evaluate(() => {
         const { place } = /** @type {any} */ (window).anchor;

@@ -189,7 +189,8 @@ assistive technology, because a native picker cannot be held open.
 {/snippet}
 
 {#snippet field()}
-  <span class={['sui-select', { bare }, className]}>
+  <!-- A direction passed for the field reaches its chevron as well as the control. -->
+  <span class={['sui-select', { bare }, className]} dir={rest.dir}>
     <select
       bind:this={element}
       {...rest}
