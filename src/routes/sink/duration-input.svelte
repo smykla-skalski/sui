@@ -13,6 +13,7 @@
 
   let retry = $state(90);
   let merge = $state(7200);
+  let poll = $state(900);
   let cadence = $state(30);
   let saved = $state(30);
   let cadenceReset = $state(0);
@@ -48,6 +49,13 @@
     <Field label="Merge window">
       {#snippet control({ id, describedby })}
         <DurationInput {id} aria-describedby={describedby} bind:value={merge} />
+      {/snippet}
+    </Field>
+  </Specimen>
+  <Specimen label="Stored as {poll}&nbsp;{poll === 1 ? 'second' : 'seconds'}">
+    <Field label="Poll interval">
+      {#snippet control({ id, describedby })}
+        <DurationInput {id} aria-describedby={describedby} bind:value={poll} />
       {/snippet}
     </Field>
   </Specimen>
