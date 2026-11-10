@@ -132,7 +132,8 @@
     align-items: center;
     display: flex;
     gap: var(--sui-space-3);
-    inline-size: 15rem;
+    /* The menu's least width, so the menu that hangs from the open copy shares both its edges. */
+    inline-size: calc(13rem + 2 * var(--sui-stroke));
     justify-content: space-between;
     max-inline-size: 100%;
     /* One control tall, so the trigger centres on the line of the buttons beside it. */

@@ -895,6 +895,42 @@ suite('overlays', together, () => {
           )
         ]);
         assert.equal(reasonTops.length, 1, `the reasons start at ${reasonTops.join(', ')}`);
+        // The row is as wide as the menu that hangs from it, so the two share both edges, and no
+        // menu outgrows 20rem inside its edge.
+        const hung = await page.evaluate(() => {
+          const row = /** @type {Element} */ (document.querySelector('#action-menu .open'));
+          const menus = [
+            ...document.querySelectorAll('#action-menu .sui-action-menu-preview .sui-popover')
+          ];
+          const menu = /** @type {Element} */ (row.querySelector('.sui-popover'));
+          return {
+            start: menu.getBoundingClientRect().left - row.getBoundingClientRect().left,
+            widest: Math.max(...menus.map((each) => each.getBoundingClientRect().width))
+          };
+        });
+        assert.equal(hung.start, 0, `the menu starts ${hung.start}px inside its row`);
+        assert.ok(hung.widest <= 322, `a menu is ${hung.widest}px wide`);
+        // A disabled glyph wears its words' ink under the one disabled opacity (L-40).
+        const inks = await page.evaluate(() => {
+          const ink = (/** @type {string} */ selector) =>
+            getComputedStyle(/** @type {Element} */ (document.querySelector(selector))).color;
+          return {
+            trigger: ink('#action-menu .locked .sui-icon-button'),
+            button: ink('#action-menu .locked .sui-button'),
+            icon: ink(
+              '#action-menu .sui-action-menu-item[aria-disabled="true"] .sui-action-menu-icon'
+            ),
+            label: ink(
+              '#action-menu .sui-action-menu-item[aria-disabled="true"] .sui-action-menu-label'
+            )
+          };
+        });
+        assert.equal(
+          inks.trigger,
+          inks.button,
+          'a disabled icon trigger is dimmer than its button'
+        );
+        assert.equal(inks.icon, inks.label, 'a disabled item icon is dimmer than its name');
         // A menu item that wraps never leaves one word alone on its last line.
         const lone = await page.evaluate(() =>
           [...document.querySelectorAll('#action-menu .sui-action-menu-label')].flatMap((label) => {

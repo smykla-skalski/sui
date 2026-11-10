@@ -55,7 +55,7 @@ action are a `Button` with the word beside the glyph.
 
 - Semantics: a native `<button type="button">` named by `label` through `aria-label`, with the glyph hidden.
 - Content: one glyph from the certain set; the label is a verb phrase such as "Remove the rule".
-- States: rest (muted glyph), hover and open (`aria-expanded`, a veil and primary ink), focus (a flush 2px ring), pressed (a deeper veil, an inset shadow and a 1px sink), busy (a spinner in place of the glyph, at full strength), soft-disabled by `aria-disabled` and disabled (0.6 opacity).
+- States: rest (muted glyph), hover and open (`aria-expanded`, a veil and primary ink), focus (a flush 2px ring), pressed (a deeper veil, an inset shadow and a 1px sink), busy (a spinner in place of the glyph, at full strength), soft-disabled by `aria-disabled` and disabled (the primary ink at 0.6 opacity, as a disabled button's words).
 - Keyboard: Tab reaches it and Enter or Space presses it; a busy or soft-disabled one refuses both and keeps focus.
 - Pointer and touch: 28px square, or 34px with `toolbar`, and a 44px hit area on a phone or any touch screen.
 - Focus: a press never moves focus and a busy or soft-disabled button keeps it; the caller moves focus when the press removes the button.
@@ -148,6 +148,7 @@ action are a `Button` with the word beside the glyph.
   /* A busy button is the action at work, not a disabled one, so its spinner keeps full
      strength and holds its ink's contrast on the ground (WCAG 1.4.11), as `Button` does. */
   .sui-icon-button:is(:disabled, [aria-disabled='true']:not([aria-busy='true'])) {
+    color: var(--sui-text-primary);
     opacity: var(--sui-disabled-opacity);
   }
 
