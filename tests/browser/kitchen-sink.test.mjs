@@ -982,6 +982,9 @@ suite('the kitchen sink', together, () => {
       const report = await trigger.evaluate((element) => {
         const layer = document.querySelector(':popover-open:has([role="listbox"], [role="menu"])');
         if (!layer) return { missing: true };
+        // A layer can start its opening move a frame after it shows, past the rest above.
+        for (const animation of layer.getAnimations({ subtree: true }))
+          if (animation.effect?.getTiming().iterations !== Infinity) animation.finish();
         const probe = document.createElement('span');
         probe.style.color = 'var(--sui-interactive-hover-layer)';
         element.append(probe);
@@ -1006,11 +1009,15 @@ suite('the kitchen sink', together, () => {
             !element.matches('.sui-button:not(.field)') ||
             getComputedStyle(element).backgroundImage.includes(veil),
           heights: [...new Set(options.map((height) => Math.round(height * 100) / 100))],
-          tier: parseFloat(
-            getComputedStyle(document.documentElement).getPropertyValue(
-              '--sui-control-height-compact'
-            )
-          )
+          // The token is a max() of round()s, so a probe resolves it to pixels.
+          tier: (() => {
+            const probe = document.createElement('div');
+            probe.style.blockSize = 'var(--sui-control-height-compact)';
+            document.body.append(probe);
+            const height = probe.getBoundingClientRect().height;
+            probe.remove();
+            return height;
+          })()
         };
       });
       const name = `trigger ${index} (${await trigger.getAttribute('aria-haspopup')})`;
@@ -1079,11 +1086,15 @@ suite('the kitchen sink', together, () => {
             !element.matches('.sui-select:not(.bare) select:not([aria-invalid="true"])') ||
             getComputedStyle(element).borderTopColor === edge,
           heights: [...new Set(options.map((height) => Math.round(height * 100) / 100))],
-          tier: parseFloat(
-            getComputedStyle(document.documentElement).getPropertyValue(
-              '--sui-control-height-compact'
-            )
-          )
+          // The token is a max() of round()s, so a probe resolves it to pixels.
+          tier: (() => {
+            const probe = document.createElement('div');
+            probe.style.blockSize = 'var(--sui-control-height-compact)';
+            document.body.append(probe);
+            const height = probe.getBoundingClientRect().height;
+            probe.remove();
+            return height;
+          })()
         };
       });
       const name = `select ${index} (${(await select.getAttribute('aria-label')) ?? (await select.getAttribute('id'))})`;
