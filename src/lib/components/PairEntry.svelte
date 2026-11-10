@@ -211,14 +211,14 @@ its draft, and focus returns to the chip. A press outside or Tab out of the edit
 and keeps the draft, which the same chip or Add opens with next time. `addLabel` opens the same editor
 for a new pair, which joins the end of the row on Save Pair.
 
-In a `SettingRow`, give the row's `labelledby` to this group. The chips wrap within the room the
-row gives them and fall under the copy on a narrow row.
+In a `SettingRow`, give the row's `labelledby` to this group and set the row's `stacked`, so the
+chips take the whole line under the copy and wrap within it.
 
 - Semantics: a `div` with `role="group"` holding a list of chips, each an edit `button` with `aria-haspopup="dialog"` and a remove `button`, an `add` button, and a dialog `Popover` with a `Field` and a `Combobox`.
 - Content: pairs of a short key and one of `options`; a long key or value wraps inside its chip, so all of it shows.
 - States: rest; hover, pressed and focus on the edit part paint the whole chip (a veil, a deeper veil with an inset shadow, a flush ring), and the remove part's quiet plate takes its own (a veil, a deeper veil with an inset shadow, an inset ring); open (the chip's edge takes the focus color), invalid (the danger edge, an alert mark and the problem in words under the row), and disabled with `reason`.
 - Keyboard: Tab walks each chip's edit and remove parts, then Add; Enter or Space opens the editor; Delete or Backspace on a chip removes it; in the editor Enter is Save Pair, and Escape closes the value's list first and then the editor.
-- Pointer and touch: the chip is 28px tall and the remove part a 28px square over its end, both 44px on a phone or a coarse pointer; a press on that square is the remove part's alone, and the edit part's words keep clear of it; a press on the editor's words or padding closes only the value's list.
+- Pointer and touch: the chip is 28px tall and the remove part a 28px square over its end, both 44px on a phone or a coarse pointer, where the remove part's plate keeps its 24px in the middle of the square; a press on that square is the remove part's alone, and the edit part's words keep clear of it; a press on the editor's words or padding closes only the value's list.
 - Focus: the editor opens on the key field, keeps focus inside when its words or padding are pressed, and returns focus to its chip on close; after a removal focus moves to the next chip, the one before, or Add.
 - Responsive: chips wrap one by one within the row's room, a pair too long for its line grows by whole lines with the remove part on the first, and the editor is at most 20rem wide and inside the viewport.
 - Accessibility: every chip is named by `pairName` from `keyLabel` and `valueLabel`, such as "ship: deploy, Alias: Command", which starts with the words the chip draws in their order; a problem and `reason` describe the chips; a removal is said through a polite status.
@@ -337,9 +337,14 @@ row gives them and fall under the copy on a narrow row.
 </Popover>
 
 <style>
-  /* A chip is 28px on a pointer and a finger's 44px on a phone (L-38), and so are its parts. */
+  /* A chip is 28px on a pointer and a finger's 44px on a phone (L-38), and so are its parts. The
+     remove part's plate keeps its pointer size in the middle of its square on a phone, as a
+     small target's hit area grows past what it draws. */
   .sui-pair-entry {
     --sui-pair-chip: var(--sui-tier-quiet);
+    --sui-pair-plate-inset: calc(
+      (var(--sui-pair-chip) - var(--sui-tier-quiet)) / 2 + var(--sui-control-inset)
+    );
     display: grid;
     gap: var(--sui-row-copy-gap);
     justify-items: start;
@@ -462,16 +467,16 @@ row gives them and fall under the copy on a narrow row.
     min-inline-size: 0;
     padding-block: calc((var(--sui-pair-chip) - round(up, 1cap, 2px)) / 2);
     padding-inline: var(--sui-space-2)
-      calc(var(--sui-pair-chip) + var(--sui-space-2) - var(--sui-control-inset));
+      calc(var(--sui-pair-chip) - var(--sui-pair-plate-inset) + var(--sui-space-2));
     text-align: start;
   }
 
   /* The remove part lies over the edit part's end, as a clear button lies in a field: a square
      as tall as a one-line chip, on the first line however many the words wrap to (L-44, L-94).
      Its plate stands the control inset inside it, as a copy chip stands inside a joined field:
-     quiet at rest, with its own hover, press and an inset ring on the plate (L-42, L-47). The
-     chip radius is the control radius less that inset, so the plate's corners are concentric
-     with the chip's. */
+     quiet at rest, with its own hover, press and an inset ring on the plate (L-42, L-47). On a
+     pointer the chip radius is the control radius less that inset, so the plate's corners are
+     concentric with the chip's. */
   .sui-pair-remove {
     --sui-pair-plate: var(--sui-row-hover);
     block-size: var(--sui-pair-chip);
@@ -489,7 +494,7 @@ row gives them and fall under the copy on a narrow row.
     background-color: var(--sui-pair-plate);
     border-radius: var(--sui-radius-chip);
     content: '';
-    inset: var(--sui-control-inset);
+    inset: var(--sui-pair-plate-inset);
     position: absolute;
   }
 
@@ -537,7 +542,7 @@ row gives them and fall under the copy on a narrow row.
   .sui-pair-remove:focus-visible {
     color: var(--sui-text-primary);
     outline: var(--sui-focus-ring-width) solid var(--sui-focus);
-    outline-offset: calc(var(--sui-focus-ring-inset) - var(--sui-control-inset));
+    outline-offset: calc(var(--sui-focus-ring-inset) - var(--sui-pair-plate-inset));
   }
 
   /* A long key or value wraps inside the chip, at any character, so all of it shows (U6). The

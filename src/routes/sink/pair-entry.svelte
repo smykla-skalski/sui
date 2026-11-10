@@ -91,6 +91,9 @@
   title="States"
   note="A chip opens its editor, a refused key marks its chip and says why, removals are announced, and a locked set says why"
   layout="grid"
+  --example-max="54rem"
+  --specimen-min="21rem"
+  --specimen-row-gap="var(--sui-space-6)"
 >
   <Specimen label="Pairs">
     <PairEntry
@@ -141,26 +144,21 @@
 
 <Example
   title="In a Setting Row"
-  note="The chips stand beside the copy and wrap, and a change marks the row until it is reset"
+  note="The chips wrap on the line under the copy, the reset stands beside it, and a change marks the row until it is reset"
   layout="stack"
   ground="canvas"
+  --example-max="54rem"
 >
   {@render aliases()}
 </Example>
 
 <Example
   title="Narrow Width"
-  note="In a narrow section the chips take the line under the copy and pack to its start"
+  note="In a narrow section the chips still take the whole line under the copy and pack each line from its start"
   layout="stack"
   ground="canvas"
   code={false}
+  --example-max="calc(22rem + 2 * var(--sui-space-6))"
 >
-  <div class="narrow">{@render aliases()}</div>
+  {@render aliases()}
 </Example>
-
-<style>
-  .narrow {
-    inline-size: 22rem;
-    max-inline-size: 100%;
-  }
-</style>

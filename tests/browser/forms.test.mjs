@@ -2351,6 +2351,48 @@ suite('forms', together, () => {
     );
 
     test(
+      "a stacked row's reset ends the copy's band, so its chips share whole lines, and a phone keeps the remove plate at its pointer size",
+      long,
+      async () => {
+        const page = await opened();
+        const narrow = page
+          .locator('#pair-entry .example', { hasText: 'Narrow Width' })
+          .locator('.sui-setting-row');
+        await narrow.scrollIntoViewIfNeeded();
+        const tops = await narrow
+          .locator('.sui-pair-chip')
+          .evaluateAll((chips) => chips.map((chip) => chip.getBoundingClientRect().top));
+        const [reset, say] = await Promise.all([
+          narrow.locator('.sui-setting-reset-live button').boundingBox(),
+          narrow.locator('.sui-setting-say').boundingBox()
+        ]);
+        assert.ok(reset && say, 'the row has no reset or no copy');
+        assert.ok(
+          reset.y + reset.height <= say.y + say.height + 0.5,
+          'the reset left the copy band'
+        );
+        assert.ok(Math.abs(tops[1] - tops[0]) < 0.5, 'the second chip took a line of its own');
+
+        const plate = () =>
+          page
+            .locator('#pair-entry .sui-pair-remove')
+            .first()
+            .evaluate((element) => {
+              const box = element.getBoundingClientRect();
+              const inset = parseFloat(getComputedStyle(element, '::before').top);
+              return [box.height, box.height - 2 * inset];
+            });
+        const [, pointer] = await plate();
+        await page.setViewportSize({ width: 390, height: 900 });
+        try {
+          assert.deepEqual(await plate(), [44, pointer], 'the phone plate is not the pointer one');
+        } finally {
+          await page.setViewportSize({ width: 1440, height: 900 });
+        }
+      }
+    );
+
+    test(
       'a saving pane hands focus to Save and disables its fields until the save ends',
       long,
       async () => {
