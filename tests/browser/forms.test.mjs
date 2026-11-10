@@ -3236,6 +3236,62 @@ suite('forms', together, () => {
     }
   });
 
+  // The mark and the way back once stood on the middle of a field and its hint, under the field,
+  // and a button that wrapped on a phone ran back under the mark, off the words' edge.
+  test(
+    'an inherit control keeps its mark and buttons on the value or control row and edge',
+    long,
+    async () => {
+      const page = await open({ width: 390, path: 'inherit-control/' });
+      try {
+        const edges = () =>
+          page.evaluate(() =>
+            [...document.querySelectorAll('#inherit-control .sui-inherit')]
+              .slice(0, 3)
+              .map((root) => {
+                const words = root.querySelector('.sui-inherit-value, .sui-inherit-control > *');
+                const button = [...root.querySelectorAll('button')].at(-1);
+                const [w, b] = [words, button].map((part) =>
+                  /** @type {Element} */ (part).getBoundingClientRect()
+                );
+                return { words: w.left, button: b.left, wrapped: b.top >= w.bottom };
+              })
+          );
+        for (const { words, button, wrapped } of await edges()) {
+          assert.ok(wrapped, 'the phone row has room for its button beside the words');
+          assert.equal(button, words, 'a wrapped button stands off the edge of the words over it');
+        }
+        await page.setViewportSize({ width: 1440, height: 900 });
+        const root = page.locator('#inherit-control .sui-inherit').first();
+        await root.getByRole('button').click();
+        const rows = await root.evaluate((element) => {
+          const middle = (/** @type {Element} */ part) => {
+            const box = part.getBoundingClientRect();
+            return box.top + box.height / 2;
+          };
+          const field = /** @type {Element} */ (element.querySelector('.sui-joined'));
+          return {
+            hint: Boolean(element.querySelector('.sui-duration-hint')),
+            field: middle(field),
+            mark: middle(/** @type {Element} */ (element.querySelector('.sui-inherit-marker'))),
+            back: middle(/** @type {Element} */ ([...element.querySelectorAll('button')].at(-1)))
+          };
+        });
+        assert.ok(rows.hint, 'the overridden duration lost the hint under it');
+        assert.ok(
+          Math.abs(rows.mark - rows.field) <= 0.5,
+          `the mark stands ${rows.mark - rows.field}px off the field`
+        );
+        assert.ok(
+          Math.abs(rows.back - rows.field) <= 0.5,
+          `the way back stands ${rows.back - rows.field}px off the field`
+        );
+      } finally {
+        await page.close();
+      }
+    }
+  );
+
   test('a duration amount reads the page language own digits', long, async () => {
     const page = await open({ lang: 'ar-EG', path: 'duration-input/' });
     try {

@@ -82,6 +82,7 @@
   } & Omit<HTMLAttributes<HTMLDivElement>, 'children' | 'class' | 'id'> = $props();
 
   let root = $state<HTMLElement | null>(null);
+  const failed = $derived(!overridden && !loading && Boolean(error));
 
   // The value sits inside the sentence wherever the language puts it, so it keeps its weight.
   const said = $derived.by(() => {
@@ -136,11 +137,11 @@ for a press of the way back.
 
 - Semantics: a `div` holding the sentence and a native button, or the caller's control and a native button; pass the row's `id` here and to the control, and it lands on Override Value while inheriting, so pressing the setting's name overrides.
 - Content: the inherited value and its source as one sentence, or the caller's control.
-- States: inheriting (the value in muted ink beside a link mark), overridden (the control beside a broken link mark), loading, failed (`error` with an alert mark), nothing set at the source, and disabled.
+- States: inheriting (the value in muted ink beside a link mark), overridden (the control beside a broken link mark), loading, failed (`error` with an alert mark in the link mark's place), nothing set at the source, and disabled.
 - Keyboard: Tab reaches Override Value or the control and then the way back; Enter or Space on either button switches.
 - Pointer and touch: both buttons are 34px tall, 44px on a phone.
 - Focus: overriding moves focus into the control, onto its chosen option first; going back moves it to Override Value.
-- Responsive: the sentence wraps beside its mark, and the button wraps under it when the room is short.
+- Responsive: the sentence wraps beside its mark, and the button wraps under it, on its start edge, when the room is short; beside a control, the mark and the button stand on the control's first row, so the control draws no name of its own.
 - Accessibility: each button's name carries `label`, so a screen reader hears which setting it acts on; the mark is decorative and the sentence says the state.
 - Localization: every word is a prop; the sentence is one function of the value and the source, so a language can place them in its own order, and the value keeps its weight wherever it lands.
 - Performance: the control mounts only while overridden.
@@ -148,19 +149,17 @@ for a press of the way back.
 - Failure: `loading` says `loadingLabel`, `error` says why the inherited value is unknown while Override Value still works, and an empty `inherited` says `unknownLabel`.
 -->
 
-<div bind:this={root} {...rest} class={['sui-inherit', className, { overridden }]}>
+<div bind:this={root} {...rest} class={['sui-inherit', className, { overridden, failed }]}>
   <span class="sui-inherit-subject">
     <span class="sui-inherit-marker" aria-hidden="true">
-      <Icon name={overridden ? 'link-off' : 'link'} size="sm" />
+      <Icon name={overridden ? 'link-off' : failed ? 'alert' : 'link'} size="sm" />
     </span>
     {#if overridden}
       <span class="sui-inherit-control">{@render control()}</span>
     {:else if loading}
       <span class="sui-inherit-value">{loadingLabel}</span>
     {:else if error}
-      <span class="sui-inherit-problem">
-        <Icon name="alert" size="sm" /><span class="sui-inherit-value">{error}</span>
-      </span>
+      <span class="sui-inherit-value sui-inherit-problem">{error}</span>
     {:else}
       <span class="sui-inherit-value"
         >{said.before}<span class="sui-inherit-word">{said.value}</span>{said.after}</span
@@ -190,16 +189,21 @@ for a press of the way back.
 </div>
 
 <style>
+  /* The mark hangs in the start padding, so a button that wraps stands on the words' or the
+     control's edge, not under the mark. */
   .sui-inherit {
     --sui-inherit-marker-size: 26px;
     --sui-inherit-marker-gap: 6px;
+    --sui-local-inherit-hang: calc(var(--sui-inherit-marker-size) + var(--sui-inherit-marker-gap));
     align-items: center;
+    box-sizing: border-box;
     display: flex;
     flex-wrap: wrap;
     gap: var(--sui-space-2) var(--sui-space-3);
     inline-size: fit-content;
     max-inline-size: 100%;
     min-inline-size: 0;
+    padding-inline-start: var(--sui-local-inherit-hang);
   }
 
   /* Words: the mark centres on the first line's cap height, however many lines they wrap to. */
@@ -207,6 +211,7 @@ for a press of the way back.
     align-items: start;
     display: flex;
     gap: var(--sui-inherit-marker-gap);
+    margin-inline-start: calc(-1 * var(--sui-local-inherit-hang));
     min-inline-size: 0;
   }
 
@@ -222,11 +227,12 @@ for a press of the way back.
     place-items: center;
   }
 
-  /* A control: the mark and the button stand on the control's own row, a control tall, so a
-     caption over the control never pulls them off its centre. */
+  /* A control: the mark and the way back stand on the control's first row, a control tall, so
+     a hint or a problem under the control never pulls them off it. The setting's name stands
+     outside, as a row's or a field's label does. */
   .overridden,
   .overridden .sui-inherit-subject {
-    align-items: end;
+    align-items: start;
   }
 
   .overridden .sui-inherit-marker {
@@ -255,23 +261,15 @@ for a press of the way back.
     font-weight: var(--sui-weight-semibold);
   }
 
-  /* In the words' font, so its alert mark centres on their first line as the link mark does. */
+  /* An unknown value takes the alert in the mark's place, so the row draws one mark, and its
+     words read as the kit's 14px message (L-94). */
+  .failed .sui-inherit-marker,
   .sui-inherit-problem {
-    align-items: start;
     color: var(--sui-danger);
-    display: flex;
+  }
+
+  .sui-inherit-problem {
     font: var(--sui-weight-medium) var(--sui-font-size-note) / var(--sui-leading-note)
       var(--sui-sans);
-    gap: var(--sui-space-1);
-    min-inline-size: 0;
-  }
-
-  .sui-inherit-problem > :global(svg) {
-    flex: none;
-    margin-block: calc((round(up, 1cap, 2px) - var(--sui-icon-sm)) / 2);
-  }
-
-  .sui-inherit-problem .sui-inherit-value {
-    color: inherit;
   }
 </style>
