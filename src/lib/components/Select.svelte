@@ -774,14 +774,11 @@ assistive technology, because a native picker cannot be held open.
   }
 
   /* A group that follows a row stands under a line, as a menu parts its groups, so where one
-     group ends reads before its heading does. */
+     group ends reads before its heading does. The line stops where the rows' veils do. */
   :is(option, optgroup) + optgroup > .sui-select-heading,
   .sui-select-sheet > :not(.sui-select-heading) + .sui-select-heading {
     border-block-start: var(--sui-stroke) solid var(--sui-border-control);
     margin-block-start: var(--sui-space-1);
-    margin-inline: calc(-1 * var(--sui-space-1));
-    padding-inline: calc(var(--sui-field-inset) + var(--sui-icon-base) + var(--sui-space-2))
-      var(--sui-space-4);
   }
 
   @media (prefers-reduced-motion: reduce) {

@@ -1358,7 +1358,18 @@ suite('forms', together, () => {
             probe.remove();
             return color;
           })(),
-          lines: { copy: lines(sheet), live: lines(live) }
+          lines: { copy: lines(sheet), live: lines(live) },
+          inset: (() => {
+            const lined = /** @type {Element} */ (
+              [...sheet.querySelectorAll('.sui-select-heading')].find(
+                (heading) => getComputedStyle(heading).borderBlockStartWidth !== '0px'
+              )
+            ).getBoundingClientRect();
+            const veil = /** @type {Element} */ (
+              sheet.querySelector('.sui-select-option')
+            ).getBoundingClientRect();
+            return [lined.left - veil.left, lined.right - veil.right];
+          })()
         };
       });
       assert.ok(look.copies.length >= 3, 'the page shows the open copies');
@@ -1395,6 +1406,7 @@ suite('forms', together, () => {
       // A group after a row stands under a line, in the copy and in the live picker alike.
       assert.deepEqual(look.lines.copy, ['1px', '1px']);
       assert.deepEqual(look.lines.live, ['1px', '1px']);
+      assert.deepEqual(look.inset, [0, 0], "a group's line stops where the rows' veils do");
     });
 
     test(

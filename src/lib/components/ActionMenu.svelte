@@ -429,10 +429,11 @@ returns focus there too. Labels wrap rather than being cut short.
     text-box: trim-both cap alphabetic;
   }
 
+  /* The line stops where the items' veils do. */
   .sui-action-menu-separator {
     background-color: var(--sui-border-control);
     block-size: var(--sui-stroke);
-    margin: var(--sui-space-1) calc(-1 * var(--sui-space-1));
+    margin-block: var(--sui-space-1);
   }
 
   /* The highlight is a veil, which high contrast drops, so it draws an outline there. */
