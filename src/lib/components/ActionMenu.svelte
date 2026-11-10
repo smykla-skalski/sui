@@ -193,7 +193,7 @@ returns focus there too. Labels wrap rather than being cut short.
 
 - Semantics: a menu button (`aria-haspopup="menu"`, `aria-expanded`) and a `menu` of `menuitem` buttons named by the trigger, with `separator` rows between groups.
 - Content: items with a label, an optional icon and one line of description; a destructive item last; labels and descriptions wrap.
-- States: closed, open, an item highlighted by focus or pointer, pressed, disabled (dimmed glyph and label in the name's ink, with its reason at full contrast), `stop` in the danger ink, and a disabled trigger.
+- States: closed, open, an item highlighted by focus or pointer, pressed, disabled (glyph, label and reason in the secondary ink at full strength), `stop` in the danger ink, and a disabled trigger.
 - Keyboard: Enter, Space, Down or Up opens on the first or last item; arrows wrap, Home and End jump, a letter jumps, Enter or Space chooses, Escape closes to the trigger and Tab closes and moves on.
 - Pointer and touch: items are one control tall, 34px and 44px on a phone or touch screen; the pointer's item takes focus as it moves; the icon trigger is 28px with a 44px hit area there, or with `toolbar` one control tall, as the button trigger is.
 - Focus: opening moves focus to the first item, choosing or Escape returns it to the trigger before `onselect` runs, and Tab hands it to the next control.
@@ -391,11 +391,10 @@ returns focus there too. Labels wrap rather than being cut short.
     cursor: default;
   }
 
-  /* The reason a disabled item gives stays at full contrast, and its glyph takes the name's ink,
-     since the muted ink at the disabled opacity falls to 2.5:1 (L-40). */
+  /* A disabled item's glyph and name take its reason's ink at full strength, so the smaller
+     reason never outranks the name it qualifies (L-40). */
   .sui-action-menu-item[aria-disabled='true'] :is(.sui-action-menu-icon, .sui-action-menu-label) {
-    color: inherit;
-    opacity: var(--sui-disabled-opacity);
+    color: var(--sui-text-secondary);
   }
 
   .sui-action-menu-item[data-tone='stop'] {

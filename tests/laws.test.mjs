@@ -1225,6 +1225,14 @@ test('L-53 a shadow that lifts a part is two layers in every palette block, and 
   for (const [, y, blur] of lift.matchAll(/(?:^|,)\s*0 (\d+)px (\d+)px/g)) {
     assert.ok(Number(y) <= 8 && Number(blur) <= 20, `a light popover lifts ${y}px with ${blur}px`);
   }
+  const shade = Number(/--sui-shadow-color: rgb\(0 0 0 \/ (\d+)%\)/.exec(palette)?.[1]);
+  const contact =
+    /^\s*0 1px \d+px (?:color-mix\(in srgb, var\(--sui-shadow-color\) (\d+)%|var\(--sui-shadow-color\))/.exec(
+      lift
+    );
+  assert.ok(contact, 'a light popover opens on a 1px contact line');
+  const dark = (shade * Number(contact[1] ?? 100)) / 100;
+  assert.ok(dark <= 8, `a light popover's contact line is ${dark}% black`);
   assert.deepEqual(
     found.filter(([, , value]) => layers(value) < 2).map(([, name]) => name),
     []

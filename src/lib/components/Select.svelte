@@ -725,14 +725,10 @@ assistive technology, because a native picker cannot be held open.
     cursor: default;
   }
 
-  /* As a menu item does, an option that cannot be chosen dims its name and keeps the reason it
-     gives at full contrast, in the menu's reason ink (L-40). */
+  /* As a menu item does, an option that cannot be chosen draws its name and its reason in the
+     menu's reason ink at full strength, so the reason never outranks the name (L-40). */
   .sui-select-option:is(:disabled, [aria-disabled='true'])
-    :is(.sui-select-check, .sui-select-label) {
-    opacity: var(--sui-disabled-opacity);
-  }
-
-  .sui-select-option:is(:disabled, [aria-disabled='true']) .sui-select-note {
+    :is(.sui-select-check, .sui-select-label, .sui-select-note) {
     color: var(--sui-text-secondary);
   }
 

@@ -636,7 +636,7 @@
     0 1px 2px var(--sui-shadow-color),
     0 2px 8px color-mix(in srgb, var(--sui-shadow-color) 25%, transparent);
   --sui-shadow-popover:
-    0 1px 3px var(--sui-shadow-color),
+    0 1px 2px color-mix(in srgb, var(--sui-shadow-color) 40%, transparent),
     0 8px 20px color-mix(in srgb, var(--sui-shadow-color) 56%, transparent);
   --sui-shadow-dialog:
     0 4px 12px color-mix(in srgb, var(--sui-shadow-color) 40%, transparent),

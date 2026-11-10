@@ -941,6 +941,28 @@ suite('overlays', together, () => {
           )
         );
         assert.equal(sizes[1], sizes[0], "the open copy's trigger is another size");
+        // A list row that cannot be chosen draws its name in its reason's ink at full strength, so
+        // the 13px reason never outranks the 14px name it qualifies (L-40).
+        const offRows = await page.evaluate(() =>
+          ['action-menu', 'select', 'combobox'].map((kind) => {
+            const note = kind === 'action-menu' ? 'description' : 'note';
+            const row = [
+              ...document.querySelectorAll(
+                `.sui-${kind}-${kind === 'action-menu' ? 'item' : 'option'}[aria-disabled="true"]`
+              )
+            ].find((each) => each.querySelector(`.sui-${kind}-${note}`));
+            if (!row) return `${kind}: no disabled row with a reason`;
+            const [label, reason] = [`.sui-${kind}-label`, `.sui-${kind}-${note}`].map((selector) =>
+              getComputedStyle(/** @type {Element} */ (row.querySelector(selector)))
+            );
+            return `${kind}: ${label.opacity} ${label.color === reason.color ? 'reason ink' : label.color}`;
+          })
+        );
+        assert.deepEqual(offRows, [
+          'action-menu: 1 reason ink',
+          'select: 1 reason ink',
+          'combobox: 1 reason ink'
+        ]);
         // A copy's lit item is where the keyboard is, so it wears the ring, as a select's and a
         // combobox's lit row do.
         const rings = await page.evaluate(() =>

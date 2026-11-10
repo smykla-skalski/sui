@@ -396,7 +396,7 @@ Name it with a `<label>` or `aria-label`, as any field.
 
 - Semantics: a text input with `role="combobox"` and `aria-autocomplete="list"`, a `role="listbox"` of `role="option"` rows in a popover, a polite `role="status"`, and a hidden input that posts `value`.
 - Content: options with a short label and an optional note a type step smaller after a drawn dot, both wrapping; at most `limit` rows are drawn and the rest are counted.
-- States: closed, open (the end chevron, as a `Select`'s, turns over while the list or its note shows), searching (a spinner, drawn once the search has run 150ms and then for at least 400ms), search refused (a warning mark in the danger ink), nothing matches, invalid (the field's danger edge) and disabled; in the list a row is active (a veil and an inset 2px ring), committed (a check mark), pressed (a deeper veil, an inset shadow and a 1px sink) or disabled (its name at 0.6 opacity, its note at full contrast).
+- States: closed, open (the end chevron, as a `Select`'s, turns over while the list or its note shows), searching (a spinner, drawn once the search has run 150ms and then for at least 400ms), search refused (a warning mark in the danger ink), nothing matches, invalid (the field's danger edge) and disabled; in the list a row is active (a veil and an inset 2px ring), committed (a check mark), pressed (a deeper veil, an inset shadow and a 1px sink) or disabled (its name and note in the secondary ink at full strength).
 - Keyboard: typing filters, Down and Up open the list and light a row with wrap-around, Enter commits the lit row or settles the typed text, and Escape closes the list and stops there; while a busy dialog or a saving pane around it works, the field is disabled and the list stays shut.
 - Pointer and touch: the field is 34px tall, 44px on a phone or any touch screen, every row at least that tall, and a press on a row commits it.
 - Focus: focus stays in the field the whole time; the lit row is `aria-activedescendant`, set only once an arrow or the pointer moved to it.
@@ -656,10 +656,10 @@ Name it with a `<label>` or `aria-label`, as any field.
     cursor: default;
   }
 
-  /* As a Select option does, an option that cannot be chosen dims its name and keeps its reason
-     at full contrast, in the menu's reason ink (L-40). */
+  /* As a Select option does, an option that cannot be chosen draws its name in its reason's ink
+     at full strength, so the reason never outranks the name (L-40). */
   .sui-combobox-option[aria-disabled='true'] :is(.sui-combobox-check, .sui-combobox-label) {
-    opacity: var(--sui-disabled-opacity);
+    color: var(--sui-text-secondary);
   }
 
   /* Centred on the first line, however many lines the row wraps to (L-94). */
