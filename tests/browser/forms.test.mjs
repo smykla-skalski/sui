@@ -1381,6 +1381,20 @@ suite('forms', together, () => {
         plain: true,
         foot: '1px'
       });
+      // A one-line note keeps an option row's height on a phone too, where rows grow to 44px.
+      await page.setViewportSize({ width: 390, height: 900 });
+      const rows = await page.evaluate(() => {
+        const copy = '#combobox .sui-combobox-preview';
+        return {
+          option: document.querySelector(`${copy} .sui-combobox-option`)?.getBoundingClientRect()
+            .height,
+          notes: [
+            ...document.querySelectorAll(`${copy} .sui-combobox-empty:not(.count, .refused)`)
+          ].map((note) => note.getBoundingClientRect().height)
+        };
+      });
+      await page.setViewportSize({ width: 1440, height: 900 });
+      assert.deepEqual(rows, { option: 44, notes: [44, 44] });
       assert.equal(look.off.name, 0.6);
       assert.equal(look.off.note, 1, 'an off option keeps its reason at full strength');
       assert.equal(look.off.ink, look.secondary, 'in the reason ink');
