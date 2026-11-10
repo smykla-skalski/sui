@@ -49,6 +49,10 @@
 <Example
   title="States"
   note="An inherited value is muted with its source, an override shows the control with a way back, and a locked one says why"
+  layout="grid"
+  --example-max="54rem"
+  --specimen-min="21rem"
+  --specimen-row-gap="var(--sui-space-6)"
 >
   <Specimen label="Inherited">
     <InheritControl
@@ -89,6 +93,10 @@
 <Example
   title="Unknown Values"
   note="A loading, failed or empty inherited value is said in words, and Override still works"
+  layout="grid"
+  --example-max="54rem"
+  --specimen-min="21rem"
+  --specimen-row-gap="var(--sui-space-6)"
 >
   <Specimen label="Loading">
     <InheritControl label="Retention" inherited="" source="the organization" loading>
@@ -175,21 +183,20 @@
 
 <Example
   title="Narrow Width"
-  note="A long source wraps beside its marker and Override stays in view"
+  note="In a phone’s width a long source wraps beside its marker and Override stays in view"
   layout="stack"
+  --example-max="calc(21.4375rem + 2 * var(--sui-space-6))"
 >
   <Specimen label="Long source">
-    <div class="narrow">
-      <InheritControl
-        label="Retention"
-        inherited="30&nbsp;days"
-        source="the retention policy of the whole organization"
-      >
-        {#snippet control()}
-          <DurationInput label="Retention" value={2_592_000} />
-        {/snippet}
-      </InheritControl>
-    </div>
+    <InheritControl
+      label="Retention"
+      inherited="30&nbsp;days"
+      source="the retention policy of the whole organization"
+    >
+      {#snippet control()}
+        <DurationInput label="Retention" value={2_592_000} />
+      {/snippet}
+    </InheritControl>
   </Specimen>
 </Example>
 
@@ -209,10 +216,5 @@
     margin: 0;
     padding-block: var(--sui-block-snap-room);
     text-box: trim-both cap alphabetic;
-  }
-
-  .narrow {
-    inline-size: min(100%, 16rem);
-    max-inline-size: 100%;
   }
 </style>
