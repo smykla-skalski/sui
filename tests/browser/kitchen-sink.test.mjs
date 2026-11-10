@@ -1650,6 +1650,27 @@ suite('the kitchen sink', together, () => {
     }
   );
 
+  test("on a phone a page's source row heads its examples, closer to them than they stand apart", async () => {
+    const page = await open(390, 'light', {}, 'combobox');
+    try {
+      const gaps = await page.evaluate(() => {
+        const head = /** @type {Element} */ (
+          document.querySelector('.section:not(.headed) > .head')
+        );
+        // Each example stands in a wrapper that only carries its style props and draws no box.
+        const [first, second] =
+          head.parentElement?.querySelectorAll(':scope > svelte-css-wrapper > *') ?? [];
+        return [
+          first.getBoundingClientRect().top - head.getBoundingClientRect().bottom,
+          second.getBoundingClientRect().top - first.getBoundingClientRect().bottom
+        ];
+      });
+      assert.deepEqual(gaps, [16, 24]);
+    } finally {
+      await page.close();
+    }
+  });
+
   test('L-87 the phone drawer holds focus and gives it back', long, async () => {
     // The shell is a whole page of its own, opened on a phone.
     const page = await browser.newPage({ viewport: { width: 375, height: 900 } });
