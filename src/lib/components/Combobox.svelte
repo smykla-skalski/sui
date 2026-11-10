@@ -498,16 +498,20 @@ Name it with a `<label>` or `aria-label`, as any field.
     </div>
     <!-- The status beside the field speaks these, so the drawn copy stays out of the tree. -->
     {#if note}
+      <!-- Every note keeps the check column, marked or not, so its words start where the names do. -->
       <p class={['sui-combobox-empty', { refused }]} aria-hidden="true">
-        {#if refused}<span class="sui-combobox-mark"><Icon name="alert" size="base" /></span
-          >{:else if note === searchingLabel}<span class="sui-combobox-mark"
-            ><span class="sui-combobox-spinner"></span></span
-          >{/if}<span class="sui-combobox-words">{note}</span>
+        <span class="sui-combobox-mark"
+          >{#if refused}<Icon name="alert" size="base" />{:else if note === searchingLabel}<span
+              class="sui-combobox-spinner"
+            ></span>{/if}</span
+        ><span class="sui-combobox-words">{note}</span>
       </p>
     {/if}
     {#if beyond > 0 && rows > 0}
       <p class="sui-combobox-empty count" aria-hidden="true">
-        <span class="sui-combobox-words">{moreLabel(beyond)}</span>
+        <span class="sui-combobox-mark"></span><span class="sui-combobox-words"
+          >{moreLabel(beyond)}</span
+        >
       </p>
     {/if}
   </Popover>

@@ -1372,14 +1372,27 @@ suite('forms', together, () => {
             getComputedStyle(note('could not load')).color === danger
           ],
           plain: note('No suggestions').querySelector('svg, .sui-combobox-spinner') === null,
-          foot: getComputedStyle(note('more,')).borderBlockStartWidth
+          foot: getComputedStyle(note('more,')).borderBlockStartWidth,
+          starts: [
+            ...new Set(
+              [
+                ...document.querySelectorAll(
+                  '#combobox .sui-combobox-preview :is(.sui-combobox-label, .sui-combobox-words)'
+                )
+              ].map((words) => {
+                const layer = /** @type {Element} */ (words.closest('.sui-popover'));
+                return words.getBoundingClientRect().left - layer.getBoundingClientRect().left;
+              })
+            )
+          ].length
         };
       });
       assert.deepEqual(signs, {
         spinner: true,
         refused: [true, true],
         plain: true,
-        foot: '1px'
+        foot: '1px',
+        starts: 1
       });
       assert.equal(look.off.name, 0.6);
       assert.equal(look.off.note, 1, 'an off option keeps its reason at full strength');
