@@ -446,8 +446,8 @@ Name it with a `<label>` or `aria-label`, as any field.
           <span class="sui-combobox-check"><Icon name="check" size="base" /></span>
           <span class="sui-combobox-text"
             ><span class="sui-combobox-label">{@render marked(option.label)}</span
-            >{#if option.description}<span class="sui-combobox-note"
-                >{mark('space')}{option.description}</span
+            >{#if option.description}<span class="sui-combobox-note" data-sep={mark('comma')}
+                >{option.description}</span
               >{/if}</span
           >
         </div>
@@ -578,9 +578,24 @@ Name it with a `<label>` or `aria-label`, as any field.
     text-box: trim-both cap alphabetic;
   }
 
+  /* A note reads a type step under its name and parts from it with the drawn dot of a Select
+     row; the dot reads as the comma mark, as every drawn dot does (L-25, L-103). */
   .sui-combobox-note {
     color: var(--sui-text-muted);
+    font-size: var(--sui-font-size-caption);
     font-weight: var(--sui-weight-regular);
+  }
+
+  .sui-combobox-note::before {
+    color: var(--sui-text-muted);
+    content: '·' / attr(data-sep);
+    margin-inline: var(--sui-sep-space-compact);
+  }
+
+  @media (max-width: 47.9375rem), (pointer: coarse) {
+    .sui-combobox-note {
+      font-size: var(--sui-font-size-meta);
+    }
   }
 
   /* Muted ink drops under 4.5:1 on the active row's veil. */

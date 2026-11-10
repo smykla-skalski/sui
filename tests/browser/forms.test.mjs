@@ -1256,6 +1256,31 @@ suite('forms', together, () => {
       assert.equal(await field.inputValue(), 'Go');
     });
 
+    test('a combobox note parts from its name as a select note does, by the drawn dot and a type step', async () => {
+      const page = await opened();
+      const look = await page.evaluate(() => {
+        const read = (/** @type {string} */ name, /** @type {string} */ note) => {
+          const node = /** @type {Element} */ (document.querySelector(note));
+          const dot = getComputedStyle(node, '::before');
+          return {
+            dot: [dot.content.split(' / ')[0], dot.marginInlineStart, dot.marginInlineEnd],
+            size: getComputedStyle(node).fontSize,
+            name: getComputedStyle(
+              /** @type {Element} */ (
+                node.closest('.sui-combobox-option, .sui-select-option')?.querySelector(name)
+              )
+            ).fontSize
+          };
+        };
+        return {
+          combobox: read('.sui-combobox-label', '#combobox .sui-combobox-note'),
+          select: read('.sui-select-label', '#select .sui-select-sheet .sui-select-note')
+        };
+      });
+      assert.deepEqual(look.combobox, look.select);
+      assert.notEqual(look.combobox.size, look.combobox.name);
+    });
+
     test('an open select copy is the closed field turned over, as wide as its picker, its groups lined and headed on the names, set as the field with the check on its words and on the first line of a wrapped name, an off option dimming its name and inking its reason as a menu does', async () => {
       const page = await opened();
       const look = await page.evaluate(() => {

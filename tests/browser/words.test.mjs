@@ -22,72 +22,76 @@ after(async () => {
 });
 
 suite('words', together, () => {
-  test('a space mark from the server stays in the name beside its word', long, async () => {
-    const page = await browser.newPage();
-    try {
-      await visit(page, allSections(url));
-      const cdp = await page.context().newCDPSession(page);
-      /** @param {string} selector */
-      const names = async (selector) => {
-        const { result } = await cdp.send('Runtime.evaluate', {
-          expression: `[...document.querySelectorAll(${JSON.stringify(selector)})]`
-        });
-        const { result: found } = await cdp.send('Runtime.getProperties', {
-          objectId: result.objectId ?? '',
-          ownProperties: true
-        });
-        const read = [];
-        for (const entry of found.filter((entry) => /^\d+$/.test(entry.name))) {
-          const { nodes } = await cdp.send('Accessibility.getPartialAXTree', {
-            objectId: entry.value?.objectId,
-            fetchRelatives: false
+  test(
+    'a mark from the server stays in the name beside its word, and a drawn dot reads as a comma',
+    long,
+    async () => {
+      const page = await browser.newPage();
+      try {
+        await visit(page, allSections(url));
+        const cdp = await page.context().newCDPSession(page);
+        /** @param {string} selector */
+        const names = async (selector) => {
+          const { result } = await cdp.send('Runtime.evaluate', {
+            expression: `[...document.querySelectorAll(${JSON.stringify(selector)})]`
           });
-          read.push(nodes[0].name?.value);
-        }
-        return read;
-      };
-      const legends = await names(
-        'fieldset:has(.sui-check-list-required, .sui-choice-cards-required)'
-      );
-      assert.ok(legends.length > 0, 'the sink holds no required legend');
-      assert.deepEqual(
-        legends.filter((name) => !/\S Required$/.test(name ?? '')),
-        []
-      );
-      // A closed list's options are out of the tree, so the first list with a note opens.
-      const list = await page.$$eval('[role="combobox"]', (inputs) =>
-        inputs
-          .find(
-            (input) =>
-              input instanceof HTMLInputElement &&
-              !input.disabled &&
-              !input.readOnly &&
-              input.checkVisibility() &&
-              document
-                .getElementById(input.getAttribute('aria-controls') ?? '')
-                ?.querySelector('.sui-combobox-note')
+          const { result: found } = await cdp.send('Runtime.getProperties', {
+            objectId: result.objectId ?? '',
+            ownProperties: true
+          });
+          const read = [];
+          for (const entry of found.filter((entry) => /^\d+$/.test(entry.name))) {
+            const { nodes } = await cdp.send('Accessibility.getPartialAXTree', {
+              objectId: entry.value?.objectId,
+              fetchRelatives: false
+            });
+            read.push(nodes[0].name?.value);
+          }
+          return read;
+        };
+        const legends = await names(
+          'fieldset:has(.sui-check-list-required, .sui-choice-cards-required)'
+        );
+        assert.ok(legends.length > 0, 'the sink holds no required legend');
+        assert.deepEqual(
+          legends.filter((name) => !/\S Required$/.test(name ?? '')),
+          []
+        );
+        // A closed list's options are out of the tree, so the first list with a note opens.
+        const list = await page.$$eval('[role="combobox"]', (inputs) =>
+          inputs
+            .find(
+              (input) =>
+                input instanceof HTMLInputElement &&
+                !input.disabled &&
+                !input.readOnly &&
+                input.checkVisibility() &&
+                document
+                  .getElementById(input.getAttribute('aria-controls') ?? '')
+                  ?.querySelector('.sui-combobox-note')
+            )
+            ?.getAttribute('aria-controls')
+        );
+        assert.ok(list, 'the sink holds no option with a note');
+        const input = page.locator(`[aria-controls="${list}"]`);
+        await input.scrollIntoViewIfNeeded();
+        await input.focus();
+        await page.keyboard.press('ArrowDown');
+        const noted = `#${list} .sui-combobox-option:has(.sui-combobox-note)`;
+        await page.locator(noted).first().waitFor();
+        const options = await names(noted);
+        const words = await page.$$eval(noted, (found) =>
+          found.map(
+            (option) =>
+              `${option.querySelector('.sui-combobox-label')?.textContent?.trim()}, ${option.querySelector('.sui-combobox-note')?.textContent?.trim()}`
           )
-          ?.getAttribute('aria-controls')
-      );
-      assert.ok(list, 'the sink holds no option with a note');
-      const input = page.locator(`[aria-controls="${list}"]`);
-      await input.scrollIntoViewIfNeeded();
-      await input.focus();
-      await page.keyboard.press('ArrowDown');
-      const noted = `#${list} .sui-combobox-option:has(.sui-combobox-note)`;
-      await page.locator(noted).first().waitFor();
-      const options = await names(noted);
-      const words = await page.$$eval(noted, (found) =>
-        found.map(
-          (option) =>
-            `${option.querySelector('.sui-combobox-label')?.textContent?.trim()} ${option.querySelector('.sui-combobox-note')?.textContent?.trim()}`
-        )
-      );
-      assert.deepEqual(options, words);
-    } finally {
-      await page.close();
+        );
+        assert.deepEqual(options, words);
+      } finally {
+        await page.close();
+      }
     }
-  });
+  );
 
   // These tests only mount components. The space test runs first, because the next one
   // replaces the marks for the whole page.
