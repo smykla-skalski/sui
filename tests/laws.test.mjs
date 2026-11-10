@@ -523,10 +523,15 @@ test('L-35 a floating list or a tip arrow stands clear of its focused trigger by
   );
   const tooltip = read('src/lib/components/Tooltip.svelte');
   assert.match(tooltip, /const ARROW = 5;/);
-  assert.match(tooltip, /offset: 6 \+ ARROW/, 'a live tip stands its arrow past the gap');
+  assert.match(tooltip, /const TIP_GAP = 8;/, "a tip's point clears the ring's 4px reach by 4px");
+  assert.match(tooltip, /offset: TIP_GAP \+ ARROW/, 'a live tip stands its arrow past the gap');
   assert.match(
     tooltip,
-    /\.preview \{[^}]*margin-block-start: calc\(var\(--sui-floating-gap\) \+ var\(--sui-tip-arrow\)\);/,
+    /--sui-local-tip-gap: calc\(\s*var\(--sui-focus-ring-offset\) \+ var\(--sui-focus-ring-width\) \+ var\(--sui-space-1\)\s*\);/
+  );
+  assert.match(
+    tooltip,
+    /\.preview \{[^}]*margin-block-start: calc\(var\(--sui-local-tip-gap\) \+ var\(--sui-tip-arrow\)\);/,
     'a tip copy stands its arrow past the gap'
   );
 });
@@ -968,6 +973,11 @@ test('L-72 a floating layer on dark stands off its ground by the raised ground a
     tip,
     /border-radius: var\(--sui-radius-control\);/,
     'a tip takes the control radius'
+  );
+  assert.match(
+    tip,
+    /font: var\(--sui-weight-regular\) var\(--sui-font-size-caption\) \/ var\(--sui-leading-compact\)/,
+    'a tip is caption type (L-25)'
   );
 });
 

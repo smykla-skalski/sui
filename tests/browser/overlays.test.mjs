@@ -928,15 +928,15 @@ suite('overlays', together, () => {
             ...arrowOf(tip, m)
           };
         })()`);
-        // Every tip starts at its mark with an arrow on the mark's centre whose point stands the
-        // floating gap off it (L-35), so a copy stands as far off as the live tip.
+        // Every tip starts at its mark with an arrow on the mark's centre whose point stands 8px
+        // off it, clear of the focus ring (L-35), so a copy stands as far off as the live tip.
         for (const tip of [live, ...desktop]) {
           assert.equal(tip.gap, live.gap, `the ${tip.side} copy stands off unlike the live tip`);
           assert.equal(tip.lines, 1, `the ${tip.side} one-sentence tip wraps`);
           assert.ok(Math.abs(tip.start) <= 0.5, `the ${tip.side} tip does not start at its mark`);
           assert.ok(Math.abs(tip.aim) <= 0.5, `the ${tip.side} arrow misses the mark's centre`);
           assert.ok(
-            Math.abs(tip.point - 6) <= 0.5,
+            Math.abs(tip.point - 8) <= 0.5,
             `the ${tip.side} arrow stands ${tip.point}px off`
           );
         }

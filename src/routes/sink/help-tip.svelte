@@ -70,7 +70,7 @@
   }
 
   /* The live tip opens over its mark, so the label keeps room for a one-line tip, its gap and
-     its arrow under its name, and the tip stands as far under the name as any specimen does. */
+     its arrow under its name, and the tip opens clear of the name. */
   .live {
     margin-block-start: calc(var(--sui-space-8) + var(--sui-space-2));
   }

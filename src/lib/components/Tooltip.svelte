@@ -4,9 +4,11 @@
   const WARM_FOR = 300;
   let showing = 0;
   let warmUntil = 0;
-  /* The arrow's depth, in px. Its point keeps the 6px a floating box stands off its anchor
-     (L-35), so the box stands the arrow's depth further off. */
+  /* The arrow's depth, and the room its point keeps off the anchor, in px: the focus ring's 4px
+     reach and a 4px step past it, since a point aimed at the ring reads as touching it (L-35).
+     A copy keeps the same room in CSS. */
   const ARROW = 5;
+  const TIP_GAP = 8;
 </script>
 
 <script lang="ts">
@@ -231,7 +233,7 @@
     if (open && !shown) element.showPopover();
     else if (!open && shown) element.hidePopover();
     if (!open || !anchor) return;
-    const placement = { side, align, offset: 6 + ARROW };
+    const placement = { side, align, offset: TIP_GAP + ARROW };
     place(element, anchor, placement);
     return follow(element, anchor, placement);
   });
@@ -291,6 +293,9 @@ does, stays out of the accessibility tree. Any other tip describes the control t
      shadcn/ui and Radix Themes do (L-72). Its edge and arrow take its ground. */
   .sui-tooltip {
     --sui-local-tip-ground: var(--sui-text-primary);
+    --sui-local-tip-gap: calc(
+      var(--sui-focus-ring-offset) + var(--sui-focus-ring-width) + var(--sui-space-1)
+    );
     align-content: center;
     background: var(--sui-local-tip-ground);
     border: var(--sui-stroke) solid var(--sui-local-tip-ground);
@@ -300,7 +305,8 @@ does, stays out of the accessibility tree. Any other tip describes the control t
     box-shadow: var(--sui-shadow-tooltip, var(--sui-shadow-popover));
     box-sizing: border-box;
     color: var(--sui-surface-base);
-    font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-leading-meta)
+    /* Caption type, a step under the words of the control it names (L-25). */
+    font: var(--sui-weight-regular) var(--sui-font-size-caption) / var(--sui-leading-compact)
       var(--sui-sans);
     inline-size: max-content;
     inset: auto;
@@ -384,14 +390,14 @@ does, stays out of the accessibility tree. Any other tip describes the control t
 
   /* A copy hangs under its anchor in the flow as the live tip stands off it, and holds its arrow. */
   .preview {
-    margin-block-start: calc(var(--sui-floating-gap) + var(--sui-tip-arrow));
+    margin-block-start: calc(var(--sui-local-tip-gap) + var(--sui-tip-arrow));
     max-inline-size: min(20rem, 100%);
     position: relative;
   }
 
   /* A copy over its anchor comes first in its flex or grid parent and stands off it below. */
   .preview[data-side='block-start'] {
-    margin-block: 0 calc(var(--sui-floating-gap) + var(--sui-tip-arrow));
+    margin-block: 0 calc(var(--sui-local-tip-gap) + var(--sui-tip-arrow));
     order: -1;
   }
 
