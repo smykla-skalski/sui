@@ -1256,6 +1256,49 @@ suite('forms', together, () => {
       assert.equal(await field.inputValue(), 'Go');
     });
 
+    test('an open select copy is the closed field turned over, with its picker as wide and its headings on the names', async () => {
+      const page = await opened();
+      const look = await page.evaluate(() => {
+        const section = /** @type {Element} */ (document.querySelector('#select'));
+        const width = (/** @type {Element | null | undefined} */ node) =>
+          node?.getBoundingClientRect().width ?? 0;
+        const closed = section.querySelector('.sui-select:not(.sui-select-preview *)');
+        const copies = [...section.querySelectorAll('.sui-select-preview')].map((preview) => ({
+          field: width(preview.querySelector('.sui-select')),
+          sheet: width(preview.querySelector('.sui-select-sheet')),
+          chevron: getComputedStyle(
+            /** @type {Element} */ (preview.querySelector('.sui-select-chevron'))
+          ).rotate
+        }));
+        const sheet = /** @type {Element} */ (
+          [...section.querySelectorAll('.sui-select-sheet')].find((node) =>
+            node.querySelector('.sui-select-heading')
+          )
+        );
+        const start = (/** @type {Element} */ node) => {
+          const range = document.createRange();
+          range.selectNodeContents(node);
+          return range.getBoundingClientRect().left;
+        };
+        return {
+          closed: width(closed),
+          copies,
+          heading: start(/** @type {Element} */ (sheet.querySelector('.sui-select-heading'))),
+          name: start(/** @type {Element} */ (sheet.querySelector('.sui-select-label')))
+        };
+      });
+      assert.ok(look.copies.length >= 3, 'the page shows the open copies');
+      for (const copy of look.copies) {
+        assert.equal(copy.field, look.closed, 'an open copy keeps the closed field width');
+        assert.equal(copy.sheet, copy.field, 'its picker is as wide as its field');
+        assert.equal(copy.chevron, '180deg', 'its chevron is turned over');
+      }
+      assert.ok(
+        Math.abs(look.heading - look.name) < 1,
+        'a group heading starts where the names do'
+      );
+    });
+
     test(
       'a refused send says why under the field, never in the browser bubble, and a fix by hand or by code lifts it',
       long,

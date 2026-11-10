@@ -618,15 +618,18 @@ assistive technology, because a native picker cannot be held open.
     }
   }
 
-  /* As wide as the field or the widest row, whichever is more, as the real picker is, even
-     where a container would stretch it. */
+  /* The copy's field fills its column as a closed select does, and its picker is as wide as
+     the field, as the real picker opens. */
   .sui-select-preview {
     display: inline-grid;
     gap: var(--sui-space-1);
-    grid-template-columns: minmax(0, auto);
-    inline-size: fit-content;
-    justify-items: start;
+    grid-template-columns: minmax(0, 1fr);
     max-inline-size: 100%;
+  }
+
+  /* The copy is open, so its chevron is turned over as an open picker's is. */
+  .sui-select-preview .sui-select-chevron {
+    rotate: 180deg;
   }
 
   /* The open picker, drawn in flow. */
@@ -638,7 +641,6 @@ assistive technology, because a native picker cannot be held open.
     box-sizing: border-box;
     color: var(--sui-text-primary);
     justify-self: stretch;
-    max-inline-size: 24rem;
     padding: var(--sui-space-1);
   }
 
@@ -735,7 +737,9 @@ assistive technology, because a native picker cannot be held open.
     font: var(--sui-weight-semibold) var(--sui-font-size-micro) / var(--sui-leading-micro)
       var(--sui-sans);
     letter-spacing: 0.06em;
-    padding: var(--sui-space-2) var(--sui-space-3) var(--sui-space-1);
+    padding-block: var(--sui-space-2) var(--sui-space-1);
+    padding-inline: calc(var(--sui-space-3) + var(--sui-icon-base) + var(--sui-space-2))
+      var(--sui-space-3);
     text-transform: uppercase;
   }
 
