@@ -1544,6 +1544,8 @@ suite('overlays', together, () => {
             document.querySelector('#host > .sui-combobox-preview input')
           ).value,
           offer: document.querySelectorAll('#host > .sui-combobox-preview [role="option"]').length,
+          plus: document.querySelectorAll('#host > .sui-combobox-preview [role="option"] svg')
+            .length,
           inside: chevron.left >= field.left && chevron.right <= field.right,
           wrapper: box(/** @type {Element} */ (input.parentElement)).width - field.width,
           beside: field.left - box(sentence).left,
@@ -1555,6 +1557,7 @@ suite('overlays', together, () => {
       assert.deepEqual(seen.picked, [], 'focus passing through a copy commits nothing');
       assert.equal(seen.shown, 'feature');
       assert.equal(seen.offer, 1, 'the copy keeps its offer row');
+      assert.equal(seen.plus, 1, 'a plus marks the offer as an entry to add');
       assert.ok(seen.inside, 'the chevron stands inside the sized field');
       assert.equal(seen.wrapper, 0, "the chevron's box is as wide as the field");
       assert.ok(seen.beside > 0, 'the field sits in the sentence, after its first word');

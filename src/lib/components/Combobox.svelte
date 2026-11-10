@@ -493,7 +493,8 @@ Name it with a `<label>` or `aria-label`, as any field.
             navigated = true;
           }}
         >
-          <span class="sui-combobox-check"></span>
+          <!-- A plus marks the row as an entry to add, so it never reads as an option missing its check. -->
+          <span class="sui-combobox-check offer"><Icon name="plus" size="base" /></span>
           <span class="sui-combobox-text">{useLabel(asked)}</span>
         </div>
       {/if}
@@ -649,6 +650,10 @@ Name it with a `<label>` or `aria-label`, as any field.
   }
 
   /* Centred on the first line, however many lines the row wraps to (L-94). */
+  .sui-combobox-check.offer {
+    color: var(--sui-text-secondary);
+  }
+
   .sui-combobox-check {
     display: flex;
     justify-content: center;
