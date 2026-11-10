@@ -1401,6 +1401,65 @@ suite('overlays', together, () => {
       await clear();
     });
 
+    test('an owner replacement replaces a focused combobox draft, and a shrunk limit clamps its active row', async () => {
+      await page.evaluate(() => {
+        const { lib, mount, flushSync, state, get, set } = /** @type {any} */ (window);
+        const host = Object.assign(document.body.appendChild(document.createElement('div')), {
+          id: 'host'
+        });
+        const value = state('ts');
+        const limit = state(100);
+        const combobox = mount(lib.Combobox, {
+          target: host,
+          props: {
+            'aria-label': 'Language',
+            options: [
+              { value: 'go', label: 'Go' },
+              { value: 'ts', label: 'TypeScript' },
+              { value: 'py', label: 'Python' }
+            ],
+            get value() {
+              return get(value);
+            },
+            set value(next) {
+              set(value, next);
+            },
+            get limit() {
+              return get(limit);
+            }
+          }
+        });
+        flushSync();
+        Object.assign(window, {
+          parts: [combobox],
+          own(/** @type {string} */ next) {
+            set(value, next);
+            flushSync();
+          },
+          cap(/** @type {number} */ next) {
+            set(limit, next);
+            flushSync();
+          }
+        });
+      });
+      const field = page.getByRole('combobox', { name: 'Language' });
+      await field.fill('Pyth');
+      await page.evaluate(() => /** @type {any} */ (window).own('go'));
+      assert.equal(await field.inputValue(), 'Go');
+      assert.ok(await field.evaluate((input) => document.activeElement === input));
+      await field.evaluate((input) => input.blur());
+      assert.equal(await field.inputValue(), 'Go');
+      await field.fill('o');
+      await page.keyboard.press('ArrowUp');
+      await page.evaluate(() => /** @type {any} */ (window).cap(1));
+      const active = await field.getAttribute('aria-activedescendant');
+      assert.ok(active?.endsWith('-option-0'), `dangling active row: ${active}`);
+      assert.equal(await page.locator(`#${active}`).count(), 1);
+      await page.keyboard.press('Enter');
+      assert.equal(await field.inputValue(), 'Go');
+      await clear();
+    });
+
     test('Escape on a caller-disabled select still closes the dialog around it', async () => {
       await page.evaluate(() => {
         const { lib, mount, createRawSnippet, flushSync, state, get, set } = /** @type {any} */ (

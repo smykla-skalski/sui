@@ -49,7 +49,6 @@
   }
 
   let language = $state('ts');
-  let languageLimit = $state(100);
   let label = $state('');
   let reviewer = $state('');
   let owner = $state('');
@@ -65,25 +64,18 @@
 
 <Example
   title="Suggestions"
+  --example-max="54rem"
+  --specimen-min="21rem"
+  --specimen-row-gap="var(--sui-space-6)"
   note="Typing narrows the options, free entry offers what was typed, and a slow search says it is searching or that nothing matches"
   layout="grid"
 >
   <Specimen label="Filtered options">
-    <div class="form">
-      <Field label="Language">
-        {#snippet control({ id, describedby })}
-          <Combobox
-            {id}
-            aria-describedby={describedby}
-            options={languages}
-            bind:value={language}
-            limit={languageLimit}
-          />
-        {/snippet}
-      </Field>
-      <Button onclick={() => (language = 'go')}>Replace the Language</Button>
-      <Button onclick={() => (languageLimit = 1)}>Limit the Language Suggestions</Button>
-    </div>
+    <Field label="Language">
+      {#snippet control({ id, describedby })}
+        <Combobox {id} aria-describedby={describedby} options={languages} bind:value={language} />
+      {/snippet}
+    </Field>
   </Specimen>
   <Specimen label="Free entry">
     <Field label="Label">
@@ -116,6 +108,9 @@
 
 <Example
   title="States"
+  --example-max="54rem"
+  --specimen-min="21rem"
+  --specimen-row-gap="var(--sui-space-6)"
   note="A refused value keeps its danger edge, a refused search says so, and a disabled field says why under it"
   layout="grid"
 >
@@ -155,7 +150,69 @@
 </Example>
 
 <Example
+  title="Open"
+  --example-max="54rem"
+  --specimen-min="21rem"
+  --specimen-row-gap="var(--sui-space-6)"
+  note="Static copies of the open list under each field. The value opens lit and checked, typed letters are marked in the names they match beside a retired option, free entry offers the typed text, and text that matches nothing says so"
+  layout="grid"
+>
+  <Specimen label="Chosen">
+    <Field label="Language">
+      {#snippet control({ id, describedby })}
+        <Combobox {id} aria-describedby={describedby} options={languages} value="ts" preview />
+      {/snippet}
+    </Field>
+  </Specimen>
+  <Specimen label="Typed & matched">
+    <Field label="Language">
+      {#snippet control({ id, describedby })}
+        <Combobox
+          {id}
+          aria-describedby={describedby}
+          options={languages}
+          value="ts"
+          previewText="ru"
+          preview
+        />
+      {/snippet}
+    </Field>
+  </Specimen>
+  <Specimen label="Free entry">
+    <Field label="Label">
+      {#snippet control({ id, describedby })}
+        <Combobox
+          {id}
+          aria-describedby={describedby}
+          free
+          options={labels}
+          previewText="feature"
+          preview
+        />
+      {/snippet}
+    </Field>
+  </Specimen>
+  <Specimen label="Nothing matches">
+    <Field label="Language">
+      {#snippet control({ id, describedby })}
+        <Combobox
+          {id}
+          aria-describedby={describedby}
+          options={languages}
+          previewText="zig"
+          preview
+        />
+      {/snippet}
+    </Field>
+  </Specimen>
+</Example>
+
+<Example
   title="In a Form"
+  --example-max="54rem"
+  --specimen-min="21rem"
+  --specimen-row-gap="var(--sui-space-6)"
+  layout="grid"
   note="The form posts the chosen value, never its label, and a label typed in full chooses its option"
 >
   <Specimen label={sent}>
@@ -176,31 +233,17 @@
   </Specimen>
 </Example>
 
-<Example
-  title="Open"
-  note="The open list drawn in place, with the current value as the active row and its check"
-  layout="grid"
->
-  <Specimen label="Open">
-    <Field label="Language">
-      {#snippet control({ id, describedby })}
-        <Combobox {id} aria-describedby={describedby} options={languages} value="ts" preview />
-      {/snippet}
-    </Field>
-  </Specimen>
-</Example>
-
 <style>
   .form {
     display: grid;
     gap: var(--sui-space-5);
-    justify-items: stretch;
     min-inline-size: 0;
   }
 
   /* The action ends the form a step past the fields' own gap, so it reads as the form's
      close and not as one more field (L-35). */
   .form > :global(.action) {
+    justify-self: start;
     margin-block-start: var(--sui-space-1);
   }
 </style>
