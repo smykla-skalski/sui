@@ -73,14 +73,6 @@
       addLabel="Add a Branch Pattern"
     />
   </Specimen>
-  <Specimen label="Invalid">
-    <PatternEntries
-      bind:value={branches}
-      {validate}
-      aria-label="Branches to skip"
-      addLabel="Add a Branch Pattern"
-    />
-  </Specimen>
   <Specimen label="Empty">
     <PatternEntries
       bind:value={paths}
@@ -88,6 +80,14 @@
       onadd={(pattern) => (added = [...added, pattern])}
     />
     <output id="sink-pattern-added">{added.join(',')}</output>
+  </Specimen>
+  <Specimen label="Invalid">
+    <PatternEntries
+      bind:value={branches}
+      {validate}
+      aria-label="Branches to skip"
+      addLabel="Add a Branch Pattern"
+    />
   </Specimen>
   <Specimen label="Saving">
     <div class="with-reason">
