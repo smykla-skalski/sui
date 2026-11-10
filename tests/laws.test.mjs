@@ -1225,10 +1225,15 @@ test('L-53 a shadow that lifts a part is two layers in every palette block, and 
   };
   const found = [
     ...palette.matchAll(
-      /--sui-(shadow-plate|shadow-popover|shadow-dialog|segment-thumb-shadow):([^;]+);/g
+      /--sui-(shadow-plate|shadow-popover|shadow-tooltip|shadow-dialog|segment-thumb-shadow):([^;]+);/g
     )
-  ];
-  assert.equal(found.length, 12, 'four shadows in each of three palette blocks');
+  ].filter(([, , value]) => value.trim() !== 'initial');
+  assert.equal(found.length, 13, 'four shadows in each of three palette blocks, and a light tip');
+  assert.equal(
+    [...palette.matchAll(/--sui-shadow-tooltip: initial;/g)].length,
+    2,
+    'a dark tip wears the popover lift'
+  );
   const lift = /** @type {string} */ (found.find(([, name]) => name === 'shadow-popover')?.[2]);
   for (const [, y, blur] of lift.matchAll(/(?:^|,)\s*0 (\d+)px (\d+)px/g)) {
     assert.ok(Number(y) <= 8 && Number(blur) <= 20, `a light popover lifts ${y}px with ${blur}px`);
@@ -1241,6 +1246,17 @@ test('L-53 a shadow that lifts a part is two layers in every palette block, and 
   assert.ok(contact, 'a light popover opens on a 1px contact line');
   const dark = (shade * Number(contact[1] ?? 100)) / 100;
   assert.ok(dark <= 8, `a light popover's contact line is ${dark}% black`);
+  const tip = /** @type {string} */ (found.find(([, name]) => name === 'shadow-tooltip')?.[2]);
+  const [tipContact, tipLift] = [
+    ...tip.matchAll(/0 (\d+)px (\d+)px color-mix\(in srgb, var\(--sui-shadow-color\) (\d+)%/g)
+  ];
+  assert.equal(tipContact[1], '1', 'a light tip opens on the popover contact line');
+  assert.ok(Number(tipContact[3]) <= Number(contact[1]), 'a light tip contact line is no darker');
+  assert.ok(Number(tipLift[1]) <= 8 && Number(tipLift[2]) <= 20, 'a light tip lifts tightly');
+  const ambient = Number(
+    [...lift.matchAll(/color-mix\(in srgb, var\(--sui-shadow-color\) (\d+)%/g)].at(-1)?.[1]
+  );
+  assert.ok(Number(tipLift[3]) > ambient, 'a light tip lifts on a firmer layer than a menu');
   assert.deepEqual(
     found.filter(([, , value]) => layers(value) < 2).map(([, name]) => name),
     []

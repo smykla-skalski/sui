@@ -229,7 +229,7 @@
   --sui-on-danger: #ffffff;
 
   --sui-danger-hover: #a33039;
-  /* A field's danger edge. On light it is the danger ink. */
+  /* A field's danger edge. */
   --sui-danger-edge: var(--sui-danger);
   --sui-danger-edge-hover: var(--sui-danger-hover);
   /* An invalid field's recess takes a share of its edge's red, so a gray line never sits inside
@@ -638,6 +638,9 @@
   --sui-shadow-popover:
     0 1px 2px color-mix(in srgb, var(--sui-shadow-color) 40%, transparent),
     0 8px 20px color-mix(in srgb, var(--sui-shadow-color) 56%, transparent);
+  --sui-shadow-tooltip:
+    0 1px 2px color-mix(in srgb, var(--sui-shadow-color) 40%, transparent),
+    0 4px 12px color-mix(in srgb, var(--sui-shadow-color) 72%, transparent);
   --sui-shadow-dialog:
     0 4px 12px color-mix(in srgb, var(--sui-shadow-color) 40%, transparent),
     0 24px 60px var(--sui-shadow-color);
@@ -894,6 +897,7 @@
     inset 0 1px 0 rgb(255 255 255 / 6%),
     0 2px 6px color-mix(in srgb, var(--sui-shadow-color) 40%, transparent),
     0 16px 42px var(--sui-shadow-color);
+  --sui-shadow-tooltip: initial;
   --sui-shadow-dialog:
     0 4px 12px color-mix(in srgb, var(--sui-shadow-color) 40%, transparent),
     0 24px 60px var(--sui-shadow-color);
@@ -1131,6 +1135,7 @@
       inset 0 1px 0 rgb(255 255 255 / 6%),
       0 2px 6px color-mix(in srgb, var(--sui-shadow-color) 40%, transparent),
       0 16px 42px var(--sui-shadow-color);
+    --sui-shadow-tooltip: initial;
     --sui-shadow-dialog:
       0 4px 12px color-mix(in srgb, var(--sui-shadow-color) 40%, transparent),
       0 24px 60px var(--sui-shadow-color);

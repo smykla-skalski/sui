@@ -291,7 +291,9 @@ does, stays out of the accessibility tree. Any other tip describes the control t
     background: var(--sui-popover-bg);
     border: var(--sui-stroke) solid var(--sui-popover-border);
     border-radius: var(--sui-radius-popover);
-    box-shadow: var(--sui-shadow-popover);
+    /* The light theme lifts a tip on a firmer layer of its own (L-54). The dark themes leave the
+       token unset, so a tip there wears the popover's lift with its rim of light. */
+    box-shadow: var(--sui-shadow-tooltip, var(--sui-shadow-popover));
     box-sizing: border-box;
     /* The tip is the whole of what it says, so its words take the primary ink, as the inverted
        tips of shadcn/ui and Radix Themes read at full contrast. */
