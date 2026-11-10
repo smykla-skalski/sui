@@ -3273,6 +3273,20 @@ suite('forms', together, () => {
             'the mark is not 16px on its edge, 8px off its words (L-94)'
           );
         }
+        // Muted inherited words under a row's muted description read as one more line of it
+        // unless the row parts them by more than the description's own 8px line gap.
+        assert.deepEqual(
+          await page.locator('#inherit-control .sui-setting-row').evaluateAll((rows) =>
+            rows.map((row) => {
+              const [say, value] = ['.sui-setting-say', '.sui-setting-value'].map((part) =>
+                /** @type {Element} */ (row.querySelector(part)).getBoundingClientRect()
+              );
+              return Math.round(value.top - say.bottom);
+            })
+          ),
+          [12, 12],
+          'a phone row does not set its control 12px under its copy'
+        );
         await page.setViewportSize({ width: 1440, height: 900 });
         const root = page.locator('#inherit-control .sui-inherit').first();
         await root.getByRole('button').click();

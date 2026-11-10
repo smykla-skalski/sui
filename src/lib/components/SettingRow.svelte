@@ -315,7 +315,9 @@ section's ground between them (L-91).
     padding: var(--sui-row-pad-default) var(--sui-space-2)
       calc(var(--sui-row-pad-default) + var(--sui-row-hairline));
     position: relative;
-    row-gap: var(--sui-space-2);
+    /* Controls that drop under the copy stand 12px off it, a step past the copy's own 8px line
+       gap, so muted words in a control never read as one more line of the description. */
+    row-gap: var(--sui-space-3);
     /* Its own stack, so the plate and the hairline lie under the copy without leaving the row. */
     isolation: isolate;
   }
@@ -626,7 +628,6 @@ section's ground between them (L-91).
      phone too, and the copy centres on it as it centres on controls beside it. */
   .stacked {
     --sui-setting-line: var(--sui-setting-band);
-    row-gap: var(--sui-space-3);
   }
 
   .stacked > .sui-setting-say {
