@@ -417,10 +417,18 @@ suite('the kitchen sink', together, () => {
               /** @type {unknown} */ (window)
             ).tabbed
         );
-      // The sink holds about 800 stops; the sweep ends where focus comes back to a stop it read,
-      // and the bound only stops a page that never gives focus back.
+      // The sink holds about 1000 stops; the sweep ends where focus comes back to a stop it read,
+      // and the bound only stops a page that never gives focus back. The presses of a run are sent
+      // together, and the browser still takes them in turn.
+      const cdp = await page.context().newCDPSession(page);
+      const tab = { key: 'Tab', code: 'Tab', windowsVirtualKeyCode: 9 };
       for (let step = 0; step < 3000 && !(await tabbed()).done; step += 20)
-        for (let press = 0; press < 20; press++) await page.keyboard.press('Tab');
+        await Promise.all(
+          Array.from({ length: 20 }, () => [
+            cdp.send('Input.dispatchKeyEvent', { type: 'keyDown', ...tab }),
+            cdp.send('Input.dispatchKeyEvent', { type: 'keyUp', ...tab })
+          ]).flat()
+        );
       const { stops } = await tabbed();
       const problems = [];
       for (const stop of stops) {
