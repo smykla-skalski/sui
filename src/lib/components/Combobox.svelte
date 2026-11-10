@@ -155,8 +155,9 @@
   const note = $derived(
     failed && asked !== '' ? failedLabel : empty ? emptyLabel : searching ? searchingLabel : ''
   );
+  /* A copy is drawn, not used, so its status never speaks over the page. */
   const spoken = $derived(
-    note || (open && asked !== '' && hits.length > 0 ? countLabel(hits.length) : '')
+    preview ? '' : note || (open && asked !== '' && hits.length > 0 ? countLabel(hits.length) : '')
   );
   const showing = $derived((preview || open) && (rows > 0 || note !== ''));
   const listed = $derived(showing && rows > 0);
@@ -180,6 +181,12 @@
   );
 
   $effect(() => () => clearTimeout(timer));
+
+  /* A copy of a search asks it for its typed text once, so it shows what the search answers:
+     suggestions, "Searching…" while it waits or the refusal. */
+  $effect(() => {
+    if (preview && previewText !== '' && search) untrack(() => ask(previewText));
+  });
 
   const match = $derived(
     options
@@ -659,6 +666,13 @@ Name it with a `<label>` or `aria-label`, as any field.
     background: none;
     color: var(--sui-match-ink);
     font-weight: var(--sui-weight-semibold);
+  }
+
+  /* A match in an option that cannot be chosen draws as its name does, so it never pulls the eye
+     from the options that can. */
+  .sui-combobox-option[aria-disabled='true'] mark {
+    color: inherit;
+    font-weight: inherit;
   }
 
   .sui-combobox-empty {
