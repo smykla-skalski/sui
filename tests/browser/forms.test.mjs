@@ -1230,6 +1230,16 @@ suite('forms', together, () => {
 
     test('a combobox wears a Select chevron that turns while its list or its note alone shows, an open copy draws every row in the editing paint, and an off option keeps its reason at full contrast', async () => {
       const page = await opened();
+      // The search copies open once their searches have run, so every copy settles first.
+      await page.waitForFunction(
+        () =>
+          [
+            ...document.querySelectorAll('#combobox .sui-combobox-preview .sui-combobox-chevron')
+          ].every((chevron) => getComputedStyle(chevron).rotate === '180deg') &&
+          document.querySelector('#combobox')?.textContent?.includes('could not load'),
+        undefined,
+        { timeout: 3000 }
+      );
       const read = () =>
         page.evaluate(() => {
           const fields = [...document.querySelectorAll('#combobox .sui-combobox-field')];
@@ -1333,6 +1343,34 @@ suite('forms', together, () => {
         'Suggestions could not load, so keep typing to try again'
       ]);
       assert.deepEqual(new Set(look.spoken), new Set(['']), 'a copy never speaks');
+      // A wait and a refusal differ by more than their words, and the count is the list's foot.
+      const signs = await page.evaluate(() => {
+        const note = (/** @type {string} */ words) =>
+          /** @type {Element} */ (
+            [
+              ...document.querySelectorAll('#combobox .sui-combobox-preview .sui-combobox-empty')
+            ].find((node) => node.textContent?.includes(words))
+          );
+        const probe = document.body.appendChild(document.createElement('span'));
+        probe.style.color = 'var(--sui-danger)';
+        const danger = getComputedStyle(probe).color;
+        probe.remove();
+        return {
+          spinner: Boolean(note('Searching').querySelector('.sui-combobox-spinner')),
+          refused: [
+            Boolean(note('could not load').querySelector('svg')),
+            getComputedStyle(note('could not load')).color === danger
+          ],
+          plain: note('No suggestions').querySelector('svg, .sui-combobox-spinner') === null,
+          foot: getComputedStyle(note('more,')).borderBlockStartWidth
+        };
+      });
+      assert.deepEqual(signs, {
+        spinner: true,
+        refused: [true, true],
+        plain: true,
+        foot: '1px'
+      });
       assert.equal(look.off.name, 0.6);
       assert.equal(look.off.note, 1, 'an off option keeps its reason at full strength');
       assert.equal(look.off.ink, look.secondary, 'in the reason ink');

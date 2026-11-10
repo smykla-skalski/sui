@@ -16,6 +16,7 @@
   import Icon from '../icons/Icon.svelte';
   import { held, holdAround } from '../internal/held.svelte.js';
   import { formatCount } from '../internal/locale.js';
+  import { shownWait } from '../internal/shown-wait.svelte.js';
   import Popover from './Popover.svelte';
   import TextInput from './TextInput.svelte';
   import VisuallyHidden from './VisuallyHidden.svelte';
@@ -31,6 +32,7 @@
     invalid = false,
     preview = false,
     previewText = '',
+    previewSearch,
     limit = 100,
     name,
     emptyLabel = word('Combobox.emptyLabel', 'No suggestions match'),
@@ -67,6 +69,8 @@
     preview?: boolean;
     /** Text a preview draws as typed, so its list shows the matches, the offer or the note for it. */
     previewText?: string;
+    /** Draws a preview's search waiting for its answer or refused, from the first frame on. */
+    previewSearch?: 'waiting' | 'refused';
     /** The most suggestions drawn at once; the rest are counted under the list. */
     limit?: number;
     /** Posts `value`, never the label, with a form. */
@@ -123,8 +127,10 @@
   /* Only an arrow key, or the pointer, lights an option: typing keeps the reader in the text. */
   let navigated = $state(false);
   let found = $state.raw<readonly ComboboxOption[]>([]);
-  let pending = $state(false);
-  let failed = $state(false);
+  let pending = $state(untrack(() => preview && previewSearch === 'waiting'));
+  /* The search itself runs, past the typing pause, which is no wait the reader sees. */
+  let asking = $state(untrack(() => preview && previewSearch === 'waiting'));
+  let failed = $state(untrack(() => preview && previewSearch === 'refused'));
   let list = $state<HTMLElement | null>(null);
   let generation = 0;
   let timer = 0;
@@ -151,9 +157,11 @@
   );
   const rows = $derived(visible.length + (offers ? 1 : 0));
   const empty = $derived(asked !== '' && rows === 0 && !pending && !failed);
-  const searching = $derived(pending && asked !== '');
+  /* "Searching…" and its spinner wait out a fast answer and stay once drawn (L-117). */
+  const waiting = shownWait(() => asking && asked !== '');
+  const refused = $derived(failed && asked !== '');
   const note = $derived(
-    failed && asked !== '' ? failedLabel : empty ? emptyLabel : searching ? searchingLabel : ''
+    refused ? failedLabel : waiting.current ? searchingLabel : empty ? emptyLabel : ''
   );
   /* A copy is drawn, not used, so its status never speaks over the page. */
   const spoken = $derived(
@@ -181,12 +189,6 @@
   );
 
   $effect(() => () => clearTimeout(timer));
-
-  /* A copy of a search asks it for its typed text once, so it shows what the search answers:
-     suggestions, "Searching…" while it waits or the refusal. */
-  $effect(() => {
-    if (preview && previewText !== '' && search) untrack(() => ask(previewText));
-  });
 
   const match = $derived(
     options
@@ -228,10 +230,12 @@
     if (text === '') {
       found = [];
       pending = false;
+      asking = false;
       return;
     }
     pending = true;
     timer = window.setTimeout(async () => {
+      asking = true;
       try {
         const answer = await run(text);
         if (mine !== generation) return;
@@ -245,7 +249,7 @@
         failed = true;
         onsearcherror?.(error);
       } finally {
-        if (mine === generation) pending = false;
+        if (mine === generation) pending = asking = false;
       }
     }, SEARCH_PAUSE);
   }
@@ -371,7 +375,7 @@ Name it with a `<label>` or `aria-label`, as any field.
 
 - Semantics: a text input with `role="combobox"` and `aria-autocomplete="list"`, a `role="listbox"` of `role="option"` rows in a popover, a polite `role="status"`, and a hidden input that posts `value`.
 - Content: options with a short label and an optional note a type step smaller after a drawn dot, both wrapping; at most `limit` rows are drawn and the rest are counted.
-- States: closed, open (the end chevron, as a `Select`'s, turns over while the list or its note shows), searching, nothing matches, search refused, invalid (the field's danger edge) and disabled; in the list a row is active (a veil and an inset 2px ring), committed (a check mark), pressed (a deeper veil, an inset shadow and a 1px sink) or disabled (its name at 0.6 opacity, its note at full contrast).
+- States: closed, open (the end chevron, as a `Select`'s, turns over while the list or its note shows), searching (a spinner, drawn once the search has run 150ms and then for at least 400ms), search refused (a warning mark in the danger ink), nothing matches, invalid (the field's danger edge) and disabled; in the list a row is active (a veil and an inset 2px ring), committed (a check mark), pressed (a deeper veil, an inset shadow and a 1px sink) or disabled (its name at 0.6 opacity, its note at full contrast).
 - Keyboard: typing filters, Down and Up open the list and light a row with wrap-around, Enter commits the lit row or settles the typed text, and Escape closes the list and stops there; while a busy dialog or a saving pane around it works, the field is disabled and the list stays shut.
 - Pointer and touch: the field is 34px tall, 44px on a phone or any touch screen, every row at least that tall, and a press on a row commits it.
 - Focus: focus stays in the field the whole time; the lit row is `aria-activedescendant`, set only once an arrow or the pointer moved to it.
@@ -485,9 +489,18 @@ Name it with a `<label>` or `aria-label`, as any field.
       {/if}
     </div>
     <!-- The status beside the field speaks these, so the drawn copy stays out of the tree. -->
-    {#if note}<p class="sui-combobox-empty" aria-hidden="true">{note}</p>{/if}
+    {#if note}
+      <p class={['sui-combobox-empty', { refused }]} aria-hidden="true">
+        {#if refused}<span class="sui-combobox-mark"><Icon name="alert" size="base" /></span
+          >{:else if note === searchingLabel}<span class="sui-combobox-mark"
+            ><span class="sui-combobox-spinner"></span></span
+          >{/if}<span class="sui-combobox-words">{note}</span>
+      </p>
+    {/if}
     {#if beyond > 0 && rows > 0}
-      <p class="sui-combobox-empty" aria-hidden="true">{moreLabel(beyond)}</p>
+      <p class="sui-combobox-empty count" aria-hidden="true">
+        <span class="sui-combobox-words">{moreLabel(beyond)}</span>
+      </p>
     {/if}
   </Popover>
 {/snippet}
@@ -675,22 +688,72 @@ Name it with a `<label>` or `aria-label`, as any field.
     font-weight: inherit;
   }
 
+  /* A note under the list, or alone in it: a wait leads with the list toolbar's spinner and a
+     refusal with a field error's mark in the danger ink, so neither rests on its words alone. */
   .sui-combobox-empty {
+    align-items: start;
     color: var(--sui-text-secondary);
+    column-gap: var(--sui-space-2);
+    display: flex;
     font: var(--sui-weight-regular) var(--sui-font-size-control) / var(--sui-leading-meta)
       var(--sui-sans);
-    block-size: var(--sui-block-snap-near);
     margin: 0;
     padding: var(--sui-space-3);
-    /* Cap line to baseline, rounded to the nearest pixel, so a note alone in the popover stands
-       as far from its top as from its foot (L-95, L-102). */
+  }
+
+  .sui-combobox-empty.refused {
+    color: var(--sui-danger);
+  }
+
+  /* The count past the limit is the list's foot, so a divider parts it from the rows (L-72). */
+  .sui-combobox-empty.count {
+    border-block-start: var(--sui-stroke) solid var(--sui-border-divider);
+  }
+
+  /* Cap line to baseline, rounded to the nearest pixel, so a note alone in the popover stands
+     as far from its top as from its foot (L-95, L-102). */
+  .sui-combobox-words {
+    block-size: var(--sui-block-snap-near);
+    flex: 1 1 auto;
+    min-inline-size: 0;
     text-box: trim-both cap alphabetic;
+  }
+
+  /* Centred on the first line's cap height, however many lines the note wraps to. */
+  .sui-combobox-mark {
+    align-items: center;
+    block-size: var(--sui-icon-base);
+    display: flex;
+    flex: none;
+    inline-size: var(--sui-icon-base);
+    justify-content: center;
+    margin-block: round(calc((1cap - var(--sui-icon-base)) / 2), 1px);
+  }
+
+  .sui-combobox-spinner {
+    animation: sui-combobox-spin var(--sui-duration-spinner) var(--sui-ease-linear) infinite;
+    block-size: var(--sui-icon-sm);
+    border: var(--sui-stroke-bold) solid color-mix(in srgb, currentColor 25%, transparent);
+    border-block-start-color: currentColor;
+    border-radius: 50%;
+    box-sizing: border-box;
+    inline-size: var(--sui-icon-sm);
+  }
+
+  @keyframes sui-combobox-spin {
+    to {
+      rotate: 1turn;
+    }
   }
 
   @media (prefers-reduced-motion: reduce) {
     .sui-combobox-option,
     .sui-combobox-chevron {
       transition: none;
+    }
+
+    .sui-combobox-spinner {
+      animation: none;
     }
 
     .sui-combobox-option:active:not([aria-disabled='true']) {

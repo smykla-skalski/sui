@@ -486,6 +486,63 @@ suite('words', together, () => {
       assert.deepEqual(marks, [false, false, false, true, true, false]);
     });
 
+    test('L-117 a combobox says it is searching only once a search outlasts a glance, and keeps saying it a moment', async () => {
+      await page.evaluate(() => {
+        const { lib, mount, flushSync } = /** @type {any} */ (window);
+        const target = Object.assign(document.createElement('div'), { id: 'asking' });
+        document.body.prepend(target);
+        Object.assign(window, { delay: 0 });
+        mount(lib.Combobox, {
+          target,
+          props: {
+            'aria-label': 'Owner',
+            search: () =>
+              new Promise((answer) =>
+                setTimeout(() => answer([]), /** @type {any} */ (window).delay)
+              )
+          }
+        });
+        flushSync();
+      });
+      const field = page.locator('#asking input');
+      /** @param {string} text @param {number} delay */
+      const type = async (text, delay) => {
+        await page.evaluate((delay) => Object.assign(window, { delay }), delay);
+        await field.fill(text);
+      };
+      // A held clock holds the popover's opening animation, so this reads the open layer's words.
+      const says = () =>
+        page.evaluate(
+          () =>
+            document
+              .querySelector('#asking .sui-popover:popover-open .sui-combobox-empty')
+              ?.textContent?.includes('Searching') ?? false
+        );
+      // Svelte runs its effects in microtasks, which a held clock runs only between its steps.
+      /** @param {number} ms */
+      const wait = async (ms) => {
+        for (let left = ms; left > 0; left -= 10) await page.clock.runFor(Math.min(10, left));
+      };
+      const marks = [];
+      // The typing pause and a 60ms answer draw nothing.
+      await type('a', 60);
+      await wait(200);
+      marks.push(await says());
+      await wait(100);
+      marks.push(await says());
+      // A slow answer draws the wait, and an answer right after keeps it a moment.
+      await type('ab', 250);
+      await wait(180 + 100);
+      marks.push(await says());
+      await wait(100);
+      marks.push(await says());
+      await wait(100);
+      marks.push(await says());
+      await wait(500);
+      marks.push(await says());
+      assert.deepEqual(marks, [false, false, false, true, true, false]);
+    });
+
     test('a live pill pulses again on a beat only once its dot has been still for 5 seconds', async () => {
       await page.evaluate(() => {
         const { lib, mount, flushSync, createRawSnippet, state, get } = /** @type {any} */ (window);
