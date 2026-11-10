@@ -235,11 +235,12 @@
     if (!run) return;
     clearTimeout(timer);
     const mine = ++generation;
-    failed = false;
+    // The older request can no longer clear its flag, and the glance before the wait shows
+    // measures the newest search only.
+    failed = asking = false;
     if (text === '') {
       found = [];
       pending = false;
-      asking = false;
       return;
     }
     pending = true;

@@ -559,6 +559,16 @@ suite('words', together, () => {
       marks.push(await says());
       await wait(500);
       marks.push(await says());
+      // A query typed over a search still in flight starts its glance afresh, so its fast answer
+      // draws no wait.
+      await page.evaluate(() => Object.assign(window, { refuse: false }));
+      await type('abcd', 1000);
+      await wait(180 + 100);
+      await type('abcde', 0);
+      await wait(100);
+      marks.push(await says());
+      await wait(400);
+      marks.push(await says());
       assert.deepEqual(marks, [
         '',
         '',
@@ -568,7 +578,9 @@ suite('words', together, () => {
         '',
         'searching spinner',
         'searching spinner',
-        'refused alert danger'
+        'refused alert danger',
+        '',
+        ''
       ]);
     });
 
