@@ -1256,7 +1256,7 @@ suite('forms', together, () => {
       assert.equal(await field.inputValue(), 'Go');
     });
 
-    test('an open select copy is the closed field turned over, as wide as its picker, its groups lined and headed on the names, an off option dimming its name only', async () => {
+    test('an open select copy is the closed field turned over, as wide as its picker, its groups lined and headed on the names, an off option dimming its name and inking its reason as a menu does', async () => {
       const page = await opened();
       const look = await page.evaluate(() => {
         const section = /** @type {Element} */ (document.querySelector('#select'));
@@ -1303,8 +1303,18 @@ suite('forms', together, () => {
           name: start(/** @type {Element} */ (sheet.querySelector('.sui-select-label'))),
           off: {
             name: strength(/** @type {Element} */ (off.querySelector('.sui-select-label'))),
-            reason: strength(/** @type {Element} */ (off.querySelector('.sui-select-note')))
+            reason: strength(/** @type {Element} */ (off.querySelector('.sui-select-note'))),
+            ink: getComputedStyle(/** @type {Element} */ (off.querySelector('.sui-select-note')))
+              .color
           },
+          secondary: (() => {
+            const probe = document.createElement('span');
+            probe.style.color = 'var(--sui-text-secondary)';
+            sheet.append(probe);
+            const color = getComputedStyle(probe).color;
+            probe.remove();
+            return color;
+          })(),
           lines: { copy: lines(sheet), live: lines(live) }
         };
       });
@@ -1321,6 +1331,7 @@ suite('forms', together, () => {
       // An option that cannot be chosen dims its name, never the reason it gives (L-40).
       assert.ok(Math.abs(look.off.name - 0.6) < 0.01, `an off name stands at ${look.off.name}`);
       assert.equal(look.off.reason, 1, 'an off option keeps its reason at full contrast');
+      assert.equal(look.off.ink, look.secondary, 'its reason reads in the menu reason ink');
       // A group after a row stands under a line, in the copy and in the live picker alike.
       assert.deepEqual(look.lines.copy, ['1px', '1px']);
       assert.deepEqual(look.lines.live, ['1px', '1px']);

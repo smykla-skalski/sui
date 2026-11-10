@@ -78,7 +78,7 @@
   let region = $state<string | null>('eu-central');
   let backup = $state<string | null>(null);
   let failover = $state<string | null>('eu-west');
-  let plan = $state<string | null>('team-year');
+  let plan = $state<string | null>('team-month');
   let branch = $state<string | null>(branches[2].value);
   let zone = $state<string | null>(null);
   let attempts = $state<number | null>(3);
@@ -146,13 +146,13 @@
   --example-max="54rem"
   --specimen-min="21rem"
   --specimen-row-gap="var(--sui-space-6)"
-  note="Headed groups with notes, a retired plan that cannot be chosen, and a long branch cut in the field but wrapped in its open picker"
+  note="Headed groups with notes and a retired plan that cannot be chosen, and a long branch cut in the field but wrapped in its picker, each drawn open"
   layout="grid"
 >
   <Specimen label="Groups & notes">
     <Field label="Plan">
       {#snippet control({ id, describedby })}
-        <Select {id} aria-describedby={describedby} options={plans} bind:value={plan} />
+        <Select {id} aria-describedby={describedby} options={plans} bind:value={plan} preview />
       {/snippet}
     </Field>
   </Specimen>
@@ -176,7 +176,7 @@
   --example-max="54rem"
   --specimen-min="21rem"
   --specimen-row-gap="var(--sui-space-6)"
-  note="A static copy of the open picker under each field, with the value checked and the next option active"
+  note="A static copy of the open picker under each field: a chosen value checked with the next option active, and a prompt with the first option active"
   layout="grid"
 >
   <Specimen label="Open">
@@ -186,10 +186,17 @@
       {/snippet}
     </Field>
   </Specimen>
-  <Specimen label="Open with groups">
-    <Field label="Plan">
+  <Specimen label="Open with a prompt">
+    <Field label="Backup region">
       {#snippet control({ id, describedby })}
-        <Select {id} aria-describedby={describedby} options={plans} value="team-month" preview />
+        <Select
+          {id}
+          aria-describedby={describedby}
+          options={regions}
+          value={null}
+          placeholder="Choose a region…"
+          preview
+        />
       {/snippet}
     </Field>
   </Specimen>
