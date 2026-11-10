@@ -51,14 +51,18 @@
 </Example>
 
 <style>
-  /* The mark keeps to its label on any width, and the tip hangs under the mark in the column
-     beside the words. */
   .label.wrap {
     align-items: start;
-    display: grid;
-    grid-template-columns: auto minmax(0, 1fr);
-    justify-items: start;
+    display: flex;
+    flex-wrap: wrap;
     max-inline-size: 100%;
+  }
+
+  /* The mark keeps to its label while 12rem of tip fits beside the words, as on a phone, and
+     drops under them only with large text, so the tip never leaves its specimen. */
+  .wrap > :global(:last-child) {
+    flex: 1 1 12rem;
+    min-inline-size: 0;
   }
 
   .label {
