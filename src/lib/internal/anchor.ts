@@ -22,7 +22,8 @@ const VIEWPORT_MARGIN = 8;
  * CSS anchor positioning would do this declaratively, but it is not yet available in every
  * engine SUI supports, so the coordinates are measured here instead. The available block
  * size and the anchor width are published as `--sui-floating-available-block` and
- * `--sui-floating-anchor-inline` for the floating box's own sizing rules.
+ * `--sui-floating-anchor-inline` for the floating box's own sizing rules, and the anchor's centre
+ * along the box's edge, from its start, as `--sui-floating-anchor-at`, for an arrow.
  *
  * Every size is read before the first write, so a placement that follows a scroll lays the page
  * out once. The box is measured again after a write only when that write can change its size: a
@@ -78,6 +79,8 @@ export function place(
     Math.max(VIEWPORT_MARGIN, viewportWidth - VIEWPORT_MARGIN - box.width)
   );
 
+  const centre = a.left + a.width / 2;
+  publish(floating, AT, rtl ? Math.round(left) + box.width - centre : centre - Math.round(left));
   pin(floating, left, top, placed);
   return placed;
 }
@@ -137,6 +140,7 @@ function beside(
     Math.max(start, VIEWPORT_MARGIN),
     Math.max(VIEWPORT_MARGIN, viewportHeight - VIEWPORT_MARGIN - box.height)
   );
+  publish(floating, AT, a.top + a.height / 2 - Math.round(top));
   pin(floating, left, top, placed);
   return placed;
 }
@@ -148,6 +152,8 @@ const laidOut = (floating: HTMLElement) => ({
 });
 
 const CAP = '--sui-floating-available-block';
+/* Where the anchor's centre falls along the box's edge, from its inline or block start. */
+const AT = '--sui-floating-anchor-at';
 
 /** Sets a size the box's own rules read, only when it changed, and says whether it did. */
 function publish(floating: HTMLElement, name: string, px: number): boolean {

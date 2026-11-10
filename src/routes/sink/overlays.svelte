@@ -193,7 +193,6 @@
   /* One bounded column, so the open tip's 100% cap is the specimen's width and it wraps there. */
   .open {
     display: grid;
-    gap: var(--sui-space-1);
     grid-template-columns: minmax(0, 1fr);
     justify-items: start;
     min-inline-size: 0;

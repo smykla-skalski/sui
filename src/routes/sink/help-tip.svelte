@@ -13,6 +13,7 @@
 </script>
 
 <Example
+  --example-max="40rem"
   title="Placement"
   note="Hover pauses before the tip shows, focus shows it at once, and a tap or click toggles it"
 >
@@ -35,6 +36,7 @@
 </Example>
 
 <Example
+  --example-max="40rem"
   title="Open"
   note="A tapped or clicked mark stays pressed on its veil while its tip is open, drawn here in place"
 >

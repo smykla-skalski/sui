@@ -506,7 +506,7 @@ test('L-20 a duration amount reads in the words face with figures of one width',
   );
 });
 
-test('L-35 a floating list stands clear of its focused trigger by one gap, live and in a copy', () => {
+test('L-35 a floating list or a tip arrow stands clear of its focused trigger by one gap, live and in a copy', () => {
   assert.match(read('src/lib/styles.css'), /--sui-floating-gap: 6px;/);
   assert.match(read('src/lib/components/Popover.svelte'), /offset = 6,/);
   // Every copy drawn in the page's flow: Select's own, and each list on an inline Popover.
@@ -520,6 +520,14 @@ test('L-35 a floating list stands clear of its focused trigger by one gap, live 
   assert.match(
     read('src/lib/components/Select.svelte'),
     /margin-block: var\(--sui-floating-gap\);/
+  );
+  const tooltip = read('src/lib/components/Tooltip.svelte');
+  assert.match(tooltip, /const ARROW = 5;/);
+  assert.match(tooltip, /offset: 6 \+ ARROW/, 'a live tip stands its arrow past the gap');
+  assert.match(
+    tooltip,
+    /\.preview \{[^}]*margin-block-start: calc\(var\(--sui-floating-gap\) \+ var\(--sui-tip-arrow\)\);/,
+    'a tip copy stands its arrow past the gap'
   );
 });
 

@@ -4,6 +4,9 @@
   const WARM_FOR = 300;
   let showing = 0;
   let warmUntil = 0;
+  /* The arrow's depth, in px. Its point keeps the 6px a floating box stands off its anchor
+     (L-35), so the box stands the arrow's depth further off. */
+  const ARROW = 5;
 </script>
 
 <script lang="ts">
@@ -197,6 +200,22 @@
     };
   });
 
+  // A copy is not placed, so it measures where its anchor's centre falls for its arrow.
+  $effect(() => {
+    if (!element || !anchor || !preview) return;
+    const [tip, mark] = [element, anchor];
+    const measure = () => {
+      const [a, t] = [mark.getBoundingClientRect(), tip.getBoundingClientRect()];
+      const centre = a.left + a.width / 2;
+      const at = getComputedStyle(tip).direction === 'rtl' ? t.right - centre : centre - t.left;
+      tip.style.setProperty('--sui-floating-anchor-at', `${at}px`);
+    };
+    const observer = new ResizeObserver(measure);
+    observer.observe(mark);
+    observer.observe(tip);
+    return () => observer.disconnect();
+  });
+
   $effect(() => {
     if (!open || preview) return;
     showing += 1;
@@ -212,7 +231,7 @@
     if (open && !shown) element.showPopover();
     else if (!open && shown) element.hidePopover();
     if (!open || !anchor) return;
-    const placement = { side, align, offset: 6 };
+    const placement = { side, align, offset: 6 + ARROW };
     place(element, anchor, placement);
     return follow(element, anchor, placement);
   });
@@ -238,7 +257,7 @@ does, stays out of the accessibility tree. Any other tip describes the control t
 - Keyboard: focus on its control shows it at once, blur hides it, and Escape hides it without reaching a dialog around it.
 - Pointer and touch: hover shows it after a pause and the pointer may move onto it; on touch a 500ms press shows it and a tap passes through as a click.
 - Focus: it never takes focus; the control keeps it.
-- Responsive: placed beside the anchor, flipped to the side with room and held 8px inside the viewport; it wraps rather than widening past 20rem.
+- Responsive: placed beside the anchor with its arrow on the anchor's centre, flipped to the side with room and held 8px inside the viewport; it wraps rather than widening past 20rem.
 - Accessibility: hoverable, dismissable and persistent as WCAG 1.4.13 asks, read as a description only when it adds words.
 - Localization: `text` is the caller's words, and the inline sides and `start`/`end` alignment follow the reading direction.
 - Performance: one element per instance with listeners on its anchor and control, and on the page only while it is shown or about to be; placement runs only while shown, and the fade is opacity alone, removed under reduced motion.
@@ -255,6 +274,8 @@ does, stays out of the accessibility tree. Any other tip describes the control t
   class="sui-tooltip"
   class:mono
   class:preview
+  data-side={preview ? 'block-end' : undefined}
+  style:--sui-tip-arrow="{ARROW}px"
   aria-hidden={describes ? undefined : 'true'}
   onpointerenter={(event) => {
     if (hovers(event)) clearTimeout(hideTimer);
@@ -303,6 +324,65 @@ does, stays out of the accessibility tree. Any other tip describes the control t
       display var(--sui-duration-fast) allow-discrete;
   }
 
+  /* The arrow is a square turned on its point, centred on the box's outer edge with its two outer
+     sides stroked, so it joins the box's own edge. It points at the anchor's centre and keeps
+     clear of the box's corners. */
+  .sui-tooltip::after {
+    --sui-local-arrow: calc(var(--sui-tip-arrow) * sqrt(2));
+    /* Its centre keeps past the corner's curve, so a tip that starts at a 24px mark still
+       points at the mark's middle. */
+    --sui-local-arrow-along: clamp(
+      calc(var(--sui-radius-popover) - var(--sui-local-arrow) / 2),
+      calc(
+        var(--sui-floating-anchor-at, calc(50% + var(--sui-stroke))) - var(--sui-local-arrow) / 2 -
+          var(--sui-stroke)
+      ),
+      calc(100% - var(--sui-radius-popover) - var(--sui-local-arrow) / 2)
+    );
+    --sui-local-arrow-across: calc(-1 * var(--sui-local-arrow) / 2 - var(--sui-stroke));
+    background: var(--sui-popover-bg);
+    block-size: var(--sui-local-arrow);
+    border: var(--sui-stroke) solid transparent;
+    box-sizing: border-box;
+    content: '';
+    inline-size: var(--sui-local-arrow);
+    position: absolute;
+    rotate: 45deg;
+  }
+
+  /* A right-to-left page turns the square the other way, so the same logical sides face out. */
+  .sui-tooltip:dir(rtl)::after {
+    rotate: -45deg;
+  }
+
+  .sui-tooltip[data-side='block-start']::after {
+    border-block-end-color: var(--sui-popover-border);
+    border-inline-end-color: var(--sui-popover-border);
+    inset-block-end: var(--sui-local-arrow-across);
+    inset-inline-start: var(--sui-local-arrow-along);
+  }
+
+  .sui-tooltip[data-side='block-end']::after {
+    border-block-start-color: var(--sui-popover-border);
+    border-inline-start-color: var(--sui-popover-border);
+    inset-block-start: var(--sui-local-arrow-across);
+    inset-inline-start: var(--sui-local-arrow-along);
+  }
+
+  .sui-tooltip[data-side='inline-end']::after {
+    border-block-end-color: var(--sui-popover-border);
+    border-inline-start-color: var(--sui-popover-border);
+    inset-block-start: var(--sui-local-arrow-along);
+    inset-inline-start: var(--sui-local-arrow-across);
+  }
+
+  .sui-tooltip[data-side='inline-start']::after {
+    border-block-start-color: var(--sui-popover-border);
+    border-inline-end-color: var(--sui-popover-border);
+    inset-block-start: var(--sui-local-arrow-along);
+    inset-inline-end: var(--sui-local-arrow-across);
+  }
+
   .sui-tooltip[popover]:not(:popover-open) {
     opacity: 0;
     transition-duration: var(--sui-duration-press);
@@ -314,9 +394,11 @@ does, stays out of the accessibility tree. Any other tip describes the control t
     }
   }
 
+  /* A copy hangs under its anchor in the flow as the live tip stands off it, and holds its arrow. */
   .preview {
+    margin-block-start: calc(var(--sui-floating-gap) + var(--sui-tip-arrow));
     max-inline-size: min(20rem, 100%);
-    position: static;
+    position: relative;
   }
 
   .mono {

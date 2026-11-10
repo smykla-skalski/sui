@@ -8,7 +8,9 @@
     label,
     text,
     side = 'block-start',
-    align = 'center',
+    // A mark ends its label, so its tip starts at the mark and runs on past it, clear of the
+    // label's words, with its arrow on the mark.
+    align = 'start',
     open = $bindable(false),
     preview = false,
     element = $bindable(null),
@@ -75,7 +77,7 @@ on the page instead.
       else open = pressedBy === 'mouse' || !openAtPress;
     }}
   >
-    <Icon name="help" size="sm" strokeWidth={2} />
+    <Icon name="help" size="base" strokeWidth={2} />
   </button><Tooltip anchor={element} {text} describe {side} {align} {preview} bind:open />
 {/snippet}
 
@@ -89,7 +91,6 @@ on the page instead.
   /* The open tip drawn under its mark, in the page's flow. */
   .sui-help-tip-preview {
     display: inline-grid;
-    gap: var(--sui-floating-gap);
     grid-template-columns: minmax(0, auto);
     justify-items: start;
     max-inline-size: 100%;

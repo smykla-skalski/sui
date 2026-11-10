@@ -868,35 +868,50 @@ suite('overlays', together, () => {
         assert.ok(look.beside, 'the mark drops under its label');
         assert.ok(look.lastLine > 1, 'the tip ends on a lone word');
         assert.ok(look.ink, 'the tip is not in the primary ink');
-        // The copy stands as far off its mark as the live tip does. It starts at its mark, where the
-        // live tip centres on it, since a centred copy would leave its specimen.
+        // The copy stands as far off its mark as the live tip does, and both start at the mark with
+        // an arrow on its centre whose point stands the floating gap off it (L-35).
+        /** @param {Element} tip @param {DOMRect} m */
+        const arrowOf = (tip, m) => {
+          const t = tip.getBoundingClientRect();
+          const arrow = getComputedStyle(tip, '::after');
+          const size = parseFloat(arrow.width);
+          const stroke = parseFloat(getComputedStyle(tip).borderTopWidth);
+          const centre = {
+            x: t.left + stroke + parseFloat(arrow.left) + size / 2,
+            y: t.top + stroke + parseFloat(arrow.top) + size / 2
+          };
+          const reach = size * Math.SQRT1_2;
+          return {
+            start: t.left - m.left,
+            aim: centre.x - (m.left + m.width / 2),
+            point: centre.y < m.top ? m.top - (centre.y + reach) : centre.y - reach - m.bottom
+          };
+        };
         await page.setViewportSize({ width: 1440, height: 900 });
-        const copyGap = await page.evaluate(() => {
-          const copy = /** @type {Element} */ (
-            document.querySelector('#help-tip .sui-help-tip-preview')
-          );
-          const [mark, tip] = ['.sui-help-tip', '.sui-tooltip'].map((part) =>
-            /** @type {Element} */ (copy.querySelector(part)).getBoundingClientRect()
-          );
+        const copy = await page.evaluate(`(() => {
+          const arrowOf = ${arrowOf};
+          const copy = document.querySelector('#help-tip .sui-help-tip-preview');
+          const mark = copy.querySelector('.sui-help-tip').getBoundingClientRect();
+          const tip = copy.querySelector('.sui-tooltip');
           // The live tip lands on the pixel grid, so both are read to the whole pixel.
-          return Math.round(tip.top - mark.bottom);
-        });
+          return { gap: Math.round(tip.getBoundingClientRect().top - mark.bottom), ...arrowOf(tip, mark) };
+        })()`);
         const mark = page.locator('#help-tip .sui-help-tip:not(.sui-help-tip-preview *)').first();
         await page.keyboard.press('Shift');
         await mark.focus();
         await page.locator('.sui-tooltip:popover-open').waitFor();
         // The live tip once wrapped a one-sentence tip in a box wider than its words, rose over
         // the specimen's name, and the mark's ring touched the label's last letter.
-        const live = await page.evaluate(() => {
-          const button = /** @type {Element} */ (document.activeElement);
-          const tip = /** @type {Element} */ (document.querySelector('.sui-tooltip:popover-open'));
-          const specimen = /** @type {Element} */ (button.closest('figure'));
+        const live = await page.evaluate(`(() => {
+          const arrowOf = ${arrowOf};
+          const button = document.activeElement;
+          const tip = document.querySelector('.sui-tooltip:popover-open');
           const [m, t, name, w] = [
             button,
             tip,
-            specimen.querySelector('figcaption'),
-            button.closest('.label')?.querySelector('.words')
-          ].map((part) => /** @type {Element} */ (part).getBoundingClientRect());
+            button.closest('figure').querySelector('figcaption'),
+            button.closest('.label').querySelector('.words')
+          ].map((part) => part.getBoundingClientRect());
           const style = getComputedStyle(button);
           const ring = parseFloat(style.outlineOffset) + parseFloat(style.outlineWidth);
           const range = document.createRange();
@@ -905,10 +920,16 @@ suite('overlays', together, () => {
             gap: Math.round(m.top - t.bottom),
             lines: new Set([...range.getClientRects()].map((line) => Math.round(line.top))).size,
             clearOfName: t.top >= name.bottom,
-            ringRoom: m.left - ring - w.right
+            ringRoom: m.left - ring - w.right,
+            ...arrowOf(tip, m)
           };
-        });
-        assert.equal(live.gap, copyGap, 'the copy stands off its mark unlike the live tip');
+        })()`);
+        assert.equal(live.gap, copy.gap, 'the copy stands off its mark unlike the live tip');
+        for (const [name, tip] of Object.entries({ live, copy })) {
+          assert.ok(Math.abs(tip.start) <= 0.5, `the ${name} tip does not start at its mark`);
+          assert.ok(Math.abs(tip.aim) <= 0.5, `the ${name} arrow misses the mark's centre`);
+          assert.ok(Math.abs(tip.point - 6) <= 0.5, `the ${name} arrow stands ${tip.point}px off`);
+        }
         assert.equal(live.lines, 1, 'a one-sentence tip wraps');
         assert.ok(live.clearOfName, 'the live tip covers its specimen name');
         assert.ok(live.ringRoom > 0, 'the focus ring touches the label words');
