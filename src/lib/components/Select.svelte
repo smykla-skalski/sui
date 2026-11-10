@@ -641,8 +641,6 @@ assistive technology, because a native picker cannot be held open.
     box-sizing: border-box;
     color: var(--sui-text-primary);
     justify-self: stretch;
-    max-block-size: 20rem;
-    overflow: hidden;
     padding: var(--sui-space-1);
   }
 

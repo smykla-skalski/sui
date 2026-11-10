@@ -1256,7 +1256,7 @@ suite('forms', together, () => {
       assert.equal(await field.inputValue(), 'Go');
     });
 
-    test('an open select copy is the closed field turned over, as wide and tall as its picker, its groups lined and headed on the names, an off option dimming its name only', async () => {
+    test('an open select copy is the closed field turned over, as wide as its picker, its groups lined and headed on the names, an off option dimming its name only', async () => {
       const page = await opened();
       const look = await page.evaluate(() => {
         const section = /** @type {Element} */ (document.querySelector('#select'));
@@ -1305,11 +1305,7 @@ suite('forms', together, () => {
             name: strength(/** @type {Element} */ (off.querySelector('.sui-select-label'))),
             reason: strength(/** @type {Element} */ (off.querySelector('.sui-select-note')))
           },
-          lines: { copy: lines(sheet), live: lines(live) },
-          tall: [...section.querySelectorAll('.sui-select-sheet')].map((node) => ({
-            height: node.getBoundingClientRect().height,
-            cut: node.scrollHeight > node.clientHeight
-          }))
+          lines: { copy: lines(sheet), live: lines(live) }
         };
       });
       assert.ok(look.copies.length >= 3, 'the page shows the open copies');
@@ -1328,13 +1324,6 @@ suite('forms', together, () => {
       // A group after a row stands under a line, in the copy and in the live picker alike.
       assert.deepEqual(look.lines.copy, ['1px', '1px']);
       assert.deepEqual(look.lines.live, ['1px', '1px']);
-      // The copy stops where the real picker does, so a long list is cut as it is.
-      for (const sheet of look.tall)
-        assert.ok(sheet.height <= 320, `a copy runs ${sheet.height}px`);
-      assert.ok(
-        look.tall.some((sheet) => sheet.cut),
-        'a long list is cut at the picker height'
-      );
     });
 
     test(
