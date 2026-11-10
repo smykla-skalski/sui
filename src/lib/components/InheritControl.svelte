@@ -255,6 +255,8 @@ for a press of the way back.
     overflow-wrap: anywhere;
     padding-block: var(--sui-block-snap-room-even);
     text-box: trim-both cap alphabetic;
+    /* A sentence that wraps never leaves its last word alone. */
+    text-wrap: pretty;
   }
 
   .sui-inherit-word {
