@@ -453,8 +453,8 @@ assistive technology, because a native picker cannot be held open.
     box-shadow: none;
     color: var(--sui-text-secondary);
     margin-block: calc(-1 * var(--sui-stroke));
-    /* The field's own text inset, so the unit's words sit as far in as a value's would. */
-    padding-inline-start: var(--sui-field-inset);
+    /* A step after the value's own end inset, so the amount and its unit read as one phrase. */
+    padding-inline-start: var(--sui-space-2);
     translate: none;
   }
 

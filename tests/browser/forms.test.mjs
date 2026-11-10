@@ -2198,6 +2198,14 @@ suite('forms', together, () => {
       // The unit holds its longest option's width, so the pick leaves the field as it was.
       await specimen.locator('select').selectOption('hours');
       assert.equal(await width(), wide);
+      // The unit's words follow the amount's 12px end inset by one 8px step, so they read as
+      // one phrase.
+      const step = await specimen.evaluate((node) => {
+        const amount = /** @type {Element} */ (node.querySelector('.sui-duration-amount input'));
+        const unit = /** @type {Element} */ (node.querySelector('.sui-select-value'));
+        return unit.getBoundingClientRect().left - amount.getBoundingClientRect().right;
+      });
+      assert.equal(step, 8);
     });
 
     test('a duration fits five digits on a phone and says its range on one line', async () => {
