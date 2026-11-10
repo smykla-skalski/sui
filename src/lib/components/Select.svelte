@@ -632,7 +632,13 @@ assistive technology, because a native picker cannot be held open.
   /* The copy's field is drawn as the field it hangs from looks while open. */
   .sui-select-preview
     .sui-select:not(.bare)
-    .sui-select-control:not(:active, :focus-visible, :disabled, [aria-invalid='true']) {
+    .sui-select-control:not(
+      :active,
+      :focus-visible,
+      :disabled,
+      [aria-invalid='true'],
+      :user-invalid
+    ) {
     border-color: var(--sui-field-frame-focus);
     border-block-end-color: var(--sui-focus);
     box-shadow:

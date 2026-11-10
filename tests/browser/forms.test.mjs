@@ -1321,6 +1321,24 @@ suite('forms', together, () => {
         copy.append(probe);
         const focus = getComputedStyle(probe).color;
         probe.remove();
+        // A refused send marks a required copy's field invalid over its open paint, after the
+        // focus the refusal gives it moves on.
+        const prompt = /** @type {HTMLSelectElement} */ (
+          [...section.querySelectorAll('.sui-select-preview select')].find(
+            (select) => /** @type {HTMLSelectElement} */ (select).value === ''
+          )
+        );
+        const form = document.createElement('form');
+        form.id = 'select-copy-refusal';
+        document.body.append(form);
+        prompt.required = true;
+        prompt.setAttribute('form', form.id);
+        form.requestSubmit();
+        prompt.blur();
+        const refused = getComputedStyle(prompt).borderBlockEndColor;
+        prompt.required = false;
+        prompt.removeAttribute('form');
+        form.remove();
         const field = {
           type: type(control),
           text:
@@ -1328,6 +1346,7 @@ suite('forms', together, () => {
             parseFloat(box.borderInlineStartWidth) +
             parseFloat(box.paddingInlineStart),
           baseline: box.borderBlockEndColor,
+          refused,
           focus
         };
         const option = {
@@ -1386,6 +1405,7 @@ suite('forms', together, () => {
         `the check starts at ${look.option.check}, the field's words at ${look.field.text}`
       );
       assert.equal(look.field.baseline, look.field.focus, 'an open field draws an accent baseline');
+      assert.notEqual(look.field.refused, look.field.focus, 'a refused copy drops the open accent');
       // A check marks the first line of a wrapped name as it does a one-line name, as a menu
       // icon does.
       const one = look.checked.find((row) => row.lines === 1);
