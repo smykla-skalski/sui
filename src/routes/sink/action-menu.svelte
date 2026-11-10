@@ -78,7 +78,7 @@
     </div>
   </Specimen>
   <Specimen label="Disabled button trigger">
-    <div class="locked">
+    <div class="locked stack">
       <ActionMenu items={release} disabled>Release Actions</ActionMenu>
       <p class="reason">Read-only while the repository is archived</p>
     </div>
@@ -169,10 +169,19 @@
     min-block-size: var(--sui-control-height-compact);
   }
 
-  /* A phone line holds the icon trigger's reason but not the button trigger's, so both drop under
-     their triggers rather than one standing beside and one under. */
+  /* On a phone the icon trigger keeps its reason beside it, wrapping there, while the button
+     trigger's reason drops under it, since the two cannot share one line. */
   @media (max-width: 47.9375rem) {
     .locked {
+      flex-wrap: nowrap;
+    }
+
+    .locked .reason {
+      flex: 1;
+      min-inline-size: 0;
+    }
+
+    .stack {
       align-items: start;
       flex-direction: column;
       gap: var(--sui-space-2);
