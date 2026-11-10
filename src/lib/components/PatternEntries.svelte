@@ -512,6 +512,34 @@ a saving pane around it holds it the same way.
     display: inline-block;
   }
 
+  /* A pattern longer than its field ends in an ellipsis at rest, as a text field's value does,
+     so it reads as cut and not as whole; with focus it scrolls as typed. The line is inline
+     then, as an ellipsis drops a whole inline block, and its shift waits for focus. */
+  .sui-pattern-text:not(:focus-within) > .sui-pattern-copy {
+    overflow: hidden;
+    /* A field sized to its pattern is as wide as its words to a part of a pixel, so the copy
+       keeps a stroke of slack at its end and only a pattern that truly overflows ends cut. */
+    padding-inline-end: calc(var(--sui-field-inset) - var(--sui-stroke));
+    text-overflow: ellipsis;
+  }
+
+  .sui-pattern-text:not(:focus-within) .sui-pattern-line {
+    display: inline;
+  }
+
+  /* An off field's words are the copy's, all in the muted ink at full strength (L-40), so the
+     clear field drops the paint the joined field gives an off part's own words. */
+  .sui-pattern-text > .sui-pattern-input:disabled {
+    -webkit-text-fill-color: transparent;
+  }
+
+  .sui-pattern-text:has(> :disabled) > .sui-pattern-copy,
+  .sui-pattern-text:has(> :disabled)
+    > .sui-pattern-copy
+    :is(.tok-const, .tok-key, .tok-str, .tok-pun) {
+    color: var(--sui-text-muted);
+  }
+
   /* An input method draws its own marks under the text it composes, so the field shows its
      words until the composition ends. */
   .composing > .sui-pattern-input {
@@ -680,8 +708,10 @@ a saving pane around it holds it the same way.
   }
 
   @media (forced-colors: active) {
-    .sui-pattern-input {
+    .sui-pattern-input,
+    .sui-pattern-text > .sui-pattern-input:disabled {
       color: CanvasText;
+      -webkit-text-fill-color: currentColor;
     }
 
     .sui-pattern-copy {
