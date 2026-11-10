@@ -48,11 +48,6 @@
     );
   }
 
-  /* A search that never answers, so a copy stays on "Searching…". */
-  function waiting(): Promise<typeof accounts> {
-    return new Promise(() => {});
-  }
-
   let language = $state('ts');
   let label = $state('');
   let reviewer = $state('');
@@ -220,14 +215,28 @@
   <Specimen label="Searching">
     <Field label="Reviewer">
       {#snippet control({ id, describedby })}
-        <Combobox {id} aria-describedby={describedby} search={waiting} previewText="octo" preview />
+        <Combobox
+          {id}
+          aria-describedby={describedby}
+          search={findAccounts}
+          previewText="octo"
+          previewSearch="waiting"
+          preview
+        />
       {/snippet}
     </Field>
   </Specimen>
   <Specimen label="Search refused">
     <Field label="Owner">
       {#snippet control({ id, describedby })}
-        <Combobox {id} aria-describedby={describedby} search={offline} previewText="octo" preview />
+        <Combobox
+          {id}
+          aria-describedby={describedby}
+          search={offline}
+          previewText="octo"
+          previewSearch="refused"
+          preview
+        />
       {/snippet}
     </Field>
   </Specimen>
