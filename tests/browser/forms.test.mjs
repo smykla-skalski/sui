@@ -1289,6 +1289,9 @@ suite('forms', together, () => {
             off: {
               name: opacity('.sui-combobox-label'),
               note: opacity('.sui-combobox-note'),
+              nameInk: getComputedStyle(
+                /** @type {Element} */ (off.querySelector('.sui-combobox-label'))
+              ).color,
               ink: getComputedStyle(
                 /** @type {Element} */ (off.querySelector('.sui-combobox-note'))
               ).color
@@ -1421,9 +1424,12 @@ suite('forms', together, () => {
       const { count, ...lone } = rows;
       assert.deepEqual(lone, { option: 44, notes: [44, 44], layers: [54, 54, 54] });
       assert.ok(Number(count) < 44, `the count foot stands ${count}px, as tall as a row`);
-      assert.equal(look.off.name, 0.6);
+      // An off option draws its name in its reason's ink at full strength, so the 13px reason
+      // never outranks the name (L-40).
+      assert.equal(look.off.name, 1, 'an off option keeps its name at full strength');
       assert.equal(look.off.note, 1, 'an off option keeps its reason at full strength');
       assert.equal(look.off.ink, look.secondary, 'in the reason ink');
+      assert.equal(look.off.nameInk, look.secondary, 'its name in the reason ink');
       const field = page.getByRole('combobox', { name: 'Language', exact: true }).first();
       await field.focus();
       await page.keyboard.press('ArrowDown');
@@ -1467,7 +1473,7 @@ suite('forms', together, () => {
       assert.notEqual(look.combobox.size, look.combobox.name);
     });
 
-    test('an open select copy is the closed field turned over, as wide as its picker, its groups lined and headed on the names, set as the field with the check on its words and on the first line of a wrapped name, an off option dimming its name and inking its reason as a menu does', async () => {
+    test('an open select copy is the closed field turned over, as wide as its picker, its groups lined and headed on the names, set as the field with the check on its words and on the first line of a wrapped name, an off option inking its name and reason as a menu does', async () => {
       const page = await opened();
       const look = await page.evaluate(() => {
         const section = /** @type {Element} */ (document.querySelector('#select'));
@@ -1631,6 +1637,9 @@ suite('forms', together, () => {
           off: {
             name: strength(/** @type {Element} */ (off.querySelector('.sui-select-label'))),
             reason: strength(/** @type {Element} */ (off.querySelector('.sui-select-note'))),
+            nameInk: getComputedStyle(
+              /** @type {Element} */ (off.querySelector('.sui-select-label'))
+            ).color,
             ink: getComputedStyle(/** @type {Element} */ (off.querySelector('.sui-select-note')))
               .color
           },
@@ -1711,10 +1720,12 @@ suite('forms', together, () => {
         Math.abs(look.heading - look.name) < 1,
         'a group heading starts where the names do'
       );
-      // An option that cannot be chosen dims its name, never the reason it gives (L-40).
-      assert.ok(Math.abs(look.off.name - 0.6) < 0.01, `an off name stands at ${look.off.name}`);
+      // An option that cannot be chosen draws its name and its reason in the menu reason ink at
+      // full strength, so the reason never outranks the name (L-40).
+      assert.equal(look.off.name, 1, `an off name stands at ${look.off.name}`);
       assert.equal(look.off.reason, 1, 'an off option keeps its reason at full contrast');
       assert.equal(look.off.ink, look.secondary, 'its reason reads in the menu reason ink');
+      assert.equal(look.off.nameInk, look.secondary, 'its name reads in the menu reason ink');
       // A group after a row stands under a line, in the copy and in the live picker alike.
       assert.deepEqual(look.lines.copy, ['1px', '1px']);
       assert.deepEqual(look.lines.live, ['1px', '1px']);
