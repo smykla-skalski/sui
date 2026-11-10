@@ -41,7 +41,7 @@
     );
   }
 
-  /* The directory never answers, so the refused state shows on the first letters typed. */
+  /* The directory is offline: the search the refused copy stands for. */
   function offline(): Promise<typeof accounts> {
     return new Promise((_, reject) =>
       setTimeout(() => reject(new Error('The directory is offline')), 300)
@@ -51,7 +51,6 @@
   let language = $state('ts');
   let label = $state('');
   let reviewer = $state('');
-  let owner = $state('');
   let runtime = $state('rust');
   let primary = $state('rb');
   let sent = $state('Nothing sent yet');
@@ -111,7 +110,7 @@
   --example-max="54rem"
   --specimen-min="15rem"
   --specimen-row-gap="var(--sui-space-6)"
-  note="A refused value keeps its danger edge, a refused search says so, and a disabled field says why under it"
+  note="A refused value keeps its danger edge, a field that only reads drops its chevron, and a disabled field says why under it"
   layout="grid"
 >
   <Specimen label="Invalid">
@@ -127,16 +126,10 @@
       {/snippet}
     </Field>
   </Specimen>
-  <Specimen label="Search refused">
-    <Field label="Owner" hint="Type a name to look it up">
+  <Specimen label="Read-only">
+    <Field label="Language" hint="The organization policy sets it">
       {#snippet control({ id, describedby })}
-        <Combobox
-          {id}
-          aria-describedby={describedby}
-          search={offline}
-          bind:value={owner}
-          placeholder="octocat…"
-        />
+        <Combobox {id} aria-describedby={describedby} options={languages} value="rust" readonly />
       {/snippet}
     </Field>
   </Specimen>

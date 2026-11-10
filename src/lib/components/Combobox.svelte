@@ -65,7 +65,7 @@
     free?: boolean;
     /** Marks the value as wrong; pass a `Field`'s `invalid` here, with its error in `aria-describedby`. */
     invalid?: boolean;
-    /** Draws the list open under a read-only field in the page's flow, with the value's row active and no keyboard. */
+    /** Draws the list open under a read-only field in the page's flow, with the value's row checked, no row lit and no keyboard. */
     preview?: boolean;
     /** Text a preview draws as typed, so its list shows the matches, the offer or the note for it. */
     previewText?: string;
@@ -169,16 +169,9 @@
   );
   const showing = $derived((preview || open) && (rows > 0 || note !== ''));
   const listed = $derived(showing && rows > 0);
-  const current = $derived(
-    preview
-      ? Math.max(
-          0,
-          visible.findIndex((option) => option.value === value)
-        )
-      : navigated && rows > 0
-        ? Math.min(active, rows - 1)
-        : -1
-  );
+  /* A copy lights no row, as a list opened by a press or by typing shows none: only the arrows
+     light one, and the value keeps its check. */
+  const current = $derived(preview ? -1 : navigated && rows > 0 ? Math.min(active, rows - 1) : -1);
   const listLabel = $derived(
     rest['aria-label'] ??
       ([...(element?.labels ?? [])]
@@ -514,7 +507,7 @@ Name it with a `<label>` or `aria-label`, as any field.
 <style>
   .sui-combobox-preview {
     display: grid;
-    gap: var(--sui-space-1);
+    gap: var(--sui-floating-gap);
     min-inline-size: 0;
   }
 
@@ -536,6 +529,11 @@ Name it with a `<label>` or `aria-label`, as any field.
 
   .sui-combobox-field > :global(input) {
     padding-inline-end: calc(var(--sui-field-inset) + var(--sui-icon-base) + var(--sui-space-2));
+  }
+
+  /* A field that only reads never opens, so it shows no chevron. */
+  .sui-combobox-field:has(> :global(input[readonly]:not([data-open]))) > .sui-combobox-chevron {
+    visibility: hidden;
   }
 
   .sui-combobox-chevron {

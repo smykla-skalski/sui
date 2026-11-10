@@ -1460,6 +1460,29 @@ suite('overlays', together, () => {
       await clear();
     });
 
+    test('a refused combobox search says so', async () => {
+      await page.evaluate(() => {
+        const { lib, mount, flushSync } = /** @type {any} */ (window);
+        const host = Object.assign(document.body.appendChild(document.createElement('div')), {
+          id: 'host'
+        });
+        const combobox = mount(lib.Combobox, {
+          target: host,
+          props: {
+            'aria-label': 'Owner',
+            search: () => Promise.reject(new Error('The directory is offline'))
+          }
+        });
+        flushSync();
+        Object.assign(window, { parts: [combobox] });
+      });
+      await page.getByRole('combobox', { name: 'Owner' }).fill('oct');
+      await page.waitForFunction(() =>
+        /could not load/.test(document.querySelector('#host [role="status"]')?.textContent ?? '')
+      );
+      await clear();
+    });
+
     test('a combobox copy keeps its typed text and offer when focus passes through it, and a sized combobox in a sentence keeps its chevron inside it', async () => {
       await page.evaluate(() => {
         const { lib, mount, flushSync } = /** @type {any} */ (window);

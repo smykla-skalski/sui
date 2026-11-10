@@ -1217,17 +1217,6 @@ suite('forms', together, () => {
       }
     );
 
-    test('a refused combobox search says so', long, async () => {
-      const page = await opened();
-      const field = page.getByRole('combobox', { name: 'Owner' }).first();
-      await field.fill('oct');
-      await page.waitForFunction(() =>
-        [...document.querySelectorAll('#combobox [role="status"]')].some((status) =>
-          /could not load/.test(status.textContent ?? '')
-        )
-      );
-    });
-
     test('a combobox wears a Select chevron that turns while its list or its note alone shows, an open copy draws every row in the editing paint, and an off option keeps its reason at full contrast', async () => {
       const page = await opened();
       // The search copies open once their searches have run, so every copy settles first.
@@ -1330,6 +1319,25 @@ suite('forms', together, () => {
         'a copy with only a note keeps the editing ground, not the read-only tint'
       );
       assert.equal(look.cut, 0, 'the open copy draws every row');
+      const quiet = await page.evaluate(() => ({
+        lit: document.querySelectorAll(
+          '#combobox .sui-combobox-preview .sui-combobox-option.active'
+        ).length,
+        checked: document.querySelectorAll('#combobox .sui-combobox-preview [aria-selected="true"]')
+          .length,
+        readonly: getComputedStyle(
+          /** @type {Element} */ (
+            document.querySelector(
+              '#combobox .sui-combobox-field:has(input[readonly]:not([data-open])) .sui-combobox-chevron'
+            )
+          )
+        ).visibility
+      }));
+      assert.deepEqual(
+        quiet,
+        { lit: 0, checked: 1, readonly: 'hidden' },
+        'a copy lights no row and checks the value, and a field that only reads drops its chevron'
+      );
       assert.equal(look.offMark, look.offName, 'a match in an off option draws as its name');
       await page.waitForFunction(
         () => document.querySelector('#combobox')?.textContent?.includes('could not load'),
