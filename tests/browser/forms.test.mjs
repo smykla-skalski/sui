@@ -2198,8 +2198,15 @@ suite('forms', together, () => {
       // The unit holds its longest option's width, so the pick leaves the field as it was.
       await specimen.locator('select').selectOption('hours');
       assert.equal(await width(), wide);
-      // The unit's words follow the amount's 12px end inset by one 8px step, so they read as
-      // one phrase.
+      // The digits end against the unit, whose words stand one 8px step after them, so a short
+      // amount and its unit read as one phrase.
+      assert.deepEqual(
+        await amount.evaluate((input) => {
+          const style = getComputedStyle(input);
+          return [style.textAlign, style.paddingInlineEnd];
+        }),
+        ['end', '0px']
+      );
       const step = await specimen.evaluate((node) => {
         const amount = /** @type {Element} */ (node.querySelector('.sui-duration-amount input'));
         const unit = /** @type {Element} */ (node.querySelector('.sui-select-value'));

@@ -359,10 +359,14 @@ land on the amount.
   }
 
   /* Room for five digits in the amount's own size, the most a whole number of seconds under a
-     day takes, so a phone's larger type still fits and the unit follows a short step after. */
+     day takes, so a phone's larger type still fits. The digits end against the unit, a step
+     before its words, so a short amount and its unit read as one phrase and the field keeps its
+     width while a reader types. */
   .sui-duration-amount > :global(input) {
     box-sizing: border-box;
     inline-size: calc(5ch + 2 * var(--sui-field-inset));
+    padding-inline-end: 0;
+    text-align: end;
   }
 
   /* A hint or reason takes the room beside the field up to a short measure, as a field's help
