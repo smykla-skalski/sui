@@ -873,9 +873,9 @@ suite('overlays', together, () => {
           point: over ? m.top - (centre.y + reach) : centre.y - reach - m.bottom
         };
       };
-      const copies = async () =>
-        /** @type {{ side: string, over: boolean, beside: boolean, ink: boolean, lines: number }[]} */ (
-          await page.evaluate(`[...document.querySelectorAll('#help-tip .sui-help-tip-preview')].map((copy) => {
+      const copies = async (on = page) =>
+        /** @type {{ side: string, over: boolean, beside: boolean, ink: boolean, lines: number, aim: number }[]} */ (
+          await on.evaluate(`[...document.querySelectorAll('#help-tip .sui-help-tip-preview')].map((copy) => {
           const arrowOf = ${arrowOf};
           const mark = copy.querySelector('.sui-help-tip');
           const tip = copy.querySelector('.sui-tooltip');
@@ -951,6 +951,23 @@ suite('overlays', together, () => {
             Math.abs(tip.point - 8) <= 0.5,
             `the ${tip.side} arrow stands ${tip.point}px off`
           );
+        }
+        // The server render is the first frame and the only one without script, so its copies
+        // aim at their marks before any measure runs.
+        const still = await browser.newPage({
+          viewport: { width: 1440, height: 900 },
+          javaScriptEnabled: false
+        });
+        try {
+          await still.goto(allSections(url));
+          await still.evaluate(() => document.fonts.ready);
+          for (const tip of await copies(still))
+            assert.ok(
+              Math.abs(tip.aim) <= 0.5,
+              `the ${tip.side} arrow misses the mark's centre without script by ${tip.aim}px`
+            );
+        } finally {
+          await still.close();
         }
         assert.ok(live.clearOfName, 'the live tip covers its specimen name');
         assert.ok(

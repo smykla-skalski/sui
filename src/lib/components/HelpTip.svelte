@@ -89,7 +89,10 @@ on the page instead.
 
 <style>
   /* The open tip drawn over or under its mark, by its side, in the page's flow. */
+  /* The copy starts at its mark, so the mark's centre is known before any measure, and the
+     first frame, or a page without script, already points the copy's arrow at it. */
   .sui-help-tip-preview {
+    --sui-floating-anchor-at: calc(var(--sui-control-height-chip) / 2);
     display: inline-grid;
     grid-template-columns: minmax(0, auto);
     justify-items: start;
