@@ -627,6 +627,8 @@ Name it with a `<label>` or `aria-label`, as any field.
     outline: none;
     padding-block: var(--sui-space-1);
     padding-inline: var(--sui-space-2) var(--sui-space-3);
+    /* A row that wraps keeps near equal lines, as every list's row does. */
+    text-wrap: balance;
     transition: translate var(--sui-duration-press) var(--sui-ease-standard);
     -webkit-user-select: none;
     user-select: none;

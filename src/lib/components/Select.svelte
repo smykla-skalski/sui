@@ -684,6 +684,8 @@ assistive technology, because a native picker cannot be held open.
     min-block-size: var(--sui-control-height-compact);
     padding-block: calc((var(--sui-control-height-compact) - round(up, 1cap, 2px)) / 2);
     padding-inline: calc(var(--sui-field-inset) - var(--sui-space-1)) var(--sui-space-3);
+    /* A row that wraps keeps near equal lines, as every list's row does. */
+    text-wrap: balance;
     white-space: normal;
   }
 

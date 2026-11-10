@@ -872,6 +872,19 @@ suite('overlays', together, () => {
           })
         );
         assert.deepEqual(lone, []);
+        // An item's description reads a type step under its name, as an option's note does (L-25).
+        const steps = await page.evaluate(() =>
+          [...document.querySelectorAll('#action-menu .sui-action-menu-description')].map(
+            (description) => {
+              const label = description.parentElement?.querySelector('.sui-action-menu-label');
+              const size = (/** @type {Element} */ node) =>
+                parseFloat(getComputedStyle(node).fontSize);
+              return label ? size(label) - size(description) : 0;
+            }
+          )
+        );
+        assert.ok(steps.length > 0, 'the section shows no item description');
+        for (const step of steps) assert.equal(step, 1, 'a description is 1px under its name');
         // A menu item is set at the regular weight, as an option in a list is (L-25).
         const weights = await page.evaluate(() => [
           ...new Set(

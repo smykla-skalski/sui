@@ -282,12 +282,15 @@ returns focus there too. Labels wrap rather than being cut short.
 <style>
   /* In the page's flow the room is the preview's own line, so the menu fills a box at least as
      wide as a floating menu's floor and never wider than that line, and the trigger stands at
-     its aligned edge above it, as far as a live menu stands off it (L-35). */
+     its aligned edge above it, as far as a live menu stands off it (L-35). The floor is in the
+     size itself, so a row the copy stands in counts it; without calc-size() it is only the
+     least size, which a row's max-content leaves out. */
   .sui-action-menu-preview {
     display: inline-grid;
     gap: var(--sui-floating-gap);
     grid-template-columns: minmax(0, auto);
     inline-size: fit-content;
+    inline-size: calc-size(fit-content, max(size, 13rem + 2 * var(--sui-stroke)));
     max-inline-size: 100%;
     min-inline-size: min(calc(13rem + 2 * var(--sui-stroke)), 100%);
   }
@@ -341,6 +344,8 @@ returns focus there too. Labels wrap rather than being cut short.
     padding-block: calc((var(--sui-control-height-compact) - round(up, 1cap, 2px)) / 2);
     padding-inline: var(--sui-space-3);
     text-align: start;
+    /* A row that wraps keeps near equal lines, as every list's row does. */
+    text-wrap: balance;
     transition: translate var(--sui-duration-press) var(--sui-ease-standard);
     -webkit-tap-highlight-color: transparent;
     -webkit-user-select: none;
@@ -422,7 +427,7 @@ returns focus there too. Labels wrap rather than being cut short.
     align-content: center;
     block-size: var(--sui-block-snap);
     color: var(--sui-text-secondary);
-    font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-leading-meta)
+    font: var(--sui-weight-regular) var(--sui-font-size-caption) / var(--sui-row-copy-leading)
       var(--sui-sans);
     overflow-wrap: anywhere;
     padding-block: var(--sui-block-snap-room);
