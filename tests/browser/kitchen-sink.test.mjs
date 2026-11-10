@@ -1481,6 +1481,11 @@ suite('the kitchen sink', together, () => {
             Math.abs(save.x + save.width - actions.x - actions.width) < 0.5,
           'Remove Pair and Save Pair do not stand at the two ends'
         );
+        // The removal is destructive, so it wears the bordered danger tone (L-39).
+        assert.equal(
+          await editor.getByRole('button', { name: 'Remove Pair' }).getAttribute('data-tone'),
+          'stop-quiet'
+        );
         await page.keyboard.press('Escape');
         await settles(
           page.waitForFunction(

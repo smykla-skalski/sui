@@ -61,7 +61,7 @@
 A tone is a job, never a color. `default` does a view's ordinary work, `signal` is the one
 action a view exists for (one per view), `ghost` is low emphasis that supports it, `stop` is
 destructive, and `stop-quiet` is destructive but bordered, for a flow whose filled danger
-button is the final confirmation. `add` has a firm dashed edge and starts an
+button is the final confirmation, or a removal that stands apart from the save beside it. `add` has a firm dashed edge and starts an
 optional entry; it never submits, saves, cancels, removes or navigates. `decision` is the gold
 action that resolves unsaved work, such as Save in a save bar, and nothing else wears it.
 

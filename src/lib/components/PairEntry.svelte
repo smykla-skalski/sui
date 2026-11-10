@@ -329,7 +329,7 @@ chips take the whole line under the copy and wrap within it.
     </Field>
     <div class="sui-pair-actions">
       {#if editing >= 0}
-        <Button tone="ghost" onclick={() => remove(editing)}>{removeLabel}</Button>
+        <Button tone="stop-quiet" onclick={() => remove(editing)}>{removeLabel}</Button>
       {/if}
       <Button tone="signal" type="submit">{doneLabel}</Button>
     </div>
