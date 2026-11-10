@@ -506,6 +506,17 @@ test('L-20 a duration amount reads in the words face with figures of one width',
   );
 });
 
+test('L-35 a floating list stands clear of its focused trigger by one gap, live and in a copy', () => {
+  assert.match(read('src/lib/styles.css'), /--sui-floating-gap: 6px;/);
+  assert.match(read('src/lib/components/Popover.svelte'), /offset = 6,/);
+  for (const path of ['src/lib/components/Select.svelte', 'src/lib/components/Combobox.svelte'])
+    assert.match(read(path), /-preview \{[^}]*gap: var\(--sui-floating-gap\);/, path);
+  assert.match(
+    read('src/lib/components/Select.svelte'),
+    /margin-block: var\(--sui-floating-gap\);/
+  );
+});
+
 test('L-55 a specimen name stands a step past a field gap over its specimen, closer than any row of specimens', () => {
   const specimen = styles['src/routes/kit/Specimen.svelte'];
   assert.match(specimen, /\.specimen \{[^}]*gap: var\(--sui-space-4\);/);

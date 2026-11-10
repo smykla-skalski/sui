@@ -12,7 +12,7 @@
     id = fallbackId,
     side = 'block-end',
     align = 'start',
-    offset = 4,
+    offset = 6,
     width = 'auto',
     dismiss = 'auto',
     inline = false,
@@ -33,6 +33,7 @@
     id?: string;
     side?: Placement['side'];
     align?: Placement['align'];
+    /** Pixels between the anchor and the layer; the default is `--sui-floating-gap`. */
     offset?: number;
     /** `trigger` matches the anchor's width, `min-trigger` never goes narrower than it. */
     width?: 'auto' | 'min-trigger' | 'trigger';

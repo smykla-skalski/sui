@@ -595,7 +595,7 @@ assistive technology, because a native picker cannot be held open.
         box-shadow: var(--sui-shadow-popover);
         box-sizing: border-box;
         color: var(--sui-text-primary);
-        margin-block: var(--sui-space-1);
+        margin-block: var(--sui-floating-gap);
         max-block-size: min(20rem, 100% - 2 * var(--sui-space-1));
         max-inline-size: min(24rem, 100vw - 2 * var(--sui-space-2));
         opacity: 1;
@@ -627,7 +627,7 @@ assistive technology, because a native picker cannot be held open.
      the field, as the real picker opens. */
   .sui-select-preview {
     display: inline-grid;
-    gap: var(--sui-space-1);
+    gap: var(--sui-floating-gap);
     grid-template-columns: minmax(0, 1fr);
     max-inline-size: 100%;
   }
