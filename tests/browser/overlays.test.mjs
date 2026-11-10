@@ -871,6 +871,22 @@ suite('overlays', together, () => {
         ]);
         assert.equal(widths.length, 1, `the icon rows are ${widths.join(', ')}px wide`);
         assert.match(widths[0], / ending 0$/, 'a row ends with its trigger');
+        // The row's band is one control tall, so its trigger centres on the line the buttons in
+        // the next specimen stand on.
+        const centres = await page.evaluate(() => {
+          const centre = (/** @type {Element | null} */ node) => {
+            const box = /** @type {Element} */ (node).getBoundingClientRect();
+            return box.top + box.height / 2;
+          };
+          const [row] = document.querySelectorAll('#action-menu .row');
+          const beside = [...document.querySelectorAll('#action-menu .actions button')];
+          return [centre(row.querySelector('button')), centre(beside[0])];
+        });
+        assert.equal(
+          centres[0],
+          centres[1],
+          `the row's trigger centres at ${centres.join(' vs ')}`
+        );
         const reasonTops = await page.evaluate(() => [
           ...new Set(
             [...document.querySelectorAll('#action-menu .locked .reason')].map(

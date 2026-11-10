@@ -135,6 +135,8 @@
     inline-size: 15rem;
     justify-content: space-between;
     max-inline-size: 100%;
+    /* One control tall, so the trigger centres on the line of the buttons beside it. */
+    min-block-size: var(--sui-control-height-compact);
   }
 
   /* The open copy is the live row, one width with it: the name and the trigger share the row's
