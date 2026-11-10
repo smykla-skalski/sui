@@ -13,6 +13,8 @@
      * option for the scheme the page wears instead of its prompt.
      */
     scheme?: 'light' | 'dark' | 'system';
+    /** Other forms the label takes, such as a unit's singular and plural, whose width a `bare` trigger holds too. */
+    forms?: readonly string[];
   };
 
   export type SelectGroup<Value extends SelectValue = string> = {
@@ -148,7 +150,7 @@ assistive technology, because a native picker cannot be held open.
 - Keyboard: the browser's own select keys: Space, Enter and the arrows open it and move, typing jumps to a label, and Escape closes it; a held select refuses all of them but Tab.
 - Pointer and touch: the trigger is 34px tall on a pointer and 44px on a phone or any touch screen, every option at least that tall, and a phone opens its own picker.
 - Focus: focus stays on the trigger while the picker opens and closes.
-- Responsive: the trigger is as wide as its value up to its container and cuts a long value, which the picker shows in full, wrapped. A `bare` trigger holds the width of its longest option, so a new pick never resizes the field it is joined to.
+- Responsive: the trigger is as wide as its value up to its container and cuts a long value, which the picker shows in full, wrapped. A `bare` trigger holds the width of its longest option, and of every form its options' `forms` list, so a new pick never resizes the field it is joined to.
 - Accessibility: options are native, so their names, groups and states reach every screen reader; a note is in an option's name; edges hold 3:1 and words 4.5:1.
 - Localization: `promptLabel`, `separator` and `optionName` are props with English defaults, the chevron and padding are logical, and the picker opens at the start edge in either direction.
 - Performance: native options render once each; the open picker moves only opacity and `translate`, with no movement under reduced motion.
@@ -202,10 +204,10 @@ assistive technology, because a native picker cannot be held open.
     >
       <button
         ><selectedcontent class="sui-select-value"
-        ></selectedcontent>{#if bare}{#each flat as option (option.value)}<span
-              class="sui-select-size"
-              aria-hidden="true">{option.label}</span
-            >{/each}{/if}</button
+        ></selectedcontent>{#if bare}{#each flat as option (option.value)}{#each [option.label, ...(option.forms ?? [])] as form, index (index)}<span
+                class="sui-select-size"
+                aria-hidden="true">{form}</span
+              >{/each}{/each}{/if}</button
       >
       {#if prompt !== undefined}
         <option

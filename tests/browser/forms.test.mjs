@@ -2213,6 +2213,14 @@ suite('forms', together, () => {
         return unit.getBoundingClientRect().left - amount.getBoundingClientRect().right;
       });
       assert.equal(step, 8);
+      // 1 minute names every unit in the singular and 60 seconds in the plural, and the field
+      // holds one width for both.
+      await specimen.locator('select').selectOption('minutes');
+      await amount.fill('1');
+      assert.equal(await width(), wide, 'a singular unit list resized the field');
+      await specimen.locator('select').selectOption('seconds');
+      assert.equal(await amount.inputValue(), '60');
+      assert.equal(await width(), wide, 'a plural unit list resized the field');
     });
 
     test('a duration fits five digits on a phone and says its range on one line', async () => {

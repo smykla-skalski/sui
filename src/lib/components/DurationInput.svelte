@@ -17,6 +17,9 @@
 
   const SECONDS: Record<DurationUnit, number> = { seconds: 1, minutes: 60, hours: 3600 };
   const UNITS = Object.keys(SECONDS) as DurationUnit[];
+  // One amount for each plural category a language may name a unit by (one, few, many and a
+  // fraction), so the unit picker holds the width of every form it can show.
+  const PLURAL_SAMPLES = [1, 2, 5, 1.5];
 
   const uid = $props.id();
   const refusals = setRefusals();
@@ -211,7 +214,11 @@
   );
   const shownAmount = $derived(read(text));
   const unitOptions = $derived(
-    UNITS.map((each) => ({ value: each, label: unitLabel(each, shownAmount) }))
+    UNITS.map((each) => ({
+      value: each,
+      label: unitLabel(each, shownAmount),
+      forms: PLURAL_SAMPLES.map((amount) => unitLabel(each, amount))
+    }))
   );
 
   /* The field's own problem is a native constraint as well, so a form refuses a send while it
