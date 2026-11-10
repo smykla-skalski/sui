@@ -152,26 +152,40 @@ suite('lists', together, () => {
     });
 
     test(
-      'every pattern stands the same gap clear of its cross, a short one too',
+      'every pattern stands one small step clear of its cross square, on either side, a short one too',
       long,
       async () => {
         const page = await opened();
         const gaps = await page
-          .locator('#pattern-entries .specimen', { hasText: 'A few entries' })
+          .locator('#pattern-entries .specimen')
+          .filter({ hasText: /^(A few entries|Right to left)/ })
           .locator('.sui-pattern-entry')
           .evaluateAll((entries) =>
             entries.map((entry) => {
-              const words = /** @type {Element} */ (entry.querySelector('.sui-pattern-line'));
-              const cross = /** @type {Element} */ (entry.querySelector('.sui-pattern-glyph'));
+              const words = /** @type {Element} */ (
+                entry.querySelector('.sui-pattern-line')
+              ).getBoundingClientRect();
+              const cross = /** @type {Element} */ (
+                entry.querySelector('.sui-pattern-remove')
+              ).getBoundingClientRect();
               return Math.round(
-                cross.getBoundingClientRect().left - words.getBoundingClientRect().right
+                cross.left < words.left ? words.left - cross.right : cross.left - words.right
               );
             })
           );
-        assert.equal(
-          new Set(gaps).size,
-          1,
-          `the gaps before the crosses differ: ${gaps.join(', ')}px`
+        const step = await page.evaluate(() => {
+          const probe = document.createElement('div');
+          probe.style.inlineSize = 'var(--sui-space-1)';
+          document.body.append(probe);
+          const size = Math.round(probe.getBoundingClientRect().width);
+          probe.remove();
+          return size;
+        });
+        assert.ok(gaps.length > 4, 'the specimens hold too few entries to compare');
+        assert.deepEqual(
+          [...new Set(gaps)],
+          [step],
+          `the words stand ${gaps.join(', ')}px off their crosses, not ${step}px`
         );
       }
     );

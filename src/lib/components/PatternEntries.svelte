@@ -450,12 +450,22 @@ a saving pane around it holds it the same way.
     margin-inline: var(--sui-space-2) calc(var(--sui-space-1) - var(--sui-space-2));
   }
 
-  /* The field and its colored copy share one cell, and only the field sizes it. */
+  /* The field and its colored copy share one cell, and only the field sizes it. A pattern is
+     set left to right whatever the page's direction, so its two sides are named by where the
+     cross stands: the field inset at the far side, a step at the cross's, as a search field's
+     words stand close to its clear button. */
   .sui-pattern-text {
+    --sui-local-pattern-start: var(--sui-field-inset);
+    --sui-local-pattern-end: var(--sui-space-1);
     display: grid;
     flex: 1 1 auto;
     grid-template-columns: minmax(0, 1fr);
     min-inline-size: 0;
+  }
+
+  .sui-pattern-text:dir(rtl) {
+    --sui-local-pattern-start: var(--sui-space-1);
+    --sui-local-pattern-end: var(--sui-field-inset);
   }
 
   /* Both set the pattern alike, so every character of the copy lies under the field's own.
@@ -482,7 +492,7 @@ a saving pane around it holds it the same way.
       ),
       1px
     );
-    padding-inline: var(--sui-field-inset);
+    padding-inline: var(--sui-local-pattern-start) var(--sui-local-pattern-end);
     text-align: match-parent;
   }
 
@@ -507,9 +517,12 @@ a saving pane around it holds it the same way.
     color: var(--sui-code-selection-ink);
   }
 
-  /* Clipped to its content box, where the field clips its own text as it scrolls. */
+  /* Clipped a step past its content box, where the field clips its own text as it scrolls. */
   .sui-pattern-copy {
-    clip-path: inset(0 var(--sui-space-2));
+    clip-path: inset(
+      0 calc(var(--sui-local-pattern-end) - var(--sui-space-1)) 0
+        calc(var(--sui-local-pattern-start) - var(--sui-space-1))
+    );
     color: var(--sui-text-primary);
     contain: inline-size;
     pointer-events: none;
@@ -528,7 +541,7 @@ a saving pane around it holds it the same way.
     overflow: hidden;
     /* A field sized to its pattern is as wide as its words to a part of a pixel, so the copy
        keeps a stroke of slack at its end and only a pattern that truly overflows ends cut. */
-    padding-inline-end: calc(var(--sui-field-inset) - var(--sui-stroke));
+    padding-inline-end: calc(var(--sui-local-pattern-end) - var(--sui-stroke));
     text-overflow: ellipsis;
   }
 
@@ -575,13 +588,13 @@ a saving pane around it holds it the same way.
     color: var(--sui-code-punct);
   }
 
-  /* As wide as the pattern, so every pattern stands one field inset clear of its cross, and
+  /* As wide as the pattern, so every pattern stands the same step clear of its cross, and
      never narrower than three characters, so a one-letter pattern keeps a target of its own.
      An empty entry keeps the 4rem a joined field keeps for its value, room to start typing. */
   @supports (field-sizing: content) {
     .sui-pattern-input {
       field-sizing: content;
-      min-inline-size: calc(3ch + 2 * var(--sui-field-inset));
+      min-inline-size: calc(3ch + var(--sui-field-inset) + var(--sui-space-1));
     }
 
     .empty > .sui-pattern-input {
