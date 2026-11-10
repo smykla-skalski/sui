@@ -3240,7 +3240,7 @@ suite('forms', together, () => {
   // and a button that wrapped on a phone ran back under the mark, off the words' edge. The mark
   // once stood 7px in from the specimen's edge and 12px off its words, at 13px.
   test(
-    'an inherit control keeps its mark and buttons on the value or control row and edge, its 16px mark 8px off its words on its own edge',
+    'an inherit control keeps its mark and buttons on the value or control row and edge, its 16px mark 8px off its words on its own edge, a spinner in its place while loading',
     long,
     async () => {
       const page = await open({ width: 390, path: 'inherit-control/' });
@@ -3297,6 +3297,18 @@ suite('forms', together, () => {
         assert.ok(
           Math.abs(rows.back - rows.field) <= 0.5,
           `the way back stands ${rows.back - rows.field}px off the field`
+        );
+        // A value still loading when the page draws waits with the busy ring in the mark's place.
+        const loading = page
+          .locator('#inherit-control .specimen', { hasText: 'Loading' })
+          .locator('.sui-inherit-marker');
+        assert.deepEqual(
+          await loading.evaluate((marker) => [
+            Boolean(marker.querySelector('.sui-inherit-spinner')),
+            Boolean(marker.querySelector('svg'))
+          ]),
+          [true, false],
+          "the loading value draws no spinner in its mark's place"
         );
       } finally {
         await page.close();

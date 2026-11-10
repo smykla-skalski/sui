@@ -883,7 +883,8 @@ test("L-68 icon sizes are named tiers that grow with the text and land on whole 
   );
   for (const [path, name] of [
     ['src/lib/components/Button.svelte', 'button'],
-    ['src/lib/components/IconButton.svelte', 'icon-button']
+    ['src/lib/components/IconButton.svelte', 'icon-button'],
+    ['src/lib/components/InheritControl.svelte', 'inherit']
   ]) {
     const spinner =
       new RegExp(`\\.sui-${name}-spinner \\{([^}]*)\\}`).exec(styles[path])?.[1] ?? '';

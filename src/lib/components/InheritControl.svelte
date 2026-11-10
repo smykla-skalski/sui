@@ -4,6 +4,7 @@
   import type { HTMLAttributes } from 'svelte/elements';
   import Icon from '../icons/Icon.svelte';
   import { held, holdAround } from '../internal/held.svelte.js';
+  import { shownWait } from '../internal/shown-wait.svelte.js';
   import Button from './Button.svelte';
 
   const FOCUSABLE = 'input, select, textarea, button, [tabindex]:not([tabindex="-1"])';
@@ -83,6 +84,8 @@
 
   let root = $state<HTMLElement | null>(null);
   const failed = $derived(!overridden && !loading && Boolean(error));
+  // The words say the wait at once; its spinner waits out a fast answer and stays once drawn.
+  const waiting = shownWait(() => loading && !overridden);
 
   // The value sits inside the sentence wherever the language puts it, so it keeps its weight.
   const said = $derived.by(() => {
@@ -137,7 +140,7 @@ for a press of the way back.
 
 - Semantics: a `div` holding the sentence and a native button, or the caller's control and a native button; pass the row's `id` here and to the control, and it lands on Override Value while inheriting, so pressing the setting's name overrides.
 - Content: the inherited value and its source as one sentence, or the caller's control.
-- States: inheriting (the value in muted ink beside a link mark), overridden (the control beside a broken link mark), loading, failed (`error` with an alert mark in the link mark's place), nothing set at the source, and disabled.
+- States: inheriting (the value in muted ink beside a link mark), overridden (the control beside a broken link mark), loading (the button's busy spinner in the mark's place, drawn once the wait has run 150ms and then for at least 400ms), failed (`error` with an alert mark in the link mark's place), nothing set at the source, and disabled.
 - Keyboard: Tab reaches Override Value or the control and then the way back; Enter or Space on either button switches.
 - Pointer and touch: both buttons are 34px tall, 44px on a phone.
 - Focus: overriding moves focus into the control, onto its chosen option first; going back moves it to Override Value.
@@ -152,7 +155,10 @@ for a press of the way back.
 <div bind:this={root} {...rest} class={['sui-inherit', className, { overridden, failed }]}>
   <span class="sui-inherit-subject">
     <span class="sui-inherit-marker" aria-hidden="true">
-      <Icon name={overridden ? 'link-off' : failed ? 'alert' : 'link'} size="base" />
+      {#if waiting.current}<span class="sui-inherit-spinner"></span>{:else}<Icon
+          name={overridden ? 'link-off' : failed ? 'alert' : 'link'}
+          size="base"
+        />{/if}
     </span>
     {#if overridden}
       <span class="sui-inherit-control">{@render control()}</span>
@@ -276,5 +282,30 @@ for a press of the way back.
   .sui-inherit-problem {
     font: var(--sui-weight-medium) var(--sui-font-size-note) / var(--sui-leading-note)
       var(--sui-sans);
+  }
+
+  /* A wait for the inherited value: the button's busy ring, a quarter arc on a 40% track, in
+     the mark's 16px slot. */
+  .sui-inherit-spinner {
+    block-size: calc(var(--sui-icon-base) - 2 * var(--sui-stroke));
+    border: var(--sui-stroke-bold) solid color-mix(in srgb, currentColor 40%, transparent);
+    border-block-start-color: currentColor;
+    border-radius: 50%;
+    box-sizing: border-box;
+    inline-size: calc(var(--sui-icon-base) - 2 * var(--sui-stroke));
+    margin: var(--sui-stroke);
+    animation: sui-inherit-spin var(--sui-duration-spinner) var(--sui-ease-linear) infinite;
+  }
+
+  @keyframes sui-inherit-spin {
+    to {
+      rotate: 1turn;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .sui-inherit-spinner {
+      animation: none;
+    }
   }
 </style>
