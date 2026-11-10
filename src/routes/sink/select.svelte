@@ -182,7 +182,14 @@
   <Specimen label="Open">
     <Field label="Region">
       {#snippet control({ id, describedby })}
-        <Select {id} aria-describedby={describedby} options={regions} value="eu-central" preview />
+        <Select
+          {id}
+          aria-describedby={describedby}
+          options={regions}
+          value="eu-central"
+          placeholder="Choose a region…"
+          preview
+        />
       {/snippet}
     </Field>
   </Specimen>
