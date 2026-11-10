@@ -454,8 +454,8 @@ chips take the whole line under the copy and wrap within it.
 
   /* The edit part is the whole chip. Its words keep a one-line chip's inset above the first
      line and under the last, so a pair that wraps grows by whole lines (L-37). It reads mono,
-     the face of its words, so its cap is theirs. Its end keeps room for the remove part and
-     stops the start inset short of its plate. */
+     the face of its words, so its cap is theirs. Its end keeps the remove part's whole square
+     clear, so a press on the words never lands on it. */
   .sui-pair-edit {
     align-content: start;
     flex: auto;
@@ -467,7 +467,7 @@ chips take the whole line under the copy and wrap within it.
     min-inline-size: 0;
     padding-block: calc((var(--sui-pair-chip) - round(up, 1cap, 2px)) / 2);
     padding-inline: var(--sui-space-2)
-      calc(var(--sui-pair-chip) - var(--sui-pair-plate-inset) + var(--sui-space-2));
+      calc(var(--sui-pair-chip) + var(--sui-space-2) - var(--sui-control-inset));
     text-align: start;
   }
 

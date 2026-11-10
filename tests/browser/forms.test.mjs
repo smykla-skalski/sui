@@ -2388,12 +2388,18 @@ suite('forms', together, () => {
             .evaluate((element) => {
               const box = element.getBoundingClientRect();
               const inset = parseFloat(getComputedStyle(element, '::before').top);
-              return [box.height, box.height - 2 * inset];
+              const edit = /** @type {Element} */ (element.previousElementSibling);
+              const room = parseFloat(getComputedStyle(edit).paddingInlineEnd) - box.width;
+              return [box.height, box.height - 2 * inset, room >= 0];
             });
         const [, pointer] = await plate();
         await page.setViewportSize({ width: 390, height: 900 });
         try {
-          assert.deepEqual(await plate(), [44, pointer], 'the phone plate is not the pointer one');
+          assert.deepEqual(
+            await plate(),
+            [44, pointer, true],
+            "the phone plate is not the pointer one, or the words reach the remove part's square"
+          );
         } finally {
           await page.setViewportSize({ width: 1440, height: 900 });
         }
