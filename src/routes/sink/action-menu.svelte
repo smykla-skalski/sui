@@ -69,7 +69,7 @@
 <Example
   title="States"
   --example-max="54rem"
-  note="A menu whose acts are unavailable keeps its trigger in view, with the reason beside it"
+  note="A menu whose acts are unavailable keeps its trigger in view, with the reason by it"
 >
   <Specimen label="Disabled icon trigger">
     <div class="locked">
@@ -143,6 +143,16 @@
     display: flex;
     flex-wrap: wrap;
     gap: var(--sui-space-3);
+  }
+
+  /* A phone line holds the icon trigger's reason but not the button trigger's, so both drop under
+     their triggers rather than one standing beside and one under. */
+  @media (max-width: 47.9375rem) {
+    .locked {
+      align-items: start;
+      flex-direction: column;
+      gap: var(--sui-space-2);
+    }
   }
 
   /* Words beside a trigger snap their box to the cap, so the icon centres on their cap (L-94). */

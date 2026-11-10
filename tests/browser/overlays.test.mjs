@@ -830,20 +830,36 @@ suite('overlays', together, () => {
   );
 
   // The icon copy once stood on a 28px trigger beside a 34px one, so its menu started 6px higher.
-  test('open action menu copies side by side start their menus on one line', long, async () => {
-    const page = await open({ viewport: { width: 1440, height: 900 } });
-    try {
-      const tops = await page.evaluate(() =>
-        [...document.querySelectorAll('#action-menu .sui-action-menu-preview .sui-popover')].map(
-          (popover) => popover.getBoundingClientRect().top
-        )
-      );
-      assert.ok(tops.length > 1, `the section shows ${tops.length} open menus`);
-      assert.equal(new Set(tops).size, 1, `the menus start at ${tops.join(', ')}`);
-    } finally {
-      await page.close();
+  test(
+    'action menu copies share one layout: menus on one line, phone reasons under triggers',
+    long,
+    async () => {
+      const page = await open({ viewport: { width: 1440, height: 900 } });
+      try {
+        const tops = await page.evaluate(() =>
+          [...document.querySelectorAll('#action-menu .sui-action-menu-preview .sui-popover')].map(
+            (popover) => popover.getBoundingClientRect().top
+          )
+        );
+        assert.ok(tops.length > 1, `the section shows ${tops.length} open menus`);
+        assert.equal(new Set(tops).size, 1, `the menus start at ${tops.join(', ')}`);
+        // A phone line holds the icon trigger's reason but not the button trigger's, so both drop.
+        await page.setViewportSize({ width: 390, height: 800 });
+        const reasons = await page.evaluate(() =>
+          [...document.querySelectorAll('#action-menu .locked')].map((locked) => {
+            const trigger = /** @type {Element} */ (locked.querySelector('button'));
+            const reason = /** @type {Element} */ (locked.querySelector('.reason'));
+            const [t, r] = [trigger, reason].map((node) => node.getBoundingClientRect());
+            return { under: r.top >= t.bottom, start: r.left === t.left };
+          })
+        );
+        assert.equal(reasons.length, 2, `the section shows ${reasons.length} disabled triggers`);
+        for (const reason of reasons) assert.deepEqual(reason, { under: true, start: true });
+      } finally {
+        await page.close();
+      }
     }
-  });
+  );
 
   // At twice the text size the menu's 13rem floor outgrew a phone, so the menu scrolled sideways
   // inside its popover and cut its separator.
