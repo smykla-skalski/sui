@@ -807,7 +807,7 @@ assistive technology, because a native picker cannot be held open.
 
   /* A group that follows a row stands under a line, as a menu parts its groups, so where one
      group ends reads before its heading does. The line stops where the rows' veils do. */
-  :is(option, optgroup) + optgroup > .sui-select-heading,
+  :is(option:not([hidden]), optgroup) + optgroup > .sui-select-heading,
   .sui-select-sheet > :not(.sui-select-heading) + .sui-select-heading {
     border-block-start: var(--sui-stroke) solid var(--sui-border-divider);
     margin-block-start: var(--sui-space-1);

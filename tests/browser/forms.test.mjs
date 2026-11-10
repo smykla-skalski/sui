@@ -1431,7 +1431,22 @@ suite('forms', together, () => {
             probe.remove();
             return color;
           })(),
-          lines: { copy: lines(sheet), live: lines(live) },
+          lines: {
+            copy: lines(sheet),
+            live: lines(live),
+            // A list that opens on a group draws no line over it, though a hidden prompt
+            // stands before it.
+            led: (() => {
+              const lead = /** @type {HTMLOptionElement} */ (
+                live.querySelector('option:not([value=""]):not(optgroup *)')
+              );
+              const next = lead.nextSibling;
+              lead.remove();
+              const first = lines(live)[0];
+              live.insertBefore(lead, next);
+              return first;
+            })()
+          },
           inset: (() => {
             const lined = /** @type {Element} */ (
               [...sheet.querySelectorAll('.sui-select-heading')].find(
@@ -1492,6 +1507,7 @@ suite('forms', together, () => {
       // A group after a row stands under a line, in the copy and in the live picker alike.
       assert.deepEqual(look.lines.copy, ['1px', '1px']);
       assert.deepEqual(look.lines.live, ['1px', '1px']);
+      assert.equal(look.lines.led, '0px', 'a list opening on a group draws no line over it');
       assert.deepEqual(look.inset, [0, 0], "a group's line stops where the rows' veils do");
       // The lit row is where the keyboard is, so it wears the ring, as Combobox's lit row does.
       assert.equal(look.ring.style, 'solid');
