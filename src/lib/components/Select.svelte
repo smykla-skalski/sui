@@ -687,6 +687,11 @@ assistive technology, because a native picker cannot be held open.
     white-space: normal;
   }
 
+  /* The row's own display would otherwise outrank the browser's hiding of the prompt. */
+  .sui-select-option[hidden] {
+    display: none;
+  }
+
   .sui-select-option:is(:focus-visible, .active):not(:disabled, [aria-disabled='true']) {
     background-color: var(--sui-list-highlight);
     color: var(--sui-hover-ink);

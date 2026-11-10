@@ -1358,7 +1358,7 @@ suite('forms', together, () => {
           prompt.querySelector('option[value=""]')
         );
         const asked = {
-          hidden: placeholder.hidden,
+          hidden: getComputedStyle(placeholder).display === 'none',
           shown: prompt.querySelector('selectedcontent')?.textContent?.trim(),
           prompt: placeholder.textContent?.trim(),
           first: /** @type {Element} */ (
