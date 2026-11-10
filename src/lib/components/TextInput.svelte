@@ -170,9 +170,10 @@ tabular figures.
      and a value that only reads keeps a quiet frame over a lighter tint of it, so a value to
      copy never looks off. A field a saving row holds wears the same paint, so it never looks
      open to typing while its value saves.
-     An open list means the field is in use, so a combobox's preview keeps the editing look. */
-  .sui-text-input[readonly]:not([aria-expanded='true'], :disabled),
-  .sui-text-input[readonly]:not([aria-expanded='true'], :disabled):focus {
+     An open list means the field is in use, so a combobox's preview keeps the editing look,
+     also when the list holds only a note such as "No suggestions match". */
+  .sui-text-input[readonly]:not([data-open], :disabled),
+  .sui-text-input[readonly]:not([data-open], :disabled):focus {
     background-color: var(--sui-field-readonly);
     border-color: var(--sui-field-readonly-frame);
     box-shadow: none;

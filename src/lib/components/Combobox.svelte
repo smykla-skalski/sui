@@ -30,6 +30,7 @@
     free = false,
     invalid = false,
     preview = false,
+    previewText = '',
     limit = 100,
     name,
     emptyLabel = word('Combobox.emptyLabel', 'No suggestions match'),
@@ -64,6 +65,8 @@
     invalid?: boolean;
     /** Draws the list open under a read-only field in the page's flow, with the value's row active and no keyboard. */
     preview?: boolean;
+    /** Text a preview draws as typed, so its list shows the matches, the offer or the note for it. */
+    previewText?: string;
     /** The most suggestions drawn at once; the rest are counted under the list. */
     limit?: number;
     /** Posts `value`, never the label, with a form. */
@@ -113,9 +116,9 @@
   });
   /* The field shows `query` instead of the committed label. A draft the reader left behind
      holds only while `value` is still what the draft left, so an owner's new value shows. */
-  let typed = $state(false);
-  let typedFor = $state('');
-  let query = $state('');
+  let typed = $state(untrack(() => preview && previewText !== ''));
+  let typedFor = $state(untrack(() => value));
+  let query = $state(untrack(() => previewText));
   let active = $state(0);
   /* Only an arrow key, or the pointer, lights an option: typing keeps the reader in the text. */
   let navigated = $state(false);
@@ -360,8 +363,8 @@ a draft while the value it replaced is cleared, which a form refuses to send. `n
 Name it with a `<label>` or `aria-label`, as any field.
 
 - Semantics: a text input with `role="combobox"` and `aria-autocomplete="list"`, a `role="listbox"` of `role="option"` rows in a popover, a polite `role="status"`, and a hidden input that posts `value`.
-- Content: options with a short label and an optional note, both wrapping; at most `limit` rows are drawn and the rest are counted.
-- States: closed, open, searching, nothing matches, search refused, invalid (the field's danger edge) and disabled; in the list a row is active (a veil and an inset 2px ring), committed (a check mark), pressed (a deeper veil, an inset shadow and a 1px sink) or disabled (0.6 opacity).
+- Content: options with a short label and an optional note a type step smaller after a drawn dot, both wrapping; at most `limit` rows are drawn and the rest are counted.
+- States: closed, open (the end chevron, as a `Select`'s, turns over while the list or its note shows), searching, nothing matches, search refused, invalid (the field's danger edge) and disabled; in the list a row is active (a veil and an inset 2px ring), committed (a check mark), pressed (a deeper veil, an inset shadow and a 1px sink) or disabled (its name at 0.6 opacity, its note at full contrast).
 - Keyboard: typing filters, Down and Up open the list and light a row with wrap-around, Enter commits the lit row or settles the typed text, and Escape closes the list and stops there; while a busy dialog or a saving pane around it works, the field is disabled and the list stays shut.
 - Pointer and touch: the field is 34px tall, 44px on a phone or any touch screen, every row at least that tall, and a press on a row commits it.
 - Focus: focus stays in the field the whole time; the lit row is `aria-activedescendant`, set only once an arrow or the pointer moved to it.
@@ -380,30 +383,33 @@ Name it with a `<label>` or `aria-label`, as any field.
 {/snippet}
 
 {#snippet control()}
-  <TextInput
-    bind:element
-    {...rest}
-    class={className}
-    value={drafting ? query : shown}
-    {invalid}
-    readonly={preview || rest.readonly}
-    role="combobox"
-    autocomplete="off"
-    spellcheck="false"
-    aria-autocomplete="list"
-    aria-expanded={listed}
-    aria-controls={listId}
-    aria-activedescendant={listed && current >= 0 ? optionId(current) : undefined}
-    {oninput}
-    {@attach draftOnly}
-    {@attach keepTyped}
-    onkeydown={preview ? undefined : onkeydown}
-    {onfocus}
-    {onblur}
-    onclick={() => {
-      if (!open && !preview) show(false);
-    }}
-  />{#if name}<input
+  <span class="sui-combobox-field"
+    ><TextInput
+      bind:element
+      {...rest}
+      class={className}
+      value={drafting ? query : shown}
+      {invalid}
+      readonly={preview || rest.readonly}
+      role="combobox"
+      autocomplete="off"
+      spellcheck="false"
+      aria-autocomplete="list"
+      aria-expanded={listed}
+      data-open={showing || undefined}
+      aria-controls={listId}
+      aria-activedescendant={listed && current >= 0 ? optionId(current) : undefined}
+      {oninput}
+      {@attach draftOnly}
+      {@attach keepTyped}
+      onkeydown={preview ? undefined : onkeydown}
+      {onfocus}
+      {onblur}
+      onclick={() => {
+        if (!open && !preview) show(false);
+      }}
+    /><span class="sui-combobox-chevron"><Icon name="chevron-down" size="base" /></span></span
+  >{#if name}<input
       type="hidden"
       {name}
       {value}
@@ -492,6 +498,43 @@ Name it with a `<label>` or `aria-label`, as any field.
     min-inline-size: 0;
   }
 
+  /* The chevron says a list opens here, as a Select's does; a press on it lands on the field,
+     which opens the list. The end padding keeps the text clear of it. */
+  .sui-combobox-field {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    min-inline-size: 0;
+  }
+
+  .sui-combobox-field > :global(*) {
+    grid-area: 1 / 1;
+  }
+
+  .sui-combobox-field > :global(input) {
+    padding-inline-end: calc(var(--sui-field-inset) + var(--sui-icon-base) + var(--sui-space-2));
+  }
+
+  .sui-combobox-chevron {
+    align-self: center;
+    color: var(--sui-text-muted);
+    display: inline-flex;
+    justify-self: end;
+    margin-inline-end: var(--sui-field-inset);
+    pointer-events: none;
+    transition: rotate var(--sui-duration-open) var(--sui-ease-standard);
+  }
+
+  /* An open list, or its note alone, turns the chevron over and firms it, as an open Select's does. */
+  .sui-combobox-field:has(> :global([data-open])) > .sui-combobox-chevron {
+    color: var(--sui-text-secondary);
+    rotate: 180deg;
+  }
+
+  /* A preview draws every row, as a Select's open copy does, so no row is cut at its foot. */
+  .sui-combobox-preview .sui-combobox-list {
+    max-block-size: none;
+  }
+
   /* The popover's own 1px border sits outside this list, so the box as a whole stops at
      min(20rem, the room it has). */
   .sui-combobox-list {
@@ -552,6 +595,11 @@ Name it with a `<label>` or `aria-label`, as any field.
 
   .sui-combobox-option[aria-disabled='true'] {
     cursor: default;
+  }
+
+  /* As a Select option does, an option that cannot be chosen dims its name and keeps its reason
+     at full contrast, in the menu's reason ink (L-40). */
+  .sui-combobox-option[aria-disabled='true'] :is(.sui-combobox-check, .sui-combobox-label) {
     opacity: var(--sui-disabled-opacity);
   }
 
@@ -599,7 +647,7 @@ Name it with a `<label>` or `aria-label`, as any field.
   }
 
   /* Muted ink drops under 4.5:1 on the active row's veil. */
-  .sui-combobox-option.active .sui-combobox-note {
+  .sui-combobox-option:is(.active, [aria-disabled='true']) .sui-combobox-note {
     color: var(--sui-text-secondary);
   }
 

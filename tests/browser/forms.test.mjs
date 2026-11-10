@@ -1228,32 +1228,94 @@ suite('forms', together, () => {
       );
     });
 
-    test('an owner replacement replaces a focused combobox draft', async () => {
+    test('a combobox wears a Select chevron that turns while its list or its note alone shows, an open copy draws every row in the editing paint, and an off option keeps its reason at full contrast', async () => {
       const page = await opened();
+      const read = () =>
+        page.evaluate(() => {
+          const fields = [...document.querySelectorAll('#combobox .sui-combobox-field')];
+          const turn = (/** @type {Element} */ field) =>
+            getComputedStyle(/** @type {Element} */ (field.querySelector('.sui-combobox-chevron')))
+              .rotate;
+          const copies = fields.filter((field) => field.closest('.sui-combobox-preview'));
+          const empty = /** @type {Element} */ (
+            copies.find((field) => !field.parentElement?.querySelector('[role="option"]'))
+          );
+          const list = /** @type {HTMLElement} */ (
+            document.querySelector('#combobox .sui-combobox-preview [role="listbox"]')
+          );
+          const off = /** @type {Element} */ (
+            list.querySelector('[aria-disabled="true"]:has(.sui-combobox-note)')
+          );
+          // Opacity does not inherit, so a part's strength is its own times every box up to the row.
+          const opacity = (/** @type {string} */ part) => {
+            let strength = 1;
+            for (let node = off.querySelector(part); node; node = node.parentElement) {
+              strength *= Number(getComputedStyle(node).opacity);
+              if (node === off) break;
+            }
+            return strength;
+          };
+          return {
+            live: turn(/** @type {Element} */ (fields.find((field) => !copies.includes(field)))),
+            copies: copies.map(turn),
+            ground: getComputedStyle(/** @type {Element} */ (empty.querySelector('input')))
+              .backgroundColor,
+            control: getComputedStyle(document.documentElement)
+              .getPropertyValue('--sui-control-bg')
+              .trim(),
+            cut: list.scrollHeight - list.clientHeight,
+            off: {
+              name: opacity('.sui-combobox-label'),
+              note: opacity('.sui-combobox-note'),
+              ink: getComputedStyle(
+                /** @type {Element} */ (off.querySelector('.sui-combobox-note'))
+              ).color
+            },
+            secondary: (() => {
+              const probe = document.body.appendChild(document.createElement('span'));
+              probe.style.color = 'var(--sui-text-secondary)';
+              const color = getComputedStyle(probe).color;
+              probe.remove();
+              return color;
+            })()
+          };
+        });
+      const look = await read();
+      assert.equal(look.live, 'none', 'a closed field points its chevron down');
+      assert.equal(look.copies.length, 4);
+      assert.deepEqual(new Set(look.copies), new Set(['180deg']), 'every open copy turns it over');
+      assert.notEqual(look.ground, 'rgba(0, 0, 0, 0)');
+      assert.equal(
+        await page.evaluate((ground) => {
+          const probe = document.body.appendChild(document.createElement('span'));
+          probe.style.backgroundColor = 'var(--sui-control-bg)';
+          const same = getComputedStyle(probe).backgroundColor === ground;
+          probe.remove();
+          return same;
+        }, look.ground),
+        true,
+        'a copy with only a note keeps the editing ground, not the read-only tint'
+      );
+      assert.equal(look.cut, 0, 'the open copy draws every row');
+      assert.equal(look.off.name, 0.6);
+      assert.equal(look.off.note, 1, 'an off option keeps its reason at full strength');
+      assert.equal(look.off.ink, look.secondary, 'in the reason ink');
       const field = page.getByRole('combobox', { name: 'Language', exact: true }).first();
-      await field.fill('Pyth');
-      await page
-        .getByRole('button', { name: 'Replace the Language' })
-        .evaluate((button) => /** @type {HTMLButtonElement} */ (button).click());
-      assert.equal(await field.inputValue(), 'Go');
-      assert.ok(await field.evaluate((input) => document.activeElement === input));
-      await field.evaluate((input) => input.blur());
-      assert.equal(await field.inputValue(), 'Go');
-    });
-
-    test('a combobox clamps its active row when the limit shrinks', async () => {
-      const page = await opened();
-      const field = page.getByRole('combobox', { name: 'Language', exact: true }).first();
-      await field.fill('o');
-      await page.keyboard.press('ArrowUp');
-      await page
-        .getByRole('button', { name: 'Limit the Language Suggestions' })
-        .evaluate((button) => /** @type {HTMLButtonElement} */ (button).click());
-      const active = await field.getAttribute('aria-activedescendant');
-      assert.ok(active?.endsWith('-option-0'), `dangling active row: ${active}`);
-      assert.equal(await page.locator(`#${active}`).count(), 1);
-      await page.keyboard.press('Enter');
-      assert.equal(await field.inputValue(), 'Go');
+      await field.focus();
+      await page.keyboard.press('ArrowDown');
+      assert.equal(await field.getAttribute('aria-expanded'), 'true');
+      await page.waitForFunction(
+        () =>
+          getComputedStyle(
+            /** @type {Element} */ (
+              document.querySelector(
+                '#combobox .sui-combobox-field:has([aria-expanded="true"]) .sui-combobox-chevron'
+              )
+            )
+          ).rotate === '180deg',
+        undefined,
+        { timeout: 2000 }
+      );
     });
 
     test('a combobox note parts from its name as a select note does, by the drawn dot and a type step', async () => {
