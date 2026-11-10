@@ -2381,13 +2381,17 @@ suite('forms', together, () => {
       }
     );
 
-    test('an off pair chip takes the off field paint at full strength (L-40)', long, async () => {
-      const page = await opened();
-      const paint = await page
-        .locator('#pair-entry .specimen', { hasText: 'Disabled' })
-        .locator('.sui-pair-chip')
-        .first()
-        .evaluate((chip) => {
+    test(
+      'an off pair chip takes the off field paint at full strength, also under a hover (L-40)',
+      long,
+      async () => {
+        const page = await opened();
+        const chip = page
+          .locator('#pair-entry .specimen', { hasText: 'Disabled' })
+          .locator('.sui-pair-chip')
+          .first();
+        await chip.hover();
+        const paint = await chip.evaluate((chip) => {
           const probe = document.createElement('span');
           probe.style.backgroundColor = 'var(--sui-field-disabled)';
           probe.style.color = 'var(--sui-text-muted)';
@@ -2406,13 +2410,14 @@ suite('forms', together, () => {
           probe.remove();
           return paint;
         });
-      assert.deepEqual(paint, {
-        opacity: '1',
-        ground: true,
-        edge: 'rgba(0, 0, 0, 0)',
-        ink: true
-      });
-    });
+        assert.deepEqual(paint, {
+          opacity: '1',
+          ground: true,
+          edge: 'rgba(0, 0, 0, 0)',
+          ink: true
+        });
+      }
+    );
 
     test(
       "a stacked row's reset ends the copy's band, so its chips share whole lines, and a phone keeps the remove plate at its pointer size",

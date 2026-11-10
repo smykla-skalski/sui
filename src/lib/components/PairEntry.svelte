@@ -396,7 +396,7 @@ chips take the whole line under the copy and wrap within it.
   }
 
   @media (hover: hover) {
-    .sui-pair-chip:hover:not(.invalid, .open) {
+    .sui-pair-chip:hover:not(.invalid, .open, :has(> :is(:disabled, [aria-disabled='true']))) {
       --sui-pair-edge: var(--sui-control-border-hover);
     }
 
