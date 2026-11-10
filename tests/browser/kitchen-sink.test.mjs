@@ -1467,6 +1467,20 @@ suite('the kitchen sink', together, () => {
         await page.keyboard.press('Enter');
         assert.equal(await editor.count(), 1, 'a rejected key closed the editor');
         assert.match(await editor.innerText(), /lowercase/);
+        // Remove Pair stands at the editor's start, apart from Save Pair at its end.
+        const [actions, removal, save] = await Promise.all(
+          [
+            editor.locator('.sui-pair-actions'),
+            editor.getByRole('button', { name: 'Remove Pair' }),
+            editor.getByRole('button', { name: 'Save Pair' })
+          ].map((part) => part.boundingBox())
+        );
+        assert.ok(actions && removal && save, 'the editor lost an action');
+        assert.ok(
+          Math.abs(removal.x - actions.x) < 0.5 &&
+            Math.abs(save.x + save.width - actions.x - actions.width) < 0.5,
+          'Remove Pair and Save Pair do not stand at the two ends'
+        );
         await page.keyboard.press('Escape');
         await settles(
           page.waitForFunction(

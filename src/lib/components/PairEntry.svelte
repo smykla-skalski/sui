@@ -269,7 +269,7 @@ chips take the whole line under the copy and wrap within it.
             aria-disabled={Boolean(holding) || undefined}
             onclick={() => remove(index)}
           >
-            <span class="sui-pair-glyph"><Icon name="close" size="xs" /></span>
+            <span class="sui-pair-glyph"><Icon name="close" size="xs" strokeWidth={2} /></span>
           </button>
         </span>
       </li>
@@ -628,11 +628,17 @@ chips take the whole line under the copy and wrap within it.
     padding: var(--sui-space-4);
   }
 
+  /* Remove Pair stands at the start, apart from Save Pair at the end, so the removal is never
+     pressed for the save beside it. */
   .sui-pair-actions {
     display: flex;
     flex-wrap: wrap;
     gap: var(--sui-space-2);
     justify-content: flex-end;
+  }
+
+  .sui-pair-actions:has(> :global(:nth-child(2))) {
+    justify-content: space-between;
   }
 
   @media (max-width: 47.9375rem), (pointer: coarse) {
