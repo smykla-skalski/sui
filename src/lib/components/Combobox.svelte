@@ -662,7 +662,7 @@ Name it with a `<label>` or `aria-label`, as any field.
     margin-block: calc((round(up, 1cap, 2px) - var(--sui-icon-base)) / 2);
   }
 
-  .sui-combobox-option:not([aria-selected='true']) .sui-combobox-check {
+  .sui-combobox-option:not([aria-selected='true']) .sui-combobox-check:not(.offer) {
     visibility: hidden;
   }
 
