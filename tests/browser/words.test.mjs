@@ -514,14 +514,19 @@ suite('words', together, () => {
       // A held clock holds the popover's opening animation, so this reads the open layer's words.
       const says = () =>
         page.evaluate(() => {
-          const words =
-            document.querySelector('#asking .sui-popover:popover-open .sui-combobox-empty')
-              ?.textContent ?? '';
-          return words.includes('Searching')
-            ? 'searching'
-            : words.includes('could not load')
-              ? 'refused'
-              : '';
+          const note = document.querySelector(
+            '#asking .sui-popover:popover-open .sui-combobox-empty'
+          );
+          const words = note?.textContent ?? '';
+          // The words, the mark and the ink change together, so no frame mixes a wait and a refusal.
+          const drawn = [
+            words.includes('Searching') && 'searching',
+            words.includes('could not load') && 'refused',
+            note?.querySelector('.sui-combobox-spinner') && 'spinner',
+            note?.querySelector('svg') && 'alert',
+            note?.classList.contains('refused') && 'danger'
+          ].filter(Boolean);
+          return drawn.join(' ');
         });
       // Svelte runs its effects in microtasks, which a held clock runs only between its steps.
       /** @param {number} ms */
@@ -558,12 +563,12 @@ suite('words', together, () => {
         '',
         '',
         '',
-        'searching',
-        'searching',
+        'searching spinner',
+        'searching spinner',
         '',
-        'searching',
-        'searching',
-        'refused'
+        'searching spinner',
+        'searching spinner',
+        'refused alert danger'
       ]);
     });
 

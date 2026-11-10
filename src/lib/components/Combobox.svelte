@@ -164,8 +164,9 @@
      answer that ends them; only the drawing waits, so a refusal is spoken at once (L-117). */
   const waiting = shownWait(() => asking && asked !== '');
   const refused = $derived(failed && asked !== '');
+  const drawnRefusal = $derived(refused && !waiting.current);
   const note = $derived(
-    waiting.current ? searchingLabel : refused ? failedLabel : empty ? emptyLabel : ''
+    waiting.current ? searchingLabel : drawnRefusal ? failedLabel : empty ? emptyLabel : ''
   );
   /* A copy is drawn, not used, so its status never speaks over the page. */
   const spoken = $derived(
@@ -499,10 +500,12 @@ Name it with a `<label>` or `aria-label`, as any field.
     <!-- The status beside the field speaks these, so the drawn copy stays out of the tree. -->
     {#if note}
       <!-- Every note keeps the check column, marked or not, so its words start where the names do. -->
-      <p class={['sui-combobox-empty', { refused }]} aria-hidden="true">
+      <p class={['sui-combobox-empty', { refused: drawnRefusal }]} aria-hidden="true">
         <span class="sui-combobox-mark"
-          >{#if refused}<Icon name="alert" size="base" />{:else if note === searchingLabel}<span
-              class="sui-combobox-spinner"
+          >{#if drawnRefusal}<Icon
+              name="alert"
+              size="base"
+            />{:else if note === searchingLabel}<span class="sui-combobox-spinner"
             ></span>{/if}</span
         ><span class="sui-combobox-words">{note}</span>
       </p>
