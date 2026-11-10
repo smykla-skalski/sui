@@ -2408,7 +2408,7 @@ suite('forms', together, () => {
     );
 
     test(
-      'a focused pair chip wears a field ring 2px off its frame, red on a refused chip (L-41)',
+      'a focused pair chip wears a field ring 2px off its frame, and a refused one keeps its red edge under a red ring (L-41)',
       long,
       async () => {
         const page = await opened();
@@ -2423,14 +2423,19 @@ suite('forms', together, () => {
             const probe = document.createElement('span');
             probe.style.color = 'var(--sui-focus)';
             probe.style.backgroundColor = 'var(--sui-focus-danger)';
+            probe.style.borderColor = 'var(--sui-danger-edge)';
             element.append(probe);
             const want = getComputedStyle(probe);
             const look = getComputedStyle(element);
+            const edge = getComputedStyle(element, '::after');
             const ring = {
               width: look.outlineWidth,
               offset: look.outlineOffset,
               calm: look.outlineColor === want.color,
-              red: look.outlineColor === want.backgroundColor
+              red: look.outlineColor === want.backgroundColor,
+              redEdge:
+                edge.borderTopColor === want.borderTopColor &&
+                edge.borderBottomColor === want.borderTopColor
             };
             probe.remove();
             return ring;
@@ -2440,13 +2445,15 @@ suite('forms', together, () => {
           width: '2px',
           offset: '2px',
           calm: true,
-          red: false
+          red: false,
+          redEdge: false
         });
         assert.deepEqual(await ring('Invalid', 1), {
           width: '2px',
           offset: '2px',
           calm: false,
-          red: true
+          red: true,
+          redEdge: true
         });
       }
     );

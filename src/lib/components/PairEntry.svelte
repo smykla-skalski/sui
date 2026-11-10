@@ -441,7 +441,7 @@ chips take the whole line under the copy and wrap within it.
   }
 
   .sui-pair-chip.open,
-  .sui-pair-chip:has(> .sui-pair-edit:focus-visible) {
+  .sui-pair-chip:has(> .sui-pair-edit:focus-visible):not(.invalid) {
     --sui-pair-edge: var(--sui-field-frame-focus);
     --sui-pair-baseline: var(--sui-field-border-focus);
     --sui-pair-recess: var(--sui-field-recess-focus);
