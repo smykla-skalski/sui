@@ -831,7 +831,7 @@ suite('overlays', together, () => {
 
   // The icon copy once stood on a 28px trigger beside a 34px one, so its menu started 6px higher.
   test(
-    'action menu copies share one layout: menus on one line, phone reasons under triggers',
+    'action menu copies: regular items, menus on one line, phone reasons under triggers',
     long,
     async () => {
       const page = await open({ viewport: { width: 1440, height: 900 } });
@@ -843,6 +843,15 @@ suite('overlays', together, () => {
         );
         assert.ok(tops.length > 1, `the section shows ${tops.length} open menus`);
         assert.equal(new Set(tops).size, 1, `the menus start at ${tops.join(', ')}`);
+        // A menu item is set at the regular weight, as an option in a list is (L-25).
+        const weights = await page.evaluate(() => [
+          ...new Set(
+            [...document.querySelectorAll('#action-menu .sui-action-menu-item')].map(
+              (item) => getComputedStyle(item).fontWeight
+            )
+          )
+        ]);
+        assert.deepEqual(weights, ['400']);
         // A phone line holds the icon trigger's reason but not the button trigger's, so both drop.
         await page.setViewportSize({ width: 390, height: 800 });
         const reasons = await page.evaluate(() =>

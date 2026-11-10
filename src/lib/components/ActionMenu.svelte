@@ -330,7 +330,7 @@ returns focus there too. Labels wrap rather than being cut short.
     color: var(--sui-text-primary);
     cursor: pointer;
     display: flex;
-    font: var(--sui-weight-medium) var(--sui-font-size-control) / var(--sui-leading-meta)
+    font: var(--sui-weight-regular) var(--sui-font-size-control) / var(--sui-leading-meta)
       var(--sui-sans);
     gap: var(--sui-space-2);
     inline-size: 100%;
