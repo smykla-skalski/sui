@@ -91,11 +91,23 @@ export function place(
   return placed;
 }
 
-/** Writes viewport coordinates as page ones, which the absolutely positioned box reads. */
-function pin(floating: HTMLElement, left: number, top: number, side: Side): void {
+/**
+ * Writes viewport coordinates as page ones, which the absolutely positioned box reads. A box
+ * beside its anchor also names its own edge that faces it, in its own reading direction, since
+ * the side follows the anchor's direction and the box's can differ.
+ */
+function pin(
+  floating: HTMLElement,
+  left: number,
+  top: number,
+  side: Side,
+  facing?: 'start' | 'end'
+): void {
   floating.style.top = `${Math.round(top + scrollY)}px`;
   floating.style.left = `${Math.round(left + scrollX)}px`;
   floating.dataset.side = side;
+  if (facing) floating.dataset.facing = facing;
+  else delete floating.dataset.facing;
 }
 
 /** Where the placed box stands in the viewport, before any transform it is moving through. */
@@ -118,6 +130,7 @@ function beside(
   rtl: boolean,
   keep: boolean
 ): Side {
+  const ownRtl = getComputedStyle(floating).direction === 'rtl';
   // The box slides along its anchor to stay in the viewport, so all of the viewport's height is
   // its room whatever its alignment.
   const box = capped(floating, Math.max(0, viewportHeight - 2 * VIEWPORT_MARGIN));
@@ -147,7 +160,7 @@ function beside(
     Math.max(VIEWPORT_MARGIN, viewportHeight - VIEWPORT_MARGIN - box.height)
   );
   publish(floating, AT, a.top + a.height / 2 - Math.round(top));
-  pin(floating, left, top, placed);
+  pin(floating, left, top, placed, onRight !== ownRtl ? 'start' : 'end');
   return placed;
 }
 

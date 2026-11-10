@@ -277,6 +277,7 @@ does, stays out of the accessibility tree. Any other tip describes the control t
   class:mono
   class:preview
   data-side={preview ? (side === 'block-start' ? side : 'block-end') : undefined}
+  data-facing={undefined}
   style:--sui-tip-arrow="{ARROW}px"
   aria-hidden={describes ? undefined : 'true'}
   onpointerenter={(event) => {
@@ -368,12 +369,14 @@ does, stays out of the accessibility tree. Any other tip describes the control t
     inset-inline-start: var(--sui-local-arrow-along);
   }
 
-  .sui-tooltip[data-side='inline-end']::after {
+  /* Beside its anchor, the arrow stands on the tip's edge that faces it, since the anchor's
+     direction set the side and the tip's own can run the other way. */
+  .sui-tooltip[data-facing='start']::after {
     inset-block-start: var(--sui-local-arrow-along);
     inset-inline-start: var(--sui-local-arrow-across);
   }
 
-  .sui-tooltip[data-side='inline-start']::after {
+  .sui-tooltip[data-facing='end']::after {
     inset-block-start: var(--sui-local-arrow-along);
     inset-inline-end: var(--sui-local-arrow-across);
   }

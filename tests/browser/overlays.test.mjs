@@ -1454,6 +1454,45 @@ suite('overlays', together, () => {
       assert.ok(found.bottom <= 592, `the inline box reaches ${found.bottom}px`);
     });
 
+    // The side follows the anchor's direction and the tip's start can follow another, so an
+    // arrow set by the tip's start once pointed away from an anchor of the other direction.
+    test('a tip beside an anchor of the other direction points its arrow at it', async () => {
+      const cases = await page.evaluate(async () => {
+        const { lib, mount, flushSync } = /** @type {any} */ (window);
+        const found = [];
+        for (const [tipDir, anchorDir] of [
+          ['ltr', 'rtl'],
+          ['rtl', 'ltr']
+        ])
+          for (const side of ['inline-start', 'inline-end']) {
+            const host = document.createElement('div');
+            host.dir = tipDir;
+            host.style.cssText = 'position:fixed;left:400px;top:200px';
+            const anchor = document.createElement('button');
+            anchor.dir = anchorDir;
+            anchor.textContent = 'Mark';
+            host.append(anchor);
+            document.body.append(host);
+            mount(lib.Tooltip, { target: host, props: { anchor, text: 'Hi', side, open: true } });
+            flushSync();
+            await new Promise(requestAnimationFrame);
+            const box = /** @type {HTMLElement} */ (host.querySelector('.sui-tooltip'));
+            const [a, t] = [anchor, box].map((part) => part.getBoundingClientRect());
+            const arrow = getComputedStyle(box, '::after');
+            const at = parseFloat(arrow.left) + parseFloat(arrow.width) / 2;
+            found.push({
+              name: `${side} of a ${anchorDir} anchor in a ${tipDir} tip`,
+              facing: t.left >= a.right ? 'left' : 'right',
+              arrow: at < t.width / 2 ? 'left' : 'right'
+            });
+            host.remove();
+          }
+        return found;
+      });
+      for (const { name, facing, arrow } of cases)
+        assert.equal(arrow, facing, `the arrow of the ${name} points away from it`);
+    });
+
     test('a box that follows a scrolled anchor reads every size before it writes one', async () => {
       const steps = await page.evaluate(() => {
         const { place } = /** @type {any} */ (window).anchor;
