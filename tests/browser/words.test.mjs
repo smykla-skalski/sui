@@ -386,6 +386,7 @@ suite('words', together, () => {
         fetchRelatives: false
       });
       /** @type {unknown[]} */
+      /** @type {string[]} */
       const heard = [];
       const visited = new Set();
       const listen = async (/** @type {typeof root} */ node) => {
@@ -486,7 +487,7 @@ suite('words', together, () => {
       assert.deepEqual(marks, [false, false, false, true, true, false]);
     });
 
-    test('L-117 a combobox says it is searching only once a search outlasts a glance, and keeps saying it a moment, even past a refusal', async () => {
+    test('L-117 a combobox draws its search wait only once it outlasts a glance and keeps it a moment, while its status speaks the search as it stands', async () => {
       await page.evaluate(() => {
         const { lib, mount, flushSync } = /** @type {any} */ (window);
         const target = Object.assign(document.createElement('div'), { id: 'asking' });
@@ -499,7 +500,13 @@ suite('words', together, () => {
             search: () =>
               new Promise((answer, refuse) => {
                 const { delay, refuse: refusing } = /** @type {any} */ (window);
-                setTimeout(() => (refusing ? refuse(new Error('offline')) : answer([])), delay);
+                setTimeout(
+                  () =>
+                    refusing
+                      ? refuse(new Error('offline'))
+                      : answer([{ value: 'ada', label: 'Ada' }]),
+                  delay
+                );
               })
           }
         });
@@ -533,32 +540,41 @@ suite('words', together, () => {
       const wait = async (ms) => {
         for (let left = ms; left > 0; left -= 10) await page.clock.runFor(Math.min(10, left));
       };
+      const hears = () =>
+        page.evaluate(() => document.querySelector('#asking [role="status"]')?.textContent ?? '');
+      /** @type {string[]} */
       const marks = [];
+      /** @type {string[]} */
+      const heard = [];
+      const mark = async () => {
+        marks.push(await says());
+        heard.push(await hears());
+      };
       // The typing pause and a 60ms answer draw nothing.
       await type('a', 60);
       await wait(200);
-      marks.push(await says());
+      await mark();
       await wait(100);
-      marks.push(await says());
+      await mark();
       // A slow answer draws the wait, and an answer right after keeps it a moment.
       await type('ab', 250);
       await wait(180 + 100);
-      marks.push(await says());
+      await mark();
       await wait(100);
-      marks.push(await says());
+      await mark();
       await wait(100);
-      marks.push(await says());
+      await mark();
       await wait(500);
-      marks.push(await says());
+      await mark();
       // A refusal right after the wait is drawn waits out the wait's moment too.
       await page.evaluate(() => Object.assign(window, { refuse: true }));
       await type('abc', 250);
       await wait(180 + 100 + 100);
-      marks.push(await says());
+      await mark();
       await wait(100);
-      marks.push(await says());
+      await mark();
       await wait(500);
-      marks.push(await says());
+      await mark();
       // A query typed over a search still in flight starts its glance afresh, so its fast answer
       // draws no wait.
       await page.evaluate(() => Object.assign(window, { refuse: false }));
@@ -566,9 +582,13 @@ suite('words', together, () => {
       await wait(180 + 100);
       await type('abcde', 0);
       await wait(100);
-      marks.push(await says());
+      await mark();
       await wait(400);
-      marks.push(await says());
+      await mark();
+      // A new query's typing pause speaks nothing rather than the last query's count.
+      await type('abcdef', 0);
+      await wait(100);
+      await mark();
       assert.deepEqual(marks, [
         '',
         '',
@@ -580,8 +600,15 @@ suite('words', together, () => {
         'searching spinner',
         'refused alert danger',
         '',
+        '',
         ''
       ]);
+      // Only the drawing waits: the status says a search runs, then its answer, at once.
+      const [searching, one, refused] = ['Searching…', '1 suggestion', 'could not load'];
+      assert.deepEqual(
+        heard.map((words) => (words.includes(refused) ? refused : words)),
+        [searching, one, searching, searching, one, one, searching, refused, refused, '', one, '']
+      );
     });
 
     test('a live pill pulses again on a beat only once its dot has been still for 5 seconds', async () => {

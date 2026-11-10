@@ -168,12 +168,23 @@
   const note = $derived(
     waiting.current ? searchingLabel : drawnRefusal ? failedLabel : empty ? emptyLabel : ''
   );
-  /* A copy is drawn, not used, so its status never speaks over the page. */
+  /* The status follows the search itself, not the held note: it says a search runs and then its
+     answer at once, and a typing pause says nothing, since the rows still answer the last query.
+     A copy is drawn, not used, so its status never speaks over the page. */
   const spoken = $derived(
-    preview
+    preview || asked === ''
       ? ''
-      : (refused ? failedLabel : note) ||
-          (open && asked !== '' && hits.length > 0 ? countLabel(hits.length) : '')
+      : refused
+        ? failedLabel
+        : pending
+          ? asking
+            ? searchingLabel
+            : ''
+          : empty
+            ? emptyLabel
+            : open && hits.length > 0
+              ? countLabel(hits.length)
+              : ''
   );
   const showing = $derived((preview || open) && (rows > 0 || note !== ''));
   const listed = $derived(showing && rows > 0);
