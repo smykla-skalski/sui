@@ -42,10 +42,14 @@
 
 <Example
   title="Triggers"
+  --example-max="54rem"
   note="An icon trigger for a row’s end or beside buttons, and a worded trigger with a chevron in the default and ghost tones"
 >
   <Specimen label="Icon trigger">
-    <ActionMenu label="Repository actions" icon="more" items={repository} align="end" />
+    <div class="row">
+      <span class="name">web-console</span>
+      <ActionMenu label="Repository actions" icon="more" items={repository} align="end" />
+    </div>
   </Specimen>
   <Specimen label="Beside buttons">
     <div class="actions">
@@ -63,6 +67,7 @@
 
 <Example
   title="States"
+  --example-max="54rem"
   note="A menu whose acts are unavailable keeps its trigger in view, with the reason beside it"
 >
   <Specimen label="Disabled icon trigger">
@@ -81,6 +86,7 @@
 
 <Example
   title="Open"
+  --example-max="54rem"
   note="Icons, a disabled item with its reason, a destructive item last and a long item that wraps, with the first item lit"
 >
   <Specimen label="Open with icons">
@@ -108,6 +114,16 @@
 />
 
 <style>
+  /* The icon trigger ends the row it acts on, so its menu hangs under the row from that end. */
+  .row {
+    align-items: center;
+    display: flex;
+    gap: var(--sui-space-3);
+    inline-size: 15rem;
+    justify-content: space-between;
+    max-inline-size: 100%;
+  }
+
   .actions {
     display: flex;
     gap: var(--sui-space-2);
@@ -120,6 +136,8 @@
     gap: var(--sui-space-3);
   }
 
+  /* Words beside a trigger snap their box to the cap, so the icon centres on their cap (L-94). */
+  .name,
   .reason {
     align-content: center;
     block-size: var(--sui-block-snap);
@@ -129,5 +147,9 @@
     margin: 0;
     padding-block: var(--sui-block-snap-room);
     text-box: trim-both cap alphabetic;
+  }
+
+  .name {
+    color: var(--sui-text-primary);
   }
 </style>
