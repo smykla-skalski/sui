@@ -10,6 +10,7 @@
   import Icon from '../icons/Icon.svelte';
   import JoinedField from '../internal/JoinedField.svelte';
   import { formatLocale } from '../internal/locale.js';
+  import { PLURAL_SAMPLES } from '../internal/plural.js';
   import { setRefusals } from '../internal/refusals.svelte.js';
   import Select from './Select.svelte';
   import TextInput from './TextInput.svelte';
@@ -17,10 +18,6 @@
 
   const SECONDS: Record<DurationUnit, number> = { seconds: 1, minutes: 60, hours: 3600 };
   const UNITS = Object.keys(SECONDS) as DurationUnit[];
-  // Amounts that between them fall in every CLDR plural category of every language: zero, one,
-  // two, few, many (5 in Russian, 6 in Welsh, 11 in Arabic) and other, whole and fractional, so
-  // the unit picker holds the width of every form it can show.
-  const PLURAL_SAMPLES = [0, 1, 2, 3, 5, 6, 11, 100, 1.5];
 
   const uid = $props.id();
   const refusals = setRefusals();
@@ -218,7 +215,8 @@
     UNITS.map((each) => ({
       value: each,
       label: unitLabel(each, shownAmount),
-      forms: PLURAL_SAMPLES.map((amount) => unitLabel(each, amount))
+      // Every form the unit can take, so the picker holds the widest of them.
+      forms: [...new Set(PLURAL_SAMPLES.map((amount) => unitLabel(each, amount)))]
     }))
   );
 
