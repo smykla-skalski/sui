@@ -52,7 +52,7 @@
   note="Only glyphs every reader reads the same way stand alone, and any other action is a Button with its word"
 >
   <Specimen label="Settings">
-    <IconButton icon="settings" label="Open Settings" />
+    <IconButton icon="settings" label="Open the settings" />
   </Specimen>
   <Specimen label="Delete">
     <IconButton icon="trash" label="Remove the rule" />
