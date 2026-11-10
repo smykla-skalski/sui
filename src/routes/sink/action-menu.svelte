@@ -169,16 +169,12 @@
     min-block-size: var(--sui-control-height-compact);
   }
 
-  /* On a phone the icon trigger keeps its reason beside it, wrapping there, while the button
-     trigger's reason drops under it, since the two cannot share one line. */
+  /* On a phone the icon trigger keeps its reason beside it while the line holds both, and the
+     reason drops under it as a whole line when not, as the button trigger's always does. The
+     reason is one snapped line, so it never wraps beside the trigger (L-94, L-95). */
   @media (max-width: 47.9375rem) {
     .locked {
-      flex-wrap: nowrap;
-    }
-
-    .locked .reason {
-      flex: 1;
-      min-inline-size: 0;
+      row-gap: var(--sui-space-2);
     }
 
     .stack {

@@ -1023,22 +1023,25 @@ suite('overlays', together, () => {
           )
         ]);
         assert.deepEqual(weights, ['400']);
-        // On a phone the icon trigger keeps its reason beside it, wrapping there, while the wider
-        // button trigger's reason drops under it.
+        // On a phone the icon trigger keeps its reason beside it while the line holds both, and
+        // the reason drops under it as a whole line when not, as the button trigger's always does.
+        const place = () =>
+          page.evaluate(() =>
+            [...document.querySelectorAll('#action-menu .locked')].map((locked) => {
+              const trigger = /** @type {Element} */ (locked.querySelector('button'));
+              const reason = /** @type {Element} */ (locked.querySelector('.reason'));
+              const [t, r] = [trigger, reason].map((node) => node.getBoundingClientRect());
+              return r.top >= t.bottom && r.left === t.left
+                ? 'under'
+                : r.left >= t.right && r.top < t.bottom
+                  ? 'beside'
+                  : `at ${r.left - t.left}, ${r.top - t.top}`;
+            })
+          );
         await page.setViewportSize({ width: 390, height: 800 });
-        const reasons = await page.evaluate(() =>
-          [...document.querySelectorAll('#action-menu .locked')].map((locked) => {
-            const trigger = /** @type {Element} */ (locked.querySelector('button'));
-            const reason = /** @type {Element} */ (locked.querySelector('.reason'));
-            const [t, r] = [trigger, reason].map((node) => node.getBoundingClientRect());
-            return r.top >= t.bottom && r.left === t.left
-              ? 'under'
-              : r.left >= t.right && r.top < t.bottom
-                ? 'beside'
-                : `at ${r.left - t.left}, ${r.top - t.top}`;
-          })
-        );
-        assert.deepEqual(reasons, ['beside', 'under']);
+        assert.deepEqual(await place(), ['beside', 'under']);
+        await page.setViewportSize({ width: 320, height: 800 });
+        assert.deepEqual(await place(), ['under', 'under']);
       } finally {
         await page.close();
       }
