@@ -106,9 +106,9 @@
       aria-label="Aliases"
     />
   </Specimen>
-  <Specimen label="Empty">
+  <Specimen label="Invalid">
     <PairEntry
-      bind:value={none}
+      bind:value={wrong}
       options={commands}
       keyLabel="Alias"
       valueLabel="Command"
@@ -117,9 +117,9 @@
       aria-label="Aliases"
     />
   </Specimen>
-  <Specimen label="Invalid">
+  <Specimen label="Empty">
     <PairEntry
-      bind:value={wrong}
+      bind:value={none}
       options={commands}
       keyLabel="Alias"
       valueLabel="Command"
