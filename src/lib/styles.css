@@ -516,7 +516,7 @@
   --sui-radius-mark: calc(var(--sui-tier-mark) / 2);
   --sui-radius-control: 8px;
   --sui-radius-surface: 10px;
-  --sui-radius-popover: 12px;
+  --sui-radius-popover: 10px;
   --sui-radius-popover-row: calc(
     var(--sui-radius-popover) - var(--sui-stroke) - var(--sui-space-1)
   );

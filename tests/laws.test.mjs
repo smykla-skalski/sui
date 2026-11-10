@@ -511,7 +511,7 @@ test('L-55 a specimen name stands a step past a field gap over its specimen, clo
   assert.match(specimen, /\.specimen \{[^}]*gap: var\(--sui-space-4\);/);
   assert.match(
     specimen,
-    /figcaption \{[^}]*var\(--sui-weight-regular\) var\(--sui-font-size-compact\)/
+    /figcaption \{[^}]*var\(--sui-weight-regular\) var\(--sui-font-size-caption\)/
   );
   const rows = svelteFiles
     .filter((path) => path.startsWith('src/routes/sink/'))
