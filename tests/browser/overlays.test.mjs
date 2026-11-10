@@ -830,7 +830,7 @@ suite('overlays', together, () => {
   );
 
   // The open copy once dropped its mark under the label on a phone, wrapped a one-sentence tip
-  // there, and set its words in the quiet secondary ink. The Placement copies once showed bare
+  // there, and stood white on the white card. The Placement copies once showed bare
   // marks, so a still shot showed neither side.
   test(
     'help tip copies hang over and under their marks, by their labels, on one line',
@@ -872,13 +872,16 @@ suite('overlays', together, () => {
           );
           const probe = document.createElement('span');
           probe.style.color = 'var(--sui-text-primary)';
+          probe.style.backgroundColor = 'var(--sui-surface-base)';
           tip.append(probe);
-          const primary = getComputedStyle(probe).color;
+          const look = getComputedStyle(probe);
+          const [primary, base] = [look.color, look.backgroundColor];
           probe.remove();
+          const style = getComputedStyle(tip);
           return {
             side: tip.dataset.side,
             beside: m.left >= w.right && m.top < w.bottom && m.bottom > w.top,
-            ink: getComputedStyle(tip).color === primary,
+            ink: style.backgroundColor === primary && style.color === base,
             ...arrowOf(tip, m)
           };
         })`)
@@ -896,7 +899,7 @@ suite('overlays', together, () => {
         for (const copy of phone) {
           assert.ok(copy.beside, `the ${copy.side} mark drops under its label`);
           assert.equal(copy.lines, 1, `the ${copy.side} one-sentence tip wraps on a phone`);
-          assert.ok(copy.ink, `the ${copy.side} tip is not in the primary ink`);
+          assert.ok(copy.ink, `the ${copy.side} tip is not inverted, primary ink under base words`);
         }
         await page.setViewportSize({ width: 1440, height: 900 });
         const desktop = await copies();

@@ -286,18 +286,20 @@ does, stays out of the accessibility tree. Any other tip describes the control t
 </div>
 
 <style>
+  /* A tip is the one floating layer that inverts: the primary ink is its ground and the base
+     surface its words, in both themes, so a short line reads at once on any card, as the tips of
+     shadcn/ui and Radix Themes do (L-72). Its edge and arrow take its ground. */
   .sui-tooltip {
+    --sui-local-tip-ground: var(--sui-text-primary);
     align-content: center;
-    background: var(--sui-popover-bg);
-    border: var(--sui-stroke) solid var(--sui-popover-border);
-    border-radius: var(--sui-radius-popover);
+    background: var(--sui-local-tip-ground);
+    border: var(--sui-stroke) solid var(--sui-local-tip-ground);
+    border-radius: var(--sui-radius-control);
     /* The light theme lifts a tip on a firmer layer of its own (L-54). The dark themes leave the
-       token unset, so a tip there wears the popover's lift with its rim of light. */
+       token unset, so a tip there wears the popover's lift. */
     box-shadow: var(--sui-shadow-tooltip, var(--sui-shadow-popover));
     box-sizing: border-box;
-    /* The tip is the whole of what it says, so its words take the primary ink, as the inverted
-       tips of shadcn/ui and Radix Themes read at full contrast. */
-    color: var(--sui-text-primary);
+    color: var(--sui-surface-base);
     font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-leading-meta)
       var(--sui-sans);
     inline-size: max-content;
@@ -326,61 +328,45 @@ does, stays out of the accessibility tree. Any other tip describes the control t
       display var(--sui-duration-fast) allow-discrete;
   }
 
-  /* The arrow is a square turned on its point, centred on the box's outer edge with its two outer
-     sides stroked, so it joins the box's own edge. It points at the anchor's centre and keeps
-     clear of the box's corners. */
+  /* The arrow is a square of the tip's ground turned on its point and centred on the box's outer
+     edge. It points at the anchor's centre and keeps clear of the box's corners. */
   .sui-tooltip::after {
     --sui-local-arrow: calc(var(--sui-tip-arrow) * sqrt(2));
     /* Its centre keeps past the corner's curve, so a tip that starts at a 24px mark still
        points at the mark's middle. */
     --sui-local-arrow-along: clamp(
-      calc(var(--sui-radius-popover) - var(--sui-local-arrow) / 2),
+      calc(var(--sui-radius-control) - var(--sui-local-arrow) / 2),
       calc(
         var(--sui-floating-anchor-at, calc(50% + var(--sui-stroke))) - var(--sui-local-arrow) / 2 -
           var(--sui-stroke)
       ),
-      calc(100% - var(--sui-radius-popover) - var(--sui-local-arrow) / 2)
+      calc(100% - var(--sui-radius-control) - var(--sui-local-arrow) / 2)
     );
     --sui-local-arrow-across: calc(-1 * var(--sui-local-arrow) / 2 - var(--sui-stroke));
-    background: var(--sui-popover-bg);
+    background: var(--sui-local-tip-ground);
     block-size: var(--sui-local-arrow);
-    border: var(--sui-stroke) solid transparent;
-    box-sizing: border-box;
     content: '';
     inline-size: var(--sui-local-arrow);
     position: absolute;
     rotate: 45deg;
   }
 
-  /* A right-to-left page turns the square the other way, so the same logical sides face out. */
-  .sui-tooltip:dir(rtl)::after {
-    rotate: -45deg;
-  }
-
   .sui-tooltip[data-side='block-start']::after {
-    border-block-end-color: var(--sui-popover-border);
-    border-inline-end-color: var(--sui-popover-border);
     inset-block-end: var(--sui-local-arrow-across);
     inset-inline-start: var(--sui-local-arrow-along);
   }
 
   .sui-tooltip[data-side='block-end']::after {
-    border-block-start-color: var(--sui-popover-border);
-    border-inline-start-color: var(--sui-popover-border);
     inset-block-start: var(--sui-local-arrow-across);
     inset-inline-start: var(--sui-local-arrow-along);
   }
 
   .sui-tooltip[data-side='inline-end']::after {
-    border-block-end-color: var(--sui-popover-border);
-    border-inline-start-color: var(--sui-popover-border);
     inset-block-start: var(--sui-local-arrow-along);
     inset-inline-start: var(--sui-local-arrow-across);
   }
 
   .sui-tooltip[data-side='inline-start']::after {
-    border-block-start-color: var(--sui-popover-border);
-    border-inline-end-color: var(--sui-popover-border);
     inset-block-start: var(--sui-local-arrow-along);
     inset-inline-end: var(--sui-local-arrow-across);
   }

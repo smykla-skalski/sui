@@ -955,6 +955,20 @@ test('L-72 a floating layer on dark stands off its ground by the raised ground a
     styles['src/lib/components/ActionMenu.svelte'],
     /\.sui-action-menu-separator \{[^}]*background-color: var\(--sui-border-divider\)/
   );
+  const tip =
+    /\.sui-tooltip \{[^}]*\}/.exec(styles['src/lib/components/Tooltip.svelte'])?.[0] ?? '';
+  assert.match(
+    tip,
+    /--sui-local-tip-ground: var\(--sui-text-primary\);/,
+    'a tip inverts its ground'
+  );
+  assert.match(tip, /border: var\(--sui-stroke\) solid var\(--sui-local-tip-ground\);/);
+  assert.match(tip, /color: var\(--sui-surface-base\);/, "a tip's words take the base surface");
+  assert.match(
+    tip,
+    /border-radius: var\(--sui-radius-control\);/,
+    'a tip takes the control radius'
+  );
 });
 
 test('L-73 every duration and easing reads a token', () => {

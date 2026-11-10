@@ -13,9 +13,9 @@
 </script>
 
 <Example
-  --example-max="40rem"
+  --example-max="26rem"
   title="Placement"
-  note="A tapped or clicked mark stays pressed on its veil while its tip is open, drawn here in place over and under it"
+  note="A tip opens over its mark or under it, drawn here in place, with the mark pressed on its veil"
 >
   <Specimen label="Above">
     <span class="label wrap over">
@@ -32,7 +32,7 @@
 </Example>
 
 <Example
-  --example-max="40rem"
+  --example-max="26rem"
   title="Live"
   note="Hover pauses before the tip shows, focus shows it at once, and a tap or click toggles it"
 >
@@ -69,10 +69,10 @@
     gap: calc(var(--sui-focus-ring-offset) + var(--sui-focus-ring-width) + var(--sui-space-1));
   }
 
-  /* The live tip opens over its mark, so the label keeps a tip's height under its name and the
-     tip opens in empty card space, clear of the name. */
+  /* The live tip opens over its mark, so the label keeps room for a one-line tip, its gap and
+     its arrow under its name, and the tip stands as far under the name as any specimen does. */
   .live {
-    margin-block-start: var(--sui-space-8);
+    margin-block-start: calc(var(--sui-space-8) + var(--sui-space-2));
   }
 
   /* The words run cap to baseline, so the mark centres on them (L-94). */
