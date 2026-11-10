@@ -733,6 +733,15 @@ Name it with a `<label>` or `aria-label`, as any field.
     padding: var(--sui-space-3);
   }
 
+  /* A note alone in the list stands as tall as an option row: 34px, or 44px on a phone. The count
+     under the rows stays a compact foot, so it never reads as one more row. */
+  .sui-combobox-empty:not(.count) {
+    padding-block: round(
+      max(var(--sui-space-3), (var(--sui-control-height-compact) - 1cap) / 2),
+      1px
+    );
+  }
+
   .sui-combobox-empty.refused {
     color: var(--sui-danger);
   }

@@ -1398,6 +1398,24 @@ suite('forms', together, () => {
         foot: '1px',
         starts: 1
       });
+      // A note alone in the list keeps an option row's height on a phone too, where rows grow to
+      // 44px, while the count under the rows stays a foot shorter than a row.
+      await page.setViewportSize({ width: 390, height: 900 });
+      const rows = await page.evaluate(() => {
+        const copy = '#combobox .sui-combobox-preview';
+        const height = (/** @type {Element | null} */ box) => box?.getBoundingClientRect().height;
+        return {
+          option: height(document.querySelector(`${copy} .sui-combobox-option`)),
+          notes: [
+            ...document.querySelectorAll(`${copy} .sui-combobox-empty:not(.count, .refused)`)
+          ].map(height),
+          count: height(document.querySelector(`${copy} .sui-combobox-empty.count`))
+        };
+      });
+      await page.setViewportSize({ width: 1440, height: 900 });
+      const { count, ...lone } = rows;
+      assert.deepEqual(lone, { option: 44, notes: [44, 44] });
+      assert.ok(Number(count) < 44, `the count foot stands ${count}px, as tall as a row`);
       assert.equal(look.off.name, 0.6);
       assert.equal(look.off.note, 1, 'an off option keeps its reason at full strength');
       assert.equal(look.off.ink, look.secondary, 'in the reason ink');
