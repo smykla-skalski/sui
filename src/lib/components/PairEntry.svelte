@@ -216,7 +216,7 @@ chips take the whole line under the copy and wrap within it.
 
 - Semantics: a `div` with `role="group"` holding a list of chips, each an edit `button` with `aria-haspopup="dialog"` and a remove `button`, an `add` button, and a dialog `Popover` with a `Field` and a `Combobox`.
 - Content: pairs of a short key and one of `options`; a long key or value wraps inside its chip, so all of it shows.
-- States: rest; hover, pressed and focus on the edit part paint the whole chip (a veil, a deeper veil with an inset shadow, a flush ring), and the remove part's quiet plate takes its own (a veil, a deeper veil with an inset shadow, an inset ring); open (the chip's edge takes the focus color), invalid (the danger edge, an alert mark and the problem in words under the row), and disabled with `reason` (the off field's well with no edge and muted words, as an off pattern entry is).
+- States: rest in a field's frame, baseline and recess; hover, pressed and focus on the edit part paint the whole chip (the field's hover, a deeper veil with an inset shadow, a flush ring), and the remove part's quiet plate takes its own (a veil, a deeper veil with an inset shadow, an inset ring); open (the chip's edge takes the focus color), invalid (the danger edge, an alert mark and the problem in words under the row), and disabled with `reason` (the off field's well with no edge and muted words, as an off pattern entry is).
 - Keyboard: Tab walks each chip's edit and remove parts, then Add; Enter or Space opens the editor; Delete or Backspace on a chip removes it; in the editor Enter is Save Pair, and Escape closes the value's list first and then the editor.
 - Pointer and touch: the chip is 28px tall and the remove part a 28px square over its end, both 44px on a phone or a coarse pointer, where the remove part's plate keeps its 24px in the middle of the square; a press on that square is the remove part's alone, and the edit part's words keep clear of it; a press on the editor's words or padding closes only the value's list.
 - Focus: the editor opens on the key field, keeps focus inside when its words or padding are pressed, and returns focus to its chip on close; after a removal focus moves to the next chip, the one before, or Add.
@@ -373,9 +373,12 @@ chips take the whole line under the copy and wrap within it.
 
   /* The frame is drawn over the chip, not around it, so the chip is a whole control tier tall
      (L-37). The edit part is the chip itself, as a joined field's value is the field: its hover,
-     press and ring take the whole chip, and the remove part keeps its own (L-47). */
+     press and ring take the whole chip, and the remove part keeps its own (L-47). A chip holds
+     a value, so it wears a field's frame, baseline and recess, as a Select's trigger does (L-9). */
   .sui-pair-chip {
-    --sui-pair-edge: var(--sui-control-border);
+    --sui-pair-edge: var(--sui-field-frame);
+    --sui-pair-baseline: var(--sui-field-border);
+    --sui-pair-recess: var(--sui-field-recess);
     --sui-pair-layer: transparent;
     background-color: var(--sui-control-bg);
     background-image: linear-gradient(var(--sui-pair-layer), var(--sui-pair-layer));
@@ -388,22 +391,30 @@ chips take the whole line under the copy and wrap within it.
 
   .sui-pair-chip::after {
     border: var(--sui-stroke) solid var(--sui-pair-edge);
+    border-block-end-color: var(--sui-pair-baseline);
     border-radius: inherit;
+    box-shadow: inset 0 var(--sui-stroke) 0 var(--sui-pair-recess);
     content: '';
     inset: 0;
     pointer-events: none;
     position: absolute;
   }
 
+  /* The pointer anywhere on the chip lights all of it, the remove part included, as a joined
+     field lights whole: the frame firms while the ground only just moves, and the remove part's
+     own plate steps up over that. An invalid chip hovers in its danger hue (L-9, L-12). */
   @media (hover: hover) {
     .sui-pair-chip:hover:not(.invalid, .open, :has(> :is(:disabled, [aria-disabled='true']))) {
-      --sui-pair-edge: var(--sui-control-border-hover);
+      --sui-pair-edge: var(--sui-field-frame-hover);
+      --sui-pair-baseline: var(--sui-field-border-hover);
+      --sui-pair-recess: var(--sui-field-recess-hover);
+      background-color: var(--sui-field-hover);
     }
 
-    /* The pointer anywhere on the chip lights all of it, the remove part included, as a joined
-       field lights whole, and the remove part's own plate steps up over that. */
-    .sui-pair-chip:hover:not(:has(> :is(:disabled, [aria-disabled='true']))) {
-      --sui-pair-layer: var(--sui-interactive-hover-layer);
+    .sui-pair-chip.invalid:hover:not(:has(> :is(:disabled, [aria-disabled='true']))) {
+      --sui-pair-edge: var(--sui-danger-hover);
+      --sui-pair-baseline: var(--sui-danger-hover);
+      --sui-pair-layer: var(--sui-danger-hover-layer);
     }
   }
 
@@ -422,10 +433,13 @@ chips take the whole line under the copy and wrap within it.
   .sui-pair-chip.open,
   .sui-pair-chip:has(> .sui-pair-edit:focus-visible):not(.invalid) {
     --sui-pair-edge: var(--sui-focus);
+    --sui-pair-baseline: var(--sui-focus);
+    --sui-pair-recess: var(--sui-field-recess-focus);
   }
 
   .sui-pair-chip.invalid {
     --sui-pair-edge: var(--sui-danger);
+    --sui-pair-baseline: var(--sui-danger);
   }
 
   /* A danger edge is not the ring's color, so the outline draws the whole 2px ring past it. */
@@ -466,7 +480,7 @@ chips take the whole line under the copy and wrap within it.
     min-block-size: var(--sui-pair-chip);
     min-inline-size: 0;
     padding-block: calc((var(--sui-pair-chip) - round(up, 1cap, 2px)) / 2);
-    padding-inline: var(--sui-space-2)
+    padding-inline: var(--sui-field-inset)
       calc(var(--sui-pair-chip) + var(--sui-space-2) - var(--sui-control-inset));
     text-align: start;
   }
@@ -586,6 +600,8 @@ chips take the whole line under the copy and wrap within it.
      full strength (L-40). A set held while the work around it runs dims instead. */
   .disabled .sui-pair-chip {
     --sui-pair-edge: transparent;
+    --sui-pair-baseline: transparent;
+    --sui-pair-recess: transparent;
     background-color: var(--sui-field-disabled);
   }
 

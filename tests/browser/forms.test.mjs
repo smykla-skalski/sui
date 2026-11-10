@@ -2360,18 +2360,44 @@ suite('forms', together, () => {
     );
 
     test(
-      'a hover on either part of a pair chip lights the whole chip, and the bare cross its plate',
+      'a pair chip wears a field, a hover on either part lights the whole chip, and the bare cross its plate',
       long,
       async () => {
         const page = await opened();
         const chip = page.locator('#pair-entry .sui-pair-chip').first();
         const remove = chip.locator('.sui-pair-remove');
-        const ground = () => chip.evaluate((element) => getComputedStyle(element).backgroundImage);
+        const ground = () =>
+          chip.evaluate((element) =>
+            [
+              getComputedStyle(element).backgroundColor,
+              getComputedStyle(element, '::after').borderTopColor
+            ].join(' | ')
+          );
         const plate = () =>
           remove.evaluate((element) => getComputedStyle(element, '::before').backgroundColor);
         const rest = await ground();
         const plateRest = await plate();
         assert.equal(plateRest, 'rgba(0, 0, 0, 0)', 'the remove part draws a plate at rest');
+        const field = await chip.evaluate((element) => {
+          const probe = document.createElement('span');
+          probe.style.borderColor = 'var(--sui-field-frame)';
+          probe.style.borderBottomColor = 'var(--sui-field-border)';
+          element.append(probe);
+          const want = getComputedStyle(probe);
+          const edge = getComputedStyle(element, '::after');
+          const paint = [
+            edge.borderTopColor === want.borderTopColor,
+            edge.borderBottomColor === want.borderBottomColor,
+            edge.boxShadow.includes('inset')
+          ];
+          probe.remove();
+          return paint;
+        });
+        assert.deepEqual(
+          field,
+          [true, true, true],
+          'a chip holds a value, so it wears a field frame, baseline and recess (L-9)'
+        );
         await chip.locator('.sui-pair-key').hover();
         const lit = await ground();
         assert.notEqual(lit, rest, 'the edit part did not light its chip');
