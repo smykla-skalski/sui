@@ -315,9 +315,11 @@ close control, because only Escape and that control end it.
       display var(--sui-duration-press) allow-discrete;
   }
 
-  /* In flow the room a list has is the viewport, so a listbox keeps its 20rem cap. */
+  /* In flow the page scrolls, so the layer never cuts what it holds, and a listbox inside it
+     measures its 20rem cap against the viewport. */
   .sui-popover.inline {
     --sui-floating-available-block: 100dvh;
+    max-block-size: none;
     max-inline-size: 100%;
     position: static;
   }

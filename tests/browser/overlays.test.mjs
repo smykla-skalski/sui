@@ -1483,7 +1483,7 @@ suite('overlays', together, () => {
       await clear();
     });
 
-    test('a combobox copy keeps its typed text and offer when focus passes through it, and a sized combobox in a sentence keeps its chevron inside it', async () => {
+    test('a combobox copy keeps its typed text and offer when focus passes through it and draws a list taller than the window whole, and a sized combobox in a sentence keeps its chevron inside it', async () => {
       await page.evaluate(() => {
         const { lib, mount, flushSync } = /** @type {any} */ (window);
         const host = Object.assign(document.body.appendChild(document.createElement('div')), {
@@ -1513,8 +1513,19 @@ suite('overlays', together, () => {
           }
         });
         sentence.append(' after.');
+        const long = mount(lib.Combobox, {
+          target: host.appendChild(Object.assign(document.createElement('div'), { id: 'long' })),
+          props: {
+            'aria-label': 'Region',
+            options: Array.from({ length: 60 }, (_, index) => ({
+              value: `r${index}`,
+              label: `Region ${index}`
+            })),
+            preview: true
+          }
+        });
         flushSync();
-        Object.assign(window, { parts: [copy, sized], picked });
+        Object.assign(window, { parts: [copy, sized, long], picked });
       });
       const copy = page.getByRole('combobox', { name: 'Label' });
       await copy.focus();
@@ -1535,7 +1546,10 @@ suite('overlays', together, () => {
           offer: document.querySelectorAll('#host > .sui-combobox-preview [role="option"]').length,
           inside: chevron.left >= field.left && chevron.right <= field.right,
           wrapper: box(/** @type {Element} */ (input.parentElement)).width - field.width,
-          beside: field.left - box(sentence).left
+          beside: field.left - box(sentence).left,
+          cut: [...document.querySelectorAll('#long .sui-popover, #long .sui-combobox-list')].map(
+            (layer) => layer.scrollHeight - layer.clientHeight
+          )
         };
       });
       assert.deepEqual(seen.picked, [], 'focus passing through a copy commits nothing');
@@ -1544,6 +1558,7 @@ suite('overlays', together, () => {
       assert.ok(seen.inside, 'the chevron stands inside the sized field');
       assert.equal(seen.wrapper, 0, "the chevron's box is as wide as the field");
       assert.ok(seen.beside > 0, 'the field sits in the sentence, after its first word');
+      assert.deepEqual(seen.cut, [0, 0], 'no layer of a long copy cuts a row or scrolls');
       await clear();
     });
 
