@@ -268,7 +268,9 @@ for a press of the way back.
     text-wrap: pretty;
   }
 
+  /* In the field's figures, so a value keeps its shape when an override draws it in the field. */
   .sui-inherit-word {
+    font-variant-numeric: tabular-nums;
     font-weight: var(--sui-weight-semibold);
   }
 
