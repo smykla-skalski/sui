@@ -707,12 +707,7 @@ Name it with a `<label>` or `aria-label`, as any field.
     font: var(--sui-weight-regular) var(--sui-font-size-control) / var(--sui-leading-meta)
       var(--sui-sans);
     margin: 0;
-    /* A one-line note stands as tall as an option row: 34px, or 44px on a phone. */
-    padding-block: round(
-      max(var(--sui-space-3), (var(--sui-control-height-compact) - 1cap) / 2),
-      1px
-    );
-    padding-inline: var(--sui-space-3);
+    padding: var(--sui-space-3);
   }
 
   .sui-combobox-empty.refused {
