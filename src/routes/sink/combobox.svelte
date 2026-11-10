@@ -154,7 +154,7 @@
   --example-max="54rem"
   --specimen-min="21rem"
   --specimen-row-gap="var(--sui-space-6)"
-  note="Static copies of the open list under each field. The value opens lit and checked, typed letters are marked in the names they match beside a retired option, free entry offers the typed text, and text that matches nothing says so"
+  note="Static copies of the open list under each field. The value opens lit and checked, and typed letters are marked in the names they match. Free entry offers the typed text, and text that matches nothing says so"
   layout="grid"
 >
   <Specimen label="Chosen">

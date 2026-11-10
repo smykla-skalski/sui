@@ -661,12 +661,17 @@ Name it with a `<label>` or `aria-label`, as any field.
     color: var(--sui-text-secondary);
     font: var(--sui-weight-regular) var(--sui-font-size-control) / var(--sui-leading-meta)
       var(--sui-sans);
+    block-size: var(--sui-block-snap-near);
     margin: 0;
-    padding: var(--sui-space-2) var(--sui-space-3);
+    padding: var(--sui-space-3);
+    /* Cap line to baseline, rounded to the nearest pixel, so a note alone in the popover stands
+       as far from its top as from its foot (L-95, L-102). */
+    text-box: trim-both cap alphabetic;
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .sui-combobox-option {
+    .sui-combobox-option,
+    .sui-combobox-chevron {
       transition: none;
     }
 
