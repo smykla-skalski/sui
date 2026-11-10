@@ -492,13 +492,16 @@ Name it with a `<label>` or `aria-label`, as any field.
     min-inline-size: 0;
   }
 
-  /* The popover's own 1px border sits outside this list, so the box as a whole stops at
-     min(20rem, the room it has). */
+  /* The list stops half a row past its eighth row, so a list that scrolls shows a row cut
+     through (L-48), and the popover's own 1px border sits outside it. */
   .sui-combobox-list {
     box-sizing: border-box;
     display: grid;
     grid-template-columns: minmax(0, 1fr);
-    max-block-size: calc(min(20rem, var(--sui-floating-available-block)) - 2 * var(--sui-stroke));
+    max-block-size: min(
+      2 * var(--sui-space-1) + 8.5 * (var(--sui-control-height-compact) + 2px),
+      var(--sui-floating-available-block) - 2 * var(--sui-stroke)
+    );
     max-inline-size: max(24rem, var(--sui-floating-anchor-inline));
     overflow: auto;
     overscroll-behavior: contain;

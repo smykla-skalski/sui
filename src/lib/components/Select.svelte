@@ -593,7 +593,11 @@ assistive technology, because a native picker cannot be held open.
         box-sizing: border-box;
         color: var(--sui-text-primary);
         margin-block: var(--sui-space-1);
-        max-block-size: min(20rem, 100% - 2 * var(--sui-space-1));
+        /* Half a row past the eighth, so a list that scrolls shows a row cut through (L-48). */
+        max-block-size: min(
+          2 * var(--sui-space-1) + 8.5 * var(--sui-control-height-compact),
+          100% - 2 * var(--sui-space-1)
+        );
         max-inline-size: min(24rem, 100vw - 2 * var(--sui-space-2));
         opacity: 1;
         overscroll-behavior: contain;

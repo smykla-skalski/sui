@@ -887,6 +887,15 @@ test('L-72 stacking order comes from the layer tokens', () => {
   );
 });
 
+test("L-48 a picker's list stops half a row past its eighth row", () => {
+  for (const file of ['Select', 'Combobox'])
+    assert.match(
+      read(`src/lib/components/${file}.svelte`),
+      /max-block-size: min\(\s*2 \* var\(--sui-space-1\) \+ 8\.5 \* \(?var\(--sui-control-height-compact\)/,
+      file
+    );
+});
+
 test('L-72 a floating layer on dark stands off its ground by the raised ground and the hovered control edge', () => {
   for (const selector of [
     ":root[data-theme='dark']",

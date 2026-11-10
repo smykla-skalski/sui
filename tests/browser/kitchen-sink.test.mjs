@@ -1001,7 +1001,17 @@ suite('the kitchen sink', together, () => {
             box.bottom <= document.documentElement.clientHeight + 0.5,
           narrower:
             element.getAttribute('aria-haspopup') === 'listbox' && box.width < anchor.width - 0.5,
-          tall: box.height > 320.5,
+          tall:
+            box.height >
+            (() => {
+              // Half a row past the eighth, rows and gaps, padding and edges (L-48).
+              const tier = parseFloat(
+                getComputedStyle(document.documentElement).getPropertyValue(
+                  '--sui-control-height-compact'
+                )
+              );
+              return 8 + 8.5 * (tier + 2) + 2 + 0.5;
+            })(),
           lit:
             !element.matches('.sui-button:not(.field)') ||
             getComputedStyle(element).backgroundImage.includes(veil),
@@ -1018,7 +1028,8 @@ suite('the kitchen sink', together, () => {
       else {
         if (!report.inside) problems.push(`${name}: the layer leaves the viewport`);
         if (report.narrower) problems.push(`${name}: the listbox is narrower than its trigger`);
-        if (report.tall) problems.push(`${name}: the layer is taller than 20rem`);
+        if (report.tall)
+          problems.push(`${name}: the layer is taller than half a row past its eighth`);
         if (!report.lit) problems.push(`${name}: the open trigger lost its hover paint`);
         if (report.heights?.some((height) => height < report.tier - 0.01))
           problems.push(
@@ -1074,7 +1085,17 @@ suite('the kitchen sink', together, () => {
         return {
           open: true,
           narrower: parseFloat(picker.width) < element.getBoundingClientRect().width - 0.5,
-          tall: parseFloat(picker.height) > 320.5,
+          tall:
+            parseFloat(picker.height) >
+            (() => {
+              // Half a row past the eighth, rows and gaps, padding and edges (L-48).
+              const tier = parseFloat(
+                getComputedStyle(document.documentElement).getPropertyValue(
+                  '--sui-control-height-compact'
+                )
+              );
+              return 8 + 8.5 * (tier + 2) + 2 + 0.5;
+            })(),
           lit:
             !element.matches('.sui-select:not(.bare) select:not([aria-invalid="true"])') ||
             getComputedStyle(element).borderTopColor === edge,
@@ -1090,7 +1111,8 @@ suite('the kitchen sink', together, () => {
       if (!report.open) problems.push(`${name}: the picker did not open`);
       else {
         if (report.narrower) problems.push(`${name}: the picker is narrower than its field`);
-        if (report.tall) problems.push(`${name}: the picker is taller than 20rem`);
+        if (report.tall)
+          problems.push(`${name}: the picker is taller than half a row past its eighth`);
         if (!report.lit) problems.push(`${name}: the open field lost its focus edge`);
         if (report.heights?.some((height) => height < report.tier - 0.01))
           problems.push(
