@@ -301,8 +301,9 @@ does, stays out of the accessibility tree. Any other tip describes the control t
     border: var(--sui-stroke) solid var(--sui-local-tip-ground);
     border-radius: var(--sui-radius-control);
     /* The light theme lifts a tip on a firmer layer of its own (L-54). The dark themes leave the
-       token unset, so a tip there wears the popover's lift. */
-    box-shadow: var(--sui-shadow-tooltip, var(--sui-shadow-popover));
+       token unset, so a light tip there sits on a plate's tight shadow, where a popover's wide
+       lift would spread a smudge past its end. */
+    box-shadow: var(--sui-shadow-tooltip, var(--sui-shadow-plate));
     box-sizing: border-box;
     color: var(--sui-surface-base);
     /* Caption type, a step under the words of the control it names (L-25). */

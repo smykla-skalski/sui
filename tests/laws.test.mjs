@@ -1256,7 +1256,12 @@ test('L-53 a shadow that lifts a part is two layers in every palette block, and 
   assert.equal(
     [...palette.matchAll(/--sui-shadow-tooltip: initial;/g)].length,
     2,
-    'a dark tip wears the popover lift'
+    'a dark tip leaves its own lift unset'
+  );
+  assert.match(
+    read('src/lib/components/Tooltip.svelte'),
+    /box-shadow: var\(--sui-shadow-tooltip, var\(--sui-shadow-plate\)\);/,
+    'a dark tip sits on a plate shadow, not a popover lift'
   );
   const lift = /** @type {string} */ (found.find(([, name]) => name === 'shadow-popover')?.[2]);
   for (const [, y, blur] of lift.matchAll(/(?:^|,)\s*0 (\d+)px (\d+)px/g)) {

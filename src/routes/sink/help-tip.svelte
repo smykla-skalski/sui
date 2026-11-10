@@ -15,7 +15,7 @@
 <Example
   --example-max="26rem"
   title="Placement"
-  note="A tip opens over its mark or under it, drawn here in place, with the mark pressed on its veil"
+  note="A tip opens over its mark or under it, drawn here in place, with the mark open on its veil"
 >
   <Specimen label="Above">
     <span class="label wrap over">
