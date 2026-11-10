@@ -137,14 +137,20 @@
     max-inline-size: 100%;
   }
 
-  /* The open menu hangs in the row's flow, so the row holds to its top and the name centres in a
-     band as tall as the trigger. The row grows to hold the name beside the menu's width, and a
-     narrow line puts the name above the trigger's band. */
+  /* The open copy is the live row, one width with it: the name and the trigger share the row's
+     band, and the menu hangs under the trigger's end, below the name rather than beside it. */
   .open {
     align-items: start;
-    flex-wrap: wrap;
-    inline-size: max-content;
-    min-inline-size: min(15rem, 100%);
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .open > :global(*) {
+    grid-area: 1 / 1;
+  }
+
+  .open > :global(:last-child) {
+    justify-self: end;
   }
 
   .lead {
@@ -158,11 +164,14 @@
     gap: var(--sui-space-2);
   }
 
+  /* A band as tall as the button trigger, so a reason beside the shorter icon trigger stands on
+     the same line as one beside the button. */
   .locked {
     align-items: center;
     display: flex;
     flex-wrap: wrap;
     gap: var(--sui-space-3);
+    min-block-size: var(--sui-control-height-compact);
   }
 
   /* A phone line holds the icon trigger's reason but not the button trigger's, so both drop under

@@ -856,6 +856,29 @@ suite('overlays', together, () => {
           return Math.abs(n.top + n.height / 2 - (t.top + t.height / 2)) < 1;
         });
         assert.equal(row, true, 'the open icon copy has a name centred on its trigger');
+        // The live icon row and its open copy are one row, so they draw at one width, and the two
+        // disabled triggers' reasons stand on one line beside triggers of two heights.
+        const widths = await page.evaluate(() => [
+          ...new Set(
+            [...document.querySelectorAll('#action-menu .row')].map((row) => {
+              const box = row.getBoundingClientRect();
+              const end = /** @type {Element} */ (
+                row.querySelector('button')
+              ).getBoundingClientRect();
+              return `${box.width} ending ${box.right - end.right}`;
+            })
+          )
+        ]);
+        assert.equal(widths.length, 1, `the icon rows are ${widths.join(', ')}px wide`);
+        assert.match(widths[0], / ending 0$/, 'a row ends with its trigger');
+        const reasonTops = await page.evaluate(() => [
+          ...new Set(
+            [...document.querySelectorAll('#action-menu .locked .reason')].map(
+              (reason) => reason.getBoundingClientRect().top
+            )
+          )
+        ]);
+        assert.equal(reasonTops.length, 1, `the reasons start at ${reasonTops.join(', ')}`);
         // A menu item that wraps never leaves one word alone on its last line.
         const lone = await page.evaluate(() =>
           [...document.querySelectorAll('#action-menu .sui-action-menu-label')].flatMap((label) => {
