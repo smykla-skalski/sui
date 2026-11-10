@@ -505,8 +505,9 @@ assistive technology, because a native picker cannot be held open.
     color: var(--sui-local-joined-off-ink, var(--sui-text-secondary));
   }
 
-  /* The chevron turns over while the picker is open. */
+  /* An open field's chevron turns over and firms with its frame. */
   .sui-select-control:open + .sui-select-chevron {
+    color: var(--sui-text-secondary);
     rotate: 180deg;
   }
 
@@ -646,8 +647,9 @@ assistive technology, because a native picker cannot be held open.
       inset 0 calc(-1 * var(--sui-stroke)) 0 var(--sui-focus);
   }
 
-  /* The copy is open, so its chevron is turned over as an open picker's is. */
+  /* The copy is open, so its chevron is turned over and firmed as an open picker's is. */
   .sui-select-preview .sui-select-chevron {
+    color: var(--sui-text-secondary);
     rotate: 180deg;
   }
 

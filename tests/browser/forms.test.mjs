@@ -1268,8 +1268,14 @@ suite('forms', together, () => {
           sheet: width(preview.querySelector('.sui-select-sheet')),
           chevron: getComputedStyle(
             /** @type {Element} */ (preview.querySelector('.sui-select-chevron'))
-          ).rotate
+          ).rotate,
+          ink: getComputedStyle(
+            /** @type {Element} */ (preview.querySelector('.sui-select-chevron'))
+          ).color
         }));
+        const restInk = getComputedStyle(
+          /** @type {Element} */ (closed?.querySelector('.sui-select-chevron'))
+        ).color;
         const sheet = /** @type {Element} */ (
           [...section.querySelectorAll('.sui-select-sheet')].find((node) =>
             node.querySelector('.sui-select-heading')
@@ -1356,6 +1362,7 @@ suite('forms', together, () => {
           ).getBoundingClientRect().left
         };
         return {
+          restInk,
           field,
           option,
           checked,
@@ -1396,6 +1403,7 @@ suite('forms', together, () => {
         assert.equal(copy.field, look.closed, 'an open copy keeps the closed field width');
         assert.equal(copy.sheet, copy.field, 'its picker is as wide as its field');
         assert.equal(copy.chevron, '180deg', 'its chevron is turned over');
+        assert.notEqual(copy.ink, look.restInk, 'its chevron firms past the closed one');
       }
       // An option is the value itself, so it is set as the field sets it (L-25), its check
       // stands on the field's text line, and the copy's field wears the open accent baseline.
