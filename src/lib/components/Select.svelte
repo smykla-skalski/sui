@@ -754,6 +754,13 @@ assistive technology, because a native picker cannot be held open.
     outline-offset: var(--sui-focus-ring-inset);
   }
 
+  /* Pressed past the lit row's veil, as every floating list's row is (L-11). */
+  .sui-select-option:active:not(:disabled, [aria-disabled='true']) {
+    background-color: var(--sui-list-pressed);
+    box-shadow: var(--sui-pressed-inset);
+    translate: 0 1px;
+  }
+
   .sui-select-option:is(:disabled, [aria-disabled='true']) {
     cursor: default;
   }
@@ -853,6 +860,10 @@ assistive technology, because a native picker cannot be held open.
     .sui-select-control:active:not(:disabled, [aria-disabled='true']),
     .sui-select-control:active:not(:disabled, [aria-disabled='true']) + .sui-select-chevron {
       transition: none;
+      translate: none;
+    }
+
+    .sui-select-option:active:not(:disabled, [aria-disabled='true']) {
       translate: none;
     }
 
