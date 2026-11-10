@@ -33,7 +33,7 @@
   let none = $state<Pair[]>([]);
   let wrong = $state<Pair[]>([
     { key: 'ship', value: 'deploy' },
-    { key: 'Ship it', value: 'merge' }
+    { key: 'Deploy', value: 'merge' }
   ]);
   let pairs = $state<Pair[]>([
     ...saved.map((pair) => ({ ...pair })),
