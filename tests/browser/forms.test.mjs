@@ -2187,11 +2187,17 @@ suite('forms', together, () => {
       const specimen = retryDelay(page);
       const amount = specimen.getByRole('textbox', { name: 'Retry delay' });
       // The test before leaves the unit at minutes.
+      const field = specimen.locator('.sui-joined');
+      const width = async () => (await field.boundingBox())?.width;
       await specimen.locator('select').selectOption('seconds');
       await amount.fill('66');
+      const wide = await width();
       await specimen.locator('select').selectOption('minutes');
       assert.equal(await amount.inputValue(), '1.1');
       assert.match((await specimen.textContent()) ?? '', /Stored as 66\sseconds/);
+      // The unit holds its longest option's width, so the pick leaves the field as it was.
+      await specimen.locator('select').selectOption('hours');
+      assert.equal(await width(), wide);
     });
 
     test('a joined field rings the part that holds focus', long, async () => {

@@ -282,7 +282,7 @@ land on the amount.
 - Keyboard: the amount takes typing in the page's decimal mark, Tab moves to the unit, and the unit takes the select's own keys.
 - Pointer and touch: 34px tall, 44px on a phone or any touch screen, and a phone opens its own unit picker.
 - Focus: a Save that hears a problem through `onproblem` sends focus to the amount, and a form send the problem refused moves focus there when it is the form's first refused control.
-- Responsive: as wide as a short amount and its unit, and a long hint or problem wraps under it without widening it.
+- Responsive: as wide as a short amount and its longest unit, so a new unit never resizes it, and a long hint or problem wraps under it without widening it.
 - Accessibility: each part has its own name, the hint and the problem describe the amount, and the problem is spoken when it shows.
 - Localization: `unitLabel`, `amountName`, `unitName` and every message and hint are props with English defaults, a unit's name follows its amount's plural, amounts read and print in the page's language, and the unit sits at the inline end in either direction.
 - Performance: a few string checks per keystroke and nothing that animates.
