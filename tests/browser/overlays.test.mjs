@@ -843,6 +843,19 @@ suite('overlays', together, () => {
         );
         assert.ok(tops.length > 1, `the section shows ${tops.length} open menus`);
         assert.equal(new Set(tops).size, 1, `the menus start at ${tops.join(', ')}`);
+        // The open icon copy ends a named row, as the live icon trigger does, and the name centres
+        // on the trigger, not on the menu that hangs in the row's flow.
+        const row = await page.evaluate(() => {
+          const preview = document.querySelector(
+            '#action-menu .sui-action-menu-preview[data-align="end"]'
+          );
+          const name = preview?.parentElement?.querySelector('.name');
+          const trigger = preview?.querySelector('button');
+          if (!name || !trigger) return null;
+          const [n, t] = [name, trigger].map((node) => node.getBoundingClientRect());
+          return Math.abs(n.top + n.height / 2 - (t.top + t.height / 2)) < 1;
+        });
+        assert.equal(row, true, 'the open icon copy has a name centred on its trigger');
         // A menu item is set at the regular weight, as an option in a list is (L-25).
         const weights = await page.evaluate(() => [
           ...new Set(
@@ -883,7 +896,7 @@ suite('overlays', together, () => {
           const trigger = /** @type {Element} */ (
             preview.querySelector('button')
           ).getBoundingClientRect();
-          const line = /** @type {Element} */ (preview.parentElement).getBoundingClientRect();
+          const line = /** @type {Element} */ (preview.closest('.body')).getBoundingClientRect();
           const end = preview.getAttribute('data-align') === 'end';
           return {
             scrolls: popover.scrollWidth > popover.clientWidth,
