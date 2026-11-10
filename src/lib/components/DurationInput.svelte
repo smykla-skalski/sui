@@ -282,7 +282,7 @@ land on the amount.
 - Keyboard: the amount takes typing in the page's decimal mark, Tab moves to the unit, and the unit takes the select's own keys.
 - Pointer and touch: 34px tall, 44px on a phone or any touch screen, and a phone opens its own unit picker.
 - Focus: a Save that hears a problem through `onproblem` sends focus to the amount, and a form send the problem refused moves focus there when it is the form's first refused control.
-- Responsive: as wide as a short amount and its longest unit, so a new unit never resizes it, and a long hint or problem wraps under it without widening it.
+- Responsive: as wide as a five-digit amount and its longest unit, so a new unit never resizes it, and a long hint or problem wraps under it without widening it.
 - Accessibility: each part has its own name, the hint and the problem describe the amount, and the problem is spoken when it shows.
 - Localization: `unitLabel`, `amountName`, `unitName` and every message and hint are props with English defaults, a unit's name follows its amount's plural, amounts read and print in the page's language, and the unit sits at the inline end in either direction.
 - Performance: a few string checks per keystroke and nothing that animates.
@@ -356,13 +356,20 @@ land on the amount.
   /* An amount reads as one phrase with its unit word, so it keeps the sans face (L-20). */
   .sui-duration-amount {
     display: grid;
-    inline-size: 4.5rem;
   }
 
-  /* Contained, so a long hint or reason wraps under the controls instead of widening the field. */
+  /* Room for five digits in the amount's own size, the most a whole number of seconds under a
+     day takes, so a phone's larger type still fits and the unit follows a short step after. */
+  .sui-duration-amount > :global(input) {
+    box-sizing: border-box;
+    inline-size: calc(5ch + 2 * var(--sui-field-inset));
+  }
+
+  /* A hint or reason takes the room beside the field up to a short measure, as a field's help
+     does, so a range reads on one line; the field itself keeps its own width. */
   .sui-duration-hint,
   .sui-duration-problem {
-    contain: inline-size;
+    max-inline-size: 20rem;
     font: var(--sui-weight-regular) var(--sui-font-size-note) / var(--sui-leading-note)
       var(--sui-sans);
     justify-self: stretch;

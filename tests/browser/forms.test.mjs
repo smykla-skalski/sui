@@ -2200,6 +2200,27 @@ suite('forms', together, () => {
       assert.equal(await width(), wide);
     });
 
+    test('a duration fits five digits on a phone and says its range on one line', async () => {
+      const page = await opened();
+      const lines = await page.evaluate(() => {
+        const words = document.createRange();
+        words.selectNodeContents(
+          /** @type {Element} */ (document.querySelector('#duration-input .sui-duration-hint'))
+        );
+        return new Set([...words.getClientRects()].map((line) => Math.round(line.top))).size;
+      });
+      assert.equal(lines, 1, 'the range wraps at the field');
+      const phone = await open({ width: 390 });
+      const amount = phone.getByRole('textbox', { name: 'Retry delay' });
+      await amount.fill('86399');
+      const [scroll, client] = await amount.evaluate((input) => [
+        input.scrollWidth,
+        input.clientWidth
+      ]);
+      await phone.close();
+      assert.ok(scroll <= client, `86399 runs ${scroll - client}px past its box`);
+    });
+
     test('a joined field rings the part that holds focus', long, async () => {
       const page = await opened();
       const amount = page.getByRole('textbox', { name: 'Retry delay' });
