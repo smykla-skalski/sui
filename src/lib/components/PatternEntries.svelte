@@ -308,7 +308,12 @@ a saving pane around it holds it the same way.
               {/if}
               <!-- A field's value cannot be painted in parts, so its own text is clear and a
                    colored copy that no reader hears lies under it. -->
-              <span class={['sui-pattern-text', { composing: composing === index }]}>
+              <span
+                class={[
+                  'sui-pattern-text',
+                  { composing: composing === index, empty: pattern === '' }
+                ]}
+              >
                 <code class="sui-pattern-copy" dir="ltr" translate="no" aria-hidden="true"
                   ><span class="sui-pattern-line"
                     >{#each tokenizeGlob(pattern) as piece, at (at)}<span class={piece.cls}
@@ -421,6 +426,10 @@ a saving pane around it holds it the same way.
     display: flex;
     max-inline-size: 100%;
     min-inline-size: 0;
+  }
+
+  .sui-pattern-entry {
+    --sui-local-joined-value-basis: 0;
   }
 
   /* The label lies over the frame's edge, so the field's target keeps the full control
@@ -566,12 +575,16 @@ a saving pane around it holds it the same way.
     color: var(--sui-code-punct);
   }
 
-  /* As wide as the pattern, and never narrower than the 4rem a joined field keeps for its
-     value, so an empty or short entry keeps room for a few characters and its cross never
-     drops onto a line of its own. */
+  /* As wide as the pattern, so every pattern stands one field inset clear of its cross, and
+     never narrower than three characters, so a one-letter pattern keeps a target of its own.
+     An empty entry keeps the 4rem a joined field keeps for its value, room to start typing. */
   @supports (field-sizing: content) {
     .sui-pattern-input {
       field-sizing: content;
+      min-inline-size: calc(3ch + 2 * var(--sui-field-inset));
+    }
+
+    .empty > .sui-pattern-input {
       min-inline-size: 4rem;
     }
   }

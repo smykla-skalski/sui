@@ -151,6 +151,31 @@ suite('lists', together, () => {
       );
     });
 
+    test(
+      'every pattern stands the same gap clear of its cross, a short one too',
+      long,
+      async () => {
+        const page = await opened();
+        const gaps = await page
+          .locator('#pattern-entries .specimen', { hasText: 'A few entries' })
+          .locator('.sui-pattern-entry')
+          .evaluateAll((entries) =>
+            entries.map((entry) => {
+              const words = /** @type {Element} */ (entry.querySelector('.sui-pattern-line'));
+              const cross = /** @type {Element} */ (entry.querySelector('.sui-pattern-glyph'));
+              return Math.round(
+                cross.getBoundingClientRect().left - words.getBoundingClientRect().right
+              );
+            })
+          );
+        assert.equal(
+          new Set(gaps).size,
+          1,
+          `the gaps before the crosses differ: ${gaps.join(', ')}px`
+        );
+      }
+    );
+
     test('an off pattern paints its words once, all in the muted ink (L-40)', long, async () => {
       const page = await opened();
       const paint = await page
