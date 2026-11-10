@@ -931,6 +931,15 @@ suite('overlays', together, () => {
           'a disabled icon trigger is dimmer than its button'
         );
         assert.equal(inks.icon, inks.label, 'a disabled item icon is dimmer than its name');
+        // A copy's lit item is where the keyboard is, so it wears the ring, as a select's and a
+        // combobox's lit row do.
+        const rings = await page.evaluate(() =>
+          [...document.querySelectorAll('#action-menu .sui-action-menu-item.active')].map(
+            (item) => getComputedStyle(item).outlineStyle
+          )
+        );
+        assert.ok(rings.length > 0, 'no lit item');
+        assert.deepEqual(new Set(rings), new Set(['solid']));
         // A menu item that wraps never leaves one word alone on its last line.
         const lone = await page.evaluate(() =>
           [...document.querySelectorAll('#action-menu .sui-action-menu-label')].flatMap((label) => {

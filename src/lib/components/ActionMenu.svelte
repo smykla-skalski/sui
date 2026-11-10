@@ -366,7 +366,9 @@ returns focus there too. Labels wrap rather than being cut short.
     color: var(--sui-hover-ink);
   }
 
-  .sui-action-menu-item:focus-visible {
+  /* A copy's lit item is where the keyboard is, so it wears the ring as Select's and Combobox's
+     lit rows do. */
+  .sui-action-menu-item:is(:focus-visible, .active) {
     outline: var(--sui-focus-ring-width) solid var(--sui-focus);
     outline-offset: var(--sui-focus-ring-inset);
   }
