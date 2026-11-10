@@ -173,6 +173,7 @@
           options={languages}
           value="ts"
           previewText="ru"
+          previewActive={0}
           preview
         />
       {/snippet}

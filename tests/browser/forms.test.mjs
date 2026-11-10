@@ -1320,9 +1320,11 @@ suite('forms', together, () => {
       );
       assert.equal(look.cut, 0, 'the open copy draws every row');
       const quiet = await page.evaluate(() => ({
-        lit: document.querySelectorAll(
-          '#combobox .sui-combobox-preview .sui-combobox-option.active'
-        ).length,
+        lit: [
+          ...document.querySelectorAll(
+            '#combobox .sui-combobox-preview .sui-combobox-option.active'
+          )
+        ].map((row) => row.textContent?.trim()),
         checked: document.querySelectorAll('#combobox .sui-combobox-preview [aria-selected="true"]')
           .length,
         readonly: getComputedStyle(
@@ -1335,8 +1337,8 @@ suite('forms', together, () => {
       }));
       assert.deepEqual(
         quiet,
-        { lit: 0, checked: 1, readonly: 'hidden' },
-        'a copy lights no row and checks the value, and a field that only reads drops its chevron'
+        { lit: ['Rust'], checked: 1, readonly: 'hidden' },
+        'only the copy asked to lights its row, the value keeps its check, and a field that only reads drops its chevron'
       );
       assert.equal(look.offMark, look.offName, 'a match in an off option draws as its name');
       await page.waitForFunction(
