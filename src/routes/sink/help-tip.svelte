@@ -15,39 +15,31 @@
 <Example
   --example-max="40rem"
   title="Placement"
-  note="Hover pauses before the tip shows, focus shows it at once, and a tap or click toggles it"
+  note="A tapped or clicked mark stays pressed on its veil while its tip is open, drawn here in place over and under it"
 >
   <Specimen label="Above">
-    <span class="label">
+    <span class="label wrap over">
       <span class="words">Retention</span>
-      <HelpTip label="About retention" text="Runs older than this are deleted every night" />
+      <HelpTip preview label="About retention" text="Older runs are deleted every night" />
     </span>
   </Specimen>
   <Specimen label="Below">
-    <span class="label">
-      <span class="words">Required reviewers</span>
-      <HelpTip
-        label="About required reviewers"
-        text="Approvals needed before a pull request can merge, counted per change"
-        side="block-end"
-      />
+    <span class="label wrap">
+      <span class="words">Reviewers</span>
+      <HelpTip preview label="About reviewers" text="Approvals needed to merge" side="block-end" />
     </span>
   </Specimen>
 </Example>
 
 <Example
   --example-max="40rem"
-  title="Open"
-  note="A tapped or clicked mark stays pressed on its veil while its tip is open, drawn here in place"
+  title="Live"
+  note="Hover pauses before the tip shows, focus shows it at once, and a tap or click toggles it"
 >
-  <Specimen label="Open">
-    <span class="label wrap">
+  <Specimen label="Hover, focus or tap">
+    <span class="label live">
       <span class="words">Retention</span>
-      <HelpTip
-        preview
-        label="About retention"
-        text="Runs older than this are deleted every night"
-      />
+      <HelpTip label="About retention" text="Older runs are deleted every night" />
     </span>
   </Specimen>
 </Example>
@@ -73,13 +65,13 @@
     display: inline-flex;
     font: var(--sui-weight-semibold) var(--sui-font-size-control) / var(--sui-leading-meta)
       var(--sui-sans);
-    /* The mark's focus ring stands clear of the words instead of touching their last letter. */
-    gap: calc(var(--sui-focus-ring-offset) + var(--sui-focus-ring-width) + var(--sui-space-1) / 2);
+    /* The mark's focus ring stands a step clear of the words, never against their last letter. */
+    gap: calc(var(--sui-focus-ring-offset) + var(--sui-focus-ring-width) + var(--sui-space-1));
   }
 
-  /* A live tip opens over its mark, so both placed labels keep a tip's height under their
-     names and sit on one line, and the tip opens in empty card space, clear of the name. */
-  .label:not(.wrap) {
+  /* The live tip opens over its mark, so the label keeps a tip's height under its name and the
+     tip opens in empty card space, clear of the name. */
+  .live {
     margin-block-start: var(--sui-space-8);
   }
 
@@ -91,9 +83,17 @@
     text-box: trim-both cap alphabetic;
   }
 
-  /* The open tip hangs under its mark, so the row keeps to the top and the words drop to the
-     mark's middle instead. */
+  /* An open tip hangs under its mark, so the row keeps to the top and the words drop to the
+     mark's middle. One over its mark keeps the row to the foot and lifts the words instead. */
   .wrap > .words {
     margin-block-start: calc((var(--sui-control-height-chip) - round(up, 1cap, 2px)) / 2);
+  }
+
+  .label.over {
+    align-items: end;
+  }
+
+  .over > .words {
+    margin-block: 0 calc((var(--sui-control-height-chip) - round(up, 1cap, 2px)) / 2);
   }
 </style>

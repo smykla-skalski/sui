@@ -253,7 +253,7 @@ does, stays out of the accessibility tree. Any other tip describes the control t
 
 - Semantics: a `tooltip` in the top layer, tied to its control by `aria-describedby` when it adds words, and `aria-hidden` when it repeats them.
 - Content: one short line of plain text, wrapping at 20rem; `mono` for a tip that is one identifier.
-- States: hidden, waiting (250ms on hover), shown, lingering (120ms after the pointer leaves, 1.5s after a long press), and drawn in place with `preview`.
+- States: hidden, waiting (250ms on hover), shown, lingering (120ms after the pointer leaves, 1.5s after a long press), and drawn in place with `preview`: over its anchor for `side="block-start"`, as the first item of a flex or grid parent, and under it otherwise.
 - Keyboard: focus on its control shows it at once, blur hides it, and Escape hides it without reaching a dialog around it.
 - Pointer and touch: hover shows it after a pause and the pointer may move onto it; on touch a 500ms press shows it and a tap passes through as a click.
 - Focus: it never takes focus; the control keeps it.
@@ -274,7 +274,7 @@ does, stays out of the accessibility tree. Any other tip describes the control t
   class="sui-tooltip"
   class:mono
   class:preview
-  data-side={preview ? 'block-end' : undefined}
+  data-side={preview ? (side === 'block-start' ? side : 'block-end') : undefined}
   style:--sui-tip-arrow="{ARROW}px"
   aria-hidden={describes ? undefined : 'true'}
   onpointerenter={(event) => {
@@ -401,6 +401,12 @@ does, stays out of the accessibility tree. Any other tip describes the control t
     margin-block-start: calc(var(--sui-floating-gap) + var(--sui-tip-arrow));
     max-inline-size: min(20rem, 100%);
     position: relative;
+  }
+
+  /* A copy over its anchor comes first in its flex or grid parent and stands off it below. */
+  .preview[data-side='block-start'] {
+    margin-block: 0 calc(var(--sui-floating-gap) + var(--sui-tip-arrow));
+    order: -1;
   }
 
   .mono {

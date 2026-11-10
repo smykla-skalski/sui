@@ -145,7 +145,7 @@
   <Specimen label="Open tip">
     <div class="open">
       <Button bind:element={openSync} onclick={() => (synced = true)}>Sync Now</Button>
-      <Tooltip anchor={openSync} preview text={syncHint} />
+      <Tooltip anchor={openSync} preview text={syncHint} side="block-end" />
     </div>
   </Specimen>
 </Example>

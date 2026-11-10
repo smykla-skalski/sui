@@ -88,7 +88,7 @@ on the page instead.
 {/if}
 
 <style>
-  /* The open tip drawn under its mark, in the page's flow. */
+  /* The open tip drawn over or under its mark, by its side, in the page's flow. */
   .sui-help-tip-preview {
     display: inline-grid;
     grid-template-columns: minmax(0, auto);
