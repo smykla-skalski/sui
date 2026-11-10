@@ -1169,6 +1169,44 @@ suite('overlays', together, () => {
     }
   });
 
+  test(
+    "a disabled destructive item draws its glyph in its name's ink, not the danger ink",
+    long,
+    async () => {
+      const page = await openMount(browser, url);
+      try {
+        const inks = await page.evaluate(() => {
+          const { lib, mount, flushSync } = /** @type {any} */ (window);
+          mount(lib.ActionMenu, {
+            target: document.body,
+            props: {
+              label: 'Repository actions',
+              icon: 'more',
+              preview: true,
+              items: [
+                {
+                  label: 'Delete',
+                  icon: 'trash',
+                  tone: 'stop',
+                  disabled: true,
+                  description: 'Owners only'
+                }
+              ]
+            }
+          });
+          flushSync();
+          const item = /** @type {Element} */ (document.querySelector('.sui-action-menu-item'));
+          return ['.sui-action-menu-icon', '.sui-action-menu-label'].map(
+            (part) => getComputedStyle(/** @type {Element} */ (item.querySelector(part))).color
+          );
+        });
+        assert.equal(inks[0], inks[1], 'the glyph of a disabled stop item stays red');
+      } finally {
+        await page.close();
+      }
+    }
+  );
+
   test('a discard after a failed save keeps its notice and Undo', long, async () => {
     const page = await openMount(browser, url);
     try {

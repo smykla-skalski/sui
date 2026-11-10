@@ -421,7 +421,7 @@ returns focus there too. Labels wrap rather than being cut short.
     justify-content: center;
   }
 
-  .sui-action-menu-item[data-tone='stop'] .sui-action-menu-icon {
+  .sui-action-menu-item[data-tone='stop']:not([aria-disabled='true']) .sui-action-menu-icon {
     color: var(--sui-danger);
   }
 
