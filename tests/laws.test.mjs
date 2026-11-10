@@ -907,7 +907,7 @@ test("L-68 icon sizes are named tiers that grow with the text and land on whole 
   }
 });
 
-test('L-11 every floating list lights its row with the accent veils and presses it a step further', () => {
+test('L-11 every floating list lights its row with the accent veils, presses it a step further and rounds it alike', () => {
   for (const path of [
     'src/lib/components/Select.svelte',
     'src/lib/components/Combobox.svelte',
@@ -917,6 +917,11 @@ test('L-11 every floating list lights its row with the accent veils and presses 
     const css = stripComments(styles[path]);
     assert.match(css, /background-color: var\(--sui-list-highlight\)/, path);
     assert.match(css, /background-color: var\(--sui-list-pressed\)/, `${path} has no press step`);
+    assert.match(
+      css,
+      /border-radius: var\(--sui-radius-popover-row\)/,
+      `${path} rounds its rows apart`
+    );
     assert.doesNotMatch(
       css,
       /option[^{]*\{[^}]*background-color: var\(--sui-(row-hover|interactive-hover-layer)\)/,

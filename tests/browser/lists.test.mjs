@@ -1467,7 +1467,7 @@ suite('lists', together, () => {
 
     // Last, because it leaves its menu open.
     test(
-      'U5 typing in the addition menu jumps to the choice that starts with it',
+      'U5 typing in the addition menu jumps to the choice that starts with it, the pointer takes the one highlight, and a row-end picker hangs its menu from its end',
       long,
       async () => {
         const page = await opened();
@@ -1478,7 +1478,19 @@ suite('lists', together, () => {
         await trigger.click();
         await page.locator(':popover-open [role="menu"]').waitFor();
         await page.keyboard.press('s');
-        assert.match(await focused(page), /^button Skip draft/);
+        assert.match(await focused(page), /^button Skip draft/i);
+        // Two lit rows, one under the keyboard and one under the pointer, read as two choices.
+        await page.locator(':popover-open [role="menuitem"]').first().hover();
+        assert.match(await focused(page), /^button Auto merge/i);
+        const [menu, end] = await Promise.all([
+          page.locator('.sui-popover:popover-open').boundingBox(),
+          trigger.boundingBox()
+        ]);
+        assert.ok(menu && end, 'the menu or its trigger is not drawn');
+        assert.ok(
+          Math.abs(menu.x + menu.width - (end.x + end.width)) < 0.5,
+          `the menu ends ${menu.x + menu.width - (end.x + end.width)}px off its trigger's end`
+        );
       }
     );
   });
