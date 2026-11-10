@@ -758,8 +758,10 @@ assistive technology, because a native picker cannot be held open.
     text-box: trim-both cap alphabetic;
   }
 
+  /* A note reads a type step under its name, so the two part by size as well as ink (L-25). */
   .sui-select-note {
     color: var(--sui-text-muted);
+    font-size: var(--sui-font-size-caption);
     font-weight: var(--sui-weight-regular);
   }
 
@@ -778,6 +780,13 @@ assistive technology, because a native picker cannot be held open.
     }
   }
 
+  /* A phone sets the name at 16px, so its note steps to 14px. */
+  @media (max-width: 47.9375rem), (pointer: coarse) {
+    .sui-select-note {
+      font-size: var(--sui-font-size-meta);
+    }
+  }
+
   /* Muted ink drops under 4.5:1 on the active row's veil. */
   .sui-select-option:is(:focus-visible, .active) .sui-select-note {
     color: var(--sui-text-secondary);
@@ -785,7 +794,7 @@ assistive technology, because a native picker cannot be held open.
 
   .sui-select-heading {
     color: var(--sui-text-muted);
-    font: var(--sui-weight-semibold) var(--sui-font-size-compact) / var(--sui-leading-compact)
+    font: var(--sui-weight-medium) var(--sui-font-size-compact) / var(--sui-leading-compact)
       var(--sui-sans);
     letter-spacing: 0.04em;
     padding-block: var(--sui-space-2);

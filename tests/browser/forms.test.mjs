@@ -1397,6 +1397,22 @@ suite('forms', together, () => {
             color: getComputedStyle(lit).outlineColor
           },
           dot: [dot.marginInlineStart, dot.marginInlineEnd],
+          parts: (() => {
+            const option = /** @type {Element} */ (
+              section.querySelector('.sui-select-sheet .sui-select-option:has(.sui-select-note)')
+            );
+            const size = (/** @type {string} */ part) =>
+              parseFloat(
+                getComputedStyle(/** @type {Element} */ (option.querySelector(part))).fontSize
+              );
+            return {
+              name: size('.sui-select-label'),
+              note: size('.sui-select-note'),
+              heading: getComputedStyle(
+                /** @type {Element} */ (sheet.querySelector('.sui-select-heading'))
+              ).fontWeight
+            };
+          })(),
           closed: width(closed),
           copies,
           heading: start(/** @type {Element} */ (sheet.querySelector('.sui-select-heading'))),
@@ -1482,6 +1498,13 @@ suite('forms', together, () => {
       assert.equal(look.ring.color, look.field.focus, 'the lit row wears the focus ring');
       // A note rides its name inside one option, so the dot stands 6px off each (L-103).
       assert.deepEqual(look.dot, ['6px', '6px']);
+      // A note parts from its name by a type step as well as ink, and a group heading stays
+      // under the weight of a label so it never outweighs the names it heads (L-25).
+      assert.ok(
+        look.parts.note < look.parts.name,
+        `a ${look.parts.note}px note under a ${look.parts.name}px name`
+      );
+      assert.equal(look.parts.heading, '500');
     });
 
     test(

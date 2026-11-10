@@ -339,7 +339,7 @@
   --sui-field-readonly-frame: rgb(0 0 0 / 16%);
 
   --sui-row-pressed: color-mix(in srgb, var(--sui-text-primary) 10.9%, transparent);
-  --sui-list-highlight: color-mix(in srgb, var(--sui-brand-action) 9%, transparent);
+  --sui-list-highlight: color-mix(in srgb, var(--sui-brand-action) 12%, transparent);
   --sui-list-pressed: color-mix(in srgb, var(--sui-brand-action) 14%, transparent);
   --sui-dialog-bg: var(--sui-surface-base);
   --sui-dialog-border: var(--sui-border-control);
@@ -821,7 +821,7 @@
   --sui-field-disabled: color-mix(in srgb, var(--sui-field-well) 75%, transparent);
   --sui-field-readonly-frame: rgb(255 255 255 / 20%);
   --sui-row-pressed: color-mix(in srgb, #ffffff 12.4%, transparent);
-  --sui-list-highlight: color-mix(in srgb, var(--sui-brand-action) 12%, transparent);
+  --sui-list-highlight: color-mix(in srgb, var(--sui-brand-action) 16%, transparent);
   --sui-list-pressed: color-mix(in srgb, var(--sui-brand-action) 22%, transparent);
 
   --sui-changed: var(--sui-link);
@@ -1056,7 +1056,7 @@
     --sui-field-disabled: color-mix(in srgb, var(--sui-field-well) 75%, transparent);
     --sui-field-readonly-frame: rgb(255 255 255 / 20%);
     --sui-row-pressed: color-mix(in srgb, #ffffff 12.4%, transparent);
-    --sui-list-highlight: color-mix(in srgb, var(--sui-brand-action) 12%, transparent);
+    --sui-list-highlight: color-mix(in srgb, var(--sui-brand-action) 16%, transparent);
     --sui-list-pressed: color-mix(in srgb, var(--sui-brand-action) 22%, transparent);
 
     --sui-changed: var(--sui-link);

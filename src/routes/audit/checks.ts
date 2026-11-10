@@ -389,16 +389,17 @@ function palette(): Finding[] {
     }
   }
 
-  // A floating list lights its row with the accent at the hover and press steps of its ground.
+  // A floating list lights its row with the accent half a step past hover, as it holds the
+  // keyboard's place, and presses it at the press step of its ground.
   const popover = t('popover-bg');
   const [listHover, listPress] =
     lightness(popover) > 50
       ? [
-          [4.4, 5.4],
+          [6.2, 7.2],
           [7.2, 8.3]
         ]
       : [
-          [5.3, 6.7],
+          [7, 8.5],
           [9, 10.5]
         ];
   const lit = deltaE(popover, over(t('list-highlight'), popover));
