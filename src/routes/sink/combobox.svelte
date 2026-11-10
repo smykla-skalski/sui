@@ -171,7 +171,7 @@
           />
         {/snippet}
       </Field>
-      <Button type="submit" class="action">Save the Runtime</Button>
+      <Button type="submit" tone="signal" class="action">Save the Runtime</Button>
     </form>
   </Specimen>
 </Example>

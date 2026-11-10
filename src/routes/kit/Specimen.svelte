@@ -21,8 +21,8 @@
 </figure>
 
 <style>
-  /* The name stands 12px over what it shows, as a field's label over its control, and a type
-     step quieter than a label, so it reads as the specimen's head and not as a line of the
+  /* The name stands 16px over what it shows, a step past a field's label over its control, and
+     a type step quieter than a label, so it reads as the specimen's head and not as a line of the
      label, with its own specimen however tall the specimens beside it run. The body is a
      grid as wide as the specimen: a block surface or a field fills it, while a mark keeps its
      own fit-content width (L-43). In a grid of specimens it takes two of the grid's rows, so every name on a line
@@ -32,7 +32,7 @@
   .specimen {
     align-content: start;
     display: grid;
-    gap: var(--sui-space-3);
+    gap: var(--sui-space-4);
     grid-row: span 2;
     grid-template-rows: subgrid;
     margin: 0;

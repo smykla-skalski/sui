@@ -53,7 +53,6 @@
     'fix/rate-limit-headers',
     'feat/audit-log-export',
     'feat/single-sign-on-for-organizations',
-    'chore/update-dependencies',
     'docs/rewrite-the-onboarding-guide'
   ].map((name) => ({ value: name, label: name }));
 
@@ -217,7 +216,7 @@
           />
         {/snippet}
       </Field>
-      <Button type="submit" class="action">Save the Report</Button>
+      <Button type="submit" tone="signal" class="action">Save the Report</Button>
     </form>
   </Specimen>
 </Example>

@@ -136,7 +136,8 @@ the value, reach for a `Combobox`.
 
 Every native attribute lands on the `<select>`, so `name`, `required` and `form` submit and
 validate like any field. While `value` is null, or whenever `placeholder` is set, a disabled first
-option holds the prompt, and `required` counts it as no answer. Name the field with a `<label>`
+option holds the prompt, hidden from the open list so it never reads as an option that is off,
+and `required` counts it as no answer. Name the field with a `<label>`
 pointing at its `id`, or with `aria-label`, and pass a `Field`'s `invalid` to `invalid` so its
 error edge shows. `preview` draws an inert copy of the open picker under the field, hidden from
 assistive technology, because a native picker cannot be held open.
@@ -206,6 +207,7 @@ assistive technology, because a native picker cannot be held open.
           data-sui-theme={pickerTheme}
           value=""
           disabled
+          hidden={presumed.length === 0}
         >
           {#if presumed.length > 0}
             <span class="sui-select-check"><Icon name="check" size="base" /></span>
@@ -241,7 +243,7 @@ assistive technology, because a native picker cannot be held open.
   <div class="sui-select-preview">
     {@render field()}
     <div class="sui-select-sheet" aria-hidden="true" inert>
-      {#if prompt !== undefined}
+      {#if prompt !== undefined && presumed.length > 0}
         <div class="sui-select-option" aria-disabled="true">{@render face(prompt)}</div>
       {/if}
       {#each options as item (item)}
@@ -781,7 +783,7 @@ assistive technology, because a native picker cannot be held open.
     font: var(--sui-weight-semibold) var(--sui-font-size-compact) / var(--sui-leading-compact)
       var(--sui-sans);
     letter-spacing: 0.04em;
-    padding-block: var(--sui-space-2) var(--sui-space-1);
+    padding-block: var(--sui-space-2);
     padding-inline: calc(
         var(--sui-field-inset) - var(--sui-space-1) + var(--sui-icon-base) + var(--sui-space-2)
       )

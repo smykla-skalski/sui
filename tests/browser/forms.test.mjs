@@ -1353,6 +1353,20 @@ suite('forms', together, () => {
         form.requestSubmit();
         prompt.blur();
         const refused = getComputedStyle(prompt).borderBlockEndColor;
+        // The prompt names the closed field but never stands in the open list as an option.
+        const placeholder = /** @type {HTMLOptionElement} */ (
+          prompt.querySelector('option[value=""]')
+        );
+        const asked = {
+          hidden: placeholder.hidden,
+          shown: prompt.querySelector('selectedcontent')?.textContent?.trim(),
+          prompt: placeholder.textContent?.trim(),
+          first: /** @type {Element} */ (
+            /** @type {Element} */ (prompt.closest('.sui-select-preview')).querySelector(
+              '.sui-select-sheet .sui-select-option'
+            )
+          ).textContent?.trim()
+        };
         prompt.required = false;
         prompt.removeAttribute('form');
         form.remove();
@@ -1364,6 +1378,7 @@ suite('forms', together, () => {
             parseFloat(box.paddingInlineStart),
           baseline: box.borderBlockEndColor,
           refused,
+          asked,
           focus
         };
         const option = {
@@ -1430,6 +1445,17 @@ suite('forms', together, () => {
       );
       assert.equal(look.field.baseline, look.field.focus, 'an open field draws an accent baseline');
       assert.notEqual(look.field.refused, look.field.focus, 'a refused copy drops the open accent');
+      assert.ok(look.field.asked.hidden, 'the prompt is hidden from the open list');
+      assert.equal(
+        look.field.asked.shown,
+        look.field.asked.prompt,
+        'the closed field shows the prompt'
+      );
+      assert.notEqual(
+        look.field.asked.first,
+        look.field.asked.prompt,
+        'the copy lists no prompt row'
+      );
       // A check marks the first line of a wrapped name as it does a one-line name, as a menu
       // icon does.
       const one = look.rows.find((row) => row.lines === 1);
