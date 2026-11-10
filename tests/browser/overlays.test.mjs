@@ -616,6 +616,18 @@ suite('overlays', together, () => {
         assert.ok(Math.abs(box - words) <= 0.5, `dots run ${box}px under ${words}px of words`);
     });
 
+    test('an open popover copy keeps the floating gap off its trigger', async () => {
+      const [gap, step] = await page.evaluate(() => {
+        const copy = /** @type {Element} */ (document.getElementById('sink-popover-open'));
+        const trigger = /** @type {Element} */ (copy.previousElementSibling);
+        return [
+          copy.getBoundingClientRect().top - trigger.getBoundingClientRect().bottom,
+          parseFloat(getComputedStyle(copy).getPropertyValue('--sui-floating-gap'))
+        ];
+      });
+      assert.equal(gap, step);
+    });
+
     test('K8 a tooltip describes its control only when it adds words', async () => {
       const described = await page.evaluate(() => {
         const icon = document.querySelector('#overlays button[aria-label="Refresh the list"]');

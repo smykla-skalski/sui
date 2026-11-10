@@ -123,7 +123,7 @@
   note="The popover and a described tip drawn in place, so a review needs no click or hover"
 >
   <Specimen label="Open popover">
-    <div class="open">
+    <div class="open floating">
       <Button aria-expanded="true" aria-controls="sink-popover-open">
         Show Details
         {#snippet trailing()}<Icon name="chevron-down" size="base" />{/snippet}
@@ -196,5 +196,11 @@
     grid-template-columns: minmax(0, 1fr);
     justify-items: start;
     min-inline-size: 0;
+  }
+
+  /* An inline popover skips placement, so its copy takes the floating gap here. The tip copy
+     keeps its own. */
+  .floating {
+    gap: var(--sui-floating-gap);
   }
 </style>
