@@ -17,9 +17,10 @@
 
   const SECONDS: Record<DurationUnit, number> = { seconds: 1, minutes: 60, hours: 3600 };
   const UNITS = Object.keys(SECONDS) as DurationUnit[];
-  // One amount for each plural category a language may name a unit by (one, few, many and a
-  // fraction), so the unit picker holds the width of every form it can show.
-  const PLURAL_SAMPLES = [1, 2, 5, 1.5];
+  // Amounts that between them fall in every CLDR plural category of every language: zero, one,
+  // two, few, many (5 in Russian, 6 in Welsh, 11 in Arabic) and other, whole and fractional, so
+  // the unit picker holds the width of every form it can show.
+  const PLURAL_SAMPLES = [0, 1, 2, 3, 5, 6, 11, 100, 1.5];
 
   const uid = $props.id();
   const refusals = setRefusals();

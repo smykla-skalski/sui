@@ -424,6 +424,41 @@ suite('words', together, () => {
       assert.equal(shown.length, 2, 'the hint or the problem is not drawn');
       assert.equal(duration.description, shown.map((text) => text.trim()).join('ⓢ'));
     });
+
+    test('a duration holds one width over every plural form a language names its units by', async () => {
+      await page.evaluate(() => {
+        const { lib, mount, flushSync } = /** @type {any} */ (window);
+        const target = document.createElement('div');
+        target.dataset.words = 'DurationPlural';
+        document.body.prepend(target);
+        // Arabic names a count by six categories; here its "many" form, for 11, is the longest.
+        const rules = new Intl.PluralRules('ar');
+        const forms = { zero: 'z', one: 'o', two: 't', few: 'f', many: 'mmmmmmmmmm', other: 'x' };
+        mount(lib.DurationInput, {
+          target,
+          props: {
+            label: 'Delay',
+            value: 60,
+            unitLabel: (/** @type {string} */ unit, /** @type {number} */ amount) =>
+              `${unit} ${forms[/** @type {keyof typeof forms} */ (rules.select(amount))]}`
+          }
+        });
+        flushSync();
+      });
+      const field = page.locator('[data-words="DurationPlural"] .sui-joined');
+      const amount = page.locator('[data-words="DurationPlural"] input:not([type="hidden"])');
+      /** @type {(number | undefined)[]} */
+      const widths = [];
+      for (const typed of ['1', '0', '2', '3', '11', '100', '1.5']) {
+        await amount.fill(typed);
+        widths.push((await field.boundingBox())?.width);
+      }
+      assert.deepEqual(
+        widths,
+        widths.map(() => widths[0]),
+        `the field resized: ${widths}`
+      );
+    });
   });
 
   // Waits measured in seconds, moved on by the page's clock instead of waited out.
