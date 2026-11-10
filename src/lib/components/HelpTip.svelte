@@ -8,7 +8,7 @@
     label,
     text,
     side = 'block-start',
-    align = 'start',
+    align = 'center',
     open = $bindable(false),
     preview = false,
     element = $bindable(null),
@@ -49,7 +49,7 @@ on the page instead.
 - Keyboard: Tab focuses it and shows the tip, Enter or Space toggles the tip, and Escape closes it.
 - Pointer and touch: a 24px mark whose hit area grows to 44px on a phone or touch screen; a mouse shows the tip by hovering, under the help cursor, a tap toggles it, and a press elsewhere closes it.
 - Focus: it keeps focus while the tip opens and closes, and the tip never takes it.
-- Responsive: the tip starts at the mark and runs on in the reading direction, off the label it explains, flips to the side with room and stays inside the viewport.
+- Responsive: the tip flips to the side with room and stays inside the viewport.
 - Accessibility: the name says what it explains, the tip text is its description, and the open state is drawn and announced.
 - Localization: `label` and `text` are the caller's words, and the tip's placement follows the reading direction.
 - Performance: one button and one tooltip per mark, with a colour fade removed under reduced motion.
