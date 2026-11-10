@@ -160,15 +160,19 @@
   );
   const rows = $derived(visible.length + (offers ? 1 : 0));
   const empty = $derived(asked !== '' && rows === 0 && !pending && !failed);
-  /* "Searching…" and its spinner wait out a fast answer and stay once drawn (L-117). */
+  /* "Searching…" and its spinner wait out a fast answer and stay once drawn, even over the
+     answer that ends them; only the drawing waits, so a refusal is spoken at once (L-117). */
   const waiting = shownWait(() => asking && asked !== '');
   const refused = $derived(failed && asked !== '');
   const note = $derived(
-    refused ? failedLabel : waiting.current ? searchingLabel : empty ? emptyLabel : ''
+    waiting.current ? searchingLabel : refused ? failedLabel : empty ? emptyLabel : ''
   );
   /* A copy is drawn, not used, so its status never speaks over the page. */
   const spoken = $derived(
-    preview ? '' : note || (open && asked !== '' && hits.length > 0 ? countLabel(hits.length) : '')
+    preview
+      ? ''
+      : (refused ? failedLabel : note) ||
+          (open && asked !== '' && hits.length > 0 ? countLabel(hits.length) : '')
   );
   const showing = $derived((preview || open) && (rows > 0 || note !== ''));
   const listed = $derived(showing && rows > 0);

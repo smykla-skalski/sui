@@ -486,20 +486,21 @@ suite('words', together, () => {
       assert.deepEqual(marks, [false, false, false, true, true, false]);
     });
 
-    test('L-117 a combobox says it is searching only once a search outlasts a glance, and keeps saying it a moment', async () => {
+    test('L-117 a combobox says it is searching only once a search outlasts a glance, and keeps saying it a moment, even past a refusal', async () => {
       await page.evaluate(() => {
         const { lib, mount, flushSync } = /** @type {any} */ (window);
         const target = Object.assign(document.createElement('div'), { id: 'asking' });
         document.body.prepend(target);
-        Object.assign(window, { delay: 0 });
+        Object.assign(window, { delay: 0, refuse: false });
         mount(lib.Combobox, {
           target,
           props: {
             'aria-label': 'Owner',
             search: () =>
-              new Promise((answer) =>
-                setTimeout(() => answer([]), /** @type {any} */ (window).delay)
-              )
+              new Promise((answer, refuse) => {
+                const { delay, refuse: refusing } = /** @type {any} */ (window);
+                setTimeout(() => (refusing ? refuse(new Error('offline')) : answer([])), delay);
+              })
           }
         });
         flushSync();
@@ -512,12 +513,16 @@ suite('words', together, () => {
       };
       // A held clock holds the popover's opening animation, so this reads the open layer's words.
       const says = () =>
-        page.evaluate(
-          () =>
-            document
-              .querySelector('#asking .sui-popover:popover-open .sui-combobox-empty')
-              ?.textContent?.includes('Searching') ?? false
-        );
+        page.evaluate(() => {
+          const words =
+            document.querySelector('#asking .sui-popover:popover-open .sui-combobox-empty')
+              ?.textContent ?? '';
+          return words.includes('Searching')
+            ? 'searching'
+            : words.includes('could not load')
+              ? 'refused'
+              : '';
+        });
       // Svelte runs its effects in microtasks, which a held clock runs only between its steps.
       /** @param {number} ms */
       const wait = async (ms) => {
@@ -540,7 +545,26 @@ suite('words', together, () => {
       marks.push(await says());
       await wait(500);
       marks.push(await says());
-      assert.deepEqual(marks, [false, false, false, true, true, false]);
+      // A refusal right after the wait is drawn waits out the wait's moment too.
+      await page.evaluate(() => Object.assign(window, { refuse: true }));
+      await type('abc', 250);
+      await wait(180 + 100 + 100);
+      marks.push(await says());
+      await wait(100);
+      marks.push(await says());
+      await wait(500);
+      marks.push(await says());
+      assert.deepEqual(marks, [
+        '',
+        '',
+        '',
+        'searching',
+        'searching',
+        '',
+        'searching',
+        'searching',
+        'refused'
+      ]);
     });
 
     test('a live pill pulses again on a beat only once its dot has been still for 5 seconds', async () => {
