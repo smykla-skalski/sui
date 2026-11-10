@@ -36,6 +36,12 @@
   let levelOverridden = $state(true);
   let level = $state<string | null>('debug');
 
+  // The states stand apart from the rows, so a press in one never changes the other.
+  let shownLifetimeOverridden = $state(false);
+  let shownLifetime = $state(INHERITED_LIFETIME);
+  let shownLevelOverridden = $state(true);
+  let shownLevel = $state<string | null>('debug');
+
   const lifetimeUnsaved = $derived((lifetimeOverridden ? lifetime : null) !== saved.lifetime);
   const levelUnsaved = $derived((levelOverridden ? level : null) !== saved.level);
 </script>
@@ -46,25 +52,25 @@
 >
   <Specimen label="Inherited">
     <InheritControl
-      bind:overridden={lifetimeOverridden}
+      bind:overridden={shownLifetimeOverridden}
       label="Session lifetime"
       inherited="1&nbsp;hour"
       source="the workspace"
     >
       {#snippet control()}
-        <DurationInput label="Session lifetime" bind:value={lifetime} min={60} />
+        <DurationInput label="Session lifetime" bind:value={shownLifetime} min={60} />
       {/snippet}
     </InheritControl>
   </Specimen>
   <Specimen label="Overridden">
     <InheritControl
-      bind:overridden={levelOverridden}
+      bind:overridden={shownLevelOverridden}
       label="Log level"
       inherited="Info"
       source="the organization"
     >
       {#snippet control()}
-        <SegmentedControl label="Log level" options={levels} bind:value={level} />
+        <SegmentedControl label="Log level" hideLabel options={levels} bind:value={shownLevel} />
       {/snippet}
     </InheritControl>
   </Specimen>
