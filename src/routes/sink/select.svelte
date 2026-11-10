@@ -146,7 +146,7 @@
   --example-max="54rem"
   --specimen-min="21rem"
   --specimen-row-gap="var(--sui-space-6)"
-  note="Headed groups with notes and a retired plan that cannot be chosen, and a long branch cut in the field but wrapped in its picker, each drawn open"
+  note="Headed groups with notes and a retired plan that cannot be chosen, drawn open. A long branch is cut in the field and wrapped in its open picker"
   layout="grid"
 >
   <Specimen label="Groups & notes">
@@ -176,7 +176,7 @@
   --example-max="54rem"
   --specimen-min="21rem"
   --specimen-row-gap="var(--sui-space-6)"
-  note="A static copy of the open picker under each field: a chosen value checked with the next option active, and a prompt with the first option active"
+  note="A static copy of the open picker under each field. A chosen value is checked with the next option active, and a prompt makes the first option active"
   layout="grid"
 >
   <Specimen label="Open">
