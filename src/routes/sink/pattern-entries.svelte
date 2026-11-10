@@ -62,7 +62,17 @@
   title="States"
   note="A problem shows once its entry is left, a removal offers Undo, and a pasted list adds one entry per line"
   layout="grid"
+  --example-max="54rem"
+  --specimen-min="21rem"
+  --specimen-row-gap="var(--sui-space-6)"
 >
+  <Specimen label="A few entries">
+    <PatternEntries
+      bind:value={few}
+      aria-label="Branches to skip"
+      addLabel="Add a Branch Pattern"
+    />
+  </Specimen>
   <Specimen label="Invalid">
     <PatternEntries
       bind:value={branches}
@@ -78,13 +88,6 @@
       onadd={(pattern) => (added = [...added, pattern])}
     />
     <output id="sink-pattern-added">{added.join(',')}</output>
-  </Specimen>
-  <Specimen label="A few entries">
-    <PatternEntries
-      bind:value={few}
-      aria-label="Branches to skip"
-      addLabel="Add a Branch Pattern"
-    />
   </Specimen>
   <Specimen label="Saving">
     <div class="with-reason">
@@ -112,8 +115,9 @@
 
 <Example
   title="Content"
-  note="Each field is as wide as its pattern and colors its glob syntax, the entries wrap, and a long pattern scrolls inside its field"
+  note="Each field is as wide as its pattern and colors its glob syntax, and a long pattern ends in an ellipsis until focused"
   layout="stack"
+  --example-max="54rem"
 >
   <Specimen label="Glob syntax">
     <PatternEntries bind:value={globs} aria-label="Paths to skip" />
@@ -130,6 +134,7 @@
   title="Right to Left"
   note="The entries flow from the right and each cross sits at its field’s left end"
   layout="grid"
+  --example-max="28rem"
 >
   <Specimen label="Right to left">
     <PatternEntries bind:value={mirrored} dir="rtl" aria-label="Branches to skip" />
@@ -140,11 +145,10 @@
   title="Narrow Width"
   note="In a phone’s width the entries wrap from the start edge, and a long one takes a line of its own"
   layout="stack"
+  --example-max="calc(21.4375rem + 2 * var(--sui-space-6))"
 >
   <Specimen label="Phone width">
-    <div class="narrow">
-      <PatternEntries bind:value={narrow} aria-label="Paths to skip" />
-    </div>
+    <PatternEntries bind:value={narrow} aria-label="Paths to skip" />
   </Specimen>
 </Example>
 
@@ -164,11 +168,5 @@
     margin: 0;
     padding-block: var(--sui-block-snap-room);
     text-box: trim-both cap alphabetic;
-  }
-
-  /* A 375px phone's width less its two 16px gutters. */
-  .narrow {
-    inline-size: min(100%, 21.4375rem);
-    max-inline-size: 100%;
   }
 </style>

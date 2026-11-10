@@ -56,7 +56,9 @@ suite('lists', together, () => {
 
     test('P8 an entry that shows a problem follows its keystrokes', long, async () => {
       const page = await opened();
-      const list = page.locator('#pattern-entries .sui-pattern-entries').first();
+      const list = page
+        .locator('#pattern-entries .specimen', { hasText: 'Invalid' })
+        .locator('.sui-pattern-entries');
       await list.scrollIntoViewIfNeeded();
       const problems = () => list.locator('.sui-pattern-problem').count();
       const before = await problems();
@@ -73,7 +75,9 @@ suite('lists', together, () => {
       long,
       async () => {
         const page = await opened();
-        const list = page.locator('#pattern-entries .sui-pattern-entries').first();
+        const list = page
+          .locator('#pattern-entries .specimen', { hasText: 'Invalid' })
+          .locator('.sui-pattern-entries');
         await list.scrollIntoViewIfNeeded();
         const problems = () => list.locator('.sui-pattern-problem').count();
         const before = await problems();
@@ -101,7 +105,9 @@ suite('lists', together, () => {
       long,
       async () => {
         const page = await opened();
-        const list = page.locator('#pattern-entries .sui-pattern-entries').first();
+        const list = page
+          .locator('#pattern-entries .specimen', { hasText: 'Invalid' })
+          .locator('.sui-pattern-entries');
         await list.scrollIntoViewIfNeeded();
         const first = list.getByRole('textbox', { name: 'Pattern 1' });
         const second = await list.getByRole('textbox', { name: 'Pattern 2' }).inputValue();
@@ -143,6 +149,30 @@ suite('lists', together, () => {
         entries.every((entry) => entry.inside),
         'a cross stood outside its field'
       );
+    });
+
+    test('an off pattern paints its words once, all in the muted ink (L-40)', long, async () => {
+      const page = await opened();
+      const paint = await page
+        .locator('#pattern-entries .specimen', { hasText: 'Disabled' })
+        .locator('.sui-pattern-entry')
+        .first()
+        .evaluate((item) => {
+          const probe = document.createElement('span');
+          probe.style.color = 'var(--sui-text-muted)';
+          item.append(probe);
+          const muted = getComputedStyle(probe).color;
+          probe.remove();
+          const input = /** @type {HTMLElement} */ (item.querySelector('input'));
+          const inks = [...item.querySelectorAll('.sui-pattern-copy span')].map(
+            (span) => getComputedStyle(span).color
+          );
+          return {
+            field: getComputedStyle(input).getPropertyValue('-webkit-text-fill-color'),
+            copy: [...new Set(inks)].every((ink) => ink === muted)
+          };
+        });
+      assert.deepEqual(paint, { field: 'rgba(0, 0, 0, 0)', copy: true });
     });
 
     test('a hover on any part of a pattern lights its whole field and its chip', long, async () => {
@@ -307,39 +337,56 @@ suite('lists', together, () => {
       }
     );
 
-    test('the colored copy of a pattern follows what is typed and its scroll', long, async () => {
-      const page = await opened();
-      const entry = page
-        .locator('#pattern-entries .specimen', { hasText: 'Long pattern' })
-        .locator('.sui-pattern-entry')
-        .first();
-      await entry.scrollIntoViewIfNeeded();
-      const field = entry.getByRole('textbox');
-      await field.focus();
-      await page.keyboard.press('End');
-      await page.keyboard.type('x');
-      await page.waitForFunction(
-        (input) => input instanceof HTMLInputElement && input.scrollLeft > 0,
-        await field.elementHandle()
-      );
-      // The scroll event lands in the next frame, so the copy is read after it.
-      await page.evaluate(() => new Promise((done) => requestAnimationFrame(() => done(null))));
-      const { value, copy, scroll, shift } = await entry.evaluate((item) => {
-        const input = /** @type {HTMLInputElement} */ (item.querySelector('input'));
-        const line = /** @type {HTMLElement} */ (item.querySelector('[aria-hidden="true"] > *'));
-        return {
-          value: input.value,
-          copy: line.textContent,
-          scroll: input.scrollLeft,
-          shift: parseFloat(getComputedStyle(line).translate) || 0
-        };
-      });
-      assert.equal(copy, value, 'the copy shows other words than the field');
-      assert.ok(
-        Math.abs(shift + scroll) < 0.5,
-        `the copy moved ${shift}px for a ${scroll}px scroll`
-      );
-    });
+    test(
+      'a long pattern ends in an ellipsis at rest, and its colored copy follows what is typed and its scroll',
+      long,
+      async () => {
+        const page = await opened();
+        const entry = page
+          .locator('#pattern-entries .specimen', { hasText: 'Long pattern' })
+          .locator('.sui-pattern-entry')
+          .first();
+        await entry.scrollIntoViewIfNeeded();
+        const field = entry.getByRole('textbox');
+        const rest = await entry.evaluate((item) => {
+          const copy = /** @type {HTMLElement} */ (item.querySelector('.sui-pattern-copy'));
+          return {
+            cut: copy.scrollWidth > copy.clientWidth,
+            end: getComputedStyle(copy).textOverflow,
+            line: getComputedStyle(/** @type {Element} */ (copy.firstElementChild)).display
+          };
+        });
+        assert.deepEqual(
+          rest,
+          { cut: true, end: 'ellipsis', line: 'inline' },
+          'a long pattern at rest does not end in an ellipsis, as a text field value does'
+        );
+        await field.focus();
+        await page.keyboard.press('End');
+        await page.keyboard.type('x');
+        await page.waitForFunction(
+          (input) => input instanceof HTMLInputElement && input.scrollLeft > 0,
+          await field.elementHandle()
+        );
+        // The scroll event lands in the next frame, so the copy is read after it.
+        await page.evaluate(() => new Promise((done) => requestAnimationFrame(() => done(null))));
+        const { value, copy, scroll, shift } = await entry.evaluate((item) => {
+          const input = /** @type {HTMLInputElement} */ (item.querySelector('input'));
+          const line = /** @type {HTMLElement} */ (item.querySelector('[aria-hidden="true"] > *'));
+          return {
+            value: input.value,
+            copy: line.textContent,
+            scroll: input.scrollLeft,
+            shift: parseFloat(getComputedStyle(line).translate) || 0
+          };
+        });
+        assert.equal(copy, value, 'the copy shows other words than the field');
+        assert.ok(
+          Math.abs(shift + scroll) < 0.5,
+          `the copy moved ${shift}px for a ${scroll}px scroll`
+        );
+      }
+    );
 
     test(
       'inline facts flow side by side on a phone, and only a line that holds a target grows to it',
