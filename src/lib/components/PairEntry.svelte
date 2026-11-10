@@ -216,7 +216,7 @@ chips take the whole line under the copy and wrap within it.
 
 - Semantics: a `div` with `role="group"` holding a list of chips, each an edit `button` with `aria-haspopup="dialog"` and a remove `button`, an `add` button, and a dialog `Popover` with a `Field` and a `Combobox`.
 - Content: pairs of a short key and one of `options`; a long key or value wraps inside its chip, so all of it shows.
-- States: rest; hover, pressed and focus on the edit part paint the whole chip (a veil, a deeper veil with an inset shadow, a flush ring), and the remove part's quiet plate takes its own (a veil, a deeper veil with an inset shadow, an inset ring); open (the chip's edge takes the focus color), invalid (the danger edge, an alert mark and the problem in words under the row), and disabled with `reason`.
+- States: rest; hover, pressed and focus on the edit part paint the whole chip (a veil, a deeper veil with an inset shadow, a flush ring), and the remove part's quiet plate takes its own (a veil, a deeper veil with an inset shadow, an inset ring); open (the chip's edge takes the focus color), invalid (the danger edge, an alert mark and the problem in words under the row), and disabled with `reason` (the off field's well with no edge and muted words, as an off pattern entry is).
 - Keyboard: Tab walks each chip's edit and remove parts, then Add; Enter or Space opens the editor; Delete or Backspace on a chip removes it; in the editor Enter is Save Pair, and Escape closes the value's list first and then the editor.
 - Pointer and touch: the chip is 28px tall and the remove part a 28px square over its end, both 44px on a phone or a coarse pointer, where the remove part's plate keeps its 24px in the middle of the square; a press on that square is the remove part's alone, and the edit part's words keep clear of it; a press on the editor's words or padding closes only the value's list.
 - Focus: the editor opens on the key field, keeps focus inside when its words or padding are pressed, and returns focus to its chip on close; after a removal focus moves to the next chip, the one before, or Add.
@@ -231,7 +231,7 @@ chips take the whole line under the copy and wrap within it.
 <div
   {...rest}
   bind:this={root}
-  class={['sui-pair-entry', className, { disabled: disabled || holding }]}
+  class={['sui-pair-entry', className, { disabled: disabled && !holding, held: holding }]}
   role="group"
   aria-describedby={rest['aria-describedby'] ?? (reason ? reasonId : undefined)}
 >
@@ -580,11 +580,23 @@ chips take the whole line under the copy and wrap within it.
     scale: -1 1;
   }
 
+  /* A chip is a button drawn as a field, so an off one takes an off field's paint, as an off
+     pattern entry does: the quieter field well with no edge and every word in the muted ink at
+     full strength (L-40). A set held while the work around it runs dims instead. */
   .disabled .sui-pair-chip {
+    --sui-pair-edge: transparent;
+    background-color: var(--sui-field-disabled);
+  }
+
+  .disabled :is(.sui-pair-edit, .sui-pair-key, .sui-pair-value, .sui-pair-remove) {
+    color: var(--sui-text-muted);
+  }
+
+  .held .sui-pair-chip {
     opacity: var(--sui-disabled-opacity);
   }
 
-  .disabled :is(.sui-pair-edit, .sui-pair-remove) {
+  :is(.disabled, .held) :is(.sui-pair-edit, .sui-pair-remove) {
     cursor: default;
   }
 

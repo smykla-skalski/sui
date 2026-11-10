@@ -2358,6 +2358,39 @@ suite('forms', together, () => {
       }
     );
 
+    test('an off pair chip takes the off field paint at full strength (L-40)', long, async () => {
+      const page = await opened();
+      const paint = await page
+        .locator('#pair-entry .specimen', { hasText: 'Disabled' })
+        .locator('.sui-pair-chip')
+        .first()
+        .evaluate((chip) => {
+          const probe = document.createElement('span');
+          probe.style.backgroundColor = 'var(--sui-field-disabled)';
+          probe.style.color = 'var(--sui-text-muted)';
+          chip.append(probe);
+          const want = getComputedStyle(probe);
+          const look = getComputedStyle(chip);
+          const key = getComputedStyle(
+            /** @type {Element} */ (chip.querySelector('.sui-pair-key'))
+          );
+          const paint = {
+            opacity: look.opacity,
+            ground: look.backgroundColor === want.backgroundColor,
+            edge: getComputedStyle(chip, '::after').borderTopColor,
+            ink: key.color === want.color
+          };
+          probe.remove();
+          return paint;
+        });
+      assert.deepEqual(paint, {
+        opacity: '1',
+        ground: true,
+        edge: 'rgba(0, 0, 0, 0)',
+        ink: true
+      });
+    });
+
     test(
       "a stacked row's reset ends the copy's band, so its chips share whole lines, and a phone keeps the remove plate at its pointer size",
       long,
