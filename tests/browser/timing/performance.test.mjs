@@ -81,7 +81,7 @@ test(
 test('a keystroke in a combobox of 5000 options answers within 200ms', long, async () => {
   const page = await app();
   try {
-    const answered = await page.evaluate(async () => {
+    await page.evaluate(async () => {
       const { lib, mount, flushSync } = /** @type {any} */ (window);
       const options = Array.from({ length: 5000 }, (_, index) => ({
         value: `v${index}`,
@@ -92,6 +92,10 @@ test('a keystroke in a combobox of 5000 options answers within 200ms', long, asy
         props: { 'aria-label': 'Pick', options }
       });
       flushSync();
+      // The field's first layout and paint land before the key, so only the keystroke is timed.
+      await new Promise((frame) => requestAnimationFrame(() => setTimeout(frame)));
+    });
+    const answered = await page.evaluate(async () => {
       const input = /** @type {HTMLInputElement} */ (
         document.querySelector('input[role="combobox"]')
       );
@@ -112,7 +116,7 @@ test('a keystroke in a combobox of 5000 options answers within 200ms', long, asy
 test('sorting a table of 500 rows answers within 200ms', long, async () => {
   const page = await app();
   try {
-    const answered = await page.evaluate(async () => {
+    await page.evaluate(async () => {
       const { lib, mount, flushSync } = /** @type {any} */ (window);
       const rows = Array.from({ length: 500 }, (_, index) => ({
         id: index,
@@ -132,6 +136,10 @@ test('sorting a table of 500 rows answers within 200ms', long, async () => {
         }
       });
       flushSync();
+      // The table's first layout and paint land before the click, so only the sort is timed.
+      await new Promise((frame) => requestAnimationFrame(() => setTimeout(frame)));
+    });
+    const answered = await page.evaluate(async () => {
       const start = performance.now();
       /** @type {HTMLElement} */ (document.querySelector('th button')).click();
       await new Promise((frame) => requestAnimationFrame(() => setTimeout(frame)));
