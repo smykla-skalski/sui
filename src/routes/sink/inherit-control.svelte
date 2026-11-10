@@ -26,8 +26,9 @@
     { value: 'error', label: 'Errors' }
   ];
 
-  // What the store holds: the lifetime follows the workspace and the level is set here.
-  const saved = { lifetime: null as number | null, level: 'debug' as string | null };
+  // What the store holds: the lifetime follows the workspace and the level is set here. The log
+  // level starts changed from it, so the page shows a row's unsaved mark from the first draw.
+  const saved = { lifetime: null as number | null, level: 'warn' as string | null };
 
   // Each control starts on the inherited value and keeps its own across a return to the
   // inherited one, so Override brings the last override back.
@@ -135,7 +136,7 @@
 
 <Example
   title="In Setting Rows"
-  note="A row is unsaved only while it differs from what is stored, so picking Debug again clears the log level’s mark"
+  note="A row is unsaved only while it differs from what is stored, so picking Warnings again clears the log level’s mark"
   layout="stack"
   ground="canvas"
 >
