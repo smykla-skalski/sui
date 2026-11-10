@@ -94,8 +94,10 @@
           />
         {/snippet}
       </Field>
-      <Button onclick={save}>Save the Cadence</Button>
-      <Button onclick={discard} data-reset={cadenceReset}>Discard the Cadence</Button>
+      <div class="actions">
+        <Button tone="signal" onclick={save}>Save the Cadence</Button>
+        <Button onclick={discard} data-reset={cadenceReset}>Discard the Cadence</Button>
+      </div>
     </div>
   </Specimen>
 </Example>
@@ -121,6 +123,12 @@
     display: grid;
     gap: var(--sui-space-4);
     justify-items: start;
+  }
+
+  .actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--sui-space-2);
   }
 
   .narrow {
