@@ -147,7 +147,7 @@
   --example-max="54rem"
   --specimen-min="21rem"
   --specimen-row-gap="var(--sui-space-6)"
-  note="Static copies of the open list under each field. The value is checked over a count of rows past the limit, typed letters are marked where they match, and one copy lights a row. Free entry offers the typed text, and the notes say that nothing matches, that a search waits or that it was refused"
+  note="Static copies of the open list: the checked value over a count of the rest, and marked matches with one row lit. Free entry offers the text, and the notes show no match, a wait and a refusal"
   layout="grid"
 >
   <Specimen label="Chosen & limited">
