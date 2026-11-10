@@ -31,8 +31,8 @@ env:
   BASE_PATH: ${{ github.event.pull_request.number && format('/pr-{0}', github.event.pull_request.number) || '' }}
   # Renovate moves the version; the digest moves by hand from the release asset's digest, and
   # a version without its digest fails the install.
-  FLYCTL_VERSION: 0.4.119
-  FLYCTL_SHA256: bb8f916814f12bccf794889b0375dd10b075b60f965607fc39d89ecdad79dbcc
+  FLYCTL_VERSION: 0.5.2
+  FLYCTL_SHA256: e5c928a3cd49daf086395e30b5e0334f8c36d2adbfe3219d664deba1c1d56d0a
 
 jobs:
   deploy:
