@@ -79,8 +79,14 @@ export function place(
     Math.max(VIEWPORT_MARGIN, viewportWidth - VIEWPORT_MARGIN - box.width)
   );
 
+  // The arrow stands from the box's own start, which follows the box's direction, and that can
+  // differ from the anchor's.
   const centre = a.left + a.width / 2;
-  publish(floating, AT, rtl ? Math.round(left) + box.width - centre : centre - Math.round(left));
+  publish(
+    floating,
+    AT,
+    look.direction === 'rtl' ? Math.round(left) + box.width - centre : centre - Math.round(left)
+  );
   pin(floating, left, top, placed);
   return placed;
 }

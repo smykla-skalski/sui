@@ -940,6 +940,26 @@ suite('overlays', together, () => {
             ...arrowOf(tip, m)
           };
         })()`);
+        // A mark set right to left in a left-to-right tip hangs the tip from its right edge, and
+        // the arrow, which stands from the tip's own start, still points at the mark.
+        await page.evaluate(() => /** @type {HTMLElement} */ (document.activeElement).blur());
+        await page.locator('.sui-tooltip:popover-open').waitFor({ state: 'hidden' });
+        await mark.evaluate((button) => button.setAttribute('dir', 'rtl'));
+        await page.keyboard.press('Shift');
+        await mark.focus();
+        await page.locator('.sui-tooltip:popover-open').waitFor();
+        const mixed = await page.evaluate(`(() => {
+          const arrowOf = ${arrowOf};
+          const button = document.activeElement;
+          const tip = document.querySelector('.sui-tooltip:popover-open');
+          return { side: 'mixed', ltr: getComputedStyle(tip).direction === 'ltr', ...arrowOf(tip, button.getBoundingClientRect()) };
+        })()`);
+        await mark.evaluate((button) => button.removeAttribute('dir'));
+        assert.ok(mixed.ltr, "the tip took the mark's direction, so the case is not mixed");
+        assert.ok(
+          Math.abs(mixed.aim) <= 0.5,
+          `the arrow of a left-to-right tip on a right-to-left mark misses it by ${mixed.aim}px`
+        );
         // Every tip starts at its mark with an arrow on the mark's centre whose point stands 8px
         // off it, clear of the focus ring (L-35), so a copy stands as far off as the live tip.
         for (const tip of [live, ...desktop]) {
