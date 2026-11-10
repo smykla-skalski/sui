@@ -194,8 +194,8 @@ controls end at the row's end in every row, and the seat it keeps while hidden n
 them and never makes the row taller. The copy and the controls share a first band one control
 tall: the copy centres in it, or starts at its top when taller, and the controls' first line
 fills it, so no control of any kind moves the copy or gives the row height of its own, and a
-taller one, such as a field with a hint under it, only grows the row under the band. A control that grows, with `stacked`, has its reset end
-the first line of its entries instead.
+taller one, such as a field with a hint under it, only grows the row under the band. A control that grows, with `stacked`, takes the whole line
+under the copy, and its reset ends the copy's band instead, so every line of entries has the row's width.
 
 `unsaved` lays a plate of the unsaved surface inside the row, repaints the inks and edges in the
 unsaved family, and shows `unsavedLabel` beside the name. The plate sits 2px inside the row's
@@ -206,10 +206,10 @@ section's ground between them (L-91).
 - Semantics: an `li`; the name is a `label` for a single control that carries the given `id`, and otherwise a plain name whose id the group takes through `aria-labelledby`.
 - Content: a name, an optional one-sentence why line, and the controls in `control`, which receives the ids and the `disabled`, `readonly` and `invalid` flags to pass on.
 - States: rest, unsaved (gold plate and the `unsavedLabel` word), pending (`pendingLabel` under the copy, busy, and its controls held until the save ends: dimmed, or a field in its read-only paint, focusable and refusing changes, as are the reset and its Undo), refused (`error` under the copy with an alert mark), disabled and read only (with `reason` under the copy), and after a reset an Undo in the reset's seat.
-- Keyboard: Tab follows the visual order (L-79, WCAG 2.4.3): the reset or Undo, then the controls it stands before; with `stacked`, the controls, then the reset that ends their first line; Enter or Space resets or undoes.
+- Keyboard: Tab follows the visual order (L-79, WCAG 2.4.3): the reset or Undo, then the controls it stands before; Enter or Space resets or undoes.
 - Pointer and touch: the row is at least 44px tall and its whole box is the name's target; the reset and Undo are as tall as the controls' first line, 34px, 28px beside chips, 44px on a phone.
 - Focus: after a reset focus moves to the first control instead of falling to the page; after Undo it moves to the reset, or to the first control when the reset is gone.
-- Responsive: the controls drop under the copy when both sides cannot fit, and under 25rem take that whole line, ending at the row's end with the reset beside them; with `stacked` they always stand under the copy, from its start edge, with the reset ending their first line at every width.
+- Responsive: the controls drop under the copy when both sides cannot fit, and under 25rem take that whole line, ending at the row's end with the reset beside them; with `stacked` they always take the whole line under the copy, from its start edge, with the reset ending the copy's band at every width.
 - Accessibility: the name labels a single control or names a group; the why line, `reason` and `error` describe the controls; pending and refused changes are said through a polite status; the unsaved state is a word, not only a color.
 - Localization: `resetLabel`, `undoLabel`, `unsavedLabel`, `pendingLabel` and `clearLabel` are props with English defaults; the controls sit at the inline end and follow the reading direction.
 - Performance: one mutation observer per row watches which control carries the id; nothing animates.
@@ -246,15 +246,15 @@ section's ground between them (L-91).
     {/if}
     <VisuallyHidden role="status">{error ?? (pending ? pendingLabel : '')}</VisuallyHidden>
   </div>
+  {#if stacked}{@render reset()}{/if}
   <div class="sui-setting-value">
     {#if !stacked}{@render reset()}{/if}
     <div bind:this={controls} class="sui-setting-control">{@render control(ids)}</div>
-    {#if stacked}{@render reset()}{/if}
   </div>
 </li>
 
-<!-- The reset stands on the control's side, first in reading order as it is first on the
-     line, except after a growing control, whose first line it ends. -->
+<!-- The reset stands first in reading order, as it stands before the controls: on their line,
+     or for a growing control at the end of the copy's band above it. -->
 {#snippet reset()}
   {#if onclear || resettable || undo}
     {@const live = Boolean(onclear) && !undo && !disabled && !readonly}
@@ -610,16 +610,29 @@ section's ground between them (L-91).
     .sui-setting-row:has(.sui-setting-reset) > .sui-setting-value {
       flex: 1 1 100%;
     }
+
+    /* Above a growing control only the reset shares the copy's line, so the copy can give up
+       more of it before the reset takes a line of its own at the row's end. */
+    .stacked:has(> .sui-setting-reset) > .sui-setting-say {
+      flex-basis: 0;
+      min-inline-size: min(10rem, 100%);
+    }
   }
 
-  /* A control that grows, such as a list of entries, gets the row's width under the copy, so
-     the copy starts level with the row and never floats beside a tall list. Its reset ends the
-     first line of the entries at the row's end, on a phone too, and the entries wrap beside it. */
+  /* A control that grows, such as a list of entries, gets the row's whole width under the copy,
+     so the copy starts level with the row and never floats beside a tall list, and no line of
+     entries gives room to a reset. The reset ends the copy's band at the row's end instead, on a
+     phone too, and the copy centres on it as it centres on controls beside it. */
   .stacked {
+    --sui-setting-line: var(--sui-setting-band);
     row-gap: var(--sui-space-3);
   }
 
   .stacked > .sui-setting-say {
+    flex-basis: 0;
+  }
+
+  .stacked:not(:has(> .sui-setting-reset)) > .sui-setting-say {
     flex-basis: 100%;
     min-block-size: 0;
   }

@@ -2161,9 +2161,9 @@ function plates(root: Document): Finding[] {
 
 /**
  * A setting row (L-36): its controls never move its copy, they end at the row's end, and its
- * reset, shown or keeping its seat, stands right before them on their first line, or ends the
- * first line of a control that grows, centred on that line within half a pixel (hanging on the
- * first line of a control that wraps), and lends the row no height.
+ * reset, shown or keeping its seat, stands right before them on their first line, centred on
+ * that line within half a pixel (hanging on the first line of a control that wraps), or ends
+ * the copy's band above a control that grows, and lends the row no height.
  */
 function settingResets(root: Document): Finding[] {
   const found: Finding[] = [];
@@ -2195,7 +2195,8 @@ function settingResets(root: Document): Finding[] {
       return lines.map((line) => line.getBoundingClientRect().top - top);
     };
     const placed = at();
-    const parts = [...side.children] as HTMLElement[];
+    const above = stacked ? row.querySelector<HTMLElement>(':scope > .sui-setting-reset') : null;
+    const parts = [...side.children, ...(above ? [above] : [])] as HTMLElement[];
     const shows = parts.map((part) => part.style.display);
     const width = say?.style.maxInlineSize ?? '';
     if (say) say.style.maxInlineSize = `${say.getBoundingClientRect().width}px`;
@@ -2212,9 +2213,28 @@ function settingResets(root: Document): Finding[] {
         finding('L-36', row, `the controls stop ${round(short)}px short of the row's end`)
       );
 
-    const reset = side.querySelector(':scope > .sui-setting-reset button');
+    const reset = (above ?? side).querySelector(
+      above ? ':scope button' : ':scope > .sui-setting-reset button'
+    );
     if (!reset) continue;
     const own = reset.getBoundingClientRect();
+    if (above && say) {
+      // Above a control that grows, the reset ends the copy's band, which it never makes taller,
+      // or where the line cannot hold both, as with text at twice its size, a line of its own
+      // between the copy and the controls (WCAG 1.4.10).
+      const apart = end(own);
+      if (Math.abs(apart) > 0.5)
+        found.push(
+          finding('L-36', reset, `the reset stops ${round(apart)}px short of the row's end`)
+        );
+      const band = say.getBoundingClientRect();
+      const beside = own.top >= band.top - 0.5 && own.bottom <= band.bottom + 0.5;
+      const between =
+        own.top >= band.bottom - 0.5 && own.bottom <= side.getBoundingClientRect().top + 0.5;
+      if (!beside && !between)
+        found.push(finding('L-36', reset, "the reset stands outside the copy's band"));
+      continue;
+    }
     const first = [...controls.querySelectorAll(INTERACTIVE)]
       .map((part) => part.getBoundingClientRect())
       .filter((rect) => rect.width > 1 && rect.height > 1)
@@ -2226,21 +2246,11 @@ function settingResets(root: Document): Finding[] {
         finding('L-36', reset, `the reset sits ${round(off)}px off its control's first line`)
       );
     const reach = controls.getBoundingClientRect();
-    const apart = stacked
-      ? end(own)
-      : rtl
-        ? own.left - reach.right - parseFloat(getComputedStyle(side).columnGap)
-        : reach.left - own.right - parseFloat(getComputedStyle(side).columnGap);
+    const apart = rtl
+      ? own.left - reach.right - parseFloat(getComputedStyle(side).columnGap)
+      : reach.left - own.right - parseFloat(getComputedStyle(side).columnGap);
     if (Math.abs(apart) > 0.5)
-      found.push(
-        finding(
-          'L-36',
-          reset,
-          stacked
-            ? `the reset stops ${round(apart)}px short of the row's end`
-            : `the reset stands ${round(apart)}px off its control`
-        )
-      );
+      found.push(finding('L-36', reset, `the reset stands ${round(apart)}px off its control`));
     const band = parseFloat(getComputedStyle(side).minBlockSize) || 0;
     const taller = side.getBoundingClientRect().height - Math.max(reach.height, band);
     if (taller > 0.5)
