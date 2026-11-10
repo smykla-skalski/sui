@@ -282,10 +282,10 @@ returns focus there too. Labels wrap rather than being cut short.
 <style>
   /* In the page's flow the room is the preview's own line, so the menu fills a box at least as
      wide as a floating menu's floor and never wider than that line, and the trigger stands at
-     its aligned edge above it. */
+     its aligned edge above it, as far as a live menu stands off it (L-35). */
   .sui-action-menu-preview {
     display: inline-grid;
-    gap: var(--sui-space-1);
+    gap: var(--sui-floating-gap);
     grid-template-columns: minmax(0, auto);
     inline-size: fit-content;
     max-inline-size: 100%;
