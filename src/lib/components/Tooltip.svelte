@@ -272,7 +272,9 @@ does, stays out of the accessibility tree. Any other tip describes the control t
     border-radius: var(--sui-radius-popover);
     box-shadow: var(--sui-shadow-popover);
     box-sizing: border-box;
-    color: var(--sui-text-secondary);
+    /* The tip is the whole of what it says, so its words take the primary ink, as the inverted
+       tips of shadcn/ui and Radix Themes read at full contrast. */
+    color: var(--sui-text-primary);
     font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-leading-meta)
       var(--sui-sans);
     inline-size: max-content;
@@ -293,6 +295,8 @@ does, stays out of the accessibility tree. Any other tip describes the control t
     /* In the top layer this is the page, so the tip scrolls with the page and its anchor. */
     position: absolute;
     text-align: start;
+    /* A tip that wraps never leaves its last word alone. */
+    text-wrap: pretty;
     transition:
       opacity var(--sui-duration-fast) var(--sui-ease-standard),
       overlay var(--sui-duration-fast) allow-discrete,

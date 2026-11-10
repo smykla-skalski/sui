@@ -51,10 +51,13 @@
 </Example>
 
 <style>
+  /* The mark keeps to its label on any width, and the tip hangs under the mark in the column
+     beside the words. */
   .label.wrap {
     align-items: start;
-    display: flex;
-    flex-wrap: wrap;
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    justify-items: start;
     max-inline-size: 100%;
   }
 

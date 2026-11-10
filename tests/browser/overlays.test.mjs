@@ -829,6 +829,51 @@ suite('overlays', together, () => {
     }
   );
 
+  // The open copy once dropped its mark under the label on a phone, and its tip ended on a lone
+  // word in the quiet secondary ink.
+  test(
+    'a help tip copy keeps its mark by its label and words in the primary ink',
+    long,
+    async () => {
+      const page = await open({ viewport: { width: 390, height: 844 } });
+      try {
+        const look = await page.evaluate(() => {
+          const copy = /** @type {Element} */ (
+            document.querySelector('#help-tip .sui-help-tip-preview')
+          );
+          const words = /** @type {Element} */ (copy.closest('.label')?.querySelector('.words'));
+          const mark = /** @type {Element} */ (copy.querySelector('.sui-help-tip'));
+          const tip = /** @type {Element} */ (copy.querySelector('.sui-tooltip'));
+          const [w, m] = [words, mark].map((part) => part.getBoundingClientRect());
+          const text = /** @type {Text} */ (
+            document.createTreeWalker(tip, NodeFilter.SHOW_TEXT).nextNode()
+          );
+          const tops = [...text.data.matchAll(/\S+/g)].map(({ index }) => {
+            const range = document.createRange();
+            range.setStart(text, index);
+            range.setEnd(text, index + 1);
+            return Math.round(range.getBoundingClientRect().top);
+          });
+          const probe = document.createElement('span');
+          probe.style.color = 'var(--sui-text-primary)';
+          tip.append(probe);
+          const primary = getComputedStyle(probe).color;
+          probe.remove();
+          return {
+            beside: m.left >= w.right && m.top < w.bottom,
+            lastLine: tops.filter((top) => top === tops.at(-1)).length,
+            ink: getComputedStyle(tip).color === primary
+          };
+        });
+        assert.ok(look.beside, 'the mark drops under its label');
+        assert.ok(look.lastLine > 1, 'the tip ends on a lone word');
+        assert.ok(look.ink, 'the tip is not in the primary ink');
+      } finally {
+        await page.close();
+      }
+    }
+  );
+
   // The icon copy once stood on a 28px trigger beside a 34px one, so its menu started 6px higher.
   test(
     'action menu copies: regular items, menus on one line, phone reasons under triggers',
