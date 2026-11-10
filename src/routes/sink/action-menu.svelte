@@ -36,6 +36,7 @@
       label: 'Compare with the Release Published before It, File by File',
       onselect: nothing
     },
+    { separator: true },
     { label: 'Yank Release…', tone: 'stop', onselect: () => (yanking = true) }
   ];
 </script>
@@ -90,7 +91,15 @@
   note="Icons, a disabled item with its reason, a destructive item last and a long item that wraps, with the first item lit"
 >
   <Specimen label="Open with icons">
-    <ActionMenu label="Repository actions" icon="more" items={repository} align="end" preview />
+    <!-- One control tall, as the button trigger beside it is, so the two menus start on one line. -->
+    <ActionMenu
+      label="Repository actions"
+      icon="more"
+      toolbar
+      items={repository}
+      align="end"
+      preview
+    />
   </Specimen>
   <Specimen label="Open with a long item">
     <ActionMenu items={release} preview>Release Actions</ActionMenu>

@@ -829,6 +829,22 @@ suite('overlays', together, () => {
     }
   );
 
+  // The icon copy once stood on a 28px trigger beside a 34px one, so its menu started 6px higher.
+  test('open action menu copies side by side start their menus on one line', long, async () => {
+    const page = await open({ viewport: { width: 1440, height: 900 } });
+    try {
+      const tops = await page.evaluate(() =>
+        [...document.querySelectorAll('#action-menu .sui-action-menu-preview .sui-popover')].map(
+          (popover) => popover.getBoundingClientRect().top
+        )
+      );
+      assert.ok(tops.length > 1, `the section shows ${tops.length} open menus`);
+      assert.equal(new Set(tops).size, 1, `the menus start at ${tops.join(', ')}`);
+    } finally {
+      await page.close();
+    }
+  });
+
   // At twice the text size the menu's 13rem floor outgrew a phone, so the menu scrolled sideways
   // inside its popover and cut its separator.
   test('an action menu fits the window and its line at twice the text size', long, async () => {
