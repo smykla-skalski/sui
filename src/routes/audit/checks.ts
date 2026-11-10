@@ -1983,6 +1983,19 @@ function specimens(root: Document): Finding[] {
       }
       return new DOMRect(left, line.top, Math.max(0, right - left), line.height);
     };
+    // A round box paints one circle at every turn, as a busy ring does, so its reach is its own
+    // box and not the larger box around its turned square.
+    const paintedBox = (element: Element, look: CSSStyleDeclaration) => {
+      const box = element.getBoundingClientRect();
+      if (look.borderRadius !== '50%' || !(element instanceof HTMLElement)) return box;
+      const [width, height] = [element.offsetWidth, element.offsetHeight];
+      return new DOMRect(
+        box.x + (box.width - width) / 2,
+        box.y + (box.height - height) / 2,
+        width,
+        height
+      );
+    };
     const escaped = [...panel.querySelectorAll('*')].find((element) => {
       if (element.closest(':popover-open, dialog[open]') || held(element)) return false;
       if (!element.checkVisibility({ opacityProperty: false, visibilityProperty: true }))
@@ -1995,10 +2008,7 @@ function specimens(root: Document): Finding[] {
         parseFloat(look.borderLeftWidth) > 0 ||
         parseFloat(look.borderTopWidth) > 0;
       const reach = stripeReach(element);
-      if (
-        (painted || element.matches(CARD_CONTENT)) &&
-        outside(element.getBoundingClientRect(), reach)
-      )
+      if ((painted || element.matches(CARD_CONTENT)) && outside(paintedBox(element, look), reach))
         return true;
       // Text an element clips to its own box paints no further than that box.
       if (look.overflowX !== 'visible') return outside(element.getBoundingClientRect(), reach);
