@@ -78,7 +78,6 @@
   let region = $state<string | null>('eu-central');
   let backup = $state<string | null>(null);
   let failover = $state<string | null>('eu-west');
-  let plan = $state<string | null>('team-month');
   let branch = $state<string | null>(branches[2].value);
   let zone = $state<string | null>(null);
   let attempts = $state<number | null>(3);
@@ -142,21 +141,28 @@
 </Example>
 
 <Example
-  title="Content"
+  title="Open"
   --example-max="54rem"
   --specimen-min="21rem"
   --specimen-row-gap="var(--sui-space-6)"
-  note="Headed groups with notes and a retired plan that cannot be chosen, drawn open. A long branch is cut in the field and wrapped in its open picker"
+  note="A static copy of the open picker under each field. Plan opens on its prompt with the first option lit, over headed groups and a retired plan. A long branch is cut in the field, wrapped in the list and checked with the next option lit"
   layout="grid"
 >
-  <Specimen label="Groups & notes">
+  <Specimen label="Prompt, groups & notes">
     <Field label="Plan">
       {#snippet control({ id, describedby })}
-        <Select {id} aria-describedby={describedby} options={plans} bind:value={plan} preview />
+        <Select
+          {id}
+          aria-describedby={describedby}
+          options={plans}
+          value={null}
+          placeholder="Choose a plan…"
+          preview
+        />
       {/snippet}
     </Field>
   </Specimen>
-  <Specimen label="Long label">
+  <Specimen label="Chosen long label">
     <Field label="Branch">
       {#snippet control({ id, describedby })}
         <Select
@@ -164,44 +170,6 @@
           aria-describedby={describedby}
           options={branches}
           bind:value={branch}
-          preview
-        />
-      {/snippet}
-    </Field>
-  </Specimen>
-</Example>
-
-<Example
-  title="Open"
-  --example-max="54rem"
-  --specimen-min="21rem"
-  --specimen-row-gap="var(--sui-space-6)"
-  note="A static copy of the open picker under each field. A chosen value is checked with the next option active, and a prompt makes the first option active"
-  layout="grid"
->
-  <Specimen label="Open">
-    <Field label="Region">
-      {#snippet control({ id, describedby })}
-        <Select
-          {id}
-          aria-describedby={describedby}
-          options={regions}
-          value="eu-central"
-          placeholder="Choose a region…"
-          preview
-        />
-      {/snippet}
-    </Field>
-  </Specimen>
-  <Specimen label="Open with a prompt">
-    <Field label="Backup region">
-      {#snippet control({ id, describedby })}
-        <Select
-          {id}
-          aria-describedby={describedby}
-          options={regions}
-          value={null}
-          placeholder="Choose a region…"
           preview
         />
       {/snippet}

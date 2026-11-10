@@ -303,12 +303,9 @@
   --sui-control-border: var(--sui-border-control);
 
   --sui-control-border-hover: rgb(0 0 0 / 30%);
-  /* A field is a quiet frame with a baseline: the frame shapes it, and the baseline holds 3:1
-     on every ground it stands on, the cue WCAG 1.4.11 asks of a text input (L-9). A recess
-     under its top edge sinks it into the ground. */
+  /* The frame shapes a field and its baseline holds 3:1 on every ground (L-9). */
   --sui-field-frame: rgb(0 0 0 / 18%);
-  /* A field's frame firms on hover past a button's, so a field answers the pointer at a glance
-     while its ground only just moves (L-9, L-12). */
+  /* Firmer than a button's hover edge, so a field answers the pointer (L-9, L-12). */
   --sui-field-frame-hover: rgb(0 0 0 / 36%);
   /* Lighter than the strong border, so a field is not heavy at its foot, and still 3:1 on every
      ground (L-9). */
@@ -342,6 +339,8 @@
   --sui-field-readonly-frame: rgb(0 0 0 / 16%);
 
   --sui-row-pressed: color-mix(in srgb, var(--sui-text-primary) 10.9%, transparent);
+  --sui-list-highlight: color-mix(in srgb, var(--sui-brand-action) 9%, transparent);
+  --sui-list-pressed: color-mix(in srgb, var(--sui-brand-action) 14%, transparent);
   --sui-dialog-bg: var(--sui-surface-base);
   --sui-dialog-border: var(--sui-border-control);
 
@@ -431,6 +430,7 @@
   --sui-row-hairline: 1px;
   /* The room on each side of a fact line's middle dot (L-103). */
   --sui-sep-space: calc(var(--sui-space-2) + var(--sui-row-hairline));
+  --sui-sep-space-compact: calc(1.5 * var(--sui-space-1));
 
   /* Every edge is one of two strokes: a hairline for frames and a bold stroke for marks that
      carry a state, such as the current tab's underline. */
@@ -821,6 +821,8 @@
   --sui-field-disabled: color-mix(in srgb, var(--sui-field-well) 75%, transparent);
   --sui-field-readonly-frame: rgb(255 255 255 / 20%);
   --sui-row-pressed: color-mix(in srgb, #ffffff 12.4%, transparent);
+  --sui-list-highlight: color-mix(in srgb, var(--sui-brand-action) 12%, transparent);
+  --sui-list-pressed: color-mix(in srgb, var(--sui-brand-action) 22%, transparent);
 
   --sui-changed: var(--sui-link);
   --sui-diff-chg-ink: var(--sui-changed);
@@ -882,12 +884,13 @@
   --sui-field-frame-focus: color-mix(in srgb, var(--sui-focus) 40%, var(--sui-field-frame));
   --sui-field-border-focus: color-mix(in srgb, var(--sui-focus) 40%, var(--sui-field-border));
   --sui-field-recess-focus: color-mix(in srgb, var(--sui-focus) 40%, var(--sui-field-recess-hover));
-  --sui-popover-border: var(--sui-control-border-hover);
+  --sui-popover-border: var(--sui-border-control);
   --sui-dialog-border: var(--sui-border-control);
   --sui-shadow-plate:
     0 1px 2px var(--sui-shadow-color),
     0 2px 8px color-mix(in srgb, var(--sui-shadow-color) 25%, transparent);
   --sui-shadow-popover:
+    inset 0 1px 0 rgb(255 255 255 / 6%),
     0 2px 6px color-mix(in srgb, var(--sui-shadow-color) 40%, transparent),
     0 16px 42px var(--sui-shadow-color);
   --sui-shadow-dialog:
@@ -1053,6 +1056,8 @@
     --sui-field-disabled: color-mix(in srgb, var(--sui-field-well) 75%, transparent);
     --sui-field-readonly-frame: rgb(255 255 255 / 20%);
     --sui-row-pressed: color-mix(in srgb, #ffffff 12.4%, transparent);
+    --sui-list-highlight: color-mix(in srgb, var(--sui-brand-action) 12%, transparent);
+    --sui-list-pressed: color-mix(in srgb, var(--sui-brand-action) 22%, transparent);
 
     --sui-changed: var(--sui-link);
     --sui-diff-chg-ink: var(--sui-changed);
@@ -1116,12 +1121,13 @@
       var(--sui-focus) 40%,
       var(--sui-field-recess-hover)
     );
-    --sui-popover-border: var(--sui-control-border-hover);
+    --sui-popover-border: var(--sui-border-control);
     --sui-dialog-border: var(--sui-border-control);
     --sui-shadow-plate:
       0 1px 2px var(--sui-shadow-color),
       0 2px 8px color-mix(in srgb, var(--sui-shadow-color) 25%, transparent);
     --sui-shadow-popover:
+      inset 0 1px 0 rgb(255 255 255 / 6%),
       0 2px 6px color-mix(in srgb, var(--sui-shadow-color) 40%, transparent),
       0 16px 42px var(--sui-shadow-color);
     --sui-shadow-dialog:

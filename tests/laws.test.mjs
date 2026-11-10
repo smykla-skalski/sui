@@ -876,6 +876,23 @@ test("L-68 icon sizes are named tiers that grow with the text and land on whole 
   }
 });
 
+test('L-11 every floating list lights its row with the accent veils', () => {
+  for (const path of [
+    'src/lib/components/Select.svelte',
+    'src/lib/components/Combobox.svelte',
+    'src/lib/components/ActionMenu.svelte',
+    'src/lib/components/AdditionPicker.svelte'
+  ]) {
+    const css = stripComments(styles[path]);
+    assert.match(css, /background-color: var\(--sui-list-highlight\)/, path);
+    assert.doesNotMatch(
+      css,
+      /option[^{]*\{[^}]*background-color: var\(--sui-(row-hover|interactive-hover-layer)\)/,
+      path
+    );
+  }
+});
+
 test('L-72 stacking order comes from the layer tokens', () => {
   assert.deepEqual(
     violations(({ property, value }) =>
@@ -887,18 +904,31 @@ test('L-72 stacking order comes from the layer tokens', () => {
   );
 });
 
-test('L-72 a floating layer on dark stands off its ground by the raised ground and the hovered control edge', () => {
+test('L-72 a floating layer on dark stands off its ground by the raised ground and a rim of light, on the control edge, with divider lines inside', () => {
   for (const selector of [
     ":root[data-theme='dark']",
     ':root:not([data-theme], [data-sui-theme])'
   ]) {
     const tokens = tokenMap(stripComments(block(selector)));
-    assert.equal(tokens['--sui-popover-border'], 'var(--sui-control-border-hover)', selector);
+    assert.equal(tokens['--sui-popover-border'], 'var(--sui-border-control)', selector);
     assert.equal(tokens['--sui-popover-bg'], 'var(--sui-surface-raised)', selector);
+    assert.match(
+      tokens['--sui-shadow-popover'],
+      /^inset 0 1px 0 rgb\(255 255 255 \/ 6%\),/,
+      selector
+    );
   }
   assert.equal(
     tokenMap(stripComments(block("[data-sui-theme='light']")))['--sui-popover-border'],
     'var(--sui-border-control)'
+  );
+  assert.match(
+    styles['src/lib/components/Select.svelte'],
+    /\.sui-select-heading[^{]*\{[^}]*border-block-start: var\(--sui-stroke\) solid var\(--sui-border-divider\)/
+  );
+  assert.match(
+    styles['src/lib/components/ActionMenu.svelte'],
+    /\.sui-action-menu-separator \{[^}]*background-color: var\(--sui-border-divider\)/
   );
 });
 

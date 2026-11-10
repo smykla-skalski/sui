@@ -389,6 +389,25 @@ function palette(): Finding[] {
     }
   }
 
+  // A floating list lights its row with the accent at the hover and press steps of its ground.
+  const popover = t('popover-bg');
+  const [listHover, listPress] =
+    lightness(popover) > 50
+      ? [
+          [4.4, 5.4],
+          [7.2, 8.3]
+        ]
+      : [
+          [5.3, 6.7],
+          [9, 10.5]
+        ];
+  const lit = deltaE(popover, over(t('list-highlight'), popover));
+  const held = deltaE(popover, over(t('list-pressed'), popover));
+  found.push(
+    ...between('L-11', 'list highlight step on popover-bg', lit, listHover[0], listHover[1])
+  );
+  found.push(...between('L-11', 'list press step on popover-bg', held, listPress[0], listPress[1]));
+
   const base = t('surface-base');
   const rowStep = deltaE(base, over(t('row-hover'), base));
   const fieldStep = deltaE(base, over(t('field-hover'), base));

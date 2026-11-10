@@ -686,12 +686,20 @@ assistive technology, because a native picker cannot be held open.
   }
 
   .sui-select-option:is(:focus-visible, .active):not(:disabled, [aria-disabled='true']) {
-    background-color: var(--sui-row-hover);
+    background-color: var(--sui-list-highlight);
+    color: var(--sui-hover-ink);
+  }
+
+  /* A copy's lit row is where the keyboard is, so it wears the ring as Combobox's lit row does. */
+  .sui-select-option.active {
+    outline: var(--sui-focus-ring-width) solid var(--sui-focus);
+    outline-offset: var(--sui-focus-ring-inset);
   }
 
   @media (hover: hover) {
     .sui-select-option:hover:not(:disabled, [aria-disabled='true']) {
-      background-color: var(--sui-row-hover);
+      background-color: var(--sui-list-highlight);
+      color: var(--sui-hover-ink);
     }
 
     .sui-select-option:hover .sui-select-note {
@@ -759,7 +767,7 @@ assistive technology, because a native picker cannot be held open.
     .sui-select-note::before {
       color: var(--sui-text-muted);
       content: '·' / '';
-      margin-inline: var(--sui-sep-space);
+      margin-inline: var(--sui-sep-space-compact);
     }
   }
 
@@ -785,7 +793,7 @@ assistive technology, because a native picker cannot be held open.
      group ends reads before its heading does. The line stops where the rows' veils do. */
   :is(option, optgroup) + optgroup > .sui-select-heading,
   .sui-select-sheet > :not(.sui-select-heading) + .sui-select-heading {
-    border-block-start: var(--sui-stroke) solid var(--sui-border-control);
+    border-block-start: var(--sui-stroke) solid var(--sui-border-divider);
     margin-block-start: var(--sui-space-1);
   }
 

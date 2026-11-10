@@ -540,12 +540,12 @@ Name it with a `<label>` or `aria-label`, as any field.
   }
 
   .sui-combobox-option.active:not(:active) {
-    background-color: var(--sui-interactive-hover-layer);
+    background-color: var(--sui-list-highlight);
     color: var(--sui-hover-ink);
   }
 
   .sui-combobox-option:active:not([aria-disabled='true']) {
-    background-color: var(--sui-interactive-pressed);
+    background-color: var(--sui-list-pressed);
     box-shadow: var(--sui-pressed-inset);
     translate: 0 1px;
   }

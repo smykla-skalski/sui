@@ -283,13 +283,13 @@ new control after `onadd` is the caller's.
   }
 
   .sui-addition-choice:focus-visible:not(:active) {
-    background-color: var(--sui-interactive-hover-layer);
+    background-color: var(--sui-list-highlight);
     color: var(--sui-hover-ink);
   }
 
   @media (hover: hover) {
     .sui-addition-choice:hover:not(:active) {
-      background-color: var(--sui-interactive-hover-layer);
+      background-color: var(--sui-list-highlight);
       color: var(--sui-hover-ink);
     }
   }
@@ -300,7 +300,7 @@ new control after `onadd` is the caller's.
   }
 
   .sui-addition-choice:active {
-    background-color: var(--sui-interactive-pressed);
+    background-color: var(--sui-list-pressed);
     box-shadow: var(--sui-pressed-inset);
     translate: 0 1px;
   }

@@ -1313,8 +1313,19 @@ suite('forms', together, () => {
             lines: new Set([...lines].map((line) => Math.round(line.top))).size
           };
         };
-        const checked = [...section.querySelectorAll('.sui-select-sheet .checked')].map(mark);
-        const copy = /** @type {Element} */ (section.querySelector('.sui-select-preview'));
+        // Every row keeps its check's room, so an unchecked one-line row places it as a checked
+        // one would.
+        const rows = [...section.querySelectorAll('.sui-select-sheet .sui-select-option')].map(
+          (row) => ({ ...mark(row), checked: row.classList.contains('checked') })
+        );
+        const copy = /** @type {Element} */ (
+          section.querySelector('.sui-select-preview:has(.sui-select-sheet .checked)')
+        );
+        const lit = /** @type {Element} */ (section.querySelector('.sui-select-sheet .active'));
+        const dot = getComputedStyle(
+          /** @type {Element} */ (section.querySelector('.sui-select-sheet .sui-select-note')),
+          '::before'
+        );
         const control = /** @type {Element} */ (copy.querySelector('.sui-select-control'));
         const box = getComputedStyle(control);
         const row = /** @type {Element} */ (copy.querySelector('.sui-select-sheet .checked'));
@@ -1365,7 +1376,12 @@ suite('forms', together, () => {
           restInk,
           field,
           option,
-          checked,
+          rows,
+          ring: {
+            style: getComputedStyle(lit).outlineStyle,
+            color: getComputedStyle(lit).outlineColor
+          },
+          dot: [dot.marginInlineStart, dot.marginInlineEnd],
           closed: width(closed),
           copies,
           heading: start(/** @type {Element} */ (sheet.querySelector('.sui-select-heading'))),
@@ -1398,7 +1414,7 @@ suite('forms', together, () => {
           })()
         };
       });
-      assert.ok(look.copies.length >= 3, 'the page shows the open copies');
+      assert.ok(look.copies.length >= 2, 'the page shows the open copies');
       for (const copy of look.copies) {
         assert.equal(copy.field, look.closed, 'an open copy keeps the closed field width');
         assert.equal(copy.sheet, copy.field, 'its picker is as wide as its field');
@@ -1416,8 +1432,8 @@ suite('forms', together, () => {
       assert.notEqual(look.field.refused, look.field.focus, 'a refused copy drops the open accent');
       // A check marks the first line of a wrapped name as it does a one-line name, as a menu
       // icon does.
-      const one = look.checked.find((row) => row.lines === 1);
-      const wrapped = look.checked.find((row) => row.lines > 1);
+      const one = look.rows.find((row) => row.lines === 1);
+      const wrapped = look.rows.find((row) => row.checked && row.lines > 1);
       assert.ok(one && wrapped, 'the page checks a one-line and a wrapped name');
       assert.ok(
         Math.abs(wrapped.drop - one.drop) < 0.5,
@@ -1435,6 +1451,11 @@ suite('forms', together, () => {
       assert.deepEqual(look.lines.copy, ['1px', '1px']);
       assert.deepEqual(look.lines.live, ['1px', '1px']);
       assert.deepEqual(look.inset, [0, 0], "a group's line stops where the rows' veils do");
+      // The lit row is where the keyboard is, so it wears the ring, as Combobox's lit row does.
+      assert.equal(look.ring.style, 'solid');
+      assert.equal(look.ring.color, look.field.focus, 'the lit row wears the focus ring');
+      // A note rides its name inside one option, so the dot stands 6px off each (L-103).
+      assert.deepEqual(look.dot, ['6px', '6px']);
     });
 
     test(

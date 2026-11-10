@@ -350,7 +350,7 @@ returns focus there too. Labels wrap rather than being cut short.
   /* Focus follows the pointer, so one highlight serves hover and the keyboard. */
   .sui-action-menu-item:focus:not(:active):not([aria-disabled='true']),
   .sui-action-menu-item.active:not(:active) {
-    background-color: var(--sui-interactive-hover-layer);
+    background-color: var(--sui-list-highlight);
   }
 
   /* The words rise to the hover ink, so the row gains contrast; a stop keeps its danger ink. */
@@ -371,7 +371,7 @@ returns focus there too. Labels wrap rather than being cut short.
   }
 
   .sui-action-menu-item:active:not([aria-disabled='true']) {
-    background-color: var(--sui-interactive-pressed);
+    background-color: var(--sui-list-pressed);
     box-shadow: var(--sui-pressed-inset);
     translate: 0 1px;
   }
@@ -431,7 +431,7 @@ returns focus there too. Labels wrap rather than being cut short.
 
   /* The line stops where the items' veils do. */
   .sui-action-menu-separator {
-    background-color: var(--sui-border-control);
+    background-color: var(--sui-border-divider);
     block-size: var(--sui-stroke);
     margin-block: var(--sui-space-1);
   }
