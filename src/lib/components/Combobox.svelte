@@ -701,6 +701,12 @@ Name it with a `<label>` or `aria-label`, as any field.
     font-weight: var(--sui-weight-semibold);
   }
 
+  /* On the lit row's blue veil a blue match fades into the ground, so there the match is told
+     by its weight alone. */
+  .sui-combobox-option.active mark {
+    color: inherit;
+  }
+
   /* A match in an option that cannot be chosen draws as its name does, so it never pulls the eye
      from the options that can. */
   .sui-combobox-option[aria-disabled='true'] mark {
