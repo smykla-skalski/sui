@@ -253,7 +253,7 @@ suite('overlays', together, () => {
       await page.waitForFunction(() => !document.querySelector('dialog[open]'));
     });
 
-    test('L-58 a busy dialog hands focus to its busy action and disables its fields until the work ends', async () => {
+    test('L-58 a busy dialog hands focus to its busy action and disables its fields and other actions until the work ends', async () => {
       const opener = page
         .locator('#modal button:not(.sui-modal *)', { hasText: 'Rename Repository' })
         .first();
@@ -280,7 +280,10 @@ suite('overlays', together, () => {
               done({
                 onAction: document.activeElement?.getAttribute('aria-busy') === 'true',
                 disabled: input.disabled,
-                pressRefused: press.defaultPrevented
+                pressRefused: press.defaultPrevented,
+                otherActions: [...dialog.querySelectorAll('.sui-modal-foot button')]
+                  .filter((button) => button.getAttribute('aria-busy') !== 'true')
+                  .map((button) => /** @type {HTMLButtonElement} */ (button).disabled)
               });
             });
           });
@@ -290,8 +293,8 @@ suite('overlays', together, () => {
       await page.keyboard.press('Enter');
       assert.deepEqual(
         await page.evaluate(() => /** @type {any} */ (window).held),
-        { onAction: true, disabled: true, pressRefused: true },
-        'a busy dialog left its field in use or focus off its busy action'
+        { onAction: true, disabled: true, pressRefused: true, otherActions: [true] },
+        'a busy dialog left its field or Cancel in use, or focus off its busy action'
       );
       await page.waitForFunction(
         () => !document.querySelector('dialog[open]')?.hasAttribute('aria-busy')

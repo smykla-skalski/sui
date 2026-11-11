@@ -6,6 +6,7 @@
 <script lang="ts" generics="Href extends string | undefined = undefined">
   import type { Snippet } from 'svelte';
   import type { HTMLAnchorAttributes, HTMLAttributes, HTMLButtonAttributes } from 'svelte/elements';
+  import { held, holdAround } from '../internal/held.svelte.js';
   import { shownWait } from '../internal/shown-wait.svelte.js';
 
   type NativeElement = Href extends string ? HTMLAnchorElement : HTMLButtonElement;
@@ -46,9 +47,15 @@
 
   /* `disabled` would drop a focused button's focus to the body, so a busy one stays in the tab
      order and refuses the press itself, and so does one its owner locks with `aria-disabled`,
-     such as a control held while a busy dialog or a saving pane around it works. */
+     such as a control held while a busy dialog or a saving pane around it works. Work that runs
+     on the form around it holds every other button the same way, and disables it once focus has
+     moved to the busy action, so Cancel never looks ready while a save refuses it. */
   const busy = $derived(loading && !disabled);
-  const locked = $derived(busy || ariaDisabled === true || ariaDisabled === 'true');
+  const around = holdAround();
+  const holding = $derived(loading ? null : held(element, around));
+  const locked = $derived(
+    busy || ariaDisabled === true || ariaDisabled === 'true' || holding !== null
+  );
   const spinning = shownWait(() => loading);
 
   function refuse(event: MouseEvent) {
@@ -118,7 +125,7 @@ start.
     {...rest as HTMLButtonAttributes}
     class={['sui-button', className, { busy, field }]}
     data-tone={tone}
-    {disabled}
+    disabled={disabled || holding === 'firm'}
     aria-disabled={locked || undefined}
     aria-busy={loading || undefined}
     onclick={locked ? refuse : (rest as HTMLButtonAttributes).onclick}>{@render body()}</button

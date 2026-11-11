@@ -238,7 +238,7 @@
       description="Links to the old name redirect for a year"
       error="Another repository in this workspace has that name, so choose another"
     >
-      <Field label="Name" value="smyklot" />
+      <Field label="Name" value="smyklot" aria-invalid="true" />
       {#snippet footer()}
         <Button>Cancel</Button>
         <Button tone="signal">Rename Repository</Button>
@@ -411,10 +411,10 @@
   error={renameError}
 >
   <form id="sink-rename" class="form" onsubmit={saveName}>
-    <Field label="Name" bind:value={newName} />
+    <Field label="Name" bind:value={newName} aria-invalid={renameError ? 'true' : undefined} />
   </form>
   {#snippet footer()}
-    <Button disabled={renameBusy} onclick={() => (renaming = false)}>Cancel</Button>
+    <Button onclick={() => (renaming = false)}>Cancel</Button>
     <Button tone="signal" type="submit" form="sink-rename" loading={renameBusy}
       >Rename Repository</Button
     >

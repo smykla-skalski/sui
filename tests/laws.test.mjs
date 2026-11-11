@@ -1345,6 +1345,18 @@ test('L-53 a shadow that lifts a part is two layers in every palette block, and 
   );
 });
 
+test('L-58 a scrim keeps the page behind a dialog legible: 45% light, 56% dark, a 4px blur', () => {
+  assert.deepEqual(
+    [...palette.matchAll(/--sui-scrim: rgb\(0 0 0 \/ (\d+)%\);/g)].map(([, alpha]) => alpha),
+    ['45', '56', '56'],
+    'the light scrim, then the dark one in each dark block'
+  );
+  assert.deepEqual(
+    [...palette.matchAll(/--sui-scrim-blur: ([^;]+);/g)].map(([, blur]) => blur),
+    ['4px']
+  );
+});
+
 test("L-9 a control's edge firms one step on hover, the same in every theme, and a light field wears a button's edge", () => {
   const alpha = (/** @type {string} */ name) =>
     [...palette.matchAll(new RegExp(`--sui-${name}: rgb\\(\\d+ \\d+ \\d+ / (\\d+)%\\);`, 'g'))].map(
