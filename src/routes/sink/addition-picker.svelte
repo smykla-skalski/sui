@@ -58,6 +58,7 @@
 <Example
   title="Open"
   note="The list drawn open, with its first choice lit and each note under its label"
+  --example-max="34rem"
 >
   <Specimen label="Open">
     <AdditionPicker label="Add a Check" choices={behaviours} preview onadd={() => {}} />
