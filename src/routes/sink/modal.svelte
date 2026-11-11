@@ -236,9 +236,9 @@
       preview
       title="Rename Repository"
       description="Links to the old name redirect for a year"
-      error="Another repository in this workspace has that name, so choose another"
+      error="Smyklot could not reach the server, so try again in a moment"
     >
-      <Field label="Name" value="smyklot" aria-invalid="true" />
+      <Field label="Name" value="smyklot-next" />
       {#snippet footer()}
         <Button>Cancel</Button>
         <Button tone="signal">Rename Repository</Button>
@@ -410,10 +410,9 @@
   title="Rename Repository"
   description="Links to the old name redirect for a year"
   busy={renameBusy}
-  error={renameError}
 >
   <form id="sink-rename" class="form" onsubmit={saveName}>
-    <Field label="Name" bind:value={newName} aria-invalid={renameError ? 'true' : undefined} />
+    <Field label="Name" bind:value={newName} error={renameError} />
   </form>
   {#snippet footer()}
     <Button onclick={() => (renaming = false)}>Cancel</Button>

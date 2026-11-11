@@ -856,7 +856,7 @@
   --sui-switch-track-on: var(--sui-brand-action);
   --sui-switch-thumb: #eceef0;
 
-  --sui-surface-control: transparent;
+  --sui-surface-control: var(--sui-surface-base);
   --sui-control-bg: var(--sui-surface-control);
   --sui-popover-bg: var(--sui-surface-raised);
   --sui-dialog-bg: var(--sui-surface-raised);
@@ -1092,7 +1092,7 @@
     --sui-switch-track-on: var(--sui-brand-action);
     --sui-switch-thumb: #eceef0;
 
-    --sui-surface-control: transparent;
+    --sui-surface-control: var(--sui-surface-base);
     --sui-control-bg: var(--sui-surface-control);
     --sui-popover-bg: var(--sui-surface-raised);
     --sui-dialog-bg: var(--sui-surface-raised);

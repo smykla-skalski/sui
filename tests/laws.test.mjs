@@ -994,6 +994,7 @@ test('L-72 a floating layer on dark stands off its ground by the raised ground a
     assert.equal(tokens['--sui-popover-border'], 'var(--sui-border-control)', selector);
     assert.equal(tokens['--sui-popover-bg'], 'var(--sui-surface-raised)', selector);
     assert.equal(tokens['--sui-dialog-bg'], 'var(--sui-surface-raised)', selector);
+    assert.equal(tokens['--sui-surface-control'], 'var(--sui-surface-base)', selector);
     assert.match(
       tokens['--sui-shadow-popover'],
       /^inset 0 1px 0 rgb\(255 255 255 \/ 6%\),/,
