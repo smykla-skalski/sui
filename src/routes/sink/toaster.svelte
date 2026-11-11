@@ -39,7 +39,10 @@
   layout="grid"
 >
   <Specimen label="Neutral">
-    <Toaster preview items={[{ title: 'Settings saved' }]} />
+    <Toaster
+      preview
+      items={[{ title: 'Settings saved', description: 'Main now needs 2 reviews before a merge' }]}
+    />
   </Specimen>
   <Specimen label="Danger">
     <Toaster
