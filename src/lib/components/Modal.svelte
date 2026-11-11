@@ -632,12 +632,16 @@ dialog, so they are never inert under it.
       max-inline-size: calc(100vw - 2 * var(--sui-space-4));
     }
 
-    /* On a phone the actions stack at the full width in their reading order, so each is a
-       whole thumb's target and none sits alone at the end (Material, Apple sheets). */
+    /* On a phone the actions share the full width in their reading order, on one row while
+       their words fit and stacked once they do not, so each is a whole thumb's target and none
+       sits alone at the end (Apple alerts, Material). */
     .sui-modal-foot {
       --sui-local-button-span: 100%;
       align-items: stretch;
-      flex-direction: column;
+    }
+
+    .sui-modal-foot > :global(*) {
+      flex: 1 1 max-content;
     }
 
     .sui-modal[data-size='inspector']:not(.preview) {

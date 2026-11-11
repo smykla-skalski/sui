@@ -93,7 +93,7 @@ suite('overlays', together, () => {
       assert.deepEqual(found, []);
     });
 
-    test('L-58 a dialog that opens holding a long value shows its start, chosen, and stacks its actions at the full width in their reading order', async () => {
+    test('L-58 a dialog that opens holding a long value shows its start, chosen, and sets its actions across the full width in their reading order, on one row while they fit', async () => {
       const opener = page
         .locator('#modal button:not(.sui-modal *)', { hasText: 'Edit Webhook' })
         .first();
@@ -140,12 +140,26 @@ suite('overlays', together, () => {
         ['Cancel', 'Save Webhook'],
         'the actions left their reading order'
       );
-      for (const button of buttons)
-        assert.ok(
-          Math.abs(button.width - inner) <= 0.5,
-          `${button.words} is ${button.width}px of a ${inner}px footer`
+      const gap = 8;
+      assert.ok(
+        Math.abs(buttons[0].width + gap + buttons[1].width - inner) <= 1,
+        `the actions fill ${buttons[0].width + gap + buttons[1].width}px of a ${inner}px footer`
+      );
+      assert.equal(buttons[0].top, buttons[1].top, 'two short answers stacked');
+      const stacked = await page.evaluate(() => {
+        const footer = /** @type {HTMLElement} */ (
+          document.querySelector('dialog[open] > .sui-modal-foot')
         );
-      assert.ok(buttons[0].top < buttons[1].top, 'the actions share a line');
+        const save = /** @type {HTMLElement} */ (footer.lastElementChild?.lastElementChild);
+        save.textContent = 'Save the Webhook and Send a Test Delivery';
+        const [cancel, act] = [...footer.querySelectorAll('button')].map((button) =>
+          button.getBoundingClientRect()
+        );
+        return { below: act.top > cancel.top, widths: [cancel.width, act.width] };
+      });
+      assert.ok(stacked.below, 'answers too long for one row stayed on it');
+      for (const width of stacked.widths)
+        assert.ok(Math.abs(width - inner) <= 0.5, `a stacked answer is ${width}px of ${inner}px`);
       await page.keyboard.press('Escape');
       await page.waitForFunction(() => !document.querySelector('dialog[open]'));
     });
