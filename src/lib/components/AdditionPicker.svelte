@@ -421,13 +421,6 @@ new control after `onadd` is the caller's.
     padding-block: var(--sui-block-snap-room);
   }
 
-  /* A phone sets the name at 16px, so its note steps to 14px, as a select's does. */
-  @media (max-width: 47.9375rem), (pointer: coarse) {
-    .sui-addition-note {
-      font-size: var(--sui-font-size-meta);
-    }
-  }
-
   .sui-addition-done {
     align-items: center;
     box-sizing: border-box;

@@ -297,6 +297,20 @@ suite('lists', together, () => {
   suite('at phone width', { concurrency: 1 }, () => {
     const opened = sharedPage({ viewport: { width: 375, height: 812 } });
 
+    // The choice's name stays 14px on a phone, so its note keeps the type step under it (L-25).
+    test('an addition choice keeps its note a type step under its name on a phone', async () => {
+      const page = await opened();
+      const steps = await page.evaluate(() =>
+        [...document.querySelectorAll('#addition-picker .sui-addition-note')].map((note) => {
+          const name = /** @type {Element} */ (note.closest('.sui-addition-choice'));
+          const size = (/** @type {Element} */ node) => parseFloat(getComputedStyle(node).fontSize);
+          return size(name) - size(note);
+        })
+      );
+      assert.ok(steps.length > 0, 'the section shows no note');
+      assert.deepEqual([...new Set(steps)], [1], 'a note is not 1px under its name');
+    });
+
     test(
       'a scrolled table keeps its held heading over the columns and its focus ring over both',
       long,
