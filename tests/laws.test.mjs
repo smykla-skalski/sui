@@ -1422,7 +1422,7 @@ test("L-58 the band a line parts off sits on a faint tint of the field well, and
         /--sui-dialog-foot-bg: color-mix\(in srgb, var\(--sui-field-well\) (\d+)%, var\(--sui-dialog-bg\)\);/g
       )
     ].map(([, share]) => share),
-    ['40', '65', '65'],
+    ['55', '65', '65'],
     'the light band, then the dark one in each dark block'
   );
 });

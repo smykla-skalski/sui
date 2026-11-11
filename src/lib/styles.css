@@ -346,7 +346,7 @@
      subtle one, under its fields' edges, while a popover over live content keeps the control
      edge (L-72). */
   --sui-dialog-border: var(--sui-border-subtle);
-  --sui-dialog-foot-bg: color-mix(in srgb, var(--sui-field-well) 40%, var(--sui-dialog-bg));
+  --sui-dialog-foot-bg: color-mix(in srgb, var(--sui-field-well) 55%, var(--sui-dialog-bg));
 
   --sui-changed: #2a5fd2;
   --sui-diff-chg-ink: var(--sui-changed);
