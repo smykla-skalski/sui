@@ -1437,6 +1437,42 @@ suite('the kitchen sink', together, () => {
   });
 
   test(
+    "L-36 a phone's setting rows keep a lone switch and a fact beside the copy, and a stacked row's copy takes the whole row under its reset",
+    long,
+    async () => {
+      const page = await open(390, 'light', {}, 'setting-list');
+      try {
+        const rows = await page.locator('#setting-list .sui-setting-row').evaluateAll((all) =>
+          all.map((row) => {
+            const part = (/** @type {string} */ name) =>
+              /** @type {Element} */ (row.querySelector(name)).getBoundingClientRect();
+            const name = /** @type {Element} */ (row.querySelector('.sui-setting-words'));
+            const [words, mark] = [...name.children].map((span) => [...span.getClientRects()]);
+            return {
+              name: name.firstElementChild?.textContent ?? '',
+              beside: part('.sui-setting-value').left >= part('.sui-setting-say').right,
+              fullWhy:
+                row.querySelector('.sui-setting-why') === null ||
+                Math.abs(part('.sui-setting-why').width - row.clientWidth + 16) < 1,
+              markOnLastLine: Math.abs(mark[0].top - (words.at(-1)?.top ?? 0)) < 1
+            };
+          })
+        );
+        const row = (/** @type {string} */ name) => rows.find((each) => each.name === name);
+        for (const name of ['Mirror to the backup region', 'Sign each payload', 'Merge method'])
+          assert.equal(row(name)?.beside, true, `${name} dropped under its copy`);
+        const paths = row(
+          'Paths the bot never formats, even when a rule in a parent workspace asks it to'
+        );
+        assert.equal(paths?.fullWhy, true, "the stacked row's why line kept the reset's column");
+        assert.equal(paths?.markOnLastLine, true, 'the hidden Unsaved word took a line of its own');
+      } finally {
+        await page.close();
+      }
+    }
+  );
+
+  test(
     'L-52 and L-89 a pair chip edits in place and focus never falls to the page',
     long,
     async () => {

@@ -183,7 +183,8 @@ rendered ink, and its controls on the other. The row measures itself, so the cop
 13rem and half the row; controls that need more than the rest move to the line under the copy,
 whole, and keep the row's end. A row whose only control is a `Switch` or a
 `Checkbox` keeps it beside the copy at every width, unless a reset stands beside it in a row
-under 25rem; give that control `bare`. A switch takes effect at once, and a checkbox holds a
+under 25rem; give that control `bare`. A value said only in words, such as a read-only fact,
+stays beside the copy while it fits. A switch takes effect at once, and a checkbox holds a
 value that a later save writes.
 
 The whole row is the name's hit area: a press on the why line, the padding or the space between
@@ -195,12 +196,14 @@ them and never makes the row taller. The copy and the controls share a first ban
 tall: the copy centres in it, or starts at its top when taller, and the controls' first line
 fills it, so no control of any kind moves the copy or gives the row height of its own, and a
 taller one, such as a field with a hint under it, only grows the row under the band. A control that grows, with `stacked`, takes the whole line
-under the copy, and its reset ends the copy's band instead, so every line of entries has the row's width.
+under the copy, and its reset ends the copy's band instead, so every line of entries has the row's width;
+only the copy's lines beside that reset give it room, and the lines under it take the whole row.
 
 `unsaved` lays a plate of the unsaved surface inside the row, repaints the inks and edges in the
 unsaved family, and shows `unsavedLabel` beside the name. The plate sits 2px inside the row's
 own box and the word keeps its seat while hidden, so a change of state never moves the row,
-changes its height or rewraps its name, and two changed rows in a row show a 5px strip of the
+changes its height or rewraps its name. The word runs on after the name's last word, so its
+hidden seat takes a line of its own only when the balanced name leaves no room for it. Two changed rows in a row show a 5px strip of the
 section's ground between them (L-91).
 
 - Semantics: an `li`; the name is a `label` for a single control that carries the given `id`, and otherwise a plain name whose id the group takes through `aria-labelledby`.
@@ -209,7 +212,7 @@ section's ground between them (L-91).
 - Keyboard: Tab follows the visual order (L-79, WCAG 2.4.3): the reset or Undo, then the controls it stands before; Enter or Space resets or undoes.
 - Pointer and touch: the row is at least 44px tall and its whole box is the name's target; the reset and Undo are as tall as the controls' first line, 34px, 28px beside chips, 44px on a phone.
 - Focus: after a reset focus moves to the first control instead of falling to the page; after Undo it moves to the reset, or to the first control when the reset is gone.
-- Responsive: the controls drop under the copy when both sides cannot fit, and under 25rem take that whole line, ending at the row's end with the reset beside them; with `stacked` they always take the whole line under the copy, from its start edge, with the reset ending the copy's band at every width.
+- Responsive: the controls drop under the copy when both sides cannot fit, and under 25rem take that whole line, ending at the row's end with the reset beside them, unless they are a lone bare box or words that fit beside the copy; with `stacked` they always take the whole line under the copy, from its start edge, with the reset ending the copy's band at every width.
 - Accessibility: the name labels a single control or names a group; the why line, `reason` and `error` describe the controls; pending and refused changes are said through a polite status; the unsaved state is a word, not only a color.
 - Localization: `resetLabel`, `undoLabel`, `unsavedLabel`, `pendingLabel` and `clearLabel` are props with English defaults; the controls sit at the inline end and follow the reading direction.
 - Performance: one mutation observer per row watches which control carries the id; nothing animates.
@@ -225,6 +228,7 @@ section's ground between them (L-91).
   {@attach holdRow}
 >
   <div class="sui-setting-say">
+    {#if stacked}{@render reset()}{/if}
     <svelte:element
       this={named ? 'label' : 'span'}
       id={ids.labelledby}
@@ -246,15 +250,14 @@ section's ground between them (L-91).
     {/if}
     <VisuallyHidden role="status">{error ?? (pending ? pendingLabel : '')}</VisuallyHidden>
   </div>
-  {#if stacked}{@render reset()}{/if}
   <div class="sui-setting-value">
     {#if !stacked}{@render reset()}{/if}
     <div bind:this={controls} class="sui-setting-control">{@render control(ids)}</div>
   </div>
 </li>
 
-<!-- The reset stands first in reading order, as it stands before the controls: on their line,
-     or for a growing control at the end of the copy's band above it. -->
+<!-- The reset stands before the controls in reading order: on their line, or for a growing
+     control first in the copy, whose band it ends. -->
 {#snippet reset()}
   {#if onclear || resettable || undo}
     {@const live = Boolean(onclear) && !undo && !disabled && !readonly}
@@ -354,7 +357,7 @@ section's ground between them (L-91).
   }
 
   .sui-setting-value,
-  .sui-setting-row > .sui-setting-reset {
+  .sui-setting-say > .sui-setting-reset {
     pointer-events: none;
     position: relative;
   }
@@ -449,11 +452,11 @@ section's ground between them (L-91).
     cursor: pointer;
   }
 
-  /* The name's words are snapped lines of their own, so the name takes no room for one. */
+  /* A block of its own in a stacked row's flowing copy too, where the name is a span. */
   .sui-setting-name {
     color: var(--sui-text-primary);
+    display: block;
     font-weight: var(--sui-weight-semibold);
-    padding-block: 0;
     text-wrap: balance;
   }
 
@@ -463,43 +466,38 @@ section's ground between them (L-91).
     text-wrap: pretty;
   }
 
+  /* The alert mark centres on the first line's cap, however many lines the problem wraps to,
+     whose trimmed top is the line's cap top (L-94). */
   .sui-setting-problem {
-    align-items: center;
+    align-items: start;
     color: var(--sui-danger);
     display: flex;
+    font: var(--sui-weight-medium) var(--sui-font-size-meta) / var(--sui-row-copy-leading)
+      var(--sui-sans);
     gap: var(--sui-space-1);
     margin: 0;
     min-inline-size: 0;
+  }
+
+  .sui-setting-problem > :global(svg) {
+    flex: none;
+    margin-block: calc((1cap - var(--sui-icon-sm)) / 2);
   }
 
   .sui-setting-problem > span {
     font-weight: var(--sui-weight-medium);
   }
 
-  /* The name and the word "Unsaved" are one wrapping row: the column gap parts them, and a
-     narrow row moves the word to the next line, flush with the name and one line's leading
-     under it. Trim does not reach into a flex row, so each part trims its own words. */
-  .sui-setting-words {
-    align-items: baseline;
-    column-gap: var(--sui-space-2);
-    display: flex;
-    flex-wrap: wrap;
-    row-gap: round(calc(1lh - 1cap), 1px);
-  }
-
-  .sui-setting-words > span {
-    align-content: center;
-    block-size: var(--sui-block-snap);
-    padding-block: var(--sui-block-snap-room);
-    text-box: trim-both cap alphabetic;
-  }
-
-  /* Always laid out, shown only while unsaved, so its arrival never rewraps the name. A word
-     rather than a star, which most forms use for a required field. */
+  /* The word "Unsaved" runs on after the name's last word, 8px off it and never broken, and
+     the balanced lines take it in, so its hidden seat leaves a blank line under a long name
+     only when no line has room for it. Always laid out, shown only while unsaved, so its arrival never rewraps the name. A
+     word rather than a star, which most forms use for a required field. */
   .sui-setting-mark {
     color: var(--sui-unsaved-ink);
     font-weight: var(--sui-weight-regular);
+    margin-inline-start: var(--sui-space-2);
     visibility: hidden;
+    white-space: nowrap;
   }
 
   [data-unsaved] .sui-setting-mark {
@@ -573,7 +571,7 @@ section's ground between them (L-91).
       :has(
         > .sui-setting-value
           > .sui-setting-control
-          > :global(:only-child > * > input[type='checkbox'])
+          > :global(:only-child:is(.sui-checkbox, .sui-switch))
       )
     )
     > .sui-setting-say {
@@ -585,7 +583,7 @@ section's ground between them (L-91).
       :has(
         > .sui-setting-value
           > .sui-setting-control
-          > :global(:only-child > * > input[type='checkbox'])
+          > :global(:only-child:is(.sui-checkbox, .sui-switch))
       )
     )
     > .sui-setting-value {
@@ -606,19 +604,22 @@ section's ground between them (L-91).
       min-inline-size: 0;
     }
 
-    .sui-setting-row:has(.sui-setting-reset) > .sui-setting-say {
+    /* A value said only in words, such as a read-only fact, stays at the end of the copy's line
+       while its words fit there, as a phone's settings list shows a value, and takes the next
+       line whole only when they do not. */
+    .sui-setting-row:not(
+        :has(> .sui-setting-value :is(input, button, select, textarea, [href], [tabindex]))
+      )
+      > .sui-setting-value {
+      flex-basis: auto;
+    }
+
+    .sui-setting-row:has(> .sui-setting-value > .sui-setting-reset) > .sui-setting-say {
       flex-basis: var(--sui-setting-say-min);
     }
 
-    .sui-setting-row:has(.sui-setting-reset) > .sui-setting-value {
+    .sui-setting-row:has(> .sui-setting-value > .sui-setting-reset) > .sui-setting-value {
       flex: 1 1 100%;
-    }
-
-    /* Above a growing control only the reset shares the copy's line, so the copy can give up
-       more of it before the reset takes a line of its own at the row's end. */
-    .stacked:has(> .sui-setting-reset) > .sui-setting-say {
-      flex-basis: 0;
-      min-inline-size: min(10rem, 100%);
     }
   }
 
@@ -630,13 +631,27 @@ section's ground between them (L-91).
     --sui-setting-line: var(--sui-setting-band);
   }
 
+  /* The copy takes the whole line, and the reset floats at the end of its band, so only the
+     lines beside the reset give it room and every line under it has the row's width. */
   .stacked > .sui-setting-say {
-    flex-basis: 0;
+    display: block;
+    flex-basis: 100%;
   }
 
-  .stacked:not(:has(> .sui-setting-reset)) > .sui-setting-say {
-    flex-basis: 100%;
+  .stacked > .sui-setting-say:not(:has(> .sui-setting-reset)) {
     min-block-size: 0;
+  }
+
+  .stacked > .sui-setting-say > p {
+    margin-block-start: var(--sui-row-copy-gap);
+  }
+
+  /* It comes before the name, so it floats at the band's top, and it stands over the name's
+     hit area, which the name draws after it. */
+  .stacked > .sui-setting-say > .sui-setting-reset {
+    float: inline-end;
+    margin-inline-start: var(--sui-space-4);
+    z-index: var(--sui-layer-inner-face);
   }
 
   .stacked > .sui-setting-value {

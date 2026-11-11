@@ -241,6 +241,24 @@
         {/snippet}
       </SettingRow>
       <SettingRow
+        name="Sign each payload"
+        why="Adds a signature header that a receiver can check"
+        pending
+      >
+        {#snippet control({ id, describedby })}
+          <Switch {id} aria-describedby={describedby} bare checked pending />
+        {/snippet}
+      </SettingRow>
+      <SettingRow
+        name="Compress payloads"
+        why="Sends each event gzipped when the receiver accepts it"
+        error="The receiver at hooks.example.com does not accept gzip"
+      >
+        {#snippet control({ id, describedby, invalid })}
+          <Switch {id} aria-describedby={describedby} bare {invalid} />
+        {/snippet}
+      </SettingRow>
+      <SettingRow
         name="Retry failed checks"
         why="Runs a failed check once more before reporting it"
         disabled
@@ -273,58 +291,61 @@
   </Specimen>
 </Example>
 
-<Example
-  title="Narrow Width"
-  note="Below a readable copy width the controls take the next line, and the checkbox stays beside its copy"
-  layout="stack"
-  ground="canvas"
->
-  <div class="narrow">
-    <Section title="Runtime" level={4}>
-      <SettingList>
-        <SettingRow
-          name="Retry failed checks"
-          why="Runs a failed check once more before reporting it"
-          unsaved={retry !== saved.retry}
-        >
-          {#snippet control({ id, describedby })}
-            <Checkbox {id} aria-describedby={describedby} bare bind:checked={retry} />
-          {/snippet}
-        </SettingRow>
-        <SettingRow
-          name="Log level"
-          why="The least serious event the service writes down"
-          unsaved={level !== saved.level}
-        >
-          {#snippet control({ labelledby, describedby })}
-            <SegmentedControl
-              label="Log level"
-              aria-labelledby={labelledby}
-              aria-describedby={describedby}
-              options={levels}
-              bind:value={level}
-            />
-          {/snippet}
-        </SettingRow>
-        <SettingRow
-          name="Session lifetime"
-          why="How long a sign-in lasts before it is asked for again"
-          unsaved={session !== saved.session}
-        >
-          {#snippet control({ id, describedby })}
-            <DurationInput
-              {id}
-              aria-describedby={describedby}
-              label="Session lifetime"
-              bind:value={session}
-              min={60}
-            />
-          {/snippet}
-        </SettingRow>
-      </SettingList>
-    </Section>
-  </div>
-</Example>
+<div class="fill">
+  <Example
+    title="Narrow Width"
+    note="Below a readable copy width the controls take the next line, and the checkbox stays beside its copy"
+    layout="stack"
+    ground="canvas"
+    --example-max="calc(16rem + 2 * var(--sui-space-6))"
+  >
+    <div class="narrow">
+      <Section title="Runtime" level={4}>
+        <SettingList>
+          <SettingRow
+            name="Retry failed checks"
+            why="Runs a failed check once more before reporting it"
+            unsaved={retry !== saved.retry}
+          >
+            {#snippet control({ id, describedby })}
+              <Checkbox {id} aria-describedby={describedby} bare bind:checked={retry} />
+            {/snippet}
+          </SettingRow>
+          <SettingRow
+            name="Log level"
+            why="The least serious event the service writes down"
+            unsaved={level !== saved.level}
+          >
+            {#snippet control({ labelledby, describedby })}
+              <SegmentedControl
+                label="Log level"
+                aria-labelledby={labelledby}
+                aria-describedby={describedby}
+                options={levels}
+                bind:value={level}
+              />
+            {/snippet}
+          </SettingRow>
+          <SettingRow
+            name="Session lifetime"
+            why="How long a sign-in lasts before it is asked for again"
+            unsaved={session !== saved.session}
+          >
+            {#snippet control({ id, describedby })}
+              <DurationInput
+                {id}
+                aria-describedby={describedby}
+                label="Session lifetime"
+                bind:value={session}
+                min={60}
+              />
+            {/snippet}
+          </SettingRow>
+        </SettingList>
+      </Section>
+    </div>
+  </Example>
+</div>
 
 <style>
   .prefix {
@@ -347,5 +368,17 @@
   .narrow {
     inline-size: min(100%, 16rem);
     max-inline-size: 100%;
+  }
+
+  /* The narrow frame keeps the list's 16rem and the stage's 24px pad on a wide page; on a phone
+     the frame and the list fill the column, as every other frame does (L-55). */
+  @media (max-width: 47.9375rem) {
+    .fill :global(.example) {
+      --example-max: none;
+    }
+
+    .narrow {
+      inline-size: 100%;
+    }
   }
 </style>
