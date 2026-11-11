@@ -315,6 +315,38 @@ close control, because only Escape and that control end it.
       display var(--sui-duration-press) allow-discrete;
   }
 
+  /* A layer taller than its room fades its foot while more is below it (L-107), so a cut row
+     reads as more to scroll and never as words lost. The fade is held at the foot of the
+     scroll and clears a pixel short of the end. A layer that fits has no scroll timeline, so it
+     never fades, and neither does one without scroll timelines. The fade lies inside the edge,
+     so the edge, its shadow and the focus ring over it stay whole. */
+  @supports (animation-timeline: scroll()) {
+    .sui-popover::after {
+      animation: sui-popover-foot var(--sui-ease-linear) both;
+      animation-range: calc(100% - 2px) calc(100% - 1px);
+      animation-timeline: scroll(nearest block);
+      background: linear-gradient(transparent, var(--sui-popover-bg));
+      block-size: var(--sui-space-6);
+      content: '';
+      display: block;
+      inset-block-end: 0;
+      margin-block-start: calc(-1 * var(--sui-space-6));
+      opacity: 0;
+      pointer-events: none;
+      position: sticky;
+    }
+  }
+
+  @keyframes sui-popover-foot {
+    from {
+      opacity: 1;
+    }
+
+    to {
+      opacity: 0;
+    }
+  }
+
   /* A layer taller than its room is a keyboard stop of its own, so the keys can scroll it, and
      it clips, so its ring lies inside its edge (L-41). */
   .sui-popover:focus-visible {

@@ -655,6 +655,7 @@ suite('overlays', together, () => {
             const box = row.getBoundingClientRect();
             return box.top < floor - 4 && box.bottom > floor + 4;
           }),
+          fade: getComputedStyle(list, '::after').opacity,
           above:
             (tip?.getBoundingClientRect().bottom ?? Infinity) <
             (sync?.getBoundingClientRect().top ?? 0)
@@ -664,6 +665,24 @@ suite('overlays', together, () => {
       assert.ok(seen.scrolls && seen.cut, 'the open list scrolls and its floor cuts a row');
       assert.ok(!seen.narrower, 'the open list keeps its trigger width, as the live one does');
       assert.ok(seen.above, 'the open tip stands over its button, as the live tip does');
+      assert.equal(seen.fade, '1', 'the foot of a list with more below fades');
+      const [end, fits] = await page.evaluate(async () => {
+        const list = /** @type {HTMLElement} */ (document.getElementById('sink-popover-open-tall'));
+        const top = list.scrollTop;
+        list.scrollTop = list.scrollHeight;
+        await new Promise((done) => requestAnimationFrame(() => requestAnimationFrame(done)));
+        const end = getComputedStyle(list, '::after').opacity;
+        list.scrollTop = top;
+        return [
+          end,
+          getComputedStyle(
+            /** @type {Element} */ (document.getElementById('sink-popover-open')),
+            '::after'
+          ).opacity
+        ];
+      });
+      assert.equal(end, '0', 'at the end of the list nothing fades');
+      assert.equal(fits, '0', 'a layer that fits never fades');
     });
 
     // The live tips open over their buttons, so the names over the buttons stand past a tip's

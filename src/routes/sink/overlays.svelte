@@ -29,7 +29,13 @@
   );
 </script>
 
-<Example title="Popover" note="The browser toggles it, keeps it in the top layer and returns focus">
+<Example
+  title="Popover"
+  note="The browser toggles it, keeps it in the top layer and returns focus"
+  layout="grid"
+  --example-max="54rem"
+  --specimen-min="19rem"
+>
   <Specimen label="Toggled by its trigger">
     <Button bind:element={trigger} popovertarget="sink-popover">
       Show Details
@@ -108,7 +114,7 @@
 
 <Example
   title="Tooltip"
-  --example-max="40rem"
+  --example-max="54rem"
   --specimen-caption-gap="3rem"
   note="Hover pauses before it shows, focus shows it at once, and a long press shows it on touch"
 >
