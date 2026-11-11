@@ -247,6 +247,14 @@ take, under the switch and to a screen reader, while the owner sets `checked` ba
     transition: translate var(--sui-duration-fast) var(--sui-ease-standard);
   }
 
+  /* A light thumb on the light well has no contour of its own, so off it draws a button's edge
+     (L-9), as a white button does on the inset ground. On the accent fill it needs none. */
+  .sui-switch-row input:not(:checked) + .sui-switch-track::after {
+    box-shadow:
+      inset 0 0 0 var(--sui-stroke) var(--sui-control-border),
+      0 1px 2px var(--sui-shadow-color);
+  }
+
   .sui-switch-row input:checked + .sui-switch-track {
     background: var(--sui-switch-track-on);
     border-color: var(--sui-switch-track-on);

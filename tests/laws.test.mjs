@@ -767,6 +767,13 @@ test('L-49 an off switch track sits in the field well in every theme', () => {
   assert.deepEqual(new Set(tracks), new Set(['var(--sui-field-well)']));
 });
 
+test("L-49 an off switch's thumb draws a button's edge", () => {
+  assert.match(
+    styles['src/lib/components/Switch.svelte'],
+    /input:not\(:checked\) \+ \.sui-switch-track::after\s*\{\s*box-shadow:\s*inset 0 0 0 var\(--sui-stroke\) var\(--sui-control-border\),/
+  );
+});
+
 test('L-50 a dark segmented track sits in the well an off switch does', () => {
   const tracks = [...stripComments(palette).matchAll(/--sui-segment-track:\s*([^;]+);/g)].map(
     ([, value]) => value.trim()
