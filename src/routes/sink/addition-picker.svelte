@@ -59,7 +59,7 @@
   title="Open"
   note="The list drawn open with its first choice lit and each note under its label, hung from the trigger’s start or end"
   layout="grid"
-  --specimen-min="17rem"
+  --specimen-min="26rem"
 >
   <Specimen label="First choice lit">
     <AdditionPicker label="Add a Check" choices={behaviours} preview onadd={() => {}} />

@@ -311,6 +311,11 @@ new control after `onadd` is the caller's.
     max-inline-size: 100%;
   }
 
+  /* A row-end picker's copy keeps its cell's end, where the live one stands in its row. */
+  .sui-addition-preview[data-align='end'] {
+    justify-self: end;
+  }
+
   .sui-addition-trigger {
     display: flex;
   }
