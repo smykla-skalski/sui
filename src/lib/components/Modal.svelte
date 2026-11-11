@@ -473,10 +473,12 @@ dialog, so they are never inert under it.
     margin-inline-end: round(calc((var(--sui-icon-base) - var(--sui-tier-quiet)) / 2), 1px);
   }
 
+  /* The consequence is what the reader weighs before answering, so its ink leans a fifth of
+     the way from the secondary ink toward the title's, over the page's other notes (L-58). */
   .sui-modal-description {
     align-content: center;
     block-size: var(--sui-block-snap);
-    color: var(--sui-text-secondary);
+    color: color-mix(in srgb, var(--sui-text-primary) 20%, var(--sui-text-secondary));
     font: var(--sui-weight-regular) var(--sui-font-size-body) / var(--sui-leading-note)
       var(--sui-sans);
     margin: 0;

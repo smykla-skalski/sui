@@ -233,6 +233,11 @@ test('L-24 a title stands 12px above its description, copy lines 8px apart, form
     "a dialog's description is set at the body size and wraps at the note leading"
   );
   assert.match(
+    stripComments(read('src/lib/components/Modal.svelte')),
+    /\.sui-modal-description \{[^}]*color: color-mix\(in srgb, var\(--sui-text-primary\) 20%, var\(--sui-text-secondary\)\);/,
+    "a dialog's description leans a fifth of the way toward the primary ink (L-58)"
+  );
+  assert.match(
     stripComments(read('src/lib/components/SettingRow.svelte')),
     /\.sui-setting-why \+ \.sui-setting-state \{\s*margin-block-start: var\(--sui-space-1\);/,
     "a setting row's status stands a step, 4px, past the description's 8px copy gap"
