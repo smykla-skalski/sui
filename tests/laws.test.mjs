@@ -1347,15 +1347,27 @@ test('L-53 a shadow that lifts a part is two layers in every palette block, and 
   );
 });
 
-test('L-58 a scrim keeps the page behind a dialog legible: 35% light, 48% dark, a 2px blur', () => {
+test('L-58 a scrim keeps the page behind a dialog legible: 28% light, 48% dark, a 2px blur', () => {
   assert.deepEqual(
     [...palette.matchAll(/--sui-scrim: rgb\(0 0 0 \/ (\d+)%\);/g)].map(([, alpha]) => alpha),
-    ['35', '48', '48'],
+    ['28', '48', '48'],
     'the light scrim, then the dark one in each dark block'
   );
   assert.deepEqual(
     [...palette.matchAll(/--sui-scrim-blur: ([^;]+);/g)].map(([, blur]) => blur),
     ['2px']
+  );
+});
+
+test('L-58 a dialog drawn in place lifts as a plate in the light theme and as a dialog in the dark', () => {
+  assert.deepEqual(
+    [...palette.matchAll(/--sui-shadow-dialog-in-place: ([^;]+);/g)].map(([, lift]) => lift),
+    ['var(--sui-shadow-plate)', 'var(--sui-shadow-dialog)', 'var(--sui-shadow-dialog)'],
+    'the light block, then each dark block'
+  );
+  assert.match(
+    read('src/lib/components/Modal.svelte'),
+    /\.sui-modal\.preview \{[^}]*box-shadow: var\(--sui-shadow-dialog-in-place\);/
   );
 });
 

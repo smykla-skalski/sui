@@ -367,8 +367,11 @@ dialog, so they are never inert under it.
     padding: calc(var(--sui-local-modal-inset) / 2) var(--sui-local-modal-inset);
   }
 
-  /* Open without the entry animation, which would replay on every page load. */
+  /* Open without the entry animation, which would replay on every page load. With no scrim
+     under it, a light dialog's own lift reads as a grey band on the page, so it lifts as a
+     plate does (L-58). */
   .sui-modal.preview {
+    box-shadow: var(--sui-shadow-dialog-in-place);
     display: flex;
     flex-direction: column;
     max-inline-size: 100%;

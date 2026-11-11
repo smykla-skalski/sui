@@ -277,7 +277,7 @@
      the bright ink in dark, so a lighter ground never takes contrast away. */
   --sui-hover-ink: var(--sui-text-primary);
   --sui-interactive-pressed: rgb(0 0 0 / 14%);
-  --sui-scrim: rgb(0 0 0 / 35%);
+  --sui-scrim: rgb(0 0 0 / 28%);
   --sui-scrim-blur: 2px;
 
   --sui-sidebar-bg: var(--sui-canvas);
@@ -644,6 +644,7 @@
   --sui-shadow-dialog:
     0 2px 8px color-mix(in srgb, var(--sui-shadow-color) 33%, transparent),
     0 8px 24px color-mix(in srgb, var(--sui-shadow-color) 44%, transparent);
+  --sui-shadow-dialog-in-place: var(--sui-shadow-plate);
 
   --sui-segment-track: color-mix(in srgb, var(--sui-text-primary) 5%, transparent);
 
@@ -901,6 +902,7 @@
   --sui-shadow-dialog:
     0 4px 12px color-mix(in srgb, var(--sui-shadow-color) 40%, transparent),
     0 24px 60px var(--sui-shadow-color);
+  --sui-shadow-dialog-in-place: var(--sui-shadow-dialog);
   --sui-chart-1: #4990e8;
   --sui-chart-2: #db7431;
   --sui-chart-3: #47bbb3;
@@ -1139,6 +1141,7 @@
     --sui-shadow-dialog:
       0 4px 12px color-mix(in srgb, var(--sui-shadow-color) 40%, transparent),
       0 24px 60px var(--sui-shadow-color);
+    --sui-shadow-dialog-in-place: var(--sui-shadow-dialog);
     --sui-chart-1: #4990e8;
     --sui-chart-2: #db7431;
     --sui-chart-3: #47bbb3;
