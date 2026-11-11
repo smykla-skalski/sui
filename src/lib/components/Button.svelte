@@ -60,6 +60,9 @@
   const locked = $derived(
     busy || ariaDisabled === true || ariaDisabled === 'true' || holding !== null
   );
+  /* A firmly held link loses its address as a held button is disabled, so a middle press or
+     the context menu cannot follow it while the work runs. */
+  const unreachable = $derived(disabled || holding === 'firm');
   const spinning = shownWait(() => loading);
   const reserving = $derived(reserve && !spinning.current && !icon);
 
@@ -113,8 +116,8 @@ start.
 {#if href !== undefined}
   <a
     bind:this={element}
-    href={disabled ? undefined : href}
-    role={disabled ? 'link' : undefined}
+    href={unreachable ? undefined : href}
+    role={unreachable ? 'link' : undefined}
     {...rest as HTMLAnchorAttributes}
     class={['sui-button', className, { busy, reserving }]}
     data-tone={tone}
