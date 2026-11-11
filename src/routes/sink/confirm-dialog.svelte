@@ -7,7 +7,7 @@
 </script>
 
 <script lang="ts">
-  import { Button, ConfirmDialog, Field, toast } from '#lib';
+  import { Button, ConfirmDialog, Field, Modal, toast } from '#lib';
   import Example from '../kit/Example.svelte';
   import Specimen from '../kit/Specimen.svelte';
 
@@ -45,6 +45,7 @@
   note="A destructive question wears the stop tone, and an act that gives something confirms with the signal tone"
   layout="stack"
   ground="canvas"
+  --example-max="37rem"
 >
   <Specimen label="Destructive">
     <ConfirmDialog
@@ -70,6 +71,7 @@
   note="Anything the answer needs goes in the body under the consequence"
   layout="stack"
   ground="canvas"
+  --example-max="37rem"
 >
   <Specimen label="Reason field">
     <ConfirmDialog
@@ -87,6 +89,7 @@
 <Example
   title="Asking"
   note="Cancel opens focused on a destructive question, and the confirm action opens focused on an affirmative one"
+  --example-max="37rem"
 >
   <Specimen label="Destructive">
     <Button tone="stop-quiet" onclick={() => (remove = true)}>Delete Repository</Button>
@@ -102,8 +105,40 @@
 <Example
   title="Pending & Failed"
   note="The act runs before the dialog closes, so a refusal keeps the question open and says so"
+  layout="stack"
+  ground="canvas"
+  --example-max="37rem"
 >
+  <!-- Drawn by Modal, since the question reaches these states only while its act runs. -->
+  <Specimen label="Pending">
+    <Modal
+      preview
+      busy
+      role="alertdialog"
+      title="Leave This Workspace?"
+      description="You lose access to its repositories until an owner invites you again"
+    >
+      {#snippet footer()}
+        <Button disabled>Cancel</Button>
+        <Button tone="stop" loading>Leave Workspace</Button>
+      {/snippet}
+    </Modal>
+  </Specimen>
   <Specimen label="Refused">
+    <Modal
+      preview
+      role="alertdialog"
+      title="Leave This Workspace?"
+      description="You lose access to its repositories until an owner invites you again"
+      error="The workspace needs 1 owner, so you cannot leave it yet"
+    >
+      {#snippet footer()}
+        <Button>Cancel</Button>
+        <Button tone="stop">Leave Workspace</Button>
+      {/snippet}
+    </Modal>
+  </Specimen>
+  <Specimen label="Live">
     <Button tone="stop-quiet" onclick={() => (leaving = true)}>Leave Workspace</Button>
   </Specimen>
 </Example>
@@ -112,6 +147,7 @@
   title="Removing the Opener"
   note="When the confirmed act removes the row that asked, focus moves to the next row and never to the page"
   layout="stack"
+  --example-max="37rem"
 >
   <Specimen label={`${tokens.length} tokens`}>
     <ul class="tokens" role="list">
@@ -139,6 +175,7 @@
 <Example
   title="No Question"
   note="An act that can be undone just happens and offers Undo in a toast"
+  --example-max="37rem"
 >
   <Specimen label={archived ? 'Archived' : 'Active'}>
     <Button onclick={archived ? restore : archive}

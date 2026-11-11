@@ -244,7 +244,9 @@ suite('overlays', together, () => {
     });
 
     test('S3 a refused confirmation stays open, pending and then failed, never closing on Escape', async () => {
-      const opener = page.locator('#confirm-dialog button', { hasText: 'Leave Workspace' }).first();
+      const opener = page
+        .locator('#confirm-dialog button:not(.sui-modal *)', { hasText: 'Leave Workspace' })
+        .first();
       await opener.scrollIntoViewIfNeeded();
       await opener.click();
       const confirm = page.locator('dialog[open] button', { hasText: 'Leave Workspace' });
