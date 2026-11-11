@@ -104,6 +104,9 @@
     <Specimen label="With a reason">
       <Button tone="stop-quiet" onclick={() => (revoke = true)}>Revoke Token</Button>
     </Specimen>
+    <Specimen label="Refused">
+      <Button tone="stop-quiet" onclick={() => (leaving = true)}>Leave Workspace</Button>
+    </Specimen>
   </Example>
 </Pair>
 
@@ -144,9 +147,6 @@
         <Button tone="stop">Leave Workspace</Button>
       {/snippet}
     </Modal>
-  </Specimen>
-  <Specimen label="Live">
-    <Button tone="stop-quiet" onclick={() => (leaving = true)}>Leave Workspace</Button>
   </Specimen>
 </Example>
 
