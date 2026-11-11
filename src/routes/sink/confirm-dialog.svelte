@@ -93,6 +93,8 @@
   <Example
     title="Asking"
     note="Cancel opens focused on a destructive question, and the confirm action opens focused on an affirmative one"
+    layout="grid"
+    --specimen-min="calc((100% - var(--sui-space-6)) / 2 - 1px)"
     --example-max="33rem"
   >
     <Specimen label="Destructive">
@@ -247,9 +249,13 @@
     display: contents;
   }
 
+  /* Every Revoke action shares the widest one's column, so their edges line up beside the
+     names. */
   .tokens {
+    --sui-local-button-span: 100%;
     display: grid;
-    gap: var(--sui-space-2);
+    gap: var(--sui-space-2) var(--sui-space-3);
+    grid-template-columns: minmax(0, 1fr) max-content;
     list-style: none;
     margin: 0;
     padding: 0;
@@ -257,10 +263,9 @@
 
   .tokens > li {
     align-items: center;
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--sui-space-2) var(--sui-space-3);
-    justify-content: space-between;
+    display: grid;
+    grid-column: 1 / -1;
+    grid-template-columns: subgrid;
   }
 
   .token {
