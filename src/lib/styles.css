@@ -646,6 +646,11 @@
   --sui-shadow-tooltip:
     0 1px 2px color-mix(in srgb, var(--sui-shadow-color) 40%, transparent),
     0 4px 12px color-mix(in srgb, var(--sui-shadow-color) 72%, transparent);
+  /* Toasts stack over the page, so each lifts on a lighter layer than a menu's and a stack of
+     them never reads as one smudge (L-54). */
+  --sui-shadow-toast:
+    0 1px 2px color-mix(in srgb, var(--sui-shadow-color) 40%, transparent),
+    0 4px 12px color-mix(in srgb, var(--sui-shadow-color) 40%, transparent);
   --sui-shadow-dialog:
     0 2px 8px color-mix(in srgb, var(--sui-shadow-color) 33%, transparent),
     0 8px 24px color-mix(in srgb, var(--sui-shadow-color) 44%, transparent);
@@ -913,6 +918,7 @@
     0 2px 6px color-mix(in srgb, var(--sui-shadow-color) 40%, transparent),
     0 8px 20px color-mix(in srgb, var(--sui-shadow-color) 62%, transparent);
   --sui-shadow-tooltip: initial;
+  --sui-shadow-toast: initial;
   --sui-shadow-dialog:
     inset 0 1px 0 rgb(255 255 255 / 6%),
     0 4px 12px color-mix(in srgb, var(--sui-shadow-color) 40%, transparent),
@@ -1166,6 +1172,7 @@
       0 2px 6px color-mix(in srgb, var(--sui-shadow-color) 40%, transparent),
       0 8px 20px color-mix(in srgb, var(--sui-shadow-color) 62%, transparent);
     --sui-shadow-tooltip: initial;
+    --sui-shadow-toast: initial;
     --sui-shadow-dialog:
       inset 0 1px 0 rgb(255 255 255 / 6%),
       0 4px 12px color-mix(in srgb, var(--sui-shadow-color) 40%, transparent),

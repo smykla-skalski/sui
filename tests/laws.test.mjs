@@ -233,6 +233,11 @@ test('L-24 a title stands 12px above its description, copy lines 8px apart, form
     "a dialog's description is set at the body size and wraps at the note leading"
   );
   assert.match(
+    stripComments(read('src/lib/components/Toaster.svelte')),
+    /\.sui-toast-description \{[^}]*line-height: var\(--sui-leading-note\);/,
+    "a toast's description wraps at the note leading"
+  );
+  assert.match(
     stripComments(read('src/lib/components/Modal.svelte')),
     /\.sui-modal-head \{[^}]*gap: var\(--sui-space-4\);/,
     "a dialog's title stands 16px over its description, a step past a card's 12px (L-58)"
@@ -1384,6 +1389,28 @@ test('L-53 a shadow that lifts a part is two layers in every palette block, and 
     [...lift.matchAll(/color-mix\(in srgb, var\(--sui-shadow-color\) (\d+)%/g)].at(-1)?.[1]
   );
   assert.ok(Number(tipLift[3]) > ambient, 'a light tip lifts on a firmer layer than a menu');
+  const toast = /--sui-shadow-toast:([^;]+);/.exec(palette)?.[1] ?? '';
+  const [toastContact, toastLift] = [
+    ...toast.matchAll(/0 (\d+)px (\d+)px color-mix\(in srgb, var\(--sui-shadow-color\) (\d+)%/g)
+  ];
+  assert.equal(toastContact?.[1], '1', 'a light toast opens on the popover contact line');
+  assert.ok(
+    Number(toastContact[3]) <= Number(contact[1]),
+    'a light toast contact line is no darker'
+  );
+  assert.ok(
+    Number(toastLift[1]) <= 4 && Number(toastLift[2]) <= 12 && Number(toastLift[3]) < ambient,
+    'a light toast lifts on a lighter layer than a menu'
+  );
+  assert.equal(
+    [...palette.matchAll(/--sui-shadow-toast: initial;/g)].length,
+    2,
+    'a dark toast keeps the popover lift and its rim of light'
+  );
+  assert.match(
+    read('src/lib/components/Toaster.svelte'),
+    /box-shadow: var\(--sui-shadow-toast, var\(--sui-shadow-popover\)\);/
+  );
   assert.deepEqual(
     found.filter(([, , value]) => layers(value) < 2).map(([, name]) => name),
     []

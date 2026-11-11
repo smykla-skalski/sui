@@ -363,7 +363,7 @@ A `danger` toast reports a failure and stays too.
     background-color: var(--sui-popover-bg);
     border: var(--sui-stroke) solid var(--sui-popover-border);
     border-radius: var(--sui-radius-surface);
-    box-shadow: var(--sui-shadow-popover);
+    box-shadow: var(--sui-shadow-toast, var(--sui-shadow-popover));
     box-sizing: border-box;
     color: var(--sui-text-primary);
     display: flex;
@@ -497,8 +497,10 @@ A `danger` toast reports a failure and stays too.
     font-weight: var(--sui-weight-semibold);
   }
 
+  /* Wrapped, the reason under the title reads as a note, not a dense block (L-24). */
   .sui-toast-description {
     color: var(--sui-text-secondary);
+    line-height: var(--sui-leading-note);
   }
 
   /* A preview is drawn once at load and never enters. */
