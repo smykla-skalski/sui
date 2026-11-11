@@ -98,6 +98,9 @@
   note="F8 moves focus to the newest toast and Escape hands it back, and a stack taller than the screen scrolls"
   layout="grid"
   ground="canvas"
+  --specimen-min="24rem"
+  --specimen-max="24rem"
+  --example-max="calc(52.5rem + 2 * var(--sui-stroke))"
 >
   <Specimen label="3 toasts">
     <Toaster

@@ -1092,14 +1092,16 @@ suite('overlays', together, () => {
     const page = await open();
     try {
       const drawn = await page.evaluate(() =>
-        [...document.querySelectorAll('#toaster .sui-toaster.preview .sui-toast')].map(
-          (toast) => toast.getBoundingClientRect().width
-        )
+        [...document.querySelectorAll('#toaster .sui-toaster.preview .sui-toast')].map((toast) => ({
+          width: toast.getBoundingClientRect().width,
+          room: Math.min(24 * 16, /** @type {Element} */ (toast.parentElement).clientWidth)
+        }))
       );
       assert.ok(drawn.length >= 4, 'the sink no longer draws its toasts');
-      assert.ok(
-        Math.max(...drawn) - Math.min(...drawn) <= 0.5,
-        `drawn toasts ${drawn.join(', ')}px wide`
+      assert.deepEqual(
+        drawn.filter(({ width, room }) => Math.abs(width - room) > 0.5),
+        [],
+        'a drawn toast is not 24rem or the room it has'
       );
       await page.locator('#toaster button', { hasText: 'Save Settings' }).click();
       const live = page.locator('.sui-toaster:popover-open .sui-toast');
