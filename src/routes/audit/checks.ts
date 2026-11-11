@@ -864,23 +864,37 @@ function separators(root: Document): Finding[] {
 function copyRhythm(root: Document): Finding[] {
   const found: Finding[] = [];
   const trimmed = (element: Element) => getComputedStyle(element).textBoxTrim === 'trim-both';
+  // A setting row's status leads its words with a mark, so its trimmed words are the span in it.
+  const words = (element: Element) => {
+    if (trimmed(element)) return element;
+    const span = element.matches('.sui-setting-state')
+      ? element.querySelector(':scope > span')
+      : null;
+    return span && trimmed(span) ? span : null;
+  };
   for (const first of audited(root, 'body *')) {
     const second = first.nextElementSibling;
-    if (!second || !shown(second) || !trimmed(first) || !trimmed(second)) continue;
+    if (!second || !shown(second)) continue;
+    const [over, under] = [words(first), words(second)];
+    if (!over || !under) continue;
     if (first.matches(INTERACTIVE) || second.matches(INTERACTIVE)) continue;
-    const a = first.getBoundingClientRect();
-    const b = second.getBoundingClientRect();
-    if (b.top < a.bottom - 0.5 || Math.abs(a.left - b.left) > 1) continue;
-    const gap = b.top - a.bottom;
+    const a = over.getBoundingClientRect();
+    const top = under.getBoundingClientRect().top;
+    if (
+      top < a.bottom - 0.5 ||
+      Math.abs(first.getBoundingClientRect().left - second.getBoundingClientRect().left) > 1
+    )
+      continue;
+    const gap = top - a.bottom;
     const titled =
       /^H[1-6]$/.test(first.tagName) ||
       [...first.classList].some((name) => name === 'title' || name.endsWith('-title'));
     // A state's step in words stands apart from the explanation over it, as words do from a title,
-    // and so does a setting row's status under its description; one right under the name is
+    // and so does a setting row's status or problem under its description; one right under the name is
     // the row's only copy line, 8px off it.
     const step =
       [...second.classList].some((name) => name.endsWith('-state-step')) ||
-      (second.classList.contains('sui-setting-status') && first.matches('.sui-setting-why'));
+      (second.classList.contains('sui-setting-state') && first.matches('.sui-setting-why'));
     const want = titled || step ? 12 : 8;
     if (Math.abs(gap - want) > 0.75 && gap < 16)
       found.push(

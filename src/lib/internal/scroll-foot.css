@@ -1,0 +1,68 @@
+/*
+  The foot fade of a floating layer or list that scrolls (L-107). While more is below, its foot
+  fades over 16px, so a cut row reads as more to scroll and never as words lost; the fade clears
+  a pixel short of the end. A box that fits has no scroll timeline, so it never fades, and
+  neither does one without scroll timelines.
+
+  A component imports this sheet and puts `sui-scroll-foot` on a popover that scrolls: the fade
+  is a row of the popover's ground inside its edge, so the edge, its shadow and the focus ring
+  over it stay whole. A list that scrolls inside a popover in its place takes
+  `sui-scroll-foot-list`: it draws no edge or shadow of its own, so it masks its foot instead,
+  and the gaps between its rows stay as they are, where a row of its own would add one. A
+  select's picker is the browser's box, which the build's minifier cannot give a pseudo-element,
+  so its options fade as they cross its foot instead (`Select.svelte`).
+*/
+
+@property --sui-scroll-foot {
+  syntax: '<length>';
+  inherits: false;
+  initial-value: 0px;
+}
+
+@supports (animation-timeline: scroll()) {
+  .sui-scroll-foot::after {
+    animation: sui-scroll-foot var(--sui-ease-linear) both;
+    animation-range: calc(100% - 2px) calc(100% - 1px);
+    animation-timeline: scroll(nearest block);
+    background: linear-gradient(transparent, var(--sui-popover-bg));
+    block-size: var(--sui-space-4);
+    content: '';
+    display: block;
+    inset-block-end: 0;
+    margin-block-start: calc(-1 * var(--sui-space-4));
+    opacity: 0;
+    pointer-events: none;
+    position: sticky;
+  }
+
+  .sui-scroll-foot-list {
+    animation: sui-scroll-foot-list var(--sui-ease-linear) both;
+    animation-range: calc(100% - 2px) calc(100% - 1px);
+    animation-timeline: scroll(self block);
+    mask-image: linear-gradient(
+      to bottom,
+      var(--sui-canvas) calc(100% - var(--sui-scroll-foot)),
+      transparent
+    );
+  }
+}
+
+@keyframes sui-scroll-foot {
+  from {
+    opacity: 1;
+  }
+
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes sui-scroll-foot-list {
+  from {
+    --sui-scroll-foot: var(--sui-space-4);
+  }
+
+  to {
+    --sui-scroll-foot: 0px;
+  }
+}

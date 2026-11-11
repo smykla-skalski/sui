@@ -1740,6 +1740,87 @@ suite('overlays', together, () => {
     });
   });
 
+  // Combobox and AdditionPicker scroll a list inside their popover, and Select scrolls the
+  // browser's picker, so each fades its own foot (L-107), not the popover around it.
+  test('a floating list taller than its room fades its foot until its end', long, async () => {
+    const page = await openMount(browser, url, { viewport: { width: 900, height: 600 } });
+    try {
+      await page.evaluate(() => {
+        const { lib, mount, flushSync } = /** @type {any} */ (window);
+        const many = Array.from({ length: 40 }, (_, index) => ({
+          value: `v${index}`,
+          label: `Choice ${index + 1}`
+        }));
+        const host = document.body.appendChild(document.createElement('div'));
+        host.style.cssText = 'display:flex;gap:240px;padding:24px';
+        for (const [component, props] of [
+          [lib.Combobox, { 'aria-label': 'Team', options: many }],
+          [lib.AdditionPicker, { label: 'Add a Check', choices: many, onadd() {} }],
+          [lib.Select, { 'aria-label': 'Owner', options: many }]
+        ])
+          mount(component, { target: host.appendChild(document.createElement('div')), props });
+        flushSync();
+      });
+      const settle = () =>
+        page.evaluate(
+          () => new Promise((done) => requestAnimationFrame(() => requestAnimationFrame(done)))
+        );
+      /** @param {string} box */
+      const foot = (box) =>
+        page.evaluate((selector) => {
+          const list = /** @type {HTMLElement} */ (document.querySelector(selector));
+          return getComputedStyle(list).getPropertyValue('--sui-scroll-foot');
+        }, box);
+      /** @param {string} box */
+      const toEnd = (box) =>
+        page.evaluate((selector) => {
+          const list = /** @type {HTMLElement} */ (document.querySelector(selector));
+          list.scrollTop = list.scrollHeight;
+        }, box);
+
+      await page.getByRole('combobox', { name: 'Team' }).click();
+      await page.keyboard.press('ArrowDown');
+      await page.waitForSelector('.sui-combobox-list:not([hidden])');
+      await settle();
+      assert.equal(await foot('.sui-combobox-list'), '16px', 'a long combobox list fades its foot');
+      await toEnd('.sui-combobox-list');
+      await settle();
+      assert.equal(await foot('.sui-combobox-list'), '0px', 'at its end nothing fades');
+      await page.keyboard.press('Escape');
+
+      await page.getByRole('button', { name: 'Add a Check' }).click();
+      await page.waitForSelector('.sui-addition-menu');
+      await settle();
+      assert.equal(await foot('.sui-addition-menu'), '16px', 'a long addition menu fades its foot');
+      await toEnd('.sui-addition-menu');
+      await settle();
+      assert.equal(await foot('.sui-addition-menu'), '0px', 'at its end nothing fades');
+      await page.keyboard.press('Escape');
+
+      await page.getByRole('combobox', { name: 'Owner' }).click();
+      await page.waitForFunction(() => document.querySelector('.sui-select-control:open'));
+      await settle();
+      /** @param {'first' | 'last'} end */
+      const strength = (end) =>
+        page.evaluate((which) => {
+          const options = [...document.querySelectorAll('.sui-select-control:open option')];
+          const option = /** @type {Element} */ (which === 'first' ? options[0] : options.at(-1));
+          return Number(getComputedStyle(option).opacity);
+        }, end);
+      assert.equal(await strength('first'), 1, 'a whole option shows at full strength');
+      assert.ok((await strength('last')) < 1, 'an option past the picker foot is faded');
+      await page.evaluate(() =>
+        document.querySelector('.sui-select-control:open option:last-of-type')?.scrollIntoView({
+          block: 'end'
+        })
+      );
+      await settle();
+      assert.equal(await strength('last'), 1, 'at the picker end the last option shows whole');
+    } finally {
+      await page.close();
+    }
+  });
+
   suite('tips on a held clock, on one mounted page', inOrder, () => {
     /** @type {import('playwright-core').Page} */
     let page;

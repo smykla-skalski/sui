@@ -15,6 +15,7 @@
   import { held, holdAround } from '../internal/held.svelte.js';
   import { pageLocale } from '../internal/locale.js';
   import { shownWait } from '../internal/shown-wait.svelte.js';
+  import '../internal/scroll-foot.css';
   import Button from './Button.svelte';
   import Popover from './Popover.svelte';
 
@@ -234,7 +235,7 @@ new control after `onadd` is the caller's.
       role="menu"
       tabindex="-1"
       aria-label={label}
-      class="sui-addition-menu"
+      class="sui-addition-menu sui-scroll-foot-list"
       onkeydown={preview ? undefined : onkeydown}
     >
       <!-- The trigger promises a menu, so any message in place of the choices is a disabled item inside one. -->

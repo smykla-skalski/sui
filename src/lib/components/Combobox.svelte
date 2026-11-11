@@ -17,6 +17,7 @@
   import { held, holdAround } from '../internal/held.svelte.js';
   import { formatCount } from '../internal/locale.js';
   import { shownWait } from '../internal/shown-wait.svelte.js';
+  import '../internal/scroll-foot.css';
   import Popover from './Popover.svelte';
   import TextInput from './TextInput.svelte';
   import VisuallyHidden from './VisuallyHidden.svelte';
@@ -461,7 +462,7 @@ Name it with a `<label>` or `aria-label`, as any field.
       id={listId}
       role="listbox"
       tabindex="-1"
-      class="sui-combobox-list"
+      class="sui-combobox-list sui-scroll-foot-list"
       aria-label={listLabel}
       hidden={rows === 0}
     >

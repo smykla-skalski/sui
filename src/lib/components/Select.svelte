@@ -28,6 +28,7 @@
   import { mark, word } from '../words.js';
   import type { HTMLSelectAttributes } from 'svelte/elements';
   import Icon from '../icons/Icon.svelte';
+  import '../internal/scroll-foot.css';
   import { held, holdAround } from '../internal/held.svelte.js';
   import { getRefusals } from '../internal/refusals.svelte.js';
   import { themeAt } from '../internal/theme.svelte.js';
@@ -871,6 +872,28 @@ assistive technology, because a native picker cannot be held open.
     /* Apart, because a browser without the picker drops a whole list that names it. */
     .sui-select-control::picker(select) {
       transition: none;
+    }
+  }
+
+  /* An open picker taller than its room fades the row its foot cuts, as every scrolling layer
+     fades its foot (L-107, `scroll-foot.css`). The picker is the browser's box, which the build's
+     minifier cannot give a pseudo-element, so each option fades as it crosses the foot instead,
+     over the last 16px, and a picker that fits shows every option whole. */
+  @supports (animation-timeline: view()) {
+    .sui-select-control:open .sui-select-option {
+      animation: sui-select-foot var(--sui-ease-linear) both;
+      animation-range: entry 0% entry var(--sui-space-4);
+      animation-timeline: view(block);
+    }
+  }
+
+  @keyframes sui-select-foot {
+    from {
+      opacity: 0.25;
+    }
+
+    to {
+      opacity: 1;
     }
   }
 

@@ -268,12 +268,30 @@ test('L-107 a scroll edge fades over 24px, and over 20px on a phone, and a popov
     sheet,
     /@media \(max-width: 29\.9375rem\) \{\s*\.sui-scroll-edge \{\s*--sui-local-edge-fade/
   );
-  const foot = /\.sui-popover::after \{([^}]*)\}/.exec(
-    stripComments(read('src/lib/components/Popover.svelte'))
-  )?.[1];
-  assert.ok(foot, 'a popover draws a foot fade');
-  assert.match(foot, /block-size: var\(--sui-space-4\);/, 'a popover foot fades over 16px');
+  const footSheet = stripComments(read('src/lib/internal/scroll-foot.css'));
+  const foot = /\.sui-scroll-foot::after \{([^}]*)\}/.exec(footSheet)?.[1];
+  assert.ok(foot, 'a scrolling layer draws a foot fade');
+  assert.match(foot, /block-size: var\(--sui-space-4\);/, 'a layer foot fades over 16px');
   assert.match(foot, /animation-timeline: scroll\(nearest block\);/);
+  assert.match(
+    footSheet,
+    /@keyframes sui-scroll-foot-list \{\s*from \{\s*--sui-scroll-foot: var\(--sui-space-4\);/,
+    'a list inside a layer masks its foot over 16px'
+  );
+  for (const [path, scroller] of [
+    ['src/lib/components/Popover.svelte', "'sui-popover', 'sui-scroll-foot'"],
+    ['src/lib/components/Combobox.svelte', 'class="sui-combobox-list sui-scroll-foot-list"'],
+    ['src/lib/components/AdditionPicker.svelte', 'class="sui-addition-menu sui-scroll-foot-list"']
+  ]) {
+    const source = read(path);
+    assert.ok(source.includes("import '../internal/scroll-foot.css';"), `${path} takes the fade`);
+    assert.ok(source.includes(scroller), `${path} fades the box that scrolls`);
+  }
+  assert.match(
+    stripComments(read('src/lib/components/Select.svelte')),
+    /\.sui-select-control:open \.sui-select-option \{[^}]*animation-range: entry 0% entry var\(--sui-space-4\);/,
+    "a select's picker fades the option its foot cuts over 16px"
+  );
 });
 
 test('L-62 a stripe is a 3% veil of the ink, which keeps the place without banding the words', () => {

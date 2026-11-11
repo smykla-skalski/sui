@@ -320,6 +320,28 @@ suite('the kitchen sink', together, () => {
     }
   );
 
+  // A status leads its words with a mark, so only its words are trimmed, and the audit has to
+  // measure them to see the step under the description.
+  test(
+    'L-24 the audit finds a status that stands the wrong gap under its description',
+    long,
+    async () => {
+      const page = await open(1440, 'light', {}, 'setting-list');
+      try {
+        await page.evaluate(() => {
+          const status = document.querySelector('.sui-setting-why + .sui-setting-status');
+          /** @type {HTMLElement} */ (status).style.marginBlockStart = '0px';
+        });
+        const findings = (await audit(page)).filter(
+          ({ law, detail }) => law === 'L-24' && detail.includes('not 12px')
+        );
+        assert.ok(findings.length > 0, 'a status a copy gap under its description is a finding');
+      } finally {
+        await page.close();
+      }
+    }
+  );
+
   // A tablet wider than a phone still has a coarse pointer, so the touch tier must hold there too.
   test('the law audit finds nothing on a 1024px touch screen', long, async () => {
     const page = await open(1024, 'light', { hasTouch: true, isMobile: true });
