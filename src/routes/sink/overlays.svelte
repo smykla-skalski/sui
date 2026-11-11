@@ -7,7 +7,7 @@
 </script>
 
 <script lang="ts">
-  import { Button, Icon, IconButton, Popover, Tooltip } from '#lib';
+  import { Button, Field, Icon, IconButton, Popover, Tooltip } from '#lib';
   import Example from '../kit/Example.svelte';
   import Specimen from '../kit/Specimen.svelte';
 
@@ -16,10 +16,12 @@
   let pinned = $state<HTMLButtonElement | HTMLAnchorElement | null>(null);
   let tall = $state<HTMLButtonElement | HTMLAnchorElement | null>(null);
   let pinnedOpen = $state(false);
+  let note = $state('Ship after the review');
 
   const changes = Array.from({ length: 24 }, (_, index) => `Change ${index + 1} in 0.3.0`);
   let sync = $state<HTMLButtonElement | HTMLAnchorElement | null>(null);
   let openSync = $state<HTMLButtonElement | HTMLAnchorElement | null>(null);
+  let openName = $state<HTMLButtonElement | null>(null);
   let opens = $state(0);
   let synced = $state(false);
 
@@ -35,7 +37,7 @@
   layout="grid"
   --example-max="48rem"
   --specimen-min="19rem"
-  --specimen-row-gap="4.5rem"
+  --specimen-row-gap="5.25rem"
 >
   <Specimen label="Toggled by its trigger">
     <Button bind:element={trigger} popovertarget="sink-popover">
@@ -89,7 +91,10 @@
       <div class="panel">
         <p id="sink-popover-pinned-title" class="panel-title">Notes stay open</p>
         <p class="panel-copy">A press outside leaves them in place</p>
-        <Button onclick={() => (pinnedOpen = false)}>Close the Notes</Button>
+        <div class="panel-field"><Field label="Note" bind:value={note} /></div>
+        <div class="panel-action">
+          <Button onclick={() => (pinnedOpen = false)}>Close the Notes</Button>
+        </div>
       </div>
     </Popover>
   </Specimen>
@@ -173,7 +178,8 @@
         <div class="panel">
           <p id="sink-popover-open-pinned-title" class="panel-title">Notes stay open</p>
           <p class="panel-copy">A press outside leaves them in place</p>
-          <Button>Close the Notes</Button>
+          <div class="panel-field"><Field label="Note" value="Ship after the review" /></div>
+          <div class="panel-action"><Button>Close the Notes</Button></div>
         </div>
       </Popover>
     </div>
@@ -199,10 +205,16 @@
       </Popover>
     </div>
   </Specimen>
-  <Specimen label="Open tip">
-    <div class="open centred">
-      <Button bind:element={openSync} onclick={() => (synced = true)}>Sync Now</Button>
-      <Tooltip anchor={openSync} preview text={syncHint} />
+  <Specimen label="Open tips, a name and a description">
+    <div class="tips">
+      <div class="open centred">
+        <IconButton bind:element={openName} icon="settings" label="Open the settings" toolbar />
+        <Tooltip anchor={openName} preview text="Open the settings" />
+      </div>
+      <div class="open centred">
+        <Button bind:element={openSync} onclick={() => (synced = true)}>Sync Now</Button>
+        <Tooltip anchor={openSync} preview text={syncHint} />
+      </div>
     </div>
   </Specimen>
 </Example>
@@ -235,6 +247,24 @@
     margin: 0;
     padding-block: var(--sui-block-snap-room);
     text-box: trim-both cap alphabetic;
+  }
+
+  /* A field in a panel stands a form's 20px under the copy, and the action that closes the
+     panel 24px past it, so it reads as the panel's close and not as a line of copy (L-35). */
+  .panel-field {
+    justify-self: stretch;
+    margin-block-start: var(--sui-space-2);
+  }
+
+  .panel-action {
+    margin-block-start: var(--sui-space-3);
+  }
+
+  /* The two tip copies side by side, each tip over its own control. */
+  .tips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--sui-space-4);
   }
 
   .changes {

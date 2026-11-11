@@ -656,10 +656,6 @@ suite('overlays', together, () => {
             return box.top < floor - 4 && box.bottom > floor + 4;
           }),
           fade: getComputedStyle(list, '::after').opacity,
-          centres: [tip, sync].map((box) => {
-            const { left, width } = /** @type {Element} */ (box).getBoundingClientRect();
-            return left + width / 2;
-          }),
           above:
             (tip?.getBoundingClientRect().bottom ?? Infinity) <
             (sync?.getBoundingClientRect().top ?? 0)
@@ -673,11 +669,20 @@ suite('overlays', together, () => {
       assert.ok(!seen.narrower, 'the open list keeps its trigger width, as the live one does');
       assert.ok(seen.above, 'the open tip stands over its button, as the live tip does');
       assert.equal(seen.fade, '1', 'the foot of a list with more below fades');
-      const [tipCentre, syncCentre] = seen.centres;
-      assert.ok(
-        Math.abs(tipCentre - syncCentre) <= 1,
-        `the open tip centres on ${tipCentre}px over its button's ${syncCentre}px, as the live tip`
+      const centres = await page.evaluate(() =>
+        [...document.querySelectorAll('#overlays .open.centred')].map((copy) =>
+          [copy.querySelector('.sui-tooltip.preview'), copy.querySelector('button')].map((box) => {
+            const { left, width } = /** @type {Element} */ (box).getBoundingClientRect();
+            return left + width / 2;
+          })
+        )
       );
+      assert.equal(centres.length, 2, 'a name tip and a description tip are drawn open');
+      for (const [tipCentre, buttonCentre] of centres)
+        assert.ok(
+          Math.abs(tipCentre - buttonCentre) <= 1,
+          `an open tip centres on ${tipCentre}px over its button's ${buttonCentre}px, as the live tip`
+        );
       const [end, fits] = await page.evaluate(async () => {
         const list = /** @type {HTMLElement} */ (document.getElementById('sink-popover-open-tall'));
         const top = list.scrollTop;
@@ -727,8 +732,10 @@ suite('overlays', together, () => {
       await trigger.evaluate((button) => button.scrollIntoView({ block: 'start' }));
       await trigger.click();
       await page.waitForFunction(() => document.querySelector('#sink-popover:popover-open'));
-      const [floor, name] = await page.evaluate(() => {
+      const [floor, name] = await page.evaluate(async () => {
         const layer = /** @type {Element} */ (document.getElementById('sink-popover'));
+        // The layer grows out of its edge, so it is measured once the growth ends.
+        await Promise.all(layer.getAnimations().map((animation) => animation.finished));
         const pinned = /** @type {Element} */ (
           document.querySelector('button[popovertarget="sink-popover-pinned"]')
         );
@@ -739,8 +746,8 @@ suite('overlays', together, () => {
       });
       await page.keyboard.press('Escape');
       assert.ok(
-        floor < name,
-        `the open layer ends at ${floor}px, the next name starts at ${name}px`
+        name - floor >= 8,
+        `the open layer ends at ${floor}px, only ${name - floor}px over the next name`
       );
     });
 
