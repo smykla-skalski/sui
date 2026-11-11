@@ -628,7 +628,7 @@ suite('overlays', together, () => {
       assert.equal(gap, step);
     });
 
-    test('the open copies title a panel a type step over its copy, cut a scrolling list mid-row and draw the tip over its button', async () => {
+    test('the open copies title a panel a type step over its copy, cut a scrolling list as wide as its trigger mid-row and draw the tip over its button', async () => {
       const seen = await page.evaluate(() => {
         const size = (/** @type {string} */ id) =>
           parseFloat(
@@ -648,6 +648,9 @@ suite('overlays', together, () => {
             ).fontSize
           ),
           scrolls: list.scrollHeight > list.clientHeight,
+          narrower:
+            list.getBoundingClientRect().width <
+            /** @type {Element} */ (list.previousElementSibling).getBoundingClientRect().width,
           cut: [...list.querySelectorAll('li')].some((row) => {
             const box = row.getBoundingClientRect();
             return box.top < floor - 4 && box.bottom > floor + 4;
@@ -659,6 +662,7 @@ suite('overlays', together, () => {
       });
       assert.ok(seen.title > seen.copy, `title ${seen.title}px over copy ${seen.copy}px`);
       assert.ok(seen.scrolls && seen.cut, 'the open list scrolls and its floor cuts a row');
+      assert.ok(!seen.narrower, 'the open list keeps its trigger width, as the live one does');
       assert.ok(seen.above, 'the open tip stands over its button, as the live tip does');
     });
 

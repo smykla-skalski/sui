@@ -122,7 +122,9 @@
 
 <Example
   title="Open"
+  layout="grid"
   --example-max="54rem"
+  --specimen-min="19rem"
   note="The popovers and a described tip drawn in place, so a review needs no click or hover"
 >
   <Specimen label="Open popover">
@@ -167,14 +169,14 @@
     </div>
   </Specimen>
   <Specimen label="Open list, scrolling inside">
-    <div class="open floating">
+    <div class="open floating fit">
       <Button aria-expanded="true" aria-controls="sink-popover-open-tall">
         Show Every Change
         {#snippet trailing()}<Icon name="chevron-down" size="base" />{/snippet}
       </Button>
       <Popover
         id="sink-popover-open-tall"
-        style="max-block-size: 11.25rem"
+        style="justify-self: stretch; max-block-size: 11.4375rem"
         anchor={null}
         inline
         role="dialog"
@@ -242,6 +244,12 @@
     grid-template-columns: minmax(0, 1fr);
     justify-items: start;
     min-inline-size: 0;
+  }
+
+  /* A column as wide as the wider of the trigger and its list, which stretches to it, so the
+     copy keeps the live list's least width, its trigger's (`width="min-trigger"`). */
+  .fit {
+    grid-template-columns: minmax(0, max-content);
   }
 
   /* An inline popover skips placement, so its copy takes the floating gap here. The tip copy
