@@ -1921,11 +1921,40 @@ suite('overlays', together, () => {
           list.scrollTop = list.scrollHeight;
         }, box);
 
+      /**
+       * Arrows down past the fold, then reports how far the lit row stands clear of the fade.
+       * @param {string} box
+       * @param {string} lit
+       */
+      const clearance = async (box, lit) => {
+        for (let press = 0; press < 14; press++) await page.keyboard.press('ArrowDown');
+        await settle();
+        return page.evaluate(
+          ([selector, row]) => {
+            const list = /** @type {HTMLElement} */ (document.querySelector(selector));
+            const at = /** @type {Element} */ (list.querySelector(row)).getBoundingClientRect();
+            const view = list.getBoundingClientRect();
+            return {
+              scrolled: list.scrollTop > 0,
+              below: list.scrollTop + list.clientHeight < list.scrollHeight - 1,
+              above: at.top - view.top,
+              clear: view.bottom - parseFloat(getComputedStyle(list).borderBottomWidth) - at.bottom
+            };
+          },
+          [box, lit]
+        );
+      };
+
       await page.getByRole('combobox', { name: 'Team' }).click();
       await page.keyboard.press('ArrowDown');
       await page.waitForSelector('.sui-combobox-list:not([hidden])');
       await settle();
       assert.equal(await foot('.sui-combobox-list'), '16px', 'a long combobox list fades its foot');
+      for (const [box, lit] of [['.sui-combobox-list', '.sui-combobox-option.active']]) {
+        const room = await clearance(box, lit);
+        assert.ok(room.scrolled && room.below && room.above >= 0, JSON.stringify(room));
+        assert.ok(room.clear >= 16, `the lit row stands ${room.clear}px over the list's foot`);
+      }
       await toEnd('.sui-combobox-list');
       await settle();
       assert.equal(await foot('.sui-combobox-list'), '0px', 'at its end nothing fades');
@@ -1935,6 +1964,12 @@ suite('overlays', together, () => {
       await page.waitForSelector('.sui-addition-menu');
       await settle();
       assert.equal(await foot('.sui-addition-menu'), '16px', 'a long addition menu fades its foot');
+      const menuRoom = await clearance('.sui-addition-menu', '.sui-addition-choice:focus');
+      assert.ok(
+        menuRoom.scrolled && menuRoom.below && menuRoom.above >= 0,
+        JSON.stringify(menuRoom)
+      );
+      assert.ok(menuRoom.clear >= 16, `the focused row stands ${menuRoom.clear}px over the foot`);
       await toEnd('.sui-addition-menu');
       await settle();
       assert.equal(await foot('.sui-addition-menu'), '0px', 'at its end nothing fades');

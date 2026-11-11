@@ -20,6 +20,12 @@
 }
 
 @supports (animation-timeline: scroll()) {
+  /* A row scrolled to by keyboard stops above the fade, so its focus ring stays whole. */
+  .sui-scroll-foot,
+  .sui-scroll-foot-list {
+    scroll-padding-block-end: var(--sui-space-4);
+  }
+
   .sui-scroll-foot::after {
     animation: sui-scroll-foot var(--sui-ease-linear) both;
     animation-range: calc(100% - 2px) calc(100% - 1px);

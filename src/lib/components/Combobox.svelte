@@ -17,6 +17,7 @@
   import { held, holdAround } from '../internal/held.svelte.js';
   import { formatCount } from '../internal/locale.js';
   import { shownWait } from '../internal/shown-wait.svelte.js';
+  import { revealRow } from '../internal/reveal.js';
   import '../internal/scroll-foot.css';
   import Popover from './Popover.svelte';
   import TextInput from './TextInput.svelte';
@@ -232,14 +233,9 @@
   /* Disabled options stay in the arrow path, so a reader hears they exist; `take` refuses them. */
   const step = (from: number, by: 1 | -1) => (((from + by) % rows) + rows) % rows;
 
-  // Scrolls the list alone: the box is fixed in the top layer, and scrollIntoView could move the page.
   function reveal(): void {
     const row = document.getElementById(optionId(current));
-    if (!list || !row) return;
-    const view = list.getBoundingClientRect();
-    const box = row.getBoundingClientRect();
-    if (box.top < view.top) list.scrollTop -= view.top - box.top;
-    else if (box.bottom > view.bottom) list.scrollTop += box.bottom - view.bottom;
+    if (list && row) revealRow(list, row);
   }
 
   function ask(text: string): void {

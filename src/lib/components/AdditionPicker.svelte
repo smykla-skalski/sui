@@ -15,6 +15,7 @@
   import { held, holdAround } from '../internal/held.svelte.js';
   import { pageLocale } from '../internal/locale.js';
   import { shownWait } from '../internal/shown-wait.svelte.js';
+  import { revealRow } from '../internal/reveal.js';
   import '../internal/scroll-foot.css';
   import Button from './Button.svelte';
   import Popover from './Popover.svelte';
@@ -179,7 +180,9 @@
       if (next < 0) return;
     } else return;
     event.preventDefault();
-    all[next]?.focus({ preventScroll: true });
+    const row = all[next];
+    row?.focus({ preventScroll: true });
+    if (menu && row) revealRow(menu, row);
   }
 </script>
 
