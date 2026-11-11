@@ -497,31 +497,35 @@ dialog, so they are never inert under it.
     position: relative;
   }
 
-  /* The line stands one inset under the last field. */
+  /* The line stands one inset under the last field, or under the question of a dialog with no
+     body, a confirmation's too. */
   .sui-modal-body:has(+ .sui-modal-error + .sui-modal-foot) {
     padding-block-end: var(--sui-local-modal-inset);
   }
 
-  /* A refused save's wash is a ground of its own, so it stands one inset from the words over it
-     and over the actions, as any ink does. */
-  .sui-modal-head + .sui-modal-error:has(> .sui-modal-error-line) {
+  .sui-modal-head + .sui-modal-error:has(+ .sui-modal-foot) {
+    margin-block-start: calc(var(--sui-local-modal-inset) / 2);
+  }
+
+  /* A refused save's wash with no actions under it is a ground of its own, so it stands one
+     inset from the words over it, as any ink does. */
+  .sui-modal-head + .sui-modal-error:has(> .sui-modal-error-line):not(:has(+ .sui-modal-foot)) {
     padding-block-start: calc(var(--sui-local-modal-inset) / 2);
   }
 
-  .sui-modal-error:has(> .sui-modal-error-line) + .sui-modal-foot {
-    padding-block-start: var(--sui-local-modal-inset);
+  /* A line always parts the task from its answer in every dialog, so the actions read as one
+     band whether the body fits, scrolls under them or is only a question. The band is slimmer
+     than the inset and sits on a faint tint of the field well that reaches the dialog's foot:
+     its actions stand 16px under the line, or under a refused save's wash, which starts at
+     the line, and 16px over the foot, so the answer weighs less than the task and reads as its
+     own place (shadcn/ui). */
+  .sui-modal-error + .sui-modal-foot {
+    background: color-mix(in srgb, var(--sui-field-well) 40%, var(--sui-dialog-bg));
+    margin-block-end: calc(-1 * var(--sui-local-modal-inset) / 2);
+    padding-block: var(--sui-space-4);
   }
 
-  /* A line always parts the task from its answer, so the actions read as one band whether the
-     body fits or scrolls under them. The band is slimmer than the inset: its actions stand
-     16px under the line, or under a refused save's wash, which starts at the line, and 16px
-     over the dialog's foot, which pads half an inset of its own, so the answer weighs less
-     than the task (shadcn/ui). */
-  .sui-modal-body + .sui-modal-error + .sui-modal-foot {
-    padding-block: var(--sui-space-4) calc(var(--sui-space-4) - var(--sui-local-modal-inset) / 2);
-  }
-
-  .sui-modal-body + .sui-modal-error:has(+ .sui-modal-foot)::before {
+  .sui-modal-error:has(+ .sui-modal-foot)::before {
     border-block-start: var(--sui-stroke) solid var(--sui-border-subtle);
     content: '';
     inset-block-start: 0;
@@ -542,6 +546,18 @@ dialog, so they are never inert under it.
     margin: 0;
     /* 12px at every width, so two lines of the reason never read as pressed on a phone. */
     padding-block: var(--sui-space-3);
+  }
+
+  /* Over the answer band, a refused save's wash takes the danger edge a form error wears on both
+     sides, the line over it and an edge drawn inside its foot, so the two pale grounds never run
+     together and its words keep their pad. */
+  .sui-modal-error:has(> .sui-modal-error-line):has(+ .sui-modal-foot)::before {
+    border-block-start-color: color-mix(in srgb, var(--sui-danger) 40%, transparent);
+  }
+
+  .sui-modal-error:has(+ .sui-modal-foot) > .sui-modal-error-line {
+    box-shadow: inset 0 calc(-1 * var(--sui-stroke)) 0
+      color-mix(in srgb, var(--sui-danger) 40%, transparent);
   }
 
   /* The symbol centres on the first line of the message, however many lines follow. */

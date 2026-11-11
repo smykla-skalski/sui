@@ -2524,14 +2524,13 @@ function tonedControls(root: Document): Finding[] {
 }
 
 /**
- * A dialog's parts (L-58): the head, the body, the error and the actions stand one inset from
- * every edge and from each other, measured to the ink, and the head 8px more from the body. The
- * line that parts the body from the actions stands one inset under the body, and the actions
+ * A dialog's parts (L-58): the head, the body and the error stand one inset from every edge
+ * and from each other, measured to the ink, and the head 8px more from the body. In every
+ * dialog a line parts the task from its actions one inset under the last ink, and the actions
  * stand 16px under the line and over the dialog's foot. A refused save's wash starts at the
- * line and pads its words 12px, and as a ground of its own it stands one inset from the words
- * over it and from the actions, or 16px from the actions under a line. A body that
- * scrolls is cut where the actions begin, and a docked inspector parks them at its foot, so
- * neither gap is weighed.
+ * line and pads its words 12px, so they stand an inset and 12px under the ink over them and
+ * 12px and 16px over the actions. A body that scrolls is cut where the actions begin, and a
+ * docked inspector parks them at its foot, so neither gap is weighed.
  */
 function dialogInsets(root: Document): Finding[] {
   const found: Finding[] = [];
@@ -2578,9 +2577,6 @@ function dialogInsets(root: Document): Finding[] {
     const foot = bands[bands.length - 1];
     const cut = body !== null && inBody !== null && body.scrollHeight > body.clientHeight + 1;
     const docked = dialog.matches("[data-size='inspector']:not(.preview)");
-    const lined = dialog.querySelector(
-      ':scope > .sui-modal-body + .sui-modal-error + .sui-modal-foot'
-    );
     // A refused save's wash pads its words 12px at every width, and the band a line parts off
     // pads its actions 16px over and under.
     const wash = 12;
@@ -2595,10 +2591,10 @@ function dialogInsets(root: Document): Finding[] {
           : said && under === said
             ? inset + wash
             : said && over === said
-              ? wash + (lined ? slim : inset)
-              : lined && over === inBody
+              ? wash + slim
+              : under === foot
                 ? inset + slim
-                : lined && !under
+                : !under
                   ? slim
                   : inset;
       if (!under)

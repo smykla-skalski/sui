@@ -995,11 +995,8 @@ test('L-72 a floating layer on dark stands off its ground by the raised ground a
     assert.equal(tokens['--sui-popover-bg'], 'var(--sui-surface-raised)', selector);
     assert.equal(tokens['--sui-dialog-bg'], 'var(--sui-surface-raised)', selector);
     assert.equal(tokens['--sui-surface-control'], 'var(--sui-surface-base)', selector);
-    assert.match(
-      tokens['--sui-shadow-popover'],
-      /^inset 0 1px 0 rgb\(255 255 255 \/ 6%\),/,
-      selector
-    );
+    for (const lift of ['--sui-shadow-popover', '--sui-shadow-dialog'])
+      assert.match(tokens[lift], /^inset 0 1px 0 rgb\(255 255 255 \/ 6%\),/, `${selector} ${lift}`);
   }
   assert.equal(
     tokenMap(stripComments(block("[data-sui-theme='light']")))['--sui-popover-border'],
@@ -1368,6 +1365,22 @@ test('L-58 a dialog drawn in place lifts as a plate in the light theme and as a 
   assert.match(
     read('src/lib/components/Modal.svelte'),
     /\.sui-modal\.preview \{[^}]*box-shadow: var\(--sui-shadow-dialog-in-place\);/
+  );
+});
+
+test("L-58 the band a line parts off sits on a faint tint of the field well, and a refused save's wash wears a form error's edge over and under it", () => {
+  const modal = read('src/lib/components/Modal.svelte');
+  assert.match(
+    modal,
+    /\.sui-modal-error:has\(> \.sui-modal-error-line\):has\(\+ \.sui-modal-foot\)::before \{\s*border-block-start-color: color-mix\(in srgb, var\(--sui-danger\) 40%, transparent\);/
+  );
+  assert.match(
+    modal,
+    /\.sui-modal-error:has\(\+ \.sui-modal-foot\) > \.sui-modal-error-line \{\s*box-shadow: inset 0 calc\(-1 \* var\(--sui-stroke\)\) 0\s*color-mix\(in srgb, var\(--sui-danger\) 40%, transparent\);/
+  );
+  assert.match(
+    modal,
+    /\.sui-modal-error \+ \.sui-modal-foot \{\s*background: color-mix\(in srgb, var\(--sui-field-well\) 40%, var\(--sui-dialog-bg\)\);/
   );
 });
 
