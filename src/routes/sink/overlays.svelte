@@ -122,7 +122,7 @@
   note="Hover pauses before it shows, focus shows it at once, and a long press shows it on touch"
 >
   <Specimen label={pressed}>
-    <IconButton icon="settings" label="Open the settings" onclick={() => (opens += 1)} />
+    <IconButton icon="settings" label="Open the settings" toolbar onclick={() => (opens += 1)} />
   </Specimen>
   <Specimen label="Description tip, words the button lacks">
     <Button bind:element={sync} onclick={() => (synced = true)}>Sync Now</Button>
@@ -215,11 +215,11 @@
     padding: var(--sui-space-3) var(--sui-space-4);
   }
 
-  /* A sub-section title over its copy, a type step over it as well as heavier (L-25). */
+  /* A popover's title, two type steps over its copy as well as heavier (L-25). */
   .panel-title {
     align-content: center;
     block-size: var(--sui-block-snap);
-    font: var(--sui-weight-semibold) var(--sui-font-size-body) / var(--sui-leading-body)
+    font: var(--sui-weight-semibold) var(--sui-font-size-title) / var(--sui-leading-title)
       var(--sui-sans);
     margin: 0;
     padding-block: var(--sui-block-snap-room);
