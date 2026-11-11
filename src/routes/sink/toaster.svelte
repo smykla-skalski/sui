@@ -70,6 +70,7 @@
 <Example
   title="Timing"
   note="A neutral toast leaves after 5 seconds unless hovered or focused, and a failure or one with Undo stays until dismissed"
+  layout="grid"
 >
   <Specimen label="Neutral">
     <Button onclick={() => toast({ title: 'Settings saved' })}>Save Settings</Button>
@@ -94,7 +95,19 @@
 <Example
   title="Reaching the Stack"
   note="F8 moves focus to the newest toast and Escape hands it back, and a stack taller than the screen scrolls"
+  layout="grid"
+  ground="canvas"
 >
+  <Specimen label="3 toasts">
+    <Toaster
+      preview
+      items={['sui', 'smyklot', 'ledger'].map((name) => ({
+        title: `The ${name} sync needs another try`,
+        description: 'GitHub answered 502, so try again in a minute',
+        tone: 'danger' as const
+      }))}
+    />
+  </Specimen>
   <Specimen label="Many toasts">
     <Button
       onclick={() => {
