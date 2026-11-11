@@ -589,8 +589,10 @@
   --sui-icon-base: round(1rem, 1px);
   --sui-icon-md: round(1.125rem, 1px);
 
-  /* A message's symbol stands in a tile of its tone, a glyph tier larger than the words'. */
+  /* A message's symbol stands in a tile of its tone, a glyph tier larger than the words', and a
+     toast, the compact message over the page, holds it in a smaller tile. */
   --sui-symbol-tile: var(--sui-space-8);
+  --sui-symbol-tile-compact: var(--sui-space-7);
 
   --sui-content-max: 70rem;
   /* The longest line of running text: about 80 characters of the sans, the WCAG 1.4.8 reference.

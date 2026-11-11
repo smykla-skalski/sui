@@ -386,17 +386,18 @@ A `danger` toast reports a failure and stays too.
     }
   }
 
-  /* The failure symbol stands in a tile of the danger tone, at the tile's 18px glyph. */
+  /* The failure symbol stands in a 28px tile of the danger tone, at the tile's 18px glyph, so it
+     weighs less than the title beside it (L-56). */
   .sui-toast-mark {
     --sui-icon-base: var(--sui-icon-md);
     align-items: center;
     background: var(--sui-danger-tint);
-    block-size: var(--sui-symbol-tile);
+    block-size: var(--sui-symbol-tile-compact);
     border-radius: var(--sui-radius-control);
     color: var(--sui-danger);
     display: inline-flex;
     flex: none;
-    inline-size: var(--sui-symbol-tile);
+    inline-size: var(--sui-symbol-tile-compact);
     justify-content: center;
   }
 
@@ -429,7 +430,7 @@ A `danger` toast reports a failure and stays too.
   /* At least as tall as the tile beside it, so short copy centres on the tile and longer copy
      starts at its top (L-56). */
   .sui-toast-body:has(> .sui-toast-mark) .sui-toast-copy {
-    min-block-size: var(--sui-symbol-tile);
+    min-block-size: var(--sui-symbol-tile-compact);
   }
 
   /* A zero-height seat on the middle of the toast's body, so Dismiss stands at one place in
