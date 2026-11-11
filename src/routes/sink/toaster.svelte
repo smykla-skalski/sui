@@ -71,6 +71,7 @@
   title="Timing"
   note="A neutral toast leaves after 5 seconds unless hovered or focused, and a failure or one with Undo stays until dismissed"
   layout="grid"
+  --specimen-min="min(16rem, calc((100% - var(--sui-space-6)) / 2 - 1px))"
 >
   <Specimen label="Neutral">
     <Button onclick={() => toast({ title: 'Settings saved' })}>Save Settings</Button>
