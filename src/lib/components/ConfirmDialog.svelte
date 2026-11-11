@@ -116,7 +116,7 @@ rejection keeps the dialog open and says so, so the reader can try again or canc
   <Button autofocus={!preview && tone === 'stop'} disabled={pending} onclick={cancel}
     >{cancelLabel}</Button
   >
-  <Button {tone} autofocus={!preview && tone !== 'stop'} loading={pending} onclick={confirm}
+  <Button {tone} autofocus={!preview && tone !== 'stop'} loading={pending} reserve onclick={confirm}
     >{confirmLabel}</Button
   >
 {/snippet}

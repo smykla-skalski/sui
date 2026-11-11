@@ -252,9 +252,19 @@ suite('overlays', together, () => {
       await opener.scrollIntoViewIfNeeded();
       await opener.click();
       const confirm = page.locator('dialog[open] button', { hasText: 'Leave Workspace' });
+      const answers = () =>
+        page.evaluate(() =>
+          [...document.querySelectorAll('dialog[open] .sui-modal-foot button')].map((button) => {
+            const { left, width } = button.getBoundingClientRect();
+            return [Math.round(left), Math.round(width)];
+          })
+        );
+      const idle = await answers();
       await confirm.click();
       const dialog = page.locator('dialog[open]');
       assert.equal(await dialog.getAttribute('aria-busy'), 'true');
+      await page.waitForSelector('dialog[open] .sui-button-spinner');
+      assert.deepEqual(await answers(), idle, 'L-64 the spinner moved or widened the answers');
       await page.keyboard.press('Escape');
       assert.equal(await dialog.count(), 1, 'Escape closed a pending dialog');
       await page.waitForFunction(() => document.querySelector('dialog[open] .sui-modal-error p'));

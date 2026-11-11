@@ -19,6 +19,7 @@
     icon,
     trailing,
     loading = false,
+    reserve = false,
     field = false,
     disabled = false,
     element = $bindable(null),
@@ -36,6 +37,9 @@
     trailing?: Snippet;
     /** Draws a spinner, announces the button as busy and ignores presses while the work runs. */
     loading?: boolean;
+    /** Keeps the spinner's room while idle, the words centred in it, so the press that starts
+     the work never moves the actions beside it (L-64). */
+    reserve?: boolean;
     /** Draws a field's edge, baseline and recess, for a button that holds a value, such as a picker's trigger. */
     field?: boolean;
     disabled?: boolean;
@@ -57,6 +61,7 @@
     busy || ariaDisabled === true || ariaDisabled === 'true' || holding !== null
   );
   const spinning = shownWait(() => loading);
+  const reserving = $derived(reserve && !spinning.current && !icon);
 
   function refuse(event: MouseEvent) {
     event.preventDefault();
@@ -111,7 +116,7 @@ start.
     href={disabled ? undefined : href}
     role={disabled ? 'link' : undefined}
     {...rest as HTMLAnchorAttributes}
-    class={['sui-button', className, { busy }]}
+    class={['sui-button', className, { busy, reserving }]}
     data-tone={tone}
     aria-disabled={disabled || locked || undefined}
     aria-busy={loading || undefined}
@@ -123,7 +128,7 @@ start.
     bind:this={element}
     type="button"
     {...rest as HTMLButtonAttributes}
-    class={['sui-button', className, { busy, field }]}
+    class={['sui-button', className, { busy, field, reserving }]}
     data-tone={tone}
     disabled={disabled || holding === 'firm'}
     aria-disabled={locked || undefined}
@@ -178,6 +183,12 @@ start.
       translate var(--sui-duration-press) var(--sui-ease-standard),
       box-shadow var(--sui-duration-press) var(--sui-ease-standard);
     -webkit-tap-highlight-color: transparent;
+  }
+
+  /* An idle button that may turn busy pads each side by half the spinner and its gap, so the
+     busy one is as wide as it was. */
+  .reserving {
+    padding-inline: calc(var(--sui-space-3) + (var(--sui-icon-base) + var(--sui-space-2)) / 2);
   }
 
   .sui-button-label {

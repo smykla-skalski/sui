@@ -132,7 +132,7 @@
     >
       {#snippet footer()}
         <Button disabled>Cancel</Button>
-        <Button tone="stop" loading>Leave Workspace</Button>
+        <Button tone="stop" loading reserve>Leave Workspace</Button>
       {/snippet}
     </Modal>
   </Specimen>
@@ -146,7 +146,7 @@
     >
       {#snippet footer()}
         <Button>Cancel</Button>
-        <Button tone="stop">Leave Workspace</Button>
+        <Button tone="stop" reserve>Leave Workspace</Button>
       {/snippet}
     </Modal>
   </Specimen>
