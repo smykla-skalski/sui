@@ -234,6 +234,11 @@ test('L-24 a title stands 12px above its description, copy lines 8px apart, form
   );
   assert.match(
     stripComments(read('src/lib/components/Modal.svelte')),
+    /\.sui-modal-head \{[^}]*gap: var\(--sui-space-4\);/,
+    "a dialog's title stands 16px over its description, a step past a card's 12px (L-58)"
+  );
+  assert.match(
+    stripComments(read('src/lib/components/Modal.svelte')),
     /\.sui-modal-description \{[^}]*color: color-mix\(in srgb, var\(--sui-text-primary\) 20%, var\(--sui-text-secondary\)\);/,
     "a dialog's description leans a fifth of the way toward the primary ink (L-58)"
   );

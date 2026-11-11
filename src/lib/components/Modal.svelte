@@ -418,10 +418,12 @@ dialog, so they are never inert under it.
     animation-name: sui-inspector-in;
   }
 
+  /* A dialog asks its question alone over the scrim, so the title stands a step past a card's
+     12px over its description and the two read as a question and its consequence (L-58). */
   .sui-modal-head {
     display: grid;
     flex: none;
-    gap: var(--sui-space-3);
+    gap: var(--sui-space-4);
   }
 
   /* The head stands a step further from the body than the parts stand from each other, so the
