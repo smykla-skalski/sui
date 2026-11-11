@@ -212,7 +212,7 @@
     display: grid;
     justify-items: start;
     gap: var(--sui-title-copy-gap);
-    padding: var(--sui-space-3) var(--sui-space-4);
+    padding: var(--sui-space-4);
   }
 
   /* A popover's title, two type steps over its copy as well as heavier (L-25). */
@@ -245,7 +245,7 @@
     gap: var(--sui-space-1);
     list-style: none;
     margin: 0;
-    padding: var(--sui-space-3) var(--sui-space-4);
+    padding: var(--sui-space-4);
   }
 
   /* One bounded column, so the open tip's 100% cap is the specimen's width and it wraps there. */
