@@ -143,7 +143,7 @@ of them.
   .sui-error-state {
     --sui-local-error-ground: color-mix(
       in srgb,
-      var(--sui-danger-tint) 45%,
+      var(--sui-danger-tint) 65%,
       var(--sui-surface-base)
     );
     align-content: space-between;

@@ -110,7 +110,7 @@ margins of its own; the form that holds it sets the gap above it.
      hue, as an error panel is, so it owns the top of the form and its words keep their
      contrast. Its words read at body size beside a 16px mark, so it pads 16px all round. */
   .sui-form-error {
-    background: color-mix(in srgb, var(--sui-danger-tint) 45%, var(--sui-surface-base));
+    background: color-mix(in srgb, var(--sui-danger-tint) 65%, var(--sui-surface-base));
     border: var(--sui-stroke) solid color-mix(in srgb, var(--sui-danger) 40%, transparent);
     border-radius: var(--sui-radius-control);
     display: grid;

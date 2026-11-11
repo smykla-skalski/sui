@@ -1378,6 +1378,11 @@ test("L-58 a refused save says why on a form error's danger wash", () => {
   const line = /\.sui-modal-error-line \{[^}]*\}/.exec(read('src/lib/components/Modal.svelte'));
   assert.ok(form && line, 'a form error or the dialog error line lost its rule');
   assert.equal(wash.exec(line[0])?.[1], form[1], "the dialog's reason left the form error's wash");
+  const panel = /var\(--sui-danger-tint\) (\d+)%/.exec(
+    read('src/lib/components/ErrorState.svelte')
+  );
+  assert.equal(panel?.[1], form[1], "an error panel left the form error's wash");
+  assert.equal(form[1], '65', 'a refusal wash parts itself from the ground it sits on');
 });
 
 test("L-9 a control's edge firms one step on hover, the same in every theme, and a light field wears a button's edge", () => {
