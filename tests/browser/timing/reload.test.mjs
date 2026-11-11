@@ -228,8 +228,11 @@ test('the server’s render draws every part as the page draws it once it runs',
 
 test('the server’s render of a page marks its own row in the side navigation', async () => {
   for (const id of ['', 'switch/']) {
-    const html = await (await fetch(new URL(id, url))).text();
-    const row = html.match(/<a[^>]*aria-current="page"[^>]*>/)?.[0] ?? '';
-    assert.match(row, new RegExp(`href="[^"]*${id}"`), `the server marked no row on /${id}`);
+    const address = new URL(id, url);
+    const html = await (await fetch(address)).text();
+    const marked = [...html.matchAll(/<a[^>]*aria-current="page"[^>]*>/g)].map(
+      ([row]) => new URL(row.match(/href="([^"]*)"/)?.[1] ?? '', address).href
+    );
+    assert.deepEqual(marked, [address.href], `the server marked the wrong row on /${id}`);
   }
 });
