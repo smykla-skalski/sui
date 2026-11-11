@@ -7,7 +7,7 @@
 </script>
 
 <script lang="ts">
-  import { Button, ConfirmDialog, Field, Modal, toast } from '#lib';
+  import { Button, ConfirmDialog, Field, Modal, Toaster, toast } from '#lib';
   import Example from '../kit/Example.svelte';
   import Pair from '../kit/Pair.svelte';
   import Specimen from '../kit/Specimen.svelte';
@@ -26,13 +26,14 @@
   const refuse = () =>
     new Promise((_, reject) => setTimeout(() => reject(new Error('refused')), 900));
 
+  const archivedNote = {
+    title: 'Repository archived',
+    description: 'It is read-only until an owner restores it'
+  };
+
   function archive(): void {
     archived = true;
-    toast({
-      title: 'Repository archived',
-      description: 'It is read-only until an owner restores it',
-      action: { label: 'Undo', run: restore }
-    });
+    toast({ ...archivedNote, action: { label: 'Undo', run: restore } });
   }
 
   function restore(): void {
@@ -191,12 +192,16 @@
   <Example
     title="No Question"
     note="An act that can be undone just happens and offers Undo in a toast"
+    layout="stack"
     --example-max="33rem"
   >
     <Specimen label={archived ? 'Archived' : 'Active'}>
       <Button onclick={archived ? restore : archive}
         >{archived ? 'Restore Repository' : 'Archive Repository'}</Button
       >
+    </Specimen>
+    <Specimen label="The toast it raises">
+      <Toaster preview items={[{ ...archivedNote, action: { label: 'Undo', run: () => {} } }]} />
     </Specimen>
   </Example>
 </Pair>
