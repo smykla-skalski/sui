@@ -1503,7 +1503,7 @@ test('L-10 a disabled field sits in a quieter tint of the well, firmer than a re
     );
 });
 
-test('L-41 a field keeps its frame and wears one ring 2px off it in every state', () => {
+test('L-41 a field keeps its frame and wears one ring 2px off it in every state, as every button does', () => {
   for (const [path, rule] of [
     ['src/lib/components/TextInput.svelte', '.sui-text-input:focus-visible'],
     ['src/lib/components/Textarea.svelte', '.sui-textarea:focus-visible'],
@@ -1560,6 +1560,16 @@ test('L-41 a field keeps its frame and wears one ring 2px off it in every state'
     styles['src/lib/components/ChoiceCards.svelte'],
     /\.sui-choice-card input:focus-visible \{\s*outline: var\(--sui-focus-ring-width\) solid var\(--sui-focus\);\s*outline-offset: var\(--sui-focus-ring-offset\);\s*\}/,
     "every choice card's ring stands 2px off its own edge, as a field's does"
+  );
+  assert.match(
+    styles['src/lib/components/Button.svelte'],
+    /\.sui-button:focus-visible \{\s*outline: var\(--sui-focus-ring-width\) solid var\(--sui-focus\);\s*outline-offset: var\(--sui-focus-ring-offset\);\s*\}/,
+    "every button's ring stands 2px off its own edge, as a field's does"
+  );
+  assert.doesNotMatch(
+    stripComments(styles['src/lib/components/Button.svelte']),
+    /\.sui-button[^{,]*:focus-visible[^{]*\{[^}]*(--sui-focus-ring-edge|--sui-focus-ring-flush|border-color: var\(--sui-focus\))/,
+    'no button tone draws a flush ring on its edge'
   );
 });
 

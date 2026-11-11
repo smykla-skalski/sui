@@ -62,7 +62,7 @@
     <ConfirmDialog
       preview
       title="Publish 0.3.0?"
-      consequence="Everyone who installs the package gets this version from now on"
+      consequence="Everyone who installs it gets this version from now on"
       confirmLabel="Publish Release"
     />
   </Specimen>
@@ -199,7 +199,7 @@
 <ConfirmDialog
   bind:open={publish}
   title="Publish 0.3.0?"
-  consequence="Everyone who installs the package gets this version from now on"
+  consequence="Everyone who installs it gets this version from now on"
   confirmLabel="Publish Release"
 />
 
