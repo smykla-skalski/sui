@@ -200,7 +200,7 @@ new control after `onadd` is the caller's.
 - Localization: `label`, `done`, `none`, `loadingLabel` and `retryLabel` are props with English defaults; type-ahead compares in the page's language; the list follows the reading direction, and `align` start and end hang it from the mirrored edge on a right-to-left page.
 - Performance: every offered choice renders; type-ahead is a linear search, fine for the few hundred a menu holds.
 - Analytics: `onadd` hears each addition, and `onretry` each retry.
-- Failure: no choices says `none`, everything added says `done`, `loading` says `loadingLabel` beside a spinner once the wait runs 150ms, and `error` says why with a `retryLabel` item when `onretry` is set.
+- Failure: no choices says `none`, everything added says `done`, `loading` says `loadingLabel`, with a spinner once the wait runs 150ms that holds the row at least 400ms, and `error` says why with a `retryLabel` item when `onretry` is set.
 -->
 
 {#snippet opener()}
@@ -238,7 +238,8 @@ new control after `onadd` is the caller's.
       onkeydown={preview ? undefined : onkeydown}
     >
       <!-- The trigger promises a menu, so any message in place of the choices is a disabled item inside one. -->
-      {#if loading}
+      <!-- The ring and its words are one row, so the row holds while the ring does (L-117). -->
+      {#if loading || waiting.current}
         <div role="menuitem" aria-disabled="true" tabindex="-1" class="sui-addition-done">
           {#if waiting.current}<span class="sui-addition-spinner"></span>{/if}<span
             class="sui-addition-said">{loadingLabel}</span

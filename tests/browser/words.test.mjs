@@ -522,6 +522,56 @@ suite('words', together, () => {
       assert.deepEqual(marks, [false, false, false, true, true, false]);
     });
 
+    test('L-117 an addition picker holds its loading row while its ring holds, after the list came', async () => {
+      await page.evaluate(() => {
+        const { lib, mount, flushSync, state, get } = /** @type {any} */ (window);
+        const busy = state(false);
+        const target = Object.assign(document.createElement('div'), { id: 'adding' });
+        document.body.prepend(target);
+        mount(lib.AdditionPicker, {
+          target,
+          props: {
+            label: 'Add a Check',
+            choices: [{ value: 'a', label: 'Auto Merge' }],
+            preview: true,
+            onadd: () => {},
+            get loading() {
+              return get(busy);
+            }
+          }
+        });
+        flushSync();
+        Object.assign(window, { busy });
+      });
+      /** @param {boolean} on */
+      const set = (on) =>
+        page.evaluate((on) => {
+          const { set, flushSync, busy } = /** @type {any} */ (window);
+          set(busy, on);
+          flushSync();
+        }, on);
+      const shown = () =>
+        page.evaluate(() => [
+          Boolean(document.querySelector('#adding .sui-addition-spinner')),
+          Boolean(document.querySelector('#adding .sui-addition-choice'))
+        ]);
+      const marks = [];
+      await set(true);
+      await page.clock.runFor(250);
+      marks.push(await shown());
+      // The list came 100ms after the ring was drawn, so the ring and its row stay.
+      await set(false);
+      await page.clock.runFor(100);
+      marks.push(await shown());
+      await page.clock.runFor(500);
+      marks.push(await shown());
+      assert.deepEqual(marks, [
+        [true, false],
+        [true, false],
+        [false, true]
+      ]);
+    });
+
     test('L-117 a combobox draws its search wait only once it outlasts a glance and keeps it a moment, while its status speaks the search as it stands', async () => {
       await page.evaluate(() => {
         const { lib, mount, flushSync } = /** @type {any} */ (window);
