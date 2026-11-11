@@ -150,46 +150,48 @@
   </Specimen>
 </Example>
 
-<Example
-  title="Removing the Opener"
-  note="When the confirmed act removes the row that asked, focus moves to the next row and never to the page"
-  layout="stack"
-  --example-max="33rem"
->
-  <Specimen label={`${tokens.length} tokens`}>
-    <ul class="tokens" role="list">
-      {#each tokens as token (token)}
-        <li>
-          <span class="token">{token}</span>
-          <Button
-            tone="stop-quiet"
-            onclick={() => {
-              revoking = token;
-              revokeOpen = true;
-            }}>Revoke {token}</Button
-          >
-        </li>
-      {/each}
-    </ul>
-    {#if tokens.length === 0}
-      <Button onclick={() => (tokens = ['Deploy Bot', 'Release Script', 'Nightly Backup'])}
-        >Restore the Tokens</Button
-      >
-    {/if}
-  </Specimen>
-</Example>
+<Pair lead="33rem">
+  <Example
+    title="Removing the Opener"
+    note="When the confirmed act removes the row that asked, focus moves to the next row and never to the page"
+    layout="stack"
+    --example-max="33rem"
+  >
+    <Specimen label={`${tokens.length} tokens`}>
+      <ul class="tokens" role="list">
+        {#each tokens as token (token)}
+          <li>
+            <span class="token">{token}</span>
+            <Button
+              tone="stop-quiet"
+              onclick={() => {
+                revoking = token;
+                revokeOpen = true;
+              }}>Revoke {token}</Button
+            >
+          </li>
+        {/each}
+      </ul>
+      {#if tokens.length === 0}
+        <Button onclick={() => (tokens = ['Deploy Bot', 'Release Script', 'Nightly Backup'])}
+          >Restore the Tokens</Button
+        >
+      {/if}
+    </Specimen>
+  </Example>
 
-<Example
-  title="No Question"
-  note="An act that can be undone just happens and offers Undo in a toast"
-  --example-max="33rem"
->
-  <Specimen label={archived ? 'Archived' : 'Active'}>
-    <Button onclick={archived ? restore : archive}
-      >{archived ? 'Restore Repository' : 'Archive Repository'}</Button
-    >
-  </Specimen>
-</Example>
+  <Example
+    title="No Question"
+    note="An act that can be undone just happens and offers Undo in a toast"
+    --example-max="33rem"
+  >
+    <Specimen label={archived ? 'Archived' : 'Active'}>
+      <Button onclick={archived ? restore : archive}
+        >{archived ? 'Restore Repository' : 'Archive Repository'}</Button
+      >
+    </Specimen>
+  </Example>
+</Pair>
 
 <ConfirmDialog
   bind:open={remove}
