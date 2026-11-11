@@ -247,7 +247,7 @@ new control after `onadd` is the caller's.
         </div>
       {:else if error}
         <div role="menuitem" aria-disabled="true" tabindex="-1" class="sui-addition-done problem">
-          <Icon name="alert" size="sm" /><span class="sui-addition-said">{error}</span>
+          <Icon name="alert" size="base" /><span class="sui-addition-said">{error}</span>
         </div>
         {#if onretry}
           <button
@@ -258,7 +258,7 @@ new control after `onadd` is the caller's.
             onclick={retry}
             onpointermove={follow}
           >
-            <Icon name="refresh" size="sm" /><span class="sui-addition-label">{retryLabel}</span>
+            <Icon name="refresh" size="base" /><span class="sui-addition-label">{retryLabel}</span>
           </button>
         {/if}
       {:else}
