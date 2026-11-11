@@ -97,6 +97,7 @@
       width="min-trigger"
       role="dialog"
       aria-label="Changes in 0.3.0"
+      tabindex={0}
     >
       <ul class="changes" role="list">
         {#each changes as change (change)}<li>{change}</li>{/each}
@@ -107,6 +108,7 @@
 
 <Example
   title="Tooltip"
+  --example-max="40rem"
   note="Hover pauses before it shows, focus shows it at once, and a long press shows it on touch"
 >
   <Specimen label={pressed}>
@@ -120,7 +122,8 @@
 
 <Example
   title="Open"
-  note="The popover and a described tip drawn in place, so a review needs no click or hover"
+  --example-max="54rem"
+  note="The popovers and a described tip drawn in place, so a review needs no click or hover"
 >
   <Specimen label="Open popover">
     <div class="open floating">
@@ -142,10 +145,52 @@
       </Popover>
     </div>
   </Specimen>
+  <Specimen label="Open notes, closed by their button">
+    <div class="open floating">
+      <Button aria-expanded="true" aria-controls="sink-popover-open-pinned">
+        Pin the Notes
+        {#snippet trailing()}<Icon name="chevron-down" size="base" />{/snippet}
+      </Button>
+      <Popover
+        id="sink-popover-open-pinned"
+        anchor={null}
+        inline
+        role="dialog"
+        aria-labelledby="sink-popover-open-pinned-title"
+      >
+        <div class="panel">
+          <p id="sink-popover-open-pinned-title" class="panel-title">Notes stay open</p>
+          <p class="panel-copy">A press outside leaves them in place</p>
+          <Button>Close the Notes</Button>
+        </div>
+      </Popover>
+    </div>
+  </Specimen>
+  <Specimen label="Open list, scrolling inside">
+    <div class="open floating">
+      <Button aria-expanded="true" aria-controls="sink-popover-open-tall">
+        Show Every Change
+        {#snippet trailing()}<Icon name="chevron-down" size="base" />{/snippet}
+      </Button>
+      <Popover
+        id="sink-popover-open-tall"
+        style="max-block-size: 11.25rem"
+        anchor={null}
+        inline
+        role="dialog"
+        aria-label="Changes in 0.3.0"
+        tabindex={0}
+      >
+        <ul class="changes" role="list">
+          {#each changes as change (change)}<li>{change}</li>{/each}
+        </ul>
+      </Popover>
+    </div>
+  </Specimen>
   <Specimen label="Open tip">
     <div class="open">
       <Button bind:element={openSync} onclick={() => (synced = true)}>Sync Now</Button>
-      <Tooltip anchor={openSync} preview text={syncHint} side="block-end" />
+      <Tooltip anchor={openSync} preview text={syncHint} />
     </div>
   </Specimen>
 </Example>
@@ -158,10 +203,11 @@
     padding: var(--sui-space-3) var(--sui-space-4);
   }
 
+  /* A sub-section title over its copy, a type step over it as well as heavier (L-25). */
   .panel-title {
     align-content: center;
     block-size: var(--sui-block-snap);
-    font: var(--sui-weight-semibold) var(--sui-font-size-meta) / var(--sui-leading-meta)
+    font: var(--sui-weight-semibold) var(--sui-font-size-body) / var(--sui-leading-body)
       var(--sui-sans);
     margin: 0;
     padding-block: var(--sui-block-snap-room);

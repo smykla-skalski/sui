@@ -346,7 +346,7 @@ suite('overlays', together, () => {
       const page = await open({ viewport: { width: 1440, height: 700 } });
       try {
         // A layer taller than its room scrolls inside, and that scroll stays where the wheel left it.
-        const tall = page.getByRole('button', { name: 'Show Every Change' });
+        const tall = page.locator('button[popovertarget="sink-popover-tall"]');
         await tall.scrollIntoViewIfNeeded();
         await tall.click();
         await page.waitForFunction(() => document.querySelector('#sink-popover-tall:popover-open'));
@@ -628,6 +628,40 @@ suite('overlays', together, () => {
       assert.equal(gap, step);
     });
 
+    test('the open copies title a panel a type step over its copy, cut a scrolling list mid-row and draw the tip over its button', async () => {
+      const seen = await page.evaluate(() => {
+        const size = (/** @type {string} */ id) =>
+          parseFloat(
+            getComputedStyle(/** @type {Element} */ (document.getElementById(id))).fontSize
+          );
+        const list = /** @type {HTMLElement} */ (document.getElementById('sink-popover-open-tall'));
+        const floor = list.getBoundingClientRect().top + list.clientTop + list.clientHeight;
+        const sync = [...document.querySelectorAll('#overlays .open button')].find(
+          (button) => button.textContent?.trim() === 'Sync Now'
+        );
+        const tip = document.getElementById(sync?.getAttribute('aria-describedby') ?? '');
+        return {
+          title: size('sink-popover-open-title'),
+          copy: parseFloat(
+            getComputedStyle(
+              /** @type {Element} */ (document.querySelector('#overlays .panel-copy'))
+            ).fontSize
+          ),
+          scrolls: list.scrollHeight > list.clientHeight,
+          cut: [...list.querySelectorAll('li')].some((row) => {
+            const box = row.getBoundingClientRect();
+            return box.top < floor - 4 && box.bottom > floor + 4;
+          }),
+          above:
+            (tip?.getBoundingClientRect().bottom ?? Infinity) <
+            (sync?.getBoundingClientRect().top ?? 0)
+        };
+      });
+      assert.ok(seen.title > seen.copy, `title ${seen.title}px over copy ${seen.copy}px`);
+      assert.ok(seen.scrolls && seen.cut, 'the open list scrolls and its floor cuts a row');
+      assert.ok(seen.above, 'the open tip stands over its button, as the live tip does');
+    });
+
     test('K8 a tooltip describes its control only when it adds words', async () => {
       const described = await page.evaluate(() => {
         const icon = document.querySelector('#overlays button[aria-label="Refresh the list"]');
@@ -645,7 +679,7 @@ suite('overlays', together, () => {
     });
 
     test('AC15 a manual layer survives an outside press and closes on Escape back to its trigger', async () => {
-      const trigger = page.locator('#overlays button', { hasText: 'Pin the Notes' });
+      const trigger = page.locator('button[popovertarget="sink-popover-pinned"]');
       await trigger.scrollIntoViewIfNeeded();
       await trigger.click();
       const layer = page.locator('#sink-popover-pinned');
