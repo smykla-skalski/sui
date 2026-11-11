@@ -134,7 +134,7 @@
   note="Each size drawn in place at its real width without the scrim, so a review needs no click"
   layout="stack"
   ground="canvas"
-  --example-phone-pad="var(--sui-space-2)"
+  --example-phone-pad="var(--sui-space-3)"
   --example-max="49rem"
 >
   <Specimen label="Dialog">
@@ -216,7 +216,7 @@
   note="A save in progress refuses every way out, a failed save says why above the actions, and a close that would lose changes asks first"
   layout="stack"
   ground="canvas"
-  --example-phone-pad="var(--sui-space-2)"
+  --example-phone-pad="var(--sui-space-3)"
   --example-max="49rem"
 >
   <Specimen label="Saving">

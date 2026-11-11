@@ -49,7 +49,7 @@
   --specimen-min="30rem"
   --specimen-justify="space-between"
   --specimen-max="30rem"
-  --example-phone-pad="var(--sui-space-2)"
+  --example-phone-pad="var(--sui-space-3)"
   --example-max="calc(67.5rem + 2 * var(--sui-stroke))"
 >
   <Specimen label="Destructive">
@@ -77,7 +77,7 @@
     note="Anything the answer needs goes in the body under the consequence"
     layout="stack"
     ground="canvas"
-    --example-phone-pad="var(--sui-space-2)"
+    --example-phone-pad="var(--sui-space-3)"
     --example-max="33rem"
   >
     <Specimen label="Reason field">
@@ -123,7 +123,7 @@
   --specimen-min="30rem"
   --specimen-justify="space-between"
   --specimen-max="30rem"
-  --example-phone-pad="var(--sui-space-2)"
+  --example-phone-pad="var(--sui-space-3)"
   --example-max="calc(67.5rem + 2 * var(--sui-stroke))"
 >
   <!-- Drawn by Modal, since the question reaches these states only while its act runs. -->
@@ -260,7 +260,7 @@
   .tokens {
     --sui-local-button-span: 100%;
     display: grid;
-    gap: var(--sui-space-2) var(--sui-space-3);
+    column-gap: var(--sui-space-3);
     grid-template-columns: minmax(min-content, 1fr) minmax(0, max-content);
     list-style: none;
     margin: 0;
@@ -272,6 +272,19 @@
     display: grid;
     grid-column: 1 / -1;
     grid-template-columns: subgrid;
+    padding-block: var(--sui-space-2);
+  }
+
+  .tokens > li + li {
+    border-block-start: var(--sui-stroke) solid var(--sui-border-divider);
+  }
+
+  .tokens > li:first-child {
+    padding-block-start: 0;
+  }
+
+  .tokens > li:last-child {
+    padding-block-end: 0;
   }
 
   .token {
