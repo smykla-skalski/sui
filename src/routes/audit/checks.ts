@@ -2526,8 +2526,9 @@ function tonedControls(root: Document): Finding[] {
 /**
  * A dialog's parts (L-58): the head, the body, the error and the actions stand one inset from
  * every edge and from each other, measured to the ink, and the head 8px more from the body. The
- * line that parts the body from the actions stands half an inset under the body, and what
- * follows stands one inset under the line. A body that scrolls is cut where the actions begin,
+ * line that parts the body from the actions stands one inset under the body, and the actions
+ * stand one inset under the line. A refused save's wash starts at the line, so its words stand
+ * one and a half insets under the fields. A body that scrolls is cut where the actions begin,
  * and a docked inspector parks them at its foot, so neither gap is weighed.
  */
 function dialogInsets(root: Document): Finding[] {
@@ -2568,12 +2569,10 @@ function dialogInsets(root: Document): Finding[] {
       getComputedStyle(part).display === 'contents' ? [...part.children].flatMap(laid) : [part];
     const inBody = body ? band([...body.children].flatMap(laid)) : null;
     const top = band([...head.querySelectorAll('.sui-modal-title, .sui-modal-description')]);
-    const bands = [
-      top,
-      inBody,
-      band([...dialog.querySelectorAll(':scope > .sui-modal-error .sui-modal-error-text')]),
-      band(buttons)
-    ].filter((part) => part !== null);
+    const said = band([
+      ...dialog.querySelectorAll(':scope > .sui-modal-error .sui-modal-error-text')
+    ]);
+    const bands = [top, inBody, said, band(buttons)].filter((part) => part !== null);
     const foot = bands[bands.length - 1];
     const cut = body !== null && inBody !== null && body.scrollHeight > body.clientHeight + 1;
     const docked = dialog.matches("[data-size='inspector']:not(.preview)");
@@ -2588,7 +2587,7 @@ function dialogInsets(root: Document): Finding[] {
         over === top && under === inBody
           ? inset + step
           : lined && over === inBody
-            ? 1.5 * inset
+            ? (under === said ? 1.5 : 2) * inset
             : inset;
       if (!under)
         return [{ gap: box.bottom - parseFloat(look.borderBottomWidth) - over.bottom, want }];

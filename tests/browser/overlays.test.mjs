@@ -180,6 +180,15 @@ suite('overlays', together, () => {
         );
     });
 
+    test("L-58 a refused save's wash starts at the line over the actions", async () => {
+      const gap = await page.evaluate(() => {
+        const line = document.querySelector('#modal .sui-modal.preview .sui-modal-error-line');
+        const band = line?.parentElement;
+        return line && band && line.getBoundingClientRect().top - band.getBoundingClientRect().top;
+      });
+      assert.equal(gap, 0, 'a strip of the dialog ground parts the line from the wash');
+    });
+
     test('L-58 a dialog opens on its first field, and a confirmation without one on its least destructive answer', async () => {
       /** @param {string} name */
       const opensOn = async (name) => {

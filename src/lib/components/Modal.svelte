@@ -493,11 +493,21 @@ dialog, so they are never inert under it.
   }
 
   /* A line always parts the task from its answer, so the actions read as one band whether the
-     body fits or scrolls under them. It stands half an inset under the last field, as the
-     body ends, and the band pads a further half inset under it, so the actions stand one inset
+     body fits or scrolls under them. It stands where the body ends, one inset under the last
+     field, and the band pads a further half inset under it, so the actions stand one inset
      from the line, as far as they stand from the foot. */
   .sui-modal-body + .sui-modal-error:has(+ .sui-modal-foot) {
     padding-block-start: calc(var(--sui-local-modal-inset) / 2);
+  }
+
+  /* The line stands one inset under the last field, as far as the actions stand under it. */
+  .sui-modal-body:has(+ .sui-modal-error + .sui-modal-foot) {
+    padding-block-end: var(--sui-local-modal-inset);
+  }
+
+  /* A refused save's wash starts at the line, so no strip of the dialog's ground parts the two. */
+  .sui-modal-body + .sui-modal-error:has(> .sui-modal-error-line):has(+ .sui-modal-foot) {
+    padding-block-start: 0;
   }
 
   .sui-modal-body + .sui-modal-error:has(+ .sui-modal-foot)::before {
