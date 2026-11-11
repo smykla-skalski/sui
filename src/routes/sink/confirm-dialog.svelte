@@ -94,23 +94,31 @@
   </Example>
 
   <Example
-    title="Asking"
-    note="Cancel opens focused on a destructive question, and the confirm action opens focused on an affirmative one"
-    layout="grid"
-    --specimen-min="max(calc((100% - var(--sui-space-6)) / 2 - 1px), 8.5rem)"
+    title="Removing the Opener"
+    note="When the confirmed act removes the row that asked, focus moves to the next row and never to the page"
+    layout="stack"
     --example-max="33rem"
   >
-    <Specimen label="Destructive">
-      <Button tone="stop-quiet" onclick={() => (remove = true)}>Delete Repository</Button>
-    </Specimen>
-    <Specimen label="Affirmative">
-      <Button onclick={() => (publish = true)}>Publish Release</Button>
-    </Specimen>
-    <Specimen label="With a reason">
-      <Button tone="stop-quiet" onclick={() => (revoke = true)}>Revoke Token</Button>
-    </Specimen>
-    <Specimen label="Refused">
-      <Button tone="stop-quiet" onclick={() => (leaving = true)}>Leave Workspace</Button>
+    <Specimen label={`${tokens.length} tokens`}>
+      <ul class="tokens" role="list">
+        {#each tokens as token (token)}
+          <li>
+            <span class="token">{token}</span>
+            <Button
+              tone="stop-quiet"
+              onclick={() => {
+                revoking = token;
+                revokeOpen = true;
+              }}>Revoke {token}</Button
+            >
+          </li>
+        {/each}
+      </ul>
+      {#if tokens.length === 0}
+        <Button onclick={() => (tokens = ['Deploy Bot', 'Release Script', 'Nightly Backup'])}
+          >Restore the Tokens</Button
+        >
+      {/if}
     </Specimen>
   </Example>
 </Pair>
@@ -159,31 +167,23 @@
 
 <Pair lead="33rem">
   <Example
-    title="Removing the Opener"
-    note="When the confirmed act removes the row that asked, focus moves to the next row and never to the page"
-    layout="stack"
+    title="Asking"
+    note="Cancel opens focused on a destructive question, and the confirm action opens focused on an affirmative one"
+    layout="grid"
+    --specimen-min="max(calc((100% - var(--sui-space-6)) / 2 - 1px), 8.5rem)"
     --example-max="33rem"
   >
-    <Specimen label={`${tokens.length} tokens`}>
-      <ul class="tokens" role="list">
-        {#each tokens as token (token)}
-          <li>
-            <span class="token">{token}</span>
-            <Button
-              tone="stop-quiet"
-              onclick={() => {
-                revoking = token;
-                revokeOpen = true;
-              }}>Revoke {token}</Button
-            >
-          </li>
-        {/each}
-      </ul>
-      {#if tokens.length === 0}
-        <Button onclick={() => (tokens = ['Deploy Bot', 'Release Script', 'Nightly Backup'])}
-          >Restore the Tokens</Button
-        >
-      {/if}
+    <Specimen label="Destructive">
+      <Button tone="stop-quiet" onclick={() => (remove = true)}>Delete Repository</Button>
+    </Specimen>
+    <Specimen label="Affirmative">
+      <Button onclick={() => (publish = true)}>Publish Release</Button>
+    </Specimen>
+    <Specimen label="With a reason">
+      <Button tone="stop-quiet" onclick={() => (revoke = true)}>Revoke Token</Button>
+    </Specimen>
+    <Specimen label="Refused">
+      <Button tone="stop-quiet" onclick={() => (leaving = true)}>Leave Workspace</Button>
     </Specimen>
   </Example>
 
