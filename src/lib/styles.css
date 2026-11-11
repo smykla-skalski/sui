@@ -342,7 +342,10 @@
   --sui-list-highlight: color-mix(in srgb, var(--sui-brand-action) 12%, transparent);
   --sui-list-pressed: color-mix(in srgb, var(--sui-brand-action) 14%, transparent);
   --sui-dialog-bg: var(--sui-surface-base);
-  --sui-dialog-border: var(--sui-border-control);
+  /* A dialog stands over a scrim that already parts it from the page, so its light edge is the
+     subtle one, under its fields' edges, while a popover over live content keeps the control
+     edge (L-72). */
+  --sui-dialog-border: var(--sui-border-subtle);
 
   --sui-changed: #2a5fd2;
   --sui-diff-chg-ink: var(--sui-changed);
@@ -644,7 +647,9 @@
   --sui-shadow-dialog:
     0 2px 8px color-mix(in srgb, var(--sui-shadow-color) 33%, transparent),
     0 8px 24px color-mix(in srgb, var(--sui-shadow-color) 44%, transparent);
-  --sui-shadow-dialog-in-place: var(--sui-shadow-plate);
+  --sui-shadow-dialog-in-place:
+    0 1px 2px color-mix(in srgb, var(--sui-shadow-color) 50%, transparent),
+    0 4px 12px color-mix(in srgb, var(--sui-shadow-color) 25%, transparent);
 
   --sui-segment-track: color-mix(in srgb, var(--sui-text-primary) 5%, transparent);
 

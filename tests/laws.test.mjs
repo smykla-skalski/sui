@@ -1356,10 +1356,21 @@ test('L-58 a scrim keeps the page behind a dialog legible: 28% light, 48% dark, 
   );
 });
 
-test('L-58 a dialog drawn in place lifts as a plate in the light theme and as a dialog in the dark', () => {
+test('L-58 a dialog drawn in place lifts softly in the light theme and as a dialog in the dark, and L-72 a light dialog wears the subtle edge', () => {
   assert.deepEqual(
-    [...palette.matchAll(/--sui-shadow-dialog-in-place: ([^;]+);/g)].map(([, lift]) => lift),
-    ['var(--sui-shadow-plate)', 'var(--sui-shadow-dialog)', 'var(--sui-shadow-dialog)'],
+    [...palette.matchAll(/--sui-shadow-dialog-in-place:\s*([^;]+);/g)].map(([, lift]) =>
+      lift.replace(/\s+/g, ' ')
+    ),
+    [
+      '0 1px 2px color-mix(in srgb, var(--sui-shadow-color) 50%, transparent), 0 4px 12px color-mix(in srgb, var(--sui-shadow-color) 25%, transparent)',
+      'var(--sui-shadow-dialog)',
+      'var(--sui-shadow-dialog)'
+    ],
+    'the light block, then each dark block'
+  );
+  assert.deepEqual(
+    [...palette.matchAll(/--sui-dialog-border: ([^;]+);/g)].map(([, edge]) => edge),
+    ['var(--sui-border-subtle)', 'var(--sui-border-control)', 'var(--sui-border-control)'],
     'the light block, then each dark block'
   );
   assert.match(
