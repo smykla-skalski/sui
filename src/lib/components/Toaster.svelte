@@ -219,9 +219,9 @@ A `danger` toast reports a failure and stays too.
 - Content: a title, one description that never repeats it, at most one action, and Dismiss; a failure carries its symbol; every toast is 24rem wide, or as wide as the room it has under that, so a stack keeps one edge.
 - States: entering (rises 8px and fades in), shown, held while hovered or focused, leaving (fades), `danger` with its symbol in a danger tile, and drawn in place with `preview`.
 - Keyboard: the hotkey (F8) moves focus to the newest toast, Tab moves through its action and Dismiss, and Escape returns focus to where it was.
-- Pointer and touch: the action is a 34px target and Dismiss a 28px one, both 44px on a phone or touch screen; the corner around the toasts lets presses through to the page.
+- Pointer and touch: the action is a 34px target and Dismiss a 34px one too, both 44px on a phone or touch screen; the corner around the toasts lets presses through to the page.
 - Focus: closing a toast returns focus to where it was before it entered the stack, or to the next toast's Dismiss when that place is gone; while toasts show, the page's end scroll padding keeps a control that takes focus clear above them.
-- Responsive: the stack is at most the viewport's width less 32px and its height, and scrolls inside past that with the newest toast kept in view. On a phone it spans the screen, each toast as wide as the stack. Below the wide breakpoint the stack stands 8px above a showing worker status, so the two never meet. Dismiss keeps the inline-end corner beside the title's first line, the action stands under the copy, and the copy moves under a failure's symbol when it would get less than 8rem beside it.
+- Responsive: the stack is at most the viewport's width less 32px and its height, and scrolls inside past that with the newest toast kept in view. On a phone it spans the screen, each toast as wide as the stack. Below the wide breakpoint the stack stands 8px above a showing worker status, so the two never meet. Dismiss keeps the inline-end side, centred on the toast's body, the action stands beside the copy on Dismiss's line in a toast with 17rem inside its inset, as one on a phone has, and under the copy in a narrower one, and the copy moves under a failure's symbol when it would get less than 8rem beside it.
 - Accessibility: a failure is announced as an alert and anything else politely, each once, and the stack is a landmark a reader can jump to.
 - Localization: `dismissLabel`, `label` and `hotkey` carry the built-in words and key, the stack stands at the inline end, mirrored in a right-to-left page, and its padding is logical.
 - Performance: one stack per page and per open dialog; each toast holds one timer, and the motion is opacity and translate, a fade alone under reduced motion.
@@ -271,7 +271,7 @@ A `danger` toast reports a failure and stays too.
 >
   {#each shown as item (item.id)}
     <div
-      class="sui-toast"
+      class={['sui-toast', { acting: item.action }]}
       data-toast={item.id}
       {@attach linger(item)}
       out:leave
@@ -295,6 +295,7 @@ A `danger` toast reports a failure and stays too.
         ><IconButton
           icon="close"
           label={words.dismiss}
+          toolbar
           data-dismiss
           onclick={(event) => close(item, event, 'dismissed')}
         /></span
@@ -431,25 +432,43 @@ A `danger` toast reports a failure and stays too.
     min-block-size: var(--sui-symbol-tile);
   }
 
-  /* A zero-height seat on the middle of the title's first line, rounded down to the pixel, so
-     Dismiss centres beside that line (L-94) on whole pixels (L-95) without making the toast
-     taller. The seat takes the title's face, so `1cap` is the title's cap height. A quiet button
+  /* A zero-height seat on the middle of the toast's body, so Dismiss stands at one place in
+     every toast, on the line of an action beside the copy, without making the toast taller.
+     It takes a button's 34px tier, so it stands as tall as that action (L-101). A quiet button
      draws nothing around its glyph at rest, so its box reaches into the inset by its own room
      and the glyph's bearing, and the glyph's ink keeps the inset (L-33), as a card's quiet head
      control does. The close glyph's ink starts 5 of its 24 units in: 6 empty units less half
-     its 2-unit stroke. */
+     its 2-unit stroke. Its box never reaches past the inset, as at twice the text size (L-55). */
   .sui-toast-dismiss {
     align-items: center;
+    align-self: center;
     block-size: 0;
     display: flex;
     flex: none;
-    font: var(--sui-weight-semibold) var(--sui-font-size-meta) / var(--sui-leading-flat)
-      var(--sui-sans);
-    margin-block-start: round(down, calc(round(up, 1cap, 1px) / 2), 1px);
-    margin-inline-end: round(
-      calc((var(--sui-icon-base) - var(--sui-tier-quiet)) / 2 - 5 / 24 * var(--sui-icon-base)),
-      1px
+    margin-inline-end: max(
+      -1 * var(--sui-space-4),
+      round(
+        calc(
+          (var(--sui-icon-base) - var(--sui-control-height-compact)) / 2 - 5 / 24 *
+            var(--sui-icon-base)
+        ),
+        1px
+      )
     );
+  }
+
+  /* A toast with 17rem inside its inset, as one on a phone has, sets its action beside the copy,
+     so a toast with Undo is no taller than its copy needs (shadcn/ui).
+     Narrower, the action stands under the copy from its start edge. */
+  .sui-toast {
+    container-type: inline-size;
+  }
+
+  @container (min-width: 17rem) {
+    .acting .sui-toast-main {
+      align-items: center;
+      grid-template-columns: minmax(0, 1fr) auto;
+    }
   }
 
   /* Below the wide breakpoint the widest worker status and the widest toast can meet, so the
@@ -493,7 +512,7 @@ A `danger` toast reports a failure and stays too.
   }
 
   .sui-toast-title {
-    text-wrap: balance;
+    text-wrap: pretty;
     font-weight: var(--sui-weight-semibold);
   }
 

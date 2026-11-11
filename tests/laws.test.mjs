@@ -1402,11 +1402,23 @@ test('L-53 a shadow that lifts a part is two layers in every palette block, and 
     Number(toastLift[1]) <= 4 && Number(toastLift[2]) <= 12 && Number(toastLift[3]) < ambient,
     'a light toast lifts on a lighter layer than a menu'
   );
-  assert.equal(
-    [...palette.matchAll(/--sui-shadow-toast: initial;/g)].length,
-    2,
-    'a dark toast keeps the popover lift and its rim of light'
-  );
+  const darkToasts = [...palette.matchAll(/--sui-shadow-toast:([^;]+);/g)].slice(1);
+  assert.equal(darkToasts.length, 2, 'a toast lift in each dark block');
+  for (const [, each] of darkToasts) {
+    assert.match(
+      each,
+      /inset 0 1px 0 rgb\(255 255 255 \/ 6%\)/,
+      'a dark toast keeps its rim of light'
+    );
+    const [, y, blur, share] =
+      [
+        ...each.matchAll(/0 (\d+)px (\d+)px color-mix\(in srgb, var\(--sui-shadow-color\) (\d+)%/g)
+      ].at(-1) ?? [];
+    assert.ok(
+      Number(y) <= 4 && Number(blur) <= 12 && (45 * Number(share)) / 100 <= 20,
+      'a dark toast lifts as a light one does, at about 20% black'
+    );
+  }
   assert.match(
     read('src/lib/components/Toaster.svelte'),
     /box-shadow: var\(--sui-shadow-toast, var\(--sui-shadow-popover\)\);/
