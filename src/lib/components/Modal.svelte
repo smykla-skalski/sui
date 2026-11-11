@@ -389,13 +389,16 @@ dialog, so they are never inert under it.
     inline-size: 46rem;
   }
 
-  /* Docked to the edge only in the top layer; in flow an inspector keeps the whole frame. */
+  .sui-modal[data-size='inspector'] {
+    inline-size: 40rem;
+  }
+
+  /* Docked to the edge only in the top layer; in flow an inspector keeps its width. */
   .sui-modal[data-size='inspector']:not(.preview) {
     block-size: 100dvh;
     border-block: 0;
     border-inline-end: 0;
     border-radius: 0;
-    inline-size: 40rem;
     margin-block: 0;
     margin-inline: auto 0;
     max-block-size: none;

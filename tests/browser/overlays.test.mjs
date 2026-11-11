@@ -159,6 +159,27 @@ suite('overlays', together, () => {
     });
     after(() => page?.close());
 
+    test('L-58 a dialog drawn in place keeps the width of its size', async () => {
+      const widths = await page.evaluate(() =>
+        [...document.querySelectorAll('#modal .sui-modal.preview[data-size]')].map((modal) => [
+          /** @type {HTMLElement} */ (modal).dataset.size,
+          modal.getBoundingClientRect().width
+        ])
+      );
+      const rem = { dialog: 34, inspector: 40, wide: 46 };
+      assert.deepEqual(
+        [...new Set(widths.map(([size]) => size))].sort(),
+        ['dialog', 'inspector', 'wide'],
+        'the sink no longer draws every size'
+      );
+      for (const [size, width] of widths)
+        assert.equal(
+          width,
+          rem[/** @type {keyof typeof rem} */ (size)] * 16,
+          `the ${size} preview`
+        );
+    });
+
     test('L-58 a dialog opens on its first field, and a confirmation without one on its least destructive answer', async () => {
       /** @param {string} name */
       const opensOn = async (name) => {

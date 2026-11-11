@@ -134,6 +134,7 @@
   note="Each size drawn in place at its real width without the scrim, so a review needs no click"
   layout="stack"
   ground="canvas"
+  --example-max="49rem"
 >
   <Specimen label="Dialog">
     <Modal
@@ -153,6 +154,7 @@
         {/snippet}
       </Field>
       <SegmentedControl label="Events" options={eventOptions} value="push" />
+      <CheckList label="Teams to notify" options={teamOptions} value={['platform']} />
       {#snippet footer()}
         <Button>Cancel</Button>
         <Button tone="signal">Save Webhook</Button>
@@ -210,9 +212,10 @@
 
 <Example
   title="States"
-  note="A save in progress refuses every way out, and a failed save keeps the fields and says why above the actions"
+  note="A save in progress refuses every way out, a failed save says why above the actions, and a close that would lose changes asks first"
   layout="stack"
   ground="canvas"
+  --example-max="37rem"
 >
   <Specimen label="Saving">
     <Modal
@@ -241,6 +244,15 @@
         <Button tone="signal">Rename Repository</Button>
       {/snippet}
     </Modal>
+  </Specimen>
+  <Specimen label="Closing with changes">
+    <ConfirmDialog
+      preview
+      title="Discard Your Changes?"
+      consequence="What you changed is gone once the dialog closes"
+      confirmLabel="Discard Changes"
+      tone="stop"
+    />
   </Specimen>
 </Example>
 
