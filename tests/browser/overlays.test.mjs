@@ -666,6 +666,30 @@ suite('overlays', together, () => {
       assert.ok(seen.above, 'the open tip stands over its button, as the live tip does');
     });
 
+    // The live tips open over their buttons, so the names over the buttons stand past a tip's
+    // reach, the open copy's box and its gap, and a shown tip never covers them.
+    test('a live tip clears the names over its example', async () => {
+      const [room, reach] = await page.evaluate(() => {
+        const live = /** @type {HTMLElement} */ (
+          [...document.querySelectorAll('#overlays .specimen')].find((specimen) =>
+            [...specimen.querySelectorAll('button')].some(
+              (button) => button.textContent?.trim() === 'Sync Now' && !button.closest('.open')
+            )
+          )
+        );
+        const name = /** @type {Element} */ (live.querySelector('figcaption'));
+        const body = /** @type {Element} */ (name.nextElementSibling);
+        const copy = /** @type {HTMLElement} */ (
+          document.querySelector('#overlays .open .sui-tooltip')
+        );
+        return [
+          body.getBoundingClientRect().top - name.getBoundingClientRect().bottom,
+          copy.getBoundingClientRect().height + parseFloat(getComputedStyle(copy).marginBlockEnd)
+        ];
+      });
+      assert.ok(room > reach, `${room}px over the button, a tip reaches ${reach}px`);
+    });
+
     test('K8 a tooltip describes its control only when it adds words', async () => {
       const described = await page.evaluate(() => {
         const icon = document.querySelector('#overlays button[aria-label="Refresh the list"]');

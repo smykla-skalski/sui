@@ -28,11 +28,12 @@
      own fit-content width (L-43). In a grid of specimens it takes two of the grid's rows, so every name on a line
      shares the tallest name's track and every body the tallest body's: their bodies start on
      one line even when a name wraps. In a row or a stack there is no parent grid, and the
-     subgrid falls back to two rows of its own at the specimen's top. */
+     subgrid falls back to two rows of its own at the specimen's top. An example of live tips
+     sets `--specimen-caption-gap` to their reach, so a tip never covers the names. */
   .specimen {
     align-content: start;
     display: grid;
-    gap: var(--sui-space-4);
+    gap: var(--specimen-caption-gap, var(--sui-space-4));
     grid-row: span 2;
     grid-template-rows: subgrid;
     margin: 0;

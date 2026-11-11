@@ -543,7 +543,14 @@ test('L-35 a floating list or a tip arrow stands clear of its focused trigger by
 
 test('L-55 a specimen name stands a step past a field gap over its specimen, closer than any row of specimens', () => {
   const specimen = styles['src/routes/kit/Specimen.svelte'];
-  assert.match(specimen, /\.specimen \{[^}]*gap: var\(--sui-space-4\);/);
+  assert.match(
+    specimen,
+    /\.specimen \{[^}]*gap: var\(--specimen-caption-gap, var\(--sui-space-4\)\);/
+  );
+  const widened = svelteFiles
+    .filter((path) => path.startsWith('src/routes/sink/'))
+    .filter((path) => read(path).includes('--specimen-caption-gap='));
+  assert.deepEqual(widened, ['src/routes/sink/overlays.svelte'], 'only live tips widen a name gap');
   assert.match(
     specimen,
     /figcaption \{[^}]*var\(--sui-weight-regular\) var\(--sui-font-size-caption\)/
@@ -1255,7 +1262,7 @@ test('L-118 the page covers the screen and its chrome wears each scheme canvas',
   }
 });
 
-test('L-53 a shadow that lifts a part is two layers in every palette block, and L-54 a light popover lifts on a tight one', () => {
+test('L-53 a shadow that lifts a part is two layers in every palette block, and L-54 a popover lifts on a tight one in both themes', () => {
   /** @param {string} value */
   const layers = (value) => {
     let depth = 0;
@@ -1283,10 +1290,12 @@ test('L-53 a shadow that lifts a part is two layers in every palette block, and 
     /box-shadow: var\(--sui-shadow-tooltip, var\(--sui-shadow-plate\)\);/,
     'a dark tip sits on a plate shadow, not a popover lift'
   );
-  const lift = /** @type {string} */ (found.find(([, name]) => name === 'shadow-popover')?.[2]);
-  for (const [, y, blur] of lift.matchAll(/(?:^|,)\s*0 (\d+)px (\d+)px/g)) {
-    assert.ok(Number(y) <= 8 && Number(blur) <= 20, `a light popover lifts ${y}px with ${blur}px`);
-  }
+  const lifts = found.filter(([, name]) => name === 'shadow-popover').map(([, , value]) => value);
+  assert.equal(lifts.length, 3, 'a popover lift in each palette block');
+  for (const each of lifts)
+    for (const [, y, blur] of each.matchAll(/(?:^|,)\s*0 (\d+)px (\d+)px/g))
+      assert.ok(Number(y) <= 8 && Number(blur) <= 20, `a popover lifts ${y}px with ${blur}px`);
+  const lift = lifts[0];
   const shade = Number(/--sui-shadow-color: rgb\(0 0 0 \/ (\d+)%\)/.exec(palette)?.[1]);
   const contact =
     /^\s*0 1px \d+px (?:color-mix\(in srgb, var\(--sui-shadow-color\) (\d+)%|var\(--sui-shadow-color\))/.exec(

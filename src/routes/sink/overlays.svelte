@@ -109,6 +109,7 @@
 <Example
   title="Tooltip"
   --example-max="40rem"
+  --specimen-caption-gap="3rem"
   note="Hover pauses before it shows, focus shows it at once, and a long press shows it on touch"
 >
   <Specimen label={pressed}>
@@ -228,7 +229,7 @@
   }
 
   .changes {
-    color: var(--sui-text-secondary);
+    color: var(--sui-text-primary);
     display: grid;
     font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-leading-meta)
       var(--sui-sans);
