@@ -325,7 +325,7 @@
   --sui-field-recess-focus: color-mix(in srgb, var(--sui-focus) 40%, var(--sui-field-recess-hover));
   --sui-popover-bg: var(--sui-surface-base);
   --sui-popover-border: var(--sui-border-control);
-  --sui-toast-border: initial;
+  --sui-toast-border: color-mix(in srgb, var(--sui-popover-border) 75%, var(--sui-popover-bg));
 
   --sui-row-hover: color-mix(in srgb, var(--sui-text-primary) 5.4%, transparent);
   /* A field shows hover by firming its frame, so its ground only just moves, well short of the
