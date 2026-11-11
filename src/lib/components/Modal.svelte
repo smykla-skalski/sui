@@ -389,8 +389,10 @@ dialog, so they are never inert under it.
   }
 
   /* A question and its two answers need less measure than a form, so a confirmation stands
-     narrower and reads as one compact block (L-58). */
+     narrower and reads as one compact block, its question a step under a task's title (L-25,
+     L-58). */
   .sui-modal[role='alertdialog'][data-size='dialog'] {
+    --sui-local-modal-title: var(--sui-font-size-alert-title);
     inline-size: 30rem;
   }
 
@@ -443,8 +445,8 @@ dialog, so they are never inert under it.
   .sui-modal-title {
     align-content: center;
     block-size: var(--sui-block-snap);
-    font: var(--sui-weight-bold) var(--sui-font-size-dialog-title) / var(--sui-leading-title)
-      var(--sui-sans);
+    font: var(--sui-weight-bold) var(--sui-local-modal-title, var(--sui-font-size-dialog-title)) /
+      var(--sui-leading-title) var(--sui-sans);
     letter-spacing: -0.015em;
     margin: 0;
     min-inline-size: 0;
@@ -469,8 +471,8 @@ dialog, so they are never inert under it.
     block-size: 0;
     display: flex;
     flex: none;
-    font: var(--sui-weight-bold) var(--sui-font-size-dialog-title) / var(--sui-leading-flat)
-      var(--sui-sans);
+    font: var(--sui-weight-bold) var(--sui-local-modal-title, var(--sui-font-size-dialog-title)) /
+      var(--sui-leading-flat) var(--sui-sans);
     margin-block-start: round(down, calc(round(up, 1cap, 1px) / 2), 1px);
     margin-inline-end: round(calc((var(--sui-icon-base) - var(--sui-tier-quiet)) / 2), 1px);
   }

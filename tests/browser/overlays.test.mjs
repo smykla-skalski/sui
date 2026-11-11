@@ -177,15 +177,24 @@ suite('overlays', together, () => {
     });
     after(() => page?.close());
 
-    test('L-58 a dialog drawn in place keeps the width of its size, a confirmation 30rem', async () => {
+    test('L-58 L-25 a dialog drawn in place keeps the width of its size, a confirmation 30rem under an 18px question', async () => {
       const widths = await page.evaluate(() =>
         [...document.querySelectorAll('#modal .sui-modal.preview[data-size]')].map((modal) => [
           modal.getAttribute('role') === 'alertdialog'
             ? 'confirmation'
             : /** @type {HTMLElement} */ (modal).dataset.size,
-          modal.getBoundingClientRect().width
+          modal.getBoundingClientRect().width,
+          ['.sui-modal-title', '.sui-modal-close'].map(
+            (part) => getComputedStyle(/** @type {Element} */ (modal.querySelector(part))).fontSize
+          )
         ])
       );
+      for (const [size, , title] of widths)
+        assert.deepEqual(
+          title,
+          Array(2).fill(size === 'confirmation' ? '18px' : '20px'),
+          `the ${size} title and its close seat`
+        );
       const rem = { confirmation: 30, dialog: 34, inspector: 40, wide: 46 };
       assert.deepEqual(
         [...new Set(widths.map(([size]) => size))].sort(),
