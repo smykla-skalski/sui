@@ -632,16 +632,18 @@ dialog, so they are never inert under it.
       max-inline-size: calc(100vw - 2 * var(--sui-space-4));
     }
 
-    /* On a phone the actions share the full width in their reading order, on one row while
-       their words fit and stacked once they do not, so each is a whole thumb's target and none
-       sits alone at the end (Apple alerts, Material). */
+    /* On a phone the actions share the full width in their reading order, in equal halves
+       while their words fit and stacked once they do not, so each is a whole thumb's target,
+       none sits alone at the end and the split never moves with the words (Apple alerts,
+       Material). */
     .sui-modal-foot {
       --sui-local-button-span: 100%;
       align-items: stretch;
     }
 
     .sui-modal-foot > :global(*) {
-      flex: 1 1 max-content;
+      flex: 1 1 0;
+      min-inline-size: fit-content;
     }
 
     .sui-modal[data-size='inspector']:not(.preview) {

@@ -93,7 +93,7 @@ suite('overlays', together, () => {
       assert.deepEqual(found, []);
     });
 
-    test('L-58 a dialog that opens holding a long value shows its start, chosen, and sets its actions across the full width in their reading order, on one row while they fit', async () => {
+    test('L-58 a dialog that opens holding a long value shows its start, chosen, and sets its actions across the full width in their reading order, in equal halves while they fit', async () => {
       const opener = page
         .locator('#modal button:not(.sui-modal *)', { hasText: 'Edit Webhook' })
         .first();
@@ -146,6 +146,10 @@ suite('overlays', together, () => {
         `the actions fill ${buttons[0].width + gap + buttons[1].width}px of a ${inner}px footer`
       );
       assert.equal(buttons[0].top, buttons[1].top, 'two short answers stacked');
+      assert.ok(
+        Math.abs(buttons[0].width - buttons[1].width) <= 0.5,
+        `two short answers split ${buttons[0].width}px and ${buttons[1].width}px`
+      );
       const stacked = await page.evaluate(() => {
         const footer = /** @type {HTMLElement} */ (
           document.querySelector('dialog[open] > .sui-modal-foot')
