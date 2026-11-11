@@ -225,3 +225,11 @@ test('the server’s render draws every part as the page draws it once it runs',
   }
   assert.deepEqual(changed, [], `the page redrew ${changed.join(', ')}`);
 });
+
+test('the server’s render of a page marks its own row in the side navigation', async () => {
+  for (const id of ['', 'switch/']) {
+    const html = await (await fetch(new URL(id, url))).text();
+    const row = html.match(/<a[^>]*aria-current="page"[^>]*>/)?.[0] ?? '';
+    assert.match(row, new RegExp(`href="[^"]*${id}"`), `the server marked no row on /${id}`);
+  }
+});

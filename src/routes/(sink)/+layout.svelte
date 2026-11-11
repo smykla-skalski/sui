@@ -44,6 +44,17 @@
     }))
   ]);
 
+  // The current row's href, built as the rows' are: the server resolves paths relative to the
+  // page and the browser to the root, so the page's own path would match no row in the server's
+  // render, and the row would turn current only once the script ran.
+  const current = $derived(
+    page.route.id === '/(sink)/[id]' && page.params.id
+      ? `${resolve('/(sink)/[id]', { id: page.params.id })}/`
+      : page.route.id === '/(sink)'
+        ? resolve('/(sink)')
+        : page.url.pathname
+  );
+
   let drawerOpen = $state(false);
 
   /** Follows an entry: to its page, or on the page of every section in place, where focus lands
@@ -80,7 +91,7 @@
       title="Kitchen Sink"
       label="Components"
       sections={index}
-      current={page.url.pathname}
+      {current}
       scrollTargets={everything}
       onnavigate={follow}
     >
