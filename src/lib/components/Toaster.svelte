@@ -387,11 +387,12 @@ A `danger` toast reports a failure and stays too.
   }
 
   /* The failure symbol stands in a 28px tile of the danger tone, at the tile's 18px glyph, so it
-     weighs less than the title beside it (L-56). */
+     weighs less than the title beside it. The tile mixes the danger ink into the toast's own
+     ground, since the shared tint sinks into a dark toast's raised ground (L-56). */
   .sui-toast-mark {
     --sui-icon-base: var(--sui-icon-md);
     align-items: center;
-    background: var(--sui-danger-tint);
+    background: color-mix(in srgb, var(--sui-danger) 16%, var(--sui-popover-bg));
     block-size: var(--sui-symbol-tile-compact);
     border-radius: var(--sui-radius-control);
     color: var(--sui-danger);

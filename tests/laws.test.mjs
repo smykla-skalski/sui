@@ -1844,3 +1844,11 @@ test('L-85 the current row stands on a plate a light theme does not wash out', (
     );
   }
 });
+
+test("L-56 a toast's symbol tile mixes the danger ink into the toast's own ground", () => {
+  assert.match(
+    stripComments(read('src/lib/components/Toaster.svelte')),
+    /\.sui-toast-mark \{[^}]*background: color-mix\(in srgb, var\(--sui-danger\) 16%, var\(--sui-popover-bg\)\);/,
+    "the shared danger tint sinks into a dark toast's raised ground"
+  );
+});
