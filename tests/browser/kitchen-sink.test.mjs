@@ -618,6 +618,69 @@ suite('the kitchen sink', together, () => {
   );
 
   // A hint that keeps its seat beside the words squeezes them onto more lines on a phone.
+  test('L-58 a link a busy dialog holds loses its address, as a held button is disabled', async () => {
+    const page = await openMount(browser, url);
+    try {
+      const link = await page.evaluate(async () => {
+        const { lib, mount, createRawSnippet, flushSync } = /** @type {any} */ (window);
+        const words = (/** @type {string} */ text) =>
+          createRawSnippet(() => ({ render: () => `<span>${text}</span>` }));
+        mount(lib.Modal, {
+          target: document.body,
+          props: {
+            preview: true,
+            busy: true,
+            title: 'Rename Repository',
+            // A raw snippet draws only markup, so the link is mounted into it as its own root.
+            children: createRawSnippet(() => ({
+              render: () => '<div id="held-link"></div>',
+              setup: (/** @type {Element} */ node) => {
+                mount(lib.Button, {
+                  target: node,
+                  props: { href: '/docs/', children: words('Read the Docs') }
+                });
+              }
+            })),
+            footer: createRawSnippet(() => ({
+              render: () => '<button aria-busy="true">Saving</button>'
+            }))
+          }
+        });
+        flushSync();
+        await new Promise((done) => requestAnimationFrame(() => requestAnimationFrame(done)));
+        flushSync();
+        const anchor = document.querySelector('#held-link a');
+        return { href: anchor?.getAttribute('href'), role: anchor?.getAttribute('role') };
+      });
+      assert.deepEqual(link, { href: null, role: 'link' });
+    } finally {
+      await page.close();
+    }
+  });
+
+  test('a fixed instant reads as the page was written, before and after script, in any zone', async () => {
+    // Line Islands time is UTC+14, where noon UTC is already the next day.
+    const read = async (/** @type {boolean} */ javaScriptEnabled) => {
+      const page = await browser.newPage({ timezoneId: 'Pacific/Kiritimati', javaScriptEnabled });
+      try {
+        await page.goto(new URL('relative-time/', url).href);
+        if (javaScriptEnabled) await page.waitForFunction(() => '__suiAudit' in window);
+        return await page
+          .locator('#relative-time time')
+          .evaluateAll((times) =>
+            times
+              .map((time) => time.textContent?.trim() ?? '')
+              .filter((words) => !/^(now|in\s|\d+\s\S+\sago)/.test(words))
+          );
+      } finally {
+        await page.close();
+      }
+    };
+    const written = await read(false);
+    assert.ok(written.length >= 2, `found ${written.length} fixed instants`);
+    assert.deepEqual(await read(true), written, 'script redrew a fixed date or hour');
+  });
+
   test("L-57 a disclosure's hint shares the words' line only when both fit", async () => {
     const page = await open(375, 'light', {}, 'disclosure');
     try {
