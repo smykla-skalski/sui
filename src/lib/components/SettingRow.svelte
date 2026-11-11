@@ -208,7 +208,7 @@ section's ground between them (L-91).
 
 - Semantics: an `li`; the name is a `label` for a single control that carries the given `id`, and otherwise a plain name whose id the group takes through `aria-labelledby`.
 - Content: a name, an optional one-sentence why line, and the controls in `control`, which receives the ids and the `disabled`, `readonly` and `invalid` flags to pass on.
-- States: rest, unsaved (gold plate and the `unsavedLabel` word), pending (`pendingLabel` under the copy, busy, and its controls held until the save ends: dimmed, or a field in its read-only paint, focusable and refusing changes, as are the reset and its Undo), refused (`error` under the copy with an alert mark), disabled and read only (with `reason` under the copy), and after a reset an Undo in the reset's seat.
+- States: rest, hover and pressed (a row whose name flips a box or a switch veils its plate while the pointer rests on its free area or presses it), unsaved (gold plate and the `unsavedLabel` word), pending (`pendingLabel` under the copy, busy, and its controls held until the save ends: dimmed, or a field in its read-only paint, focusable and refusing changes, as are the reset and its Undo), refused (`error` under the copy with an alert mark), disabled and read only (with `reason` under the copy), and after a reset an Undo in the reset's seat.
 - Keyboard: Tab follows the visual order (L-79, WCAG 2.4.3): the reset or Undo, then the controls it stands before; Enter or Space resets or undoes.
 - Pointer and touch: the row is at least 44px tall and its whole box is the name's target; the reset and Undo are as tall as the controls' first line, 34px, 28px beside chips, 44px on a phone.
 - Focus: after a reset focus moves to the first control instead of falling to the page; after Undo it moves to the reset, or to the first control when the reset is gone.
@@ -442,6 +442,24 @@ section's ground between them (L-91).
     overflow-wrap: anywhere;
     padding-block: var(--sui-block-snap-room);
     text-box: trim-both cap alphabetic;
+  }
+
+  /* A row whose name flips a box or a switch shows that its free area is the name's target:
+     a row's hover veil while the pointer rests there and its press veil on a press, on the
+     state's plate, as a checkbox's own row does (L-11, L-12). */
+  @media (hover: hover) {
+    .sui-setting-row:not([aria-busy]):has(
+        .sui-setting-control
+          :global(:is(input[type='checkbox'], input[type='radio']):not(:disabled))
+      ):has(> .sui-setting-say > label.sui-setting-name:hover:not(:active))::before {
+      background-image: linear-gradient(var(--sui-row-hover), var(--sui-row-hover));
+    }
+  }
+
+  .sui-setting-row:not([aria-busy]):has(
+      .sui-setting-control :global(:is(input[type='checkbox'], input[type='radio']):not(:disabled))
+    ):has(> .sui-setting-say > label.sui-setting-name:active)::before {
+    background-image: linear-gradient(var(--sui-row-pressed), var(--sui-row-pressed));
   }
 
   /* A name that labels a box or a switch flips it on a click, so it shows the pointer (L-100). */

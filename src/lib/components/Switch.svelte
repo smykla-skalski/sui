@@ -308,7 +308,7 @@ take, under the switch and to a screen reader, while the owner sets `checked` ba
 
   /* A switch held by work around it dims its track (L-40). A pending one is its own change at
      work, as a busy button is, so its track keeps full strength; neither answers the pointer. */
-  .sui-switch-track.held {
+  .sui-switch-track.held:not(.pending) {
     opacity: var(--sui-disabled-opacity);
   }
 

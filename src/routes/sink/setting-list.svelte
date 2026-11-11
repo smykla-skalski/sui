@@ -79,6 +79,7 @@
 
 <Example
   title="In a Section"
+  --example-max="54rem"
   note="A checkbox, a segmented control, a field, a duration, a list and a read-only fact, with a 5 px strip between the changed rows"
   layout="stack"
   ground="canvas"
@@ -218,6 +219,7 @@
 
 <Example
   title="States"
+  --example-max="54rem"
   note="A change that takes effect at once says it is saving and why it was refused, and a locked row says why"
   layout="stack"
   ground="canvas"

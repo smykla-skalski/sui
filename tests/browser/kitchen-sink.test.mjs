@@ -1437,7 +1437,7 @@ suite('the kitchen sink', together, () => {
   });
 
   test(
-    "L-36 a phone's setting rows keep a lone switch and a fact beside the copy, and a stacked row's copy takes the whole row under its reset",
+    "L-36 a phone's setting rows keep a lone switch and a fact beside the copy, a stacked row's copy takes the whole row under its reset, and a switch's row hovers",
     long,
     async () => {
       const page = await open(390, 'light', {}, 'setting-list');
@@ -1466,6 +1466,25 @@ suite('the kitchen sink', together, () => {
         );
         assert.equal(paths?.fullWhy, true, "the stacked row's why line kept the reset's column");
         assert.equal(paths?.markOnLastLine, true, 'the hidden Unsaved word took a line of its own');
+
+        // A saving switch is its own change at work, as a busy button is, so it keeps its strength.
+        assert.equal(
+          await page
+            .locator('#setting-list .sui-setting-row', { hasText: 'Sign each payload' })
+            .locator('.sui-switch-track')
+            .evaluate((track) => getComputedStyle(track).opacity),
+          '1',
+          'the saving switch dimmed as if held by work around it'
+        );
+        // The free area of a row whose name flips a switch wears the row's hover veil; a row
+        // whose name only focuses a field does not.
+        const veil = async (/** @type {string} */ name) => {
+          const target = page.locator('#setting-list .sui-setting-row', { hasText: name }).first();
+          await target.hover({ position: { x: 12, y: 12 } });
+          return target.evaluate((node) => getComputedStyle(node, '::before').backgroundImage);
+        };
+        assert.notEqual(await veil('Mirror to the backup region'), 'none', 'the row did not hover');
+        assert.equal(await veil('Command prefix'), 'none', "a field's row hovered");
       } finally {
         await page.close();
       }
