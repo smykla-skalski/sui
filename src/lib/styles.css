@@ -643,7 +643,7 @@
     0 4px 12px color-mix(in srgb, var(--sui-shadow-color) 72%, transparent);
   --sui-shadow-dialog:
     0 2px 8px color-mix(in srgb, var(--sui-shadow-color) 40%, transparent),
-    0 12px 32px color-mix(in srgb, var(--sui-shadow-color) 72%, transparent);
+    0 8px 24px color-mix(in srgb, var(--sui-shadow-color) 56%, transparent);
 
   --sui-segment-track: color-mix(in srgb, var(--sui-text-primary) 5%, transparent);
 
@@ -859,7 +859,7 @@
   --sui-surface-control: transparent;
   --sui-control-bg: var(--sui-surface-control);
   --sui-popover-bg: var(--sui-surface-raised);
-  --sui-dialog-bg: var(--sui-surface-base);
+  --sui-dialog-bg: var(--sui-surface-raised);
 
   --sui-segment-track: var(--sui-field-well);
   --sui-segment-thumb: var(--sui-brand-action);
@@ -1095,7 +1095,7 @@
     --sui-surface-control: transparent;
     --sui-control-bg: var(--sui-surface-control);
     --sui-popover-bg: var(--sui-surface-raised);
-    --sui-dialog-bg: var(--sui-surface-base);
+    --sui-dialog-bg: var(--sui-surface-raised);
 
     --sui-segment-track: var(--sui-field-well);
     --sui-segment-thumb: var(--sui-brand-action);

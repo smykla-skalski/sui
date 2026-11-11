@@ -215,7 +215,7 @@
   note="A save in progress refuses every way out, a failed save says why above the actions, and a close that would lose changes asks first"
   layout="stack"
   ground="canvas"
-  --example-max="37rem"
+  --example-max="49rem"
 >
   <Specimen label="Saving">
     <Modal
@@ -259,6 +259,7 @@
 <Example
   title="Opening"
   note="Each size opens over a scrim on a copy of its record, and only Save writes the copy back"
+  --example-max="49rem"
 >
   <Specimen label="Dialog">
     <Button onclick={editWebhook}>Edit Webhook</Button>
@@ -274,6 +275,7 @@
 <Example
   title="Guarded Close"
   note="Escape, the close button and a press outside ask before throwing away a note, and close a blank one at once"
+  --example-max="49rem"
 >
   <Specimen label="Guarded">
     <Button onclick={() => (guarded = true)}>Write a Note</Button>
