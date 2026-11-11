@@ -229,8 +229,8 @@ test('L-24 a title stands 12px above its description, copy lines 8px apart, form
   assert.deepEqual(dense, []);
   assert.match(
     stripComments(read('src/lib/components/Modal.svelte')),
-    /\.sui-modal-description \{[^}]*font: [^;]*\/ var\(--sui-leading-note\)/,
-    "a dialog's description wraps at the note leading"
+    /\.sui-modal-description \{[^}]*font: [^;]*var\(--sui-font-size-body\) \/ var\(--sui-leading-note\)/,
+    "a dialog's description is set at the body size and wraps at the note leading"
   );
   assert.match(
     stripComments(read('src/lib/components/SettingRow.svelte')),
@@ -950,8 +950,8 @@ test("L-68 icon sizes are named tiers that grow with the text and land on whole 
     );
     assert.match(
       spinner,
-      /solid color-mix\(in srgb, currentColor 40%, transparent\);/,
-      `${path}: the spinner's track keeps 40% of its ink, so the ring stays whole on a fill`
+      /solid color-mix\(in srgb, currentColor 55%, transparent\);/,
+      `${path}: the spinner's track keeps 55% of its ink, so the ring stays whole on a fill`
     );
   }
 });

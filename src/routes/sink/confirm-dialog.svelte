@@ -107,9 +107,11 @@
 <Example
   title="Pending & Failed"
   note="The act runs before the dialog closes, so a refusal keeps the question open and says so"
-  layout="stack"
+  layout="grid"
   ground="canvas"
-  --example-max="33rem"
+  --specimen-min="30rem"
+  --specimen-max="30rem"
+  --example-max="64.5rem"
 >
   <!-- Drawn by Modal, since the question reaches these states only while its act runs. -->
   <Specimen label="Pending">

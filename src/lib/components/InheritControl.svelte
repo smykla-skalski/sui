@@ -290,7 +290,7 @@ for a press of the way back.
      the mark's 16px slot. */
   .sui-inherit-spinner {
     block-size: calc(var(--sui-icon-base) - 2 * var(--sui-stroke));
-    border: var(--sui-stroke-bold) solid color-mix(in srgb, currentColor 40%, transparent);
+    border: var(--sui-stroke-bold) solid color-mix(in srgb, currentColor 55%, transparent);
     border-block-start-color: currentColor;
     border-radius: 50%;
     box-sizing: border-box;
