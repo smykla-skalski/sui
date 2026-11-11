@@ -1414,7 +1414,16 @@ test("L-58 the band a line parts off sits on a faint tint of the field well, and
   );
   assert.match(
     modal,
-    /\.sui-modal-error \+ \.sui-modal-foot \{\s*background: color-mix\(in srgb, var\(--sui-field-well\) 40%, var\(--sui-dialog-bg\)\);/
+    /\.sui-modal-error \+ \.sui-modal-foot \{\s*background: var\(--sui-dialog-foot-bg\);/
+  );
+  assert.deepEqual(
+    [
+      ...palette.matchAll(
+        /--sui-dialog-foot-bg: color-mix\(in srgb, var\(--sui-field-well\) (\d+)%, var\(--sui-dialog-bg\)\);/g
+      )
+    ].map(([, share]) => share),
+    ['40', '65', '65'],
+    'the light band, then the dark one in each dark block'
   );
 });
 

@@ -476,7 +476,8 @@ dialog, so they are never inert under it.
   }
 
   /* The consequence is what the reader weighs before answering, so its ink leans a fifth of
-     the way from the secondary ink toward the title's, over the page's other notes (L-58). */
+     the way from the secondary ink toward the title's, over the page's other notes (L-58). It
+     fills its measure before it breaks, as running copy does, with no lone last word. */
   .sui-modal-description {
     align-content: center;
     block-size: var(--sui-block-snap);
@@ -486,7 +487,7 @@ dialog, so they are never inert under it.
     margin: 0;
     padding-block: var(--sui-block-snap-room);
     text-box: trim-both cap alphabetic;
-    text-wrap: balance;
+    text-wrap: pretty;
   }
 
   /* A dialog's 24px inset would crowd fields a page form's 20px apart, so they stand a step
@@ -531,7 +532,7 @@ dialog, so they are never inert under it.
      the line, and 16px over the foot, so the answer weighs less than the task and reads as its
      own place (shadcn/ui). */
   .sui-modal-error + .sui-modal-foot {
-    background: color-mix(in srgb, var(--sui-field-well) 40%, var(--sui-dialog-bg));
+    background: var(--sui-dialog-foot-bg);
     margin-block-end: calc(-1 * var(--sui-local-modal-inset) / 2);
     padding-block: var(--sui-space-4);
   }

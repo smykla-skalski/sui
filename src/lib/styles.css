@@ -346,6 +346,7 @@
      subtle one, under its fields' edges, while a popover over live content keeps the control
      edge (L-72). */
   --sui-dialog-border: var(--sui-border-subtle);
+  --sui-dialog-foot-bg: color-mix(in srgb, var(--sui-field-well) 40%, var(--sui-dialog-bg));
 
   --sui-changed: #2a5fd2;
   --sui-diff-chg-ink: var(--sui-changed);
@@ -896,6 +897,8 @@
   --sui-field-recess-focus: color-mix(in srgb, var(--sui-focus) 40%, var(--sui-field-recess-hover));
   --sui-popover-border: var(--sui-border-control);
   --sui-dialog-border: color-mix(in srgb, var(--sui-border-control) 35%, var(--sui-border-subtle));
+  /* The dark well is a faint veil, so the band takes more of it. */
+  --sui-dialog-foot-bg: color-mix(in srgb, var(--sui-field-well) 65%, var(--sui-dialog-bg));
   --sui-shadow-plate:
     0 1px 2px var(--sui-shadow-color),
     0 2px 8px color-mix(in srgb, var(--sui-shadow-color) 25%, transparent);
@@ -1143,6 +1146,7 @@
       var(--sui-border-control) 35%,
       var(--sui-border-subtle)
     );
+    --sui-dialog-foot-bg: color-mix(in srgb, var(--sui-field-well) 65%, var(--sui-dialog-bg));
     --sui-shadow-plate:
       0 1px 2px var(--sui-shadow-color),
       0 2px 8px color-mix(in srgb, var(--sui-shadow-color) 25%, transparent);
