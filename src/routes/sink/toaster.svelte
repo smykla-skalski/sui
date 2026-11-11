@@ -56,7 +56,7 @@
       ]}
     />
   </Specimen>
-  <Specimen label="With an action">
+  <Specimen label="With Undo">
     <Toaster
       preview
       items={[
