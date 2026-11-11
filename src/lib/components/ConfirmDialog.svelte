@@ -104,7 +104,7 @@ rejection keeps the dialog open and says so, so the reader can try again or canc
 - Keyboard: Tab cycles inside, Enter or Space answers with the focused button, Escape cancels unless the act is pending.
 - Pointer and touch: both buttons are 34px tall, 44px on a phone or touch screen, and a press outside cancels as Escape does, unless the act is pending.
 - Focus: opens on the body's first field, else on Cancel for `stop` and on the confirm button for `signal`; while pending it moves to the confirm button and the fields are disabled, and on close returns to the opener, `returnFocus` or the nearest control.
-- Responsive: the buttons wrap onto a second line at the trailing edge, and on a phone they share the full width in equal halves while their words fit, in a box that fills the width less 16px each side.
+- Responsive: the buttons wrap onto a second line at the trailing edge, and on a phone they share the full width in equal halves while each one's words fit its half, in a box that fills the width less 16px each side.
 - Accessibility: the role makes a screen reader read the question and consequence at once, the pending button is announced as busy, and a failure is announced as an alert.
 - Localization: `cancelLabel`, `closeLabel` and `failedLabel` carry the built-in words, and the buttons sit at the inline end, mirrored in a right-to-left page.
 - Performance: one dialog in the top layer while open, with the entry motion of `Modal`.

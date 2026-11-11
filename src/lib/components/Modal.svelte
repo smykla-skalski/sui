@@ -532,8 +532,9 @@ dialog, so they are never inert under it.
      than the inset and sits on a faint tint of the field well that reaches the dialog's foot:
      its actions stand 16px under the line, or under a refused save's wash, which starts at
      the line, and 16px over the foot, so the answer weighs less than the task and reads as its
-     own place (shadcn/ui). */
+     own place (shadcn/ui). A quiet answer stands on a ground over the band's, in both themes. */
   .sui-modal-error + .sui-modal-foot {
+    --sui-local-button-bg: var(--sui-dialog-foot-control, var(--sui-surface-raised));
     background: var(--sui-dialog-foot-bg);
     margin-block-end: calc(-1 * var(--sui-local-modal-inset) / 2);
     padding-block: var(--sui-space-4);
@@ -563,16 +564,16 @@ dialog, so they are never inert under it.
     padding-block: var(--sui-space-3);
   }
 
-  /* Over the answer band, a refused save's wash takes the danger edge a form error wears on both
-     sides, the line over it and an edge drawn inside its foot, so the two pale grounds never run
-     together and its words keep their pad. */
+  /* Over the answer band, a refused save's wash takes the danger edge a form error wears on the
+     line over it and that edge at half strength inside its foot, so the two pale grounds never
+     run together, no second red stripe rings the words, and they keep their pad. */
   .sui-modal-error:has(> .sui-modal-error-line):has(+ .sui-modal-foot)::before {
     border-block-start-color: color-mix(in srgb, var(--sui-danger) 40%, transparent);
   }
 
   .sui-modal-error:has(+ .sui-modal-foot) > .sui-modal-error-line {
     box-shadow: inset 0 calc(-1 * var(--sui-stroke)) 0
-      color-mix(in srgb, var(--sui-danger) 40%, transparent);
+      color-mix(in srgb, var(--sui-danger) 20%, transparent);
   }
 
   /* The symbol centres on the first line of the message, however many lines follow. */
@@ -638,9 +639,9 @@ dialog, so they are never inert under it.
     }
 
     /* On a phone the actions share the full width in their reading order, in equal halves
-       while their words fit and stacked once they do not, so each is a whole thumb's target,
-       none sits alone at the end and the split never moves with the words (Apple alerts,
-       Material). */
+       while each one's words fit its half, a longer answer widening to its words while both
+       fit one row, and stacked once they do not, so each is a whole thumb's target and none
+       sits alone at the end (Apple alerts, Material). */
     .sui-modal-foot {
       --sui-local-button-span: 100%;
       align-items: stretch;

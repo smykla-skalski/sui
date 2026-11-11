@@ -414,6 +414,36 @@ test('L-59 a state panel pads 28px by 24px, 20px on a phone, its action a step u
   }
 });
 
+test('L-13 a dark stop fill brightens under the pointer by a step the eye finds, its words still 4.5:1', () => {
+  const values = tokenMap(stripComments(palette));
+  const hex = (/** @type {string} */ name) => {
+    let at = dark[name] ?? values[name];
+    while (at?.startsWith('var(')) at = values[/var\((--[\w-]+)\)/.exec(at)?.[1] ?? ''];
+    return [1, 3, 5].map((i) => parseInt(at.slice(i, i + 2), 16));
+  };
+  const mix = /color-mix\(in srgb, var\(--sui-danger-fill\), var\(--sui-danger\) (\d+)%\)/.exec(
+    dark['--sui-danger-fill-hover']
+  );
+  assert.ok(mix, "the dark stop hover leans its fill toward the theme's danger ink");
+  const share = Number(mix[1]) / 100;
+  const [rest, words] = [hex('--sui-danger-fill'), hex('--sui-on-danger')];
+  const ink = hex('--sui-danger');
+  const hover = rest.map((c, i) => c * (1 - share) + ink[i] * share);
+  const luminance = (/** @type {number[]} */ rgb) => {
+    const [r, g, b] = rgb
+      .map((c) => c / 255)
+      .map((c) => (c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4));
+    return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+  };
+  const ratio = (/** @type {number[]} */ a, /** @type {number[]} */ b) =>
+    (Math.max(luminance(a), luminance(b)) + 0.05) / (Math.min(luminance(a), luminance(b)) + 0.05);
+  assert.ok(
+    ratio(hover, rest) >= 1.2,
+    `the hover stands ${ratio(hover, rest)}:1 off the rest fill`
+  );
+  assert.ok(ratio(words, hover) >= 4.5, `the words stand ${ratio(words, hover)}:1 on the hover`);
+});
+
 test('L-5 the quiet inks stay easy to read on the dark canvas, under the current row', () => {
   const values = tokenMap(stripComments(palette));
   const resolve = (/** @type {string} */ value) => {
@@ -1403,7 +1433,7 @@ test('L-58 a dialog drawn in place lifts softly in both themes, the dark one und
   );
 });
 
-test("L-58 the band a line parts off sits on a faint tint of the field well, and a refused save's wash wears a form error's edge over and under it", () => {
+test("L-58 the band a line parts off sits on a faint tint of the field well, and a refused save's wash wears a form error's edge over it and half that edge under it", () => {
   const modal = read('src/lib/components/Modal.svelte');
   assert.match(
     modal,
@@ -1411,11 +1441,11 @@ test("L-58 the band a line parts off sits on a faint tint of the field well, and
   );
   assert.match(
     modal,
-    /\.sui-modal-error:has\(\+ \.sui-modal-foot\) > \.sui-modal-error-line \{\s*box-shadow: inset 0 calc\(-1 \* var\(--sui-stroke\)\) 0\s*color-mix\(in srgb, var\(--sui-danger\) 40%, transparent\);/
+    /\.sui-modal-error:has\(\+ \.sui-modal-foot\) > \.sui-modal-error-line \{\s*box-shadow: inset 0 calc\(-1 \* var\(--sui-stroke\)\) 0\s*color-mix\(in srgb, var\(--sui-danger\) 20%, transparent\);/
   );
   assert.match(
     modal,
-    /\.sui-modal-error \+ \.sui-modal-foot \{\s*background: var\(--sui-dialog-foot-bg\);/
+    /\.sui-modal-error \+ \.sui-modal-foot \{\s*--sui-local-button-bg: var\(--sui-dialog-foot-control, var\(--sui-surface-raised\)\);\s*background: var\(--sui-dialog-foot-bg\);/
   );
   assert.deepEqual(
     [

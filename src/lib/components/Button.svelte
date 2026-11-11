@@ -94,6 +94,7 @@ start.
 - Pointer and touch: 34px tall on a pointer and 44px on a phone or any touch screen, at least as wide as its label, and a press is never a drag; a surface may keep it drawn at 34px on a phone with `--sui-local-button-seat`, and its hit area still grows to 44px.
 - Focus: pressing never moves focus, and a loading button keeps it; the caller moves focus when the press removes the button.
 - Responsive: as wide as its words up to its container or 20rem, and wider words wrap onto more lines, each keeping the one-line inset, instead of scrolling the page. A surface may stretch it to a length of its own with `--sui-local-button-span`, as a dialog's footer does on a phone.
+- Theming: a quiet tone rests on the raised surface, and a surface of its own may set that ground with `--sui-local-button-bg`, as a dialog's answer band does so its Cancel stands over the band in both themes.
 - Accessibility: the label is the name, `loading` sets `aria-busy` and `aria-disabled`, every tone's ink holds 4.5:1 on its fill, and forced colours draw hover with a highlight edge.
 - Localization: it draws no words of its own; the leading icon and the gap follow the reading direction, and directional glyphs mirror in a right-to-left page.
 - Performance: one element, and only colours, the inset shadow and the 1px sink move, with no movement under reduced motion.
@@ -154,7 +155,7 @@ start.
         2 * var(--sui-stroke)
     );
     align-items: flex-start;
-    background-color: var(--sui-surface-raised);
+    background-color: var(--sui-local-button-bg, var(--sui-surface-raised));
     background-image: linear-gradient(
       var(--sui-control-state-layer),
       var(--sui-control-state-layer)

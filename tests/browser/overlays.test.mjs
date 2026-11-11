@@ -209,6 +209,42 @@ suite('overlays', together, () => {
         );
     });
 
+    test('L-58 a quiet answer stands lighter than the answer band under it, in both themes', async () => {
+      const dark = await open({ colorScheme: 'dark' });
+      try {
+        for (const [theme, at] of [
+          ['light', page],
+          ['dark', dark]
+        ]) {
+          const step = await /** @type {import('playwright-core').Page} */ (at).evaluate(() => {
+            const paint = /** @type {CanvasRenderingContext2D} */ (
+              document.createElement('canvas').getContext('2d', { willReadFrequently: true })
+            );
+            const light = (/** @type {string} */ color) => {
+              paint.clearRect(0, 0, 1, 1);
+              paint.fillStyle = color;
+              paint.fillRect(0, 0, 1, 1);
+              const [r, g, b] = paint.getImageData(0, 0, 1, 1).data;
+              return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+            };
+            const foot = /** @type {Element} */ (
+              document.querySelector(
+                '#modal .sui-modal.preview:not(:has([aria-busy="true"])) .sui-modal-error + .sui-modal-foot'
+              )
+            );
+            const cancel = /** @type {Element} */ (foot.querySelector('.sui-button'));
+            return (
+              light(getComputedStyle(cancel).backgroundColor) -
+              light(getComputedStyle(foot).backgroundColor)
+            );
+          });
+          assert.ok(step >= 6, `${theme}: Cancel stands ${step} levels over the band`);
+        }
+      } finally {
+        await dark.close();
+      }
+    });
+
     test("L-40 a busy dialog's close dims from its own rest ink, as its Cancel dims", async () => {
       const [rest, busy] = await page.evaluate(() =>
         [

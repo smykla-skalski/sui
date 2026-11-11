@@ -14,9 +14,9 @@
 }
 
 /* The Latin faces ride inside the stylesheet, which already holds the first paint, so text
-   is drawn in its own face from the first frame and never swaps, on a cold load or when a
-   stylesheet is applied again. A fetched face arrives after the first layout however early
-   it is asked for. The extended faces are fetched only for the characters that need them. */
+   is drawn in its own face from the first frame and never swaps, on a cold load or a reapplied
+   stylesheet, since a fetched face always arrives after the first layout. The extended faces
+   are fetched only for the characters that need them. */
 @font-face {
   font-display: swap;
   font-family: 'SUI Plus Jakarta Sans';
@@ -760,7 +760,7 @@
   --sui-focus-danger: var(--sui-danger-edge);
   --sui-danger-tint: var(--sui-primitive-danger-dark-tint);
   --sui-danger-fill: var(--sui-primitive-danger-light);
-  --sui-danger-fill-hover: #c8434e;
+  --sui-danger-fill-hover: color-mix(in srgb, var(--sui-danger-fill), var(--sui-danger) 18%);
   --sui-on-danger: #ffffff;
   --sui-danger-hover: #ff929b;
   /* The pastel danger ink would draw a pink edge on dark, so a field's edge mixes in the light
@@ -900,6 +900,11 @@
   --sui-dialog-border: color-mix(in srgb, var(--sui-border-control) 35%, var(--sui-border-subtle));
   /* The dark well is a faint veil, so the band takes more of it. */
   --sui-dialog-foot-bg: color-mix(in srgb, var(--sui-field-well) 65%, var(--sui-dialog-bg));
+  --sui-dialog-foot-control: color-mix(
+    in srgb,
+    var(--sui-text-primary) 7%,
+    var(--sui-dialog-foot-bg)
+  );
   --sui-shadow-plate:
     0 1px 2px var(--sui-shadow-color),
     0 2px 8px color-mix(in srgb, var(--sui-shadow-color) 25%, transparent);
@@ -1005,7 +1010,7 @@
     --sui-focus-danger: var(--sui-danger-edge);
     --sui-danger-tint: var(--sui-primitive-danger-dark-tint);
     --sui-danger-fill: var(--sui-primitive-danger-light);
-    --sui-danger-fill-hover: #c8434e;
+    --sui-danger-fill-hover: color-mix(in srgb, var(--sui-danger-fill), var(--sui-danger) 18%);
     --sui-on-danger: #ffffff;
     --sui-danger-hover: #ff929b;
     --sui-danger-edge: color-mix(
@@ -1148,6 +1153,11 @@
       var(--sui-border-subtle)
     );
     --sui-dialog-foot-bg: color-mix(in srgb, var(--sui-field-well) 65%, var(--sui-dialog-bg));
+    --sui-dialog-foot-control: color-mix(
+      in srgb,
+      var(--sui-text-primary) 7%,
+      var(--sui-dialog-foot-bg)
+    );
     --sui-shadow-plate:
       0 1px 2px var(--sui-shadow-color),
       0 2px 8px color-mix(in srgb, var(--sui-shadow-color) 25%, transparent);
