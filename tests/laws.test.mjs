@@ -1414,8 +1414,10 @@ test('L-53 a shadow that lifts a part is two layers in every palette block, and 
     'a light toast contact line is no darker'
   );
   assert.ok(
-    Number(toastLift[1]) <= 4 && Number(toastLift[2]) <= 12 && Number(toastLift[3]) < ambient,
-    'a light toast lifts on a lighter layer than a menu'
+    Number(toastLift[1]) <= 3 &&
+      Number(toastLift[2]) <= 8 &&
+      (shade * Number(toastLift[3])) / 100 <= 6,
+    'a light toast lifts on a lighter layer than a menu, 3px down, 8px wide, about 5% black'
   );
   const darkToasts = [...palette.matchAll(/--sui-shadow-toast:([^;]+);/g)].slice(1);
   assert.equal(darkToasts.length, 2, 'a toast lift in each dark block');
