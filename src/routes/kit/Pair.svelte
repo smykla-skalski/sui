@@ -36,11 +36,18 @@
     grid-template-columns: minmax(0, 1fr) calc(var(--narrow-frame) + 2 * var(--sui-stroke));
   }
 
-  /* A lead frame keeps its measure whole, such as a dialog's, and the second example takes
-     what the pane leaves of two such frames. */
+  /* A lead frame keeps its measure whole, such as a dialog's, so the two stack until the page
+     holds a 33rem lead, the gap, a second frame of about 31rem and the gutters, and then the
+     second example takes what the pane leaves of two such frames. */
   .lead {
-    grid-template-columns: calc(var(--lead) + 2 * var(--sui-stroke)) minmax(0, 1fr);
+    grid-template-columns: minmax(0, 1fr);
     max-inline-size: calc(2 * (var(--lead) + 2 * var(--sui-stroke)) + var(--sui-space-6));
+  }
+
+  @container (min-width: 70rem) {
+    .lead {
+      grid-template-columns: calc(var(--lead) + 2 * var(--sui-stroke)) minmax(0, 1fr);
+    }
   }
 
   /* Each example takes a head row and a frame row, so the heads share the taller one and the
