@@ -58,9 +58,19 @@
   }
 
   /* A frame keeps its own height, not the taller one beside it, so its parts keep whole pixels
-     (L-95). */
+     (L-95). A lead pair's frames end on one line, the shorter one's stage taking what the
+     taller one, whole pixels itself, leaves, so two dialogs side by side read as one row. */
   .pair :global(.example) > :global(.frame) {
     align-self: start;
+  }
+
+  .lead :global(.example) > :global(.frame) {
+    align-self: stretch;
+    grid-template-rows: 1fr;
+  }
+
+  .lead :global(.example) > :global(.frame:has(> .tools)) {
+    grid-template-rows: 1fr auto;
   }
 
   @media (max-width: 47.9375rem) {

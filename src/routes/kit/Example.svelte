@@ -199,10 +199,14 @@ live specimens, not a surface of the design, so it may hold cards and dialogs (L
      fields, sets `--specimen-max`. */
   /* Rows of a grid stand further apart than a name stands over its specimen, so each name
      reads as the head of the specimen under it. A grid of short specimens, such as fields,
-     may set a closer `--specimen-row-gap` that still keeps that order. */
+     may set a closer `--specimen-row-gap` that still keeps that order. A grid of fixed columns
+     narrower than its frame, kept wide to end on one line with its neighbours, sets
+     `--specimen-justify` to `space-between`, so its outer columns stand one inset from each
+     edge. */
   .specimens[data-layout='grid'] {
     align-items: stretch;
     display: grid;
+    justify-content: var(--specimen-justify, normal);
     row-gap: var(--specimen-row-gap, var(--sui-space-8));
     grid-template-columns: repeat(
       auto-fill,
