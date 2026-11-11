@@ -250,6 +250,7 @@ new control after `onadd` is the caller's.
           <Icon name="alert" size="base" /><span class="sui-addition-said">{error}</span>
         </div>
         {#if onretry}
+          <div role="separator" class="sui-addition-separator"></div>
           <button
             type="button"
             role="menuitem"
@@ -431,6 +432,14 @@ new control after `onadd` is the caller's.
      mark sits inside the row's padding, so every one-line message is a choice's height. */
   :is(.sui-addition-done, .retry) {
     gap: var(--sui-space-2);
+  }
+
+  /* What failed and what to do about it are two kinds of row, parted as ActionMenu parts its
+     groups. */
+  .sui-addition-separator {
+    background-color: var(--sui-border-divider);
+    block-size: var(--sui-stroke);
+    margin-block: var(--sui-space-1);
   }
 
   .retry {

@@ -57,11 +57,22 @@
 
 <Example
   title="Open"
-  note="The list drawn open, with its first choice lit and each note under its label"
-  --example-max="34rem"
+  note="The list drawn open with its first choice lit and each note under its label, hung from the trigger’s start or end"
+  layout="grid"
+  --specimen-min="17rem"
 >
   <Specimen label="First choice lit">
     <AdditionPicker label="Add a Check" choices={behaviours} preview onadd={() => {}} />
+  </Specimen>
+  <Specimen label="Hung from its end">
+    <AdditionPicker
+      label="Override Another"
+      choices={behaviours}
+      added={['auto-merge', 'linear']}
+      align="end"
+      preview
+      onadd={() => {}}
+    />
   </Specimen>
 </Example>
 

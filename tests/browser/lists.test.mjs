@@ -1471,9 +1471,8 @@ suite('lists', together, () => {
       long,
       async () => {
         const page = await opened();
-        const trigger = page.locator('#addition-picker').getByRole('button', {
-          name: 'Override Another'
-        });
+        // The setting list's live picker, not its open copy of the same name.
+        const trigger = page.locator('#sink-addition-more');
         await trigger.scrollIntoViewIfNeeded();
         await trigger.click();
         await page.locator(':popover-open [role="menu"]').waitFor();
