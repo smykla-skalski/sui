@@ -326,11 +326,11 @@ close control, because only Escape and that control end it.
       animation-range: calc(100% - 2px) calc(100% - 1px);
       animation-timeline: scroll(nearest block);
       background: linear-gradient(transparent, var(--sui-popover-bg));
-      block-size: var(--sui-space-6);
+      block-size: var(--sui-space-4);
       content: '';
       display: block;
       inset-block-end: 0;
-      margin-block-start: calc(-1 * var(--sui-space-6));
+      margin-block-start: calc(-1 * var(--sui-space-4));
       opacity: 0;
       pointer-events: none;
       position: sticky;

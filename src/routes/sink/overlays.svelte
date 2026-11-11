@@ -33,9 +33,9 @@
   title="Popover"
   note="The browser toggles it, keeps it in the top layer and returns focus"
   layout="grid"
-  --example-max="54rem"
+  --example-max="48rem"
   --specimen-min="19rem"
-  --specimen-row-gap="5rem"
+  --specimen-row-gap="4.5rem"
 >
   <Specimen label="Toggled by its trigger">
     <Button bind:element={trigger} popovertarget="sink-popover">
@@ -116,7 +116,7 @@
 <Example
   title="Tooltip"
   layout="grid"
-  --example-max="54rem"
+  --example-max="48rem"
   --specimen-min="19rem"
   --specimen-caption-gap="3rem"
   note="Hover pauses before it shows, focus shows it at once, and a long press shows it on touch"
@@ -133,7 +133,7 @@
 <Example
   title="Open"
   layout="grid"
-  --example-max="54rem"
+  --example-max="48rem"
   --specimen-min="19rem"
   note="The popovers and a described tip drawn in place, so a review needs no click or hover"
 >
@@ -200,7 +200,7 @@
     </div>
   </Specimen>
   <Specimen label="Open tip">
-    <div class="open">
+    <div class="open centred">
       <Button bind:element={openSync} onclick={() => (synced = true)}>Sync Now</Button>
       <Tooltip anchor={openSync} preview text={syncHint} />
     </div>
@@ -260,6 +260,13 @@
      copy keeps the live list's least width, its trigger's (`width="min-trigger"`). */
   .fit {
     grid-template-columns: minmax(0, max-content);
+  }
+
+  /* The live tip centres on its button, so the copy's column is the tip's width and the button
+     stands in its middle, inside the specimen. */
+  .centred {
+    grid-template-columns: minmax(0, max-content);
+    justify-items: center;
   }
 
   /* An inline popover skips placement, so its copy takes the floating gap here. The tip copy

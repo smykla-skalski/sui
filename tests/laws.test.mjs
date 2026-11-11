@@ -257,7 +257,7 @@ test('L-66 a chart grid draws 65% of the way to a control edge, and every legend
   );
 });
 
-test('L-107 a scroll edge fades over 24px, and over 20px on a phone, and a popover foot over 24px', () => {
+test('L-107 a scroll edge fades over 24px, and over 20px on a phone, and a popover foot over 16px', () => {
   const sheet = stripComments(read('src/lib/internal/scroll-edge.css'));
   const space = tokenMap(stripComments(palette));
   const fades = [...sheet.matchAll(/--sui-local-edge-fade:\s*var\((--sui-space-\d+)\)/g)].map(
@@ -272,7 +272,7 @@ test('L-107 a scroll edge fades over 24px, and over 20px on a phone, and a popov
     stripComments(read('src/lib/components/Popover.svelte'))
   )?.[1];
   assert.ok(foot, 'a popover draws a foot fade');
-  assert.match(foot, /block-size: var\(--sui-space-6\);/, 'a popover foot fades over 24px');
+  assert.match(foot, /block-size: var\(--sui-space-4\);/, 'a popover foot fades over 16px');
   assert.match(foot, /animation-timeline: scroll\(nearest block\);/);
 });
 

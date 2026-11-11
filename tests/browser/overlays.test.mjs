@@ -656,6 +656,10 @@ suite('overlays', together, () => {
             return box.top < floor - 4 && box.bottom > floor + 4;
           }),
           fade: getComputedStyle(list, '::after').opacity,
+          centres: [tip, sync].map((box) => {
+            const { left, width } = /** @type {Element} */ (box).getBoundingClientRect();
+            return left + width / 2;
+          }),
           above:
             (tip?.getBoundingClientRect().bottom ?? Infinity) <
             (sync?.getBoundingClientRect().top ?? 0)
@@ -666,6 +670,11 @@ suite('overlays', together, () => {
       assert.ok(!seen.narrower, 'the open list keeps its trigger width, as the live one does');
       assert.ok(seen.above, 'the open tip stands over its button, as the live tip does');
       assert.equal(seen.fade, '1', 'the foot of a list with more below fades');
+      const [tipCentre, syncCentre] = seen.centres;
+      assert.ok(
+        Math.abs(tipCentre - syncCentre) <= 1,
+        `the open tip centres on ${tipCentre}px over its button's ${syncCentre}px, as the live tip`
+      );
       const [end, fits] = await page.evaluate(async () => {
         const list = /** @type {HTMLElement} */ (document.getElementById('sink-popover-open-tall'));
         const top = list.scrollTop;
