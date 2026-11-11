@@ -212,7 +212,7 @@ section's ground between them (L-91).
 - Keyboard: Tab follows the visual order (L-79, WCAG 2.4.3): the reset or Undo, then the controls it stands before; Enter or Space resets or undoes.
 - Pointer and touch: the row is at least 44px tall and its whole box is the name's target; the reset and Undo are as tall as the controls' first line, 34px, 28px beside chips, 44px on a phone.
 - Focus: after a reset focus moves to the first control instead of falling to the page; after Undo it moves to the reset, or to the first control when the reset is gone.
-- Responsive: the controls drop under the copy when both sides cannot fit, and under 25rem take that whole line, ending at the row's end with the reset beside them, unless they are a lone bare box or words that fit beside the copy; with `stacked` they always take the whole line under the copy, from its start edge, with the reset ending the copy's band at every width.
+- Responsive: the controls drop under the copy when both sides cannot fit, and under 25rem take that whole line under the copy's own lines, with no band left above them, ending at the row's end with the reset beside them, unless they are a lone bare box or words that fit beside the copy; with `stacked` they always take the whole line under the copy, from its start edge, with the reset ending the copy's band at every width.
 - Accessibility: the name labels a single control or names a group; the why line, `reason` and `error` describe the controls; pending and refused changes are said through a polite status; the unsaved state is a word, not only a color.
 - Localization: `resetLabel`, `undoLabel`, `unsavedLabel`, `pendingLabel` and `clearLabel` are props with English defaults; the controls sit at the inline end and follow the reading direction.
 - Performance: one mutation observer per row watches which control carries the id; nothing animates.
@@ -620,6 +620,23 @@ section's ground between them (L-91).
       flex-basis: 100%;
       flex-wrap: wrap;
       min-inline-size: 0;
+    }
+
+    /* Controls on a line of their own share no band with the copy, so the copy keeps only its
+       own lines and no empty band stands between it and them. A lone box or words that stay
+       beside the copy keep the band they centre in. */
+    .sui-setting-row:not(.stacked):is(
+        :has(> .sui-setting-value > .sui-setting-reset),
+        :not(
+          :has(
+            > .sui-setting-value
+              > .sui-setting-control
+              > :global(:only-child:is(.sui-checkbox, .sui-switch))
+          )
+        )
+      ):has(> .sui-setting-value :global(:is(input, button, select, textarea, [href], [tabindex])))
+      > .sui-setting-say {
+      min-block-size: 0;
     }
 
     /* A value said only in words, such as a read-only fact, stays at the end of the copy's line

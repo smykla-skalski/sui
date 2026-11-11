@@ -1437,7 +1437,7 @@ suite('the kitchen sink', together, () => {
   });
 
   test(
-    "L-36 a phone's setting rows keep a lone switch and a fact beside the copy, a stacked row's copy takes the whole row under its reset, and a switch's row hovers",
+    "L-36 a phone's setting rows keep a lone switch and a fact beside the copy, a stacked row's copy takes the whole row under its reset, a switch's row hovers, and controls under the copy leave no band above them",
     long,
     async () => {
       const page = await open(390, 'light', {}, 'setting-list');
@@ -1454,13 +1454,19 @@ suite('the kitchen sink', together, () => {
               fullWhy:
                 row.querySelector('.sui-setting-why') === null ||
                 Math.abs(part('.sui-setting-why').width - row.clientWidth + 16) < 1,
-              markOnLastLine: Math.abs(mark[0].top - (words.at(-1)?.top ?? 0)) < 1
+              markOnLastLine: Math.abs(mark[0].top - (words.at(-1)?.top ?? 0)) < 1,
+              copyOnly:
+                row.querySelector('.sui-setting-why') !== null &&
+                Math.abs(part('.sui-setting-say').bottom - part('.sui-setting-why').bottom) < 1
             };
           })
         );
         const row = (/** @type {string} */ name) => rows.find((each) => each.name === name);
         for (const name of ['Mirror to the backup region', 'Sign each payload', 'Merge method'])
           assert.equal(row(name)?.beside, true, `${name} dropped under its copy`);
+        // Controls on a line of their own leave the copy no empty band above them.
+        for (const name of ['Command prefix', 'Log level'])
+          assert.equal(row(name)?.copyOnly, true, `${name} kept an empty band over its controls`);
         const paths = row(
           'Paths the bot never formats, even when a rule in a parent workspace asks it to'
         );

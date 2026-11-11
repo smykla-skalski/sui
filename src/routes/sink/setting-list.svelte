@@ -274,24 +274,28 @@
   </Section>
 </Example>
 
-<Example
-  title="List States"
-  note="While the settings load, when they fail and when there is nothing to set, the list says so in the rows’ place"
-  layout="grid"
-  ground="canvas"
->
-  <Specimen label="Loading">
-    <Section title="Webhooks" level={4}><SettingList loading /></Section>
-  </Specimen>
-  <Specimen label="Failed">
-    <Section title="Webhooks" level={4}>
-      <SettingList error="The server did not answer in time" onretry={() => {}} />
-    </Section>
-  </Specimen>
-  <Specimen label="Nothing to set">
-    <Section title="Webhooks" level={4}><SettingList empty /></Section>
-  </Specimen>
-</Example>
+<div class="wide-last">
+  <Example
+    title="List States"
+    --example-max="54rem"
+    --specimen-min="20rem"
+    note="While the settings load, when they fail and when there is nothing to set, the list says so in the rows’ place"
+    layout="grid"
+    ground="canvas"
+  >
+    <Specimen label="Loading">
+      <Section title="Webhooks" level={4}><SettingList loading /></Section>
+    </Specimen>
+    <Specimen label="Failed">
+      <Section title="Webhooks" level={4}>
+        <SettingList error="The server did not answer in time" onretry={() => {}} />
+      </Section>
+    </Specimen>
+    <Specimen label="Nothing to set">
+      <Section title="Webhooks" level={4}><SettingList empty /></Section>
+    </Specimen>
+  </Example>
+</div>
 
 <div class="fill">
   <Example
@@ -365,6 +369,12 @@
       var(--sui-sans);
     padding-block-start: var(--sui-block-snap-spare-even);
     text-box: trim-both cap alphabetic;
+  }
+
+  /* Two states share a line at a list's readable width, and the third takes the next line
+     whole rather than leaving a hole beside it. */
+  .wide-last :global(.specimen:last-child) {
+    grid-column: 1 / -1;
   }
 
   .narrow {
