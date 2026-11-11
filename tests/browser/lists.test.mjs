@@ -1491,6 +1491,29 @@ suite('lists', together, () => {
           Math.abs(menu.x + menu.width - (end.x + end.width)) < 0.5,
           `the menu ends ${menu.x + menu.width - (end.x + end.width)}px off its trigger's end`
         );
+        // Notes beside their labels started wherever each label ended, so no two lined up.
+        assert.deepEqual(
+          await page.locator(':popover-open .sui-addition-note').evaluateAll((notes) =>
+            notes.map((note) => {
+              const label = /** @type {Element} */ (note.previousElementSibling);
+              const [n, l] = [note, label].map((part) => part.getBoundingClientRect());
+              return [Math.round(n.left - l.left), n.top >= l.bottom];
+            })
+          ),
+          [
+            [0, true],
+            [0, true],
+            [0, true]
+          ],
+          'a note does not start under its label'
+        );
+        assert.equal(
+          await page
+            .locator('#addition-picker .sui-addition-preview .sui-addition-spinner')
+            .count(),
+          1,
+          'the loading list draws no spinner beside its words'
+        );
       }
     );
   });

@@ -56,12 +56,20 @@
 </script>
 
 <Example
-  title="States"
-  note="An open list with its first choice lit, loading, failed, empty and used-up lists said in the menu, and a locked picker’s reason"
+  title="Open"
+  note="The list drawn open, with its first choice lit and each note under its label"
 >
   <Specimen label="Open">
     <AdditionPicker label="Add a Check" choices={behaviours} preview onadd={() => {}} />
   </Specimen>
+</Example>
+
+<Example
+  title="States"
+  note="Loading, failed, empty and used-up lists say so in the menu, and a locked picker says why"
+  layout="grid"
+  --specimen-min="17rem"
+>
   <Specimen label="Loading">
     <AdditionPicker label="Add a Check" choices={[]} loading preview onadd={() => {}} />
   </Specimen>

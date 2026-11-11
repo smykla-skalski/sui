@@ -14,6 +14,7 @@
   import Icon from '../icons/Icon.svelte';
   import { held, holdAround } from '../internal/held.svelte.js';
   import { pageLocale } from '../internal/locale.js';
+  import { shownWait } from '../internal/shown-wait.svelte.js';
   import Button from './Button.svelte';
   import Popover from './Popover.svelte';
 
@@ -93,6 +94,8 @@
           onclick: toggle
         }
   );
+
+  const waiting = shownWait(() => loading);
 
   const offered = $derived(choices.filter((choice) => !added.includes(choice.value)));
   const items = () => [...(menu?.querySelectorAll<HTMLElement>('[role="menuitem"]') ?? [])];
@@ -187,7 +190,7 @@ the trigger or grow the page. Whatever is in `added` is not offered again. Movin
 new control after `onadd` is the caller's.
 
 - Semantics: an `add` button with `aria-haspopup="menu"` and `aria-expanded`, opening a `menu` of `menuitem` buttons named by `label`.
-- Content: choices of a label and an optional note a step smaller, which drops under the label when the line runs out.
+- Content: choices of a label and an optional note a step smaller under it.
 - States: closed, open, each choice's highlight and pressed, loading, failed, nothing to add, everything added, a disabled trigger, and `preview`, which draws the menu open in the page's flow with its first choice lit.
 - Keyboard: opening moves focus to the first choice; arrows move and wrap, Home and End jump, typing jumps to the next choice that starts with the typed letters, Enter adds, Escape closes and returns focus to the trigger, and Tab closes and moves on.
 - Pointer and touch: the trigger and every choice are 34px tall, 44px on a phone; focus follows the pointer, so one highlight serves hover and the keyboard; a press outside closes the list.
@@ -197,7 +200,7 @@ new control after `onadd` is the caller's.
 - Localization: `label`, `done`, `none`, `loadingLabel` and `retryLabel` are props with English defaults; type-ahead compares in the page's language; the list follows the reading direction, and `align` start and end hang it from the mirrored edge on a right-to-left page.
 - Performance: every offered choice renders; type-ahead is a linear search, fine for the few hundred a menu holds.
 - Analytics: `onadd` hears each addition, and `onretry` each retry.
-- Failure: no choices says `none`, everything added says `done`, `loading` says `loadingLabel`, and `error` says why with a `retryLabel` item when `onretry` is set.
+- Failure: no choices says `none`, everything added says `done`, `loading` says `loadingLabel` beside a spinner once the wait runs 150ms, and `error` says why with a `retryLabel` item when `onretry` is set.
 -->
 
 {#snippet opener()}
@@ -237,7 +240,9 @@ new control after `onadd` is the caller's.
       <!-- The trigger promises a menu, so any message in place of the choices is a disabled item inside one. -->
       {#if loading}
         <div role="menuitem" aria-disabled="true" tabindex="-1" class="sui-addition-done">
-          <span class="sui-addition-said">{loadingLabel}</span>
+          {#if waiting.current}<span class="sui-addition-spinner"></span>{/if}<span
+            class="sui-addition-said">{loadingLabel}</span
+          >
         </div>
       {:else if error}
         <div role="menuitem" aria-disabled="true" tabindex="-1" class="sui-addition-done problem">
@@ -327,9 +332,9 @@ new control after `onadd` is the caller's.
   }
 
   /* The block padding centres one line in the control height, so a one-line choice is exactly
-     that tall and its words stand as far under the top as over the bottom (L-102). */
+     that tall and its words stand as far under the top as over the bottom (L-102). A note sits
+     under its label, as in ActionMenu, so every note starts on one edge. */
   .sui-addition-choice {
-    align-items: baseline;
     appearance: none;
     background-color: transparent;
     min-block-size: var(--sui-control-height-compact);
@@ -338,9 +343,10 @@ new control after `onadd` is the caller's.
     box-sizing: border-box;
     color: var(--sui-text-primary);
     cursor: pointer;
-    gap: var(--sui-row-copy-gap) var(--sui-space-3);
-    display: flex;
-    flex-wrap: wrap;
+    display: grid;
+    gap: var(--sui-row-copy-gap);
+    grid-template-columns: minmax(0, 1fr);
+    justify-items: start;
     font: var(--sui-weight-regular) var(--sui-font-size-control) / var(--sui-leading-meta)
       var(--sui-sans);
     margin: 0;
@@ -355,12 +361,6 @@ new control after `onadd` is the caller's.
   .sui-addition-choice:is(:focus, .active):not(:active) {
     background-color: var(--sui-list-highlight);
     color: var(--sui-hover-ink);
-  }
-
-  /* The muted ink loses contrast on the veil, so a lit row's note steps up to the secondary
-     ink and stays readable (L-5). */
-  .sui-addition-choice:is(:focus, .active):not(:active) .sui-addition-note {
-    color: var(--sui-text-secondary);
   }
 
   /* A copy's lit choice is where the keyboard is, so it wears the ring as a live one does. */
@@ -394,12 +394,20 @@ new control after `onadd` is the caller's.
     padding-block: var(--sui-block-snap-room-even);
   }
 
-  /* A step under the label, as a combobox's note is, so a row reads as a name and its note. */
+  /* A type step under the label in ActionMenu's ink, so a row reads as a name and its note,
+     and the note stays readable on a lit row's veil (L-5, L-25). */
   .sui-addition-note {
     block-size: var(--sui-block-snap);
-    color: var(--sui-text-muted);
+    color: var(--sui-text-secondary);
     font-size: var(--sui-font-size-caption);
     padding-block: var(--sui-block-snap-room);
+  }
+
+  /* A phone sets the name at 16px, so its note steps to 14px, as a select's does. */
+  @media (max-width: 47.9375rem), (pointer: coarse) {
+    .sui-addition-note {
+      font-size: var(--sui-font-size-meta);
+    }
   }
 
   .sui-addition-done {
@@ -417,14 +425,39 @@ new control after `onadd` is the caller's.
     -webkit-user-select: none;
   }
 
+  .sui-addition-done {
+    gap: var(--sui-space-2);
+  }
+
   .problem {
     color: var(--sui-danger);
-    gap: var(--sui-space-2);
+  }
+
+  .sui-addition-spinner {
+    block-size: calc(var(--sui-icon-base) - 2 * var(--sui-stroke));
+    border: var(--sui-stroke-bold) solid color-mix(in srgb, currentColor 40%, transparent);
+    border-block-start-color: currentColor;
+    border-radius: 50%;
+    box-sizing: border-box;
+    flex: none;
+    inline-size: calc(var(--sui-icon-base) - 2 * var(--sui-stroke));
+    margin: var(--sui-stroke);
+    animation: sui-addition-spin var(--sui-duration-spinner) var(--sui-ease-linear) infinite;
+  }
+
+  @keyframes sui-addition-spin {
+    to {
+      rotate: 1turn;
+    }
   }
 
   @media (prefers-reduced-motion: reduce) {
     .sui-addition-choice {
       transition: none;
+    }
+
+    .sui-addition-spinner {
+      animation: none;
     }
 
     .sui-addition-choice:active {
