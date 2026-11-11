@@ -43,9 +43,11 @@
 <Example
   title="Tones"
   note="A destructive question wears the stop tone, and an act that gives something confirms with the signal tone"
-  layout="stack"
+  layout="grid"
   ground="canvas"
-  --example-max="33rem"
+  --specimen-min="30rem"
+  --specimen-max="30rem"
+  --example-max="64.5rem"
 >
   <Specimen label="Destructive">
     <ConfirmDialog

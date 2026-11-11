@@ -201,7 +201,7 @@ test('L-21 sizes and leading come from the scale and land on whole pixels', () =
 const PHONE = '@media (max-width: 47.9375rem)';
 const pixels = (/** @type {string} */ rem) => parseFloat(rem) * 16;
 
-test('L-24 a title stands 12px above its description, copy lines 8px apart, form notes 20px', () => {
+test('L-24 a title stands 12px above its description, copy lines 8px apart, form notes and a dialog description 20px', () => {
   const gaps = tokenMap(stripComments(palette.slice(0, palette.indexOf(PHONE))));
   const phone = tokenMap(stripComments(palette.slice(palette.indexOf(PHONE))));
   assert.deepEqual(
@@ -227,6 +227,11 @@ test('L-24 a title stands 12px above its description, copy lines 8px apart, form
       .map(([, selector]) => `${path} ${selector.trim()}`)
   );
   assert.deepEqual(dense, []);
+  assert.match(
+    stripComments(read('src/lib/components/Modal.svelte')),
+    /\.sui-modal-description \{[^}]*font: [^;]*\/ var\(--sui-leading-note\)/,
+    "a dialog's description wraps at the note leading"
+  );
   assert.match(
     stripComments(read('src/lib/components/SettingRow.svelte')),
     /\.sui-setting-why \+ \.sui-setting-state \{\s*margin-block-start: var\(--sui-space-1\);/,
@@ -1356,15 +1361,16 @@ test('L-58 a scrim keeps the page behind a dialog legible: 28% light, 48% dark, 
   );
 });
 
-test('L-58 a dialog drawn in place lifts softly in the light theme and as a dialog in the dark, and L-72 a light dialog wears the subtle edge and a dark one a third of the way to the control edge', () => {
+test('L-58 a dialog drawn in place lifts softly in both themes, the dark one under its rim of light, and L-72 a light dialog wears the subtle edge and a dark one a third of the way to the control edge', () => {
   assert.deepEqual(
     [...palette.matchAll(/--sui-shadow-dialog-in-place:\s*([^;]+);/g)].map(([, lift]) =>
       lift.replace(/\s+/g, ' ')
     ),
     [
       '0 1px 2px color-mix(in srgb, var(--sui-shadow-color) 50%, transparent), 0 4px 12px color-mix(in srgb, var(--sui-shadow-color) 25%, transparent)',
-      'var(--sui-shadow-dialog)',
-      'var(--sui-shadow-dialog)'
+      ...Array(2).fill(
+        'inset 0 1px 0 rgb(255 255 255 / 6%), 0 1px 2px color-mix(in srgb, var(--sui-shadow-color) 50%, transparent), 0 4px 12px color-mix(in srgb, var(--sui-shadow-color) 25%, transparent)'
+      )
     ],
     'the light block, then each dark block'
   );

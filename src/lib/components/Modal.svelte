@@ -477,7 +477,7 @@ dialog, so they are never inert under it.
     align-content: center;
     block-size: var(--sui-block-snap);
     color: var(--sui-text-secondary);
-    font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-row-copy-leading)
+    font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-leading-note)
       var(--sui-sans);
     margin: 0;
     padding-block: var(--sui-block-snap-room);
