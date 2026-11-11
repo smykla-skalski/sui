@@ -1437,7 +1437,7 @@ suite('the kitchen sink', together, () => {
   });
 
   test(
-    "L-36 a phone's setting rows keep a lone switch and a fact beside the copy, a stacked row's copy takes the whole row under its reset, a switch's row hovers, controls under the copy leave no band above them, and a status stands apart from the description",
+    "L-36 a phone's setting rows keep a lone switch and a fact beside the copy, a stacked row's copy takes the whole row under its reset, a switch's row hovers, controls under the copy leave no band above them, a status stands apart from the description, and the narrow list fills the column",
     long,
     async () => {
       const page = await open(390, 'light', {}, 'setting-list');
@@ -1520,6 +1520,22 @@ suite('the kitchen sink', together, () => {
         };
         assert.notEqual(await veil('Mirror to the backup region'), 'none', 'the row did not hover');
         assert.equal(await veil('Command prefix'), 'none', "a field's row hovered");
+        // A phone's column is already narrow, so the narrow list leaves no empty band in it.
+        assert.equal(
+          await page
+            .locator('#setting-list .example', { hasText: 'Narrow Width' })
+            .locator('.sui-setting-list')
+            .evaluate((list) => {
+              const inner = list.getBoundingClientRect();
+              const outer = /** @type {Element} */ (
+                list.closest('.example')
+              ).getBoundingClientRect();
+              return [Math.round(inner.left - outer.left), Math.round(outer.right - inner.right)];
+            })
+            .then(([start, end]) => end - start),
+          0,
+          'the narrow list left an empty band beside its rows'
+        );
       } finally {
         await page.close();
       }

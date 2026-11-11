@@ -748,6 +748,14 @@ section's ground between them (L-91).
           100cqi - anchor-size(--sui-setting-seat inline, 0px) - var(--sui-space-2)
         );
       }
+
+      /* The control takes the line's rest after the reset, so the reset never wraps above it
+         for the segments' width. The browser picks the form only after a layout, so a row laid
+         out before that, as one above the place a reload restores, would otherwise drop
+         its reset for the segments and rise again once the select shows. */
+      .sui-setting-control:has(> :global(.sui-segmented)) {
+        flex: 1 1 0;
+      }
     }
   }
 

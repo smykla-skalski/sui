@@ -56,6 +56,35 @@
     };
   }
 
+  // The narrow example shows the same three rows, so both share their resets.
+  const clearRetry = $derived(
+    retry !== saved.retry
+      ? resetter(
+          () => retry,
+          (value) => (retry = value),
+          saved.retry
+        )
+      : undefined
+  );
+  const clearLevel = $derived(
+    level !== saved.level
+      ? resetter(
+          () => level,
+          (value) => (level = value),
+          saved.level
+        )
+      : undefined
+  );
+  const clearSession = $derived(
+    session !== saved.session
+      ? resetter(
+          () => session,
+          (value) => (session = value),
+          saved.session
+        )
+      : undefined
+  );
+
   let mirror = $state(true);
   let mirrorPending = $state(false);
   let mirrorError = $state<string | null>(null);
@@ -90,13 +119,7 @@
         name="Retry failed checks"
         why="Runs a failed check once more before reporting it"
         unsaved={retry !== saved.retry}
-        onclear={retry !== saved.retry
-          ? resetter(
-              () => retry,
-              (value) => (retry = value),
-              saved.retry
-            )
-          : undefined}
+        onclear={clearRetry}
         resettable
       >
         {#snippet control({ id, describedby })}
@@ -107,13 +130,7 @@
         name="Log level"
         why="The least serious event the service writes down"
         unsaved={level !== saved.level}
-        onclear={level !== saved.level
-          ? resetter(
-              () => level,
-              (value) => (level = value),
-              saved.level
-            )
-          : undefined}
+        onclear={clearLevel}
         resettable
       >
         {#snippet control({ labelledby, describedby })}
@@ -149,13 +166,7 @@
         name="Session lifetime"
         why="How long a sign-in lasts before it is asked for again"
         unsaved={session !== saved.session}
-        onclear={session !== saved.session
-          ? resetter(
-              () => session,
-              (value) => (session = value),
-              saved.session
-            )
-          : undefined}
+        onclear={clearSession}
         resettable
       >
         {#snippet control({ id, describedby })}
@@ -300,10 +311,10 @@
 <div class="fill">
   <Example
     title="Narrow Width"
-    note="Below a readable copy width the controls take the next line, and the checkbox stays beside its copy"
+    note="Below a readable copy width the controls take the next line under the copy, with their reset beside them"
     layout="stack"
     ground="canvas"
-    --example-max="calc(16rem + 2 * var(--sui-space-6))"
+    --example-max="calc(21.4375rem + 2 * var(--sui-space-6))"
   >
     <div class="narrow">
       <Section title="Runtime" level={4}>
@@ -312,6 +323,8 @@
             name="Retry failed checks"
             why="Runs a failed check once more before reporting it"
             unsaved={retry !== saved.retry}
+            onclear={clearRetry}
+            resettable
           >
             {#snippet control({ id, describedby })}
               <Checkbox {id} aria-describedby={describedby} bare bind:checked={retry} />
@@ -321,6 +334,8 @@
             name="Log level"
             why="The least serious event the service writes down"
             unsaved={level !== saved.level}
+            onclear={clearLevel}
+            resettable
           >
             {#snippet control({ labelledby, describedby })}
               <SegmentedControl
@@ -336,6 +351,8 @@
             name="Session lifetime"
             why="How long a sign-in lasts before it is asked for again"
             unsaved={session !== saved.session}
+            onclear={clearSession}
+            resettable
           >
             {#snippet control({ id, describedby })}
               <DurationInput
@@ -378,16 +395,21 @@
   }
 
   .narrow {
-    inline-size: min(100%, 16rem);
+    inline-size: min(100%, 21.4375rem);
     max-inline-size: 100%;
   }
 
-  /* The narrow frame keeps the list's 16rem and the stage's 24px pad on a wide page; on a phone
-     the frame fills the column, as every other frame does (L-55), and the list keeps its 16rem,
-     so the example shows the same narrow row at every width. */
+  /* On a wide page the list keeps a 375px phone's column, as the narrow examples of the other
+     editors do, with the stage's 24px pad. A phone's own column is already under the row's 25rem
+     break, so there the frame and the list fill it, as every other frame does (L-55), and leave
+     no empty band beside the rows. */
   @media (max-width: 47.9375rem) {
     .fill :global(.example) {
       --example-max: none;
+    }
+
+    .narrow {
+      inline-size: 100%;
     }
   }
 </style>
