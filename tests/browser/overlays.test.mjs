@@ -709,6 +709,29 @@ suite('overlays', together, () => {
       assert.ok(room > reach, `${room}px over the button, a tip reaches ${reach}px`);
     });
 
+    test('a live popover clears the names of the row under it', async () => {
+      const trigger = page.locator('button[popovertarget="sink-popover"]');
+      // At the top of the window the layer has the room to open below, toward the next row.
+      await trigger.evaluate((button) => button.scrollIntoView({ block: 'start' }));
+      await trigger.click();
+      await page.waitForFunction(() => document.querySelector('#sink-popover:popover-open'));
+      const [floor, name] = await page.evaluate(() => {
+        const layer = /** @type {Element} */ (document.getElementById('sink-popover'));
+        const pinned = /** @type {Element} */ (
+          document.querySelector('button[popovertarget="sink-popover-pinned"]')
+        );
+        const caption = /** @type {Element} */ (
+          pinned.closest('.specimen')?.querySelector('figcaption')
+        );
+        return [layer.getBoundingClientRect().bottom, caption.getBoundingClientRect().top];
+      });
+      await page.keyboard.press('Escape');
+      assert.ok(
+        floor < name,
+        `the open layer ends at ${floor}px, the next name starts at ${name}px`
+      );
+    });
+
     test('K8 a tooltip describes its control only when it adds words', async () => {
       const described = await page.evaluate(() => {
         const icon = document.querySelector('#overlays button[aria-label="Refresh the list"]');

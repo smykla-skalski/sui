@@ -35,6 +35,7 @@
   layout="grid"
   --example-max="54rem"
   --specimen-min="19rem"
+  --specimen-row-gap="5rem"
 >
   <Specimen label="Toggled by its trigger">
     <Button bind:element={trigger} popovertarget="sink-popover">
@@ -114,7 +115,9 @@
 
 <Example
   title="Tooltip"
+  layout="grid"
   --example-max="54rem"
+  --specimen-min="19rem"
   --specimen-caption-gap="3rem"
   note="Hover pauses before it shows, focus shows it at once, and a long press shows it on touch"
 >
