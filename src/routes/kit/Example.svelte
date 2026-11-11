@@ -236,6 +236,12 @@ live specimens, not a surface of the design, so it may hold cards and dialogs (L
       --sui-local-stage-pad: var(--example-phone-pad, var(--sui-space-4));
     }
 
+    /* A stage padded 8px for a drawn dialog still stands its captions 16px in, on the line
+       every other frame's captions start. */
+    .stage :global(.specimen > figcaption) {
+      padding-inline: calc(var(--sui-space-4) - var(--stage-pad));
+    }
+
     .specimens[data-layout='grid'] {
       row-gap: var(--sui-space-6);
     }
