@@ -97,6 +97,7 @@
     title="Removing the Opener"
     note="When the confirmed act removes the row that asked, focus moves to the next row and never to the page"
     layout="stack"
+    ground="canvas"
     --example-max="33rem"
   >
     <Specimen label={`${tokens.length} tokens`}>
