@@ -1437,7 +1437,7 @@ suite('the kitchen sink', together, () => {
   });
 
   test(
-    "L-36 a phone's setting rows keep a lone switch and a fact beside the copy, a stacked row's copy takes the whole row under its reset, a switch's row hovers, controls under the copy leave no band above them, a status stands apart from the description, a reset stands right before its select, and the narrow list fills the column",
+    "L-36 a phone's setting rows keep a lone switch and a fact beside the copy, a stacked row's copy takes the whole row under its reset, a switch's row hovers, controls under the copy leave no band above them, a status stands apart from the description with its mark, a checked box keeps the accent, a reset stands right before its select, and the narrow list fills the column",
     long,
     async () => {
       const page = await open(390, 'light', {}, 'setting-list');
@@ -1481,14 +1481,11 @@ suite('the kitchen sink', together, () => {
               const look = (/** @type {string} */ part) =>
                 getComputedStyle(/** @type {Element} */ (node.querySelector(part)));
               const [why, status, mark] = [
-                '.sui-setting-why:not(.sui-setting-status)',
+                '.sui-setting-why',
                 '.sui-setting-status',
                 '.sui-setting-mark'
               ].map(look);
-              const [over, under] = [
-                '.sui-setting-why:not(.sui-setting-status)',
-                '.sui-setting-status'
-              ].map((part) =>
+              const [over, under] = ['.sui-setting-why', '.sui-setting-status'].map((part) =>
                 /** @type {Element} */ (node.querySelector(part)).getBoundingClientRect()
               );
               return [
@@ -1520,6 +1517,31 @@ suite('the kitchen sink', together, () => {
         };
         assert.notEqual(await veil('Mirror to the backup region'), 'none', 'the row did not hover');
         assert.equal(await veil('Command prefix'), 'none', "a field's row hovered");
+        // A checked box keeps the accent on a changed row, so it has one on colour on the page,
+        // and each status line is led by its mark.
+        const fills = await page
+          .locator('#setting-list .sui-setting-row', { hasText: 'Retry failed checks' })
+          .evaluateAll((all) =>
+            all.map((row) => {
+              const box = row.querySelector('input:checked + .sui-checkbox-box');
+              return box ? getComputedStyle(box).backgroundColor : '';
+            })
+          );
+        assert.equal(
+          new Set(fills.filter(Boolean)).size,
+          1,
+          `a checked box wore ${fills.join(' and ')}`
+        );
+        assert.equal(
+          await page
+            .locator('#setting-list :is(.sui-setting-status, .sui-setting-problem)')
+            .evaluateAll(
+              (all) =>
+                all.filter((line) => line.firstElementChild?.tagName.toLowerCase() !== 'svg').length
+            ),
+          0,
+          'a status line has no mark'
+        );
         // A reset stands right before the select a segmented control turns into.
         assert.equal(
           await page

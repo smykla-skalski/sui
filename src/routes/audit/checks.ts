@@ -880,8 +880,7 @@ function copyRhythm(root: Document): Finding[] {
     // the row's only copy line, 8px off it.
     const step =
       [...second.classList].some((name) => name.endsWith('-state-step')) ||
-      (second.classList.contains('sui-setting-status') &&
-        first.matches('.sui-setting-why:not(.sui-setting-status)'));
+      (second.classList.contains('sui-setting-status') && first.matches('.sui-setting-why'));
     const want = titled || step ? 12 : 8;
     if (Math.abs(gap - want) > 0.75 && gap < 16)
       found.push(
@@ -2437,8 +2436,8 @@ function currentMarks(root: Document): Finding[] {
 }
 
 /**
- * A changed row (L-16): every edge inside it wears the unsaved family, so no neutral line sits
- * on the gold plate. The tokens are read inside the row, where it has set them.
+ * A changed row (L-16): every edge inside it wears the unsaved family, or the accent of an
+ * on-state fill, so no neutral line sits on the gold plate. The tokens are read inside the row, where it has set them.
  */
 function changedEdges(root: Document): Finding[] {
   const found: Finding[] = [];
@@ -2449,9 +2448,9 @@ function changedEdges(root: Document): Finding[] {
     'unsaved-border',
     'unsaved-secondary',
     'unsaved-ink',
-    'decision-accent',
-    'decision-accent-hover',
-    'decision-accent-pressed',
+    'brand-action',
+    'brand-action-hover',
+    'brand-action-pressed',
     'focus'
   ];
   for (const row of audited(root, '[data-unsaved]')) {

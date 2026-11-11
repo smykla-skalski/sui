@@ -208,7 +208,7 @@ section's ground between them (L-91).
 
 - Semantics: an `li`; the name is a `label` for a single control that carries the given `id`, and otherwise a plain name whose id the group takes through `aria-labelledby`.
 - Content: a name, an optional one-sentence why line, and the controls in `control`, which receives the ids and the `disabled`, `readonly` and `invalid` flags to pass on.
-- States: rest, hover and pressed (a row whose name flips a box or a switch veils its plate while the pointer rests on its free area or presses it), unsaved (gold plate and the `unsavedLabel` word), pending (`pendingLabel` under the copy, busy, and its controls held until the save ends: dimmed, or a field in its read-only paint, focusable and refusing changes, as are the reset and its Undo), refused (`error` under the copy with an alert mark), disabled and read only (with `reason` under the copy), and after a reset an Undo in the reset's seat; `reason` and `pendingLabel` are status lines in the medium weight and the secondary ink, 12px under the description, as is `error`.
+- States: rest, hover and pressed (a row whose name flips a box or a switch veils its plate while the pointer rests on its free area or presses it), unsaved (gold plate and the `unsavedLabel` word), pending (`pendingLabel` under the copy, busy, and its controls held until the save ends: dimmed, or a field in its read-only paint, focusable and refusing changes, as are the reset and its Undo), refused (`error` under the copy with an alert mark), disabled and read only (with `reason` under the copy), and after a reset an Undo in the reset's seat; `reason` and `pendingLabel` are status lines led by a lock and a clock mark, in the medium weight and the secondary ink, 12px under the description, as is `error` with its alert mark.
 - Keyboard: Tab follows the visual order (L-79, WCAG 2.4.3): the reset or Undo, then the controls it stands before; Enter or Space resets or undoes.
 - Pointer and touch: the row is at least 44px tall and its whole box is the name's target; the reset and Undo are as tall as the controls' first line, 34px, 28px beside chips, 44px on a phone.
 - Focus: after a reset focus moves to the first control instead of falling to the page; after Undo it moves to the reset, or to the first control when the reset is gone.
@@ -240,13 +240,19 @@ section's ground between them (L-91).
       ></svelte:element
     >
     {#if why}<p id="{uid}-why" class="sui-setting-why">{why}</p>{/if}
-    {#if reason}<p id="{uid}-reason" class="sui-setting-why sui-setting-status">{reason}</p>{/if}
+    {#if reason}
+      <p id="{uid}-reason" class="sui-setting-state sui-setting-status">
+        <Icon name="lock" size="sm" /><span>{reason}</span>
+      </p>
+    {/if}
     {#if error}
-      <p id="{uid}-problem" class="sui-setting-problem">
+      <p id="{uid}-problem" class="sui-setting-state sui-setting-problem">
         <Icon name="alert" size="sm" /><span>{error}</span>
       </p>
     {:else if pending}
-      <p class="sui-setting-why sui-setting-status">{pendingLabel}</p>
+      <p class="sui-setting-state sui-setting-status">
+        <Icon name="pending" size="sm" /><span>{pendingLabel}</span>
+      </p>
     {/if}
     <VisuallyHidden role="status">{error ?? (pending ? pendingLabel : '')}</VisuallyHidden>
   </div>
@@ -367,8 +373,10 @@ section's ground between them (L-91).
     pointer-events: auto;
   }
 
-  /* A change is a state of the row it was made in: its plate, inks, edges, fills, hover and
-     press all take the unsaved hue, and no edge changes width, so nothing moves (L-16). A
+  /* A change is a state of the row it was made in: its plate, inks, edges, hover and press all
+     take the unsaved hue, and no edge changes width, so nothing moves (L-16). An on-state fill,
+     a checked box, an on switch or a chosen segment, keeps the accent, so a control has one on
+     colour on every row. A
      default action on the plate is quiet, its edge in the hue and no ground of its own (L-92).
      The tokens are set here one by one because the derived ones resolve at the root. */
   .sui-setting-row[data-unsaved] {
@@ -386,15 +394,6 @@ section's ground between them (L-91).
     --sui-field-recess-hover: var(--sui-unsaved-field-recess-hover);
     --sui-border-strong: var(--sui-unsaved-field-border);
     --sui-switch-track-off-border: var(--sui-unsaved-field-border);
-    --sui-brand-action: var(--sui-decision-accent);
-    --sui-brand-action-hover: var(--sui-decision-accent-hover);
-    --sui-brand-action-pressed: var(--sui-decision-accent-pressed);
-    --sui-brand-action-text: var(--sui-unsaved-ink);
-    --sui-brand-action-tint: var(--sui-unsaved-control);
-    --sui-on-brand-action: var(--sui-on-decision-accent);
-    --sui-switch-track-on: var(--sui-decision-accent);
-    --sui-segment-thumb: var(--sui-decision-accent);
-    --sui-segment-thumb-ink: var(--sui-on-decision-accent);
     --sui-interactive-hover-layer: color-mix(in srgb, var(--sui-unsaved-ink) 10%, transparent);
     --sui-interactive-pressed: color-mix(in srgb, var(--sui-unsaved-ink) 16%, transparent);
     --sui-surface-raised: transparent;
@@ -433,7 +432,7 @@ section's ground between them (L-91).
 
   .sui-setting-name,
   .sui-setting-why,
-  .sui-setting-problem > span {
+  .sui-setting-state > span {
     align-content: center;
     block-size: var(--sui-block-snap);
     font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-row-copy-leading)
@@ -484,19 +483,19 @@ section's ground between them (L-91).
     text-wrap: pretty;
   }
 
-  /* The alert mark centres on the first line's cap, however many lines the problem wraps to,
-     whose trimmed top is the line's cap top (L-94). */
-  /* A line about the row's state, why it is locked or that it is saving, is a status and not
-     more of the description: it takes the medium weight and the secondary ink, as the refused
-     line takes the medium weight in the danger ink. */
+  /* A line about the row's state, why it is locked, that it is saving or why it was refused,
+     is not more of the description: a mark leads it, a lock, a clock or an alert, and it takes
+     the medium weight, in the secondary ink for a status and the danger ink for a refusal. */
   .sui-setting-status {
     color: var(--sui-text-secondary);
-    font-weight: var(--sui-weight-medium);
   }
 
   .sui-setting-problem {
-    align-items: start;
     color: var(--sui-danger);
+  }
+
+  .sui-setting-state {
+    align-items: start;
     display: flex;
     font: var(--sui-weight-medium) var(--sui-font-size-meta) / var(--sui-row-copy-leading)
       var(--sui-sans);
@@ -508,17 +507,21 @@ section's ground between them (L-91).
   /* A status under a description stands 12px off it, a step past the description's own 8px
      line gap, so it reads as a line of its own and not one more of the description (L-24), as
      a field's error stands a step further from the hint over it (L-35). */
-  .sui-setting-why:not(.sui-setting-status) + :is(.sui-setting-status, .sui-setting-problem) {
+  .sui-setting-why + .sui-setting-state {
     margin-block-start: var(--sui-space-1);
   }
 
-  .sui-setting-problem > :global(svg) {
+  /* The mark centres on the first line's cap, however many lines the state wraps to, whose
+     trimmed top is the line's cap top (L-94). */
+  .sui-setting-state > :global(svg) {
     flex: none;
     margin-block: calc((1cap - var(--sui-icon-sm)) / 2);
   }
 
-  .sui-setting-problem > span {
+  .sui-setting-state > span {
     font-weight: var(--sui-weight-medium);
+    max-inline-size: var(--sui-measure);
+    text-wrap: pretty;
   }
 
   /* The word "Unsaved" runs on after the name's last word, 8px off it and never broken, and
@@ -696,10 +699,7 @@ section's ground between them (L-91).
     margin-block-start: var(--sui-row-copy-gap);
   }
 
-  .stacked
-    > .sui-setting-say
-    > .sui-setting-why:not(.sui-setting-status)
-    + :is(.sui-setting-status, .sui-setting-problem) {
+  .stacked > .sui-setting-say > .sui-setting-why + .sui-setting-state {
     margin-block-start: calc(var(--sui-row-copy-gap) + var(--sui-space-1));
   }
 
