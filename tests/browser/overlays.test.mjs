@@ -159,17 +159,19 @@ suite('overlays', together, () => {
     });
     after(() => page?.close());
 
-    test('L-58 a dialog drawn in place keeps the width of its size', async () => {
+    test('L-58 a dialog drawn in place keeps the width of its size, a confirmation 30rem', async () => {
       const widths = await page.evaluate(() =>
         [...document.querySelectorAll('#modal .sui-modal.preview[data-size]')].map((modal) => [
-          /** @type {HTMLElement} */ (modal).dataset.size,
+          modal.getAttribute('role') === 'alertdialog'
+            ? 'confirmation'
+            : /** @type {HTMLElement} */ (modal).dataset.size,
           modal.getBoundingClientRect().width
         ])
       );
-      const rem = { dialog: 34, inspector: 40, wide: 46 };
+      const rem = { confirmation: 30, dialog: 34, inspector: 40, wide: 46 };
       assert.deepEqual(
         [...new Set(widths.map(([size]) => size))].sort(),
-        ['dialog', 'inspector', 'wide'],
+        ['confirmation', 'dialog', 'inspector', 'wide'],
         'the sink no longer draws every size'
       );
       for (const [size, width] of widths)

@@ -45,7 +45,7 @@
   note="A destructive question wears the stop tone, and an act that gives something confirms with the signal tone"
   layout="stack"
   ground="canvas"
-  --example-max="37rem"
+  --example-max="33rem"
 >
   <Specimen label="Destructive">
     <ConfirmDialog
@@ -71,7 +71,7 @@
   note="Anything the answer needs goes in the body under the consequence"
   layout="stack"
   ground="canvas"
-  --example-max="37rem"
+  --example-max="33rem"
 >
   <Specimen label="Reason field">
     <ConfirmDialog
@@ -89,7 +89,7 @@
 <Example
   title="Asking"
   note="Cancel opens focused on a destructive question, and the confirm action opens focused on an affirmative one"
-  --example-max="37rem"
+  --example-max="33rem"
 >
   <Specimen label="Destructive">
     <Button tone="stop-quiet" onclick={() => (remove = true)}>Delete Repository</Button>
@@ -107,7 +107,7 @@
   note="The act runs before the dialog closes, so a refusal keeps the question open and says so"
   layout="stack"
   ground="canvas"
-  --example-max="37rem"
+  --example-max="33rem"
 >
   <!-- Drawn by Modal, since the question reaches these states only while its act runs. -->
   <Specimen label="Pending">
@@ -147,7 +147,7 @@
   title="Removing the Opener"
   note="When the confirmed act removes the row that asked, focus moves to the next row and never to the page"
   layout="stack"
-  --example-max="37rem"
+  --example-max="33rem"
 >
   <Specimen label={`${tokens.length} tokens`}>
     <ul class="tokens" role="list">
@@ -175,7 +175,7 @@
 <Example
   title="No Question"
   note="An act that can be undone just happens and offers Undo in a toast"
-  --example-max="37rem"
+  --example-max="33rem"
 >
   <Specimen label={archived ? 'Archived' : 'Active'}>
     <Button onclick={archived ? restore : archive}

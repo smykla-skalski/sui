@@ -388,6 +388,12 @@ dialog, so they are never inert under it.
     background-color: var(--sui-scrim);
   }
 
+  /* A question and its two answers need less measure than a form, so a confirmation stands
+     narrower and reads as one compact block (L-58). */
+  .sui-modal[role='alertdialog'][data-size='dialog'] {
+    inline-size: 30rem;
+  }
+
   .sui-modal[data-size='wide'] {
     inline-size: 46rem;
   }
