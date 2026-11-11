@@ -2205,15 +2205,19 @@ function settingResets(root: Document): Finding[] {
     // width meanwhile, so it keeps its lines and only the controls' height could move it. Each
     // line is read from the row's top at that moment, since a page scrolled to its end scrolls
     // back as it shortens.
+    // A stacked row's reset floats inside the copy, ending its band, so it stays put while the
+    // controls are taken out and is never read as a line of the copy.
     const say = row.querySelector<HTMLElement>(':scope > .sui-setting-say');
-    const lines = [...(say?.children ?? [])].filter(shown);
+    const above = stacked
+      ? (say?.querySelector<HTMLElement>(':scope > .sui-setting-reset') ?? null)
+      : null;
+    const lines = [...(say?.children ?? [])].filter((line) => line !== above && shown(line));
     const at = () => {
       const top = row.getBoundingClientRect().top;
       return lines.map((line) => line.getBoundingClientRect().top - top);
     };
     const placed = at();
-    const above = stacked ? row.querySelector<HTMLElement>(':scope > .sui-setting-reset') : null;
-    const parts = [...side.children, ...(above ? [above] : [])] as HTMLElement[];
+    const parts = [...side.children] as HTMLElement[];
     const shows = parts.map((part) => part.style.display);
     const width = say?.style.maxInlineSize ?? '';
     if (say) say.style.maxInlineSize = `${say.getBoundingClientRect().width}px`;
