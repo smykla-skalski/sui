@@ -1061,6 +1061,28 @@ suite('overlays', together, () => {
     }
   );
 
+  test('every toast takes one width, 24rem or the room it has, whatever its words', async () => {
+    const page = await open();
+    try {
+      const drawn = await page.evaluate(() =>
+        [...document.querySelectorAll('#toaster .sui-toaster.preview .sui-toast')].map(
+          (toast) => toast.getBoundingClientRect().width
+        )
+      );
+      assert.ok(drawn.length >= 4, 'the sink no longer draws its toasts');
+      assert.ok(
+        Math.max(...drawn) - Math.min(...drawn) <= 0.5,
+        `drawn toasts ${drawn.join(', ')}px wide`
+      );
+      await page.locator('#toaster button', { hasText: 'Save Settings' }).click();
+      const live = page.locator('.sui-toaster:popover-open .sui-toast');
+      await live.waitFor();
+      assert.equal((await live.boundingBox())?.width, 24 * 16, 'a short live toast');
+    } finally {
+      await page.close();
+    }
+  });
+
   // WCAG 2.4.11: a toast that stays sits over the page's foot, where Tab scrolls each new
   // control into view. Only the end of the document, which cannot scroll any further, and a
   // control taller than the room above the stack may stay under it.

@@ -216,7 +216,7 @@ an action stays until the reader runs it or dismisses it, so a keyboard can alwa
 A `danger` toast reports a failure and stays too.
 
 - Semantics: a `region` landmark named by `label`, with `aria-keyshortcuts` for its hotkey; each toast is announced once from hidden `status` and `alert` regions kept apart from the stack.
-- Content: a title, one description that never repeats it, at most one action, and Dismiss; a failure carries its symbol; words wrap at 24rem.
+- Content: a title, one description that never repeats it, at most one action, and Dismiss; a failure carries its symbol; every toast is 24rem wide, or as wide as the room it has under that, so a stack keeps one edge.
 - States: entering (rises 8px and fades in), shown, held while hovered or focused, leaving (fades), `danger` with its symbol in a danger tile, and drawn in place with `preview`.
 - Keyboard: the hotkey (F8) moves focus to the newest toast, Tab moves through its action and Dismiss, and Escape returns focus to where it was.
 - Pointer and touch: the action is a 34px target and Dismiss a 28px one, both 44px on a phone or touch screen; the corner around the toasts lets presses through to the page.
@@ -305,7 +305,8 @@ A `danger` toast reports a failure and stays too.
 
 <style>
   /* The stack's own padding is the 16px gap to the screen's corner, so the toasts' shadows sit
-     inside the box that scrolls them and are never cut at its edge. */
+     inside the box that scrolls them and are never cut at its edge. It holds one 24rem toast,
+     so every toast takes the same width and the stack keeps one edge (shadcn/ui). */
   .sui-toaster {
     align-items: flex-end;
     background: none;
@@ -314,6 +315,7 @@ A `danger` toast reports a failure and stays too.
     color: inherit;
     flex-direction: column;
     gap: var(--sui-space-2);
+    inline-size: calc(24rem + 2 * var(--sui-space-4));
     inset: auto;
     inset-block-end: calc(
       max(var(--sui-space-4), env(safe-area-inset-bottom)) - var(--sui-space-4)
@@ -339,6 +341,7 @@ A `danger` toast reports a failure and stays too.
      the screen's inline end. */
   .preview {
     align-items: flex-start;
+    inline-size: auto;
     max-block-size: none;
     max-inline-size: 100%;
     overflow: visible;
@@ -351,7 +354,7 @@ A `danger` toast reports a failure and stays too.
     display: block;
   }
 
-  /* One inset all round, measured to the ink (L-33): the title's cap line and the symbol's
+  /* One inset all round, a plate's 16px, measured to the ink (L-33): the title's cap line and the symbol's
      tile stand it below the top, the last baseline or the action's foot above the bottom, and
      Dismiss's glyph from the inline end. Dismiss holds that corner and never wraps, so on a very
      narrow toast the copy moves under the symbol instead. */
@@ -365,9 +368,9 @@ A `danger` toast reports a failure and stays too.
     color: var(--sui-text-primary);
     display: flex;
     gap: var(--sui-space-3);
-    max-inline-size: 24rem;
+    inline-size: min(24rem, 100%);
     opacity: 1;
-    padding: var(--sui-space-3);
+    padding: var(--sui-space-4);
     pointer-events: auto;
     transition:
       opacity var(--sui-duration-normal) var(--sui-ease-out),
