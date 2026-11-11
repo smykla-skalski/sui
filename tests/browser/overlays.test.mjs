@@ -180,6 +180,20 @@ suite('overlays', together, () => {
         );
     });
 
+    test("L-40 a busy dialog's close dims from its own rest ink, as its Cancel dims", async () => {
+      const [rest, busy] = await page.evaluate(() =>
+        [
+          '#modal .sui-modal.preview:not(:has([aria-busy="true"]))',
+          '#modal .sui-modal.preview:has([aria-busy="true"])'
+        ].map((dialog) => {
+          const close = document.querySelector(`${dialog} .sui-modal-close .sui-icon-button`);
+          const look = close && getComputedStyle(close);
+          return look && [look.color, look.opacity];
+        })
+      );
+      assert.deepEqual(busy, [rest?.[0], '0.6']);
+    });
+
     test("L-58 a refused save's wash starts at the line over the actions", async () => {
       const gap = await page.evaluate(() => {
         const line = document.querySelector('#modal .sui-modal.preview .sui-modal-error-line');

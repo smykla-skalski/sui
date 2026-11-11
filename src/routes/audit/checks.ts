@@ -2528,9 +2528,10 @@ function tonedControls(root: Document): Finding[] {
  * every edge and from each other, measured to the ink, and the head 8px more from the body. The
  * line that parts the body from the actions stands one inset under the body, and the actions
  * stand one inset under the line. A refused save's wash starts at the line and pads its words
- * 12px, so they stand an inset and 12px under the fields, and half an inset and 12px from the
- * parts beside them anywhere else. A body that scrolls is cut where the actions begin,
- * and a docked inspector parks them at its foot, so neither gap is weighed.
+ * 12px, and as a ground of its own it stands one inset from the words over it and from the
+ * actions, so its words stand an inset and 12px from the parts beside them. A body that
+ * scrolls is cut where the actions begin, and a docked inspector parks them at its foot, so
+ * neither gap is weighed.
  */
 function dialogInsets(root: Document): Finding[] {
   const found: Finding[] = [];
@@ -2589,12 +2590,10 @@ function dialogInsets(root: Document): Finding[] {
       const want =
         over === top && under === inBody
           ? inset + step
-          : lined && over === inBody
-            ? said && under === said
-              ? inset + wash
-              : 2 * inset
-            : said && (under === said || over === said)
-              ? inset / 2 + wash
+          : said && (under === said || over === said)
+            ? inset + wash
+            : lined && over === inBody
+              ? 2 * inset
               : inset;
       if (!under)
         return [{ gap: box.bottom - parseFloat(look.borderBottomWidth) - over.bottom, want }];

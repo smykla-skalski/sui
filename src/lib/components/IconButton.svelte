@@ -146,9 +146,12 @@ action are a `Button` with the word beside the glyph.
   }
 
   /* A busy button is the action at work, not a disabled one, so its spinner keeps full
-     strength and holds its ink's contrast on the ground (WCAG 1.4.11), as `Button` does. */
+     strength and holds its ink's contrast on the ground (WCAG 1.4.11), as `Button` does. A
+     muted glyph dims from the primary ink, which the muted one at 0.6 would leave too faint,
+     and a firmer rest ink set by its surface, as a dialog's close, dims from itself, so the
+     glyph always reads a step under its rest (L-40). */
   .sui-icon-button:is(:disabled, [aria-disabled='true']:not([aria-busy='true'])) {
-    color: var(--sui-text-primary);
+    color: var(--sui-local-icon-rest, var(--sui-text-primary));
     opacity: var(--sui-disabled-opacity);
   }
 

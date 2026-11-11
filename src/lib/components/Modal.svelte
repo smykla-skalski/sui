@@ -452,7 +452,9 @@ dialog, so they are never inert under it.
      far from the dialog's side as the title is from the other, square to the corner. Its glyph
      rests in the secondary ink, a step over a row action's muted one, so the way out reads
      beside the bold title. */
+  /* The 18px tier, so the close weighs as much as the bold title it ends. */
   .sui-modal-close {
+    --sui-icon-base: var(--sui-icon-md);
     --sui-local-icon-rest: var(--sui-text-secondary);
     align-items: center;
     align-self: flex-start;
@@ -506,6 +508,16 @@ dialog, so they are never inert under it.
   /* The line stands one inset under the last field, as far as the actions stand under it. */
   .sui-modal-body:has(+ .sui-modal-error + .sui-modal-foot) {
     padding-block-end: var(--sui-local-modal-inset);
+  }
+
+  /* A refused save's wash is a ground of its own, so it stands one inset from the words over it
+     and over the actions, as any ink does. */
+  .sui-modal-head + .sui-modal-error:has(> .sui-modal-error-line) {
+    padding-block-start: calc(var(--sui-local-modal-inset) / 2);
+  }
+
+  .sui-modal-error:has(> .sui-modal-error-line) + .sui-modal-foot {
+    padding-block-start: var(--sui-local-modal-inset);
   }
 
   /* A refused save's wash starts at the line, so no strip of the dialog's ground parts the two. */
