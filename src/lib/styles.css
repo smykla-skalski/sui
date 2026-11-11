@@ -895,7 +895,7 @@
   --sui-field-border-focus: color-mix(in srgb, var(--sui-focus) 40%, var(--sui-field-border));
   --sui-field-recess-focus: color-mix(in srgb, var(--sui-focus) 40%, var(--sui-field-recess-hover));
   --sui-popover-border: var(--sui-border-control);
-  --sui-dialog-border: var(--sui-border-control);
+  --sui-dialog-border: color-mix(in srgb, var(--sui-border-control) 35%, var(--sui-border-subtle));
   --sui-shadow-plate:
     0 1px 2px var(--sui-shadow-color),
     0 2px 8px color-mix(in srgb, var(--sui-shadow-color) 25%, transparent);
@@ -1135,7 +1135,11 @@
       var(--sui-field-recess-hover)
     );
     --sui-popover-border: var(--sui-border-control);
-    --sui-dialog-border: var(--sui-border-control);
+    --sui-dialog-border: color-mix(
+      in srgb,
+      var(--sui-border-control) 35%,
+      var(--sui-border-subtle)
+    );
     --sui-shadow-plate:
       0 1px 2px var(--sui-shadow-color),
       0 2px 8px color-mix(in srgb, var(--sui-shadow-color) 25%, transparent);

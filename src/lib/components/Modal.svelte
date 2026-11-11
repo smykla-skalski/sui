@@ -482,6 +482,7 @@ dialog, so they are never inert under it.
     margin: 0;
     padding-block: var(--sui-block-snap-room);
     text-box: trim-both cap alphabetic;
+    text-wrap: pretty;
   }
 
   /* A dialog's 24px inset would crowd fields a page form's 20px apart, so they stand a step
