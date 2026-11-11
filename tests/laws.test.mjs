@@ -1347,16 +1347,25 @@ test('L-53 a shadow that lifts a part is two layers in every palette block, and 
   );
 });
 
-test('L-58 a scrim keeps the page behind a dialog legible: 45% light, 56% dark, a 4px blur', () => {
+test('L-58 a scrim keeps the page behind a dialog legible: 35% light, 56% dark, a 4px blur', () => {
   assert.deepEqual(
     [...palette.matchAll(/--sui-scrim: rgb\(0 0 0 \/ (\d+)%\);/g)].map(([, alpha]) => alpha),
-    ['45', '56', '56'],
+    ['35', '56', '56'],
     'the light scrim, then the dark one in each dark block'
   );
   assert.deepEqual(
     [...palette.matchAll(/--sui-scrim-blur: ([^;]+);/g)].map(([, blur]) => blur),
     ['4px']
   );
+});
+
+test("L-58 a refused save says why on a form error's danger wash", () => {
+  const wash =
+    /background: color-mix\(in srgb, var\(--sui-danger-tint\) (\d+)%, var\(--sui-[a-z-]+\)\);/;
+  const form = wash.exec(read('src/lib/components/FormError.svelte'));
+  const line = /\.sui-modal-error-line \{[^}]*\}/.exec(read('src/lib/components/Modal.svelte'));
+  assert.ok(form && line, 'a form error or the dialog error line lost its rule');
+  assert.equal(wash.exec(line[0])?.[1], form[1], "the dialog's reason left the form error's wash");
 });
 
 test("L-9 a control's edge firms one step on hover, the same in every theme, and a light field wears a button's edge", () => {

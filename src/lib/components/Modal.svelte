@@ -508,8 +508,11 @@ dialog, so they are never inert under it.
     position: absolute;
   }
 
+  /* A refused save is a state of the whole task, so its reason sits on the pale wash a form
+     error wears, across the dialog's width (L-58). */
   .sui-modal-error-line {
     align-items: flex-start;
+    background: color-mix(in srgb, var(--sui-danger-tint) 45%, var(--sui-dialog-bg));
     color: var(--sui-danger);
     display: flex;
     font: var(--sui-weight-medium) var(--sui-font-size-meta) / var(--sui-leading-meta)

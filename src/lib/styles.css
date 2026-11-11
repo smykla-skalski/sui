@@ -277,7 +277,7 @@
      the bright ink in dark, so a lighter ground never takes contrast away. */
   --sui-hover-ink: var(--sui-text-primary);
   --sui-interactive-pressed: rgb(0 0 0 / 14%);
-  --sui-scrim: rgb(0 0 0 / 45%);
+  --sui-scrim: rgb(0 0 0 / 35%);
   --sui-scrim-blur: 4px;
 
   --sui-sidebar-bg: var(--sui-canvas);
@@ -642,8 +642,8 @@
     0 1px 2px color-mix(in srgb, var(--sui-shadow-color) 40%, transparent),
     0 4px 12px color-mix(in srgb, var(--sui-shadow-color) 72%, transparent);
   --sui-shadow-dialog:
-    0 2px 8px color-mix(in srgb, var(--sui-shadow-color) 40%, transparent),
-    0 8px 24px color-mix(in srgb, var(--sui-shadow-color) 56%, transparent);
+    0 2px 8px color-mix(in srgb, var(--sui-shadow-color) 33%, transparent),
+    0 8px 24px color-mix(in srgb, var(--sui-shadow-color) 44%, transparent);
 
   --sui-segment-track: color-mix(in srgb, var(--sui-text-primary) 5%, transparent);
 
