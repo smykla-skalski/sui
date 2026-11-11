@@ -545,13 +545,14 @@ dialog, so they are never inert under it.
   }
 
   /* A refused save is a state of the whole task, so its reason sits on the pale wash a form
-     error wears, across the dialog's width (L-58). */
+     error wears, across the dialog's width, and its words read as a form error's do: the mark,
+     the edges and the wash carry the refusal, the words the primary ink at the body size (L-58). */
   .sui-modal-error-line {
     align-items: flex-start;
     background: color-mix(in srgb, var(--sui-danger-tint) 65%, var(--sui-dialog-bg));
-    color: var(--sui-danger);
+    color: var(--sui-text-primary);
     display: flex;
-    font: var(--sui-weight-medium) var(--sui-font-size-meta) / var(--sui-leading-meta)
+    font: var(--sui-weight-medium) var(--sui-font-size-body) / var(--sui-row-copy-leading)
       var(--sui-sans);
     gap: var(--sui-space-2);
     margin: 0;
@@ -574,6 +575,7 @@ dialog, so they are never inert under it.
   /* The symbol centres on the first line of the message, however many lines follow. */
   /* Centred on the first line of the reason, the box an even snap gives one line (L-94). */
   .sui-modal-error-mark {
+    color: var(--sui-danger);
     display: flex;
     flex: none;
     margin-block: calc((round(up, 1cap, 2px) - var(--sui-icon-md)) / 2);

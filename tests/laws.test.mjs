@@ -214,14 +214,14 @@ test('L-24 a title stands 12px above its description, copy lines 8px apart, form
     },
     { copy: 8, title: 12, field: 12, note: 20, phoneNote: 22 }
   );
-  // A control's help and error lines, not a whole state's or form's error, nor a setting row's
-  // problem, which is a line of the row's copy.
+  // A control's help and error lines, not a whole state's, form's or dialog's error, nor a
+  // setting row's problem, which is a line of the row's copy.
   const dense = globSync('src/lib/components/*.svelte').flatMap((path) =>
     [...stripComments(read(path)).matchAll(/\n {2}([^\n{}]+)\{([^}]*)\}/g)]
       .filter(
         ([, selector, body]) =>
           /-(help|error|hint|problem)\b/.test(selector) &&
-          !/error-state|form-error|problem-words|setting-problem/.test(selector) &&
+          !/error-state|form-error|modal-error|problem-words|setting-problem/.test(selector) &&
           /font:[^;]*--sui-row-copy-leading/.test(body)
       )
       .map(([, selector]) => `${path} ${selector.trim()}`)
@@ -1418,13 +1418,30 @@ test("L-58 the band a line parts off sits on a faint tint of the field well, and
   );
 });
 
-test("L-58 a refused save says why on a form error's danger wash", () => {
+test("L-58 a refused save says why on a form error's danger wash, in a form error's words", () => {
   const wash =
     /background: color-mix\(in srgb, var\(--sui-danger-tint\) (\d+)%, var\(--sui-[a-z-]+\)\);/;
   const form = wash.exec(read('src/lib/components/FormError.svelte'));
   const line = /\.sui-modal-error-line \{[^}]*\}/.exec(read('src/lib/components/Modal.svelte'));
   assert.ok(form && line, 'a form error or the dialog error line lost its rule');
   assert.equal(wash.exec(line[0])?.[1], form[1], "the dialog's reason left the form error's wash");
+  const words = (/** @type {string} */ rule) =>
+    ['color', 'font'].map(
+      (property) => new RegExp(`(?:^|\\s)${property}: ([^;]*);`).exec(rule)?.[1]
+    );
+  assert.deepEqual(
+    words(line[0]),
+    words(
+      /\.sui-form-error-message \{[^}]*\}/.exec(read('src/lib/components/FormError.svelte'))?.[0] ??
+        ''
+    ),
+    "the dialog's reason reads in a form error's ink and type"
+  );
+  assert.match(
+    read('src/lib/components/Modal.svelte'),
+    /\.sui-modal-error-mark \{[^}]*color: var\(--sui-danger\);/,
+    "the dialog's refusal mark keeps the danger ink"
+  );
   const panel = /var\(--sui-danger-tint\) (\d+)%/.exec(
     read('src/lib/components/ErrorState.svelte')
   );
