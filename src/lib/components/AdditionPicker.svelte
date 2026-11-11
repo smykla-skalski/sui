@@ -312,7 +312,9 @@ new control after `onadd` is the caller's.
     min-inline-size: min(calc(13rem + 2 * var(--sui-stroke)), 100%);
   }
 
+  /* A copy draws every row, as a Combobox's does, so no long list is cut at its foot. */
   .sui-addition-preview .sui-addition-menu {
+    max-block-size: none;
     min-inline-size: 0;
   }
 

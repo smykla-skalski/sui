@@ -1540,13 +1540,19 @@ suite('lists', together, () => {
                   .map((row) => Math.round(box(row).height))
               )
             ].length,
+            // A copy draws every row, as a Combobox's does, so no long list is cut at its foot.
+            whole: previews.every(
+              (preview) =>
+                getComputedStyle(/** @type {Element} */ (preview.querySelector('[role="menu"]')))
+                  .maxBlockSize === 'none'
+            ),
             edge: Math.round(
               box(failed?.querySelector('.sui-addition-choice .sui-addition-label') ?? null).left -
                 box(failed?.querySelector('.problem .sui-addition-said') ?? null).left
             )
           };
         });
-        assert.deepEqual(copies, { floored: true, fitted: true, heights: 1, edge: 0 });
+        assert.deepEqual(copies, { floored: true, fitted: true, heights: 1, whole: true, edge: 0 });
       }
     );
   });
