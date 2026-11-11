@@ -875,8 +875,13 @@ function copyRhythm(root: Document): Finding[] {
     const titled =
       /^H[1-6]$/.test(first.tagName) ||
       [...first.classList].some((name) => name === 'title' || name.endsWith('-title'));
-    // A state's step in words stands apart from the explanation over it, as words do from a title.
-    const step = [...second.classList].some((name) => name.endsWith('-state-step'));
+    // A state's step in words stands apart from the explanation over it, as words do from a title,
+    // and so does a setting row's status under its description; one right under the name is
+    // the row's only copy line, 8px off it.
+    const step =
+      [...second.classList].some((name) => name.endsWith('-state-step')) ||
+      (second.classList.contains('sui-setting-status') &&
+        first.matches('.sui-setting-why:not(.sui-setting-status)'));
     const want = titled || step ? 12 : 8;
     if (Math.abs(gap - want) > 0.75 && gap < 16)
       found.push(

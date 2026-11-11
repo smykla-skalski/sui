@@ -227,6 +227,11 @@ test('L-24 a title stands 12px above its description, copy lines 8px apart, form
       .map(([, selector]) => `${path} ${selector.trim()}`)
   );
   assert.deepEqual(dense, []);
+  assert.match(
+    stripComments(read('src/lib/components/SettingRow.svelte')),
+    /\.sui-setting-why:not\(\.sui-setting-status\) \+ :is\(\.sui-setting-status, \.sui-setting-problem\) \{\s*margin-block-start: var\(--sui-space-1\);/,
+    "a setting row's status stands a step, 4px, past the description's 8px copy gap"
+  );
 });
 
 test('L-66 a chart grid draws 65% of the way to a control edge, and every legend at one size', () => {

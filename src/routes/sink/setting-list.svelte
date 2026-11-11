@@ -383,14 +383,11 @@
   }
 
   /* The narrow frame keeps the list's 16rem and the stage's 24px pad on a wide page; on a phone
-     the frame and the list fill the column, as every other frame does (L-55). */
+     the frame fills the column, as every other frame does (L-55), and the list keeps its 16rem,
+     so the example shows the same narrow row at every width. */
   @media (max-width: 47.9375rem) {
     .fill :global(.example) {
       --example-max: none;
-    }
-
-    .narrow {
-      inline-size: 100%;
     }
   }
 </style>

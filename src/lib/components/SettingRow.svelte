@@ -203,12 +203,12 @@ only the copy's lines beside that reset give it room, and the lines under it tak
 unsaved family, and shows `unsavedLabel` beside the name. The plate sits 2px inside the row's
 own box and the word keeps its seat while hidden, so a change of state never moves the row,
 changes its height or rewraps its name. The word runs on after the name's last word, so its
-hidden seat takes a line of its own only when the balanced name leaves no room for it. Two changed rows in a row show a 5px strip of the
+hidden seat keeps a word with it and never takes a line of its own. Two changed rows in a row show a 5px strip of the
 section's ground between them (L-91).
 
 - Semantics: an `li`; the name is a `label` for a single control that carries the given `id`, and otherwise a plain name whose id the group takes through `aria-labelledby`.
 - Content: a name, an optional one-sentence why line, and the controls in `control`, which receives the ids and the `disabled`, `readonly` and `invalid` flags to pass on.
-- States: rest, hover and pressed (a row whose name flips a box or a switch veils its plate while the pointer rests on its free area or presses it), unsaved (gold plate and the `unsavedLabel` word), pending (`pendingLabel` under the copy, busy, and its controls held until the save ends: dimmed, or a field in its read-only paint, focusable and refusing changes, as are the reset and its Undo), refused (`error` under the copy with an alert mark), disabled and read only (with `reason` under the copy), and after a reset an Undo in the reset's seat; `reason` and `pendingLabel` are status lines in the medium weight and the secondary ink, apart from the description.
+- States: rest, hover and pressed (a row whose name flips a box or a switch veils its plate while the pointer rests on its free area or presses it), unsaved (gold plate and the `unsavedLabel` word), pending (`pendingLabel` under the copy, busy, and its controls held until the save ends: dimmed, or a field in its read-only paint, focusable and refusing changes, as are the reset and its Undo), refused (`error` under the copy with an alert mark), disabled and read only (with `reason` under the copy), and after a reset an Undo in the reset's seat; `reason` and `pendingLabel` are status lines in the medium weight and the secondary ink, 12px under the description, as is `error`.
 - Keyboard: Tab follows the visual order (L-79, WCAG 2.4.3): the reset or Undo, then the controls it stands before; Enter or Space resets or undoes.
 - Pointer and touch: the row is at least 44px tall and its whole box is the name's target; the reset and Undo are as tall as the controls' first line, 34px, 28px beside chips, 44px on a phone.
 - Focus: after a reset focus moves to the first control instead of falling to the page; after Undo it moves to the reset, or to the first control when the reset is gone.
@@ -475,7 +475,7 @@ section's ground between them (L-91).
     color: var(--sui-text-primary);
     display: block;
     font-weight: var(--sui-weight-semibold);
-    text-wrap: balance;
+    text-wrap: pretty;
   }
 
   .sui-setting-why {
@@ -505,6 +505,13 @@ section's ground between them (L-91).
     min-inline-size: 0;
   }
 
+  /* A status under a description stands 12px off it, a step past the description's own 8px
+     line gap, so it reads as a line of its own and not one more of the description (L-24), as
+     a field's error stands a step further from the hint over it (L-35). */
+  .sui-setting-why:not(.sui-setting-status) + :is(.sui-setting-status, .sui-setting-problem) {
+    margin-block-start: var(--sui-space-1);
+  }
+
   .sui-setting-problem > :global(svg) {
     flex: none;
     margin-block: calc((1cap - var(--sui-icon-sm)) / 2);
@@ -515,8 +522,8 @@ section's ground between them (L-91).
   }
 
   /* The word "Unsaved" runs on after the name's last word, 8px off it and never broken, and
-     the balanced lines take it in, so its hidden seat leaves a blank line under a long name
-     only when no line has room for it. Always laid out, shown only while unsaved, so its arrival never rewraps the name. A
+     the wrap keeps a word with it rather than leave it alone, so its hidden seat never leaves
+     a blank line under a long name. Names wrap as a field's label does. Always laid out, shown only while unsaved, so its arrival never rewraps the name. A
      word rather than a star, which most forms use for a required field. */
   .sui-setting-mark {
     color: var(--sui-unsaved-secondary);
@@ -687,6 +694,13 @@ section's ground between them (L-91).
 
   .stacked > .sui-setting-say > p {
     margin-block-start: var(--sui-row-copy-gap);
+  }
+
+  .stacked
+    > .sui-setting-say
+    > .sui-setting-why:not(.sui-setting-status)
+    + :is(.sui-setting-status, .sui-setting-problem) {
+    margin-block-start: calc(var(--sui-row-copy-gap) + var(--sui-space-1));
   }
 
   /* It comes before the name, so it floats at the band's top, and it stands over the name's

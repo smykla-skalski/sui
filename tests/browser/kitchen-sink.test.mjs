@@ -1485,14 +1485,21 @@ suite('the kitchen sink', together, () => {
                 '.sui-setting-status',
                 '.sui-setting-mark'
               ].map(look);
+              const [over, under] = [
+                '.sui-setting-why:not(.sui-setting-status)',
+                '.sui-setting-status'
+              ].map((part) =>
+                /** @type {Element} */ (node.querySelector(part)).getBoundingClientRect()
+              );
               return [
                 why.fontWeight,
                 status.fontWeight,
                 mark.fontWeight,
-                why.color !== status.color
+                why.color !== status.color,
+                Math.round(under.top - over.bottom)
               ];
             }),
-          ['400', '500', '500', true],
+          ['400', '500', '500', true, 12],
           'the saving word or the Unsaved mark reads as more of the description'
         );
         // A saving switch is its own change at work, as a busy button is, so it keeps its strength.
