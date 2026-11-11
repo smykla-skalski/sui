@@ -184,7 +184,10 @@ It has no label of its own. Put it in a `Field` through the `control` snippet, o
     resize: none;
   }
 
+  /* A held field sits on the off well, so its dimmed value never reads as a placeholder in an
+     empty field (L-40). */
   .sui-textarea.held:disabled {
+    background-color: var(--sui-field-disabled);
     opacity: var(--sui-disabled-opacity);
   }
 

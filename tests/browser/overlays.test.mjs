@@ -194,6 +194,24 @@ suite('overlays', together, () => {
       assert.deepEqual(busy, [rest?.[0], '0.6']);
     });
 
+    test("L-40 a busy dialog's held field sits on the off well, so its value never reads as a placeholder", async () => {
+      const [held, off] = await page.evaluate(() => {
+        const field = document.querySelector(
+          '#modal .sui-modal.preview:has([aria-busy="true"]) .sui-text-input.held'
+        );
+        const probe = document.createElement('div');
+        probe.style.backgroundColor = 'var(--sui-field-disabled)';
+        field?.parentElement?.append(probe);
+        const paint = [
+          field && getComputedStyle(field).backgroundColor,
+          getComputedStyle(probe).backgroundColor
+        ];
+        probe.remove();
+        return paint;
+      });
+      assert.equal(held, off);
+    });
+
     test("L-58 a refused save's wash starts at the line over the actions", async () => {
       const gap = await page.evaluate(() => {
         const line = document.querySelector('#modal .sui-modal.preview .sui-modal-error-line');
@@ -348,7 +366,7 @@ suite('overlays', together, () => {
       await page.waitForFunction(() => !document.querySelector('dialog[open]'));
     });
 
-    test('L-58 a line parts a dialog body from its actions whether the body fits or scrolls, one inset above them as below', async () => {
+    test('L-58 a line parts a dialog body from its actions whether the body fits or scrolls, 16px above them as below', async () => {
       const opener = page.locator('#modal button', { hasText: 'Edit Webhook' }).first();
       await opener.scrollIntoViewIfNeeded();
       await opener.click();
@@ -367,9 +385,10 @@ suite('overlays', together, () => {
             parseFloat(getComputedStyle(dialog).borderBottomWidth)
         };
       });
-      assert.ok(
-        Math.abs(band.above - band.below) <= 0.5,
-        `the actions stand ${band.above}px under the line and ${band.below}px over the foot`
+      assert.deepEqual(
+        [Math.round(band.above), Math.round(band.below)],
+        [16, 16],
+        'the actions stand off the line and the foot'
       );
       const cut = () => {
         const after = document.querySelector('dialog[open] .sui-modal-body + .sui-modal-error');

@@ -2527,9 +2527,9 @@ function tonedControls(root: Document): Finding[] {
  * A dialog's parts (L-58): the head, the body, the error and the actions stand one inset from
  * every edge and from each other, measured to the ink, and the head 8px more from the body. The
  * line that parts the body from the actions stands one inset under the body, and the actions
- * stand one inset under the line. A refused save's wash starts at the line and pads its words
- * 12px, and as a ground of its own it stands one inset from the words over it and from the
- * actions, so its words stand an inset and 12px from the parts beside them. A body that
+ * stand 16px under the line and over the dialog's foot. A refused save's wash starts at the
+ * line and pads its words 12px, and as a ground of its own it stands one inset from the words
+ * over it and from the actions, or 16px from the actions under a line. A body that
  * scrolls is cut where the actions begin, and a docked inspector parks them at its foot, so
  * neither gap is weighed.
  */
@@ -2581,8 +2581,10 @@ function dialogInsets(root: Document): Finding[] {
     const lined = dialog.querySelector(
       ':scope > .sui-modal-body + .sui-modal-error + .sui-modal-foot'
     );
-    // A refused save's wash pads its words 12px at every width.
+    // A refused save's wash pads its words 12px at every width, and the band a line parts off
+    // pads its actions 16px over and under.
     const wash = 12;
+    const slim = 16;
     // Each gap is weighed against the band under it, and the last against the bottom edge.
     const gaps = [...bands, null].flatMap((under, at) => {
       const over = bands[at - 1];
@@ -2590,11 +2592,15 @@ function dialogInsets(root: Document): Finding[] {
       const want =
         over === top && under === inBody
           ? inset + step
-          : said && (under === said || over === said)
+          : said && under === said
             ? inset + wash
-            : lined && over === inBody
-              ? 2 * inset
-              : inset;
+            : said && over === said
+              ? wash + (lined ? slim : inset)
+              : lined && over === inBody
+                ? inset + slim
+                : lined && !under
+                  ? slim
+                  : inset;
       if (!under)
         return [{ gap: box.bottom - parseFloat(look.borderBottomWidth) - over.bottom, want }];
       if (!over) return [{ gap: under.top - box.top - parseFloat(look.borderTopWidth), want }];

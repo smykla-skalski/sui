@@ -209,6 +209,12 @@ tabular figures.
     -webkit-text-fill-color: currentColor;
   }
 
+  /* A held field sits on the off well, so its dimmed value never reads as a placeholder in an
+     empty field (L-40). */
+  .sui-text-input.held:disabled:not(.bare) {
+    background-color: var(--sui-field-disabled);
+  }
+
   .sui-text-input.held:disabled {
     opacity: var(--sui-disabled-opacity);
   }
