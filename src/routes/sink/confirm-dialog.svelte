@@ -48,6 +48,7 @@
   ground="canvas"
   --specimen-min="30rem"
   --specimen-max="30rem"
+  --example-phone-pad="var(--sui-space-2)"
   --example-max="calc(67.5rem + 2 * var(--sui-stroke))"
 >
   <Specimen label="Destructive">
@@ -75,6 +76,7 @@
     note="Anything the answer needs goes in the body under the consequence"
     layout="stack"
     ground="canvas"
+    --example-phone-pad="var(--sui-space-2)"
     --example-max="33rem"
   >
     <Specimen label="Reason field">
@@ -119,6 +121,7 @@
   ground="canvas"
   --specimen-min="30rem"
   --specimen-max="30rem"
+  --example-phone-pad="var(--sui-space-2)"
   --example-max="calc(67.5rem + 2 * var(--sui-stroke))"
 >
   <!-- Drawn by Modal, since the question reaches these states only while its act runs. -->
