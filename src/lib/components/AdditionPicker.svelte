@@ -253,11 +253,11 @@ new control after `onadd` is the caller's.
             type="button"
             role="menuitem"
             tabindex="-1"
-            class={['sui-addition-choice', { active: preview }]}
+            class="sui-addition-choice retry"
             onclick={retry}
             onpointermove={follow}
           >
-            <span class="sui-addition-label">{retryLabel}</span>
+            <Icon name="refresh" size="sm" /><span class="sui-addition-label">{retryLabel}</span>
           </button>
         {/if}
       {:else}
@@ -305,6 +305,7 @@ new control after `onadd` is the caller's.
     display: inline-grid;
     gap: var(--sui-floating-gap);
     grid-template-columns: minmax(0, auto);
+    justify-self: start;
     max-inline-size: 100%;
   }
 
@@ -420,13 +421,21 @@ new control after `onadd` is the caller's.
       var(--sui-sans);
     margin: 0;
     max-inline-size: 20rem;
-    padding: calc((var(--sui-control-height-compact) - round(up, 1cap, 2px)) / 2) var(--sui-space-3);
+    padding: var(--sui-space-2) var(--sui-space-3);
     user-select: none;
     -webkit-user-select: none;
   }
 
-  .sui-addition-done {
+  /* A message's mark and a retry's glyph share one column, so their words share one edge; the
+     mark sits inside the row's padding, so every one-line message is a choice's height. */
+  :is(.sui-addition-done, .retry) {
     gap: var(--sui-space-2);
+  }
+
+  .retry {
+    align-items: center;
+    display: flex;
+    padding-block: var(--sui-space-2);
   }
 
   .problem {

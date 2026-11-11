@@ -1514,6 +1514,36 @@ suite('lists', together, () => {
           1,
           'the loading list draws no spinner beside its words'
         );
+        // A copy is drawn as the live menu would be: each list as wide as its words, every one-line
+        // row one height, and the retry's words on the failure's edge.
+        const copies = await page.evaluate(() => {
+          const box = (/** @type {Element | null} */ part) =>
+            /** @type {Element} */ (part).getBoundingClientRect();
+          const previews = [...document.querySelectorAll('#addition-picker .sui-addition-preview')];
+          const failed = previews.find((preview) => preview.querySelector('.problem'));
+          return {
+            fitted: previews.every(
+              (preview) =>
+                box(preview).width < box(preview.closest('.specimen')).width - 24 ||
+                preview.querySelector('.sui-addition-note')
+            ),
+            heights: [
+              ...new Set(
+                previews
+                  .flatMap((preview) => [
+                    ...preview.querySelectorAll('.sui-addition-done, .sui-addition-choice')
+                  ])
+                  .filter((row) => !row.querySelector('.sui-addition-note'))
+                  .map((row) => Math.round(box(row).height))
+              )
+            ].length,
+            edge: Math.round(
+              box(failed?.querySelector('.sui-addition-choice .sui-addition-label') ?? null).left -
+                box(failed?.querySelector('.problem .sui-addition-said') ?? null).left
+            )
+          };
+        });
+        assert.deepEqual(copies, { fitted: true, heights: 1, edge: 0 });
       }
     );
   });
