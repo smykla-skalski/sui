@@ -1347,15 +1347,15 @@ test('L-53 a shadow that lifts a part is two layers in every palette block, and 
   );
 });
 
-test('L-58 a scrim keeps the page behind a dialog legible: 35% light, 56% dark, a 4px blur', () => {
+test('L-58 a scrim keeps the page behind a dialog legible: 35% light, 48% dark, a 2px blur', () => {
   assert.deepEqual(
     [...palette.matchAll(/--sui-scrim: rgb\(0 0 0 \/ (\d+)%\);/g)].map(([, alpha]) => alpha),
-    ['35', '56', '56'],
+    ['35', '48', '48'],
     'the light scrim, then the dark one in each dark block'
   );
   assert.deepEqual(
     [...palette.matchAll(/--sui-scrim-blur: ([^;]+);/g)].map(([, blur]) => blur),
-    ['4px']
+    ['2px']
   );
 });
 

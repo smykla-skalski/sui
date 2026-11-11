@@ -278,7 +278,7 @@
   --sui-hover-ink: var(--sui-text-primary);
   --sui-interactive-pressed: rgb(0 0 0 / 14%);
   --sui-scrim: rgb(0 0 0 / 35%);
-  --sui-scrim-blur: 4px;
+  --sui-scrim-blur: 2px;
 
   --sui-sidebar-bg: var(--sui-canvas);
   --sui-sidebar-border: var(--sui-border-subtle);
@@ -796,7 +796,7 @@
   --sui-interactive-hover-layer: rgb(255 255 255 / 8.5%);
   --sui-hover-ink: var(--sui-primitive-dark-bright);
   --sui-interactive-pressed: rgb(255 255 255 / 13.5%);
-  --sui-scrim: rgb(0 0 0 / 56%);
+  --sui-scrim: rgb(0 0 0 / 48%);
 
   --sui-sidebar-bg: var(--sui-canvas);
   --sui-sidebar-border: var(--sui-border-subtle);
@@ -1032,7 +1032,7 @@
     --sui-interactive-hover-layer: rgb(255 255 255 / 8.5%);
     --sui-hover-ink: var(--sui-primitive-dark-bright);
     --sui-interactive-pressed: rgb(255 255 255 / 13.5%);
-    --sui-scrim: rgb(0 0 0 / 56%);
+    --sui-scrim: rgb(0 0 0 / 48%);
 
     --sui-sidebar-bg: var(--sui-canvas);
     --sui-sidebar-border: var(--sui-border-subtle);

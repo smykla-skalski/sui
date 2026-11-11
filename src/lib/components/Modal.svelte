@@ -529,6 +529,8 @@ dialog, so they are never inert under it.
       var(--sui-sans);
     gap: var(--sui-space-2);
     margin: 0;
+    /* 12px at every width, so two lines of the reason never read as pressed on a phone. */
+    padding-block: var(--sui-space-3);
   }
 
   /* The symbol centres on the first line of the message, however many lines follow. */

@@ -2527,8 +2527,9 @@ function tonedControls(root: Document): Finding[] {
  * A dialog's parts (L-58): the head, the body, the error and the actions stand one inset from
  * every edge and from each other, measured to the ink, and the head 8px more from the body. The
  * line that parts the body from the actions stands one inset under the body, and the actions
- * stand one inset under the line. A refused save's wash starts at the line, so its words stand
- * one and a half insets under the fields. A body that scrolls is cut where the actions begin,
+ * stand one inset under the line. A refused save's wash starts at the line and pads its words
+ * 12px, so they stand an inset and 12px under the fields, and half an inset and 12px from the
+ * parts beside them anywhere else. A body that scrolls is cut where the actions begin,
  * and a docked inspector parks them at its foot, so neither gap is weighed.
  */
 function dialogInsets(root: Document): Finding[] {
@@ -2579,6 +2580,8 @@ function dialogInsets(root: Document): Finding[] {
     const lined = dialog.querySelector(
       ':scope > .sui-modal-body + .sui-modal-error + .sui-modal-foot'
     );
+    // A refused save's wash pads its words 12px at every width.
+    const wash = 12;
     // Each gap is weighed against the band under it, and the last against the bottom edge.
     const gaps = [...bands, null].flatMap((under, at) => {
       const over = bands[at - 1];
@@ -2587,8 +2590,12 @@ function dialogInsets(root: Document): Finding[] {
         over === top && under === inBody
           ? inset + step
           : lined && over === inBody
-            ? (under === said ? 1.5 : 2) * inset
-            : inset;
+            ? said && under === said
+              ? inset + wash
+              : 2 * inset
+            : said && (under === said || over === said)
+              ? inset / 2 + wash
+              : inset;
       if (!under)
         return [{ gap: box.bottom - parseFloat(look.borderBottomWidth) - over.bottom, want }];
       if (!over) return [{ gap: under.top - box.top - parseFloat(look.borderTopWidth), want }];
