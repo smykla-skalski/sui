@@ -9,6 +9,7 @@
 <script lang="ts">
   import { Button, ConfirmDialog, Field, Modal, toast } from '#lib';
   import Example from '../kit/Example.svelte';
+  import Pair from '../kit/Pair.svelte';
   import Specimen from '../kit/Specimen.svelte';
 
   let remove = $state(false);
@@ -47,7 +48,7 @@
   ground="canvas"
   --specimen-min="30rem"
   --specimen-max="30rem"
-  --example-max="64.5rem"
+  --example-max="calc(67.5rem + 2 * var(--sui-stroke))"
 >
   <Specimen label="Destructive">
     <ConfirmDialog
@@ -68,41 +69,43 @@
   </Specimen>
 </Example>
 
-<Example
-  title="With a Reason"
-  note="Anything the answer needs goes in the body under the consequence"
-  layout="stack"
-  ground="canvas"
-  --example-max="33rem"
->
-  <Specimen label="Reason field">
-    <ConfirmDialog
-      preview
-      title="Yank 0.2.1?"
-      consequence="Nobody can install 0.2.1 again, and the version number is never reused"
-      confirmLabel="Yank Release"
-      tone="stop"
-    >
-      <Field label="Reason" placeholder="Ships a broken migration…" />
-    </ConfirmDialog>
-  </Specimen>
-</Example>
+<Pair lead="33rem">
+  <Example
+    title="With a Reason"
+    note="Anything the answer needs goes in the body under the consequence"
+    layout="stack"
+    ground="canvas"
+    --example-max="33rem"
+  >
+    <Specimen label="Reason field">
+      <ConfirmDialog
+        preview
+        title="Yank 0.2.1?"
+        consequence="Nobody can install 0.2.1 again, and the version number is never reused"
+        confirmLabel="Yank Release"
+        tone="stop"
+      >
+        <Field label="Reason" placeholder="Ships a broken migration…" />
+      </ConfirmDialog>
+    </Specimen>
+  </Example>
 
-<Example
-  title="Asking"
-  note="Cancel opens focused on a destructive question, and the confirm action opens focused on an affirmative one"
-  --example-max="33rem"
->
-  <Specimen label="Destructive">
-    <Button tone="stop-quiet" onclick={() => (remove = true)}>Delete Repository</Button>
-  </Specimen>
-  <Specimen label="Affirmative">
-    <Button onclick={() => (publish = true)}>Publish Release</Button>
-  </Specimen>
-  <Specimen label="With a reason">
-    <Button tone="stop-quiet" onclick={() => (revoke = true)}>Revoke Token</Button>
-  </Specimen>
-</Example>
+  <Example
+    title="Asking"
+    note="Cancel opens focused on a destructive question, and the confirm action opens focused on an affirmative one"
+    --example-max="33rem"
+  >
+    <Specimen label="Destructive">
+      <Button tone="stop-quiet" onclick={() => (remove = true)}>Delete Repository</Button>
+    </Specimen>
+    <Specimen label="Affirmative">
+      <Button onclick={() => (publish = true)}>Publish Release</Button>
+    </Specimen>
+    <Specimen label="With a reason">
+      <Button tone="stop-quiet" onclick={() => (revoke = true)}>Revoke Token</Button>
+    </Specimen>
+  </Example>
+</Pair>
 
 <Example
   title="Pending & Failed"
@@ -111,7 +114,7 @@
   ground="canvas"
   --specimen-min="30rem"
   --specimen-max="30rem"
-  --example-max="64.5rem"
+  --example-max="calc(67.5rem + 2 * var(--sui-stroke))"
 >
   <!-- Drawn by Modal, since the question reaches these states only while its act runs. -->
   <Specimen label="Pending">

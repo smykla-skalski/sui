@@ -3,10 +3,13 @@
 
   let {
     narrow = false,
+    lead,
     children
   }: {
     /** The second example keeps the narrow frame, one 16rem field and its stage's pad. */
     narrow?: boolean;
+    /** The first example's frame measure, such as a dialog's, and the second takes the rest. */
+    lead?: string;
     children: Snippet;
   } = $props();
 </script>
@@ -14,7 +17,7 @@
 <!-- Two examples that each hold one specimen share a row on the cards' 54rem, so the page does
      not step down to a narrower frame under them or end on a narrow tail beside an empty half.
      On a phone they stack and both frames fill the column, as every other frame does (L-55). -->
-<div class={['pair', { narrow }]}>{@render children()}</div>
+<div class={['pair', { narrow, lead }]} style:--lead={lead}>{@render children()}</div>
 
 <style>
   .pair {
@@ -31,6 +34,13 @@
 
   .narrow {
     grid-template-columns: minmax(0, 1fr) calc(var(--narrow-frame) + 2 * var(--sui-stroke));
+  }
+
+  /* A lead frame keeps its measure whole, such as a dialog's, and the second example takes
+     what the pane leaves of two such frames. */
+  .lead {
+    grid-template-columns: calc(var(--lead) + 2 * var(--sui-stroke)) minmax(0, 1fr);
+    max-inline-size: calc(2 * (var(--lead) + 2 * var(--sui-stroke)) + var(--sui-space-6));
   }
 
   /* Each example takes a head row and a frame row, so the heads share the taller one and the
