@@ -749,12 +749,13 @@ section's ground between them (L-91).
         );
       }
 
-      /* The control takes the line's rest after the reset, so the reset never wraps above it
-         for the segments' width. The browser picks the form only after a layout, so a row laid
-         out before that, as one above the place a reload restores, would otherwise drop
-         its reset for the segments and rise again once the select shows. */
-      .sui-setting-control:has(> :global(.sui-segmented)) {
-        flex: 1 1 0;
+      /* The reset and a segmented control share one line, the reset right before it, and the
+         segments shrink rather than drop the reset above them. The browser picks the form only
+         after a layout, so a row laid out before that, as one above the place a reload
+         restores, would otherwise drop its reset for the segments and rise again once the
+         select shows. */
+      .sui-setting-value:has(> .sui-setting-control > :global(.sui-segmented)) {
+        flex-wrap: nowrap;
       }
     }
   }

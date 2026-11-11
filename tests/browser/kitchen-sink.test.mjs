@@ -1437,7 +1437,7 @@ suite('the kitchen sink', together, () => {
   });
 
   test(
-    "L-36 a phone's setting rows keep a lone switch and a fact beside the copy, a stacked row's copy takes the whole row under its reset, a switch's row hovers, controls under the copy leave no band above them, a status stands apart from the description, and the narrow list fills the column",
+    "L-36 a phone's setting rows keep a lone switch and a fact beside the copy, a stacked row's copy takes the whole row under its reset, a switch's row hovers, controls under the copy leave no band above them, a status stands apart from the description, a reset stands right before its select, and the narrow list fills the column",
     long,
     async () => {
       const page = await open(390, 'light', {}, 'setting-list');
@@ -1520,6 +1520,23 @@ suite('the kitchen sink', together, () => {
         };
         assert.notEqual(await veil('Mirror to the backup region'), 'none', 'the row did not hover');
         assert.equal(await veil('Command prefix'), 'none', "a field's row hovered");
+        // A reset stands right before the select a segmented control turns into.
+        assert.equal(
+          await page
+            .locator('#setting-list .sui-setting-row', { hasText: 'Log level' })
+            .first()
+            .evaluate((node) => {
+              const at = (/** @type {string} */ part) =>
+                /** @type {Element} */ (node.querySelector(part)).getBoundingClientRect();
+              const [reset, select] = [at('.sui-setting-reset'), at('.sui-segmented select')];
+              return [
+                Math.round(select.left - reset.right),
+                Math.round(select.top - reset.top)
+              ].join();
+            }),
+          '8,0',
+          'the reset stood away from its select'
+        );
         // A phone's column is already narrow, so the narrow list leaves no empty band in it.
         assert.equal(
           await page
