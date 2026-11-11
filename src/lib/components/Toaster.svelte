@@ -362,7 +362,7 @@ A `danger` toast reports a failure and stays too.
   .sui-toast {
     align-items: flex-start;
     background-color: var(--sui-popover-bg);
-    border: var(--sui-stroke) solid var(--sui-popover-border);
+    border: var(--sui-stroke) solid var(--sui-toast-border, var(--sui-popover-border));
     border-radius: var(--sui-radius-surface);
     box-shadow: var(--sui-shadow-toast, var(--sui-shadow-popover));
     box-sizing: border-box;

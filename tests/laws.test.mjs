@@ -1046,12 +1046,27 @@ test('L-72 a floating layer on dark stands off its ground by the raised ground a
     assert.equal(tokens['--sui-popover-bg'], 'var(--sui-surface-raised)', selector);
     assert.equal(tokens['--sui-dialog-bg'], 'var(--sui-surface-raised)', selector);
     assert.equal(tokens['--sui-surface-control'], 'var(--sui-surface-base)', selector);
+    assert.equal(
+      tokens['--sui-toast-border'],
+      'color-mix(in srgb, var(--sui-popover-border) 75%, var(--sui-popover-bg))',
+      `${selector} a dark toast's edge leans a quarter of the way to its ground`
+    );
     for (const lift of ['--sui-shadow-popover', '--sui-shadow-dialog'])
       assert.match(tokens[lift], /^inset 0 1px 0 rgb\(255 255 255 \/ 6%\),/, `${selector} ${lift}`);
   }
   assert.equal(
     tokenMap(stripComments(block("[data-sui-theme='light']")))['--sui-popover-border'],
     'var(--sui-border-control)'
+  );
+  assert.match(
+    styles['src/lib/components/Toaster.svelte'],
+    /border: var\(--sui-stroke\) solid var\(--sui-toast-border, var\(--sui-popover-border\)\);/,
+    'a light toast keeps the control edge'
+  );
+  assert.equal(
+    tokenMap(stripComments(block("[data-sui-theme='light']")))['--sui-toast-border'],
+    'initial',
+    'a light subtree on a dark page resets the dark toast edge'
   );
   assert.match(
     styles['src/lib/components/Select.svelte'],
