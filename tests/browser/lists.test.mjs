@@ -1521,6 +1521,10 @@ suite('lists', together, () => {
           const previews = [...document.querySelectorAll('#addition-picker .sui-addition-preview')];
           const failed = previews.find((preview) => preview.querySelector('.problem'));
           return {
+            // ActionMenu's 13rem floor, so a one-line message never reads as a second button.
+            floored: previews.every(
+              (preview) => box(preview.querySelector('[role="menu"]')).width >= 208
+            ),
             fitted: previews.every(
               (preview) =>
                 box(preview).width < box(preview.closest('.specimen')).width - 24 ||
@@ -1542,7 +1546,7 @@ suite('lists', together, () => {
             )
           };
         });
-        assert.deepEqual(copies, { fitted: true, heights: 1, edge: 0 });
+        assert.deepEqual(copies, { floored: true, fitted: true, heights: 1, edge: 0 });
       }
     );
   });

@@ -195,7 +195,7 @@ new control after `onadd` is the caller's.
 - Keyboard: opening moves focus to the first choice; arrows move and wrap, Home and End jump, typing jumps to the next choice that starts with the typed letters, Enter adds, Escape closes and returns focus to the trigger, and Tab closes and moves on.
 - Pointer and touch: the trigger and every choice are 34px tall, 44px on a phone; focus follows the pointer, so one highlight serves hover and the keyboard; a press outside closes the list.
 - Focus: closing returns focus to the trigger unless a press put it on another control.
-- Responsive: the list is at least as wide as the trigger, at most 24rem or the trigger's width, and scrolls inside its own box at `min(20rem, the room)` tall.
+- Responsive: the list is at least as wide as the trigger and 13rem, at most 24rem or the trigger's width, and scrolls inside its own box at `min(20rem, the room)` tall.
 - Accessibility: the trigger says whether the list is open; a message in place of the list is a disabled item inside the menu, so the menu is never empty.
 - Localization: `label`, `done`, `none`, `loadingLabel` and `retryLabel` are props with English defaults; type-ahead compares in the page's language; the list follows the reading direction, and `align` start and end hang it from the mirrored edge on a right-to-left page.
 - Performance: every offered choice renders; type-ahead is a linear search, fine for the few hundred a menu holds.
@@ -309,6 +309,11 @@ new control after `onadd` is the caller's.
     grid-template-columns: minmax(0, auto);
     justify-self: start;
     max-inline-size: 100%;
+    min-inline-size: min(calc(13rem + 2 * var(--sui-stroke)), 100%);
+  }
+
+  .sui-addition-preview .sui-addition-menu {
+    min-inline-size: 0;
   }
 
   /* A row-end picker's copy keeps its cell's end, where the live one stands in its row. */
@@ -332,6 +337,9 @@ new control after `onadd` is the caller's.
     grid-template-columns: minmax(0, 1fr);
     max-block-size: calc(min(20rem, var(--sui-floating-available-block)) - 2 * var(--sui-stroke));
     max-inline-size: max(24rem, var(--sui-floating-anchor-inline, 0px));
+    /* ActionMenu's floor, so a one-line message reads as a menu and not a second button; it
+       gives way to a narrow window, so large text wraps rather than scrolls sideways. */
+    min-inline-size: min(13rem, calc(100vw - 2 * var(--sui-space-3)));
     outline: none;
     overflow: auto;
     overscroll-behavior: contain;
