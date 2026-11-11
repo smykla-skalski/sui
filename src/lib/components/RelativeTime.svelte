@@ -18,7 +18,12 @@
 
   /* Elapsed time only, never calendar days: "yesterday" depends on the zone the page is
      read in. A week out, the date says more than a count. */
-  function relative(at: number, now: number, locale: string | undefined): string {
+  function relative(
+    at: number,
+    now: number,
+    locale: string | undefined,
+    timeZone: string | undefined
+  ): string {
     const counted = once(
       `counted ${locale}`,
       () => new Intl.RelativeTimeFormat(locale, { numeric: 'always' })
@@ -35,15 +40,21 @@
     if (span < DAY) return keepUnit(counted.format(sign * Math.floor(span / HOUR), 'hour'));
     if (span < 7 * DAY) return keepUnit(counted.format(sign * Math.floor(span / DAY), 'day'));
     return once(
-      `date ${locale}`,
-      () => new Intl.DateTimeFormat(locale, { day: 'numeric', month: 'short', year: 'numeric' })
+      `date ${locale} ${timeZone}`,
+      () =>
+        new Intl.DateTimeFormat(locale, {
+          day: 'numeric',
+          month: 'short',
+          year: 'numeric',
+          timeZone
+        })
     ).format(at);
   }
 
   /* The language decides the hour cycle and how the zone is spelled. */
-  function exact(at: number, locale: string | undefined): string {
+  function exact(at: number, locale: string | undefined, timeZone: string | undefined): string {
     return once(
-      `exact ${locale}`,
+      `exact ${locale} ${timeZone}`,
       () =>
         new Intl.DateTimeFormat(locale, {
           day: 'numeric',
@@ -52,7 +63,8 @@
           hour: '2-digit',
           minute: '2-digit',
           second: '2-digit',
-          timeZoneName: 'shortOffset'
+          timeZoneName: 'shortOffset',
+          timeZone
         })
     ).format(at);
   }
@@ -70,6 +82,7 @@
     value,
     exact: exactOnly = false,
     locale,
+    timeZone,
     exactLabel = word(
       'RelativeTime.exactLabel',
       (time: string) => `${mark('comma')}exactly ${time}`
@@ -84,6 +97,10 @@
     exact?: boolean;
     /** The language the time is written in. The reader's locale in the page's `lang` when left out. */
     locale?: string;
+    /** The zone a date and the whole instant are read in. The reader's own when left out; a page
+     rendered before its reader arrives names one for a fixed instant, so the first paint
+     already shows the date and hour that script keeps. */
+    timeZone?: string;
     /** What a screen reader hears after the relative reading, given the whole instant. */
     exactLabel?: (time: string) => string;
     element?: HTMLTimeElement | null;
@@ -103,8 +120,8 @@
     pageNow();
     return locale ?? formatLocale();
   });
-  const resting = $derived(valid ? relative(at, pageNow(), language) : String(value));
-  const whole = $derived(valid ? exact(at, language) : String(value));
+  const resting = $derived(valid ? relative(at, pageNow(), language, timeZone) : String(value));
+  const whole = $derived(valid ? exact(at, language, timeZone) : String(value));
   /* A time inside no control is a tab stop of its own, so the keyboard can show its whole
      instant; inside a control, that control's focus shows it. */
   const alone = $derived(valid && !exactOnly && !element?.parentElement?.closest(FOCUSABLE));
@@ -132,7 +149,7 @@ tooltip.
 - Focus: outside any control it takes focus and wears the 2px ring; it never moves focus.
 - Responsive: the relative reading never breaks inside, and the exact one wraps where a column is narrow.
 - Accessibility: the whole instant is in its words for a screen reader, and the tip repeats it, so the tip stays out of the accessibility tree.
-- Localization: words, numbers, the hour cycle and the zone follow `locale`, else the reader's locale in the page's `lang`; `exactLabel` carries the joining words; the underline and hover area are symmetric, so nothing mirrors.
+- Localization: words, numbers, the hour cycle and the zone follow `locale`, else the reader's locale in the page's `lang`, and dates and the whole instant are read in `timeZone`, else the reader's zone; `exactLabel` carries the joining words; the underline and hover area are symmetric, so nothing mirrors.
 - Performance: every instance shares the page's one 30-second clock, and the tooltip exists only once the time is in the page.
 - Analytics: none; a time reports no outcome.
 - Failure: a value that is not a date is shown as given, with no `datetime`, exact reading, tab stop or tip, so a bad record never reads "Invalid Date".

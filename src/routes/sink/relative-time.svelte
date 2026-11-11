@@ -17,15 +17,18 @@
   const loaded = Date.now();
   const at = (offset: number) => new Date(loaded + offset).toISOString();
 
-  const past = [
+  // The page is written before its reader's zone is known, and no instant falls on one date in
+  // every zone, so the fixed ones are read in UTC and script never redraws their date or hour.
+  const zone = 'UTC';
+
+  const past: { label: string; value: string; timeZone?: string }[] = [
     { label: 'Just now', value: at(0) },
     { label: 'Minutes ago', value: at(-4.5 * MINUTE) },
     { label: 'Hours ago', value: at(-3.5 * HOUR) },
     { label: 'Days ago', value: at(-2.5 * DAY) },
     // Past a week a time reads as its date, and a date counted from now turns over once a day,
-    // which could fall between the server's render and the page's. A fixed day at noon UTC is
-    // the same date in every zone a reader is likely to be in.
-    { label: 'Weeks ago', value: '2026-03-14T12:00:00Z' }
+    // which could fall between the server's render and the page's, so this one is fixed.
+    { label: 'Weeks ago', value: '2026-03-14T12:00:00Z', timeZone: zone }
   ];
   // Half a step past a whole count, as the past ones are, so the moments between the server's
   // render and the page's never cross into the next count.
@@ -43,7 +46,9 @@
   note="Hover a time, or press and hold it, to read the whole instant with seconds and its zone"
 >
   {#each past as time (time.label)}
-    <Specimen label={time.label}><RelativeTime value={time.value} /></Specimen>
+    <Specimen label={time.label}
+      ><RelativeTime value={time.value} timeZone={time.timeZone} /></Specimen
+    >
   {/each}
 </Example>
 
@@ -57,7 +62,7 @@
   title="Exact"
   note="The whole instant shows in place, for a reader who chose it, and the tooltip goes away"
 >
-  <Specimen label="Whole instant"><RelativeTime value={instant} exact /></Specimen>
+  <Specimen label="Whole instant"><RelativeTime value={instant} exact timeZone={zone} /></Specimen>
 </Example>
 
 <Example
