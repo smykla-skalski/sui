@@ -678,6 +678,28 @@ suite('overlays', together, () => {
         )
       );
       assert.equal(centres.length, 2, 'a name tip and a description tip are drawn open');
+      const [tipsApart, actionEnd, panelEnd] = await page.evaluate(() => {
+        const [name, description] = [
+          ...document.querySelectorAll('#overlays .open.centred .sui-tooltip.preview')
+        ].map((tip) => tip.getBoundingClientRect());
+        const panel = /** @type {Element} */ (
+          document.querySelector('#sink-popover-open-pinned .panel')
+        );
+        const inset = parseFloat(getComputedStyle(panel).paddingInlineEnd);
+        // Tips that do not fit side by side wrap, each over its own control.
+        return [
+          description.top === name.top ? description.left - name.right : Infinity,
+          /** @type {Element} */ (
+            panel.querySelector('.panel-action button')
+          ).getBoundingClientRect().right,
+          panel.getBoundingClientRect().right - inset
+        ];
+      });
+      assert.ok(tipsApart >= 32, `the two open tips stand ${tipsApart}px apart`);
+      assert.ok(
+        Math.abs(actionEnd - panelEnd) <= 0.5,
+        `the close action ends at ${actionEnd}px, the panel's content at ${panelEnd}px`
+      );
       for (const [tipCentre, buttonCentre] of centres)
         assert.ok(
           Math.abs(tipCentre - buttonCentre) <= 1,

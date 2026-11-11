@@ -250,21 +250,24 @@
   }
 
   /* A field in a panel stands a form's 20px under the copy, and the action that closes the
-     panel 24px past it, so it reads as the panel's close and not as a line of copy (L-35). */
+     panel 24px past it at the end edge, as a dialog ends with its actions, so it reads as the
+     panel's close and not as a line of copy (L-35). */
   .panel-field {
     justify-self: stretch;
     margin-block-start: var(--sui-space-2);
   }
 
   .panel-action {
+    justify-self: end;
     margin-block-start: var(--sui-space-3);
   }
 
-  /* The two tip copies side by side, each tip over its own control. */
+  /* The two tip copies side by side, each tip over its own control, a specimen's width apart
+     so they read as two tips and not as one strip. */
   .tips {
     display: flex;
     flex-wrap: wrap;
-    gap: var(--sui-space-4);
+    gap: var(--sui-space-8);
   }
 
   .changes {
