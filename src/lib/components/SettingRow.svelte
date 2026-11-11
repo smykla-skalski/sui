@@ -208,7 +208,7 @@ section's ground between them (L-91).
 
 - Semantics: an `li`; the name is a `label` for a single control that carries the given `id`, and otherwise a plain name whose id the group takes through `aria-labelledby`.
 - Content: a name, an optional one-sentence why line, and the controls in `control`, which receives the ids and the `disabled`, `readonly` and `invalid` flags to pass on.
-- States: rest, hover and pressed (a row whose name flips a box or a switch veils its plate while the pointer rests on its free area or presses it), unsaved (gold plate and the `unsavedLabel` word), pending (`pendingLabel` under the copy, busy, and its controls held until the save ends: dimmed, or a field in its read-only paint, focusable and refusing changes, as are the reset and its Undo), refused (`error` under the copy with an alert mark), disabled and read only (with `reason` under the copy), and after a reset an Undo in the reset's seat.
+- States: rest, hover and pressed (a row whose name flips a box or a switch veils its plate while the pointer rests on its free area or presses it), unsaved (gold plate and the `unsavedLabel` word), pending (`pendingLabel` under the copy, busy, and its controls held until the save ends: dimmed, or a field in its read-only paint, focusable and refusing changes, as are the reset and its Undo), refused (`error` under the copy with an alert mark), disabled and read only (with `reason` under the copy), and after a reset an Undo in the reset's seat; `reason` and `pendingLabel` are status lines in the medium weight and the secondary ink, apart from the description.
 - Keyboard: Tab follows the visual order (L-79, WCAG 2.4.3): the reset or Undo, then the controls it stands before; Enter or Space resets or undoes.
 - Pointer and touch: the row is at least 44px tall and its whole box is the name's target; the reset and Undo are as tall as the controls' first line, 34px, 28px beside chips, 44px on a phone.
 - Focus: after a reset focus moves to the first control instead of falling to the page; after Undo it moves to the reset, or to the first control when the reset is gone.
@@ -240,13 +240,13 @@ section's ground between them (L-91).
       ></svelte:element
     >
     {#if why}<p id="{uid}-why" class="sui-setting-why">{why}</p>{/if}
-    {#if reason}<p id="{uid}-reason" class="sui-setting-why">{reason}</p>{/if}
+    {#if reason}<p id="{uid}-reason" class="sui-setting-why sui-setting-status">{reason}</p>{/if}
     {#if error}
       <p id="{uid}-problem" class="sui-setting-problem">
         <Icon name="alert" size="sm" /><span>{error}</span>
       </p>
     {:else if pending}
-      <p class="sui-setting-why">{pendingLabel}</p>
+      <p class="sui-setting-why sui-setting-status">{pendingLabel}</p>
     {/if}
     <VisuallyHidden role="status">{error ?? (pending ? pendingLabel : '')}</VisuallyHidden>
   </div>
@@ -486,6 +486,14 @@ section's ground between them (L-91).
 
   /* The alert mark centres on the first line's cap, however many lines the problem wraps to,
      whose trimmed top is the line's cap top (L-94). */
+  /* A line about the row's state, why it is locked or that it is saving, is a status and not
+     more of the description: it takes the medium weight and the secondary ink, as the refused
+     line takes the medium weight in the danger ink. */
+  .sui-setting-status {
+    color: var(--sui-text-secondary);
+    font-weight: var(--sui-weight-medium);
+  }
+
   .sui-setting-problem {
     align-items: start;
     color: var(--sui-danger);
@@ -511,8 +519,8 @@ section's ground between them (L-91).
      only when no line has room for it. Always laid out, shown only while unsaved, so its arrival never rewraps the name. A
      word rather than a star, which most forms use for a required field. */
   .sui-setting-mark {
-    color: var(--sui-unsaved-ink);
-    font-weight: var(--sui-weight-regular);
+    color: var(--sui-unsaved-secondary);
+    font-weight: var(--sui-weight-medium);
     margin-inline-start: var(--sui-space-2);
     visibility: hidden;
     white-space: nowrap;

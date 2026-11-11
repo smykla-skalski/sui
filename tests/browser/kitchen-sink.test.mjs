@@ -1437,7 +1437,7 @@ suite('the kitchen sink', together, () => {
   });
 
   test(
-    "L-36 a phone's setting rows keep a lone switch and a fact beside the copy, a stacked row's copy takes the whole row under its reset, a switch's row hovers, and controls under the copy leave no band above them",
+    "L-36 a phone's setting rows keep a lone switch and a fact beside the copy, a stacked row's copy takes the whole row under its reset, a switch's row hovers, controls under the copy leave no band above them, and a status stands apart from the description",
     long,
     async () => {
       const page = await open(390, 'light', {}, 'setting-list');
@@ -1473,6 +1473,28 @@ suite('the kitchen sink', together, () => {
         assert.equal(paths?.fullWhy, true, "the stacked row's why line kept the reset's column");
         assert.equal(paths?.markOnLastLine, true, 'the hidden Unsaved word took a line of its own');
 
+        // The saving word and the Unsaved mark are statuses, set apart from the description.
+        assert.deepEqual(
+          await page
+            .locator('#setting-list .sui-setting-row', { hasText: 'Sign each payload' })
+            .evaluate((node) => {
+              const look = (/** @type {string} */ part) =>
+                getComputedStyle(/** @type {Element} */ (node.querySelector(part)));
+              const [why, status, mark] = [
+                '.sui-setting-why:not(.sui-setting-status)',
+                '.sui-setting-status',
+                '.sui-setting-mark'
+              ].map(look);
+              return [
+                why.fontWeight,
+                status.fontWeight,
+                mark.fontWeight,
+                why.color !== status.color
+              ];
+            }),
+          ['400', '500', '500', true],
+          'the saving word or the Unsaved mark reads as more of the description'
+        );
         // A saving switch is its own change at work, as a busy button is, so it keeps its strength.
         assert.equal(
           await page
