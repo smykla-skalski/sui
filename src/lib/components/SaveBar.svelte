@@ -336,7 +336,7 @@ brings its own room under it, so the scroller needs no end padding.
       </p>
     {:else}
       {#if error || reloadable}
-        <span class="mark"><Icon name="alert" size="base" /></span>
+        <span class="mark"><Icon name={reloadable ? 'refresh' : 'alert'} size="base" /></span>
       {/if}
       <p id={titleId} class="title">{reloadable ? conflictTitle : error ? failedTitle : title}</p>
       {#if error || reloadable}
@@ -479,10 +479,11 @@ brings its own room under it, so the scroller needs no end padding.
 
   /* A long title wraps at the body leading, the step body text of its size takes, 24px as it
      grows to 16px on a phone, so its semibold lines never press into one block over the
-     lighter note (L-24). */
+     lighter note (L-24), and balanced, as the note under it is. */
   .title {
     font: var(--sui-weight-semibold) var(--sui-font-size-body) / var(--sui-leading-body)
       var(--sui-sans);
+    text-wrap: balance;
   }
 
   /* Wrapped, the line under the title reads as a note, as a toast's description does (L-24),
@@ -523,8 +524,9 @@ brings its own room under it, so the scroller needs no end padding.
     margin-block-start: round(calc((1cap - var(--sui-icon-base)) / 2), 1px);
   }
 
-  /* A conflict lost no work and waits on the gold Reload, so its mark takes the unsaved ink and
-     its reason the subtitle's ink and weight, leaving one decision hue on the bar (L-16). */
+  /* A conflict lost no work and waits on the gold Reload, so its mark is Reload's refresh in the
+     unsaved ink, a shape apart from a failure's warning, and its reason takes the subtitle's ink
+     and weight, leaving one decision hue on the bar (L-16). */
   .conflict > .mark {
     color: var(--sui-unsaved-ink);
   }

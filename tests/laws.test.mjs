@@ -1929,7 +1929,7 @@ test("L-16 a save bar's refusal leads with a field error's warning mark", () => 
   const source = read('src/lib/components/SaveBar.svelte');
   assert.match(
     source,
-    /\{#if error \|\| reloadable\}\s*<span class="mark"><Icon name="alert" size="base" \/><\/span>\s*\{\/if\}\s*<p id=\{titleId\} class="title">/,
+    /\{#if error \|\| reloadable\}\s*<span class="mark"><Icon name=\{reloadable \? 'refresh' : 'alert'\} size="base" \/><\/span>\s*\{\/if\}\s*<p id=\{titleId\} class="title">/,
     'a failed or refused save differs from the subtitle by colour alone'
   );
   const css = stripComments(source);
@@ -1952,6 +1952,7 @@ test("L-24 L-54 a save bar's title wraps at the body leading and the bar lifts a
     /\.title \{[^}]*font: [^;]*\/ var\(--sui-leading-body\)/,
     "a wrapped save bar title presses into one dense block at a row's copy leading"
   );
+  assert.match(css, /\.title \{[^}]*text-wrap: balance;/, 'a long title ends on a short line');
   assert.match(
     css,
     /\.sui-save-bar \{[^}]*box-shadow: var\(--sui-shadow-toast, var\(--sui-shadow-popover\)\);/,
