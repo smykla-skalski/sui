@@ -1926,20 +1926,22 @@ test("L-24 L-54 a save bar's title wraps at the meta leading and the bar lifts a
   );
 });
 
-test('L-16 a decision edge is the gold fill on light and the unsaved edge on dark', () => {
-  assert.equal(
-    light['--sui-decision-edge'] ?? tokenMap(palette)['--sui-decision-edge'],
-    'var(--sui-decision-accent)'
-  );
-  assert.equal(
-    dark['--sui-decision-edge'],
-    'var(--sui-unsaved-border)',
-    'a bright gold frame outshines Save on dark'
-  );
+test("L-16 a decision is framed in the unsaved edge, and a conflict's title names Reload", () => {
   for (const path of ['src/lib/components/SaveBar.svelte', 'src/lib/components/Callout.svelte'])
     assert.match(
       stripComments(read(path)),
-      /border: var\(--sui-decision-border-width\) solid var\(--sui-decision-edge\);/,
-      `${path} frames a decision in another edge`
+      /border: var\(--sui-decision-border-width\) solid var\(--sui-unsaved-border\);/,
+      `${path} frames a decision in the bright gold fill, which outshines the gold action`
     );
+  const source = read('src/lib/components/SaveBar.svelte');
+  assert.match(
+    source,
+    /reloadable \? conflictTitle : error \? failedTitle : title/,
+    'a conflict titled "Save again" offers only Reload'
+  );
+  assert.match(
+    stripComments(source),
+    /\.subtitle\.error \{[^}]*font-weight: var\(--sui-weight-medium\);/,
+    "a refused save's reason is lighter than a field error"
+  );
 });

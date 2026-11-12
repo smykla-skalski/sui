@@ -21,9 +21,10 @@
     failedTitle = word('SaveBar.failedTitle', 'Save again to keep your changes'),
     savedTitle = word('SaveBar.savedTitle', 'Your changes are saved'),
     discardedTitle = word('SaveBar.discardedTitle', 'You discarded your changes'),
+    conflictTitle = word('SaveBar.conflictTitle', 'Reload to see the latest version'),
     conflictReason = word(
       'SaveBar.conflictReason',
-      'Someone else saved first, so reload to see their version before you save again'
+      'Someone else saved first, so a save from here would be refused'
     ),
     reloadedTitle = word('SaveBar.reloadedTitle', 'The latest version replaced your changes'),
     saveLabel = word('SaveBar.saveLabel', 'Save Changes'),
@@ -61,7 +62,9 @@
     savedTitle?: string;
     /** Said once Discard has thrown the work away, beside Undo. */
     discardedTitle?: string;
-    /** Said under `failedTitle` in a conflict when `error` gives no reason of its own. */
+    /** Said over the reason in a conflict, where Reload is the one way on. */
+    conflictTitle?: string;
+    /** Said under `conflictTitle` when `error` gives no reason of its own. */
     conflictReason?: string;
     /** Said once a reload has replaced the draft, beside Undo, which puts the draft back. */
     reloadedTitle?: string;
@@ -296,7 +299,7 @@ brings its own room under it, so the scroller needs no end padding.
 
 - Semantics: an `aside` named by its title, with a polite live copy and native buttons.
 - Content: a title and a subtitle while there is work; `savedTitle` once a save lands; `discardedTitle` with Undo once Discard has run; `reloadedTitle` with Undo once a reload has replaced the draft.
-- States: unsaved (Discard and Save), saving (both held, Save busy with `savingLabel`, the gold edge and the copy dimmed with them, the pane `aria-busy`, focus on Save and the pane's fields disabled until the save ends), failed (`failedTitle` over the reason, with Discard and Save to try again), conflict (`failedTitle` over the reason or `conflictReason`, with Reload alone as the decision, because saving again would be refused), reloading (Reload busy with `reloadingLabel`, dimmed like a save), saved (a quiet notice for 5 seconds, paused while hovered), and discarded or reloaded (Undo and Dismiss until the reader acts).
+- States: unsaved (Discard and Save), saving (both held, Save busy with `savingLabel`, the gold edge and the copy dimmed with them, the pane `aria-busy`, focus on Save and the pane's fields disabled until the save ends), failed (`failedTitle` over the reason, with Discard and Save to try again), conflict (`conflictTitle` over the reason or `conflictReason`, with Reload alone as the decision, because saving again would be refused), reloading (Reload busy with `reloadingLabel`, dimmed like a save), saved (a quiet notice for 5 seconds, paused while hovered), and discarded or reloaded (Undo and Dismiss until the reader acts).
 - Keyboard: Tab reaches Discard and Save, or Reload, at the pane's end; Ctrl+S or Cmd+S saves from anywhere in the bar's pane, and while the bar holds work it never opens the browser's own save, even when a save cannot run; Escape never discards.
 - Pointer and touch: buttons are 34px tall, 44px on a phone.
 - Focus: after Discard, or once a reload lands, focus moves to Undo, or to Dismiss without one, unless the reader moved it elsewhere while the reload ran; a busy Reload keeps focus; after a save lands, Undo or Dismiss, focus goes back to the control the reader came from, else the pane's first control, never to the page; a field focused under the floating bar scrolls clear above it, because the bar pads its scroller's end by its own height (WCAG 2.4.11).
@@ -329,7 +332,7 @@ brings its own room under it, so the scroller needs no end padding.
         {told[notice.kind]}
       </p>
     {:else}
-      <p id={titleId} class="title">{error || reloadable ? failedTitle : title}</p>
+      <p id={titleId} class="title">{reloadable ? conflictTitle : error ? failedTitle : title}</p>
       {#if error || reloadable}
         <p class="subtitle error">
           <span class="mark"><Icon name="alert" size="base" /></span>
@@ -377,7 +380,7 @@ brings its own room under it, so the scroller needs no end padding.
     --sui-surface-raised: transparent;
     align-items: center;
     background: var(--sui-popover-bg);
-    border: var(--sui-decision-border-width) solid var(--sui-decision-edge);
+    border: var(--sui-decision-border-width) solid var(--sui-unsaved-border);
     border-radius: var(--sui-radius-surface);
     /* It floats over the page as a toast does, so it lifts on a toast's lighter layer (L-54). */
     box-shadow: var(--sui-shadow-toast, var(--sui-shadow-popover));
@@ -385,7 +388,8 @@ brings its own room under it, so the scroller needs no end padding.
     color: var(--sui-text-primary);
     display: flex;
     flex-wrap: wrap;
-    gap: var(--sui-space-3) var(--sui-space-5);
+    /* Actions that wrap stand under the copy as a dialog's stand under its line (L-58). */
+    gap: var(--sui-space-4) var(--sui-space-5);
     inline-size: 100%;
     inset-block-end: var(--sui-save-bar-inset);
     justify-content: space-between;
@@ -425,7 +429,7 @@ brings its own room under it, so the scroller needs no end padding.
   .sui-save-bar.busy {
     border-color: color-mix(
       in srgb,
-      var(--sui-decision-edge) calc(var(--sui-disabled-opacity) * 100%),
+      var(--sui-unsaved-border) calc(var(--sui-disabled-opacity) * 100%),
       transparent
     );
   }
@@ -482,11 +486,12 @@ brings its own room under it, so the scroller needs no end padding.
       var(--sui-sans);
   }
 
-  /* A refusal leads with a field error's warning mark, so it differs from the subtitle by
-     more than colour (WCAG 1.4.1). */
+  /* A refusal leads with a field error's warning mark at its weight, so it differs from the
+     subtitle by more than colour (WCAG 1.4.1). */
   .subtitle.error {
     align-items: start;
     color: var(--sui-danger);
+    font-weight: var(--sui-weight-medium);
     column-gap: var(--sui-space-2);
     display: grid;
     grid-template-columns: auto minmax(0, 1fr);
