@@ -303,7 +303,7 @@ brings its own room under it, so the scroller needs no end padding.
 - Keyboard: Tab reaches Discard and Save, or Reload, at the pane's end; Ctrl+S or Cmd+S saves from anywhere in the bar's pane, and while the bar holds work it never opens the browser's own save, even when a save cannot run; Escape never discards.
 - Pointer and touch: buttons are 34px tall, 44px on a phone.
 - Focus: after Discard, or once a reload lands, focus moves to Undo, or to Dismiss without one, unless the reader moved it elsewhere while the reload ran; a busy Reload keeps focus; after a save lands, Undo or Dismiss, focus goes back to the control the reader came from, else the pane's first control, never to the page; a field focused under the floating bar scrolls clear above it, because the bar pads its scroller's end by its own height (WCAG 2.4.11).
-- Responsive: the copy wraps at a note's leading, and the actions wrap under it to fill the line, in equal halves while each label fits its half and stacked once one does not; Save and Reload keep the width of the wider of their two labels, so a save never moves Discard; on a screen under 30rem tall, as at 400% zoom, the bar stops sticking and only sits at the pane's end, so it never covers most of the view.
+- Responsive: the copy wraps at a note's leading, and the actions wrap under it to fill the line, in equal halves while each label fits its half, a longer one widening to its words while both fit one row, and stacked once they do not; Save and Reload keep the width of the wider of their label and their busy label with its spinner, so a save never moves Discard; on a screen under 30rem tall, as at 400% zoom, the bar stops sticking and only sits at the pane's end, so it never covers most of the view.
 - Accessibility: the copy is a polite live region, so a failure, a conflict, a save, a discard and a reload are each said; a busy button is `aria-busy`; the bar's name is its title.
 - Localization: every word is a prop with an English default; the actions end the line in the reading direction.
 - Performance: one `ResizeObserver` keeps the scroller's end padding as tall as the bar, and nothing measures it per frame; a fade and 8px rise on entry, removed under reduced motion.
@@ -457,7 +457,8 @@ brings its own room under it, so the scroller needs no end padding.
 
   /* The copy takes all of a shared line's spare room, so actions beside it keep their words'
      width, while actions wrapped under it take their whole line, as a dialog's do on a phone:
-     equal halves while each label fits its half, stacked once one does not (L-90, L-58). */
+     equal halves while each label fits its half, a longer one widening to its words while both
+     fit one row, stacked once they do not (L-90, L-58). */
   .copy {
     display: grid;
     flex: 1000000 1 18rem;

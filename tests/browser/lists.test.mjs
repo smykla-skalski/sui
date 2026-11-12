@@ -1440,6 +1440,12 @@ suite('lists', together, () => {
             await boxes(bars.nth(0)),
             `at ${width}px Saving… is not where Save Changes was, so the save moved Discard`
           );
+          if (width === 390) {
+            // Save Changes fits half the phone line, and the busy Saving… with its spinner is
+            // narrower still, so no room past the label's widens Save over Discard.
+            const [discard, save] = await boxes(bars.nth(0));
+            assert.equal(save.width, discard.width, 'Save Changes is wider than its half');
+          }
           const offset = await bars
             .nth(1)
             .locator('.sui-button[aria-busy="true"]')
@@ -1474,14 +1480,23 @@ suite('lists', together, () => {
       const narrow = page
         .locator('#save-bar .specimen', { hasText: 'Long copy' })
         .locator('.sui-save-bar');
-      const copy = await narrow
-        .locator('.copy')
-        .evaluate((node) => Math.round(node.getBoundingClientRect().width));
-      const wrapped = await boxes(narrow);
-      assert.deepEqual(
-        wrapped.map(({ width }) => width),
-        [copy, copy],
-        'wrapped actions did not each take the whole line under the copy'
+      const rows = await narrow.evaluate((bar) => {
+        const copy = bar.querySelector('.copy')?.getBoundingClientRect();
+        /** @type {Map<number, number[]>} */
+        const lines = new Map();
+        for (const button of bar.querySelectorAll('.actions .sui-button')) {
+          const { top, left, right } = button.getBoundingClientRect();
+          const line = lines.get(Math.round(top)) ?? [left, right];
+          lines.set(Math.round(top), [Math.min(line[0], left), Math.max(line[1], right)]);
+        }
+        return [...lines.values()].map(([left, right]) => [
+          Math.round(left - (copy?.left ?? 0)),
+          Math.round((copy?.right ?? 0) - right)
+        ]);
+      });
+      assert.ok(
+        rows.every(([start, end]) => start === 0 && end === 0),
+        `wrapped actions leave the line under the copy short: ${JSON.stringify(rows)}`
       );
     });
 

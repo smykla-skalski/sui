@@ -41,8 +41,8 @@
     /** Keeps the spinner's room while idle, the words centred in it, so the press that starts
      the work never moves the actions beside it (L-64). */
     reserve?: boolean;
-    /** Said in place of the label while `loading`. The button keeps the wider of the two, with
-     the spinner's room, so the swap never moves the actions beside it (L-64). */
+    /** Said in place of the label while `loading`. The button keeps the wider of the label and
+     the spinner with these words, so the swap never moves the actions beside it (L-64). */
     busyLabel?: string;
     /** Draws a field's edge, baseline and recess, for a button that holds a value, such as a picker's trigger. */
     field?: boolean;
@@ -69,7 +69,7 @@
   const unreachable = $derived(disabled || holding === 'firm');
   const spinning = shownWait(() => loading);
   const swaps = $derived(busyLabel !== undefined && !icon);
-  const reserving = $derived((reserve || swaps) && !spinning.current && !icon);
+  const reserving = $derived(reserve && !swaps && !spinning.current && !icon);
 
   function refuse(event: MouseEvent) {
     event.preventDefault();
@@ -94,7 +94,7 @@ start.
 
 - Semantics: a native `<button type="button">`, or an `<a href>` with `href`; its words are its name, and a disabled anchor is `role="link"` with `aria-disabled`.
 - Content: a short verb phrase that names the result, an optional leading `icon` and an optional `trailing` mark; a long or translated label wraps onto more lines inside its container.
-- States: rest, hover (a veil and a firmer edge), open (the hover paint while `aria-expanded`), as a `field` a Select's edge, recess and ring in each of them, open in its focus edge without the ring, focus (a 2px ring, flush on bordered tones and 2px off a filled one), pressed (a deeper ground, an inset shadow and a 1px sink), loading (a spinner in the tone's ink on the full fill and edge, the words at full ink, busy, and with `busyLabel` those words in place of the label, the spinner just before them and the button as wide as the longer), locked by `aria-disabled` (still a tab stop) and disabled (default cursor), both at 0.6 opacity, a filled or danger tone in the default paint, and a disabled `field` in an off field's well with muted words at full strength.
+- States: rest, hover (a veil and a firmer edge), open (the hover paint while `aria-expanded`), as a `field` a Select's edge, recess and ring in each of them, open in its focus edge without the ring, focus (a 2px ring, flush on bordered tones and 2px off a filled one), pressed (a deeper ground, an inset shadow and a 1px sink), loading (a spinner in the tone's ink on the full fill and edge, the words at full ink, busy, and with `busyLabel` those words in place of the label, the spinner just before them and the button as wide as the wider of the label and that group), locked by `aria-disabled` (still a tab stop) and disabled (default cursor), both at 0.6 opacity, a filled or danger tone in the default paint, and a disabled `field` in an off field's well with muted words at full strength.
 - Keyboard: Tab reaches it, and Enter or Space presses a button while Enter follows an anchor; a loading, locked or disabled one refuses both.
 - Pointer and touch: 34px tall on a pointer and 44px on a phone or any touch screen, at least as wide as its label, and a press is never a drag; a surface may keep it drawn at 34px on a phone with `--sui-local-button-seat`, and its hit area still grows to 44px.
 - Focus: pressing never moves focus, and a loading button keeps it; the caller moves focus when the press removes the button.
@@ -218,6 +218,14 @@ start.
     justify-items: center;
   }
 
+  /* With no anchor to stand the spinner by, it takes its place in the row while busy, so idle
+     the words hold its room as a reserving label does. */
+  @supports not (anchor-name: --sui-button-said) {
+    :not(.swapping) > .sui-button-label > .sui-button-words {
+      padding-inline: calc((var(--sui-icon-base) + var(--sui-space-2)) / 2);
+    }
+  }
+
   .sui-button-words > * {
     grid-area: 1 / 1;
     text-box: trim-both cap alphabetic;
@@ -227,21 +235,21 @@ start.
     visibility: hidden;
   }
 
-  /* Busy, the spinner stands just before the shorter label, and the two centre as one group in
-     the width the longer one keeps. */
+  /* The busy words hold the spinner's room before them, so the cell keeps the wider of the
+     idle words and the busy group, and a short busy word needs no room past the idle one's.
+     Busy, the spinner stands in that room, and the group centres in the width the cell keeps. */
   @supports (anchor-name: --sui-button-said) {
+    .sui-button-words > :last-child {
+      padding-inline-start: calc(var(--sui-icon-base) + var(--sui-space-2));
+    }
+
     .swapping {
       position: relative;
     }
 
     .swapping > .sui-button-part {
-      inset-inline-end: anchor(--sui-button-said start);
-      margin-inline-end: var(--sui-space-2);
+      inset-inline-start: anchor(--sui-button-said start);
       position: absolute;
-    }
-
-    .swapping .sui-button-label {
-      padding-inline-start: calc(var(--sui-icon-base) + var(--sui-space-2));
     }
 
     .said {
