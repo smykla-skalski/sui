@@ -270,8 +270,6 @@
   --sui-role-tint: #e8e1f2;
   --sui-role-ink: #7a3fe0;
 
-  --sui-interactive-hover: color-mix(in srgb, #000000 3.5%, var(--sui-surface-base));
-
   --sui-interactive-hover-layer: rgb(0 0 0 / 9%);
   /* Words on a hover veil: the rest ink in light, where the veil darkens the ground under them, and
      the bright ink in dark, so a lighter ground never takes contrast away. */
@@ -818,7 +816,6 @@
   );
   --sui-role-tint: #23202e;
   --sui-role-ink: #c9a6ff;
-  --sui-interactive-hover: color-mix(in srgb, #ffffff 4%, var(--sui-surface-base));
 
   --sui-interactive-hover-layer: rgb(255 255 255 / 8.5%);
   --sui-hover-ink: var(--sui-primitive-dark-bright);
@@ -1073,7 +1070,6 @@
     );
     --sui-role-tint: #23202e;
     --sui-role-ink: #c9a6ff;
-    --sui-interactive-hover: color-mix(in srgb, #ffffff 4%, var(--sui-surface-base));
 
     --sui-interactive-hover-layer: rgb(255 255 255 / 8.5%);
     --sui-hover-ink: var(--sui-primitive-dark-bright);
