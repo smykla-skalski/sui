@@ -324,8 +324,10 @@ dismisses it, and the return says "You are back online" for five seconds.
   }
 
   /* The copy asks for its one-line width, so the buttons move under it as soon as it would wrap
-     beside them. */
+     beside them. Snapped to an even height, it splits the spare pixel above and under its words
+     (L-102). */
   .copy {
+    align-content: center;
     block-size: var(--sui-block-snap-even);
     display: grid;
     flex: 1 1 auto;
