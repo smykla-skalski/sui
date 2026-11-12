@@ -10,6 +10,7 @@
   import { beforeNavigate } from '$app/navigation';
   import { Field, SaveBar } from '#lib';
   import Example from '../kit/Example.svelte';
+  import Pair from '../kit/Pair.svelte';
   import Specimen from '../kit/Specimen.svelte';
 
   const SAVE_DELAY = 1200;
@@ -95,9 +96,10 @@
 
 <Example
   title="States"
-  note="Editing raises the bar, {saveKeys} saves, a discard offers Undo, a failure stays up, and a conflict reloads with Undo"
+  note="Editing raises the bar, {saveKeys} saves and holds the fields, a discard offers Undo, and a failure stays up"
   layout="stack"
   ground="canvas"
+  --example-max="calc(54rem + 2 * var(--sui-stroke))"
 >
   <Specimen label="Unsaved">
     <div class="pane">
@@ -118,6 +120,7 @@
   <Specimen label="Saving">
     <div class="pane">
       <div class="scroller">
+        <Field label="Repository name" spellcheck="false" autocapitalize="off" value="smyklot-ci" />
         <SaveBar
           dirty
           saving
@@ -132,6 +135,7 @@
   <Specimen label="Failed save">
     <div class="pane">
       <div class="scroller">
+        <Field label="Default branch" spellcheck="false" autocapitalize="off" value="release" />
         <SaveBar
           dirty
           askBeforeLeaving={false}
@@ -142,46 +146,62 @@
       </div>
     </div>
   </Specimen>
-  <Specimen label="Conflict">
-    <div class="pane">
-      <div class="scroller">
-        <Field label="Default branch" spellcheck="false" autocapitalize="off" bind:value={draft} />
-        <SaveBar
-          dirty={draft !== loaded}
-          askBeforeLeaving={false}
-          conflict={stale}
-          {reloading}
-          saving={savingDraft}
-          onsave={saveDraft}
-          ondiscard={discardDraft}
-          onreload={reload}
-        />
-      </div>
-    </div>
-  </Specimen>
 </Example>
 
-<Example
-  title="Narrow Width"
-  note="Long copy wraps with the 8 px rhythm and the actions wrap under it"
-  layout="stack"
-  ground="canvas"
->
-  <Specimen label="Long copy">
-    <div class="pane narrow">
-      <div class="scroller">
-        <SaveBar
-          dirty
-          askBeforeLeaving={false}
-          title="14 settings changed across merge rules, branch protection and review policy"
-          subtitle="Review anywhere in this workspace, then save everything together in one go"
-          onsave={noop}
-          ondiscard={() => noop}
-        />
+<Pair narrow>
+  <Example
+    title="Conflict"
+    note="Another tab saved first, so Reload is the one way on, and it offers Undo"
+    layout="stack"
+    ground="canvas"
+  >
+    <Specimen label="Conflict">
+      <div class="pane">
+        <div class="scroller">
+          <Field
+            label="Default branch"
+            spellcheck="false"
+            autocapitalize="off"
+            bind:value={draft}
+          />
+          <SaveBar
+            dirty={draft !== loaded}
+            askBeforeLeaving={false}
+            conflict={stale}
+            {reloading}
+            saving={savingDraft}
+            onsave={saveDraft}
+            ondiscard={discardDraft}
+            onreload={reload}
+          />
+        </div>
       </div>
-    </div>
-  </Specimen>
-</Example>
+    </Specimen>
+  </Example>
+
+  <Example
+    title="Narrow Width"
+    --example-max="var(--narrow-frame)"
+    note="Long copy wraps as a note, and the actions fill the line under it"
+    layout="stack"
+    ground="canvas"
+  >
+    <Specimen label="Long copy">
+      <div class="pane narrow">
+        <div class="scroller">
+          <SaveBar
+            dirty
+            askBeforeLeaving={false}
+            title="14 settings changed across merge rules, branch protection and review policy"
+            subtitle="Review anywhere in this workspace, then save everything together in one go"
+            onsave={noop}
+            ondiscard={() => noop}
+          />
+        </div>
+      </div>
+    </Specimen>
+  </Example>
+</Pair>
 
 <style>
   /* The pane grows with its content, so the bar rests after the last line instead of sticking
