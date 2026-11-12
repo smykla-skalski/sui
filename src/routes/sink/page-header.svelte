@@ -209,17 +209,13 @@
 
   /* A page stacked alone on the stage runs across its inset to the frame's edges, as a page
      fills the window, so its header and view keep a phone's width less the page's own gutter
-     and the frame draws its sides. */
+     and the frame draws its sides. It runs to its specimen's foot too, so the divider under it,
+     or the Code row's line under the last, is its foot and no strip of ground parts the two. */
   .wide {
+    border-block-end: 0;
     border-inline: 0;
     border-radius: 0;
-    margin-inline: calc(-1 * var(--sui-local-bleed, 0px));
-  }
-
-  /* The last one runs to the stage's foot as well, so the Code row's line is its foot. */
-  :global(.specimen:last-child > .body) > .wide {
-    border-block-end: 0;
-    margin-block-end: calc(-1 * var(--sui-local-bleed, 0px));
+    margin: 0 calc(-1 * var(--sui-local-bleed, 0px)) calc(-1 * var(--sui-local-bleed, 0px));
   }
 
   .flip {
@@ -243,12 +239,9 @@
 
   @container sink-stage (max-width: 48.1875rem) {
     .pair {
+      border-block-end: 0;
       border-inline: 0;
       border-radius: 0;
-    }
-
-    :global(.specimen:last-child > .body) > .pair {
-      border-block-end: 0;
       margin-block-end: calc(-1 * var(--sui-local-bleed, 0px));
     }
   }

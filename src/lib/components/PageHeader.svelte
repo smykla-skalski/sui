@@ -53,8 +53,8 @@ as a card's head controls are, so they lend the copy no height. Once the header 
 36rem wide or narrower, as in a narrow pane, and on a phone, the actions move under the copy,
 12px below it and packed to the start.
 
-The title is 32px on 36px lines, 24px on 28px lines on a phone or once the header itself is
-36rem wide or narrower, and is the page's one `h1`.
+The title is 32px on 36px lines at -0.022em, 24px on 28px lines at a dialog title's -0.015em on a
+phone or once the header itself is 36rem wide or narrower, and is the page's one `h1`.
 The eyebrow, 12px uppercase at 600, stands 8px of ink above it, and a `Breadcrumb` or `BackLink` 12px, so its hover
 veil never meets the title. The description stands one 8px copy gap further below
 the title than the title's own lines stand apart, 19px of ink (18px on a phone), so a title
@@ -227,7 +227,9 @@ and the header owes only the difference.
     color: var(--sui-text-primary);
     font: var(--sui-weight-bold) var(--sui-font-size-page-title) / var(--sui-leading-page)
       var(--sui-sans);
-    letter-spacing: -0.015em;
+    /* Type tracks tighter as it grows, so the 32px title draws closer than a 20px dialog
+       title's -0.015em, which the compact title keeps. */
+    letter-spacing: -0.022em;
     margin: 0;
     overflow-wrap: break-word;
     padding-block: var(--sui-block-snap-room);
@@ -339,6 +341,10 @@ and the header owes only the difference.
   /* In a shell as narrow as a phone, as on a wide screen's split pane, the header takes the
      phone's title and spacing by the shell's own width, as the shell's bars do. */
   @container sui-shell (max-width: 47.9375rem) {
+    .sui-page-header-title {
+      letter-spacing: -0.015em;
+    }
+
     .sui-page-header {
       margin-block-end: calc(
         var(--sui-rhythm-head-surface-compact) - var(--sui-head-exit-gap, 0px)
@@ -356,6 +362,10 @@ and the header owes only the difference.
   /* A header as narrow as a compact card (--sui-breakpoint-card), as in a list's detail pane,
      takes the phone's title too, so a 32px title never fills a column a phone's width. */
   @container sui-page-header (max-width: 36rem) {
+    .sui-page-header-title {
+      letter-spacing: -0.015em;
+    }
+
     .sui-page-header-title,
     .sui-page-header-heading {
       font: var(--sui-weight-bold) var(--sui-font-size-page-title-compact) /
@@ -394,6 +404,10 @@ and the header owes only the difference.
   /* A phone's 44px controls beside a 24px title would reach up past the line above it, so on a
      phone the actions stand under the copy at any width. */
   @media (max-width: 47.9375rem) {
+    .sui-page-header-title {
+      letter-spacing: -0.015em;
+    }
+
     .sui-page-header-layout {
       grid-template-columns: minmax(0, 1fr);
     }
