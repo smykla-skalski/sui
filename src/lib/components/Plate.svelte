@@ -61,7 +61,8 @@ lines fit beside the title's, lends the head no height, so the title and the bod
 they stand with no state (L-34). Short of
 room, the title keeps one line while it fits in 60% of the head and the state while it fits
 in 40%, so a short name stays whole, and past that each wraps within its share, the name in
-the larger one. The state sits in a polite status region, so a change of state
+the larger one; neither breaks a word, so where the state's longest word needs more than its
+share, the title gives way. The state sits in a polite status region, so a change of state
 is announced without moving focus; pass `state` from the first render, because a region that
 arrives with its words is often not read.
 
@@ -71,7 +72,7 @@ arrives with its words is often not read.
 - Keyboard: none of its own; Tab reaches the controls inside in reading order.
 - Pointer and touch: none of its own; the controls inside keep their own targets.
 - Focus: nothing here moves focus, and an announced change of state leaves focus where it is.
-- Responsive: the state stays on the title's first line until the plate is under 12rem wide, as with text at twice its size, where it stands under the title; beside it, the title keeps one line while it fits in 60% of the head and the state while it fits in 40%, and past that each wraps within its share, the state's words in balanced lines.
+- Responsive: the state stays on the title's first line until the plate is under 12rem wide, as with text at twice its size, where it stands under the title; beside it, the title keeps one line while it fits in 60% of the head and the state while it fits in 40%, and past that each wraps within its share, the state's words in balanced lines; no word breaks, so the title gives way to the state's longest word.
 - Accessibility: a change of `state` is announced politely, and the title and state hold 4.5:1.
 - Localization: it draws no words of its own; the state sits at the inline end, which mirrors in a right-to-left page.
 - Performance: static layout; a change of state fades its words in on opacity alone, and not at all under reduced motion.
@@ -81,9 +82,7 @@ arrives with its words is often not read.
 
 <section {...rest} class={['sui-plate', className, { 'head-only': !children }]}>
   <header class="sui-plate-head">
-    <svelte:element this={`h${level}`} class="sui-plate-title"
-      ><span class="sui-plate-name">{title}</span></svelte:element
-    >
+    <svelte:element this={`h${level}`} class="sui-plate-title">{title}</svelte:element>
     {#if state}
       <div class="sui-plate-status" role="status">
         {#key state}
@@ -117,8 +116,10 @@ arrives with its words is often not read.
   }
 
   /* The state follows the title on its first line at every width. Short of room, the title
-     keeps 60% of the head and the state 40%, each less half the gap, or less where its one
-     line needs less. The rule under the head runs the plate's full width. */
+     starts from 60% of the head and the state gives up width first, down to 40% (each less
+     half the gap) or its one line where that needs less, and never below its longest word;
+     only then does the title narrow, to its own longest word. The rule under the head runs the
+     plate's full width. */
   .sui-plate-head {
     align-items: start;
     border-block-end: var(--sui-stroke) solid var(--sui-border-divider);
@@ -145,21 +146,14 @@ arrives with its words is often not read.
     align-content: center;
     block-size: var(--sui-block-snap);
     color: var(--sui-text-primary);
-    flex: 1 1000 auto;
+    flex: 1 1 auto;
+    flex-basis: calc-size(max-content, min(size, 60cqi - var(--sui-space-3) / 2));
     font: inherit;
     margin: 0;
-    min-inline-size: auto;
     overflow-wrap: break-word;
     padding-block: var(--sui-block-snap-room);
     text-box: trim-both cap alphabetic;
     text-wrap: balance;
-  }
-
-  /* The floor sits on the name's own box, so the title's floor stays at least its longest
-     word, which `calc-size()` alone cannot keep. */
-  .sui-plate-name {
-    display: block;
-    min-inline-size: calc-size(max-content, min(size, 60cqi - var(--sui-space-3) / 2));
   }
 
   /* The state's box starts on the middle of the title's first cap band, in the title's face so
@@ -170,9 +164,7 @@ arrives with its words is often not read.
   .sui-plate-status {
     align-items: start;
     display: flex;
-    flex: 0 1 auto;
-    min-inline-size: 0;
-    min-inline-size: calc-size(max-content, min(size, 40% - var(--sui-space-3) / 2));
+    flex: 0 1000 auto;
     padding-block-start: calc(round(up, 1cap, 2px) / 2);
   }
 
@@ -187,7 +179,7 @@ arrives with its words is often not read.
       var(--sui-sans);
     gap: var(--sui-space-2);
     margin-block-start: calc(round(up, 1cap, 2px) / -2);
-    min-inline-size: 0;
+    min-inline-size: calc-size(max-content, min(size, 40cqi - var(--sui-space-3) / 2));
   }
 
   .sui-plate-said > :global(svg) {
@@ -216,7 +208,7 @@ arrives with its words is often not read.
     align-content: center;
     block-size: var(--sui-block-snap);
     min-inline-size: 0;
-    overflow-wrap: anywhere;
+    overflow-wrap: break-word;
     padding-block: var(--sui-block-snap-room);
     text-box: trim-both cap alphabetic;
     text-wrap: balance;

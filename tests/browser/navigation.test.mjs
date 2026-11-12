@@ -743,7 +743,7 @@ suite('navigation', together, () => {
                 }
                 // A plate's state that needs more lines than its title wraps under it, as copy.
                 if (kind === '.sui-plate') {
-                  const [named, said] = lines(root, ['.sui-plate-name', '.sui-plate-words']);
+                  const [named, said] = lines(root, ['.sui-plate-title', '.sui-plate-words']);
                   if (said > named) continue;
                 }
                 seats.push({
@@ -783,7 +783,7 @@ suite('navigation', together, () => {
     );
 
     test(
-      "a plate's title keeps one line while it fits in 60% of the head, and its state in 40%",
+      "a plate's state keeps one line while it fits in 40% of the head, its title in 60% unless the state's longest word needs it, and neither breaks a word",
       long,
       async () => {
         const page = await sink();
@@ -800,11 +800,25 @@ suite('navigation', together, () => {
               words.selectNodeContents(element);
               return new Set([...words.getClientRects()].map((line) => Math.round(line.top))).size;
             };
-            /** @param {Element} element */
-            const wide = (element) => {
+            /** @param {Element} element @param {string} [text] */
+            const wide = (element, text = element.textContent?.trim() ?? '') => {
               const style = getComputedStyle(element);
               ink.font = `${style.fontWeight} ${style.fontSize} ${style.fontFamily}`;
-              return ink.measureText(element.textContent?.trim() ?? '').width;
+              return ink.measureText(text).width;
+            };
+            /** @param {Element} element */
+            const broken = (element) => {
+              const text = /** @type {Text} */ (
+                document.createTreeWalker(element, NodeFilter.SHOW_TEXT).nextNode()
+              );
+              return [...text.data.matchAll(/\S+/g)].filter((word) => {
+                const span = document.createRange();
+                span.setStart(text, word.index);
+                span.setEnd(text, word.index + word[0].length);
+                return (
+                  new Set([...span.getClientRects()].map((line) => Math.round(line.top))).size > 1
+                );
+              });
             };
             return [...document.querySelectorAll('.sui-plate-status')].flatMap((status) => {
               const head = /** @type {HTMLElement} */ (status.parentElement);
@@ -821,23 +835,29 @@ suite('navigation', together, () => {
               const share = (part) => room * part - parseFloat(style.columnGap) / 2;
               const glyph = status.querySelector('svg');
               const said = /** @type {Element} */ (words.parentElement);
+              const lead = glyph
+                ? glyph.getBoundingClientRect().width + parseFloat(getComputedStyle(said).columnGap)
+                : 0;
+              const longest = Math.max(
+                ...(words.textContent?.trim().split(/\s+/) ?? []).map((word) => wide(words, word))
+              );
               /** @type {[Element, number, number][]} */
               const parts = [
-                [title.querySelector('.sui-plate-name') ?? title, 0, share(0.6)],
                 [
-                  words,
-                  glyph
-                    ? glyph.getBoundingClientRect().width +
-                      parseFloat(getComputedStyle(said).columnGap)
-                    : 0,
-                  share(0.4)
-                ]
+                  title,
+                  0,
+                  Math.min(share(0.6), room - parseFloat(style.columnGap) - lead - longest)
+                ],
+                [words, lead, share(0.4)]
               ];
-              return parts.flatMap(([part, lead, most]) => {
-                const need = wide(part) + lead;
-                return lines(part) > 1 && need < most - 0.5
-                  ? [`${part.textContent?.trim()}: ${lines(part)} lines, ${need}px of ${most}px`]
-                  : [];
+              return parts.flatMap(([part, before, most]) => {
+                const need = wide(part) + before;
+                return [
+                  ...(lines(part) > 1 && need < most - 0.5
+                    ? [`${part.textContent?.trim()}: ${lines(part)} lines, ${need}px of ${most}px`]
+                    : []),
+                  ...broken(part).map((word) => `${part.textContent?.trim()}: breaks ${word[0]}`)
+                ];
               });
             });
           });
