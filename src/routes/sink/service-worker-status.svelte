@@ -114,7 +114,6 @@
   layout="grid"
   --specimen-min="24rem"
   --example-max="52.5rem"
-  --example-phone-pad="var(--sui-space-3)"
 >
   <Specimen label="Ready">
     <ServiceWorkerStatus preview="ready" />

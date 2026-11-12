@@ -225,8 +225,8 @@ live specimens, not a surface of the design, so it may hold cards and dialogs (L
 
   /* A phone pads its stages 16px; every frame on a wider page keeps 24px, however narrow its
      measure, so frames side by side or sized to one field inset alike (L-99). A stage that
-     draws a dialog or a floating notice in place sets a smaller `--example-phone-pad`, since
-     each brings its own edge and inset and a live one fills the phone less 16px. */
+     draws a dialog in place sets a smaller `--example-phone-pad`, since a dialog brings its
+     own edge and inset and a live one fills the phone less 16px. */
   @media (max-width: 47.9375rem) {
     .stage {
       --stage-pad: var(--example-phone-pad, var(--sui-space-4));
