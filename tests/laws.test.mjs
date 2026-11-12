@@ -210,9 +210,10 @@ test('L-24 a title stands 12px above its description, copy lines 8px apart, form
       title: pixels(gaps['--sui-title-copy-gap']),
       field: pixels(gaps['--sui-field-gap']),
       note: pixels(gaps['--sui-leading-note']),
-      phoneNote: pixels(phone['--sui-leading-note'])
+      phoneNote: pixels(phone['--sui-leading-note']),
+      cardTitle: pixels(gaps['--sui-leading-card-title'])
     },
-    { copy: 8, title: 12, field: 12, note: 20, phoneNote: 22 }
+    { copy: 8, title: 12, field: 12, note: 20, phoneNote: 22, cardTitle: 24 }
   );
   // A control's help and error lines, not a whole state's, form's or dialog's error, nor a
   // setting row's problem, which is a line of the row's copy.

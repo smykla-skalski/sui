@@ -510,9 +510,10 @@
   --sui-leading-input: 1.25rem;
   --sui-leading-body: 1.4375rem;
   --sui-leading-title: 1.625rem;
-  /* A card or plate title's lines hold together as one block over its note: 17px on 22px,
-     so a descender still clears the next line's ascender by about 5px. */
-  --sui-leading-card-title: 1.375rem;
+  /* A card, plate or section title's lines hold together as one block over its note: 17px on
+     24px, so four semibold lines never press into one mass and a descender clears the next
+     line's ascender by about 7px. */
+  --sui-leading-card-title: 1.5rem;
   /* Display sizes set tighter than copy, about 1.15 rounded to 4px (32/36 and 24/28, as
      Atlassian sets its headings), so a wrapped title's lines hold together; descenders still
      clear the next line's ascenders by over 4px. */
