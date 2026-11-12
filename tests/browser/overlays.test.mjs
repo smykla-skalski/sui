@@ -1070,8 +1070,12 @@ suite('overlays', together, () => {
       try {
         await page.locator('#toaster button', { hasText: 'Remove Rule' }).click();
         await page.locator('.sui-toaster:popover-open .sui-toast').waitFor();
-        const [copy, action, dismiss] = await page.evaluate(() => {
+        // Mid-entry, the toast's fractional rise leaves float error in every edge it reports.
+        const [copy, action, dismiss] = await page.evaluate(async () => {
           const toast = document.querySelector('.sui-toaster:popover-open .sui-toast');
+          await Promise.all(
+            (toast?.getAnimations({ subtree: true }) ?? []).map((animation) => animation.finished)
+          );
           return ['.sui-toast-copy', '.sui-toast-main > .sui-button', '[data-dismiss]'].map(
             (part) => {
               const { x, y, width, height } = /** @type {Element} */ (
