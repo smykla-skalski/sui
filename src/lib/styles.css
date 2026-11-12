@@ -201,7 +201,7 @@
     var(--sui-text-primary)
   );
   --sui-on-decision-accent: #0c0e11;
-  --sui-decision-border-width: 2px;
+  --sui-decision-border-width: 1px;
   --sui-focus: var(--sui-brand-action);
 
   /* An invalid field's ring: its edge's own red, as strong as the calm ring, so the edge and

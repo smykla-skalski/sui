@@ -1894,3 +1894,20 @@ test("L-101 a toast's Dismiss draws its glyph at 18px", () => {
     'a 16px close glyph reads weak beside the action and the failure tile'
   );
 });
+
+test('L-16 the gold decision edge is one stroke wide', () => {
+  assert.equal(
+    tokenMap(stripComments(palette))['--sui-decision-border-width'],
+    '1px',
+    'a 2px gold frame repeats the gold Save and outweighs the title'
+  );
+});
+
+test("L-16 a save bar's refusal leads with a field error's warning mark", () => {
+  const source = read('src/lib/components/SaveBar.svelte');
+  assert.match(
+    source,
+    /<p class="subtitle error">\s*<span class="mark"><Icon name="alert" size="base" \/><\/span>/,
+    'a failed or refused save differs from the subtitle by colour alone'
+  );
+});

@@ -5,6 +5,7 @@
   import { clearance as clearanceOf } from '../internal/clearance.js';
   import { tabStops } from '../internal/focus.js';
   import { holdForWork } from '../internal/held.svelte.js';
+  import Icon from '../icons/Icon.svelte';
   import Button from './Button.svelte';
 
   const titleId = $props.id();
@@ -338,9 +339,14 @@ brings its own room under it, so the scroller needs no end padding.
       </p>
     {:else}
       <p id={titleId} class="title">{error || reloadable ? failedTitle : title}</p>
-      <p class={['subtitle', { error: Boolean(error) || reloadable }]}>
-        {error || (reloadable ? conflictReason : subtitle)}
-      </p>
+      {#if error || reloadable}
+        <p class="subtitle error">
+          <span class="mark"><Icon name="alert" size="base" /></span>
+          <span>{error || conflictReason}</span>
+        </p>
+      {:else}
+        <p class="subtitle">{subtitle}</p>
+      {/if}
     {/if}
   </div>
   {#if notice && notice.kind !== 'saved'}
@@ -482,8 +488,24 @@ brings its own room under it, so the scroller needs no end padding.
       var(--sui-sans);
   }
 
+  /* A refusal leads with a field error's warning mark, so it differs from the subtitle by
+     more than colour (WCAG 1.4.1). */
   .subtitle.error {
+    align-items: start;
     color: var(--sui-danger);
+    column-gap: var(--sui-space-2);
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .subtitle.error > :last-child {
+    text-box: trim-both cap alphabetic;
+  }
+
+  /* Centred on the first line's cap height, however many lines the reason wraps to. */
+  .mark {
+    display: flex;
+    margin-block: round(calc((1cap - var(--sui-icon-base)) / 2), 1px);
   }
 
   /* The bar spreads its two parts, so the actions end the line they share with the copy and
