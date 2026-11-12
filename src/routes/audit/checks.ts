@@ -1417,8 +1417,18 @@ function geometry(root: Document): Finding[] {
     // A card's head takes a framed control's height, which starts on the title's cap line (L-34).
     if (!parent || parent.matches('.sui-card-head')) continue;
     const h = heading.getBoundingClientRect();
+    const lineTops = (element: Element) => {
+      const range = document.createRange();
+      range.selectNodeContents(element);
+      return new Set([...range.getClientRects()].map((line) => Math.round(line.top))).size;
+    };
     const beside = [...parent.children].filter((sibling) => {
       if (sibling === heading || !shown(sibling)) return false;
+      // A plate's state is words, so one that needs more lines than the title grows the head
+      // by those lines, as copy would (L-34).
+      const words =
+        sibling.matches('.sui-plate-status') && sibling.querySelector('.sui-plate-words');
+      if (words && lineTops(words) > lineTops(heading)) return false;
       const r = sibling.getBoundingClientRect();
       return r.top < h.bottom && r.bottom > h.top;
     });

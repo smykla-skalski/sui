@@ -725,6 +725,48 @@ suite('navigation', together, () => {
             };
             /** @type {string[]} */
             const found = [];
+            const ink = /** @type {CanvasRenderingContext2D} */ (
+              document.createElement('canvas').getContext('2d')
+            );
+            /** @param {Element} element @param {string} text */
+            const wide = (element, text) => {
+              const style = getComputedStyle(element);
+              ink.font = `${style.fontWeight} ${style.fontSize} ${style.fontFamily}`;
+              return ink.measureText(text).width;
+            };
+            /** @param {Element} element */
+            const longest = (element) =>
+              Math.max(
+                ...(element.textContent?.trim().split(/\s+/) ?? []).map((word) =>
+                  wide(element, word)
+                )
+              );
+            // A plate's state stands under its title when its longest word cannot stand beside
+            // the title's share: 60% of the head, or the title's longest word, or its one line.
+            /** @param {Element} root */
+            const crowded = (root) => {
+              const head = /** @type {HTMLElement} */ (root.querySelector('.sui-plate-head'));
+              const title = /** @type {Element} */ (head.querySelector('.sui-plate-title'));
+              const words = /** @type {Element} */ (head.querySelector('.sui-plate-words'));
+              const glyph = head.querySelector('.sui-plate-said > svg');
+              const style = getComputedStyle(head);
+              const gap = parseFloat(style.columnGap);
+              const room =
+                head.clientWidth -
+                parseFloat(style.paddingInlineStart) -
+                parseFloat(style.paddingInlineEnd);
+              const share = Math.max(
+                longest(title),
+                Math.min(wide(title, title.textContent?.trim() ?? ''), room * 0.6 - gap / 2)
+              );
+              const lead = glyph
+                ? glyph.getBoundingClientRect().width +
+                  parseFloat(
+                    getComputedStyle(/** @type {Element} */ (glyph.parentElement)).columnGap
+                  )
+                : 0;
+              return share + gap + lead + longest(words) > room - 0.5;
+            };
             const seats = [];
             for (const [kind, seat, parts, beside] of kinds)
               for (const root of document.querySelectorAll(kind)) {
@@ -738,7 +780,8 @@ suite('navigation', together, () => {
                 const where = `${root.closest('section.section')?.id} ${kind}`;
                 const top = Math.min(...drawn.map((box) => box.top));
                 if (top >= title.bottom) {
-                  if (beside) found.push(`${where}: the action takes a line of its own`);
+                  if (beside && !(kind === '.sui-plate' && crowded(root)))
+                    found.push(`${where}: the action takes a line of its own`);
                   continue;
                 }
                 // A plate's state that needs more lines than its title wraps under it, as copy.

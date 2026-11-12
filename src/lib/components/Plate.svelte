@@ -60,9 +60,9 @@ edges, to the ink. The state centres on the title's first line at every width an
 lines fit beside the title's, lends the head no height, so the title and the body stand where
 they stand with no state (L-34). Short of
 room, the title keeps one line while it fits in 60% of the head and the state while it fits
-in 40%, so a short name stays whole, and past that each wraps within its share, the name in
-the larger one; neither breaks a word, so where the state's longest word needs more than its
-share, the title gives way. The state sits in a polite status region, so a change of state
+in the rest, so a short name stays whole, and past that each wraps within its share, the name
+in the larger one. Neither breaks a word: a state whose longest word cannot stand beside the
+title's share stands under the title instead, as it does under 12rem. The state sits in a polite status region, so a change of state
 is announced without moving focus; pass `state` from the first render, because a region that
 arrives with its words is often not read.
 
@@ -72,7 +72,7 @@ arrives with its words is often not read.
 - Keyboard: none of its own; Tab reaches the controls inside in reading order.
 - Pointer and touch: none of its own; the controls inside keep their own targets.
 - Focus: nothing here moves focus, and an announced change of state leaves focus where it is.
-- Responsive: the state stays on the title's first line until the plate is under 12rem wide, as with text at twice its size, where it stands under the title; beside it, the title keeps one line while it fits in 60% of the head and the state while it fits in 40%, and past that each wraps within its share, the state's words in balanced lines; no word breaks, so the title gives way to the state's longest word.
+- Responsive: the state stays on the title's first line while its longest word can stand beside the title's share, 60% of the head or the title's longest word, and stands under the title, a copy gap below, when it cannot or the plate is under 12rem wide, as with text at twice its size; beside it, the title keeps one line while it fits in 60% of the head and the state while it fits in the rest, and past that each wraps within its share, the state's words in balanced lines, and no word breaks.
 - Accessibility: a change of `state` is announced politely, and the title and state hold 4.5:1.
 - Localization: it draws no words of its own; the state sits at the inline end, which mirrors in a right-to-left page.
 - Performance: static layout; a change of state fades its words in on opacity alone, and not at all under reduced motion.
@@ -115,19 +115,26 @@ arrives with its words is often not read.
     padding: var(--sui-space-4);
   }
 
-  /* The state follows the title on its first line at every width. Short of room, the title
-     starts from 60% of the head and the state gives up width first, down to 40% (each less
-     half the gap) or its one line where that needs less, and never below its longest word;
-     only then does the title narrow, to its own longest word. The rule under the head runs the
-     plate's full width. */
+  /* The state follows the title on its first line. The title starts from 60% of the head (less
+     half the gap), or its one line where that needs less, and the state takes the rest, up to
+     its one line; when the state's longest word cannot stand beside that share, the state
+     wraps under the title, so no word breaks. The rule under the head runs the plate's full
+     width. */
   .sui-plate-head {
     align-items: start;
     border-block-end: var(--sui-stroke) solid var(--sui-border-divider);
     box-sizing: border-box;
     column-gap: var(--sui-space-3);
     display: flex;
+    flex-wrap: wrap;
     font: var(--sui-weight-semibold) var(--sui-font-size-card-title) / var(--sui-leading-card-title)
       var(--sui-sans);
+    /* A state that wraps under the title keeps its seat, which stands it half the two caps'
+       difference low, so the gap gives that back and the ink stands the copy gap apart. */
+    row-gap: calc(
+      var(--sui-row-copy-gap) - round(up, 1cap, 2px) / 2 +
+        round(up, 1cap * var(--sui-font-size-meta) / var(--sui-font-size-card-title), 2px) / 2
+    );
     justify-content: space-between;
     margin-inline: calc(-1 * var(--sui-space-4));
     padding: 0 var(--sui-space-4) var(--sui-space-4);
@@ -164,7 +171,8 @@ arrives with its words is often not read.
   .sui-plate-status {
     align-items: start;
     display: flex;
-    flex: 0 1000 auto;
+    flex: 1000 1 0;
+    max-inline-size: max-content;
     padding-block-start: calc(round(up, 1cap, 2px) / 2);
   }
 
@@ -179,7 +187,7 @@ arrives with its words is often not read.
       var(--sui-sans);
     gap: var(--sui-space-2);
     margin-block-start: calc(round(up, 1cap, 2px) / -2);
-    min-inline-size: calc-size(max-content, min(size, 40cqi - var(--sui-space-3) / 2));
+    min-inline-size: 0;
   }
 
   .sui-plate-said > :global(svg) {
