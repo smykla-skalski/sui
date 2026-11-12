@@ -264,6 +264,16 @@ test('L-24 a title stands 12px above its description, copy lines 8px apart, form
     "beside an action a toast's balanced reason leaves a gap before it"
   );
   assert.match(
+    stripComments(read('src/lib/components/Callout.svelte')),
+    /\.sui-callout-text \{[^}]*text-wrap: balance;[^}]*line-height: var\(--sui-leading-note\);/,
+    "a callout's text wraps at the note leading in balanced lines, as a toast's does"
+  );
+  assert.match(
+    stripComments(read('src/lib/components/Callout.svelte')),
+    /\.sui-callout-inner:has\(> \.sui-callout-actions\) \.sui-callout-text \{\s*text-wrap: pretty;/,
+    "beside an action a callout's balanced text leaves a gap before it"
+  );
+  assert.match(
     stripComments(read('src/lib/components/SaveBar.svelte')),
     /\.subtitle \{[^}]*font: [^;]*\/ var\(--sui-leading-note\)/,
     "a save bar's subtitle wraps at the note leading, as a toast's description does"
