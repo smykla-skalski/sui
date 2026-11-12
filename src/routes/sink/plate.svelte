@@ -85,7 +85,6 @@
   title="In Context"
   note="A callout about a plate stands beside it, never inside it, so surfaces do not nest"
   layout="stack"
-  --example-max="40rem"
   ground="canvas"
 >
   <Plate title="Configuration Drift" level={4} state="2 differ" icon="warning" tone="warning" />
