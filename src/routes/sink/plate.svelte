@@ -79,7 +79,13 @@
             {/if}
           {/snippet}
         </Plate>
-        <Button onclick={() => (synced = !synced)}>{synced ? 'Undo the Sync' : 'Sync Now'}</Button>
+        <Button onclick={() => (synced = !synced)}
+          ><span class="swap"
+            ><span>{synced ? 'Undo the Sync' : 'Sync Now'}</span><span aria-hidden="true"
+              >{synced ? 'Sync Now' : 'Undo the Sync'}</span
+            ></span
+          ></Button
+        >
       </div>
     </Specimen>
   </Example>
@@ -108,6 +114,27 @@
     font: var(--sui-weight-regular) var(--sui-font-size-body) / var(--sui-leading-body)
       var(--sui-sans);
     margin: 0;
+  }
+
+  /* Both words take one cell, the one not said hidden, so the button keeps the wider and its
+     edge and focus ring never move when the press changes its words (L-64). */
+  .swap {
+    display: grid;
+    justify-items: center;
+  }
+
+  /* Each trims its cap in a box snapped as a button's own label is, so the button keeps the
+     compact height and its words stay on the pixel grid (L-95). */
+  .swap > * {
+    align-content: center;
+    block-size: var(--sui-block-snap-even);
+    grid-area: 1 / 1;
+    padding-block: var(--sui-block-snap-room-even);
+    text-box: trim-both cap alphabetic;
+  }
+
+  .swap > [aria-hidden='true'] {
+    visibility: hidden;
   }
 
   .change {
