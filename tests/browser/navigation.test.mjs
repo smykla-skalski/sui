@@ -891,11 +891,12 @@ suite('navigation', together, () => {
                 .map((run) => Number(run.effect?.getTiming().duration));
             // @ts-expect-error a probe for this test only
             window.plateFades = { seen: [] };
+            // Twenty frames outlast the 160ms fade; counted by frame, so a still pass stops too.
+            let frames = 0;
             const watch = () => {
               // @ts-expect-error a probe for this test only
               window.plateFades.seen.push(...fades());
-              // @ts-expect-error a probe for this test only
-              if (window.plateFades.seen.length < 40) requestAnimationFrame(watch);
+              if (++frames < 20) requestAnimationFrame(watch);
             };
             requestAnimationFrame(watch);
           });
