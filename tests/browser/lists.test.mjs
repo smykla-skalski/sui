@@ -1463,9 +1463,10 @@ suite('lists', together, () => {
             `at ${width}px the spinner and Saving… sit ${offset}px off the button's centre`
           );
           // A bar at rest in a stage keeps the stage's pad under it, as beside it, not its
-          // sticky inset on top of that pad.
+          // sticky inset on top of that pad. The narrow bar is the taller of its pair, so its
+          // stage ends at it.
           const [beside, under] = await page
-            .locator('#save-bar .specimen', { hasText: 'Conflict' })
+            .locator('#save-bar .specimen', { hasText: 'Long copy' })
             .locator('.sui-save-bar')
             .evaluate((bar) => {
               const box = bar.getBoundingClientRect();
@@ -1477,6 +1478,11 @@ suite('lists', together, () => {
       } finally {
         await page.setViewportSize({ width: 1280, height: 900 });
       }
+      // The conflict and narrow examples share a row, and their Code rows end on one line.
+      const ends = await page
+        .locator('#save-bar .pair .example > .frame')
+        .evaluateAll((frames) => frames.map((frame) => frame.getBoundingClientRect().bottom));
+      assert.equal(new Set(ends).size, 1, `the paired frames end apart: ${ends.join(', ')}`);
       const narrow = page
         .locator('#save-bar .specimen', { hasText: 'Long copy' })
         .locator('.sui-save-bar');

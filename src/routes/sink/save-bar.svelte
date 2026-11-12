@@ -148,7 +148,7 @@
   </Specimen>
 </Example>
 
-<Pair narrow --pair-max="calc(50rem + 2 * var(--sui-space-6))">
+<Pair narrow even --pair-max="calc(50rem + 2 * var(--sui-space-6))">
   <Example
     title="Conflict"
     note="Another tab saved first, so Reload is the one way on, and it offers Undo"
