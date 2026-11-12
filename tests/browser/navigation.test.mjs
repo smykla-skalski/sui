@@ -529,6 +529,16 @@ suite('navigation', together, () => {
           }
           assert.ok(Math.abs(footer.bottom - foot) < 0.5, 'the footer leaves the bottom inset');
         }
+        // A 26rem card cannot hold its button beside 16rem of copy, even on a wide page.
+        await resize(page, 1440);
+        const [copy, button] = await page
+          .locator('#card .bare:not(.flush) .sui-card')
+          .evaluate((box) =>
+            [':scope > .sui-card-main', ':scope > .sui-card-footer'].map((selector) =>
+              /** @type {Element} */ (box.querySelector(selector)).getBoundingClientRect().toJSON()
+            )
+          );
+        assert.ok(button.top >= copy.bottom, "the bare page's button stands beside its copy");
       }
     );
 

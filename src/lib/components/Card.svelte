@@ -84,9 +84,10 @@ line, and short of room the title wraps in what is left beside them, a segmented
 into its select, and the other controls keep their width. The note runs under them at the
 head's full width, save beside a segmented control on a phone or a touch screen, whose track
 draws at 44px and reaches below the title's line further than the note stands under it. A
-`footer`'s actions stand beside the copy at its foot while the card holds both next to an 11rem
-measure of copy, as a callout's do, and on a line of their own under it otherwise, so they keep the inset from the bottom and the end in
-either place. A row list or a `Skeleton` that opens the card hands back what stands above its
+`footer`'s actions stand beside the copy at its foot while the card holds both next to a 16rem
+measure of copy, wider than a callout's 11rem as a framed button is wider than its quiet ones,
+and on a line of their own under it otherwise, so they keep the inset from the bottom and the
+end in either place. A row list or a `Skeleton` that opens the card hands back what stands above its
 first row's ink, as it hands back what stands below its last: the card lends the body's first
 child `--sui-local-row-lead` and its last child `--sui-local-row-trail`, so a row that opens or
 closes the card leaves only the inset beside its ink.
@@ -103,7 +104,7 @@ title, such as "Danger Zone", and holds the acts that cannot be undone, each a `
 - Keyboard: without `href`, none of its own; with it, the card is one tab stop and Enter follows the link; then Tab reaches the controls inside in reading order.
 - Pointer and touch: with `href`, the whole card is the link's target; the controls inside keep their own targets and press feedback.
 - Focus: nothing here moves focus; a focused card link draws the 2px ring flush on the card's keyline, which takes the focus colour, as a bordered control does (L-41).
-- Responsive: in a grid or flex row the card takes the row's height and leaves the extra room under its content; a container query on the card's own width steps the inset from 20px to 16px at 36rem, the head's actions stay beside the copy, centred on the title's cap band, while the copy wraps beside them, until the card is under 12rem wide, as with text at twice its size, where they stand under the copy, and the footer's actions stand beside the copy while they fit next to 11rem of it and wrap under it, from its start edge, otherwise.
+- Responsive: in a grid or flex row the card takes the row's height and leaves the extra room under its content; a container query on the card's own width steps the inset from 20px to 16px at 36rem, the head's actions stay beside the copy, centred on the title's cap band, while the copy wraps beside them, until the card is under 12rem wide, as with text at twice its size, where they stand under the copy, and the footer's actions stand beside the copy while they fit next to 16rem of it and wrap under it, from its start edge, otherwise.
 - Accessibility: the unsaved and danger states are said in words, never by the keyline's colour alone, and the copy, the word and the danger title hold 4.5:1; a card link is heard once, by its title, with the rest of the card outside its name.
 - Localization: `unsavedLabel` is a prop with an English default, and `titleName` joins it to the title; the actions sit at the inline end, which mirrors in a right-to-left page.
 - Performance: static layout with no script; each card is its own size container, and hover and press change only the veil, the inset shadow and a 1px sink.
@@ -167,8 +168,8 @@ title, such as "Danger Zone", and holds the acts that cannot be undone, each a `
   }
 
   /* The copy, its head and body, and the footer's actions share one line while the card holds
-     both, and the actions wrap under the copy only when they do not fit beside an 11rem
-     measure of it, as a callout's do: wrapping decides that from the actions' own width, which
+     both, and the actions wrap under the copy only when they do not fit beside a 16rem
+     measure of it, so a framed button never takes almost as much width as the copy: wrapping decides that from the actions' own width, which
      a container query cannot know. On a shared line the actions close the copy at its foot, so
      their frame lands on whole pixels whatever the copy's height and keeps the bottom inset,
      and a line the actions take alone starts at the start edge (L-90). */
@@ -191,7 +192,7 @@ title, such as "Danger Zone", and holds the acts that cannot be undone, each a `
   }
 
   .sui-card-main {
-    flex: 1 1 11rem;
+    flex: 1 1 16rem;
     min-inline-size: 0;
   }
 
