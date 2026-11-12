@@ -22,72 +22,76 @@ after(async () => {
 });
 
 suite('words', together, () => {
-  test('a space mark from the server stays in the name beside its word', long, async () => {
-    const page = await browser.newPage();
-    try {
-      await visit(page, allSections(url));
-      const cdp = await page.context().newCDPSession(page);
-      /** @param {string} selector */
-      const names = async (selector) => {
-        const { result } = await cdp.send('Runtime.evaluate', {
-          expression: `[...document.querySelectorAll(${JSON.stringify(selector)})]`
-        });
-        const { result: found } = await cdp.send('Runtime.getProperties', {
-          objectId: result.objectId ?? '',
-          ownProperties: true
-        });
-        const read = [];
-        for (const entry of found.filter((entry) => /^\d+$/.test(entry.name))) {
-          const { nodes } = await cdp.send('Accessibility.getPartialAXTree', {
-            objectId: entry.value?.objectId,
-            fetchRelatives: false
+  test(
+    'a mark from the server stays in the name beside its word, and a drawn dot reads as a comma',
+    long,
+    async () => {
+      const page = await browser.newPage();
+      try {
+        await visit(page, allSections(url));
+        const cdp = await page.context().newCDPSession(page);
+        /** @param {string} selector */
+        const names = async (selector) => {
+          const { result } = await cdp.send('Runtime.evaluate', {
+            expression: `[...document.querySelectorAll(${JSON.stringify(selector)})]`
           });
-          read.push(nodes[0].name?.value);
-        }
-        return read;
-      };
-      const legends = await names(
-        'fieldset:has(.sui-check-list-required, .sui-choice-cards-required)'
-      );
-      assert.ok(legends.length > 0, 'the sink holds no required legend');
-      assert.deepEqual(
-        legends.filter((name) => !/\S Required$/.test(name ?? '')),
-        []
-      );
-      // A closed list's options are out of the tree, so the first list with a note opens.
-      const list = await page.$$eval('[role="combobox"]', (inputs) =>
-        inputs
-          .find(
-            (input) =>
-              input instanceof HTMLInputElement &&
-              !input.disabled &&
-              !input.readOnly &&
-              input.checkVisibility() &&
-              document
-                .getElementById(input.getAttribute('aria-controls') ?? '')
-                ?.querySelector('.sui-combobox-note')
+          const { result: found } = await cdp.send('Runtime.getProperties', {
+            objectId: result.objectId ?? '',
+            ownProperties: true
+          });
+          const read = [];
+          for (const entry of found.filter((entry) => /^\d+$/.test(entry.name))) {
+            const { nodes } = await cdp.send('Accessibility.getPartialAXTree', {
+              objectId: entry.value?.objectId,
+              fetchRelatives: false
+            });
+            read.push(nodes[0].name?.value);
+          }
+          return read;
+        };
+        const legends = await names(
+          'fieldset:has(.sui-check-list-required, .sui-choice-cards-required)'
+        );
+        assert.ok(legends.length > 0, 'the sink holds no required legend');
+        assert.deepEqual(
+          legends.filter((name) => !/\S Required$/.test(name ?? '')),
+          []
+        );
+        // A closed list's options are out of the tree, so the first list with a note opens.
+        const list = await page.$$eval('[role="combobox"]', (inputs) =>
+          inputs
+            .find(
+              (input) =>
+                input instanceof HTMLInputElement &&
+                !input.disabled &&
+                !input.readOnly &&
+                input.checkVisibility() &&
+                document
+                  .getElementById(input.getAttribute('aria-controls') ?? '')
+                  ?.querySelector('.sui-combobox-note')
+            )
+            ?.getAttribute('aria-controls')
+        );
+        assert.ok(list, 'the sink holds no option with a note');
+        const input = page.locator(`[aria-controls="${list}"]`);
+        await input.scrollIntoViewIfNeeded();
+        await input.focus();
+        await page.keyboard.press('ArrowDown');
+        const noted = `#${list} .sui-combobox-option:has(.sui-combobox-note)`;
+        await page.locator(noted).first().waitFor();
+        const options = await names(noted);
+        const words = await page.$$eval(noted, (found) =>
+          found.map(
+            (option) =>
+              `${option.querySelector('.sui-combobox-label')?.textContent?.trim()}, ${option.querySelector('.sui-combobox-note')?.textContent?.trim()}`
           )
-          ?.getAttribute('aria-controls')
-      );
-      assert.ok(list, 'the sink holds no option with a note');
-      const input = page.locator(`[aria-controls="${list}"]`);
-      await input.scrollIntoViewIfNeeded();
-      await input.focus();
-      await page.keyboard.press('ArrowDown');
-      const noted = `#${list} .sui-combobox-option:has(.sui-combobox-note)`;
-      await page.locator(noted).first().waitFor();
-      const options = await names(noted);
-      const words = await page.$$eval(noted, (found) =>
-        found.map(
-          (option) =>
-            `${option.querySelector('.sui-combobox-label')?.textContent?.trim()} ${option.querySelector('.sui-combobox-note')?.textContent?.trim()}`
-        )
-      );
-      assert.deepEqual(options, words);
-    } finally {
-      await page.close();
+        );
+        assert.deepEqual(options, words);
+      } finally {
+        await page.close();
+      }
     }
-  });
+  );
 
   // These tests only mount components. The space test runs first, because the next one
   // replaces the marks for the whole page.
@@ -382,6 +386,7 @@ suite('words', together, () => {
         fetchRelatives: false
       });
       /** @type {unknown[]} */
+      /** @type {string[]} */
       const heard = [];
       const visited = new Set();
       const listen = async (/** @type {typeof root} */ node) => {
@@ -419,6 +424,41 @@ suite('words', together, () => {
       assert.equal(shown.length, 2, 'the hint or the problem is not drawn');
       assert.equal(duration.description, shown.map((text) => text.trim()).join('ⓢ'));
     });
+
+    test('a duration holds one width over every plural form a language names its units by', async () => {
+      await page.evaluate(() => {
+        const { lib, mount, flushSync } = /** @type {any} */ (window);
+        const target = document.createElement('div');
+        target.dataset.words = 'DurationPlural';
+        document.body.prepend(target);
+        // Arabic names a count by six categories; here its "many" form, for 11, is the longest.
+        const rules = new Intl.PluralRules('ar');
+        const forms = { zero: 'z', one: 'o', two: 't', few: 'f', many: 'mmmmmmmmmm', other: 'x' };
+        mount(lib.DurationInput, {
+          target,
+          props: {
+            label: 'Delay',
+            value: 60,
+            unitLabel: (/** @type {string} */ unit, /** @type {number} */ amount) =>
+              `${unit} ${forms[/** @type {keyof typeof forms} */ (rules.select(amount))]}`
+          }
+        });
+        flushSync();
+      });
+      const field = page.locator('[data-words="DurationPlural"] .sui-joined');
+      const amount = page.locator('[data-words="DurationPlural"] input:not([type="hidden"])');
+      /** @type {(number | undefined)[]} */
+      const widths = [];
+      for (const typed of ['1', '0', '2', '3', '11', '100', '1.5']) {
+        await amount.fill(typed);
+        widths.push((await field.boundingBox())?.width);
+      }
+      assert.deepEqual(
+        widths,
+        widths.map(() => widths[0]),
+        `the field resized: ${widths}`
+      );
+    });
   });
 
   // Waits measured in seconds, moved on by the page's clock instead of waited out.
@@ -446,7 +486,9 @@ suite('words', together, () => {
             get loading() {
               return get(loading);
             },
-            children: createRawSnippet(() => ({ render: () => '<span>Go</span>' }))
+            children: createRawSnippet(() => ({ render: () => '<span>Go</span>' })),
+            busyLabel: 'Going…',
+            trailing: createRawSnippet(() => ({ render: () => '<span>›</span>' }))
           }
         });
         flushSync();
@@ -459,7 +501,18 @@ suite('words', together, () => {
           set(loading, on);
           flushSync();
         }, on);
-      const spins = () => page.locator('#spinning .sui-button-spinner').isVisible();
+      // The busy words stand while the spinner is drawn, held moment included, so the spinner
+      // never lands on the idle words, and a trailing mark keeps its own place after the words.
+      const spins = () =>
+        page.locator('#spinning').evaluate((node) => {
+          const spinner = node.querySelector('.sui-button-spinner');
+          const said = [...node.querySelectorAll('.sui-button-words > *')].find(
+            (word) => getComputedStyle(word).visibility === 'visible'
+          );
+          const tail = node.querySelector('.sui-button-part:last-child');
+          const placed = tail && getComputedStyle(tail).position !== 'absolute';
+          return spinner ? `${said?.textContent} ${placed}` : false;
+        });
       const marks = [];
       // A 60ms answer draws nothing.
       await set(true);
@@ -479,7 +532,231 @@ suite('words', together, () => {
       marks.push(await spins());
       await page.clock.runFor(500);
       marks.push(await spins());
-      assert.deepEqual(marks, [false, false, false, true, true, false]);
+      assert.deepEqual(marks, [false, false, false, 'Going… true', 'Going… true', false]);
+    });
+
+    test('L-64 a button with an icon says its busy words, its spinner where the icon was', async () => {
+      await page.evaluate(() => {
+        const { lib, mount, flushSync, createRawSnippet, state, get } = /** @type {any} */ (window);
+        const iconLoading = state(false);
+        const target = Object.assign(document.createElement('div'), { id: 'icon-spinning' });
+        document.body.prepend(target);
+        mount(lib.Button, {
+          target,
+          props: {
+            get loading() {
+              return get(iconLoading);
+            },
+            children: createRawSnippet(() => ({ render: () => '<span>Go</span>' })),
+            busyLabel: 'Going somewhere…',
+            icon: createRawSnippet(() => ({
+              render: () => '<svg viewBox="0 0 16 16" width="16" height="16"></svg>'
+            }))
+          }
+        });
+        flushSync();
+        Object.assign(window, { iconLoading });
+      });
+      const read = () =>
+        page.locator('#icon-spinning').evaluate((node) => {
+          const button = /** @type {HTMLElement} */ (node.querySelector('.sui-button'));
+          const lead = /** @type {HTMLElement} */ (node.querySelector('.sui-button-part'));
+          const said = [...node.querySelectorAll('.sui-button-words > *')].find(
+            (word) => getComputedStyle(word).visibility === 'visible'
+          );
+          return {
+            said: said?.textContent ?? button.textContent?.trim(),
+            width: button.getBoundingClientRect().width,
+            lead: Math.round(lead.getBoundingClientRect().left),
+            spinner: node.querySelector('.sui-button-spinner') !== null
+          };
+        });
+      const idle = await read();
+      await page.evaluate(() => {
+        const { set, flushSync, iconLoading } = /** @type {any} */ (window);
+        set(iconLoading, true);
+        flushSync();
+      });
+      await page.clock.runFor(250);
+      const busy = await read();
+      assert.deepEqual(
+        { ...busy, width: Math.round(busy.width) },
+        { said: 'Going somewhere…', width: Math.round(idle.width), lead: idle.lead, spinner: true }
+      );
+    });
+
+    test('L-117 an addition picker holds its loading row while its ring holds, after the list came', async () => {
+      await page.evaluate(() => {
+        const { lib, mount, flushSync, state, get } = /** @type {any} */ (window);
+        const busy = state(false);
+        const target = Object.assign(document.createElement('div'), { id: 'adding' });
+        document.body.prepend(target);
+        mount(lib.AdditionPicker, {
+          target,
+          props: {
+            label: 'Add a Check',
+            choices: [{ value: 'a', label: 'Auto Merge' }],
+            preview: true,
+            onadd: () => {},
+            get loading() {
+              return get(busy);
+            }
+          }
+        });
+        flushSync();
+        Object.assign(window, { busy });
+      });
+      /** @param {boolean} on */
+      const set = (on) =>
+        page.evaluate((on) => {
+          const { set, flushSync, busy } = /** @type {any} */ (window);
+          set(busy, on);
+          flushSync();
+        }, on);
+      const shown = () =>
+        page.evaluate(() => [
+          Boolean(document.querySelector('#adding .sui-addition-spinner')),
+          Boolean(document.querySelector('#adding .sui-addition-choice'))
+        ]);
+      const marks = [];
+      await set(true);
+      await page.clock.runFor(250);
+      marks.push(await shown());
+      // The list came 100ms after the ring was drawn, so the ring and its row stay.
+      await set(false);
+      await page.clock.runFor(100);
+      marks.push(await shown());
+      await page.clock.runFor(500);
+      marks.push(await shown());
+      assert.deepEqual(marks, [
+        [true, false],
+        [true, false],
+        [false, true]
+      ]);
+    });
+
+    test('L-117 a combobox draws its search wait only once it outlasts a glance and keeps it a moment, while its status speaks the search as it stands', async () => {
+      await page.evaluate(() => {
+        const { lib, mount, flushSync } = /** @type {any} */ (window);
+        const target = Object.assign(document.createElement('div'), { id: 'asking' });
+        document.body.prepend(target);
+        Object.assign(window, { delay: 0, refuse: false });
+        mount(lib.Combobox, {
+          target,
+          props: {
+            'aria-label': 'Owner',
+            search: () =>
+              new Promise((answer, refuse) => {
+                const { delay, refuse: refusing } = /** @type {any} */ (window);
+                setTimeout(
+                  () =>
+                    refusing
+                      ? refuse(new Error('offline'))
+                      : answer([{ value: 'ada', label: 'Ada' }]),
+                  delay
+                );
+              })
+          }
+        });
+        flushSync();
+      });
+      const field = page.locator('#asking input');
+      /** @param {string} text @param {number} delay */
+      const type = async (text, delay) => {
+        await page.evaluate((delay) => Object.assign(window, { delay }), delay);
+        await field.fill(text);
+      };
+      // A held clock holds the popover's opening animation, so this reads the open layer's words.
+      const says = () =>
+        page.evaluate(() => {
+          const note = document.querySelector(
+            '#asking .sui-popover:popover-open .sui-combobox-empty'
+          );
+          const words = note?.textContent ?? '';
+          // The words, the mark and the ink change together, so no frame mixes a wait and a refusal.
+          const drawn = [
+            words.includes('Searching') && 'searching',
+            words.includes('could not load') && 'refused',
+            note?.querySelector('.sui-combobox-spinner') && 'spinner',
+            note?.querySelector('svg') && 'alert',
+            note?.classList.contains('refused') && 'danger'
+          ].filter(Boolean);
+          return drawn.join(' ');
+        });
+      // Svelte runs its effects in microtasks, which a held clock runs only between its steps.
+      /** @param {number} ms */
+      const wait = async (ms) => {
+        for (let left = ms; left > 0; left -= 10) await page.clock.runFor(Math.min(10, left));
+      };
+      const hears = () =>
+        page.evaluate(() => document.querySelector('#asking [role="status"]')?.textContent ?? '');
+      /** @type {string[]} */
+      const marks = [];
+      /** @type {string[]} */
+      const heard = [];
+      const mark = async () => {
+        marks.push(await says());
+        heard.push(await hears());
+      };
+      // The typing pause and a 60ms answer draw nothing.
+      await type('a', 60);
+      await wait(200);
+      await mark();
+      await wait(100);
+      await mark();
+      // A slow answer draws the wait, and an answer right after keeps it a moment.
+      await type('ab', 250);
+      await wait(180 + 100);
+      await mark();
+      await wait(100);
+      await mark();
+      await wait(100);
+      await mark();
+      await wait(500);
+      await mark();
+      // A refusal right after the wait is drawn waits out the wait's moment too.
+      await page.evaluate(() => Object.assign(window, { refuse: true }));
+      await type('abc', 250);
+      await wait(180 + 100 + 100);
+      await mark();
+      await wait(100);
+      await mark();
+      await wait(500);
+      await mark();
+      // A query typed over a search still in flight starts its glance afresh, so its fast answer
+      // draws no wait.
+      await page.evaluate(() => Object.assign(window, { refuse: false }));
+      await type('abcd', 1000);
+      await wait(180 + 100);
+      await type('abcde', 0);
+      await wait(100);
+      await mark();
+      await wait(400);
+      await mark();
+      // A new query's typing pause speaks nothing rather than the last query's count.
+      await type('abcdef', 0);
+      await wait(100);
+      await mark();
+      assert.deepEqual(marks, [
+        '',
+        '',
+        '',
+        'searching spinner',
+        'searching spinner',
+        '',
+        'searching spinner',
+        'searching spinner',
+        'refused alert danger',
+        '',
+        '',
+        ''
+      ]);
+      // Only the drawing waits: the status says a search runs, then its answer, at once.
+      const [searching, one, refused] = ['Searching…', '1 suggestion', 'could not load'];
+      assert.deepEqual(
+        heard.map((words) => (words.includes(refused) ? refused : words)),
+        [searching, one, searching, searching, one, one, searching, refused, refused, '', one, '']
+      );
     });
 
     test('a live pill pulses again on a beat only once its dot has been still for 5 seconds', async () => {

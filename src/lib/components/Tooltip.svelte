@@ -4,6 +4,11 @@
   const WARM_FOR = 300;
   let showing = 0;
   let warmUntil = 0;
+  /* The arrow's depth, and the room its point keeps off the anchor, in px: the focus ring's 4px
+     reach and a 4px step past it, since a point aimed at the ring reads as touching it (L-35).
+     A copy keeps the same room in CSS. */
+  const ARROW = 5;
+  const TIP_GAP = 8;
 </script>
 
 <script lang="ts">
@@ -197,6 +202,22 @@
     };
   });
 
+  // A copy is not placed, so it measures where its anchor's centre falls for its arrow.
+  $effect(() => {
+    if (!element || !anchor || !preview) return;
+    const [tip, mark] = [element, anchor];
+    const measure = () => {
+      const [a, t] = [mark.getBoundingClientRect(), tip.getBoundingClientRect()];
+      const centre = a.left + a.width / 2;
+      const at = getComputedStyle(tip).direction === 'rtl' ? t.right - centre : centre - t.left;
+      tip.style.setProperty('--sui-floating-anchor-at', `${at}px`);
+    };
+    const observer = new ResizeObserver(measure);
+    observer.observe(mark);
+    observer.observe(tip);
+    return () => observer.disconnect();
+  });
+
   $effect(() => {
     if (!open || preview) return;
     showing += 1;
@@ -212,7 +233,7 @@
     if (open && !shown) element.showPopover();
     else if (!open && shown) element.hidePopover();
     if (!open || !anchor) return;
-    const placement = { side, align, offset: 6 };
+    const placement = { side, align, offset: TIP_GAP + ARROW };
     place(element, anchor, placement);
     return follow(element, anchor, placement);
   });
@@ -233,12 +254,12 @@ does, stays out of the accessibility tree. Any other tip describes the control t
 `aria-describedby`; `describe` forces either way.
 
 - Semantics: a `tooltip` in the top layer, tied to its control by `aria-describedby` when it adds words, and `aria-hidden` when it repeats them.
-- Content: one short line of plain text, wrapping at 17rem; `mono` for a tip that is one identifier.
-- States: hidden, waiting (250ms on hover), shown, lingering (120ms after the pointer leaves, 1.5s after a long press), and drawn in place with `preview`.
+- Content: one short line of plain text, wrapping at 20rem; `mono` for a tip that is one identifier.
+- States: hidden, waiting (250ms on hover), shown, lingering (120ms after the pointer leaves, 1.5s after a long press), and drawn in place with `preview`: over its anchor for `side="block-start"`, as the first item of a flex or grid parent, and under it otherwise.
 - Keyboard: focus on its control shows it at once, blur hides it, and Escape hides it without reaching a dialog around it.
 - Pointer and touch: hover shows it after a pause and the pointer may move onto it; on touch a 500ms press shows it and a tap passes through as a click.
 - Focus: it never takes focus; the control keeps it.
-- Responsive: placed beside the anchor, flipped to the side with room and held 8px inside the viewport; it wraps rather than widening past 17rem.
+- Responsive: placed beside the anchor with its arrow on the anchor's centre, flipped to the side with room and held 8px inside the viewport; it wraps rather than widening past 20rem.
 - Accessibility: hoverable, dismissable and persistent as WCAG 1.4.13 asks, read as a description only when it adds words.
 - Localization: `text` is the caller's words, and the inline sides and `start`/`end` alignment follow the reading direction.
 - Performance: one element per instance with listeners on its anchor and control, and on the page only while it is shown or about to be; placement runs only while shown, and the fade is opacity alone, removed under reduced motion.
@@ -255,6 +276,9 @@ does, stays out of the accessibility tree. Any other tip describes the control t
   class="sui-tooltip"
   class:mono
   class:preview
+  data-side={preview ? (side === 'block-start' ? side : 'block-end') : undefined}
+  data-facing={undefined}
+  style:--sui-tip-arrow="{ARROW}px"
   aria-hidden={describes ? undefined : 'true'}
   onpointerenter={(event) => {
     if (hovers(event)) clearTimeout(hideTimer);
@@ -265,20 +289,31 @@ does, stays out of the accessibility tree. Any other tip describes the control t
 </div>
 
 <style>
+  /* A tip is the one floating layer that inverts: the primary ink is its ground and the base
+     surface its words, in both themes, so a short line reads at once on any card, as the tips of
+     shadcn/ui and Radix Themes do (L-72). Its edge and arrow take its ground. */
   .sui-tooltip {
+    --sui-local-tip-ground: var(--sui-text-primary);
+    --sui-local-tip-gap: calc(
+      var(--sui-focus-ring-offset) + var(--sui-focus-ring-width) + var(--sui-space-1)
+    );
     align-content: center;
-    background: var(--sui-popover-bg);
-    border: var(--sui-stroke) solid var(--sui-popover-border);
-    border-radius: var(--sui-radius-popover);
-    box-shadow: var(--sui-shadow-popover);
+    background: var(--sui-local-tip-ground);
+    border: var(--sui-stroke) solid var(--sui-local-tip-ground);
+    border-radius: var(--sui-radius-control);
+    /* The light theme lifts a tip on a firmer layer of its own (L-54). The dark themes leave the
+       token unset, so a light tip there sits on a plate's tight shadow, where a popover's wide
+       lift would spread a smudge past its end. */
+    box-shadow: var(--sui-shadow-tooltip, var(--sui-shadow-plate));
     box-sizing: border-box;
-    color: var(--sui-text-secondary);
-    font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-leading-meta)
+    color: var(--sui-surface-base);
+    /* Caption type, a step under the words of the control it names (L-25). */
+    font: var(--sui-weight-regular) var(--sui-font-size-caption) / var(--sui-leading-compact)
       var(--sui-sans);
     inline-size: max-content;
     inset: auto;
     margin: 0;
-    max-inline-size: min(17rem, calc(100vw - 3rem));
+    max-inline-size: min(20rem, calc(100vw - 3rem));
     opacity: 1;
     /* A popover scrolls by default, and the trimmed words overhang the box, so the tip would be
        a scroller that Tab can enter. It is one short line that never scrolls. */
@@ -293,10 +328,57 @@ does, stays out of the accessibility tree. Any other tip describes the control t
     /* In the top layer this is the page, so the tip scrolls with the page and its anchor. */
     position: absolute;
     text-align: start;
+    /* A tip that wraps never leaves its last word alone. */
+    text-wrap: pretty;
     transition:
       opacity var(--sui-duration-fast) var(--sui-ease-standard),
       overlay var(--sui-duration-fast) allow-discrete,
       display var(--sui-duration-fast) allow-discrete;
+  }
+
+  /* The arrow is a square of the tip's ground turned on its point and centred on the box's outer
+     edge. It points at the anchor's centre and keeps clear of the box's corners. */
+  .sui-tooltip::after {
+    --sui-local-arrow: calc(var(--sui-tip-arrow) * sqrt(2));
+    /* Its centre keeps past the corner's curve, so a tip that starts at a 24px mark still
+       points at the mark's middle. */
+    --sui-local-arrow-along: clamp(
+      calc(var(--sui-radius-control) - var(--sui-local-arrow) / 2),
+      calc(
+        var(--sui-floating-anchor-at, calc(50% + var(--sui-stroke))) - var(--sui-local-arrow) / 2 -
+          var(--sui-stroke)
+      ),
+      calc(100% - var(--sui-radius-control) - var(--sui-local-arrow) / 2)
+    );
+    --sui-local-arrow-across: calc(-1 * var(--sui-local-arrow) / 2 - var(--sui-stroke));
+    background: var(--sui-local-tip-ground);
+    block-size: var(--sui-local-arrow);
+    content: '';
+    inline-size: var(--sui-local-arrow);
+    position: absolute;
+    rotate: 45deg;
+  }
+
+  .sui-tooltip[data-side='block-start']::after {
+    inset-block-end: var(--sui-local-arrow-across);
+    inset-inline-start: var(--sui-local-arrow-along);
+  }
+
+  .sui-tooltip[data-side='block-end']::after {
+    inset-block-start: var(--sui-local-arrow-across);
+    inset-inline-start: var(--sui-local-arrow-along);
+  }
+
+  /* Beside its anchor, the arrow stands on the tip's edge that faces it, since the anchor's
+     direction set the side and the tip's own can run the other way. */
+  .sui-tooltip[data-facing='start']::after {
+    inset-block-start: var(--sui-local-arrow-along);
+    inset-inline-start: var(--sui-local-arrow-across);
+  }
+
+  .sui-tooltip[data-facing='end']::after {
+    inset-block-start: var(--sui-local-arrow-along);
+    inset-inline-end: var(--sui-local-arrow-across);
   }
 
   .sui-tooltip[popover]:not(:popover-open) {
@@ -310,9 +392,17 @@ does, stays out of the accessibility tree. Any other tip describes the control t
     }
   }
 
+  /* A copy hangs under its anchor in the flow as the live tip stands off it, and holds its arrow. */
   .preview {
-    max-inline-size: min(17rem, 100%);
-    position: static;
+    margin-block-start: calc(var(--sui-local-tip-gap) + var(--sui-tip-arrow));
+    max-inline-size: min(20rem, 100%);
+    position: relative;
+  }
+
+  /* A copy over its anchor comes first in its flex or grid parent and stands off it below. */
+  .preview[data-side='block-start'] {
+    margin-block: 0 calc(var(--sui-local-tip-gap) + var(--sui-tip-arrow));
+    order: -1;
   }
 
   .mono {

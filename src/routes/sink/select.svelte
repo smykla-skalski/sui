@@ -53,7 +53,6 @@
     'fix/rate-limit-headers',
     'feat/audit-log-export',
     'feat/single-sign-on-for-organizations',
-    'chore/update-dependencies',
     'docs/rewrite-the-onboarding-guide'
   ].map((name) => ({ value: name, label: name }));
 
@@ -78,7 +77,6 @@
   let region = $state<string | null>('eu-central');
   let backup = $state<string | null>(null);
   let failover = $state<string | null>('eu-west');
-  let plan = $state<string | null>('team-year');
   let branch = $state<string | null>(branches[2].value);
   let zone = $state<string | null>(null);
   let attempts = $state<number | null>(3);
@@ -93,6 +91,9 @@
 
 <Example
   title="States"
+  --example-max="54rem"
+  --specimen-min="21rem"
+  --specimen-row-gap="var(--sui-space-6)"
   note="A chosen value, a prompt before anything is chosen, a refused value and a locked field with its reason"
   layout="grid"
 >
@@ -139,42 +140,37 @@
 </Example>
 
 <Example
-  title="Content"
-  note="Headed groups with notes, a retired plan that cannot be chosen, and a long branch cut in the field but wrapped in the picker"
+  title="Open"
+  --example-max="54rem"
+  --specimen-min="21rem"
+  --specimen-row-gap="var(--sui-space-6)"
+  note="A static copy of the open picker under each field. Plan opens on its prompt with the first option lit, over headed groups and a retired plan. A long branch is cut in the field, wrapped in the list and checked with the next option lit"
   layout="grid"
 >
-  <Specimen label="Groups & notes">
+  <Specimen label="Prompt, groups & notes">
     <Field label="Plan">
       {#snippet control({ id, describedby })}
-        <Select {id} aria-describedby={describedby} options={plans} bind:value={plan} />
+        <Select
+          {id}
+          aria-describedby={describedby}
+          options={plans}
+          value={null}
+          placeholder="Choose a plan…"
+          preview
+        />
       {/snippet}
     </Field>
   </Specimen>
-  <Specimen label="Long label">
+  <Specimen label="Chosen long label">
     <Field label="Branch">
       {#snippet control({ id, describedby })}
-        <Select {id} aria-describedby={describedby} options={branches} bind:value={branch} />
-      {/snippet}
-    </Field>
-  </Specimen>
-</Example>
-
-<Example
-  title="Open"
-  note="A static copy of the open picker under each field, with the value checked and the next option active"
-  layout="grid"
->
-  <Specimen label="Open">
-    <Field label="Region">
-      {#snippet control({ id, describedby })}
-        <Select {id} aria-describedby={describedby} options={regions} value="eu-central" preview />
-      {/snippet}
-    </Field>
-  </Specimen>
-  <Specimen label="Open with groups">
-    <Field label="Plan">
-      {#snippet control({ id, describedby })}
-        <Select {id} aria-describedby={describedby} options={plans} value="team-month" preview />
+        <Select
+          {id}
+          aria-describedby={describedby}
+          options={branches}
+          bind:value={branch}
+          preview
+        />
       {/snippet}
     </Field>
   </Specimen>
@@ -182,6 +178,10 @@
 
 <Example
   title="In a Form"
+  --example-max="54rem"
+  --specimen-min="21rem"
+  --specimen-row-gap="var(--sui-space-6)"
+  layout="grid"
   note="Native validation stops a send without a time zone and says why under the field, and the values submit by name, numbers included"
 >
   <Specimen label={sent}>
@@ -216,7 +216,7 @@
           />
         {/snippet}
       </Field>
-      <Button type="submit" class="action">Save the Report</Button>
+      <Button type="submit" tone="signal" class="action">Save the Report</Button>
     </form>
   </Specimen>
 </Example>
@@ -225,13 +225,13 @@
   .form {
     display: grid;
     gap: var(--sui-space-5);
-    justify-items: start;
     min-inline-size: 0;
   }
 
   /* The action ends the form a step past the fields' own gap, so it reads as the form's
      close and not as one more field (L-35). */
   .form > :global(.action) {
+    justify-self: start;
     margin-block-start: var(--sui-space-1);
   }
 </style>

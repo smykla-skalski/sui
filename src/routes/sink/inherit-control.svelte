@@ -26,8 +26,9 @@
     { value: 'error', label: 'Errors' }
   ];
 
-  // What the store holds: the lifetime follows the workspace and the level is set here.
-  const saved = { lifetime: null as number | null, level: 'debug' as string | null };
+  // What the store holds: the lifetime follows the workspace and the level is set here. The log
+  // level starts changed from it, so the page shows a row's unsaved mark from the first draw.
+  const saved = { lifetime: null as number | null, level: 'warn' as string | null };
 
   // Each control starts on the inherited value and keeps its own across a return to the
   // inherited one, so Override brings the last override back.
@@ -36,85 +37,106 @@
   let levelOverridden = $state(true);
   let level = $state<string | null>('debug');
 
+  // The states stand apart from the rows, so a press in one never changes the other.
+  let shownLifetimeOverridden = $state(false);
+  let shownLifetime = $state(INHERITED_LIFETIME);
+  let shownLevelOverridden = $state(true);
+  let shownLevel = $state<string | null>('debug');
+
   const lifetimeUnsaved = $derived((lifetimeOverridden ? lifetime : null) !== saved.lifetime);
   const levelUnsaved = $derived((levelOverridden ? level : null) !== saved.level);
 </script>
 
-<Example
-  title="States"
-  note="An inherited value is muted with its source, an override shows the control with a way back, and a locked one says why"
->
-  <Specimen label="Inherited">
-    <InheritControl
-      bind:overridden={lifetimeOverridden}
-      label="Session lifetime"
-      inherited="1&nbsp;hour"
-      source="the workspace"
-    >
-      {#snippet control()}
-        <DurationInput label="Session lifetime" bind:value={lifetime} min={60} />
-      {/snippet}
-    </InheritControl>
-  </Specimen>
-  <Specimen label="Overridden">
-    <InheritControl
-      bind:overridden={levelOverridden}
-      label="Log level"
-      inherited="Info"
-      source="the organization"
-    >
-      {#snippet control()}
-        <SegmentedControl label="Log level" options={levels} bind:value={level} />
-      {/snippet}
-    </InheritControl>
-  </Specimen>
-  <Specimen label="Disabled">
-    <div class="locked">
-      <InheritControl label="Retention" inherited="30&nbsp;days" source="the organization" disabled>
+<div class="wide-last">
+  <Example
+    title="States"
+    note="An inherited value is muted with its source, an override shows the control with a way back, and a locked one says why"
+    layout="grid"
+    --specimen-min="21rem"
+    --specimen-row-gap="var(--sui-space-6)"
+  >
+    <Specimen label="Inherited">
+      <InheritControl
+        bind:overridden={shownLifetimeOverridden}
+        label="Session lifetime"
+        inherited="1&nbsp;hour"
+        source="the workspace"
+      >
+        {#snippet control()}
+          <DurationInput label="Session lifetime" bind:value={shownLifetime} min={60} />
+        {/snippet}
+      </InheritControl>
+    </Specimen>
+    <Specimen label="Disabled">
+      <div class="locked">
+        <InheritControl
+          label="Retention"
+          inherited="30&nbsp;days"
+          source="the organization"
+          disabled
+        >
+          {#snippet control()}
+            <DurationInput label="Retention" value={2_592_000} />
+          {/snippet}
+        </InheritControl>
+        <p class="reason">Only an owner can override the retention</p>
+      </div>
+    </Specimen>
+    <Specimen label="Overridden">
+      <InheritControl
+        bind:overridden={shownLevelOverridden}
+        label="Log level"
+        inherited="Info"
+        source="the organization"
+      >
+        {#snippet control()}
+          <SegmentedControl label="Log level" hideLabel options={levels} bind:value={shownLevel} />
+        {/snippet}
+      </InheritControl>
+    </Specimen>
+  </Example>
+</div>
+
+<div class="wide-last">
+  <Example
+    title="Unknown Values"
+    note="A loading, failed or empty inherited value is said in words, and Override still works"
+    layout="grid"
+    --specimen-min="21rem"
+    --specimen-row-gap="var(--sui-space-6)"
+  >
+    <Specimen label="Loading">
+      <InheritControl label="Retention" inherited="" source="the organization" loading>
         {#snippet control()}
           <DurationInput label="Retention" value={2_592_000} />
         {/snippet}
       </InheritControl>
-      <p class="reason">Only an owner can override the retention</p>
-    </div>
-  </Specimen>
-</Example>
-
-<Example
-  title="Unknown Values"
-  note="A loading, failed or empty inherited value is said in words, and Override still works"
->
-  <Specimen label="Loading">
-    <InheritControl label="Retention" inherited="" source="the organization" loading>
-      {#snippet control()}
-        <DurationInput label="Retention" value={2_592_000} />
-      {/snippet}
-    </InheritControl>
-  </Specimen>
-  <Specimen label="Failed">
-    <InheritControl
-      label="Retention"
-      inherited=""
-      source="the organization"
-      error="The organization’s value could not load, so override it here"
-    >
-      {#snippet control()}
-        <DurationInput label="Retention" value={2_592_000} />
-      {/snippet}
-    </InheritControl>
-  </Specimen>
-  <Specimen label="Nothing set">
-    <InheritControl label="Retention" inherited="" source="the organization">
-      {#snippet control()}
-        <DurationInput label="Retention" value={2_592_000} />
-      {/snippet}
-    </InheritControl>
-  </Specimen>
-</Example>
+    </Specimen>
+    <Specimen label="Nothing set">
+      <InheritControl label="Retention" inherited="" source="the organization">
+        {#snippet control()}
+          <DurationInput label="Retention" value={2_592_000} />
+        {/snippet}
+      </InheritControl>
+    </Specimen>
+    <Specimen label="Failed">
+      <InheritControl
+        label="Retention"
+        inherited=""
+        source="the organization"
+        error="The organization’s value could not load, so override it here"
+      >
+        {#snippet control()}
+          <DurationInput label="Retention" value={2_592_000} />
+        {/snippet}
+      </InheritControl>
+    </Specimen>
+  </Example>
+</div>
 
 <Example
   title="In Setting Rows"
-  note="A row is unsaved only while it differs from what is stored, so picking Debug again clears the log level’s mark"
+  note="A row is unsaved only while it differs from what is stored, so picking Warnings again clears the log level’s mark"
   layout="stack"
   ground="canvas"
 >
@@ -169,33 +191,41 @@
 
 <Example
   title="Narrow Width"
-  note="A long source wraps beside its marker and Override stays in view"
+  note="In a phone’s width a long source wraps beside its marker and Override stays in view"
   layout="stack"
+  --example-max="calc(21.4375rem + 2 * var(--sui-space-6))"
 >
   <Specimen label="Long source">
-    <div class="narrow">
-      <InheritControl
-        label="Retention"
-        inherited="30&nbsp;days"
-        source="the retention policy of the whole organization"
-      >
-        {#snippet control()}
-          <DurationInput label="Retention" value={2_592_000} />
-        {/snippet}
-      </InheritControl>
-    </div>
+    <InheritControl
+      label="Retention"
+      inherited="30&nbsp;days"
+      source="the retention policy of the whole organization"
+    >
+      {#snippet control()}
+        <DurationInput label="Retention" value={2_592_000} />
+      {/snippet}
+    </InheritControl>
   </Specimen>
 </Example>
 
 <style>
+  /* The widest state, the overridden control or the failed sentence, takes the last row whole,
+     so its button stays on its line and no state leaves a hole beside it. */
+  .wide-last :global(.specimen:last-child) {
+    grid-column: 1 / -1;
+  }
+
   .locked {
     display: grid;
     gap: var(--sui-row-copy-gap);
     justify-items: start;
   }
 
+  /* The reason explains the sentence, so it starts under the words, past the control's 16px
+     mark and its 8px gap. */
   .reason {
     align-content: center;
+    padding-inline-start: calc(var(--sui-icon-base) + var(--sui-space-2));
     block-size: var(--sui-block-snap);
     color: var(--sui-text-secondary);
     font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-row-copy-leading)
@@ -203,10 +233,5 @@
     margin: 0;
     padding-block: var(--sui-block-snap-room);
     text-box: trim-both cap alphabetic;
-  }
-
-  .narrow {
-    inline-size: min(100%, 16rem);
-    max-inline-size: 100%;
   }
 </style>

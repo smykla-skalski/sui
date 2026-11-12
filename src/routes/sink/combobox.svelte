@@ -41,7 +41,7 @@
     );
   }
 
-  /* The directory never answers, so the refused state shows on the first letters typed. */
+  /* The directory is offline: the search the refused copy stands for. */
   function offline(): Promise<typeof accounts> {
     return new Promise((_, reject) =>
       setTimeout(() => reject(new Error('The directory is offline')), 300)
@@ -49,10 +49,8 @@
   }
 
   let language = $state('ts');
-  let languageLimit = $state(100);
   let label = $state('');
   let reviewer = $state('');
-  let owner = $state('');
   let runtime = $state('rust');
   let primary = $state('rb');
   let sent = $state('Nothing sent yet');
@@ -65,25 +63,18 @@
 
 <Example
   title="Suggestions"
+  --example-max="54rem"
+  --specimen-min="15rem"
+  --specimen-row-gap="var(--sui-space-6)"
   note="Typing narrows the options, free entry offers what was typed, and a slow search says it is searching or that nothing matches"
   layout="grid"
 >
   <Specimen label="Filtered options">
-    <div class="form">
-      <Field label="Language">
-        {#snippet control({ id, describedby })}
-          <Combobox
-            {id}
-            aria-describedby={describedby}
-            options={languages}
-            bind:value={language}
-            limit={languageLimit}
-          />
-        {/snippet}
-      </Field>
-      <Button onclick={() => (language = 'go')}>Replace the Language</Button>
-      <Button onclick={() => (languageLimit = 1)}>Limit the Language Suggestions</Button>
-    </div>
+    <Field label="Language">
+      {#snippet control({ id, describedby })}
+        <Combobox {id} aria-describedby={describedby} options={languages} bind:value={language} />
+      {/snippet}
+    </Field>
   </Specimen>
   <Specimen label="Free entry">
     <Field label="Label">
@@ -116,7 +107,10 @@
 
 <Example
   title="States"
-  note="A refused value keeps its danger edge, a refused search says so, and a disabled field says why under it"
+  --example-max="54rem"
+  --specimen-min="15rem"
+  --specimen-row-gap="var(--sui-space-6)"
+  note="A refused value keeps its danger edge, a field that only reads drops its chevron, and a disabled field says why under it"
   layout="grid"
 >
   <Specimen label="Invalid">
@@ -132,16 +126,10 @@
       {/snippet}
     </Field>
   </Specimen>
-  <Specimen label="Search refused">
-    <Field label="Owner" hint="Type a name to look it up">
+  <Specimen label="Read-only">
+    <Field label="Language" hint="The organization policy sets it">
       {#snippet control({ id, describedby })}
-        <Combobox
-          {id}
-          aria-describedby={describedby}
-          search={offline}
-          bind:value={owner}
-          placeholder="octocat…"
-        />
+        <Combobox {id} aria-describedby={describedby} options={languages} value="rust" readonly />
       {/snippet}
     </Field>
   </Specimen>
@@ -155,7 +143,105 @@
 </Example>
 
 <Example
+  title="Open"
+  --example-max="54rem"
+  --specimen-min="21rem"
+  --specimen-row-gap="var(--sui-space-6)"
+  note="Static copies of the open list: the checked value over a count of the rest, and marked matches with one row lit. Free entry offers the text, and the notes show no match, a wait and a refusal"
+  layout="grid"
+>
+  <Specimen label="Chosen & limited">
+    <Field label="Language">
+      {#snippet control({ id, describedby })}
+        <Combobox
+          {id}
+          aria-describedby={describedby}
+          options={languages}
+          value="ts"
+          limit={3}
+          preview
+        />
+      {/snippet}
+    </Field>
+  </Specimen>
+  <Specimen label="Typed & matched">
+    <Field label="Language">
+      {#snippet control({ id, describedby })}
+        <Combobox
+          {id}
+          aria-describedby={describedby}
+          options={languages}
+          value="ts"
+          previewText="r"
+          previewActive={0}
+          preview
+        />
+      {/snippet}
+    </Field>
+  </Specimen>
+  <Specimen label="Free entry">
+    <Field label="Label">
+      {#snippet control({ id, describedby })}
+        <Combobox
+          {id}
+          aria-describedby={describedby}
+          free
+          options={labels}
+          previewText="feature"
+          preview
+        />
+      {/snippet}
+    </Field>
+  </Specimen>
+  <Specimen label="Nothing matches">
+    <Field label="Language">
+      {#snippet control({ id, describedby })}
+        <Combobox
+          {id}
+          aria-describedby={describedby}
+          options={languages}
+          previewText="zig"
+          preview
+        />
+      {/snippet}
+    </Field>
+  </Specimen>
+  <Specimen label="Searching">
+    <Field label="Reviewer">
+      {#snippet control({ id, describedby })}
+        <Combobox
+          {id}
+          aria-describedby={describedby}
+          search={findAccounts}
+          previewText="octo"
+          previewSearch="waiting"
+          preview
+        />
+      {/snippet}
+    </Field>
+  </Specimen>
+  <Specimen label="Search refused">
+    <Field label="Owner">
+      {#snippet control({ id, describedby })}
+        <Combobox
+          {id}
+          aria-describedby={describedby}
+          search={offline}
+          previewText="octo"
+          previewSearch="refused"
+          preview
+        />
+      {/snippet}
+    </Field>
+  </Specimen>
+</Example>
+
+<Example
   title="In a Form"
+  --example-max="54rem"
+  --specimen-min="21rem"
+  --specimen-row-gap="var(--sui-space-6)"
+  layout="grid"
   note="The form posts the chosen value, never its label, and a label typed in full chooses its option"
 >
   <Specimen label={sent}>
@@ -171,22 +257,8 @@
           />
         {/snippet}
       </Field>
-      <Button type="submit" class="action">Save the Runtime</Button>
+      <Button type="submit" tone="signal" class="action">Save the Runtime</Button>
     </form>
-  </Specimen>
-</Example>
-
-<Example
-  title="Open"
-  note="The open list drawn in place, with the current value as the active row and its check"
-  layout="grid"
->
-  <Specimen label="Open">
-    <Field label="Language">
-      {#snippet control({ id, describedby })}
-        <Combobox {id} aria-describedby={describedby} options={languages} value="ts" preview />
-      {/snippet}
-    </Field>
   </Specimen>
 </Example>
 
@@ -194,13 +266,13 @@
   .form {
     display: grid;
     gap: var(--sui-space-5);
-    justify-items: stretch;
     min-inline-size: 0;
   }
 
   /* The action ends the form a step past the fields' own gap, so it reads as the form's
      close and not as one more field (L-35). */
   .form > :global(.action) {
+    justify-self: start;
     margin-block-start: var(--sui-space-1);
   }
 </style>

@@ -8,8 +8,11 @@
   import { tick } from 'svelte';
   import type { HTMLAttributes } from 'svelte/elements';
   import type { ServiceWorkerState } from '../internal/service-worker.svelte.js';
+  import { clearance } from '../internal/clearance.js';
   import { footing, hosts } from '../internal/toasts.svelte.js';
   import Button from './Button.svelte';
+  import Icon from '../icons/Icon.svelte';
+  import IconButton from './IconButton.svelte';
   import VisuallyHidden from './VisuallyHidden.svelte';
 
   const titleId = $props.id();
@@ -131,6 +134,35 @@
     else element.hidePopover();
   });
 
+  // The notice covers the page's foot as a toast does, so a control the reader tabs to scrolls
+  // clear above it (WCAG 2.4.11), and the control that raised it, still focused, scrolls clear as
+  // it comes. It holds at most half the screen, so the page keeps room to show focus.
+  function clearPage(box: HTMLElement) {
+    if (preview !== undefined || !shown) return;
+    const page = clearance(document.documentElement);
+    const observer = new ResizeObserver(([entry]) => {
+      const inset = parseFloat(getComputedStyle(box).insetBlockEnd) || 0;
+      const tall = entry.borderBoxSize[0].blockSize;
+      page.hold({ end: Math.min(tall + inset, innerHeight / 2) });
+      const focused = document.activeElement;
+      if (!(focused instanceof HTMLElement) || box.contains(focused)) return;
+      // The notice may still be rising into place, and a rise fires no resize, so its edges
+      // are read where it settles, not where it is drawn now.
+      const at = focused.getBoundingClientRect();
+      const { left, right } = box.getBoundingClientRect();
+      const bottom = document.documentElement.clientHeight - inset;
+      const meets =
+        Math.min(at.right, right) > Math.max(at.left, left) &&
+        Math.min(at.bottom, bottom) > Math.max(at.top, bottom - tall);
+      if (meets) focused.scrollIntoView({ block: 'nearest' });
+    });
+    observer.observe(box);
+    return () => {
+      observer.disconnect();
+      page.release();
+    };
+  }
+
   function reload(): void {
     if (!worker) return;
     onreload?.();
@@ -147,7 +179,7 @@
     await tick();
     if (!focused) return;
     if (before?.isConnected) before.focus();
-    else if (shown) element?.querySelector<HTMLElement>('.actions button')?.focus();
+    else if (shown) element?.querySelector<HTMLElement>('button')?.focus();
   }
 
   function onfocusin(event: FocusEvent): void {
@@ -185,12 +217,12 @@ offers it again. Offline is a lasting state, so it stays until the network answe
 dismisses it, and the return says "You are back online" for five seconds.
 
 - Semantics: an `aside` named by its title, in the top layer as a manual popover, with native buttons; each notice is said once from a hidden `status` region kept apart from the bar.
-- Content: a title and a description for an update or for offline, a title alone for the return; at most two buttons; words wrap within 28rem.
-- States: ready (Reload Later and Reload), reloading (Reload busy with `reloadingLabel`, Reload Later held), offline (Dismiss), back online (no buttons, leaves after five seconds, held while hovered or focused), hidden while a modal dialog is open, and drawn in place with `preview`.
+- Content: a title and a description for an update or for offline, a title alone for the return, each network notice led by its tone's symbol in a toast's tile; at most two buttons; words wrap within a toast's 24rem.
+- States: ready (Reload Later and Reload in the signal tone), reloading (Reload busy with `reloadingLabel`, at the width it held, so Reload Later never moves, and Reload Later held), offline (the warning symbol, its edge a quarter of the warning ink, and Dismiss as a toast's quiet close glyph at the inline end), back online (the success symbol and its edge a quarter of the success ink, no buttons, leaves after five seconds, held while hovered or focused), hidden while a modal dialog is open, and drawn in place with `preview`.
 - Keyboard: Tab reaches the bar's buttons after the page's own; Enter or Space presses them; Escape returns focus to where it came from and leaves the notice up.
 - Pointer and touch: the buttons are 34px tall on a pointer and 44px on a phone or touch screen; nothing needs a drag.
-- Focus: opening never takes focus; when a pressed button leaves, focus returns to where it came from, else to the next notice's first button.
-- Responsive: as wide as its words up to 28rem, the buttons wrapping under the copy; on a phone it spans the screen less 16px a side, above the safe area. Below the wide breakpoint the toasts stand above it.
+- Focus: opening never takes focus, and a focused control it would cover scrolls clear above it, as the next one Tab reaches does; when a pressed button leaves, focus returns to where it came from, else to the next notice's first button.
+- Responsive: 24rem wide, as every toast is, or the room it has, the buttons wrapping under the copy at their words' width; on a phone it spans the screen less 16px a side, above the safe area, and Reload Later and Reload share their line in halves, as a dialog's footer does. Below the wide breakpoint the toasts stand above it.
 - Accessibility: the update, offline and return are each announced politely once; the bar's name is its title; text holds 4.5:1 on the popover ground; forced colors keep its edge.
 - Localization: every word is a prop with an English default; the bar stands at the inline start and its buttons end the line in the reading direction, mirrored in a right-to-left page.
 - Performance: one element and one timer; it rises 8px and fades in, and fades out, and under reduced motion it comes and goes at once.
@@ -206,7 +238,11 @@ dismisses it, and the return says "You are back online" for five seconds.
   bind:this={element}
   bind:offsetHeight={block}
   {...rest}
-  class={['sui-service-worker-status', className, { preview: preview !== undefined }]}
+  class={[
+    'sui-service-worker-status',
+    className,
+    { preview: preview !== undefined, offline: drawn === 'offline', online: drawn === 'online' }
+  ]}
   popover={preview === undefined ? 'manual' : undefined}
   aria-labelledby={titleId}
   onpointerenter={() => (hovered = true)}
@@ -214,43 +250,137 @@ dismisses it, and the return says "You are back online" for five seconds.
   {onfocusin}
   {onfocusout}
   {onkeydown}
+  {@attach clearPage}
 >
-  <div class="copy">
-    <p id={titleId} class="title">{title}</p>
-    {#if description}<p class="description">{description}</p>{/if}
+  {#if drawn === 'offline' || drawn === 'online'}
+    <span class="sui-toast-mark"
+      ><Icon name={drawn === 'offline' ? 'warning' : 'success'} size="base" /></span
+    >
+  {/if}
+  <div class="main">
+    <div class="copy sui-toast-copy">
+      <p id={titleId} class="title">{title}</p>
+      {#if description}<p class="description">{description}</p>{/if}
+    </div>
+    {#if drawn === 'ready' || drawn === 'reloading'}
+      <div class="actions pair">
+        <Button disabled={drawn === 'reloading'} onclick={() => putAside('ready')}
+          >{laterLabel}</Button
+        >
+        <Button
+          tone="signal"
+          loading={drawn === 'reloading'}
+          busyLabel={reloadingLabel}
+          onclick={reload}>{reloadLabel}</Button
+        >
+      </div>
+    {/if}
   </div>
-  {#if drawn === 'ready' || drawn === 'reloading'}
-    <div class="actions">
-      <Button disabled={drawn === 'reloading'} onclick={() => putAside('ready')}
-        >{laterLabel}</Button
-      >
-      <Button loading={drawn === 'reloading'} onclick={reload}
-        >{drawn === 'reloading' ? reloadingLabel : reloadLabel}</Button
-      >
-    </div>
-  {:else if drawn === 'offline'}
-    <div class="actions">
-      <Button onclick={() => putAside('offline')}>{dismissLabel}</Button>
-    </div>
+  {#if drawn === 'offline'}
+    <span class="sui-toast-dismiss"
+      ><IconButton
+        icon="close"
+        label={dismissLabel}
+        toolbar
+        onclick={() => putAside('offline')}
+      /></span
+    >
   {/if}
 </aside>
 
 <style>
-  /* One inset all round, measured to the ink (L-33), as the save bar keeps it. */
+  /* One inset all round, measured to the ink (L-33), as the save bar keeps it. It floats in the
+     corner across from the toasts as one of them, so it takes a toast's edge, lift and width
+     (L-54). A network notice leads with its tone's symbol in a toast's tile, and the copy and
+     its buttons stand beside it, so a short title centres on the tile (L-56). */
   .sui-service-worker-status {
-    align-items: center;
+    align-items: flex-start;
     background: var(--sui-popover-bg);
-    border: var(--sui-stroke) solid var(--sui-popover-border);
+    border: var(--sui-stroke) solid var(--sui-toast-border, var(--sui-popover-border));
     border-radius: var(--sui-radius-surface);
-    box-shadow: var(--sui-shadow-popover);
+    box-shadow: var(--sui-shadow-toast, var(--sui-shadow-popover));
     box-sizing: border-box;
     color: var(--sui-text-primary);
     flex-wrap: wrap;
-    gap: var(--sui-space-3) var(--sui-space-5);
-    inline-size: max-content;
-    justify-content: space-between;
-    max-inline-size: min(28rem, 100%);
+    gap: var(--sui-space-3);
+    inline-size: min(24rem, 100%);
     padding: var(--sui-space-4);
+  }
+
+  .main {
+    align-items: center;
+    display: flex;
+    flex: 1 1 8rem;
+    flex-wrap: wrap;
+    gap: var(--sui-space-3) var(--sui-space-5);
+    justify-content: space-between;
+    min-inline-size: 0;
+  }
+
+  /* The network's state carries its tone in the edge, a quarter of the warning ink while
+     offline and of the success ink once back, as a failed toast's edge carries the danger ink,
+     and in its symbol's tile, so the two read apart at a glance and not by their words alone
+     (L-56, L-72). */
+  .offline {
+    --sui-local-notice-tone: var(--sui-warning);
+  }
+
+  .online {
+    --sui-local-notice-tone: var(--sui-success);
+  }
+
+  .offline,
+  .online {
+    border-color: color-mix(
+      in oklch,
+      var(--sui-local-notice-tone) var(--sui-toast-failure-edge),
+      var(--sui-toast-border, var(--sui-popover-border))
+    );
+  }
+
+  .sui-toast-mark {
+    --sui-icon-base: var(--sui-icon-md);
+    align-items: center;
+    background: color-mix(
+      in oklch,
+      var(--sui-local-notice-tone) var(--sui-toast-failure),
+      var(--sui-popover-bg)
+    );
+    block-size: var(--sui-symbol-tile-compact);
+    border-radius: var(--sui-radius-control);
+    color: var(--sui-local-notice-tone);
+    display: inline-flex;
+    flex: none;
+    inline-size: var(--sui-symbol-tile-compact);
+    justify-content: center;
+  }
+
+  /* Offline closes as a toast does, with a quiet glyph on a zero-height seat on the middle of
+     the notice's body, in a button's 34px tier, its box reaching into the inset by its own
+     room and the glyph's bearing, so the glyph's ink keeps the inset (L-33, L-101). */
+  .sui-toast-dismiss {
+    --sui-icon-base: var(--sui-icon-md);
+    align-items: center;
+    align-self: center;
+    block-size: 0;
+    display: flex;
+    flex: none;
+    margin-inline-end: max(
+      -1 * var(--sui-space-4),
+      round(
+        calc(
+          (var(--sui-icon-base) - var(--sui-control-height-drawn)) / 2 - 5 / 24 *
+            var(--sui-icon-base)
+        ),
+        1px
+      )
+    );
+  }
+
+  /* At least as tall as the tile beside it, so short copy centres on the tile and longer copy
+     starts at its top (L-56). */
+  .sui-toast-mark + .main > .copy {
+    min-block-size: var(--sui-symbol-tile-compact);
   }
 
   /* The toasts hold the inline-end corner, so the bar holds the other one. */
@@ -260,7 +390,7 @@ dismisses it, and the return says "You are back online" for five seconds.
     inset-inline-start: max(var(--sui-space-4), var(--sui-safe-start));
     margin: 0;
     max-inline-size: min(
-      28rem,
+      24rem,
       100vw - max(var(--sui-space-4), var(--sui-safe-start)) -
         max(var(--sui-space-4), var(--sui-safe-end))
     );
@@ -294,8 +424,10 @@ dismisses it, and the return says "You are back online" for five seconds.
   }
 
   /* The copy asks for its one-line width, so the buttons move under it as soon as it would wrap
-     beside them, and a bar as wide as its words never wraps them by a rounding. */
+     beside them. Snapped to an even height, it splits the spare pixel above and under its words
+     (L-102). */
   .copy {
+    align-content: center;
     block-size: var(--sui-block-snap-even);
     display: grid;
     flex: 1 1 auto;
@@ -313,20 +445,24 @@ dismisses it, and the return says "You are back online" for five seconds.
     text-box: trim-both cap alphabetic;
   }
 
+  /* Set as a toast's title is, a step of weight over the description at its size. */
   .title {
-    font: var(--sui-weight-semibold) var(--sui-font-size-body) / var(--sui-row-copy-leading)
+    font: var(--sui-weight-semibold) var(--sui-font-size-meta) / var(--sui-row-copy-leading)
       var(--sui-sans);
   }
 
+  /* Wrapped, the reason reads as a toast's does, a note and not a dense block, and fills its
+     lines, as one beside an action does (L-24). */
   .description {
     color: var(--sui-text-secondary);
-    font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-row-copy-leading)
+    font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-leading-note)
       var(--sui-sans);
+    text-wrap: pretty;
   }
 
   /* The actions end the line they share with the copy and start the line they wrap to (L-90).
-     Both are framed, one emphasis as Material's banner gives its two actions, so the bar's ink
-     meets its inset at either end of the line they stand on (L-33). */
+     Both are framed, so the bar's ink meets its inset at either end of the line they stand on
+     (L-33), and Reload, the answer the notice asks for, wears the signal tone (L-39). */
   .actions {
     display: flex;
     flex: 0 1 auto;
@@ -334,12 +470,25 @@ dismisses it, and the return says "You are back online" for five seconds.
     gap: var(--sui-space-2);
   }
 
-  /* On a phone the bar spans the screen, as the toasts do. */
+  /* On a phone the bar spans the screen, as the toasts do, and Reload Later and Reload share
+     their line in halves, as a dialog's footer does there, so the pair never leaves a ragged
+     gap at the end of a line that wide. Wider, each keeps its words' width, so the deferral
+     never weighs as much as the answer. */
   @media (max-width: 47.9375rem) {
     .sui-service-worker-status:not(.preview) {
       inline-size: auto;
       inset-inline-end: max(var(--sui-space-4), var(--sui-safe-end));
       max-inline-size: none;
+    }
+
+    .pair {
+      --sui-local-button-span: 100%;
+      flex-grow: 1;
+    }
+
+    .pair > :global(*) {
+      flex: 1 1 0;
+      min-inline-size: fit-content;
     }
   }
 

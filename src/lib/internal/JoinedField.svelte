@@ -158,10 +158,11 @@ the end part draws its own inset ring while it has focus, so the two never look 
   }
 
   /* The value keeps room for a few words; with less, as at a large text size on a phone, the
-     end moves to a line of its own under it rather than covering it. */
+     end moves to a line of its own under it rather than covering it. A host whose value sizes
+     itself to its words sets the basis to its own floor. */
   .sui-joined-value {
     display: grid;
-    flex: 1 1 4rem;
+    flex: 1 1 var(--sui-local-joined-value-basis, 4rem);
     min-inline-size: 0;
   }
 

@@ -134,6 +134,8 @@
   note="Each size drawn in place at its real width without the scrim, so a review needs no click"
   layout="stack"
   ground="canvas"
+  --example-phone-pad="var(--sui-space-3)"
+  --example-max="49rem"
 >
   <Specimen label="Dialog">
     <Modal
@@ -153,6 +155,7 @@
         {/snippet}
       </Field>
       <SegmentedControl label="Events" options={eventOptions} value="push" />
+      <CheckList label="Teams to notify" options={teamOptions} value={['platform']} />
       {#snippet footer()}
         <Button>Cancel</Button>
         <Button tone="signal">Save Webhook</Button>
@@ -210,9 +213,11 @@
 
 <Example
   title="States"
-  note="A save in progress refuses every way out, and a failed save keeps the fields and says why above the actions"
+  note="A save in progress refuses every way out, a failed save says why above the actions, and a close that would lose changes asks first"
   layout="stack"
   ground="canvas"
+  --example-phone-pad="var(--sui-space-3)"
+  --example-max="49rem"
 >
   <Specimen label="Saving">
     <Modal
@@ -233,20 +238,30 @@
       preview
       title="Rename Repository"
       description="Links to the old name redirect for a year"
-      error="Another repository in this workspace has that name, so choose another"
+      error="Smyklot could not reach the server, so try again in a moment"
     >
-      <Field label="Name" value="smyklot" />
+      <Field label="Name" value="smyklot-next" />
       {#snippet footer()}
         <Button>Cancel</Button>
         <Button tone="signal">Rename Repository</Button>
       {/snippet}
     </Modal>
   </Specimen>
+  <Specimen label="Closing with changes">
+    <ConfirmDialog
+      preview
+      title="Discard Your Changes?"
+      consequence="What you changed is gone once the dialog closes"
+      confirmLabel="Discard Changes"
+      tone="stop"
+    />
+  </Specimen>
 </Example>
 
 <Example
   title="Opening"
   note="Each size opens over a scrim on a copy of its record, and only Save writes the copy back"
+  --example-max="49rem"
 >
   <Specimen label="Dialog">
     <Button onclick={editWebhook}>Edit Webhook</Button>
@@ -262,6 +277,7 @@
 <Example
   title="Guarded Close"
   note="Escape, the close button and a press outside ask before throwing away a note, and close a blank one at once"
+  --example-max="49rem"
 >
   <Specimen label="Guarded">
     <Button onclick={() => (guarded = true)}>Write a Note</Button>
@@ -396,13 +412,12 @@
   title="Rename Repository"
   description="Links to the old name redirect for a year"
   busy={renameBusy}
-  error={renameError}
 >
   <form id="sink-rename" class="form" onsubmit={saveName}>
-    <Field label="Name" bind:value={newName} />
+    <Field label="Name" bind:value={newName} error={renameError} />
   </form>
   {#snippet footer()}
-    <Button disabled={renameBusy} onclick={() => (renaming = false)}>Cancel</Button>
+    <Button onclick={() => (renaming = false)}>Cancel</Button>
     <Button tone="signal" type="submit" form="sink-rename" loading={renameBusy}
       >Rename Repository</Button
     >

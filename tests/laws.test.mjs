@@ -201,7 +201,7 @@ test('L-21 sizes and leading come from the scale and land on whole pixels', () =
 const PHONE = '@media (max-width: 47.9375rem)';
 const pixels = (/** @type {string} */ rem) => parseFloat(rem) * 16;
 
-test('L-24 a title stands 12px above its description, copy lines 8px apart, form notes 20px', () => {
+test('L-24 a title stands 12px above its description, copy lines 8px apart, form notes and a dialog description 20px', () => {
   const gaps = tokenMap(stripComments(palette.slice(0, palette.indexOf(PHONE))));
   const phone = tokenMap(stripComments(palette.slice(palette.indexOf(PHONE))));
   assert.deepEqual(
@@ -214,19 +214,54 @@ test('L-24 a title stands 12px above its description, copy lines 8px apart, form
     },
     { copy: 8, title: 12, field: 12, note: 20, phoneNote: 22 }
   );
-  // A control's help and error lines, not a whole state's or form's error, nor a setting row's
-  // problem, which is a line of the row's copy.
+  // A control's help and error lines, not a whole state's, form's or dialog's error, nor a
+  // setting row's problem, which is a line of the row's copy.
   const dense = globSync('src/lib/components/*.svelte').flatMap((path) =>
     [...stripComments(read(path)).matchAll(/\n {2}([^\n{}]+)\{([^}]*)\}/g)]
       .filter(
         ([, selector, body]) =>
           /-(help|error|hint|problem)\b/.test(selector) &&
-          !/error-state|form-error|problem-words|setting-problem/.test(selector) &&
+          !/error-state|form-error|modal-error|problem-words|setting-problem/.test(selector) &&
           /font:[^;]*--sui-row-copy-leading/.test(body)
       )
       .map(([, selector]) => `${path} ${selector.trim()}`)
   );
   assert.deepEqual(dense, []);
+  assert.match(
+    stripComments(read('src/lib/components/Modal.svelte')),
+    /\.sui-modal-description \{[^}]*font: [^;]*var\(--sui-font-size-body\) \/ var\(--sui-leading-note\)/,
+    "a dialog's description is set at the body size and wraps at the note leading"
+  );
+  assert.match(
+    stripComments(read('src/lib/components/Toaster.svelte')),
+    /\.sui-toast-description \{[^}]*text-wrap: balance;[^}]*line-height: var\(--sui-leading-note\);/,
+    "a toast's description wraps at the note leading in balanced lines"
+  );
+  assert.match(
+    stripComments(read('src/lib/components/Toaster.svelte')),
+    /\.acting \.sui-toast-description \{\s*text-wrap: pretty;/,
+    "beside an action a toast's balanced reason leaves a gap before it"
+  );
+  assert.match(
+    stripComments(read('src/lib/components/SaveBar.svelte')),
+    /\.subtitle \{[^}]*font: [^;]*\/ var\(--sui-leading-note\)/,
+    "a save bar's subtitle wraps at the note leading, as a toast's description does"
+  );
+  assert.match(
+    stripComments(read('src/lib/components/Modal.svelte')),
+    /\.sui-modal-head \{[^}]*gap: var\(--sui-space-4\);/,
+    "a dialog's title stands 16px over its description, a step past a card's 12px (L-58)"
+  );
+  assert.match(
+    stripComments(read('src/lib/components/Modal.svelte')),
+    /\.sui-modal-description \{[^}]*color: color-mix\(in srgb, var\(--sui-text-primary\) 20%, var\(--sui-text-secondary\)\);/,
+    "a dialog's description leans a fifth of the way toward the primary ink (L-58)"
+  );
+  assert.match(
+    stripComments(read('src/lib/components/SettingRow.svelte')),
+    /\.sui-setting-why \+ \.sui-setting-state \{\s*margin-block-start: var\(--sui-space-1\);/,
+    "a setting row's status stands a step, 4px, past the description's 8px copy gap"
+  );
 });
 
 test('L-66 a chart grid draws 65% of the way to a control edge, and every legend at one size', () => {
@@ -252,7 +287,7 @@ test('L-66 a chart grid draws 65% of the way to a control edge, and every legend
   );
 });
 
-test('L-107 a scroll edge fades over 24px, and over 20px on a phone', () => {
+test('L-107 a scroll edge fades over 24px, and over 20px on a phone, and a popover foot over 16px', () => {
   const sheet = stripComments(read('src/lib/internal/scroll-edge.css'));
   const space = tokenMap(stripComments(palette));
   const fades = [...sheet.matchAll(/--sui-local-edge-fade:\s*var\((--sui-space-\d+)\)/g)].map(
@@ -262,6 +297,30 @@ test('L-107 a scroll edge fades over 24px, and over 20px on a phone', () => {
   assert.match(
     sheet,
     /@media \(max-width: 29\.9375rem\) \{\s*\.sui-scroll-edge \{\s*--sui-local-edge-fade/
+  );
+  const footSheet = stripComments(read('src/lib/internal/scroll-foot.css'));
+  const foot = /\.sui-scroll-foot::after \{([^}]*)\}/.exec(footSheet)?.[1];
+  assert.ok(foot, 'a scrolling layer draws a foot fade');
+  assert.match(foot, /block-size: var\(--sui-space-4\);/, 'a layer foot fades over 16px');
+  assert.match(foot, /animation-timeline: scroll\(nearest block\);/);
+  assert.match(
+    footSheet,
+    /@keyframes sui-scroll-foot-list \{\s*from \{\s*--sui-scroll-foot: var\(--sui-space-4\);/,
+    'a list inside a layer masks its foot over 16px'
+  );
+  for (const [path, scroller] of [
+    ['src/lib/components/Popover.svelte', "'sui-popover', 'sui-scroll-foot'"],
+    ['src/lib/components/Combobox.svelte', 'class="sui-combobox-list sui-scroll-foot-list"'],
+    ['src/lib/components/AdditionPicker.svelte', 'class="sui-addition-menu sui-scroll-foot-list"']
+  ]) {
+    const source = read(path);
+    assert.ok(source.includes("import '../internal/scroll-foot.css';"), `${path} takes the fade`);
+    assert.ok(source.includes(scroller), `${path} fades the box that scrolls`);
+  }
+  assert.match(
+    stripComments(read('src/lib/components/Select.svelte')),
+    /\.sui-select-control:open \.sui-select-option \{[^}]*animation-range: entry 0% entry var\(--sui-space-4\);/,
+    "a select's picker fades the option its foot cuts over 16px"
   );
 });
 
@@ -370,6 +429,36 @@ test('L-59 a state panel pads 28px by 24px, 20px on a phone, its action a step u
   }
 });
 
+test('L-13 a dark stop fill brightens under the pointer by a step the eye finds, its words still 4.5:1', () => {
+  const values = tokenMap(stripComments(palette));
+  const hex = (/** @type {string} */ name) => {
+    let at = dark[name] ?? values[name];
+    while (at?.startsWith('var(')) at = values[/var\((--[\w-]+)\)/.exec(at)?.[1] ?? ''];
+    return [1, 3, 5].map((i) => parseInt(at.slice(i, i + 2), 16));
+  };
+  const mix = /color-mix\(in srgb, var\(--sui-danger-fill\), var\(--sui-danger\) (\d+)%\)/.exec(
+    dark['--sui-danger-fill-hover']
+  );
+  assert.ok(mix, "the dark stop hover leans its fill toward the theme's danger ink");
+  const share = Number(mix[1]) / 100;
+  const [rest, words] = [hex('--sui-danger-fill'), hex('--sui-on-danger')];
+  const ink = hex('--sui-danger');
+  const hover = rest.map((c, i) => c * (1 - share) + ink[i] * share);
+  const luminance = (/** @type {number[]} */ rgb) => {
+    const [r, g, b] = rgb
+      .map((c) => c / 255)
+      .map((c) => (c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4));
+    return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+  };
+  const ratio = (/** @type {number[]} */ a, /** @type {number[]} */ b) =>
+    (Math.max(luminance(a), luminance(b)) + 0.05) / (Math.min(luminance(a), luminance(b)) + 0.05);
+  assert.ok(
+    ratio(hover, rest) >= 1.2,
+    `the hover stands ${ratio(hover, rest)}:1 off the rest fill`
+  );
+  assert.ok(ratio(words, hover) >= 4.5, `the words stand ${ratio(words, hover)}:1 on the hover`);
+});
+
 test('L-5 the quiet inks stay easy to read on the dark canvas, under the current row', () => {
   const values = tokenMap(stripComments(palette));
   const resolve = (/** @type {string} */ value) => {
@@ -403,11 +492,12 @@ test('L-25 the type tiers keep the sizes the law names', () => {
     {
       pageTitle: tier('page-title'),
       dialogTitle: tier('dialog-title'),
+      alertTitle: tier('alert-title'),
       cardTitle: tier('card-title'),
       body: tier('body'),
       control: tier('control')
     },
-    { pageTitle: 32, dialogTitle: 20, cardTitle: 17, body: 15, control: 14 }
+    { pageTitle: 32, dialogTitle: 20, alertTitle: 18, cardTitle: 17, body: 15, control: 14 }
   );
   const all = { ...sizes, ...tokenMap(stripComments(palette.slice(palette.indexOf(PHONE)))) };
   const small = Object.entries(all).filter(
@@ -506,19 +596,56 @@ test('L-20 a duration amount reads in the words face with figures of one width',
   );
 });
 
-test('L-55 a specimen name stands a field gap over its specimen, closer than any row of specimens', () => {
+test('L-35 a floating list or a tip arrow stands clear of its focused trigger by one gap, live and in a copy', () => {
+  assert.match(read('src/lib/styles.css'), /--sui-floating-gap: 6px;/);
+  assert.match(read('src/lib/components/Popover.svelte'), /offset = 6,/);
+  // Every copy drawn in the page's flow: Select's own, and each list on an inline Popover.
+  const copies = [
+    'src/lib/components/Select.svelte',
+    ...svelteFiles.filter((path) => /<Popover[^>]*inline=\{preview\}/.test(read(path)))
+  ];
+  assert.ok(copies.length >= 3, copies.join(', '));
+  for (const path of copies)
+    assert.match(read(path), /-preview \{[^}]*gap: var\(--sui-floating-gap\);/, path);
+  assert.match(
+    read('src/lib/components/Select.svelte'),
+    /margin-block: var\(--sui-floating-gap\);/
+  );
+  const tooltip = read('src/lib/components/Tooltip.svelte');
+  assert.match(tooltip, /const ARROW = 5;/);
+  assert.match(tooltip, /const TIP_GAP = 8;/, "a tip's point clears the ring's 4px reach by 4px");
+  assert.match(tooltip, /offset: TIP_GAP \+ ARROW/, 'a live tip stands its arrow past the gap');
+  assert.match(
+    tooltip,
+    /--sui-local-tip-gap: calc\(\s*var\(--sui-focus-ring-offset\) \+ var\(--sui-focus-ring-width\) \+ var\(--sui-space-1\)\s*\);/
+  );
+  assert.match(
+    tooltip,
+    /\.preview \{[^}]*margin-block-start: calc\(var\(--sui-local-tip-gap\) \+ var\(--sui-tip-arrow\)\);/,
+    'a tip copy stands its arrow past the gap'
+  );
+});
+
+test('L-55 a specimen name stands a step past a field gap over its specimen, closer than any row of specimens', () => {
   const specimen = styles['src/routes/kit/Specimen.svelte'];
-  assert.match(specimen, /\.specimen \{[^}]*gap: var\(--sui-space-3\);/);
   assert.match(
     specimen,
-    /figcaption \{[^}]*var\(--sui-weight-regular\) var\(--sui-font-size-compact\)/
+    /\.specimen \{[^}]*gap: var\(--specimen-caption-gap, var\(--sui-space-4\)\);/
+  );
+  const widened = svelteFiles
+    .filter((path) => path.startsWith('src/routes/sink/'))
+    .filter((path) => read(path).includes('--specimen-caption-gap='));
+  assert.deepEqual(widened, ['src/routes/sink/overlays.svelte'], 'only live tips widen a name gap');
+  assert.match(
+    specimen,
+    /figcaption \{[^}]*var\(--sui-weight-regular\) var\(--sui-font-size-caption\)/
   );
   const rows = svelteFiles
     .filter((path) => path.startsWith('src/routes/sink/'))
     .flatMap((path) => [...read(path).matchAll(/--specimen-row-gap="var\(--sui-space-(\d+)\)"/g)]);
   assert.ok(rows.length > 0);
   for (const [, step] of rows)
-    assert.ok(Number(step) > 3, `a row gap of space-${step} reads as close as a name`);
+    assert.ok(Number(step) > 4, `a row gap of space-${step} reads as close as a name`);
 });
 
 test('L-22 the phone reads one step larger and types at 16px', () => {
@@ -600,7 +727,7 @@ test('L-35 a form stacks its fields 20px apart and a dialog 24px, both a step ov
     );
     assert.match(
       styles[path],
-      /\.form > :global\(\.action\) \{\s*margin-block-start: var\(--sui-space-1\);/,
+      /\.form > :global\(\.action\) \{[^}]*margin-block-start: var\(--sui-space-1\);/,
       `${path} sets its action at the fields' gap`
     );
   }
@@ -732,6 +859,13 @@ test('L-49 an off switch track sits in the field well in every theme', () => {
   assert.deepEqual(new Set(tracks), new Set(['var(--sui-field-well)']));
 });
 
+test("L-49 an off switch's thumb draws a button's edge", () => {
+  assert.match(
+    styles['src/lib/components/Switch.svelte'],
+    /input:not\(:checked\) \+ \.sui-switch-track::after\s*\{\s*box-shadow:\s*inset 0 0 0 var\(--sui-stroke\) var\(--sui-control-border\),/
+  );
+});
+
 test('L-50 a dark segmented track sits in the well an off switch does', () => {
   const tracks = [...stripComments(palette).matchAll(/--sui-segment-track:\s*([^;]+);/g)].map(
     ([, value]) => value.trim()
@@ -853,7 +987,9 @@ test("L-68 icon sizes are named tiers that grow with the text and land on whole 
   );
   for (const [path, name] of [
     ['src/lib/components/Button.svelte', 'button'],
-    ['src/lib/components/IconButton.svelte', 'icon-button']
+    ['src/lib/components/IconButton.svelte', 'icon-button'],
+    ['src/lib/components/InheritControl.svelte', 'inherit'],
+    ['src/lib/components/AdditionPicker.svelte', 'addition']
   ]) {
     const spinner =
       new RegExp(`\\.sui-${name}-spinner \\{([^}]*)\\}`).exec(styles[path])?.[1] ?? '';
@@ -870,8 +1006,31 @@ test("L-68 icon sizes are named tiers that grow with the text and land on whole 
     );
     assert.match(
       spinner,
-      /solid color-mix\(in srgb, currentColor 40%, transparent\);/,
-      `${path}: the spinner's track keeps 40% of its ink, so the ring stays whole on a fill`
+      /solid color-mix\(in srgb, currentColor 55%, transparent\);/,
+      `${path}: the spinner's track keeps 55% of its ink, so the ring stays whole on a fill`
+    );
+  }
+});
+
+test('L-11 every floating list lights its row with the accent veils, presses it a step further and rounds it alike', () => {
+  for (const path of [
+    'src/lib/components/Select.svelte',
+    'src/lib/components/Combobox.svelte',
+    'src/lib/components/ActionMenu.svelte',
+    'src/lib/components/AdditionPicker.svelte'
+  ]) {
+    const css = stripComments(styles[path]);
+    assert.match(css, /background-color: var\(--sui-list-highlight\)/, path);
+    assert.match(css, /background-color: var\(--sui-list-pressed\)/, `${path} has no press step`);
+    assert.match(
+      css,
+      /border-radius: var\(--sui-radius-popover-row\)/,
+      `${path} rounds its rows apart`
+    );
+    assert.doesNotMatch(
+      css,
+      /option[^{]*\{[^}]*background-color: var\(--sui-(row-hover|interactive-hover-layer)\)/,
+      path
     );
   }
 });
@@ -887,18 +1046,64 @@ test('L-72 stacking order comes from the layer tokens', () => {
   );
 });
 
-test('L-72 a floating layer on dark stands off its ground by the raised ground and the hovered control edge', () => {
+test('L-72 a floating layer on dark stands off its ground by the raised ground and a rim of light, on the control edge, with divider lines inside', () => {
   for (const selector of [
     ":root[data-theme='dark']",
     ':root:not([data-theme], [data-sui-theme])'
   ]) {
     const tokens = tokenMap(stripComments(block(selector)));
-    assert.equal(tokens['--sui-popover-border'], 'var(--sui-control-border-hover)', selector);
+    assert.equal(tokens['--sui-popover-border'], 'var(--sui-border-control)', selector);
     assert.equal(tokens['--sui-popover-bg'], 'var(--sui-surface-raised)', selector);
+    assert.equal(tokens['--sui-dialog-bg'], 'var(--sui-surface-raised)', selector);
+    assert.equal(tokens['--sui-surface-control'], 'var(--sui-surface-base)', selector);
+    assert.equal(
+      tokens['--sui-toast-border'],
+      'color-mix(in srgb, var(--sui-popover-border) 75%, var(--sui-popover-bg))',
+      `${selector} a toast's edge leans a quarter of the way to its ground`
+    );
+    for (const lift of ['--sui-shadow-popover', '--sui-shadow-dialog'])
+      assert.match(tokens[lift], /^inset 0 1px 0 rgb\(255 255 255 \/ 6%\),/, `${selector} ${lift}`);
   }
   assert.equal(
     tokenMap(stripComments(block("[data-sui-theme='light']")))['--sui-popover-border'],
     'var(--sui-border-control)'
+  );
+  assert.match(
+    styles['src/lib/components/Toaster.svelte'],
+    /border: var\(--sui-stroke\) solid var\(--sui-toast-border, var\(--sui-popover-border\)\);/,
+    'a toast falls back to the control edge'
+  );
+  assert.equal(
+    tokenMap(stripComments(block("[data-sui-theme='light']")))['--sui-toast-border'],
+    'color-mix(in srgb, var(--sui-popover-border) 75%, var(--sui-popover-bg))',
+    "a light toast's edge leans a quarter of the way to its ground too, so it never reads as a field"
+  );
+  assert.match(
+    styles['src/lib/components/Select.svelte'],
+    /\.sui-select-heading[^{]*\{[^}]*border-block-start: var\(--sui-stroke\) solid var\(--sui-border-divider\)/
+  );
+  assert.match(
+    styles['src/lib/components/ActionMenu.svelte'],
+    /\.sui-action-menu-separator \{[^}]*background-color: var\(--sui-border-divider\)/
+  );
+  const tip =
+    /\.sui-tooltip \{[^}]*\}/.exec(styles['src/lib/components/Tooltip.svelte'])?.[0] ?? '';
+  assert.match(
+    tip,
+    /--sui-local-tip-ground: var\(--sui-text-primary\);/,
+    'a tip inverts its ground'
+  );
+  assert.match(tip, /border: var\(--sui-stroke\) solid var\(--sui-local-tip-ground\);/);
+  assert.match(tip, /color: var\(--sui-surface-base\);/, "a tip's words take the base surface");
+  assert.match(
+    tip,
+    /border-radius: var\(--sui-radius-control\);/,
+    'a tip takes the control radius'
+  );
+  assert.match(
+    tip,
+    /font: var\(--sui-weight-regular\) var\(--sui-font-size-caption\) \/ var\(--sui-leading-compact\)/,
+    'a tip is caption type (L-25)'
   );
 });
 
@@ -1156,7 +1361,7 @@ test('L-118 the page covers the screen and its chrome wears each scheme canvas',
   }
 });
 
-test('L-53 a shadow that lifts a part is two layers in every palette block', () => {
+test('L-53 a shadow that lifts a part is two layers in every palette block, and L-54 a popover lifts on a tight one in both themes', () => {
   /** @param {string} value */
   const layers = (value) => {
     let depth = 0;
@@ -1170,14 +1375,191 @@ test('L-53 a shadow that lifts a part is two layers in every palette block', () 
   };
   const found = [
     ...palette.matchAll(
-      /--sui-(shadow-plate|shadow-popover|shadow-dialog|segment-thumb-shadow):([^;]+);/g
+      /--sui-(shadow-plate|shadow-popover|shadow-tooltip|shadow-dialog|segment-thumb-shadow):([^;]+);/g
     )
+  ].filter(([, , value]) => value.trim() !== 'initial');
+  assert.equal(found.length, 13, 'four shadows in each of three palette blocks, and a light tip');
+  assert.equal(
+    [...palette.matchAll(/--sui-shadow-tooltip: initial;/g)].length,
+    2,
+    'a dark tip leaves its own lift unset'
+  );
+  assert.match(
+    read('src/lib/components/Tooltip.svelte'),
+    /box-shadow: var\(--sui-shadow-tooltip, var\(--sui-shadow-plate\)\);/,
+    'a dark tip sits on a plate shadow, not a popover lift'
+  );
+  const lifts = found.filter(([, name]) => name === 'shadow-popover').map(([, , value]) => value);
+  assert.equal(lifts.length, 3, 'a popover lift in each palette block');
+  for (const each of lifts)
+    for (const [, y, blur] of each.matchAll(/(?:^|,)\s*0 (\d+)px (\d+)px/g))
+      assert.ok(Number(y) <= 8 && Number(blur) <= 20, `a popover lifts ${y}px with ${blur}px`);
+  const lift = lifts[0];
+  const shade = Number(/--sui-shadow-color: rgb\(0 0 0 \/ (\d+)%\)/.exec(palette)?.[1]);
+  const contact =
+    /^\s*0 1px \d+px (?:color-mix\(in srgb, var\(--sui-shadow-color\) (\d+)%|var\(--sui-shadow-color\))/.exec(
+      lift
+    );
+  assert.ok(contact, 'a light popover opens on a 1px contact line');
+  const dark = (shade * Number(contact[1] ?? 100)) / 100;
+  assert.ok(dark <= 8, `a light popover's contact line is ${dark}% black`);
+  const tip = /** @type {string} */ (found.find(([, name]) => name === 'shadow-tooltip')?.[2]);
+  const [tipContact, tipLift] = [
+    ...tip.matchAll(/0 (\d+)px (\d+)px color-mix\(in srgb, var\(--sui-shadow-color\) (\d+)%/g)
   ];
-  assert.equal(found.length, 12, 'four shadows in each of three palette blocks');
+  assert.equal(tipContact[1], '1', 'a light tip opens on the popover contact line');
+  assert.ok(Number(tipContact[3]) <= Number(contact[1]), 'a light tip contact line is no darker');
+  assert.ok(Number(tipLift[1]) <= 8 && Number(tipLift[2]) <= 20, 'a light tip lifts tightly');
+  const ambient = Number(
+    [...lift.matchAll(/color-mix\(in srgb, var\(--sui-shadow-color\) (\d+)%/g)].at(-1)?.[1]
+  );
+  assert.ok(Number(tipLift[3]) > ambient, 'a light tip lifts on a firmer layer than a menu');
+  const toast = /--sui-shadow-toast:([^;]+);/.exec(palette)?.[1] ?? '';
+  const [toastContact, toastLift] = [
+    ...toast.matchAll(/0 (\d+)px (\d+)px color-mix\(in srgb, var\(--sui-shadow-color\) (\d+)%/g)
+  ];
+  assert.equal(toastContact?.[1], '1', 'a light toast opens on the popover contact line');
+  assert.ok(
+    Number(toastContact[3]) <= Number(contact[1]),
+    'a light toast contact line is no darker'
+  );
+  assert.ok(
+    Number(toastLift[1]) <= 3 &&
+      Number(toastLift[2]) <= 8 &&
+      (shade * Number(toastLift[3])) / 100 <= 6,
+    'a light toast lifts on a lighter layer than a menu, 3px down, 8px wide, about 5% black'
+  );
+  const darkToasts = [...palette.matchAll(/--sui-shadow-toast:([^;]+);/g)].slice(1);
+  assert.equal(darkToasts.length, 2, 'a toast lift in each dark block');
+  for (const [, each] of darkToasts) {
+    assert.match(
+      each,
+      /inset 0 1px 0 rgb\(255 255 255 \/ 6%\)/,
+      'a dark toast keeps its rim of light'
+    );
+    const [, y, blur, share] =
+      [
+        ...each.matchAll(/0 (\d+)px (\d+)px color-mix\(in srgb, var\(--sui-shadow-color\) (\d+)%/g)
+      ].at(-1) ?? [];
+    assert.ok(
+      Number(y) <= 4 && Number(blur) <= 12 && (45 * Number(share)) / 100 <= 20,
+      'a dark toast lifts as a light one does, at about 20% black'
+    );
+  }
+  assert.match(
+    read('src/lib/components/Toaster.svelte'),
+    /box-shadow: var\(--sui-shadow-toast, var\(--sui-shadow-popover\)\);/
+  );
+  // The service worker's notice floats in the corner across from the toasts, one of them.
+  const notice = stripComments(read('src/lib/components/ServiceWorkerStatus.svelte'));
+  assert.match(
+    notice,
+    /\.sui-service-worker-status \{[^}]*border: var\(--sui-stroke\) solid var\(--sui-toast-border, var\(--sui-popover-border\)\);[^}]*box-shadow: var\(--sui-shadow-toast, var\(--sui-shadow-popover\)\);/,
+    "the service worker's notice lifts on a popover's layer, not a toast's"
+  );
   assert.deepEqual(
     found.filter(([, , value]) => layers(value) < 2).map(([, name]) => name),
     []
   );
+});
+
+test('L-58 a scrim keeps the page behind a dialog legible: 28% light, 48% dark, a 2px blur', () => {
+  assert.deepEqual(
+    [...palette.matchAll(/--sui-scrim: rgb\(0 0 0 \/ (\d+)%\);/g)].map(([, alpha]) => alpha),
+    ['28', '48', '48'],
+    'the light scrim, then the dark one in each dark block'
+  );
+  assert.deepEqual(
+    [...palette.matchAll(/--sui-scrim-blur: ([^;]+);/g)].map(([, blur]) => blur),
+    ['2px']
+  );
+});
+
+test('L-58 a dialog drawn in place lifts softly in both themes, the dark one under its rim of light, and L-72 a light dialog wears the subtle edge and a dark one a third of the way to the control edge', () => {
+  assert.deepEqual(
+    [...palette.matchAll(/--sui-shadow-dialog-in-place:\s*([^;]+);/g)].map(([, lift]) =>
+      lift.replace(/\s+/g, ' ')
+    ),
+    [
+      '0 1px 2px color-mix(in srgb, var(--sui-shadow-color) 50%, transparent), 0 4px 12px color-mix(in srgb, var(--sui-shadow-color) 25%, transparent)',
+      ...Array(2).fill(
+        'inset 0 1px 0 rgb(255 255 255 / 6%), 0 1px 2px color-mix(in srgb, var(--sui-shadow-color) 50%, transparent), 0 4px 12px color-mix(in srgb, var(--sui-shadow-color) 25%, transparent)'
+      )
+    ],
+    'the light block, then each dark block'
+  );
+  assert.deepEqual(
+    [...palette.matchAll(/--sui-dialog-border: ([^;]+);/g)].map(([, edge]) =>
+      edge.replace(/\s+/g, ' ').replace(/\( /g, '(').replace(/ \)/g, ')')
+    ),
+    [
+      'var(--sui-border-subtle)',
+      ...Array(2).fill(
+        'color-mix(in srgb, var(--sui-border-control) 35%, var(--sui-border-subtle))'
+      )
+    ],
+    'the light block, then each dark block'
+  );
+  assert.match(
+    read('src/lib/components/Modal.svelte'),
+    /\.sui-modal\.preview \{[^}]*box-shadow: var\(--sui-shadow-dialog-in-place\);/
+  );
+});
+
+test("L-58 the band a line parts off sits on a faint tint of the field well, and a refused save's wash wears a form error's edge over it and half that edge under it", () => {
+  const modal = read('src/lib/components/Modal.svelte');
+  assert.match(
+    modal,
+    /\.sui-modal-error:has\(> \.sui-modal-error-line\):has\(\+ \.sui-modal-foot\)::before \{\s*border-block-start-color: color-mix\(in srgb, var\(--sui-danger\) 40%, transparent\);/
+  );
+  assert.match(
+    modal,
+    /\.sui-modal-error:has\(\+ \.sui-modal-foot\) > \.sui-modal-error-line \{\s*box-shadow: inset 0 calc\(-1 \* var\(--sui-stroke\)\) 0\s*color-mix\(in srgb, var\(--sui-danger\) 20%, transparent\);/
+  );
+  assert.match(
+    modal,
+    /\.sui-modal-error \+ \.sui-modal-foot \{\s*--sui-local-button-bg: var\(--sui-dialog-foot-control, var\(--sui-surface-raised\)\);\s*background: var\(--sui-dialog-foot-bg\);/
+  );
+  assert.deepEqual(
+    [
+      ...palette.matchAll(
+        /--sui-dialog-foot-bg: color-mix\(in srgb, var\(--sui-field-well\) (\d+)%, var\(--sui-dialog-bg\)\);/g
+      )
+    ].map(([, share]) => share),
+    ['55', '65', '65'],
+    'the light band, then the dark one in each dark block'
+  );
+});
+
+test("L-58 a refused save says why on a form error's danger wash, in a form error's words", () => {
+  const wash =
+    /background: color-mix\(in srgb, var\(--sui-danger-tint\) (\d+)%, var\(--sui-[a-z-]+\)\);/;
+  const form = wash.exec(read('src/lib/components/FormError.svelte'));
+  const line = /\.sui-modal-error-line \{[^}]*\}/.exec(read('src/lib/components/Modal.svelte'));
+  assert.ok(form && line, 'a form error or the dialog error line lost its rule');
+  assert.equal(wash.exec(line[0])?.[1], form[1], "the dialog's reason left the form error's wash");
+  const words = (/** @type {string} */ rule) =>
+    ['color', 'font'].map(
+      (property) => new RegExp(`(?:^|\\s)${property}: ([^;]*);`).exec(rule)?.[1]
+    );
+  assert.deepEqual(
+    words(line[0]),
+    words(
+      /\.sui-form-error-message \{[^}]*\}/.exec(read('src/lib/components/FormError.svelte'))?.[0] ??
+        ''
+    ),
+    "the dialog's reason reads in a form error's ink and type"
+  );
+  assert.match(
+    read('src/lib/components/Modal.svelte'),
+    /\.sui-modal-error-mark \{[^}]*color: var\(--sui-danger\);/,
+    "the dialog's refusal mark keeps the danger ink"
+  );
+  const panel = /var\(--sui-danger-tint\) (\d+)%/.exec(
+    read('src/lib/components/ErrorState.svelte')
+  );
+  assert.equal(panel?.[1], form[1], "an error panel left the form error's wash");
+  assert.equal(form[1], '65', 'a refusal wash parts itself from the ground it sits on');
 });
 
 test("L-9 a control's edge firms one step on hover, the same in every theme, and a light field wears a button's edge", () => {
@@ -1261,7 +1643,7 @@ test('L-10 a disabled field sits in a quieter tint of the well, firmer than a re
     );
 });
 
-test('L-41 a field keeps its frame and wears one ring 2px off it in every state', () => {
+test('L-41 a field keeps its frame and wears one ring 2px off it in every state, as every button does', () => {
   for (const [path, rule] of [
     ['src/lib/components/TextInput.svelte', '.sui-text-input:focus-visible'],
     ['src/lib/components/Textarea.svelte', '.sui-textarea:focus-visible'],
@@ -1318,6 +1700,16 @@ test('L-41 a field keeps its frame and wears one ring 2px off it in every state'
     styles['src/lib/components/ChoiceCards.svelte'],
     /\.sui-choice-card input:focus-visible \{\s*outline: var\(--sui-focus-ring-width\) solid var\(--sui-focus\);\s*outline-offset: var\(--sui-focus-ring-offset\);\s*\}/,
     "every choice card's ring stands 2px off its own edge, as a field's does"
+  );
+  assert.match(
+    styles['src/lib/components/Button.svelte'],
+    /\.sui-button:focus-visible \{\s*outline: var\(--sui-focus-ring-width\) solid var\(--sui-focus\);\s*outline-offset: var\(--sui-focus-ring-offset\);\s*\}/,
+    "every button's ring stands 2px off its own edge, as a field's does"
+  );
+  assert.doesNotMatch(
+    stripComments(styles['src/lib/components/Button.svelte']),
+    /\.sui-button[^{,]*:focus-visible[^{]*\{[^}]*(--sui-focus-ring-edge|--sui-focus-ring-flush|border-color: var\(--sui-focus\))/,
+    'no button tone draws a flush ring on its edge'
   );
 });
 
@@ -1426,6 +1818,13 @@ test('L-94 a form error summary and an error state take the 16px mark 8px from t
   assert.doesNotMatch(styles[state], /-retry \{\s*margin-inline-start/);
 });
 
+test("L-39 the service worker's update is a view of its own, so Reload wears the signal tone", () => {
+  assert.match(
+    read('src/lib/components/ServiceWorkerStatus.svelte'),
+    /<Button\s+tone="signal"\s+loading=\{drawn === 'reloading'\}[^>]*onclick=\{reload\}>/
+  );
+});
+
 test('L-39 a stop-quiet edge stays the danger hue on a dark ground', () => {
   assert.equal(light['--sui-stop-quiet-edge-mix'], '45%');
   assert.equal(dark['--sui-stop-quiet-edge-mix'], '60%', 'a dark ground turns a 45% edge pink');
@@ -1468,4 +1867,150 @@ test('L-85 the current row stands on a plate a light theme does not wash out', (
       path
     );
   }
+});
+
+test("L-56 a toast's symbol tile mixes the danger ink into the toast's own ground", () => {
+  assert.match(
+    stripComments(read('src/lib/components/Toaster.svelte')),
+    /\.sui-toast-mark \{[^}]*background: color-mix\(\s*in oklch,\s*var\(--sui-danger\) var\(--sui-toast-failure\),\s*var\(--sui-popover-bg\)\s*\);/,
+    "the shared danger tint sinks into a dark toast's raised ground"
+  );
+});
+
+test("L-72 a failed toast's edge carries a quarter of the danger ink", () => {
+  const toaster = stripComments(read('src/lib/components/Toaster.svelte'));
+  assert.match(toaster, /failed: item\.tone === 'danger'/);
+  assert.match(
+    toaster,
+    /\.failed \{\s*border-color: color-mix\(\s*in oklch,\s*var\(--sui-danger\) var\(--sui-toast-failure-edge\),\s*var\(--sui-toast-border, var\(--sui-popover-border\)\)\s*\);/,
+    'a failure in a mixed stack reads as one only by its small tile'
+  );
+});
+
+test("L-56 L-72 the service worker's network states carry their tone in the edge and a toast's tile", () => {
+  const notice = stripComments(read('src/lib/components/ServiceWorkerStatus.svelte'));
+  assert.match(notice, /offline: drawn === 'offline', online: drawn === 'online'/);
+  assert.match(notice, /\.offline \{\s*--sui-local-notice-tone: var\(--sui-warning\);\s*\}/);
+  assert.match(notice, /\.online \{\s*--sui-local-notice-tone: var\(--sui-success\);\s*\}/);
+  assert.match(
+    notice,
+    /\.offline,\s*\.online \{\s*border-color: color-mix\(\s*in oklch,\s*var\(--sui-local-notice-tone\) var\(--sui-toast-failure-edge\),\s*var\(--sui-toast-border, var\(--sui-popover-border\)\)\s*\);/,
+    "a network notice's edge does not carry its tone as a failed toast's does"
+  );
+  assert.match(
+    notice,
+    /\.sui-toast-mark \{[^}]*background: color-mix\(\s*in oklch,\s*var\(--sui-local-notice-tone\) var\(--sui-toast-failure\),\s*var\(--sui-popover-bg\)\s*\);[^}]*block-size: var\(--sui-symbol-tile-compact\);/,
+    "a network notice's symbol does not stand in a toast's tile of its tone"
+  );
+  assert.match(
+    notice,
+    /<Icon name=\{drawn === 'offline' \? 'warning' : 'success'\} size="base" \/>/
+  );
+});
+
+test('L-56 L-72 a failed toast takes a larger share of the danger ink on dark', () => {
+  const shares = (/** @type {string} */ selector) => {
+    const tokens = tokenMap(stripComments(block(selector)));
+    return [tokens['--sui-toast-failure'], tokens['--sui-toast-failure-edge']];
+  };
+  assert.deepEqual(shares("[data-sui-theme='light']"), ['16%', '25%']);
+  for (const selector of [":root[data-theme='dark']", ':root:not([data-theme], [data-sui-theme])'])
+    assert.deepEqual(
+      shares(selector),
+      ['24%', '28%'],
+      `${selector}: the tile reads dusty grey at a light share, and an edge past 28% reads as a selection`
+    );
+});
+
+test("L-101 a toast's Dismiss draws its glyph at 18px", () => {
+  assert.match(
+    stripComments(read('src/lib/components/Toaster.svelte')),
+    /\.sui-toast-dismiss \{\s*--sui-icon-base: var\(--sui-icon-md\);/,
+    'a 16px close glyph reads weak beside the action and the failure tile'
+  );
+});
+
+test('L-16 the gold decision edge is one stroke wide', () => {
+  assert.equal(
+    tokenMap(stripComments(palette))['--sui-decision-border-width'],
+    '1px',
+    'a 2px gold frame repeats the gold Save and outweighs the title'
+  );
+});
+
+test("L-16 a busy save bar dims its edge and buttons but keeps its live copy's ink", () => {
+  const css = stripComments(read('src/lib/components/SaveBar.svelte'));
+  assert.doesNotMatch(
+    css,
+    /\.busy \.title \{/,
+    'a saving bar mutes its title, so the live status reads as disabled'
+  );
+  assert.match(
+    css,
+    /\.subtitle \{[^}]*text-wrap: balance;/,
+    "a short reason's last line ends on a stray word"
+  );
+});
+
+test("L-9 a save bar's Discard keeps an edge that holds 3:1 on the neutral ground in both themes", () => {
+  assert.match(
+    stripComments(read('src/lib/components/SaveBar.svelte')),
+    /--sui-control-border: color-mix\(\s*in srgb,\s*var\(--sui-unsaved-border\) 70%,\s*var\(--sui-unsaved-control-border\)\s*\);/,
+    "Discard's edge, tuned for the gold plate, sinks into the bar's neutral ground"
+  );
+});
+
+test("L-16 a save bar's refusal leads with a field error's warning mark", () => {
+  const source = read('src/lib/components/SaveBar.svelte');
+  assert.match(
+    source,
+    /\{#if error \|\| reloadable\}\s*<span class="mark"><Icon name=\{reloadable \? 'refresh' : 'alert'\} size="base" \/><\/span>\s*\{\/if\}\s*<p id=\{titleId\} class="title">/,
+    'a failed or refused save differs from the subtitle by colour alone'
+  );
+  const css = stripComments(source);
+  assert.match(
+    css,
+    /\.mark \{[^}]*grid-row: 1 \/ span 2;/,
+    "a refusal's mark sits under the title's start, so the title and its reason start apart"
+  );
+  assert.match(
+    css,
+    /\.conflict > \.mark \{\s*color: var\(--sui-unsaved-ink\);\s*\}\s*\.conflict > \.subtitle\.error \{\s*color: var\(--sui-text-muted\);\s*font-weight: var\(--sui-weight-regular\);/,
+    "a conflict's danger reason competes with the gold Reload, though no work was lost"
+  );
+});
+
+test("L-24 L-54 a save bar's title wraps at the body leading and the bar lifts as a toast", () => {
+  const css = stripComments(read('src/lib/components/SaveBar.svelte'));
+  assert.match(
+    css,
+    /\.title \{[^}]*font: [^;]*\/ var\(--sui-leading-body\)/,
+    "a wrapped save bar title presses into one dense block at a row's copy leading"
+  );
+  assert.match(css, /\.title \{[^}]*text-wrap: balance;/, 'a long title ends on a short line');
+  assert.match(
+    css,
+    /\.sui-save-bar \{[^}]*box-shadow: var\(--sui-shadow-toast, var\(--sui-shadow-popover\)\);/,
+    "a plate's close shadow draws a dark band under the bar's gold edge"
+  );
+});
+
+test("L-16 a decision is framed in the unsaved edge, and a conflict's title names Reload", () => {
+  for (const path of ['src/lib/components/SaveBar.svelte', 'src/lib/components/Callout.svelte'])
+    assert.match(
+      stripComments(read(path)),
+      /border: var\(--sui-decision-border-width\) solid var\(--sui-unsaved-border\);/,
+      `${path} frames a decision in the bright gold fill, which outshines the gold action`
+    );
+  const source = read('src/lib/components/SaveBar.svelte');
+  assert.match(
+    source,
+    /reloadable \? conflictTitle : error \? failedTitle : title/,
+    'a conflict titled "Save again" offers only Reload'
+  );
+  assert.match(
+    stripComments(source),
+    /\.subtitle\.error \{[^}]*font-weight: var\(--sui-weight-medium\);/,
+    "a refused save's reason is lighter than a field error"
+  );
 });

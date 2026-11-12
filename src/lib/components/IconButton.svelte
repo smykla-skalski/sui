@@ -55,9 +55,9 @@ action are a `Button` with the word beside the glyph.
 
 - Semantics: a native `<button type="button">` named by `label` through `aria-label`, with the glyph hidden.
 - Content: one glyph from the certain set; the label is a verb phrase such as "Remove the rule".
-- States: rest (muted glyph), hover and open (`aria-expanded`, a veil and primary ink), focus (a flush 2px ring), pressed (a deeper veil, an inset shadow and a 1px sink), busy (a spinner in place of the glyph, at full strength), soft-disabled by `aria-disabled` and disabled (0.6 opacity).
+- States: rest (muted glyph), hover and open (`aria-expanded`, a veil and primary ink), focus (a flush 2px ring), pressed (a deeper veil, an inset shadow and a 1px sink), busy (a spinner in place of the glyph, at full strength), soft-disabled by `aria-disabled` and disabled (the primary ink at 0.6 opacity, as a disabled button's words).
 - Keyboard: Tab reaches it and Enter or Space presses it; a busy or soft-disabled one refuses both and keeps focus.
-- Pointer and touch: 28px square, or 34px with `toolbar`, and a 44px hit area on a phone or any touch screen.
+- Pointer and touch: 28px square, or 34px with `toolbar` (44px on a phone, unless its surface keeps its buttons drawn with `--sui-local-button-seat`), and a 44px hit area on a phone or any touch screen.
 - Focus: a press never moves focus and a busy or soft-disabled button keeps it; the caller moves focus when the press removes the button.
 - Responsive: square at its tier at every width, never taking a text button's padding.
 - Accessibility: the label is the name and the tooltip, `busy` sets `aria-busy` and `aria-disabled`, a caller's `aria-disabled` is honored, and forced colours outline its hover and open states.
@@ -112,9 +112,11 @@ action are a `Button` with the word beside the glyph.
     -webkit-tap-highlight-color: transparent;
   }
 
+  /* A surface that keeps its text buttons drawn at 34px on a phone keeps this one there too,
+     so the two still share a height (L-101). */
   .toolbar {
-    block-size: var(--sui-control-height-compact);
-    inline-size: var(--sui-control-height-compact);
+    block-size: var(--sui-local-button-seat, var(--sui-control-height-compact));
+    inline-size: var(--sui-local-button-seat, var(--sui-control-height-compact));
   }
 
   @media (hover: hover) {
@@ -146,14 +148,18 @@ action are a `Button` with the word beside the glyph.
   }
 
   /* A busy button is the action at work, not a disabled one, so its spinner keeps full
-     strength and holds its ink's contrast on the ground (WCAG 1.4.11), as `Button` does. */
+     strength and holds its ink's contrast on the ground (WCAG 1.4.11), as `Button` does. A
+     muted glyph dims from the primary ink, which the muted one at 0.6 would leave too faint,
+     and a firmer rest ink set by its surface, as a dialog's close, dims from itself, so the
+     glyph always reads a step under its rest (L-40). */
   .sui-icon-button:is(:disabled, [aria-disabled='true']:not([aria-busy='true'])) {
+    color: var(--sui-local-icon-rest, var(--sui-text-primary));
     opacity: var(--sui-disabled-opacity);
   }
 
   .sui-icon-button-spinner {
     block-size: calc(var(--sui-icon-base) - 2 * var(--sui-stroke));
-    border: var(--sui-stroke-bold) solid color-mix(in srgb, currentColor 40%, transparent);
+    border: var(--sui-stroke-bold) solid color-mix(in srgb, currentColor 55%, transparent);
     border-block-start-color: currentColor;
     border-radius: 50%;
     box-sizing: border-box;

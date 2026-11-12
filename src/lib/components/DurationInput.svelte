@@ -10,6 +10,7 @@
   import Icon from '../icons/Icon.svelte';
   import JoinedField from '../internal/JoinedField.svelte';
   import { formatLocale } from '../internal/locale.js';
+  import { PLURAL_SAMPLES } from '../internal/plural.js';
   import { setRefusals } from '../internal/refusals.svelte.js';
   import Select from './Select.svelte';
   import TextInput from './TextInput.svelte';
@@ -211,7 +212,12 @@
   );
   const shownAmount = $derived(read(text));
   const unitOptions = $derived(
-    UNITS.map((each) => ({ value: each, label: unitLabel(each, shownAmount) }))
+    UNITS.map((each) => ({
+      value: each,
+      label: unitLabel(each, shownAmount),
+      // Every form the unit can take, so the picker holds the widest of them.
+      forms: [...new Set(PLURAL_SAMPLES.map((amount) => unitLabel(each, amount)))]
+    }))
   );
 
   /* The field's own problem is a native constraint as well, so a form refuses a send while it
@@ -282,7 +288,7 @@ land on the amount.
 - Keyboard: the amount takes typing in the page's decimal mark, Tab moves to the unit, and the unit takes the select's own keys.
 - Pointer and touch: 34px tall, 44px on a phone or any touch screen, and a phone opens its own unit picker.
 - Focus: a Save that hears a problem through `onproblem` sends focus to the amount, and a form send the problem refused moves focus there when it is the form's first refused control.
-- Responsive: as wide as a short amount and its unit, and a long hint or problem wraps under it without widening it.
+- Responsive: as wide as a five-digit amount and its longest unit, so a new unit never resizes it, and a long hint or problem wraps under it without widening it.
 - Accessibility: each part has its own name, the hint and the problem describe the amount, and the problem is spoken when it shows.
 - Localization: `unitLabel`, `amountName`, `unitName` and every message and hint are props with English defaults, a unit's name follows its amount's plural, amounts read and print in the page's language, and the unit sits at the inline end in either direction.
 - Performance: a few string checks per keystroke and nothing that animates.
@@ -290,7 +296,8 @@ land on the amount.
 - Failure: text that is empty, not a whole number of seconds or out of range is kept with its reason, never written, and refuses a form's send, and `invalid` marks a value the server refused.
 -->
 
-<div class={['sui-duration-input', className]} {@attach refusals.area}>
+<!-- A direction passed for the field reaches its unit as well as the amount. -->
+<div class={['sui-duration-input', className]} dir={rest.dir} {@attach refusals.area}>
   <JoinedField invalid={wrong} {disabled}>
     {#snippet start()}
       <span class="sui-duration-amount">
@@ -356,13 +363,25 @@ land on the amount.
   /* An amount reads as one phrase with its unit word, so it keeps the sans face (L-20). */
   .sui-duration-amount {
     display: grid;
-    inline-size: 4.5rem;
   }
 
-  /* Contained, so a long hint or reason wraps under the controls instead of widening the field. */
+  /* Room for five digits in the amount's own size, the most a whole number of seconds under a
+     day takes, so a phone's larger type still fits. The digits end against the unit, a step
+     before its words, so a short amount and its unit read as one phrase and the field keeps its
+     width while a reader types. */
+  .sui-duration-amount > :global(input) {
+    box-sizing: border-box;
+    /* Never under the joined value's 4rem flex basis, or the unit wraps to a line of its own. */
+    inline-size: max(4rem, 5ch + var(--sui-field-inset));
+    padding-inline-end: 0;
+    text-align: end;
+  }
+
+  /* A hint or reason takes the room beside the field up to a short measure, as a field's help
+     does, so a range reads on one line; the field itself keeps its own width. */
   .sui-duration-hint,
   .sui-duration-problem {
-    contain: inline-size;
+    max-inline-size: 20rem;
     font: var(--sui-weight-regular) var(--sui-font-size-note) / var(--sui-leading-note)
       var(--sui-sans);
     justify-self: stretch;

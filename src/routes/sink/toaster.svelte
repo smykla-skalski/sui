@@ -34,12 +34,18 @@
 
 <Example
   title="Tones & Actions"
-  note="A neutral toast, a failure and one with an action, drawn in place with no timers"
+  note="A neutral toast, a failure and each with an action, drawn in place with no timers"
   ground="canvas"
   layout="grid"
+  --specimen-min="24rem"
+  --specimen-max="24rem"
+  --example-max="calc(52.5rem + 2 * var(--sui-stroke))"
 >
   <Specimen label="Neutral">
-    <Toaster preview items={[{ title: 'Settings saved' }]} />
+    <Toaster
+      preview
+      items={[{ title: 'Settings saved', description: 'Main now needs 2 reviews before a merge' }]}
+    />
   </Specimen>
   <Specimen label="Danger">
     <Toaster
@@ -53,7 +59,7 @@
       ]}
     />
   </Specimen>
-  <Specimen label="With an action">
+  <Specimen label="With Undo">
     <Toaster
       preview
       items={[
@@ -65,11 +71,28 @@
       ]}
     />
   </Specimen>
+  <Specimen label="Danger with Retry">
+    <Toaster
+      preview
+      items={[
+        {
+          title: 'The sync stopped',
+          description: '502 from GitHub',
+          tone: 'danger',
+          action: { label: 'Retry', run: () => {} }
+        }
+      ]}
+    />
+  </Specimen>
 </Example>
 
 <Example
   title="Timing"
   note="A neutral toast leaves after 5 seconds unless hovered or focused, and a failure or one with Undo stays until dismissed"
+  layout="grid"
+  --specimen-min="min(24rem, calc((100% - var(--sui-space-6)) / 2 - 1px))"
+  --specimen-max="min(24rem, calc((100% - var(--sui-space-6)) / 2 - 1px))"
+  --example-max="calc(52.5rem + 2 * var(--sui-stroke))"
 >
   <Specimen label="Neutral">
     <Button onclick={() => toast({ title: 'Settings saved' })}>Save Settings</Button>
@@ -84,7 +107,7 @@
         })}>Sync Repositories</Button
     >
   </Specimen>
-  <Specimen label={removed ? 'Removed, with Restore on the page' : 'With Undo'}>
+  <Specimen label="With Undo">
     <Button tone={removed ? 'default' : 'stop-quiet'} onclick={removed ? restoreRule : removeRule}
       >{removed ? 'Restore' : 'Remove Rule'}</Button
     >
@@ -94,7 +117,30 @@
 <Example
   title="Reaching the Stack"
   note="F8 moves focus to the newest toast and Escape hands it back, and a stack taller than the screen scrolls"
+  layout="grid"
+  ground="canvas"
+  --specimen-min="24rem"
+  --specimen-max="24rem"
+  --example-max="calc(52.5rem + 2 * var(--sui-stroke))"
 >
+  <Specimen label="3 toasts">
+    <Toaster
+      preview
+      items={[
+        { title: 'Settings saved', description: 'Main now needs 2 reviews before a merge' },
+        {
+          title: 'The sui sync needs another try',
+          description: 'GitHub answered 502, so try again in a minute',
+          tone: 'danger'
+        },
+        {
+          title: 'Rule removed',
+          description: 'Required reviewers no longer applies to main',
+          action: { label: 'Undo', run: () => {} }
+        }
+      ]}
+    />
+  </Specimen>
   <Specimen label="Many toasts">
     <Button
       onclick={() => {

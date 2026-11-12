@@ -389,6 +389,26 @@ function palette(): Finding[] {
     }
   }
 
+  // A floating list lights its row with the accent half a step past hover, as it holds the
+  // keyboard's place, and presses it at the press step of its ground.
+  const popover = t('popover-bg');
+  const [listHover, listPress] =
+    lightness(popover) > 50
+      ? [
+          [6.2, 7.2],
+          [7.2, 8.3]
+        ]
+      : [
+          [7, 8.5],
+          [9, 10.5]
+        ];
+  const lit = deltaE(popover, over(t('list-highlight'), popover));
+  const held = deltaE(popover, over(t('list-pressed'), popover));
+  found.push(
+    ...between('L-11', 'list highlight step on popover-bg', lit, listHover[0], listHover[1])
+  );
+  found.push(...between('L-11', 'list press step on popover-bg', held, listPress[0], listPress[1]));
+
   const base = t('surface-base');
   const rowStep = deltaE(base, over(t('row-hover'), base));
   const fieldStep = deltaE(base, over(t('field-hover'), base));
@@ -844,19 +864,37 @@ function separators(root: Document): Finding[] {
 function copyRhythm(root: Document): Finding[] {
   const found: Finding[] = [];
   const trimmed = (element: Element) => getComputedStyle(element).textBoxTrim === 'trim-both';
+  // A setting row's status leads its words with a mark, so its trimmed words are the span in it.
+  const words = (element: Element) => {
+    if (trimmed(element)) return element;
+    const span = element.matches('.sui-setting-state')
+      ? element.querySelector(':scope > span')
+      : null;
+    return span && trimmed(span) ? span : null;
+  };
   for (const first of audited(root, 'body *')) {
     const second = first.nextElementSibling;
-    if (!second || !shown(second) || !trimmed(first) || !trimmed(second)) continue;
+    if (!second || !shown(second)) continue;
+    const [over, under] = [words(first), words(second)];
+    if (!over || !under) continue;
     if (first.matches(INTERACTIVE) || second.matches(INTERACTIVE)) continue;
-    const a = first.getBoundingClientRect();
-    const b = second.getBoundingClientRect();
-    if (b.top < a.bottom - 0.5 || Math.abs(a.left - b.left) > 1) continue;
-    const gap = b.top - a.bottom;
+    const a = over.getBoundingClientRect();
+    const top = under.getBoundingClientRect().top;
+    if (
+      top < a.bottom - 0.5 ||
+      Math.abs(first.getBoundingClientRect().left - second.getBoundingClientRect().left) > 1
+    )
+      continue;
+    const gap = top - a.bottom;
     const titled =
       /^H[1-6]$/.test(first.tagName) ||
       [...first.classList].some((name) => name === 'title' || name.endsWith('-title'));
-    // A state's step in words stands apart from the explanation over it, as words do from a title.
-    const step = [...second.classList].some((name) => name.endsWith('-state-step'));
+    // A state's step in words stands apart from the explanation over it, as words do from a title,
+    // and so does a setting row's status or problem under its description; one right under the name is
+    // the row's only copy line, 8px off it.
+    const step =
+      [...second.classList].some((name) => name.endsWith('-state-step')) ||
+      (second.classList.contains('sui-setting-state') && first.matches('.sui-setting-why'));
     const want = titled || step ? 12 : 8;
     if (Math.abs(gap - want) > 0.75 && gap < 16)
       found.push(
@@ -1562,8 +1600,10 @@ function controls(root: Document): Finding[] {
     // strength; a busy icon button has no words.
     const busy = control.matches("[aria-busy='true']:not(:disabled)");
     // An off field reads as off by its well and its muted words, at full strength, and so do
-    // both parts of an off joined field.
-    const well = control.matches(`${OFF_FIELD}, .sui-joined.disabled :disabled`);
+    // both parts of an off joined field and of an off pair chip.
+    const well = control.matches(
+      `${OFF_FIELD}, .sui-joined.disabled :disabled, .sui-pair-entry.disabled .sui-pair-chip > :disabled`
+    );
     const dimmed = busy ? control.querySelector('.sui-button-label') : control;
     const expected = busy || well ? 1 : disabledOpacity;
     const opacity = dimmed ? effectiveOpacity(dimmed) : expected;
@@ -1961,6 +2001,19 @@ function specimens(root: Document): Finding[] {
       }
       return new DOMRect(left, line.top, Math.max(0, right - left), line.height);
     };
+    // A round box paints one circle at every turn, as a busy ring does, so its reach is its own
+    // box and not the larger box around its turned square.
+    const paintedBox = (element: Element, look: CSSStyleDeclaration) => {
+      const box = element.getBoundingClientRect();
+      if (look.borderRadius !== '50%' || !(element instanceof HTMLElement)) return box;
+      const [width, height] = [element.offsetWidth, element.offsetHeight];
+      return new DOMRect(
+        box.x + (box.width - width) / 2,
+        box.y + (box.height - height) / 2,
+        width,
+        height
+      );
+    };
     const escaped = [...panel.querySelectorAll('*')].find((element) => {
       if (element.closest(':popover-open, dialog[open]') || held(element)) return false;
       if (!element.checkVisibility({ opacityProperty: false, visibilityProperty: true }))
@@ -1973,13 +2026,21 @@ function specimens(root: Document): Finding[] {
         parseFloat(look.borderLeftWidth) > 0 ||
         parseFloat(look.borderTopWidth) > 0;
       const reach = stripeReach(element);
-      if (
-        (painted || element.matches(CARD_CONTENT)) &&
-        outside(element.getBoundingClientRect(), reach)
-      )
+      if ((painted || element.matches(CARD_CONTENT)) && outside(paintedBox(element, look), reach))
         return true;
-      // Text an element clips to its own box paints no further than that box.
-      if (look.overflowX !== 'visible') return outside(element.getBoundingClientRect(), reach);
+      // Text an element clips to its own box paints no further than that box, and while nothing
+      // overflows it sideways no further than its content box, so a scroller may pad room past
+      // the specimen for a shadow its clip would cut.
+      if (look.overflowX !== 'visible') {
+        const box = element.getBoundingClientRect();
+        if (element.scrollWidth > element.clientWidth) return outside(box, reach);
+        const start = parseFloat(look.borderLeftWidth) + parseFloat(look.paddingLeft);
+        const end = parseFloat(look.borderRightWidth) + parseFloat(look.paddingRight);
+        return outside(
+          new DOMRect(box.left + start, box.top, box.width - start - end, box.height),
+          reach
+        );
+      }
       return [...element.childNodes].some((node) => {
         if (node.nodeType !== Node.TEXT_NODE || !node.textContent?.trim()) return false;
         const range = document.createRange();
@@ -2141,9 +2202,9 @@ function plates(root: Document): Finding[] {
 
 /**
  * A setting row (L-36): its controls never move its copy, they end at the row's end, and its
- * reset, shown or keeping its seat, stands right before them on their first line, or ends the
- * first line of a control that grows, centred on that line within half a pixel (hanging on the
- * first line of a control that wraps), and lends the row no height.
+ * reset, shown or keeping its seat, stands right before them on their first line, centred on
+ * that line within half a pixel (hanging on the first line of a control that wraps), or ends
+ * the copy's band above a control that grows, and lends the row no height.
  */
 function settingResets(root: Document): Finding[] {
   const found: Finding[] = [];
@@ -2168,8 +2229,13 @@ function settingResets(root: Document): Finding[] {
     // width meanwhile, so it keeps its lines and only the controls' height could move it. Each
     // line is read from the row's top at that moment, since a page scrolled to its end scrolls
     // back as it shortens.
+    // A stacked row's reset floats inside the copy, ending its band, so it stays put while the
+    // controls are taken out and is never read as a line of the copy.
     const say = row.querySelector<HTMLElement>(':scope > .sui-setting-say');
-    const lines = [...(say?.children ?? [])].filter(shown);
+    const above = stacked
+      ? (say?.querySelector<HTMLElement>(':scope > .sui-setting-reset') ?? null)
+      : null;
+    const lines = [...(say?.children ?? [])].filter((line) => line !== above && shown(line));
     const at = () => {
       const top = row.getBoundingClientRect().top;
       return lines.map((line) => line.getBoundingClientRect().top - top);
@@ -2192,9 +2258,28 @@ function settingResets(root: Document): Finding[] {
         finding('L-36', row, `the controls stop ${round(short)}px short of the row's end`)
       );
 
-    const reset = side.querySelector(':scope > .sui-setting-reset button');
+    const reset = (above ?? side).querySelector(
+      above ? ':scope button' : ':scope > .sui-setting-reset button'
+    );
     if (!reset) continue;
     const own = reset.getBoundingClientRect();
+    if (above && say) {
+      // Above a control that grows, the reset ends the copy's band, which it never makes taller,
+      // or where the line cannot hold both, as with text at twice its size, a line of its own
+      // between the copy and the controls (WCAG 1.4.10).
+      const apart = end(own);
+      if (Math.abs(apart) > 0.5)
+        found.push(
+          finding('L-36', reset, `the reset stops ${round(apart)}px short of the row's end`)
+        );
+      const band = say.getBoundingClientRect();
+      const beside = own.top >= band.top - 0.5 && own.bottom <= band.bottom + 0.5;
+      const between =
+        own.top >= band.bottom - 0.5 && own.bottom <= side.getBoundingClientRect().top + 0.5;
+      if (!beside && !between)
+        found.push(finding('L-36', reset, "the reset stands outside the copy's band"));
+      continue;
+    }
     const first = [...controls.querySelectorAll(INTERACTIVE)]
       .map((part) => part.getBoundingClientRect())
       .filter((rect) => rect.width > 1 && rect.height > 1)
@@ -2206,21 +2291,11 @@ function settingResets(root: Document): Finding[] {
         finding('L-36', reset, `the reset sits ${round(off)}px off its control's first line`)
       );
     const reach = controls.getBoundingClientRect();
-    const apart = stacked
-      ? end(own)
-      : rtl
-        ? own.left - reach.right - parseFloat(getComputedStyle(side).columnGap)
-        : reach.left - own.right - parseFloat(getComputedStyle(side).columnGap);
+    const apart = rtl
+      ? own.left - reach.right - parseFloat(getComputedStyle(side).columnGap)
+      : reach.left - own.right - parseFloat(getComputedStyle(side).columnGap);
     if (Math.abs(apart) > 0.5)
-      found.push(
-        finding(
-          'L-36',
-          reset,
-          stacked
-            ? `the reset stops ${round(apart)}px short of the row's end`
-            : `the reset stands ${round(apart)}px off its control`
-        )
-      );
+      found.push(finding('L-36', reset, `the reset stands ${round(apart)}px off its control`));
     const band = parseFloat(getComputedStyle(side).minBlockSize) || 0;
     const taller = side.getBoundingClientRect().height - Math.max(reach.height, band);
     if (taller > 0.5)
@@ -2282,7 +2357,7 @@ function fieldRecesses(root: Document): Finding[] {
       .find(({ x, y, blur, spread }) => x === 0 && y === stroke && blur === 0 && spread === 0);
     const off = `.sui-joined.disabled, ${OFF_FIELD}`;
     const reads =
-      '.sui-text-input[readonly]:not(:disabled, [aria-expanded="true"]), .sui-textarea[readonly]:not(:disabled), .sui-joined.readonly';
+      '.sui-text-input[readonly]:not(:disabled, [data-open]), .sui-textarea[readonly]:not(:disabled), .sui-joined.readonly';
     if (field.matches(`${off}, ${reads}`)) {
       if (line) found.push(finding('L-9', field, 'a read-only or disabled field draws a recess'));
       const [token, words] = field.matches(off)
@@ -2298,7 +2373,12 @@ function fieldRecesses(root: Document): Finding[] {
       continue;
     }
     const ground = paintedGround(field);
-    const frame = rgba(look.getPropertyValue('--sui-field-frame'));
+    // A select copy is drawn open, so it is held to the open frame it draws.
+    const frame = rgba(
+      look.getPropertyValue(
+        field.closest('.sui-select-preview') ? '--sui-field-frame-focus' : '--sui-field-frame'
+      )
+    );
     if (lightness(over(rgba(line.color), ground)) >= lightness(over(frame, ground)))
       found.push(finding('L-9', field, 'its recess is no darker than its frame'));
   }
@@ -2381,8 +2461,8 @@ function currentMarks(root: Document): Finding[] {
 }
 
 /**
- * A changed row (L-16): every edge inside it wears the unsaved family, so no neutral line sits
- * on the gold plate. The tokens are read inside the row, where it has set them.
+ * A changed row (L-16): every edge inside it wears the unsaved family, or the accent of an
+ * on-state fill, so no neutral line sits on the gold plate. The tokens are read inside the row, where it has set them.
  */
 function changedEdges(root: Document): Finding[] {
   const found: Finding[] = [];
@@ -2393,9 +2473,9 @@ function changedEdges(root: Document): Finding[] {
     'unsaved-border',
     'unsaved-secondary',
     'unsaved-ink',
-    'decision-accent',
-    'decision-accent-hover',
-    'decision-accent-pressed',
+    'brand-action',
+    'brand-action-hover',
+    'brand-action-pressed',
     'focus'
   ];
   for (const row of audited(root, '[data-unsaved]')) {
@@ -2455,11 +2535,13 @@ function tonedControls(root: Document): Finding[] {
 }
 
 /**
- * A dialog's parts (L-58): the head, the body, the error and the actions stand one inset from
- * every edge and from each other, measured to the ink, and the head 8px more from the body. The
- * line that parts the body from the actions stands half an inset under the body, and what
- * follows stands one inset under the line. A body that scrolls is cut where the actions begin,
- * and a docked inspector parks them at its foot, so neither gap is weighed.
+ * A dialog's parts (L-58): the head, the body and the error stand one inset from every edge
+ * and from each other, measured to the ink, and the head 8px more from the body. In every
+ * dialog a line parts the task from its actions one inset under the last ink, and the actions
+ * stand 16px under the line and over the dialog's foot. A refused save's wash starts at the
+ * line and pads its words 12px, so they stand an inset and 12px under the ink over them and
+ * 12px and 16px over the actions. A body that scrolls is cut where the actions begin, and a
+ * docked inspector parks them at its foot, so neither gap is weighed.
  */
 function dialogInsets(root: Document): Finding[] {
   const found: Finding[] = [];
@@ -2499,18 +2581,17 @@ function dialogInsets(root: Document): Finding[] {
       getComputedStyle(part).display === 'contents' ? [...part.children].flatMap(laid) : [part];
     const inBody = body ? band([...body.children].flatMap(laid)) : null;
     const top = band([...head.querySelectorAll('.sui-modal-title, .sui-modal-description')]);
-    const bands = [
-      top,
-      inBody,
-      band([...dialog.querySelectorAll(':scope > .sui-modal-error .sui-modal-error-text')]),
-      band(buttons)
-    ].filter((part) => part !== null);
+    const said = band([
+      ...dialog.querySelectorAll(':scope > .sui-modal-error .sui-modal-error-text')
+    ]);
+    const bands = [top, inBody, said, band(buttons)].filter((part) => part !== null);
     const foot = bands[bands.length - 1];
     const cut = body !== null && inBody !== null && body.scrollHeight > body.clientHeight + 1;
     const docked = dialog.matches("[data-size='inspector']:not(.preview)");
-    const lined = dialog.querySelector(
-      ':scope > .sui-modal-body + .sui-modal-error + .sui-modal-foot'
-    );
+    // A refused save's wash pads its words 12px at every width, and the band a line parts off
+    // pads its actions 16px over and under.
+    const wash = 12;
+    const slim = 16;
     // Each gap is weighed against the band under it, and the last against the bottom edge.
     const gaps = [...bands, null].flatMap((under, at) => {
       const over = bands[at - 1];
@@ -2518,9 +2599,15 @@ function dialogInsets(root: Document): Finding[] {
       const want =
         over === top && under === inBody
           ? inset + step
-          : lined && over === inBody
-            ? 1.5 * inset
-            : inset;
+          : said && under === said
+            ? inset + wash
+            : said && over === said
+              ? wash + slim
+              : under === foot
+                ? inset + slim
+                : !under
+                  ? slim
+                  : inset;
       if (!under)
         return [{ gap: box.bottom - parseFloat(look.borderBottomWidth) - over.bottom, want }];
       if (!over) return [{ gap: under.top - box.top - parseFloat(look.borderTopWidth), want }];
@@ -2542,16 +2629,19 @@ function dialogInsets(root: Document): Finding[] {
 }
 
 /**
- * A message's symbol (L-56): a 2rem tile holding an 18px glyph. Copy shorter than the tile
- * centres on it, and longer copy starts at its top.
+ * A message's symbol (L-56): a 2rem tile holding an 18px glyph, a toast's 1.75rem. Copy shorter
+ * than the tile centres on it, and longer copy starts at its top.
  */
 function symbolTiles(root: Document): Finding[] {
   const found: Finding[] = [];
   const rem = parseFloat(getComputedStyle(root.documentElement).fontSize);
   for (const tile of audited(root, '.sui-callout-icon, .sui-toast-mark')) {
     const box = tile.getBoundingClientRect();
-    if (Math.abs(box.width - 2 * rem) > 0.5 || Math.abs(box.height - 2 * rem) > 0.5)
-      found.push(finding('L-56', tile, `the symbol's tile is ${round(box.width)}px, not 2rem`));
+    const side = tile.matches('.sui-toast-mark') ? 1.75 : 2;
+    if (Math.abs(box.width - side * rem) > 0.5 || Math.abs(box.height - side * rem) > 0.5)
+      found.push(
+        finding('L-56', tile, `the symbol's tile is ${round(box.width)}px, not ${side}rem`)
+      );
     const glyph = tile.querySelector('svg')?.getBoundingClientRect();
     if (glyph && Math.abs(glyph.width - 18) > 0.5)
       found.push(finding('L-56', tile, `the symbol draws at ${round(glyph.width)}px, not 18px`));

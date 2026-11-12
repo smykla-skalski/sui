@@ -16,6 +16,9 @@
   import Icon from '../icons/Icon.svelte';
   import { held, holdAround } from '../internal/held.svelte.js';
   import { formatCount } from '../internal/locale.js';
+  import { shownWait } from '../internal/shown-wait.svelte.js';
+  import { revealRow } from '../internal/reveal.js';
+  import '../internal/scroll-foot.css';
   import Popover from './Popover.svelte';
   import TextInput from './TextInput.svelte';
   import VisuallyHidden from './VisuallyHidden.svelte';
@@ -30,6 +33,9 @@
     free = false,
     invalid = false,
     preview = false,
+    previewText = '',
+    previewSearch,
+    previewActive = -1,
     limit = 100,
     name,
     emptyLabel = word('Combobox.emptyLabel', 'No suggestions match'),
@@ -62,8 +68,14 @@
     free?: boolean;
     /** Marks the value as wrong; pass a `Field`'s `invalid` here, with its error in `aria-describedby`. */
     invalid?: boolean;
-    /** Draws the list open under a read-only field in the page's flow, with the value's row active and no keyboard. */
+    /** Draws the list open under a read-only field in the page's flow, with the value's row checked and no keyboard. */
     preview?: boolean;
+    /** Text a preview draws as typed, so its list shows the matches, the offer or the note for it. */
+    previewText?: string;
+    /** Draws a preview's search waiting for its answer or refused, from the first frame on. */
+    previewSearch?: 'waiting' | 'refused';
+    /** The row a preview draws lit, as the arrows would light it; none by default. */
+    previewActive?: number;
     /** The most suggestions drawn at once; the rest are counted under the list. */
     limit?: number;
     /** Posts `value`, never the label, with a form. */
@@ -113,15 +125,17 @@
   });
   /* The field shows `query` instead of the committed label. A draft the reader left behind
      holds only while `value` is still what the draft left, so an owner's new value shows. */
-  let typed = $state(false);
-  let typedFor = $state('');
-  let query = $state('');
+  let typed = $state(untrack(() => preview && previewText !== ''));
+  let typedFor = $state(untrack(() => value));
+  let query = $state(untrack(() => previewText));
   let active = $state(0);
   /* Only an arrow key, or the pointer, lights an option: typing keeps the reader in the text. */
   let navigated = $state(false);
   let found = $state.raw<readonly ComboboxOption[]>([]);
-  let pending = $state(false);
-  let failed = $state(false);
+  let pending = $state(untrack(() => preview && previewSearch === 'waiting'));
+  /* The search itself runs, past the typing pause, which is no wait the reader sees. */
+  let asking = $state(untrack(() => preview && previewSearch === 'waiting'));
+  let failed = $state(untrack(() => preview && previewSearch === 'refused'));
   let list = $state<HTMLElement | null>(null);
   let generation = 0;
   let timer = 0;
@@ -148,21 +162,41 @@
   );
   const rows = $derived(visible.length + (offers ? 1 : 0));
   const empty = $derived(asked !== '' && rows === 0 && !pending && !failed);
-  const searching = $derived(pending && asked !== '');
+  /* "Searching…" and its spinner wait out a fast answer and stay once drawn, even over the
+     answer that ends them; only the drawing waits, so a refusal is spoken at once (L-117). */
+  const waiting = shownWait(() => asking && asked !== '');
+  const refused = $derived(failed && asked !== '');
+  const drawnRefusal = $derived(refused && !waiting.current);
   const note = $derived(
-    failed && asked !== '' ? failedLabel : empty ? emptyLabel : searching ? searchingLabel : ''
+    waiting.current ? searchingLabel : drawnRefusal ? failedLabel : empty ? emptyLabel : ''
   );
+  /* The status follows the search itself, not the held note: it says a search runs and then its
+     answer at once, and a typing pause says nothing, since the rows still answer the last query.
+     A copy is drawn, not used, so its status never speaks over the page. */
   const spoken = $derived(
-    note || (open && asked !== '' && hits.length > 0 ? countLabel(hits.length) : '')
+    preview || asked === ''
+      ? ''
+      : refused
+        ? failedLabel
+        : pending
+          ? asking
+            ? searchingLabel
+            : ''
+          : empty
+            ? emptyLabel
+            : open && hits.length > 0
+              ? countLabel(hits.length)
+              : ''
   );
   const showing = $derived((preview || open) && (rows > 0 || note !== ''));
   const listed = $derived(showing && rows > 0);
+  /* A list opened by a press or by typing lights no row: only the arrows light one, and a copy
+     draws that state only when asked to. */
   const current = $derived(
     preview
-      ? Math.max(
-          0,
-          visible.findIndex((option) => option.value === value)
-        )
+      ? previewActive < rows
+        ? previewActive
+        : -1
       : navigated && rows > 0
         ? Math.min(active, rows - 1)
         : -1
@@ -199,14 +233,9 @@
   /* Disabled options stay in the arrow path, so a reader hears they exist; `take` refuses them. */
   const step = (from: number, by: 1 | -1) => (((from + by) % rows) + rows) % rows;
 
-  // Scrolls the list alone: the box is fixed in the top layer, and scrollIntoView could move the page.
   function reveal(): void {
     const row = document.getElementById(optionId(current));
-    if (!list || !row) return;
-    const view = list.getBoundingClientRect();
-    const box = row.getBoundingClientRect();
-    if (box.top < view.top) list.scrollTop -= view.top - box.top;
-    else if (box.bottom > view.bottom) list.scrollTop += box.bottom - view.bottom;
+    if (list && row) revealRow(list, row);
   }
 
   function ask(text: string): void {
@@ -214,7 +243,9 @@
     if (!run) return;
     clearTimeout(timer);
     const mine = ++generation;
-    failed = false;
+    // The older request can no longer clear its flag, and the glance before the wait shows
+    // measures the newest search only.
+    failed = asking = false;
     if (text === '') {
       found = [];
       pending = false;
@@ -222,6 +253,7 @@
     }
     pending = true;
     timer = window.setTimeout(async () => {
+      asking = true;
       try {
         const answer = await run(text);
         if (mine !== generation) return;
@@ -235,7 +267,7 @@
         failed = true;
         onsearcherror?.(error);
       } finally {
-        if (mine === generation) pending = false;
+        if (mine === generation) pending = asking = false;
       }
     }, SEARCH_PAUSE);
   }
@@ -360,8 +392,8 @@ a draft while the value it replaced is cleared, which a form refuses to send. `n
 Name it with a `<label>` or `aria-label`, as any field.
 
 - Semantics: a text input with `role="combobox"` and `aria-autocomplete="list"`, a `role="listbox"` of `role="option"` rows in a popover, a polite `role="status"`, and a hidden input that posts `value`.
-- Content: options with a short label and an optional note, both wrapping; at most `limit` rows are drawn and the rest are counted.
-- States: closed, open, searching, nothing matches, search refused, invalid (the field's danger edge) and disabled; in the list a row is active (a veil and an inset 2px ring), committed (a check mark), pressed (a deeper veil, an inset shadow and a 1px sink) or disabled (0.6 opacity).
+- Content: options with a short label and an optional note a type step smaller after a drawn dot, both wrapping; at most `limit` rows are drawn and the rest are counted.
+- States: closed, open (the end chevron, as a `Select`'s, turns over while the list or its note shows), searching (a spinner, drawn once the search has run 150ms and then for at least 400ms), search refused (a warning mark in the danger ink), nothing matches, invalid (the field's danger edge) and disabled; in the list a row is active (a veil and an inset 2px ring), committed (a check mark), pressed (a deeper veil, an inset shadow and a 1px sink) or disabled (its name and note in the secondary ink at full strength).
 - Keyboard: typing filters, Down and Up open the list and light a row with wrap-around, Enter commits the lit row or settles the typed text, and Escape closes the list and stops there; while a busy dialog or a saving pane around it works, the field is disabled and the list stays shut.
 - Pointer and touch: the field is 34px tall, 44px on a phone or any touch screen, every row at least that tall, and a press on a row commits it.
 - Focus: focus stays in the field the whole time; the lit row is `aria-activedescendant`, set only once an arrow or the pointer moved to it.
@@ -380,30 +412,34 @@ Name it with a `<label>` or `aria-label`, as any field.
 {/snippet}
 
 {#snippet control()}
-  <TextInput
-    bind:element
-    {...rest}
-    class={className}
-    value={drafting ? query : shown}
-    {invalid}
-    readonly={preview || rest.readonly}
-    role="combobox"
-    autocomplete="off"
-    spellcheck="false"
-    aria-autocomplete="list"
-    aria-expanded={listed}
-    aria-controls={listId}
-    aria-activedescendant={listed && current >= 0 ? optionId(current) : undefined}
-    {oninput}
-    {@attach draftOnly}
-    {@attach keepTyped}
-    onkeydown={preview ? undefined : onkeydown}
-    {onfocus}
-    {onblur}
-    onclick={() => {
-      if (!open && !preview) show(false);
-    }}
-  />{#if name}<input
+  <!-- A direction passed for the field reaches its chevron as well as the control. -->
+  <span class="sui-combobox-field" dir={rest.dir}
+    ><TextInput
+      bind:element
+      {...rest}
+      class={className}
+      value={drafting ? query : shown}
+      {invalid}
+      readonly={preview || rest.readonly}
+      role="combobox"
+      autocomplete="off"
+      spellcheck="false"
+      aria-autocomplete="list"
+      aria-expanded={listed}
+      data-open={showing || undefined}
+      aria-controls={listId}
+      aria-activedescendant={listed && current >= 0 ? optionId(current) : undefined}
+      {oninput}
+      {@attach draftOnly}
+      {@attach keepTyped}
+      onkeydown={preview ? undefined : onkeydown}
+      {onfocus}
+      onblur={preview ? undefined : onblur}
+      onclick={() => {
+        if (!open && !preview) show(false);
+      }}
+    /><span class="sui-combobox-chevron"><Icon name="chevron-down" size="base" /></span></span
+  >{#if name}<input
       type="hidden"
       {name}
       {value}
@@ -422,7 +458,7 @@ Name it with a `<label>` or `aria-label`, as any field.
       id={listId}
       role="listbox"
       tabindex="-1"
-      class="sui-combobox-list"
+      class="sui-combobox-list sui-scroll-foot-list"
       aria-label={listLabel}
       hidden={rows === 0}
     >
@@ -446,8 +482,8 @@ Name it with a `<label>` or `aria-label`, as any field.
           <span class="sui-combobox-check"><Icon name="check" size="base" /></span>
           <span class="sui-combobox-text"
             ><span class="sui-combobox-label">{@render marked(option.label)}</span
-            >{#if option.description}<span class="sui-combobox-note"
-                >{mark('space')}{option.description}</span
+            >{#if option.description}<span class="sui-combobox-note" data-sep={mark('comma')}
+                >{option.description}</span
               >{/if}</span
           >
         </div>
@@ -466,15 +502,31 @@ Name it with a `<label>` or `aria-label`, as any field.
             navigated = true;
           }}
         >
-          <span class="sui-combobox-check"></span>
+          <!-- A plus marks the row as an entry to add, so it never reads as an option missing its check. -->
+          <span class="sui-combobox-check offer"><Icon name="plus" size="base" /></span>
           <span class="sui-combobox-text">{useLabel(asked)}</span>
         </div>
       {/if}
     </div>
     <!-- The status beside the field speaks these, so the drawn copy stays out of the tree. -->
-    {#if note}<p class="sui-combobox-empty" aria-hidden="true">{note}</p>{/if}
+    {#if note}
+      <!-- Every note keeps the check column, marked or not, so its words start where the names do. -->
+      <p class={['sui-combobox-empty', { refused: drawnRefusal }]} aria-hidden="true">
+        <span class="sui-combobox-mark"
+          >{#if drawnRefusal}<Icon
+              name="alert"
+              size="base"
+            />{:else if note === searchingLabel}<span class="sui-combobox-spinner"
+            ></span>{/if}</span
+        ><span class="sui-combobox-words">{note}</span>
+      </p>
+    {/if}
     {#if beyond > 0 && rows > 0}
-      <p class="sui-combobox-empty" aria-hidden="true">{moreLabel(beyond)}</p>
+      <p class="sui-combobox-empty count" aria-hidden="true">
+        <span class="sui-combobox-mark"></span><span class="sui-combobox-words"
+          >{moreLabel(beyond)}</span
+        >
+      </p>
     {/if}
   </Popover>
 {/snippet}
@@ -488,8 +540,59 @@ Name it with a `<label>` or `aria-label`, as any field.
 <style>
   .sui-combobox-preview {
     display: grid;
-    gap: var(--sui-space-1);
+    gap: var(--sui-floating-gap);
     min-inline-size: 0;
+  }
+
+  /* The chevron says a list opens here, as a Select's does; a press on it lands on the field,
+     which opens the list. The end padding keeps the text clear of it. */
+  /* Inline, as a Select is, so the field sits in a sentence and a size set on it sizes the
+     chevron's box too; a field's grid stretches it to the row. */
+  .sui-combobox-field {
+    display: inline-grid;
+    grid-template-columns: minmax(0, auto);
+    max-inline-size: 100%;
+    min-inline-size: 0;
+    vertical-align: middle;
+  }
+
+  /* `hidden` lands on the input, so the field and its chevron follow it. */
+  .sui-combobox-field:has(> :global(input[hidden])) {
+    display: none;
+  }
+
+  .sui-combobox-field > :global(*) {
+    grid-area: 1 / 1;
+  }
+
+  .sui-combobox-field > :global(input) {
+    padding-inline-end: calc(var(--sui-field-inset) + var(--sui-icon-base) + var(--sui-space-2));
+  }
+
+  /* A field that only reads never opens, so it shows no chevron. */
+  .sui-combobox-field:has(> :global(input[readonly]:not([data-open]))) > .sui-combobox-chevron {
+    visibility: hidden;
+  }
+
+  .sui-combobox-chevron {
+    align-self: center;
+    color: var(--sui-text-muted);
+    display: inline-flex;
+    justify-self: end;
+    margin-inline-end: var(--sui-field-inset);
+    pointer-events: none;
+    transition: rotate var(--sui-duration-open) var(--sui-ease-standard);
+  }
+
+  /* An open list, or its note alone, turns the chevron over and firms it, as an open Select's does. */
+  .sui-combobox-field:has(> :global([data-open])) > .sui-combobox-chevron {
+    color: var(--sui-text-secondary);
+    rotate: 180deg;
+  }
+
+  /* A preview draws every row, as a Select's open copy does, so no row is cut at its foot. */
+  .sui-combobox-preview .sui-combobox-list {
+    max-block-size: none;
   }
 
   /* The popover's own 1px border sits outside this list, so the box as a whole stops at
@@ -520,13 +623,15 @@ Name it with a `<label>` or `aria-label`, as any field.
     column-gap: var(--sui-space-2);
     cursor: pointer;
     display: grid;
-    font: var(--sui-weight-medium) var(--sui-font-size-control) / var(--sui-leading-meta)
+    font: var(--sui-weight-regular) var(--sui-font-size-input) / var(--sui-leading-input)
       var(--sui-sans);
     grid-template-columns: var(--sui-icon-base) minmax(0, 1fr);
     min-block-size: var(--sui-control-height-compact);
     outline: none;
     padding-block: var(--sui-space-1);
     padding-inline: var(--sui-space-2) var(--sui-space-3);
+    /* A row that wraps keeps near equal lines, as every list's row does. */
+    text-wrap: balance;
     transition: translate var(--sui-duration-press) var(--sui-ease-standard);
     -webkit-user-select: none;
     user-select: none;
@@ -540,22 +645,31 @@ Name it with a `<label>` or `aria-label`, as any field.
   }
 
   .sui-combobox-option.active:not(:active) {
-    background-color: var(--sui-interactive-hover-layer);
+    background-color: var(--sui-list-highlight);
     color: var(--sui-hover-ink);
   }
 
   .sui-combobox-option:active:not([aria-disabled='true']) {
-    background-color: var(--sui-interactive-pressed);
+    background-color: var(--sui-list-pressed);
     box-shadow: var(--sui-pressed-inset);
     translate: 0 1px;
   }
 
   .sui-combobox-option[aria-disabled='true'] {
     cursor: default;
-    opacity: var(--sui-disabled-opacity);
+  }
+
+  /* As a Select option does, an option that cannot be chosen draws its name in its reason's ink
+     at full strength, so the reason never outranks the name (L-40). */
+  .sui-combobox-option[aria-disabled='true'] :is(.sui-combobox-check, .sui-combobox-label) {
+    color: var(--sui-text-secondary);
   }
 
   /* Centred on the first line, however many lines the row wraps to (L-94). */
+  .sui-combobox-check.offer {
+    color: var(--sui-text-secondary);
+  }
+
   .sui-combobox-check {
     display: flex;
     justify-content: center;
@@ -564,7 +678,7 @@ Name it with a `<label>` or `aria-label`, as any field.
     margin-block: calc((round(up, 1cap, 2px) - var(--sui-icon-base)) / 2);
   }
 
-  .sui-combobox-option:not([aria-selected='true']) .sui-combobox-check {
+  .sui-combobox-option:not([aria-selected='true']) .sui-combobox-check:not(.offer) {
     visibility: hidden;
   }
 
@@ -578,13 +692,28 @@ Name it with a `<label>` or `aria-label`, as any field.
     text-box: trim-both cap alphabetic;
   }
 
+  /* A note reads a type step under its name and parts from it with the drawn dot of a Select
+     row; the dot reads as the comma mark, as every drawn dot does (L-25, L-103). */
   .sui-combobox-note {
     color: var(--sui-text-muted);
+    font-size: var(--sui-font-size-caption);
     font-weight: var(--sui-weight-regular);
   }
 
+  .sui-combobox-note::before {
+    color: var(--sui-text-muted);
+    content: '·' / attr(data-sep);
+    margin-inline: var(--sui-sep-space-compact);
+  }
+
+  @media (max-width: 47.9375rem), (pointer: coarse) {
+    .sui-combobox-note {
+      font-size: var(--sui-font-size-meta);
+    }
+  }
+
   /* Muted ink drops under 4.5:1 on the active row's veil. */
-  .sui-combobox-option.active .sui-combobox-note {
+  .sui-combobox-option:is(.active, [aria-disabled='true']) .sui-combobox-note {
     color: var(--sui-text-secondary);
   }
 
@@ -594,17 +723,101 @@ Name it with a `<label>` or `aria-label`, as any field.
     font-weight: var(--sui-weight-semibold);
   }
 
+  /* On the lit row's blue veil a blue match fades into the ground, so there the match is told
+     by its weight alone. */
+  .sui-combobox-option.active mark {
+    color: inherit;
+  }
+
+  /* A match in an option that cannot be chosen draws as its name does, so it never pulls the eye
+     from the options that can. */
+  .sui-combobox-option[aria-disabled='true'] mark {
+    color: inherit;
+    font-weight: inherit;
+  }
+
+  /* A note under the list, or alone in it: a wait leads with the list toolbar's spinner and a
+     refusal with a field error's mark in the danger ink, so neither rests on its words alone. */
   .sui-combobox-empty {
+    align-items: start;
     color: var(--sui-text-secondary);
+    column-gap: var(--sui-space-2);
+    display: flex;
     font: var(--sui-weight-regular) var(--sui-font-size-control) / var(--sui-leading-meta)
       var(--sui-sans);
     margin: 0;
-    padding: var(--sui-space-2) var(--sui-space-3);
+    padding: var(--sui-space-3);
+  }
+
+  /* A note alone in the list stands as tall as an option row: 34px, or 44px on a phone. The count
+     under the rows stays a compact foot, so it never reads as one more row. */
+  .sui-combobox-empty:not(.count) {
+    padding-block: round(
+      max(var(--sui-space-3), (var(--sui-control-height-compact) - 1cap) / 2),
+      1px
+    );
+  }
+
+  /* With no rows over it, the note sits where a row would, inside the list's inset, so a list of
+     one note is as tall as a list of one row and its words still start where the names do. */
+  .sui-combobox-list[hidden] + .sui-combobox-empty {
+    margin: var(--sui-space-1);
+    padding-inline: var(--sui-space-2);
+  }
+
+  .sui-combobox-empty.refused {
+    color: var(--sui-danger);
+  }
+
+  /* The count past the limit is the list's foot, so a divider parts it from the rows (L-72). */
+  .sui-combobox-empty.count {
+    border-block-start: var(--sui-stroke) solid var(--sui-border-divider);
+  }
+
+  /* Cap line to baseline, rounded to the nearest pixel, so a note alone in the popover stands
+     as far from its top as from its foot (L-95, L-102). */
+  .sui-combobox-words {
+    block-size: var(--sui-block-snap-near);
+    flex: 1 1 auto;
+    min-inline-size: 0;
+    text-box: trim-both cap alphabetic;
+  }
+
+  /* Centred on the first line's cap height, however many lines the note wraps to. */
+  .sui-combobox-mark {
+    align-items: center;
+    block-size: var(--sui-icon-base);
+    display: flex;
+    flex: none;
+    inline-size: var(--sui-icon-base);
+    justify-content: center;
+    margin-block: round(calc((1cap - var(--sui-icon-base)) / 2), 1px);
+  }
+
+  .sui-combobox-spinner {
+    animation: sui-combobox-spin var(--sui-duration-spinner) var(--sui-ease-linear) infinite;
+    block-size: var(--sui-icon-sm);
+    border: var(--sui-stroke-bold) solid color-mix(in srgb, currentColor 25%, transparent);
+    border-block-start-color: currentColor;
+    border-radius: 50%;
+    box-sizing: border-box;
+    inline-size: var(--sui-icon-sm);
+  }
+
+  @keyframes sui-combobox-spin {
+    to {
+      rotate: 1turn;
+    }
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .sui-combobox-option {
+    .sui-combobox-option,
+    .sui-combobox-chevron {
       transition: none;
+    }
+
+    .sui-combobox-spinner {
+      animation: none;
     }
 
     .sui-combobox-option:active:not([aria-disabled='true']) {

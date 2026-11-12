@@ -30,16 +30,17 @@ async function holds(page, check, arg, timeout) {
   return false;
 }
 
-// The build test spends most of its time in two builds, so the dev tests run beside it, on one
-// dev sink.
 suite('offline', () => {
   /** @type {ReturnType<typeof startSink> | undefined} */
   let dev;
+  /** @type {ReturnType<typeof startSink> | undefined} */
+  let built;
   const devSink = () => (dev ??= startSink({ dev: true }));
   after(async () => {
-    const sink = await dev;
-    await sink?.browser.close();
-    await sink?.server.close();
+    for (const sink of await Promise.all([dev, built])) {
+      await sink?.browser.close();
+      await sink?.server.close();
+    }
   });
 
   test('a dev page never runs a build’s caches: it registers no worker, and one left behind leaves', async (t) => {
@@ -98,7 +99,7 @@ const answers = {
   '/fixture/private.svg': [200, { 'cache-control': 'private, no-store' }],
   '/fixture/partial.svg': [206, { 'content-range': 'bytes 0-' + (svg.length - 1) + '/' + svg.length }],
   '/fixture/never/kept.svg': [200, {}],
-  '/fixture/slow.svg': [200, {}, 5000]
+  '/fixture/slow.svg': [200, {}, 2500]
 };
 
 export default {
@@ -276,14 +277,13 @@ export default {
     );
 
   test('an update the server refuses does not read as a lost network', async (t) => {
-    const { browser, url } = await devSink();
+    // The worker's container is a stand-in, so the built sink's blank page holds all it needs.
+    const { browser, url } = await (built ??= startSink());
     const page = await browser.newPage();
-    await visit(page, url);
+    await page.goto(new URL('mount/', url).href);
+    await page.waitForFunction(() => 'lib' in window);
     await page.evaluate(async () => {
-      const loaded = performance.getEntriesByType('resource').map((entry) => entry.name);
-      const lib = await import(
-        /* @vite-ignore */ loaded.find((name) => /\/src\/lib\/index\.ts/.test(name)) ?? ''
-      );
+      const { lib } = /** @type {any} */ (window);
       // A 500 for the worker's script, or a script that throws, rejects the update as a lost
       // network does.
       const registration = {

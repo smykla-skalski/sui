@@ -10,6 +10,7 @@
   import { beforeNavigate } from '$app/navigation';
   import { Field, SaveBar } from '#lib';
   import Example from '../kit/Example.svelte';
+  import Pair from '../kit/Pair.svelte';
   import Specimen from '../kit/Specimen.svelte';
 
   const SAVE_DELAY = 1200;
@@ -95,9 +96,10 @@
 
 <Example
   title="States"
-  note="Editing raises the bar, {saveKeys} saves, a discard offers Undo, a failure stays up, and a conflict reloads with Undo"
+  note="Editing raises the bar, {saveKeys} saves and holds the fields, a discard offers Undo, and a failure stays up"
   layout="stack"
   ground="canvas"
+  --example-max="calc(50rem + 2 * var(--sui-space-6))"
 >
   <Specimen label="Unsaved">
     <div class="pane">
@@ -118,6 +120,7 @@
   <Specimen label="Saving">
     <div class="pane">
       <div class="scroller">
+        <Field label="Repository name" spellcheck="false" autocapitalize="off" value="smyklot-ci" />
         <SaveBar
           dirty
           saving
@@ -132,6 +135,7 @@
   <Specimen label="Failed save">
     <div class="pane">
       <div class="scroller">
+        <Field label="Default branch" spellcheck="false" autocapitalize="off" value="release" />
         <SaveBar
           dirty
           askBeforeLeaving={false}
@@ -142,56 +146,80 @@
       </div>
     </div>
   </Specimen>
-  <Specimen label="Conflict">
-    <div class="pane">
-      <div class="scroller">
-        <Field label="Default branch" spellcheck="false" autocapitalize="off" bind:value={draft} />
-        <SaveBar
-          dirty={draft !== loaded}
-          askBeforeLeaving={false}
-          conflict={stale}
-          {reloading}
-          saving={savingDraft}
-          onsave={saveDraft}
-          ondiscard={discardDraft}
-          onreload={reload}
-        />
-      </div>
-    </div>
-  </Specimen>
 </Example>
 
-<Example
-  title="Narrow Width"
-  note="Long copy wraps with the 8 px rhythm and the actions wrap under it"
-  layout="stack"
-  ground="canvas"
->
-  <Specimen label="Long copy">
-    <div class="pane narrow">
-      <div class="scroller">
-        <SaveBar
-          dirty
-          askBeforeLeaving={false}
-          title="14 settings changed across merge rules, branch protection and review policy"
-          subtitle="Review anywhere in this workspace, then save everything together in one go"
-          onsave={noop}
-          ondiscard={() => noop}
-        />
+<Pair narrow even --pair-max="calc(50rem + 2 * var(--sui-space-6))">
+  <Example
+    title="Conflict"
+    note="Another tab saved first, so Reload is the one way on, and it offers Undo"
+    layout="stack"
+    ground="canvas"
+  >
+    <Specimen label="Conflict">
+      <div class="pane">
+        <div class="scroller">
+          <Field
+            label="Default branch"
+            spellcheck="false"
+            autocapitalize="off"
+            bind:value={draft}
+          />
+          <SaveBar
+            dirty={draft !== loaded}
+            askBeforeLeaving={false}
+            conflict={stale}
+            {reloading}
+            saving={savingDraft}
+            onsave={saveDraft}
+            ondiscard={discardDraft}
+            onreload={reload}
+          />
+        </div>
       </div>
-    </div>
-  </Specimen>
-</Example>
+    </Specimen>
+  </Example>
+
+  <Example
+    title="Narrow Width"
+    --example-max="var(--narrow-frame)"
+    note="Long copy wraps as a note, and the actions fill the line under it"
+    layout="stack"
+    ground="canvas"
+  >
+    <Specimen label="Long copy">
+      <div class="pane narrow">
+        <div class="scroller">
+          <SaveBar
+            dirty
+            askBeforeLeaving={false}
+            title="14 settings changed across merge rules, branch protection and review policy"
+            subtitle="Review anywhere in this workspace, then save everything together in one go"
+            onsave={noop}
+            ondiscard={() => noop}
+          />
+        </div>
+      </div>
+    </Specimen>
+  </Example>
+</Pair>
 
 <style>
   /* The pane grows with its content, so the bar rests after the last line instead of sticking
      over the middle of the content. */
   .pane {
-    overflow: hidden;
+    /* Room past each side for the bar's shadow, which the scroller's clip would cut at the bar's
+       edge. The scroller pads it back, so the fields and the bar keep the stage's edges. */
+    --pane-room: var(--sui-space-3);
+    margin-inline: calc(-1 * var(--pane-room));
+  }
+
+  /* As wide as the bar grows, so the fields and the bar share both edges. */
+  .pane:not(.narrow) {
+    max-inline-size: calc(50rem + 2 * var(--pane-room));
   }
 
   .narrow {
-    inline-size: min(100%, 16rem);
+    inline-size: calc(min(100%, 16rem) + 2 * var(--pane-room));
   }
 
   .scroller {
@@ -200,11 +228,20 @@
     display: grid;
     gap: var(--sui-space-4);
     overflow-y: auto;
-    padding: var(--sui-space-4);
+    /* A pane's parts start under its caption as any specimen's do: the specimen's gap is the
+       room over them and the stage's inset the room beside them. */
+    padding: 0 var(--pane-room) var(--sui-space-4);
   }
 
   /* A bar that shows brings its own room under it. */
   .scroller:has(> :global(.sui-save-bar:not([hidden]))) {
     padding-block-end: 0;
+  }
+
+  /* The stage's pad is the room under a bar at rest, as beside it, so the pane lays its bar's
+     sticky inset over that pad. The pane still holds the inset, so its clip keeps the bar's
+     shadow. */
+  .pane:has(> .scroller > :global(.sui-save-bar:not([hidden]))) {
+    margin-block-end: calc(-1 * var(--sui-space-4));
   }
 </style>

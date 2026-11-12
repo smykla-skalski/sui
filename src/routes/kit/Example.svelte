@@ -199,10 +199,14 @@ live specimens, not a surface of the design, so it may hold cards and dialogs (L
      fields, sets `--specimen-max`. */
   /* Rows of a grid stand further apart than a name stands over its specimen, so each name
      reads as the head of the specimen under it. A grid of short specimens, such as fields,
-     may set a closer `--specimen-row-gap` that still keeps that order. */
+     may set a closer `--specimen-row-gap` that still keeps that order. A grid of fixed columns
+     narrower than its frame, kept wide to end on one line with its neighbours, sets
+     `--specimen-justify` to `space-between`, so its outer columns stand one inset from each
+     edge. */
   .specimens[data-layout='grid'] {
     align-items: stretch;
     display: grid;
+    justify-content: var(--specimen-justify, normal);
     row-gap: var(--specimen-row-gap, var(--sui-space-8));
     grid-template-columns: repeat(
       auto-fill,
@@ -220,14 +224,22 @@ live specimens, not a surface of the design, so it may hold cards and dialogs (L
   }
 
   /* A phone pads its stages 16px; every frame on a wider page keeps 24px, however narrow its
-     measure, so frames side by side or sized to one field inset alike (L-99). */
+     measure, so frames side by side or sized to one field inset alike (L-99). A stage that
+     draws a dialog in place sets a smaller `--example-phone-pad`, since a dialog brings its
+     own edge and inset and a live one fills the phone less 16px. */
   @media (max-width: 47.9375rem) {
     .stage {
-      --stage-pad: var(--sui-space-4);
+      --stage-pad: var(--example-phone-pad, var(--sui-space-4));
     }
 
     .specimens:is([data-layout='stack'], [data-layout='pairs']) {
-      --sui-local-stage-pad: var(--sui-space-4);
+      --sui-local-stage-pad: var(--example-phone-pad, var(--sui-space-4));
+    }
+
+    /* A stage padded less for a drawn dialog still stands its captions 16px in, on the line
+       every other frame's captions start. */
+    .stage :global(.specimen > figcaption) {
+      padding-inline: calc(var(--sui-space-4) - var(--stage-pad));
     }
 
     .specimens[data-layout='grid'] {

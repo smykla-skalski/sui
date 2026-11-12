@@ -56,7 +56,9 @@ suite('lists', together, () => {
 
     test('P8 an entry that shows a problem follows its keystrokes', long, async () => {
       const page = await opened();
-      const list = page.locator('#pattern-entries .sui-pattern-entries').first();
+      const list = page
+        .locator('#pattern-entries .specimen', { hasText: 'Invalid' })
+        .locator('.sui-pattern-entries');
       await list.scrollIntoViewIfNeeded();
       const problems = () => list.locator('.sui-pattern-problem').count();
       const before = await problems();
@@ -73,7 +75,9 @@ suite('lists', together, () => {
       long,
       async () => {
         const page = await opened();
-        const list = page.locator('#pattern-entries .sui-pattern-entries').first();
+        const list = page
+          .locator('#pattern-entries .specimen', { hasText: 'Invalid' })
+          .locator('.sui-pattern-entries');
         await list.scrollIntoViewIfNeeded();
         const problems = () => list.locator('.sui-pattern-problem').count();
         const before = await problems();
@@ -101,7 +105,9 @@ suite('lists', together, () => {
       long,
       async () => {
         const page = await opened();
-        const list = page.locator('#pattern-entries .sui-pattern-entries').first();
+        const list = page
+          .locator('#pattern-entries .specimen', { hasText: 'Invalid' })
+          .locator('.sui-pattern-entries');
         await list.scrollIntoViewIfNeeded();
         const first = list.getByRole('textbox', { name: 'Pattern 1' });
         const second = await list.getByRole('textbox', { name: 'Pattern 2' }).inputValue();
@@ -143,6 +149,69 @@ suite('lists', together, () => {
         entries.every((entry) => entry.inside),
         'a cross stood outside its field'
       );
+    });
+
+    test(
+      'every pattern stands one small step clear of its cross square, on either side, a short one too',
+      long,
+      async () => {
+        const page = await opened();
+        const gaps = await page
+          .locator('#pattern-entries .specimen')
+          .filter({ hasText: /^(A few entries|Right to left)/ })
+          .locator('.sui-pattern-entry')
+          .evaluateAll((entries) =>
+            entries.map((entry) => {
+              const words = /** @type {Element} */ (
+                entry.querySelector('.sui-pattern-line')
+              ).getBoundingClientRect();
+              const cross = /** @type {Element} */ (
+                entry.querySelector('.sui-pattern-remove')
+              ).getBoundingClientRect();
+              return Math.round(
+                cross.left < words.left ? words.left - cross.right : cross.left - words.right
+              );
+            })
+          );
+        const step = await page.evaluate(() => {
+          const probe = document.createElement('div');
+          probe.style.inlineSize = 'var(--sui-space-1)';
+          document.body.append(probe);
+          const size = Math.round(probe.getBoundingClientRect().width);
+          probe.remove();
+          return size;
+        });
+        assert.ok(gaps.length > 4, 'the specimens hold too few entries to compare');
+        assert.deepEqual(
+          [...new Set(gaps)],
+          [step],
+          `the words stand ${gaps.join(', ')}px off their crosses, not ${step}px`
+        );
+      }
+    );
+
+    test('an off pattern paints its words once, all in the muted ink (L-40)', long, async () => {
+      const page = await opened();
+      const paint = await page
+        .locator('#pattern-entries .specimen', { hasText: 'Disabled' })
+        .locator('.sui-pattern-entry')
+        .first()
+        .evaluate((item) => {
+          const probe = document.createElement('span');
+          probe.style.color = 'var(--sui-text-muted)';
+          item.append(probe);
+          const muted = getComputedStyle(probe).color;
+          probe.remove();
+          const input = /** @type {HTMLElement} */ (item.querySelector('input'));
+          const inks = [...item.querySelectorAll('.sui-pattern-copy span')].map(
+            (span) => getComputedStyle(span).color
+          );
+          return {
+            field: getComputedStyle(input).getPropertyValue('-webkit-text-fill-color'),
+            copy: [...new Set(inks)].every((ink) => ink === muted)
+          };
+        });
+      assert.deepEqual(paint, { field: 'rgba(0, 0, 0, 0)', copy: true });
     });
 
     test('a hover on any part of a pattern lights its whole field and its chip', long, async () => {
@@ -228,6 +297,20 @@ suite('lists', together, () => {
   suite('at phone width', { concurrency: 1 }, () => {
     const opened = sharedPage({ viewport: { width: 375, height: 812 } });
 
+    // The choice's name stays 14px on a phone, so its note keeps the type step under it (L-25).
+    test('an addition choice keeps its note a type step under its name on a phone', async () => {
+      const page = await opened();
+      const steps = await page.evaluate(() =>
+        [...document.querySelectorAll('#addition-picker .sui-addition-note')].map((note) => {
+          const name = /** @type {Element} */ (note.closest('.sui-addition-choice'));
+          const size = (/** @type {Element} */ node) => parseFloat(getComputedStyle(node).fontSize);
+          return size(name) - size(note);
+        })
+      );
+      assert.ok(steps.length > 0, 'the section shows no note');
+      assert.deepEqual([...new Set(steps)], [1], 'a note is not 1px under its name');
+    });
+
     test(
       'a scrolled table keeps its held heading over the columns and its focus ring over both',
       long,
@@ -307,39 +390,56 @@ suite('lists', together, () => {
       }
     );
 
-    test('the colored copy of a pattern follows what is typed and its scroll', long, async () => {
-      const page = await opened();
-      const entry = page
-        .locator('#pattern-entries .specimen', { hasText: 'Long pattern' })
-        .locator('.sui-pattern-entry')
-        .first();
-      await entry.scrollIntoViewIfNeeded();
-      const field = entry.getByRole('textbox');
-      await field.focus();
-      await page.keyboard.press('End');
-      await page.keyboard.type('x');
-      await page.waitForFunction(
-        (input) => input instanceof HTMLInputElement && input.scrollLeft > 0,
-        await field.elementHandle()
-      );
-      // The scroll event lands in the next frame, so the copy is read after it.
-      await page.evaluate(() => new Promise((done) => requestAnimationFrame(() => done(null))));
-      const { value, copy, scroll, shift } = await entry.evaluate((item) => {
-        const input = /** @type {HTMLInputElement} */ (item.querySelector('input'));
-        const line = /** @type {HTMLElement} */ (item.querySelector('[aria-hidden="true"] > *'));
-        return {
-          value: input.value,
-          copy: line.textContent,
-          scroll: input.scrollLeft,
-          shift: parseFloat(getComputedStyle(line).translate) || 0
-        };
-      });
-      assert.equal(copy, value, 'the copy shows other words than the field');
-      assert.ok(
-        Math.abs(shift + scroll) < 0.5,
-        `the copy moved ${shift}px for a ${scroll}px scroll`
-      );
-    });
+    test(
+      'a long pattern ends in an ellipsis at rest, and its colored copy follows what is typed and its scroll',
+      long,
+      async () => {
+        const page = await opened();
+        const entry = page
+          .locator('#pattern-entries .specimen', { hasText: 'Long pattern' })
+          .locator('.sui-pattern-entry')
+          .first();
+        await entry.scrollIntoViewIfNeeded();
+        const field = entry.getByRole('textbox');
+        const rest = await entry.evaluate((item) => {
+          const copy = /** @type {HTMLElement} */ (item.querySelector('.sui-pattern-copy'));
+          return {
+            cut: copy.scrollWidth > copy.clientWidth,
+            end: getComputedStyle(copy).textOverflow,
+            line: getComputedStyle(/** @type {Element} */ (copy.firstElementChild)).display
+          };
+        });
+        assert.deepEqual(
+          rest,
+          { cut: true, end: 'ellipsis', line: 'inline' },
+          'a long pattern at rest does not end in an ellipsis, as a text field value does'
+        );
+        await field.focus();
+        await page.keyboard.press('End');
+        await page.keyboard.type('x');
+        await page.waitForFunction(
+          (input) => input instanceof HTMLInputElement && input.scrollLeft > 0,
+          await field.elementHandle()
+        );
+        // The scroll event lands in the next frame, so the copy is read after it.
+        await page.evaluate(() => new Promise((done) => requestAnimationFrame(() => done(null))));
+        const { value, copy, scroll, shift } = await entry.evaluate((item) => {
+          const input = /** @type {HTMLInputElement} */ (item.querySelector('input'));
+          const line = /** @type {HTMLElement} */ (item.querySelector('[aria-hidden="true"] > *'));
+          return {
+            value: input.value,
+            copy: line.textContent,
+            scroll: input.scrollLeft,
+            shift: parseFloat(getComputedStyle(line).translate) || 0
+          };
+        });
+        assert.equal(copy, value, 'the copy shows other words than the field');
+        assert.ok(
+          Math.abs(shift + scroll) < 0.5,
+          `the copy moved ${shift}px for a ${scroll}px scroll`
+        );
+      }
+    );
 
     test(
       'inline facts flow side by side on a phone, and only a line that holds a target grows to it',
@@ -1237,6 +1337,28 @@ suite('lists', together, () => {
     );
 
     test(
+      "a stacked row's reset stands over the name's hit area and answers a press",
+      long,
+      async () => {
+        const page = await opened();
+        const row = page.locator('#setting-list .sui-setting-row', { hasText: 'Commit footer' });
+        await row.scrollIntoViewIfNeeded();
+        const field = row.getByRole('textbox', { name: 'Commit footer' });
+        const saved = await field.inputValue();
+        await field.fill(`${saved}.`);
+        const reset = row.getByRole('button', { name: /^Reset / });
+        const hit = await reset.evaluate((button) => {
+          const box = button.getBoundingClientRect();
+          const top = document.elementFromPoint(box.x + box.width / 2, box.y + box.height / 2);
+          return button.contains(top);
+        });
+        assert.ok(hit, "the name's hit area covers the reset");
+        await reset.click();
+        assert.equal(await field.inputValue(), saved, 'the reset did not put the footer back');
+      }
+    );
+
+    test(
       'L-36 a press anywhere on a setting row reaches the control its name labels once',
       long,
       async () => {
@@ -1298,6 +1420,109 @@ suite('lists', together, () => {
       }
     );
 
+    test('L-16 a save never moves Discard, and wrapped actions fill their line', async () => {
+      const page = await opened();
+      const bars = page.locator('#save-bar .sui-save-bar');
+      const boxes = (/** @type {import('playwright-core').Locator} */ bar) =>
+        bar.evaluate((node) =>
+          [...node.querySelectorAll('.actions .sui-button')].map((button) => {
+            const { left, width } = button.getBoundingClientRect();
+            return { left: Math.round(left), width: Math.round(width) };
+          })
+        );
+      // The unsaved and saving specimens draw one bar at one width, idle and busy. On a phone
+      // the two share a wrapped line, where padding that differs between them splits it unevenly.
+      try {
+        for (const width of [1280, 390]) {
+          await page.setViewportSize({ width, height: 900 });
+          assert.deepEqual(
+            await boxes(bars.nth(1)),
+            await boxes(bars.nth(0)),
+            `at ${width}px Saving… is not where Save Changes was, so the save moved Discard`
+          );
+          if (width === 390) {
+            // Save Changes fits half the phone line, and the busy Saving… with its spinner is
+            // narrower still, so no room past the label's widens Save over Discard.
+            const [discard, save] = await boxes(bars.nth(0));
+            assert.equal(save.width, discard.width, 'Save Changes is wider than its half');
+          }
+          const offset = await bars
+            .nth(1)
+            .locator('.sui-button[aria-busy="true"]')
+            .evaluate((button) => {
+              const box = button.getBoundingClientRect();
+              const start = button.querySelector('.sui-button-part')?.getBoundingClientRect().left;
+              const words = [...button.querySelectorAll('.sui-button-words > *')].find(
+                (word) => getComputedStyle(word).visibility === 'visible'
+              );
+              const end = words?.getBoundingClientRect().right ?? 0;
+              return Math.abs((start ?? 0) + end - box.left - box.right) / 2;
+            });
+          assert.ok(
+            offset <= 0.5,
+            `at ${width}px the spinner and Saving… sit ${offset}px off the button's centre`
+          );
+          // The bar is the pane's form action, so at rest it closes the fields as a page form's
+          // action does, 24px past the last one (L-35), not at the gap between two of them.
+          const past = await bars.nth(0).evaluate((bar) => {
+            const field = bar.previousElementSibling?.getBoundingClientRect();
+            return bar.getBoundingClientRect().top - (field?.bottom ?? 0);
+          });
+          assert.equal(past, 24, `at ${width}px the bar stands ${past}px past the last field`);
+          // With no field above it there is nothing to close, so the bar starts where any
+          // specimen's first part does.
+          const lead = await page
+            .locator('#save-bar .specimen', { hasText: 'Long copy' })
+            .locator('.sui-save-bar')
+            .evaluate((bar) => {
+              const holder = bar.parentElement?.getBoundingClientRect();
+              return bar.getBoundingClientRect().top - (holder?.top ?? 0);
+            });
+          assert.equal(lead, 0, `at ${width}px a bar with nothing above it starts ${lead}px in`);
+          // A bar at rest in a stage keeps the stage's pad under it, as beside it, not its
+          // sticky inset on top of that pad. The narrow bar is the taller of its pair, so its
+          // stage ends at it.
+          const [beside, under] = await page
+            .locator('#save-bar .specimen', { hasText: 'Long copy' })
+            .locator('.sui-save-bar')
+            .evaluate((bar) => {
+              const box = bar.getBoundingClientRect();
+              const stage = bar.closest('.stage')?.getBoundingClientRect();
+              return [box.left - (stage?.left ?? 0), (stage?.bottom ?? 0) - box.bottom];
+            });
+          assert.equal(under, beside, `at ${width}px a bar's stage pads it ${under}px under it`);
+        }
+      } finally {
+        await page.setViewportSize({ width: 1280, height: 900 });
+      }
+      // The conflict and narrow examples share a row, and their Code rows end on one line.
+      const ends = await page
+        .locator('#save-bar .pair .example > .frame')
+        .evaluateAll((frames) => frames.map((frame) => frame.getBoundingClientRect().bottom));
+      assert.equal(new Set(ends).size, 1, `the paired frames end apart: ${ends.join(', ')}`);
+      const narrow = page
+        .locator('#save-bar .specimen', { hasText: 'Long copy' })
+        .locator('.sui-save-bar');
+      const rows = await narrow.evaluate((bar) => {
+        const copy = bar.querySelector('.copy')?.getBoundingClientRect();
+        /** @type {Map<number, number[]>} */
+        const lines = new Map();
+        for (const button of bar.querySelectorAll('.actions .sui-button')) {
+          const { top, left, right } = button.getBoundingClientRect();
+          const line = lines.get(Math.round(top)) ?? [left, right];
+          lines.set(Math.round(top), [Math.min(line[0], left), Math.max(line[1], right)]);
+        }
+        return [...lines.values()].map(([left, right]) => [
+          Math.round(left - (copy?.left ?? 0)),
+          Math.round((copy?.right ?? 0) - right)
+        ]);
+      });
+      assert.ok(
+        rows.every(([start, end]) => start === 0 && end === 0),
+        `wrapped actions leave the line under the copy short: ${JSON.stringify(rows)}`
+      );
+    });
+
     test('L-89 the save bar hands focus on through discard and undo', long, async () => {
       const page = await opened();
       const section = page.locator('#save-bar');
@@ -1332,6 +1557,15 @@ suite('lists', together, () => {
         await field.scrollIntoViewIfNeeded();
         // Saving again would be refused, so Reload is the only way on.
         assert.deepEqual(await bar.getByRole('button').allInnerTexts(), ['Reload']);
+        // The mark stands beside the whole copy, centred on the one-line title's cap height.
+        const [mark, title, reason] = await Promise.all(
+          ['.mark svg', '.title', '.subtitle'].map((part) => bar.locator(part).boundingBox())
+        );
+        assert.ok(mark && title && reason, 'the conflict bar has no mark, title or reason');
+        assert.equal(title.x, reason.x, 'the title and its reason start apart');
+        assert.ok(mark.x + mark.width < title.x, 'the mark does not stand before the title');
+        const off = mark.y + mark.height / 2 - (title.y + title.height / 2);
+        assert.ok(Math.abs(off) <= 1, `the mark sits ${off}px off the title's middle`);
 
         const reload = bar.getByRole('button', { name: 'Reload', exact: true });
         await reload.click();
@@ -1359,18 +1593,92 @@ suite('lists', together, () => {
 
     // Last, because it leaves its menu open.
     test(
-      'U5 typing in the addition menu jumps to the choice that starts with it',
+      'U5 typing in the addition menu jumps to the choice that starts with it, the pointer takes the one highlight, and a row-end picker hangs its menu from its end',
       long,
       async () => {
         const page = await opened();
-        const trigger = page.locator('#addition-picker').getByRole('button', {
-          name: 'Override Another'
-        });
+        // The setting list's live picker, not its open copy of the same name.
+        const trigger = page.locator('#sink-addition-more');
         await trigger.scrollIntoViewIfNeeded();
         await trigger.click();
         await page.locator(':popover-open [role="menu"]').waitFor();
         await page.keyboard.press('s');
-        assert.match(await focused(page), /^button Skip draft/);
+        assert.match(await focused(page), /^button Skip draft/i);
+        // Two lit rows, one under the keyboard and one under the pointer, read as two choices.
+        await page.locator(':popover-open [role="menuitem"]').first().hover();
+        assert.match(await focused(page), /^button Auto merge/i);
+        const [menu, end] = await Promise.all([
+          page.locator('.sui-popover:popover-open').boundingBox(),
+          trigger.boundingBox()
+        ]);
+        assert.ok(menu && end, 'the menu or its trigger is not drawn');
+        assert.ok(
+          Math.abs(menu.x + menu.width - (end.x + end.width)) < 0.5,
+          `the menu ends ${menu.x + menu.width - (end.x + end.width)}px off its trigger's end`
+        );
+        // Notes beside their labels started wherever each label ended, so no two lined up.
+        assert.deepEqual(
+          await page.locator(':popover-open .sui-addition-note').evaluateAll((notes) =>
+            notes.map((note) => {
+              const label = /** @type {Element} */ (note.previousElementSibling);
+              const [n, l] = [note, label].map((part) => part.getBoundingClientRect());
+              return [Math.round(n.left - l.left), n.top >= l.bottom];
+            })
+          ),
+          [
+            [0, true],
+            [0, true],
+            [0, true]
+          ],
+          'a note does not start under its label'
+        );
+        assert.equal(
+          await page
+            .locator('#addition-picker .sui-addition-preview .sui-addition-spinner')
+            .count(),
+          1,
+          'the loading list draws no spinner beside its words'
+        );
+        // A copy is drawn as the live menu would be: each list as wide as its words, every one-line
+        // row one height, and the retry's words on the failure's edge.
+        const copies = await page.evaluate(() => {
+          const box = (/** @type {Element | null} */ part) =>
+            /** @type {Element} */ (part).getBoundingClientRect();
+          const previews = [...document.querySelectorAll('#addition-picker .sui-addition-preview')];
+          const failed = previews.find((preview) => preview.querySelector('.problem'));
+          return {
+            // ActionMenu's 13rem floor, so a one-line message never reads as a second button.
+            floored: previews.every(
+              (preview) => box(preview.querySelector('[role="menu"]')).width >= 208
+            ),
+            fitted: previews.every(
+              (preview) =>
+                box(preview).width < box(preview.closest('.specimen')).width - 24 ||
+                preview.querySelector('.sui-addition-note')
+            ),
+            heights: [
+              ...new Set(
+                previews
+                  .flatMap((preview) => [
+                    ...preview.querySelectorAll('.sui-addition-done, .sui-addition-choice')
+                  ])
+                  .filter((row) => !row.querySelector('.sui-addition-note'))
+                  .map((row) => Math.round(box(row).height))
+              )
+            ].length,
+            // A copy draws every row, as a Combobox's does, so no long list is cut at its foot.
+            whole: previews.every(
+              (preview) =>
+                getComputedStyle(/** @type {Element} */ (preview.querySelector('[role="menu"]')))
+                  .maxBlockSize === 'none'
+            ),
+            edge: Math.round(
+              box(failed?.querySelector('.sui-addition-choice .sui-addition-label') ?? null).left -
+                box(failed?.querySelector('.problem .sui-addition-said') ?? null).left
+            )
+          };
+        });
+        assert.deepEqual(copies, { floored: true, fitted: true, heights: 1, whole: true, edge: 0 });
       }
     );
   });

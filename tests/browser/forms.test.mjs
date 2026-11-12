@@ -21,10 +21,14 @@ after(async () => {
 });
 
 suite('forms', together, () => {
-  /** @param {{ lang?: string; width?: number; path?: string }} [options] */
-  async function open({ lang, width = 1440, path = 'all/' } = {}) {
+  /** @param {{ lang?: string; width?: number; path?: string; touch?: boolean }} [options] */
+  async function open({ lang, width = 1440, path = 'all/', touch = false } = {}) {
     const address = new URL(path, url).href;
-    const page = await browser.newPage({ viewport: { width, height: 900 } });
+    const page = await browser.newPage({
+      viewport: { width, height: 900 },
+      hasTouch: touch,
+      isMobile: touch
+    });
     if (lang)
       await page.route(
         (asked) => `${asked.origin}${asked.pathname}` === address,
@@ -1217,43 +1221,547 @@ suite('forms', together, () => {
       }
     );
 
-    test('a refused combobox search says so', long, async () => {
+    // `hidden` lands on the input, so the field around it must follow or its chevron stays.
+    test('a hidden combobox draws no field and no chevron', async () => {
       const page = await opened();
-      const field = page.getByRole('combobox', { name: 'Owner' });
-      await field.fill('oct');
-      await page.waitForFunction(() =>
-        [...document.querySelectorAll('#combobox [role="status"]')].some((status) =>
-          /could not load/.test(status.textContent ?? '')
-        )
+      const box = await page.evaluate(() => {
+        const field = /** @type {HTMLElement} */ (
+          document.querySelector('#combobox .sui-combobox-field:not(.sui-combobox-preview *)')
+        );
+        /** @type {HTMLInputElement} */ (field.querySelector('input')).hidden = true;
+        const { width, height } = field.getBoundingClientRect();
+        field.querySelector('input')?.removeAttribute('hidden');
+        return [width, height];
+      });
+      assert.deepEqual(box, [0, 0]);
+    });
+
+    test('a combobox wears a Select chevron that turns while its list or its note alone shows, an open copy draws every row in the editing paint, and an off option keeps its reason at full contrast', async () => {
+      const page = await opened();
+      // The search copies open once their searches have run, so every copy settles first.
+      await page.waitForFunction(
+        () =>
+          [
+            ...document.querySelectorAll('#combobox .sui-combobox-preview .sui-combobox-chevron')
+          ].every((chevron) => getComputedStyle(chevron).rotate === '180deg') &&
+          document.querySelector('#combobox')?.textContent?.includes('could not load'),
+        undefined,
+        { timeout: 3000 }
+      );
+      const read = () =>
+        page.evaluate(() => {
+          const fields = [...document.querySelectorAll('#combobox .sui-combobox-field')];
+          const turn = (/** @type {Element} */ field) =>
+            getComputedStyle(/** @type {Element} */ (field.querySelector('.sui-combobox-chevron')))
+              .rotate;
+          const copies = fields.filter((field) => field.closest('.sui-combobox-preview'));
+          const empty = /** @type {Element} */ (
+            copies.find((field) => !field.parentElement?.querySelector('[role="option"]'))
+          );
+          const list = /** @type {HTMLElement} */ (
+            document.querySelector('#combobox .sui-combobox-preview [role="listbox"]')
+          );
+          const off = /** @type {Element} */ (
+            document.querySelector(
+              '#combobox .sui-combobox-preview [aria-disabled="true"]:has(.sui-combobox-note)'
+            )
+          );
+          // Opacity does not inherit, so a part's strength is its own times every box up to the row.
+          const opacity = (/** @type {string} */ part) => {
+            let strength = 1;
+            for (let node = off.querySelector(part); node; node = node.parentElement) {
+              strength *= Number(getComputedStyle(node).opacity);
+              if (node === off) break;
+            }
+            return strength;
+          };
+          const previews = [...document.querySelectorAll('#combobox .sui-combobox-preview')];
+          const offMark = /** @type {Element} */ (
+            document.querySelector('#combobox .sui-combobox-preview [aria-disabled="true"] mark')
+          );
+          return {
+            notes: previews.flatMap((preview) =>
+              [...preview.querySelectorAll('.sui-combobox-empty')].map((node) =>
+                node.textContent?.trim()
+              )
+            ),
+            spoken: previews.map((preview) =>
+              preview.querySelector('[role="status"]')?.textContent?.trim()
+            ),
+            offMark: [getComputedStyle(offMark).color, getComputedStyle(offMark).fontWeight].join(
+              ' '
+            ),
+            offName: (() => {
+              const name = getComputedStyle(
+                /** @type {Element} */ (offMark.closest('.sui-combobox-label'))
+              );
+              return [name.color, name.fontWeight].join(' ');
+            })(),
+            live: turn(/** @type {Element} */ (fields.find((field) => !copies.includes(field)))),
+            copies: copies.map(turn),
+            ground: getComputedStyle(/** @type {Element} */ (empty.querySelector('input')))
+              .backgroundColor,
+            control: getComputedStyle(document.documentElement)
+              .getPropertyValue('--sui-control-bg')
+              .trim(),
+            cut: list.scrollHeight - list.clientHeight,
+            off: {
+              name: opacity('.sui-combobox-label'),
+              note: opacity('.sui-combobox-note'),
+              nameInk: getComputedStyle(
+                /** @type {Element} */ (off.querySelector('.sui-combobox-label'))
+              ).color,
+              ink: getComputedStyle(
+                /** @type {Element} */ (off.querySelector('.sui-combobox-note'))
+              ).color
+            },
+            secondary: (() => {
+              const probe = document.body.appendChild(document.createElement('span'));
+              probe.style.color = 'var(--sui-text-secondary)';
+              const color = getComputedStyle(probe).color;
+              probe.remove();
+              return color;
+            })()
+          };
+        });
+      const look = await read();
+      assert.equal(look.live, 'none', 'a closed field points its chevron down');
+      assert.equal(look.copies.length, 6);
+      assert.deepEqual(new Set(look.copies), new Set(['180deg']), 'every open copy turns it over');
+      assert.notEqual(look.ground, 'rgba(0, 0, 0, 0)');
+      assert.equal(
+        await page.evaluate((ground) => {
+          const probe = document.body.appendChild(document.createElement('span'));
+          probe.style.backgroundColor = 'var(--sui-control-bg)';
+          const same = getComputedStyle(probe).backgroundColor === ground;
+          probe.remove();
+          return same;
+        }, look.ground),
+        true,
+        'a copy with only a note keeps the editing ground, not the read-only tint'
+      );
+      assert.equal(look.cut, 0, 'the open copy draws every row');
+      const quiet = await page.evaluate(() => ({
+        lit: [
+          ...document.querySelectorAll(
+            '#combobox .sui-combobox-preview .sui-combobox-option.active'
+          )
+        ].map((row) => [
+          row.textContent?.trim(),
+          getComputedStyle(/** @type {Element} */ (row.querySelector('mark'))).color ===
+            getComputedStyle(row).color
+        ]),
+        checked: document.querySelectorAll('#combobox .sui-combobox-preview [aria-selected="true"]')
+          .length,
+        readonly: getComputedStyle(
+          /** @type {Element} */ (
+            document.querySelector(
+              '#combobox .sui-combobox-field:has(input[readonly]:not([data-open])) .sui-combobox-chevron'
+            )
+          )
+        ).visibility
+      }));
+      assert.deepEqual(
+        quiet,
+        { lit: [['Rust', true]], checked: 2, readonly: 'hidden' },
+        'only the copy asked to lights its row, its match in the row ink, the value keeps its check, and a field that only reads drops its chevron'
+      );
+      assert.equal(look.offMark, look.offName, 'a match in an off option draws as its name');
+      await page.waitForFunction(
+        () => document.querySelector('#combobox')?.textContent?.includes('could not load'),
+        undefined,
+        { timeout: 2000 }
+      );
+      assert.deepEqual((await read()).notes, [
+        '4 more, so keep typing to narrow them',
+        'No suggestions match',
+        'Searching…',
+        'Suggestions could not load, so keep typing to try again'
+      ]);
+      assert.deepEqual(new Set(look.spoken), new Set(['']), 'a copy never speaks');
+      // A wait and a refusal differ by more than their words, and the count is the list's foot.
+      const signs = await page.evaluate(() => {
+        const note = (/** @type {string} */ words) =>
+          /** @type {Element} */ (
+            [
+              ...document.querySelectorAll('#combobox .sui-combobox-preview .sui-combobox-empty')
+            ].find((node) => node.textContent?.includes(words))
+          );
+        const probe = document.body.appendChild(document.createElement('span'));
+        probe.style.color = 'var(--sui-danger)';
+        const danger = getComputedStyle(probe).color;
+        probe.remove();
+        return {
+          spinner: Boolean(note('Searching').querySelector('.sui-combobox-spinner')),
+          refused: [
+            Boolean(note('could not load').querySelector('svg')),
+            getComputedStyle(note('could not load')).color === danger
+          ],
+          plain: note('No suggestions').querySelector('svg, .sui-combobox-spinner') === null,
+          foot: getComputedStyle(note('more,')).borderBlockStartWidth,
+          starts: [
+            ...new Set(
+              [
+                ...document.querySelectorAll(
+                  '#combobox .sui-combobox-preview :is(.sui-combobox-label, .sui-combobox-words)'
+                )
+              ].map((words) => {
+                const layer = /** @type {Element} */ (words.closest('.sui-popover'));
+                return words.getBoundingClientRect().left - layer.getBoundingClientRect().left;
+              })
+            )
+          ].length
+        };
+      });
+      assert.deepEqual(signs, {
+        spinner: true,
+        refused: [true, true],
+        plain: true,
+        foot: '1px',
+        starts: 1
+      });
+      // A note alone in the list keeps an option row's height on a phone too, where rows grow to
+      // 44px, while the count under the rows stays a foot shorter than a row.
+      await page.setViewportSize({ width: 390, height: 900 });
+      const rows = await page.evaluate(() => {
+        const copy = '#combobox .sui-combobox-preview';
+        const height = (/** @type {Element | null} */ box) => box?.getBoundingClientRect().height;
+        return {
+          option: height(document.querySelector(`${copy} .sui-combobox-option`)),
+          notes: [
+            ...document.querySelectorAll(`${copy} .sui-combobox-empty:not(.count, .refused)`)
+          ].map(height),
+          count: height(document.querySelector(`${copy} .sui-combobox-empty.count`)),
+          // A list of one note and a list of one offered row are one height.
+          layers: [
+            ...document.querySelectorAll(`${copy} .sui-combobox-empty:not(.count, .refused)`),
+            ...document.querySelectorAll(`${copy} .sui-combobox-option:only-child`)
+          ].map((part) => height(part.closest('.sui-popover')))
+        };
+      });
+      await page.setViewportSize({ width: 1440, height: 900 });
+      const { count, ...lone } = rows;
+      assert.deepEqual(lone, { option: 44, notes: [44, 44], layers: [54, 54, 54] });
+      assert.ok(Number(count) < 44, `the count foot stands ${count}px, as tall as a row`);
+      // An off option draws its name in its reason's ink at full strength, so the 13px reason
+      // never outranks the name (L-40).
+      assert.equal(look.off.name, 1, 'an off option keeps its name at full strength');
+      assert.equal(look.off.note, 1, 'an off option keeps its reason at full strength');
+      assert.equal(look.off.ink, look.secondary, 'in the reason ink');
+      assert.equal(look.off.nameInk, look.secondary, 'its name in the reason ink');
+      const field = page.getByRole('combobox', { name: 'Language', exact: true }).first();
+      await field.focus();
+      await page.keyboard.press('ArrowDown');
+      assert.equal(await field.getAttribute('aria-expanded'), 'true');
+      await page.waitForFunction(
+        () =>
+          getComputedStyle(
+            /** @type {Element} */ (
+              document.querySelector(
+                '#combobox .sui-combobox-field:has([aria-expanded="true"]) .sui-combobox-chevron'
+              )
+            )
+          ).rotate === '180deg',
+        undefined,
+        { timeout: 2000 }
       );
     });
 
-    test('an owner replacement replaces a focused combobox draft', async () => {
+    test('a combobox note parts from its name as a select note does, by the drawn dot and a type step', async () => {
       const page = await opened();
-      const field = page.getByRole('combobox', { name: 'Language', exact: true }).first();
-      await field.fill('Pyth');
-      await page
-        .getByRole('button', { name: 'Replace the Language' })
-        .evaluate((button) => /** @type {HTMLButtonElement} */ (button).click());
-      assert.equal(await field.inputValue(), 'Go');
-      assert.ok(await field.evaluate((input) => document.activeElement === input));
-      await field.evaluate((input) => input.blur());
-      assert.equal(await field.inputValue(), 'Go');
+      const look = await page.evaluate(() => {
+        const read = (/** @type {string} */ name, /** @type {string} */ note) => {
+          const node = /** @type {Element} */ (document.querySelector(note));
+          const dot = getComputedStyle(node, '::before');
+          return {
+            dot: [dot.content.split(' / ')[0], dot.marginInlineStart, dot.marginInlineEnd],
+            size: getComputedStyle(node).fontSize,
+            name: getComputedStyle(
+              /** @type {Element} */ (
+                node.closest('.sui-combobox-option, .sui-select-option')?.querySelector(name)
+              )
+            ).fontSize
+          };
+        };
+        return {
+          combobox: read('.sui-combobox-label', '#combobox .sui-combobox-note'),
+          select: read('.sui-select-label', '#select .sui-select-sheet .sui-select-note')
+        };
+      });
+      assert.deepEqual(look.combobox, look.select);
+      assert.notEqual(look.combobox.size, look.combobox.name);
     });
 
-    test('a combobox clamps its active row when the limit shrinks', async () => {
+    test('an open select copy is the closed field turned over, as wide as its picker, its groups lined and headed on the names, set as the field with the check on its words and on the first line of a wrapped name, an off option inking its name and reason as a menu does', async () => {
       const page = await opened();
-      const field = page.getByRole('combobox', { name: 'Language', exact: true }).first();
-      await field.fill('o');
-      await page.keyboard.press('ArrowUp');
-      await page
-        .getByRole('button', { name: 'Limit the Language Suggestions' })
-        .evaluate((button) => /** @type {HTMLButtonElement} */ (button).click());
-      const active = await field.getAttribute('aria-activedescendant');
-      assert.ok(active?.endsWith('-option-0'), `dangling active row: ${active}`);
-      assert.equal(await page.locator(`#${active}`).count(), 1);
-      await page.keyboard.press('Enter');
-      assert.equal(await field.inputValue(), 'Go');
+      const look = await page.evaluate(() => {
+        const section = /** @type {Element} */ (document.querySelector('#select'));
+        const width = (/** @type {Element | null | undefined} */ node) =>
+          node?.getBoundingClientRect().width ?? 0;
+        const closed = section.querySelector('.sui-select:not(.sui-select-preview *)');
+        const copies = [...section.querySelectorAll('.sui-select-preview')].map((preview) => ({
+          field: width(preview.querySelector('.sui-select')),
+          sheet: width(preview.querySelector('.sui-select-sheet')),
+          chevron: getComputedStyle(
+            /** @type {Element} */ (preview.querySelector('.sui-select-chevron'))
+          ).rotate,
+          ink: getComputedStyle(
+            /** @type {Element} */ (preview.querySelector('.sui-select-chevron'))
+          ).color
+        }));
+        const restInk = getComputedStyle(
+          /** @type {Element} */ (closed?.querySelector('.sui-select-chevron'))
+        ).color;
+        const sheet = /** @type {Element} */ (
+          [...section.querySelectorAll('.sui-select-sheet')].find((node) =>
+            node.querySelector('.sui-select-heading')
+          )
+        );
+        const start = (/** @type {Element} */ node) => {
+          const range = document.createRange();
+          range.selectNodeContents(node);
+          return range.getBoundingClientRect().left;
+        };
+        const strength = (/** @type {Element} */ node) => {
+          let opacity = 1;
+          for (let at = /** @type {Element | null} */ (node); at; at = at.parentElement)
+            opacity *= parseFloat(getComputedStyle(at).opacity);
+          return opacity;
+        };
+        const off = /** @type {Element} */ (
+          section.querySelector('.sui-select-sheet [aria-disabled="true"]:has(.sui-select-note)')
+        );
+        const lines = (/** @type {ParentNode} */ list) =>
+          [...list.querySelectorAll('.sui-select-heading')].map(
+            (heading) => getComputedStyle(heading).borderBlockStartWidth
+          );
+        const live = /** @type {HTMLSelectElement} */ (
+          [...section.querySelectorAll('select')].find((select) => select.querySelector('optgroup'))
+        );
+        // How far a checked row's check centre falls under the top of its name's first line.
+        const mark = (/** @type {Element} */ row) => {
+          const check = row.querySelector('.sui-select-check')?.getBoundingClientRect();
+          const range = document.createRange();
+          range.selectNodeContents(/** @type {Element} */ (row.querySelector('.sui-select-label')));
+          const lines = range.getClientRects();
+          return {
+            drop: (check?.top ?? 0) + (check?.height ?? 0) / 2 - lines[0].top,
+            lines: new Set([...lines].map((line) => Math.round(line.top))).size
+          };
+        };
+        // Every row keeps its check's room, so an unchecked one-line row places it as a checked
+        // one would.
+        const rows = [...section.querySelectorAll('.sui-select-sheet .sui-select-option')].map(
+          (row) => ({ ...mark(row), checked: row.classList.contains('checked') })
+        );
+        const copy = /** @type {Element} */ (
+          section.querySelector('.sui-select-preview:has(.sui-select-sheet .checked)')
+        );
+        const lit = /** @type {Element} */ (section.querySelector('.sui-select-sheet .active'));
+        const dot = getComputedStyle(
+          /** @type {Element} */ (section.querySelector('.sui-select-sheet .sui-select-note')),
+          '::before'
+        );
+        const control = /** @type {Element} */ (copy.querySelector('.sui-select-control'));
+        const box = getComputedStyle(control);
+        const row = /** @type {Element} */ (copy.querySelector('.sui-select-sheet .checked'));
+        const type = (/** @type {Element} */ node) => {
+          const style = getComputedStyle(node);
+          return `${style.fontSize} ${style.fontWeight}`;
+        };
+        const probe = document.createElement('span');
+        probe.style.color = 'var(--sui-focus)';
+        copy.append(probe);
+        const focus = getComputedStyle(probe).color;
+        probe.remove();
+        // A refused send marks a required copy's field invalid over its open paint, after the
+        // focus the refusal gives it moves on.
+        const prompt = /** @type {HTMLSelectElement} */ (
+          [...section.querySelectorAll('.sui-select-preview select')].find(
+            (select) => /** @type {HTMLSelectElement} */ (select).value === ''
+          )
+        );
+        const form = document.createElement('form');
+        form.id = 'select-copy-refusal';
+        document.body.append(form);
+        prompt.required = true;
+        prompt.setAttribute('form', form.id);
+        form.requestSubmit();
+        prompt.blur();
+        const refused = getComputedStyle(prompt).borderBlockEndColor;
+        // The prompt names the closed field but never stands in the open list as an option.
+        const placeholder = /** @type {HTMLOptionElement} */ (
+          prompt.querySelector('option[value=""]')
+        );
+        const asked = {
+          hidden: getComputedStyle(placeholder).display === 'none',
+          shown: prompt.querySelector('selectedcontent')?.textContent?.trim(),
+          prompt: placeholder.textContent?.trim(),
+          first: /** @type {Element} */ (
+            /** @type {Element} */ (prompt.closest('.sui-select-preview')).querySelector(
+              '.sui-select-sheet .sui-select-option'
+            )
+          ).textContent?.trim()
+        };
+        prompt.required = false;
+        prompt.removeAttribute('form');
+        form.remove();
+        const field = {
+          type: type(control),
+          text:
+            control.getBoundingClientRect().left +
+            parseFloat(box.borderInlineStartWidth) +
+            parseFloat(box.paddingInlineStart),
+          baseline: box.borderBlockEndColor,
+          refused,
+          asked,
+          focus
+        };
+        const option = {
+          type: type(/** @type {Element} */ (row.querySelector('.sui-select-label'))),
+          check: /** @type {Element} */ (
+            row.querySelector('.sui-select-check')
+          ).getBoundingClientRect().left
+        };
+        return {
+          restInk,
+          field,
+          option,
+          rows,
+          ring: {
+            style: getComputedStyle(lit).outlineStyle,
+            color: getComputedStyle(lit).outlineColor
+          },
+          dot: [dot.marginInlineStart, dot.marginInlineEnd],
+          parts: (() => {
+            const option = /** @type {Element} */ (
+              section.querySelector('.sui-select-sheet .sui-select-option:has(.sui-select-note)')
+            );
+            const size = (/** @type {string} */ part) =>
+              parseFloat(
+                getComputedStyle(/** @type {Element} */ (option.querySelector(part))).fontSize
+              );
+            return {
+              name: size('.sui-select-label'),
+              note: size('.sui-select-note'),
+              heading: getComputedStyle(
+                /** @type {Element} */ (sheet.querySelector('.sui-select-heading'))
+              ).fontWeight
+            };
+          })(),
+          closed: width(closed),
+          copies,
+          heading: start(/** @type {Element} */ (sheet.querySelector('.sui-select-heading'))),
+          name: start(/** @type {Element} */ (sheet.querySelector('.sui-select-label'))),
+          off: {
+            name: strength(/** @type {Element} */ (off.querySelector('.sui-select-label'))),
+            reason: strength(/** @type {Element} */ (off.querySelector('.sui-select-note'))),
+            nameInk: getComputedStyle(
+              /** @type {Element} */ (off.querySelector('.sui-select-label'))
+            ).color,
+            ink: getComputedStyle(/** @type {Element} */ (off.querySelector('.sui-select-note')))
+              .color
+          },
+          secondary: (() => {
+            const probe = document.createElement('span');
+            probe.style.color = 'var(--sui-text-secondary)';
+            sheet.append(probe);
+            const color = getComputedStyle(probe).color;
+            probe.remove();
+            return color;
+          })(),
+          lines: {
+            copy: lines(sheet),
+            live: lines(live),
+            // A list that opens on a group draws no line over it, though a hidden prompt
+            // stands before it.
+            led: (() => {
+              const lead = /** @type {HTMLOptionElement} */ (
+                live.querySelector('option:not([value=""]):not(optgroup *)')
+              );
+              const next = lead.nextSibling;
+              lead.remove();
+              const first = lines(live)[0];
+              live.insertBefore(lead, next);
+              return first;
+            })()
+          },
+          inset: (() => {
+            const lined = /** @type {Element} */ (
+              [...sheet.querySelectorAll('.sui-select-heading')].find(
+                (heading) => getComputedStyle(heading).borderBlockStartWidth !== '0px'
+              )
+            ).getBoundingClientRect();
+            const veil = /** @type {Element} */ (
+              sheet.querySelector('.sui-select-option')
+            ).getBoundingClientRect();
+            return [lined.left - veil.left, lined.right - veil.right];
+          })()
+        };
+      });
+      assert.ok(look.copies.length >= 2, 'the page shows the open copies');
+      for (const copy of look.copies) {
+        assert.equal(copy.field, look.closed, 'an open copy keeps the closed field width');
+        assert.equal(copy.sheet, copy.field, 'its picker is as wide as its field');
+        assert.equal(copy.chevron, '180deg', 'its chevron is turned over');
+        assert.notEqual(copy.ink, look.restInk, 'its chevron firms past the closed one');
+      }
+      // An option is the value itself, so it is set as the field sets it (L-25), its check
+      // stands on the field's text line, and the copy's field wears the open accent baseline.
+      assert.equal(look.option.type, look.field.type, 'an option is set as its field');
+      assert.ok(
+        Math.abs(look.option.check - look.field.text) < 1,
+        `the check starts at ${look.option.check}, the field's words at ${look.field.text}`
+      );
+      assert.equal(look.field.baseline, look.field.focus, 'an open field draws an accent baseline');
+      assert.notEqual(look.field.refused, look.field.focus, 'a refused copy drops the open accent');
+      assert.ok(look.field.asked.hidden, 'the prompt is hidden from the open list');
+      assert.equal(
+        look.field.asked.shown,
+        look.field.asked.prompt,
+        'the closed field shows the prompt'
+      );
+      assert.notEqual(
+        look.field.asked.first,
+        look.field.asked.prompt,
+        'the copy lists no prompt row'
+      );
+      // A check marks the first line of a wrapped name as it does a one-line name, as a menu
+      // icon does.
+      const one = look.rows.find((row) => row.lines === 1);
+      const wrapped = look.rows.find((row) => row.checked && row.lines > 1);
+      assert.ok(one && wrapped, 'the page checks a one-line and a wrapped name');
+      assert.ok(
+        Math.abs(wrapped.drop - one.drop) < 0.5,
+        `a wrapped name's check drops ${wrapped.drop}px, a one-line name's ${one.drop}px`
+      );
+      assert.ok(
+        Math.abs(look.heading - look.name) < 1,
+        'a group heading starts where the names do'
+      );
+      // An option that cannot be chosen draws its name and its reason in the menu reason ink at
+      // full strength, so the reason never outranks the name (L-40).
+      assert.equal(look.off.name, 1, `an off name stands at ${look.off.name}`);
+      assert.equal(look.off.reason, 1, 'an off option keeps its reason at full contrast');
+      assert.equal(look.off.ink, look.secondary, 'its reason reads in the menu reason ink');
+      assert.equal(look.off.nameInk, look.secondary, 'its name reads in the menu reason ink');
+      // A group after a row stands under a line, in the copy and in the live picker alike.
+      assert.deepEqual(look.lines.copy, ['1px', '1px']);
+      assert.deepEqual(look.lines.live, ['1px', '1px']);
+      assert.equal(look.lines.led, '0px', 'a list opening on a group draws no line over it');
+      assert.deepEqual(look.inset, [0, 0], "a group's line stops where the rows' veils do");
+      // The lit row is where the keyboard is, so it wears the ring, as Combobox's lit row does.
+      assert.equal(look.ring.style, 'solid');
+      assert.equal(look.ring.color, look.field.focus, 'the lit row wears the focus ring');
+      // A note rides its name inside one option, so the dot stands 6px off each (L-103).
+      assert.deepEqual(look.dot, ['6px', '6px']);
+      // A note parts from its name by a type step as well as ink, and a group heading stays
+      // under the weight of a label so it never outweighs the names it heads (L-25).
+      assert.ok(
+        look.parts.note < look.parts.name,
+        `a ${look.parts.note}px note under a ${look.parts.name}px name`
+      );
+      assert.equal(look.parts.heading, '500');
     });
 
     test(
@@ -1683,11 +2191,79 @@ suite('forms', together, () => {
       const specimen = retryDelay(page);
       const amount = specimen.getByRole('textbox', { name: 'Retry delay' });
       // The test before leaves the unit at minutes.
+      const field = specimen.locator('.sui-joined');
+      const width = async () => (await field.boundingBox())?.width;
       await specimen.locator('select').selectOption('seconds');
       await amount.fill('66');
+      const wide = await width();
       await specimen.locator('select').selectOption('minutes');
       assert.equal(await amount.inputValue(), '1.1');
       assert.match((await specimen.textContent()) ?? '', /Stored as 66\sseconds/);
+      // The unit holds its longest option's width, so the pick leaves the field as it was.
+      await specimen.locator('select').selectOption('hours');
+      assert.equal(await width(), wide);
+      // The digits end against the unit, whose words stand one 8px step after them, so a short
+      // amount and its unit read as one phrase.
+      assert.deepEqual(
+        await amount.evaluate((input) => {
+          const style = getComputedStyle(input);
+          return [style.textAlign, style.paddingInlineEnd];
+        }),
+        ['end', '0px']
+      );
+      const step = await specimen.evaluate((node) => {
+        const amount = /** @type {Element} */ (node.querySelector('.sui-duration-amount input'));
+        const unit = /** @type {Element} */ (node.querySelector('.sui-select-value'));
+        return unit.getBoundingClientRect().left - amount.getBoundingClientRect().right;
+      });
+      assert.equal(step, 8);
+      // 1 minute names every unit in the singular and 60 seconds in the plural, and the field
+      // holds one width for both.
+      await specimen.locator('select').selectOption('minutes');
+      await amount.fill('1');
+      assert.equal(await width(), wide, 'a singular unit list resized the field');
+      await specimen.locator('select').selectOption('seconds');
+      assert.equal(await amount.inputValue(), '60');
+      assert.equal(await width(), wide, 'a plural unit list resized the field');
+    });
+
+    test("a touch screen's own unit picker holds one width over singular and plural", async () => {
+      const touch = await open({ width: 1024, path: 'duration-input/', touch: true });
+      try {
+        const specimen = retryDelay(touch);
+        const amount = specimen.getByRole('textbox', { name: 'Retry delay' });
+        const unit = specimen.locator('select');
+        const width = async () => (await specimen.locator('.sui-joined').boundingBox())?.width;
+        await unit.selectOption('minutes');
+        await amount.fill('1');
+        const one = await width();
+        await unit.selectOption('seconds');
+        assert.equal(await amount.inputValue(), '60');
+        assert.equal(await width(), one, 'the plural units resized the field');
+      } finally {
+        await touch.close();
+      }
+    });
+
+    test('a duration fits five digits on a phone and says its range on one line', async () => {
+      const page = await opened();
+      const lines = await page.evaluate(() => {
+        const words = document.createRange();
+        words.selectNodeContents(
+          /** @type {Element} */ (document.querySelector('#duration-input .sui-duration-hint'))
+        );
+        return new Set([...words.getClientRects()].map((line) => Math.round(line.top))).size;
+      });
+      assert.equal(lines, 1, 'the range wraps at the field');
+      const phone = await open({ width: 390 });
+      const amount = phone.getByRole('textbox', { name: 'Retry delay' });
+      await amount.fill('86399');
+      const [scroll, client] = await amount.evaluate((input) => [
+        input.scrollWidth,
+        input.clientWidth
+      ]);
+      await phone.close();
+      assert.ok(scroll <= client, `86399 runs ${scroll - client}px past its box`);
     });
 
     test('a joined field rings the part that holds focus', long, async () => {
@@ -1784,23 +2360,187 @@ suite('forms', together, () => {
     );
 
     test(
-      'a hover on either part of a pair chip lights the whole chip, and the remove part over it',
+      'a pair chip wears a field, a hover on either part lights the whole chip, and the bare cross its plate',
       long,
       async () => {
         const page = await opened();
         const chip = page.locator('#pair-entry .sui-pair-chip').first();
         const remove = chip.locator('.sui-pair-remove');
-        const ground = () => chip.evaluate((element) => getComputedStyle(element).backgroundImage);
+        const ground = () =>
+          chip.evaluate((element) =>
+            [
+              getComputedStyle(element).backgroundColor,
+              getComputedStyle(element, '::after').borderTopColor
+            ].join(' | ')
+          );
         const plate = () =>
           remove.evaluate((element) => getComputedStyle(element, '::before').backgroundColor);
         const rest = await ground();
         const plateRest = await plate();
+        assert.equal(plateRest, 'rgba(0, 0, 0, 0)', 'the remove part draws a plate at rest');
+        const field = await chip.evaluate((element) => {
+          const probe = document.createElement('span');
+          probe.style.borderColor = 'var(--sui-field-frame)';
+          probe.style.borderBottomColor = 'var(--sui-field-border)';
+          element.append(probe);
+          const want = getComputedStyle(probe);
+          const edge = getComputedStyle(element, '::after');
+          const paint = [
+            edge.borderTopColor === want.borderTopColor,
+            edge.borderBottomColor === want.borderBottomColor,
+            edge.boxShadow.includes('inset')
+          ];
+          probe.remove();
+          return paint;
+        });
+        assert.deepEqual(
+          field,
+          [true, true, true],
+          'a chip holds a value, so it wears a field frame, baseline and recess (L-9)'
+        );
         await chip.locator('.sui-pair-key').hover();
         const lit = await ground();
         assert.notEqual(lit, rest, 'the edit part did not light its chip');
         await remove.hover();
         assert.equal(await ground(), lit, 'the remove part did not light the whole chip');
         assert.notEqual(await plate(), plateRest, 'the remove part does not answer the pointer');
+      }
+    );
+
+    test(
+      'a focused pair chip wears a field ring 2px off its frame, and a refused one keeps its red edge under a red ring (L-41)',
+      long,
+      async () => {
+        const page = await opened();
+        const ring = async (/** @type {string} */ specimen, /** @type {number} */ at) => {
+          const chip = page
+            .locator('#pair-entry .specimen', { hasText: specimen })
+            .locator('.sui-pair-chip')
+            .nth(at);
+          await page.keyboard.press('Shift');
+          await chip.locator('.sui-pair-edit').focus();
+          return chip.evaluate((element) => {
+            const probe = document.createElement('span');
+            probe.style.color = 'var(--sui-focus)';
+            probe.style.backgroundColor = 'var(--sui-focus-danger)';
+            probe.style.borderColor = 'var(--sui-danger-edge)';
+            element.append(probe);
+            const want = getComputedStyle(probe);
+            const look = getComputedStyle(element);
+            const edge = getComputedStyle(element, '::after');
+            const ring = {
+              width: look.outlineWidth,
+              offset: look.outlineOffset,
+              calm: look.outlineColor === want.color,
+              red: look.outlineColor === want.backgroundColor,
+              redEdge:
+                edge.borderTopColor === want.borderTopColor &&
+                edge.borderBottomColor === want.borderTopColor
+            };
+            probe.remove();
+            return ring;
+          });
+        };
+        assert.deepEqual(await ring('Pairs', 0), {
+          width: '2px',
+          offset: '2px',
+          calm: true,
+          red: false,
+          redEdge: false
+        });
+        assert.deepEqual(await ring('Invalid', 1), {
+          width: '2px',
+          offset: '2px',
+          calm: false,
+          red: true,
+          redEdge: true
+        });
+      }
+    );
+
+    test(
+      'an off pair chip takes the off field paint at full strength, also under a hover (L-40)',
+      long,
+      async () => {
+        const page = await opened();
+        const chip = page
+          .locator('#pair-entry .specimen', { hasText: 'Disabled' })
+          .locator('.sui-pair-chip')
+          .first();
+        await chip.hover();
+        const paint = await chip.evaluate((chip) => {
+          const probe = document.createElement('span');
+          probe.style.backgroundColor = 'var(--sui-field-disabled)';
+          probe.style.color = 'var(--sui-text-muted)';
+          chip.append(probe);
+          const want = getComputedStyle(probe);
+          const look = getComputedStyle(chip);
+          const key = getComputedStyle(
+            /** @type {Element} */ (chip.querySelector('.sui-pair-key'))
+          );
+          const paint = {
+            opacity: look.opacity,
+            ground: look.backgroundColor === want.backgroundColor,
+            edge: getComputedStyle(chip, '::after').borderTopColor,
+            ink: key.color === want.color
+          };
+          probe.remove();
+          return paint;
+        });
+        assert.deepEqual(paint, {
+          opacity: '1',
+          ground: true,
+          edge: 'rgba(0, 0, 0, 0)',
+          ink: true
+        });
+      }
+    );
+
+    test(
+      "a stacked row's reset ends the copy's band, so its chips share whole lines, and a phone keeps the remove plate at its pointer size",
+      long,
+      async () => {
+        const page = await opened();
+        const narrow = page
+          .locator('#pair-entry .example', { hasText: 'Narrow Width' })
+          .locator('.sui-setting-row');
+        await narrow.scrollIntoViewIfNeeded();
+        const tops = await narrow
+          .locator('.sui-pair-chip')
+          .evaluateAll((chips) => chips.map((chip) => chip.getBoundingClientRect().top));
+        const [reset, say] = await Promise.all([
+          narrow.locator('.sui-setting-reset-live button').boundingBox(),
+          narrow.locator('.sui-setting-say').boundingBox()
+        ]);
+        assert.ok(reset && say, 'the row has no reset or no copy');
+        assert.ok(
+          reset.y + reset.height <= say.y + say.height + 0.5,
+          'the reset left the copy band'
+        );
+        assert.ok(Math.abs(tops[1] - tops[0]) < 0.5, 'the second chip took a line of its own');
+
+        const plate = () =>
+          page
+            .locator('#pair-entry .sui-pair-remove')
+            .first()
+            .evaluate((element) => {
+              const box = element.getBoundingClientRect();
+              const inset = parseFloat(getComputedStyle(element, '::before').top);
+              const edit = /** @type {Element} */ (element.previousElementSibling);
+              const room = parseFloat(getComputedStyle(edit).paddingInlineEnd) - box.width;
+              return [box.height, box.height - 2 * inset, room >= 0];
+            });
+        const [, pointer] = await plate();
+        await page.setViewportSize({ width: 390, height: 900 });
+        try {
+          assert.deepEqual(
+            await plate(),
+            [44, pointer, true],
+            "the phone plate is not the pointer one, or the words reach the remove part's square"
+          );
+        } finally {
+          await page.setViewportSize({ width: 1440, height: 900 });
+        }
       }
     );
 
@@ -2495,6 +3235,100 @@ suite('forms', together, () => {
       await page.close();
     }
   });
+
+  // The mark and the way back once stood on the middle of a field and its hint, under the field,
+  // and a button that wrapped on a phone ran back under the mark, off the words' edge. The mark
+  // once stood 7px in from the specimen's edge and 12px off its words, at 13px.
+  test(
+    'an inherit control keeps its mark and buttons on the value or control row and edge, its 16px mark 8px off its words on its own edge, a spinner in its place while loading',
+    long,
+    async () => {
+      const page = await open({ width: 390, path: 'inherit-control/' });
+      try {
+        const edges = () =>
+          page.evaluate(() =>
+            [...document.querySelectorAll('#inherit-control .sui-inherit')]
+              .slice(0, 3)
+              .map((root) => {
+                const words = root.querySelector('.sui-inherit-value, .sui-inherit-control > *');
+                const button = [...root.querySelectorAll('button')].at(-1);
+                const glyph = root.querySelector('.sui-inherit-marker svg');
+                const [w, b, g, r] = [words, button, glyph, root].map((part) =>
+                  /** @type {Element} */ (part).getBoundingClientRect()
+                );
+                return {
+                  words: w.left,
+                  button: b.left,
+                  wrapped: b.top >= w.bottom,
+                  mark: [g.width, g.left - r.left, w.left - g.right]
+                };
+              })
+          );
+        for (const { words, button, wrapped, mark } of await edges()) {
+          assert.ok(wrapped, 'the phone row has room for its button beside the words');
+          assert.equal(button, words, 'a wrapped button stands off the edge of the words over it');
+          assert.deepEqual(
+            mark,
+            [16, 0, 8],
+            'the mark is not 16px on its edge, 8px off its words (L-94)'
+          );
+        }
+        // Muted inherited words under a row's muted description read as one more line of it
+        // unless the row parts them by more than the description's own 8px line gap.
+        assert.deepEqual(
+          await page.locator('#inherit-control .sui-setting-row').evaluateAll((rows) =>
+            rows.map((row) => {
+              const [say, value] = ['.sui-setting-say', '.sui-setting-value'].map((part) =>
+                /** @type {Element} */ (row.querySelector(part)).getBoundingClientRect()
+              );
+              return Math.round(value.top - say.bottom);
+            })
+          ),
+          [12, 12],
+          'a phone row does not set its control 12px under its copy'
+        );
+        await page.setViewportSize({ width: 1440, height: 900 });
+        const root = page.locator('#inherit-control .sui-inherit').first();
+        await root.getByRole('button').click();
+        const rows = await root.evaluate((element) => {
+          const middle = (/** @type {Element} */ part) => {
+            const box = part.getBoundingClientRect();
+            return box.top + box.height / 2;
+          };
+          const field = /** @type {Element} */ (element.querySelector('.sui-joined'));
+          return {
+            hint: Boolean(element.querySelector('.sui-duration-hint')),
+            field: middle(field),
+            mark: middle(/** @type {Element} */ (element.querySelector('.sui-inherit-marker'))),
+            back: middle(/** @type {Element} */ ([...element.querySelectorAll('button')].at(-1)))
+          };
+        });
+        assert.ok(rows.hint, 'the overridden duration lost the hint under it');
+        assert.ok(
+          Math.abs(rows.mark - rows.field) <= 0.5,
+          `the mark stands ${rows.mark - rows.field}px off the field`
+        );
+        assert.ok(
+          Math.abs(rows.back - rows.field) <= 0.5,
+          `the way back stands ${rows.back - rows.field}px off the field`
+        );
+        // A value still loading when the page draws waits with the busy ring in the mark's place.
+        const loading = page
+          .locator('#inherit-control .specimen', { hasText: 'Loading' })
+          .locator('.sui-inherit-marker');
+        assert.deepEqual(
+          await loading.evaluate((marker) => [
+            Boolean(marker.querySelector('.sui-inherit-spinner')),
+            Boolean(marker.querySelector('svg'))
+          ]),
+          [true, false],
+          "the loading value draws no spinner in its mark's place"
+        );
+      } finally {
+        await page.close();
+      }
+    }
+  );
 
   test('a duration amount reads the page language own digits', long, async () => {
     const page = await open({ lang: 'ar-EG', path: 'duration-input/' });

@@ -98,7 +98,7 @@ what the reader is looking at.
 Two tones and no more. `quiet` states a consequence to take in before confirming, and
 `warning` is for the genuinely hazardous one and carries the tint. A screen reader hears
 "Warning:" before its words, because the tint and the icon do not reach it. `decision` is
-the gold surface of an unsaved decision: opaque, with a 2px accent border, and a screen reader
+the gold surface of an unsaved decision: opaque, with a one-stroke gold edge, and a screen reader
 hears `decisionLabel` before its words. Its resolving action wears Button's `decision` tone,
 and every other action keeps the default tone.
 
@@ -213,7 +213,7 @@ and the unsaved ink, so no neutral block sits on a state (L-92).
     --sui-interactive-hover-layer: color-mix(in srgb, var(--sui-unsaved-ink) 10%, transparent);
     --sui-interactive-pressed: color-mix(in srgb, var(--sui-unsaved-ink) 16%, transparent);
     background: var(--sui-popover-bg);
-    border: var(--sui-decision-border-width) solid var(--sui-decision-accent);
+    border: var(--sui-decision-border-width) solid var(--sui-unsaved-border);
     box-shadow: var(--sui-shadow-plate);
   }
 

@@ -4,6 +4,7 @@
   import type { HTMLAttributes } from 'svelte/elements';
   import Icon from '../icons/Icon.svelte';
   import { held, holdAround } from '../internal/held.svelte.js';
+  import { shownWait } from '../internal/shown-wait.svelte.js';
   import Button from './Button.svelte';
 
   const FOCUSABLE = 'input, select, textarea, button, [tabindex]:not([tabindex="-1"])';
@@ -82,6 +83,9 @@
   } & Omit<HTMLAttributes<HTMLDivElement>, 'children' | 'class' | 'id'> = $props();
 
   let root = $state<HTMLElement | null>(null);
+  const failed = $derived(!overridden && !loading && Boolean(error));
+  // The words say the wait at once; its spinner waits out a fast answer and stays once drawn.
+  const waiting = shownWait(() => loading && !overridden);
 
   // The value sits inside the sentence wherever the language puts it, so it keeps its weight.
   const said = $derived.by(() => {
@@ -136,11 +140,11 @@ for a press of the way back.
 
 - Semantics: a `div` holding the sentence and a native button, or the caller's control and a native button; pass the row's `id` here and to the control, and it lands on Override Value while inheriting, so pressing the setting's name overrides.
 - Content: the inherited value and its source as one sentence, or the caller's control.
-- States: inheriting (the value in muted ink beside a link mark), overridden (the control beside a broken link mark), loading, failed (`error` with an alert mark), nothing set at the source, and disabled.
+- States: inheriting (the value in muted ink beside a link mark), overridden (the control beside a broken link mark), loading (the button's busy spinner in the mark's place, drawn once the wait has run 150ms and then for at least 400ms), failed (`error` with an alert mark in the link mark's place), nothing set at the source, and disabled.
 - Keyboard: Tab reaches Override Value or the control and then the way back; Enter or Space on either button switches.
 - Pointer and touch: both buttons are 34px tall, 44px on a phone.
 - Focus: overriding moves focus into the control, onto its chosen option first; going back moves it to Override Value.
-- Responsive: the sentence wraps beside its mark, and the button wraps under it when the room is short.
+- Responsive: the sentence wraps beside its mark, and the button wraps under it, on its start edge, when the room is short; beside a control, the mark and the button stand on the control's first row, so the control draws no name of its own.
 - Accessibility: each button's name carries `label`, so a screen reader hears which setting it acts on; the mark is decorative and the sentence says the state.
 - Localization: every word is a prop; the sentence is one function of the value and the source, so a language can place them in its own order, and the value keeps its weight wherever it lands.
 - Performance: the control mounts only while overridden.
@@ -148,19 +152,20 @@ for a press of the way back.
 - Failure: `loading` says `loadingLabel`, `error` says why the inherited value is unknown while Override Value still works, and an empty `inherited` says `unknownLabel`.
 -->
 
-<div bind:this={root} {...rest} class={['sui-inherit', className, { overridden }]}>
+<div bind:this={root} {...rest} class={['sui-inherit', className, { overridden, failed }]}>
   <span class="sui-inherit-subject">
     <span class="sui-inherit-marker" aria-hidden="true">
-      <Icon name={overridden ? 'link-off' : 'link'} size="sm" />
+      {#if waiting.current}<span class="sui-inherit-spinner"></span>{:else}<Icon
+          name={overridden ? 'link-off' : failed ? 'alert' : 'link'}
+          size="base"
+        />{/if}
     </span>
     {#if overridden}
       <span class="sui-inherit-control">{@render control()}</span>
     {:else if loading}
       <span class="sui-inherit-value">{loadingLabel}</span>
     {:else if error}
-      <span class="sui-inherit-problem">
-        <Icon name="alert" size="sm" /><span class="sui-inherit-value">{error}</span>
-      </span>
+      <span class="sui-inherit-value sui-inherit-problem">{error}</span>
     {:else}
       <span class="sui-inherit-value"
         >{said.before}<span class="sui-inherit-word">{said.value}</span>{said.after}</span
@@ -190,16 +195,21 @@ for a press of the way back.
 </div>
 
 <style>
+  /* The mark hangs in the start padding, so a button that wraps stands on the words' or the
+     control's edge, not under the mark. */
   .sui-inherit {
     --sui-inherit-marker-size: 26px;
-    --sui-inherit-marker-gap: 6px;
+    --sui-inherit-marker-gap: var(--sui-space-2);
+    --sui-local-inherit-hang: calc(var(--sui-icon-base) + var(--sui-inherit-marker-gap));
     align-items: center;
+    box-sizing: border-box;
     display: flex;
     flex-wrap: wrap;
     gap: var(--sui-space-2) var(--sui-space-3);
     inline-size: fit-content;
     max-inline-size: 100%;
     min-inline-size: 0;
+    padding-inline-start: var(--sui-local-inherit-hang);
   }
 
   /* Words: the mark centres on the first line's cap height, however many lines they wrap to. */
@@ -207,6 +217,7 @@ for a press of the way back.
     align-items: start;
     display: flex;
     gap: var(--sui-inherit-marker-gap);
+    margin-inline-start: calc(-1 * var(--sui-local-inherit-hang));
     min-inline-size: 0;
   }
 
@@ -217,16 +228,20 @@ for a press of the way back.
     flex: none;
     font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-row-copy-leading)
       var(--sui-sans);
-    inline-size: var(--sui-inherit-marker-size);
+    /* As wide as its 16px glyph, so the glyph stands on the control's edge and 8px off the
+       words, as every mark beside 14px words does (L-94); as tall as a chip, so it centres on
+       the words' first line. */
+    inline-size: var(--sui-icon-base);
     margin-block: calc((round(up, 1cap, 2px) - var(--sui-inherit-marker-size)) / 2);
     place-items: center;
   }
 
-  /* A control: the mark and the button stand on the control's own row, a control tall, so a
-     caption over the control never pulls them off its centre. */
+  /* A control: the mark and the way back stand on the control's first row, a control tall, so
+     a hint or a problem under the control never pulls them off it. The setting's name stands
+     outside, as a row's or a field's label does. */
   .overridden,
   .overridden .sui-inherit-subject {
-    align-items: end;
+    align-items: start;
   }
 
   .overridden .sui-inherit-marker {
@@ -249,29 +264,50 @@ for a press of the way back.
     overflow-wrap: anywhere;
     padding-block: var(--sui-block-snap-room-even);
     text-box: trim-both cap alphabetic;
+    /* A sentence that wraps never leaves its last word alone. */
+    text-wrap: pretty;
   }
 
+  /* In the field's figures, so a value keeps its shape when an override draws it in the field. */
   .sui-inherit-word {
+    font-variant-numeric: tabular-nums;
     font-weight: var(--sui-weight-semibold);
   }
 
-  /* In the words' font, so its alert mark centres on their first line as the link mark does. */
+  /* An unknown value takes the alert in the mark's place, so the row draws one mark, and its
+     words read as the kit's 14px message (L-94). */
+  .failed .sui-inherit-marker,
   .sui-inherit-problem {
-    align-items: start;
     color: var(--sui-danger);
-    display: flex;
+  }
+
+  .sui-inherit-problem {
     font: var(--sui-weight-medium) var(--sui-font-size-note) / var(--sui-leading-note)
       var(--sui-sans);
-    gap: var(--sui-space-1);
-    min-inline-size: 0;
   }
 
-  .sui-inherit-problem > :global(svg) {
-    flex: none;
-    margin-block: calc((round(up, 1cap, 2px) - var(--sui-icon-sm)) / 2);
+  /* A wait for the inherited value: the button's busy ring, a quarter arc on a 40% track, in
+     the mark's 16px slot. */
+  .sui-inherit-spinner {
+    block-size: calc(var(--sui-icon-base) - 2 * var(--sui-stroke));
+    border: var(--sui-stroke-bold) solid color-mix(in srgb, currentColor 55%, transparent);
+    border-block-start-color: currentColor;
+    border-radius: 50%;
+    box-sizing: border-box;
+    inline-size: calc(var(--sui-icon-base) - 2 * var(--sui-stroke));
+    margin: var(--sui-stroke);
+    animation: sui-inherit-spin var(--sui-duration-spinner) var(--sui-ease-linear) infinite;
   }
 
-  .sui-inherit-problem .sui-inherit-value {
-    color: inherit;
+  @keyframes sui-inherit-spin {
+    to {
+      rotate: 1turn;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .sui-inherit-spinner {
+      animation: none;
+    }
   }
 </style>

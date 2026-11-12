@@ -320,6 +320,28 @@ suite('the kitchen sink', together, () => {
     }
   );
 
+  // A status leads its words with a mark, so only its words are trimmed, and the audit has to
+  // measure them to see the step under the description.
+  test(
+    'L-24 the audit finds a status that stands the wrong gap under its description',
+    long,
+    async () => {
+      const page = await open(1440, 'light', {}, 'setting-list');
+      try {
+        await page.evaluate(() => {
+          const status = document.querySelector('.sui-setting-why + .sui-setting-status');
+          /** @type {HTMLElement} */ (status).style.marginBlockStart = '0px';
+        });
+        const findings = (await audit(page)).filter(
+          ({ law, detail }) => law === 'L-24' && detail.includes('not 12px')
+        );
+        assert.ok(findings.length > 0, 'a status a copy gap under its description is a finding');
+      } finally {
+        await page.close();
+      }
+    }
+  );
+
   // A tablet wider than a phone still has a coarse pointer, so the touch tier must hold there too.
   test('the law audit finds nothing on a 1024px touch screen', long, async () => {
     const page = await open(1024, 'light', { hasTouch: true, isMobile: true });
@@ -417,10 +439,18 @@ suite('the kitchen sink', together, () => {
               /** @type {unknown} */ (window)
             ).tabbed
         );
-      // The sink holds about 800 stops; the sweep ends where focus comes back to a stop it read,
-      // and the bound only stops a page that never gives focus back.
+      // The sink holds about 1000 stops; the sweep ends where focus comes back to a stop it read,
+      // and the bound only stops a page that never gives focus back. The presses of a run are sent
+      // together, and the browser still takes them in turn.
+      const cdp = await page.context().newCDPSession(page);
+      const tab = { key: 'Tab', code: 'Tab', windowsVirtualKeyCode: 9 };
       for (let step = 0; step < 3000 && !(await tabbed()).done; step += 20)
-        for (let press = 0; press < 20; press++) await page.keyboard.press('Tab');
+        await Promise.all(
+          Array.from({ length: 20 }, () => [
+            cdp.send('Input.dispatchKeyEvent', { type: 'keyDown', ...tab }),
+            cdp.send('Input.dispatchKeyEvent', { type: 'keyUp', ...tab })
+          ]).flat()
+        );
       const { stops } = await tabbed();
       const problems = [];
       for (const stop of stops) {
@@ -588,6 +618,69 @@ suite('the kitchen sink', together, () => {
   );
 
   // A hint that keeps its seat beside the words squeezes them onto more lines on a phone.
+  test('L-58 a link a busy dialog holds loses its address, as a held button is disabled', async () => {
+    const page = await openMount(browser, url);
+    try {
+      const link = await page.evaluate(async () => {
+        const { lib, mount, createRawSnippet, flushSync } = /** @type {any} */ (window);
+        const words = (/** @type {string} */ text) =>
+          createRawSnippet(() => ({ render: () => `<span>${text}</span>` }));
+        mount(lib.Modal, {
+          target: document.body,
+          props: {
+            preview: true,
+            busy: true,
+            title: 'Rename Repository',
+            // A raw snippet draws only markup, so the link is mounted into it as its own root.
+            children: createRawSnippet(() => ({
+              render: () => '<div id="held-link"></div>',
+              setup: (/** @type {Element} */ node) => {
+                mount(lib.Button, {
+                  target: node,
+                  props: { href: '/docs/', children: words('Read the Docs') }
+                });
+              }
+            })),
+            footer: createRawSnippet(() => ({
+              render: () => '<button aria-busy="true">Saving</button>'
+            }))
+          }
+        });
+        flushSync();
+        await new Promise((done) => requestAnimationFrame(() => requestAnimationFrame(done)));
+        flushSync();
+        const anchor = document.querySelector('#held-link a');
+        return { href: anchor?.getAttribute('href'), role: anchor?.getAttribute('role') };
+      });
+      assert.deepEqual(link, { href: null, role: 'link' });
+    } finally {
+      await page.close();
+    }
+  });
+
+  test('a fixed instant reads as the page was written, before and after script, in any zone', async () => {
+    // Line Islands time is UTC+14, where noon UTC is already the next day.
+    const read = async (/** @type {boolean} */ javaScriptEnabled) => {
+      const page = await browser.newPage({ timezoneId: 'Pacific/Kiritimati', javaScriptEnabled });
+      try {
+        await page.goto(new URL('relative-time/', url).href);
+        if (javaScriptEnabled) await page.waitForFunction(() => '__suiAudit' in window);
+        return await page
+          .locator('#relative-time time')
+          .evaluateAll((times) =>
+            times
+              .map((time) => time.textContent?.trim() ?? '')
+              .filter((words) => !/^(now|in\s|\d+\s\S+\sago)/.test(words))
+          );
+      } finally {
+        await page.close();
+      }
+    };
+    const written = await read(false);
+    assert.ok(written.length >= 2, `found ${written.length} fixed instants`);
+    assert.deepEqual(await read(true), written, 'script redrew a fixed date or hour');
+  });
+
   test("L-57 a disclosure's hint shares the words' line only when both fit", async () => {
     const page = await open(375, 'light', {}, 'disclosure');
     try {
@@ -982,6 +1075,9 @@ suite('the kitchen sink', together, () => {
       const report = await trigger.evaluate((element) => {
         const layer = document.querySelector(':popover-open:has([role="listbox"], [role="menu"])');
         if (!layer) return { missing: true };
+        // A layer can start its opening move a frame after it shows, past the rest above.
+        for (const animation of layer.getAnimations({ subtree: true }))
+          if (animation.effect?.getTiming().iterations !== Infinity) animation.finish();
         const probe = document.createElement('span');
         probe.style.color = 'var(--sui-interactive-hover-layer)';
         element.append(probe);
@@ -1006,11 +1102,15 @@ suite('the kitchen sink', together, () => {
             !element.matches('.sui-button:not(.field)') ||
             getComputedStyle(element).backgroundImage.includes(veil),
           heights: [...new Set(options.map((height) => Math.round(height * 100) / 100))],
-          tier: parseFloat(
-            getComputedStyle(document.documentElement).getPropertyValue(
-              '--sui-control-height-compact'
-            )
-          )
+          // The token is a max() of round()s, so a probe resolves it to pixels.
+          tier: (() => {
+            const probe = document.createElement('div');
+            probe.style.blockSize = 'var(--sui-control-height-compact)';
+            document.body.append(probe);
+            const height = probe.getBoundingClientRect().height;
+            probe.remove();
+            return height;
+          })()
         };
       });
       const name = `trigger ${index} (${await trigger.getAttribute('aria-haspopup')})`;
@@ -1079,11 +1179,15 @@ suite('the kitchen sink', together, () => {
             !element.matches('.sui-select:not(.bare) select:not([aria-invalid="true"])') ||
             getComputedStyle(element).borderTopColor === edge,
           heights: [...new Set(options.map((height) => Math.round(height * 100) / 100))],
-          tier: parseFloat(
-            getComputedStyle(document.documentElement).getPropertyValue(
-              '--sui-control-height-compact'
-            )
-          )
+          // The token is a max() of round()s, so a probe resolves it to pixels.
+          tier: (() => {
+            const probe = document.createElement('div');
+            probe.style.blockSize = 'var(--sui-control-height-compact)';
+            document.body.append(probe);
+            const height = probe.getBoundingClientRect().height;
+            probe.remove();
+            return height;
+          })()
         };
       });
       const name = `select ${index} (${(await select.getAttribute('aria-label')) ?? (await select.getAttribute('id'))})`;
@@ -1418,6 +1522,151 @@ suite('the kitchen sink', together, () => {
   });
 
   test(
+    "L-36 a phone's setting rows keep a lone switch and a fact beside the copy, a stacked row's copy takes the whole row under its reset, a switch's row hovers, controls under the copy leave no band above them, a status stands apart from the description with its mark, a checked box keeps the accent, a reset stands right before its select, and the narrow list fills the column",
+    long,
+    async () => {
+      const page = await open(390, 'light', {}, 'setting-list');
+      try {
+        const rows = await page.locator('#setting-list .sui-setting-row').evaluateAll((all) =>
+          all.map((row) => {
+            const part = (/** @type {string} */ name) =>
+              /** @type {Element} */ (row.querySelector(name)).getBoundingClientRect();
+            const name = /** @type {Element} */ (row.querySelector('.sui-setting-words'));
+            const [words, mark] = [...name.children].map((span) => [...span.getClientRects()]);
+            return {
+              name: name.firstElementChild?.textContent ?? '',
+              beside: part('.sui-setting-value').left >= part('.sui-setting-say').right,
+              fullWhy:
+                row.querySelector('.sui-setting-why') === null ||
+                Math.abs(part('.sui-setting-why').width - row.clientWidth + 16) < 1,
+              markOnLastLine: Math.abs(mark[0].top - (words.at(-1)?.top ?? 0)) < 1,
+              copyOnly:
+                row.querySelector('.sui-setting-why') !== null &&
+                Math.abs(part('.sui-setting-say').bottom - part('.sui-setting-why').bottom) < 1
+            };
+          })
+        );
+        const row = (/** @type {string} */ name) => rows.find((each) => each.name === name);
+        for (const name of ['Mirror to the backup region', 'Sign each payload', 'Merge method'])
+          assert.equal(row(name)?.beside, true, `${name} dropped under its copy`);
+        // Controls on a line of their own leave the copy no empty band above them.
+        for (const name of ['Command prefix', 'Log level'])
+          assert.equal(row(name)?.copyOnly, true, `${name} kept an empty band over its controls`);
+        const paths = row(
+          'Paths the bot never formats, even when a rule in a parent workspace asks it to'
+        );
+        assert.equal(paths?.fullWhy, true, "the stacked row's why line kept the reset's column");
+        assert.equal(paths?.markOnLastLine, true, 'the hidden Unsaved word took a line of its own');
+
+        // The saving word and the Unsaved mark are statuses, set apart from the description.
+        assert.deepEqual(
+          await page
+            .locator('#setting-list .sui-setting-row', { hasText: 'Sign each payload' })
+            .evaluate((node) => {
+              const look = (/** @type {string} */ part) =>
+                getComputedStyle(/** @type {Element} */ (node.querySelector(part)));
+              const [why, status, mark] = [
+                '.sui-setting-why',
+                '.sui-setting-status',
+                '.sui-setting-mark'
+              ].map(look);
+              const [over, under] = ['.sui-setting-why', '.sui-setting-status'].map((part) =>
+                /** @type {Element} */ (node.querySelector(part)).getBoundingClientRect()
+              );
+              return [
+                why.fontWeight,
+                status.fontWeight,
+                mark.fontWeight,
+                why.color !== status.color,
+                Math.round(under.top - over.bottom)
+              ];
+            }),
+          ['400', '500', '500', true, 12],
+          'the saving word or the Unsaved mark reads as more of the description'
+        );
+        // A saving switch is its own change at work, as a busy button is, so it keeps its strength.
+        assert.equal(
+          await page
+            .locator('#setting-list .sui-setting-row', { hasText: 'Sign each payload' })
+            .locator('.sui-switch-track')
+            .evaluate((track) => getComputedStyle(track).opacity),
+          '1',
+          'the saving switch dimmed as if held by work around it'
+        );
+        // The free area of a row whose name flips a switch wears the row's hover veil; a row
+        // whose name only focuses a field does not.
+        const veil = async (/** @type {string} */ name) => {
+          const target = page.locator('#setting-list .sui-setting-row', { hasText: name }).first();
+          await target.hover({ position: { x: 12, y: 12 } });
+          return target.evaluate((node) => getComputedStyle(node, '::before').backgroundImage);
+        };
+        assert.notEqual(await veil('Mirror to the backup region'), 'none', 'the row did not hover');
+        assert.equal(await veil('Command prefix'), 'none', "a field's row hovered");
+        // A checked box keeps the accent on a changed row, so it has one on colour on the page,
+        // and each status line is led by its mark.
+        const fills = await page
+          .locator('#setting-list .sui-setting-row', { hasText: 'Retry failed checks' })
+          .evaluateAll((all) =>
+            all.map((row) => {
+              const box = row.querySelector('input:checked + .sui-checkbox-box');
+              return box ? getComputedStyle(box).backgroundColor : '';
+            })
+          );
+        assert.equal(
+          new Set(fills.filter(Boolean)).size,
+          1,
+          `a checked box wore ${fills.join(' and ')}`
+        );
+        assert.equal(
+          await page
+            .locator('#setting-list :is(.sui-setting-status, .sui-setting-problem)')
+            .evaluateAll(
+              (all) =>
+                all.filter((line) => line.firstElementChild?.tagName.toLowerCase() !== 'svg').length
+            ),
+          0,
+          'a status line has no mark'
+        );
+        // A reset stands right before the select a segmented control turns into.
+        assert.equal(
+          await page
+            .locator('#setting-list .sui-setting-row', { hasText: 'Log level' })
+            .first()
+            .evaluate((node) => {
+              const at = (/** @type {string} */ part) =>
+                /** @type {Element} */ (node.querySelector(part)).getBoundingClientRect();
+              const [reset, select] = [at('.sui-setting-reset'), at('.sui-segmented select')];
+              return [
+                Math.round(select.left - reset.right),
+                Math.round(select.top - reset.top)
+              ].join();
+            }),
+          '8,0',
+          'the reset stood away from its select'
+        );
+        // A phone's column is already narrow, so the narrow list leaves no empty band in it.
+        assert.equal(
+          await page
+            .locator('#setting-list .example', { hasText: 'Narrow Width' })
+            .locator('.sui-setting-list')
+            .evaluate((list) => {
+              const inner = list.getBoundingClientRect();
+              const outer = /** @type {Element} */ (
+                list.closest('.example')
+              ).getBoundingClientRect();
+              return [Math.round(inner.left - outer.left), Math.round(outer.right - inner.right)];
+            })
+            .then(([start, end]) => end - start),
+          0,
+          'the narrow list left an empty band beside its rows'
+        );
+      } finally {
+        await page.close();
+      }
+    }
+  );
+
+  test(
     'L-52 and L-89 a pair chip edits in place and focus never falls to the page',
     long,
     async () => {
@@ -1448,6 +1697,25 @@ suite('the kitchen sink', together, () => {
         await page.keyboard.press('Enter');
         assert.equal(await editor.count(), 1, 'a rejected key closed the editor');
         assert.match(await editor.innerText(), /lowercase/);
+        // Remove Pair stands at the editor's start, apart from Save Pair at its end.
+        const [actions, removal, save] = await Promise.all(
+          [
+            editor.locator('.sui-pair-actions'),
+            editor.getByRole('button', { name: 'Remove Pair' }),
+            editor.getByRole('button', { name: 'Save Pair' })
+          ].map((part) => part.boundingBox())
+        );
+        assert.ok(actions && removal && save, 'the editor lost an action');
+        assert.ok(
+          Math.abs(removal.x - actions.x) < 0.5 &&
+            Math.abs(save.x + save.width - actions.x - actions.width) < 0.5,
+          'Remove Pair and Save Pair do not stand at the two ends'
+        );
+        // The removal is destructive, so it wears the bordered danger tone (L-39).
+        assert.equal(
+          await editor.getByRole('button', { name: 'Remove Pair' }).getAttribute('data-tone'),
+          'stop-quiet'
+        );
         await page.keyboard.press('Escape');
         await settles(
           page.waitForFunction(
@@ -1638,6 +1906,27 @@ suite('the kitchen sink', together, () => {
       assert.deepEqual(problems, []);
     }
   );
+
+  test("on a phone a page's source row heads its examples, closer to them than they stand apart", async () => {
+    const page = await open(390, 'light', {}, 'combobox');
+    try {
+      const gaps = await page.evaluate(() => {
+        const head = /** @type {Element} */ (
+          document.querySelector('.section:not(.headed) > .head')
+        );
+        // Each example stands in a wrapper that only carries its style props and draws no box.
+        const [first, second] =
+          head.parentElement?.querySelectorAll(':scope > svelte-css-wrapper > *') ?? [];
+        return [
+          first.getBoundingClientRect().top - head.getBoundingClientRect().bottom,
+          second.getBoundingClientRect().top - first.getBoundingClientRect().bottom
+        ];
+      });
+      assert.deepEqual(gaps, [16, 24]);
+    } finally {
+      await page.close();
+    }
+  });
 
   test('L-87 the phone drawer holds focus and gives it back', long, async () => {
     // The shell is a whole page of its own, opened on a phone.

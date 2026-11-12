@@ -13,6 +13,8 @@
      * option for the scheme the page wears instead of its prompt.
      */
     scheme?: 'light' | 'dark' | 'system';
+    /** Other forms the label takes, such as a unit's singular and plural, whose width a `bare` trigger holds too. */
+    forms?: readonly string[];
   };
 
   export type SelectGroup<Value extends SelectValue = string> = {
@@ -26,6 +28,7 @@
   import { mark, word } from '../words.js';
   import type { HTMLSelectAttributes } from 'svelte/elements';
   import Icon from '../icons/Icon.svelte';
+  import '../internal/scroll-foot.css';
   import { held, holdAround } from '../internal/held.svelte.js';
   import { getRefusals } from '../internal/refusals.svelte.js';
   import { themeAt } from '../internal/theme.svelte.js';
@@ -136,7 +139,8 @@ the value, reach for a `Combobox`.
 
 Every native attribute lands on the `<select>`, so `name`, `required` and `form` submit and
 validate like any field. While `value` is null, or whenever `placeholder` is set, a disabled first
-option holds the prompt, and `required` counts it as no answer. Name the field with a `<label>`
+option holds the prompt, hidden from the open list so it never reads as an option that is off,
+and `required` counts it as no answer. Name the field with a `<label>`
 pointing at its `id`, or with `aria-label`, and pass a `Field`'s `invalid` to `invalid` so its
 error edge shows. `preview` draws an inert copy of the open picker under the field, hidden from
 assistive technology, because a native picker cannot be held open.
@@ -147,7 +151,7 @@ assistive technology, because a native picker cannot be held open.
 - Keyboard: the browser's own select keys: Space, Enter and the arrows open it and move, typing jumps to a label, and Escape closes it; a held select refuses all of them but Tab.
 - Pointer and touch: the trigger is 34px tall on a pointer and 44px on a phone or any touch screen, every option at least that tall, and a phone opens its own picker.
 - Focus: focus stays on the trigger while the picker opens and closes.
-- Responsive: the trigger is as wide as its value up to its container and cuts a long value, which the picker shows in full, wrapped.
+- Responsive: the trigger is as wide as its value up to its container and cuts a long value, which the picker shows in full, wrapped. A `bare` trigger holds the width of its longest option, and of every form its options' `forms` list, so a new pick never resizes the field it is joined to.
 - Accessibility: options are native, so their names, groups and states reach every screen reader; a note is in an option's name; edges hold 3:1 and words 4.5:1.
 - Localization: `promptLabel`, `separator` and `optionName` are props with English defaults, the chevron and padding are logical, and the picker opens at the start edge in either direction.
 - Performance: native options render once each; the open picker moves only opacity and `translate`, with no movement under reduced motion.
@@ -186,7 +190,8 @@ assistive technology, because a native picker cannot be held open.
 {/snippet}
 
 {#snippet field()}
-  <span class={['sui-select', { bare }, className]}>
+  <!-- A direction passed for the field reaches its chevron as well as the control. -->
+  <span class={['sui-select', { bare }, className]} dir={rest.dir}>
     <select
       bind:this={element}
       {...rest}
@@ -206,6 +211,7 @@ assistive technology, because a native picker cannot be held open.
           data-sui-theme={pickerTheme}
           value=""
           disabled
+          hidden={presumed.length === 0}
         >
           {#if presumed.length > 0}
             <span class="sui-select-check"><Icon name="check" size="base" /></span>
@@ -234,6 +240,14 @@ assistive technology, because a native picker cannot be held open.
       {/each}
     </select>
     <span class="sui-select-chevron"><Icon name="chevron-down" size="base" /></span>
+    {#if bare}
+      <span class="sui-select-room" aria-hidden="true">
+        {#each flat as option (option.value)}
+          {#each [option.label, ...(option.forms ?? [])] as form, index (index)}<span>{form}</span
+            >{/each}
+        {/each}
+      </span>
+    {/if}
   </span>
 {/snippet}
 
@@ -241,7 +255,7 @@ assistive technology, because a native picker cannot be held open.
   <div class="sui-select-preview">
     {@render field()}
     <div class="sui-select-sheet" aria-hidden="true" inert>
-      {#if prompt !== undefined}
+      {#if prompt !== undefined && presumed.length > 0}
         <div class="sui-select-option" aria-disabled="true">{@render face(prompt)}</div>
       {/if}
       {#each options as item (item)}
@@ -445,9 +459,32 @@ assistive technology, because a native picker cannot be held open.
     box-shadow: none;
     color: var(--sui-text-secondary);
     margin-block: calc(-1 * var(--sui-stroke));
-    /* The field's own text inset, so the unit's words sit as far in as a value's would. */
-    padding-inline-start: var(--sui-field-inset);
+    /* A step after the value's own end inset, so the amount and its unit read as one phrase. */
+    padding-inline-start: var(--sui-space-2);
     translate: none;
+  }
+
+  /* A bare unit joined to a field holds the width of the longest form of any option, with the
+     control's own type and insets, in the browser's own picker too, so a new pick or a label
+     that turns plural never resizes the field around it. */
+  .bare .sui-select-control {
+    justify-self: stretch;
+  }
+
+  .sui-select-room {
+    block-size: 0;
+    display: grid;
+    font: var(--sui-weight-regular) var(--sui-font-size-input) / var(--sui-leading-input)
+      var(--sui-sans);
+    grid-area: 1 / 1;
+    /* The browser's own picker rounds its width up to a whole pixel, so the room does too. */
+    inline-size: calc-size(max-content, round(up, size, 1px));
+    overflow: hidden;
+    padding-inline: var(--sui-space-2)
+      calc(var(--sui-field-inset) + var(--sui-icon-base) + var(--sui-space-2));
+    pointer-events: none;
+    visibility: hidden;
+    white-space: nowrap;
   }
 
   /* While its picker is open the unit keeps the lit ground and ink, as an icon button does
@@ -505,8 +542,9 @@ assistive technology, because a native picker cannot be held open.
     color: var(--sui-local-joined-off-ink, var(--sui-text-secondary));
   }
 
-  /* The chevron turns over while the picker is open. */
+  /* An open field's chevron turns over and firms with its frame. */
   .sui-select-control:open + .sui-select-chevron {
+    color: var(--sui-text-secondary);
     rotate: 180deg;
   }
 
@@ -542,7 +580,7 @@ assistive technology, because a native picker cannot be held open.
         .sui-select-control:open:not(:focus-visible, [aria-invalid='true'], :user-invalid) {
         background-color: var(--sui-control-bg);
         border-color: var(--sui-field-frame-focus);
-        border-block-end-color: var(--sui-field-border-focus);
+        border-block-end-color: var(--sui-focus);
       }
 
       /* The press that opens the picker keeps its own inset until it lets go (L-42). */
@@ -553,7 +591,9 @@ assistive technology, because a native picker cannot be held open.
           [aria-invalid='true'],
           :user-invalid
         ) {
-        box-shadow: inset 0 var(--sui-stroke) 0 var(--sui-field-recess-focus);
+        box-shadow:
+          inset 0 var(--sui-stroke) 0 var(--sui-field-recess-focus),
+          inset 0 calc(-1 * var(--sui-stroke)) 0 var(--sui-focus);
       }
 
       /* The full label shows in the picker, so the closed field may cut it, at its end only, so
@@ -590,7 +630,7 @@ assistive technology, because a native picker cannot be held open.
         box-shadow: var(--sui-shadow-popover);
         box-sizing: border-box;
         color: var(--sui-text-primary);
-        margin-block: var(--sui-space-1);
+        margin-block: var(--sui-floating-gap);
         max-block-size: min(20rem, 100% - 2 * var(--sui-space-1));
         max-inline-size: min(24rem, 100vw - 2 * var(--sui-space-2));
         opacity: 1;
@@ -618,15 +658,36 @@ assistive technology, because a native picker cannot be held open.
     }
   }
 
-  /* As wide as the field or the widest row, whichever is more, as the real picker is, even
-     where a container would stretch it. */
+  /* The copy's field fills its column as a closed select does, and its picker is as wide as
+     the field, as the real picker opens. */
   .sui-select-preview {
     display: inline-grid;
-    gap: var(--sui-space-1);
-    grid-template-columns: minmax(0, auto);
-    inline-size: fit-content;
-    justify-items: start;
+    gap: var(--sui-floating-gap);
+    grid-template-columns: minmax(0, 1fr);
     max-inline-size: 100%;
+  }
+
+  /* The copy's field is drawn as the field it hangs from looks while open. */
+  .sui-select-preview
+    .sui-select:not(.bare)
+    .sui-select-control:not(
+      :active,
+      :focus-visible,
+      :disabled,
+      [aria-invalid='true'],
+      :user-invalid
+    ) {
+    border-color: var(--sui-field-frame-focus);
+    border-block-end-color: var(--sui-focus);
+    box-shadow:
+      inset 0 var(--sui-stroke) 0 var(--sui-field-recess-focus),
+      inset 0 calc(-1 * var(--sui-stroke)) 0 var(--sui-focus);
+  }
+
+  /* The copy is open, so its chevron is turned over and firmed as an open picker's is. */
+  .sui-select-preview .sui-select-chevron {
+    color: var(--sui-text-secondary);
+    rotate: 180deg;
   }
 
   /* The open picker, drawn in flow. */
@@ -638,34 +699,51 @@ assistive technology, because a native picker cannot be held open.
     box-sizing: border-box;
     color: var(--sui-text-primary);
     justify-self: stretch;
-    max-inline-size: 24rem;
     padding: var(--sui-space-1);
   }
 
   /* Rows of the picker and of the preview's copy. A browser with the native picker reads only
      the colors and the font here. */
+  /* As a menu item does, the row's room centres the name's first cap line, so a wrapped name
+     keeps its check on that line. */
   .sui-select-option {
-    align-items: center;
+    align-items: flex-start;
     border-radius: var(--sui-radius-popover-row);
     box-sizing: border-box;
     color: var(--sui-text-primary);
     cursor: pointer;
     display: flex;
-    font: var(--sui-weight-medium) var(--sui-font-size-control) / var(--sui-leading-meta)
+    font: var(--sui-weight-regular) var(--sui-font-size-input) / var(--sui-leading-input)
       var(--sui-sans);
     gap: var(--sui-space-2);
     min-block-size: var(--sui-control-height-compact);
-    padding: var(--sui-space-1) var(--sui-space-3);
+    padding-block: calc((var(--sui-control-height-compact) - round(up, 1cap, 2px)) / 2);
+    padding-inline: calc(var(--sui-field-inset) - var(--sui-space-1)) var(--sui-space-3);
+    /* A row that wraps keeps near equal lines, as every list's row does. */
+    text-wrap: balance;
     white-space: normal;
   }
 
+  /* The row's own display would otherwise outrank the browser's hiding of the prompt. */
+  .sui-select-option[hidden] {
+    display: none;
+  }
+
   .sui-select-option:is(:focus-visible, .active):not(:disabled, [aria-disabled='true']) {
-    background-color: var(--sui-row-hover);
+    background-color: var(--sui-list-highlight);
+    color: var(--sui-hover-ink);
+  }
+
+  /* A copy's lit row is where the keyboard is, so it wears the ring as Combobox's lit row does. */
+  .sui-select-option.active {
+    outline: var(--sui-focus-ring-width) solid var(--sui-focus);
+    outline-offset: var(--sui-focus-ring-inset);
   }
 
   @media (hover: hover) {
     .sui-select-option:hover:not(:disabled, [aria-disabled='true']) {
-      background-color: var(--sui-row-hover);
+      background-color: var(--sui-list-highlight);
+      color: var(--sui-hover-ink);
     }
 
     .sui-select-option:hover .sui-select-note {
@@ -678,12 +756,27 @@ assistive technology, because a native picker cannot be held open.
     outline-offset: var(--sui-focus-ring-inset);
   }
 
+  /* Pressed past the lit row's veil, as every floating list's row is (L-11). */
+  .sui-select-option:active:not(:disabled, [aria-disabled='true']) {
+    background-color: var(--sui-list-pressed);
+    box-shadow: var(--sui-pressed-inset);
+    translate: 0 1px;
+  }
+
   .sui-select-option:is(:disabled, [aria-disabled='true']) {
     cursor: default;
-    opacity: var(--sui-disabled-opacity);
+  }
+
+  /* As a menu item does, an option that cannot be chosen draws its name and its reason in the
+     menu's reason ink at full strength, so the reason never outranks the name (L-40). */
+  .sui-select-option:is(:disabled, [aria-disabled='true'])
+    :is(.sui-select-check, .sui-select-label, .sui-select-note) {
+    color: var(--sui-text-secondary);
   }
 
   .sui-select-check {
+    align-items: center;
+    block-size: round(up, 1cap, 2px);
     display: inline-flex;
     flex: none;
     inline-size: var(--sui-icon-base);
@@ -705,8 +798,10 @@ assistive technology, because a native picker cannot be held open.
     text-box: trim-both cap alphabetic;
   }
 
+  /* A note reads a type step under its name, so the two part by size as well as ink (L-25). */
   .sui-select-note {
     color: var(--sui-text-muted);
+    font-size: var(--sui-font-size-caption);
     font-weight: var(--sui-weight-regular);
   }
 
@@ -721,7 +816,14 @@ assistive technology, because a native picker cannot be held open.
     .sui-select-note::before {
       color: var(--sui-text-muted);
       content: '·' / '';
-      margin-inline: var(--sui-sep-space);
+      margin-inline: var(--sui-sep-space-compact);
+    }
+  }
+
+  /* A phone sets the name at 16px, so its note steps to 14px. */
+  @media (max-width: 47.9375rem), (pointer: coarse) {
+    .sui-select-note {
+      font-size: var(--sui-font-size-meta);
     }
   }
 
@@ -732,11 +834,23 @@ assistive technology, because a native picker cannot be held open.
 
   .sui-select-heading {
     color: var(--sui-text-muted);
-    font: var(--sui-weight-semibold) var(--sui-font-size-micro) / var(--sui-leading-micro)
+    font: var(--sui-weight-medium) var(--sui-font-size-compact) / var(--sui-leading-compact)
       var(--sui-sans);
-    letter-spacing: 0.06em;
-    padding: var(--sui-space-2) var(--sui-space-3) var(--sui-space-1);
+    letter-spacing: 0.04em;
+    padding-block: var(--sui-space-2);
+    padding-inline: calc(
+        var(--sui-field-inset) - var(--sui-space-1) + var(--sui-icon-base) + var(--sui-space-2)
+      )
+      var(--sui-space-3);
     text-transform: uppercase;
+  }
+
+  /* A group that follows a row stands under a line, as a menu parts its groups, so where one
+     group ends reads before its heading does. The line stops where the rows' veils do. */
+  :is(option:not([hidden]), optgroup) + optgroup > .sui-select-heading,
+  .sui-select-sheet > :not(.sui-select-heading) + .sui-select-heading {
+    border-block-start: var(--sui-stroke) solid var(--sui-border-divider);
+    margin-block-start: var(--sui-space-1);
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -751,9 +865,35 @@ assistive technology, because a native picker cannot be held open.
       translate: none;
     }
 
+    .sui-select-option:active:not(:disabled, [aria-disabled='true']) {
+      translate: none;
+    }
+
     /* Apart, because a browser without the picker drops a whole list that names it. */
     .sui-select-control::picker(select) {
       transition: none;
+    }
+  }
+
+  /* An open picker taller than its room fades the row its foot cuts, as every scrolling layer
+     fades its foot (L-107, `scroll-foot.css`). The picker is the browser's box, which the build's
+     minifier cannot give a pseudo-element, so each option fades as it crosses the foot instead,
+     over the last 16px, and a picker that fits shows every option whole. */
+  @supports (animation-timeline: view()) {
+    .sui-select-control:open .sui-select-option {
+      animation: sui-select-foot var(--sui-ease-linear) both;
+      animation-range: entry 0% entry var(--sui-space-4);
+      animation-timeline: view(block);
+    }
+  }
+
+  @keyframes sui-select-foot {
+    from {
+      opacity: 0.25;
+    }
+
+    to {
+      opacity: 1;
     }
   }
 

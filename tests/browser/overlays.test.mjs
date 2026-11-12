@@ -93,7 +93,7 @@ suite('overlays', together, () => {
       assert.deepEqual(found, []);
     });
 
-    test('L-58 a dialog that opens holding a long value shows its start, chosen, and stacks its actions at the full width in their reading order', async () => {
+    test('L-58 a dialog that opens holding a long value shows its start, chosen, and sets its actions across the full width in their reading order, in equal halves while they fit', async () => {
       const opener = page
         .locator('#modal button:not(.sui-modal *)', { hasText: 'Edit Webhook' })
         .first();
@@ -140,14 +140,47 @@ suite('overlays', together, () => {
         ['Cancel', 'Save Webhook'],
         'the actions left their reading order'
       );
-      for (const button of buttons)
-        assert.ok(
-          Math.abs(button.width - inner) <= 0.5,
-          `${button.words} is ${button.width}px of a ${inner}px footer`
+      const gap = 8;
+      assert.ok(
+        Math.abs(buttons[0].width + gap + buttons[1].width - inner) <= 1,
+        `the actions fill ${buttons[0].width + gap + buttons[1].width}px of a ${inner}px footer`
+      );
+      assert.equal(buttons[0].top, buttons[1].top, 'two short answers stacked');
+      assert.ok(
+        Math.abs(buttons[0].width - buttons[1].width) <= 0.5,
+        `two short answers split ${buttons[0].width}px and ${buttons[1].width}px`
+      );
+      const stacked = await page.evaluate(() => {
+        const footer = /** @type {HTMLElement} */ (
+          document.querySelector('dialog[open] > .sui-modal-foot')
         );
-      assert.ok(buttons[0].top < buttons[1].top, 'the actions share a line');
+        const save = /** @type {HTMLElement} */ (footer.lastElementChild?.lastElementChild);
+        save.textContent = 'Save the Webhook and Send a Test Delivery';
+        const [cancel, act] = [...footer.querySelectorAll('button')].map((button) =>
+          button.getBoundingClientRect()
+        );
+        return { below: act.top > cancel.top, widths: [cancel.width, act.width] };
+      });
+      assert.ok(stacked.below, 'answers too long for one row stayed on it');
+      for (const width of stacked.widths)
+        assert.ok(Math.abs(width - inner) <= 0.5, `a stacked answer is ${width}px of ${inner}px`);
       await page.keyboard.press('Escape');
       await page.waitForFunction(() => !document.querySelector('dialog[open]'));
+    });
+
+    // The act holds its spinner's room while idle, which once padded it wider than Cancel.
+    test('L-58 a confirmation whose act may turn busy still splits its row in equal halves', async () => {
+      const foot = page.locator('#confirm-dialog .sui-modal-foot', {
+        has: page.getByRole('button', { name: 'Yank Release' })
+      });
+      const widths = await foot.evaluate((node) =>
+        [...node.querySelectorAll('button')].map((button) => button.getBoundingClientRect().width)
+      );
+      assert.equal(widths.length, 2);
+      assert.ok(
+        Math.abs(widths[0] - widths[1]) <= 0.5,
+        `Cancel and Yank Release split ${widths[0]}px and ${widths[1]}px`
+      );
     });
   });
 
@@ -158,6 +191,115 @@ suite('overlays', together, () => {
       page = await open();
     });
     after(() => page?.close());
+
+    test('L-58 L-25 a dialog drawn in place keeps the width of its size, a confirmation 30rem under an 18px question', async () => {
+      const widths = await page.evaluate(() =>
+        [...document.querySelectorAll('#modal .sui-modal.preview[data-size]')].map((modal) => [
+          modal.getAttribute('role') === 'alertdialog'
+            ? 'confirmation'
+            : /** @type {HTMLElement} */ (modal).dataset.size,
+          modal.getBoundingClientRect().width,
+          ['.sui-modal-title', '.sui-modal-close'].map(
+            (part) => getComputedStyle(/** @type {Element} */ (modal.querySelector(part))).fontSize
+          )
+        ])
+      );
+      for (const [size, , title] of widths)
+        assert.deepEqual(
+          title,
+          Array(2).fill(size === 'confirmation' ? '18px' : '20px'),
+          `the ${size} title and its close seat`
+        );
+      const rem = { confirmation: 30, dialog: 34, inspector: 40, wide: 46 };
+      assert.deepEqual(
+        [...new Set(widths.map(([size]) => size))].sort(),
+        ['confirmation', 'dialog', 'inspector', 'wide'],
+        'the sink no longer draws every size'
+      );
+      for (const [size, width] of widths)
+        assert.equal(
+          width,
+          rem[/** @type {keyof typeof rem} */ (size)] * 16,
+          `the ${size} preview`
+        );
+    });
+
+    test('L-58 a quiet answer stands lighter than the answer band under it, in both themes', async () => {
+      const dark = await open({ colorScheme: 'dark' });
+      try {
+        for (const [theme, at] of [
+          ['light', page],
+          ['dark', dark]
+        ]) {
+          const step = await /** @type {import('playwright-core').Page} */ (at).evaluate(() => {
+            const paint = /** @type {CanvasRenderingContext2D} */ (
+              document.createElement('canvas').getContext('2d', { willReadFrequently: true })
+            );
+            const light = (/** @type {string} */ color) => {
+              paint.clearRect(0, 0, 1, 1);
+              paint.fillStyle = color;
+              paint.fillRect(0, 0, 1, 1);
+              const [r, g, b] = paint.getImageData(0, 0, 1, 1).data;
+              return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+            };
+            const foot = /** @type {Element} */ (
+              document.querySelector(
+                '#modal .sui-modal.preview:not(:has([aria-busy="true"])) .sui-modal-error + .sui-modal-foot'
+              )
+            );
+            const cancel = /** @type {Element} */ (foot.querySelector('.sui-button'));
+            return (
+              light(getComputedStyle(cancel).backgroundColor) -
+              light(getComputedStyle(foot).backgroundColor)
+            );
+          });
+          assert.ok(step >= 6, `${theme}: Cancel stands ${step} levels over the band`);
+        }
+      } finally {
+        await dark.close();
+      }
+    });
+
+    test("L-40 a busy dialog's close dims from its own rest ink, as its Cancel dims", async () => {
+      const [rest, busy] = await page.evaluate(() =>
+        [
+          '#modal .sui-modal.preview:not(:has([aria-busy="true"]))',
+          '#modal .sui-modal.preview:has([aria-busy="true"])'
+        ].map((dialog) => {
+          const close = document.querySelector(`${dialog} .sui-modal-close .sui-icon-button`);
+          const look = close && getComputedStyle(close);
+          return look && [look.color, look.opacity];
+        })
+      );
+      assert.deepEqual(busy, [rest?.[0], '0.6']);
+    });
+
+    test("L-40 a busy dialog's held field sits on the off well, so its value never reads as a placeholder", async () => {
+      const [held, off] = await page.evaluate(() => {
+        const field = document.querySelector(
+          '#modal .sui-modal.preview:has([aria-busy="true"]) .sui-text-input.held'
+        );
+        const probe = document.createElement('div');
+        probe.style.backgroundColor = 'var(--sui-field-disabled)';
+        field?.parentElement?.append(probe);
+        const paint = [
+          field && getComputedStyle(field).backgroundColor,
+          getComputedStyle(probe).backgroundColor
+        ];
+        probe.remove();
+        return paint;
+      });
+      assert.equal(held, off);
+    });
+
+    test("L-58 a refused save's wash starts at the line over the actions", async () => {
+      const gap = await page.evaluate(() => {
+        const line = document.querySelector('#modal .sui-modal.preview .sui-modal-error-line');
+        const band = line?.parentElement;
+        return line && band && line.getBoundingClientRect().top - band.getBoundingClientRect().top;
+      });
+      assert.equal(gap, 0, 'a strip of the dialog ground parts the line from the wash');
+    });
 
     test('L-58 a dialog opens on its first field, and a confirmation without one on its least destructive answer', async () => {
       /** @param {string} name */
@@ -182,13 +324,25 @@ suite('overlays', together, () => {
     });
 
     test('S3 a refused confirmation stays open, pending and then failed, never closing on Escape', async () => {
-      const opener = page.locator('#confirm-dialog button', { hasText: 'Leave Workspace' }).first();
+      const opener = page
+        .locator('#confirm-dialog button:not(.sui-modal *)', { hasText: 'Leave Workspace' })
+        .first();
       await opener.scrollIntoViewIfNeeded();
       await opener.click();
       const confirm = page.locator('dialog[open] button', { hasText: 'Leave Workspace' });
+      const answers = () =>
+        page.evaluate(() =>
+          [...document.querySelectorAll('dialog[open] .sui-modal-foot button')].map((button) => {
+            const { left, width } = button.getBoundingClientRect();
+            return [Math.round(left), Math.round(width)];
+          })
+        );
+      const idle = await answers();
       await confirm.click();
       const dialog = page.locator('dialog[open]');
       assert.equal(await dialog.getAttribute('aria-busy'), 'true');
+      await page.waitForSelector('dialog[open] .sui-button-spinner');
+      assert.deepEqual(await answers(), idle, 'L-64 the spinner moved or widened the answers');
       await page.keyboard.press('Escape');
       assert.equal(await dialog.count(), 1, 'Escape closed a pending dialog');
       await page.waitForFunction(() => document.querySelector('dialog[open] .sui-modal-error p'));
@@ -232,7 +386,7 @@ suite('overlays', together, () => {
       await page.waitForFunction(() => !document.querySelector('dialog[open]'));
     });
 
-    test('L-58 a busy dialog hands focus to its busy action and disables its fields until the work ends', async () => {
+    test('L-58 a busy dialog hands focus to its busy action and disables its fields and other actions until the work ends', async () => {
       const opener = page
         .locator('#modal button:not(.sui-modal *)', { hasText: 'Rename Repository' })
         .first();
@@ -259,7 +413,10 @@ suite('overlays', together, () => {
               done({
                 onAction: document.activeElement?.getAttribute('aria-busy') === 'true',
                 disabled: input.disabled,
-                pressRefused: press.defaultPrevented
+                pressRefused: press.defaultPrevented,
+                otherActions: [...dialog.querySelectorAll('.sui-modal-foot button')]
+                  .filter((button) => button.getAttribute('aria-busy') !== 'true')
+                  .map((button) => /** @type {HTMLButtonElement} */ (button).disabled)
               });
             });
           });
@@ -269,8 +426,8 @@ suite('overlays', together, () => {
       await page.keyboard.press('Enter');
       assert.deepEqual(
         await page.evaluate(() => /** @type {any} */ (window).held),
-        { onAction: true, disabled: true, pressRefused: true },
-        'a busy dialog left its field in use or focus off its busy action'
+        { onAction: true, disabled: true, pressRefused: true, otherActions: [true] },
+        'a busy dialog left its field or Cancel in use, or focus off its busy action'
       );
       await page.waitForFunction(
         () => !document.querySelector('dialog[open]')?.hasAttribute('aria-busy')
@@ -301,7 +458,7 @@ suite('overlays', together, () => {
       await page.waitForFunction(() => !document.querySelector('dialog[open]'));
     });
 
-    test('L-58 a line parts a dialog body from its actions whether the body fits or scrolls, one inset above them as below', async () => {
+    test('L-58 a line parts a dialog body from its actions whether the body fits or scrolls, 16px above them as below', async () => {
       const opener = page.locator('#modal button', { hasText: 'Edit Webhook' }).first();
       await opener.scrollIntoViewIfNeeded();
       await opener.click();
@@ -320,9 +477,10 @@ suite('overlays', together, () => {
             parseFloat(getComputedStyle(dialog).borderBottomWidth)
         };
       });
-      assert.ok(
-        Math.abs(band.above - band.below) <= 0.5,
-        `the actions stand ${band.above}px under the line and ${band.below}px over the foot`
+      assert.deepEqual(
+        [Math.round(band.above), Math.round(band.below)],
+        [16, 16],
+        'the actions stand off the line and the foot'
       );
       const cut = () => {
         const after = document.querySelector('dialog[open] .sui-modal-body + .sui-modal-error');
@@ -346,7 +504,7 @@ suite('overlays', together, () => {
       const page = await open({ viewport: { width: 1440, height: 700 } });
       try {
         // A layer taller than its room scrolls inside, and that scroll stays where the wheel left it.
-        const tall = page.getByRole('button', { name: 'Show Every Change' });
+        const tall = page.locator('button[popovertarget="sink-popover-tall"]');
         await tall.scrollIntoViewIfNeeded();
         await tall.click();
         await page.waitForFunction(() => document.querySelector('#sink-popover-tall:popover-open'));
@@ -616,6 +774,163 @@ suite('overlays', together, () => {
         assert.ok(Math.abs(box - words) <= 0.5, `dots run ${box}px under ${words}px of words`);
     });
 
+    test('an open popover copy keeps the floating gap off its trigger', async () => {
+      const [gap, step] = await page.evaluate(() => {
+        const copy = /** @type {Element} */ (document.getElementById('sink-popover-open'));
+        const trigger = /** @type {Element} */ (copy.previousElementSibling);
+        return [
+          copy.getBoundingClientRect().top - trigger.getBoundingClientRect().bottom,
+          parseFloat(getComputedStyle(copy).getPropertyValue('--sui-floating-gap'))
+        ];
+      });
+      assert.equal(gap, step);
+    });
+
+    test('the open copies title a panel two type steps over its copy, cut a scrolling list as wide as its trigger mid-row and draw the tip over its button', async () => {
+      const seen = await page.evaluate(() => {
+        const size = (/** @type {string} */ id) =>
+          parseFloat(
+            getComputedStyle(/** @type {Element} */ (document.getElementById(id))).fontSize
+          );
+        const list = /** @type {HTMLElement} */ (document.getElementById('sink-popover-open-tall'));
+        const floor = list.getBoundingClientRect().top + list.clientTop + list.clientHeight;
+        const sync = [...document.querySelectorAll('#overlays .open button')].find(
+          (button) => button.textContent?.trim() === 'Sync Now'
+        );
+        const tip = document.getElementById(sync?.getAttribute('aria-describedby') ?? '');
+        return {
+          title: size('sink-popover-open-title'),
+          copy: parseFloat(
+            getComputedStyle(
+              /** @type {Element} */ (document.querySelector('#overlays .panel-copy'))
+            ).fontSize
+          ),
+          scrolls: list.scrollHeight > list.clientHeight,
+          narrower:
+            list.getBoundingClientRect().width <
+            /** @type {Element} */ (list.previousElementSibling).getBoundingClientRect().width,
+          cut: [...list.querySelectorAll('li')].some((row) => {
+            const box = row.getBoundingClientRect();
+            return box.top < floor - 4 && box.bottom > floor + 4;
+          }),
+          fade: getComputedStyle(list, '::after').opacity,
+          above:
+            (tip?.getBoundingClientRect().bottom ?? Infinity) <
+            (sync?.getBoundingClientRect().top ?? 0)
+        };
+      });
+      assert.ok(
+        seen.title - seen.copy >= 2,
+        `title ${seen.title}px two steps over copy ${seen.copy}px`
+      );
+      assert.ok(seen.scrolls && seen.cut, 'the open list scrolls and its floor cuts a row');
+      assert.ok(!seen.narrower, 'the open list keeps its trigger width, as the live one does');
+      assert.ok(seen.above, 'the open tip stands over its button, as the live tip does');
+      assert.equal(seen.fade, '1', 'the foot of a list with more below fades');
+      const centres = await page.evaluate(() =>
+        [...document.querySelectorAll('#overlays .open.centred')].map((copy) =>
+          [copy.querySelector('.sui-tooltip.preview'), copy.querySelector('button')].map((box) => {
+            const { left, width } = /** @type {Element} */ (box).getBoundingClientRect();
+            return left + width / 2;
+          })
+        )
+      );
+      assert.equal(centres.length, 2, 'a name tip and a description tip are drawn open');
+      const [tipsApart, actionEnd, panelEnd] = await page.evaluate(() => {
+        const [name, description] = [
+          ...document.querySelectorAll('#overlays .open.centred .sui-tooltip.preview')
+        ].map((tip) => tip.getBoundingClientRect());
+        const panel = /** @type {Element} */ (
+          document.querySelector('#sink-popover-open-pinned .panel')
+        );
+        const inset = parseFloat(getComputedStyle(panel).paddingInlineEnd);
+        // Tips that do not fit side by side wrap, each over its own control.
+        return [
+          description.top === name.top ? description.left - name.right : Infinity,
+          /** @type {Element} */ (
+            panel.querySelector('.panel-action button')
+          ).getBoundingClientRect().right,
+          panel.getBoundingClientRect().right - inset
+        ];
+      });
+      assert.ok(tipsApart >= 32, `the two open tips stand ${tipsApart}px apart`);
+      assert.ok(
+        Math.abs(actionEnd - panelEnd) <= 0.5,
+        `the close action ends at ${actionEnd}px, the panel's content at ${panelEnd}px`
+      );
+      for (const [tipCentre, buttonCentre] of centres)
+        assert.ok(
+          Math.abs(tipCentre - buttonCentre) <= 1,
+          `an open tip centres on ${tipCentre}px over its button's ${buttonCentre}px, as the live tip`
+        );
+      const [end, fits] = await page.evaluate(async () => {
+        const list = /** @type {HTMLElement} */ (document.getElementById('sink-popover-open-tall'));
+        const top = list.scrollTop;
+        list.scrollTop = list.scrollHeight;
+        await new Promise((done) => requestAnimationFrame(() => requestAnimationFrame(done)));
+        const end = getComputedStyle(list, '::after').opacity;
+        list.scrollTop = top;
+        return [
+          end,
+          getComputedStyle(
+            /** @type {Element} */ (document.getElementById('sink-popover-open')),
+            '::after'
+          ).opacity
+        ];
+      });
+      assert.equal(end, '0', 'at the end of the list nothing fades');
+      assert.equal(fits, '0', 'a layer that fits never fades');
+    });
+
+    // The live tips open over their buttons, so the names over the buttons stand past a tip's
+    // reach, the open copy's box and its gap, and a shown tip never covers them.
+    test('a live tip clears the names over its example', async () => {
+      const [room, reach] = await page.evaluate(() => {
+        const live = /** @type {HTMLElement} */ (
+          [...document.querySelectorAll('#overlays .specimen')].find((specimen) =>
+            [...specimen.querySelectorAll('button')].some(
+              (button) => button.textContent?.trim() === 'Sync Now' && !button.closest('.open')
+            )
+          )
+        );
+        const name = /** @type {Element} */ (live.querySelector('figcaption'));
+        const body = /** @type {Element} */ (name.nextElementSibling);
+        const copy = /** @type {HTMLElement} */ (
+          document.querySelector('#overlays .open .sui-tooltip')
+        );
+        return [
+          body.getBoundingClientRect().top - name.getBoundingClientRect().bottom,
+          copy.getBoundingClientRect().height + parseFloat(getComputedStyle(copy).marginBlockEnd)
+        ];
+      });
+      assert.ok(room > reach, `${room}px over the button, a tip reaches ${reach}px`);
+    });
+
+    test('a live popover clears the names of the row under it', async () => {
+      const trigger = page.locator('button[popovertarget="sink-popover"]');
+      // At the top of the window the layer has the room to open below, toward the next row.
+      await trigger.evaluate((button) => button.scrollIntoView({ block: 'start' }));
+      await trigger.click();
+      await page.waitForFunction(() => document.querySelector('#sink-popover:popover-open'));
+      const [floor, name] = await page.evaluate(async () => {
+        const layer = /** @type {Element} */ (document.getElementById('sink-popover'));
+        // The layer grows out of its edge, so it is measured once the growth ends.
+        await Promise.all(layer.getAnimations().map((animation) => animation.finished));
+        const pinned = /** @type {Element} */ (
+          document.querySelector('button[popovertarget="sink-popover-pinned"]')
+        );
+        const caption = /** @type {Element} */ (
+          pinned.closest('.specimen')?.querySelector('figcaption')
+        );
+        return [layer.getBoundingClientRect().bottom, caption.getBoundingClientRect().top];
+      });
+      await page.keyboard.press('Escape');
+      assert.ok(
+        name - floor >= 8,
+        `the open layer ends at ${floor}px, only ${name - floor}px over the next name`
+      );
+    });
+
     test('K8 a tooltip describes its control only when it adds words', async () => {
       const described = await page.evaluate(() => {
         const icon = document.querySelector('#overlays button[aria-label="Refresh the list"]');
@@ -633,7 +948,7 @@ suite('overlays', together, () => {
     });
 
     test('AC15 a manual layer survives an outside press and closes on Escape back to its trigger', async () => {
-      const trigger = page.locator('#overlays button', { hasText: 'Pin the Notes' });
+      const trigger = page.locator('button[popovertarget="sink-popover-pinned"]');
       await trigger.scrollIntoViewIfNeeded();
       await trigger.click();
       const layer = page.locator('#sink-popover-pinned');
@@ -761,6 +1076,210 @@ suite('overlays', together, () => {
     }
   );
 
+  test("L-101 a live toast's action stands beside its copy, Dismiss at its height on its line, on a phone too", async () => {
+    for (const [where, options] of /** @type {const} */ ([
+      ['a pointer', undefined],
+      ['a phone', { viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true }]
+    ])) {
+      const page = await open(options);
+      try {
+        await page.locator('#toaster button', { hasText: 'Remove Rule' }).click();
+        await page.locator('.sui-toaster:popover-open .sui-toast').waitFor();
+        // Mid-entry, the toast's fractional rise leaves float error in every edge it reports.
+        const [copy, action, dismiss] = await page.evaluate(async () => {
+          const toast = document.querySelector('.sui-toaster:popover-open .sui-toast');
+          await Promise.all(
+            (toast?.getAnimations({ subtree: true }) ?? []).map((animation) => animation.finished)
+          );
+          return ['.sui-toast-copy', '.sui-toast-main > .sui-button', '[data-dismiss]'].map(
+            (part) => {
+              const { x, y, width, height } = /** @type {Element} */ (
+                toast?.querySelector(part)
+              ).getBoundingClientRect();
+              return { x, y, width, height };
+            }
+          );
+        });
+        assert.ok(action.x >= copy.x + copy.width, `${where}: Undo stands under the copy`);
+        assert.equal(dismiss.height, action.height, `${where}: Dismiss and Undo differ in height`);
+        assert.equal(action.height, 34, `${where}: Undo is not drawn at the 34px tier`);
+        assert.ok(
+          Math.abs(dismiss.y + dismiss.height / 2 - (action.y + action.height / 2)) <= 0.5,
+          `${where}: Dismiss and Undo stand on different lines`
+        );
+      } finally {
+        await page.close();
+      }
+    }
+  });
+
+  test('the Timing triggers stand two to a row, on a phone too', async () => {
+    for (const [where, options] of /** @type {const} */ ([
+      ['a pointer', undefined],
+      ['a phone', { viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true }]
+    ])) {
+      const page = await open(options);
+      try {
+        const tops = await page
+          .locator('#toaster .specimen', {
+            has: page.getByRole('button', { name: 'Save Settings' })
+          })
+          .locator('xpath=..')
+          .evaluate((grid) =>
+            [...grid.children].map((specimen) => Math.round(specimen.getBoundingClientRect().top))
+          );
+        assert.deepEqual(
+          tops.map((top) => tops.filter((other) => other === top).length),
+          [2, 2, 1],
+          `${where}: the triggers do not stand two to a row`
+        );
+      } finally {
+        await page.close();
+      }
+    }
+  });
+
+  test('every toast takes one width, 24rem or the room it has, whatever its words', async () => {
+    const page = await open();
+    try {
+      const drawn = await page.evaluate(() =>
+        [...document.querySelectorAll('#toaster .sui-toaster.preview .sui-toast')].map((toast) => ({
+          width: toast.getBoundingClientRect().width,
+          room: Math.min(24 * 16, /** @type {Element} */ (toast.parentElement).clientWidth)
+        }))
+      );
+      assert.ok(drawn.length >= 4, 'the sink no longer draws its toasts');
+      assert.deepEqual(
+        drawn.filter(({ width, room }) => Math.abs(width - room) > 0.5),
+        [],
+        'a drawn toast is not 24rem or the room it has'
+      );
+      await page.locator('#toaster button', { hasText: 'Save Settings' }).click();
+      const live = page.locator('.sui-toaster:popover-open .sui-toast');
+      await live.waitFor();
+      assert.equal((await live.boundingBox())?.width, 24 * 16, 'a short live toast');
+    } finally {
+      await page.close();
+    }
+  });
+
+  test("the service worker's notice is one of the toasts, and letting a version in never moves its actions", async () => {
+    const page = await open();
+    try {
+      const measured = await page.evaluate(() => {
+        const notices = [
+          ...document.querySelectorAll('#service-worker-status .sui-service-worker-status.preview')
+        ];
+        const toastTitle = document.querySelector('#toaster .sui-toast-title');
+        const toastNote = document.querySelector('#toaster .sui-toast-description');
+        const reload = (/** @type {number} */ index) => {
+          const buttons = notices[index]?.querySelectorAll('.actions .sui-button');
+          return buttons?.[buttons.length - 1]?.getBoundingClientRect().width ?? 0;
+        };
+        return {
+          count: notices.length,
+          title: notices.map(
+            (notice) =>
+              getComputedStyle(/** @type {Element} */ (notice.querySelector('.title'))).fontSize
+          ),
+          toast: toastTitle ? getComputedStyle(toastTitle).fontSize : '',
+          note: notices.flatMap((notice) => {
+            const note = notice.querySelector('.description');
+            return note ? [getComputedStyle(note).lineHeight] : [];
+          }),
+          toastNote: toastNote ? getComputedStyle(toastNote).lineHeight : '',
+          off: notices
+            .map((notice) => {
+              const room = /** @type {Element} */ (notice.parentElement).clientWidth;
+              return notice.getBoundingClientRect().width - Math.min(24 * 16, room);
+            })
+            .filter((gap) => Math.abs(gap) > 0.5),
+          reload: [reload(0), reload(1)],
+          // Offline closes as a toast does, so it is no taller than its symbol and copy need.
+          offline: (() => {
+            const notice = /** @type {HTMLElement} */ (notices[2]);
+            const style = getComputedStyle(notice);
+            const inner =
+              notice.getBoundingClientRect().height -
+              ['Top', 'Bottom'].reduce(
+                (sum, side) =>
+                  sum +
+                  parseFloat(style.getPropertyValue(`border-${side.toLowerCase()}-width`)) +
+                  parseFloat(style.getPropertyValue(`padding-${side.toLowerCase()}`)),
+                0
+              );
+            const parts = ['.sui-toast-mark', '.copy'].map(
+              (part) =>
+                /** @type {Element} */ (notice.querySelector(part)).getBoundingClientRect().height
+            );
+            const close = notice.querySelector('.sui-toast-dismiss button');
+            return [Math.round(inner - Math.max(...parts)), close?.getAttribute('aria-label')];
+          })()
+        };
+      });
+      // Reload Later and Reload: the width each misses the other's by, and how far the pair
+      // stands off each inner edge of the notice.
+      const pair = () =>
+        page.evaluate(() =>
+          [
+            ...document.querySelectorAll(
+              '#service-worker-status .sui-service-worker-status.preview'
+            )
+          ]
+            .slice(0, 2)
+            .flatMap((notice) => {
+              const style = getComputedStyle(notice);
+              const box = notice.getBoundingClientRect();
+              const start =
+                box.left + parseFloat(style.borderLeftWidth) + parseFloat(style.paddingLeft);
+              const end =
+                box.right - parseFloat(style.borderRightWidth) - parseFloat(style.paddingRight);
+              const [later, now] = [...notice.querySelectorAll('.actions .sui-button')].map(
+                (button) => button.getBoundingClientRect()
+              );
+              return [later.width - now.width, later.left - start, end - now.right].map(
+                (off) => Math.abs(off) > 0.5
+              );
+            })
+        );
+      // Wide, each button keeps its words' width, so the deferral never weighs as the answer.
+      const wide = await pair();
+      await page.setViewportSize({ width: 390, height: 844 });
+      const phone = await pair();
+      assert.equal(measured.count, 4, 'the sink no longer draws the four notices');
+      assert.deepEqual(
+        measured.title,
+        Array(4).fill(measured.toast),
+        "a notice's title is not set as a toast's"
+      );
+      assert.deepEqual(measured.off, [], "a notice is not a toast's 24rem or the room it has");
+      assert.ok(measured.note.length > 0, 'the sink draws no notice with a description');
+      assert.deepEqual(
+        measured.note,
+        measured.note.map(() => measured.toastNote),
+        "a notice's description is not led as a toast's"
+      );
+      assert.equal(measured.reload[1], measured.reload[0], 'Reloading… is not where Reload was');
+      assert.deepEqual(
+        measured.offline,
+        [0, 'Dismiss'],
+        'offline does not close with a quiet glyph on its body, no taller than its copy'
+      );
+      assert.deepEqual(
+        wide,
+        Array(2).fill([true, false, true]).flat(),
+        "wide, Reload Later and Reload do not keep their words' widths from the start edge"
+      );
+      assert.deepEqual(
+        phone,
+        Array(6).fill(false),
+        'on a phone, Reload Later and Reload do not fill their line in halves'
+      );
+    } finally {
+      await page.close();
+    }
+  });
+
   // WCAG 2.4.11: a toast that stays sits over the page's foot, where Tab scrolls each new
   // control into view. Only the end of the document, which cannot scroll any further, and a
   // control taller than the room above the stack may stay under it.
@@ -803,6 +1322,48 @@ suite('overlays', together, () => {
     }
   });
 
+  // WCAG 2.4.11: the notice covers the page's foot as a toast does, so the control that raised
+  // it, still focused, scrolls clear above it as it comes, and so does the next one Tab reaches.
+  test("the service worker's notice never covers the control that has focus", long, async () => {
+    const page = await open({ viewport: { width: 1440, height: 900 } });
+    try {
+      await page.addStyleTag({ content: ':root { scroll-padding-block-end: 0; }' });
+      const deploy = page.locator('#service-worker-status button', {
+        hasText: 'Deploy a New Version'
+      });
+      // The trigger's foot stands 4px inside the notice's settled top edge, which the notice
+      // reaches only after it rises 8px into place, so a check against its drawn box misses it.
+      // The live notice is as tall as the drawn Ready one and rests 16px over the screen's foot.
+      await deploy.evaluate((button) => {
+        const tall = /** @type {HTMLElement} */ (
+          document.querySelector('#service-worker-status .sui-service-worker-status.preview')
+        ).offsetHeight;
+        const box = button.getBoundingClientRect();
+        scrollBy(0, box.bottom - (document.documentElement.clientHeight - 16 - tall + 4));
+      });
+      await deploy.focus();
+      await page.keyboard.press('Enter');
+      const notice = page.locator('.sui-service-worker-status:popover-open');
+      await notice.waitFor();
+      await page.waitForTimeout(400);
+      const overlap = async () =>
+        page.evaluate(() => {
+          const focused = /** @type {Element} */ (document.activeElement).getBoundingClientRect();
+          const bar = /** @type {Element} */ (
+            document.querySelector('.sui-service-worker-status:popover-open')
+          ).getBoundingClientRect();
+          const across = Math.min(focused.right, bar.right) - Math.max(focused.left, bar.left);
+          const down = Math.min(focused.bottom, bar.bottom) - Math.max(focused.top, bar.top);
+          return across > 0 && down > 0 ? down : 0;
+        });
+      assert.equal(await overlap(), 0, 'the notice came up over the control that raised it');
+      await page.keyboard.press('Tab');
+      assert.equal(await overlap(), 0, 'Tab moved focus under the notice');
+    } finally {
+      await page.close();
+    }
+  });
+
   test(
     'K9 a time writes its whole instant in the page language once the clock ticks',
     long,
@@ -829,49 +1390,437 @@ suite('overlays', together, () => {
     }
   );
 
+  // The open copy once dropped its mark under the label on a phone, wrapped a one-sentence tip
+  // there, and stood white on the white card. The Placement copies once showed bare
+  // marks, so a still shot showed neither side.
+  test(
+    'help tip copies hang over and under their marks, by their labels, on one line',
+    long,
+    async () => {
+      const page = await open({ viewport: { width: 390, height: 844 } });
+      /** @param {Element} tip @param {DOMRect} m */
+      const arrowOf = (tip, m) => {
+        const t = tip.getBoundingClientRect();
+        const arrow = getComputedStyle(tip, '::after');
+        const size = parseFloat(arrow.width);
+        const stroke = parseFloat(getComputedStyle(tip).borderTopWidth);
+        const centre = {
+          x: t.left + stroke + parseFloat(arrow.left) + size / 2,
+          y: t.top + stroke + parseFloat(arrow.top) + size / 2
+        };
+        const reach = size * Math.SQRT1_2;
+        const over = t.bottom <= m.top;
+        const range = document.createRange();
+        range.selectNodeContents(tip);
+        return {
+          over,
+          // The live tip lands on the pixel grid, so every gap is read to the whole pixel.
+          gap: Math.round(over ? m.top - t.bottom : t.top - m.bottom),
+          lines: new Set([...range.getClientRects()].map((line) => Math.round(line.top))).size,
+          start: t.left - m.left,
+          aim: centre.x - (m.left + m.width / 2),
+          point: over ? m.top - (centre.y + reach) : centre.y - reach - m.bottom
+        };
+      };
+      const copies = async (on = page) =>
+        /** @type {{ side: string, over: boolean, beside: boolean, ink: boolean, lines: number, aim: number }[]} */ (
+          await on.evaluate(`[...document.querySelectorAll('#help-tip .sui-help-tip-preview')].map((copy) => {
+          const arrowOf = ${arrowOf};
+          const mark = copy.querySelector('.sui-help-tip');
+          const tip = copy.querySelector('.sui-tooltip');
+          const [w, m] = [copy.closest('.label').querySelector('.words'), mark].map((part) =>
+            part.getBoundingClientRect()
+          );
+          const probe = document.createElement('span');
+          probe.style.color = 'var(--sui-text-primary)';
+          probe.style.backgroundColor = 'var(--sui-surface-base)';
+          tip.append(probe);
+          const look = getComputedStyle(probe);
+          const [primary, base] = [look.color, look.backgroundColor];
+          probe.remove();
+          const style = getComputedStyle(tip);
+          return {
+            side: tip.dataset.side,
+            beside: m.left >= w.right && m.top < w.bottom && m.bottom > w.top,
+            ink: style.backgroundColor === primary && style.color === base,
+            ...arrowOf(tip, m)
+          };
+        })`)
+        );
+      try {
+        const phone = await copies();
+        assert.deepEqual(
+          phone.map(({ side, over }) => [side, over]),
+          [
+            ['block-start', true],
+            ['block-end', false]
+          ],
+          'the Placement copies do not hang over and under their marks'
+        );
+        for (const copy of phone) {
+          assert.ok(copy.beside, `the ${copy.side} mark drops under its label`);
+          assert.equal(copy.lines, 1, `the ${copy.side} one-sentence tip wraps on a phone`);
+          assert.ok(copy.ink, `the ${copy.side} tip is not inverted, primary ink under base words`);
+        }
+        await page.setViewportSize({ width: 1440, height: 900 });
+        const desktop = await copies();
+        const mark = page.locator('#help-tip .sui-help-tip:not(.sui-help-tip-preview *)').first();
+        await page.keyboard.press('Shift');
+        await mark.focus();
+        await page.locator('.sui-tooltip:popover-open').waitFor();
+        // The live tip once rose over the specimen's name, and the mark's ring touched the
+        // label's last letter.
+        const live = await page.evaluate(`(() => {
+          const arrowOf = ${arrowOf};
+          const button = document.activeElement;
+          const tip = document.querySelector('.sui-tooltip:popover-open');
+          const [m, t, name, w] = [
+            button,
+            tip,
+            button.closest('figure').querySelector('figcaption'),
+            button.closest('.label').querySelector('.words')
+          ].map((part) => part.getBoundingClientRect());
+          const style = getComputedStyle(button);
+          const ring = parseFloat(style.outlineOffset) + parseFloat(style.outlineWidth);
+          return {
+            side: 'live',
+            clearOfName: t.top >= name.bottom,
+            ringRoom: m.left - ring - w.right,
+            ...arrowOf(tip, m)
+          };
+        })()`);
+        // A mark set right to left in a left-to-right tip hangs the tip from its right edge, and
+        // the arrow, which stands from the tip's own start, still points at the mark.
+        await page.evaluate(() => /** @type {HTMLElement} */ (document.activeElement).blur());
+        await page.locator('.sui-tooltip:popover-open').waitFor({ state: 'hidden' });
+        await mark.evaluate((button) => button.setAttribute('dir', 'rtl'));
+        await page.keyboard.press('Shift');
+        await mark.focus();
+        await page.locator('.sui-tooltip:popover-open').waitFor();
+        const mixed = await page.evaluate(`(() => {
+          const arrowOf = ${arrowOf};
+          const button = document.activeElement;
+          const tip = document.querySelector('.sui-tooltip:popover-open');
+          return { side: 'mixed', ltr: getComputedStyle(tip).direction === 'ltr', ...arrowOf(tip, button.getBoundingClientRect()) };
+        })()`);
+        await mark.evaluate((button) => button.removeAttribute('dir'));
+        assert.ok(mixed.ltr, "the tip took the mark's direction, so the case is not mixed");
+        assert.ok(
+          Math.abs(mixed.aim) <= 0.5,
+          `the arrow of a left-to-right tip on a right-to-left mark misses it by ${mixed.aim}px`
+        );
+        // Every tip starts at its mark with an arrow on the mark's centre whose point stands 8px
+        // off it, clear of the focus ring (L-35), so a copy stands as far off as the live tip.
+        for (const tip of [live, ...desktop]) {
+          assert.equal(tip.gap, live.gap, `the ${tip.side} copy stands off unlike the live tip`);
+          assert.equal(tip.lines, 1, `the ${tip.side} one-sentence tip wraps`);
+          assert.ok(Math.abs(tip.start) <= 0.5, `the ${tip.side} tip does not start at its mark`);
+          assert.ok(Math.abs(tip.aim) <= 0.5, `the ${tip.side} arrow misses the mark's centre`);
+          assert.ok(
+            Math.abs(tip.point - 8) <= 0.5,
+            `the ${tip.side} arrow stands ${tip.point}px off`
+          );
+        }
+        // The server render is the first frame and the only one without script, so its copies
+        // aim at their marks before any measure runs.
+        const still = await browser.newPage({
+          viewport: { width: 1440, height: 900 },
+          javaScriptEnabled: false
+        });
+        try {
+          await still.goto(allSections(url));
+          await still.evaluate(() => document.fonts.ready);
+          for (const tip of await copies(still))
+            assert.ok(
+              Math.abs(tip.aim) <= 0.5,
+              `the ${tip.side} arrow misses the mark's centre without script by ${tip.aim}px`
+            );
+        } finally {
+          await still.close();
+        }
+        assert.ok(live.clearOfName, 'the live tip covers its specimen name');
+        assert.ok(
+          live.ringRoom >= 4 - 0.5,
+          `the focus ring stands ${live.ringRoom}px off the words`
+        );
+      } finally {
+        await page.close();
+      }
+    }
+  );
+
+  // The icon copy once stood on a 28px trigger beside a 34px one, so its menu started 6px higher.
+  test(
+    'action menu copies: regular items, menus on one line, phone reasons under triggers',
+    long,
+    async () => {
+      const page = await open({ viewport: { width: 1440, height: 900 } });
+      try {
+        const tops = await page.evaluate(() =>
+          [...document.querySelectorAll('#action-menu .sui-action-menu-preview .sui-popover')].map(
+            (popover) => popover.getBoundingClientRect().top
+          )
+        );
+        assert.ok(tops.length > 1, `the section shows ${tops.length} open menus`);
+        assert.equal(new Set(tops).size, 1, `the menus start at ${tops.join(', ')}`);
+        // The open icon copy ends a named row, as the live icon trigger does, and the name centres
+        // on the trigger, not on the menu that hangs in the row's flow.
+        const row = await page.evaluate(() => {
+          const preview = document.querySelector(
+            '#action-menu .sui-action-menu-preview[data-align="end"]'
+          );
+          const name = preview?.parentElement?.querySelector('.name');
+          const trigger = preview?.querySelector('button');
+          if (!name || !trigger) return null;
+          const [n, t] = [name, trigger].map((node) => node.getBoundingClientRect());
+          return Math.abs(n.top + n.height / 2 - (t.top + t.height / 2)) < 1;
+        });
+        assert.equal(row, true, 'the open icon copy has a name centred on its trigger');
+        // The live icon row and its open copy are one row, so they draw at one width, and the two
+        // disabled triggers' reasons stand on one line beside triggers of two heights.
+        const widths = await page.evaluate(() => [
+          ...new Set(
+            [...document.querySelectorAll('#action-menu .row')].map((row) => {
+              const box = row.getBoundingClientRect();
+              const end = /** @type {Element} */ (
+                row.querySelector('button')
+              ).getBoundingClientRect();
+              return `${box.width} ending ${box.right - end.right}`;
+            })
+          )
+        ]);
+        assert.equal(widths.length, 1, `the icon rows are ${widths.join(', ')}px wide`);
+        assert.match(widths[0], / ending 0$/, 'a row ends with its trigger');
+        // The row's band is one control tall, so its trigger centres on the line the buttons in
+        // the next specimen stand on.
+        const centres = await page.evaluate(() => {
+          const centre = (/** @type {Element | null} */ node) => {
+            const box = /** @type {Element} */ (node).getBoundingClientRect();
+            return box.top + box.height / 2;
+          };
+          const [row] = document.querySelectorAll('#action-menu .row');
+          const beside = [...document.querySelectorAll('#action-menu .actions button')];
+          return [centre(row.querySelector('button')), centre(beside[0])];
+        });
+        assert.equal(
+          centres[0],
+          centres[1],
+          `the row's trigger centres at ${centres.join(' vs ')}`
+        );
+        const reasonTops = await page.evaluate(() => [
+          ...new Set(
+            [...document.querySelectorAll('#action-menu .locked .reason')].map(
+              (reason) => reason.getBoundingClientRect().top
+            )
+          )
+        ]);
+        assert.equal(reasonTops.length, 1, `the reasons start at ${reasonTops.join(', ')}`);
+        // The row is as wide as the menu that hangs from it, so the two share both edges, and no
+        // menu outgrows 20rem inside its edge.
+        const hung = await page.evaluate(() => {
+          const row = /** @type {Element} */ (document.querySelector('#action-menu .open'));
+          const menus = [
+            ...document.querySelectorAll('#action-menu .sui-action-menu-preview .sui-popover')
+          ];
+          const menu = /** @type {Element} */ (row.querySelector('.sui-popover'));
+          return {
+            start: menu.getBoundingClientRect().left - row.getBoundingClientRect().left,
+            widest: Math.max(...menus.map((each) => each.getBoundingClientRect().width))
+          };
+        });
+        assert.equal(hung.start, 0, `the menu starts ${hung.start}px inside its row`);
+        assert.ok(hung.widest <= 322, `a menu is ${hung.widest}px wide`);
+        // A disabled glyph wears its words' ink under the one disabled opacity (L-40).
+        const inks = await page.evaluate(() => {
+          const ink = (/** @type {string} */ selector) =>
+            getComputedStyle(/** @type {Element} */ (document.querySelector(selector))).color;
+          return {
+            trigger: ink('#action-menu .locked .sui-icon-button'),
+            button: ink('#action-menu .locked .sui-button'),
+            icon: ink(
+              '#action-menu .sui-action-menu-item[aria-disabled="true"] .sui-action-menu-icon'
+            ),
+            label: ink(
+              '#action-menu .sui-action-menu-item[aria-disabled="true"] .sui-action-menu-label'
+            )
+          };
+        });
+        assert.equal(
+          inks.trigger,
+          inks.button,
+          'a disabled icon trigger is dimmer than its button'
+        );
+        assert.equal(inks.icon, inks.label, 'a disabled item icon is dimmer than its name');
+        // The open copy is the live row: its trigger is the quiet one the live row ends with.
+        const sizes = await page.evaluate(() =>
+          ['.row:not(.open) .sui-icon-button', '.open .sui-icon-button'].map(
+            (selector) =>
+              /** @type {Element} */ (
+                document.querySelector(`#action-menu ${selector}`)
+              ).getBoundingClientRect().height
+          )
+        );
+        assert.equal(sizes[1], sizes[0], "the open copy's trigger is another size");
+        // A list row that cannot be chosen draws its name in its reason's ink at full strength, so
+        // the 13px reason never outranks the 14px name it qualifies (L-40).
+        const offRows = await page.evaluate(() =>
+          ['action-menu', 'select', 'combobox'].map((kind) => {
+            const note = kind === 'action-menu' ? 'description' : 'note';
+            const row = [
+              ...document.querySelectorAll(
+                `.sui-${kind}-${kind === 'action-menu' ? 'item' : 'option'}[aria-disabled="true"]`
+              )
+            ].find((each) => each.querySelector(`.sui-${kind}-${note}`));
+            if (!row) return `${kind}: no disabled row with a reason`;
+            const [label, reason] = [`.sui-${kind}-label`, `.sui-${kind}-${note}`].map((selector) =>
+              getComputedStyle(/** @type {Element} */ (row.querySelector(selector)))
+            );
+            return `${kind}: ${label.opacity} ${label.color === reason.color ? 'reason ink' : label.color}`;
+          })
+        );
+        assert.deepEqual(offRows, [
+          'action-menu: 1 reason ink',
+          'select: 1 reason ink',
+          'combobox: 1 reason ink'
+        ]);
+        // A lit item's glyph rises with its words, as an icon button's glyph does on hover.
+        const lit = await page.evaluate(() => {
+          const item = /** @type {Element} */ (
+            document.querySelector(
+              '#action-menu .sui-action-menu-item.active:has(.sui-action-menu-icon)'
+            )
+          );
+          return [
+            item.querySelector('.sui-action-menu-icon'),
+            item.querySelector('.sui-action-menu-label')
+          ].map((part) => getComputedStyle(/** @type {Element} */ (part)).color);
+        });
+        assert.equal(lit[0], lit[1], "a lit item's glyph stays at rest under its risen words");
+        // A copy's lit item is where the keyboard is, so it wears the ring, as a select's and a
+        // combobox's lit row do.
+        const rings = await page.evaluate(() =>
+          [...document.querySelectorAll('#action-menu .sui-action-menu-item.active')].map(
+            (item) => getComputedStyle(item).outlineStyle
+          )
+        );
+        assert.ok(rings.length > 0, 'no lit item');
+        assert.deepEqual(new Set(rings), new Set(['solid']));
+        // A menu item that wraps never leaves one word alone on its last line.
+        const lone = await page.evaluate(() =>
+          [...document.querySelectorAll('#action-menu .sui-action-menu-label')].flatMap((label) => {
+            const text = label.firstChild;
+            if (!(text instanceof Text)) return [];
+            const tops = [...text.data.matchAll(/\S+/g)].map(({ index, 0: word }) => {
+              const range = document.createRange();
+              range.setStart(text, index);
+              range.setEnd(text, index + word.length);
+              return Math.round(range.getBoundingClientRect().top);
+            });
+            const last = tops.filter((top) => top === tops.at(-1)).length;
+            return new Set(tops).size > 1 && last < 2 ? [text.data] : [];
+          })
+        );
+        assert.deepEqual(lone, []);
+        // An item's description reads a type step under its name, as an option's note does (L-25).
+        const steps = await page.evaluate(() =>
+          [...document.querySelectorAll('#action-menu .sui-action-menu-description')].map(
+            (description) => {
+              const label = description.parentElement?.querySelector('.sui-action-menu-label');
+              const size = (/** @type {Element} */ node) =>
+                parseFloat(getComputedStyle(node).fontSize);
+              return label ? size(label) - size(description) : 0;
+            }
+          )
+        );
+        assert.ok(steps.length > 0, 'the section shows no item description');
+        for (const step of steps) assert.equal(step, 1, 'a description is 1px under its name');
+        // A menu item is set at the regular weight, as an option in a list is (L-25).
+        const weights = await page.evaluate(() => [
+          ...new Set(
+            [...document.querySelectorAll('#action-menu .sui-action-menu-item')].map(
+              (item) => getComputedStyle(item).fontWeight
+            )
+          )
+        ]);
+        assert.deepEqual(weights, ['400']);
+        // On a phone the icon trigger keeps its reason beside it while the line holds both, and
+        // the reason drops under it as a whole line when not, as the button trigger's always does.
+        const place = () =>
+          page.evaluate(() =>
+            [...document.querySelectorAll('#action-menu .locked')].map((locked) => {
+              const trigger = /** @type {Element} */ (locked.querySelector('button'));
+              const reason = /** @type {Element} */ (locked.querySelector('.reason'));
+              const [t, r] = [trigger, reason].map((node) => node.getBoundingClientRect());
+              return r.top >= t.bottom && r.left === t.left
+                ? 'under'
+                : r.left >= t.right && r.top < t.bottom
+                  ? 'beside'
+                  : `at ${r.left - t.left}, ${r.top - t.top}`;
+            })
+          );
+        await page.setViewportSize({ width: 390, height: 800 });
+        assert.deepEqual(await place(), ['beside', 'under']);
+        await page.setViewportSize({ width: 320, height: 800 });
+        assert.deepEqual(await place(), ['under', 'under']);
+      } finally {
+        await page.close();
+      }
+    }
+  );
+
   // At twice the text size the menu's 13rem floor outgrew a phone, so the menu scrolled sideways
   // inside its popover and cut its separator.
-  test('an action menu fits the window and its line at twice the text size', long, async () => {
-    const page = await open({ viewport: { width: 375, height: 800 } });
-    try {
-      await page.evaluate(() => (document.documentElement.style.fontSize = '200%'));
-      const previews = await page.evaluate(() =>
-        [...document.querySelectorAll('#action-menu .sui-action-menu-preview')].map((preview) => {
-          const popover = /** @type {Element} */ (preview.querySelector('.sui-popover'));
-          const box = popover.getBoundingClientRect();
-          const trigger = /** @type {Element} */ (
-            preview.querySelector('button')
-          ).getBoundingClientRect();
-          const line = /** @type {Element} */ (preview.parentElement).getBoundingClientRect();
-          const end = preview.getAttribute('data-align') === 'end';
+  test(
+    'an action menu or addition preview fits the window and its line at twice the text size',
+    long,
+    async () => {
+      const page = await open({ viewport: { width: 375, height: 800 } });
+      try {
+        await page.evaluate(() => (document.documentElement.style.fontSize = '200%'));
+        const previews = await page.evaluate(() =>
+          [
+            ...document.querySelectorAll(
+              '#action-menu .sui-action-menu-preview, #addition-picker .sui-addition-preview'
+            )
+          ].map((preview) => {
+            const popover = /** @type {Element} */ (preview.querySelector('.sui-popover'));
+            const box = popover.getBoundingClientRect();
+            const trigger = /** @type {Element} */ (
+              preview.querySelector('button')
+            ).getBoundingClientRect();
+            const line = /** @type {Element} */ (preview.closest('.body')).getBoundingClientRect();
+            const end = preview.getAttribute('data-align') === 'end';
+            return {
+              scrolls: popover.scrollWidth > popover.clientWidth,
+              inLine: box.left >= line.left - 0.5 && box.right <= line.right + 0.5,
+              aligned: Math.abs(end ? box.right - trigger.right : box.left - trigger.left) < 0.5
+            };
+          })
+        );
+        assert.ok(previews.length > 0, 'the section shows no open menu');
+        for (const preview of previews)
+          assert.deepEqual(preview, { scrolls: false, inLine: true, aligned: true });
+        const trigger = page
+          .locator('#action-menu button[aria-label="Repository actions"]')
+          .first();
+        await trigger.scrollIntoViewIfNeeded();
+        await trigger.click();
+        const popover = page.locator('.sui-popover:popover-open');
+        await popover.waitFor();
+        const floating = await popover.evaluate((element) => {
+          const box = element.getBoundingClientRect();
           return {
-            scrolls: popover.scrollWidth > popover.clientWidth,
-            inLine: box.left >= line.left - 0.5 && box.right <= line.right + 0.5,
-            aligned: Math.abs(end ? box.right - trigger.right : box.left - trigger.left) < 0.5
+            scrolls: element.scrollWidth > element.clientWidth,
+            inside: box.left >= 0 && box.right <= document.documentElement.clientWidth
           };
-        })
-      );
-      assert.ok(previews.length > 0, 'the section shows no open menu');
-      for (const preview of previews)
-        assert.deepEqual(preview, { scrolls: false, inLine: true, aligned: true });
-      const trigger = page.locator('#action-menu button[aria-label="Repository actions"]').first();
-      await trigger.scrollIntoViewIfNeeded();
-      await trigger.click();
-      const popover = page.locator('.sui-popover:popover-open');
-      await popover.waitFor();
-      const floating = await popover.evaluate((element) => {
-        const box = element.getBoundingClientRect();
-        return {
-          scrolls: element.scrollWidth > element.clientWidth,
-          inside: box.left >= 0 && box.right <= document.documentElement.clientWidth
-        };
-      });
-      assert.deepEqual(floating, { scrolls: false, inside: true });
-      await page.keyboard.press('Escape');
-    } finally {
-      await page.close();
+        });
+        assert.deepEqual(floating, { scrolls: false, inside: true });
+        await page.keyboard.press('Escape');
+      } finally {
+        await page.close();
+      }
     }
-  });
+  );
 
   // An open trigger keeps its hover paint whatever its tone, so a filled one never takes a grey
   // edge while its menu is open.
@@ -904,6 +1853,44 @@ suite('overlays', together, () => {
       await page.close();
     }
   });
+
+  test(
+    "a disabled destructive item draws its glyph in its name's ink, not the danger ink",
+    long,
+    async () => {
+      const page = await openMount(browser, url);
+      try {
+        const inks = await page.evaluate(() => {
+          const { lib, mount, flushSync } = /** @type {any} */ (window);
+          mount(lib.ActionMenu, {
+            target: document.body,
+            props: {
+              label: 'Repository actions',
+              icon: 'more',
+              preview: true,
+              items: [
+                {
+                  label: 'Delete',
+                  icon: 'trash',
+                  tone: 'stop',
+                  disabled: true,
+                  description: 'Owners only'
+                }
+              ]
+            }
+          });
+          flushSync();
+          const item = /** @type {Element} */ (document.querySelector('.sui-action-menu-item'));
+          return ['.sui-action-menu-icon', '.sui-action-menu-label'].map(
+            (part) => getComputedStyle(/** @type {Element} */ (item.querySelector(part))).color
+          );
+        });
+        assert.equal(inks[0], inks[1], 'the glyph of a disabled stop item stays red');
+      } finally {
+        await page.close();
+      }
+    }
+  );
 
   test('a discard after a failed save keeps its notice and Undo', long, async () => {
     const page = await openMount(browser, url);
@@ -1026,6 +2013,75 @@ suite('overlays', together, () => {
       assert.ok(found.bottom <= 592, `the inline box reaches ${found.bottom}px`);
     });
 
+    // The side follows the anchor's direction and the tip's start can follow another, so an
+    // arrow set by the tip's start once pointed away from an anchor of the other direction.
+    test('a tip beside an anchor of the other direction points its arrow at it', async () => {
+      const cases = await page.evaluate(async () => {
+        const { lib, mount, flushSync } = /** @type {any} */ (window);
+        const found = [];
+        for (const [tipDir, anchorDir] of [
+          ['ltr', 'rtl'],
+          ['rtl', 'ltr']
+        ])
+          for (const side of ['inline-start', 'inline-end']) {
+            const host = document.createElement('div');
+            host.dir = tipDir;
+            host.style.cssText = 'position:fixed;left:400px;top:200px';
+            const anchor = document.createElement('button');
+            anchor.dir = anchorDir;
+            anchor.textContent = 'Mark';
+            host.append(anchor);
+            document.body.append(host);
+            mount(lib.Tooltip, { target: host, props: { anchor, text: 'Hi', side, open: true } });
+            flushSync();
+            await new Promise(requestAnimationFrame);
+            const box = /** @type {HTMLElement} */ (host.querySelector('.sui-tooltip'));
+            const [a, t] = [anchor, box].map((part) => part.getBoundingClientRect());
+            const arrow = getComputedStyle(box, '::after');
+            const at = parseFloat(arrow.left) + parseFloat(arrow.width) / 2;
+            found.push({
+              name: `${side} of a ${anchorDir} anchor in a ${tipDir} tip`,
+              facing: t.left >= a.right ? 'left' : 'right',
+              arrow: at < t.width / 2 ? 'left' : 'right'
+            });
+            host.remove();
+          }
+        return found;
+      });
+      for (const { name, facing, arrow } of cases)
+        assert.equal(arrow, facing, `the arrow of the ${name} points away from it`);
+    });
+
+    // A `dir` passed to a field reached only its inner control, so its chevron or unit kept the
+    // page's direction and stood over the words.
+    test('a field set right to left on a left-to-right page ends with its chevron or unit', async () => {
+      const found = await page.evaluate(() => {
+        const { lib, mount, flushSync } = /** @type {any} */ (window);
+        const options = [
+          { value: 'alpha', label: 'Alpha' },
+          { value: 'beta', label: 'Beta' }
+        ];
+        const fields = [
+          [lib.Select, { label: 'Team', value: 'alpha', options }, '.sui-select-chevron'],
+          [lib.Combobox, { 'aria-label': 'Team', options }, '.sui-combobox-chevron'],
+          [lib.DurationInput, { label: 'Delay', value: 90 }, 'select']
+        ];
+        return fields.map(([component, props, end]) => {
+          const host = document.body.appendChild(document.createElement('div'));
+          host.style.cssText = 'inline-size:20rem';
+          mount(component, { target: host, props: { ...props, dir: 'rtl' } });
+          flushSync();
+          const [field, part] = [host.firstElementChild, host.querySelector(end)].map((each) =>
+            /** @type {Element} */ (each).getBoundingClientRect()
+          );
+          host.remove();
+          return { end, left: part.left + part.width / 2 < field.left + field.width / 2 };
+        });
+      });
+      for (const { end, left } of found)
+        assert.ok(left, `the ${end} of a right-to-left field stands at its right, over the words`);
+    });
+
     test('a box that follows a scrolled anchor reads every size before it writes one', async () => {
       const steps = await page.evaluate(() => {
         const { place } = /** @type {any} */ (window).anchor;
@@ -1086,6 +2142,142 @@ suite('overlays', together, () => {
         `the placement read a size after a write: ${steps.join(' ')}`
       );
     });
+  });
+
+  // Combobox and AdditionPicker scroll a list inside their popover, and Select scrolls the
+  // browser's picker, so each fades its own foot (L-107), not the popover around it.
+  test('a floating list taller than its room fades its foot until its end', long, async () => {
+    const page = await openMount(browser, url, { viewport: { width: 900, height: 600 } });
+    try {
+      await page.evaluate(() => {
+        const { lib, mount, flushSync } = /** @type {any} */ (window);
+        const many = Array.from({ length: 40 }, (_, index) => ({
+          value: `v${index}`,
+          label: `Choice ${index + 1}`
+        }));
+        const host = document.body.appendChild(document.createElement('div'));
+        host.style.cssText = 'display:flex;gap:240px;padding:24px';
+        for (const [component, props] of [
+          [lib.Combobox, { 'aria-label': 'Team', options: many }],
+          [lib.AdditionPicker, { label: 'Add a Check', choices: many, onadd() {} }],
+          [lib.Select, { 'aria-label': 'Owner', options: many }],
+          [
+            lib.ActionMenu,
+            {
+              label: 'Act',
+              icon: 'more',
+              items: many.map(({ label }) => ({ label, onselect() {} }))
+            }
+          ]
+        ])
+          mount(component, { target: host.appendChild(document.createElement('div')), props });
+        flushSync();
+      });
+      const settle = () =>
+        page.evaluate(
+          () => new Promise((done) => requestAnimationFrame(() => requestAnimationFrame(done)))
+        );
+      /** @param {string} box */
+      const foot = (box) =>
+        page.evaluate((selector) => {
+          const list = /** @type {HTMLElement} */ (document.querySelector(selector));
+          return getComputedStyle(list).getPropertyValue('--sui-scroll-foot');
+        }, box);
+      /** @param {string} box */
+      const toEnd = (box) =>
+        page.evaluate((selector) => {
+          const list = /** @type {HTMLElement} */ (document.querySelector(selector));
+          list.scrollTop = list.scrollHeight;
+        }, box);
+
+      /**
+       * Arrows down past the fold, then reports how far the lit row stands clear of the fade.
+       * @param {string} box
+       * @param {string} lit
+       */
+      const clearance = async (box, lit) => {
+        for (let press = 0; press < 14; press++) await page.keyboard.press('ArrowDown');
+        await settle();
+        return page.evaluate(
+          ([selector, row]) => {
+            const list = /** @type {HTMLElement} */ (document.querySelector(selector));
+            const at = /** @type {Element} */ (list.querySelector(row)).getBoundingClientRect();
+            const view = list.getBoundingClientRect();
+            return {
+              scrolled: list.scrollTop > 0,
+              below: list.scrollTop + list.clientHeight < list.scrollHeight - 1,
+              above: at.top - view.top,
+              clear: view.bottom - parseFloat(getComputedStyle(list).borderBottomWidth) - at.bottom
+            };
+          },
+          [box, lit]
+        );
+      };
+
+      await page.getByRole('combobox', { name: 'Team' }).click();
+      await page.keyboard.press('ArrowDown');
+      await page.waitForSelector('.sui-combobox-list:not([hidden])');
+      await settle();
+      assert.equal(await foot('.sui-combobox-list'), '16px', 'a long combobox list fades its foot');
+      for (const [box, lit] of [['.sui-combobox-list', '.sui-combobox-option.active']]) {
+        const room = await clearance(box, lit);
+        assert.ok(room.scrolled && room.below && room.above >= 0, JSON.stringify(room));
+        assert.ok(room.clear >= 16, `the lit row stands ${room.clear}px over the list's foot`);
+      }
+      await toEnd('.sui-combobox-list');
+      await settle();
+      assert.equal(await foot('.sui-combobox-list'), '0px', 'at its end nothing fades');
+      await page.keyboard.press('Escape');
+
+      await page.getByRole('button', { name: 'Add a Check' }).click();
+      await page.waitForSelector('.sui-addition-menu');
+      await settle();
+      assert.equal(await foot('.sui-addition-menu'), '16px', 'a long addition menu fades its foot');
+      const menuRoom = await clearance('.sui-addition-menu', '.sui-addition-choice:focus');
+      assert.ok(
+        menuRoom.scrolled && menuRoom.below && menuRoom.above >= 0,
+        JSON.stringify(menuRoom)
+      );
+      assert.ok(menuRoom.clear >= 16, `the focused row stands ${menuRoom.clear}px over the foot`);
+      await toEnd('.sui-addition-menu');
+      await settle();
+      assert.equal(await foot('.sui-addition-menu'), '0px', 'at its end nothing fades');
+      await page.keyboard.press('Escape');
+
+      // An action menu scrolls its popover, and its arrows move focus, not a lit row.
+      await page.getByRole('button', { name: 'Act' }).click();
+      await page.waitForSelector('.sui-action-menu [role="menuitem"]:focus');
+      await settle();
+      const actRoom = await clearance(
+        '.sui-popover:has(.sui-action-menu)',
+        '[role="menuitem"]:focus'
+      );
+      assert.ok(actRoom.scrolled && actRoom.below && actRoom.above >= 0, JSON.stringify(actRoom));
+      assert.ok(actRoom.clear >= 16, `the focused item stands ${actRoom.clear}px over the foot`);
+      await page.keyboard.press('Escape');
+
+      await page.getByRole('combobox', { name: 'Owner' }).click();
+      await page.waitForFunction(() => document.querySelector('.sui-select-control:open'));
+      await settle();
+      /** @param {'first' | 'last'} end */
+      const strength = (end) =>
+        page.evaluate((which) => {
+          const options = [...document.querySelectorAll('.sui-select-control:open option')];
+          const option = /** @type {Element} */ (which === 'first' ? options[0] : options.at(-1));
+          return Number(getComputedStyle(option).opacity);
+        }, end);
+      assert.equal(await strength('first'), 1, 'a whole option shows at full strength');
+      assert.ok((await strength('last')) < 1, 'an option past the picker foot is faded');
+      await page.evaluate(() =>
+        document.querySelector('.sui-select-control:open option:last-of-type')?.scrollIntoView({
+          block: 'end'
+        })
+      );
+      await settle();
+      assert.equal(await strength('last'), 1, 'at the picker end the last option shows whole');
+    } finally {
+      await page.close();
+    }
   });
 
   suite('tips on a held clock, on one mounted page', inOrder, () => {
@@ -1398,6 +2590,171 @@ suite('overlays', together, () => {
       assert.deepEqual(seen.escapes, [false], 'Escape stopped at the shut list');
       await page.evaluate(() => /** @type {any} */ (window).lock(false));
       assert.equal(await field.getAttribute('aria-expanded'), 'false');
+      await clear();
+    });
+
+    test('an owner replacement replaces a focused combobox draft, and a shrunk limit clamps its active row', async () => {
+      await page.evaluate(() => {
+        const { lib, mount, flushSync, state, get, set } = /** @type {any} */ (window);
+        const host = Object.assign(document.body.appendChild(document.createElement('div')), {
+          id: 'host'
+        });
+        const value = state('ts');
+        const limit = state(100);
+        const combobox = mount(lib.Combobox, {
+          target: host,
+          props: {
+            'aria-label': 'Language',
+            options: [
+              { value: 'go', label: 'Go' },
+              { value: 'ts', label: 'TypeScript' },
+              { value: 'py', label: 'Python' }
+            ],
+            get value() {
+              return get(value);
+            },
+            set value(next) {
+              set(value, next);
+            },
+            get limit() {
+              return get(limit);
+            }
+          }
+        });
+        flushSync();
+        Object.assign(window, {
+          parts: [combobox],
+          own(/** @type {string} */ next) {
+            set(value, next);
+            flushSync();
+          },
+          cap(/** @type {number} */ next) {
+            set(limit, next);
+            flushSync();
+          }
+        });
+      });
+      const field = page.getByRole('combobox', { name: 'Language' });
+      await field.fill('Pyth');
+      await page.evaluate(() => /** @type {any} */ (window).own('go'));
+      assert.equal(await field.inputValue(), 'Go');
+      assert.ok(await field.evaluate((input) => document.activeElement === input));
+      await field.evaluate((input) => input.blur());
+      assert.equal(await field.inputValue(), 'Go');
+      await field.fill('o');
+      await page.keyboard.press('ArrowUp');
+      await page.evaluate(() => /** @type {any} */ (window).cap(1));
+      const active = await field.getAttribute('aria-activedescendant');
+      assert.ok(active?.endsWith('-option-0'), `dangling active row: ${active}`);
+      assert.equal(await page.locator(`#${active}`).count(), 1);
+      await page.keyboard.press('Enter');
+      assert.equal(await field.inputValue(), 'Go');
+      await clear();
+    });
+
+    test('a refused combobox search says so', async () => {
+      await page.evaluate(() => {
+        const { lib, mount, flushSync } = /** @type {any} */ (window);
+        const host = Object.assign(document.body.appendChild(document.createElement('div')), {
+          id: 'host'
+        });
+        const combobox = mount(lib.Combobox, {
+          target: host,
+          props: {
+            'aria-label': 'Owner',
+            search: () => Promise.reject(new Error('The directory is offline'))
+          }
+        });
+        flushSync();
+        Object.assign(window, { parts: [combobox] });
+      });
+      await page.getByRole('combobox', { name: 'Owner' }).fill('oct');
+      await page.waitForFunction(() =>
+        /could not load/.test(document.querySelector('#host [role="status"]')?.textContent ?? '')
+      );
+      await clear();
+    });
+
+    test('a combobox copy keeps its typed text and offer when focus passes through it and draws a list taller than the window whole, and a sized combobox in a sentence keeps its chevron inside it', async () => {
+      await page.evaluate(() => {
+        const { lib, mount, flushSync } = /** @type {any} */ (window);
+        const host = Object.assign(document.body.appendChild(document.createElement('div')), {
+          id: 'host'
+        });
+        /** @type {string[]} */
+        const picked = [];
+        const copy = mount(lib.Combobox, {
+          target: host,
+          props: {
+            'aria-label': 'Label',
+            free: true,
+            options: [{ value: 'bug', label: 'bug' }],
+            previewText: 'feature',
+            preview: true,
+            onselect: (/** @type {string} */ value) => picked.push(value)
+          }
+        });
+        const sentence = host.appendChild(document.createElement('p'));
+        sentence.append('Before ');
+        const sized = mount(lib.Combobox, {
+          target: sentence,
+          props: {
+            'aria-label': 'Language',
+            options: [{ value: 'ts', label: 'TypeScript' }],
+            style: 'inline-size: 9rem'
+          }
+        });
+        sentence.append(' after.');
+        const long = mount(lib.Combobox, {
+          target: host.appendChild(Object.assign(document.createElement('div'), { id: 'long' })),
+          props: {
+            'aria-label': 'Region',
+            options: Array.from({ length: 60 }, (_, index) => ({
+              value: `r${index}`,
+              label: `Region ${index}`
+            })),
+            preview: true
+          }
+        });
+        flushSync();
+        Object.assign(window, { parts: [copy, sized, long], picked });
+      });
+      const copy = page.getByRole('combobox', { name: 'Label' });
+      await copy.focus();
+      await copy.evaluate((input) => input.blur());
+      const seen = await page.evaluate(() => {
+        const box = (/** @type {Element} */ node) => node.getBoundingClientRect();
+        const input = /** @type {Element} */ (document.querySelector('#host p input'));
+        const chevron = box(
+          /** @type {Element} */ (input.parentElement?.querySelector('.sui-combobox-chevron'))
+        );
+        const field = box(input);
+        const sentence = /** @type {Element} */ (document.querySelector('#host p'));
+        return {
+          picked: /** @type {any} */ (window).picked,
+          shown: /** @type {HTMLInputElement} */ (
+            document.querySelector('#host > .sui-combobox-preview input')
+          ).value,
+          offer: document.querySelectorAll('#host > .sui-combobox-preview [role="option"]').length,
+          plus: [
+            ...document.querySelectorAll('#host > .sui-combobox-preview [role="option"] svg')
+          ].map((mark) => getComputedStyle(mark).visibility),
+          inside: chevron.left >= field.left && chevron.right <= field.right,
+          wrapper: box(/** @type {Element} */ (input.parentElement)).width - field.width,
+          beside: field.left - box(sentence).left,
+          cut: [...document.querySelectorAll('#long .sui-popover, #long .sui-combobox-list')].map(
+            (layer) => layer.scrollHeight - layer.clientHeight
+          )
+        };
+      });
+      assert.deepEqual(seen.picked, [], 'focus passing through a copy commits nothing');
+      assert.equal(seen.shown, 'feature');
+      assert.equal(seen.offer, 1, 'the copy keeps its offer row');
+      assert.deepEqual(seen.plus, ['visible'], 'a plus marks the offer as an entry to add');
+      assert.ok(seen.inside, 'the chevron stands inside the sized field');
+      assert.equal(seen.wrapper, 0, "the chevron's box is as wide as the field");
+      assert.ok(seen.beside > 0, 'the field sits in the sentence, after its first word');
+      assert.deepEqual(seen.cut, [0, 0], 'no layer of a long copy cuts a row or scrolls');
       await clear();
     });
 

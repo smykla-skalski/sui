@@ -5,6 +5,7 @@
   import { clearance as clearanceOf } from '../internal/clearance.js';
   import { tabStops } from '../internal/focus.js';
   import { holdForWork } from '../internal/held.svelte.js';
+  import Icon from '../icons/Icon.svelte';
   import Button from './Button.svelte';
 
   const titleId = $props.id();
@@ -20,9 +21,10 @@
     failedTitle = word('SaveBar.failedTitle', 'Save again to keep your changes'),
     savedTitle = word('SaveBar.savedTitle', 'Your changes are saved'),
     discardedTitle = word('SaveBar.discardedTitle', 'You discarded your changes'),
+    conflictTitle = word('SaveBar.conflictTitle', 'Reload to see the latest version'),
     conflictReason = word(
       'SaveBar.conflictReason',
-      'Someone else saved first, so reload to see their version before you save again'
+      'Someone else saved first, so a save from here would be refused'
     ),
     reloadedTitle = word('SaveBar.reloadedTitle', 'The latest version replaced your changes'),
     saveLabel = word('SaveBar.saveLabel', 'Save Changes'),
@@ -60,7 +62,9 @@
     savedTitle?: string;
     /** Said once Discard has thrown the work away, beside Undo. */
     discardedTitle?: string;
-    /** Said under `failedTitle` in a conflict when `error` gives no reason of its own. */
+    /** Said over the reason in a conflict, where Reload is the one way on. */
+    conflictTitle?: string;
+    /** Said under `conflictTitle` when `error` gives no reason of its own. */
     conflictReason?: string;
     /** Said once a reload has replaced the draft, beside Undo, which puts the draft back. */
     reloadedTitle?: string;
@@ -287,19 +291,20 @@ saved or thrown away. Every edit on the pane stages a draft; this bar sends it. 
 exception: its border and its Save button wear the decision accent, which belongs only to
 unsaved state and the action that resolves it.
 
-Place it last in the content that scrolls, the page's or a pane's, with the gap the content
-keeps between its own parts before it. It sticks to the block end of that scroller, 16px in,
-while there is content past it, and once the reader reaches the end it rests after the last
-content at that same gap, with its 16px under it, so it never covers that content. The bar
+Place it last in the content that scrolls, the page's or a pane's, after the gap the content
+keeps between its own parts. It sticks to the block end of that scroller, 16px in, while there
+is content past it, and once the reader reaches the end it rests 8px past that gap, as a page
+form's action closes its fields 24px past the last one on a 16px rhythm, with its 16px under
+it, so it never covers that content. The bar
 brings its own room under it, so the scroller needs no end padding.
 
 - Semantics: an `aside` named by its title, with a polite live copy and native buttons.
 - Content: a title and a subtitle while there is work; `savedTitle` once a save lands; `discardedTitle` with Undo once Discard has run; `reloadedTitle` with Undo once a reload has replaced the draft.
-- States: unsaved (Discard and Save), saving (both held, Save busy with `savingLabel`, the gold edge and the copy dimmed with them, the pane `aria-busy`, focus on Save and the pane's fields disabled until the save ends), failed (`failedTitle` over the reason, with Discard and Save to try again), conflict (`failedTitle` over the reason or `conflictReason`, with Reload alone as the decision, because saving again would be refused), reloading (Reload busy with `reloadingLabel`, dimmed like a save), saved (a quiet notice for 5 seconds, paused while hovered), and discarded or reloaded (Undo and Dismiss until the reader acts).
+- States: unsaved (Discard and Save), saving (both held, Save busy with `savingLabel`, the gold edge dimmed with them and the copy at full ink, the pane `aria-busy`, focus on Save and the pane's fields disabled until the save ends), failed (`failedTitle` over the reason, with Discard and Save to try again), conflict (`conflictTitle` over the reason or `conflictReason`, with Reload alone as the decision, because saving again would be refused), reloading (Reload busy with `reloadingLabel`, dimmed like a save), saved (a quiet notice for 5 seconds, paused while hovered), and discarded or reloaded (Undo and Dismiss until the reader acts).
 - Keyboard: Tab reaches Discard and Save, or Reload, at the pane's end; Ctrl+S or Cmd+S saves from anywhere in the bar's pane, and while the bar holds work it never opens the browser's own save, even when a save cannot run; Escape never discards.
 - Pointer and touch: buttons are 34px tall, 44px on a phone.
 - Focus: after Discard, or once a reload lands, focus moves to Undo, or to Dismiss without one, unless the reader moved it elsewhere while the reload ran; a busy Reload keeps focus; after a save lands, Undo or Dismiss, focus goes back to the control the reader came from, else the pane's first control, never to the page; a field focused under the floating bar scrolls clear above it, because the bar pads its scroller's end by its own height (WCAG 2.4.11).
-- Responsive: the copy wraps and the actions wrap under it; on a screen under 30rem tall, as at 400% zoom, the bar stops sticking and only sits at the pane's end, so it never covers most of the view.
+- Responsive: the copy wraps at a note's leading, and the actions wrap under it to fill the line, in equal halves while each label fits its half, a longer one widening to its words while both fit one row, and stacked once they do not; Save and Reload keep the width of the wider of their label and their busy label with its spinner, so a save never moves Discard; on a screen under 30rem tall, as at 400% zoom, the bar stops sticking and only sits at the pane's end, so it never covers most of the view.
 - Accessibility: the copy is a polite live region, so a failure, a conflict, a save, a discard and a reload are each said; a busy button is `aria-busy`; the bar's name is its title.
 - Localization: every word is a prop with an English default; the actions end the line in the reading direction.
 - Performance: one `ResizeObserver` keeps the scroller's end padding as tall as the bar, and nothing measures it per frame; a fade and 8px rise on entry, removed under reduced motion.
@@ -322,16 +327,24 @@ brings its own room under it, so the scroller needs no end padding.
   onpointerenter={() => (hovered = true)}
   onpointerleave={() => (hovered = false)}
 >
-  <div class="copy" aria-live="polite">
+  <div
+    class={['copy', { refused: !notice && (error || reloadable), conflict: reloadable }]}
+    aria-live="polite"
+  >
     {#if notice}
       <p id={titleId} class="title">
         {told[notice.kind]}
       </p>
     {:else}
-      <p id={titleId} class="title">{error || reloadable ? failedTitle : title}</p>
-      <p class={['subtitle', { error: Boolean(error) || reloadable }]}>
-        {error || (reloadable ? conflictReason : subtitle)}
-      </p>
+      {#if error || reloadable}
+        <span class="mark"><Icon name={reloadable ? 'refresh' : 'alert'} size="base" /></span>
+      {/if}
+      <p id={titleId} class="title">{reloadable ? conflictTitle : error ? failedTitle : title}</p>
+      {#if error || reloadable}
+        <p class="subtitle error">{error || conflictReason}</p>
+      {:else}
+        <p class="subtitle">{subtitle}</p>
+      {/if}
     {/if}
   </div>
   {#if notice && notice.kind !== 'saved'}
@@ -343,8 +356,8 @@ brings its own room under it, so the scroller needs no end padding.
     </div>
   {:else if !notice && reloadable}
     <div class="actions">
-      <Button tone="decision" loading={reloading} onclick={reload}
-        >{reloading ? reloadingLabel : reloadLabel}</Button
+      <Button tone="decision" loading={reloading} busyLabel={reloadingLabel} onclick={reload}
+        >{reloadLabel}</Button
       >
     </div>
   {:else if !notice}
@@ -354,8 +367,9 @@ brings its own room under it, so the scroller needs no end padding.
         bind:element={saveButton}
         tone="decision"
         loading={saving}
+        busyLabel={savingLabel}
         aria-keyshortcuts="Control+S Meta+S"
-        onclick={save}>{saving ? savingLabel : saveLabel}</Button
+        onclick={save}>{saveLabel}</Button
       >
     </div>
   {/if}
@@ -370,14 +384,16 @@ brings its own room under it, so the scroller needs no end padding.
     --sui-surface-raised: transparent;
     align-items: center;
     background: var(--sui-popover-bg);
-    border: var(--sui-decision-border-width) solid var(--sui-decision-accent);
+    border: var(--sui-decision-border-width) solid var(--sui-unsaved-border);
     border-radius: var(--sui-radius-surface);
-    box-shadow: var(--sui-shadow-plate);
+    /* It floats over the page as a toast does, so it lifts on a toast's lighter layer (L-54). */
+    box-shadow: var(--sui-shadow-toast, var(--sui-shadow-popover));
     box-sizing: border-box;
     color: var(--sui-text-primary);
     display: flex;
     flex-wrap: wrap;
-    gap: var(--sui-space-3) var(--sui-space-5);
+    /* Actions that wrap stand under the copy as a dialog's stand under its line (L-58). */
+    gap: var(--sui-space-4) var(--sui-space-5);
     inline-size: 100%;
     inset-block-end: var(--sui-save-bar-inset);
     justify-content: space-between;
@@ -396,10 +412,24 @@ brings its own room under it, so the scroller needs no end padding.
     z-index: var(--sui-layer-sticky);
   }
 
+  /* It is the pane's form action, so at rest it stands a step past the content's gap and reads
+     as the close of the fields, not one more of them (L-35). With nothing above it there is
+     nothing to close. */
+  .sui-save-bar:not(:first-child) {
+    margin-block-start: var(--sui-space-2);
+  }
+
   /* Discard sits beside the decision, so it is quiet in the unsaved hue: no ground of its own,
-     a gold edge and the unsaved ink (L-92). */
+     a gold edge and the unsaved ink (L-92). The unsaved control edge is tuned for the gold
+     plate, and on the bar's neutral ground it sinks, so it leans toward the frame's edge until
+     it holds 3:1 there in both themes, seven tenths of the way, where on dark it also reads
+     gold and not olive beside the bright gold fill (L-9). */
   .sui-save-bar:not(.notice) {
-    --sui-control-border: var(--sui-unsaved-control-border);
+    --sui-control-border: color-mix(
+      in srgb,
+      var(--sui-unsaved-border) 70%,
+      var(--sui-unsaved-control-border)
+    );
     --sui-control-border-hover: var(--sui-unsaved-border);
     --sui-interactive-hover-layer: color-mix(in srgb, var(--sui-unsaved-ink) 10%, transparent);
     --sui-interactive-pressed: color-mix(in srgb, var(--sui-unsaved-ink) 16%, transparent);
@@ -413,17 +443,13 @@ brings its own room under it, so the scroller needs no end padding.
 
   /* While a save or a reload runs the edge waits with its buttons, muted the same way, so the
      bar reads as busy as a whole (L-40). The copy is the live status the reader still reads, so
-     its title quiets to the muted ink and both lines keep 4.5:1 (WCAG 1.4.3). */
+     its title keeps the primary ink, as a busy button's words keep theirs. */
   .sui-save-bar.busy {
     border-color: color-mix(
       in srgb,
-      var(--sui-decision-accent) calc(var(--sui-disabled-opacity) * 100%),
+      var(--sui-unsaved-border) calc(var(--sui-disabled-opacity) * 100%),
       transparent
     );
-  }
-
-  .busy .title {
-    color: var(--sui-text-muted);
   }
 
   .sui-save-bar[hidden] {
@@ -440,9 +466,13 @@ brings its own room under it, so the scroller needs no end padding.
     }
   }
 
+  /* The copy takes all of a shared line's spare room, so actions beside it keep their words'
+     width, while actions wrapped under it take their whole line, as a dialog's do on a phone:
+     equal halves while each label fits its half, a longer one widening to its words while both
+     fit one row, stacked once they do not (L-90, L-58). */
   .copy {
     display: grid;
-    flex: 1 1 18rem;
+    flex: 1000000 1 18rem;
     gap: var(--sui-title-copy-gap);
     min-inline-size: 0;
   }
@@ -457,29 +487,79 @@ brings its own room under it, so the scroller needs no end padding.
     text-box: trim-both cap alphabetic;
   }
 
+  /* A long title wraps at the body leading, the step body text of its size takes, 24px as it
+     grows to 16px on a phone, so its semibold lines never press into one block over the
+     lighter note (L-24), and balanced, as the note under it is. */
   .title {
-    font: var(--sui-weight-semibold) var(--sui-font-size-body) / var(--sui-row-copy-leading)
+    font: var(--sui-weight-semibold) var(--sui-font-size-body) / var(--sui-leading-body)
       var(--sui-sans);
+    text-wrap: balance;
   }
 
+  /* Wrapped, the line under the title reads as a note, as a toast's description does (L-24),
+     its lines balanced so a short reason never ends on a stray word. */
   .subtitle {
     color: var(--sui-text-muted);
-    font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-row-copy-leading)
+    font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-leading-note)
       var(--sui-sans);
+    text-wrap: balance;
+  }
+
+  /* A refusal leads with a field error's warning mark, and its reason takes a field error's
+     weight, so it differs from the subtitle by more than colour (WCAG 1.4.1). The mark stands
+     beside the whole copy, as a callout's symbol does, so the title and the reason share one
+     start edge. */
+  .copy.refused {
+    column-gap: var(--sui-space-2);
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .refused > p {
+    grid-column: 2;
   }
 
   .subtitle.error {
     color: var(--sui-danger);
+    font-weight: var(--sui-weight-medium);
+  }
+
+  /* Set in the title's font, so it centres on the title's first cap height however many lines
+     the copy wraps to. */
+  .mark {
+    color: var(--sui-danger);
+    display: flex;
+    font: var(--sui-weight-semibold) var(--sui-font-size-body) / var(--sui-leading-body)
+      var(--sui-sans);
+    grid-row: 1 / span 2;
+    margin-block-start: round(calc((1cap - var(--sui-icon-base)) / 2), 1px);
+  }
+
+  /* A conflict lost no work and waits on the gold Reload, so its mark is Reload's refresh in the
+     unsaved ink, a shape apart from a failure's warning, and its reason takes the subtitle's ink
+     and weight, leaving one decision hue on the bar (L-16). */
+  .conflict > .mark {
+    color: var(--sui-unsaved-ink);
+  }
+
+  .conflict > .subtitle.error {
+    color: var(--sui-text-muted);
+    font-weight: var(--sui-weight-regular);
   }
 
   /* The bar spreads its two parts, so the actions end the line they share with the copy and
      start the line they wrap to (L-90). On a line narrower than both buttons they wrap too,
      rather than reach into the bar's inset. */
   .actions {
+    --sui-local-button-span: 100%;
     display: flex;
-    flex: 0 1 auto;
+    flex: 1 1 auto;
     flex-wrap: wrap;
     gap: var(--sui-space-2);
+  }
+
+  .actions > :global(*) {
+    flex: 1 1 0;
+    min-inline-size: fit-content;
   }
 
   .sui-save-bar:not(.notice) .actions {

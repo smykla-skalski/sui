@@ -26,7 +26,9 @@ after(async () => {
 });
 
 /**
- * The pixels two same-sized PNG shots differ in, beyond the noise of a smoothed edge.
+ * The pixels two same-sized PNG shots differ in, beyond the noise of a smoothed edge. Under load
+ * Chrome can smooth a lone edge pixel, such as an underline's first, a shade apart between two
+ * paints, so a pixel counts only beside another that differs: a redraw moves whole runs of them.
  * @param {import('playwright-core').Page} page
  * @param {string} a
  * @param {string} b
@@ -44,15 +46,35 @@ const differing = (page, a, b) =>
       };
       const [one, two] = [await read(a), await read(b)];
       if (one.width !== two.width || one.height !== two.height) return Infinity;
-      let count = 0;
-      for (let i = 0; i < one.data.length; i += 4)
-        if (
+      const { width, height } = one;
+      const off = new Uint8Array(width * height);
+      for (let p = 0; p < off.length; p++) {
+        const i = p * 4;
+        off[p] = Number(
           Math.abs(one.data[i] - two.data[i]) +
             Math.abs(one.data[i + 1] - two.data[i + 1]) +
             Math.abs(one.data[i + 2] - two.data[i + 2]) >
-          24
-        )
-          count++;
+            24
+        );
+      }
+      let count = 0;
+      for (let p = 0; p < off.length; p++) {
+        if (!off[p]) continue;
+        const [x, y] = [p % width, Math.floor(p / width)];
+        let beside = false;
+        for (let dy = -1; dy <= 1 && !beside; dy++)
+          for (let dx = -1; dx <= 1 && !beside; dx++) {
+            const [nx, ny] = [x + dx, y + dy];
+            beside =
+              (dx !== 0 || dy !== 0) &&
+              nx >= 0 &&
+              ny >= 0 &&
+              nx < width &&
+              ny < height &&
+              off[ny * width + nx] === 1;
+          }
+        if (beside) count++;
+      }
       return count;
     },
     [a, b]
@@ -202,4 +224,15 @@ test('the server’s render draws every part as the page draws it once it runs',
     for (const page of pages) await page.close();
   }
   assert.deepEqual(changed, [], `the page redrew ${changed.join(', ')}`);
+});
+
+test('the server’s render of a page marks its own row in the side navigation', async () => {
+  for (const id of ['', 'switch/']) {
+    const address = new URL(id, url);
+    const html = await (await fetch(address)).text();
+    const marked = [...html.matchAll(/<a[^>]*aria-current="page"[^>]*>/g)].map(
+      ([row]) => new URL(row.match(/href="([^"]*)"/)?.[1] ?? '', address).href
+    );
+    assert.deepEqual(marked, [address.href], `the server marked the wrong row on /${id}`);
+  }
 });

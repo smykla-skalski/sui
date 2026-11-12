@@ -7,8 +7,9 @@
 </script>
 
 <script lang="ts">
-  import { Button, ConfirmDialog, Field, toast } from '#lib';
+  import { Button, ConfirmDialog, Field, Modal, Toaster, toast } from '#lib';
   import Example from '../kit/Example.svelte';
+  import Pair from '../kit/Pair.svelte';
   import Specimen from '../kit/Specimen.svelte';
 
   let remove = $state(false);
@@ -25,13 +26,14 @@
   const refuse = () =>
     new Promise((_, reject) => setTimeout(() => reject(new Error('refused')), 900));
 
+  const archivedNote = {
+    title: 'Repository archived',
+    description: 'It is read-only until an owner restores it'
+  };
+
   function archive(): void {
     archived = true;
-    toast({
-      title: 'Repository archived',
-      description: 'It is read-only until an owner restores it',
-      action: { label: 'Undo', run: restore }
-    });
+    toast({ ...archivedNote, action: { label: 'Undo', run: restore } });
   }
 
   function restore(): void {
@@ -43,8 +45,13 @@
 <Example
   title="Tones"
   note="A destructive question wears the stop tone, and an act that gives something confirms with the signal tone"
-  layout="stack"
+  layout="grid"
   ground="canvas"
+  --specimen-min="30rem"
+  --specimen-justify="space-between"
+  --specimen-max="30rem"
+  --example-phone-pad="var(--sui-space-3)"
+  --example-max="calc(67.5rem + 2 * var(--sui-stroke))"
 >
   <Specimen label="Destructive">
     <ConfirmDialog
@@ -59,93 +66,145 @@
     <ConfirmDialog
       preview
       title="Publish 0.3.0?"
-      consequence="Everyone who installs the package gets this version from now on"
+      consequence="Everyone who installs it gets this version from now on"
       confirmLabel="Publish Release"
     />
   </Specimen>
 </Example>
 
-<Example
-  title="With a Reason"
-  note="Anything the answer needs goes in the body under the consequence"
-  layout="stack"
-  ground="canvas"
->
-  <Specimen label="Reason field">
-    <ConfirmDialog
-      preview
-      title="Yank 0.2.1?"
-      consequence="Nobody can install 0.2.1 again, and the version number is never reused"
-      confirmLabel="Yank Release"
-      tone="stop"
-    >
-      <Field label="Reason" placeholder="Ships a broken migration…" />
-    </ConfirmDialog>
-  </Specimen>
-</Example>
+<Pair lead="33rem">
+  <Example
+    title="With a Reason"
+    note="Anything the answer needs goes in the body under the consequence"
+    layout="stack"
+    ground="canvas"
+    --example-phone-pad="var(--sui-space-3)"
+    --example-max="33rem"
+  >
+    <Specimen label="Reason field">
+      <ConfirmDialog
+        preview
+        title="Yank 0.2.1?"
+        consequence="Nobody can install 0.2.1 again, and the version number is never reused"
+        confirmLabel="Yank Release"
+        tone="stop"
+      >
+        <Field label="Reason" placeholder="Ships a broken migration…" />
+      </ConfirmDialog>
+    </Specimen>
+  </Example>
 
-<Example
-  title="Asking"
-  note="Cancel opens focused on a destructive question, and the confirm action opens focused on an affirmative one"
->
-  <Specimen label="Destructive">
-    <Button tone="stop-quiet" onclick={() => (remove = true)}>Delete Repository</Button>
-  </Specimen>
-  <Specimen label="Affirmative">
-    <Button onclick={() => (publish = true)}>Publish Release</Button>
-  </Specimen>
-  <Specimen label="With a reason">
-    <Button tone="stop-quiet" onclick={() => (revoke = true)}>Revoke Token</Button>
-  </Specimen>
-</Example>
+  <Example
+    title="No Question"
+    note="An act that can be undone just happens and offers Undo in a toast"
+    layout="stack"
+    ground="canvas"
+    --example-max="33rem"
+  >
+    <Specimen label={archived ? 'Archived' : 'Active'}>
+      <Button onclick={archived ? restore : archive}
+        >{archived ? 'Restore Repository' : 'Archive Repository'}</Button
+      >
+    </Specimen>
+    <Specimen label="The toast it raises">
+      <Toaster preview items={[{ ...archivedNote, action: { label: 'Undo', run: () => {} } }]} />
+    </Specimen>
+  </Example>
+</Pair>
 
 <Example
   title="Pending & Failed"
   note="The act runs before the dialog closes, so a refusal keeps the question open and says so"
+  layout="grid"
+  ground="canvas"
+  --specimen-min="30rem"
+  --specimen-justify="space-between"
+  --specimen-max="30rem"
+  --example-phone-pad="var(--sui-space-3)"
+  --example-max="calc(67.5rem + 2 * var(--sui-stroke))"
 >
-  <Specimen label="Refused">
-    <Button tone="stop-quiet" onclick={() => (leaving = true)}>Leave Workspace</Button>
-  </Specimen>
-</Example>
-
-<Example
-  title="Removing the Opener"
-  note="When the confirmed act removes the row that asked, focus moves to the next row and never to the page"
-  layout="stack"
->
-  <Specimen label={`${tokens.length} tokens`}>
-    <ul class="tokens" role="list">
-      {#each tokens as token (token)}
-        <li>
-          <span class="token">{token}</span>
-          <Button
-            tone="stop-quiet"
-            onclick={() => {
-              revoking = token;
-              revokeOpen = true;
-            }}>Revoke {token}</Button
-          >
-        </li>
-      {/each}
-    </ul>
-    {#if tokens.length === 0}
-      <Button onclick={() => (tokens = ['Deploy Bot', 'Release Script', 'Nightly Backup'])}
-        >Restore the Tokens</Button
-      >
-    {/if}
-  </Specimen>
-</Example>
-
-<Example
-  title="No Question"
-  note="An act that can be undone just happens and offers Undo in a toast"
->
-  <Specimen label={archived ? 'Archived' : 'Active'}>
-    <Button onclick={archived ? restore : archive}
-      >{archived ? 'Restore Repository' : 'Archive Repository'}</Button
+  <!-- Drawn by Modal, since the question reaches these states only while its act runs. -->
+  <Specimen label="Pending">
+    <Modal
+      preview
+      busy
+      role="alertdialog"
+      title="Leave This Workspace?"
+      description="You lose access to its repositories until an owner invites you again"
     >
+      {#snippet footer()}
+        <Button disabled>Cancel</Button>
+        <Button tone="stop" loading reserve>Leave Workspace</Button>
+      {/snippet}
+    </Modal>
+  </Specimen>
+  <Specimen label="Refused">
+    <Modal
+      preview
+      role="alertdialog"
+      title="Leave This Workspace?"
+      description="You lose access to its repositories until an owner invites you again"
+      error="The workspace needs 1 owner, so you cannot leave it yet"
+    >
+      {#snippet footer()}
+        <Button>Cancel</Button>
+        <Button tone="stop" reserve>Leave Workspace</Button>
+      {/snippet}
+    </Modal>
   </Specimen>
 </Example>
+
+<Pair lead="33rem">
+  <Example
+    title="Asking"
+    note="Cancel opens focused on a destructive question, and the confirm action opens focused on an affirmative one"
+    layout="grid"
+    --specimen-min="max(calc((100% - var(--sui-space-6)) / 2 - 1px), 8.5rem)"
+    --example-max="33rem"
+  >
+    <Specimen label="Destructive">
+      <Button tone="stop-quiet" onclick={() => (remove = true)}>Delete Repository</Button>
+    </Specimen>
+    <Specimen label="Affirmative">
+      <Button onclick={() => (publish = true)}>Publish Release</Button>
+    </Specimen>
+    <Specimen label="With a reason">
+      <Button tone="stop-quiet" onclick={() => (revoke = true)}>Revoke Token</Button>
+    </Specimen>
+    <Specimen label="Refused">
+      <Button tone="stop-quiet" onclick={() => (leaving = true)}>Leave Workspace</Button>
+    </Specimen>
+  </Example>
+
+  <Example
+    title="Removing the Opener"
+    note="When the confirmed act removes the row that asked, focus moves to the next row and never to the page"
+    layout="stack"
+    --example-max="33rem"
+  >
+    <Specimen label={`${tokens.length} tokens`}>
+      <ul class="tokens" role="list">
+        {#each tokens as token (token)}
+          <li>
+            <span class="token">{token}</span>
+            <Button
+              tone="stop-quiet"
+              onclick={() => {
+                revoking = token;
+                revokeOpen = true;
+              }}>Revoke {token}</Button
+            >
+          </li>
+        {/each}
+      </ul>
+      {#if tokens.length === 0}
+        <Button onclick={() => (tokens = ['Deploy Bot', 'Release Script', 'Nightly Backup'])}
+          >Restore the Tokens</Button
+        >
+      {/if}
+    </Specimen>
+  </Example>
+</Pair>
 
 <ConfirmDialog
   bind:open={remove}
@@ -158,7 +217,7 @@
 <ConfirmDialog
   bind:open={publish}
   title="Publish 0.3.0?"
-  consequence="Everyone who installs the package gets this version from now on"
+  consequence="Everyone who installs it gets this version from now on"
   confirmLabel="Publish Release"
 />
 
@@ -201,9 +260,14 @@
     display: contents;
   }
 
+  /* Every Revoke action shares the widest one's column, so their edges line up beside the
+     names, and at a large text size the column narrows and its words wrap before a name
+     breaks or the row leaves the page. */
   .tokens {
+    --sui-local-button-span: 100%;
     display: grid;
-    gap: var(--sui-space-2);
+    column-gap: var(--sui-space-3);
+    grid-template-columns: minmax(min-content, 1fr) minmax(0, max-content);
     list-style: none;
     margin: 0;
     padding: 0;
@@ -211,10 +275,22 @@
 
   .tokens > li {
     align-items: center;
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--sui-space-2) var(--sui-space-3);
-    justify-content: space-between;
+    display: grid;
+    grid-column: 1 / -1;
+    grid-template-columns: subgrid;
+    padding-block: var(--sui-space-2);
+  }
+
+  .tokens > li + li {
+    border-block-start: var(--sui-stroke) solid var(--sui-border-divider);
+  }
+
+  .tokens > li:first-child {
+    padding-block-start: 0;
+  }
+
+  .tokens > li:last-child {
+    padding-block-end: 0;
   }
 
   .token {

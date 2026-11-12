@@ -367,8 +367,11 @@ dialog, so they are never inert under it.
     padding: calc(var(--sui-local-modal-inset) / 2) var(--sui-local-modal-inset);
   }
 
-  /* Open without the entry animation, which would replay on every page load. */
+  /* Open without the entry animation, which would replay on every page load. With no scrim
+     under it, a light dialog's own lift reads as a grey band on the page, so it lifts as a
+     plate does (L-58). */
   .sui-modal.preview {
+    box-shadow: var(--sui-shadow-dialog-in-place);
     display: flex;
     flex-direction: column;
     max-inline-size: 100%;
@@ -385,17 +388,28 @@ dialog, so they are never inert under it.
     background-color: var(--sui-scrim);
   }
 
+  /* A question and its two answers need less measure than a form, so a confirmation stands
+     narrower and reads as one compact block, its question a step under a task's title (L-25,
+     L-58). */
+  .sui-modal[role='alertdialog'][data-size='dialog'] {
+    --sui-local-modal-title: var(--sui-font-size-alert-title);
+    inline-size: 30rem;
+  }
+
   .sui-modal[data-size='wide'] {
     inline-size: 46rem;
   }
 
-  /* Docked to the edge only in the top layer; in flow an inspector keeps the whole frame. */
+  .sui-modal[data-size='inspector'] {
+    inline-size: 40rem;
+  }
+
+  /* Docked to the edge only in the top layer; in flow an inspector keeps its width. */
   .sui-modal[data-size='inspector']:not(.preview) {
     block-size: 100dvh;
     border-block: 0;
     border-inline-end: 0;
     border-radius: 0;
-    inline-size: 40rem;
     margin-block: 0;
     margin-inline: auto 0;
     max-block-size: none;
@@ -406,10 +420,12 @@ dialog, so they are never inert under it.
     animation-name: sui-inspector-in;
   }
 
+  /* A dialog asks its question alone over the scrim, so the title stands a step past a card's
+     12px over its description and the two read as a question and its consequence (L-58). */
   .sui-modal-head {
     display: grid;
     flex: none;
-    gap: var(--sui-space-3);
+    gap: var(--sui-space-4);
   }
 
   /* The head stands a step further from the body than the parts stand from each other, so the
@@ -429,8 +445,8 @@ dialog, so they are never inert under it.
   .sui-modal-title {
     align-content: center;
     block-size: var(--sui-block-snap);
-    font: var(--sui-weight-bold) var(--sui-font-size-dialog-title) / var(--sui-leading-title)
-      var(--sui-sans);
+    font: var(--sui-weight-bold) var(--sui-local-modal-title, var(--sui-font-size-dialog-title)) /
+      var(--sui-leading-title) var(--sui-sans);
     letter-spacing: -0.015em;
     margin: 0;
     min-inline-size: 0;
@@ -446,28 +462,34 @@ dialog, so they are never inert under it.
      far from the dialog's side as the title is from the other, square to the corner. Its glyph
      rests in the secondary ink, a step over a row action's muted one, so the way out reads
      beside the bold title. */
+  /* The 18px tier, so the close weighs as much as the bold title it ends. */
   .sui-modal-close {
+    --sui-icon-base: var(--sui-icon-md);
     --sui-local-icon-rest: var(--sui-text-secondary);
     align-items: center;
     align-self: flex-start;
     block-size: 0;
     display: flex;
     flex: none;
-    font: var(--sui-weight-bold) var(--sui-font-size-dialog-title) / var(--sui-leading-flat)
-      var(--sui-sans);
+    font: var(--sui-weight-bold) var(--sui-local-modal-title, var(--sui-font-size-dialog-title)) /
+      var(--sui-leading-flat) var(--sui-sans);
     margin-block-start: round(down, calc(round(up, 1cap, 1px) / 2), 1px);
     margin-inline-end: round(calc((var(--sui-icon-base) - var(--sui-tier-quiet)) / 2), 1px);
   }
 
+  /* The consequence is what the reader weighs before answering, so its ink leans a fifth of
+     the way from the secondary ink toward the title's, over the page's other notes (L-58). It
+     fills its measure before it breaks, as running copy does, with no lone last word. */
   .sui-modal-description {
     align-content: center;
     block-size: var(--sui-block-snap);
-    color: var(--sui-text-secondary);
-    font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-row-copy-leading)
+    color: color-mix(in srgb, var(--sui-text-primary) 20%, var(--sui-text-secondary));
+    font: var(--sui-weight-regular) var(--sui-font-size-body) / var(--sui-leading-note)
       var(--sui-sans);
     margin: 0;
     padding-block: var(--sui-block-snap-room);
     text-box: trim-both cap alphabetic;
+    text-wrap: pretty;
   }
 
   /* A dialog's 24px inset would crowd fields a page form's 20px apart, so they stand a step
@@ -489,15 +511,36 @@ dialog, so they are never inert under it.
     position: relative;
   }
 
-  /* A line always parts the task from its answer, so the actions read as one band whether the
-     body fits or scrolls under them. It stands half an inset under the last field, as the
-     body ends, and the band pads a further half inset under it, so the actions stand one inset
-     from the line, as far as they stand from the foot. */
-  .sui-modal-body + .sui-modal-error:has(+ .sui-modal-foot) {
+  /* The line stands one inset under the last field, or under the question of a dialog with no
+     body, a confirmation's too. */
+  .sui-modal-body:has(+ .sui-modal-error + .sui-modal-foot) {
+    padding-block-end: var(--sui-local-modal-inset);
+  }
+
+  .sui-modal-head + .sui-modal-error:has(+ .sui-modal-foot) {
+    margin-block-start: calc(var(--sui-local-modal-inset) / 2);
+  }
+
+  /* A refused save's wash with no actions under it is a ground of its own, so it stands one
+     inset from the words over it, as any ink does. */
+  .sui-modal-head + .sui-modal-error:has(> .sui-modal-error-line):not(:has(+ .sui-modal-foot)) {
     padding-block-start: calc(var(--sui-local-modal-inset) / 2);
   }
 
-  .sui-modal-body + .sui-modal-error:has(+ .sui-modal-foot)::before {
+  /* A line always parts the task from its answer in every dialog, so the actions read as one
+     band whether the body fits, scrolls under them or is only a question. The band is slimmer
+     than the inset and sits on a faint tint of the field well that reaches the dialog's foot:
+     its actions stand 16px under the line, or under a refused save's wash, which starts at
+     the line, and 16px over the foot, so the answer weighs less than the task and reads as its
+     own place (shadcn/ui). A quiet answer stands on a ground over the band's, in both themes. */
+  .sui-modal-error + .sui-modal-foot {
+    --sui-local-button-bg: var(--sui-dialog-foot-control, var(--sui-surface-raised));
+    background: var(--sui-dialog-foot-bg);
+    margin-block-end: calc(-1 * var(--sui-local-modal-inset) / 2);
+    padding-block: var(--sui-space-4);
+  }
+
+  .sui-modal-error:has(+ .sui-modal-foot)::before {
     border-block-start: var(--sui-stroke) solid var(--sui-border-subtle);
     content: '';
     inset-block-start: 0;
@@ -505,19 +548,38 @@ dialog, so they are never inert under it.
     position: absolute;
   }
 
+  /* A refused save is a state of the whole task, so its reason sits on the pale wash a form
+     error wears, across the dialog's width, and its words read as a form error's do: the mark,
+     the edges and the wash carry the refusal, the words the primary ink at the body size (L-58). */
   .sui-modal-error-line {
     align-items: flex-start;
-    color: var(--sui-danger);
+    background: color-mix(in srgb, var(--sui-danger-tint) 65%, var(--sui-dialog-bg));
+    color: var(--sui-text-primary);
     display: flex;
-    font: var(--sui-weight-medium) var(--sui-font-size-meta) / var(--sui-leading-meta)
+    font: var(--sui-weight-medium) var(--sui-font-size-body) / var(--sui-row-copy-leading)
       var(--sui-sans);
     gap: var(--sui-space-2);
     margin: 0;
+    /* 12px at every width, so two lines of the reason never read as pressed on a phone. */
+    padding-block: var(--sui-space-3);
+  }
+
+  /* Over the answer band, a refused save's wash takes the danger edge a form error wears on the
+     line over it and that edge at half strength inside its foot, so the two pale grounds never
+     run together, no second red stripe rings the words, and they keep their pad. */
+  .sui-modal-error:has(> .sui-modal-error-line):has(+ .sui-modal-foot)::before {
+    border-block-start-color: color-mix(in srgb, var(--sui-danger) 40%, transparent);
+  }
+
+  .sui-modal-error:has(+ .sui-modal-foot) > .sui-modal-error-line {
+    box-shadow: inset 0 calc(-1 * var(--sui-stroke)) 0
+      color-mix(in srgb, var(--sui-danger) 20%, transparent);
   }
 
   /* The symbol centres on the first line of the message, however many lines follow. */
   /* Centred on the first line of the reason, the box an even snap gives one line (L-94). */
   .sui-modal-error-mark {
+    color: var(--sui-danger);
     display: flex;
     flex: none;
     margin-block: calc((round(up, 1cap, 2px) - var(--sui-icon-md)) / 2);
@@ -576,12 +638,18 @@ dialog, so they are never inert under it.
       max-inline-size: calc(100vw - 2 * var(--sui-space-4));
     }
 
-    /* On a phone the actions stack at the full width in their reading order, so each is a
-       whole thumb's target and none sits alone at the end (Material, Apple sheets). */
+    /* On a phone the actions share the full width in their reading order, in equal halves
+       while each one's words fit its half, a longer answer widening to its words while both
+       fit one row, and stacked once they do not, so each is a whole thumb's target and none
+       sits alone at the end (Apple alerts, Material). */
     .sui-modal-foot {
       --sui-local-button-span: 100%;
       align-items: stretch;
-      flex-direction: column;
+    }
+
+    .sui-modal-foot > :global(*) {
+      flex: 1 1 0;
+      min-inline-size: fit-content;
     }
 
     .sui-modal[data-size='inspector']:not(.preview) {

@@ -3,6 +3,7 @@
   import type { HTMLAttributes } from 'svelte/elements';
   import { follow, place, placedAt, type Placement } from '../internal/anchor.js';
   import { themeAt } from '../internal/theme.svelte.js';
+  import '../internal/scroll-foot.css';
 
   const fallbackId = $props.id();
 
@@ -12,7 +13,7 @@
     id = fallbackId,
     side = 'block-end',
     align = 'start',
-    offset = 4,
+    offset = 6,
     width = 'auto',
     dismiss = 'auto',
     inline = false,
@@ -33,6 +34,7 @@
     id?: string;
     side?: Placement['side'];
     align?: Placement['align'];
+    /** Pixels between the anchor and the layer; the default is `--sui-floating-gap`. */
     offset?: number;
     /** `trigger` matches the anchor's width, `min-trigger` never goes narrower than it. */
     width?: 'auto' | 'min-trigger' | 'trigger';
@@ -250,7 +252,7 @@ close control, because only Escape and that control end it.
 - Semantics: a `popover` box with no role of its own; the content brings its role (`menu`, `listbox`, or `dialog` with a name) and the trigger points at it with `popovertarget` or `aria-controls`.
 - Content: any content, at most the viewport's width less 16px and as tall as the room beside the trigger, scrolling inside past that.
 - States: closed, opening (it grows out of a line on its edge that faces the trigger), open, closing (it folds back into that line), flipped to the other side, and inline in the page's flow.
-- Keyboard: Escape closes it, auto or manual, and the content's own keys work inside; the Escape stops at this layer.
+- Keyboard: Escape closes it, auto or manual, and the content's own keys work inside; the Escape stops at this layer. A layer of words with no control inside that may scroll takes `tabindex="0"`, so the keys reach its scroll, and it wears the focus ring inside its edge.
 - Pointer and touch: an outside press closes an auto layer and never a manual one, and a press inside closes only a picker open inside it; the trigger's own target sizes apply.
 - Focus: an `[autofocus]` element inside takes focus on open; on close, focus inside returns to the element that had it before, or to the anchor. With `closeOnLeave`, focus moving out of the layer closes it, as a Tab out does, a press on its words or padding focuses the box itself, so it is never the reader leaving, and a press on the anchor toggles it closed rather than closing and reopening it.
 - Responsive: it flips to the side with more room, stays 8px inside the viewport, caps its height to the room it has and scrolls inside.
@@ -271,7 +273,7 @@ close control, because only Escape and that control end it.
   popover={inline ? undefined : dismiss}
   tabindex={closeOnLeave ? -1 : undefined}
   data-sui-theme={themeAt(element?.parentElement)}
-  class={['sui-popover', { inline }, className]}
+  class={['sui-popover', 'sui-scroll-foot', { inline }, className]}
   data-width={width}
   {onbeforetoggle}
   {ontoggle}
@@ -314,9 +316,18 @@ close control, because only Escape and that control end it.
       display var(--sui-duration-press) allow-discrete;
   }
 
-  /* In flow the room a list has is the viewport, so a listbox keeps its 20rem cap. */
+  /* A layer taller than its room is a keyboard stop of its own, so the keys can scroll it, and
+     it clips, so its ring lies inside its edge (L-41). */
+  .sui-popover:focus-visible {
+    outline: var(--sui-focus-ring-width) solid var(--sui-focus);
+    outline-offset: var(--sui-focus-ring-inset);
+  }
+
+  /* In flow the page scrolls, so the layer never cuts what it holds, and a listbox inside it
+     measures its 20rem cap against the viewport. */
   .sui-popover.inline {
     --sui-floating-available-block: 100dvh;
+    max-block-size: none;
     max-inline-size: 100%;
     position: static;
   }

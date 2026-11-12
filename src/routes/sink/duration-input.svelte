@@ -13,6 +13,7 @@
 
   let retry = $state(90);
   let merge = $state(7200);
+  let poll = $state(900);
   let cadence = $state(30);
   let saved = $state(30);
   let cadenceReset = $state(0);
@@ -31,6 +32,10 @@
 
 <Example
   title="Units"
+  layout="grid"
+  --specimen-min="13.5rem"
+  --specimen-max="19rem"
+  --specimen-row-gap="var(--sui-space-6)"
   note="A value shows in the largest unit that holds it whole, and a unit that says it plainly keeps its seconds"
 >
   <Specimen label="Stored as {retry}&nbsp;{retry === 1 ? 'second' : 'seconds'}">
@@ -47,10 +52,21 @@
       {/snippet}
     </Field>
   </Specimen>
+  <Specimen label="Stored as {poll}&nbsp;{poll === 1 ? 'second' : 'seconds'}">
+    <Field label="Poll interval">
+      {#snippet control({ id, describedby })}
+        <DurationInput {id} aria-describedby={describedby} bind:value={poll} />
+      {/snippet}
+    </Field>
+  </Specimen>
 </Example>
 
 <Example
   title="States"
+  layout="grid"
+  --specimen-min="13.5rem"
+  --specimen-max="19rem"
+  --specimen-row-gap="var(--sui-space-6)"
   note="The range shows before anything goes wrong, text outside it keeps its reason, and a locked field says why"
 >
   <Specimen label="Out of range">
@@ -94,8 +110,10 @@
           />
         {/snippet}
       </Field>
-      <Button onclick={save}>Save the Cadence</Button>
-      <Button onclick={discard} data-reset={cadenceReset}>Discard the Cadence</Button>
+      <div class="actions">
+        <Button tone="signal" onclick={save}>Save the Cadence</Button>
+        <Button onclick={discard} data-reset={cadenceReset}>Discard the Cadence</Button>
+      </div>
     </div>
   </Specimen>
 </Example>
@@ -123,8 +141,14 @@
     justify-items: start;
   }
 
+  .actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--sui-space-2);
+  }
+
   .narrow {
-    inline-size: 12rem;
+    inline-size: 13rem;
     max-inline-size: 100%;
   }
 </style>

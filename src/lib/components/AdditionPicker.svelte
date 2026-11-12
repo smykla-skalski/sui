@@ -14,6 +14,9 @@
   import Icon from '../icons/Icon.svelte';
   import { held, holdAround } from '../internal/held.svelte.js';
   import { pageLocale } from '../internal/locale.js';
+  import { shownWait } from '../internal/shown-wait.svelte.js';
+  import { revealRow } from '../internal/reveal.js';
+  import '../internal/scroll-foot.css';
   import Button from './Button.svelte';
   import Popover from './Popover.svelte';
 
@@ -36,6 +39,8 @@
       (label: string, description: string) => `${label}${mark('comma')}${description}`
     ),
     disabled = false,
+    align = 'start',
+    preview = false,
     class: className = '',
     ...rest
   }: {
@@ -60,6 +65,10 @@
     /** A choice's accessible name from its label and its description, in the language's order. */
     optionName?: (label: string, description: string) => string;
     disabled?: boolean;
+    /** `end` hangs the menu from the trigger's trailing edge, for a picker at the end of a row. */
+    align?: 'start' | 'end';
+    /** Draws the menu open under the trigger in the page's flow, with its first choice lit and no keyboard. */
+    preview?: boolean;
     /** Layout for the call site only, never the trigger's own paint. */
     class?: HTMLButtonAttributes['class'];
   } & Omit<HTMLButtonAttributes, 'children' | 'class' | 'disabled' | 'onclick'> = $props();
@@ -74,6 +83,21 @@
   const holding = $derived(held(trigger, around));
   let menu = $state<HTMLElement | null>(null);
   let open = $state(false);
+
+  // A preview trigger opens nothing, so it carries no popup wiring and no handlers.
+  const triggerProps = $derived(
+    preview
+      ? { 'aria-expanded': true, 'aria-controls': menuId }
+      : {
+          'aria-haspopup': 'menu' as const,
+          'aria-expanded': open,
+          'aria-controls': menuId,
+          popovertarget: popupId,
+          onclick: toggle
+        }
+  );
+
+  const waiting = shownWait(() => loading);
 
   const offered = $derived(choices.filter((choice) => !added.includes(choice.value)));
   const items = () => [...(menu?.querySelectorAll<HTMLElement>('[role="menuitem"]') ?? [])];
@@ -97,11 +121,19 @@
   }
 
   function choose(value: string): void {
+    if (preview) return;
     onadd(value);
     open = false;
   }
 
+  // Focus follows the pointer, so one highlight serves hover and the keyboard, as in ActionMenu.
+  function follow(event: PointerEvent): void {
+    const choice = event.currentTarget as HTMLElement;
+    if (!preview && document.activeElement !== choice) choice.focus({ preventScroll: true });
+  }
+
   function retry(): void {
+    if (preview) return;
     onretry?.();
     menu?.focus({ preventScroll: true });
   }
@@ -148,7 +180,9 @@
       if (next < 0) return;
     } else return;
     event.preventDefault();
-    all[next]?.focus({ preventScroll: true });
+    const row = all[next];
+    row?.focus({ preventScroll: true });
+    if (menu && row) revealRow(menu, row);
   }
 </script>
 
@@ -160,89 +194,147 @@ the trigger or grow the page. Whatever is in `added` is not offered again. Movin
 new control after `onadd` is the caller's.
 
 - Semantics: an `add` button with `aria-haspopup="menu"` and `aria-expanded`, opening a `menu` of `menuitem` buttons named by `label`.
-- Content: choices of a label and an optional note, which drops under the label when the line runs out.
-- States: closed, open, each choice's hover, focus and pressed, loading, failed, nothing to add, everything added, and a disabled trigger.
+- Content: choices of a label and an optional note a step smaller under it.
+- States: closed, open, each choice's highlight and pressed, loading, failed, nothing to add, everything added, a disabled trigger, and `preview`, which draws the menu open in the page's flow with its first choice lit.
 - Keyboard: opening moves focus to the first choice; arrows move and wrap, Home and End jump, typing jumps to the next choice that starts with the typed letters, Enter adds, Escape closes and returns focus to the trigger, and Tab closes and moves on.
-- Pointer and touch: the trigger and every choice are 34px tall, 44px on a phone; a press outside closes the list.
+- Pointer and touch: the trigger and every choice are 34px tall, 44px on a phone; focus follows the pointer, so one highlight serves hover and the keyboard; a press outside closes the list.
 - Focus: closing returns focus to the trigger unless a press put it on another control.
-- Responsive: the list is at least as wide as the trigger, at most 24rem or the trigger's width, and scrolls inside its own box at `min(20rem, the room)` tall.
+- Responsive: the list is at least as wide as the trigger and 13rem, at most 24rem or the trigger's width, and scrolls inside its own box at `min(20rem, the room)` tall.
 - Accessibility: the trigger says whether the list is open; a message in place of the list is a disabled item inside the menu, so the menu is never empty.
-- Localization: `label`, `done`, `none`, `loadingLabel` and `retryLabel` are props with English defaults; type-ahead compares in the page's language; the list follows the reading direction.
+- Localization: `label`, `done`, `none`, `loadingLabel` and `retryLabel` are props with English defaults; type-ahead compares in the page's language; the list follows the reading direction, and `align` start and end hang it from the mirrored edge on a right-to-left page.
 - Performance: every offered choice renders; type-ahead is a linear search, fine for the few hundred a menu holds.
 - Analytics: `onadd` hears each addition, and `onretry` each retry.
-- Failure: no choices says `none`, everything added says `done`, `loading` says `loadingLabel`, and `error` says why with a `retryLabel` item when `onretry` is set.
+- Failure: no choices says `none`, everything added says `done`, `loading` says `loadingLabel`, with a spinner once the wait runs 150ms that holds the row at least 400ms, and `error` says why with a `retryLabel` item when `onretry` is set.
 -->
 
-<Button
-  bind:element={trigger}
-  {...rest}
-  tone="add"
-  class={className}
-  disabled={disabled || holding === 'firm'}
-  aria-disabled={Boolean(holding) || rest['aria-disabled']}
-  aria-haspopup="menu"
-  aria-expanded={open}
-  aria-controls={menuId}
-  popovertarget={popupId}
-  onclick={toggle}
->
-  {#snippet icon()}<Icon name="plus" size="base" />{/snippet}
-  {label}
-</Button><Popover id={popupId} anchor={trigger} bind:open {onclose} width="min-trigger">
-  <div
-    bind:this={menu}
-    id={menuId}
-    role="menu"
-    tabindex="-1"
-    aria-label={label}
-    class="sui-addition-menu"
-    {onkeydown}
+{#snippet opener()}
+  <Button
+    bind:element={trigger}
+    {...rest}
+    tone="add"
+    class={className}
+    disabled={disabled || holding === 'firm'}
+    aria-disabled={Boolean(holding) || rest['aria-disabled']}
+    {...triggerProps}
   >
-    <!-- The trigger promises a menu, so any message in place of the choices is a disabled item inside one. -->
-    {#if loading}
-      <div role="menuitem" aria-disabled="true" tabindex="-1" class="sui-addition-done">
-        {loadingLabel}
-      </div>
-    {:else if error}
-      <div role="menuitem" aria-disabled="true" tabindex="-1" class="sui-addition-done problem">
-        <Icon name="alert" size="sm" /><span>{error}</span>
-      </div>
-      {#if onretry}
-        <button
-          type="button"
-          role="menuitem"
-          tabindex="-1"
-          class="sui-addition-choice"
-          onclick={retry}
-        >
-          <span class="sui-addition-label">{retryLabel}</span>
-        </button>
-      {/if}
-    {:else}
-      {#each offered as choice (choice.value)}
-        <button
-          type="button"
-          role="menuitem"
-          tabindex="-1"
-          class="sui-addition-choice"
-          aria-label={choice.description ? optionName(choice.label, choice.description) : undefined}
-          onclick={() => choose(choice.value)}
-        >
-          <span class="sui-addition-label">{choice.label}</span>
-          {#if choice.description}
-            <span class="sui-addition-note">{choice.description}</span>
-          {/if}
-        </button>
-      {:else}
+    {#snippet icon()}<Icon name="plus" size="base" />{/snippet}
+    {label}
+  </Button>
+{/snippet}
+
+{#snippet popup()}
+  <Popover
+    id={popupId}
+    anchor={trigger}
+    bind:open
+    {onclose}
+    inline={preview}
+    width="min-trigger"
+    {align}
+  >
+    <div
+      bind:this={menu}
+      id={menuId}
+      role="menu"
+      tabindex="-1"
+      aria-label={label}
+      class="sui-addition-menu sui-scroll-foot-list"
+      onkeydown={preview ? undefined : onkeydown}
+    >
+      <!-- The trigger promises a menu, so any message in place of the choices is a disabled item inside one. -->
+      <!-- The ring and its words are one row, so the row holds while the ring does (L-117). -->
+      {#if loading || waiting.current}
         <div role="menuitem" aria-disabled="true" tabindex="-1" class="sui-addition-done">
-          {choices.length === 0 ? none : done}
+          {#if waiting.current}<span class="sui-addition-spinner"></span>{/if}<span
+            class="sui-addition-said">{loadingLabel}</span
+          >
         </div>
-      {/each}
-    {/if}
+      {:else if error}
+        <div role="menuitem" aria-disabled="true" tabindex="-1" class="sui-addition-done problem">
+          <Icon name="alert" size="base" /><span class="sui-addition-said">{error}</span>
+        </div>
+        {#if onretry}
+          <div role="separator" class="sui-addition-separator"></div>
+          <button
+            type="button"
+            role="menuitem"
+            tabindex="-1"
+            class="sui-addition-choice retry"
+            onclick={retry}
+            onpointermove={follow}
+          >
+            <Icon name="refresh" size="base" /><span class="sui-addition-label">{retryLabel}</span>
+          </button>
+        {/if}
+      {:else}
+        {#each offered as choice, index (choice.value)}
+          <button
+            type="button"
+            role="menuitem"
+            tabindex="-1"
+            class={['sui-addition-choice', { active: preview && index === 0 }]}
+            aria-label={choice.description
+              ? optionName(choice.label, choice.description)
+              : undefined}
+            onclick={() => choose(choice.value)}
+            onpointermove={follow}
+          >
+            <span class="sui-addition-label">{choice.label}</span>
+            {#if choice.description}
+              <span class="sui-addition-note">{choice.description}</span>
+            {/if}
+          </button>
+        {:else}
+          <div role="menuitem" aria-disabled="true" tabindex="-1" class="sui-addition-done">
+            <span class="sui-addition-said">{choices.length === 0 ? none : done}</span>
+          </div>
+        {/each}
+      {/if}
+    </div>
+  </Popover>
+{/snippet}
+
+{#if preview}
+  <div class="sui-addition-preview" data-align={align}>
+    <span class="sui-addition-trigger">{@render opener()}</span>
+    {@render popup()}
   </div>
-</Popover>
+{:else}
+  {@render opener()}{@render popup()}
+{/if}
 
 <style>
+  /* In the page's flow the room is the preview's own line, so the menu is at least as wide as
+     its trigger and never wider than that line, and the trigger stands at its aligned edge above
+     it, as far as a live menu stands off it (L-35). */
+  .sui-addition-preview {
+    display: inline-grid;
+    gap: var(--sui-floating-gap);
+    grid-template-columns: minmax(0, auto);
+    justify-self: start;
+    max-inline-size: 100%;
+    min-inline-size: min(calc(13rem + 2 * var(--sui-stroke)), 100%);
+  }
+
+  /* A copy draws every row, as a Combobox's does, so no long list is cut at its foot. */
+  .sui-addition-preview .sui-addition-menu {
+    max-block-size: none;
+    min-inline-size: 0;
+  }
+
+  /* A row-end picker's copy keeps its cell's end, where the live one stands in its row. */
+  .sui-addition-preview[data-align='end'] {
+    justify-self: end;
+  }
+
+  .sui-addition-trigger {
+    display: flex;
+  }
+
+  .sui-addition-preview[data-align='end'] > .sui-addition-trigger {
+    justify-content: flex-end;
+  }
+
   /* The popover's own 1px border sits outside this list, so the box as a whole stops at
      min(20rem, the room it has). */
   .sui-addition-menu {
@@ -250,7 +342,10 @@ new control after `onadd` is the caller's.
     display: grid;
     grid-template-columns: minmax(0, 1fr);
     max-block-size: calc(min(20rem, var(--sui-floating-available-block)) - 2 * var(--sui-stroke));
-    max-inline-size: max(24rem, var(--sui-floating-anchor-inline));
+    max-inline-size: max(24rem, var(--sui-floating-anchor-inline, 0px));
+    /* ActionMenu's floor, so a one-line message reads as a menu and not a second button; it
+       gives way to a narrow window, so large text wraps rather than scrolls sideways. */
+    min-inline-size: min(13rem, calc(100vw - 2 * var(--sui-space-3)));
     outline: none;
     overflow: auto;
     overscroll-behavior: contain;
@@ -258,63 +353,76 @@ new control after `onadd` is the caller's.
     row-gap: 2px;
   }
 
+  /* The block padding centres one line in the control height, so a one-line choice is exactly
+     that tall and its words stand as far under the top as over the bottom (L-102). A note sits
+     under its label, as in ActionMenu, so every note starts on one edge. */
   .sui-addition-choice {
-    align-content: center;
-    align-items: baseline;
     appearance: none;
     background-color: transparent;
     min-block-size: var(--sui-control-height-compact);
     border: 0;
-    border-radius: var(--sui-radius-control);
+    border-radius: var(--sui-radius-popover-row);
     box-sizing: border-box;
     color: var(--sui-text-primary);
     cursor: pointer;
-    column-gap: var(--sui-space-2);
-    display: flex;
-    flex-wrap: wrap;
-    font: var(--sui-weight-medium) var(--sui-font-size-control) / var(--sui-leading-meta)
+    display: grid;
+    gap: var(--sui-row-copy-gap);
+    grid-template-columns: minmax(0, 1fr);
+    justify-items: start;
+    font: var(--sui-weight-regular) var(--sui-font-size-control) / var(--sui-leading-meta)
       var(--sui-sans);
     margin: 0;
-    padding: var(--sui-space-1) var(--sui-space-3);
+    padding: calc((var(--sui-control-height-compact) - round(up, 1cap, 2px)) / 2) var(--sui-space-3);
     text-align: start;
     transition: translate var(--sui-duration-press) var(--sui-ease-standard);
     user-select: none;
     -webkit-user-select: none;
   }
 
-  .sui-addition-choice:focus-visible:not(:active) {
-    background-color: var(--sui-interactive-hover-layer);
+  /* Focus follows the pointer, so one highlight serves hover and the keyboard. */
+  .sui-addition-choice:is(:focus, .active):not(:active) {
+    background-color: var(--sui-list-highlight);
     color: var(--sui-hover-ink);
   }
 
-  @media (hover: hover) {
-    .sui-addition-choice:hover:not(:active) {
-      background-color: var(--sui-interactive-hover-layer);
-      color: var(--sui-hover-ink);
-    }
-  }
-
-  .sui-addition-choice:focus-visible {
+  /* A copy's lit choice is where the keyboard is, so it wears the ring as a live one does. */
+  .sui-addition-choice:is(:focus-visible, .active) {
     outline: var(--sui-focus-ring-width) solid var(--sui-focus);
     outline-offset: var(--sui-focus-ring-inset);
   }
 
+  .sui-addition-choice:focus:not(:focus-visible) {
+    outline: none;
+  }
+
   .sui-addition-choice:active {
-    background-color: var(--sui-interactive-pressed);
+    background-color: var(--sui-list-pressed);
     box-shadow: var(--sui-pressed-inset);
     translate: 0 1px;
   }
 
-  /* No cap trim: a name has descenders, and the row centres it on its own. */
   .sui-addition-label,
-  .sui-addition-note {
+  .sui-addition-note,
+  .sui-addition-said {
+    align-content: center;
     min-inline-size: 0;
     overflow-wrap: anywhere;
+    text-box: trim-both cap alphabetic;
   }
 
+  .sui-addition-label,
+  .sui-addition-said {
+    block-size: var(--sui-block-snap-even);
+    padding-block: var(--sui-block-snap-room-even);
+  }
+
+  /* A type step under the label in ActionMenu's ink, so a row reads as a name and its note,
+     and the note stays readable on a lit row's veil (L-5, L-25). */
   .sui-addition-note {
-    color: var(--sui-text-muted);
-    font-weight: var(--sui-weight-regular);
+    block-size: var(--sui-block-snap);
+    color: var(--sui-text-secondary);
+    font-size: var(--sui-font-size-caption);
+    padding-block: var(--sui-block-snap-room);
   }
 
   .sui-addition-done {
@@ -327,17 +435,60 @@ new control after `onadd` is the caller's.
       var(--sui-sans);
     margin: 0;
     max-inline-size: 20rem;
-    padding: 0 var(--sui-space-3);
+    padding: var(--sui-space-2) var(--sui-space-3);
+    user-select: none;
+    -webkit-user-select: none;
+  }
+
+  /* A message's mark and a retry's glyph share one column, so their words share one edge; the
+     mark sits inside the row's padding, so every one-line message is a choice's height. */
+  :is(.sui-addition-done, .retry) {
+    gap: var(--sui-space-2);
+  }
+
+  /* What failed and what to do about it are two kinds of row, parted as ActionMenu parts its
+     groups. */
+  .sui-addition-separator {
+    background-color: var(--sui-border-divider);
+    block-size: var(--sui-stroke);
+    margin-block: var(--sui-space-1);
+  }
+
+  .retry {
+    align-items: center;
+    display: flex;
+    padding-block: var(--sui-space-2);
   }
 
   .problem {
     color: var(--sui-danger);
-    gap: var(--sui-space-2);
+  }
+
+  .sui-addition-spinner {
+    block-size: calc(var(--sui-icon-base) - 2 * var(--sui-stroke));
+    border: var(--sui-stroke-bold) solid color-mix(in srgb, currentColor 55%, transparent);
+    border-block-start-color: currentColor;
+    border-radius: 50%;
+    box-sizing: border-box;
+    flex: none;
+    inline-size: calc(var(--sui-icon-base) - 2 * var(--sui-stroke));
+    margin: var(--sui-stroke);
+    animation: sui-addition-spin var(--sui-duration-spinner) var(--sui-ease-linear) infinite;
+  }
+
+  @keyframes sui-addition-spin {
+    to {
+      rotate: 1turn;
+    }
   }
 
   @media (prefers-reduced-motion: reduce) {
     .sui-addition-choice {
       transition: none;
+    }
+
+    .sui-addition-spinner {
+      animation: none;
     }
 
     .sui-addition-choice:active {

@@ -8,7 +8,9 @@
     label,
     text,
     side = 'block-start',
-    align = 'center',
+    // A mark ends its label, so its tip starts at the mark and runs on past it, clear of the
+    // label's words, with its arrow on the mark.
+    align = 'start',
     open = $bindable(false),
     preview = false,
     element = $bindable(null),
@@ -54,7 +56,7 @@ on the page instead.
 - Localization: `label` and `text` are the caller's words, and the tip's placement follows the reading direction.
 - Performance: one button and one tooltip per mark, with a colour fade removed under reduced motion.
 - Analytics: `open` is bindable, so a caller can count how often an explanation is read.
-- Failure: an empty `text` still opens an empty tip, so always pass the sentence; a long one wraps at 17rem.
+- Failure: an empty `text` still opens an empty tip, so always pass the sentence; a long one wraps at 20rem.
 -->
 
 {#snippet mark()}
@@ -75,7 +77,7 @@ on the page instead.
       else open = pressedBy === 'mouse' || !openAtPress;
     }}
   >
-    <Icon name="help" size="sm" strokeWidth={2} />
+    <Icon name="help" size="base" strokeWidth={2} />
   </button><Tooltip anchor={element} {text} describe {side} {align} {preview} bind:open />
 {/snippet}
 
@@ -86,10 +88,12 @@ on the page instead.
 {/if}
 
 <style>
-  /* The open tip drawn under its mark, in the page's flow. */
+  /* The open tip drawn over or under its mark, by its side, in the page's flow. */
+  /* The copy starts at its mark, so the mark's centre is known before any measure, and the
+     first frame, or a page without script, already points the copy's arrow at it. */
   .sui-help-tip-preview {
+    --sui-floating-anchor-at: calc(var(--sui-control-height-chip) / 2);
     display: inline-grid;
-    gap: var(--sui-space-1);
     grid-template-columns: minmax(0, auto);
     justify-items: start;
     max-inline-size: 100%;

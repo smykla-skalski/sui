@@ -18,6 +18,7 @@
 
 <script lang="ts">
   import { mark, word } from '../words.js';
+  import { revealRow } from '../internal/reveal.js';
   import { tick, type Snippet } from 'svelte';
   import Icon from '../icons/Icon.svelte';
   import Button, { type ButtonTone } from './Button.svelte';
@@ -103,12 +104,20 @@
   // Disabled items stay focusable, as the menu pattern asks, so a reader can find them.
   const menuItems = () => [...(menu?.querySelectorAll<HTMLElement>('[role="menuitem"]') ?? [])];
 
+  // Focus never scrolls the page, since the menu takes its place on the next frame, so the
+  // popover scrolls the item clear of its foot's fade itself (L-107).
+  function focusItem(item: HTMLElement | undefined): void {
+    if (!item) return;
+    item.focus({ preventScroll: true });
+    const list = menu?.closest<HTMLElement>('.sui-popover');
+    if (list) revealRow(list, item);
+  }
+
   async function show(edge: 'first' | 'last'): Promise<void> {
     open = true;
     await tick();
-    // The menu takes its place on the next frame, so focus must not scroll to where it was.
     const found = menuItems();
-    (edge === 'first' ? found[0] : found.at(-1))?.focus({ preventScroll: true });
+    focusItem(edge === 'first' ? found[0] : found.at(-1));
   }
 
   function close(): void {
@@ -171,7 +180,7 @@
       next = seek(found, at, event.key, event.timeStamp);
     else return;
     event.preventDefault();
-    found[next]?.focus({ preventScroll: true });
+    focusItem(found[next]);
   }
 </script>
 
@@ -193,11 +202,11 @@ returns focus there too. Labels wrap rather than being cut short.
 
 - Semantics: a menu button (`aria-haspopup="menu"`, `aria-expanded`) and a `menu` of `menuitem` buttons named by the trigger, with `separator` rows between groups.
 - Content: items with a label, an optional icon and one line of description; a destructive item last; labels and descriptions wrap.
-- States: closed, open, an item highlighted by focus or pointer, pressed, disabled (dimmed label with its reason at full contrast), `stop` in the danger ink, and a disabled trigger.
+- States: closed, open, an item highlighted by focus or pointer, pressed, disabled (glyph, label and reason in the secondary ink at full strength), `stop` in the danger ink, and a disabled trigger.
 - Keyboard: Enter, Space, Down or Up opens on the first or last item; arrows wrap, Home and End jump, a letter jumps, Enter or Space chooses, Escape closes to the trigger and Tab closes and moves on.
 - Pointer and touch: items are one control tall, 34px and 44px on a phone or touch screen; the pointer's item takes focus as it moves; the icon trigger is 28px with a 44px hit area there, or with `toolbar` one control tall, as the button trigger is.
 - Focus: opening moves focus to the first item, choosing or Escape returns it to the trigger before `onselect` runs, and Tab hands it to the next control.
-- Responsive: the menu is 13rem to 24rem wide and never wider than the viewport less 24px, or than its line when drawn as a preview, so large text narrows it and wraps its labels; it flips above the trigger when there is more room, and scrolls inside when tall.
+- Responsive: the menu is 13rem to 20rem wide and never wider than the viewport less 24px, or than its line when drawn as a preview, so large text narrows it and wraps its labels; it flips above the trigger when there is more room, and scrolls inside when tall.
 - Accessibility: the trigger names the menu, a disabled item is `aria-disabled`, an item's description is read in its name after the label through `optionName`, so the name holds every drawn word, and the highlight survives forced colours as an outline.
 - Localization: every word is the caller's, and `align` start and end follow the reading direction, so a right-to-left page hangs the menu from the mirrored edge.
 - Performance: items render only while the menu is in the page; the highlight fades its ground and the press sinks 1px, both removed under reduced motion.
@@ -282,18 +291,25 @@ returns focus there too. Labels wrap rather than being cut short.
 <style>
   /* In the page's flow the room is the preview's own line, so the menu fills a box at least as
      wide as a floating menu's floor and never wider than that line, and the trigger stands at
-     its aligned edge above it. */
+     its aligned edge above it, as far as a live menu stands off it (L-35). The floor is in the
+     size itself, so a row the copy stands in counts it; without calc-size() it is only the
+     least size, which a row's max-content leaves out. */
   .sui-action-menu-preview {
     display: inline-grid;
-    gap: var(--sui-space-1);
+    gap: var(--sui-floating-gap);
     grid-template-columns: minmax(0, auto);
     inline-size: fit-content;
+    inline-size: calc-size(fit-content, max(size, 13rem + 2 * var(--sui-stroke)));
     max-inline-size: 100%;
     min-inline-size: min(calc(13rem + 2 * var(--sui-stroke)), 100%);
   }
 
+  /* One control tall, so a quiet icon trigger's copy hangs its menu on the line a button
+     trigger's copy does. */
   .sui-action-menu-trigger {
+    align-items: center;
     display: flex;
+    min-block-size: var(--sui-control-height-compact);
   }
 
   .sui-action-menu-preview[data-align='end'] > .sui-action-menu-trigger {
@@ -308,7 +324,7 @@ returns focus there too. Labels wrap rather than being cut short.
     box-sizing: border-box;
     display: grid;
     grid-template-columns: minmax(0, 1fr);
-    max-inline-size: min(24rem, calc(100vw - 2 * var(--sui-space-3)));
+    max-inline-size: min(20rem, calc(100vw - 2 * var(--sui-space-3)));
     /* The floor gives way to the room the window leaves, so large text narrows the menu and
        wraps its labels rather than scrolling it sideways. */
     min-inline-size: min(13rem, calc(100vw - 2 * var(--sui-space-3)));
@@ -330,7 +346,7 @@ returns focus there too. Labels wrap rather than being cut short.
     color: var(--sui-text-primary);
     cursor: pointer;
     display: flex;
-    font: var(--sui-weight-medium) var(--sui-font-size-control) / var(--sui-leading-meta)
+    font: var(--sui-weight-regular) var(--sui-font-size-control) / var(--sui-leading-meta)
       var(--sui-sans);
     gap: var(--sui-space-2);
     inline-size: 100%;
@@ -341,6 +357,8 @@ returns focus there too. Labels wrap rather than being cut short.
     padding-block: calc((var(--sui-control-height-compact) - round(up, 1cap, 2px)) / 2);
     padding-inline: var(--sui-space-3);
     text-align: start;
+    /* A row that wraps keeps near equal lines, as every list's row does. */
+    text-wrap: balance;
     transition: translate var(--sui-duration-press) var(--sui-ease-standard);
     -webkit-tap-highlight-color: transparent;
     -webkit-user-select: none;
@@ -350,7 +368,7 @@ returns focus there too. Labels wrap rather than being cut short.
   /* Focus follows the pointer, so one highlight serves hover and the keyboard. */
   .sui-action-menu-item:focus:not(:active):not([aria-disabled='true']),
   .sui-action-menu-item.active:not(:active) {
-    background-color: var(--sui-interactive-hover-layer);
+    background-color: var(--sui-list-highlight);
   }
 
   /* The words rise to the hover ink, so the row gains contrast; a stop keeps its danger ink. */
@@ -361,7 +379,18 @@ returns focus there too. Labels wrap rather than being cut short.
     color: var(--sui-hover-ink);
   }
 
-  .sui-action-menu-item:focus-visible {
+  /* The glyph rises with the words, as an icon button's glyph does on hover. */
+  .sui-action-menu-item:not([data-tone='stop']):is(
+      :focus:not(:active):not([aria-disabled='true']),
+      .active:not(:active)
+    )
+    .sui-action-menu-icon {
+    color: inherit;
+  }
+
+  /* A copy's lit item is where the keyboard is, so it wears the ring as Select's and Combobox's
+     lit rows do. */
+  .sui-action-menu-item:is(:focus-visible, .active) {
     outline: var(--sui-focus-ring-width) solid var(--sui-focus);
     outline-offset: var(--sui-focus-ring-inset);
   }
@@ -371,7 +400,7 @@ returns focus there too. Labels wrap rather than being cut short.
   }
 
   .sui-action-menu-item:active:not([aria-disabled='true']) {
-    background-color: var(--sui-interactive-pressed);
+    background-color: var(--sui-list-pressed);
     box-shadow: var(--sui-pressed-inset);
     translate: 0 1px;
   }
@@ -380,9 +409,10 @@ returns focus there too. Labels wrap rather than being cut short.
     cursor: default;
   }
 
-  /* The reason a disabled item gives stays at full contrast. */
+  /* A disabled item's glyph and name take its reason's ink at full strength, so the smaller
+     reason never outranks the name it qualifies (L-40). */
   .sui-action-menu-item[aria-disabled='true'] :is(.sui-action-menu-icon, .sui-action-menu-label) {
-    opacity: var(--sui-disabled-opacity);
+    color: var(--sui-text-secondary);
   }
 
   .sui-action-menu-item[data-tone='stop'] {
@@ -400,7 +430,7 @@ returns focus there too. Labels wrap rather than being cut short.
     justify-content: center;
   }
 
-  .sui-action-menu-item[data-tone='stop'] .sui-action-menu-icon {
+  .sui-action-menu-item[data-tone='stop']:not([aria-disabled='true']) .sui-action-menu-icon {
     color: var(--sui-danger);
   }
 
@@ -422,17 +452,18 @@ returns focus there too. Labels wrap rather than being cut short.
     align-content: center;
     block-size: var(--sui-block-snap);
     color: var(--sui-text-secondary);
-    font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-leading-meta)
+    font: var(--sui-weight-regular) var(--sui-font-size-caption) / var(--sui-row-copy-leading)
       var(--sui-sans);
     overflow-wrap: anywhere;
     padding-block: var(--sui-block-snap-room);
     text-box: trim-both cap alphabetic;
   }
 
+  /* The line stops where the items' veils do. */
   .sui-action-menu-separator {
-    background-color: var(--sui-border-control);
+    background-color: var(--sui-border-divider);
     block-size: var(--sui-stroke);
-    margin: var(--sui-space-1) calc(-1 * var(--sui-space-1));
+    margin-block: var(--sui-space-1);
   }
 
   /* The highlight is a veil, which high contrast drops, so it draws an outline there. */

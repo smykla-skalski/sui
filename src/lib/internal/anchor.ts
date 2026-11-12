@@ -22,7 +22,8 @@ const VIEWPORT_MARGIN = 8;
  * CSS anchor positioning would do this declaratively, but it is not yet available in every
  * engine SUI supports, so the coordinates are measured here instead. The available block
  * size and the anchor width are published as `--sui-floating-available-block` and
- * `--sui-floating-anchor-inline` for the floating box's own sizing rules.
+ * `--sui-floating-anchor-inline` for the floating box's own sizing rules, and the anchor's centre
+ * along the box's edge, from its start, as `--sui-floating-anchor-at`, for an arrow.
  *
  * Every size is read before the first write, so a placement that follows a scroll lays the page
  * out once. The box is measured again after a write only when that write can change its size: a
@@ -78,15 +79,35 @@ export function place(
     Math.max(VIEWPORT_MARGIN, viewportWidth - VIEWPORT_MARGIN - box.width)
   );
 
+  // The arrow stands from the box's own start, which follows the box's direction, and that can
+  // differ from the anchor's.
+  const centre = a.left + a.width / 2;
+  publish(
+    floating,
+    AT,
+    look.direction === 'rtl' ? Math.round(left) + box.width - centre : centre - Math.round(left)
+  );
   pin(floating, left, top, placed);
   return placed;
 }
 
-/** Writes viewport coordinates as page ones, which the absolutely positioned box reads. */
-function pin(floating: HTMLElement, left: number, top: number, side: Side): void {
+/**
+ * Writes viewport coordinates as page ones, which the absolutely positioned box reads. A box
+ * beside its anchor also names its own edge that faces it, in its own reading direction, since
+ * the side follows the anchor's direction and the box's can differ.
+ */
+function pin(
+  floating: HTMLElement,
+  left: number,
+  top: number,
+  side: Side,
+  facing?: 'start' | 'end'
+): void {
   floating.style.top = `${Math.round(top + scrollY)}px`;
   floating.style.left = `${Math.round(left + scrollX)}px`;
   floating.dataset.side = side;
+  if (facing) floating.dataset.facing = facing;
+  else delete floating.dataset.facing;
 }
 
 /** Where the placed box stands in the viewport, before any transform it is moving through. */
@@ -109,6 +130,7 @@ function beside(
   rtl: boolean,
   keep: boolean
 ): Side {
+  const ownRtl = getComputedStyle(floating).direction === 'rtl';
   // The box slides along its anchor to stay in the viewport, so all of the viewport's height is
   // its room whatever its alignment.
   const box = capped(floating, Math.max(0, viewportHeight - 2 * VIEWPORT_MARGIN));
@@ -137,7 +159,8 @@ function beside(
     Math.max(start, VIEWPORT_MARGIN),
     Math.max(VIEWPORT_MARGIN, viewportHeight - VIEWPORT_MARGIN - box.height)
   );
-  pin(floating, left, top, placed);
+  publish(floating, AT, a.top + a.height / 2 - Math.round(top));
+  pin(floating, left, top, placed, onRight !== ownRtl ? 'start' : 'end');
   return placed;
 }
 
@@ -148,6 +171,8 @@ const laidOut = (floating: HTMLElement) => ({
 });
 
 const CAP = '--sui-floating-available-block';
+/* Where the anchor's centre falls along the box's edge, from its inline or block start. */
+const AT = '--sui-floating-anchor-at';
 
 /** Sets a size the box's own rules read, only when it changed, and says whether it did. */
 function publish(floating: HTMLElement, name: string, px: number): boolean {

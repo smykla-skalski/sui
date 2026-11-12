@@ -36,16 +36,21 @@
       label: 'Compare with the Release Published before It, File by File',
       onselect: nothing
     },
+    { separator: true },
     { label: 'Yank Release…', tone: 'stop', onselect: () => (yanking = true) }
   ];
 </script>
 
 <Example
   title="Triggers"
+  --example-max="54rem"
   note="An icon trigger for a row’s end or beside buttons, and a worded trigger with a chevron in the default and ghost tones"
 >
   <Specimen label="Icon trigger">
-    <ActionMenu label="Repository actions" icon="more" items={repository} align="end" />
+    <div class="row">
+      <span class="name">web-console</span>
+      <ActionMenu label="Repository actions" icon="more" items={repository} align="end" />
+    </div>
   </Specimen>
   <Specimen label="Beside buttons">
     <div class="actions">
@@ -63,7 +68,8 @@
 
 <Example
   title="States"
-  note="A menu whose acts are unavailable keeps its trigger in view, with the reason beside it"
+  --example-max="54rem"
+  note="A menu whose acts are unavailable keeps its trigger in view, with the reason by it"
 >
   <Specimen label="Disabled icon trigger">
     <div class="locked">
@@ -72,7 +78,7 @@
     </div>
   </Specimen>
   <Specimen label="Disabled button trigger">
-    <div class="locked">
+    <div class="locked stack">
       <ActionMenu items={release} disabled>Release Actions</ActionMenu>
       <p class="reason">Read-only while the repository is archived</p>
     </div>
@@ -81,10 +87,15 @@
 
 <Example
   title="Open"
+  --example-max="54rem"
   note="Icons, a disabled item with its reason, a destructive item last and a long item that wraps, with the first item lit"
 >
   <Specimen label="Open with icons">
-    <ActionMenu label="Repository actions" icon="more" items={repository} align="end" preview />
+    <!-- The trigger ends the row it acts on, as in Triggers. -->
+    <div class="row open">
+      <span class="lead"><span class="name">web-console</span></span>
+      <ActionMenu label="Repository actions" icon="more" items={repository} align="end" preview />
+    </div>
   </Specimen>
   <Specimen label="Open with a long item">
     <ActionMenu items={release} preview>Release Actions</ActionMenu>
@@ -108,18 +119,73 @@
 />
 
 <style>
+  /* The icon trigger ends the row it acts on, so its menu hangs under the row from that end. */
+  .row {
+    align-items: center;
+    display: flex;
+    gap: var(--sui-space-3);
+    /* The menu's least width, so the menu that hangs from the open copy shares both its edges. */
+    inline-size: calc(13rem + 2 * var(--sui-stroke));
+    justify-content: space-between;
+    max-inline-size: 100%;
+    /* One control tall, so the trigger centres on the line of the buttons beside it. */
+    min-block-size: var(--sui-control-height-compact);
+  }
+
+  /* The open copy is the live row, one width with it: the name and the trigger share the row's
+     band, and the menu hangs under the trigger's end, below the name rather than beside it. */
+  .open {
+    align-items: start;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .open > :global(*) {
+    grid-area: 1 / 1;
+  }
+
+  .open > :global(:last-child) {
+    justify-self: end;
+  }
+
+  .lead {
+    align-items: center;
+    block-size: var(--sui-control-height-compact);
+    display: flex;
+  }
+
   .actions {
     display: flex;
     gap: var(--sui-space-2);
   }
 
+  /* A band as tall as the button trigger, so a reason beside the shorter icon trigger stands on
+     the same line as one beside the button. */
   .locked {
     align-items: center;
     display: flex;
     flex-wrap: wrap;
     gap: var(--sui-space-3);
+    min-block-size: var(--sui-control-height-compact);
   }
 
+  /* On a phone the icon trigger keeps its reason beside it while the line holds both, and the
+     reason drops under it as a whole line when not, as the button trigger's always does. The
+     reason is one snapped line, so it never wraps beside the trigger (L-94, L-95). */
+  @media (max-width: 47.9375rem) {
+    .locked {
+      row-gap: var(--sui-space-2);
+    }
+
+    .stack {
+      align-items: start;
+      flex-direction: column;
+      gap: var(--sui-space-2);
+    }
+  }
+
+  /* Words beside a trigger snap their box to the cap, so the icon centres on their cap (L-94). */
+  .name,
   .reason {
     align-content: center;
     block-size: var(--sui-block-snap);
@@ -129,5 +195,9 @@
     margin: 0;
     padding-block: var(--sui-block-snap-room);
     text-box: trim-both cap alphabetic;
+  }
+
+  .name {
+    color: var(--sui-text-primary);
   }
 </style>

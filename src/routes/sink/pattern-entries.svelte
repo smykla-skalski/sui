@@ -58,62 +58,68 @@
   }
 </script>
 
-<Example
-  title="States"
-  note="A problem shows once its entry is left, a removal offers Undo, and a pasted list adds one entry per line"
-  layout="grid"
->
-  <Specimen label="Invalid">
-    <PatternEntries
-      bind:value={branches}
-      {validate}
-      aria-label="Branches to skip"
-      addLabel="Add a Branch Pattern"
-    />
-  </Specimen>
-  <Specimen label="Empty">
-    <PatternEntries
-      bind:value={paths}
-      aria-label="Paths to skip"
-      onadd={(pattern) => (added = [...added, pattern])}
-    />
-    <output id="sink-pattern-added">{added.join(',')}</output>
-  </Specimen>
-  <Specimen label="A few entries">
-    <PatternEntries
-      bind:value={few}
-      aria-label="Branches to skip"
-      addLabel="Add a Branch Pattern"
-    />
-  </Specimen>
-  <Specimen label="Saving">
-    <div class="with-reason">
+<div class="states">
+  <Example
+    title="States"
+    note="A problem shows once its entry is left, a removal offers Undo, and a pasted list adds one entry per line"
+    layout="grid"
+    --example-max="54rem"
+    --specimen-min="21rem"
+    --specimen-row-gap="var(--sui-space-6)"
+  >
+    <Specimen label="A few entries">
       <PatternEntries
-        value={['docs/**', 'CHANGELOG.md']}
-        pending
+        bind:value={few}
+        aria-label="Branches to skip"
+        addLabel="Add a Branch Pattern"
+      />
+    </Specimen>
+    <Specimen label="Empty">
+      <PatternEntries
+        bind:value={paths}
         aria-label="Paths to skip"
-        aria-describedby="sink-pattern-saving"
+        onadd={(pattern) => (added = [...added, pattern])}
       />
-      <p id="sink-pattern-saving" class="reason">Saving…</p>
-    </div>
-  </Specimen>
-  <Specimen label="Disabled">
-    <div class="with-reason">
+      <output id="sink-pattern-added">{added.join(',')}</output>
+    </Specimen>
+    <Specimen label="Saving">
+      <div class="with-reason">
+        <PatternEntries
+          value={['docs/**', 'CHANGELOG.md']}
+          pending
+          aria-label="Paths to skip"
+          aria-describedby="sink-pattern-saving"
+        />
+        <p id="sink-pattern-saving" class="reason">Saving…</p>
+      </div>
+    </Specimen>
+    <Specimen label="Disabled">
+      <div class="with-reason">
+        <PatternEntries
+          value={['docs/**', 'CHANGELOG.md']}
+          disabled
+          aria-label="Paths a parent leaves alone"
+          aria-describedby="sink-pattern-locked"
+        />
+        <p id="sink-pattern-locked" class="reason">A parent workspace sets these patterns</p>
+      </div>
+    </Specimen>
+    <Specimen label="Invalid">
       <PatternEntries
-        value={['docs/**', 'CHANGELOG.md']}
-        disabled
-        aria-label="Paths a parent leaves alone"
-        aria-describedby="sink-pattern-locked"
+        bind:value={branches}
+        {validate}
+        aria-label="Branches to skip"
+        addLabel="Add a Branch Pattern"
       />
-      <p id="sink-pattern-locked" class="reason">A parent workspace sets these patterns</p>
-    </div>
-  </Specimen>
-</Example>
+    </Specimen>
+  </Example>
+</div>
 
 <Example
   title="Content"
-  note="Each field is as wide as its pattern and colors its glob syntax, the entries wrap, and a long pattern scrolls inside its field"
+  note="Each field is as wide as its pattern and colors its glob syntax, and a long pattern ends in an ellipsis until focused"
   layout="stack"
+  --example-max="54rem"
 >
   <Specimen label="Glob syntax">
     <PatternEntries bind:value={globs} aria-label="Paths to skip" />
@@ -130,6 +136,7 @@
   title="Right to Left"
   note="The entries flow from the right and each cross sits at its field’s left end"
   layout="grid"
+  --example-max="28rem"
 >
   <Specimen label="Right to left">
     <PatternEntries bind:value={mirrored} dir="rtl" aria-label="Branches to skip" />
@@ -140,15 +147,20 @@
   title="Narrow Width"
   note="In a phone’s width the entries wrap from the start edge, and a long one takes a line of its own"
   layout="stack"
+  --example-max="calc(21.4375rem + 2 * var(--sui-space-6))"
 >
   <Specimen label="Phone width">
-    <div class="narrow">
-      <PatternEntries bind:value={narrow} aria-label="Paths to skip" />
-    </div>
+    <PatternEntries bind:value={narrow} aria-label="Paths to skip" />
   </Specimen>
 </Example>
 
 <style>
+  /* The short states stand two by two, and the refused list, the tallest with its problems
+     under it, takes the last row whole, so no short state leaves a hole beside it. */
+  .states :global(.specimen:last-child) {
+    grid-column: 1 / -1;
+  }
+
   .with-reason {
     display: grid;
     gap: var(--sui-row-copy-gap);
@@ -164,11 +176,5 @@
     margin: 0;
     padding-block: var(--sui-block-snap-room);
     text-box: trim-both cap alphabetic;
-  }
-
-  /* A 375px phone's width less its two 16px gutters. */
-  .narrow {
-    inline-size: min(100%, 21.4375rem);
-    max-inline-size: 100%;
   }
 </style>

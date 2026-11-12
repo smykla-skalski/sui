@@ -6,6 +6,7 @@
 <script lang="ts" generics="Href extends string | undefined = undefined">
   import type { Snippet } from 'svelte';
   import type { HTMLAnchorAttributes, HTMLAttributes, HTMLButtonAttributes } from 'svelte/elements';
+  import { held, holdAround } from '../internal/held.svelte.js';
   import { shownWait } from '../internal/shown-wait.svelte.js';
 
   type NativeElement = Href extends string ? HTMLAnchorElement : HTMLButtonElement;
@@ -18,6 +19,8 @@
     icon,
     trailing,
     loading = false,
+    reserve = false,
+    busyLabel,
     field = false,
     disabled = false,
     element = $bindable(null),
@@ -35,6 +38,12 @@
     trailing?: Snippet;
     /** Draws a spinner, announces the button as busy and ignores presses while the work runs. */
     loading?: boolean;
+    /** Keeps the spinner's room while idle, the words centred in it, so the press that starts
+     the work never moves the actions beside it (L-64). */
+    reserve?: boolean;
+    /** Said in place of the label while its spinner shows. The button keeps the wider of the label and
+     the spinner with these words, so the swap never moves the actions beside it (L-64). */
+    busyLabel?: string;
     /** Draws a field's edge, baseline and recess, for a button that holds a value, such as a picker's trigger. */
     field?: boolean;
     disabled?: boolean;
@@ -46,10 +55,24 @@
 
   /* `disabled` would drop a focused button's focus to the body, so a busy one stays in the tab
      order and refuses the press itself, and so does one its owner locks with `aria-disabled`,
-     such as a control held while a busy dialog or a saving pane around it works. */
+     such as a control held while a busy dialog or a saving pane around it works. Work that runs
+     on the form around it holds every other button the same way, and disables it once focus has
+     moved to the busy action, so Cancel never looks ready while a save refuses it. */
   const busy = $derived(loading && !disabled);
-  const locked = $derived(busy || ariaDisabled === true || ariaDisabled === 'true');
+  const around = holdAround();
+  const holding = $derived(loading ? null : held(element, around));
+  const locked = $derived(
+    busy || ariaDisabled === true || ariaDisabled === 'true' || holding !== null
+  );
+  /* A firmly held link loses its address as a held button is disabled, so a middle press or
+     the context menu cannot follow it while the work runs. */
+  const unreachable = $derived(disabled || holding === 'firm');
   const spinning = shownWait(() => loading);
+  const swaps = $derived(busyLabel !== undefined);
+  /* With an icon the spinner takes the icon's place, so only words with nothing before them
+     hold its room and stand it by them. */
+  const roomy = $derived(swaps && !icon);
+  const reserving = $derived(reserve && !swaps && !spinning.current && !icon);
 
   function refuse(event: MouseEvent) {
     event.preventDefault();
@@ -61,7 +84,7 @@
 A tone is a job, never a color. `default` does a view's ordinary work, `signal` is the one
 action a view exists for (one per view), `ghost` is low emphasis that supports it, `stop` is
 destructive, and `stop-quiet` is destructive but bordered, for a flow whose filled danger
-button is the final confirmation. `add` has a firm dashed edge and starts an
+button is the final confirmation, or a removal that stands apart from the save beside it. `add` has a firm dashed edge and starts an
 optional entry; it never submits, saves, cancels, removes or navigates. `decision` is the gold
 action that resolves unsaved work, such as Save in a save bar, and nothing else wears it.
 
@@ -74,11 +97,12 @@ start.
 
 - Semantics: a native `<button type="button">`, or an `<a href>` with `href`; its words are its name, and a disabled anchor is `role="link"` with `aria-disabled`.
 - Content: a short verb phrase that names the result, an optional leading `icon` and an optional `trailing` mark; a long or translated label wraps onto more lines inside its container.
-- States: rest, hover (a veil and a firmer edge), open (the hover paint while `aria-expanded`), as a `field` a Select's edge, recess and ring in each of them, open in its focus edge without the ring, focus (a 2px ring, flush on bordered tones and 2px off a filled one), pressed (a deeper ground, an inset shadow and a 1px sink), loading (a spinner in the tone's ink on the full fill and edge, the words at full ink, busy), locked by `aria-disabled` (still a tab stop) and disabled (default cursor), both at 0.6 opacity, a filled or danger tone in the default paint, and a disabled `field` in an off field's well with muted words at full strength.
+- States: rest, hover (a veil and a firmer edge), open (the hover paint while `aria-expanded`), as a `field` a Select's edge, recess and ring in each of them, open in its focus edge without the ring, focus (a 2px ring, flush on bordered tones and 2px off a filled one), pressed (a deeper ground, an inset shadow and a 1px sink), loading (a spinner in the tone's ink on the full fill and edge, the words at full ink, busy, and with `busyLabel` those words in place of the label, the spinner just before them and the button as wide as the wider of the label and that group), locked by `aria-disabled` (still a tab stop) and disabled (default cursor), both at 0.6 opacity, a filled or danger tone in the default paint, and a disabled `field` in an off field's well with muted words at full strength.
 - Keyboard: Tab reaches it, and Enter or Space presses a button while Enter follows an anchor; a loading, locked or disabled one refuses both.
 - Pointer and touch: 34px tall on a pointer and 44px on a phone or any touch screen, at least as wide as its label, and a press is never a drag; a surface may keep it drawn at 34px on a phone with `--sui-local-button-seat`, and its hit area still grows to 44px.
 - Focus: pressing never moves focus, and a loading button keeps it; the caller moves focus when the press removes the button.
 - Responsive: as wide as its words up to its container or 20rem, and wider words wrap onto more lines, each keeping the one-line inset, instead of scrolling the page. A surface may stretch it to a length of its own with `--sui-local-button-span`, as a dialog's footer does on a phone.
+- Theming: a quiet tone rests on the raised surface, and a surface of its own may set that ground with `--sui-local-button-bg`, as a dialog's answer band does so its Cancel stands over the band in both themes.
 - Accessibility: the label is the name, `loading` sets `aria-busy` and `aria-disabled`, every tone's ink holds 4.5:1 on its fill, and forced colours draw hover with a highlight edge.
 - Localization: it draws no words of its own; the leading icon and the gap follow the reading direction, and directional glyphs mirror in a right-to-left page.
 - Performance: one element, and only colours, the inset shadow and the 1px sink move, with no movement under reduced motion.
@@ -92,7 +116,13 @@ start.
   {:else if icon}
     <span class="sui-button-part">{@render icon()}</span>
   {/if}
-  <span class="sui-button-label">{@render children()}</span>
+  <span class="sui-button-label"
+    >{#if swaps}<span class={['sui-button-words', { roomy }]}
+        ><span class={spinning.current ? 'unsaid' : 'said'}>{@render children()}</span><span
+          class={spinning.current ? 'said' : 'unsaid'}>{busyLabel}</span
+        ></span
+      >{:else}{@render children()}{/if}</span
+  >
   {#if trailing}
     <span class="sui-button-part">{@render trailing()}</span>
   {/if}
@@ -101,10 +131,10 @@ start.
 {#if href !== undefined}
   <a
     bind:this={element}
-    href={disabled ? undefined : href}
-    role={disabled ? 'link' : undefined}
+    href={unreachable ? undefined : href}
+    role={unreachable ? 'link' : undefined}
     {...rest as HTMLAnchorAttributes}
-    class={['sui-button', className, { busy }]}
+    class={['sui-button', className, { busy, reserving, swapping: roomy && spinning.current }]}
     data-tone={tone}
     aria-disabled={disabled || locked || undefined}
     aria-busy={loading || undefined}
@@ -116,9 +146,13 @@ start.
     bind:this={element}
     type="button"
     {...rest as HTMLButtonAttributes}
-    class={['sui-button', className, { busy, field }]}
+    class={[
+      'sui-button',
+      className,
+      { busy, field, reserving, swapping: roomy && spinning.current }
+    ]}
     data-tone={tone}
-    {disabled}
+    disabled={disabled || holding === 'firm'}
     aria-disabled={locked || undefined}
     aria-busy={loading || undefined}
     onclick={locked ? refuse : (rest as HTMLButtonAttributes).onclick}>{@render body()}</button
@@ -139,7 +173,7 @@ start.
         2 * var(--sui-stroke)
     );
     align-items: flex-start;
-    background-color: var(--sui-surface-raised);
+    background-color: var(--sui-local-button-bg, var(--sui-surface-raised));
     background-image: linear-gradient(
       var(--sui-control-state-layer),
       var(--sui-control-state-layer)
@@ -171,6 +205,64 @@ start.
       translate var(--sui-duration-press) var(--sui-ease-standard),
       box-shadow var(--sui-duration-press) var(--sui-ease-standard);
     -webkit-tap-highlight-color: transparent;
+  }
+
+  /* An idle button that may turn busy holds half the spinner and its gap each side of its
+     words, so the busy one is as wide as it was. The room is the words', not the button's
+     padding, so it pads as the buttons beside it do and shares a line with them in true halves
+     (L-58). */
+  .reserving .sui-button-label {
+    padding-inline: calc((var(--sui-icon-base) + var(--sui-space-2)) / 2);
+  }
+
+  /* Both labels take one cell, the one not said hidden, so the button keeps the wider. */
+  .sui-button-words {
+    display: grid;
+    justify-items: center;
+  }
+
+  /* With no anchor to stand the spinner by, it takes its place in the row while busy, so idle
+     the words hold its room as a reserving label does. */
+  @supports not (anchor-name: --sui-button-said) {
+    :not(.swapping) > .sui-button-label > .roomy {
+      padding-inline: calc((var(--sui-icon-base) + var(--sui-space-2)) / 2);
+    }
+  }
+
+  /* Each label trims its own cap as the label does, in a box of its own, so it snaps as the
+     label does and the cell stays on the pixel grid (L-95). */
+  .sui-button-words > * {
+    align-content: center;
+    block-size: var(--sui-block-snap-even);
+    grid-area: 1 / 1;
+    padding-block: var(--sui-block-snap-room-even);
+    text-box: trim-both cap alphabetic;
+  }
+
+  .unsaid {
+    visibility: hidden;
+  }
+
+  /* The busy words hold the spinner's room before them, so the cell keeps the wider of the
+     idle words and the busy group, and a short busy word needs no room past the idle one's.
+     Busy, the spinner stands in that room, and the group centres in the width the cell keeps. */
+  @supports (anchor-name: --sui-button-said) {
+    .roomy > :last-child {
+      padding-inline-start: calc(var(--sui-icon-base) + var(--sui-space-2));
+    }
+
+    .swapping {
+      position: relative;
+    }
+
+    .swapping > .sui-button-part:first-child {
+      inset-inline-start: anchor(--sui-button-said start);
+      position: absolute;
+    }
+
+    .said {
+      anchor-name: --sui-button-said;
+    }
   }
 
   .sui-button-label {
@@ -325,17 +417,11 @@ start.
     translate: 0 1px;
   }
 
+  /* Every tone stands its ring 2px off its edge, as a field does, so a focused Cancel beside a
+     filled action wears the same ring and its edge keeps its own color (L-41). */
   .sui-button:focus-visible {
-    border-color: var(--sui-focus);
-    outline: var(--sui-focus-ring-edge) solid var(--sui-focus);
-    outline-offset: var(--sui-focus-ring-flush);
-  }
-
-  /* A filled tone's edge is its fill, so a flush ring of the same blue would only grow it by
-     2px; standing 2px off, the ring shows against the ground the button sits on. */
-  .sui-button:is([data-tone='signal'], [data-tone='stop'], [data-tone='decision']):focus-visible {
+    outline: var(--sui-focus-ring-width) solid var(--sui-focus);
     outline-offset: var(--sui-focus-ring-offset);
-    outline-width: var(--sui-focus-ring-width);
   }
 
   .sui-button:is(:disabled, [aria-disabled='true']) {
@@ -404,12 +490,6 @@ start.
     border-color: var(--sui-danger);
   }
 
-  /* A ghost's edge is clear and a quiet stop's keeps its danger, so neither is the ring's color,
-     and the outline draws the whole 2px ring past it (L-41). */
-  .sui-button:is([data-tone='ghost'], [data-tone='stop-quiet']):focus-visible {
-    outline-width: var(--sui-focus-ring-width);
-  }
-
   /* A disabled tone takes the default paint, dimmed as every disabled control is, so an action
      that cannot run reads as off, never as a paler colour of itself (Radix). */
   .sui-button:is(
@@ -438,12 +518,12 @@ start.
   }
 
   /* A full track under a quarter arc reads as progress even when reduced motion stops it,
-     where an open ring alone reads as a letter. The track keeps 40% of the ink, so the ring
-     stays whole on a coloured fill. The ring stands a stroke inside the glyph's slot, so its
+     where an open ring alone reads as a letter. The track keeps 55% of the ink, so the ring
+     stays whole on a coloured fill and reads beside its full-ink words. The ring stands a stroke inside the glyph's slot, so its
      bold line weighs no more than a glyph's. */
   .sui-button-spinner {
     block-size: calc(var(--sui-icon-base) - 2 * var(--sui-stroke));
-    border: var(--sui-stroke-bold) solid color-mix(in srgb, currentColor 40%, transparent);
+    border: var(--sui-stroke-bold) solid color-mix(in srgb, currentColor 55%, transparent);
     border-block-start-color: currentColor;
     border-radius: 50%;
     box-sizing: border-box;
