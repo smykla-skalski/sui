@@ -195,9 +195,10 @@ and the unsaved ink, so no neutral block sits on a state (L-92).
     /* A default action is quiet on the tint: no ground of its own, an edge of the tone. */
     --sui-surface-raised: transparent;
     --sui-control-border: color-mix(in srgb, var(--sui-warning) 40%, var(--sui-warning-tint));
-    --sui-control-border-hover: color-mix(in srgb, var(--sui-warning) 65%, var(--sui-warning-tint));
-    --sui-interactive-hover-layer: color-mix(in srgb, var(--sui-warning) 12%, transparent);
-    --sui-interactive-pressed: color-mix(in srgb, var(--sui-warning) 20%, transparent);
+    /* A hover the pointer can find on the tint, and a press a clear step past it. */
+    --sui-control-border-hover: color-mix(in srgb, var(--sui-warning) 75%, var(--sui-warning-tint));
+    --sui-interactive-hover-layer: color-mix(in srgb, var(--sui-warning) 16%, transparent);
+    --sui-interactive-pressed: color-mix(in srgb, var(--sui-warning) 24%, transparent);
     background: var(--sui-warning-tint);
     border-color: color-mix(in srgb, var(--sui-warning) 30%, var(--sui-warning-tint));
     font-size: var(--sui-font-size-meta);
@@ -274,10 +275,12 @@ and the unsaved ink, so no neutral block sits on a state (L-92).
     text-box: trim-both cap alphabetic;
   }
 
+  /* A title that wraps keeps its reason's 20px lines, so the two read as one message. */
   .sui-callout-title {
     text-wrap: balance;
     color: var(--sui-text-primary);
     font-weight: var(--sui-weight-semibold);
+    line-height: var(--sui-leading-title-note);
   }
 
   /* The reason wraps at a card description's 20px, with no phone step, since its actions are
