@@ -290,9 +290,10 @@ cells stack their secondary text.
   }
 
   /* Inline help is as wide as its words, as a link is, so its veil never reads as a block
-     row's. */
+     row's, and its words stand halfway from the secondary ink to the primary, so at rest they
+     read as a control and not as the copy beside them. */
   .inline > .sui-disclosure-summary {
-    color: var(--sui-text-secondary);
+    color: color-mix(in srgb, var(--sui-text-secondary), var(--sui-text-primary));
     inline-size: var(--sui-inline-snap);
     max-inline-size: calc(100% + 2 * var(--sui-space-2));
     font-weight: var(--sui-weight-regular);
