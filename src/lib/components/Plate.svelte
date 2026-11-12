@@ -40,19 +40,19 @@ and it never sits inside a detail pane, whose parts are `Section`s. It holds no 
 surface (L-55). Something the reader must act on now is a `Callout` beside it. It carries the one-pixel plate lift, which a `Card` does not, and like a card it
 takes its outer spacing from its container. Its content stands one 16px inset from all four
 edges, to the ink. The state centres on the title's first line at every width and lends the
-head no height, so the title and the body stand where they stand with no state: short of
-room the title wraps first, while the state keeps its one line unless that line needs more
-than half the head, and only then do its words wrap. The state sits in a polite status region, so a change of state
+head no height, so the title and the body stand where they stand with no state. Short of
+room, the title and the state each keep one line while that line fits in half the head, so a
+short name stays whole and a long one wraps first. The state sits in a polite status region, so a change of state
 is announced without moving focus; pass `state` from the first render, because a region that
 arrives with its words is often not read.
 
 - Semantics: a `section` titled by a heading at `level`, with the state in a `role="status"` region.
 - Content: a title that wraps, a `state` in words with an optional `icon` that wears its `tone`, and an optional body.
-- States: head only, a step smaller and with no rule, or head and body; the state's own words say what it is.
+- States: head only, with no rule, or head and body, under one title size; the state's own words say what it is.
 - Keyboard: none of its own; Tab reaches the controls inside in reading order.
 - Pointer and touch: none of its own; the controls inside keep their own targets.
 - Focus: nothing here moves focus, and an announced change of state leaves focus where it is.
-- Responsive: the state stays on the title's first line until the plate is under 12rem wide, as with text at twice its size, where it stands under the title; the title wraps beside it first, and the state keeps its one line unless that line needs more than half the head, and only then do its words wrap, in balanced lines.
+- Responsive: the state stays on the title's first line until the plate is under 12rem wide, as with text at twice its size, where it stands under the title; beside it, the title and the state each keep one line while it fits in half the head, the title wraps first past that, and the state's words wrap in balanced lines.
 - Accessibility: a change of `status` is announced politely, and the title and state hold 4.5:1.
 - Localization: it draws no words of its own; the state sits at the inline end, which mirrors in a right-to-left page.
 - Performance: static layout with no script.
@@ -62,7 +62,9 @@ arrives with its words is often not read.
 
 <section {...rest} class={['sui-plate', className, { 'head-only': !children }]}>
   <header class="sui-plate-head">
-    <svelte:element this={`h${level}`} class="sui-plate-title">{title}</svelte:element>
+    <svelte:element this={`h${level}`} class="sui-plate-title"
+      ><span class="sui-plate-name">{title}</span></svelte:element
+    >
     {#if state}
       <div class="sui-plate-status" role="status">
         <div class="sui-plate-said" data-tone={tone}>
@@ -92,10 +94,9 @@ arrives with its words is often not read.
     padding: var(--sui-space-4);
   }
 
-  /* The state follows the title on its first line at every width: short of room the title
-     gives up width first and wraps, while the state never narrows below its one line unless
-     that line needs more than half the head. The rule under the head runs the plate's full
-     width. */
+  /* The state follows the title on its first line at every width. Short of room, the title and
+     the state each keep one line while it fits in half the head; past that the title gives up
+     width first. The rule under the head runs the plate's full width. */
   .sui-plate-head {
     align-items: start;
     border-block-end: var(--sui-stroke) solid var(--sui-border-divider);
@@ -109,11 +110,10 @@ arrives with its words is often not read.
     padding: 0 var(--sui-space-4) var(--sui-space-4);
   }
 
-  /* With nothing under it the title is a label, a step below a card title. */
+  /* With nothing under it the head draws no rule, and its title keeps its size, so a body that
+     arrives later never resizes the plate's name. */
   .head-only .sui-plate-head {
     border-block-end: 0;
-    font: var(--sui-weight-semibold) var(--sui-font-size-body) / var(--sui-leading-body)
-      var(--sui-sans);
     padding-block-end: 0;
   }
 
@@ -133,6 +133,16 @@ arrives with its words is often not read.
     text-wrap: balance;
   }
 
+  /* A name that fits in half the head never wraps (`sign()` is 1 when it fits, else 0); one
+     that does not falls back to its longest word, as the title's own floor. */
+  .sui-plate-name {
+    display: block;
+    min-inline-size: calc-size(
+      max-content,
+      size * max(0, sign(50cqi - var(--sui-space-3) / 2 - size + 0.5px))
+    );
+  }
+
   /* The state's box starts on the middle of the title's first cap band, in the title's face so
      `1cap` is its cap height, and its words reach back up by half their own first line: one
      line of state stands inside the title's line and lends the head no height, so the title
@@ -143,7 +153,7 @@ arrives with its words is often not read.
     display: flex;
     flex: 0 1 auto;
     min-inline-size: 0;
-    min-inline-size: calc-size(max-content, min(size, 50%));
+    min-inline-size: calc-size(max-content, min(size, 50% - var(--sui-space-3) / 2));
     padding-block-start: calc(round(up, 1cap, 2px) / 2);
   }
 

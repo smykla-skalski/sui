@@ -778,36 +778,63 @@ suite('navigation', together, () => {
     );
 
     test(
-      "a plate's title wraps before its state, which wraps only past half the head",
+      "a plate's title and state each keep one line while it fits in half the head",
       long,
       async () => {
         const page = await sink();
         for (const width of [1440, 390, 320]) {
           await resize(page, width);
-          const problems = await page.evaluate(() =>
-            [...document.querySelectorAll('.sui-plate-status')].flatMap((status) => {
-              const head = /** @type {HTMLElement} */ (status.parentElement);
-              const title = head.querySelector('.sui-plate-title')?.getBoundingClientRect();
-              const box = status.getBoundingClientRect();
-              if (!title || box.top >= title.bottom || !status.checkVisibility()) return [];
+          const problems = await page.evaluate(() => {
+            const ink = /** @type {CanvasRenderingContext2D} */ (
+              document.createElement('canvas').getContext('2d')
+            );
+            /** @param {Element | null} element */
+            const lines = (element) => {
+              if (!element) return 0;
               const words = document.createRange();
-              words.selectNodeContents(status.querySelector('.sui-plate-words') ?? status);
-              const lines = new Set(
-                [...words.getClientRects()].map((line) => Math.round(line.top))
-              );
+              words.selectNodeContents(element);
+              return new Set([...words.getClientRects()].map((line) => Math.round(line.top))).size;
+            };
+            /** @param {Element} element */
+            const wide = (element) => {
+              const style = getComputedStyle(element);
+              ink.font = `${style.fontWeight} ${style.fontSize} ${style.fontFamily}`;
+              return ink.measureText(element.textContent?.trim() ?? '').width;
+            };
+            return [...document.querySelectorAll('.sui-plate-status')].flatMap((status) => {
+              const head = /** @type {HTMLElement} */ (status.parentElement);
+              const title = /** @type {HTMLElement} */ (head.querySelector('.sui-plate-title'));
+              const words = status.querySelector('.sui-plate-words') ?? status;
+              if (status.getBoundingClientRect().top >= title.getBoundingClientRect().bottom)
+                return [];
               const style = getComputedStyle(head);
               const half =
                 (head.clientWidth -
                   parseFloat(style.paddingInlineStart) -
-                  parseFloat(style.paddingInlineEnd)) /
+                  parseFloat(style.paddingInlineEnd) -
+                  parseFloat(style.columnGap)) /
                 2;
-              return lines.size > 1 && box.width < half - 0.5
-                ? [
-                    `${status.textContent?.trim()}: ${lines.size} lines in ${box.width}px of ${half}px`
-                  ]
-                : [];
-            })
-          );
+              const glyph = status.querySelector('svg');
+              const said = /** @type {Element} */ (words.parentElement);
+              /** @type {[Element, number][]} */
+              const parts = [
+                [title.querySelector('.sui-plate-name') ?? title, 0],
+                [
+                  words,
+                  glyph
+                    ? glyph.getBoundingClientRect().width +
+                      parseFloat(getComputedStyle(said).columnGap)
+                    : 0
+                ]
+              ];
+              return parts.flatMap(([part, lead]) => {
+                const need = wide(part) + lead;
+                return lines(part) > 1 && need < half - 0.5
+                  ? [`${part.textContent?.trim()}: ${lines(part)} lines, ${need}px of ${half}px`]
+                  : [];
+              });
+            });
+          });
           assert.deepEqual(problems, [], `at ${width}px`);
         }
       }
