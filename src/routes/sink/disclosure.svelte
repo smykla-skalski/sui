@@ -10,9 +10,6 @@
   import { Disclosure, Field, Section } from '#lib';
   import Example from '../kit/Example.svelte';
   import Specimen from '../kit/Specimen.svelte';
-
-  let open = $state(true);
-  let archived = $state(false);
 </script>
 
 <Example
@@ -44,13 +41,13 @@
   layout="grid"
   --specimen-column-gap="var(--sui-space-8)"
 >
-  <Specimen label={archived ? 'Open' : 'Closed'}>
-    <Disclosure summary="What Happens to Archived Repositories" bind:open={archived}>
+  <Specimen label="Starts closed">
+    <Disclosure summary="What Happens to Archived Repositories">
       <p class="copy">They are skipped until someone unarchives them</p>
     </Disclosure>
   </Specimen>
-  <Specimen label={open ? 'Open' : 'Closed'}>
-    <Disclosure summary="What Happens to Open Pull Requests" bind:open>
+  <Specimen label="Starts open">
+    <Disclosure summary="What Happens to Open Pull Requests" open>
       <p class="copy">They keep the rules they were opened with until they are updated</p>
     </Disclosure>
   </Specimen>
@@ -176,7 +173,13 @@
     margin: 0;
   }
 
-  /* A divider parts the rows of a group, so it scans as one list of questions. */
+  /* A divider parts the rows of a group, so it scans as one list of questions, and each row
+     stands half a step off it, so a lit summary never meets the line and the rows still read
+     as one list. */
+  .group > div {
+    padding-block: calc(var(--sui-space-1) / 2);
+  }
+
   .group > div + div {
     border-block-start: var(--sui-stroke) solid var(--sui-border-divider);
   }
@@ -188,7 +191,7 @@
 
   .fields {
     display: grid;
-    gap: var(--sui-space-4);
+    gap: var(--sui-space-5);
     max-inline-size: 36rem;
   }
 </style>

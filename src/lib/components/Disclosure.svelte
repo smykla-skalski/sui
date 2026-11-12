@@ -103,14 +103,14 @@ cells stack their secondary text.
   }
 
   /* The guide drops from under the chevron to the content's last ink, beside a summary that
-     wraps too: a hairline between a keyline and a field's edge, about 16% of the ink in light
-     and 19% in dark, where a dark stage swallows a fainter line, so it holds beside fields,
+     wraps too: a hairline between a keyline and a field's edge, about 17% of the ink in light,
+     a point under a field's 18%, and 19% in dark, where a dark stage swallows a fainter line, so it holds beside fields,
      never a coloured edge (L-17). It comes before the summary, so the summary's veil and focus
      ring paint over it. It reads the trailing room in the summary's face. */
   .sui-disclosure::before {
     border-inline-start: var(--sui-stroke) solid
       light-dark(
-        color-mix(in srgb, var(--sui-border-subtle) 35%, var(--sui-border-control)),
+        color-mix(in srgb, var(--sui-border-subtle) 20%, var(--sui-border-control)),
         color-mix(in srgb, var(--sui-border-subtle) 15%, var(--sui-border-control))
       );
     content: '';
@@ -309,6 +309,12 @@ cells stack their secondary text.
     inline-size: var(--sui-inline-snap);
     max-inline-size: calc(100% + 2 * var(--sui-space-2));
     font-weight: var(--sui-weight-regular);
+  }
+
+  /* Open, its words take the primary ink with its chevron, so they never read quieter than
+     the glyph that leads them. */
+  .inline[open] > .sui-disclosure-summary {
+    color: var(--sui-text-primary);
   }
 
   @media (hover: hover) {
