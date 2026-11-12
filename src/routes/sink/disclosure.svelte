@@ -47,7 +47,7 @@
       <p class="copy">They are skipped until someone unarchives them</p>
     </Disclosure>
   </Specimen>
-  <Specimen label={open ? 'Open, bound' : 'Closed, bound'}>
+  <Specimen label={open ? 'Open' : 'Closed'}>
     <Disclosure summary="What Happens to Open Pull Requests" bind:open>
       <p class="copy">They keep the rules they were opened with until they are updated</p>
     </Disclosure>

@@ -67,9 +67,7 @@ cells stack their secondary text.
   <!-- The drawn words are read once, as one run of text, because Chrome reads a summary's
        words as its description too when an aria-label names it. -->
   <summary class="sui-disclosure-summary">
-    <span class="sui-disclosure-chevron"
-      ><Icon name="chevron-right" size={inline ? 'sm' : 'base'} /></span
-    >
+    <span class="sui-disclosure-chevron"><Icon name="chevron-right" size="base" /></span>
     <span class="sui-disclosure-label" aria-hidden={hint === undefined ? undefined : 'true'}
       >{summary}</span
     >
@@ -94,11 +92,10 @@ cells stack their secondary text.
       round(calc((var(--sui-control-height-compact) - 1cap) / 2), 1px)
     );
     /* The chevron takes the tier of a glyph beside a control's words (L-68). */
-    --sui-local-disclosure-mark: var(--sui-icon-base);
-    --sui-local-disclosure-indent: calc(var(--sui-local-disclosure-mark) + var(--sui-space-2));
+    --sui-local-disclosure-indent: calc(var(--sui-icon-base) + var(--sui-space-2));
     /* The chevron centres on the first line, so its foot stands this far below the top. */
     --sui-local-disclosure-foot: calc(
-      (var(--sui-control-height-compact) + var(--sui-local-disclosure-mark)) / 2
+      (var(--sui-control-height-compact) + var(--sui-icon-base)) / 2
     );
     margin: 0;
     min-inline-size: 0;
@@ -116,10 +113,7 @@ cells stack their secondary text.
       var(--sui-sans);
     inset-block: calc(var(--sui-local-disclosure-foot) + var(--sui-space-1))
       var(--sui-local-disclosure-trail);
-    inset-inline-start: round(
-      calc((var(--sui-local-disclosure-mark) - var(--sui-stroke)) / 2),
-      1px
-    );
+    inset-inline-start: round(calc((var(--sui-icon-base) - var(--sui-stroke)) / 2), 1px);
     opacity: 0;
     position: absolute;
   }
@@ -196,9 +190,7 @@ cells stack their secondary text.
   .sui-disclosure-chevron {
     color: var(--sui-text-secondary);
     display: flex;
-    inset-block-start: calc(
-      (var(--sui-control-height-compact) - var(--sui-local-disclosure-mark)) / 2
-    );
+    inset-block-start: calc((var(--sui-control-height-compact) - var(--sui-icon-base)) / 2);
     inset-inline-start: var(--sui-space-2);
     position: absolute;
     transition: rotate var(--sui-duration-open) var(--sui-ease-standard);
@@ -293,10 +285,6 @@ cells stack their secondary text.
     display: block;
     font: var(--sui-weight-medium) var(--sui-font-size-meta) / var(--sui-leading-meta)
       var(--sui-sans);
-  }
-
-  .inline {
-    --sui-local-disclosure-mark: var(--sui-icon-sm);
   }
 
   /* Inline help is as wide as its words, as a link is, so its veil never reads as a block
