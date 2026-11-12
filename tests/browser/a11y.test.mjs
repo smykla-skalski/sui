@@ -400,6 +400,54 @@ suite('accessibility', together, () => {
         assert.deepEqual(found, { skipped: true, label: '0', code: 'region' });
       }
     );
+
+    test(
+      "a bare code block's copy control centres on its file name's row, or on the first line",
+      long,
+      async () => {
+        const page = await mounted();
+        const found = await page.evaluate(async () => {
+          const { lib, mount, unmount } = /** @type {any} */ (window);
+          const host = document.body.appendChild(document.createElement('div'));
+          const centre = (/** @type {Element} */ box) => {
+            const rect = box.getBoundingClientRect();
+            return rect.top + rect.height / 2;
+          };
+          const measure = (/** @type {Record<string, unknown>} */ props) => {
+            const part = mount(lib.CodeBlock, { target: host, props: { code: 'a\nb', ...props } });
+            const block = /** @type {HTMLElement} */ (host.lastElementChild);
+            const control = /** @type {HTMLElement} */ (block.querySelector('button'));
+            const row = block.querySelector('figcaption');
+            const pre = /** @type {HTMLElement} */ (block.querySelector('pre'));
+            const style = getComputedStyle(pre);
+            const line =
+              pre.getBoundingClientRect().top +
+              parseFloat(style.paddingTop) +
+              parseFloat(style.lineHeight) / 2;
+            const result = {
+              off: Math.round(centre(control) - (row ? centre(row) : line)),
+              room: parseFloat(style.paddingTop)
+            };
+            unmount(part);
+            return result;
+          };
+          const result = {
+            labelled: measure({ bare: true, label: 'app.yaml' }),
+            framed: measure({ label: 'app.yaml' }),
+            bare: measure({ bare: true })
+          };
+          host.remove();
+          return result;
+        });
+        assert.equal(found.labelled.off, 0, "the control leaves its file name's row");
+        assert.equal(found.bare.off, 0, 'the control leaves the first line');
+        assert.equal(
+          found.labelled.room,
+          found.framed.room,
+          'the code under a bare file name loses its room'
+        );
+      }
+    );
   });
 
   test('a section is never a landmark region', long, async () => {
