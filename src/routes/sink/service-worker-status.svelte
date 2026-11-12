@@ -112,6 +112,7 @@
   note="A waiting version, one being let in, offline and back online, drawn in place"
   ground="canvas"
   layout="grid"
+  --specimen-min="24rem"
 >
   <Specimen label="Ready">
     <ServiceWorkerStatus preview="ready" />

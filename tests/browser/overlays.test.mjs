@@ -1163,6 +1163,45 @@ suite('overlays', together, () => {
     }
   });
 
+  test("the service worker's notice is one of the toasts, and letting a version in never moves its actions", async () => {
+    const page = await open();
+    try {
+      const measured = await page.evaluate(() => {
+        const notices = [
+          ...document.querySelectorAll('#service-worker-status .sui-service-worker-status.preview')
+        ];
+        const toastTitle = document.querySelector('#toaster .sui-toast-title');
+        const reload = (/** @type {number} */ index) => {
+          const buttons = notices[index]?.querySelectorAll('.actions .sui-button');
+          return buttons?.[buttons.length - 1]?.getBoundingClientRect().width ?? 0;
+        };
+        return {
+          count: notices.length,
+          title: notices.map(
+            (notice) =>
+              getComputedStyle(/** @type {Element} */ (notice.querySelector('.title'))).fontSize
+          ),
+          toast: toastTitle ? getComputedStyle(toastTitle).fontSize : '',
+          widest: Math.max(...notices.map((notice) => notice.getBoundingClientRect().width)),
+          reload: [reload(0), reload(1)]
+        };
+      });
+      assert.equal(measured.count, 4, 'the sink no longer draws the four notices');
+      assert.deepEqual(
+        measured.title,
+        Array(4).fill(measured.toast),
+        "a notice's title is not set as a toast's"
+      );
+      assert.ok(
+        measured.widest <= 24 * 16 + 0.5,
+        `a notice is ${measured.widest}px, past a toast's 24rem`
+      );
+      assert.equal(measured.reload[1], measured.reload[0], 'Reloading… is not where Reload was');
+    } finally {
+      await page.close();
+    }
+  });
+
   // WCAG 2.4.11: a toast that stays sits over the page's foot, where Tab scrolls each new
   // control into view. Only the end of the document, which cannot scroll any further, and a
   // control taller than the room above the stack may stay under it.

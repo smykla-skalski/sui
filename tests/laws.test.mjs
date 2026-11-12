@@ -1450,6 +1450,13 @@ test('L-53 a shadow that lifts a part is two layers in every palette block, and 
     read('src/lib/components/Toaster.svelte'),
     /box-shadow: var\(--sui-shadow-toast, var\(--sui-shadow-popover\)\);/
   );
+  // The service worker's notice floats in the corner across from the toasts, one of them.
+  const notice = stripComments(read('src/lib/components/ServiceWorkerStatus.svelte'));
+  assert.match(
+    notice,
+    /\.sui-service-worker-status \{[^}]*border: var\(--sui-stroke\) solid var\(--sui-toast-border, var\(--sui-popover-border\)\);[^}]*box-shadow: var\(--sui-shadow-toast, var\(--sui-shadow-popover\)\);/,
+    "the service worker's notice lifts on a popover's layer, not a toast's"
+  );
   assert.deepEqual(
     found.filter(([, , value]) => layers(value) < 2).map(([, name]) => name),
     []

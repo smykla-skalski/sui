@@ -185,12 +185,12 @@ offers it again. Offline is a lasting state, so it stays until the network answe
 dismisses it, and the return says "You are back online" for five seconds.
 
 - Semantics: an `aside` named by its title, in the top layer as a manual popover, with native buttons; each notice is said once from a hidden `status` region kept apart from the bar.
-- Content: a title and a description for an update or for offline, a title alone for the return; at most two buttons; words wrap within 28rem.
-- States: ready (Reload Later and Reload), reloading (Reload busy with `reloadingLabel`, Reload Later held), offline (Dismiss), back online (no buttons, leaves after five seconds, held while hovered or focused), hidden while a modal dialog is open, and drawn in place with `preview`.
+- Content: a title and a description for an update or for offline, a title alone for the return; at most two buttons; words wrap within a toast's 24rem.
+- States: ready (Reload Later and Reload), reloading (Reload busy with `reloadingLabel`, at the width it held, so Reload Later never moves, and Reload Later held), offline (Dismiss), back online (no buttons, leaves after five seconds, held while hovered or focused), hidden while a modal dialog is open, and drawn in place with `preview`.
 - Keyboard: Tab reaches the bar's buttons after the page's own; Enter or Space presses them; Escape returns focus to where it came from and leaves the notice up.
 - Pointer and touch: the buttons are 34px tall on a pointer and 44px on a phone or touch screen; nothing needs a drag.
 - Focus: opening never takes focus; when a pressed button leaves, focus returns to where it came from, else to the next notice's first button.
-- Responsive: as wide as its words up to 28rem, the buttons wrapping under the copy; on a phone it spans the screen less 16px a side, above the safe area. Below the wide breakpoint the toasts stand above it.
+- Responsive: as wide as its words up to 24rem, the buttons wrapping under the copy; on a phone it spans the screen less 16px a side, above the safe area. Below the wide breakpoint the toasts stand above it.
 - Accessibility: the update, offline and return are each announced politely once; the bar's name is its title; text holds 4.5:1 on the popover ground; forced colors keep its edge.
 - Localization: every word is a prop with an English default; the bar stands at the inline start and its buttons end the line in the reading direction, mirrored in a right-to-left page.
 - Performance: one element and one timer; it rises 8px and fades in, and fades out, and under reduced motion it comes and goes at once.
@@ -224,8 +224,8 @@ dismisses it, and the return says "You are back online" for five seconds.
       <Button disabled={drawn === 'reloading'} onclick={() => putAside('ready')}
         >{laterLabel}</Button
       >
-      <Button loading={drawn === 'reloading'} onclick={reload}
-        >{drawn === 'reloading' ? reloadingLabel : reloadLabel}</Button
+      <Button loading={drawn === 'reloading'} busyLabel={reloadingLabel} onclick={reload}
+        >{reloadLabel}</Button
       >
     </div>
   {:else if drawn === 'offline'}
@@ -236,20 +236,22 @@ dismisses it, and the return says "You are back online" for five seconds.
 </aside>
 
 <style>
-  /* One inset all round, measured to the ink (L-33), as the save bar keeps it. */
+  /* One inset all round, measured to the ink (L-33), as the save bar keeps it. It floats in the
+     corner across from the toasts as one of them, so it takes a toast's edge, lift and width
+     (L-54). */
   .sui-service-worker-status {
     align-items: center;
     background: var(--sui-popover-bg);
-    border: var(--sui-stroke) solid var(--sui-popover-border);
+    border: var(--sui-stroke) solid var(--sui-toast-border, var(--sui-popover-border));
     border-radius: var(--sui-radius-surface);
-    box-shadow: var(--sui-shadow-popover);
+    box-shadow: var(--sui-shadow-toast, var(--sui-shadow-popover));
     box-sizing: border-box;
     color: var(--sui-text-primary);
     flex-wrap: wrap;
     gap: var(--sui-space-3) var(--sui-space-5);
     inline-size: max-content;
     justify-content: space-between;
-    max-inline-size: min(28rem, 100%);
+    max-inline-size: min(24rem, 100%);
     padding: var(--sui-space-4);
   }
 
@@ -260,7 +262,7 @@ dismisses it, and the return says "You are back online" for five seconds.
     inset-inline-start: max(var(--sui-space-4), var(--sui-safe-start));
     margin: 0;
     max-inline-size: min(
-      28rem,
+      24rem,
       100vw - max(var(--sui-space-4), var(--sui-safe-start)) -
         max(var(--sui-space-4), var(--sui-safe-end))
     );
@@ -313,8 +315,9 @@ dismisses it, and the return says "You are back online" for five seconds.
     text-box: trim-both cap alphabetic;
   }
 
+  /* Set as a toast's title is, a step of weight over the description at its size. */
   .title {
-    font: var(--sui-weight-semibold) var(--sui-font-size-body) / var(--sui-row-copy-leading)
+    font: var(--sui-weight-semibold) var(--sui-font-size-meta) / var(--sui-row-copy-leading)
       var(--sui-sans);
   }
 
