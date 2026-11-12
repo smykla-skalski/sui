@@ -1903,6 +1903,20 @@ test('L-16 the gold decision edge is one stroke wide', () => {
   );
 });
 
+test("L-16 a busy save bar dims its edge and buttons but keeps its live copy's ink", () => {
+  const css = stripComments(read('src/lib/components/SaveBar.svelte'));
+  assert.doesNotMatch(
+    css,
+    /\.busy \.title \{/,
+    'a saving bar mutes its title, so the live status reads as disabled'
+  );
+  assert.match(
+    css,
+    /\.subtitle \{[^}]*text-wrap: balance;/,
+    "a short reason's last line ends on a stray word"
+  );
+});
+
 test("L-16 a save bar's refusal leads with a field error's warning mark", () => {
   const source = read('src/lib/components/SaveBar.svelte');
   assert.match(

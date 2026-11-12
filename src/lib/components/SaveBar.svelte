@@ -299,7 +299,7 @@ brings its own room under it, so the scroller needs no end padding.
 
 - Semantics: an `aside` named by its title, with a polite live copy and native buttons.
 - Content: a title and a subtitle while there is work; `savedTitle` once a save lands; `discardedTitle` with Undo once Discard has run; `reloadedTitle` with Undo once a reload has replaced the draft.
-- States: unsaved (Discard and Save), saving (both held, Save busy with `savingLabel`, the gold edge and the copy dimmed with them, the pane `aria-busy`, focus on Save and the pane's fields disabled until the save ends), failed (`failedTitle` over the reason, with Discard and Save to try again), conflict (`conflictTitle` over the reason or `conflictReason`, with Reload alone as the decision, because saving again would be refused), reloading (Reload busy with `reloadingLabel`, dimmed like a save), saved (a quiet notice for 5 seconds, paused while hovered), and discarded or reloaded (Undo and Dismiss until the reader acts).
+- States: unsaved (Discard and Save), saving (both held, Save busy with `savingLabel`, the gold edge dimmed with them and the copy at full ink, the pane `aria-busy`, focus on Save and the pane's fields disabled until the save ends), failed (`failedTitle` over the reason, with Discard and Save to try again), conflict (`conflictTitle` over the reason or `conflictReason`, with Reload alone as the decision, because saving again would be refused), reloading (Reload busy with `reloadingLabel`, dimmed like a save), saved (a quiet notice for 5 seconds, paused while hovered), and discarded or reloaded (Undo and Dismiss until the reader acts).
 - Keyboard: Tab reaches Discard and Save, or Reload, at the pane's end; Ctrl+S or Cmd+S saves from anywhere in the bar's pane, and while the bar holds work it never opens the browser's own save, even when a save cannot run; Escape never discards.
 - Pointer and touch: buttons are 34px tall, 44px on a phone.
 - Focus: after Discard, or once a reload lands, focus moves to Undo, or to Dismiss without one, unless the reader moved it elsewhere while the reload ran; a busy Reload keeps focus; after a save lands, Undo or Dismiss, focus goes back to the control the reader came from, else the pane's first control, never to the page; a field focused under the floating bar scrolls clear above it, because the bar pads its scroller's end by its own height (WCAG 2.4.11).
@@ -428,17 +428,13 @@ brings its own room under it, so the scroller needs no end padding.
 
   /* While a save or a reload runs the edge waits with its buttons, muted the same way, so the
      bar reads as busy as a whole (L-40). The copy is the live status the reader still reads, so
-     its title quiets to the muted ink and both lines keep 4.5:1 (WCAG 1.4.3). */
+     its title keeps the primary ink, as a busy button's words keep theirs. */
   .sui-save-bar.busy {
     border-color: color-mix(
       in srgb,
       var(--sui-unsaved-border) calc(var(--sui-disabled-opacity) * 100%),
       transparent
     );
-  }
-
-  .busy .title {
-    color: var(--sui-text-muted);
   }
 
   .sui-save-bar[hidden] {
@@ -491,11 +487,13 @@ brings its own room under it, so the scroller needs no end padding.
     }
   }
 
-  /* Wrapped, the line under the title reads as a note, as a toast's description does (L-24). */
+  /* Wrapped, the line under the title reads as a note, as a toast's description does (L-24),
+     its lines balanced so a short reason never ends on a stray word. */
   .subtitle {
     color: var(--sui-text-muted);
     font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-leading-note)
       var(--sui-sans);
+    text-wrap: balance;
   }
 
   /* A refusal leads with a field error's warning mark, and its reason takes a field error's
