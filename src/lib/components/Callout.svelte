@@ -118,7 +118,7 @@ and the unsaved ink, so no neutral block sits on a state (L-92).
 - Keyboard: none of its own; its actions and links take Tab in reading order.
 - Pointer and touch: its actions are drawn at the 28px quiet tier and keep a 44px hit area on a phone or a coarse pointer; stacked, they stand 16px apart there so two hit areas never meet.
 - Focus: it never takes focus; a caller that raises it after a failed act leaves focus on the control the reader used.
-- Responsive: actions sit at the inline end beside the message, centred on it inside the band its symbol's tile opens, so the message never moves for them, and move to a line under the copy, from its start edge, only when the callout cannot hold them beside an 11rem measure of copy.
+- Responsive: actions sit at the inline end beside the message, centred on it inside the band its symbol's tile opens, so the message never moves for them, and move to a line under the copy, from the callout's start edge under its symbol, only when the callout cannot hold them beside an 11rem measure of copy.
 - Accessibility: `warningLabel` and `decisionLabel` say in words what the tint and the gold say in colour, and `live` announces a callout that appears after an edit.
 - Localization: `warningLabel` and `decisionLabel` carry the built-in words, the tile sits at the inline start and the actions at the inline end, mirrored in a right-to-left page.
 - Performance: a static block laid out by flex wrapping alone; `live` sets one short timer when it appears and fades it in from 4px above on opacity and translate, not at all under reduced motion.
@@ -173,16 +173,15 @@ and the unsaved ink, so no neutral block sits on a state (L-92).
   /* The message and the actions share one line while the callout holds both, and the actions
      wrap under the copy only when they do not fit beside an 11rem measure of it (about 27
      characters). Wrapping decides that from the actions' own width, which a container query
-     cannot know. The line is indented by the tile, and the message reaches back over that
-     indent, so a wrapped line of actions starts where the copy starts (L-90). On a shared line
-     the actions centre on the message. */
+     cannot know. A wrapped line of actions starts at the callout's start edge, under the tile,
+     so a pair keeps one line in a narrow callout (L-90). On a shared line the actions centre on
+     the message. */
   .sui-callout-inner {
     --sui-callout-measure: 11rem;
     align-items: center;
     display: flex;
     flex-wrap: wrap;
     gap: var(--sui-space-3);
-    padding-inline-start: var(--sui-callout-indent, 0px);
   }
 
   .sui-callout-inner:has(> .sui-callout-message > .sui-callout-icon) {
@@ -225,7 +224,6 @@ and the unsaved ink, so no neutral block sits on a state (L-92).
     display: flex;
     flex: 1 1 calc(var(--sui-callout-indent, 0px) + var(--sui-callout-measure));
     gap: var(--sui-space-3);
-    margin-inline-start: calc(-1 * var(--sui-callout-indent, 0px));
     min-inline-size: 0;
   }
 
