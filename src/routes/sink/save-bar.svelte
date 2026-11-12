@@ -207,11 +207,10 @@
   /* The pane grows with its content, so the bar rests after the last line instead of sticking
      over the middle of the content. */
   .pane {
-    /* Room past each side for the bar's shadow, which the clip would cut at the bar's edge. The
-       scroller pads it back, so the fields and the bar keep the stage's edges. */
+    /* Room past each side for the bar's shadow, which the scroller's clip would cut at the bar's
+       edge. The scroller pads it back, so the fields and the bar keep the stage's edges. */
     --pane-room: var(--sui-space-3);
     margin-inline: calc(-1 * var(--pane-room));
-    overflow: hidden;
   }
 
   /* As wide as the bar grows, so the fields and the bar share both edges. */

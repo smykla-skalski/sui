@@ -2028,8 +2028,19 @@ function specimens(root: Document): Finding[] {
       const reach = stripeReach(element);
       if ((painted || element.matches(CARD_CONTENT)) && outside(paintedBox(element, look), reach))
         return true;
-      // Text an element clips to its own box paints no further than that box.
-      if (look.overflowX !== 'visible') return outside(element.getBoundingClientRect(), reach);
+      // Text an element clips to its own box paints no further than that box, and while nothing
+      // overflows it sideways no further than its content box, so a scroller may pad room past
+      // the specimen for a shadow its clip would cut.
+      if (look.overflowX !== 'visible') {
+        const box = element.getBoundingClientRect();
+        if (element.scrollWidth > element.clientWidth) return outside(box, reach);
+        const start = parseFloat(look.borderLeftWidth) + parseFloat(look.paddingLeft);
+        const end = parseFloat(look.borderRightWidth) + parseFloat(look.paddingRight);
+        return outside(
+          new DOMRect(box.left + start, box.top, box.width - start - end, box.height),
+          reach
+        );
+      }
       return [...element.childNodes].some((node) => {
         if (node.nodeType !== Node.TEXT_NODE || !node.textContent?.trim()) return false;
         const range = document.createRange();
