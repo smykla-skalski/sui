@@ -80,8 +80,10 @@ button or a quiet icon button keeps its words or glyph there instead, with its b
 the end as above the band. A button or a select there stays drawn at 34px on a phone with a
 44px hit area, so it never reaches the keyline.
 The actions never take a line of their own: at every width they stay on the title's first
-line, and short of room the title and its note wrap in what is left beside them, a segmented
-control turns into its select, and the other controls keep their width. A `footer`'s actions stand beside the copy at its
+line, and short of room the title wraps in what is left beside them, a segmented control turns
+into its select, and the other controls keep their width. The note runs under them at the
+head's full width, save beside a segmented track drawn at a touch screen's 44px, which reaches
+below the title's line further than the note stands under it. A `footer`'s actions stand beside the copy at its
 foot while the card holds both next to an 11rem measure of copy, as a callout's do, and on a
 line of their own under it otherwise, so they keep the inset from the bottom and the end in
 either place. A row list or a `Skeleton` that opens the card hands back what stands above its
@@ -307,22 +309,39 @@ title, such as "Danger Zone", and holds the acts that cannot be undone, each a `
     padding-block: 0;
   }
 
-  /* The copy and the actions share the head's one line at every width: short of room, each
-     gives up width in proportion to its own, so a long title wraps while the controls keep
-     theirs and a segmented control turns into its select, and the title and its note wrap in
-     what is left. */
+  /* The title and the actions share the head's first line at every width: short of room, the
+     title wraps while the controls keep their width and a segmented control turns into its
+     select. The note runs under them at the head's full width, since no control drawn there
+     reaches below the title's line as far as the note stands under it, so a description never
+     wraps beside a column the actions left empty. */
   .sui-card-head {
     align-items: start;
     column-gap: var(--sui-space-6);
-    display: flex;
-    justify-content: flex-end;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    row-gap: var(--sui-title-copy-gap);
   }
 
   .sui-card-copy {
-    display: grid;
-    flex: 1 1 auto;
-    gap: var(--sui-title-copy-gap);
-    min-inline-size: 0;
+    display: contents;
+  }
+
+  .sui-card-head > .sui-card-copy > .sui-card-title {
+    grid-area: 1 / 1;
+  }
+
+  .sui-card-head > .sui-card-copy > .sui-card-note {
+    grid-column: 1 / -1;
+  }
+
+  /* A segmented control drawn as a track at a touch screen's 44px reaches further below the
+     title's line than the note stands, so its note keeps beside it. */
+  @media (pointer: coarse) {
+    .sui-card-head:has(> .sui-card-actions :global(.sui-segmented:not(.short)))
+      > .sui-card-copy
+      > .sui-card-note {
+      grid-column: 1;
+    }
   }
 
   /* Whatever the actions hold, a button, a switch, a segmented control, a pill or a menu,
@@ -343,10 +362,10 @@ title, such as "Danger Zone", and holds the acts that cannot be undone, each a `
     align-items: center;
     block-size: round(up, 1cap, 2px);
     display: flex;
-    flex: 0 1 auto;
     font: var(--sui-weight-semibold) var(--sui-font-size-card-title) / var(--sui-leading-flat)
       var(--sui-sans);
     gap: var(--sui-space-2);
+    grid-area: 1 / 2;
     justify-content: flex-end;
     margin-block-end: calc(-1 * round(up, 1cap, 2px));
   }
@@ -384,16 +403,15 @@ title, such as "Danger Zone", and holds the acts that cannot be undone, each a `
      the copy from its start edge, at their own height (--sui-breakpoint-head). */
   @container (max-width: 12rem) {
     .sui-card-head {
-      flex-wrap: wrap;
-      row-gap: var(--sui-row-copy-gap);
+      grid-template-columns: minmax(0, 1fr);
     }
 
     .sui-card-head > .sui-card-actions {
       block-size: auto;
-      flex: 1 1 100%;
       flex-wrap: wrap;
+      grid-area: auto / 1;
       justify-content: flex-start;
-      margin-block-end: 0;
+      margin-block: calc(var(--sui-row-copy-gap) - var(--sui-title-copy-gap)) 0;
       margin-inline-end: 0;
     }
   }

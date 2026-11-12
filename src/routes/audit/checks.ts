@@ -12,6 +12,20 @@ const OFF_FIELD =
   ":is(.sui-text-input, .sui-textarea):disabled:not(.held, .bare), .sui-select:not(.bare) > .sui-select-control:disabled:not([aria-disabled='true']), .sui-button.field:disabled:not([aria-disabled='true'])";
 const PAINT_EXEMPT = 'svg, script, style, [data-audit-ignore]';
 
+/** The box a part takes, or with `display: contents`, the box its children take together. */
+function partBox(element: Element): DOMRect {
+  if (getComputedStyle(element).display !== 'contents') return element.getBoundingClientRect();
+  const parts = [...element.children].map((part) => part.getBoundingClientRect());
+  const left = Math.min(...parts.map((part) => part.left));
+  const top = Math.min(...parts.map((part) => part.top));
+  return new DOMRect(
+    left,
+    top,
+    Math.max(...parts.map((part) => part.right)) - left,
+    Math.max(...parts.map((part) => part.bottom)) - top
+  );
+}
+
 const finding = (law: string, element: Element | null, detail: string): Finding => ({
   law,
   where: element ? describe(element) : 'document',
@@ -1247,9 +1261,7 @@ function cardInsets(card: Element) {
   );
   const copy = actions?.parentElement?.querySelector(':scope > .sui-card-copy');
   const beside =
-    actions && copy && actions.getBoundingClientRect().top < copy.getBoundingClientRect().bottom
-      ? actions
-      : null;
+    actions && copy && actions.getBoundingClientRect().top < partBox(copy).bottom ? actions : null;
   for (const element of card.querySelectorAll('*')) {
     if (element.parentElement?.closest('svg') || element.closest(IGNORED)) continue;
     if (!element.checkVisibility({ opacityProperty: false, visibilityProperty: true })) continue;
@@ -1329,8 +1341,7 @@ function headActionInsets(card: Element): { top: number; end: number } | null {
     : last?.querySelector(`:scope > :is(${UNFRAMED_HEAD})`);
   if (!actions || !control || !shown(control)) return null;
   // Stacked under the copy, the action starts its own line and has no corner to sit in.
-  if (copy && actions.getBoundingClientRect().top >= copy.getBoundingClientRect().bottom - 0.5)
-    return null;
+  if (copy && actions.getBoundingClientRect().top >= partBox(copy).bottom - 0.5) return null;
   const style = getComputedStyle(card);
   const box = card.getBoundingClientRect();
   const own = control.getBoundingClientRect();
@@ -3573,7 +3584,7 @@ function cardHeads(root: Document): Finding[] {
     const words = copy?.querySelector('.sui-card-words > span');
     if (!actions || !copy || !words) continue;
     const band = actions.getBoundingClientRect();
-    const text = copy.getBoundingClientRect();
+    const text = partBox(copy);
     if (band.top >= text.bottom - 0.5) {
       found.push(finding('L-34', head, 'its action takes a line of its own under the copy'));
       continue;
@@ -3593,6 +3604,13 @@ function cardHeads(root: Document): Finding[] {
     const off = (own.top + own.bottom) / 2 - line;
     if (Math.abs(off) > 0.5)
       found.push(finding('L-34', control, `it sits ${round(off)}px off the title's cap band`));
+    // A note that runs under the actions stands clear of every control drawn there.
+    const note = copy.querySelector(':scope > .sui-card-note')?.getBoundingClientRect();
+    const drawn = [...actions.children].filter(shown).map((part) => part.getBoundingClientRect());
+    const reach = Math.max(...drawn.map((part) => part.bottom));
+    const under = note && drawn.some((part) => part.left < note.right && part.right > note.left);
+    if (note && under && reach > note.top + 0.5)
+      found.push(finding('L-34', control, `it reaches ${round(reach - note.top)}px into its note`));
   }
   return found;
 }
