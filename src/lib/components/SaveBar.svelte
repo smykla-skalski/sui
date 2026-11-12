@@ -299,13 +299,22 @@ brings its own room under it, so the scroller needs no end padding.
 - Keyboard: Tab reaches Discard and Save, or Reload, at the pane's end; Ctrl+S or Cmd+S saves from anywhere in the bar's pane, and while the bar holds work it never opens the browser's own save, even when a save cannot run; Escape never discards.
 - Pointer and touch: buttons are 34px tall, 44px on a phone.
 - Focus: after Discard, or once a reload lands, focus moves to Undo, or to Dismiss without one, unless the reader moved it elsewhere while the reload ran; a busy Reload keeps focus; after a save lands, Undo or Dismiss, focus goes back to the control the reader came from, else the pane's first control, never to the page; a field focused under the floating bar scrolls clear above it, because the bar pads its scroller's end by its own height (WCAG 2.4.11).
-- Responsive: the copy wraps and the actions wrap under it; on a screen under 30rem tall, as at 400% zoom, the bar stops sticking and only sits at the pane's end, so it never covers most of the view.
+- Responsive: the copy wraps at a note's leading, and the actions wrap under it to fill the line, in equal halves while each label fits its half and stacked once one does not; Save and Reload keep the width of the wider of their two labels, so a save never moves Discard; on a screen under 30rem tall, as at 400% zoom, the bar stops sticking and only sits at the pane's end, so it never covers most of the view.
 - Accessibility: the copy is a polite live region, so a failure, a conflict, a save, a discard and a reload are each said; a busy button is `aria-busy`; the bar's name is its title.
 - Localization: every word is a prop with an English default; the actions end the line in the reading direction.
 - Performance: one `ResizeObserver` keeps the scroller's end padding as tall as the bar, and nothing measures it per frame; a fade and 8px rise on entry, removed under reduced motion.
 - Analytics: `onsave` hears each save, the shortcut included, `ondiscard` each discard, `onreload` each reload, and the functions they return each undo.
 - Failure: a failed save keeps the bar up with the reason and the work is never dropped on its own; a conflict offers Reload, which drops the draft only with Undo beside it; a reload that fails is the caller's to say, by keeping `dirty` and setting `error`; closing or leaving the page while the bar holds work asks first, as the browser does.
 -->
+
+<!-- Both words take one cell, the one not said hidden, so the button keeps the wider one's
+     width and the press that starts the work never moves Discard (L-64). -->
+{#snippet both(idle: string, working: string, busy: boolean)}
+  <span class="sui-save-bar-label">
+    <span class={{ unsaid: busy }}>{idle}</span>
+    <span class={{ unsaid: !busy }}>{working}</span>
+  </span>
+{/snippet}
 
 <aside
   bind:this={element}
@@ -343,8 +352,8 @@ brings its own room under it, so the scroller needs no end padding.
     </div>
   {:else if !notice && reloadable}
     <div class="actions">
-      <Button tone="decision" loading={reloading} onclick={reload}
-        >{reloading ? reloadingLabel : reloadLabel}</Button
+      <Button tone="decision" loading={reloading} reserve onclick={reload}
+        >{@render both(reloadLabel, reloadingLabel, reloading)}</Button
       >
     </div>
   {:else if !notice}
@@ -354,8 +363,9 @@ brings its own room under it, so the scroller needs no end padding.
         bind:element={saveButton}
         tone="decision"
         loading={saving}
+        reserve
         aria-keyshortcuts="Control+S Meta+S"
-        onclick={save}>{saving ? savingLabel : saveLabel}</Button
+        onclick={save}>{@render both(saveLabel, savingLabel, saving)}</Button
       >
     </div>
   {/if}
@@ -440,9 +450,12 @@ brings its own room under it, so the scroller needs no end padding.
     }
   }
 
+  /* The copy takes all of a shared line's spare room, so actions beside it keep their words'
+     width, while actions wrapped under it take their whole line, as a dialog's do on a phone:
+     equal halves while each label fits its half, stacked once one does not (L-90, L-58). */
   .copy {
     display: grid;
-    flex: 1 1 18rem;
+    flex: 1000000 1 18rem;
     gap: var(--sui-title-copy-gap);
     min-inline-size: 0;
   }
@@ -462,9 +475,10 @@ brings its own room under it, so the scroller needs no end padding.
       var(--sui-sans);
   }
 
+  /* Wrapped, the line under the title reads as a note, as a toast's description does (L-24). */
   .subtitle {
     color: var(--sui-text-muted);
-    font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-row-copy-leading)
+    font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-leading-note)
       var(--sui-sans);
   }
 
@@ -476,10 +490,30 @@ brings its own room under it, so the scroller needs no end padding.
      start the line they wrap to (L-90). On a line narrower than both buttons they wrap too,
      rather than reach into the bar's inset. */
   .actions {
+    --sui-local-button-span: 100%;
     display: flex;
-    flex: 0 1 auto;
+    flex: 1 1 auto;
     flex-wrap: wrap;
     gap: var(--sui-space-2);
+  }
+
+  .actions > :global(*) {
+    flex: 1 1 0;
+    min-inline-size: fit-content;
+  }
+
+  .sui-save-bar-label {
+    display: grid;
+    justify-items: center;
+  }
+
+  .sui-save-bar-label > * {
+    grid-area: 1 / 1;
+    text-box: trim-both cap alphabetic;
+  }
+
+  .unsaid {
+    visibility: hidden;
   }
 
   .sui-save-bar:not(.notice) .actions {

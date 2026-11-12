@@ -1420,6 +1420,36 @@ suite('lists', together, () => {
       }
     );
 
+    test('L-16 a save never moves Discard, and wrapped actions fill their line', async () => {
+      const page = await opened();
+      const bars = page.locator('#save-bar .sui-save-bar');
+      const boxes = (/** @type {import('playwright-core').Locator} */ bar) =>
+        bar.evaluate((node) =>
+          [...node.querySelectorAll('.actions .sui-button')].map((button) => {
+            const { left, width } = button.getBoundingClientRect();
+            return { left: Math.round(left), width: Math.round(width) };
+          })
+        );
+      // The unsaved and saving specimens draw one bar at one width, idle and busy.
+      assert.deepEqual(
+        await boxes(bars.nth(1)),
+        await boxes(bars.nth(0)),
+        'Saving… is not where Save Changes was, so the save moved Discard'
+      );
+      const narrow = page
+        .locator('#save-bar .specimen', { hasText: 'Long copy' })
+        .locator('.sui-save-bar');
+      const copy = await narrow
+        .locator('.copy')
+        .evaluate((node) => Math.round(node.getBoundingClientRect().width));
+      const wrapped = await boxes(narrow);
+      assert.deepEqual(
+        wrapped.map(({ width }) => width),
+        [copy, copy],
+        'wrapped actions did not each take the whole line under the copy'
+      );
+    });
+
     test('L-89 the save bar hands focus on through discard and undo', long, async () => {
       const page = await opened();
       const section = page.locator('#save-bar');
