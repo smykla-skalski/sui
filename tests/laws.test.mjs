@@ -1848,7 +1848,7 @@ test('L-85 the current row stands on a plate a light theme does not wash out', (
 test("L-56 a toast's symbol tile mixes the danger ink into the toast's own ground", () => {
   assert.match(
     stripComments(read('src/lib/components/Toaster.svelte')),
-    /\.sui-toast-mark \{[^}]*background: color-mix\(\s*in srgb,\s*var\(--sui-danger\) var\(--sui-toast-failure\),\s*var\(--sui-popover-bg\)\s*\);/,
+    /\.sui-toast-mark \{[^}]*background: color-mix\(\s*in oklab,\s*var\(--sui-danger\) var\(--sui-toast-failure\),\s*var\(--sui-popover-bg\)\s*\);/,
     "the shared danger tint sinks into a dark toast's raised ground"
   );
 });
@@ -1858,7 +1858,7 @@ test("L-72 a failed toast's edge carries a quarter of the danger ink", () => {
   assert.match(toaster, /failed: item\.tone === 'danger'/);
   assert.match(
     toaster,
-    /\.failed \{\s*border-color: color-mix\(\s*in srgb,\s*var\(--sui-danger\) calc\(var\(--sui-toast-failure\) \* 25 \/ 16\),\s*var\(--sui-toast-border, var\(--sui-popover-border\)\)\s*\);/,
+    /\.failed \{\s*border-color: color-mix\(\s*in oklab,\s*var\(--sui-danger\) calc\(var\(--sui-toast-failure\) \* 25 \/ 16\),\s*var\(--sui-toast-border, var\(--sui-popover-border\)\)\s*\);/,
     'a failure in a mixed stack reads as one only by its small tile'
   );
 });

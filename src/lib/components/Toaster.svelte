@@ -315,7 +315,7 @@ A `danger` toast reports a failure and stays too.
     box-sizing: border-box;
     color: inherit;
     flex-direction: column;
-    gap: var(--sui-space-2);
+    gap: var(--sui-space-3);
     inline-size: calc(24rem + 2 * var(--sui-space-4));
     inset: auto;
     inset-block-end: calc(
@@ -384,7 +384,7 @@ A `danger` toast reports a failure and stays too.
      one at a glance in a stack of mixed toasts (L-72). */
   .failed {
     border-color: color-mix(
-      in srgb,
+      in oklab,
       var(--sui-danger) calc(var(--sui-toast-failure) * 25 / 16),
       var(--sui-toast-border, var(--sui-popover-border))
     );
@@ -405,7 +405,7 @@ A `danger` toast reports a failure and stays too.
     --sui-icon-base: var(--sui-icon-md);
     align-items: center;
     background: color-mix(
-      in srgb,
+      in oklab,
       var(--sui-danger) var(--sui-toast-failure),
       var(--sui-popover-bg)
     );
