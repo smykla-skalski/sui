@@ -10,6 +10,7 @@
   import { clock } from '../kit/format.js';
   import { Button, Callout, Icon, Plate } from '#lib';
   import Example from '../kit/Example.svelte';
+  import Pair from '../kit/Pair.svelte';
   import Specimen from '../kit/Specimen.svelte';
 
   let synced = $state(false);
@@ -31,54 +32,58 @@
   <Specimen label="With a body">
     <Plate title="Sync Status" level={4}>
       {#snippet status()}
-        <span class="state"><Icon name="success" size="sm" /><span>Up to date</span></span>
+        <span class="state success"><Icon name="success" size="sm" /><span>Up to date</span></span>
       {/snippet}
       <p class="copy">Every repository matches its template</p>
     </Plate>
   </Specimen>
 </Example>
 
-<Example
-  title="Long Title"
-  note="A long title wraps beside the state, which stays on its first line and never moves the title"
-  layout="grid"
-  ground="canvas"
->
-  <Specimen label="Wrapping title">
-    <Plate title="Configuration Drift across Repositories in the Platform Organisation" level={4}>
-      {#snippet status()}
-        <span class="state"
-          ><Icon name="warning" size="sm" /><span>2 repositories differ</span></span
-        >
-      {/snippet}
-      <p class="copy">The 2 repositories changed their branch rules by hand</p>
-    </Plate>
-  </Specimen>
-</Example>
-
-<Example
-  title="Changing State"
-  note="The state sits in a polite status region, so a screen reader hears it change while focus stays on the button"
-  layout="stack"
-  ground="canvas"
->
-  <Specimen label="Announced">
-    <div class="change">
-      <Plate title="Template Sync" level={4}>
+<Pair even>
+  <Example
+    title="Long Title"
+    note="A long title wraps beside the state, which stays on its first line and never moves the title"
+    layout="stack"
+    ground="canvas"
+  >
+    <Specimen label="Wrapping title">
+      <Plate title="Configuration Drift across Repositories in the Platform Organisation" level={4}>
         {#snippet status()}
-          {#if synced}
-            <span class="state"><Icon name="success" size="sm" /><span>Up to date</span></span>
-          {:else}
-            <span class="state"
-              ><Icon name="pending" size="sm" /><span>3 repositories behind</span></span
-            >
-          {/if}
+          <span class="state warning"
+            ><Icon name="warning" size="sm" /><span>2 repositories differ</span></span
+          >
         {/snippet}
+        <p class="copy">The 2 repositories changed their branch rules by hand</p>
       </Plate>
-      <Button onclick={() => (synced = !synced)}>{synced ? 'Undo the Sync' : 'Sync Now'}</Button>
-    </div>
-  </Specimen>
-</Example>
+    </Specimen>
+  </Example>
+
+  <Example
+    title="Changing State"
+    note="The state sits in a polite status region, so a screen reader hears it change while focus stays on the button"
+    layout="stack"
+    ground="canvas"
+  >
+    <Specimen label="Announced">
+      <div class="change">
+        <Plate title="Template Sync" level={4}>
+          {#snippet status()}
+            {#if synced}
+              <span class="state success"
+                ><Icon name="success" size="sm" /><span>Up to date</span></span
+              >
+            {:else}
+              <span class="state"
+                ><Icon name="pending" size="sm" /><span>3 repositories behind</span></span
+              >
+            {/if}
+          {/snippet}
+        </Plate>
+        <Button onclick={() => (synced = !synced)}>{synced ? 'Undo the Sync' : 'Sync Now'}</Button>
+      </div>
+    </Specimen>
+  </Example>
+</Pair>
 
 <Example
   title="In Context"
@@ -88,7 +93,7 @@
 >
   <Plate title="Configuration Drift" level={4}>
     {#snippet status()}
-      <span class="state"><Icon name="warning" size="sm" /><span>2 differ</span></span>
+      <span class="state warning"><Icon name="warning" size="sm" /><span>2 differ</span></span>
     {/snippet}
   </Plate>
   <Callout tone="warning" title="Drift blocks the next sync">
@@ -121,6 +126,17 @@
       var(--sui-sans);
     gap: var(--sui-space-2);
     min-inline-size: 0;
+  }
+
+  /* The glyph wears the state's tone and the words keep the secondary ink, so a reader finds a
+     plate that needs them at a glance and still reads the state in words (L-14). A pending
+     state stays neutral. */
+  .success > :global(svg) {
+    color: var(--sui-success);
+  }
+
+  .warning > :global(svg) {
+    color: var(--sui-warning);
   }
 
   .state > :global(svg) {
