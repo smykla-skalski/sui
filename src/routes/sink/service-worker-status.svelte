@@ -132,6 +132,8 @@
 <Example
   title="Behaviour"
   note="A deployed version waits in the corner until Reload, and losing the network says so until it returns"
+  layout="grid"
+  --specimen-min="24rem"
   --example-max="52.5rem"
 >
   <Specimen label={`Version ${version} serves this page`}>
