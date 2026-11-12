@@ -175,7 +175,7 @@
     lineNumbers?: boolean;
     /** Offers a copy control in the corner. */
     copy?: boolean;
-    /** Drops the block's own frame, fill and start inset, for a host that already frames and insets it. */
+    /** Drops the block's own frame, fill and edge insets, for a host that already frames and insets it. */
     bare?: boolean;
     /** The scroller's name when it scrolls and has no `label`. */
     regionLabel?: string;
@@ -295,6 +295,11 @@ from the corner and centred on the first line, or in the file name's row when th
     display: flex;
     flex: none;
     padding: var(--sui-space-2);
+  }
+
+  /* A bare block's host insets it, so the control ends on that inset, as the code starts on it. */
+  .bare .sui-code-block-copy {
+    padding-inline-end: 0;
   }
 
   .sui-code-block-scroll {
