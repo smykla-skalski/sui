@@ -77,7 +77,7 @@
 
 <Example
   title="Long Copy"
-  note="Long copy starts at the symbol’s tile however many lines follow, and an action beside it centres on the message"
+  note="Long copy starts at the symbol’s tile however many lines follow, and an action beside it stands on the tile, by the title"
   layout="stack"
 >
   <Specimen label="Wrapping title & a link">

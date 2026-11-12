@@ -105,7 +105,7 @@ and every other action keeps the default tone.
 The icon stands in a 2rem tile of the callout's tone and draws at 18px whatever tier the caller
 asked for. Copy shorter than the tile centres on it; longer copy starts at the tile's top. The
 tile opens the message's first line in a band its actions fit inside: they are drawn at the
-28px quiet tier and centre on the message, so a callout stands as tall, and its words where
+28px quiet tier and centre on the tile, so a callout stands as tall, and its words where
 they stand, with or without them. Give a callout with actions its symbol, because words alone
 open no band. A
 default action takes the tone too: in a warning it is quiet, with no ground of its own and an
@@ -118,7 +118,7 @@ and the unsaved ink, so no neutral block sits on a state (L-92).
 - Keyboard: none of its own; its actions and links take Tab in reading order.
 - Pointer and touch: its actions are drawn at the 28px quiet tier and keep a 44px hit area on a phone or a coarse pointer; stacked, they stand 16px apart there so two hit areas never meet.
 - Focus: it never takes focus; a caller that raises it after a failed act leaves focus on the control the reader used.
-- Responsive: actions sit at the inline end beside the message, centred on it inside the band its symbol's tile opens, so the message never moves for them, and move to a line under the copy, from the callout's start edge under its symbol, only when the callout cannot hold them beside an 11rem measure of copy.
+- Responsive: actions sit at the inline end beside the message, centred on the band its symbol's tile opens, by the title however long the message, so the message never moves for them, and move to a line under the copy, from the callout's start edge under its symbol, only when the callout cannot hold them beside an 11rem measure of copy.
 - Accessibility: `warningLabel` and `decisionLabel` say in words what the tint and the gold say in colour, and `live` announces a callout that appears after an edit.
 - Localization: `warningLabel` and `decisionLabel` carry the built-in words, the tile sits at the inline start and the actions at the inline end, mirrored in a right-to-left page.
 - Performance: a static block laid out by flex wrapping alone; `live` sets one short timer when it appears and fades it in from 4px above on opacity and translate, not at all under reduced motion.
@@ -180,13 +180,17 @@ and the unsaved ink, so no neutral block sits on a state (L-92).
      characters). Wrapping decides that from the actions' own width, which a container query
      cannot know. A wrapped line of actions starts at the callout's start edge, under the tile,
      so a pair keeps one line in a narrow callout (L-90). On a shared line the actions centre on
-     the message. */
+     the tile's band, the message's first line, so a long message keeps them by its title, as
+     an alert's action stands on its title row. */
   .sui-callout-inner {
     --sui-callout-measure: 11rem;
-    align-items: center;
+    /* What stands a quiet-tier action on the middle of the tile's band; a wrapped line's gap
+       gives it back, so the copy keeps its 12px over the actions. */
+    --sui-local-band-room: calc((var(--sui-symbol-tile) - var(--sui-tier-quiet)) / 2);
+    align-items: flex-start;
     display: flex;
     flex-wrap: wrap;
-    gap: var(--sui-space-3);
+    gap: calc(var(--sui-space-3) - var(--sui-local-band-room)) var(--sui-space-3);
   }
 
   .sui-callout-inner:has(> .sui-callout-message > .sui-callout-icon) {
@@ -202,7 +206,7 @@ and the unsaved ink, so no neutral block sits on a state (L-92).
     --sui-callout-mark: var(--sui-warning);
     /* A default action is quiet on the tint: no ground of its own, an edge of the tone. */
     --sui-surface-raised: transparent;
-    --sui-control-border: color-mix(in srgb, var(--sui-warning) 40%, var(--sui-warning-tint));
+    --sui-control-border: color-mix(in srgb, var(--sui-warning) 55%, var(--sui-warning-tint));
     /* A hover the pointer finds by its edge on the tint, its fill kept light on the light tint
        so it never reads as chosen, and a press a clear step past it. */
     --sui-control-border-hover: color-mix(in srgb, var(--sui-warning) 75%, var(--sui-warning-tint));
@@ -328,6 +332,7 @@ and the unsaved ink, so no neutral block sits on a state (L-92).
     display: flex;
     flex-wrap: wrap;
     gap: var(--sui-space-2);
+    margin-block-start: var(--sui-local-band-room);
     min-inline-size: 0;
   }
 

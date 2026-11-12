@@ -2695,7 +2695,7 @@ function symbolTiles(root: Document): Finding[] {
 }
 
 /**
- * A callout's actions (L-56) stand at its inline end, centred on its message, and move under
+ * A callout's actions (L-56) stand at its inline end, centred on its symbol's tile, and move under
  * the copy, from the callout's start edge under its symbol, only when the callout cannot hold them beside its
  * measure of copy (`--sui-callout-measure`).
  */
@@ -2709,10 +2709,13 @@ function calloutActions(root: Document): Finding[] {
     const own = actions.getBoundingClientRect();
     const said = message.getBoundingClientRect();
     if (own.top < said.bottom - 0.5) {
-      const off = (own.top + own.bottom) / 2 - (said.top + said.bottom) / 2;
+      const band = (
+        message.querySelector(':scope > .sui-callout-icon') ?? message
+      ).getBoundingClientRect();
+      const off = (own.top + own.bottom) / 2 - (band.top + band.bottom) / 2;
       if (Math.abs(off) > 0.5)
         found.push(
-          finding('L-56', actions, `the actions sit ${round(off)}px off the message's middle`)
+          finding('L-56', actions, `the actions sit ${round(off)}px off the tile's middle`)
         );
       // Beside the message they live inside its band, so they never raise the callout (L-34).
       if (own.height > said.height + 0.5)
