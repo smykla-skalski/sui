@@ -256,7 +256,7 @@ title, such as "Danger Zone", and holds the acts that cannot be undone, each a `
 
     /* The veil takes the card's ground toward the stage's, so a plain keyline steps to a
        control's edge and the card keeps its edge; a tone's keyline keeps its tone. */
-    .sui-card:not(.danger, .unsaved):has(> .sui-card-hit:hover) {
+    .sui-card:not(.danger, .unsaved):has(> .sui-card-hit:hover:not(:focus-visible)) {
       border-color: var(--sui-border-control);
     }
 

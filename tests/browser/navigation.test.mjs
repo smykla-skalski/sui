@@ -900,15 +900,28 @@ suite('navigation', together, () => {
         const box = /** @type {{ x: number, y: number, width: number, height: number }} */ (
           await members.boundingBox()
         );
-        const edge = () => members.evaluate((card) => getComputedStyle(card).borderTopColor);
+        const first = peers.locator('.sui-card').first();
+        const edge = () => first.evaluate((card) => getComputedStyle(card).borderTopColor);
         const rest = await edge();
+        const corner = /** @type {{ x: number, y: number, width: number, height: number }} */ (
+          await first.boundingBox()
+        );
+        await page.mouse.move(corner.x + 24, corner.y + corner.height - 12);
+        assert.notEqual(await edge(), rest, 'a hovered card keeps its resting keyline');
         await page.mouse.move(box.x + 24, box.y + box.height - 12);
         assert.equal(
           await underlined(),
           'underline',
           'a hovered card does not underline its title'
         );
-        assert.notEqual(await edge(), rest, 'a hovered card keeps its resting keyline');
+        assert.equal(
+          await members.evaluate((card) => {
+            const look = getComputedStyle(card);
+            return look.outlineColor === look.borderTopColor;
+          }),
+          true,
+          'a hovered card drops the focus ring its keyboard focus drew'
+        );
         await members.getByRole('button', { name: 'Invite' }).hover();
         assert.equal(await underlined(), 'none', 'a hovered control underlines the card title');
         await page.mouse.move(0, 0);
