@@ -28,8 +28,9 @@
     display: grid;
     gap: var(--sui-space-6);
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    /* A frame's measure is its content box, inside its two strokes. */
-    max-inline-size: calc(54rem + 2 * var(--sui-stroke));
+    /* A frame's measure is its content box, inside its two strokes. A page whose frame above
+       keeps a narrower measure sets `--pair-max` to it, so the row ends on that frame's edge. */
+    max-inline-size: calc(var(--pair-max, 54rem) + 2 * var(--sui-stroke));
   }
 
   .narrow {

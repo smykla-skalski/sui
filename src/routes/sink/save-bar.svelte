@@ -148,7 +148,7 @@
   </Specimen>
 </Example>
 
-<Pair narrow>
+<Pair narrow --pair-max="calc(50rem + 2 * var(--sui-space-6))">
   <Example
     title="Conflict"
     note="Another tab saved first, so Reload is the one way on, and it offers Undo"
@@ -233,5 +233,12 @@
   /* A bar that shows brings its own room under it. */
   .scroller:has(> :global(.sui-save-bar:not([hidden]))) {
     padding-block-end: 0;
+  }
+
+  /* The stage's pad is the room under a bar at rest, as beside it, so the pane lays its bar's
+     sticky inset over that pad. The pane still holds the inset, so its clip keeps the bar's
+     shadow. */
+  .pane:has(> .scroller > :global(.sui-save-bar:not([hidden]))) {
+    margin-block-end: calc(-1 * var(--sui-space-4));
   }
 </style>

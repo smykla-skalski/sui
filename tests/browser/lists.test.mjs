@@ -1456,6 +1456,17 @@ suite('lists', together, () => {
             offset <= 0.5,
             `at ${width}px the spinner and Saving… sit ${offset}px off the button's centre`
           );
+          // A bar at rest in a stage keeps the stage's pad under it, as beside it, not its
+          // sticky inset on top of that pad.
+          const [beside, under] = await page
+            .locator('#save-bar .specimen', { hasText: 'Conflict' })
+            .locator('.sui-save-bar')
+            .evaluate((bar) => {
+              const box = bar.getBoundingClientRect();
+              const stage = bar.closest('.stage')?.getBoundingClientRect();
+              return [box.left - (stage?.left ?? 0), (stage?.bottom ?? 0) - box.bottom];
+            });
+          assert.equal(under, beside, `at ${width}px a bar's stage pads it ${under}px under it`);
         }
       } finally {
         await page.setViewportSize({ width: 1280, height: 900 });
