@@ -199,7 +199,7 @@ title, such as "Danger Zone", and holds the acts that cannot be undone, each a `
      its stop buttons keep their own fill (Primer's danger zone). The keyline takes a quarter of
      the card's ground, so the long red edge never outshouts the title and the act it frames. */
   .danger {
-    border-color: color-mix(in oklch, var(--sui-danger) 75%, var(--sui-surface-base));
+    border-color: color-mix(in oklch, var(--sui-danger) 65%, var(--sui-surface-base));
   }
 
   .danger .sui-card-title {
