@@ -1920,7 +1920,7 @@ test("L-16 a busy save bar dims its edge and buttons but keeps its live copy's i
 test("L-9 a save bar's Discard keeps an edge that holds 3:1 on the neutral ground in both themes", () => {
   assert.match(
     stripComments(read('src/lib/components/SaveBar.svelte')),
-    /--sui-control-border: light-dark\(\s*color-mix\(in srgb, var\(--sui-unsaved-border\) 70%, var\(--sui-unsaved-control-border\)\),\s*color-mix\(in srgb, var\(--sui-unsaved-border\) 55%, var\(--sui-unsaved-control-border\)\)\s*\);/,
+    /--sui-control-border: color-mix\(\s*in srgb,\s*var\(--sui-unsaved-border\) 70%,\s*var\(--sui-unsaved-control-border\)\s*\);/,
     "Discard's edge, tuned for the gold plate, sinks into the bar's neutral ground"
   );
 });

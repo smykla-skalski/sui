@@ -422,12 +422,13 @@ brings its own room under it, so the scroller needs no end padding.
   /* Discard sits beside the decision, so it is quiet in the unsaved hue: no ground of its own,
      a gold edge and the unsaved ink (L-92). The unsaved control edge is tuned for the gold
      plate, and on the bar's neutral ground it sinks, so it leans toward the frame's edge until
-     it holds 3:1 there in both themes, and on dark a little past, where a darker mix reads
-     olive beside the bright gold fill (L-9). */
+     it holds 3:1 there in both themes, seven tenths of the way, where on dark it also reads
+     gold and not olive beside the bright gold fill (L-9). */
   .sui-save-bar:not(.notice) {
-    --sui-control-border: light-dark(
-      color-mix(in srgb, var(--sui-unsaved-border) 70%, var(--sui-unsaved-control-border)),
-      color-mix(in srgb, var(--sui-unsaved-border) 55%, var(--sui-unsaved-control-border))
+    --sui-control-border: color-mix(
+      in srgb,
+      var(--sui-unsaved-border) 70%,
+      var(--sui-unsaved-control-border)
     );
     --sui-control-border-hover: var(--sui-unsaved-border);
     --sui-interactive-hover-layer: color-mix(in srgb, var(--sui-unsaved-ink) 10%, transparent);
