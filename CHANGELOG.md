@@ -8,6 +8,7 @@
 - A light row hover, `--sui-row-hover`, rises from 5.4% to 6% of the ink, so a lit row reads on white as clearly as on the dark ground; press stays at 10.9%.
 - A `BackLink` is set at 500, a breadcrumb link's weight, and a `PageHeader`'s long title stops at the measure, as its description does.
 - A `PageHeader`'s 32px title tracks at -0.022em, tighter than its 24px compact title's -0.015em.
+- A `Plate`'s new state fades in for the duration its own subtree sets, not the document's.
 - A bare `CodeBlock` with a file name keeps its copy control centred in the name's row and its code's room under the name's line.
 - A narrow inline `FactList` puts a value under its label when it has less room than the label's 7rem column, as at twice the text size.
 - An inline `FactList` stands its facts 24px apart, three times the gap between a label and its value.

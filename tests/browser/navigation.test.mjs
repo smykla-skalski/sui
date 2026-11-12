@@ -985,6 +985,39 @@ suite('navigation', together, () => {
       }
     );
 
+    test("a plate's new state fades in for the duration its own subtree sets", long, async () => {
+      const page = await openMount(browser, url);
+      try {
+        const seen = await page.evaluate(async () => {
+          const { lib, mount, flushSync, state, get, set } = /** @type {any} */ (window);
+          const said = state('Behind');
+          const target = document.createElement('div');
+          target.style.setProperty('--sui-duration-fast', '480ms');
+          document.body.append(target);
+          mount(lib.Plate, {
+            target,
+            props: {
+              title: 'Sync Status',
+              level: 3,
+              get state() {
+                return get(said);
+              }
+            }
+          });
+          flushSync();
+          set(said, 'Up to date');
+          flushSync();
+          // Svelte holds the fade behind an empty animation for one frame before it plays.
+          await new Promise((done) => requestAnimationFrame(() => requestAnimationFrame(done)));
+          const arrived = /** @type {Element} */ (target.querySelector('.sui-plate-said'));
+          return arrived.getAnimations()[0]?.effect?.getTiming().duration;
+        });
+        assert.equal(seen, 480);
+      } finally {
+        await page.close();
+      }
+    });
+
     test(
       "a plate's new state fades in on a change, and not under reduced motion",
       long,

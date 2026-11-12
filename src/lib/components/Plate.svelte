@@ -31,10 +31,10 @@
 
   // A new state fades in where the old one stood, so a change reads as a change. Svelte plays it
   // only when `state` changes, never on the first paint.
-  function arrive(_node: Element) {
+  function arrive(node: Element) {
     const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
     return {
-      duration: still ? 0 : duration('--sui-duration-fast'),
+      duration: still ? 0 : duration('--sui-duration-fast', node),
       easing: cubicOut,
       css: (t: number) => `opacity: ${t}`
     };
