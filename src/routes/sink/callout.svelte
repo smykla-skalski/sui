@@ -112,8 +112,13 @@
 >
   <Specimen label={expiring ? 'Announced' : 'Not shown'}>
     <div class="appear">
+      <!-- Both words share one cell, so the button keeps the longer one's width as they flip. -->
       <Button onclick={() => (expiring = !expiring)}
-        >{expiring ? 'Keep the Token' : 'Shorten the Token to 2\u00a0Days'}</Button
+        ><span class="flip"
+          ><span class:shown={!expiring}>Shorten the Token to 2&nbsp;Days</span><span
+            class:shown={expiring}>Keep the Token</span
+          ></span
+        ></Button
       >
       {#if expiring}
         <div class="full">
@@ -168,6 +173,19 @@
     display: grid;
     gap: var(--sui-space-3);
     justify-items: start;
+  }
+
+  .flip {
+    display: inline-grid;
+  }
+
+  .flip > span {
+    grid-area: 1 / 1;
+    justify-self: center;
+  }
+
+  .flip > :not(.shown) {
+    visibility: hidden;
   }
 
   .full {

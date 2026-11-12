@@ -197,8 +197,8 @@ and the unsaved ink, so no neutral block sits on a state (L-92).
     --sui-control-border: color-mix(in srgb, var(--sui-warning) 40%, var(--sui-warning-tint));
     /* A hover the pointer can find on the tint, and a press a clear step past it. */
     --sui-control-border-hover: color-mix(in srgb, var(--sui-warning) 75%, var(--sui-warning-tint));
-    --sui-interactive-hover-layer: color-mix(in srgb, var(--sui-warning) 16%, transparent);
-    --sui-interactive-pressed: color-mix(in srgb, var(--sui-warning) 24%, transparent);
+    --sui-interactive-hover-layer: color-mix(in srgb, var(--sui-warning) 20%, transparent);
+    --sui-interactive-pressed: color-mix(in srgb, var(--sui-warning) 30%, transparent);
     background: var(--sui-warning-tint);
     border-color: color-mix(in srgb, var(--sui-warning) 30%, var(--sui-warning-tint));
     font-size: var(--sui-font-size-meta);
@@ -290,6 +290,12 @@ and the unsaved ink, so no neutral block sits on a state (L-92).
   .sui-callout-text {
     line-height: var(--sui-leading-title-note);
     text-wrap: pretty;
+  }
+
+  /* A reason with no title over it is the whole message, so it takes the title's ink, but for a
+     decision's, which keeps the unsaved family's secondary ink. */
+  .sui-callout:not(.decision) .sui-callout-text:first-child {
+    color: var(--sui-text-primary);
   }
 
   .decision .sui-callout-actions {
