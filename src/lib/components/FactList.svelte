@@ -53,7 +53,8 @@ Facts about a thing, each a label and its value, such as the branch, the version
 last synced. A setting a reader changes is a form row, not a fact.
 
 `inline` is for two to five headline facts, as under a page title: they flow as words do,
-side by side, and a line breaks between two facts, separated by space alone, so no generated
+side by side, 24px apart, three times the 8px between a label and its value, and a line breaks
+between two facts, separated by space alone, so no generated
 comma or dot is left at either end of a line. A line of plain facts keeps the copy's leading,
 8px between its words and the next line's, and only a line that holds a target, a link or a
 time that shows its instant, grows to the target's height. The list is trimmed to its first
@@ -140,7 +141,7 @@ apart, and the action under the value.
     display: inline-flex;
     flex-wrap: wrap;
     margin-block-start: calc(var(--sui-row-copy-leading) - round(up, 1cap, 2px));
-    margin-inline-end: var(--sui-space-5);
+    margin-inline-end: var(--sui-space-6);
     max-inline-size: 100%;
     row-gap: var(--sui-row-copy-gap);
     vertical-align: baseline;
