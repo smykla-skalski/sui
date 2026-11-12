@@ -384,7 +384,7 @@ A `danger` toast reports a failure and stays too.
   .failed {
     border-color: color-mix(
       in srgb,
-      var(--sui-danger) 25%,
+      var(--sui-danger) calc(var(--sui-toast-failure) * 25 / 16),
       var(--sui-toast-border, var(--sui-popover-border))
     );
   }
@@ -398,11 +398,16 @@ A `danger` toast reports a failure and stays too.
 
   /* The failure symbol stands in a 28px tile of the danger tone, at the tile's 18px glyph, so it
      weighs less than the title beside it. The tile mixes the danger ink into the toast's own
-     ground, since the shared tint sinks into a dark toast's raised ground (L-56). */
+     ground, a larger share on dark, since the shared tint sinks into a dark toast's raised
+     ground (L-56). */
   .sui-toast-mark {
     --sui-icon-base: var(--sui-icon-md);
     align-items: center;
-    background: color-mix(in srgb, var(--sui-danger) 16%, var(--sui-popover-bg));
+    background: color-mix(
+      in srgb,
+      var(--sui-danger) var(--sui-toast-failure),
+      var(--sui-popover-bg)
+    );
     block-size: var(--sui-symbol-tile-compact);
     border-radius: var(--sui-radius-control);
     color: var(--sui-danger);
