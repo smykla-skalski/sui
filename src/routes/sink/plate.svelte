@@ -81,18 +81,21 @@
   </Example>
 </Pair>
 
-<Example
-  title="In Context"
-  note="A callout about a plate stands beside it, never inside it, so surfaces do not nest"
-  layout="stack"
-  ground="canvas"
->
-  <Plate title="Configuration Drift" level={4} state="2 differ" icon="warning" tone="warning" />
-  <Callout tone="warning" title="Drift blocks the next sync">
-    {#snippet icon()}<Icon name="warning" size="sm" />{/snippet}
-    Resolve the 2 differences before the sync at {clock(2)}
-  </Callout>
-</Example>
+<!-- Alone in a pair, the example takes one pair column, as a plate takes a page column. -->
+<Pair even --pair-max="100%">
+  <Example
+    title="In Context"
+    note="A callout about a plate stands beside it, never inside it, so surfaces do not nest"
+    layout="stack"
+    ground="canvas"
+  >
+    <Plate title="Configuration Drift" level={4} state="2 differ" icon="warning" tone="warning" />
+    <Callout tone="warning" title="Drift blocks the next sync">
+      {#snippet icon()}<Icon name="warning" size="sm" />{/snippet}
+      Resolve the 2 differences before the sync at {clock(2)}
+    </Callout>
+  </Example>
+</Pair>
 
 <style>
   .copy {
