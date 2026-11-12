@@ -449,7 +449,7 @@ title, such as "Danger Zone", and holds the acts that cannot be undone, each a `
     align-content: center;
     block-size: var(--sui-block-snap);
     color: var(--sui-text-muted);
-    font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-row-copy-leading)
+    font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-leading-title-note)
       var(--sui-sans);
     margin: 0;
     padding-block: var(--sui-block-snap-room);

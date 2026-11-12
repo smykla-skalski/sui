@@ -507,6 +507,9 @@
   /* A form's help and error lines wrap a little looser than a row's copy, so a long hint stays
      a quiet note and never a dense block under its control. */
   --sui-leading-note: 1.25rem;
+  /* A card's or section's description wraps as loose as a form's note, so two lines of it
+     never press into one block under the title's 24px lines. */
+  --sui-leading-title-note: 1.25rem;
   --sui-leading-input: 1.25rem;
   --sui-leading-body: 1.4375rem;
   --sui-leading-title: 1.625rem;

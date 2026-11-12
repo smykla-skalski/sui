@@ -211,10 +211,30 @@ test('L-24 a title stands 12px above its description, copy lines 8px apart, form
       field: pixels(gaps['--sui-field-gap']),
       note: pixels(gaps['--sui-leading-note']),
       phoneNote: pixels(phone['--sui-leading-note']),
-      cardTitle: pixels(gaps['--sui-leading-card-title'])
+      cardTitle: pixels(gaps['--sui-leading-card-title']),
+      titleNote: pixels(gaps['--sui-leading-title-note']),
+      phoneTitleNote: phone['--sui-leading-title-note']
     },
-    { copy: 8, title: 12, field: 12, note: 20, phoneNote: 22, cardTitle: 24 }
+    {
+      copy: 8,
+      title: 12,
+      field: 12,
+      note: 20,
+      phoneNote: 22,
+      cardTitle: 24,
+      titleNote: 20,
+      phoneTitleNote: undefined
+    }
   );
+  for (const [name, note] of [
+    ['Card', 'sui-card-note'],
+    ['Section', 'sui-section-note']
+  ])
+    assert.match(
+      stripComments(read(`src/lib/components/${name}.svelte`)),
+      new RegExp(`\\.${note} \\{[^}]*font: [^;]*/ var\\(--sui-leading-title-note\\)`),
+      `a ${name.toLowerCase()}'s description does not wrap at the title note leading`
+    );
   // A control's help and error lines, not a whole state's, form's or dialog's error, nor a
   // setting row's problem, which is a line of the row's copy.
   const dense = globSync('src/lib/components/*.svelte').flatMap((path) =>
