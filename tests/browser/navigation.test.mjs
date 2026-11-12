@@ -891,6 +891,25 @@ suite('navigation', together, () => {
           });
         assert.equal(ring, 'solid 1px true', 'the focused link does not ring its card');
 
+        const members = peers.locator('.sui-card').nth(2);
+        const underlined = () =>
+          members
+            .locator('.sui-card-words > span')
+            .first()
+            .evaluate((words) => getComputedStyle(words).textDecorationLine);
+        const box = /** @type {{ x: number, y: number, width: number, height: number }} */ (
+          await members.boundingBox()
+        );
+        await page.mouse.move(box.x + 24, box.y + box.height - 12);
+        assert.equal(
+          await underlined(),
+          'underline',
+          'a hovered card does not underline its title'
+        );
+        await members.getByRole('button', { name: 'Invite' }).hover();
+        assert.equal(await underlined(), 'none', 'a hovered control underlines the card title');
+        await page.mouse.move(0, 0);
+
         const before = await page.evaluate(() => location.hash);
         await peers.getByRole('button', { name: 'Rule actions' }).click();
         assert.ok(
