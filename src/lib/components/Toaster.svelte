@@ -271,7 +271,7 @@ A `danger` toast reports a failure and stays too.
 >
   {#each shown as item (item.id)}
     <div
-      class={['sui-toast', { acting: item.action }]}
+      class={['sui-toast', { acting: item.action, failed: item.tone === 'danger' }]}
       data-toast={item.id}
       {@attach linger(item)}
       out:leave
@@ -377,6 +377,12 @@ A `danger` toast reports a failure and stays too.
       opacity var(--sui-duration-normal) var(--sui-ease-out),
       translate var(--sui-duration-normal) var(--sui-ease-out);
     translate: 0 0;
+  }
+
+  /* A failure's edge carries a quarter of the danger ink, so it reads as one at a glance in a
+     stack of mixed toasts (L-72). */
+  .failed {
+    border-color: color-mix(in srgb, var(--sui-danger) 25%, var(--sui-popover-border));
   }
 
   @starting-style {

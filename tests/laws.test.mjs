@@ -1852,3 +1852,13 @@ test("L-56 a toast's symbol tile mixes the danger ink into the toast's own groun
     "the shared danger tint sinks into a dark toast's raised ground"
   );
 });
+
+test("L-72 a failed toast's edge carries a quarter of the danger ink", () => {
+  const toaster = stripComments(read('src/lib/components/Toaster.svelte'));
+  assert.match(toaster, /failed: item\.tone === 'danger'/);
+  assert.match(
+    toaster,
+    /\.failed \{\s*border-color: color-mix\(in srgb, var\(--sui-danger\) 25%, var\(--sui-popover-border\)\);/,
+    'a failure in a mixed stack reads as one only by its small tile'
+  );
+});
