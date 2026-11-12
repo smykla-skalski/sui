@@ -37,6 +37,9 @@
   note="A neutral toast, a failure and one with an action, drawn in place with no timers"
   ground="canvas"
   layout="grid"
+  --specimen-min="24rem"
+  --specimen-max="24rem"
+  --example-max="calc(52.5rem + 2 * var(--sui-stroke))"
 >
   <Specimen label="Neutral">
     <Toaster
@@ -74,7 +77,9 @@
   title="Timing"
   note="A neutral toast leaves after 5 seconds unless hovered or focused, and a failure or one with Undo stays until dismissed"
   layout="grid"
-  --specimen-min="min(16rem, calc((100% - var(--sui-space-6)) / 2 - 1px))"
+  --specimen-min="min(24rem, calc((100% - var(--sui-space-6)) / 2 - 1px))"
+  --specimen-max="24rem"
+  --example-max="calc(52.5rem + 2 * var(--sui-stroke))"
 >
   <Specimen label="Neutral">
     <Button onclick={() => toast({ title: 'Settings saved' })}>Save Settings</Button>
