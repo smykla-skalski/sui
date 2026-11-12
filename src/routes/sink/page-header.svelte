@@ -139,6 +139,7 @@
   note="A breadcrumb or a back link takes the eyebrow’s place"
   layout="grid"
   ground="canvas"
+  --specimen-min="24rem"
 >
   <Specimen label="Breadcrumb">
     <div class="page">
