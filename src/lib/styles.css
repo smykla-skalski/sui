@@ -653,7 +653,7 @@
      grey lower edge (L-54). */
   --sui-shadow-plate:
     0 1px 2px color-mix(in srgb, var(--sui-shadow-color) 40%, transparent),
-    0 2px 8px color-mix(in srgb, var(--sui-shadow-color) 15%, transparent);
+    0 2px 4px color-mix(in srgb, var(--sui-shadow-color) 10%, transparent);
   --sui-shadow-popover:
     0 1px 2px color-mix(in srgb, var(--sui-shadow-color) 40%, transparent),
     0 8px 20px color-mix(in srgb, var(--sui-shadow-color) 56%, transparent);
