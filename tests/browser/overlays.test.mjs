@@ -1306,10 +1306,15 @@ suite('overlays', together, () => {
       const deploy = page.locator('#service-worker-status button', {
         hasText: 'Deploy a New Version'
       });
-      // The trigger stands at the screen's foot, where the notice comes up.
+      // The trigger's foot stands 4px inside the notice's settled top edge, which the notice
+      // reaches only after it rises 8px into place, so a check against its drawn box misses it.
+      // The live notice is as tall as the drawn Ready one and rests 16px over the screen's foot.
       await deploy.evaluate((button) => {
+        const tall = /** @type {HTMLElement} */ (
+          document.querySelector('#service-worker-status .sui-service-worker-status.preview')
+        ).offsetHeight;
         const box = button.getBoundingClientRect();
-        scrollBy(0, box.bottom - innerHeight + 24);
+        scrollBy(0, box.bottom - (document.documentElement.clientHeight - 16 - tall + 4));
       });
       await deploy.focus();
       await page.keyboard.press('Enter');

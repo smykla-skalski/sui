@@ -140,13 +140,18 @@
     const page = clearance(document.documentElement);
     const observer = new ResizeObserver(([entry]) => {
       const inset = parseFloat(getComputedStyle(box).insetBlockEnd) || 0;
-      page.hold({ end: Math.min(entry.borderBoxSize[0].blockSize + inset, innerHeight / 2) });
+      const tall = entry.borderBoxSize[0].blockSize;
+      page.hold({ end: Math.min(tall + inset, innerHeight / 2) });
       const focused = document.activeElement;
       if (!(focused instanceof HTMLElement) || box.contains(focused)) return;
-      const [at, bar] = [focused.getBoundingClientRect(), box.getBoundingClientRect()];
+      // The notice may still be rising into place, and a rise fires no resize, so its edges
+      // are read where it settles, not where it is drawn now.
+      const at = focused.getBoundingClientRect();
+      const { left, right } = box.getBoundingClientRect();
+      const bottom = document.documentElement.clientHeight - inset;
       const meets =
-        Math.min(at.right, bar.right) > Math.max(at.left, bar.left) &&
-        Math.min(at.bottom, bar.bottom) > Math.max(at.top, bar.top);
+        Math.min(at.right, right) > Math.max(at.left, left) &&
+        Math.min(at.bottom, bottom) > Math.max(at.top, bottom - tall);
       if (meets) focused.scrollIntoView({ block: 'nearest' });
     });
     observer.observe(box);
