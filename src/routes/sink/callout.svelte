@@ -36,7 +36,14 @@
   title="Tones"
   note="Quiet states a consequence, and warning tints a hazardous one and says Warning to a screen reader"
 >
-  <Variants fill rows={tones} columns={forms} axis="tone" rowLabel={(tone) => `"${tone}"`}>
+  <Variants
+    fill
+    rows={tones}
+    columns={forms}
+    axis="tone"
+    rowLabel={(tone) => `"${tone}"`}
+    labelMiddle="calc(var(--sui-stroke) + var(--sui-space-3) + var(--sui-symbol-tile) / 2)"
+  >
     {#snippet cell(tone, form)}
       {#snippet resolve()}<Button>{copy[tone].action}</Button>{/snippet}
       <Callout

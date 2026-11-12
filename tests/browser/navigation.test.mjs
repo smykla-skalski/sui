@@ -1036,6 +1036,35 @@ suite('navigation', together, () => {
     );
 
     test(
+      'a live callout an edit brings settles in from above, and not under reduced motion',
+      long,
+      async () => {
+        const page = await sink();
+        const shorten = page.getByRole('button', { name: 'Shorten the Token to 2 Days' });
+        for (const reducedMotion of /** @type {const} */ (['no-preference', 'reduce'])) {
+          await page.emulateMedia({ reducedMotion });
+          await shorten.click();
+          const runs = await page.locator('.sui-callout:has(+ [role="alert"])').evaluate((node) =>
+            node
+              .getAnimations()
+              .map(
+                (run) =>
+                  `${/** @type {CSSTransition} */ (run).transitionProperty} ${run.effect?.getTiming().duration}`
+              )
+              .sort()
+          );
+          await page.getByRole('button', { name: 'Keep the Token' }).click();
+          assert.deepEqual(
+            runs,
+            reducedMotion === 'reduce' ? [] : ['opacity 160', 'translate 160'],
+            reducedMotion
+          );
+        }
+        await page.emulateMedia({ reducedMotion: 'no-preference' });
+      }
+    );
+
+    test(
       'every sideways scroller fades only the edges with more past them, 20px on a phone, mirrored right to left (L-107)',
       long,
       async () => {

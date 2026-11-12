@@ -121,7 +121,7 @@ and the unsaved ink, so no neutral block sits on a state (L-92).
 - Responsive: actions sit at the inline end beside the message, centred on it inside the band its symbol's tile opens, so the message never moves for them, and move to a line under the copy, from its start edge, only when the callout cannot hold them beside an 11rem measure of copy.
 - Accessibility: `warningLabel` and `decisionLabel` say in words what the tint and the gold say in colour, and `live` announces a callout that appears after an edit.
 - Localization: `warningLabel` and `decisionLabel` carry the built-in words, the tile sits at the inline start and the actions at the inline end, mirrored in a right-to-left page.
-- Performance: a static block laid out by flex wrapping alone; `live` sets one short timer when it appears.
+- Performance: a static block laid out by flex wrapping alone; `live` sets one short timer when it appears and fades it in from 4px above on opacity and translate, not at all under reduced motion.
 - Analytics: none of its own; its actions report the reader's choice.
 - Failure: with no title it reads its description alone, and with neither it draws only its frame, so always pass words.
 -->
@@ -130,7 +130,7 @@ and the unsaved ink, so no neutral block sits on a state (L-92).
   {#if prefix}<VisuallyHidden>{prefix}{mark('space')}</VisuallyHidden>{/if}
 {/snippet}
 
-<div {...rest} class={['sui-callout', className, { decision }]} data-tone={tone}>
+<div {...rest} class={['sui-callout', className, { decision, live }]} data-tone={tone}>
   <div class="sui-callout-inner">
     <div class="sui-callout-message">
       {#if icon}
@@ -275,9 +275,10 @@ and the unsaved ink, so no neutral block sits on a state (L-92).
     text-box: trim-both cap alphabetic;
   }
 
-  /* A title that wraps keeps its reason's 20px lines, so the two read as one message. */
+  /* A title that wraps keeps its reason's 20px lines and fills them as the reason does, so the
+     two read as one message. */
   .sui-callout-title {
-    text-wrap: balance;
+    text-wrap: pretty;
     color: var(--sui-text-primary);
     font-weight: var(--sui-weight-semibold);
     line-height: var(--sui-leading-title-note);
@@ -312,6 +313,26 @@ and the unsaved ink, so no neutral block sits on a state (L-92).
   @media (max-width: 47.9375rem), (pointer: coarse) {
     .sui-callout-actions {
       row-gap: calc(var(--sui-touch-target) - var(--sui-tier-quiet));
+    }
+  }
+
+  /* A callout an edit brings settles in from just above, so the reader sees where it landed. */
+  .live {
+    transition:
+      opacity var(--sui-duration-fast) var(--sui-ease-out),
+      translate var(--sui-duration-fast) var(--sui-ease-out);
+  }
+
+  @starting-style {
+    .live {
+      opacity: 0;
+      translate: 0 calc(-1 * var(--sui-space-1));
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .live {
+      transition: none;
     }
   }
 </style>
