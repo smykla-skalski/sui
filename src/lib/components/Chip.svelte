@@ -282,7 +282,7 @@ style declaration.
     font: var(--sui-weight-semibold) var(--sui-font-size-compact) / var(--sui-leading-compact)
       var(--sui-sans);
     gap: var(--sui-space-1);
-    inline-size: fit-content;
+    inline-size: var(--sui-inline-snap);
     max-inline-size: 100%;
     min-block-size: var(--sui-local-chip);
     padding-inline: var(--sui-space-2);

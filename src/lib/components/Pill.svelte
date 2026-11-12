@@ -126,7 +126,7 @@ outcome tones always come with their word, so color never carries the state alon
     font: var(--sui-weight-semibold) var(--sui-font-size-compact) / var(--sui-leading-tight)
       var(--sui-sans);
     gap: var(--sui-space-1);
-    inline-size: fit-content;
+    inline-size: var(--sui-inline-snap);
     max-inline-size: 100%;
     min-block-size: var(--sui-tier-mark);
     padding: calc((var(--sui-tier-mark) - round(up, 1cap, 2px)) / 2) var(--sui-space-2);

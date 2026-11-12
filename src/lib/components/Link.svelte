@@ -86,7 +86,7 @@ is `Button` with `href`, and the way back from a page is `BackLink`.
   .sui-link {
     color: var(--sui-link);
     font-weight: var(--sui-weight-semibold);
-    inline-size: fit-content;
+    inline-size: var(--sui-inline-snap);
     overflow-wrap: anywhere;
     text-decoration: underline;
     text-decoration-color: currentColor;

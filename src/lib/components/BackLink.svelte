@@ -59,7 +59,7 @@ fits the eyebrow's place in a `PageHeader`.
     font: var(--sui-weight-semibold) var(--sui-font-size-meta) / var(--sui-leading-flat)
       var(--sui-sans);
     gap: var(--sui-space-1);
-    inline-size: fit-content;
+    inline-size: var(--sui-inline-snap);
     margin-block: round(calc((1cap - var(--sui-control-height-chip)) / 2), 1px);
     min-block-size: var(--sui-control-height-chip);
     text-decoration: none;

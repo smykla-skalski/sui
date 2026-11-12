@@ -901,7 +901,7 @@ test('L-43 a mark is as wide as what it says', () => {
     if (existsSync(path))
       assert.match(
         styles[path],
-        /(inline-size|width):\s*(fit-content|var\(--sui-local-button-span, fit-content\))/,
+        /(inline-size|width):\s*(?:var\(--sui-local-button-span, )?var\(--sui-inline-snap\)/,
         path
       );
   }
@@ -2040,4 +2040,35 @@ test("L-16 a decision is framed in the unsaved edge, and a conflict's title name
     /\.subtitle\.error \{[^}]*font-weight: var\(--sui-weight-medium\);/,
     "a refused save's reason is lighter than a field error"
   );
+});
+
+test('L-95 a box as wide as its content rounds its width up to the pixel', () => {
+  assert.match(
+    palette,
+    /--sui-inline-snap: calc-size\(fit-content, round\(up, size, 1px\)\);/,
+    'the snapped width token'
+  );
+  assert.match(
+    palette,
+    /@supports not \(block-size: calc-size\(auto, size\)\) \{\s*:root \{\s*--sui-inline-snap: fit-content;/,
+    'a browser without calc-size keeps the content width'
+  );
+  const loose = globSync('src/lib/components/*.svelte').flatMap((path) =>
+    stripComments(read(path))
+      .split('\n')
+      .map((line, index, lines) => ({ line, next: lines[index + 1] ?? '', path }))
+      .filter(
+        ({ line, next }) =>
+          (/^\s*inline-size: fit-content;/.test(line) && !/inline-size: calc-size\(/.test(next)) ||
+          (/inline-size: calc-size\(fit-content,/.test(line) && !/round\(up,/.test(line))
+      )
+      .map(({ path, line }) => `${path}: ${line.trim()}`)
+  );
+  assert.deepEqual(loose, [], 'a content width left off the pixel grid');
+  for (const name of ['Button', 'Pill', 'SegmentedControl'])
+    assert.match(
+      read(`src/lib/components/${name}.svelte`),
+      /inline-size: (?:var\(--sui-local-button-span, )?var\(--sui-inline-snap\)/,
+      `${name} snaps its width`
+    );
 });

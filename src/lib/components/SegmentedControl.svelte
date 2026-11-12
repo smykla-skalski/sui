@@ -833,10 +833,13 @@ itself, so the choice shows from the first frame.
     box-shadow: var(--sui-pressed-inset), var(--sui-segment-thumb-shadow-pressed);
   }
 
+  /* Each option rounds its width up to the pixel, so the thumb that takes an option's width and
+     the track that sums them land on the grid (L-95). */
   .sui-segmented-option {
     cursor: pointer;
     display: flex;
     flex: none;
+    inline-size: var(--sui-inline-snap);
     position: relative;
     user-select: none;
     -webkit-tap-highlight-color: transparent;

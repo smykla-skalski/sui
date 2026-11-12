@@ -465,6 +465,8 @@
      to the nearest pixel instead, so its ink overhangs or falls short by half a pixel at most. */
   --sui-block-snap-near: calc-size(auto, round(size, 1px));
 
+  --sui-inline-snap: calc-size(fit-content, round(up, size, 1px));
+
   --sui-row-copy-leading: round(calc(1cap + var(--sui-row-copy-gap)), 1px);
 
   --sui-font-size-micro: 0.6875rem;
@@ -560,14 +562,14 @@
 
   /* The two widths the layout changes at. A media query cannot read a custom property, so the
      queries write these values and the source laws hold them to this list; script reads them
-     here. The phone is up to 47.9375rem, the wide shell from 64.0625rem. */
+     here. */
   --sui-breakpoint-phone: 47.9375rem;
   --sui-breakpoint-wide: 64.0625rem;
 
-  /* The widths a component answers to in its own container, under which it changes its layout:
-     a card steps its inset down, a setting row stacks its control, and a list toolbar folds its
-     filter into its menu as a card moves its head's actions under its copy. A container query
-     cannot read them either, so the source laws hold each query to this list. */
+  /* The widths under which a component changes its layout in its own container: a card steps
+     its inset down, a setting row stacks its control and a list toolbar gives its search a line
+     of its own. A container query cannot read them either, so the source laws hold each query
+     to this list. */
   --sui-breakpoint-card: 36rem;
   --sui-breakpoint-row: 25rem;
   --sui-breakpoint-bar: 18rem;
@@ -649,8 +651,6 @@
 
   --sui-layer-top-bar: 35;
   --sui-layer-skip: 120;
-  /* On light a plate opens on a popover's contact line, so it stands off the page without a
-     grey lower edge (L-54). */
   --sui-shadow-plate:
     0 1px 2px color-mix(in srgb, var(--sui-shadow-color) 40%, transparent),
     0 2px 4px color-mix(in srgb, var(--sui-shadow-color) 10%, transparent);
@@ -1280,6 +1280,7 @@
    line trims both ends and that rest, rounded as Chrome rounds it, is padding too. */
 @supports not (block-size: calc-size(auto, size)) {
   :root {
+    --sui-inline-snap: fit-content;
     --sui-block-snap-cap: round(down, 1cap, 0.015625px);
     --sui-block-snap-spare: calc(round(up, 1cap, 1px) - var(--sui-block-snap-cap));
     --sui-block-snap-spare-even: calc(round(up, 1cap, 2px) - var(--sui-block-snap-cap));

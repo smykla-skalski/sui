@@ -299,7 +299,7 @@ returns focus there too. Labels wrap rather than being cut short.
     gap: var(--sui-floating-gap);
     grid-template-columns: minmax(0, auto);
     inline-size: fit-content;
-    inline-size: calc-size(fit-content, max(size, 13rem + 2 * var(--sui-stroke)));
+    inline-size: calc-size(fit-content, round(up, max(size, 13rem + 2 * var(--sui-stroke)), 1px));
     max-inline-size: 100%;
     min-inline-size: min(calc(13rem + 2 * var(--sui-stroke)), 100%);
   }
