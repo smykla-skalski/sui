@@ -20,6 +20,7 @@
     trailing,
     loading = false,
     reserve = false,
+    busyLabel,
     field = false,
     disabled = false,
     element = $bindable(null),
@@ -40,6 +41,9 @@
     /** Keeps the spinner's room while idle, the words centred in it, so the press that starts
      the work never moves the actions beside it (L-64). */
     reserve?: boolean;
+    /** Said in place of the label while `loading`. The button keeps the wider of the two, with
+     the spinner's room, so the swap never moves the actions beside it (L-64). */
+    busyLabel?: string;
     /** Draws a field's edge, baseline and recess, for a button that holds a value, such as a picker's trigger. */
     field?: boolean;
     disabled?: boolean;
@@ -64,7 +68,8 @@
      the context menu cannot follow it while the work runs. */
   const unreachable = $derived(disabled || holding === 'firm');
   const spinning = shownWait(() => loading);
-  const reserving = $derived(reserve && !spinning.current && !icon);
+  const swaps = $derived(busyLabel !== undefined && !icon);
+  const reserving = $derived((reserve || swaps) && !spinning.current && !icon);
 
   function refuse(event: MouseEvent) {
     event.preventDefault();
@@ -89,7 +94,7 @@ start.
 
 - Semantics: a native `<button type="button">`, or an `<a href>` with `href`; its words are its name, and a disabled anchor is `role="link"` with `aria-disabled`.
 - Content: a short verb phrase that names the result, an optional leading `icon` and an optional `trailing` mark; a long or translated label wraps onto more lines inside its container.
-- States: rest, hover (a veil and a firmer edge), open (the hover paint while `aria-expanded`), as a `field` a Select's edge, recess and ring in each of them, open in its focus edge without the ring, focus (a 2px ring, flush on bordered tones and 2px off a filled one), pressed (a deeper ground, an inset shadow and a 1px sink), loading (a spinner in the tone's ink on the full fill and edge, the words at full ink, busy), locked by `aria-disabled` (still a tab stop) and disabled (default cursor), both at 0.6 opacity, a filled or danger tone in the default paint, and a disabled `field` in an off field's well with muted words at full strength.
+- States: rest, hover (a veil and a firmer edge), open (the hover paint while `aria-expanded`), as a `field` a Select's edge, recess and ring in each of them, open in its focus edge without the ring, focus (a 2px ring, flush on bordered tones and 2px off a filled one), pressed (a deeper ground, an inset shadow and a 1px sink), loading (a spinner in the tone's ink on the full fill and edge, the words at full ink, busy, and with `busyLabel` those words in place of the label, the spinner just before them and the button as wide as the longer), locked by `aria-disabled` (still a tab stop) and disabled (default cursor), both at 0.6 opacity, a filled or danger tone in the default paint, and a disabled `field` in an off field's well with muted words at full strength.
 - Keyboard: Tab reaches it, and Enter or Space presses a button while Enter follows an anchor; a loading, locked or disabled one refuses both.
 - Pointer and touch: 34px tall on a pointer and 44px on a phone or any touch screen, at least as wide as its label, and a press is never a drag; a surface may keep it drawn at 34px on a phone with `--sui-local-button-seat`, and its hit area still grows to 44px.
 - Focus: pressing never moves focus, and a loading button keeps it; the caller moves focus when the press removes the button.
@@ -108,7 +113,13 @@ start.
   {:else if icon}
     <span class="sui-button-part">{@render icon()}</span>
   {/if}
-  <span class="sui-button-label">{@render children()}</span>
+  <span class="sui-button-label"
+    >{#if swaps}<span class="sui-button-words"
+        ><span class={loading ? 'unsaid' : 'said'}>{@render children()}</span><span
+          class={loading ? 'said' : 'unsaid'}>{busyLabel}</span
+        ></span
+      >{:else}{@render children()}{/if}</span
+  >
   {#if trailing}
     <span class="sui-button-part">{@render trailing()}</span>
   {/if}
@@ -120,7 +131,7 @@ start.
     href={unreachable ? undefined : href}
     role={unreachable ? 'link' : undefined}
     {...rest as HTMLAnchorAttributes}
-    class={['sui-button', className, { busy, reserving }]}
+    class={['sui-button', className, { busy, reserving, swapping: swaps && spinning.current }]}
     data-tone={tone}
     aria-disabled={disabled || locked || undefined}
     aria-busy={loading || undefined}
@@ -132,7 +143,11 @@ start.
     bind:this={element}
     type="button"
     {...rest as HTMLButtonAttributes}
-    class={['sui-button', className, { busy, field, reserving }]}
+    class={[
+      'sui-button',
+      className,
+      { busy, field, reserving, swapping: swaps && spinning.current }
+    ]}
     data-tone={tone}
     disabled={disabled || holding === 'firm'}
     aria-disabled={locked || undefined}
@@ -189,10 +204,49 @@ start.
     -webkit-tap-highlight-color: transparent;
   }
 
-  /* An idle button that may turn busy pads each side by half the spinner and its gap, so the
-     busy one is as wide as it was. */
-  .reserving {
-    padding-inline: calc(var(--sui-space-3) + (var(--sui-icon-base) + var(--sui-space-2)) / 2);
+  /* An idle button that may turn busy holds half the spinner and its gap each side of its
+     words, so the busy one is as wide as it was. The room is the words', not the button's
+     padding, so it pads as the buttons beside it do and shares a line with them in true halves
+     (L-58). */
+  .reserving .sui-button-label {
+    padding-inline: calc((var(--sui-icon-base) + var(--sui-space-2)) / 2);
+  }
+
+  /* Both labels take one cell, the one not said hidden, so the button keeps the wider. */
+  .sui-button-words {
+    display: grid;
+    justify-items: center;
+  }
+
+  .sui-button-words > * {
+    grid-area: 1 / 1;
+    text-box: trim-both cap alphabetic;
+  }
+
+  .unsaid {
+    visibility: hidden;
+  }
+
+  /* Busy, the spinner stands just before the shorter label, and the two centre as one group in
+     the width the longer one keeps. */
+  @supports (anchor-name: --sui-button-said) {
+    .swapping {
+      position: relative;
+    }
+
+    .swapping > .sui-button-part {
+      inset-inline-end: anchor(--sui-button-said start);
+      margin-inline-end: var(--sui-space-2);
+      position: absolute;
+    }
+
+    .swapping .sui-button-label {
+      padding-inline-start: calc(var(--sui-icon-base) + var(--sui-space-2));
+    }
+
+    .said {
+      anchor-name: --sui-button-said;
+    }
   }
 
   .sui-button-label {

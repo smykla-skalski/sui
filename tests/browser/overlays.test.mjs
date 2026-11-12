@@ -167,6 +167,21 @@ suite('overlays', together, () => {
       await page.keyboard.press('Escape');
       await page.waitForFunction(() => !document.querySelector('dialog[open]'));
     });
+
+    // The act holds its spinner's room while idle, which once padded it wider than Cancel.
+    test('L-58 a confirmation whose act may turn busy still splits its row in equal halves', async () => {
+      const foot = page.locator('#confirm-dialog .sui-modal-foot', {
+        has: page.getByRole('button', { name: 'Yank Release' })
+      });
+      const widths = await foot.evaluate((node) =>
+        [...node.querySelectorAll('button')].map((button) => button.getBoundingClientRect().width)
+      );
+      assert.equal(widths.length, 2);
+      assert.ok(
+        Math.abs(widths[0] - widths[1]) <= 0.5,
+        `Cancel and Yank Release split ${widths[0]}px and ${widths[1]}px`
+      );
+    });
   });
 
   suite('dialogs on one page', inOrder, () => {
