@@ -172,7 +172,7 @@ test('L-18 two families with the faces and weights Smyklot ships', () => {
 });
 
 test('L-21 sizes and leading come from the scale and land on whole pixels', () => {
-  const leading = /var\(--sui-(leading-[a-z]+|row-copy-leading)\)/;
+  const leading = /var\(--sui-(leading-[a-z-]+|row-copy-leading)\)/;
   assert.deepEqual(
     violations(({ property, value }) => {
       if (property === 'line-height' && !leading.test(value) && value !== 'inherit')
