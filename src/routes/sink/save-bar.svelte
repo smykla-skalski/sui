@@ -99,7 +99,7 @@
   note="Editing raises the bar, {saveKeys} saves and holds the fields, a discard offers Undo, and a failure stays up"
   layout="stack"
   ground="canvas"
-  --example-max="calc(54rem + 2 * var(--sui-stroke))"
+  --example-max="calc(50rem + 2 * var(--sui-space-6))"
 >
   <Specimen label="Unsaved">
     <div class="pane">
