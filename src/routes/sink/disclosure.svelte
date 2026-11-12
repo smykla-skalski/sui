@@ -19,6 +19,7 @@
   title="Variants"
   note="The chevron leads the summary’s words at the start edge, and a hint says what is inside"
   layout="grid"
+  --specimen-column-gap="var(--sui-space-8)"
 >
   <Specimen label="Default">
     <Disclosure summary="Why This Check Is Required">
@@ -41,6 +42,7 @@
   title="States"
   note="Open, the chevron turns down and the content hangs under the summary’s words"
   layout="grid"
+  --specimen-column-gap="var(--sui-space-8)"
 >
   <Specimen label={archived ? 'Open' : 'Closed'}>
     <Disclosure summary="What Happens to Archived Repositories" bind:open={archived}>
@@ -63,6 +65,7 @@
   title="Long Text"
   note="When the words and the hint do not fit one line, the hint drops under the words and the chevron stays on the first line"
   layout="grid"
+  --specimen-column-gap="var(--sui-space-8)"
 >
   <Specimen label="Long summary">
     <Disclosure
@@ -151,6 +154,7 @@
   title="Right to Left"
   note="The chevron, the hint and the content’s indent mirror, and the chevron turns down"
   layout="grid"
+  --specimen-column-gap="var(--sui-space-8)"
 >
   <Specimen label="Closed">
     <Disclosure dir="rtl" summary="Skipped Repositories" hint="3 archived">

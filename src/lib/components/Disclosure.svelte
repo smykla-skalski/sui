@@ -52,7 +52,7 @@ cells stack their secondary text.
 
 - Semantics: a native `<details>` whose `<summary>` is the button, named by `summary` and `hint`, with its expanded state from the browser.
 - Content: one line of summary words that wrap, an optional quiet hint, and any content inside, which starts at the summary's words.
-- States: closed (the chevron points along the line), open (the chevron points down and the guide runs beside the content), hover (the row veil on the summary only, as wide as its words on inline help, whose words turn primary, and the chevron turns primary), pressed (the pressed veil, inset and 1px sink) and focus (the 2px inset ring). There is no disabled state, because opening only shows words.
+- States: closed (the chevron points along the line), open (the chevron points down in the primary ink and the guide runs beside the content), hover (the row veil on the summary only, as wide as its words on inline help, whose words turn primary, and the chevron turns primary), pressed (the pressed veil, inset and 1px sink) and focus (the 2px inset ring). There is no disabled state, because opening only shows words.
 - Keyboard: Tab reaches the summary, and Enter or Space opens and closes it.
 - Pointer and touch: the whole summary row is the target, one control tall, 34px and 44px on a phone or touch screen.
 - Focus: focus stays on the summary when it opens or closes, and find-in-page opens a disclosure that holds the match.
@@ -103,13 +103,16 @@ cells stack their secondary text.
   }
 
   /* The guide drops from under the chevron to the content's last ink, beside a summary that
-     wraps too: a hairline between a keyline and a field's edge, about 16% of the ink in both
-     themes, so it holds beside fields, never a coloured edge (L-17). It comes before the
-     summary, so the summary's veil and focus ring paint over it. It reads the trailing room
-     in the summary's face. */
+     wraps too: a hairline between a keyline and a field's edge, about 16% of the ink in light
+     and 19% in dark, where a dark stage swallows a fainter line, so it holds beside fields,
+     never a coloured edge (L-17). It comes before the summary, so the summary's veil and focus
+     ring paint over it. It reads the trailing room in the summary's face. */
   .sui-disclosure::before {
     border-inline-start: var(--sui-stroke) solid
-      color-mix(in srgb, var(--sui-border-subtle) 35%, var(--sui-border-control));
+      light-dark(
+        color-mix(in srgb, var(--sui-border-subtle) 35%, var(--sui-border-control)),
+        color-mix(in srgb, var(--sui-border-subtle) 15%, var(--sui-border-control))
+      );
     content: '';
     font: var(--sui-weight-medium) var(--sui-font-size-meta) / var(--sui-leading-meta)
       var(--sui-sans);
@@ -193,8 +196,11 @@ cells stack their secondary text.
   /* The chevron hangs in the row's start padding, as GOV.UK's details marker does, so the
      words and the hint share one start edge whichever line each takes, and it centres on the
      first line, which the padding centres in the control height (L-94). */
+  /* At rest the chevron stands halfway from the secondary ink to the primary, so a closed row
+     still reads as a control; open, it takes the primary ink, so the state shows in ink as
+     well as in its turn. */
   .sui-disclosure-chevron {
-    color: var(--sui-text-secondary);
+    color: color-mix(in srgb, var(--sui-text-secondary), var(--sui-text-primary));
     display: flex;
     inset-block-start: calc((var(--sui-control-height-compact) - var(--sui-icon-base)) / 2);
     inset-inline-start: var(--sui-space-2);
@@ -203,6 +209,7 @@ cells stack their secondary text.
   }
 
   [open] > .sui-disclosure-summary .sui-disclosure-chevron {
+    color: var(--sui-text-primary);
     rotate: 90deg;
   }
 
@@ -227,6 +234,7 @@ cells stack their secondary text.
     color: var(--sui-text-muted);
     font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-leading-meta)
       var(--sui-sans);
+    font-variant-numeric: tabular-nums;
     min-inline-size: 0;
     overflow-wrap: break-word;
     padding-block: var(--sui-block-snap-room-even);
