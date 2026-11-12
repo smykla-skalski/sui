@@ -103,11 +103,13 @@ cells stack their secondary text.
   }
 
   /* The guide drops from under the chevron to the content's last ink, beside a summary that
-     wraps too: a hairline in the subtle edge, a step firmer than a row's divider so it holds
-     beside fields, never a coloured edge (L-17). It comes before the summary, so the summary's
-     veil and focus ring paint over it. It reads the trailing room in the summary's face. */
+     wraps too: a hairline between a keyline and a field's edge, about 16% of the ink in both
+     themes, so it holds beside fields, never a coloured edge (L-17). It comes before the
+     summary, so the summary's veil and focus ring paint over it. It reads the trailing room
+     in the summary's face. */
   .sui-disclosure::before {
-    border-inline-start: var(--sui-stroke) solid var(--sui-border-subtle);
+    border-inline-start: var(--sui-stroke) solid
+      color-mix(in srgb, var(--sui-border-subtle) 35%, var(--sui-border-control));
     content: '';
     font: var(--sui-weight-medium) var(--sui-font-size-meta) / var(--sui-leading-meta)
       var(--sui-sans);

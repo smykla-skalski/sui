@@ -1128,10 +1128,10 @@ test('L-72 a floating layer on dark stands off its ground by the raised ground a
   );
 });
 
-test("L-57 a disclosure's guide is a hairline in the subtle edge, never a coloured one", () => {
+test("L-57 a disclosure's guide is a hairline between a keyline and a field's edge, never a coloured one", () => {
   assert.match(
     styles['src/lib/components/Disclosure.svelte'],
-    /\.sui-disclosure::before \{[^}]*border-inline-start: var\(--sui-stroke\) solid var\(--sui-border-subtle\)/
+    /\.sui-disclosure::before \{[^}]*border-inline-start: var\(--sui-stroke\) solid\s+color-mix\(in srgb, var\(--sui-border-subtle\) 35%, var\(--sui-border-control\)\)/
   );
 });
 test('L-73 every duration and easing reads a token', () => {
