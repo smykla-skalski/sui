@@ -27,8 +27,21 @@ export function argumentsFor(name) {
 
 const timing = new Set(['performance', 'reload']);
 
-/** The groups that take longest alone, which start first so none starts last and runs alone. */
-const heaviest = ['a11y', 'kitchen', 'offline', 'visual-light', 'visual-dark'];
+/** The groups longest first, as they take alone, so none starts last and runs alone. Overlays,
+ * lists and forms take as long as a visual theme, so a group of theirs started after the visual
+ * pair ran on alone for 20s past the rest. */
+const heaviest = [
+  'offline',
+  'kitchen',
+  'a11y',
+  'overlays',
+  'visual-light',
+  'lists',
+  'forms',
+  'visual-dark',
+  'navigation',
+  'words'
+];
 
 /**
  * Every group on one machine against one build. The groups that only read the page run
