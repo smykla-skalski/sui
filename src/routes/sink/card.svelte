@@ -230,6 +230,13 @@
     padding-block: var(--sui-space-6);
   }
 
+  /* A phone's stage is narrow, so the bare page keeps its card a step closer. */
+  @media (max-width: 47.9375rem) {
+    .bare {
+      padding-block: var(--sui-space-4);
+    }
+  }
+
   /* A state shown on its bare page needs none of the page's room around it, and fills its
      column from its caption's edge. */
   .flush {
