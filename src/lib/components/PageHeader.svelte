@@ -65,8 +65,8 @@ characters a line.
 A `status` says the thing's state in words beside the title, such as a `Pill`: it takes the
 title's face, so it centres on the cap band of the title's first line, and a pill there takes
 control type on a 24px mark, a step up from a pill in a row, and a title too long
-to share its line with it puts it under its last line, as far below as the title's lines
-stand apart plus the 8px copy gap. It sits in a polite status region that is there from the
+to share its line with it puts it 12px under its last line, nearer
+than the description, since it is part of the heading. It sits in a polite status region that is there from the
 first render, so a change of state is said once, without moving focus, and a render that
 leaves it alone says nothing. `facts` are two to five headline facts, an inline `FactList`,
 one copy gap further below the description than its own lines stand apart, measured to the
@@ -251,8 +251,8 @@ and the header owes only the difference.
   /* In the title's face, so `1cap` and `1lh` are the title's: the status's seat is the cap
      band of the title's first line, and the title takes that band's even parity, so a pill
      centres on it to the pixel and the row is no taller than the title (L-34). A status the
-     line cannot hold goes under the title's last line as the description would, one copy gap
-     further than the title's lines stand apart. */
+     line cannot hold goes 12px under the title's last line, nearer than the description,
+     since it belongs to the heading. */
   .sui-page-header-heading {
     align-items: start;
     column-gap: var(--sui-space-3);
@@ -261,7 +261,7 @@ and the header owes only the difference.
     font: var(--sui-weight-bold) var(--sui-font-size-page-title) / var(--sui-leading-page)
       var(--sui-sans);
     min-inline-size: 0;
-    row-gap: calc(round(calc(1lh - 1cap), 1px) + var(--sui-row-copy-gap));
+    row-gap: var(--sui-space-3);
   }
 
   .sui-page-header-heading > .sui-page-header-title {

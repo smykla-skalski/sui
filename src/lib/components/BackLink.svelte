@@ -32,7 +32,7 @@ fits the eyebrow's place in a `PageHeader`.
 
 - Semantics: a native `<a href>` named by `label`, with the chevron hidden.
 - Content: `label`, the destination's own name in its own case, such as "All runs", after a chevron that points back.
-- States: rest (action ink at 600, or secondary ink at 400 when `quiet`), hover (primary ink on a row's veil that reaches 8px past the words), focus (a 2px ring on the veil's edge), pressed (the row's pressed veil) and visited, which looks like rest.
+- States: rest (action ink at 600, or secondary ink at 400 when `quiet`), hover (a deeper action ink, or primary when quiet, on a row's veil that reaches 8px past the words), focus (a 2px ring on the veil's edge), pressed (the row's pressed veil) and visited, which looks like rest.
 - Keyboard: Tab reaches it and Enter follows it.
 - Pointer and touch: a 24px tall hit area on a pointer and 44px on a phone or any touch screen, as wide as its words and glyph.
 - Focus: following it moves focus as the browser's navigation does; nothing here moves it.
@@ -75,10 +75,15 @@ fits the eyebrow's place in a `PageHeader`.
   }
 
   /* It stands in a breadcrumb's place, so it lights and presses as a crumb does: a row's veil
-     that reaches 8px past its words, which stay where they stood. */
+     that reaches 8px past its words, which stay where they stood. Its action ink deepens as a
+     link's does and stays an action; a quiet one steps up to the primary ink. */
   @media (hover: hover) {
     .sui-back-link:hover:not(:active) {
       background: var(--sui-row-hover);
+      color: color-mix(in oklab, var(--sui-brand-action-text) 84%, var(--sui-text-primary));
+    }
+
+    .sui-back-link[data-tone='quiet']:hover:not(:active) {
       color: var(--sui-text-primary);
     }
   }
