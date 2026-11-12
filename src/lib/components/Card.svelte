@@ -82,9 +82,9 @@ the end as above the band. A button or a select there stays drawn at 34px on a p
 The actions never take a line of their own: at every width they stay on the title's first
 line, and short of room the title wraps in what is left beside them, a segmented control turns
 into its select, and the other controls keep their width. The note runs under them at the
-head's full width, save beside a segmented track drawn at a touch screen's 44px, which reaches
-below the title's line further than the note stands under it. A `footer`'s actions stand beside the copy at its
-foot while the card holds both next to an 11rem measure of copy, as a callout's do, and on a
+head's full width, save beside a segmented control on a touch screen, whose track draws at
+44px and reaches below the title's line further than the note stands under it. A `footer`'s
+actions stand beside the copy at its foot while the card holds both next to an 11rem measure of copy, as a callout's do, and on a
 line of their own under it otherwise, so they keep the inset from the bottom and the end in
 either place. A row list or a `Skeleton` that opens the card hands back what stands above its
 first row's ink, as it hands back what stands below its last: the card lends the body's first
@@ -335,10 +335,12 @@ title, such as "Danger Zone", and holds the acts that cannot be undone, each a `
     grid-column: 1 / -1;
   }
 
-  /* A segmented control drawn as a track at a touch screen's 44px reaches further below the
-     title's line than the note stands, so its note keeps beside it. */
+  /* A segmented control's track drawn at a touch screen's 44px reaches further below the
+     title's line than the note stands, so its note keeps beside it. The rule reads the control,
+     not the form it shows: that form is set by a resize observer, and a note that moved with it
+     would resize the head within the same frame. */
   @media (pointer: coarse) {
-    .sui-card-head:has(> .sui-card-actions :global(.sui-segmented:not(.short)))
+    .sui-card-head:has(> .sui-card-actions :global(.sui-segmented))
       > .sui-card-copy
       > .sui-card-note {
       grid-column: 1;
