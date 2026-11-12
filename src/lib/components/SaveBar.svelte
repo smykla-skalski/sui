@@ -524,13 +524,14 @@ brings its own room under it, so the scroller needs no end padding.
   }
 
   /* A conflict lost no work and waits on the gold Reload, so its mark takes the unsaved ink and
-     its reason the subtitle's, leaving one decision hue on the bar (L-16). */
+     its reason the subtitle's ink and weight, leaving one decision hue on the bar (L-16). */
   .conflict > .mark {
     color: var(--sui-unsaved-ink);
   }
 
   .conflict > .subtitle.error {
     color: var(--sui-text-muted);
+    font-weight: var(--sui-weight-regular);
   }
 
   /* The bar spreads its two parts, so the actions end the line they share with the copy and

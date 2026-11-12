@@ -1940,7 +1940,7 @@ test("L-16 a save bar's refusal leads with a field error's warning mark", () => 
   );
   assert.match(
     css,
-    /\.conflict > \.mark \{\s*color: var\(--sui-unsaved-ink\);\s*\}\s*\.conflict > \.subtitle\.error \{\s*color: var\(--sui-text-muted\);/,
+    /\.conflict > \.mark \{\s*color: var\(--sui-unsaved-ink\);\s*\}\s*\.conflict > \.subtitle\.error \{\s*color: var\(--sui-text-muted\);\s*font-weight: var\(--sui-weight-regular\);/,
     "a conflict's danger reason competes with the gold Reload, though no work was lost"
   );
 });
