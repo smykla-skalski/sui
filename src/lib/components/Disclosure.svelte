@@ -112,7 +112,9 @@ cells stack their secondary text.
     cursor: pointer;
     display: flex;
     flex-wrap: wrap;
-    font: var(--sui-weight-medium) var(--sui-font-size-meta) / var(--sui-leading-meta)
+    /* A summary names what it reveals, as a label does, so it takes a label's 600 (L-25) and
+       never reads quieter than the fields it opens. */
+    font: var(--sui-weight-semibold) var(--sui-font-size-meta) / var(--sui-leading-meta)
       var(--sui-sans);
     justify-content: space-between;
     list-style: none;
@@ -237,7 +239,7 @@ cells stack their secondary text.
         color-mix(in srgb, var(--sui-border-subtle) 15%, var(--sui-border-control))
       );
     content: '';
-    font: var(--sui-weight-medium) var(--sui-font-size-meta) / var(--sui-leading-meta)
+    font: var(--sui-weight-semibold) var(--sui-font-size-meta) / var(--sui-leading-meta)
       var(--sui-sans);
     inset-block: 0 var(--sui-local-disclosure-trail);
     inset-inline-start: round(calc((var(--sui-icon-base) - var(--sui-stroke)) / 2), 1px);
@@ -287,7 +289,7 @@ cells stack their secondary text.
     block-size: var(--sui-local-disclosure-trail);
     content: '';
     display: block;
-    font: var(--sui-weight-medium) var(--sui-font-size-meta) / var(--sui-leading-meta)
+    font: var(--sui-weight-semibold) var(--sui-font-size-meta) / var(--sui-leading-meta)
       var(--sui-sans);
   }
 
