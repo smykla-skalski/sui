@@ -104,7 +104,7 @@ title, such as "Danger Zone", and holds the acts that cannot be undone, each a `
 - Keyboard: without `href`, none of its own; with it, the card is one tab stop and Enter follows the link; then Tab reaches the controls inside in reading order.
 - Pointer and touch: with `href`, the whole card is the link's target; the controls inside keep their own targets and press feedback.
 - Focus: nothing here moves focus; a focused card link draws the 2px ring flush on the card's keyline, which takes the focus colour, as a bordered control does (L-41).
-- Responsive: in a grid or flex row the card takes the row's height and leaves the extra room under its content; a container query on the card's own width steps the inset from 20px to 16px at 36rem, the head's actions stay beside the copy, centred on the title's cap band, while the copy wraps beside them, until the card is under 12rem wide, as with text at twice its size, where they stand under the copy, and the footer's actions stand beside the copy while they fit next to 16rem of it and wrap under it, from its start edge, otherwise.
+- Responsive: in a grid or flex row the card takes the row's height and leaves the extra room under its content; a container query on the card's own width steps the inset from 20px to 16px and the head's gap from 24px to 12px at 36rem, the head's actions stay beside the copy, centred on the title's cap band, while the copy wraps beside them, until the card is under 12rem wide, as with text at twice its size, where they stand under the copy, and the footer's actions stand beside the copy while they fit next to 16rem of it and wrap under it, from its start edge, otherwise.
 - Accessibility: the unsaved and danger states are said in words, never by the keyline's colour alone, and the copy, the word and the danger title hold 4.5:1; a card link is heard once, by its title, with the rest of the card outside its name.
 - Localization: `unsavedLabel` is a prop with an English default, and `titleName` joins it to the title; the actions sit at the inline end, which mirrors in a right-to-left page.
 - Performance: static layout with no script; each card is its own size container, and hover and press change only the veil, the inset shadow and a 1px sink.
@@ -516,6 +516,12 @@ title, such as "Danger Zone", and holds the acts that cannot be undone, each a `
   @container (max-width: 36rem) {
     .sui-card {
       padding: var(--sui-rhythm-surface-pad-compact);
+    }
+
+    /* A compact card parts its title from its actions by a plate's 12px, so a long title keeps
+       its width beside a small control. */
+    .sui-card-head {
+      column-gap: var(--sui-space-3);
     }
 
     .sui-card-actions {
