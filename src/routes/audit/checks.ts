@@ -2660,7 +2660,8 @@ function dialogInsets(root: Document): Finding[] {
 }
 
 /**
- * A message's symbol (L-56): a 2rem tile holding an 18px glyph, a toast's 1.75rem. Copy shorter
+ * A message's symbol (L-56): a 2rem tile holding an 18px glyph, a toast's 1.75rem, and a callout's
+ * on a phone too. Copy shorter
  * than the tile centres on it, and longer copy starts at its top.
  */
 function symbolTiles(root: Document): Finding[] {
@@ -2668,7 +2669,9 @@ function symbolTiles(root: Document): Finding[] {
   const rem = parseFloat(getComputedStyle(root.documentElement).fontSize);
   for (const tile of audited(root, '.sui-callout-icon, .sui-toast-mark')) {
     const box = tile.getBoundingClientRect();
-    const side = tile.matches('.sui-toast-mark') ? 1.75 : 2;
+    const phone = root.defaultView?.matchMedia('(max-width: 47.9375rem)').matches;
+    const side =
+      tile.matches('.sui-toast-mark') || (phone && tile.matches('.sui-callout-icon')) ? 1.75 : 2;
     if (Math.abs(box.width - side * rem) > 0.5 || Math.abs(box.height - side * rem) > 0.5)
       found.push(
         finding('L-56', tile, `the symbol's tile is ${round(box.width)}px, not ${side}rem`)

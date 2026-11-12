@@ -102,7 +102,7 @@ the gold surface of an unsaved decision: opaque, with a one-stroke gold edge, an
 hears `decisionLabel` before its words. Its resolving action wears Button's `decision` tone,
 and every other action keeps the default tone.
 
-The icon stands in a 2rem tile of the callout's tone and draws at 18px whatever tier the caller
+The icon stands in a 2rem tile of the callout's tone, a toast's 1.75rem on a phone, and draws at 18px whatever tier the caller
 asked for. Copy shorter than the tile centres on it; longer copy starts at the tile's top. The
 tile opens the message's first line in a band its actions fit inside: they are drawn at the
 28px quiet tier and centre on the message, so a callout stands as tall, and its words where
@@ -113,7 +113,7 @@ edge of the warning hue, and beside a decision it is quiet in the unsaved hue, w
 and the unsaved ink, so no neutral block sits on a state (L-92).
 
 - Semantics: a `div` of one or two paragraphs; with `live` its words also reach a polite `status`, or an `alert` for a warning.
-- Content: an optional 2rem symbol tile, a title, inline description content such as a `Link`, and a few actions; copy wraps at the callout's own width.
+- Content: an optional 2rem symbol tile, 1.75rem on a phone, a title, inline description content such as a `Link`, and a few actions; copy wraps at the callout's own width.
 - States: `quiet` on the neutral veil, `warning` on the warning tint, and `decision` on the opaque surface with the gold border and shadow.
 - Keyboard: none of its own; its actions and links take Tab in reading order.
 - Pointer and touch: its actions are drawn at the 28px quiet tier and keep a 44px hit area on a phone or a coarse pointer; stacked, they stand 16px apart there so two hit areas never meet.
@@ -183,6 +183,14 @@ and the unsaved ink, so no neutral block sits on a state (L-92).
     flex-wrap: wrap;
     gap: var(--sui-space-3);
     padding-inline-start: var(--sui-callout-indent, 0px);
+  }
+
+  /* On a phone the symbol takes a toast's compact tile, so long copy keeps the width it needs
+     beside it; the quiet tier's actions still fit the band the tile opens (L-56). */
+  @media (max-width: 47.9375rem) {
+    .sui-callout {
+      --sui-symbol-tile: var(--sui-symbol-tile-compact);
+    }
   }
 
   .sui-callout-inner:has(> .sui-callout-message > .sui-callout-icon) {
