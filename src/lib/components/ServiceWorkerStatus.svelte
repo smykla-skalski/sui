@@ -211,7 +211,7 @@ dismisses it, and the return says "You are back online" for five seconds.
 
 - Semantics: an `aside` named by its title, in the top layer as a manual popover, with native buttons; each notice is said once from a hidden `status` region kept apart from the bar.
 - Content: a title and a description for an update or for offline, a title alone for the return; at most two buttons; words wrap within a toast's 24rem.
-- States: ready (Reload Later and Reload in the signal tone), reloading (Reload busy with `reloadingLabel`, at the width it held, so Reload Later never moves, and Reload Later held), offline (Dismiss), back online (no buttons, leaves after five seconds, held while hovered or focused), hidden while a modal dialog is open, and drawn in place with `preview`.
+- States: ready (Reload Later and Reload in the signal tone), reloading (Reload busy with `reloadingLabel`, at the width it held, so Reload Later never moves, and Reload Later held), offline (Dismiss, its edge a quarter of the warning ink), back online (its edge a quarter of the success ink, no buttons, leaves after five seconds, held while hovered or focused), hidden while a modal dialog is open, and drawn in place with `preview`.
 - Keyboard: Tab reaches the bar's buttons after the page's own; Enter or Space presses them; Escape returns focus to where it came from and leaves the notice up.
 - Pointer and touch: the buttons are 34px tall on a pointer and 44px on a phone or touch screen; nothing needs a drag.
 - Focus: opening never takes focus, and a focused control it would cover scrolls clear above it, as the next one Tab reaches does; when a pressed button leaves, focus returns to where it came from, else to the next notice's first button.
@@ -231,7 +231,11 @@ dismisses it, and the return says "You are back online" for five seconds.
   bind:this={element}
   bind:offsetHeight={block}
   {...rest}
-  class={['sui-service-worker-status', className, { preview: preview !== undefined }]}
+  class={[
+    'sui-service-worker-status',
+    className,
+    { preview: preview !== undefined, offline: drawn === 'offline', online: drawn === 'online' }
+  ]}
   popover={preview === undefined ? 'manual' : undefined}
   aria-labelledby={titleId}
   onpointerenter={() => (hovered = true)}
@@ -281,6 +285,25 @@ dismisses it, and the return says "You are back online" for five seconds.
     inline-size: min(24rem, 100%);
     justify-content: space-between;
     padding: var(--sui-space-4);
+  }
+
+  /* The network's state carries its tone in the edge, a quarter of the warning ink while
+     offline and of the success ink once back, as a failed toast's edge carries the danger ink,
+     so the two read apart at a glance and not by their words alone (L-72). */
+  .offline {
+    border-color: color-mix(
+      in oklch,
+      var(--sui-warning) var(--sui-toast-failure-edge),
+      var(--sui-toast-border, var(--sui-popover-border))
+    );
+  }
+
+  .online {
+    border-color: color-mix(
+      in oklch,
+      var(--sui-success) var(--sui-toast-failure-edge),
+      var(--sui-toast-border, var(--sui-popover-border))
+    );
   }
 
   /* The toasts hold the inline-end corner, so the bar holds the other one. */

@@ -1887,6 +1887,22 @@ test("L-72 a failed toast's edge carries a quarter of the danger ink", () => {
   );
 });
 
+test("L-72 the service worker's network states carry their tone in the edge, as a failure does", () => {
+  const notice = stripComments(read('src/lib/components/ServiceWorkerStatus.svelte'));
+  assert.match(notice, /offline: drawn === 'offline', online: drawn === 'online'/);
+  for (const [state, tone] of [
+    ['offline', 'warning'],
+    ['online', 'success']
+  ])
+    assert.match(
+      notice,
+      new RegExp(
+        `\\.${state} \\{\\s*border-color: color-mix\\(\\s*in oklch,\\s*var\\(--sui-${tone}\\) var\\(--sui-toast-failure-edge\\),\\s*var\\(--sui-toast-border, var\\(--sui-popover-border\\)\\)\\s*\\);`
+      ),
+      `the ${state} notice's edge does not carry the ${tone} ink`
+    );
+});
+
 test('L-56 L-72 a failed toast takes a larger share of the danger ink on dark', () => {
   const shares = (/** @type {string} */ selector) => {
     const tokens = tokenMap(stripComments(block(selector)));
