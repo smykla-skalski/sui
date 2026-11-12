@@ -89,7 +89,7 @@
         })}>Sync Repositories</Button
     >
   </Specimen>
-  <Specimen label={removed ? 'Removed, with Restore on the page' : 'With Undo'}>
+  <Specimen label="With Undo">
     <Button tone={removed ? 'default' : 'stop-quiet'} onclick={removed ? restoreRule : removeRule}
       >{removed ? 'Restore' : 'Remove Rule'}</Button
     >
