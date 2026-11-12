@@ -483,6 +483,14 @@ brings its own room under it, so the scroller needs no end padding.
       var(--sui-sans);
   }
 
+  /* On a phone the title grows to 16px while the meta leading stays 22px, so it takes the body
+     leading, the step the body text takes with it. */
+  @media (max-width: 47.9375rem) {
+    .title {
+      line-height: var(--sui-leading-body);
+    }
+  }
+
   /* Wrapped, the line under the title reads as a note, as a toast's description does (L-24). */
   .subtitle {
     color: var(--sui-text-muted);

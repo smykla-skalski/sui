@@ -1932,6 +1932,11 @@ test("L-24 L-54 a save bar's title wraps at the meta leading and the bar lifts a
   );
   assert.match(
     css,
+    /@media \(max-width: 47\.9375rem\) \{\s*\.title \{\s*line-height: var\(--sui-leading-body\);/,
+    "a phone's 16px save bar title presses its lines together at the 22px meta leading"
+  );
+  assert.match(
+    css,
     /\.sui-save-bar \{[^}]*box-shadow: var\(--sui-shadow-toast, var\(--sui-shadow-popover\)\);/,
     "a plate's close shadow draws a dark band under the bar's gold edge"
   );
