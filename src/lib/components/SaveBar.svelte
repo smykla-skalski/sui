@@ -468,10 +468,10 @@ brings its own room under it, so the scroller needs no end padding.
     text-box: trim-both cap alphabetic;
   }
 
-  /* A long title wraps at a field label's leading, so its lines never press into one block,
-     and at its larger size it still stands tighter than the note under it (L-24). */
+  /* A long title wraps at the meta leading, so its semibold lines never press into one block
+     over the lighter note (L-24). */
   .title {
-    font: var(--sui-weight-semibold) var(--sui-font-size-body) / var(--sui-leading-note)
+    font: var(--sui-weight-semibold) var(--sui-font-size-body) / var(--sui-leading-meta)
       var(--sui-sans);
   }
 

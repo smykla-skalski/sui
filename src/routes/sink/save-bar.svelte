@@ -220,7 +220,9 @@
     display: grid;
     gap: var(--sui-space-4);
     overflow-y: auto;
-    padding: var(--sui-space-4);
+    /* A pane's first part stands under its caption as any specimen's does, so the specimen's
+       own gap is the room over it. */
+    padding: 0 var(--sui-space-4) var(--sui-space-4);
   }
 
   /* On a phone the stage's inset is the pane's, so a second one never narrows the fields. */
