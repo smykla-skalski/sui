@@ -148,7 +148,6 @@
   layout="grid"
   ground="canvas"
   --specimen-min="24rem"
-  --example-max="54rem"
 >
   <Specimen label="Rest">
     <div class="bare flush">
