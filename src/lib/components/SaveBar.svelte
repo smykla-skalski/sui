@@ -291,10 +291,11 @@ saved or thrown away. Every edit on the pane stages a draft; this bar sends it. 
 exception: its border and its Save button wear the decision accent, which belongs only to
 unsaved state and the action that resolves it.
 
-Place it last in the content that scrolls, the page's or a pane's, with the gap the content
-keeps between its own parts before it. It sticks to the block end of that scroller, 16px in,
-while there is content past it, and once the reader reaches the end it rests after the last
-content at that same gap, with its 16px under it, so it never covers that content. The bar
+Place it last in the content that scrolls, the page's or a pane's, after the gap the content
+keeps between its own parts. It sticks to the block end of that scroller, 16px in, while there
+is content past it, and once the reader reaches the end it rests 8px past that gap, as a page
+form's action closes its fields 24px past the last one on a 16px rhythm, with its 16px under
+it, so it never covers that content. The bar
 brings its own room under it, so the scroller needs no end padding.
 
 - Semantics: an `aside` named by its title, with a polite live copy and native buttons.
@@ -409,6 +410,13 @@ brings its own room under it, so the scroller needs no end padding.
       display var(--sui-duration-normal) allow-discrete;
     translate: 0 0;
     z-index: var(--sui-layer-sticky);
+  }
+
+  /* It is the pane's form action, so at rest it stands a step past the content's gap and reads
+     as the close of the fields, not one more of them (L-35). With nothing above it there is
+     nothing to close. */
+  .sui-save-bar:not(:first-child) {
+    margin-block-start: var(--sui-space-2);
   }
 
   /* Discard sits beside the decision, so it is quiet in the unsaved hue: no ground of its own,

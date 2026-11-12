@@ -1462,6 +1462,23 @@ suite('lists', together, () => {
             offset <= 0.5,
             `at ${width}px the spinner and Saving… sit ${offset}px off the button's centre`
           );
+          // The bar is the pane's form action, so at rest it closes the fields as a page form's
+          // action does, 24px past the last one (L-35), not at the gap between two of them.
+          const past = await bars.nth(0).evaluate((bar) => {
+            const field = bar.previousElementSibling?.getBoundingClientRect();
+            return bar.getBoundingClientRect().top - (field?.bottom ?? 0);
+          });
+          assert.equal(past, 24, `at ${width}px the bar stands ${past}px past the last field`);
+          // With no field above it there is nothing to close, so the bar starts where any
+          // specimen's first part does.
+          const lead = await page
+            .locator('#save-bar .specimen', { hasText: 'Long copy' })
+            .locator('.sui-save-bar')
+            .evaluate((bar) => {
+              const holder = bar.parentElement?.getBoundingClientRect();
+              return bar.getBoundingClientRect().top - (holder?.top ?? 0);
+            });
+          assert.equal(lead, 0, `at ${width}px a bar with nothing above it starts ${lead}px in`);
           // A bar at rest in a stage keeps the stage's pad under it, as beside it, not its
           // sticky inset on top of that pad. The narrow bar is the taller of its pair, so its
           // stage ends at it.
