@@ -55,7 +55,7 @@ as a card's head controls are, so they lend the copy no height. Once the header 
 
 The title is 32px on 36px lines, 24px on 28px lines on a phone or once the header itself is
 36rem wide or narrower, and is the page's one `h1`.
-The eyebrow stands 8px of ink above it, and a `Breadcrumb` or `BackLink` 12px, so its hover
+The eyebrow, 12px uppercase at 600, stands 8px of ink above it, and a `Breadcrumb` or `BackLink` 12px, so its hover
 veil never meets the title. The description stands one 8px copy gap further below
 the title than the title's own lines stand apart, 19px of ink (18px on a phone), so a title
 that wraps reads as one block and the description as the next. The gap follows the title's
@@ -63,7 +63,8 @@ line height, so it holds when a reader raises line spacing. The description stop
 characters a line.
 
 A `status` says the thing's state in words beside the title, such as a `Pill`: it takes the
-title's face, so it centres on the cap band of the title's first line, and a title too long
+title's face, so it centres on the cap band of the title's first line, and a pill there takes
+control type on a 24px mark, a step up from a pill in a row, and a title too long
 to share its line with it puts it under its last line, as far below as the title's lines
 stand apart plus the 8px copy gap. It sits in a polite status region that is there from the
 first render, so a change of state is said once, without moving focus, and a render that
@@ -209,9 +210,9 @@ and the header owes only the difference.
     align-content: center;
     block-size: var(--sui-block-snap);
     color: var(--sui-text-muted);
-    font: var(--sui-weight-semibold) var(--sui-font-size-micro) / var(--sui-leading-micro)
+    font: var(--sui-weight-semibold) var(--sui-font-size-compact) / var(--sui-leading-compact)
       var(--sui-sans);
-    letter-spacing: 0.07em;
+    letter-spacing: 0.05em;
     margin: 0;
     padding-block: var(--sui-block-snap-room);
     text-box: trim-both cap alphabetic;
@@ -268,7 +269,12 @@ and the header owes only the difference.
     min-inline-size: 0;
   }
 
+  /* A thing's state beside its page title is said a step up from a pill in a row, in control
+     type on a 24px mark, as GitHub sets the state beside an issue's title, so it holds its own
+     beside 32px words. */
   .sui-page-header-status {
+    --sui-local-pill-size: var(--sui-font-size-control);
+    --sui-local-pill-tier: var(--sui-control-height-chip);
     align-items: center;
     block-size: round(up, 1cap, 2px);
     display: flex;

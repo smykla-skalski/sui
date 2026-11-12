@@ -123,13 +123,14 @@ outcome tones always come with their word, so color never carries the state alon
     color: var(--sui-text-secondary);
     display: inline-flex;
     flex: none;
-    font: var(--sui-weight-semibold) var(--sui-font-size-compact) / var(--sui-leading-tight)
-      var(--sui-sans);
+    font: var(--sui-weight-semibold) var(--sui-local-pill-size, var(--sui-font-size-compact)) /
+      var(--sui-leading-tight) var(--sui-sans);
     gap: var(--sui-space-1);
     inline-size: var(--sui-inline-snap);
     max-inline-size: 100%;
-    min-block-size: var(--sui-tier-mark);
-    padding: calc((var(--sui-tier-mark) - round(up, 1cap, 2px)) / 2) var(--sui-space-2);
+    min-block-size: var(--sui-local-pill-tier, var(--sui-tier-mark));
+    padding: calc((var(--sui-local-pill-tier, var(--sui-tier-mark)) - round(up, 1cap, 2px)) / 2)
+      var(--sui-space-2);
   }
 
   /* A mark centres on the first line's cap band, however many lines follow (L-94). */

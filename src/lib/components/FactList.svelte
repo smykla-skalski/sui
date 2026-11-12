@@ -57,7 +57,9 @@ side by side, and a line breaks between two facts, separated by space alone, so 
 comma or dot is left at either end of a line. A line of plain facts keeps the copy's leading,
 8px between its words and the next line's, and only a line that holds a target, a link or a
 time that shows its instant, grows to the target's height. The list is trimmed to its first
-cap and its last baseline, so a holder measures its rhythm to the facts' ink.
+cap and its last baseline, so a holder measures its rhythm to the facts' ink. On a phone, or in a
+page header 36rem wide or narrower, where the facts mostly take a line each, each stands on a
+line of its own, its label in a 7rem column and its value 12px after it, so the values line up.
 
 `rows` is a summary list of a thing's properties, as GOV.UK's summary list and Stripe's
 property list draw them: the labels in a column as wide as the longest one, up to 16rem where a
@@ -73,7 +75,7 @@ apart, and the action under the value.
 - Keyboard: a linked value and a row's action are tab stops, in reading order; nothing else is.
 - Pointer and touch: inline, a fact that holds a target is at least 24px tall, and 44px on a phone or a coarse pointer, so its line holds the target and two targets on two lines never meet; a linked value is a standalone `Link`, whose hit area grows to that target size without moving its words; a row's action keeps its own target.
 - Focus: none moves; a linked value and an action take focus in reading order.
-- Responsive: inline facts wrap one by one at every width, a long value breaks inside its fact, and text at 200% wraps the same way; rows answer to the list's own width and stack each label over its value under 25rem.
+- Responsive: inline facts wrap one by one, and on a phone or in a page header 36rem wide or narrower each take a line, the label in a 7rem column, a long value breaks inside its fact, and text at 200% wraps the same way; rows answer to the list's own width and stack each label over its value under 25rem.
 - Accessibility: the label is muted and regular and the value medium, so they differ by weight as well as ink; both hold 4.5:1; in rows each label and value pair still reads as a term and its description.
 - Localization: `missingLabel` is a prop with an English default; values come formatted by the caller in the page's language, and both layouts follow the reading direction.
 - Performance: one element per fact with no script; rows share one grid through `subgrid`, so a column never measures twice.
@@ -306,6 +308,89 @@ apart, and the action under the value.
     .inline
       > .sui-fact-list-fact:has(:global(:is(a[href], button, [tabindex]:not([tabindex^='-'])))) {
       min-block-size: var(--sui-touch-target);
+    }
+  }
+
+  /* Inline facts on a phone, or in a page header as narrow as a compact card, mostly take a
+     line each, so there each stands on a line of its own, its label in a 7rem column, wide
+     enough for a headline fact's word or two, and its value 12px after it, so the values line
+     up and read down as one list. The lines keep the copy's leading, and a line that holds a
+     target still grows to it, its words on its middle. */
+  @media (max-width: 47.9375rem) {
+    .inline > .sui-fact-list-fact {
+      align-items: start;
+      column-gap: var(--sui-space-3);
+      display: flex;
+      flex-wrap: nowrap;
+      margin-inline-end: 0;
+    }
+
+    .inline > .sui-fact-list-fact:first-child {
+      margin-block-start: 0;
+    }
+
+    .inline
+      > .sui-fact-list-fact:has(:global(:is(a[href], button, [tabindex]:not([tabindex^='-'])))) {
+      align-items: center;
+    }
+
+    .inline
+      > .sui-fact-list-fact:first-child:has(
+        :global(:is(a[href], button, [tabindex]:not([tabindex^='-'])))
+      ) {
+      margin-block-start: round(
+        up,
+        calc((round(up, 1cap, 1px) - var(--sui-field-target-min)) / 2),
+        1px
+      );
+    }
+
+    .inline .sui-fact-list-label {
+      flex: none;
+      inline-size: 7rem;
+    }
+
+    .inline .sui-fact-list-value {
+      flex: 1 1 0;
+    }
+  }
+
+  @container sui-page-header (max-width: 36rem) {
+    .inline > .sui-fact-list-fact {
+      align-items: start;
+      column-gap: var(--sui-space-3);
+      display: flex;
+      flex-wrap: nowrap;
+      margin-inline-end: 0;
+    }
+
+    .inline > .sui-fact-list-fact:first-child {
+      margin-block-start: 0;
+    }
+
+    .inline
+      > .sui-fact-list-fact:has(:global(:is(a[href], button, [tabindex]:not([tabindex^='-'])))) {
+      align-items: center;
+    }
+
+    .inline
+      > .sui-fact-list-fact:first-child:has(
+        :global(:is(a[href], button, [tabindex]:not([tabindex^='-'])))
+      ) {
+      margin-block-start: round(
+        up,
+        calc((round(up, 1cap, 1px) - var(--sui-field-target-min)) / 2),
+        1px
+      );
+    }
+
+    .inline .sui-fact-list-label {
+      flex: none;
+      inline-size: 7rem;
+    }
+
+    .inline .sui-fact-list-value {
+      flex: 1 1 0;
     }
   }
 </style>
