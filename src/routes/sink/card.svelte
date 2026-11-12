@@ -230,8 +230,10 @@
     padding-block: var(--sui-space-8);
   }
 
-  /* A state shown on its bare page needs none of the page's room around it. */
+  /* A state shown on its bare page needs none of the page's room around it, and starts at its
+     caption's edge. */
   .flush {
+    justify-content: start;
     padding-block: 0;
   }
 
