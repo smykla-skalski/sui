@@ -1917,6 +1917,14 @@ test("L-16 a busy save bar dims its edge and buttons but keeps its live copy's i
   );
 });
 
+test("L-9 a save bar's Discard keeps a dark edge that holds on the neutral ground", () => {
+  assert.match(
+    stripComments(read('src/lib/components/SaveBar.svelte')),
+    /--sui-control-border: light-dark\(\s*var\(--sui-unsaved-control-border\),\s*color-mix\(in srgb, var\(--sui-unsaved-border\) 40%, var\(--sui-unsaved-control-border\)\)\s*\);/,
+    "Discard's dark edge, tuned for the gold plate, sinks into the bar's neutral ground"
+  );
+});
+
 test("L-16 a save bar's refusal leads with a field error's warning mark", () => {
   const source = read('src/lib/components/SaveBar.svelte');
   assert.match(
