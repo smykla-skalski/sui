@@ -108,11 +108,19 @@
   <Specimen label="3 toasts">
     <Toaster
       preview
-      items={['sui', 'smyklot', 'ledger'].map((name) => ({
-        title: `The ${name} sync needs another try`,
-        description: 'GitHub answered 502, so try again in a minute',
-        tone: 'danger' as const
-      }))}
+      items={[
+        { title: 'Settings saved', description: 'Main now needs 2 reviews before a merge' },
+        {
+          title: 'The sui sync needs another try',
+          description: 'GitHub answered 502, so try again in a minute',
+          tone: 'danger'
+        },
+        {
+          title: 'Rule removed',
+          description: 'Required reviewers no longer applies to main',
+          action: { label: 'Undo', run: () => {} }
+        }
+      ]}
     />
   </Specimen>
   <Specimen label="Many toasts">
