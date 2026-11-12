@@ -741,6 +741,11 @@ suite('navigation', together, () => {
                   if (beside) found.push(`${where}: the action takes a line of its own`);
                   continue;
                 }
+                // A plate's state that needs more lines than its title wraps under it, as copy.
+                if (kind === '.sui-plate') {
+                  const [named, said] = lines(root, ['.sui-plate-name', '.sui-plate-words']);
+                  if (said > named) continue;
+                }
                 seats.push({
                   root,
                   parts,
@@ -778,7 +783,7 @@ suite('navigation', together, () => {
     );
 
     test(
-      "a plate's title and state each keep one line while it fits in half the head",
+      "a plate's title keeps one line while it fits in 60% of the head, and its state in 40%",
       long,
       async () => {
         const page = await sink();
@@ -808,29 +813,30 @@ suite('navigation', together, () => {
               if (status.getBoundingClientRect().top >= title.getBoundingClientRect().bottom)
                 return [];
               const style = getComputedStyle(head);
-              const half =
-                (head.clientWidth -
-                  parseFloat(style.paddingInlineStart) -
-                  parseFloat(style.paddingInlineEnd) -
-                  parseFloat(style.columnGap)) /
-                2;
+              const room =
+                head.clientWidth -
+                parseFloat(style.paddingInlineStart) -
+                parseFloat(style.paddingInlineEnd);
+              /** @param {number} part */
+              const share = (part) => room * part - parseFloat(style.columnGap) / 2;
               const glyph = status.querySelector('svg');
               const said = /** @type {Element} */ (words.parentElement);
-              /** @type {[Element, number][]} */
+              /** @type {[Element, number, number][]} */
               const parts = [
-                [title.querySelector('.sui-plate-name') ?? title, 0],
+                [title.querySelector('.sui-plate-name') ?? title, 0, share(0.6)],
                 [
                   words,
                   glyph
                     ? glyph.getBoundingClientRect().width +
                       parseFloat(getComputedStyle(said).columnGap)
-                    : 0
+                    : 0,
+                  share(0.4)
                 ]
               ];
-              return parts.flatMap(([part, lead]) => {
+              return parts.flatMap(([part, lead, most]) => {
                 const need = wide(part) + lead;
-                return lines(part) > 1 && need < half - 0.5
-                  ? [`${part.textContent?.trim()}: ${lines(part)} lines, ${need}px of ${half}px`]
+                return lines(part) > 1 && need < most - 0.5
+                  ? [`${part.textContent?.trim()}: ${lines(part)} lines, ${need}px of ${most}px`]
                   : [];
               });
             });
