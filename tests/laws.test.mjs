@@ -1858,7 +1858,7 @@ test("L-72 a failed toast's edge carries a quarter of the danger ink", () => {
   assert.match(toaster, /failed: item\.tone === 'danger'/);
   assert.match(
     toaster,
-    /\.failed \{\s*border-color: color-mix\(in srgb, var\(--sui-danger\) 25%, var\(--sui-popover-border\)\);/,
+    /\.failed \{\s*border-color: color-mix\(\s*in srgb,\s*var\(--sui-danger\) 25%,\s*var\(--sui-toast-border, var\(--sui-popover-border\)\)\s*\);/,
     'a failure in a mixed stack reads as one only by its small tile'
   );
 });

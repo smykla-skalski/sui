@@ -379,10 +379,14 @@ A `danger` toast reports a failure and stays too.
     translate: 0 0;
   }
 
-  /* A failure's edge carries a quarter of the danger ink, so it reads as one at a glance in a
-     stack of mixed toasts (L-72). */
+  /* A failure's edge carries a quarter of the danger ink over a toast's own edge, so it reads as
+     one at a glance in a stack of mixed toasts (L-72). */
   .failed {
-    border-color: color-mix(in srgb, var(--sui-danger) 25%, var(--sui-popover-border));
+    border-color: color-mix(
+      in srgb,
+      var(--sui-danger) 25%,
+      var(--sui-toast-border, var(--sui-popover-border))
+    );
   }
 
   @starting-style {
