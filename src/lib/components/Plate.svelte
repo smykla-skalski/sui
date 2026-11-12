@@ -163,6 +163,15 @@ arrives with its words is often not read.
     text-wrap: balance;
   }
 
+  /* Without calc-size() the basis falls back to the title's whole line, which would push every
+     long title's state under it. Capping the title at its share keeps the state beside it; the
+     title then never grows past 60%, so a crowded plate under 22rem gives its title more lines. */
+  @supports not (flex-basis: calc-size(max-content, size)) {
+    .sui-plate-title {
+      max-inline-size: calc(60cqi - var(--sui-space-3) / 2);
+    }
+  }
+
   /* The state's box starts on the middle of the title's first cap band, in the title's face so
      `1cap` is its cap height, and its words reach back up by half their own first line: one
      line of state stands inside the title's line and lends the head no height, so the title
