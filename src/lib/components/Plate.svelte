@@ -167,11 +167,15 @@ a status is on its way, because a region that arrives with its words is often no
   }
 
   /* Without calc-size() the basis falls back to the title's whole line, which would push every
-     long title's state under it. Capping the title at its share keeps the state beside it; the
-     title then never grows past 60%, so a crowded plate under 22rem gives its title more lines. */
+     long title's state under it. Capping the title at its share beside a state keeps the state
+     beside it; the title then never grows past 60% there, so a crowded plate on a phone gives
+     its title more lines. With no state, or under 12rem where the state stands below, the
+     title keeps the whole line. */
   @supports not (flex-basis: calc-size(max-content, size)) {
-    .sui-plate-title {
-      max-inline-size: calc(60cqi - var(--sui-space-3) / 2);
+    @container (width > 12rem) {
+      .sui-plate-head:has(> .sui-plate-status:not(:empty)) > .sui-plate-title {
+        max-inline-size: calc(60cqi - var(--sui-space-3) / 2);
+      }
     }
   }
 
