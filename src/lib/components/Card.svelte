@@ -303,10 +303,11 @@ title, such as "Danger Zone", and holds the acts that cannot be undone, each a `
   }
 
   /* Its box snaps to the pixel with the spare above its cap, so on the shared baseline it
-     reaches no lower than the title's and never lowers the title's cap. */
+     reaches no lower than the title's and never lowers the title's cap. Without calc-size()
+     the spare is padding above it. */
   .sui-card-words > .sui-card-unsaved {
     align-content: end;
-    padding-block: 0;
+    padding-block: var(--sui-block-snap-spare, 0px) 0;
   }
 
   /* The title and the actions share the head's first line at every width: short of room, the
