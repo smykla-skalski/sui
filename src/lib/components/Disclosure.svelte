@@ -24,7 +24,7 @@
     hint?: string;
     /** The summary's accessible name from its words and the hint, in the language's order. */
     summaryName?: (summary: string, hint: string) => string;
-    /** Inline help inside a settings column: smaller, quieter words on the same row. */
+    /** Inline help inside a settings column: quieter words, as wide as they are, on the same row. */
     inline?: boolean;
     open?: boolean;
     /** Layout for the call site only, never the disclosure's own paint. */
@@ -52,13 +52,13 @@ cells stack their secondary text.
 
 - Semantics: a native `<details>` whose `<summary>` is the button, named by `summary` and `hint`, with its expanded state from the browser.
 - Content: one line of summary words that wrap, an optional quiet hint, and any content inside, which starts at the summary's words.
-- States: closed (the chevron points along the line), open (the chevron points down and the guide runs beside the content), hover (the row veil on the summary only), pressed (the pressed veil, inset and 1px sink) and focus (the 2px inset ring). There is no disabled state, because opening only shows words.
+- States: closed (the chevron points along the line), open (the chevron points down and the guide runs beside the content), hover (the row veil on the summary only, as wide as its words on inline help, whose words turn primary), pressed (the pressed veil, inset and 1px sink) and focus (the 2px inset ring). There is no disabled state, because opening only shows words.
 - Keyboard: Tab reaches the summary, and Enter or Space opens and closes it.
 - Pointer and touch: the whole summary row is the target, one control tall, 34px and 44px on a phone or touch screen.
 - Focus: focus stays on the summary when it opens or closes, and find-in-page opens a disclosure that holds the match.
 - Responsive: the hint drops under the words, at their start edge, when the row cannot hold both on one line; words longer than the row wrap and the row grows, with the chevron on the first line.
 - Accessibility: the browser announces expanded and collapsed, the chevron is hidden, and the open state also shows in the chevron's turn and the guide.
-- Localization: every word is the caller's, and `summaryName` joins the summary and the hint; the chevron mirrors and still turns down in a right-to-left page, and the indent and the guide are logical.
+- Localization: every word is the caller's, and `summaryName` joins the summary and the hint; the chevron mirrors and still turns down in a right-to-left page, the indent and the guide are logical, and the hint reads in its own direction.
 - Performance: the content renders closed too, so keep it light; opening fades the content in with a short slide, and only the chevron's turn and the press move otherwise, all removed under reduced motion.
 - Analytics: `open` is bindable and the native `toggle` event reports each opening.
 - Failure: with an empty body it opens to nothing, so leave it out instead; long words in the summary wrap rather than clip.
@@ -74,7 +74,7 @@ cells stack their secondary text.
       >{summary}</span
     >
     {#if hint !== undefined}
-      <span class="sui-disclosure-hint" aria-hidden="true">{hint}</span>
+      <span class="sui-disclosure-hint" dir="auto" aria-hidden="true">{hint}</span>
       <VisuallyHidden>{summaryName(summary, hint)}</VisuallyHidden>
     {/if}
   </summary>
@@ -299,15 +299,19 @@ cells stack their secondary text.
     --sui-local-disclosure-mark: var(--sui-icon-sm);
   }
 
+  /* Inline help is as wide as its words, as a link is, so its veil never reads as a block
+     row's. */
   .inline > .sui-disclosure-summary {
     color: var(--sui-text-secondary);
+    inline-size: var(--sui-inline-snap);
+    max-inline-size: calc(100% + 2 * var(--sui-space-2));
+    font-weight: var(--sui-weight-regular);
   }
 
-  .inline > .sui-disclosure-summary,
-  .inline::before,
-  .inline > .sui-disclosure-body::after {
-    font: var(--sui-weight-regular) var(--sui-font-size-caption) / var(--sui-leading-compact)
-      var(--sui-sans);
+  @media (hover: hover) {
+    .inline > .sui-disclosure-summary:hover {
+      color: var(--sui-text-primary);
+    }
   }
 
   /* The size changes in one step, and only the content's opacity and a short slide move, so

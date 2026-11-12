@@ -68,7 +68,9 @@ live specimens, not a surface of the design, so it may hold cards and dialogs (L
            reads. -->
       <div class="tools">
         <Disclosure summary="Code" bind:open={() => open.value, (next) => (open.value = next)}>
-          {#if open.value}<CodeBlock code={markup} lang="html" bare />{/if}
+          {#if open.value}<div class="markup">
+              <CodeBlock code={markup} lang="html" bare />
+            </div>{/if}
         </Disclosure>
       </div>
     {/if}
@@ -214,13 +216,30 @@ live specimens, not a surface of the design, so it may hold cards and dialogs (L
     );
   }
 
-  /* The Code row is as tall as its disclosure's own target, so the frame's chrome stays
-     lighter than the specimens it closes. */
+  /* The Code row holds its disclosure's own target a step inside the band, so the hover veil
+     never meets the frame's edge, and the frame's chrome stays lighter than the specimens it
+     closes. */
   .tools {
     background: var(--sui-surface-base);
     border-block-start: var(--sui-stroke) solid var(--sui-border-divider);
     min-inline-size: 0;
-    padding: 0 var(--sui-space-4);
+    padding: var(--sui-space-1) var(--sui-space-4);
+  }
+
+  /* Past a phone the Code row's target takes the quiet tier, so the band stays as tall as a
+     compact target alone would be. The markup's own controls keep the frame's compact height. */
+  @media (min-width: 48rem) {
+    .frame {
+      --frame-compact: var(--sui-control-height-compact);
+    }
+
+    .tools {
+      --sui-control-height-compact: var(--sui-tier-quiet);
+    }
+
+    .markup {
+      --sui-control-height-compact: var(--frame-compact);
+    }
   }
 
   /* A phone pads its stages 16px; every frame on a wider page keeps 24px, however narrow its
