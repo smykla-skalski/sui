@@ -234,8 +234,8 @@ test('L-24 a title stands 12px above its description, copy lines 8px apart, form
   );
   assert.match(
     stripComments(read('src/lib/components/Toaster.svelte')),
-    /\.sui-toast-description \{[^}]*line-height: var\(--sui-leading-note\);/,
-    "a toast's description wraps at the note leading"
+    /\.sui-toast-description \{[^}]*text-wrap: balance;[^}]*line-height: var\(--sui-leading-note\);/,
+    "a toast's description wraps at the note leading in balanced lines"
   );
   assert.match(
     stripComments(read('src/lib/components/Modal.svelte')),
@@ -1858,19 +1858,21 @@ test("L-72 a failed toast's edge carries a quarter of the danger ink", () => {
   assert.match(toaster, /failed: item\.tone === 'danger'/);
   assert.match(
     toaster,
-    /\.failed \{\s*border-color: color-mix\(\s*in oklab,\s*var\(--sui-danger\) calc\(var\(--sui-toast-failure\) \* 25 \/ 16\),\s*var\(--sui-toast-border, var\(--sui-popover-border\)\)\s*\);/,
+    /\.failed \{\s*border-color: color-mix\(\s*in oklab,\s*var\(--sui-danger\) var\(--sui-toast-failure-edge\),\s*var\(--sui-toast-border, var\(--sui-popover-border\)\)\s*\);/,
     'a failure in a mixed stack reads as one only by its small tile'
   );
 });
 
 test('L-56 L-72 a failed toast takes a larger share of the danger ink on dark', () => {
-  const share = (/** @type {string} */ selector) =>
-    tokenMap(stripComments(block(selector)))['--sui-toast-failure'];
-  assert.equal(share("[data-sui-theme='light']"), '16%');
+  const shares = (/** @type {string} */ selector) => {
+    const tokens = tokenMap(stripComments(block(selector)));
+    return [tokens['--sui-toast-failure'], tokens['--sui-toast-failure-edge']];
+  };
+  assert.deepEqual(shares("[data-sui-theme='light']"), ['16%', '25%']);
   for (const selector of [":root[data-theme='dark']", ':root:not([data-theme], [data-sui-theme])'])
-    assert.equal(
-      share(selector),
-      '24%',
-      `${selector} keeps a light share, so the failure reads dusty grey`
+    assert.deepEqual(
+      shares(selector),
+      ['24%', '28%'],
+      `${selector}: the tile reads dusty grey at a light share, and an edge past 28% reads as a selection`
     );
 });

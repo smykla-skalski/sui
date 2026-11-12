@@ -385,7 +385,7 @@ A `danger` toast reports a failure and stays too.
   .failed {
     border-color: color-mix(
       in oklab,
-      var(--sui-danger) calc(var(--sui-toast-failure) * 25 / 16),
+      var(--sui-danger) var(--sui-toast-failure-edge),
       var(--sui-toast-border, var(--sui-popover-border))
     );
   }
@@ -536,6 +536,7 @@ A `danger` toast reports a failure and stays too.
 
   /* Wrapped, the reason under the title reads as a note, not a dense block (L-24). */
   .sui-toast-description {
+    text-wrap: balance;
     color: var(--sui-text-secondary);
     line-height: var(--sui-leading-note);
   }
