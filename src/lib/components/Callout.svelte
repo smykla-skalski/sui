@@ -158,8 +158,13 @@ and the unsaved ink, so no neutral block sits on a state (L-92).
 {/if}
 
 <style>
+  /* A quiet ground of its own, a firmer veil of the ink than a row's hover, so a resting message
+     never reads as a hovered row. */
   .sui-callout {
-    background: var(--sui-interactive-hover);
+    background: light-dark(
+      color-mix(in srgb, var(--sui-text-primary) 5%, var(--sui-surface-base)),
+      color-mix(in srgb, var(--sui-text-primary) 6%, var(--sui-surface-base))
+    );
     border: var(--sui-stroke) solid var(--sui-border-subtle);
     border-radius: var(--sui-radius-control);
     box-sizing: border-box;
@@ -198,10 +203,13 @@ and the unsaved ink, so no neutral block sits on a state (L-92).
     /* A default action is quiet on the tint: no ground of its own, an edge of the tone. */
     --sui-surface-raised: transparent;
     --sui-control-border: color-mix(in srgb, var(--sui-warning) 40%, var(--sui-warning-tint));
-    /* A hover the pointer can find on the tint, a step past the tile, and a press a clear step
-       past it. */
+    /* A hover the pointer finds by its edge on the tint, its fill kept light on the light tint
+       so it never reads as chosen, and a press a clear step past it. */
     --sui-control-border-hover: color-mix(in srgb, var(--sui-warning) 75%, var(--sui-warning-tint));
-    --sui-interactive-hover-layer: color-mix(in srgb, var(--sui-warning) 26%, transparent);
+    --sui-interactive-hover-layer: light-dark(
+      color-mix(in srgb, var(--sui-warning) 18%, transparent),
+      color-mix(in srgb, var(--sui-warning) 26%, transparent)
+    );
     --sui-interactive-pressed: color-mix(in srgb, var(--sui-warning) 36%, transparent);
     background: var(--sui-warning-tint);
     border-color: color-mix(in srgb, var(--sui-warning) 30%, var(--sui-warning-tint));
