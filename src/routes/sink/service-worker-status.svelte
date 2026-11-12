@@ -113,6 +113,7 @@
   ground="canvas"
   layout="grid"
   --specimen-min="24rem"
+  --example-max="52.5rem"
 >
   <Specimen label="Ready">
     <ServiceWorkerStatus preview="ready" />
@@ -131,6 +132,7 @@
 <Example
   title="Behaviour"
   note="A deployed version waits in the corner until Reload, and losing the network says so until it returns"
+  --example-max="52.5rem"
 >
   <Specimen label={`Version ${version} serves this page`}>
     <Button onclick={deploy}>Deploy a New Version</Button>

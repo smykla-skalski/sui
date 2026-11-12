@@ -1182,7 +1182,12 @@ suite('overlays', together, () => {
               getComputedStyle(/** @type {Element} */ (notice.querySelector('.title'))).fontSize
           ),
           toast: toastTitle ? getComputedStyle(toastTitle).fontSize : '',
-          widest: Math.max(...notices.map((notice) => notice.getBoundingClientRect().width)),
+          off: notices
+            .map((notice) => {
+              const room = /** @type {Element} */ (notice.parentElement).clientWidth;
+              return notice.getBoundingClientRect().width - Math.min(24 * 16, room);
+            })
+            .filter((gap) => Math.abs(gap) > 0.5),
           reload: [reload(0), reload(1)]
         };
       });
@@ -1192,10 +1197,7 @@ suite('overlays', together, () => {
         Array(4).fill(measured.toast),
         "a notice's title is not set as a toast's"
       );
-      assert.ok(
-        measured.widest <= 24 * 16 + 0.5,
-        `a notice is ${measured.widest}px, past a toast's 24rem`
-      );
+      assert.deepEqual(measured.off, [], "a notice is not a toast's 24rem or the room it has");
       assert.equal(measured.reload[1], measured.reload[0], 'Reloading… is not where Reload was');
     } finally {
       await page.close();

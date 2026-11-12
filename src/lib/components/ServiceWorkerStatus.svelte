@@ -215,7 +215,7 @@ dismisses it, and the return says "You are back online" for five seconds.
 - Keyboard: Tab reaches the bar's buttons after the page's own; Enter or Space presses them; Escape returns focus to where it came from and leaves the notice up.
 - Pointer and touch: the buttons are 34px tall on a pointer and 44px on a phone or touch screen; nothing needs a drag.
 - Focus: opening never takes focus, and a focused control it would cover scrolls clear above it, as the next one Tab reaches does; when a pressed button leaves, focus returns to where it came from, else to the next notice's first button.
-- Responsive: as wide as its words up to 24rem, the buttons wrapping under the copy; on a phone it spans the screen less 16px a side, above the safe area. Below the wide breakpoint the toasts stand above it.
+- Responsive: 24rem wide, as every toast is, or the room it has, the buttons wrapping under the copy; on a phone it spans the screen less 16px a side, above the safe area. Below the wide breakpoint the toasts stand above it.
 - Accessibility: the update, offline and return are each announced politely once; the bar's name is its title; text holds 4.5:1 on the popover ground; forced colors keep its edge.
 - Localization: every word is a prop with an English default; the bar stands at the inline start and its buttons end the line in the reading direction, mirrored in a right-to-left page.
 - Performance: one element and one timer; it rises 8px and fades in, and fades out, and under reduced motion it comes and goes at once.
@@ -275,9 +275,8 @@ dismisses it, and the return says "You are back online" for five seconds.
     color: var(--sui-text-primary);
     flex-wrap: wrap;
     gap: var(--sui-space-3) var(--sui-space-5);
-    inline-size: max-content;
+    inline-size: min(24rem, 100%);
     justify-content: space-between;
-    max-inline-size: min(24rem, 100%);
     padding: var(--sui-space-4);
   }
 
@@ -322,7 +321,7 @@ dismisses it, and the return says "You are back online" for five seconds.
   }
 
   /* The copy asks for its one-line width, so the buttons move under it as soon as it would wrap
-     beside them, and a bar as wide as its words never wraps them by a rounding. */
+     beside them. */
   .copy {
     block-size: var(--sui-block-snap-even);
     display: grid;
