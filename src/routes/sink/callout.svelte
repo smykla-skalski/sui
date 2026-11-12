@@ -134,7 +134,7 @@
 
 <Example
   title="Narrow Width"
-  note="A callout too narrow for its actions beside an 11 rem measure of copy moves them under the copy, from its start edge"
+  note="Too narrow for its actions beside 11 rem of copy, a callout gives them a line from its start edge, under the symbol"
   layout="grid"
 >
   <Specimen label="Quiet">

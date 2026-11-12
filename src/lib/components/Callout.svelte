@@ -238,9 +238,13 @@ and the unsaved ink, so no neutral block sits on a state (L-92).
     --sui-icon-sm: var(--sui-icon-md);
     --sui-icon-base: var(--sui-icon-md);
     align-items: center;
+    /* A quiet tile stands a firm step off the quiet ground, which is itself a light veil. */
     background: var(
       --sui-callout-tile,
-      color-mix(in srgb, var(--sui-text-primary) 8%, transparent)
+      light-dark(
+        color-mix(in srgb, var(--sui-text-primary) 11%, transparent),
+        color-mix(in srgb, var(--sui-text-primary) 9%, transparent)
+      )
     );
     block-size: var(--sui-symbol-tile);
     border-radius: var(--sui-radius-control);
