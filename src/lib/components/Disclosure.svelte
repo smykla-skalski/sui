@@ -40,9 +40,9 @@ browser owns its state, its keyboard, its find-in-page and its accessibility.
 
 The chevron leads the summary's words at the start edge of the text above, as Apple's
 disclosure triangle and the APG pattern draw it, so the open state shows where the reader is
-already looking. The content hangs under the summary's words, and a hairline guide drops from
-the chevron beside it, so the summary and what it reveals read as one unit. Disclosures that
-share a `name` open one at a time. What it reveals sits straight in it, never in a card.
+already looking. The content hangs under the summary's words, and a hairline guide runs under
+the chevron beside it, from the summary's foot to its last ink, so the summary and what it
+reveals read as one unit. Disclosures that share a `name` open one at a time. What it reveals sits straight in it, never in a card.
 Open, its last ink stands as far above its foot as the summary's words stand under its top,
 and a disclosure that closes a card leaves that room to the card's inset.
 
@@ -93,39 +93,9 @@ cells stack their secondary text.
     );
     /* The chevron takes the tier of a glyph beside a control's words (L-68). */
     --sui-local-disclosure-indent: calc(var(--sui-icon-base) + var(--sui-space-2));
-    /* The chevron centres on the first line, so its foot stands this far below the top. */
-    --sui-local-disclosure-foot: calc(
-      (var(--sui-control-height-compact) + var(--sui-icon-base)) / 2
-    );
     margin: 0;
     min-inline-size: 0;
     position: relative;
-  }
-
-  /* The guide drops from under the chevron to the content's last ink, beside a summary that
-     wraps too: a hairline between a keyline and a field's edge, about 17% of the ink in light,
-     a point under a field's 18%, and 19% in dark, where a dark stage swallows a fainter line, so it holds beside fields,
-     never a coloured edge (L-17). It comes before the summary, so the summary's veil and focus
-     ring paint over it. It reads the trailing room in the summary's face. */
-  .sui-disclosure::before {
-    border-inline-start: var(--sui-stroke) solid
-      light-dark(
-        color-mix(in srgb, var(--sui-border-subtle) 20%, var(--sui-border-control)),
-        color-mix(in srgb, var(--sui-border-subtle) 15%, var(--sui-border-control))
-      );
-    content: '';
-    font: var(--sui-weight-medium) var(--sui-font-size-meta) / var(--sui-leading-meta)
-      var(--sui-sans);
-    inset-block: calc(var(--sui-local-disclosure-foot) + var(--sui-space-1))
-      var(--sui-local-disclosure-trail);
-    inset-inline-start: round(calc((var(--sui-icon-base) - var(--sui-stroke)) / 2), 1px);
-    opacity: 0;
-    position: absolute;
-  }
-
-  .sui-disclosure[open]::before {
-    opacity: 1;
-    transition: opacity var(--sui-duration-open) var(--sui-ease-standard);
   }
 
   /* The padding centres one line in the control height. The words and the hint share that
@@ -250,6 +220,28 @@ cells stack their secondary text.
     min-inline-size: 0;
     padding-block-start: var(--sui-row-copy-gap);
     padding-inline-start: var(--sui-local-disclosure-indent);
+    position: relative;
+  }
+
+  /* The guide runs under the chevron from the summary's foot to the content's last ink, so a
+     summary that wraps, or a hint dropped under its words, stands above it and never reads as
+     the content's first line, and a one-line body still gets a rule taller than its words. It
+     is a hairline between a keyline and a field's edge, about 17% of the ink in light, a point
+     under a field's 18%, and 19% in dark, where a dark stage swallows a fainter line, so it
+     holds beside fields, never a coloured edge (L-17). It reads the trailing room in the
+     summary's face. */
+  .sui-disclosure-body::before {
+    border-inline-start: var(--sui-stroke) solid
+      light-dark(
+        color-mix(in srgb, var(--sui-border-subtle) 20%, var(--sui-border-control)),
+        color-mix(in srgb, var(--sui-border-subtle) 15%, var(--sui-border-control))
+      );
+    content: '';
+    font: var(--sui-weight-medium) var(--sui-font-size-meta) / var(--sui-leading-meta)
+      var(--sui-sans);
+    inset-block: 0 var(--sui-local-disclosure-trail);
+    inset-inline-start: round(calc((var(--sui-icon-base) - var(--sui-stroke)) / 2), 1px);
+    position: absolute;
   }
 
   /* Words that open or close the content start at their cap line and end at their baseline,
@@ -279,15 +271,13 @@ cells stack their secondary text.
     text-box: trim-both cap alphabetic;
   }
 
-  /* Without calc-size() the only block rounds up instead, and an empty box before it gives the
+  /* Without calc-size() the only block rounds up instead, and the body's top room gives the
      pixel back when the nearest pixel is the lower one, so its ink stands where it would. The
-     box measures the cap in the disclosure's face, which the content's words take unless they
+     room measures the cap in the disclosure's face, which the content's words take unless they
      set their own size. */
   @supports not (block-size: calc-size(auto, size)) {
-    .sui-disclosure-body:has(> :global(:where(p, ul, ol, dl, blockquote):only-child))::before {
-      content: '';
-      display: block;
-      margin-block-end: calc(round(1cap, 1px) - round(up, 1cap, 1px));
+    .sui-disclosure-body:has(> :global(:where(p, ul, ol, dl, blockquote):only-child)) {
+      padding-block-start: calc(var(--sui-row-copy-gap) + round(1cap, 1px) - round(up, 1cap, 1px));
     }
   }
 
@@ -349,10 +339,6 @@ cells stack their secondary text.
 
     .sui-disclosure-summary:active {
       translate: none;
-    }
-
-    .sui-disclosure[open]::before {
-      transition: none;
     }
 
     @supports selector(::details-content) {
