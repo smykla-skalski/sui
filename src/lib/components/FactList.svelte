@@ -315,8 +315,8 @@ apart, and the action under the value.
 
   /* Inline facts on a phone, or in a page header as narrow as a compact card, mostly take a
      line each, so there each stands on a line of its own, its label in a 7rem column, wide
-     enough for a headline fact's word or two, and its value 12px after it, so the values line
-     up and read down as one list. A value with less room than the label's column beside it, as
+     enough for a headline fact's word or two, a longer word breaking inside it, and its value
+     12px after it, so the values line up and read down as one list. A value with less room than the label's column beside it, as
      at twice the text size, goes under its label. The lines keep the copy's leading, and a
      line that holds a target still grows to it, its words on its middle. */
   @media (max-width: 47.9375rem) {
@@ -351,6 +351,7 @@ apart, and the action under the value.
     .inline .sui-fact-list-label {
       flex: none;
       inline-size: 7rem;
+      overflow-wrap: break-word;
     }
 
     .inline .sui-fact-list-value {
@@ -419,6 +420,7 @@ apart, and the action under the value.
     .inline .sui-fact-list-label {
       flex: none;
       inline-size: 7rem;
+      overflow-wrap: break-word;
     }
 
     .inline .sui-fact-list-value {

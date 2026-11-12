@@ -470,6 +470,15 @@ suite('lists', together, () => {
         );
         for (const fact of facts)
           assert.equal(fact.height, 44, `${fact.label} is ${fact.height}px, off the 44px pitch`);
+        const spill = await list.evaluate((dl) => {
+          const label = /** @type {HTMLElement} */ (dl.querySelector('dt'));
+          const words = label.textContent;
+          label.textContent = 'Synchronisierungsstatus';
+          const over = label.scrollWidth - label.clientWidth;
+          label.textContent = words;
+          return over;
+        });
+        assert.equal(spill, 0, 'a long one-word label paints past its column onto its value');
       }
     );
   });
