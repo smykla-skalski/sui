@@ -272,23 +272,10 @@ and the unsaved ink, so no neutral block sits on a state (L-92).
     text-box: trim-both cap alphabetic;
   }
 
-  /* A callout's title is a sentence, not a heading: it fills its line as a toast's does. */
   .sui-callout-title {
-    text-wrap: pretty;
+    text-wrap: balance;
     color: var(--sui-text-primary);
     font-weight: var(--sui-weight-semibold);
-  }
-
-  /* Wrapped, the reason under the title reads as a note, not a dense block, as a toast's does
-     (L-24). Beside an action, balanced lines leave a gap before it, so the reason fills its
-     line. */
-  .sui-callout-text {
-    text-wrap: balance;
-    line-height: var(--sui-leading-note);
-  }
-
-  .sui-callout-inner:has(> .sui-callout-actions) .sui-callout-text {
-    text-wrap: pretty;
   }
 
   .decision .sui-callout-actions {
