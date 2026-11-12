@@ -197,13 +197,6 @@ its words on the title's edge.
     block-size: var(--sui-block-snap-even);
   }
 
-  /* Proximity: a wrapped title's lines stand 1lh - 1cap apart in ink, so the note stands that
-     far plus the copy gap and the title reads as one block (L-24). Taken from the title's own
-     line height, it holds when a reader raises line spacing (WCAG 1.4.12). */
-  .sui-section-title:has(+ .sui-section-note) {
-    margin-block-end: round(calc(1lh - 1cap), 1px);
-  }
-
   /* A zero-height seat on the middle of the first line's cap band, in the title's face so
      `1cap` is its cap height: the count centres on it and stays by the first line when the
      title wraps. */

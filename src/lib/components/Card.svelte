@@ -70,8 +70,8 @@ Whatever the card holds stands the same inset from all four keylines, to the ink
 sees (L-33): the first ink sits the inset below the top, the last the inset above the bottom,
 and anything that reaches a side stops the inset short of it. The title is a heading at
 `level`, balanced and trimmed to its cap height. A `description` is the title's second line,
-as far below it as the title's own lines stand apart plus 8px, not the first line of the
-body. The title's cap stands the inset below the top. Whatever stands beside the title in
+12px of ink below it as under a toast's or a callout's title (L-24), not the first line of
+the body. The title's cap stands the inset below the top. Whatever stands beside the title in
 `actions`, a button, a switch, a segmented control, a pill or a menu, centres on the title's
 cap band and lends the head no height, so the title, its note and the content stand exactly
 where they stand in the same card with no action; a control taller than the title's line
@@ -399,13 +399,6 @@ title, such as "Danger Zone", and holds the acts that cannot be undone, each a `
     overflow-wrap: break-word;
     text-box: trim-both cap alphabetic;
     text-wrap: balance;
-  }
-
-  /* Proximity: a wrapped title's lines stand 1lh - 1cap apart in ink, so the note stands that
-     far plus the copy gap and the title reads as one block, as on the page header. Taken from
-     the title's own line height, it holds when a reader raises line spacing (WCAG 1.4.12). */
-  .sui-card-title:has(+ .sui-card-note) {
-    margin-block-end: round(calc(1lh - 1cap), 1px);
   }
 
   .sui-card-footer {

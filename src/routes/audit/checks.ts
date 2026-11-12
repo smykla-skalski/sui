@@ -864,12 +864,15 @@ function separators(root: Document): Finding[] {
 function copyRhythm(root: Document): Finding[] {
   const found: Finding[] = [];
   const trimmed = (element: Element) => getComputedStyle(element).textBoxTrim === 'trim-both';
-  // A setting row's status leads its words with a mark, so its trimmed words are the span in it.
+  // A setting row's status leads its words with a mark, and a section's title holds its count
+  // beside them, so the trimmed words are the span in each.
   const words = (element: Element) => {
     if (trimmed(element)) return element;
     const span = element.matches('.sui-setting-state')
       ? element.querySelector(':scope > span')
-      : null;
+      : element.matches('.sui-section-title')
+        ? element.querySelector(':scope > .sui-section-words')
+        : null;
     return span && trimmed(span) ? span : null;
   };
   for (const first of audited(root, 'body *')) {
@@ -896,7 +899,10 @@ function copyRhythm(root: Document): Finding[] {
       [...second.classList].some((name) => name.endsWith('-state-step')) ||
       (second.classList.contains('sui-setting-state') && first.matches('.sui-setting-why'));
     const want = titled || step ? 12 : 8;
-    if (Math.abs(gap - want) > 0.75 && gap < 16)
+    // Words a gap of 16px or more parts belong to another block, but a title's own note is its
+    // second line at any distance.
+    const note = titled && [...second.classList].some((name) => name.endsWith('-note'));
+    if (Math.abs(gap - want) > 0.75 && (gap < 16 || note))
       found.push(
         finding('L-24', second, `title to description gap is ${round(gap)}px, not ${want}px`)
       );
