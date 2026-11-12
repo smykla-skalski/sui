@@ -384,7 +384,7 @@ A `danger` toast reports a failure and stays too.
      one at a glance in a stack of mixed toasts (L-72). */
   .failed {
     border-color: color-mix(
-      in oklab,
+      in oklch,
       var(--sui-danger) var(--sui-toast-failure-edge),
       var(--sui-toast-border, var(--sui-popover-border))
     );
@@ -405,7 +405,7 @@ A `danger` toast reports a failure and stays too.
     --sui-icon-base: var(--sui-icon-md);
     align-items: center;
     background: color-mix(
-      in oklab,
+      in oklch,
       var(--sui-danger) var(--sui-toast-failure),
       var(--sui-popover-bg)
     );
