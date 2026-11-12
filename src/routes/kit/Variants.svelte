@@ -156,7 +156,10 @@ wide matrix on a wider stage scrolls inside it with the row values held, as a da
     grid-template-columns: max-content repeat(var(--columns), max-content);
   }
 
+  /* Surfaces of one row start on one top edge, so a taller one shows its extra height below
+     rather than splitting it above and below its partner. */
   .fill {
+    align-items: start;
     grid-template-columns: max-content repeat(var(--columns), minmax(0, 1fr));
   }
 
