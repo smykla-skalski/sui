@@ -175,7 +175,7 @@
     lineNumbers?: boolean;
     /** Offers a copy control in the corner. */
     copy?: boolean;
-    /** Drops the block's own frame, fill and edge insets, for a host that already frames and insets it. */
+    /** Drops the block's own frame, fill and insets, for a host that already frames and insets it. */
     bare?: boolean;
     /** The scroller's name when it scrolls and has no `label`. */
     regionLabel?: string;
@@ -297,8 +297,11 @@ from the corner and centred on the first line, or in the file name's row when th
     padding: var(--sui-space-2);
   }
 
-  /* A bare block's host insets it, so the control ends on that inset, as the code starts on it. */
+  /* A bare block's host insets it, so the control ends on that inset, as the code starts on it,
+     and still centres on the first line, which now starts at the block's top. */
   .bare .sui-code-block-copy {
+    margin-block-start: calc((var(--sui-leading-meta) - var(--sui-tier-quiet)) / 2);
+    padding-block-start: 0;
     padding-inline-end: 0;
   }
 
@@ -312,6 +315,12 @@ from the corner and centred on the first line, or in the file name's row when th
     min-inline-size: 0;
     overflow-x: auto;
     padding-block: calc((var(--sui-local-code-row) - var(--sui-leading-meta)) / 2);
+  }
+
+  /* A bare block's host gives the room above and below its lines, as it does for any content,
+     so its code stands where the host's words would. */
+  .bare .sui-code-block-scroll {
+    padding-block: 0;
   }
 
   /* The line numbers stay put while the lines scroll under them, so the start fade begins
