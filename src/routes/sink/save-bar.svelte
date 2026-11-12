@@ -223,6 +223,13 @@
     padding: var(--sui-space-4);
   }
 
+  /* On a phone the stage's inset is the pane's, so a second one never narrows the fields. */
+  @media (max-width: 47.9375rem) {
+    .pane:not(.narrow) .scroller {
+      padding-inline: 0;
+    }
+  }
+
   /* A bar that shows brings its own room under it. */
   .scroller:has(> :global(.sui-save-bar:not([hidden]))) {
     padding-block-end: 0;
