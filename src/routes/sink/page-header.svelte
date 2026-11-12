@@ -86,9 +86,14 @@
           />
         {/snippet}
         {#snippet actions()}
-          <Button tone="signal" onclick={() => (checked = !checked)}>
-            {checked ? 'Undo the Check' : 'Check Again'}
-          </Button>
+          <!-- Both words share one cell, so the button keeps the longer one's width as they flip. -->
+          <Button tone="signal" onclick={() => (checked = !checked)}
+            ><span class="flip"
+              ><span class:shown={!checked}>Check Again</span><span class:shown={checked}
+                >Undo the Check</span
+              ></span
+            ></Button
+          >
         {/snippet}
       </PageHeader>
       <p class="view">
@@ -216,6 +221,19 @@
   :global(.specimen:last-child > .body) > .wide {
     border-block-end: 0;
     margin-block-end: calc(-1 * var(--sui-local-bleed, 0px));
+  }
+
+  .flip {
+    display: inline-grid;
+  }
+
+  .flip > span {
+    grid-area: 1 / 1;
+    justify-self: center;
+  }
+
+  .flip > :not(.shown) {
+    visibility: hidden;
   }
 
   .view {

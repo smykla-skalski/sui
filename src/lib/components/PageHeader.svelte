@@ -60,7 +60,7 @@ veil never meets the title. The description stands one 8px copy gap further belo
 the title than the title's own lines stand apart, 19px of ink (18px on a phone), so a title
 that wraps reads as one block and the description as the next. The gap follows the title's
 line height, so it holds when a reader raises line spacing. The description stops at about 65
-characters a line.
+characters a line and wraps at 20px leading, 22px on a phone, as a dialog's does (L-24).
 
 A `status` says the thing's state in words beside the title, such as a `Pill`: it takes the
 title's face, so it centres on the cap band of the title's first line, and a pill there takes
@@ -302,7 +302,7 @@ and the header owes only the difference.
     align-content: center;
     block-size: var(--sui-block-snap);
     color: var(--sui-text-muted);
-    font: var(--sui-weight-regular) var(--sui-font-size-body) / var(--sui-row-copy-leading)
+    font: var(--sui-weight-regular) var(--sui-font-size-body) / var(--sui-leading-note)
       var(--sui-sans);
     margin: 0;
     max-inline-size: var(--sui-measure);

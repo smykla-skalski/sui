@@ -269,6 +269,11 @@ test('L-24 a title stands 12px above its description, copy lines 8px apart, form
     "a save bar's subtitle wraps at the note leading, as a toast's description does"
   );
   assert.match(
+    stripComments(read('src/lib/components/PageHeader.svelte')),
+    /\.sui-page-header-description \{[^}]*font: [^;]*var\(--sui-font-size-body\) \/ var\(--sui-leading-note\)/,
+    "a page header's description is set at the body size and wraps at the note leading"
+  );
+  assert.match(
     stripComments(read('src/lib/components/Modal.svelte')),
     /\.sui-modal-head \{[^}]*gap: var\(--sui-space-4\);/,
     "a dialog's title stands 16px over its description, a step past a card's 12px (L-58)"
