@@ -326,18 +326,21 @@ brings its own room under it, so the scroller needs no end padding.
   onpointerenter={() => (hovered = true)}
   onpointerleave={() => (hovered = false)}
 >
-  <div class="copy" aria-live="polite">
+  <div
+    class={['copy', { refused: !notice && (error || reloadable), conflict: reloadable }]}
+    aria-live="polite"
+  >
     {#if notice}
       <p id={titleId} class="title">
         {told[notice.kind]}
       </p>
     {:else}
+      {#if error || reloadable}
+        <span class="mark"><Icon name="alert" size="base" /></span>
+      {/if}
       <p id={titleId} class="title">{reloadable ? conflictTitle : error ? failedTitle : title}</p>
       {#if error || reloadable}
-        <p class="subtitle error">
-          <span class="mark"><Icon name="alert" size="base" /></span>
-          <span>{error || conflictReason}</span>
-        </p>
+        <p class="subtitle error">{error || conflictReason}</p>
       {:else}
         <p class="subtitle">{subtitle}</p>
       {/if}
@@ -486,25 +489,43 @@ brings its own room under it, so the scroller needs no end padding.
       var(--sui-sans);
   }
 
-  /* A refusal leads with a field error's warning mark at its weight, so it differs from the
-     subtitle by more than colour (WCAG 1.4.1). */
-  .subtitle.error {
-    align-items: start;
-    color: var(--sui-danger);
-    font-weight: var(--sui-weight-medium);
+  /* A refusal leads with a field error's warning mark, and its reason takes a field error's
+     weight, so it differs from the subtitle by more than colour (WCAG 1.4.1). The mark stands
+     beside the whole copy, as a callout's symbol does, so the title and the reason share one
+     start edge. */
+  .copy.refused {
     column-gap: var(--sui-space-2);
-    display: grid;
     grid-template-columns: auto minmax(0, 1fr);
   }
 
-  .subtitle.error > :last-child {
-    text-box: trim-both cap alphabetic;
+  .refused > p {
+    grid-column: 2;
   }
 
-  /* Centred on the first line's cap height, however many lines the reason wraps to. */
+  .subtitle.error {
+    color: var(--sui-danger);
+    font-weight: var(--sui-weight-medium);
+  }
+
+  /* Set in the title's font, so it centres on the title's first cap height however many lines
+     the copy wraps to. */
   .mark {
+    color: var(--sui-danger);
     display: flex;
-    margin-block: round(calc((1cap - var(--sui-icon-base)) / 2), 1px);
+    font: var(--sui-weight-semibold) var(--sui-font-size-body) / var(--sui-leading-meta)
+      var(--sui-sans);
+    grid-row: 1 / span 2;
+    margin-block-start: round(calc((1cap - var(--sui-icon-base)) / 2), 1px);
+  }
+
+  /* A conflict lost no work and waits on the gold Reload, so its mark takes the unsaved ink and
+     its reason the subtitle's, leaving one decision hue on the bar (L-16). */
+  .conflict > .mark {
+    color: var(--sui-unsaved-ink);
+  }
+
+  .conflict > .subtitle.error {
+    color: var(--sui-text-muted);
   }
 
   /* The bar spreads its two parts, so the actions end the line they share with the copy and

@@ -1508,6 +1508,15 @@ suite('lists', together, () => {
         await field.scrollIntoViewIfNeeded();
         // Saving again would be refused, so Reload is the only way on.
         assert.deepEqual(await bar.getByRole('button').allInnerTexts(), ['Reload']);
+        // The mark stands beside the whole copy, centred on the one-line title's cap height.
+        const [mark, title, reason] = await Promise.all(
+          ['.mark svg', '.title', '.subtitle'].map((part) => bar.locator(part).boundingBox())
+        );
+        assert.ok(mark && title && reason, 'the conflict bar has no mark, title or reason');
+        assert.equal(title.x, reason.x, 'the title and its reason start apart');
+        assert.ok(mark.x + mark.width < title.x, 'the mark does not stand before the title');
+        const off = mark.y + mark.height / 2 - (title.y + title.height / 2);
+        assert.ok(Math.abs(off) <= 1, `the mark sits ${off}px off the title's middle`);
 
         const reload = bar.getByRole('button', { name: 'Reload', exact: true });
         await reload.click();

@@ -98,7 +98,7 @@ what the reader is looking at.
 Two tones and no more. `quiet` states a consequence to take in before confirming, and
 `warning` is for the genuinely hazardous one and carries the tint. A screen reader hears
 "Warning:" before its words, because the tint and the icon do not reach it. `decision` is
-the gold surface of an unsaved decision: opaque, with a 2px accent border, and a screen reader
+the gold surface of an unsaved decision: opaque, with a one-stroke gold edge, and a screen reader
 hears `decisionLabel` before its words. Its resolving action wears Button's `decision` tone,
 and every other action keeps the default tone.
 

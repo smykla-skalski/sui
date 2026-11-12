@@ -1907,8 +1907,19 @@ test("L-16 a save bar's refusal leads with a field error's warning mark", () => 
   const source = read('src/lib/components/SaveBar.svelte');
   assert.match(
     source,
-    /<p class="subtitle error">\s*<span class="mark"><Icon name="alert" size="base" \/><\/span>/,
+    /\{#if error \|\| reloadable\}\s*<span class="mark"><Icon name="alert" size="base" \/><\/span>\s*\{\/if\}\s*<p id=\{titleId\} class="title">/,
     'a failed or refused save differs from the subtitle by colour alone'
+  );
+  const css = stripComments(source);
+  assert.match(
+    css,
+    /\.mark \{[^}]*grid-row: 1 \/ span 2;/,
+    "a refusal's mark sits under the title's start, so the title and its reason start apart"
+  );
+  assert.match(
+    css,
+    /\.conflict > \.mark \{\s*color: var\(--sui-unsaved-ink\);\s*\}\s*\.conflict > \.subtitle\.error \{\s*color: var\(--sui-text-muted\);/,
+    "a conflict's danger reason competes with the gold Reload, though no work was lost"
   );
 });
 
