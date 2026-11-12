@@ -1246,6 +1246,8 @@
     --sui-leading-title: 1.75rem;
     --sui-leading-page: var(--sui-leading-page-compact);
 
+    /* A pane insets its content 16px on a phone, as a compact card does. */
+    --sui-rhythm-pane-gutter: var(--sui-space-4);
     /* The space under a page header steps down with the type. */
     --sui-rhythm-head-surface: var(--sui-rhythm-head-surface-compact);
     --sui-rhythm-section-gap: 2rem;

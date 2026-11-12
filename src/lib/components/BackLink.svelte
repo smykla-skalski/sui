@@ -32,14 +32,14 @@ fits the eyebrow's place in a `PageHeader`.
 
 - Semantics: a native `<a href>` named by `label`, with the chevron hidden.
 - Content: `label`, the destination's own name in its own case, such as "All runs", after a chevron that points back.
-- States: rest (action ink at 600, or secondary ink at 400 when `quiet`), hover (primary ink), focus (a 2px ring 2px off), pressed (a 1px sink) and visited, which looks like rest.
+- States: rest (action ink at 600, or secondary ink at 400 when `quiet`), hover (primary ink on a row's veil that reaches 8px past the words), focus (a 2px ring on the veil's edge), pressed (the row's pressed veil) and visited, which looks like rest.
 - Keyboard: Tab reaches it and Enter follows it.
 - Pointer and touch: a 24px tall hit area on a pointer and 44px on a phone or any touch screen, as wide as its words and glyph.
 - Focus: following it moves focus as the browser's navigation does; nothing here moves it.
 - Responsive: one line as wide as its words; a long name wraps beside the chevron.
 - Accessibility: `label` is the name, the glyph is hidden, and both tones hold 4.5:1 on the canvas.
 - Localization: `label` comes from the caller, and the chevron mirrors in a right-to-left page so back still points to the start edge.
-- Performance: one anchor, and only colour and the 1px sink move.
+- Performance: one anchor, and only colour and the veil change.
 - Analytics: the anchor's own `onclick` reports a follow; it adds nothing of its own.
 - Failure: none of its own, because it always has a destination; a missing page is the router's to answer.
 -->
@@ -61,9 +61,10 @@ fits the eyebrow's place in a `PageHeader`.
     gap: var(--sui-space-1);
     inline-size: var(--sui-inline-snap);
     margin-block: round(calc((1cap - var(--sui-control-height-chip)) / 2), 1px);
+    margin-inline: calc(var(--sui-space-2) * -1);
     min-block-size: var(--sui-control-height-chip);
+    padding-inline: var(--sui-space-2);
     text-decoration: none;
-    transition: translate var(--sui-duration-press) var(--sui-ease-standard);
   }
 
   .sui-back-link[data-tone='quiet'] {
@@ -73,19 +74,23 @@ fits the eyebrow's place in a `PageHeader`.
     gap: var(--sui-space-1);
   }
 
+  /* It stands in a breadcrumb's place, so it lights and presses as a crumb does: a row's veil
+     that reaches 8px past its words, which stay where they stood. */
   @media (hover: hover) {
-    .sui-back-link:hover {
+    .sui-back-link:hover:not(:active) {
+      background: var(--sui-row-hover);
       color: var(--sui-text-primary);
     }
   }
 
   .sui-back-link:active {
-    translate: 0 1px;
+    background: var(--sui-row-pressed);
+    color: var(--sui-text-primary);
   }
 
   .sui-back-link:focus-visible {
     outline: var(--sui-focus-ring-width) solid var(--sui-focus);
-    outline-offset: var(--sui-focus-ring-offset);
+    outline-offset: var(--sui-focus-ring-flush);
   }
 
   .sui-back-link-label {
@@ -93,16 +98,6 @@ fits the eyebrow's place in a `PageHeader`.
     block-size: var(--sui-block-snap);
     padding-block: var(--sui-block-snap-room);
     text-box: trim-both cap alphabetic;
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    .sui-back-link {
-      transition: none;
-    }
-
-    .sui-back-link:active {
-      translate: none;
-    }
   }
 
   /* A finger needs a 44px target, so the hit area grows past the drawn box (L-38). */

@@ -53,7 +53,8 @@ facts) and the actions are a second column centred against the whole stack. Wher
 than 20rem, as on a phone or in a narrow pane, the actions move under the copy, 12px below it
 and packed to the start.
 
-The title is 32px on 36px lines, 24px on 28px lines on a phone, and is the page's one `h1`.
+The title is 32px on 36px lines, 24px on 28px lines on a phone or once the header itself is
+36rem wide or narrower, and is the page's one `h1`.
 The eyebrow stands 8px of ink above it. The description stands one 8px copy gap further below
 the title than the title's own lines stand apart, 19px of ink (18px on a phone), so a title
 that wraps reads as one block and the description as the next. The gap follows the title's
@@ -73,7 +74,7 @@ The header is a band of the surface ground over the page's canvas, and its foot 
 hairline (`--sui-border-band`) the band's full width, so the view under it starts on a clean
 cut, as a page's body starts below a toolbar, and the cut still shows where the band and the
 page share one ground. Place it flush with the top and sides of the page's content area: the
-band pads by the pane gutter on every side, the inset the page gives its content, so its words
+band pads by the pane gutter on every side, 24px and 16px on a phone, the inset the page gives its content, so its words
 line up with the view's. A page whose column sits inside a wider band sets
 `--sui-local-head-inset` to its column's inset. With `tabs`, the tabs' own line is the foot, so
 one boundary draws one line (L-109): the header runs their row to the band's edges in the
@@ -88,7 +89,7 @@ and the header owes only the difference.
 - Keyboard: none of its own; Tab reaches the kicker's links and the actions in reading order.
 - Pointer and touch: none of its own; the actions keep their own targets.
 - Focus: nothing here moves focus; a script may move focus to the title as a reading position, after a navigation or from a `ListDetail`, and since it is not a control it draws no ring.
-- Responsive: the header answers to its own width, so the actions wrap under the copy, packed to the start, once the copy would have under 20rem; the title balances its lines, the status moves under a title that leaves it no room, as on a phone, and the copy and the facts wrap.
+- Responsive: the header answers to its own width, so the title takes the phone's size at 36rem or narrower, the actions wrap under the copy, packed to the start, once the copy would have under 20rem; the title balances its lines, the status moves under a title that leaves it no room, as on a phone, and the copy and the facts wrap.
 - Accessibility: the title is a real heading and the copy holds 4.5:1 on the band; the status is a `role="status"` region, so a change is announced politely and never as part of the heading; the eyebrow is uppercase only for its few words; the foot's hairline is a border, so under forced colors, where the band and the page share one ground, it draws in the system's line colour.
 - Localization: it draws no words of its own; the actions pack to the start, which mirrors in a right-to-left page.
 - Performance: static text with no script, except where the browser cannot round a box's height in CSS: there one shared observer pads the copy beside the actions to an even height.
@@ -139,6 +140,7 @@ and the header owes only the difference.
 <style>
   .sui-page-header {
     background: var(--sui-surface-base);
+    container: sui-page-header / inline-size;
     margin: 0 0 calc(var(--sui-rhythm-head-surface) - var(--sui-head-exit-gap, 0px));
     min-inline-size: 0;
     padding: var(--sui-rhythm-pane-gutter)
@@ -302,6 +304,16 @@ and the header owes only the difference.
       );
     }
 
+    .sui-page-header-title,
+    .sui-page-header-heading {
+      font: var(--sui-weight-bold) var(--sui-font-size-page-title-compact) /
+        var(--sui-leading-page-compact) var(--sui-sans);
+    }
+  }
+
+  /* A header as narrow as a compact card (--sui-breakpoint-card), as in a list's detail pane,
+     takes the phone's title too, so a 32px title never fills a column a phone's width. */
+  @container sui-page-header (max-width: 36rem) {
     .sui-page-header-title,
     .sui-page-header-heading {
       font: var(--sui-weight-bold) var(--sui-font-size-page-title-compact) /
