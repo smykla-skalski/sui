@@ -77,17 +77,17 @@ cap band and lends the head no height, so the title, its note and the content st
 where they stand in the same card with no action; a control taller than the title's line
 reaches above and below it into the inset. A framed control ends on the inset, and a ghost
 button or a quiet icon button keeps its words or glyph there instead, with its box as far past
-the end as above the band. A button or a select there stays drawn at 34px on a phone with a
-44px hit area, so it never reaches the keyline.
-The actions never take a line of their own: at every width they stay on the title's first
-line, and short of room the title wraps in what is left beside them, a segmented control turns
-into its select, and the other controls keep their width. The note runs under them at the
-head's full width, save beside a segmented control on a phone or a touch screen, whose track
-draws at 44px, or a select there that keeps its 44px where script cannot open it: both reach
-below the title's line further than the note stands under it. A `footer`'s actions stand beside the copy at its foot while the card holds both next to a 16rem
-measure of copy, wider than a callout's 11rem as a framed button is wider than its quiet ones,
-and on a line of their own under it otherwise, so they keep the inset from the bottom and the
-end in either place. A row list or a `Skeleton` that opens the card hands back what stands above its
+the end as above the band. A button, a select or a segmented track there stays drawn at 34px
+on a phone with a 44px hit area, so it never reaches the keyline. The actions never take a
+line of their own: at every width they stay on the title's first line, and short of room the
+title wraps in what is left beside them, a segmented control turns into its select, and the
+other controls keep their width. The note runs under them at the head's full width, save
+beside a select that keeps its 44px on a phone where script cannot open it, which reaches
+below the title's line further than the note stands under it. A `footer`'s actions stand
+beside the copy at its foot while the card holds both next to a 16rem measure of copy, wider
+than a callout's 11rem as a framed button is wider than its quiet ones, and on a line of their
+own under it otherwise, so they keep the inset from the bottom and the end in either place. A
+row list or a `Skeleton` that opens the card hands back what stands above its
 first row's ink, as it hands back what stands below its last: the card lends the body's first
 child `--sui-local-row-lead` and its last child `--sui-local-row-trail`, so a row that opens or
 closes the card leaves only the inset beside its ink.
@@ -341,17 +341,11 @@ title, such as "Danger Zone", and holds the acts that cannot be undone, each a `
     grid-column: 1 / -1;
   }
 
-  /* A segmented control's track drawn at a finger's 44px, on a phone-wide window or a touch
-     screen as the control heights step, reaches further below the title's line than the note
-     stands, so its note keeps beside it, as beside a select that keeps its own 44px where
-     script cannot open it. The rule reads the control, not the form it shows:
-     that form is set by a resize observer, and a note that moved with it would resize the head
-     within the same frame. */
+  /* A select that keeps its own 44px on a phone, where script cannot open it from its hit
+     area, reaches further below the title's line than the note stands, so its note keeps
+     beside it. */
   @media (max-width: 47.9375rem), (pointer: coarse) {
-    .sui-card-head:has(
-        > .sui-card-actions :global(.sui-segmented),
-        > .sui-card-actions :global(.sui-select[data-seat='own'])
-      )
+    .sui-card-head:has(> .sui-card-actions :global(.sui-select[data-seat='own']))
       > .sui-card-copy
       > .sui-card-note {
       grid-column: 1;

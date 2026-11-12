@@ -609,10 +609,10 @@ suite('navigation', together, () => {
       }
     );
 
-    // 700px is a fine pointer under the phone breakpoint: the track is drawn at 44px and still
-    // fits beside the title, a width the law audit does not run at.
+    // 700px is a fine pointer under the phone breakpoint, where controls step to 44px and the
+    // track still fits beside the title: a width the law audit does not run at.
     test(
-      "a card's note never runs under a 44px track, and a title with no action takes the head",
+      "a card's track stays drawn at 34px with 44px targets, its note under it, and a title with no action takes the head",
       long,
       async () => {
         const page = await sink();
@@ -628,16 +628,25 @@ suite('navigation', together, () => {
             const track = head.querySelector(
               '.sui-card-actions .sui-segmented-track:not(.sui-segmented-ruler)'
             );
+            const name = title.textContent;
             if (!head.querySelector('.sui-card-actions')) {
               const room = head.getBoundingClientRect().width - title.getBoundingClientRect().width;
-              if (room > 0.5) found.push(`${title.textContent} leaves ${room}px`);
+              if (room > 0.5) found.push(`${name} leaves ${room}px`);
             } else if (note && track && shown(track)) {
               tracks += 1;
-              const into = track.getBoundingClientRect().bottom - note.getBoundingClientRect().top;
-              const beside =
-                note.getBoundingClientRect().right <= track.getBoundingClientRect().left;
-              if (into > 0.5 && !beside)
-                found.push(`${title.textContent}: ${into}px into its note`);
+              // A point outside the window hits nothing.
+              track.scrollIntoView({ block: 'center' });
+              const box = track.getBoundingClientRect();
+              if (Math.round(box.height) !== 34) found.push(`${name}: a ${box.height}px track`);
+              if (note.getBoundingClientRect().right <= box.left)
+                found.push(`${name}: its note stands beside the track`);
+              if (box.bottom - note.getBoundingClientRect().top > 0.5)
+                found.push(`${name}: the track reaches into its note`);
+              const option = /** @type {Element} */ (track.querySelector('.sui-segmented-option'));
+              const middle = option.getBoundingClientRect();
+              const hit = document.elementFromPoint(middle.left + middle.width / 2, box.top - 4);
+              if (!hit || !option.contains(hit))
+                found.push(`${name}: 4px over the track is no target`);
             }
           }
           return { tracks, problems: found };
