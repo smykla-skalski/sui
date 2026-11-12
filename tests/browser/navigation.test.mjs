@@ -605,7 +605,11 @@ suite('navigation', together, () => {
           });
         // At 700px the Usage track fits, so its hidden 44px select must lend the head no height.
         await bare.setViewportSize({ width: 700, height: 900 });
-        const off = await bare.evaluate(() => {
+        // A scroll timeline takes the new room on the next frame, and the form follows it.
+        await bare.evaluate(
+          () => new Promise((done) => requestAnimationFrame(() => requestAnimationFrame(done)))
+        );
+        const { off, short } = await bare.evaluate(() => {
           const head = [...document.querySelectorAll('#card .sui-card-head')].find((part) =>
             part.querySelector('.sui-card-actions .sui-segmented-track:not(.sui-segmented-ruler)')
           );
@@ -613,13 +617,29 @@ suite('navigation', together, () => {
             head?.querySelector('.sui-segmented-track:not(.sui-segmented-ruler)')
           );
           const title = /** @type {Element} */ (head?.querySelector('.sui-card-title'));
+          const note = /** @type {Element} */ (head?.querySelector('.sui-card-note'));
           const middle = (/** @type {DOMRect} */ box) => box.top + box.height / 2;
-          return track.checkVisibility({ visibilityProperty: true })
-            ? middle(track.getBoundingClientRect()) - middle(title.getBoundingClientRect())
-            : NaN;
+          return {
+            off: track.checkVisibility({ visibilityProperty: true })
+              ? middle(track.getBoundingClientRect()) - middle(title.getBoundingClientRect())
+              : NaN,
+            // The hidden select draws nothing beside the note, so the note runs to the actions'
+            // end or its measure, whichever comes first.
+            short:
+              Math.min(
+                parseFloat(getComputedStyle(note).maxInlineSize),
+                /** @type {Element} */ (
+                  head?.querySelector('.sui-card-actions')
+                ).getBoundingClientRect().right - note.getBoundingClientRect().left
+              ) - note.getBoundingClientRect().width
+          };
         });
         await bare.close();
         assert.ok(Math.abs(off) <= 0.5, `the fitting track stands ${off}px off its title's middle`);
+        assert.ok(
+          short <= 0.5,
+          `beside a fitting track the note stops ${short}px short of its head`
+        );
         assert.equal(Math.round(height), 44, 'without showPicker the select is not 44px');
         assert.ok(into <= 0.5, `the 44px select reaches ${into}px into its note`);
       }

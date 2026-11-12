@@ -910,7 +910,7 @@ test('L-43 a mark is as wide as what it says', () => {
 test('L-46 no component styles another component through :global', () => {
   // Asking whether a part is there, inside :has(), lays out the asker's own box and paints no
   // part of the other component, so only the rest of a selector is weighed.
-  const asking = /:has\((?:[^()]|\((?:[^()]|\([^()]*\))*\))*\)/g;
+  const asking = /:has\((?:[^()]|\((?:[^()]|\((?:[^()]|\([^()]*\))*\))*\))*\)/g;
   const offenders = Object.entries(styles).flatMap(([path, css]) =>
     [...css.replace(asking, '').matchAll(/:global\(([^)]*)\)/g)]
       .filter(([, inner]) => inner.includes('.sui-'))

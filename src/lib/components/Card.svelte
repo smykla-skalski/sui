@@ -82,7 +82,7 @@ tier's 28px, as a callout's actions are, with a 44px hit area on a phone, so it 
 the keyline. The actions never take a line of their own: at every width they stay on the
 title's first line, and short of room the title wraps in what is left beside them, a segmented control turns into its select, and the
 other controls keep their width. The note runs under them at the head's full width, save
-beside a select that keeps its 44px on a phone where script cannot open it, which reaches
+beside a shown select that keeps its 44px on a phone where script cannot open it, which reaches
 below the title's line further than the note stands under it. A `footer`'s actions stand
 beside the copy at its foot while the card holds both next to a 16rem measure of copy, wider
 than a callout's 11rem as a framed button is wider than its quiet ones, and on a line of their
@@ -357,9 +357,11 @@ title, such as "Danger Zone", and holds the acts that cannot be undone, each a `
 
   /* A select that keeps its own 44px on a phone, where script cannot open it from its hit
      area, reaches further below the title's line than the note stands, so its note keeps
-     beside it. */
+     beside it. A segmented control's select counts only while it stands in for the track. */
   @media (max-width: 47.9375rem), (pointer: coarse) {
-    .sui-card-head:has(> .sui-card-actions :global(.sui-select[data-seat='own']))
+    .sui-card-head:has(
+        > .sui-card-actions :global(.sui-select[data-seat='own']:not(.sui-segmented:not(.short) *))
+      )
       > .sui-card-copy
       > .sui-card-note {
       grid-column: 1;

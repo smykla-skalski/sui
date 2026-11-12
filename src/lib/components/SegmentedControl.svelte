@@ -112,8 +112,13 @@
   function fit(box: HTMLElement) {
     const natural = box.querySelector('.sui-segmented-ruler');
     if (!natural) return;
+    const fitting = () =>
+      box.getBoundingClientRect().width + 0.5 >= natural.getBoundingClientRect().width;
+    // Read before the first paint, so a host that keys its layout on the form, such as a card's
+    // note, draws it right from the first frame instead of moving once the observer reports.
+    fits = fitting();
     const observer = new ResizeObserver(() => {
-      const next = box.getBoundingClientRect().width + 0.5 >= natural.getBoundingClientRect().width;
+      const next = fitting();
       if (next === fits) return;
       const focused = box.contains(document.activeElement);
       fits = next;
