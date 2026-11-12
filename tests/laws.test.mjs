@@ -1911,3 +1911,17 @@ test("L-16 a save bar's refusal leads with a field error's warning mark", () => 
     'a failed or refused save differs from the subtitle by colour alone'
   );
 });
+
+test("L-24 L-54 a save bar's title wraps at the note leading and the bar lifts as a toast", () => {
+  const css = stripComments(read('src/lib/components/SaveBar.svelte'));
+  assert.match(
+    css,
+    /\.title \{[^}]*font: [^;]*\/ var\(--sui-leading-note\)/,
+    "a wrapped save bar title presses into one dense block at a row's copy leading"
+  );
+  assert.match(
+    css,
+    /\.sui-save-bar \{[^}]*box-shadow: var\(--sui-shadow-toast, var\(--sui-shadow-popover\)\);/,
+    "a plate's close shadow draws a dark band under the bar's gold edge"
+  );
+});

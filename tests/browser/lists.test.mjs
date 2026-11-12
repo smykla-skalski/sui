@@ -1430,12 +1430,36 @@ suite('lists', together, () => {
             return { left: Math.round(left), width: Math.round(width) };
           })
         );
-      // The unsaved and saving specimens draw one bar at one width, idle and busy.
-      assert.deepEqual(
-        await boxes(bars.nth(1)),
-        await boxes(bars.nth(0)),
-        'Saving… is not where Save Changes was, so the save moved Discard'
-      );
+      // The unsaved and saving specimens draw one bar at one width, idle and busy. On a phone
+      // the two share a wrapped line, where padding that differs between them splits it unevenly.
+      try {
+        for (const width of [1280, 390]) {
+          await page.setViewportSize({ width, height: 900 });
+          assert.deepEqual(
+            await boxes(bars.nth(1)),
+            await boxes(bars.nth(0)),
+            `at ${width}px Saving… is not where Save Changes was, so the save moved Discard`
+          );
+          const offset = await bars
+            .nth(1)
+            .locator('.sui-button[aria-busy="true"]')
+            .evaluate((button) => {
+              const box = button.getBoundingClientRect();
+              const start = button.querySelector('.sui-button-part')?.getBoundingClientRect().left;
+              const words = [...button.querySelectorAll('.sui-button-words > *')].find(
+                (word) => getComputedStyle(word).visibility === 'visible'
+              );
+              const end = words?.getBoundingClientRect().right ?? 0;
+              return Math.abs((start ?? 0) + end - box.left - box.right) / 2;
+            });
+          assert.ok(
+            offset <= 0.5,
+            `at ${width}px the spinner and Saving… sit ${offset}px off the button's centre`
+          );
+        }
+      } finally {
+        await page.setViewportSize({ width: 1280, height: 900 });
+      }
       const narrow = page
         .locator('#save-bar .specimen', { hasText: 'Long copy' })
         .locator('.sui-save-bar');

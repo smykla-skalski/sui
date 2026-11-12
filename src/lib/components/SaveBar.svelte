@@ -308,15 +308,6 @@ brings its own room under it, so the scroller needs no end padding.
 - Failure: a failed save keeps the bar up with the reason and the work is never dropped on its own; a conflict offers Reload, which drops the draft only with Undo beside it; a reload that fails is the caller's to say, by keeping `dirty` and setting `error`; closing or leaving the page while the bar holds work asks first, as the browser does.
 -->
 
-<!-- Both words take one cell, the one not said hidden, so the button keeps the wider one's
-     width and the press that starts the work never moves Discard (L-64). -->
-{#snippet both(idle: string, working: string, busy: boolean)}
-  <span class="sui-save-bar-label">
-    <span class={{ unsaid: busy }}>{idle}</span>
-    <span class={{ unsaid: !busy }}>{working}</span>
-  </span>
-{/snippet}
-
 <aside
   bind:this={element}
   {@attach settle}
@@ -358,8 +349,8 @@ brings its own room under it, so the scroller needs no end padding.
     </div>
   {:else if !notice && reloadable}
     <div class="actions">
-      <Button tone="decision" loading={reloading} reserve onclick={reload}
-        >{@render both(reloadLabel, reloadingLabel, reloading)}</Button
+      <Button tone="decision" loading={reloading} busyLabel={reloadingLabel} onclick={reload}
+        >{reloadLabel}</Button
       >
     </div>
   {:else if !notice}
@@ -369,9 +360,9 @@ brings its own room under it, so the scroller needs no end padding.
         bind:element={saveButton}
         tone="decision"
         loading={saving}
-        reserve
+        busyLabel={savingLabel}
         aria-keyshortcuts="Control+S Meta+S"
-        onclick={save}>{@render both(saveLabel, savingLabel, saving)}</Button
+        onclick={save}>{saveLabel}</Button
       >
     </div>
   {/if}
@@ -388,7 +379,8 @@ brings its own room under it, so the scroller needs no end padding.
     background: var(--sui-popover-bg);
     border: var(--sui-decision-border-width) solid var(--sui-decision-accent);
     border-radius: var(--sui-radius-surface);
-    box-shadow: var(--sui-shadow-plate);
+    /* It floats over the page as a toast does, so it lifts on a toast's lighter layer (L-54). */
+    box-shadow: var(--sui-shadow-toast, var(--sui-shadow-popover));
     box-sizing: border-box;
     color: var(--sui-text-primary);
     display: flex;
@@ -476,8 +468,10 @@ brings its own room under it, so the scroller needs no end padding.
     text-box: trim-both cap alphabetic;
   }
 
+  /* A long title wraps at a field label's leading, so its lines never press into one block,
+     and at its larger size it still stands tighter than the note under it (L-24). */
   .title {
-    font: var(--sui-weight-semibold) var(--sui-font-size-body) / var(--sui-row-copy-leading)
+    font: var(--sui-weight-semibold) var(--sui-font-size-body) / var(--sui-leading-note)
       var(--sui-sans);
   }
 
@@ -522,20 +516,6 @@ brings its own room under it, so the scroller needs no end padding.
   .actions > :global(*) {
     flex: 1 1 0;
     min-inline-size: fit-content;
-  }
-
-  .sui-save-bar-label {
-    display: grid;
-    justify-items: center;
-  }
-
-  .sui-save-bar-label > * {
-    grid-area: 1 / 1;
-    text-box: trim-both cap alphabetic;
-  }
-
-  .unsaid {
-    visibility: hidden;
   }
 
   .sui-save-bar:not(.notice) .actions {
