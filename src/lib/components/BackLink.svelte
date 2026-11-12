@@ -12,8 +12,9 @@
     href: string;
     label: string;
     /**
-     * `label` is the action ink at 600. `quiet` is the secondary ink at 400, for a page whose
-     * tabs already carry the emphasis. Both keep the destination's own case.
+     * `label` is the action ink at 500, a breadcrumb link's weight, as it takes the same place.
+     * `quiet` is the secondary ink at 400, for a page whose tabs already carry the emphasis.
+     * Both keep the destination's own case.
      */
     tone?: 'label' | 'quiet';
     /** Layout for the call site only, never the link's own paint. */
@@ -32,7 +33,7 @@ fits the eyebrow's place in a `PageHeader`.
 
 - Semantics: a native `<a href>` named by `label`, with the chevron hidden.
 - Content: `label`, the destination's own name in its own case, such as "All runs", after a chevron that points back.
-- States: rest (action ink at 600, or secondary ink at 400 when `quiet`), hover (a deeper action ink, or primary when quiet, on a row's veil that reaches 8px past the words), focus (a 2px ring on the veil's edge), pressed (the row's pressed veil) and visited, which looks like rest.
+- States: rest (action ink at 500, or secondary ink at 400 when `quiet`), hover (a deeper action ink, or primary when quiet, on a row's veil that reaches 8px past the words), focus (a 2px ring on the veil's edge), pressed (the row's pressed veil) and visited, which looks like rest.
 - Keyboard: Tab reaches it and Enter follows it.
 - Pointer and touch: a 24px tall hit area on a pointer and 44px on a phone or any touch screen, as wide as its words and glyph.
 - Focus: following it moves focus as the browser's navigation does; nothing here moves it.
@@ -56,7 +57,7 @@ fits the eyebrow's place in a `PageHeader`.
     box-sizing: border-box;
     color: var(--sui-brand-action-text);
     display: inline-flex;
-    font: var(--sui-weight-semibold) var(--sui-font-size-meta) / var(--sui-leading-flat)
+    font: var(--sui-weight-medium) var(--sui-font-size-meta) / var(--sui-leading-flat)
       var(--sui-sans);
     gap: var(--sui-space-1);
     inline-size: var(--sui-inline-snap);

@@ -231,6 +231,8 @@ and the header owes only the difference.
        title's -0.015em, which the compact title keeps. */
     letter-spacing: -0.022em;
     margin: 0;
+    /* A long title stops at the measure, so it never runs past the copy under it. */
+    max-inline-size: var(--sui-measure);
     overflow-wrap: break-word;
     padding-block: var(--sui-block-snap-room);
     text-box: trim-both cap alphabetic;
