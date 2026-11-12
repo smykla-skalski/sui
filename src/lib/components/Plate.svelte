@@ -63,8 +63,8 @@ room, the title keeps one line while it fits in 60% of the head and the state wh
 in the rest, so a short name stays whole, and past that each wraps within its share, the name
 in the larger one. Neither breaks a word: a state whose longest word cannot stand beside the
 title's share stands under the title instead, as it does under 12rem. The state sits in a polite status region, so a change of state
-is announced without moving focus; pass `state` from the first render, because a region that
-arrives with its words is often not read.
+is announced without moving focus; pass `state` from the first render, an empty string while
+a status is on its way, because a region that arrives with its words is often not read.
 
 - Semantics: a `section` titled by a heading at `level`, with the state in a `role="status"` region.
 - Content: a title that wraps, a `state` in words with an optional `icon` that wears its `tone`, and an optional body.
@@ -83,14 +83,17 @@ arrives with its words is often not read.
 <section {...rest} class={['sui-plate', className, { 'head-only': !children }]}>
   <header class="sui-plate-head">
     <svelte:element this={`h${level}`} class="sui-plate-title">{title}</svelte:element>
-    {#if state}
+    {#if state !== undefined}
       <div class="sui-plate-status" role="status">
-        {#key state}
-          <div class="sui-plate-said" data-tone={tone} in:arrive>
-            {#if icon}<Icon name={icon} size="sm" />{/if}<span class="sui-plate-words">{state}</span
-            >
-          </div>
-        {/key}
+        {#if state}
+          {#key state}
+            <div class="sui-plate-said" data-tone={tone} in:arrive>
+              {#if icon}<Icon name={icon} size="sm" />{/if}<span class="sui-plate-words"
+                >{state}</span
+              >
+            </div>
+          {/key}
+        {/if}
       </div>
     {/if}
   </header>
@@ -183,6 +186,11 @@ arrives with its words is often not read.
     flex: 1000 1 0;
     max-inline-size: max-content;
     padding-block-start: calc(round(up, 1cap, 2px) / 2);
+  }
+
+  /* An empty state keeps its region ready for the words to come, out of the head's flow. */
+  .sui-plate-status:empty {
+    position: absolute;
   }
 
   /* In the state's own face, so `1cap` is its words' cap: the first line of its words centres

@@ -930,6 +930,53 @@ suite('navigation', together, () => {
     );
 
     test(
+      "a plate's empty state keeps its status region, out of the head, for the first words",
+      long,
+      async () => {
+        const page = await openMount(browser, url);
+        try {
+          const seen = await page.evaluate(() => {
+            const { lib, mount, flushSync, state, get, set } = /** @type {any} */ (window);
+            const said = state('');
+            const target = document.createElement('div');
+            // Under 12rem a state stands under the title, so an empty one in the flow would too.
+            target.style.inlineSize = '11rem';
+            document.body.append(target);
+            mount(lib.Plate, {
+              target,
+              props: {
+                title: 'Sync Status',
+                level: 3,
+                get state() {
+                  return get(said);
+                }
+              }
+            });
+            flushSync();
+            const head = /** @type {Element} */ (target.querySelector('.sui-plate-head'));
+            const region = head.querySelector('[role="status"]');
+            const tall = (/** @type {Element} */ part) => part.getBoundingClientRect().height;
+            const grows = tall(head) - tall(/** @type {Element} */ (head.firstElementChild));
+            set(said, 'Up to date');
+            flushSync();
+            return {
+              region: Boolean(region),
+              grows,
+              kept: head.querySelector('[role="status"]') === region,
+              words: region?.textContent?.trim()
+            };
+          });
+          assert.ok(seen.region, 'an empty state drops its status region');
+          assert.ok(seen.grows <= 0.5, `an empty state grows the head by ${seen.grows}px`);
+          assert.ok(seen.kept, 'the first words arrive in a new region rather than the one kept');
+          assert.equal(seen.words, 'Up to date');
+        } finally {
+          await page.close();
+        }
+      }
+    );
+
+    test(
       "a plate's new state fades in on a change, and not under reduced motion",
       long,
       async () => {
