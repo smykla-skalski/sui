@@ -227,7 +227,7 @@
     display: grid;
     grid-template-columns: min(100%, 26rem);
     justify-content: center;
-    padding-block: var(--sui-space-8);
+    padding-block: var(--sui-space-6);
   }
 
   /* A state shown on its bare page needs none of the page's room around it, and fills its
