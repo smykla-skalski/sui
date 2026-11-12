@@ -18,7 +18,7 @@
 <Example
   title="Variants"
   note="The chevron leads the summary’s words at the start edge, and a hint says what is inside"
-  layout="stack"
+  layout="grid"
 >
   <Specimen label="Default">
     <Disclosure summary="Why This Check Is Required">
@@ -40,7 +40,7 @@
 <Example
   title="States"
   note="Open, the chevron turns down and the content hangs under the summary’s words"
-  layout="stack"
+  layout="grid"
 >
   <Specimen label={archived ? 'Open' : 'Closed'}>
     <Disclosure summary="What Happens to Archived Repositories" bind:open={archived}>
@@ -93,16 +93,18 @@
   layout="stack"
 >
   <Specimen label="Open with fields">
-    <Disclosure summary="Advanced Settings" hint="2 fields" open>
-      <div class="fields">
-        <Field
-          label="Commit author"
-          hint="The name on every commit the sync makes"
-          value="sync-bot"
-        />
-        <Field label="Branch prefix" value="sync/" />
-      </div>
-    </Disclosure>
+    <div class="measured">
+      <Disclosure summary="Advanced Settings" hint="2 fields" open>
+        <div class="fields">
+          <Field
+            label="Commit author"
+            hint="The name on every commit the sync makes"
+            value="sync-bot"
+          />
+          <Field label="Branch prefix" value="sync/" />
+        </div>
+      </Disclosure>
+    </div>
   </Specimen>
 </Example>
 
@@ -173,6 +175,11 @@
   /* A divider parts the rows of a group, so it scans as one list of questions. */
   .group > div + div {
     border-block-start: var(--sui-stroke) solid var(--sui-border-divider);
+  }
+
+  /* The hint counts the fields, so the row ends where they do. */
+  .measured {
+    max-inline-size: 37.5rem;
   }
 
   .fields {
