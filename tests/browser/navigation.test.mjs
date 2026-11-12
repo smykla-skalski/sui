@@ -566,6 +566,18 @@ suite('navigation', together, () => {
           'a press 4px over the frame does not open the select'
         );
         await page.keyboard.press('Escape');
+
+        const bare = await browser.newPage({ viewport: { width: 390, height: 900 } });
+        await bare.addInitScript(() => {
+          delete (/** @type {any} */ (HTMLSelectElement.prototype).showPicker);
+        });
+        await visit(bare, new URL('card/', url).href);
+        const height = await bare
+          .locator('.sui-card-actions select')
+          .first()
+          .evaluate((element) => element.getBoundingClientRect().height);
+        await bare.close();
+        assert.equal(Math.round(height), 44, 'without showPicker the select is not 44px');
       }
     );
 

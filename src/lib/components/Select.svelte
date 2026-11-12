@@ -113,15 +113,21 @@
   }
 
   /* A press on the hit area around a seated trigger lands on the field's box, not the select,
-     so the box opens the select as the press on it would have. */
+     so the box opens the select as the press on it would have. A browser that cannot open a
+     select from script keeps the trigger at its own height instead, so a finger still has
+     44px that open it. */
   function reach(box: HTMLElement) {
+    if (!('showPicker' in HTMLSelectElement.prototype)) {
+      box.style.setProperty('--sui-local-field-seat', 'initial');
+      return;
+    }
     const open = (event: MouseEvent) => {
       if (event.target !== box || !element || element.disabled || refusing) return;
       element.focus();
       try {
         element.showPicker();
       } catch {
-        // A browser without `showPicker` for a select still leaves it focused for the keys.
+        // The picker refused to open, as without a user's press; the select keeps the focus.
       }
     };
     box.addEventListener('click', open);
@@ -165,7 +171,7 @@ assistive technology, because a native picker cannot be held open.
 - Content: six or more options with short labels and optional notes, in optional headed groups; disabled options stay in view.
 - States: rest (the control fill, a quiet frame, a recess under its top edge darker than the frame and a 3:1 baseline), hover (a firmer frame and recess), open, focus (a frame and baseline leaning toward the ring, and a 2px ring 2px off it), pressed (a deeper ground, an inset shadow and a 1px sink), invalid (a danger edge kept under focus), prompt (muted ink), held (disabled while a busy dialog or a saving pane around it works, a tab stop that refuses every change while a saving setting row does, 0.6 opacity either way) and disabled (an off text field's well with no frame and muted words, at full strength); in the picker an option is active (a veil) or checked (a check mark).
 - Keyboard: the browser's own select keys: Space, Enter and the arrows open it and move, typing jumps to a label, and Escape closes it; a held select refuses all of them but Tab.
-- Pointer and touch: the trigger is 34px tall on a pointer and 44px on a phone or any touch screen, every option at least that tall, and a phone opens its own picker; a surface may keep the trigger drawn at 34px on a phone with `--sui-local-field-seat`, and a 44px hit area behind it still opens it.
+- Pointer and touch: the trigger is 34px tall on a pointer and 44px on a phone or any touch screen, every option at least that tall, and a phone opens its own picker; a surface may keep the trigger drawn at 34px on a phone with `--sui-local-field-seat`, and a 44px hit area behind it still opens it, or it stays 44px tall in a browser that cannot open a select from script.
 - Focus: focus stays on the trigger while the picker opens and closes.
 - Responsive: the trigger is as wide as its value up to its container and cuts a long value, which the picker shows in full, wrapped. A `bare` trigger holds the width of its longest option, and of every form its options' `forms` list, so a new pick never resizes the field it is joined to.
 - Accessibility: options are native, so their names, groups and states reach every screen reader; a note is in an option's name; edges hold 3:1 and words 4.5:1.
