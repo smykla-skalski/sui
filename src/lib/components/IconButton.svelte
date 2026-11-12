@@ -57,7 +57,7 @@ action are a `Button` with the word beside the glyph.
 - Content: one glyph from the certain set; the label is a verb phrase such as "Remove the rule".
 - States: rest (muted glyph), hover and open (`aria-expanded`, a veil and primary ink), focus (a flush 2px ring), pressed (a deeper veil, an inset shadow and a 1px sink), busy (a spinner in place of the glyph, at full strength), soft-disabled by `aria-disabled` and disabled (the primary ink at 0.6 opacity, as a disabled button's words).
 - Keyboard: Tab reaches it and Enter or Space presses it; a busy or soft-disabled one refuses both and keeps focus.
-- Pointer and touch: 28px square, or 34px with `toolbar`, and a 44px hit area on a phone or any touch screen.
+- Pointer and touch: 28px square, or 34px with `toolbar` (44px on a phone, unless its surface keeps its buttons drawn with `--sui-local-button-seat`), and a 44px hit area on a phone or any touch screen.
 - Focus: a press never moves focus and a busy or soft-disabled button keeps it; the caller moves focus when the press removes the button.
 - Responsive: square at its tier at every width, never taking a text button's padding.
 - Accessibility: the label is the name and the tooltip, `busy` sets `aria-busy` and `aria-disabled`, a caller's `aria-disabled` is honored, and forced colours outline its hover and open states.
@@ -112,9 +112,11 @@ action are a `Button` with the word beside the glyph.
     -webkit-tap-highlight-color: transparent;
   }
 
+  /* A surface that keeps its text buttons drawn at 34px on a phone keeps this one there too,
+     so the two still share a height (L-101). */
   .toolbar {
-    block-size: var(--sui-control-height-compact);
-    inline-size: var(--sui-control-height-compact);
+    block-size: var(--sui-local-button-seat, var(--sui-control-height-compact));
+    inline-size: var(--sui-local-button-seat, var(--sui-control-height-compact));
   }
 
   @media (hover: hover) {

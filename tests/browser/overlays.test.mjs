@@ -1061,30 +1061,36 @@ suite('overlays', together, () => {
     }
   );
 
-  test("L-101 a live toast's action stands beside its copy, Dismiss at its height on its line", async () => {
-    const page = await open();
-    try {
-      await page.locator('#toaster button', { hasText: 'Remove Rule' }).click();
-      await page.locator('.sui-toaster:popover-open .sui-toast').waitFor();
-      const [copy, action, dismiss] = await page.evaluate(() => {
-        const toast = document.querySelector('.sui-toaster:popover-open .sui-toast');
-        return ['.sui-toast-copy', '.sui-toast-main > .sui-button', '[data-dismiss]'].map(
-          (part) => {
-            const { x, y, width, height } = /** @type {Element} */ (
-              toast?.querySelector(part)
-            ).getBoundingClientRect();
-            return { x, y, width, height };
-          }
+  test("L-101 a live toast's action stands beside its copy, Dismiss at its height on its line, on a phone too", async () => {
+    for (const [where, options] of /** @type {const} */ ([
+      ['a pointer', undefined],
+      ['a phone', { viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true }]
+    ])) {
+      const page = await open(options);
+      try {
+        await page.locator('#toaster button', { hasText: 'Remove Rule' }).click();
+        await page.locator('.sui-toaster:popover-open .sui-toast').waitFor();
+        const [copy, action, dismiss] = await page.evaluate(() => {
+          const toast = document.querySelector('.sui-toaster:popover-open .sui-toast');
+          return ['.sui-toast-copy', '.sui-toast-main > .sui-button', '[data-dismiss]'].map(
+            (part) => {
+              const { x, y, width, height } = /** @type {Element} */ (
+                toast?.querySelector(part)
+              ).getBoundingClientRect();
+              return { x, y, width, height };
+            }
+          );
+        });
+        assert.ok(action.x >= copy.x + copy.width, `${where}: Undo stands under the copy`);
+        assert.equal(dismiss.height, action.height, `${where}: Dismiss and Undo differ in height`);
+        assert.equal(action.height, 34, `${where}: Undo is not drawn at the 34px tier`);
+        assert.ok(
+          Math.abs(dismiss.y + dismiss.height / 2 - (action.y + action.height / 2)) <= 0.5,
+          `${where}: Dismiss and Undo stand on different lines`
         );
-      });
-      assert.ok(action.x >= copy.x + copy.width, 'Undo stands under the copy, not beside it');
-      assert.equal(dismiss.height, action.height, 'Dismiss and Undo differ in height');
-      assert.ok(
-        Math.abs(dismiss.y + dismiss.height / 2 - (action.y + action.height / 2)) <= 0.5,
-        'Dismiss and Undo stand on different lines'
-      );
-    } finally {
-      await page.close();
+      } finally {
+        await page.close();
+      }
     }
   });
 

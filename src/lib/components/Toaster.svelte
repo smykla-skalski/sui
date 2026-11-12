@@ -219,7 +219,7 @@ A `danger` toast reports a failure and stays too.
 - Content: a title, one description that never repeats it, at most one action, and Dismiss; a failure carries its symbol; every toast is 24rem wide, or as wide as the room it has under that, so a stack keeps one edge.
 - States: entering (rises 8px and fades in), shown, held while hovered or focused, leaving (fades), `danger` with its symbol in a danger tile, and drawn in place with `preview`.
 - Keyboard: the hotkey (F8) moves focus to the newest toast, Tab moves through its action and Dismiss, and Escape returns focus to where it was.
-- Pointer and touch: the action is a 34px target and Dismiss a 34px one too, both 44px on a phone or touch screen; the corner around the toasts lets presses through to the page.
+- Pointer and touch: the action is a 34px button and Dismiss a 34px one too, both drawn at 34px on a phone or touch screen as a card's actions are, their hit areas 44px; the corner around the toasts lets presses through to the page.
 - Focus: closing a toast returns focus to where it was before it entered the stack, or to the next toast's Dismiss when that place is gone; while toasts show, the page's end scroll padding keeps a control that takes focus clear above them.
 - Responsive: the stack is at most the viewport's width less 32px and its height, and scrolls inside past that with the newest toast kept in view. On a phone it spans the screen, each toast as wide as the stack. Below the wide breakpoint the stack stands 8px above a showing worker status, so the two never meet. Dismiss keeps the inline-end side, centred on the toast's body, the action stands beside the copy on Dismiss's line in a toast with 17rem inside its inset, as one on a phone has, and under the copy in a narrower one, and the copy moves under a failure's symbol when it would get less than 8rem beside it.
 - Accessibility: a failure is announced as an alert and anything else politely, each once, and the stack is a landmark a reader can jump to.
@@ -360,6 +360,7 @@ A `danger` toast reports a failure and stays too.
      Dismiss's glyph from the inline end. Dismiss holds that corner and never wraps, so on a very
      narrow toast the copy moves under the symbol instead. */
   .sui-toast {
+    --sui-local-button-seat: var(--sui-control-height-drawn);
     align-items: flex-start;
     background-color: var(--sui-popover-bg);
     border: var(--sui-stroke) solid var(--sui-toast-border, var(--sui-popover-border));
@@ -466,7 +467,7 @@ A `danger` toast reports a failure and stays too.
       -1 * var(--sui-space-4),
       round(
         calc(
-          (var(--sui-icon-base) - var(--sui-control-height-compact)) / 2 - 5 / 24 *
+          (var(--sui-icon-base) - var(--sui-control-height-drawn)) / 2 - 5 / 24 *
             var(--sui-icon-base)
         ),
         1px
