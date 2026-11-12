@@ -67,7 +67,9 @@ cells stack their secondary text.
   <!-- The drawn words are read once, as one run of text, because Chrome reads a summary's
        words as its description too when an aria-label names it. -->
   <summary class="sui-disclosure-summary">
-    <span class="sui-disclosure-chevron"><Icon name="chevron-right" size="xs" /></span>
+    <span class="sui-disclosure-chevron"
+      ><Icon name="chevron-right" size={inline ? 'sm' : 'base'} /></span
+    >
     <span class="sui-disclosure-label" aria-hidden={hint === undefined ? undefined : 'true'}
       >{summary}</span
     >
@@ -91,9 +93,13 @@ cells stack their secondary text.
       --sui-local-row-trail,
       round(calc((var(--sui-control-height-compact) - 1cap) / 2), 1px)
     );
-    --sui-local-disclosure-indent: calc(var(--sui-icon-xs) + var(--sui-space-2));
+    /* The chevron takes the tier of a glyph beside a control's words (L-68). */
+    --sui-local-disclosure-mark: var(--sui-icon-base);
+    --sui-local-disclosure-indent: calc(var(--sui-local-disclosure-mark) + var(--sui-space-2));
     /* The chevron centres on the first line, so its foot stands this far below the top. */
-    --sui-local-disclosure-foot: calc((var(--sui-control-height-compact) + var(--sui-icon-xs)) / 2);
+    --sui-local-disclosure-foot: calc(
+      (var(--sui-control-height-compact) + var(--sui-local-disclosure-mark)) / 2
+    );
     margin: 0;
     min-inline-size: 0;
     position: relative;
@@ -110,7 +116,10 @@ cells stack their secondary text.
       var(--sui-sans);
     inset-block: calc(var(--sui-local-disclosure-foot) + var(--sui-space-1))
       var(--sui-local-disclosure-trail);
-    inset-inline-start: round(calc((var(--sui-icon-xs) - var(--sui-stroke)) / 2), 1px);
+    inset-inline-start: round(
+      calc((var(--sui-local-disclosure-mark) - var(--sui-stroke)) / 2),
+      1px
+    );
     opacity: 0;
     position: absolute;
   }
@@ -185,9 +194,11 @@ cells stack their secondary text.
      words and the hint share one start edge whichever line each takes, and it centres on the
      first line, which the padding centres in the control height (L-94). */
   .sui-disclosure-chevron {
-    color: var(--sui-text-muted);
+    color: var(--sui-text-secondary);
     display: flex;
-    inset-block-start: calc((var(--sui-control-height-compact) - var(--sui-icon-xs)) / 2);
+    inset-block-start: calc(
+      (var(--sui-control-height-compact) - var(--sui-local-disclosure-mark)) / 2
+    );
     inset-inline-start: var(--sui-space-2);
     position: absolute;
     transition: rotate var(--sui-duration-open) var(--sui-ease-standard);
@@ -284,6 +295,10 @@ cells stack their secondary text.
       var(--sui-sans);
   }
 
+  .inline {
+    --sui-local-disclosure-mark: var(--sui-icon-sm);
+  }
+
   .inline > .sui-disclosure-summary {
     color: var(--sui-text-secondary);
   }
@@ -291,7 +306,7 @@ cells stack their secondary text.
   .inline > .sui-disclosure-summary,
   .inline::before,
   .inline > .sui-disclosure-body::after {
-    font: var(--sui-weight-regular) var(--sui-font-size-compact) / var(--sui-leading-compact)
+    font: var(--sui-weight-regular) var(--sui-font-size-caption) / var(--sui-leading-compact)
       var(--sui-sans);
   }
 

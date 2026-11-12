@@ -12,6 +12,7 @@
   import Specimen from '../kit/Specimen.svelte';
 
   let open = $state(true);
+  let archived = $state(false);
 </script>
 
 <Example
@@ -41,8 +42,8 @@
   note="Open, the chevron turns down and the content hangs under the summary’s words"
   layout="stack"
 >
-  <Specimen label="Closed">
-    <Disclosure summary="What Happens to Archived Repositories">
+  <Specimen label={archived ? 'Open' : 'Closed'}>
+    <Disclosure summary="What Happens to Archived Repositories" bind:open={archived}>
       <p class="copy">They are skipped until someone unarchives them</p>
     </Disclosure>
   </Specimen>
@@ -164,5 +165,6 @@
   .fields {
     display: grid;
     gap: var(--sui-space-4);
+    max-inline-size: 36rem;
   }
 </style>
