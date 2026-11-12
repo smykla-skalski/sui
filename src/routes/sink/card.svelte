@@ -146,16 +146,18 @@
   note="A card holding changes not saved yet says so after its title, to a screen reader too, and takes the unsaved keyline"
   layout="grid"
   ground="canvas"
+  --specimen-min="24rem"
+  --example-max="54rem"
 >
   <Specimen label="Rest">
-    <div class="bare">
+    <div class="bare flush">
       <Card title="Workspace" description="Saved 2&nbsp;minutes ago" level={4}>
         <Field label="Workspace name" value="acme" />
       </Card>
     </div>
   </Specimen>
   <Specimen label="Unsaved">
-    <div class="bare">
+    <div class="bare flush">
       <Card title="Workspace" description="Changed since the last save" level={4} unsaved>
         <Field label="Workspace name" value="acme-platform" />
       </Card>
@@ -168,6 +170,7 @@
   note="A long title balances its lines and keeps its action on the first line"
   layout="stack"
   ground="canvas"
+  --example-max="42rem"
 >
   <Specimen label="Wrapping title & description">
     <Card
@@ -188,6 +191,7 @@
   note="A card 36 rem wide or narrower steps its inset from 20 px to 16 px, by its own width rather than the page’s"
   layout="stack"
   ground="canvas"
+  --example-max="calc(20rem + 2 * var(--sui-space-6))"
 >
   <Specimen label="In 20 rem">
     <div class="narrow">
@@ -224,6 +228,11 @@
     grid-template-columns: min(100%, 26rem);
     justify-content: center;
     padding-block: var(--sui-space-8);
+  }
+
+  /* A state shown on its bare page needs none of the page's room around it. */
+  .flush {
+    padding-block: 0;
   }
 
   .narrow {
