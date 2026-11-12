@@ -582,12 +582,30 @@ suite('navigation', together, () => {
           delete (/** @type {any} */ (HTMLSelectElement.prototype).showPicker);
         });
         await visit(bare, new URL('card/', url).href);
-        const height = await bare
+        const { height, into } = await bare
           .locator('.sui-card-actions select')
           .first()
-          .evaluate((element) => element.getBoundingClientRect().height);
+          .evaluate((element) => {
+            // No sink card holds a select alone, so one stands in for the Members card's button.
+            const box = /** @type {Element} */ (element.closest('.sui-select')).cloneNode(true);
+            const actions = [...document.querySelectorAll('.sui-card-actions')].find((part) =>
+              part.closest('.sui-card')?.textContent?.includes('Members')
+            );
+            actions?.replaceChildren(box);
+            const note = actions?.closest('.sui-card-head')?.querySelector('.sui-card-note');
+            const drawn = /** @type {Element} */ (actions?.querySelector('select'));
+            const overlaps =
+              note && note.getBoundingClientRect().right > drawn.getBoundingClientRect().left;
+            return {
+              height: element.getBoundingClientRect().height,
+              into: overlaps
+                ? drawn.getBoundingClientRect().bottom - note.getBoundingClientRect().top
+                : 0
+            };
+          });
         await bare.close();
         assert.equal(Math.round(height), 44, 'without showPicker the select is not 44px');
+        assert.ok(into <= 0.5, `the 44px select reaches ${into}px into its note`);
       }
     );
 

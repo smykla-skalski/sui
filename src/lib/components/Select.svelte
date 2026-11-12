@@ -118,7 +118,7 @@
      44px that open it. */
   function reach(box: HTMLElement) {
     if (!('showPicker' in HTMLSelectElement.prototype)) {
-      box.style.setProperty('--sui-local-field-seat', 'initial');
+      box.dataset.seat = 'own';
       return;
     }
     const open = (event: MouseEvent) => {
@@ -313,6 +313,10 @@ assistive technology, because a native picker cannot be held open.
 
   /* A field edge, not a button: the native select in every browser, and the base of the
      customizable one. The end padding keeps the value clear of the chevron laid over it. */
+  .sui-select[data-seat='own'] {
+    --sui-local-field-seat: initial;
+  }
+
   .sui-select-control {
     appearance: none;
     background-color: var(--sui-control-bg);
