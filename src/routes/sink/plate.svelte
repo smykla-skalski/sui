@@ -19,7 +19,7 @@
 <Example
   title="Head & Body"
   note="An empty plate still names its subject and state, and a body adds a title step and a rule"
-  layout="stack"
+  layout="pairs"
   ground="canvas"
 >
   <Specimen label="Head only">
@@ -39,7 +39,7 @@
   </Specimen>
 </Example>
 
-<Pair even>
+<Pair even --pair-max="100%">
   <Example
     title="Long Title"
     note="A long title wraps beside the state, which stays on its first line and never moves the title"
