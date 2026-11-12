@@ -1881,3 +1881,11 @@ test('L-56 L-72 a failed toast takes a larger share of the danger ink on dark', 
       `${selector}: the tile reads dusty grey at a light share, and an edge past 28% reads as a selection`
     );
 });
+
+test("L-101 a toast's Dismiss draws its glyph at 18px", () => {
+  assert.match(
+    stripComments(read('src/lib/components/Toaster.svelte')),
+    /\.sui-toast-dismiss \{\s*--sui-icon-base: var\(--sui-icon-md\);/,
+    'a 16px close glyph reads weak beside the action and the failure tile'
+  );
+});

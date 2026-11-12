@@ -456,8 +456,10 @@ A `danger` toast reports a failure and stays too.
      draws nothing around its glyph at rest, so its box reaches into the inset by its own room
      and the glyph's bearing, and the glyph's ink keeps the inset (L-33), as a card's quiet head
      control does. The close glyph's ink starts 5 of its 24 units in: 6 empty units less half
-     its 2-unit stroke. Its box never reaches past the inset, as at twice the text size (L-55). */
+     its 2-unit stroke. Its box never reaches past the inset, as at twice the text size (L-55).
+     Its glyph is 18px, so it holds its own beside the action and the failure tile (L-101). */
   .sui-toast-dismiss {
+    --sui-icon-base: var(--sui-icon-md);
     align-items: center;
     align-self: center;
     block-size: 0;
