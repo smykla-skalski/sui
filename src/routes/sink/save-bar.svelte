@@ -207,16 +207,20 @@
   /* The pane grows with its content, so the bar rests after the last line instead of sticking
      over the middle of the content. */
   .pane {
+    /* Room past each side for the bar's shadow, which the clip would cut at the bar's edge. The
+       scroller pads it back, so the fields and the bar keep the stage's edges. */
+    --pane-room: var(--sui-space-3);
+    margin-inline: calc(-1 * var(--pane-room));
     overflow: hidden;
   }
 
   /* As wide as the bar grows, so the fields and the bar share both edges. */
   .pane:not(.narrow) {
-    max-inline-size: 50rem;
+    max-inline-size: calc(50rem + 2 * var(--pane-room));
   }
 
   .narrow {
-    inline-size: min(100%, 16rem);
+    inline-size: calc(min(100%, 16rem) + 2 * var(--pane-room));
   }
 
   .scroller {
@@ -227,7 +231,7 @@
     overflow-y: auto;
     /* A pane's parts start under its caption as any specimen's do: the specimen's gap is the
        room over them and the stage's inset the room beside them. */
-    padding: 0 0 var(--sui-space-4);
+    padding: 0 var(--pane-room) var(--sui-space-4);
   }
 
   /* A bar that shows brings its own room under it. */
