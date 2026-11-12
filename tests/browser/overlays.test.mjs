@@ -1244,6 +1244,43 @@ suite('overlays', together, () => {
     }
   });
 
+  // WCAG 2.4.11: the notice covers the page's foot as a toast does, so the control that raised
+  // it, still focused, scrolls clear above it as it comes, and so does the next one Tab reaches.
+  test("the service worker's notice never covers the control that has focus", long, async () => {
+    const page = await open({ viewport: { width: 1440, height: 900 } });
+    try {
+      await page.addStyleTag({ content: ':root { scroll-padding-block-end: 0; }' });
+      const deploy = page.locator('#service-worker-status button', {
+        hasText: 'Deploy a New Version'
+      });
+      // The trigger stands at the screen's foot, where the notice comes up.
+      await deploy.evaluate((button) => {
+        const box = button.getBoundingClientRect();
+        scrollBy(0, box.bottom - innerHeight + 24);
+      });
+      await deploy.focus();
+      await page.keyboard.press('Enter');
+      const notice = page.locator('.sui-service-worker-status:popover-open');
+      await notice.waitFor();
+      await page.waitForTimeout(400);
+      const overlap = async () =>
+        page.evaluate(() => {
+          const focused = /** @type {Element} */ (document.activeElement).getBoundingClientRect();
+          const bar = /** @type {Element} */ (
+            document.querySelector('.sui-service-worker-status:popover-open')
+          ).getBoundingClientRect();
+          const across = Math.min(focused.right, bar.right) - Math.max(focused.left, bar.left);
+          const down = Math.min(focused.bottom, bar.bottom) - Math.max(focused.top, bar.top);
+          return across > 0 && down > 0 ? down : 0;
+        });
+      assert.equal(await overlap(), 0, 'the notice came up over the control that raised it');
+      await page.keyboard.press('Tab');
+      assert.equal(await overlap(), 0, 'Tab moved focus under the notice');
+    } finally {
+      await page.close();
+    }
+  });
+
   test(
     'K9 a time writes its whole instant in the page language once the clock ticks',
     long,

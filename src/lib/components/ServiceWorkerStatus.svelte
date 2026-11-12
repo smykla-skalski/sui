@@ -8,6 +8,7 @@
   import { tick } from 'svelte';
   import type { HTMLAttributes } from 'svelte/elements';
   import type { ServiceWorkerState } from '../internal/service-worker.svelte.js';
+  import { clearance } from '../internal/clearance.js';
   import { footing, hosts } from '../internal/toasts.svelte.js';
   import Button from './Button.svelte';
   import VisuallyHidden from './VisuallyHidden.svelte';
@@ -131,6 +132,30 @@
     else element.hidePopover();
   });
 
+  // The notice covers the page's foot as a toast does, so a control the reader tabs to scrolls
+  // clear above it (WCAG 2.4.11), and the control that raised it, still focused, scrolls clear as
+  // it comes. It holds at most half the screen, so the page keeps room to show focus.
+  function clearPage(box: HTMLElement) {
+    if (preview !== undefined || !shown) return;
+    const page = clearance(document.documentElement);
+    const observer = new ResizeObserver(([entry]) => {
+      const inset = parseFloat(getComputedStyle(box).insetBlockEnd) || 0;
+      page.hold({ end: Math.min(entry.borderBoxSize[0].blockSize + inset, innerHeight / 2) });
+      const focused = document.activeElement;
+      if (!(focused instanceof HTMLElement) || box.contains(focused)) return;
+      const [at, bar] = [focused.getBoundingClientRect(), box.getBoundingClientRect()];
+      const meets =
+        Math.min(at.right, bar.right) > Math.max(at.left, bar.left) &&
+        Math.min(at.bottom, bar.bottom) > Math.max(at.top, bar.top);
+      if (meets) focused.scrollIntoView({ block: 'nearest' });
+    });
+    observer.observe(box);
+    return () => {
+      observer.disconnect();
+      page.release();
+    };
+  }
+
   function reload(): void {
     if (!worker) return;
     onreload?.();
@@ -189,7 +214,7 @@ dismisses it, and the return says "You are back online" for five seconds.
 - States: ready (Reload Later and Reload), reloading (Reload busy with `reloadingLabel`, at the width it held, so Reload Later never moves, and Reload Later held), offline (Dismiss), back online (no buttons, leaves after five seconds, held while hovered or focused), hidden while a modal dialog is open, and drawn in place with `preview`.
 - Keyboard: Tab reaches the bar's buttons after the page's own; Enter or Space presses them; Escape returns focus to where it came from and leaves the notice up.
 - Pointer and touch: the buttons are 34px tall on a pointer and 44px on a phone or touch screen; nothing needs a drag.
-- Focus: opening never takes focus; when a pressed button leaves, focus returns to where it came from, else to the next notice's first button.
+- Focus: opening never takes focus, and a focused control it would cover scrolls clear above it, as the next one Tab reaches does; when a pressed button leaves, focus returns to where it came from, else to the next notice's first button.
 - Responsive: as wide as its words up to 24rem, the buttons wrapping under the copy; on a phone it spans the screen less 16px a side, above the safe area. Below the wide breakpoint the toasts stand above it.
 - Accessibility: the update, offline and return are each announced politely once; the bar's name is its title; text holds 4.5:1 on the popover ground; forced colors keep its edge.
 - Localization: every word is a prop with an English default; the bar stands at the inline start and its buttons end the line in the reading direction, mirrored in a right-to-left page.
@@ -214,6 +239,7 @@ dismisses it, and the return says "You are back online" for five seconds.
   {onfocusin}
   {onfocusout}
   {onkeydown}
+  {@attach clearPage}
 >
   <div class="copy">
     <p id={titleId} class="title">{title}</p>
