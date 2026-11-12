@@ -60,7 +60,8 @@ comma or dot is left at either end of a line. A line of plain facts keeps the co
 time that shows its instant, grows to the target's height. The list is trimmed to its first
 cap and its last baseline, so a holder measures its rhythm to the facts' ink. On a phone, or in a
 page header 36rem wide or narrower, where the facts mostly take a line each, each stands on a
-line of its own, its label in a 7rem column and its value 12px after it, so the values line up.
+line of its own, its label in a 7rem column and its value 12px after it, so the values line up,
+and a value with less room than that column, as at twice the text size, goes under its label.
 
 `rows` is a summary list of a thing's properties, as GOV.UK's summary list and Stripe's
 property list draw them: the labels in a column as wide as the longest one, up to 16rem where a
@@ -315,14 +316,15 @@ apart, and the action under the value.
   /* Inline facts on a phone, or in a page header as narrow as a compact card, mostly take a
      line each, so there each stands on a line of its own, its label in a 7rem column, wide
      enough for a headline fact's word or two, and its value 12px after it, so the values line
-     up and read down as one list. The lines keep the copy's leading, and a line that holds a
-     target still grows to it, its words on its middle. */
+     up and read down as one list. A value with less room than the label's column beside it, as
+     at twice the text size, goes under its label. The lines keep the copy's leading, and a
+     line that holds a target still grows to it, its words on its middle. */
   @media (max-width: 47.9375rem) {
     .inline > .sui-fact-list-fact {
       align-items: start;
       column-gap: var(--sui-space-3);
       display: flex;
-      flex-wrap: nowrap;
+      flex-wrap: wrap;
       margin-inline-end: 0;
     }
 
@@ -353,6 +355,7 @@ apart, and the action under the value.
 
     .inline .sui-fact-list-value {
       flex: 1 1 0;
+      min-inline-size: min(100%, 7rem);
     }
 
     /* A list that holds a target sets every line at the target's height, its words on the
@@ -389,7 +392,7 @@ apart, and the action under the value.
       align-items: start;
       column-gap: var(--sui-space-3);
       display: flex;
-      flex-wrap: nowrap;
+      flex-wrap: wrap;
       margin-inline-end: 0;
     }
 
@@ -420,6 +423,7 @@ apart, and the action under the value.
 
     .inline .sui-fact-list-value {
       flex: 1 1 0;
+      min-inline-size: min(100%, 7rem);
     }
 
     /* A list that holds a target sets every line at the target's height, its words on the

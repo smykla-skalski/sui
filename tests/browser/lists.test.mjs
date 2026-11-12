@@ -442,7 +442,7 @@ suite('lists', together, () => {
     );
 
     test(
-      'inline facts flow side by side on a phone, and only a line that holds a target grows to it',
+      'inline facts take a line each on a phone, values in one column, every line at the target',
       long,
       async () => {
         const page = await opened();
@@ -453,18 +453,23 @@ suite('lists', together, () => {
             label: fact.querySelector('dt')?.textContent,
             top: fact.getBoundingClientRect().top,
             height: fact.getBoundingClientRect().height,
+            value: fact.querySelector('dd')?.getBoundingClientRect().left,
             target: fact.querySelector('a[href], [tabindex="0"]') !== null
           }))
         );
-        const byLabel = Object.fromEntries(facts.map((fact) => [fact.label, fact]));
+        assert.ok(
+          facts.some((fact) => fact.target),
+          'the first inline list holds no target to test'
+        );
+        for (let i = 1; i < facts.length; i++)
+          assert.ok(facts[i].top > facts[i - 1].top, `${facts[i].label} shares the line above`);
         assert.equal(
-          byLabel.Branch.top,
-          byLabel.Version.top,
-          'two short facts do not share a line'
+          new Set(facts.map((fact) => fact.value)).size,
+          1,
+          'the values do not start on one column'
         );
         for (const fact of facts)
-          if (fact.target) assert.equal(fact.height, 44, `${fact.label} holds a target under 44px`);
-          else assert.ok(fact.height < 24, `${fact.label} is ${fact.height}px tall with no target`);
+          assert.equal(fact.height, 44, `${fact.label} is ${fact.height}px, off the 44px pitch`);
       }
     );
   });
