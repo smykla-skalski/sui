@@ -581,6 +581,44 @@ suite('navigation', together, () => {
       }
     );
 
+    // 700px is a fine pointer under the phone breakpoint: the track is drawn at 44px and still
+    // fits beside the title, a width the law audit does not run at.
+    test(
+      "a card's note never runs under a 44px track, and a title with no action takes the head",
+      long,
+      async () => {
+        const page = await sink();
+        await resize(page, 700);
+        const { tracks, problems } = await page.evaluate(() => {
+          const shown = (/** @type {Element} */ element) =>
+            element.checkVisibility({ visibilityProperty: true });
+          const found = [];
+          let tracks = 0;
+          for (const head of document.querySelectorAll('#card .sui-card-head')) {
+            const title = /** @type {Element} */ (head.querySelector('.sui-card-title'));
+            const note = head.querySelector('.sui-card-note');
+            const track = head.querySelector(
+              '.sui-card-actions .sui-segmented-track:not(.sui-segmented-ruler)'
+            );
+            if (!head.querySelector('.sui-card-actions')) {
+              const room = head.getBoundingClientRect().width - title.getBoundingClientRect().width;
+              if (room > 0.5) found.push(`${title.textContent} leaves ${room}px`);
+            } else if (note && track && shown(track)) {
+              tracks += 1;
+              const into = track.getBoundingClientRect().bottom - note.getBoundingClientRect().top;
+              const beside =
+                note.getBoundingClientRect().right <= track.getBoundingClientRect().left;
+              if (into > 0.5 && !beside)
+                found.push(`${title.textContent}: ${into}px into its note`);
+            }
+          }
+          return { tracks, problems: found };
+        });
+        assert.ok(tracks > 0, 'no card head draws a segmented track at 700px');
+        assert.deepEqual(problems, []);
+      }
+    );
+
     // A card's head action is the law audit's to check (L-34), at every width it runs.
     test(
       'an action beside a head or a message never moves the copy, and a head keeps it beside',
