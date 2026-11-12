@@ -77,10 +77,10 @@ cap band and lends the head no height, so the title, its note and the content st
 where they stand in the same card with no action; a control taller than the title's line
 reaches above and below it into the inset. A framed control ends on the inset, and a ghost
 button or a quiet icon button keeps its words or glyph there instead, with its box as far past
-the end as above the band. A button, a select or a segmented track there stays drawn at 34px
-on a phone with a 44px hit area, so it never reaches the keyline. The actions never take a
-line of their own: at every width they stay on the title's first line, and short of room the
-title wraps in what is left beside them, a segmented control turns into its select, and the
+the end as above the band. A button, a select or a segmented track there is drawn at the quiet
+tier's 28px, as a callout's actions are, with a 44px hit area on a phone, so it never reaches
+the keyline. The actions never take a line of their own: at every width they stay on the
+title's first line, and short of room the title wraps in what is left beside them, a segmented control turns into its select, and the
 other controls keep their width. The note runs under them at the head's full width, save
 beside a select that keeps its 44px on a phone where script cannot open it, which reaches
 below the title's line further than the note stands under it. A `footer`'s actions stand
@@ -365,8 +365,8 @@ title, such as "Danger Zone", and holds the acts that cannot be undone, each a `
      icon button's glyph to a card's keyline, lets its state layer reach past it, and draws a
      40dp button inside a 48dp target. */
   .sui-card-actions {
-    --sui-local-button-seat: var(--sui-control-height-drawn);
-    --sui-local-field-seat: var(--sui-control-height-drawn);
+    --sui-local-button-seat: var(--sui-tier-quiet);
+    --sui-local-field-seat: var(--sui-tier-quiet);
     align-items: center;
     block-size: round(up, 1cap, 2px);
     display: flex;
@@ -394,7 +394,7 @@ title, such as "Danger Zone", and holds the acts that cannot be undone, each a `
 
   .sui-card-head:has(> .sui-card-actions > :global(.sui-button[data-tone='ghost']):only-of-type)
     > .sui-card-actions {
-    margin-inline-end: calc((round(up, 1cap, 2px) - var(--sui-control-height-drawn)) / 2);
+    margin-inline-end: calc((round(up, 1cap, 2px) - var(--sui-tier-quiet)) / 2);
   }
 
   .sui-card-head:has(> .sui-card-actions > :global(.sui-icon-button):only-of-type)

@@ -543,7 +543,7 @@ suite('navigation', together, () => {
     );
 
     test(
-      "a card head's select stays drawn at the pointer's tier on a phone, and a press beside it opens it",
+      "a card head's select stays drawn at the quiet tier on a phone, and a press beside it opens it",
       long,
       async () => {
         const page = await sink();
@@ -561,7 +561,7 @@ suite('navigation', together, () => {
             card: /** @type {Element} */ (element.closest('.sui-card')).getBoundingClientRect()
           };
         });
-        assert.equal(Math.round(frame.height), 34, 'the select is not drawn at 34px');
+        assert.equal(Math.round(frame.height), 28, 'the select is not drawn at the quiet 28px');
         assert.ok(
           frame.top - card.top >= 4,
           `it stands ${frame.top - card.top}px under the keyline`
@@ -612,7 +612,7 @@ suite('navigation', together, () => {
     // 700px is a fine pointer under the phone breakpoint, where controls step to 44px and the
     // track still fits beside the title: a width the law audit does not run at.
     test(
-      "a card's track stays drawn at 34px with 44px targets, its note under it, and a title with no action takes the head",
+      "a card's track stays drawn at 28px with 44px targets, its note under it, and a title with no action takes the head",
       long,
       async () => {
         const page = await sink();
@@ -637,7 +637,7 @@ suite('navigation', together, () => {
               // A point outside the window hits nothing.
               track.scrollIntoView({ block: 'center' });
               const box = track.getBoundingClientRect();
-              if (Math.round(box.height) !== 34) found.push(`${name}: a ${box.height}px track`);
+              if (Math.round(box.height) !== 28) found.push(`${name}: a ${box.height}px track`);
               if (note.getBoundingClientRect().right <= box.left)
                 found.push(`${name}: its note stands beside the track`);
               if (box.bottom - note.getBoundingClientRect().top > 0.5)
