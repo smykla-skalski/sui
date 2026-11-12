@@ -210,6 +210,11 @@
     overflow: hidden;
   }
 
+  /* As wide as the bar grows, so the fields and the bar share both edges. */
+  .pane:not(.narrow) {
+    max-inline-size: 50rem;
+  }
+
   .narrow {
     inline-size: min(100%, 16rem);
   }
@@ -220,16 +225,9 @@
     display: grid;
     gap: var(--sui-space-4);
     overflow-y: auto;
-    /* A pane's first part stands under its caption as any specimen's does, so the specimen's
-       own gap is the room over it. */
-    padding: 0 var(--sui-space-4) var(--sui-space-4);
-  }
-
-  /* On a phone the stage's inset is the pane's, so a second one never narrows the fields. */
-  @media (max-width: 47.9375rem) {
-    .pane:not(.narrow) .scroller {
-      padding-inline: 0;
-    }
+    /* A pane's parts start under its caption as any specimen's do: the specimen's gap is the
+       room over them and the stage's inset the room beside them. */
+    padding: 0 0 var(--sui-space-4);
   }
 
   /* A bar that shows brings its own room under it. */
