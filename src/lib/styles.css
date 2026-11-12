@@ -202,6 +202,9 @@
   );
   --sui-on-decision-accent: #0c0e11;
   --sui-decision-border-width: 1px;
+  /* The edge of a part that holds a decision: the gold fill itself on light, where it reads as
+     a quiet line, and the unsaved edge on dark, where the bright fill would outshine Save. */
+  --sui-decision-edge: var(--sui-decision-accent);
   --sui-focus: var(--sui-brand-action);
 
   /* An invalid field's ring: its edge's own red, as strong as the calm ring, so the edge and
@@ -742,6 +745,7 @@
   --sui-swatch-edge-floor: 0.65;
   --sui-swatch-edge-ceiling: 1;
   --sui-unsaved-border: #a5772c;
+  --sui-decision-edge: var(--sui-unsaved-border);
   --sui-unsaved-row-hover: color-mix(in srgb, var(--sui-unsaved-ink) 8%, transparent);
   --sui-unsaved-field-hover: color-mix(
     in srgb,
@@ -1001,6 +1005,7 @@
     --sui-swatch-edge-floor: 0.65;
     --sui-swatch-edge-ceiling: 1;
     --sui-unsaved-border: #a5772c;
+    --sui-decision-edge: var(--sui-unsaved-border);
     --sui-unsaved-row-hover: color-mix(in srgb, var(--sui-unsaved-ink) 8%, transparent);
     --sui-unsaved-field-hover: color-mix(
       in srgb,

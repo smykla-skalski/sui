@@ -1925,3 +1925,21 @@ test("L-24 L-54 a save bar's title wraps at the meta leading and the bar lifts a
     "a plate's close shadow draws a dark band under the bar's gold edge"
   );
 });
+
+test('L-16 a decision edge is the gold fill on light and the unsaved edge on dark', () => {
+  assert.equal(
+    light['--sui-decision-edge'] ?? tokenMap(palette)['--sui-decision-edge'],
+    'var(--sui-decision-accent)'
+  );
+  assert.equal(
+    dark['--sui-decision-edge'],
+    'var(--sui-unsaved-border)',
+    'a bright gold frame outshines Save on dark'
+  );
+  for (const path of ['src/lib/components/SaveBar.svelte', 'src/lib/components/Callout.svelte'])
+    assert.match(
+      stripComments(read(path)),
+      /border: var\(--sui-decision-border-width\) solid var\(--sui-decision-edge\);/,
+      `${path} frames a decision in another edge`
+    );
+});

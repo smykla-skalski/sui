@@ -377,7 +377,7 @@ brings its own room under it, so the scroller needs no end padding.
     --sui-surface-raised: transparent;
     align-items: center;
     background: var(--sui-popover-bg);
-    border: var(--sui-decision-border-width) solid var(--sui-decision-accent);
+    border: var(--sui-decision-border-width) solid var(--sui-decision-edge);
     border-radius: var(--sui-radius-surface);
     /* It floats over the page as a toast does, so it lifts on a toast's lighter layer (L-54). */
     box-shadow: var(--sui-shadow-toast, var(--sui-shadow-popover));
@@ -425,7 +425,7 @@ brings its own room under it, so the scroller needs no end padding.
   .sui-save-bar.busy {
     border-color: color-mix(
       in srgb,
-      var(--sui-decision-accent) calc(var(--sui-disabled-opacity) * 100%),
+      var(--sui-decision-edge) calc(var(--sui-disabled-opacity) * 100%),
       transparent
     );
   }

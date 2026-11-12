@@ -213,7 +213,7 @@ and the unsaved ink, so no neutral block sits on a state (L-92).
     --sui-interactive-hover-layer: color-mix(in srgb, var(--sui-unsaved-ink) 10%, transparent);
     --sui-interactive-pressed: color-mix(in srgb, var(--sui-unsaved-ink) 16%, transparent);
     background: var(--sui-popover-bg);
-    border: var(--sui-decision-border-width) solid var(--sui-decision-accent);
+    border: var(--sui-decision-border-width) solid var(--sui-decision-edge);
     box-shadow: var(--sui-shadow-plate);
   }
 
