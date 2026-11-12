@@ -1523,8 +1523,12 @@ function controls(root: Document): Finding[] {
   for (const target of audited(root, INTERACTIVE)) {
     if (target.matches("input[type='checkbox'], input[type='radio']")) continue;
     if (getComputedStyle(target).opacity === '0') continue;
-    // A press on a field's own label focuses it, so the label is part of the target.
-    const hit = (target.matches('input') && target.closest('label')) || target;
+    // A press on a field's own label focuses it, so the label is part of the target, and a
+    // press on a select's box opens it, so the box's hit area is part of the select's.
+    const hit =
+      (target.matches('input') && target.closest('label')) ||
+      (target.matches('select') && target.closest('.sui-select')) ||
+      target;
     const box = hit.getBoundingClientRect();
     const extensions = ['::before', '::after']
       .map((pseudo) => getComputedStyle(hit, pseudo))

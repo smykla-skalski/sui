@@ -112,6 +112,22 @@
     else onmousedown?.(event);
   }
 
+  /* A press on the hit area around a seated trigger lands on the field's box, not the select,
+     so the box opens the select as the press on it would have. */
+  function reach(box: HTMLElement) {
+    const open = (event: MouseEvent) => {
+      if (event.target !== box || !element || element.disabled || refusing) return;
+      element.focus();
+      try {
+        element.showPicker();
+      } catch {
+        // A browser without `showPicker` for a select still leaves it focused for the keys.
+      }
+    };
+    box.addEventListener('click', open);
+    return () => box.removeEventListener('click', open);
+  }
+
   function key(event: KeyboardEvent & { currentTarget: EventTarget & HTMLSelectElement }) {
     const passes = event.key === 'Tab' || (event.key === 'Escape' && !holding);
     if (refusing && !passes) event.preventDefault();
@@ -149,7 +165,7 @@ assistive technology, because a native picker cannot be held open.
 - Content: six or more options with short labels and optional notes, in optional headed groups; disabled options stay in view.
 - States: rest (the control fill, a quiet frame, a recess under its top edge darker than the frame and a 3:1 baseline), hover (a firmer frame and recess), open, focus (a frame and baseline leaning toward the ring, and a 2px ring 2px off it), pressed (a deeper ground, an inset shadow and a 1px sink), invalid (a danger edge kept under focus), prompt (muted ink), held (disabled while a busy dialog or a saving pane around it works, a tab stop that refuses every change while a saving setting row does, 0.6 opacity either way) and disabled (an off text field's well with no frame and muted words, at full strength); in the picker an option is active (a veil) or checked (a check mark).
 - Keyboard: the browser's own select keys: Space, Enter and the arrows open it and move, typing jumps to a label, and Escape closes it; a held select refuses all of them but Tab.
-- Pointer and touch: the trigger is 34px tall on a pointer and 44px on a phone or any touch screen, every option at least that tall, and a phone opens its own picker.
+- Pointer and touch: the trigger is 34px tall on a pointer and 44px on a phone or any touch screen, every option at least that tall, and a phone opens its own picker; a surface may keep the trigger drawn at 34px on a phone with `--sui-local-field-seat`, and a 44px hit area behind it still opens it.
 - Focus: focus stays on the trigger while the picker opens and closes.
 - Responsive: the trigger is as wide as its value up to its container and cuts a long value, which the picker shows in full, wrapped. A `bare` trigger holds the width of its longest option, and of every form its options' `forms` list, so a new pick never resizes the field it is joined to.
 - Accessibility: options are native, so their names, groups and states reach every screen reader; a note is in an option's name; edges hold 3:1 and words 4.5:1.
@@ -191,7 +207,7 @@ assistive technology, because a native picker cannot be held open.
 
 {#snippet field()}
   <!-- A direction passed for the field reaches its chevron as well as the control. -->
-  <span class={['sui-select', { bare }, className]} dir={rest.dir}>
+  <span class={['sui-select', { bare }, className]} dir={rest.dir} {@attach reach}>
     <select
       bind:this={element}
       {...rest}
@@ -273,8 +289,11 @@ assistive technology, because a native picker cannot be held open.
 {/if}
 
 <style>
+  /* The field's box takes the pointer even on a surface that lets it through to a link under
+     its content, as a linked card does, so its hit area answers a press. */
   .sui-select {
     display: inline-grid;
+    pointer-events: auto;
     grid-template-columns: minmax(0, auto);
     max-inline-size: 100%;
     min-inline-size: 0;
@@ -291,7 +310,10 @@ assistive technology, because a native picker cannot be held open.
   .sui-select-control {
     appearance: none;
     background-color: var(--sui-control-bg);
-    block-size: var(--sui-local-control-height, var(--sui-control-height-compact));
+    block-size: var(
+      --sui-local-field-seat,
+      var(--sui-local-control-height, var(--sui-control-height-compact))
+    );
     border: var(--sui-stroke) solid var(--sui-field-frame);
     border-block-end-color: var(--sui-field-border);
     border-radius: var(--sui-radius-control);
@@ -820,10 +842,25 @@ assistive technology, because a native picker cannot be held open.
     }
   }
 
-  /* A phone sets the name at 16px, so its note steps to 14px. */
+  /* A phone sets the name at 16px, so its note steps to 14px. A surface that draws the
+     trigger at the pointer's tier on a phone too (`--sui-local-field-seat`), as a card's head
+     does, still gives a finger 44px: a hit area behind the trigger grows past it, and a press
+     there opens the select (L-38). */
   @media (max-width: 47.9375rem), (pointer: coarse) {
     .sui-select-note {
       font-size: var(--sui-font-size-meta);
+    }
+
+    .sui-select {
+      isolation: isolate;
+      position: relative;
+    }
+
+    .sui-select::after {
+      content: '';
+      inset: calc((100% - max(100%, var(--sui-touch-target))) / 2) 0;
+      position: absolute;
+      z-index: var(--sui-layer-inner-ground);
     }
   }
 

@@ -532,6 +532,43 @@ suite('navigation', together, () => {
       }
     );
 
+    test(
+      "a card head's select stays drawn at the pointer's tier on a phone, and a press beside it opens it",
+      long,
+      async () => {
+        const page = await sink();
+        await resize(page, 390);
+        const select = page.locator('#card .sui-card-actions select').first();
+        await select.scrollIntoViewIfNeeded();
+        const { frame, card } = await select.evaluate((element) => {
+          const opened = /** @type {Window & { opened?: number }} */ (window);
+          opened.opened = 0;
+          // A native picker cannot be read from the page, so the press is counted instead.
+          /** @type {HTMLSelectElement} */ (element).showPicker = () =>
+            void (opened.opened = (opened.opened ?? 0) + 1);
+          return {
+            frame: element.getBoundingClientRect().toJSON(),
+            card: /** @type {Element} */ (element.closest('.sui-card')).getBoundingClientRect()
+          };
+        });
+        assert.equal(Math.round(frame.height), 34, 'the select is not drawn at 34px');
+        assert.ok(
+          frame.top - card.top >= 4,
+          `it stands ${frame.top - card.top}px under the keyline`
+        );
+        await page.mouse.click(frame.left + frame.width / 2, frame.top - 4);
+        assert.deepEqual(
+          await page.evaluate(() => [
+            document.activeElement?.tagName,
+            /** @type {Window & { opened?: number }} */ (window).opened
+          ]),
+          ['SELECT', 1],
+          'a press 4px over the frame does not open the select'
+        );
+        await page.keyboard.press('Escape');
+      }
+    );
+
     // A card's head action is the law audit's to check (L-34), at every width it runs.
     test(
       'an action beside a head or a message never moves the copy, and a head keeps it beside',

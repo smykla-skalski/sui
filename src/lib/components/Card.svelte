@@ -77,7 +77,8 @@ cap band and lends the head no height, so the title, its note and the content st
 where they stand in the same card with no action; a control taller than the title's line
 reaches above and below it into the inset. A framed control ends on the inset, and a ghost
 button or a quiet icon button keeps its words or glyph there instead, with its box as far past
-the end as above the band. A button there stays drawn at 34px on a phone with a 44px hit area.
+the end as above the band. A button or a select there stays drawn at 34px on a phone with a
+44px hit area, so it never reaches the keyline.
 The actions never take a line of their own: at every width they stay on the title's first
 line, and short of room the title and its note wrap in what is left beside them, a segmented
 control turns into its select, and the other controls keep their width. A `footer`'s actions stand beside the copy at its
@@ -320,8 +321,8 @@ title, such as "Danger Zone", and holds the acts that cannot be undone, each a `
      the title's face so `1cap` is the title's, and it gives back all of its height, so the
      copy alone sets the head's and the title, its note and the content stand where they stand
      in a card with no action (L-34). A control taller than the band reaches above and below
-     the title's line into the card's inset; a button there stays drawn at its pointer tier on
-     a phone and grows only its hit area, so it never reaches the keyline. A framed control
+     the title's line into the card's inset; a button or a select there stays drawn at its
+     pointer tier on a phone and grows only its hit area, so it never reaches the keyline. A framed control
      ends on the inset. A ghost button or a quiet icon button draws nothing at rest, so its
      words or glyph keep the inset instead, and its box reaches as far past the end as above
      the band, so a hover or press ground sits square in the card's corner. Material aligns an
@@ -329,6 +330,7 @@ title, such as "Danger Zone", and holds the acts that cannot be undone, each a `
      40dp button inside a 48dp target. */
   .sui-card-actions {
     --sui-local-button-seat: var(--sui-control-height-drawn);
+    --sui-local-field-seat: var(--sui-control-height-drawn);
     align-items: center;
     block-size: round(up, 1cap, 2px);
     display: flex;
