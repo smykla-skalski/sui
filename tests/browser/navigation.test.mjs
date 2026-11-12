@@ -841,6 +841,55 @@ suite('navigation', together, () => {
     );
 
     test(
+      "a plate's new state fades in on a change, and not under reduced motion",
+      long,
+      async () => {
+        const page = await sink();
+        const sync = page.locator('.sui-plate').getByRole('button', { name: 'Sync Now' }).first();
+        const undo = page
+          .locator('.sui-plate')
+          .getByRole('button', { name: 'Undo the Sync' })
+          .first();
+        for (const reducedMotion of /** @type {const} */ (['no-preference', 'reduce'])) {
+          await page.emulateMedia({ reducedMotion });
+          await page.evaluate(() => {
+            const status = document.querySelectorAll('.sui-plate-status');
+            const fades = () =>
+              document
+                .getAnimations()
+                .filter((run) =>
+                  [...status].some((part) =>
+                    part.contains(/** @type {KeyframeEffect} */ (run.effect).target)
+                  )
+                )
+                .map((run) => Number(run.effect?.getTiming().duration));
+            // @ts-expect-error a probe for this test only
+            window.plateFades = { seen: [] };
+            const watch = () => {
+              // @ts-expect-error a probe for this test only
+              window.plateFades.seen.push(...fades());
+              // @ts-expect-error a probe for this test only
+              if (window.plateFades.seen.length < 40) requestAnimationFrame(watch);
+            };
+            requestAnimationFrame(watch);
+          });
+          await sync.click();
+          await page.waitForTimeout(400);
+          // @ts-expect-error a probe for this test only
+          const { seen } = await page.evaluate(() => window.plateFades);
+          await undo.click();
+          // The undo's own fade ends before the next pass watches.
+          await page.waitForTimeout(300);
+          const longest = Math.max(0, ...seen);
+          if (reducedMotion === 'reduce')
+            assert.equal(longest, 0, 'reduced motion keeps a change still');
+          else assert.equal(longest, 160, 'a change fades in over --sui-duration-fast');
+        }
+        await page.emulateMedia({ reducedMotion: 'no-preference' });
+      }
+    );
+
+    test(
       'every sideways scroller fades only the edges with more past them, 20px on a phone, mirrored right to left (L-107)',
       long,
       async () => {

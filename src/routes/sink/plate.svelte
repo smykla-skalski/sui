@@ -18,7 +18,7 @@
 
 <Example
   title="Head & Body"
-  note="An empty plate still names its subject and state, and a body adds a title step and a rule"
+  note="An empty plate still names its subject and state, and a body adds a rule under the head"
   layout="pairs"
   ground="canvas"
 >

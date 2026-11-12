@@ -1,6 +1,7 @@
 <script lang="ts">
   import type { Snippet } from 'svelte';
   import type { HTMLAttributes } from 'svelte/elements';
+  import { cubicOut } from 'svelte/easing';
   import Icon, { type IconName } from '../icons/Icon.svelte';
 
   let {
@@ -20,12 +21,28 @@
     state?: string;
     /** A glyph before the state's words. */
     icon?: IconName;
-    /** The state's tone, worn by its glyph only, so the words keep the secondary ink. */
+    /** The state's tone: its glyph wears every tone, and its words wear a warning or a danger. */
     tone?: 'neutral' | 'success' | 'warning' | 'danger';
     /** Layout for the call site only, never the plate's own paint. */
     class?: HTMLAttributes<HTMLElement>['class'];
     children?: Snippet;
   } & HTMLAttributes<HTMLElement> = $props();
+
+  // A new state fades in where the old one stood, so a change reads as a change. Svelte plays it
+  // only when `state` changes, never on the first paint.
+  function arrive(_node: Element) {
+    const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    // The built stylesheet may write the token in seconds (`.16s`).
+    const time = getComputedStyle(document.documentElement)
+      .getPropertyValue('--sui-duration-fast')
+      .trim();
+    const duration = parseFloat(time) * (time.endsWith('ms') ? 1 : 1000);
+    return {
+      duration: still || !duration ? 0 : duration,
+      easing: cubicOut,
+      css: (t: number) => `opacity: ${t}`
+    };
+  }
 </script>
 
 <!--
@@ -53,9 +70,9 @@ arrives with its words is often not read.
 - Pointer and touch: none of its own; the controls inside keep their own targets.
 - Focus: nothing here moves focus, and an announced change of state leaves focus where it is.
 - Responsive: the state stays on the title's first line until the plate is under 12rem wide, as with text at twice its size, where it stands under the title; beside it, the title and the state each keep one line while it fits in half the head, the title wraps first past that, and the state's words wrap in balanced lines.
-- Accessibility: a change of `status` is announced politely, and the title and state hold 4.5:1.
+- Accessibility: a change of `state` is announced politely, and the title and state hold 4.5:1.
 - Localization: it draws no words of its own; the state sits at the inline end, which mirrors in a right-to-left page.
-- Performance: static layout with no script.
+- Performance: static layout; a change of state fades its words in on opacity alone, and not at all under reduced motion.
 - Analytics: none of its own, because it holds no control.
 - Failure: without a body the plate still names its subject and state, which is how it shows nothing to report; content inside it that failed to load says so in one quiet sentence or an `ErrorState overContent`, never in another frame.
 -->
@@ -67,9 +84,12 @@ arrives with its words is often not read.
     >
     {#if state}
       <div class="sui-plate-status" role="status">
-        <div class="sui-plate-said" data-tone={tone}>
-          {#if icon}<Icon name={icon} size="sm" />{/if}<span class="sui-plate-words">{state}</span>
-        </div>
+        {#key state}
+          <div class="sui-plate-said" data-tone={tone} in:arrive>
+            {#if icon}<Icon name={icon} size="sm" />{/if}<span class="sui-plate-words">{state}</span
+            >
+          </div>
+        {/key}
       </div>
     {/if}
   </header>
@@ -164,7 +184,7 @@ arrives with its words is often not read.
     align-items: start;
     color: var(--sui-text-secondary);
     display: flex;
-    font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-row-copy-leading)
+    font: var(--sui-weight-medium) var(--sui-font-size-meta) / var(--sui-row-copy-leading)
       var(--sui-sans);
     gap: var(--sui-space-2);
     margin-block-start: calc(round(up, 1cap, 2px) / -2);
@@ -176,17 +196,18 @@ arrives with its words is often not read.
     margin-block: calc((round(up, 1cap, 1px) - var(--sui-icon-sm)) / 2);
   }
 
-  /* The glyph wears the tone so a plate that needs the reader is found at a glance, and the
-     words keep the secondary ink and still say the state (L-14). */
+  /* The glyph wears the tone so a plate that needs the reader is found at a glance. A state
+     that needs the reader wears its tone's ink in its words too, as a setting row's problem
+     does, while a quiet or a good state keeps the secondary ink (L-14). */
   [data-tone='success'] > :global(svg) {
     color: var(--sui-success);
   }
 
-  [data-tone='warning'] > :global(svg) {
+  [data-tone='warning'] {
     color: var(--sui-warning);
   }
 
-  [data-tone='danger'] > :global(svg) {
+  [data-tone='danger'] {
     color: var(--sui-danger);
   }
 
