@@ -1887,20 +1887,25 @@ test("L-72 a failed toast's edge carries a quarter of the danger ink", () => {
   );
 });
 
-test("L-72 the service worker's network states carry their tone in the edge, as a failure does", () => {
+test("L-56 L-72 the service worker's network states carry their tone in the edge and a toast's tile", () => {
   const notice = stripComments(read('src/lib/components/ServiceWorkerStatus.svelte'));
   assert.match(notice, /offline: drawn === 'offline', online: drawn === 'online'/);
-  for (const [state, tone] of [
-    ['offline', 'warning'],
-    ['online', 'success']
-  ])
-    assert.match(
-      notice,
-      new RegExp(
-        `\\.${state} \\{\\s*border-color: color-mix\\(\\s*in oklch,\\s*var\\(--sui-${tone}\\) var\\(--sui-toast-failure-edge\\),\\s*var\\(--sui-toast-border, var\\(--sui-popover-border\\)\\)\\s*\\);`
-      ),
-      `the ${state} notice's edge does not carry the ${tone} ink`
-    );
+  assert.match(notice, /\.offline \{\s*--sui-local-notice-tone: var\(--sui-warning\);\s*\}/);
+  assert.match(notice, /\.online \{\s*--sui-local-notice-tone: var\(--sui-success\);\s*\}/);
+  assert.match(
+    notice,
+    /\.offline,\s*\.online \{\s*border-color: color-mix\(\s*in oklch,\s*var\(--sui-local-notice-tone\) var\(--sui-toast-failure-edge\),\s*var\(--sui-toast-border, var\(--sui-popover-border\)\)\s*\);/,
+    "a network notice's edge does not carry its tone as a failed toast's does"
+  );
+  assert.match(
+    notice,
+    /\.sui-toast-mark \{[^}]*background: color-mix\(\s*in oklch,\s*var\(--sui-local-notice-tone\) var\(--sui-toast-failure\),\s*var\(--sui-popover-bg\)\s*\);[^}]*block-size: var\(--sui-symbol-tile-compact\);/,
+    "a network notice's symbol does not stand in a toast's tile of its tone"
+  );
+  assert.match(
+    notice,
+    /<Icon name=\{drawn === 'offline' \? 'warning' : 'success'\} size="base" \/>/
+  );
 });
 
 test('L-56 L-72 a failed toast takes a larger share of the danger ink on dark', () => {

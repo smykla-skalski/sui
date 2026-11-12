@@ -1194,7 +1194,27 @@ suite('overlays', together, () => {
               return notice.getBoundingClientRect().width - Math.min(24 * 16, room);
             })
             .filter((gap) => Math.abs(gap) > 0.5),
-          reload: [reload(0), reload(1)]
+          reload: [reload(0), reload(1)],
+          // Offline closes as a toast does, so it is no taller than its symbol and copy need.
+          offline: (() => {
+            const notice = /** @type {HTMLElement} */ (notices[2]);
+            const style = getComputedStyle(notice);
+            const inner =
+              notice.getBoundingClientRect().height -
+              ['Top', 'Bottom'].reduce(
+                (sum, side) =>
+                  sum +
+                  parseFloat(style.getPropertyValue(`border-${side.toLowerCase()}-width`)) +
+                  parseFloat(style.getPropertyValue(`padding-${side.toLowerCase()}`)),
+                0
+              );
+            const parts = ['.sui-toast-mark', '.copy'].map(
+              (part) =>
+                /** @type {Element} */ (notice.querySelector(part)).getBoundingClientRect().height
+            );
+            const close = notice.querySelector('.sui-toast-dismiss button');
+            return [Math.round(inner - Math.max(...parts)), close?.getAttribute('aria-label')];
+          })()
         };
       });
       // Reload Later and Reload: the width each misses the other's by, and how far the pair
@@ -1240,6 +1260,11 @@ suite('overlays', together, () => {
         "a notice's description is not led as a toast's"
       );
       assert.equal(measured.reload[1], measured.reload[0], 'Reloading… is not where Reload was');
+      assert.deepEqual(
+        measured.offline,
+        [0, 'Dismiss'],
+        'offline does not close with a quiet glyph on its body, no taller than its copy'
+      );
       assert.deepEqual(
         wide,
         Array(2).fill([true, false, true]).flat(),

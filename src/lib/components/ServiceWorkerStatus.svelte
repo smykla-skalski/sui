@@ -11,6 +11,8 @@
   import { clearance } from '../internal/clearance.js';
   import { footing, hosts } from '../internal/toasts.svelte.js';
   import Button from './Button.svelte';
+  import Icon from '../icons/Icon.svelte';
+  import IconButton from './IconButton.svelte';
   import VisuallyHidden from './VisuallyHidden.svelte';
 
   const titleId = $props.id();
@@ -177,7 +179,7 @@
     await tick();
     if (!focused) return;
     if (before?.isConnected) before.focus();
-    else if (shown) element?.querySelector<HTMLElement>('.actions button')?.focus();
+    else if (shown) element?.querySelector<HTMLElement>('button')?.focus();
   }
 
   function onfocusin(event: FocusEvent): void {
@@ -215,8 +217,8 @@ offers it again. Offline is a lasting state, so it stays until the network answe
 dismisses it, and the return says "You are back online" for five seconds.
 
 - Semantics: an `aside` named by its title, in the top layer as a manual popover, with native buttons; each notice is said once from a hidden `status` region kept apart from the bar.
-- Content: a title and a description for an update or for offline, a title alone for the return; at most two buttons; words wrap within a toast's 24rem.
-- States: ready (Reload Later and Reload in the signal tone), reloading (Reload busy with `reloadingLabel`, at the width it held, so Reload Later never moves, and Reload Later held), offline (Dismiss, its edge a quarter of the warning ink), back online (its edge a quarter of the success ink, no buttons, leaves after five seconds, held while hovered or focused), hidden while a modal dialog is open, and drawn in place with `preview`.
+- Content: a title and a description for an update or for offline, a title alone for the return, each network notice led by its tone's symbol in a toast's tile; at most two buttons; words wrap within a toast's 24rem.
+- States: ready (Reload Later and Reload in the signal tone), reloading (Reload busy with `reloadingLabel`, at the width it held, so Reload Later never moves, and Reload Later held), offline (the warning symbol, its edge a quarter of the warning ink, and Dismiss as a toast's quiet close glyph at the inline end), back online (the success symbol and its edge a quarter of the success ink, no buttons, leaves after five seconds, held while hovered or focused), hidden while a modal dialog is open, and drawn in place with `preview`.
 - Keyboard: Tab reaches the bar's buttons after the page's own; Enter or Space presses them; Escape returns focus to where it came from and leaves the notice up.
 - Pointer and touch: the buttons are 34px tall on a pointer and 44px on a phone or touch screen; nothing needs a drag.
 - Focus: opening never takes focus, and a focused control it would cover scrolls clear above it, as the next one Tab reaches does; when a pressed button leaves, focus returns to where it came from, else to the next notice's first button.
@@ -250,35 +252,49 @@ dismisses it, and the return says "You are back online" for five seconds.
   {onkeydown}
   {@attach clearPage}
 >
-  <div class="copy">
-    <p id={titleId} class="title">{title}</p>
-    {#if description}<p class="description">{description}</p>{/if}
+  {#if drawn === 'offline' || drawn === 'online'}
+    <span class="sui-toast-mark"
+      ><Icon name={drawn === 'offline' ? 'warning' : 'success'} size="base" /></span
+    >
+  {/if}
+  <div class="main">
+    <div class="copy sui-toast-copy">
+      <p id={titleId} class="title">{title}</p>
+      {#if description}<p class="description">{description}</p>{/if}
+    </div>
+    {#if drawn === 'ready' || drawn === 'reloading'}
+      <div class="actions pair">
+        <Button disabled={drawn === 'reloading'} onclick={() => putAside('ready')}
+          >{laterLabel}</Button
+        >
+        <Button
+          tone="signal"
+          loading={drawn === 'reloading'}
+          busyLabel={reloadingLabel}
+          onclick={reload}>{reloadLabel}</Button
+        >
+      </div>
+    {/if}
   </div>
-  {#if drawn === 'ready' || drawn === 'reloading'}
-    <div class="actions pair">
-      <Button disabled={drawn === 'reloading'} onclick={() => putAside('ready')}
-        >{laterLabel}</Button
-      >
-      <Button
-        tone="signal"
-        loading={drawn === 'reloading'}
-        busyLabel={reloadingLabel}
-        onclick={reload}>{reloadLabel}</Button
-      >
-    </div>
-  {:else if drawn === 'offline'}
-    <div class="actions">
-      <Button onclick={() => putAside('offline')}>{dismissLabel}</Button>
-    </div>
+  {#if drawn === 'offline'}
+    <span class="sui-toast-dismiss"
+      ><IconButton
+        icon="close"
+        label={dismissLabel}
+        toolbar
+        onclick={() => putAside('offline')}
+      /></span
+    >
   {/if}
 </aside>
 
 <style>
   /* One inset all round, measured to the ink (L-33), as the save bar keeps it. It floats in the
      corner across from the toasts as one of them, so it takes a toast's edge, lift and width
-     (L-54). */
+     (L-54). A network notice leads with its tone's symbol in a toast's tile, and the copy and
+     its buttons stand beside it, so a short title centres on the tile (L-56). */
   .sui-service-worker-status {
-    align-items: center;
+    align-items: flex-start;
     background: var(--sui-popover-bg);
     border: var(--sui-stroke) solid var(--sui-toast-border, var(--sui-popover-border));
     border-radius: var(--sui-radius-surface);
@@ -286,29 +302,85 @@ dismisses it, and the return says "You are back online" for five seconds.
     box-sizing: border-box;
     color: var(--sui-text-primary);
     flex-wrap: wrap;
-    gap: var(--sui-space-3) var(--sui-space-5);
+    gap: var(--sui-space-3);
     inline-size: min(24rem, 100%);
-    justify-content: space-between;
     padding: var(--sui-space-4);
+  }
+
+  .main {
+    align-items: center;
+    display: flex;
+    flex: 1 1 8rem;
+    flex-wrap: wrap;
+    gap: var(--sui-space-3) var(--sui-space-5);
+    justify-content: space-between;
+    min-inline-size: 0;
   }
 
   /* The network's state carries its tone in the edge, a quarter of the warning ink while
      offline and of the success ink once back, as a failed toast's edge carries the danger ink,
-     so the two read apart at a glance and not by their words alone (L-72). */
+     and in its symbol's tile, so the two read apart at a glance and not by their words alone
+     (L-56, L-72). */
   .offline {
+    --sui-local-notice-tone: var(--sui-warning);
+  }
+
+  .online {
+    --sui-local-notice-tone: var(--sui-success);
+  }
+
+  .offline,
+  .online {
     border-color: color-mix(
       in oklch,
-      var(--sui-warning) var(--sui-toast-failure-edge),
+      var(--sui-local-notice-tone) var(--sui-toast-failure-edge),
       var(--sui-toast-border, var(--sui-popover-border))
     );
   }
 
-  .online {
-    border-color: color-mix(
+  .sui-toast-mark {
+    --sui-icon-base: var(--sui-icon-md);
+    align-items: center;
+    background: color-mix(
       in oklch,
-      var(--sui-success) var(--sui-toast-failure-edge),
-      var(--sui-toast-border, var(--sui-popover-border))
+      var(--sui-local-notice-tone) var(--sui-toast-failure),
+      var(--sui-popover-bg)
     );
+    block-size: var(--sui-symbol-tile-compact);
+    border-radius: var(--sui-radius-control);
+    color: var(--sui-local-notice-tone);
+    display: inline-flex;
+    flex: none;
+    inline-size: var(--sui-symbol-tile-compact);
+    justify-content: center;
+  }
+
+  /* Offline closes as a toast does, with a quiet glyph on a zero-height seat on the middle of
+     the notice's body, in a button's 34px tier, its box reaching into the inset by its own
+     room and the glyph's bearing, so the glyph's ink keeps the inset (L-33, L-101). */
+  .sui-toast-dismiss {
+    --sui-icon-base: var(--sui-icon-md);
+    align-items: center;
+    align-self: center;
+    block-size: 0;
+    display: flex;
+    flex: none;
+    margin-inline-end: max(
+      -1 * var(--sui-space-4),
+      round(
+        calc(
+          (var(--sui-icon-base) - var(--sui-control-height-drawn)) / 2 - 5 / 24 *
+            var(--sui-icon-base)
+        ),
+        1px
+      )
+    );
+  }
+
+  /* At least as tall as the tile beside it, so short copy centres on the tile and longer copy
+     starts at its top (L-56). */
+  .sui-toast-mark + .main > .copy {
+    min-block-size: var(--sui-symbol-tile-compact);
   }
 
   /* The toasts hold the inline-end corner, so the bar holds the other one. */
