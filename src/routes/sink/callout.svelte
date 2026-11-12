@@ -65,7 +65,7 @@
 >
   <Specimen label="Unsaved changes">
     <Callout decision title="You have unsaved changes">
-      {#snippet icon()}<Icon name="pending" size="sm" />{/snippet}
+      {#snippet icon()}<Icon name="editor" size="sm" />{/snippet}
       2 settings changed since the last save
       {#snippet actions()}
         <Button>Discard Changes</Button>
@@ -158,7 +158,7 @@
   </Specimen>
   <Specimen label="Decision">
     <Callout decision title="You have unsaved changes">
-      {#snippet icon()}<Icon name="pending" size="sm" />{/snippet}
+      {#snippet icon()}<Icon name="editor" size="sm" />{/snippet}
       2 settings changed since the last save
       {#snippet actions()}
         <Button>Discard Changes</Button>

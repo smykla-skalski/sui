@@ -241,7 +241,7 @@ and the unsaved ink, so no neutral block sits on a state (L-92).
     );
     block-size: var(--sui-symbol-tile);
     border-radius: var(--sui-radius-control);
-    color: var(--sui-callout-mark, var(--sui-text-secondary));
+    color: var(--sui-callout-mark, var(--sui-text-primary));
     display: flex;
     flex: none;
     inline-size: var(--sui-symbol-tile);
