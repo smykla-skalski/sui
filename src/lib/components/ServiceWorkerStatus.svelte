@@ -215,7 +215,7 @@ dismisses it, and the return says "You are back online" for five seconds.
 - Keyboard: Tab reaches the bar's buttons after the page's own; Enter or Space presses them; Escape returns focus to where it came from and leaves the notice up.
 - Pointer and touch: the buttons are 34px tall on a pointer and 44px on a phone or touch screen; nothing needs a drag.
 - Focus: opening never takes focus, and a focused control it would cover scrolls clear above it, as the next one Tab reaches does; when a pressed button leaves, focus returns to where it came from, else to the next notice's first button.
-- Responsive: 24rem wide, as every toast is, or the room it has, the buttons wrapping under the copy; on a phone it spans the screen less 16px a side, above the safe area. Below the wide breakpoint the toasts stand above it.
+- Responsive: 24rem wide, as every toast is, or the room it has, the buttons wrapping under the copy at their words' width; on a phone it spans the screen less 16px a side, above the safe area, and Reload Later and Reload share their line in halves, as a dialog's footer does. Below the wide breakpoint the toasts stand above it.
 - Accessibility: the update, offline and return are each announced politely once; the bar's name is its title; text holds 4.5:1 on the popover ground; forced colors keep its edge.
 - Localization: every word is a prop with an English default; the bar stands at the inline start and its buttons end the line in the reading direction, mirrored in a right-to-left page.
 - Performance: one element and one timer; it rises 8px and fades in, and fades out, and under reduced motion it comes and goes at once.
@@ -246,7 +246,7 @@ dismisses it, and the return says "You are back online" for five seconds.
     {#if description}<p class="description">{description}</p>{/if}
   </div>
   {#if drawn === 'ready' || drawn === 'reloading'}
-    <div class="actions">
+    <div class="actions pair">
       <Button disabled={drawn === 'reloading'} onclick={() => putAside('ready')}
         >{laterLabel}</Button
       >
@@ -368,12 +368,25 @@ dismisses it, and the return says "You are back online" for five seconds.
     gap: var(--sui-space-2);
   }
 
-  /* On a phone the bar spans the screen, as the toasts do. */
+  /* On a phone the bar spans the screen, as the toasts do, and Reload Later and Reload share
+     their line in halves, as a dialog's footer does there, so the pair never leaves a ragged
+     gap at the end of a line that wide. Wider, each keeps its words' width, so the deferral
+     never weighs as much as the answer. */
   @media (max-width: 47.9375rem) {
     .sui-service-worker-status:not(.preview) {
       inline-size: auto;
       inset-inline-end: max(var(--sui-space-4), var(--sui-safe-end));
       max-inline-size: none;
+    }
+
+    .pair {
+      --sui-local-button-span: 100%;
+      flex-grow: 1;
+    }
+
+    .pair > :global(*) {
+      flex: 1 1 0;
+      min-inline-size: fit-content;
     }
   }
 

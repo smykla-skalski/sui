@@ -1197,6 +1197,35 @@ suite('overlays', together, () => {
           reload: [reload(0), reload(1)]
         };
       });
+      // Reload Later and Reload: the width each misses the other's by, and how far the pair
+      // stands off each inner edge of the notice.
+      const pair = () =>
+        page.evaluate(() =>
+          [
+            ...document.querySelectorAll(
+              '#service-worker-status .sui-service-worker-status.preview'
+            )
+          ]
+            .slice(0, 2)
+            .flatMap((notice) => {
+              const style = getComputedStyle(notice);
+              const box = notice.getBoundingClientRect();
+              const start =
+                box.left + parseFloat(style.borderLeftWidth) + parseFloat(style.paddingLeft);
+              const end =
+                box.right - parseFloat(style.borderRightWidth) - parseFloat(style.paddingRight);
+              const [later, now] = [...notice.querySelectorAll('.actions .sui-button')].map(
+                (button) => button.getBoundingClientRect()
+              );
+              return [later.width - now.width, later.left - start, end - now.right].map(
+                (off) => Math.abs(off) > 0.5
+              );
+            })
+        );
+      // Wide, each button keeps its words' width, so the deferral never weighs as the answer.
+      const wide = await pair();
+      await page.setViewportSize({ width: 390, height: 844 });
+      const phone = await pair();
       assert.equal(measured.count, 4, 'the sink no longer draws the four notices');
       assert.deepEqual(
         measured.title,
@@ -1211,6 +1240,16 @@ suite('overlays', together, () => {
         "a notice's description is not led as a toast's"
       );
       assert.equal(measured.reload[1], measured.reload[0], 'Reloading… is not where Reload was');
+      assert.deepEqual(
+        wide,
+        Array(2).fill([true, false, true]).flat(),
+        "wide, Reload Later and Reload do not keep their words' widths from the start edge"
+      );
+      assert.deepEqual(
+        phone,
+        Array(6).fill(false),
+        'on a phone, Reload Later and Reload do not fill their line in halves'
+      );
     } finally {
       await page.close();
     }
