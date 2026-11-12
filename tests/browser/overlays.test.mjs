@@ -1098,6 +1098,32 @@ suite('overlays', together, () => {
     }
   });
 
+  test('the Timing triggers stand two to a row, on a phone too', async () => {
+    for (const [where, options] of /** @type {const} */ ([
+      ['a pointer', undefined],
+      ['a phone', { viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true }]
+    ])) {
+      const page = await open(options);
+      try {
+        const tops = await page
+          .locator('#toaster .specimen', {
+            has: page.getByRole('button', { name: 'Save Settings' })
+          })
+          .locator('xpath=..')
+          .evaluate((grid) =>
+            [...grid.children].map((specimen) => Math.round(specimen.getBoundingClientRect().top))
+          );
+        assert.deepEqual(
+          tops.map((top) => tops.filter((other) => other === top).length),
+          [2, 2, 1],
+          `${where}: the triggers do not stand two to a row`
+        );
+      } finally {
+        await page.close();
+      }
+    }
+  });
+
   test('every toast takes one width, 24rem or the room it has, whatever its words', async () => {
     const page = await open();
     try {

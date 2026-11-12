@@ -78,7 +78,7 @@
   note="A neutral toast leaves after 5 seconds unless hovered or focused, and a failure or one with Undo stays until dismissed"
   layout="grid"
   --specimen-min="min(24rem, calc((100% - var(--sui-space-6)) / 2 - 1px))"
-  --specimen-max="24rem"
+  --specimen-max="min(24rem, calc((100% - var(--sui-space-6)) / 2 - 1px))"
   --example-max="calc(52.5rem + 2 * var(--sui-stroke))"
 >
   <Specimen label="Neutral">
