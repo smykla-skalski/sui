@@ -1,7 +1,6 @@
 <script lang="ts">
   import type { Snippet } from 'svelte';
   import FactLine from './FactLine.svelte';
-  import { evenHeight } from '../internal/even-height.js';
   import type { HTMLAttributes } from 'svelte/elements';
 
   let {
@@ -49,13 +48,15 @@
 @component
 The top of a page: where it is, what it is called, its state, what it is for, its headline
 facts, and the controls that act on it. The copy is one stack (eyebrow, title, description,
-facts) and the actions are a second column centred against the whole stack. Where the header itself leaves the copy less
-than 20rem, as on a phone or in a narrow pane, the actions move under the copy, 12px below it
-and packed to the start.
+facts) and the actions stand 24px beside it, centred on the cap band of the title's first line
+as a card's head controls are, so they lend the copy no height. Once the header itself is
+36rem wide or narrower, as in a narrow pane, and on a phone, the actions move under the copy,
+12px below it and packed to the start.
 
 The title is 32px on 36px lines, 24px on 28px lines on a phone or once the header itself is
 36rem wide or narrower, and is the page's one `h1`.
-The eyebrow stands 8px of ink above it. The description stands one 8px copy gap further below
+The eyebrow stands 8px of ink above it, and a `Breadcrumb` or `BackLink` 12px, so its hover
+veil never meets the title. The description stands one 8px copy gap further below
 the title than the title's own lines stand apart, 19px of ink (18px on a phone), so a title
 that wraps reads as one block and the description as the next. The gap follows the title's
 line height, so it holds when a reader raises line spacing. The description stops at about 65
@@ -89,10 +90,10 @@ and the header owes only the difference.
 - Keyboard: none of its own; Tab reaches the kicker's links and the actions in reading order.
 - Pointer and touch: none of its own; the actions keep their own targets.
 - Focus: nothing here moves focus; a script may move focus to the title as a reading position, after a navigation or from a `ListDetail`, and since it is not a control it draws no ring.
-- Responsive: the header answers to its own width, so the title takes the phone's size at 36rem or narrower, the actions wrap under the copy, packed to the start, once the copy would have under 20rem; the title balances its lines, the status moves under a title that leaves it no room, as on a phone, and the copy and the facts wrap.
+- Responsive: the header answers to its own width, so the title takes the phone's size at 36rem or narrower, the actions wrap under the copy, packed to the start, at that width too; the title balances its lines, the status moves under a title that leaves it no room, as on a phone, and the copy and the facts wrap.
 - Accessibility: the title is a real heading and the copy holds 4.5:1 on the band; the status is a `role="status"` region, so a change is announced politely and never as part of the heading; the eyebrow is uppercase only for its few words; the foot's hairline is a border, so under forced colors, where the band and the page share one ground, it draws in the system's line colour.
 - Localization: it draws no words of its own; the actions pack to the start, which mirrors in a right-to-left page.
-- Performance: static text with no script, except where the browser cannot round a box's height in CSS: there one shared observer pads the copy beside the actions to an even height.
+- Performance: static text with no script.
 - Analytics: none of its own, because it holds no control; its actions report their own outcomes.
 - Failure: without a description or an eyebrow the stack is the title alone, and an empty eyebrow keeps its line; a status passed only after the first render may not be read, so render it from the start, even as a loading word.
 -->
@@ -102,8 +103,13 @@ and the header owes only the difference.
 {/snippet}
 
 <header {...rest} class={['sui-page-header', className, { tabbed: tabs !== undefined }]}>
-  <div class="sui-page-header-layout">
-    <div class="sui-page-header-copy" {@attach actions && evenHeight}>
+  <div
+    class={[
+      'sui-page-header-layout',
+      { led: kicker !== undefined || eyebrow !== undefined, kicked: kicker !== undefined }
+    ]}
+  >
+    <div class="sui-page-header-copy">
       {#if kicker}
         {@render kicker()}
       {:else if eyebrow !== undefined}
@@ -165,32 +171,38 @@ and the header owes only the difference.
     margin-inline: calc(-1 * var(--sui-local-head-inset, var(--sui-rhythm-pane-gutter)));
   }
 
-  /* The header answers to its own width: the actions stand beside the copy while both fit,
-     and wrap under it, at the start edge, once the copy would fall under 20rem, the room a
-     title of a few words needs. */
+  /* The actions centre on the title's cap band, as a card's head controls do (L-34): the copy's
+     parts and the actions share one grid, the actions in the title's row, in a box as tall as
+     the title's cap that lends the row no height, so the copy stands where it stands with no
+     actions and a title that wraps keeps them by its first line. */
   .sui-page-header-layout {
-    align-items: center;
-    column-gap: var(--sui-space-3);
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: space-between;
-    row-gap: var(--sui-rhythm-head-actions-stacked);
+    align-items: start;
+    column-gap: var(--sui-space-6);
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .sui-page-header-layout:not(:has(> .sui-page-header-actions)) {
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .sui-page-header-copy {
-    align-content: center;
-    block-size: var(--sui-block-snap-even);
-    display: flex;
-    flex: 1 1 20rem;
-    flex-direction: column;
-    gap: var(--sui-rhythm-head-copy);
+    display: contents;
+  }
+
+  .sui-page-header-copy > :global(*) {
+    grid-column: 1;
     min-inline-size: 0;
   }
 
-  /* The even height only centres the copy on the actions; alone, the spare pixel would sit
-     under the last line and leave the band's foot a pixel further than its top. */
-  .sui-page-header-copy:only-child {
-    block-size: var(--sui-block-snap);
+  .sui-page-header-layout > .sui-page-header-copy > :global(* + *) {
+    margin-block-start: var(--sui-rhythm-head-copy);
+  }
+
+  /* A breadcrumb's or a back link's veil reaches past its words, so the title stands a step
+     further under it than under an eyebrow, and a lit link never meets the title's ink. */
+  .kicked > .sui-page-header-copy > :global(:first-child + *) {
+    margin-block-start: var(--sui-space-3);
   }
 
   .sui-page-header-eyebrow {
@@ -271,8 +283,11 @@ and the header owes only the difference.
     min-inline-size: 0;
   }
 
-  .sui-page-header-description + .sui-page-header-facts {
-    margin-block-start: var(--sui-row-copy-gap);
+  .sui-page-header-layout
+    > .sui-page-header-copy
+    > .sui-page-header-description
+    + .sui-page-header-facts {
+    margin-block-start: calc(var(--sui-rhythm-head-copy) + var(--sui-row-copy-gap));
   }
 
   .sui-page-header-description {
@@ -290,9 +305,27 @@ and the header owes only the difference.
 
   .sui-page-header-actions {
     align-items: center;
+    block-size: round(up, 1cap, 2px);
     display: flex;
-    flex-wrap: wrap;
+    font: var(--sui-weight-bold) var(--sui-font-size-page-title) / var(--sui-leading-page)
+      var(--sui-sans);
     gap: var(--sui-space-2);
+    grid-area: 1 / 2;
+    margin-block-end: calc(-1 * round(up, 1cap, 2px));
+  }
+
+  /* In the title's row the actions start where the title does, past the gap above it. */
+  .led > .sui-page-header-actions {
+    grid-row: 2;
+    margin-block-start: var(--sui-rhythm-head-copy);
+  }
+
+  .kicked > .sui-page-header-actions {
+    margin-block-start: var(--sui-space-3);
+  }
+
+  .sui-page-header-actions > :global(*) {
+    flex: none;
   }
 
   /* In a shell as narrow as a phone, as on a wide screen's split pane, the header takes the
@@ -305,7 +338,8 @@ and the header owes only the difference.
     }
 
     .sui-page-header-title,
-    .sui-page-header-heading {
+    .sui-page-header-heading,
+    .sui-page-header-actions {
       font: var(--sui-weight-bold) var(--sui-font-size-page-title-compact) /
         var(--sui-leading-page-compact) var(--sui-sans);
     }
@@ -318,6 +352,38 @@ and the header owes only the difference.
     .sui-page-header-heading {
       font: var(--sui-weight-bold) var(--sui-font-size-page-title-compact) /
         var(--sui-leading-page-compact) var(--sui-sans);
+    }
+
+    /* The actions take a line of their own under the copy, packed to its start edge, so the
+       title keeps the column's width. */
+    .sui-page-header-layout {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .sui-page-header-actions,
+    .led > .sui-page-header-actions,
+    .kicked > .sui-page-header-actions {
+      block-size: auto;
+      flex-wrap: wrap;
+      grid-area: auto / 1;
+      margin-block: var(--sui-rhythm-head-actions-stacked) 0;
+    }
+  }
+
+  /* A phone's 44px controls beside a 24px title would reach up past the line above it, so on a
+     phone the actions stand under the copy at any width. */
+  @media (max-width: 47.9375rem) {
+    .sui-page-header-layout {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .sui-page-header-actions,
+    .led > .sui-page-header-actions,
+    .kicked > .sui-page-header-actions {
+      block-size: auto;
+      flex-wrap: wrap;
+      grid-area: auto / 1;
+      margin-block: var(--sui-rhythm-head-actions-stacked) 0;
     }
   }
 </style>
