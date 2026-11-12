@@ -41,7 +41,7 @@
     /** Keeps the spinner's room while idle, the words centred in it, so the press that starts
      the work never moves the actions beside it (L-64). */
     reserve?: boolean;
-    /** Said in place of the label while `loading`. The button keeps the wider of the label and
+    /** Said in place of the label while its spinner shows. The button keeps the wider of the label and
      the spinner with these words, so the swap never moves the actions beside it (L-64). */
     busyLabel?: string;
     /** Draws a field's edge, baseline and recess, for a button that holds a value, such as a picker's trigger. */
@@ -115,8 +115,8 @@ start.
   {/if}
   <span class="sui-button-label"
     >{#if swaps}<span class="sui-button-words"
-        ><span class={loading ? 'unsaid' : 'said'}>{@render children()}</span><span
-          class={loading ? 'said' : 'unsaid'}>{busyLabel}</span
+        ><span class={spinning.current ? 'unsaid' : 'said'}>{@render children()}</span><span
+          class={spinning.current ? 'said' : 'unsaid'}>{busyLabel}</span
         ></span
       >{:else}{@render children()}{/if}</span
   >
@@ -252,7 +252,7 @@ start.
       position: relative;
     }
 
-    .swapping > .sui-button-part {
+    .swapping > .sui-button-part:first-child {
       inset-inline-start: anchor(--sui-button-said start);
       position: absolute;
     }

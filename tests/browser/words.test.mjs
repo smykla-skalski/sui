@@ -486,7 +486,9 @@ suite('words', together, () => {
             get loading() {
               return get(loading);
             },
-            children: createRawSnippet(() => ({ render: () => '<span>Go</span>' }))
+            children: createRawSnippet(() => ({ render: () => '<span>Go</span>' })),
+            busyLabel: 'Going…',
+            trailing: createRawSnippet(() => ({ render: () => '<span>›</span>' }))
           }
         });
         flushSync();
@@ -499,7 +501,18 @@ suite('words', together, () => {
           set(loading, on);
           flushSync();
         }, on);
-      const spins = () => page.locator('#spinning .sui-button-spinner').isVisible();
+      // The busy words stand while the spinner is drawn, held moment included, so the spinner
+      // never lands on the idle words, and a trailing mark keeps its own place after the words.
+      const spins = () =>
+        page.locator('#spinning').evaluate((node) => {
+          const spinner = node.querySelector('.sui-button-spinner');
+          const said = [...node.querySelectorAll('.sui-button-words > *')].find(
+            (word) => getComputedStyle(word).visibility === 'visible'
+          );
+          const tail = node.querySelector('.sui-button-part:last-child');
+          const placed = tail && getComputedStyle(tail).position !== 'absolute';
+          return spinner ? `${said?.textContent} ${placed}` : false;
+        });
       const marks = [];
       // A 60ms answer draws nothing.
       await set(true);
@@ -519,7 +532,7 @@ suite('words', together, () => {
       marks.push(await spins());
       await page.clock.runFor(500);
       marks.push(await spins());
-      assert.deepEqual(marks, [false, false, false, true, true, false]);
+      assert.deepEqual(marks, [false, false, false, 'Going… true', 'Going… true', false]);
     });
 
     test('L-117 an addition picker holds its loading row while its ring holds, after the list came', async () => {
