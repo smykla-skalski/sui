@@ -180,6 +180,12 @@
     padding-block: calc(var(--sui-space-1) / 2);
   }
 
+  /* A group keeps the measure of the revealed fields, so its dividers end with the rows
+     beside it and never run empty under short summaries. */
+  .group {
+    max-inline-size: 37.5rem;
+  }
+
   .group > div + div {
     border-block-start: var(--sui-stroke) solid var(--sui-border-divider);
   }
