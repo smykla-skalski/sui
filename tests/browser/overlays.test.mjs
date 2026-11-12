@@ -1171,6 +1171,7 @@ suite('overlays', together, () => {
           ...document.querySelectorAll('#service-worker-status .sui-service-worker-status.preview')
         ];
         const toastTitle = document.querySelector('#toaster .sui-toast-title');
+        const toastNote = document.querySelector('#toaster .sui-toast-description');
         const reload = (/** @type {number} */ index) => {
           const buttons = notices[index]?.querySelectorAll('.actions .sui-button');
           return buttons?.[buttons.length - 1]?.getBoundingClientRect().width ?? 0;
@@ -1182,6 +1183,11 @@ suite('overlays', together, () => {
               getComputedStyle(/** @type {Element} */ (notice.querySelector('.title'))).fontSize
           ),
           toast: toastTitle ? getComputedStyle(toastTitle).fontSize : '',
+          note: notices.flatMap((notice) => {
+            const note = notice.querySelector('.description');
+            return note ? [getComputedStyle(note).lineHeight] : [];
+          }),
+          toastNote: toastNote ? getComputedStyle(toastNote).lineHeight : '',
           off: notices
             .map((notice) => {
               const room = /** @type {Element} */ (notice.parentElement).clientWidth;
@@ -1198,6 +1204,12 @@ suite('overlays', together, () => {
         "a notice's title is not set as a toast's"
       );
       assert.deepEqual(measured.off, [], "a notice is not a toast's 24rem or the room it has");
+      assert.ok(measured.note.length > 0, 'the sink draws no notice with a description');
+      assert.deepEqual(
+        measured.note,
+        measured.note.map(() => measured.toastNote),
+        "a notice's description is not led as a toast's"
+      );
       assert.equal(measured.reload[1], measured.reload[0], 'Reloading… is not where Reload was');
     } finally {
       await page.close();

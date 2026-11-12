@@ -1818,6 +1818,13 @@ test('L-94 a form error summary and an error state take the 16px mark 8px from t
   assert.doesNotMatch(styles[state], /-retry \{\s*margin-inline-start/);
 });
 
+test("L-39 the service worker's update is a view of its own, so Reload wears the signal tone", () => {
+  assert.match(
+    read('src/lib/components/ServiceWorkerStatus.svelte'),
+    /<Button\s+tone="signal"\s+loading=\{drawn === 'reloading'\}[^>]*onclick=\{reload\}>/
+  );
+});
+
 test('L-39 a stop-quiet edge stays the danger hue on a dark ground', () => {
   assert.equal(light['--sui-stop-quiet-edge-mix'], '45%');
   assert.equal(dark['--sui-stop-quiet-edge-mix'], '60%', 'a dark ground turns a 45% edge pink');

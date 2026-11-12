@@ -211,7 +211,7 @@ dismisses it, and the return says "You are back online" for five seconds.
 
 - Semantics: an `aside` named by its title, in the top layer as a manual popover, with native buttons; each notice is said once from a hidden `status` region kept apart from the bar.
 - Content: a title and a description for an update or for offline, a title alone for the return; at most two buttons; words wrap within a toast's 24rem.
-- States: ready (Reload Later and Reload), reloading (Reload busy with `reloadingLabel`, at the width it held, so Reload Later never moves, and Reload Later held), offline (Dismiss), back online (no buttons, leaves after five seconds, held while hovered or focused), hidden while a modal dialog is open, and drawn in place with `preview`.
+- States: ready (Reload Later and Reload in the signal tone), reloading (Reload busy with `reloadingLabel`, at the width it held, so Reload Later never moves, and Reload Later held), offline (Dismiss), back online (no buttons, leaves after five seconds, held while hovered or focused), hidden while a modal dialog is open, and drawn in place with `preview`.
 - Keyboard: Tab reaches the bar's buttons after the page's own; Enter or Space presses them; Escape returns focus to where it came from and leaves the notice up.
 - Pointer and touch: the buttons are 34px tall on a pointer and 44px on a phone or touch screen; nothing needs a drag.
 - Focus: opening never takes focus, and a focused control it would cover scrolls clear above it, as the next one Tab reaches does; when a pressed button leaves, focus returns to where it came from, else to the next notice's first button.
@@ -250,8 +250,11 @@ dismisses it, and the return says "You are back online" for five seconds.
       <Button disabled={drawn === 'reloading'} onclick={() => putAside('ready')}
         >{laterLabel}</Button
       >
-      <Button loading={drawn === 'reloading'} busyLabel={reloadingLabel} onclick={reload}
-        >{reloadLabel}</Button
+      <Button
+        tone="signal"
+        loading={drawn === 'reloading'}
+        busyLabel={reloadingLabel}
+        onclick={reload}>{reloadLabel}</Button
       >
     </div>
   {:else if drawn === 'offline'}
@@ -346,15 +349,18 @@ dismisses it, and the return says "You are back online" for five seconds.
       var(--sui-sans);
   }
 
+  /* Wrapped, the reason reads as a toast's does, a note and not a dense block, and fills its
+     lines, as one beside an action does (L-24). */
   .description {
     color: var(--sui-text-secondary);
-    font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-row-copy-leading)
+    font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-leading-note)
       var(--sui-sans);
+    text-wrap: pretty;
   }
 
   /* The actions end the line they share with the copy and start the line they wrap to (L-90).
-     Both are framed, one emphasis as Material's banner gives its two actions, so the bar's ink
-     meets its inset at either end of the line they stand on (L-33). */
+     Both are framed, so the bar's ink meets its inset at either end of the line they stand on
+     (L-33), and Reload, the answer the notice asks for, wears the signal tone (L-39). */
   .actions {
     display: flex;
     flex: 0 1 auto;
