@@ -4,6 +4,7 @@
   let {
     narrow = false,
     lead,
+    trail,
     even = false,
     children
   }: {
@@ -11,6 +12,9 @@
     narrow?: boolean;
     /** The first example's frame measure, such as a dialog's, and the second takes the rest. */
     lead?: string;
+    /** The second example's frame measure, such as one narrow specimen's, and the first takes
+     the rest. */
+    trail?: string;
     /** Both frames end on one line, as a lead pair's do, for two examples whose Code rows would
      otherwise stand apart. */
     even?: boolean;
@@ -21,7 +25,9 @@
 <!-- Two examples that each hold one specimen share a row on the cards' 54rem, so the page does
      not step down to a narrower frame under them or end on a narrow tail beside an empty half.
      On a phone they stack and both frames fill the column, as every other frame does (L-55). -->
-<div class={['pair', { narrow, lead, even }]} style:--lead={lead}>{@render children()}</div>
+<div class={['pair', { narrow, lead, trail, even }]} style:--lead={lead} style:--trail={trail}>
+  {@render children()}
+</div>
 
 <style>
   .pair {
@@ -49,9 +55,20 @@
     max-inline-size: calc(2 * (var(--lead) + 2 * var(--sui-stroke)) + var(--sui-space-6));
   }
 
+  /* A trail frame keeps its measure whole beside a first example that takes the rest, at the
+     width a lead pair parts at, so the first never narrows below what a long specimen needs. */
+  .trail {
+    grid-template-columns: minmax(0, 1fr);
+    max-inline-size: none;
+  }
+
   @container (min-width: 70rem) {
     .lead {
       grid-template-columns: calc(var(--lead) + 2 * var(--sui-stroke)) minmax(0, 1fr);
+    }
+
+    .trail {
+      grid-template-columns: minmax(0, 1fr) calc(var(--trail) + 2 * var(--sui-stroke));
     }
   }
 

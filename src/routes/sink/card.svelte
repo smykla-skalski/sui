@@ -19,6 +19,7 @@
     type ActionMenuItem
   } from '#lib';
   import Example from '../kit/Example.svelte';
+  import Pair from '../kit/Pair.svelte';
   import Specimen from '../kit/Specimen.svelte';
 
   const nothing = () => {};
@@ -165,46 +166,46 @@
   </Specimen>
 </Example>
 
-<Example
-  title="Long Title"
-  note="A long title balances its lines and keeps its action on the first line"
-  layout="stack"
-  ground="canvas"
-  --example-max="42rem"
->
-  <Specimen label="Wrapping title & description">
-    <Card
-      href="#card"
-      title="Required Status Checks That Every Pull Request into a Protected Branch Must Pass Before It Can Merge"
-      description="Checks that report from a fork count the same as checks from the repository itself"
-      level={4}
-    >
-      {#snippet actions()}
-        <ActionMenu label="Check actions" icon="more" items={rules} align="end" />
-      {/snippet}
-    </Card>
-  </Specimen>
-</Example>
-
-<Example
-  title="Narrow Width"
-  note="A card 36 rem wide or narrower steps its inset from 20 px to 16 px, by its own width rather than the page’s"
-  layout="stack"
-  ground="canvas"
-  --example-max="calc(20rem + 2 * var(--sui-space-6))"
->
-  <Specimen label="In 20 rem">
-    <div class="narrow">
-      <Card href="#card" title="Storage" description="Across every repository" level={4}>
-        <p class="copy">84.7&nbsp;MB of 1&nbsp;GB</p>
+<Pair trail="calc(20rem + 2 * var(--sui-space-6))" even>
+  <Example
+    title="Long Title"
+    note="A long title balances its lines and keeps its action on the first line"
+    layout="stack"
+    ground="canvas"
+  >
+    <Specimen label="Wrapping title & description">
+      <Card
+        href="#card"
+        title="Required Status Checks That Every Pull Request into a Protected Branch Must Pass Before It Can Merge"
+        description="Checks that report from a fork count the same as checks from the repository itself"
+        level={4}
+      >
+        {#snippet actions()}
+          <ActionMenu label="Check actions" icon="more" items={rules} align="end" />
+        {/snippet}
       </Card>
-    </div>
-  </Specimen>
-</Example>
+    </Specimen>
+  </Example>
+
+  <Example
+    title="Narrow Width"
+    note="A card 36 rem wide or narrower steps its inset from 20 px to 16 px, by its own width rather than the page’s"
+    layout="stack"
+    ground="canvas"
+  >
+    <Specimen label="In 20 rem">
+      <div class="narrow">
+        <Card href="#card" title="Storage" description="Across every repository" level={4}>
+          <p class="copy">84.7&nbsp;MB of 1&nbsp;GB</p>
+        </Card>
+      </div>
+    </Specimen>
+  </Example>
+</Pair>
 
 <style>
   .copy {
-    color: var(--sui-text-secondary);
+    color: var(--sui-text-primary);
     font: var(--sui-weight-regular) var(--sui-font-size-body) / var(--sui-leading-body)
       var(--sui-sans);
     margin: 0;
