@@ -18,6 +18,7 @@
 
 <script lang="ts">
   import { mark, word } from '../words.js';
+  import { revealRow } from '../internal/reveal.js';
   import { tick, type Snippet } from 'svelte';
   import Icon from '../icons/Icon.svelte';
   import Button, { type ButtonTone } from './Button.svelte';
@@ -103,12 +104,20 @@
   // Disabled items stay focusable, as the menu pattern asks, so a reader can find them.
   const menuItems = () => [...(menu?.querySelectorAll<HTMLElement>('[role="menuitem"]') ?? [])];
 
+  // Focus never scrolls the page, since the menu takes its place on the next frame, so the
+  // popover scrolls the item clear of its foot's fade itself (L-107).
+  function focusItem(item: HTMLElement | undefined): void {
+    if (!item) return;
+    item.focus({ preventScroll: true });
+    const list = menu?.closest<HTMLElement>('.sui-popover');
+    if (list) revealRow(list, item);
+  }
+
   async function show(edge: 'first' | 'last'): Promise<void> {
     open = true;
     await tick();
-    // The menu takes its place on the next frame, so focus must not scroll to where it was.
     const found = menuItems();
-    (edge === 'first' ? found[0] : found.at(-1))?.focus({ preventScroll: true });
+    focusItem(edge === 'first' ? found[0] : found.at(-1));
   }
 
   function close(): void {
@@ -171,7 +180,7 @@
       next = seek(found, at, event.key, event.timeStamp);
     else return;
     event.preventDefault();
-    found[next]?.focus({ preventScroll: true });
+    focusItem(found[next]);
   }
 </script>
 

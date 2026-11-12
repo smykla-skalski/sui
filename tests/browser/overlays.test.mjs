@@ -2001,7 +2001,15 @@ suite('overlays', together, () => {
         for (const [component, props] of [
           [lib.Combobox, { 'aria-label': 'Team', options: many }],
           [lib.AdditionPicker, { label: 'Add a Check', choices: many, onadd() {} }],
-          [lib.Select, { 'aria-label': 'Owner', options: many }]
+          [lib.Select, { 'aria-label': 'Owner', options: many }],
+          [
+            lib.ActionMenu,
+            {
+              label: 'Act',
+              icon: 'more',
+              items: many.map(({ label }) => ({ label, onselect() {} }))
+            }
+          ]
         ])
           mount(component, { target: host.appendChild(document.createElement('div')), props });
         flushSync();
@@ -2075,6 +2083,18 @@ suite('overlays', together, () => {
       await toEnd('.sui-addition-menu');
       await settle();
       assert.equal(await foot('.sui-addition-menu'), '0px', 'at its end nothing fades');
+      await page.keyboard.press('Escape');
+
+      // An action menu scrolls its popover, and its arrows move focus, not a lit row.
+      await page.getByRole('button', { name: 'Act' }).click();
+      await page.waitForSelector('.sui-action-menu [role="menuitem"]:focus');
+      await settle();
+      const actRoom = await clearance(
+        '.sui-popover:has(.sui-action-menu)',
+        '[role="menuitem"]:focus'
+      );
+      assert.ok(actRoom.scrolled && actRoom.below && actRoom.above >= 0, JSON.stringify(actRoom));
+      assert.ok(actRoom.clear >= 16, `the focused item stands ${actRoom.clear}px over the foot`);
       await page.keyboard.press('Escape');
 
       await page.getByRole('combobox', { name: 'Owner' }).click();
