@@ -67,7 +67,11 @@ live specimens, not a surface of the design, so it may hold cards and dialogs (L
       <!-- The markup is drawn only once asked for, so the page never highlights code that no one
            reads. -->
       <div class="tools">
-        <Disclosure summary="Code" bind:open={() => open.value, (next) => (open.value = next)}>
+        <Disclosure
+          inline
+          summary="Code"
+          bind:open={() => open.value, (next) => (open.value = next)}
+        >
           {#if open.value}<div class="markup">
               <CodeBlock code={markup} lang="html" bare />
             </div>{/if}
@@ -218,7 +222,8 @@ live specimens, not a surface of the design, so it may hold cards and dialogs (L
 
   /* The Code row holds its disclosure's own target a step inside the band, so the hover veil
      never meets the frame's edge, and the frame's chrome stays lighter than the specimens it
-     closes. Its chevron stands on the stage's inset, under the specimens' chevrons. */
+     closes. Its chevron stands on the stage's inset, under the specimens' chevrons, and it is
+     inline help, quieter than the specimens it shows. */
   .tools {
     background: var(--sui-surface-base);
     border-block-start: var(--sui-stroke) solid var(--sui-border-divider);

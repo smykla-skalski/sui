@@ -52,7 +52,7 @@ cells stack their secondary text.
 
 - Semantics: a native `<details>` whose `<summary>` is the button, named by `summary` and `hint`, with its expanded state from the browser.
 - Content: one line of summary words that wrap, an optional quiet hint, and any content inside, which starts at the summary's words.
-- States: closed (the chevron points along the line), open (the chevron points down and the guide runs beside the content), hover (the row veil on the summary only, as wide as its words on inline help, whose words turn primary), pressed (the pressed veil, inset and 1px sink) and focus (the 2px inset ring). There is no disabled state, because opening only shows words.
+- States: closed (the chevron points along the line), open (the chevron points down and the guide runs beside the content), hover (the row veil on the summary only, as wide as its words on inline help, whose words turn primary, and the chevron turns primary), pressed (the pressed veil, inset and 1px sink) and focus (the 2px inset ring). There is no disabled state, because opening only shows words.
 - Keyboard: Tab reaches the summary, and Enter or Space opens and closes it.
 - Pointer and touch: the whole summary row is the target, one control tall, 34px and 44px on a phone or touch screen.
 - Focus: focus stays on the summary when it opens or closes, and find-in-page opens a disclosure that holds the match.
@@ -165,6 +165,10 @@ cells stack their secondary text.
   @media (hover: hover) {
     .sui-disclosure-summary:hover:not(:active) {
       background: var(--sui-row-hover);
+    }
+
+    .sui-disclosure-summary:hover .sui-disclosure-chevron {
+      color: var(--sui-text-primary);
     }
 
     @media (forced-colors: active) {
