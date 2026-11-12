@@ -20,7 +20,7 @@
       quiet: {
         icon: 'pending',
         title: 'Sync paused',
-        text: 'Nothing is pushed until the sync resumes',
+        text: 'Changes wait until it resumes',
         action: 'Resume Sync'
       },
       warning: {
@@ -115,8 +115,8 @@
       <!-- Both words share one cell, so the button keeps the longer one's width as they flip. -->
       <Button onclick={() => (expiring = !expiring)}
         ><span class="flip"
-          ><span class:shown={!expiring}>Shorten the Token to 2&nbsp;Days</span><span
-            class:shown={expiring}>Keep the Token</span
+          ><span class:shown={!expiring}>Shorten to 2&nbsp;Days</span><span class:shown={expiring}
+            >Keep the Token</span
           ></span
         ></Button
       >
@@ -140,7 +140,7 @@
   <Specimen label="Quiet">
     <Callout title="Sync paused">
       {#snippet icon()}<Icon name="pending" size="sm" />{/snippet}
-      Nothing is pushed until the sync resumes
+      Changes wait until it resumes
       {#snippet actions()}
         <Button>Resume Sync</Button>
       {/snippet}

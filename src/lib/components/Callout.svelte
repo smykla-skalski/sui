@@ -189,15 +189,20 @@ and the unsaved ink, so no neutral block sits on a state (L-92).
   }
 
   .sui-callout[data-tone='warning'] {
-    --sui-callout-tile: color-mix(in srgb, var(--sui-warning) 16%, transparent);
+    /* On the light tint the tile takes a firmer share of the tone to stand off its ground. */
+    --sui-callout-tile: light-dark(
+      color-mix(in srgb, var(--sui-warning) 22%, transparent),
+      color-mix(in srgb, var(--sui-warning) 16%, transparent)
+    );
     --sui-callout-mark: var(--sui-warning);
     /* A default action is quiet on the tint: no ground of its own, an edge of the tone. */
     --sui-surface-raised: transparent;
     --sui-control-border: color-mix(in srgb, var(--sui-warning) 40%, var(--sui-warning-tint));
-    /* A hover the pointer can find on the tint, and a press a clear step past it. */
+    /* A hover the pointer can find on the tint, a step past the tile, and a press a clear step
+       past it. */
     --sui-control-border-hover: color-mix(in srgb, var(--sui-warning) 75%, var(--sui-warning-tint));
-    --sui-interactive-hover-layer: color-mix(in srgb, var(--sui-warning) 20%, transparent);
-    --sui-interactive-pressed: color-mix(in srgb, var(--sui-warning) 30%, transparent);
+    --sui-interactive-hover-layer: color-mix(in srgb, var(--sui-warning) 26%, transparent);
+    --sui-interactive-pressed: color-mix(in srgb, var(--sui-warning) 36%, transparent);
     background: var(--sui-warning-tint);
     border-color: color-mix(in srgb, var(--sui-warning) 30%, var(--sui-warning-tint));
     font-size: var(--sui-font-size-meta);

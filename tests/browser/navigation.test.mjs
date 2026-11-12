@@ -1040,7 +1040,7 @@ suite('navigation', together, () => {
       long,
       async () => {
         const page = await sink();
-        const shorten = page.getByRole('button', { name: 'Shorten the Token to 2 Days' });
+        const shorten = page.getByRole('button', { name: 'Shorten to 2 Days' });
         for (const reducedMotion of /** @type {const} */ (['no-preference', 'reduce'])) {
           await page.emulateMedia({ reducedMotion });
           await shorten.click();
