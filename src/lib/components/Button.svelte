@@ -68,7 +68,10 @@
      the context menu cannot follow it while the work runs. */
   const unreachable = $derived(disabled || holding === 'firm');
   const spinning = shownWait(() => loading);
-  const swaps = $derived(busyLabel !== undefined && !icon);
+  const swaps = $derived(busyLabel !== undefined);
+  /* With an icon the spinner takes the icon's place, so only words with nothing before them
+     hold its room and stand it by them. */
+  const roomy = $derived(swaps && !icon);
   const reserving = $derived(reserve && !swaps && !spinning.current && !icon);
 
   function refuse(event: MouseEvent) {
@@ -114,7 +117,7 @@ start.
     <span class="sui-button-part">{@render icon()}</span>
   {/if}
   <span class="sui-button-label"
-    >{#if swaps}<span class="sui-button-words"
+    >{#if swaps}<span class={['sui-button-words', { roomy }]}
         ><span class={spinning.current ? 'unsaid' : 'said'}>{@render children()}</span><span
           class={spinning.current ? 'said' : 'unsaid'}>{busyLabel}</span
         ></span
@@ -131,7 +134,7 @@ start.
     href={unreachable ? undefined : href}
     role={unreachable ? 'link' : undefined}
     {...rest as HTMLAnchorAttributes}
-    class={['sui-button', className, { busy, reserving, swapping: swaps && spinning.current }]}
+    class={['sui-button', className, { busy, reserving, swapping: roomy && spinning.current }]}
     data-tone={tone}
     aria-disabled={disabled || locked || undefined}
     aria-busy={loading || undefined}
@@ -146,7 +149,7 @@ start.
     class={[
       'sui-button',
       className,
-      { busy, field, reserving, swapping: swaps && spinning.current }
+      { busy, field, reserving, swapping: roomy && spinning.current }
     ]}
     data-tone={tone}
     disabled={disabled || holding === 'firm'}
@@ -221,7 +224,7 @@ start.
   /* With no anchor to stand the spinner by, it takes its place in the row while busy, so idle
      the words hold its room as a reserving label does. */
   @supports not (anchor-name: --sui-button-said) {
-    :not(.swapping) > .sui-button-label > .sui-button-words {
+    :not(.swapping) > .sui-button-label > .roomy {
       padding-inline: calc((var(--sui-icon-base) + var(--sui-space-2)) / 2);
     }
   }
@@ -244,7 +247,7 @@ start.
      idle words and the busy group, and a short busy word needs no room past the idle one's.
      Busy, the spinner stands in that room, and the group centres in the width the cell keeps. */
   @supports (anchor-name: --sui-button-said) {
-    .sui-button-words > :last-child {
+    .roomy > :last-child {
       padding-inline-start: calc(var(--sui-icon-base) + var(--sui-space-2));
     }
 

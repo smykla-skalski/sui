@@ -535,6 +535,56 @@ suite('words', together, () => {
       assert.deepEqual(marks, [false, false, false, 'Going… true', 'Going… true', false]);
     });
 
+    test('L-64 a button with an icon says its busy words, its spinner where the icon was', async () => {
+      await page.evaluate(() => {
+        const { lib, mount, flushSync, createRawSnippet, state, get } = /** @type {any} */ (window);
+        const iconLoading = state(false);
+        const target = Object.assign(document.createElement('div'), { id: 'icon-spinning' });
+        document.body.prepend(target);
+        mount(lib.Button, {
+          target,
+          props: {
+            get loading() {
+              return get(iconLoading);
+            },
+            children: createRawSnippet(() => ({ render: () => '<span>Go</span>' })),
+            busyLabel: 'Going somewhere…',
+            icon: createRawSnippet(() => ({
+              render: () => '<svg viewBox="0 0 16 16" width="16" height="16"></svg>'
+            }))
+          }
+        });
+        flushSync();
+        Object.assign(window, { iconLoading });
+      });
+      const read = () =>
+        page.locator('#icon-spinning').evaluate((node) => {
+          const button = /** @type {HTMLElement} */ (node.querySelector('.sui-button'));
+          const lead = /** @type {HTMLElement} */ (node.querySelector('.sui-button-part'));
+          const said = [...node.querySelectorAll('.sui-button-words > *')].find(
+            (word) => getComputedStyle(word).visibility === 'visible'
+          );
+          return {
+            said: said?.textContent ?? button.textContent?.trim(),
+            width: button.getBoundingClientRect().width,
+            lead: Math.round(lead.getBoundingClientRect().left),
+            spinner: node.querySelector('.sui-button-spinner') !== null
+          };
+        });
+      const idle = await read();
+      await page.evaluate(() => {
+        const { set, flushSync, iconLoading } = /** @type {any} */ (window);
+        set(iconLoading, true);
+        flushSync();
+      });
+      await page.clock.runFor(250);
+      const busy = await read();
+      assert.deepEqual(
+        { ...busy, width: Math.round(busy.width) },
+        { said: 'Going somewhere…', width: Math.round(idle.width), lead: idle.lead, spinner: true }
+      );
+    });
+
     test('L-117 an addition picker holds its loading row while its ring holds, after the list came', async () => {
       await page.evaluate(() => {
         const { lib, mount, flushSync, state, get } = /** @type {any} */ (window);
