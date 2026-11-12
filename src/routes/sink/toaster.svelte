@@ -34,7 +34,7 @@
 
 <Example
   title="Tones & Actions"
-  note="A neutral toast, a failure and one with an action, drawn in place with no timers"
+  note="A neutral toast, a failure and each with an action, drawn in place with no timers"
   ground="canvas"
   layout="grid"
   --specimen-min="24rem"
@@ -67,6 +67,19 @@
           title: 'Rule removed',
           description: 'Required reviewers no longer applies to main',
           action: { label: 'Undo', run: () => {} }
+        }
+      ]}
+    />
+  </Specimen>
+  <Specimen label="Danger with Retry">
+    <Toaster
+      preview
+      items={[
+        {
+          title: 'The sync stopped',
+          description: '502 from GitHub',
+          tone: 'danger',
+          action: { label: 'Retry', run: () => {} }
         }
       ]}
     />
