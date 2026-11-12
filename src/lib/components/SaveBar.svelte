@@ -472,19 +472,12 @@ brings its own room under it, so the scroller needs no end padding.
     text-box: trim-both cap alphabetic;
   }
 
-  /* A long title wraps at the meta leading, so its semibold lines never press into one block
-     over the lighter note (L-24). */
+  /* A long title wraps at the body leading, the step body text of its size takes, 24px as it
+     grows to 16px on a phone, so its semibold lines never press into one block over the
+     lighter note (L-24). */
   .title {
-    font: var(--sui-weight-semibold) var(--sui-font-size-body) / var(--sui-leading-meta)
+    font: var(--sui-weight-semibold) var(--sui-font-size-body) / var(--sui-leading-body)
       var(--sui-sans);
-  }
-
-  /* On a phone the title grows to 16px while the meta leading stays 22px, so it takes the body
-     leading, the step the body text takes with it. */
-  @media (max-width: 47.9375rem) {
-    .title {
-      line-height: var(--sui-leading-body);
-    }
   }
 
   /* Wrapped, the line under the title reads as a note, as a toast's description does (L-24),
@@ -519,7 +512,7 @@ brings its own room under it, so the scroller needs no end padding.
   .mark {
     color: var(--sui-danger);
     display: flex;
-    font: var(--sui-weight-semibold) var(--sui-font-size-body) / var(--sui-leading-meta)
+    font: var(--sui-weight-semibold) var(--sui-font-size-body) / var(--sui-leading-body)
       var(--sui-sans);
     grid-row: 1 / span 2;
     margin-block-start: round(calc((1cap - var(--sui-icon-base)) / 2), 1px);

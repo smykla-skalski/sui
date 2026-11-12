@@ -1937,17 +1937,12 @@ test("L-16 a save bar's refusal leads with a field error's warning mark", () => 
   );
 });
 
-test("L-24 L-54 a save bar's title wraps at the meta leading and the bar lifts as a toast", () => {
+test("L-24 L-54 a save bar's title wraps at the body leading and the bar lifts as a toast", () => {
   const css = stripComments(read('src/lib/components/SaveBar.svelte'));
   assert.match(
     css,
-    /\.title \{[^}]*font: [^;]*\/ var\(--sui-leading-meta\)/,
+    /\.title \{[^}]*font: [^;]*\/ var\(--sui-leading-body\)/,
     "a wrapped save bar title presses into one dense block at a row's copy leading"
-  );
-  assert.match(
-    css,
-    /@media \(max-width: 47\.9375rem\) \{\s*\.title \{\s*line-height: var\(--sui-leading-body\);/,
-    "a phone's 16px save bar title presses its lines together at the 22px meta leading"
   );
   assert.match(
     css,
