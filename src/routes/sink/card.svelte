@@ -128,7 +128,7 @@
 
 <Example
   title="Bare Page"
-  note="The one box on a page that holds nothing else, with its actions beside the copy at its foot while they fit"
+  note="The one box on a page that holds nothing else, too narrow to set its action beside 16 rem of copy"
   layout="stack"
   ground="canvas"
 >
