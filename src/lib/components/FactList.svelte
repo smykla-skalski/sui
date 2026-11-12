@@ -122,6 +122,7 @@ apart, and the action under the value.
      top and a target on that line reaches past it with its room alone; its last line ends at
      its facts' own foot, so a fact that wraps on it stays inside the list. */
   .inline {
+    --sui-local-fact-target: var(--sui-field-target-min);
     block-size: var(--sui-block-snap);
     font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-leading-none)
       var(--sui-sans);
@@ -162,7 +163,7 @@ apart, and the action under the value.
   .inline
     > .sui-fact-list-fact:has(:global(:is(a[href], button, [tabindex]:not([tabindex^='-'])))) {
     align-content: center;
-    min-block-size: var(--sui-field-target-min);
+    min-block-size: var(--sui-local-fact-target);
   }
 
   /* On the list's last line a target's room under its words reaches past the list, as on the
@@ -171,7 +172,7 @@ apart, and the action under the value.
     > .sui-fact-list-fact:last-child:has(
       :global(:is(a[href], button, [tabindex]:not([tabindex^='-'])))
     ) {
-    margin-block-end: calc((round(up, 1cap, 1px) - var(--sui-field-target-min)) / 2);
+    margin-block-end: calc((round(up, 1cap, 1px) - var(--sui-local-fact-target)) / 2);
   }
 
   /* A pill or a chip centres its label on it, so the box lands on whole pixels (L-95). */
@@ -305,9 +306,8 @@ apart, and the action under the value.
   }
 
   @media (max-width: 47.9375rem), (pointer: coarse) {
-    .inline
-      > .sui-fact-list-fact:has(:global(:is(a[href], button, [tabindex]:not([tabindex^='-'])))) {
-      min-block-size: var(--sui-touch-target);
+    .inline {
+      --sui-local-fact-target: var(--sui-touch-target);
     }
   }
 
@@ -340,7 +340,7 @@ apart, and the action under the value.
       ) {
       margin-block-start: round(
         up,
-        calc((round(up, 1cap, 1px) - var(--sui-field-target-min)) / 2),
+        calc((round(up, 1cap, 1px) - var(--sui-local-fact-target)) / 2),
         1px
       );
     }
@@ -352,6 +352,34 @@ apart, and the action under the value.
 
     .inline .sui-fact-list-value {
       flex: 1 1 0;
+    }
+
+    /* A list that holds a target sets every line at the target's height, its words on the
+       middle, so the lines keep one pitch and a target never crowds a plain line. The first
+       and last lines hand back the room past their words, so the list ends at its ink. */
+    .inline:has(:global(:is(a[href], button, [tabindex]:not([tabindex^='-']))))
+      > .sui-fact-list-fact {
+      align-items: center;
+      margin-block-start: 0;
+      min-block-size: var(--sui-local-fact-target);
+    }
+
+    .inline:has(:global(:is(a[href], button, [tabindex]:not([tabindex^='-']))))
+      > .sui-fact-list-fact:first-child {
+      margin-block-start: round(
+        up,
+        calc((round(up, 1cap, 1px) - var(--sui-local-fact-target)) / 2),
+        1px
+      );
+    }
+
+    .inline:has(:global(:is(a[href], button, [tabindex]:not([tabindex^='-']))))
+      > .sui-fact-list-fact:last-child {
+      margin-block-end: round(
+        down,
+        calc((round(up, 1cap, 1px) - var(--sui-local-fact-target)) / 2),
+        1px
+      );
     }
   }
 
@@ -379,7 +407,7 @@ apart, and the action under the value.
       ) {
       margin-block-start: round(
         up,
-        calc((round(up, 1cap, 1px) - var(--sui-field-target-min)) / 2),
+        calc((round(up, 1cap, 1px) - var(--sui-local-fact-target)) / 2),
         1px
       );
     }
@@ -391,6 +419,34 @@ apart, and the action under the value.
 
     .inline .sui-fact-list-value {
       flex: 1 1 0;
+    }
+
+    /* A list that holds a target sets every line at the target's height, its words on the
+       middle, so the lines keep one pitch and a target never crowds a plain line. The first
+       and last lines hand back the room past their words, so the list ends at its ink. */
+    .inline:has(:global(:is(a[href], button, [tabindex]:not([tabindex^='-']))))
+      > .sui-fact-list-fact {
+      align-items: center;
+      margin-block-start: 0;
+      min-block-size: var(--sui-local-fact-target);
+    }
+
+    .inline:has(:global(:is(a[href], button, [tabindex]:not([tabindex^='-']))))
+      > .sui-fact-list-fact:first-child {
+      margin-block-start: round(
+        up,
+        calc((round(up, 1cap, 1px) - var(--sui-local-fact-target)) / 2),
+        1px
+      );
+    }
+
+    .inline:has(:global(:is(a[href], button, [tabindex]:not([tabindex^='-']))))
+      > .sui-fact-list-fact:last-child {
+      margin-block-end: round(
+        down,
+        calc((round(up, 1cap, 1px) - var(--sui-local-fact-target)) / 2),
+        1px
+      );
     }
   }
 </style>

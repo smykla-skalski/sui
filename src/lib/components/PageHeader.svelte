@@ -376,6 +376,19 @@ and the header owes only the difference.
       grid-area: auto / 1;
       margin-block: var(--sui-rhythm-head-actions-stacked) 0;
     }
+
+    /* Under actions on a line of their own the tabs follow as the next row of controls, their
+       box 12px under the actions' box, as the actions stand under the copy; on a fine pointer
+       the tab row's track already stands 4px over its tabs. */
+    .sui-page-header-layout:has(> .sui-page-header-actions) + .sui-page-header-tabs {
+      margin-block-start: calc(var(--sui-rhythm-head-actions-stacked) - var(--sui-space-1));
+    }
+
+    @media (pointer: coarse) {
+      .sui-page-header-layout:has(> .sui-page-header-actions) + .sui-page-header-tabs {
+        margin-block-start: var(--sui-rhythm-head-actions-stacked);
+      }
+    }
   }
 
   /* A phone's 44px controls beside a 24px title would reach up past the line above it, so on a
@@ -392,6 +405,11 @@ and the header owes only the difference.
       flex-wrap: wrap;
       grid-area: auto / 1;
       margin-block: var(--sui-rhythm-head-actions-stacked) 0;
+    }
+
+    /* A phone's tab row has no lead over its tabs, so the tabs stand the whole 12px under. */
+    .sui-page-header-layout:has(> .sui-page-header-actions) + .sui-page-header-tabs {
+      margin-block-start: var(--sui-rhythm-head-actions-stacked);
     }
   }
 </style>

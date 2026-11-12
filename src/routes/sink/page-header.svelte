@@ -212,6 +212,12 @@
     margin-inline: calc(-1 * var(--sui-local-bleed, 0px));
   }
 
+  /* The last one runs to the stage's foot as well, so the Code row's line is its foot. */
+  :global(.specimen:last-child > .body) > .wide {
+    border-block-end: 0;
+    margin-block-end: calc(-1 * var(--sui-local-bleed, 0px));
+  }
+
   .view {
     align-content: center;
     block-size: var(--sui-block-snap);
