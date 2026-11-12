@@ -100,7 +100,7 @@ title, such as "Danger Zone", and holds the acts that cannot be undone, each a `
 
 - Semantics: a plain grouping box; the title is a heading at `level`; with `href`, an `a` under the content, named by the title through `aria-labelledby`.
 - Content: an optional title, description, head actions, body and footer actions; the title and the description wrap; a linked card needs a title to name its link.
-- States: rest; unsaved, which draws `unsavedLabel` after the title in the unsaved ink and gives the keyline the unsaved tint; danger, a danger keyline and title ink; with `href`, hover (the row's hover veil and the link's underline on the title, where the pointer can hover), pressed (a deeper veil, the pressed inset and a 1px sink) and focus.
+- States: rest; unsaved, which draws `unsavedLabel` after the title in the unsaved ink and gives the keyline the unsaved tint; danger, a danger keyline and title ink; with `href`, hover (the row's hover veil, a control's keyline and the link's underline on the title, where the pointer can hover), pressed (a deeper veil, the pressed inset and a 1px sink) and focus.
 - Keyboard: without `href`, none of its own; with it, the card is one tab stop and Enter follows the link; then Tab reaches the controls inside in reading order.
 - Pointer and touch: with `href`, the whole card is the link's target; the controls inside keep their own targets and press feedback.
 - Focus: nothing here moves focus; a focused card link draws the 2px ring flush on the card's keyline, which takes the focus colour, as a bordered control does (L-41).
@@ -252,6 +252,12 @@ title, such as "Danger Zone", and holds the acts that cannot be undone, each a `
   @media (hover: hover) {
     .sui-card:has(> .sui-card-hit:hover) {
       background-image: linear-gradient(var(--sui-row-hover), var(--sui-row-hover));
+    }
+
+    /* The veil takes the card's ground toward the stage's, so a plain keyline steps to a
+       control's edge and the card keeps its edge; a tone's keyline keeps its tone. */
+    .sui-card:not(.danger, .unsaved):has(> .sui-card-hit:hover) {
+      border-color: var(--sui-border-control);
     }
 
     .sui-card:has(> .sui-card-hit:hover) .sui-card-words > span:not(.sui-card-unsaved) {

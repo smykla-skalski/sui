@@ -900,12 +900,15 @@ suite('navigation', together, () => {
         const box = /** @type {{ x: number, y: number, width: number, height: number }} */ (
           await members.boundingBox()
         );
+        const edge = () => members.evaluate((card) => getComputedStyle(card).borderTopColor);
+        const rest = await edge();
         await page.mouse.move(box.x + 24, box.y + box.height - 12);
         assert.equal(
           await underlined(),
           'underline',
           'a hovered card does not underline its title'
         );
+        assert.notEqual(await edge(), rest, 'a hovered card keeps its resting keyline');
         await members.getByRole('button', { name: 'Invite' }).hover();
         assert.equal(await underlined(), 'none', 'a hovered control underlines the card title');
         await page.mouse.move(0, 0);
