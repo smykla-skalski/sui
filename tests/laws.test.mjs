@@ -1424,6 +1424,12 @@ test('L-53 a shadow that lifts a part is two layers in every palette block, and 
   assert.ok(contact, 'a light popover opens on a 1px contact line');
   const dark = (shade * Number(contact[1] ?? 100)) / 100;
   assert.ok(dark <= 8, `a light popover's contact line is ${dark}% black`);
+  const plate = found.find(([, name]) => name === 'shadow-plate')?.[2] ?? '';
+  assert.match(
+    plate,
+    new RegExp(`^\\s*0 1px \\d+px color-mix\\(in srgb, var\\(--sui-shadow-color\\) ${contact[1]}%`),
+    "a light plate opens on a popover's contact line, with no grey lower edge"
+  );
   const tip = /** @type {string} */ (found.find(([, name]) => name === 'shadow-tooltip')?.[2]);
   const [tipContact, tipLift] = [
     ...tip.matchAll(/0 (\d+)px (\d+)px color-mix\(in srgb, var\(--sui-shadow-color\) (\d+)%/g)

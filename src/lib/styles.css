@@ -649,9 +649,11 @@
 
   --sui-layer-top-bar: 35;
   --sui-layer-skip: 120;
+  /* On light a plate opens on a popover's contact line, so it stands off the page without a
+     grey lower edge (L-54). */
   --sui-shadow-plate:
-    0 1px 2px var(--sui-shadow-color),
-    0 2px 8px color-mix(in srgb, var(--sui-shadow-color) 25%, transparent);
+    0 1px 2px color-mix(in srgb, var(--sui-shadow-color) 40%, transparent),
+    0 2px 8px color-mix(in srgb, var(--sui-shadow-color) 15%, transparent);
   --sui-shadow-popover:
     0 1px 2px color-mix(in srgb, var(--sui-shadow-color) 40%, transparent),
     0 8px 20px color-mix(in srgb, var(--sui-shadow-color) 56%, transparent);
