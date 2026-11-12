@@ -226,8 +226,13 @@ start.
     }
   }
 
+  /* Each label trims its own cap as the label does, in a box of its own, so it snaps as the
+     label does and the cell stays on the pixel grid (L-95). */
   .sui-button-words > * {
+    align-content: center;
+    block-size: var(--sui-block-snap-even);
     grid-area: 1 / 1;
+    padding-block: var(--sui-block-snap-room-even);
     text-box: trim-both cap alphabetic;
   }
 
