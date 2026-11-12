@@ -175,7 +175,7 @@
     lineNumbers?: boolean;
     /** Offers a copy control in the corner. */
     copy?: boolean;
-    /** Drops the block's own frame, for a host that already frames it. */
+    /** Drops the block's own frame and its start inset, for a host that already frames and insets it. */
     bare?: boolean;
     /** The scroller's name when it scrolls and has no `label`. */
     regionLabel?: string;
@@ -198,7 +198,8 @@ A block that scrolls can take keyboard focus, so it can be scrolled without a po
 
 `lineNumbers` draws a gutter in the gutter ink at full opacity, which never selects or
 copies and stays in view while long lines scroll. Selected code is opaque, in the selection colors. `label` names the file above the
-code, and `bare` drops the frame for a host that frames the block itself. `html` colors markup,
+code, and `bare` drops the frame and the code's start inset for a host that frames and insets
+the block itself, so the code starts on the host's own edge, as under a disclosure's words. `html` colors markup,
 Svelte templates included. `shell` colors commands, flags, strings, variables and operators,
 and carries an open quote or a continued line on to the next line. The copy control stands
 in its own column at the end of the block, always in view and never over the code, 8px in
@@ -365,7 +366,8 @@ from the corner and centred on the first line, or in the file name's row when th
     white-space: pre;
   }
 
-  .numbered .src {
+  .numbered .src,
+  .bare .src {
     padding-inline-start: 0;
   }
 
