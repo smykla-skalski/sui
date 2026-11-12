@@ -543,12 +543,15 @@ itself, so the choice shows from the first frame.
      hidden form is clipped to the box, so it never widens the page either. The select stretches
      over the room the segments had, so a control that turns into one keeps its width and
      selects on one page line up; a host that ends its controls at an edge, such as a setting
-     row, sets `--sui-local-segmented-align: end`, and the select keeps its own width there. */
+     row, sets `--sui-local-segmented-align: end`, and the select keeps its own width there.
+     Hidden, it lends no height either, so a select that keeps its own 44px on a phone never
+     lowers the fitting track it shares a row with. */
   .sui-segmented-picker {
     contain: inline-size;
     display: grid;
     grid-template-columns: minmax(0, 1fr);
     justify-items: var(--sui-local-segmented-align, stretch);
+    max-block-size: 0;
     min-inline-size: 0;
     overflow: clip;
     visibility: hidden;
@@ -578,6 +581,7 @@ itself, so the choice shows from the first frame.
     }
 
     .short > .sui-segmented-picker {
+      max-block-size: none;
       overflow: visible;
       visibility: visible;
     }
@@ -594,6 +598,7 @@ itself, so the choice shows from the first frame.
   @keyframes sui-segmented-short-picker {
     from,
     to {
+      max-block-size: none;
       overflow: visible;
       visibility: visible;
     }

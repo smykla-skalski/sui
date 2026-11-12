@@ -603,7 +603,23 @@ suite('navigation', together, () => {
                 : 0
             };
           });
+        // At 700px the Usage track fits, so its hidden 44px select must lend the head no height.
+        await bare.setViewportSize({ width: 700, height: 900 });
+        const off = await bare.evaluate(() => {
+          const head = [...document.querySelectorAll('#card .sui-card-head')].find((part) =>
+            part.querySelector('.sui-card-actions .sui-segmented-track:not(.sui-segmented-ruler)')
+          );
+          const track = /** @type {Element} */ (
+            head?.querySelector('.sui-segmented-track:not(.sui-segmented-ruler)')
+          );
+          const title = /** @type {Element} */ (head?.querySelector('.sui-card-title'));
+          const middle = (/** @type {DOMRect} */ box) => box.top + box.height / 2;
+          return track.checkVisibility({ visibilityProperty: true })
+            ? middle(track.getBoundingClientRect()) - middle(title.getBoundingClientRect())
+            : NaN;
+        });
         await bare.close();
+        assert.ok(Math.abs(off) <= 0.5, `the fitting track stands ${off}px off its title's middle`);
         assert.equal(Math.round(height), 44, 'without showPicker the select is not 44px');
         assert.ok(into <= 0.5, `the 44px select reaches ${into}px into its note`);
       }
