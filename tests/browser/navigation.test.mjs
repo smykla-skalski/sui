@@ -778,6 +778,42 @@ suite('navigation', together, () => {
     );
 
     test(
+      "a plate's title wraps before its state, which wraps only past half the head",
+      long,
+      async () => {
+        const page = await sink();
+        for (const width of [1440, 390, 320]) {
+          await resize(page, width);
+          const problems = await page.evaluate(() =>
+            [...document.querySelectorAll('.sui-plate-status')].flatMap((status) => {
+              const head = /** @type {HTMLElement} */ (status.parentElement);
+              const title = head.querySelector('.sui-plate-title')?.getBoundingClientRect();
+              const box = status.getBoundingClientRect();
+              if (!title || box.top >= title.bottom || !status.checkVisibility()) return [];
+              const words = document.createRange();
+              words.selectNodeContents(status.querySelector('.sui-plate-words') ?? status);
+              const lines = new Set(
+                [...words.getClientRects()].map((line) => Math.round(line.top))
+              );
+              const style = getComputedStyle(head);
+              const half =
+                (head.clientWidth -
+                  parseFloat(style.paddingInlineStart) -
+                  parseFloat(style.paddingInlineEnd)) /
+                2;
+              return lines.size > 1 && box.width < half - 0.5
+                ? [
+                    `${status.textContent?.trim()}: ${lines.size} lines in ${box.width}px of ${half}px`
+                  ]
+                : [];
+            })
+          );
+          assert.deepEqual(problems, [], `at ${width}px`);
+        }
+      }
+    );
+
+    test(
       'every sideways scroller fades only the edges with more past them, 20px on a phone, mirrored right to left (L-107)',
       long,
       async () => {
