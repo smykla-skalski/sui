@@ -2053,17 +2053,22 @@ test('L-95 a box as wide as its content rounds its width up to the pixel', () =>
     /@supports not \(block-size: calc-size\(auto, size\)\) \{\s*:root \{\s*--sui-inline-snap: fit-content;/,
     'a browser without calc-size keeps the content width'
   );
-  const loose = globSync('src/lib/components/*.svelte').flatMap((path) =>
-    stripComments(read(path))
-      .split('\n')
-      .map((line, index, lines) => ({ line, next: lines[index + 1] ?? '', path }))
-      .filter(
-        ({ line, next }) =>
-          (/^\s*inline-size: fit-content;/.test(line) && !/inline-size: calc-size\(/.test(next)) ||
-          (/inline-size: calc-size\(fit-content,/.test(line) && !/round\(up,/.test(line))
-      )
-      .map(({ path, line }) => `${path}: ${line.trim()}`)
-  );
+  // A relative time paints its dots on its own box, so the box ends where its words do.
+  const exact = ['src/lib/components/RelativeTime.svelte'];
+  const loose = globSync('src/lib/components/*.svelte')
+    .filter((path) => !exact.includes(path))
+    .flatMap((path) =>
+      stripComments(read(path))
+        .split('\n')
+        .map((line, index, lines) => ({ line, next: lines[index + 1] ?? '', path }))
+        .filter(
+          ({ line, next }) =>
+            (/^\s*inline-size: fit-content;/.test(line) &&
+              !/inline-size: calc-size\(/.test(next)) ||
+            (/inline-size: calc-size\(fit-content,/.test(line) && !/round\(up,/.test(line))
+        )
+        .map(({ path, line }) => `${path}: ${line.trim()}`)
+    );
   assert.deepEqual(loose, [], 'a content width left off the pixel grid');
   for (const name of ['Button', 'Pill', 'SegmentedControl'])
     assert.match(
