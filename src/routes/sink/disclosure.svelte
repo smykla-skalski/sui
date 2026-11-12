@@ -121,19 +121,27 @@
 
 <Example
   title="Group"
-  note="Disclosures that share a name open one at a time, as the browser keeps the group"
+  note="Disclosures that share a name open one at a time, as the browser keeps the group, and a divider parts their rows"
   layout="stack"
 >
   <Specimen label="One open at a time">
-    <Disclosure name="sync-help" summary="When the Sync Runs" open>
-      <p class="copy">On every push to the default branch, and once a night</p>
-    </Disclosure>
-    <Disclosure name="sync-help" summary="What the Sync Changes">
-      <p class="copy">Only the files that the shared settings list</p>
-    </Disclosure>
-    <Disclosure name="sync-help" summary="How to Pause It">
-      <p class="copy">Turn off the sync in the repository’s settings</p>
-    </Disclosure>
+    <div class="group">
+      <div>
+        <Disclosure name="sync-help" summary="When the Sync Runs" open>
+          <p class="copy">On every push to the default branch, and once a night</p>
+        </Disclosure>
+      </div>
+      <div>
+        <Disclosure name="sync-help" summary="What the Sync Changes">
+          <p class="copy">Only the files that the shared settings list</p>
+        </Disclosure>
+      </div>
+      <div>
+        <Disclosure name="sync-help" summary="How to Pause It">
+          <p class="copy">Turn off the sync in the repository’s settings</p>
+        </Disclosure>
+      </div>
+    </div>
   </Specimen>
 </Example>
 
@@ -160,6 +168,11 @@
     font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-leading-meta)
       var(--sui-sans);
     margin: 0;
+  }
+
+  /* A divider parts the rows of a group, so it scans as one list of questions. */
+  .group > div + div {
+    border-block-start: var(--sui-stroke) solid var(--sui-border-divider);
   }
 
   .fields {
