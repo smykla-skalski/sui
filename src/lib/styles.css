@@ -928,7 +928,7 @@
     var(--sui-dialog-foot-bg)
   );
   --sui-shadow-plate:
-    inset 0 1px 0 rgb(255 255 255 / 4%), 0 1px 2px var(--sui-shadow-color),
+    inset 0 1px 0 rgb(255 255 255 / 6%), 0 1px 2px var(--sui-shadow-color),
     0 2px 8px color-mix(in srgb, var(--sui-shadow-color) 25%, transparent);
   --sui-shadow-popover:
     inset 0 1px 0 rgb(255 255 255 / 6%),
@@ -1188,7 +1188,7 @@
       var(--sui-dialog-foot-bg)
     );
     --sui-shadow-plate:
-      inset 0 1px 0 rgb(255 255 255 / 4%), 0 1px 2px var(--sui-shadow-color),
+      inset 0 1px 0 rgb(255 255 255 / 6%), 0 1px 2px var(--sui-shadow-color),
       0 2px 8px color-mix(in srgb, var(--sui-shadow-color) 25%, transparent);
     --sui-shadow-popover:
       inset 0 1px 0 rgb(255 255 255 / 6%),
