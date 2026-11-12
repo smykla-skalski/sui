@@ -2,6 +2,7 @@
   import type { Snippet } from 'svelte';
   import type { HTMLAttributes } from 'svelte/elements';
   import { cubicOut } from 'svelte/easing';
+  import { duration } from '../internal/motion.js';
   import Icon, { type IconName } from '../icons/Icon.svelte';
 
   let {
@@ -32,13 +33,8 @@
   // only when `state` changes, never on the first paint.
   function arrive(_node: Element) {
     const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
-    // The built stylesheet may write the token in seconds (`.16s`).
-    const time = getComputedStyle(document.documentElement)
-      .getPropertyValue('--sui-duration-fast')
-      .trim();
-    const duration = parseFloat(time) * (time.endsWith('ms') ? 1 : 1000);
     return {
-      duration: still || !duration ? 0 : duration,
+      duration: still ? 0 : duration('--sui-duration-fast'),
       easing: cubicOut,
       css: (t: number) => `opacity: ${t}`
     };

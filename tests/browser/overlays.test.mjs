@@ -1113,6 +1113,22 @@ suite('overlays', together, () => {
     }
   });
 
+  // The built stylesheet writes the fast duration as `.16s`, which once read as 0.16ms.
+  test("a dismissed toast fades out over the fast duration token's 160ms", async () => {
+    const page = await open();
+    try {
+      await page.locator('#toaster button', { hasText: 'Remove Rule' }).click();
+      const toast = page.locator('.sui-toaster:popover-open .sui-toast');
+      await toast.locator('[data-dismiss]').click();
+      const durations = await toast.evaluate((node) =>
+        node.getAnimations().map((animation) => animation.effect?.getTiming().duration)
+      );
+      assert.deepEqual(durations, [160]);
+    } finally {
+      await page.close();
+    }
+  });
+
   test('the Timing triggers stand two to a row, on a phone too', async () => {
     for (const [where, options] of /** @type {const} */ ([
       ['a pointer', undefined],
