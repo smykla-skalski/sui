@@ -292,10 +292,19 @@ title, such as "Danger Zone", and holds the acts that cannot be undone, each a `
   }
 
   /* The word, not a mark: a reader sees "Unsaved" whatever the keyline's tint, as on a setting
-     row. */
+     row. It stands on the title's baseline at the note's size, a state of the subject and never a
+     second subject beside it. */
   .sui-card-unsaved {
     color: var(--sui-unsaved-ink);
+    font-size: var(--sui-font-size-meta);
     font-weight: var(--sui-weight-regular);
+  }
+
+  /* Its box snaps to the pixel with the spare above its cap, so on the shared baseline it
+     reaches no lower than the title's and never lowers the title's cap. */
+  .sui-card-words > .sui-card-unsaved {
+    align-content: end;
+    padding-block: 0;
   }
 
   /* The copy and the actions share the head's one line at every width: short of room, each
