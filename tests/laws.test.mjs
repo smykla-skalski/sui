@@ -238,6 +238,11 @@ test('L-24 a title stands 12px above its description, copy lines 8px apart, form
     "a toast's description wraps at the note leading in balanced lines"
   );
   assert.match(
+    stripComments(read('src/lib/components/Toaster.svelte')),
+    /\.acting \.sui-toast-description \{\s*text-wrap: pretty;/,
+    "beside an action a toast's balanced reason leaves a gap before it"
+  );
+  assert.match(
     stripComments(read('src/lib/components/Modal.svelte')),
     /\.sui-modal-head \{[^}]*gap: var\(--sui-space-4\);/,
     "a dialog's title stands 16px over its description, a step past a card's 12px (L-58)"

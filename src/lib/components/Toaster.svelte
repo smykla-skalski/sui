@@ -541,6 +541,11 @@ A `danger` toast reports a failure and stays too.
     line-height: var(--sui-leading-note);
   }
 
+  /* Beside an action, balanced lines leave a gap before it, so the reason fills its line. */
+  .acting .sui-toast-description {
+    text-wrap: pretty;
+  }
+
   /* A preview is drawn once at load and never enters. */
   .preview .sui-toast {
     transition: none;
