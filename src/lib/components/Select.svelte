@@ -311,12 +311,16 @@ assistive technology, because a native picker cannot be held open.
     grid-area: 1 / 1;
   }
 
-  /* A field edge, not a button: the native select in every browser, and the base of the
-     customizable one. The end padding keeps the value clear of the chevron laid over it. */
-  .sui-select[data-seat='own'] {
-    --sui-local-field-seat: initial;
+  /* Where a finger needs the 44px and script cannot open the select from its hit area, the
+     trigger keeps its own height instead of a host's seat. A fine pointer keeps the seat. */
+  @media (max-width: 47.9375rem), (pointer: coarse) {
+    .sui-select[data-seat='own'] {
+      --sui-local-field-seat: initial;
+    }
   }
 
+  /* A field edge, not a button: the native select in every browser, and the base of the
+     customizable one. The end padding keeps the value clear of the chevron laid over it. */
   .sui-select-control {
     appearance: none;
     background-color: var(--sui-control-bg);

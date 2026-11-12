@@ -634,7 +634,16 @@ suite('navigation', together, () => {
               ) - note.getBoundingClientRect().width
           };
         });
+        // A fine pointer on a wide screen needs no 44px, so the select keeps the head's seat.
+        await bare.setViewportSize({ width: 1100, height: 900 });
+        const wide = await bare.evaluate(() => {
+          const actions = [...document.querySelectorAll('.sui-card-actions')].find((part) =>
+            part.closest('.sui-card')?.textContent?.includes('Members')
+          );
+          return actions?.querySelector('select')?.getBoundingClientRect().height;
+        });
         await bare.close();
+        assert.equal(wide, 28, "without showPicker a fine pointer's select leaves its 28px seat");
         assert.ok(Math.abs(off) <= 0.5, `the fitting track stands ${off}px off its title's middle`);
         assert.ok(
           short <= 0.5,
