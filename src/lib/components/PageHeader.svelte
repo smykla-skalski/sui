@@ -80,8 +80,8 @@ band pads by the pane gutter on every side, 24px and 16px on a phone, the inset 
 line up with the view's. A page whose column sits inside a wider band sets
 `--sui-local-head-inset` to its column's inset. With `tabs`, the tabs' own line is the foot, so
 one boundary draws one line (L-109): the header runs their row to the band's edges in the
-band's line colour, with the first tab on the copy's start, and the current tab's bar sits on
-the foot. The header leaves 24px from its foot to the view's first ink (20px on a phone). A
+band's line colour, with the first tab's words and bar on the copy's start and its veil
+reaching 8px past them, as a breadcrumb's does, and the current tab's bar sits on the foot. The header leaves 24px from its foot to the view's first ink (20px on a phone). A
 container that already spaces its children with a gap sets `--sui-head-exit-gap` to that gap,
 and the header owes only the difference.
 
@@ -156,7 +156,7 @@ and the header owes only the difference.
 
   /* One line at the foot, the band's full width, where the band meets the view, whatever the
      two grounds are. With tabs, their own line is the foot: the row runs to the band's edges,
-     its first tab still on the copy's start, so the current tab's bar sits on the foot. */
+     its first tab's words still on the copy's start, so the current tab's bar sits on the foot. */
   .sui-page-header:not(.tabbed) {
     border-block-end: var(--sui-stroke) solid var(--sui-border-band);
   }
@@ -166,7 +166,9 @@ and the header owes only the difference.
   }
 
   .sui-page-header-tabs {
-    --sui-local-tabs-inset: var(--sui-local-head-inset, var(--sui-rhythm-pane-gutter));
+    --sui-local-tabs-inset: calc(
+      var(--sui-local-head-inset, var(--sui-rhythm-pane-gutter)) - var(--sui-space-2)
+    );
     --sui-local-tabs-line: var(--sui-border-band);
     margin-block-start: var(--sui-rhythm-head-surface);
     margin-inline: calc(-1 * var(--sui-local-head-inset, var(--sui-rhythm-pane-gutter)));

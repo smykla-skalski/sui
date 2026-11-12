@@ -33,7 +33,7 @@
   ground="canvas"
 >
   <Specimen label="Eyebrow, description & actions">
-    <div class="page">
+    <div class="page wide">
       <PageHeader
         level={4}
         eyebrow={['Acme', 'Sync']}
@@ -49,7 +49,7 @@
     </div>
   </Specimen>
   <Specimen label="Title only">
-    <div class="page">
+    <div class="page wide">
       <PageHeader level={4} title="Activity" />
       <p class="view">Nothing happened in the last 7&nbsp;days</p>
     </div>
@@ -63,7 +63,7 @@
   ground="canvas"
 >
   <Specimen label="Status, description & facts">
-    <div class="page">
+    <div class="page wide">
       <PageHeader
         level={4}
         title="Sync Check #4182"
@@ -107,7 +107,7 @@
   ground="canvas"
 >
   <Specimen label="Views of one page">
-    <div class="page">
+    <div class="page wide">
       <PageHeader
         level={4}
         eyebrow={['Acme', 'Repositories']}
@@ -177,7 +177,7 @@
   ground="canvas"
 >
   <Specimen label="Wrapping title & description">
-    <div class="page">
+    <div class="page wide">
       <PageHeader
         level={4}
         eyebrow={['Acme', 'Access']}
@@ -201,6 +201,15 @@
     border: var(--sui-stroke) solid var(--sui-border-subtle);
     border-radius: var(--sui-radius-surface);
     overflow: hidden;
+  }
+
+  /* A page stacked alone on the stage runs across its inset to the frame's edges, as a page
+     fills the window, so its header and view keep a phone's width less the page's own gutter
+     and the frame draws its sides. */
+  .wide {
+    border-inline: 0;
+    border-radius: 0;
+    margin-inline: calc(-1 * var(--sui-local-bleed, 0px));
   }
 
   .view {
