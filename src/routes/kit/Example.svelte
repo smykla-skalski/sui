@@ -218,12 +218,12 @@ live specimens, not a surface of the design, so it may hold cards and dialogs (L
 
   /* The Code row holds its disclosure's own target a step inside the band, so the hover veil
      never meets the frame's edge, and the frame's chrome stays lighter than the specimens it
-     closes. */
+     closes. Its chevron stands on the stage's inset, under the specimens' chevrons. */
   .tools {
     background: var(--sui-surface-base);
     border-block-start: var(--sui-stroke) solid var(--sui-border-divider);
     min-inline-size: 0;
-    padding: var(--sui-space-1) var(--sui-space-4);
+    padding: var(--sui-space-1) var(--sui-space-6);
   }
 
   /* Past a phone the Code row's target takes the quiet tier, so the band stays as tall as a
@@ -253,6 +253,10 @@ live specimens, not a surface of the design, so it may hold cards and dialogs (L
 
     .specimens:is([data-layout='stack'], [data-layout='pairs']) {
       --sui-local-stage-pad: var(--example-phone-pad, var(--sui-space-4));
+    }
+
+    .tools {
+      padding-inline: var(--sui-space-4);
     }
 
     /* A stage padded less for a drawn dialog still stands its captions 16px in, on the line

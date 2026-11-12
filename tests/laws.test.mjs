@@ -1128,6 +1128,12 @@ test('L-72 a floating layer on dark stands off its ground by the raised ground a
   );
 });
 
+test("L-57 a disclosure's guide is a hairline in the subtle edge, never a coloured one", () => {
+  assert.match(
+    styles['src/lib/components/Disclosure.svelte'],
+    /\.sui-disclosure::before \{[^}]*border-inline-start: var\(--sui-stroke\) solid var\(--sui-border-subtle\)/
+  );
+});
 test('L-73 every duration and easing reads a token', () => {
   const literalTime = /(?<![\w-])(?!0s\b|0\.01ms\b)\d*\.?\d+m?s\b/;
   const literalEase = /\b(?:ease|ease-in|ease-out|ease-in-out|linear|cubic-bezier\(|steps\()/;
