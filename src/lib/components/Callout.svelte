@@ -205,6 +205,8 @@ and the unsaved ink, so no neutral block sits on a state (L-92).
 
   /* Written after the tones and as specific as them, so it wins over either. */
   .sui-callout.decision {
+    /* Its reason takes the unsaved family's secondary ink, as an unsaved setting row's does. */
+    --sui-text-secondary: var(--sui-unsaved-secondary);
     --sui-callout-tile: var(--sui-unsaved-surface);
     --sui-callout-mark: var(--sui-unsaved-ink);
     --sui-surface-raised: transparent;
@@ -276,6 +278,14 @@ and the unsaved ink, so no neutral block sits on a state (L-92).
     text-wrap: balance;
     color: var(--sui-text-primary);
     font-weight: var(--sui-weight-semibold);
+  }
+
+  /* The reason wraps at a card description's 20px, with no phone step, since its actions are
+     drawn at the quiet tier and no 44px control stands under it (L-24), and fills its lines,
+     so none of them leaves a gap before an action beside it. */
+  .sui-callout-text {
+    line-height: var(--sui-leading-title-note);
+    text-wrap: pretty;
   }
 
   .decision .sui-callout-actions {
