@@ -235,7 +235,7 @@ style declaration.
 
 - Semantics: a `span` holding the value as text, with a native `button` to remove it when `onremove` is set.
 - Content: one value of any length, which wraps inside the chip so no part of it is cut; `small` for a chip inside a line of text, `mono` for a technical value.
-- States: rest, painted (its color in the light theme, a tint of it in the dark one), and on the remove control hover, pressed, focus and disabled at the disabled opacity.
+- States: rest, painted (its color in the light theme, a tint of it in the dark one), and on the remove control hover, pressed and focus; a disabled chip takes an off field's paint, the quieter field well with no edge and its value and mark in the muted ink at full strength, and a painted one keeps its paint with its mark at the disabled opacity.
 - Keyboard: the remove control is a tab stop, and Enter or Space removes; the chip itself is not a stop.
 - Pointer and touch: the remove target is 24px; on a phone or a coarse pointer a removable chip grows to 44px tall around a 44px square control, so the targets of chips on wrapped lines never overlap.
 - Focus: after a removal it moves to the next remove control in the chip's parent, then the previous one, then the parent itself, which gets `tabindex="-1"` when it has none.
@@ -249,7 +249,17 @@ style declaration.
 
 <span
   {...rest}
-  class={['sui-chip', className, { small, mono, painted, removable: onremove !== undefined }]}
+  class={[
+    'sui-chip',
+    className,
+    {
+      small,
+      mono,
+      painted,
+      removable: onremove !== undefined,
+      off: disabled && onremove !== undefined && !painted
+    }
+  ]}
   style:--sui-chip-fill={painted?.fill}
   style:--sui-chip-hue={painted?.hue}
   style:--sui-chip-ink-light={painted?.lightInk}
@@ -341,6 +351,19 @@ style declaration.
     box-shadow: inset 0 0 0 var(--sui-stroke)
       light-dark(var(--sui-chip-edge, transparent), var(--sui-chip-edge-dark, transparent));
     color: light-dark(var(--sui-chip-ink-light), var(--sui-chip-ink-dark));
+  }
+
+  /* A chip whose remove is off reads as an off field does, as a pair entry's chip does: the
+     quieter field well with no edge, and its value and mark in the muted ink at full strength,
+     so it reads as fixed while its value stays legible (L-40). */
+  .off {
+    background: var(--sui-field-disabled);
+    box-shadow: none;
+    color: var(--sui-text-muted);
+  }
+
+  .off > .sui-chip-remove:disabled {
+    opacity: 1;
   }
 
   /* The remove control sits concentric with the chip: the same inset on the end as above

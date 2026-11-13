@@ -1647,9 +1647,9 @@ function controls(root: Document): Finding[] {
     // strength; a busy icon button has no words.
     const busy = control.matches("[aria-busy='true']:not(:disabled)");
     // An off field reads as off by its well and its muted words, at full strength, and so do
-    // both parts of an off joined field and of an off pair chip.
+    // both parts of an off joined field and of an off pair chip, and an off chip's remove.
     const well = control.matches(
-      `${OFF_FIELD}, .sui-joined.disabled :disabled, .sui-pair-entry.disabled .sui-pair-chip > :disabled`
+      `${OFF_FIELD}, .sui-joined.disabled :disabled, .sui-pair-entry.disabled .sui-pair-chip > :disabled, .sui-chip.off > .sui-chip-remove:disabled`
     );
     const dimmed = busy ? control.querySelector('.sui-button-label') : control;
     const expected = busy || well ? 1 : disabledOpacity;
