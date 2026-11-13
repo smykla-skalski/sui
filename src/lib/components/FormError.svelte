@@ -85,7 +85,7 @@ margins of its own; the form that holds it sets the gap above it.
       {@attach arrive}
     >
       <p class="sui-form-error-message">
-        <span class="sui-form-error-mark"><Icon name="alert" size="base" /></span>
+        <span class="sui-form-error-mark"><Icon name="alert" size="md" /></span>
         <span class="sui-form-error-text">{message}</span>
       </p>
       {#if problems.length > 0}
@@ -108,7 +108,7 @@ margins of its own; the form that holds it sets the gap above it.
 <style>
   /* A refusal of the whole form is a pale wash of the danger tint inside a light edge of the
      hue, as an error panel is, so it owns the top of the form and its words keep their
-     contrast. Its words read at body size beside a 16px mark, so it pads 16px all round. */
+     contrast. Its words read at body size beside an 18px mark, which a failure wears a tier over a field's, so it pads 16px all round. */
   .sui-form-error {
     background: color-mix(in srgb, var(--sui-danger-tint) 65%, var(--sui-surface-base));
     border: var(--sui-stroke) solid var(--sui-danger-wash-edge);
@@ -151,7 +151,7 @@ margins of its own; the form that holds it sets the gap above it.
   .sui-form-error-mark {
     color: var(--sui-danger);
     display: flex;
-    margin-block: round(calc((1cap - var(--sui-icon-base)) / 2), 1px);
+    margin-block: round(calc((1cap - var(--sui-icon-md)) / 2), 1px);
   }
 
   .sui-form-error-text {
@@ -172,7 +172,7 @@ margins of its own; the form that holds it sets the gap above it.
     list-style: none;
     margin: 0;
     padding: 0;
-    padding-inline-start: calc(var(--sui-icon-base) + var(--sui-space-2));
+    padding-inline-start: calc(var(--sui-icon-md) + var(--sui-space-2));
   }
 
   /* 44px hit areas on lines this close would overlap, so a touch screen spaces them out. */

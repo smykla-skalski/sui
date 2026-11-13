@@ -422,7 +422,7 @@ test('L-59 a state panel pads 28px by 24px, 20px on a phone, its action a step u
   );
   assert.match(
     stripComments(styles['src/lib/components/ErrorState.svelte']),
-    /\.over > \.sui-error-state-retry \{\s*margin-inline-start: calc\(var\(--sui-icon-base\) \+ var\(--sui-space-2\)\);/,
+    /\.over > \.sui-error-state-retry \{\s*margin-inline-start: calc\(var\(--sui-icon-md\) \+ var\(--sui-space-2\)\);/,
     'a line too narrow for both wraps the retry under its words'
   );
   assert.match(
@@ -1904,22 +1904,22 @@ test('L-25 a count beside a label is caption type at 600', () => {
   );
 });
 
-test('L-94 a form error summary and an error state take the 16px mark 8px from their words', () => {
+test('L-94 a form error summary and an error state take the 18px mark 8px from their words', () => {
   const path = 'src/lib/components/FormError.svelte';
-  assert.match(read(path), /sui-form-error-mark"><Icon name="alert" size="base" \/>/);
+  assert.match(read(path), /sui-form-error-mark"><Icon name="alert" size="md" \/>/);
   assert.match(styles[path], /\.sui-form-error-message \{[^}]*column-gap: var\(--sui-space-2\)/);
   assert.match(
     styles[path],
     /\.sui-form-error \{[^}]*padding: var\(--sui-space-4\);/,
-    'a 12px inset crowds body-size words and their 16px mark'
+    'a 12px inset crowds body-size words and their 18px mark'
   );
   assert.match(
     styles[path],
-    /\.sui-form-error-list \{[^}]*padding-inline-start: calc\(var\(--sui-icon-base\) \+ var\(--sui-space-2\)\)/,
+    /\.sui-form-error-list \{[^}]*padding-inline-start: calc\(var\(--sui-icon-md\) \+ var\(--sui-space-2\)\)/,
     'the summary links leave the line its mark and gap take'
   );
   const state = 'src/lib/components/ErrorState.svelte';
-  assert.match(read(state), /sui-error-state-mark"><Icon name="alert" size="base" \/>/);
+  assert.match(read(state), /sui-error-state-mark"><Icon name="alert" size="md" \/>/);
   assert.match(
     styles[state],
     /\.sui-error-state-copy \{[^}]*gap: var\(--sui-title-copy-gap\) var\(--sui-space-2\)/
@@ -1931,7 +1931,7 @@ test('L-94 a form error summary and an error state take the 16px mark 8px from t
   );
   assert.match(
     styles[state],
-    /\.sui-error-state:not\(\.over\) > \.sui-error-state-retry \{\s*padding-inline-start: calc\(var\(--sui-icon-base\) \+ var\(--sui-space-2\)\);/,
+    /\.sui-error-state:not\(\.over\) > \.sui-error-state-retry \{\s*padding-inline-start: calc\(var\(--sui-icon-md\) \+ var\(--sui-space-2\)\);/,
     "a panel's retry leaves the line the mark and its gap take"
   );
 });
