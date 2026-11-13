@@ -367,10 +367,14 @@ from the corner and centred on the first line, or in the file name's row when th
      code takes the whole width under it. A block with no copy control has no row to part from
      its code, so it keeps its own top edge. */
   @media (max-width: 47.9375rem) {
+    /* At a large text size the name and the control share no line, so the control wraps under
+       the name and keeps to the end (WCAG 1.4.4). */
     .sui-code-block:not(.labelled) > .sui-code-block-copy {
       align-items: baseline;
       box-sizing: border-box;
+      column-gap: var(--sui-space-3);
       flex-basis: 100%;
+      flex-wrap: wrap;
       justify-content: flex-end;
       margin-block-start: 0;
       order: -1;

@@ -21,7 +21,7 @@
 - A `RelativeTime`'s focus ring stands 2px further from its first and last letters, as far as it stands from the cap, with its dots still under the words alone.
 - A wide `ListToolbar` keeps its filter beside a search that reached 32rem and its action at the end, where the search part took the spare width and pushed the filter away.
 - On a phone a `CodeBlock` with no copy control keeps its own top edge, where it drew a divider against its border and squared its corners.
-- A `CodeBlock` with no file name names its language at the start of a phone's copy row, where the row held the control alone.
+- A `CodeBlock` with no file name names its language at the start of a phone's copy row, where the row held the control alone; at a large text size the control wraps under the name.
 - A focused box that scrolls sideways, such as a `CodeBlock`, a `DataTable` or `Tabs`, draws its focus ring's corners whole, where the end fade washed out the arc at the end corners.
 - The Empty & Error States page's recovered rows hold the failed panel's height, where the panels beside them shrank 32px once its retry succeeded.
 - The Relative Time page's In Context line keeps each clause whole when it wraps, where a phone parted "checked" from "again".
