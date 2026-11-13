@@ -63,7 +63,7 @@ the next step, a control or words, stands a panel gap under it.
 
 - Semantics: a `div` of two paragraphs and the action; with `live` the title and description also reach a polite `status`.
 - Content: a plain title, one sentence of explanation and one next step, as an `action` such as a `Button` that clears the filter, or as `step` when the step happens elsewhere.
-- States: one drawn state, on the raised ground inside a hairline frame.
+- States: one drawn state, on the raised ground inside a dashed frame that marks the room its content would fill.
 - Keyboard: none of its own; the action takes Tab.
 - Pointer and touch: the action keeps its own 34px and 44px targets.
 - Focus: it never takes focus; when a filter empties a list, focus stays on the field the reader typed in.
@@ -91,11 +91,13 @@ the next step, a control or words, stands a panel gap under it.
 
 <style>
   /* Stretched beside a taller panel, its words and its action keep to the top, the action one
-     gap under the words it answers, never the panel's foot away from them (L-59). */
+     gap under the words it answers, never the panel's foot away from them (L-59). A dashed
+     edge marks the room the content would fill, apart from a solid card; a dash shows only
+     half its length, so it takes the control edge to read as firm as a hairline. */
   .sui-empty-state {
     align-content: start;
     background: var(--sui-surface-raised);
-    border: var(--sui-stroke) solid var(--sui-border-subtle);
+    border: var(--sui-stroke) dashed var(--sui-border-control);
     border-radius: var(--sui-radius-control);
     box-sizing: border-box;
     display: grid;

@@ -440,6 +440,11 @@ test('L-59 a state panel pads 28px by 20px, 20px on a phone, its action a step u
     /\.sui-error-state-title \{[^}]*color: var\(--sui-text-primary\);/,
     'the mark, edge and wash carry the failure, so its title reads in the primary ink'
   );
+  assert.match(
+    stripComments(styles['src/lib/components/EmptyState.svelte']),
+    /\.sui-empty-state \{[^}]*border: var\(--sui-stroke\) dashed var\(--sui-border-control\);/,
+    'an empty panel marks the room its content would fill with a dashed edge, firm enough to read as one'
+  );
   for (const [file, step] of [
     ['ErrorState', 'error-state'],
     ['EmptyState', 'empty-state']
