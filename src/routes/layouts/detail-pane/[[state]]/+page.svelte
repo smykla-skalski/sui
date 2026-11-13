@@ -170,10 +170,13 @@
   </PageHeader>
 {/snippet}
 
-{#snippet headActions()}
-  <Button tone="signal">Check Again</Button>
+{#snippet headActions(waiting = false)}
+  <!-- A check cannot run again before it has loaded, so the button waits, still in reach. -->
+  <Button tone="signal" aria-disabled={waiting || undefined}>Check Again</Button>
   <ActionMenu label="More actions" icon="more" toolbar items={menu} align="end" />
 {/snippet}
+
+{#snippet waitingActions()}{@render headActions(true)}{/snippet}
 
 {#snippet body()}
   <DetailLayout>
@@ -231,7 +234,7 @@
 
 <SkipLink href="#content" />
 
-<AppShell title="Sync Check #4182" landmark="none" label="Workspace navigation">
+<AppShell title="Sync Check #4182" eyebrow={place} landmark="none" label="Workspace navigation">
   {#snippet rail()}
     <Rail items={places} {foot} current={place} onpick={(item) => (place = item.label)} />
   {/snippet}
@@ -244,7 +247,7 @@
       <!-- The actions need no answer, so they stand where they will stay, and bars stand where
            the description's lines and the facts' lines will: one of each in a wide header, two
            of each on a phone. -->
-      <PageHeader title="Sync Check #4182" kicker={back} actions={headActions}>
+      <PageHeader title="Sync Check #4182" kicker={back} actions={waitingActions}>
         <!-- The status region is there from the first render, so the state is read once it arrives. -->
         {#snippet status()}{/snippet}
         {#snippet facts()}
@@ -300,7 +303,9 @@
         </DetailLayout>
       </div>
     {:else if view === 'missing'}
-      <PageHeader title="Sync Check #4182" kicker={back} />
+      <PageHeader title="Sync Check #4182" kicker={back}>
+        {#snippet status()}<Pill tone="neutral">Not found</Pill>{/snippet}
+      </PageHeader>
       <!-- Nothing failed that a retry could fix, so the page says so in a neutral voice. -->
       <div class="zones missing">
         <EmptyState
@@ -315,9 +320,10 @@
       <div class="zones">
         {#if view === 'stale'}
           <!-- Stale words stand behind everything under the header, so the notice spans both
-               columns, and its retry stands at its end as any notice's action does. -->
-          <Callout tone="warning" title="The check could not refresh">
-            {#snippet icon()}<Icon name="warning" size="sm" />{/snippet}
+               columns, and its retry stands at its end as any notice's action does. It is quiet,
+               so the warning about the check itself still leads. -->
+          <Callout title="The check could not refresh">
+            {#snippet icon()}<Icon name="refresh" size="sm" />{/snippet}
             Showing what loaded a minute ago
             {#snippet actions()}
               <Button loading={refreshing} onclick={refresh}>
@@ -386,7 +392,11 @@
   .wide {
     font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-leading-none)
       var(--sui-sans);
-    padding-block-end: calc((var(--sui-field-target-min) - round(up, 1cap, 1px)) / 2);
+    padding-block-end: round(
+      up,
+      calc((var(--sui-field-target-min) - round(up, 1cap, 1px)) / 2),
+      1px
+    );
   }
 
   /* The counts' line keeps a few pixels of room under its words, more where the sentence wraps

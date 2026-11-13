@@ -10,6 +10,7 @@
 
   let {
     title,
+    eyebrow,
     rail,
     sidebar,
     bar,
@@ -28,6 +29,8 @@
   }: {
     /** The page the reader is on, named in the phone bar. It wraps rather than being cut. */
     title: string;
+    /** Where the page is, such as its workspace, drawn small over the title in the phone bar. */
+    eyebrow?: string;
     /** The outermost navigation, such as a `Rail`. On a phone it rides in the drawer, or in the bottom bar with `bottomNav`. */
     rail?: Snippet;
     /** The pages, usually a `SideNav`. It becomes a drawer on a phone. */
@@ -227,8 +230,8 @@ whole and its fold control leaves.
 
 On a phone, below 48rem of the shell's own width, a 56px bar names the current page. Its
 button, a glyph and the word `menuLabel`, parted from the title by a 20px hairline, opens the
-sidebar over the content as a modal drawer. The drawer's pages are 288px wide, giving way beside
-the rail, and the drawer leaves at least 56px of the screen uncovered. Without `bottomNav` the rail rides in the drawer too. With it, the rail's few peer places stand
+sidebar over the content as a modal drawer. The drawer's pages are 288px wide, or the sidebar's 228px
+beside the rail, and the drawer leaves at least 56px of the screen uncovered. `eyebrow` names where the page is, such as its workspace, over the title. Without `bottomNav` the rail rides in the drawer too. With it, the rail's few peer places stand
 in a bar along the bottom, always in reach of a thumb, and the drawer holds only the pages.
 
 The layout answers to the shell's own width through container queries, so a shell inside a
@@ -267,7 +270,10 @@ viewport. `landmark="none"` keeps the content from claiming the page's one `main
       <span class="sui-shell-menu-label">{menuLabel}</span>
     </button>
     <span class="sui-shell-rule" aria-hidden="true"></span>
-    <p class="sui-shell-title">{title}</p>
+    <div class="sui-shell-name">
+      {#if eyebrow}<p class="sui-shell-eyebrow">{eyebrow}</p>{/if}
+      <p class="sui-shell-title">{title}</p>
+    </div>
     {@render bar?.()}
   </header>
 
@@ -411,10 +417,30 @@ viewport. `landmark="none"` keeps the content from claiming the page's one `main
     margin-inline-end: var(--sui-space-1);
   }
 
+  /* The eyebrow stands a copy gap over the title, so the two read as one name. */
+  .sui-shell-name {
+    display: grid;
+    flex: 1 1 8rem;
+    gap: var(--sui-row-copy-gap);
+    min-inline-size: 0;
+  }
+
+  .sui-shell-eyebrow {
+    align-content: center;
+    block-size: var(--sui-block-snap);
+    color: var(--sui-sidebar-text-secondary);
+    font: var(--sui-weight-medium) var(--sui-font-size-compact) / var(--sui-leading-compact)
+      var(--sui-sans);
+    margin: 0;
+    min-inline-size: 0;
+    overflow-wrap: break-word;
+    padding-block: var(--sui-block-snap-room);
+    text-box: trim-both cap alphabetic;
+  }
+
   .sui-shell-title {
     align-content: center;
     block-size: var(--sui-block-snap);
-    flex: 1 1 8rem;
     font: var(--sui-weight-semibold) var(--sui-font-size-title) / var(--sui-leading-title)
       var(--sui-sans);
     margin: 0;
@@ -535,6 +561,12 @@ viewport. `landmark="none"` keeps the content from claiming the page's one `main
        uncovered to close the drawer by. */
     .sui-shell-side:popover-open .sui-shell-pages {
       inline-size: 18rem;
+    }
+
+    /* Beside the rail the pages keep the sidebar's own width, so a wide strip of the screen
+       stays uncovered to close the drawer by. */
+    .sui-shell-side:popover-open .sui-shell-pages.joined {
+      inline-size: var(--sui-sidebar-width);
     }
 
     /* The drawer meets the screen's start and foot, so it keeps its rows off the notch and the

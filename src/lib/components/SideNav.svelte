@@ -251,7 +251,7 @@ changes. Until it is measured the row paints its own plate.
 Inside an `AppShell` wide enough to fold, a Collapse Navigation control at the end of the list folds it
 into a strip where each row is an icon over a one-line label in 68px of room, the label's `short` where the label is wider, and Expand Navigation, its glyph
 alone there with its words in a tooltip, brings it back. A tooltip with the full name shows only
-where `short` replaces a label, and a count is still read aloud. The `foot` is told when the
+where `short` replaces a label, and a count rides its glyph's top-end corner. The `foot` is told when the
 sidebar is the strip, so it can draw a glyph's width, as `ThemeSwitch` does with `iconOnly`. In the phone drawer a close button takes the head's end on the first line of its names, rows are 44px, and
 following a row closes the drawer.
 
@@ -832,14 +832,24 @@ following a row closes the drawer.
       min-block-size: var(--sui-touch-target);
     }
 
-    /* A label replaced by its short form, a count and the fold's words leave the strip but are
-       still read. */
+    /* A count rides the glyph's top-end corner in a rail badge's accent, so what waits still
+       shows in the strip and reads as the rail's badges do; a ring of the sidebar's ground
+       parts it from the glyph. */
+    .sui-side-nav[data-collapsed] .sui-side-nav-count {
+      --sui-local-count-ground: var(--sui-brand-action);
+      --sui-local-count-ink: var(--sui-on-brand-action);
+      border-radius: var(--sui-radius-pill);
+      box-shadow: 0 0 0 var(--sui-stroke-bold) var(--sui-sidebar-bg);
+      inset-block-start: 0;
+      inset-inline-start: calc(50% + var(--sui-space-1));
+      margin: 0;
+      position: absolute;
+    }
+
+    /* A label replaced by its short form and the fold's words leave the strip but are still
+       read. */
     .sui-side-nav[data-collapsed]
-      :is(
-        .sui-side-nav-label.replaced,
-        .sui-side-nav-count,
-        .sui-side-nav-fold .sui-side-nav-label
-      ) {
+      :is(.sui-side-nav-label.replaced, .sui-side-nav-fold .sui-side-nav-label) {
       block-size: 1px;
       clip-path: inset(50%);
       inline-size: 1px;

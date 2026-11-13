@@ -31,7 +31,7 @@
         { href: '#rulesets', label: 'Rulesets', icon: 'shield' },
         {
           href: '#files',
-          label: 'Files synced across every repository',
+          label: 'Synced Files',
           short: 'Files',
           icon: 'file'
         }
@@ -92,7 +92,13 @@
 
 <SkipLink href="#content" />
 
-<AppShell title={names[current]} landmark="none" label="Workspace navigation" {bottomNav}>
+<AppShell
+  title={names[current]}
+  eyebrow="Smykla Skalski"
+  landmark="none"
+  label="Workspace navigation"
+  {bottomNav}
+>
   {#snippet rail()}
     <Rail items={places} {foot} current={place} />
   {/snippet}

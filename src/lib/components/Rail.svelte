@@ -82,7 +82,8 @@ A label that does not fit wraps under the icon instead of being cut, and a toolt
 full name opens beside a tile only when `short` replaces it. A badge rides the icon's corner
 and is read as part of the tile's name. Inside an `AppShell` the rail holds the shell's pages
 between its places and its foot: beside them in a column of their own while the sidebar is
-whole, and stacked with them in one column once it folds. On a phone it rides in the drawer, or,
+whole, and stacked with them in one column once it folds. Holding them, it marks its current
+place on the inset plate, so the current page's accent plate is the column's one accent. On a phone it rides in the drawer, or,
 in a shell with `bottomNav`, it turns into the bottom bar: the same tiles side by side, sharing
 the width.
 
@@ -253,6 +254,12 @@ lightness, with its glyph in the accent ink, on a plate of the accent tint, its 
     .host[data-collapsed] .sui-rail-top {
       padding-block-end: var(--sui-space-3);
     }
+
+    /* Under the fold control the foot's tiles follow at the 16px a folded sidebar's foot keeps
+       between its controls, so the fold and the foot read as one group. */
+    .host[data-collapsed] .sui-rail-foot {
+      padding-block-start: 0;
+    }
   }
 
   .sui-rail-brand {
@@ -338,6 +345,12 @@ lightness, with its glyph in the accent ink, on a plate of the accent tint, its 
 
   .sui-rail-tile[aria-current] .sui-rail-glyph {
     color: var(--sui-sidebar-active-glyph);
+  }
+
+  /* Holding the pages, the rail marks its place on a neutral plate, so the current page's
+     accent plate is the one accent in the column and the two never compete. */
+  .host .sui-rail-tile[aria-current] {
+    background: var(--sui-sidebar-item-pressed);
   }
 
   .sui-rail-tile[aria-current]:active {
