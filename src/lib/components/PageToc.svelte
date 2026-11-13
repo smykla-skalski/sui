@@ -152,10 +152,18 @@
   /** Moves focus to the section's heading, or the section, so the next Tab starts there. */
   function land(section: HTMLElement): void {
     const target = section.querySelector<HTMLElement>('h1, h2, h3, h4, h5, h6') ?? section;
-    if (!target.hasAttribute('tabindex')) {
-      target.tabIndex = -1;
-      target.addEventListener('blur', () => target.removeAttribute('tabindex'), { once: true });
-    }
+    const lent = !target.hasAttribute('tabindex');
+    if (lent) target.tabIndex = -1;
+    // Marked so it wears the kit's ring rather than the browser's (styles.css).
+    target.dataset.suiLanded = '';
+    target.addEventListener(
+      'blur',
+      () => {
+        if (lent) target.removeAttribute('tabindex');
+        delete target.dataset.suiLanded;
+      },
+      { once: true }
+    );
     target.focus({ preventScroll: true });
   }
 
@@ -322,7 +330,7 @@ phone drawer, and following an entry closes the drawer before focus moves.
 - States: rest, hover (a row ground), pressed (the pressed ground and an inset shadow), focus (a 2px inset ring) and current (primary ink at 500 on the accent plate the sidebar's current page wears, in room every entry holds, so it moves nothing).
 - Keyboard: Tab moves through the entries and Enter follows one, moving focus to the section's heading.
 - Pointer and touch: entries are 28px tall on a desktop pointer and 44px on a phone or a coarse pointer, across the column's width.
-- Focus: following an entry moves focus to its section's first heading, or the section, which takes a temporary `tabindex`; in a shell's phone drawer the drawer closes first, so focus lands in the section and never on the menu button.
+- Focus: following an entry moves focus to its section's first heading, or the section, which takes a temporary `tabindex` and, when the keyboard brought it there, the kit's ring around its words; in a shell's phone drawer the drawer closes first, so focus lands in the section and never on the menu button.
 - Responsive: the index sticks and scrolls inside itself, keeping the current entry in view; the page decides where it stands.
 - Accessibility: the current entry is announced, every entry's ink holds 4.5:1, and the current ink stands 2:1 from the rest ink in lightness and the plate marks it too, so it is never hue alone (WCAG 1.4.1).
 - Localization: `title` is a prop with an English default; the entries follow the reading direction.

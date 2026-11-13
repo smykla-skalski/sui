@@ -1460,6 +1460,47 @@ suite('navigation', together, () => {
       }
     );
 
+    test(
+      "a heading an index entry lands on wears the kit's ring around its words",
+      long,
+      async () => {
+        const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
+        try {
+          await visit(page, new URL('page-toc/', url).href);
+          const entry = page.locator('#page-toc .sui-page-toc-link', { hasText: 'History' });
+          await entry.focus();
+          await page.keyboard.press('Enter');
+          await settles(
+            page.waitForFunction(
+              () => document.activeElement?.textContent?.trim() === 'History',
+              null,
+              brief
+            )
+          );
+          const ring = await page.evaluate(() => {
+            const heading = /** @type {HTMLElement} */ (document.activeElement);
+            const style = getComputedStyle(heading);
+            const words = document.createRange();
+            words.selectNodeContents(heading);
+            return {
+              outline: `${style.outlineStyle} ${style.outlineWidth}`,
+              spare: heading.getBoundingClientRect().width - words.getBoundingClientRect().width
+            };
+          });
+          assert.equal(ring.outline, 'solid 2px', "the browser's own outline traces the heading");
+          assert.ok(ring.spare < 1, `the ring runs ${ring.spare}px past the heading's words`);
+          await page.keyboard.press('Tab');
+          assert.equal(
+            await page.locator('[data-sui-landed]').count(),
+            0,
+            'the heading keeps its mark after focus leaves it'
+          );
+        } finally {
+          await page.close();
+        }
+      }
+    );
+
     // Last, since it leaves the drawer open and the page in the other theme.
     test(
       'the side nav parts its title and the part under its rows by hairlines, cuts its rows cleanly at both, and rests each end a gap clear of them (L-107)',

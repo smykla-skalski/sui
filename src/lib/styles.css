@@ -1345,6 +1345,19 @@
   text-wrap: pretty;
 }
 
+/* Where a part lands focus: the kit's ring, not the browser's; a heading's hugs its words. */
+:where([data-sui-landed]):focus-visible {
+  border-radius: var(--sui-radius-chip);
+  outline: var(--sui-focus-ring-width) solid var(--sui-focus);
+  outline-offset: var(--sui-focus-ring-inset);
+}
+
+:where(h1, h2, h3, h4, h5, h6)[data-sui-landed]:focus-visible {
+  inline-size: fit-content;
+  max-inline-size: 100%;
+  outline-offset: var(--sui-space-1);
+}
+
 /* A heading reached by its fragment lands a step below the edge, or below the sticky bars the
    page's scroll padding clears, so it never touches what covers the page. */
 :where(h1, h2, h3, h4, h5, h6, section)[id] {

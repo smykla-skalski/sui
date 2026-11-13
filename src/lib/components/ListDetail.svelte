@@ -128,10 +128,18 @@
 
   /** Moves focus to a heading or a pane, so the next Tab starts there. */
   function land(target: HTMLElement): void {
-    if (!target.hasAttribute('tabindex')) {
-      target.tabIndex = -1;
-      target.addEventListener('blur', () => target.removeAttribute('tabindex'), { once: true });
-    }
+    const lent = !target.hasAttribute('tabindex');
+    if (lent) target.tabIndex = -1;
+    // Marked so it wears the kit's ring rather than the browser's (styles.css).
+    target.dataset.suiLanded = '';
+    target.addEventListener(
+      'blur',
+      () => {
+        if (lent) target.removeAttribute('tabindex');
+        delete target.dataset.suiLanded;
+      },
+      { once: true }
+    );
     target.focus();
   }
 </script>
