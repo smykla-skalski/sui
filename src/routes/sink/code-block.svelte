@@ -53,19 +53,19 @@ grep -rn 'export default' dist 2>/dev/null || echo "No exports"`;
   layout="stack"
   ground="canvas"
 >
-  <Specimen label="YAML">
+  <Specimen label="A comment, nested keys and a list">
     <CodeBlock code={yaml} lang="yaml" />
   </Specimen>
-  <Specimen label="TOML">
+  <Specimen label="A table with a comment">
     <CodeBlock code={toml} lang="toml" />
   </Specimen>
-  <Specimen label="Markdown">
+  <Specimen label="A heading, a list and inline code">
     <CodeBlock code={markdown} lang="markdown" />
   </Specimen>
-  <Specimen label="Shell">
+  <Specimen label="Variables, flags, quotes and a continued line">
     <CodeBlock code={shell} lang="shell" />
   </Specimen>
-  <Specimen label="Plain text">
+  <Specimen label="A setting left uncolored">
     <CodeBlock code="SUI_THEME=dark" lang="text" />
   </Specimen>
 </Example>
