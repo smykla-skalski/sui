@@ -71,10 +71,12 @@
 >
   <p class="line">
     <FactLine
-      ><span>Deployed by Ada <span class="when"><RelativeTime value={past[1].value} /></span></span
-      ><span>checked again</span></FactLine
+      ><span class="clause"
+        >Deployed by Ada <span class="when"><RelativeTime value={past[1].value} /></span></span
+      ><span class="clause"
+        >checked again <span class="when"><RelativeTime value={future[0].value} /></span></span
+      ></FactLine
     >
-    <span class="when"><RelativeTime value={future[0].value} /></span>
   </p>
 </Example>
 
@@ -88,6 +90,12 @@
 
   /* The times are what the line reports, so they read in the primary ink over its muted words,
      as the standalone times above do. */
+  /* Each clause wraps whole to the next line when it fits there, so a line never parts the
+     words of one clause. */
+  .clause {
+    display: inline-block;
+  }
+
   .when {
     color: var(--sui-text-primary);
   }

@@ -15,6 +15,7 @@
 - A failure's edge holds 3:1 on dark through the new `--sui-danger-wash-edge`, where it held 2.5:1, on an `ErrorState`, a `FormError` and a refused `Modal` save, and an `ErrorState overContent`'s line draws the same edge round its tint.
 - A `FormError` summary rings its focus after a pointer submit too, where only a keyboard submit drew the ring, so the reader sees where focus went.
 - The Relative Time page's In Context line reads its times in the primary ink over its muted words.
+- The Relative Time page's In Context line keeps each clause whole when it wraps, where a phone parted "checked" from "again".
 - A `CodeBlock`'s file name reads at 12px with its letters at their own spacing, where it read at 11px spaced wide, too small beside the code under it.
 - The Empty & Error States page shows its list a filter empties as an example of its own, where it stood as a bare third panel beside two whole empty states.
 - On a phone the kit's specimen rows stand 8px past their name gap, so a page that widens the gap for its tips still reads each name with the specimen under it.
