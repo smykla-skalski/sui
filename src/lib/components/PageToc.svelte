@@ -331,7 +331,7 @@ phone drawer, and following an entry closes the drawer before focus moves.
 - Keyboard: Tab moves through the entries and Enter follows one, moving focus to the section's heading.
 - Pointer and touch: entries are 28px tall on a desktop pointer and 44px with no gap on a phone or a coarse pointer, across the column's width.
 - Focus: following an entry moves focus to its section's first heading, or the section, which takes a temporary `tabindex` and, when the keyboard brought it there, the kit's ring around its words; in a shell's phone drawer the drawer closes first, so focus lands in the section and never on the menu button.
-- Responsive: the index sticks and scrolls inside itself, keeping the current entry in view; the page decides where it stands.
+- Responsive: the index sticks and scrolls inside itself, keeping the current entry in view, and keeps room for a scrollbar only while it scrolls, so one that fits ends its plates on its column's end; on a phone its words start on the page's text edge and its plates hang 8px past it; the page decides where it stands.
 - Accessibility: the current entry is announced, every entry's ink holds 4.5:1, and the current ink stands 2:1 from the rest ink in lightness and the plate marks it too, so it is never hue alone (WCAG 1.4.1).
 - Localization: `title` is a prop with an English default; the entries follow the reading direction.
 - Performance: `IntersectionObserver`s report the sections that cross the reading line and those on screen, so a scroll reads no section's place and looks at the box's end only while its last section shows; it suits a thousand sections.
@@ -375,21 +375,34 @@ phone drawer, and following an entry closes the drawer before focus moves.
      height below it, padding its own scroll area, so entries leave at that edge and never get
      cut at a line in the middle of the page. Its title stands at the box's top, so at rest its
      letters' tops line up with those of the page's first heading beside it.
-     The end padding is room for the scrollbar, which an overlay scrollbar would otherwise draw
-     over the entries. */
+     Its entries keep room at their end for a scrollbar, which an overlay one would otherwise draw
+     over the entries, while the index scrolls, so an index that fits ends on its column's end. */
   .sui-page-toc {
     align-self: start;
     box-sizing: border-box;
+    container-type: scroll-state;
     inset-block-start: calc(var(--sui-local-toc-offset, 0px) + var(--sui-space-4));
     max-block-size: calc(100dvh - var(--sui-local-toc-offset, 0px) - var(--sui-space-4));
     min-inline-size: 0;
     overflow-y: auto;
     overscroll-behavior: contain;
     padding-block: 0 var(--sui-space-6);
-    padding-inline-end: var(--sui-space-3);
     position: sticky;
     scroll-padding-block: var(--sui-space-6);
     scrollbar-width: thin;
+  }
+
+  @container scroll-state(scrollable: block) {
+    .sui-page-toc > .sui-page-toc-list {
+      margin-inline-end: var(--sui-space-3);
+    }
+  }
+
+  /* A browser that cannot ask whether the index scrolls keeps the room always. */
+  @supports not (container-type: scroll-state) {
+    .sui-page-toc > .sui-page-toc-list {
+      margin-inline-end: var(--sui-space-3);
+    }
   }
 
   .sui-page-toc-title + .sui-page-toc-group {
@@ -519,12 +532,26 @@ phone drawer, and following an entry closes the drawer before focus moves.
   }
 
   /* On a phone the index stands over the page and never sticks, so it needs no end room, under
-     it or beside it for a scrollbar, and its rows end where the page's lines end. With no
-     heading beside it, its title keeps 8px of room over it. */
+     it or beside it for a scrollbar. Its words start on the page's text edge, and the plates
+     hang 8px past it on both sides, inside the box's own padding, so its scroll area never cuts
+     them, and the index and the article read down one edge. With no heading beside it, its
+     title keeps 8px of room over it. */
   @media (max-width: 47.9375rem) {
     .sui-page-toc {
-      padding-block: var(--sui-space-2) 0;
-      padding-inline-end: 0;
+      margin-inline: calc(-1 * var(--sui-space-2));
+      padding: var(--sui-space-2) var(--sui-space-2) 0;
+    }
+
+    .sui-page-toc > :is(.sui-page-toc-title, .sui-page-toc-group) {
+      margin-inline: 0;
+    }
+
+    .sui-page-toc > .sui-page-toc-list {
+      margin-inline: calc(-1 * var(--sui-space-2));
+    }
+
+    .sui-page-toc-link {
+      padding-inline: var(--sui-space-2);
     }
   }
 

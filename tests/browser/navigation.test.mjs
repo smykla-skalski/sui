@@ -1507,6 +1507,67 @@ suite('navigation', together, () => {
       }
     );
 
+    test(
+      "an index's plates end on its column's end unless it scrolls, and on a phone its words start on the article's edge",
+      long,
+      async () => {
+        const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
+        try {
+          await visit(page, new URL('page-toc/', url).href);
+          const room = () =>
+            page.evaluate(() => {
+              const nav = /** @type {HTMLElement} */ (document.querySelector('#page-toc nav'));
+              const link = /** @type {Element} */ (nav.querySelector('.sui-page-toc-link'));
+              return (
+                nav.getBoundingClientRect().left +
+                nav.clientWidth -
+                link.getBoundingClientRect().right
+              );
+            });
+          assert.ok(
+            Math.abs(await room()) < 0.5,
+            `an index that fits ends ${await room()}px short`
+          );
+          const short = await page.addStyleTag({
+            content: '#page-toc .sui-page-toc { max-block-size: 6rem; }'
+          });
+          // A scroll-state query answers at the next frame.
+          await page.evaluate(
+            () => new Promise((done) => requestAnimationFrame(() => requestAnimationFrame(done)))
+          );
+          assert.ok(
+            (await room()) >= 12 - 0.5,
+            `a scrolling index keeps ${await room()}px for its bar`
+          );
+          await short.evaluate((node) => /** @type {Element} */ (node).remove());
+          await page.setViewportSize({ width: 390, height: 844 });
+          const edges = await page.evaluate(() => {
+            const words = document.createRange();
+            words.selectNodeContents(
+              /** @type {Element} */ (
+                document.querySelector('#page-toc .sui-page-toc-label > span')
+              )
+            );
+            const left = (/** @type {string} */ selector) =>
+              /** @type {Element} */ (document.querySelector(selector)).getBoundingClientRect()
+                .left;
+            return {
+              words: words.getBoundingClientRect().left - left('#page-toc h4'),
+              title: left('#page-toc .sui-page-toc-title') - left('#page-toc h4')
+            };
+          });
+          for (const [part, off] of Object.entries(edges)) {
+            assert.ok(
+              Math.abs(off) < 0.5,
+              `the index's ${part} start ${off}px off the article's edge`
+            );
+          }
+        } finally {
+          await page.close();
+        }
+      }
+    );
+
     // Last, since it leaves the drawer open and the page in the other theme.
     test(
       'the side nav parts its title and the part under its rows by hairlines, cuts its rows cleanly at both, and rests each end a gap clear of them (L-107)',
