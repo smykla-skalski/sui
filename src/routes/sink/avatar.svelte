@@ -44,7 +44,7 @@
 
 <Example
   title="Pictures & Fallbacks"
-  note="A picture covers the initials drawn under it, one that does not load shows them, and a logo’s clear ground shows the tint"
+  note="A picture covers the initials drawn under it, one that does not load shows them, and a logo’s clear ground shows the tint. A missing name draws the initials from the handle, and with neither the avatar shows a question mark"
   layout="grid"
   --specimen-min="9rem"
   --specimen-max="9rem"
@@ -61,12 +61,6 @@
   <Specimen label="Workspace, not loaded">
     <Avatar name="Data Team" src={broken} shape="workspace" size={32} />
   </Specimen>
-</Example>
-
-<Example
-  title="Missing Names"
-  note="A missing name draws the initials from the handle, and with neither the avatar shows a question mark"
->
   <Specimen label="Handle without a name">
     <Avatar name="" handle="octocat" size={32} />
   </Specimen>
@@ -81,6 +75,9 @@
   </Specimen>
   <Specimen label="Workspace">
     <IdentityRow name="Platform Team 01" handle="platform-team" shape="workspace" />
+  </Specimen>
+  <Specimen label="With a picture">
+    <IdentityRow name="Grace Hopper" handle="@grace" src={portrait} />
   </Specimen>
   <Specimen label="Name alone">
     <IdentityRow name="Barbara Liskov" />
