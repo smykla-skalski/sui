@@ -48,6 +48,14 @@
       <p class="view">Every new repository starts with these rules</p>
     </div>
   </Specimen>
+</Example>
+
+<Example
+  title="Title Only"
+  note="A page with nothing more to say than its name takes a header of one line"
+  layout="stack"
+  ground="canvas"
+>
   <Specimen label="Title only">
     <div class="page wide">
       <PageHeader level={4} title="Activity" />
@@ -140,12 +148,12 @@
 </Example>
 
 <Example
-  title="Breadcrumb & Back Link"
-  note="A breadcrumb or a back link takes the eyebrow’s place"
+  title="Breadcrumb"
+  note="A breadcrumb takes the eyebrow’s place and leads back up the path to the page"
   layout="stack"
   ground="canvas"
 >
-  <Specimen label="Breadcrumb">
+  <Specimen label="Path to the page">
     <div class="page wide">
       <PageHeader
         level={4}
@@ -164,7 +172,15 @@
       <p class="view">Checked every day at 06:00</p>
     </div>
   </Specimen>
-  <Specimen label="Back link">
+</Example>
+
+<Example
+  title="Back Link"
+  note="A back link takes the eyebrow’s place when the page has one way back"
+  layout="stack"
+  ground="canvas"
+>
+  <Specimen label="One step back">
     <div class="page wide">
       <PageHeader
         level={4}
