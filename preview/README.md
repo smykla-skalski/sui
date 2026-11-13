@@ -1,6 +1,6 @@
 # Previews
 
-The kitchen sink of `main` is at `https://sui.tercenas.com`, redeployed as the `main` deployment on every push to `main` that changes the look. Every pull request that changes the look gets its own at `https://sui.tercenas.com/pr-<number>`, linked from the pull request as the `preview` deployment. A change to the look is one to `src/`, `vite.config.ts` or the Linux pictures of the visual tests. A dependency update alone deploys nothing: the visual tests compare its pictures, and it deploys only once a changed look is recorded in them. While two or more pull requests have a preview, a picker under the sidebar's title switches between them and `main`. Only members of the `smykla-skalski` organization can open them.
+The kitchen sink of `main` is at `https://sui.tercenas.com`, redeployed as the `main` deployment on every push to `main` that changes the look. Every pull request that changes the look gets its own at `https://sui.tercenas.com/pr-<number>`, linked from the pull request as the `preview` deployment. A change to the look is one to `src/`, `vite.config.ts` or the Linux pictures of the visual tests. A dependency update alone deploys nothing: the visual tests compare its pictures, and it deploys only once a changed look is recorded in them. While any pull request has a preview, a picker under the sidebar's title, on `main` and on every preview, switches between `main` and them. Only members of the `smykla-skalski` organization can open them.
 
 All of them share one Fly machine. [oauth2-proxy](https://oauth2-proxy.github.io/oauth2-proxy/) is the whole server: it signs visitors in with GitHub, checks the organization, and serves the static builds from a 1 GB volume. The machine stops when nobody looks, so the idle cost is the volume and the stopped root filesystem, about $0.20 a month. One build is about 1.3 MB.
 
@@ -35,4 +35,4 @@ Do this once.
    fly tokens create deploy --app sui-previews | gh secret set FLY_API_TOKEN
    ```
 
-After a change in this directory, run `fly deploy preview` again. The volume keeps the previews.
+A change in this directory deploys itself once it reaches `main`: the [Preview server workflow](../.github/workflows/preview-server.yml) runs `fly deploy preview` and then writes the list of previews again, so the machine never runs an older `previews` than the workflow calls. The volume keeps the previews.

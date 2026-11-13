@@ -63,8 +63,12 @@ test('replaces the previous main at the root and keeps the open previews', (t) =
   assert.equal(readFileSync(join(previews, 'index.html'), 'utf8'), 'new main');
 });
 
-test('the picker offers main and the previews, newest first, from two pull requests', () => {
-  assert.deepEqual(previewOptions([{ number: 4, title: 'one' }]), []);
+test('the picker offers main and the previews, newest first, while any pull request has one', () => {
+  assert.deepEqual(previewOptions([]), []);
+  assert.deepEqual(previewOptions([{ number: 4, title: 'four' }]), [
+    { value: '', label: 'main' },
+    { value: '/pr-4', label: '#4 four' }
+  ]);
   assert.deepEqual(
     previewOptions([
       { number: 4, title: 'four' },
@@ -88,4 +92,29 @@ test('a switch keeps the page, its query and its section', () => {
   assert.equal(previewUrl('/pr-9', at('/pr-7/')), '/pr-9/');
   // A page whose own name starts like a preview is still main's.
   assert.equal(previewUrl('/pr-9', at('/pr-7x/')), '/pr-9/pr-7x/');
+});
+
+test('the open pull requests reach the machine as bare numbers and titled entries', () => {
+  const listed = execFileSync(
+    'jq',
+    ['-r', '-f', new URL('../preview/open.jq', import.meta.url).pathname],
+    {
+      input: JSON.stringify([
+        { number: 7, title: 'feat(card): climb "the" Card page' },
+        { number: 8, title: 'fix!: drop a guard' },
+        { number: 9, title: 'Plain title: with a colon' }
+      ])
+    }
+  );
+  const words = listed.toString().trim().split(' ');
+  const bare = words.filter((word) => !word.includes(':'));
+  const entries = words
+    .filter((word) => word.includes(':'))
+    .map((word) => JSON.parse(Buffer.from(word.split(':')[1], 'base64').toString()));
+  assert.deepEqual(bare, ['7', '8', '9']);
+  assert.deepEqual(entries, [
+    { number: 7, title: 'climb "the" Card page' },
+    { number: 8, title: 'drop a guard' },
+    { number: 9, title: 'Plain title: with a colon' }
+  ]);
 });
