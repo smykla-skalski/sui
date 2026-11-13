@@ -60,13 +60,13 @@
     <Avatar name="Grace Hopper" src={portrait} size={32} />
   </Specimen>
   <Specimen label="Person, not loaded">
-    <Avatar name="Alan Turing" src={broken} size={32} />
+    <Avatar name="Grace Hopper" src={broken} size={32} />
   </Specimen>
   <Specimen label="Workspace">
     <Avatar name="Platform Team" src={logo} shape="workspace" size={32} />
   </Specimen>
   <Specimen label="Workspace, not loaded">
-    <Avatar name="Data Team" src={broken} shape="workspace" size={32} />
+    <Avatar name="Platform Team" src={broken} shape="workspace" size={32} />
   </Specimen>
   <Specimen label="Handle without a name">
     <Avatar name="" handle="@kwame" size={32} />
