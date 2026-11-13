@@ -163,11 +163,11 @@ and the one above as a hovered row does, and under the pointer takes more of the
      hovered row, on a grey ground, never looks current. A row's words keep their ink when it
      turns current. Like a hover ground it has round corners, so neither its own line nor the
      one above crosses its edge. On that deeper ground the muted ink falls under 4.5:1, so the
-     row's quiet words take the secondary ink, leaning a fifth toward the primary so they still
+     row's quiet words take the secondary ink, leaning three tenths toward the primary so they still
      hold 4.5:1 on the hover plate below. The lean is mixed on the row from the inks it
      inherits and handed to its parts, so the ink never reads itself. */
   .current {
-    --sui-local-quiet: color-mix(in srgb, var(--sui-text-secondary) 80%, var(--sui-text-primary));
+    --sui-local-quiet: color-mix(in srgb, var(--sui-text-secondary) 70%, var(--sui-text-primary));
     background-color: light-dark(
       color-mix(in srgb, var(--sui-brand-action) 18%, transparent),
       color-mix(in srgb, var(--sui-brand-action) 24%, transparent)
@@ -194,8 +194,8 @@ and the one above as a hovered row does, and under the pointer takes more of the
        own accent: never the grey of a hovered row, which would make it look like any other. */
     .sui-object-row.current:has(> .sui-object-row-hit:hover:not(:active)) {
       background-color: light-dark(
-        color-mix(in srgb, var(--sui-brand-action) 22%, transparent),
-        color-mix(in srgb, var(--sui-brand-action) 28%, transparent)
+        color-mix(in srgb, var(--sui-brand-action) 30%, transparent),
+        color-mix(in srgb, var(--sui-brand-action) 38%, transparent)
       );
     }
 
