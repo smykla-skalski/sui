@@ -246,10 +246,12 @@
     }
   }
 
+  /* The view under the header is the page's own content, so it wears the content's ink and
+     never reads as one more caption band. */
   .view {
     align-content: center;
     block-size: var(--sui-block-snap);
-    color: var(--sui-text-secondary);
+    color: var(--sui-text-primary);
     font: var(--sui-weight-regular) var(--sui-font-size-body) / var(--sui-row-copy-leading)
       var(--sui-sans);
     margin: 0;
