@@ -120,8 +120,8 @@ of them.
     <span class="sui-error-state-mark"><Icon name="alert" size="base" /></span>
     <p class="sui-error-state-title">{title}</p>
     <p class="sui-error-state-description">{description}</p>
-    {#if step}<p class="sui-error-state-step">{step}</p>{/if}
   </div>
+  {#if step}<p class="sui-error-state-step">{step}</p>{/if}
   {#if onretry || action}
     <div class="sui-error-state-retry">
       {#if onretry}
@@ -184,8 +184,10 @@ of them.
     grid-column: 2;
   }
 
-  /* A panel's retry stands on the words' rail too, as a form error's links leave the line its
-     mark and gap take. Over a list it follows the words on their line instead. */
+  /* A panel's next step, a step in words or the retry, stands on the words' rail too, as a
+     form error's links leave the line its mark and gap take. Over a list it follows the words
+     on their line instead. */
+  .sui-error-state:not(.over) > .sui-error-state-step,
   .sui-error-state:not(.over) > .sui-error-state-retry {
     padding-inline-start: calc(var(--sui-icon-base) + var(--sui-space-2));
   }
@@ -220,10 +222,13 @@ of them.
       var(--sui-sans);
   }
 
+  /* A step in words takes the place a control would, a panel gap under the words, in the
+     body size, so the reader's next move reads apart from why it failed (L-59). */
   .sui-error-state-step {
     color: var(--sui-text-primary);
-    font: var(--sui-weight-medium) var(--sui-font-size-meta) / var(--sui-row-copy-leading)
+    font: var(--sui-weight-medium) var(--sui-font-size-body) / var(--sui-row-copy-leading)
       var(--sui-sans);
+    max-inline-size: var(--sui-measure);
   }
 
   .sui-error-state-description {
@@ -263,10 +268,11 @@ of them.
     position: absolute;
   }
 
-  .over > :is(.sui-error-state-copy, .sui-error-state-retry) {
+  .over > :is(.sui-error-state-copy, .sui-error-state-step, .sui-error-state-retry) {
     position: relative;
   }
 
+  .over > .sui-error-state-step,
   .over > .sui-error-state-retry {
     margin-inline-start: calc(var(--sui-icon-base) + var(--sui-space-2));
   }

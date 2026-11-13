@@ -922,12 +922,10 @@ function copyRhythm(root: Document): Finding[] {
     const titled =
       /^H[1-6]$/.test(first.tagName) ||
       [...first.classList].some((name) => name === 'title' || name.endsWith('-title'));
-    // A state's step in words stands apart from the explanation over it, as words do from a title,
-    // and so does a setting row's status or problem under its description; one right under the name is
-    // the row's only copy line, 8px off it.
+    // A setting row's status or problem stands apart from the description over it, as words do
+    // from a title; one right under the name is the row's only copy line, 8px off it.
     const step =
-      [...second.classList].some((name) => name.endsWith('-state-step')) ||
-      (second.classList.contains('sui-setting-state') && first.matches('.sui-setting-why'));
+      second.classList.contains('sui-setting-state') && first.matches('.sui-setting-why');
     const want = titled || step ? 12 : 8;
     // Words a gap of 16px or more parts belong to another block, but a title's own note is its
     // second line at any distance.

@@ -59,7 +59,7 @@ neither.
 
 An empty list is not an error and is not drawn as one; a request that failed is
 `ErrorState`. There is no decorative icon. The title sits 12px above the explanation, and
-a step 8px under it.
+the next step, a control or words, stands a panel gap under it.
 
 - Semantics: a `div` of two paragraphs and the action; with `live` the title and description also reach a polite `status`.
 - Content: a plain title, one sentence of explanation and one next step, as an `action` such as a `Button` that clears the filter, or as `step` when the step happens elsewhere.
@@ -79,8 +79,8 @@ a step 8px under it.
   <div class="sui-empty-state-copy">
     <p class="sui-empty-state-title">{title}</p>
     <p class="sui-empty-state-description">{description}</p>
-    {#if step}<p class="sui-empty-state-step">{step}</p>{/if}
   </div>
+  {#if step}<p class="sui-empty-state-step">{step}</p>{/if}
   {#if action}
     <div class="sui-empty-state-action">{@render action()}</div>
   {/if}
@@ -105,8 +105,9 @@ a step 8px under it.
     padding: var(--sui-space-7) var(--sui-space-5);
   }
 
-  /* The title stands a title gap above its words, and a step in words stands one under them,
-     so the reader's next move reads apart from why the list is empty (L-59). */
+  /* The title stands a title gap above its words. A step in words takes the place a control
+     would, a panel gap under them, so the reader's next move reads apart from why the list is
+     empty (L-59). */
   .sui-empty-state-copy {
     display: grid;
     gap: var(--sui-title-copy-gap);
@@ -138,8 +139,9 @@ a step 8px under it.
 
   .sui-empty-state-step {
     color: var(--sui-text-primary);
-    font: var(--sui-weight-medium) var(--sui-font-size-meta) / var(--sui-row-copy-leading)
+    font: var(--sui-weight-medium) var(--sui-font-size-body) / var(--sui-row-copy-leading)
       var(--sui-sans);
+    max-inline-size: var(--sui-measure);
   }
 
   .sui-empty-state-action {

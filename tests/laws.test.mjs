@@ -457,10 +457,10 @@ test('L-59 a state panel pads 28px by 20px, 20px on a phone, its action a step u
   for (const name of ['Empty', 'Error']) {
     const css = styles[`src/lib/components/${name}State.svelte`];
     assert.match(css, /-state-copy \{[^}]*gap: var\(--sui-title-copy-gap\)/, `${name}State`);
-    assert.doesNotMatch(
-      css,
-      /calc\(var\(--sui-(row|title)-copy-gap\) - var\(--sui-(title|row)-copy-gap\)\)/,
-      `${name}State: a step in words stands the title gap under the explanation, apart from it`
+    assert.match(
+      read(`src/lib/components/${name}State.svelte`),
+      /<\/div>\s*\{#if step\}<p class="sui-\w+-state-step">/,
+      `${name}State: a step in words stands where a control would, a panel gap under the words`
     );
   }
 });
