@@ -43,7 +43,7 @@ and the one above as a hovered row does, and under the pointer takes more of the
 - States: rest; with `href`, hover (the row ground, where the pointer can hover), pressed (a deeper ground and a 1px sink), focus (an inset ring on the row) and current (the sidebar's accent-tint plate, which hover deepens to more of the accent).
 - Keyboard: the row link is one tab stop, then each control inside the row; Enter follows the link.
 - Pointer and touch: the whole row is the link's target, at least 44px tall with its padding; controls inside keep their own targets.
-- Focus: the ring is drawn inside the row, so a list that clips never cuts it.
+- Focus: the ring is drawn 1px inside the row, so a list that clips never cuts it and it never meets a neighbour's hover or current plate.
 - Responsive: on a phone the side stays beside the main content while both fit, and drops under it, packed to the start, once they do not; rows grow when their content wraps.
 - Accessibility: the link's name is the main content, so a reader hears the row once; the side stays outside the name; a current row is announced as the current page, and under forced colors its link frames it in `Highlight`.
 - Localization: everything it says is the caller's; the side sits at the inline end and follows the reading direction.
@@ -163,8 +163,8 @@ and the one above as a hovered row does, and under the pointer takes more of the
      hovered row, on a grey ground, never looks current. A row's words keep their ink when it
      turns current. Like a hover ground it has round corners, so neither its own line nor the
      one above crosses its edge. On that deeper ground the muted ink falls under 4.5:1, so the
-     row's quiet words take the secondary ink, leaning three tenths toward the primary so they still
-     hold 4.5:1 on the hover plate below. The lean is mixed on the row from the inks it
+     row's quiet words take the secondary ink, leaning three tenths toward the primary so they
+     still hold 4.5:1 on the hover plate below. The lean is mixed on the row from the inks it
      inherits and handed to its parts, so the ink never reads itself. */
   .current {
     --sui-local-quiet: color-mix(in srgb, var(--sui-text-secondary) 70%, var(--sui-text-primary));
@@ -213,9 +213,11 @@ and the one above as a hovered row does, and under the pointer takes more of the
     translate: 0 1px;
   }
 
+  /* Rows touch, so a ring on the row's edge would meet a hovered or current neighbour's plate;
+     a pixel further in keeps a line of the page between them. */
   .sui-object-row:has(> .sui-object-row-hit:focus-visible) {
     outline: var(--sui-focus-ring-width) solid var(--sui-focus);
-    outline-offset: var(--sui-focus-ring-inset);
+    outline-offset: calc(var(--sui-focus-ring-inset) - var(--sui-stroke));
   }
 
   /* On a phone the side stays beside the name while the name keeps 15rem, so a short row keeps
