@@ -168,7 +168,7 @@ margins of its own; the form that holds it sets the gap above it.
     display: grid;
     font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-leading-meta)
       var(--sui-sans);
-    gap: var(--sui-space-2);
+    gap: var(--sui-space-1);
     list-style: none;
     margin: 0;
     padding: 0;

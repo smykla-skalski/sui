@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- A `FormError` summary sets its links 4px apart on a mouse, a 26px pitch, so they read as one list under the message, where 8px left 30px between 22px lines. Their 24px targets still never meet, and a touch screen keeps 24px between them.
 - A `CodeBlock`'s file name and language name are set at the compact size, 12px (13px on a phone), untracked, where 11px tracked mono read as a footnote under 14px code.
 - An `ErrorState overContent`'s tint meets the list's edges at its sides, where it stood 2px in from the rows' rules.
 - A framed `CodeBlock` heads its code with the language's name and the copy control in a row of its own at every width, not only on a phone; a `bare` block keeps its copy column on a desktop.

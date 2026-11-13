@@ -322,6 +322,23 @@ suite('forms', together, () => {
         'solid',
         'a summary a pointer submit brought up shows no ring where focus went'
       );
+      // The links read as one list, a line plus 4px apart, yet their 24px targets never meet.
+      const links = await summary.locator('.sui-form-error-list a').evaluateAll((all) =>
+        all.map((link) => {
+          const box = link.getBoundingClientRect();
+          const hit = getComputedStyle(link, '::after');
+          return {
+            top: box.top,
+            hitTop: box.top + parseFloat(hit.top),
+            hitBottom: box.bottom - parseFloat(hit.bottom)
+          };
+        })
+      );
+      assert.ok(links.length >= 2, `only ${links.length} links in the summary`);
+      for (const [index, link] of links.slice(1).entries()) {
+        assert.equal(Math.round(link.top - links[index].top), 26, 'the links stand off one pitch');
+        assert.ok(link.hitTop >= links[index].hitBottom, 'two link targets overlap');
+      }
       await page.keyboard.press('Tab');
       await page.keyboard.press('Enter');
       assert.equal(await page.evaluate(() => document.activeElement?.id), 'sink-states-workspace');
