@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- A `ListDetail` beside its list gives the open item's `PageHeader` the compact 24px title, as a phone does, so the pane's header no longer outweighs the list. The list-detail layout sets a step's time in the sans face, so its unit stands a word's space from the number.
 - The `Chip` page's small removable chip leaves when its remove is pressed, as the chips beside it do, where its remove did nothing.
 - The `ListToolbar` page's Parts bars share one search label, so their fields start on one edge.
 - A painted `Chip` on the dark theme wears a 26% tint of its color, where it wore 18%, so a blue or violet label keeps its strength beside the dark ground, and its ink still lifts along its hue until it reads.

@@ -279,8 +279,8 @@
     text-box: trim-both cap alphabetic;
   }
 
+  /* Sans, so the space before the unit is a word's space, not a mono cell. */
   .took {
-    font-family: var(--sui-mono);
     font-variant-numeric: tabular-nums;
   }
 </style>
