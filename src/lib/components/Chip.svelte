@@ -230,7 +230,7 @@ style declaration.
 - Pointer and touch: the remove target is 24px; on a phone or a coarse pointer a removable chip grows to 44px tall around a 44px square control, so the targets of chips on wrapped lines never overlap.
 - Focus: after a removal it moves to the next remove control in the chip's parent, then the previous one, then the parent itself, which gets `tabindex="-1"` when it has none.
 - Responsive: as wide as its value, up to its container, and taller as a long value wraps.
-- Accessibility: the remove control is named by `removeLabel`, which is also its tooltip, and a polite status says `removedLabel` once the chip has gone; a painted chip's ink holds 4.5:1 and APCA Lc 60 in both themes, and under forced colors every chip keeps an outline.
+- Accessibility: the remove control is named by `removeLabel`, which is also its tooltip unless the chip is disabled, and a polite status says `removedLabel` once the chip has gone; a painted chip's ink holds 4.5:1 and APCA Lc 60 in both themes, and under forced colors every chip keeps an outline.
 - Localization: `removeLabel` and `removedLabel` are functions of the value with English defaults; the remove control sits at the inline end, so it moves to the left in a right-to-left page.
 - Performance: a painted chip computes its paint for both themes once per color, and the theme picks one with `light-dark()`; a remove control mounts one tooltip.
 - Analytics: `onremove` hears each removal.
@@ -259,7 +259,8 @@ style declaration.
       <Icon name="close" size="xs" strokeWidth={2} />
     </button>
     <!-- Client only, so a chip inside a paragraph never gets a block box from the server. -->
-    {#if remover}
+    <!-- A disabled remove names no action it cannot take; the reason stands beside the chips. -->
+    {#if remover && !disabled}
       <Tooltip anchor={remover} text={removeName} />
     {/if}
   {/if}

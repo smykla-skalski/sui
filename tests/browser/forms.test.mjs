@@ -391,6 +391,48 @@ suite('forms', together, () => {
       }
     });
 
+    test(
+      'one tip shows at a time, the one focus holds outlasts the pointer, and a disabled remove shows none',
+      long,
+      async () => {
+        const page = await opened();
+        const removers = page.locator('#chip .sui-chip-remove:not([disabled])');
+        const shown = () =>
+          page.evaluate(() =>
+            [...document.querySelectorAll('.sui-tooltip:popover-open')].map((tip) =>
+              tip.textContent?.trim()
+            )
+          );
+        const named = (/** @type {number} */ index) =>
+          removers.nth(index).getAttribute('aria-label');
+        await removers.nth(1).scrollIntoViewIfNeeded();
+        await page.keyboard.press('Shift');
+        await removers.nth(1).focus();
+        await page.locator('.sui-tooltip:popover-open').waitFor();
+        await removers.nth(0).hover();
+        await page.waitForTimeout(600);
+        assert.deepEqual(
+          await shown(),
+          [await named(1)],
+          'the pointer opened a tip over the focused one'
+        );
+
+        await page.evaluate(() => /** @type {HTMLElement} */ (document.activeElement).blur());
+        await removers.nth(2).hover();
+        await page.waitForTimeout(600);
+        assert.deepEqual(
+          await shown(),
+          [await named(2)],
+          'the pointer shows no tip once focus left'
+        );
+
+        await page.locator('#chip .sui-chip-remove[disabled]').first().hover();
+        await page.waitForTimeout(600);
+        assert.deepEqual(await shown(), [], 'a disabled remove names an action it cannot take');
+        await page.mouse.move(0, 0);
+      }
+    );
+
     test('a segmented control rings its track and draws a disabled choice without the accent', async () => {
       const page = await opened();
       await page.keyboard.press('Shift');
