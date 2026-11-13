@@ -29,7 +29,7 @@
 - A `PageHeader` whose actions take a line of their own hangs a leading ghost button's glyph on the copy's start edge, as a card head does (L-33).
 - A narrow `Timeline` with an actor anywhere in it stands every event's words where the actor's words stand, so its times keep one edge and its words another.
 - The detail pane's loading Repositories end in the Load More line's words and button rather than a sixth row.
-- The detail pane's counts open its Repositories list, without a section or a sentence of their own, the stale notice's retry reads "Reload", the loading title's status waits as a pill-shaped placeholder, and a loading timeline's time bars are as wide as the times.
+- The detail pane's Outcome is its counts alone, without a sentence that said them again, the stale notice's retry reads "Reload", the loading title's status waits as a pill-shaped placeholder, and a loading timeline's time bars are as wide as the times.
 - A `Rail` count stands 4px clear of its glyph's top-end corner, whole, folded or in a bottom bar, as a folded `SideNav` count does, so it covers none of the glyph, and the phone drawer's pages beside the rail drop the second hairline between them.
 - A phone `AppShell` bar's `eyebrow` takes the primary ink, as the bar's one word at rest.
 - A `PageHeader` hangs a trailing ghost button's words on the content's end edge, so a header action ends where the page's cards end.
