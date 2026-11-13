@@ -312,9 +312,12 @@ style declaration.
     padding-inline: var(--sui-space-2);
   }
 
+  /* In a line of text a small chip stands on the text's own box, its foot on the words' foot,
+     so it stays inside the line's height rather than growing the line under a baseline. */
   .small {
     --sui-local-chip: var(--sui-control-height-chip-small);
     font-size: var(--sui-font-size-micro);
+    vertical-align: text-bottom;
   }
 
   .mono {

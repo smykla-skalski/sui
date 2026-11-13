@@ -39,6 +39,10 @@
 
   let labels = $state(['topology/zone', 'team:platform', 'env=production', 'v2.9.1']);
   let unkeyed = $state(['first', 'second', 'third']);
+  let painted = $state([
+    ['priority: high', 'd73a4a'],
+    ['needs design', '5319e7']
+  ]);
 </script>
 
 <Example
@@ -59,6 +63,15 @@
       />
     {/snippet}
   </Variants>
+</Example>
+
+<Example
+  title="In a Line"
+  note="A small chip keeps to the line of text it stands in, on its baseline"
+>
+  <Specimen label="In a sentence">
+    <p class="line">The last push changed <Chip small label="3 files" /> in the kit</p>
+  </Specimen>
 </Example>
 
 <Example
@@ -99,7 +112,7 @@
   title="Removable"
   note="Each remove control names its value, a removal is announced, and focus moves to the next control"
   layout="grid"
-  --specimen-min="18rem"
+  --specimen-min="24rem"
 >
   <Specimen label="Remove & refocus">
     <div class="group" role="group" aria-label="Labels">
@@ -120,6 +133,19 @@
           onremove={() => (unkeyed = unkeyed.filter((other) => other !== label))}
         />
       {/each}
+    </div>
+  </Specimen>
+  <Specimen label="Painted & small">
+    <div class="group" role="group" aria-label="Painted labels">
+      {#each painted as [label, color] (label)}
+        <Chip
+          {label}
+          {color}
+          onremove={() => (painted = painted.filter(([other]) => other !== label))}
+        />
+      {/each}
+      <Chip small label="3 files" onremove={() => {}} />
+      <Chip label="frozen" color="cfd3d7" onremove={() => {}} disabled />
     </div>
   </Specimen>
   <Specimen label="Disabled">
@@ -154,7 +180,9 @@
 </Example>
 
 <style>
+  /* Centred, so a small chip beside default ones keeps its own height rather than stretching. */
   .group {
+    align-items: center;
     display: flex;
     flex-wrap: wrap;
     gap: var(--sui-space-2);
@@ -164,6 +192,13 @@
   .group:focus-visible {
     outline: var(--sui-focus-ring-width) solid var(--sui-focus);
     outline-offset: var(--sui-focus-ring-offset);
+  }
+
+  .line {
+    color: var(--sui-text-primary);
+    font: var(--sui-weight-regular) var(--sui-font-size-body) / var(--sui-leading-body)
+      var(--sui-sans);
+    margin: 0;
   }
 
   .held {

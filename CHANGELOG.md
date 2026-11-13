@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- A small `Chip` in a line of text stands on the text's own box, so the line keeps its height rather than growing under the chip.
 - A `Skeleton`'s last row ends where a loaded list's last row ends once the list hands back its padding, so the section under it no longer moves 2px when the rows arrive.
 - A `DetailLayout` stands its aside beside the main column from 44rem, the new `--sui-breakpoint-aside`, where it waited for 56rem, so a run in a wide `ListDetail` pane keeps its short sections and its properties side by side. A list-detail run's names and steps are set at the body size, as the kit's other row names are.
 - A `PageHeader` whose holder hides its kicker, as a wide `ListDetail` hides its way back, sets its title at the top with the actions beside it, where the actions had stood a row lower, beside the description. A holder says so with `--sui-head-kicker-shown: 0`.
