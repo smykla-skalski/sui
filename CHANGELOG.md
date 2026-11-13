@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- The `ClippedLabel` page stands its stacked specimens 96px apart on a phone, past the 64px each name keeps over its label, so every name heads its own label rather than the one above it.
 - A heading a `PageToc` entry or a `ListDetail` lands on sets its ring a pixel past its descent, where the ring crossed a g or a y, and a `PageHeader` title takes the same ring.
 - An `ErrorState`'s explanation, step and retry stand on its title's edge, past the warning mark, so its words read down one rail as a `FormError` summary's do, where they returned to the panel's edge under the title.
 - A focused `ClippedLabel`'s ring is set past its descenders, where its foot crossed a g or a p, and the label does not move.
