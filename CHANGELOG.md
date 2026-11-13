@@ -8,6 +8,7 @@
 - A disabled painted `Chip` on the dark theme keeps 5% of its color over the well, where it kept 10%, so a pale label no longer stands brighter than the other disabled chips.
 - A removable `Chip` on a phone is drawn 34px tall, where it grew to 44px, a small one at the default chip's type size, and keeps its 44px target over its own value and a 5px margin, so wrapped chips' targets still never overlap.
 - A `Chip`'s remove control draws its focus ring inside itself, where the ring's outer side fell on the chip's edge as a double line.
+- With nothing open beside its list, a `ListDetail`'s placeholder stands centred across the pane and a quarter of the way down it, on whole pixels, where it stood in the pane's top corner.
 - Beside its list, a `ListDetail`'s open item stands on its header band's ground, so it reads as one sheet beside the list rather than as a band over the page's canvas; with nothing open the pane keeps the canvas.
 - The `Skeleton` page's First Load puts its button, Show Rows, in the list's head, beside the title it reloads, and its label fits a phone's head at twice the text size.
 - A `Skeleton`'s side bar is 3.5rem wide, as wide as a short pill, where it was 5rem, and plain rows keep no empty side column, so their bar is half the row as a two-line row's first bar is half its name's room.

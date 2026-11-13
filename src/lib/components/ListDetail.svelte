@@ -233,10 +233,11 @@ around it.
     display: contents;
   }
 
-  /* Its few short lines keep a reading measure, so a wide pane shows a quiet placeholder at
-     its start rather than a banner across it. */
+  /* Its few short lines keep a reading measure, so a wide pane shows a quiet placeholder
+     rather than a banner across it. */
   .sui-list-detail-empty {
-    max-inline-size: 32rem;
+    --sui-local-empty-measure: 32rem;
+    max-inline-size: var(--sui-local-empty-measure);
     padding: var(--sui-rhythm-pane-gutter);
   }
 
@@ -289,6 +290,24 @@ around it.
        keeps the canvas, so its placeholder card keeps its lift. */
     .open > .sui-list-detail-detail {
       background: var(--sui-surface-base);
+    }
+
+    /* With nothing open the placeholder stands centred across the pane and a quarter of the
+       way down it, where the eye looks for what the pane is for, rather than in a corner of a
+       blank pane. The pane measures itself, so a contained pair places it in its own box, and
+       both offsets are rounded down to whole pixels (L-95). The pane is at least 36rem wide, so
+       the measure and its gutters always fit. */
+    .sui-list-detail-panes:not(.open) > .sui-list-detail-detail {
+      container-type: size;
+    }
+
+    .sui-list-detail-empty {
+      margin-block-start: round(down, 25cqb, 1px);
+      margin-inline-start: round(
+        down,
+        calc((100cqi - var(--sui-local-empty-measure)) / 2 - var(--sui-rhythm-pane-gutter)),
+        1px
+      );
     }
 
     /* Beside the list the open item is one pane of a page, not the page, so its header takes
