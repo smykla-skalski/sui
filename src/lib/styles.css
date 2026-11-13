@@ -92,17 +92,13 @@
   --sui-primitive-success-light: #14734b;
   --sui-primitive-success-light-tint: #dce7e1;
   --sui-primitive-success-dark: #5fd4a2;
-  --sui-primitive-success-dark-tint: #16261f;
   --sui-primitive-warning-light: #9b5807;
   --sui-primitive-warning-light-tint: #efe8dd;
   --sui-primitive-warning-dark: #f2b75c;
-  --sui-primitive-warning-dark-tint: #28221a;
   --sui-primitive-danger-light: #bb3844;
   --sui-primitive-danger-light-tint: #f2e6e5;
   --sui-primitive-danger-dark: #ff9da6;
-  --sui-primitive-danger-dark-tint: #342328;
   --sui-primitive-info-light-tint: #dbe2ec;
-  --sui-primitive-info-dark-tint: #1b222e;
 
   /* Diff tones, set in OKLCH: one lightness for every line ground and one for every word mark,
      so no tone outweighs another. Added leans yellow-green and removed leans crimson, the pair
@@ -767,14 +763,14 @@
      ring takes the brand's light blue. */
   --sui-focus: var(--sui-primitive-ocean-200);
   --sui-info: var(--sui-link);
-  --sui-info-tint: var(--sui-primitive-info-dark-tint);
+  --sui-info-tint: color-mix(in srgb, var(--sui-info) 16%, transparent);
   --sui-success: var(--sui-primitive-success-dark);
-  --sui-success-tint: var(--sui-primitive-success-dark-tint);
+  --sui-success-tint: color-mix(in srgb, var(--sui-success) 16%, transparent);
   --sui-warning: var(--sui-primitive-warning-dark);
-  --sui-warning-tint: var(--sui-primitive-warning-dark-tint);
+  --sui-warning-tint: color-mix(in srgb, var(--sui-warning) 16%, transparent);
   --sui-danger: var(--sui-primitive-danger-dark);
   --sui-focus-danger: var(--sui-danger-edge);
-  --sui-danger-tint: var(--sui-primitive-danger-dark-tint);
+  --sui-danger-tint: color-mix(in srgb, var(--sui-danger) 16%, transparent);
   --sui-danger-fill: var(--sui-primitive-danger-light);
   --sui-danger-fill-hover: color-mix(in srgb, var(--sui-danger-fill), var(--sui-danger) 18%);
   --sui-on-danger: #ffffff;
@@ -804,7 +800,7 @@
   --sui-danger-hover-layer: color-mix(in srgb, var(--sui-danger) 12%, transparent);
   --sui-field-danger-hover: color-mix(in srgb, var(--sui-danger) 6%, transparent);
   --sui-danger-pressed: color-mix(in srgb, var(--sui-danger-fill) 82%, #000000);
-  --sui-neutral-tint: var(--sui-surface-inset);
+  --sui-neutral-tint: color-mix(in srgb, var(--sui-text-secondary) 16%, transparent);
   --sui-placeholder: rgb(255 255 255 / 7%);
   --sui-placeholder-glint: rgb(255 255 255 / 10%);
   --sui-placeholder-sheen: linear-gradient(
@@ -813,7 +809,7 @@
     var(--sui-placeholder-glint) 50%,
     transparent calc(50% + min(5rem, 10%))
   );
-  --sui-role-tint: #23202e;
+  --sui-role-tint: color-mix(in srgb, var(--sui-role-ink) 16%, transparent);
   --sui-role-ink: #c9a6ff;
 
   --sui-interactive-hover-layer: rgb(255 255 255 / 8.5%);
@@ -1023,14 +1019,14 @@
     --sui-on-decision-accent: #0c0e11;
     --sui-focus: var(--sui-primitive-ocean-200);
     --sui-info: var(--sui-link);
-    --sui-info-tint: var(--sui-primitive-info-dark-tint);
+    --sui-info-tint: color-mix(in srgb, var(--sui-info) 16%, transparent);
     --sui-success: var(--sui-primitive-success-dark);
-    --sui-success-tint: var(--sui-primitive-success-dark-tint);
+    --sui-success-tint: color-mix(in srgb, var(--sui-success) 16%, transparent);
     --sui-warning: var(--sui-primitive-warning-dark);
-    --sui-warning-tint: var(--sui-primitive-warning-dark-tint);
+    --sui-warning-tint: color-mix(in srgb, var(--sui-warning) 16%, transparent);
     --sui-danger: var(--sui-primitive-danger-dark);
     --sui-focus-danger: var(--sui-danger-edge);
-    --sui-danger-tint: var(--sui-primitive-danger-dark-tint);
+    --sui-danger-tint: color-mix(in srgb, var(--sui-danger) 16%, transparent);
     --sui-danger-fill: var(--sui-primitive-danger-light);
     --sui-danger-fill-hover: color-mix(in srgb, var(--sui-danger-fill), var(--sui-danger) 18%);
     --sui-on-danger: #ffffff;
@@ -1058,7 +1054,7 @@
     --sui-danger-hover-layer: color-mix(in srgb, var(--sui-danger) 12%, transparent);
     --sui-field-danger-hover: color-mix(in srgb, var(--sui-danger) 6%, transparent);
     --sui-danger-pressed: color-mix(in srgb, var(--sui-danger-fill) 82%, #000000);
-    --sui-neutral-tint: var(--sui-surface-inset);
+    --sui-neutral-tint: color-mix(in srgb, var(--sui-text-secondary) 16%, transparent);
     --sui-placeholder: rgb(255 255 255 / 7%);
     --sui-placeholder-glint: rgb(255 255 255 / 10%);
     --sui-placeholder-sheen: linear-gradient(
@@ -1067,7 +1063,7 @@
       var(--sui-placeholder-glint) 50%,
       transparent calc(50% + min(5rem, 10%))
     );
-    --sui-role-tint: #23202e;
+    --sui-role-tint: color-mix(in srgb, var(--sui-role-ink) 16%, transparent);
     --sui-role-ink: #c9a6ff;
 
     --sui-interactive-hover-layer: rgb(255 255 255 / 8.5%);

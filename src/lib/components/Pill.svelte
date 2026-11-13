@@ -194,9 +194,16 @@ outcome tones always come with their word, so color never carries the state alon
   }
 
   /* A still ring tells a live dot from a plain one when it does not pulse, as under reduced
-     motion; it is drawn, not blurred, and changes no box. */
+     motion. It is drawn, not blurred, and the dot keeps a plain dot's gap past its ring. */
   .sui-pill-dot.live {
-    box-shadow: 0 0 0 0.125rem color-mix(in oklab, currentColor 28%, transparent);
+    box-shadow: 0 0 0 calc(var(--sui-pill-dot) / 3)
+      color-mix(in oklab, currentColor var(--sui-local-ring, 28%), transparent);
+    margin-inline-end: calc(var(--sui-pill-dot) / 3);
+  }
+
+  /* The gray tint is quieter than a tone's, so its ring takes more ink to read on it. */
+  .sui-pill[data-tone='neutral'] > .live {
+    --sui-local-ring: 36%;
   }
 
   /* The ring grows and fades through scale and opacity, so the pulse moves nothing else and

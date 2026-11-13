@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- In the dark theme a tone's tint, the role tint and the neutral tint are 16% of their ink over the ground under them, not fixed fills a step off the canvas, so a pill, a chip or a callout keeps its hue and its shape on a raised card as on the canvas. A live dot keeps a plain dot's gap past its ring, and on a neutral pill its ring takes 36% of the ink.
 - A `Pill`'s live dot wears a still 2px ring at 28% of its ink, so it reads apart from a plain dot when it does not pulse, as under reduced motion. A plain dot steps a third of itself toward the start edge, so the inset before it reads as wide as the one after the words.
 - On a phone an `ObjectRow`'s side drops under its main part once the main part has less than 15rem, not 10rem, so a long name keeps its lines and its status stands 12px under it, not by its last line. The kit's object rows set their names at the body size, as an `IdentityRow`'s name.
 - A `Link` is 500, not 600, as a `BackLink` and a breadcrumb link are, so a pane's links and its related links stand under the section titles they serve. Its ink and underline still mark it.
