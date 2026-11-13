@@ -553,7 +553,8 @@ suite('lists', together, () => {
       for (const { theme, ratio, sunk } of found) {
         assert.ok(!sunk, `in ${theme} a copy control sinks under its head`);
         assert.ok(ratio > 1.01, `in ${theme} a head is drawn on the code's own ground`);
-        assert.ok(ratio < 1.1, `in ${theme} a head stands ${ratio.toFixed(2)}:1 off its code`);
+        // The light head steps 6% ink off white (1.13:1) so it also stands off the warm plate.
+        assert.ok(ratio < 1.15, `in ${theme} a head stands ${ratio.toFixed(2)}:1 off its code`);
       }
     });
 
