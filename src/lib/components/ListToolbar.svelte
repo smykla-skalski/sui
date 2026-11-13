@@ -363,10 +363,12 @@ Updated, and takes `toolsLabel` once the filter folds in beside that group.
     gap: var(--sui-space-2);
   }
 
-  /* No gap along the line: the dot between the choices makes its own room (L-103). */
+  /* No gap along the line: the dot between the choices makes its own room (L-103). The choices
+     are the button's current values, so they take the primary ink at the regular weight, a
+     value beside its semibold key rather than a caption under it. */
   .sui-list-toolbar-current {
     align-items: center;
-    color: var(--sui-text-secondary);
+    color: var(--sui-text-primary);
     display: flex;
     flex-wrap: wrap;
     min-inline-size: 0;

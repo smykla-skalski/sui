@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- A `ListToolbar` sets the choices named beside its tools button in the primary ink, at the regular weight, so they read as the button's current values rather than as a caption.
 - The `Chip` page's Remove & refocus group holds three labels, so on a laptop it keeps one row rather than leaving its last chip alone on a second.
 - A `ListDetail` with nothing open keeps its empty state at most 32rem wide at the pane's start, where it ran across the whole pane as a banner.
 - A `ListToolbar` stands its groups 20px apart on a line, where they stood 12px apart, so the choice named beside the tools button reads as the button's and not as the action's.
