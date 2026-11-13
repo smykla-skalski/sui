@@ -2002,6 +2002,31 @@ suite('navigation', together, () => {
           [],
           'a word on the hovered open row falls under its contrast'
         );
+        // A press takes the pressed ground, over either hover.
+        const pressedGround = await open.evaluate((row) => {
+          const probe = row.appendChild(document.createElement('span'));
+          probe.style.background = 'var(--sui-row-pressed)';
+          const ground = getComputedStyle(probe).backgroundColor;
+          probe.remove();
+          return ground;
+        });
+        await page.mouse.down();
+        assert.ok(
+          await settles(
+            page.waitForFunction(
+              (pressed) =>
+                getComputedStyle(
+                  /** @type {Element} */ (document.querySelector('.sui-object-row.current'))
+                ).backgroundColor === pressed,
+              pressedGround,
+              brief
+            )
+          ),
+          'the pressed open row keeps its hover ground'
+        );
+        // Let go off the row, so the press opens nothing.
+        await page.mouse.move(0, 0);
+        await page.mouse.up();
         await page.mouse.move(0, 0);
         assert.equal(
           await pair.getByRole('link', { name: 'Runs' }).count(),

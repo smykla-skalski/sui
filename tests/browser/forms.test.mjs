@@ -470,9 +470,9 @@ suite('forms', together, () => {
       assert.equal(light.blocked, false, 'a black chip draws an edge in the light theme');
       const [plain, painted] = await page.evaluate(() =>
         ['v2.9.1', 'frozen'].map((label) => {
-          const chip = [...document.querySelectorAll('#chip .sui-chip')].find(
-            (each) => each.textContent?.trim() === label
-          );
+          const chip = [
+            ...document.querySelectorAll('#chip [aria-label="Locked labels"] .sui-chip')
+          ].find((each) => each.textContent?.trim() === label);
           const style = getComputedStyle(/** @type {Element} */ (chip));
           return { ink: style.color, edge: style.boxShadow };
         })
