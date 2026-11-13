@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- A failed refresh over a list stands its mark and its retry 16px inside its edge, as a `FormError` does, where they stood 15px inside.
 - The sink's day feed keeps a form's 40rem measure on a wide page, so each time stays near its entry, where it stood about 950px off.
 - A `CopyButton` at rest is as wide as its resting and copied words, and widens to its failure's words only while they show, as a field's copy chip does, where a short "Copy" kept 9px of room on each side for a hidden "Try Again".
 - The sink's day feed parts its days by 24px, twice the 12px under each heading, where 20px stood too close for a heading to read as the head of its own run.

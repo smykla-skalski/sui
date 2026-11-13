@@ -265,7 +265,9 @@ of them.
     /* A holder that asks for its lead gets the padding back, as a row list hands it back. */
     margin-block-start: var(--sui-local-row-lead, 0px);
     margin-block-end: var(--sui-space-2);
-    padding: var(--sui-space-3) var(--sui-space-4);
+    /* The edge is drawn on the tint, outside the flow, so the sides add its stroke to stand
+       16px inside it, as a form error's words do. */
+    padding: var(--sui-space-3) calc(var(--sui-space-4) + var(--sui-stroke));
     position: relative;
   }
 

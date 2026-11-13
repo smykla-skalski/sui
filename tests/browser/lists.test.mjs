@@ -364,6 +364,27 @@ suite('lists', together, () => {
         );
     });
 
+    test('a failed refresh pads its mark inside its edge as a form error does', async () => {
+      const page = await opened();
+      const insets = await page.evaluate(() =>
+        [...document.querySelectorAll('#states :is(.sui-error-state.over, .sui-form-error)')].map(
+          (root) => {
+            const mark = /** @type {Element} */ (root.querySelector('svg'));
+            const edge = root.classList.contains('over')
+              ? getComputedStyle(root, '::before')
+              : getComputedStyle(root);
+            return (
+              mark.getBoundingClientRect().left -
+              root.getBoundingClientRect().left -
+              parseFloat(edge.borderLeftWidth)
+            );
+          }
+        )
+      );
+      assert.ok(insets.length >= 2, `only ${insets.length} parts`);
+      assert.deepEqual([...new Set(insets)], [16], `marks stand ${insets.join(', ')}px inside`);
+    });
+
     test('every empty and error state on the states page stands under its list heading', async () => {
       const page = await opened();
       const bare = await page.evaluate(() =>
