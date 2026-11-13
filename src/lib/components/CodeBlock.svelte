@@ -343,19 +343,25 @@ beside its first line, and takes the row only on a phone. It copies `code` exact
     margin: 0;
     min-inline-size: 0;
     overflow-x: auto;
-    padding-block: calc((var(--sui-local-code-row) - var(--sui-leading-meta)) / 2);
+    --sui-local-code-room-start: calc((var(--sui-local-code-row) - var(--sui-leading-meta)) / 2);
+    --sui-local-code-room-end: calc((var(--sui-local-code-row) - var(--sui-leading-meta)) / 2);
+    padding-block: var(--sui-local-code-room-start) var(--sui-local-code-room-end);
   }
 
   /* A bare block's host gives the room above and below its lines, as it does for any content,
      so its code stands where the host's words would. Under a file name the code keeps its room,
      so it never meets the line under the name. */
   .bare:not(.labelled) .sui-code-block-scroll {
-    padding-block: 0;
+    --sui-local-code-room-start: 0px;
+    --sui-local-code-room-end: 0px;
   }
 
   /* The line numbers stay put while the lines scroll under them, so the start fade begins
-     past the gutter and its rule: its numbers are as wide as the longest, in tabular figures. */
+     past the gutter and its rule: its numbers are as wide as the longest, in tabular figures.
+     The room above the first line and under the last moves into those lines, so the gutter and
+     its rule run the body's whole height. */
   .sui-code-block-scroll:has(> .numbered) {
+    padding-block: 0;
     --sui-local-edge-hold: calc(
       var(--sui-local-code-digits) * 1ch + var(--sui-space-4) + var(--sui-space-3) +
         var(--sui-stroke)
@@ -439,7 +445,7 @@ beside its first line, and takes the row only on a phone. It copies `code` exact
     border-start-end-radius: 0;
     border-start-start-radius: 0;
     flex-basis: 100%;
-    padding-block-start: calc((var(--sui-local-code-row) - var(--sui-leading-meta)) / 2);
+    --sui-local-code-room-start: calc((var(--sui-local-code-row) - var(--sui-leading-meta)) / 2);
   }
 
   /* A bare block, inset by its host as under a disclosure's words, keeps the control in a
@@ -475,7 +481,7 @@ beside its first line, and takes the row only on a phone. It copies `code` exact
       border-start-end-radius: 0;
       border-start-start-radius: 0;
       flex-basis: 100%;
-      padding-block-start: calc((var(--sui-local-code-row) - var(--sui-leading-meta)) / 2);
+      --sui-local-code-room-start: calc((var(--sui-local-code-row) - var(--sui-leading-meta)) / 2);
     }
   }
 
@@ -527,6 +533,14 @@ beside its first line, and takes the row only on a phone. It copies `code` exact
 
   /* The gutter stays in view while long lines scroll under it, and a divider stands 12px
      from its numbers and its code, so a number never reads as the first token of its line. */
+  .numbered > .ln:first-child > * {
+    padding-block-start: var(--sui-local-code-room-start);
+  }
+
+  .numbered > .ln:last-child > * {
+    padding-block-end: var(--sui-local-code-room-end);
+  }
+
   .no {
     background: var(--sui-surface-code);
     border-inline-end: var(--sui-stroke) solid var(--sui-border-divider);

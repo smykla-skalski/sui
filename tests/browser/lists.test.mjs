@@ -572,7 +572,7 @@ suite('lists', together, () => {
         assert.ok(gap >= 1, `at ${size}px two knobs stand ${gap.toFixed(2)}px apart`);
     });
 
-    test('a numbered code block parts its gutter from its code by a divider 12px from each', async () => {
+    test('a numbered code block parts its gutter from its code by a divider 12px from each, the body tall', async () => {
       const page = await opened();
       const rows = await page.evaluate(() =>
         [...document.querySelectorAll('#code-block .numbered > .ln')].map((line) => {
@@ -608,6 +608,24 @@ suite('lists', together, () => {
           `line ${line}'s code starts ${after}px past its divider`
         );
       }
+      const spans = await page.evaluate(() =>
+        [...document.querySelectorAll('#code-block .numbered')].map((code) => {
+          const body = /** @type {HTMLElement} */ (code.parentElement);
+          const box = body.getBoundingClientRect();
+          const numbers = code.querySelectorAll('.no');
+          const top = box.top + body.clientTop;
+          return {
+            above: numbers[0].getBoundingClientRect().top - top,
+            below:
+              top + body.clientHeight - numbers[numbers.length - 1].getBoundingClientRect().bottom
+          };
+        })
+      );
+      for (const { above, below } of spans)
+        assert.ok(
+          Math.abs(above) < 0.5 && Math.abs(below) < 0.5,
+          `the divider stops ${above}px under the body's top and ${below}px over its foot`
+        );
     });
 
     test('a hovered head copy control stays lighter than its head in both themes', async () => {
