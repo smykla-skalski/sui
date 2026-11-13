@@ -254,17 +254,15 @@
     align-content: center;
     block-size: var(--sui-block-snap);
     color: var(--sui-text-primary);
-    font: var(--sui-weight-semibold) var(--sui-font-size-meta) / var(--sui-row-copy-leading)
+    font: var(--sui-weight-semibold) var(--sui-font-size-body) / var(--sui-row-copy-leading)
       var(--sui-sans);
     overflow-wrap: anywhere;
     padding-block: var(--sui-block-snap-room);
     text-box: trim-both cap alphabetic;
   }
 
-  /* A step is a row's one line, so it takes a row name's body size, not a run row's meta. */
   .step {
-    font: var(--sui-weight-regular) var(--sui-font-size-body) / var(--sui-row-copy-leading)
-      var(--sui-sans);
+    font-weight: var(--sui-weight-regular);
   }
 
   .sum,
@@ -277,6 +275,14 @@
     overflow-wrap: anywhere;
     padding-block: var(--sui-block-snap-room);
     text-box: trim-both cap alphabetic;
+  }
+
+  /* A name and the line under it each hold an even height, as the Object List's rows do, so a
+     mark centred beside the pair lands on whole pixels (L-95). */
+  .name,
+  .sum {
+    block-size: var(--sui-block-snap-even);
+    padding-block: var(--sui-block-snap-room-even);
   }
 
   .took {
