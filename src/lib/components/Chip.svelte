@@ -480,6 +480,12 @@ style declaration.
     outline-offset: var(--sui-focus-ring-inset);
   }
 
+  /* On a painted fill the focus blue can fall under 3:1, as on violet, so the ring takes the
+     chip's ink, which holds 4.5:1 on that fill (L-6). */
+  .painted .sui-chip-remove:focus-visible {
+    outline-color: currentColor;
+  }
+
   @media (prefers-reduced-motion: reduce) {
     .sui-chip-remove {
       transition: none;

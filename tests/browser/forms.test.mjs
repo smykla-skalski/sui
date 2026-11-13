@@ -484,6 +484,59 @@ suite('forms', together, () => {
       );
     });
 
+    test('L-6 a painted chip rings its remove at 3:1 on its own fill', async () => {
+      // The ring stands inside the remove control, on the chip's fill, where the focus blue
+      // held 1.55:1 on a violet chip in the light theme.
+      const page = await opened();
+      const remove = page
+        .locator('#chip .sui-chip.painted', { hasText: 'needs design' })
+        .locator('.sui-chip-remove');
+      for (const scheme of /** @type {const} */ (['dark', 'light'])) {
+        await page.emulateMedia({ colorScheme: scheme });
+        await page.waitForTimeout(400);
+        await page.keyboard.press('Shift');
+        await remove.focus();
+        const ratio = await remove.evaluate((button) => {
+          /** @param {string} color */
+          const rgba = (color) => {
+            const [r, g, b, a = 1] = (color.match(/[\d.]+/g) ?? []).map(Number);
+            return { r, g, b, a };
+          };
+          /** @param {{ r: number, g: number, b: number, a: number }} top @param {{ r: number, g: number, b: number, a: number }} under */
+          const over = (top, under) => ({
+            r: top.r * top.a + under.r * (1 - top.a),
+            g: top.g * top.a + under.g * (1 - top.a),
+            b: top.b * top.a + under.b * (1 - top.a),
+            a: 1
+          });
+          /** @param {{ r: number, g: number, b: number }} color */
+          const luminance = ({ r, g, b }) => {
+            const [R, G, B] = [r, g, b].map((v) =>
+              v / 255 <= 0.04045 ? v / 255 / 12.92 : ((v / 255 + 0.055) / 1.055) ** 2.4
+            );
+            return 0.2126 * R + 0.7152 * G + 0.0722 * B;
+          };
+          const layers = [];
+          for (let node = button.parentElement; node; node = node.parentElement) {
+            const layer = rgba(getComputedStyle(node).backgroundColor);
+            layers.push(layer);
+            if (layer.a >= 0.999) break;
+          }
+          const ground = layers.reduceRight((under, top) => over(top, under), {
+            r: 255,
+            g: 255,
+            b: 255,
+            a: 1
+          });
+          const ring = over(rgba(getComputedStyle(button).outlineColor), ground);
+          const [light, dark] = [luminance(ring), luminance(ground)].sort((a, b) => b - a);
+          return (light + 0.05) / (dark + 0.05);
+        });
+        assert.ok(ratio >= 3, `the ${scheme} ring holds ${ratio.toFixed(2)}:1 on the fill`);
+        await remove.blur();
+      }
+    });
+
     test('a small chip in a line of text keeps the line at its own height', async () => {
       const page = await opened();
       const [height, leading] = await page

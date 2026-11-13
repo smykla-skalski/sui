@@ -2437,11 +2437,14 @@ function fieldRecesses(root: Document): Finding[] {
 
 /**
  * A current row's plate is where a keyboard reader's ring lands (L-6), so the ring holds 3:1 on
- * the plate as painted over whatever ground the list stands on.
+ * the plate as painted over whatever ground the list stands on. A row the pointer rests on
+ * without focus wears its hover plate, which no ring stands on, since a focused row keeps its
+ * resting plate.
  */
 function ringsOnPlates(root: Document): Finding[] {
   return audited(root, '.sui-object-row.current, .sui-page-toc-link[aria-current]').flatMap(
     (row) => {
+      if (row.matches(':hover') && !row.matches(':focus-visible, :has(:focus-visible)')) return [];
       const ground = paintedGround(row);
       const ratio = contrast(over(token('--sui-focus', row), ground), ground);
       return ratio < 3
