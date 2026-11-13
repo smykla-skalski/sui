@@ -72,16 +72,16 @@ suite('lists', together, () => {
       assert.deepEqual([...new Set(insets)], [12], `controls end ${insets.join(', ')}px inside`);
     });
 
-    test("a block's file and language names read at the 13px caption tier", async () => {
+    test("a block's names and its head's copy words read at the 13px caption tier", async () => {
       const page = await opened();
       const sizes = await page.evaluate(() =>
         [
           ...document.querySelectorAll(
-            '#code-block .sui-code-block:not(.bare) :is(.sui-code-block-label, .sui-code-block-lang)'
+            '#code-block .sui-code-block:not(.bare) :is(.sui-code-block-label, .sui-code-block-lang, .sui-code-block-copy button)'
           )
         ].map((name) => `${name.textContent}: ${getComputedStyle(name).fontSize}`)
       );
-      assert.ok(sizes.length >= 4, `only ${sizes.length} names`);
+      assert.ok(sizes.length >= 8, `only ${sizes.length} names and controls`);
       assert.deepEqual(
         sizes.filter((size) => !size.endsWith(': 13px')),
         [],
