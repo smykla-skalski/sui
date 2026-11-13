@@ -238,10 +238,11 @@ of them.
   }
 
   /* A step in words takes the place a control would, a panel gap under the words, in the
-     body size, so the reader's next move reads apart from why it failed (L-59). */
+     body size. Its primary ink sets the reader's next move apart from why it failed (L-59),
+     and its regular weight keeps it under the title. */
   .sui-error-state-step {
     color: var(--sui-text-primary);
-    font: var(--sui-weight-medium) var(--sui-font-size-body) / var(--sui-row-copy-leading)
+    font: var(--sui-weight-regular) var(--sui-font-size-body) / var(--sui-row-copy-leading)
       var(--sui-sans);
     max-inline-size: var(--sui-measure);
   }

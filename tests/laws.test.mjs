@@ -441,6 +441,11 @@ test('L-59 a state panel pads 28px by 20px, 20px on a phone, its action a step u
     'the mark, edge and wash carry the failure, so its title reads in the primary ink'
   );
   assert.match(
+    stripComments(styles['src/lib/components/ErrorState.svelte']),
+    /\.sui-error-state-step \{[^}]*color: var\(--sui-text-primary\);[^}]*font: var\(--sui-weight-regular\)/,
+    "a step in words parts from the description by its ink and stays under the title's weight"
+  );
+  assert.match(
     stripComments(styles['src/lib/components/DayHeading.svelte']),
     /\.sui-day-heading \{[^}]*color: var\(--sui-text-primary\);/,
     'a day heading heads its entries in their own primary ink, not under them in the secondary'
