@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- An `Avatar`'s initials are semibold, the weight of the name an `IdentityRow` sets beside them, where bold read a step louder than that name, and they centre on the semibold letters' own ink.
 - The `PageToc` page sets its article paragraphs in the primary ink, under each section's description in the secondary one, so the text a reader reads stands apart from its notes.
 - A 40px workspace `Avatar` rounds 12px (`--sui-radius-mark-large`), 30% of its side as every other size's corner is, where 10px read as a squarer mark between its neighbours.
 - The `Avatar` page runs its sizes across and its two shapes down, as the `Chip` and `Icon` pages run theirs, so the size ramp reads in one line from 20px to 48px.

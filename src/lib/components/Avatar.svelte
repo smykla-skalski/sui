@@ -22,7 +22,7 @@
 
   type Strokes = readonly [before: number, after: number, over: number, under: number];
 
-  /* Where the bold sans draws each glyph initials are made of, in thousandths of an em, as
+  /* Where the semibold sans draws each glyph initials are made of, in thousandths of an em, as
      canvas measureText reports it: the room its advance leaves before and after the strokes,
      and how far they reach over the cap line and under the baseline. Centring the advance and
      the cap band leaves a B or a P up to half a pixel right of the middle at 16px, and a Q's
@@ -30,50 +30,50 @@
   const CAP = 745;
   const strokes: Record<string, Strokes> = {
     A: [11, 11, 0, 0],
-    B: [72, 39, 0, 0],
-    C: [50, 39, 12, 12],
-    D: [72, 36, 0, 0],
-    E: [72, 28, 0, 0],
-    F: [72, 17, 0, 0],
-    G: [50, 36, 12, 12],
-    H: [72, 72, 0, 0],
-    I: [72, 72, 0, 0],
-    J: [39, 69, 0, 0],
-    K: [72, 11, 0, 0],
-    L: [72, 17, 0, 0],
-    M: [72, 72, 0, 0],
-    N: [72, 72, 0, 0],
-    O: [50, 50, 12, 12],
-    P: [72, 39, 0, 0],
-    Q: [50, 50, 12, 90],
-    R: [72, 17, 0, 0],
-    S: [39, 50, 12, 12],
+    B: [77, 44, 0, 0],
+    C: [55, 44, 12, 12],
+    D: [77, 39, 0, 0],
+    E: [77, 33, 0, 0],
+    F: [77, 22, 0, 0],
+    G: [55, 43, 12, 12],
+    H: [77, 77, 0, 0],
+    I: [77, 77, 0, 0],
+    J: [44, 76, 0, 0],
+    K: [77, 11, 0, 0],
+    L: [77, 22, 0, 0],
+    M: [77, 77, 0, 0],
+    N: [77, 77, 0, 0],
+    O: [55, 55, 12, 12],
+    P: [77, 44, 0, 0],
+    Q: [55, 55, 12, 90],
+    R: [77, 22, 0, 0],
+    S: [44, 55, 12, 12],
     T: [11, 11, 0, 0],
-    U: [64, 64, 0, 12],
+    U: [71, 71, 0, 12],
     V: [11, 11, 0, 0],
     W: [11, 11, 0, 0],
     X: [11, 11, 0, 0],
     Y: [11, 11, 0, 0],
-    Z: [14, 14, 0, 0],
-    Æ: [11, 28, 0, 0],
-    Ð: [16, 36, 0, 0],
-    Đ: [16, 36, 0, 0],
-    Ľ: [72, 13, 12, 0],
-    Ł: [36, 17, 0, 0],
-    Œ: [50, 28, 12, 12],
-    Ø: [50, 50, 12, 12],
-    Þ: [65, 48, 0, 0],
-    '0': [56, 56, 12, 12],
-    '1': [29, 94, 0, 0],
-    '2': [41, 51, 12, 0],
-    '3': [32, 50, 0, 12],
-    '4': [36, 34, 0, 0],
-    '5': [40, 52, 0, 12],
-    '6': [43, 42, 0, 12],
-    '7': [31, 34, 0, 0],
-    '8': [51, 51, 12, 12],
-    '9': [42, 43, 12, 0],
-    '?': [55, 64, 12, 0]
+    Z: [17, 17, 0, 0],
+    Æ: [11, 33, 0, 0],
+    Ð: [20, 39, 0, 0],
+    Đ: [20, 39, 0, 0],
+    Ľ: [77, 22, 12, 0],
+    Ł: [39, 22, 0, 0],
+    Œ: [55, 33, 12, 12],
+    Ø: [55, 55, 12, 12],
+    Þ: [70, 50, 0, 0],
+    '0': [61, 61, 12, 12],
+    '1': [33, 99, 0, 0],
+    '2': [45, 54, 12, 0],
+    '3': [37, 54, 0, 12],
+    '4': [39, 37, 0, 0],
+    '5': [44, 56, 0, 12],
+    '6': [49, 47, 0, 12],
+    '7': [35, 38, 0, 0],
+    '8': [56, 55, 12, 12],
+    '9': [47, 49, 12, 0],
+    '?': [48, 57, 12, 0]
   };
 
   /* How far a mark on a capital reaches over the cap line, or under the baseline when negative. */
@@ -237,7 +237,7 @@ page runs. The initials' ink, not their advance or line, centres on the box.
     color: var(--sui-brand-action-text);
     display: inline-grid;
     flex: none;
-    font: var(--sui-weight-bold) var(--sui-font-size-title) / var(--sui-leading-flat)
+    font: var(--sui-weight-semibold) var(--sui-font-size-title) / var(--sui-leading-flat)
       var(--sui-sans);
     grid-template: minmax(0, 1fr) / minmax(0, 1fr);
     inline-size: var(--sui-avatar-size);
