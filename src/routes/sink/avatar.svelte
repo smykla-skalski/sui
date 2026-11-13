@@ -102,15 +102,15 @@
   note="Identity rows in an object list, where the open one stands on the current plate"
   layout="stack"
 >
-  <Specimen label="One open">
+  <Specimen>
     <Section title="Members" level={4}>
       <ObjectList>
-        <ObjectRow href="#avatar" current>
+        <ObjectRow href="#avatar">
           {#snippet main()}
             <IdentityRow name="Grace Hopper" handle="@grace" src={portrait} />
           {/snippet}
         </ObjectRow>
-        <ObjectRow href="#avatar">
+        <ObjectRow href="#avatar" current>
           {#snippet main()}
             <IdentityRow name="Ada Lovelace" handle="@ada" />
           {/snippet}
