@@ -402,11 +402,12 @@ phone drawer, and following an entry closes the drawer before focus moves.
     color: var(--sui-text-secondary);
     font: var(--sui-weight-semibold) var(--sui-font-size-compact) / var(--sui-leading-compact)
       var(--sui-sans);
-    margin: var(--sui-space-5) 0 var(--sui-space-2);
+    margin: var(--sui-space-5) var(--sui-space-3) var(--sui-space-2);
     padding-block: var(--sui-block-snap-room);
     text-box: trim-both cap alphabetic;
   }
 
+  /* The headings stand on the entries' words, not on their plates' edge, as a SideNav's do. */
   .sui-page-toc-title {
     align-content: center;
     block-size: var(--sui-block-snap);
@@ -414,7 +415,7 @@ phone drawer, and following an entry closes the drawer before focus moves.
     font: var(--sui-weight-semibold) var(--sui-font-size-compact) / var(--sui-leading-compact)
       var(--sui-sans);
     letter-spacing: 0.04em;
-    margin: 0 0 var(--sui-space-2);
+    margin: 0 var(--sui-space-3) var(--sui-space-2);
     padding-block: var(--sui-block-snap-room);
     text-box: trim-both cap alphabetic;
     text-transform: uppercase;
