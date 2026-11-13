@@ -77,7 +77,15 @@ jobs:
         run: |
           open=$(gh pr list --state open --limit 1000 --json number,title --jq "$(cat preview/open.jq)")
           echo "OPEN=$open" >> "$GITHUB_ENV"
-      - run: tar -cz -C build . | flyctl ssh console -a "$FLY_APP" -C "/usr/local/bin/previews ${PR:-main} $OPEN"
+      # A deploy of the server restarts its machine and cuts the upload short. `previews` installs
+      # through incoming/, so the same upload simply runs again.
+      - run: |
+          for _ in 1 2 3; do
+            curl -fsS --retry 10 --retry-all-errors -o /dev/null "https://$PREVIEW_HOST/ping"
+            tar -cz -C build . | flyctl ssh console -a "$FLY_APP" -C "/usr/local/bin/previews ${PR:-main} $OPEN" && exit
+            sleep 30
+          done
+          exit 1
 
   remove:
     if: github.event.action == 'closed' && github.event.pull_request.head.repo.full_name == github.repository
@@ -90,4 +98,10 @@ jobs:
       - *install-flyctl
       - run: curl -fsS --retry 10 --retry-all-errors -o /dev/null "https://$PREVIEW_HOST/ping"
       - *list-open
-      - run: flyctl ssh console -a "$FLY_APP" -C "/usr/local/bin/previews - $OPEN"
+      - run: |
+          for _ in 1 2 3; do
+            curl -fsS --retry 10 --retry-all-errors -o /dev/null "https://$PREVIEW_HOST/ping"
+            flyctl ssh console -a "$FLY_APP" -C "/usr/local/bin/previews - $OPEN" && exit
+            sleep 30
+          done
+          exit 1
