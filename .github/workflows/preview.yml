@@ -71,16 +71,11 @@ jobs:
           echo "$bin" >> "$GITHUB_PATH"
       # The machine stops when idle and only an HTTP request starts it again.
       - run: curl -fsS --retry 10 --retry-all-errors -o /dev/null "https://$PREVIEW_HOST/ping"
-      # Each open pull request as <number>:<its picker entry in base64>, the entry its title without
-      # the conventional `type(scope):` prefix, so no title needs quoting on the way, and as its bare
-      # number too, which a machine still on the script from before the picker keeps it by. A
-      # separate assignment, so a failed listing stops the step instead of reading as no open PRs.
+      # A separate assignment, so a failed listing stops the step instead of reading as no open PRs.
       - &list-open
         name: List open pull requests
         run: |
-          open=$(gh pr list --state open --limit 1000 --json number,title --jq '
-            [.[] | "\(.number)", "\(.number):" + ({number, title: (.title | sub("^\\w+(\\([^)]*\\))?!?:\\s*"; ""))} | tojson | @base64)]
-            | join(" ")')
+          open=$(gh pr list --state open --limit 1000 --json number,title --jq "$(cat preview/open.jq)")
           echo "OPEN=$open" >> "$GITHUB_ENV"
       - run: tar -cz -C build . | flyctl ssh console -a "$FLY_APP" -C "/usr/local/bin/previews ${PR:-main} $OPEN"
 
@@ -88,6 +83,10 @@ jobs:
     if: github.event.action == 'closed' && github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          sparse-checkout: preview
       - *install-flyctl
       - run: curl -fsS --retry 10 --retry-all-errors -o /dev/null "https://$PREVIEW_HOST/ping"
       - *list-open
