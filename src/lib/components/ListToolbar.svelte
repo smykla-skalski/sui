@@ -151,12 +151,12 @@ button. Without `tools` there is no button and the filter never folds.
 
 - Semantics: a `SearchField` named by its drawn label, a `SegmentedControl` per group named by its visible heading, a tools `button` with `aria-haspopup="dialog"`, and a dialog `Popover` holding the further groups.
 - Content: a search label, an optional filter and tools of two to five options each, and one optional action.
-- States: the tools button names the tools' choices beside it, so a sort or filter in the menu stays in view; open, pending (a spinner and `pendingLabel` beside the search) and empty results are said through the status, and a pick that leaves the count as it was is said again.
+- States: the tools button ends in a chevron, as a menu's button does, and names the tools' choices beside it; a count above 0 is drawn under the bar, over the rows it counts; so a sort or filter in the menu stays in view; open, pending (a spinner and `pendingLabel` beside the search) and empty results are said through the status, and a pick that leaves the count as it was is said again.
 - Keyboard: Tab walks search, filter, tools button and action; in the menu Tab moves through the groups and closes the menu on leaving it, and Escape closes it and returns focus to the tools button.
 - Pointer and touch: every control keeps its own 34px tier, 44px on a phone; an outside press closes the menu.
 - Focus: opening the menu moves focus to its first chosen option; closing it with Escape returns focus to the tools button.
 - Responsive: a container query folds the filter into the menu under 18rem; the search, the filter unit and the action wrap as whole pieces, and the search's label stands above its field once the field would have under 14rem beside it.
-- Accessibility: each group's heading is drawn and names it; `count` and `pending` are said through a polite status a moment after the reader pauses; the tools button is described by the choices it holds.
+- Accessibility: each group's heading is drawn and names it; `count` and `pending` are said through a polite status a moment after the reader pauses, and the drawn count is hidden from a screen reader, since the status says it; the tools button is described by the choices it holds.
 - Localization: `toolsLabel`, `pendingLabel` and `countLabel`, a function of the count with the count in the reader's format, are props with English defaults; the tools' choices are joined as a list in the page's language, the folded filter is set off by a dot rather than a written mark, and the bar follows the reading direction.
 - Performance: one container query and one short timer per bar; the menu mounts only with `tools`.
 - Analytics: each group's `onchange` hears its pick, and `onsearch` hears a new query once the reader pauses, never a repeat of the last one.
@@ -218,6 +218,7 @@ button. Without `tools` there is no button and the filter never folds.
               >
                 {#snippet icon()}<Icon name="sliders" size="base" />{/snippet}
                 {toolsLabel}
+                {#snippet trailing()}<Icon name="chevron-down" size="base" />{/snippet}
               </Button>
             </span>
           {/if}
@@ -237,6 +238,12 @@ button. Without `tools` there is no button and the filter never folds.
       <div class="sui-list-toolbar-action">{@render action()}</div>
     {/if}
   </div>
+  <!-- The count is drawn under the bar, over the rows it counts; the status says it, a moment
+       after the reader pauses, so the drawn words are not read twice. An empty list draws its
+       own empty state, so no count stands over it. -->
+  {#if count}
+    <p class="sui-list-toolbar-count" aria-hidden="true">{countLabel(count, formatCount(count))}</p>
+  {/if}
   <!-- Keyed, so the same words said again are a new announcement. -->
   <VisuallyHidden role="status"
     >{#key told}<span>{said}</span>{/key}</VisuallyHidden
@@ -448,6 +455,17 @@ button. Without `tools` there is no button and the filter never folds.
   }
 
   /* Even, so centred beside an even control it lands on whole pixels and reads as centred. */
+  .sui-list-toolbar-count {
+    align-content: center;
+    block-size: var(--sui-block-snap);
+    color: var(--sui-text-secondary);
+    font: var(--sui-weight-regular) var(--sui-font-size-control) / var(--sui-leading-note)
+      var(--sui-sans);
+    margin: var(--sui-space-3) 0 0;
+    padding-block: var(--sui-block-snap-room);
+    text-box: trim-both cap alphabetic;
+  }
+
   /* Each heading names the control beside it, so it is set as a field's label (L-25). */
   .sui-list-toolbar-heading {
     align-content: center;
