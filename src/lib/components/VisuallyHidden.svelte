@@ -43,6 +43,9 @@ Reach for `aria-label` instead when the words replace a control's whole name, an
     block-size: 1px;
     clip-path: inset(50%);
     inline-size: 1px;
+    /* The pixel would stand past the end of its box, as a live region after the page's last
+       element does, and add a pixel of scroll there (L-119). */
+    margin: -1px;
     overflow: hidden;
     position: absolute;
     white-space: nowrap;

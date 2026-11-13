@@ -3447,6 +3447,8 @@ function rowGrounds(root: Document): Finding[] {
   for (const row of audited(root, 'main *')) {
     const look = getComputedStyle(row);
     if (parseFloat(look.marginInlineStart) >= 0 || parseFloat(look.marginInlineEnd) >= 0) continue;
+    // Words only heard pull in by their pixel (L-119) and draw no ground to cut.
+    if (heardOnly(row)) continue;
     const box = row.getBoundingClientRect();
     for (let node = row.parentElement; node && node !== root.body; node = node.parentElement) {
       const holder = getComputedStyle(node);
@@ -3731,6 +3733,55 @@ function taps(root: Document): Finding[] {
   return found;
 }
 
+// L-119: the page ends where its content ends, and a box clipped to one pixel takes no room past
+// where it stands, at the end of the page or of a box that scrolls. Only the ends a box scrolls
+// toward count: the foot, and the inline end in the reading direction.
+function pageEnd(root: Document): Finding[] {
+  const found: Finding[] = [];
+  for (const box of audited(root, 'body *')) {
+    const look = getComputedStyle(box);
+    if (look.position !== 'absolute' || look.overflow === 'visible') continue;
+    const edges = box.getBoundingClientRect();
+    if (edges.width > 1 || edges.height > 1) continue;
+    // The pixel's static place follows the block it flows in: an inline parent's box is only
+    // its words, and a right-to-left line sets the pixel apart from them.
+    let holder = box.parentElement;
+    while (holder && ['contents', 'inline'].includes(getComputedStyle(holder).display))
+      holder = holder.parentElement;
+    if (!holder) continue;
+    const room = holder.getBoundingClientRect();
+    const past = Math.max(
+      edges.bottom - room.bottom,
+      look.direction === 'rtl' ? room.left - edges.left : edges.right - room.right
+    );
+    if (past > 0.5)
+      found.push(
+        finding('L-119', box, `its clipped pixel stands ${round(past)}px past ${describe(holder)}`)
+      );
+  }
+  const page = root.scrollingElement ?? root.documentElement;
+  const end = Math.max(
+    page.clientHeight,
+    Math.ceil(root.documentElement.getBoundingClientRect().height)
+  );
+  if (page.scrollHeight > end) {
+    const top = root.documentElement.getBoundingClientRect().top;
+    const past = audited(root, 'body *').filter(
+      (element) =>
+        element.getBoundingClientRect().bottom - top > end &&
+        (!element.parentElement ||
+          element.parentElement.getBoundingClientRect().bottom - top <= end)
+    );
+    const detail = `the page scrolls ${page.scrollHeight - end}px past its content`;
+    found.push(
+      ...(past.length > 0
+        ? past.slice(0, 5).map((element) => finding('L-119', element, detail))
+        : [finding('L-119', root.documentElement, detail)])
+    );
+  }
+  return found;
+}
+
 register(
   untranslated,
   separators,
@@ -3779,5 +3830,6 @@ register(
   disclosedCards,
   cardHeads,
   timelines,
-  taps
+  taps,
+  pageEnd
 );

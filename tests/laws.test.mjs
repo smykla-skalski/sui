@@ -1401,6 +1401,25 @@ test('L-118 the page covers the screen and its chrome wears each scheme canvas',
   }
 });
 
+test('L-119 every box clipped to one pixel pulls in by its pixel', () => {
+  // The sink draws only some of these states, such as the sidebar's folded strip, so the
+  // rendered audit cannot reach every rule.
+  const sheets = Object.entries({
+    ...styles,
+    ...Object.fromEntries(globSync('src/**/*.css').map((path) => [path, stripComments(read(path))]))
+  });
+  const found = [];
+  let clipped = 0;
+  for (const [path, css] of sheets)
+    for (const [, selector, body] of css.matchAll(/([^{}]+)\{([^{}]*)\}/g)) {
+      if (!/clip-path:\s*inset\(50%\)/.test(body)) continue;
+      clipped++;
+      if (!/(?:^|[;\s])margin:\s*-1px\s*;/.test(body)) found.push(`${path}: ${selector.trim()}`);
+    }
+  assert.ok(clipped > 0, 'no rule clips a box to one pixel');
+  assert.deepEqual(found, []);
+});
+
 test('L-53 a shadow that lifts a part is two layers in every palette block, and L-54 a popover lifts on a tight one in both themes', () => {
   /** @param {string} value */
   const layers = (value) => {

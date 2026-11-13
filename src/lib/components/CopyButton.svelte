@@ -283,6 +283,7 @@ in its corner. Beside a 34px field or in a toolbar it takes the control tier wit
     block-size: 1px;
     clip-path: inset(50%);
     inline-size: 1px;
+    margin: -1px;
     overflow: hidden;
     position: absolute;
     white-space: nowrap;
