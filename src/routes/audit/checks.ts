@@ -2715,8 +2715,8 @@ function symbolTiles(root: Document): Finding[] {
 
 /**
  * A callout's actions (L-56) stand at its inline end, centred on its symbol's tile, and move under
- * the copy, from the callout's start edge under its symbol, only when the callout cannot hold them beside its
- * measure of copy (`--sui-callout-measure`).
+ * the copy, from where its words start, past its symbol, only when the callout cannot hold them
+ * beside its measure of copy (`--sui-callout-measure`).
  */
 function calloutActions(root: Document): Finding[] {
   const found: Finding[] = [];
@@ -2749,14 +2749,10 @@ function calloutActions(root: Document): Finding[] {
     }
     const rtl = getComputedStyle(inner).direction === 'rtl';
     const words = copy.getBoundingClientRect();
-    const startOff = rtl ? said.right - own.right : own.left - said.left;
+    const startOff = rtl ? words.right - own.right : own.left - words.left;
     if (Math.abs(startOff) > 0.5)
       found.push(
-        finding(
-          'L-56',
-          actions,
-          `wrapped actions start ${round(startOff)}px off the callout's start edge`
-        )
+        finding('L-56', actions, `wrapped actions start ${round(startOff)}px off the words' start`)
       );
     // What the actions need on one line, against what the copy's measure leaves beside it.
     const parts = [...actions.children].filter(shown);
