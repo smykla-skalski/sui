@@ -103,7 +103,7 @@ grep -rn 'export default' dist 2>/dev/null || echo "No exports"`;
     <CopyButton text="0.2.1" label="Copy Version" />
   </Specimen>
   <Specimen label="Toolbar tier, 34 px">
-    <CopyButton text="https://sui.smyklot.com" label="Copy Link" toolbar />
+    <CopyButton text="https://sui.tercenas.com" label="Copy Link" toolbar />
   </Specimen>
   <Specimen label="Disabled">
     <div class="copy-locked">
