@@ -338,6 +338,41 @@ suite('lists', together, () => {
   suite('at phone width', { concurrency: 1 }, () => {
     const opened = sharedPage({ viewport: { width: 375, height: 812 } });
 
+    test('a failed refresh over its rows keeps 16px inside its tint all round once its retry wraps', async () => {
+      const page = await opened();
+      const strip = page
+        .locator('#states .specimen', { hasText: 'Refresh failed' })
+        .locator('.over');
+      await strip.scrollIntoViewIfNeeded();
+      const inset = await strip.evaluate((node) => {
+        const tint = getComputedStyle(node, '::before');
+        const box = node.getBoundingClientRect();
+        const edge = parseFloat(tint.borderTopWidth);
+        const top = box.top + parseFloat(tint.top) + edge;
+        const bottom = box.bottom - parseFloat(tint.bottom) - edge;
+        const words = /** @type {Element} */ (
+          node.querySelector('.sui-error-state-copy')
+        ).getBoundingClientRect();
+        const retry = /** @type {Element} */ (node.querySelector('button')).getBoundingClientRect();
+        return {
+          above: words.top - top,
+          below: bottom - retry.bottom,
+          side: words.left - box.left - edge,
+          wrapped: retry.top >= words.bottom
+        };
+      });
+      assert.ok(inset.wrapped, 'the retry stands beside the words on a phone');
+      for (const [where, value] of [
+        ['above', inset.above],
+        ['below', inset.below],
+        ['at the side', inset.side]
+      ])
+        assert.ok(
+          Math.abs(Number(value) - 16) < 0.5,
+          `the strip keeps ${value}px ${where} inside its tint`
+        );
+    });
+
     test("L-59 L-90 on a phone a failed refresh's retry wraps under its words", async () => {
       const page = await opened();
       const strip = page

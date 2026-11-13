@@ -295,4 +295,13 @@ of them.
   .over > .sui-error-state-retry {
     margin-inline-start: calc(var(--sui-icon-base) + var(--sui-space-2));
   }
+
+  /* A phone wraps the 44px retry under the words, so the line stands as a small panel: its tint
+     keeps the 16px it holds at its sides above and below too, past the tint's 2px inset and its
+     edge. */
+  @media (max-width: 47.9375rem) {
+    .over {
+      padding-block: calc(var(--sui-space-4) + var(--sui-space-1) / 2 + var(--sui-stroke));
+    }
+  }
 </style>
