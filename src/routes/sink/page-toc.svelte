@@ -14,7 +14,7 @@
     { id: 'toc-overview', label: 'Overview' },
     { id: 'toc-access', label: 'Who Can Change the Branch Rules' },
     { id: 'toc-checks', label: 'Required Checks' },
-    { id: 'toc-history', label: 'History', group: 'Older Changes' }
+    { id: 'toc-history', label: 'History' }
   ];
 </script>
 
