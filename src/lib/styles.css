@@ -246,7 +246,7 @@
   --sui-neutral-tint: color-mix(in srgb, var(--sui-text-secondary) 9%, var(--sui-surface-base));
   /* A placeholder is a veil, so it reads the same on a card, the canvas or an inset, and the
      light that crosses it while it waits is a brighter veil over that. */
-  --sui-placeholder: rgb(0 0 0 / 10%);
+  --sui-placeholder: rgb(0 0 0 / 12%);
   --sui-placeholder-glint: rgb(255 255 255 / 60%);
   --sui-placeholder-sheen: linear-gradient(
     115deg,
