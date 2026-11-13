@@ -151,11 +151,11 @@ button. Without `tools` there is no button and the filter never folds.
 
 - Semantics: a `SearchField` named by its drawn label, a `SegmentedControl` per group named by its visible heading, a tools `button` with `aria-haspopup="dialog"`, and a dialog `Popover` holding the further groups.
 - Content: a search label, an optional filter and tools of two to five options each, and one optional action.
-- States: the tools button ends in a chevron, as a menu's button does, and names the tools' choices beside it; a count above 0 is drawn under the bar, over the rows it counts; so a sort or filter in the menu stays in view; open, pending (a spinner and `pendingLabel` beside the search field, or just under it once it wraps) and empty results are said through the status, and a pick that leaves the count as it was is said again.
+- States: the tools button ends in a chevron, as a menu's button does, and names the tools' choices beside it; the count is drawn under the bar, over the rows it counts, 0 included; so a sort or filter in the menu stays in view; open, pending (a spinner and `pendingLabel` beside the search field, or just under it once it wraps) and empty results are said through the status, and a pick that leaves the count as it was is said again.
 - Keyboard: Tab walks search, filter, tools button and action; in the menu Tab moves through the groups and closes the menu on leaving it, and Escape closes it and returns focus to the tools button.
 - Pointer and touch: every control keeps its own 34px tier, 44px on a phone; an outside press closes the menu.
 - Focus: opening the menu moves focus to its first chosen option; closing it with Escape returns focus to the tools button.
-- Responsive: a container query folds the filter into the menu under 24rem, so a phone's bar keeps the search and one line of controls; the search, the filter unit and the action wrap as whole pieces, and the search's label stands above its field once the field would have under 14rem beside it.
+- Responsive: a container query folds the filter into the menu under 24rem, so a phone's bar keeps the search and one line of controls; the search, the filter unit and the action wrap as whole pieces, and the search's label stands above its field once the field would have under 12rem beside it, and the field stops at 32rem.
 - Accessibility: each group's heading is drawn and names it; `count` and `pending` are said through a polite status a moment after the reader pauses, and the drawn count is hidden from a screen reader, since the status says it; the tools button is described by the choices it holds.
 - Localization: `toolsLabel`, `pendingLabel` and `countLabel`, a function of the count with the count in the reader's format, are props with English defaults; the tools' choices are joined as a list in the page's language, the folded filter is set off by a dot rather than a written mark, and the bar follows the reading direction.
 - Performance: one container query and one short timer per bar; the menu mounts only with `tools`.
@@ -239,10 +239,10 @@ button. Without `tools` there is no button and the filter never folds.
       <div class="sui-list-toolbar-action">{@render action()}</div>
     {/if}
   </div>
-  <!-- The count is drawn under the bar, over the rows it counts; the status says it, a moment
-       after the reader pauses, so the drawn words are not read twice. An empty list draws its
-       own empty state, so no count stands over it. -->
-  {#if count}
+  <!-- The count is drawn under the bar, over the rows it counts, 0 included, so the bar still
+       says the search left nothing over the list's empty state; the status says it, a moment
+       after the reader pauses, so the drawn words are not read twice. -->
+  {#if count !== undefined}
     <p class="sui-list-toolbar-count" aria-hidden="true">{countLabel(count, formatCount(count))}</p>
   {/if}
   <!-- Keyed, so the same words said again are a new announcement. -->
@@ -290,8 +290,10 @@ button. Without `tools` there is no button and the filter never folds.
   }
 
   /* The search's label stands before it on its line, as the filter's heading does, while the
-     field keeps 14rem beside it, the room a typed query needs; with less, as on a phone, the
-     label stands above a field of the full width. When the label wraps above the field the part
+     field keeps 12rem beside it, the room a typed query needs, so a bar with a filter, tools
+     and an action keeps it there on a laptop; with less, as on a phone, the label stands above
+     a field of the full width. The field stops at 32rem, so a wide bar keeps its controls
+     together at its start and the action at its end. When the label wraps above the field the part
      is snapped to an even height, so the filter centred beside it lands on whole pixels (L-95),
      and its lines keep to the top so the extra pixel stays under them. */
   .sui-list-toolbar-search {
@@ -307,7 +309,8 @@ button. Without `tools` there is no button and the filter never folds.
 
   .sui-list-toolbar-field {
     display: grid;
-    flex: 1 1 14rem;
+    flex: 1 1 12rem;
+    max-inline-size: 32rem;
     min-inline-size: 0;
   }
 
@@ -330,7 +333,7 @@ button. Without `tools` there is no button and the filter never folds.
     align-items: center;
     display: flex;
     flex-wrap: wrap;
-    gap: var(--sui-space-2) var(--sui-space-1);
+    gap: var(--sui-space-2);
     min-inline-size: 0;
   }
 
@@ -450,8 +453,8 @@ button. Without `tools` there is no button and the filter never folds.
   .sui-list-toolbar-panel {
     display: grid;
     gap: var(--sui-space-4);
-    min-inline-size: 0;
-    padding: var(--sui-space-3);
+    min-inline-size: 12rem;
+    padding: var(--sui-space-4) var(--sui-space-3);
   }
 
   .sui-list-toolbar-group {

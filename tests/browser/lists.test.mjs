@@ -624,6 +624,11 @@ suite('lists', together, () => {
           await counted.getByRole('searchbox').elementHandle(),
           brief
         );
+        // Over the empty state the bar still draws its count, so it says the search left nothing.
+        assert.equal(
+          (await counted.locator('.sui-list-toolbar-count').textContent())?.trim(),
+          'No results'
+        );
       }
     );
 

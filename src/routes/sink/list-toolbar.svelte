@@ -99,7 +99,7 @@
 >
   <Specimen label="Search & action">
     <ListToolbar searchLabel="Search members" placeholder="octocat…">
-      {#snippet action()}<Button>Invite Member</Button>{/snippet}
+      {#snippet action()}<Button tone="signal">Invite Member</Button>{/snippet}
     </ListToolbar>
   </Specimen>
   <Specimen label="Filter & tools">
@@ -122,8 +122,13 @@
 >
   <Specimen label="In 17 rem">
     <div class="narrow">
-      <ListToolbar searchLabel="Search repositories" filter={narrow.filter} tools={narrow.tools}>
-        {#snippet action()}<Button>Add Repository</Button>{/snippet}
+      <ListToolbar
+        searchLabel="Search repositories"
+        placeholder="sui…"
+        filter={narrow.filter}
+        tools={narrow.tools}
+      >
+        {#snippet action()}<Button tone="signal">Add Repository</Button>{/snippet}
       </ListToolbar>
     </div>
   </Specimen>
@@ -149,7 +154,7 @@
     {#if rows.length > 0}
       <ObjectList>
         {#each rows as repository (repository.name)}
-          <ObjectRow>
+          <ObjectRow href="#{repository.name}">
             {#snippet main()}
               <span class="name">{repository.name}</span>
               <span class="sum">Updated {repository.updated}&nbsp;days ago</span>
