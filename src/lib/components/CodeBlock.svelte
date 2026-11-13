@@ -395,7 +395,11 @@ beside its first line, and takes the row only on a phone. It copies `code` exact
   }
 
   .sui-code-block:not(.bare) > :is(.sui-code-block-label, .sui-code-block-copy) {
-    background: color-mix(in srgb, var(--sui-text-primary) 2.5%, var(--sui-surface-code));
+    background: color-mix(
+      in srgb,
+      var(--sui-text-primary) var(--sui-code-head-ink),
+      var(--sui-surface-code)
+    );
   }
 
   /* The copy control rests on the raised ground, so it stands over the head in both themes,
