@@ -106,8 +106,8 @@
       </PageHeader>
       <p class="view">
         {checked
-          ? 'Every repository matches its settings'
-          : '3 repositories differ from their settings'}
+          ? 'Every repository matches the saved settings'
+          : '3 repositories differ from the saved settings'}
       </p>
     </div>
   </Specimen>
@@ -142,7 +142,7 @@
           />
         {/snippet}
       </PageHeader>
-      <p class="view">The last run checked 84 files, all in sync</p>
+      <p class="view">The last run checked 84 files and found nothing to change</p>
     </div>
   </Specimen>
 </Example>
