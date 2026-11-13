@@ -13,7 +13,11 @@
   import Variants from '../kit/Variants.svelte';
 
   const kinds = ['person', 'workspace', 'picture'] as const;
-  const kindLabels = { person: 'shape="person"', workspace: 'shape="workspace"', picture: 'src' };
+  const kindLabels = {
+    person: 'shape="person"',
+    workspace: 'shape="workspace"',
+    picture: 'src="…"'
+  };
   const sizes = ['20', '24', '28', '32', '40', '48'] as const;
 
   /* Bytes no browser can decode, so the fallback shows without a request that fails. */
@@ -81,6 +85,12 @@
   </Specimen>
   <Specimen label="With a picture">
     <IdentityRow name="Grace Hopper" handle="@grace" src={portrait} />
+  </Specimen>
+  <Specimen label="Picture not loaded">
+    <IdentityRow name="Alan Turing" handle="@alan" src={broken} />
+  </Specimen>
+  <Specimen label="Workspace with a logo">
+    <IdentityRow name="Infra Team" handle="infra-team" src={logo} shape="workspace" />
   </Specimen>
   <Specimen label="Name alone">
     <IdentityRow name="Barbara Liskov" />
