@@ -98,13 +98,13 @@ is `Button` with `href`, and the way back from a page is `BackLink`.
      contrast; a press steps it further. */
   @media (hover: hover) {
     .sui-link:hover {
-      color: color-mix(in oklab, var(--sui-link) 84%, var(--sui-text-primary));
+      color: color-mix(in oklab, var(--sui-link) 76%, var(--sui-text-primary));
       text-decoration-thickness: var(--sui-stroke-bold);
     }
   }
 
   .sui-link:active {
-    color: color-mix(in oklab, var(--sui-link) 70%, var(--sui-text-primary));
+    color: color-mix(in oklab, var(--sui-link) 62%, var(--sui-text-primary));
   }
 
   .sui-link:focus-visible {

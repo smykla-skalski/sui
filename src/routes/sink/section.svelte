@@ -205,4 +205,11 @@
   .narrow {
     inline-size: min(100%, 30rem);
   }
+
+  /* A stage of 30rem or less already shows the narrow pane, so the second one would repeat it. */
+  @container sink-stage (max-width: 30rem) {
+    :global(.specimen:has(> .body > .narrow)) {
+      display: none;
+    }
+  }
 </style>

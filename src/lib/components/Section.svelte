@@ -267,6 +267,13 @@ its words on the title's edge.
     --sui-local-button-seat: var(--sui-control-height-drawn);
   }
 
+  /* A section has no frame, so the head that holds a lone ghost button reaches past the edge by
+     the button's inset and its words end on the content's edge, as a link's do, while its veil
+     hangs past it as a lit row's does. */
+  .sui-section-actions:has(> :global(.sui-button[data-tone='ghost']):only-child) {
+    margin-inline-end: calc(-1 * (var(--sui-space-3) + var(--sui-stroke)));
+  }
+
   .sui-section-note {
     max-inline-size: var(--sui-measure);
     align-content: center;

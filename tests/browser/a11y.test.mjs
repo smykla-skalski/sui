@@ -786,6 +786,24 @@ p { margin-block-end: 2em !important; }`;
       }
     );
 
+  test("a section's lone ghost button ends its words on the content's edge", long, async () => {
+    const page = await open(1440, 'light');
+    try {
+      const section = page
+        .locator('#section .sui-section')
+        .filter({ has: page.getByRole('button', { name: 'Refresh' }) })
+        .first();
+      await section.scrollIntoViewIfNeeded();
+      const off = await section.evaluate((node) => {
+        const words = node.querySelector('.sui-button-label')?.getBoundingClientRect();
+        return words ? Math.round(node.getBoundingClientRect().right - words.right) : null;
+      });
+      assert.equal(off, 0);
+    } finally {
+      await page.close();
+    }
+  });
+
   test("a lit back link's veil stands clear of the page header's title", long, async () => {
     const page = await open(1440, 'light');
     try {

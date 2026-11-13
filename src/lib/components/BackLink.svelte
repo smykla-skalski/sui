@@ -81,7 +81,7 @@ fits the eyebrow's place in a `PageHeader`.
   @media (hover: hover) {
     .sui-back-link:hover:not(:active) {
       background: var(--sui-row-hover);
-      color: color-mix(in oklab, var(--sui-brand-action-text) 84%, var(--sui-text-primary));
+      color: color-mix(in oklab, var(--sui-brand-action-text) 76%, var(--sui-text-primary));
     }
 
     .sui-back-link[data-tone='quiet']:hover:not(:active) {
