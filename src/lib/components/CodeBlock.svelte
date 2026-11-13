@@ -364,7 +364,8 @@ from the corner and centred on the first line, or in the file name's row when th
 
   /* A phone's column is too narrow to give the copy control a column beside every line, so
      the control heads the block in a row of its own, as it does beside a file name, and the
-     code takes the whole width under it. */
+     code takes the whole width under it. A block with no copy control has no row to part from
+     its code, so it keeps its own top edge. */
   @media (max-width: 47.9375rem) {
     .sui-code-block:not(.labelled) > .sui-code-block-copy {
       box-sizing: border-box;
@@ -397,7 +398,7 @@ from the corner and centred on the first line, or in the file name's row when th
       padding-inline-start: 0;
     }
 
-    .sui-code-block:not(.labelled) > .sui-code-block-scroll {
+    .sui-code-block:not(.labelled):has(> .sui-code-block-copy) > .sui-code-block-scroll {
       border-block-start: var(--sui-stroke) solid var(--sui-border-divider);
       border-start-end-radius: 0;
       border-start-start-radius: 0;

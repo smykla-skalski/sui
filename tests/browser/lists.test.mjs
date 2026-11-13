@@ -332,8 +332,10 @@ suite('lists', together, () => {
                   parseFloat(getComputedStyle(element).paddingInlineStart)
                 : 0;
             const name = copy?.querySelector('.sui-code-block-lang');
+            const scroller = /** @type {Element} */ (block.querySelector('pre'));
             return {
               copy: copy !== null,
+              parted: getComputedStyle(scroller).borderTopWidth !== '0px',
               lang: name?.textContent ?? null,
               onEdge: name ? startOf(name) - startOf(block.querySelector('.src')) : 0,
               past: control ? control.right - box.right : 0,
@@ -344,6 +346,10 @@ suite('lists', together, () => {
         )
       );
       const copied = blocks.filter((block) => block.copy);
+      assert.ok(
+        blocks.every((block) => block.parted === block.copy),
+        'only a block with a copy row parts its code from the row with a line'
+      );
       assert.ok(copied.length > 0, 'the section shows no code block with a copy control');
       for (const block of copied) {
         assert.ok(block.past <= -8, `a copy control ends ${block.past}px from its block's edge`);
