@@ -2,7 +2,6 @@
 
 ## Unreleased
 
-- The sink's day feed keeps a form's 40rem measure on a wide page, so each time stays near its entry, where it stood about 950px off.
 - The sink's day feed parts its days by 32px, where 20px stood too close to the 12px under each heading for a heading to read as the head of its own run.
 - The sink's filtered rows stand a row's pitch over their toggle, as the recovered rows stand over theirs, where the filtered toggle sat 13px closer.
 - A framed `CopyButton` edges its Copied words in the success ink and its refusal in the danger ink, through a hover and inside a whole 2px focus ring, so a keyboard copy shows its result and keeps its ring.
