@@ -237,6 +237,13 @@ under reduced motion. Use it only where the shape of what is coming is already k
     inline-size: min(12rem, 50%);
   }
 
+  /* The first bar stands for the name, which a row sets at the body size, so it is one of the
+     name's caps tall; a plain row measures its one line in that face too. */
+  .main > .bar:first-child,
+  .sui-skeleton-rows:not(.bars) .row {
+    font-size: var(--sui-font-size-body);
+  }
+
   .bar + .bar {
     inline-size: min(18rem, 80%);
   }
@@ -274,7 +281,7 @@ under reduced motion. Use it only where the shape of what is coming is already k
     content: none;
   }
 
-  /* The slow words take a row's shape: a title where the name stands, in a name's ink, and a
+  /* The slow words take a row's shape: a title where the name stands, in a name's size and ink, and a
      quieter line where the line under it stands, each cap to baseline on its bar's place. A
      one-line row keeps one line, the title, so it stays as tall as its neighbours; the status
      says the rest. */
@@ -297,6 +304,7 @@ under reduced motion. Use it only where the shape of what is coming is already k
 
   .name {
     color: var(--sui-text-primary);
+    font-size: var(--sui-font-size-body);
     font-weight: var(--sui-weight-semibold);
   }
 
