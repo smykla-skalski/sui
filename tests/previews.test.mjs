@@ -6,21 +6,22 @@ import { join } from 'node:path';
 import test from 'node:test';
 
 const script = new URL('../preview/previews.sh', import.meta.url).pathname;
+const entry = (/** @type {number} */ pr) => ({ number: pr, title: `"Title" of ${pr}` });
+/** An open pull request as the workflow passes it: its number and its picker entry in base64. */
+const open = (/** @type {number} */ pr) =>
+  `${pr}:${Buffer.from(JSON.stringify(entry(pr))).toString('base64')}`;
 
 test('installs the piped preview, removes those of closed pull requests and lists the rest', (t) => {
   const data = mkdtempSync(join(tmpdir(), 'sui-previews-'));
   t.after(() => rmSync(data, { recursive: true, force: true }));
   for (const pr of [1, 10, 12]) mkdirSync(join(data, 'previews', `pr-${pr}`), { recursive: true });
-  const listed = (/** @type {number} */ pr) => ({ number: pr, title: `"Title" of ${pr}` });
-  writeFileSync(join(data, 'previews', 'pr-1', 'preview.json'), JSON.stringify(listed(1)));
-  writeFileSync(join(data, 'previews', 'pr-10', 'preview.json'), JSON.stringify(listed(10)));
   const site = join(data, 'site');
   mkdirSync(site);
   writeFileSync(join(site, 'index.html'), 'pr 3');
-  writeFileSync(join(site, 'preview.json'), JSON.stringify(listed(3)));
 
-  // pr-1 is closed, and must not survive on the strength of 10 being open.
-  execFileSync('sh', [script, '3', '3', '10', '12'], {
+  // pr-1 is closed, and must not survive on the strength of 10 being open. 15 is open with no
+  // preview, as a pull request that never changed the look.
+  execFileSync('sh', [script, '3', ...[3, 10, 12, 15].map(open)], {
     input: execFileSync('tar', ['-cz', '-C', site, '.']),
     env: { ...process.env, PREVIEWS_DATA: data }
   });
@@ -32,10 +33,9 @@ test('installs the piped preview, removes those of closed pull requests and list
     'previews.json'
   ]);
   assert.equal(readFileSync(join(data, 'previews', 'pr-3', 'index.html'), 'utf8'), 'pr 3');
-  // pr-12 predates preview.json, so the picker leaves it out.
   assert.deepEqual(
     new Set(JSON.parse(readFileSync(join(data, 'previews', 'previews.json'), 'utf8'))),
-    new Set([listed(3), listed(10)])
+    new Set([entry(3), entry(10), entry(12)])
   );
 });
 
@@ -50,7 +50,7 @@ test('replaces the previous main at the root and keeps the open previews', (t) =
   mkdirSync(join(site, '_app', 'new'), { recursive: true });
   writeFileSync(join(site, 'index.html'), 'new main');
 
-  execFileSync('sh', [script, 'main', '3'], {
+  execFileSync('sh', [script, 'main', open(3)], {
     input: execFileSync('tar', ['-cz', '-C', site, '.']),
     env: { ...process.env, PREVIEWS_DATA: data }
   });

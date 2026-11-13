@@ -57,11 +57,6 @@ jobs:
       - run: npm run build:site
         env:
           VITE_PREVIEWS: 'true'
-      # The sink's preview picker lists each preview by the title its build carries.
-      - if: env.PR
-        run: jq -nc --argjson number "$PR" --arg title "$TITLE" '{$number, $title}' > build/preview.json
-        env:
-          TITLE: ${{ github.event.pull_request.title }}
       # The setup-flyctl action gave up after 3 tries when GitHub's release downloads answered
       # 504 for minutes; curl keeps trying for up to 10 minutes.
       - &install-flyctl
@@ -76,10 +71,17 @@ jobs:
           echo "$bin" >> "$GITHUB_PATH"
       # The machine stops when idle and only an HTTP request starts it again.
       - run: curl -fsS --retry 10 --retry-all-errors -o /dev/null "https://$PREVIEW_HOST/ping"
-      # A separate assignment, so a failed listing stops the step instead of reading as no open PRs.
-      - run: |
-          open=$(gh pr list --state open --limit 1000 --json number --jq '[.[].number | tostring] | join(" ")')
-          tar -cz -C build . | flyctl ssh console -a "$FLY_APP" -C "/usr/local/bin/previews ${PR:-main} $open"
+      # Each open pull request as <number>:<its picker entry in base64>, the entry its title without
+      # the conventional `type(scope):` prefix, so no title needs quoting on the way. A separate
+      # assignment, so a failed listing stops the step instead of reading as no open PRs.
+      - &list-open
+        name: List open pull requests
+        run: |
+          open=$(gh pr list --state open --limit 1000 --json number,title --jq '
+            [.[] | "\(.number):" + ({number, title: (.title | sub("^\\w+(\\([^)]*\\))?!?:\\s*"; ""))} | tojson | @base64)]
+            | join(" ")')
+          echo "OPEN=$open" >> "$GITHUB_ENV"
+      - run: tar -cz -C build . | flyctl ssh console -a "$FLY_APP" -C "/usr/local/bin/previews ${PR:-main} $OPEN"
 
   remove:
     if: github.event.action == 'closed' && github.event.pull_request.head.repo.full_name == github.repository
@@ -87,6 +89,5 @@ jobs:
     steps:
       - *install-flyctl
       - run: curl -fsS --retry 10 --retry-all-errors -o /dev/null "https://$PREVIEW_HOST/ping"
-      - run: |
-          open=$(gh pr list --state open --limit 1000 --json number --jq '[.[].number | tostring] | join(" ")')
-          flyctl ssh console -a "$FLY_APP" -C "/usr/local/bin/previews - $open"
+      - *list-open
+      - run: flyctl ssh console -a "$FLY_APP" -C "/usr/local/bin/previews - $OPEN"

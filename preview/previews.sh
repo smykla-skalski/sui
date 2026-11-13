@@ -2,12 +2,16 @@
 # Installs the site piped in as a gzipped tarball, then removes every preview whose pull
 # request is not in the open list, so a missed close is cleaned up by the next run.
 # `main` is installed at the root, beside the previews, and `-` installs nothing.
+# Each open pull request comes as <number>:<base64 of its JSON picker entry>, and the entries
+# of those with a preview make previews.json, the list the sink's preview picker reads.
 #
-# Usage: previews <pr|main|-> [open-pr...]
+# Usage: previews <pr|main|-> [open-pr:entry...]
 set -eu
 
-install=${1:?usage: previews <pr|main|-> [open-pr...]}
+install=${1:?usage: previews <pr|main|-> [open-pr:entry...]}
 shift
+numbers=
+for pr; do numbers="$numbers ${pr%%:*}"; done
 
 cd "${PREVIEWS_DATA:-/data}"
 mkdir -p previews incoming
@@ -37,20 +41,19 @@ esac
 
 for dir in previews/pr-*; do
   [ -d "$dir" ] || continue
-  case " $* " in
+  case "$numbers " in
     *" ${dir#previews/pr-} "*) ;;
     *) rm -rf "$dir" ;;
   esac
 done
 
-# The sink's preview picker reads this list of the previews left, from each one's preview.json.
 {
   printf '['
   comma=
-  for file in previews/pr-*/preview.json; do
-    [ -f "$file" ] || continue
+  for pr; do
+    [ -d "previews/pr-${pr%%:*}" ] || continue
     printf '%s' "$comma"
-    cat "$file"
+    printf '%s' "${pr#*:}" | base64 -d
     comma=,
   done
   printf ']\n'
