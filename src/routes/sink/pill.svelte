@@ -81,9 +81,20 @@
 >
   <Specimen label="Spoken on change">
     <span class="row">
-      <Pill role="status" tone={healthy ? 'success' : 'warning'} dot>
-        {healthy ? 'Healthy' : 'Degraded'}
-      </Pill>
+      <!-- The slot is as wide as the widest word, so the button holds its place on a change. -->
+      <span class="slot">
+        <span>
+          <Pill role="status" tone={healthy ? 'success' : 'warning'} dot>
+            {healthy ? 'Healthy' : 'Degraded'}
+          </Pill>
+        </span>
+        <span class="ghost" aria-hidden="true">
+          <Pill tone="success" dot>Healthy</Pill>
+        </span>
+        <span class="ghost" aria-hidden="true">
+          <Pill tone="warning" dot>Degraded</Pill>
+        </span>
+      </span>
       <Button onclick={() => (healthy = !healthy)}>Change the Status</Button>
     </span>
   </Specimen>
@@ -95,5 +106,20 @@
     display: flex;
     flex-wrap: wrap;
     gap: var(--sui-space-3);
+  }
+
+  .slot {
+    display: grid;
+    justify-items: start;
+  }
+
+  /* Each word's box is its pill's, with no line around it, so the slot is a pill tall. */
+  .slot > * {
+    display: flex;
+    grid-area: 1 / 1;
+  }
+
+  .ghost {
+    visibility: hidden;
   }
 </style>
