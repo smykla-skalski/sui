@@ -114,7 +114,7 @@
      every size, so the pill holds no empty tint past it. */
   .measure {
     display: flex;
-    max-inline-size: calc(21 * var(--sui-font-size-compact));
+    max-inline-size: calc(20 * var(--sui-font-size-compact));
   }
 
   .slot {

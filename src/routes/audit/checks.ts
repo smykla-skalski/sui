@@ -225,6 +225,13 @@ function palette(): Finding[] {
   ])
     found.push(...atLeast('L-5', `${ink} on ${ground}`, c(ink, ground), 4.5));
 
+  // A tint lets its ground show through, so a pill or a chip on the darker canvas holds too.
+  for (const tone of ['info', 'success', 'warning', 'danger', 'role-ink']) {
+    const tint = tone === 'role-ink' ? 'role-tint' : `${tone}-tint`;
+    const ground = over(t(tint), t('canvas'));
+    found.push(...atLeast('L-5', `${tone} on ${tint} over canvas`, contrast(t(tone), ground), 4.5));
+  }
+
   // APCA reads a light ink on a dark ground as it is seen, where WCAG 2 overrates it, so each
   // pair also holds an APCA floor: Lc 75 for the body ink, Lc 60 for every other word.
   const lc = (a: string, b: string) => {
