@@ -98,7 +98,7 @@ in its corner. Beside a 34px field or in a toolbar it takes the control tier wit
 
 - Semantics: a native `<button type="button">` whose visible words are its name, with a polite `role="status"` beside it.
 - Content: `label`, `copiedLabel` and `failedLabel`, each a short phrase; the button is as wide as the longer of the first two, and as the failure's words while they show.
-- States: rest, hover (a veil and a firmer edge), focus (a flush 2px ring, or an inset one when `bare`), pressed (a deeper veil, an inset shadow and a 1px sink), copied (success ink on its tint, over any veil, with a success edge when framed), failed (danger ink on its tint, over any veil, with a danger edge when framed) and disabled (0.6 opacity).
+- States: rest, hover (a veil and a firmer edge), focus (a flush 2px ring, 2px off the edge while an outcome holds it, or an inset one when `bare`), pressed (a deeper veil, an inset shadow and a 1px sink), copied (success ink on its tint, over any veil, with a success edge when framed), failed (danger ink on its tint, over any veil, with a danger edge when framed) and disabled (0.6 opacity).
 - Keyboard: Tab reaches it and Enter or Space copies; focus stays on it through the answer.
 - Pointer and touch: 28px tall with 13px words, or 34px with 14px words with `toolbar`, and a 44px hit area on a phone or any touch screen.
 - Focus: copying never moves focus; `oncopyfailed` is where a caller sends focus to the text to select by hand.
@@ -264,8 +264,10 @@ in its corner. Beside a 34px field or in a toolbar it takes the control tier wit
     border-color: var(--sui-danger);
   }
 
-  /* The outcome takes the edge the ring would share, so the ring draws its whole width outside. */
+  /* The outcome takes the edge the ring would share, so the ring draws its whole width a gap
+     outside it, as a filled button's does, and the two inks never fuse into one band. */
   .sui-copy-button:not(.bare):is([data-copied], [data-failed]):focus-visible {
+    outline-offset: var(--sui-focus-ring-offset);
     outline-width: var(--sui-focus-ring-width);
   }
 

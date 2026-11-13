@@ -557,7 +557,7 @@ suite('lists', together, () => {
       }
     });
 
-    test('a framed copy control edges its Copied words in the success ink and keeps its focus ring', async () => {
+    test('a framed copy control edges its Copied words in the success ink and keeps its focus ring a gap off that edge', async () => {
       const page = await opened();
       await page.evaluate(() => {
         navigator.clipboard.writeText = () => Promise.resolve();
@@ -580,6 +580,7 @@ suite('lists', together, () => {
             edge: style.borderTopColor,
             ring: style.outlineStyle === 'none' ? null : style.outlineColor,
             width: style.outlineWidth,
+            offset: style.outlineOffset,
             success: ink('--sui-success'),
             focus: ink('--sui-focus')
           };
@@ -597,6 +598,11 @@ suite('lists', together, () => {
           focused.width,
           '2px',
           `in ${scheme} the Copied ring thins to ${focused.width}`
+        );
+        assert.equal(
+          focused.offset,
+          '2px',
+          `in ${scheme} the Copied ring touches the success edge (${focused.offset} off)`
         );
         await copy.hover();
         const hovered = await look();
