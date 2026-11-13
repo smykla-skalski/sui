@@ -202,14 +202,17 @@ under reduced motion. Use it only where the shape of what is coming is already k
     padding-block: var(--sui-skeleton-lead);
   }
 
-  /* The last row ends at its last bar, where a loaded list hands back the rest of its last row,
-     so what follows stands where it will after the load. The rows end there rather than hand
-     the rest back with a negative margin, which would leave their box past the holder's end
-     and give the page room to scroll into (L-119). It draws no hairline: a transparent line
-     would not do, because forced colors paint it. */
+  /* The last row ends where a loaded list's last row ends once the list hands back its padding
+     and hairline band, so what follows stands where it will after the load; its bars round
+     their cap finer than the row does, so the row, not the bars, sets that end. The rows end
+     there rather than hand the rest back with a negative margin, which would leave their box
+     past the holder's end and give the page room to scroll into (L-119). It draws no hairline:
+     a transparent line would not do, because forced colors paint it. */
   .row:last-child {
     border-block-end: 0;
-    min-block-size: 0;
+    min-block-size: calc(
+      var(--sui-skeleton-row) - var(--sui-row-pad-default) - var(--sui-row-hairline)
+    );
     padding-block-end: 0;
   }
 

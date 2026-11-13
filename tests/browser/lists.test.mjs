@@ -1351,7 +1351,12 @@ suite('lists', together, () => {
       const region = await example.locator('.sui-skeleton').elementHandle();
       assert.ok(region, 'the example has no skeleton');
       await region.scrollIntoViewIfNeeded();
-      const height = () => region.evaluate((element) => element.getBoundingClientRect().height);
+      // The section that holds the rows, since a loaded list hands back its last row's padding
+      // past its own box, where the placeholders end at their last line.
+      const height = () =>
+        region.evaluate(
+          (element) => element.closest('.sui-section')?.getBoundingClientRect().height
+        );
       const waiting = await height();
       await example.getByRole('button', { name: 'Show the Rows' }).click();
       await page.waitForFunction(
