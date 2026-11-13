@@ -475,6 +475,7 @@ suite('lists', together, () => {
           return {
             edge: style.borderTopColor,
             ring: style.outlineStyle === 'none' ? null : style.outlineColor,
+            width: style.outlineWidth,
             success: ink('--sui-success'),
             focus: ink('--sui-focus')
           };
@@ -488,6 +489,11 @@ suite('lists', together, () => {
         const focused = await look();
         assert.equal(focused.edge, focused.success, `in ${scheme} a Copied edge is not success`);
         assert.equal(focused.ring, focused.focus, `in ${scheme} Copied dropped its focus ring`);
+        assert.equal(
+          focused.width,
+          '2px',
+          `in ${scheme} the Copied ring thins to ${focused.width}`
+        );
         await copy.hover();
         const hovered = await look();
         assert.equal(hovered.edge, hovered.success, `in ${scheme} a hover took the Copied edge`);

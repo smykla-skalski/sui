@@ -257,6 +257,11 @@ in its corner. Beside a 34px field or in a toolbar it takes the control tier wit
     border-color: var(--sui-danger);
   }
 
+  /* The outcome takes the edge the ring would share, so the ring draws its whole width outside. */
+  .sui-copy-button:not(.bare):is([data-copied], [data-failed]):focus-visible {
+    outline-width: var(--sui-focus-ring-width);
+  }
+
   @media (hover: hover) {
     .sui-copy-button:not(.bare)[data-copied]:hover {
       border-color: var(--sui-success);

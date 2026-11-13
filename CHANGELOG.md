@@ -5,7 +5,7 @@
 - The sink's day feed keeps a form's 40rem measure on a wide page, so each time stays near its entry, where it stood about 950px off.
 - The sink's day feed parts its days by 32px, where 20px stood too close to the 12px under each heading for a heading to read as the head of its own run.
 - The sink's filtered rows stand a row's pitch over their toggle, as the recovered rows stand over theirs, where the filtered toggle sat 13px closer.
-- A framed `CopyButton` edges its Copied words in the success ink and its refusal in the danger ink, through a hover and inside the focus ring, so a keyboard copy shows its result and keeps its ring.
+- A framed `CopyButton` edges its Copied words in the success ink and its refusal in the danger ink, through a hover and inside a whole 2px focus ring, so a keyboard copy shows its result and keeps its ring.
 - A focused `RelativeTime` the pointer also rests on drops its hover veil, so its focus ring keeps 3:1 on a current row's plate, where the veil under it took the ring to 2.96:1.
 - A `DayHeading` reads in the primary ink, so it heads its entries instead of standing quieter than them; a `Timeline`'s days take it too.
 - An `EmptyState`'s and an `ErrorState`'s title read at 16px semibold, a step under the 17px list heading over them, as a `FormError` summary's message does, where both stood at 17px and competed with the heading.
