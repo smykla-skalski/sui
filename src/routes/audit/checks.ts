@@ -1428,8 +1428,12 @@ function geometry(root: Document): Finding[] {
     // the glyph's strokes inside it, opens the line at the inset.
     if (card.matches('.sui-callout.compact')) {
       const mark = card.querySelector('.sui-callout-icon')?.getBoundingClientRect();
-      const from = card.getBoundingClientRect().left + parseFloat(style.borderLeftWidth);
-      const opens = mark ? mark.left - from : start.gap;
+      const outer = card.getBoundingClientRect();
+      const opens = !mark
+        ? start.gap
+        : style.direction === 'rtl'
+          ? outer.right - parseFloat(style.borderRightWidth) - mark.right
+          : mark.left - outer.left - parseFloat(style.borderLeftWidth);
       if (Math.abs(top - bottom) > 0.5 || off(end.gap) || off(opens))
         found.push(
           finding(
