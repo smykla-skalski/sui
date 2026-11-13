@@ -419,6 +419,49 @@ suite('lists', together, () => {
       }
     });
 
+    test('a framed copy control edges its Copied words in the success ink and keeps its focus ring', async () => {
+      const page = await opened();
+      await page.evaluate(() => {
+        navigator.clipboard.writeText = () => Promise.resolve();
+      });
+      const copy = page.locator('#code-block .sui-copy-button:not(.bare)', {
+        hasText: 'Copy Version'
+      });
+      const look = () =>
+        copy.evaluate((button) => {
+          const ink = (/** @type {string} */ token) => {
+            const probe = document.createElement('i');
+            probe.style.color = `var(${token})`;
+            button.append(probe);
+            const color = getComputedStyle(probe).color;
+            probe.remove();
+            return color;
+          };
+          const style = getComputedStyle(button);
+          return {
+            edge: style.borderTopColor,
+            ring: style.outlineStyle === 'none' ? null : style.outlineColor,
+            success: ink('--sui-success'),
+            focus: ink('--sui-focus')
+          };
+        });
+      for (const scheme of /** @type {const} */ (['light', 'dark'])) {
+        await page.emulateMedia({ colorScheme: scheme });
+        await page.mouse.move(0, 0);
+        await copy.focus();
+        await page.keyboard.press('Enter');
+        await copy.and(page.locator('[data-copied]')).waitFor();
+        const focused = await look();
+        assert.equal(focused.edge, focused.success, `in ${scheme} a Copied edge is not success`);
+        assert.equal(focused.ring, focused.focus, `in ${scheme} Copied dropped its focus ring`);
+        await copy.hover();
+        const hovered = await look();
+        assert.equal(hovered.edge, hovered.success, `in ${scheme} a hover took the Copied edge`);
+        await copy.locator(':scope:not([data-copied])').waitFor();
+      }
+      await page.emulateMedia({ colorScheme: null });
+    });
+
     test('on a phone a code block heads its copy control inside its edge and gives its code the whole width', async () => {
       const page = await opened();
       const blocks = await page.evaluate(() =>

@@ -98,7 +98,7 @@ in its corner. Beside a 34px field or in a toolbar it takes the control tier wit
 
 - Semantics: a native `<button type="button">` whose visible words are its name, with a polite `role="status"` beside it.
 - Content: `label`, `copiedLabel` and `failedLabel`, each a short phrase; the button is as wide as the longest of the three.
-- States: rest, hover (a veil and a firmer edge), focus (a flush 2px ring, or an inset one when `bare`), pressed (a deeper veil, an inset shadow and a 1px sink), copied (success ink on its tint, over any veil), failed (danger ink on its tint, over any veil) and disabled (0.6 opacity).
+- States: rest, hover (a veil and a firmer edge), focus (a flush 2px ring, or an inset one when `bare`), pressed (a deeper veil, an inset shadow and a 1px sink), copied (success ink on its tint, over any veil, with a success edge when framed), failed (danger ink on its tint, over any veil, with a danger edge when framed) and disabled (0.6 opacity).
 - Keyboard: Tab reaches it and Enter or Space copies; focus stays on it through the answer.
 - Pointer and touch: 28px tall, or 34px with `toolbar`, and a 44px hit area on a phone or any touch screen.
 - Focus: copying never moves focus; `oncopyfailed` is where a caller sends focus to the text to select by hand.
@@ -245,6 +245,26 @@ in its corner. Beside a 34px field or in a toolbar it takes the control tier wit
 
   .sui-copy-button[data-failed] {
     --sui-local-copy-outcome: var(--sui-danger-tint);
+  }
+
+  /* A framed button edges its outcome in the outcome's ink, through a hover and inside the
+     focus ring, so a keyboard copy shows its result without trading the ring away. */
+  .sui-copy-button:not(.bare)[data-copied] {
+    border-color: var(--sui-success);
+  }
+
+  .sui-copy-button:not(.bare)[data-failed] {
+    border-color: var(--sui-danger);
+  }
+
+  @media (hover: hover) {
+    .sui-copy-button:not(.bare)[data-copied]:hover {
+      border-color: var(--sui-success);
+    }
+
+    .sui-copy-button:not(.bare)[data-failed]:hover {
+      border-color: var(--sui-danger);
+    }
   }
 
   .sui-copy-button[data-copied] .sui-copy-button-labels {
