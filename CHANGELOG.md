@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- The `PageToc` page sets its article at a 40rem reading measure, 32px off the index, with section titles at the card title size, where long lines ran 790px wide under 16px titles.
 - A `ListToolbar` heading or search label that stands before its control stands 12px from it, where it stood 8px, so the control's focus ring never crowds its words.
 - A `ListToolbar` sets the choices named beside its tools button in the primary ink, at the regular weight, so they read as the button's current values rather than as a caption.
 - The `Chip` page's Remove & refocus group holds three labels, so on a laptop it keeps one row rather than leaving its last chip alone on a second.

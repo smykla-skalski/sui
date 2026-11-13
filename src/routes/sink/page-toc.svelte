@@ -96,11 +96,13 @@
 </Example>
 
 <style>
+  /* The text keeps a reading measure, near 72 characters on whole pixels, and the index
+     stands 32px off it, as a documentation page sets its article beside its index. */
   .page {
     align-items: start;
     display: grid;
-    gap: var(--sui-space-6);
-    grid-template-columns: minmax(0, 1fr) var(--sui-toc-width);
+    gap: var(--sui-space-8);
+    grid-template-columns: minmax(0, 40rem) var(--sui-toc-width);
   }
 
   /* The index sticks inside this column, which runs the page's whole height on a wide
@@ -130,7 +132,7 @@
     align-content: center;
     block-size: var(--sui-block-snap);
     color: var(--sui-text-primary);
-    font: var(--sui-weight-semibold) var(--sui-font-size-title) / var(--sui-leading-title)
+    font: var(--sui-weight-semibold) var(--sui-font-size-card-title) / var(--sui-leading-card-title)
       var(--sui-sans);
     margin: 0;
     padding-block: var(--sui-block-snap-room);
@@ -146,6 +148,7 @@
 
   @media (max-width: 47.9375rem) {
     .page {
+      gap: var(--sui-space-6);
       grid-template-columns: minmax(0, 1fr);
     }
 
