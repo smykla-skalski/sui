@@ -97,17 +97,20 @@ it a bounded width anywhere else.
   }
 
   /* The box is trimmed to the baseline, so the ring's foot is set 4px further out, past a
-     label's descent, and its top stays where a tip's gap expects it. The margin gives that room
+     label's descent, and its top stays where a tip's gap expects it. Its start stands 2px
+     further out too, nearer the room the ellipsis leaves at its end. The margins give that room
      back, so the label never moves. */
   .sui-clipped-label:focus-visible {
     border-radius: var(--sui-radius-chip);
     margin-block-end: calc(-1 * var(--sui-space-1));
+    margin-inline-start: -2px;
     outline: var(--sui-focus-ring-width) solid var(--sui-focus);
     outline-offset: var(--sui-focus-ring-offset);
     /* The snap room's end half, which only a browser without calc-size() pads, plus the 4px. */
     padding-block-end: calc(
       var(--sui-block-snap-spare, 0px) - var(--sui-block-snap-half, 0px) + var(--sui-space-1)
     );
+    padding-inline-start: 2px;
   }
 
   /* A long press shows the tip on touch, so the system's own long-press menu and word selection
