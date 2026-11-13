@@ -43,6 +43,7 @@
     ['priority: high', 'd73a4a'],
     ['needs design', '5319e7']
   ]);
+  let files = $state(true);
 </script>
 
 <Example
@@ -144,7 +145,8 @@
           onremove={() => (painted = painted.filter(([other]) => other !== label))}
         />
       {/each}
-      <Chip small label="3 files" onremove={() => {}} />
+      {#if files}<Chip small label="3 files" onremove={() => (files = false)} />{/if}
+      {#if painted.length === 0 && !files}<span class="empty">No labels</span>{/if}
     </div>
   </Specimen>
   <Specimen label="Disabled">

@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- The `Chip` page's small removable chip leaves when its remove is pressed, as the chips beside it do, where its remove did nothing.
 - The `ListToolbar` page's Parts bars share one search label, so their fields start on one edge.
 - A painted `Chip` on the dark theme wears a 22% tint of its color, where it wore 18%, so a blue or violet label keeps its strength beside the dark ground, and its ink still lifts along its hue until it reads.
 - A pressed `ObjectRow` takes the pressed ground again, where a hovered row's ground had outranked it since the open row took its accent plate.
