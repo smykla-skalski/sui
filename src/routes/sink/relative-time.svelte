@@ -41,14 +41,9 @@
   const instant = '2026-03-14T09:26:53Z';
 </script>
 
-<!-- The times stand on one grid of even columns, each as wide as the longest reading, so a
-     phone's next row starts each time under the one above it. -->
 <Example
   title="Past"
   note="Hover a time, or press and hold it, to read the whole instant with seconds and its zone"
-  layout="grid"
-  --specimen-min="7rem"
-  --specimen-max="7rem"
 >
   {#each past as time (time.label)}
     <Specimen label={time.label}
@@ -57,13 +52,7 @@
   {/each}
 </Example>
 
-<Example
-  title="Future"
-  note="An instant still ahead reads as how soon"
-  layout="grid"
-  --specimen-min="7rem"
-  --specimen-max="7rem"
->
+<Example title="Future" note="An instant still ahead reads as how soon">
   {#each future as time (time.label)}
     <Specimen label={time.label}><RelativeTime value={time.value} /></Specimen>
   {/each}
