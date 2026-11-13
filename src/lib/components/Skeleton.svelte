@@ -110,7 +110,7 @@ under reduced motion. Use it only where the shape of what is coming is already k
 - Keyboard: none; placeholders take no focus.
 - Pointer and touch: none; placeholders take no presses.
 - Focus: it never takes focus, and the loaded rows arrive without moving it.
-- Responsive: the bars are fractions of the row's width, capped in rem, so they fit any column.
+- Responsive: the bars are fractions of the row's width, capped in rem, so they fit any column; on a phone a row's side bar drops under its name once the name would keep less than 15rem, as an `ObjectRow`'s side does, in a pill's 20px slot.
 - Accessibility: the placeholders are hidden from assistive technology, and the status says what is awaited, when the wait is slow and when it ends; under forced colors each bar keeps an outline.
 - Localization: `label`, `loadedLabel`, `slowLabel` and `slowDescription` carry the built-in words, and the slow words are announced joined by `marks.stop`, or by `marks.space` after a label that ends in its own ellipsis; the bars start at the inline start, the side bar sits at the inline end and the light crosses in the reading direction, all mirrored in a right-to-left page.
 - Performance: each bar shows its part of one light that only `transform` moves, so the compositor runs it, for at most `patience` milliseconds, and none under reduced motion.
@@ -306,6 +306,41 @@ under reduced motion. Use it only where the shape of what is coming is already k
     color: var(--sui-text-primary);
     font-size: var(--sui-font-size-body);
     font-weight: var(--sui-weight-semibold);
+  }
+
+  /* On a phone a row's side drops under its name once the name would keep less than 15rem, as
+     an `ObjectRow`'s does, so the rows follow it: the side bar stands for a pill, as wide as a
+     short one and in a pill's 20px slot, 12px under the name's lines once it drops. */
+  @media (max-width: 47.9375rem) {
+    .bars .row {
+      display: flex;
+      flex-wrap: wrap;
+      row-gap: var(--sui-space-3);
+    }
+
+    .bars .main {
+      align-content: start;
+      flex: 1 1 15rem;
+      min-block-size: var(--sui-skeleton-lines);
+    }
+
+    .bars .words {
+      flex: 1 1 100%;
+    }
+
+    .bars .bar.side {
+      --sui-local-side-cap: round(up, 1cap, 1px);
+      --sui-local-side-over: round(
+        down,
+        calc((var(--sui-tier-mark) - var(--sui-local-side-cap)) / 2),
+        1px
+      );
+      align-self: center;
+      flex: none;
+      inline-size: 3.5rem;
+      margin-block: var(--sui-local-side-over)
+        calc(var(--sui-tier-mark) - var(--sui-local-side-cap) - var(--sui-local-side-over));
+    }
   }
 
   @keyframes sui-skeleton-sheen {

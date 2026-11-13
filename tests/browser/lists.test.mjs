@@ -1365,7 +1365,7 @@ suite('lists', together, () => {
     test("a skeleton's rows stand as tall as the kit rows that take their place", async () => {
       const page = await opened();
       const example = page.locator('#skeleton .example').filter({
-        has: page.getByRole('button', { name: 'Show the Rows' })
+        has: page.getByRole('button', { name: 'Show Rows' })
       });
       // A handle, since the button that names the example changes its words once pressed.
       const region = await example.locator('.sui-skeleton').elementHandle();
@@ -1378,13 +1378,30 @@ suite('lists', together, () => {
           (element) => element.closest('.sui-section')?.getBoundingClientRect().height
         );
       const waiting = await height();
-      await example.getByRole('button', { name: 'Show the Rows' }).click();
+      await example.getByRole('button', { name: 'Show Rows' }).click();
       await page.waitForFunction(
         (element) => element.getAttribute('aria-busy') === 'false',
         region
       );
       const loaded = await height();
       assert.equal(loaded, waiting, 'the page moves when the rows arrive');
+      // On a narrow phone a loaded row's side could drop under its name, and the head's action
+      // could crowd its title, so the rows arrive there too.
+      const firstLoad = page.locator('#skeleton .example', { hasText: 'First Load' });
+      const wide = page.viewportSize();
+      await page.setViewportSize({ width: 320, height: 800 });
+      try {
+        await firstLoad.getByRole('button', { name: 'Load Again' }).click();
+        const phoneWaiting = await height();
+        await firstLoad.getByRole('button', { name: 'Show Rows' }).click();
+        await page.waitForFunction(
+          (element) => element.getAttribute('aria-busy') === 'false',
+          region
+        );
+        assert.equal(await height(), phoneWaiting, 'the page moves when the rows arrive at 320px');
+      } finally {
+        if (wide) await page.setViewportSize(wide);
+      }
     });
   });
 
