@@ -78,7 +78,7 @@
     <Section title="Repositories" level={4}>
       {#snippet actions()}
         <Button onclick={() => (loading ? (loading = false) : reload())}>
-          {loading ? 'Show the Rows' : 'Load Again'}
+          {loading ? 'Show Rows' : 'Load Again'}
         </Button>
       {/snippet}
       <Skeleton {loading} rows={3} label="Loading repositories…">
