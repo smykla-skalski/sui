@@ -69,8 +69,9 @@ to share its line with it puts it 12px under its last line, nearer
 than the description, since it is part of the heading. It sits in a polite status region that is there from the
 first render, so a change of state is said once, without moving focus, and a render that
 leaves it alone says nothing. `facts` are two to five headline facts, an inline `FactList`,
-one copy gap further below the description than its own lines stand apart, measured to the
-words, so the band's gutter also reaches their ink.
+24px of ink under the description, further than the description stands under the title, so
+they read as a group of their own and never as one more line of the description, and the
+band's gutter also reaches their ink.
 
 The header is a band of the surface ground over the page's canvas, and its foot is one
 hairline (`--sui-border-band`) the band's full width, so the view under it starts on a clean
@@ -288,9 +289,8 @@ and the header owes only the difference.
     gap: var(--sui-space-2);
   }
 
-  /* The facts stand one copy gap further below the description than its lines stand apart.
-     A `FactList` trims its lines to its words, so the gap and the band's gutter reach their
-     ink. */
+  /* A `FactList` trims its lines to its words, so the gap over the facts and the band's
+     gutter reach their ink. */
   .sui-page-header-facts {
     min-inline-size: 0;
   }
@@ -299,7 +299,7 @@ and the header owes only the difference.
     > .sui-page-header-copy
     > .sui-page-header-description
     + .sui-page-header-facts {
-    margin-block-start: calc(var(--sui-rhythm-head-copy) + var(--sui-row-copy-gap));
+    margin-block-start: var(--sui-space-6);
   }
 
   .sui-page-header-description {
