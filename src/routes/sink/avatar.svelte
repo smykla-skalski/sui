@@ -7,7 +7,7 @@
 </script>
 
 <script lang="ts">
-  import { Avatar, IdentityRow } from '#lib';
+  import { Avatar, IdentityRow, ObjectList, ObjectRow, Section } from '#lib';
   import Example from '../kit/Example.svelte';
   import Specimen from '../kit/Specimen.svelte';
   import Variants from '../kit/Variants.svelte';
@@ -94,6 +94,34 @@
   </Specimen>
   <Specimen label="Name alone">
     <IdentityRow name="Barbara Liskov" />
+  </Specimen>
+</Example>
+
+<Example
+  title="In a List"
+  note="Identity rows in an object list, where the open one stands on the current plate"
+  layout="stack"
+>
+  <Specimen label="One open">
+    <Section title="Members" level={4}>
+      <ObjectList>
+        <ObjectRow href="#avatar" current>
+          {#snippet main()}
+            <IdentityRow name="Grace Hopper" handle="@grace" src={portrait} />
+          {/snippet}
+        </ObjectRow>
+        <ObjectRow href="#avatar">
+          {#snippet main()}
+            <IdentityRow name="Ada Lovelace" handle="@ada" />
+          {/snippet}
+        </ObjectRow>
+        <ObjectRow href="#avatar">
+          {#snippet main()}
+            <IdentityRow name="Platform Team" handle="platform-team" shape="workspace" />
+          {/snippet}
+        </ObjectRow>
+      </ObjectList>
+    </Section>
   </Specimen>
 </Example>
 
