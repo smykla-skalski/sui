@@ -4,7 +4,7 @@
 
   export type CodeLang = 'json' | 'yaml' | 'toml' | 'markdown' | 'html' | 'shell' | 'text';
 
-  /* Each language's own name, which needs no translation; plain text has none. */
+  /* Each language's own name, which needs no translation; plain text's is a word, `plainTextName`. */
   const languageNames: Partial<Record<CodeLang, string>> = {
     json: 'JSON',
     yaml: 'YAML',
@@ -175,6 +175,7 @@
     bare = false,
     regionLabel = word('CodeBlock.regionLabel', 'Code'),
     copyLabel = word('CodeBlock.copyLabel', 'Copy Code'),
+    plainTextName = word('CodeBlock.plainTextName', 'Text'),
     class: className = '',
     ...rest
   }: {
@@ -191,6 +192,8 @@
     regionLabel?: string;
     /** The copy control's name, saying what it copies. */
     copyLabel?: string;
+    /** What a phone's copy row calls plain text, where a language would stand. */
+    plainTextName?: string;
     /** Layout for the call site only, never the block's own paint. */
     class?: HTMLAttributes<HTMLElement>['class'];
   } & HTMLAttributes<HTMLElement> = $props();
@@ -223,7 +226,7 @@ from the corner and centred on the first line, or in the file name's row when th
 - Focus: it never moves focus; the copy control keeps focus through its copied state.
 - Responsive: the block fills its column and its lines scroll inside it at every width, with a fade on each edge that has more past it, the start fade past the line numbers; the copy column keeps its place at the end, and on a phone the control heads the block in a row of its own, after the language's name, so the code takes the whole width.
 - Accessibility: tokens hold 4.5:1 on the code ground, the gutter is hidden from assistive technology, and the scroller is named only when it is a tab stop.
-- Localization: `regionLabel` and `copyLabel` carry the built-in words; the code always reads left to right (`dir="ltr"`) in a right-to-left page, while the file name follows the page.
+- Localization: `regionLabel`, `copyLabel` and `plainTextName` carry the built-in words; the code always reads left to right (`dir="ltr"`) in a right-to-left page, while the file name follows the page.
 - Performance: tokenizing is one pass over each line and runs again only when `code` or `lang` changes; one observer per block watches for overflow.
 - Analytics: none of its own; the copy control reports its copy.
 - Failure: an empty `code` draws one empty line; a language it does not know is drawn as plain text.
@@ -261,7 +264,9 @@ from the corner and centred on the first line, or in the file name's row when th
           ></span
         >{/each}</code
     ></pre>
-  {#if copy && label === undefined}{@render copier(languageNames[lang])}{/if}
+  {#if copy && label === undefined}{@render copier(
+      lang === 'text' ? plainTextName : languageNames[lang]
+    )}{/if}
 </figure>
 
 <style>

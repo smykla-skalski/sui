@@ -376,8 +376,8 @@ suite('lists', together, () => {
       }
       assert.deepEqual(
         copied.map((block) => block.lang).filter(Boolean),
-        ['YAML', 'TOML', 'Markdown', 'Shell', 'Shell'],
-        'each copy row names its language, and plain text names none'
+        ['YAML', 'TOML', 'Markdown', 'Shell', 'Text', 'Shell'],
+        'each copy row names its language, plain text too'
       );
     });
 

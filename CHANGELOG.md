@@ -19,6 +19,7 @@
 - An `EmptyState` and an `ErrorState` pad 20px at the sides of their words, where 24px left a narrow column's description a line longer.
 - The sink's filtered list is a titled section of rows with its filter under them, as the failed lists beside it are.
 - An `EmptyState` or `ErrorState` stretched beside a taller panel keeps its action one gap under its words, where it stood at the panel's foot.
+- On a phone a plain text `CodeBlock` heads its copy row with "Text" (`plainTextName`), where the row started empty.
 - A dark `ErrorState`, `FormError` and refused `Modal` save lay the deep danger red over the canvas through the new `--sui-danger-wash`, so the wash reads red and stands under its button's fill, where the pastel ink mixed to a grey plum lighter than the button.
 - An `EmptyState` or `ErrorState` step in words stands where a control would, 20px under the words in the body size, where it stood the title gap under them in the meta size.
 - The Relative Time page sets its past and future times on 8rem columns, so wrapped rows on a phone share their column lines.
