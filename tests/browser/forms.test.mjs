@@ -433,6 +433,30 @@ suite('forms', together, () => {
       }
     );
 
+    test('a painted chip keeps an edge only where its ground would swallow it', async () => {
+      const page = await opened();
+      // The theme follows the reader's scheme, and the chip eases its edge in, so each scheme's
+      // edges are read once that change has run.
+      const edges = async (/** @type {'light' | 'dark'} */ scheme) => {
+        await page.emulateMedia({ colorScheme: scheme });
+        await page.waitForTimeout(400);
+        return page.evaluate(() =>
+          Object.fromEntries(
+            [...document.querySelectorAll('#chip .sui-chip.painted')].map((chip) => [
+              chip.textContent?.trim(),
+              !getComputedStyle(chip).boxShadow.startsWith('rgba(0, 0, 0, 0)')
+            ])
+          )
+        );
+      };
+      const dark = await edges('dark');
+      assert.equal(dark.blocked, true, 'a black chip has no edge on a dark ground');
+      assert.equal(dark.frontend, false, 'a blue chip draws an edge it does not need');
+      const light = await edges('light');
+      assert.equal(light.release, true, 'a white chip has no edge on a white card');
+      assert.equal(light.blocked, false, 'a black chip draws an edge in the light theme');
+    });
+
     test('a segmented control rings its track and draws a disabled choice without the accent', async () => {
       const page = await opened();
       await page.keyboard.press('Shift');
