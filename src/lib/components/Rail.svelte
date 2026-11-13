@@ -471,18 +471,6 @@ lightness, with its glyph in the accent ink, on a plate of the accent tint, its 
       min-inline-size: var(--sui-touch-target);
     }
 
-    /* In a tile no wider than its words the count stands beside the glyph, inside the tile,
-       rather than on its corner, where it would reach into the next tile. */
-    .sui-rail[data-bar] .sui-rail-glyph {
-      align-items: center;
-      gap: var(--sui-space-1);
-    }
-
-    .sui-rail[data-bar] .sui-rail-badge {
-      box-shadow: none;
-      position: static;
-    }
-
     /* Tiles in a row meet, so a narrow phone gives each label the whole tile. */
     .sui-rail[data-bar] .sui-rail-tile {
       padding-inline: 0;

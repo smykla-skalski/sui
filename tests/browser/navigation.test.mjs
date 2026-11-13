@@ -140,12 +140,23 @@ suite('navigation', together, () => {
         await resize(page, 1440);
         const fold = page.locator('.sui-side-nav-fold');
         const mode = () => page.locator('.sui-side-nav').getAttribute('data-mode');
-        assert.equal((await fold.textContent())?.trim(), 'Collapse Navigation');
+        const name = () =>
+          fold.evaluate((button) =>
+            button.querySelector('.sui-side-nav-label')?.textContent?.trim()
+          );
+        assert.equal(await name(), 'Collapse Navigation');
         await fold.click();
-        assert.equal((await fold.textContent())?.trim(), 'Expand Navigation');
+        assert.equal(await name(), 'Expand Navigation');
+        assert.equal(
+          await fold
+            .locator('.sui-side-nav-short')
+            .evaluate((word) => word.checkVisibility() && word.textContent),
+          'Expand',
+          'the folded fold control shows no word under its glyph'
+        );
         assert.equal(await mode(), 'collapsed');
         await fold.click();
-        assert.equal((await fold.textContent())?.trim(), 'Collapse Navigation');
+        assert.equal(await name(), 'Collapse Navigation');
         assert.equal(await mode(), 'full');
         assert.ok(
           await fold.evaluate((button) => document.activeElement === button),

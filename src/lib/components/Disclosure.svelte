@@ -46,9 +46,9 @@ reveals read as one unit. Disclosures that share a `name` open one at a time. Wh
 Open, its last ink stands as far above its foot as the summary's words stand under its top,
 and a disclosure that closes a card leaves that room to the card's inset.
 
-The hint stands at the row's end while the words and the hint fit on one line, and drops
-under the words when they do not, so it never squeezes them onto more lines, as Apple's value
-cells stack their secondary text.
+The hint follows the words 12px after them while the two fit on one line, so it reads as
+their note however wide the row, and drops under the words when they do not, so it never
+squeezes them onto more lines, as Apple's value cells stack their secondary text.
 
 - Semantics: a native `<details>` whose `<summary>` is the button, named by `summary` and `hint`, with its expanded state from the browser.
 - Content: one line of summary words that wrap, an optional quiet hint, and any content inside, which starts at the summary's words.
@@ -102,7 +102,8 @@ cells stack their secondary text.
   }
 
   /* The padding centres one line in the control height. The words and the hint share that
-     line only when both fit, and the hint otherwise wraps to a line of its own under the
+     line, the hint 12px after the words and never at a wide row's far end, only when both fit,
+     and the hint otherwise wraps to a line of its own under the
      words, a copy gap below them as a description stands under its title (L-24), so the
      words never wrap to make room for it. The row bleeds by its padding, so the chevron
      stands at the start edge of the text above and the veil reaches past it. */
@@ -111,7 +112,7 @@ cells stack their secondary text.
     border-radius: var(--sui-radius-control);
     box-sizing: border-box;
     color: var(--sui-text-primary);
-    column-gap: var(--sui-space-4);
+    column-gap: var(--sui-space-3);
     cursor: pointer;
     display: flex;
     flex-wrap: wrap;
@@ -119,7 +120,6 @@ cells stack their secondary text.
        never reads quieter than the fields it opens. */
     font: var(--sui-weight-semibold) var(--sui-font-size-meta) / var(--sui-leading-meta)
       var(--sui-sans);
-    justify-content: space-between;
     list-style: none;
     margin-inline: calc(var(--sui-local-disclosure-bleed) * -1);
     min-block-size: var(--sui-control-height-compact);

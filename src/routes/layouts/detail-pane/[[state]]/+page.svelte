@@ -68,7 +68,7 @@
   ];
 
   const timeline: TimelineEvent[] = [
-    { at: started, actor: { name: 'Bart Smykla' }, text: 'requested the check from the sync page' },
+    { at: started, actor: { name: 'Bart Smykla' }, text: 'requested the check' },
     { at: started + 2_000, text: 'A worker picked it up, attempt 1 of 3' },
     { at: started + 48_000, text: 'Finished, 16 repositories compared' }
   ];
@@ -296,6 +296,7 @@
                 <Skeleton
                   rows={PAGE + 1}
                   bars={false}
+                  side
                   rowHeight={NAME_ROW}
                   patience={Infinity}
                   label="Loading sync check #4182…"
@@ -410,6 +411,12 @@
     --sui-local-row-lead: calc(-1 * var(--sui-row-pad-default));
   }
 
+  /* The time's 24px target gives back its room under the facts' 11px cap by a half pixel too
+     few, so the loaded facts end a pixel under their words, and the bars do too. */
+  .from-ink.wide {
+    padding-block-end: 1px;
+  }
+
   .notice {
     --notice-row: 3.75rem;
 
@@ -422,18 +429,6 @@
 
   .notice > .wide {
     margin-block: calc(-1 * var(--sui-space-4));
-  }
-
-  /* The time among the facts is a 24px target, so the line that holds it reaches half the
-     target past the facts' cap under the words, and the bars keep that room. */
-  .from-ink.wide {
-    font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-leading-none)
-      var(--sui-sans);
-    padding-block-end: round(
-      up,
-      calc((var(--sui-field-target-min) - round(up, 1cap, 1px)) / 2),
-      1px
-    );
   }
 
   /* The counts' line keeps a few pixels of room under its words, more where the sentence wraps
@@ -449,9 +444,9 @@
   }
 
   /* The facts' line holds the time's 44px target, so it stands 24px of ink under the
-     description, and the target's room under the words stays under it. */
+     description; the facts end at their words, so the target's room under them is not kept. */
   .fact-lines {
-    margin-block: calc(var(--sui-space-6) + 1px) calc(var(--sui-space-4) + 1px);
+    margin-block: calc(var(--sui-space-6) + 1px) 1px;
   }
 
   /* The Load More line is 46px, 14px more than the last placeholder row leaves. */

@@ -165,11 +165,13 @@ apart, and the action under the value.
     min-block-size: var(--sui-local-fact-target);
   }
 
-  /* On the list's last line a target's room under its words reaches past the list, as on the
-     first, so the list still ends at its words. */
+  /* The last fact that holds a target gives back its room under its words, so on the list's
+     last line that room reaches past the list, as on the first, and the list still ends at its
+     words whichever fact holds the target; no target follows on a later line for that room to
+     meet. */
   .inline
-    > .sui-fact-list-fact:last-child:has(
-      :global(:is(a[href], button, [tabindex]:not([tabindex^='-'])))
+    > .sui-fact-list-fact:has(:global(:is(a[href], button, [tabindex]:not([tabindex^='-'])))):not(
+      :has(~ .sui-fact-list-fact :global(:is(a[href], button, [tabindex]:not([tabindex^='-']))))
     ) {
     margin-block-end: calc((round(up, 1cap, 1px) - var(--sui-local-fact-target)) / 2);
   }

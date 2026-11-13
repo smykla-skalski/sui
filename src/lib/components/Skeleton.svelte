@@ -10,6 +10,7 @@
     rows = 6,
     rowHeight,
     bars = true,
+    side = bars,
     ruled = true,
     label = word('Skeleton.label', 'Loading…'),
     loadedLabel = word('Skeleton.loadedLabel', 'Loaded'),
@@ -27,6 +28,8 @@
     rowHeight?: string;
     /** Bars where a two-line row's name, its line under it and its side will be. Off draws one bar per row, for a list of one-line rows. */
     bars?: boolean;
+    /** A bar at the row's end where its side, such as a status pill, will be. On with `bars`, and a one-line row turns it on for its own side. */
+    side?: boolean;
     /** A hairline under each row but the last, as list and property rows draw. Off draws none, for words that stand without rules, such as a header's facts. */
     ruled?: boolean;
     /** What is being waited for, announced rather than drawn. */
@@ -105,7 +108,7 @@ placeholder in the reading direction, as one light over all of its bars, and hol
 under reduced motion. Use it only where the shape of what is coming is already known.
 
 - Semantics: a `div` that is `aria-busy` while loading, beside a polite `status` that speaks for it.
-- Content: `rows` placeholder rows of the loaded row's height, each over a hairline unless `ruled` is off, with bars for a two-line row's name, its line under it and its side, or one bar for a one-line row, and the loaded `children` in their place.
+- Content: `rows` placeholder rows of the loaded row's height, each over a hairline unless `ruled` is off, with bars for a two-line row's name, its line under it and its side, or one bar for a one-line row and its side when `side` is on, and the loaded `children` in their place.
 - States: waiting (the light crosses the bars), slow (the light stops and the first row says `slowLabel` where a name stands and `slowDescription` where the line under it stands, or the title alone in a one-line row), and loaded (the children, with `loadedLabel` announced).
 - Keyboard: none; placeholders take no focus.
 - Pointer and touch: none; placeholders take no presses.
@@ -137,7 +140,7 @@ under reduced motion. Use it only where the shape of what is coming is already k
             <span class="main"
               ><span class="bar"></span>{#if bars}<span class="bar"></span>{/if}</span
             >
-            {#if bars}<span class="bar side"></span>{/if}
+            {#if side}<span class="bar side"></span>{/if}
           {/if}
         </span>
       {/each}

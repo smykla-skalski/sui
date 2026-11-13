@@ -42,6 +42,7 @@
     closeLabel = word('SideNav.closeLabel', 'Close navigation'),
     collapseLabel = word('SideNav.collapseLabel', 'Collapse Navigation'),
     expandLabel = word('SideNav.expandLabel', 'Expand Navigation'),
+    expandShort = word('SideNav.expandShort', 'Expand'),
     countLabel = word(
       'SideNav.countLabel',
       (count: number) => `${formatCount(count)} ${count === 1 ? 'item' : 'items'}`
@@ -76,6 +77,8 @@
     collapseLabel?: string;
     /** The fold control's word while the sidebar is a strip. */
     expandLabel?: string;
+    /** The one word under the fold control's glyph in the strip, one of `expandLabel`'s. */
+    expandShort?: string;
     /** The words a row's count is read as, after its label. */
     countLabel?: (count: number) => string;
     /** A counted row's accessible name from its label and `countLabel`, in the language's order. */
@@ -250,7 +253,7 @@ changes. Until it is measured the row paints its own plate.
 
 Inside an `AppShell` wide enough to fold, a Collapse Navigation control at the end of the list folds it
 into a strip where each row is an icon over a one-line label in 68px of room, the label's `short` where the label is wider, and Expand Navigation, its glyph
-alone there with its words in a tooltip, brings it back. A tooltip with the full name shows only
+over its short word `expandShort` there with its whole words in a tooltip, brings it back. A tooltip with the full name shows only
 where `short` replaces a label, a count rides past its glyph's top-end corner, and a short
 hairline marks where each group starts. The `foot` is told when the
 sidebar is the strip, so it can draw a glyph's width, as `ThemeSwitch` does with `iconOnly`. In the phone drawer a close button takes the head's end on the first line of its names, rows are 44px, and
@@ -264,7 +267,7 @@ following a row closes the drawer.
 - Focus: folding keeps focus on the control; a fold control that leaves as the shell narrows hands focus to the current row, and a row followed in the drawer closes it with focus returned to the menu button.
 - Responsive: the row list scrolls inside the column, its foot's hairline casting a soft shadow over the rows while more are below, and brings a new current row into view without scrolling the page, a long label wraps, the strip stacks each glyph over its short label, and the fold control shows only where the shell can fold.
 - Accessibility: a count is read with its words from `countLabel`, joined to the label by `countedName`, every ink holds 4.5:1 on its ground, the current ink stands 2:1 from the rest ink in lightness and the plate marks it too, so it is never hue alone (WCAG 1.4.1), and a heading names each group for heading navigation.
-- Localization: `label`, `closeLabel`, `collapseLabel`, `expandLabel` and `countLabel` are props with English defaults; counts follow the page language, the plate is measured from the start edge and the fold glyphs mirror in a right-to-left page.
+- Localization: `label`, `closeLabel`, `collapseLabel`, `expandLabel`, `expandShort` and `countLabel` are props with English defaults; counts follow the page language, the plate is measured from the start edge and the fold glyphs mirror in a right-to-left page.
 - Performance: one resize observer measures the plate, which glides with a transform; it suits a sidebar of tens of rows, not thousands.
 - Analytics: `onnavigate(event, item)` reports every followed row; the shell's `oncollapsedchange` reports the fold.
 - Failure: a `current` that matches no row draws no plate, an empty section draws only its heading, and an empty `sections` leaves the title and its controls.
@@ -375,12 +378,13 @@ following a row closes the drawer.
             data-label={shell.collapsed ? expandLabel : collapseLabel}
             ><span>{shell.collapsed ? expandLabel : collapseLabel}</span></span
           >
+          <span class="sui-side-nav-short" aria-hidden="true">{expandShort}</span>
         </button>
         {#if mode === 'collapsed'}
           <Tooltip anchor={fold} text={expandLabel} side="inline-end" />
         {/if}
       {/if}
-      {#if foot}{@render foot(mode === 'collapsed')}{/if}
+      {#if foot}<div class="sui-side-nav-held">{@render foot(mode === 'collapsed')}</div>{/if}
     </div>
   {/if}
 </nav>
@@ -760,6 +764,12 @@ following a row closes the drawer.
     position: relative;
   }
 
+  .sui-side-nav-held {
+    display: grid;
+    gap: var(--sui-space-4);
+    min-inline-size: 0;
+  }
+
   /* While more rows are below, the foot's hairline casts a soft shadow up over the rows, as a
      sticky bar does over a page, so a row cut there reads as more to scroll and never fades
      (L-107). It clears a pixel short of the end, and a list that fits, or a browser without
@@ -871,10 +881,15 @@ following a row closes the drawer.
       text-box: trim-both cap alphabetic;
     }
 
-    /* The fold is a control, not a place, so in the strip it is its glyph alone, named by its
-       words and a tooltip, the way a toolbar's icon button is. */
+    /* In the strip the fold is a tile like the rows over it: its glyph over one short word,
+       with its whole words in a tooltip, as a row with a short label has. */
     .sui-side-nav[data-collapsed] .sui-side-nav-fold {
       min-block-size: var(--sui-touch-target);
+    }
+
+    /* What the foot holds stands on the strip's centre line, as every glyph over it does. */
+    .sui-side-nav[data-collapsed] .sui-side-nav-held {
+      justify-items: center;
     }
 
     /* A count rides past the glyph's top-end corner in the count's own neutral ground, so a

@@ -118,7 +118,7 @@ and the unsaved ink, so no neutral block sits on a state (L-92).
 - Keyboard: none of its own; its actions and links take Tab in reading order.
 - Pointer and touch: its actions are drawn at the 28px quiet tier and keep a 44px hit area on a phone or a coarse pointer; stacked, they stand 16px apart there so two hit areas never meet.
 - Focus: it never takes focus; a caller that raises it after a failed act leaves focus on the control the reader used.
-- Responsive: actions sit at the inline end beside the message, centred on the band its symbol's tile opens, by the title however long the message, so the message never moves for them, and move to a line under the copy, from the callout's start edge under its symbol, only when the callout cannot hold them beside a 14rem measure of copy.
+- Responsive: actions sit at the inline end beside the message, centred on the band its symbol's tile opens, by the title however long the message, so the message never moves for them, and move to a line under the copy, from the words' start edge past its symbol, only when the callout cannot hold them beside a 14rem measure of copy.
 - Accessibility: `warningLabel` and `decisionLabel` say in words what the tint and the gold say in colour, and `live` announces a callout that appears after an edit.
 - Localization: `warningLabel` and `decisionLabel` carry the built-in words, the tile sits at the inline start and the actions at the inline end, mirrored in a right-to-left page.
 - Performance: a static block laid out by flex wrapping alone; `live` sets one short timer when it appears and fades it in from 4px above on opacity and translate, not at all under reduced motion.
@@ -178,8 +178,9 @@ and the unsaved ink, so no neutral block sits on a state (L-92).
   /* The message and the actions share one line while the callout holds both, and the actions
      wrap under the copy only when they do not fit beside a 14rem measure of it (about 34
      characters, a phone message's title on one line). Wrapping decides that from the actions' own width, which a container query
-     cannot know. A wrapped line of actions starts at the callout's start edge, under the tile,
-     so a pair keeps one line in a narrow callout (L-90). On a shared line the actions centre on
+     cannot know. A wrapped line of actions starts where the words start, past the tile, so
+     the actions read as the message's and not the tile's (L-90): the inner box gives up the
+     tile's room at its start and the message takes it back. On a shared line the actions centre on
      the tile's band, the message's first line, so a long message keeps them by its title, as
      an alert's action stands on its title row. */
   .sui-callout-inner {
@@ -195,6 +196,11 @@ and the unsaved ink, so no neutral block sits on a state (L-92).
 
   .sui-callout-inner:has(> .sui-callout-message > .sui-callout-icon) {
     --sui-callout-indent: calc(var(--sui-symbol-tile) + var(--sui-space-3));
+    padding-inline-start: var(--sui-callout-indent);
+  }
+
+  .sui-callout-inner:has(> .sui-callout-message > .sui-callout-icon) > .sui-callout-message {
+    margin-inline-start: calc(-1 * var(--sui-callout-indent));
   }
 
   .sui-callout[data-tone='warning'] {

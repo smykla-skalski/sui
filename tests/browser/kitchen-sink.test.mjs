@@ -681,7 +681,7 @@ suite('the kitchen sink', together, () => {
     assert.deepEqual(await read(true), written, 'script redrew a fixed date or hour');
   });
 
-  test("L-57 a disclosure's hint shares the words' line only when both fit", async () => {
+  test("L-57 a disclosure's hint follows the words on their line only when both fit", async () => {
     const page = await open(375, 'light', {}, 'disclosure');
     try {
       const placed = await page.evaluate(() =>
@@ -698,7 +698,7 @@ suite('the kitchen sink', together, () => {
           const b = hint.getBoundingClientRect();
           return {
             lines: tops.size,
-            beside: Math.abs(b.top - a.top) < 0.5,
+            beside: Math.abs(b.top - a.top) < 0.5 && Math.round(b.left - a.right) === 12,
             under: b.top >= a.bottom && Math.abs(b.left - a.left) < 0.5
           };
         })
@@ -707,6 +707,26 @@ suite('the kitchen sink', together, () => {
         { lines: 1, beside: true, under: false },
         { lines: 1, beside: false, under: true }
       ]);
+    } finally {
+      await page.close();
+    }
+  });
+
+  test("L-56 a callout's actions on a line of their own start where its words start", async () => {
+    const page = await open(375, 'light', {}, 'callout');
+    try {
+      const offsets = await page.evaluate(() =>
+        [...document.querySelectorAll('#callout .sui-callout')].flatMap((callout) => {
+          const copy = callout.querySelector('.sui-callout-copy');
+          const actions = callout.querySelector('.sui-callout-actions');
+          if (!copy || !actions || !callout.querySelector('.sui-callout-icon')) return [];
+          const words = copy.getBoundingClientRect();
+          const row = actions.getBoundingClientRect();
+          return row.top >= words.bottom ? [Math.round(row.left - words.left)] : [];
+        })
+      );
+      assert.ok(offsets.length > 0, 'no callout wraps its actions at 375px');
+      assert.deepEqual(new Set(offsets), new Set([0]));
     } finally {
       await page.close();
     }
