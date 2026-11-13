@@ -8,6 +8,7 @@
 - A `ListToolbar` heading, over the search and before each filter, is set as a field's label, 14px at 600 in the primary ink, since it names the control beside it.
 - A `ListToolbar` draws its count under the bar, over the rows it counts, when there is one to count, and its tools button ends in a chevron, as a menu's button does.
 - A `ListToolbar`'s controls stand on the foot of their line, so beside a search whose label stands over its field they line up with the field, and the choices named beside the tools button are set at the regular weight, as values rather than labels.
+- A `ListToolbar` folds its filter into the tools menu in a bar under 24rem, not 18rem, so on any phone the bar keeps the search and one line of controls rather than a finger's line for each, and the choices named beside the tools button stand 4px from it while the filter stands 12px from the tools.
 - A `ListToolbar`'s searching status wraps with the field, so on a line of its own it stands 8px under the field on its own 22px line, not on a control's line.
 - A long `mono` `Chip` value wraps after a `/`, `:`, `=` or `-` before it breaks a word, so a path or key keeps its words whole, and the remove control's corner is the chip's less the inset around it, 4px in a 24px chip, so the two stay concentric.
 - A `Popover` that focuses a control inside as it opens, as the `ListToolbar` menu and the `ColorPicker` panel do, no longer scrolls the page to its top: the box stands under its trigger before the browser moves focus into it.

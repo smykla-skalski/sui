@@ -146,7 +146,7 @@ each group reports its choice through `onchange`, and the query is `bind:query`.
 The primary filter and the tools button are one unit and wrap together, so the button is never
 left on a line by itself. Short of room, the search takes its own line and the filter sits under
 it with the tools button, and turns into a select when its options do not fit. In a bar
-narrower than 18rem the filter folds into the tools menu and its choice is named beside the
+narrower than 24rem, as on any phone, the filter folds into the tools menu and its choice is named beside the
 button. Without `tools` there is no button and the filter never folds.
 
 - Semantics: a `SearchField` named by its drawn label, a `SegmentedControl` per group named by its visible heading, a tools `button` with `aria-haspopup="dialog"`, and a dialog `Popover` holding the further groups.
@@ -155,7 +155,7 @@ button. Without `tools` there is no button and the filter never folds.
 - Keyboard: Tab walks search, filter, tools button and action; in the menu Tab moves through the groups and closes the menu on leaving it, and Escape closes it and returns focus to the tools button.
 - Pointer and touch: every control keeps its own 34px tier, 44px on a phone; an outside press closes the menu.
 - Focus: opening the menu moves focus to its first chosen option; closing it with Escape returns focus to the tools button.
-- Responsive: a container query folds the filter into the menu under 18rem; the search, the filter unit and the action wrap as whole pieces, and the search's label stands above its field once the field would have under 14rem beside it.
+- Responsive: a container query folds the filter into the menu under 24rem, so a phone's bar keeps the search and one line of controls; the search, the filter unit and the action wrap as whole pieces, and the search's label stands above its field once the field would have under 14rem beside it.
 - Accessibility: each group's heading is drawn and names it; `count` and `pending` are said through a polite status a moment after the reader pauses, and the drawn count is hidden from a screen reader, since the status says it; the tools button is described by the choices it holds.
 - Localization: `toolsLabel`, `pendingLabel` and `countLabel`, a function of the count with the count in the reader's format, are props with English defaults; the tools' choices are joined as a list in the page's language, the folded filter is set off by a dot rather than a written mark, and the bar follows the reading direction.
 - Performance: one container query and one short timer per bar; the menu mounts only with `tools`.
@@ -313,22 +313,24 @@ button. Without `tools` there is no button and the filter never folds.
 
   /* Short of room the tools and their choices take the line under the filter, together, and the
      button keeps its words on one line. */
+  /* The filter and the tools stand a group's step apart, as the bar's parts do. */
   .sui-list-toolbar-filters {
     align-items: center;
     display: flex;
     flex-wrap: wrap;
-    gap: var(--sui-space-2);
+    gap: var(--sui-space-2) var(--sui-space-3);
     max-inline-size: 100%;
     min-inline-size: 0;
   }
 
-  /* The chosen options beside the button wrap under it when the line runs out, as at a large
-     text size (WCAG 1.4.10), so the bar never scrolls the page sideways. */
+  /* The chosen options stand close beside the button they belong to, closer than the filter
+     beside them, and wrap under it when the line runs out, as at a large text size
+     (WCAG 1.4.10), so the bar never scrolls the page sideways. */
   .sui-list-toolbar-tools {
     align-items: center;
     display: flex;
     flex-wrap: wrap;
-    gap: var(--sui-space-2);
+    gap: var(--sui-space-2) var(--sui-space-1);
     min-inline-size: 0;
   }
 
@@ -427,9 +429,10 @@ button. Without `tools` there is no button and the filter never folds.
     gap: var(--sui-space-2);
   }
 
-  /* Too narrow to share a line: the search takes the whole first line, and the folded filter,
-     its tools and the action follow on the next. */
-  @container (max-width: 18rem) {
+  /* As narrow as a phone's bar (--sui-breakpoint-toolbar): the search takes the whole first
+     line, and the folded filter, its tools and the action follow on the next, rather than each
+     taking a finger's line. */
+  @container (max-width: 24rem) {
     .foldable .sui-list-toolbar-search {
       flex-basis: 100%;
     }

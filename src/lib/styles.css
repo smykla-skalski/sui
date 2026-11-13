@@ -558,12 +558,13 @@
   --sui-breakpoint-wide: 64.0625rem;
 
   /* The widths under which a component changes its layout in its own container: a card steps
-     its inset down, a setting row stacks its control and a list toolbar gives its search a line
-     of its own. A container query cannot read them either, so the source laws hold each query
-     to this list. */
+     its inset down, a setting row stacks its control, a fact row stacks its pair and a list
+     toolbar folds its filter. A container query cannot read them either, so the source laws
+     hold each query to this list. */
   --sui-breakpoint-card: 36rem;
   --sui-breakpoint-row: 25rem;
   --sui-breakpoint-bar: 18rem;
+  --sui-breakpoint-toolbar: 24rem;
   /* Under this width a head stands its actions or state under its title: in rem it scales with
      the text, so only text grown well past its size brings it on a phone (WCAG 1.4.10). */
   --sui-breakpoint-head: 12rem;

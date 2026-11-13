@@ -117,7 +117,7 @@
 
 <Example
   title="Narrow Width"
-  note="Under 18 rem the filter folds into the tools menu, and the bar names the choice beside the button"
+  note="Under 24 rem the filter folds into the tools menu, and the bar names the choice beside the button"
   layout="stack"
 >
   <Specimen label="In 17 rem">
