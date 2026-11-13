@@ -330,6 +330,28 @@ suite('lists', together, () => {
       );
     });
 
+    test('a day feed parts its days at least twice as far as a heading stands over its entries', async () => {
+      const page = await opened();
+      const rooms = await page.evaluate(() =>
+        [...document.querySelectorAll('#day-heading .day')].slice(1).map((day) => {
+          const before = /** @type {Element} */ (day.previousElementSibling);
+          const rows = before.querySelectorAll('li');
+          const heading = /** @type {Element} */ (day.firstElementChild).getBoundingClientRect();
+          const first = /** @type {Element} */ (day.querySelector('li')).getBoundingClientRect();
+          return {
+            between: heading.top - rows[rows.length - 1].getBoundingClientRect().bottom,
+            within: first.top - heading.bottom
+          };
+        })
+      );
+      assert.ok(rooms.length >= 4, `only ${rooms.length + 1} days`);
+      for (const { between, within } of rooms)
+        assert.ok(
+          between >= 2 * within,
+          `a day stands ${between}px under the last, its heading ${within}px over its entries`
+        );
+    });
+
     test('every empty and error state on the states page stands under its list heading', async () => {
       const page = await opened();
       const bare = await page.evaluate(() =>

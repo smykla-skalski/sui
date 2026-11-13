@@ -84,9 +84,11 @@
 </Example>
 
 <style>
+  /* A day stands well over twice as far from the last as its heading stands over its entries,
+     so each heading reads as the head of the run under it. */
   .days {
     display: grid;
-    gap: var(--sui-space-5);
+    gap: var(--sui-space-8);
   }
 
   .day {
