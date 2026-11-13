@@ -56,7 +56,7 @@
     <Avatar name="Data Team" src={broken} shape="workspace" size={32} />
   </Specimen>
   <Specimen label="Handle without a name">
-    <Avatar name="" handle="octocat" size={32} />
+    <Avatar name="" handle="@kwame" size={32} />
   </Specimen>
   <Specimen label="No name or handle">
     <Avatar name="" size={32} />
