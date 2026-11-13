@@ -168,9 +168,9 @@ of them.
   }
 
   /* Even, so a retry centred beside it in a row lands on the pixel grid (L-95). The warning
-     mark stands before the title, as a form error's does, while the explanation and step keep
-     the panel's whole width, so they wrap no sooner than they would without it. The spare pixel
-     stays after the rows, or stretching them would put a half pixel in each. */
+     mark hangs before the title, as a form error's does, and the explanation and step stand on
+     the title's edge, so the words read down one rail. The spare pixel stays after the rows, or
+     stretching them would put a half pixel in each. */
   .sui-error-state-copy {
     align-content: start;
     block-size: var(--sui-block-snap-even);
@@ -181,11 +181,13 @@ of them.
   }
 
   .sui-error-state-copy > p {
-    grid-column: 1 / -1;
+    grid-column: 2;
   }
 
-  .sui-error-state-copy > .sui-error-state-title {
-    grid-column: 2;
+  /* A panel's retry stands on the words' rail too, as a form error's links leave the line its
+     mark and gap take. Over a list it follows the words on their line instead. */
+  .sui-error-state:not(.over) > .sui-error-state-retry {
+    padding-inline-start: calc(var(--sui-icon-base) + var(--sui-space-2));
   }
 
   /* Centred on the title's first line, so it takes the title's face to measure that line's cap.

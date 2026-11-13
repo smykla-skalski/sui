@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- An `ErrorState`'s explanation, step and retry stand on its title's edge, past the warning mark, so its words read down one rail as a `FormError` summary's do, where they returned to the panel's edge under the title.
 - A focused `ClippedLabel`'s ring is set past its descenders, where its foot crossed a g or a p, and the label does not move.
 - A painted `Chip`'s remove control rings its focus in the chip's ink, which holds 4.5:1 on the fill, where the focus blue held 1.55:1 on a violet chip.
 - A current `ObjectRow` under keyboard focus keeps its resting plate when the pointer rests on it, where the deeper hover plate took the focus ring to 2.87:1 on the light inset ground; the law audit checks the ring on every current plate (L-6).

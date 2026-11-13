@@ -1916,10 +1916,14 @@ test('L-94 a form error summary and an error state take the 16px mark 8px from t
   );
   assert.match(
     styles[state],
-    /\.sui-error-state-copy > p \{\s*grid-column: 1 \/ -1;/,
-    'the explanation and step keep the whole width, so the mark never narrows them'
+    /\.sui-error-state-copy > p \{\s*grid-column: 2;/,
+    "the explanation and step stand on the title's edge, one rail with it"
   );
-  assert.doesNotMatch(styles[state], /-retry \{\s*margin-inline-start/);
+  assert.match(
+    styles[state],
+    /\.sui-error-state:not\(\.over\) > \.sui-error-state-retry \{\s*padding-inline-start: calc\(var\(--sui-icon-base\) \+ var\(--sui-space-2\)\);/,
+    "a panel's retry leaves the line the mark and its gap take"
+  );
 });
 
 test("L-39 the service worker's update is a view of its own, so Reload wears the signal tone", () => {
