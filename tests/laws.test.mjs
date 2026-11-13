@@ -1659,6 +1659,20 @@ test('L-58 a dialog drawn in place lifts softly in both themes, the dark one und
   );
 });
 
+test("a code block's head names its file or language in the primary ink, apart from the secondary copy words", () => {
+  const block = stripComments(read('src/lib/components/CodeBlock.svelte'));
+  assert.match(
+    block,
+    /\.sui-code-block-label \{[^}]*color: var\(--sui-text-primary\);/,
+    'the file name'
+  );
+  assert.match(
+    block,
+    /\.sui-code-block:not\(\.bare\) \.sui-code-block-lang \{[^}]*color: var\(--sui-text-primary\);/,
+    'the language name'
+  );
+});
+
 test("a framed code block's head steps off its code by 6% ink in light and 2.5% in dark, so the light head also steps off the plate around it", () => {
   assert.deepEqual(
     [...read('src/lib/styles.css').matchAll(/--sui-code-head-ink: ([^;]+);/g)].map(

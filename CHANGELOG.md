@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- A `CodeBlock`'s head names its file or language in the primary ink, so the name anchors the head apart from the secondary copy words, where both read in one grey.
 - An `EmptyState` draws a dashed edge at the control edge's strength, so it reads as the room its content would fill, where a solid hairline drew it as one more card.
 - An `ErrorState`'s retry wears an edge of the danger hue, 18% at rest and 30% on hover, as a warning callout's button wears its own, where a grey edge stood on the pink wash.
 - An `ErrorState`'s and an `EmptyState`'s step in words read at the regular weight in the primary ink, under their semibold title, where the medium weight read as a second title.
