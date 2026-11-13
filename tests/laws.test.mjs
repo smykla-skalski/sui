@@ -780,12 +780,12 @@ test('L-35 a form stacks its fields 20px apart and a dialog 24px, both a step ov
   const forms = svelteFiles
     .filter((path) => path.startsWith('src/routes/sink/'))
     .flatMap((path) =>
-      (read(path).match(/<form class="form"[\s\S]*?<\/form>/g) ?? [])
-        .filter((form) => /<Button[^>]*type="submit"/.test(form))
-        .map((form) => [path, form])
+      [...read(path).matchAll(/<form class="form(?: ([\w-]+))?"[\s\S]*?<\/form>/g)]
+        .filter(([form]) => /<Button[^>]*type="submit"/.test(form))
+        .map(([form, own = 'form']) => [path, form, own])
     );
-  assert.ok(forms.length >= 3);
-  for (const [path, form] of forms) {
+  assert.ok(forms.length >= 4);
+  for (const [path, form, own] of forms) {
     assert.match(
       form,
       /<Button[^>]*type="submit"[^>]*class="action"/,
@@ -793,9 +793,17 @@ test('L-35 a form stacks its fields 20px apart and a dialog 24px, both a step ov
     );
     assert.match(
       styles[path],
-      /\.form > :global\(\.action\) \{[^}]*margin-block-start: var\(--sui-space-1\);/,
+      new RegExp(
+        `\\.${own} > :global\\(\\.action\\) \\{[^}]*margin-block-start: var\\(--sui-space-1\\);`
+      ),
       `${path} sets its action at the fields' gap`
     );
+    if (own !== 'form')
+      assert.match(
+        styles[path],
+        new RegExp(`\\.${own} \\{[^}]*gap: var\\(--sui-space-5\\);`),
+        `${path} stacks its ${own} form's fields another distance apart`
+      );
   }
 });
 

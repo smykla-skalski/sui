@@ -248,7 +248,7 @@
         error={contactProblem}
         bind:value={contact}
       />
-      <Button type="submit" tone="signal">Create the Workspace</Button>
+      <Button type="submit" tone="signal" class="action">Create the Workspace</Button>
     </form>
   </Specimen>
 </Example>
@@ -290,13 +290,19 @@
   }
 
   /* A form keeps a form's measure on a stage as wide as the page, its refusals too. */
-  .measure,
-  .summary {
+  .measure {
     max-inline-size: 40rem;
   }
 
+  /* The summary heads a form, so its fields stand a form's 20px apart and its action a step
+     further, the form's close (L-35). */
   .summary {
-    gap: var(--sui-space-4);
+    gap: var(--sui-space-5);
     justify-items: stretch;
+    max-inline-size: 40rem;
+  }
+
+  .summary > :global(.action) {
+    margin-block-start: var(--sui-space-1);
   }
 </style>
