@@ -401,11 +401,38 @@ suite('navigation', together, () => {
     };
     const loaded = await span('layouts/detail-pane/');
     const loading = await span('layouts/detail-pane/loading/');
-    // A row that holds an avatar stands a few pixels over the pitch the placeholders keep.
     assert.ok(
-      Math.abs(loaded - loading) <= 10,
+      Math.abs(loaded - loading) <= 2,
       `the properties span ${loaded}px where their placeholders spanned ${loading}px`
     );
+  });
+
+  test("a property row with a face keeps its neighbours' pitch and holds a name that wraps", async () => {
+    const page = await openLayout('layouts/detail-pane/', 1440);
+    try {
+      const heights = () =>
+        page.evaluate(() =>
+          [...document.querySelectorAll('.sui-detail-layout-aside .sui-fact-list-fact')]
+            .slice(0, 3)
+            .map((row) => row.getBoundingClientRect().height)
+        );
+      // The first row takes no room above it, so the plain row to match is the second.
+      const [, plain, face] = await heights();
+      assert.equal(face, plain, 'the row with a face stands off the pitch of its neighbours');
+      // The name's lines stay inside the value, so a long name grows its row rather than
+      // running over the hairline into the next fact.
+      const spill = await page.evaluate(() => {
+        const name = /** @type {Element} */ (
+          document.querySelector('.sui-detail-layout-aside .sui-identity-name')
+        );
+        name.textContent = 'Bartholomew Alexander Smykla-Konstantynopolitański';
+        const value = /** @type {Element} */ (name.closest('.sui-fact-list-value'));
+        return name.getBoundingClientRect().bottom - value.getBoundingClientRect().bottom;
+      });
+      assert.ok(spill <= 0.5, `a wrapped name runs ${spill}px past its value`);
+    } finally {
+      await page.close();
+    }
   });
 
   test('a layout preview starts as a phone on a phone and as a desktop on a desktop', async () => {
