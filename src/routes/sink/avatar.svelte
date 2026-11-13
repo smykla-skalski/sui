@@ -51,7 +51,7 @@
 
 <Example
   title="Pictures & Fallbacks"
-  note="A picture covers the initials drawn under it, one that does not load shows them, and a logo’s clear ground shows the tint. A missing name draws the initials from the handle, and with neither the avatar shows a question mark"
+  note="A picture covers the initials, and one that does not load shows them. Without a name the handle gives the initials, and with neither a question mark"
   layout="grid"
   --specimen-min="9rem"
   --specimen-max="9rem"
