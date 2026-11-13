@@ -144,7 +144,7 @@ struggling. The reason takes the count's place and the button retries until the 
 - Keyboard: Enter or Space on the button asks for the next page.
 - Pointer and touch: the button is 34px tall, 44px on a phone or a touch screen.
 - Focus: the button keeps focus while a page loads; when it lands, focus moves to the first new row's link or control (WCAG 2.4.3), or stays on the button when that row has none, and moves to the end note when the button leaves.
-- Responsive: the words lead and the button ends their line; when both do not fit, the button takes the next line from the start, so words beside it never wrap.
+- Responsive: the words lead and the button ends their line; when both do not fit, the button takes the next line at the same end, so words beside it never wrap and the action never moves across.
 - Accessibility: the count describes the button, arrivals are said through a polite status with how many came and how many show, and a failure is an alert in words beside an icon; set `aria-busy` on the list while `loading` is true.
 - Localization: every word is a prop, and the counted ones are functions given the counts for plural rules and formatted in the reader's format; the row follows the reading direction.
 - Performance: no cost while idle, and one lookup in the list when a page lands; the caller decides the page size.
@@ -170,22 +170,25 @@ struggling. The reason takes the count's place and the button retries until the 
   {#if more}
     <!-- The button holds the loading words' room from the start, so it keeps one width as it
          turns from Load More to loading to Try Again and the line never shifts. -->
-    <Button
-      {loading}
-      busyLabel={loadingLabel}
-      aria-controls={list}
-      aria-describedby="{id}-words"
-      onclick={press}
-    >
-      {problem ? retryLabel : moreLabel}
-    </Button>
+    <span class="sui-load-more-action">
+      <Button
+        {loading}
+        busyLabel={loadingLabel}
+        aria-controls={list}
+        aria-describedby="{id}-words"
+        onclick={press}
+      >
+        {problem ? retryLabel : moreLabel}
+      </Button>
+    </span>
   {/if}
   <VisuallyHidden role="status">{said}</VisuallyHidden>
 </div>
 
 <style>
   /* The words lead and the button ends the line, and when both do not fit the button takes the
-     next line from the start, so words beside it never wrap. */
+     next line at the same end, so words beside it never wrap and a retry stands where the
+     button it replaced stood. */
   .sui-load-more {
     align-items: center;
     display: flex;
@@ -193,6 +196,11 @@ struggling. The reason takes the count's place and the button retries until the 
     gap: var(--sui-space-3) var(--sui-space-4);
     justify-content: space-between;
     padding-block: var(--sui-row-pad-default);
+  }
+
+  .sui-load-more-action {
+    display: flex;
+    margin-inline-start: auto;
   }
 
   .sui-load-more:last-child {
