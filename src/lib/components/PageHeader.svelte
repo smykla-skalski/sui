@@ -58,8 +58,8 @@ The title is 32px on 36px lines at -0.022em, 24px on 28px lines at a dialog titl
 phone or once the header itself is 36rem wide or narrower, and is the page's one `h1`. A wide
 title balances its lines, and a compact one fills its narrow column and only keeps its last
 word from standing alone.
-The eyebrow, 12px uppercase at 600, stands 8px of ink above it, and a `Breadcrumb` or `BackLink` 12px, so its hover
-veil never meets the title. The description stands one 8px copy gap further below
+The eyebrow, 12px uppercase at 600, stands 8px of ink above it, and a `Breadcrumb` or `BackLink` 16px, so its hover
+veil stands 9px clear of the title. The description stands one 8px copy gap further below
 the title than the title's own lines stand apart, 19px of ink (18px on a phone), so a title
 that wraps reads as one block and the description as the next. The gap follows the title's
 line height, so it holds when a reader raises line spacing. The description stops at about 65
@@ -206,10 +206,11 @@ and the header owes only the difference.
     margin-block-start: var(--sui-rhythm-head-copy);
   }
 
-  /* A breadcrumb's or a back link's veil reaches past its words, so the title stands a step
-     further under it than under an eyebrow, and a lit link never meets the title's ink. */
+  /* A breadcrumb's or a back link's veil reaches about 7px past its words, so the title's cap
+     stands 16px under their ink, two steps further than under an eyebrow, and a lit link's
+     veil stays 9px clear of the title's ink. */
   .kicked > .sui-page-header-copy > :global(:first-child + *) {
-    margin-block-start: var(--sui-space-3);
+    margin-block-start: var(--sui-space-4);
   }
 
   .sui-page-header-eyebrow {
@@ -336,7 +337,7 @@ and the header owes only the difference.
   }
 
   .kicked > .sui-page-header-actions {
-    margin-block-start: var(--sui-space-3);
+    margin-block-start: var(--sui-space-4);
   }
 
   .sui-page-header-actions > :global(*) {

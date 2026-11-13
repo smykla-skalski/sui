@@ -786,6 +786,25 @@ p { margin-block-end: 2em !important; }`;
       }
     );
 
+  test("a lit back link's veil stands clear of the page header's title", long, async () => {
+    const page = await open(1440, 'light');
+    try {
+      const header = page
+        .locator('#page-header .sui-page-header')
+        .filter({ has: page.locator('.sui-back-link') })
+        .first();
+      await header.scrollIntoViewIfNeeded();
+      const clear = await header.evaluate((node) => {
+        const veil = node.querySelector('.sui-back-link')?.getBoundingClientRect();
+        const title = node.querySelector('.sui-page-header-title')?.getBoundingClientRect();
+        return veil && title ? title.top - veil.bottom : null;
+      });
+      assert.ok(clear !== null && clear >= 8, `the veil stands ${clear}px over the title's cap`);
+    } finally {
+      await page.close();
+    }
+  });
+
   test("on a phone a page header's tabs stand 16px under its stacked actions", long, async () => {
     const page = await open(390, 'light');
     try {
