@@ -6,6 +6,7 @@
   import {
     AppShell,
     ServiceWorkerStatus,
+    Select,
     SideNav,
     SkipLink,
     ThemeSwitch,
@@ -77,7 +78,24 @@
     heading.focus({ preventScroll: true });
   }
 
-  onMount(() => exposeAudit());
+  // Every preview shares the host, main at the root and each pull request under /pr-<number>,
+  // and the deploy lists them in /previews.json. Other builds have no list to fetch.
+  let previews = $state<{ number: number; title: string }[]>([]);
+  let here = $state('');
+
+  function switchPreview(event: Event & { currentTarget: HTMLSelectElement }) {
+    location.assign(event.currentTarget.value + location.pathname.slice(here.length));
+  }
+
+  onMount(() => {
+    exposeAudit();
+    if (!import.meta.env.VITE_PREVIEWS) return;
+    here = /^\/pr-\d+/.exec(location.pathname)?.[0] ?? '';
+    fetch('/previews.json')
+      .then((response) => (response.ok ? response.json() : []))
+      .then((list: typeof previews) => (previews = list.sort((a, b) => b.number - a.number)))
+      .catch(() => {});
+  });
 </script>
 
 <SkipLink href="#content" />
@@ -95,6 +113,22 @@
       scrollTargets={everything}
       onnavigate={follow}
     >
+      {#snippet head()}
+        {#if previews.length > 1}
+          <Select
+            aria-label="Preview"
+            value={here}
+            options={[
+              { value: '', label: 'main' },
+              ...previews.map(({ number, title }) => ({
+                value: `/pr-${number}`,
+                label: `#${number} ${title}`
+              }))
+            ]}
+            onchange={switchPreview}
+          />
+        {/if}
+      {/snippet}
       {#snippet foot()}<ThemeSwitch system={false} />{/snippet}
     </SideNav>
   {/snippet}

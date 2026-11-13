@@ -50,6 +50,7 @@
       'SideNav.countedName',
       (label: string, count: string) => `${label}${mark('comma')}${count}`
     ),
+    head,
     foot,
     onnavigate,
     scrollTargets = false,
@@ -79,6 +80,8 @@
     countLabel?: (count: number) => string;
     /** A counted row's accessible name from its label and `countLabel`, in the language's order. */
     countedName?: (label: string, count: string) => string;
+    /** Content under the title that stays in view with it, such as a switch between places. */
+    head?: Snippet;
     /** Quiet content at the bottom, such as the account. */
     foot?: Snippet;
     /** Called when a row is followed, for a router that handles the click itself. */
@@ -252,7 +255,7 @@ read aloud. In the phone drawer a close button takes the head's end, rows are 44
 following a row closes the drawer.
 
 - Semantics: a `nav` landmark named "<title> pages" by default that holds the whole sidebar, its title, rows, fold control and foot, so nothing in it stands outside a landmark; the title is a heading at `level`, each section a list labelled by its own heading one level below, and every row a link with `aria-current="page"` on the current one.
-- Content: a title and optional kicker, sections of rows with a glyph from the icon set or the caller's own, a label, an optional `short` label and an optional count, and an optional `foot`.
+- Content: a title and optional kicker, an optional `head` under them, sections of rows with a glyph from the icon set or the caller's own, a label, an optional `short` label and an optional count, and an optional `foot`.
 - States: rest, hover, pressed (the pressed ground, an inset shadow and a 1px sink), focus (a 2px inset ring) and current (primary ink at 500 and an accent glyph on the plate, in room every row holds, so it moves nothing); labels wrap rather than being cut.
 - Keyboard: Tab moves through the rows, then the fold or close control; Enter follows a row or presses the control.
 - Pointer and touch: rows are 34px on a desktop pointer and 44px in the drawer and the strip; the close and fold controls are 34px and 44px there, and nothing needs a gesture.
@@ -280,6 +283,7 @@ following a row closes the drawer.
     {#if shell && mode === 'drawer'}
       <IconButton toolbar icon="close" label={closeLabel} onclick={() => shell.closeDrawer()} />
     {/if}
+    {#if head}<div class="sui-side-nav-lead">{@render head()}</div>{/if}
   </div>
 
   <div bind:this={scroller} class="sui-side-nav-tree">
@@ -402,9 +406,17 @@ following a row closes the drawer.
     align-items: center;
     border-block-end: var(--sui-stroke) solid var(--sui-sidebar-border);
     display: flex;
-    gap: var(--sui-space-2);
+    flex-wrap: wrap;
+    gap: var(--sui-space-3) var(--sui-space-2);
     padding-block-end: var(--sui-space-3);
     padding-inline-start: var(--sui-space-3);
+  }
+
+  /* The head's content spans the sidebar, as the foot's does, past the inset the names keep. */
+  .sui-side-nav-lead {
+    display: grid;
+    flex-basis: calc(100% + var(--sui-space-3));
+    margin-inline-start: calc(-1 * var(--sui-space-3));
   }
 
   .sui-side-nav-names {

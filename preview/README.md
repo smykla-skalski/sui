@@ -1,10 +1,10 @@
 # Previews
 
-The kitchen sink of `main` is at `https://sui.tercenas.com`, redeployed on every push to `main` as the `main` deployment. Every pull request that changes `src/` or `vite.config.ts` gets its own at `https://sui.tercenas.com/pr-<number>`, linked from the pull request as the `preview` deployment. Only members of the `smykla-skalski` organization can open them.
+The kitchen sink of `main` is at `https://sui.tercenas.com`, redeployed as the `main` deployment on every push to `main` that changes the look. Every pull request that changes the look gets its own at `https://sui.tercenas.com/pr-<number>`, linked from the pull request as the `preview` deployment. A change to the look is one to `src/`, `vite.config.ts` or the Linux pictures of the visual tests. A dependency update alone deploys nothing: the visual tests compare its pictures, and it deploys only once a changed look is recorded in them. While two or more pull requests have a preview, a picker under the sidebar's title switches between them and `main`. Only members of the `smykla-skalski` organization can open them.
 
 All of them share one Fly machine. [oauth2-proxy](https://oauth2-proxy.github.io/oauth2-proxy/) is the whole server: it signs visitors in with GitHub, checks the organization, and serves the static builds from a 1 GB volume. The machine stops when nobody looks, so the idle cost is the volume and the stopped root filesystem, about $0.20 a month. One build is about 1.3 MB.
 
-The [Preview workflow](../.github/workflows/preview.yml) builds the site, with `BASE_PATH=/pr-<number>` for a pull request, and pipes it as a tarball into [`previews`](previews.sh) over `fly ssh console`. That script installs it, `main` at the root beside the `pr-<number>` directories, and removes every preview whose pull request is closed, so a missed close is cleaned up by the next run. Pull requests from forks get no secrets and no preview.
+The [Preview workflow](../.github/workflows/preview.yml) builds the site, with `BASE_PATH=/pr-<number>` for a pull request, and pipes it as a tarball into [`previews`](previews.sh) over `fly ssh console`. That script installs it, `main` at the root beside the `pr-<number>` directories, and removes every preview whose pull request is closed, so a missed close is cleaned up by the next run. It then writes `previews.json`, the number and title of each preview left, from the `preview.json` the workflow puts in each pull request's build, and the picker reads it. Pull requests from forks get no secrets and no preview.
 
 ## Setup
 

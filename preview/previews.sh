@@ -38,3 +38,17 @@ for dir in previews/pr-*; do
     *) rm -rf "$dir" ;;
   esac
 done
+
+# The sink's preview picker reads this list of the previews left, from each one's preview.json.
+{
+  printf '['
+  comma=
+  for file in previews/pr-*/preview.json; do
+    [ -f "$file" ] || continue
+    printf '%s' "$comma"
+    cat "$file"
+    comma=,
+  done
+  printf ']\n'
+} > incoming/previews.json
+mv incoming/previews.json previews/previews.json

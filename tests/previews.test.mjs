@@ -7,13 +7,17 @@ import test from 'node:test';
 
 const script = new URL('../preview/previews.sh', import.meta.url).pathname;
 
-test('installs the piped preview and removes those of closed pull requests', (t) => {
+test('installs the piped preview, removes those of closed pull requests and lists the rest', (t) => {
   const data = mkdtempSync(join(tmpdir(), 'sui-previews-'));
   t.after(() => rmSync(data, { recursive: true, force: true }));
   for (const pr of [1, 10, 12]) mkdirSync(join(data, 'previews', `pr-${pr}`), { recursive: true });
+  const listed = (/** @type {number} */ pr) => ({ number: pr, title: `"Title" of ${pr}` });
+  writeFileSync(join(data, 'previews', 'pr-1', 'preview.json'), JSON.stringify(listed(1)));
+  writeFileSync(join(data, 'previews', 'pr-10', 'preview.json'), JSON.stringify(listed(10)));
   const site = join(data, 'site');
   mkdirSync(site);
   writeFileSync(join(site, 'index.html'), 'pr 3');
+  writeFileSync(join(site, 'preview.json'), JSON.stringify(listed(3)));
 
   // pr-1 is closed, and must not survive on the strength of 10 being open.
   execFileSync('sh', [script, '3', '3', '10', '12'], {
@@ -21,8 +25,18 @@ test('installs the piped preview and removes those of closed pull requests', (t)
     env: { ...process.env, PREVIEWS_DATA: data }
   });
 
-  assert.deepEqual(readdirSync(join(data, 'previews')).sort(), ['pr-10', 'pr-12', 'pr-3']);
+  assert.deepEqual(readdirSync(join(data, 'previews')).sort(), [
+    'pr-10',
+    'pr-12',
+    'pr-3',
+    'previews.json'
+  ]);
   assert.equal(readFileSync(join(data, 'previews', 'pr-3', 'index.html'), 'utf8'), 'pr 3');
+  // pr-12 predates preview.json, so the picker leaves it out.
+  assert.deepEqual(
+    new Set(JSON.parse(readFileSync(join(data, 'previews', 'previews.json'), 'utf8'))),
+    new Set([listed(3), listed(10)])
+  );
 });
 
 test('replaces the previous main at the root and keeps the open previews', (t) => {
@@ -41,7 +55,7 @@ test('replaces the previous main at the root and keeps the open previews', (t) =
     env: { ...process.env, PREVIEWS_DATA: data }
   });
 
-  assert.deepEqual(readdirSync(previews).sort(), ['_app', 'index.html', 'pr-3']);
+  assert.deepEqual(readdirSync(previews).sort(), ['_app', 'index.html', 'pr-3', 'previews.json']);
   assert.deepEqual(readdirSync(join(previews, '_app')), ['new']);
   assert.equal(readFileSync(join(previews, 'index.html'), 'utf8'), 'new main');
 });
