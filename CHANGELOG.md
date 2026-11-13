@@ -15,6 +15,7 @@
 - A failure's edge holds 3:1 on dark through the new `--sui-danger-wash-edge`, where it held 2.5:1, on an `ErrorState`, a `FormError` and a refused `Modal` save, and an `ErrorState overContent`'s line draws the same edge round its tint.
 - A `FormError` summary rings its focus after a pointer submit too, where only a keyboard submit drew the ring, so the reader sees where focus went.
 - The Relative Time page's In Context line reads its times in the primary ink over its muted words.
+- The Relative Time page's Past and Future examples stand each name 3rem over its time, past an open tip's reach, where the tip covered the names beside the time.
 - A focused `CodeBlock` draws its ring over its own edge, round its copy control too, where a second box stood inside the frame; a `bare` block keeps the ring inside its scroller. On a phone the language's name stands on the copy control's baseline.
 - An `EmptyState` and an `ErrorState` pad 20px at the sides of their words, where 24px left a narrow column's description a line longer.
 - A `RelativeTime`'s focus ring stands 2px further from its first and last letters, as far as it stands from the cap, with its dots still under the words alone.

@@ -44,6 +44,7 @@
 <Example
   title="Past"
   note="Hover a time, or press and hold it, to read the whole instant with seconds and its zone"
+  --specimen-caption-gap="3rem"
 >
   {#each past as time (time.label)}
     <Specimen label={time.label}
@@ -52,7 +53,11 @@
   {/each}
 </Example>
 
-<Example title="Future" note="An instant still ahead reads as how soon">
+<Example
+  title="Future"
+  note="An instant still ahead reads as how soon"
+  --specimen-caption-gap="3rem"
+>
   {#each future as time (time.label)}
     <Specimen label={time.label}><RelativeTime value={time.value} /></Specimen>
   {/each}

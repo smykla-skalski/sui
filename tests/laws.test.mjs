@@ -694,7 +694,7 @@ test('L-55 a specimen name stands a step past a field gap over its specimen, clo
   for (const path of widened)
     assert.match(
       read(path),
-      /<(?:Tooltip|ClippedLabel)\b/,
+      /<(?:Tooltip|ClippedLabel|RelativeTime)\b/,
       `${path} widens a name gap with no live tip`
     );
   assert.match(
