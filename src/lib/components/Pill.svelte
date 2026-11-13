@@ -197,7 +197,7 @@ outcome tones always come with their word, so color never carries the state alon
      motion. It is drawn, not blurred, and the dot keeps a plain dot's gap past its ring. */
   .sui-pill-dot.live {
     box-shadow: 0 0 0 calc(var(--sui-pill-dot) / 3)
-      color-mix(in oklab, currentColor 45%, transparent);
+      color-mix(in oklab, currentColor 36%, transparent);
     margin-inline-end: calc(var(--sui-pill-dot) / 3);
   }
 
