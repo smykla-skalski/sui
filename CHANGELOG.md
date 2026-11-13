@@ -11,6 +11,7 @@
 - A current `ObjectRow` under keyboard focus keeps its resting plate when the pointer rests on it, where the deeper hover plate took the focus ring to 2.87:1 on the light inset ground; the law audit checks the ring on every current plate (L-6).
 - The Empty & Error States page keeps its form examples to one 640px measure.
 - A `RelativeTime` draws its dots 1px across, one every 3px, in half its words' ink and 3px under their baseline, where rounder grey dots stood 4px apart and 4px under it.
+- A `CodeBlock` on a phone heads its copy control in a row of its own and gives its code the whole width, where the control's column took 112px beside every line.
 - On a phone the kit's specimen rows stand 8px past their name gap, so a page that widens the gap for its tips still reads each name with the specimen under it.
 - A failed refresh's retry ends its line, spread by space-between rather than an auto margin, and wraps under its words on any line too narrow for both, and a `FormError` summary's message heads its links at 16px semibold. L-90 lets a row whose first item hangs a mark start a wrapped line on the words' edge.
 - A `PageToc` keeps room for a scrollbar only while it scrolls, so an index that fits ends its plates on its column's end, and on a phone its words start on the page's text edge, with its plates hanging 8px past it.

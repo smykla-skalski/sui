@@ -211,7 +211,7 @@ from the corner and centred on the first line, or in the file name's row when th
 - Keyboard: Tab reaches a block that scrolls and then its copy control, and the arrow keys scroll a focused block.
 - Pointer and touch: the copy control is 28px, 44px on a phone or touch screen, and always shown; selection works as in any text.
 - Focus: it never moves focus; the copy control keeps focus through its copied state.
-- Responsive: the block fills its column and its lines scroll inside it at every width, with a fade on each edge that has more past it, the start fade past the line numbers; the copy column keeps its place at the end.
+- Responsive: the block fills its column and its lines scroll inside it at every width, with a fade on each edge that has more past it, the start fade past the line numbers; the copy column keeps its place at the end, and on a phone the control heads the block in a row of its own so the code takes the whole width.
 - Accessibility: tokens hold 4.5:1 on the code ground, the gutter is hidden from assistive technology, and the scroller is named only when it is a tab stop.
 - Localization: `regionLabel` and `copyLabel` carry the built-in words; the code always reads left to right (`dir="ltr"`) in a right-to-left page, while the file name follows the page.
 - Performance: tokenizing is one pass over each line and runs again only when `code` or `lang` changes; one observer per block watches for overflow.
@@ -340,6 +340,27 @@ from the corner and centred on the first line, or in the file name's row when th
     border-start-end-radius: 0;
     border-start-start-radius: 0;
     flex-basis: 100%;
+  }
+
+  /* A phone's column is too narrow to give the copy control a column beside every line, so
+     the control heads the block in a row of its own, as it does beside a file name, and the
+     code takes the whole width under it. */
+  @media (max-width: 47.9375rem) {
+    .sui-code-block:not(.labelled) > .sui-code-block-copy {
+      flex-basis: 100%;
+      justify-content: flex-end;
+      margin-block-start: 0;
+      order: -1;
+      padding-block-start: var(--sui-space-2);
+    }
+
+    .sui-code-block:not(.labelled) > .sui-code-block-scroll {
+      border-block-start: var(--sui-stroke) solid var(--sui-border-divider);
+      border-start-end-radius: 0;
+      border-start-start-radius: 0;
+      flex-basis: 100%;
+      padding-block-start: calc((var(--sui-local-code-row) - var(--sui-leading-meta)) / 2);
+    }
   }
 
   /* Rounded even when `bare` squares the block, so the inset ring never has sharp corners. */
