@@ -59,7 +59,9 @@
   layout="grid"
 >
   <Specimen label="Wrapping label">
-    <Pill tone="info">Invited to the infrastructure and platform engineering workspace</Pill>
+    <span class="measure">
+      <Pill tone="info">Invited to the infrastructure and platform engineering workspace</Pill>
+    </span>
   </Specimen>
 </Example>
 
@@ -106,6 +108,13 @@
     display: flex;
     flex-wrap: wrap;
     gap: var(--sui-space-3);
+  }
+
+  /* The specimen's width ends near its first line's last word, so the pill holds no empty tint
+     past it. */
+  .measure {
+    display: flex;
+    max-inline-size: 17.5rem;
   }
 
   .slot {

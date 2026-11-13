@@ -187,6 +187,18 @@ outcome tones always come with their word, so color never carries the state alon
     position: relative;
   }
 
+  /* A round dot weighs less than a letter's stem, so a plain one steps a third of itself toward
+     the start edge, and the start inset reads as wide as the end one. */
+  .sui-pill-dot:first-child:not(.live) {
+    margin-inline-start: calc(var(--sui-pill-dot) / -3);
+  }
+
+  /* A still ring tells a live dot from a plain one when it does not pulse, as under reduced
+     motion; it is drawn, not blurred, and changes no box. */
+  .sui-pill-dot.live {
+    box-shadow: 0 0 0 0.125rem color-mix(in oklab, currentColor 28%, transparent);
+  }
+
   /* The ring grows and fades through scale and opacity, so the pulse moves nothing else and
      never paints a glow. It beats three times, under 5 seconds, because motion that lasts
      longer needs a pause control (WCAG 2.2.2); a beat of the data runs it once more. */
