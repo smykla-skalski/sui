@@ -1977,6 +1977,26 @@ suite('navigation', together, () => {
           ['/layouts/list-detail/4176/'],
           'the opened run is not the one current row'
         );
+        const open = pair.locator('.sui-object-row.current');
+        const ground = () => open.evaluate((row) => getComputedStyle(row).backgroundColor);
+        // The press that opened the run left the pointer on its row.
+        await page.mouse.move(0, 0);
+        const resting = await ground();
+        await open.locator('a').hover();
+        assert.ok(
+          await settles(
+            page.waitForFunction(
+              (rest) =>
+                getComputedStyle(
+                  /** @type {Element} */ (document.querySelector('.sui-object-row.current'))
+                ).backgroundColor !== rest,
+              resting,
+              brief
+            )
+          ),
+          'the open row does not answer the pointer'
+        );
+        await page.mouse.move(0, 0);
         assert.equal(
           await pair.getByRole('link', { name: 'Runs' }).count(),
           0,

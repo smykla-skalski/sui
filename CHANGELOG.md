@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- A current `ObjectRow` answers the pointer as the rows around it do, on more of its accent, 22% on light and 28% on dark, never on a hovered row's grey.
 - A small `Chip` in a line of text stands on the text's own box, so the line keeps its height rather than growing under the chip.
 - A `Skeleton`'s last row ends where a loaded list's last row ends once the list hands back its padding, so the section under it no longer moves 2px when the rows arrive.
 - A `DetailLayout` stands its aside beside the main column from 44rem, the new `--sui-breakpoint-aside`, where it waited for 56rem, so a run in a wide `ListDetail` pane keeps its short sections and its properties side by side. A list-detail run's steps are set at the body size, as a row's one line is.

@@ -36,11 +36,11 @@ opens something.
 
 A `current` row is the one whose item is open beside the list. It stands on the plate that
 marks where the reader is, the sidebar's accent tint, so it never looks hovered, hides its hairline
-and the one above as a hovered row does, and keeps the plate under the pointer.
+and the one above as a hovered row does, and under the pointer takes more of the accent.
 
 - Semantics: an `li`; with `href`, an `a` under the content, named by the main content through `aria-labelledby`, with `aria-current="page"` on a `current` row.
 - Content: `main`, the name and what the row says about it, and an optional `side` of standings, values and controls.
-- States: rest; with `href`, hover (the row ground, where the pointer can hover), pressed (a deeper ground and a 1px sink), focus (an inset ring on the row) and current (the sidebar's accent-tint plate, which hover leaves alone).
+- States: rest; with `href`, hover (the row ground, where the pointer can hover), pressed (a deeper ground and a 1px sink), focus (an inset ring on the row) and current (the sidebar's accent-tint plate, which hover deepens to more of the accent).
 - Keyboard: the row link is one tab stop, then each control inside the row; Enter follows the link.
 - Pointer and touch: the whole row is the link's target, at least 44px tall with its padding; controls inside keep their own targets.
 - Focus: the ring is drawn inside the row, so a list that clips never cuts it.
@@ -180,6 +180,15 @@ and the one above as a hovered row does, and keeps the plate under the pointer.
   @media (hover: hover) {
     .sui-object-row:not(.current):has(> .sui-object-row-hit:hover) {
       background-color: var(--sui-row-hover);
+    }
+
+    /* Every other row answers the pointer, so the open one does too, on a deeper share of its
+       own accent: never the grey of a hovered row, which would make it look like any other. */
+    .sui-object-row.current:has(> .sui-object-row-hit:hover) {
+      background-color: light-dark(
+        color-mix(in srgb, var(--sui-brand-action) 22%, transparent),
+        color-mix(in srgb, var(--sui-brand-action) 28%, transparent)
+      );
     }
 
     /* The hover ground has round corners and a line crossing its edge reads as a crack, so
