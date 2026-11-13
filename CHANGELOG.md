@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- A `LoadMore`'s count, reason and end note take the 13px caption step, a step under the 14px details of the rows over them, so the footer reads as a note on the list rather than one more row.
 - The `LoadMore` page sets its list without a total across the card, as the live list under it, where it stood in a narrow column beside empty room.
 - A `PageToc`'s title and group headings stand 12px in, on the entries' words, as a `SideNav`'s headings do, where they stood on the plates' edge.
 - The `PageToc` page closes its index with a hairline on a phone, where it stands over the article, so the links read apart from the first section.

@@ -203,7 +203,7 @@ struggling. The reason takes the count's place and the button retries until the 
     align-items: start;
     color: var(--sui-text-muted);
     display: flex;
-    font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-row-copy-leading)
+    font: var(--sui-weight-regular) var(--sui-font-size-caption) / var(--sui-row-copy-leading)
       var(--sui-sans);
     gap: var(--sui-space-2);
     margin: 0;
