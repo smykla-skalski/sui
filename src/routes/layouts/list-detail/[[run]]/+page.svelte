@@ -59,7 +59,7 @@
     },
     {
       id: '4180',
-      workflow: 'Lint and test',
+      workflow: 'Lint & Test',
       branch: 'fix/labels',
       when: '1\u00a0hour ago',
       took: '3\u00a0minutes',
@@ -68,7 +68,7 @@
     },
     {
       id: '4179',
-      workflow: 'Release notes',
+      workflow: 'Release Notes',
       branch: 'main',
       when: '2\u00a0hours ago',
       took: '21\u00a0seconds',
@@ -77,7 +77,7 @@
     },
     {
       id: '4178',
-      workflow: 'Lint and test',
+      workflow: 'Lint & Test',
       branch: 'feat/list-detail',
       when: '3\u00a0hours ago',
       took: '4\u00a0minutes',
