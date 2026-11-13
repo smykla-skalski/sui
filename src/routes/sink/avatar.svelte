@@ -7,7 +7,7 @@
 </script>
 
 <script lang="ts">
-  import { Avatar, IdentityRow, ObjectList, ObjectRow, Pill, Section } from '#lib';
+  import { Avatar, IdentityRow } from '#lib';
   import Example from '../kit/Example.svelte';
   import Specimen from '../kit/Specimen.svelte';
   import Variants from '../kit/Variants.svelte';
@@ -94,44 +94,6 @@
   </Specimen>
   <Specimen label="Name alone">
     <IdentityRow name="Barbara Liskov" />
-  </Specimen>
-</Example>
-
-<Example
-  title="In a List"
-  note="Identity rows in an object list, where the open one stands on the current plate"
-  layout="stack"
-  ground="canvas"
->
-  <Specimen label="Members, one open">
-    <Section title="Members" level={4}>
-      <ObjectList>
-        <ObjectRow href="#avatar" current>
-          {#snippet main()}
-            <IdentityRow name="Grace Hopper" handle="@grace" src={portrait} />
-          {/snippet}
-          {#snippet side()}
-            <Pill tone="role">Owner</Pill>
-          {/snippet}
-        </ObjectRow>
-        <ObjectRow href="#avatar">
-          {#snippet main()}
-            <IdentityRow name="Ada Lovelace" handle="@ada" />
-          {/snippet}
-          {#snippet side()}
-            <Pill tone="role">Admin</Pill>
-          {/snippet}
-        </ObjectRow>
-        <ObjectRow href="#avatar">
-          {#snippet main()}
-            <IdentityRow name="Platform Team" handle="platform-team" shape="workspace" />
-          {/snippet}
-          {#snippet side()}
-            <Pill tone="role">Team</Pill>
-          {/snippet}
-        </ObjectRow>
-      </ObjectList>
-    </Section>
   </Specimen>
 </Example>
 
