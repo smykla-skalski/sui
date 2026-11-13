@@ -337,6 +337,16 @@ suite('lists', together, () => {
               copy: copy !== null,
               parted: getComputedStyle(scroller).borderTopWidth !== '0px',
               lang: name?.textContent ?? null,
+              baselines: [name, copy?.querySelector('button')].map((element) => {
+                if (!element) return 0;
+                const probe = document.createElement('span');
+                probe.style.cssText = 'display: inline-block; inline-size: 0; block-size: 0';
+                const words = element.querySelector('span:not(:has(*))') ?? element;
+                words.append(probe);
+                const top = probe.getBoundingClientRect().top;
+                probe.remove();
+                return top;
+              }),
               onEdge: name ? startOf(name) - startOf(block.querySelector('.src')) : 0,
               past: control ? control.right - box.right : 0,
               above: control ? code.top - control.bottom : 0,
@@ -355,6 +365,10 @@ suite('lists', together, () => {
         assert.ok(block.past <= -8, `a copy control ends ${block.past}px from its block's edge`);
         assert.ok(block.above >= 0, `a copy control reaches ${-block.above}px into the code`);
         assert.ok(block.spare <= 2, `the code leaves ${block.spare}px of its block's width`);
+        assert.ok(
+          Math.abs(block.baselines[0] - block.baselines[1]) < 0.5 || !block.lang,
+          `a language's name stands ${block.baselines[0] - block.baselines[1]}px off the control's baseline`
+        );
         assert.ok(
           Math.abs(block.onEdge) < 0.5,
           `a language's name stands ${block.onEdge}px off the code's edge`
@@ -1244,11 +1258,16 @@ suite('lists', together, () => {
     );
 
     test(
-      "a focused code block that scrolls draws its ring's corners clear of its edge fade",
+      "a focused diff block that scrolls draws its ring's corners clear of its edge fade",
       long,
       async () => {
         const page = await opened();
-        const block = page.locator('#code-block .sui-code-block-scroll[tabindex="0"]').first();
+        // No diff on the page is wide enough to scroll on a desktop, so one is narrowed to.
+        const diff = page.locator('#diff-block .sui-diff-block').first();
+        await diff.evaluate((element) =>
+          /** @type {HTMLElement} */ (element).style.setProperty('inline-size', '16rem')
+        );
+        const block = diff.locator('.sui-diff-block-scroll[tabindex="0"]');
         await block.scrollIntoViewIfNeeded();
         await page.keyboard.press('Shift');
         await block.focus();
@@ -1296,9 +1315,30 @@ suite('lists', together, () => {
           },
           `data:image/png;base64,${shot.toString('base64')}`
         );
+        await diff.evaluate((element) =>
+          /** @type {HTMLElement} */ (element).style.removeProperty('inline-size')
+        );
         assert.ok(apart < 120, `the end corner's arc differs from the start's by ${apart}`);
       }
     );
+
+    test('a focused code block draws its ring over its own edge, round its copy control too', async () => {
+      const page = await opened();
+      const block = page.locator('#code-block .sui-code-block-scroll[tabindex="0"]').first();
+      await block.scrollIntoViewIfNeeded();
+      await page.keyboard.press('Shift');
+      await block.focus();
+      const rings = await block.evaluate((scroller) => {
+        const frame = /** @type {Element} */ (scroller.parentElement);
+        const look = getComputedStyle(frame);
+        return {
+          scroller: getComputedStyle(scroller).outlineStyle,
+          frame: look.outlineStyle,
+          over: parseFloat(look.outlineOffset) + parseFloat(look.borderTopWidth)
+        };
+      });
+      assert.deepEqual(rings, { scroller: 'none', frame: 'solid', over: 0 });
+    });
 
     test('K6 a retried error that leaves no control keeps focus where it stood', long, async () => {
       const page = await opened();

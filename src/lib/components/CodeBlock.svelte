@@ -217,7 +217,7 @@ from the corner and centred on the first line, or in the file name's row when th
 
 - Semantics: a `figure` whose `figcaption` is the file name; the code is a `pre`, and a scroller that scrolls is a focusable `region` named by the label or `regionLabel`.
 - Content: plain text in one of seven languages, any number of lines; long lines never wrap, and the block scrolls sideways instead.
-- States: at rest, scrolling (a tab stop with the 2px inset ring on focus), and the copy control's own copied and failed states.
+- States: at rest, scrolling (a tab stop whose 2px ring covers the block's edge on focus, inside the scroller for a `bare` block), and the copy control's own copied and failed states.
 - Keyboard: Tab reaches a block that scrolls and then its copy control, and the arrow keys scroll a focused block.
 - Pointer and touch: the copy control is 28px, 44px on a phone or touch screen, and always shown; selection works as in any text.
 - Focus: it never moves focus; the copy control keeps focus through its copied state.
@@ -368,6 +368,7 @@ from the corner and centred on the first line, or in the file name's row when th
      its code, so it keeps its own top edge. */
   @media (max-width: 47.9375rem) {
     .sui-code-block:not(.labelled) > .sui-code-block-copy {
+      align-items: baseline;
       box-sizing: border-box;
       flex-basis: 100%;
       justify-content: flex-end;
@@ -377,10 +378,10 @@ from the corner and centred on the first line, or in the file name's row when th
     }
 
     /* The row would otherwise hold the control alone, so it names the language at its start,
-       on the code's edge and in the file name's type, as a file name heads its own row. */
+       on the code's edge and in the file name's type, as a file name heads its own row. Its
+       smaller cap stands on the control's baseline, so the row reads as one line of words. */
     .sui-code-block-lang {
       align-content: center;
-      align-self: center;
       block-size: var(--sui-block-snap);
       color: var(--sui-text-secondary);
       display: block;
@@ -407,8 +408,26 @@ from the corner and centred on the first line, or in the file name's row when th
     }
   }
 
-  /* Rounded even when `bare` squares the block, so the inset ring never has sharp corners. */
+  /* A framed block draws the ring over its own edge, round the code and the copy control
+     together, as a field draws it over its frame, so no second box stands inside the first.
+     Under focus the scroller keeps its fades whole, with no ring of its own to keep clear. */
   .sui-code-block-scroll:focus-visible {
+    outline: none;
+  }
+
+  .sui-code-block:not(.bare):has(> .sui-code-block-scroll:focus-visible) {
+    outline: var(--sui-focus-ring-width) solid var(--sui-focus);
+    outline-offset: calc(-1 * var(--sui-stroke));
+  }
+
+  .sui-code-block:not(.bare) > .sui-code-block-scroll {
+    --sui-local-edge-corner: 0px;
+    --sui-local-edge-ring: 0px;
+  }
+
+  /* A bare block has no edge of its own, so its scroller draws the ring inside itself,
+     rounded even though the block is square, so the ring never has sharp corners. */
+  .bare .sui-code-block-scroll:focus-visible {
     border-radius: var(--sui-radius-control);
     outline: var(--sui-focus-ring-width) solid var(--sui-focus);
     outline-offset: var(--sui-focus-ring-inset);

@@ -102,7 +102,7 @@ grep -rn 'export default' dist 2>/dev/null || echo "No exports"`;
   <Specimen label="Named for what it copies">
     <CopyButton text="0.2.1" label="Copy Version" />
   </Specimen>
-  <Specimen label="Toolbar tier, 34 px">
+  <Specimen label="Toolbar tier, as tall as a field">
     <CopyButton text="https://sui.tercenas.com" label="Copy Link" toolbar />
   </Specimen>
   <Specimen label="Disabled">
