@@ -123,21 +123,27 @@ grep -rn 'export default' dist 2>/dev/null || echo "No exports"`;
 </Example>
 
 <style>
-  /* Each tier stands in a toolbar tier's height, so the quieter 28px ones centre on the 34px
-     one beside them and the four words share one line. The disabled one keeps its reason a
-     copy gap under it, so it takes only the room above. */
-  .tier {
-    align-items: center;
-    display: grid;
-    justify-items: start;
-    min-block-size: var(--sui-control-height-compact);
-  }
-
   .copy-locked {
     display: grid;
     gap: var(--sui-row-copy-gap);
     justify-items: start;
-    padding-block-start: calc((var(--sui-control-height-compact) - var(--sui-tier-quiet)) / 2);
+  }
+
+  /* Side by side, each tier stands in a toolbar tier's height, so the quieter 28px ones centre
+     on the 34px one beside them and the four words share one line. The disabled one keeps its
+     reason a copy gap under it, so it takes only the room above. A phone stacks them, each
+     alone on its line, so each keeps its own height there. */
+  @media (min-width: 48rem) {
+    .tier {
+      align-items: center;
+      display: grid;
+      justify-items: start;
+      min-block-size: var(--sui-control-height-compact);
+    }
+
+    .copy-locked {
+      padding-block-start: calc((var(--sui-control-height-compact) - var(--sui-tier-quiet)) / 2);
+    }
   }
 
   .copy-reason {
