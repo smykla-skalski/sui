@@ -1670,23 +1670,23 @@ test('L-58 a dialog drawn in place lifts softly in both themes, the dark one und
   );
 });
 
-test("a code block's head names its file or language in the primary ink, apart from the secondary copy words", () => {
+test("a code block's head names its file or language in the primary ink at 500, apart from the secondary copy words", () => {
   const block = stripComments(read('src/lib/components/CodeBlock.svelte'));
-  assert.match(
-    block,
-    /\.sui-code-block-label \{[^}]*color: var\(--sui-text-primary\);/,
-    'the file name'
-  );
-  assert.match(
-    block,
-    /\.sui-code-block:not\(\.bare\) \.sui-code-block-lang \{[^}]*color: var\(--sui-text-primary\);/,
-    'the language name'
-  );
-  assert.match(
-    block,
-    /\.bare \.sui-code-block-lang \{[^}]*color: var\(--sui-text-primary\);/,
-    "a bare block's language name over it on a phone"
-  );
+  for (const { rule, name } of [
+    { rule: /\.sui-code-block-label \{[^}]*/, name: 'the file name' },
+    {
+      rule: /\.sui-code-block:not\(\.bare\) \.sui-code-block-lang \{[^}]*/,
+      name: 'the language name'
+    },
+    {
+      rule: /\.bare \.sui-code-block-lang \{[^}]*/,
+      name: "a bare block's language name over it on a phone"
+    }
+  ]) {
+    const body = block.match(rule)?.[0] ?? '';
+    assert.match(body, /color: var\(--sui-text-primary\);/, name);
+    assert.match(body, /font: var\(--sui-weight-medium\) /, name);
+  }
 });
 
 test("a framed code block's head steps off its code by 6% ink in light and 4.5% in dark, and its copy control stands lighter than the head in both", () => {
