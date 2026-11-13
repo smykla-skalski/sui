@@ -530,6 +530,9 @@
   );
   --sui-radius-dialog: 14px;
   --sui-radius-check: 5px;
+  /* A placeholder for a line of words rounds like Radix Themes' text skeleton, so it reads as
+     words to come, while a bar for a pill keeps the pill's round ends. */
+  --sui-radius-placeholder: 3px;
 
   --sui-radius-chip: 6px;
   /* A chip's remove control stands one inset inside it, so its corner nests in the chip's. */

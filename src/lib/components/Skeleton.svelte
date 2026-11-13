@@ -234,8 +234,8 @@ under reduced motion. Use it only where the shape of what is coming is already k
   .bar {
     background: var(--sui-placeholder);
     block-size: round(up, 1cap, 1px);
-    border-radius: var(--sui-radius-pill);
-    clip-path: inset(0 round var(--sui-radius-pill));
+    border-radius: var(--sui-radius-placeholder);
+    clip-path: inset(0 round var(--sui-radius-placeholder));
     display: block;
     inline-size: min(12rem, 50%);
   }
@@ -261,8 +261,11 @@ under reduced motion. Use it only where the shape of what is coming is already k
     inline-size: min(14rem, 64%);
   }
 
-  /* The side centres on the two lines, as a loaded row's side does. */
+  /* The side centres on the two lines, as a loaded row's side does, and keeps the round ends of
+     the pill it stands for. */
   .bar.side {
+    border-radius: var(--sui-radius-pill);
+    clip-path: inset(0 round var(--sui-radius-pill));
     inline-size: auto;
     margin-block-start: round(calc((var(--sui-skeleton-lines) - round(up, 1cap, 1px)) / 2), 1px);
   }
