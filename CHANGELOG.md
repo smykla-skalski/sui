@@ -3,7 +3,7 @@
 ## Unreleased
 
 - An `ErrorState`'s retry wears an edge of the danger hue, 18% at rest and 30% on hover, as a warning callout's button wears its own, where a grey edge stood on the pink wash.
-- An `ErrorState`'s step in words reads at the regular weight in the primary ink, under its semibold title, where its medium weight read as a second title.
+- An `ErrorState`'s and an `EmptyState`'s step in words read at the regular weight in the primary ink, under their semibold title, where the medium weight read as a second title.
 - An `ErrorState`'s retry says Retrying… while it runs, so at rest it holds 29px a side around Try Again, where Trying Again… held 41px.
 - A framed `CodeBlock`'s copy words read at the names' 13px, where the 14px control outranked the name it copies.
 - The sink's day feed sets its times at the 13px caption size, a step under their 14px entries, where 12px read as small print.

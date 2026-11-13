@@ -139,7 +139,7 @@ the next step, a control or words, stands a panel gap under it.
 
   .sui-empty-state-step {
     color: var(--sui-text-primary);
-    font: var(--sui-weight-medium) var(--sui-font-size-body) / var(--sui-row-copy-leading)
+    font: var(--sui-weight-regular) var(--sui-font-size-body) / var(--sui-row-copy-leading)
       var(--sui-sans);
     max-inline-size: var(--sui-measure);
   }
