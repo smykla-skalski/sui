@@ -17,7 +17,6 @@
 - The Relative Time page's In Context line reads its times in the primary ink over its muted words.
 - The Relative Time page's In Context line keeps each clause whole when it wraps, where a phone parted "checked" from "again".
 - A `CodeBlock`'s file name reads at 12px with its letters at their own spacing, where it read at 11px spaced wide, too small beside the code under it.
-- The Empty & Error States page shows its list a filter empties as an example of its own, where it stood as a bare third panel beside two whole empty states.
 - On a phone the kit's specimen rows stand 8px past their name gap, so a page that widens the gap for its tips still reads each name with the specimen under it.
 - A failed refresh's retry ends its line, spread by space-between rather than an auto margin, and wraps under its words on any line too narrow for both, and a `FormError` summary's message heads its links at 16px semibold. L-90 lets a row whose first item hangs a mark start a wrapped line on the words' edge.
 - A `PageToc` keeps room for a scrollbar only while it scrolls, so an index that fits ends its plates on its column's end, and on a phone its words start on the page's text edge, with its plates hanging 8px past it.
