@@ -68,7 +68,7 @@
   ];
 
   const timeline: TimelineEvent[] = [
-    { at: started, actor: { name: 'Bart' }, text: 'requested the check from the sync page' },
+    { at: started, actor: { name: 'Bart Smykla' }, text: 'requested the check from the sync page' },
     { at: started + 2_000, text: 'A worker picked it up, attempt 1 of 3' },
     { at: started + 48_000, text: 'Finished, 16 repositories compared' }
   ];
@@ -108,8 +108,8 @@
 
   const foot: RailItem[] = [{ label: 'Settings', icon: 'settings' }];
 
+  // The workspace is named by the sidebar's head and in Details, so the headline keeps to the run.
   const headline: Fact[] = [
-    { label: 'Workspace', value: 'acme' },
     { label: 'Started', value: startedAt },
     { label: 'Took', value: '48\u00a0seconds' }
   ];
@@ -124,7 +124,6 @@
     { label: 'Workspace', value: 'acme', href: '#overview' },
     { label: 'Trigger', value: 'Manual, from the sync page' },
     { label: 'Requested by', value: requester },
-    { label: 'Started', value: startedAt },
     { label: 'Attempt', value: '1 of 3' }
   ];
 
@@ -253,8 +252,8 @@
   <main id="content" tabindex="-1">
     {#if view === 'loading'}
       <!-- The actions need no answer, so they stand where they will stay, and bars stand where
-           the description's lines and the facts' lines will: one of each in a wide header, two
-           of each on a phone. -->
+           the description's lines and the facts' lines will: one of each in a wide header, and
+           two lines of description over the facts' one line on a phone. -->
       <PageHeader title="Sync Check #4182" kicker={back} actions={waitingActions}>
         <!-- The status region is there from the first render, so the state is read once it arrives. -->
         {#snippet status()}{/snippet}
@@ -262,7 +261,7 @@
           <div class="from-ink wide">{@render wait(2, '2.25rem')}</div>
           <div class="from-ink narrow">
             {@render wait(2, '1.375rem')}
-            <div class="fact-lines">{@render wait(2, '2.125rem')}</div>
+            <div class="fact-lines">{@render wait(1, '2.125rem')}</div>
           </div>
         {/snippet}
       </PageHeader>
@@ -311,7 +310,7 @@
             <Section title="Details">
               <div class="from-ink">
                 <Skeleton
-                  rows={5}
+                  rows={4}
                   bars={false}
                   rowHeight={FACT_ROW}
                   patience={Infinity}
@@ -338,7 +337,7 @@
       </div>
     {:else}
       {@render header()}
-      <div class="zones">
+      <div class={['zones', { stale: view === 'stale' }]}>
         {#if view === 'stale'}
           <!-- Stale words stand behind everything under the header, so the notice spans both
                columns, and its retry stands at its end as any notice's action does. It is quiet,
@@ -372,10 +371,23 @@
     padding: 0 var(--sui-rhythm-pane-gutter) var(--sui-rhythm-pane-gutter);
   }
 
-  /* A failure that stands as the whole body keeps a reading measure, so its words and its way
-     out stay together rather than leave a wide empty ground beside them. */
-  .missing > :global(*) {
-    max-inline-size: var(--sui-measure);
+  /* The stale notice speaks for the whole page, so it stands as near the warning under it as
+     the header's band stands over it, and the two notices read as one stack. */
+  .stale {
+    row-gap: var(--sui-rhythm-head-surface);
+  }
+
+  /* A missing check's panel takes the main column's width, as a loaded check's warning does
+     where the aside stands beside it (DetailLayout), so the page keeps one edge whether or not
+     the check exists. */
+  .missing {
+    container-type: inline-size;
+  }
+
+  @container (min-width: 44rem) {
+    .missing > :global(*) {
+      max-inline-size: calc(100% - var(--sui-rhythm-section-gap) - clamp(16rem, 30%, 20rem));
+    }
   }
 
   /* Proximity: the counts stand one copy gap further below the sentence than its own lines
@@ -436,10 +448,10 @@
     padding-block-end: var(--outcome-room);
   }
 
-  /* The facts' first line holds the time's 44px target, so it stands 24px of ink under the
-     description and a pixel of its room stays under the last line. */
+  /* The facts' line holds the time's 44px target, so it stands 24px of ink under the
+     description, and the target's room under the words stays under it. */
   .fact-lines {
-    margin-block: calc(var(--sui-space-6) + 1px) 1px;
+    margin-block: calc(var(--sui-space-6) + 1px) calc(var(--sui-space-4) + 1px);
   }
 
   /* The Load More line is 46px, 14px more than the last placeholder row leaves. */

@@ -8,6 +8,12 @@
 - Inline `FactList` facts keep flowing two to a line on a phone or in a page header 36rem wide or narrower, 16px apart, rather than taking a 44px row each.
 - A `Rail` that holds the shell's pages marks its current place on the inset plate, so the current page's accent plate is the column's one accent (L-85). A folded `SideNav` row's count rides past its glyph's top-end corner in its own neutral ground instead of leaving the strip, and a 24px hairline marks where each group starts. In a `FactList` of rows an `IdentityRow` name takes a value's 500, through a new `--sui-identity-weight`.
 - A folded `SideNav` draws its fold control as its glyph alone, named by its words and a tooltip, and a strip label takes one line in 68px of room, so every strip row keeps one 44px pitch: a longer label takes a `short`, and one that still overflows breaks at a hyphen, or at its edge where the browser has no hyphenation, rather than being cut. Its `foot` snippet is told whether the sidebar is the strip.
+- A `SideNav` whose rows scroll casts a soft shadow up from its foot's hairline while more rows are below, so a row cut there reads as more to scroll (L-107).
+- The detail pane keeps each fact once: the header's facts are the run's start and length, and Details keeps the workspace, trigger, requester and attempt. A missing check's panel takes the main column's width, and the stale notice stands 24px over the warning.
+- The phone drawer runs from the shell's top, over the bar, as a modal drawer does, so the scrim dims the whole frame behind it.
+- A phone `AppShell` bar names the page only once the page's own h1 in the same words has gone under it, fading the title in over 160ms; until then its `eyebrow` stands alone on the bar's middle. The bar's inner box is even, so its button and name sit on whole pixels.
+- A `PageHeader`'s actions stand beside its title down to 25rem, not 36rem, so a header in a 900px window keeps Check Again on the title's line, and its description and facts take the header's whole width under the title and the actions.
+- A `Timeline` event with an avatar, a status or an action keeps the list's pitch: its seat no longer adds a pixel over an odd cap.
 - A `SegmentedControl` or a `ThemeSwitch` with `iconOnly` draws each option's glyph alone, its word still naming its radio, for a box as narrow as a folded sidebar.
 
 - A `Skeleton`'s last row ends where a loaded list's last row ends once the list hands back its padding, so the section under it no longer moves 2px when the rows arrive.

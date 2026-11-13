@@ -67,6 +67,7 @@
   let topBar = $state<HTMLElement | null>(null);
   let places = $state<HTMLElement | null>(null);
   let menu = $state<HTMLButtonElement | null>(null);
+  let name = $state<HTMLElement | null>(null);
   const bottom = $derived(bottomNav && rail !== undefined);
 
   // The palette's breakpoints, the same as the container queries below, which own the first
@@ -169,12 +170,60 @@
     };
   }
 
-  /** The drawer lives in the top layer, so it is placed against the shell's start edge by hand. */
+  /* While the page's own heading, an h1 in the same words as the title, is on screen, the bar
+     names only where the page is, and it names the page once the heading goes under the bar,
+     as a large title hands over to the bar's title on iOS. The eyebrow then stands on the bar's
+     middle, lifted by a whole number of pixels. */
+  let headed = $state(false);
+  let lift = $state(0);
+  // Only a hand-over the reader's scroll makes moves: while a page loads, the bar takes each
+  // reading at once, so a title never fades out over a page that opens with its heading.
+  let settled = $state(false);
+  $effect(() => {
+    if (settled) return;
+    const settle = () => (settled = true);
+    addEventListener('scroll', settle, { capture: true, once: true, passive: true });
+    return () => removeEventListener('scroll', settle, { capture: true });
+  });
+  $effect(() => {
+    const bar = topBar;
+    const holder = name;
+    const frame = root;
+    if (mode !== 'drawer' || !bar || !holder || !frame) {
+      headed = false;
+      return;
+    }
+    const heading = [...frame.querySelectorAll('h1')].find(
+      (node) => !bar.contains(node) && node.textContent?.trim() === title.trim()
+    );
+    if (!heading) {
+      headed = false;
+      return;
+    }
+    const line = holder.querySelector<HTMLElement>('.sui-shell-eyebrow');
+    const sizes = new ResizeObserver(() => {
+      lift = line ? Math.round((holder.offsetHeight - line.offsetHeight) / 2) : 0;
+    });
+    sizes.observe(holder);
+    // A contained shell's pane starts under its bar, and bars that ride with the content cover nothing.
+    const seen = new IntersectionObserver(([entry]) => (headed = entry.isIntersecting), {
+      rootMargin: contained || flowing ? '0px' : `${-bar.offsetHeight}px 0px 0px 0px`
+    });
+    seen.observe(heading);
+    return () => {
+      sizes.disconnect();
+      seen.disconnect();
+    };
+  });
+
+  /** The drawer lives in the top layer, so it is placed against the shell's start edge by hand.
+      It runs from the shell's top, over the bar, as a modal drawer does, so the scrim dims the
+      whole frame behind it. */
   function placeDrawer() {
     if (!side || !root) return;
     const box = root.getBoundingClientRect();
     const view = document.documentElement;
-    const top = Math.max(topBar?.getBoundingClientRect().bottom ?? box.top, 0);
+    const top = Math.max(box.top, 0);
     const bottomEdge = Math.min(box.bottom, view.clientHeight);
     const start =
       getComputedStyle(root).direction === 'rtl' ? view.clientWidth - box.right : box.left;
@@ -228,9 +277,11 @@ fold control and the rail's foot, so every place and page is still one press awa
 them in the order they are drawn. Below 64rem there is no room to fold, so the sidebar stays
 whole and its fold control leaves.
 
-On a phone, below 48rem of the shell's own width, a 56px bar names the current page. Its
+On a phone, below 48rem of the shell's own width, a 56px bar names the current page once the
+page's own h1 in the same words has gone under it; while that heading is on screen the bar
+names only where the page is, its `eyebrow`, on the bar's middle. Its
 button, a glyph and the word `menuLabel`, parted from the title by a 20px hairline, opens the
-sidebar over the content as a modal drawer. The drawer's pages are 288px wide, or the sidebar's 228px
+sidebar from the shell's top, over the bar and the content, as a modal drawer. The drawer's pages are 288px wide, or the sidebar's 228px
 beside the rail, and the drawer leaves at least 56px of the screen uncovered. `eyebrow` names where the page is, such as its workspace, over the title. Without `bottomNav` the rail rides in the drawer too. With it, the rail's few peer places stand
 in a bar along the bottom, always in reach of a thumb, and the drawer holds only the pages.
 
@@ -247,7 +298,7 @@ viewport. `landmark="none"` keeps the content from claiming the page's one `main
 - Responsive: container queries on the shell's own width switch between full, folded, drawer and bottom bar, and the phone bar's title wraps instead of being cut; bars that would cover more than a quarter of the screen (the shell's own box when contained), as with very large text, ride with the content instead of sticking; a page shell pads the document's scroll by the bars' height so a focused control never hides behind them.
 - Accessibility: while the drawer is open the bars and the content are inert; the menu button shows its word and reports `aria-expanded`.
 - Localization: `menuLabel` and `label` are props with English defaults; the drawer opens from the start edge and is placed by direction, so it lands on the right in a right-to-left page, and the sidebar glyph mirrors.
-- Performance: one width measure drives the mode; the fold snaps instead of animating the column's width, and placement work runs only while the drawer is open.
+- Performance: one width measure drives the mode; the fold snaps instead of animating the column's width, and placement work runs only while the drawer is open; the bar's title fades in over 160ms as the page's heading goes under the bar, by opacity and a whole-pixel lift only, and changes at once with reduced motion.
 - Analytics: `onopenchange(open)` reports the drawer and `oncollapsedchange(collapsed)` the fold; `drawerOpen` and `collapsed` are bindable too.
 - Failure: with no `rail` the shell draws the sidebar alone, and `bottomNav` without a rail falls back to the drawer; the shell holds no data of its own, so loading and errors belong to its content.
 -->
@@ -270,7 +321,11 @@ viewport. `landmark="none"` keeps the content from claiming the page's one `main
       <span class="sui-shell-menu-label">{menuLabel}</span>
     </button>
     <span class="sui-shell-rule" aria-hidden="true"></span>
-    <div class="sui-shell-name">
+    <div
+      bind:this={name}
+      class={['sui-shell-name', { headed, settled }]}
+      style:--sui-local-name-lift="{lift}px"
+    >
       {#if eyebrow}<p class="sui-shell-eyebrow">{eyebrow}</p>{/if}
       <p class="sui-shell-title">{title}</p>
     </div>
@@ -349,7 +404,9 @@ viewport. `landmark="none"` keeps the content from claiming the page's one `main
     gap: var(--sui-space-2);
     inset-block-start: 0;
     min-block-size: var(--sui-top-bar-height);
-    padding-block: var(--sui-space-1);
+    /* The foot gives its hairline's pixel back, so the bar's inner box is even and the button
+       and the name centre on whole pixels. */
+    padding-block: var(--sui-space-1) calc(var(--sui-space-1) - var(--sui-stroke));
     padding-inline: var(--sui-space-2) var(--sui-space-3);
     position: sticky;
     z-index: var(--sui-layer-top-bar);
@@ -423,6 +480,25 @@ viewport. `landmark="none"` keeps the content from claiming the page's one `main
     flex: 1 1 8rem;
     gap: var(--sui-row-copy-gap);
     min-inline-size: 0;
+  }
+
+  /* Opacity and a whole-pixel lift only, so the hand-over is composited and the words land on
+     the pixel grid. */
+  .settled > * {
+    transition:
+      opacity var(--sui-duration-fast) var(--sui-ease-standard),
+      translate var(--sui-duration-fast) var(--sui-ease-standard),
+      visibility var(--sui-duration-fast);
+  }
+
+  .headed > * {
+    translate: 0 var(--sui-local-name-lift);
+  }
+
+  /* Hidden once faded, so the title is never read twice beside the heading it hands over to. */
+  .headed > .sui-shell-title {
+    opacity: 0;
+    visibility: hidden;
   }
 
   .sui-shell-eyebrow {
@@ -570,10 +646,10 @@ viewport. `landmark="none"` keeps the content from claiming the page's one `main
       inline-size: var(--sui-sidebar-width);
     }
 
-    /* The drawer meets the screen's start and foot, so it keeps its rows off the notch and the
-       home indicator (L-118). */
+    /* The drawer meets the screen's top, start and foot, so it keeps its rows off the notch and
+       the home indicator (L-118). */
     .sui-shell:not(.contained) .sui-shell-side:popover-open {
-      padding-block-end: env(safe-area-inset-bottom);
+      padding-block: env(safe-area-inset-top) env(safe-area-inset-bottom);
       padding-inline-start: var(--sui-safe-start);
     }
 
@@ -642,7 +718,8 @@ viewport. `landmark="none"` keeps the content from claiming the page's one `main
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .sui-shell-menu {
+    .sui-shell-menu,
+    .settled > * {
       transition: none;
     }
   }

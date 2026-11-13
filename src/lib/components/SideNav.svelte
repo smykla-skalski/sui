@@ -262,7 +262,7 @@ following a row closes the drawer.
 - Keyboard: Tab moves through the rows, then the fold or close control; Enter follows a row or presses the control.
 - Pointer and touch: rows are 34px on a desktop pointer and 44px in the drawer and the strip; the close and fold controls are 34px and 44px there, and nothing needs a gesture.
 - Focus: folding keeps focus on the control; a fold control that leaves as the shell narrows hands focus to the current row, and a row followed in the drawer closes it with focus returned to the menu button.
-- Responsive: the row list scrolls inside the column and brings a new current row into view without scrolling the page, a long label wraps, the strip stacks each glyph over its short label, and the fold control shows only where the shell can fold.
+- Responsive: the row list scrolls inside the column, its foot's hairline casting a soft shadow over the rows while more are below, and brings a new current row into view without scrolling the page, a long label wraps, the strip stacks each glyph over its short label, and the fold control shows only where the shell can fold.
 - Accessibility: a count is read with its words from `countLabel`, joined to the label by `countedName`, every ink holds 4.5:1 on its ground, the current ink stands 2:1 from the rest ink in lightness and the plate marks it too, so it is never hue alone (WCAG 1.4.1), and a heading names each group for heading navigation.
 - Localization: `label`, `closeLabel`, `collapseLabel`, `expandLabel` and `countLabel` are props with English defaults; counts follow the page language, the plate is measured from the start edge and the fold glyphs mirror in a right-to-left page.
 - Performance: one resize observer measures the plate, which glides with a transform; it suits a sidebar of tens of rows, not thousands.
@@ -398,6 +398,7 @@ following a row closes the drawer.
      padding and the heading's inline margin are the same token. */
   .sui-side-nav {
     box-sizing: border-box;
+    timeline-scope: --sui-side-nav-tree;
     color: var(--sui-sidebar-text);
     display: flex;
     flex: 1;
@@ -488,6 +489,7 @@ following a row closes the drawer.
     overscroll-behavior: contain;
     padding: var(--sui-local-tree-gap) var(--sui-space-3);
     scroll-padding-block: var(--sui-local-tree-gap);
+    scroll-timeline: --sui-side-nav-tree block;
     scrollbar-width: thin;
   }
 
@@ -755,6 +757,37 @@ following a row closes the drawer.
     display: grid;
     gap: var(--sui-space-4);
     padding-block-start: var(--sui-space-3);
+    position: relative;
+  }
+
+  /* While more rows are below, the foot's hairline casts a soft shadow up over the rows, as a
+     sticky bar does over a page, so a row cut there reads as more to scroll and never fades
+     (L-107). It clears a pixel short of the end, and a list that fits, or a browser without
+     scroll timelines, casts none. */
+  @supports (animation-timeline: scroll()) {
+    .sui-side-nav-foot::before {
+      animation: sui-side-nav-more var(--sui-ease-linear) both;
+      animation-range: calc(100% - 2px) calc(100% - 1px);
+      animation-timeline: --sui-side-nav-tree;
+      block-size: var(--sui-stroke);
+      box-shadow: 0 calc(-1 * var(--sui-space-1)) var(--sui-space-2) var(--sui-shadow-color);
+      content: '';
+      inset-block-start: calc(-1 * var(--sui-stroke));
+      inset-inline: 0;
+      opacity: 0;
+      pointer-events: none;
+      position: absolute;
+    }
+  }
+
+  @keyframes sui-side-nav-more {
+    from {
+      opacity: 1;
+    }
+
+    to {
+      opacity: 0;
+    }
   }
 
   [data-mode='drawer'] .sui-side-nav-row {

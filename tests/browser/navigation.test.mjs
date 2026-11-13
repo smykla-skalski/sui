@@ -335,6 +335,46 @@ suite('navigation', together, () => {
     }
   );
 
+  test(
+    "a phone bar names the page only once the page's own heading has gone under it",
+    long,
+    async () => {
+      const page = await openLayout('layouts/detail-pane/', 390);
+      try {
+        const bar = () =>
+          page.evaluate(() => {
+            const box = (/** @type {string} */ selector) =>
+              /** @type {HTMLElement} */ (document.querySelector(selector)).getBoundingClientRect();
+            const [head, place] = [box('.sui-shell-bar'), box('.sui-shell-eyebrow')];
+            return {
+              title: getComputedStyle(
+                /** @type {HTMLElement} */ (document.querySelector('.sui-shell-title'))
+              ).opacity,
+              off: (place.top + place.bottom - head.top - head.bottom) / 2,
+              grid: Number.isInteger(place.top)
+            };
+          });
+        await page.waitForFunction(
+          () =>
+            getComputedStyle(document.querySelector('.sui-shell-title') ?? document.body)
+              .opacity === '0'
+        );
+        const rest = await bar();
+        assert.ok(Math.abs(rest.off) <= 1, `the place stands ${rest.off}px off the bar's middle`);
+        assert.ok(rest.grid, 'the place stands off the pixel grid');
+        await page.evaluate(() => scrollTo(0, 400));
+        await page.waitForFunction(
+          () =>
+            getComputedStyle(document.querySelector('.sui-shell-title') ?? document.body)
+              .opacity === '1'
+        );
+        assert.ok((await bar()).off < -1, 'the place does not rise over the title');
+      } finally {
+        await page.close();
+      }
+    }
+  );
+
   test('L-118 the shell keeps its bar, pane, drawer, skip link, toasts and worker status inside the safe area, toasts standing on the status, and so does the error page', async () => {
     // A phone upright, with its notch and home indicator, and on its side, notch at the start,
     // narrow enough that the error page's centred column meets the insets.
@@ -1513,8 +1553,10 @@ suite('navigation', together, () => {
               await frame();
               await frame();
             };
+            const shadow = () => getComputedStyle(next, '::before').opacity;
             await rest(0);
             const top = list.getBoundingClientRect().top - box().top;
+            const more = shadow();
             await rest(tree.scrollHeight);
             const bottom = box().bottom - list.getBoundingClientRect().bottom;
             return {
@@ -1525,11 +1567,17 @@ suite('navigation', together, () => {
               overNext: next.getBoundingClientRect().top - box().bottom,
               gap: parseFloat(getComputedStyle(tree).getPropertyValue('--sui-local-tree-gap')) * 16,
               masked: getComputedStyle(tree).maskImage !== 'none',
+              shadows: [more, shadow()],
               lines: [getComputedStyle(head).borderBottom, getComputedStyle(next).borderTop]
             };
           });
           assert.ok(found.scrolls > 100, `the rows scroll only ${found.scrolls}px`);
           assert.equal(found.masked, false, 'the rows fade as they pass the hairlines');
+          assert.deepEqual(
+            found.shadows,
+            ['1', '0'],
+            'the foot casts its shadow only while more rows are below'
+          );
           assert.match(found.lines[0], /^1px solid/, 'no hairline parts the title from the rows');
           assert.equal(
             found.lines[0],

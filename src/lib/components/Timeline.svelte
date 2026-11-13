@@ -296,12 +296,15 @@ only and a `LoadMore` after it lands on the first new one. Page it in the order 
   }
 
   /* Seats as tall as the first line's cap band: what stands in them centres on it and reaches
-     above and below it evenly, without raising the row. */
+     above and below it evenly, without raising the row. The seat rounds to an even height so a
+     20px avatar centres to the pixel, and hands back the pixel that adds over an odd cap, so an
+     event with an avatar keeps the list's pitch. */
   .sui-timeline-face,
   .sui-timeline-side {
     align-items: center;
     block-size: round(up, 1cap, 2px);
     display: flex;
+    margin-block-end: calc(round(up, 1cap, 1px) - round(up, 1cap, 2px));
   }
 
   .sui-timeline-side {

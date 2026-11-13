@@ -48,10 +48,11 @@
 @component
 The top of a page: where it is, what it is called, its state, what it is for, its headline
 facts, and the controls that act on it. The copy is one stack (eyebrow, title, description,
-facts) and the actions stand 24px beside it, centred on the cap band of the title's first line
-as a card's head controls are, so they lend the copy no height. Once the header itself is
-36rem wide or narrower, as in a narrow pane, and on a phone, the actions move under the copy,
-12px below it and packed to the start, and tabs under them stand 16px further down, so the
+facts) and the actions stand 24px beside the title, centred on the cap band of its first line
+as a card's head controls are, so they lend the copy no height, and the description and facts
+under the title take the header's whole width. Once the header itself is 25rem wide or
+narrower, and on a phone, the actions move under the copy, 12px below it and packed to the
+start, and tabs under them stand 16px further down, so the
 page's views never read as more of its actions.
 
 The title is 32px on 36px lines at -0.022em, 24px on 28px lines at a dialog title's -0.015em on a
@@ -96,7 +97,7 @@ and the header owes only the difference. A holder that hides the kicker at some 
 - Keyboard: none of its own; Tab reaches the kicker's links and the actions in reading order.
 - Pointer and touch: none of its own; the actions keep their own targets.
 - Focus: nothing here moves focus; a script may move focus to the title as a reading position, after a navigation or from a `ListDetail`, and since it is not a control it draws no ring.
-- Responsive: the header answers to its own width, so the title takes the phone's size at 36rem or narrower, the actions wrap under the copy, packed to the start, at that width too; the title balances its lines, the status moves under a title that leaves it no room, as on a phone, and the copy and the facts wrap.
+- Responsive: the header answers to its own width, so the title takes the phone's size at 36rem or narrower, the actions wrap under the copy, packed to the start, at 25rem or narrower; the title balances its lines, the status moves under a title that leaves it no room, as on a phone, and the copy and the facts wrap.
 - Accessibility: the title is a real heading and the copy holds 4.5:1 on the band; the status is a `role="status"` region, so a change is announced politely and never as part of the heading; the eyebrow is uppercase only for its few words; the foot's hairline is a border, so under forced colors, where the band and the page share one ground, it draws in the system's line colour.
 - Localization: it draws no words of its own; the actions pack to the start, which mirrors in a right-to-left page.
 - Performance: static text with no script.
@@ -201,6 +202,12 @@ and the header owes only the difference. A holder that hides the kicker at some 
   .sui-page-header-copy > :global(*) {
     grid-column: 1;
     min-inline-size: 0;
+  }
+
+  /* The actions stand in the title's row only, so the description and the facts under it take
+     the header's whole width and a narrow header keeps its actions by the title. */
+  .sui-page-header-copy > :is(.sui-page-header-description, .sui-page-header-facts) {
+    grid-column: 1 / -1;
   }
 
   .sui-page-header-layout > .sui-page-header-copy > :global(* + *) {
@@ -377,13 +384,16 @@ and the header owes only the difference. A holder that hides the kicker at some 
     }
 
     .sui-page-header-title,
-    .sui-page-header-heading {
+    .sui-page-header-heading,
+    .sui-page-header-actions {
       font: var(--sui-weight-bold) var(--sui-font-size-page-title-compact) /
         var(--sui-leading-page-compact) var(--sui-sans);
     }
+  }
 
-    /* The actions take a line of their own under the copy, packed to its start edge, so the
-       title keeps the column's width. */
+  /* A header as narrow as a row's stack (--sui-breakpoint-row) leaves its title no room beside
+     the actions, so they take a line of their own under the copy, packed to its start edge. */
+  @container sui-page-header (max-width: 25rem) {
     .sui-page-header-layout {
       grid-template-columns: minmax(0, 1fr);
     }
