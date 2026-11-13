@@ -149,8 +149,11 @@ names the text field.
     }
   }
 
+  /* The value lies over the frame's edge, as a pattern's does, so its box keeps the full
+     control height, 44px on a phone, and the frame's clip keeps it inside (L-38). */
   .sui-copyable-link-fit {
     display: grid;
+    margin-block: calc(-1 * var(--sui-stroke));
   }
 
   .sui-copyable-link-fit::after {
@@ -169,15 +172,13 @@ names the text field.
     font-variant-ligatures: none;
     font-variant-numeric: tabular-nums;
     grid-area: 1 / 1;
-    min-block-size: calc(
-      var(--sui-local-control-height, var(--sui-control-height-compact)) - 2 * var(--sui-stroke)
-    );
+    min-block-size: var(--sui-local-control-height, var(--sui-control-height-compact));
     min-inline-size: 0;
     overflow-wrap: anywhere;
     padding: calc(
         (
-            var(--sui-local-control-height, var(--sui-control-height-compact)) - 2 *
-              var(--sui-stroke) - var(--sui-leading-input)
+            var(--sui-local-control-height, var(--sui-control-height-compact)) -
+              var(--sui-leading-input)
           ) /
           2
       )

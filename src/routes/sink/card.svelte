@@ -19,6 +19,7 @@
     type ActionMenuItem
   } from '#lib';
   import Example from '../kit/Example.svelte';
+  import Pair from '../kit/Pair.svelte';
   import Specimen from '../kit/Specimen.svelte';
 
   const nothing = () => {};
@@ -127,7 +128,7 @@
 
 <Example
   title="Bare Page"
-  note="The one box on a page that holds nothing else, with its actions beside the copy at its foot while they fit"
+  note="The one box on a page that holds nothing else, too narrow to set its action beside 16 rem of copy"
   layout="stack"
   ground="canvas"
 >
@@ -146,16 +147,17 @@
   note="A card holding changes not saved yet says so after its title, to a screen reader too, and takes the unsaved keyline"
   layout="grid"
   ground="canvas"
+  --specimen-min="24rem"
 >
   <Specimen label="Rest">
-    <div class="bare">
+    <div class="bare flush">
       <Card title="Workspace" description="Saved 2&nbsp;minutes ago" level={4}>
         <Field label="Workspace name" value="acme" />
       </Card>
     </div>
   </Specimen>
   <Specimen label="Unsaved">
-    <div class="bare">
+    <div class="bare flush">
       <Card title="Workspace" description="Changed since the last save" level={4} unsaved>
         <Field label="Workspace name" value="acme-platform" />
       </Card>
@@ -163,44 +165,46 @@
   </Specimen>
 </Example>
 
-<Example
-  title="Long Title"
-  note="A long title balances its lines and keeps its action on the first line"
-  layout="stack"
-  ground="canvas"
->
-  <Specimen label="Wrapping title & description">
-    <Card
-      href="#card"
-      title="Required Status Checks That Every Pull Request into a Protected Branch Must Pass Before It Can Merge"
-      description="Checks that report from a fork count the same as checks from the repository itself"
-      level={4}
-    >
-      {#snippet actions()}
-        <ActionMenu label="Check actions" icon="more" items={rules} align="end" />
-      {/snippet}
-    </Card>
-  </Specimen>
-</Example>
-
-<Example
-  title="Narrow Width"
-  note="A card 36 rem wide or narrower steps its inset from 20 px to 16 px, by its own width rather than the page’s"
-  layout="stack"
-  ground="canvas"
->
-  <Specimen label="In 20 rem">
-    <div class="narrow">
-      <Card href="#card" title="Storage" description="Across every repository" level={4}>
-        <p class="copy">84.7&nbsp;MB of 1&nbsp;GB</p>
+<Pair trail="calc(20rem + 2 * var(--sui-space-6))" even>
+  <Example
+    title="Long Title"
+    note="A long title balances its lines and keeps its action on the first line"
+    layout="stack"
+    ground="canvas"
+  >
+    <Specimen label="Wrapping title & description">
+      <Card
+        href="#card"
+        title="Required Status Checks That Every Pull Request into a Protected Branch Must Pass Before It Can Merge"
+        description="Checks that report from a fork count the same as checks from the repository itself"
+        level={4}
+      >
+        {#snippet actions()}
+          <ActionMenu label="Check actions" icon="more" items={rules} align="end" />
+        {/snippet}
       </Card>
-    </div>
-  </Specimen>
-</Example>
+    </Specimen>
+  </Example>
+
+  <Example
+    title="Narrow Width"
+    note="A card 36 rem wide or narrower steps its inset from 20 px to 16 px, by its own width rather than the page’s"
+    layout="stack"
+    ground="canvas"
+  >
+    <Specimen label="In 20 rem">
+      <div class="narrow">
+        <Card href="#card" title="Storage" description="Across every repository" level={4}>
+          <p class="copy">84.7&nbsp;MB of 1&nbsp;GB</p>
+        </Card>
+      </div>
+    </Specimen>
+  </Example>
+</Pair>
 
 <style>
   .copy {
-    color: var(--sui-text-secondary);
+    color: var(--sui-text-primary);
     font: var(--sui-weight-regular) var(--sui-font-size-body) / var(--sui-leading-body)
       var(--sui-sans);
     margin: 0;
@@ -223,7 +227,21 @@
     display: grid;
     grid-template-columns: min(100%, 26rem);
     justify-content: center;
-    padding-block: var(--sui-space-8);
+    padding-block: var(--sui-space-6);
+  }
+
+  /* A phone's stage is narrow, so the bare page keeps its card a step closer. */
+  @media (max-width: 47.9375rem) {
+    .bare {
+      padding-block: var(--sui-space-4);
+    }
+  }
+
+  /* A state shown on its bare page needs none of the page's room around it, and fills its
+     column from its caption's edge. */
+  .flush {
+    grid-template-columns: minmax(0, 1fr);
+    padding-block: 0;
   }
 
   .narrow {

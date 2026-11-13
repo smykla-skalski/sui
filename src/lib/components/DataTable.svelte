@@ -480,7 +480,7 @@ row in place of the hairlines, for a table wide enough that the eye can lose its
     display: flex;
     font: inherit;
     gap: var(--sui-space-1);
-    inline-size: fit-content;
+    inline-size: var(--sui-inline-snap);
     margin: calc(-1 * var(--sui-space-1));
     padding: 0 var(--sui-space-1);
     position: relative;

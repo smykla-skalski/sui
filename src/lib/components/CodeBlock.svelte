@@ -175,7 +175,7 @@
     lineNumbers?: boolean;
     /** Offers a copy control in the corner. */
     copy?: boolean;
-    /** Drops the block's own frame, for a host that already frames it. */
+    /** Drops the block's own frame, fill and insets, for a host that already frames and insets it. */
     bare?: boolean;
     /** The scroller's name when it scrolls and has no `label`. */
     regionLabel?: string;
@@ -198,7 +198,8 @@ A block that scrolls can take keyboard focus, so it can be scrolled without a po
 
 `lineNumbers` draws a gutter in the gutter ink at full opacity, which never selects or
 copies and stays in view while long lines scroll. Selected code is opaque, in the selection colors. `label` names the file above the
-code, and `bare` drops the frame for a host that frames the block itself. `html` colors markup,
+code, and `bare` drops the frame, its fill and the code's start inset for a host that frames and insets
+the block itself, so the code starts on the host's own edge, as under a disclosure's words. `html` colors markup,
 Svelte templates included. `shell` colors commands, flags, strings, variables and operators,
 and carries an open quote or a continued line on to the next line. The copy control stands
 in its own column at the end of the block, always in view and never over the code, 8px in
@@ -268,6 +269,7 @@ from the corner and centred on the first line, or in the file name's row when th
   }
 
   .bare {
+    background: transparent;
     border: 0;
     border-radius: 0;
   }
@@ -295,6 +297,18 @@ from the corner and centred on the first line, or in the file name's row when th
     padding: var(--sui-space-2);
   }
 
+  /* A bare block's host insets it, so the control ends on that inset, as the code starts on it.
+     With no file name it still centres on the first line, which then starts at the block's top;
+     in a file name's row it centres on the row. */
+  .bare .sui-code-block-copy {
+    padding-inline-end: 0;
+  }
+
+  .bare:not(.labelled) .sui-code-block-copy {
+    margin-block-start: calc((var(--sui-leading-meta) - var(--sui-tier-quiet)) / 2);
+    padding-block-start: 0;
+  }
+
   .sui-code-block-scroll {
     border-radius: inherit;
     font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-leading-meta)
@@ -305,6 +319,13 @@ from the corner and centred on the first line, or in the file name's row when th
     min-inline-size: 0;
     overflow-x: auto;
     padding-block: calc((var(--sui-local-code-row) - var(--sui-leading-meta)) / 2);
+  }
+
+  /* A bare block's host gives the room above and below its lines, as it does for any content,
+     so its code stands where the host's words would. Under a file name the code keeps its room,
+     so it never meets the line under the name. */
+  .bare:not(.labelled) .sui-code-block-scroll {
+    padding-block: 0;
   }
 
   /* The line numbers stay put while the lines scroll under them, so the start fade begins
@@ -365,7 +386,8 @@ from the corner and centred on the first line, or in the file name's row when th
     white-space: pre;
   }
 
-  .numbered .src {
+  .numbered .src,
+  .bare .src {
     padding-inline-start: 0;
   }
 

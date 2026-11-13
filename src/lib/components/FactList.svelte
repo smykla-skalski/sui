@@ -53,18 +53,22 @@ Facts about a thing, each a label and its value, such as the branch, the version
 last synced. A setting a reader changes is a form row, not a fact.
 
 `inline` is for two to five headline facts, as under a page title: they flow as words do,
-side by side, and a line breaks between two facts, separated by space alone, so no generated
+side by side, 24px apart, three times the 8px between a label and its value, and a line breaks
+between two facts, separated by space alone, so no generated
 comma or dot is left at either end of a line. A line of plain facts keeps the copy's leading,
 8px between its words and the next line's, and only a line that holds a target, a link or a
 time that shows its instant, grows to the target's height. The list is trimmed to its first
-cap and its last baseline, so a holder measures its rhythm to the facts' ink.
+cap and its last baseline, so a holder measures its rhythm to the facts' ink. On a phone, or in a
+page header 36rem wide or narrower, where the facts mostly take a line each, each stands on a
+line of its own, its label in a 7rem column and its value 12px after it, so the values line up,
+and a value with less room than that column, as at twice the text size, goes under its label.
 
 `rows` is a summary list of a thing's properties, as GOV.UK's summary list and Stripe's
 property list draw them: the labels in a column as wide as the longest one, up to 16rem where a
 longer label wraps, the values 24px after it, and an optional `action` per fact at the row's
 end, such as a "Change" link. Rows pad 12px and a hairline parts each row from the next, never
 above the first or under the last, so the list's first and last ink stand at its own edges.
-Once the list itself is under 25rem wide, each label stands over its value, one copy gap
+Once the list itself is under 18rem wide, each label stands over its value, one copy gap
 apart, and the action under the value.
 
 - Semantics: a `dl` with one `dt` and one `dd` per fact, each pair in its own `div`; a row's action is a second `dd`, as in GOV.UK's summary list.
@@ -73,7 +77,7 @@ apart, and the action under the value.
 - Keyboard: a linked value and a row's action are tab stops, in reading order; nothing else is.
 - Pointer and touch: inline, a fact that holds a target is at least 24px tall, and 44px on a phone or a coarse pointer, so its line holds the target and two targets on two lines never meet; a linked value is a standalone `Link`, whose hit area grows to that target size without moving its words; a row's action keeps its own target.
 - Focus: none moves; a linked value and an action take focus in reading order.
-- Responsive: inline facts wrap one by one at every width, a long value breaks inside its fact, and text at 200% wraps the same way; rows answer to the list's own width and stack each label over its value under 25rem.
+- Responsive: inline facts wrap one by one, and on a phone or in a page header 36rem wide or narrower each take a line, the label in a 7rem column, a long value breaks inside its fact, and text at 200% wraps the same way; rows answer to the list's own width and stack each label over its value under 18rem.
 - Accessibility: the label is muted and regular and the value medium, so they differ by weight as well as ink; both hold 4.5:1; in rows each label and value pair still reads as a term and its description.
 - Localization: `missingLabel` is a prop with an English default; values come formatted by the caller in the page's language, and both layouts follow the reading direction.
 - Performance: one element per fact with no script; rows share one grid through `subgrid`, so a column never measures twice.
@@ -120,6 +124,7 @@ apart, and the action under the value.
      top and a target on that line reaches past it with its room alone; its last line ends at
      its facts' own foot, so a fact that wraps on it stays inside the list. */
   .inline {
+    --sui-local-fact-target: var(--sui-field-target-min);
     block-size: var(--sui-block-snap);
     font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-leading-none)
       var(--sui-sans);
@@ -137,7 +142,7 @@ apart, and the action under the value.
     display: inline-flex;
     flex-wrap: wrap;
     margin-block-start: calc(var(--sui-row-copy-leading) - round(up, 1cap, 2px));
-    margin-inline-end: var(--sui-space-5);
+    margin-inline-end: var(--sui-space-6);
     max-inline-size: 100%;
     row-gap: var(--sui-row-copy-gap);
     vertical-align: baseline;
@@ -160,7 +165,7 @@ apart, and the action under the value.
   .inline
     > .sui-fact-list-fact:has(:global(:is(a[href], button, [tabindex]:not([tabindex^='-'])))) {
     align-content: center;
-    min-block-size: var(--sui-field-target-min);
+    min-block-size: var(--sui-local-fact-target);
   }
 
   /* On the list's last line a target's room under its words reaches past the list, as on the
@@ -169,7 +174,7 @@ apart, and the action under the value.
     > .sui-fact-list-fact:last-child:has(
       :global(:is(a[href], button, [tabindex]:not([tabindex^='-'])))
     ) {
-    margin-block-end: calc((round(up, 1cap, 1px) - var(--sui-field-target-min)) / 2);
+    margin-block-end: calc((round(up, 1cap, 1px) - var(--sui-local-fact-target)) / 2);
   }
 
   /* A pill or a chip centres its label on it, so the box lands on whole pixels (L-95). */
@@ -279,6 +284,16 @@ apart, and the action under the value.
     padding-block: 0;
   }
 
+  /* A face beside a name stands taller than a value's words, so in a row the identity is as
+     tall as its words and the face reaches into the row's padding, centred on the name, and a
+     one-line row keeps its neighbours' pitch while a wrapped name or a handle still grows it. */
+  .rows .sui-fact-list-value:has(> :global(.sui-identity-row)) {
+    --sui-identity-overhang: 1;
+    align-items: center;
+    display: flex;
+    padding-block: 0;
+  }
+
   .sui-fact-list-value.missing {
     color: var(--sui-text-muted);
     font-weight: var(--sui-weight-regular);
@@ -290,8 +305,9 @@ apart, and the action under the value.
   }
 
   /* Too narrow for two columns, each label stands over its value and the action under it, in
-     reading order, as GOV.UK's summary list does on a phone. */
-  @container sui-fact-rows (max-width: 25rem) {
+     reading order, as GOV.UK's summary list does on a phone. Two columns hold down to a narrow
+     aside's 18rem (--sui-breakpoint-bar), so a pane's properties keep one line each there. */
+  @container sui-fact-rows (max-width: 18rem) {
     .rows > .sui-fact-list-fact {
       grid-template-columns: minmax(0, 1fr);
       row-gap: var(--sui-row-copy-gap);
@@ -303,9 +319,152 @@ apart, and the action under the value.
   }
 
   @media (max-width: 47.9375rem), (pointer: coarse) {
+    .inline {
+      --sui-local-fact-target: var(--sui-touch-target);
+    }
+  }
+
+  /* Inline facts on a phone, or in a page header as narrow as a compact card, mostly take a
+     line each, so there each stands on a line of its own, its label in a 7rem column, wide
+     enough for a headline fact's word or two, a longer word breaking inside it, and its value
+     12px after it, so the values line up and read down as one list. A value with less room than the label's column beside it, as
+     at twice the text size, goes under its label. The lines keep the copy's leading, and a
+     line that holds a target still grows to it, its words on its middle. */
+  @media (max-width: 47.9375rem) {
+    .inline > .sui-fact-list-fact {
+      align-items: start;
+      column-gap: var(--sui-space-3);
+      display: flex;
+      flex-wrap: wrap;
+      margin-inline-end: 0;
+    }
+
+    .inline > .sui-fact-list-fact:first-child {
+      margin-block-start: 0;
+    }
+
     .inline
       > .sui-fact-list-fact:has(:global(:is(a[href], button, [tabindex]:not([tabindex^='-'])))) {
-      min-block-size: var(--sui-touch-target);
+      align-items: center;
+    }
+
+    .inline
+      > .sui-fact-list-fact:first-child:has(
+        :global(:is(a[href], button, [tabindex]:not([tabindex^='-'])))
+      ) {
+      margin-block-start: round(
+        up,
+        calc((round(up, 1cap, 1px) - var(--sui-local-fact-target)) / 2),
+        1px
+      );
+    }
+
+    .inline .sui-fact-list-label {
+      flex: none;
+      inline-size: 7rem;
+      overflow-wrap: break-word;
+    }
+
+    .inline .sui-fact-list-value {
+      flex: 1 1 0;
+      min-inline-size: min(100%, 7rem);
+    }
+
+    /* A list that holds a target sets every line at the target's height, its words on the
+       middle, so the lines keep one pitch and a target never crowds a plain line. The first
+       and last lines hand back the room past their words, so the list ends at its ink. */
+    .inline:has(:global(:is(a[href], button, [tabindex]:not([tabindex^='-']))))
+      > .sui-fact-list-fact {
+      align-items: center;
+      margin-block-start: 0;
+      min-block-size: var(--sui-local-fact-target);
+    }
+
+    .inline:has(:global(:is(a[href], button, [tabindex]:not([tabindex^='-']))))
+      > .sui-fact-list-fact:first-child {
+      margin-block-start: round(
+        up,
+        calc((round(up, 1cap, 1px) - var(--sui-local-fact-target)) / 2),
+        1px
+      );
+    }
+
+    .inline:has(:global(:is(a[href], button, [tabindex]:not([tabindex^='-']))))
+      > .sui-fact-list-fact:last-child {
+      margin-block-end: round(
+        down,
+        calc((round(up, 1cap, 1px) - var(--sui-local-fact-target)) / 2),
+        1px
+      );
+    }
+  }
+
+  @container sui-page-header (max-width: 36rem) {
+    .inline > .sui-fact-list-fact {
+      align-items: start;
+      column-gap: var(--sui-space-3);
+      display: flex;
+      flex-wrap: wrap;
+      margin-inline-end: 0;
+    }
+
+    .inline > .sui-fact-list-fact:first-child {
+      margin-block-start: 0;
+    }
+
+    .inline
+      > .sui-fact-list-fact:has(:global(:is(a[href], button, [tabindex]:not([tabindex^='-'])))) {
+      align-items: center;
+    }
+
+    .inline
+      > .sui-fact-list-fact:first-child:has(
+        :global(:is(a[href], button, [tabindex]:not([tabindex^='-'])))
+      ) {
+      margin-block-start: round(
+        up,
+        calc((round(up, 1cap, 1px) - var(--sui-local-fact-target)) / 2),
+        1px
+      );
+    }
+
+    .inline .sui-fact-list-label {
+      flex: none;
+      inline-size: 7rem;
+      overflow-wrap: break-word;
+    }
+
+    .inline .sui-fact-list-value {
+      flex: 1 1 0;
+      min-inline-size: min(100%, 7rem);
+    }
+
+    /* A list that holds a target sets every line at the target's height, its words on the
+       middle, so the lines keep one pitch and a target never crowds a plain line. The first
+       and last lines hand back the room past their words, so the list ends at its ink. */
+    .inline:has(:global(:is(a[href], button, [tabindex]:not([tabindex^='-']))))
+      > .sui-fact-list-fact {
+      align-items: center;
+      margin-block-start: 0;
+      min-block-size: var(--sui-local-fact-target);
+    }
+
+    .inline:has(:global(:is(a[href], button, [tabindex]:not([tabindex^='-']))))
+      > .sui-fact-list-fact:first-child {
+      margin-block-start: round(
+        up,
+        calc((round(up, 1cap, 1px) - var(--sui-local-fact-target)) / 2),
+        1px
+      );
+    }
+
+    .inline:has(:global(:is(a[href], button, [tabindex]:not([tabindex^='-']))))
+      > .sui-fact-list-fact:last-child {
+      margin-block-end: round(
+        down,
+        calc((round(up, 1cap, 1px) - var(--sui-local-fact-target)) / 2),
+        1px
+      );
     }
   }
 </style>

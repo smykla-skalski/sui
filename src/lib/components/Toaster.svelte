@@ -3,6 +3,7 @@
   import type { TransitionConfig } from 'svelte/transition';
   import Icon from '../icons/Icon.svelte';
   import { clearance } from '../internal/clearance.js';
+  import { duration } from '../internal/motion.js';
   import {
     dismiss,
     footing,
@@ -193,10 +194,9 @@
 
   // Exit reads the fast duration token and keeps only the fade when motion is reduced.
   function leave(node: Element): TransitionConfig {
-    const duration = parseFloat(getComputedStyle(node).getPropertyValue('--sui-duration-fast'));
     const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
     return {
-      duration,
+      duration: duration('--sui-duration-fast', node),
       css: (t) =>
         still ? `opacity: ${t}` : `opacity: ${t}; translate: 0 calc(${1 - t} * var(--sui-space-2))`
     };

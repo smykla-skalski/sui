@@ -10,14 +10,13 @@
   import { Disclosure, Field, Section } from '#lib';
   import Example from '../kit/Example.svelte';
   import Specimen from '../kit/Specimen.svelte';
-
-  let open = $state(true);
 </script>
 
 <Example
   title="Variants"
   note="The chevron leads the summary’s words at the start edge, and a hint says what is inside"
-  layout="stack"
+  layout="grid"
+  --specimen-column-gap="calc(2 * var(--sui-space-6))"
 >
   <Specimen label="Default">
     <Disclosure summary="Why This Check Is Required">
@@ -39,15 +38,16 @@
 <Example
   title="States"
   note="Open, the chevron turns down and the content hangs under the summary’s words"
-  layout="stack"
+  layout="grid"
+  --specimen-column-gap="calc(2 * var(--sui-space-6))"
 >
-  <Specimen label="Closed">
+  <Specimen label="Starts closed">
     <Disclosure summary="What Happens to Archived Repositories">
       <p class="copy">They are skipped until someone unarchives them</p>
     </Disclosure>
   </Specimen>
-  <Specimen label={open ? 'Open, bound' : 'Closed, bound'}>
-    <Disclosure summary="What Happens to Open Pull Requests" bind:open>
+  <Specimen label="Starts open">
+    <Disclosure summary="What Happens to Open Pull Requests" open>
       <p class="copy">They keep the rules they were opened with until they are updated</p>
     </Disclosure>
   </Specimen>
@@ -62,6 +62,7 @@
   title="Long Text"
   note="When the words and the hint do not fit one line, the hint drops under the words and the chevron stays on the first line"
   layout="grid"
+  --specimen-column-gap="calc(2 * var(--sui-space-6))"
 >
   <Specimen label="Long summary">
     <Disclosure
@@ -92,16 +93,18 @@
   layout="stack"
 >
   <Specimen label="Open with fields">
-    <Disclosure summary="Advanced Settings" hint="2 fields" open>
-      <div class="fields">
-        <Field
-          label="Commit author"
-          hint="The name on every commit the sync makes"
-          value="sync-bot"
-        />
-        <Field label="Branch prefix" value="sync/" />
-      </div>
-    </Disclosure>
+    <div class="measured">
+      <Disclosure summary="Advanced Settings" hint="2 fields" open>
+        <div class="fields">
+          <Field
+            label="Commit author"
+            hint="The name on every commit the sync makes"
+            value="sync-bot"
+          />
+          <Field label="Branch prefix" value="sync/" />
+        </div>
+      </Disclosure>
+    </div>
   </Specimen>
 </Example>
 
@@ -120,19 +123,27 @@
 
 <Example
   title="Group"
-  note="Disclosures that share a name open one at a time, as the browser keeps the group"
+  note="Disclosures that share a name open one at a time, as the browser keeps the group, and a divider parts their rows"
   layout="stack"
 >
   <Specimen label="One open at a time">
-    <Disclosure name="sync-help" summary="When the Sync Runs" open>
-      <p class="copy">On every push to the default branch, and once a night</p>
-    </Disclosure>
-    <Disclosure name="sync-help" summary="What the Sync Changes">
-      <p class="copy">Only the files that the shared settings list</p>
-    </Disclosure>
-    <Disclosure name="sync-help" summary="How to Pause It">
-      <p class="copy">Turn off the sync in the repository’s settings</p>
-    </Disclosure>
+    <div class="group">
+      <div>
+        <Disclosure name="sync-help" summary="When the Sync Runs" open>
+          <p class="copy">On every push to the default branch, and once a night</p>
+        </Disclosure>
+      </div>
+      <div>
+        <Disclosure name="sync-help" summary="What the Sync Changes">
+          <p class="copy">Only the files that the shared settings list</p>
+        </Disclosure>
+      </div>
+      <div>
+        <Disclosure name="sync-help" summary="How to Pause It">
+          <p class="copy">Turn off the sync in the repository’s settings</p>
+        </Disclosure>
+      </div>
+    </div>
   </Specimen>
 </Example>
 
@@ -140,6 +151,7 @@
   title="Right to Left"
   note="The chevron, the hint and the content’s indent mirror, and the chevron turns down"
   layout="grid"
+  --specimen-column-gap="calc(2 * var(--sui-space-6))"
 >
   <Specimen label="Closed">
     <Disclosure dir="rtl" summary="Skipped Repositories" hint="3 archived">
@@ -161,8 +173,31 @@
     margin: 0;
   }
 
+  /* A divider parts the rows of a group, so it scans as one list of questions, and each row
+     stands half a step off it, so a lit summary never meets the line and the rows still read
+     as one list. */
+  .group > div {
+    padding-block: calc(var(--sui-space-1) / 2);
+  }
+
+  /* A group keeps the measure of the revealed fields, so its dividers end with the rows
+     beside it and never run empty under short summaries. */
+  .group {
+    max-inline-size: 37.5rem;
+  }
+
+  .group > div + div {
+    border-block-start: var(--sui-stroke) solid var(--sui-border-divider);
+  }
+
+  /* The hint counts the fields, so the row ends where they do. */
+  .measured {
+    max-inline-size: 37.5rem;
+  }
+
   .fields {
     display: grid;
-    gap: var(--sui-space-4);
+    gap: var(--sui-space-5);
+    max-inline-size: 36rem;
   }
 </style>

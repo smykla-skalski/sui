@@ -4,6 +4,11 @@
   const WARM_FOR = 300;
   let showing = 0;
   let warmUntil = 0;
+  /* One tip shows at a time. A tip that keyboard focus holds stays while its control has focus
+     (WCAG 1.4.13), so a pointer passing other controls shows nothing over it, and focus
+     reaching a control closes a tip the pointer opened elsewhere. */
+  let held: string | null = null;
+  let hovered: (() => void) | null = null;
   /* The arrow's depth, and the room its point keeps off the anchor, in px: the focus ring's 4px
      reach and a 4px step past it, since a point aimed at the ring reads as touching it (L-35).
      A copy keeps the same room in CSS. */
@@ -79,6 +84,10 @@
     waiting = true;
     showTimer = window.setTimeout(() => {
       waiting = false;
+      // Focus may have reached another control while the pointer waited here.
+      if (held !== null && held !== id) return;
+      if (hovered !== close) hovered?.();
+      hovered = close;
       open = true;
     }, delay);
   }
@@ -96,6 +105,8 @@
     clearTimeout(pressTimer);
     waiting = false;
     open = false;
+    if (hovered === close) hovered = null;
+    if (held === id) held = null;
   }
 
   // Touch has no hover: its pointers enter and leave only around a press.
@@ -111,13 +122,16 @@
     const control = owner;
     if (!target || !control || preview) return;
     const onenter = (event: PointerEvent) => {
-      if (hovers(event)) show(showing > 0 || performance.now() < warmUntil ? 0 : SHOW_DELAY);
+      if (!hovers(event) || (held !== null && held !== id)) return;
+      show(showing > 0 || performance.now() < warmUntil ? 0 : SHOW_DELAY);
     };
     // No timer on focus: an Escape pressed before a timer fired would pass the tip and close
     // the dialog around it.
     const onfocus = () => {
       if (!control.matches(':focus-visible')) return;
       close();
+      if (hovered !== close) hovered?.();
+      held = id;
       open = true;
     };
     // A tap shows nothing and its click lands as usual. A hold shows the tip, which stays a
@@ -149,6 +163,9 @@
       clearTimeout(showTimer);
       clearTimeout(hideTimer);
       clearTimeout(pressTimer);
+      // A tip that leaves the page holds no other tip back.
+      if (held === id) held = null;
+      if (hovered === close) hovered = null;
       target.removeEventListener('pointerenter', onenter);
       target.removeEventListener('pointerleave', leave);
       control.removeEventListener('focus', onfocus);
@@ -258,7 +275,7 @@ does, stays out of the accessibility tree. Any other tip describes the control t
 - States: hidden, waiting (250ms on hover), shown, lingering (120ms after the pointer leaves, 1.5s after a long press), and drawn in place with `preview`: over its anchor for `side="block-start"`, as the first item of a flex or grid parent, and under it otherwise.
 - Keyboard: focus on its control shows it at once, blur hides it, and Escape hides it without reaching a dialog around it.
 - Pointer and touch: hover shows it after a pause and the pointer may move onto it; on touch a 500ms press shows it and a tap passes through as a click.
-- Focus: it never takes focus; the control keeps it.
+- Focus: it never takes focus; the control keeps it. One tip shows at a time, and one that keyboard focus shows stays while the control has focus, so the pointer opens no other tip over it.
 - Responsive: placed beside the anchor with its arrow on the anchor's centre, flipped to the side with room and held 8px inside the viewport; it wraps rather than widening past 20rem.
 - Accessibility: hoverable, dismissable and persistent as WCAG 1.4.13 asks, read as a description only when it adds words.
 - Localization: `text` is the caller's words, and the inline sides and `start`/`end` alignment follow the reading direction.

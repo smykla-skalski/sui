@@ -70,20 +70,24 @@ Whatever the card holds stands the same inset from all four keylines, to the ink
 sees (L-33): the first ink sits the inset below the top, the last the inset above the bottom,
 and anything that reaches a side stops the inset short of it. The title is a heading at
 `level`, balanced and trimmed to its cap height. A `description` is the title's second line,
-as far below it as the title's own lines stand apart plus 8px, not the first line of the
-body. The title's cap stands the inset below the top. Whatever stands beside the title in
+12px of ink below it as under a toast's or a callout's title (L-24), not the first line of
+the body. The title's cap stands the inset below the top. Whatever stands beside the title in
 `actions`, a button, a switch, a segmented control, a pill or a menu, centres on the title's
 cap band and lends the head no height, so the title, its note and the content stand exactly
 where they stand in the same card with no action; a control taller than the title's line
 reaches above and below it into the inset. A framed control ends on the inset, and a ghost
 button or a quiet icon button keeps its words or glyph there instead, with its box as far past
-the end as above the band. A button there stays drawn at 34px on a phone with a 44px hit area.
-The actions never take a line of their own: at every width they stay on the title's first
-line, and short of room the title and its note wrap in what is left beside them, a segmented
-control turns into its select, and the other controls keep their width. A `footer`'s actions stand beside the copy at its
-foot while the card holds both next to an 11rem measure of copy, as a callout's do, and on a
-line of their own under it otherwise, so they keep the inset from the bottom and the end in
-either place. A row list or a `Skeleton` that opens the card hands back what stands above its
+the end as above the band. A button, a select or a segmented track there is drawn at the quiet
+tier's 28px, as a callout's actions are, with a 44px hit area on a phone, so it never reaches
+the keyline. The actions never take a line of their own: at every width they stay on the
+title's first line, and short of room the title wraps in what is left beside them, a segmented control turns into its select, and the
+other controls keep their width. The note runs under them at the head's full width, save
+beside a shown select that keeps its 44px on a phone where script cannot open it, which reaches
+below the title's line further than the note stands under it. A `footer`'s actions stand
+beside the copy at its foot while the card holds both next to a 16rem measure of copy, wider
+than a callout's 14rem as a framed button is wider than its quiet ones, and on a line of their
+own under it otherwise, so they keep the inset from the bottom and the end in either place. A
+row list or a `Skeleton` that opens the card hands back what stands above its
 first row's ink, as it hands back what stands below its last: the card lends the body's first
 child `--sui-local-row-lead` and its last child `--sui-local-row-trail`, so a row that opens or
 closes the card leaves only the inset beside its ink.
@@ -96,11 +100,11 @@ title, such as "Danger Zone", and holds the acts that cannot be undone, each a `
 
 - Semantics: a plain grouping box; the title is a heading at `level`; with `href`, an `a` under the content, named by the title through `aria-labelledby`.
 - Content: an optional title, description, head actions, body and footer actions; the title and the description wrap; a linked card needs a title to name its link.
-- States: rest; unsaved, which draws `unsavedLabel` after the title in the unsaved ink and gives the keyline the unsaved tint; danger, a danger keyline and title ink; with `href`, hover (the row's hover veil, where the pointer can hover), pressed (a deeper veil, the pressed inset and a 1px sink) and focus.
+- States: rest; unsaved, which draws `unsavedLabel` after the title in the unsaved ink and gives the keyline the unsaved tint; danger, a danger keyline and title ink; with `href`, hover (the row's hover veil, a control's keyline and the link's underline on the title, where the pointer can hover), pressed (a deeper veil, the pressed inset and a 1px sink) and focus.
 - Keyboard: without `href`, none of its own; with it, the card is one tab stop and Enter follows the link; then Tab reaches the controls inside in reading order.
 - Pointer and touch: with `href`, the whole card is the link's target; the controls inside keep their own targets and press feedback.
 - Focus: nothing here moves focus; a focused card link draws the 2px ring flush on the card's keyline, which takes the focus colour, as a bordered control does (L-41).
-- Responsive: in a grid or flex row the card takes the row's height and leaves the extra room under its content; a container query on the card's own width steps the inset from 20px to 16px at 36rem, the head's actions stay beside the copy, centred on the title's cap band, while the copy wraps beside them, until the card is under 12rem wide, as with text at twice its size, where they stand under the copy, and the footer's actions stand beside the copy while they fit next to 11rem of it and wrap under it, from its start edge, otherwise.
+- Responsive: in a grid or flex row the card takes the row's height and leaves the extra room under its content; a container query on the card's own width steps the inset from 20px to 16px and the head's gap from 24px to 12px at 36rem, the head's actions stay beside the copy, centred on the title's cap band, while the copy wraps beside them, until the card is under 12rem wide, as with text at twice its size, where they stand under the copy, and the footer's actions stand beside the copy while they fit next to 16rem of it and wrap under it, from its start edge, otherwise.
 - Accessibility: the unsaved and danger states are said in words, never by the keyline's colour alone, and the copy, the word and the danger title hold 4.5:1; a card link is heard once, by its title, with the rest of the card outside its name.
 - Localization: `unsavedLabel` is a prop with an English default, and `titleName` joins it to the title; the actions sit at the inline end, which mirrors in a right-to-left page.
 - Performance: static layout with no script; each card is its own size container, and hover and press change only the veil, the inset shadow and a 1px sink.
@@ -164,8 +168,8 @@ title, such as "Danger Zone", and holds the acts that cannot be undone, each a `
   }
 
   /* The copy, its head and body, and the footer's actions share one line while the card holds
-     both, and the actions wrap under the copy only when they do not fit beside an 11rem
-     measure of it, as a callout's do: wrapping decides that from the actions' own width, which
+     both, and the actions wrap under the copy only when they do not fit beside a 16rem
+     measure of it, so a framed button never takes almost as much width as the copy: wrapping decides that from the actions' own width, which
      a container query cannot know. On a shared line the actions close the copy at its foot, so
      their frame lands on whole pixels whatever the copy's height and keeps the bottom inset,
      and a line the actions take alone starts at the start edge (L-90). */
@@ -188,14 +192,15 @@ title, such as "Danger Zone", and holds the acts that cannot be undone, each a `
   }
 
   .sui-card-main {
-    flex: 1 1 11rem;
+    flex: 1 1 16rem;
     min-inline-size: 0;
   }
 
   /* The danger zone says so with its keyline and its title's ink and never with a ground, so
-     its stop buttons keep their own fill (Primer's danger zone). */
+     its stop buttons keep their own fill (Primer's danger zone). The keyline takes 35% of the
+     card's ground, so the long red edge never outshouts the title and the act it frames. */
   .danger {
-    border-color: var(--sui-danger);
+    border-color: color-mix(in oklch, var(--sui-danger) 65%, var(--sui-surface-base));
   }
 
   .danger .sui-card-title {
@@ -242,9 +247,23 @@ title, such as "Danger Zone", and holds the acts that cannot be undone, each a `
   }
 
   /* A veil over the card's own ground, a row's step, because the card is a large target. */
+  /* Its title, the link's name, takes a link's underline as well, so the card reads as a link
+     and not only as a lit box. */
   @media (hover: hover) {
     .sui-card:has(> .sui-card-hit:hover) {
       background-image: linear-gradient(var(--sui-row-hover), var(--sui-row-hover));
+    }
+
+    /* The veil takes the card's ground toward the stage's, so a plain keyline steps to a
+       control's edge and the card keeps its edge; a tone's keyline keeps its tone. */
+    .sui-card:not(.danger, .unsaved):has(> .sui-card-hit:hover:not(:focus-visible)) {
+      border-color: var(--sui-border-control);
+    }
+
+    .sui-card:has(> .sui-card-hit:hover) .sui-card-words > span:not(.sui-card-unsaved) {
+      text-decoration: underline;
+      text-decoration-thickness: var(--sui-stroke);
+      text-underline-offset: 0.18em;
     }
   }
 
@@ -290,28 +309,63 @@ title, such as "Danger Zone", and holds the acts that cannot be undone, each a `
   }
 
   /* The word, not a mark: a reader sees "Unsaved" whatever the keyline's tint, as on a setting
-     row. */
+     row. It stands on the title's baseline at the note's size, a state of the subject and never a
+     second subject beside it. */
   .sui-card-unsaved {
     color: var(--sui-unsaved-ink);
+    font-size: var(--sui-font-size-meta);
     font-weight: var(--sui-weight-regular);
   }
 
-  /* The copy and the actions share the head's one line at every width: short of room, each
-     gives up width in proportion to its own, so a long title wraps while the controls keep
-     theirs and a segmented control turns into its select, and the title and its note wrap in
-     what is left. */
+  /* Its box snaps to the pixel with the spare above its cap, so on the shared baseline it
+     reaches no lower than the title's and never lowers the title's cap. Without calc-size()
+     the spare is padding above it. */
+  .sui-card-words > .sui-card-unsaved {
+    align-content: end;
+    padding-block: var(--sui-block-snap-spare, 0px) 0;
+  }
+
+  /* The title and the actions share the head's first line at every width: short of room, the
+     title wraps while the controls keep their width and a segmented control turns into its
+     select. The note runs under them at the head's full width, since no control drawn there
+     reaches below the title's line as far as the note stands under it, so a description never
+     wraps beside a column the actions left empty. */
   .sui-card-head {
     align-items: start;
     column-gap: var(--sui-space-6);
-    display: flex;
-    justify-content: flex-end;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    row-gap: var(--sui-title-copy-gap);
   }
 
   .sui-card-copy {
-    display: grid;
-    flex: 1 1 auto;
-    gap: var(--sui-title-copy-gap);
-    min-inline-size: 0;
+    display: contents;
+  }
+
+  .sui-card-head > .sui-card-copy > .sui-card-title {
+    grid-area: 1 / 1;
+  }
+
+  /* With no actions the title takes the empty column and its gap too. */
+  .sui-card-head:not(:has(> .sui-card-actions)) > .sui-card-copy > .sui-card-title {
+    grid-column: 1 / -1;
+  }
+
+  .sui-card-head > .sui-card-copy > .sui-card-note {
+    grid-column: 1 / -1;
+  }
+
+  /* A select that keeps its own 44px on a phone, where script cannot open it from its hit
+     area, reaches further below the title's line than the note stands, so its note keeps
+     beside it. A segmented control's select counts only while it stands in for the track. */
+  @media (max-width: 47.9375rem), (pointer: coarse) {
+    .sui-card-head:has(
+        > .sui-card-actions :global(.sui-select[data-seat='own']:not(.sui-segmented:not(.short) *))
+      )
+      > .sui-card-copy
+      > .sui-card-note {
+      grid-column: 1;
+    }
   }
 
   /* Whatever the actions hold, a button, a switch, a segmented control, a pill or a menu,
@@ -319,22 +373,23 @@ title, such as "Danger Zone", and holds the acts that cannot be undone, each a `
      the title's face so `1cap` is the title's, and it gives back all of its height, so the
      copy alone sets the head's and the title, its note and the content stand where they stand
      in a card with no action (L-34). A control taller than the band reaches above and below
-     the title's line into the card's inset; a button there stays drawn at its pointer tier on
-     a phone and grows only its hit area, so it never reaches the keyline. A framed control
+     the title's line into the card's inset; a button or a select there stays drawn at its
+     pointer tier on a phone and grows only its hit area, so it never reaches the keyline. A framed control
      ends on the inset. A ghost button or a quiet icon button draws nothing at rest, so its
      words or glyph keep the inset instead, and its box reaches as far past the end as above
      the band, so a hover or press ground sits square in the card's corner. Material aligns an
      icon button's glyph to a card's keyline, lets its state layer reach past it, and draws a
      40dp button inside a 48dp target. */
   .sui-card-actions {
-    --sui-local-button-seat: var(--sui-control-height-drawn);
+    --sui-local-button-seat: var(--sui-tier-quiet);
+    --sui-local-field-seat: var(--sui-tier-quiet);
     align-items: center;
     block-size: round(up, 1cap, 2px);
     display: flex;
-    flex: 0 1 auto;
     font: var(--sui-weight-semibold) var(--sui-font-size-card-title) / var(--sui-leading-flat)
       var(--sui-sans);
     gap: var(--sui-space-2);
+    grid-area: 1 / 2;
     justify-content: flex-end;
     margin-block-end: calc(-1 * round(up, 1cap, 2px));
   }
@@ -355,7 +410,7 @@ title, such as "Danger Zone", and holds the acts that cannot be undone, each a `
 
   .sui-card-head:has(> .sui-card-actions > :global(.sui-button[data-tone='ghost']):only-of-type)
     > .sui-card-actions {
-    margin-inline-end: calc((round(up, 1cap, 2px) - var(--sui-control-height-drawn)) / 2);
+    margin-inline-end: calc((round(up, 1cap, 2px) - var(--sui-tier-quiet)) / 2);
   }
 
   .sui-card-head:has(> .sui-card-actions > :global(.sui-icon-button):only-of-type)
@@ -363,25 +418,19 @@ title, such as "Danger Zone", and holds the acts that cannot be undone, each a `
     margin-inline-end: calc((round(up, 1cap, 2px) - var(--sui-tier-quiet)) / 2);
   }
 
-  .sui-card-head:has(> .sui-card-actions > :global(.sui-icon-button.toolbar):only-of-type)
-    > .sui-card-actions {
-    margin-inline-end: calc((round(up, 1cap, 2px) - var(--sui-control-height-compact)) / 2);
-  }
-
   /* With too little room for both, as with text at twice its size, the actions stand under
      the copy from its start edge, at their own height (--sui-breakpoint-head). */
   @container (max-width: 12rem) {
     .sui-card-head {
-      flex-wrap: wrap;
-      row-gap: var(--sui-row-copy-gap);
+      grid-template-columns: minmax(0, 1fr);
     }
 
     .sui-card-head > .sui-card-actions {
       block-size: auto;
-      flex: 1 1 100%;
       flex-wrap: wrap;
+      grid-area: auto / 1;
       justify-content: flex-start;
-      margin-block-end: 0;
+      margin-block: calc(var(--sui-row-copy-gap) - var(--sui-title-copy-gap)) 0;
       margin-inline-end: 0;
     }
   }
@@ -401,13 +450,6 @@ title, such as "Danger Zone", and holds the acts that cannot be undone, each a `
     text-wrap: balance;
   }
 
-  /* Proximity: a wrapped title's lines stand 1lh - 1cap apart in ink, so the note stands that
-     far plus the copy gap and the title reads as one block, as on the page header. Taken from
-     the title's own line height, it holds when a reader raises line spacing (WCAG 1.4.12). */
-  .sui-card-title:has(+ .sui-card-note) {
-    margin-block-end: round(calc(1lh - 1cap), 1px);
-  }
-
   .sui-card-footer {
     align-items: center;
     align-self: end;
@@ -423,7 +465,7 @@ title, such as "Danger Zone", and holds the acts that cannot be undone, each a `
     align-content: center;
     block-size: var(--sui-block-snap);
     color: var(--sui-text-muted);
-    font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-row-copy-leading)
+    font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-leading-title-note)
       var(--sui-sans);
     margin: 0;
     padding-block: var(--sui-block-snap-room);
@@ -483,6 +525,12 @@ title, such as "Danger Zone", and holds the acts that cannot be undone, each a `
   @container (max-width: 36rem) {
     .sui-card {
       padding: var(--sui-rhythm-surface-pad-compact);
+    }
+
+    /* A compact card parts its title from its actions by a plate's 12px, so a long title keeps
+       its width beside a small control. */
+    .sui-card-head {
+      column-gap: var(--sui-space-3);
     }
 
     .sui-card-actions {

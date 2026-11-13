@@ -1,11 +1,16 @@
 <script lang="ts">
   import type { Snippet } from 'svelte';
   import type { HTMLAttributes } from 'svelte/elements';
+  import { cubicOut } from 'svelte/easing';
+  import { duration } from '../internal/motion.js';
+  import Icon, { type IconName } from '../icons/Icon.svelte';
 
   let {
     title,
     level = 2,
-    status,
+    state,
+    icon,
+    tone = 'neutral',
     class: className = '',
     children,
     ...rest
@@ -13,12 +18,27 @@
     title: string;
     /** The title's heading level, so the plate fits the outline of the page it is on. */
     level?: 2 | 3 | 4 | 5 | 6;
-    /** The plate's current state, said at the end of the title line and announced when it changes. */
-    status?: Snippet;
+    /** The plate's current state in words, said at the end of the title line and announced when it changes. */
+    state?: string;
+    /** A glyph before the state's words. */
+    icon?: IconName;
+    /** The state's tone: its glyph wears every tone, and its words wear a warning or a danger. */
+    tone?: 'neutral' | 'success' | 'warning' | 'danger';
     /** Layout for the call site only, never the plate's own paint. */
     class?: HTMLAttributes<HTMLElement>['class'];
     children?: Snippet;
   } & HTMLAttributes<HTMLElement> = $props();
+
+  // A new state fades in where the old one stood, so a change reads as a change. Svelte plays it
+  // only when `state` changes, never on the first paint.
+  function arrive(node: Element) {
+    const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    return {
+      duration: still ? 0 : duration('--sui-duration-fast', node),
+      easing: cubicOut,
+      css: (t: number) => `opacity: ${t}`
+    };
+  }
 </script>
 
 <!--
@@ -30,25 +50,28 @@ nothing to report yet, which is a state worth showing rather than a hole to hide
 A plate is a place, not a message: it never stands for a loading, empty or error message,
 which take a `Skeleton`, an `EmptyState` or an `ErrorState` in the place of what they replace,
 and it never sits inside a detail pane, whose parts are `Section`s. It holds no other framed
-surface (L-55). Something the reader must act on now is a `Callout` inside it. It carries the one-pixel plate lift, which a `Card` does not, and like a card it
+surface (L-55). Something the reader must act on now is a `Callout` beside it. It carries the one-pixel plate lift, which a `Card` does not, and like a card it
 takes its outer spacing from its container. Its content stands one 16px inset from all four
-edges, to the ink. The state centres on the title's first line at every width and lends the
-head no height, so the title and the body stand where they stand with no state: short of
-room the title wraps first, down to its longest word, and only then do the state's words wrap
-under their own first line. The state sits in a polite
-status region, so a change of state is announced without moving focus; pass `status` from the
-first render, because a region that arrives with its words is often not read.
+edges, to the ink. The state centres on the title's first line at every width and, while its
+lines fit beside the title's, lends the head no height, so the title and the body stand where
+they stand with no state (L-34). Short of
+room, the title keeps one line while it fits in 60% of the head and the state while it fits
+in the rest, so a short name stays whole, and past that each wraps within its share, the name
+in the larger one. Neither breaks a word: a state whose longest word cannot stand beside the
+title's share stands under the title instead, as it does under 12rem. The state sits in a polite status region, so a change of state
+is announced without moving focus; pass `state` from the first render, an empty string while
+a status is on its way, because a region that arrives with its words is often not read.
 
 - Semantics: a `section` titled by a heading at `level`, with the state in a `role="status"` region.
-- Content: a title that wraps, a `status` with words and an optional glyph, and an optional body.
-- States: head only, a step smaller and with no rule, or head and body; the state's own words say what it is.
+- Content: a title that wraps, a `state` in words with an optional `icon` that wears its `tone`, and an optional body.
+- States: head only, with no rule, or head and body, under one title size; the state's own words say what it is.
 - Keyboard: none of its own; Tab reaches the controls inside in reading order.
 - Pointer and touch: none of its own; the controls inside keep their own targets.
 - Focus: nothing here moves focus, and an announced change of state leaves focus where it is.
-- Responsive: the state stays on the title's first line until the plate is under 12rem wide, as with text at twice its size, where it stands under the title; the title wraps beside it first, down to its longest word, and only then do the state's words wrap under their first line.
-- Accessibility: a change of `status` is announced politely, and the title and state hold 4.5:1.
+- Responsive: the state stays on the title's first line while its longest word can stand beside the title's share, 60% of the head or the title's longest word, and stands under the title, a copy gap below, when it cannot or the plate is under 12rem wide, as with text at twice its size; beside it, the title keeps one line while it fits in 60% of the head and the state while it fits in the rest, and past that each wraps within its share, the state's words in balanced lines, and no word breaks.
+- Accessibility: a change of `state` is announced politely, and the title and state hold 4.5:1.
 - Localization: it draws no words of its own; the state sits at the inline end, which mirrors in a right-to-left page.
-- Performance: static layout with no script.
+- Performance: static layout; a change of state fades its words in on opacity alone, and not at all under reduced motion.
 - Analytics: none of its own, because it holds no control.
 - Failure: without a body the plate still names its subject and state, which is how it shows nothing to report; content inside it that failed to load says so in one quiet sentence or an `ErrorState overContent`, never in another frame.
 -->
@@ -56,9 +79,17 @@ first render, because a region that arrives with its words is often not read.
 <section {...rest} class={['sui-plate', className, { 'head-only': !children }]}>
   <header class="sui-plate-head">
     <svelte:element this={`h${level}`} class="sui-plate-title">{title}</svelte:element>
-    {#if status}
+    {#if state !== undefined}
       <div class="sui-plate-status" role="status">
-        <div class="sui-plate-said">{@render status()}</div>
+        {#if state}
+          {#key state}
+            <div class="sui-plate-said" data-tone={tone} in:arrive>
+              {#if icon}<Icon name={icon} size="sm" />{/if}<span class="sui-plate-words"
+                >{state}</span
+              >
+            </div>
+          {/key}
+        {/if}
       </div>
     {/if}
   </header>
@@ -83,28 +114,35 @@ first render, because a region that arrives with its words is often not read.
     padding: var(--sui-space-4);
   }
 
-  /* The state follows the title on its first line at every width: short of room, the title
-     gives up width first and wraps, down to its longest word, and only then do the state's
-     words wrap under their own first line, so a state rarely stands taller than the title
-     beside it. The rule under the head runs the plate's full width. */
+  /* The state follows the title on its first line. The title starts from 60% of the head (less
+     half the gap), or its one line where that needs less, and the state takes the rest, up to
+     its one line; when the state's longest word cannot stand beside that share, the state
+     wraps under the title, so no word breaks. The rule under the head runs the plate's full
+     width. */
   .sui-plate-head {
     align-items: start;
     border-block-end: var(--sui-stroke) solid var(--sui-border-divider);
     box-sizing: border-box;
     column-gap: var(--sui-space-3);
     display: flex;
+    flex-wrap: wrap;
     font: var(--sui-weight-semibold) var(--sui-font-size-card-title) / var(--sui-leading-card-title)
       var(--sui-sans);
+    /* A state that wraps under the title keeps its seat, which stands it half the two caps'
+       difference low, so the gap gives that back and the ink stands the copy gap apart. */
+    row-gap: calc(
+      var(--sui-row-copy-gap) - round(up, 1cap, 2px) / 2 +
+        round(up, 1cap * var(--sui-font-size-meta) / var(--sui-font-size-card-title), 2px) / 2
+    );
     justify-content: space-between;
     margin-inline: calc(-1 * var(--sui-space-4));
     padding: 0 var(--sui-space-4) var(--sui-space-4);
   }
 
-  /* With nothing under it the title is a label, a step below a card title. */
+  /* With nothing under it the head draws no rule, and its title keeps its size, so a body that
+     arrives later never resizes the plate's name. */
   .head-only .sui-plate-head {
     border-block-end: 0;
-    font: var(--sui-weight-semibold) var(--sui-font-size-body) / var(--sui-leading-body)
-      var(--sui-sans);
     padding-block-end: 0;
   }
 
@@ -114,14 +152,29 @@ first render, because a region that arrives with its words is often not read.
     align-content: center;
     block-size: var(--sui-block-snap);
     color: var(--sui-text-primary);
-    flex: 1 1000 auto;
+    flex: 1 1 auto;
+    flex-basis: calc-size(max-content, min(size, 60cqi - var(--sui-space-3) / 2));
     font: inherit;
     margin: 0;
-    min-inline-size: auto;
     overflow-wrap: break-word;
     padding-block: var(--sui-block-snap-room);
     text-box: trim-both cap alphabetic;
     text-wrap: balance;
+  }
+
+  /* Without calc-size() the basis falls back to the title's whole line, which would push every
+     long title's state under it. Capping the title at its share beside a state keeps the state
+     beside it; the title then never grows past 60% there, so a crowded plate on a phone gives
+     its title more lines, though never a split word: a word past the share widens the title
+     and the state wraps under it. With no state, or under 12rem where the state stands below,
+     the title keeps the whole line. */
+  @supports not (flex-basis: calc-size(max-content, size)) {
+    @container (width > 12rem) {
+      .sui-plate-head:has(> .sui-plate-status:not(:empty)) > .sui-plate-title {
+        max-inline-size: calc(60cqi - var(--sui-space-3) / 2);
+        min-inline-size: min-content;
+      }
+    }
   }
 
   /* The state's box starts on the middle of the title's first cap band, in the title's face so
@@ -132,9 +185,14 @@ first render, because a region that arrives with its words is often not read.
   .sui-plate-status {
     align-items: start;
     display: flex;
-    flex: 0 1 auto;
-    min-inline-size: 0;
+    flex: 1000 1 0;
+    max-inline-size: max-content;
     padding-block-start: calc(round(up, 1cap, 2px) / 2);
+  }
+
+  /* An empty state keeps its region ready for the words to come, out of the head's flow. */
+  .sui-plate-status:empty {
+    position: absolute;
   }
 
   /* In the state's own face, so `1cap` is its words' cap: the first line of its words centres
@@ -142,13 +200,45 @@ first render, because a region that arrives with its words is often not read.
      their first line, so its box overflows that line evenly while its drawn ink stays inside. */
   .sui-plate-said {
     align-items: start;
+    color: var(--sui-text-secondary);
     display: flex;
-    flex-wrap: wrap;
-    font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-row-copy-leading)
+    font: var(--sui-weight-medium) var(--sui-font-size-meta) / var(--sui-row-copy-leading)
       var(--sui-sans);
     gap: var(--sui-space-2);
     margin-block-start: calc(round(up, 1cap, 2px) / -2);
     min-inline-size: 0;
+  }
+
+  .sui-plate-said > :global(svg) {
+    flex: none;
+    margin-block: calc((round(up, 1cap, 1px) - var(--sui-icon-sm)) / 2);
+  }
+
+  /* The glyph wears the tone so a plate that needs the reader is found at a glance. A state
+     that needs the reader wears its tone's ink in its words too, as a setting row's problem
+     does, while a quiet or a good state keeps the secondary ink (L-14). */
+  [data-tone='success'] > :global(svg) {
+    color: var(--sui-success);
+  }
+
+  [data-tone='warning'] {
+    color: var(--sui-warning);
+  }
+
+  [data-tone='danger'] {
+    color: var(--sui-danger);
+  }
+
+  /* The words' box rounds up to the pixel, so a state that ends the plate keeps the inset to
+     its baseline. */
+  .sui-plate-words {
+    align-content: center;
+    block-size: var(--sui-block-snap);
+    min-inline-size: 0;
+    overflow-wrap: break-word;
+    padding-block: var(--sui-block-snap-room);
+    text-box: trim-both cap alphabetic;
+    text-wrap: balance;
   }
 
   /* With too little room for both, as with text at twice its size, the state stands under the
@@ -166,6 +256,7 @@ first render, because a region that arrives with its words is often not read.
 
     .sui-plate-status {
       flex: 1 1 100%;
+      min-inline-size: 0;
       padding-block-start: 0;
     }
 

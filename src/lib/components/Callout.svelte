@@ -105,7 +105,7 @@ and every other action keeps the default tone.
 The icon stands in a 2rem tile of the callout's tone and draws at 18px whatever tier the caller
 asked for. Copy shorter than the tile centres on it; longer copy starts at the tile's top. The
 tile opens the message's first line in a band its actions fit inside: they are drawn at the
-28px quiet tier and centre on the message, so a callout stands as tall, and its words where
+28px quiet tier and centre on the tile, so a callout stands as tall, and its words where
 they stand, with or without them. Give a callout with actions its symbol, because words alone
 open no band. A
 default action takes the tone too: in a warning it is quiet, with no ground of its own and an
@@ -118,10 +118,10 @@ and the unsaved ink, so no neutral block sits on a state (L-92).
 - Keyboard: none of its own; its actions and links take Tab in reading order.
 - Pointer and touch: its actions are drawn at the 28px quiet tier and keep a 44px hit area on a phone or a coarse pointer; stacked, they stand 16px apart there so two hit areas never meet.
 - Focus: it never takes focus; a caller that raises it after a failed act leaves focus on the control the reader used.
-- Responsive: actions sit at the inline end beside the message, centred on it inside the band its symbol's tile opens, so the message never moves for them, and move to a line under the copy, from its start edge, only when the callout cannot hold them beside an 11rem measure of copy.
+- Responsive: actions sit at the inline end beside the message, centred on the band its symbol's tile opens, by the title however long the message, so the message never moves for them, and move to a line under the copy, from the callout's start edge under its symbol, only when the callout cannot hold them beside a 14rem measure of copy.
 - Accessibility: `warningLabel` and `decisionLabel` say in words what the tint and the gold say in colour, and `live` announces a callout that appears after an edit.
 - Localization: `warningLabel` and `decisionLabel` carry the built-in words, the tile sits at the inline start and the actions at the inline end, mirrored in a right-to-left page.
-- Performance: a static block laid out by flex wrapping alone; `live` sets one short timer when it appears.
+- Performance: a static block laid out by flex wrapping alone; `live` sets one short timer when it appears and fades it in from 4px above on opacity and translate, not at all under reduced motion.
 - Analytics: none of its own; its actions report the reader's choice.
 - Failure: with no title it reads its description alone, and with neither it draws only its frame, so always pass words.
 -->
@@ -130,7 +130,7 @@ and the unsaved ink, so no neutral block sits on a state (L-92).
   {#if prefix}<VisuallyHidden>{prefix}{mark('space')}</VisuallyHidden>{/if}
 {/snippet}
 
-<div {...rest} class={['sui-callout', className, { decision }]} data-tone={tone}>
+<div {...rest} class={['sui-callout', className, { decision, live }]} data-tone={tone}>
   <div class="sui-callout-inner">
     <div class="sui-callout-message">
       {#if icon}
@@ -158,8 +158,13 @@ and the unsaved ink, so no neutral block sits on a state (L-92).
 {/if}
 
 <style>
+  /* A quiet ground of its own, a firmer veil of the ink than a row's hover, so a resting message
+     never reads as a hovered row. */
   .sui-callout {
-    background: var(--sui-interactive-hover);
+    background: light-dark(
+      color-mix(in srgb, var(--sui-text-primary) 5%, var(--sui-surface-base)),
+      color-mix(in srgb, var(--sui-text-primary) 6%, var(--sui-surface-base))
+    );
     border: var(--sui-stroke) solid var(--sui-border-subtle);
     border-radius: var(--sui-radius-control);
     box-sizing: border-box;
@@ -171,18 +176,21 @@ and the unsaved ink, so no neutral block sits on a state (L-92).
   }
 
   /* The message and the actions share one line while the callout holds both, and the actions
-     wrap under the copy only when they do not fit beside an 11rem measure of it (about 27
-     characters). Wrapping decides that from the actions' own width, which a container query
-     cannot know. The line is indented by the tile, and the message reaches back over that
-     indent, so a wrapped line of actions starts where the copy starts (L-90). On a shared line
-     the actions centre on the message. */
+     wrap under the copy only when they do not fit beside a 14rem measure of it (about 34
+     characters, a phone message's title on one line). Wrapping decides that from the actions' own width, which a container query
+     cannot know. A wrapped line of actions starts at the callout's start edge, under the tile,
+     so a pair keeps one line in a narrow callout (L-90). On a shared line the actions centre on
+     the tile's band, the message's first line, so a long message keeps them by its title, as
+     an alert's action stands on its title row. */
   .sui-callout-inner {
-    --sui-callout-measure: 11rem;
-    align-items: center;
+    --sui-callout-measure: 14rem;
+    /* What stands a quiet-tier action on the middle of the tile's band; a wrapped line's gap
+       gives it back, so the copy keeps its 12px over the actions. */
+    --sui-local-band-room: calc((var(--sui-symbol-tile) - var(--sui-tier-quiet)) / 2);
+    align-items: flex-start;
     display: flex;
     flex-wrap: wrap;
-    gap: var(--sui-space-3);
-    padding-inline-start: var(--sui-callout-indent, 0px);
+    gap: calc(var(--sui-space-3) - var(--sui-local-band-room)) var(--sui-space-3);
   }
 
   .sui-callout-inner:has(> .sui-callout-message > .sui-callout-icon) {
@@ -190,14 +198,23 @@ and the unsaved ink, so no neutral block sits on a state (L-92).
   }
 
   .sui-callout[data-tone='warning'] {
-    --sui-callout-tile: color-mix(in srgb, var(--sui-warning) 16%, transparent);
+    /* On the light tint the tile takes a firmer share of the tone to stand off its ground. */
+    --sui-callout-tile: light-dark(
+      color-mix(in srgb, var(--sui-warning) 22%, transparent),
+      color-mix(in srgb, var(--sui-warning) 16%, transparent)
+    );
     --sui-callout-mark: var(--sui-warning);
     /* A default action is quiet on the tint: no ground of its own, an edge of the tone. */
     --sui-surface-raised: transparent;
-    --sui-control-border: color-mix(in srgb, var(--sui-warning) 40%, var(--sui-warning-tint));
-    --sui-control-border-hover: color-mix(in srgb, var(--sui-warning) 65%, var(--sui-warning-tint));
-    --sui-interactive-hover-layer: color-mix(in srgb, var(--sui-warning) 12%, transparent);
-    --sui-interactive-pressed: color-mix(in srgb, var(--sui-warning) 20%, transparent);
+    --sui-control-border: color-mix(in srgb, var(--sui-warning) 55%, var(--sui-warning-tint));
+    /* A hover the pointer finds by its edge on the tint, its fill kept light on the light tint
+       so it never reads as chosen, and a press a clear step past it. */
+    --sui-control-border-hover: color-mix(in srgb, var(--sui-warning) 75%, var(--sui-warning-tint));
+    --sui-interactive-hover-layer: light-dark(
+      color-mix(in srgb, var(--sui-warning) 18%, transparent),
+      color-mix(in srgb, var(--sui-warning) 26%, transparent)
+    );
+    --sui-interactive-pressed: color-mix(in srgb, var(--sui-warning) 36%, transparent);
     background: var(--sui-warning-tint);
     border-color: color-mix(in srgb, var(--sui-warning) 30%, var(--sui-warning-tint));
     font-size: var(--sui-font-size-meta);
@@ -205,6 +222,8 @@ and the unsaved ink, so no neutral block sits on a state (L-92).
 
   /* Written after the tones and as specific as them, so it wins over either. */
   .sui-callout.decision {
+    /* Its reason takes the unsaved family's secondary ink, as an unsaved setting row's does. */
+    --sui-text-secondary: var(--sui-unsaved-secondary);
     --sui-callout-tile: var(--sui-unsaved-surface);
     --sui-callout-mark: var(--sui-unsaved-ink);
     --sui-surface-raised: transparent;
@@ -222,7 +241,6 @@ and the unsaved ink, so no neutral block sits on a state (L-92).
     display: flex;
     flex: 1 1 calc(var(--sui-callout-indent, 0px) + var(--sui-callout-measure));
     gap: var(--sui-space-3);
-    margin-inline-start: calc(-1 * var(--sui-callout-indent, 0px));
     min-inline-size: 0;
   }
 
@@ -232,13 +250,17 @@ and the unsaved ink, so no neutral block sits on a state (L-92).
     --sui-icon-sm: var(--sui-icon-md);
     --sui-icon-base: var(--sui-icon-md);
     align-items: center;
+    /* A quiet tile stands a firm step off the quiet ground, which is itself a light veil. */
     background: var(
       --sui-callout-tile,
-      color-mix(in srgb, var(--sui-text-primary) 8%, transparent)
+      light-dark(
+        color-mix(in srgb, var(--sui-text-primary) 11%, transparent),
+        color-mix(in srgb, var(--sui-text-primary) 9%, transparent)
+      )
     );
     block-size: var(--sui-symbol-tile);
     border-radius: var(--sui-radius-control);
-    color: var(--sui-callout-mark, var(--sui-text-secondary));
+    color: var(--sui-callout-mark, var(--sui-text-primary));
     display: flex;
     flex: none;
     inline-size: var(--sui-symbol-tile);
@@ -272,10 +294,27 @@ and the unsaved ink, so no neutral block sits on a state (L-92).
     text-box: trim-both cap alphabetic;
   }
 
+  /* A title that wraps keeps its reason's 20px lines and fills them as the reason does, so the
+     two read as one message. */
   .sui-callout-title {
-    text-wrap: balance;
+    text-wrap: pretty;
     color: var(--sui-text-primary);
     font-weight: var(--sui-weight-semibold);
+    line-height: var(--sui-leading-title-note);
+  }
+
+  /* The reason wraps at a card description's 20px, with no phone step, since its actions are
+     drawn at the quiet tier and no 44px control stands under it (L-24), and fills its lines,
+     so none of them leaves a gap before an action beside it. */
+  .sui-callout-text {
+    line-height: var(--sui-leading-title-note);
+    text-wrap: pretty;
+  }
+
+  /* A reason with no title over it is the whole message, so it takes the title's ink, but for a
+     decision's, which keeps the unsaved family's secondary ink. */
+  .sui-callout:not(.decision) .sui-callout-text:first-child {
+    color: var(--sui-text-primary);
   }
 
   .decision .sui-callout-actions {
@@ -293,12 +332,33 @@ and the unsaved ink, so no neutral block sits on a state (L-92).
     display: flex;
     flex-wrap: wrap;
     gap: var(--sui-space-2);
+    margin-block-start: var(--sui-local-band-room);
     min-inline-size: 0;
   }
 
   @media (max-width: 47.9375rem), (pointer: coarse) {
     .sui-callout-actions {
       row-gap: calc(var(--sui-touch-target) - var(--sui-tier-quiet));
+    }
+  }
+
+  /* A callout an edit brings settles in from just above, so the reader sees where it landed. */
+  .live {
+    transition:
+      opacity var(--sui-duration-fast) var(--sui-ease-out),
+      translate var(--sui-duration-fast) var(--sui-ease-out);
+  }
+
+  @starting-style {
+    .live {
+      opacity: 0;
+      translate: 0 calc(-1 * var(--sui-space-1));
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .live {
+      transition: none;
     }
   }
 </style>

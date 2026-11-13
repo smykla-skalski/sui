@@ -112,8 +112,13 @@
   function fit(box: HTMLElement) {
     const natural = box.querySelector('.sui-segmented-ruler');
     if (!natural) return;
+    const fitting = () =>
+      box.getBoundingClientRect().width + 0.5 >= natural.getBoundingClientRect().width;
+    // Read before the first paint, so a host that keys its layout on the form, such as a card's
+    // note, draws it right from the first frame instead of moving once the observer reports.
+    fits = fitting();
     const observer = new ResizeObserver(() => {
-      const next = box.getBoundingClientRect().width + 0.5 >= natural.getBoundingClientRect().width;
+      const next = fitting();
       if (next === fits) return;
       const focused = box.contains(document.activeElement);
       fits = next;
@@ -356,7 +361,7 @@ itself, so the choice shows from the first frame.
 - Content: two to five options, each a short word with an optional icon and count, and an optional hint under them; a long word never wraps, so the control turns into the select instead.
 - States: rest (a hairline in the subtle border between two bare options, gone beside the thumb, a fill or a focused option), hover (a fill that keeps the thumb's curve), pressed (the fill sinks, the thumb darkens and creases), selected (the thumb), focus (a 2px ring 2px off the track, and the hover fill on a focused option the thumb is not under), a disabled option (its words in the muted ink at the disabled opacity), a disabled whole (the disabled field's fill with no frame, its words in the muted ink at full strength), a chosen disabled option (a flat plain plate with the control border ink on its edge and no seat, and in a disabled whole flat and faint, the disabled fill showing through it and a hairline in the subtle border on its edge; it holds the control, so every other option is off with it), held (the whole at the disabled opacity: disabled while a busy dialog or a saving pane around it works, and refusing every press, arrow and drag with focus kept while a saving setting row does), and `null` with no thumb.
 - Keyboard: Tab reaches the checked option, or the first one when nothing is chosen; the arrow keys move the choice and skip disabled options; Escape puts a dragged thumb back.
-- Pointer and touch: a click chooses any option and a drag of the thumb chooses on release, while a chosen disabled option and a disabled or held control refuse the drag and show no grab, so the drag is never the only way (WCAG 2.5.7); on a phone or a coarse pointer each option is at least 44 by 44px.
+- Pointer and touch: a click chooses any option and a drag of the thumb chooses on release, while a chosen disabled option and a disabled or held control refuse the drag and show no grab, so the drag is never the only way (WCAG 2.5.7); on a phone or a coarse pointer each option is at least 44 by 44px, also on a track a surface keeps drawn at 34px with `--sui-local-field-seat`, as a card's head does.
 - Focus: choosing keeps focus on the option; when the segments turn into the select, or back, focus moves to the other form instead of falling to the page.
 - Responsive: as wide as its words or its room, whichever is less; short of room it turns into a `Select`, because a hidden option is a lost option.
 - Accessibility: `label` is drawn above the segments, 12px from them, unless `hideLabel` is set or `aria-labelledby` names a label that is already drawn; `aria-describedby` and the hint reach the group or the select; counts are part of each option's name.
@@ -543,12 +548,15 @@ itself, so the choice shows from the first frame.
      hidden form is clipped to the box, so it never widens the page either. The select stretches
      over the room the segments had, so a control that turns into one keeps its width and
      selects on one page line up; a host that ends its controls at an edge, such as a setting
-     row, sets `--sui-local-segmented-align: end`, and the select keeps its own width there. */
+     row, sets `--sui-local-segmented-align: end`, and the select keeps its own width there.
+     Hidden, it lends no height either, so a select that keeps its own 44px on a phone never
+     lowers the fitting track it shares a row with. */
   .sui-segmented-picker {
     contain: inline-size;
     display: grid;
     grid-template-columns: minmax(0, 1fr);
     justify-items: var(--sui-local-segmented-align, stretch);
+    max-block-size: 0;
     min-inline-size: 0;
     overflow: clip;
     visibility: hidden;
@@ -578,6 +586,7 @@ itself, so the choice shows from the first frame.
     }
 
     .short > .sui-segmented-picker {
+      max-block-size: none;
       overflow: visible;
       visibility: visible;
     }
@@ -594,6 +603,7 @@ itself, so the choice shows from the first frame.
   @keyframes sui-segmented-short-picker {
     from,
     to {
+      max-block-size: none;
       overflow: visible;
       visibility: visible;
     }
@@ -645,9 +655,14 @@ itself, so the choice shows from the first frame.
     }
   }
 
+  /* A surface may seat the track at the pointer's tier on a phone (`--sui-local-field-seat`),
+     as it seats a select, and each option's target still reaches 44px past its rim. */
   .sui-segmented-track {
     background: var(--sui-segment-track);
-    block-size: var(--sui-local-control-height, var(--sui-control-height-compact));
+    block-size: var(
+      --sui-local-field-seat,
+      var(--sui-local-control-height, var(--sui-control-height-compact))
+    );
     border: 0;
     /* A surface radius around a control-radius thumb, 2px in, keeps the two curves concentric. */
     border-radius: var(--sui-radius-surface);
@@ -829,10 +844,13 @@ itself, so the choice shows from the first frame.
     box-shadow: var(--sui-pressed-inset), var(--sui-segment-thumb-shadow-pressed);
   }
 
+  /* Each option rounds its width up to the pixel, so the thumb that takes an option's width and
+     the track that sums them land on the grid (L-95). */
   .sui-segmented-option {
     cursor: pointer;
     display: flex;
     flex: none;
+    inline-size: var(--sui-inline-snap);
     position: relative;
     user-select: none;
     -webkit-tap-highlight-color: transparent;

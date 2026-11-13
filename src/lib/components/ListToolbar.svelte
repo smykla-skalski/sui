@@ -146,17 +146,17 @@ each group reports its choice through `onchange`, and the query is `bind:query`.
 The primary filter and the tools button are one unit and wrap together, so the button is never
 left on a line by itself. Short of room, the search takes its own line and the filter sits under
 it with the tools button, and turns into a select when its options do not fit. In a bar
-narrower than 18rem the filter folds into the tools menu and its choice is named beside the
+narrower than 24rem, as on any phone, the filter folds into the tools menu and its choice is named beside the
 button. Without `tools` there is no button and the filter never folds.
 
 - Semantics: a `SearchField` named by its drawn label, a `SegmentedControl` per group named by its visible heading, a tools `button` with `aria-haspopup="dialog"`, and a dialog `Popover` holding the further groups.
 - Content: a search label, an optional filter and tools of two to five options each, and one optional action.
-- States: the tools button names the tools' choices beside it, so a sort or filter in the menu stays in view; open, pending (a spinner and `pendingLabel` beside the search) and empty results are said through the status, and a pick that leaves the count as it was is said again.
+- States: the tools button ends in a chevron, as a menu's button does, and names the tools' choices beside it; a count above 0 is drawn under the bar, over the rows it counts; so a sort or filter in the menu stays in view; open, pending (a spinner and `pendingLabel` beside the search field, or just under it once it wraps) and empty results are said through the status, and a pick that leaves the count as it was is said again.
 - Keyboard: Tab walks search, filter, tools button and action; in the menu Tab moves through the groups and closes the menu on leaving it, and Escape closes it and returns focus to the tools button.
 - Pointer and touch: every control keeps its own 34px tier, 44px on a phone; an outside press closes the menu.
 - Focus: opening the menu moves focus to its first chosen option; closing it with Escape returns focus to the tools button.
-- Responsive: a container query folds the filter into the menu under 18rem; the search, the filter unit and the action wrap as whole pieces.
-- Accessibility: each group's heading is drawn and names it; `count` and `pending` are said through a polite status a moment after the reader pauses; the tools button is described by the choices it holds.
+- Responsive: a container query folds the filter into the menu under 24rem, so a phone's bar keeps the search and one line of controls; the search, the filter unit and the action wrap as whole pieces, and the search's label stands above its field once the field would have under 14rem beside it.
+- Accessibility: each group's heading is drawn and names it; `count` and `pending` are said through a polite status a moment after the reader pauses, and the drawn count is hidden from a screen reader, since the status says it; the tools button is described by the choices it holds.
 - Localization: `toolsLabel`, `pendingLabel` and `countLabel`, a function of the count with the count in the reader's format, are props with English defaults; the tools' choices are joined as a list in the page's language, the folded filter is set off by a dot rather than a written mark, and the bar follows the reading direction.
 - Performance: one container query and one short timer per bar; the menu mounts only with `tools`.
 - Analytics: each group's `onchange` hears its pick, and `onsearch` hears a new query once the reader pauses, never a repeat of the last one.
@@ -191,13 +191,14 @@ button. Without `tools` there is no button and the filter never folds.
           {placeholder}
         />
       </span>
+      <!-- Seen while a search is on its way; the status says it to a screen reader. It wraps
+           with the field, so on a line of its own it stands just under the field it speaks for. -->
+      {#if searching.current}
+        <span class="sui-list-toolbar-pending" aria-hidden="true">
+          <span class="sui-list-toolbar-spinner"></span><span>{pendingLabel}</span>
+        </span>
+      {/if}
     </div>
-    <!-- Seen while a search is on its way; the status says it to a screen reader. -->
-    {#if searching.current}
-      <span class="sui-list-toolbar-pending" aria-hidden="true">
-        <span class="sui-list-toolbar-spinner"></span><span>{pendingLabel}</span>
-      </span>
-    {/if}
     {#if filter || tools.length > 0}
       <div class="sui-list-toolbar-filters">
         {#if filter}
@@ -218,6 +219,7 @@ button. Without `tools` there is no button and the filter never folds.
               >
                 {#snippet icon()}<Icon name="sliders" size="base" />{/snippet}
                 {toolsLabel}
+                {#snippet trailing()}<Icon name="chevron-down" size="base" />{/snippet}
               </Button>
             </span>
           {/if}
@@ -237,6 +239,12 @@ button. Without `tools` there is no button and the filter never folds.
       <div class="sui-list-toolbar-action">{@render action()}</div>
     {/if}
   </div>
+  <!-- The count is drawn under the bar, over the rows it counts; the status says it, a moment
+       after the reader pauses, so the drawn words are not read twice. An empty list draws its
+       own empty state, so no count stands over it. -->
+  {#if count}
+    <p class="sui-list-toolbar-count" aria-hidden="true">{countLabel(count, formatCount(count))}</p>
+  {/if}
   <!-- Keyed, so the same words said again are a new announcement. -->
   <VisuallyHidden role="status"
     >{#key told}<span>{said}</span>{/key}</VisuallyHidden
@@ -270,18 +278,22 @@ button. Without `tools` there is no button and the filter never folds.
 
   /* Spread, not pushed by an auto margin: the action ends a line it shares, and on a line of
      its own it starts at the edge like the search above it (L-90). */
+  /* The controls on a line stand on its foot, so beside a search whose label stands over its
+     field they line up with the field, not with the label and the field together; on a line of
+     controls alone the foot is their middle too, since they share one height. */
   .sui-list-toolbar-bar {
-    align-items: center;
+    align-items: end;
     display: flex;
     flex-wrap: wrap;
     gap: var(--sui-space-2) var(--sui-space-3);
     justify-content: space-between;
   }
 
-  /* The search's label stands before it on its line, as the filter's heading does. When the
-     label wraps above the field the part is snapped to an even height, so the filter centred
-     beside it lands on whole pixels (L-95), and its lines keep to the top so the extra pixel
-     stays under them. */
+  /* The search's label stands before it on its line, as the filter's heading does, while the
+     field keeps 14rem beside it, the room a typed query needs; with less, as on a phone, the
+     label stands above a field of the full width. When the label wraps above the field the part
+     is snapped to an even height, so the filter centred beside it lands on whole pixels (L-95),
+     and its lines keep to the top so the extra pixel stays under them. */
   .sui-list-toolbar-search {
     align-content: start;
     align-items: center;
@@ -295,28 +307,30 @@ button. Without `tools` there is no button and the filter never folds.
 
   .sui-list-toolbar-field {
     display: grid;
-    flex: 1 1 10rem;
+    flex: 1 1 14rem;
     min-inline-size: 0;
   }
 
   /* Short of room the tools and their choices take the line under the filter, together, and the
      button keeps its words on one line. */
+  /* The filter and the tools stand a group's step apart, as the bar's parts do. */
   .sui-list-toolbar-filters {
     align-items: center;
     display: flex;
     flex-wrap: wrap;
-    gap: var(--sui-space-2);
+    gap: var(--sui-space-2) var(--sui-space-3);
     max-inline-size: 100%;
     min-inline-size: 0;
   }
 
-  /* The chosen options beside the button wrap under it when the line runs out, as at a large
-     text size (WCAG 1.4.10), so the bar never scrolls the page sideways. */
+  /* The chosen options stand close beside the button they belong to, closer than the filter
+     beside them, and wrap under it when the line runs out, as at a large text size
+     (WCAG 1.4.10), so the bar never scrolls the page sideways. */
   .sui-list-toolbar-tools {
     align-items: center;
     display: flex;
     flex-wrap: wrap;
-    gap: var(--sui-space-2);
+    gap: var(--sui-space-2) var(--sui-space-1);
     min-inline-size: 0;
   }
 
@@ -353,7 +367,7 @@ button. Without `tools` there is no button and the filter never folds.
   .sui-list-toolbar-chosen {
     align-content: center;
     block-size: var(--sui-block-snap-even);
-    font: var(--sui-weight-semibold) var(--sui-font-size-meta) / var(--sui-row-copy-leading)
+    font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-row-copy-leading)
       var(--sui-sans);
     min-inline-size: 0;
     overflow-wrap: anywhere;
@@ -415,9 +429,10 @@ button. Without `tools` there is no button and the filter never folds.
     gap: var(--sui-space-2);
   }
 
-  /* Too narrow to share a line: the search takes the whole first line, and the folded filter,
-     its tools and the action follow on the next. */
-  @container (max-width: 18rem) {
+  /* As narrow as a phone's bar (--sui-breakpoint-toolbar): the search takes the whole first
+     line, and the folded filter, its tools and the action follow on the next, rather than each
+     taking a finger's line. */
+  @container (max-width: 24rem) {
     .foldable .sui-list-toolbar-search {
       flex-basis: 100%;
     }
@@ -447,16 +462,26 @@ button. Without `tools` there is no button and the filter never folds.
   }
 
   /* Even, so centred beside an even control it lands on whole pixels and reads as centred. */
+  .sui-list-toolbar-count {
+    align-content: center;
+    block-size: var(--sui-block-snap);
+    color: var(--sui-text-secondary);
+    font: var(--sui-weight-regular) var(--sui-font-size-control) / var(--sui-leading-note)
+      var(--sui-sans);
+    margin: var(--sui-space-3) 0 0;
+    padding-block: var(--sui-block-snap-room);
+    text-box: trim-both cap alphabetic;
+  }
+
+  /* Each heading names the control beside it, so it is set as a field's label (L-25). */
   .sui-list-toolbar-heading {
     align-content: center;
     block-size: var(--sui-block-snap-even);
-    color: var(--sui-text-muted);
-    font: var(--sui-weight-semibold) var(--sui-font-size-micro) / var(--sui-leading-tight)
+    color: var(--sui-text-primary);
+    font: var(--sui-weight-semibold) var(--sui-font-size-control) / var(--sui-leading-note)
       var(--sui-sans);
-    letter-spacing: 0.07em;
     margin: 0;
     padding-block: var(--sui-block-snap-room-even);
     text-box: trim-both cap alphabetic;
-    text-transform: uppercase;
   }
 </style>

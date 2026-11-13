@@ -379,6 +379,92 @@ suite('navigation', together, () => {
     }
   });
 
+  test("a detail pane's property placeholders span the height its properties take", async () => {
+    // From the first ink to the last: the rows' box less the room they hand back above their
+    // first bar and under their last, and the list's own box, which starts and ends at its ink.
+    const span = async (/** @type {string} */ path) => {
+      const page = await openLayout(path, 1440);
+      try {
+        return await page.evaluate(() => {
+          const aside = document.querySelector('.sui-detail-layout-aside');
+          const facts = aside?.querySelector('.sui-fact-list');
+          if (facts) return facts.getBoundingClientRect().height;
+          const rows = /** @type {Element} */ (aside?.querySelector('.sui-skeleton-rows'));
+          const { marginTop, marginBottom } = getComputedStyle(rows);
+          return (
+            rows.getBoundingClientRect().height + parseFloat(marginTop) + parseFloat(marginBottom)
+          );
+        });
+      } finally {
+        await page.close();
+      }
+    };
+    const loaded = await span('layouts/detail-pane/');
+    const loading = await span('layouts/detail-pane/loading/');
+    assert.ok(
+      Math.abs(loaded - loading) <= 2,
+      `the properties span ${loaded}px where their placeholders spanned ${loading}px`
+    );
+  });
+
+  test("a property row with a face keeps its neighbours' pitch and holds a name that wraps", async () => {
+    const page = await openLayout('layouts/detail-pane/', 1440);
+    try {
+      const heights = () =>
+        page.evaluate(() =>
+          [...document.querySelectorAll('.sui-detail-layout-aside .sui-fact-list-fact')]
+            .slice(0, 3)
+            .map((row) => row.getBoundingClientRect().height)
+        );
+      // The first row takes no room above it, so the plain row to match is the second.
+      const [, plain, face] = await heights();
+      assert.equal(face, plain, 'the row with a face stands off the pitch of its neighbours');
+      // The name's lines stay inside the value, so a long name grows its row rather than
+      // running over the hairline into the next fact.
+      const spill = await page.evaluate(() => {
+        const name = /** @type {Element} */ (
+          document.querySelector('.sui-detail-layout-aside .sui-identity-name')
+        );
+        name.textContent = 'Bartholomew Alexander Smykla-Konstantynopolitański';
+        const value = /** @type {Element} */ (name.closest('.sui-fact-list-value'));
+        return name.getBoundingClientRect().bottom - value.getBoundingClientRect().bottom;
+      });
+      assert.ok(spill <= 0.5, `a wrapped name runs ${spill}px past its value`);
+    } finally {
+      await page.close();
+    }
+  });
+
+  test('a layout preview starts as a phone on a phone and as a desktop on a desktop', async () => {
+    for (const [width, start] of /** @type {const} */ ([
+      [390, 'phone'],
+      [1440, 'desktop']
+    ])) {
+      const page = await browser.newPage({ viewport: { width, height: 900 } });
+      try {
+        await visit(page, new URL('detail-pane/', url).href);
+        // The control is radios, or a select where they do not fit.
+        const chosen = () =>
+          page.evaluate(() => {
+            const preview = document.querySelector('.preview');
+            const radio = /** @type {HTMLInputElement | null | undefined} */ (
+              preview?.querySelector('input[type="radio"]:checked')
+            );
+            const menu = /** @type {HTMLSelectElement | null | undefined} */ (
+              preview?.querySelector('select')
+            );
+            return radio?.value ?? menu?.value;
+          });
+        // It starts as a desktop until the page has mounted, which the audit hook marks: the
+        // root mounts last, after the preview has picked its width.
+        await page.waitForFunction(() => '__suiAudit' in window, null, brief);
+        assert.equal(await chosen(), start, `at ${width}px`);
+      } finally {
+        await page.close();
+      }
+    }
+  });
+
   test("an overview card opens its component's own page, which the index marks, and L-59 a wrong address leads back", async () => {
     const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
     try {
@@ -529,6 +615,175 @@ suite('navigation', together, () => {
           }
           assert.ok(Math.abs(footer.bottom - foot) < 0.5, 'the footer leaves the bottom inset');
         }
+        // A 26rem card cannot hold its button beside 16rem of copy, even on a wide page.
+        await resize(page, 1440);
+        const [copy, button] = await page
+          .locator('#card .bare:not(.flush) .sui-card')
+          .evaluate((box) =>
+            [':scope > .sui-card-main', ':scope > .sui-card-footer'].map((selector) =>
+              /** @type {Element} */ (box.querySelector(selector)).getBoundingClientRect().toJSON()
+            )
+          );
+        assert.ok(button.top >= copy.bottom, "the bare page's button stands beside its copy");
+      }
+    );
+
+    test(
+      "a card head's select stays drawn at the quiet tier on a phone, and a press beside it opens it",
+      long,
+      async () => {
+        const page = await sink();
+        await resize(page, 390);
+        const select = page.locator('#card .sui-card-actions select').first();
+        await select.scrollIntoViewIfNeeded();
+        const { frame, card } = await select.evaluate((element) => {
+          const opened = /** @type {Window & { opened?: number }} */ (window);
+          opened.opened = 0;
+          // A native picker cannot be read from the page, so the press is counted instead.
+          /** @type {HTMLSelectElement} */ (element).showPicker = () =>
+            void (opened.opened = (opened.opened ?? 0) + 1);
+          return {
+            frame: element.getBoundingClientRect().toJSON(),
+            card: /** @type {Element} */ (element.closest('.sui-card')).getBoundingClientRect()
+          };
+        });
+        assert.equal(Math.round(frame.height), 28, 'the select is not drawn at the quiet 28px');
+        assert.ok(
+          frame.top - card.top >= 4,
+          `it stands ${frame.top - card.top}px under the keyline`
+        );
+        await page.mouse.click(frame.left + frame.width / 2, frame.top - 4);
+        assert.deepEqual(
+          await page.evaluate(() => [
+            document.activeElement?.tagName,
+            /** @type {Window & { opened?: number }} */ (window).opened
+          ]),
+          ['SELECT', 1],
+          'a press 4px over the frame does not open the select'
+        );
+        await page.keyboard.press('Escape');
+
+        const bare = await browser.newPage({ viewport: { width: 390, height: 900 } });
+        await bare.addInitScript(() => {
+          delete (/** @type {any} */ (HTMLSelectElement.prototype).showPicker);
+        });
+        await visit(bare, new URL('card/', url).href);
+        const { height, into } = await bare
+          .locator('.sui-card-actions select')
+          .first()
+          .evaluate((element) => {
+            // No sink card holds a select alone, so one stands in for the Members card's button.
+            const box = /** @type {Element} */ (element.closest('.sui-select')).cloneNode(true);
+            const actions = [...document.querySelectorAll('.sui-card-actions')].find((part) =>
+              part.closest('.sui-card')?.textContent?.includes('Members')
+            );
+            actions?.replaceChildren(box);
+            const note = actions?.closest('.sui-card-head')?.querySelector('.sui-card-note');
+            const drawn = /** @type {Element} */ (actions?.querySelector('select'));
+            const overlaps =
+              note && note.getBoundingClientRect().right > drawn.getBoundingClientRect().left;
+            return {
+              height: element.getBoundingClientRect().height,
+              into: overlaps
+                ? drawn.getBoundingClientRect().bottom - note.getBoundingClientRect().top
+                : 0
+            };
+          });
+        // At 700px the Usage track fits, so its hidden 44px select must lend the head no height.
+        await bare.setViewportSize({ width: 700, height: 900 });
+        // A scroll timeline takes the new room on the next frame, and the form follows it.
+        await bare.evaluate(
+          () => new Promise((done) => requestAnimationFrame(() => requestAnimationFrame(done)))
+        );
+        const { off, short } = await bare.evaluate(() => {
+          const head = [...document.querySelectorAll('#card .sui-card-head')].find((part) =>
+            part.querySelector('.sui-card-actions .sui-segmented-track:not(.sui-segmented-ruler)')
+          );
+          const track = /** @type {Element} */ (
+            head?.querySelector('.sui-segmented-track:not(.sui-segmented-ruler)')
+          );
+          const title = /** @type {Element} */ (head?.querySelector('.sui-card-title'));
+          const note = /** @type {Element} */ (head?.querySelector('.sui-card-note'));
+          const middle = (/** @type {DOMRect} */ box) => box.top + box.height / 2;
+          return {
+            off: track.checkVisibility({ visibilityProperty: true })
+              ? middle(track.getBoundingClientRect()) - middle(title.getBoundingClientRect())
+              : NaN,
+            // The hidden select draws nothing beside the note, so the note runs to the actions'
+            // end or its measure, whichever comes first.
+            short:
+              Math.min(
+                parseFloat(getComputedStyle(note).maxInlineSize),
+                /** @type {Element} */ (
+                  head?.querySelector('.sui-card-actions')
+                ).getBoundingClientRect().right - note.getBoundingClientRect().left
+              ) - note.getBoundingClientRect().width
+          };
+        });
+        // A fine pointer on a wide screen needs no 44px, so the select keeps the head's seat.
+        await bare.setViewportSize({ width: 1100, height: 900 });
+        const wide = await bare.evaluate(() => {
+          const actions = [...document.querySelectorAll('.sui-card-actions')].find((part) =>
+            part.closest('.sui-card')?.textContent?.includes('Members')
+          );
+          return actions?.querySelector('select')?.getBoundingClientRect().height;
+        });
+        await bare.close();
+        assert.equal(wide, 28, "without showPicker a fine pointer's select leaves its 28px seat");
+        assert.ok(Math.abs(off) <= 0.5, `the fitting track stands ${off}px off its title's middle`);
+        assert.ok(
+          short <= 0.5,
+          `beside a fitting track the note stops ${short}px short of its head`
+        );
+        assert.equal(Math.round(height), 44, 'without showPicker the select is not 44px');
+        assert.ok(into <= 0.5, `the 44px select reaches ${into}px into its note`);
+      }
+    );
+
+    // 700px is a fine pointer under the phone breakpoint, where controls step to 44px and the
+    // track still fits beside the title: a width the law audit does not run at.
+    test(
+      "a card's track stays drawn at 28px with 44px targets, its note under it, and a title with no action takes the head",
+      long,
+      async () => {
+        const page = await sink();
+        await resize(page, 700);
+        const { tracks, problems } = await page.evaluate(() => {
+          const shown = (/** @type {Element} */ element) =>
+            element.checkVisibility({ visibilityProperty: true });
+          const found = [];
+          let tracks = 0;
+          for (const head of document.querySelectorAll('#card .sui-card-head')) {
+            const title = /** @type {Element} */ (head.querySelector('.sui-card-title'));
+            const note = head.querySelector('.sui-card-note');
+            const track = head.querySelector(
+              '.sui-card-actions .sui-segmented-track:not(.sui-segmented-ruler)'
+            );
+            const name = title.textContent;
+            if (!head.querySelector('.sui-card-actions')) {
+              const room = head.getBoundingClientRect().width - title.getBoundingClientRect().width;
+              if (room > 0.5) found.push(`${name} leaves ${room}px`);
+            } else if (note && track && shown(track)) {
+              tracks += 1;
+              // A point outside the window hits nothing.
+              track.scrollIntoView({ block: 'center' });
+              const box = track.getBoundingClientRect();
+              if (Math.round(box.height) !== 28) found.push(`${name}: a ${box.height}px track`);
+              if (note.getBoundingClientRect().right <= box.left)
+                found.push(`${name}: its note stands beside the track`);
+              if (box.bottom - note.getBoundingClientRect().top > 0.5)
+                found.push(`${name}: the track reaches into its note`);
+              const option = /** @type {Element} */ (track.querySelector('.sui-segmented-option'));
+              const middle = option.getBoundingClientRect();
+              const hit = document.elementFromPoint(middle.left + middle.width / 2, box.top - 4);
+              if (!hit || !option.contains(hit))
+                found.push(`${name}: 4px over the track is no target`);
+            }
+          }
+          return { tracks, problems: found };
+        });
+        assert.ok(tracks > 0, 'no card head draws a segmented track at 700px');
+        assert.deepEqual(problems, []);
       }
     );
 
@@ -585,6 +840,48 @@ suite('navigation', together, () => {
             };
             /** @type {string[]} */
             const found = [];
+            const ink = /** @type {CanvasRenderingContext2D} */ (
+              document.createElement('canvas').getContext('2d')
+            );
+            /** @param {Element} element @param {string} text */
+            const wide = (element, text) => {
+              const style = getComputedStyle(element);
+              ink.font = `${style.fontWeight} ${style.fontSize} ${style.fontFamily}`;
+              return ink.measureText(text).width;
+            };
+            /** @param {Element} element */
+            const longest = (element) =>
+              Math.max(
+                ...(element.textContent?.trim().split(/\s+/) ?? []).map((word) =>
+                  wide(element, word)
+                )
+              );
+            // A plate's state stands under its title when its longest word cannot stand beside
+            // the title's share: 60% of the head, or the title's longest word, or its one line.
+            /** @param {Element} root */
+            const crowded = (root) => {
+              const head = /** @type {HTMLElement} */ (root.querySelector('.sui-plate-head'));
+              const title = /** @type {Element} */ (head.querySelector('.sui-plate-title'));
+              const words = /** @type {Element} */ (head.querySelector('.sui-plate-words'));
+              const glyph = head.querySelector('.sui-plate-said > svg');
+              const style = getComputedStyle(head);
+              const gap = parseFloat(style.columnGap);
+              const room =
+                head.clientWidth -
+                parseFloat(style.paddingInlineStart) -
+                parseFloat(style.paddingInlineEnd);
+              const share = Math.max(
+                longest(title),
+                Math.min(wide(title, title.textContent?.trim() ?? ''), room * 0.6 - gap / 2)
+              );
+              const lead = glyph
+                ? glyph.getBoundingClientRect().width +
+                  parseFloat(
+                    getComputedStyle(/** @type {Element} */ (glyph.parentElement)).columnGap
+                  )
+                : 0;
+              return share + gap + lead + longest(words) > room - 0.5;
+            };
             const seats = [];
             for (const [kind, seat, parts, beside] of kinds)
               for (const root of document.querySelectorAll(kind)) {
@@ -598,8 +895,14 @@ suite('navigation', together, () => {
                 const where = `${root.closest('section.section')?.id} ${kind}`;
                 const top = Math.min(...drawn.map((box) => box.top));
                 if (top >= title.bottom) {
-                  if (beside) found.push(`${where}: the action takes a line of its own`);
+                  if (beside && !(kind === '.sui-plate' && crowded(root)))
+                    found.push(`${where}: the action takes a line of its own`);
                   continue;
+                }
+                // A plate's state that needs more lines than its title wraps under it, as copy.
+                if (kind === '.sui-plate') {
+                  const [named, said] = lines(root, ['.sui-plate-title', '.sui-plate-words']);
+                  if (said > named) continue;
                 }
                 seats.push({
                   root,
@@ -634,6 +937,249 @@ suite('navigation', together, () => {
           });
           assert.deepEqual(problems, [], `at ${width}px`);
         }
+      }
+    );
+
+    test(
+      "a plate's state keeps one line while it fits in 40% of the head, its title in 60% unless the state's longest word needs it, and neither breaks a word",
+      long,
+      async () => {
+        const page = await sink();
+        for (const width of [1440, 390, 320]) {
+          await resize(page, width);
+          const problems = await page.evaluate(() => {
+            const ink = /** @type {CanvasRenderingContext2D} */ (
+              document.createElement('canvas').getContext('2d')
+            );
+            /** @param {Element | null} element */
+            const lines = (element) => {
+              if (!element) return 0;
+              const words = document.createRange();
+              words.selectNodeContents(element);
+              return new Set([...words.getClientRects()].map((line) => Math.round(line.top))).size;
+            };
+            /** @param {Element} element @param {string} [text] */
+            const wide = (element, text = element.textContent?.trim() ?? '') => {
+              const style = getComputedStyle(element);
+              ink.font = `${style.fontWeight} ${style.fontSize} ${style.fontFamily}`;
+              return ink.measureText(text).width;
+            };
+            /** @param {Element} element */
+            const broken = (element) => {
+              const text = /** @type {Text} */ (
+                document.createTreeWalker(element, NodeFilter.SHOW_TEXT).nextNode()
+              );
+              return [...text.data.matchAll(/\S+/g)].filter((word) => {
+                const span = document.createRange();
+                span.setStart(text, word.index);
+                span.setEnd(text, word.index + word[0].length);
+                return (
+                  new Set([...span.getClientRects()].map((line) => Math.round(line.top))).size > 1
+                );
+              });
+            };
+            return [...document.querySelectorAll('.sui-plate-status')].flatMap((status) => {
+              const head = /** @type {HTMLElement} */ (status.parentElement);
+              const title = /** @type {HTMLElement} */ (head.querySelector('.sui-plate-title'));
+              const words = status.querySelector('.sui-plate-words') ?? status;
+              if (status.getBoundingClientRect().top >= title.getBoundingClientRect().bottom)
+                return [];
+              const style = getComputedStyle(head);
+              const room =
+                head.clientWidth -
+                parseFloat(style.paddingInlineStart) -
+                parseFloat(style.paddingInlineEnd);
+              /** @param {number} part */
+              const share = (part) => room * part - parseFloat(style.columnGap) / 2;
+              const glyph = status.querySelector('svg');
+              const said = /** @type {Element} */ (words.parentElement);
+              const lead = glyph
+                ? glyph.getBoundingClientRect().width + parseFloat(getComputedStyle(said).columnGap)
+                : 0;
+              const longest = Math.max(
+                ...(words.textContent?.trim().split(/\s+/) ?? []).map((word) => wide(words, word))
+              );
+              /** @type {[Element, number, number][]} */
+              const parts = [
+                [
+                  title,
+                  0,
+                  Math.min(share(0.6), room - parseFloat(style.columnGap) - lead - longest)
+                ],
+                [words, lead, share(0.4)]
+              ];
+              return parts.flatMap(([part, before, most]) => {
+                const need = wide(part) + before;
+                return [
+                  ...(lines(part) > 1 && need < most - 0.5
+                    ? [`${part.textContent?.trim()}: ${lines(part)} lines, ${need}px of ${most}px`]
+                    : []),
+                  ...broken(part).map((word) => `${part.textContent?.trim()}: breaks ${word[0]}`)
+                ];
+              });
+            });
+          });
+          assert.deepEqual(problems, [], `at ${width}px`);
+        }
+      }
+    );
+
+    test(
+      "a plate's empty state keeps its status region, out of the head, for the first words",
+      long,
+      async () => {
+        const page = await openMount(browser, url);
+        try {
+          const seen = await page.evaluate(() => {
+            const { lib, mount, flushSync, state, get, set } = /** @type {any} */ (window);
+            const said = state('');
+            const target = document.createElement('div');
+            // Under 12rem a state stands under the title, so an empty one in the flow would too.
+            target.style.inlineSize = '11rem';
+            document.body.append(target);
+            mount(lib.Plate, {
+              target,
+              props: {
+                title: 'Sync Status',
+                level: 3,
+                get state() {
+                  return get(said);
+                }
+              }
+            });
+            flushSync();
+            const head = /** @type {Element} */ (target.querySelector('.sui-plate-head'));
+            const region = head.querySelector('[role="status"]');
+            const tall = (/** @type {Element} */ part) => part.getBoundingClientRect().height;
+            const grows = tall(head) - tall(/** @type {Element} */ (head.firstElementChild));
+            set(said, 'Up to date');
+            flushSync();
+            return {
+              region: Boolean(region),
+              grows,
+              kept: head.querySelector('[role="status"]') === region,
+              words: region?.textContent?.trim()
+            };
+          });
+          assert.ok(seen.region, 'an empty state drops its status region');
+          assert.ok(seen.grows <= 0.5, `an empty state grows the head by ${seen.grows}px`);
+          assert.ok(seen.kept, 'the first words arrive in a new region rather than the one kept');
+          assert.equal(seen.words, 'Up to date');
+        } finally {
+          await page.close();
+        }
+      }
+    );
+
+    test("a plate's new state fades in for the duration its own subtree sets", long, async () => {
+      const page = await openMount(browser, url);
+      try {
+        const seen = await page.evaluate(async () => {
+          const { lib, mount, flushSync, state, get, set } = /** @type {any} */ (window);
+          const said = state('Behind');
+          const target = document.createElement('div');
+          target.style.setProperty('--sui-duration-fast', '480ms');
+          document.body.append(target);
+          mount(lib.Plate, {
+            target,
+            props: {
+              title: 'Sync Status',
+              level: 3,
+              get state() {
+                return get(said);
+              }
+            }
+          });
+          flushSync();
+          set(said, 'Up to date');
+          flushSync();
+          // Svelte holds the fade behind an empty animation for one frame before it plays.
+          await new Promise((done) => requestAnimationFrame(() => requestAnimationFrame(done)));
+          const arrived = /** @type {Element} */ (target.querySelector('.sui-plate-said'));
+          return arrived.getAnimations()[0]?.effect?.getTiming().duration;
+        });
+        assert.equal(seen, 480);
+      } finally {
+        await page.close();
+      }
+    });
+
+    test(
+      "a plate's new state fades in on a change, and not under reduced motion",
+      long,
+      async () => {
+        const page = await sink();
+        const sync = page.locator('.sui-plate').getByRole('button', { name: 'Sync Now' }).first();
+        const undo = page
+          .locator('.sui-plate')
+          .getByRole('button', { name: 'Undo the Sync' })
+          .first();
+        for (const reducedMotion of /** @type {const} */ (['no-preference', 'reduce'])) {
+          await page.emulateMedia({ reducedMotion });
+          await page.evaluate(() => {
+            const status = document.querySelectorAll('.sui-plate-status');
+            const fades = () =>
+              document
+                .getAnimations()
+                .filter((run) =>
+                  [...status].some((part) =>
+                    part.contains(/** @type {KeyframeEffect} */ (run.effect).target)
+                  )
+                )
+                .map((run) => Number(run.effect?.getTiming().duration));
+            // @ts-expect-error a probe for this test only
+            window.plateFades = { seen: [] };
+            // Twenty frames outlast the 160ms fade; counted by frame, so a still pass stops too.
+            let frames = 0;
+            const watch = () => {
+              // @ts-expect-error a probe for this test only
+              window.plateFades.seen.push(...fades());
+              if (++frames < 20) requestAnimationFrame(watch);
+            };
+            requestAnimationFrame(watch);
+          });
+          await sync.click();
+          await page.waitForTimeout(400);
+          // @ts-expect-error a probe for this test only
+          const { seen } = await page.evaluate(() => window.plateFades);
+          await undo.click();
+          // The undo's own fade ends before the next pass watches.
+          await page.waitForTimeout(300);
+          const longest = Math.max(0, ...seen);
+          if (reducedMotion === 'reduce')
+            assert.equal(longest, 0, 'reduced motion keeps a change still');
+          else assert.equal(longest, 160, 'a change fades in over --sui-duration-fast');
+        }
+        await page.emulateMedia({ reducedMotion: 'no-preference' });
+      }
+    );
+
+    test(
+      'a live callout an edit brings settles in from above, and not under reduced motion',
+      long,
+      async () => {
+        const page = await sink();
+        const shorten = page.getByRole('button', { name: 'Shorten to 2 Days' });
+        for (const reducedMotion of /** @type {const} */ (['no-preference', 'reduce'])) {
+          await page.emulateMedia({ reducedMotion });
+          await shorten.click();
+          const runs = await page.locator('.sui-callout:has(+ [role="alert"])').evaluate((node) =>
+            node
+              .getAnimations()
+              .map(
+                (run) =>
+                  `${/** @type {CSSTransition} */ (run).transitionProperty} ${run.effect?.getTiming().duration}`
+              )
+              .sort()
+          );
+          await page.getByRole('button', { name: 'Keep the Token' }).click();
+          assert.deepEqual(
+            runs,
+            reducedMotion === 'reduce' ? [] : ['opacity 160', 'translate 160'],
+            reducedMotion
+          );
+        }
+        await page.emulateMedia({ reducedMotion: 'no-preference' });
       }
     );
 
@@ -766,6 +1312,41 @@ suite('navigation', together, () => {
             return `${look.outlineStyle} ${look.outlineWidth} ${look.outlineColor === look.borderTopColor}`;
           });
         assert.equal(ring, 'solid 1px true', 'the focused link does not ring its card');
+
+        const members = peers.locator('.sui-card').nth(2);
+        const underlined = () =>
+          members
+            .locator('.sui-card-words > span')
+            .first()
+            .evaluate((words) => getComputedStyle(words).textDecorationLine);
+        const box = /** @type {{ x: number, y: number, width: number, height: number }} */ (
+          await members.boundingBox()
+        );
+        const first = peers.locator('.sui-card').first();
+        const edge = () => first.evaluate((card) => getComputedStyle(card).borderTopColor);
+        const rest = await edge();
+        const corner = /** @type {{ x: number, y: number, width: number, height: number }} */ (
+          await first.boundingBox()
+        );
+        await page.mouse.move(corner.x + 24, corner.y + corner.height - 12);
+        assert.notEqual(await edge(), rest, 'a hovered card keeps its resting keyline');
+        await page.mouse.move(box.x + 24, box.y + box.height - 12);
+        assert.equal(
+          await underlined(),
+          'underline',
+          'a hovered card does not underline its title'
+        );
+        assert.equal(
+          await members.evaluate((card) => {
+            const look = getComputedStyle(card);
+            return look.outlineColor === look.borderTopColor;
+          }),
+          true,
+          'a hovered card drops the focus ring its keyboard focus drew'
+        );
+        await members.getByRole('button', { name: 'Invite' }).hover();
+        assert.equal(await underlined(), 'none', 'a hovered control underlines the card title');
+        await page.mouse.move(0, 0);
 
         const before = await page.evaluate(() => location.hash);
         await peers.getByRole('button', { name: 'Rule actions' }).click();
@@ -1310,6 +1891,45 @@ suite('navigation', together, () => {
           Math.abs((await page.evaluate(() => scrollY)) - place) <= 1,
           'the page did not come back to where the list was scrolled'
         );
+      } finally {
+        await page.close();
+      }
+    }
+  );
+
+  test(
+    "a wide list-detail's run stands its actions on the title's line and its aside beside its steps",
+    long,
+    async () => {
+      const page = await openLayout('layouts/list-detail/4182/', 1440);
+      try {
+        const stand = await page
+          .locator('.sui-list-detail-detail .sui-page-header')
+          .evaluate((node) => {
+            const box = (/** @type {string} */ selector) =>
+              node.querySelector(selector)?.getBoundingClientRect();
+            const [layout, title, actions] = [
+              box('.sui-page-header-layout'),
+              box('.sui-page-header-title'),
+              box('.sui-page-header-actions')
+            ];
+            return layout && title && actions
+              ? {
+                  lead: title.top - layout.top,
+                  off: (actions.top + actions.bottom - title.top - title.bottom) / 2
+                }
+              : null;
+          });
+        assert.ok(stand, 'the run header has no title or actions');
+        assert.equal(stand.lead, 0, 'the title stands under room kept for the hidden way back');
+        assert.ok(Math.abs(stand.off) <= 1, `the actions stand ${stand.off}px off the title`);
+        const tops = await page.evaluate(() =>
+          ['main', 'aside'].map(
+            (part) =>
+              document.querySelector(`.sui-detail-layout-${part}`)?.getBoundingClientRect().top
+          )
+        );
+        assert.equal(tops[0], tops[1], "the run's aside stands under its steps");
       } finally {
         await page.close();
       }

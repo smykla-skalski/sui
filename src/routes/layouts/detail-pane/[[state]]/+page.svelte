@@ -36,6 +36,9 @@
   } from '#lib';
 
   const PAGE = 5;
+  // A property row sets its label beside its value, so its placeholders keep that pitch and
+  // span what the properties will.
+  const FACT_ROW = '2.375rem';
   const started = Date.now() - 12.5 * 60_000;
   const nothing = () => {};
 
@@ -106,8 +109,7 @@
   const headline: Fact[] = [
     { label: 'Workspace', value: 'acme' },
     { label: 'Started', value: startedAt },
-    { label: 'Took', value: '48\u00a0seconds' },
-    { label: 'Requested by', value: 'Bart' }
+    { label: 'Took', value: '48\u00a0seconds' }
   ];
 
   const counts: Fact[] = [
@@ -121,7 +123,7 @@
     { label: 'Trigger', value: 'Manual, from the sync page' },
     { label: 'Requested by', value: requester },
     { label: 'Started', value: startedAt },
-    { label: 'Attempt', value: '1 of 3', mono: true }
+    { label: 'Attempt', value: '1 of 3' }
   ];
 
   const more: Fact[] = [
@@ -156,14 +158,16 @@
     title="Sync Check #4182"
     description="Compared 16 repositories in acme with the saved settings"
     kicker={back}
+    actions={headActions}
   >
     {#snippet status()}<Pill tone="warning" dot>3 differ</Pill>{/snippet}
     {#snippet facts()}<FactList facts={headline} />{/snippet}
-    {#snippet actions()}
-      <Button tone="signal">Check Again</Button>
-      <ActionMenu label="More actions" icon="more" toolbar items={menu} align="end" />
-    {/snippet}
   </PageHeader>
+{/snippet}
+
+{#snippet headActions()}
+  <Button tone="signal">Check Again</Button>
+  <ActionMenu label="More actions" icon="more" toolbar items={menu} align="end" />
 {/snippet}
 
 {#snippet body()}
@@ -206,11 +210,12 @@
       <Section title="Related">
         <LinkList links={related} />
       </Section>
+      <!-- The rare properties close the aside, under the properties they add to. -->
+      <Disclosure summary="More About This Check" hint="ID, worker and version">
+        <FactList layout="rows" facts={more} />
+      </Disclosure>
     {/snippet}
   </DetailLayout>
-  <Disclosure summary="More About This Check" hint="ID, worker and version">
-    <FactList layout="rows" facts={more} />
-  </Disclosure>
 {/snippet}
 
 <SkipLink href="#content" />
@@ -225,9 +230,36 @@
 
   <main id="content" tabindex="-1">
     {#if view === 'loading'}
-      <PageHeader title="Sync Check #4182" kicker={back}>
+      <!-- The actions need no answer, so they stand where they will stay, and bars hold the
+           description and the facts: one line each in a wide header, and one bar per row where
+           the facts stack, a finger's row on a phone. -->
+      <PageHeader title="Sync Check #4182" kicker={back} actions={headActions}>
         <!-- The status region is there from the first render, so the state is read once it arrives. -->
         {#snippet status()}{/snippet}
+        {#snippet facts()}
+          <div class="from-ink wide">
+            <Skeleton
+              rows={2}
+              bars={false}
+              ruled={false}
+              rowHeight="1.75rem"
+              patience={Infinity}
+              label=""
+              loadedLabel=""
+            />
+          </div>
+          <div class="from-ink narrow">
+            <Skeleton
+              rows={1 + headline.length}
+              bars={false}
+              ruled={false}
+              rowHeight="var(--head-row)"
+              patience={Infinity}
+              label=""
+              loadedLabel=""
+            />
+          </div>
+        {/snippet}
       </PageHeader>
       <div class="zones">
         <DetailLayout>
@@ -264,7 +296,7 @@
                 <Skeleton
                   rows={5}
                   bars={false}
-                  rowHeight="3.875rem"
+                  rowHeight={FACT_ROW}
                   patience={Infinity}
                   label=""
                   loadedLabel=""
@@ -276,12 +308,13 @@
       </div>
     {:else if view === 'missing'}
       <PageHeader title="Sync Check #4182" kicker={back} />
-      <div class="zones">
+      <div class="zones missing">
         <ErrorState
           title="Sync Check #4182 Does Not Exist"
           description="Someone deleted it or it never existed"
-          step="Go back to the queue to open another check"
-        />
+        >
+          {#snippet action()}<Button href="#queue">Open the Queue</Button>{/snippet}
+        </ErrorState>
       </div>
     {:else}
       {@render header()}
@@ -320,6 +353,12 @@
     padding: 0 var(--sui-rhythm-pane-gutter) var(--sui-rhythm-pane-gutter);
   }
 
+  /* A failure that stands as the whole body keeps a reading measure, so its words and its way
+     out stay together rather than leave a wide empty ground beside them. */
+  .missing > :global(*) {
+    max-inline-size: var(--sui-measure);
+  }
+
   /* Proximity: the counts stand one copy gap further below the sentence than its own lines
      stand apart, so a wrapped sentence still reads as one block (L-24). */
   .lede {
@@ -338,6 +377,34 @@
      hand back the room a list row keeps above its first bar. */
   .from-ink {
     --sui-local-row-lead: calc(-1 * var(--sui-row-pad-default));
+  }
+
+  .narrow {
+    --head-row: 1.75rem;
+
+    display: none;
+  }
+
+  @container sui-page-header (max-width: 36rem) {
+    .wide {
+      display: none;
+    }
+
+    .narrow {
+      display: block;
+    }
+  }
+
+  @media (max-width: 47.9375rem) {
+    .wide {
+      display: none;
+    }
+
+    .narrow {
+      --head-row: var(--sui-touch-target);
+
+      display: block;
+    }
   }
 
   .name {

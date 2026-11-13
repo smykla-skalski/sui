@@ -9,6 +9,7 @@
     rowLabel = (row) => row,
     columnLabel = (column) => column,
     fill = false,
+    labelMiddle,
     cell
   }: {
     rows: readonly Row[];
@@ -24,6 +25,11 @@
      * they are given. Without it each column is as wide as its widest cell.
      */
     fill?: boolean;
+    /**
+     * How far under a surface's top edge its leading mark centres, such as a callout's tile, so
+     * each row's value centres on that mark. Only with `fill`, whose surfaces start on one edge.
+     */
+    labelMiddle?: string;
     cell: Snippet<[Row, Column]>;
   } = $props();
 
@@ -63,7 +69,11 @@ wide matrix on a wider stage scrolls inside it with the row values held, as a da
 
 {#if fill}
   <div class="variants">
-    <div class="grid fill" style:--columns={columns.length}>
+    <div
+      class={['grid fill', { middled: labelMiddle }]}
+      style:--columns={columns.length}
+      style:--sui-local-label-middle={labelMiddle}
+    >
       {@render matrix()}
     </div>
   </div>
@@ -156,12 +166,24 @@ wide matrix on a wider stage scrolls inside it with the row values held, as a da
     grid-template-columns: max-content repeat(var(--columns), max-content);
   }
 
+  /* Surfaces of one row start on one top edge, so a taller one shows its extra height below
+     rather than splitting it above and below its partner. */
   .fill {
+    align-items: start;
     grid-template-columns: max-content repeat(var(--columns), minmax(0, 1fr));
   }
 
   .row {
     display: contents;
+  }
+
+  /* A row's value centres on its surfaces' leading mark, in a box twice that mark's middle
+     tall, so it reads as the name of what it stands beside rather than of the gap above it. */
+  @container variants (width >= 34rem) {
+    .middled .row-label {
+      block-size: calc(2 * var(--sui-local-label-middle));
+      padding-block: 0;
+    }
   }
 
   .corner,

@@ -184,7 +184,7 @@ tooltip.
     background-repeat: repeat-x;
     background-size: 4px 2px;
     /* A flex or grid parent makes the time a block and may stretch it, and the dots follow its
-       box, so the box keeps to its words. */
+       box, so the box keeps to its words exactly, not rounded past them (L-95). */
     inline-size: fit-content;
     position: relative;
     white-space: nowrap;

@@ -391,6 +391,127 @@ suite('forms', together, () => {
       }
     });
 
+    test(
+      'one tip shows at a time, the one focus holds outlasts the pointer, and a disabled remove shows none',
+      long,
+      async () => {
+        const page = await opened();
+        const removers = page.locator('#chip .sui-chip-remove:not([disabled])');
+        const shown = () =>
+          page.evaluate(() =>
+            [...document.querySelectorAll('.sui-tooltip:popover-open')].map((tip) =>
+              tip.textContent?.trim()
+            )
+          );
+        const named = (/** @type {number} */ index) =>
+          removers.nth(index).getAttribute('aria-label');
+        await removers.nth(1).scrollIntoViewIfNeeded();
+        await page.keyboard.press('Shift');
+        // Focus lands before the pointer's show delay has run out, from a page with no tip held
+        // or warm.
+        await page.evaluate(() => /** @type {HTMLElement} */ (document.activeElement).blur());
+        await page.mouse.move(0, 0);
+        await page.waitForTimeout(400);
+        await removers.nth(0).hover();
+        await removers.nth(1).focus();
+        await page.waitForTimeout(600);
+        assert.deepEqual(
+          await shown(),
+          [await named(1)],
+          'a pointer that was waiting opened a tip beside the focused one'
+        );
+        await page.mouse.move(0, 0);
+        await page.locator('.sui-tooltip:popover-open').waitFor();
+        await removers.nth(0).hover();
+        await page.waitForTimeout(600);
+        assert.deepEqual(
+          await shown(),
+          [await named(1)],
+          'the pointer opened a tip over the focused one'
+        );
+
+        await page.evaluate(() => /** @type {HTMLElement} */ (document.activeElement).blur());
+        await removers.nth(2).hover();
+        await page.waitForTimeout(600);
+        assert.deepEqual(
+          await shown(),
+          [await named(2)],
+          'the pointer shows no tip once focus left'
+        );
+
+        await page.locator('#chip .sui-chip-remove[disabled]').first().hover();
+        await page.waitForTimeout(600);
+        assert.deepEqual(await shown(), [], 'a disabled remove names an action it cannot take');
+        await page.mouse.move(0, 0);
+      }
+    );
+
+    test('a painted chip keeps an edge only where its ground would swallow it', async () => {
+      const page = await opened();
+      // The theme follows the reader's scheme, and the chip eases its edge in, so each scheme's
+      // edges are read once that change has run.
+      const edges = async (/** @type {'light' | 'dark'} */ scheme) => {
+        await page.emulateMedia({ colorScheme: scheme });
+        await page.waitForTimeout(400);
+        return page.evaluate(() =>
+          Object.fromEntries(
+            [...document.querySelectorAll('#chip .sui-chip.painted')].map((chip) => [
+              chip.textContent?.trim(),
+              !getComputedStyle(chip).boxShadow.startsWith('rgba(0, 0, 0, 0)')
+            ])
+          )
+        );
+      };
+      const dark = await edges('dark');
+      assert.equal(dark.blocked, true, 'a black chip has no edge on a dark ground');
+      assert.equal(dark.frontend, false, 'a blue chip draws an edge it does not need');
+      const light = await edges('light');
+      assert.equal(light.release, true, 'a white chip has no edge on a white card');
+      assert.equal(light.blocked, false, 'a black chip draws an edge in the light theme');
+    });
+
+    test('a long mono chip wraps after its delimiters, never inside a word', async () => {
+      const page = await opened();
+      // Each width wider than the value's longest run between delimiters, where a value broken
+      // only at its delimiters always fits.
+      const ends = await page.evaluate(() => {
+        const chip = /** @type {HTMLElement} */ (
+          [...document.querySelectorAll('#chip .sui-chip.mono')].find((each) =>
+            each.textContent?.includes('registry.example.com')
+          )
+        );
+        const label = /** @type {Element} */ (chip.querySelector('.sui-chip-label'));
+        const range = document.createRange();
+        /** @type {string[]} */
+        const found = [];
+        for (const width of ['14rem', '16rem', '18rem', '20rem', '22rem']) {
+          chip.style.maxInlineSize = width;
+          const walker = document.createTreeWalker(label, NodeFilter.SHOW_TEXT);
+          let previous = '';
+          let top = NaN;
+          for (let node = walker.nextNode(); node; node = walker.nextNode()) {
+            const text = node.textContent ?? '';
+            for (let at = 0; at < text.length; at++) {
+              range.setStart(node, at);
+              range.setEnd(node, at + 1);
+              const now = range.getBoundingClientRect().top;
+              if (now > top + 1) found.push(`${width} ${previous}`);
+              top = now;
+              previous = text[at];
+            }
+          }
+        }
+        chip.style.maxInlineSize = '';
+        return found;
+      });
+      assert.ok(ends.length > 0, 'the value wraps in a narrow chip');
+      assert.deepEqual(
+        ends.filter((end) => !'/:=-'.includes(end.slice(-1))),
+        [],
+        'every line ends at a delimiter'
+      );
+    });
+
     test('a segmented control rings its track and draws a disabled choice without the accent', async () => {
       const page = await opened();
       await page.keyboard.press('Shift');

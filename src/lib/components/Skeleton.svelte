@@ -10,6 +10,7 @@
     rows = 6,
     rowHeight,
     bars = true,
+    ruled = true,
     label = word('Skeleton.label', 'Loading…'),
     loadedLabel = word('Skeleton.loadedLabel', 'Loaded'),
     patience = 10_000,
@@ -26,6 +27,8 @@
     rowHeight?: string;
     /** Bars where a two-line row's name, its line under it and its side will be. Off draws one bar per row, for a list of one-line rows. */
     bars?: boolean;
+    /** A hairline under each row but the last, as list and property rows draw. Off draws none, for words that stand without rules, such as a header's facts. */
+    ruled?: boolean;
     /** What is being waited for, announced rather than drawn. */
     label?: string;
     /** Announced once the rows arrive, so a reader knows the wait is over. */
@@ -102,7 +105,7 @@ placeholder in the reading direction, as one light over all of its bars, and hol
 under reduced motion. Use it only where the shape of what is coming is already known.
 
 - Semantics: a `div` that is `aria-busy` while loading, beside a polite `status` that speaks for it.
-- Content: `rows` placeholder rows of the loaded row's height, with bars for a two-line row's name, its line under it and its side, or one bar for a one-line row, and the loaded `children` in their place.
+- Content: `rows` placeholder rows of the loaded row's height, each over a hairline unless `ruled` is off, with bars for a two-line row's name, its line under it and its side, or one bar for a one-line row, and the loaded `children` in their place.
 - States: waiting (the light crosses the bars), slow (the light stops and the first row says `slowLabel` where a name stands and `slowDescription` where the line under it stands, or the title alone in a one-line row), and loaded (the children, with `loadedLabel` announced).
 - Keyboard: none; placeholders take no focus.
 - Pointer and touch: none; placeholders take no presses.
@@ -118,7 +121,7 @@ under reduced motion. Use it only where the shape of what is coming is already k
 <div {...rest} class={['sui-skeleton', className]} aria-busy={loading}>
   {#if waitShown.current}
     <div
-      class={['sui-skeleton-rows', { bars, slow }]}
+      class={['sui-skeleton-rows', { bars, ruled, slow }]}
       style:--sui-skeleton-row={rowHeight}
       aria-hidden="true"
     >
@@ -150,7 +153,7 @@ under reduced motion. Use it only where the shape of what is coming is already k
     min-inline-size: 0;
   }
 
-  /* Two trimmed lines of meta copy, each snapped up to the pixel as the row snaps them, the
+  /* Two trimmed lines of copy, each snapped up to an even pixel as the row snaps them, the
      copy gap between them, the row padding and the hairline: exactly an `ObjectRow`, measured
      in the face that row is set in.
 
@@ -159,11 +162,11 @@ under reduced motion. Use it only where the shape of what is coming is already k
      never widens the page. */
   .sui-skeleton-rows {
     --sui-skeleton-row: calc(
-      2 * round(up, 1cap, 1px) + var(--sui-row-copy-gap) + 2 * var(--sui-row-pad-default) +
+      2 * round(up, 1cap, 2px) + var(--sui-row-copy-gap) + 2 * var(--sui-row-pad-default) +
         var(--sui-row-hairline)
     );
     /* A row's bars: two lines of words one copy gap apart, or one line for plain rows. */
-    --sui-skeleton-lines: calc(2 * round(up, 1cap, 1px) + var(--sui-row-copy-gap));
+    --sui-skeleton-lines: calc(2 * round(up, 1cap, 2px) + var(--sui-row-copy-gap));
     /* What a row leaves above its first bar, on the pixel: the row padding for the default row,
        and the rest of the row under the bars, hairline band included. */
     --sui-skeleton-lead: round(
@@ -199,15 +202,23 @@ under reduced motion. Use it only where the shape of what is coming is already k
     padding-block: var(--sui-skeleton-lead);
   }
 
-  /* The last row ends at its last bar, where a loaded list hands back the rest of its last row,
-     so what follows stands where it will after the load. The rows end there rather than hand
-     the rest back with a negative margin, which would leave their box past the holder's end
-     and give the page room to scroll into (L-119). It draws no hairline: a transparent line
-     would not do, because forced colors paint it. */
+  /* The last row ends where a loaded list's last row ends once the list hands back its padding
+     and hairline band, so what follows stands where it will after the load; its bars round
+     their cap finer than the row does, so the row, not the bars, sets that end. The rows end
+     there rather than hand the rest back with a negative margin, which would leave their box
+     past the holder's end and give the page room to scroll into (L-119). It draws no hairline:
+     a transparent line would not do, because forced colors paint it. */
   .row:last-child {
     border-block-end: 0;
-    min-block-size: 0;
+    min-block-size: calc(
+      var(--sui-skeleton-row) - var(--sui-row-pad-default) - var(--sui-row-hairline)
+    );
     padding-block-end: 0;
+  }
+
+  /* Rows that stand for words without rules draw no hairline. */
+  .sui-skeleton-rows:not(.ruled) .row {
+    border-block-end: 0;
   }
 
   .main {

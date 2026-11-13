@@ -11,6 +11,7 @@
     Button,
     DetailLayout,
     FactList,
+    Icon,
     Link,
     ObjectList,
     ObjectRow,
@@ -32,7 +33,7 @@
   const details: Fact[] = [
     { label: 'Workspace', value: 'acme', href: '#section-detail-layout' },
     { label: 'Trigger', value: 'Manual, from the sync page' },
-    { label: 'Attempt', value: '1 of 3', mono: true }
+    { label: 'Attempt', value: '1 of 3' }
   ];
 </script>
 
@@ -79,6 +80,7 @@
   title="Parts"
   note="A title with its description, a count and actions on its cap band, with no frame, ground or line"
   layout="grid"
+  --specimen-column-gap="calc(2 * var(--sui-space-6))"
   ground="canvas"
 >
   <Specimen label="Title & description">
@@ -98,7 +100,12 @@
   </Specimen>
   <Specimen label="Quiet button">
     <Section title="Webhooks" description="Deliveries in the last 24&nbsp;hours" level={4}>
-      {#snippet actions()}<Button tone="ghost">Refresh</Button>{/snippet}
+      {#snippet actions()}
+        <Button tone="ghost">
+          {#snippet icon()}<Icon name="refresh" size="base" />{/snippet}
+          Refresh
+        </Button>
+      {/snippet}
       <p class="copy">All 18 deliveries succeeded</p>
     </Section>
   </Specimen>
@@ -106,6 +113,7 @@
 
 <Example
   title="In Sequence"
+  --example-max="48rem"
   note="Sections that follow each other stand 40 px apart, 32 px on a phone, with no wrapper and no line between them"
   layout="stack"
   ground="canvas"
@@ -131,6 +139,7 @@
 
 <Example
   title="Sub-sections"
+  --example-max="48rem"
   note="A section inside another takes the 15 px title and stands 24 px under what comes before it, 20 px on a phone"
   layout="stack"
   ground="canvas"
@@ -150,6 +159,7 @@
 
 <Example
   title="With a List"
+  --example-max="48rem"
   note="A list hangs from the section: its words keep the title’s edge and a hovered row’s ground reaches past it"
   layout="stack"
   ground="canvas"
@@ -174,16 +184,20 @@
     {@render pane()}
   </Specimen>
   <Specimen label="In 30 rem">
-    <div class="narrow">{@render pane()}</div>
+    <div class="narrow section-narrow-pane">{@render pane()}</div>
   </Specimen>
 </Example>
 
 <style>
+  /* A section's content is the page's own words, so it wears the content's ink, and the
+     section's description stays the quiet line over it. Each specimen's copy is a line or two,
+     so it balances them and never ends on a longer second line. */
   .copy {
-    color: var(--sui-text-secondary);
+    color: var(--sui-text-primary);
     font: var(--sui-weight-regular) var(--sui-font-size-body) / var(--sui-leading-body)
       var(--sui-sans);
     margin: 0;
+    text-wrap: balance;
   }
 
   .name {
@@ -197,7 +211,35 @@
     text-box: trim-both cap alphabetic;
   }
 
+  /* A 30rem pane ends on the edge a list-detail pane draws, the subtle hairline on one ground,
+     so the room past it reads as another pane's and not as words that only wrapped. The edge
+     runs the specimen's whole height, from the line over it to the Code band, as a pane's edge
+     runs the window's: up past the specimen's name, its 16px gap and the stage's inset, and
+     down through the inset. The name is caption type trimmed to its cap, so the edge measures
+     its rise in that face. */
   .narrow {
-    inline-size: min(100%, 30rem);
+    --pane-reach: var(--sui-local-bleed, 0px);
+    inline-size: min(100% - var(--sui-space-6) - var(--sui-stroke), 30rem);
+    padding-inline-end: var(--sui-space-6);
+    position: relative;
+  }
+
+  .narrow::after {
+    border-inline-end: var(--sui-stroke) solid var(--sui-border-subtle);
+    content: '';
+    font: var(--sui-weight-regular) var(--sui-font-size-caption) / var(--sui-leading-compact)
+      var(--sui-sans);
+    inset-block: calc(-1 * (var(--pane-reach) + round(up, 1cap, 1px) + var(--sui-space-4)))
+      calc(-1 * var(--pane-reach));
+    inset-inline-end: calc(-1 * var(--sui-stroke));
+    inline-size: 0;
+    position: absolute;
+  }
+
+  /* A stage of 30rem or less already shows the narrow pane, so the second one would repeat it. */
+  @container sink-stage (max-width: 30rem) {
+    :global(.specimen:has(> .body > .section-narrow-pane)) {
+      display: none;
+    }
   }
 </style>

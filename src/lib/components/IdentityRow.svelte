@@ -40,7 +40,9 @@
 Who a row is about, in one row: the avatar, then the name with the handle in mono under it.
 Both lines are trimmed to their ink and stand 8px apart, so the words, not their line boxes,
 centre on the avatar. A name that wraps keeps the avatar centred on its own lines, never on
-the handle under them.
+the handle under them. A holder whose rows keep a pitch of their own, such as a `FactList` of
+rows, sets `--sui-identity-overhang: 1`: the row is then as tall as its words, and the avatar
+reaches past its edges into the holder's padding, still centred on the name.
 
 - Semantics: a `span` of text; the avatar is hidden, so the name is read once and the handle after it, joined by `handleName`.
 - Content: a name, an optional handle and an optional picture.
@@ -82,7 +84,7 @@ the handle under them.
     display: flex;
     gap: var(--sui-space-2);
     max-inline-size: 100%;
-    min-block-size: var(--sui-local-face);
+    min-block-size: calc(var(--sui-local-face) * (1 - var(--sui-identity-overhang, 0)));
     min-inline-size: 0;
     position: relative;
   }
@@ -93,8 +95,9 @@ the handle under them.
     order: -1;
   }
 
-  /* The avatar centres on the name's own lines, and never stands above the row, so a one-line
-     name and its handle still centre on it while a name that wraps keeps it beside its lines. */
+  /* The avatar centres on the name's own lines, and never stands above the row, unless the
+     holder asks it to overhang, so a one-line name and its handle still centre on it while a
+     name that wraps keeps it beside its lines. */
   @supports (anchor-name: --sui-identity-name) {
     .sui-identity-row {
       padding-inline-start: calc(var(--sui-local-face) + var(--sui-space-2));
@@ -108,7 +111,10 @@ the handle under them.
       inset-inline-start: 0;
       position: absolute;
       position-anchor: --sui-identity-name;
-      top: max(0px, calc(anchor(center) - var(--sui-local-face) / 2));
+      top: max(
+        calc(var(--sui-identity-overhang, 0) * var(--sui-local-face) / -2),
+        calc(anchor(center) - var(--sui-local-face) / 2)
+      );
     }
   }
 

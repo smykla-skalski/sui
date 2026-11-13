@@ -147,7 +147,7 @@ in its corner. Beside a 34px field or in a toolbar it takes the control tier wit
     flex: none;
     font: var(--sui-weight-medium) var(--sui-font-size-control) / var(--sui-leading-flat)
       var(--sui-sans);
-    inline-size: fit-content;
+    inline-size: var(--sui-inline-snap);
     white-space: nowrap;
     margin: 0;
     padding: 0 var(--sui-space-2);

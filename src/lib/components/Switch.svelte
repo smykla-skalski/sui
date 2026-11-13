@@ -142,7 +142,7 @@ take, under the switch and to a screen reader, while the owner sets `checked` ba
 <style>
   .sui-switch {
     display: inline-grid;
-    inline-size: fit-content;
+    inline-size: var(--sui-inline-snap);
     justify-items: start;
     max-inline-size: 100%;
     /* Top, not baseline: on the baseline the line under it adds the strut's descent and sets
@@ -155,7 +155,7 @@ take, under the switch and to a screen reader, while the owner sets `checked` ba
     cursor: pointer;
     display: inline-flex;
     gap: var(--sui-space-2);
-    inline-size: fit-content;
+    inline-size: var(--sui-inline-snap);
     max-inline-size: 100%;
     min-block-size: var(--sui-touch-target);
     touch-action: manipulation;

@@ -99,7 +99,7 @@ eyebrow's place in a `PageHeader`.
      instead of overlapping. The list is set in the links' face so its cap is theirs. */
   .sui-breadcrumb-list {
     align-items: center;
-    column-gap: var(--sui-space-2);
+    column-gap: var(--sui-space-3);
     display: flex;
     flex-wrap: wrap;
     font: var(--sui-weight-medium) var(--sui-font-size-meta) / var(--sui-leading-flat)
@@ -110,10 +110,12 @@ eyebrow's place in a `PageHeader`.
     row-gap: calc(var(--sui-local-crumb-target) - round(up, 1cap, 1px));
   }
 
+  /* A link's veil reaches 8px past its words, so its words stand 12px from a separator and
+     a lit link never meets one. */
   .sui-breadcrumb-item {
     align-items: center;
     display: flex;
-    gap: var(--sui-space-2);
+    gap: var(--sui-space-3);
     min-inline-size: 0;
   }
 

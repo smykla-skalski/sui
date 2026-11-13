@@ -35,12 +35,12 @@ row without `href` stays still under the pointer: hover and press only answer on
 opens something.
 
 A `current` row is the one whose item is open beside the list. It stands on the plate that
-marks where the reader is, at the pressed step, so it never looks hovered, hides its hairline
+marks where the reader is, the sidebar's accent tint, so it never looks hovered, hides its hairline
 and the one above as a hovered row does, and keeps the plate under the pointer.
 
 - Semantics: an `li`; with `href`, an `a` under the content, named by the main content through `aria-labelledby`, with `aria-current="page"` on a `current` row.
 - Content: `main`, the name and what the row says about it, and an optional `side` of standings, values and controls.
-- States: rest; with `href`, hover (the row ground, where the pointer can hover), pressed (a deeper ground and a 1px sink), focus (an inset ring on the row) and current (a plate at the pressed step, a step past hover, which hover leaves alone).
+- States: rest; with `href`, hover (the row ground, where the pointer can hover), pressed (a deeper ground and a 1px sink), focus (an inset ring on the row) and current (the sidebar's accent-tint plate, which hover leaves alone).
 - Keyboard: the row link is one tab stop, then each control inside the row; Enter follows the link.
 - Pointer and touch: the whole row is the link's target, at least 44px tall with its padding; controls inside keep their own targets.
 - Focus: the ring is drawn inside the row, so a list that clips never cuts it.
@@ -82,7 +82,7 @@ and the one above as a hovered row does, and keeps the plate under the pointer.
     align-items: center;
     border-radius: var(--sui-radius-control);
     color: var(--sui-text-primary);
-    contain-intrinsic-block-size: auto calc(1.375rem + var(--sui-row-copy-gap));
+    contain-intrinsic-block-size: auto calc(1.5rem + var(--sui-row-copy-gap));
     content-visibility: auto;
     display: grid;
     gap: var(--sui-space-4);
@@ -158,14 +158,18 @@ and the one above as a hovered row does, and keeps the plate under the pointer.
     justify-content: flex-end;
   }
 
-  /* The plate that marks where the reader is. A row's words keep their ink when it turns
-     current, so the plate stands at the pressed step, as the sidebar's does, a step past the
-     hover ground, and a hovered row never looks current (L-85). Like a hover ground it has
-     round corners, so neither its own line nor the one above crosses its edge. On that deeper
-     ground the muted ink falls under 4.5:1, so the row's quiet words take the secondary ink. */
+  /* The plate that marks where the reader is, the sidebar's accent tint (L-85): 18% of the
+     accent on light and 24% on dark, so the open row and the open page read as one cue and a
+     hovered row, on a grey ground, never looks current. A row's words keep their ink when it
+     turns current. Like a hover ground it has round corners, so neither its own line nor the
+     one above crosses its edge. On that deeper ground the muted ink falls under 4.5:1, so the
+     row's quiet words take the secondary ink. */
   .current {
     --sui-text-muted: var(--sui-text-secondary);
-    background-color: var(--sui-row-pressed);
+    background-color: light-dark(
+      color-mix(in srgb, var(--sui-brand-action) 18%, transparent),
+      color-mix(in srgb, var(--sui-brand-action) 24%, transparent)
+    );
   }
 
   .sui-object-row.current:not(:last-child)::after,
@@ -197,16 +201,18 @@ and the one above as a hovered row does, and keeps the plate under the pointer.
     outline-offset: var(--sui-focus-ring-inset);
   }
 
-  /* On a phone the side stays beside the name while both fit, so a short row keeps one line,
-     and drops under it, packed to the start, once they do not. */
+  /* On a phone the side stays beside the name while the name keeps 15rem, so a short row keeps
+     one line, and drops under it, packed to the start, before a long name wraps down beside it.
+     A dropped side stands 12px under the main part, nearer it than the next row. */
   @media (max-width: 47.9375rem) {
     .sui-object-row {
       display: flex;
       flex-wrap: wrap;
+      row-gap: var(--sui-space-3);
     }
 
     .sui-object-row-main {
-      flex: 1 1 10rem;
+      flex: 1 1 15rem;
     }
 
     .sui-object-row-side {

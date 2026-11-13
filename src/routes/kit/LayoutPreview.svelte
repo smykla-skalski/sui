@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { onMount } from 'svelte';
   import { Link, SegmentedControl, type SegmentOption } from '#lib';
 
   type Width = 'phone' | 'tablet' | 'desktop';
@@ -15,7 +16,7 @@
     source: string;
     /** Names the frame for a screen reader. */
     title: string;
-    /** The window the frame starts as. */
+    /** The window the frame starts as, on a phone the phone's own. */
     width?: Width;
   } = $props();
 
@@ -48,6 +49,12 @@
     if (theme) root.dataset.suiTheme = theme;
     else delete root.dataset.suiTheme;
   }
+
+  // A desktop scaled into a phone's stage is too small to read, so on a phone the frame starts
+  // as a phone, and a width the reader picks stays theirs.
+  onMount(() => {
+    if (chosen === width && matchMedia('(max-width: 47.9375rem)').matches) chosen = 'phone';
+  });
 
   $effect(() => {
     const observer = new MutationObserver(mirror);
@@ -115,9 +122,11 @@ and bars stay inside it. The kitchen sink never draws a shell inline.
     min-inline-size: 0;
   }
 
+  /* A page sets `--preview-height` on a preview whose state stands taller or shorter than
+     36rem once scaled, so the frame shows that state's content and no empty room under it. */
   .screen {
     background: var(--sui-canvas);
-    block-size: 36rem;
+    block-size: var(--preview-height, 36rem);
     border: var(--sui-stroke) solid var(--sui-border-subtle);
     border-radius: var(--sui-radius-surface);
     box-sizing: border-box;

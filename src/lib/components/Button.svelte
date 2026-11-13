@@ -187,7 +187,7 @@ start.
     font: var(--sui-weight-medium) var(--sui-font-size-control) / var(--sui-leading-flat)
       var(--sui-sans);
     gap: var(--sui-space-2);
-    inline-size: var(--sui-local-button-span, fit-content);
+    inline-size: var(--sui-local-button-span, var(--sui-inline-snap));
     justify-content: center;
     margin: 0;
     max-inline-size: var(--sui-local-button-span, min(100%, 20rem));

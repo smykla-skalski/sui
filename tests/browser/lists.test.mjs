@@ -442,7 +442,7 @@ suite('lists', together, () => {
     );
 
     test(
-      'inline facts flow side by side on a phone, and only a line that holds a target grows to it',
+      'inline facts take a line each on a phone, values in one column, every line at the target',
       long,
       async () => {
         const page = await opened();
@@ -453,18 +453,32 @@ suite('lists', together, () => {
             label: fact.querySelector('dt')?.textContent,
             top: fact.getBoundingClientRect().top,
             height: fact.getBoundingClientRect().height,
+            value: fact.querySelector('dd')?.getBoundingClientRect().left,
             target: fact.querySelector('a[href], [tabindex="0"]') !== null
           }))
         );
-        const byLabel = Object.fromEntries(facts.map((fact) => [fact.label, fact]));
+        assert.ok(
+          facts.some((fact) => fact.target),
+          'the first inline list holds no target to test'
+        );
+        for (let i = 1; i < facts.length; i++)
+          assert.ok(facts[i].top > facts[i - 1].top, `${facts[i].label} shares the line above`);
         assert.equal(
-          byLabel.Branch.top,
-          byLabel.Version.top,
-          'two short facts do not share a line'
+          new Set(facts.map((fact) => fact.value)).size,
+          1,
+          'the values do not start on one column'
         );
         for (const fact of facts)
-          if (fact.target) assert.equal(fact.height, 44, `${fact.label} holds a target under 44px`);
-          else assert.ok(fact.height < 24, `${fact.label} is ${fact.height}px tall with no target`);
+          assert.equal(fact.height, 44, `${fact.label} is ${fact.height}px, off the 44px pitch`);
+        const spill = await list.evaluate((dl) => {
+          const label = /** @type {HTMLElement} */ (dl.querySelector('dt'));
+          const words = label.textContent;
+          label.textContent = 'Synchronisierungsstatus';
+          const over = label.scrollWidth - label.clientWidth;
+          label.textContent = words;
+          return over;
+        });
+        assert.equal(spill, 0, 'a long one-word label paints past its column onto its value');
       }
     );
   });
@@ -502,6 +516,34 @@ suite('lists', together, () => {
         await page.keyboard.press('Shift+Tab');
         assert.ok(await closes(), 'Shift+Tab left the menu open');
         assert.equal(await marks(), unmarked, 'the closed menu left an autofocus mark');
+      }
+    );
+
+    test(
+      'a menu that focuses a choice as it opens leaves the page where it was',
+      long,
+      async () => {
+        const page = await opened();
+        // The last bar's menu has never opened, so it holds no placement from an earlier open.
+        const trigger = page
+          .locator('#list-toolbar')
+          .getByRole('button', { name: 'Sort & Filter' })
+          .last();
+        // Mid-screen, and at the viewport's foot, where a box first drawn under its trigger
+        // would stand off the screen.
+        for (const block of /** @type {const} */ (['center', 'end'])) {
+          await trigger.evaluate((node, at) => node.scrollIntoView({ block: at }), block);
+          const before = await page.evaluate(() => scrollY);
+          assert.ok(before > 0, 'the page did not scroll to the bar');
+          await trigger.click();
+          await page.locator(':popover-open .sui-list-toolbar-panel').waitFor();
+          assert.equal(
+            await page.evaluate(() => scrollY),
+            before,
+            `opening the menu at the ${block} scrolled the page`
+          );
+          await page.keyboard.press('Escape');
+        }
       }
     );
 
@@ -963,7 +1005,7 @@ suite('lists', together, () => {
     });
 
     test(
-      'fact rows line their values up past the longest label and stack each pair under 25rem of their own width',
+      'fact rows line their values up past the longest label and stack each pair under 18rem of their own width',
       long,
       async () => {
         const page = await opened();
@@ -988,8 +1030,8 @@ suite('lists', together, () => {
         const wide = await pairs(0);
         const narrow = await pairs(1);
         assert.ok(
-          wide.width >= 400 && narrow.width < 400,
-          'the two lists are not either side of 25rem'
+          wide.width >= 288 && narrow.width < 288,
+          'the two lists are not either side of 18rem'
         );
         const labelsEnd = Math.max(...wide.rows.map((row) => row.labelEnd));
         for (const { label, value } of wide.rows) {
@@ -1002,6 +1044,15 @@ suite('lists', together, () => {
             `a value starts ${value.left - labelsEnd}px past the labels`
           );
         }
+        // A narrow aside's 20rem still holds both columns.
+        await lists.nth(1).evaluate((list) => {
+          /** @type {HTMLElement} */ (list.parentElement).style.inlineSize = '20rem';
+        });
+        for (const { label, value } of (await pairs(1)).rows)
+          assert.ok(value.top < label.bottom, 'a list 20rem wide stacks its value');
+        await lists.nth(1).evaluate((list) => {
+          /** @type {HTMLElement} */ (list.parentElement).style.inlineSize = '';
+        });
         for (const { label, value } of narrow.rows) {
           assert.ok(
             Math.abs(value.top - label.bottom - 8) < 0.5,
@@ -1289,6 +1340,32 @@ suite('lists', together, () => {
         }
       }
     );
+
+    // Last in the suite: it leaves the example showing its loaded rows.
+    test("a skeleton's rows stand as tall as the kit rows that take their place", async () => {
+      const page = await opened();
+      const example = page.locator('#skeleton .example').filter({
+        has: page.getByRole('button', { name: 'Show the Rows' })
+      });
+      // A handle, since the button that names the example changes its words once pressed.
+      const region = await example.locator('.sui-skeleton').elementHandle();
+      assert.ok(region, 'the example has no skeleton');
+      await region.scrollIntoViewIfNeeded();
+      // The section that holds the rows, since a loaded list hands back its last row's padding
+      // past its own box, where the placeholders end at their last line.
+      const height = () =>
+        region.evaluate(
+          (element) => element.closest('.sui-section')?.getBoundingClientRect().height
+        );
+      const waiting = await height();
+      await example.getByRole('button', { name: 'Show the Rows' }).click();
+      await page.waitForFunction(
+        (element) => element.getAttribute('aria-busy') === 'false',
+        region
+      );
+      const loaded = await height();
+      assert.equal(loaded, waiting, 'the page moves when the rows arrive');
+    });
   });
 
   suite('settings and save bars', { concurrency: 1 }, () => {

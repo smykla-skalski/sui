@@ -64,6 +64,9 @@
 <Example
   title="Label Colors"
   note="The light theme shows the color with black or white ink, and the dark one a tint with ink in its hue"
+  layout="grid"
+  --specimen-min="9rem"
+  --specimen-column-gap="var(--sui-space-4)"
 >
   {#each github as [label, color, name] (label)}
     <Specimen label={name}>
@@ -75,6 +78,9 @@
 <Example
   title="Pale & Dark"
   note="Only a near-white chip draws an edge, so it still shows on a white card"
+  layout="grid"
+  --specimen-min="9rem"
+  --specimen-column-gap="var(--sui-space-4)"
 >
   {#each extremes as [label, color, name] (label)}
     <Specimen label={name}>
@@ -98,6 +104,8 @@
 <Example
   title="Removable"
   note="Each remove control names its value, a removal is announced, and focus moves to the next control"
+  layout="grid"
+  --specimen-min="18rem"
 >
   <Specimen label="Remove & refocus">
     <div class="group" role="group" aria-label="Labels">

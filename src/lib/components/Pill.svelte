@@ -123,13 +123,14 @@ outcome tones always come with their word, so color never carries the state alon
     color: var(--sui-text-secondary);
     display: inline-flex;
     flex: none;
-    font: var(--sui-weight-semibold) var(--sui-font-size-compact) / var(--sui-leading-tight)
-      var(--sui-sans);
+    font: var(--sui-weight-semibold) var(--sui-local-pill-size, var(--sui-font-size-compact)) /
+      var(--sui-leading-tight) var(--sui-sans);
     gap: var(--sui-space-1);
-    inline-size: fit-content;
+    inline-size: var(--sui-inline-snap);
     max-inline-size: 100%;
-    min-block-size: var(--sui-tier-mark);
-    padding: calc((var(--sui-tier-mark) - round(up, 1cap, 2px)) / 2) var(--sui-space-2);
+    min-block-size: var(--sui-local-pill-tier, var(--sui-tier-mark));
+    padding: calc((var(--sui-local-pill-tier, var(--sui-tier-mark)) - round(up, 1cap, 2px)) / 2)
+      var(--sui-space-2);
   }
 
   /* A mark centres on the first line's cap band, however many lines follow (L-94). */
@@ -141,9 +142,12 @@ outcome tones always come with their word, so color never carries the state alon
     margin-inline-start: calc(-1 * var(--sui-icon-ink-start, 0px));
   }
 
+  /* Each line is trimmed to its ink, so the leading only parts the lines of a label that wraps;
+     a one-line pill keeps its height. */
   .sui-pill-label {
     align-content: center;
     block-size: var(--sui-block-snap-even);
+    line-height: var(--sui-leading-compact);
     min-inline-size: 0;
     overflow-wrap: anywhere;
     padding-block: var(--sui-block-snap-room-even);
@@ -184,6 +188,21 @@ outcome tones always come with their word, so color never carries the state alon
     inline-size: var(--sui-pill-dot);
     margin-block: calc((round(up, 1cap, 2px) - var(--sui-pill-dot)) / 2);
     position: relative;
+  }
+
+  /* A round dot weighs less than a letter's stem, so a plain one steps a third of itself toward
+     the start edge, and the start inset reads as wide as the end one. */
+  .sui-pill-dot:first-child:not(.live) {
+    margin-inline-start: calc(var(--sui-pill-dot) / -3);
+  }
+
+  /* A still ring tells a live dot from a plain one when it does not pulse, as under reduced
+     motion. It is a hairline a pixel clear of the dot, so it reads as a ring and not as a bigger
+     dot, drawn, not blurred, and the dot keeps a plain dot's gap past its ring. */
+  .sui-pill-dot.live {
+    outline: calc(var(--sui-pill-dot) / 6) solid color-mix(in oklab, currentColor 70%, transparent);
+    outline-offset: calc(var(--sui-pill-dot) / 6);
+    margin-inline-end: calc(var(--sui-pill-dot) / 3);
   }
 
   /* The ring grows and fades through scale and opacity, so the pulse moves nothing else and

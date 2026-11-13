@@ -14,6 +14,9 @@
   const DARK_GROUND: Rgb = [0x1b, 0x1c, 0x1f];
   /* A fill this close to white needs an edge to show on a white card. */
   const PALE = 1.25;
+  /* A grey tint this close to the dark ground, as black's is, needs one too; a colored tint
+     shows by its hue however dark it is. */
+  const DEEP = 1.1;
 
   const channel = (value: number) => {
     const c = value / 255;
@@ -126,7 +129,11 @@
       lift = Math.min(1, lift + 0.01);
       ink = shade(lift, chroma, hue);
     }
-    return { fill: hex(fill), hue: hex(rgb), lightInk, darkInk: hex(ink), edge };
+    const deep = chroma < 0.04 && contrast(luminance(tint), luminance(DARK_GROUND)) < DEEP;
+    const darkEdge = deep
+      ? hex(ink.map((c, at) => Math.round(c * 0.3 + tint[at] * 0.7)) as Rgb)
+      : undefined;
+    return { fill: hex(fill), hue: hex(rgb), lightInk, darkInk: hex(ink), edge, darkEdge };
   }
 
   /* A removed chip takes its own markup with it, so the news is read from a short-lived region
@@ -183,6 +190,9 @@
   let remover = $state<HTMLButtonElement | null>(null);
 
   const removeName = $derived(removeLabel(label));
+  // A technical value breaks after its delimiters before anywhere else, so a wrapped path or
+  // key keeps its words whole.
+  const parts = $derived(mono ? label.split(/(?<=[/:=-])/) : [label]);
   const painted = $derived.by(() => {
     const rgb = color === undefined ? null : parse(color);
     return rgb ? paint(rgb) : null;
@@ -219,18 +229,18 @@ A painted chip is drawn as GitHub draws a label. In the light theme it wears the
 black or white ink. On a mid-tone fill where neither ink reads 4.5:1 and APCA Lc 60, the fill
 moves along its own hue, the shorter way, until one does. In the dark theme it wears an 18%
 tint of the color, and its ink is the color itself, lifted in lightness along its own hue
-until it reads 4.5:1 and Lc 60, so a label keeps its hue in both themes. Only a near-white fill draws an edge, so it still shows on
-a white card. Anything but hex digits draws the plain chip, so a stored value never writes a
+until it reads 4.5:1 and Lc 60, so a label keeps its hue in both themes. Only a near-white fill draws an edge in the light theme, so it still shows on
+a white card, and only a near-black one in the dark theme, whose tint all but vanishes there. Anything but hex digits draws the plain chip, so a stored value never writes a
 style declaration.
 
 - Semantics: a `span` holding the value as text, with a native `button` to remove it when `onremove` is set.
 - Content: one value of any length, which wraps inside the chip so no part of it is cut; `small` for a chip inside a line of text, `mono` for a technical value.
-- States: rest, painted (its color in the light theme, a tint of it in the dark one), and on the remove control hover, pressed, focus and disabled at the disabled opacity.
+- States: rest, painted (its color in the light theme, a tint of it in the dark one), and on the remove control hover, pressed and focus; a disabled chip takes an off field's paint, the quieter field well with no edge and its value and mark in the muted ink at full strength, and a painted one keeps its paint with its mark at the disabled opacity.
 - Keyboard: the remove control is a tab stop, and Enter or Space removes; the chip itself is not a stop.
 - Pointer and touch: the remove target is 24px; on a phone or a coarse pointer a removable chip grows to 44px tall around a 44px square control, so the targets of chips on wrapped lines never overlap.
 - Focus: after a removal it moves to the next remove control in the chip's parent, then the previous one, then the parent itself, which gets `tabindex="-1"` when it has none.
-- Responsive: as wide as its value, up to its container, and taller as a long value wraps.
-- Accessibility: the remove control is named by `removeLabel`, which is also its tooltip, and a polite status says `removedLabel` once the chip has gone; a painted chip's ink holds 4.5:1 and APCA Lc 60 in both themes, and under forced colors every chip keeps an outline.
+- Responsive: as wide as its value, up to its container, and taller as a long value wraps; a `mono` value wraps after a `/`, `:`, `=` or `-` before it breaks a word.
+- Accessibility: the remove control is named by `removeLabel`, which is also its tooltip unless the chip is disabled, and a polite status says `removedLabel` once the chip has gone; a painted chip's ink holds 4.5:1 and APCA Lc 60 in both themes, and under forced colors every chip keeps an outline.
 - Localization: `removeLabel` and `removedLabel` are functions of the value with English defaults; the remove control sits at the inline end, so it moves to the left in a right-to-left page.
 - Performance: a painted chip computes its paint for both themes once per color, and the theme picks one with `light-dark()`; a remove control mounts one tooltip.
 - Analytics: `onremove` hears each removal.
@@ -239,14 +249,27 @@ style declaration.
 
 <span
   {...rest}
-  class={['sui-chip', className, { small, mono, painted, removable: onremove !== undefined }]}
+  class={[
+    'sui-chip',
+    className,
+    {
+      small,
+      mono,
+      painted,
+      removable: onremove !== undefined,
+      off: disabled && onremove !== undefined && !painted
+    }
+  ]}
   style:--sui-chip-fill={painted?.fill}
   style:--sui-chip-hue={painted?.hue}
   style:--sui-chip-ink-light={painted?.lightInk}
   style:--sui-chip-ink-dark={painted?.darkInk}
   style:--sui-chip-edge={painted?.edge}
+  style:--sui-chip-edge-dark={painted?.darkEdge}
 >
-  <span class="sui-chip-label" translate={mono ? 'no' : undefined}>{label}</span>
+  <span class="sui-chip-label" translate={mono ? 'no' : undefined}
+    >{#each parts as part, index (index)}{#if index > 0}<wbr />{/if}{part}{/each}</span
+  >
   {#if onremove !== undefined}
     <button
       bind:this={remover}
@@ -259,7 +282,8 @@ style declaration.
       <Icon name="close" size="xs" strokeWidth={2} />
     </button>
     <!-- Client only, so a chip inside a paragraph never gets a block box from the server. -->
-    {#if remover}
+    <!-- A disabled remove names no action it cannot take; the reason stands beside the chips. -->
+    {#if remover && !disabled}
       <Tooltip anchor={remover} text={removeName} />
     {/if}
   {/if}
@@ -282,7 +306,7 @@ style declaration.
     font: var(--sui-weight-semibold) var(--sui-font-size-compact) / var(--sui-leading-compact)
       var(--sui-sans);
     gap: var(--sui-space-1);
-    inline-size: fit-content;
+    inline-size: var(--sui-inline-snap);
     max-inline-size: 100%;
     min-block-size: var(--sui-local-chip);
     padding-inline: var(--sui-space-2);
@@ -316,16 +340,30 @@ style declaration.
     text-box: trim-both cap alphabetic;
   }
 
-  /* A painted chip has no edge but a near-white one's, which shows it on a white card; the
-     theme picks the light or the dark paint. */
+  /* A painted chip has no edge but a near-white one's, which shows it on a white card, and a
+     near-black one's, whose tint all but vanishes on a dark ground; the theme picks the light
+     or the dark paint. */
   .painted {
     background: light-dark(
       var(--sui-chip-fill),
       color-mix(in srgb, var(--sui-chip-hue) 18%, transparent)
     );
     box-shadow: inset 0 0 0 var(--sui-stroke)
-      light-dark(var(--sui-chip-edge, transparent), transparent);
+      light-dark(var(--sui-chip-edge, transparent), var(--sui-chip-edge-dark, transparent));
     color: light-dark(var(--sui-chip-ink-light), var(--sui-chip-ink-dark));
+  }
+
+  /* A chip whose remove is off reads as an off field does, as a pair entry's chip does: the
+     quieter field well with no edge, and its value and mark in the muted ink at full strength,
+     so it reads as fixed while its value stays legible (L-40). */
+  .off {
+    background: var(--sui-field-disabled);
+    box-shadow: none;
+    color: var(--sui-text-muted);
+  }
+
+  .off > .sui-chip-remove:disabled {
+    opacity: 1;
   }
 
   /* The remove control sits concentric with the chip: the same inset on the end as above
@@ -338,12 +376,18 @@ style declaration.
     padding-inline-end: 0;
   }
 
+  /* A control as tall as its chip stands in no inset, so it takes the chip's own corner. */
+  .small > .sui-chip-remove {
+    border-radius: inherit;
+  }
+
   .sui-chip-remove {
     align-items: center;
     background-color: transparent;
     block-size: var(--sui-local-remove);
     border: 0;
-    border-radius: inherit;
+    /* Concentric with the chip: its corner is the chip's, less the inset around it. */
+    border-radius: var(--sui-radius-chip-remove);
     color: inherit;
     cursor: pointer;
     display: inline-flex;
@@ -378,6 +422,10 @@ style declaration.
       --sui-local-chip: var(--sui-touch-target);
       --sui-local-remove: var(--sui-touch-target);
       padding-inline-end: 0;
+    }
+
+    .sui-chip-remove {
+      border-radius: inherit;
     }
 
     .sui-chip-remove::before {

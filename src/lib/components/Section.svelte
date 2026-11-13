@@ -197,13 +197,6 @@ its words on the title's edge.
     block-size: var(--sui-block-snap-even);
   }
 
-  /* Proximity: a wrapped title's lines stand 1lh - 1cap apart in ink, so the note stands that
-     far plus the copy gap and the title reads as one block (L-24). Taken from the title's own
-     line height, it holds when a reader raises line spacing (WCAG 1.4.12). */
-  .sui-section-title:has(+ .sui-section-note) {
-    margin-block-end: round(calc(1lh - 1cap), 1px);
-  }
-
   /* A zero-height seat on the middle of the first line's cap band, in the title's face so
      `1cap` is its cap height: the count centres on it and stays by the first line when the
      title wraps. */
@@ -274,12 +267,19 @@ its words on the title's edge.
     --sui-local-button-seat: var(--sui-control-height-drawn);
   }
 
+  /* A section has no frame, so the head that holds a lone ghost button reaches past the edge by
+     the button's inset and its words end on the content's edge, as a link's do, while its veil
+     hangs past it as a lit row's does. */
+  .sui-section-actions:has(> :global(.sui-button[data-tone='ghost']):only-child) {
+    margin-inline-end: calc(-1 * (var(--sui-space-3) + var(--sui-stroke)));
+  }
+
   .sui-section-note {
     max-inline-size: var(--sui-measure);
     align-content: center;
     block-size: var(--sui-block-snap);
     color: var(--sui-text-muted);
-    font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-row-copy-leading)
+    font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-leading-title-note)
       var(--sui-sans);
     margin: 0;
     padding-block: var(--sui-block-snap-room);

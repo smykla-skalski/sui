@@ -20,7 +20,7 @@
       quiet: {
         icon: 'pending',
         title: 'Sync paused',
-        text: 'Nothing is pushed until the sync resumes',
+        text: 'Changes wait until it resumes',
         action: 'Resume Sync'
       },
       warning: {
@@ -36,7 +36,14 @@
   title="Tones"
   note="Quiet states a consequence, and warning tints a hazardous one and says Warning to a screen reader"
 >
-  <Variants fill rows={tones} columns={forms} axis="tone" rowLabel={(tone) => `"${tone}"`}>
+  <Variants
+    fill
+    rows={tones}
+    columns={forms}
+    axis="tone"
+    rowLabel={(tone) => `"${tone}"`}
+    labelMiddle="calc(var(--sui-stroke) + var(--sui-space-3) + var(--sui-symbol-tile) / 2)"
+  >
     {#snippet cell(tone, form)}
       {#snippet resolve()}<Button>{copy[tone].action}</Button>{/snippet}
       <Callout
@@ -58,7 +65,7 @@
 >
   <Specimen label="Unsaved changes">
     <Callout decision title="You have unsaved changes">
-      {#snippet icon()}<Icon name="pending" size="sm" />{/snippet}
+      {#snippet icon()}<Icon name="editor" size="sm" />{/snippet}
       2 settings changed since the last save
       {#snippet actions()}
         <Button>Discard Changes</Button>
@@ -70,7 +77,7 @@
 
 <Example
   title="Long Copy"
-  note="Long copy starts at the symbol’s tile however many lines follow, and an action beside it centres on the message"
+  note="Long copy starts at the symbol’s tile however many lines follow, and an action beside it stands on the tile, by the title"
   layout="stack"
 >
   <Specimen label="Wrapping title & a link">
@@ -105,8 +112,13 @@
 >
   <Specimen label={expiring ? 'Announced' : 'Not shown'}>
     <div class="appear">
+      <!-- Both words share one cell, so the button keeps the longer one's width as they flip. -->
       <Button onclick={() => (expiring = !expiring)}
-        >{expiring ? 'Keep the Token' : 'Shorten the Token to 2\u00a0Days'}</Button
+        ><span class="flip"
+          ><span class:shown={!expiring}>Shorten to 2&nbsp;Days</span><span class:shown={expiring}
+            >Keep the Token</span
+          ></span
+        ></Button
       >
       {#if expiring}
         <div class="full">
@@ -122,13 +134,13 @@
 
 <Example
   title="Narrow Width"
-  note="A callout too narrow for its actions beside an 11 rem measure of copy moves them under the copy, from its start edge"
+  note="Too narrow for its actions beside 14 rem of copy, a callout gives them a line from its start edge, under the symbol"
   layout="grid"
 >
   <Specimen label="Quiet">
     <Callout title="Sync paused">
       {#snippet icon()}<Icon name="pending" size="sm" />{/snippet}
-      Nothing is pushed until the sync resumes
+      Changes wait until it resumes
       {#snippet actions()}
         <Button>Resume Sync</Button>
       {/snippet}
@@ -146,7 +158,7 @@
   </Specimen>
   <Specimen label="Decision">
     <Callout decision title="You have unsaved changes">
-      {#snippet icon()}<Icon name="pending" size="sm" />{/snippet}
+      {#snippet icon()}<Icon name="editor" size="sm" />{/snippet}
       2 settings changed since the last save
       {#snippet actions()}
         <Button>Discard Changes</Button>
@@ -161,6 +173,19 @@
     display: grid;
     gap: var(--sui-space-3);
     justify-items: start;
+  }
+
+  .flip {
+    display: inline-grid;
+  }
+
+  .flip > span {
+    grid-area: 1 / 1;
+    justify-self: center;
+  }
+
+  .flip > :not(.shown) {
+    visibility: hidden;
   }
 
   .full {

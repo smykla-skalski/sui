@@ -90,19 +90,11 @@
   --sui-primitive-ocean-200: #80c5ff;
 
   --sui-primitive-success-light: #14734b;
-  --sui-primitive-success-light-tint: #dce7e1;
   --sui-primitive-success-dark: #5fd4a2;
-  --sui-primitive-success-dark-tint: #16261f;
   --sui-primitive-warning-light: #9b5807;
-  --sui-primitive-warning-light-tint: #efe8dd;
   --sui-primitive-warning-dark: #f2b75c;
-  --sui-primitive-warning-dark-tint: #28221a;
   --sui-primitive-danger-light: #bb3844;
-  --sui-primitive-danger-light-tint: #f2e6e5;
   --sui-primitive-danger-dark: #ff9da6;
-  --sui-primitive-danger-dark-tint: #342328;
-  --sui-primitive-info-light-tint: #dbe2ec;
-  --sui-primitive-info-dark-tint: #1b222e;
 
   /* Diff tones, set in OKLCH: one lightness for every line ground and one for every word mark,
      so no tone outweighs another. Added leans yellow-green and removed leans crimson, the pair
@@ -133,8 +125,7 @@
      hairline that frames the surface. */
   --sui-border-divider: color-mix(in srgb, var(--sui-border-subtle) 75%, transparent);
   /* The line at a page header's foot, where its band meets the view: a step firmer than a
-     surface's keyline on light, where the band and the canvas are close, and the keyline on
-     dark. */
+     surface's keyline, short of a field's edge. */
   --sui-border-band: rgb(0 0 0 / 16%);
   /* The lines a reader who asks for more contrast gets in place of the quiet ones: each holds
      3:1 on every ground of the theme (L-114). */
@@ -215,13 +206,13 @@
      the 2px ring (L-41). */
   --sui-focus-ring-edge: calc(var(--sui-focus-ring-width) - var(--sui-stroke));
   --sui-info: var(--sui-link);
-  --sui-info-tint: var(--sui-primitive-info-light-tint);
+  --sui-info-tint: color-mix(in srgb, var(--sui-info) 9%, var(--sui-surface-base));
   --sui-success: var(--sui-primitive-success-light);
-  --sui-success-tint: var(--sui-primitive-success-light-tint);
+  --sui-success-tint: color-mix(in srgb, var(--sui-success) 9%, var(--sui-surface-base));
   --sui-warning: var(--sui-primitive-warning-light);
-  --sui-warning-tint: var(--sui-primitive-warning-light-tint);
+  --sui-warning-tint: color-mix(in srgb, var(--sui-warning) 9%, var(--sui-surface-base));
   --sui-danger: var(--sui-primitive-danger-light);
-  --sui-danger-tint: var(--sui-primitive-danger-light-tint);
+  --sui-danger-tint: color-mix(in srgb, var(--sui-danger) 9%, var(--sui-surface-base));
   /* A stop button is one deep red with white words in both themes, as the accent fill is, so a
      destructive action reads the same on either ground (L-13). */
   --sui-danger-fill: var(--sui-primitive-danger-light);
@@ -252,7 +243,7 @@
     var(--sui-danger-fill-hover) 82%,
     var(--sui-text-primary)
   );
-  --sui-neutral-tint: var(--sui-surface-inset);
+  --sui-neutral-tint: color-mix(in srgb, var(--sui-text-secondary) 9%, var(--sui-surface-base));
   /* A placeholder is a veil, so it reads the same on a card, the canvas or an inset, and the
      light that crosses it while it waits is a brighter veil over that. */
   --sui-placeholder: rgb(0 0 0 / 7%);
@@ -267,10 +258,8 @@
      starts and ends wholly outside a placeholder up to about 28rem tall. */
   --sui-placeholder-reach: 12rem;
 
-  --sui-role-tint: #e8e1f2;
+  --sui-role-tint: color-mix(in srgb, var(--sui-role-ink) 9%, var(--sui-surface-base));
   --sui-role-ink: #7a3fe0;
-
-  --sui-interactive-hover: color-mix(in srgb, #000000 3.5%, var(--sui-surface-base));
 
   --sui-interactive-hover-layer: rgb(0 0 0 / 9%);
   /* Words on a hover veil: the rest ink in light, where the veil darkens the ground under them, and
@@ -329,7 +318,7 @@
   --sui-toast-failure: 16%;
   --sui-toast-failure-edge: 25%;
 
-  --sui-row-hover: color-mix(in srgb, var(--sui-text-primary) 5.4%, transparent);
+  --sui-row-hover: color-mix(in srgb, var(--sui-text-primary) 6%, transparent);
   /* A field shows hover by firming its frame, so its ground only just moves, well short of the
      read-only tint (L-10, L-12). */
   --sui-field-hover: color-mix(in srgb, var(--sui-text-primary) 1.5%, var(--sui-control-bg));
@@ -417,7 +406,7 @@
      width as well as by the viewport's. */
   --sui-rhythm-head-surface-compact: 1.25rem;
 
-  --sui-rhythm-head-actions-stacked: 0.75rem;
+  --sui-rhythm-head-actions-stacked: 1rem;
 
   --sui-rhythm-toolbar-surface: 1rem;
   --sui-rhythm-card-head-body: 1rem;
@@ -465,6 +454,8 @@
      to the nearest pixel instead, so its ink overhangs or falls short by half a pixel at most. */
   --sui-block-snap-near: calc-size(auto, round(size, 1px));
 
+  --sui-inline-snap: calc-size(fit-content, round(up, size, 1px));
+
   --sui-row-copy-leading: round(calc(1cap + var(--sui-row-copy-gap)), 1px);
 
   --sui-font-size-micro: 0.6875rem;
@@ -507,12 +498,16 @@
   /* A form's help and error lines wrap a little looser than a row's copy, so a long hint stays
      a quiet note and never a dense block under its control. */
   --sui-leading-note: 1.25rem;
+  /* A card's or section's description wraps as loose as a form's note, so two lines of it
+     never press into one block under the title's 24px lines. */
+  --sui-leading-title-note: 1.25rem;
   --sui-leading-input: 1.25rem;
   --sui-leading-body: 1.4375rem;
   --sui-leading-title: 1.625rem;
-  /* A card or plate title's lines hold together as one block over its note: 17px on 22px,
-     so a descender still clears the next line's ascender by about 5px. */
-  --sui-leading-card-title: 1.375rem;
+  /* A card, plate or section title's lines hold together as one block over its note: 17px on
+     24px, so four semibold lines never press into one mass and a descender clears the next
+     line's ascender by about 7px. */
+  --sui-leading-card-title: 1.5rem;
   /* Display sizes set tighter than copy, about 1.15 rounded to 4px (32/36 and 24/28, as
      Atlassian sets its headings), so a wrapped title's lines hold together; descenders still
      clear the next line's ascenders by over 4px. */
@@ -536,6 +531,8 @@
   --sui-radius-check: 5px;
 
   --sui-radius-chip: 6px;
+  /* A chip's remove control stands one inset inside it, so its corner nests in the chip's. */
+  --sui-radius-chip-remove: calc(var(--sui-radius-chip) - var(--sui-control-inset));
 
   /* Control heights hold their tier at the default text size and grow with the reader's own,
      rounded to the pixel, so words and glyphs never outgrow their control (WCAG 1.4.4). */
@@ -556,24 +553,26 @@
 
   /* The two widths the layout changes at. A media query cannot read a custom property, so the
      queries write these values and the source laws hold them to this list; script reads them
-     here. The phone is up to 47.9375rem, the wide shell from 64.0625rem. */
+     here. */
   --sui-breakpoint-phone: 47.9375rem;
   --sui-breakpoint-wide: 64.0625rem;
 
-  /* The widths a component answers to in its own container, under which it changes its layout:
-     a card steps its inset down, a setting row stacks its control, and a list toolbar folds its
-     filter into its menu as a card moves its head's actions under its copy. A container query
-     cannot read them either, so the source laws hold each query to this list. */
+  /* The widths under which a component changes its layout in its own container: a card steps
+     its inset down, a setting row stacks its control, a fact row stacks its pair and a list
+     toolbar folds its filter. A container query cannot read them either, so the source laws
+     hold each query to this list. */
   --sui-breakpoint-card: 36rem;
   --sui-breakpoint-row: 25rem;
   --sui-breakpoint-bar: 18rem;
+  --sui-breakpoint-toolbar: 24rem;
   /* Under this width a head stands its actions or state under its title: in rem it scales with
      the text, so only text grown well past its size brings it on a phone (WCAG 1.4.10). */
   --sui-breakpoint-head: 12rem;
   /* From this content width up, a phone's toast's too, a toast sets its action beside its
      copy. */
   --sui-breakpoint-toast: 17rem;
-  /* From this width up a detail layout stands its aside beside the main column. */
+  /* Side by side from: a detail layout's aside, a list-detail's panes. */
+  --sui-breakpoint-aside: 44rem;
   --sui-breakpoint-detail: 56rem;
 
   --sui-field-target-min: max(24px, round(1.5rem, 1px));
@@ -646,8 +645,8 @@
   --sui-layer-top-bar: 35;
   --sui-layer-skip: 120;
   --sui-shadow-plate:
-    0 1px 2px var(--sui-shadow-color),
-    0 2px 8px color-mix(in srgb, var(--sui-shadow-color) 25%, transparent);
+    0 1px 2px color-mix(in srgb, var(--sui-shadow-color) 40%, transparent),
+    0 2px 4px color-mix(in srgb, var(--sui-shadow-color) 10%, transparent);
   --sui-shadow-popover:
     0 1px 2px color-mix(in srgb, var(--sui-shadow-color) 40%, transparent),
     0 8px 20px color-mix(in srgb, var(--sui-shadow-color) 56%, transparent);
@@ -711,7 +710,7 @@
   --sui-chart-ring: var(--sui-surface-base);
   --sui-border-control: rgb(255 255 255 / 20%);
   --sui-border-divider: color-mix(in srgb, var(--sui-border-subtle) 75%, transparent);
-  --sui-border-band: var(--sui-border-subtle);
+  --sui-border-band: rgb(255 255 255 / 14%);
   --sui-border-contrast: rgb(255 255 255 / 40%);
   --sui-border-contrast-hover: rgb(255 255 255 / 55%);
   --sui-control-border-hover: rgb(255 255 255 / 32%);
@@ -764,14 +763,14 @@
      ring takes the brand's light blue. */
   --sui-focus: var(--sui-primitive-ocean-200);
   --sui-info: var(--sui-link);
-  --sui-info-tint: var(--sui-primitive-info-dark-tint);
+  --sui-info-tint: color-mix(in srgb, var(--sui-info) 10%, var(--sui-surface-base));
   --sui-success: var(--sui-primitive-success-dark);
-  --sui-success-tint: var(--sui-primitive-success-dark-tint);
+  --sui-success-tint: color-mix(in srgb, var(--sui-success) 10%, var(--sui-surface-base));
   --sui-warning: var(--sui-primitive-warning-dark);
-  --sui-warning-tint: var(--sui-primitive-warning-dark-tint);
+  --sui-warning-tint: color-mix(in srgb, var(--sui-warning) 10%, var(--sui-surface-base));
   --sui-danger: var(--sui-primitive-danger-dark);
   --sui-focus-danger: var(--sui-danger-edge);
-  --sui-danger-tint: var(--sui-primitive-danger-dark-tint);
+  --sui-danger-tint: color-mix(in srgb, var(--sui-danger) 10%, var(--sui-surface-base));
   --sui-danger-fill: var(--sui-primitive-danger-light);
   --sui-danger-fill-hover: color-mix(in srgb, var(--sui-danger-fill), var(--sui-danger) 18%);
   --sui-on-danger: #ffffff;
@@ -801,7 +800,7 @@
   --sui-danger-hover-layer: color-mix(in srgb, var(--sui-danger) 12%, transparent);
   --sui-field-danger-hover: color-mix(in srgb, var(--sui-danger) 6%, transparent);
   --sui-danger-pressed: color-mix(in srgb, var(--sui-danger-fill) 82%, #000000);
-  --sui-neutral-tint: var(--sui-surface-inset);
+  --sui-neutral-tint: color-mix(in srgb, var(--sui-text-secondary) 10%, var(--sui-surface-base));
   --sui-placeholder: rgb(255 255 255 / 7%);
   --sui-placeholder-glint: rgb(255 255 255 / 10%);
   --sui-placeholder-sheen: linear-gradient(
@@ -810,9 +809,8 @@
     var(--sui-placeholder-glint) 50%,
     transparent calc(50% + min(5rem, 10%))
   );
-  --sui-role-tint: #23202e;
+  --sui-role-tint: color-mix(in srgb, var(--sui-role-ink) 10%, var(--sui-surface-base));
   --sui-role-ink: #c9a6ff;
-  --sui-interactive-hover: color-mix(in srgb, #ffffff 4%, var(--sui-surface-base));
 
   --sui-interactive-hover-layer: rgb(255 255 255 / 8.5%);
   --sui-hover-ink: var(--sui-primitive-dark-bright);
@@ -922,7 +920,7 @@
     var(--sui-dialog-foot-bg)
   );
   --sui-shadow-plate:
-    0 1px 2px var(--sui-shadow-color),
+    inset 0 1px 0 rgb(255 255 255 / 6%), 0 1px 2px var(--sui-shadow-color),
     0 2px 8px color-mix(in srgb, var(--sui-shadow-color) 25%, transparent);
   --sui-shadow-popover:
     inset 0 1px 0 rgb(255 255 255 / 6%),
@@ -966,7 +964,7 @@
     --sui-chart-ring: var(--sui-surface-base);
     --sui-border-control: rgb(255 255 255 / 20%);
     --sui-border-divider: color-mix(in srgb, var(--sui-border-subtle) 75%, transparent);
-    --sui-border-band: var(--sui-border-subtle);
+    --sui-border-band: rgb(255 255 255 / 14%);
     --sui-border-contrast: rgb(255 255 255 / 40%);
     --sui-border-contrast-hover: rgb(255 255 255 / 55%);
     --sui-control-border-hover: rgb(255 255 255 / 32%);
@@ -1021,14 +1019,14 @@
     --sui-on-decision-accent: #0c0e11;
     --sui-focus: var(--sui-primitive-ocean-200);
     --sui-info: var(--sui-link);
-    --sui-info-tint: var(--sui-primitive-info-dark-tint);
+    --sui-info-tint: color-mix(in srgb, var(--sui-info) 10%, var(--sui-surface-base));
     --sui-success: var(--sui-primitive-success-dark);
-    --sui-success-tint: var(--sui-primitive-success-dark-tint);
+    --sui-success-tint: color-mix(in srgb, var(--sui-success) 10%, var(--sui-surface-base));
     --sui-warning: var(--sui-primitive-warning-dark);
-    --sui-warning-tint: var(--sui-primitive-warning-dark-tint);
+    --sui-warning-tint: color-mix(in srgb, var(--sui-warning) 10%, var(--sui-surface-base));
     --sui-danger: var(--sui-primitive-danger-dark);
     --sui-focus-danger: var(--sui-danger-edge);
-    --sui-danger-tint: var(--sui-primitive-danger-dark-tint);
+    --sui-danger-tint: color-mix(in srgb, var(--sui-danger) 10%, var(--sui-surface-base));
     --sui-danger-fill: var(--sui-primitive-danger-light);
     --sui-danger-fill-hover: color-mix(in srgb, var(--sui-danger-fill), var(--sui-danger) 18%);
     --sui-on-danger: #ffffff;
@@ -1056,7 +1054,7 @@
     --sui-danger-hover-layer: color-mix(in srgb, var(--sui-danger) 12%, transparent);
     --sui-field-danger-hover: color-mix(in srgb, var(--sui-danger) 6%, transparent);
     --sui-danger-pressed: color-mix(in srgb, var(--sui-danger-fill) 82%, #000000);
-    --sui-neutral-tint: var(--sui-surface-inset);
+    --sui-neutral-tint: color-mix(in srgb, var(--sui-text-secondary) 10%, var(--sui-surface-base));
     --sui-placeholder: rgb(255 255 255 / 7%);
     --sui-placeholder-glint: rgb(255 255 255 / 10%);
     --sui-placeholder-sheen: linear-gradient(
@@ -1065,9 +1063,8 @@
       var(--sui-placeholder-glint) 50%,
       transparent calc(50% + min(5rem, 10%))
     );
-    --sui-role-tint: #23202e;
+    --sui-role-tint: color-mix(in srgb, var(--sui-role-ink) 10%, var(--sui-surface-base));
     --sui-role-ink: #c9a6ff;
-    --sui-interactive-hover: color-mix(in srgb, #ffffff 4%, var(--sui-surface-base));
 
     --sui-interactive-hover-layer: rgb(255 255 255 / 8.5%);
     --sui-hover-ink: var(--sui-primitive-dark-bright);
@@ -1182,7 +1179,7 @@
       var(--sui-dialog-foot-bg)
     );
     --sui-shadow-plate:
-      0 1px 2px var(--sui-shadow-color),
+      inset 0 1px 0 rgb(255 255 255 / 6%), 0 1px 2px var(--sui-shadow-color),
       0 2px 8px color-mix(in srgb, var(--sui-shadow-color) 25%, transparent);
     --sui-shadow-popover:
       inset 0 1px 0 rgb(255 255 255 / 6%),
@@ -1211,8 +1208,7 @@
 
 /* A reader who asks for more contrast, as Apple's Increase Contrast does, gets lines that hold
    3:1 on every ground in place of the quiet hairlines and button edges (L-114). The swap is
-   important, so it outranks each theme block's own lines, and the reader's wish outranks an
-   app's override of them. */
+   important: it outranks each theme's lines and an app's override of them. */
 @media (prefers-contrast: more) {
   :root,
   [data-sui-theme] {
@@ -1233,6 +1229,7 @@
     --sui-font-size-micro: 0.75rem;
     --sui-font-size-compact: 0.8125rem;
     --sui-font-size-body: 1rem;
+    --sui-font-size-card-title: 1.125rem;
 
     --sui-font-size-page-title: var(--sui-font-size-page-title-compact);
     --sui-leading-micro: 1.125rem;
@@ -1244,6 +1241,8 @@
     --sui-leading-title: 1.75rem;
     --sui-leading-page: var(--sui-leading-page-compact);
 
+    /* A pane insets its content 16px on a phone, as a compact card does. */
+    --sui-rhythm-pane-gutter: var(--sui-space-4);
     /* The space under a page header steps down with the type. */
     --sui-rhythm-head-surface: var(--sui-rhythm-head-surface-compact);
     --sui-rhythm-section-gap: 2rem;
@@ -1274,6 +1273,7 @@
    line trims both ends and that rest, rounded as Chrome rounds it, is padding too. */
 @supports not (block-size: calc-size(auto, size)) {
   :root {
+    --sui-inline-snap: fit-content;
     --sui-block-snap-cap: round(down, 1cap, 0.015625px);
     --sui-block-snap-spare: calc(round(up, 1cap, 1px) - var(--sui-block-snap-cap));
     --sui-block-snap-spare-even: calc(round(up, 1cap, 2px) - var(--sui-block-snap-cap));

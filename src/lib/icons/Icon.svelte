@@ -347,9 +347,9 @@ word would start.
     <path d="M2.5 20c.7-3.2 3.3-5 6.5-5s5.8 1.8 6.5 5" />
     <path d="M19 7v6M16 10h6" />
   {:else if name === 'more'}
-    <circle cx="12" cy="5" r="1.65" fill="currentColor" stroke="none" />
-    <circle cx="12" cy="12" r="1.65" fill="currentColor" stroke="none" />
-    <circle cx="12" cy="19" r="1.65" fill="currentColor" stroke="none" />
+    <circle cx="12" cy="5" r="1.9" fill="currentColor" stroke="none" />
+    <circle cx="12" cy="12" r="1.9" fill="currentColor" stroke="none" />
+    <circle cx="12" cy="19" r="1.9" fill="currentColor" stroke="none" />
   {:else if name === 'trash'}
     <path d="M4 7h16M9 3h6l1 4H8zM6.5 7l.8 14h9.4l.8-14M10 11v6M14 11v6" />
   {:else if name === 'ban'}

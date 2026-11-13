@@ -188,6 +188,11 @@
     if (event.newState === 'open') {
       const from = document.activeElement;
       returnTo = from instanceof HTMLElement && !target.contains(from) ? from : null;
+      // The browser focuses an `[autofocus]` control inside as it shows the box, before the
+      // frame that places it, so the box first stands at the viewport's corner: focus then
+      // lands on the screen, wherever the trigger stands, and never scrolls the page.
+      target.style.top = `${Math.round(scrollY)}px`;
+      target.style.left = `${Math.round(scrollX)}px`;
       requestAnimationFrame(() => {
         place(target, against, placement);
         grow(target, against);

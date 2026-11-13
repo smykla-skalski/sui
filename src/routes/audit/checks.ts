@@ -12,6 +12,20 @@ const OFF_FIELD =
   ":is(.sui-text-input, .sui-textarea):disabled:not(.held, .bare), .sui-select:not(.bare) > .sui-select-control:disabled:not([aria-disabled='true']), .sui-button.field:disabled:not([aria-disabled='true'])";
 const PAINT_EXEMPT = 'svg, script, style, [data-audit-ignore]';
 
+/** The box a part takes, or with `display: contents`, the box its children take together. */
+function partBox(element: Element): DOMRect {
+  if (getComputedStyle(element).display !== 'contents') return element.getBoundingClientRect();
+  const parts = [...element.children].map((part) => part.getBoundingClientRect());
+  const left = Math.min(...parts.map((part) => part.left));
+  const top = Math.min(...parts.map((part) => part.top));
+  return new DOMRect(
+    left,
+    top,
+    Math.max(...parts.map((part) => part.right)) - left,
+    Math.max(...parts.map((part) => part.bottom)) - top
+  );
+}
+
 const finding = (law: string, element: Element | null, detail: string): Finding => ({
   law,
   where: element ? describe(element) : 'document',
@@ -227,6 +241,22 @@ function palette(): Finding[] {
     found.push(
       ...atLeast('L-5', `text-primary on ${ground} in APCA`, lc('text-primary', ground), 75)
     );
+  // A tone's tint is opaque, so a pill or a chip reads the same on a card, the canvas or a
+  // current row's plate, and its ink holds both floors on it in each theme.
+  for (const [tone, tint] of [
+    ['info', 'info-tint'],
+    ['success', 'success-tint'],
+    ['warning', 'warning-tint'],
+    ['danger', 'danger-tint'],
+    ['role-ink', 'role-tint'],
+    ['text-secondary', 'neutral-tint']
+  ]) {
+    if (t(tint).a < 1) found.push(finding('L-5', null, `${tint} lets the ground under it show`));
+    found.push(
+      ...atLeast('L-5', `${tone} on ${tint}`, c(tone, tint), 4.5),
+      ...atLeast('L-5', `${tone} on ${tint} in APCA`, lc(tone, tint), 60)
+    );
+  }
   for (const ink of [
     'text-secondary',
     'text-muted',
@@ -864,12 +894,15 @@ function separators(root: Document): Finding[] {
 function copyRhythm(root: Document): Finding[] {
   const found: Finding[] = [];
   const trimmed = (element: Element) => getComputedStyle(element).textBoxTrim === 'trim-both';
-  // A setting row's status leads its words with a mark, so its trimmed words are the span in it.
+  // A setting row's status leads its words with a mark, and a section's title holds its count
+  // beside them, so the trimmed words are the span in each.
   const words = (element: Element) => {
     if (trimmed(element)) return element;
     const span = element.matches('.sui-setting-state')
       ? element.querySelector(':scope > span')
-      : null;
+      : element.matches('.sui-section-title')
+        ? element.querySelector(':scope > .sui-section-words')
+        : null;
     return span && trimmed(span) ? span : null;
   };
   for (const first of audited(root, 'body *')) {
@@ -896,7 +929,10 @@ function copyRhythm(root: Document): Finding[] {
       [...second.classList].some((name) => name.endsWith('-state-step')) ||
       (second.classList.contains('sui-setting-state') && first.matches('.sui-setting-why'));
     const want = titled || step ? 12 : 8;
-    if (Math.abs(gap - want) > 0.75 && gap < 16)
+    // Words a gap of 16px or more parts belong to another block, but a title's own note is its
+    // second line at any distance.
+    const note = titled && [...second.classList].some((name) => name.endsWith('-note'));
+    if (Math.abs(gap - want) > 0.75 && (gap < 16 || note))
       found.push(
         finding('L-24', second, `title to description gap is ${round(gap)}px, not ${want}px`)
       );
@@ -1241,9 +1277,7 @@ function cardInsets(card: Element) {
   );
   const copy = actions?.parentElement?.querySelector(':scope > .sui-card-copy');
   const beside =
-    actions && copy && actions.getBoundingClientRect().top < copy.getBoundingClientRect().bottom
-      ? actions
-      : null;
+    actions && copy && actions.getBoundingClientRect().top < partBox(copy).bottom ? actions : null;
   for (const element of card.querySelectorAll('*')) {
     if (element.parentElement?.closest('svg') || element.closest(IGNORED)) continue;
     if (!element.checkVisibility({ opacityProperty: false, visibilityProperty: true })) continue;
@@ -1323,8 +1357,7 @@ function headActionInsets(card: Element): { top: number; end: number } | null {
     : last?.querySelector(`:scope > :is(${UNFRAMED_HEAD})`);
   if (!actions || !control || !shown(control)) return null;
   // Stacked under the copy, the action starts its own line and has no corner to sit in.
-  if (copy && actions.getBoundingClientRect().top >= copy.getBoundingClientRect().bottom - 0.5)
-    return null;
+  if (copy && actions.getBoundingClientRect().top >= partBox(copy).bottom - 0.5) return null;
   const style = getComputedStyle(card);
   const box = card.getBoundingClientRect();
   const own = control.getBoundingClientRect();
@@ -1400,8 +1433,18 @@ function geometry(root: Document): Finding[] {
     // A card's head takes a framed control's height, which starts on the title's cap line (L-34).
     if (!parent || parent.matches('.sui-card-head')) continue;
     const h = heading.getBoundingClientRect();
+    const lineTops = (element: Element) => {
+      const range = document.createRange();
+      range.selectNodeContents(element);
+      return new Set([...range.getClientRects()].map((line) => Math.round(line.top))).size;
+    };
     const beside = [...parent.children].filter((sibling) => {
       if (sibling === heading || !shown(sibling)) return false;
+      // A plate's state is words, so one that needs more lines than the title grows the head
+      // by those lines, as copy would (L-34).
+      const words =
+        sibling.matches('.sui-plate-status') && sibling.querySelector('.sui-plate-words');
+      if (words && lineTops(words) > lineTops(heading)) return false;
       const r = sibling.getBoundingClientRect();
       return r.top < h.bottom && r.bottom > h.top;
     });
@@ -1517,8 +1560,12 @@ function controls(root: Document): Finding[] {
   for (const target of audited(root, INTERACTIVE)) {
     if (target.matches("input[type='checkbox'], input[type='radio']")) continue;
     if (getComputedStyle(target).opacity === '0') continue;
-    // A press on a field's own label focuses it, so the label is part of the target.
-    const hit = (target.matches('input') && target.closest('label')) || target;
+    // A press on a field's own label focuses it, so the label is part of the target, and a
+    // press on a select's box opens it, so the box's hit area is part of the select's.
+    const hit =
+      (target.matches('input') && target.closest('label')) ||
+      (target.matches('select') && target.closest('.sui-select')) ||
+      target;
     const box = hit.getBoundingClientRect();
     const extensions = ['::before', '::after']
       .map((pseudo) => getComputedStyle(hit, pseudo))
@@ -1600,9 +1647,9 @@ function controls(root: Document): Finding[] {
     // strength; a busy icon button has no words.
     const busy = control.matches("[aria-busy='true']:not(:disabled)");
     // An off field reads as off by its well and its muted words, at full strength, and so do
-    // both parts of an off joined field and of an off pair chip.
+    // both parts of an off joined field and of an off pair chip, and an off chip's remove.
     const well = control.matches(
-      `${OFF_FIELD}, .sui-joined.disabled :disabled, .sui-pair-entry.disabled .sui-pair-chip > :disabled`
+      `${OFF_FIELD}, .sui-joined.disabled :disabled, .sui-pair-entry.disabled .sui-pair-chip > :disabled, .sui-chip.off > .sui-chip-remove:disabled`
     );
     const dimmed = busy ? control.querySelector('.sui-button-label') : control;
     const expected = busy || well ? 1 : disabledOpacity;
@@ -2021,13 +2068,16 @@ function specimens(root: Document): Finding[] {
       const look = getComputedStyle(element);
       if (look.position === 'fixed' || look.clipPath !== 'none') return false;
       if (spansLent(element)) return false;
+      // A transparent edge paints nothing, so a button that draws nothing at rest, as a ghost
+      // does, is a hit area like a link's, and only its words and glyph count as ink; its veil
+      // hangs past them only under the pointer, as a lit row's does.
       const painted =
         rgba(look.backgroundColor).a > 0 ||
-        parseFloat(look.borderLeftWidth) > 0 ||
-        parseFloat(look.borderTopWidth) > 0;
+        (parseFloat(look.borderLeftWidth) > 0 && rgba(look.borderLeftColor).a > 0) ||
+        (parseFloat(look.borderTopWidth) > 0 && rgba(look.borderTopColor).a > 0);
+      const control = element.matches(CARD_CONTENT) && !(element.matches('button') && !painted);
       const reach = stripeReach(element);
-      if ((painted || element.matches(CARD_CONTENT)) && outside(paintedBox(element, look), reach))
-        return true;
+      if ((painted || control) && outside(paintedBox(element, look), reach)) return true;
       // Text an element clips to its own box paints no further than that box, and while nothing
       // overflows it sideways no further than its content box, so a scroller may pad room past
       // the specimen for a shadow its clip would cut.
@@ -2664,8 +2714,8 @@ function symbolTiles(root: Document): Finding[] {
 }
 
 /**
- * A callout's actions (L-56) stand at its inline end, centred on its message, and move under
- * the copy, from the copy's start edge, only when the callout cannot hold them beside its
+ * A callout's actions (L-56) stand at its inline end, centred on its symbol's tile, and move under
+ * the copy, from the callout's start edge under its symbol, only when the callout cannot hold them beside its
  * measure of copy (`--sui-callout-measure`).
  */
 function calloutActions(root: Document): Finding[] {
@@ -2678,10 +2728,13 @@ function calloutActions(root: Document): Finding[] {
     const own = actions.getBoundingClientRect();
     const said = message.getBoundingClientRect();
     if (own.top < said.bottom - 0.5) {
-      const off = (own.top + own.bottom) / 2 - (said.top + said.bottom) / 2;
+      const band = (
+        message.querySelector(':scope > .sui-callout-icon') ?? message
+      ).getBoundingClientRect();
+      const off = (own.top + own.bottom) / 2 - (band.top + band.bottom) / 2;
       if (Math.abs(off) > 0.5)
         found.push(
-          finding('L-56', actions, `the actions sit ${round(off)}px off the message's middle`)
+          finding('L-56', actions, `the actions sit ${round(off)}px off the tile's middle`)
         );
       // Beside the message they live inside its band, so they never raise the callout (L-34).
       if (own.height > said.height + 0.5)
@@ -2696,10 +2749,14 @@ function calloutActions(root: Document): Finding[] {
     }
     const rtl = getComputedStyle(inner).direction === 'rtl';
     const words = copy.getBoundingClientRect();
-    const startOff = rtl ? words.right - own.right : own.left - words.left;
+    const startOff = rtl ? said.right - own.right : own.left - said.left;
     if (Math.abs(startOff) > 0.5)
       found.push(
-        finding('L-56', actions, `wrapped actions start ${round(startOff)}px off the copy's edge`)
+        finding(
+          'L-56',
+          actions,
+          `wrapped actions start ${round(startOff)}px off the callout's start edge`
+        )
       );
     // What the actions need on one line, against what the copy's measure leaves beside it.
     const parts = [...actions.children].filter(shown);
@@ -3565,7 +3622,7 @@ function cardHeads(root: Document): Finding[] {
     const words = copy?.querySelector('.sui-card-words > span');
     if (!actions || !copy || !words) continue;
     const band = actions.getBoundingClientRect();
-    const text = copy.getBoundingClientRect();
+    const text = partBox(copy);
     if (band.top >= text.bottom - 0.5) {
       found.push(finding('L-34', head, 'its action takes a line of its own under the copy'));
       continue;
@@ -3585,6 +3642,13 @@ function cardHeads(root: Document): Finding[] {
     const off = (own.top + own.bottom) / 2 - line;
     if (Math.abs(off) > 0.5)
       found.push(finding('L-34', control, `it sits ${round(off)}px off the title's cap band`));
+    // A note that runs under the actions stands clear of every control drawn there.
+    const note = copy.querySelector(':scope > .sui-card-note')?.getBoundingClientRect();
+    const drawn = [...actions.children].filter(shown).map((part) => part.getBoundingClientRect());
+    const reach = Math.max(...drawn.map((part) => part.bottom));
+    const under = note && drawn.some((part) => part.left < note.right && part.right > note.left);
+    if (note && under && reach > note.top + 0.5)
+      found.push(finding('L-34', control, `it reaches ${round(reach - note.top)}px into its note`));
   }
   return found;
 }

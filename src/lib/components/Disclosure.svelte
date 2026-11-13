@@ -24,7 +24,7 @@
     hint?: string;
     /** The summary's accessible name from its words and the hint, in the language's order. */
     summaryName?: (summary: string, hint: string) => string;
-    /** Inline help inside a settings column: smaller, quieter words on the same row. */
+    /** Inline help inside a settings column: quieter words, as wide as they are, on the same row. */
     inline?: boolean;
     open?: boolean;
     /** Layout for the call site only, never the disclosure's own paint. */
@@ -40,9 +40,9 @@ browser owns its state, its keyboard, its find-in-page and its accessibility.
 
 The chevron leads the summary's words at the start edge of the text above, as Apple's
 disclosure triangle and the APG pattern draw it, so the open state shows where the reader is
-already looking. The content hangs under the summary's words, and a hairline guide drops from
-the chevron beside it, so the summary and what it reveals read as one unit. Disclosures that
-share a `name` open one at a time. What it reveals sits straight in it, never in a card.
+already looking. The content hangs under the summary's words, and a hairline guide runs under
+the chevron beside it, from the summary's foot to its last ink, so the summary and what it
+reveals read as one unit. Disclosures that share a `name` open one at a time. What it reveals sits straight in it, never in a card.
 Open, its last ink stands as far above its foot as the summary's words stand under its top,
 and a disclosure that closes a card leaves that room to the card's inset.
 
@@ -52,13 +52,13 @@ cells stack their secondary text.
 
 - Semantics: a native `<details>` whose `<summary>` is the button, named by `summary` and `hint`, with its expanded state from the browser.
 - Content: one line of summary words that wrap, an optional quiet hint, and any content inside, which starts at the summary's words.
-- States: closed (the chevron points along the line), open (the chevron points down and the guide runs beside the content), hover (the row veil on the summary only), pressed (the pressed veil, inset and 1px sink) and focus (the 2px inset ring). There is no disabled state, because opening only shows words.
+- States: closed (the chevron points along the line), open (the chevron points down in the primary ink and the guide runs beside the content), hover (the row veil on the summary only, as wide as its words on inline help, whose words turn primary, and the chevron turns primary), pressed (the pressed veil, inset and 1px sink) and focus (the 2px inset ring). There is no disabled state, because opening only shows words.
 - Keyboard: Tab reaches the summary, and Enter or Space opens and closes it.
 - Pointer and touch: the whole summary row is the target, one control tall, 34px and 44px on a phone or touch screen.
 - Focus: focus stays on the summary when it opens or closes, and find-in-page opens a disclosure that holds the match.
 - Responsive: the hint drops under the words, at their start edge, when the row cannot hold both on one line; words longer than the row wrap and the row grows, with the chevron on the first line.
 - Accessibility: the browser announces expanded and collapsed, the chevron is hidden, and the open state also shows in the chevron's turn and the guide.
-- Localization: every word is the caller's, and `summaryName` joins the summary and the hint; the chevron mirrors and still turns down in a right-to-left page, and the indent and the guide are logical.
+- Localization: every word is the caller's, and `summaryName` joins the summary and the hint; the chevron mirrors and still turns down in a right-to-left page, the indent and the guide are logical, and the hint reads in its own direction.
 - Performance: the content renders closed too, so keep it light; opening fades the content in with a short slide, and only the chevron's turn and the press move otherwise, all removed under reduced motion.
 - Analytics: `open` is bindable and the native `toggle` event reports each opening.
 - Failure: with an empty body it opens to nothing, so leave it out instead; long words in the summary wrap rather than clip.
@@ -67,12 +67,12 @@ cells stack their secondary text.
   <!-- The drawn words are read once, as one run of text, because Chrome reads a summary's
        words as its description too when an aria-label names it. -->
   <summary class="sui-disclosure-summary">
-    <span class="sui-disclosure-chevron"><Icon name="chevron-right" size="xs" /></span>
+    <span class="sui-disclosure-chevron"><Icon name="chevron-right" size="base" /></span>
     <span class="sui-disclosure-label" aria-hidden={hint === undefined ? undefined : 'true'}
       >{summary}</span
     >
     {#if hint !== undefined}
-      <span class="sui-disclosure-hint" aria-hidden="true">{hint}</span>
+      <span class="sui-disclosure-hint" dir="auto" aria-hidden="true">{hint}</span>
       <VisuallyHidden>{summaryName(summary, hint)}</VisuallyHidden>
     {/if}
   </summary>
@@ -91,33 +91,14 @@ cells stack their secondary text.
       --sui-local-row-trail,
       round(calc((var(--sui-control-height-compact) - 1cap) / 2), 1px)
     );
-    --sui-local-disclosure-indent: calc(var(--sui-icon-xs) + var(--sui-space-2));
-    /* The chevron centres on the first line, so its foot stands this far below the top. */
-    --sui-local-disclosure-foot: calc((var(--sui-control-height-compact) + var(--sui-icon-xs)) / 2);
+    /* The chevron takes the tier of a glyph beside a control's words (L-68). */
+    --sui-local-disclosure-indent: calc(var(--sui-icon-base) + var(--sui-space-2));
+    /* A block summary bleeds as a list row does, so the two row veils on one pane share an edge;
+       inline help bleeds as a link does. */
+    --sui-local-disclosure-bleed: var(--sui-row-pad-default);
     margin: 0;
     min-inline-size: 0;
     position: relative;
-  }
-
-  /* The guide drops from under the chevron to the content's last ink, beside a summary that
-     wraps too: a hairline as quiet as a row's divider, never a coloured edge (L-17). It comes
-     before the summary, so the summary's veil and focus ring paint over it. It reads the
-     trailing room in the summary's face. */
-  .sui-disclosure::before {
-    border-inline-start: var(--sui-stroke) solid var(--sui-border-divider);
-    content: '';
-    font: var(--sui-weight-medium) var(--sui-font-size-meta) / var(--sui-leading-meta)
-      var(--sui-sans);
-    inset-block: calc(var(--sui-local-disclosure-foot) + var(--sui-space-1))
-      var(--sui-local-disclosure-trail);
-    inset-inline-start: round(calc((var(--sui-icon-xs) - var(--sui-stroke)) / 2), 1px);
-    opacity: 0;
-    position: absolute;
-  }
-
-  .sui-disclosure[open]::before {
-    opacity: 1;
-    transition: opacity var(--sui-duration-open) var(--sui-ease-standard);
   }
 
   /* The padding centres one line in the control height. The words and the hint share that
@@ -134,14 +115,18 @@ cells stack their secondary text.
     cursor: pointer;
     display: flex;
     flex-wrap: wrap;
-    font: var(--sui-weight-medium) var(--sui-font-size-meta) / var(--sui-leading-meta)
+    /* A summary names what it reveals, as a label does, so it takes a label's 600 (L-25) and
+       never reads quieter than the fields it opens. */
+    font: var(--sui-weight-semibold) var(--sui-font-size-meta) / var(--sui-leading-meta)
       var(--sui-sans);
     justify-content: space-between;
     list-style: none;
-    margin-inline: calc(var(--sui-space-2) * -1);
+    margin-inline: calc(var(--sui-local-disclosure-bleed) * -1);
     min-block-size: var(--sui-control-height-compact);
-    padding: var(--sui-local-disclosure-inset) var(--sui-space-2);
-    padding-inline-start: calc(var(--sui-space-2) + var(--sui-local-disclosure-indent));
+    padding: var(--sui-local-disclosure-inset) var(--sui-local-disclosure-bleed);
+    padding-inline-start: calc(
+      var(--sui-local-disclosure-bleed) + var(--sui-local-disclosure-indent)
+    );
     position: relative;
     row-gap: var(--sui-row-copy-gap);
     touch-action: manipulation;
@@ -160,6 +145,10 @@ cells stack their secondary text.
   @media (hover: hover) {
     .sui-disclosure-summary:hover:not(:active) {
       background: var(--sui-row-hover);
+    }
+
+    .sui-disclosure-summary:hover .sui-disclosure-chevron {
+      color: var(--sui-text-primary);
     }
 
     @media (forced-colors: active) {
@@ -184,16 +173,20 @@ cells stack their secondary text.
   /* The chevron hangs in the row's start padding, as GOV.UK's details marker does, so the
      words and the hint share one start edge whichever line each takes, and it centres on the
      first line, which the padding centres in the control height (L-94). */
+  /* At rest the chevron stands halfway from the secondary ink to the primary, so a closed row
+     still reads as a control; open, it takes the primary ink, so the state shows in ink as
+     well as in its turn. */
   .sui-disclosure-chevron {
-    color: var(--sui-text-muted);
+    color: color-mix(in srgb, var(--sui-text-secondary), var(--sui-text-primary));
     display: flex;
-    inset-block-start: calc((var(--sui-control-height-compact) - var(--sui-icon-xs)) / 2);
-    inset-inline-start: var(--sui-space-2);
+    inset-block-start: calc((var(--sui-control-height-compact) - var(--sui-icon-base)) / 2);
+    inset-inline-start: var(--sui-local-disclosure-bleed);
     position: absolute;
     transition: rotate var(--sui-duration-open) var(--sui-ease-standard);
   }
 
   [open] > .sui-disclosure-summary .sui-disclosure-chevron {
+    color: var(--sui-text-primary);
     rotate: 90deg;
   }
 
@@ -218,6 +211,7 @@ cells stack their secondary text.
     color: var(--sui-text-muted);
     font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-leading-meta)
       var(--sui-sans);
+    font-variant-numeric: tabular-nums;
     min-inline-size: 0;
     overflow-wrap: break-word;
     padding-block: var(--sui-block-snap-room-even);
@@ -233,6 +227,28 @@ cells stack their secondary text.
     min-inline-size: 0;
     padding-block-start: var(--sui-row-copy-gap);
     padding-inline-start: var(--sui-local-disclosure-indent);
+    position: relative;
+  }
+
+  /* The guide runs under the chevron from the summary's foot to the content's last ink, so a
+     summary that wraps, or a hint dropped under its words, stands above it and never reads as
+     the content's first line, and a one-line body still gets a rule taller than its words. It
+     is a hairline between a keyline and a field's edge, about 17% of the ink in light, a point
+     under a field's 18%, and 19% in dark, where a dark stage swallows a fainter line, so it
+     holds beside fields, never a coloured edge (L-17). It reads the trailing room in the
+     summary's face. */
+  .sui-disclosure-body::before {
+    border-inline-start: var(--sui-stroke) solid
+      light-dark(
+        color-mix(in srgb, var(--sui-border-subtle) 20%, var(--sui-border-control)),
+        color-mix(in srgb, var(--sui-border-subtle) 15%, var(--sui-border-control))
+      );
+    content: '';
+    font: var(--sui-weight-semibold) var(--sui-font-size-meta) / var(--sui-leading-meta)
+      var(--sui-sans);
+    inset-block: 0 var(--sui-local-disclosure-trail);
+    inset-inline-start: round(calc((var(--sui-icon-base) - var(--sui-stroke)) / 2), 1px);
+    position: absolute;
   }
 
   /* Words that open or close the content start at their cap line and end at their baseline,
@@ -262,15 +278,13 @@ cells stack their secondary text.
     text-box: trim-both cap alphabetic;
   }
 
-  /* Without calc-size() the only block rounds up instead, and an empty box before it gives the
+  /* Without calc-size() the only block rounds up instead, and the body's top room gives the
      pixel back when the nearest pixel is the lower one, so its ink stands where it would. The
-     box measures the cap in the disclosure's face, which the content's words take unless they
+     room measures the cap in the disclosure's face, which the content's words take unless they
      set their own size. */
   @supports not (block-size: calc-size(auto, size)) {
-    .sui-disclosure-body:has(> :global(:where(p, ul, ol, dl, blockquote):only-child))::before {
-      content: '';
-      display: block;
-      margin-block-end: calc(round(1cap, 1px) - round(up, 1cap, 1px));
+    .sui-disclosure-body:has(> :global(:where(p, ul, ol, dl, blockquote):only-child)) {
+      padding-block-start: calc(var(--sui-row-copy-gap) + round(1cap, 1px) - round(up, 1cap, 1px));
     }
   }
 
@@ -280,19 +294,34 @@ cells stack their secondary text.
     block-size: var(--sui-local-disclosure-trail);
     content: '';
     display: block;
-    font: var(--sui-weight-medium) var(--sui-font-size-meta) / var(--sui-leading-meta)
+    font: var(--sui-weight-semibold) var(--sui-font-size-meta) / var(--sui-leading-meta)
       var(--sui-sans);
   }
 
+  .inline {
+    --sui-local-disclosure-bleed: var(--sui-space-2);
+  }
+
+  /* Inline help is as wide as its words, as a link is, so its veil never reads as a block
+     row's, and its words stand halfway from the secondary ink to the primary, so at rest they
+     read as a control and not as the copy beside them. */
   .inline > .sui-disclosure-summary {
-    color: var(--sui-text-secondary);
+    color: color-mix(in srgb, var(--sui-text-secondary), var(--sui-text-primary));
+    inline-size: var(--sui-inline-snap);
+    max-inline-size: calc(100% + 2 * var(--sui-local-disclosure-bleed));
+    font-weight: var(--sui-weight-regular);
   }
 
-  .inline > .sui-disclosure-summary,
-  .inline::before,
-  .inline > .sui-disclosure-body::after {
-    font: var(--sui-weight-regular) var(--sui-font-size-compact) / var(--sui-leading-compact)
-      var(--sui-sans);
+  /* Open, its words take the primary ink with its chevron, so they never read quieter than
+     the glyph that leads them. */
+  .inline[open] > .sui-disclosure-summary {
+    color: var(--sui-text-primary);
+  }
+
+  @media (hover: hover) {
+    .inline > .sui-disclosure-summary:hover {
+      color: var(--sui-text-primary);
+    }
   }
 
   /* The size changes in one step, and only the content's opacity and a short slide move, so
@@ -321,10 +350,6 @@ cells stack their secondary text.
 
     .sui-disclosure-summary:active {
       translate: none;
-    }
-
-    .sui-disclosure[open]::before {
-      transition: none;
     }
 
     @supports selector(::details-content) {

@@ -206,7 +206,7 @@ for a press of the way back.
     display: flex;
     flex-wrap: wrap;
     gap: var(--sui-space-2) var(--sui-space-3);
-    inline-size: fit-content;
+    inline-size: var(--sui-inline-snap);
     max-inline-size: 100%;
     min-inline-size: 0;
     padding-inline-start: var(--sui-local-inherit-hang);

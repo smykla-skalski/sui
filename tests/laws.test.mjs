@@ -172,7 +172,7 @@ test('L-18 two families with the faces and weights Smyklot ships', () => {
 });
 
 test('L-21 sizes and leading come from the scale and land on whole pixels', () => {
-  const leading = /var\(--sui-(leading-[a-z]+|row-copy-leading)\)/;
+  const leading = /var\(--sui-(leading-[a-z-]+|row-copy-leading)\)/;
   assert.deepEqual(
     violations(({ property, value }) => {
       if (property === 'line-height' && !leading.test(value) && value !== 'inherit')
@@ -210,10 +210,31 @@ test('L-24 a title stands 12px above its description, copy lines 8px apart, form
       title: pixels(gaps['--sui-title-copy-gap']),
       field: pixels(gaps['--sui-field-gap']),
       note: pixels(gaps['--sui-leading-note']),
-      phoneNote: pixels(phone['--sui-leading-note'])
+      phoneNote: pixels(phone['--sui-leading-note']),
+      cardTitle: pixels(gaps['--sui-leading-card-title']),
+      titleNote: pixels(gaps['--sui-leading-title-note']),
+      phoneTitleNote: phone['--sui-leading-title-note']
     },
-    { copy: 8, title: 12, field: 12, note: 20, phoneNote: 22 }
+    {
+      copy: 8,
+      title: 12,
+      field: 12,
+      note: 20,
+      phoneNote: 22,
+      cardTitle: 24,
+      titleNote: 20,
+      phoneTitleNote: undefined
+    }
   );
+  for (const [name, note] of [
+    ['Card', 'sui-card-note'],
+    ['Section', 'sui-section-note']
+  ])
+    assert.match(
+      stripComments(read(`src/lib/components/${name}.svelte`)),
+      new RegExp(`\\.${note} \\{[^}]*font: [^;]*/ var\\(--sui-leading-title-note\\)`),
+      `a ${name.toLowerCase()}'s description does not wrap at the title note leading`
+    );
   // A control's help and error lines, not a whole state's, form's or dialog's error, nor a
   // setting row's problem, which is a line of the row's copy.
   const dense = globSync('src/lib/components/*.svelte').flatMap((path) =>
@@ -246,6 +267,11 @@ test('L-24 a title stands 12px above its description, copy lines 8px apart, form
     stripComments(read('src/lib/components/SaveBar.svelte')),
     /\.subtitle \{[^}]*font: [^;]*\/ var\(--sui-leading-note\)/,
     "a save bar's subtitle wraps at the note leading, as a toast's description does"
+  );
+  assert.match(
+    stripComments(read('src/lib/components/PageHeader.svelte')),
+    /\.sui-page-header-description \{[^}]*font: [^;]*var\(--sui-font-size-body\) \/ var\(--sui-leading-note\)/,
+    "a page header's description is set at the body size and wraps at the note leading"
   );
   assert.match(
     stripComments(read('src/lib/components/Modal.svelte')),
@@ -505,6 +531,14 @@ test('L-25 the type tiers keep the sizes the law names', () => {
   );
   assert.deepEqual(small, [], 'no text is smaller than 11px');
   const phone = tokenMap(stripComments(palette.slice(palette.indexOf(PHONE))));
+  assert.deepEqual(
+    {
+      cardTitle: pixels(phone['--sui-font-size-card-title']),
+      body: pixels(phone['--sui-font-size-body'])
+    },
+    { cardTitle: 18, body: 16 },
+    "on a phone a section's title stays a step over the body-sized sub-section title"
+  );
   assert.deepEqual(
     { desktop: tier('note'), phone: phone['--sui-font-size-note'] },
     { desktop: 14, phone: undefined },
@@ -880,7 +914,7 @@ test('L-43 a mark is as wide as what it says', () => {
     if (existsSync(path))
       assert.match(
         styles[path],
-        /(inline-size|width):\s*(fit-content|var\(--sui-local-button-span, fit-content\))/,
+        /(inline-size|width):\s*(?:var\(--sui-local-button-span, )?var\(--sui-inline-snap\)/,
         path
       );
   }
@@ -889,7 +923,7 @@ test('L-43 a mark is as wide as what it says', () => {
 test('L-46 no component styles another component through :global', () => {
   // Asking whether a part is there, inside :has(), lays out the asker's own box and paints no
   // part of the other component, so only the rest of a selector is weighed.
-  const asking = /:has\((?:[^()]|\((?:[^()]|\([^()]*\))*\))*\)/g;
+  const asking = /:has\((?:[^()]|\((?:[^()]|\((?:[^()]|\([^()]*\))*\))*\))*\)/g;
   const offenders = Object.entries(styles).flatMap(([path, css]) =>
     [...css.replace(asking, '').matchAll(/:global\(([^)]*)\)/g)]
       .filter(([, inner]) => inner.includes('.sui-'))
@@ -1107,6 +1141,12 @@ test('L-72 a floating layer on dark stands off its ground by the raised ground a
   );
 });
 
+test("L-57 a disclosure's guide is a hairline between a keyline and a field's edge, beside the content only", () => {
+  assert.match(
+    styles['src/lib/components/Disclosure.svelte'],
+    /\.sui-disclosure-body::before \{[^}]*border-inline-start: var\(--sui-stroke\) solid\s+light-dark\(\s*color-mix\(in srgb, var\(--sui-border-subtle\) 20%, var\(--sui-border-control\)\),\s*color-mix\(in srgb, var\(--sui-border-subtle\) 15%, var\(--sui-border-control\)\)\s*\)[^}]*inset-block: 0 var\(--sui-local-disclosure-trail\);/
+  );
+});
 test('L-73 every duration and easing reads a token', () => {
   const literalTime = /(?<![\w-])(?!0s\b|0\.01ms\b)\d*\.?\d+m?s\b/;
   const literalEase = /\b(?:ease|ease-in|ease-out|ease-in-out|linear|cubic-bezier\(|steps\()/;
@@ -1422,6 +1462,12 @@ test('L-53 a shadow that lifts a part is two layers in every palette block, and 
   assert.ok(contact, 'a light popover opens on a 1px contact line');
   const dark = (shade * Number(contact[1] ?? 100)) / 100;
   assert.ok(dark <= 8, `a light popover's contact line is ${dark}% black`);
+  const plate = found.find(([, name]) => name === 'shadow-plate')?.[2] ?? '';
+  assert.match(
+    plate,
+    new RegExp(`^\\s*0 1px \\d+px color-mix\\(in srgb, var\\(--sui-shadow-color\\) ${contact[1]}%`),
+    "a light plate opens on a popover's contact line, with no grey lower edge"
+  );
   const tip = /** @type {string} */ (found.find(([, name]) => name === 'shadow-tooltip')?.[2]);
   const [tipContact, tipLift] = [
     ...tip.matchAll(/0 (\d+)px (\d+)px color-mix\(in srgb, var\(--sui-shadow-color\) (\d+)%/g)
@@ -1802,10 +1848,10 @@ test("L-94 a segmented option's and a tab's icon and count stand 8px off, as a b
     );
 });
 
-test('L-25 a count beside a label is compact type at 600', () => {
+test('L-25 a count beside a label is caption type at 600', () => {
   assert.match(
     styles['src/lib/internal/Count.svelte'],
-    /font: var\(--sui-weight-semibold\) var\(--sui-font-size-compact\) \//
+    /font: var\(--sui-weight-semibold\) var\(--sui-font-size-caption\) \//
   );
 });
 
@@ -2032,4 +2078,40 @@ test("L-16 a decision is framed in the unsaved edge, and a conflict's title name
     /\.subtitle\.error \{[^}]*font-weight: var\(--sui-weight-medium\);/,
     "a refused save's reason is lighter than a field error"
   );
+});
+
+test('L-95 a box as wide as its content rounds its width up to the pixel', () => {
+  assert.match(
+    palette,
+    /--sui-inline-snap: calc-size\(fit-content, round\(up, size, 1px\)\);/,
+    'the snapped width token'
+  );
+  assert.match(
+    palette,
+    /@supports not \(block-size: calc-size\(auto, size\)\) \{\s*:root \{\s*--sui-inline-snap: fit-content;/,
+    'a browser without calc-size keeps the content width'
+  );
+  // A relative time paints its dots on its own box, so the box ends where its words do.
+  const exact = ['src/lib/components/RelativeTime.svelte'];
+  const loose = globSync('src/lib/components/*.svelte')
+    .filter((path) => !exact.includes(path))
+    .flatMap((path) =>
+      stripComments(read(path))
+        .split('\n')
+        .map((line, index, lines) => ({ line, next: lines[index + 1] ?? '', path }))
+        .filter(
+          ({ line, next }) =>
+            (/^\s*inline-size: fit-content;/.test(line) &&
+              !/inline-size: calc-size\(/.test(next)) ||
+            (/inline-size: calc-size\(fit-content,/.test(line) && !/round\(up,/.test(line))
+        )
+        .map(({ path, line }) => `${path}: ${line.trim()}`)
+    );
+  assert.deepEqual(loose, [], 'a content width left off the pixel grid');
+  for (const name of ['Button', 'Pill', 'SegmentedControl'])
+    assert.match(
+      read(`src/lib/components/${name}.svelte`),
+      /inline-size: (?:var\(--sui-local-button-span, )?var\(--sui-inline-snap\)/,
+      `${name} snaps its width`
+    );
 });

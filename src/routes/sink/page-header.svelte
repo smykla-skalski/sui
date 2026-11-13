@@ -33,7 +33,7 @@
   ground="canvas"
 >
   <Specimen label="Eyebrow, description & actions">
-    <div class="page">
+    <div class="page wide">
       <PageHeader
         level={4}
         eyebrow={['Acme', 'Sync']}
@@ -48,8 +48,16 @@
       <p class="view">Every new repository starts with these rules</p>
     </div>
   </Specimen>
+</Example>
+
+<Example
+  title="Title Only"
+  note="A page with nothing more to say than its name takes a header of one line"
+  layout="stack"
+  ground="canvas"
+>
   <Specimen label="Title only">
-    <div class="page">
+    <div class="page wide">
       <PageHeader level={4} title="Activity" />
       <p class="view">Nothing happened in the last 7&nbsp;days</p>
     </div>
@@ -63,7 +71,7 @@
   ground="canvas"
 >
   <Specimen label="Status, description & facts">
-    <div class="page">
+    <div class="page wide">
       <PageHeader
         level={4}
         title="Sync Check #4182"
@@ -86,9 +94,14 @@
           />
         {/snippet}
         {#snippet actions()}
-          <Button tone="signal" onclick={() => (checked = !checked)}>
-            {checked ? 'Undo the Check' : 'Check Again'}
-          </Button>
+          <!-- Both words share one cell, so the button keeps the longer one's width as they flip. -->
+          <Button tone="signal" onclick={() => (checked = !checked)}
+            ><span class="flip"
+              ><span class:shown={!checked}>Check Again</span><span class:shown={checked}
+                >Undo the Check</span
+              ></span
+            ></Button
+          >
         {/snippet}
       </PageHeader>
       <p class="view">
@@ -107,7 +120,7 @@
   ground="canvas"
 >
   <Specimen label="Views of one page">
-    <div class="page">
+    <div class="page wide">
       <PageHeader
         level={4}
         eyebrow={['Acme', 'Repositories']}
@@ -135,13 +148,13 @@
 </Example>
 
 <Example
-  title="Breadcrumb & Back Link"
-  note="A breadcrumb or a back link takes the eyebrow’s place"
-  layout="grid"
+  title="Breadcrumb"
+  note="A breadcrumb takes the eyebrow’s place and leads back up the path to the page"
+  layout="stack"
   ground="canvas"
 >
-  <Specimen label="Breadcrumb">
-    <div class="page">
+  <Specimen label="Path to the page">
+    <div class="page wide">
       <PageHeader
         level={4}
         title="Sync Schedule"
@@ -159,9 +172,21 @@
       <p class="view">Checked every day at 06:00</p>
     </div>
   </Specimen>
-  <Specimen label="Back link">
-    <div class="page">
-      <PageHeader level={4} title="Run 1842">
+</Example>
+
+<Example
+  title="Back Link"
+  note="A back link takes the eyebrow’s place when the page has one way back"
+  layout="stack"
+  ground="canvas"
+>
+  <Specimen label="One step back">
+    <div class="page wide">
+      <PageHeader
+        level={4}
+        title="Run 1842"
+        description="One sync of this repository against its template"
+      >
         {#snippet kicker()}<BackLink href="#page-header" label="All runs" />{/snippet}
       </PageHeader>
       <p class="view">Finished in 4&nbsp;minutes with no changes</p>
@@ -176,11 +201,11 @@
   ground="canvas"
 >
   <Specimen label="Wrapping title & description">
-    <div class="page">
+    <div class="page wide">
       <PageHeader
         level={4}
         eyebrow={['Acme', 'Access']}
-        title="Bypass Rules for the Platform Team’s Deployment & Release Repositories in Every Region"
+        title="Bypass Rules for the Platform Team’s Deployment Repositories Across Every Region"
         description="People and apps listed here can push past the branch rules, and the audit log records every push they make"
       >
         {#snippet actions()}
@@ -202,10 +227,36 @@
     overflow: hidden;
   }
 
+  /* A page stacked alone on the stage runs across its inset to the frame's edges, as a page
+     fills the window, so its header and view keep a phone's width less the page's own gutter
+     and the frame draws its sides. It runs to its specimen's foot too, so the divider under it,
+     or the Code row's line under the last, is its foot and no strip of ground parts the two. */
+  .wide {
+    border-block-end: 0;
+    border-inline: 0;
+    border-radius: 0;
+    margin: 0 calc(-1 * var(--sui-local-bleed, 0px)) calc(-1 * var(--sui-local-bleed, 0px));
+  }
+
+  .flip {
+    display: inline-grid;
+  }
+
+  .flip > span {
+    grid-area: 1 / 1;
+    justify-self: center;
+  }
+
+  .flip > :not(.shown) {
+    visibility: hidden;
+  }
+
+  /* The view under the header is the page's own content, so it wears the content's ink and
+     never reads as one more caption band. */
   .view {
     align-content: center;
     block-size: var(--sui-block-snap);
-    color: var(--sui-text-secondary);
+    color: var(--sui-text-primary);
     font: var(--sui-weight-regular) var(--sui-font-size-body) / var(--sui-row-copy-leading)
       var(--sui-sans);
     margin: 0;

@@ -400,6 +400,174 @@ suite('accessibility', together, () => {
         assert.deepEqual(found, { skipped: true, label: '0', code: 'region' });
       }
     );
+
+    test(
+      "a card's lone icon button keeps its glyph on the inset, a toolbar one too",
+      long,
+      async () => {
+        const page = await mounted();
+        const found = await page.evaluate(() => {
+          const { lib, mount, unmount, createRawSnippet } = /** @type {any} */ (window);
+          const host = document.body.appendChild(document.createElement('div'));
+          host.style.inlineSize = '30rem';
+          const measure = (/** @type {boolean} */ toolbar) => {
+            /** @type {any} */
+            let button;
+            const actions = createRawSnippet(() => ({
+              render: () => '<i></i>',
+              setup: (/** @type {Element} */ mark) => {
+                button = mount(lib.IconButton, {
+                  target: mark.parentElement,
+                  anchor: mark,
+                  props: { icon: 'settings', label: 'Settings', toolbar }
+                });
+                mark.remove();
+              }
+            }));
+            const card = mount(lib.Card, { target: host, props: { title: 'Webhooks', actions } });
+            const frame = /** @type {HTMLElement} */ (host.lastElementChild);
+            const glyph = /** @type {Element} */ (frame.querySelector('.sui-card-actions svg'));
+            const style = getComputedStyle(frame);
+            const inset =
+              frame.getBoundingClientRect().right -
+              parseFloat(style.borderRightWidth) -
+              parseFloat(style.paddingRight);
+            const off = Math.round(inset - glyph.getBoundingClientRect().right);
+            unmount(button);
+            unmount(card);
+            return off;
+          };
+          const result = { plain: measure(false), toolbar: measure(true) };
+          host.remove();
+          return result;
+        });
+        assert.equal(found.toolbar, found.plain, "a toolbar icon button's glyph leaves the inset");
+      }
+    );
+
+    test(
+      "a link's rest underline is quieter than its words yet holds 3:1, and hover draws it whole",
+      long,
+      async () => {
+        const page = await mounted();
+        await page.addStyleTag({ content: '.sui-link { transition: none !important; }' });
+        const read = () =>
+          page.evaluate(() => {
+            const paint = document.createElement('canvas').getContext('2d', {
+              willReadFrequently: true
+            });
+            const over = (/** @type {string} */ ground, /** @type {string} */ color) => {
+              const brush = /** @type {CanvasRenderingContext2D} */ (paint);
+              brush.clearRect(0, 0, 1, 1);
+              brush.fillStyle = ground;
+              brush.fillRect(0, 0, 1, 1);
+              brush.fillStyle = color;
+              brush.fillRect(0, 0, 1, 1);
+              const [r, g, b] = brush.getImageData(0, 0, 1, 1).data;
+              return [r, g, b]
+                .map((c) => c / 255)
+                .map((c) => (c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4))
+                .reduce((sum, c, i) => sum + c * [0.2126, 0.7152, 0.0722][i], 0);
+            };
+            const ratio = (/** @type {number} */ a, /** @type {number} */ b) =>
+              (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05);
+            return [...document.querySelectorAll('.link-probe')].map((host) => {
+              const ground = getComputedStyle(host).backgroundColor;
+              const link = /** @type {Element} */ (host.querySelector('.sui-link'));
+              const style = getComputedStyle(link);
+              const base = over(ground, 'transparent');
+              return {
+                where: host.getAttribute('data-where'),
+                line: ratio(over(ground, style.textDecorationColor), base),
+                words: ratio(over(ground, style.color), base)
+              };
+            });
+          });
+        await page.evaluate(() => {
+          const { lib, mount, createRawSnippet } = /** @type {any} */ (window);
+          const children = createRawSnippet(() => ({
+            render: () => '<span>Open sync page</span>'
+          }));
+          for (const theme of ['light', 'dark'])
+            for (const ground of ['canvas', 'surface-base']) {
+              const host = document.body.appendChild(document.createElement('div'));
+              host.className = 'link-probe';
+              host.dataset.where = `${theme} ${ground}`;
+              host.style.cssText = `background: var(--sui-${ground}); padding: 8px`;
+              mount(lib.Link, { target: host, props: { href: '#', children } });
+            }
+        });
+        // The theme is the root's, so each theme's probes are read while it is on.
+        const rest = [];
+        for (const theme of ['light', 'dark']) {
+          await page.evaluate((value) => (document.documentElement.dataset.theme = value), theme);
+          rest.push(...(await read()).filter(({ where }) => where?.startsWith(theme)));
+        }
+        for (const { where, line, words } of rest) {
+          assert.ok(line >= 3, `on ${where} the rest underline reads ${line.toFixed(2)}:1`);
+          assert.ok(line < words - 1, `on ${where} the rest underline is as strong as its words`);
+        }
+        await page.evaluate(() => (document.documentElement.dataset.theme = 'light'));
+        await page.hover('.link-probe .sui-link');
+        const lit = (await read())[0];
+        assert.ok(
+          Math.abs(lit.line - lit.words) < 0.01,
+          `a lit underline reads ${lit.line.toFixed(2)}:1 under words of ${lit.words.toFixed(2)}:1`
+        );
+        await page.evaluate(() => {
+          for (const host of document.querySelectorAll('.link-probe')) host.remove();
+          delete document.documentElement.dataset.theme;
+        });
+      }
+    );
+
+    test(
+      "a bare code block's copy control centres on its file name's row, or on the first line",
+      long,
+      async () => {
+        const page = await mounted();
+        const found = await page.evaluate(async () => {
+          const { lib, mount, unmount } = /** @type {any} */ (window);
+          const host = document.body.appendChild(document.createElement('div'));
+          const centre = (/** @type {Element} */ box) => {
+            const rect = box.getBoundingClientRect();
+            return rect.top + rect.height / 2;
+          };
+          const measure = (/** @type {Record<string, unknown>} */ props) => {
+            const part = mount(lib.CodeBlock, { target: host, props: { code: 'a\nb', ...props } });
+            const block = /** @type {HTMLElement} */ (host.lastElementChild);
+            const control = /** @type {HTMLElement} */ (block.querySelector('button'));
+            const row = block.querySelector('figcaption');
+            const pre = /** @type {HTMLElement} */ (block.querySelector('pre'));
+            const style = getComputedStyle(pre);
+            const line =
+              pre.getBoundingClientRect().top +
+              parseFloat(style.paddingTop) +
+              parseFloat(style.lineHeight) / 2;
+            const result = {
+              off: Math.round(centre(control) - (row ? centre(row) : line)),
+              room: parseFloat(style.paddingTop)
+            };
+            unmount(part);
+            return result;
+          };
+          const result = {
+            labelled: measure({ bare: true, label: 'app.yaml' }),
+            framed: measure({ label: 'app.yaml' }),
+            bare: measure({ bare: true })
+          };
+          host.remove();
+          return result;
+        });
+        assert.equal(found.labelled.off, 0, "the control leaves its file name's row");
+        assert.equal(found.bare.off, 0, 'the control leaves the first line');
+        assert.equal(
+          found.labelled.room,
+          found.framed.room,
+          'the code under a bare file name loses its room'
+        );
+      }
+    );
   });
 
   test('a section is never a landmark region', long, async () => {
@@ -737,6 +905,61 @@ p { margin-block-end: 2em !important; }`;
         }
       }
     );
+
+  test("a section's lone ghost button ends its words on the content's edge", long, async () => {
+    const page = await open(1440, 'light');
+    try {
+      const section = page
+        .locator('#section .sui-section')
+        .filter({ has: page.getByRole('button', { name: 'Refresh' }) })
+        .first();
+      await section.scrollIntoViewIfNeeded();
+      const off = await section.evaluate((node) => {
+        const words = node.querySelector('.sui-button-label')?.getBoundingClientRect();
+        return words ? Math.round(node.getBoundingClientRect().right - words.right) : null;
+      });
+      assert.equal(off, 0);
+    } finally {
+      await page.close();
+    }
+  });
+
+  test("a lit back link's veil stands clear of the page header's title", long, async () => {
+    const page = await open(1440, 'light');
+    try {
+      const header = page
+        .locator('#page-header .sui-page-header')
+        .filter({ has: page.locator('.sui-back-link') })
+        .first();
+      await header.scrollIntoViewIfNeeded();
+      const clear = await header.evaluate((node) => {
+        const veil = node.querySelector('.sui-back-link')?.getBoundingClientRect();
+        const title = node.querySelector('.sui-page-header-title')?.getBoundingClientRect();
+        return veil && title ? title.top - veil.bottom : null;
+      });
+      assert.ok(clear !== null && clear >= 8, `the veil stands ${clear}px over the title's cap`);
+    } finally {
+      await page.close();
+    }
+  });
+
+  test("on a phone a page header's tabs stand 16px under its stacked actions", long, async () => {
+    const page = await open(390, 'light');
+    try {
+      const header = page
+        .locator('#page-header .sui-page-header')
+        .filter({ has: page.locator('.sui-page-header-tabs') });
+      await header.scrollIntoViewIfNeeded();
+      const gap = await header.evaluate((node) => {
+        const actions = node.querySelector('.sui-page-header-actions')?.getBoundingClientRect();
+        const tabs = node.querySelector('.sui-page-header-tabs')?.getBoundingClientRect();
+        return actions && tabs ? tabs.top - actions.bottom : null;
+      });
+      assert.equal(gap, 16);
+    } finally {
+      await page.close();
+    }
+  });
 
   test('a page header says a new state once, from the same status region', long, async () => {
     const page = await open(1440, 'light');
