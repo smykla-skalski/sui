@@ -448,16 +448,15 @@ button. Without `tools` there is no button and the filter never folds.
   }
 
   /* Even, so centred beside an even control it lands on whole pixels and reads as centred. */
+  /* Each heading names the control beside it, so it is set as a field's label (L-25). */
   .sui-list-toolbar-heading {
     align-content: center;
     block-size: var(--sui-block-snap-even);
-    color: var(--sui-text-muted);
-    font: var(--sui-weight-semibold) var(--sui-font-size-micro) / var(--sui-leading-tight)
+    color: var(--sui-text-primary);
+    font: var(--sui-weight-semibold) var(--sui-font-size-control) / var(--sui-leading-note)
       var(--sui-sans);
-    letter-spacing: 0.07em;
     margin: 0;
     padding-block: var(--sui-block-snap-room-even);
     text-box: trim-both cap alphabetic;
-    text-transform: uppercase;
   }
 </style>
