@@ -198,9 +198,10 @@ and the unsaved ink, so no neutral block sits on a state (L-92).
   }
 
   .sui-callout[data-tone='warning'] {
-    /* On the light tint the tile takes a firmer share of the tone to stand off its ground. */
+    /* On the light tint the tile takes a firmer share of the tone, so it stands the same step
+       off its ground in both themes, about 1.43:1. */
     --sui-callout-tile: light-dark(
-      color-mix(in srgb, var(--sui-warning) 22%, transparent),
+      color-mix(in srgb, var(--sui-warning) 26%, transparent),
       color-mix(in srgb, var(--sui-warning) 16%, transparent)
     );
     --sui-callout-mark: var(--sui-warning);

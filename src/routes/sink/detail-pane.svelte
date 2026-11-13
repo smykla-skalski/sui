@@ -85,13 +85,21 @@
   ground="canvas"
 >
   <Specimen label="Nothing related">
-    <Section title="Related" level={4}>
-      <p class="quiet">This is the first check of acme, so nothing relates to it yet</p>
-    </Section>
+    <div class="aside">
+      <Section title="Related" level={4}>
+        <p class="quiet">This is the first check of acme, so nothing relates to it yet</p>
+      </Section>
+    </div>
   </Specimen>
 </Example>
 
 <style>
+  /* Drawn at the width of the pane's aside, where an empty Related section stands, so its
+     sentence wraps as it would there. */
+  .aside {
+    max-inline-size: 20rem;
+  }
+
   .quiet {
     color: var(--sui-text-muted);
     font: var(--sui-weight-regular) var(--sui-font-size-body) / var(--sui-leading-body)
