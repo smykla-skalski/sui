@@ -259,6 +259,11 @@ test('L-24 a title stands 12px above its description, copy lines 8px apart, form
     "a toast's description wraps at the note leading in balanced lines"
   );
   assert.match(
+    stripComments(read('src/lib/components/IdentityRow.svelte')),
+    /\.sui-identity-name \{[^}]*font: [^;]*var\(--sui-font-size-body\) \/ var\(--sui-leading-note\)/,
+    "an identity row's name wraps at the note leading"
+  );
+  assert.match(
     stripComments(read('src/lib/components/Toaster.svelte')),
     /\.acting \.sui-toast-description \{\s*text-wrap: pretty;/,
     "beside an action a toast's balanced reason leaves a gap before it"

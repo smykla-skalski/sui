@@ -137,9 +137,11 @@ reaches past its edges into the holder's padding, still centred on the name.
     text-box: trim-both cap alphabetic;
   }
 
+  /* A long name beside its mark wraps at the note leading, so its semibold lines never press
+     into one block in a narrow column (L-24). */
   .sui-identity-name {
     color: var(--sui-text-primary);
-    font: var(--sui-weight-semibold) var(--sui-font-size-body) / var(--sui-row-copy-leading)
+    font: var(--sui-weight-semibold) var(--sui-font-size-body) / var(--sui-leading-note)
       var(--sui-sans);
   }
 
