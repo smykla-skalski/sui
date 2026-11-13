@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- `EmptyState` and `ErrorState` end at their own content beside a taller panel, and a `Section` no longer stretches a lone state panel, so no panel holds an empty foot of wash.
 - `CodeBlock` and `DiffBlock` fade their scrolled lines over 32px, 24px on a phone, so a cut word melts into the edge.
 - An `ErrorState` retry stands raised over the dark failure wash, and its hover and press veils take the danger hue instead of grey.
 - A hovered `RelativeTime` spreads its veil to the focus ring's outer edge, so hover and focus mark one box.
