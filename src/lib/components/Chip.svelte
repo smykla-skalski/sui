@@ -450,10 +450,10 @@ style declaration.
       border-radius: inherit;
     }
 
+    /* Logical sides, so in a right-to-left page the target still reaches over the value. */
     .sui-chip-remove::before {
-      inset: calc((var(--sui-local-remove) - var(--sui-touch-target)) / 2) 0
-        calc((var(--sui-local-remove) - var(--sui-touch-target)) / 2)
-        calc(var(--sui-local-remove) - var(--sui-touch-target));
+      inset-block: calc((var(--sui-local-remove) - var(--sui-touch-target)) / 2);
+      inset-inline: calc(var(--sui-local-remove) - var(--sui-touch-target)) 0;
     }
   }
 
