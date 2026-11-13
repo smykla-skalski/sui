@@ -312,8 +312,9 @@
         <ErrorState
           title="Sync Check #4182 Does Not Exist"
           description="Someone deleted it or it never existed"
-          step="Go back to the queue to open another check"
-        />
+        >
+          {#snippet action()}<Button href="#queue">Open the Queue</Button>{/snippet}
+        </ErrorState>
       </div>
     {:else}
       {@render header()}
