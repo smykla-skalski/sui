@@ -3437,6 +3437,37 @@ function boundaryLines(root: Document): Finding[] {
 }
 
 /**
+ * Skipped paint (L-36): a box that paints only near the screen (`content-visibility: auto`)
+ * clips to its padding box, so a line or mark its own pseudo-element draws past that box, such
+ * as a row's hairline in a transparent border, never shows. The run draws every part, so such a
+ * box is known by the intrinsic size it keeps for while it is skipped.
+ */
+function skippedClips(root: Document): Finding[] {
+  const found: Finding[] = [];
+  for (const element of root.querySelectorAll('*')) {
+    if (getComputedStyle(element).containIntrinsicHeight === 'none' || !shown(element)) continue;
+    for (const pseudo of ['::before', '::after']) {
+      const look = getComputedStyle(element, pseudo);
+      if (look.content === 'none' || look.display === 'none' || look.position !== 'absolute')
+        continue;
+      const paints =
+        rgba(look.backgroundColor).a > 0 ||
+        look.backgroundImage !== 'none' ||
+        parseFloat(look.borderTopWidth) + parseFloat(look.borderBottomWidth) > 0;
+      if (!paints) continue;
+      const out = (['top', 'right', 'bottom', 'left'] as const).filter(
+        (side) => parseFloat(look[side]) < -0.5
+      );
+      if (out.length > 0)
+        found.push(
+          finding('L-36', element, `its ${pseudo} reaches past the paint clip at ${out.join(', ')}`)
+        );
+    }
+  }
+  return found;
+}
+
+/**
  * Hanging rows (L-61): a row that reaches past its list on both sides, so its words keep the
  * heading's edge while its hover or state ground runs the row padding past it, has that room.
  * No clipping ancestor cuts the ground at either side, or the hover shows whole on one side and
@@ -3822,6 +3853,7 @@ register(
   boundaryLines,
   detailPanes,
   rowGrounds,
+  skippedClips,
   nestedFrames,
   failureExits,
   unitSpaces,
