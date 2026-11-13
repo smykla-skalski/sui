@@ -117,7 +117,7 @@ of them.
   role="alert"
 >
   <div class="sui-error-state-copy" {@attach evenHeight}>
-    <span class="sui-error-state-mark"><Icon name="alert" size="md" /></span>
+    <span class="sui-error-state-mark"><Icon name="alert" size="base" /></span>
     <p class="sui-error-state-title">{title}</p>
     <p class="sui-error-state-description">{description}</p>
     {#if step}<p class="sui-error-state-step">{step}</p>{/if}
@@ -187,7 +187,7 @@ of them.
   /* A panel's retry stands on the words' rail too, as a form error's links leave the line its
      mark and gap take. Over a list it follows the words on their line instead. */
   .sui-error-state:not(.over) > .sui-error-state-retry {
-    padding-inline-start: calc(var(--sui-icon-md) + var(--sui-space-2));
+    padding-inline-start: calc(var(--sui-icon-base) + var(--sui-space-2));
   }
 
   /* Centred on the title's first line, so it takes the title's face to measure that line's cap.
@@ -199,7 +199,7 @@ of them.
     display: flex;
     font: var(--sui-weight-semibold) var(--sui-font-size-card-title) / var(--sui-row-copy-leading)
       var(--sui-sans);
-    margin-block: round(calc((round(up, 1cap, 1px) - var(--sui-icon-md)) / 2), 1px);
+    margin-block: round(calc((round(up, 1cap, 1px) - var(--sui-icon-base)) / 2), 1px);
   }
 
   p {
@@ -268,7 +268,7 @@ of them.
   }
 
   .over > .sui-error-state-retry {
-    margin-inline-start: calc(var(--sui-icon-md) + var(--sui-space-2));
+    margin-inline-start: calc(var(--sui-icon-base) + var(--sui-space-2));
   }
 
   /* A line over a list heads only its own words, so its title keeps a panel's step quieter. */
