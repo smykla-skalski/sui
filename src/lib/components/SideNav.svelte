@@ -898,14 +898,14 @@ following a row closes the drawer.
       justify-items: center;
     }
 
-    /* A count rides past the glyph's top-end corner in the count's own neutral ground, so a
-       count reads the same folded and whole and the accent stays with the current page; a ring
-       of the sidebar's ground parts it from the glyph. */
+    /* A count rides past the glyph's top-end corner, 4px clear of it, in the count's own
+       neutral ground, so a count reads the same folded and whole and the accent stays with the
+       current page; a ring of the sidebar's ground parts it from the label under it. */
     .sui-side-nav[data-collapsed] .sui-side-nav-count {
       border-radius: var(--sui-radius-pill);
       box-shadow: 0 0 0 var(--sui-stroke-bold) var(--sui-sidebar-bg);
       inset-block-start: 0;
-      inset-inline-start: calc(50% + var(--sui-space-2));
+      inset-inline-start: calc(50% + var(--sui-space-2) + var(--sui-space-1));
       margin: 0;
       position: absolute;
     }

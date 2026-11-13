@@ -427,6 +427,16 @@ only and a `LoadMore` after it lands on the first new one. Page it in the order 
       grid-template-columns: auto minmax(0, 1fr);
     }
 
+    /* Where an event has an actor, every event's words stand where the actor's words do, past
+       the 20px avatar and its gap, so the times keep one edge and the words another. */
+    .sui-timeline:has(.sui-timeline-face) > .sui-timeline-event {
+      grid-template-columns: var(--sui-space-5) minmax(0, 1fr);
+    }
+
+    .sui-timeline:has(.sui-timeline-face) .sui-timeline-words {
+      grid-column: -2;
+    }
+
     .sui-timeline-body {
       display: contents;
     }

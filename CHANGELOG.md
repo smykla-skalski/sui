@@ -25,6 +25,10 @@
 - The detail pane's loading state draws each fact's label and value, the related links, and the warning's symbol and action, and its notice, header and outcome placeholders change shape at the widths where the loaded words wrap, so no section moves when the check arrives.
 - A folded `AppShell` column keeps one 48px pitch: its places, pages and the rail's foot stand 4px apart, and the places stand 8px clear of the hairline under them, as a group's rows do. A rail beside the pages keeps its places 4px apart too, so they hold still when the sidebar folds. A folded `SideNav`'s rows stand 4px apart too.
 - The phone drawer's edge is a hairline as well as a shadow, so it shows on the dark theme's scrim.
+- A folded `SideNav` count stands 4px clear of its glyph, and the hairline under a folded column's places stands 4px in from its sides, as the foot's does.
+- A `PageHeader` whose actions take a line of their own hangs a leading ghost button's glyph on the copy's start edge, as a card head does (L-33).
+- A narrow `Timeline` with an actor anywhere in it stands every event's words where the actor's words stand, so its times keep one edge and its words another.
+- The detail pane's loading Repositories end in the Load More line's words and button rather than a sixth row, and the Outcome sentence wraps to lines of near equal length.
 - A `SegmentedControl` or a `ThemeSwitch` with `iconOnly` draws each option's glyph alone, its word still naming its radio, for a box as narrow as a folded sidebar.
 
 - A `Skeleton`'s last row ends where a loaded list's last row ends once the list hands back its padding, so the section under it no longer moves 2px when the rows arrive.

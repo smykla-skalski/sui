@@ -407,6 +407,13 @@ and the header owes only the difference. A holder that hides the kicker at some 
       margin-block: var(--sui-rhythm-head-actions-stacked) 0;
     }
 
+    /* A ghost button draws nothing at rest, so leading the line its glyph or words stand on the
+       copy's start edge and its box reaches into the gutter, as a card head's ghost action
+       reaches into the inset (L-33). */
+    .sui-page-header-actions:has(> :global(.sui-button[data-tone='ghost']):first-child) {
+      margin-inline-start: calc(-1 * var(--sui-space-3));
+    }
+
     /* Under actions on a line of their own the tabs follow as the next row of controls, their
        box 16px under the actions' box, a step further than the actions stand under the copy, so
        the page's views never read as more of its actions; on a fine pointer the tab row's track
@@ -441,6 +448,13 @@ and the header owes only the difference. A holder that hides the kicker at some 
       flex-wrap: wrap;
       grid-area: auto / 1;
       margin-block: var(--sui-rhythm-head-actions-stacked) 0;
+    }
+
+    /* A ghost button draws nothing at rest, so leading the line its glyph or words stand on the
+       copy's start edge and its box reaches into the gutter, as a card head's ghost action
+       reaches into the inset (L-33). */
+    .sui-page-header-actions:has(> :global(.sui-button[data-tone='ghost']):first-child) {
+      margin-inline-start: calc(-1 * var(--sui-space-3));
     }
 
     /* A phone's tab row has no lead over its tabs, so the tabs stand the whole 16px under. */

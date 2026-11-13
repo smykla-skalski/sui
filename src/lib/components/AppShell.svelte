@@ -603,8 +603,16 @@ viewport. `landmark="none"` keeps the content from claiming the page's one `main
       --sui-local-strip-start: var(--sui-space-2);
       --sui-local-strip-end: var(--sui-space-1);
 
-      border-block-start: var(--sui-stroke) solid var(--sui-sidebar-border);
       border-inline: 0;
+    }
+
+    /* The hairline under the places stands 4px in from the column's sides, as the foot's does,
+       so the column's two structural lines match and the groups' short marks stay the minor
+       tier. A border, so it still draws under forced colors. */
+    .sui-shell-grid[data-collapsed='true'] .sui-shell-pages.joined::before {
+      border-block-start: var(--sui-stroke) solid var(--sui-sidebar-border);
+      content: '';
+      margin-inline: var(--sui-space-1);
     }
 
     .sui-shell-grid[data-collapsed='true'] .sui-shell-side.joined {

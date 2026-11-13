@@ -299,17 +299,19 @@
                 <div class="narrow">{@render wait(3, '1.6875rem')}</div>
               </div>
             </Section>
-            <!-- A sixth row stands for the Load More line under the five. -->
+            <!-- The Load More line waits under the five rows as its words and its button. -->
             <Section title="Repositories" count={16}>
+              <Skeleton
+                rows={PAGE}
+                bars={false}
+                side
+                rowHeight={NAME_ROW}
+                patience={Infinity}
+                label="Loading sync check #4182…"
+              />
               <div class="more">
-                <Skeleton
-                  rows={PAGE + 1}
-                  bars={false}
-                  side
-                  rowHeight={NAME_ROW}
-                  patience={Infinity}
-                  label="Loading sync check #4182…"
-                />
+                <div class="shown">{@render wait(1, 'round(up, 1cap, 1px)')}</div>
+                <span class="press more-press"></span>
               </div>
             </Section>
             <Section title="Timeline">
@@ -418,10 +420,13 @@
 
   /* Proximity: the counts stand one copy gap further below the sentence than its own lines
      stand apart, so a wrapped sentence still reads as one block (L-24). */
+  /* A wrapped sentence splits into lines of near equal length, so no count stands alone on
+     its last line. */
   .lede {
     align-content: center;
     block-size: var(--sui-block-snap);
     color: var(--sui-text-primary);
+    text-wrap: balance;
     font: var(--sui-weight-regular) var(--sui-font-size-body) / var(--sui-leading-body)
       var(--sui-sans);
     margin: 0;
@@ -548,9 +553,26 @@
     margin-block: calc(var(--sui-space-6) + 1px) 1px;
   }
 
-  /* The Load More line is 46px, 14px more than the last placeholder row leaves. */
+  /* The Load More line stands under the last row's hairline, its words at the start and its
+     button at the end, 12px under the line, as the loaded line does. The rows above it end at
+     their last row's foot, where a list that hands back its padding would end 12px sooner. */
   .more {
-    margin-block-end: calc(var(--sui-space-3) + 2px);
+    align-items: center;
+    border-block-start: var(--sui-row-hairline) solid var(--sui-border-divider);
+    display: flex;
+    justify-content: space-between;
+    margin-block-start: var(--sui-space-3);
+    padding-block-start: var(--sui-space-3);
+  }
+
+  .shown {
+    inline-size: 15.25rem;
+  }
+
+  .more-press {
+    block-size: var(--sui-control-height-compact);
+    inline-size: 6.125rem;
+    margin-block: 0;
   }
 
   .narrow {
@@ -590,11 +612,6 @@
   }
 
   @media (max-width: 47.9375rem) {
-    /* A phone's Load More button is 44px, so its line is 10px taller. */
-    .more {
-      margin-block-end: var(--sui-space-6);
-    }
-
     @container outcome (max-width: 36.5625rem) {
       .outcome > * {
         --outcome-room: 4px;
