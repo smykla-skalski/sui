@@ -3,7 +3,6 @@
 ## Unreleased
 
 - Every painted `Chip` in the dark theme draws an edge of 30% of its ink over its tint, as GitHub's dark labels do, where only a near-black one did, so a deep color such as violet keeps its shape on a dark ground.
-- The `ListToolbar` page counts every state in its filter, not only All.
 - A current `ObjectRow` answers the pointer as the rows around it do, on more of its accent, 22% on light and 28% on dark, never on a hovered row's grey.
 - A small `Chip` in a line of text stands on the text's own box, so the line keeps its height rather than growing under the chip.
 - A `Skeleton`'s last row ends where a loaded list's last row ends once the list hands back its padding, so the section under it no longer moves 2px when the rows arrive.
@@ -11,7 +10,7 @@
 - A `PageHeader` whose holder hides its kicker, as a wide `ListDetail` hides its way back, sets its title at the top with the actions beside it, where the actions had stood a row lower, beside the description. A holder says so with `--sui-head-kicker-shown: 0`.
 - A `DetailLayout` column parts a closing `Disclosure` from the zone above it by the section gap, as it parts its sections, where the disclosure's own margin reset had stood it flush under them.
 - An off-screen `ObjectRow` holds 57px, the height of a row whose name is set at the body size, and a `Skeleton`'s default rows snap each line to an even pixel as those rows do, so a long list does not jump as its rows reach the screen and the page does not move when loaded rows replace the placeholders.
-- A `ListToolbar` search keeps 10rem of field beside its label, so a bar with a filter, tools and an action keeps the label there on a laptop, and with less, as on a phone, its label stands above a field of the full width. The field stops at 32rem, so a wide bar keeps its controls together at its start.
+- A `ListToolbar` search keeps 12rem of field beside its label, so a bar with a filter, tools and an action keeps the label there on a laptop, and with less, as on a phone, its label stands above a field of the full width. The field stops at 32rem, so a wide bar keeps its controls together at its start.
 - A `ListToolbar` heading, over the search and before each filter, is set as a field's label, 14px at 600 in the primary ink, since it names the control beside it.
 - A `ListToolbar` draws its count under the bar, over the rows it counts, 0 included, so over an empty list the bar still says the search left nothing, and its tools button ends in a chevron, as a menu's button does.
 - A `ListToolbar`'s controls stand on the foot of their line, so beside a search whose label stands over its field they line up with the field, and the choices named beside the tools button are set at the regular weight, as values rather than labels.
