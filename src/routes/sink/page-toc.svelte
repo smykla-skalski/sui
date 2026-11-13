@@ -160,11 +160,12 @@
     }
 
     /* Over the article on a phone, a hairline closes the index, so the page reads as where to
-       go, then what to read. */
+       go, then what to read. It spans the entries' plates, which hang 8px past the text. */
     .index {
       border-block-end: var(--sui-stroke) solid var(--sui-border-divider);
       grid-row: 1;
-      padding-block-end: var(--sui-space-4);
+      margin-inline: calc(-1 * var(--sui-space-2));
+      padding: 0 var(--sui-space-2) var(--sui-space-4);
     }
   }
 </style>
