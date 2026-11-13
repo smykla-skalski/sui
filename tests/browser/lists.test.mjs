@@ -71,6 +71,18 @@ suite('lists', together, () => {
       );
     });
 
+    test("a day feed's times read at the 13px caption tier, a step under their 14px entries", async () => {
+      const page = await opened();
+      const sizes = await page.evaluate(() => [
+        ...new Set(
+          [...document.querySelectorAll('#day-heading .entries time')].map(
+            (time) => getComputedStyle(time).fontSize
+          )
+        )
+      ]);
+      assert.deepEqual(sizes, ['13px']);
+    });
+
     test('a day feed keeps a form measure on a wide page, so each time stays near its entry', async () => {
       const page = await opened();
       const widths = await page.evaluate(() => {

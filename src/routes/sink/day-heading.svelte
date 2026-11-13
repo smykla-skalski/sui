@@ -123,9 +123,11 @@
     overflow-wrap: anywhere;
   }
 
+  /* A time reads at the caption tier, a step under its entry, and in the mono face, so its
+     digits line up down the column. */
   .time {
     color: var(--sui-text-muted);
-    font: var(--sui-weight-regular) var(--sui-font-size-compact) / var(--sui-leading-compact)
+    font: var(--sui-weight-regular) var(--sui-font-size-caption) / var(--sui-leading-compact)
       var(--sui-mono);
     font-variant-numeric: tabular-nums;
   }
