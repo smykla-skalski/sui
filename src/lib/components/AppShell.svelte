@@ -501,19 +501,20 @@ viewport. `landmark="none"` keeps the content from claiming the page's one `main
     visibility: hidden;
   }
 
-  /* The place is the bar's one word at rest, so it takes the primary ink; under the title it
-     still reads second by its size and weight. Its ink never changes, so the hand-over stays
-     opacity and a lift. */
+  /* The place is the bar's one word at rest, so it takes the primary ink at the menu label's
+     14px, never under it; over the title it still reads second by its size and weight. Its ink
+     never changes, so the hand-over stays opacity and a lift. Its cap rounds up to an even
+     height, as the title's does, so the pair centres in the bar on whole pixels. */
   .sui-shell-eyebrow {
     align-content: center;
-    block-size: var(--sui-block-snap);
+    block-size: var(--sui-block-snap-even);
     color: var(--sui-sidebar-text);
-    font: var(--sui-weight-medium) var(--sui-font-size-compact) / var(--sui-leading-compact)
+    font: var(--sui-weight-medium) var(--sui-font-size-meta) / var(--sui-leading-meta)
       var(--sui-sans);
     margin: 0;
     min-inline-size: 0;
     overflow-wrap: break-word;
-    padding-block: var(--sui-block-snap-room);
+    padding-block: var(--sui-block-snap-room-even);
     text-box: trim-both cap alphabetic;
   }
 
