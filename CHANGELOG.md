@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- The sink's Past and Future times part their columns by 24px on a phone and 48px on a wide card, and a column grows past 8rem for a longer time, so a time never leaves its specimen under the WCAG text spacing or longer words.
 - The sink's day feed keeps each time at the row's end at every width, so a phone reads the times down one edge, where a long entry pushed its time under it to the row's start.
 - The sink's empty states stand under the heading of the list each stands for, Repositories and Invitations, as the failed lists beside them do.
 - A framed `CodeBlock`'s head row, its file name or its copy row, stands a faint step off the code, 2.5% of the ink over the code ground, so it reads as the block's head and not a first line.

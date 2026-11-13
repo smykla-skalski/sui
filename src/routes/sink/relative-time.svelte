@@ -46,8 +46,8 @@
   note="Hover a time, or press and hold it, to read the whole instant with seconds and its zone"
   layout="grid"
   --specimen-min="8rem"
-  --specimen-max="8rem"
-  --specimen-column-gap="calc(2 * var(--sui-space-6))"
+  --specimen-max="max-content"
+  --specimen-column-gap="clamp(var(--sui-space-6), 5%, calc(2 * var(--sui-space-6)))"
 >
   {#each past as time (time.label)}
     <Specimen label={time.label}
@@ -61,8 +61,8 @@
   note="An instant still ahead reads as how soon"
   layout="grid"
   --specimen-min="8rem"
-  --specimen-max="8rem"
-  --specimen-column-gap="calc(2 * var(--sui-space-6))"
+  --specimen-max="max-content"
+  --specimen-column-gap="clamp(var(--sui-space-6), 5%, calc(2 * var(--sui-space-6)))"
 >
   {#each future as time (time.label)}
     <Specimen label={time.label}><RelativeTime value={time.value} /></Specimen>
