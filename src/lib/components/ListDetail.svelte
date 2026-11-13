@@ -285,11 +285,8 @@ around it.
     }
 
     /* Beside the list the open item is one pane of a page, not the page, so its header takes
-       the compact title a phone's takes, and the list's heading keeps its weight beside it. It
-       stands on its header band's ground, so the open item reads as one sheet beside the list
-       on the page's canvas rather than as a band over the canvas. */
+       the compact title a phone's takes, and the list's heading keeps its weight beside it. */
     .sui-list-detail-detail {
-      background: var(--sui-surface-base);
       --sui-font-size-page-title: var(--sui-font-size-page-title-compact);
       --sui-head-kicker-shown: 0;
       --sui-leading-page: var(--sui-leading-page-compact);
