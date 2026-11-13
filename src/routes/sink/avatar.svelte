@@ -29,14 +29,8 @@
   title="Shapes & Sizes"
   note="Without a picture, initials sit on the brand tint at a type step for each size"
 >
-  <Variants
-    rows={sizes}
-    columns={shapes}
-    axis="size"
-    rowLabel={(size) => `{${size}}`}
-    columnLabel={(shape) => (shape === 'person' ? 'Person' : 'Workspace')}
-  >
-    {#snippet cell(size, shape)}
+  <Variants rows={shapes} columns={sizes} axis="shape" rowLabel={(shape) => `"${shape}"`}>
+    {#snippet cell(shape, size)}
       <Avatar name={shape === 'person' ? 'Ada Lovelace' : 'Platform Team'} {shape} size={+size} />
     {/snippet}
   </Variants>
