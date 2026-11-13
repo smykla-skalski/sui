@@ -448,7 +448,7 @@ beside its first line, and takes the row only on a phone. It copies `code` exact
     .bare .sui-code-block-lang {
       align-content: center;
       block-size: var(--sui-block-snap);
-      color: var(--sui-text-secondary);
+      color: var(--sui-text-primary);
       display: block;
       font: var(--sui-weight-regular) var(--sui-font-size-caption) / var(--sui-leading-compact)
         var(--sui-mono);

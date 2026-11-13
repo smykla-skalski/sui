@@ -1671,6 +1671,11 @@ test("a code block's head names its file or language in the primary ink, apart f
     /\.sui-code-block:not\(\.bare\) \.sui-code-block-lang \{[^}]*color: var\(--sui-text-primary\);/,
     'the language name'
   );
+  assert.match(
+    block,
+    /\.bare \.sui-code-block-lang \{[^}]*color: var\(--sui-text-primary\);/,
+    "a bare block's language name over it on a phone"
+  );
 });
 
 test("a framed code block's head steps off its code by 6% ink in light and 2.5% in dark, so the light head also steps off the plate around it", () => {
