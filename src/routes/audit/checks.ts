@@ -2168,9 +2168,10 @@ function specimens(root: Document): Finding[] {
 }
 
 /**
- * Rows that wrap (L-90): every new line starts at the row's start edge, so a lone item that an
- * auto margin pushes over never floats away from what it belongs to. A row aligned to its end or
- * centre on purpose keeps every line there, and is left alone.
+ * Rows that wrap (L-90): every new line starts at the row's start edge, or on the words' edge
+ * when the first item hangs a mark before them, so a lone item that an auto margin pushes over
+ * never floats away from what it belongs to. A row aligned to its end or centre on purpose keeps
+ * every line there, and is left alone.
  */
 function wrapping(root: Document): Finding[] {
   const found: Finding[] = [];
@@ -2191,6 +2192,7 @@ function wrapping(root: Document): Finding[] {
     const start = rtl
       ? box.right - parseFloat(style.borderRightWidth) - parseFloat(style.paddingRight)
       : box.left + parseFloat(style.borderLeftWidth) + parseFloat(style.paddingLeft);
+    const hang = wordsEdge(items[0], rtl);
     let bottom = items[0].getBoundingClientRect().bottom;
     for (const item of items.slice(1)) {
       const own = item.getBoundingClientRect();
@@ -2200,7 +2202,7 @@ function wrapping(root: Document): Finding[] {
       }
       bottom = own.bottom;
       const edge = rtl ? own.right : own.left;
-      if (Math.abs(edge - start) > 1)
+      if (Math.abs(edge - start) > 1 && (hang === null || Math.abs(edge - hang) > 1))
         found.push(
           finding(
             'L-90',
@@ -2211,6 +2213,23 @@ function wrapping(root: Document): Finding[] {
     }
   }
   return found;
+}
+
+/** Where an item's first words start, when a mark hangs before them, else null. */
+function wordsEdge(item: Element, rtl: boolean): number | null {
+  const walker = item.ownerDocument.createTreeWalker(item, NodeFilter.SHOW_TEXT);
+  while (walker.nextNode()) {
+    const text = walker.currentNode;
+    if (!text.textContent?.trim()) continue;
+    const range = item.ownerDocument.createRange();
+    range.selectNodeContents(text);
+    const words = range.getBoundingClientRect();
+    const own = item.getBoundingClientRect();
+    const edge = rtl ? words.right : words.left;
+    const hung = rtl ? own.right - edge : edge - own.left;
+    return hung > 1 && item.querySelector('svg') ? edge : null;
+  }
+  return null;
 }
 
 /**

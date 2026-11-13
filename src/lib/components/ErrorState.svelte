@@ -102,7 +102,7 @@ of them.
 - Keyboard: the retry takes Tab, Enter and Space; it ignores presses while busy.
 - Pointer and touch: the retry is 34px tall, 44px on a phone or touch screen.
 - Focus: the retry keeps focus while it runs; when the retry succeeds and the panel leaves, focus moves to `focusAfterRetry`, else to the first control where the panel stood, else to the place itself, never to the page.
-- Responsive: the panel fills its column and pads 20px on a phone; over content the line wraps its words and its button.
+- Responsive: the panel fills its column and pads 20px on a phone; over content the line wraps its words, and its button under them.
 - Accessibility: the alert announces the failure when it appears, the busy button is announced as busy, and a warning mark and the danger ink stand beside words that say what failed.
 - Localization: `retryLabel` and `retryingLabel` carry the built-in words, and it starts at the inline start, mirrored in a right-to-left page.
 - Performance: a static block, except where the browser cannot round a box's height in CSS: there one shared observer pads the copy to an even height; the retry's spinner is the button's own and stops under reduced motion.
@@ -237,7 +237,7 @@ of them.
      retry a step inside its tint, so they never crowd the tint's edge. Its tint is a plate 2px
      inside that box on every side, as a row's state is (L-91). It stands 8px clear of the first
      row, so the failure never reads as that row's state. Its retry ends the line, where a
-     reader looks for a line's action, and on a phone it wraps to the row's start (L-90). */
+     reader looks for a line's action, and on a phone it wraps under its words (L-90). */
   .over {
     align-items: center;
     background: none;
@@ -271,7 +271,7 @@ of them.
 
   @media (max-width: 47.9375rem) {
     .over > .sui-error-state-retry {
-      margin-inline-start: 0;
+      margin-inline-start: calc(var(--sui-icon-base) + var(--sui-space-2));
     }
   }
 

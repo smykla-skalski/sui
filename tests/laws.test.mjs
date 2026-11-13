@@ -422,8 +422,8 @@ test('L-59 a state panel pads 28px by 24px, 20px on a phone, its action a step u
   );
   assert.match(
     stripComments(styles['src/lib/components/ErrorState.svelte']),
-    /@media \(max-width: 47\.9375rem\) \{\s*\.over > \.sui-error-state-retry \{\s*margin-inline-start: 0;/,
-    "on a phone a failed refresh's retry wraps to the row's start"
+    /@media \(max-width: 47\.9375rem\) \{\s*\.over > \.sui-error-state-retry \{\s*margin-inline-start: calc\(var\(--sui-icon-base\) \+ var\(--sui-space-2\)\);/,
+    "on a phone a failed refresh's retry wraps under its words"
   );
   assert.match(
     stripComments(styles['src/lib/components/ErrorState.svelte']),

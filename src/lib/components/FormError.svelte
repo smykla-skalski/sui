@@ -63,7 +63,7 @@ margins of its own; the form that holds it sets the gap above it.
 
 - Semantics: a `role="alert"` box with the message, and a list of links when it summarises `problems`.
 - Content: `message`, one sentence that says what happened, and `problems`, one short message per field in the order the fields stand.
-- States: absent while `message` is empty, a one-line refusal, and a summary with links; each draws a warning mark beside the message, on a pale wash of the danger tint inside a light edge of the hue.
+- States: absent while `message` is empty, a one-line refusal, and a summary whose 16px semibold message heads its links; each draws a warning mark beside the message, on a pale wash of the danger tint inside a light edge of the hue.
 - Keyboard: a summary takes focus, Tab walks its links, and Enter on a link focuses that field.
 - Pointer and touch: each link's target is 24px tall, and 44px on a phone or any touch screen.
 - Focus: a summary takes focus when it appears and again on each `attempt`; a link moves focus to its field.
@@ -79,7 +79,7 @@ margins of its own; the form that holds it sets the gap above it.
   {#if message}
     <div
       {...rest}
-      class={['sui-form-error', className]}
+      class={['sui-form-error', className, { summary: problems.length > 0 }]}
       role="alert"
       tabindex="-1"
       {@attach arrive}
@@ -135,6 +135,13 @@ margins of its own; the form that holds it sets the gap above it.
       var(--sui-sans);
     grid-template-columns: auto minmax(0, 1fr);
     margin: 0;
+  }
+
+  /* A summary's message heads its links, so it reads at the 16px semibold a failed line's
+     title wears. */
+  .summary > .sui-form-error-message {
+    font-size: var(--sui-font-size-title);
+    font-weight: var(--sui-weight-semibold);
   }
 
   /* Centred on the first line's cap height, however many lines the message wraps to. */

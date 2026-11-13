@@ -297,6 +297,23 @@ suite('lists', together, () => {
   suite('at phone width', { concurrency: 1 }, () => {
     const opened = sharedPage({ viewport: { width: 375, height: 812 } });
 
+    test("L-59 L-90 on a phone a failed refresh's retry wraps under its words", async () => {
+      const page = await opened();
+      const strip = page
+        .locator('#states .specimen', { hasText: 'Refresh failed' })
+        .locator('.over');
+      await strip.scrollIntoViewIfNeeded();
+      const at = await strip.evaluate((node) => {
+        const left = (/** @type {string} */ selector) =>
+          /** @type {Element} */ (node.querySelector(selector)).getBoundingClientRect().left;
+        return { words: left('.sui-error-state-title'), retry: left('button') };
+      });
+      assert.ok(
+        Math.abs(at.retry - at.words) < 0.5,
+        `the retry starts ${at.retry - at.words}px off its words`
+      );
+    });
+
     // The choice's name stays 14px on a phone, so its note keeps the type step under it (L-25).
     test('an addition choice keeps its note a type step under its name on a phone', async () => {
       const page = await opened();
