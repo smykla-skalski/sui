@@ -21,7 +21,7 @@ test('installs the piped preview, removes those of closed pull requests and list
 
   // pr-1 is closed, and must not survive on the strength of 10 being open. 15 is open with no
   // preview, as a pull request that never changed the look.
-  execFileSync('sh', [script, '3', ...[3, 10, 12, 15].map(open)], {
+  execFileSync('sh', [script, '3', ...[3, 10, 12, 15].flatMap((pr) => [String(pr), open(pr)])], {
     input: execFileSync('tar', ['-cz', '-C', site, '.']),
     env: { ...process.env, PREVIEWS_DATA: data }
   });

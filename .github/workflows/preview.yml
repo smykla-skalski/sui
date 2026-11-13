@@ -72,13 +72,14 @@ jobs:
       # The machine stops when idle and only an HTTP request starts it again.
       - run: curl -fsS --retry 10 --retry-all-errors -o /dev/null "https://$PREVIEW_HOST/ping"
       # Each open pull request as <number>:<its picker entry in base64>, the entry its title without
-      # the conventional `type(scope):` prefix, so no title needs quoting on the way. A separate
-      # assignment, so a failed listing stops the step instead of reading as no open PRs.
+      # the conventional `type(scope):` prefix, so no title needs quoting on the way, and as its bare
+      # number too, which a machine still on the script from before the picker keeps it by. A
+      # separate assignment, so a failed listing stops the step instead of reading as no open PRs.
       - &list-open
         name: List open pull requests
         run: |
           open=$(gh pr list --state open --limit 1000 --json number,title --jq '
-            [.[] | "\(.number):" + ({number, title: (.title | sub("^\\w+(\\([^)]*\\))?!?:\\s*"; ""))} | tojson | @base64)]
+            [.[] | "\(.number)", "\(.number):" + ({number, title: (.title | sub("^\\w+(\\([^)]*\\))?!?:\\s*"; ""))} | tojson | @base64)]
             | join(" ")')
           echo "OPEN=$open" >> "$GITHUB_ENV"
       - run: tar -cz -C build . | flyctl ssh console -a "$FLY_APP" -C "/usr/local/bin/previews ${PR:-main} $OPEN"
