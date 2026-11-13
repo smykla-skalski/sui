@@ -18,6 +18,7 @@
 - An `Avatar` 44px or larger sets its initials at 18px (`--sui-font-size-initials-large`), where the 16px title step read small in a mark that wide.
 - A 20px workspace `Avatar` rounds its corner 6px, the chip radius, near the 30% of its size the larger ones keep, where 8px read as a squircle.
 - The `Avatar` page sets each picture beside the same avatar whose picture does not load, and shows the question mark an avatar with no name or handle draws.
+- The `Avatar` page's portrait stands on a warm ground with dark hair, so a picture reads apart from initials on the brand tint at a glance.
 - A slow `Skeleton`'s title and every row's first bar take the body size a row's name is set at, so the title reads as the name it stands for and the bar is one of its caps tall.
 - A placeholder bar is 10% black on the light theme and 12.5% white on the dark, where both were 7%, so a waiting list's bars hold their place beside its words.
 - A `Skeleton` bar for a line of words rounds 3px (`--sui-radius-placeholder`), and only the bar for a row's side keeps a pill's round ends, so the words to come and the pill to come read apart.
