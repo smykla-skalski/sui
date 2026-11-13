@@ -1044,12 +1044,12 @@ suite('lists', together, () => {
             `a value starts ${value.left - labelsEnd}px past the labels`
           );
         }
-        // A narrow aside's 20rem still holds both columns.
+        // A detail pane's narrowest aside, 18rem, still holds both columns.
         await lists.nth(1).evaluate((list) => {
-          /** @type {HTMLElement} */ (list.parentElement).style.inlineSize = '20rem';
+          /** @type {HTMLElement} */ (list.parentElement).style.inlineSize = '18rem';
         });
         for (const { label, value } of (await pairs(1)).rows)
-          assert.ok(value.top < label.bottom, 'a list 20rem wide stacks its value');
+          assert.ok(value.top < label.bottom, 'a list 18rem wide stacks its value');
         await lists.nth(1).evaluate((list) => {
           /** @type {HTMLElement} */ (list.parentElement).style.inlineSize = '';
         });

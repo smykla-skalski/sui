@@ -25,7 +25,7 @@
 @component
 The body of a detail pane, under its header band: a main column of sections and an aside of
 the thing's properties. Once the layout itself is 44rem wide or wider, the aside stands
-beside the main column, 16 to 20rem wide and `--sui-rhythm-section-gap` from it; narrower, it
+beside the main column, 18 to 20rem wide and `--sui-rhythm-section-gap` from it; narrower, it
 follows the main column below, the same gap under it. It answers to its own width rather than
 the page's, so a pane beside a list folds as early as a phone does.
 
@@ -85,7 +85,7 @@ ground or line; the sections inside carry the hierarchy.
   @container (min-width: 44rem) {
     .sui-detail-layout-columns:has(> .sui-detail-layout-aside) {
       align-items: start;
-      grid-template-columns: minmax(0, 1fr) clamp(16rem, 30%, 20rem);
+      grid-template-columns: minmax(0, 1fr) clamp(18rem, 30%, 20rem);
     }
   }
 </style>

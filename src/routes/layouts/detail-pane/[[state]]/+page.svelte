@@ -167,6 +167,7 @@
 
 {#snippet header()}
   <PageHeader
+    class="head"
     title="Sync Check #4182"
     description="Compared 16 repositories in acme with the saved settings"
     kicker={back}
@@ -254,7 +255,7 @@
       <!-- The actions need no answer, so they stand where they will stay, and bars stand where
            the description's lines and the facts' lines will: one of each in a wide header, and
            two lines of description over the facts' one line on a phone. -->
-      <PageHeader title="Sync Check #4182" kicker={back} actions={waitingActions}>
+      <PageHeader class="head" title="Sync Check #4182" kicker={back} actions={waitingActions}>
         <!-- The status region is there from the first render, so the state is read once it arrives. -->
         {#snippet status()}{/snippet}
         {#snippet facts()}
@@ -271,18 +272,21 @@
             <!-- The notice's room is held, so the sections do not drop when it arrives. One
                  region, the repositories', speaks for the pane, so the others wait without words. -->
             <div class="notice">
-              <div class="wide">
-                <Skeleton
-                  rows={1}
-                  ruled={false}
-                  rowHeight="var(--notice-row)"
-                  patience={Infinity}
-                  label=""
-                  loadedLabel=""
-                />
+              <span class="tile" aria-hidden="true"></span>
+              <div class="words">
+                <div class="wide">
+                  <Skeleton
+                    rows={1}
+                    ruled={false}
+                    rowHeight="var(--notice-row)"
+                    patience={Infinity}
+                    label=""
+                    loadedLabel=""
+                  />
+                </div>
+                <!-- On a phone the notice's action stands under its words, so the last bar is its. -->
+                <div class="narrow from-ink">{@render wait(4, '1.5rem')}</div>
               </div>
-              <!-- On a phone the notice's action stands under its words, so the last bar is its. -->
-              <div class="narrow from-ink">{@render wait(4, '1.5rem')}</div>
             </div>
             <Section title="Outcome">
               <div class="from-ink outcome">
@@ -324,7 +328,7 @@
         </DetailLayout>
       </div>
     {:else if view === 'missing'}
-      <PageHeader title="Sync Check #4182" kicker={back}>
+      <PageHeader class="head" title="Sync Check #4182" kicker={back}>
         {#snippet status()}<Pill tone="neutral">Not found</Pill>{/snippet}
       </PageHeader>
       <!-- Nothing failed that a retry could fix, so the page says so in a neutral voice. -->
@@ -333,7 +337,7 @@
           title="This Check Does Not Exist"
           description="Someone deleted it, or the link points at a check that never ran"
         >
-          {#snippet action()}<Button href="#queue">Open the Queue</Button>{/snippet}
+          {#snippet action()}<Button tone="signal" href="#queue">Open the Queue</Button>{/snippet}
         </EmptyState>
       </div>
     {:else}
@@ -364,12 +368,27 @@
     outline: none;
   }
 
+  /* A row's status stays within a glance of its name, so on a pane wider than 72rem, as with
+     the sidebar folded, the header's words and the zones end where they end in a 72rem pane
+     and the band's ground and line still run to its edge. */
+  main {
+    --detail-end: max(
+      var(--sui-rhythm-pane-gutter),
+      calc(100% - 72rem + var(--sui-rhythm-pane-gutter))
+    );
+  }
+
+  main > :global(.head) {
+    padding-inline-end: var(--detail-end);
+  }
+
   /* The header's band stands flush with the pane's top and sides, and the zones under it keep
      the band's gutter, so their words line up with the header's. */
   .zones {
     display: grid;
     gap: var(--sui-rhythm-section-gap);
-    padding: 0 var(--sui-rhythm-pane-gutter) var(--sui-rhythm-pane-gutter);
+    padding-block: 0 var(--sui-rhythm-pane-gutter);
+    padding-inline: var(--sui-rhythm-pane-gutter) var(--detail-end);
   }
 
   /* The stale notice speaks for the whole page, so it stands as near the warning under it as
@@ -387,7 +406,7 @@
 
   @container (min-width: 44rem) {
     .missing > :global(*) {
-      max-inline-size: calc(100% - var(--sui-rhythm-section-gap) - clamp(16rem, 30%, 20rem));
+      max-inline-size: calc(100% - var(--sui-rhythm-section-gap) - clamp(18rem, 30%, 20rem));
     }
   }
 
@@ -424,10 +443,29 @@
     border-radius: var(--sui-radius-control);
     box-shadow: inset 0 0 0 var(--sui-stroke) var(--sui-border-divider);
     box-sizing: border-box;
+    display: flex;
+    gap: var(--sui-space-3);
     padding: var(--sui-space-4);
   }
 
-  .notice > .wide {
+  /* The symbol's tile stands where the callout's will, past its edge and inset, and the bars
+     start where its words will. */
+  .tile {
+    background: var(--sui-placeholder);
+    block-size: var(--sui-symbol-tile);
+    border-radius: var(--sui-radius-control);
+    flex: none;
+    inline-size: var(--sui-symbol-tile);
+    margin-block-start: calc(var(--sui-space-3) + var(--sui-stroke) - var(--sui-space-4));
+    margin-inline-start: calc(var(--sui-space-3) + var(--sui-stroke) - var(--sui-space-4));
+  }
+
+  .words {
+    flex: 1;
+    min-inline-size: 0;
+  }
+
+  .words > .wide {
     margin-block: calc(-1 * var(--sui-space-4));
   }
 

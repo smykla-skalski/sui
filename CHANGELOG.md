@@ -20,6 +20,8 @@
 - A `Skeleton` takes `side`, a bar at a one-line row's end where a status pill will stand.
 - A phone bottom bar's count rides its glyph's corner, as the rail's does.
 - The detail pane's loading rows show where each status will stand.
+- A `DetailLayout` aside is 18 to 20rem wide, not 16 to 20rem, and a `FactList` of rows keeps two columns at exactly 18rem of its own width, so a pane's properties keep each label beside its value in a 1100px window (L-110).
+- The detail pane's words end where they end in a 72rem pane on a wider one, as with the sidebar folded, so a row's status stays near its name and the header's actions stand over the aside's edge. A missing check's way out is the page's signal action, and the loading notice holds its symbol's tile.
 - A `SegmentedControl` or a `ThemeSwitch` with `iconOnly` draws each option's glyph alone, its word still naming its radio, for a box as narrow as a folded sidebar.
 
 - A `Skeleton`'s last row ends where a loaded list's last row ends once the list hands back its padding, so the section under it no longer moves 2px when the rows arrive.

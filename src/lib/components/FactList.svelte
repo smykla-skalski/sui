@@ -308,7 +308,7 @@ apart, and the action under the value.
   /* Too narrow for two columns, each label stands over its value and the action under it, in
      reading order, as GOV.UK's summary list does on a phone. Two columns hold down to a narrow
      aside's 18rem (--sui-breakpoint-bar), so a pane's properties keep one line each there. */
-  @container sui-fact-rows (max-width: 18rem) {
+  @container sui-fact-rows not (min-width: 18rem) {
     .rows > .sui-fact-list-fact {
       grid-template-columns: minmax(0, 1fr);
       row-gap: var(--sui-row-copy-gap);
