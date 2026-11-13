@@ -236,8 +236,8 @@ of them.
   /* Over a list the failure is a line of its own inside the list's edges, its words and its
      retry a step inside its tint, so they never crowd the tint's edge. Its tint is a plate 2px
      inside that box on every side, as a row's state is (L-91). It stands 8px clear of the first
-     row, so the failure never reads as that row's state. Its retry stands one gap after its
-     words, so the way out reads with the failure. */
+     row, so the failure never reads as that row's state. Its retry ends the line, where a
+     reader looks for a line's action, and on a phone it wraps to the row's start (L-90). */
   .over {
     align-items: center;
     background: none;
@@ -263,6 +263,16 @@ of them.
 
   .over > :is(.sui-error-state-copy, .sui-error-state-retry) {
     position: relative;
+  }
+
+  .over > .sui-error-state-retry {
+    margin-inline-start: auto;
+  }
+
+  @media (max-width: 47.9375rem) {
+    .over > .sui-error-state-retry {
+      margin-inline-start: 0;
+    }
   }
 
   /* A line over a list heads only its own words, so its title keeps a panel's step quieter. */

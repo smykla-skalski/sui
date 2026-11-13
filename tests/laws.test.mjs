@@ -417,8 +417,13 @@ test('L-59 a state panel pads 28px by 24px, 20px on a phone, its action a step u
   }
   assert.match(
     stripComments(styles['src/lib/components/ErrorState.svelte']),
-    /\.over \{[^}]*justify-content: start;/,
-    "a failed refresh's retry stands right after its words, not at the line's far end"
+    /\.over > \.sui-error-state-retry \{\s*margin-inline-start: auto;/,
+    "a failed refresh's retry ends its line, where a line's action stands"
+  );
+  assert.match(
+    stripComments(styles['src/lib/components/ErrorState.svelte']),
+    /@media \(max-width: 47\.9375rem\) \{\s*\.over > \.sui-error-state-retry \{\s*margin-inline-start: 0;/,
+    "on a phone a failed refresh's retry wraps to the row's start"
   );
   assert.match(
     stripComments(styles['src/lib/components/ErrorState.svelte']),
