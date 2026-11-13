@@ -144,7 +144,7 @@ struggling. The reason takes the count's place and the button retries until the 
 - Keyboard: Enter or Space on the button asks for the next page.
 - Pointer and touch: the button is 34px tall, 44px on a phone or a touch screen.
 - Focus: the button keeps focus while a page loads; when it lands, focus moves to the first new row's link or control (WCAG 2.4.3), or stays on the button when that row has none, and moves to the end note when the button leaves.
-- Responsive: the words lead and the button ends their line at every width; words too long for the room beside it wrap there, so the button stays where the reader found it.
+- Responsive: the words lead and the button ends their line; when both do not fit, the button takes the next line from the start, so words beside it never wrap.
 - Accessibility: the count describes the button, arrivals are said through a polite status with how many came and how many show, and a failure is an alert in words beside an icon; set `aria-busy` on the list while `loading` is true.
 - Localization: every word is a prop, and the counted ones are functions given the counts for plural rules and formatted in the reader's format; the row follows the reading direction.
 - Performance: no cost while idle, and one lookup in the list when a page lands; the caller decides the page size.
@@ -184,13 +184,14 @@ struggling. The reason takes the count's place and the button retries until the 
 </div>
 
 <style>
-  /* The button ends the line at every width, and long words wrap beside it, so a failure's
-     Try Again stands where Load More stood. */
+  /* The words lead and the button ends the line, and when both do not fit the button takes the
+     next line from the start, so words beside it never wrap. */
   .sui-load-more {
     align-items: center;
-    display: grid;
-    gap: var(--sui-space-4);
-    grid-template-columns: minmax(0, 1fr) auto;
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--sui-space-3) var(--sui-space-4);
+    justify-content: space-between;
     padding-block: var(--sui-row-pad-default);
   }
 

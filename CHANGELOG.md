@@ -7,7 +7,6 @@
 - The `Avatar` page shows identity rows in an object list, one of them open on the current plate, so the avatar's tint and ring read on the grounds they meet in use.
 - The `Avatar` page states its pictures and fallbacks in a shorter note, since each specimen already names its case.
 - The `Avatar` page draws a picture at every size beside the initials it covers, and labels each row with the prop it sets, `shape="person"`, `shape="workspace"` and `src="…"`, and its identity rows show a picture that fails and a workspace's logo.
-- A `LoadMore`'s button ends its line at every width, and a failure's reason too long for the room wraps beside it, so on a phone Try Again stands where Load More stood rather than drop to the start of a line of its own.
 - A whole `LoadMore` list's end note holds the button's height, so the footer keeps one height to the last page and the note stands level with the count it replaces, where it stood higher on a shorter footer.
 - An `IdentityRow` whose name wraps stands its face level with the name's first line, where a short name's stands, where it centred on the whole block and stood by its middle line.
 - A `PageToc`'s title and a `SideNav`'s group headings are 12px at 0.04em, where 11px capitals at 0.06em to 0.07em read small and pinched beside their 14px links.
