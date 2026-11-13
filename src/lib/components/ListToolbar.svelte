@@ -151,7 +151,7 @@ button. Without `tools` there is no button and the filter never folds.
 
 - Semantics: a `SearchField` named by its drawn label, a `SegmentedControl` per group named by its visible heading, a tools `button` with `aria-haspopup="dialog"`, and a dialog `Popover` holding the further groups.
 - Content: a search label, an optional filter and tools of two to five options each, and one optional action.
-- States: the tools button ends in a chevron, as a menu's button does, and names the tools' choices beside it; a count above 0 is drawn under the bar, over the rows it counts; so a sort or filter in the menu stays in view; open, pending (a spinner and `pendingLabel` beside the search) and empty results are said through the status, and a pick that leaves the count as it was is said again.
+- States: the tools button ends in a chevron, as a menu's button does, and names the tools' choices beside it; a count above 0 is drawn under the bar, over the rows it counts; so a sort or filter in the menu stays in view; open, pending (a spinner and `pendingLabel` beside the search field, or just under it once it wraps) and empty results are said through the status, and a pick that leaves the count as it was is said again.
 - Keyboard: Tab walks search, filter, tools button and action; in the menu Tab moves through the groups and closes the menu on leaving it, and Escape closes it and returns focus to the tools button.
 - Pointer and touch: every control keeps its own 34px tier, 44px on a phone; an outside press closes the menu.
 - Focus: opening the menu moves focus to its first chosen option; closing it with Escape returns focus to the tools button.
@@ -191,13 +191,14 @@ button. Without `tools` there is no button and the filter never folds.
           {placeholder}
         />
       </span>
+      <!-- Seen while a search is on its way; the status says it to a screen reader. It wraps
+           with the field, so on a line of its own it stands just under the field it speaks for. -->
+      {#if searching.current}
+        <span class="sui-list-toolbar-pending" aria-hidden="true">
+          <span class="sui-list-toolbar-spinner"></span><span>{pendingLabel}</span>
+        </span>
+      {/if}
     </div>
-    <!-- Seen while a search is on its way; the status says it to a screen reader. -->
-    {#if searching.current}
-      <span class="sui-list-toolbar-pending" aria-hidden="true">
-        <span class="sui-list-toolbar-spinner"></span><span>{pendingLabel}</span>
-      </span>
-    {/if}
     {#if filter || tools.length > 0}
       <div class="sui-list-toolbar-filters">
         {#if filter}
@@ -390,7 +391,6 @@ button. Without `tools` there is no button and the filter never folds.
   /* The inline room holds the spinner's corners as it turns, at the start of a wrapped line. */
   .sui-list-toolbar-pending {
     align-items: center;
-    min-block-size: var(--sui-control-height-compact);
     color: var(--sui-text-secondary);
     display: inline-flex;
     padding-inline: var(--sui-space-1);
