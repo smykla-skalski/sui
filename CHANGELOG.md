@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- The `PageToc` page lists History under Older Changes, the folded section it stands in.
 - A `mono` `Tooltip`, such as a clipped identifier's, is 12px, a step under a tip's 13px words as the mono face reads larger, where 11px read small beside the label it repeats, and it wraps after a slash before it breaks inside a name.
 - An `ErrorState`'s Try Again keeps one width as it turns to Trying Again…, the room its busy words take, as a `LoadMore` button does, where it grew 55px and its focus ring with it.
 - A `PageToc`'s title stands at the top of the index on a wide screen, so its letters line up with the first heading beside it, where they stood 8px lower.
