@@ -17,7 +17,6 @@
   note="Each label has 16 rem, and only clipped ones show their whole text on hover and take a tab stop to show it on focus"
   layout="grid"
   --specimen-caption-gap="4rem"
-  --specimen-row-gap="6rem"
 >
   <Specimen label="Fits">
     <div class="frame">
