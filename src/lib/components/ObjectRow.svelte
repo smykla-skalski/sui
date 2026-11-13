@@ -191,8 +191,8 @@ and the one above as a hovered row does, and under the pointer takes more of the
        own accent: never the grey of a hovered row, which would make it look like any other. */
     .sui-object-row.current:has(> .sui-object-row-hit:hover) {
       background-color: light-dark(
-        color-mix(in srgb, var(--sui-brand-action) 26%, transparent),
-        color-mix(in srgb, var(--sui-brand-action) 32%, transparent)
+        color-mix(in srgb, var(--sui-brand-action) 22%, transparent),
+        color-mix(in srgb, var(--sui-brand-action) 28%, transparent)
       );
     }
 
