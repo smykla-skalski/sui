@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- An `ErrorState overContent`'s tint meets the list's edges at its sides, where it stood 2px in from the rows' rules.
 - A framed `CodeBlock` heads its code with the language's name and the copy control in a row of its own at every width, not only on a phone; a `bare` block keeps its copy column on a desktop.
 - A hovered `RelativeTime`'s veil takes 12% of the focus hue in light, where 8% barely showed on white, and keeps 8% in dark.
 - `CodeBlock` and `DiffBlock` fade their scrolled lines over 32px, 24px on a phone, so a cut word melts into the edge.

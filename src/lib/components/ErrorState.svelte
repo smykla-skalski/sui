@@ -248,9 +248,10 @@ of them.
   }
 
   /* Over a list the failure is a line of its own inside the list's edges, its words and its
-     retry a step inside its tint, so they never crowd the tint's edge. Its tint is a plate 2px
-     inside that box on every side, as a row's state is (L-91), with a panel's edge. It stands
-     8px clear of the first row, so the failure never reads as that row's state. Its retry ends
+     retry a step inside its tint, so they never crowd the tint's edge. Its tint, with a panel's
+     edge, meets the list's rails at its sides, where the rows' rules and the heading stand, so
+     the line never steps 2px in from the list it heads, and stands 2px inside its box above and
+     below. It stands 8px clear of the first row, so the failure never reads as that row's state. Its retry ends
      the line, where a reader looks for a line's action, and a line too narrow for both wraps it
      under its words (L-90), at any width. */
   .over {
@@ -273,7 +274,7 @@ of them.
     border: var(--sui-stroke) solid var(--sui-danger-wash-edge);
     border-radius: inherit;
     content: '';
-    inset: calc(var(--sui-space-1) / 2);
+    inset: calc(var(--sui-space-1) / 2) 0;
     position: absolute;
   }
 

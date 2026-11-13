@@ -1444,6 +1444,11 @@ suite('lists', together, () => {
         const problems = [];
         if (at.strip.left < at.rows.left || at.strip.right > at.rows.right)
           problems.push('the strip reaches past the rows');
+        if (
+          Math.abs(at.strip.left + at.tint - at.rows.left) >= 0.5 ||
+          Math.abs(at.strip.right - at.tint - at.rows.right) >= 0.5
+        )
+          problems.push("the strip's tint steps in from the rows' edges");
         if (at.words.left - at.strip.left - at.tint < 12) problems.push('the words crowd the tint');
         if (at.strip.right - at.tint - at.retry.right < 12)
           problems.push('the retry crowds the tint');
