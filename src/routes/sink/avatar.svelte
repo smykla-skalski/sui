@@ -69,7 +69,7 @@
   </Specimen>
 </Example>
 
-<Example title="Identity Row" note="The name with the handle in mono under it" layout="grid">
+<Example title="Identity Row" note="The name with the handle in mono under it" layout="pairs">
   <Specimen label="Person">
     <IdentityRow name="Ada Lovelace" handle="@ada" />
   </Specimen>

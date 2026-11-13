@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-- The `Avatar` page shows its missing names among its pictures and fallbacks, one grid of every way a mark stands in, and an identity row with a picture beside the ones with initials.
+- The `Avatar` page shows its missing names among its pictures and fallbacks, one grid of every way a mark stands in, and an identity row with a picture beside the ones with initials, two to a line.
 - A slow `Skeleton`'s bars step back to 70% once their light stops, so a still frame shows the wait has stalled behind the slow words.
 - The `PageToc` page sets its article at a 40rem reading measure, 32px off the index, with section titles at the card title size, where long lines ran 790px wide under 16px titles.
 - A `ListToolbar` heading or search label that stands before its control stands 12px from it, where it stood 8px, so the control's focus ring never crowds its words.
