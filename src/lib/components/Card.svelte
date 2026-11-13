@@ -418,11 +418,6 @@ title, such as "Danger Zone", and holds the acts that cannot be undone, each a `
     margin-inline-end: calc((round(up, 1cap, 2px) - var(--sui-tier-quiet)) / 2);
   }
 
-  .sui-card-head:has(> .sui-card-actions > :global(.sui-icon-button.toolbar):only-of-type)
-    > .sui-card-actions {
-    margin-inline-end: calc((round(up, 1cap, 2px) - var(--sui-control-height-compact)) / 2);
-  }
-
   /* With too little room for both, as with text at twice its size, the actions stand under
      the copy from its start edge, at their own height (--sui-breakpoint-head). */
   @container (max-width: 12rem) {

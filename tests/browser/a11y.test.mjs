@@ -402,6 +402,50 @@ suite('accessibility', together, () => {
     );
 
     test(
+      "a card's lone icon button keeps its glyph on the inset, a toolbar one too",
+      long,
+      async () => {
+        const page = await mounted();
+        const found = await page.evaluate(() => {
+          const { lib, mount, unmount, createRawSnippet } = /** @type {any} */ (window);
+          const host = document.body.appendChild(document.createElement('div'));
+          host.style.inlineSize = '30rem';
+          const measure = (/** @type {boolean} */ toolbar) => {
+            /** @type {any} */
+            let button;
+            const actions = createRawSnippet(() => ({
+              render: () => '<i></i>',
+              setup: (/** @type {Element} */ mark) => {
+                button = mount(lib.IconButton, {
+                  target: mark.parentElement,
+                  anchor: mark,
+                  props: { icon: 'settings', label: 'Settings', toolbar }
+                });
+                mark.remove();
+              }
+            }));
+            const card = mount(lib.Card, { target: host, props: { title: 'Webhooks', actions } });
+            const frame = /** @type {HTMLElement} */ (host.lastElementChild);
+            const glyph = /** @type {Element} */ (frame.querySelector('.sui-card-actions svg'));
+            const style = getComputedStyle(frame);
+            const inset =
+              frame.getBoundingClientRect().right -
+              parseFloat(style.borderRightWidth) -
+              parseFloat(style.paddingRight);
+            const off = Math.round(inset - glyph.getBoundingClientRect().right);
+            unmount(button);
+            unmount(card);
+            return off;
+          };
+          const result = { plain: measure(false), toolbar: measure(true) };
+          host.remove();
+          return result;
+        });
+        assert.equal(found.toolbar, found.plain, "a toolbar icon button's glyph leaves the inset");
+      }
+    );
+
+    test(
       "a bare code block's copy control centres on its file name's row, or on the first line",
       long,
       async () => {
