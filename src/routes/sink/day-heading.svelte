@@ -84,11 +84,11 @@
 </Example>
 
 <style>
-  /* A day stands well over twice as far from the last as its heading stands over its entries,
-     so each heading reads as the head of the run under it. */
+  /* A day stands twice as far from the last as its heading stands over its entries, so each
+     heading reads as the head of the run under it and the runs still read as one feed. */
   .days {
     display: grid;
-    gap: var(--sui-space-8);
+    gap: var(--sui-space-6);
   }
 
   .day {
