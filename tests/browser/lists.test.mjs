@@ -442,7 +442,7 @@ suite('lists', together, () => {
       assert.deepEqual(bare, [], 'a state stands with no list heading over it');
     });
 
-    test('a retry stands raised over its failure wash in both themes and hovers in the hue', async () => {
+    test('a retry stands raised over its failure wash in both themes, edged and hovering in the hue', async () => {
       const page = await opened();
       const found = await page.evaluate(() => {
         const panel = /** @type {HTMLElement} */ (
@@ -464,16 +464,19 @@ suite('lists', together, () => {
           veil.style.background = 'var(--sui-interactive-hover-layer)';
           panel.append(veil);
           const [r, g, b] = channels(getComputedStyle(veil).backgroundColor);
+          veil.style.background = 'var(--sui-control-border)';
+          const [er, eg, eb] = channels(getComputedStyle(veil).backgroundColor);
           veil.remove();
           const rest = light(getComputedStyle(retry).backgroundColor);
           const wash = light(getComputedStyle(panel).backgroundColor);
           delete panel.dataset.suiTheme;
-          return { theme, raised: rest > wash, hue: r > g && r > b };
+          return { theme, raised: rest > wash, hue: r > g && r > b, edge: er > eg && er > eb };
         });
       });
-      for (const { theme, raised, hue } of found) {
+      for (const { theme, raised, hue, edge } of found) {
         assert.ok(raised, `in ${theme} the retry sinks below its failure wash`);
         assert.ok(hue, `in ${theme} the retry's hover veil is not the danger hue`);
+        assert.ok(edge, `in ${theme} the retry's edge is a grey on the danger wash`);
       }
     });
 
