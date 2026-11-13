@@ -261,8 +261,10 @@
     text-box: trim-both cap alphabetic;
   }
 
+  /* A step is a row's one line, so it takes a row name's body size, not a run row's meta. */
   .step {
-    font-weight: var(--sui-weight-regular);
+    font: var(--sui-weight-regular) var(--sui-font-size-body) / var(--sui-row-copy-leading)
+      var(--sui-sans);
   }
 
   .sum,

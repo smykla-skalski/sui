@@ -280,5 +280,9 @@ around it.
     .sui-list-detail-back {
       display: none;
     }
+
+    .sui-list-detail-detail {
+      --sui-head-kicker-shown: 0;
+    }
   }
 </style>

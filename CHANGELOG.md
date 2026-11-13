@@ -2,12 +2,15 @@
 
 ## Unreleased
 
+- A `DetailLayout` stands its aside beside the main column from 44rem, the new `--sui-breakpoint-aside`, where it waited for 56rem, so a run in a wide `ListDetail` pane keeps its short sections and its properties side by side. A list-detail run's steps are set at the body size, as a row's one line is.
+- A `PageHeader` whose holder hides its kicker, as a wide `ListDetail` hides its way back, sets its title at the top with the actions beside it, where the actions had stood a row lower, beside the description. A holder says so with `--sui-head-kicker-shown: 0`.
 - A `DetailLayout` column parts a closing `Disclosure` from the zone above it by the section gap, as it parts its sections, where the disclosure's own margin reset had stood it flush under them.
 - An off-screen `ObjectRow` holds 57px, the height of a row whose name is set at the body size, and a `Skeleton`'s default rows snap each line to an even pixel as those rows do, so a long list does not jump as its rows reach the screen and the page does not move when loaded rows replace the placeholders.
 - A `ListToolbar` search keeps 14rem of field beside its label, and with less, as on a phone, its label stands above a field of the full width.
 - A `ListToolbar` heading, over the search and before each filter, is set as a field's label, 14px at 600 in the primary ink, since it names the control beside it.
 - A `ListToolbar` draws its count under the bar, over the rows it counts, when there is one to count, and its tools button ends in a chevron, as a menu's button does.
 - A `ListToolbar`'s controls stand on the foot of their line, so beside a search whose label stands over its field they line up with the field, and the choices named beside the tools button are set at the regular weight, as values rather than labels.
+- A current `ObjectRow`, the item open beside its list, stands on the sidebar's accent-tint plate, 18% of the accent on light and 24% on dark, not the grey pressed step, so the open row and the open page wear one cue and a hovered row never looks like it.
 - A `ListToolbar` folds its filter into the tools menu in a bar under 24rem, not 18rem, so on any phone the bar keeps the search and one line of controls rather than a finger's line for each, and the choices named beside the tools button stand 4px from it while the filter stands 12px from the tools.
 - A `ListToolbar`'s searching status wraps with the field, so on a line of its own it stands 8px under the field on its own 22px line, not on a control's line.
 - A disabled `Chip` takes an off field's paint, as a `PairEntry` chip does: the quieter field well with no edge, and its value and remove mark in the muted ink at full strength, so the whole chip reads as fixed rather than only its mark (L-40).

@@ -87,7 +87,8 @@ one boundary draws one line (L-109): the header runs their row to the band's edg
 band's line colour, with the first tab's words and bar on the copy's start and its veil
 reaching 8px past them, as a breadcrumb's does, and the current tab's bar sits on the foot. The header leaves 24px from its foot to the view's first ink (20px on a phone). A
 container that already spaces its children with a gap sets `--sui-head-exit-gap` to that gap,
-and the header owes only the difference.
+and the header owes only the difference. A holder that hides the kicker at some width sets
+`--sui-head-kicker-shown: 0` there, so the title stands at the top with the actions beside it.
 
 - Semantics: a `header` holding the title as a heading at `level` (the page's `h1` by default), with `id` for a landmark that points at it.
 - Content: a title, an optional eyebrow or a `kicker` such as a `Breadcrumb` or `BackLink` in its place, an optional `status` in words, an optional one-line description, optional inline `facts`, optional actions and optional `tabs` at its foot.
@@ -210,7 +211,7 @@ and the header owes only the difference.
      stands 16px under their ink, two steps further than under an eyebrow, and a lit link's
      veil stays 9px clear of the title's ink. */
   .kicked > .sui-page-header-copy > :global(:first-child + *) {
-    margin-block-start: var(--sui-space-4);
+    margin-block-start: calc(var(--sui-head-kicker-shown, 1) * var(--sui-space-4));
   }
 
   .sui-page-header-eyebrow {
@@ -337,7 +338,8 @@ and the header owes only the difference.
   }
 
   .kicked > .sui-page-header-actions {
-    margin-block-start: var(--sui-space-4);
+    grid-row: calc(1 + var(--sui-head-kicker-shown, 1));
+    margin-block-start: calc(var(--sui-head-kicker-shown, 1) * var(--sui-space-4));
   }
 
   .sui-page-header-actions > :global(*) {

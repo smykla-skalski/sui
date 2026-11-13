@@ -1898,6 +1898,45 @@ suite('navigation', together, () => {
   );
 
   test(
+    "a wide list-detail's run stands its actions on the title's line and its aside beside its steps",
+    long,
+    async () => {
+      const page = await openLayout('layouts/list-detail/4182/', 1440);
+      try {
+        const stand = await page
+          .locator('.sui-list-detail-detail .sui-page-header')
+          .evaluate((node) => {
+            const box = (/** @type {string} */ selector) =>
+              node.querySelector(selector)?.getBoundingClientRect();
+            const [layout, title, actions] = [
+              box('.sui-page-header-layout'),
+              box('.sui-page-header-title'),
+              box('.sui-page-header-actions')
+            ];
+            return layout && title && actions
+              ? {
+                  lead: title.top - layout.top,
+                  off: (actions.top + actions.bottom - title.top - title.bottom) / 2
+                }
+              : null;
+          });
+        assert.ok(stand, 'the run header has no title or actions');
+        assert.equal(stand.lead, 0, 'the title stands under room kept for the hidden way back');
+        assert.ok(Math.abs(stand.off) <= 1, `the actions stand ${stand.off}px off the title`);
+        const tops = await page.evaluate(() =>
+          ['main', 'aside'].map(
+            (part) =>
+              document.querySelector(`.sui-detail-layout-${part}`)?.getBoundingClientRect().top
+          )
+        );
+        assert.equal(tops[0], tops[1], "the run's aside stands under its steps");
+      } finally {
+        await page.close();
+      }
+    }
+  );
+
+  test(
     'a wide list-detail keeps its list in place, marks the run it opens, and Back puts both panes where they stood',
     long,
     async () => {

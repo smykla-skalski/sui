@@ -571,7 +571,8 @@
   /* From this content width up, a phone's toast's too, a toast sets its action beside its
      copy. */
   --sui-breakpoint-toast: 17rem;
-  /* From this width up a detail layout stands its aside beside the main column. */
+  /* Side by side from: a detail layout's aside, a list-detail's panes. */
+  --sui-breakpoint-aside: 44rem;
   --sui-breakpoint-detail: 56rem;
 
   --sui-field-target-min: max(24px, round(1.5rem, 1px));
@@ -1207,8 +1208,7 @@
 
 /* A reader who asks for more contrast, as Apple's Increase Contrast does, gets lines that hold
    3:1 on every ground in place of the quiet hairlines and button edges (L-114). The swap is
-   important, so it outranks each theme block's own lines, and the reader's wish outranks an
-   app's override of them. */
+   important: it outranks each theme's lines and an app's override of them. */
 @media (prefers-contrast: more) {
   :root,
   [data-sui-theme] {

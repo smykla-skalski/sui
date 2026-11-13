@@ -24,7 +24,7 @@
 <!--
 @component
 The body of a detail pane, under its header band: a main column of sections and an aside of
-the thing's properties. Once the layout itself is 56rem wide or wider, the aside stands
+the thing's properties. Once the layout itself is 44rem wide or wider, the aside stands
 beside the main column, 16 to 20rem wide and `--sui-rhythm-section-gap` from it; narrower, it
 follows the main column below, the same gap under it. It answers to its own width rather than
 the page's, so a pane beside a list folds as early as a phone does.
@@ -39,7 +39,7 @@ ground or line; the sections inside carry the hierarchy.
 - Keyboard: none of its own; Tab walks the main column, then the aside.
 - Pointer and touch: none of its own; the controls inside keep their own targets.
 - Focus: nothing here moves focus.
-- Responsive: a container query on the layout's own width puts the aside beside the main column at 56rem and wider, and under it below that.
+- Responsive: a container query on the layout's own width puts the aside beside the main column at 44rem (`--sui-breakpoint-aside`) and wider, and under it below that.
 - Accessibility: the reading and Tab order match the order drawn at every width, and the aside is a named landmark a reader can jump to.
 - Localization: `asideLabel` is a prop with an English default; the aside stands at the inline end, which mirrors in a right-to-left page.
 - Performance: static layout with no script; the layout is one size container.
@@ -82,7 +82,7 @@ ground or line; the sections inside carry the hierarchy.
     margin-block-start: var(--sui-rhythm-section-gap);
   }
 
-  @container (min-width: 56rem) {
+  @container (min-width: 44rem) {
     .sui-detail-layout-columns:has(> .sui-detail-layout-aside) {
       align-items: start;
       grid-template-columns: minmax(0, 1fr) clamp(16rem, 30%, 20rem);
