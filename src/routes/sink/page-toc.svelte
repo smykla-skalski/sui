@@ -20,7 +20,7 @@
 
 <Example
   title="In Context"
-  note="The current entry turns primary on a quiet plate as the page scrolls, and a link opens a folded section and focuses its heading"
+  note="The current entry turns primary on the accent plate as the page scrolls, and a link opens a folded section and focuses its heading"
   layout="stack"
   ground="canvas"
 >

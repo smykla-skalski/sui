@@ -1916,6 +1916,11 @@ test('L-85 the current row stands on a plate a light theme does not wash out', (
     `color-mix(in srgb, var(--sui-brand-action) ${share}, var(--sui-sidebar-bg))`;
   assert.equal(light['--sui-sidebar-active-bg'], plate('18%'), 'a 12% plate reads as hover');
   assert.equal(dark['--sui-sidebar-active-bg'], plate('24%'));
+  assert.match(
+    stripComments(read('src/lib/components/PageToc.svelte')),
+    /\.sui-page-toc-link\[aria-current='location'\] \{\s*background: light-dark\(\s*color-mix\(in srgb, var\(--sui-brand-action\) 18%, transparent\),\s*color-mix\(in srgb, var\(--sui-brand-action\) 24%, transparent\)\s*\);/,
+    "the index's current entry does not stand on the accent plate the sidebar's current page wears"
+  );
   // Every row holds a hidden copy of its words at the current weight in the words' own cell,
   // so the current row's words step up to 500 and turning current never rewraps a label.
   for (const [name, label] of [

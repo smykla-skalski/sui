@@ -304,7 +304,7 @@ when not, records the hash, and moves focus to the section's first heading, or t
 section, so the next Tab starts there.
 
 The current entry wears the current mark every navigation list shares: primary ink against
-muted entries, a step of 2:1 or more in lightness, on an inset plate that marks it too, and
+muted entries, a step of 2:1 or more in lightness, on the accent plate that marks it too, and
 `Highlight` under forced colors, its words at 500. Every entry holds the room its words take
 at 500, so turning current never rewraps it or changes its height. It is announced with `aria-current="location"`. The first
 entry is current from the first paint, as at the top of the page, and then it follows the URL
@@ -319,7 +319,7 @@ phone drawer, and following an entry closes the drawer before focus moves.
 
 - Semantics: a `nav` landmark named by `title`, with the title as a heading at `level`, group headings one level below, and lists of fragment links, the current one with `aria-current="location"`.
 - Content: entries with an id and a label that wraps, optionally grouped under a heading.
-- States: rest, hover (a row ground), pressed (the pressed ground and an inset shadow), focus (a 2px inset ring) and current (primary ink at 500 on the quiet plate, in room every entry holds, so it moves nothing).
+- States: rest, hover (a row ground), pressed (the pressed ground and an inset shadow), focus (a 2px inset ring) and current (primary ink at 500 on the accent plate the sidebar's current page wears, in room every entry holds, so it moves nothing).
 - Keyboard: Tab moves through the entries and Enter follows one, moving focus to the section's heading.
 - Pointer and touch: entries are 28px tall on a desktop pointer and 44px on a phone or a coarse pointer, across the column's width.
 - Focus: following an entry moves focus to its section's first heading, or the section, which takes a temporary `tabindex`; in a shell's phone drawer the drawer closes first, so focus lands in the section and never on the menu button.
@@ -481,10 +481,15 @@ phone drawer, and following an entry closes the drawer before focus moves.
     font-weight: var(--sui-weight-medium);
   }
 
-  /* The current mark every navigation list shares: the current ink on an inset plate, which
-     both carry the state. */
+  /* The current mark every navigation list shares: the current ink on the accent plate that
+     marks where the reader is, as the sidebar's current page and an open list row do (L-85),
+     so the section the reader is in never looks like the entry under the pointer. It mixes
+     into the page's own ground, which the index stands on. */
   .sui-page-toc-link[aria-current='location'] {
-    background: var(--sui-surface-inset);
+    background: light-dark(
+      color-mix(in srgb, var(--sui-brand-action) 18%, transparent),
+      color-mix(in srgb, var(--sui-brand-action) 24%, transparent)
+    );
     color: var(--sui-text-current);
   }
 
