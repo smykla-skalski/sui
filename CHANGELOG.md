@@ -6,6 +6,7 @@
 - An `ErrorState`'s and an `EmptyState`'s step in words read at the regular weight in the primary ink, under their semibold title, where the medium weight read as a second title.
 - An `ErrorState`'s retry says Retrying… while it runs, so at rest it holds 29px a side around Try Again, where Trying Again… held 41px.
 - A 28px `CopyButton`'s words read at the 13px caption size, as the names beside it in a `CodeBlock`'s head do, where the 14px control outranked the name it copies; the toolbar tier and a chip inside a field keep 14px.
+- The sink's day feed sets each heading 8px over its entries, their own step, where 12px held it apart from them.
 - The sink's day feed sets its times at the 13px caption size, a step under their 14px entries, where 12px read as small print.
 - A framed `CodeBlock`'s head steps off its code by 4% ink in light, where 2.5% read as noise on white; dark keeps 2.5% (`--sui-code-head-ink`).
 - A danger wash frames its failure in a quieter edge of the hue, 28% light and 36% dark where it stood at 40% and 50%, so the wash and the mark carry an error panel, a failed refresh, a form error and a refused save, and the edge no longer outweighs the page around it.

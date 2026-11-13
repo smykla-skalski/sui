@@ -371,7 +371,7 @@ suite('lists', together, () => {
       );
     });
 
-    test('a day feed parts its days at least twice as far as a heading stands over its entries', async () => {
+    test('a day feed sets each heading on its entries and parts its days at least twice as far', async () => {
       const page = await opened();
       const rooms = await page.evaluate(() =>
         [...document.querySelectorAll('#day-heading .day')].slice(1).map((day) => {
@@ -381,7 +381,11 @@ suite('lists', together, () => {
           const first = /** @type {Element} */ (day.querySelector('li')).getBoundingClientRect();
           return {
             between: heading.top - rows[rows.length - 1].getBoundingClientRect().bottom,
-            within: first.top - heading.bottom
+            within: first.top - heading.bottom,
+            rows:
+              rows.length > 1
+                ? rows[1].getBoundingClientRect().top - rows[0].getBoundingClientRect().bottom
+                : 0
           };
         })
       );
@@ -390,6 +394,12 @@ suite('lists', together, () => {
         assert.ok(
           between >= 2 * within,
           `a day stands ${between}px under the last, its heading ${within}px over its entries`
+        );
+      const step = Math.max(...rooms.map(({ rows }) => rows));
+      for (const { within } of rooms)
+        assert.ok(
+          within <= step,
+          `a heading stands ${within}px over its entries, farther than their ${step}px step`
         );
     });
 

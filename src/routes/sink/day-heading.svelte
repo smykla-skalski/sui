@@ -84,8 +84,9 @@
 </Example>
 
 <style>
-  /* A day stands twice as far from the last as its heading stands over its entries, so each
-     heading reads as the head of the run under it and the runs still read as one feed. The
+  /* A heading sits on its entries at their own step, and a day stands three times as far from
+     the last, so each heading reads as the head of the run under it and the runs still read as
+     one feed. The
      feed keeps a form's measure, so on a wide page each time stays near its entry. */
   .days {
     display: grid;
@@ -95,7 +96,7 @@
 
   .day {
     display: grid;
-    gap: var(--sui-space-3);
+    gap: var(--sui-space-2);
   }
 
   .entries {
