@@ -102,28 +102,30 @@
   </Specimen>
   <Specimen label={filtered ? 'Emptied by a filter' : 'Filtered list'}>
     <Section title="Repositories" level={4} id="sink-states-filtered">
-      {#snippet actions()}
-        <Button onclick={() => (filtered = !filtered)}
-          >{filtered ? 'Show Every Repository' : 'Show Archived Only'}</Button
-        >
-      {/snippet}
-      {#if filtered}
-        <EmptyState
-          live
-          title="No Archived Repositories"
-          description="Archive a repository from its settings and it appears here"
-        >
-          {#snippet action()}<Button tone="signal">Open Repository Settings</Button>{/snippet}
-        </EmptyState>
-      {:else}
-        <ObjectList aria-labelledby="sink-states-filtered">
-          {#each repositories as name (name)}
-            <ObjectRow>
-              {#snippet main()}<span class="name">{name}</span>{/snippet}
-            </ObjectRow>
-          {/each}
-        </ObjectList>
-      {/if}
+      <div class="loaded">
+        {#if filtered}
+          <EmptyState
+            live
+            title="No Archived Repositories"
+            description="Archive a repository from its settings and it appears here"
+          >
+            {#snippet action()}<Button tone="signal">Open Repository Settings</Button>{/snippet}
+          </EmptyState>
+        {:else}
+          <ObjectList aria-labelledby="sink-states-filtered">
+            {#each repositories as name (name)}
+              <ObjectRow>
+                {#snippet main()}<span class="name">{name}</span>{/snippet}
+              </ObjectRow>
+            {/each}
+          </ObjectList>
+        {/if}
+        <div>
+          <Button onclick={() => (filtered = !filtered)}
+            >{filtered ? 'Show Every Repository' : 'Show Archived Only'}</Button
+          >
+        </div>
+      </div>
     </Section>
   </Specimen>
 </Example>

@@ -17,7 +17,7 @@
 - The Relative Time page's In Context line reads its times in the primary ink over its muted words.
 - A focused `CodeBlock` draws its ring over its own edge, round its copy control too, where a second box stood inside the frame; a `bare` block keeps the ring inside its scroller. On a phone the language's name stands on the copy control's baseline.
 - An `EmptyState` and an `ErrorState` pad 20px at the sides of their words, where 24px left a narrow column's description a line longer.
-- The sink's filtered list is a titled section of rows with its filter as the section's action, as the failed lists beside it are.
+- The sink's filtered list is a titled section of rows with its filter under them, as the failed lists beside it are.
 - An `EmptyState` or `ErrorState` stretched beside a taller panel keeps its action one gap under its words, where it stood at the panel's foot.
 - A `CodeBlock`'s copy control rests on an edge halfway from the block's hairline to a button's and firms to a button's edge on hover, where it wore a button's edge at rest.
 - A hovered or focused `RelativeTime` draws its dots in its words' full ink, where they took 80% of it on hover and 60% with focus.
