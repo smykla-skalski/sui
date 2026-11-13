@@ -1185,7 +1185,7 @@ suite('navigation', together, () => {
     );
 
     test(
-      'every sideways scroller fades only the edges with more past them, 20px on a phone, mirrored right to left (L-107)',
+      'every sideways scroller fades only the edges with more past them, 20px on a phone and code lines 24px, mirrored right to left (L-107)',
       long,
       async () => {
         const page = await sink();
@@ -1252,7 +1252,8 @@ suite('navigation', together, () => {
                 ])
               )
                 wrong.push(`${name}: ${JSON.stringify(shown)}`);
-              if (states[at][1].some((width) => width !== 20))
+              const wide = box.classList.contains('sui-scroll-edge-lines') ? 24 : 20;
+              if (states[at][1].some((width) => width !== wide))
                 wrong.push(`${name}: the fades are ${states[at][1].join(' and ')}px wide`);
               if (look.direction === 'rtl' && !look.maskImage.includes('to left'))
                 wrong.push(`${name}: the fade does not mirror`);

@@ -250,7 +250,7 @@ from the corner and centred on the first line, or in the file name's row when th
   <pre
     translate="no"
     {@attach watchOverflow((value) => (scrolls = value))}
-    class="sui-code-block-scroll sui-scroll-edge"
+    class="sui-code-block-scroll sui-scroll-edge sui-scroll-edge-lines"
     style:--sui-local-code-digits={String(lines.length).length}
     dir="ltr"
     tabindex={scrolls ? 0 : undefined}

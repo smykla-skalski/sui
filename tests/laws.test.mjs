@@ -318,17 +318,27 @@ test('L-66 a chart grid draws 65% of the way to a control edge, and every legend
   );
 });
 
-test('L-107 a scroll edge fades over 24px, and over 20px on a phone, and a popover foot over 16px', () => {
+test('L-107 a scroll edge fades over 24px, 20px on a phone, code lines over 32px, 24px on a phone, and a popover foot over 16px', () => {
   const sheet = stripComments(read('src/lib/internal/scroll-edge.css'));
   const space = tokenMap(stripComments(palette));
   const fades = [...sheet.matchAll(/--sui-local-edge-fade:\s*var\((--sui-space-\d+)\)/g)].map(
     ([, token]) => pixels(space[token])
   );
-  assert.deepEqual(fades, [24, 20]);
+  assert.deepEqual(fades, [24, 20, 32, 24]);
   assert.match(
     sheet,
     /@media \(max-width: 29\.9375rem\) \{\s*\.sui-scroll-edge \{\s*--sui-local-edge-fade/
   );
+  assert.match(
+    sheet,
+    /@media \(max-width: 29\.9375rem\) \{\s*\.sui-scroll-edge\.sui-scroll-edge-lines \{\s*--sui-local-edge-fade/
+  );
+  for (const part of ['code', 'diff'])
+    assert.match(
+      read(`src/lib/components/${part === 'code' ? 'CodeBlock' : 'DiffBlock'}.svelte`),
+      new RegExp(`class="sui-${part}-block-scroll sui-scroll-edge sui-scroll-edge-lines"`),
+      `a ${part} block's lines fade as code`
+    );
   const footSheet = stripComments(read('src/lib/internal/scroll-foot.css'));
   const foot = /\.sui-scroll-foot::after \{([^}]*)\}/.exec(footSheet)?.[1];
   assert.ok(foot, 'a scrolling layer draws a foot fade');

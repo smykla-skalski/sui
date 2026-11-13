@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- `CodeBlock` and `DiffBlock` fade their scrolled lines over 32px, 24px on a phone, so a cut word melts into the edge.
 - An `ErrorState` retry stands raised over the dark failure wash, and its hover and press veils take the danger hue instead of grey.
 - A hovered `RelativeTime` spreads its veil to the focus ring's outer edge, so hover and focus mark one box.
 - An `ErrorState overContent`'s retry ends its line on a wide screen, where it stood 12px after the words, and on a phone it still wraps to the row's start.

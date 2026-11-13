@@ -263,7 +263,7 @@ or removed empty line. Two empty sides say `emptyLabel`.
       translate="no"
       {@attach watchOverflow((value) => (scrolls = value))}
       dir="ltr"
-      class="sui-diff-block-scroll sui-scroll-edge"
+      class="sui-diff-block-scroll sui-scroll-edge sui-scroll-edge-lines"
       tabindex={scrolls ? 0 : undefined}
       role={scrolls ? 'region' : undefined}
       aria-label={scrolls ? (label ?? regionLabel) : undefined}><code

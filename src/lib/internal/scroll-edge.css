@@ -51,6 +51,19 @@
   }
 }
 
+/* Code's long lines are words cut mid-word at the edge, not values beside it, so a box of
+   code lines (`sui-scroll-edge-lines`) fades over a step more, enough that the last letters
+   melt rather than read as a clipped word. */
+.sui-scroll-edge.sui-scroll-edge-lines {
+  --sui-local-edge-fade: var(--sui-space-8);
+}
+
+@media (max-width: 29.9375rem) {
+  .sui-scroll-edge.sui-scroll-edge-lines {
+    --sui-local-edge-fade: var(--sui-space-6);
+  }
+}
+
 @supports (animation-timeline: scroll()) {
   .sui-scroll-edge {
     --sui-local-edge-side: to right;
