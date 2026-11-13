@@ -403,10 +403,8 @@ beside its first line, and takes the row only on a phone. It copies `code` exact
   }
 
   /* The copy control rests on the raised ground, so it stands over the head in both themes,
-     where the base ground sank under the dark head. Its words take the names' 13px, so the
-     control does not outrank the name it copies. */
+     where the base ground sank under the dark head. */
   .sui-code-block:not(.bare) > .sui-code-block-copy {
-    --sui-font-size-control: var(--sui-font-size-caption);
     --sui-surface-base: var(--sui-surface-raised);
   }
 

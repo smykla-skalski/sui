@@ -54,12 +54,12 @@ suite('lists', together, () => {
   suite('the pattern entries', { concurrency: 1 }, () => {
     const opened = sharedPage();
 
-    test("a block's names and its head's copy words read at the 13px caption tier", async () => {
+    test("a block's names and every quiet copy control's words read at the 13px caption tier", async () => {
       const page = await opened();
       const sizes = await page.evaluate(() =>
         [
           ...document.querySelectorAll(
-            '#code-block .sui-code-block:not(.bare) :is(.sui-code-block-label, .sui-code-block-lang, .sui-code-block-copy button)'
+            '#code-block :is(.sui-code-block:not(.bare) :is(.sui-code-block-label, .sui-code-block-lang), .sui-copy-button:not(.toolbar, .bare))'
           )
         ].map((name) => `${name.textContent}: ${getComputedStyle(name).fontSize}`)
       );
