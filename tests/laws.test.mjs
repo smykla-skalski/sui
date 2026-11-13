@@ -453,6 +453,11 @@ test('L-59 a state panel pads 28px by 20px, 20px on a phone, its action a step u
     read('src/lib/styles.css').match(/--sui-radius-control: ([^;]+);/)?.[1],
     "the dashes turn the panel's own corner"
   );
+  assert.match(
+    stripComments(styles['src/lib/components/ErrorState.svelte']),
+    /--sui-interactive-hover-layer: light-dark\(\s*color-mix\(in srgb, var\(--sui-danger\) 8%, transparent\)/,
+    'a hovered retry on light comes only to the wash, so it never reads as pressed'
+  );
   for (const [file, step] of [
     ['ErrorState', 'error-state'],
     ['EmptyState', 'empty-state']
