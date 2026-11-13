@@ -1419,7 +1419,7 @@ suite('lists', together, () => {
     );
 
     test(
-      'L-59 a failed refresh stands inside the rows it leaves, and failed panels side by side start on one line, each ending as far under its retry as above its words',
+      'L-59 a failed refresh stands inside the rows it leaves, and failed panels side by side end on one line, each retry one gap under its words',
       long,
       async () => {
         const page = await opened();
@@ -1454,28 +1454,19 @@ suite('lists', together, () => {
           .locator('#states .specimen .sui-error-state:not(.over)')
           .evaluateAll((panels) =>
             panels.map((panel) => {
-              const box = panel.getBoundingClientRect();
-              const look = getComputedStyle(panel);
               const words = panel.querySelector('.sui-error-state-copy')?.getBoundingClientRect();
-              const last = panel.lastElementChild?.getBoundingClientRect();
+              const retry = panel.querySelector('.sui-error-state-retry')?.getBoundingClientRect();
               return {
-                top: Math.round(box.top),
-                // The room under the last part, a retry, a step in words or the words, less the
-                // room over the words: a stretched panel holds an empty foot.
-                foot: last && words && box.bottom - last.bottom - (words.top - box.top),
-                above: (() => {
-                  const retry = panel
-                    .querySelector('.sui-error-state-retry')
-                    ?.getBoundingClientRect();
-                  return retry && words && retry.top - words.bottom - parseFloat(look.rowGap);
-                })()
+                panel: Math.round(panel.getBoundingClientRect().bottom),
+                above:
+                  retry &&
+                  words &&
+                  retry.top - words.bottom - parseFloat(getComputedStyle(panel).rowGap)
               };
             })
           );
-        if (feet.length < 2 || new Set(feet.map(({ top }) => top)).size !== 1)
-          problems.push(`the panels on one line start apart: ${feet.map(({ top }) => top)}`);
-        if (feet.some(({ foot }) => foot === undefined || Math.abs(foot) >= 1))
-          problems.push(`a panel holds an empty foot: ${feet.map(({ foot }) => foot)}`);
+        if (feet.length < 2 || new Set(feet.map(({ panel }) => panel)).size !== 1)
+          problems.push(`the panels on one line end apart: ${feet.map(({ panel }) => panel)}`);
         if (feet.some(({ above }) => above && Math.abs(above) >= 0.5))
           problems.push(`a retry stands off its words: ${feet.map(({ above }) => above)}`);
         assert.deepEqual(problems, []);

@@ -90,10 +90,10 @@ the next step, a control or words, stands a panel gap under it.
 {/if}
 
 <style>
-  /* Beside a taller panel it ends at its own content, as far under its next step as above its
-     words, never stretched into an empty foot (L-59). */
+  /* Stretched beside a taller panel, its words and its action keep to the top, the action one
+     gap under the words it answers, never the panel's foot away from them (L-59). */
   .sui-empty-state {
-    align-self: start;
+    align-content: start;
     background: var(--sui-surface-raised);
     border: var(--sui-stroke) solid var(--sui-border-subtle);
     border-radius: var(--sui-radius-control);

@@ -48,9 +48,9 @@
     min-inline-size: 0;
   }
 
-  /* A chart or a section fills its body, so those on one line share their foot as well as their
-     top. */
-  .body:has(> :global(:is(.sui-chart, .sui-section))) {
+  /* A chart, a state panel or a section fills its body, so those on one line share their foot as
+     well as their top. */
+  .body:has(> :global(:is(.sui-chart, .sui-section, .sui-empty-state, .sui-error-state))) {
     align-content: stretch;
   }
 
