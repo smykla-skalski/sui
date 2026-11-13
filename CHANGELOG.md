@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- The edge around an `ErrorState`, a `FormError` and a refused `Modal` save is a 30% share of the danger hue on light, where 40% drew more than the words beside it, and stays 40% on dark, from the new `--sui-danger-wash-edge`.
 - A current `ObjectRow` under keyboard focus keeps its resting plate when the pointer rests on it, where the deeper hover plate took the focus ring to 2.87:1 on the light inset ground; the law audit checks the ring on every current plate (L-6).
 - The `ClippedLabel` page stands each label's name past its tip's reach, so an open tip, the identifier's two lines too, never covers the name.
 - A `mono` `Tooltip`, such as a clipped identifier's, takes a tip's 13px, where 11px read small beside the label it repeats, and it wraps after a slash before it breaks inside a name.

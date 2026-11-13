@@ -148,7 +148,7 @@ of them.
     );
     align-content: space-between;
     background: var(--sui-local-error-ground);
-    border: var(--sui-stroke) solid color-mix(in srgb, var(--sui-danger) 40%, transparent);
+    border: var(--sui-stroke) solid var(--sui-danger-wash-edge);
     border-radius: var(--sui-radius-control);
     box-sizing: border-box;
     display: grid;

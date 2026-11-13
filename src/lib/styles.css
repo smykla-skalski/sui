@@ -223,6 +223,8 @@
   /* A field's danger edge. */
   --sui-danger-edge: var(--sui-danger);
   --sui-danger-edge-hover: var(--sui-danger-hover);
+  /* A danger wash's edge, lighter on light so it never outweighs the words. */
+  --sui-danger-wash-edge: color-mix(in srgb, var(--sui-danger) 30%, transparent);
   /* An invalid field's recess takes a share of its edge's red, so a gray line never sits inside
      a red frame, and it stays a darker line under the top edge. */
   --sui-field-danger-recess: color-mix(
@@ -795,6 +797,7 @@
     var(--sui-primitive-danger-dark) 70%,
     var(--sui-primitive-danger-light)
   );
+  --sui-danger-wash-edge: color-mix(in srgb, var(--sui-danger) 40%, transparent);
   --sui-field-danger-recess: color-mix(
     in srgb,
     var(--sui-danger-edge) 35%,
@@ -1049,6 +1052,7 @@
       var(--sui-primitive-danger-dark) 70%,
       var(--sui-primitive-danger-light)
     );
+    --sui-danger-wash-edge: color-mix(in srgb, var(--sui-danger) 40%, transparent);
     --sui-field-danger-recess: color-mix(
       in srgb,
       var(--sui-danger-edge) 35%,
