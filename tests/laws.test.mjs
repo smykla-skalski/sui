@@ -967,6 +967,16 @@ test('L-53 a placeholder for words rounds 3px and one for a pill keeps its round
   assert.match(skeleton, /\n {2}\.bar\.side \{[^}]*border-radius: var\(--sui-radius-pill\);/);
 });
 
+test("L-53 a workspace mark's corner stays near 30% of its side", () => {
+  assert.match(read('src/lib/styles.css'), /--sui-radius-mark-large: 12px;/);
+  const avatar = stripComments(read('src/lib/components/Avatar.svelte'));
+  assert.match(avatar, /size < 40\s*\? 'surface'\s*: size < 44\s*\? 'mark-large'\s*: 'dialog'/);
+  assert.match(
+    avatar,
+    /\[data-corner='mark-large'\] \{\s*border-radius: var\(--sui-radius-mark-large\);/
+  );
+});
+
 test('L-53 a chip inside a field takes the field radius less its edge and inset', () => {
   const tokens = read('src/lib/styles.css');
   assert.match(

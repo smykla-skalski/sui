@@ -179,10 +179,10 @@
         ? 'chip'
         : size < 30
           ? 'control'
-          : size < 36
+          : size < 40
             ? 'surface'
             : size < 44
-              ? 'popover'
+              ? 'mark-large'
               : 'dialog'
   );
 </script>
@@ -255,8 +255,8 @@ page runs. The initials' ink, not their advance or line, centres on the box.
     border-radius: var(--sui-radius-surface);
   }
 
-  [data-corner='popover'] {
-    border-radius: var(--sui-radius-popover);
+  [data-corner='mark-large'] {
+    border-radius: var(--sui-radius-mark-large);
   }
 
   [data-corner='dialog'] {
