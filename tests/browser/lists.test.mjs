@@ -906,34 +906,47 @@ suite('lists', together, () => {
     test('L-64 a slow wait takes the shape of the placeholder rows around it', long, async () => {
       const page = await opened();
       await page.waitForSelector('#skeleton .sui-skeleton-rows.slow', { state: 'attached' });
-      const problems = await page.evaluate(() => {
-        const found = [];
-        const box = (/** @type {Element} */ element) => element.getBoundingClientRect();
-        // Each line's top and height inside its row, so two rows compare line by line.
-        const lines = (/** @type {Element} */ row, /** @type {string} */ selector) =>
-          [...row.querySelectorAll(selector)]
-            .map((line) => `${box(line).top - box(row).top}+${box(line).height}`)
-            .join(' ');
-        const groups = document.querySelectorAll('#skeleton .sui-skeleton-rows.slow');
-        if (groups.length < 2) found.push(`only ${groups.length} slow waits were found`);
-        for (const group of groups) {
-          const [said, next] = group.querySelectorAll(':scope > .row');
-          const kind = group.classList.contains('bars') ? 'two-line' : 'one-line';
-          // The last row ends at its last bar (L-119), so a spare row after the neighbour lets
-          // it stand a whole row's height.
-          const spare = /** @type {Element} */ (next.cloneNode(true));
-          group.append(spare);
-          const whole = box(next).height;
-          spare.remove();
-          if (box(said).height !== whole)
-            found.push(`${kind}: the slow row is ${box(said).height}px, its neighbour ${whole}px`);
-          const words = lines(said, '.words > span');
-          const bars = lines(next, '.main > .bar');
-          if (words !== bars)
-            found.push(`${kind}: the words stand at ${words}, the bars at ${bars}`);
-        }
-        return found;
-      });
+      // On a narrow phone the waiting rows drop their side under the name, so the slow row
+      // must hold that slot too.
+      const shapes = () =>
+        page.evaluate(() => {
+          const found = [];
+          const box = (/** @type {Element} */ element) => element.getBoundingClientRect();
+          // Each line's top and height inside its row, so two rows compare line by line.
+          const lines = (/** @type {Element} */ row, /** @type {string} */ selector) =>
+            [...row.querySelectorAll(selector)]
+              .map((line) => `${box(line).top - box(row).top}+${box(line).height}`)
+              .join(' ');
+          const groups = document.querySelectorAll('#skeleton .sui-skeleton-rows.slow');
+          if (groups.length < 2) found.push(`only ${groups.length} slow waits were found`);
+          for (const group of groups) {
+            const [said, next] = group.querySelectorAll(':scope > .row');
+            const kind = group.classList.contains('bars') ? 'two-line' : 'one-line';
+            // The last row ends at its last bar (L-119), so a spare row after the neighbour lets
+            // it stand a whole row's height.
+            const spare = /** @type {Element} */ (next.cloneNode(true));
+            group.append(spare);
+            const whole = box(next).height;
+            spare.remove();
+            if (box(said).height !== whole)
+              found.push(
+                `${kind}: the slow row is ${box(said).height}px, its neighbour ${whole}px`
+              );
+            const words = lines(said, '.words > span');
+            const bars = lines(next, '.main > .bar');
+            if (words !== bars)
+              found.push(`${kind}: the words stand at ${words}, the bars at ${bars}`);
+          }
+          return found;
+        });
+      const wide = page.viewportSize();
+      const problems = await shapes();
+      await page.setViewportSize({ width: 320, height: 800 });
+      try {
+        problems.push(...(await shapes()).map((problem) => `320px ${problem}`));
+      } finally {
+        if (wide) await page.setViewportSize(wide);
+      }
       assert.deepEqual(problems, []);
     });
 

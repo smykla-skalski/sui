@@ -133,6 +133,8 @@ under reduced motion. Use it only where the shape of what is coming is already k
               ><span class="name">{slowLabel}</span>{#if bars}<span>{slowDescription}</span
                 >{/if}</span
             >
+            <!-- The side's slot, held only where a phone drops the side under the name. -->
+            {#if bars}<span class="bar side slot"></span>{/if}
           {:else}
             <span class="main"
               ><span class="bar"></span>{#if bars}<span class="bar"></span>{/if}</span
@@ -278,6 +280,10 @@ under reduced motion. Use it only where the shape of what is coming is already k
     scale: -1 1;
   }
 
+  .bar.slot {
+    display: none;
+  }
+
   .slow .bar::after {
     animation: none;
     content: none;
@@ -327,7 +333,14 @@ under reduced motion. Use it only where the shape of what is coming is already k
     }
 
     .bars .words {
-      flex: 1 1 100%;
+      align-content: start;
+      flex: 1 1 15rem;
+      min-block-size: var(--sui-skeleton-lines);
+    }
+
+    .bars .bar.slot {
+      display: block;
+      visibility: hidden;
     }
 
     .bars .bar.side {
