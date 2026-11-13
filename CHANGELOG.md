@@ -15,6 +15,7 @@
 - A failure's edge holds 3:1 on dark through the new `--sui-danger-wash-edge`, where it held 2.5:1, on an `ErrorState`, a `FormError` and a refused `Modal` save, and an `ErrorState overContent`'s line draws the same edge round its tint.
 - A `FormError` summary rings its focus after a pointer submit too, where only a keyboard submit drew the ring, so the reader sees where focus went.
 - The Relative Time page's In Context line reads its times in the primary ink over its muted words.
+- A wide `ListToolbar` keeps its filter beside a search that reached 32rem and its action at the end, where the search part took the spare width and pushed the filter away.
 - On a phone a `CodeBlock` with no copy control keeps its own top edge, where it drew a divider against its border and squared its corners.
 - A `CodeBlock` with no file name names its language at the start of a phone's copy row, where the row held the control alone.
 - A focused box that scrolls sideways, such as a `CodeBlock`, a `DataTable` or `Tabs`, draws its focus ring's corners whole, where the end fade washed out the arc at the end corners.

@@ -311,14 +311,24 @@ Updated, and takes `toolsLabel` once the filter folds in beside that group.
     flex: 1 1 16rem;
     flex-wrap: wrap;
     gap: var(--sui-space-2) var(--sui-space-3);
+    max-inline-size: max-content;
     min-inline-size: 0;
   }
 
+  /* Its 32rem width is only what the search part grows to, its label beside it, while the
+     line it stands on is laid out from 12rem. */
   .sui-list-toolbar-field {
     display: grid;
     flex: 1 1 12rem;
+    inline-size: 32rem;
     max-inline-size: 32rem;
     min-inline-size: 0;
+  }
+
+  /* Once the search stops growing, the spare room on its line stands after the last part
+     before the action, so the controls keep together at the start and the action at the end. */
+  .sui-list-toolbar-bar > :nth-last-child(1 of :not(.sui-list-toolbar-action)) {
+    margin-inline-end: auto;
   }
 
   /* Short of room the tools and their choices take the line under the filter, together, and the

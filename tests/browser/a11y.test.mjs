@@ -402,6 +402,47 @@ suite('accessibility', together, () => {
     );
 
     test(
+      'a wide list toolbar keeps its filter beside a full search and its action at the end',
+      long,
+      async () => {
+        const page = await mounted();
+        const found = await page.evaluate(() => {
+          const { lib, mount, unmount, flushSync, createRawSnippet } = /** @type {any} */ (window);
+          const host = document.body.appendChild(document.createElement('div'));
+          host.style.inlineSize = '80rem';
+          const tool = (/** @type {string} */ label, /** @type {string[]} */ words) => ({
+            label,
+            options: words.map((word) => ({ value: word, label: word })),
+            value: words[0],
+            onchange: () => {}
+          });
+          const bar = mount(lib.ListToolbar, {
+            target: host,
+            props: {
+              searchLabel: 'Search',
+              filter: tool('State', ['All', 'Archived']),
+              action: createRawSnippet(() => ({ render: () => '<button>Add</button>' }))
+            }
+          });
+          flushSync();
+          const box = (/** @type {string} */ part) =>
+            /** @type {Element} */ (host.querySelector(part)).getBoundingClientRect();
+          const result = {
+            field: box('.sui-list-toolbar-field').width,
+            gap: box('.sui-list-toolbar-filters').left - box('.sui-list-toolbar-field').right,
+            end: box('.sui-list-toolbar-bar').right - box('.sui-list-toolbar-action').right
+          };
+          unmount(bar);
+          host.remove();
+          return result;
+        });
+        assert.equal(found.field, 512, 'the search field stops at 32rem');
+        assert.equal(found.gap, 20, 'the filter stands a group step after the full search');
+        assert.equal(found.end, 0, 'the action ends the bar');
+      }
+    );
+
+    test(
       "a card's lone icon button keeps its glyph on the inset, a toolbar one too",
       long,
       async () => {
