@@ -31,7 +31,10 @@
   let failure = $state<HTMLDivElement | null>(null);
   let held = $state(0);
   let refused = $state<string | null>(null);
-  let filtered = $state(false);
+  /* The filtered specimen opens emptied, so every panel of the example shows an empty state at
+     rest; it speaks only once the reader's own filter empties it, never on page load. */
+  let filtered = $state(true);
+  let toggled = $state(false);
 
   /* The first retry succeeds, so the panel gives way to the rows and hands them focus. The rows
      hold the panel's height, so the panels beside them, stretched to it, keep theirs. */
@@ -109,7 +112,7 @@
       <div class="loaded">
         {#if filtered}
           <EmptyState
-            live
+            live={toggled}
             title="No Archived Repositories"
             description="Archive a repository from its settings and it appears here"
           >
@@ -127,8 +130,11 @@
           </div>
         {/if}
         <div>
-          <Button onclick={() => (filtered = !filtered)}
-            >{filtered ? 'Show Every Repository' : 'Show Archived Only'}</Button
+          <Button
+            onclick={() => {
+              filtered = !filtered;
+              toggled = true;
+            }}>{filtered ? 'Show Every Repository' : 'Show Archived Only'}</Button
           >
         </div>
       </div>

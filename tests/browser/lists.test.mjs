@@ -1729,6 +1729,9 @@ suite('lists', together, () => {
             const buttons = section.querySelectorAll('button');
             return buttons[buttons.length - 1].getBoundingClientRect().top - last;
           }, id);
+        // The filtered specimen opens emptied; its rows snap to the block grid before their first paint.
+        await page.getByRole('button', { name: 'Show Every Repository' }).click();
+        await page.evaluate(() => new Promise((done) => requestAnimationFrame(done)));
         const [recovered, filtered] = [
           await under('sink-states-recovered'),
           await under('sink-states-filtered')
