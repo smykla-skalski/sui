@@ -314,6 +314,38 @@ suite('lists', together, () => {
       );
     });
 
+    test('a retry stands raised over its failure wash in both themes and hovers in the hue', async () => {
+      const page = await opened();
+      const found = await page.evaluate(() => {
+        const panel = /** @type {HTMLElement} */ (
+          document.querySelector('#states .sui-error-state:not(.over)')
+        );
+        const retry = /** @type {Element} */ (panel.querySelector('button'));
+        const channels = (/** @type {string} */ color) =>
+          (color.match(/[\d.]+/g) ?? []).map(Number);
+        const light = (/** @type {string} */ color) => {
+          const [r, g, b] = channels(color);
+          return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+        };
+        return ['light', 'dark'].map((theme) => {
+          panel.dataset.suiTheme = theme;
+          const veil = document.createElement('div');
+          veil.style.background = 'var(--sui-interactive-hover-layer)';
+          panel.append(veil);
+          const [r, g, b] = channels(getComputedStyle(veil).backgroundColor);
+          veil.remove();
+          const rest = light(getComputedStyle(retry).backgroundColor);
+          const wash = light(getComputedStyle(panel).backgroundColor);
+          delete panel.dataset.suiTheme;
+          return { theme, raised: rest > wash, hue: r > g && r > b };
+        });
+      });
+      for (const { theme, raised, hue } of found) {
+        assert.ok(raised, `in ${theme} the retry sinks below its failure wash`);
+        assert.ok(hue, `in ${theme} the retry's hover veil is not the danger hue`);
+      }
+    });
+
     test('on a phone a code block heads its copy control inside its edge and gives its code the whole width', async () => {
       const page = await opened();
       const blocks = await page.evaluate(() =>
