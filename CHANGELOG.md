@@ -5,7 +5,6 @@
 - An `IdentityRow` whose name wraps stands its face level with the name's first line, where a short name's stands, where it centred on the whole block and stood by its middle line.
 - A `PageToc`'s title and a `SideNav`'s group headings are 12px at 0.04em, where 11px capitals at 0.06em to 0.07em read small and pinched beside their 14px links.
 - A `LoadMore` button that wraps under a failure's reason stands at the line's end, where Load More stood, where it moved to the start.
-- An `Avatar` picture stands on the raised surface, so a transparent logo shows on a neutral ground, where it stood on the brand tint the initials keep.
 - A `PageHeader` title a `ListDetail` lands focus on wears the kit's ring as every landed heading does, set out past its descenders, where the title's own reset hid it.
 - A `LoadMore` failure's alert mark is 16px, the size every other alert in the kit takes beside its reason, where 12px read faint beside the danger words.
 - The `LoadMore` page sets its four states two to a line, where three narrow columns left the whole list alone on a second row and wrapped a failure's Try Again under its reason.

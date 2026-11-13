@@ -301,11 +301,11 @@ page runs. The initials' ink, not their advance or line, centres on the box.
   }
 
   /* Sized by its own size, so a picture that fails, which has none, takes no room and draws
-     nothing, not even the browser's broken image. One that loads covers the initials on a
-     neutral ground, so a transparent logo never stands on the brand's blue, and its ring is an outline because a photograph
+     nothing, not even the browser's broken image. One that loads covers the initials on its
+     own ground, even where it is transparent, and its ring is an outline because a photograph
      can end in the color of the card behind it. */
   img {
-    background: var(--sui-surface-raised);
+    background: var(--sui-brand-action-tint);
     border-radius: inherit;
     grid-area: 1 / 1;
     max-block-size: 100%;
