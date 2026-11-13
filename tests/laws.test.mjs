@@ -628,9 +628,14 @@ test('L-25 the type tiers keep the sizes the law names', () => {
   for (const path of ['EmptyState', 'ErrorState'])
     assert.match(
       styles[`src/lib/components/${path}.svelte`],
-      /-title \{[^}]*font: var\(--sui-weight-semibold\) var\(--sui-font-size-title\)/,
-      `an ${path} panel's title stands a step under the section that holds it`
+      /-title \{[^}]*font: var\(--sui-weight-semibold\) var\(--sui-font-size-card-title\)/,
+      `an ${path} panel's title stands a tier over the words it heads`
     );
+  assert.match(
+    styles['src/lib/components/ErrorState.svelte'],
+    /\.over :is\(\.sui-error-state-title, \.sui-error-state-mark\) \{\s*font-size: var\(--sui-font-size-title\);/,
+    'a failed refresh over a list stays a quiet line'
+  );
 });
 
 test('L-20 a duration amount reads in the words face with figures of one width', () => {
