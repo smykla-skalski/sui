@@ -21,7 +21,6 @@
 - An `EmptyState` or `ErrorState` stretched beside a taller panel keeps its action one gap under its words, where it stood at the panel's foot.
 - A dark `ErrorState`, `FormError` and refused `Modal` save lay the deep danger red over the canvas through the new `--sui-danger-wash`, so the wash reads red and stands under its button's fill, where the pastel ink mixed to a grey plum lighter than the button.
 - An `EmptyState` or `ErrorState` step in words stands where a control would, 20px under the words in the body size, where it stood the title gap under them in the meta size.
-- A `CodeBlock`'s copy control rests with no edge of its own and takes a button's edge on hover, where it wore a button's edge at rest.
 - The Relative Time page sets its past and future times on 8rem columns, so wrapped rows on a phone share their column lines.
 - A `RelativeTime`'s whole instant pads its hour only where the language does, so English reads 9:26:53 AM, not 09:26:53 AM.
 - A hovered `RelativeTime` lays a faint accent veil in its focus ring's box.

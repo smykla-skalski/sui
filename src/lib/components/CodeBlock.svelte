@@ -303,13 +303,6 @@ from the corner and centred on the first line, or in the file name's row when th
     text-box: trim-both cap alphabetic;
   }
 
-  /* Forced colors draw no fills, so the control keeps a system edge there. */
-  @media (forced-colors: active) {
-    .sui-code-block-copy {
-      --sui-control-border: ButtonBorder;
-    }
-  }
-
   /* The language's name shows only in a phone's copy row, below. */
   .sui-code-block-lang {
     display: none;
@@ -318,10 +311,6 @@ from the corner and centred on the first line, or in the file name's row when th
   /* Beside a file name too long to share its row, the control takes a row of its own, from the
      start edge (L-90). */
   .sui-code-block-copy {
-    /* The block's frame already holds its control, and a framed button down each block of a
-       column reads as a column of buttons, so the control rests with no edge of its own, its
-       words naming it, and takes a button's edge on hover (L-9). */
-    --sui-control-border: transparent;
     align-self: start;
     display: flex;
     flex: none;
