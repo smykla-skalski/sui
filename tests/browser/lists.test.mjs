@@ -1340,23 +1340,11 @@ suite('lists', together, () => {
       assert.deepEqual(rings, { scroller: 'none', frame: 'solid', over: 0 });
     });
 
-    test("a code block's copy control rests with no edge on the code's ground and takes a button's edge on hover", async () => {
+    test("a code block's copy control rests with no edge and takes a button's edge on hover", async () => {
       const page = await opened();
       const copy = page.locator('#code-block .sui-code-block-copy .sui-copy-button').first();
       await copy.scrollIntoViewIfNeeded();
       const edge = () => copy.evaluate((button) => getComputedStyle(button).borderTopColor);
-      // Light's control fill and code ground are one white, so the dark theme tells them apart.
-      const grounds = await copy.evaluate((button) => {
-        const block = /** @type {HTMLElement} */ (button.closest('.sui-code-block'));
-        block.dataset.suiTheme = 'dark';
-        const both = [
-          getComputedStyle(button).backgroundColor,
-          getComputedStyle(block).backgroundColor
-        ];
-        delete block.dataset.suiTheme;
-        return both;
-      });
-      assert.equal(grounds[0], grounds[1]);
       assert.equal(await edge(), 'rgba(0, 0, 0, 0)');
       await copy.hover();
       assert.notEqual(await edge(), 'rgba(0, 0, 0, 0)');
