@@ -50,12 +50,14 @@ test('replaces the previous main at the root and keeps the open previews', (t) =
   mkdirSync(join(site, '_app', 'new'), { recursive: true });
   writeFileSync(join(site, 'index.html'), 'new main');
 
-  execFileSync('sh', [script, 'main', open(3)], {
+  // A branch older than the picker passes bare numbers.
+  execFileSync('sh', [script, 'main', '3'], {
     input: execFileSync('tar', ['-cz', '-C', site, '.']),
     env: { ...process.env, PREVIEWS_DATA: data }
   });
 
   assert.deepEqual(readdirSync(previews).sort(), ['_app', 'index.html', 'pr-3', 'previews.json']);
+  assert.equal(readFileSync(join(previews, 'previews.json'), 'utf8'), '[]\n');
   assert.deepEqual(readdirSync(join(previews, '_app')), ['new']);
   assert.equal(readFileSync(join(previews, 'index.html'), 'utf8'), 'new main');
 });

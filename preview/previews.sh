@@ -51,6 +51,8 @@ done
   printf '['
   comma=
   for pr; do
+    # A run from a branch older than the picker passes bare numbers, with no entry to list.
+    case $pr in *:*) ;; *) continue ;; esac
     [ -d "previews/pr-${pr%%:*}" ] || continue
     printf '%s' "$comma"
     printf '%s' "${pr#*:}" | base64 -d
