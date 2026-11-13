@@ -389,7 +389,7 @@ beside its first line, and takes the row only on a phone. It copies `code` exact
   /* The head row, the file name's or the copy row, stands a faint step off the code under it,
      as a code window's tab row does, so the row reads as the block's head and not a first line.
      The block clips it to its own inner corners, however the row wraps; nothing in a framed
-     block draws past its edge, its copy control standing 8px inside it. */
+     block draws past its edge. */
   .sui-code-block:not(.bare) {
     overflow: clip;
   }
@@ -403,9 +403,11 @@ beside its first line, and takes the row only on a phone. It copies `code` exact
   }
 
   /* The copy control rests on the raised ground, so it stands over the head in both themes,
-     where the base ground sank under the dark head. */
+     where the base ground sank under the dark head. It ends 12px inside the block's edge, so
+     its frame does not crowd the edge it stands beside. */
   .sui-code-block:not(.bare) > .sui-code-block-copy {
     --sui-surface-base: var(--sui-surface-raised);
+    padding-inline-end: var(--sui-space-3);
   }
 
   .sui-code-block:not(.bare) .sui-code-block-lang {
