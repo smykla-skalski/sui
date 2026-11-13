@@ -25,6 +25,7 @@
 - A slow `Skeleton`'s title and every row's first bar take the body size a row's name is set at, so the title reads as the name it stands for and the bar is one of its caps tall.
 - A placeholder bar is 10% black on the light theme and 12.5% white on the dark, where both were 7%, so a waiting list's bars hold their place beside its words.
 - A `Skeleton` bar for a line of words rounds 3px (`--sui-radius-placeholder`), and only the bar for a row's side keeps a pill's round ends, so the words to come and the pill to come read apart.
+- A slow `Skeleton`'s title takes the secondary ink at 500, so "Still loading…" reads as a status in a name's place rather than as a loaded row by that name.
 - The `Skeleton` page's loaded rows carry the side their placeholders promise, so the rows take the shape the bars held.
 - An `ObjectRow`'s focus ring stands 1px inside the row's ground on every side, where it ran along the row's edge, so it never meets the hover or current plate of the row beside it, and its grounds stop a pixel under its top, so the open row's plate and a hovered neighbour's keep a seam of the page between them, where they met as one block in two tones.
 - A `ListDetail` with nothing open keeps its empty state at most 32rem wide at the pane's start, where it ran across the whole pane as a banner.
