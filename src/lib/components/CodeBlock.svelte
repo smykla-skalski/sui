@@ -402,10 +402,15 @@ beside its first line, and takes the row only on a phone. It copies `code` exact
     );
   }
 
-  /* The copy control rests on the raised ground, so it stands over the head in both themes,
-     where the base ground sank under the dark head. */
+  /* The copy control stands a step lighter than the head in both themes: the code's own white
+     in light, and in dark more of the ink than the head takes, where a raised ground sank under
+     it. */
   .sui-code-block:not(.bare) > .sui-code-block-copy {
-    --sui-surface-base: var(--sui-surface-raised);
+    --sui-surface-base: color-mix(
+      in srgb,
+      var(--sui-text-primary) var(--sui-code-chip-ink),
+      var(--sui-surface-code)
+    );
   }
 
   .sui-code-block:not(.bare) .sui-code-block-lang {

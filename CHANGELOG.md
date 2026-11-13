@@ -12,7 +12,7 @@
 - A 28px `CopyButton`'s words read at the 13px caption size, as the names beside it in a `CodeBlock`'s head do, where the 14px control outranked the name it copies; the toolbar tier and a chip inside a field keep 14px.
 - The sink's day feed sets each heading 8px over its entries, their own step, where 12px held it apart from them.
 - The sink's day feed sets its times at the 13px caption size, a step under their 14px entries, where 12px read as small print.
-- A framed `CodeBlock`'s head steps off its code by 6% ink in light, so it also steps off the warm plate around it, where 2.5% read as noise on white and 4% sat one level off the plate; dark keeps 2.5% (`--sui-code-head-ink`).
+- A framed `CodeBlock`'s head steps off its code by 6% ink in light, so it also steps off the warm plate around it, where 2.5% read as noise on white and 4% sat one level off the plate, and by 4.5% in dark, where 2.5% left the head within a level of its code; its copy control stands lighter than the head in both themes, the code's white in light and 7% ink in dark (`--sui-code-head-ink`, `--sui-code-chip-ink`), where the raised ground sat darker than the deeper dark head.
 - A danger wash frames its failure in a quieter edge of the hue, 28% light and 36% dark where it stood at 40% and 50%, so the wash and the mark carry an error panel, a failed refresh, a form error and a refused save, and the edge no longer outweighs the page around it.
 - A `DayHeading` reads at the 16px semibold title tier on every width, a step over the 14px entries it heads, where it stood at their own size; a `Timeline`'s days take it too.
 - A `CodeBlock`'s file and language names read at the 13px caption size at every width, where 12px stood under the 14px code and copy words as small print.
