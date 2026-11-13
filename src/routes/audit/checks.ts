@@ -2052,13 +2052,16 @@ function specimens(root: Document): Finding[] {
       const look = getComputedStyle(element);
       if (look.position === 'fixed' || look.clipPath !== 'none') return false;
       if (spansLent(element)) return false;
+      // A transparent edge paints nothing, so a button that draws nothing at rest, as a ghost
+      // does, is a hit area like a link's, and only its words and glyph count as ink; its veil
+      // hangs past them only under the pointer, as a lit row's does.
       const painted =
         rgba(look.backgroundColor).a > 0 ||
-        parseFloat(look.borderLeftWidth) > 0 ||
-        parseFloat(look.borderTopWidth) > 0;
+        (parseFloat(look.borderLeftWidth) > 0 && rgba(look.borderLeftColor).a > 0) ||
+        (parseFloat(look.borderTopWidth) > 0 && rgba(look.borderTopColor).a > 0);
+      const control = element.matches(CARD_CONTENT) && !(element.matches('button') && !painted);
       const reach = stripeReach(element);
-      if ((painted || element.matches(CARD_CONTENT)) && outside(paintedBox(element, look), reach))
-        return true;
+      if ((painted || control) && outside(paintedBox(element, look), reach)) return true;
       // Text an element clips to its own box paints no further than that box, and while nothing
       // overflows it sideways no further than its content box, so a scroller may pad room past
       // the specimen for a shadow its clip would cut.
