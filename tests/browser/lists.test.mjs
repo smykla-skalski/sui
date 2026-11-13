@@ -513,6 +513,44 @@ suite('lists', together, () => {
         assert.ok(spare < 1, `${name} keeps ${spare.toFixed(1)}px past its widest shown words`);
     });
 
+    test('a numbered code block parts its gutter from its code by a divider 12px from each', async () => {
+      const page = await opened();
+      const rows = await page.evaluate(() =>
+        [...document.querySelectorAll('#code-block .numbered > .ln')].map((line) => {
+          const number = /** @type {HTMLElement} */ (line.querySelector('.no'));
+          const code = /** @type {HTMLElement} */ (line.querySelector('.src'));
+          const text = document.createRange();
+          text.selectNodeContents(number);
+          const style = getComputedStyle(number);
+          const edge = number.getBoundingClientRect().right;
+          const rule = parseFloat(style.borderRightWidth);
+          return {
+            line: number.textContent,
+            rule,
+            ruleColor: style.borderRightColor,
+            before: edge - rule - text.getBoundingClientRect().right,
+            after:
+              code.getBoundingClientRect().left +
+              parseFloat(getComputedStyle(code).paddingLeft) -
+              edge
+          };
+        })
+      );
+      assert.ok(rows.length >= 2, `only ${rows.length} numbered lines`);
+      for (const { line, rule, ruleColor, before, after } of rows) {
+        assert.equal(rule, 1, `line ${line} draws no divider`);
+        assert.notEqual(ruleColor, 'rgba(0, 0, 0, 0)', `line ${line} draws a clear divider`);
+        assert.ok(
+          Math.abs(before - 12) < 0.5,
+          `line ${line}'s number ends ${before}px off its divider`
+        );
+        assert.ok(
+          Math.abs(after - 12) < 0.5,
+          `line ${line}'s code starts ${after}px past its divider`
+        );
+      }
+    });
+
     test('a framed code block heads its code with a faint step in both themes', async () => {
       const page = await opened();
       const found = await page.evaluate(() => {

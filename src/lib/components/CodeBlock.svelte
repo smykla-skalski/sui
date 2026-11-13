@@ -209,8 +209,8 @@ A read-only code window: mono at 14px on the inset ground, colored by the langua
 tokens, with long lines scrolling sideways inside the block rather than widening the page.
 A block that scrolls can take keyboard focus, so it can be scrolled without a pointer.
 
-`lineNumbers` draws a gutter in the gutter ink at full opacity, which never selects or
-copies and stays in view while long lines scroll. Selected code is opaque, in the selection colors. `label` names the file above the
+`lineNumbers` draws a gutter in the gutter ink at full opacity behind a divider 12px from
+its numbers and its code, which never selects or copies and stays in view while long lines scroll. Selected code is opaque, in the selection colors. `label` names the file above the
 code, and `bare` drops the frame, its fill and the code's start inset for a host that frames and insets
 the block itself, so the code starts on the host's own edge, as under a disclosure's words. `html` colors markup,
 Svelte templates included. `shell` colors commands, flags, strings, variables and operators,
@@ -354,9 +354,12 @@ beside its first line, and takes the row only on a phone. It copies `code` exact
   }
 
   /* The line numbers stay put while the lines scroll under them, so the start fade begins
-     past the gutter: its numbers are as wide as the longest, in tabular figures. */
+     past the gutter and its rule: its numbers are as wide as the longest, in tabular figures. */
   .sui-code-block-scroll:has(> .numbered) {
-    --sui-local-edge-hold: calc(var(--sui-local-code-digits) * 1ch + 2 * var(--sui-space-4));
+    --sui-local-edge-hold: calc(
+      var(--sui-local-code-digits) * 1ch + var(--sui-space-4) + var(--sui-space-3) +
+        var(--sui-stroke)
+    );
   }
 
   /* Under the file name the code takes the block's whole width. */
@@ -517,12 +520,14 @@ beside its first line, and takes the row only on a phone. It copies `code` exact
     min-block-size: var(--sui-leading-meta);
   }
 
-  /* The gutter stays in view while long lines scroll under it. */
+  /* The gutter stays in view while long lines scroll under it, and a divider stands 12px
+     from its numbers and its code, so a number never reads as the first token of its line. */
   .no {
     background: var(--sui-surface-code);
+    border-inline-end: var(--sui-stroke) solid var(--sui-border-divider);
     color: var(--sui-code-gutter);
     inset-inline-start: 0;
-    padding-inline: var(--sui-space-4);
+    padding-inline: var(--sui-space-4) var(--sui-space-3);
     position: sticky;
     text-align: end;
     user-select: none;
@@ -533,9 +538,12 @@ beside its first line, and takes the row only on a phone. It copies `code` exact
     white-space: pre;
   }
 
-  .numbered .src,
   .bare .src {
     padding-inline-start: 0;
+  }
+
+  .numbered .src {
+    padding-inline-start: var(--sui-space-3);
   }
 
   .sui-code-block-scroll::selection,
