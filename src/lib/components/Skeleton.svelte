@@ -10,6 +10,7 @@
     rows = 6,
     rowHeight,
     bars = true,
+    ruled = true,
     label = word('Skeleton.label', 'Loading…'),
     loadedLabel = word('Skeleton.loadedLabel', 'Loaded'),
     patience = 10_000,
@@ -26,6 +27,8 @@
     rowHeight?: string;
     /** Bars where a two-line row's name, its line under it and its side will be. Off draws one bar per row, for a list of one-line rows. */
     bars?: boolean;
+    /** A hairline under each row but the last, as list and property rows draw. Off draws none, for words that stand without rules, such as a header's facts. */
+    ruled?: boolean;
     /** What is being waited for, announced rather than drawn. */
     label?: string;
     /** Announced once the rows arrive, so a reader knows the wait is over. */
@@ -102,7 +105,7 @@ placeholder in the reading direction, as one light over all of its bars, and hol
 under reduced motion. Use it only where the shape of what is coming is already known.
 
 - Semantics: a `div` that is `aria-busy` while loading, beside a polite `status` that speaks for it.
-- Content: `rows` placeholder rows of the loaded row's height, with bars for a two-line row's name, its line under it and its side, or one bar for a one-line row, and the loaded `children` in their place.
+- Content: `rows` placeholder rows of the loaded row's height, each over a hairline unless `ruled` is off, with bars for a two-line row's name, its line under it and its side, or one bar for a one-line row, and the loaded `children` in their place.
 - States: waiting (the light crosses the bars), slow (the light stops and the first row says `slowLabel` where a name stands and `slowDescription` where the line under it stands, or the title alone in a one-line row), and loaded (the children, with `loadedLabel` announced).
 - Keyboard: none; placeholders take no focus.
 - Pointer and touch: none; placeholders take no presses.
@@ -118,7 +121,7 @@ under reduced motion. Use it only where the shape of what is coming is already k
 <div {...rest} class={['sui-skeleton', className]} aria-busy={loading}>
   {#if waitShown.current}
     <div
-      class={['sui-skeleton-rows', { bars, slow }]}
+      class={['sui-skeleton-rows', { bars, ruled, slow }]}
       style:--sui-skeleton-row={rowHeight}
       aria-hidden="true"
     >
@@ -202,7 +205,8 @@ under reduced motion. Use it only where the shape of what is coming is already k
 
   /* The last row draws no hairline but keeps its height, as a loaded last row does. A
      transparent line would not do, because forced colors paint it. */
-  .row:last-child {
+  .row:last-child,
+  .sui-skeleton-rows:not(.ruled) .row {
     border-block-end: 0;
   }
 

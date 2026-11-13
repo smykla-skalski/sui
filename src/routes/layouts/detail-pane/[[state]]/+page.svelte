@@ -240,6 +240,7 @@
             <Skeleton
               rows={2}
               bars={false}
+              ruled={false}
               rowHeight="1.75rem"
               patience={Infinity}
               label=""
@@ -250,6 +251,7 @@
             <Skeleton
               rows={1 + headline.length}
               bars={false}
+              ruled={false}
               rowHeight="var(--head-row)"
               patience={Infinity}
               label=""
