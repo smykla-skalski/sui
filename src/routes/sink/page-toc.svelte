@@ -96,13 +96,15 @@
 </Example>
 
 <style>
-  /* The text keeps a reading measure, near 72 characters on whole pixels, and the index
-     stands 32px off it, as a documentation page sets its article beside its index. */
+  /* The text keeps a reading measure, near 72 characters on whole pixels, and the index ends on
+     the frame's inset, as a documentation page sets its index at the page's end, at least 32px
+     off the text. */
   .page {
     align-items: start;
     display: grid;
     gap: var(--sui-space-8);
     grid-template-columns: minmax(0, 40rem) var(--sui-toc-width);
+    justify-content: space-between;
   }
 
   /* The index sticks inside this column, which runs the page's whole height on a wide

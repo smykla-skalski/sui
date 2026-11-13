@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- The `PageToc` page ends its index on the frame's inset, as a documentation page sets it, where it stood 32px off the text with 98px of empty frame after it.
 - A heading a `PageToc` entry or a `ListDetail` lands on sets its ring a pixel past its descent, where the ring crossed a g or a y, and a `PageHeader` title takes the same ring.
 - An `ErrorState`'s explanation, step and retry stand on its title's edge, past the warning mark, so its words read down one rail as a `FormError` summary's do, where they returned to the panel's edge under the title.
 - A focused `ClippedLabel`'s ring is set past its descenders, where its foot crossed a g or a p, and 2px further out at its start, nearer the room its ellipsis leaves at the end, and the label does not move.
