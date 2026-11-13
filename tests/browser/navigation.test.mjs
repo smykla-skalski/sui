@@ -379,6 +379,35 @@ suite('navigation', together, () => {
     }
   });
 
+  test("a detail pane's property placeholders span the height its properties take", async () => {
+    // From the first ink to the last: the rows' box less the room they hand back above their
+    // first bar and under their last, and the list's own box, which starts and ends at its ink.
+    const span = async (/** @type {string} */ path) => {
+      const page = await openLayout(path, 1440);
+      try {
+        return await page.evaluate(() => {
+          const aside = document.querySelector('.sui-detail-layout-aside');
+          const facts = aside?.querySelector('.sui-fact-list');
+          if (facts) return facts.getBoundingClientRect().height;
+          const rows = /** @type {Element} */ (aside?.querySelector('.sui-skeleton-rows'));
+          const { marginTop, marginBottom } = getComputedStyle(rows);
+          return (
+            rows.getBoundingClientRect().height + parseFloat(marginTop) + parseFloat(marginBottom)
+          );
+        });
+      } finally {
+        await page.close();
+      }
+    };
+    const loaded = await span('layouts/detail-pane/');
+    const loading = await span('layouts/detail-pane/loading/');
+    // A row that holds an avatar stands a few pixels over the pitch the placeholders keep.
+    assert.ok(
+      Math.abs(loaded - loading) <= 10,
+      `the properties span ${loaded}px where their placeholders spanned ${loading}px`
+    );
+  });
+
   test('a layout preview starts as a phone on a phone and as a desktop on a desktop', async () => {
     for (const [width, start] of /** @type {const} */ ([
       [390, 'phone'],

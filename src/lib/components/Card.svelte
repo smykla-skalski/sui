@@ -85,7 +85,7 @@ other controls keep their width. The note runs under them at the head's full wid
 beside a shown select that keeps its 44px on a phone where script cannot open it, which reaches
 below the title's line further than the note stands under it. A `footer`'s actions stand
 beside the copy at its foot while the card holds both next to a 16rem measure of copy, wider
-than a callout's 11rem as a framed button is wider than its quiet ones, and on a line of their
+than a callout's 14rem as a framed button is wider than its quiet ones, and on a line of their
 own under it otherwise, so they keep the inset from the bottom and the end in either place. A
 row list or a `Skeleton` that opens the card hands back what stands above its
 first row's ink, as it hands back what stands below its last: the card lends the body's first

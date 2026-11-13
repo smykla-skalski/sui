@@ -36,6 +36,9 @@
   } from '#lib';
 
   const PAGE = 5;
+  // A property row sets its label beside its value, so its placeholders keep that pitch and
+  // span what the properties will.
+  const FACT_ROW = '2.375rem';
   const started = Date.now() - 12.5 * 60_000;
   const nothing = () => {};
 
@@ -264,7 +267,7 @@
                 <Skeleton
                   rows={5}
                   bars={false}
-                  rowHeight="3.875rem"
+                  rowHeight={FACT_ROW}
                   patience={Infinity}
                   label=""
                   loadedLabel=""
