@@ -170,7 +170,7 @@ of them.
     gap: var(--sui-space-5);
     justify-items: start;
     min-inline-size: 0;
-    padding: var(--sui-space-7) var(--sui-space-5);
+    padding: var(--sui-space-8) var(--sui-space-5);
   }
 
   /* A phone's short screen takes the room above and below the words down to the sides' 20px.

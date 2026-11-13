@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- An `EmptyState` or `ErrorState` panel pads its words by 32px above and below, up from 28px, so an empty view reads as a place to rest and not a note (L-59). A phone keeps 20px all round.
 - An `ErrorState` over its rows keeps 16px inside its tint above and below on a phone, as at its sides, once its 44px retry wraps under the words, where 9px held the wrapped line tight against the tint.
 - An `Icon` named `github` scales its solid mark to 0.87 about the centre, so it reaches 2 to 22 units as the outline glyphs do with their stroke, where the full 23-unit mark outweighed every glyph beside it.
 - The kit's icon page sets each directional glyph in a row of its own, facing left to right beside right to left, so each pair reads at a glance, where two mirrored rows put a glyph and its mirror at opposite ends.

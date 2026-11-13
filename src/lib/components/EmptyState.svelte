@@ -104,7 +104,7 @@ the next step, a control or words, stands a panel gap under it.
     gap: var(--sui-space-5);
     justify-items: start;
     min-inline-size: 0;
-    padding: var(--sui-space-7) var(--sui-space-5);
+    padding: var(--sui-space-8) var(--sui-space-5);
     position: relative;
   }
 
