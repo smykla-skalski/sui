@@ -1243,6 +1243,29 @@ suite('lists', together, () => {
     });
 
     test(
+      'a retry that succeeds leaves the failed panels beside it at their height',
+      long,
+      async () => {
+        const page = await opened();
+        const members = page
+          .locator('#states .specimen', { hasText: 'Access Is Not Available' })
+          .locator('.sui-error-state');
+        const retry = page
+          .locator('#states .specimen', { hasText: 'Repositories Could Not Load' })
+          .getByRole('button', { name: 'Try Again' });
+        await retry.scrollIntoViewIfNeeded();
+        const height = () => members.evaluate((node) => node.getBoundingClientRect().height);
+        const before = await height();
+        await retry.click();
+        const back = page.getByRole('button', { name: 'Show the Failure Again' });
+        await settles(back.waitFor({ timeout: brief.timeout }));
+        const after = await height();
+        await back.click();
+        assert.equal(after, before);
+      }
+    );
+
+    test(
       'L-59 a failed refresh stands inside the rows it leaves, and failed panels side by side share their foot',
       long,
       async () => {

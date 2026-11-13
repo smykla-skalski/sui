@@ -28,14 +28,18 @@
   let refreshing = $state(false);
   let settled = $state(false);
   let list = $state<HTMLElement>();
+  let failure = $state<HTMLDivElement | null>(null);
+  let held = $state(0);
   let refused = $state<string | null>(null);
   let filtered = $state(false);
 
-  /* The first retry succeeds, so the panel gives way to the rows and hands them focus. */
+  /* The first retry succeeds, so the panel gives way to the rows and hands them focus. The rows
+     hold the panel's height, so the panels beside them, stretched to it, keep theirs. */
   function retry() {
     retrying = true;
     setTimeout(() => {
       retrying = false;
+      held = Math.ceil(failure?.getBoundingClientRect().height ?? 0);
       recovered = true;
     }, 1200);
   }
@@ -125,7 +129,7 @@
   <Specimen label={recovered ? 'Recovered' : 'Retry'}>
     <Section title="Repositories" level={4} id="sink-states-recovered">
       {#if recovered}
-        <div class="loaded">
+        <div class="loaded" style:min-block-size="{held}px">
           <div bind:this={list} tabindex="-1" class="rows">
             <ObjectList aria-labelledby="sink-states-recovered">
               {#each repositories as name (name)}
@@ -143,6 +147,7 @@
           description="The server did not answer in time, so nothing on this page has changed"
           onretry={retry}
           busy={retrying}
+          bind:element={failure}
           focusAfterRetry={() => list}
         />
       {/if}
@@ -250,6 +255,7 @@
   }
 
   .loaded {
+    align-content: start;
     display: grid;
     gap: var(--sui-space-4);
   }
