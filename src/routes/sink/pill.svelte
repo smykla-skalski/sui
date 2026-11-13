@@ -110,11 +110,11 @@
     gap: var(--sui-space-3);
   }
 
-  /* The specimen's width ends near its first line's last word, so the pill holds no empty tint
-     past it. */
+  /* The specimen's width, in the pill's own type, ends near its first line's last word at
+     every size, so the pill holds no empty tint past it. */
   .measure {
     display: flex;
-    max-inline-size: 17.5rem;
+    max-inline-size: calc(21 * var(--sui-font-size-compact));
   }
 
   .slot {

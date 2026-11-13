@@ -90,15 +90,11 @@
   --sui-primitive-ocean-200: #80c5ff;
 
   --sui-primitive-success-light: #14734b;
-  --sui-primitive-success-light-tint: #dce7e1;
   --sui-primitive-success-dark: #5fd4a2;
   --sui-primitive-warning-light: #9b5807;
-  --sui-primitive-warning-light-tint: #efe8dd;
   --sui-primitive-warning-dark: #f2b75c;
   --sui-primitive-danger-light: #bb3844;
-  --sui-primitive-danger-light-tint: #f2e6e5;
   --sui-primitive-danger-dark: #ff9da6;
-  --sui-primitive-info-light-tint: #dbe2ec;
 
   /* Diff tones, set in OKLCH: one lightness for every line ground and one for every word mark,
      so no tone outweighs another. Added leans yellow-green and removed leans crimson, the pair
@@ -210,13 +206,13 @@
      the 2px ring (L-41). */
   --sui-focus-ring-edge: calc(var(--sui-focus-ring-width) - var(--sui-stroke));
   --sui-info: var(--sui-link);
-  --sui-info-tint: var(--sui-primitive-info-light-tint);
+  --sui-info-tint: color-mix(in srgb, var(--sui-info) 8%, transparent);
   --sui-success: var(--sui-primitive-success-light);
-  --sui-success-tint: var(--sui-primitive-success-light-tint);
+  --sui-success-tint: color-mix(in srgb, var(--sui-success) 8%, transparent);
   --sui-warning: var(--sui-primitive-warning-light);
-  --sui-warning-tint: var(--sui-primitive-warning-light-tint);
+  --sui-warning-tint: color-mix(in srgb, var(--sui-warning) 8%, transparent);
   --sui-danger: var(--sui-primitive-danger-light);
-  --sui-danger-tint: var(--sui-primitive-danger-light-tint);
+  --sui-danger-tint: color-mix(in srgb, var(--sui-danger) 8%, transparent);
   /* A stop button is one deep red with white words in both themes, as the accent fill is, so a
      destructive action reads the same on either ground (L-13). */
   --sui-danger-fill: var(--sui-primitive-danger-light);
@@ -247,7 +243,7 @@
     var(--sui-danger-fill-hover) 82%,
     var(--sui-text-primary)
   );
-  --sui-neutral-tint: var(--sui-surface-inset);
+  --sui-neutral-tint: color-mix(in srgb, var(--sui-text-secondary) 8%, transparent);
   /* A placeholder is a veil, so it reads the same on a card, the canvas or an inset, and the
      light that crosses it while it waits is a brighter veil over that. */
   --sui-placeholder: rgb(0 0 0 / 7%);
@@ -262,7 +258,7 @@
      starts and ends wholly outside a placeholder up to about 28rem tall. */
   --sui-placeholder-reach: 12rem;
 
-  --sui-role-tint: #e8e1f2;
+  --sui-role-tint: color-mix(in srgb, var(--sui-role-ink) 8%, transparent);
   --sui-role-ink: #7a3fe0;
 
   --sui-interactive-hover-layer: rgb(0 0 0 / 9%);
