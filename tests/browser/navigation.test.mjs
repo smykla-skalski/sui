@@ -502,6 +502,24 @@ suite('navigation', together, () => {
     );
   });
 
+  test("a section's waiting count holds a two-digit count's box and leaves the heading its title", async () => {
+    const count = async (/** @type {string} */ path, /** @type {string} */ name) => {
+      const page = await openLayout(path, 1440);
+      try {
+        const heading = page.getByRole('heading', { level: 2, name, exact: true });
+        return await heading.locator('.sui-count').boundingBox();
+      } finally {
+        await page.close();
+      }
+    };
+    const loaded = await count('layouts/detail-pane/', 'Repositories 16');
+    const waiting = await count('layouts/detail-pane/loading/', 'Repositories');
+    assert.deepEqual(
+      [waiting?.x, waiting?.y, waiting?.width, waiting?.height],
+      [loaded?.x, loaded?.y, loaded?.width, loaded?.height]
+    );
+  });
+
   test("a property row with a face keeps its neighbours' pitch and holds a name that wraps", async () => {
     const page = await openLayout('layouts/detail-pane/', 1440);
     try {

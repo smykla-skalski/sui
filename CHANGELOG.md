@@ -34,7 +34,8 @@
 - A phone `AppShell` bar's `eyebrow` takes the primary ink, as the bar's one word at rest.
 - A `Timeline` with an actor anywhere in it stands every event's words past the avatar's seat at every width, not only when stacked, so its words keep one edge.
 - The detail pane's loading Outcome waits as one bar per count, each as wide as its label and value.
-- A `SideNav`'s kicker and group headings are compact caps, 12px at 0.05em, a step under the 14px rows, where 11px caps at 0.07em strained to read.
+- A `SideNav`'s kicker and group headings are compact caps, 12px at 0.05em, at every width, a step under the 14px rows, where 11px caps at 0.07em strained to read.
+- A `Section` takes `count={null}` while its number loads: a placeholder of a two-digit count's size holds the count's seat, and the heading is named by its title alone until the number arrives.
 - A `Disclosure` summary keeps its hint beside its words only with 32px to spare after it, and stands it under them otherwise, so a narrow aside or a phone never runs the two edge to edge as one line.
 - A folded `SideNav` draws its pages' glyphs at the 18px tier of a rail's places, so the one folded column holds one glyph size.
 - The law audit no longer judges the paint of words kept for a screen reader in a pixel-wide clip, such as a folded icon-only theme switch's words.

@@ -525,6 +525,16 @@ following a row closes the drawer.
     text-transform: uppercase;
   }
 
+  /* A phone raises the compact tier to 13px, which would stand the drawer head's hairline 1px
+     under the top bar's. The micro tier is 12px there, so the caps keep 12px at every width. */
+  @media (max-width: 47.9375rem) {
+    .sui-side-nav-kicker,
+    .sui-side-nav-group {
+      font-size: var(--sui-font-size-micro);
+      line-height: var(--sui-leading-micro);
+    }
+  }
+
   .sui-side-nav-thumb + .sui-side-nav-group {
     margin-block-start: 0;
   }
@@ -913,6 +923,23 @@ following a row closes the drawer.
       inset-inline-start: calc(50% + var(--sui-space-2) + var(--sui-space-1));
       margin: 0;
       position: absolute;
+    }
+
+    /* Anchored, the count stands 4px over the glyph's top and 4px past its end, as a place's
+       badge does on the rail, so the one folded column marks its places and pages alike. */
+    @supports (anchor-name: --a) {
+      .sui-side-nav[data-collapsed] .sui-side-nav-row {
+        anchor-scope: --sui-side-nav-glyph;
+      }
+
+      .sui-side-nav[data-collapsed] .sui-side-nav-glyph {
+        anchor-name: --sui-side-nav-glyph;
+      }
+
+      .sui-side-nav[data-collapsed] .sui-side-nav-count {
+        inset-block-start: calc(anchor(--sui-side-nav-glyph top) - var(--sui-space-1));
+        inset-inline-start: calc(anchor(--sui-side-nav-glyph end) + var(--sui-space-1));
+      }
     }
 
     /* A label replaced by its short form and the fold's words leave the strip but are still

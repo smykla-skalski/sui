@@ -300,7 +300,7 @@
               </div>
             </Section>
             <!-- The Load More line waits under the five rows as its words and its button. -->
-            <Section title="Repositories" count={16}>
+            <Section title="Repositories" count={null}>
               <Skeleton
                 rows={PAGE}
                 bars={false}
