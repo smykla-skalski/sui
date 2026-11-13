@@ -47,6 +47,7 @@
   layout="grid"
   --specimen-min="8rem"
   --specimen-max="8rem"
+  --specimen-column-gap="calc(2 * var(--sui-space-6))"
 >
   {#each past as time (time.label)}
     <Specimen label={time.label}
@@ -61,6 +62,7 @@
   layout="grid"
   --specimen-min="8rem"
   --specimen-max="8rem"
+  --specimen-column-gap="calc(2 * var(--sui-space-6))"
 >
   {#each future as time (time.label)}
     <Specimen label={time.label}><RelativeTime value={time.value} /></Specimen>
