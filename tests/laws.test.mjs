@@ -445,6 +445,11 @@ test('L-59 a state panel pads 28px by 20px, 20px on a phone, its action a step u
     /\.sui-day-heading \{[^}]*color: var\(--sui-text-primary\);/,
     'a day heading heads its entries in their own primary ink, not under them in the secondary'
   );
+  assert.match(
+    stripComments(styles['src/lib/components/DayHeading.svelte']),
+    /\.sui-day-heading \{[^}]*font: var\(--sui-weight-semibold\) var\(--sui-font-size-body\)/,
+    'a day heading stands a step over its 14px entries at the sub-section tier, not at their size'
+  );
   const table = stripComments(styles['src/lib/components/DataTable.svelte']);
   const refusal = stripComments(styles['src/lib/components/FormError.svelte']);
   assert.deepEqual(

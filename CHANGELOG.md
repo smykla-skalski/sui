@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- A `DayHeading` reads at the sub-section title tier, 15px semibold and 16px on a phone, a step over the 14px entries it heads, where it stood at their own size; a `Timeline`'s days take it too.
 - A `CodeBlock`'s file and language names read at the 13px caption size at every width, where 12px stood under the 14px code and copy words as small print.
 - A failed refresh over a list stands its mark and its retry 16px inside its edge, as a `FormError` does, where they stood 15px inside.
 - The sink's day feed keeps a form's 40rem measure on a wide page, so each time stays near its entry, where it stood about 950px off.
