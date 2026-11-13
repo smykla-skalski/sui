@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- A focused `RelativeTime` the pointer also rests on drops its hover veil, so its focus ring keeps 3:1 on a current row's plate, where the veil under it took the ring to 2.96:1.
 - A `DayHeading` reads in the primary ink, so it heads its entries instead of standing quieter than them; a `Timeline`'s days take it too.
 - An `EmptyState`'s and an `ErrorState`'s title read at 16px semibold, a step under the 17px list heading over them, as a `FormError` summary's message does, where both stood at 17px and competed with the heading.
 - A framed `CodeBlock`'s copy control rests on the raised ground, so on dark it stands over the head row instead of sinking under it.

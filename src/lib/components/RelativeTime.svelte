@@ -198,9 +198,10 @@ tooltip.
   /* Hover draws the dots in the words' full ink over a faint accent veil spread to the focus
      ring's outer edge, so hover and focus mark one box, and only nudges the words, so the time
      answers the pointer plainly and the reading stays in its sentence. White takes a tint less
-     than the dark card does before the veil reads, so light lays a firmer share. */
+     than the dark card does before the veil reads, so light lays a firmer share. Under the
+     focus ring the veil steps back, so the ring keeps 3:1 on a current row's plate (L-6). */
   @media (hover: hover) {
-    .sui-relative-time:not(.exact):hover {
+    .sui-relative-time:not(.exact):hover:not(:focus-visible) {
       --sui-local-dot: currentColor;
       --sui-local-veil: light-dark(
         color-mix(in srgb, var(--sui-focus) 12%, transparent),

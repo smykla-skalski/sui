@@ -975,6 +975,45 @@ suite('the kitchen sink', together, () => {
     }
   });
 
+  test('L-6 a focused time the pointer rests on keeps its ring legible on a current row', async () => {
+    for (const scheme of /** @type {const} */ (['light', 'dark'])) {
+      const page = await open(1440, scheme, {}, 'object-list');
+      try {
+        const time = page.locator('#object-list .sui-object-row time.sui-relative-time').first();
+        await time.evaluate((node) => {
+          const row = /** @type {HTMLElement} */ (node.closest('.sui-object-row'));
+          row.classList.add('current');
+          /** @type {HTMLElement} */ (row.parentElement).style.background =
+            'var(--sui-surface-inset)';
+        });
+        await page.keyboard.press('Shift');
+        await time.focus();
+        await time.hover();
+        await page.waitForTimeout(400);
+        assert.equal(await time.evaluate((node) => node.matches(':focus-visible')), true);
+        // The hover veil under the ring took it to 2.96:1 on the light current plate, a tint
+        // the audit's ring check does not composite, so the time must lay none under its ring.
+        assert.deepEqual(
+          await time.evaluate((node) => {
+            const look = getComputedStyle(node);
+            return [look.backgroundColor, look.boxShadow];
+          }),
+          ['rgba(0, 0, 0, 0)', 'none'],
+          `a focused, hovered time lays its veil under its ring, ${scheme}`
+        );
+        assert.deepEqual(
+          (await audit(page))
+            .filter(({ law }) => law === 'L-6')
+            .map(({ law, detail }) => `${law} ${detail}`),
+          [],
+          `a focused, hovered time on a current row, ${scheme}`
+        );
+      } finally {
+        await page.close();
+      }
+    }
+  });
+
   test('a picture draws the same before script runs as after, named once', async () => {
     // The server render with no script is the reader's first frame: there a picture that fails
     // draws nothing over its initials and their ring, and one that loads covers them, even
