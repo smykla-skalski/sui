@@ -407,7 +407,20 @@ suite('forms', together, () => {
           removers.nth(index).getAttribute('aria-label');
         await removers.nth(1).scrollIntoViewIfNeeded();
         await page.keyboard.press('Shift');
+        // Focus lands before the pointer's show delay has run out, from a page with no tip held
+        // or warm.
+        await page.evaluate(() => /** @type {HTMLElement} */ (document.activeElement).blur());
+        await page.mouse.move(0, 0);
+        await page.waitForTimeout(400);
+        await removers.nth(0).hover();
         await removers.nth(1).focus();
+        await page.waitForTimeout(600);
+        assert.deepEqual(
+          await shown(),
+          [await named(1)],
+          'a pointer that was waiting opened a tip beside the focused one'
+        );
+        await page.mouse.move(0, 0);
         await page.locator('.sui-tooltip:popover-open').waitFor();
         await removers.nth(0).hover();
         await page.waitForTimeout(600);

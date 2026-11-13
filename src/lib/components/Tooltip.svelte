@@ -84,6 +84,8 @@
     waiting = true;
     showTimer = window.setTimeout(() => {
       waiting = false;
+      // Focus may have reached another control while the pointer waited here.
+      if (held !== null && held !== id) return;
       if (hovered !== close) hovered?.();
       hovered = close;
       open = true;
