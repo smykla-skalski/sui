@@ -914,10 +914,11 @@ suite('the kitchen sink', together, () => {
     }
   });
 
-  test('L-6 the focus ring holds 3:1 on an open row the pointer rests on', async () => {
+  test('L-5 L-6 an open row the pointer rests on keeps its words and ring legible', async () => {
     // The open row's deeper hover share took the ring to 2.87:1 on the light inset ground, so a
     // row under keyboard focus keeps its resting plate while the pointer rests on it. A row
-    // under the pointer alone wears the hover plate, where no ring stands, so it is not measured.
+    // under the pointer alone wears the hover plate, where no ring stands but its quiet words
+    // still read, so only their contrast is measured there.
     const page = await open(1440, 'light', {}, 'avatar');
     try {
       const row = page.locator('#avatar .sui-object-row.current');
@@ -929,16 +930,20 @@ suite('the kitchen sink', together, () => {
       );
       await row.locator('a').hover();
       assert.deepEqual(
-        (await audit(page)).filter(({ law }) => law === 'L-6').map(({ detail }) => detail),
+        (await audit(page))
+          .filter(({ law }) => law === 'L-5' || law === 'L-6')
+          .map(({ law, detail }) => `${law} ${detail}`),
         [],
-        'a hovered row with no focus is measured on a plate no ring stands on'
+        'a hovered row with no focus'
       );
       await page.keyboard.press('Shift');
       await row.locator('a').focus();
       await row.locator('a').hover();
       assert.equal(await row.locator('a').evaluate((link) => link.matches(':focus-visible')), true);
       assert.deepEqual(
-        (await audit(page)).filter(({ law }) => law === 'L-6').map(({ detail }) => detail),
+        (await audit(page))
+          .filter(({ law }) => law === 'L-5' || law === 'L-6')
+          .map(({ law, detail }) => `${law} ${detail}`),
         []
       );
     } finally {

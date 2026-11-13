@@ -497,10 +497,20 @@ suite('forms', together, () => {
         await page.keyboard.press('Shift');
         await remove.focus();
         const ratio = await remove.evaluate((button) => {
+          // A canvas decodes every computed form, `color(srgb …)` from a mix too, to 0-255.
+          const context = /** @type {CanvasRenderingContext2D} */ (
+            Object.assign(document.createElement('canvas'), { width: 1, height: 1 }).getContext(
+              '2d',
+              { willReadFrequently: true }
+            )
+          );
           /** @param {string} color */
           const rgba = (color) => {
-            const [r, g, b, a = 1] = (color.match(/[\d.]+/g) ?? []).map(Number);
-            return { r, g, b, a };
+            context.clearRect(0, 0, 1, 1);
+            context.fillStyle = color;
+            context.fillRect(0, 0, 1, 1);
+            const [r, g, b, a] = context.getImageData(0, 0, 1, 1).data;
+            return { r, g, b, a: a / 255 };
           };
           /** @param {{ r: number, g: number, b: number, a: number }} top @param {{ r: number, g: number, b: number, a: number }} under */
           const over = (top, under) => ({
