@@ -784,6 +784,15 @@ suite('overlays', together, () => {
       }
     });
 
+    // An English 12-hour clock writes 9:26, not 09:26.
+    test('a whole instant pads its hour only where the language does', async () => {
+      const whole = await page
+        .locator('#relative-time time.sui-relative-time.exact')
+        .first()
+        .textContent();
+      assert.match(whole ?? '', /(?<!\d)9:26:53/);
+    });
+
     // The dots are a row drawn at the box's foot, which a descender does not skip as a native
     // underline would, so the foot stands clear of the deepest glyph.
     test("a relative time's dots stand 3px clear of its descenders", async () => {

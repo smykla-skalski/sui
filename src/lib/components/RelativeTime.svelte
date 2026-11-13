@@ -51,7 +51,8 @@
     ).format(at);
   }
 
-  /* The language decides the hour cycle and how the zone is spelled. */
+  /* The language decides the hour cycle, whether the hour pads to two figures, and how the
+     zone is spelled. */
   function exact(at: number, locale: string | undefined, timeZone: string | undefined): string {
     return once(
       `exact ${locale} ${timeZone}`,
@@ -60,7 +61,7 @@
           day: 'numeric',
           month: 'short',
           year: 'numeric',
-          hour: '2-digit',
+          hour: 'numeric',
           minute: '2-digit',
           second: '2-digit',
           timeZoneName: 'shortOffset',
