@@ -284,6 +284,13 @@ around it.
       display: none;
     }
 
+    /* An open item stands on its header band's ground, so it reads as one sheet beside the list
+       on the page's canvas rather than as a band over the canvas. With nothing open the pane
+       keeps the canvas, so its placeholder card keeps its lift. */
+    .open > .sui-list-detail-detail {
+      background: var(--sui-surface-base);
+    }
+
     /* Beside the list the open item is one pane of a page, not the page, so its header takes
        the compact title a phone's takes, and the list's heading keeps its weight beside it. */
     .sui-list-detail-detail {
