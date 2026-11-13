@@ -155,7 +155,7 @@ button. Without `tools` there is no button and the filter never folds.
 - Keyboard: Tab walks search, filter, tools button and action; in the menu Tab moves through the groups and closes the menu on leaving it, and Escape closes it and returns focus to the tools button.
 - Pointer and touch: every control keeps its own 34px tier, 44px on a phone; an outside press closes the menu.
 - Focus: opening the menu moves focus to its first chosen option; closing it with Escape returns focus to the tools button.
-- Responsive: a container query folds the filter into the menu under 24rem, so a phone's bar keeps the search and one line of controls; the search, the filter unit and the action wrap as whole pieces, and the search's label stands above its field once the field would have under 12rem beside it, and always under 24rem, where a pending search's words stand under the field, and the field stops at 32rem.
+- Responsive: a container query folds the filter into the menu under 24rem, so a phone's bar keeps the search and one line of controls; the search, the filter unit and the action wrap as whole pieces, and the search's label stands above its field once the field would have under 10rem beside it, and always under 24rem, where a pending search's words stand under the field, and the field stops at 32rem.
 - Accessibility: each group's heading is drawn and names it; `count` and `pending` are said through a polite status a moment after the reader pauses, and the drawn count is hidden from a screen reader, since the status says it; the tools button is described by the choices it holds.
 - Localization: `toolsLabel`, `pendingLabel` and `countLabel`, a function of the count with the count in the reader's format, are props with English defaults; the tools' choices are joined as a list in the page's language, the folded filter is set off by a dot rather than a written mark, and the bar follows the reading direction.
 - Performance: one container query and one short timer per bar; the menu mounts only with `tools`.
@@ -290,7 +290,7 @@ button. Without `tools` there is no button and the filter never folds.
   }
 
   /* The search's label stands before it on its line, as the filter's heading does, while the
-     field keeps 12rem beside it, the room a typed query needs, so a bar with a filter, tools
+     field keeps 10rem beside it, the room a typed query needs, so a bar with a filter, tools
      and an action keeps it there on a laptop; with less, as on a phone, the label stands above
      a field of the full width. The field stops at 32rem, so a wide bar keeps its controls
      together at its start and the action at its end. When the label wraps above the field the part
@@ -309,7 +309,7 @@ button. Without `tools` there is no button and the filter never folds.
 
   .sui-list-toolbar-field {
     display: grid;
-    flex: 1 1 12rem;
+    flex: 1 1 10rem;
     max-inline-size: 32rem;
     min-inline-size: 0;
   }

@@ -28,10 +28,12 @@
     { name: 'smykla-skalski/demo-app', state: 'active', updated: 12 }
   ];
 
+  const counted = (state: string) => repositories.filter((each) => each.state === state).length;
+
   const states = [
     { value: 'all', label: 'All', count: repositories.length },
-    { value: 'active', label: 'Active' },
-    { value: 'archived', label: 'Archived' }
+    { value: 'active', label: 'Active', count: counted('active') },
+    { value: 'archived', label: 'Archived', count: counted('archived') }
   ];
 
   const orders = [
