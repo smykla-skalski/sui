@@ -157,7 +157,17 @@
   /* Initials snap to a type step instead of scaling with the circle, so every list
      carries the same weight at a given size. */
   const step = $derived(
-    size < 24 ? 'nano' : size < 32 ? 'micro' : size < 40 ? 'meta' : size < 44 ? 'title' : 'large'
+    size < 24
+      ? 'nano'
+      : size < 28
+        ? 'micro'
+        : size < 32
+          ? 'compact'
+          : size < 40
+            ? 'meta'
+            : size < 44
+              ? 'title'
+              : 'large'
   );
 
   /* A workspace's corner follows its size, near 30% of it, through the radius scale: one
@@ -259,6 +269,11 @@ page runs. The initials' ink, not their advance or line, centres on the box.
 
   [data-step='micro'] {
     font-size: var(--sui-font-size-micro);
+  }
+
+  /* 28px, the default, gets its own step between 24px's 11px and 32px's 14px. */
+  [data-step='compact'] {
+    font-size: var(--sui-font-size-compact);
   }
 
   [data-step='meta'] {
