@@ -197,11 +197,15 @@ tooltip.
 
   /* Hover draws the dots in the words' full ink over a faint accent veil spread to the focus
      ring's outer edge, so hover and focus mark one box, and only nudges the words, so the time
-     answers the pointer plainly and the reading stays in its sentence. */
+     answers the pointer plainly and the reading stays in its sentence. White takes a tint less
+     than the dark card does before the veil reads, so light lays a firmer share. */
   @media (hover: hover) {
     .sui-relative-time:not(.exact):hover {
       --sui-local-dot: currentColor;
-      --sui-local-veil: color-mix(in srgb, var(--sui-focus) 8%, transparent);
+      --sui-local-veil: light-dark(
+        color-mix(in srgb, var(--sui-focus) 12%, transparent),
+        color-mix(in srgb, var(--sui-focus) 8%, transparent)
+      );
       background: var(--sui-local-veil);
       border-radius: var(--sui-radius-chip);
       box-shadow: 0 0 0 calc(var(--sui-focus-ring-offset) + var(--sui-focus-ring-width))

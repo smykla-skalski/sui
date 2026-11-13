@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- A hovered `RelativeTime`'s veil takes 12% of the focus hue in light, where 8% barely showed on white, and keeps 8% in dark.
 - `EmptyState` and `ErrorState` end at their own content beside a taller panel, and a `Section` no longer stretches a lone state panel, so no panel holds an empty foot of wash.
 - `CodeBlock` and `DiffBlock` fade their scrolled lines over 32px, 24px on a phone, so a cut word melts into the edge.
 - An `ErrorState` retry stands raised over the dark failure wash, and its hover and press veils take the danger hue instead of grey.
