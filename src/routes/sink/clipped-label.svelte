@@ -44,8 +44,10 @@
     inline-size: min(100%, 16rem);
   }
 
+  /* The mono face is darker at one weight, so the identifier steps down to match the label. */
   .mono {
     font-family: var(--sui-mono);
+    font-weight: var(--sui-weight-regular);
     font-variant-numeric: tabular-nums;
   }
 </style>

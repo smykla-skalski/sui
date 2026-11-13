@@ -982,7 +982,13 @@ suite('overlays', together, () => {
       const whole = page.locator('#clipped-label .sui-clipped-label', { hasText: /^Platform$/ });
       assert.equal(await whole.getAttribute('tabindex'), null, 'a label that fits took a tab stop');
       // A key press first, so the focus that follows counts as keyboard focus.
-      const before = await label.evaluate((node) => node.getBoundingClientRect().top);
+      /** @param {Element} node */
+      const wordsTop = (node) => {
+        const range = document.createRange();
+        range.selectNodeContents(node);
+        return range.getBoundingClientRect().top;
+      };
+      const before = await label.evaluate(wordsTop);
       await page.keyboard.press('Shift');
       await label.focus();
       await oneTip();
@@ -992,22 +998,23 @@ suite('overlays', together, () => {
         )
       );
       assert.deepEqual(tips, [await label.textContent()]);
-      // The box is trimmed to the baseline, so the ring is set past the font's descent there,
-      // never across a g or a p, and the label does not move to make that room.
-      const { reach, top } = await label.evaluate((node) => {
+      // The box is trimmed to the cap and the baseline, so the ring is set past the font's
+      // ascent and descent there, never across an l or a p, and the words do not move.
+      const { foot, head, top } = await label.evaluate((node) => {
         const range = document.createRange();
         range.selectNodeContents(node);
         const box = node.getBoundingClientRect();
+        const words = range.getBoundingClientRect();
+        const offset = parseFloat(getComputedStyle(node).outlineOffset);
         return {
-          reach:
-            box.bottom +
-            parseFloat(getComputedStyle(node).outlineOffset) -
-            range.getBoundingClientRect().bottom,
-          top: box.top
+          foot: box.bottom + offset - words.bottom,
+          head: words.top - (box.top - offset),
+          top: words.top
         };
       });
-      assert.ok(reach >= 0, `the ring runs ${(-reach).toFixed(1)}px inside the descenders`);
-      assert.equal(top, before, 'the label moved when it took focus');
+      assert.ok(foot >= 0, `the ring runs ${(-foot).toFixed(1)}px inside the descenders`);
+      assert.ok(head >= 0, `the ring runs ${(-head).toFixed(1)}px inside the ascenders`);
+      assert.equal(top, before, 'the words moved when the label took focus');
     });
 
     test('AC2 a time outside any control takes a tab stop and shows its whole instant', async () => {
