@@ -159,14 +159,16 @@
     title="Sync Check #4182"
     description="Compared 16 repositories in acme with the saved settings"
     kicker={back}
+    actions={headActions}
   >
     {#snippet status()}<Pill tone="warning" dot>3 differ</Pill>{/snippet}
     {#snippet facts()}<FactList facts={headline} />{/snippet}
-    {#snippet actions()}
-      <Button tone="signal">Check Again</Button>
-      <ActionMenu label="More actions" icon="more" toolbar items={menu} align="end" />
-    {/snippet}
   </PageHeader>
+{/snippet}
+
+{#snippet headActions()}
+  <Button tone="signal">Check Again</Button>
+  <ActionMenu label="More actions" icon="more" toolbar items={menu} align="end" />
 {/snippet}
 
 {#snippet body()}
@@ -228,9 +230,23 @@
 
   <main id="content" tabindex="-1">
     {#if view === 'loading'}
-      <PageHeader title="Sync Check #4182" kicker={back}>
+      <!-- The actions need no answer, so they stand where they will stay, and two bars hold the
+           description and the facts, so the zones under the header start near where they will. -->
+      <PageHeader title="Sync Check #4182" kicker={back} actions={headActions}>
         <!-- The status region is there from the first render, so the state is read once it arrives. -->
         {#snippet status()}{/snippet}
+        {#snippet facts()}
+          <div class="from-ink">
+            <Skeleton
+              rows={2}
+              bars={false}
+              rowHeight="1.75rem"
+              patience={Infinity}
+              label=""
+              loadedLabel=""
+            />
+          </div>
+        {/snippet}
       </PageHeader>
       <div class="zones">
         <DetailLayout>

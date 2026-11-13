@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- A `Link` is 500, not 600, as a `BackLink` and a breadcrumb link are, so a pane's links and its related links stand under the section titles they serve. Its ink and underline still mark it.
 - A `Callout`'s actions move under its copy once they leave it less than 14rem, not 11rem, so on a phone a message's title keeps one line and its text two, not three.
 - A `FactList` of rows keeps each label beside its value down to 18rem of its own width, not 25rem, so a detail pane's aside of properties and a phone's full-width list keep one line per fact.
 - A count beside a label, in a tab, a segment, a section's title or a sidebar row, is 13px at every width, not 12px on a desktop, so its figures hold beside the title or label they count.

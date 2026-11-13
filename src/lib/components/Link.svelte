@@ -55,7 +55,7 @@ is `Button` with `href`, and the way back from a page is `BackLink`.
 
 - Semantics: a native `<a href>` named by its words, with the external note as its description.
 - Content: a few words that say where it goes, never "click here"; an external one adds a 10px arrow kept on the line of its last word.
-- States: rest (action ink at 600 over an underline at 70% of it), hover (a whole 2px underline and an ink a step toward the page's ink), focus (a 2px ring 2px off), pressed (a deeper ink) and visited, which looks like rest.
+- States: rest (action ink at 500 over an underline at 70% of it), hover (a whole 2px underline and an ink a step toward the page's ink), focus (a 2px ring 2px off), pressed (a deeper ink) and visited, which looks like rest.
 - Keyboard: Tab reaches it and Enter follows it.
 - Pointer and touch: inside a sentence its target is the words' line, as WCAG 2.5.8 allows; `standalone` grows the hit area to 24px, and 44px on a phone or any touch screen.
 - Focus: following it moves focus as the browser's navigation does; nothing here moves it.
@@ -86,7 +86,7 @@ is `Button` with `href`, and the way back from a page is `BackLink`.
 <style>
   .sui-link {
     color: var(--sui-link);
-    font-weight: var(--sui-weight-semibold);
+    font-weight: var(--sui-weight-medium);
     inline-size: var(--sui-inline-snap);
     overflow-wrap: anywhere;
     text-decoration: underline;
