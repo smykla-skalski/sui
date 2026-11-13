@@ -1349,7 +1349,7 @@
   text-wrap: pretty;
 }
 
-/* Where a part lands focus: the kit's ring, not the browser's; a heading's hugs its words. */
+/* Where a part lands focus: the kit's ring; a heading's clears descenders. */
 :where([data-sui-landed]):focus-visible {
   border-radius: var(--sui-radius-chip);
   outline: var(--sui-focus-ring-width) solid var(--sui-focus);
@@ -1359,7 +1359,7 @@
 :where(h1, h2, h3, h4, h5, h6)[data-sui-landed]:focus-visible {
   inline-size: fit-content;
   max-inline-size: 100%;
-  outline-offset: var(--sui-space-1);
+  outline-offset: round(up, 0.25em + 1px, 1px);
 }
 
 /* A heading reached by its fragment lands a step below the edge, or below the sticky bars the

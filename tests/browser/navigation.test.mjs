@@ -1482,13 +1482,19 @@ suite('navigation', together, () => {
             const style = getComputedStyle(heading);
             const words = document.createRange();
             words.selectNodeContents(heading);
+            const box = heading.getBoundingClientRect();
             return {
               outline: `${style.outlineStyle} ${style.outlineWidth}`,
-              spare: heading.getBoundingClientRect().width - words.getBoundingClientRect().width
+              spare: box.width - words.getBoundingClientRect().width,
+              // The box is trimmed to the baseline, so the ring clears a descender only by its
+              // offset, which must reach past the font's descent there.
+              clear:
+                box.bottom + parseFloat(style.outlineOffset) - words.getBoundingClientRect().bottom
             };
           });
           assert.equal(ring.outline, 'solid 2px', "the browser's own outline traces the heading");
           assert.ok(ring.spare < 1, `the ring runs ${ring.spare}px past the heading's words`);
+          assert.ok(ring.clear >= 1, `the ring stands ${ring.clear.toFixed(1)}px off a descender`);
           await page.keyboard.press('Tab');
           assert.equal(
             await page.locator('[data-sui-landed]').count(),

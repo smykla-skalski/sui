@@ -246,14 +246,9 @@ and the header owes only the difference. A holder that hides the kicker at some 
   }
 
   /* A script lands focus on the title as a reading position after a navigation, so it draws
-     no ring. A ListDetail landing marks it and it wears the kit's ring, set out past the
-     descenders its box, trimmed to the cap, leaves out. */
+     no ring. A ListDetail landing marks it and it wears the kit's heading ring. */
   .sui-page-header-title:focus:not([data-sui-landed]) {
     outline: none;
-  }
-
-  .sui-page-header-title[data-sui-landed]:focus-visible {
-    outline-offset: round(up, 0.25em, 1px);
   }
 
   /* Proximity: a wrapped title's lines stand 1lh - 1cap apart in ink, so the description stands
