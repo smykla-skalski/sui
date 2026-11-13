@@ -7,11 +7,16 @@
 </script>
 
 <script lang="ts">
-  import { Button, FactLine, ObjectList, ObjectRow, Section, Skeleton } from '#lib';
+  import { Button, FactLine, ObjectList, ObjectRow, Pill, Section, Skeleton } from '#lib';
   import Example from '../kit/Example.svelte';
   import Specimen from '../kit/Specimen.svelte';
 
-  const names = ['smykla-skalski/sui', 'smykla-skalski/smyklot', 'smykla-skalski/ledger'];
+  // Each row has a side, as the placeholders promise, so the loaded rows take their shape.
+  const repositories = [
+    { name: 'smykla-skalski/sui', visibility: 'Public' },
+    { name: 'smykla-skalski/smyklot', visibility: 'Public' },
+    { name: 'smykla-skalski/ledger', visibility: 'Private' }
+  ];
 
   let loading = $state(true);
 
@@ -76,7 +81,7 @@
     <Section title="Repositories" level={4}>
       <Skeleton {loading} rows={3} label="Loading repositories…">
         <ObjectList>
-          {#each names as name (name)}
+          {#each repositories as { name, visibility } (name)}
             <ObjectRow>
               {#snippet main()}
                 <span class="name">{name}</span>
@@ -85,6 +90,7 @@
                   ></span
                 >
               {/snippet}
+              {#snippet side()}<Pill>{visibility}</Pill>{/snippet}
             </ObjectRow>
           {/each}
         </ObjectList>

@@ -801,7 +801,7 @@
   --sui-field-danger-hover: color-mix(in srgb, var(--sui-danger) 6%, transparent);
   --sui-danger-pressed: color-mix(in srgb, var(--sui-danger-fill) 82%, #000000);
   --sui-neutral-tint: color-mix(in srgb, var(--sui-text-secondary) 10%, var(--sui-surface-base));
-  --sui-placeholder: rgb(255 255 255 / 7%);
+  --sui-placeholder: rgb(255 255 255 / 10%);
   --sui-placeholder-glint: rgb(255 255 255 / 10%);
   --sui-placeholder-sheen: linear-gradient(
     115deg,
@@ -1055,7 +1055,7 @@
     --sui-field-danger-hover: color-mix(in srgb, var(--sui-danger) 6%, transparent);
     --sui-danger-pressed: color-mix(in srgb, var(--sui-danger-fill) 82%, #000000);
     --sui-neutral-tint: color-mix(in srgb, var(--sui-text-secondary) 10%, var(--sui-surface-base));
-    --sui-placeholder: rgb(255 255 255 / 7%);
+    --sui-placeholder: rgb(255 255 255 / 10%);
     --sui-placeholder-glint: rgb(255 255 255 / 10%);
     --sui-placeholder-sheen: linear-gradient(
       115deg,
