@@ -3670,9 +3670,8 @@ function taps(root: Document): Finding[] {
 }
 
 // L-119: the page ends where its content ends, and a box clipped to one pixel takes no room past
-// where it stands, at the end of the page or of a box that scrolls. Only a box left where it
-// would flow can stand past its holder's end; one placed by its insets, such as the router's
-// announcer at the top corner, cannot.
+// where it stands, at the end of the page or of a box that scrolls. Only the ends a box scrolls
+// toward count: the foot, and the inline end in the reading direction.
 function pageEnd(root: Document): Finding[] {
   const found: Finding[] = [];
   for (const box of audited(root, 'body *')) {
@@ -3680,14 +3679,18 @@ function pageEnd(root: Document): Finding[] {
     if (look.position !== 'absolute' || look.overflow === 'visible') continue;
     const edges = box.getBoundingClientRect();
     if (edges.width > 1 || edges.height > 1) continue;
-    const insets = box.computedStyleMap();
-    const flows = (from: string, to: string) =>
-      String(insets.get(from)) === 'auto' && String(insets.get(to)) === 'auto';
-    if (
-      (flows('top', 'bottom') && parseFloat(look.marginBlockEnd) > -edges.height) ||
-      (flows('left', 'right') && parseFloat(look.marginInlineEnd) > -edges.width)
-    )
-      found.push(finding('L-119', box, 'its clipped pixel stands past where it sits'));
+    let holder = box.parentElement;
+    while (holder && getComputedStyle(holder).display === 'contents') holder = holder.parentElement;
+    if (!holder) continue;
+    const room = holder.getBoundingClientRect();
+    const past = Math.max(
+      edges.bottom - room.bottom,
+      look.direction === 'rtl' ? room.left - edges.left : edges.right - room.right
+    );
+    if (past > 0.5)
+      found.push(
+        finding('L-119', box, `its clipped pixel stands ${round(past)}px past ${describe(holder)}`)
+      );
   }
   const page = root.scrollingElement ?? root.documentElement;
   const end = Math.max(
