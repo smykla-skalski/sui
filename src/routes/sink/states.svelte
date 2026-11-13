@@ -101,10 +101,12 @@
     </EmptyState>
   </Specimen>
   <Specimen label={filtered ? 'Emptied by a filter' : 'Filtered list'}>
-    <div class="filtered">
-      <Button onclick={() => (filtered = !filtered)}
-        >{filtered ? 'Show Every Repository' : 'Show Archived Only'}</Button
-      >
+    <Section title="Repositories" level={4} id="sink-states-filtered">
+      {#snippet actions()}
+        <Button onclick={() => (filtered = !filtered)}
+          >{filtered ? 'Show Every Repository' : 'Show Archived Only'}</Button
+        >
+      {/snippet}
       {#if filtered}
         <EmptyState
           live
@@ -114,9 +116,15 @@
           {#snippet action()}<Button tone="signal">Open Repository Settings</Button>{/snippet}
         </EmptyState>
       {:else}
-        <p class="name">smykla-skalski/sui</p>
+        <ObjectList aria-labelledby="sink-states-filtered">
+          {#each repositories as name (name)}
+            <ObjectRow>
+              {#snippet main()}<span class="name">{name}</span>{/snippet}
+            </ObjectRow>
+          {/each}
+        </ObjectList>
       {/if}
-    </div>
+    </Section>
   </Specimen>
 </Example>
 
@@ -244,16 +252,6 @@
 </Example>
 
 <style>
-  .filtered {
-    display: grid;
-    gap: var(--sui-space-3);
-    justify-items: start;
-  }
-
-  .filtered > p {
-    margin: 0;
-  }
-
   .loaded {
     align-content: start;
     display: grid;
