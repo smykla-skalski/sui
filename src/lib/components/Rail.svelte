@@ -236,6 +236,12 @@ lightness, with its glyph in the accent ink, on a plate of the accent tint, its 
     padding-block-start: var(--sui-space-3);
   }
 
+  /* The places keep the pitch the folded column keeps, 4px apart, so they hold still when the
+     pages fold under them. */
+  .host .sui-rail-list {
+    gap: var(--sui-space-1);
+  }
+
   .host .sui-rail-foot {
     grid-area: foot;
     margin-block-start: 0;
@@ -251,12 +257,12 @@ lightness, with its glyph in the accent ink, on a plate of the accent tint, its 
         / var(--sui-rail-width);
     }
 
+    /* One column keeps one pitch: every tile stands 4px from the next, places, pages and foot
+       alike, and the places stand 8px clear of the hairline under them, as a group's rows do. */
     .host[data-collapsed] .sui-rail-top {
-      padding-block-end: var(--sui-space-3);
+      padding-block-end: var(--sui-space-2);
     }
 
-    /* Under the fold control the foot's tiles follow at the 16px a folded sidebar's foot keeps
-       between its controls, so the fold and the foot read as one group. */
     .host[data-collapsed] .sui-rail-foot {
       padding-block-start: 0;
     }

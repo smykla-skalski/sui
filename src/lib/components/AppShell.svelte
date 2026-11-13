@@ -273,8 +273,8 @@ it reads them from context.
 
 On a wide screen `collapsed` folds the sidebar into an 80px strip of icons with short labels.
 With a rail the two become one column: the places at the top, a hairline, the pages, then the
-fold control and the rail's foot, so every place and page is still one press away and Tab meets
-them in the order they are drawn. Below 64rem there is no room to fold, so the sidebar stays
+fold control and the rail's foot, every tile 4px from the next, so every place and page is
+still one press away at one 48px pitch and Tab meets them in the order they are drawn. Below 64rem there is no room to fold, so the sidebar stays
 whole and its fold control leaves.
 
 On a phone, below 48rem of the shell's own width, a 56px bar names the current page once the
@@ -282,7 +282,7 @@ page's own h1 in the same words has gone under it; while that heading is on scre
 names only where the page is, its `eyebrow`, on the bar's middle. Its
 button, a glyph and the word `menuLabel`, parted from the title by a 20px hairline, opens the
 sidebar from the shell's top, over the bar and the content, as a modal drawer. The drawer's pages are 288px wide, or the sidebar's 228px
-beside the rail, and the drawer leaves at least 56px of the screen uncovered. `eyebrow` names where the page is, such as its workspace, over the title. Without `bottomNav` the rail rides in the drawer too. With it, the rail's few peer places stand
+beside the rail, its edge a hairline as well as a shadow, and the drawer leaves at least 56px of the screen uncovered. `eyebrow` names where the page is, such as its workspace, over the title. Without `bottomNav` the rail rides in the drawer too. With it, the rail's few peer places stand
 in a bar along the bottom, always in reach of a thumb, and the drawer holds only the pages.
 
 The layout answers to the shell's own width through container queries, so a shell inside a
@@ -600,6 +600,9 @@ viewport. `landmark="none"` keeps the content from claiming the page's one `main
     /* Folded, the rail and the strip are one column: the pages stand under the places, parted
        by a hairline across the column, and the column keeps the edge. */
     .sui-shell-grid[data-collapsed='true'] .sui-shell-pages.joined {
+      --sui-local-strip-start: var(--sui-space-2);
+      --sui-local-strip-end: var(--sui-space-1);
+
       border-block-start: var(--sui-stroke) solid var(--sui-sidebar-border);
       border-inline: 0;
     }
@@ -623,8 +626,11 @@ viewport. `landmark="none"` keeps the content from claiming the page's one `main
       display: none;
     }
 
+    /* The drawer's edge is a hairline as well as a shadow, since a shadow does not show on the
+       dark theme's scrim. */
     .sui-shell-side:popover-open {
       block-size: var(--sui-drawer-height);
+      border-inline-end: var(--sui-stroke) solid var(--sui-sidebar-border);
       box-shadow: var(--sui-shadow-popover);
       inset-block-start: var(--sui-drawer-top);
       inset-inline-start: var(--sui-drawer-start);

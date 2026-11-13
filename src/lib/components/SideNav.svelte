@@ -809,7 +809,11 @@ following a row closes the drawer.
      rather than being cut, the place's names give way, and a heading's boundary stays as
      space. */
   @container sui-shell (min-width: 64.0625rem) {
+    /* A column that joins a rail's places and foot sets its own block room, so its tiles keep
+       the places' pitch across the hairlines between them (AppShell). */
     .sui-side-nav[data-collapsed] {
+      padding-block: var(--sui-local-strip-start, var(--sui-space-4))
+        var(--sui-local-strip-end, var(--sui-space-4));
       padding-inline: var(--sui-space-1);
     }
 
@@ -826,8 +830,10 @@ following a row closes the drawer.
       padding-inline: var(--sui-space-1);
     }
 
-    /* The column keeps the strip's width, so a long label wraps instead of widening it. */
+    /* The column keeps the strip's width, so a long label wraps instead of widening it. The
+       tiles stand 4px apart, a 48px pitch, as a rail's places do in the same column. */
     .sui-side-nav[data-collapsed] .sui-side-nav-rows {
+      gap: var(--sui-space-1);
       grid-template-columns: minmax(0, 1fr);
     }
 
@@ -843,7 +849,7 @@ following a row closes the drawer.
       content: '';
       inline-size: var(--sui-space-6);
       justify-self: center;
-      margin-block-end: var(--sui-space-2);
+      margin-block-end: calc(var(--sui-space-2) - var(--sui-space-1));
     }
 
     .sui-side-nav[data-collapsed] .sui-side-nav-row {

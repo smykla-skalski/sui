@@ -21,7 +21,10 @@
 - A phone bottom bar's count rides its glyph's corner, as the rail's does.
 - The detail pane's loading rows show where each status will stand.
 - A `DetailLayout` aside is 18 to 20rem wide, not 16 to 20rem, and a `FactList` of rows keeps two columns at exactly 18rem of its own width, so a pane's properties keep each label beside its value in a 1100px window (L-110).
-- The detail pane's words end where they end in a 72rem pane on a wider one, as with the sidebar folded, so a row's status stays near its name and the header's actions stand over the aside's edge. A missing check's way out is the page's signal action, and the loading notice holds its symbol's tile.
+- The detail pane's words keep a 72rem pane's column on a wider one, as with the sidebar folded, centred as the kit's column is, so a row's status stays near its name. The app shell's overview keeps the same column, its sections 60rem wide inside it, so a place's pages share one start edge. A missing check's way out is the page's signal action.
+- The detail pane's loading state draws each fact's label and value, the related links, and the warning's symbol and action, and its notice, header and outcome placeholders change shape at the widths where the loaded words wrap, so no section moves when the check arrives.
+- A folded `AppShell` column keeps one 48px pitch: its places, pages and the rail's foot stand 4px apart, and the places stand 8px clear of the hairline under them, as a group's rows do. A rail beside the pages keeps its places 4px apart too, so they hold still when the sidebar folds. A folded `SideNav`'s rows stand 4px apart too.
+- The phone drawer's edge is a hairline as well as a shadow, so it shows on the dark theme's scrim.
 - A `SegmentedControl` or a `ThemeSwitch` with `iconOnly` draws each option's glyph alone, its word still naming its radio, for a box as narrow as a folded sidebar.
 
 - A `Skeleton`'s last row ends where a loaded list's last row ends once the list hands back its padding, so the section under it no longer moves 2px when the rows arrive.

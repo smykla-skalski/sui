@@ -122,7 +122,7 @@
 
   const details: Fact[] = [
     { label: 'Workspace', value: 'acme', href: '#overview' },
-    { label: 'Trigger', value: 'Manual, from the sync page' },
+    { label: 'Trigger', value: 'Manual' },
     { label: 'Requested by', value: requester },
     { label: 'Attempt', value: '1 of 3' }
   ];
@@ -167,7 +167,6 @@
 
 {#snippet header()}
   <PageHeader
-    class="head"
     title="Sync Check #4182"
     description="Compared 16 repositories in acme with the saved settings"
     kicker={back}
@@ -192,7 +191,7 @@
       <!-- The warning is about the repositories, so it heads the column that lists them. -->
       <Callout tone="warning" title="The check skipped 1 repository">
         {#snippet icon()}<Icon name="warning" size="sm" />{/snippet}
-        The app lost access to acme/legacy during the check
+        No read access to acme/legacy
         {#snippet actions()}<Button>Fix Access</Button>{/snippet}
       </Callout>
       <Section title="Outcome">
@@ -253,14 +252,14 @@
   <main id="content" tabindex="-1">
     {#if view === 'loading'}
       <!-- The actions need no answer, so they stand where they will stay, and bars stand where
-           the description's lines and the facts' lines will: one of each in a wide header, and
-           two lines of description over the facts' one line on a phone. -->
-      <PageHeader class="head" title="Sync Check #4182" kicker={back} actions={waitingActions}>
+           the description's lines and the facts' lines will: one of each where the description
+           fits a line, and two lines of description over the facts' one line where it wraps. -->
+      <PageHeader title="Sync Check #4182" kicker={back} actions={waitingActions}>
         <!-- The status region is there from the first render, so the state is read once it arrives. -->
         {#snippet status()}{/snippet}
         {#snippet facts()}
-          <div class="from-ink wide">{@render wait(2, '2.25rem')}</div>
-          <div class="from-ink narrow">
+          <div class="from-ink one-line">{@render wait(2, '2.25rem')}</div>
+          <div class="from-ink two-lines">
             {@render wait(2, '1.375rem')}
             <div class="fact-lines">{@render wait(1, '2.125rem')}</div>
           </div>
@@ -271,21 +270,27 @@
           {#snippet main()}
             <!-- The notice's room is held, so the sections do not drop when it arrives. One
                  region, the repositories', speaks for the pane, so the others wait without words. -->
-            <div class="notice">
-              <span class="tile" aria-hidden="true"></span>
-              <div class="words">
-                <div class="wide">
-                  <Skeleton
-                    rows={1}
-                    ruled={false}
-                    rowHeight="var(--notice-row)"
-                    patience={Infinity}
-                    label=""
-                    loadedLabel=""
-                  />
+            <div class="notice-room">
+              <div class="notice">
+                <span class="tile" aria-hidden="true"></span>
+                <div class="words">
+                  <div class="beside">
+                    <Skeleton
+                      rows={1}
+                      ruled={false}
+                      rowHeight="var(--notice-row)"
+                      patience={Infinity}
+                      label=""
+                      loadedLabel=""
+                    />
+                  </div>
+                  <!-- In a narrow column the notice's action stands under its words, so a
+                       button's placeholder stands under their bars. -->
+                  <div class="under from-ink">
+                    {@render wait(2, '1.375rem')}
+                    <span class="press"></span>
+                  </div>
                 </div>
-                <!-- On a phone the notice's action stands under its words, so the last bar is its. -->
-                <div class="narrow from-ink">{@render wait(4, '1.5rem')}</div>
               </div>
             </div>
             <Section title="Outcome">
@@ -312,23 +317,30 @@
             </Section>
           {/snippet}
           {#snippet aside()}
+            <!-- Each fact's label and value wait in a column of their own, and the related links
+                 wait on their lines. -->
             <Section title="Details">
-              <div class="from-ink">
-                <Skeleton
-                  rows={4}
-                  bars={false}
-                  rowHeight={FACT_ROW}
-                  patience={Infinity}
-                  label=""
-                  loadedLabel=""
-                />
+              <div class="from-ink facts">
+                {#each [0, 1] as column (column)}
+                  <Skeleton
+                    rows={4}
+                    bars={false}
+                    rowHeight={FACT_ROW}
+                    patience={Infinity}
+                    label=""
+                    loadedLabel=""
+                  />
+                {/each}
               </div>
+            </Section>
+            <Section title="Related">
+              <div class="from-ink links">{@render wait(2, 'var(--link-row)')}</div>
             </Section>
           {/snippet}
         </DetailLayout>
       </div>
     {:else if view === 'missing'}
-      <PageHeader class="head" title="Sync Check #4182" kicker={back}>
+      <PageHeader title="Sync Check #4182" kicker={back}>
         {#snippet status()}<Pill tone="neutral">Not found</Pill>{/snippet}
       </PageHeader>
       <!-- Nothing failed that a retry could fix, so the page says so in a neutral voice. -->
@@ -369,26 +381,20 @@
   }
 
   /* A row's status stays within a glance of its name, so on a pane wider than 72rem, as with
-     the sidebar folded, the header's words and the zones end where they end in a 72rem pane
-     and the band's ground and line still run to its edge. */
+     the sidebar folded, the header's words and the zones keep a 72rem pane's column, centred
+     as the kit's is, and the band's ground and line still run to the pane's edges. */
   main {
-    --detail-end: max(
+    --sui-local-head-inset: max(
       var(--sui-rhythm-pane-gutter),
-      calc(100% - 72rem + var(--sui-rhythm-pane-gutter))
+      calc((100% - 72rem) / 2 + var(--sui-rhythm-pane-gutter))
     );
   }
 
-  main > :global(.head) {
-    padding-inline-end: var(--detail-end);
-  }
-
-  /* The header's band stands flush with the pane's top and sides, and the zones under it keep
-     the band's gutter, so their words line up with the header's. */
   .zones {
     display: grid;
     gap: var(--sui-rhythm-section-gap);
     padding-block: 0 var(--sui-rhythm-pane-gutter);
-    padding-inline: var(--sui-rhythm-pane-gutter) var(--detail-end);
+    padding-inline: var(--sui-local-head-inset);
   }
 
   /* The stale notice speaks for the whole page, so it stands as near the warning under it as
@@ -432,8 +438,32 @@
 
   /* The time's 24px target gives back its room under the facts' 11px cap by a half pixel too
      few, so the loaded facts end a pixel under their words, and the bars do too. */
-  .from-ink.wide {
+  .from-ink.one-line {
     padding-block-end: 1px;
+  }
+
+  /* The description takes a second line in a header under 432px on a phone, where its text is
+     16px. */
+  .two-lines {
+    display: none;
+  }
+
+  @media (max-width: 47.9375rem) {
+    @container sui-page-header (max-width: 27rem) {
+      .one-line {
+        display: none;
+      }
+
+      .two-lines {
+        display: block;
+      }
+    }
+  }
+
+  /* The warning's action wraps under its words in a column under about 25rem, where its words
+     no longer fit their 14rem measure beside it (Callout), so the notice's room follows. */
+  .notice-room {
+    container: notice / inline-size;
   }
 
   .notice {
@@ -465,8 +495,39 @@
     min-inline-size: 0;
   }
 
-  .words > .wide {
+  .beside {
     margin-block: calc(-1 * var(--sui-space-4));
+  }
+
+  .under {
+    display: none;
+  }
+
+  /* The action's placeholder ends where the callout's button will, its inset from the foot. */
+  .press {
+    background: var(--sui-placeholder);
+    block-size: var(--sui-tier-quiet);
+    border-radius: var(--sui-radius-control);
+    display: block;
+    inline-size: 6rem;
+    margin-block: auto calc(var(--sui-space-3) + var(--sui-stroke) - var(--sui-space-4));
+  }
+
+  /* A fact's label column is as wide as the loaded labels' and their gap, and the facts end a
+     pixel under their words, as the header's do. */
+  .facts {
+    display: grid;
+    grid-template-columns: 7.25rem minmax(0, 1fr);
+    padding-block-end: 1px;
+  }
+
+  /* A related link's line is its target and a 4px gap: 28px, or 48px on a touch screen. The
+     last link ends at its words, and the last placeholder line keeps half its room under its
+     bar, so the section ends where the loaded one will. */
+  .links {
+    --link-row: 1.75rem;
+
+    margin-block-end: 1px;
   }
 
   /* The counts' line keeps a few pixels of room under its words, more where the sentence wraps
@@ -496,32 +557,11 @@
     display: none;
   }
 
-  @container outcome (max-width: 35rem) {
+  /* The sentence takes a second line in a column under 548px, or 585px on a phone, where its
+     text is 16px. */
+  @container outcome (max-width: 34.25rem) {
     .outcome > * {
       --outcome-room: 3px;
-    }
-
-    .outcome .wide {
-      display: none;
-    }
-
-    .outcome .narrow {
-      display: block;
-    }
-  }
-
-  @media (max-width: 47.9375rem) {
-    .notice {
-      --notice-row: 7.5rem;
-    }
-
-    .outcome > * {
-      --outcome-room: 4px;
-    }
-
-    /* A phone's Load More button is 44px, so its line is 10px taller. */
-    .more {
-      margin-block-end: var(--sui-space-6);
     }
 
     .wide {
@@ -530,6 +570,51 @@
 
     .narrow {
       display: block;
+    }
+  }
+
+  @container notice (max-width: 25.0625rem) {
+    .notice {
+      --notice-row: 6.25rem;
+    }
+
+    .beside {
+      display: none;
+    }
+
+    .under {
+      block-size: 100%;
+      display: flex;
+      flex-direction: column;
+    }
+  }
+
+  @media (max-width: 47.9375rem) {
+    /* A phone's Load More button is 44px, so its line is 10px taller. */
+    .more {
+      margin-block-end: var(--sui-space-6);
+    }
+
+    @container outcome (max-width: 36.5625rem) {
+      .outcome > * {
+        --outcome-room: 4px;
+      }
+
+      .wide {
+        display: none;
+      }
+
+      .narrow {
+        display: block;
+      }
+    }
+  }
+
+  @media (max-width: 47.9375rem), (pointer: coarse) {
+    .links {
+      --link-row: 3rem;
+
+      margin-block-end: calc(-1 * var(--sui-space-1) - 1px);
     }
   }
 
