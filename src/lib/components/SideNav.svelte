@@ -525,13 +525,12 @@ following a row closes the drawer.
     text-transform: uppercase;
   }
 
-  /* A phone raises the compact tier to 13px, which would stand the drawer head's hairline 1px
-     under the top bar's. The micro tier is 12px there, so the caps keep 12px at every width. */
+  /* A phone's 13px caps stand a pixel taller than 12px ones, so the head gives that pixel
+     back under the names, and its hairline stays at 56px, on the line the rail's first place
+     ends on. */
   @media (max-width: 47.9375rem) {
-    .sui-side-nav-kicker,
-    .sui-side-nav-group {
-      font-size: var(--sui-font-size-micro);
-      line-height: var(--sui-leading-micro);
+    .sui-side-nav-head {
+      padding-block-end: calc(var(--sui-space-3) - 1px);
     }
   }
 
@@ -923,6 +922,12 @@ following a row closes the drawer.
       inset-inline-start: calc(50% + var(--sui-space-2) + var(--sui-space-1));
       margin: 0;
       position: absolute;
+    }
+
+    /* On the current page's plate the ring takes the plate's ground, so it parts the count
+       from the label without a pale halo on the plate. */
+    .sui-side-nav[data-collapsed] .sui-side-nav-row[aria-current='page'] .sui-side-nav-count {
+      box-shadow: 0 0 0 var(--sui-stroke-bold) var(--sui-sidebar-active-bg);
     }
 
     /* Anchored, the count stands 4px over the glyph's top and 4px past its end, as a place's
