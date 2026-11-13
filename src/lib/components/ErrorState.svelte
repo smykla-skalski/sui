@@ -139,14 +139,14 @@ of them.
      carries the state and the words keep their contrast. The wash is mixed over the surface,
      so it reads as a clean tint on a page's warm canvas too, never a grey one. The retry is the neutral default
      button, the reader's next step, which is to repeat the request (L-92). Stretched beside a
-     taller panel, its words keep to the top and its retry to the foot, as an empty panel's do. */
+     taller panel, its words and its retry keep to the top, as an empty panel's do. */
   .sui-error-state {
     --sui-local-error-ground: color-mix(
       in srgb,
       var(--sui-danger-tint) 65%,
       var(--sui-surface-base)
     );
-    align-content: space-between;
+    align-content: start;
     background: var(--sui-local-error-ground);
     border: var(--sui-stroke) solid var(--sui-danger-wash-edge);
     border-radius: var(--sui-radius-control);

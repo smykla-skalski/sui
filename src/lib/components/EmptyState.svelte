@@ -90,10 +90,10 @@ a step 8px under it.
 {/if}
 
 <style>
-  /* Stretched beside a taller panel, its words keep to the top and its action to the foot, so
-     the actions of panels on one line share it (L-59). */
+  /* Stretched beside a taller panel, its words and its action keep to the top, the action one
+     gap under the words it answers, never the panel's foot away from them (L-59). */
   .sui-empty-state {
-    align-content: space-between;
+    align-content: start;
     background: var(--sui-surface-raised);
     border: var(--sui-stroke) solid var(--sui-border-subtle);
     border-radius: var(--sui-radius-control);

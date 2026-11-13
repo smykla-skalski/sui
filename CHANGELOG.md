@@ -17,6 +17,7 @@
 - The Relative Time page's In Context line reads its times in the primary ink over its muted words.
 - A focused `CodeBlock` draws its ring over its own edge, round its copy control too, where a second box stood inside the frame; a `bare` block keeps the ring inside its scroller. On a phone the language's name stands on the copy control's baseline.
 - An `EmptyState` and an `ErrorState` pad 20px at the sides of their words, where 24px left a narrow column's description a line longer.
+- An `EmptyState` or `ErrorState` stretched beside a taller panel keeps its action one gap under its words, where it stood at the panel's foot.
 - A `CodeBlock`'s copy control rests on the block's own hairline and firms to a button's edge on hover, where it wore a button's edge at rest.
 - A hovered `RelativeTime` draws its dots in its words' full ink, where they took 80% of it.
 - A `RelativeTime`'s focus ring stands 2px further from its first and last letters, as far as it stands from the cap, with its dots still under the words alone.
