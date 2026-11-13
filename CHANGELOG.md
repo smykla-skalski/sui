@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- The kit's icon page shows each size tier beside a word at the text size it stands with in the kit: micro, compact, caption, control and title.
 - An `Icon` named `settings` draws two rails at the micro and xs tiers, where three rails 5 units apart merged their knobs at 12px and under.
 - The kit's icon page names each glyph at 12px, where the 11px names asked for a close look.
 - The kit's states page opens its filtered specimen emptied, so the Empty State example shows an empty panel in every column at rest, and the panel speaks only once the reader's own filter empties it.
