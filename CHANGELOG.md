@@ -10,6 +10,7 @@
 - A `Chip`'s remove control draws its focus ring inside itself, where the ring's outer side fell on the chip's edge as a double line.
 - Beside its list, a `ListDetail`'s open item stands on its header band's ground, so it reads as one sheet beside the list rather than as a band over the page's canvas; with nothing open the pane keeps the canvas.
 - The `Skeleton` page's First Load puts its button, Show Rows, in the list's head, beside the title it reloads, and its label fits a phone's head at twice the text size.
+- A `Skeleton`'s side bar is 3.5rem wide, as wide as a short pill, where it was 5rem, and plain rows keep no empty side column, so their bar is half the row as a two-line row's first bar is half its name's room.
 - On a phone a `Skeleton` row's side bar drops under its name once the name would keep less than 15rem, as an `ObjectRow`'s side does, in a pill's 20px slot, so a list whose sides drop does not grow when its rows arrive.
 - A 20px workspace `Avatar` rounds its corner 6px, the chip radius, near the 30% of its size the larger ones keep, where 8px read as a squircle.
 - The `Avatar` page sets each picture beside the same avatar whose picture does not load, and shows the question mark an avatar with no name or handle draws.

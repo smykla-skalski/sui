@@ -197,7 +197,8 @@ under reduced motion. Use it only where the shape of what is coming is already k
     box-sizing: border-box;
     display: grid;
     gap: var(--sui-space-4);
-    grid-template-columns: minmax(0, 1fr) min(5rem, 20%);
+    /* The side stands for a pill, as wide as a short one. */
+    grid-template-columns: minmax(0, 1fr) min(3.5rem, 20%);
     min-block-size: var(--sui-skeleton-row);
     padding-block: var(--sui-skeleton-lead);
   }
@@ -242,6 +243,7 @@ under reduced motion. Use it only where the shape of what is coming is already k
   .main > .bar:first-child,
   .sui-skeleton-rows:not(.bars) .row {
     font-size: var(--sui-font-size-body);
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .bar + .bar {
