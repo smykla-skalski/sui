@@ -52,7 +52,7 @@
     filter?: ListToolGroup;
     /** The sort and any further filters, gathered in one menu behind the tools button. */
     tools?: readonly ListToolGroup[];
-    /** The tools button's visible label, which also names its menu. */
+    /** The tools button's visible label, which also names its menu, when the menu holds more than one group. */
     toolsLabel?: string;
     /** The one primary action, at the end of the bar. */
     action?: Snippet;
@@ -83,6 +83,7 @@
   const current = $derived(filter ? (labelOf(filter) ?? '') : '');
   const list = (labels: (string | undefined)[]) => labels.filter(Boolean).join(mark('comma'));
   const chosen = $derived(list(tools.map(labelOf)));
+  const named = $derived(tools.length === 1 ? tools[0].label : undefined);
   // The button's description reads the filter's choice and the tools' as one list, since the
   // dot between them on screen is drawn, not read.
   const described = $derived(list([current, ...tools.map(labelOf)]));
@@ -147,7 +148,9 @@ The primary filter and the tools button are one unit and wrap together, so the b
 left on a line by itself. Short of room, the search takes its own line and the filter sits under
 it with the tools button, and turns into a select when its options do not fit. In a bar
 narrower than 24rem, as on any phone, the filter folds into the tools menu and its choice is named beside the
-button. Without `tools` there is no button and the filter never folds.
+button. Without `tools` there is no button and the filter never folds. With one tool group the
+button takes that group's label, so the choice beside it reads as its value, as in Sort by
+Updated, and takes `toolsLabel` once the filter folds in beside that group.
 
 - Semantics: a `SearchField` named by its drawn label, a `SegmentedControl` per group named by its visible heading, a tools `button` with `aria-haspopup="dialog"`, and a dialog `Popover` holding the further groups.
 - Content: a search label, an optional filter and tools of two to five options each, and one optional action.
@@ -218,7 +221,9 @@ button. Without `tools` there is no button and the filter never folds.
                 aria-describedby={`${uid}-described`}
               >
                 {#snippet icon()}<Icon name="sliders" size="base" />{/snippet}
-                {toolsLabel}
+                {#if named}<span class="sui-list-toolbar-named">{named}</span><span
+                    class="sui-list-toolbar-unnamed">{toolsLabel}</span
+                  >{:else}{toolsLabel}{/if}
                 {#snippet trailing()}<Icon name="chevron-down" size="base" />{/snippet}
               </Button>
             </span>
@@ -258,7 +263,7 @@ button. Without `tools` there is no button and the filter never folds.
     bind:open
     align="end"
     role="dialog"
-    aria-label={toolsLabel}
+    aria-label={named && !collapsed ? named : toolsLabel}
     closeOnLeave
     {onbeforetoggle}
   >
@@ -450,6 +455,20 @@ button. Without `tools` there is no button and the filter never folds.
     .foldable .sui-list-toolbar-dot {
       display: block;
     }
+
+    .foldable .sui-list-toolbar-named {
+      display: none;
+    }
+
+    .foldable .sui-list-toolbar-unnamed {
+      display: inline;
+    }
+  }
+
+  /* While no filter is folded into it the menu holds the one tool group, so the button takes
+     that group's name and the choice after it reads as its value: Sort by, then Updated. */
+  .sui-list-toolbar-unnamed {
+    display: none;
   }
 
   .sui-list-toolbar-panel {

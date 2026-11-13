@@ -29,7 +29,7 @@
   ];
 
   const states = [
-    { value: 'all', label: 'All', count: repositories.length },
+    { value: 'all', label: 'All' },
     { value: 'active', label: 'Active' },
     { value: 'archived', label: 'Archived' }
   ];
@@ -39,15 +39,18 @@
     { value: 'name', label: 'Name' }
   ];
 
-  /* Each bar keeps its own choices, so one example never changes another. */
-  function choices(shown: string, order: string) {
+  /* Each bar keeps its own choices, so one example never changes another, and All counts
+     what the bar's search leaves. */
+  function choices(shown: string, order: string, all = () => repositories.length) {
     const picked = $state({ shown, order });
     return {
       picked,
       get filter(): ListToolGroup {
         return {
           label: 'State',
-          options: states,
+          options: states.map((state) =>
+            state.value === 'all' ? { ...state, count: all() } : state
+          ),
           value: picked.shown,
           onchange: (value) => (picked.shown = value)
         };
@@ -67,7 +70,7 @@
 
   const parts = choices('all', 'updated');
   const narrow = choices('active', 'name');
-  const list = choices('all', 'updated');
+  const list = choices('all', 'updated', () => found.length);
 
   // The search is kept in the address, so a shared link opens the list as filtered.
   const search = addressed('q', '');
@@ -82,10 +85,13 @@
     context?.querySelector<HTMLInputElement>('[role="searchbox"]')?.focus();
   }
 
+  const found = $derived(
+    repositories.filter((repository) => repository.name.includes(search.value.trim().toLowerCase()))
+  );
+
   const rows = $derived(
-    repositories
+    found
       .filter((repository) => list.picked.shown === 'all' || repository.state === list.picked.shown)
-      .filter((repository) => repository.name.includes(search.value.trim().toLowerCase()))
       .sort((a, b) =>
         list.picked.order === 'name' ? a.name.localeCompare(b.name) : a.updated - b.updated
       )

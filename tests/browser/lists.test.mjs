@@ -493,7 +493,7 @@ suite('lists', together, () => {
         const page = await opened();
         const trigger = page
           .locator('#list-toolbar')
-          .getByRole('button', { name: 'Sort & Filter' });
+          .getByRole('button', { name: /^(Sort by|Sort & Filter)$/ });
         // A Modal opens on the first `[autofocus]` it holds, so a mark left in a closed panel
         // would send a reopened dialog's focus to a hidden control.
         const marks = () => page.evaluate(() => document.querySelectorAll('[autofocus]').length);
@@ -527,7 +527,7 @@ suite('lists', together, () => {
         // The last bar's menu has never opened, so it holds no placement from an earlier open.
         const trigger = page
           .locator('#list-toolbar')
-          .getByRole('button', { name: 'Sort & Filter' })
+          .getByRole('button', { name: /^(Sort by|Sort & Filter)$/ })
           .last();
         // Mid-screen, and at the viewport's foot, where a box first drawn under its trigger
         // would stand off the screen.
@@ -645,7 +645,22 @@ suite('lists', together, () => {
           );
           const triggers = page
             .locator('#list-toolbar')
-            .getByRole('button', { name: 'Sort & Filter' });
+            .getByRole('button', { name: /^(Sort by|Sort & Filter)$/ });
+          // A menu that holds only the sort is named for it, and one the filter has folded
+          // into takes the bar's tools label.
+          const named = await page
+            .locator('#list-toolbar .sui-list-toolbar:has(.sui-list-toolbar-trigger)')
+            .evaluateAll((bars) =>
+              bars.map((bar) => [
+                bar.querySelector('.sui-list-toolbar-segments')?.checkVisibility() !== false,
+                /** @type {HTMLElement} */ (
+                  bar.querySelector('.sui-list-toolbar-trigger button')
+                ).innerText.trim()
+              ])
+            );
+          for (const [inBar, name] of named) {
+            assert.equal(name, inBar ? 'Sort by' : 'Sort & Filter', `at ${width}px`);
+          }
           const count = await triggers.count();
           for (let index = 0; index < count; index++) {
             const trigger = triggers.nth(index);
