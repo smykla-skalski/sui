@@ -347,8 +347,11 @@ suite('lists', together, () => {
           document.querySelector('#states .sui-error-state:not(.over)')
         );
         const retry = /** @type {Element} */ (panel.querySelector('button'));
+        // A color-mix() resolves to color(srgb 0-1 ...), a plain fill to rgb(0-255 ...).
         const channels = (/** @type {string} */ color) =>
-          (color.match(/[\d.]+/g) ?? []).map(Number);
+          (color.match(/[\d.]+/g) ?? [])
+            .map(Number)
+            .map((value) => (color.startsWith('color(') ? value * 255 : value));
         const light = (/** @type {string} */ color) => {
           const [r, g, b] = channels(color);
           return 0.2126 * r + 0.7152 * g + 0.0722 * b;
