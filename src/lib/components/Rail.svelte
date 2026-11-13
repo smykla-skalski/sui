@@ -79,7 +79,7 @@ that place.
 
 Every tile is at least a 44px target with its icon over its label, `short` when one is given.
 A label that does not fit wraps under the icon instead of being cut, and a tooltip with the
-full name opens beside a tile only when `short` replaces it. A badge rides the icon's corner
+full name opens beside a tile only when `short` replaces it. A badge stands 4px clear of the icon's top-end corner
 and is read as part of the tile's name. Inside an `AppShell` the rail holds the shell's pages
 between its places and its foot: beside them in a column of their own while the sidebar is
 whole, and stacked with them in one column once it folds. Holding them, it marks its current
@@ -266,13 +266,6 @@ lightness, with its glyph in the accent ink, on a plate of the accent tint, its 
     .host[data-collapsed] .sui-rail-foot {
       padding-block-start: 0;
     }
-
-    /* In the one column a place's count stands where a page's does, 4px clear of its glyph's
-       top-end corner, so the column's counts share one offset. */
-    .host[data-collapsed] .sui-rail-badge {
-      inset-block-start: calc(-1 * var(--sui-space-1));
-      inset-inline-start: calc(100% + var(--sui-space-1));
-    }
   }
 
   .sui-rail-brand {
@@ -410,8 +403,9 @@ lightness, with its glyph in the accent ink, on a plate of the accent tint, its 
     font-weight: var(--sui-weight-medium);
   }
 
-  /* Something waiting is information, not a fault, so it wears the accent. A one-figure count
-     centres on the glyph's top-end corner, so it covers no more than that corner. */
+  /* Something waiting is information, not a fault, so it wears the accent. The count stands 4px
+     clear of its glyph's top-end corner, where a folded page's count stands, so it covers none
+     of the glyph and a folded column's counts share one offset. */
   .sui-rail-badge {
     align-items: center;
     background: var(--sui-brand-action);
@@ -424,8 +418,8 @@ lightness, with its glyph in the accent ink, on a plate of the accent tint, its 
     font: var(--sui-weight-semibold) var(--sui-font-size-micro) / var(--sui-leading-flat)
       var(--sui-sans);
     font-variant-numeric: tabular-nums;
-    inset-block-start: calc(-1 * var(--sui-space-2));
-    inset-inline-start: calc(100% - var(--sui-space-2));
+    inset-block-start: calc(-1 * var(--sui-space-1));
+    inset-inline-start: calc(100% + var(--sui-space-1));
     justify-content: center;
     min-inline-size: var(--sui-icon-base);
     padding-inline: var(--sui-space-1);

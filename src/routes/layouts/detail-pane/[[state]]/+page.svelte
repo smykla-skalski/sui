@@ -194,13 +194,13 @@
         No read access to acme/legacy
         {#snippet actions()}<Button>Fix Access</Button>{/snippet}
       </Callout>
-      <Section title="Outcome">
-        <FactList facts={counts} />
-      </Section>
+      <!-- The counts sum up the rows under them, so they open the list rather than a section of
+           their own. -->
       <Section title="Repositories" count={repositories.length} id="repositories-title">
         {#snippet actions()}
           <Link href="#repositories" standalone>Open sync page</Link>
         {/snippet}
+        <div class="tally"><FactList facts={counts} /></div>
         <ObjectList id="repositories-list" aria-labelledby="repositories-title">
           {#each repositories.slice(0, shown) as repository (repository.name)}
             <ObjectRow href="#repositories">
@@ -291,11 +291,9 @@
                 </div>
               </div>
             </div>
-            <Section title="Outcome">
-              <div class="from-ink counts">{@render wait(1, '1.5rem')}</div>
-            </Section>
             <!-- The Load More line waits under the five rows as its words and its button. -->
             <Section title="Repositories" count={16}>
+              <div class="tally from-ink counts">{@render wait(1, '1.5rem')}</div>
               <Skeleton
                 rows={PAGE}
                 bars={false}
@@ -423,6 +421,11 @@
      few, so the loaded facts end a pixel under their words, and the bars do too. */
   .from-ink.one-line {
     padding-block-end: 1px;
+  }
+
+  /* The counts stand over the rows as a section's description does, a copy gap from them. */
+  .tally {
+    margin-block-end: var(--sui-space-2);
   }
 
   /* The counts' line box stands 2px under their 11px cap. */

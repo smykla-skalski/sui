@@ -501,10 +501,13 @@ viewport. `landmark="none"` keeps the content from claiming the page's one `main
     visibility: hidden;
   }
 
+  /* The place is the bar's one word at rest, so it takes the primary ink; under the title it
+     still reads second by its size and weight. Its ink never changes, so the hand-over stays
+     opacity and a lift. */
   .sui-shell-eyebrow {
     align-content: center;
     block-size: var(--sui-block-snap);
-    color: var(--sui-sidebar-text-secondary);
+    color: var(--sui-sidebar-text);
     font: var(--sui-weight-medium) var(--sui-font-size-compact) / var(--sui-leading-compact)
       var(--sui-sans);
     margin: 0;
