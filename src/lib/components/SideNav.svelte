@@ -499,13 +499,15 @@ following a row closes the drawer.
     padding: 0;
   }
 
+  /* A heading over a group of links, the same step as a PageToc's title, so a page's two
+     indexes title their links alike. */
   .sui-side-nav-group {
     align-content: center;
     block-size: var(--sui-block-snap);
     color: var(--sui-sidebar-text-muted);
-    font: var(--sui-weight-semibold) var(--sui-font-size-micro) / var(--sui-leading-micro)
+    font: var(--sui-weight-semibold) var(--sui-font-size-compact) / var(--sui-leading-compact)
       var(--sui-sans);
-    letter-spacing: 0.07em;
+    letter-spacing: 0.04em;
     margin: var(--sui-space-5) var(--sui-space-3) var(--sui-space-2);
     padding-block: var(--sui-block-snap-room);
     text-box: trim-both cap alphabetic;

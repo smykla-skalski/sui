@@ -411,9 +411,9 @@ phone drawer, and following an entry closes the drawer before focus moves.
     align-content: center;
     block-size: var(--sui-block-snap);
     color: var(--sui-text-muted);
-    font: var(--sui-weight-semibold) var(--sui-font-size-micro) / var(--sui-leading-micro)
+    font: var(--sui-weight-semibold) var(--sui-font-size-compact) / var(--sui-leading-compact)
       var(--sui-sans);
-    letter-spacing: 0.06em;
+    letter-spacing: 0.04em;
     margin: 0 0 var(--sui-space-2);
     padding-block: var(--sui-block-snap-room);
     text-box: trim-both cap alphabetic;
