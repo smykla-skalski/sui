@@ -39,6 +39,7 @@
     system = true,
     label = word('ThemeSwitch.label', 'Theme'),
     hideLabel = true,
+    iconOnly = false,
     hint,
     lightLabel = word('ThemeSwitch.lightLabel', 'Light'),
     darkLabel = word('ThemeSwitch.darkLabel', 'Dark'),
@@ -59,6 +60,8 @@
     label?: string;
     /** Set false to draw `label` above the options. */
     hideLabel?: boolean;
+    /** Draws the sun, moon and system glyphs alone, the words still naming them, for a narrow box such as a folded sidebar. */
+    iconOnly?: boolean;
     /** A line under the options, such as why the shown theme is the system's. */
     hint?: string;
     lightLabel?: string;
@@ -202,6 +205,7 @@ switch then marks that choice from its first paint, before it runs.
   {label}
   {hideLabel}
   {hint}
+  {iconOnly}
   {options}
   class={className}
   onclick={pick}

@@ -19,7 +19,7 @@
   import type { HTMLAttributes } from 'svelte/elements';
   import Icon from '../icons/Icon.svelte';
   import { formatCount } from '../internal/locale.js';
-  import { followsInPlace, getShell } from '../internal/shell.svelte.js';
+  import { followsInPlace, getRailPages, getShell } from '../internal/shell.svelte.js';
   import Tooltip from './Tooltip.svelte';
 
   let {
@@ -53,8 +53,12 @@
   } & HTMLAttributes<HTMLElement> = $props();
 
   const shell = getShell();
-  const bar = shell?.bottomNav ?? false;
+  // The shell's pages, when this rail stands beside them rather than in the phone's bottom bar.
+  const pages = getRailPages();
+  const bar = (shell?.bottomNav ?? false) && !pages;
   const inBar = $derived(bar && shell?.mode === 'drawer');
+  // A phone's drawer in a shell with a bottom bar holds only the pages: the bar has the places.
+  const pagesOnly = $derived(pages && shell?.bottomNav && shell.mode === 'drawer');
   const tiles = $state<Record<string, HTMLElement | null>>({});
 
   const key = (item: RailItem) => item.href ?? item.label;
@@ -69,16 +73,18 @@
 
 <!--
 @component
-The outermost navigation: a 72px column of tiles, one per place, such as a workspace or a
+The outermost navigation: an 80px column of tiles, one per place, such as a workspace or a
 console. It changes where the reader is, and the `SideNav` beside it changes the page inside
 that place.
 
 Every tile is at least a 44px target with its icon over its label, `short` when one is given.
 A label that does not fit wraps under the icon instead of being cut, and a tooltip with the
 full name opens beside a tile only when `short` replaces it. A badge rides the icon's corner
-and is read as part of the tile's name. Inside an `AppShell` the rail stays beside the
-collapsed strip. On a phone it rides in the drawer, or, in a shell with `bottomNav`, it turns
-into the bottom bar: the same tiles side by side, sharing the width.
+and is read as part of the tile's name. Inside an `AppShell` the rail holds the shell's pages
+between its places and its foot: beside them in a column of their own while the sidebar is
+whole, and stacked with them in one column once it folds. On a phone it rides in the drawer, or,
+in a shell with `bottomNav`, it turns into the bottom bar: the same tiles side by side, sharing
+the width.
 
 Current is drawn the same way in every navigation list: the words and the plate carry it.
 Rest tiles are muted and the place on screen is primary ink, a step of 2:1 or more in
@@ -148,20 +154,35 @@ lightness, with its glyph in the accent ink, on a plate of the accent tint, its 
   >
 {/snippet}
 
-<nav {...rest} class={['sui-rail', className]} aria-label={label} data-bar={bar || undefined}>
-  {#if brand}
-    <div class="sui-rail-brand">{@render brand()}</div>
-    <span class="sui-rail-rule" aria-hidden="true"></span>
-  {/if}
-  <ul class="sui-rail-list" style:--sui-local-rail-count={items.length}>
-    {#each items as item (key(item))}{@render tile(item)}{/each}
-  </ul>
-  {#if foot.length > 0}
-    <ul class="sui-rail-list sui-rail-foot" style:--sui-local-rail-count={foot.length}>
-      {#each foot as item (key(item))}{@render tile(item)}{/each}
-    </ul>
-  {/if}
-</nav>
+{#if pagesOnly}
+  {@render pages?.()}
+{:else}
+  <nav
+    {...rest}
+    class={['sui-rail', className, { host: pages }]}
+    aria-label={label}
+    data-bar={bar || undefined}
+    data-collapsed={(pages && shell?.collapsed) || undefined}
+  >
+    <div class="sui-rail-top">
+      {#if brand}
+        <div class="sui-rail-brand">{@render brand()}</div>
+        <span class="sui-rail-rule" aria-hidden="true"></span>
+      {/if}
+      <ul class="sui-rail-list" style:--sui-local-rail-count={items.length}>
+        {#each items as item (key(item))}{@render tile(item)}{/each}
+      </ul>
+    </div>
+    <!-- The pages stand between the places and the foot, so Tab meets them in the order the
+         folded column draws them. -->
+    {@render pages?.()}
+    {#if foot.length > 0}
+      <ul class="sui-rail-list sui-rail-foot" style:--sui-local-rail-count={foot.length}>
+        {#each foot as item (key(item))}{@render tile(item)}{/each}
+      </ul>
+    {/if}
+  </nav>
+{/if}
 
 <style>
   .sui-rail {
@@ -173,13 +194,65 @@ lightness, with its glyph in the accent ink, on a plate of the accent tint, its 
     display: flex;
     flex-direction: column;
     gap: var(--sui-space-2);
-    /* The column is 72px at the default text size and widens with a reader's larger text, so
+    /* The column is 80px at the default text size and widens with a reader's larger text, so
        a label keeps its words on a line instead of breaking letter by letter. */
     inline-size: var(--sui-rail-width);
     overflow: hidden auto;
     overscroll-behavior: contain;
     padding-block: var(--sui-space-3);
     scrollbar-width: thin;
+  }
+
+  /* Alone, the places' part of the column is no box of its own. */
+  .sui-rail-top {
+    display: contents;
+  }
+
+  /* Beside the shell's pages the rail is a grid: its places at the top of its column, its foot
+     at the bottom, and the pages in a column of their own beside them. Folded, the three stack
+     in one column (AppShell), so the rail and the strip are one column. */
+  .host {
+    align-items: start;
+    border-inline-end: 0;
+    display: grid;
+    gap: 0;
+    grid-template:
+      'top pages' auto
+      '. pages' minmax(0, 1fr)
+      'foot pages' auto
+      / var(--sui-rail-width) minmax(0, max-content);
+    inline-size: auto;
+    min-inline-size: 0;
+    padding-block: 0;
+  }
+
+  .host .sui-rail-top {
+    align-items: center;
+    display: flex;
+    flex-direction: column;
+    gap: var(--sui-space-2);
+    grid-area: top;
+    padding-block-start: var(--sui-space-3);
+  }
+
+  .host .sui-rail-foot {
+    grid-area: foot;
+    margin-block-start: 0;
+    padding-block: var(--sui-space-2) var(--sui-space-3);
+  }
+
+  @container sui-shell (min-width: 64.0625rem) {
+    .host[data-collapsed] {
+      grid-template:
+        'top' auto
+        'pages' minmax(0, 1fr)
+        'foot' auto
+        / var(--sui-rail-width);
+    }
+
+    .host[data-collapsed] .sui-rail-top {
+      padding-block-end: var(--sui-space-3);
+    }
   }
 
   .sui-rail-brand {

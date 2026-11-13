@@ -82,8 +82,8 @@
     countedName?: (label: string, count: string) => string;
     /** Content under the title that stays in view with it, such as a switch between places. */
     head?: Snippet;
-    /** Quiet content at the bottom, such as the account. */
-    foot?: Snippet;
+    /** Quiet content at the bottom, such as the account, told whether the sidebar is the folded strip, where it has a glyph's width. */
+    foot?: Snippet<[folded: boolean]>;
     /** Called when a row is followed, for a router that handles the click itself. */
     onnavigate?: (event: MouseEvent, item: NavItem) => void;
     /**
@@ -249,9 +249,10 @@ from the current row, does not slide on first paint, and glides to the next row 
 changes. Until it is measured the row paints its own plate.
 
 Inside an `AppShell` wide enough to fold, a Collapse Navigation control at the end of the list folds it
-into a strip where each row is an icon over a short label, and Expand Navigation brings it back. A
-tooltip with the full name shows only where `short` replaces a label, and a count is still
-read aloud. In the phone drawer a close button takes the head's end on the first line of its names, rows are 44px, and
+into a strip where each row is an icon over a short label, and Expand Navigation, its glyph
+alone there with its words in a tooltip, brings it back. A tooltip with the full name shows only
+where `short` replaces a label, and a count is still read aloud. The `foot` is told when the
+sidebar is the strip, so it can draw a glyph's width, as `ThemeSwitch` does with `iconOnly`. In the phone drawer a close button takes the head's end on the first line of its names, rows are 44px, and
 following a row closes the drawer.
 
 - Semantics: a `nav` landmark named "<title> pages" by default that holds the whole sidebar, its title, rows, fold control and foot, so nothing in it stands outside a landmark; the title is a heading at `level`, each section a list labelled by its own heading one level below, and every row a link with `aria-current="page"` on the current one.
@@ -374,8 +375,11 @@ following a row closes the drawer.
             ><span>{shell.collapsed ? expandLabel : collapseLabel}</span></span
           >
         </button>
+        {#if mode === 'collapsed'}
+          <Tooltip anchor={fold} text={expandLabel} side="inline-end" />
+        {/if}
       {/if}
-      {#if foot}{@render foot()}{/if}
+      {#if foot}{@render foot(mode === 'collapsed')}{/if}
     </div>
   {/if}
 </nav>
@@ -803,14 +807,15 @@ following a row closes the drawer.
       margin-block: 0;
     }
 
-    /* A label wraps only between its words, and a word too long for the strip only at a hyphen
-       where the page's language allows one, so no word ever breaks without it. A shorter `short`
-       label is the way to a strip label that needs neither. */
+    /* A label wraps between its words, and a word too long for the strip at a hyphen where the
+       page's language allows one, or at a soft hyphen the label carries. A browser with no
+       hyphenation for the language breaks the word at the strip's edge instead, so no word is
+       ever cut. A shorter `short` label is the way to a strip label that needs neither. */
     .sui-side-nav[data-collapsed] :is(.sui-side-nav-label, .sui-side-nav-short) {
       flex: none;
       hyphens: auto;
       max-inline-size: 100%;
-      overflow-wrap: normal;
+      overflow-wrap: break-word;
     }
 
     .sui-side-nav[data-collapsed] .sui-side-nav-short {
@@ -821,8 +826,20 @@ following a row closes the drawer.
       text-box: trim-both cap alphabetic;
     }
 
-    /* A label replaced by its short form, and a count, leave the strip but are still read. */
-    .sui-side-nav[data-collapsed] :is(.sui-side-nav-label.replaced, .sui-side-nav-count) {
+    /* The fold is a control, not a place, so in the strip it is its glyph alone, named by its
+       words and a tooltip, the way a toolbar's icon button is. */
+    .sui-side-nav[data-collapsed] .sui-side-nav-fold {
+      min-block-size: var(--sui-touch-target);
+    }
+
+    /* A label replaced by its short form, a count and the fold's words leave the strip but are
+       still read. */
+    .sui-side-nav[data-collapsed]
+      :is(
+        .sui-side-nav-label.replaced,
+        .sui-side-nav-count,
+        .sui-side-nav-fold .sui-side-nav-label
+      ) {
       block-size: 1px;
       clip-path: inset(50%);
       inline-size: 1px;

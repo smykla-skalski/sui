@@ -601,9 +601,9 @@
   --sui-measure: 50ch;
 
   --sui-toc-width: 12rem;
-  --sui-rail-width: 4.5rem;
+  --sui-rail-width: 5rem;
   --sui-sidebar-width: 228px;
-  --sui-sidebar-width-collapsed: 4.5rem;
+  --sui-sidebar-width-collapsed: var(--sui-rail-width);
   --sui-top-bar-height: 56px;
 
   --sui-pressed-inset: inset 0 1px 2px rgb(0 0 0 / 12%);

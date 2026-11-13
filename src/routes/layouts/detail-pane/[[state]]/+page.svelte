@@ -86,7 +86,7 @@
     {
       items: [
         { href: '#overview', label: 'Overview', icon: 'gauge' },
-        { href: '#repositories', label: 'Repositories', icon: 'repositories' },
+        { href: '#repositories', label: 'Reposi\u00adtories', icon: 'repositories' },
         { href: '#queue', label: 'Queue', icon: 'pending', count: 3 }
       ]
     },

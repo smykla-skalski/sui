@@ -1,4 +1,4 @@
-import { getContext, setContext } from 'svelte';
+import { getContext, setContext, type Snippet } from 'svelte';
 import { tabStops } from './focus.js';
 
 /** `drawer` is a phone, `collapsed` the labelled icon strip on a wide screen, `full` everything else. */
@@ -16,6 +16,7 @@ export type ShellState = {
 };
 
 const key = Symbol('sui-shell');
+const pagesKey = Symbol('sui-shell-pages');
 
 export function setShell(state: ShellState): void {
   setContext(key, state);
@@ -24,6 +25,18 @@ export function setShell(state: ShellState): void {
 /** The shell around a navigation component, or nothing when it stands on its own. */
 export function getShell(): ShellState | undefined {
   return getContext<ShellState | undefined>(key);
+}
+
+/**
+ * Hands the shell's pages to the rail beside them, which draws them between its places and its
+ * foot, so the folded strip and the rail are one column whose Tab order is its visual order.
+ */
+export function setRailPages(pages: Snippet): void {
+  setContext(pagesKey, pages);
+}
+
+export function getRailPages(): Snippet | undefined {
+  return getContext<Snippet | undefined>(pagesKey);
 }
 
 /**

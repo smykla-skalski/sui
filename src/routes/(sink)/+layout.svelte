@@ -33,7 +33,12 @@
     {
       items: [
         { href: resolve('/(sink)'), label: 'Overview', icon: 'book' },
-        { href: `${resolve('/(sink)/all')}/`, label: 'All Components', icon: glyphSnippet('all') }
+        {
+          href: `${resolve('/(sink)/all')}/`,
+          label: 'All Components',
+          short: 'All',
+          icon: glyphSnippet('all')
+        }
       ]
     },
     ...families.map((members) => ({
@@ -41,6 +46,7 @@
       items: members.map(({ id, meta }) => ({
         href: everything ? `#${id}` : `${resolve('/(sink)/[id]', { id })}/`,
         label: meta.title,
+        short: meta.short,
         icon: glyphSnippet(id)
       }))
     }))
@@ -120,7 +126,7 @@
       onnavigate={follow}
       head={choices.length ? picker : undefined}
     >
-      {#snippet foot()}<ThemeSwitch system={false} />{/snippet}
+      {#snippet foot(folded: boolean)}<ThemeSwitch system={false} iconOnly={folded} />{/snippet}
     </SideNav>
   {/snippet}
 

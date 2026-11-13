@@ -1,6 +1,7 @@
 <script module lang="ts">
   export const section = {
     title: 'Copyable Link Field',
+    short: 'Link Field',
     lead: 'A generated link or token in a read-only field, copied in one press or selected by hand. A value the reader edits is a TextInput.',
     components: ['CopyableLinkField']
   };

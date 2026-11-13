@@ -3,6 +3,8 @@
    * in `sections.ts`. */
   export type SectionMeta = {
     title: string;
+    /** The title's words that fit the folded sidebar, for a title that would take more than two of its lines there, with a soft hyphen where a word too wide for it may break. */
+    short?: string;
     /** One or two sentences: what the component is for, and when to reach for another. */
     lead: string;
     /** The library components the section shows, linked to their source. */

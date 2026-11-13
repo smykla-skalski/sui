@@ -1,6 +1,7 @@
 <script module lang="ts">
   export const section = {
     title: 'Empty & Error States',
+    short: 'Error States',
     lead: 'What a collection says when it has nothing to show, or when its request failed, with a next step. A form the server refused shows a FormError.',
     components: ['EmptyState', 'ErrorState', 'FormError']
   };

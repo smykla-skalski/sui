@@ -4,6 +4,7 @@
   import type { HTMLAttributes } from 'svelte/elements';
   import Icon from '../icons/Icon.svelte';
   import { clearance } from '../internal/clearance.js';
+  import RailPages from '../internal/RailPages.svelte';
   import { rootFontSize } from '../internal/rem.svelte.js';
   import { firstStop, setShell, trapTab, type ShellMode } from '../internal/shell.svelte.js';
 
@@ -218,9 +219,11 @@ The frame of an application: an optional rail for the outermost choice, a sideba
 pages, and the content. The shell owns the layout and its states, and the navigation inside
 it reads them from context.
 
-On a wide screen `collapsed` folds the sidebar into a 72px strip of icons with short labels.
-The rail stays beside it, so every place is still one press away. Below 64rem there is no room
-to fold, so the sidebar stays whole and its fold control leaves.
+On a wide screen `collapsed` folds the sidebar into an 80px strip of icons with short labels.
+With a rail the two become one column: the places at the top, a hairline, the pages, then the
+fold control and the rail's foot, so every place and page is still one press away and Tab meets
+them in the order they are drawn. Below 64rem there is no room to fold, so the sidebar stays
+whole and its fold control leaves.
 
 On a phone, below 48rem of the shell's own width, a 56px bar names the current page. Its
 button, a glyph and the word `menuLabel`, opens the sidebar over the content as a modal drawer.
@@ -233,7 +236,7 @@ viewport. `landmark="none"` keeps the content from claiming the page's one `main
 
 - Semantics: a plain frame; the rail and the sidebar bring their own `nav` landmarks, the content is the page's `main` unless `landmark="none"`, and the phone drawer is a modal `dialog` named by `label`.
 - Content: a `rail` (usually a `Rail`), a `sidebar` (usually a `SideNav`), the content, a page `title` and optional `bar` controls; with `bottomNav` the rail should hold five places or fewer.
-- States: full, collapsed (wide screens only), phone with the drawer closed or open, and phone with the bottom bar; the menu button draws hover, pressed and focus like any bar control.
+- States: full, collapsed into one column with the rail (wide screens only), phone with the drawer closed or open, and phone with the bottom bar; the menu button draws hover, pressed and focus like any bar control.
 - Keyboard: Tab reaches the menu button, the bars and the content in order; in the open drawer Tab and Shift+Tab stay inside and Escape closes it.
 - Pointer and touch: the menu button and every bottom bar tile are 44px; a press outside the open drawer closes it, and nothing needs a gesture.
 - Focus: opening the drawer moves focus to its first control, and closing it, by Escape, a press outside or a followed link, returns focus to the menu button.
@@ -266,6 +269,10 @@ viewport. `landmark="none"` keeps the content from claiming the page's one `main
     {@render bar?.()}
   </header>
 
+  {#snippet pages()}
+    <div class={['sui-shell-pages', { joined: rail }]}>{@render sidebar()}</div>
+  {/snippet}
+
   <div class="sui-shell-grid" data-collapsed={collapsed}>
     {#if bottom}
       <div bind:this={places} class="sui-shell-places" inert={drawerOpen}>{@render rail?.()}</div>
@@ -274,17 +281,18 @@ viewport. `landmark="none"` keeps the content from claiming the page's one `main
       bind:this={side}
       id={sideId}
       popover="auto"
-      class="sui-shell-side"
+      class={['sui-shell-side', { joined: rail }]}
       role={mode === 'drawer' ? 'dialog' : undefined}
       aria-modal={mode === 'drawer' ? 'true' : undefined}
       aria-label={mode === 'drawer' ? label : undefined}
       {onbeforetoggle}
       {ontoggle}
     >
-      {#if rail && !bottom}
-        <div class="sui-shell-rail">{@render rail()}</div>
+      {#if rail}
+        <RailPages {pages}>{@render rail()}</RailPages>
+      {:else}
+        {@render pages()}
       {/if}
-      <div class="sui-shell-pages">{@render sidebar()}</div>
     </div>
     <svelte:element
       this={landmark === 'main' ? 'main' : 'div'}
@@ -415,10 +423,6 @@ viewport. `landmark="none"` keeps the content from claiming the page's one `main
     min-block-size: 0;
   }
 
-  .bottom-nav .sui-shell-grid {
-    grid-template-columns: auto auto minmax(0, 1fr);
-  }
-
   /* The chrome holds the rail and the pages side by side and carries a popover attribute for
      its phone drawer. Everywhere else it is in flow, so the browser's own popover box is undone
      here. Its fit-content width stays, so it follows the columns inside. */
@@ -438,20 +442,9 @@ viewport. `landmark="none"` keeps the content from claiming the page's one `main
     position: sticky;
   }
 
-  /* A short viewport, as at 400% zoom, leaves the rail less height than its tiles, so the
-     rail scrolls inside the column instead of being cut. */
-  .sui-shell-rail,
+  /* The bottom bar's places stand only on a phone. Wider, the rail beside the pages draws them. */
   .sui-shell-places {
-    display: flex;
-    flex: none;
-    min-block-size: 0;
-  }
-
-  .sui-shell-places {
-    align-self: start;
-    block-size: 100dvh;
-    inset-block-start: 0;
-    position: sticky;
+    display: none;
   }
 
   .sui-shell-pages {
@@ -463,7 +456,16 @@ viewport. `landmark="none"` keeps the content from claiming the page's one `main
     min-inline-size: 0;
   }
 
-  .contained :is(.sui-shell-side, .sui-shell-places) {
+  /* Beside a rail the pages ride inside it, between its places and its foot, and part from its
+     column by a hairline of their own. */
+  .sui-shell-pages.joined {
+    align-self: stretch;
+    border-inline-start: var(--sui-stroke) solid var(--sui-sidebar-border);
+    grid-area: pages;
+    max-inline-size: 100%;
+  }
+
+  .contained .sui-shell-side {
     align-self: stretch;
     block-size: auto;
   }
@@ -479,6 +481,17 @@ viewport. `landmark="none"` keeps the content from claiming the page's one `main
   @container sui-shell (min-width: 64.0625rem) {
     .sui-shell-grid[data-collapsed='true'] .sui-shell-pages {
       inline-size: var(--sui-sidebar-width-collapsed);
+    }
+
+    /* Folded, the rail and the strip are one column: the pages stand under the places, parted
+       by a hairline across the column, and the column keeps the edge. */
+    .sui-shell-grid[data-collapsed='true'] .sui-shell-pages.joined {
+      border-block-start: var(--sui-stroke) solid var(--sui-sidebar-border);
+      border-inline: 0;
+    }
+
+    .sui-shell-grid[data-collapsed='true'] .sui-shell-side.joined {
+      border-inline-end: var(--sui-stroke) solid var(--sui-sidebar-border);
     }
   }
 
@@ -543,6 +556,7 @@ viewport. `landmark="none"` keeps the content from claiming the page's one `main
     .sui-shell-places,
     .contained .sui-shell-places {
       align-self: end;
+      display: flex;
       block-size: auto;
       grid-row: 2;
       inset-block: auto 0;

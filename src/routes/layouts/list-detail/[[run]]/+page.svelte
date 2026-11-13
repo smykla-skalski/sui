@@ -113,7 +113,7 @@
       items: [
         { href: '#overview', label: 'Overview', icon: 'gauge' },
         { href: runsHref, label: 'Runs', icon: 'pending' },
-        { href: '#repositories', label: 'Repositories', icon: 'repositories' }
+        { href: '#repositories', label: 'Reposi\u00adtories', icon: 'repositories' }
       ]
     }
   ];

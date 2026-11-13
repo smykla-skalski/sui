@@ -39,6 +39,7 @@
     value = $bindable(null),
     name = id,
     disabled = false,
+    iconOnly = false,
     hint,
     countedLabel = word(
       'SegmentedControl.countedLabel',
@@ -60,6 +61,8 @@
     value?: string | null;
     name?: string;
     disabled?: boolean;
+    /** Draws each option's glyph alone, its word still naming it, for a box too narrow for the words, such as a folded sidebar. Every option needs an `icon`. */
+    iconOnly?: boolean;
     /** Help under the control, such as why an option is off, read as its description. */
     hint?: string;
     /** The fallback select's words for an option with a count, given the count already formatted. */
@@ -347,7 +350,8 @@ The thumb can be dragged: press the selected option and move, and the thumb and 
 the pointer from option to option, skipping disabled ones. Letting go chooses where it stands and
 fires `change` as a click would; Escape or a cancelled pointer puts it back.
 
-Short of room, the control draws the same choice as a native `Select`, with icons dropped and
+With `iconOnly` each option is its glyph alone, as wide as it is tall, and its word still
+names its radio, for a box as narrow as a folded sidebar. Short of room, the control draws the same choice as a native `Select`, with icons dropped and
 counts in brackets, such as "Users (24)". Both forms are drawn, and an inert, hidden copy of the
 segments, with no inputs, decides which shows: its scroll timeline is active only while it
 overflows the room, so the browser shows the right form before the first paint. A host that sets
@@ -382,7 +386,7 @@ itself, so the choice shows from the first frame.
 <div
   bind:this={element}
   {...rest}
-  class={['sui-segmented', className, { captioned, short: !fits }]}
+  class={['sui-segmented', className, { captioned, short: !fits, glyphs: iconOnly }]}
   {@attach fit}
 >
   {#if captioned}
@@ -1047,6 +1051,24 @@ itself, so the choice shows from the first frame.
   /* An option's words are a button's weight and the chosen one's a current tab's, so the thumb
      leads. A hidden semibold copy shares the words' cell, so an option already holds the room
      the chosen weight needs and neither it nor the thumb resizes on a choice (L-91). */
+  /* Glyphs alone: each option is as wide as it is tall, and its words still name its radio. */
+  .glyphs .sui-segmented-label {
+    padding-inline: calc(
+      (var(--sui-control-height-compact) - 2 * var(--sui-control-inset) - var(--sui-icon-base)) / 2
+    );
+  }
+
+  .glyphs .sui-segmented-word {
+    block-size: 1px;
+    clip-path: inset(50%);
+    inline-size: 1px;
+    margin: -1px;
+    overflow: hidden;
+    padding: 0;
+    position: absolute;
+    white-space: nowrap;
+  }
+
   .sui-segmented-word {
     align-content: center;
     block-size: var(--sui-block-snap);

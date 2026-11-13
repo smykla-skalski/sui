@@ -155,6 +155,41 @@ suite('navigation', together, () => {
     );
 
     test(
+      'L-88 folded, the rail and the pages are one column that Tab walks top to bottom',
+      long,
+      async () => {
+        const page = await shell();
+        await resize(page, 1440);
+        const fold = page.locator('.sui-side-nav-fold');
+        await fold.click();
+        try {
+          const column = await page.evaluate(() => {
+            const side = /** @type {HTMLElement} */ (document.querySelector('.sui-shell-side'));
+            const rail = /** @type {HTMLElement} */ (document.querySelector('.sui-rail'));
+            const stops = [...side.querySelectorAll('a[href], button')].filter(
+              (stop) => stop.getClientRects().length > 0
+            );
+            return {
+              side: side.getBoundingClientRect().width,
+              rail: rail.getBoundingClientRect().width,
+              tops: stops.map((stop) => Math.round(stop.getBoundingClientRect().top)),
+              lefts: [
+                ...new Set(stops.map((stop) => Math.round(stop.getBoundingClientRect().left)))
+              ]
+            };
+          });
+          // One column: the side is the rail's width and its edge, and no stop stands beside another.
+          assert.ok(column.side - column.rail <= 1, `side ${column.side}px, rail ${column.rail}px`);
+          assert.equal(column.lefts.length, 1, `stops start at ${column.lefts.join(', ')}px`);
+          const sorted = [...column.tops].sort((a, b) => a - b);
+          assert.deepEqual(column.tops, sorted, 'Tab order leaves the drawn order');
+        } finally {
+          await fold.click();
+        }
+      }
+    );
+
+    test(
       'a row followed in the phone drawer closes it and hands focus to the menu button',
       long,
       async () => {
