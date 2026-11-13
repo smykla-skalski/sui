@@ -3259,7 +3259,8 @@ function rings(root: Document): Finding[] {
 
 // A "Load more" row is the last row of the list before it: its button controls that list, and
 // the hairline the list draws stands as far under the last row's words as the row's own content
-// stands under the hairline.
+// stands under the hairline. A whole list's end note holds the button's height and stands in its
+// place, so there its box, not its ink, is what stands under the hairline.
 function loadMoreRows(root: Document): Finding[] {
   const found: Finding[] = [];
   for (const row of audited(root, '.sui-load-more')) {
@@ -3281,9 +3282,11 @@ function loadMoreRows(root: Document): Finding[] {
         : (inkLines(element)?.bottom ?? [])
     );
     const note = row.querySelector('.sui-load-more-text');
-    const tops = [button?.getBoundingClientRect().top, note && inkLines(note)?.top].filter(
-      (top): top is number => typeof top === 'number'
-    );
+    const end = row.querySelector('.sui-load-more-end')?.getBoundingClientRect().top;
+    const tops = [
+      button?.getBoundingClientRect().top ?? end,
+      note && !end && inkLines(note)?.top
+    ].filter((top): top is number => typeof top === 'number');
     if (words.length === 0 || tops.length === 0) continue;
     const line = list.getBoundingClientRect().bottom;
     const above = line - parseFloat(hairline.blockSize) - Math.max(...words);
