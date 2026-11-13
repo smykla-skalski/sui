@@ -8,7 +8,6 @@
 - The `PageToc` page closes its index with a hairline on a phone, where it stands over the article, so the links read apart from the first section.
 - `--sui-toc-width` is 17rem, so a `PageToc` section title of five words keeps one line beside the scrollbar gutter, where 12rem wrapped it beside empty room.
 - The `Avatar` page shows identity rows in an object list, one of them open on the current plate, so the avatar's tint and ring read on the grounds they meet in use.
-- An `Avatar`'s initials wear the neutral ring a picture wears, so initials and pictures beside each other have one edge, where the initials' ring was a line of their own blue.
 - An `Avatar`'s initials are semibold, the weight of the name an `IdentityRow` sets beside them, where bold read heavier than the name and than a section heading at 48px. The ink each letter draws is measured again at that weight, so the initials still centre on the circle.
 - The `Avatar` page states its pictures and fallbacks in a shorter note, since each specimen already names its case.
 - The `Avatar` page draws a picture at every size beside the initials it covers, and labels each row with the prop it sets, `shape="person"`, `shape="workspace"` and `src="…"`, and its identity rows show a picture that fails and a workspace's logo.
