@@ -1298,6 +1298,30 @@ suite('lists', together, () => {
       }
     );
 
+    test('a failure that wraps keeps Try Again at the end of its line', long, async () => {
+      const page = await opened();
+      const wide = page.viewportSize();
+      await page.setViewportSize({ width: 320, height: 800 });
+      try {
+        const at = await page.locator('#load-more-failed + .sui-load-more').evaluate((footer) => {
+          const box = (/** @type {Element} */ el) => el.getBoundingClientRect();
+          const words = document.createRange();
+          words.selectNodeContents(
+            /** @type {Element} */ (footer.querySelector('.sui-load-more-text'))
+          );
+          return {
+            footer: box(footer).right,
+            retry: box(/** @type {Element} */ (footer.querySelector('button'))).right,
+            lines: new Set([...words.getClientRects()].map(({ top }) => Math.round(top))).size
+          };
+        });
+        assert.ok(Math.abs(at.footer - at.retry) < 0.5, `the retry left the end: ${at.retry}`);
+        assert.ok(at.lines > 1, `the reason fits one line at 320px, so nothing wraps`);
+      } finally {
+        if (wide) await page.setViewportSize(wide);
+      }
+    });
+
     // Last in the suite: it grows two lists on the shared page.
     test(
       'a long list lays out only what is near the screen and draws it as a plain list does',
