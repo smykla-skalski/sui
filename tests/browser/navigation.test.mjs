@@ -4,6 +4,7 @@ import { after, before, suite, test } from 'node:test';
 import {
   allSections,
   atRest,
+  audit,
   brief,
   long,
   openMount,
@@ -1995,6 +1996,11 @@ suite('navigation', together, () => {
             )
           ),
           'the open row does not answer the pointer'
+        );
+        assert.deepEqual(
+          (await audit(page)).filter(({ law }) => law === 'L-5').map(({ detail }) => detail),
+          [],
+          'a word on the hovered open row falls under its contrast'
         );
         await page.mouse.move(0, 0);
         assert.equal(
