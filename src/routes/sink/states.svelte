@@ -96,6 +96,15 @@
       {#snippet action()}<Button tone="signal">Invite People</Button>{/snippet}
     </EmptyState>
   </Specimen>
+</Example>
+
+<!-- A list a filter can empty is a live control and its result, so it stands on its own rather
+     than as a third panel beside two whole ones. -->
+<Example
+  title="Emptied by a Filter"
+  note="The empty state takes the list's place when a filter leaves nothing, and is announced"
+  ground="canvas"
+>
   <Specimen label={filtered ? 'Emptied by a filter' : 'Filtered list'}>
     <div class="filtered">
       <Button onclick={() => (filtered = !filtered)}
