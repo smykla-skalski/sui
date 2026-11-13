@@ -204,10 +204,12 @@
   layout="stack"
 >
   <Specimen label="Refusal">
-    <FormError message="The invitation expired before anyone accepted it" />
+    <div class="measure">
+      <FormError message="The invitation expired before anyone accepted it" />
+    </div>
   </Specimen>
   <Specimen label="On submit">
-    <div class="form">
+    <div class="form measure">
       <Button onclick={submit}>{refused ? 'Clear the Refusal' : 'Submit the Form'}</Button>
       <FormError message={refused} />
     </div>
@@ -281,10 +283,14 @@
     justify-items: start;
   }
 
-  /* A form keeps a form's measure on a stage as wide as the page. */
+  /* A form keeps a form's measure on a stage as wide as the page, its refusals too. */
+  .measure,
+  .summary {
+    max-inline-size: 40rem;
+  }
+
   .summary {
     gap: var(--sui-space-4);
     justify-items: stretch;
-    max-inline-size: 40rem;
   }
 </style>

@@ -197,7 +197,7 @@ of them.
     align-self: start;
     color: var(--sui-danger);
     display: flex;
-    font: var(--sui-weight-semibold) var(--sui-font-size-card-title) / var(--sui-row-copy-leading)
+    font: var(--sui-weight-semibold) var(--sui-font-size-title) / var(--sui-row-copy-leading)
       var(--sui-sans);
     margin-block: round(calc((round(up, 1cap, 1px) - var(--sui-icon-base)) / 2), 1px);
   }
@@ -216,7 +216,7 @@ of them.
   .sui-error-state-title {
     text-wrap: balance;
     color: var(--sui-text-primary);
-    font: var(--sui-weight-semibold) var(--sui-font-size-card-title) / var(--sui-row-copy-leading)
+    font: var(--sui-weight-semibold) var(--sui-font-size-title) / var(--sui-row-copy-leading)
       var(--sui-sans);
   }
 
@@ -273,11 +273,6 @@ of them.
     .over > .sui-error-state-retry {
       margin-inline-start: calc(var(--sui-icon-base) + var(--sui-space-2));
     }
-  }
-
-  /* A line over a list heads only its own words, so its title keeps a panel's step quieter. */
-  .over :is(.sui-error-state-title, .sui-error-state-mark) {
-    font-size: var(--sui-font-size-title);
   }
 
   /* High contrast drops the tint, so the plate keeps its shape by an outline. */

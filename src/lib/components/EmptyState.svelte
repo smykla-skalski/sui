@@ -125,7 +125,7 @@ a step 8px under it.
   .sui-empty-state-title {
     text-wrap: balance;
     color: var(--sui-text-primary);
-    font: var(--sui-weight-semibold) var(--sui-font-size-card-title) / var(--sui-row-copy-leading)
+    font: var(--sui-weight-semibold) var(--sui-font-size-title) / var(--sui-row-copy-leading)
       var(--sui-sans);
   }
 
