@@ -117,7 +117,7 @@
 
   .name {
     color: var(--sui-text-secondary);
-    font: var(--sui-weight-regular) var(--sui-font-size-compact) / var(--sui-leading-compact)
+    font: var(--sui-weight-regular) var(--sui-font-size-caption) / var(--sui-leading-note)
       var(--sui-mono);
     overflow-wrap: anywhere;
   }

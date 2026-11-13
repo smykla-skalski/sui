@@ -8,7 +8,7 @@
 - A hovered copy control in a `CodeBlock`'s head takes a 4% veil of the ink on light, so it stays lighter than the head, where the shared 9% veil sank it under the head as if pressed.
 - The kit's icon page shows each size tier beside a word at the text size it stands with in the kit: micro, compact, caption, control and title.
 - An `Icon` named `settings` draws two rails at the micro and xs tiers, where three rails 5 units apart merged their knobs at 12px and under. Each rail runs through the middle of a pixel row, so it draws as one sharp line at 10px and 12px.
-- The kit's icon page names each glyph at 12px, where the 11px names asked for a close look.
+- The kit's icon page names each glyph at 13px on a 20px line, where the 11px names asked for a close look; no name wraps at 320px.
 - The kit's states page opens its filtered specimen emptied, so the Empty State example shows an empty panel in every column at rest, its toggle the panel's own action so the three panels stand one height, focus moving to the toggle that takes the pressed one's place, and the panel speaks only once the reader's own filter empties it.
 - Every `Icon` and every kit page's glyph draws one 2-unit stroke, 1.33px at 16px, so a field's alert mark weighs as the title beside it and the set reads as one family, where controls drew 2 and the rest 1.75; `file-missing`'s dash and the dashed rings keep their gaps open under the heavier round caps.
 - A framed `CopyButton` draws its focus ring 2px off a Copied or failed edge, as a filled button's ring stands off its fill, where the blue ring and the green edge fused into one band.
