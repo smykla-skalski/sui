@@ -982,6 +982,7 @@ suite('overlays', together, () => {
       const whole = page.locator('#clipped-label .sui-clipped-label', { hasText: /^Platform$/ });
       assert.equal(await whole.getAttribute('tabindex'), null, 'a label that fits took a tab stop');
       // A key press first, so the focus that follows counts as keyboard focus.
+      const before = await label.evaluate((node) => node.getBoundingClientRect().top);
       await page.keyboard.press('Shift');
       await label.focus();
       await oneTip();
@@ -991,6 +992,22 @@ suite('overlays', together, () => {
         )
       );
       assert.deepEqual(tips, [await label.textContent()]);
+      // The box is trimmed to the baseline, so the ring is set past the font's descent there,
+      // never across a g or a p, and the label does not move to make that room.
+      const { reach, top } = await label.evaluate((node) => {
+        const range = document.createRange();
+        range.selectNodeContents(node);
+        const box = node.getBoundingClientRect();
+        return {
+          reach:
+            box.bottom +
+            parseFloat(getComputedStyle(node).outlineOffset) -
+            range.getBoundingClientRect().bottom,
+          top: box.top
+        };
+      });
+      assert.ok(reach >= 0, `the ring runs ${(-reach).toFixed(1)}px inside the descenders`);
+      assert.equal(top, before, 'the label moved when it took focus');
     });
 
     test('AC2 a time outside any control takes a tab stop and shows its whole instant', async () => {
