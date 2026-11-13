@@ -142,9 +142,12 @@ outcome tones always come with their word, so color never carries the state alon
     margin-inline-start: calc(-1 * var(--sui-icon-ink-start, 0px));
   }
 
+  /* Each line is trimmed to its ink, so the leading only parts the lines of a label that wraps;
+     a one-line pill keeps its height. */
   .sui-pill-label {
     align-content: center;
     block-size: var(--sui-block-snap-even);
+    line-height: var(--sui-leading-compact);
     min-inline-size: 0;
     overflow-wrap: anywhere;
     padding-block: var(--sui-block-snap-room-even);
