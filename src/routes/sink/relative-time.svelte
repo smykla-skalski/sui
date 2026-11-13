@@ -71,10 +71,10 @@
 >
   <p class="line">
     <FactLine
-      ><span>Deployed by Ada <RelativeTime value={past[1].value} /></span><span>checked again</span
-      ></FactLine
+      ><span>Deployed by Ada <span class="when"><RelativeTime value={past[1].value} /></span></span
+      ><span>checked again</span></FactLine
     >
-    <RelativeTime value={future[0].value} />
+    <span class="when"><RelativeTime value={future[0].value} /></span>
   </p>
 </Example>
 
@@ -84,5 +84,11 @@
     font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-leading-meta)
       var(--sui-sans);
     margin: 0;
+  }
+
+  /* The times are what the line reports, so they read in the primary ink over its muted words,
+     as the standalone times above do. */
+  .when {
+    color: var(--sui-text-primary);
   }
 </style>
