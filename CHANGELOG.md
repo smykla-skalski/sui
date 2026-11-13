@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- The `ListToolbar` page draws the 17rem holder of its narrow bar as a hairline, so the bar reads as filling it.
 - A disabled painted `Chip` takes an off field's paint as a plain one does, with a tenth of its color over the well, so it reads as fixed beside them and still shows which label it is.
 - A `ListToolbar` whose tools hold one group names its button by that group, as in Sort by, with the choice beside it as its value, and takes `toolsLabel` only once the filter folds into the menu beside that group. The `ListToolbar` page's All counts what the search leaves.
 - A current `ObjectRow` answers the pointer as the rows around it do, on more of its accent, 22% on light and 28% on dark, never on a hovered row's grey, and on light its quiet words lean a fifth toward the primary ink, so they hold 4.5:1 on that deeper plate.

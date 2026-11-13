@@ -189,8 +189,13 @@
     min-inline-size: 0;
   }
 
+  /* The 17rem column is drawn, a hairline with no fill, so the bar reads as filling a narrow
+     holder rather than stopping short in a wide one. */
   .narrow {
-    inline-size: min(100%, 17rem);
+    border-radius: var(--sui-radius-surface);
+    box-shadow: 0 0 0 var(--sui-stroke) var(--sui-border-subtle);
+    inline-size: min(100% - 2 * var(--sui-space-3), 17rem);
+    padding: var(--sui-space-3);
   }
 
   .name {
