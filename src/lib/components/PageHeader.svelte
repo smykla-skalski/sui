@@ -353,6 +353,12 @@ and the header owes only the difference. A holder that hides the kicker at some 
     flex: none;
   }
 
+  /* A trailing ghost button draws nothing at rest, so its words end on the content's end edge
+     and its box reaches into the gutter, as a leading one does on a phone. */
+  .sui-page-header-actions:has(> :global(.sui-button[data-tone='ghost']):last-child) {
+    margin-inline-end: calc(-1 * var(--sui-space-3));
+  }
+
   /* In a shell as narrow as a phone, as on a wide screen's split pane, the header takes the
      phone's title and spacing by the shell's own width, as the shell's bars do. */
   @container sui-shell (max-width: 47.9375rem) {

@@ -28,7 +28,10 @@
 - A folded `SideNav` count stands 4px clear of its glyph, and the hairline under a folded column's places stands 4px in from its sides, as the foot's does.
 - A `PageHeader` whose actions take a line of their own hangs a leading ghost button's glyph on the copy's start edge, as a card head does (L-33).
 - A narrow `Timeline` with an actor anywhere in it stands every event's words where the actor's words stand, so its times keep one edge and its words another.
-- The detail pane's loading Repositories end in the Load More line's words and button rather than a sixth row, and the Outcome sentence wraps to lines of near equal length.
+- The detail pane's loading Repositories end in the Load More line's words and button rather than a sixth row.
+- The detail pane's Outcome is its counts alone, without a sentence that said them again, the stale notice's retry reads "Reload", the loading title's status waits as a pill-shaped placeholder, and a loading timeline's time bars are as wide as the times.
+- A folded `Rail` count rides past its glyph's top-end corner as a folded `SideNav` count does, and the phone drawer's pages beside the rail drop the second hairline between them.
+- A `PageHeader` hangs a trailing ghost button's words on the content's end edge, so a header action ends where the page's cards end.
 - A `SegmentedControl` or a `ThemeSwitch` with `iconOnly` draws each option's glyph alone, its word still naming its radio, for a box as narrow as a folded sidebar.
 
 - A `Skeleton`'s last row ends where a loaded list's last row ends once the list hands back its padding, so the section under it no longer moves 2px when the rows arrive.

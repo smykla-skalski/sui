@@ -95,6 +95,10 @@
 
   const space = mark('space');
 
+  // A clock placeholder is as wide as a time in this locale's hour cycle, in the mono face, so
+  // the words' placeholders start where the loaded words will.
+  const clockWidth = $derived(`${clock.format(new Date(2000, 0, 1, 10, 0, 0)).length}ch`);
+
   const opensDay = (index: number) =>
     days && (index === 0 || dayKey(sorted[index].at) !== dayKey(sorted[index - 1].at));
 </script>
@@ -142,7 +146,9 @@ only and a `LoadMore` after it lands on the first new one. Page it in the order 
     {#if events.length === 0}
       {#each { length: placeholders }, index (index)}
         <li class="sui-timeline-event placeholder" aria-hidden="true">
-          <div class={['sui-timeline-time', time]}><span class="bar"></span></div>
+          <div class={['sui-timeline-time', time]}>
+            <span class="bar" style:--sui-local-clock-width={clockWidth}></span>
+          </div>
           <div class="sui-timeline-words"><span class="bar"></span></div>
         </li>
       {/each}
@@ -369,7 +375,8 @@ only and a `LoadMore` after it lands on the first new one. Page it in the order 
   }
 
   .clock .bar {
-    inline-size: 8ch;
+    font-family: var(--sui-mono);
+    inline-size: var(--sui-local-clock-width);
   }
 
   .relative .bar {

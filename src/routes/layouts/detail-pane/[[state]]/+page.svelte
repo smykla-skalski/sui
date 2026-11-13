@@ -195,9 +195,6 @@
         {#snippet actions()}<Button>Fix Access</Button>{/snippet}
       </Callout>
       <Section title="Outcome">
-        <p class="lede">
-          3 repositories differ from the saved settings, 12 match and the check skipped 1
-        </p>
         <FactList facts={counts} />
       </Section>
       <Section title="Repositories" count={repositories.length} id="repositories-title">
@@ -255,8 +252,9 @@
            the description's lines and the facts' lines will: one of each where the description
            fits a line, and two lines of description over the facts' one line where it wraps. -->
       <PageHeader title="Sync Check #4182" kicker={back} actions={waitingActions}>
-        <!-- The status region is there from the first render, so the state is read once it arrives. -->
-        {#snippet status()}{/snippet}
+        <!-- The status region is there from the first render, so the state is read once it
+             arrives, and its pill's place is held beside the title. -->
+        {#snippet status()}<span class="chip" aria-hidden="true"></span>{/snippet}
         {#snippet facts()}
           <div class="from-ink one-line">{@render wait(2, '2.25rem')}</div>
           <div class="from-ink two-lines">
@@ -294,10 +292,7 @@
               </div>
             </div>
             <Section title="Outcome">
-              <div class="from-ink outcome">
-                <div class="wide">{@render wait(2, '2rem')}</div>
-                <div class="narrow">{@render wait(3, '1.6875rem')}</div>
-              </div>
+              <div class="from-ink counts">{@render wait(1, '1.5rem')}</div>
             </Section>
             <!-- The Load More line waits under the five rows as its words and its button. -->
             <Section title="Repositories" count={16}>
@@ -366,7 +361,7 @@
             Showing what loaded a minute ago
             {#snippet actions()}
               <Button loading={refreshing} onclick={refresh}>
-                {refreshing ? 'Trying Again…' : 'Try Again'}
+                {refreshing ? 'Reloading…' : 'Reload'}
               </Button>
             {/snippet}
           </Callout>
@@ -418,25 +413,8 @@
     }
   }
 
-  /* Proximity: the counts stand one copy gap further below the sentence than its own lines
-     stand apart, so a wrapped sentence still reads as one block (L-24). */
-  /* A wrapped sentence splits into lines of near equal length, so no count stands alone on
-     its last line. */
-  .lede {
-    align-content: center;
-    block-size: var(--sui-block-snap);
-    color: var(--sui-text-primary);
-    text-wrap: balance;
-    font: var(--sui-weight-regular) var(--sui-font-size-body) / var(--sui-leading-body)
-      var(--sui-sans);
-    margin: 0;
-    margin-block-end: calc(round(calc(1lh - 1cap), 1px) + var(--sui-row-copy-gap));
-    padding-block: var(--sui-block-snap-room);
-    text-box: trim-both cap alphabetic;
-  }
-
-  /* The sentence and the facts that will load here start at their ink, so the placeholders
-     hand back the room a list row keeps above its first bar. */
+  /* The words and the facts that will load here start at their ink, so the placeholders hand
+     back the room a list row keeps above its first bar. */
   .from-ink {
     --sui-local-row-lead: calc(-1 * var(--sui-row-pad-default));
   }
@@ -445,6 +423,11 @@
      few, so the loaded facts end a pixel under their words, and the bars do too. */
   .from-ink.one-line {
     padding-block-end: 1px;
+  }
+
+  /* The counts' line box stands 2px under their 11px cap. */
+  .from-ink.counts {
+    padding-block-end: 2px;
   }
 
   /* The description takes a second line in a header under 432px on a phone, where its text is
@@ -508,6 +491,15 @@
     display: none;
   }
 
+  /* The status pill's place beside the title, as tall and wide as the loaded one. */
+  .chip {
+    background: var(--sui-placeholder);
+    block-size: var(--sui-control-height-chip);
+    border-radius: var(--sui-radius-pill);
+    display: block;
+    inline-size: 4.5rem;
+  }
+
   /* The action's placeholder ends where the callout's button will, its inset from the foot. */
   .press {
     background: var(--sui-placeholder);
@@ -533,18 +525,6 @@
     --link-row: 1.75rem;
 
     margin-block-end: 1px;
-  }
-
-  /* The counts' line keeps a few pixels of room under its words, more where the sentence wraps
-     at a phone's looser leading. */
-  .outcome {
-    --outcome-room: 2px;
-
-    container: outcome / inline-size;
-  }
-
-  .outcome > * {
-    padding-block-end: var(--outcome-room);
   }
 
   /* The facts' line holds the time's 44px target, so it stands 24px of ink under the
@@ -575,26 +555,6 @@
     margin-block: 0;
   }
 
-  .narrow {
-    display: none;
-  }
-
-  /* The sentence takes a second line in a column under 548px, or 585px on a phone, where its
-     text is 16px. */
-  @container outcome (max-width: 34.25rem) {
-    .outcome > * {
-      --outcome-room: 3px;
-    }
-
-    .wide {
-      display: none;
-    }
-
-    .narrow {
-      display: block;
-    }
-  }
-
   @container notice (max-width: 25.0625rem) {
     .notice {
       --notice-row: 6.25rem;
@@ -608,22 +568,6 @@
       block-size: 100%;
       display: flex;
       flex-direction: column;
-    }
-  }
-
-  @media (max-width: 47.9375rem) {
-    @container outcome (max-width: 36.5625rem) {
-      .outcome > * {
-        --outcome-room: 4px;
-      }
-
-      .wide {
-        display: none;
-      }
-
-      .narrow {
-        display: block;
-      }
     }
   }
 

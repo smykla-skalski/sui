@@ -266,6 +266,13 @@ lightness, with its glyph in the accent ink, on a plate of the accent tint, its 
     .host[data-collapsed] .sui-rail-foot {
       padding-block-start: 0;
     }
+
+    /* In the one column a place's count stands where a page's does, 4px clear of its glyph's
+       top-end corner, so the column's counts share one offset. */
+    .host[data-collapsed] .sui-rail-badge {
+      inset-block-start: calc(-1 * var(--sui-space-1));
+      inset-inline-start: calc(100% + var(--sui-space-1));
+    }
   }
 
   .sui-rail-brand {

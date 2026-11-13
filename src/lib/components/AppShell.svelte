@@ -678,6 +678,12 @@ viewport. `landmark="none"` keeps the content from claiming the page's one `main
       flex: 0 1 auto;
     }
 
+    /* Over a bottom bar the rail stays in the bar, so the drawer's pages have no rail to part
+       from and draw no line on the screen's edge. */
+    .bottom-nav .sui-shell-side:popover-open .sui-shell-pages.joined {
+      border-inline-start: 0;
+    }
+
     .sui-shell-side::backdrop {
       background: var(--sui-scrim);
     }
