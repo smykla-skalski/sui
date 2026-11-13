@@ -119,7 +119,10 @@ margins of its own; the form that holds it sets the gap above it.
     padding: var(--sui-space-4);
   }
 
-  .sui-form-error:focus-visible {
+  /* Focus moves here by script, after a pointer submit too, where :focus-visible would draw no
+     ring, so any focus rings it and the reader sees where the keyboard now stands (GOV.UK's
+     error summary rings the same way). Only script and a click inside it focus it. */
+  .sui-form-error:focus {
     outline: var(--sui-focus-ring-width) solid var(--sui-focus);
     outline-offset: var(--sui-focus-ring-offset);
   }

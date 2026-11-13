@@ -14,6 +14,7 @@
 - A `CodeBlock` on a phone heads its copy control in a row of its own and gives its code the whole width, where the control's column took 112px beside every line.
 - A failure's edge holds 3:1 on dark through the new `--sui-danger-wash-edge`, where it held 2.5:1, on an `ErrorState`, a `FormError` and a refused `Modal` save, and an `ErrorState overContent`'s line draws the same edge round its tint.
 - The Relative Time page stands its past and future times on one grid of even columns, so on a phone a wrapped row starts each time under the one above it.
+- A `FormError` summary rings its focus after a pointer submit too, where only a keyboard submit drew the ring, so the reader sees where focus went.
 - On a phone the kit's specimen rows stand 8px past their name gap, so a page that widens the gap for its tips still reads each name with the specimen under it.
 - A failed refresh's retry ends its line, spread by space-between rather than an auto margin, and wraps under its words on any line too narrow for both, and a `FormError` summary's message heads its links at 16px semibold. L-90 lets a row whose first item hangs a mark start a wrapped line on the words' edge.
 - A `PageToc` keeps room for a scrollbar only while it scrolls, so an index that fits ends its plates on its column's end, and on a phone its words start on the page's text edge, with its plates hanging 8px past it.

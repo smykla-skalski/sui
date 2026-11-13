@@ -317,6 +317,11 @@ suite('forms', together, () => {
       const summary = page.locator('#states form .sui-form-error');
       await summary.waitFor();
       assert.ok(await summary.evaluate((box) => document.activeElement === box));
+      assert.equal(
+        await summary.evaluate((box) => getComputedStyle(box).outlineStyle),
+        'solid',
+        'a summary a pointer submit brought up shows no ring where focus went'
+      );
       await page.keyboard.press('Tab');
       await page.keyboard.press('Enter');
       assert.equal(await page.evaluate(() => document.activeElement?.id), 'sink-states-workspace');
