@@ -5,7 +5,7 @@
 - The sink's day feed keeps a form's 40rem measure on a wide page, so each time stays near its entry, where it stood about 950px off.
 - A `CopyButton` at rest is as wide as its resting and copied words, and widens to its failure's words only while they show, as a field's copy chip does, where a short "Copy" kept 9px of room on each side for a hidden "Try Again".
 - The sink's day feed parts its days by 24px, twice the 12px under each heading, where 20px stood too close for a heading to read as the head of its own run.
-- The sink's filter toggle stands at the end of the Repositories heading it filters, as a section action, where it stood under the rows as if it closed the list.
+- The sink's filtered rows stand a row's pitch over their toggle, as the recovered rows stand over theirs, where the filtered toggle sat 13px closer.
 - A framed `CopyButton` edges its Copied words in the success ink and its refusal in the danger ink, through a hover and inside a whole 2px focus ring, so a keyboard copy shows its result and keeps its ring.
 - A focused `RelativeTime` the pointer also rests on drops its hover veil, so its focus ring keeps 3:1 on a current row's plate, where the veil under it took the ring to 2.96:1.
 - A `DayHeading` reads in the primary ink, so it heads its entries instead of standing quieter than them; a `Timeline`'s days take it too.

@@ -1579,27 +1579,8 @@ suite('lists', together, () => {
       assert.match(at.words ?? '', /Usage for this month loaded/);
     });
 
-    test('a filter toggle stands in the head of the list it filters, emptied or not', async () => {
-      const page = await opened();
-      const toggle = page.locator('#states .sui-section-head button', {
-        hasText: /Show Archived Only|Show Every Repository/
-      });
-      const heads = [];
-      for (const words of ['Show Archived Only', 'Show Every Repository']) {
-        await toggle.filter({ hasText: words }).waitFor();
-        heads.push(
-          await toggle.evaluate(
-            (button) =>
-              button.closest('.sui-section')?.querySelector('h4')?.id === 'sink-states-filtered'
-          )
-        );
-        await toggle.click();
-      }
-      assert.deepEqual(heads, [true, true]);
-    });
-
     test(
-      'a retry that succeeds leaves the failed panels beside it at their height',
+      'a retry that succeeds leaves the failed panels beside it at their height, and its rows stand as far over their button as the filtered rows do',
       long,
       async () => {
         const page = await opened();
@@ -1616,8 +1597,27 @@ suite('lists', together, () => {
         const back = page.getByRole('button', { name: 'Show the Failure Again' });
         await settles(back.waitFor({ timeout: brief.timeout }));
         const after = await height();
+        // From the last row's ink to the button under the rows, in each specimen.
+        const under = (/** @type {string} */ id) =>
+          page.evaluate((id) => {
+            const section = /** @type {Element} */ (
+              document.getElementById(id)?.closest('.sui-section')
+            );
+            const names = section.querySelectorAll('.name');
+            const last = names[names.length - 1].getBoundingClientRect().bottom;
+            const buttons = section.querySelectorAll('button');
+            return buttons[buttons.length - 1].getBoundingClientRect().top - last;
+          }, id);
+        const [recovered, filtered] = [
+          await under('sink-states-recovered'),
+          await under('sink-states-filtered')
+        ];
         await back.click();
         assert.equal(after, before);
+        assert.ok(
+          Math.abs(recovered - filtered) < 0.5,
+          `recovered rows stand ${recovered}px over their button, filtered rows ${filtered}px`
+        );
       }
     );
 

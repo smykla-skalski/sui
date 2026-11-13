@@ -106,28 +106,32 @@
   </Specimen>
   <Specimen label={filtered ? 'Emptied by a filter' : 'Filtered list'}>
     <Section title="Repositories" level={4} id="sink-states-filtered">
-      {#snippet actions()}
-        <Button onclick={() => (filtered = !filtered)}
-          >{filtered ? 'Show Every Repository' : 'Show Archived Only'}</Button
-        >
-      {/snippet}
-      {#if filtered}
-        <EmptyState
-          live
-          title="No Archived Repositories"
-          description="Archive a repository from its settings and it appears here"
-        >
-          {#snippet action()}<Button tone="signal">Open Repository Settings</Button>{/snippet}
-        </EmptyState>
-      {:else}
-        <ObjectList aria-labelledby="sink-states-filtered">
-          {#each repositories as name (name)}
-            <ObjectRow>
-              {#snippet main()}<span class="name">{name}</span>{/snippet}
-            </ObjectRow>
-          {/each}
-        </ObjectList>
-      {/if}
+      <div class="loaded">
+        {#if filtered}
+          <EmptyState
+            live
+            title="No Archived Repositories"
+            description="Archive a repository from its settings and it appears here"
+          >
+            {#snippet action()}<Button tone="signal">Open Repository Settings</Button>{/snippet}
+          </EmptyState>
+        {:else}
+          <div class="rows">
+            <ObjectList aria-labelledby="sink-states-filtered">
+              {#each repositories as name (name)}
+                <ObjectRow>
+                  {#snippet main()}<span class="name">{name}</span>{/snippet}
+                </ObjectRow>
+              {/each}
+            </ObjectList>
+          </div>
+        {/if}
+        <div>
+          <Button onclick={() => (filtered = !filtered)}
+            >{filtered ? 'Show Every Repository' : 'Show Archived Only'}</Button
+          >
+        </div>
+      </div>
     </Section>
   </Specimen>
 </Example>
@@ -262,9 +266,9 @@
     gap: var(--sui-space-4);
   }
 
-  /* Recovered rows take back the last row's padding the list hands to the section, so the button
-     under them stands a row's pitch off, and the ring of their focus frames them whole, past the
-     title's edge too. */
+  /* Rows take back the last row's padding the list hands to the section, so a button under them
+     stands a row's pitch off, and recovered rows that take focus have a ring that frames them
+     whole, past the title's edge too. */
   .rows {
     border-radius: var(--sui-radius-control);
     margin-inline: calc(-1 * var(--sui-row-pad-default));
