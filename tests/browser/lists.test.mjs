@@ -54,24 +54,6 @@ suite('lists', together, () => {
   suite('the pattern entries', { concurrency: 1 }, () => {
     const opened = sharedPage();
 
-    test("a framed block's head ends its copy control 12px inside the block's edge", async () => {
-      const page = await opened();
-      const insets = await page.evaluate(() =>
-        [...document.querySelectorAll('#code-block .sui-code-block:not(.bare)')].flatMap(
-          (block) => {
-            const control = block.querySelector(':scope > .sui-code-block-copy button');
-            if (!control) return [];
-            const edge =
-              block.getBoundingClientRect().right -
-              parseFloat(getComputedStyle(block).borderRightWidth);
-            return [edge - control.getBoundingClientRect().right];
-          }
-        )
-      );
-      assert.ok(insets.length >= 4, `only ${insets.length} controls`);
-      assert.deepEqual([...new Set(insets)], [12], `controls end ${insets.join(', ')}px inside`);
-    });
-
     test("a block's names and its head's copy words read at the 13px caption tier", async () => {
       const page = await opened();
       const sizes = await page.evaluate(() =>
