@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- The sink's day feed keeps a form's 40rem measure on a wide page, so each time stays near its entry, where it stood about 950px off.
 - A `CopyButton` at rest is as wide as its resting and copied words, and widens to its failure's words only while they show, as a field's copy chip does, where a short "Copy" kept 9px of room on each side for a hidden "Try Again".
 - The sink's day feed parts its days by 24px, twice the 12px under each heading, where 20px stood too close for a heading to read as the head of its own run.
 - The sink's filter toggle stands at the end of the Repositories heading it filters, as a section action, where it stood under the rows as if it closed the list.
