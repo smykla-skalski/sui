@@ -311,6 +311,10 @@ from the corner and centred on the first line, or in the file name's row when th
   /* Beside a file name too long to share its row, the control takes a row of its own, from the
      start edge (L-90). */
   .sui-code-block-copy {
+    /* The block's frame already holds its control, and a framed button down each block of a
+       column reads as a column of buttons, so the control rests on the block's own hairline and
+       firms to a button's edge on hover (L-9). */
+    --sui-control-border: var(--sui-border-subtle);
     align-self: start;
     display: flex;
     flex: none;
