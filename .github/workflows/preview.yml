@@ -1,6 +1,6 @@
 name: Preview
 
-# Main is always at https://sui.smyklot.com, and a pull request that changes what the kitchen
+# Main is always at https://sui.tercenas.com, and a pull request that changes what the kitchen
 # sink renders gets its own copy at /pr-<number>. Setup is in preview/README.md.
 on:
   # Every push, so a dependency update that changes the sink reaches the root too.
@@ -23,7 +23,7 @@ concurrency:
 
 env:
   FLY_APP: sui-previews
-  PREVIEW_HOST: sui.smyklot.com
+  PREVIEW_HOST: sui.tercenas.com
   FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
   GH_REPO: ${{ github.repository }}
   GH_TOKEN: ${{ github.token }}
