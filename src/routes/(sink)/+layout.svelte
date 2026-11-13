@@ -45,7 +45,7 @@
       label: members[0].family,
       items: members.map(({ id, meta }) => ({
         href: everything ? `#${id}` : `${resolve('/(sink)/[id]', { id })}/`,
-        label: meta.title,
+        label: meta.label ?? meta.title,
         short: meta.short,
         icon: glyphSnippet(id)
       }))

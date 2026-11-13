@@ -564,8 +564,9 @@ viewport. `landmark="none"` keeps the content from claiming the page's one `main
     }
 
     /* Beside the rail the pages keep the sidebar's own width, so a wide strip of the screen
-       stays uncovered to close the drawer by. */
-    .sui-shell-side:popover-open .sui-shell-pages.joined {
+       stays uncovered to close the drawer by. Over a bottom bar the rail stays in the bar and
+       the pages keep their 288px. */
+    .sui-shell:not(.bottom-nav) .sui-shell-side:popover-open .sui-shell-pages.joined {
       inline-size: var(--sui-sidebar-width);
     }
 

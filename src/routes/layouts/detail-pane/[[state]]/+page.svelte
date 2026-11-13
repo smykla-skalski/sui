@@ -153,8 +153,16 @@
 
 {#snippet startedAt()}<RelativeTime value={started} />{/snippet}
 {#snippet requester()}<IdentityRow name="Bart Smykla" size={20} />{/snippet}
-{#snippet wait(rows: number, rowHeight: string, ruled = false)}
-  <Skeleton {rows} bars={false} {ruled} {rowHeight} patience={Infinity} label="" loadedLabel="" />
+{#snippet wait(rows: number, rowHeight: string)}
+  <Skeleton
+    {rows}
+    bars={false}
+    ruled={false}
+    {rowHeight}
+    patience={Infinity}
+    label=""
+    loadedLabel=""
+  />
 {/snippet}
 {#snippet back()}<BackLink href="#queue" label="Queue" />{/snippet}
 
@@ -262,15 +270,20 @@
         <DetailLayout>
           {#snippet main()}
             <!-- The notice's room is held, so the sections do not drop when it arrives. One
-                 region speaks for the pane, so the others wait without words. -->
+                 region, the repositories', speaks for the pane, so the others wait without words. -->
             <div class="notice">
-              <Skeleton
-                rows={1}
-                ruled={false}
-                rowHeight="var(--notice-row)"
-                patience={Infinity}
-                label="Loading sync check #4182…"
-              />
+              <div class="wide">
+                <Skeleton
+                  rows={1}
+                  ruled={false}
+                  rowHeight="var(--notice-row)"
+                  patience={Infinity}
+                  label=""
+                  loadedLabel=""
+                />
+              </div>
+              <!-- On a phone the notice's action stands under its words, so the last bar is its. -->
+              <div class="narrow from-ink">{@render wait(4, '1.5rem')}</div>
             </div>
             <Section title="Outcome">
               <div class="from-ink outcome">
@@ -280,7 +293,15 @@
             </Section>
             <!-- A sixth row stands for the Load More line under the five. -->
             <Section title="Repositories" count={16}>
-              <div class="more">{@render wait(PAGE + 1, NAME_ROW, true)}</div>
+              <div class="more">
+                <Skeleton
+                  rows={PAGE + 1}
+                  bars={false}
+                  rowHeight={NAME_ROW}
+                  patience={Infinity}
+                  label="Loading sync check #4182…"
+                />
+              </div>
             </Section>
             <Section title="Timeline">
               <Timeline events={[]} loading loadingLabel="" />
@@ -384,12 +405,16 @@
     border-radius: var(--sui-radius-control);
     box-shadow: inset 0 0 0 var(--sui-stroke) var(--sui-border-divider);
     box-sizing: border-box;
-    padding-inline: var(--sui-space-4);
+    padding: var(--sui-space-4);
+  }
+
+  .notice > .wide {
+    margin-block: calc(-1 * var(--sui-space-4));
   }
 
   /* The time among the facts is a 24px target, so the line that holds it reaches half the
      target past the facts' cap under the words, and the bars keep that room. */
-  .wide {
+  .from-ink.wide {
     font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-leading-none)
       var(--sui-sans);
     padding-block-end: round(

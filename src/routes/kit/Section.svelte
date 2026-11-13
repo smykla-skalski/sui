@@ -3,7 +3,9 @@
    * in `sections.ts`. */
   export type SectionMeta = {
     title: string;
-    /** The title's words that fit the folded sidebar, for a title that would take more than two of its lines there, with a soft hyphen where a word too wide for it may break. */
+    /** The sidebar's name, for a title too long for one line there; the page keeps the title. */
+    label?: string;
+    /** The title's words, or the start of one, that fit one line of the folded sidebar. */
     short?: string;
     /** One or two sentences: what the component is for, and when to reach for another. */
     lead: string;
