@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- A framed `CodeBlock`'s head row, its file name or its copy row, stands a faint step off the code, 2.5% of the ink over the code ground, so it reads as the block's head and not a first line.
 - A `FormError` summary sets its links 4px apart on a mouse, a 26px pitch, so they read as one list under the message, where 8px left 30px between 22px lines. Their 24px targets still never meet, and a touch screen keeps 24px between them.
 - A `CodeBlock`'s file name and language name are set at the compact size, 12px (13px on a phone), untracked, where 11px tracked mono read as a footnote under 14px code.
 - An `ErrorState overContent`'s tint meets the list's edges at its sides, where it stood 2px in from the rows' rules.

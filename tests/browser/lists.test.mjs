@@ -346,6 +346,44 @@ suite('lists', together, () => {
       }
     });
 
+    test('a framed code block heads its code with a faint step in both themes', async () => {
+      const page = await opened();
+      const found = await page.evaluate(() => {
+        const channels = (/** @type {string} */ color) =>
+          (color.match(/[\d.]+/g) ?? []).map(Number);
+        // A color-mix() resolves to color(srgb 0-1 ...), a plain fill to rgb(0-255 ...).
+        const luminance = (/** @type {string} */ color) => {
+          const scale = color.startsWith('color(') ? 1 : 255;
+          const [r, g, b] = channels(color).map((value) => {
+            const c = value / scale;
+            return c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
+          });
+          return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+        };
+        const heads = [
+          ...document.querySelectorAll(
+            '#code-block .sui-code-block:not(.bare) > :is(.sui-code-block-label, .sui-code-block-copy)'
+          )
+        ];
+        return ['light', 'dark'].flatMap((theme) =>
+          heads.map((head) => {
+            const block = /** @type {HTMLElement} */ (head.parentElement);
+            block.dataset.suiTheme = theme;
+            const [a, b] = [head, block]
+              .map((element) => luminance(getComputedStyle(element).backgroundColor) + 0.05)
+              .sort((x, y) => y - x);
+            delete block.dataset.suiTheme;
+            return { theme, ratio: a / b };
+          })
+        );
+      });
+      assert.ok(found.length >= 4, `only ${found.length} heads`);
+      for (const { theme, ratio } of found) {
+        assert.ok(ratio > 1.01, `in ${theme} a head is drawn on the code's own ground`);
+        assert.ok(ratio < 1.1, `in ${theme} a head stands ${ratio.toFixed(2)}:1 off its code`);
+      }
+    });
+
     test('on a phone a code block heads its copy control inside its edge and gives its code the whole width', async () => {
       const page = await opened();
       const blocks = await page.evaluate(() =>

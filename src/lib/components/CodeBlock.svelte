@@ -215,7 +215,7 @@ code, and `bare` drops the frame, its fill and the code's start inset for a host
 the block itself, so the code starts on the host's own edge, as under a disclosure's words. `html` colors markup,
 Svelte templates included. `shell` colors commands, flags, strings, variables and operators,
 and carries an open quote or a continued line on to the next line. The copy control heads
-the code in a row of its own, after the language's name, always in view and never over the
+the code in a row of its own, a faint step off the code as the file name's row is, after the language's name, always in view and never over the
 code, or stands in the file name's row when there is one; a `bare` block keeps it in a column
 beside its first line, and takes the row only on a phone. It copies `code` exactly as given.
 
@@ -384,6 +384,18 @@ beside its first line, and takes the row only on a phone. It copies `code` exact
     margin-block-start: 0;
     order: -1;
     padding-block-start: var(--sui-space-2);
+  }
+
+  /* The head row, the file name's or the copy row, stands a faint step off the code under it,
+     as a code window's tab row does, so the row reads as the block's head and not a first line.
+     The block clips it to its own inner corners, however the row wraps; nothing in a framed
+     block draws past its edge, its copy control standing 8px inside it. */
+  .sui-code-block:not(.bare) {
+    overflow: clip;
+  }
+
+  .sui-code-block:not(.bare) > :is(.sui-code-block-label, .sui-code-block-copy) {
+    background: color-mix(in srgb, var(--sui-text-primary) 2.5%, var(--sui-surface-code));
   }
 
   .sui-code-block:not(.bare) .sui-code-block-lang {
