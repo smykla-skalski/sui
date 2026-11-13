@@ -29,7 +29,7 @@
 <Example
   title="Rows"
   note="Bars stand where a row’s name, its line under it and its side will be, plain rows draw one line, and one light crosses them"
-  layout="grid"
+  layout="pairs"
   ground="canvas"
 >
   <Specimen label="Two-line rows">
@@ -53,7 +53,7 @@
 <Example
   title="Slow"
   note="A wait that outlasts its patience stops its light and says so in the first row’s shape, here from the start"
-  layout="grid"
+  layout="pairs"
   ground="canvas"
 >
   <Specimen label="Two-line rows">

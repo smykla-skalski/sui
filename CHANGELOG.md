@@ -11,6 +11,7 @@
 - With nothing open beside its list, a `ListDetail`'s placeholder stands centred across the pane and a quarter of the way down it, on whole pixels, where it stood in the pane's top corner.
 - Beside its list, a `ListDetail`'s open item stands on its header band's ground, so it reads as one sheet beside the list rather than as a band over the page's canvas; with nothing open the pane keeps the canvas.
 - The `Skeleton` page's First Load puts its button, Show Rows, in the list's head, beside the title it reloads, and its label fits a phone's head at twice the text size.
+- The `Skeleton` page sets its Rows and Slow examples in two wide columns, where three narrow tracks left the third one empty.
 - A `Skeleton`'s side bar is 3.5rem wide, as wide as a short pill, where it was 5rem, and plain rows keep no empty side column, so their bar is half the row as a two-line row's first bar is half its name's room.
 - On a phone a `Skeleton` row's side bar drops under its name once the name would keep less than 15rem, as an `ObjectRow`'s side does, in a pill's 20px slot, and a slow first row holds that slot too, so a list whose sides drop neither grows when its rows arrive nor moves when its wait turns slow.
 - A `PageToc`'s current entry stands on the accent plate the sidebar's current page wears, 18% of the accent on light and 24% on dark, where its grey inset plate looked like the hovered entry.
