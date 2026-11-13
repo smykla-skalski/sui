@@ -490,7 +490,8 @@ lightness, with its glyph in the accent ink, on a plate of the accent tint, its 
   }
 
   @media (forced-colors: active) {
-    .sui-rail-tile[aria-current] {
+    .sui-rail-tile[aria-current],
+    .host .sui-rail-tile[aria-current] {
       background-color: Highlight;
       color: HighlightText;
       /* Kept as written, or the browser draws a Canvas backplate behind the words on the plate. */
