@@ -215,7 +215,7 @@ and the one above as a hovered row does, and under the pointer takes more of the
     .sui-object-row.current:has(> .sui-object-row-hit:hover:not(:active)) {
       background-color: light-dark(
         color-mix(in srgb, var(--sui-brand-action) 30%, transparent),
-        color-mix(in srgb, var(--sui-brand-action) 38%, transparent)
+        color-mix(in srgb, var(--sui-brand-action) 42%, transparent)
       );
     }
 
