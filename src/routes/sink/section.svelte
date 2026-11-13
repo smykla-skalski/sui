@@ -190,12 +190,14 @@
 
 <style>
   /* A section's content is the page's own words, so it wears the content's ink, and the
-     section's description stays the quiet line over it. */
+     section's description stays the quiet line over it. Each specimen's copy is a line or two,
+     so it balances them and never ends on a longer second line. */
   .copy {
     color: var(--sui-text-primary);
     font: var(--sui-weight-regular) var(--sui-font-size-body) / var(--sui-leading-body)
       var(--sui-sans);
     margin: 0;
+    text-wrap: balance;
   }
 
   .name {
@@ -209,11 +211,11 @@
     text-box: trim-both cap alphabetic;
   }
 
-  /* A 30rem pane ends on a pane's divider, as it would beside the next pane, so the room past
-     it reads as another pane's and not as words that only wrapped. The divider runs the
-     specimen's whole height, from the line over it to the Code band, as a pane's edge runs the
-     window's: up past the specimen's name, its 16px gap and the stage's inset, and down
-     through the inset. The name is caption type trimmed to its cap, so the divider measures
+  /* A 30rem pane ends on the edge a list-detail pane draws, the subtle hairline on one ground,
+     so the room past it reads as another pane's and not as words that only wrapped. The edge
+     runs the specimen's whole height, from the line over it to the Code band, as a pane's edge
+     runs the window's: up past the specimen's name, its 16px gap and the stage's inset, and
+     down through the inset. The name is caption type trimmed to its cap, so the edge measures
      its rise in that face. */
   .narrow {
     --pane-reach: var(--sui-local-bleed, 0px);
@@ -223,7 +225,7 @@
   }
 
   .narrow::after {
-    border-inline-end: var(--sui-stroke) solid var(--sui-border-divider);
+    border-inline-end: var(--sui-stroke) solid var(--sui-border-subtle);
     content: '';
     font: var(--sui-weight-regular) var(--sui-font-size-caption) / var(--sui-leading-compact)
       var(--sui-sans);
