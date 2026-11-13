@@ -166,9 +166,16 @@ Updated, and takes `toolsLabel` once the filter folds in beside that group.
 - Failure: `pending` says `pendingLabel`, and a count of 0 says `countLabel(0)`, while the list below draws its own empty state with the way out.
 -->
 
-{#snippet group(choice: ListToolGroup, id: string)}
+<!-- A group the tools button is already named for keeps its heading only for a screen reader,
+     so the open menu does not repeat the button's words over its one control. -->
+{#snippet group(choice: ListToolGroup, id: string, named = false)}
   <div class="sui-list-toolbar-group">
-    <p {id} class="sui-list-toolbar-heading">{choice.label}</p>
+    {#if named}<VisuallyHidden {id}>{choice.label}</VisuallyHidden>{:else}<p
+        {id}
+        class="sui-list-toolbar-heading"
+      >
+        {choice.label}
+      </p>{/if}
     <SegmentedControl
       label={choice.label}
       aria-labelledby={id}
@@ -269,7 +276,11 @@ Updated, and takes `toolsLabel` once the filter folds in beside that group.
   >
     <div class="sui-list-toolbar-panel">
       {#if collapsed && filter}{@render group(filter, `${uid}-menu-filter`)}{/if}
-      {#each tools as tool, index (tool.label)}{@render group(tool, `${uid}-menu-${index}`)}{/each}
+      {#each tools as tool, index (tool.label)}{@render group(
+          tool,
+          `${uid}-menu-${index}`,
+          named !== undefined && !collapsed
+        )}{/each}
     </div>
   </Popover>
 {/if}

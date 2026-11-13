@@ -3,7 +3,7 @@
 ## Unreleased
 
 - A disabled painted `Chip` takes an off field's paint as a plain one does, with a fifth of its color over the well, so it reads as fixed beside them and still shows which label it is.
-- A `ListToolbar` whose tools hold one group names its button by that group, as in Sort by, with the choice beside it as its value, and takes `toolsLabel` only once the filter folds into the menu beside that group. The `ListToolbar` page's All counts what the search leaves.
+- A `ListToolbar` whose tools hold one group names its button by that group, as in Sort by, with the choice beside it as its value, and takes `toolsLabel` only once the filter folds into the menu beside that group. Its open menu then draws no heading over the one group, as the button already names it, and keeps it for a screen reader. The `ListToolbar` page's All counts what the search leaves.
 - A current `ObjectRow` answers the pointer as the rows around it do, on more of its accent, 26% on light and 32% on dark, never on a hovered row's grey, and on light its quiet words lean a fifth toward the primary ink, so they hold 4.5:1 on that deeper plate.
 - A small `Chip` in a line of text stands on the text's own box, so the line keeps its height rather than growing under the chip.
 - A `Skeleton`'s last row ends where a loaded list's last row ends once the list hands back its padding, so the section under it no longer moves 2px when the rows arrive.
