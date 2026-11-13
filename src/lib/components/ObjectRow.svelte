@@ -197,8 +197,8 @@ and the one above as a hovered row does, and keeps the plate under the pointer.
     outline-offset: var(--sui-focus-ring-inset);
   }
 
-  /* On a phone the side stays beside the name while both fit, so a short row keeps one line,
-     and drops under it, packed to the start, once they do not. */
+  /* On a phone the side stays beside the name while the name keeps 15rem, so a short row keeps
+     one line, and drops under it, packed to the start, before a long name wraps down beside it. */
   @media (max-width: 47.9375rem) {
     .sui-object-row {
       display: flex;
@@ -206,7 +206,7 @@ and the one above as a hovered row does, and keeps the plate under the pointer.
     }
 
     .sui-object-row-main {
-      flex: 1 1 10rem;
+      flex: 1 1 15rem;
     }
 
     .sui-object-row-side {
