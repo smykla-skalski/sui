@@ -786,6 +786,24 @@ p { margin-block-end: 2em !important; }`;
       }
     );
 
+  test("on a phone a page header's tabs stand 16px under its stacked actions", long, async () => {
+    const page = await open(390, 'light');
+    try {
+      const header = page
+        .locator('#page-header .sui-page-header')
+        .filter({ has: page.locator('.sui-page-header-tabs') });
+      await header.scrollIntoViewIfNeeded();
+      const gap = await header.evaluate((node) => {
+        const actions = node.querySelector('.sui-page-header-actions')?.getBoundingClientRect();
+        const tabs = node.querySelector('.sui-page-header-tabs')?.getBoundingClientRect();
+        return actions && tabs ? tabs.top - actions.bottom : null;
+      });
+      assert.equal(gap, 16);
+    } finally {
+      await page.close();
+    }
+  });
+
   test('a page header says a new state once, from the same status region', long, async () => {
     const page = await open(1440, 'light');
     try {

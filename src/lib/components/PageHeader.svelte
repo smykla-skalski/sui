@@ -51,7 +51,8 @@ facts, and the controls that act on it. The copy is one stack (eyebrow, title, d
 facts) and the actions stand 24px beside it, centred on the cap band of the title's first line
 as a card's head controls are, so they lend the copy no height. Once the header itself is
 36rem wide or narrower, as in a narrow pane, and on a phone, the actions move under the copy,
-12px below it and packed to the start.
+12px below it and packed to the start, and tabs under them stand 16px further down, so the
+page's views never read as more of its actions.
 
 The title is 32px on 36px lines at -0.022em, 24px on 28px lines at a dialog title's -0.015em on a
 phone or once the header itself is 36rem wide or narrower, and is the page's one `h1`. A wide
@@ -394,15 +395,16 @@ and the header owes only the difference.
     }
 
     /* Under actions on a line of their own the tabs follow as the next row of controls, their
-       box 12px under the actions' box, as the actions stand under the copy; on a fine pointer
-       the tab row's track already stands 4px over its tabs. */
+       box 16px under the actions' box, a step further than the actions stand under the copy, so
+       the page's views never read as more of its actions; on a fine pointer the tab row's track
+       already stands 4px over its tabs. */
     .sui-page-header-layout:has(> .sui-page-header-actions) + .sui-page-header-tabs {
-      margin-block-start: calc(var(--sui-rhythm-head-actions-stacked) - var(--sui-space-1));
+      margin-block-start: calc(var(--sui-space-4) - var(--sui-space-1));
     }
 
     @media (pointer: coarse) {
       .sui-page-header-layout:has(> .sui-page-header-actions) + .sui-page-header-tabs {
-        margin-block-start: var(--sui-rhythm-head-actions-stacked);
+        margin-block-start: var(--sui-space-4);
       }
     }
   }
@@ -428,9 +430,9 @@ and the header owes only the difference.
       margin-block: var(--sui-rhythm-head-actions-stacked) 0;
     }
 
-    /* A phone's tab row has no lead over its tabs, so the tabs stand the whole 12px under. */
+    /* A phone's tab row has no lead over its tabs, so the tabs stand the whole 16px under. */
     .sui-page-header-layout:has(> .sui-page-header-actions) + .sui-page-header-tabs {
-      margin-block-start: var(--sui-rhythm-head-actions-stacked);
+      margin-block-start: var(--sui-space-4);
     }
   }
 </style>

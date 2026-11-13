@@ -166,7 +166,11 @@
   </Specimen>
   <Specimen label="Back link">
     <div class="page wide">
-      <PageHeader level={4} title="Run 1842">
+      <PageHeader
+        level={4}
+        title="Run 1842"
+        description="One sync of this repository against its template"
+      >
         {#snippet kicker()}<BackLink href="#page-header" label="All runs" />{/snippet}
       </PageHeader>
       <p class="view">Finished in 4&nbsp;minutes with no changes</p>
