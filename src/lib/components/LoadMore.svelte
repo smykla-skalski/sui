@@ -159,7 +159,7 @@ struggling. The reason takes the count's place and the button retries until the 
     </p>
   {:else if problem}
     <p id="{id}-words" class="sui-load-more-words sui-load-more-problem" role="alert">
-      <span class="sui-load-more-mark"><Icon name="alert" size="xs" /></span>
+      <span class="sui-load-more-mark"><Icon name="alert" size="base" /></span>
       <span class="sui-load-more-text">{problem}</span>
     </p>
   {:else}
@@ -229,7 +229,7 @@ struggling. The reason takes the count's place and the button retries until the 
   .sui-load-more-mark {
     display: flex;
     flex: none;
-    margin-block: calc((round(up, 1cap, 2px) - var(--sui-icon-xs)) / 2);
+    margin-block: calc((round(up, 1cap, 2px) - var(--sui-icon-base)) / 2);
   }
 
   .sui-load-more-end:focus-visible {
