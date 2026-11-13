@@ -548,7 +548,7 @@ suite('lists', together, () => {
         assert.ok(spare < 1, `${name} keeps ${spare.toFixed(1)}px past its widest shown words`);
     });
 
-    test('a small settings glyph keeps a clear pixel between its knobs', async () => {
+    test('a small settings glyph keeps a clear pixel between its knobs and its rails on whole pixels', async () => {
       const page = await opened();
       const gaps = await page.evaluate(() =>
         [...document.querySelectorAll('#icons svg')]
@@ -564,12 +564,22 @@ suite('lists', together, () => {
                 const down = Math.max(b.y - (a.y + a.height), a.y - (b.y + b.height));
                 gap = Math.min(gap, (Math.max(across, down) - 2 * half) * scale);
               }
-            return { size: svg.getBoundingClientRect().width, gap };
+            const top = svg.getBoundingClientRect().top;
+            const rails = [...svg.querySelectorAll('circle')].map(
+              (circle) => (((top + circle.cy.baseVal.value * scale) % 1) + 1) % 1
+            );
+            return { size: svg.getBoundingClientRect().width, gap, rails };
           })
       );
       assert.ok(gaps.length >= 2, `only ${gaps.length} small glyphs with knobs`);
-      for (const { size, gap } of gaps)
+      for (const { size, gap, rails } of gaps) {
         assert.ok(gap >= 1, `at ${size}px two knobs stand ${gap.toFixed(2)}px apart`);
+        for (const rail of rails)
+          assert.ok(
+            Math.abs(rail - 0.5) < 0.1,
+            `at ${size}px a rail runs ${rail.toFixed(2)}px into its pixel, off the pixel's middle`
+          );
+      }
     });
 
     test('a numbered code block parts its gutter from its code by a divider 12px from each, the body tall', async () => {

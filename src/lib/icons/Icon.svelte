@@ -267,9 +267,15 @@ word would start.
   {#if name === 'arrow-up-right'}
     <path d="M7 17 17 7M9 7h8v8" />
   {:else if name === 'settings'}
-    {#if size === 'micro' || size === 'xs'}
-      <!-- Three rails 5 units apart merge at 12px and under, so the small tiers keep two, 10
-           apart, with their knobs at least a clear pixel from each other. -->
+    {#if size === 'micro'}
+      <!-- Three rails 5 units apart merge at 12px and under, so the small tiers keep two, with
+           their knobs at least a clear pixel from each other. Each rail runs through the middle
+           of a pixel row so it draws as one sharp line: at 12px a unit is half a pixel, so odd
+           units land there, and at 10px 6 and 18 do. -->
+      <path d="M4 6h9M17 6h3M4 18h3M11 18h9" />
+      <circle cx="15" cy="6" r="2" />
+      <circle cx="9" cy="18" r="2" />
+    {:else if size === 'xs'}
       <path d="M4 7h9M17 7h3M4 17h3M11 17h9" />
       <circle cx="15" cy="7" r="2" />
       <circle cx="9" cy="17" r="2" />
