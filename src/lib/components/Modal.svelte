@@ -553,7 +553,7 @@ dialog, so they are never inert under it.
      the edges and the wash carry the refusal, the words the primary ink at the body size (L-58). */
   .sui-modal-error-line {
     align-items: flex-start;
-    background: color-mix(in srgb, var(--sui-danger-tint) 65%, var(--sui-dialog-bg));
+    background: var(--sui-danger-wash);
     color: var(--sui-text-primary);
     display: flex;
     font: var(--sui-weight-medium) var(--sui-font-size-body) / var(--sui-row-copy-leading)

@@ -136,16 +136,13 @@ of them.
 
 <style>
   /* A failure is a pale wash of the danger tint inside a light edge of the hue, so the edge
-     carries the state and the words keep their contrast. The wash is mixed over the surface,
-     so it reads as a clean tint on a page's warm canvas too, never a grey one. The retry is the neutral default
+     carries the state and the words keep their contrast. The wash (`--sui-danger-wash`) is
+     mixed over the surface on light, so it reads as a clean tint on a page's warm canvas too,
+     never a grey one, and from the deep red over the canvas on dark, under its button's fill. The retry is the neutral default
      button, the reader's next step, which is to repeat the request (L-92). Stretched beside a
      taller panel, its words and its retry keep to the top, as an empty panel's do. */
   .sui-error-state {
-    --sui-local-error-ground: color-mix(
-      in srgb,
-      var(--sui-danger-tint) 65%,
-      var(--sui-surface-base)
-    );
+    --sui-local-error-ground: var(--sui-danger-wash);
     align-content: start;
     background: var(--sui-local-error-ground);
     border: var(--sui-stroke) solid var(--sui-danger-wash-edge);

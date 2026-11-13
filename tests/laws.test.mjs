@@ -1646,12 +1646,11 @@ test("L-58 the band a line parts off sits on a faint tint of the field well, and
 });
 
 test("L-58 a refused save says why on a form error's danger wash, in a form error's words", () => {
-  const wash =
-    /background: color-mix\(in srgb, var\(--sui-danger-tint\) (\d+)%, var\(--sui-[a-z-]+\)\);/;
+  const wash = /background: var\(--sui-danger-wash\);/;
   const form = wash.exec(read('src/lib/components/FormError.svelte'));
   const line = /\.sui-modal-error-line \{[^}]*\}/.exec(read('src/lib/components/Modal.svelte'));
   assert.ok(form && line, 'a form error or the dialog error line lost its rule');
-  assert.equal(wash.exec(line[0])?.[1], form[1], "the dialog's reason left the form error's wash");
+  assert.match(line[0], wash, "the dialog's reason left the form error's wash");
   const words = (/** @type {string} */ rule) =>
     ['color', 'font'].map(
       (property) => new RegExp(`(?:^|\\s)${property}: ([^;]*);`).exec(rule)?.[1]
@@ -1669,11 +1668,16 @@ test("L-58 a refused save says why on a form error's danger wash, in a form erro
     /\.sui-modal-error-mark \{[^}]*color: var\(--sui-danger\);/,
     "the dialog's refusal mark keeps the danger ink"
   );
-  const panel = /var\(--sui-danger-tint\) (\d+)%/.exec(
-    read('src/lib/components/ErrorState.svelte')
+  assert.match(
+    read('src/lib/components/ErrorState.svelte'),
+    /--sui-local-error-ground: var\(--sui-danger-wash\);/,
+    "an error panel left the form error's wash"
   );
-  assert.equal(panel?.[1], form[1], "an error panel left the form error's wash");
-  assert.equal(form[1], '65', 'a refusal wash parts itself from the ground it sits on');
+  assert.match(
+    palette,
+    /--sui-danger-wash: color-mix\(in srgb, var\(--sui-danger-tint\) 65%, var\(--sui-surface-base\)\);/,
+    'a refusal wash parts itself from the ground it sits on'
+  );
 });
 
 test("L-9 a control's edge firms one step on hover, the same in every theme, and a light field wears a button's edge", () => {
