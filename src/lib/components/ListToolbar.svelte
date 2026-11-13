@@ -282,7 +282,9 @@ Updated, and takes `toolsLabel` once the filter folds in beside that group.
   }
 
   /* Spread, not pushed by an auto margin: the action ends a line it shares, and on a line of
-     its own it starts at the edge like the search above it (L-90). */
+     its own it starts at the edge like the search above it (L-90). The groups on a line stand
+     20px apart, wider than the 8px and 12px inside a group, so a choice named beside the tools
+     button reads as the button's and never as the action's. */
   /* The controls on a line stand on its foot, so beside a search whose label stands over its
      field they line up with the field, not with the label and the field together; on a line of
      controls alone the foot is their middle too, since they share one height. */
@@ -290,7 +292,7 @@ Updated, and takes `toolsLabel` once the filter folds in beside that group.
     align-items: end;
     display: flex;
     flex-wrap: wrap;
-    gap: var(--sui-space-2) var(--sui-space-3);
+    gap: var(--sui-space-2) var(--sui-space-5);
     justify-content: space-between;
   }
 
