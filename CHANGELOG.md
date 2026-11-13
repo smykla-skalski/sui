@@ -8,6 +8,7 @@
 - A disabled painted `Chip` on the dark theme keeps 5% of its color over the well, where it kept 10%, so a pale label no longer stands brighter than the other disabled chips.
 - A removable `Chip` on a phone is drawn 34px tall, where it grew to 44px, a small one at the default chip's type size, and keeps its 44px target over its own value and a 5px margin, so wrapped chips' targets still never overlap.
 - A `Chip`'s remove control draws its focus ring inside itself, where the ring's outer side fell on the chip's edge as a double line.
+- The `Skeleton` page's First Load puts its button in the list's head, beside the title it reloads.
 - A placeholder bar on the dark theme is 10% white, where it was 7%, so a waiting list's bars hold their place beside its words.
 - The `Skeleton` page's loaded rows carry the side their placeholders promise, so the rows take the shape the bars held.
 - An `ObjectRow`'s focus ring stands 1px inside the row, where it ran along the row's edge, so it never meets the hover or current plate of the row beside it, and its grounds stop a pixel under its top, so the open row's plate and a hovered neighbour's keep a seam of the page between them, where they met as one block in two tones.

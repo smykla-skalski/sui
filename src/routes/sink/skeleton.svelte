@@ -74,11 +74,13 @@
   layout="stack"
   ground="canvas"
 >
-  <Button onclick={() => (loading ? (loading = false) : reload())}>
-    {loading ? 'Show the Rows' : 'Load Again'}
-  </Button>
   <Specimen label={loading ? 'Loading' : 'Loaded'}>
     <Section title="Repositories" level={4}>
+      {#snippet actions()}
+        <Button onclick={() => (loading ? (loading = false) : reload())}>
+          {loading ? 'Show the Rows' : 'Load Again'}
+        </Button>
+      {/snippet}
       <Skeleton {loading} rows={3} label="Loading repositories…">
         <ObjectList>
           {#each repositories as { name, visibility } (name)}
