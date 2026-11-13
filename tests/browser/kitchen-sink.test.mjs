@@ -353,6 +353,27 @@ suite('the kitchen sink', together, () => {
     }
   });
 
+  // The folded strip holds an icon-only theme switch, whose words stay for a screen reader in a
+  // pixel-wide clip, and the audit must not judge the paint of words no one sees.
+  test('the law audit finds nothing with the sidebar folded', long, async () => {
+    const page = await open(1440, 'light', {}, 'disclosure');
+    try {
+      await page.locator('.sui-side-nav-fold').click();
+      // The foot's scroll-driven shadow runs as long as the page does, so only the fold's
+      // transitions are waited for.
+      await page.waitForFunction(() =>
+        document
+          .querySelector('.sui-side-nav[data-collapsed]')
+          ?.getAnimations({ subtree: true })
+          .every((animation) => !(animation instanceof CSSTransition))
+      );
+      const findings = await audit(page);
+      assert.equal(findings.length, 0, report(findings));
+    } finally {
+      await page.close();
+    }
+  });
+
   test('L-41 and L-96 every keyboard stop draws the 2px focus ring in full', long, async () => {
     const page = await open(1440, 'light');
     try {

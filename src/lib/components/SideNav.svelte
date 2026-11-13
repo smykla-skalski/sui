@@ -865,7 +865,10 @@ following a row closes the drawer.
       text-align: center;
     }
 
+    /* Folded, a page's glyph takes a place's 18px tier, so the rail's places and the pages
+       under them read as one column of one glyph size. */
     .sui-side-nav[data-collapsed] .sui-side-nav-glyph {
+      --sui-icon-base: var(--sui-icon-md);
       margin-block: 0;
     }
 

@@ -34,6 +34,9 @@
 - A phone `AppShell` bar's `eyebrow` takes the primary ink, as the bar's one word at rest.
 - A `Timeline` with an actor anywhere in it stands every event's words past the avatar's seat at every width, not only when stacked, so its words keep one edge.
 - The detail pane's loading Outcome waits as one bar per count, each as wide as its label and value.
+- A `Disclosure` summary keeps its hint beside its words only with 32px to spare after it, and stands it under them otherwise, so a narrow aside or a phone never runs the two edge to edge as one line.
+- A folded `SideNav` draws its pages' glyphs at the 18px tier of a rail's places, so the one folded column holds one glyph size.
+- The law audit no longer judges the paint of words kept for a screen reader in a pixel-wide clip, such as a folded icon-only theme switch's words.
 - `FactList` takes `layout="stats"` for a few counts that answer the page: each 20px semibold figure in tabular figures (`--sui-font-size-stat`) stands 8px before its label on one baseline, 24px apart, 16px on a phone, as inline facts do. The detail pane's Outcome uses it, and its loading state waits as one bar per stat.
 - A loading `Timeline` takes `actors`: its placeholders' words then stand past the avatar's seat, where the loaded words will, so the words do not move when the events arrive.
 - A `DetailLayout` column parts a closing `Disclosure` from the zone above it by the section gap from ink to ink, as it parts its sections, where the summary's own room above its words had added 12px.

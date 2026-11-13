@@ -551,10 +551,25 @@ function palette(): Finding[] {
 // ---------------------------------------------------------------------------------------
 // Rendered-page laws.
 
+/**
+ * Words kept for a screen reader alone sit in a box clipped to a pixel, as `VisuallyHidden` and
+ * an icon-only control's words do. The nearest box that clips them is that pixel, so no reader
+ * sees their paint.
+ */
+function clippedAway(element: Element): boolean {
+  for (let node: Element | null = element; node; node = node.parentElement) {
+    const look = getComputedStyle(node);
+    if (look.overflow === 'visible' && look.clipPath === 'none') continue;
+    const box = node.getBoundingClientRect();
+    return box.width <= 1 && box.height <= 1;
+  }
+  return false;
+}
+
 function textContrast(root: Document): Finding[] {
   const found: Finding[] = [];
   for (const { element } of textElements(root, PAINT_EXEMPT)) {
-    if (isDisabled(element)) continue;
+    if (isDisabled(element) || clippedAway(element)) continue;
     const style = getComputedStyle(element);
     const ink = rgba(style.color);
     const ground = paintedGround(element);
