@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- The `Avatar` page draws a picture at every size beside the initials it covers, and labels each row with the prop it sets, `shape="person"`, `shape="workspace"` and `src`.
 - A whole `LoadMore` list's end note holds the button's height, so the footer keeps one height to the last page and the note stands level with the count it replaces, where it stood higher on a shorter footer.
 - An `IdentityRow` whose name wraps stands its face level with the name's first line, where a short name's stands, where it centred on the whole block and stood by its middle line.
 - A `PageToc`'s title and a `SideNav`'s group headings are 12px at 0.04em, where 11px capitals at 0.06em to 0.07em read small and pinched beside their 14px links.

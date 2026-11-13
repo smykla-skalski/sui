@@ -12,7 +12,8 @@
   import Specimen from '../kit/Specimen.svelte';
   import Variants from '../kit/Variants.svelte';
 
-  const shapes = ['person', 'workspace'] as const;
+  const kinds = ['person', 'workspace', 'picture'] as const;
+  const kindLabels = { person: 'shape="person"', workspace: 'shape="workspace"', picture: 'src' };
   const sizes = ['20', '24', '28', '32', '40', '48'] as const;
 
   /* Bytes no browser can decode, so the fallback shows without a request that fails. */
@@ -27,11 +28,19 @@
 
 <Example
   title="Shapes & Sizes"
-  note="Without a picture, initials sit on the brand tint at a type step for each size"
+  note="Without a picture, initials sit on the brand tint at a type step for each size, and a picture covers them at every size"
 >
-  <Variants rows={shapes} columns={sizes} axis="shape" rowLabel={(shape) => `"${shape}"`}>
-    {#snippet cell(shape, size)}
-      <Avatar name={shape === 'person' ? 'Ada Lovelace' : 'Platform Team'} {shape} size={+size} />
+  <Variants rows={kinds} columns={sizes} rowLabel={(kind) => kindLabels[kind]}>
+    {#snippet cell(kind, size)}
+      {#if kind === 'picture'}
+        <Avatar name="Grace Hopper" src={portrait} size={+size} />
+      {:else}
+        <Avatar
+          name={kind === 'person' ? 'Ada Lovelace' : 'Platform Team'}
+          shape={kind}
+          size={+size}
+        />
+      {/if}
     {/snippet}
   </Variants>
 </Example>
