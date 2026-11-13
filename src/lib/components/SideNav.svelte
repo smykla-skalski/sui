@@ -455,13 +455,15 @@ following a row closes the drawer.
     grid-row: 1;
   }
 
+  /* The kicker and the group headings are compact caps, a step under the 14px rows they head,
+     as shadcn's 12px group labels are, so they read without the strain of 11px caps. */
   .sui-side-nav-kicker {
     align-content: center;
     block-size: var(--sui-block-snap);
     color: var(--sui-sidebar-text-muted);
-    font: var(--sui-weight-semibold) var(--sui-font-size-micro) / var(--sui-leading-micro)
+    font: var(--sui-weight-semibold) var(--sui-font-size-compact) / var(--sui-leading-compact)
       var(--sui-sans);
-    letter-spacing: 0.07em;
+    letter-spacing: 0.05em;
     margin: 0;
     padding-block: var(--sui-block-snap-room);
     text-box: trim-both cap alphabetic;
@@ -514,9 +516,9 @@ following a row closes the drawer.
     align-content: center;
     block-size: var(--sui-block-snap);
     color: var(--sui-sidebar-text-muted);
-    font: var(--sui-weight-semibold) var(--sui-font-size-micro) / var(--sui-leading-micro)
+    font: var(--sui-weight-semibold) var(--sui-font-size-compact) / var(--sui-leading-compact)
       var(--sui-sans);
-    letter-spacing: 0.07em;
+    letter-spacing: 0.05em;
     margin: var(--sui-space-5) var(--sui-space-3) var(--sui-space-2);
     padding-block: var(--sui-block-snap-room);
     text-box: trim-both cap alphabetic;

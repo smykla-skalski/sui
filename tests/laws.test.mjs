@@ -527,7 +527,7 @@ test('L-25 the type tiers keep the sizes the law names', () => {
     {
       pageTitle: 32,
       dialogTitle: 20,
-      stat: 20,
+      stat: 24,
       alertTitle: 18,
       cardTitle: 17,
       body: 15,

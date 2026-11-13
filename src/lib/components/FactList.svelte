@@ -70,7 +70,7 @@ Once the list itself is under 18rem wide, each label stands over its value, one 
 apart, and the action under the value.
 
 `stats` is for two to five counts that answer the page, such as a run's matches and
-differences, as a dashboard's figures are: each figure, a 20px semibold number in tabular
+differences, as a dashboard's figures are: each figure, a 24px semibold number in tabular
 figures, stands 8px before its label on one baseline, so the counts read before the words
 around them, their digits line up, and the stats take one line. The list keeps each label
 before its figure, so a screen reader says "Match, 12". The stats stand 24px apart, 16px on a
@@ -331,12 +331,14 @@ phone, as inline facts do, and wrap one by one.
     inline-size: var(--sui-inline-snap);
   }
 
+  /* The figure's width rounds up to the pixel, so its label starts on a whole pixel. */
   .stats .sui-fact-list-value {
+    inline-size: var(--sui-inline-snap);
     order: -1;
   }
 
   /* A stat's figure keeps the sans in tabular figures, whether or not it is mono, since a
-     20px mono figure reads as code, not as a count. */
+     24px mono figure reads as code, not as a count. */
   .stats .sui-fact-list-value {
     font-family: var(--sui-sans);
     font-size: var(--sui-font-size-stat);

@@ -294,7 +294,7 @@
             <Section title="Outcome">
               <!-- Each stat waits as one bar, as wide as its figure and label. -->
               <div class="counts-wait" aria-hidden="true">
-                {#each ['4.625rem', '3.625rem', '6.6875rem'] as width (width)}
+                {#each ['4.9375rem', '3.8125rem', '6.875rem'] as width (width)}
                   <span style:inline-size={width}></span>
                 {/each}
               </div>
@@ -439,7 +439,7 @@
 
   .counts-wait > span {
     background: var(--sui-placeholder);
-    block-size: 1rem;
+    block-size: 1.125rem;
     border-radius: var(--sui-radius-pill);
   }
 
