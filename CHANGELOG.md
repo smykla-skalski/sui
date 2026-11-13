@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- A 20px `Avatar`'s initials are 9px, near the share of the mark that the larger sizes' letters take, where 10px filled half the circle and crowded its ring.
 - A `LoadMore` failure's reason is medium weight, as a field's error is, where regular red read thin beside its alert mark.
 - The `LoadMore` page names its live list, as every other specimen on the page is named.
 - A `LoadMore`'s count, reason and end note take the 13px caption step, a step under the 14px details of the rows over them, so the footer reads as a note on the list rather than one more row.

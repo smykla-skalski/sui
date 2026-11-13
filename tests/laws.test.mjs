@@ -537,7 +537,7 @@ test('L-25 the type tiers keep the sizes the law names', () => {
   // A small avatar's initials are a mark, not words, and only that step uses this size.
   assert.deepEqual(
     small,
-    [['--sui-font-size-initials-small', '0.625rem']],
+    [['--sui-font-size-initials-small', '0.5625rem']],
     'no text is smaller than 11px'
   );
   assert.deepEqual(
