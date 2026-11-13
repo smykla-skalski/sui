@@ -373,8 +373,8 @@ phone drawer, and following an entry closes the drawer before focus moves.
 <style>
   /* The index sticks 16px under the viewport's top, or under the page's bar, and fills the
      height below it, padding its own scroll area, so entries leave at that edge and never get
-     cut at a line in the middle of the page. Its title stands 8px into the box, so at rest it
-     lines up with the page's first heading and, stuck, stands 24px under the top as before.
+     cut at a line in the middle of the page. Its title stands at the box's top, so at rest its
+     letters' tops line up with those of the page's first heading beside it.
      The end padding is room for the scrollbar, which an overlay scrollbar would otherwise draw
      over the entries. */
   .sui-page-toc {
@@ -385,7 +385,7 @@ phone drawer, and following an entry closes the drawer before focus moves.
     min-inline-size: 0;
     overflow-y: auto;
     overscroll-behavior: contain;
-    padding-block: var(--sui-space-2) var(--sui-space-6);
+    padding-block: 0 var(--sui-space-6);
     padding-inline-end: var(--sui-space-3);
     position: sticky;
     scroll-padding-block: var(--sui-space-6);
@@ -513,10 +513,11 @@ phone drawer, and following an entry closes the drawer before focus moves.
   }
 
   /* On a phone the index stands over the page and never sticks, so it needs no end room, under
-     it or beside it for a scrollbar, and its rows end where the page's lines end. */
+     it or beside it for a scrollbar, and its rows end where the page's lines end. With no
+     heading beside it, its title keeps 8px of room over it. */
   @media (max-width: 47.9375rem) {
     .sui-page-toc {
-      padding-block-end: 0;
+      padding-block: var(--sui-space-2) 0;
       padding-inline-end: 0;
     }
   }
