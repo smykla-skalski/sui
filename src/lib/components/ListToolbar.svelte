@@ -277,8 +277,11 @@ button. Without `tools` there is no button and the filter never folds.
 
   /* Spread, not pushed by an auto margin: the action ends a line it shares, and on a line of
      its own it starts at the edge like the search above it (L-90). */
+  /* The controls on a line stand on its foot, so beside a search whose label stands over its
+     field they line up with the field, not with the label and the field together; on a line of
+     controls alone the foot is their middle too, since they share one height. */
   .sui-list-toolbar-bar {
-    align-items: center;
+    align-items: end;
     display: flex;
     flex-wrap: wrap;
     gap: var(--sui-space-2) var(--sui-space-3);
@@ -361,7 +364,7 @@ button. Without `tools` there is no button and the filter never folds.
   .sui-list-toolbar-chosen {
     align-content: center;
     block-size: var(--sui-block-snap-even);
-    font: var(--sui-weight-semibold) var(--sui-font-size-meta) / var(--sui-row-copy-leading)
+    font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-row-copy-leading)
       var(--sui-sans);
     min-inline-size: 0;
     overflow-wrap: anywhere;
@@ -387,6 +390,7 @@ button. Without `tools` there is no button and the filter never folds.
   /* The inline room holds the spinner's corners as it turns, at the start of a wrapped line. */
   .sui-list-toolbar-pending {
     align-items: center;
+    min-block-size: var(--sui-control-height-compact);
     color: var(--sui-text-secondary);
     display: inline-flex;
     padding-inline: var(--sui-space-1);
