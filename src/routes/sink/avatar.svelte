@@ -25,7 +25,7 @@
   /* Drawn in place, so the sink needs no network: a portrait, and a ring of a logo whose middle
      is clear. */
   const portrait =
-    'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCI+PHJlY3Qgd2lkdGg9IjY0IiBoZWlnaHQ9IjY0IiBmaWxsPSIjYzlhMjdlIi8+PGNpcmNsZSBjeD0iMzIiIGN5PSIyNiIgcj0iMTIiIGZpbGw9IiNmMWRjYzgiLz48cGF0aCBkPSJNMjAgMjZhMTIgMTIgMCAwIDEgMjQgMGMtMy01LTcuNS03LTEyLTdzLTkgMi0xMiA3eiIgZmlsbD0iIzRhMzQyNiIvPjxwYXRoIGQ9Ik04IDY0YzItMTUgMTItMjMgMjQtMjNzMjIgOCAyNCAyM3oiIGZpbGw9IiMzNDUwNmYiLz48L3N2Zz4=';
+    'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjYgNCA1MiA1MiI+PHJlY3Qgd2lkdGg9IjY0IiBoZWlnaHQ9IjY0IiBmaWxsPSIjYzlhMjdlIi8+PGNpcmNsZSBjeD0iMzIiIGN5PSIyNiIgcj0iMTIiIGZpbGw9IiNmMWRjYzgiLz48cGF0aCBkPSJNMjAgMjZhMTIgMTIgMCAwIDEgMjQgMGMtMy01LTcuNS03LTEyLTdzLTkgMi0xMiA3eiIgZmlsbD0iIzRhMzQyNiIvPjxwYXRoIGQ9Ik04IDY0YzItMTUgMTItMjMgMjQtMjNzMjIgOCAyNCAyM3oiIGZpbGw9IiMzNDUwNmYiLz48L3N2Zz4=';
   const logo =
     'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCI+PHBhdGggZD0iTTMyIDlsMjAgMTEuNXYyM0wzMiA1NSAxMiA0My41di0yM3oiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzJmOGY2ZCIgc3Ryb2tlLXdpZHRoPSI3IiBzdHJva2UtbGluZWpvaW49InJvdW5kIi8+PC9zdmc+';
 </script>
@@ -112,7 +112,7 @@
   /* The bound the name wraps in, drawn so the wrap reads as the point of the example. */
   .narrow {
     box-sizing: border-box;
-    border: var(--sui-stroke) dashed var(--sui-border-subtle);
+    border: var(--sui-stroke) dashed var(--sui-border-control);
     border-radius: var(--sui-radius-control);
     inline-size: min(100%, 16rem);
     padding: var(--sui-space-2);
