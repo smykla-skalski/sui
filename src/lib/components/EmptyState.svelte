@@ -91,9 +91,10 @@ the next step, a control or words, stands a panel gap under it.
 
 <style>
   /* Beside a taller panel it ends at its own content, as far under its next step as above its
-     words, never stretched into an empty foot (L-59). */
+     words, never stretched into an empty foot (L-59). Its height holds it, not its alignment,
+     which in a flex column, a chart's, is the inline axis and would shrink it to its words. */
   .sui-empty-state {
-    align-self: start;
+    block-size: fit-content;
     background: var(--sui-surface-raised);
     border: var(--sui-stroke) solid var(--sui-border-subtle);
     border-radius: var(--sui-radius-control);
