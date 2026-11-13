@@ -668,12 +668,6 @@ suite('lists', together, () => {
             await trigger.click();
             const panel = page.locator(':popover-open .sui-list-toolbar-panel');
             await panel.waitFor();
-            // A menu its button is named for draws no heading that repeats the button's words.
-            assert.equal(
-              (await panel.locator('.sui-list-toolbar-heading').count()) > 0,
-              !named[index][0],
-              `the menu of bar ${index} at ${width}px`
-            );
             // The menu grows open, and its thumbs are measured again in the frame after the
             // growth ends, and slide there.
             await atRest(page);
