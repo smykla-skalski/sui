@@ -371,19 +371,21 @@ phone drawer, and following an entry closes the drawer before focus moves.
 </nav>
 
 <style>
-  /* The index sticks to the viewport's top, or under the page's bar, and fills the height
-     below it, padding its own scroll area, so entries leave at that edge and never get cut
-     at a line in the middle of the page. The end padding is room for the scrollbar, which
-     an overlay scrollbar would otherwise draw over the entries. */
+  /* The index sticks 16px under the viewport's top, or under the page's bar, and fills the
+     height below it, padding its own scroll area, so entries leave at that edge and never get
+     cut at a line in the middle of the page. Its title stands 8px into the box, so at rest it
+     lines up with the page's first heading and, stuck, stands 24px under the top as before.
+     The end padding is room for the scrollbar, which an overlay scrollbar would otherwise draw
+     over the entries. */
   .sui-page-toc {
     align-self: start;
     box-sizing: border-box;
-    inset-block-start: var(--sui-local-toc-offset, 0px);
-    max-block-size: calc(100dvh - var(--sui-local-toc-offset, 0px));
+    inset-block-start: calc(var(--sui-local-toc-offset, 0px) + var(--sui-space-4));
+    max-block-size: calc(100dvh - var(--sui-local-toc-offset, 0px) - var(--sui-space-4));
     min-inline-size: 0;
     overflow-y: auto;
     overscroll-behavior: contain;
-    padding-block: var(--sui-space-6);
+    padding-block: var(--sui-space-2) var(--sui-space-6);
     padding-inline-end: var(--sui-space-3);
     position: sticky;
     scroll-padding-block: var(--sui-space-6);
@@ -504,6 +506,13 @@ phone drawer, and following an entry closes the drawer before focus moves.
   @media (max-width: 47.9375rem), (pointer: coarse) {
     .sui-page-toc-link {
       min-block-size: var(--sui-touch-target);
+    }
+  }
+
+  /* On a phone the index stands over the page and never sticks, so it needs no end room. */
+  @media (max-width: 47.9375rem) {
+    .sui-page-toc {
+      padding-block-end: 0;
     }
   }
 

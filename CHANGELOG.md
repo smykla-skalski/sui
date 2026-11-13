@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- A `PageToc`'s title stands 8px into it, so at rest it lines up with the page's first heading, where it stood 24px under it, and it sticks 16px under the top so a stuck index keeps its 24px. On a phone, where it never sticks, it keeps no room under its last entry, and the `PageToc` page stands its article 16px under it.
 - A slow `Skeleton`'s title is set at 500, under a loaded name's 600, so it reads as the wait's status rather than a row called "Still loading…".
 - The `Avatar` page shows its missing names among its pictures and fallbacks, one grid of every way a mark stands in, and an identity row with a picture beside the ones with initials, two to a line.
 - The `PageToc` page sets its article at a 40rem reading measure, 32px off the index, with section titles at the card title size, where long lines ran 790px wide under 16px titles.

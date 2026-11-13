@@ -148,7 +148,7 @@
 
   @media (max-width: 47.9375rem) {
     .page {
-      gap: var(--sui-space-6);
+      gap: var(--sui-space-4);
       grid-template-columns: minmax(0, 1fr);
     }
 
