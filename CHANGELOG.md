@@ -12,7 +12,7 @@
 - A 20px workspace `Avatar` rounds its corner 6px, the chip radius, near the 30% of its size the larger ones keep, where 8px read as a squircle.
 - The `Avatar` page sets each picture beside the same avatar whose picture does not load, and shows the question mark an avatar with no name or handle draws.
 - A slow `Skeleton`'s title and every row's first bar take the body size a row's name is set at, so the title reads as the name it stands for and the bar is one of its caps tall.
-- A placeholder bar on the dark theme is 10% white, where it was 7%, so a waiting list's bars hold their place beside its words.
+- A placeholder bar is 8.5% black on the light theme and 11.5% white on the dark, where both were 7%, so a waiting list's bars hold their place beside its words.
 - The `Skeleton` page's loaded rows carry the side their placeholders promise, so the rows take the shape the bars held.
 - An `ObjectRow`'s focus ring stands 1px inside the row's ground on every side, where it ran along the row's edge, so it never meets the hover or current plate of the row beside it, and its grounds stop a pixel under its top, so the open row's plate and a hovered neighbour's keep a seam of the page between them, where they met as one block in two tones.
 - A `ListDetail` with nothing open keeps its empty state at most 32rem wide at the pane's start, where it ran across the whole pane as a banner.
