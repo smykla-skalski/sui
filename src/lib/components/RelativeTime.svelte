@@ -203,7 +203,9 @@ tooltip.
     }
   }
 
+  /* Focus opens the same tip as hover, so it draws the same dots. */
   .sui-relative-time:focus-visible {
+    --sui-local-dot: currentColor;
     border-radius: var(--sui-radius-chip);
     outline: var(--sui-focus-ring-width) solid var(--sui-focus);
     outline-offset: var(--sui-focus-ring-offset);
