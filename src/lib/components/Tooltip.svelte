@@ -63,6 +63,9 @@
 
   /* The control whose keyboard focus shows the tip: the anchor, or the control a bare label
      inside it sits in, so a label's tip still answers the keyboard. */
+  /* An identifier wraps after a slash, where a path or a reference parts, before it breaks
+     inside a name. */
+  const parts = $derived(mono ? text.split(/(?<=\/)/) : [text]);
   const owner = $derived(anchor?.closest<HTMLElement>(FOCUSABLE) ?? anchor);
 
   const words = (value: string) => value.replace(/\s+/g, ' ').trim().toLowerCase();
@@ -271,7 +274,7 @@ does, stays out of the accessibility tree. Any other tip describes the control t
 `aria-describedby`; `describe` forces either way.
 
 - Semantics: a `tooltip` in the top layer, tied to its control by `aria-describedby` when it adds words, and `aria-hidden` when it repeats them.
-- Content: one short line of plain text, wrapping at 20rem; `mono` for a tip that is one identifier.
+- Content: one short line of plain text, wrapping at 20rem; `mono` for a tip that is one identifier, a step under the words' size and wrapping after a slash before it breaks inside a name.
 - States: hidden, waiting (250ms on hover), shown, lingering (120ms after the pointer leaves, 1.5s after a long press), and drawn in place with `preview`: over its anchor for `side="block-start"`, as the first item of a flex or grid parent, and under it otherwise.
 - Keyboard: focus on its control shows it at once, blur hides it, and Escape hides it without reaching a dialog around it.
 - Pointer and touch: hover shows it after a pause and the pointer may move onto it; on touch a 500ms press shows it and a tap passes through as a click.
@@ -302,7 +305,7 @@ does, stays out of the accessibility tree. Any other tip describes the control t
   }}
   onpointerleave={leave}
 >
-  {text}
+  {#each parts as part, index (index)}{#if index}<wbr />{/if}{part}{/each}
 </div>
 
 <style>
@@ -422,11 +425,13 @@ does, stays out of the accessibility tree. Any other tip describes the control t
     order: -1;
   }
 
+  /* The mono face reads larger than the words' face at one size, so an identifier stands a step
+     under a tip's 13px words and matches them. */
   .mono {
     font-family: var(--sui-mono);
     font-variant-numeric: tabular-nums;
-    font-size: var(--sui-font-size-micro);
-    line-height: var(--sui-leading-micro);
+    font-size: var(--sui-font-size-compact);
+    line-height: var(--sui-leading-compact);
     overflow-wrap: anywhere;
   }
 
