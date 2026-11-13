@@ -210,14 +210,28 @@
   }
 
   /* A 30rem pane ends on a pane's divider, as it would beside the next pane, so the room past
-     it reads as another pane's and not as words that only wrapped. The divider runs on through
-     the stage's inset to the specimen's foot, as a pane's edge runs to the window's. */
+     it reads as another pane's and not as words that only wrapped. The divider runs the
+     specimen's whole height, from the line over it to the Code band, as a pane's edge runs the
+     window's: up past the specimen's name, its 16px gap and the stage's inset, and down
+     through the inset. The name is caption type trimmed to its cap, so the divider measures
+     its rise in that face. */
   .narrow {
-    border-inline-end: var(--sui-stroke) solid var(--sui-border-divider);
+    --pane-reach: var(--sui-local-bleed, 0px);
     inline-size: min(100% - var(--sui-space-6) - var(--sui-stroke), 30rem);
-    margin-block-end: calc(-1 * var(--sui-local-bleed, 0px));
-    padding-block-end: var(--sui-local-bleed, 0px);
     padding-inline-end: var(--sui-space-6);
+    position: relative;
+  }
+
+  .narrow::after {
+    border-inline-end: var(--sui-stroke) solid var(--sui-border-divider);
+    content: '';
+    font: var(--sui-weight-regular) var(--sui-font-size-caption) / var(--sui-leading-compact)
+      var(--sui-sans);
+    inset-block: calc(-1 * (var(--pane-reach) + round(up, 1cap, 1px) + var(--sui-space-4)))
+      calc(-1 * var(--pane-reach));
+    inset-inline-end: calc(-1 * var(--sui-stroke));
+    inline-size: 0;
+    position: absolute;
   }
 
   /* A stage of 30rem or less already shows the narrow pane, so the second one would repeat it. */
