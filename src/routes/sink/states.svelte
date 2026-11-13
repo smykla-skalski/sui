@@ -7,6 +7,7 @@
 </script>
 
 <script lang="ts">
+  import { tick } from 'svelte';
   import { clock } from '../kit/format.js';
   import {
     Button,
@@ -35,6 +36,17 @@
      rest; it speaks only once the reader's own filter empties it, never on page load. */
   let filtered = $state(true);
   let toggled = $state(false);
+  let filterBox = $state<HTMLElement>();
+
+  /* The toggle is the empty panel's own action while the filter holds and a button under the
+     rows once it is off, so the one that was pressed leaves with its state; focus moves to the
+     toggle that takes its place. */
+  async function toggleFilter() {
+    filtered = !filtered;
+    toggled = true;
+    await tick();
+    filterBox?.querySelector('button')?.focus();
+  }
 
   /* The first retry succeeds, so the panel gives way to the rows and hands them focus. The rows
      hold the panel's height, so the panels beside them, stretched to it, keep theirs. */
@@ -109,14 +121,16 @@
   </Specimen>
   <Specimen label={filtered ? 'Emptied by a filter' : 'Filtered list'}>
     <Section title="Repositories" level={4} id="sink-states-filtered">
-      <div class="loaded">
+      <div class="loaded" bind:this={filterBox}>
         {#if filtered}
           <EmptyState
             live={toggled}
             title="No Archived Repositories"
             description="Archive a repository from its settings and it appears here"
           >
-            {#snippet action()}<Button tone="signal">Open Repository Settings</Button>{/snippet}
+            {#snippet action()}<Button tone="signal" onclick={toggleFilter}
+                >Show Every Repository</Button
+              >{/snippet}
           </EmptyState>
         {:else}
           <div class="rows">
@@ -128,15 +142,8 @@
               {/each}
             </ObjectList>
           </div>
+          <div><Button onclick={toggleFilter}>Show Archived Only</Button></div>
         {/if}
-        <div>
-          <Button
-            onclick={() => {
-              filtered = !filtered;
-              toggled = true;
-            }}>{filtered ? 'Show Every Repository' : 'Show Archived Only'}</Button
-          >
-        </div>
       </div>
     </Section>
   </Specimen>

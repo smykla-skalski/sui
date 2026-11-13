@@ -1775,6 +1775,15 @@ suite('lists', together, () => {
       assert.match(at.words ?? '', /Usage for this month loaded/);
     });
 
+    test('the filtered specimen hands focus to the toggle that takes the pressed one’s place', async () => {
+      const page = await opened();
+      const focused = () => page.evaluate(() => document.activeElement?.textContent?.trim());
+      await page.getByRole('button', { name: 'Show Every Repository' }).click();
+      assert.equal(await focused(), 'Show Archived Only');
+      await page.getByRole('button', { name: 'Show Archived Only' }).click();
+      assert.equal(await focused(), 'Show Every Repository');
+    });
+
     test(
       'a retry that succeeds leaves the failed panels beside it at their height, and its rows stand as far over their button as the filtered rows do',
       long,

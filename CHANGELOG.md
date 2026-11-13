@@ -6,7 +6,7 @@
 - The kit's icon page shows each size tier beside a word at the text size it stands with in the kit: micro, compact, caption, control and title.
 - An `Icon` named `settings` draws two rails at the micro and xs tiers, where three rails 5 units apart merged their knobs at 12px and under.
 - The kit's icon page names each glyph at 12px, where the 11px names asked for a close look.
-- The kit's states page opens its filtered specimen emptied, so the Empty State example shows an empty panel in every column at rest, and the panel speaks only once the reader's own filter empties it.
+- The kit's states page opens its filtered specimen emptied, so the Empty State example shows an empty panel in every column at rest, its toggle the panel's own action so the three panels stand one height, focus moving to the toggle that takes the pressed one's place, and the panel speaks only once the reader's own filter empties it.
 - Every `Icon` and every kit page's glyph draws one 2-unit stroke, 1.33px at 16px, so a field's alert mark weighs as the title beside it and the set reads as one family, where controls drew 2 and the rest 1.75; `file-missing`'s dash and the dashed rings keep their gaps open under the heavier round caps.
 - A framed `CopyButton` draws its focus ring 2px off a Copied or failed edge, as a filled button's ring stands off its fill, where the blue ring and the green edge fused into one band.
 - A `CodeBlock` with `lineNumbers` parts its gutter from its code by a divider 12px from each, so a number never reads as the first token of its line, where 16px of bare ground parted them.
