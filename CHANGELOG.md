@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- A `CodeBlock`'s file name and language name are set at the compact size, 12px (13px on a phone), untracked, where 11px tracked mono read as a footnote under 14px code.
 - An `ErrorState overContent`'s tint meets the list's edges at its sides, where it stood 2px in from the rows' rules.
 - A framed `CodeBlock` heads its code with the language's name and the copy control in a row of its own at every width, not only on a phone; a `bare` block keeps its copy column on a desktop.
 - A hovered `RelativeTime`'s veil takes 12% of the focus hue in light, where 8% barely showed on white, and keeps 8% in dark.

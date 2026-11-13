@@ -298,11 +298,10 @@ beside its first line, and takes the row only on a phone. It copies `code` exact
   .sui-code-block-label {
     align-content: center;
     color: var(--sui-text-secondary);
-    font: var(--sui-weight-regular) var(--sui-font-size-micro) / var(--sui-leading-micro)
+    font: var(--sui-weight-regular) var(--sui-font-size-compact) / var(--sui-leading-compact)
       var(--sui-mono);
     font-variant-numeric: tabular-nums;
     flex: 1 1 8rem;
-    letter-spacing: 0.04em;
     min-block-size: var(--sui-local-code-row);
     overflow-wrap: anywhere;
     padding-inline: var(--sui-space-4);
@@ -392,9 +391,8 @@ beside its first line, and takes the row only on a phone. It copies `code` exact
     block-size: var(--sui-block-snap);
     color: var(--sui-text-secondary);
     display: block;
-    font: var(--sui-weight-regular) var(--sui-font-size-micro) / var(--sui-leading-micro)
+    font: var(--sui-weight-regular) var(--sui-font-size-compact) / var(--sui-leading-compact)
       var(--sui-mono);
-    letter-spacing: 0.04em;
     margin-inline-end: auto;
     padding-block: var(--sui-block-snap-room);
     padding-inline-start: calc(var(--sui-space-4) - var(--sui-space-2));
@@ -430,9 +428,8 @@ beside its first line, and takes the row only on a phone. It copies `code` exact
       block-size: var(--sui-block-snap);
       color: var(--sui-text-secondary);
       display: block;
-      font: var(--sui-weight-regular) var(--sui-font-size-micro) / var(--sui-leading-micro)
+      font: var(--sui-weight-regular) var(--sui-font-size-compact) / var(--sui-leading-compact)
         var(--sui-mono);
-      letter-spacing: 0.04em;
       margin-inline: calc(-1 * var(--sui-space-2)) auto;
       padding-block: var(--sui-block-snap-room);
       text-box: trim-both cap alphabetic;
