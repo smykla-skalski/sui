@@ -3159,10 +3159,18 @@ function codeLines(root: Document): Finding[] {
     const copy = block.querySelector(':scope > .sui-code-block-copy .sui-copy-button');
     if (!code || !copy || block.matches('.labelled')) continue;
     const box = copy.getBoundingClientRect();
-    const off = (box.top + box.bottom) / 2 - (first.top + first.bottom) / 2;
+    // On a phone the control heads the block in a row of its own, so it centres on that row.
+    const seat = (copy.closest('.sui-code-block-copy') as Element).getBoundingClientRect();
+    const own = seat.bottom <= edge.top + 0.5;
+    const target = own ? seat : first;
+    const off = (box.top + box.bottom) / 2 - (target.top + target.bottom) / 2;
     if (Math.abs(off) > 0.5)
       found.push(
-        finding('L-65', block, `its copy control sits ${round(off)}px off its first line`)
+        finding(
+          'L-65',
+          block,
+          `its copy control sits ${round(off)}px off ${own ? 'the middle of its row' : 'its first line'}`
+        )
       );
   }
   return found;
