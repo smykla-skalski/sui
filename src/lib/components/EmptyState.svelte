@@ -102,7 +102,7 @@ a step 8px under it.
     gap: var(--sui-space-5);
     justify-items: start;
     min-inline-size: 0;
-    padding: var(--sui-space-7) var(--sui-space-6);
+    padding: var(--sui-space-7) var(--sui-space-5);
   }
 
   /* The title stands a title gap above its words, and a step in words stands one under them,
@@ -148,7 +148,7 @@ a step 8px under it.
     gap: var(--sui-space-2);
   }
 
-  /* A phone gives the words some of the width the panel's inset would take. */
+  /* A phone's short screen takes the room above and below the words down to the sides' 20px. */
   @media (max-width: 47.9375rem) {
     .sui-empty-state {
       gap: var(--sui-space-4);

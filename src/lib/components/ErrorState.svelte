@@ -155,11 +155,11 @@ of them.
     gap: var(--sui-space-5);
     justify-items: start;
     min-inline-size: 0;
-    padding: var(--sui-space-7) var(--sui-space-6);
+    padding: var(--sui-space-7) var(--sui-space-5);
   }
 
-  /* A phone gives the words some of the width the panel's inset would take. The row over
-     content keeps its row's inset, below. */
+  /* A phone's short screen takes the room above and below the words down to the sides' 20px.
+     The row over content keeps its row's inset, below. */
   @media (max-width: 47.9375rem) {
     .sui-error-state {
       gap: var(--sui-space-4);

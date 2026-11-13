@@ -388,7 +388,7 @@ test('L-64 a placeholder light stops by the 10 seconds a skeleton waits to turn 
   }
 });
 
-test('L-59 a state panel pads 28px by 24px, 20px on a phone, its action a step under its words', () => {
+test('L-59 a state panel pads 28px by 20px, 20px on a phone, its action a step under its words', () => {
   const space = tokenMap(stripComments(palette));
   const lengths = (/** @type {string | undefined} */ rule, /** @type {string} */ property) =>
     [
@@ -406,7 +406,7 @@ test('L-59 a state panel pads 28px by 24px, 20px on a phone, its action a step u
     )?.[1];
     assert.deepEqual(
       { padding: lengths(rest, 'padding'), gap: lengths(rest, 'gap') },
-      { padding: [28, 24], gap: [20] },
+      { padding: [28, 20], gap: [20] },
       path
     );
     assert.deepEqual(
