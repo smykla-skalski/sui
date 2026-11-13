@@ -1914,6 +1914,14 @@ suite('navigation', together, () => {
           'opening a run left focus on its row'
         );
         assert.equal(await focused(page), 'Deploy Web #4174', 'focus is not on the run title');
+        assert.equal(
+          await page.evaluate(() => {
+            const style = getComputedStyle(/** @type {Element} */ (document.activeElement));
+            return `${style.outlineStyle} ${style.outlineWidth}`;
+          }),
+          'solid 2px',
+          "the landed PageHeader title lost the kit's ring"
+        );
         assert.equal(new URL(page.url()).pathname, '/layouts/list-detail/4174/');
         assert.equal(
           await page.locator('.sui-list-detail-list').isVisible(),
