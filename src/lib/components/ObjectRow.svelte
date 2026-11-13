@@ -28,7 +28,6 @@
 @component
 One row of an `ObjectList`. It pads 12px and draws a 1px hairline inset by that padding, which
 the hovered row hides along with the one above it, so the hover ground never sits on a line.
-Its grounds stop a pixel short of its top and bottom, so two plates that meet keep a 2px seam.
 
 With `href` the whole row is a link through a layer under the content, so a control inside it,
 such as an `IconButton`, a `RelativeTime` or a switch, stays pressable and never navigates. A
@@ -44,7 +43,7 @@ and the one above as a hovered row does, and under the pointer takes more of the
 - States: rest; with `href`, hover (the row ground, where the pointer can hover), pressed (a deeper ground and a 1px sink), focus (an inset ring on the row) and current (the sidebar's accent-tint plate, which hover deepens to more of the accent).
 - Keyboard: the row link is one tab stop, then each control inside the row; Enter follows the link.
 - Pointer and touch: the whole row is the link's target, at least 44px tall with its padding; controls inside keep their own targets.
-- Focus: the ring is drawn on the edge of the row's ground, inside the row, so a list that clips never cuts it and it stands 2px off a neighbour's hover or current plate.
+- Focus: the ring is drawn 1px inside the row, so a list that clips never cuts it and it never meets a neighbour's hover or current plate.
 - Responsive: on a phone the side stays beside the main content while both fit, and drops under it, packed to the start, once they do not; rows grow when their content wraps.
 - Accessibility: the link's name is the main content, so a reader hears the row once; the side stays outside the name; a current row is announced as the current page, and under forced colors its link frames it in `Highlight`.
 - Localization: everything it says is the caller's; the side sits at the inline end and follows the reading direction.
@@ -90,14 +89,10 @@ and the one above as a hovered row does, and under the pointer takes more of the
     grid-template-columns: minmax(0, 1fr) auto;
     margin-inline: calc(-1 * var(--sui-row-pad-default));
     min-inline-size: 0;
-    /* A clear pixel above and below the ground, taken from the padding, so two plates that
-       meet, the open row's and a hovered one's, keep a 2px seam of the page between them and
-       never read as one block in two tones. The bottom carries the hairline's pixel on top of
-       the padding, so the ink stands 12px off the line below it as off the line above. */
-    background-clip: padding-box;
-    border-block: var(--sui-stroke) solid transparent;
-    padding: calc(var(--sui-row-pad-default) - var(--sui-stroke)) var(--sui-row-pad-default)
-      calc(var(--sui-row-pad-default) - var(--sui-stroke) + var(--sui-row-hairline));
+    /* The bottom carries the hairline's pixel on top of the padding, so the ink stands
+       12px off the line below it as off the line above. */
+    padding: var(--sui-row-pad-default) var(--sui-row-pad-default)
+      calc(var(--sui-row-pad-default) + var(--sui-row-hairline));
     position: relative;
     transition:
       translate var(--sui-duration-press) var(--sui-ease-standard),
@@ -108,7 +103,7 @@ and the one above as a hovered row does, and under the pointer takes more of the
     background: var(--sui-border-divider);
     block-size: var(--sui-row-hairline);
     content: '';
-    inset-block-end: calc(-1 * var(--sui-stroke));
+    inset-block-end: 0;
     inset-inline: var(--sui-row-pad-default);
     position: absolute;
   }
@@ -119,8 +114,7 @@ and the one above as a hovered row does, and under the pointer takes more of the
   .sui-object-row-hit {
     border-radius: inherit;
     color: inherit;
-    /* Over the clear pixels as well, so the whole row stays the link's target. */
-    inset: calc(-1 * var(--sui-stroke)) 0;
+    inset: 0;
     position: absolute;
     user-select: none;
     -webkit-tap-highlight-color: transparent;
@@ -219,8 +213,8 @@ and the one above as a hovered row does, and under the pointer takes more of the
     translate: 0 1px;
   }
 
-  /* The ring rides the edge of the row's own ground, so a hovered or current neighbour's
-     plate stands the seam's 2px off it. */
+  /* Rows touch, so a ring on the row's edge would meet a hovered or current neighbour's plate;
+     a pixel further in keeps a line of the page between them. */
   .sui-object-row:has(> .sui-object-row-hit:focus-visible) {
     outline: var(--sui-focus-ring-width) solid var(--sui-focus);
     outline-offset: calc(var(--sui-focus-ring-inset) - var(--sui-stroke));
