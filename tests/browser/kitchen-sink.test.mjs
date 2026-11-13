@@ -1980,8 +1980,10 @@ suite('the kitchen sink', together, () => {
           for (let index = worker; index < count.kinds; index += WORKERS) {
             // Brought to the middle of the view, clear of the page's fixed bars, and measured in
             // one call. A control an earlier press re-rendered away is not there to press, so the
-            // first of its kind still shown stands for it.
-            const point = await page.evaluate((index) => {
+            // first of its kind still shown stands for it. Rows off the screen skip their layout
+            // (content-visibility: auto), so the rows a scroll brings near lay out a few frames
+            // later and can move the control; it is measured once it holds still.
+            const point = await page.evaluate(async (index) => {
               document.querySelector('[data-press-at]')?.removeAttribute('data-press-at');
               const element = [...document.querySelectorAll(`[data-press-probe="${index}"]`)].find(
                 (element) => element.checkVisibility({ visibilityProperty: true })
@@ -1989,6 +1991,14 @@ suite('the kitchen sink', together, () => {
               if (!element) return null;
               element.setAttribute('data-press-at', '');
               element.scrollIntoView({ block: 'center', inline: 'nearest' });
+              const frame = () => new Promise((done) => requestAnimationFrame(done));
+              let last = '';
+              for (let still = 0, frames = 0; still < 6 && frames < 60; frames += 1) {
+                await frame();
+                const { x, y } = element.getBoundingClientRect();
+                still = `${x},${y}` === last ? still + 1 : 0;
+                last = `${x},${y}`;
+              }
               const box = element.getBoundingClientRect();
               return box.width > 0 && box.height > 0
                 ? { x: box.x + box.width / 2, y: box.y + box.height / 2 }
