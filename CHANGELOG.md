@@ -3,7 +3,6 @@
 ## Unreleased
 
 - In a `FactList` of rows a value that holds an `IdentityRow` keeps its words' height, and the face reaches into the row's padding, so the row keeps its neighbours' pitch and the hairlines stay even.
-- An `IdentityRow`'s name is 500, not 600, as the kit's object row names now are, so a list's names stand a step under the 600 title of the section that holds them.
 - A tone's tint, the role tint and the neutral tint are their ink over the ground under them, 8% in the light theme and 16% in the dark, not fixed fills, so a pill, a chip or a callout keeps its hue, clear rather than gray, and its shape on a raised card as on the canvas, its ink at 4.6:1 or more. A live dot keeps a plain dot's gap past its ring.
 - A `Pill`'s live dot wears a still 2px ring at 36% of its ink, so it reads apart from a plain dot when it does not pulse, as under reduced motion. A plain dot steps a third of itself toward the start edge, so the inset before it reads as wide as the one after the words.
 - On a phone an `ObjectRow`'s side drops under its main part once the main part has less than 15rem, not 10rem, so a long name keeps its lines and its status stands 12px under it, not by its last line. The kit's object rows set their names at the body size, as an `IdentityRow`'s name.
