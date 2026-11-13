@@ -175,15 +175,14 @@ tooltip.
 </time>{#if element && valid && !exactOnly}<Tooltip anchor={element} text={whole} />{/if}
 
 <style>
-  /* The box spans its line in a sentence too, and reaches 3px past it below and 2px past the
+  /* The box spans its line in a sentence too, and reaches 2px past it below and 2px past the
      words at each side, all given back by its margin so nothing moves: the dots stand 3px clear
-     of a g or a y and a stroke over the box's foot, so the focus ring clears them by 3px, and
-     the ring clears the first and last letters as it clears the cap. */
+     of a g or a y, and the focus ring clears the first and last letters as it clears the cap. */
   .sui-relative-time {
     --sui-local-dot: color-mix(in srgb, currentColor 60%, transparent);
     display: inline-block;
-    margin: 0 -2px calc(-2px - var(--sui-stroke));
-    padding: 0 2px calc(2px + var(--sui-stroke));
+    margin: 0 -2px -2px;
+    padding: 0 2px 2px;
     /* A flex or grid parent makes the time a block and may stretch it, and the dots follow its
        box, so the box keeps to its words exactly, not rounded past them (L-95). */
     inline-size: fit-content;
@@ -221,7 +220,7 @@ tooltip.
       repeat-x;
     block-size: 1px;
     content: '';
-    inset: auto 2px var(--sui-stroke);
+    inset: auto 2px 0;
     position: absolute;
   }
 

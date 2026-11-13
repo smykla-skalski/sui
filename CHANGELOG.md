@@ -21,7 +21,6 @@
 - An `EmptyState` or `ErrorState` stretched beside a taller panel keeps its action one gap under its words, where it stood at the panel's foot.
 - An `EmptyState` or `ErrorState` step in words stands where a control would, 20px under the words in the body size, where it stood the title gap under them in the meta size.
 - A `CodeBlock`'s copy control rests with no edge of its own and takes a button's edge on hover, where it wore a button's edge at rest.
-- A `RelativeTime`'s focus ring stands 3px under its dots, where it stood 2px under them.
 - A `RelativeTime`'s whole instant pads its hour only where the language does, so English reads 9:26:53 AM, not 09:26:53 AM.
 - A hovered or focused `RelativeTime` draws its dots in its words' full ink, where they took 80% of it on hover and 60% with focus.
 - A `RelativeTime`'s focus ring stands 2px further from its first and last letters, as far as it stands from the cap, with its dots still under the words alone.
