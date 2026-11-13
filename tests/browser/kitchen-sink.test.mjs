@@ -918,8 +918,16 @@ suite('the kitchen sink', together, () => {
     // The server render with no script is the reader's first frame: there a picture that fails
     // draws nothing over its initials and their ring, and one that loads covers them, even
     // through a logo's clear middle. The running page draws each the same.
-    const failed = ['Alan Turing', 'Data Team'];
-    const loaded = ['Grace Hopper', 'Platform Team'];
+    // Each failed picture names the one that loads beside it, so a specimen is found by its label.
+    /** @type {Record<string, string>} */
+    const named = {
+      'Person, not loaded': 'Grace Hopper',
+      'Workspace, not loaded': 'Platform Team',
+      Person: 'Grace Hopper',
+      Workspace: 'Platform Team'
+    };
+    const failed = ['Person, not loaded', 'Workspace, not loaded'];
+    const loaded = ['Person', 'Workspace'];
     const address = new URL('avatar/', url);
     /** @type {string[]} */
     const problems = [];
@@ -976,7 +984,9 @@ suite('the kitchen sink', together, () => {
     const shoot = async (page, name) => {
       const avatar = page
         .locator('#avatar .example', { hasText: /^Pictures/ })
-        .getByRole('img', { name, exact: true });
+        .locator('figure')
+        .filter({ has: page.getByText(name, { exact: true }) })
+        .getByRole('img', { name: named[name], exact: true });
       await avatar.scrollIntoViewIfNeeded();
       // An edge off the pixel grid blends a few levels apart once the layers above it change,
       // so a shot is only a fair witness of an avatar standing on whole pixels.
@@ -1071,8 +1081,8 @@ suite('the kitchen sink', together, () => {
         }
         if (!javaScriptEnabled) {
           assert.equal(
-            await page.getByRole('img', { name: 'Alan Turing', exact: true }).ariaSnapshot(),
-            '- img "Alan Turing"'
+            await (await shoot(page, 'Person, not loaded')).avatar.ariaSnapshot(),
+            '- img "Grace Hopper"'
           );
           // Beside the name an avatar is not heard at all, so the name is read once.
           await page.goto(new URL('timeline/', url).href);
