@@ -108,15 +108,44 @@ the next step, a control or words, stands a panel gap under it.
     position: relative;
   }
 
-  /* A browser's own dashes stretch to fit each side and blur at their ends, so the edge is a
-     4px dash and 4px gap traced round the 8px corner on whole pixels: the stroke centres on
-     the box's outer edge, and only its inner 1px shows. The rx follows --sui-radius-control. */
+  /* A browser's own dashes stretch to fit each side and blur at their ends, so the edge is
+     drawn in layers on whole pixels: a solid 1px quarter arc closes each 8px corner, centred
+     half a pixel in as a 1px border's curve is, and between the arcs each
+     side runs 4px dashes and 4px gaps from its own start. The arcs' radius follows
+     --sui-radius-control. */
   .sui-empty-state::before {
+    --sui-local-dash: currentcolor 0 4px, transparent 4px 8px;
     background: var(--sui-border-control);
-    border-radius: inherit;
     content: '';
     inset: calc(-1 * var(--sui-stroke));
-    mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Crect width='100%25' height='100%25' rx='8' fill='none' stroke='%23000' stroke-width='2' stroke-dasharray='4 4'/%3E%3C/svg%3E");
+    mask-image:
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8'%3E%3Cpath d='M0.5 8A7.5 7.5 0 0 1 8 0.5' fill='none' stroke='%23000'/%3E%3C/svg%3E"),
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8'%3E%3Cpath d='M0 0.5A7.5 7.5 0 0 1 7.5 8' fill='none' stroke='%23000'/%3E%3C/svg%3E"),
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8'%3E%3Cpath d='M7.5 0A7.5 7.5 0 0 1 0 7.5' fill='none' stroke='%23000'/%3E%3C/svg%3E"),
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8'%3E%3Cpath d='M8 7.5A7.5 7.5 0 0 1 0.5 0' fill='none' stroke='%23000'/%3E%3C/svg%3E"),
+      repeating-linear-gradient(to right, var(--sui-local-dash)),
+      repeating-linear-gradient(to right, var(--sui-local-dash)),
+      repeating-linear-gradient(to bottom, var(--sui-local-dash)),
+      repeating-linear-gradient(to bottom, var(--sui-local-dash));
+    mask-position:
+      left top,
+      right top,
+      right bottom,
+      left bottom,
+      8px top,
+      8px bottom,
+      left 8px,
+      right 8px;
+    mask-repeat: no-repeat;
+    mask-size:
+      8px 8px,
+      8px 8px,
+      8px 8px,
+      8px 8px,
+      calc(100% - 16px) 1px,
+      calc(100% - 16px) 1px,
+      1px calc(100% - 16px),
+      1px calc(100% - 16px);
     pointer-events: none;
     position: absolute;
   }

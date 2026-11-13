@@ -5,7 +5,7 @@
 - A framed `CopyButton` draws its focus ring 2px off a Copied or failed edge, as a filled button's ring stands off its fill, where the blue ring and the green edge fused into one band.
 - A hovered `ErrorState` retry on light takes an 8% veil of the hue, level with the wash, where 16% sank it under the panel as if pressed.
 - A `CodeBlock`'s head names its file or language in the primary ink, so the name anchors the head apart from the secondary copy words, where both read in one grey.
-- An `EmptyState` draws a dashed edge at the control edge's strength, 4px dashes on whole pixels round its corner, so it reads as the room its content would fill, where a solid hairline drew it as one more card.
+- An `EmptyState` draws a dashed edge at the control edge's strength, 4px dashes on whole pixels that each side starts afresh and solid arcs that close its corners, so it reads as the room its content would fill, where a solid hairline drew it as one more card.
 - An `ErrorState`'s retry wears an edge of the danger hue, 18% at rest and 30% on hover, as a warning callout's button wears its own, where a grey edge stood on the pink wash.
 - An `ErrorState`'s and an `EmptyState`'s step in words read at the regular weight in the primary ink, under their semibold title, where the medium weight read as a second title.
 - An `ErrorState`'s retry says Retrying… while it runs, so at rest it holds 29px a side around Try Again, where Trying Again… held 41px.

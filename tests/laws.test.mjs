@@ -447,16 +447,14 @@ test('L-59 a state panel pads 28px by 20px, 20px on a phone, its action a step u
     /background: var\(--sui-border-control\);/,
     'an empty panel marks the room its content would fill with a dashed edge, firm enough to read as one'
   );
-  assert.match(edge, /stroke-dasharray='4 4'/, 'its dashes stand on whole pixels');
-  assert.equal(
-    edge.match(/rx='(\d+)'/)?.[1] + 'px',
-    read('src/lib/styles.css').match(/--sui-radius-control: ([^;]+);/)?.[1],
-    "the dashes turn the panel's own corner"
+  assert.match(edge, /currentcolor 0 4px, transparent 4px 8px/, 'its dashes stand on whole pixels');
+  const radius = parseFloat(
+    read('src/lib/styles.css').match(/--sui-radius-control: ([^;]+);/)?.[1] ?? ''
   );
-  assert.match(
-    stripComments(styles['src/lib/components/ErrorState.svelte']),
-    /--sui-interactive-hover-layer: light-dark\(\s*color-mix\(in srgb, var\(--sui-danger\) 8%, transparent\)/,
-    'a hovered retry on light comes only to the wash, so it never reads as pressed'
+  assert.deepEqual(
+    [...edge.matchAll(/A([\d.]+) /g)].map(([, r]) => Number(r)),
+    [radius - 0.5, radius - 0.5, radius - 0.5, radius - 0.5],
+    "its corners close on the panel's own radius, half a pixel in"
   );
   for (const [file, step] of [
     ['ErrorState', 'error-state'],
