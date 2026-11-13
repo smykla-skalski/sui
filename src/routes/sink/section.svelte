@@ -209,10 +209,13 @@
   }
 
   /* A 30rem pane ends on a pane's divider, as it would beside the next pane, so the room past
-     it reads as another pane's and not as words that only wrapped. */
+     it reads as another pane's and not as words that only wrapped. The divider runs on through
+     the stage's inset to the specimen's foot, as a pane's edge runs to the window's. */
   .narrow {
     border-inline-end: var(--sui-stroke) solid var(--sui-border-divider);
     inline-size: min(100% - var(--sui-space-6) - var(--sui-stroke), 30rem);
+    margin-block-end: calc(-1 * var(--sui-local-bleed, 0px));
+    padding-block-end: var(--sui-local-bleed, 0px);
     padding-inline-end: var(--sui-space-6);
   }
 

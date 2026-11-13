@@ -446,6 +446,82 @@ suite('accessibility', together, () => {
     );
 
     test(
+      "a link's rest underline is quieter than its words yet holds 3:1, and hover draws it whole",
+      long,
+      async () => {
+        const page = await mounted();
+        await page.addStyleTag({ content: '.sui-link { transition: none !important; }' });
+        const read = () =>
+          page.evaluate(() => {
+            const paint = document.createElement('canvas').getContext('2d', {
+              willReadFrequently: true
+            });
+            const over = (/** @type {string} */ ground, /** @type {string} */ color) => {
+              const brush = /** @type {CanvasRenderingContext2D} */ (paint);
+              brush.clearRect(0, 0, 1, 1);
+              brush.fillStyle = ground;
+              brush.fillRect(0, 0, 1, 1);
+              brush.fillStyle = color;
+              brush.fillRect(0, 0, 1, 1);
+              const [r, g, b] = brush.getImageData(0, 0, 1, 1).data;
+              return [r, g, b]
+                .map((c) => c / 255)
+                .map((c) => (c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4))
+                .reduce((sum, c, i) => sum + c * [0.2126, 0.7152, 0.0722][i], 0);
+            };
+            const ratio = (/** @type {number} */ a, /** @type {number} */ b) =>
+              (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05);
+            return [...document.querySelectorAll('.link-probe')].map((host) => {
+              const ground = getComputedStyle(host).backgroundColor;
+              const link = /** @type {Element} */ (host.querySelector('.sui-link'));
+              const style = getComputedStyle(link);
+              const base = over(ground, 'transparent');
+              return {
+                where: host.getAttribute('data-where'),
+                line: ratio(over(ground, style.textDecorationColor), base),
+                words: ratio(over(ground, style.color), base)
+              };
+            });
+          });
+        await page.evaluate(() => {
+          const { lib, mount, createRawSnippet } = /** @type {any} */ (window);
+          const children = createRawSnippet(() => ({
+            render: () => '<span>Open sync page</span>'
+          }));
+          for (const theme of ['light', 'dark'])
+            for (const ground of ['canvas', 'surface-base']) {
+              const host = document.body.appendChild(document.createElement('div'));
+              host.className = 'link-probe';
+              host.dataset.where = `${theme} ${ground}`;
+              host.style.cssText = `background: var(--sui-${ground}); padding: 8px`;
+              mount(lib.Link, { target: host, props: { href: '#', children } });
+            }
+        });
+        // The theme is the root's, so each theme's probes are read while it is on.
+        const rest = [];
+        for (const theme of ['light', 'dark']) {
+          await page.evaluate((value) => (document.documentElement.dataset.theme = value), theme);
+          rest.push(...(await read()).filter(({ where }) => where?.startsWith(theme)));
+        }
+        for (const { where, line, words } of rest) {
+          assert.ok(line >= 3, `on ${where} the rest underline reads ${line.toFixed(2)}:1`);
+          assert.ok(line < words - 1, `on ${where} the rest underline is as strong as its words`);
+        }
+        await page.evaluate(() => (document.documentElement.dataset.theme = 'light'));
+        await page.hover('.link-probe .sui-link');
+        const lit = (await read())[0];
+        assert.ok(
+          Math.abs(lit.line - lit.words) < 0.01,
+          `a lit underline reads ${lit.line.toFixed(2)}:1 under words of ${lit.words.toFixed(2)}:1`
+        );
+        await page.evaluate(() => {
+          for (const host of document.querySelectorAll('.link-probe')) host.remove();
+          delete document.documentElement.dataset.theme;
+        });
+      }
+    );
+
+    test(
       "a bare code block's copy control centres on its file name's row, or on the first line",
       long,
       async () => {

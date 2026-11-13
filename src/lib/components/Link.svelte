@@ -42,8 +42,9 @@
 <!--
 @component
 A link inside a sentence. It borrows the action ink rather than a link color of its own,
-so it never shows the browser's blue or purple. Its full underline at rest tells it from the
-words around it without color (WCAG 1.4.1), and hover thickens it. Press is a color step,
+so it never shows the browser's blue or purple. Its underline at rest, 70% of its ink and 3:1 or
+more on its ground, tells it from the words around it without color (WCAG 1.4.1), and hover
+draws it whole and thick. Press is a color step,
 because moving a run of text inside a sentence would move the words around it.
 
 A link that leaves the product draws a north-east arrow after its words, says "(opens another
@@ -54,7 +55,7 @@ is `Button` with `href`, and the way back from a page is `BackLink`.
 
 - Semantics: a native `<a href>` named by its words, with the external note as its description.
 - Content: a few words that say where it goes, never "click here"; an external one adds a 10px arrow kept on the line of its last word.
-- States: rest (action ink at 600 with a full underline), hover (a 2px underline and an ink a step toward the page's ink), focus (a 2px ring 2px off), pressed (a deeper ink) and visited, which looks like rest.
+- States: rest (action ink at 600 over an underline at 70% of it), hover (a whole 2px underline and an ink a step toward the page's ink), focus (a 2px ring 2px off), pressed (a deeper ink) and visited, which looks like rest.
 - Keyboard: Tab reaches it and Enter follows it.
 - Pointer and touch: inside a sentence its target is the words' line, as WCAG 2.5.8 allows; `standalone` grows the hit area to 24px, and 44px on a phone or any touch screen.
 - Focus: following it moves focus as the browser's navigation does; nothing here moves it.
@@ -89,22 +90,25 @@ is `Button` with `href`, and the way back from a page is `BackLink`.
     inline-size: var(--sui-inline-snap);
     overflow-wrap: anywhere;
     text-decoration: underline;
-    text-decoration-color: currentColor;
+    text-decoration-color: color-mix(in srgb, currentColor 70%, transparent);
     text-decoration-thickness: var(--sui-stroke);
     text-underline-offset: 0.18em;
   }
 
-  /* Hover thickens the line and steps the ink toward the page's ink, which only adds
-     contrast; a press steps it further. */
+  /* At rest the line stays under its words yet holds 3:1, so a page of links reads calm while
+     the line still marks each. Hover draws it whole and thick and steps the ink toward the
+     page's ink, which only adds contrast; a press steps it further. */
   @media (hover: hover) {
     .sui-link:hover {
       color: color-mix(in oklab, var(--sui-link) 76%, var(--sui-text-primary));
+      text-decoration-color: currentColor;
       text-decoration-thickness: var(--sui-stroke-bold);
     }
   }
 
   .sui-link:active {
     color: color-mix(in oklab, var(--sui-link) 62%, var(--sui-text-primary));
+    text-decoration-color: currentColor;
   }
 
   .sui-link:focus-visible {
