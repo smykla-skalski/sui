@@ -94,7 +94,7 @@
 
   .name {
     color: var(--sui-text-secondary);
-    font: var(--sui-weight-regular) var(--sui-font-size-micro) / var(--sui-leading-micro)
+    font: var(--sui-weight-regular) var(--sui-font-size-compact) / var(--sui-leading-compact)
       var(--sui-mono);
     overflow-wrap: anywhere;
   }

@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- The kit's icon page names each glyph at 12px, where the 11px names asked for a close look.
 - The kit's states page opens its filtered specimen emptied, so the Empty State example shows an empty panel in every column at rest, and the panel speaks only once the reader's own filter empties it.
 - Every `Icon` and every kit page's glyph draws one 2-unit stroke, 1.33px at 16px, so a field's alert mark weighs as the title beside it and the set reads as one family, where controls drew 2 and the rest 1.75; `file-missing`'s dash and the dashed rings keep their gaps open under the heavier round caps.
 - A framed `CopyButton` draws its focus ring 2px off a Copied or failed edge, as a filled button's ring stands off its fill, where the blue ring and the green edge fused into one band.
