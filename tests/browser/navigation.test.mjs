@@ -2043,8 +2043,9 @@ suite('navigation', together, () => {
     'a wide list-detail keeps its list in place, marks the run it opens, and Back puts both panes where they stood',
     long,
     async () => {
-      // A short window, so the list and the detail each scroll in their own pane.
-      const page = await openLayout('layouts/list-detail/4182/', 1440, { height: 420 });
+      // A short window, so the list and the detail each scroll in their own pane: the run's
+      // aside stands beside its steps at this width, so its detail is about 340px tall.
+      const page = await openLayout('layouts/list-detail/4182/', 1440, { height: 300 });
       try {
         const pair = page.locator('.sui-list-detail');
         const list = pair.locator('.sui-list-detail-list');
@@ -2056,7 +2057,7 @@ suite('navigation', together, () => {
             )
           );
         // The row stands whole in the scrolled list, so the press scrolls nothing itself.
-        await list.evaluate((pane) => (pane.scrollTop = 120));
+        await list.evaluate((pane) => (pane.scrollTop = 200));
         await detail.evaluate((pane) => (pane.scrollTop = 40));
         const stood = await stand();
         assert.ok(stood[1] > 0, 'the run detail is too short to scroll');
@@ -2072,7 +2073,7 @@ suite('navigation', together, () => {
           'opening a run left focus on its row'
         );
         assert.equal(await focused(page), 'Deploy Web #4176', 'focus is not on the run title');
-        assert.equal(await list.evaluate((pane) => pane.scrollTop), 120, 'the list lost its place');
+        assert.equal(await list.evaluate((pane) => pane.scrollTop), 200, 'the list lost its place');
         assert.deepEqual(
           await pair
             .locator('[aria-current="page"]')
