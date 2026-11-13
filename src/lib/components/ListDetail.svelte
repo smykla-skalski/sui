@@ -166,7 +166,7 @@ around it.
 
 - Semantics: the list is a `nav` landmark named by `label`; the detail is a plain box, or the page's `main` with `landmark="main"` when the page has no other; the way back is a `BackLink`.
 - Content: a `list` of links to each item's address, usually an `ObjectList`, and the open item's `detail`, usually a `PageHeader` over a `DetailLayout`.
-- States: nothing open (beside the list, an `EmptyState` with `emptyTitle`, `emptyDescription` and `emptyStep`), an item open, and its row current (`ObjectRow current`) while both panes show; the panes draw no state of their own.
+- States: nothing open (beside the list, an `EmptyState` with `emptyTitle`, `emptyDescription` and `emptyStep`, at most 32rem wide at the pane's start), an item open, and its row current (`ObjectRow current`) while both panes show; the panes draw no state of their own.
 - Keyboard: Tab walks the list, then the detail; the way back is a link that Enter follows; nothing traps focus, since the pair is not modal.
 - Pointer and touch: none of its own; the rows and the way back keep their own targets, 44px on a phone.
 - Focus: opening an item moves focus to the detail's first heading, and closing it returns focus to the row that opened it, or the list's first control.
@@ -233,7 +233,10 @@ around it.
     display: contents;
   }
 
+  /* Its few short lines keep a reading measure, so a wide pane shows a quiet placeholder at
+     its start rather than a banner across it. */
   .sui-list-detail-empty {
+    max-inline-size: 32rem;
     padding: var(--sui-rhythm-pane-gutter);
   }
 
