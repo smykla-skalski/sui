@@ -11,6 +11,7 @@
     Button,
     DetailLayout,
     FactList,
+    Icon,
     Link,
     ObjectList,
     ObjectRow,
@@ -98,7 +99,12 @@
   </Specimen>
   <Specimen label="Quiet button">
     <Section title="Webhooks" description="Deliveries in the last 24&nbsp;hours" level={4}>
-      {#snippet actions()}<Button tone="ghost">Refresh</Button>{/snippet}
+      {#snippet actions()}
+        <Button tone="ghost">
+          {#snippet icon()}<Icon name="refresh" size="base" />{/snippet}
+          Refresh
+        </Button>
+      {/snippet}
       <p class="copy">All 18 deliveries succeeded</p>
     </Section>
   </Specimen>
