@@ -237,7 +237,7 @@ style declaration.
 - Content: one value of any length, which wraps inside the chip so no part of it is cut; `small` for a chip inside a line of text, `mono` for a technical value.
 - States: rest, painted (its color in the light theme, a tint of it in the dark one), and on the remove control hover, pressed and focus; a disabled chip takes an off field's paint, the quieter field well with no edge and its value and mark in the muted ink at full strength, and a painted one keeps a tenth of its color over that well, so it still shows which label it is.
 - Keyboard: the remove control is a tab stop, and Enter or Space removes; the chip itself is not a stop.
-- Pointer and touch: the remove target is 24px; on a phone or a coarse pointer a removable chip grows to 44px tall around a 44px square control, so the targets of chips on wrapped lines never overlap.
+- Pointer and touch: the remove target is 24px; on a phone or a coarse pointer a removable chip is drawn 34px tall with a 44px target that reaches over its own value, and a 5px margin above and below holds the rest of the target, so the targets of chips on wrapped lines never overlap.
 - Focus: after a removal it moves to the next remove control in the chip's parent, then the previous one, then the parent itself, which gets `tabindex="-1"` when it has none.
 - Responsive: as wide as its value, up to its container, and taller as a long value wraps; a `mono` value wraps after a `/`, `:`, `=` or `-` before it breaks a word.
 - Accessibility: the remove control is named by `removeLabel`, which is also its tooltip unless the chip is disabled, and a polite status says `removedLabel` once the chip has gone; a painted chip's ink holds 4.5:1 and APCA Lc 60 in both themes, and under forced colors every chip keeps an outline.
@@ -423,13 +423,16 @@ style declaration.
     position: absolute;
   }
 
-  /* A finger's 44px target that reached past the chip would overlap the next line's, so the
-     chip grows to hold the whole target instead. */
+  /* A finger gets a 44px target while the chip is drawn at the pointer's 34px tier, so a row of
+     removable chips stays a row of marks and not a stack of fields. The target reaches inward
+     over the chip's own value, never past its end, and the chip's margin holds the 5px it
+     reaches above and below, so the targets of chips on wrapped lines never overlap. */
   @media (pointer: coarse), (max-width: 47.9375rem) {
     .removable,
     .small.removable {
-      --sui-local-chip: var(--sui-touch-target);
-      --sui-local-remove: var(--sui-touch-target);
+      --sui-local-chip: var(--sui-control-height-drawn);
+      --sui-local-remove: var(--sui-control-height-drawn);
+      margin-block: calc((var(--sui-touch-target) - var(--sui-local-chip)) / 2);
       padding-inline-end: 0;
     }
 
@@ -438,7 +441,9 @@ style declaration.
     }
 
     .sui-chip-remove::before {
-      inset: 0;
+      inset: calc((var(--sui-local-remove) - var(--sui-touch-target)) / 2) 0
+        calc((var(--sui-local-remove) - var(--sui-touch-target)) / 2)
+        calc(var(--sui-local-remove) - var(--sui-touch-target));
     }
   }
 
@@ -459,9 +464,10 @@ style declaration.
     translate: 0 1px;
   }
 
+  /* Inside the control, so the ring never lands on the chip's own edge as a double line. */
   .sui-chip-remove:focus-visible {
     outline: var(--sui-focus-ring-width) solid var(--sui-focus);
-    outline-offset: var(--sui-focus-ring-flush);
+    outline-offset: var(--sui-focus-ring-inset);
   }
 
   @media (prefers-reduced-motion: reduce) {

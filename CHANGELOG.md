@@ -5,6 +5,8 @@
 - A `ListToolbar` heading or search label that stands before its control stands 12px from it, where it stood 8px, so the control's focus ring never crowds its words.
 - A `ListToolbar` sets the choices named beside its tools button in the primary ink, at the regular weight, so they read as the button's current values rather than as a caption.
 - The `Chip` page's Remove & refocus group holds three labels, so on a laptop it keeps one row rather than leaving its last chip alone on a second.
+- A removable `Chip` on a phone is drawn 34px tall, where it grew to 44px, and keeps its 44px target over its own value and a 5px margin, so wrapped chips' targets still never overlap.
+- A `Chip`'s remove control draws its focus ring inside itself, where the ring's outer side fell on the chip's edge as a double line.
 - An `ObjectRow`'s focus ring stands 1px inside the row, where it ran along the row's edge, so it never meets the hover or current plate of the row beside it.
 - A `ListDetail` with nothing open keeps its empty state at most 32rem wide at the pane's start, where it ran across the whole pane as a banner.
 - A `ListToolbar` stands its groups 20px apart on a line, where they stood 12px apart, so the choice named beside the tools button reads as the button's and not as the action's.
