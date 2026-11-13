@@ -1829,10 +1829,10 @@ test("L-94 a segmented option's and a tab's icon and count stand 8px off, as a b
     );
 });
 
-test('L-25 a count beside a label is compact type at 600', () => {
+test('L-25 a count beside a label is caption type at 600', () => {
   assert.match(
     styles['src/lib/internal/Count.svelte'],
-    /font: var\(--sui-weight-semibold\) var\(--sui-font-size-compact\) \//
+    /font: var\(--sui-weight-semibold\) var\(--sui-font-size-caption\) \//
   );
 });
 

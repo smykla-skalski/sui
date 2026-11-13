@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- A count beside a label, in a tab, a segment, a section's title or a sidebar row, is 13px at every width, not 12px on a desktop, so its figures hold beside the title or label they count.
 - A `Link`'s hover steps a further 8 points toward the primary ink, 76% of its ink, and its press 62%, so the hover reads by color as well as by its thicker line, and a `BackLink`'s hover takes the same 76%. A lone ghost button in a `Section`'s head ends its words on the content's edge, as a link does, and its veil hangs past it.
 - On a phone a card's, a plate's, a section's and an empty or error panel's title is 18px, a step over the 16px body, so a sub-section's title, which takes the body's size, stays under its section's.
 - Breaking: `--sui-interactive-hover` is gone. Its one reader, a quiet `Callout`, now stands on a ground of its own; mix `--sui-text-primary` into `--sui-surface-base` for a resting veil.
