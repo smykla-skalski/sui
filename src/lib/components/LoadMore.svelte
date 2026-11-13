@@ -232,6 +232,13 @@ struggling. The reason takes the count's place and the button retries until the 
     margin-block: calc((round(up, 1cap, 2px) - var(--sui-icon-base)) / 2);
   }
 
+  /* The end note holds the button's height, so the footer keeps one height from the first page
+     to the last and the note stands where the count stood. */
+  .sui-load-more-end {
+    align-items: center;
+    min-block-size: var(--sui-control-height-compact);
+  }
+
   .sui-load-more-end:focus-visible {
     border-radius: var(--sui-radius-control);
     outline: var(--sui-focus-ring-width) solid var(--sui-focus);
