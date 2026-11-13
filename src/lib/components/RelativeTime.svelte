@@ -175,14 +175,14 @@ tooltip.
 
 <style>
   /* A dotted underline with room between its dots: a native dotted line spaces its dots one
-     stroke apart, which reads as solid, so a row of round dots, 4px apart, runs along the foot
-     of the words instead. */
+     stroke apart, which reads as solid, so a row of 1px dots, one every 3px, in half the words' ink
+     runs 3px under their baseline instead, light enough to read as a hint, not a link. */
   .sui-relative-time {
-    --sui-local-dot: color-mix(in srgb, var(--sui-text-muted) 70%, transparent);
-    background-image: radial-gradient(circle, var(--sui-local-dot) 0.75px, transparent 1.25px);
-    background-position: 0 100%;
+    --sui-local-dot: color-mix(in srgb, currentColor 50%, transparent);
+    background-image: linear-gradient(to right, var(--sui-local-dot) 1px, transparent 1px);
+    background-position: 0 calc(100% - 1px);
     background-repeat: repeat-x;
-    background-size: 4px 2px;
+    background-size: 3px 1px;
     /* A flex or grid parent makes the time a block and may stretch it, and the dots follow its
        box, so the box keeps to its words exactly, not rounded past them (L-95). */
     inline-size: fit-content;
@@ -198,7 +198,7 @@ tooltip.
   /* Hover strengthens the dots and only nudges the words, so the reading stays in its sentence. */
   @media (hover: hover) {
     .sui-relative-time:not(.exact):hover {
-      --sui-local-dot: var(--sui-text-secondary);
+      --sui-local-dot: color-mix(in srgb, currentColor 80%, transparent);
       color: color-mix(in oklab, currentColor 75%, var(--sui-text-primary));
     }
   }
