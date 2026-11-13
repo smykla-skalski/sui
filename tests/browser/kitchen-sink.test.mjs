@@ -788,6 +788,50 @@ suite('the kitchen sink', together, () => {
     }
   });
 
+  test("an identity row's face stands level with its name's first line", async () => {
+    // A long name used to centre the face on its whole block, so beside three lines it stood
+    // by the second. It now centres on the first line, held in the row, as a short name's is.
+    const page = await openMount(browser, url, { viewport: { width: 1440, height: 900 } });
+    try {
+      const rows = await page.evaluate(async () => {
+        const { lib, mount, flushSync } = /** @type {any} */ (window);
+        const host = document.createElement('div');
+        host.style.cssText = 'display: grid; gap: 24px; inline-size: 16rem';
+        document.body.append(host);
+        const names = ['Ada Lovelace', 'Maria Gaetana Agnesi de la Cruz Montgomery-Wellington'];
+        for (const name of names)
+          for (const size of [24, 32, 40])
+            mount(lib.IdentityRow, { target: host, props: { name, handle: '@ada', size } });
+        flushSync();
+        await document.fonts.ready;
+        return [...host.querySelectorAll('.sui-identity-row')].map((row) => {
+          const name = /** @type {Element} */ (row.querySelector('.sui-identity-name'));
+          const words = document.createRange();
+          words.selectNodeContents(name);
+          const face = /** @type {Element} */ (
+            row.querySelector('.sui-avatar')
+          ).getBoundingClientRect();
+          return {
+            lines: words.getClientRects().length,
+            top: face.top - row.getBoundingClientRect().top
+          };
+        });
+      });
+      for (const [index, size] of [24, 32, 40].entries()) {
+        const [short, long] = [rows[index], rows[index + 3]];
+        assert.equal(short.lines, 1, 'the short name wrapped');
+        assert.ok(long.lines > 1, 'the long name did not wrap');
+        assert.equal(
+          long.top,
+          short.top,
+          `a wrapped name's ${size}px face stands ${long.top - short.top}px under a short name's`
+        );
+      }
+    } finally {
+      await page.close();
+    }
+  });
+
   test("L-102 an avatar's initials centre their drawn ink on the drawn circle", async () => {
     // A B leans on its stem, a Q hangs its tail and an accent stands over its letter, so the
     // advance and the cap band are not where the letters draw. The ground is painted red and
