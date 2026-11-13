@@ -148,7 +148,7 @@ of them.
     );
     align-content: space-between;
     background: var(--sui-local-error-ground);
-    border: var(--sui-stroke) solid color-mix(in srgb, var(--sui-danger) 40%, transparent);
+    border: var(--sui-stroke) solid var(--sui-danger-wash-edge);
     border-radius: var(--sui-radius-control);
     box-sizing: border-box;
     display: grid;
@@ -235,7 +235,7 @@ of them.
 
   /* Over a list the failure is a line of its own inside the list's edges, its words and its
      retry a step inside its tint, so they never crowd the tint's edge. Its tint is a plate 2px
-     inside that box on every side, as a row's state is (L-91). It stands 8px clear of the first
+     inside that box on every side, as a row's state is (L-91), with a panel's edge. It stands 8px clear of the first
      row, so the failure never reads as that row's state. Its retry ends the line, where a
      reader looks for a line's action, and a line too narrow for both wraps it under its words
      (L-90), at any width. */
@@ -256,6 +256,7 @@ of them.
 
   .over::before {
     background: var(--sui-local-error-ground);
+    border: var(--sui-stroke) solid var(--sui-danger-wash-edge);
     border-radius: inherit;
     content: '';
     inset: calc(var(--sui-space-1) / 2);
@@ -273,13 +274,5 @@ of them.
   /* A line over a list heads only its own words, so its title keeps a panel's step quieter. */
   .over :is(.sui-error-state-title, .sui-error-state-mark) {
     font-size: var(--sui-font-size-title);
-  }
-
-  /* High contrast drops the tint, so the plate keeps its shape by an outline. */
-  @media (forced-colors: active) {
-    .over::before {
-      outline: var(--sui-stroke) solid CanvasText;
-      outline-offset: calc(-1 * var(--sui-stroke));
-    }
   }
 </style>

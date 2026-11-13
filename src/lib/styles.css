@@ -223,6 +223,8 @@
   /* A field's danger edge. */
   --sui-danger-edge: var(--sui-danger);
   --sui-danger-edge-hover: var(--sui-danger-hover);
+  /* A failure's edge, 3:1 on dark, where the pastel ink needs a larger share. */
+  --sui-danger-wash-edge: color-mix(in srgb, var(--sui-danger) 40%, #0000);
   /* An invalid field's recess takes a share of its edge's red, so a gray line never sits inside
      a red frame, and it stays a darker line under the top edge. */
   --sui-field-danger-recess: color-mix(
@@ -714,6 +716,7 @@
   --sui-border-subtle: rgb(255 255 255 / 11%);
   --sui-chart-grid: color-mix(in srgb, var(--sui-border-subtle) 35%, var(--sui-border-control));
   --sui-stop-quiet-edge-mix: 60%;
+  --sui-danger-wash-edge: color-mix(in srgb, var(--sui-danger) 50%, #0000);
   --sui-chart-ground: transparent;
   --sui-chart-ring: var(--sui-surface-base);
   --sui-border-control: rgb(255 255 255 / 20%);
@@ -968,6 +971,7 @@
     --sui-border-subtle: rgb(255 255 255 / 11%);
     --sui-chart-grid: color-mix(in srgb, var(--sui-border-subtle) 35%, var(--sui-border-control));
     --sui-stop-quiet-edge-mix: 60%;
+    --sui-danger-wash-edge: color-mix(in srgb, var(--sui-danger) 50%, #0000);
     --sui-chart-ground: transparent;
     --sui-chart-ring: var(--sui-surface-base);
     --sui-border-control: rgb(255 255 255 / 20%);
