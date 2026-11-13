@@ -35,9 +35,10 @@
     facts: readonly Fact[];
     /**
      * `inline` for a few headline facts that wrap one by one, `rows` for a thing's properties,
-     * a label and its value on each row.
+     * a label and its value on each row, `stats` for a few counts that answer the page, each
+     * figure before its label.
      */
-    layout?: 'inline' | 'rows';
+    layout?: 'inline' | 'rows' | 'stats';
     /** Said in place of a value that is absent, so a fact never stands empty. */
     missingLabel?: string;
     class?: HTMLAttributes<HTMLDListElement>['class'];
@@ -68,9 +69,16 @@ above the first or under the last, so the list's first and last ink stand at its
 Once the list itself is under 18rem wide, each label stands over its value, one copy gap
 apart, and the action under the value.
 
+`stats` is for two to five counts that answer the page, such as a run's matches and
+differences, as a dashboard's figures are: each figure, a 20px semibold number in tabular
+figures, stands 8px before its label on one baseline, so the counts read before the words
+around them, their digits line up, and the stats take one line. The list keeps each label
+before its figure, so a screen reader says "Match, 12". The stats stand 24px apart, 16px on a
+phone, as inline facts do, and wrap one by one.
+
 - Semantics: a `dl` with one `dt` and one `dd` per fact, each pair in its own `div`; a row's action is a second `dd`, as in GOV.UK's summary list.
 - Content: short labels and values; a value is words, a link through `href`, or a snippet such as a `RelativeTime`, a `Pill` or a `Chip`; in `rows`, an optional `action` per fact whose name says which fact it changes.
-- States: plain, linked and mono values, and the missing value, which says `missingLabel` in muted words.
+- States: plain, linked and mono values (a stat's figure keeps the sans, in tabular figures), and the missing value, which says `missingLabel` in muted words.
 - Keyboard: a linked value and a row's action are tab stops, in reading order; nothing else is.
 - Pointer and touch: inline, a fact that holds a target is at least 24px tall, and 44px on a phone or a coarse pointer, so its line holds the target and two targets on two lines never meet; a linked value is a standalone `Link`, whose hit area grows to that target size without moving its words; a row's action keeps its own target.
 - Focus: none moves; a linked value and an action take focus in reading order.
@@ -305,6 +313,37 @@ apart, and the action under the value.
     font-variant-numeric: tabular-nums;
   }
 
+  .stats {
+    column-gap: var(--sui-space-6);
+    display: flex;
+    flex-wrap: wrap;
+    row-gap: var(--sui-space-4);
+  }
+
+  /* The figure stands before its label on one baseline, as "12 Match" reads, so the stats
+     cost a line of the page, not two; the list keeps the label first for a screen reader.
+     Both boxes end on their baselines, so meeting at their ends puts the label on a whole
+     pixel where baseline alignment sets it on a fraction (L-95). */
+  .stats > .sui-fact-list-fact {
+    align-items: end;
+    column-gap: var(--sui-space-2);
+    display: flex;
+    inline-size: var(--sui-inline-snap);
+  }
+
+  .stats .sui-fact-list-value {
+    order: -1;
+  }
+
+  /* A stat's figure keeps the sans in tabular figures, whether or not it is mono, since a
+     20px mono figure reads as code, not as a count. */
+  .stats .sui-fact-list-value {
+    font-family: var(--sui-sans);
+    font-size: var(--sui-font-size-stat);
+    font-variant-numeric: tabular-nums;
+    font-weight: var(--sui-weight-semibold);
+  }
+
   /* Too narrow for two columns, each label stands over its value and the action under it, in
      reading order, as GOV.UK's summary list does on a phone. Two columns hold down to a narrow
      aside's 18rem (--sui-breakpoint-bar), so a pane's properties keep one line each there. */
@@ -331,6 +370,10 @@ apart, and the action under the value.
   @media (max-width: 47.9375rem) {
     .inline > .sui-fact-list-fact {
       margin-inline-end: var(--sui-space-4);
+    }
+
+    .stats {
+      column-gap: var(--sui-space-4);
     }
   }
 

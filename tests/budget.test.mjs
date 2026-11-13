@@ -7,7 +7,7 @@ import { gzipSync } from 'node:zlib';
 // The theme stylesheet holds the first paint and carries the Latin faces inline, so every byte
 // in it delays the first frame. Its budget is the size it had when the budget was set, plus a
 // little room; a change that needs more raises the number here, on purpose and in review.
-const BUDGET = 71.6 * 1024;
+const BUDGET = 71.7 * 1024;
 
 test('the theme stylesheet with its inline faces stays within its gzip budget', () => {
   const css = readFileSync('src/lib/styles.css', 'utf8').replace(

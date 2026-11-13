@@ -518,12 +518,21 @@ test('L-25 the type tiers keep the sizes the law names', () => {
     {
       pageTitle: tier('page-title'),
       dialogTitle: tier('dialog-title'),
+      stat: tier('stat'),
       alertTitle: tier('alert-title'),
       cardTitle: tier('card-title'),
       body: tier('body'),
       control: tier('control')
     },
-    { pageTitle: 32, dialogTitle: 20, alertTitle: 18, cardTitle: 17, body: 15, control: 14 }
+    {
+      pageTitle: 32,
+      dialogTitle: 20,
+      stat: 20,
+      alertTitle: 18,
+      cardTitle: 17,
+      body: 15,
+      control: 14
+    }
   );
   const all = { ...sizes, ...tokenMap(stripComments(palette.slice(palette.indexOf(PHONE)))) };
   const small = Object.entries(all).filter(

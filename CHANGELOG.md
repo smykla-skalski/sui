@@ -34,6 +34,7 @@
 - A phone `AppShell` bar's `eyebrow` takes the primary ink, as the bar's one word at rest.
 - A `Timeline` with an actor anywhere in it stands every event's words past the avatar's seat at every width, not only when stacked, so its words keep one edge.
 - The detail pane's loading Outcome waits as one bar per count, each as wide as its label and value.
+- `FactList` takes `layout="stats"` for a few counts that answer the page: each 20px semibold figure in tabular figures (`--sui-font-size-stat`) stands 8px before its label on one baseline, 24px apart, 16px on a phone, as inline facts do. The detail pane's Outcome uses it, and its loading state waits as one bar per stat.
 - A loading `Timeline` takes `actors`: its placeholders' words then stand past the avatar's seat, where the loaded words will, so the words do not move when the events arrive.
 - A `DetailLayout` column parts a closing `Disclosure` from the zone above it by the section gap from ink to ink, as it parts its sections, where the summary's own room above its words had added 12px.
 - A `PageHeader` hangs a trailing ghost button's words on the content's end edge, so a header action ends where the page's cards end.

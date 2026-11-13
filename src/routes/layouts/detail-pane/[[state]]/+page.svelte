@@ -195,7 +195,7 @@
         {#snippet actions()}<Button>Fix Access</Button>{/snippet}
       </Callout>
       <Section title="Outcome">
-        <FactList facts={counts} />
+        <FactList layout="stats" facts={counts} />
       </Section>
       <Section title="Repositories" count={repositories.length} id="repositories-title">
         {#snippet actions()}
@@ -292,9 +292,9 @@
               </div>
             </div>
             <Section title="Outcome">
-              <!-- Each count waits as a bar of its own, as wide as its label and value. -->
+              <!-- Each stat waits as one bar, as wide as its figure and label. -->
               <div class="counts-wait" aria-hidden="true">
-                {#each ['4.125rem', '3.375rem', '6.375rem'] as width (width)}
+                {#each ['4.625rem', '3.625rem', '6.6875rem'] as width (width)}
                   <span style:inline-size={width}></span>
                 {/each}
               </div>
@@ -430,19 +430,16 @@
     padding-block-end: 1px;
   }
 
-  /* The bars stand on the counts' cap band, and the line box ends 2px under it, as the
-     counts' does. Phone-wide, the counts stand 16px apart. */
+  /* A bar is as tall as a stat's figure box, so the stats keep their height when they
+     arrive. */
   .counts-wait {
     column-gap: var(--sui-space-6);
     display: flex;
-    font-family: var(--sui-sans);
-    font-size: var(--sui-font-size-meta);
-    padding-block-end: 2px;
   }
 
   .counts-wait > span {
     background: var(--sui-placeholder);
-    block-size: round(up, 1cap, 1px);
+    block-size: 1rem;
     border-radius: var(--sui-radius-pill);
   }
 
