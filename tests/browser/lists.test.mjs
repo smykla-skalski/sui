@@ -54,6 +54,18 @@ suite('lists', together, () => {
   suite('the pattern entries', { concurrency: 1 }, () => {
     const opened = sharedPage();
 
+    test('a day feed keeps a form measure on a wide page, so each time stays near its entry', async () => {
+      const page = await opened();
+      const widths = await page.evaluate(() => {
+        const feed = /** @type {Element} */ (document.querySelector('#day-heading .days'));
+        const rem = parseFloat(getComputedStyle(document.documentElement).fontSize);
+        const stage = /** @type {Element} */ (feed.parentElement).getBoundingClientRect().width;
+        return { feed: feed.getBoundingClientRect().width / rem, stage: stage / rem };
+      });
+      assert.ok(widths.stage > 40, `the stage is only ${widths.stage}rem wide`);
+      assert.ok(widths.feed <= 40, `the feed spans ${widths.feed}rem`);
+    });
+
     test('P8 an entry that shows a problem follows its keystrokes', long, async () => {
       const page = await opened();
       const list = page

@@ -85,10 +85,12 @@
 
 <style>
   /* A day stands well over twice as far from the last as its heading stands over its entries,
-     so each heading reads as the head of the run under it. */
+     so each heading reads as the head of the run under it. The feed keeps a form's measure, so
+     on a wide page each time stays near its entry. */
   .days {
     display: grid;
     gap: var(--sui-space-8);
+    max-inline-size: 40rem;
   }
 
   .day {
