@@ -106,6 +106,7 @@
 
 <Example
   title="In Sequence"
+  --example-max="48rem"
   note="Sections that follow each other stand 40 px apart, 32 px on a phone, with no wrapper and no line between them"
   layout="stack"
   ground="canvas"
@@ -150,6 +151,7 @@
 
 <Example
   title="With a List"
+  --example-max="48rem"
   note="A list hangs from the section: its words keep the title’s edge and a hovered row’s ground reaches past it"
   layout="stack"
   ground="canvas"
