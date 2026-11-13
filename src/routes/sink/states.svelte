@@ -85,20 +85,24 @@
   ground="canvas"
 >
   <Specimen label="Next step">
-    <EmptyState
-      title="No Repositories Match This Filter"
-      description="Clear the filter or search for another name to see the rest of the list"
-    >
-      {#snippet action()}<Button tone="signal">Clear the Filter</Button>{/snippet}
-    </EmptyState>
+    <Section title="Repositories" level={4}>
+      <EmptyState
+        title="No Repositories Match This Filter"
+        description="Clear the filter or search for another name to see the rest of the list"
+      >
+        {#snippet action()}<Button tone="signal">Clear the Filter</Button>{/snippet}
+      </EmptyState>
+    </Section>
   </Specimen>
   <Specimen label="Nothing here yet">
-    <EmptyState
-      title="No Invitations Yet"
-      description="People you invite to this workspace appear here until they accept"
-    >
-      {#snippet action()}<Button tone="signal">Invite People</Button>{/snippet}
-    </EmptyState>
+    <Section title="Invitations" level={4}>
+      <EmptyState
+        title="No Invitations Yet"
+        description="People you invite to this workspace appear here until they accept"
+      >
+        {#snippet action()}<Button tone="signal">Invite People</Button>{/snippet}
+      </EmptyState>
+    </Section>
   </Specimen>
   <Specimen label={filtered ? 'Emptied by a filter' : 'Filtered list'}>
     <Section title="Repositories" level={4} id="sink-states-filtered">

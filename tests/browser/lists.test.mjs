@@ -314,6 +314,16 @@ suite('lists', together, () => {
       );
     });
 
+    test('every empty and error state on the states page stands under its list heading', async () => {
+      const page = await opened();
+      const bare = await page.evaluate(() =>
+        [...document.querySelectorAll('#states :is(.sui-empty-state, .sui-error-state)')]
+          .filter((state) => !state.closest('.sui-section')?.querySelector('h4'))
+          .map((state) => state.textContent?.trim().slice(0, 40))
+      );
+      assert.deepEqual(bare, [], 'a state stands with no list heading over it');
+    });
+
     test('a retry stands raised over its failure wash in both themes and hovers in the hue', async () => {
       const page = await opened();
       const found = await page.evaluate(() => {
