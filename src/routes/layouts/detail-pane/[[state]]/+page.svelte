@@ -210,11 +210,12 @@
       <Section title="Related">
         <LinkList links={related} />
       </Section>
+      <!-- The rare properties close the aside, under the properties they add to. -->
+      <Disclosure summary="More About This Check" hint="ID, worker and version">
+        <FactList layout="rows" facts={more} />
+      </Disclosure>
     {/snippet}
   </DetailLayout>
-  <Disclosure summary="More About This Check" hint="ID, worker and version">
-    <FactList layout="rows" facts={more} />
-  </Disclosure>
 {/snippet}
 
 <SkipLink href="#content" />

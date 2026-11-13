@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- A `DetailLayout` column parts a closing `Disclosure` from the zone above it by the section gap, as it parts its sections, where the disclosure's own margin reset had stood it flush under them.
 - An off-screen `ObjectRow` holds 57px, the height of a row whose name is set at the body size, and a `Skeleton`'s default rows snap each line to an even pixel as those rows do, so a long list does not jump as its rows reach the screen and the page does not move when loaded rows replace the placeholders.
 - A `ListToolbar` search keeps 14rem of field beside its label, and with less, as on a phone, its label stands above a field of the full width.
 - `Skeleton` takes `ruled`, on by default: off, its rows draw no hairline, so placeholders for words that stand without rules, such as a page header's facts, do not promise a line that never comes.

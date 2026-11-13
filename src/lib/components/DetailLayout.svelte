@@ -75,9 +75,10 @@ ground or line; the sections inside carry the hierarchy.
 
   /* Each column stacks its zones, the alert, the sections and a closing disclosure, the
      section gap apart, so a caller needs no wrapper; sections that follow each other ask for
-     the same gap, which collapses into this one. */
-  .sui-detail-layout-main > :global(* + *),
-  .sui-detail-layout-aside > :global(* + *) {
+     the same gap, which collapses into this one. The columns' class leads, so a zone that resets
+     its own margins, as a disclosure does, still takes the gap. */
+  .sui-detail-layout-columns > .sui-detail-layout-main > :global(* + *),
+  .sui-detail-layout-columns > .sui-detail-layout-aside > :global(* + *) {
     margin-block-start: var(--sui-rhythm-section-gap);
   }
 
