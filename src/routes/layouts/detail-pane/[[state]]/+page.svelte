@@ -292,7 +292,12 @@
               </div>
             </div>
             <Section title="Outcome">
-              <div class="from-ink counts">{@render wait(1, '1.5rem')}</div>
+              <!-- Each count waits as a bar of its own, as wide as its label and value. -->
+              <div class="counts-wait" aria-hidden="true">
+                {#each ['4.125rem', '3.375rem', '6.375rem'] as width (width)}
+                  <span style:inline-size={width}></span>
+                {/each}
+              </div>
             </Section>
             <!-- The Load More line waits under the five rows as its words and its button. -->
             <Section title="Repositories" count={16}>
@@ -425,9 +430,26 @@
     padding-block-end: 1px;
   }
 
-  /* The counts' line box stands 2px under their 11px cap. */
-  .from-ink.counts {
+  /* The bars stand on the counts' cap band, and the line box ends 2px under it, as the
+     counts' does. Phone-wide, the counts stand 16px apart. */
+  .counts-wait {
+    column-gap: var(--sui-space-6);
+    display: flex;
+    font-family: var(--sui-sans);
+    font-size: var(--sui-font-size-meta);
     padding-block-end: 2px;
+  }
+
+  .counts-wait > span {
+    background: var(--sui-placeholder);
+    block-size: round(up, 1cap, 1px);
+    border-radius: var(--sui-radius-pill);
+  }
+
+  @media (max-width: 47.9375rem) {
+    .counts-wait {
+      column-gap: var(--sui-space-4);
+    }
   }
 
   /* The description takes a second line in a header under 432px on a phone, where its text is

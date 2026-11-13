@@ -32,6 +32,8 @@
 - The detail pane's Outcome is its counts alone, without a sentence that said them again, the stale notice's retry reads "Reload", the loading title's status waits as a pill-shaped placeholder, and a loading timeline's time bars are as wide as the times.
 - A `Rail` count stands 4px clear of its glyph's top-end corner, whole, folded or in a bottom bar, as a folded `SideNav` count does, so it covers none of the glyph, and the phone drawer's pages beside the rail drop the second hairline between them.
 - A phone `AppShell` bar's `eyebrow` takes the primary ink, as the bar's one word at rest.
+- A `Timeline` with an actor anywhere in it stands every event's words past the avatar's seat at every width, not only when stacked, so its words keep one edge.
+- The detail pane's loading Outcome waits as one bar per count, each as wide as its label and value.
 - A `PageHeader` hangs a trailing ghost button's words on the content's end edge, so a header action ends where the page's cards end.
 - A `SegmentedControl` or a `ThemeSwitch` with `iconOnly` draws each option's glyph alone, its word still naming its radio, for a box as narrow as a folded sidebar.
 
