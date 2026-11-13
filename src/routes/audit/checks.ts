@@ -3679,8 +3679,11 @@ function pageEnd(root: Document): Finding[] {
     if (look.position !== 'absolute' || look.overflow === 'visible') continue;
     const edges = box.getBoundingClientRect();
     if (edges.width > 1 || edges.height > 1) continue;
+    // The pixel's static place follows the block it flows in: an inline parent's box is only
+    // its words, and a right-to-left line sets the pixel apart from them.
     let holder = box.parentElement;
-    while (holder && getComputedStyle(holder).display === 'contents') holder = holder.parentElement;
+    while (holder && ['contents', 'inline'].includes(getComputedStyle(holder).display))
+      holder = holder.parentElement;
     if (!holder) continue;
     const room = holder.getBoundingClientRect();
     const past = Math.max(

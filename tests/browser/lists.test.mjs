@@ -859,7 +859,7 @@ suite('lists', together, () => {
           const kind = group.classList.contains('bars') ? 'two-line' : 'one-line';
           // The last row ends at its last bar (L-119), so a spare row after the neighbour lets
           // it stand a whole row's height.
-          const spare = next.cloneNode(true);
+          const spare = /** @type {Element} */ (next.cloneNode(true));
           group.append(spare);
           const whole = box(next).height;
           spare.remove();
