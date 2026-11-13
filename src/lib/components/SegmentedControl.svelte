@@ -687,6 +687,7 @@ itself, so the choice shows from the first frame.
     block-size: 1px;
     clip-path: inset(50%);
     inline-size: 1px;
+    margin: -1px;
     overflow: hidden;
     padding: 0;
     position: absolute;

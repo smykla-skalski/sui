@@ -3667,6 +3667,49 @@ function taps(root: Document): Finding[] {
   return found;
 }
 
+// L-119: the page ends where its content ends, and a box clipped to one pixel takes no room past
+// where it stands, at the end of the page or of a box that scrolls. Only a box left where it
+// would flow can stand past its holder's end; one placed by its insets, such as the router's
+// announcer at the top corner, cannot.
+function pageEnd(root: Document): Finding[] {
+  const found: Finding[] = [];
+  for (const box of audited(root, 'body *')) {
+    const look = getComputedStyle(box);
+    if (look.position !== 'absolute' || look.overflow === 'visible') continue;
+    const edges = box.getBoundingClientRect();
+    if (edges.width > 1 || edges.height > 1) continue;
+    const insets = box.computedStyleMap();
+    const flows = (from: string, to: string) =>
+      String(insets.get(from)) === 'auto' && String(insets.get(to)) === 'auto';
+    if (
+      (flows('top', 'bottom') && parseFloat(look.marginBlockEnd) > -edges.height) ||
+      (flows('left', 'right') && parseFloat(look.marginInlineEnd) > -edges.width)
+    )
+      found.push(finding('L-119', box, 'its clipped pixel stands past where it sits'));
+  }
+  const page = root.scrollingElement ?? root.documentElement;
+  const end = Math.max(
+    page.clientHeight,
+    Math.ceil(root.documentElement.getBoundingClientRect().height)
+  );
+  if (page.scrollHeight > end) {
+    const top = root.documentElement.getBoundingClientRect().top;
+    const past = audited(root, 'body *').filter(
+      (element) =>
+        element.getBoundingClientRect().bottom - top > end &&
+        (!element.parentElement ||
+          element.parentElement.getBoundingClientRect().bottom - top <= end)
+    );
+    const detail = `the page scrolls ${page.scrollHeight - end}px past its content`;
+    found.push(
+      ...(past.length > 0
+        ? past.slice(0, 5).map((element) => finding('L-119', element, detail))
+        : [finding('L-119', root.documentElement, detail)])
+    );
+  }
+  return found;
+}
+
 register(
   untranslated,
   separators,
@@ -3715,5 +3758,6 @@ register(
   disclosedCards,
   cardHeads,
   timelines,
-  taps
+  taps,
+  pageEnd
 );
