@@ -16,6 +16,7 @@
 - A `FormError` summary rings its focus after a pointer submit too, where only a keyboard submit drew the ring, so the reader sees where focus went.
 - The Relative Time page's In Context line reads its times in the primary ink over its muted words.
 - The Relative Time page's In Context line keeps each clause whole when it wraps, where a phone parted "checked" from "again".
+- A `RelativeTime`'s dots stand 3px clear of a g or a y in 60% of the words' ink, where they touched the descenders at half the ink.
 - An `ErrorState` and a `FormError` draw their warning mark at 18px, where the 16px mark a field wears read small beside a failure's larger title, and their words and retry keep its rail.
 - On a phone the kit's specimen rows stand 8px past their name gap, so a page that widens the gap for its tips still reads each name with the specimen under it.
 - A failed refresh's retry ends its line, spread by space-between rather than an auto margin, and wraps under its words on any line too narrow for both, and a `FormError` summary's message heads its links at 16px semibold. L-90 lets a row whose first item hangs a mark start a wrapped line on the words' edge.

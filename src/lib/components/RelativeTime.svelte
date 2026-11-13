@@ -175,14 +175,19 @@ tooltip.
 
 <style>
   /* A dotted underline with room between its dots: a native dotted line spaces its dots one
-     stroke apart, which reads as solid, so a row of 1px dots, one every 3px, in half the words' ink
-     runs 3px under their baseline instead, light enough to read as a hint, not a link. */
+     stroke apart, which reads as solid, so a row of 1px dots, one every 3px, in 60% of the
+     words' ink runs along the foot of the box instead. The box spans its line in a sentence too,
+     and reaches 2px past it, given back by its margin so nothing moves, so the dots stand 3px
+     clear of a g or a y. */
   .sui-relative-time {
-    --sui-local-dot: color-mix(in srgb, currentColor 50%, transparent);
+    --sui-local-dot: color-mix(in srgb, currentColor 60%, transparent);
     background-image: linear-gradient(to right, var(--sui-local-dot) 1px, transparent 1px);
-    background-position: 0 calc(100% - 1px);
+    background-position: 0 100%;
     background-repeat: repeat-x;
     background-size: 3px 1px;
+    display: inline-block;
+    margin-block-end: -2px;
+    padding-block-end: 2px;
     /* A flex or grid parent makes the time a block and may stretch it, and the dots follow its
        box, so the box keeps to its words exactly, not rounded past them (L-95). */
     inline-size: fit-content;
@@ -219,6 +224,7 @@ tooltip.
      column sized for the short one would otherwise clip it. */
   .exact {
     background-image: none;
+    display: inline;
     white-space: normal;
   }
 

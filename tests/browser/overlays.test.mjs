@@ -774,6 +774,31 @@ suite('overlays', together, () => {
         assert.ok(Math.abs(box - words) <= 0.5, `dots run ${box}px under ${words}px of words`);
     });
 
+    // The dots are a row drawn at the box's foot, which a descender does not skip as a native
+    // underline would, so the foot stands clear of the deepest glyph.
+    test("a relative time's dots stand 3px clear of its descenders", async () => {
+      const gaps = await page.evaluate(() =>
+        [...document.querySelectorAll('#relative-time time.sui-relative-time:not(.exact)')].map(
+          (time) => {
+            const probe = document.createElement('span');
+            probe.style.cssText = 'display: inline-block; inline-size: 0; block-size: 0';
+            time.append(probe);
+            const baseline = probe.getBoundingClientRect().top;
+            probe.remove();
+            const context = /** @type {CanvasRenderingContext2D} */ (
+              document.createElement('canvas').getContext('2d')
+            );
+            context.font = getComputedStyle(time).font;
+            const descent = context.measureText('gjpqy').actualBoundingBoxDescent;
+            const dots = time.getBoundingClientRect().bottom - 1;
+            return dots - (baseline + descent);
+          }
+        )
+      );
+      assert.ok(gaps.length > 0);
+      for (const gap of gaps) assert.ok(gap >= 2.5, `the dots stand ${gap}px under a descender`);
+    });
+
     test('an open popover copy keeps the floating gap off its trigger', async () => {
       const [gap, step] = await page.evaluate(() => {
         const copy = /** @type {Element} */ (document.getElementById('sink-popover-open'));
