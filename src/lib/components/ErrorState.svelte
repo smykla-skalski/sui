@@ -16,7 +16,7 @@
     focusAfterRetry,
     overContent = false,
     retryLabel = word('ErrorState.retryLabel', 'Try Again'),
-    retryingLabel = word('ErrorState.retryingLabel', 'Trying Again…'),
+    retryingLabel = word('ErrorState.retryingLabel', 'Retrying…'),
     element = $bindable(null),
     class: className = '',
     ...rest

@@ -480,6 +480,19 @@ suite('lists', together, () => {
       }
     });
 
+    test('a resting retry holds no more room around its words than its short busy words need', async () => {
+      const page = await opened();
+      const room = await page.evaluate(() => {
+        const retry = /** @type {Element} */ (
+          document.querySelector('#states .sui-error-state:not(.over) button')
+        );
+        const words = /** @type {Element} */ (retry.querySelector('.said'));
+        return (retry.getBoundingClientRect().width - words.getBoundingClientRect().width) / 2;
+      });
+      // "Retrying…" behind its spinner needs 29px a side; "Trying Again…" held 41px.
+      assert.ok(room <= 30, `the retry keeps ${room}px a side around "Try Again"`);
+    });
+
     test('a copy button at rest is as wide as its resting and copied words, not its hidden failure', async () => {
       const page = await opened();
       const fits = await page.evaluate(() =>
