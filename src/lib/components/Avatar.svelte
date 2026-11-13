@@ -221,8 +221,9 @@ page runs. The initials' ink, not their advance or line, centres on the box.
     background: var(--sui-brand-action-tint);
     block-size: var(--sui-avatar-size);
     border-radius: 50%;
-    /* Under the picture, which draws a ring of its own, so only initials wear this one. */
-    box-shadow: inset 0 0 0 var(--sui-stroke) color-mix(in srgb, currentColor 28%, transparent);
+    /* Under the picture, which draws a ring of its own, so only initials wear this one: a fifth of
+       their ink, so the edge holds the shape without ringing a passive mark like a control. */
+    box-shadow: inset 0 0 0 var(--sui-stroke) color-mix(in srgb, currentColor 20%, transparent);
     box-sizing: border-box;
     color: var(--sui-brand-action-text);
     display: inline-grid;
