@@ -68,7 +68,7 @@
 
 <Example
   title="In a Line"
-  note="A small chip keeps to the line of text it stands in, on its baseline"
+  note="A small chip keeps to the line of text it stands in, its foot on the words’ foot, so the line keeps its height"
 >
   <Specimen label="In a sentence">
     <p class="line">The last push changed <Chip small label="3 files" /> in the kit</p>
