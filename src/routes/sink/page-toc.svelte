@@ -157,8 +157,12 @@
       grid-template-columns: minmax(0, 1fr);
     }
 
+    /* Over the article on a phone, a hairline closes the index, so the page reads as where to
+       go, then what to read. */
     .index {
+      border-block-end: var(--sui-stroke) solid var(--sui-border-divider);
       grid-row: 1;
+      padding-block-end: var(--sui-space-4);
     }
   }
 </style>

@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- The `PageToc` page closes its index with a hairline on a phone, where it stands over the article, so the links read apart from the first section.
 - `--sui-toc-width` is 17rem, so a `PageToc` section title of five words keeps one line beside the scrollbar gutter, where 12rem wrapped it beside empty room.
 - The `Avatar` page crops its portrait to the face, so it still reads as a person at 20px, and draws the narrow width's dashed box in the control border, which held too faint to read in dark.
 - The `Avatar` page states its pictures and fallbacks in a shorter note, since each specimen already names its case.
