@@ -43,32 +43,29 @@
 </Example>
 
 <Example
-  title="Pictures & Fallbacks"
-  note="A picture covers the initials drawn under it, one that does not load shows them, and a logo’s clear ground shows the tint"
+  title="Pictures"
+  note="A picture covers the initials drawn under it, and a logo’s clear ground shows the tint"
 >
-  <Specimen label="Person picture">
+  <Specimen label="Person">
     <Avatar name="Grace Hopper" src={portrait} size={32} />
   </Specimen>
-  <Specimen label="Person picture does not load">
-    <Avatar name="Alan Turing" src={broken} size={32} />
-  </Specimen>
-  <Specimen label="Workspace picture">
+  <Specimen label="Workspace">
     <Avatar name="Platform Team" src={logo} shape="workspace" size={32} />
-  </Specimen>
-  <Specimen label="Workspace picture does not load">
-    <Avatar name="Data Team" src={broken} shape="workspace" size={32} />
   </Specimen>
 </Example>
 
 <Example
-  title="Missing Names"
-  note="A missing name draws the initials from the handle, and with neither the avatar shows a question mark"
+  title="Fallbacks"
+  note="A picture that does not load shows the initials under it, and a missing name draws them from the handle"
 >
+  <Specimen label="Picture does not load">
+    <Avatar name="Alan Turing" src={broken} size={32} />
+  </Specimen>
+  <Specimen label="Workspace picture does not load">
+    <Avatar name="Radia Perlman" src={broken} shape="workspace" size={32} />
+  </Specimen>
   <Specimen label="Handle without a name">
     <Avatar name="" handle="octocat" size={32} />
-  </Specimen>
-  <Specimen label="No name or handle">
-    <Avatar name="" size={32} />
   </Specimen>
 </Example>
 

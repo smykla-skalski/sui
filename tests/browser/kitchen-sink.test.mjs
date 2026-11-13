@@ -874,7 +874,7 @@ suite('the kitchen sink', together, () => {
     // The server render with no script is the reader's first frame: there a picture that fails
     // draws nothing over its initials and their ring, and one that loads covers them, even
     // through a logo's clear middle. The running page draws each the same.
-    const failed = ['Alan Turing', 'Data Team'];
+    const failed = ['Alan Turing', 'Radia Perlman'];
     const loaded = ['Grace Hopper', 'Platform Team'];
     const address = new URL('avatar/', url);
     /** @type {string[]} */
@@ -931,7 +931,7 @@ suite('the kitchen sink', together, () => {
      */
     const shoot = async (page, name) => {
       const avatar = page
-        .locator('#avatar .example', { hasText: /^Pictures/ })
+        .locator('#avatar .example', { hasText: /^(Pictures|Fallbacks)/ })
         .getByRole('img', { name, exact: true });
       await avatar.scrollIntoViewIfNeeded();
       // An edge off the pixel grid blends a few levels apart once the layers above it change,
