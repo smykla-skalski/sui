@@ -359,11 +359,11 @@
       <div class={['zones', { stale: view === 'stale' }]}>
         {#if view === 'stale'}
           <!-- Stale words stand behind everything under the header, so the notice spans both
-               columns, and its retry stands at its end as any notice's action does. It is quiet,
-               so the warning about the check itself still leads. -->
-          <Callout title="The check could not refresh">
+               columns, and its retry stands at its end as any notice's action does. It is one
+               compact line, so the warning about the check itself still leads. -->
+          <Callout compact>
             {#snippet icon()}<Icon name="refresh" size="sm" />{/snippet}
-            Showing what loaded a minute ago
+            The check could not refresh, so this is what loaded a minute ago
             {#snippet actions()}
               <Button loading={refreshing} onclick={refresh}>
                 {refreshing ? 'Reloading…' : 'Reload'}
@@ -537,7 +537,7 @@
     padding-block-end: 1px;
   }
 
-  /* A related link's line is its target and a 4px gap: 28px, or 48px on a touch screen. The
+  /* A related link's line is its target and a 4px gap: 28px, or 45px on a touch screen. The
      last link ends at its words, and the last placeholder line keeps half its room under its
      bar, so the section ends where the loaded one will. */
   .links {
@@ -592,9 +592,9 @@
 
   @media (max-width: 47.9375rem), (pointer: coarse) {
     .links {
-      --link-row: 3rem;
+      --link-row: calc(var(--sui-touch-target) + 1px);
 
-      margin-block-end: calc(-1 * var(--sui-space-1) - 1px);
+      margin-block-end: calc(-1 * var(--sui-space-1));
     }
   }
 

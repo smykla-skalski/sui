@@ -1424,6 +1424,22 @@ function geometry(root: Document): Finding[] {
     if (!measured) continue;
     const { inset, top, end, bottom, start } = measured;
     const off = (gap: number) => Math.abs(gap - inset) > 0.5;
+    // A compact callout's band centres between its top and bottom, and its symbol's box, not
+    // the glyph's strokes inside it, opens the line at the inset.
+    if (card.matches('.sui-callout.compact')) {
+      const mark = card.querySelector('.sui-callout-icon')?.getBoundingClientRect();
+      const from = card.getBoundingClientRect().left + parseFloat(style.borderLeftWidth);
+      const opens = mark ? mark.left - from : start.gap;
+      if (Math.abs(top - bottom) > 0.5 || off(end.gap) || off(opens))
+        found.push(
+          finding(
+            'L-33',
+            card,
+            `a compact callout stands ${round(top)} from the top, ${round(bottom)} from the bottom, ${round(end.gap)} from the end and opens ${round(opens)} from the start`
+          )
+        );
+      continue;
+    }
     const sideOff = (side: { gap: number; reached: boolean }) =>
       side.reached ? off(side.gap) : side.gap < inset - 0.5;
     // A card in a grid or flex row takes the row's height, so a shorter peer holds more room
@@ -2702,13 +2718,24 @@ function symbolTiles(root: Document): Finding[] {
   const rem = parseFloat(getComputedStyle(root.documentElement).fontSize);
   for (const tile of audited(root, '.sui-callout-icon, .sui-toast-mark')) {
     const box = tile.getBoundingClientRect();
-    const side = tile.matches('.sui-toast-mark') ? 1.75 : 2;
-    if (Math.abs(box.width - side * rem) > 0.5 || Math.abs(box.height - side * rem) > 0.5)
-      found.push(
-        finding('L-56', tile, `the symbol's tile is ${round(box.width)}px, not ${side}rem`)
-      );
+    const bare = tile.closest('.sui-callout.compact');
     const glyph = tile.querySelector('svg')?.getBoundingClientRect();
-    if (glyph && Math.abs(glyph.width - 18) > 0.5)
+    // A compact callout's symbol stands bare at 16px, on no tile.
+    if (bare) {
+      if (rgba(getComputedStyle(tile).backgroundColor).a > 0)
+        found.push(finding('L-56', tile, "a compact callout's symbol stands on a tile"));
+      if (Math.abs(box.width - 16) > 0.5 || (glyph && Math.abs(glyph.width - 16) > 0.5))
+        found.push(
+          finding('L-56', tile, `the bare symbol draws at ${round(box.width)}px, not 16px`)
+        );
+    } else {
+      const side = tile.matches('.sui-toast-mark') ? 1.75 : 2;
+      if (Math.abs(box.width - side * rem) > 0.5 || Math.abs(box.height - side * rem) > 0.5)
+        found.push(
+          finding('L-56', tile, `the symbol's tile is ${round(box.width)}px, not ${side}rem`)
+        );
+    }
+    if (!bare && glyph && Math.abs(glyph.width - 18) > 0.5)
       found.push(finding('L-56', tile, `the symbol draws at ${round(glyph.width)}px, not 18px`));
     // A toast's copy shares a column with the action under it.
     const beside = tile.nextElementSibling;

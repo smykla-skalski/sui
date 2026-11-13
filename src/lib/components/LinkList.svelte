@@ -34,7 +34,8 @@ standings and controls, is an `ObjectList`, and the way back is `BackLink`.
 
 The list hangs from the heading above it, with no bullets, so its words stand on the
 heading's edge. Each link stands one target's height plus 4px under the one before, so their
-grown hit areas never meet, and a note stands one copy gap under its link.
+grown hit areas never meet, and on a phone one 44px target under it, the areas edge to edge,
+so the list keeps a row's pitch; a note stands one copy gap under its link.
 
 - Semantics: a `ul` with `role="list"`, so Safari keeps the list once its bullets are gone; each item is a native link, described by its note.
 - Content: a label per link, an optional one-line note that wraps when long, and whether it leaves the product.
@@ -42,7 +43,7 @@ grown hit areas never meet, and a note stands one copy gap under its link.
 - Keyboard: Tab walks the links in order and Enter follows one.
 - Pointer and touch: every link is `standalone`, so its hit area grows to 24px, and 44px on a phone or a touch screen, and the links stand far enough apart that the areas never meet.
 - Focus: nothing here moves focus.
-- Responsive: a long label or note wraps at its own edge; the spacing grows with the touch target on a phone.
+- Responsive: a long label or note wraps at its own edge; on a phone the links step one 44px touch target apart.
 - Accessibility: a screen reader hears a list with its count; each note is the link's description, and an external link says "(opens another site)" after it; name the list with `aria-labelledby` when the page holds more than one.
 - Localization: no words of its own beyond the labels and notes; `Link` carries the external note; the list starts at the inline start and the arrow mirrors in a right-to-left page.
 - Performance: one link per item, with no script.
@@ -106,9 +107,13 @@ grown hit areas never meet, and a note stands one copy gap under its link.
       var(--sui-sans);
   }
 
+  /* On a phone the links step one 44px target apart, their hit areas edge to edge, so the
+     list keeps a row's pitch and no gap reads as a missing link. The area rounds out from an
+     odd line box to 45px, so the step is a pixel past the target and the areas never overlap. */
   @media (max-width: 47.9375rem), (pointer: coarse) {
     .sui-link-list {
       --sui-local-link-target: var(--sui-touch-target);
+      row-gap: calc(var(--sui-touch-target) + 1px - round(up, 1cap, 2px));
     }
   }
 </style>

@@ -31,7 +31,8 @@ the page's, so a pane beside a list folds as early as a phone does.
 
 The aside comes after the main column in the DOM at every width, so a screen reader, the Tab
 order and a narrow screen all meet the primary content first. Nothing here draws a frame,
-ground or line; the sections inside carry the hierarchy.
+ground or line; the sections inside carry the hierarchy, and beside the main column the
+aside's section titles take the 15px sub-section tier, a step under the work's.
 
 - Semantics: a plain box; the aside is an `aside` named by `asideLabel`, a complementary landmark.
 - Content: `main`, the primary sections, and an optional `aside` of properties.
@@ -87,6 +88,12 @@ ground or line; the sections inside carry the hierarchy.
     .sui-detail-layout-columns:has(> .sui-detail-layout-aside) {
       align-items: start;
       grid-template-columns: minmax(0, 1fr) clamp(18rem, 30%, 20rem);
+    }
+
+    /* Beside the work, the aside's sections take the sub-section tier, so the properties read
+       a step under the main column's sections rather than as their peers. */
+    .sui-detail-layout-aside {
+      --sui-local-section-size: var(--sui-font-size-body);
     }
   }
 </style>

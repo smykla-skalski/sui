@@ -446,7 +446,11 @@ following a row closes the drawer.
 
   /* The close button centres on the first line of the names (L-94): a holder with no height at
      that line's middle lets the button reach as far over it as under it. */
+  /* The way out of the drawer takes a dialog close's 18px glyph and secondary ink, so it reads
+     beside the place's name as a dialog's close does beside its title. */
   .sui-side-nav-close {
+    --sui-icon-base: var(--sui-icon-md);
+    --sui-local-icon-rest: var(--sui-text-secondary);
     align-content: center;
     align-self: center;
     block-size: 0;

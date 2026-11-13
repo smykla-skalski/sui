@@ -76,6 +76,20 @@
 </Example>
 
 <Example
+  title="Compact"
+  note="One 40px line about the whole page, such as data shown stale, with a bare symbol and no title"
+  layout="stack"
+>
+  <Specimen label="Stale data">
+    <Callout compact>
+      {#snippet icon()}<Icon name="refresh" size="sm" />{/snippet}
+      The list could not refresh, so this is what loaded a minute ago
+      {#snippet actions()}<Button>Reload</Button>{/snippet}
+    </Callout>
+  </Specimen>
+</Example>
+
+<Example
   title="Long Copy"
   note="Long copy starts at the symbol’s tile however many lines follow, and an action beside it stands on the tile, by the title"
   layout="stack"

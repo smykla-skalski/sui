@@ -74,7 +74,7 @@ as an aside or a phone has, never runs the words and their note edge to edge as 
       >{summary}</span
     >
     {#if hint !== undefined}
-      <span class="sui-disclosure-hint" dir="auto" aria-hidden="true">{hint}</span>
+      <span class="sui-disclosure-hint" aria-hidden="true">{hint}</span>
       <VisuallyHidden>{summaryName(summary, hint)}</VisuallyHidden>
     {/if}
   </summary>
@@ -210,8 +210,11 @@ as an aside or a phone has, never runs the words and their note edge to edge as 
     text-box: trim-both cap alphabetic;
   }
 
+  /* The hint's words take their own direction, but its box keeps the summary's, so the room
+     after it stays at the summary's end in a right-to-left page too. */
   .sui-disclosure-hint {
     align-content: center;
+    unicode-bidi: plaintext;
     block-size: var(--sui-block-snap-even);
     color: var(--sui-text-muted);
     font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-leading-meta)

@@ -12,6 +12,7 @@
   let {
     tone = 'quiet',
     decision = false,
+    compact = false,
     title,
     icon,
     actions,
@@ -25,6 +26,8 @@
     tone?: CalloutTone;
     /** The gold surface for an unsaved decision and the action that resolves it. */
     decision?: boolean;
+    /** One 40px line about the whole page, such as data shown stale: a bare 16px symbol and no title. */
+    compact?: boolean;
     title?: string;
     /** The mark beside the words, when the words alone do not carry the weight. */
     icon?: Snippet;
@@ -102,6 +105,11 @@ the gold surface of an unsaved decision: opaque, with a one-stroke gold edge, an
 hears `decisionLabel` before its words. Its resolving action wears Button's `decision` tone,
 and every other action keeps the default tone.
 
+`compact` is a strip for a notice about the whole page, such as data shown stale, that must
+not push the page down as far as a message about the work does: no title, its symbol bare
+at 16px in the ink of its words, and its band only as tall as its quiet-tier actions, so one
+line of it stands 40px tall.
+
 The icon stands in a 2rem tile of the callout's tone and draws at 18px whatever tier the caller
 asked for. Copy shorter than the tile centres on it; longer copy starts at the tile's top. The
 tile opens the message's first line in a band its actions fit inside: they are drawn at the
@@ -130,7 +138,7 @@ and the unsaved ink, so no neutral block sits on a state (L-92).
   {#if prefix}<VisuallyHidden>{prefix}{mark('space')}</VisuallyHidden>{/if}
 {/snippet}
 
-<div {...rest} class={['sui-callout', className, { decision, live }]} data-tone={tone}>
+<div {...rest} class={['sui-callout', className, { compact, decision, live }]} data-tone={tone}>
   <div class="sui-callout-inner">
     <div class="sui-callout-message">
       {#if icon}
@@ -340,6 +348,30 @@ and the unsaved ink, so no neutral block sits on a state (L-92).
     gap: var(--sui-space-2);
     margin-block-start: var(--sui-local-band-room);
     min-inline-size: 0;
+  }
+
+  /* The band is a quiet-tier action's height and the box pads a step and a stroke over and
+     under it, so one line stands 40px tall with its ink centred. */
+  .compact {
+    --sui-symbol-tile: var(--sui-tier-quiet);
+    padding-block: calc(var(--sui-space-1) + var(--sui-stroke));
+  }
+
+  .compact .sui-callout-inner:has(> .sui-callout-message > .sui-callout-icon) {
+    --sui-callout-indent: calc(var(--sui-icon-base) + var(--sui-space-2));
+  }
+
+  .compact .sui-callout-message {
+    gap: var(--sui-space-2);
+  }
+
+  .compact .sui-callout-icon {
+    --sui-icon-base: inherit;
+    --sui-icon-sm: var(--sui-icon-base);
+    --sui-icon-xs: var(--sui-icon-base);
+    background: none;
+    color: inherit;
+    inline-size: var(--sui-icon-base);
   }
 
   @media (max-width: 47.9375rem), (pointer: coarse) {

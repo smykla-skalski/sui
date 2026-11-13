@@ -25,6 +25,7 @@
 - The detail pane's loading state draws each fact's label and value, the related links, and the warning's symbol and action, and its notice, header and outcome placeholders change shape at the widths where the loaded words wrap, so no section moves when the check arrives.
 - A folded `AppShell` column keeps one 48px pitch: its places, pages and the rail's foot stand 4px apart, and the places stand 8px clear of the hairline under them, as a group's rows do. A rail beside the pages keeps its places 4px apart too, so they hold still when the sidebar folds. A folded `SideNav`'s rows stand 4px apart too.
 - The phone drawer's edge is a hairline as well as a shadow, so it shows on the dark theme's scrim.
+- A `Callout` takes `compact`: one 40px line about the whole page, such as data shown stale, with its symbol bare at 16px and no title. The detail pane's stale notice uses it, so it pushes the check down by one line, not by a message's two. L-33 and L-56 name it.
 - A folded `SideNav` count stands 4px clear of its glyph, and the hairline under a folded column's places stands 4px in from its sides, as the foot's does.
 - A `PageHeader` whose actions take a line of their own hangs a leading ghost button's glyph on the copy's start edge, as a card head does (L-33).
 - A narrow `Timeline` with an actor anywhere in it stands every event's words where the actor's words stand, so its times keep one edge and its words another.
@@ -36,6 +37,10 @@
 - The detail pane's loading Outcome waits as one bar per count, each as wide as its label and value.
 - A `SideNav`'s kicker and group headings are compact caps, 12px at 0.05em and 13px on a phone, a step under the rows, where 11px caps at 0.07em strained to read.
 - A folded `SideNav` count stands 4px over its glyph's top and 4px past its end, as a rail's place badge does, and on the current page's plate its ring takes the plate's ground. A drawer's head keeps its hairline at 56px with 13px caps.
+- A `DetailLayout` aside beside the main column draws its section titles at the 15px sub-section tier, a step under the main column's, so the properties no longer read as the work's peers.
+- A `SideNav` drawer's close draws a dialog close's 18px glyph in the secondary ink, so the way out reads beside the place's name.
+- A `LinkList` on a phone steps its links one 44px target apart, so a short list keeps a row's pitch instead of a gap that reads as a missing link.
+- A `Disclosure` hint in a right-to-left page keeps its room at the summary's end, so a hint in another script no longer starts its wrapped line 32px off the summary's edge.
 - A `Section` takes `count={null}` while its number loads: a placeholder of a two-digit count's size holds the count's seat, and the heading is named by its title alone until the number arrives.
 - A `Disclosure` summary keeps its hint beside its words only with 32px to spare after it, and stands it under them otherwise, so a narrow aside or a phone never runs the two edge to edge as one line.
 - A folded `SideNav` draws its pages' glyphs at the 18px tier of a rail's places, so the one folded column holds one glyph size.
