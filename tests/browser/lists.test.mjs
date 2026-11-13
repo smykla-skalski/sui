@@ -1390,12 +1390,17 @@ suite('lists', together, () => {
         region.evaluate(
           (element) => element.closest('.sui-section')?.getBoundingClientRect().height
         );
+      // The placeholders come 150ms after the region turns busy and stay at least 400ms after
+      // it settles, so each side is measured once what it shows has turned, not its busy flag.
+      const placeholders = (/** @type {boolean} */ shown) =>
+        page.waitForFunction(
+          ([element, shown]) => !!element.querySelector('.sui-skeleton-rows') === shown,
+          /** @type {const} */ ([region, shown])
+        );
+      await placeholders(true);
       const waiting = await height();
       await example.getByRole('button', { name: 'Show Rows' }).click();
-      await page.waitForFunction(
-        (element) => element.getAttribute('aria-busy') === 'false',
-        region
-      );
+      await placeholders(false);
       const loaded = await height();
       assert.equal(loaded, waiting, 'the page moves when the rows arrive');
       // On a narrow phone a loaded row's side could drop under its name, and the head's action
@@ -1405,12 +1410,10 @@ suite('lists', together, () => {
       await page.setViewportSize({ width: 320, height: 800 });
       try {
         await firstLoad.getByRole('button', { name: 'Load Again' }).click();
+        await placeholders(true);
         const phoneWaiting = await height();
         await firstLoad.getByRole('button', { name: 'Show Rows' }).click();
-        await page.waitForFunction(
-          (element) => element.getAttribute('aria-busy') === 'false',
-          region
-        );
+        await placeholders(false);
         assert.equal(await height(), phoneWaiting, 'the page moves when the rows arrive at 320px');
       } finally {
         if (wide) await page.setViewportSize(wide);
