@@ -447,8 +447,8 @@ test('L-59 a state panel pads 28px by 20px, 20px on a phone, its action a step u
   );
   assert.match(
     stripComments(styles['src/lib/components/DayHeading.svelte']),
-    /\.sui-day-heading \{[^}]*font: var\(--sui-weight-semibold\) var\(--sui-font-size-body\)/,
-    'a day heading stands a step over its 14px entries at the sub-section tier, not at their size'
+    /\.sui-day-heading \{[^}]*font: var\(--sui-weight-semibold\) var\(--sui-font-size-title\)/,
+    'a day heading stands a step over its 14px entries at the 16px title tier on every width, not at their size'
   );
   const table = stripComments(styles['src/lib/components/DataTable.svelte']);
   const refusal = stripComments(styles['src/lib/components/FormError.svelte']);

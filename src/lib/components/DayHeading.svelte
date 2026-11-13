@@ -76,7 +76,7 @@ one local day never opens two headings because its entries cross midnight in UTC
 
 - Semantics: an `h2` to `h6` by `level`, holding a `time` whose `datetime` is the local day.
 - Content: "Today", "Yesterday", "Tomorrow", a weekday and date inside the week, or a date with the year when it is not this one.
-- States: one drawn state, at the sub-section title tier (15px 600, 16px on a phone) in the primary ink, a step over the 14px entries it heads, written as the language writes it.
+- States: one drawn state, at the title tier an empty or error panel's title takes (16px 600 at every width) in the primary ink, a step over the 14px entries it heads, written as the language writes it.
 - Keyboard: none; a heading is not a tab stop.
 - Pointer and touch: none.
 - Focus: it never takes focus.
@@ -97,7 +97,7 @@ one local day never opens two headings because its entries cross midnight in UTC
     align-content: center;
     block-size: var(--sui-block-snap);
     color: var(--sui-text-primary);
-    font: var(--sui-weight-semibold) var(--sui-font-size-body) / var(--sui-leading-meta)
+    font: var(--sui-weight-semibold) var(--sui-font-size-title) / var(--sui-leading-meta)
       var(--sui-sans);
     margin: 0;
     overflow-wrap: anywhere;
