@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- A `CopyButton` at rest is as wide as its resting and copied words, and widens to its failure's words only while they show, as a field's copy chip does, where a short "Copy" kept 9px of room on each side for a hidden "Try Again".
 - The sink's day feed parts its days by 24px, twice the 12px under each heading, where 20px stood too close for a heading to read as the head of its own run.
 - The sink's filter toggle stands at the end of the Repositories heading it filters, as a section action, where it stood under the rows as if it closed the list.
 - A framed `CopyButton` edges its Copied words in the success ink and its refusal in the danger ink, through a hover and inside a whole 2px focus ring, so a keyboard copy shows its result and keeps its ring.

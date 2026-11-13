@@ -89,22 +89,22 @@ what it copies in `label`, such as "Copy Link", because a page of buttons all ca
 tells a screen reader nothing.
 
 Each outcome is also announced through a polite live region, a second copy included, so a
-reader who cannot see the label change still hears it. The labels share one box, so the
-button does not change width when it answers; a `bare` one is as wide as its resting and
-copied words, and widens to the failure's words only while they show.
+reader who cannot see the label change still hears it. The labels share one box as wide as
+the resting and copied words, so a copy that lands does not change its width, and it widens
+to the failure's words only while they show.
 
 It is 28px tall on its own opaque ground, so it can sit over code. `CodeBlock` places one
 in its corner. Beside a 34px field or in a toolbar it takes the control tier with `toolbar`.
 
 - Semantics: a native `<button type="button">` whose visible words are its name, with a polite `role="status"` beside it.
-- Content: `label`, `copiedLabel` and `failedLabel`, each a short phrase; the button is as wide as the longest of the three.
+- Content: `label`, `copiedLabel` and `failedLabel`, each a short phrase; the button is as wide as the longer of the first two, and as the failure's words while they show.
 - States: rest, hover (a veil and a firmer edge), focus (a flush 2px ring, or an inset one when `bare`), pressed (a deeper veil, an inset shadow and a 1px sink), copied (success ink on its tint, over any veil, with a success edge when framed), failed (danger ink on its tint, over any veil, with a danger edge when framed) and disabled (0.6 opacity).
 - Keyboard: Tab reaches it and Enter or Space copies; focus stays on it through the answer.
 - Pointer and touch: 28px tall, or 34px with `toolbar`, and a 44px hit area on a phone or any touch screen.
 - Focus: copying never moves focus; `oncopyfailed` is where a caller sends focus to the text to select by hand.
-- Responsive: one line as wide as its longest label, and it never wraps.
+- Responsive: one line as wide as its resting or copied words, or its failure's while they show, and it never wraps.
 - Accessibility: the visible words are the name, each outcome is spoken through the status, and its ink holds 4.5:1 on its own ground.
-- Localization: `label`, `copiedLabel` and `failedLabel` are props with English defaults, and the shared box fits whichever is longest.
+- Localization: `label`, `copiedLabel` and `failedLabel` are props with English defaults, and the shared box fits the longer of the resting and copied words, and the failure's while they show.
 - Performance: one button and one status per instance, with two timers that clear on unmount; only colours, the inset shadow and the 1px sink move.
 - Analytics: `oncopied` hears each copy that landed and `oncopyfailed` each refused write.
 - Failure: a refused write says "Try Again" in danger ink until the next press and calls `oncopyfailed`, so the text can be offered to select by hand.
@@ -297,10 +297,11 @@ in its corner. Beside a 34px field or in a toolbar it takes the control tier wit
     visibility: hidden;
   }
 
-  /* Inside a field the chip keeps the width its resting and copied words need, so the value
-     keeps its room. The rarer failure takes no room while it is hidden, and widens the chip
-     while it shows, since its words wrapped into that width stand taller than the field. */
-  .bare .sui-copy-button-labels > .off:last-child {
+  /* A button keeps the width its resting and copied words need, so a copy that lands never
+     moves it and no padding waits around a short label. The rarer failure takes no room while
+     it is hidden and widens the button while it shows; a chip in a field would otherwise wrap
+     its words taller than the field. */
+  .sui-copy-button-labels > .off:last-child {
     contain: size;
   }
 

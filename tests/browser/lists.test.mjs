@@ -397,6 +397,34 @@ suite('lists', together, () => {
       }
     });
 
+    test('a copy button at rest is as wide as its resting and copied words, not its hidden failure', async () => {
+      const page = await opened();
+      const fits = await page.evaluate(() =>
+        [...document.querySelectorAll('#code-block .sui-copy-button')].map((button) => {
+          const words = (/** @type {Element} */ span) => {
+            const range = document.createRange();
+            range.selectNodeContents(span);
+            return range.getBoundingClientRect().width;
+          };
+          const [rest, copied] = [...button.querySelectorAll('.sui-copy-button-labels > span')];
+          const style = getComputedStyle(button);
+          const frame =
+            parseFloat(style.paddingInlineStart) +
+            parseFloat(style.paddingInlineEnd) +
+            parseFloat(style.borderInlineStartWidth) +
+            parseFloat(style.borderInlineEndWidth);
+          return {
+            name: rest.textContent,
+            spare:
+              button.getBoundingClientRect().width - frame - Math.max(words(rest), words(copied))
+          };
+        })
+      );
+      assert.ok(fits.length >= 4, `only ${fits.length} copy buttons`);
+      for (const { name, spare } of fits)
+        assert.ok(spare < 1, `${name} keeps ${spare.toFixed(1)}px past its widest shown words`);
+    });
+
     test('a framed code block heads its code with a faint step in both themes', async () => {
       const page = await opened();
       const found = await page.evaluate(() => {
