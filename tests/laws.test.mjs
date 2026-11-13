@@ -2278,3 +2278,21 @@ test('L-95 a box as wide as its content rounds its width up to the pixel', () =>
       `${name} snaps its width`
     );
 });
+
+test('L-67 every glyph, the set and the kit pages’ own, draws one 2-unit stroke that no caller restates', () => {
+  assert.match(read('src/lib/icons/Icon.svelte'), /strokeWidth = 2,/, 'the set');
+  assert.match(
+    read('src/routes/kit/glyphs.ts'),
+    /stroke-width="2" stroke-linecap/,
+    'the kit glyphs'
+  );
+  assert.match(
+    read('docs/laws.md'),
+    /\*\*L-67\*\* One outline family on a 24-unit grid with a 2 stroke/
+  );
+  assert.deepEqual(
+    svelteFiles.filter((file) => /<Icon [^>]*strokeWidth=\{2\}/.test(read(file))),
+    [],
+    'a caller that passes the default'
+  );
+});

@@ -269,7 +269,7 @@ chips take the whole line under the copy and wrap within it.
             aria-disabled={Boolean(holding) || undefined}
             onclick={() => remove(index)}
           >
-            <span class="sui-pair-glyph"><Icon name="close" size="xs" strokeWidth={2} /></span>
+            <span class="sui-pair-glyph"><Icon name="close" size="xs" /></span>
           </button>
         </span>
       </li>

@@ -184,7 +184,7 @@
   const {
     name,
     size = 'base',
-    strokeWidth = 1.75,
+    strokeWidth = 2,
     class: className
   }: {
     name: IconName;
@@ -224,7 +224,7 @@
 
 <!--
 @component
-One drawn set on a 24-unit grid at a 1.75 stroke, from a closed list of names, so two
+One drawn set on a 24-unit grid at a 2 stroke, from a closed list of names, so two
 icons side by side never disagree about weight.
 
 `size` names a tier of the icon scale (`--sui-icon-*`). The tiers are px at the default text
@@ -363,9 +363,9 @@ word would start.
     <path d="m6 6 12 12" />
   {:else if name === 'circle-dashed'}
     <!-- A ring that is drawn but not closed: the file that should be there and
-         is not. Dash length is the mock's, not a guess - a coarser dash reads
-         as a decorative border at 14px. -->
-    <circle cx="12" cy="12" r="8.5" stroke-dasharray="3.4 3.4" />
+         is not. The drawn dash is the mock's, not a guess - a coarser dash reads
+         as a decorative border at 14px; the round caps add a stroke to each. -->
+    <circle cx="12" cy="12" r="8.5" stroke-dasharray="1.4 5.4" />
   {:else if name === 'refresh'}
     <!-- One arc with a single arrowhead, the approved shape. The two-arrow
          cycle it replaced read as a pair of chevrons at 14px. Used by the sync
@@ -519,7 +519,7 @@ word would start.
     {:else if name === 'file-invalid'}
       <path d="m10 12 4 4M14 12l-4 4" />
     {:else if name === 'file-missing'}
-      <path d="M9 14h6" stroke-dasharray="2 2" />
+      <path d="M9 14h1M14 14h1" />
     {:else if name === 'file-bypassed'}
       <path d="M10 12h4l-4 4h4" />
     {/if}

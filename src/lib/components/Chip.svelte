@@ -279,7 +279,7 @@ style declaration.
       {disabled}
       onclick={remove}
     >
-      <Icon name="close" size="xs" strokeWidth={2} />
+      <Icon name="close" size="xs" />
     </button>
     <!-- Client only, so a chip inside a paragraph never gets a block box from the server. -->
     <!-- A disabled remove names no action it cannot take; the reason stands beside the chips. -->

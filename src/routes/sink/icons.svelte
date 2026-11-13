@@ -26,7 +26,7 @@
 
 <Example
   title="Set"
-  note="One outline family on a 24-unit grid with a 1.75 stroke, each glyph by its name"
+  note="One outline family on a 24-unit grid with a 2 stroke, each glyph by its name"
 >
   <ul class="grid" role="list">
     {#each iconNames as name (name)}

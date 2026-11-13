@@ -352,7 +352,7 @@ a saving pane around it holds it the same way.
               disabled={disabled || firm}
               onclick={() => remove(index)}
             >
-              <span class="sui-pattern-glyph"><Icon name="close" size="xs" strokeWidth={2} /></span>
+              <span class="sui-pattern-glyph"><Icon name="close" size="xs" /></span>
             </button>
           {/snippet}
         </JoinedField>
