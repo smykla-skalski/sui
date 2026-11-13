@@ -315,7 +315,7 @@
               </div>
             </Section>
             <Section title="Timeline">
-              <Timeline events={[]} loading loadingLabel="" />
+              <Timeline events={[]} loading actors loadingLabel="" />
             </Section>
           {/snippet}
           {#snippet aside()}

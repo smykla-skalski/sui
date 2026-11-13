@@ -46,6 +46,7 @@
     level = 3,
     loading = false,
     placeholders = 3,
+    actors = false,
     locale,
     emptyLabel = word('Timeline.emptyLabel', 'Check back once the first event happens'),
     loadingLabel = word('Timeline.loadingLabel', 'Loading…'),
@@ -69,6 +70,8 @@
     loading?: boolean;
     /** How many placeholder events stand in while the first events load. */
     placeholders?: number;
+    /** The events on their way have actors, so the placeholders' words stand past the avatar's seat, where the loaded words will. */
+    actors?: boolean;
     /** The language the times are written in. The reader's locale in the page's `lang` when left out. */
     locale?: string;
     /** The one quiet sentence in the list's place when nothing has happened. */
@@ -120,7 +123,7 @@ only and a `LoadMore` after it lands on the first new one. Page it in the order 
 
 - Semantics: an `ol` with `role="list"` of one `li` per event; each time is a `time` with a machine-readable `datetime`; a day heading is a real heading at `level`.
 - Content: per event a time, a sentence, and an optional actor (avatar and name), a status pill and an action; the words wrap, a time never does.
-- States: loaded; empty (`emptyLabel` as one quiet sentence in the list's place); loading (placeholder events in the final geometry, crossed by the placeholder light); refreshing (`loading` with events: they stay, the list is busy).
+- States: loaded; empty (`emptyLabel` as one quiet sentence in the list's place); loading (placeholder events in the final geometry, past the avatar's seat with `actors`, crossed by the placeholder light); refreshing (`loading` with events: they stay, the list is busy).
 - Keyboard: Tab reaches a relative time, which shows its whole instant, and each action, in reading order; a clock time is not a tab stop.
 - Pointer and touch: an action keeps its own target; on a phone or a touch screen a wide timeline with actions spaces its events by the 44px target, so targets never meet.
 - Focus: nothing here moves focus; a `LoadMore` after the list moves it to the first new event.
@@ -149,7 +152,14 @@ only and a `LoadMore` after it lands on the first new one. Page it in the order 
           <div class={['sui-timeline-time', time]}>
             <span class="bar" style:--sui-local-clock-width={clockWidth}></span>
           </div>
-          <div class="sui-timeline-words"><span class="bar"></span></div>
+          {#if actors}
+            <div class="sui-timeline-body">
+              <span class="sui-timeline-face"></span>
+              <div class="sui-timeline-words"><span class="bar"></span></div>
+            </div>
+          {:else}
+            <div class="sui-timeline-words"><span class="bar"></span></div>
+          {/if}
         </li>
       {/each}
     {:else}
@@ -371,8 +381,16 @@ only and a `LoadMore` after it lands on the first new one. Page it in the order 
   }
 
   /* A bar is already a whole cap tall, so its line takes no room for one. */
-  .placeholder > div {
+  .placeholder :is(.sui-timeline-time, .sui-timeline-words) {
     padding-block-start: 0;
+  }
+
+  /* A placeholder paints no words for the skip to clip, so its body needs no bleed, which the
+     list's clip would cut. */
+  .placeholder > .sui-timeline-body {
+    content-visibility: visible;
+    margin: 0;
+    padding: 0;
   }
 
   .bar {

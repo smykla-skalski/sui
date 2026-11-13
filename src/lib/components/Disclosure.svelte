@@ -96,6 +96,9 @@ squeezes them onto more lines, as Apple's value cells stack their secondary text
     /* A block summary bleeds as a list row does, so the two row veils on one pane share an edge;
        inline help bleeds as a link does. */
     --sui-local-disclosure-bleed: var(--sui-row-pad-default);
+    /* The room the summary stands above its words, for a holder that spaces its zones from ink
+       to ink, as DetailLayout does. */
+    --sui-local-lead-room: var(--sui-local-disclosure-inset);
     margin: 0;
     min-inline-size: 0;
     position: relative;
