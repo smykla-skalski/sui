@@ -894,7 +894,8 @@ p { margin-block-end: 2em !important; }`;
           const found = (await audit(page)).filter(
             (line) =>
               /^L-(55|70) /.test(line) ||
-              (change === changes[0][1] && line.includes("a wrapped title's lines"))
+              (change === changes[0][1] && line.includes("a wrapped title's lines")) ||
+              line.includes('its copy control sits')
           );
           const overlaps = await page.evaluate(() => {
             const leaves = [...document.querySelectorAll('main .specimen *')].filter(
