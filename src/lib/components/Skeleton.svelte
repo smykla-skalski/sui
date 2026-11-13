@@ -153,7 +153,7 @@ under reduced motion. Use it only where the shape of what is coming is already k
     min-inline-size: 0;
   }
 
-  /* Two trimmed lines of meta copy, each snapped up to the pixel as the row snaps them, the
+  /* Two trimmed lines of copy, each snapped up to an even pixel as the row snaps them, the
      copy gap between them, the row padding and the hairline: exactly an `ObjectRow`, measured
      in the face that row is set in.
 
@@ -162,11 +162,11 @@ under reduced motion. Use it only where the shape of what is coming is already k
      never widens the page. */
   .sui-skeleton-rows {
     --sui-skeleton-row: calc(
-      2 * round(up, 1cap, 1px) + var(--sui-row-copy-gap) + 2 * var(--sui-row-pad-default) +
+      2 * round(up, 1cap, 2px) + var(--sui-row-copy-gap) + 2 * var(--sui-row-pad-default) +
         var(--sui-row-hairline)
     );
     /* A row's bars: two lines of words one copy gap apart, or one line for plain rows. */
-    --sui-skeleton-lines: calc(2 * round(up, 1cap, 1px) + var(--sui-row-copy-gap));
+    --sui-skeleton-lines: calc(2 * round(up, 1cap, 2px) + var(--sui-row-copy-gap));
     /* What a row leaves above its first bar, on the pixel: the row padding for the default row,
        and the rest of the row under the bars, hairline band included. */
     --sui-skeleton-lead: round(

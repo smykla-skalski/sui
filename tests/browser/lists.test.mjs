@@ -1308,6 +1308,27 @@ suite('lists', together, () => {
         }
       }
     );
+
+    // Last in the suite: it leaves the example showing its loaded rows.
+    test("a skeleton's rows stand as tall as the kit rows that take their place", async () => {
+      const page = await opened();
+      const example = page.locator('#skeleton .example').filter({
+        has: page.getByRole('button', { name: 'Show the Rows' })
+      });
+      // A handle, since the button that names the example changes its words once pressed.
+      const region = await example.locator('.sui-skeleton').elementHandle();
+      assert.ok(region, 'the example has no skeleton');
+      await region.scrollIntoViewIfNeeded();
+      const height = () => region.evaluate((element) => element.getBoundingClientRect().height);
+      const waiting = await height();
+      await example.getByRole('button', { name: 'Show the Rows' }).click();
+      await page.waitForFunction(
+        (element) => element.getAttribute('aria-busy') === 'false',
+        region
+      );
+      const loaded = await height();
+      assert.equal(loaded, waiting, 'the page moves when the rows arrive');
+    });
   });
 
   suite('settings and save bars', { concurrency: 1 }, () => {

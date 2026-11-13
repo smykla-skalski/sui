@@ -82,7 +82,7 @@ and the one above as a hovered row does, and keeps the plate under the pointer.
     align-items: center;
     border-radius: var(--sui-radius-control);
     color: var(--sui-text-primary);
-    contain-intrinsic-block-size: auto calc(1.375rem + var(--sui-row-copy-gap));
+    contain-intrinsic-block-size: auto calc(1.5rem + var(--sui-row-copy-gap));
     content-visibility: auto;
     display: grid;
     gap: var(--sui-space-4);
