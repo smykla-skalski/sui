@@ -1234,6 +1234,7 @@
     --sui-font-size-micro: 0.75rem;
     --sui-font-size-compact: 0.8125rem;
     --sui-font-size-body: 1rem;
+    --sui-font-size-card-title: 1.125rem;
 
     --sui-font-size-page-title: var(--sui-font-size-page-title-compact);
     --sui-leading-micro: 1.125rem;

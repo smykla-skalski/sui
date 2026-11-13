@@ -532,6 +532,14 @@ test('L-25 the type tiers keep the sizes the law names', () => {
   assert.deepEqual(small, [], 'no text is smaller than 11px');
   const phone = tokenMap(stripComments(palette.slice(palette.indexOf(PHONE))));
   assert.deepEqual(
+    {
+      cardTitle: pixels(phone['--sui-font-size-card-title']),
+      body: pixels(phone['--sui-font-size-body'])
+    },
+    { cardTitle: 18, body: 16 },
+    "on a phone a section's title stays a step over the body-sized sub-section title"
+  );
+  assert.deepEqual(
     { desktop: tier('note'), phone: phone['--sui-font-size-note'] },
     { desktop: 14, phone: undefined },
     "a form's help reads at its 14px label's size on every screen"

@@ -132,6 +132,7 @@
 
 <Example
   title="Sub-sections"
+  --example-max="48rem"
   note="A section inside another takes the 15 px title and stands 24 px under what comes before it, 20 px on a phone"
   layout="stack"
   ground="canvas"
@@ -181,8 +182,10 @@
 </Example>
 
 <style>
+  /* A section's content is the page's own words, so it wears the content's ink, and the
+     section's description stays the quiet line over it. */
   .copy {
-    color: var(--sui-text-secondary);
+    color: var(--sui-text-primary);
     font: var(--sui-weight-regular) var(--sui-font-size-body) / var(--sui-leading-body)
       var(--sui-sans);
     margin: 0;
