@@ -33,12 +33,12 @@
             These rules apply to every repository in the workspace that has not opted out of the
             template
           </p>
-          <p class="copy" lang="la">
+          <p class="copy body" lang="la">
             Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor
             incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud
             exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
           </p>
-          <p class="copy" lang="la">
+          <p class="copy body" lang="la">
             Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat
             nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui
             officia deserunt mollit anim id est laborum.
@@ -49,11 +49,11 @@
         <h4>Who Can Change the Branch Rules</h4>
         <div class="text">
           <p class="copy">Workspace owners and the platform team can edit them</p>
-          <p class="copy" lang="la">
+          <p class="copy body" lang="la">
             Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque
             laudantium. Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit.
           </p>
-          <p class="copy" lang="la">
+          <p class="copy body" lang="la">
             Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor
             incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud
             exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
@@ -64,12 +64,12 @@
         <h4>Required Checks</h4>
         <div class="text">
           <p class="copy">Lint, unit tests and the kitchen sink audit must pass before a merge</p>
-          <p class="copy" lang="la">
+          <p class="copy body" lang="la">
             Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat
             nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui
             officia deserunt mollit anim id est laborum.
           </p>
-          <p class="copy" lang="la">
+          <p class="copy body" lang="la">
             Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque
             laudantium. Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit.
           </p>
@@ -80,7 +80,7 @@
           <h4>History</h4>
           <div class="text">
             <p class="copy">The rules were last changed 12&nbsp;days ago</p>
-            <p class="copy" lang="la">
+            <p class="copy body" lang="la">
               Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor
               incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud
               exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
@@ -144,6 +144,11 @@
     font: var(--sui-weight-regular) var(--sui-font-size-body) / var(--sui-leading-body)
       var(--sui-sans);
     margin: 0;
+  }
+
+  /* The article reads in the primary ink, under a section's quieter one-line description. */
+  .body {
+    color: var(--sui-text-primary);
   }
 
   @media (max-width: 47.9375rem) {

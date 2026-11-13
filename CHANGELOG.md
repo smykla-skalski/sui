@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- The `PageToc` page sets its article paragraphs in the primary ink, under each section's description in the secondary one, so the text a reader reads stands apart from its notes.
 - A 40px workspace `Avatar` rounds 12px (`--sui-radius-mark-large`), 30% of its side as every other size's corner is, where 10px read as a squarer mark between its neighbours.
 - The `Avatar` page runs its sizes across and its two shapes down, as the `Chip` and `Icon` pages run theirs, so the size ramp reads in one line from 20px to 48px.
 - A `PageToc`'s title stands 8px into it, so at rest it lines up with the page's first heading, where it stood 24px under it, and it sticks 16px under the top so a stuck index keeps its 24px. On a phone, where it never sticks, it keeps no room under its last entry, and the `PageToc` page stands its article 16px under it.
