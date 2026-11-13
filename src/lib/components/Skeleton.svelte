@@ -234,8 +234,8 @@ under reduced motion. Use it only where the shape of what is coming is already k
   .bar {
     background: var(--sui-placeholder);
     block-size: round(up, 1cap, 1px);
-    border-radius: var(--sui-radius-words);
-    clip-path: inset(0 round var(--sui-radius-words));
+    border-radius: var(--sui-radius-placeholder);
+    clip-path: inset(0 round var(--sui-radius-placeholder));
     display: block;
     inline-size: min(12rem, 50%);
   }

@@ -6,7 +6,6 @@
 - An `Avatar` picture stands on the raised surface, so a transparent logo shows on a neutral ground, where it stood on the brand tint the initials keep.
 - A `PageHeader` title a `ListDetail` lands focus on wears the kit's ring as every landed heading does, set out past its descenders, where the title's own reset hid it.
 - A `LoadMore` failure's alert mark is 16px, the size every other alert in the kit takes beside its reason, where 12px read faint beside the danger words.
-- A heading focus lands on, as a `PageToc` link or a `ListDetail` move takes it there, wears the focus ring at 3px (`--sui-radius-words`), the corner a line of words takes, where the chip's 6px read as a small control.
 - The `LoadMore` page sets its four states two to a line, where three narrow columns left the whole list alone on a second row and wrapped a failure's Try Again under its reason.
 - A `LoadMore` button keeps one width as it turns from Load More to loading to Try Again, the room its loading words take, where each state drew its own width.
 - An `Avatar` with no name takes its letter from the handle after a leading @, so `@ada` gives A, where it drew the @.
