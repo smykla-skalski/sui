@@ -9,7 +9,6 @@
 <script lang="ts">
   import { Icon, iconNames } from '#lib';
   import Example from '../kit/Example.svelte';
-  import Specimen from '../kit/Specimen.svelte';
   import Variants from '../kit/Variants.svelte';
 
   const directional = [
@@ -19,6 +18,8 @@
     'undo',
     'settings'
   ] as const;
+
+  const directions = ['ltr', 'rtl'] as const;
 
   const glyphs = ['settings', 'refresh', 'check'] as const;
   const sizes = ['micro', 'xs', 'sm', 'base', 'md'] as const;
@@ -66,24 +67,23 @@
   title="Direction"
   note="Directional glyphs face the reading direction, so a right-to-left page mirrors them and keeps the rest"
 >
-  <Specimen label="Left to right">
-    <span class="row">
-      {#each directional as name (name)}<Icon {name} size="md" />{/each}
-    </span>
-  </Specimen>
-  <Specimen label="Right to left">
-    <span class="row" dir="rtl">
-      {#each directional as name (name)}<Icon {name} size="md" />{/each}
-    </span>
-  </Specimen>
+  <Variants
+    rows={directional}
+    columns={directions}
+    axis="name"
+    rowLabel={(name) => `"${name}"`}
+    columnLabel={(direction) => (direction === 'ltr' ? 'Left to right' : 'Right to left')}
+  >
+    {#snippet cell(name, direction)}
+      <span class="facing" dir={direction}><Icon {name} size="md" /></span>
+    {/snippet}
+  </Variants>
 </Example>
 
 <style>
-  .row {
+  .facing {
     color: var(--sui-text-primary);
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--sui-space-3);
+    display: inline-flex;
   }
 
   .pair {
