@@ -194,10 +194,11 @@ outcome tones always come with their word, so color never carries the state alon
   }
 
   /* A still ring tells a live dot from a plain one when it does not pulse, as under reduced
-     motion. It is drawn, not blurred, and the dot keeps a plain dot's gap past its ring. */
+     motion. It is a hairline a pixel clear of the dot, so it reads as a ring and not as a bigger
+     dot, drawn, not blurred, and the dot keeps a plain dot's gap past its ring. */
   .sui-pill-dot.live {
-    box-shadow: 0 0 0 calc(var(--sui-pill-dot) / 3)
-      color-mix(in oklab, currentColor 60%, transparent);
+    outline: calc(var(--sui-pill-dot) / 6) solid color-mix(in oklab, currentColor 70%, transparent);
+    outline-offset: calc(var(--sui-pill-dot) / 6);
     margin-inline-end: calc(var(--sui-pill-dot) / 3);
   }
 
