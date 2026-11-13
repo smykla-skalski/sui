@@ -11,6 +11,10 @@ shift
 
 cd "${PREVIEWS_DATA:-/data}"
 mkdir -p previews incoming
+# Runs for main and each pull request can overlap, so one waits for the other: otherwise a run
+# that read the previews earlier could publish its list over a newer one.
+exec 9>previews.lock
+flock 9
 
 case $install in
   -) ;;
@@ -40,7 +44,6 @@ for dir in previews/pr-*; do
 done
 
 # The sink's preview picker reads this list of the previews left, from each one's preview.json.
-# Runs for main and each pull request can overlap, so each writes its own temporary file.
 {
   printf '['
   comma=
@@ -51,5 +54,5 @@ done
     comma=,
   done
   printf ']\n'
-} > "incoming/previews.$$.json"
-mv "incoming/previews.$$.json" previews/previews.json
+} > incoming/previews.json
+mv incoming/previews.json previews/previews.json
