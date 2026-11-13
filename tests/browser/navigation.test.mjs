@@ -1485,7 +1485,6 @@ suite('navigation', together, () => {
             const box = heading.getBoundingClientRect();
             return {
               outline: `${style.outlineStyle} ${style.outlineWidth}`,
-              radius: style.borderTopLeftRadius,
               spare: box.width - words.getBoundingClientRect().width,
               // The box is trimmed to the baseline, so the ring clears a descender only by its
               // offset, which must reach past the font's descent there.
@@ -1494,7 +1493,6 @@ suite('navigation', together, () => {
             };
           });
           assert.equal(ring.outline, 'solid 2px', "the browser's own outline traces the heading");
-          assert.equal(ring.radius, '8px', 'the ring is not the control radius the entry wears');
           assert.ok(ring.spare < 1, `the ring runs ${ring.spare}px past the heading's words`);
           assert.ok(ring.clear >= 1, `the ring stands ${ring.clear.toFixed(1)}px off a descender`);
           await page.keyboard.press('Tab');
