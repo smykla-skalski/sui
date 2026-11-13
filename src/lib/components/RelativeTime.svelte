@@ -174,20 +174,14 @@ tooltip.
 </time>{#if element && valid && !exactOnly}<Tooltip anchor={element} text={whole} />{/if}
 
 <style>
-  /* A dotted underline with room between its dots: a native dotted line spaces its dots one
-     stroke apart, which reads as solid, so a row of 1px dots, one every 3px, in 60% of the
-     words' ink runs along the foot of the box instead. The box spans its line in a sentence too,
-     and reaches 2px past it, given back by its margin so nothing moves, so the dots stand 3px
-     clear of a g or a y. */
+  /* The box spans its line in a sentence too, and reaches 2px past it below and 2px past the
+     words at each side, all given back by its margin so nothing moves: the dots stand 3px clear
+     of a g or a y, and the focus ring clears the first and last letters as it clears the cap. */
   .sui-relative-time {
     --sui-local-dot: color-mix(in srgb, currentColor 60%, transparent);
-    background-image: linear-gradient(to right, var(--sui-local-dot) 1px, transparent 1px);
-    background-position: 0 100%;
-    background-repeat: repeat-x;
-    background-size: 3px 1px;
     display: inline-block;
-    margin-block-end: -2px;
-    padding-block-end: 2px;
+    margin: 0 -2px -2px;
+    padding: 0 2px 2px;
     /* A flex or grid parent makes the time a block and may stretch it, and the dots follow its
        box, so the box keeps to its words exactly, not rounded past them (L-95). */
     inline-size: fit-content;
@@ -214,17 +208,34 @@ tooltip.
     outline-offset: var(--sui-focus-ring-offset);
   }
 
+  /* A dotted underline with room between its dots: a native dotted line spaces its dots one
+     stroke apart, which reads as solid, so a row of 1px dots, one every 3px, in 60% of the
+     words' ink runs along the box's foot under the words alone. */
+  .sui-relative-time::before {
+    background: linear-gradient(to right, var(--sui-local-dot) 1px, transparent 1px) 0 0 / 3px 1px
+      repeat-x;
+    block-size: 1px;
+    content: '';
+    inset: auto 2px 0;
+    position: absolute;
+  }
+
   .sui-relative-time::after {
     content: '';
-    inset: calc(-1 * var(--sui-space-2)) calc(-1 * var(--sui-space-1) - 2px);
+    inset: calc(-1 * var(--sui-space-2)) calc(-1 * var(--sui-space-1));
     position: absolute;
+  }
+
+  .exact::before {
+    content: none;
   }
 
   /* The whole instant is twice as long as the relative reading, so it may wrap where a
      column sized for the short one would otherwise clip it. */
   .exact {
-    background-image: none;
     display: inline;
+    margin: 0;
+    padding: 0;
     white-space: normal;
   }
 

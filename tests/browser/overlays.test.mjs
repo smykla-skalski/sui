@@ -758,20 +758,30 @@ suite('overlays', together, () => {
 
     // The dots are the box's ground, so a parent that stretches the box would draw them past
     // the words.
-    test('a relative time draws its dots under its words only', async () => {
+    test('a relative time draws its dots under its words only, its box 2px past them at each side', async () => {
       const widths = await page.evaluate(() =>
         [...document.querySelectorAll('#relative-time time.sui-relative-time:not(.exact)')].map(
           (time) => {
             const words = document.createRange();
             const text = [...time.childNodes].find((node) => node.nodeType === Node.TEXT_NODE);
             if (text) words.selectNodeContents(text);
-            return [time.getBoundingClientRect().width, words.getBoundingClientRect().width];
+            return [
+              parseFloat(getComputedStyle(time, '::before').width),
+              words.getBoundingClientRect().width,
+              time.getBoundingClientRect().width
+            ];
           }
         )
       );
       assert.ok(widths.length > 0);
-      for (const [box, words] of widths)
-        assert.ok(Math.abs(box - words) <= 0.5, `dots run ${box}px under ${words}px of words`);
+      for (const [dots, words, box] of widths) {
+        assert.ok(Math.abs(dots - words) <= 0.5, `dots run ${dots}px under ${words}px of words`);
+        // The focus ring follows the box, so it clears the first and last letters by 2px more.
+        assert.ok(
+          Math.abs(box - words - 4) <= 0.5,
+          `the box reaches ${box - words}px past its words`
+        );
+      }
     });
 
     // The dots are a row drawn at the box's foot, which a descender does not skip as a native
