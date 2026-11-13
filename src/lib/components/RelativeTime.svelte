@@ -194,10 +194,11 @@ tooltip.
     cursor: help;
   }
 
-  /* Hover strengthens the dots and only nudges the words, so the reading stays in its sentence. */
+  /* Hover draws the dots in the words' full ink and only nudges the words, so the time answers
+     the pointer plainly and the reading stays in its sentence. */
   @media (hover: hover) {
     .sui-relative-time:not(.exact):hover {
-      --sui-local-dot: color-mix(in srgb, currentColor 80%, transparent);
+      --sui-local-dot: currentColor;
       color: color-mix(in oklab, currentColor 75%, var(--sui-text-primary));
     }
   }
