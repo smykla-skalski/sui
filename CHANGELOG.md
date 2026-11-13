@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- A `LoadMore`'s count and end note take the secondary ink, a step above the muted details of the rows over them, so where the list stands reads as its own line.
 - The `Avatar` page draws a picture at every size beside the initials it covers, and labels each row with the prop it sets, `shape="person"`, `shape="workspace"` and `src`.
 - A whole `LoadMore` list's end note holds the button's height, so the footer keeps one height to the last page and the note stands level with the count it replaces, where it stood higher on a shorter footer.
 - An `IdentityRow` whose name wraps stands its face level with the name's first line, where a short name's stands, where it centred on the whole block and stood by its middle line.

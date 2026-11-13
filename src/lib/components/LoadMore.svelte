@@ -199,9 +199,11 @@ struggling. The reason takes the count's place and the button retries until the 
     padding-block-end: 0;
   }
 
+  /* The secondary ink, a step above a row's muted details, so where the list stands reads as
+     the list's own line and not as one more row's metadata. */
   .sui-load-more-words {
     align-items: start;
-    color: var(--sui-text-muted);
+    color: var(--sui-text-secondary);
     display: flex;
     font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-row-copy-leading)
       var(--sui-sans);
