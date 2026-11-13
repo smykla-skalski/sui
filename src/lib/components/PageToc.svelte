@@ -329,7 +329,7 @@ phone drawer, and following an entry closes the drawer before focus moves.
 - Content: entries with an id and a label that wraps, optionally grouped under a heading.
 - States: rest, hover (a row ground and the hover ink), pressed (the pressed ground and an inset shadow), focus (a 2px inset ring) and current (primary ink at 500 on the accent plate the sidebar's current page wears, in room every entry holds, so it moves nothing).
 - Keyboard: Tab moves through the entries and Enter follows one, moving focus to the section's heading.
-- Pointer and touch: entries are 28px tall on a desktop pointer and 44px on a phone or a coarse pointer, across the column's width.
+- Pointer and touch: entries are 28px tall on a desktop pointer and 44px with no gap on a phone or a coarse pointer, across the column's width.
 - Focus: following an entry moves focus to its section's first heading, or the section, which takes a temporary `tabindex` and, when the keyboard brought it there, the kit's ring around its words; in a shell's phone drawer the drawer closes first, so focus lands in the section and never on the menu button.
 - Responsive: the index sticks and scrolls inside itself, keeping the current entry in view; the page decides where it stands.
 - Accessibility: the current entry is announced, every entry's ink holds 4.5:1, and the current ink stands 2:1 from the rest ink in lightness and the plate marks it too, so it is never hue alone (WCAG 1.4.1).
@@ -506,7 +506,13 @@ phone drawer, and following an entry closes the drawer before focus moves.
     color: var(--sui-text-current);
   }
 
+  /* A 44px entry already parts its words from the next one's, so the entries touch and the list
+     keeps the height of its targets alone. */
   @media (max-width: 47.9375rem), (pointer: coarse) {
+    .sui-page-toc-list {
+      gap: 0;
+    }
+
     .sui-page-toc-link {
       min-block-size: var(--sui-touch-target);
     }
