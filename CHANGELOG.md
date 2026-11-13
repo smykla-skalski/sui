@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- The `LoadMore` page sets its four states two to a line, where three narrow columns left the whole list alone on a second row and wrapped a failure's Try Again under its reason.
 - A `LoadMore` button keeps one width as it turns from Load More to loading to Try Again, the room its loading words take, where each state drew its own width.
 - An `Avatar` with no name takes its letter from the handle after a leading @, so `@ada` gives A, where it drew the @.
 - A hovered `PageToc` entry takes the hover ink, the primary on light and the bright ink on dark, where it stepped only from the muted ink to the secondary.

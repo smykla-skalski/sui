@@ -64,7 +64,7 @@
 <Example
   title="States"
   note="The count and the end note hold the start, the button holds the end, and a failure takes the count’s place"
-  layout="grid"
+  layout="pairs"
   ground="canvas"
 >
   <Specimen label="More to load">
