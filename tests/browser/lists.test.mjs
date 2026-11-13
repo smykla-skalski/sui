@@ -520,6 +520,30 @@ suite('lists', together, () => {
     );
 
     test(
+      'a menu that focuses a choice as it opens leaves the page where it was',
+      long,
+      async () => {
+        const page = await opened();
+        // The last bar's menu has never opened, so it holds no placement from an earlier open.
+        const trigger = page
+          .locator('#list-toolbar')
+          .getByRole('button', { name: 'Sort & Filter' })
+          .last();
+        await trigger.evaluate((node) => node.scrollIntoView({ block: 'center' }));
+        const before = await page.evaluate(() => scrollY);
+        assert.ok(before > 0, 'the page did not scroll to the bar');
+        await trigger.click();
+        await page.locator(':popover-open .sui-list-toolbar-panel').waitFor();
+        assert.equal(
+          await page.evaluate(() => scrollY),
+          before,
+          'opening the menu scrolled the page'
+        );
+        await page.keyboard.press('Escape');
+      }
+    );
+
+    test(
       'AC4 a toolbar says nothing until something changes, and its count again after a pick that leaves the count as it was',
       long,
       async () => {
