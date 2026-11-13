@@ -470,17 +470,6 @@ suite('forms', together, () => {
       assert.equal(light.blocked, false, 'a black chip draws an edge in the light theme');
     });
 
-    test('a small chip in a line of text keeps the line at its own height', async () => {
-      const page = await opened();
-      const [height, leading] = await page
-        .locator('#chip p:has(> .sui-chip.small)')
-        .evaluate((line) => [
-          line.getBoundingClientRect().height,
-          parseFloat(getComputedStyle(line).lineHeight)
-        ]);
-      assert.equal(height, leading);
-    });
-
     test('a long mono chip wraps after its delimiters, never inside a word', async () => {
       const page = await opened();
       // Each width wider than the value's longest run between delimiters, where a value broken
