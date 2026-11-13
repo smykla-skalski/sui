@@ -37,7 +37,7 @@
     ['blocked', '#000000', 'Black']
   ] as const;
 
-  let labels = $state(['topology/zone', 'team:platform', 'env=production', 'v2.9.1']);
+  let labels = $state(['topology/zone', 'team:platform', 'env=production']);
   let unkeyed = $state(['first', 'second', 'third']);
   let painted = $state([
     ['priority: high', 'd73a4a'],
