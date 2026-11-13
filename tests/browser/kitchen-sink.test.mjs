@@ -951,6 +951,24 @@ suite('the kitchen sink', together, () => {
           [],
           `a focused row the pointer rests on, ${scheme}`
         );
+        // A control inside the row, such as a time, holds the ring there instead.
+        const plate = () => row.evaluate((node) => getComputedStyle(node).backgroundColor);
+        await page.mouse.move(0, 0);
+        const resting = await plate();
+        await row.evaluate((node) => {
+          const control = document.createElement('span');
+          control.tabIndex = 0;
+          control.textContent = '4 minutes ago';
+          node.append(control);
+          control.focus();
+        });
+        await row.locator('a').hover();
+        await page.waitForTimeout(400);
+        assert.equal(
+          await plate(),
+          resting,
+          `a row with focus inside deepens its plate, ${scheme}`
+        );
       } finally {
         await page.close();
       }
