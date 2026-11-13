@@ -310,7 +310,7 @@ Updated, and takes `toolsLabel` once the filter folds in beside that group.
     display: flex;
     flex: 1 1 16rem;
     flex-wrap: wrap;
-    gap: var(--sui-space-2);
+    gap: var(--sui-space-2) var(--sui-space-3);
     min-inline-size: 0;
   }
 
@@ -356,11 +356,13 @@ Updated, and takes `toolsLabel` once the filter folds in beside that group.
     min-inline-size: 0;
   }
 
-  /* In the bar the filter's heading stands before it on the same line; in the menu above it. */
+  /* In the bar the filter's heading stands before it on the same line; in the menu above it.
+     A heading stands 12px before its control, as the search's label does, so a focus ring
+     drawn outside the control never crowds the words beside it. */
   .sui-list-toolbar-segments .sui-list-toolbar-group {
     align-items: center;
     display: flex;
-    gap: var(--sui-space-2);
+    gap: var(--sui-space-3);
   }
 
   /* No gap along the line: the dot between the choices makes its own room (L-103). The choices

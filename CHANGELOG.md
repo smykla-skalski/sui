@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- A `ListToolbar` heading or search label that stands before its control stands 12px from it, where it stood 8px, so the control's focus ring never crowds its words.
 - A `ListToolbar` sets the choices named beside its tools button in the primary ink, at the regular weight, so they read as the button's current values rather than as a caption.
 - The `Chip` page's Remove & refocus group holds three labels, so on a laptop it keeps one row rather than leaving its last chip alone on a second.
 - A `ListDetail` with nothing open keeps its empty state at most 32rem wide at the pane's start, where it ran across the whole pane as a banner.
