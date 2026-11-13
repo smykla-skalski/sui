@@ -198,11 +198,13 @@ and the one above as a hovered row does, and keeps the plate under the pointer.
   }
 
   /* On a phone the side stays beside the name while the name keeps 15rem, so a short row keeps
-     one line, and drops under it, packed to the start, before a long name wraps down beside it. */
+     one line, and drops under it, packed to the start, before a long name wraps down beside it.
+     A dropped side stands 12px under the main part, nearer it than the next row. */
   @media (max-width: 47.9375rem) {
     .sui-object-row {
       display: flex;
       flex-wrap: wrap;
+      row-gap: var(--sui-space-3);
     }
 
     .sui-object-row-main {

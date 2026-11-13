@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-- On a phone an `ObjectRow`'s side drops under its main part once the main part has less than 15rem, not 10rem, so a long name keeps its lines and its status stands under it, not by its last line. The kit's object rows set their names at the body size, as an `IdentityRow`'s name.
+- On a phone an `ObjectRow`'s side drops under its main part once the main part has less than 15rem, not 10rem, so a long name keeps its lines and its status stands 12px under it, not by its last line. The kit's object rows set their names at the body size, as an `IdentityRow`'s name.
 - A `Link` is 500, not 600, as a `BackLink` and a breadcrumb link are, so a pane's links and its related links stand under the section titles they serve. Its ink and underline still mark it.
 - A `Callout`'s actions move under its copy once they leave it less than 14rem, not 11rem, so on a phone a message's title keeps one line and its text two, not three.
 - A `FactList` of rows keeps each label beside its value down to 18rem of its own width, not 25rem, so a detail pane's aside of properties and a phone's full-width list keep one line per fact.
