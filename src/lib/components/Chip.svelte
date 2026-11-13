@@ -8,7 +8,7 @@
   const BLACK: Rgb = [0, 0, 0];
   const WHITE: Rgb = [255, 255, 255];
   /* The dark theme's tint of the chip's color, as GitHub draws a label in the dark. */
-  const TINT = 0.18;
+  const TINT = 0.22;
   /* The lightest dark ground a chip stands on (`--sui-surface-inset`): its tint is lightest
      there, so ink that reads on it reads on every darker ground. Recompute if it changes. */
   const DARK_GROUND: Rgb = [0x1b, 0x1c, 0x1f];
@@ -111,7 +111,7 @@
    * A painted chip in each theme. In the light one it wears the color with black or white ink,
    * and an edge only when the fill is near white. A mid-tone fill on which neither ink reads
    * 4.6:1 and Lc 61 moves along its hue, darker under white or lighter under black, whichever
-   * is the shorter way. In the dark one it wears an 18% tint of the color, and its ink is the
+   * is the shorter way. In the dark one it wears a 22% tint of the color, and its ink is the
    * color itself, lifted in lightness along its own hue until it reads on that tint.
    */
   function paint(rgb: Rgb) {
@@ -227,7 +227,7 @@ chose, such as a GitHub label's, and is how a reader recognises it in a list.
 
 A painted chip is drawn as GitHub draws a label. In the light theme it wears the color with
 black or white ink. On a mid-tone fill where neither ink reads 4.5:1 and APCA Lc 60, the fill
-moves along its own hue, the shorter way, until one does. In the dark theme it wears an 18%
+moves along its own hue, the shorter way, until one does. In the dark theme it wears a 22%
 tint of the color, and its ink is the color itself, lifted in lightness along its own hue
 until it reads 4.5:1 and Lc 60, so a label keeps its hue in both themes. Only a near-white fill draws an edge in the light theme, so it still shows on
 a white card, and only a near-black one in the dark theme, whose tint all but vanishes there. Anything but hex digits draws the plain chip, so a stored value never writes a
@@ -349,7 +349,7 @@ style declaration.
   .painted {
     background: light-dark(
       var(--sui-chip-fill),
-      color-mix(in srgb, var(--sui-chip-hue) 18%, transparent)
+      color-mix(in srgb, var(--sui-chip-hue) 22%, transparent)
     );
     box-shadow: inset 0 0 0 var(--sui-stroke)
       light-dark(var(--sui-chip-edge, transparent), var(--sui-chip-edge-dark, transparent));

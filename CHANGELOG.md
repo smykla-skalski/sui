@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- A painted `Chip` on the dark theme wears a 22% tint of its color, where it wore 18%, so a blue or violet label keeps its strength beside the dark ground, and its ink still lifts along its hue until it reads.
 - A pressed `ObjectRow` takes the pressed ground again, where a hovered row's ground had outranked it since the open row took its accent plate.
 - The `ListToolbar` page draws the 17rem holder of its narrow bar as a hairline, so the bar reads as filling it.
 - A disabled painted `Chip` takes an off field's paint as a plain one does, with a tenth of its color over the well, so it reads as fixed beside them and still shows which label it is.
