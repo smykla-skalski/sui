@@ -3390,6 +3390,8 @@ function rowGrounds(root: Document): Finding[] {
   for (const row of audited(root, 'main *')) {
     const look = getComputedStyle(row);
     if (parseFloat(look.marginInlineStart) >= 0 || parseFloat(look.marginInlineEnd) >= 0) continue;
+    // Words only heard pull in by their pixel (L-119) and draw no ground to cut.
+    if (heardOnly(row)) continue;
     const box = row.getBoundingClientRect();
     for (let node = row.parentElement; node && node !== root.body; node = node.parentElement) {
       const holder = getComputedStyle(node);

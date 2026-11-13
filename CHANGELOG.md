@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-- A page no longer scrolls a pixel past its end, which shifted the sticky sidebar as the scroll reached it: `VisuallyHidden` and every other box clipped to one pixel pull in by that pixel, as a live region after the page's last element does (L-119).
+- A page no longer scrolls a pixel past its end, which shifted the sticky sidebar as the scroll reached it: `VisuallyHidden` and every other box clipped to one pixel pull in by that pixel, as a live region after the page's last element does, and a `Skeleton`'s last row ends at its last bar instead of reaching past its holder, which let a page ending in one scroll 2px into nothing (L-119).
 - A second finger on a `SegmentedControl` thumb no longer takes over a drag and leaves the page inert after both lift. `SkipLink`, `ServiceWorkerStatus` and the `Toaster` cap their width inside the safe area on both sides, so long words never run into a side notch (L-118).
 - A `DataTable`'s and a chart's placeholder light crosses for 10s, the wait after which a `Skeleton` turns slow, and then holds still, so a wait that never ends never moves forever (L-64).
 - A click on a `ColorPicker` part's name focuses that part, and the hex field takes any text typed and says when it is not a hex color. `SearchField` is a native search input in place of a text input with an ARIA role.
