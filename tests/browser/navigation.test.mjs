@@ -1330,7 +1330,17 @@ suite('navigation', together, () => {
           await first.boundingBox()
         );
         await page.mouse.move(corner.x + 24, corner.y + corner.height - 12);
-        assert.notEqual(await edge(), rest, 'a hovered card keeps its resting keyline');
+        // Under load, hover can land a frame after the move.
+        assert.ok(
+          await settles(
+            page.waitForFunction(
+              ([card, resting]) => getComputedStyle(card).borderTopColor !== resting,
+              /** @type {const} */ ([await first.elementHandle(), rest]),
+              { timeout: 2000 }
+            )
+          ),
+          'a hovered card keeps its resting keyline'
+        );
         await page.mouse.move(box.x + 24, box.y + box.height - 12);
         assert.equal(
           await underlined(),
