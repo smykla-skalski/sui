@@ -363,7 +363,7 @@
                compact line, so the warning about the check itself still leads. -->
           <Callout compact>
             {#snippet icon()}<Icon name="refresh" size="sm" />{/snippet}
-            The refresh failed, so this check is a minute old
+            The refresh failed, so this page shows data from a minute ago
             {#snippet actions()}
               <Button loading={refreshing} onclick={refresh}>
                 {refreshing ? 'Reloading…' : 'Reload'}
