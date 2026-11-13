@@ -210,8 +210,10 @@ struggling. The reason takes the count's place and the button retries until the 
     min-inline-size: 0;
   }
 
+  /* Medium, as a field's error is, so the red reason holds its weight beside its mark. */
   .sui-load-more-problem {
     color: var(--sui-danger);
+    font-weight: var(--sui-weight-medium);
   }
 
   /* The box hugs the ink to the pixel, so the words stand one row gap under the hairline as a
