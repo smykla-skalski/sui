@@ -253,7 +253,10 @@ page runs. The initials' ink, not their advance or line, centres on the box.
     border-radius: var(--sui-radius-dialog);
   }
 
-  [data-step='nano'],
+  [data-step='nano'] {
+    font-size: var(--sui-font-size-initials-small);
+  }
+
   [data-step='micro'] {
     font-size: var(--sui-font-size-micro);
   }

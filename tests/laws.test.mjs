@@ -534,7 +534,18 @@ test('L-25 the type tiers keep the sizes the law names', () => {
   const small = Object.entries(all).filter(
     ([name, value]) => name.startsWith('--sui-font-size-') && pixels(value) < 11
   );
-  assert.deepEqual(small, [], 'no text is smaller than 11px');
+  // A small avatar's initials are a mark, not words, and only that step uses this size.
+  assert.deepEqual(
+    small,
+    [['--sui-font-size-initials-small', '0.625rem']],
+    'no text is smaller than 11px'
+  );
+  assert.deepEqual(
+    [...read('src/lib/components/Avatar.svelte').matchAll(/--sui-font-size-initials-small/g)]
+      .length,
+    1,
+    "only a small avatar's initials take the size under the floor"
+  );
   const phone = tokenMap(stripComments(palette.slice(palette.indexOf(PHONE))));
   assert.deepEqual(
     {

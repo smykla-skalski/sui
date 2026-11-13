@@ -17,6 +17,7 @@
 - A `PageToc`'s current entry stands on the accent plate the sidebar's current page wears, 18% of the accent on light and 24% on dark, where its grey inset plate looked like the hovered entry.
 - A heading that a `PageToc` entry or a `ListDetail` moves focus to wears the kit's 2px ring around its words when the keyboard brought it there, where the browser's own outline traced the whole column in an odd shape.
 - An `IdentityRow`'s name wraps at the note leading, 20px and 22px on a phone, so a long name beside its avatar no longer presses into one block.
+- An `Avatar` under 24px sets its initials at 10px (`--sui-font-size-initials-small`) at every width, where the 11px micro step, 12px on a phone, filled most of a 20px mark.
 - An `Avatar` 44px or larger sets its initials at 18px (`--sui-font-size-initials-large`), where the 16px title step read small in a mark that wide.
 - A 20px workspace `Avatar` rounds its corner 6px, the chip radius, near the 30% of its size the larger ones keep, where 8px read as a squircle.
 - The `Avatar` page sets each picture beside the same avatar whose picture does not load, and shows the question mark an avatar with no name or handle draws.

@@ -473,6 +473,8 @@
      stands half a pixel under the words beside it, so its taller x-height matches theirs. */
   --sui-font-size-input-mono: 0.84375rem;
   --sui-font-size-title: 1rem;
+  /* Under the 11px floor on purpose: a 20px avatar's letters are a mark (L-25). */
+  --sui-font-size-initials-small: 0.625rem;
   --sui-font-size-initials-large: 1.125rem;
 
   --sui-font-size-card-title: 1.0625rem;
