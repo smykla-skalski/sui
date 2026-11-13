@@ -92,9 +92,10 @@
 <style>
   /* The bound the name wraps in, drawn so the wrap reads as the point of the example. */
   .narrow {
+    box-sizing: border-box;
+    border: var(--sui-stroke) dashed var(--sui-border-subtle);
     border-radius: var(--sui-radius-control);
     inline-size: min(100%, 16rem);
-    outline: var(--sui-stroke) dashed var(--sui-border-subtle);
-    outline-offset: var(--sui-space-2);
+    padding: var(--sui-space-2);
   }
 </style>

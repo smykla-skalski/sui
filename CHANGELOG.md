@@ -7,7 +7,7 @@
 - A `LoadMore` button keeps one width as it turns from Load More to loading to Try Again, the room its loading words take, where each state drew its own width.
 - An `Avatar` with no name takes its letter from the handle after a leading @, so `@ada` gives A, where it drew the @.
 - A hovered `PageToc` entry takes the hover ink, the primary on light and the bright ink on dark, where it stepped only from the muted ink to the secondary.
-- The `Avatar` page draws the 16rem bound its long name wraps in, names its workspace Platform Team in every example, so one team wears one mark, and draws its handle without a name from `@kwame`, a K, where an O read as a zero.
+- The `Avatar` page draws the 16rem bound its long name wraps in, inside the example's content edge, names its workspace Platform Team in every example, so one team wears one mark, and draws its handle without a name from `@kwame`, a K, where an O read as a zero.
 - The `PageToc` page sets its article paragraphs in the primary ink, under each section's description in the secondary one, so the text a reader reads stands apart from its notes.
 - A 40px workspace `Avatar` rounds 12px (`--sui-radius-mark-large`), 30% of its side as every other size's corner is, where 10px read as a squarer mark between its neighbours.
 - The `Avatar` page runs its sizes across and its two shapes down, as the `Chip` and `Icon` pages run theirs, so the size ramp reads in one line from 20px to 48px.
