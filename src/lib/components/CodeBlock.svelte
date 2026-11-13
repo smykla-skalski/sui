@@ -398,6 +398,12 @@ beside its first line, and takes the row only on a phone. It copies `code` exact
     background: color-mix(in srgb, var(--sui-text-primary) 2.5%, var(--sui-surface-code));
   }
 
+  /* The copy control rests on the raised ground, so it stands over the head in both themes,
+     where the base ground sank under the dark head. */
+  .sui-code-block:not(.bare) > .sui-code-block-copy {
+    --sui-surface-base: var(--sui-surface-raised);
+  }
+
   .sui-code-block:not(.bare) .sui-code-block-lang {
     align-content: center;
     block-size: var(--sui-block-snap);

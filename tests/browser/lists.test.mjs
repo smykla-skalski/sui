@@ -398,13 +398,19 @@ suite('lists', together, () => {
             const [a, b] = [head, block]
               .map((element) => luminance(getComputedStyle(element).backgroundColor) + 0.05)
               .sort((x, y) => y - x);
+            const control = head.querySelector('button');
+            const sunk =
+              control !== null &&
+              luminance(getComputedStyle(control).backgroundColor) <
+                luminance(getComputedStyle(head).backgroundColor);
             delete block.dataset.suiTheme;
-            return { theme, ratio: a / b };
+            return { theme, ratio: a / b, sunk };
           })
         );
       });
       assert.ok(found.length >= 4, `only ${found.length} heads`);
-      for (const { theme, ratio } of found) {
+      for (const { theme, ratio, sunk } of found) {
+        assert.ok(!sunk, `in ${theme} a copy control sinks under its head`);
         assert.ok(ratio > 1.01, `in ${theme} a head is drawn on the code's own ground`);
         assert.ok(ratio < 1.1, `in ${theme} a head stands ${ratio.toFixed(2)}:1 off its code`);
       }
