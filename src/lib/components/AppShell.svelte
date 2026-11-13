@@ -226,8 +226,9 @@ them in the order they are drawn. Below 64rem there is no room to fold, so the s
 whole and its fold control leaves.
 
 On a phone, below 48rem of the shell's own width, a 56px bar names the current page. Its
-button, a glyph and the word `menuLabel`, opens the sidebar over the content as a modal drawer.
-Without `bottomNav` the rail rides in the drawer too. With it, the rail's few peer places stand
+button, a glyph and the word `menuLabel`, parted from the title by a 20px hairline, opens the
+sidebar over the content as a modal drawer. The drawer's pages are 288px wide, giving way beside
+the rail, and the drawer leaves at least 56px of the screen uncovered. Without `bottomNav` the rail rides in the drawer too. With it, the rail's few peer places stand
 in a bar along the bottom, always in reach of a thumb, and the drawer holds only the pages.
 
 The layout answers to the shell's own width through container queries, so a shell inside a
@@ -265,6 +266,7 @@ viewport. `landmark="none"` keeps the content from claiming the page's one `main
       <Icon name="sidebar-expand" size="md" />
       <span class="sui-shell-menu-label">{menuLabel}</span>
     </button>
+    <span class="sui-shell-rule" aria-hidden="true"></span>
     <p class="sui-shell-title">{title}</p>
     {@render bar?.()}
   </header>
@@ -399,6 +401,16 @@ viewport. `landmark="none"` keeps the content from claiming the page's one `main
     outline-offset: var(--sui-focus-ring-inset);
   }
 
+  /* The menu button is a control and the title is where the reader is, so a hairline parts them,
+     as a toolbar parts its groups. */
+  .sui-shell-rule {
+    background: var(--sui-sidebar-border);
+    block-size: var(--sui-space-5);
+    flex: none;
+    inline-size: var(--sui-stroke);
+    margin-inline-end: var(--sui-space-1);
+  }
+
   .sui-shell-title {
     align-content: center;
     block-size: var(--sui-block-snap);
@@ -514,8 +526,15 @@ viewport. `landmark="none"` keeps the content from claiming the page's one `main
       box-shadow: var(--sui-shadow-popover);
       inset-block-start: var(--sui-drawer-top);
       inset-inline-start: var(--sui-drawer-start);
-      max-inline-size: 86vw;
+      max-inline-size: calc(100vw - 3.5rem);
       position: fixed;
+    }
+
+    /* The drawer's pages take 288px, wider than the column they fold from, so a two-word label
+       keeps one line there; beside the rail they give way first, and 56px of the screen stays
+       uncovered to close the drawer by. */
+    .sui-shell-side:popover-open .sui-shell-pages {
+      inline-size: 18rem;
     }
 
     /* The drawer meets the screen's start and foot, so it keeps its rows off the notch and the

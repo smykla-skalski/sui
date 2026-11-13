@@ -20,7 +20,7 @@
     {
       items: [
         { href: '#overview', label: 'Overview', icon: 'gauge' },
-        { href: '#repositories', label: 'Reposi\u00adtories', icon: 'repositories' },
+        { href: '#repositories', label: 'Repositories', short: 'Repos', icon: 'repositories' },
         { href: '#queue', label: 'Queue', icon: 'pending', count: 3 }
       ]
     },
@@ -102,7 +102,6 @@
 
   <main id="content" tabindex="-1">
     <PageHeader
-      eyebrow={['Smykla Skalski', 'Workspace']}
       title={names[current]}
       description="Every repository in the workspace, held to the same labels, rulesets and files"
     />

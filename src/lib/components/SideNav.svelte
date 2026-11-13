@@ -5,7 +5,7 @@
   export type NavItem = {
     href: string;
     label: string;
-    /** A shorter name for the collapsed strip, taken from the words of `label` so speech input finds it. */
+    /** A shorter name for the collapsed strip, one of the words of `label` or the start of one, so speech input finds it. */
     short?: string;
     /** A glyph from the icon set, or the caller's own drawn at `--sui-icon-base` in the same family. */
     icon: IconName | Snippet;
@@ -249,7 +249,7 @@ from the current row, does not slide on first paint, and glides to the next row 
 changes. Until it is measured the row paints its own plate.
 
 Inside an `AppShell` wide enough to fold, a Collapse Navigation control at the end of the list folds it
-into a strip where each row is an icon over a short label, and Expand Navigation, its glyph
+into a strip where each row is an icon over a one-line label in 68px of room, the label's `short` where the label is wider, and Expand Navigation, its glyph
 alone there with its words in a tooltip, brings it back. A tooltip with the full name shows only
 where `short` replaces a label, and a count is still read aloud. The `foot` is told when the
 sidebar is the strip, so it can draw a glyph's width, as `ThemeSwitch` does with `iconOnly`. In the phone drawer a close button takes the head's end on the first line of its names, rows are 44px, and
@@ -799,7 +799,8 @@ following a row closes the drawer.
       gap: var(--sui-space-1);
       justify-content: center;
       min-block-size: var(--sui-touch-target);
-      padding: var(--sui-space-1);
+      /* 2px at the sides gives a label 68px of the 80px strip, room for two short words. */
+      padding: var(--sui-space-1) calc(var(--sui-space-1) / 2);
       text-align: center;
     }
 
@@ -807,10 +808,9 @@ following a row closes the drawer.
       margin-block: 0;
     }
 
-    /* A label wraps between its words, and a word too long for the strip at a hyphen where the
-       page's language allows one, or at a soft hyphen the label carries. A browser with no
-       hyphenation for the language breaks the word at the strip's edge instead, so no word is
-       ever cut. A shorter `short` label is the way to a strip label that needs neither. */
+    /* A strip label takes one line, so every row keeps one pitch: a label too wide for it
+       takes a `short`. One that still overflows wraps between its words, or at a hyphen, rather
+       than being cut, and a browser with no hyphenation breaks the word at the strip's edge. */
     .sui-side-nav[data-collapsed] :is(.sui-side-nav-label, .sui-side-nav-short) {
       flex: none;
       hyphens: auto;

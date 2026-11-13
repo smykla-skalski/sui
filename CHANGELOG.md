@@ -4,7 +4,9 @@
 
 - A folded `AppShell` with a rail draws one 80px column, not a rail beside a strip: the places at the top, a hairline, the pages, then the fold control and the rail's foot, and Tab meets them in that order. The rail holds the shell's pages between its places and its foot, beside them while the sidebar is whole (L-88).
 - Breaking: `--sui-rail-width` and the folded strip are 80px (5rem), the Material 3 rail's width, not 72px, so a strip label such as "Navigation" or "Invitations" keeps its word on one line. `--sui-sidebar-width-collapsed` follows `--sui-rail-width`.
-- A folded `SideNav` draws its fold control as its glyph alone, named by its words and a tooltip, and a strip label that holds a word too wide for the strip breaks it at a hyphen, or at its edge where the browser has no hyphenation, rather than cutting it. Its `foot` snippet is told whether the sidebar is the strip.
+- On a phone the `AppShell` bar parts its menu button from the title by a 20px hairline, and the drawer's pages are 288px wide, giving way beside the rail, with at least 56px of the screen left uncovered.
+- Inline `FactList` facts keep flowing two to a line on a phone or in a page header 36rem wide or narrower, 16px apart, rather than taking a 44px row each.
+- A folded `SideNav` draws its fold control as its glyph alone, named by its words and a tooltip, and a strip label takes one line in 68px of room, so every strip row keeps one 44px pitch: a longer label takes a `short`, and one that still overflows breaks at a hyphen, or at its edge where the browser has no hyphenation, rather than being cut. Its `foot` snippet is told whether the sidebar is the strip.
 - A `SegmentedControl` or a `ThemeSwitch` with `iconOnly` draws each option's glyph alone, its word still naming its radio, for a box as narrow as a folded sidebar.
 
 - A `Skeleton`'s last row ends where a loaded list's last row ends once the list hands back its padding, so the section under it no longer moves 2px when the rows arrive.

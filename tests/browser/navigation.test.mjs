@@ -155,7 +155,7 @@ suite('navigation', together, () => {
     );
 
     test(
-      'L-88 folded, the rail and the pages are one column that Tab walks top to bottom',
+      'L-88 folded, the rail and the pages are one column of one-line rows that Tab walks top to bottom',
       long,
       async () => {
         const page = await shell();
@@ -173,6 +173,13 @@ suite('navigation', together, () => {
               side: side.getBoundingClientRect().width,
               rail: rail.getBoundingClientRect().width,
               tops: stops.map((stop) => Math.round(stop.getBoundingClientRect().top)),
+              rows: [
+                ...new Set(
+                  [...side.querySelectorAll('.sui-side-nav-rows .sui-side-nav-row')].map((row) =>
+                    Math.round(row.getBoundingClientRect().height)
+                  )
+                )
+              ],
               lefts: [
                 ...new Set(stops.map((stop) => Math.round(stop.getBoundingClientRect().left)))
               ]
@@ -181,6 +188,8 @@ suite('navigation', together, () => {
           // One column: the side is the rail's width and its edge, and no stop stands beside another.
           assert.ok(column.side - column.rail <= 1, `side ${column.side}px, rail ${column.rail}px`);
           assert.equal(column.lefts.length, 1, `stops start at ${column.lefts.join(', ')}px`);
+          // A strip label takes one line, so every page keeps one pitch.
+          assert.equal(column.rows.length, 1, `strip rows are ${column.rows.join(', ')}px tall`);
           const sorted = [...column.tops].sort((a, b) => a - b);
           assert.deepEqual(column.tops, sorted, 'Tab order leaves the drawn order');
         } finally {

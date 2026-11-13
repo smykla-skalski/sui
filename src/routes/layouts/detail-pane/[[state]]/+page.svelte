@@ -8,7 +8,7 @@
     Callout,
     DetailLayout,
     Disclosure,
-    ErrorState,
+    EmptyState,
     FactList,
     Icon,
     IdentityRow,
@@ -39,6 +39,8 @@
   // A property row sets its label beside its value, so its placeholders keep that pitch and
   // span what the properties will.
   const FACT_ROW = '2.375rem';
+  // A repository row is one line of words beside a pill, a pixel of hairline included.
+  const NAME_ROW = '2.8125rem';
   const started = Date.now() - 12.5 * 60_000;
   const nothing = () => {};
 
@@ -86,7 +88,7 @@
     {
       items: [
         { href: '#overview', label: 'Overview', icon: 'gauge' },
-        { href: '#repositories', label: 'Reposi\u00adtories', icon: 'repositories' },
+        { href: '#repositories', label: 'Repositories', short: 'Repos', icon: 'repositories' },
         { href: '#queue', label: 'Queue', icon: 'pending', count: 3 }
       ]
     },
@@ -151,6 +153,9 @@
 
 {#snippet startedAt()}<RelativeTime value={started} />{/snippet}
 {#snippet requester()}<IdentityRow name="Bart Smykla" size={20} />{/snippet}
+{#snippet wait(rows: number, rowHeight: string, ruled = false)}
+  <Skeleton {rows} bars={false} {ruled} {rowHeight} patience={Infinity} label="" loadedLabel="" />
+{/snippet}
 {#snippet back()}<BackLink href="#queue" label="Queue" />{/snippet}
 
 {#snippet header()}
@@ -173,6 +178,12 @@
 {#snippet body()}
   <DetailLayout>
     {#snippet main()}
+      <!-- The warning is about the repositories, so it heads the column that lists them. -->
+      <Callout tone="warning" title="The check skipped 1 repository">
+        {#snippet icon()}<Icon name="warning" size="sm" />{/snippet}
+        The app lost access to acme/legacy during the check
+        {#snippet actions()}<Button>Fix Access</Button>{/snippet}
+      </Callout>
       <Section title="Outcome">
         <p class="lede">
           3 repositories differ from the saved settings, 12 match and the check skipped 1
@@ -230,61 +241,43 @@
 
   <main id="content" tabindex="-1">
     {#if view === 'loading'}
-      <!-- The actions need no answer, so they stand where they will stay, and bars hold the
-           description and the facts: one line each in a wide header, and one bar per row where
-           the facts stack, a finger's row on a phone. -->
+      <!-- The actions need no answer, so they stand where they will stay, and bars stand where
+           the description's lines and the facts' lines will: one of each in a wide header, two
+           of each on a phone. -->
       <PageHeader title="Sync Check #4182" kicker={back} actions={headActions}>
         <!-- The status region is there from the first render, so the state is read once it arrives. -->
         {#snippet status()}{/snippet}
         {#snippet facts()}
-          <div class="from-ink wide">
-            <Skeleton
-              rows={2}
-              bars={false}
-              ruled={false}
-              rowHeight="1.75rem"
-              patience={Infinity}
-              label=""
-              loadedLabel=""
-            />
-          </div>
+          <div class="from-ink wide">{@render wait(2, '2.25rem')}</div>
           <div class="from-ink narrow">
-            <Skeleton
-              rows={1 + headline.length}
-              bars={false}
-              ruled={false}
-              rowHeight="var(--head-row)"
-              patience={Infinity}
-              label=""
-              loadedLabel=""
-            />
+            {@render wait(2, '1.375rem')}
+            <div class="fact-lines">{@render wait(2, '2.125rem')}</div>
           </div>
         {/snippet}
       </PageHeader>
       <div class="zones">
         <DetailLayout>
           {#snippet main()}
+            <!-- The notice's room is held, so the sections do not drop when it arrives. One
+                 region speaks for the pane, so the others wait without words. -->
+            <div class="notice">
+              <Skeleton
+                rows={1}
+                ruled={false}
+                rowHeight="var(--notice-row)"
+                patience={Infinity}
+                label="Loading sync check #4182…"
+              />
+            </div>
             <Section title="Outcome">
-              <div class="from-ink">
-                <Skeleton
-                  rows={2}
-                  bars={false}
-                  rowHeight="2rem"
-                  patience={Infinity}
-                  label="Loading sync check #4182…"
-                />
+              <div class="from-ink outcome">
+                <div class="wide">{@render wait(2, '2rem')}</div>
+                <div class="narrow">{@render wait(3, '1.6875rem')}</div>
               </div>
             </Section>
-            <!-- One region speaks for the pane, so the others wait without words. -->
+            <!-- A sixth row stands for the Load More line under the five. -->
             <Section title="Repositories" count={16}>
-              <Skeleton
-                rows={PAGE + 1}
-                bars={false}
-                rowHeight="3rem"
-                patience={Infinity}
-                label=""
-                loadedLabel=""
-              />
+              <div class="more">{@render wait(PAGE + 1, NAME_ROW, true)}</div>
             </Section>
             <Section title="Timeline">
               <Timeline events={[]} loading loadingLabel="" />
@@ -308,30 +301,29 @@
       </div>
     {:else if view === 'missing'}
       <PageHeader title="Sync Check #4182" kicker={back} />
+      <!-- Nothing failed that a retry could fix, so the page says so in a neutral voice. -->
       <div class="zones missing">
-        <ErrorState
-          title="Sync Check #4182 Does Not Exist"
-          description="Someone deleted it or it never existed"
+        <EmptyState
+          title="This Check Does Not Exist"
+          description="Someone deleted it, or the link points at a check that never ran"
         >
           {#snippet action()}<Button href="#queue">Open the Queue</Button>{/snippet}
-        </ErrorState>
+        </EmptyState>
       </div>
     {:else}
       {@render header()}
       <div class="zones">
         {#if view === 'stale'}
-          <ErrorState
-            overContent
-            title="The Check Could Not Refresh"
-            description="Showing what loaded a minute ago"
-            onretry={refresh}
-            busy={refreshing}
-          />
-        {:else}
-          <Callout tone="warning" title="The check skipped 1 repository">
+          <!-- Stale words stand behind everything under the header, so the notice spans both
+               columns, and its retry stands at its end as any notice's action does. -->
+          <Callout tone="warning" title="The check could not refresh">
             {#snippet icon()}<Icon name="warning" size="sm" />{/snippet}
-            The app lost access to acme/legacy during the check
-            {#snippet actions()}<Button>Fix Access</Button>{/snippet}
+            Showing what loaded a minute ago
+            {#snippet actions()}
+              <Button loading={refreshing} onclick={refresh}>
+                {refreshing ? 'Trying Again…' : 'Try Again'}
+              </Button>
+            {/snippet}
           </Callout>
         {/if}
         {@render body()}
@@ -379,30 +371,84 @@
     --sui-local-row-lead: calc(-1 * var(--sui-row-pad-default));
   }
 
-  .narrow {
-    --head-row: 1.75rem;
+  .notice {
+    --notice-row: 3.75rem;
 
+    block-size: var(--notice-row);
+    border-radius: var(--sui-radius-control);
+    box-shadow: inset 0 0 0 var(--sui-stroke) var(--sui-border-divider);
+    box-sizing: border-box;
+    padding-inline: var(--sui-space-4);
+  }
+
+  /* The time among the facts is a 24px target, so the line that holds it reaches half the
+     target past the facts' cap under the words, and the bars keep that room. */
+  .wide {
+    font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-leading-none)
+      var(--sui-sans);
+    padding-block-end: calc((var(--sui-field-target-min) - round(up, 1cap, 1px)) / 2);
+  }
+
+  /* The counts' line keeps a few pixels of room under its words, more where the sentence wraps
+     at a phone's looser leading. */
+  .outcome {
+    --outcome-room: 2px;
+
+    container: outcome / inline-size;
+  }
+
+  .outcome > * {
+    padding-block-end: var(--outcome-room);
+  }
+
+  /* The facts' first line holds the time's 44px target, so it stands 24px of ink under the
+     description and a pixel of its room stays under the last line. */
+  .fact-lines {
+    margin-block: calc(var(--sui-space-6) + 1px) 1px;
+  }
+
+  /* The Load More line is 46px, 14px more than the last placeholder row leaves. */
+  .more {
+    margin-block-end: calc(var(--sui-space-3) + 2px);
+  }
+
+  .narrow {
     display: none;
   }
 
-  @container sui-page-header (max-width: 36rem) {
-    .wide {
+  @container outcome (max-width: 35rem) {
+    .outcome > * {
+      --outcome-room: 3px;
+    }
+
+    .outcome .wide {
       display: none;
     }
 
-    .narrow {
+    .outcome .narrow {
       display: block;
     }
   }
 
   @media (max-width: 47.9375rem) {
+    .notice {
+      --notice-row: 7.5rem;
+    }
+
+    .outcome > * {
+      --outcome-room: 4px;
+    }
+
+    /* A phone's Load More button is 44px, so its line is 10px taller. */
+    .more {
+      margin-block-end: var(--sui-space-6);
+    }
+
     .wide {
       display: none;
     }
 
     .narrow {
-      --head-row: var(--sui-touch-target);
-
       display: block;
     }
   }
