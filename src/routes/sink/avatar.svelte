@@ -68,7 +68,7 @@
     <IdentityRow name="Ada Lovelace" handle="@ada" />
   </Specimen>
   <Specimen label="Workspace">
-    <IdentityRow name="Platform Team 01" handle="platform-team" shape="workspace" />
+    <IdentityRow name="Platform Team" handle="platform-team" shape="workspace" />
   </Specimen>
   <Specimen label="With a picture">
     <IdentityRow name="Grace Hopper" handle="@grace" src={portrait} />
@@ -90,7 +90,11 @@
 </Example>
 
 <style>
+  /* The bound the name wraps in, drawn so the wrap reads as the point of the example. */
   .narrow {
+    border-radius: var(--sui-radius-control);
     inline-size: min(100%, 16rem);
+    outline: var(--sui-stroke) dashed var(--sui-border-subtle);
+    outline-offset: var(--sui-space-2);
   }
 </style>
