@@ -230,17 +230,28 @@
 
   <main id="content" tabindex="-1">
     {#if view === 'loading'}
-      <!-- The actions need no answer, so they stand where they will stay, and two bars hold the
-           description and the facts, so the zones under the header start near where they will. -->
+      <!-- The actions need no answer, so they stand where they will stay, and bars hold the
+           description and the facts: one line each in a wide header, and one bar per row where
+           the facts stack, a finger's row on a phone. -->
       <PageHeader title="Sync Check #4182" kicker={back} actions={headActions}>
         <!-- The status region is there from the first render, so the state is read once it arrives. -->
         {#snippet status()}{/snippet}
         {#snippet facts()}
-          <div class="from-ink">
+          <div class="from-ink wide">
             <Skeleton
               rows={2}
               bars={false}
               rowHeight="1.75rem"
+              patience={Infinity}
+              label=""
+              loadedLabel=""
+            />
+          </div>
+          <div class="from-ink narrow">
+            <Skeleton
+              rows={1 + headline.length}
+              bars={false}
+              rowHeight="var(--head-row)"
               patience={Infinity}
               label=""
               loadedLabel=""
@@ -357,6 +368,34 @@
      hand back the room a list row keeps above its first bar. */
   .from-ink {
     --sui-local-row-lead: calc(-1 * var(--sui-row-pad-default));
+  }
+
+  .narrow {
+    --head-row: 1.75rem;
+
+    display: none;
+  }
+
+  @container sui-page-header (max-width: 36rem) {
+    .wide {
+      display: none;
+    }
+
+    .narrow {
+      display: block;
+    }
+  }
+
+  @media (max-width: 47.9375rem) {
+    .wide {
+      display: none;
+    }
+
+    .narrow {
+      --head-row: var(--sui-touch-target);
+
+      display: block;
+    }
   }
 
   .name {
