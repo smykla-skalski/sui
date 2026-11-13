@@ -4,6 +4,7 @@ import { mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSyn
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import test from 'node:test';
+import { previewOptions, previewUrl } from '../src/routes/(sink)/previews.ts';
 
 const script = new URL('../preview/previews.sh', import.meta.url).pathname;
 const entry = (/** @type {number} */ pr) => ({ number: pr, title: `"Title" of ${pr}` });
@@ -60,4 +61,31 @@ test('replaces the previous main at the root and keeps the open previews', (t) =
   assert.equal(readFileSync(join(previews, 'previews.json'), 'utf8'), '[]\n');
   assert.deepEqual(readdirSync(join(previews, '_app')), ['new']);
   assert.equal(readFileSync(join(previews, 'index.html'), 'utf8'), 'new main');
+});
+
+test('the picker offers main and the previews, newest first, from two pull requests', () => {
+  assert.deepEqual(previewOptions([{ number: 4, title: 'one' }]), []);
+  assert.deepEqual(
+    previewOptions([
+      { number: 4, title: 'four' },
+      { number: 12, title: 'twelve' }
+    ]),
+    [
+      { value: '', label: 'main' },
+      { value: '/pr-12', label: '#12 twelve' },
+      { value: '/pr-4', label: '#4 four' }
+    ]
+  );
+});
+
+test('a switch keeps the page, its query and its section', () => {
+  const at = (pathname = '/', search = '', hash = '') => ({ pathname, search, hash });
+  assert.equal(
+    previewUrl('/pr-7', at('/select/', '?state=open', '#sizes')),
+    '/pr-7/select/?state=open#sizes'
+  );
+  assert.equal(previewUrl('', at('/pr-7/all/', '', '#select')), '/all/#select');
+  assert.equal(previewUrl('/pr-9', at('/pr-7/')), '/pr-9/');
+  // A page whose own name starts like a preview is still main's.
+  assert.equal(previewUrl('/pr-9', at('/pr-7x/')), '/pr-9/pr-7x/');
 });

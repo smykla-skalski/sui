@@ -18,6 +18,7 @@
   import { exposeAudit } from '../audit/expose.js';
   import { glyphSnippet } from '../kit/glyphs';
   import { families } from '../kit/sections';
+  import { previewOf, previewOptions, previewUrl, type Preview } from './previews';
 
   let { children } = $props();
 
@@ -78,23 +79,18 @@
     heading.focus({ preventScroll: true });
   }
 
-  // Every preview shares the host, main at the root and each pull request under /pr-<number>,
-  // and the deploy lists them in /previews.json. Other builds have no list to fetch.
-  let previews = $state<{ number: number; title: string }[]>([]);
+  // Only a build deployed as a preview has a list of the previews to fetch.
+  let previews = $state<Preview[]>([]);
   let here = $state('');
-
-  function switchPreview(event: Event & { currentTarget: HTMLSelectElement }) {
-    const { pathname, search, hash } = location;
-    location.assign(event.currentTarget.value + pathname.slice(here.length) + search + hash);
-  }
+  const choices = $derived(previewOptions(previews));
 
   onMount(() => {
     exposeAudit();
     if (!import.meta.env.VITE_PREVIEWS) return;
-    here = /^\/pr-\d+/.exec(location.pathname)?.[0] ?? '';
+    here = previewOf(location.pathname);
     fetch('/previews.json')
       .then((response) => (response.ok ? response.json() : []))
-      .then((list: typeof previews) => (previews = list.sort((a, b) => b.number - a.number)))
+      .then((list: Preview[]) => (previews = list))
       .catch(() => {});
   });
 </script>
@@ -103,14 +99,8 @@
   <Select
     aria-label="Preview"
     value={here}
-    options={[
-      { value: '', label: 'main' },
-      ...previews.map(({ number, title }) => ({
-        value: `/pr-${number}`,
-        label: `#${number} ${title}`
-      }))
-    ]}
-    onchange={switchPreview}
+    options={choices}
+    onchange={(event) => location.assign(previewUrl(event.currentTarget.value, location))}
   />
 {/snippet}
 
@@ -128,7 +118,7 @@
       {current}
       scrollTargets={everything}
       onnavigate={follow}
-      head={previews.length > 1 ? picker : undefined}
+      head={choices.length ? picker : undefined}
     >
       {#snippet foot()}<ThemeSwitch system={false} />{/snippet}
     </SideNav>
