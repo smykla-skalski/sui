@@ -707,6 +707,11 @@ test('L-55 a specimen name stands a step past a field gap over its specimen, clo
   assert.ok(rows.length > 0);
   for (const [, step] of rows)
     assert.ok(Number(step) > 4, `a row gap of space-${step} reads as close as a name`);
+  assert.match(
+    stripComments(styles['src/routes/kit/Example.svelte']),
+    /row-gap: calc\(var\(--specimen-caption-gap, var\(--sui-space-4\)\) \+ var\(--sui-space-2\)\);/,
+    "a phone's rows stand closer than a page's widened name gap"
+  );
 });
 
 test('L-22 the phone reads one step larger and types at 16px', () => {
