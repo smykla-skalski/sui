@@ -111,7 +111,7 @@ margins of its own; the form that holds it sets the gap above it.
      contrast. Its words read at body size beside a 16px mark, so it pads 16px all round. */
   .sui-form-error {
     background: color-mix(in srgb, var(--sui-danger-tint) 65%, var(--sui-surface-base));
-    border: var(--sui-stroke) solid var(--sui-danger-wash-edge);
+    border: var(--sui-stroke) solid color-mix(in srgb, var(--sui-danger) 40%, transparent);
     border-radius: var(--sui-radius-control);
     display: grid;
     gap: var(--sui-row-copy-gap);

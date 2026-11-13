@@ -1614,11 +1614,11 @@ test("L-58 the band a line parts off sits on a faint tint of the field well, and
   const modal = read('src/lib/components/Modal.svelte');
   assert.match(
     modal,
-    /\.sui-modal-error:has\(> \.sui-modal-error-line\):has\(\+ \.sui-modal-foot\)::before \{\s*border-block-start-color: var\(--sui-danger-wash-edge\);/
+    /\.sui-modal-error:has\(> \.sui-modal-error-line\):has\(\+ \.sui-modal-foot\)::before \{\s*border-block-start-color: color-mix\(in srgb, var\(--sui-danger\) 40%, transparent\);/
   );
   assert.match(
     modal,
-    /\.sui-modal-error:has\(\+ \.sui-modal-foot\) > \.sui-modal-error-line \{\s*box-shadow: inset 0 calc\(-1 \* var\(--sui-stroke\)\) 0\s*color-mix\(in srgb, var\(--sui-danger-wash-edge\) 50%, transparent\);/
+    /\.sui-modal-error:has\(\+ \.sui-modal-foot\) > \.sui-modal-error-line \{\s*box-shadow: inset 0 calc\(-1 \* var\(--sui-stroke\)\) 0\s*color-mix\(in srgb, var\(--sui-danger\) 20%, transparent\);/
   );
   assert.match(
     modal,

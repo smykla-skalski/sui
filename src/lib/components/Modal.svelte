@@ -568,12 +568,12 @@ dialog, so they are never inert under it.
      line over it and that edge at half strength inside its foot, so the two pale grounds never
      run together, no second red stripe rings the words, and they keep their pad. */
   .sui-modal-error:has(> .sui-modal-error-line):has(+ .sui-modal-foot)::before {
-    border-block-start-color: var(--sui-danger-wash-edge);
+    border-block-start-color: color-mix(in srgb, var(--sui-danger) 40%, transparent);
   }
 
   .sui-modal-error:has(+ .sui-modal-foot) > .sui-modal-error-line {
     box-shadow: inset 0 calc(-1 * var(--sui-stroke)) 0
-      color-mix(in srgb, var(--sui-danger-wash-edge) 50%, transparent);
+      color-mix(in srgb, var(--sui-danger) 20%, transparent);
   }
 
   /* The symbol centres on the first line of the message, however many lines follow. */
