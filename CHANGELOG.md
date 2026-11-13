@@ -13,7 +13,6 @@
 - The `Skeleton` page's First Load puts its button, Show Rows, in the list's head, beside the title it reloads, and its label fits a phone's head at twice the text size.
 - A `Skeleton`'s side bar is 3.5rem wide, as wide as a short pill, where it was 5rem, and plain rows keep no empty side column, so their bar is half the row as a two-line row's first bar is half its name's room.
 - On a phone a `Skeleton` row's side bar drops under its name once the name would keep less than 15rem, as an `ObjectRow`'s side does, in a pill's 20px slot, and a slow first row holds that slot too, so a list whose sides drop neither grows when its rows arrive nor moves when its wait turns slow.
-- An `Avatar` without a picture rings its initials in a fifth of their ink, down from 28%, so a small mark no longer reads as a control.
 - An `Avatar` 44px or larger sets its initials at 18px (`--sui-font-size-initials-large`), where the 16px title step read small in a mark that wide.
 - A 20px workspace `Avatar` rounds its corner 6px, the chip radius, near the 30% of its size the larger ones keep, where 8px read as a squircle.
 - The `Avatar` page sets each picture beside the same avatar whose picture does not load, and shows the question mark an avatar with no name or handle draws.
