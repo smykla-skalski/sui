@@ -103,7 +103,7 @@
 <Example
   title="Content"
   note="Without a total the count says only how many rows show"
-  layout="grid"
+  layout="stack"
   ground="canvas"
 >
   <Specimen label="Total unknown">
