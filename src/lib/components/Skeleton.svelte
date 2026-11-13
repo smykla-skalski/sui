@@ -174,11 +174,10 @@ under reduced motion. Use it only where the shape of what is coming is already k
     display: grid;
     font: var(--sui-weight-regular) var(--sui-font-size-meta) / var(--sui-leading-flat)
       var(--sui-sans);
-    /* As a row list does, the rows always hand back what stands under their last bar, and
-       hand back what stands above their first when their holder asks for its lead
-       (`--sui-local-row-lead`), so the bars stand where the loaded words will. */
-    margin-block: calc(sign(var(--sui-local-row-lead, 0px)) * var(--sui-skeleton-lead))
-      calc(var(--sui-skeleton-lead) + var(--sui-skeleton-lines) - var(--sui-skeleton-row));
+    /* As a row list does, the rows hand back what stands above their first bar when their
+       holder asks for its lead (`--sui-local-row-lead`), so the bars stand where the loaded
+       words will. The last row ends at its last bar (below). */
+    margin-block-start: calc(sign(var(--sui-local-row-lead, 0px)) * var(--sui-skeleton-lead));
     overflow: clip;
     position: relative;
   }
@@ -200,10 +199,15 @@ under reduced motion. Use it only where the shape of what is coming is already k
     padding-block: var(--sui-skeleton-lead);
   }
 
-  /* The last row draws no hairline but keeps its height, as a loaded last row does. A
-     transparent line would not do, because forced colors paint it. */
+  /* The last row ends at its last bar, where a loaded list hands back the rest of its last row,
+     so what follows stands where it will after the load. The rows end there rather than hand
+     the rest back with a negative margin, which would leave their box past the holder's end
+     and give the page room to scroll into (L-119). It draws no hairline: a transparent line
+     would not do, because forced colors paint it. */
   .row:last-child {
     border-block-end: 0;
+    min-block-size: 0;
+    padding-block-end: 0;
   }
 
   .main {

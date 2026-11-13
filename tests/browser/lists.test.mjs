@@ -857,10 +857,14 @@ suite('lists', together, () => {
         for (const group of groups) {
           const [said, next] = group.querySelectorAll(':scope > .row');
           const kind = group.classList.contains('bars') ? 'two-line' : 'one-line';
-          if (box(said).height !== box(next).height)
-            found.push(
-              `${kind}: the slow row is ${box(said).height}px, its neighbour ${box(next).height}px`
-            );
+          // The last row ends at its last bar (L-119), so a spare row after the neighbour lets
+          // it stand a whole row's height.
+          const spare = /** @type {Element} */ (next.cloneNode(true));
+          group.append(spare);
+          const whole = box(next).height;
+          spare.remove();
+          if (box(said).height !== whole)
+            found.push(`${kind}: the slow row is ${box(said).height}px, its neighbour ${whole}px`);
           const words = lines(said, '.words > span');
           const bars = lines(next, '.main > .bar');
           if (words !== bars)

@@ -398,6 +398,7 @@
     block-size: 1px;
     clip-path: inset(50%);
     inline-size: 1px;
+    margin: -1px;
     overflow: hidden;
     position: absolute;
     white-space: nowrap;
