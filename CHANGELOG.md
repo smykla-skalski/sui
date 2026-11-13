@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- An `Avatar` with no name takes its letter from the handle after a leading @, so `@ada` gives A, where it drew the @.
 - A hovered `PageToc` entry takes the hover ink, the primary on light and the bright ink on dark, where it stepped only from the muted ink to the secondary.
 - The `Avatar` page draws the 16rem bound its long name wraps in, and names its workspace Platform Team in every example, so one team wears one mark.
 - An `Avatar`'s initials are semibold, the weight of the name an `IdentityRow` sets beside them, where bold read a step louder than that name, and they centre on the semibold letters' own ink.

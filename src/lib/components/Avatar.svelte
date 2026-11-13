@@ -10,11 +10,13 @@
     return Array.from(graphemes.segment(value), (part) => part.segment);
   }
 
-  /** "Ada Lovelace" is AL, "Engineering Team 01" is E1, and a bare handle gives its first letter. */
+  /** "Ada Lovelace" is AL, "Engineering Team 01" is E1, and a bare handle, "@ada" or "ada", is A. */
   function monogram(name: string, handle: string): string {
     const words = name.trim().split(/\s+/).filter(Boolean);
     if (words.length === 0)
-      return (segments(handle.trim())[0] ?? '').toLocaleUpperCase(pageLocale()) || '?';
+      return (
+        (segments(handle.trim().replace(/^@/, ''))[0] ?? '').toLocaleUpperCase(pageLocale()) || '?'
+      );
     const last = words.length > 1 ? words[words.length - 1] : '';
     const end = /^\d+$/.test(last) ? last.slice(-1) : (segments(last)[0] ?? '');
     return `${segments(words[0])[0]}${end}`.toLocaleUpperCase(pageLocale());
