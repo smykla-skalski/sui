@@ -103,25 +103,27 @@
   layout="stack"
 >
   <Specimen>
-    <Section title="Members" level={4}>
-      <ObjectList>
-        <ObjectRow href="#avatar">
-          {#snippet main()}
-            <IdentityRow name="Grace Hopper" handle="@grace" src={portrait} />
-          {/snippet}
-        </ObjectRow>
-        <ObjectRow href="#avatar" current>
-          {#snippet main()}
-            <IdentityRow name="Ada Lovelace" handle="@ada" />
-          {/snippet}
-        </ObjectRow>
-        <ObjectRow href="#avatar">
-          {#snippet main()}
-            <IdentityRow name="Platform Team" handle="platform-team" shape="workspace" />
-          {/snippet}
-        </ObjectRow>
-      </ObjectList>
-    </Section>
+    <div class="list">
+      <Section title="Members" level={4}>
+        <ObjectList>
+          <ObjectRow href="#avatar">
+            {#snippet main()}
+              <IdentityRow name="Grace Hopper" handle="@grace" src={portrait} />
+            {/snippet}
+          </ObjectRow>
+          <ObjectRow href="#avatar" current>
+            {#snippet main()}
+              <IdentityRow name="Ada Lovelace" handle="@ada" />
+            {/snippet}
+          </ObjectRow>
+          <ObjectRow href="#avatar">
+            {#snippet main()}
+              <IdentityRow name="Platform Team" handle="platform-team" shape="workspace" />
+            {/snippet}
+          </ObjectRow>
+        </ObjectList>
+      </Section>
+    </div>
   </Specimen>
 </Example>
 
@@ -137,6 +139,12 @@
 </Example>
 
 <style>
+  /* A row's plate reaches past its words, as the open one shows, so the list stands in by that
+     reach and the plate stays inside the specimen. */
+  .list {
+    padding-inline: var(--sui-space-3);
+  }
+
   /* The bound the name wraps in, drawn so the wrap reads as the point of the example. */
   .narrow {
     box-sizing: border-box;
