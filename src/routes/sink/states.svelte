@@ -29,7 +29,8 @@
   let settled = $state(false);
   let list = $state<HTMLElement>();
   let refused = $state<string | null>(null);
-  let filtered = $state(false);
+  /* The list opens emptied by its filter, so the example shows the state its name promises. */
+  let filtered = $state(true);
 
   /* The first retry succeeds, so the panel gives way to the rows and hands them focus. */
   function retry() {
