@@ -513,6 +513,30 @@ suite('lists', together, () => {
         assert.ok(spare < 1, `${name} keeps ${spare.toFixed(1)}px past its widest shown words`);
     });
 
+    test('a small settings glyph keeps a clear pixel between its knobs', async () => {
+      const page = await opened();
+      const gaps = await page.evaluate(() =>
+        [...document.querySelectorAll('#icons svg')]
+          .filter((svg) => svg.getBoundingClientRect().width <= 12 && svg.querySelector('circle'))
+          .map((svg) => {
+            const scale = svg.getBoundingClientRect().width / 24;
+            const half = parseFloat(svg.getAttribute('stroke-width') ?? '0') / 2;
+            const knobs = [...svg.querySelectorAll('circle')].map((circle) => circle.getBBox());
+            let gap = Infinity;
+            for (const [i, a] of knobs.entries())
+              for (const b of knobs.slice(i + 1)) {
+                const across = Math.max(b.x - (a.x + a.width), a.x - (b.x + b.width));
+                const down = Math.max(b.y - (a.y + a.height), a.y - (b.y + b.height));
+                gap = Math.min(gap, (Math.max(across, down) - 2 * half) * scale);
+              }
+            return { size: svg.getBoundingClientRect().width, gap };
+          })
+      );
+      assert.ok(gaps.length >= 2, `only ${gaps.length} small glyphs with knobs`);
+      for (const { size, gap } of gaps)
+        assert.ok(gap >= 1, `at ${size}px two knobs stand ${gap.toFixed(2)}px apart`);
+    });
+
     test('a numbered code block parts its gutter from its code by a divider 12px from each', async () => {
       const page = await opened();
       const rows = await page.evaluate(() =>

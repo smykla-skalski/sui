@@ -267,10 +267,18 @@ word would start.
   {#if name === 'arrow-up-right'}
     <path d="M7 17 17 7M9 7h8v8" />
   {:else if name === 'settings'}
-    <path d="M4 7h10M18 7h2M4 17h2M10 17h10M4 12h4M12 12h8" />
-    <circle cx="16" cy="7" r="2" />
-    <circle cx="8" cy="17" r="2" />
-    <circle cx="10" cy="12" r="2" />
+    {#if size === 'micro' || size === 'xs'}
+      <!-- Three rails 5 units apart merge at 12px and under, so the small tiers keep two, 10
+           apart, with their knobs at least a clear pixel from each other. -->
+      <path d="M4 7h9M17 7h3M4 17h3M11 17h9" />
+      <circle cx="15" cy="7" r="2" />
+      <circle cx="9" cy="17" r="2" />
+    {:else}
+      <path d="M4 7h10M18 7h2M4 17h2M10 17h10M4 12h4M12 12h8" />
+      <circle cx="16" cy="7" r="2" />
+      <circle cx="8" cy="17" r="2" />
+      <circle cx="10" cy="12" r="2" />
+    {/if}
   {:else if name === 'repositories'}
     <!-- Shifted up 1 from the shape as drawn. The outline ran 5.5 to 20.5 - the
          tab at the top, then eleven units of body and a 2-unit corner at the
