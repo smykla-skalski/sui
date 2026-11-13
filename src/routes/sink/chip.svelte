@@ -98,6 +98,8 @@
 <Example
   title="Removable"
   note="Each remove control names its value, a removal is announced, and focus moves to the next control"
+  layout="grid"
+  --specimen-min="18rem"
 >
   <Specimen label="Remove & refocus">
     <div class="group" role="group" aria-label="Labels">

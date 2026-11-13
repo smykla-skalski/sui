@@ -190,6 +190,9 @@
   let remover = $state<HTMLButtonElement | null>(null);
 
   const removeName = $derived(removeLabel(label));
+  // A technical value breaks after its delimiters before anywhere else, so a wrapped path or
+  // key keeps its words whole.
+  const parts = $derived(mono ? label.split(/(?<=[/:=-])/) : [label]);
   const painted = $derived.by(() => {
     const rgb = color === undefined ? null : parse(color);
     return rgb ? paint(rgb) : null;
@@ -236,7 +239,7 @@ style declaration.
 - Keyboard: the remove control is a tab stop, and Enter or Space removes; the chip itself is not a stop.
 - Pointer and touch: the remove target is 24px; on a phone or a coarse pointer a removable chip grows to 44px tall around a 44px square control, so the targets of chips on wrapped lines never overlap.
 - Focus: after a removal it moves to the next remove control in the chip's parent, then the previous one, then the parent itself, which gets `tabindex="-1"` when it has none.
-- Responsive: as wide as its value, up to its container, and taller as a long value wraps.
+- Responsive: as wide as its value, up to its container, and taller as a long value wraps; a `mono` value wraps after a `/`, `:`, `=` or `-` before it breaks a word.
 - Accessibility: the remove control is named by `removeLabel`, which is also its tooltip unless the chip is disabled, and a polite status says `removedLabel` once the chip has gone; a painted chip's ink holds 4.5:1 and APCA Lc 60 in both themes, and under forced colors every chip keeps an outline.
 - Localization: `removeLabel` and `removedLabel` are functions of the value with English defaults; the remove control sits at the inline end, so it moves to the left in a right-to-left page.
 - Performance: a painted chip computes its paint for both themes once per color, and the theme picks one with `light-dark()`; a remove control mounts one tooltip.
@@ -254,7 +257,9 @@ style declaration.
   style:--sui-chip-edge={painted?.edge}
   style:--sui-chip-edge-dark={painted?.darkEdge}
 >
-  <span class="sui-chip-label" translate={mono ? 'no' : undefined}>{label}</span>
+  <span class="sui-chip-label" translate={mono ? 'no' : undefined}
+    >{#each parts as part, index (index)}{#if index > 0}<wbr />{/if}{part}{/each}</span
+  >
   {#if onremove !== undefined}
     <button
       bind:this={remover}
@@ -348,12 +353,18 @@ style declaration.
     padding-inline-end: 0;
   }
 
+  /* A control as tall as its chip stands in no inset, so it takes the chip's own corner. */
+  .small > .sui-chip-remove {
+    border-radius: inherit;
+  }
+
   .sui-chip-remove {
     align-items: center;
     background-color: transparent;
     block-size: var(--sui-local-remove);
     border: 0;
-    border-radius: inherit;
+    /* Concentric with the chip: its corner is the chip's, less the inset around it. */
+    border-radius: var(--sui-radius-chip-remove);
     color: inherit;
     cursor: pointer;
     display: inline-flex;
@@ -388,6 +399,10 @@ style declaration.
       --sui-local-chip: var(--sui-touch-target);
       --sui-local-remove: var(--sui-touch-target);
       padding-inline-end: 0;
+    }
+
+    .sui-chip-remove {
+      border-radius: inherit;
     }
 
     .sui-chip-remove::before {

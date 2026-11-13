@@ -457,6 +457,48 @@ suite('forms', together, () => {
       assert.equal(light.blocked, false, 'a black chip draws an edge in the light theme');
     });
 
+    test('a long mono chip wraps after its delimiters, never inside a word', async () => {
+      const page = await opened();
+      // Each width wider than the value's longest run between delimiters, where a value broken
+      // only at its delimiters always fits.
+      const ends = await page.evaluate(() => {
+        const chip = /** @type {HTMLElement} */ (
+          [...document.querySelectorAll('#chip .sui-chip.mono')].find((each) =>
+            each.textContent?.includes('registry.example.com')
+          )
+        );
+        const label = /** @type {Element} */ (chip.querySelector('.sui-chip-label'));
+        const range = document.createRange();
+        /** @type {string[]} */
+        const found = [];
+        for (const width of ['14rem', '16rem', '18rem', '20rem', '22rem']) {
+          chip.style.maxInlineSize = width;
+          const walker = document.createTreeWalker(label, NodeFilter.SHOW_TEXT);
+          let previous = '';
+          let top = NaN;
+          for (let node = walker.nextNode(); node; node = walker.nextNode()) {
+            const text = node.textContent ?? '';
+            for (let at = 0; at < text.length; at++) {
+              range.setStart(node, at);
+              range.setEnd(node, at + 1);
+              const now = range.getBoundingClientRect().top;
+              if (now > top + 1) found.push(`${width} ${previous}`);
+              top = now;
+              previous = text[at];
+            }
+          }
+        }
+        chip.style.maxInlineSize = '';
+        return found;
+      });
+      assert.ok(ends.length > 0, 'the value wraps in a narrow chip');
+      assert.deepEqual(
+        ends.filter((end) => !'/:=-'.includes(end.slice(-1))),
+        [],
+        'every line ends at a delimiter'
+      );
+    });
+
     test('a segmented control rings its track and draws a disabled choice without the accent', async () => {
       const page = await opened();
       await page.keyboard.press('Shift');
