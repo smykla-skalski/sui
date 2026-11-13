@@ -93,3 +93,28 @@ test('a switch keeps the page, its query and its section', () => {
   // A page whose own name starts like a preview is still main's.
   assert.equal(previewUrl('/pr-9', at('/pr-7x/')), '/pr-9/pr-7x/');
 });
+
+test('the open pull requests reach the machine as bare numbers and titled entries', () => {
+  const listed = execFileSync(
+    'jq',
+    ['-r', '-f', new URL('../preview/open.jq', import.meta.url).pathname],
+    {
+      input: JSON.stringify([
+        { number: 7, title: 'feat(card): climb "the" Card page' },
+        { number: 8, title: 'fix!: drop a guard' },
+        { number: 9, title: 'Plain title: with a colon' }
+      ])
+    }
+  );
+  const words = listed.toString().trim().split(' ');
+  const bare = words.filter((word) => !word.includes(':'));
+  const entries = words
+    .filter((word) => word.includes(':'))
+    .map((word) => JSON.parse(Buffer.from(word.split(':')[1], 'base64').toString()));
+  assert.deepEqual(bare, ['7', '8', '9']);
+  assert.deepEqual(entries, [
+    { number: 7, title: 'climb "the" Card page' },
+    { number: 8, title: 'drop a guard' },
+    { number: 9, title: 'Plain title: with a colon' }
+  ]);
+});

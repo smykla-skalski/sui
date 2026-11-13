@@ -1,4 +1,5 @@
 [tools]
+jq = "1.8.1"
 node = "26.13.0"
 
 [tasks.install]

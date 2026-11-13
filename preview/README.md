@@ -35,4 +35,4 @@ Do this once.
    fly tokens create deploy --app sui-previews | gh secret set FLY_API_TOKEN
    ```
 
-After a change in this directory, run `fly deploy preview` again. The volume keeps the previews.
+A change in this directory deploys itself once it reaches `main`: the [Preview server workflow](../.github/workflows/preview-server.yml) runs `fly deploy preview` and then writes the list of previews again, so the machine never runs an older `previews` than the workflow calls. The volume keeps the previews.

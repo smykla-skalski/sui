@@ -1,0 +1,58 @@
+name: Preview server
+
+# Deploys the machine in preview/ that serves https://sui.tercenas.com when it changes on main,
+# then has it write the list of previews again, so the server runs the script this repository
+# calls without anyone deploying it by hand. Setup is in preview/README.md.
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'preview/**'
+      - '.github/workflows/preview-server.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: read
+
+concurrency:
+  group: preview-server
+  cancel-in-progress: false
+
+env:
+  FLY_APP: sui-previews
+  PREVIEW_HOST: sui.tercenas.com
+  FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+  GH_REPO: ${{ github.repository }}
+  GH_TOKEN: ${{ github.token }}
+  # Renovate moves the tag and its digest together, so keep the three lines in this order.
+  # renovate: datasource=github-release-attachments depName=superfly/flyctl
+  FLYCTL_VERSION: v0.5.5
+  FLYCTL_SHA256: 2c64e1c7f320fafed0452fbce9adff57fcaf733619f0faa315ae883ec03d7ef6
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      # The setup-flyctl action gave up after 3 tries when GitHub's release downloads answered
+      # 504 for minutes; curl keeps trying for up to 10 minutes.
+      - name: Install flyctl
+        run: |
+          bin="$RUNNER_TEMP/flyctl"
+          mkdir -p "$bin"
+          curl -fsSL --retry 10 --retry-all-errors --retry-max-time 600 -o "$bin/flyctl.tgz" \
+            "https://github.com/superfly/flyctl/releases/download/$FLYCTL_VERSION/flyctl_${FLYCTL_VERSION#v}_Linux_x86_64.tar.gz"
+          echo "$FLYCTL_SHA256  $bin/flyctl.tgz" | sha256sum -c -
+          tar -xzf "$bin/flyctl.tgz" -C "$bin" flyctl
+          echo "$bin" >> "$GITHUB_PATH"
+      # Fly's builder makes the image, and one machine keeps the one volume.
+      - run: flyctl deploy preview --app "$FLY_APP" --remote-only --ha=false
+      # The machine stops when idle and only an HTTP request starts it again.
+      - run: curl -fsS --retry 10 --retry-all-errors -o /dev/null "https://$PREVIEW_HOST/ping"
+      # A separate assignment, so a failed listing stops the step instead of reading as no open PRs.
+      - run: |
+          open=$(gh pr list --state open --limit 1000 --json number,title --jq "$(cat preview/open.jq)")
+          flyctl ssh console -a "$FLY_APP" -C "/usr/local/bin/previews - $open"
