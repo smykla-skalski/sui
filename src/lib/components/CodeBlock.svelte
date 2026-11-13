@@ -407,8 +407,13 @@ beside its first line, and takes the row only on a phone. It copies `code` exact
 
   /* The copy control stands a step lighter than the head in both themes: the code's own white
      in light, and in dark more of the ink than the head takes, where a raised ground sank under
-     it. */
+     it. Hovered, it stays lighter than the head on light, where the shared 9% veil sank it under
+     the head; dark keeps its own lift. */
   .sui-code-block:not(.bare) > .sui-code-block-copy {
+    --sui-interactive-hover-layer: light-dark(
+      color-mix(in srgb, var(--sui-text-primary) 4%, transparent),
+      color-mix(in srgb, var(--sui-text-primary) 9%, transparent)
+    );
     --sui-surface-base: color-mix(
       in srgb,
       var(--sui-text-primary) var(--sui-code-chip-ink),

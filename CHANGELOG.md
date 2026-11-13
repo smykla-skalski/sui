@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- A hovered copy control in a `CodeBlock`'s head takes a 4% veil of the ink on light, so it stays lighter than the head, where the shared 9% veil sank it under the head as if pressed.
 - The kit's icon page shows each size tier beside a word at the text size it stands with in the kit: micro, compact, caption, control and title.
 - An `Icon` named `settings` draws two rails at the micro and xs tiers, where three rails 5 units apart merged their knobs at 12px and under.
 - The kit's icon page names each glyph at 12px, where the 11px names asked for a close look.
