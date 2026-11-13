@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- A `ListToolbar` search keeps 14rem of field beside its label, and with less, as on a phone, its label stands above a field of the full width.
 - `Skeleton` takes `ruled`, on by default: off, its rows draw no hairline, so placeholders for words that stand without rules, such as a page header's facts, do not promise a line that never comes.
 - In a `FactList` of rows a value that holds an `IdentityRow` keeps its words' height, and the face reaches into the row's padding, so the row keeps its neighbours' pitch and the hairlines stay even.
 - A tone's tint, the role tint and the neutral tint are their ink over the ground under them, 9% in the light theme and 16% in the dark, the neutral tint 8% in light, not fixed fills, so a pill, a chip or a callout keeps its hue, clear rather than gray, and its shape on a raised card as on the canvas, its ink at 4.6:1 or more. A live dot keeps a plain dot's gap past its ring.

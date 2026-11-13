@@ -155,7 +155,7 @@ button. Without `tools` there is no button and the filter never folds.
 - Keyboard: Tab walks search, filter, tools button and action; in the menu Tab moves through the groups and closes the menu on leaving it, and Escape closes it and returns focus to the tools button.
 - Pointer and touch: every control keeps its own 34px tier, 44px on a phone; an outside press closes the menu.
 - Focus: opening the menu moves focus to its first chosen option; closing it with Escape returns focus to the tools button.
-- Responsive: a container query folds the filter into the menu under 18rem; the search, the filter unit and the action wrap as whole pieces.
+- Responsive: a container query folds the filter into the menu under 18rem; the search, the filter unit and the action wrap as whole pieces, and the search's label stands above its field once the field would have under 14rem beside it.
 - Accessibility: each group's heading is drawn and names it; `count` and `pending` are said through a polite status a moment after the reader pauses; the tools button is described by the choices it holds.
 - Localization: `toolsLabel`, `pendingLabel` and `countLabel`, a function of the count with the count in the reader's format, are props with English defaults; the tools' choices are joined as a list in the page's language, the folded filter is set off by a dot rather than a written mark, and the bar follows the reading direction.
 - Performance: one container query and one short timer per bar; the menu mounts only with `tools`.
@@ -278,10 +278,11 @@ button. Without `tools` there is no button and the filter never folds.
     justify-content: space-between;
   }
 
-  /* The search's label stands before it on its line, as the filter's heading does. When the
-     label wraps above the field the part is snapped to an even height, so the filter centred
-     beside it lands on whole pixels (L-95), and its lines keep to the top so the extra pixel
-     stays under them. */
+  /* The search's label stands before it on its line, as the filter's heading does, while the
+     field keeps 14rem beside it, the room a typed query needs; with less, as on a phone, the
+     label stands above a field of the full width. When the label wraps above the field the part
+     is snapped to an even height, so the filter centred beside it lands on whole pixels (L-95),
+     and its lines keep to the top so the extra pixel stays under them. */
   .sui-list-toolbar-search {
     align-content: start;
     align-items: center;
@@ -295,7 +296,7 @@ button. Without `tools` there is no button and the filter never folds.
 
   .sui-list-toolbar-field {
     display: grid;
-    flex: 1 1 10rem;
+    flex: 1 1 14rem;
     min-inline-size: 0;
   }
 
