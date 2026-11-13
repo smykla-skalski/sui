@@ -133,7 +133,7 @@ the handle under them.
 
   .sui-identity-name {
     color: var(--sui-text-primary);
-    font: var(--sui-weight-semibold) var(--sui-font-size-body) / var(--sui-row-copy-leading)
+    font: var(--sui-weight-medium) var(--sui-font-size-body) / var(--sui-row-copy-leading)
       var(--sui-sans);
   }
 
