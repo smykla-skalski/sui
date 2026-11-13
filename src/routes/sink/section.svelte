@@ -33,7 +33,7 @@
   const details: Fact[] = [
     { label: 'Workspace', value: 'acme', href: '#section-detail-layout' },
     { label: 'Trigger', value: 'Manual, from the sync page' },
-    { label: 'Attempt', value: '1 of 3', mono: true }
+    { label: 'Attempt', value: '1 of 3' }
   ];
 </script>
 
@@ -208,8 +208,12 @@
     text-box: trim-both cap alphabetic;
   }
 
+  /* A 30rem pane ends on a pane's divider, as it would beside the next pane, so the room past
+     it reads as another pane's and not as words that only wrapped. */
   .narrow {
-    inline-size: min(100%, 30rem);
+    border-inline-end: var(--sui-stroke) solid var(--sui-border-divider);
+    inline-size: min(100% - var(--sui-space-6) - var(--sui-stroke), 30rem);
+    padding-inline-end: var(--sui-space-6);
   }
 
   /* A stage of 30rem or less already shows the narrow pane, so the second one would repeat it. */
