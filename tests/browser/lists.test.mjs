@@ -1340,6 +1340,16 @@ suite('lists', together, () => {
       assert.deepEqual(rings, { scroller: 'none', frame: 'solid', over: 0 });
     });
 
+    test("a code block's copy control rests with no edge and takes a button's edge on hover", async () => {
+      const page = await opened();
+      const copy = page.locator('#code-block .sui-code-block-copy .sui-copy-button').first();
+      await copy.scrollIntoViewIfNeeded();
+      const edge = () => copy.evaluate((button) => getComputedStyle(button).borderTopColor);
+      assert.equal(await edge(), 'rgba(0, 0, 0, 0)');
+      await copy.hover();
+      assert.notEqual(await edge(), 'rgba(0, 0, 0, 0)');
+    });
+
     test('K6 a retried error that leaves no control keeps focus where it stood', long, async () => {
       const page = await opened();
       const retry = page

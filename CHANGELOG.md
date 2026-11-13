@@ -19,6 +19,7 @@
 - An `EmptyState` and an `ErrorState` pad 20px at the sides of their words, where 24px left a narrow column's description a line longer.
 - The sink's filtered list is a titled section of rows with its filter under them, as the failed lists beside it are.
 - An `EmptyState` or `ErrorState` stretched beside a taller panel keeps its action one gap under its words, where it stood at the panel's foot.
+- A `CodeBlock`'s copy control rests with no edge of its own and takes a button's edge on hover, where it wore a button's edge at rest.
 - A `RelativeTime`'s focus ring stands 3px under its dots, where it stood 2px under them.
 - A `RelativeTime`'s whole instant pads its hour only where the language does, so English reads 9:26:53 AM, not 09:26:53 AM.
 - A hovered or focused `RelativeTime` draws its dots in its words' full ink, where they took 80% of it on hover and 60% with focus.
