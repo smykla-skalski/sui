@@ -28,6 +28,7 @@
 @component
 One row of an `ObjectList`. It pads 12px and draws a 1px hairline inset by that padding, which
 the hovered row hides along with the one above it, so the hover ground never sits on a line.
+Its grounds stop a pixel under its top, so two plates that meet keep a seam of the page.
 
 With `href` the whole row is a link through a layer under the content, so a control inside it,
 such as an `IconButton`, a `RelativeTime` or a switch, stays pressable and never navigates. A
@@ -90,8 +91,13 @@ and the one above as a hovered row does, and under the pointer takes more of the
     margin-inline: calc(-1 * var(--sui-row-pad-default));
     min-inline-size: 0;
     /* The bottom carries the hairline's pixel on top of the padding, so the ink stands
-       12px off the line below it as off the line above. */
-    padding: var(--sui-row-pad-default) var(--sui-row-pad-default)
+       12px off the line below it as off the line above. The top's first pixel is a clear
+       border the grounds stop at, so two plates that meet, the open row's and a hovered one's,
+       keep a seam of the page between them; the hairline stays inside the padding, where the
+       clip that skipping brings never cuts it (L-36). */
+    background-clip: padding-box;
+    border-block-start: var(--sui-stroke) solid transparent;
+    padding: calc(var(--sui-row-pad-default) - var(--sui-stroke)) var(--sui-row-pad-default)
       calc(var(--sui-row-pad-default) + var(--sui-row-hairline));
     position: relative;
     transition:
@@ -114,7 +120,8 @@ and the one above as a hovered row does, and under the pointer takes more of the
   .sui-object-row-hit {
     border-radius: inherit;
     color: inherit;
-    inset: 0;
+    /* Over the clear pixel too, so the whole row stays the link's target. */
+    inset: calc(-1 * var(--sui-stroke)) 0 0;
     position: absolute;
     user-select: none;
     -webkit-tap-highlight-color: transparent;
@@ -214,7 +221,8 @@ and the one above as a hovered row does, and under the pointer takes more of the
   }
 
   /* Rows touch, so a ring on the row's edge would meet a hovered or current neighbour's plate;
-     a pixel further in keeps a line of the page between them. */
+     a pixel further in rides the top of the row's own ground and keeps a line of the page
+     between it and the plate below. */
   .sui-object-row:has(> .sui-object-row-hit:focus-visible) {
     outline: var(--sui-focus-ring-width) solid var(--sui-focus);
     outline-offset: calc(var(--sui-focus-ring-inset) - var(--sui-stroke));
