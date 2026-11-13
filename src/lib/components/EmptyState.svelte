@@ -97,7 +97,7 @@ the next step, a control or words, stands a panel gap under it.
   .sui-empty-state {
     align-content: start;
     background: var(--sui-surface-raised);
-    border: var(--sui-stroke) dashed var(--sui-border-control);
+    border: var(--sui-stroke) solid transparent;
     border-radius: var(--sui-radius-control);
     box-sizing: border-box;
     display: grid;
@@ -105,6 +105,30 @@ the next step, a control or words, stands a panel gap under it.
     justify-items: start;
     min-inline-size: 0;
     padding: var(--sui-space-7) var(--sui-space-5);
+    position: relative;
+  }
+
+  /* A browser's own dashes stretch to fit each side and blur at their ends, so the edge is a
+     4px dash and 4px gap traced round the 8px corner on whole pixels: the stroke centres on
+     the box's outer edge, and only its inner 1px shows. The rx follows --sui-radius-control. */
+  .sui-empty-state::before {
+    background: var(--sui-border-control);
+    border-radius: inherit;
+    content: '';
+    inset: calc(-1 * var(--sui-stroke));
+    mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Crect width='100%25' height='100%25' rx='8' fill='none' stroke='%23000' stroke-width='2' stroke-dasharray='4 4'/%3E%3C/svg%3E");
+    pointer-events: none;
+    position: absolute;
+  }
+
+  @media (forced-colors: active) {
+    .sui-empty-state {
+      border: var(--sui-stroke) dashed CanvasText;
+    }
+
+    .sui-empty-state::before {
+      display: none;
+    }
   }
 
   /* The title stands a title gap above its words. A step in words takes the place a control

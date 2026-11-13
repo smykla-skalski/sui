@@ -440,10 +440,18 @@ test('L-59 a state panel pads 28px by 20px, 20px on a phone, its action a step u
     /\.sui-error-state-title \{[^}]*color: var\(--sui-text-primary\);/,
     'the mark, edge and wash carry the failure, so its title reads in the primary ink'
   );
+  const empty = stripComments(styles['src/lib/components/EmptyState.svelte']);
+  const edge = empty.match(/\.sui-empty-state::before \{[^}]*\}/)?.[0] ?? '';
   assert.match(
-    stripComments(styles['src/lib/components/EmptyState.svelte']),
-    /\.sui-empty-state \{[^}]*border: var\(--sui-stroke\) dashed var\(--sui-border-control\);/,
+    edge,
+    /background: var\(--sui-border-control\);/,
     'an empty panel marks the room its content would fill with a dashed edge, firm enough to read as one'
+  );
+  assert.match(edge, /stroke-dasharray='4 4'/, 'its dashes stand on whole pixels');
+  assert.equal(
+    edge.match(/rx='(\d+)'/)?.[1] + 'px',
+    read('src/lib/styles.css').match(/--sui-radius-control: ([^;]+);/)?.[1],
+    "the dashes turn the panel's own corner"
   );
   for (const [file, step] of [
     ['ErrorState', 'error-state'],
