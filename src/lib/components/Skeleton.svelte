@@ -292,12 +292,6 @@ under reduced motion. Use it only where the shape of what is coming is already k
     content: none;
   }
 
-  /* Once the light stops, the bars step back behind the slow words, so a still frame or reduced
-     motion still shows the wait has stalled rather than one more frame of it. */
-  .slow .bar {
-    opacity: 0.7;
-  }
-
   /* The slow words take a row's shape: a title where the name stands, in a name's size and ink, and a
      quieter line where the line under it stands, each cap to baseline on its bar's place. A
      one-line row keeps one line, the title, so it stays as tall as its neighbours; the status
