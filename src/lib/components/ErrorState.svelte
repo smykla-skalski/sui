@@ -169,8 +169,10 @@ of them.
 
   /* Even, so a retry centred beside it in a row lands on the pixel grid (L-95). The warning
      mark stands before the title, as a form error's does, while the explanation and step keep
-     the panel's whole width, so they wrap no sooner than they would without it. */
+     the panel's whole width, so they wrap no sooner than they would without it. The spare pixel
+     stays after the rows, or stretching them would put a half pixel in each. */
   .sui-error-state-copy {
+    align-content: start;
     block-size: var(--sui-block-snap-even);
     display: grid;
     gap: var(--sui-title-copy-gap) var(--sui-space-2);
