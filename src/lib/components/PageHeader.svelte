@@ -54,7 +54,9 @@ as a card's head controls are, so they lend the copy no height. Once the header 
 12px below it and packed to the start.
 
 The title is 32px on 36px lines at -0.022em, 24px on 28px lines at a dialog title's -0.015em on a
-phone or once the header itself is 36rem wide or narrower, and is the page's one `h1`.
+phone or once the header itself is 36rem wide or narrower, and is the page's one `h1`. A wide
+title balances its lines, and a compact one fills its narrow column and only keeps its last
+word from standing alone.
 The eyebrow, 12px uppercase at 600, stands 8px of ink above it, and a `Breadcrumb` or `BackLink` 12px, so its hover
 veil never meets the title. The description stands one 8px copy gap further below
 the title than the title's own lines stand apart, 19px of ink (18px on a phone), so a title
@@ -345,6 +347,7 @@ and the header owes only the difference.
   @container sui-shell (max-width: 47.9375rem) {
     .sui-page-header-title {
       letter-spacing: -0.015em;
+      text-wrap: pretty;
     }
 
     .sui-page-header {
@@ -366,6 +369,7 @@ and the header owes only the difference.
   @container sui-page-header (max-width: 36rem) {
     .sui-page-header-title {
       letter-spacing: -0.015em;
+      text-wrap: pretty;
     }
 
     .sui-page-header-title,
@@ -408,6 +412,7 @@ and the header owes only the difference.
   @media (max-width: 47.9375rem) {
     .sui-page-header-title {
       letter-spacing: -0.015em;
+      text-wrap: pretty;
     }
 
     .sui-page-header-layout {

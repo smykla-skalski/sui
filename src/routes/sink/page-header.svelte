@@ -185,7 +185,7 @@
       <PageHeader
         level={4}
         eyebrow={['Acme', 'Access']}
-        title={'Bypass Rules for the Platform Team’s\u00a0Deployment\u00a0& Release Repositories in Every Region'}
+        title="Bypass Rules for the Platform Team’s Deployment Repositories Across Every Region"
         description="People and apps listed here can push past the branch rules, and the audit log records every push they make"
       >
         {#snippet actions()}
