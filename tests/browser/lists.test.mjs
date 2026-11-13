@@ -325,8 +325,17 @@ suite('lists', together, () => {
             const code = /** @type {Element} */ (
               block.querySelector('pre')
             ).getBoundingClientRect();
+            // Where the words of an element start: past its own start padding.
+            const startOf = (/** @type {Element | null | undefined} */ element) =>
+              element
+                ? element.getBoundingClientRect().left +
+                  parseFloat(getComputedStyle(element).paddingInlineStart)
+                : 0;
+            const name = copy?.querySelector('.sui-code-block-lang');
             return {
               copy: copy !== null,
+              lang: name?.textContent ?? null,
+              onEdge: name ? startOf(name) - startOf(block.querySelector('.src')) : 0,
               past: control ? control.right - box.right : 0,
               above: control ? code.top - control.bottom : 0,
               spare: box.width - code.width
@@ -340,7 +349,16 @@ suite('lists', together, () => {
         assert.ok(block.past <= -8, `a copy control ends ${block.past}px from its block's edge`);
         assert.ok(block.above >= 0, `a copy control reaches ${-block.above}px into the code`);
         assert.ok(block.spare <= 2, `the code leaves ${block.spare}px of its block's width`);
+        assert.ok(
+          Math.abs(block.onEdge) < 0.5,
+          `a language's name stands ${block.onEdge}px off the code's edge`
+        );
       }
+      assert.deepEqual(
+        copied.map((block) => block.lang).filter(Boolean),
+        ['YAML', 'TOML', 'Markdown', 'Shell', 'Shell'],
+        'each copy row names its language, and plain text names none'
+      );
     });
 
     // The choice's name stays 14px on a phone, so its note keeps the type step under it (L-25).

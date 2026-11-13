@@ -4,6 +4,16 @@
 
   export type CodeLang = 'json' | 'yaml' | 'toml' | 'markdown' | 'html' | 'shell' | 'text';
 
+  /* Each language's own name, which needs no translation; plain text has none. */
+  const languageNames: Partial<Record<CodeLang, string>> = {
+    json: 'JSON',
+    yaml: 'YAML',
+    toml: 'TOML',
+    markdown: 'Markdown',
+    html: 'HTML',
+    shell: 'Shell'
+  };
+
   /** One stretch of a line wearing one token class. */
   export interface TokenRun {
     /** A `tok-*` class, or undefined for plain text. */
@@ -211,15 +221,20 @@ from the corner and centred on the first line, or in the file name's row when th
 - Keyboard: Tab reaches a block that scrolls and then its copy control, and the arrow keys scroll a focused block.
 - Pointer and touch: the copy control is 28px, 44px on a phone or touch screen, and always shown; selection works as in any text.
 - Focus: it never moves focus; the copy control keeps focus through its copied state.
-- Responsive: the block fills its column and its lines scroll inside it at every width, with a fade on each edge that has more past it, the start fade past the line numbers; the copy column keeps its place at the end, and on a phone the control heads the block in a row of its own so the code takes the whole width.
+- Responsive: the block fills its column and its lines scroll inside it at every width, with a fade on each edge that has more past it, the start fade past the line numbers; the copy column keeps its place at the end, and on a phone the control heads the block in a row of its own, after the language's name, so the code takes the whole width.
 - Accessibility: tokens hold 4.5:1 on the code ground, the gutter is hidden from assistive technology, and the scroller is named only when it is a tab stop.
 - Localization: `regionLabel` and `copyLabel` carry the built-in words; the code always reads left to right (`dir="ltr"`) in a right-to-left page, while the file name follows the page.
 - Performance: tokenizing is one pass over each line and runs again only when `code` or `lang` changes; one observer per block watches for overflow.
 - Analytics: none of its own; the copy control reports its copy.
 - Failure: an empty `code` draws one empty line; a language it does not know is drawn as plain text.
 -->
-{#snippet copier()}
-  <div class="sui-code-block-copy"><CopyButton text={code} label={copyLabel} /></div>
+{#snippet copier(name?: string)}
+  <div class="sui-code-block-copy">
+    {#if name}<span class="sui-code-block-lang" translate="no">{name}</span>{/if}<CopyButton
+      text={code}
+      label={copyLabel}
+    />
+  </div>
 {/snippet}
 
 <figure {...rest} class={['sui-code-block', { bare, labelled: label !== undefined }, className]}>
@@ -246,7 +261,7 @@ from the corner and centred on the first line, or in the file name's row when th
           ></span
         >{/each}</code
     ></pre>
-  {#if copy && label === undefined}{@render copier()}{/if}
+  {#if copy && label === undefined}{@render copier(languageNames[lang])}{/if}
 </figure>
 
 <style>
@@ -286,6 +301,11 @@ from the corner and centred on the first line, or in the file name's row when th
     overflow-wrap: anywhere;
     padding-inline: var(--sui-space-4);
     text-box: trim-both cap alphabetic;
+  }
+
+  /* The language's name shows only in a phone's copy row, below. */
+  .sui-code-block-lang {
+    display: none;
   }
 
   /* Beside a file name too long to share its row, the control takes a row of its own, from the
@@ -353,6 +373,28 @@ from the corner and centred on the first line, or in the file name's row when th
       margin-block-start: 0;
       order: -1;
       padding-block-start: var(--sui-space-2);
+    }
+
+    /* The row would otherwise hold the control alone, so it names the language at its start,
+       on the code's edge and in the file name's type, as a file name heads its own row. */
+    .sui-code-block-lang {
+      align-content: center;
+      align-self: center;
+      block-size: var(--sui-block-snap);
+      color: var(--sui-text-secondary);
+      display: block;
+      font: var(--sui-weight-regular) var(--sui-font-size-micro) / var(--sui-leading-micro)
+        var(--sui-mono);
+      letter-spacing: 0.04em;
+      margin-inline-end: auto;
+      padding-block: var(--sui-block-snap-room);
+      padding-inline-start: calc(var(--sui-space-4) - var(--sui-space-2));
+      text-box: trim-both cap alphabetic;
+    }
+
+    .bare .sui-code-block-lang {
+      margin-inline-start: calc(-1 * var(--sui-space-2));
+      padding-inline-start: 0;
     }
 
     .sui-code-block:not(.labelled) > .sui-code-block-scroll {
