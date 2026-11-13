@@ -298,7 +298,7 @@ beside its first line, and takes the row only on a phone. It copies `code` exact
   .sui-code-block-label {
     align-content: center;
     color: var(--sui-text-secondary);
-    font: var(--sui-weight-regular) var(--sui-font-size-compact) / var(--sui-leading-compact)
+    font: var(--sui-weight-regular) var(--sui-font-size-caption) / var(--sui-leading-compact)
       var(--sui-mono);
     font-variant-numeric: tabular-nums;
     flex: 1 1 8rem;
@@ -409,7 +409,7 @@ beside its first line, and takes the row only on a phone. It copies `code` exact
     block-size: var(--sui-block-snap);
     color: var(--sui-text-secondary);
     display: block;
-    font: var(--sui-weight-regular) var(--sui-font-size-compact) / var(--sui-leading-compact)
+    font: var(--sui-weight-regular) var(--sui-font-size-caption) / var(--sui-leading-compact)
       var(--sui-mono);
     margin-inline-end: auto;
     padding-block: var(--sui-block-snap-room);
@@ -446,7 +446,7 @@ beside its first line, and takes the row only on a phone. It copies `code` exact
       block-size: var(--sui-block-snap);
       color: var(--sui-text-secondary);
       display: block;
-      font: var(--sui-weight-regular) var(--sui-font-size-compact) / var(--sui-leading-compact)
+      font: var(--sui-weight-regular) var(--sui-font-size-caption) / var(--sui-leading-compact)
         var(--sui-mono);
       margin-inline: calc(-1 * var(--sui-space-2)) auto;
       padding-block: var(--sui-block-snap-room);

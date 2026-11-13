@@ -54,6 +54,23 @@ suite('lists', together, () => {
   suite('the pattern entries', { concurrency: 1 }, () => {
     const opened = sharedPage();
 
+    test("a block's file and language names read at the 13px caption tier", async () => {
+      const page = await opened();
+      const sizes = await page.evaluate(() =>
+        [
+          ...document.querySelectorAll(
+            '#code-block .sui-code-block:not(.bare) :is(.sui-code-block-label, .sui-code-block-lang)'
+          )
+        ].map((name) => `${name.textContent}: ${getComputedStyle(name).fontSize}`)
+      );
+      assert.ok(sizes.length >= 4, `only ${sizes.length} names`);
+      assert.deepEqual(
+        sizes.filter((size) => !size.endsWith(': 13px')),
+        [],
+        'a name reads off the caption tier'
+      );
+    });
+
     test('a day feed keeps a form measure on a wide page, so each time stays near its entry', async () => {
       const page = await opened();
       const widths = await page.evaluate(() => {
