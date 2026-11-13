@@ -84,7 +84,8 @@
   let here = $state('');
 
   function switchPreview(event: Event & { currentTarget: HTMLSelectElement }) {
-    location.assign(event.currentTarget.value + location.pathname.slice(here.length));
+    const { pathname, search, hash } = location;
+    location.assign(event.currentTarget.value + pathname.slice(here.length) + search + hash);
   }
 
   onMount(() => {
