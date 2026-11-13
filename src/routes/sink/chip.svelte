@@ -145,7 +145,6 @@
         />
       {/each}
       <Chip small label="3 files" onremove={() => {}} />
-      <Chip label="frozen" color="cfd3d7" onremove={() => {}} disabled />
     </div>
   </Specimen>
   <Specimen label="Disabled">
@@ -153,6 +152,7 @@
       <div class="group" role="group" aria-label="Locked labels" aria-describedby="sink-chip-held">
         <Chip mono label="team:platform" onremove={() => {}} disabled />
         <Chip mono label="v2.9.1" onremove={() => {}} disabled />
+        <Chip label="frozen" color="cfd3d7" onremove={() => {}} disabled />
       </div>
       <p id="sink-chip-held" class="empty">Labels are locked while the release runs</p>
     </div>

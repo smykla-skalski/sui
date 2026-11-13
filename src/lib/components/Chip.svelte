@@ -235,7 +235,7 @@ style declaration.
 
 - Semantics: a `span` holding the value as text, with a native `button` to remove it when `onremove` is set.
 - Content: one value of any length, which wraps inside the chip so no part of it is cut; `small` for a chip inside a line of text, `mono` for a technical value.
-- States: rest, painted (its color in the light theme, a tint of it in the dark one), and on the remove control hover, pressed and focus; a disabled chip takes an off field's paint, the quieter field well with no edge and its value and mark in the muted ink at full strength, and a painted one keeps its paint with its mark at the disabled opacity.
+- States: rest, painted (its color in the light theme, a tint of it in the dark one), and on the remove control hover, pressed and focus; a disabled chip takes an off field's paint, the quieter field well with no edge and its value and mark in the muted ink at full strength, and a painted one keeps a fifth of its color over that well, so it still shows which label it is.
 - Keyboard: the remove control is a tab stop, and Enter or Space removes; the chip itself is not a stop.
 - Pointer and touch: the remove target is 24px; on a phone or a coarse pointer a removable chip grows to 44px tall around a 44px square control, so the targets of chips on wrapped lines never overlap.
 - Focus: after a removal it moves to the next remove control in the chip's parent, then the previous one, then the parent itself, which gets `tabindex="-1"` when it has none.
@@ -257,7 +257,7 @@ style declaration.
       mono,
       painted,
       removable: onremove !== undefined,
-      off: disabled && onremove !== undefined && !painted
+      off: disabled && onremove !== undefined
     }
   ]}
   style:--sui-chip-fill={painted?.fill}
@@ -363,6 +363,12 @@ style declaration.
     background: var(--sui-field-disabled);
     box-shadow: none;
     color: var(--sui-text-muted);
+  }
+
+  /* A painted chip that is off keeps a trace of its color over the well, so a reader still
+     knows the label while it reads as fixed beside the plain ones. */
+  .off.painted {
+    background: color-mix(in srgb, var(--sui-chip-hue) 20%, var(--sui-field-disabled));
   }
 
   .off > .sui-chip-remove:disabled {

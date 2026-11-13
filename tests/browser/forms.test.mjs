@@ -468,6 +468,20 @@ suite('forms', together, () => {
       const light = await edges('light');
       assert.equal(light.release, true, 'a white chip has no edge on a white card');
       assert.equal(light.blocked, false, 'a black chip draws an edge in the light theme');
+      const [plain, painted] = await page.evaluate(() =>
+        ['v2.9.1', 'frozen'].map((label) => {
+          const chip = [...document.querySelectorAll('#chip .sui-chip')].find(
+            (each) => each.textContent?.trim() === label
+          );
+          const style = getComputedStyle(/** @type {Element} */ (chip));
+          return { ink: style.color, edge: style.boxShadow };
+        })
+      );
+      assert.deepEqual(
+        painted,
+        { ink: plain.ink, edge: 'none' },
+        'a disabled painted chip does not read as off beside a plain one'
+      );
     });
 
     test('a small chip in a line of text keeps the line at its own height', async () => {
