@@ -284,6 +284,16 @@ apart, and the action under the value.
     padding-block: 0;
   }
 
+  /* A face beside a name stands taller than a value's words, so in a row the value keeps its
+     words' height and the face reaches into the row's padding, centred on them, and the row
+     keeps its neighbours' pitch. */
+  .rows .sui-fact-list-value:has(> :global(.sui-identity-row)) {
+    align-items: center;
+    block-size: round(up, 1cap, 2px);
+    display: flex;
+    padding-block: 0;
+  }
+
   .sui-fact-list-value.missing {
     color: var(--sui-text-muted);
     font-weight: var(--sui-weight-regular);

@@ -109,8 +109,7 @@
   const headline: Fact[] = [
     { label: 'Workspace', value: 'acme' },
     { label: 'Started', value: startedAt },
-    { label: 'Took', value: '48\u00a0seconds' },
-    { label: 'Requested by', value: 'Bart' }
+    { label: 'Took', value: '48\u00a0seconds' }
   ];
 
   const counts: Fact[] = [

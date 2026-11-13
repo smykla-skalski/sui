@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- In a `FactList` of rows a value that holds an `IdentityRow` keeps its words' height, and the face reaches into the row's padding, so the row keeps its neighbours' pitch and the hairlines stay even.
 - An `IdentityRow`'s name is 500, not 600, as the kit's object row names now are, so a list's names stand a step under the 600 title of the section that holds them.
 - In the dark theme a tone's tint, the role tint and the neutral tint are 16% of their ink over the ground under them, not fixed fills a step off the canvas, so a pill, a chip or a callout keeps its hue and its shape on a raised card as on the canvas. A live dot keeps a plain dot's gap past its ring, and on a neutral pill its ring takes 36% of the ink.
 - A `Pill`'s live dot wears a still 2px ring at 28% of its ink, so it reads apart from a plain dot when it does not pulse, as under reduced motion. A plain dot steps a third of itself toward the start edge, so the inset before it reads as wide as the one after the words.
