@@ -98,7 +98,7 @@ of them.
 
 - Semantics: an `alert` holding a title, a description and an optional retry `button`.
 - Content: a statement of what failed, one sentence on why and what to do, and the retry; the words wrap.
-- States: failed (a panel in the danger tone), retrying (the button busy with `retryingLabel`), and over loaded content (one line on the danger tint, its detail in the secondary ink as in the panel).
+- States: failed (a panel in the danger tone), retrying (the button busy with `retryingLabel`, at one width from rest to busy), and over loaded content (one line on the danger tint, its detail in the secondary ink as in the panel).
 - Keyboard: the retry takes Tab, Enter and Space; it ignores presses while busy.
 - Pointer and touch: the retry is 34px tall, 44px on a phone or touch screen.
 - Focus: the retry keeps focus while it runs; when the retry succeeds and the panel leaves, focus moves to `focusAfterRetry`, else to the first control where the panel stood, else to the place itself, never to the page.
@@ -125,9 +125,9 @@ of them.
   {#if onretry || action}
     <div class="sui-error-state-retry">
       {#if onretry}
-        <Button loading={busy} onclick={retry}>
-          {busy ? retryingLabel : retryLabel}
-        </Button>
+        <!-- The button holds the retrying words' room from the start, so it keeps one width
+             as the retry runs and its focus ring never grows. -->
+        <Button loading={busy} busyLabel={retryingLabel} onclick={retry}>{retryLabel}</Button>
       {/if}
       {@render action?.()}
     </div>
