@@ -195,11 +195,14 @@ tooltip.
     cursor: help;
   }
 
-  /* Hover draws the dots in the words' full ink and only nudges the words, so the time answers
-     the pointer plainly and the reading stays in its sentence. */
+  /* Hover draws the dots in the words' full ink over a faint accent veil in the focus ring's
+     box, and only nudges the words, so the time answers the pointer plainly and the reading
+     stays in its sentence. */
   @media (hover: hover) {
     .sui-relative-time:not(.exact):hover {
       --sui-local-dot: currentColor;
+      background: color-mix(in srgb, var(--sui-focus) 8%, transparent);
+      border-radius: var(--sui-radius-chip);
       color: color-mix(in oklab, currentColor 75%, var(--sui-text-primary));
     }
   }

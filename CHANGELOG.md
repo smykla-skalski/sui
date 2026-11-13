@@ -23,6 +23,7 @@
 - A `CodeBlock`'s copy control rests with no edge or fill of its own and takes a button's edge on hover, where it wore a button's edge at rest.
 - The Relative Time page sets its past and future times on 8rem columns, so wrapped rows on a phone share their column lines.
 - A `RelativeTime`'s whole instant pads its hour only where the language does, so English reads 9:26:53 AM, not 09:26:53 AM.
+- A hovered `RelativeTime` lays a faint accent veil in its focus ring's box.
 - A hovered or focused `RelativeTime` draws its dots in its words' full ink, where they took 80% of it on hover and 60% with focus.
 - A `RelativeTime`'s focus ring stands 2px further from its first and last letters, as far as it stands from the cap, with its dots still under the words alone.
 - A wide `ListToolbar` keeps its filter beside a search that reached 32rem and its action at the end, where the search part took the spare width and pushed the filter away.
