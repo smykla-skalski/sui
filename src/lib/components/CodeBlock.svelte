@@ -277,11 +277,10 @@ from the corner and centred on the first line, or in the file name's row when th
   .sui-code-block-label {
     align-content: center;
     color: var(--sui-text-secondary);
-    font: var(--sui-weight-regular) var(--sui-font-size-micro) / var(--sui-leading-micro)
+    font: var(--sui-weight-regular) var(--sui-font-size-compact) / var(--sui-leading-compact)
       var(--sui-mono);
     font-variant-numeric: tabular-nums;
     flex: 1 1 8rem;
-    letter-spacing: 0.04em;
     min-block-size: var(--sui-local-code-row);
     overflow-wrap: anywhere;
     padding-inline: var(--sui-space-4);
