@@ -1,6 +1,6 @@
 # Previews
 
-The kitchen sink of `main` is at `https://sui.smyklot.com`, redeployed on every push to `main` as the `main` deployment. Every pull request that changes `src/` or `vite.config.ts` gets its own at `https://sui.smyklot.com/pr-<number>`, linked from the pull request as the `preview` deployment. Only members of the `smykla-skalski` organization can open them.
+The kitchen sink of `main` is at `https://sui.tercenas.com`, redeployed on every push to `main` as the `main` deployment. Every pull request that changes `src/` or `vite.config.ts` gets its own at `https://sui.tercenas.com/pr-<number>`, linked from the pull request as the `preview` deployment. Only members of the `smykla-skalski` organization can open them.
 
 All of them share one Fly machine. [oauth2-proxy](https://oauth2-proxy.github.io/oauth2-proxy/) is the whole server: it signs visitors in with GitHub, checks the organization, and serves the static builds from a 1 GB volume. The machine stops when nobody looks, so the idle cost is the volume and the stopped root filesystem, about $0.20 a month. One build is about 1.3 MB.
 
@@ -10,7 +10,7 @@ The [Preview workflow](../.github/workflows/preview.yml) builds the site, with `
 
 Do this once.
 
-1. Create an OAuth app owned by the organization at <https://github.com/organizations/smykla-skalski/settings/applications/new>, with the homepage `https://sui.smyklot.com` and the callback `https://sui.smyklot.com/oauth2/callback`. It must be an OAuth app, not a GitHub App: oauth2-proxy checks the organization with `GET /user/orgs`, which [returns an empty list](https://docs.github.com/en/rest/orgs/orgs#list-organizations-for-the-authenticated-user) for GitHub App tokens. An app the organization owns is not held back by its third-party access policy.
+1. Create an OAuth app owned by the organization at <https://github.com/organizations/smykla-skalski/settings/applications/new>, with the homepage `https://sui.tercenas.com` and the callback `https://sui.tercenas.com/oauth2/callback`. It must be an OAuth app, not a GitHub App: oauth2-proxy checks the organization with `GET /user/orgs`, which [returns an empty list](https://docs.github.com/en/rest/orgs/orgs#list-organizations-for-the-authenticated-user) for GitHub App tokens. An app the organization owns is not held back by its third-party access policy.
 2. Create the Fly app, give it the OAuth app's credentials and a cookie secret, and deploy it:
 
    ```sh
@@ -22,11 +22,11 @@ Do this once.
    fly deploy preview --ha=false
    ```
 
-3. Point the domain at the app. `fly certs add` prints the records to create: `CNAME sui.smyklot.com -> sui-previews.fly.dev`, and the `_acme-challenge.sui.smyklot.com` `CNAME` that proves the domain is yours. Wait for `fly certs check` to report the certificate ready:
+3. Point the domain at the app. `fly certs add` prints the records to create: `CNAME sui.tercenas.com -> sui-previews.fly.dev`, and the `_acme-challenge.sui.tercenas.com` `CNAME` that proves the domain is yours. Wait for `fly certs check` to report the certificate ready:
 
    ```sh
-   fly certs add sui.smyklot.com --app sui-previews
-   fly certs check sui.smyklot.com --app sui-previews
+   fly certs add sui.tercenas.com --app sui-previews
+   fly certs check sui.tercenas.com --app sui-previews
    ```
 
 4. Give the workflow a deploy token that only reaches this app:
