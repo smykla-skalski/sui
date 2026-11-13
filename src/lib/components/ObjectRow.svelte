@@ -211,8 +211,10 @@ and the one above as a hovered row does, and under the pointer takes more of the
     }
 
     /* Every other row answers the pointer, so the open one does too, on a deeper share of its
-       own accent: never the grey of a hovered row, which would make it look like any other. */
-    .sui-object-row.current:has(> .sui-object-row-hit:hover:not(:active)) {
+       own accent: never the grey of a hovered row, which would make it look like any other.
+       Under keyboard focus the ring already marks the row, and the deeper share would take the
+       ring under 3:1 on an inset ground, so a focused row keeps its resting plate. */
+    .sui-object-row.current:has(> .sui-object-row-hit:hover:not(:active, :focus-visible)) {
       background-color: light-dark(
         color-mix(in srgb, var(--sui-brand-action) 30%, transparent),
         color-mix(in srgb, var(--sui-brand-action) 38%, transparent)

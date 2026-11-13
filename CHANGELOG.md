@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- A current `ObjectRow` under keyboard focus keeps its resting plate when the pointer rests on it, where the deeper hover plate took the focus ring to 2.87:1 on the light inset ground; the law audit checks the ring on every current plate (L-6).
 - The Empty & Error States page opens its filtered list emptied by the filter, so the example shows the empty state it names before anyone presses it.
 - The `ClippedLabel` page stands each label's name past its tip's reach, so an open tip, the identifier's two lines too, never covers the name.
 - The `PageToc` page lists History under Older Changes, the folded section it stands in.

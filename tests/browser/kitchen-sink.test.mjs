@@ -914,6 +914,31 @@ suite('the kitchen sink', together, () => {
     }
   });
 
+  test('L-6 the focus ring holds 3:1 on an open row the pointer rests on', async () => {
+    // The open row's deeper hover share took the ring to 2.87:1 on the light inset ground, so a
+    // row under keyboard focus keeps its resting plate while the pointer rests on it.
+    const page = await open(1440, 'light', {}, 'avatar');
+    try {
+      const row = page.locator('#avatar .sui-object-row.current');
+      await row.evaluate((node) =>
+        /** @type {HTMLElement | null} */ (node.closest('.list'))?.style.setProperty(
+          'background',
+          'var(--sui-surface-inset)'
+        )
+      );
+      await page.keyboard.press('Shift');
+      await row.locator('a').focus();
+      await row.locator('a').hover();
+      assert.equal(await row.locator('a').evaluate((link) => link.matches(':focus-visible')), true);
+      assert.deepEqual(
+        (await audit(page)).filter(({ law }) => law === 'L-6').map(({ detail }) => detail),
+        []
+      );
+    } finally {
+      await page.close();
+    }
+  });
+
   test('a picture draws the same before script runs as after, named once', async () => {
     // The server render with no script is the reader's first frame: there a picture that fails
     // draws nothing over its initials and their ring, and one that loads covers them, even

@@ -2436,6 +2436,22 @@ function fieldRecesses(root: Document): Finding[] {
 }
 
 /**
+ * A current row's plate is where a keyboard reader's ring lands (L-6), so the ring holds 3:1 on
+ * the plate as painted over whatever ground the list stands on.
+ */
+function ringsOnPlates(root: Document): Finding[] {
+  return audited(root, '.sui-object-row.current, .sui-page-toc-link[aria-current]').flatMap(
+    (row) => {
+      const ground = paintedGround(row);
+      const ratio = contrast(over(token('--sui-focus', row), ground), ground);
+      return ratio < 3
+        ? [finding('L-6', row, `the focus ring holds ${round(ratio)}:1 on the current plate`)]
+        : [];
+    }
+  );
+}
+
+/**
  * Where the reader is (L-85): a current navigation row stands apart from a resting peer by its
  * ink, 2:1 from the peer's, and by its plate, so it needs no ring or edge, and it draws none. A row
  * whose words may wrap keeps the peer's face, and every row holds a hidden copy of its words at
@@ -3837,6 +3853,7 @@ register(
   unsavedVeils,
   fieldRecesses,
   currentMarks,
+  ringsOnPlates,
   changedEdges,
   tonedControls,
   dialogInsets,
