@@ -6,6 +6,7 @@
   import {
     AppShell,
     ServiceWorkerStatus,
+    Select,
     SideNav,
     SkipLink,
     ThemeSwitch,
@@ -17,6 +18,7 @@
   import { exposeAudit } from '../audit/expose.js';
   import { glyphSnippet } from '../kit/glyphs';
   import { families } from '../kit/sections';
+  import { previewOf, previewOptions, previewUrl, type Preview } from './previews';
 
   let { children } = $props();
 
@@ -77,8 +79,30 @@
     heading.focus({ preventScroll: true });
   }
 
-  onMount(() => exposeAudit());
+  // Only a build deployed as a preview has a list of the previews to fetch.
+  let previews = $state<Preview[]>([]);
+  let here = $state('');
+  const choices = $derived(previewOptions(previews));
+
+  onMount(() => {
+    exposeAudit();
+    if (!import.meta.env.VITE_PREVIEWS) return;
+    here = previewOf(location.pathname);
+    fetch('/previews.json')
+      .then((response) => (response.ok ? response.json() : []))
+      .then((list: Preview[]) => (previews = list))
+      .catch(() => {});
+  });
 </script>
+
+{#snippet picker()}
+  <Select
+    aria-label="Preview"
+    value={here}
+    options={choices}
+    onchange={(event) => location.assign(previewUrl(event.currentTarget.value, location))}
+  />
+{/snippet}
 
 <SkipLink href="#content" />
 
@@ -94,6 +118,7 @@
       {current}
       scrollTargets={everything}
       onnavigate={follow}
+      head={choices.length ? picker : undefined}
     >
       {#snippet foot()}<ThemeSwitch system={false} />{/snippet}
     </SideNav>
