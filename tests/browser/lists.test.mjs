@@ -1219,6 +1219,63 @@ suite('lists', together, () => {
       }
     );
 
+    test(
+      "a focused code block that scrolls draws its ring's corners clear of its edge fade",
+      long,
+      async () => {
+        const page = await opened();
+        const block = page.locator('#code-block .sui-code-block-scroll[tabindex="0"]').first();
+        await block.scrollIntoViewIfNeeded();
+        await page.keyboard.press('Shift');
+        await block.focus();
+        const box = await block.evaluate(async (scroller) => {
+          scroller.scrollLeft = 0;
+          await new Promise((done) => requestAnimationFrame(() => requestAnimationFrame(done)));
+          return scroller.getBoundingClientRect().toJSON();
+        });
+        const shot = await page.screenshot({
+          clip: {
+            x: Math.round(box.x),
+            y: Math.round(box.y),
+            width: Math.round(box.width),
+            height: 6
+          }
+        });
+        // The top 6px of each end, where the ring bends round its corner over the padding: the
+        // end corner, where the fade runs at rest, must draw the start corner's arc mirrored.
+        const apart = await page.evaluate(
+          async (data) => {
+            const image = await createImageBitmap(await (await fetch(data)).blob());
+            const context = /** @type {OffscreenCanvasRenderingContext2D} */ (
+              new OffscreenCanvas(image.width, image.height).getContext('2d')
+            );
+            context.drawImage(image, 0, 0);
+            const start = context.getImageData(0, 0, 10, 6).data;
+            const end = context.getImageData(image.width - 10, 0, 10, 6).data;
+            let worst = 0;
+            for (let y = 0; y < 6; y++)
+              for (let x = 0; x < 10; x++) {
+                const a = (y * 10 + x) * 4;
+                const b = (y * 10 + (9 - x)) * 4;
+                // Only the ring's own pixels: past the arc the start corner shows the page and
+                // the end corner the block's ground beside its copy column, which also tints the
+                // arc's soft edge, so a faded arc reads about 400 apart and a whole one under 60.
+                if (Math.min(start[a], end[b]) > 160) continue;
+                worst = Math.max(
+                  worst,
+                  Math.abs(start[a] - end[b]) +
+                    Math.abs(start[a + 1] - end[b + 1]) +
+                    Math.abs(start[a + 2] - end[b + 2])
+                );
+              }
+            return worst;
+          },
+          `data:image/png;base64,${shot.toString('base64')}`
+        );
+        assert.ok(apart < 120, `the end corner's arc differs from the start's by ${apart}`);
+      }
+    );
+
     test('K6 a retried error that leaves no control keeps focus where it stood', long, async () => {
       const page = await opened();
       const retry = page

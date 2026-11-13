@@ -15,6 +15,7 @@
 - A failure's edge holds 3:1 on dark through the new `--sui-danger-wash-edge`, where it held 2.5:1, on an `ErrorState`, a `FormError` and a refused `Modal` save, and an `ErrorState overContent`'s line draws the same edge round its tint.
 - A `FormError` summary rings its focus after a pointer submit too, where only a keyboard submit drew the ring, so the reader sees where focus went.
 - The Relative Time page's In Context line reads its times in the primary ink over its muted words.
+- A focused box that scrolls sideways, such as a `CodeBlock`, a `DataTable` or `Tabs`, draws its focus ring's corners whole, where the end fade washed out the arc at the end corners.
 - The Empty & Error States page's recovered rows hold the failed panel's height, where the panels beside them shrank 32px once its retry succeeded.
 - The Relative Time page's In Context line keeps each clause whole when it wraps, where a phone parted "checked" from "again".
 - A `RelativeTime`'s dots stand 3px clear of a g or a y in 60% of the words' ink, where they touched the descenders at half the ink.
