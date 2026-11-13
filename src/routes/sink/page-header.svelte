@@ -142,11 +142,11 @@
 <Example
   title="Breadcrumb & Back Link"
   note="A breadcrumb or a back link takes the eyebrow’s place"
-  layout="pairs"
+  layout="stack"
   ground="canvas"
 >
   <Specimen label="Breadcrumb">
-    <div class="page pair">
+    <div class="page wide">
       <PageHeader
         level={4}
         title="Sync Schedule"
@@ -165,7 +165,7 @@
     </div>
   </Specimen>
   <Specimen label="Back link">
-    <div class="page pair">
+    <div class="page wide">
       <PageHeader level={4} title="Run 1842">
         {#snippet kicker()}<BackLink href="#page-header" label="All runs" />{/snippet}
       </PageHeader>
@@ -229,21 +229,6 @@
 
   .flip > :not(.shown) {
     visibility: hidden;
-  }
-
-  /* A pair runs across the inset a stacked stage lends, as a wide page does, and keeps its
-     own edges once the two stand side by side and no inset is lent. */
-  .pair {
-    margin-inline: calc(-1 * var(--sui-local-bleed, 0px));
-  }
-
-  @container sink-stage (max-width: 48.1875rem) {
-    .pair {
-      border-block-end: 0;
-      border-inline: 0;
-      border-radius: 0;
-      margin-block-end: calc(-1 * var(--sui-local-bleed, 0px));
-    }
   }
 
   /* The view under the header is the page's own content, so it wears the content's ink and
