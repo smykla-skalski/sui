@@ -314,6 +314,22 @@ suite('lists', together, () => {
       );
     });
 
+    test('a day feed keeps every time on the row end edge on a phone', async () => {
+      const page = await opened();
+      const ends = await page.evaluate(() =>
+        [...document.querySelectorAll('#day-heading .entries > li')].map((row) => {
+          const time = /** @type {Element} */ (row.querySelector('time')).getBoundingClientRect();
+          return Math.round(row.getBoundingClientRect().right - time.right);
+        })
+      );
+      assert.ok(ends.length >= 7, `only ${ends.length} entries`);
+      assert.deepEqual(
+        [...new Set(ends)],
+        [0],
+        `the times end ${ends.join(', ')}px from the row end`
+      );
+    });
+
     test('every empty and error state on the states page stands under its list heading', async () => {
       const page = await opened();
       const bare = await page.evaluate(() =>

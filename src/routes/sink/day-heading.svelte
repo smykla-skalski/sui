@@ -102,12 +102,13 @@
     padding: 0;
   }
 
+  /* Each time keeps the column at the row's end at every width, so the times read down one
+     edge; an entry too long for its line wraps its own words beside its time. */
   .entries > li {
     align-items: baseline;
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--sui-space-1) var(--sui-space-3);
-    justify-content: space-between;
+    column-gap: var(--sui-space-4);
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) max-content;
   }
 
   .what {
