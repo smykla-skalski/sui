@@ -116,13 +116,15 @@
             {#snippet action()}<Button tone="signal">Open Repository Settings</Button>{/snippet}
           </EmptyState>
         {:else}
-          <ObjectList aria-labelledby="sink-states-filtered">
-            {#each repositories as name (name)}
-              <ObjectRow>
-                {#snippet main()}<span class="name">{name}</span>{/snippet}
-              </ObjectRow>
-            {/each}
-          </ObjectList>
+          <div class="rows">
+            <ObjectList aria-labelledby="sink-states-filtered">
+              {#each repositories as name (name)}
+                <ObjectRow>
+                  {#snippet main()}<span class="name">{name}</span>{/snippet}
+                </ObjectRow>
+              {/each}
+            </ObjectList>
+          </div>
         {/if}
         <div>
           <Button onclick={() => (filtered = !filtered)}
@@ -264,8 +266,9 @@
     gap: var(--sui-space-4);
   }
 
-  /* The rows take focus once the retry succeeds, so the ring frames them whole: their reach past
-     the title's edge, and the last row's padding the list hands back to the section. */
+  /* Rows take back the last row's padding the list hands to the section, so a button under them
+     stands a row's pitch off, and recovered rows that take focus have a ring that frames them
+     whole, past the title's edge too. */
   .rows {
     border-radius: var(--sui-radius-control);
     margin-inline: calc(-1 * var(--sui-row-pad-default));
