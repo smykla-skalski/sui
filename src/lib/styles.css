@@ -473,6 +473,7 @@
      stands half a pixel under the words beside it, so its taller x-height matches theirs. */
   --sui-font-size-input-mono: 0.84375rem;
   --sui-font-size-title: 1rem;
+  --sui-font-size-initials-large: 1.125rem;
 
   --sui-font-size-card-title: 1.0625rem;
   --sui-font-size-dialog-title: 1.25rem;

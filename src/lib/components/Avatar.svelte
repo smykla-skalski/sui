@@ -156,7 +156,9 @@
 
   /* Initials snap to a type step instead of scaling with the circle, so every list
      carries the same weight at a given size. */
-  const step = $derived(size < 24 ? 'nano' : size < 32 ? 'micro' : size < 40 ? 'meta' : 'title');
+  const step = $derived(
+    size < 24 ? 'nano' : size < 32 ? 'micro' : size < 40 ? 'meta' : size < 44 ? 'title' : 'large'
+  );
 
   /* A workspace's corner follows its size, near 30% of it, through the radius scale: one
      flat radius reads as a squircle at 28px and a barely softened square at 48px. */
@@ -258,6 +260,11 @@ page runs. The initials' ink, not their advance or line, centres on the box.
 
   [data-step='meta'] {
     font-size: var(--sui-font-size-meta);
+  }
+
+  /* The title's 16px reads small in a mark 44px or wider. */
+  [data-step='large'] {
+    font-size: var(--sui-font-size-initials-large);
   }
 
   /* An svg's text is placed at fractions of a pixel, where a line's baseline lands on a whole
