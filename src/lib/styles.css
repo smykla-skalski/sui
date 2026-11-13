@@ -206,13 +206,13 @@
      the 2px ring (L-41). */
   --sui-focus-ring-edge: calc(var(--sui-focus-ring-width) - var(--sui-stroke));
   --sui-info: var(--sui-link);
-  --sui-info-tint: color-mix(in srgb, var(--sui-info) 8%, transparent);
+  --sui-info-tint: color-mix(in srgb, var(--sui-info) 9%, transparent);
   --sui-success: var(--sui-primitive-success-light);
-  --sui-success-tint: color-mix(in srgb, var(--sui-success) 8%, transparent);
+  --sui-success-tint: color-mix(in srgb, var(--sui-success) 9%, transparent);
   --sui-warning: var(--sui-primitive-warning-light);
-  --sui-warning-tint: color-mix(in srgb, var(--sui-warning) 8%, transparent);
+  --sui-warning-tint: color-mix(in srgb, var(--sui-warning) 9%, transparent);
   --sui-danger: var(--sui-primitive-danger-light);
-  --sui-danger-tint: color-mix(in srgb, var(--sui-danger) 8%, transparent);
+  --sui-danger-tint: color-mix(in srgb, var(--sui-danger) 9%, transparent);
   /* A stop button is one deep red with white words in both themes, as the accent fill is, so a
      destructive action reads the same on either ground (L-13). */
   --sui-danger-fill: var(--sui-primitive-danger-light);
@@ -243,7 +243,7 @@
     var(--sui-danger-fill-hover) 82%,
     var(--sui-text-primary)
   );
-  --sui-neutral-tint: color-mix(in srgb, var(--sui-text-secondary) 8%, transparent);
+  --sui-neutral-tint: color-mix(in srgb, var(--sui-text-secondary) 9%, transparent);
   /* A placeholder is a veil, so it reads the same on a card, the canvas or an inset, and the
      light that crosses it while it waits is a brighter veil over that. */
   --sui-placeholder: rgb(0 0 0 / 7%);
@@ -258,7 +258,7 @@
      starts and ends wholly outside a placeholder up to about 28rem tall. */
   --sui-placeholder-reach: 12rem;
 
-  --sui-role-tint: color-mix(in srgb, var(--sui-role-ink) 8%, transparent);
+  --sui-role-tint: color-mix(in srgb, var(--sui-role-ink) 9%, transparent);
   --sui-role-ink: #7a3fe0;
 
   --sui-interactive-hover-layer: rgb(0 0 0 / 9%);
