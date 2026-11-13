@@ -10,7 +10,6 @@
 - A painted `Chip`'s remove control rings its focus in the chip's ink, which holds 4.5:1 on the fill, where the focus blue held 1.55:1 on a violet chip.
 - A current `ObjectRow` under keyboard focus keeps its resting plate when the pointer rests on it, where the deeper hover plate took the focus ring to 2.87:1 on the light inset ground; the law audit checks the ring on every current plate (L-6).
 - The Empty & Error States page keeps its form examples to one 640px measure.
-- The `RelativeTime` page stands each time's name past its tip's reach, so an open tip never covers the names.
 - On a phone the kit's specimen rows stand 8px past their name gap, so a page that widens the gap for its tips still reads each name with the specimen under it.
 - A failed refresh's retry ends its line, spread by space-between rather than an auto margin, and wraps under its words on any line too narrow for both, and a `FormError` summary's message heads its links at 16px semibold. L-90 lets a row whose first item hangs a mark start a wrapped line on the words' edge.
 - A `PageToc` keeps room for a scrollbar only while it scrolls, so an index that fits ends its plates on its column's end, and on a phone its words start on the page's text edge, with its plates hanging 8px past it.
