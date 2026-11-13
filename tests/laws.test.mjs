@@ -1643,6 +1643,20 @@ test('L-58 a dialog drawn in place lifts softly in both themes, the dark one und
   );
 });
 
+test('a danger wash frames its failure in a quiet edge of the hue, 28% light and 36% dark, so the wash and the mark carry it', () => {
+  assert.deepEqual(
+    [...read('src/lib/styles.css').matchAll(/--sui-danger-wash-edge: ([^;]+);/g)].map(
+      ([, value]) => value
+    ),
+    [
+      'color-mix(in srgb, var(--sui-danger) 28%, #0000)',
+      'color-mix(in srgb, var(--sui-danger) 36%, #0000)',
+      'color-mix(in srgb, var(--sui-danger) 36%, #0000)'
+    ],
+    'the light block, then each dark block'
+  );
+});
+
 test("L-58 the band a line parts off sits on a faint tint of the field well, and a refused save's wash wears a form error's edge over it and half that edge under it", () => {
   const modal = read('src/lib/components/Modal.svelte');
   assert.match(

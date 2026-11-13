@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- A danger wash frames its failure in a quieter edge of the hue, 28% light and 36% dark where it stood at 40% and 50%, so the wash and the mark carry an error panel, a failed refresh, a form error and a refused save, and the edge no longer outweighs the page around it.
 - A `DayHeading` reads at the sub-section title tier, 15px semibold and 16px on a phone, a step over the 14px entries it heads, where it stood at their own size; a `Timeline`'s days take it too.
 - A `CodeBlock`'s file and language names read at the 13px caption size at every width, where 12px stood under the 14px code and copy words as small print.
 - A failed refresh over a list stands its mark and its retry 16px inside its edge, as a `FormError` does, where they stood 15px inside.
