@@ -440,6 +440,11 @@ test('L-59 a state panel pads 28px by 20px, 20px on a phone, its action a step u
     /\.sui-error-state-title \{[^}]*color: var\(--sui-text-primary\);/,
     'the mark, edge and wash carry the failure, so its title reads in the primary ink'
   );
+  assert.match(
+    stripComments(styles['src/lib/components/DayHeading.svelte']),
+    /\.sui-day-heading \{[^}]*color: var\(--sui-text-primary\);/,
+    'a day heading heads its entries in their own primary ink, not under them in the secondary'
+  );
   const table = stripComments(styles['src/lib/components/DataTable.svelte']);
   const refusal = stripComments(styles['src/lib/components/FormError.svelte']);
   assert.deepEqual(
