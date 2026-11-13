@@ -80,6 +80,7 @@
   title="Parts"
   note="A title with its description, a count and actions on its cap band, with no frame, ground or line"
   layout="grid"
+  --specimen-column-gap="calc(2 * var(--sui-space-6))"
   ground="canvas"
 >
   <Specimen label="Title & description">
