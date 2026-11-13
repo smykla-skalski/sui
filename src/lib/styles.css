@@ -206,13 +206,13 @@
      the 2px ring (L-41). */
   --sui-focus-ring-edge: calc(var(--sui-focus-ring-width) - var(--sui-stroke));
   --sui-info: var(--sui-link);
-  --sui-info-tint: color-mix(in srgb, var(--sui-info) 9%, transparent);
+  --sui-info-tint: color-mix(in srgb, var(--sui-info) 9%, var(--sui-surface-base));
   --sui-success: var(--sui-primitive-success-light);
-  --sui-success-tint: color-mix(in srgb, var(--sui-success) 9%, transparent);
+  --sui-success-tint: color-mix(in srgb, var(--sui-success) 9%, var(--sui-surface-base));
   --sui-warning: var(--sui-primitive-warning-light);
-  --sui-warning-tint: color-mix(in srgb, var(--sui-warning) 9%, transparent);
+  --sui-warning-tint: color-mix(in srgb, var(--sui-warning) 9%, var(--sui-surface-base));
   --sui-danger: var(--sui-primitive-danger-light);
-  --sui-danger-tint: color-mix(in srgb, var(--sui-danger) 9%, transparent);
+  --sui-danger-tint: color-mix(in srgb, var(--sui-danger) 9%, var(--sui-surface-base));
   /* A stop button is one deep red with white words in both themes, as the accent fill is, so a
      destructive action reads the same on either ground (L-13). */
   --sui-danger-fill: var(--sui-primitive-danger-light);
@@ -243,7 +243,7 @@
     var(--sui-danger-fill-hover) 82%,
     var(--sui-text-primary)
   );
-  --sui-neutral-tint: color-mix(in srgb, var(--sui-text-secondary) 9%, transparent);
+  --sui-neutral-tint: color-mix(in srgb, var(--sui-text-secondary) 9%, var(--sui-surface-base));
   /* A placeholder is a veil, so it reads the same on a card, the canvas or an inset, and the
      light that crosses it while it waits is a brighter veil over that. */
   --sui-placeholder: rgb(0 0 0 / 7%);
@@ -258,7 +258,7 @@
      starts and ends wholly outside a placeholder up to about 28rem tall. */
   --sui-placeholder-reach: 12rem;
 
-  --sui-role-tint: color-mix(in srgb, var(--sui-role-ink) 9%, transparent);
+  --sui-role-tint: color-mix(in srgb, var(--sui-role-ink) 9%, var(--sui-surface-base));
   --sui-role-ink: #7a3fe0;
 
   --sui-interactive-hover-layer: rgb(0 0 0 / 9%);
@@ -759,14 +759,14 @@
      ring takes the brand's light blue. */
   --sui-focus: var(--sui-primitive-ocean-200);
   --sui-info: var(--sui-link);
-  --sui-info-tint: color-mix(in srgb, var(--sui-info) 16%, transparent);
+  --sui-info-tint: color-mix(in srgb, var(--sui-info) 10%, var(--sui-surface-base));
   --sui-success: var(--sui-primitive-success-dark);
-  --sui-success-tint: color-mix(in srgb, var(--sui-success) 16%, transparent);
+  --sui-success-tint: color-mix(in srgb, var(--sui-success) 10%, var(--sui-surface-base));
   --sui-warning: var(--sui-primitive-warning-dark);
-  --sui-warning-tint: color-mix(in srgb, var(--sui-warning) 16%, transparent);
+  --sui-warning-tint: color-mix(in srgb, var(--sui-warning) 10%, var(--sui-surface-base));
   --sui-danger: var(--sui-primitive-danger-dark);
   --sui-focus-danger: var(--sui-danger-edge);
-  --sui-danger-tint: color-mix(in srgb, var(--sui-danger) 16%, transparent);
+  --sui-danger-tint: color-mix(in srgb, var(--sui-danger) 10%, var(--sui-surface-base));
   --sui-danger-fill: var(--sui-primitive-danger-light);
   --sui-danger-fill-hover: color-mix(in srgb, var(--sui-danger-fill), var(--sui-danger) 18%);
   --sui-on-danger: #ffffff;
@@ -796,7 +796,7 @@
   --sui-danger-hover-layer: color-mix(in srgb, var(--sui-danger) 12%, transparent);
   --sui-field-danger-hover: color-mix(in srgb, var(--sui-danger) 6%, transparent);
   --sui-danger-pressed: color-mix(in srgb, var(--sui-danger-fill) 82%, #000000);
-  --sui-neutral-tint: color-mix(in srgb, var(--sui-text-secondary) 16%, transparent);
+  --sui-neutral-tint: color-mix(in srgb, var(--sui-text-secondary) 10%, var(--sui-surface-base));
   --sui-placeholder: rgb(255 255 255 / 7%);
   --sui-placeholder-glint: rgb(255 255 255 / 10%);
   --sui-placeholder-sheen: linear-gradient(
@@ -805,7 +805,7 @@
     var(--sui-placeholder-glint) 50%,
     transparent calc(50% + min(5rem, 10%))
   );
-  --sui-role-tint: color-mix(in srgb, var(--sui-role-ink) 16%, transparent);
+  --sui-role-tint: color-mix(in srgb, var(--sui-role-ink) 10%, var(--sui-surface-base));
   --sui-role-ink: #c9a6ff;
 
   --sui-interactive-hover-layer: rgb(255 255 255 / 8.5%);
@@ -1015,14 +1015,14 @@
     --sui-on-decision-accent: #0c0e11;
     --sui-focus: var(--sui-primitive-ocean-200);
     --sui-info: var(--sui-link);
-    --sui-info-tint: color-mix(in srgb, var(--sui-info) 16%, transparent);
+    --sui-info-tint: color-mix(in srgb, var(--sui-info) 10%, var(--sui-surface-base));
     --sui-success: var(--sui-primitive-success-dark);
-    --sui-success-tint: color-mix(in srgb, var(--sui-success) 16%, transparent);
+    --sui-success-tint: color-mix(in srgb, var(--sui-success) 10%, var(--sui-surface-base));
     --sui-warning: var(--sui-primitive-warning-dark);
-    --sui-warning-tint: color-mix(in srgb, var(--sui-warning) 16%, transparent);
+    --sui-warning-tint: color-mix(in srgb, var(--sui-warning) 10%, var(--sui-surface-base));
     --sui-danger: var(--sui-primitive-danger-dark);
     --sui-focus-danger: var(--sui-danger-edge);
-    --sui-danger-tint: color-mix(in srgb, var(--sui-danger) 16%, transparent);
+    --sui-danger-tint: color-mix(in srgb, var(--sui-danger) 10%, var(--sui-surface-base));
     --sui-danger-fill: var(--sui-primitive-danger-light);
     --sui-danger-fill-hover: color-mix(in srgb, var(--sui-danger-fill), var(--sui-danger) 18%);
     --sui-on-danger: #ffffff;
@@ -1050,7 +1050,7 @@
     --sui-danger-hover-layer: color-mix(in srgb, var(--sui-danger) 12%, transparent);
     --sui-field-danger-hover: color-mix(in srgb, var(--sui-danger) 6%, transparent);
     --sui-danger-pressed: color-mix(in srgb, var(--sui-danger-fill) 82%, #000000);
-    --sui-neutral-tint: color-mix(in srgb, var(--sui-text-secondary) 16%, transparent);
+    --sui-neutral-tint: color-mix(in srgb, var(--sui-text-secondary) 10%, var(--sui-surface-base));
     --sui-placeholder: rgb(255 255 255 / 7%);
     --sui-placeholder-glint: rgb(255 255 255 / 10%);
     --sui-placeholder-sheen: linear-gradient(
@@ -1059,7 +1059,7 @@
       var(--sui-placeholder-glint) 50%,
       transparent calc(50% + min(5rem, 10%))
     );
-    --sui-role-tint: color-mix(in srgb, var(--sui-role-ink) 16%, transparent);
+    --sui-role-tint: color-mix(in srgb, var(--sui-role-ink) 10%, var(--sui-surface-base));
     --sui-role-ink: #c9a6ff;
 
     --sui-interactive-hover-layer: rgb(255 255 255 / 8.5%);

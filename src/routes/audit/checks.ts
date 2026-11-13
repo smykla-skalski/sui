@@ -225,19 +225,6 @@ function palette(): Finding[] {
   ])
     found.push(...atLeast('L-5', `${ink} on ${ground}`, c(ink, ground), 4.5));
 
-  // A tint lets its ground show through, so a pill or a chip on the darker canvas holds too.
-  for (const [tone, tint] of [
-    ['info', 'info-tint'],
-    ['success', 'success-tint'],
-    ['warning', 'warning-tint'],
-    ['danger', 'danger-tint'],
-    ['role-ink', 'role-tint'],
-    ['text-secondary', 'neutral-tint']
-  ]) {
-    const ground = over(t(tint), t('canvas'));
-    found.push(...atLeast('L-5', `${tone} on ${tint} over canvas`, contrast(t(tone), ground), 4.5));
-  }
-
   // APCA reads a light ink on a dark ground as it is seen, where WCAG 2 overrates it, so each
   // pair also holds an APCA floor: Lc 75 for the body ink, Lc 60 for every other word.
   const lc = (a: string, b: string) => {
@@ -254,6 +241,22 @@ function palette(): Finding[] {
     found.push(
       ...atLeast('L-5', `text-primary on ${ground} in APCA`, lc('text-primary', ground), 75)
     );
+  // A tone's tint is opaque, so a pill or a chip reads the same on a card, the canvas or a
+  // current row's plate, and its ink holds both floors on it in each theme.
+  for (const [tone, tint] of [
+    ['info', 'info-tint'],
+    ['success', 'success-tint'],
+    ['warning', 'warning-tint'],
+    ['danger', 'danger-tint'],
+    ['role-ink', 'role-tint'],
+    ['text-secondary', 'neutral-tint']
+  ]) {
+    if (t(tint).a < 1) found.push(finding('L-5', null, `${tint} lets the ground under it show`));
+    found.push(
+      ...atLeast('L-5', `${tone} on ${tint}`, c(tone, tint), 4.5),
+      ...atLeast('L-5', `${tone} on ${tint} in APCA`, lc(tone, tint), 60)
+    );
+  }
   for (const ink of [
     'text-secondary',
     'text-muted',
