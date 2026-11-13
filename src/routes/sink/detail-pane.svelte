@@ -15,6 +15,9 @@
 
   const source = 'src/routes/layouts/detail-pane/[[state]]/+page.svelte';
   const pane = (state?: string) => resolve('/layouts/detail-pane/[[state]]', { state }) + '/';
+  // A loaded pane, scaled into a desktop stage, stands about 47rem tall, so its frame shows it
+  // whole there and down to its repositories on a phone; a missing check is a header and one
+  // message, about 13rem.
 </script>
 
 <Example
@@ -25,7 +28,7 @@
   code={false}
 >
   <Specimen label="Loaded">
-    <LayoutPreview href={pane()} {source} title="Detail pane page" />
+    <LayoutPreview --preview-height="48rem" href={pane()} {source} title="Detail pane page" />
   </Specimen>
 </Example>
 
@@ -49,7 +52,12 @@
   code={false}
 >
   <Specimen label="Missing">
-    <LayoutPreview href={pane('missing')} {source} title="Detail pane page for a missing check" />
+    <LayoutPreview
+      --preview-height="18rem"
+      href={pane('missing')}
+      {source}
+      title="Detail pane page for a missing check"
+    />
   </Specimen>
 </Example>
 
@@ -61,7 +69,12 @@
   code={false}
 >
   <Specimen label="Stale content">
-    <LayoutPreview href={pane('stale')} {source} title="Detail pane page after a failed refresh" />
+    <LayoutPreview
+      --preview-height="48rem"
+      href={pane('stale')}
+      {source}
+      title="Detail pane page after a failed refresh"
+    />
   </Specimen>
 </Example>
 

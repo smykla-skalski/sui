@@ -122,9 +122,11 @@ and bars stay inside it. The kitchen sink never draws a shell inline.
     min-inline-size: 0;
   }
 
+  /* A page sets `--preview-height` on a preview whose state stands taller or shorter than
+     36rem once scaled, so the frame shows that state's content and no empty room under it. */
   .screen {
     background: var(--sui-canvas);
-    block-size: 36rem;
+    block-size: var(--preview-height, 36rem);
     border: var(--sui-stroke) solid var(--sui-border-subtle);
     border-radius: var(--sui-radius-surface);
     box-sizing: border-box;
