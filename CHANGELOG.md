@@ -41,6 +41,7 @@
 - A `SideNav` drawer's close draws a dialog close's 18px glyph in the secondary ink, so the way out reads beside the place's name.
 - A `LinkList` on a phone steps its links one 44px target apart, so a short list keeps a row's pitch instead of a gap that reads as a missing link.
 - A `Disclosure` hint in a right-to-left page keeps its room at the summary's end, so a hint in another script no longer starts its wrapped line 32px off the summary's edge.
+- A `PageHeader` on a phone, or 36rem wide or narrower, stands its facts 20px under the description, where they take a line each, and its stacked actions 12px under the copy, as its docs say, so a phone's first screen keeps more of the work. A compact `Callout` centres its symbol in a full tile's 2rem slot, so its words start where a full callout's do.
 - A `Section` takes `count={null}` while its number loads: a placeholder of a two-digit count's size holds the count's seat, and the heading is named by its title alone until the number arrives.
 - A `Disclosure` summary keeps its hint beside its words only with 32px to spare after it, and stands it under them otherwise, so a narrow aside or a phone never runs the two edge to edge as one line.
 - A folded `SideNav` draws its pages' glyphs at the 18px tier of a rail's places, so the one folded column holds one glyph size.

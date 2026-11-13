@@ -73,7 +73,8 @@ to share its line with it puts it 12px under its last line, nearer
 than the description, since it is part of the heading. It sits in a polite status region that is there from the
 first render, so a change of state is said once, without moving focus, and a render that
 leaves it alone says nothing. `facts` are two to five headline facts, an inline `FactList`,
-24px of ink under the description, further than the description stands under the title, so
+24px of ink under the description, 20px on a phone or in a header 36rem wide or narrower,
+where they stand a line each, further than the description stands under the title, so
 they read as a group of their own and never as one more line of the description, and the
 band's gutter also reaches their ink.
 
@@ -311,7 +312,7 @@ and the header owes only the difference. A holder that hides the kicker at some 
     > .sui-page-header-copy
     > .sui-page-header-description
     + .sui-page-header-facts {
-    margin-block-start: var(--sui-space-6);
+    margin-block-start: var(--sui-local-head-facts, var(--sui-space-6));
   }
 
   .sui-page-header-description {
@@ -389,6 +390,13 @@ and the header owes only the difference. A holder that hides the kicker at some 
       text-wrap: pretty;
     }
 
+    /* The facts stand a line each here, so they stand twice a description's 10px line gap
+       under it, still a group of their own, and a phone's first screen keeps room for the
+       work. */
+    .sui-page-header-copy {
+      --sui-local-head-facts: var(--sui-space-5);
+    }
+
     .sui-page-header-title,
     .sui-page-header-heading,
     .sui-page-header-actions {
@@ -441,6 +449,10 @@ and the header owes only the difference. A holder that hides the kicker at some 
     .sui-page-header-title {
       letter-spacing: -0.015em;
       text-wrap: pretty;
+    }
+
+    .sui-page-header-copy {
+      --sui-local-head-facts: var(--sui-space-5);
     }
 
     .sui-page-header-layout {

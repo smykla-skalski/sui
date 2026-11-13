@@ -256,7 +256,10 @@
              arrives, and its pill's place is held beside the title. -->
         {#snippet status()}<span class="chip" aria-hidden="true"></span>{/snippet}
         {#snippet facts()}
-          <div class="from-ink one-line">{@render wait(2, '2.25rem')}</div>
+          <!-- A line's pitch is the facts gap over the 12px of a line's own room. -->
+          <div class="from-ink one-line">
+            {@render wait(2, 'calc(var(--sui-local-head-facts, var(--sui-space-6)) + 0.75rem)')}
+          </div>
           <div class="from-ink two-lines">
             {@render wait(2, '1.375rem')}
             <div class="fact-lines">{@render wait(1, '2.125rem')}</div>
@@ -363,7 +366,7 @@
                compact line, so the warning about the check itself still leads. -->
           <Callout compact>
             {#snippet icon()}<Icon name="refresh" size="sm" />{/snippet}
-            The check could not refresh, so this is what loaded a minute ago
+            Could not refresh, showing what loaded a minute ago
             {#snippet actions()}
               <Button loading={refreshing} onclick={refresh}>
                 {refreshing ? 'Reloading…' : 'Reload'}
@@ -546,10 +549,11 @@
     margin-block-end: 1px;
   }
 
-  /* The facts' line holds the time's 44px target, so it stands 24px of ink under the
-     description; the facts end at their words, so the target's room under them is not kept. */
+  /* The facts' line holds the time's 44px target, so it stands the header's facts gap of ink
+     under the description, 24px or a narrow header's 20px; the facts end at their words, so
+     the target's room under them is not kept. */
   .fact-lines {
-    margin-block: calc(var(--sui-space-6) + 1px) 1px;
+    margin-block: calc(var(--sui-local-head-facts, var(--sui-space-6)) + 1px) 1px;
   }
 
   /* The Load More line stands under the last row's hairline, its words at the start and its

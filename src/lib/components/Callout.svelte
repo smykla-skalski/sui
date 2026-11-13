@@ -107,8 +107,9 @@ and every other action keeps the default tone.
 
 `compact` is a strip for a notice about the whole page, such as data shown stale, that must
 not push the page down as far as a message about the work does: no title, its symbol bare
-at 16px in the ink of its words, and its band only as tall as its quiet-tier actions, so one
-line of it stands 40px tall.
+at 16px in the ink of its words, centred in a full tile's 2rem slot so its words start where
+a full callout's do, and its band only as tall as its quiet-tier actions, so one line of it
+stands 40px tall.
 
 The icon stands in a 2rem tile of the callout's tone and draws at 18px whatever tier the caller
 asked for. Copy shorter than the tile centres on it; longer copy starts at the tile's top. The
@@ -357,12 +358,10 @@ and the unsaved ink, so no neutral block sits on a state (L-92).
     padding-block: calc(var(--sui-space-1) + var(--sui-stroke));
   }
 
+  /* The symbol keeps a full tile's 2rem slot, so the strip's words start on the edge a full
+     callout's words do, and a strip over a warning shares one text edge with it. */
   .compact .sui-callout-inner:has(> .sui-callout-message > .sui-callout-icon) {
-    --sui-callout-indent: calc(var(--sui-icon-base) + var(--sui-space-2));
-  }
-
-  .compact .sui-callout-message {
-    gap: var(--sui-space-2);
+    --sui-callout-indent: calc(var(--sui-space-8) + var(--sui-space-3));
   }
 
   .compact .sui-callout-icon {
@@ -371,7 +370,7 @@ and the unsaved ink, so no neutral block sits on a state (L-92).
     --sui-icon-xs: var(--sui-icon-base);
     background: none;
     color: inherit;
-    inline-size: var(--sui-icon-base);
+    inline-size: var(--sui-space-8);
   }
 
   @media (max-width: 47.9375rem), (pointer: coarse) {

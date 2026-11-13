@@ -2728,9 +2728,13 @@ function symbolTiles(root: Document): Finding[] {
     if (bare) {
       if (rgba(getComputedStyle(tile).backgroundColor).a > 0)
         found.push(finding('L-56', tile, "a compact callout's symbol stands on a tile"));
-      if (Math.abs(box.width - 16) > 0.5 || (glyph && Math.abs(glyph.width - 16) > 0.5))
+      if (glyph && Math.abs(glyph.width - 16) > 0.5)
         found.push(
-          finding('L-56', tile, `the bare symbol draws at ${round(box.width)}px, not 16px`)
+          finding('L-56', tile, `the bare symbol draws at ${round(glyph.width)}px, not 16px`)
+        );
+      if (Math.abs(box.width - 2 * rem) > 0.5)
+        found.push(
+          finding('L-56', tile, `the bare symbol's slot is ${round(box.width)}px, not 2rem`)
         );
     } else {
       const side = tile.matches('.sui-toast-mark') ? 1.75 : 2;
