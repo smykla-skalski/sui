@@ -685,7 +685,13 @@ test('L-55 a specimen name stands a step past a field gap over its specimen, clo
   const widened = svelteFiles
     .filter((path) => path.startsWith('src/routes/sink/'))
     .filter((path) => read(path).includes('--specimen-caption-gap='));
-  assert.deepEqual(widened, ['src/routes/sink/overlays.svelte'], 'only live tips widen a name gap');
+  assert.ok(widened.length > 0);
+  for (const path of widened)
+    assert.match(
+      read(path),
+      /<(?:Tooltip|ClippedLabel)\b/,
+      `${path} widens a name gap with no live tip`
+    );
   assert.match(
     specimen,
     /figcaption \{[^}]*var\(--sui-weight-regular\) var\(--sui-font-size-caption\)/
