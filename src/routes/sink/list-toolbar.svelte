@@ -160,7 +160,7 @@
     {#if rows.length > 0}
       <ObjectList>
         {#each rows as repository (repository.name)}
-          <ObjectRow href="#{repository.name}">
+          <ObjectRow href="#list-toolbar">
             {#snippet main()}
               <span class="name">{repository.name}</span>
               <span class="sum">Updated {repository.updated}&nbsp;days ago</span>

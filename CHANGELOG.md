@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- The `ListToolbar` page's rows link to the page's own example, as the other kit pages' rows do, where they named fragments that no part of the page carries.
 - A `ListDetail` beside its list gives the open item's `PageHeader` the compact 24px title, as a phone does, so the pane's header no longer outweighs the list. The list-detail layout sets a step's time in the sans face, so its unit stands a word's space from the number.
 - The `Chip` page's small removable chip leaves when its remove is pressed, as the chips beside it do, where its remove did nothing.
 - The `ListToolbar` page's Parts bars share one search label, so their fields start on one edge.
