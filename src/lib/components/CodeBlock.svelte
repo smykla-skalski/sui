@@ -347,6 +347,7 @@ from the corner and centred on the first line, or in the file name's row when th
      code takes the whole width under it. */
   @media (max-width: 47.9375rem) {
     .sui-code-block:not(.labelled) > .sui-code-block-copy {
+      box-sizing: border-box;
       flex-basis: 100%;
       justify-content: flex-end;
       margin-block-start: 0;

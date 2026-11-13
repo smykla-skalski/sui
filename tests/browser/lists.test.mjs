@@ -314,6 +314,35 @@ suite('lists', together, () => {
       );
     });
 
+    test('on a phone a code block heads its copy control inside its edge and gives its code the whole width', async () => {
+      const page = await opened();
+      const blocks = await page.evaluate(() =>
+        [...document.querySelectorAll('#code-block .sui-code-block:not(.labelled)')].map(
+          (block) => {
+            const box = block.getBoundingClientRect();
+            const copy = block.querySelector('.sui-code-block-copy');
+            const control = copy?.querySelector('button')?.getBoundingClientRect();
+            const code = /** @type {Element} */ (
+              block.querySelector('pre')
+            ).getBoundingClientRect();
+            return {
+              copy: copy !== null,
+              past: control ? control.right - box.right : 0,
+              above: control ? code.top - control.bottom : 0,
+              spare: box.width - code.width
+            };
+          }
+        )
+      );
+      const copied = blocks.filter((block) => block.copy);
+      assert.ok(copied.length > 0, 'the section shows no code block with a copy control');
+      for (const block of copied) {
+        assert.ok(block.past <= -8, `a copy control ends ${block.past}px from its block's edge`);
+        assert.ok(block.above >= 0, `a copy control reaches ${-block.above}px into the code`);
+        assert.ok(block.spare <= 2, `the code leaves ${block.spare}px of its block's width`);
+      }
+    });
+
     // The choice's name stays 14px on a phone, so its note keeps the type step under it (L-25).
     test('an addition choice keeps its note a type step under its name on a phone', async () => {
       const page = await opened();
