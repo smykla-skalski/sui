@@ -183,7 +183,7 @@
     {@render pane()}
   </Specimen>
   <Specimen label="In 30 rem">
-    <div class="narrow">{@render pane()}</div>
+    <div class="narrow section-narrow-pane">{@render pane()}</div>
   </Specimen>
 </Example>
 
@@ -214,7 +214,7 @@
 
   /* A stage of 30rem or less already shows the narrow pane, so the second one would repeat it. */
   @container sink-stage (max-width: 30rem) {
-    :global(.specimen:has(> .body > .narrow)) {
+    :global(.specimen:has(> .body > .section-narrow-pane)) {
       display: none;
     }
   }
