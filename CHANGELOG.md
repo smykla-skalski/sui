@@ -8,7 +8,7 @@
 - A disabled painted `Chip` on the dark theme keeps 5% of its color over the well, where it kept 10%, so a pale label no longer stands brighter than the other disabled chips.
 - A removable `Chip` on a phone is drawn 34px tall, where it grew to 44px, and keeps its 44px target over its own value and a 5px margin, so wrapped chips' targets still never overlap.
 - A `Chip`'s remove control draws its focus ring inside itself, where the ring's outer side fell on the chip's edge as a double line.
-- An `ObjectRow`'s focus ring stands 1px inside the row, where it ran along the row's edge, so it never meets the hover or current plate of the row beside it.
+- An `ObjectRow`'s grounds stop a pixel short of its top and bottom, so the open row's plate and a hovered neighbour's keep a 2px seam of the page between them, and its focus ring rides the edge of its own ground, where the plates met as one block in two tones and the ring ran along the row's edge.
 - A `ListDetail` with nothing open keeps its empty state at most 32rem wide at the pane's start, where it ran across the whole pane as a banner.
 - A `ListToolbar` stands its groups 20px apart on a line, where they stood 12px apart, so the choice named beside the tools button reads as the button's and not as the action's.
 - The `ListToolbar` page's rows link to the page's own example, as the other kit pages' rows do, where they named fragments that no part of the page carries.
