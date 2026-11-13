@@ -195,14 +195,17 @@ tooltip.
     cursor: help;
   }
 
-  /* Hover draws the dots in the words' full ink over a faint accent veil in the focus ring's
-     box, and only nudges the words, so the time answers the pointer plainly and the reading
-     stays in its sentence. */
+  /* Hover draws the dots in the words' full ink over a faint accent veil spread to the focus
+     ring's outer edge, so hover and focus mark one box, and only nudges the words, so the time
+     answers the pointer plainly and the reading stays in its sentence. */
   @media (hover: hover) {
     .sui-relative-time:not(.exact):hover {
       --sui-local-dot: currentColor;
-      background: color-mix(in srgb, var(--sui-focus) 8%, transparent);
+      --sui-local-veil: color-mix(in srgb, var(--sui-focus) 8%, transparent);
+      background: var(--sui-local-veil);
       border-radius: var(--sui-radius-chip);
+      box-shadow: 0 0 0 calc(var(--sui-focus-ring-offset) + var(--sui-focus-ring-width))
+        var(--sui-local-veil);
       color: color-mix(in oklab, currentColor 75%, var(--sui-text-primary));
     }
   }

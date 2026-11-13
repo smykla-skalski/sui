@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- A hovered `RelativeTime` spreads its veil to the focus ring's outer edge, so hover and focus mark one box.
 - An `ErrorState overContent`'s retry ends its line on a wide screen, where it stood 12px after the words, and on a phone it still wraps to the row's start.
 - The `PageToc` page ends its index on the frame's inset, as a documentation page sets it, where it stood 32px off the text with 98px of empty frame after it.
 - A heading a `PageToc` entry or a `ListDetail` lands on sets its ring a pixel past its descent, where the ring crossed a g or a y, and a `PageHeader` title takes the same ring.
