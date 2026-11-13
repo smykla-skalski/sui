@@ -532,9 +532,9 @@
   );
   --sui-radius-dialog: 14px;
   --sui-radius-check: 5px;
-  /* A placeholder for a line of words rounds like Radix Themes' text skeleton, so it reads as
-     words to come, while a bar for a pill keeps the pill's round ends. */
-  --sui-radius-placeholder: 3px;
+  /* What hugs a line of words, a text placeholder or a landed heading's ring, reads as words,
+     not a control. A pill's bar keeps its round ends. */
+  --sui-radius-words: 3px;
   /* A 40px workspace mark's corner, 30% of its side (L-53). */
   --sui-radius-mark-large: 12px;
 
@@ -1357,6 +1357,7 @@
 }
 
 :where(h1, h2, h3, h4, h5, h6)[data-sui-landed]:focus-visible {
+  border-radius: var(--sui-radius-words);
   inline-size: fit-content;
   max-inline-size: 100%;
   outline-offset: var(--sui-space-1);

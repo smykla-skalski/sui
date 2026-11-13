@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- A heading focus lands on, as a `PageToc` link or a `ListDetail` move takes it there, wears the focus ring at 3px (`--sui-radius-words`), the corner a line of words takes, where the chip's 6px read as a small control.
 - The `LoadMore` page sets its four states two to a line, where three narrow columns left the whole list alone on a second row and wrapped a failure's Try Again under its reason.
 - A `LoadMore` button keeps one width as it turns from Load More to loading to Try Again, the room its loading words take, where each state drew its own width.
 - An `Avatar` with no name takes its letter from the handle after a leading @, so `@ada` gives A, where it drew the @.
