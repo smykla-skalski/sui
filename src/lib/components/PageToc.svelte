@@ -512,10 +512,12 @@ phone drawer, and following an entry closes the drawer before focus moves.
     }
   }
 
-  /* On a phone the index stands over the page and never sticks, so it needs no end room. */
+  /* On a phone the index stands over the page and never sticks, so it needs no end room, under
+     it or beside it for a scrollbar, and its rows end where the page's lines end. */
   @media (max-width: 47.9375rem) {
     .sui-page-toc {
       padding-block-end: 0;
+      padding-inline-end: 0;
     }
   }
 
