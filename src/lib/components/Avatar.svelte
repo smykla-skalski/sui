@@ -163,13 +163,15 @@
   const corner = $derived(
     shape === 'person'
       ? undefined
-      : size < 30
-        ? 'control'
-        : size < 36
-          ? 'surface'
-          : size < 44
-            ? 'popover'
-            : 'dialog'
+      : size < 24
+        ? 'chip'
+        : size < 30
+          ? 'control'
+          : size < 36
+            ? 'surface'
+            : size < 44
+              ? 'popover'
+              : 'dialog'
   );
 </script>
 
@@ -227,6 +229,10 @@ page runs. The initials' ink, not their advance or line, centres on the box.
       var(--sui-sans);
     grid-template: minmax(0, 1fr) / minmax(0, 1fr);
     inline-size: var(--sui-avatar-size);
+  }
+
+  [data-corner='chip'] {
+    border-radius: var(--sui-radius-chip);
   }
 
   [data-corner='control'] {

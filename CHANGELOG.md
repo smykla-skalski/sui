@@ -9,6 +9,8 @@
 - A removable `Chip` on a phone is drawn 34px tall, where it grew to 44px, a small one at the default chip's type size, and keeps its 44px target over its own value and a 5px margin, so wrapped chips' targets still never overlap.
 - A `Chip`'s remove control draws its focus ring inside itself, where the ring's outer side fell on the chip's edge as a double line.
 - The `Skeleton` page's First Load puts its button in the list's head, beside the title it reloads.
+- A 20px workspace `Avatar` rounds its corner 6px, the chip radius, near the 30% of its size the larger ones keep, where 8px read as a squircle.
+- The `Avatar` page sets each picture beside the same avatar whose picture does not load, and shows the question mark an avatar with no name or handle draws.
 - A slow `Skeleton`'s title and every row's first bar take the body size a row's name is set at, so the title reads as the name it stands for and the bar is one of its caps tall.
 - A placeholder bar on the dark theme is 10% white, where it was 7%, so a waiting list's bars hold their place beside its words.
 - The `Skeleton` page's loaded rows carry the side their placeholders promise, so the rows take the shape the bars held.
