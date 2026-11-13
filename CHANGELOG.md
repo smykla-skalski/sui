@@ -12,7 +12,7 @@
 - The `RelativeTime` page stands each time's name past its tip's reach, so an open tip never covers the names.
 - An `EmptyState` or `ErrorState` panel's title is 16px 600, a step under the section that holds it, as a failed refresh's line was (L-25). The Empty & Error States page keeps its form examples to one 640px measure.
 - On a phone the kit's specimen rows stand 8px past their name gap, so a page that widens the gap for its tips still reads each name with the specimen under it.
-- A failed refresh's retry wraps under its words on a phone, and a `FormError` summary's message heads its links at 16px semibold. L-90 lets a row whose first item hangs a mark start a wrapped line on the words' edge.
+- A failed refresh's retry ends its line, spread by space-between rather than an auto margin, and wraps under its words on any line too narrow for both, and a `FormError` summary's message heads its links at 16px semibold. L-90 lets a row whose first item hangs a mark start a wrapped line on the words' edge.
 - A `PageToc` keeps room for a scrollbar only while it scrolls, so an index that fits ends its plates on its column's end, and on a phone its words start on the page's text edge, with its plates hanging 8px past it.
 - The `ClippedLabel` page stands each label's name past its tip's reach, so an open tip, the identifier's two lines too, never covers the name.
 - A `mono` `Tooltip`, such as a clipped identifier's, takes a tip's 13px, where 11px read small beside the label it repeats, and it wraps after a slash before it breaks inside a name.
