@@ -327,7 +327,7 @@ phone drawer, and following an entry closes the drawer before focus moves.
 
 - Semantics: a `nav` landmark named by `title`, with the title as a heading at `level`, group headings one level below, and lists of fragment links, the current one with `aria-current="location"`.
 - Content: entries with an id and a label that wraps, optionally grouped under a heading.
-- States: rest, hover (a row ground), pressed (the pressed ground and an inset shadow), focus (a 2px inset ring) and current (primary ink at 500 on the accent plate the sidebar's current page wears, in room every entry holds, so it moves nothing).
+- States: rest, hover (a row ground and the hover ink), pressed (the pressed ground and an inset shadow), focus (a 2px inset ring) and current (primary ink at 500 on the accent plate the sidebar's current page wears, in room every entry holds, so it moves nothing).
 - Keyboard: Tab moves through the entries and Enter follows one, moving focus to the section's heading.
 - Pointer and touch: entries are 28px tall on a desktop pointer and 44px on a phone or a coarse pointer, across the column's width.
 - Focus: following an entry moves focus to its section's first heading, or the section, which takes a temporary `tabindex` and, when the keyboard brought it there, the kit's ring around its words; in a shell's phone drawer the drawer closes first, so focus lands in the section and never on the menu button.
@@ -447,9 +447,11 @@ phone drawer, and following an entry closes the drawer before focus moves.
   }
 
   @media (hover: hover) {
+    /* Under the pointer an entry steps from its quiet ink to the hover ink, the primary on light
+       and the bright ink on dark (L-11), so the entry a reader is about to follow reads at once. */
     .sui-page-toc-link:hover:not(:active, [aria-current='location']) {
       background: var(--sui-row-hover);
-      color: var(--sui-text-secondary);
+      color: var(--sui-hover-ink);
     }
   }
 
