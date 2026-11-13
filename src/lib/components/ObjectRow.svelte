@@ -44,7 +44,7 @@ and the one above as a hovered row does, and under the pointer takes more of the
 - States: rest; with `href`, hover (the row ground, where the pointer can hover), pressed (a deeper ground and a 1px sink), focus (an inset ring on the row) and current (the sidebar's accent-tint plate, which hover deepens to more of the accent).
 - Keyboard: the row link is one tab stop, then each control inside the row; Enter follows the link.
 - Pointer and touch: the whole row is the link's target, at least 44px tall with its padding; controls inside keep their own targets.
-- Focus: the ring is drawn 1px inside the row, so a list that clips never cuts it and it never meets a neighbour's hover or current plate.
+- Focus: the ring is drawn 1px inside the row's ground on every side, so a list that clips never cuts it and it never meets a neighbour's hover or current plate.
 - Responsive: on a phone the side stays beside the main content while both fit, and drops under it, packed to the start, once they do not; rows grow when their content wraps.
 - Accessibility: the link's name is the main content, so a reader hears the row once; the side stays outside the name; a current row is announced as the current page, and under forced colors its link frames it in `Highlight`.
 - Localization: everything it says is the caller's; the side sits at the inline end and follows the reading direction.
@@ -130,6 +130,19 @@ and the one above as a hovered row does, and under the pointer takes more of the
 
   .sui-object-row-hit:focus-visible {
     outline: none;
+  }
+
+  /* The ring stands a pixel inside the row's ground on every side, so it never meets a hovered
+     or current neighbour's plate. An outline counts from the border box, whose clear top pixel
+     would put the ring flush on the ground's top, so it is drawn on a box laid over the ground:
+     the hit reaches over the clear pixel, and the box starts two pixels under the hit's top. */
+  .sui-object-row-hit:focus-visible::after {
+    border-radius: inherit;
+    content: '';
+    inset: calc(2 * var(--sui-stroke)) var(--sui-stroke) var(--sui-stroke);
+    outline: var(--sui-focus-ring-width) solid var(--sui-focus);
+    outline-offset: calc(-1 * var(--sui-focus-ring-width));
+    position: absolute;
   }
 
   .sui-object-row-main,
@@ -218,14 +231,6 @@ and the one above as a hovered row does, and under the pointer takes more of the
     background-color: var(--sui-row-pressed);
     box-shadow: var(--sui-pressed-inset);
     translate: 0 1px;
-  }
-
-  /* Rows touch, so a ring on the row's edge would meet a hovered or current neighbour's plate;
-     a pixel further in rides the top of the row's own ground and keeps a line of the page
-     between it and the plate below. */
-  .sui-object-row:has(> .sui-object-row-hit:focus-visible) {
-    outline: var(--sui-focus-ring-width) solid var(--sui-focus);
-    outline-offset: calc(var(--sui-focus-ring-inset) - var(--sui-stroke));
   }
 
   /* On a phone the side stays beside the name while the name keeps 15rem, so a short row keeps
