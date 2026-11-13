@@ -29,10 +29,10 @@ env:
   GH_TOKEN: ${{ github.token }}
   PR: ${{ github.event.pull_request.number }}
   BASE_PATH: ${{ github.event.pull_request.number && format('/pr-{0}', github.event.pull_request.number) || '' }}
-  # Renovate moves the version; the digest moves by hand from the release asset's digest, and
-  # a version without its digest fails the install.
-  FLYCTL_VERSION: 0.5.2
-  FLYCTL_SHA256: e5c928a3cd49daf086395e30b5e0334f8c36d2adbfe3219d664deba1c1d56d0a
+  # Renovate moves the tag and its digest together, so keep the three lines in this order.
+  # renovate: datasource=github-release-attachments depName=superfly/flyctl
+  FLYCTL_VERSION: v0.5.5
+  FLYCTL_SHA256: 2c64e1c7f320fafed0452fbce9adff57fcaf733619f0faa315ae883ec03d7ef6
 
 jobs:
   deploy:
@@ -60,7 +60,7 @@ jobs:
           bin="$RUNNER_TEMP/flyctl"
           mkdir -p "$bin"
           curl -fsSL --retry 10 --retry-all-errors --retry-max-time 600 -o "$bin/flyctl.tgz" \
-            "https://github.com/superfly/flyctl/releases/download/v$FLYCTL_VERSION/flyctl_${FLYCTL_VERSION}_Linux_x86_64.tar.gz"
+            "https://github.com/superfly/flyctl/releases/download/$FLYCTL_VERSION/flyctl_${FLYCTL_VERSION#v}_Linux_x86_64.tar.gz"
           echo "$FLYCTL_SHA256  $bin/flyctl.tgz" | sha256sum -c -
           tar -xzf "$bin/flyctl.tgz" -C "$bin" flyctl
           echo "$bin" >> "$GITHUB_PATH"
