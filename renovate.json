@@ -100,7 +100,7 @@
       "description": "The customManagers:githubActionsVersions comment, with a pinned *_SHA256 line under *_VERSION that moves with it",
       "managerFilePatterns": ["/(^|/)\\.github/workflows/.+\\.ya?ml$/"],
       "matchStrings": [
-        "# renovate: datasource=(?<datasource>[a-zA-Z0-9-._]+?) depName=(?<depName>[^\\s]+?)\\s+[A-Za-z0-9_]+?_VERSION\\s*:\\s*[\"']?(?<currentValue>.+?)[\"']?\\s+[A-Za-z0-9_]+?_SHA256\\s*:\\s*[\"']?(?<currentDigest>[a-f0-9]{64})[\"']?\\s"
+        "# renovate: datasource=(?<datasource>[a-zA-Z0-9-._]+?) depName=(?<depName>[^\\s]+?)(?: (?:lookupName|packageName)=(?<packageName>[^\\s]+?))?(?: versioning=(?<versioning>[^\\s]+?))?(?: extractVersion=(?<extractVersion>[^\\s]+?))?(?: registryUrl=(?<registryUrl>[^\\s]+?))?\\s+[A-Za-z0-9_]+?_VERSION\\s*:\\s*[\"']?(?<currentValue>.+?)[\"']?\\s+[A-Za-z0-9_]+?_SHA256\\s*:\\s*[\"']?(?<currentDigest>[a-f0-9]{64})[\"']?\\s"
       ]
     }
   ]
