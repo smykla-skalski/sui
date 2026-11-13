@@ -529,17 +529,21 @@ suite('lists', together, () => {
           .locator('#list-toolbar')
           .getByRole('button', { name: 'Sort & Filter' })
           .last();
-        await trigger.evaluate((node) => node.scrollIntoView({ block: 'center' }));
-        const before = await page.evaluate(() => scrollY);
-        assert.ok(before > 0, 'the page did not scroll to the bar');
-        await trigger.click();
-        await page.locator(':popover-open .sui-list-toolbar-panel').waitFor();
-        assert.equal(
-          await page.evaluate(() => scrollY),
-          before,
-          'opening the menu scrolled the page'
-        );
-        await page.keyboard.press('Escape');
+        // Mid-screen, and at the viewport's foot, where a box first drawn under its trigger
+        // would stand off the screen.
+        for (const block of /** @type {const} */ (['center', 'end'])) {
+          await trigger.evaluate((node, at) => node.scrollIntoView({ block: at }), block);
+          const before = await page.evaluate(() => scrollY);
+          assert.ok(before > 0, 'the page did not scroll to the bar');
+          await trigger.click();
+          await page.locator(':popover-open .sui-list-toolbar-panel').waitFor();
+          assert.equal(
+            await page.evaluate(() => scrollY),
+            before,
+            `opening the menu at the ${block} scrolled the page`
+          );
+          await page.keyboard.press('Escape');
+        }
       }
     );
 
