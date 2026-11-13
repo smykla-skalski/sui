@@ -251,7 +251,7 @@ changes. Until it is measured the row paints its own plate.
 Inside an `AppShell` wide enough to fold, a Collapse Navigation control at the end of the list folds it
 into a strip where each row is an icon over a short label, and Expand Navigation brings it back. A
 tooltip with the full name shows only where `short` replaces a label, and a count is still
-read aloud. In the phone drawer a close button takes the head's end, rows are 44px, and
+read aloud. In the phone drawer a close button takes the head's end on the first line of its names, rows are 44px, and
 following a row closes the drawer.
 
 - Semantics: a `nav` landmark named "<title> pages" by default that holds the whole sidebar, its title, rows, fold control and foot, so nothing in it stands outside a landmark; the title is a heading at `level`, each section a list labelled by its own heading one level below, and every row a link with `aria-current="page"` on the current one.
@@ -279,10 +279,12 @@ following a row closes the drawer.
     <div class="sui-side-nav-names">
       {#if kicker}<p class="sui-side-nav-kicker" translate="no">{kicker}</p>{/if}
       <svelte:element this={`h${level}`} class="sui-side-nav-title">{title}</svelte:element>
+      {#if shell && mode === 'drawer'}
+        <span class="sui-side-nav-close">
+          <IconButton toolbar icon="close" label={closeLabel} onclick={() => shell.closeDrawer()} />
+        </span>
+      {/if}
     </div>
-    {#if shell && mode === 'drawer'}
-      <IconButton toolbar icon="close" label={closeLabel} onclick={() => shell.closeDrawer()} />
-    {/if}
     {#if head}<div class="sui-side-nav-lead">{@render head()}</div>{/if}
   </div>
 
@@ -409,21 +411,38 @@ following a row closes the drawer.
     flex-wrap: wrap;
     gap: var(--sui-space-3) var(--sui-space-2);
     padding-block-end: var(--sui-space-3);
-    padding-inline-start: var(--sui-space-3);
   }
 
-  /* The head's content spans the sidebar, as the foot's does, past the inset the names keep. */
+  /* The head's content spans the sidebar, as the foot's does, while the names keep an inset. */
   .sui-side-nav-lead {
     display: grid;
-    flex-basis: calc(100% + var(--sui-space-3));
-    margin-inline-start: calc(-1 * var(--sui-space-3));
+    flex-basis: 100%;
   }
 
   .sui-side-nav-names {
+    column-gap: var(--sui-space-2);
     display: grid;
     flex: 1;
-    gap: var(--sui-row-copy-gap);
+    grid-template-columns: minmax(0, 1fr);
     min-inline-size: 0;
+    padding-inline-start: var(--sui-space-3);
+    row-gap: var(--sui-row-copy-gap);
+  }
+
+  .sui-side-nav-kicker,
+  .sui-side-nav-title {
+    grid-column: 1;
+  }
+
+  /* The close button centres on the first line of the names (L-94): a holder with no height at
+     that line's middle lets the button reach as far over it as under it. */
+  .sui-side-nav-close {
+    align-content: center;
+    align-self: center;
+    block-size: 0;
+    display: grid;
+    grid-column: 2;
+    grid-row: 1;
   }
 
   .sui-side-nav-kicker {

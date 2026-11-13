@@ -98,6 +98,21 @@
   });
 </script>
 
+{#snippet picker()}
+  <Select
+    aria-label="Preview"
+    value={here}
+    options={[
+      { value: '', label: 'main' },
+      ...previews.map(({ number, title }) => ({
+        value: `/pr-${number}`,
+        label: `#${number} ${title}`
+      }))
+    ]}
+    onchange={switchPreview}
+  />
+{/snippet}
+
 <SkipLink href="#content" />
 
 <AppShell title={page.data.section?.meta.title ?? 'Kitchen Sink'} landmark="none" bind:drawerOpen>
@@ -112,23 +127,8 @@
       {current}
       scrollTargets={everything}
       onnavigate={follow}
+      head={previews.length > 1 ? picker : undefined}
     >
-      {#snippet head()}
-        {#if previews.length > 1}
-          <Select
-            aria-label="Preview"
-            value={here}
-            options={[
-              { value: '', label: 'main' },
-              ...previews.map(({ number, title }) => ({
-                value: `/pr-${number}`,
-                label: `#${number} ${title}`
-              }))
-            ]}
-            onchange={switchPreview}
-          />
-        {/if}
-      {/snippet}
       {#snippet foot()}<ThemeSwitch system={false} />{/snippet}
     </SideNav>
   {/snippet}
