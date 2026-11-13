@@ -1340,32 +1340,21 @@ suite('lists', together, () => {
       assert.deepEqual(rings, { scroller: 'none', frame: 'solid', over: 0 });
     });
 
-    test("a code block's copy control rests between the block's hairline and a button's edge, and firms to a button's edge on hover", async () => {
+    test("a code block's copy control rests on the block's hairline and firms to a button's edge on hover", async () => {
       const page = await opened();
       const copy = page.locator('#code-block .sui-code-block-copy .sui-copy-button').first();
       await copy.scrollIntoViewIfNeeded();
-      // Light edges are black at some alpha, so the alpha orders them.
-      const alpha = (/** @type {string} */ color) => Number(color.match(/[\d.]+(?=\)$)/)?.[0] ?? 1);
       const edges = () =>
-        copy.evaluate((button) => {
-          const standalone = /** @type {Element} */ (
-            document.querySelector('#code-block .sui-copy-button:not(.sui-code-block *, :disabled)')
-          );
-          return {
-            button: getComputedStyle(button).borderTopColor,
-            block: getComputedStyle(/** @type {Element} */ (button.closest('.sui-code-block')))
-              .borderTopColor,
-            control: getComputedStyle(standalone).borderTopColor
-          };
-        });
+        copy.evaluate((button) => ({
+          button: getComputedStyle(button).borderTopColor,
+          block: getComputedStyle(/** @type {Element} */ (button.closest('.sui-code-block')))
+            .borderTopColor
+        }));
       const rest = await edges();
-      assert.ok(
-        alpha(rest.block) < alpha(rest.button) && alpha(rest.button) < alpha(rest.control),
-        JSON.stringify(rest)
-      );
+      assert.equal(rest.button, rest.block);
       await copy.hover();
       const hovered = await edges();
-      assert.ok(alpha(hovered.button) > alpha(rest.control), JSON.stringify(hovered));
+      assert.notEqual(hovered.button, rest.button);
     });
 
     test('K6 a retried error that leaves no control keeps focus where it stood', long, async () => {

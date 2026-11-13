@@ -312,10 +312,9 @@ from the corner and centred on the first line, or in the file name's row when th
      start edge (L-90). */
   .sui-code-block-copy {
     /* The block's frame already holds its control, and a framed button down each block of a
-       column reads as a column of buttons, so the control rests on an edge halfway from the
-       block's hairline to a button's, still firmer than an off control's faded edge, and firms
-       to a button's edge on hover (L-9). */
-    --sui-control-border: color-mix(in srgb, var(--sui-border-subtle), var(--sui-border-control));
+       column reads as a column of buttons, so the control rests on the block's own hairline and
+       firms to a button's edge on hover (L-9). */
+    --sui-control-border: var(--sui-border-subtle);
     align-self: start;
     display: flex;
     flex: none;
