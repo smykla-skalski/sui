@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- A slow `Skeleton`'s title is set at 500, under a loaded name's 600, so it reads as the wait's status rather than a row called "Still loading…".
 - The `Avatar` page shows its missing names among its pictures and fallbacks, one grid of every way a mark stands in, and an identity row with a picture beside the ones with initials, two to a line.
 - The `PageToc` page sets its article at a 40rem reading measure, 32px off the index, with section titles at the card title size, where long lines ran 790px wide under 16px titles.
 - A `ListToolbar` heading or search label that stands before its control stands 12px from it, where it stood 8px, so the control's focus ring never crowds its words.

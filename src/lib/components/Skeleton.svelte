@@ -313,10 +313,12 @@ under reduced motion. Use it only where the shape of what is coming is already k
     text-box: trim-both cap alphabetic;
   }
 
+  /* A status in a name's place: the name's ink and size, so the wait reads first, at 500 under
+     a loaded name's 600, so it never reads as a row called "Still loading…". */
   .name {
     color: var(--sui-text-primary);
     font-size: var(--sui-font-size-body);
-    font-weight: var(--sui-weight-semibold);
+    font-weight: var(--sui-weight-medium);
   }
 
   /* On a phone a row's side drops under its name once the name would keep less than 15rem, as
