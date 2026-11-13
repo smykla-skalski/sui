@@ -446,7 +446,7 @@ suite('forms', together, () => {
       }
     );
 
-    test('a painted chip draws an edge on dark, and on light only where its card would swallow it', async () => {
+    test('a painted chip keeps an edge only where its ground would swallow it', async () => {
       const page = await opened();
       // The theme follows the reader's scheme, and the chip eases its edge in, so each scheme's
       // edges are read once that change has run.
@@ -463,9 +463,8 @@ suite('forms', together, () => {
         );
       };
       const dark = await edges('dark');
-      for (const [label, edged] of Object.entries(dark)) {
-        assert.equal(edged, true, `the dark ${label} chip has no edge`);
-      }
+      assert.equal(dark.blocked, true, 'a black chip has no edge on a dark ground');
+      assert.equal(dark.frontend, false, 'a blue chip draws an edge it does not need');
       const light = await edges('light');
       assert.equal(light.release, true, 'a white chip has no edge on a white card');
       assert.equal(light.blocked, false, 'a black chip draws an edge in the light theme');

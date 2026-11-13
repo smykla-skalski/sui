@@ -3,7 +3,6 @@
 ## Unreleased
 
 - A `ListToolbar` whose tools hold one group names its button by that group, as in Sort by, with the choice beside it as its value, and takes `toolsLabel` only once the filter folds into the menu beside that group. The `ListToolbar` page's All counts what the search leaves.
-- Every painted `Chip` in the dark theme draws an edge of 30% of its ink over its tint, as GitHub's dark labels do, where only a near-black one did, so a deep color such as violet keeps its shape on a dark ground.
 - A current `ObjectRow` answers the pointer as the rows around it do, on more of its accent, 26% on light and 32% on dark, never on a hovered row's grey, and on light its quiet words lean a fifth toward the primary ink, so they hold 4.5:1 on that deeper plate.
 - A small `Chip` in a line of text stands on the text's own box, so the line keeps its height rather than growing under the chip.
 - A `Skeleton`'s last row ends where a loaded list's last row ends once the list hands back its padding, so the section under it no longer moves 2px when the rows arrive.

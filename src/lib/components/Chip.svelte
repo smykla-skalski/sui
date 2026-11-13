@@ -14,6 +14,9 @@
   const DARK_GROUND: Rgb = [0x1b, 0x1c, 0x1f];
   /* A fill this close to white needs an edge to show on a white card. */
   const PALE = 1.25;
+  /* A grey tint this close to the dark ground, as black's is, needs one too; a colored tint
+     shows by its hue however dark it is. */
+  const DEEP = 1.1;
 
   const channel = (value: number) => {
     const c = value / 255;
@@ -109,8 +112,7 @@
    * and an edge only when the fill is near white. A mid-tone fill on which neither ink reads
    * 4.6:1 and Lc 61 moves along its hue, darker under white or lighter under black, whichever
    * is the shorter way. In the dark one it wears an 18% tint of the color, and its ink is the
-   * color itself, lifted in lightness along its own hue until it reads on that tint, with an
-   * edge of 30% of that ink, so a deep tint keeps its shape on a dark ground.
+   * color itself, lifted in lightness along its own hue until it reads on that tint.
    */
   function paint(rgb: Rgb) {
     const white = settle(rgb, WHITE, -0.01);
@@ -127,7 +129,10 @@
       lift = Math.min(1, lift + 0.01);
       ink = shade(lift, chroma, hue);
     }
-    const darkEdge = hex(ink.map((c, at) => Math.round(c * 0.3 + tint[at] * 0.7)) as Rgb);
+    const deep = chroma < 0.04 && contrast(luminance(tint), luminance(DARK_GROUND)) < DEEP;
+    const darkEdge = deep
+      ? hex(ink.map((c, at) => Math.round(c * 0.3 + tint[at] * 0.7)) as Rgb)
+      : undefined;
     return { fill: hex(fill), hue: hex(rgb), lightInk, darkInk: hex(ink), edge, darkEdge };
   }
 
@@ -225,7 +230,7 @@ black or white ink. On a mid-tone fill where neither ink reads 4.5:1 and APCA Lc
 moves along its own hue, the shorter way, until one does. In the dark theme it wears an 18%
 tint of the color, and its ink is the color itself, lifted in lightness along its own hue
 until it reads 4.5:1 and Lc 60, so a label keeps its hue in both themes. Only a near-white fill draws an edge in the light theme, so it still shows on
-a white card, while in the dark theme every one draws an edge of 30% of its ink, as GitHub's dark labels do, so a deep tint keeps its shape. Anything but hex digits draws the plain chip, so a stored value never writes a
+a white card, and only a near-black one in the dark theme, whose tint all but vanishes there. Anything but hex digits draws the plain chip, so a stored value never writes a
 style declaration.
 
 - Semantics: a `span` holding the value as text, with a native `button` to remove it when `onremove` is set.
@@ -338,9 +343,9 @@ style declaration.
     text-box: trim-both cap alphabetic;
   }
 
-  /* On light a painted chip has no edge but a near-white one's, which shows it on a white
-     card, and on dark every one has its ink's edge, so a deep tint keeps its shape; the theme
-     picks the light or the dark paint. */
+  /* A painted chip has no edge but a near-white one's, which shows it on a white card, and a
+     near-black one's, whose tint all but vanishes on a dark ground; the theme picks the light
+     or the dark paint. */
   .painted {
     background: light-dark(
       var(--sui-chip-fill),
