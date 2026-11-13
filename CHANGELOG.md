@@ -5,7 +5,6 @@
 - The kit's states page opens its filtered specimen emptied, so the Empty State example shows an empty panel in every column at rest, and the panel speaks only once the reader's own filter empties it.
 - Every `Icon` and every kit page's glyph draws one 2-unit stroke, 1.33px at 16px, so a field's alert mark weighs as the title beside it and the set reads as one family, where controls drew 2 and the rest 1.75; `file-missing`'s dash and the dashed rings keep their gaps open under the heavier round caps.
 - A framed `CopyButton` draws its focus ring 2px off a Copied or failed edge, as a filled button's ring stands off its fill, where the blue ring and the green edge fused into one band.
-- A hovered `ErrorState` retry on light takes an 8% veil of the hue, level with the wash, where 16% sank it under the panel as if pressed.
 - A `CodeBlock` with `lineNumbers` parts its gutter from its code by a divider 12px from each, so a number never reads as the first token of its line, where 16px of bare ground parted them.
 - A `CodeBlock`'s head names its file or language in the primary ink at 500, so the name anchors the head apart from the secondary copy words, where both read in one grey at one weight.
 - An `EmptyState` draws a dashed edge at the control edge's strength, 4px dashes on whole pixels that each side starts afresh and solid arcs that close its corners, so it reads as the room its content would fill, where a solid hairline drew it as one more card.

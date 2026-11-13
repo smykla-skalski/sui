@@ -142,9 +142,7 @@ of them.
      The retry is the neutral default button, the reader's next step, which is to repeat the
      request (L-92). It stays a raised ground over the wash, lifted toward the hue on dark so
      it never reads as a hole in the darker red, and its edge and hover veil are the hue's, as a
-     warning callout's are, so a hovered or pressed retry deepens the tint rather than greying it.
-     On light the hover veil comes only to the wash's own depth, so a hovered retry never sinks
-     under the panel and reads as pressed. Stretched beside
+     warning callout's are, so a hovered or pressed retry deepens the tint rather than greying it. Stretched beside
      a taller panel, its words and its retry keep to the top, as an empty panel's do. */
   .sui-error-state {
     --sui-local-error-ground: var(--sui-danger-wash);
@@ -153,7 +151,7 @@ of them.
       color-mix(in srgb, var(--sui-danger) 10%, var(--sui-surface-raised))
     );
     --sui-interactive-hover-layer: light-dark(
-      color-mix(in srgb, var(--sui-danger) 8%, transparent),
+      color-mix(in srgb, var(--sui-danger) 16%, transparent),
       color-mix(in srgb, var(--sui-danger) 12%, transparent)
     );
     --sui-interactive-pressed: color-mix(in srgb, var(--sui-danger) 24%, transparent);
