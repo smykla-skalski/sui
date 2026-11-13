@@ -606,6 +606,7 @@ viewport. `landmark="none"` keeps the content from claiming the page's one `main
     .sui-shell-grid[data-collapsed='true'] .sui-shell-pages.joined {
       --sui-local-strip-start: var(--sui-space-2);
       --sui-local-strip-end: var(--sui-space-1);
+      --sui-local-strip-head: none;
 
       border-inline: 0;
     }

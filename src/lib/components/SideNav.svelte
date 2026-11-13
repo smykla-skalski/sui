@@ -255,7 +255,10 @@ Inside an `AppShell` wide enough to fold, a Collapse Navigation control at the e
 into a strip where each row is an icon over a one-line label in 68px of room, the label's `short` where the label is wider, and Expand Navigation, its glyph
 over its short word `expandShort` there with its whole words in a tooltip, brings it back. A tooltip with the full name shows only
 where `short` replaces a label, a count rides past its glyph's top-end corner, and a short
-hairline marks where each group starts. The `foot` is told when the
+hairline marks where each group starts. A strip that stands alone keeps its `kicker` over the
+head's hairline, which stays at 56px; beside a rail the rail's places name the place instead.
+A choice in the `foot`, such as a theme switch, sits on the current row's tint plate, so the
+column holds one accent plate. The `foot` is told when the
 sidebar is the strip, so it can draw a glyph's width, as `ThemeSwitch` does with `iconOnly`. In the phone drawer a close button takes the head's end on the first line of its names, rows are 44px, and
 following a row closes the drawer.
 
@@ -771,7 +774,12 @@ following a row closes the drawer.
     }
   }
 
+  /* The column holds one accent plate, the current page's, so a choice at the foot, such as a
+     theme switch's, sits on the same tint plate in the current ink, as a rail's place does. */
   .sui-side-nav-foot {
+    --sui-segment-thumb: var(--sui-sidebar-active-bg);
+    --sui-segment-thumb-ink: var(--sui-sidebar-active-ink);
+
     border-block-start: var(--sui-stroke) solid var(--sui-sidebar-border);
     display: grid;
     gap: var(--sui-space-4);
@@ -821,7 +829,7 @@ following a row closes the drawer.
 
   /* The strip, where a collapsed shell is wide enough to fold: the shell's own width decides it,
      so the server's render already draws it. Each row stacks its glyph over a label that wraps
-     rather than being cut, the place's names give way, and a heading's boundary stays as
+     rather than being cut, the place's names give way to its kicker, and a heading's boundary stays as
      space. */
   @container sui-shell (min-width: 64.0625rem) {
     /* A column that joins a rail's places and foot sets its own block room, so its tiles keep
@@ -833,6 +841,36 @@ following a row closes the drawer.
     }
 
     .sui-side-nav[data-collapsed] .sui-side-nav-head {
+      display: none;
+    }
+
+    /* Alone, the strip keeps its kicker, the place's short name, centred in a band whose
+       hairline stands at 56px, where the whole nav's does, so the fold moves neither the line
+       nor the name; the rows start 8px under it, as they do under a rail's places. Joined to a
+       rail, the rail's places name the place, and the head leaves (AppShell). */
+    .sui-side-nav[data-collapsed] .sui-side-nav-head:has(.sui-side-nav-kicker) {
+      block-size: calc(3.5rem - var(--sui-local-strip-start, var(--sui-space-4)));
+      display: var(--sui-local-strip-head, flex);
+      flex: none;
+      justify-content: center;
+      margin-block-end: calc(var(--sui-space-2) - var(--sui-space-4));
+      padding-block-end: 0;
+    }
+
+    .sui-side-nav[data-collapsed] .sui-side-nav-names {
+      flex: none;
+      padding-inline-start: 0;
+    }
+
+    /* Centred in the even band, the caps round up to an even height, so they land on whole
+       pixels (L-95). */
+    .sui-side-nav[data-collapsed] .sui-side-nav-kicker {
+      block-size: var(--sui-block-snap-even);
+      padding-block: var(--sui-block-snap-room-even);
+    }
+
+    .sui-side-nav[data-collapsed]
+      :is(.sui-side-nav-title, .sui-side-nav-close, .sui-side-nav-lead) {
       display: none;
     }
 
