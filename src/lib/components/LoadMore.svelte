@@ -140,7 +140,7 @@ struggling. The reason takes the count's place and the button retries until the 
 
 - Semantics: a native `button` that controls the list, a paragraph that describes it, an alert for a failure, and a polite status.
 - Content: the count of rows shown, of the total when known, the button's words, a failure's reason, and the end note.
-- States: ready (`countLabel` and `moreLabel`), loading (the button's spinner and `loadingLabel`, dimmed and busy), failed (the reason in danger ink beside `retryLabel`) and whole (`endLabel` alone).
+- States: ready (`countLabel` and `moreLabel`), loading (the button's spinner and `loadingLabel`, busy, in the width the button held from the start), failed (the reason in danger ink beside `retryLabel`) and whole (`endLabel` alone).
 - Keyboard: Enter or Space on the button asks for the next page.
 - Pointer and touch: the button is 34px tall, 44px on a phone or a touch screen.
 - Focus: the button keeps focus while a page loads; when it lands, focus moves to the first new row's link or control (WCAG 2.4.3), or stays on the button when that row has none, and moves to the end note when the button leaves.
@@ -168,8 +168,16 @@ struggling. The reason takes the count's place and the button retries until the 
     </p>
   {/if}
   {#if more}
-    <Button {loading} aria-controls={list} aria-describedby="{id}-words" onclick={press}>
-      {loading ? loadingLabel : problem ? retryLabel : moreLabel}
+    <!-- The button holds the loading words' room from the start, so it keeps one width as it
+         turns from Load More to loading to Try Again and the line never shifts. -->
+    <Button
+      {loading}
+      busyLabel={loadingLabel}
+      aria-controls={list}
+      aria-describedby="{id}-words"
+      onclick={press}
+    >
+      {problem ? retryLabel : moreLabel}
     </Button>
   {/if}
   <VisuallyHidden role="status">{said}</VisuallyHidden>
