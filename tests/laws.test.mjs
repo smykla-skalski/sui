@@ -1659,12 +1659,12 @@ test('L-58 a dialog drawn in place lifts softly in both themes, the dark one und
   );
 });
 
-test("a framed code block's head steps off its code by 4% ink in light and 2.5% in dark, where the same mix reads as noise on white", () => {
+test("a framed code block's head steps off its code by 6% ink in light and 2.5% in dark, so the light head also steps off the plate around it", () => {
   assert.deepEqual(
     [...read('src/lib/styles.css').matchAll(/--sui-code-head-ink: ([^;]+);/g)].map(
       ([, value]) => value
     ),
-    ['4%', '2.5%', '2.5%'],
+    ['6%', '2.5%', '2.5%'],
     'the light block, then each dark block'
   );
 });
