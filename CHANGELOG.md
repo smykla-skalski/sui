@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Every painted `Chip` in the dark theme draws an edge of 30% of its ink over its tint, as GitHub's dark labels do, where only a near-black one did, so a deep color such as violet keeps its shape on a dark ground.
 - The `ListToolbar` page counts every state in its filter, not only All.
 - A current `ObjectRow` answers the pointer as the rows around it do, on more of its accent, 22% on light and 28% on dark, never on a hovered row's grey.
 - A small `Chip` in a line of text stands on the text's own box, so the line keeps its height rather than growing under the chip.
