@@ -319,9 +319,11 @@ from the corner and centred on the first line, or in the file name's row when th
      start edge (L-90). */
   .sui-code-block-copy {
     /* The block's frame already holds its control, and a framed button down each block of a
-       column reads as a column of buttons, so the control rests with no edge of its own, its
-       words naming it, and takes a button's edge on hover (L-9). */
+       column reads as a column of buttons, so the control rests with no edge or fill of its own,
+       its words naming it, on the code's ground in both themes, and takes a button's edge and
+       veil on hover (L-9). */
     --sui-control-border: transparent;
+    --sui-surface-base: var(--sui-surface-code);
     align-self: start;
     display: flex;
     flex: none;
