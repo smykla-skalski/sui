@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- A `FactList` of rows keeps each label beside its value down to 18rem of its own width, not 25rem, so a detail pane's aside of properties and a phone's full-width list keep one line per fact.
 - A count beside a label, in a tab, a segment, a section's title or a sidebar row, is 13px at every width, not 12px on a desktop, so its figures hold beside the title or label they count.
 - A `Link`'s underline rests at 70% of its ink, 3:1 or more on its ground, so a page of links reads calm, and hover draws it whole. Its hover steps a further 8 points toward the primary ink, 76% of its ink, and its press 62%, so the hover reads by color as well as by its thicker line, and a `BackLink`'s hover takes the same 76%. A lone ghost button in a `Section`'s head ends its words on the content's edge, as a link does, and its veil hangs past it.
 - On a phone a card's, a plate's, a section's and an empty or error panel's title is 18px, a step over the 16px body, so a sub-section's title, which takes the body's size, stays under its section's.

@@ -379,6 +379,36 @@ suite('navigation', together, () => {
     }
   });
 
+  test('a layout preview starts as a phone on a phone and as a desktop on a desktop', async () => {
+    for (const [width, start] of /** @type {const} */ ([
+      [390, 'phone'],
+      [1440, 'desktop']
+    ])) {
+      const page = await browser.newPage({ viewport: { width, height: 900 } });
+      try {
+        await visit(page, new URL('detail-pane/', url).href);
+        // The control is radios, or a select where they do not fit.
+        const chosen = () =>
+          page.evaluate(() => {
+            const preview = document.querySelector('.preview');
+            const radio = /** @type {HTMLInputElement | null | undefined} */ (
+              preview?.querySelector('input[type="radio"]:checked')
+            );
+            const menu = /** @type {HTMLSelectElement | null | undefined} */ (
+              preview?.querySelector('select')
+            );
+            return radio?.value ?? menu?.value;
+          });
+        // It starts as a desktop until the page has mounted, which the audit hook marks: the
+        // root mounts last, after the preview has picked its width.
+        await page.waitForFunction(() => '__suiAudit' in window, null, brief);
+        assert.equal(await chosen(), start, `at ${width}px`);
+      } finally {
+        await page.close();
+      }
+    }
+  });
+
   test("an overview card opens its component's own page, which the index marks, and L-59 a wrong address leads back", async () => {
     const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
     try {

@@ -973,7 +973,7 @@ suite('lists', together, () => {
     });
 
     test(
-      'fact rows line their values up past the longest label and stack each pair under 25rem of their own width',
+      'fact rows line their values up past the longest label and stack each pair under 18rem of their own width',
       long,
       async () => {
         const page = await opened();
@@ -998,8 +998,8 @@ suite('lists', together, () => {
         const wide = await pairs(0);
         const narrow = await pairs(1);
         assert.ok(
-          wide.width >= 400 && narrow.width < 400,
-          'the two lists are not either side of 25rem'
+          wide.width >= 288 && narrow.width < 288,
+          'the two lists are not either side of 18rem'
         );
         const labelsEnd = Math.max(...wide.rows.map((row) => row.labelEnd));
         for (const { label, value } of wide.rows) {
@@ -1012,6 +1012,15 @@ suite('lists', together, () => {
             `a value starts ${value.left - labelsEnd}px past the labels`
           );
         }
+        // A narrow aside's 20rem still holds both columns.
+        await lists.nth(1).evaluate((list) => {
+          /** @type {HTMLElement} */ (list.parentElement).style.inlineSize = '20rem';
+        });
+        for (const { label, value } of (await pairs(1)).rows)
+          assert.ok(value.top < label.bottom, 'a list 20rem wide stacks its value');
+        await lists.nth(1).evaluate((list) => {
+          /** @type {HTMLElement} */ (list.parentElement).style.inlineSize = '';
+        });
         for (const { label, value } of narrow.rows) {
           assert.ok(
             Math.abs(value.top - label.bottom - 8) < 0.5,

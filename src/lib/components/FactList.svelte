@@ -68,7 +68,7 @@ property list draw them: the labels in a column as wide as the longest one, up t
 longer label wraps, the values 24px after it, and an optional `action` per fact at the row's
 end, such as a "Change" link. Rows pad 12px and a hairline parts each row from the next, never
 above the first or under the last, so the list's first and last ink stand at its own edges.
-Once the list itself is under 25rem wide, each label stands over its value, one copy gap
+Once the list itself is under 18rem wide, each label stands over its value, one copy gap
 apart, and the action under the value.
 
 - Semantics: a `dl` with one `dt` and one `dd` per fact, each pair in its own `div`; a row's action is a second `dd`, as in GOV.UK's summary list.
@@ -77,7 +77,7 @@ apart, and the action under the value.
 - Keyboard: a linked value and a row's action are tab stops, in reading order; nothing else is.
 - Pointer and touch: inline, a fact that holds a target is at least 24px tall, and 44px on a phone or a coarse pointer, so its line holds the target and two targets on two lines never meet; a linked value is a standalone `Link`, whose hit area grows to that target size without moving its words; a row's action keeps its own target.
 - Focus: none moves; a linked value and an action take focus in reading order.
-- Responsive: inline facts wrap one by one, and on a phone or in a page header 36rem wide or narrower each take a line, the label in a 7rem column, a long value breaks inside its fact, and text at 200% wraps the same way; rows answer to the list's own width and stack each label over its value under 25rem.
+- Responsive: inline facts wrap one by one, and on a phone or in a page header 36rem wide or narrower each take a line, the label in a 7rem column, a long value breaks inside its fact, and text at 200% wraps the same way; rows answer to the list's own width and stack each label over its value under 18rem.
 - Accessibility: the label is muted and regular and the value medium, so they differ by weight as well as ink; both hold 4.5:1; in rows each label and value pair still reads as a term and its description.
 - Localization: `missingLabel` is a prop with an English default; values come formatted by the caller in the page's language, and both layouts follow the reading direction.
 - Performance: one element per fact with no script; rows share one grid through `subgrid`, so a column never measures twice.
@@ -295,8 +295,9 @@ apart, and the action under the value.
   }
 
   /* Too narrow for two columns, each label stands over its value and the action under it, in
-     reading order, as GOV.UK's summary list does on a phone. */
-  @container sui-fact-rows (max-width: 25rem) {
+     reading order, as GOV.UK's summary list does on a phone. Two columns hold down to a narrow
+     aside's 18rem (--sui-breakpoint-bar), so a pane's properties keep one line each there. */
+  @container sui-fact-rows (max-width: 18rem) {
     .rows > .sui-fact-list-fact {
       grid-template-columns: minmax(0, 1fr);
       row-gap: var(--sui-row-copy-gap);

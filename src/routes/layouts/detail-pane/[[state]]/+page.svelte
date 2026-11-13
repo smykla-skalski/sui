@@ -121,7 +121,7 @@
     { label: 'Trigger', value: 'Manual, from the sync page' },
     { label: 'Requested by', value: requester },
     { label: 'Started', value: startedAt },
-    { label: 'Attempt', value: '1 of 3', mono: true }
+    { label: 'Attempt', value: '1 of 3' }
   ];
 
   const more: Fact[] = [

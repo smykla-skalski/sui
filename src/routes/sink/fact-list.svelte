@@ -97,10 +97,10 @@
 
 <Example
   title="Narrow Width"
-  note="Under 25 rem of its own width, each label stands over its value and the action under it"
+  note="Under 18 rem of its own width, each label stands over its value and the action under it"
   layout="stack"
 >
-  <Specimen label="Rows in 20 rem">
+  <Specimen label="Rows in 16 rem">
     <div class="narrow">
       <FactList layout="rows" facts={properties} />
     </div>
@@ -109,6 +109,6 @@
 
 <style>
   .narrow {
-    inline-size: min(100%, 20rem);
+    inline-size: min(100%, 16rem);
   }
 </style>
