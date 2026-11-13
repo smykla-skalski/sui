@@ -104,8 +104,8 @@
   layout="stack"
 >
   <Specimen label="Search & action">
-    <ListToolbar searchLabel="Search members" placeholder="octocat…">
-      {#snippet action()}<Button tone="signal">Invite Member</Button>{/snippet}
+    <ListToolbar searchLabel="Search repositories" placeholder="sui…">
+      {#snippet action()}<Button tone="signal">Add Repository</Button>{/snippet}
     </ListToolbar>
   </Specimen>
   <Specimen label="Filter & tools">
