@@ -406,7 +406,7 @@
      width as well as by the viewport's. */
   --sui-rhythm-head-surface-compact: 1.25rem;
 
-  --sui-rhythm-head-actions-stacked: 0.75rem;
+  --sui-rhythm-head-actions-stacked: 1rem;
 
   --sui-rhythm-toolbar-surface: 1rem;
   --sui-rhythm-card-head-body: 1rem;

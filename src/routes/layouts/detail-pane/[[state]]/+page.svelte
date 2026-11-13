@@ -308,7 +308,7 @@
       </div>
     {:else if view === 'missing'}
       <PageHeader title="Sync Check #4182" kicker={back} />
-      <div class="zones">
+      <div class="zones missing">
         <ErrorState
           title="Sync Check #4182 Does Not Exist"
           description="Someone deleted it or it never existed"
@@ -351,6 +351,12 @@
     display: grid;
     gap: var(--sui-rhythm-section-gap);
     padding: 0 var(--sui-rhythm-pane-gutter) var(--sui-rhythm-pane-gutter);
+  }
+
+  /* A failure that stands as the whole body keeps a reading measure, so its words and its way
+     out stay together rather than leave a wide empty ground beside them. */
+  .missing > :global(*) {
+    max-inline-size: var(--sui-measure);
   }
 
   /* Proximity: the counts stand one copy gap further below the sentence than its own lines

@@ -93,6 +93,9 @@ cells stack their secondary text.
     );
     /* The chevron takes the tier of a glyph beside a control's words (L-68). */
     --sui-local-disclosure-indent: calc(var(--sui-icon-base) + var(--sui-space-2));
+    /* A block summary bleeds as a list row does, so the two row veils on one pane share an edge;
+       inline help bleeds as a link does. */
+    --sui-local-disclosure-bleed: var(--sui-row-pad-default);
     margin: 0;
     min-inline-size: 0;
     position: relative;
@@ -118,10 +121,12 @@ cells stack their secondary text.
       var(--sui-sans);
     justify-content: space-between;
     list-style: none;
-    margin-inline: calc(var(--sui-space-2) * -1);
+    margin-inline: calc(var(--sui-local-disclosure-bleed) * -1);
     min-block-size: var(--sui-control-height-compact);
-    padding: var(--sui-local-disclosure-inset) var(--sui-space-2);
-    padding-inline-start: calc(var(--sui-space-2) + var(--sui-local-disclosure-indent));
+    padding: var(--sui-local-disclosure-inset) var(--sui-local-disclosure-bleed);
+    padding-inline-start: calc(
+      var(--sui-local-disclosure-bleed) + var(--sui-local-disclosure-indent)
+    );
     position: relative;
     row-gap: var(--sui-row-copy-gap);
     touch-action: manipulation;
@@ -175,7 +180,7 @@ cells stack their secondary text.
     color: color-mix(in srgb, var(--sui-text-secondary), var(--sui-text-primary));
     display: flex;
     inset-block-start: calc((var(--sui-control-height-compact) - var(--sui-icon-base)) / 2);
-    inset-inline-start: var(--sui-space-2);
+    inset-inline-start: var(--sui-local-disclosure-bleed);
     position: absolute;
     transition: rotate var(--sui-duration-open) var(--sui-ease-standard);
   }
@@ -293,13 +298,17 @@ cells stack their secondary text.
       var(--sui-sans);
   }
 
+  .inline {
+    --sui-local-disclosure-bleed: var(--sui-space-2);
+  }
+
   /* Inline help is as wide as its words, as a link is, so its veil never reads as a block
      row's, and its words stand halfway from the secondary ink to the primary, so at rest they
      read as a control and not as the copy beside them. */
   .inline > .sui-disclosure-summary {
     color: color-mix(in srgb, var(--sui-text-secondary), var(--sui-text-primary));
     inline-size: var(--sui-inline-snap);
-    max-inline-size: calc(100% + 2 * var(--sui-space-2));
+    max-inline-size: calc(100% + 2 * var(--sui-local-disclosure-bleed));
     font-weight: var(--sui-weight-regular);
   }
 
