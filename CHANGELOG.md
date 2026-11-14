@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- ListDetail: Back to an item keeps its detail where the reader left it while focus lands on its title, where the landing scrolled a title partly above the pane back into view.
 - ErrorState: a centred panel, a failed chart's, leads its title with the mark on one centred line, 8px before it, as every chart note and a table's failure do, where the mark stood alone over the title; a title too long to share the line drops under it.
 - Rail: the column draws its edge inside its 80px, so each tile is an even 64px and its label box an even height, and the glyph and its badge centre on whole pixels and draw sharp, where they stood on half pixels.
 - A data table that scrolls draws a hairline at its end edge while more columns are past it, as its held row headings draw one at the start, so the cut reads as the frame's edge.
@@ -10,7 +11,6 @@
 - AppShell: a page header's foot stands on the sidebar's ground, so its translucent rule paints the same ink as the sidebar's edge where the two meet, where it painted a step lighter over the header's band.
 - HeatmapChart: the lowest heat step holds 1.6:1 on its ground in both themes, where it held 1.5:1, and the steps above it stay even (33, 48, 62%, then 77% in light and 75% in dark); L-66 changes with it.
 - DataTable: the caption is set 16px 600 at every width, as a chart's title is, and a refreshing table's words sit on the caption's baseline.
-- AppShell: the phone bar's title waits while the page's own h1 shows under the bar, and fades in as the h1 passes under it, on a scroll timeline with no script; with no h1 the bar keeps its title.
 - HeatmapChart: columns widen to an even share of the band in whole pixels, never under a square cell, so the matrix fills its column and scrolls only past its narrowest; cells stand on whole pixels.
 - A failed `DataTable` leads its words with the 16px danger mark 8px off, as a field's 14px message does, where a 13px mark drew 11px of ink.
 - A `SideNav` kicker is set as a page header's eyebrow, 12px at 0.05em, so their capitals share one line, where it was 11px at 0.07em and its capitals stood a pixel under the eyebrow's.

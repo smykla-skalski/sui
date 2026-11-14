@@ -295,7 +295,7 @@ viewport. `landmark="none"` keeps the content from claiming the page's one `main
 - Keyboard: Tab reaches the menu button, the bars and the content in order; in the open drawer Tab and Shift+Tab stay inside and Escape closes it.
 - Pointer and touch: the menu button and every bottom bar tile are 44px; a press outside the open drawer closes it, and nothing needs a gesture.
 - Focus: opening the drawer moves focus to its first control, and closing it, by Escape, a press outside or a followed link, returns focus to the menu button.
-- Responsive: container queries on the shell's own width switch between full, folded, drawer and bottom bar, and the phone bar's title wraps instead of being cut, and waits while the page's own `h1` shows under the bar, fading in as that heading passes under it; bars that would cover more than a quarter of the screen (the shell's own box when contained), as with very large text, ride with the content instead of sticking; a page shell pads the document's scroll by the bars' height so a focused control never hides behind them.
+- Responsive: container queries on the shell's own width switch between full, folded, drawer and bottom bar, and the phone bar's title wraps instead of being cut, and names the page only once the page's own `h1` in the same words has gone under the bar; bars that would cover more than a quarter of the screen (the shell's own box when contained), as with very large text, ride with the content instead of sticking; a page shell pads the document's scroll by the bars' height so a focused control never hides behind them.
 - Accessibility: while the drawer is open the bars and the content are inert; the menu button shows its word and reports `aria-expanded`.
 - Localization: `menuLabel` and `label` are props with English defaults; the drawer opens from the start edge and is placed by direction, so it lands on the right in a right-to-left page, and the sidebar glyph mirrors.
 - Performance: one width measure drives the mode; the fold snaps instead of animating the column's width, and placement work runs only while the drawer is open; the bar's title fades in over 160ms as the page's heading goes under the bar, by opacity and a whole-pixel lift only, and changes at once with reduced motion.
@@ -370,7 +370,6 @@ viewport. `landmark="none"` keeps the content from claiming the page's one `main
 <style>
   .sui-shell {
     background: var(--sui-canvas);
-    timeline-scope: --sui-shell-heading;
     color: var(--sui-text-primary);
     container: sui-shell / inline-size;
     display: flex;
@@ -533,29 +532,6 @@ viewport. `landmark="none"` keeps the content from claiming the page's one `main
     padding-block: var(--sui-block-snap-room);
     text-box: trim-both cap alphabetic;
     text-wrap: balance;
-  }
-
-  /* The page's own h1 names the page under the phone bar, so the bar's title waits until that
-     heading has passed under the bar, then fades in as it goes, as a large title hands over to
-     its bar's. It stays in the accessibility tree. With no h1, or no scroll timelines, the bar
-     keeps its title. */
-  .sui-shell-pane :global(h1) {
-    view-timeline: --sui-shell-heading block;
-    view-timeline-inset: var(--sui-top-bar-height) 0;
-  }
-
-  @supports (animation-timeline: view()) {
-    .sui-shell-title {
-      animation: sui-shell-title-in var(--sui-ease-linear) both;
-      animation-range: exit-crossing 0% exit-crossing 100%;
-      animation-timeline: --sui-shell-heading;
-    }
-  }
-
-  @keyframes sui-shell-title-in {
-    from {
-      opacity: 0;
-    }
   }
 
   .sui-shell-grid {

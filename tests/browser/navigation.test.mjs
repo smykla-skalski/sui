@@ -320,48 +320,6 @@ suite('navigation', together, () => {
     }
   });
 
-  test('the phone bar’s title waits while the page’s h1 shows under it, then fades in as the h1 passes under the bar', async () => {
-    const page = await openLayout('layouts/app-shell/', 375, { height: 400 });
-    try {
-      const read = () =>
-        page.evaluate(() => {
-          const title = /** @type {Element} */ (document.querySelector('.sui-shell-title'));
-          const heading = /** @type {Element} */ (document.querySelector('.sui-shell-pane h1'));
-          const bar = /** @type {Element} */ (title.closest('.sui-shell-bar'));
-          const edge = bar.getBoundingClientRect().bottom;
-          const box = heading.getBoundingClientRect();
-          return {
-            opacity: Number(getComputedStyle(title).opacity),
-            below: box.top >= edge,
-            under: box.bottom <= edge,
-            top: box.top - edge
-          };
-        });
-      const shown = await read();
-      assert.equal(shown.opacity, 0, 'the bar names the page while its h1 shows');
-      assert.ok(shown.below);
-      // A scroll timeline moves its animation on the next frame.
-      const scroll = (/** @type {number} */ to) =>
-        page.evaluate(async (to) => {
-          scrollTo(0, to);
-          await new Promise((done) => requestAnimationFrame(() => requestAnimationFrame(done)));
-        }, to);
-      await scroll(shown.top + 9);
-      const halfway = await read();
-      assert.ok(halfway.opacity > 0 && halfway.opacity < 1, `${halfway.opacity} halfway`);
-      await scroll(shown.top + 200);
-      const passed = await read();
-      assert.ok(passed.under);
-      assert.equal(passed.opacity, 1, 'the bar names the page once its h1 has passed under it');
-      assert.ok(
-        await page.locator('.sui-shell-title').evaluate((title) => title.checkVisibility()),
-        'the title stays in the accessibility tree'
-      );
-    } finally {
-      await page.close();
-    }
-  });
-
   test('inside the shell the page header’s rule takes the sidebar’s line ink', async () => {
     const page = await openLayout('layouts/app-shell/', 1440);
     try {
@@ -785,6 +743,10 @@ suite('navigation', together, () => {
               .opacity === '1'
         );
         assert.ok((await bar()).off < -1, 'the place does not rise over the title');
+        assert.ok(
+          await page.locator('.sui-shell-title').evaluate((title) => title.checkVisibility()),
+          'the title leaves the accessibility tree'
+        );
       } finally {
         await page.close();
       }

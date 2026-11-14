@@ -116,8 +116,10 @@
     if (!root || !listPane || !detailPane) return;
     if (next !== undefined) {
       root.scrollTop = 0;
-      detailPane.scrollTop = (returned() && stood.get(spot(next))?.detail) || 0;
-      if (held) land(detailPane.querySelector<HTMLElement>('h1, h2, h3, h4, h5, h6') ?? detailPane);
+      const at = returned() ? stood.get(spot(next))?.detail : undefined;
+      detailPane.scrollTop = at ?? 0;
+      if (held)
+        land(detailPane.querySelector<HTMLElement>('h1, h2, h3, h4, h5, h6') ?? detailPane, !!at);
     } else {
       const box = scroller();
       if (box) box.scrollTop = place;
@@ -126,8 +128,9 @@
     }
   });
 
-  /** Moves focus to a heading or a pane, so the next Tab starts there. */
-  function land(target: HTMLElement): void {
+  /** Moves focus to a heading or a pane, so the next Tab starts there, and `still` keeps the
+   * scroll. */
+  function land(target: HTMLElement, still: boolean): void {
     const lent = !target.hasAttribute('tabindex');
     if (lent) target.tabIndex = -1;
     // Marked so it wears the kit's ring rather than the browser's (styles.css).
@@ -140,7 +143,9 @@
       },
       { once: true }
     );
-    target.focus();
+    // On a return the detail stands where the reader left it, so landing must not scroll a title
+    // partly above the pane back into view.
+    target.focus({ preventScroll: still });
   }
 </script>
 
