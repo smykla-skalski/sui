@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- A copy control in a `CodeBlock`'s head rests on the block's subtle edge on light, quieter than the frame round it, where the control edge made it the strongest repeated shape on the page. On dark it keeps the control edge, where its fill is a small step off the head.
 - An `EmptyState` or `ErrorState` panel pads its words by 32px above and below, up from 28px, so an empty view reads as a place to rest and not a note (L-59). A phone keeps 20px all round.
 - An `ErrorState` over its rows keeps 16px inside its tint above and below on a phone, as at its sides, once its 44px retry wraps under the words, where 9px held the wrapped line tight against the tint.
 - An `Icon` named `github` scales its solid mark to 0.87 about the centre, so it reaches 2 to 22 units as the outline glyphs do with their stroke, where the full 23-unit mark outweighed every glyph beside it.
