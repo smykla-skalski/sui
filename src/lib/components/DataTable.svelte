@@ -315,11 +315,11 @@ row in place of the hairlines, for a table wide enough that the eye can lose its
      timeline is active only while the frame has somewhere to scroll, and the browser settles it
      before it paints, so a server-rendered table draws the line from its first frame. Without
      scroll timelines the line follows the measure script. */
-  /* The caption names the table as a sub-section title does (L-25), so it reads over the column
-     headings under it and the scroll hint beside them. */
+  /* The caption names the table a step over its rows at every width, at the size of an empty
+     state's title (L-25), so it reads as the table's title and not as one more row. */
   .caption:not(.hint) {
     color: var(--sui-text-primary);
-    font: var(--sui-weight-semibold) var(--sui-font-size-body) / var(--sui-row-copy-leading)
+    font: var(--sui-weight-semibold) var(--sui-font-size-state-title) / var(--sui-row-copy-leading)
       var(--sui-sans);
   }
 
@@ -364,9 +364,10 @@ row in place of the hairlines, for a table wide enough that the eye can lose its
 
   /* Rows on their way say so on the caption's line, led by the refresh mark in the info hue as a
      refreshing chart's note is, so the table does not move; the status region says it to a
-     screen reader. */
+     screen reader. Both lines are trimmed to their baseline, so ending them together sets the
+     smaller words on the caption's baseline by whole pixels. */
   .head {
-    align-items: center;
+    align-items: end;
     display: flex;
     flex-wrap: wrap;
     gap: var(--sui-row-copy-gap) var(--sui-space-3);
