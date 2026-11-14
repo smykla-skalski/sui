@@ -183,8 +183,8 @@ export default {
   }
 
   /**
-   * Every path the build serves to a page: everything but the worker, SvelteKit's version file and
-   * the `never` paths.
+   * Every path the build serves to a page: everything but the worker, SvelteKit's version file,
+   * the `never` paths and `404.html`, which the server sends for addresses that hold no file.
    */
   async function served(/** @type {string} */ dir) {
     const out = join(dir, 'build');
@@ -193,7 +193,7 @@ export default {
       files
         .filter((file) => file.isFile())
         .map((file) => relative(out, join(file.parentPath, file.name)))
-        .filter((path) => path !== 'service-worker.js' && path !== '_app/version.json')
+        .filter((path) => !['service-worker.js', '_app/version.json', '404.html'].includes(path))
         .filter((path) => !path.startsWith('fixture/never/'))
         // A page is kept at its address, the folder its `index.html` stands in.
         .map((path) => `/${path.replace(/(^|\/)index\.html$/, '$1')}`)
