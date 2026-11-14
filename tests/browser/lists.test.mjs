@@ -1097,6 +1097,32 @@ suite('lists', together, () => {
       }
     );
 
+    test("a refreshing table says so on its caption's line, led by the refresh mark in the info hue", async () => {
+      const page = await opened();
+      const read = await page
+        .locator('#data-table .specimen', { hasText: /^\s*Refreshing/ })
+        .locator('.sui-data-table')
+        .evaluate((table) => {
+          const line = table.querySelector('.refreshing');
+          const caption = table.querySelector('.caption:not(.hint)');
+          const probe = document.createElement('i');
+          probe.style.color = 'var(--sui-info)';
+          table.append(probe);
+          const info = getComputedStyle(probe).color;
+          probe.remove();
+          const mark = line?.querySelector('svg');
+          const top = (/** @type {Element | null | undefined} */ box) =>
+            box?.getBoundingClientRect().top ?? NaN;
+          return [
+            line?.textContent?.trim(),
+            !!line?.checkVisibility(),
+            mark ? getComputedStyle(mark).color === info : false,
+            Math.abs(top(line?.querySelector('span')) - top(caption)) <= 0.5
+          ];
+        });
+      assert.deepEqual(read, ['Refreshing…', true, true, true]);
+    });
+
     // Columns squeezed to their longest word once wrapped a sentence a word a line on a phone.
     test(
       'a table that scrolls wraps a long value to a few lines, not a word a line, read from the top of its row',

@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- A refreshing `DataTable` says `refreshingLabel` on its caption's line, led by the refresh mark in the info hue, as a refreshing chart does, where only a screen reader heard it and the rows looked current.
 - `Rail` tiles stand 8px in from the column's sides, where they stood 4px in and their plate all but met the edge; the tile gives up its own inline padding, so its words keep their 55px.
 - A `HeatmapChart`'s lowest step holds 1.5:1 on its ground, its steps at 28, 42, 56 and 70% of the series color, where the lowest at 1.3:1 all but vanished on a dark card; L-66 and its audit ask 1.5:1.
 - The app shell demo lays its rows to the header band's gutter up to 80rem, where they stopped at 60rem and left a wide pane's end bare.
