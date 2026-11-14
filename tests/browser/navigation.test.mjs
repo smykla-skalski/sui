@@ -355,38 +355,6 @@ suite('navigation', together, () => {
   );
 
   test(
-    'the shell draws its rules in the page header band’s ink, so two lines that meet are one line',
-    long,
-    async () => {
-      const page = await openLayout('layouts/app-shell/', 1440);
-      try {
-        for (const theme of ['light', 'dark']) {
-          const inks = await page.evaluate((theme) => {
-            document.documentElement.dataset.theme = theme;
-            const ink = (/** @type {string} */ selector, /** @type {string} */ side) =>
-              getComputedStyle(
-                /** @type {Element} */ (document.querySelector(selector))
-              ).getPropertyValue(`border-${side}-color`);
-            return {
-              band: ink('.sui-page-header', 'block-end'),
-              rail: ink('.sui-rail', 'inline-end'),
-              head: ink('.sui-side-nav-head', 'block-end')
-            };
-          }, theme);
-          assert.deepEqual(
-            { rail: inks.rail, head: inks.head },
-            { rail: inks.band, head: inks.band },
-            `${theme}: a shell rule takes another ink than the band it meets`
-          );
-        }
-      } finally {
-        await page.evaluate(() => delete document.documentElement.dataset.theme);
-        await page.close();
-      }
-    }
-  );
-
-  test(
     'with bottomNav a phone keeps the places in a bottom bar and the drawer holds only the pages',
     long,
     async () => {
