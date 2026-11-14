@@ -40,5 +40,10 @@ export const formatLocale = (): string | undefined => {
 export const formatCount = (value: number): string =>
   new Intl.NumberFormat(formatLocale()).format(value);
 
+/** A count drawn in a seat sized for two digits, as a badge or a folded row's count: past 99 it
+ * reads "99+", and the name around it still says the whole number. */
+export const boundCount = (value: number): string =>
+  value > 99 ? `${formatCount(99)}+` : formatCount(value);
+
 /** A count and the unit after it as one atom, so "4\u00a0minutes ago" never breaks between them. */
 export const keepUnit = (text: string): string => text.replace(/(\p{Nd}) (?=\p{L})/gu, '$1\u00a0');

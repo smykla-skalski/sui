@@ -26,7 +26,7 @@
   import type { HTMLAttributes } from 'svelte/elements';
   import Icon from '../icons/Icon.svelte';
   import Count from '../internal/Count.svelte';
-  import { formatCount } from '../internal/locale.js';
+  import { boundCount, formatCount } from '../internal/locale.js';
   import { followsInPlace, getShell } from '../internal/shell.svelte.js';
   import IconButton from './IconButton.svelte';
   import Tooltip from './Tooltip.svelte';
@@ -261,7 +261,7 @@ sidebar is the strip, so it can draw a glyph's width, as `ThemeSwitch` does with
 following a row closes the drawer.
 
 - Semantics: a `nav` landmark named "<title> pages" by default that holds the whole sidebar, its title, rows, fold control and foot, so nothing in it stands outside a landmark; the title is a heading at `level`, each section a list labelled by its own heading one level below, and every row a link with `aria-current="page"` on the current one.
-- Content: a title and optional kicker, an optional `head` under them, sections of rows with a glyph from the icon set or the caller's own, a label, an optional `short` label and an optional count, and an optional `foot`.
+- Content: a title and optional kicker, an optional `head` under them, sections of rows with a glyph from the icon set or the caller's own, a label, an optional `short` label and an optional count, drawn as "99+" past 99 so it keeps its two-digit seat, its whole number in the row's name, and an optional `foot`.
 - States: rest, hover, pressed (the pressed ground, an inset shadow and a 1px sink), focus (a 2px inset ring) and current (primary ink at 500 and an accent glyph on the plate, in room every row holds, so it moves nothing); labels wrap rather than being cut.
 - Keyboard: Tab moves through the rows, then the fold or close control; Enter follows a row or presses the control.
 - Pointer and touch: rows are 34px on a desktop pointer and 44px in the drawer and the strip; the close and fold controls are 34px and 44px there, and nothing needs a gesture.
@@ -342,7 +342,7 @@ following a row closes the drawer.
                 {/if}
                 {#if item.count !== undefined}
                   <span class="sui-side-nav-count" aria-hidden="true"
-                    ><Count value={formatCount(item.count)} /></span
+                    ><Count value={boundCount(item.count)} /></span
                   >
                 {/if}
               </a>

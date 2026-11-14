@@ -31,12 +31,17 @@ export function getShell(): ShellState | undefined {
  * Hands the shell's pages to the rail beside them, which draws them between its places and its
  * foot, so the folded strip and the rail are one column whose Tab order is its visual order.
  */
-export function setRailPages(pages: Snippet): void {
-  setContext(pagesKey, pages);
+export function setRailPages(pages: Snippet): { hosted: boolean } {
+  const host = { pages, hosted: false };
+  setContext(pagesKey, host);
+  return host;
 }
 
+/** Takes the shell's pages to draw, so the shell knows a rail holds them and draws none itself. */
 export function getRailPages(): Snippet | undefined {
-  return getContext<Snippet | undefined>(pagesKey);
+  const host = getContext<{ pages: Snippet; hosted: boolean } | undefined>(pagesKey);
+  if (host) host.hosted = true;
+  return host?.pages;
 }
 
 /**

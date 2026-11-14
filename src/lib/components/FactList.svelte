@@ -265,6 +265,12 @@ they wrap one by one.
     color: var(--sui-text-muted);
   }
 
+  /* A flowing label wraps inside its fact, so one word wider than the list, as a long localized
+     label at a large text size, breaks rather than running past the list's edge. */
+  .inline .sui-fact-list-label {
+    overflow-wrap: anywhere;
+  }
+
   /* The value outweighs its label, so the pair reads apart without ink alone. */
   .sui-fact-list-value {
     color: var(--sui-text-primary);

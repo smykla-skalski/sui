@@ -41,6 +41,8 @@
   // A repository row is one line of words beside a pill, a pixel of hairline included.
   const NAME_ROW = '2.8125rem';
   const started = Date.now() - 12.5 * 60_000;
+  // The results are as old as the check's finish, so the stale notice reads its age from there.
+  const finished = started + 48_000;
   const nothing = () => {};
 
   const differs = { state: 'Differs', tone: 'warning' as PillTone };
@@ -69,7 +71,7 @@
   const timeline: TimelineEvent[] = [
     { at: started, actor: { name: 'Bart Smykla' }, text: 'requested the check' },
     { at: started + 2_000, text: 'A worker picked it up, attempt 1 of 3' },
-    { at: started + 48_000, text: 'Finished, 16 repositories compared' }
+    { at: finished, text: 'Finished, 16 repositories compared' }
   ];
 
   const related: LinkListItem[] = [
@@ -368,7 +370,8 @@
             <!-- A history glyph says the data is old; a refresh glyph would read as a second
                  Reload. The failure leads at a title's weight, so it reads before its reason. -->
             {#snippet icon()}<Icon name="history" size="sm" />{/snippet}
-            <span class="lead">The refresh failed</span>, so this page shows data from a minute ago
+            <span class="lead">The refresh failed</span>, so this page shows data from
+            <RelativeTime value={finished} />
             {#snippet actions()}
               <Button loading={refreshing} onclick={refresh}>
                 {refreshing ? 'Reloading Data…' : 'Reload Data'}

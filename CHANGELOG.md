@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- AppShell: a `rail` of the caller's own markup keeps the pages beside it, where only `Rail` drew them; a phone's bottom bar sticks to the foot of the view again; and the bar finds a page heading that the content brings in or renames after it opens.
+- Rail: with `bottomNav`, the drawer's pages keep one render site, so crossing the phone width no longer mounts the sidebar afresh. A badge past 99 draws "99+" so it stays in the column, as does a folded `SideNav` count; the names still say the whole number.
+- FactList: a flowing label breaks a word wider than its list instead of running past it.
+- SegmentedControl: with `fill`, the measure counts the widest option once per option, so a long label turns the control into a select before it outgrows its share.
 - Skeleton: a one-line row with a side keeps the side beside its bar, a pill's 56px wide, so a waiting list of one-line rows stands at the loaded rows' pitch. DetailLayout: an aside stacked under the main column keeps the section tier, and only an aside beside it takes the sub-section tier. SideNav: the drawer's close button centres on the title's line, past any kicker.
 - AppShell: a phone bar keeps its title hidden while the page's own h1 is still below the screen, and a shell in a frame further down a page reads its own screen, so the bar never names the page over the heading that names it.
 - ListDetail: Back to an item keeps its detail where the reader left it while focus lands on its title, where the landing scrolled a title partly above the pane back into view.

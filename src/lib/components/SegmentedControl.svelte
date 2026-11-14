@@ -569,6 +569,15 @@ itself, so the choice shows from the first frame.
     inline-size: max-content;
   }
 
+  /* Filled, every option takes an equal share, so the ruler measures the widest option as many
+     times as there are options: a long label then turns the control into a select before it
+     overflows its share. */
+  .filled .sui-segmented-ruler {
+    display: grid;
+    grid-auto-columns: 1fr;
+    grid-auto-flow: column;
+  }
+
   /* Holds no width of its own, so the select never widens the box it was measured against. A
      hidden form is clipped to the box, so it never widens the page either. The select stretches
      over the room the segments had, so a control that turns into one keeps its width and

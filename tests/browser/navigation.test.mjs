@@ -690,10 +690,35 @@ suite('navigation', together, () => {
           `tiles are ${bar.tiles.join(', ')}px`
         );
         assert.deepEqual(bar.room, [8, 8, 8, 8], 'the tiles stand 8px in, as the rail’s do');
+        const foot = await page.evaluate(() => {
+          const gap = document.createElement('div');
+          gap.style.blockSize = '300vh';
+          document.querySelector('main')?.append(gap);
+          const places = /** @type {Element} */ (document.querySelector('.sui-shell-places'));
+          const gaps = innerHeight - places.getBoundingClientRect().bottom;
+          gap.remove();
+          return gaps;
+        });
+        assert.ok(Math.abs(foot) <= 1, `over a long page the bar stands ${foot}px off the foot`);
+        // One render site for the pages, so crossing the phone's width keeps the sidebar mounted.
+        await page.evaluate(() => {
+          /** @type {any} */ (window).suiPages = document.querySelector('.sui-side-nav');
+        });
+        await page.setViewportSize({ width: 1100, height: 900 });
+        await page.setViewportSize({ width: 375, height: 900 });
+        assert.ok(
+          await page.evaluate(
+            () => /** @type {any} */ (window).suiPages === document.querySelector('.sui-side-nav')
+          ),
+          'the sidebar mounted afresh as the shell crossed the phone width'
+        );
         const drawer = await openDrawer(page);
-        assert.equal(
-          await drawer.locator('.sui-rail').count(),
-          0,
+        assert.deepEqual(
+          [
+            await drawer.locator('.sui-rail-tile:visible').count(),
+            await drawer.locator('nav.sui-rail[aria-label]').count()
+          ],
+          [0, 0],
           'the drawer carries the rail too'
         );
         assert.equal(await drawer.locator('.sui-side-nav').count(), 1);
@@ -708,6 +733,23 @@ suite('navigation', together, () => {
       }
     }
   );
+
+  test('a phone bar finds a heading the content brings in after it opens', long, async () => {
+    // The list has no h1 of its own; opening a run brings one in, in the bar title's words.
+    const page = await openLayout('layouts/list-detail/', 390);
+    try {
+      await page.locator('a[href="/layouts/list-detail/4182/"]').click();
+      await page.waitForURL(/\/layouts\/list-detail\/4182\/$/);
+      await page.waitForTimeout(400);
+      assert.equal(
+        await page.locator('.sui-shell-title').evaluate((title) => getComputedStyle(title).opacity),
+        '0',
+        'the bar names the run over the run’s own heading'
+      );
+    } finally {
+      await page.close();
+    }
+  });
 
   test(
     "a phone bar names the page only once the page's own heading has gone under it",
@@ -1596,6 +1638,134 @@ suite('navigation', together, () => {
           return arrived.getAnimations()[0]?.effect?.getTiming().duration;
         });
         assert.equal(seen, 480);
+      } finally {
+        await page.close();
+      }
+    });
+
+    test(
+      'a rail badge past 99 stays in its column and its tile still names the whole count',
+      long,
+      async () => {
+        const page = await openMount(browser, url);
+        try {
+          const badge = await page.evaluate(() => {
+            const { lib, mount, flushSync } = /** @type {any} */ (window);
+            const target = document.body.appendChild(document.createElement('div'));
+            mount(lib.Rail, {
+              target,
+              props: { items: [{ href: '#a', label: 'Console', icon: 'server', badge: 1284 }] }
+            });
+            flushSync();
+            const rail = /** @type {Element} */ (target.querySelector('.sui-rail'));
+            const count = /** @type {HTMLElement} */ (target.querySelector('[data-count]'));
+            return {
+              drawn: count.dataset.count,
+              past: count.getBoundingClientRect().right - rail.getBoundingClientRect().right,
+              name: target.querySelector('.sui-rail-tile')?.getAttribute('aria-label')
+            };
+          });
+          assert.equal(badge.drawn, '99+');
+          assert.ok(badge.past <= 0, `the badge runs ${badge.past}px past the rail`);
+          assert.match(String(badge.name), /1,284/);
+        } finally {
+          await page.close();
+        }
+      }
+    );
+
+    test(
+      'a filled segmented control turns into a select before a long option outgrows its share',
+      long,
+      async () => {
+        const page = await openMount(browser, url);
+        try {
+          const cut = await page.evaluate(async () => {
+            const { lib, mount, flushSync } = /** @type {any} */ (window);
+            const target = document.body.appendChild(document.createElement('div'));
+            mount(lib.SegmentedControl, {
+              target,
+              props: {
+                label: 'Show',
+                fill: true,
+                value: 'all',
+                options: [
+                  { value: 'all', label: 'All' },
+                  { value: 'repositories', label: 'Repositories' }
+                ]
+              }
+            });
+            flushSync();
+            const root = /** @type {Element} */ (target.querySelector('.sui-segmented'));
+            const widths = [];
+            for (let width = 320; width >= 120; width -= 2) {
+              target.style.inlineSize = `${width}px`;
+              await new Promise((done) => requestAnimationFrame(() => requestAnimationFrame(done)));
+              if (root.classList.contains('short')) continue;
+              const options = root.querySelectorAll(
+                ':scope > .sui-segmented-track .sui-segmented-option'
+              );
+              for (const option of options) {
+                const words = /** @type {Element} */ (option.querySelector('.sui-segmented-label'));
+                if (words.scrollWidth > option.clientWidth) widths.push(width);
+              }
+            }
+            return widths;
+          });
+          assert.deepEqual(cut, [], 'an option overflows its share while the segments still show');
+        } finally {
+          await page.close();
+        }
+      }
+    );
+
+    test('a flowing fact breaks a label wider than its list', long, async () => {
+      const page = await openMount(browser, url, { viewport: { width: 390, height: 844 } });
+      try {
+        const past = await page.evaluate(() => {
+          const { lib, mount, flushSync } = /** @type {any} */ (window);
+          const target = document.body.appendChild(document.createElement('div'));
+          target.style.inlineSize = '10rem';
+          mount(lib.FactList, {
+            target,
+            props: { facts: [{ label: 'Synchronisationsverwaltungsoberfläche', value: '3' }] }
+          });
+          flushSync();
+          const label = /** @type {Element} */ (target.querySelector('.sui-fact-list-label'));
+          return label.scrollWidth - target.getBoundingClientRect().width;
+        });
+        assert.ok(past <= 0, `the label runs ${past}px past its list`);
+      } finally {
+        await page.close();
+      }
+    });
+
+    test('a rail of the caller’s own markup keeps the shell’s pages beside it', long, async () => {
+      const page = await openMount(browser, url);
+      try {
+        const pages = await page.evaluate(() => {
+          const { lib, mount, flushSync, createRawSnippet } = /** @type {any} */ (window);
+          const target = document.body.appendChild(document.createElement('div'));
+          const markup = (/** @type {string} */ html) =>
+            createRawSnippet(() => ({ render: () => html }));
+          mount(lib.AppShell, {
+            target,
+            props: {
+              title: 'Overview',
+              contained: true,
+              rail: markup('<nav aria-label="Places"><a href="#a">Acme</a></nav>'),
+              sidebar: markup(
+                '<nav class="custom-pages" aria-label="Pages"><a href="#p">Overview</a></nav>'
+              ),
+              children: markup('<p>Content</p>')
+            }
+          });
+          flushSync();
+          return [...document.querySelectorAll('.custom-pages')].map((nav) =>
+            nav.checkVisibility()
+          );
+        });
+        assert.deepEqual(pages, [true], 'the pages are not drawn once beside a custom rail');
       } finally {
         await page.close();
       }

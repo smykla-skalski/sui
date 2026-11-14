@@ -1,6 +1,6 @@
 <script lang="ts">
   import { word } from '../words.js';
-  import { flushSync, type Snippet } from 'svelte';
+  import { flushSync, untrack, type Snippet } from 'svelte';
   import type { HTMLAttributes } from 'svelte/elements';
   import Icon from '../icons/Icon.svelte';
   import { clearance } from '../internal/clearance.js';
@@ -185,18 +185,33 @@
     addEventListener('scroll', settle, { capture: true, once: true, passive: true });
     return () => removeEventListener('scroll', settle, { capture: true });
   });
+  // The page's own heading, found again whenever the content or the title changes, as when a
+  // loaded page replaces its placeholder or a list opens an item with a heading of its own.
+  let heading = $state.raw<HTMLElement | null>(null);
+  $effect(() => {
+    const bar = topBar;
+    const frame = root;
+    const named = title.trim();
+    if (mode !== 'drawer' || !bar || !frame) {
+      heading = null;
+      return;
+    }
+    const find = () => {
+      const next =
+        [...frame.querySelectorAll('h1')].find(
+          (node) => !bar.contains(node) && node.textContent?.trim() === named
+        ) ?? null;
+      if (next !== untrack(() => heading)) heading = next;
+    };
+    find();
+    const changes = new MutationObserver(find);
+    changes.observe(frame, { characterData: true, childList: true, subtree: true });
+    return () => changes.disconnect();
+  });
   $effect(() => {
     const bar = topBar;
     const holder = name;
-    const frame = root;
-    if (mode !== 'drawer' || !bar || !holder || !frame) {
-      headed = false;
-      return;
-    }
-    const heading = [...frame.querySelectorAll('h1')].find(
-      (node) => !bar.contains(node) && node.textContent?.trim() === title.trim()
-    );
-    if (!heading) {
+    if (!bar || !holder || !heading) {
       headed = false;
       return;
     }
@@ -729,6 +744,7 @@ viewport. `landmark="none"` keeps the content from claiming the page's one `main
       block-size: auto;
       grid-row: 2;
       inset-block: auto 0;
+      position: sticky;
       z-index: var(--sui-layer-top-bar);
     }
   }

@@ -18,7 +18,7 @@
   import type { Snippet } from 'svelte';
   import type { HTMLAttributes } from 'svelte/elements';
   import Icon from '../icons/Icon.svelte';
-  import { formatCount } from '../internal/locale.js';
+  import { boundCount, formatCount } from '../internal/locale.js';
   import { followsInPlace, getRailPages, getShell } from '../internal/shell.svelte.js';
   import Tooltip from './Tooltip.svelte';
 
@@ -103,7 +103,7 @@ lightness, with its glyph in the accent ink, on a plate of the accent tint, its 
 - Localization: `label` and `badgeLabel` are props with English defaults; the badge's count follows the page language's digits and grouping, and the tooltip opens on the inline end, which is the left in a right-to-left page.
 - Performance: a handful of static tiles; only background, colour and the 1px press move, through transitions that reduced motion removes.
 - Analytics: `onnavigate(event, item)` reports a followed link and `onpick(item)` a pressed button.
-- Failure: an empty `items` draws an empty column with its brand and foot; a place without a destination is a button, and a badge of 0 draws nothing.
+- Failure: an empty `items` draws an empty column with its brand and foot; a place without a destination is a button, and a badge of 0 draws nothing, and one past 99 draws "99+" so it stays in the column, its whole number in the tile's name.
 -->
 
 {#snippet tile(item: RailItem)}
@@ -147,7 +147,7 @@ lightness, with its glyph in the accent ink, on a plate of the accent tint, its 
   <span class="sui-rail-glyph">
     <Icon name={item.icon} size="md" />
     {#if item.badge}<span class="sui-rail-badge" aria-hidden="true"
-        ><span data-count={formatCount(item.badge)}></span></span
+        ><span data-count={boundCount(item.badge)}></span></span
       >{/if}
   </span>
   <span class="sui-rail-label" data-label={item.short ?? item.label}
@@ -155,35 +155,34 @@ lightness, with its glyph in the accent ink, on a plate of the accent tint, its 
   >
 {/snippet}
 
-{#if pagesOnly}
-  {@render pages?.()}
-{:else}
-  <nav
-    {...rest}
-    class={['sui-rail', className, { host: pages }]}
-    aria-label={label}
-    data-bar={bar || undefined}
-    data-collapsed={(pages && shell?.collapsed) || undefined}
-  >
-    <div class="sui-rail-top">
-      {#if brand}
-        <div class="sui-rail-brand">{@render brand()}</div>
-        <span class="sui-rail-rule" aria-hidden="true"></span>
-      {/if}
-      <ul class="sui-rail-list" style:--sui-local-rail-count={items.length}>
-        {#each items as item (key(item))}{@render tile(item)}{/each}
-      </ul>
-    </div>
-    <!-- The pages stand between the places and the foot, so Tab meets them in the order the
-         folded column draws them. -->
-    {@render pages?.()}
-    {#if foot.length > 0}
-      <ul class="sui-rail-list sui-rail-foot" style:--sui-local-rail-count={foot.length}>
-        {#each foot as item (key(item))}{@render tile(item)}{/each}
-      </ul>
+<!-- The pages keep one render site, so crossing the phone's width never mounts the sidebar
+     afresh: with only the pages, the column is no box and no landmark of its own. -->
+<nav
+  {...rest}
+  class={['sui-rail', className, { host: pages, 'pages-only': pagesOnly }]}
+  role={pagesOnly ? 'presentation' : undefined}
+  aria-label={pagesOnly ? undefined : label}
+  data-bar={bar || undefined}
+  data-collapsed={(pages && shell?.collapsed) || undefined}
+>
+  <div class="sui-rail-top">
+    {#if brand}
+      <div class="sui-rail-brand">{@render brand()}</div>
+      <span class="sui-rail-rule" aria-hidden="true"></span>
     {/if}
-  </nav>
-{/if}
+    <ul class="sui-rail-list" style:--sui-local-rail-count={items.length}>
+      {#each items as item (key(item))}{@render tile(item)}{/each}
+    </ul>
+  </div>
+  <!-- The pages stand between the places and the foot, so Tab meets them in the order the
+       folded column draws them. -->
+  {@render pages?.()}
+  {#if foot.length > 0}
+    <ul class="sui-rail-list sui-rail-foot" style:--sui-local-rail-count={foot.length}>
+      {#each foot as item (key(item))}{@render tile(item)}{/each}
+    </ul>
+  {/if}
+</nav>
 
 <style>
   .sui-rail {
@@ -206,6 +205,16 @@ lightness, with its glyph in the accent ink, on a plate of the accent tint, its 
     overscroll-behavior: contain;
     padding-block: var(--sui-space-3);
     scrollbar-width: thin;
+  }
+
+  /* A phone's drawer over a bottom bar holds only the pages: the bar has the places, so the
+     column is no box and its places and foot are gone. */
+  .sui-rail.pages-only {
+    display: contents;
+  }
+
+  .sui-rail.pages-only > :is(.sui-rail-top, .sui-rail-foot) {
+    display: none;
   }
 
   /* Alone, the places' part of the column is no box of its own. */
