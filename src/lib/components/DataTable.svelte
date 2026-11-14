@@ -153,7 +153,7 @@ row in place of the hairlines, for a table wide enough that the eye can lose its
 - Content: `columns` and `rows` of plain values, or any markup through `cell`; numbers print in the page's number format, and other values should come formatted.
 - States: loaded, sorted, empty (`emptyLabel` or `empty`), loading (three placeholder rows built from the table's own cells, each column as wide as its `sample`, so they match the loaded rows, each bar where its column's words start and crossed by the light every placeholder shares), refreshing (rows kept, busy, and `refreshingLabel` on the caption's line after the refresh mark), and failed (`error`, with a retry); a failure over rows already here keeps them, marked as not current.
 - Keyboard: a sortable heading is a button, and Enter or Space sorts by it, then reverses; a frame that scrolls is a tab stop, so the arrow keys scroll it.
-- Pointer and touch: a sortable heading's target is at least 24px tall, and 44px on a phone or a coarse pointer.
+- Pointer and touch: a sortable heading is a 28px control, and its target 44px on a phone or a coarse pointer.
 - Focus: sorting keeps focus on the heading; the frame is a stop only while it scrolls.
 - Responsive: columns grow to their widest value and the table scrolls inside its own frame, with a line that says so, a fade on each edge that has more past it, starting past held row headings, and the row headings held in view; numeric and `nowrap` columns never wrap, other text wraps inside its column; a wrapping column is never narrower than its values up to a 20rem measure, 8rem for held row headings (6rem on a phone, where cells also pad 8px at their sides), so on a narrow frame a long value wraps to a few lines while the frame scrolls; a row that wraps reads from its top.
 - Accessibility: loading and refreshing mark the table `aria-busy` and are said through a polite status; a failure is an alert in words beside an icon; sorted order is `aria-sort` and an up or down chevron.
@@ -230,7 +230,7 @@ row in place of the hairlines, for a table wide enough that the eye can lose its
                         : sort.direction === 'ascending'
                           ? 'chevron-up'
                           : 'chevron-down'}
-                      size="xs"
+                      size="base"
                     />
                   </button>
                 {:else}
@@ -533,14 +533,14 @@ row in place of the hairlines, for a table wide enough that the eye can lose its
     font-variant-numeric: tabular-nums;
   }
 
-  /* A sort heading is a chip-tier control (L-37) whose ground reaches a space past its words.
-     The negative margins hand that back, so it lines up with the plain headings and the heading
-     row keeps its line. */
+  /* A sort heading is a quiet-tier control (L-37) whose ground reaches 8px past its words, its
+     arrow the 16px mark a combobox's chevron is. The negative margins hand that room back, so it
+     lines up with the plain headings and takes 16px of the heading row, as a chip's did. */
   .sort {
     align-items: center;
     appearance: none;
     background-color: transparent;
-    block-size: var(--sui-control-height-chip);
+    block-size: var(--sui-tier-quiet);
     border: 0;
     box-sizing: border-box;
     border-radius: var(--sui-radius-control);
@@ -551,8 +551,8 @@ row in place of the hairlines, for a table wide enough that the eye can lose its
     font: inherit;
     gap: var(--sui-space-1);
     inline-size: var(--sui-inline-snap);
-    margin: calc(-1 * var(--sui-space-1));
-    padding: 0 var(--sui-space-1);
+    margin: calc((var(--sui-space-4) - var(--sui-tier-quiet)) / 2) calc(-1 * var(--sui-space-2));
+    padding: 0 var(--sui-space-2);
     position: relative;
     user-select: none;
     /* Off the baseline, so the glyph beside the words never moves the heading row's line. */

@@ -2075,6 +2075,40 @@ suite('lists', together, () => {
       }
     );
 
+    test('a sortable heading is a 28px control with a 16px arrow, its ground 8px past its words and its words on its values’ edge, and takes the 16px of its row a chip took', async () => {
+      const page = await opened();
+      const found = await page.evaluate(() => {
+        const sorting = /** @type {Element} */ (document.querySelector('#data-table table'));
+        const heading = /** @type {Element} */ (sorting.querySelector('thead th:nth-child(2)'));
+        const control = /** @type {Element} */ (
+          heading.querySelector('.sort')
+        ).getBoundingClientRect();
+        const words = /** @type {Element} */ (
+          heading.querySelector('.sort > span')
+        ).getBoundingClientRect();
+        const arrow = /** @type {Element} */ (
+          heading.querySelector('.sort > svg')
+        ).getBoundingClientRect();
+        const value = /** @type {Element} */ (
+          sorting.querySelector('tbody tr td:nth-child(2) .value')
+        ).getBoundingClientRect();
+        const cell = getComputedStyle(heading);
+        const line =
+          heading.getBoundingClientRect().height -
+          parseFloat(cell.paddingTop) -
+          parseFloat(cell.paddingBottom) -
+          parseFloat(cell.borderBottomWidth);
+        return [
+          control.height,
+          arrow.width,
+          control.right - words.right,
+          Math.abs(words.right - value.right) <= 0.5,
+          line
+        ];
+      });
+      assert.deepEqual(found, [28, 16, 8, true, 16]);
+    });
+
     test(
       "a striped table keeps the plain table's text edge, and its stripes reach past it",
       long,
