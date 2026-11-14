@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- A chart's data control leads with a chevron that turns down while the table shows, as a `Disclosure`'s does, and a refreshing chart's note leads with the refresh mark in the info hue, as a stale one leads with the warning mark.
 - A `DiffBlock` marks the whole words that changed in a paired line, at most three stretches, so the quotes and brackets both sides keep stay plain, where one stretch ran from the first changed character to the last. Its head's plus and minus are drawn in the code's face, as the lines' glyphs are.
 - On a phone an `ObjectRow` keeps its side beside the main part whenever both fit on one line, so a wider pill such as Not checked no longer drops under a short name while the rows beside it keep theirs.
 - A `DiffBlock` with 2 empty sides draws one 44px body row with its words in the code's mono and the line numbers' quiet ink, where a 36px box of sans words read as a field. Its plus and minus glyphs stand at 600, so the removed side's short bar keeps its ink beside the added side's cross.

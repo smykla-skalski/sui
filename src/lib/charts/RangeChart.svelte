@@ -125,7 +125,7 @@ cut on the axis without splitting a character and stay whole in the table under 
 
 - Semantics: a `figure` named by its title, a heading at `level` (3 by default), with the plot as one `role="img"`, a legend list and a disclosure holding a table of every interval.
 - Content: rows with a label, a start, an end and an optional marker; a title and a one-sentence description are required.
-- States: shown, empty, loading, refreshing, stale, failed and partial (rows left out); the data control draws hover, pressed and focus.
+- States: shown, empty, loading, refreshing, stale, failed and partial (rows left out); the data control draws hover, pressed and focus, and its chevron turns down while the table shows.
 - Keyboard: Tab reaches the plot when it scrolls, then "View Chart Data", where Enter or Space opens the table, and the table itself when it scrolls.
 - Pointer and touch: "View Chart Data" is 24px tall on a desktop pointer and 44px on a phone or a coarse pointer; nothing needs hover, since every value is in the table.
 - Focus: opening the table keeps focus on its control; retrying a failed chart is the error state's button.

@@ -111,7 +111,7 @@ container.
 
 - Semantics: a `figure` named by its title, a heading at `level` (3 by default), with the matrix as one `role="img"`, a legend list and a disclosure holding a table of every cell.
 - Content: row and column names, cells with a number or `null`, and a formatter; a title and a one-sentence description are required.
-- States: shown, empty, loading, refreshing, stale, failed and partial (cells with no value); the data control draws hover, pressed and focus.
+- States: shown, empty, loading, refreshing, stale, failed and partial (cells with no value); the data control draws hover, pressed and focus, and its chevron turns down while the table shows.
 - Keyboard: Tab reaches the matrix when it scrolls, then "View Chart Data", where Enter or Space opens the table, and the table itself when it scrolls.
 - Pointer and touch: "View Chart Data" is 24px tall on a desktop pointer and 44px on a phone or a coarse pointer; nothing needs hover, since each cell prints its value.
 - Focus: opening the table keeps focus on its control; retrying a failed chart is the error state's button.

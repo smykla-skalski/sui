@@ -20,7 +20,7 @@ fall on round numbers, and on whole numbers when every value is whole.
 
 - Semantics: a `figure` named by its title, a heading at `level` (3 by default), with the plot as one `role="img"`, a legend list (read only by a screen reader while every line is named at its own end) and a disclosure holding a table of every value.
 - Content: series of numeric points with a label each, axis labels and formatters; a title and a one-sentence description are required.
-- States: shown, empty, loading, refreshing, stale, failed and partial (some points left out); the data control draws hover, pressed and focus.
+- States: shown, empty, loading, refreshing, stale, failed and partial (some points left out); the data control draws hover, pressed and focus, and its chevron turns down while the table shows.
 - Keyboard: Tab reaches the plot when it scrolls, then "View Chart Data", where Enter or Space opens the table, and the table itself when it scrolls.
 - Pointer and touch: "View Chart Data" is 24px tall on a desktop pointer and 44px on a phone or a coarse pointer; the plot scrolls by swipe, wheel or keyboard, and nothing needs hover, since every value is in the table.
 - Focus: opening the table keeps focus on its control; retrying a failed chart is the error state's button.
@@ -29,7 +29,7 @@ fall on round numbers, and on whole numbers when every value is whole.
 - Localization: every word is a prop with an English default (`xLabel`, `yLabel`, `seriesHeading`, `dataLabel`, the empty, loading, refreshing, stale and failed words, and `missingLabel` for a count); default numbers follow the page language, and the plot reads left to right in every page while its legend and table follow the page. Words in a script the chart's own face does not hold are measured once the page runs, so only such a plot settles then.
 - Performance: a line through more points than a 1920px plot has pixels is thinned to each pixel's lowest and highest point, and a line of more than 12 points draws no markers at any width, as they would crowd on its narrowest plot; the table renders only while it is open. Nothing animates; an edge fade switches on the plot's own scroll timeline.
 - Analytics: `ontableopenchange(open)` reports the table and `onretry` a retry.
-- Failure: `status` draws `loading` as a placeholder of the plot's size that the loading light crosses, `refreshing` and `stale` as a line of words at 500 in the secondary ink over the values on screen, `stale` led by the warning mark in its hue, which keep their full strength, and `failed` as an error state with `error` and an optional retry; no values draw an empty state with `emptyAction` as its next step, and points that are not finite are left out and counted in words, the line breaks there, and a value with a gap on each side keeps its marker.
+- Failure: `status` draws `loading` as a placeholder of the plot's size that the loading light crosses, `refreshing` and `stale` as a line of words at 500 in the secondary ink over the values on screen, `refreshing` led by the refresh mark in the info hue and `stale` by the warning mark in the warning hue, which keep their full strength, and `failed` as an error state with `error` and an optional retry; no values draw an empty state with `emptyAction` as its next step, and points that are not finite are left out and counted in words, the line breaks there, and a value with a gap on each side keeps its marker.
 -->
 
 <XYChart {...props} kind="line" />

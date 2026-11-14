@@ -1876,28 +1876,52 @@ suite('navigation', together, () => {
       }
     });
 
-    test('a stale chart’s note leads with the warning mark in its hue, at a refreshing note’s height', async () => {
+    test('a refreshing or stale chart’s note leads with its mark in its hue, at the words’ height, and the data control leads with a chevron that turns down open', async () => {
       const page = await charts();
       const read = await page.evaluate(() => {
         const note = (/** @type {string} */ status) =>
           /** @type {HTMLElement} */ (
             document.querySelector(`#charts .sui-chart-note[data-status="${status}"]`)
           );
-        const stale = note('stale');
-        const mark = stale.querySelector('svg');
-        const probe = document.createElement('span');
-        probe.style.color = 'var(--sui-warning)';
-        stale.append(probe);
-        const warning = getComputedStyle(probe).color;
-        probe.remove();
+        const ink = (/** @type {Element} */ host, /** @type {string} */ token) => {
+          const probe = document.createElement('span');
+          probe.style.color = `var(${token})`;
+          host.append(probe);
+          const color = getComputedStyle(probe).color;
+          probe.remove();
+          return color;
+        };
+        const marked = (/** @type {HTMLElement} */ host, /** @type {string} */ token) => {
+          const mark = host.querySelector(':scope > svg');
+          return mark ? getComputedStyle(mark).color === ink(host, token) : false;
+        };
+        const details = /** @type {HTMLDetailsElement} */ (
+          document.querySelector('#charts .sui-chart details')
+        );
+        const chevron = details.querySelector('summary > .chevron svg');
+        const turn = () =>
+          chevron ? getComputedStyle(/** @type {Element} */ (chevron.parentElement)).rotate : '';
+        chevron?.parentElement?.style.setProperty('transition', 'none');
+        const closed = turn();
+        details.open = true;
+        const opened = turn();
+        details.open = false;
+        const muted = /** @type {HTMLElement} */ (
+          document.querySelector('#charts .sui-chart-note:not([data-status])')
+        );
         return {
-          mark: mark ? getComputedStyle(mark).color === warning : false,
-          height: stale.getBoundingClientRect().height,
-          refreshing: note('refreshing').getBoundingClientRect().height
+          stale: marked(note('stale'), '--sui-warning'),
+          refreshing: marked(note('refreshing'), '--sui-info'),
+          heights: [note('stale'), note('refreshing'), muted].map(
+            (host) => host.getBoundingClientRect().height
+          ),
+          chevron: [Boolean(chevron), closed, opened]
         };
       });
-      assert.ok(read.mark, 'the stale note has no mark in the warning hue');
-      assert.equal(read.height, read.refreshing, 'the mark grows the note');
+      assert.ok(read.stale, 'the stale note has no mark in the warning hue');
+      assert.ok(read.refreshing, 'the refreshing note has no mark in the info hue');
+      assert.equal(new Set(read.heights).size, 1, `a mark grows its note: ${read.heights}`);
+      assert.deepEqual(read.chevron, [true, 'none', '90deg'], 'the data control’s chevron');
     });
 
     test('the chart face table holds what Chrome draws, glyph by glyph and pair by pair, tabular figures too', async () => {

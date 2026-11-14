@@ -177,7 +177,9 @@
       data-status={status === 'refreshing' || status === 'stale' ? status : undefined}
       aria-hidden="true"
     >
-      {#if status === 'stale'}<Icon name="alert" size="sm" /><span>{note}</span>{:else}{note}{/if}
+      {#if status === 'stale'}<Icon name="alert" size="sm" /><span>{note}</span
+        >{:else if status === 'refreshing'}<Icon name="refresh" size="sm" /><span>{note}</span
+        >{:else}{note}{/if}
     </p>
   {/if}
   <VisuallyHidden role="status">{settled ? (note ?? '') : ''}</VisuallyHidden>
@@ -214,7 +216,10 @@
     </div>
     {@render children?.()}
     <details bind:open ontoggle={() => ontableopenchange?.(open)}>
-      <summary><span>{dataLabel}</span></summary>
+      <summary
+        ><span class="chevron"><Icon name="chevron-right" size="sm" /></span><span>{dataLabel}</span
+        ></summary
+      >
       <!-- A box that scrolls takes a stop so a keyboard can scroll it, as WCAG 2.1.1 asks. -->
       <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
       <div
@@ -292,19 +297,24 @@
     font-weight: var(--sui-weight-medium);
   }
 
-  /* Values out of date are a warning, so the note leads with the warning mark in its hue, as a
-     table's failed line leads with the danger mark, and its words keep their ink. The mark
-     reaches a pixel past the words' capitals, so the note keeps their height. */
-  .sui-chart-note[data-status='stale'] {
+  /* A plot on its way or out of date leads its note with the state's mark in its hue, as a
+     table's failed line leads with the danger mark, and its words keep their ink: the refresh
+     mark in the info hue, the warning mark in the warning hue. The mark reaches a pixel past
+     the words' capitals, so the note keeps their height. */
+  .sui-chart-note[data-status] {
     align-items: center;
     block-size: auto;
-    color: var(--sui-warning);
+    color: var(--sui-info);
     display: flex;
     gap: var(--sui-space-2);
     padding-block: 0;
   }
 
-  .sui-chart-note[data-status='stale'] > span {
+  .sui-chart-note[data-status='stale'] {
+    color: var(--sui-warning);
+  }
+
+  .sui-chart-note[data-status] > span {
     align-content: center;
     block-size: var(--sui-block-snap);
     color: var(--sui-text-secondary);
@@ -312,7 +322,7 @@
     text-box: trim-both cap alphabetic;
   }
 
-  .sui-chart-note[data-status='stale'] > :global(svg) {
+  .sui-chart-note[data-status] > :global(svg) {
     margin-block: calc(-1 * var(--sui-space-1));
   }
 
@@ -461,9 +471,25 @@
     user-select: none;
   }
 
+  /* The chevron leads the words as a disclosure's does, and turns down when the table shows
+     (L-57). The mirrored chevron points to the left, so it turns the other way. */
+  .chevron {
+    display: flex;
+    margin-inline-end: var(--sui-space-1);
+    transition: rotate var(--sui-duration-open) var(--sui-ease-standard);
+  }
+
+  [open] > summary .chevron {
+    rotate: 90deg;
+  }
+
+  [open] > summary .chevron:dir(rtl) {
+    rotate: -90deg;
+  }
+
   /* An even box in the even control, so the room above and under the words halves to whole
      pixels (L-95). */
-  summary > span {
+  summary > span:not(.chevron) {
     align-content: center;
     block-size: var(--sui-block-snap-even);
     padding-block: var(--sui-block-snap-room-even);
@@ -546,7 +572,8 @@
       content: none;
     }
 
-    summary {
+    summary,
+    .chevron {
       transition: none;
     }
   }
