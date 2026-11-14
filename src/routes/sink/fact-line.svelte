@@ -18,6 +18,7 @@
   title="Facts"
   note="The dot stands 9 px from each fact and is read as a comma"
   --specimen-column-gap="calc(2 * var(--sui-space-6))"
+  --specimen-caption-gap="3rem"
 >
   <Specimen label="Words">
     <FactLine><span>Default branch main</span><span>84 files up to date</span></FactLine>
