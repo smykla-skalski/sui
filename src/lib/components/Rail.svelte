@@ -318,8 +318,8 @@ lightness, with its glyph in the accent ink, on a plate of the accent tint, its 
   }
 
   /* Something waiting is information, not a fault, so it wears the accent. A one-figure count
-     stands over the glyph's top-end corner, its top a quarter of its height above the glyph,
-     so it covers no more than that corner and its halo stays inside the tile. */
+     stands over the glyph's top-end corner, a quarter of its height above the glyph and 4px over
+     its end, so it covers no more than that corner and its halo stays inside the tile. */
   .sui-rail-badge {
     align-items: center;
     background: var(--sui-brand-action);
@@ -333,7 +333,7 @@ lightness, with its glyph in the accent ink, on a plate of the accent tint, its 
       var(--sui-sans);
     font-variant-numeric: tabular-nums;
     inset-block-start: calc(-1 * var(--sui-space-1));
-    inset-inline-start: calc(100% - var(--sui-space-2));
+    inset-inline-start: calc(100% - var(--sui-space-1));
     justify-content: center;
     min-inline-size: var(--sui-icon-base);
     padding-inline: var(--sui-space-1);

@@ -339,7 +339,13 @@ suite('navigation', together, () => {
           return {
             halo: getComputedStyle(badge).boxShadow.split(/\)\s/)[0] + ')',
             ground: getComputedStyle(tile).backgroundColor,
-            top: badge.getBoundingClientRect().top - 2 - tile.getBoundingClientRect().top
+            top: badge.getBoundingClientRect().top - 2 - tile.getBoundingClientRect().top,
+            end: tile.getBoundingClientRect().right - badge.getBoundingClientRect().right - 2,
+            // How far the count reaches over the glyph's own box from its end.
+            over:
+              /** @type {Element} */ (
+                tile.querySelector('.sui-rail-glyph svg')
+              ).getBoundingClientRect().right - badge.getBoundingClientRect().left
           };
         });
         assert.equal(
@@ -348,6 +354,11 @@ suite('navigation', together, () => {
           'the badge’s halo shows the sidebar through a hovered tile'
         );
         assert.ok(badge.top >= 0, `the badge’s halo reaches ${-badge.top}px past the tile’s top`);
+        assert.ok(badge.end >= 0, `the badge’s halo reaches ${-badge.end}px past the tile’s end`);
+        assert.ok(
+          badge.over <= 4,
+          `the count covers ${badge.over}px of its glyph, more than a corner`
+        );
       } finally {
         await page.close();
       }
