@@ -883,7 +883,7 @@
   --sui-code-string: #f2ab83;
   --sui-code-selection-bg: var(--sui-brand-action);
   --sui-code-selection-ink: var(--sui-on-brand-action);
-  --sui-code-gutter: color-mix(in srgb, var(--sui-text-muted) 85%, var(--sui-surface-code));
+  --sui-code-gutter: var(--sui-text-muted);
   --sui-code-comment: color-mix(in srgb, var(--sui-text-muted) 85%, var(--sui-text-primary));
   --sui-code-punct: var(--sui-text-secondary);
   --sui-code-head-ink: 4.5%;
@@ -1141,7 +1141,7 @@
     --sui-code-string: #f2ab83;
     --sui-code-selection-bg: var(--sui-brand-action);
     --sui-code-selection-ink: var(--sui-on-brand-action);
-    --sui-code-gutter: color-mix(in srgb, var(--sui-text-muted) 85%, var(--sui-surface-code));
+    --sui-code-gutter: var(--sui-text-muted);
     --sui-code-comment: color-mix(in srgb, var(--sui-text-muted) 85%, var(--sui-text-primary));
     --sui-code-punct: var(--sui-text-secondary);
     --sui-code-head-ink: 4.5%;

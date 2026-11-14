@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- On dark, a `CodeBlock`'s comments and line numbers and a `DiffBlock`'s line numbers take the whole muted ink, which reads Lc 60 on the code ground, where 85% of it read Lc 48.
 - The `gear` icon draws eight teeth on one closed rim, where its loose rays read as a second `sun`.
 - A `DiffBlock` draws a `CodeBlock`'s head: a 44px row a faint step off the code, with the file name at 13px medium and a subtle rule under it. Its line numbers take the code block's quiet gutter ink on a 16px start rail, and its first and last lines get the code block's room. `--sui-code-gutter` is now that quiet ink in both themes.
 - An `EmptyState` and an `ErrorState` title, and a `FormError` summary's message, read at 17px on a phone, a step over the 16px body there, where they stood level with it, and a step under the 18px heading over them.
