@@ -4,7 +4,6 @@
 
 - AppShell: the phone bar's title waits while the page's own h1 shows under the bar, and fades in as the h1 passes under it, on a scroll timeline with no script; with no h1 the bar keeps its title.
 - HeatmapChart: columns widen to an even share of the band in whole pixels, never under a square cell, so the matrix fills its column and scrolls only past its narrowest; cells stand on whole pixels.
-- DataTable: the caption is set 16px 600, 17px on a phone, a step over its rows, and a refreshing table's words sit on the caption's baseline.
 - A failed `DataTable` leads its words with the 16px danger mark 8px off, as a field's 14px message does, where a 13px mark drew 11px of ink.
 - A `SideNav` kicker is set as a page header's eyebrow, 12px at 0.05em, so their capitals share one line, where it was 11px at 0.07em and its capitals stood a pixel under the eyebrow's.
 - A chart's View Chart Data stands one gap under its own plot or legend, open or closed, where a closed one dropped to the foot of a taller neighbour, left a hole as tall as 74px under the plot and jumped 41px from the pointer when pressed; L-66 changes with it.

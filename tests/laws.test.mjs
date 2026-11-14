@@ -696,8 +696,8 @@ test('L-25 the type tiers keep the sizes the law names', () => {
   );
   assert.match(
     styles['src/lib/components/DataTable.svelte'],
-    /\.caption:not\(\.hint\) \{\s*color: var\(--sui-text-primary\);\s*font: var\(--sui-weight-semibold\) var\(--sui-font-size-state-title\)/,
-    "a table's caption names it at a state title's size, a step over its rows at every width"
+    /\.caption:not\(\.hint\) \{\s*color: var\(--sui-text-primary\);\s*font: var\(--sui-weight-semibold\) var\(--sui-font-size-body\)/,
+    "a table's caption names it as a sub-section title does, over its column headings"
   );
   for (const path of ['EmptyState', 'ErrorState'])
     assert.match(
