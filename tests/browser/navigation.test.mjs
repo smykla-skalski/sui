@@ -298,7 +298,7 @@ suite('navigation', together, () => {
     }
   });
 
-  test('a rail tile stands 8px in from each side of its column, its words keeping their 55px', async () => {
+  test('a rail tile stands 8px in from each side of its 80px column, its words given 63px', async () => {
     const page = await openLayout('layouts/app-shell/', 1440);
     try {
       const found = await page.evaluate(() => {
@@ -318,7 +318,7 @@ suite('navigation', together, () => {
       });
       assert.deepEqual(
         found,
-        [8, 8, 55],
+        [8, 8, 63],
         "the tile, past the column's 1px edge, and its words' room"
       );
     } finally {
