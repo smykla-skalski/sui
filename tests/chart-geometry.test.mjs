@@ -291,7 +291,7 @@ test('a marker reaches as far as its drawn path', () => {
   }
 });
 
-test('a line or scatter starts and ends exactly at the edges of its room', () => {
+test('a line or scatter starts and ends exactly at the edges of its room, a start marker the tick gap off its y ticks', () => {
   const yAxis = axis([3, 88], true);
   const xAxis = axis([1, 12]);
   for (const [width, names] of /** @type {const} */ ([
@@ -301,7 +301,10 @@ test('a line or scatter starts and ends exactly at the edges of its room', () =>
   ])) {
     const xTicks = ticksOf(xAxis.ticks, xAxis.domain, String);
     const yTicks = ticksOf(yAxis.ticks, yAxis.domain, String);
-    const marks = [{ x: 1, y: 1, across: 5, above: 5, below: 5 }];
+    const marks = [
+      { x: 0, y: 0.5, across: 4, above: 4, below: 4 },
+      { x: 1, y: 1, across: 5, above: 5, below: 5 }
+    ];
     const ends = names.map((text, index) => ({ x: 1, y: index / 4, text }));
     const layout = xyLayout({
       measure,
@@ -339,6 +342,10 @@ test('a line or scatter starts and ends exactly at the edges of its room', () =>
     ]);
     assert.ok(Math.abs(across[0]) < 1e-9, `${width}: the ink starts at ${across[0]}`);
     assert.ok(Math.abs(across[1] - width) < 1e-9, `${width}: the ink ends at ${across[1]}`);
+    assert.ok(
+      Math.abs(x(0) - 4 - box.tickEnd - 8) < 1e-9,
+      `${width}: the first marker stands ${x(0) - 4 - box.tickEnd}px off the y ticks, not 8px`
+    );
     const down = union([
       [box.top - 0.5, box.bottom + 0.5],
       ...yTicks.map((tick) => [y(tick.at) - 4, y(tick.at) + 4]),

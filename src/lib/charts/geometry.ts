@@ -424,14 +424,16 @@ export function xyLayout(input: {
   // Turned a quarter left, the y title's ascent points to the start, so it reaches 0 there.
   const titleX = em(yTitle?.ascent ?? 0);
   const titleEnd = yTitle ? plus(em(yTitle.ascent + yTitle.descent), titleGap) : px(0);
+  // A mark on the start edge keeps the tick gap from the y ticks' words to its own ink, so a
+  // first marker never stands closer to a number than the axis does.
+  const edge = px(Math.max(0, ...marks.filter((mark) => mark.x === 0).map((mark) => mark.across)));
   const left = named(
     '--sui-local-plot-start',
     most(
-      plus(titleEnd, tickGap, em(largest(yInk.map((ink) => ink.advance + ink.left)))),
+      plus(titleEnd, tickGap, em(largest(yInk.map((ink) => ink.advance + ink.left))), edge),
       ...xInk
         .filter((_, index) => xTicks[index].at === 0)
-        .map((ink) => em(-inkSpan(ink, 0, 'middle')[0])),
-      ...marks.filter((mark) => mark.x === 0).map((mark) => px(mark.across))
+        .map((ink) => em(-inkSpan(ink, 0, 'middle')[0]))
     )
   );
   const right = named(
@@ -493,7 +495,7 @@ export function xyLayout(input: {
     right,
     top: shift,
     bottom: plus(px(grid), shift),
-    tickEnd: minus(left, tickGap),
+    tickEnd: minus(left, plus(tickGap, edge)),
     yTitle: { x: titleX, y: plus(px(grid / 2), shift) },
     xTickBaseline: plus(xTickBaseline, shift),
     xTitleBaseline: plus(xTitleBaseline, shift),

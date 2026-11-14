@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- A line or scatter chart whose first point has a marker stands it 8px clear of the y ticks' words, the gap they keep from a plot with none.
 - A mono fact value, such as a path, wraps after its separators before it breaks inside a word.
 - A count beside a tab, a segment or a side nav row is as wide as it is tall, so one figure stands in an 18px circle, where it was a 16x18 oval
 - A `DataTable` on a phone runs its rules 8px past its words, its cells' side pad, so its frame ends 8px short of a card's edge and never doubles it
