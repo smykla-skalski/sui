@@ -1393,6 +1393,44 @@ suite('lists', together, () => {
         assert.deepEqual(offsets, [0, 0, 0], 'a value drops under its label');
       }
     );
+
+    test(
+      'a long path wraps after its separators on a phone, not inside its words',
+      long,
+      async () => {
+        const page = await opened();
+        const value = page
+          .locator('#fact-list .sui-fact-list-fact')
+          .filter({ hasText: 'release-candidate' })
+          .locator('dd');
+        await value.scrollIntoViewIfNeeded();
+        const ends = await value.evaluate((dd) => {
+          const walker = document.createTreeWalker(dd, NodeFilter.SHOW_TEXT);
+          /** @type {{ text: string | undefined, top: number }[]} */
+          const glyphs = [];
+          for (let node = walker.nextNode(); node; node = walker.nextNode()) {
+            for (let index = 0; index < (node.textContent ?? '').length; index++) {
+              const range = document.createRange();
+              range.setStart(node, index);
+              range.setEnd(node, index + 1);
+              glyphs.push({
+                text: node.textContent?.[index],
+                top: range.getBoundingClientRect().top
+              });
+            }
+          }
+          return glyphs
+            .filter((glyph, index) => glyphs[index + 1]?.top > glyph.top)
+            .map((glyph) => glyph.text);
+        });
+        assert.ok(ends.length > 0, 'the path fits one line, so it proves nothing');
+        assert.deepEqual(
+          ends.filter((end) => !'/:=-'.includes(end ?? '')),
+          [],
+          `the path breaks inside a word, its lines end ${ends.join(' ')}`
+        );
+      }
+    );
   });
 
   suite('the tools menu', { concurrency: 1 }, () => {

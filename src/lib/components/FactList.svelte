@@ -101,6 +101,11 @@ apart, and the action under the value.
           {@render fact.value()}
         {:else if fact.href !== undefined}
           <Link href={fact.href} standalone>{fact.value}</Link>
+        {:else if fact.mono && typeof fact.value === 'string'}
+          <!-- A path or a reference wraps after a separator, as a mono chip's does, and breaks
+               inside a part only where the part alone is too wide. -->
+          {#each fact.value.split(/(?<=[/:=-])/) as part, index (index)}{#if index > 0}<wbr
+              />{/if}{part}{/each}
         {:else}
           {fact.value}
         {/if}
