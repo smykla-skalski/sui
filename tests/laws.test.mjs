@@ -99,7 +99,11 @@ test('L-2 every token read is declared and every declared token is read', () => 
       ...sources.matchAll(/'(--sui-[a-z0-9-]+)'/g)
     ].map((m) => m[1])
   );
-  const tokens = tokenMap(stripComments(palette));
+  // A token can read another in one theme's block only, so every block's value counts.
+  /** @type {Record<string, string>} */
+  const tokens = {};
+  for (const [, name, value] of stripComments(palette).matchAll(/(--sui-[a-z0-9-]+)\s*:([^;]*);/g))
+    tokens[name] = `${tokens[name] ?? ''} ${value}`;
   const queue = [...readNames];
   while (queue.length > 0) {
     const name = /** @type {string} */ (queue.pop());
@@ -2069,10 +2073,14 @@ test('L-85 the current row stands on a plate a light theme does not wash out', (
   const plate = (/** @type {string} */ share) =>
     `color-mix(in srgb, var(--sui-brand-action) ${share}, var(--sui-sidebar-bg))`;
   assert.equal(light['--sui-sidebar-active-bg'], plate('18%'), 'a 12% plate reads as hover');
-  assert.equal(dark['--sui-sidebar-active-bg'], plate('24%'));
+  assert.equal(
+    dark['--sui-sidebar-active-bg'],
+    plate('30%'),
+    'a 24% plate sits a hair over a pressed row'
+  );
   assert.match(
     stripComments(read('src/lib/components/PageToc.svelte')),
-    /\.sui-page-toc-link\[aria-current='location'\] \{\s*background: light-dark\(\s*color-mix\(in srgb, var\(--sui-brand-action\) 18%, transparent\),\s*color-mix\(in srgb, var\(--sui-brand-action\) 24%, transparent\)\s*\);/,
+    /\.sui-page-toc-link\[aria-current='location'\] \{\s*background: light-dark\(\s*color-mix\(in srgb, var\(--sui-brand-action\) 18%, transparent\),\s*color-mix\(in srgb, var\(--sui-brand-action\) 30%, transparent\)\s*\);/,
     "the index's current entry does not stand on the accent plate the sidebar's current page wears"
   );
   // Every row holds a hidden copy of its words at the current weight in the words' own cell,

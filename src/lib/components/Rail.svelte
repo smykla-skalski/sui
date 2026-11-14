@@ -211,7 +211,10 @@ lightness, with its glyph in the accent ink, on a plate of the accent tint, its 
     margin-block-start: auto;
   }
 
+  /* A badge's halo takes the tile's ground in every state, so it never shows the sidebar
+     through a hovered, pressed or current tile. */
   .sui-rail-tile {
+    --sui-local-tile-ground: var(--sui-sidebar-bg);
     align-items: center;
     background: transparent;
     border: 0;
@@ -239,13 +242,15 @@ lightness, with its glyph in the accent ink, on a plate of the accent tint, its 
 
   @media (hover: hover) {
     .sui-rail-tile:hover:not(:active, [aria-current]) {
-      background: var(--sui-sidebar-item-hover);
+      --sui-local-tile-ground: var(--sui-sidebar-item-hover);
+      background: var(--sui-local-tile-ground);
       color: var(--sui-sidebar-text-secondary);
     }
   }
 
   .sui-rail-tile:active {
-    background: var(--sui-sidebar-item-pressed);
+    --sui-local-tile-ground: var(--sui-sidebar-item-pressed);
+    background: var(--sui-local-tile-ground);
     box-shadow: var(--sui-sidebar-pressed-inset);
     translate: 0 1px;
   }
@@ -258,7 +263,8 @@ lightness, with its glyph in the accent ink, on a plate of the accent tint, its 
   /* The plate under the current tile marks the state with the tile's ink and glyph, so it
      needs no ring or edge. */
   .sui-rail-tile[aria-current] {
-    background: var(--sui-sidebar-active-bg);
+    --sui-local-tile-ground: var(--sui-sidebar-active-bg);
+    background: var(--sui-local-tile-ground);
     box-shadow: var(--sui-sidebar-thumb-shadow);
     color: var(--sui-sidebar-active-ink);
   }
@@ -312,20 +318,21 @@ lightness, with its glyph in the accent ink, on a plate of the accent tint, its 
   }
 
   /* Something waiting is information, not a fault, so it wears the accent. A one-figure count
-     centres on the glyph's top-end corner, so it covers no more than that corner. */
+     stands over the glyph's top-end corner, its top a quarter of its height above the glyph,
+     so it covers no more than that corner and its halo stays inside the tile. */
   .sui-rail-badge {
     align-items: center;
     background: var(--sui-brand-action);
     block-size: var(--sui-icon-base);
     border-radius: var(--sui-radius-pill);
-    box-shadow: 0 0 0 var(--sui-stroke-bold) var(--sui-sidebar-bg);
+    box-shadow: 0 0 0 var(--sui-stroke-bold) var(--sui-local-tile-ground);
     box-sizing: border-box;
     color: var(--sui-on-brand-action);
     display: inline-flex;
     font: var(--sui-weight-semibold) var(--sui-font-size-micro) / var(--sui-leading-flat)
       var(--sui-sans);
     font-variant-numeric: tabular-nums;
-    inset-block-start: calc(-1 * var(--sui-space-2));
+    inset-block-start: calc(-1 * var(--sui-space-1));
     inset-inline-start: calc(100% - var(--sui-space-2));
     justify-content: center;
     min-inline-size: var(--sui-icon-base);

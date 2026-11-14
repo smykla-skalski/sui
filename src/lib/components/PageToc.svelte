@@ -514,7 +514,7 @@ phone drawer, and following an entry closes the drawer before focus moves.
   .sui-page-toc-link[aria-current='location'] {
     background: light-dark(
       color-mix(in srgb, var(--sui-brand-action) 18%, transparent),
-      color-mix(in srgb, var(--sui-brand-action) 24%, transparent)
+      color-mix(in srgb, var(--sui-brand-action) 30%, transparent)
     );
     color: var(--sui-text-current);
   }

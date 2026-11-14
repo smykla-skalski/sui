@@ -266,6 +266,95 @@ suite('navigation', together, () => {
   });
 
   test(
+    'the nav answers the pointer on a row’s hover ground, pressed a step past it and short of the current plate',
+    long,
+    async () => {
+      const page = await openLayout('layouts/app-shell/', 1440);
+      try {
+        for (const theme of ['light', 'dark']) {
+          const ground = await page.evaluate((theme) => {
+            document.documentElement.dataset.theme = theme;
+            const rail = /** @type {Element} */ (document.querySelector('.sui-rail'));
+            const canvas = document.createElement('canvas');
+            const context = /** @type {CanvasRenderingContext2D} */ (
+              canvas.getContext('2d', { willReadFrequently: true })
+            );
+            // Each ground is drawn over the sidebar's, as the nav and the rows beside it stand on it.
+            const paint = (/** @type {string} */ token) => {
+              const probe = document.createElement('i');
+              probe.style.color = `var(${token})`;
+              rail.append(probe);
+              const color = getComputedStyle(probe).color;
+              probe.style.color = 'var(--sui-sidebar-bg)';
+              const base = getComputedStyle(probe).color;
+              probe.remove();
+              context.fillStyle = base;
+              context.fillRect(0, 0, 1, 1);
+              context.fillStyle = color;
+              context.fillRect(0, 0, 1, 1);
+              const [r, g, b] = [...context.getImageData(0, 0, 1, 1).data].map(
+                (value) => value / 255
+              );
+              const linear = (/** @type {number} */ c) =>
+                c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
+              const [lr, lg, lb] = [r, g, b].map(linear);
+              const l = Math.cbrt(0.4122214708 * lr + 0.5363325363 * lg + 0.0514459929 * lb);
+              const m = Math.cbrt(0.2119034982 * lr + 0.6806995451 * lg + 0.1073969566 * lb);
+              const s = Math.cbrt(0.0883024619 * lr + 0.2817188376 * lg + 0.6299787005 * lb);
+              return {
+                rgb: [r, g, b].map((c) => Math.round(c * 255)).join(),
+                lightness: 0.2104542553 * l + 0.793617785 * m - 0.0040720453 * s
+              };
+            };
+            return {
+              hover: paint('--sui-sidebar-item-hover'),
+              row: paint('--sui-row-hover'),
+              pressed: paint('--sui-sidebar-item-pressed'),
+              plate: paint('--sui-sidebar-active-bg'),
+              rest: paint('--sui-sidebar-bg')
+            };
+          }, theme);
+          // The opaque mix and a row's see-through one round apart by a unit at most.
+          const apart = Math.max(
+            ...ground.hover.rgb
+              .split(',')
+              .map((c, at) => Math.abs(+c - +ground.row.rgb.split(',')[at]))
+          );
+          assert.ok(apart <= 1, `${theme}: the nav hovers on another grey than a row`);
+          // On light a step is darker, on dark lighter: each one moves at least 0.015 in OKLab.
+          const steps = [ground.rest, ground.hover, ground.pressed, ground.plate].map(
+            (step) => (theme === 'light' ? -1 : 1) * step.lightness
+          );
+          for (let at = 1; at < steps.length; at++)
+            assert.ok(
+              steps[at] - steps[at - 1] >= 0.015,
+              `${theme}: step ${at} of rest, hover, pressed and plate moves ${(steps[at] - steps[at - 1]).toFixed(3)}`
+            );
+        }
+        await page.evaluate(() => delete document.documentElement.dataset.theme);
+        const tile = page.locator('.sui-rail-tile:has(.sui-rail-badge)').first();
+        await tile.hover();
+        const badge = await tile.evaluate((tile) => {
+          const badge = /** @type {HTMLElement} */ (tile.querySelector('.sui-rail-badge'));
+          return {
+            halo: getComputedStyle(badge).boxShadow.split(/\)\s/)[0] + ')',
+            ground: getComputedStyle(tile).backgroundColor,
+            top: badge.getBoundingClientRect().top - 2 - tile.getBoundingClientRect().top
+          };
+        });
+        assert.equal(
+          badge.halo,
+          badge.ground,
+          'the badge’s halo shows the sidebar through a hovered tile'
+        );
+        assert.ok(badge.top >= 0, `the badge’s halo reaches ${-badge.top}px past the tile’s top`);
+      } finally {
+        await page.close();
+      }
+    }
+  );
+
+  test(
     'with bottomNav a phone keeps the places in a bottom bar and the drawer holds only the pages',
     long,
     async () => {

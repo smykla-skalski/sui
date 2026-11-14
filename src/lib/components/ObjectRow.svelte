@@ -179,7 +179,7 @@ and the one above as a hovered row does, and under the pointer takes more of the
   }
 
   /* The plate that marks where the reader is, the sidebar's accent tint (L-85): 18% of the
-     accent on light and 24% on dark, so the open row and the open page read as one cue and a
+     accent on light and 30% on dark, so the open row and the open page read as one cue and a
      hovered row, on a grey ground, never looks current. A row's words keep their ink when it
      turns current. Like a hover ground it has round corners, so neither its own line nor the
      one above crosses its edge. On that deeper ground the muted ink falls under 4.5:1, so the
@@ -190,7 +190,7 @@ and the one above as a hovered row does, and under the pointer takes more of the
     --sui-local-quiet: color-mix(in srgb, var(--sui-text-secondary) 50%, var(--sui-text-primary));
     background-color: light-dark(
       color-mix(in srgb, var(--sui-brand-action) 18%, transparent),
-      color-mix(in srgb, var(--sui-brand-action) 24%, transparent)
+      color-mix(in srgb, var(--sui-brand-action) 30%, transparent)
     );
   }
 
