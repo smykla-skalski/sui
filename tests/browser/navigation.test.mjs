@@ -374,6 +374,28 @@ suite('navigation', together, () => {
     }
   });
 
+  test('a focused rail tile draws its ring inside it, as a side nav row does', async () => {
+    const page = await openLayout('layouts/app-shell/', 1440);
+    try {
+      await page.keyboard.press('Tab');
+      const ring = async (/** @type {string} */ selector) => {
+        await page.locator(selector).first().focus();
+        return page
+          .locator(selector)
+          .first()
+          .evaluate((node) => {
+            const look = getComputedStyle(node);
+            return [node.matches(':focus-visible'), look.outlineOffset, look.outlineColor];
+          });
+      };
+      const row = await ring('.sui-side-nav-row:not([aria-current])');
+      assert.deepEqual(await ring('.sui-rail-tile:not([aria-current])'), row);
+      assert.deepEqual(await ring('.sui-rail-tile[aria-current]'), row);
+    } finally {
+      await page.close();
+    }
+  });
+
   test('a rail tile stands 8px in from each side of its column and its 1px edge, its words given 64px and its glyph a whole pixel', async () => {
     const page = await openLayout('layouts/app-shell/', 1440);
     try {
