@@ -384,7 +384,6 @@ suite('the kitchen sink', together, () => {
     }
   );
 
-  // A tablet wider than a phone still has a coarse pointer, so the touch tier must hold there too.
   test(
     'on a phone the next specimen stands clear of a link list, further off than its rows',
     long,
@@ -505,6 +504,7 @@ suite('the kitchen sink', together, () => {
     );
   });
 
+  // A tablet wider than a phone still has a coarse pointer, so the touch tier must hold there too.
   test('the law audit finds nothing on a 1024px touch screen', long, async () => {
     const page = await open(1024, 'light', { hasTouch: true, isMobile: true });
     try {
