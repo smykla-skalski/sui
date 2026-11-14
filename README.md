@@ -2,7 +2,7 @@
 
 Reusable Svelte 5 components for Smykla projects. The shared look follows the [Smyklot panel design system](https://github.com/smykla-skalski/smyklot/blob/main/design-system/smyklot-panel/MASTER.md): neutral surfaces, one ocean blue accent in both themes, Plus Jakarta Sans for interface text, JetBrains Mono for technical values, and semantic status colors. Every component is held to the [SUI design laws](docs/laws.md), which merge the Smyklot sheet with the rules of a companion documentation site.
 
-This repository contains the package and a kitchen sink (`npm run dev`): an overview of every component, one page per component in every state, `/all/` with every component on one page, and a law audit on demand on each. The shells and page layouts are whole pages under `/layouts`, which the kitchen sink shows in frames at phone, tablet and desktop widths.
+This repository contains the package and a kitchen sink (`npm run dev`): an overview of every component, one page per component in every state, and a law audit on demand on each. The tests also read `/all/`, every component on one page, which no row in the index opens. The shells and page layouts are whole pages under `/layouts`, which the kitchen sink shows in frames at phone, tablet and desktop widths.
 
 ## Install
 
