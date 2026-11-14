@@ -44,6 +44,7 @@
 - Breaking: the `AppShell` phone bar's menu button says "Menu" (`menuLabel`), not "Navigation", so the place beside it keeps about 40px more of the bar.
 - A `DetailLayout` aside's section titles take the 15px sub-section tier at every width, 16px on a phone, so the properties stay a step under the work's sections once the aside drops under them too (L-25).
 - A `Rail` that holds the shell's pages marks its current place on `--sui-sidebar-place-bg`, a neutral plate a step past a pressed tile's, about 1.2:1 against the sidebar, not the 1.1:1 inset plate, so the chosen place reads at a glance beside the page's accent plate (L-85). The `AppShell` menu button's words are at 500, as a button's are, so the place beside it outweighs them.
+- A stacked `Timeline`, under 25rem of its own width, sets its words at the body size, 16px on a phone, and stands each time over its words on their edge, past an avatar's seat, so each event reads as one block and the seat holds only its avatar.
 - The detail pane's stale notice leads with "The refresh failed" at a title's weight and draws the history glyph, which says the data is old, rather than a refresh glyph beside its Reload button.
 - A folded `SideNav` that stands alone keeps its `kicker` in the primary ink over a hairline, 8px from the strip's top, the line and the rows, so the strip still names its place; beside a rail it leaves the naming to the rail.
 - An `AppShell` phone bar draws its `eyebrow` at 14px, the menu label's size, so the place it names never reads smaller than the button beside it.
