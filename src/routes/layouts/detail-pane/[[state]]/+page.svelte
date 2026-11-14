@@ -362,8 +362,10 @@
                columns, and its retry stands at its end as any notice's action does. It is one
                compact line, so the warning about the check itself still leads. -->
           <Callout compact>
-            {#snippet icon()}<Icon name="refresh" size="sm" />{/snippet}
-            The refresh failed, so this page shows data from a minute ago
+            <!-- A history glyph says the data is old; a refresh glyph would read as a second
+                 Reload. The failure leads at a title's weight, so it reads before its reason. -->
+            {#snippet icon()}<Icon name="history" size="sm" />{/snippet}
+            <span class="lead">The refresh failed</span>, so this page shows data from a minute ago
             {#snippet actions()}
               <Button loading={refreshing} onclick={refresh}>
                 {refreshing ? 'Reloading…' : 'Reload'}
@@ -544,6 +546,10 @@
     --link-row: 1.75rem;
 
     margin-block-end: 1px;
+  }
+
+  .lead {
+    font-weight: var(--sui-weight-semibold);
   }
 
   /* The facts' line holds the time's 44px target, so it stands 24px of ink under the
