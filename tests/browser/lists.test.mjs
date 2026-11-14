@@ -1868,6 +1868,18 @@ suite('lists', together, () => {
   suite('what the page shows and loads', { concurrency: 1 }, () => {
     const opened = sharedPage();
 
+    test('a link apart from any sentence rests with no underline and hover draws it (L-81)', async () => {
+      const page = await opened();
+      for (const where of ['#link-list .sui-link-list a', '.sui-section-actions .sui-link']) {
+        const link = page.locator(where).first();
+        const line = () => link.evaluate((node) => getComputedStyle(node).textDecorationColor);
+        assert.equal(await line(), 'rgba(0, 0, 0, 0)', `${where} rests with a line under it`);
+        await link.hover();
+        assert.notEqual(await line(), 'rgba(0, 0, 0, 0)', `${where} draws no line on hover`);
+        await page.mouse.move(0, 0);
+      }
+    });
+
     test("a focused standalone link's ring stands clear of its underline, descenders and letters", async () => {
       const page = await opened();
       const link = page.locator('#link-list .sui-link-list a').first();
