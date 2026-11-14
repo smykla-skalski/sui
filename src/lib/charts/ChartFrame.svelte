@@ -3,6 +3,7 @@
   import { onMount, type Snippet } from 'svelte';
   import EmptyState from '../components/EmptyState.svelte';
   import ErrorState from '../components/ErrorState.svelte';
+  import Icon from '../icons/Icon.svelte';
   import VisuallyHidden from '../components/VisuallyHidden.svelte';
   import { formatCount } from '../internal/locale.js';
   import '../internal/scroll-edge.css';
@@ -176,7 +177,7 @@
       data-status={status === 'refreshing' || status === 'stale' ? status : undefined}
       aria-hidden="true"
     >
-      {note}
+      {#if status === 'stale'}<Icon name="alert" size="sm" /><span>{note}</span>{:else}{note}{/if}
     </p>
   {/if}
   <VisuallyHidden role="status">{settled ? (note ?? '') : ''}</VisuallyHidden>
@@ -289,6 +290,30 @@
   .sui-chart-note[data-status] {
     color: var(--sui-text-secondary);
     font-weight: var(--sui-weight-medium);
+  }
+
+  /* Values out of date are a warning, so the note leads with the warning mark in its hue, as a
+     table's failed line leads with the danger mark, and its words keep their ink. The mark
+     reaches a pixel past the words' capitals, so the note keeps their height. */
+  .sui-chart-note[data-status='stale'] {
+    align-items: center;
+    block-size: auto;
+    color: var(--sui-warning);
+    display: flex;
+    gap: var(--sui-space-2);
+    padding-block: 0;
+  }
+
+  .sui-chart-note[data-status='stale'] > span {
+    align-content: center;
+    block-size: var(--sui-block-snap);
+    color: var(--sui-text-secondary);
+    padding-block: var(--sui-block-snap-room);
+    text-box: trim-both cap alphabetic;
+  }
+
+  .sui-chart-note[data-status='stale'] > :global(svg) {
+    margin-block: calc(-1 * var(--sui-space-1));
   }
 
   /* The plot stands in a band of `--sui-chart-ground`, transparent unless a theme tints it.

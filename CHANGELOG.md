@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- A chart whose values are out of date leads its note with the warning mark in the warning hue, so a stale plot no longer reads as one that is only described. A `RangeChart` fits a band down to 240px before it scrolls, where 320px cut a 390px phone's section chart at its last tick.
 - A `DiffBlock` with nothing to compare says so in the code's mono on its line numbers' 16px rail, in a 64px box, where a 35px box of sans words read as a field.
 - An `EmptyState`'s dashed edge bends at `--sui-radius-control` and runs at `--sui-stroke`, so a themed panel's frame follows its corner and stroke, where its arcs held 8px and 1px.
 - A `LineChart` breaks its line where a value is missing, where it drew straight across the gap as if the value were there. A chart's table names each series from the start edge, where its row headings took the browser's centring.

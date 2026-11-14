@@ -1809,6 +1809,48 @@ suite('navigation', together, () => {
       }
     );
 
+    test(
+      'a range chart in a section on a 390px phone fits its band, so its last tick shows',
+      long,
+      async () => {
+        const page = await charts();
+        await resize(page, 390);
+        const plot = page
+          .locator('#charts .sui-chart')
+          .filter({ hasText: 'Release Windows' })
+          .locator('.plot-scroll');
+        const { scroll, client } = await plot.evaluate((box) => ({
+          scroll: box.scrollWidth,
+          client: box.clientWidth
+        }));
+        assert.ok(scroll <= client, `the plot runs ${scroll - client}px past its band`);
+      }
+    );
+
+    test('a stale chart’s note leads with the warning mark in its hue, at a refreshing note’s height', async () => {
+      const page = await charts();
+      const read = await page.evaluate(() => {
+        const note = (/** @type {string} */ status) =>
+          /** @type {HTMLElement} */ (
+            document.querySelector(`#charts .sui-chart-note[data-status="${status}"]`)
+          );
+        const stale = note('stale');
+        const mark = stale.querySelector('svg');
+        const probe = document.createElement('span');
+        probe.style.color = 'var(--sui-warning)';
+        stale.append(probe);
+        const warning = getComputedStyle(probe).color;
+        probe.remove();
+        return {
+          mark: mark ? getComputedStyle(mark).color === warning : false,
+          height: stale.getBoundingClientRect().height,
+          refreshing: note('refreshing').getBoundingClientRect().height
+        };
+      });
+      assert.ok(read.mark, 'the stale note has no mark in the warning hue');
+      assert.equal(read.height, read.refreshing, 'the mark grows the note');
+    });
+
     test('the chart face table holds what Chrome draws, glyph by glyph and pair by pair, tabular figures too', async () => {
       const { faceInk } = await import('../../src/lib/charts/geometry.ts');
       const page = await charts();
