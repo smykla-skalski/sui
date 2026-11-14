@@ -2315,6 +2315,9 @@ suite('lists', together, () => {
       long,
       async () => {
         const page = await opened();
+        // An earlier test on this page may leave the pointer where a row scrolls under it, and a
+        // hovered row would differ between the two shots.
+        await page.mouse.move(0, 0);
         /** @type {[string, string, string][]} */
         const lists = [
           ['#object-list .sui-object-list', ':scope > li > *', ':scope > li > *'],
