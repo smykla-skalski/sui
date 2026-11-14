@@ -370,7 +370,7 @@ beside its first line, and takes the row only on a phone. It copies `code` exact
 
   /* Under the file name the code takes the block's whole width. */
   .labelled .sui-code-block-scroll {
-    border-block-start: var(--sui-stroke) solid var(--sui-border-divider);
+    border-block-start: var(--sui-stroke) solid var(--sui-border-subtle);
     border-start-end-radius: 0;
     border-start-start-radius: 0;
     flex-basis: 100%;
@@ -436,7 +436,7 @@ beside its first line, and takes the row only on a phone. It copies `code` exact
   }
 
   .sui-code-block:not(.labelled, .bare):has(> .sui-code-block-copy) > .sui-code-block-scroll {
-    border-block-start: var(--sui-stroke) solid var(--sui-border-divider);
+    border-block-start: var(--sui-stroke) solid var(--sui-border-subtle);
     border-start-end-radius: 0;
     border-start-start-radius: 0;
     flex-basis: 100%;
@@ -472,7 +472,7 @@ beside its first line, and takes the row only on a phone. It copies `code` exact
     }
 
     .bare:not(.labelled):has(> .sui-code-block-copy) > .sui-code-block-scroll {
-      border-block-start: var(--sui-stroke) solid var(--sui-border-divider);
+      border-block-start: var(--sui-stroke) solid var(--sui-border-subtle);
       border-start-end-radius: 0;
       border-start-start-radius: 0;
       flex-basis: 100%;

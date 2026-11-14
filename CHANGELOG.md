@@ -3,6 +3,7 @@
 ## Unreleased
 
 - An `ErrorState` over its rows pads its words 13px inside its tint above and below on a wide screen, up from 9px, so a two-line failure never meets its edge.
+- A `CodeBlock` parts its head row from its code in its frame's own edge, where a row divider's 75% of it left the line about 1.2:1 on light and the head standing on its ground alone.
 - A comment in a `CodeBlock` steps back past the punctuation, as far as 4.5:1 on the code ground lets it (about 4.9:1 light and 6.8:1 dark), where it stood darker than the punctuation on light and level with it on dark. A `DiffBlock` keeps the shared comment ink, which its tinted rows need.
 - A `FormError` and an `ErrorState` over its rows stand their mark 20px inside the edge, the rail an error panel's words stand on, so every danger wash on a page starts its mark on one line, where they stood 16px in. On a phone the wrapped strip keeps 20px all round.
 - An `EmptyState` or `ErrorState` panel pads its words by 32px above and below, up from 28px, so an empty view reads as a place to rest and not a note (L-59). A phone keeps 20px all round.
