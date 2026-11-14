@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Inline facts part 12px, a step past the 8px between a wrapped value and its label, so each pair reads as one (they stood 6px apart)
 - Rail: a focused tile draws its ring inside it, as a side nav row does, so the ring keeps the tile's 8px from the rail's edge
 - A chart axis over a few whole values with no zero to reach, as six days, takes a tick on each and starts on the first, so a line no longer starts a step in from the axis
 - Every `DataTable` runs its rules 12px past its words, as a striped one runs its stripes, so its words keep the copy's edge and a first sort heading's ground has its 8px room (it sat flush), and a held column sizes for its 500 row headings, not 600

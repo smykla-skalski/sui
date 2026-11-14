@@ -2116,6 +2116,32 @@ suite('lists', together, () => {
     );
 
     test(
+      'facts part 12px, a step past the 8px between a wrapped value and its label',
+      long,
+      async () => {
+        const page = await opened();
+        const list = page
+          .locator('#fact-list .sui-fact-list.inline')
+          .filter({ hasText: 'Message' });
+        await list.scrollIntoViewIfNeeded();
+        const gaps = await list.evaluate((dl) => {
+          const box = (/** @type {Element} */ fact, /** @type {string} */ part) =>
+            /** @type {Element} */ (fact.querySelector(part)).getBoundingClientRect();
+          const facts = [...dl.children];
+          return facts
+            .slice(0, -1)
+            .map((fact, index) => [
+              Math.round(box(fact, 'dd').top - box(fact, 'dt').bottom),
+              Math.round(box(facts[index + 1], 'dt').top - box(fact, 'dd').bottom)
+            ]);
+        });
+        assert.ok(gaps.length > 0);
+        for (const gap of gaps)
+          assert.deepEqual(gap, [8, 12], 'a value to its label, then to the next fact');
+      }
+    );
+
+    test(
       'a row that holds a pill keeps its neighbours’ pitch, the pill on whole pixels',
       long,
       async () => {

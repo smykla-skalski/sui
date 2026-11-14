@@ -133,7 +133,8 @@ apart, and the action under the value.
 
   /* Its words stand at the top of their snapped box, so a fact's baseline is one cap below its
      top: every fact starts on a whole pixel, and a line of plain facts parts from the one above
-     by the copy's leading, its words 8px from that line's. The first line's trim takes that
+     by 12px of room, a step past the 8px that parts a wrapped value from its label, so each
+     pair reads as one and the next as another. The first line's trim takes that
      room off the top. */
   .inline > .sui-fact-list-fact {
     align-items: baseline;
@@ -141,7 +142,7 @@ apart, and the action under the value.
     column-gap: var(--sui-space-2);
     display: inline-flex;
     flex-wrap: wrap;
-    margin-block-start: calc(var(--sui-row-copy-leading) - round(up, 1cap, 2px));
+    margin-block-start: var(--sui-space-3);
     margin-inline-end: var(--sui-space-6);
     max-inline-size: 100%;
     row-gap: var(--sui-row-copy-gap);
@@ -336,7 +337,7 @@ apart, and the action under the value.
      line each, so there each stands on a line of its own, its label in a 7rem column, wide
      enough for a headline fact's word or two, a longer word breaking inside it, and its value
      12px after it, so the values line up and read down as one list. A value with less room than the label's column beside it, as
-     at twice the text size, goes under its label. The lines keep the copy's leading, and a
+     at twice the text size, goes under its label. The lines part by 12px, and a
      line that holds a target still grows to it, its words on its middle. */
   @media (max-width: 47.9375rem) {
     .inline > .sui-fact-list-fact {
