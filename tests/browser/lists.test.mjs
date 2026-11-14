@@ -1473,6 +1473,28 @@ suite('lists', together, () => {
   suite('what the page shows and loads', { concurrency: 1 }, () => {
     const opened = sharedPage();
 
+    test('a failed refresh over its rows keeps its words 13px inside its tint above and below', async () => {
+      const page = await opened();
+      const strip = page
+        .locator('#states .specimen', { hasText: 'Refresh failed' })
+        .locator('.over');
+      await strip.scrollIntoViewIfNeeded();
+      const inset = await strip.evaluate((node) => {
+        const tint = getComputedStyle(node, '::before');
+        const box = node.getBoundingClientRect();
+        const edge = parseFloat(tint.borderTopWidth);
+        const words = /** @type {Element} */ (
+          node.querySelector('.sui-error-state-copy')
+        ).getBoundingClientRect();
+        return {
+          above: words.top - (box.top + parseFloat(tint.top) + edge),
+          below: box.bottom - parseFloat(tint.bottom) - edge - words.bottom
+        };
+      });
+      for (const [where, value] of Object.entries(inset))
+        assert.ok(Math.abs(value - 13) < 0.5, `the strip keeps ${value}px ${where} its words`);
+    });
+
     test('L-64 every placeholder shares one light that only transform moves', long, async () => {
       const page = await opened();
       const problems = await page.evaluate(() => {
