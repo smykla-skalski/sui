@@ -59,34 +59,37 @@ option) keeps its own typed separator instead.
 
   /* Each fact is one box, so a short fact moves to the next line whole rather than leaving its
      last word alone there, and only a fact longer than the line breaks inside itself. Its width
-     rounds up to the pixel, so its end, and the dot drawn from it, stand on a whole pixel. */
+     rounds up to the pixel and its last line keeps to its end edge, so the dot after its last
+     word ends on a whole pixel. */
   .sui-fact-line > :global(*) {
     display: inline-block;
     inline-size: var(--sui-inline-snap);
     max-inline-size: 100%;
+    text-align-last: end;
   }
 
-  /* The dot ends the fact before it, so a wrapped line never starts with a dot. Its room is the
-     spoken join in the flow, unseen, and the seen dot stands that room's margin in from the
-     fact's snapped end, so every dot lands on the same fraction of a pixel and draws at one
-     weight (L-95), and its margins are the only space beside it (L-103). */
-  .sui-fact-line > :global(:not(:last-child)) {
-    position: relative;
-  }
-
+  /* The dot ends the fact before it, so a wrapped line never starts with a dot. It is drawn, a
+     2px circle on whole pixels on the middle of the words' x-height, where a typed dot's ink
+     fell on any fraction of a pixel and drew lighter or darker by where the words ended (L-95).
+     Its glyph stays only for the spoken join, clipped unseen, and its margins are the only
+     space beside it (L-103). */
   .sui-fact-line > :global(:not(:last-child))::after {
+    background: var(--sui-text-muted);
+    block-size: var(--sui-stroke-bold);
+    border-radius: var(--sui-radius-pill);
     color: transparent;
     content: '·' / var(--sui-fact-join);
-    font-weight: var(--sui-weight-regular);
+    display: inline-block;
+    inline-size: var(--sui-stroke-bold);
     margin-inline: var(--sui-sep-space);
+    overflow: hidden;
+    vertical-align: round(calc(0.5ex - var(--sui-stroke)), 1px);
   }
 
-  .sui-fact-line > :global(:not(:last-child))::before {
-    color: var(--sui-text-muted);
-    content: '·' / '';
-    font-weight: var(--sui-weight-regular);
-    inset-block-end: 0;
-    inset-inline-end: var(--sui-sep-space);
-    position: absolute;
+  @media (forced-colors: active) {
+    .sui-fact-line > :global(:not(:last-child))::after {
+      background: CanvasText;
+      forced-color-adjust: none;
+    }
   }
 </style>

@@ -338,7 +338,7 @@ suite('lists', together, () => {
   suite('at phone width', { concurrency: 1 }, () => {
     const opened = sharedPage({ viewport: { width: 375, height: 812 } });
 
-    test('a fact line moves a short fact to the next line whole, and each fact ends on a whole pixel', async () => {
+    test('a fact line moves a short fact to the next line whole, and each fact and its words end on a whole pixel', async () => {
       const page = await opened();
       const facts = await page.evaluate(() =>
         [...document.querySelectorAll('#fact-line .sui-fact-line > *')].map((fact) => {
@@ -346,14 +346,27 @@ suite('lists', together, () => {
           return {
             fact: /** @type {string} */ (fact.textContent),
             lines: Math.round(box.height / parseFloat(getComputedStyle(fact).lineHeight)),
-            whole: Number.isInteger(box.left) && Number.isInteger(box.right)
+            whole: Number.isInteger(box.left) && Number.isInteger(box.right),
+            // The dot follows a fact's last word, so a plain fact's words end on a whole pixel.
+            ends:
+              fact.children.length > 0 ||
+              Number.isInteger(
+                (() => {
+                  const words = document.createRange();
+                  words.selectNodeContents(fact);
+                  return /** @type {DOMRect} */ ([...words.getClientRects()].at(-1)).right;
+                })()
+              )
           };
         })
       );
       assert.ok(facts.length > 4, 'the page shows its fact lines');
-      for (const { fact, lines, whole } of facts) {
+      for (const { fact, lines, whole, ends } of facts) {
         assert.equal(lines, 1, `"${fact}" breaks across lines`);
-        assert.ok(whole, `"${fact}" ends on a fraction of a pixel, so its dot draws lighter`);
+        assert.ok(
+          whole && ends,
+          `"${fact}" ends on a fraction of a pixel, so its dot draws lighter`
+        );
       }
     });
 
