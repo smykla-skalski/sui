@@ -533,13 +533,13 @@ word would start.
   {:else if name === 'file' || name.startsWith('file-')}
     <path d="M6 3h8l4 4v14H6zM14 3v5h4" />
     {#if name === 'file-valid'}
-      <path d="m9 14 2 2 4-4" />
+      <path d="m9.5 14 1.5 1.5 3.5-3.5" />
     {:else if name === 'file-invalid'}
-      <path d="m10 12 4 4M14 12l-4 4" />
+      <path d="m9.5 11.5 5 5M14.5 11.5l-5 5" />
     {:else if name === 'file-missing'}
-      <path d="M9 14h1M14 14h1" />
+      <path d="M9.5 14h.5M14 14h.5" />
     {:else if name === 'file-bypassed'}
-      <path d="M10 12h4l-4 4h4" />
+      <path d="M9.5 11.5h5l-5 5h5" />
     {/if}
   {/if}
 </svg>

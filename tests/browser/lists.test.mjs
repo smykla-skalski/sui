@@ -582,6 +582,40 @@ suite('lists', together, () => {
         assert.ok(spare < 1, `${name} keeps ${spare.toFixed(1)}px past its widest shown words`);
     });
 
+    test('a file glyph’s status mark spans 5 units and keeps a clear pixel inside the document', async () => {
+      const page = await opened();
+      const marks = await page.evaluate(() =>
+        [...document.querySelectorAll('#icons .grid li')].flatMap((item) => {
+          const name = item.querySelector('.name')?.textContent ?? '';
+          const svg = item.querySelector('svg');
+          const mark = svg?.querySelectorAll('path')[1];
+          if (!svg || !mark || !name.startsWith('file-')) return [];
+          const scale = svg.getBoundingClientRect().width / 24;
+          const half = parseFloat(svg.getAttribute('stroke-width') ?? '0') / 2;
+          const box = mark.getBBox();
+          // The outline `M6 3h8l4 4v14H6z` and its fold `M14 3v5h4` leave the inside from
+          // 6 + half to 18 - half across, and from the fold's foot down.
+          return [
+            {
+              name,
+              span: Math.max(box.width, box.height),
+              clear:
+                Math.min(
+                  box.x - half - (6 + half),
+                  18 - half - (box.x + box.width + half),
+                  box.y - half - (8 + half)
+                ) * scale
+            }
+          ];
+        })
+      );
+      assert.equal(marks.length, 4, `only ${marks.length} file status glyphs`);
+      for (const { name, span } of marks.filter(({ name }) => name !== 'file-missing'))
+        assert.ok(span >= 5, `${name}'s mark spans only ${span} units`);
+      for (const { name, clear } of marks)
+        assert.ok(clear >= 1, `${name}'s mark stands ${clear.toFixed(2)}px inside the document`);
+    });
+
     test('a small settings glyph keeps a clear pixel between its knobs and its rails on whole pixels', async () => {
       const page = await opened();
       const gaps = await page.evaluate(() =>
