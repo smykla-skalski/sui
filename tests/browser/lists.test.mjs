@@ -338,19 +338,25 @@ suite('lists', together, () => {
   suite('at phone width', { concurrency: 1 }, () => {
     const opened = sharedPage({ viewport: { width: 375, height: 812 } });
 
-    test('each directional glyph shares a line with its mirror on the icon page', async () => {
+    test('each directional glyph stands over its mirror on the icon page', async () => {
       const page = await opened();
-      const rows = await page.evaluate(() =>
-        [...document.querySelectorAll('#icons table tbody tr')].map((row) => {
-          const glyphs = [...row.querySelectorAll('svg')].map((svg) => svg.getBoundingClientRect());
-          return { glyphs: glyphs.length, apart: Math.abs(glyphs[0].top - glyphs[1]?.top) };
-        })
+      const lines = await page.evaluate(() =>
+        [...document.querySelectorAll('#icons table tbody tr')].map((row) =>
+          [...row.querySelectorAll('svg')].map((svg) => {
+            const box = svg.getBoundingClientRect();
+            return { middle: box.left + box.width / 2, top: box.top };
+          })
+        )
       );
-      assert.ok(rows.length >= 5, `only ${rows.length} direction rows`);
-      for (const { glyphs, apart } of rows) {
-        assert.equal(glyphs, 2, 'a row holds a glyph and its mirror');
-        assert.ok(apart < 0.5, `a glyph stands ${apart}px off its mirror's line`);
-      }
+      assert.equal(lines.length, 2, 'one line for each direction');
+      const [ltr, rtl] = lines;
+      assert.ok(ltr.length >= 5 && ltr.length === rtl.length, 'every glyph has its mirror');
+      for (const [index, glyph] of ltr.entries())
+        assert.ok(
+          Math.abs(glyph.middle - rtl[index].middle) < 0.5,
+          `glyph ${index + 1} stands ${glyph.middle - rtl[index].middle}px off its mirror's column`
+        );
+      assert.ok(rtl[0].top - ltr[0].top <= 40, 'the mirrors stand on the next short line');
     });
 
     test('a failed refresh over its rows keeps 20px inside its tint all round once its retry wraps', async () => {

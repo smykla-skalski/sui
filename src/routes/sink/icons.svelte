@@ -7,7 +7,7 @@
 </script>
 
 <script lang="ts">
-  import { Icon, iconNames } from '#lib';
+  import { Icon, VisuallyHidden, iconNames } from '#lib';
   import Example from '../kit/Example.svelte';
   import Variants from '../kit/Variants.svelte';
 
@@ -67,22 +67,23 @@
   title="Direction"
   note="Directional glyphs face the reading direction, so a right-to-left page mirrors them and keeps the rest"
 >
-  <!-- Two columns stand side by side at every width, so a glyph and its mirror share a line
-       even on a phone, where a folded matrix would set them a screen apart. -->
+  <!-- Each glyph stands over its mirror in one 32px column, so a pair reads at a glance at
+       every width and the two directions take two short lines. The names head the columns
+       for assistive technology; the set above shows them to the eye. -->
   <table class="facings">
     <thead>
       <tr>
-        <th scope="col"><code>name</code></th>
-        {#each directions as direction (direction)}
-          <th scope="col">{direction === 'ltr' ? 'Left to right' : 'Right to left'}</th>
+        <td></td>
+        {#each directional as name (name)}
+          <th scope="col"><VisuallyHidden>{name}</VisuallyHidden></th>
         {/each}
       </tr>
     </thead>
     <tbody>
-      {#each directional as name (name)}
+      {#each directions as direction (direction)}
         <tr>
-          <th scope="row"><code translate="no">"{name}"</code></th>
-          {#each directions as direction (direction)}
+          <th scope="row">{direction === 'ltr' ? 'Left to right' : 'Right to left'}</th>
+          {#each directional as name (name)}
             <td><span class="facing" dir={direction}><Icon {name} size="md" /></span></td>
           {/each}
         </tr>
@@ -98,42 +99,24 @@
 
   .facings :is(th, td) {
     padding: 0;
-    text-align: start;
   }
 
-  .facings :is(th, td):not(:last-child) {
-    padding-inline-end: var(--sui-space-6);
-  }
-
-  .facings thead th {
+  .facings tbody th {
     color: var(--sui-text-muted);
     font: var(--sui-weight-semibold) var(--sui-font-size-micro) / var(--sui-leading-micro)
       var(--sui-sans);
     letter-spacing: 0.06em;
-    padding-block-end: var(--sui-space-2);
+    padding-inline-end: var(--sui-space-4);
+    text-align: start;
     text-transform: uppercase;
-    text-wrap: balance;
-    vertical-align: bottom;
-  }
-
-  .facings code {
-    color: var(--sui-text-secondary);
-    font: var(--sui-weight-regular) var(--sui-font-size-micro) / var(--sui-leading-micro)
-      var(--sui-mono);
-    letter-spacing: 0;
-    text-transform: none;
     white-space: nowrap;
   }
 
-  .facings tbody :is(th, td) {
-    block-size: var(--sui-control-height-compact);
+  .facings tbody td {
+    block-size: var(--sui-space-8);
+    inline-size: var(--sui-space-8);
+    text-align: center;
     vertical-align: middle;
-  }
-
-  @media (max-width: 47.9375rem) {
-    .facings :is(th, td):not(:last-child) {
-      padding-inline-end: var(--sui-space-4);
-    }
   }
 
   .facing {
