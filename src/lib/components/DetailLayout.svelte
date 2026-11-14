@@ -31,8 +31,9 @@ the page's, so a pane beside a list folds as early as a phone does.
 
 The aside comes after the main column in the DOM at every width, so a screen reader, the Tab
 order and a narrow screen all meet the primary content first. Nothing here draws a frame,
-ground or line; the sections inside carry the hierarchy, and beside the main column the
-aside's section titles take the 15px sub-section tier, a step under the work's.
+ground or line; the sections inside carry the hierarchy, and the aside's section titles take
+the 15px sub-section tier (16px on a phone), a step under the work's, beside the main column
+or under it.
 
 - Semantics: a plain box; the aside is an `aside` named by `asideLabel`, a complementary landmark.
 - Content: `main`, the primary sections, and an optional `aside` of properties.
@@ -74,6 +75,12 @@ aside's section titles take the 15px sub-section tier, a step under the work's.
     min-inline-size: 0;
   }
 
+  /* The aside's sections take the sub-section tier, beside the work or under it, so the
+     properties read a step under the main column's sections rather than as their peers. */
+  .sui-detail-layout-aside {
+    --sui-local-section-size: var(--sui-font-size-body);
+  }
+
   /* Each column stacks its zones, the alert, the sections and a closing disclosure, the
      section gap apart from ink to ink, so a caller needs no wrapper; sections that follow each
      other ask for the same gap, which collapses into this one. The columns' class leads, so a
@@ -88,12 +95,6 @@ aside's section titles take the 15px sub-section tier, a step under the work's.
     .sui-detail-layout-columns:has(> .sui-detail-layout-aside) {
       align-items: start;
       grid-template-columns: minmax(0, 1fr) clamp(18rem, 30%, 20rem);
-    }
-
-    /* Beside the work, the aside's sections take the sub-section tier, so the properties read
-       a step under the main column's sections rather than as their peers. */
-    .sui-detail-layout-aside {
-      --sui-local-section-size: var(--sui-font-size-body);
     }
   }
 </style>

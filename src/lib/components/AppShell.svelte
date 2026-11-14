@@ -15,7 +15,7 @@
     sidebar,
     bar,
     label = word('AppShell.label', 'Navigation'),
-    menuLabel = word('AppShell.menuLabel', 'Navigation'),
+    menuLabel = word('AppShell.menuLabel', 'Menu'),
     bottomNav = false,
     landmark = 'main',
     contained = false,
