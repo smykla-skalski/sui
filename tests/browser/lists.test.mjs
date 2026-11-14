@@ -1097,6 +1097,23 @@ suite('lists', together, () => {
       }
     );
 
+    test('a loading table stands each column where the loaded one will, from its columns’ samples', async () => {
+      const page = await opened();
+      const starts = await page.evaluate(() =>
+        ['Striped', 'Loading, wide'].map((name) => {
+          const specimen = [...document.querySelectorAll('#data-table .specimen')].find((each) =>
+            each.querySelector('figcaption')?.textContent?.trim().startsWith(name)
+          );
+          const table = /** @type {Element} */ (specimen?.querySelector('table'));
+          const left = table.getBoundingClientRect().left;
+          return [...table.querySelectorAll('thead th')]
+            .map((heading) => Math.round(heading.getBoundingClientRect().left - left))
+            .join(' ');
+        })
+      );
+      assert.equal(starts[1], starts[0], 'the loading columns start where the loaded ones do');
+    });
+
     test("a refreshing table says so on its caption's line, led by the refresh mark in the info hue", async () => {
       const page = await opened();
       const read = await page
