@@ -227,10 +227,8 @@
   note="The time column, the actor and the end of the row mirror"
   layout="stack"
 >
-  <Specimen label="Actor, status & action">
-    <div dir="rtl">
-      <Timeline events={people} order="oldest" aria-label="Check 4182" />
-    </div>
+  <Specimen label="Actor, status & action" dir="rtl">
+    <Timeline events={people} order="oldest" aria-label="Check 4182" />
   </Specimen>
 </Example>
 

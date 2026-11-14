@@ -82,10 +82,8 @@
   note="The list starts at the inline start and the arrow mirrors"
   layout="stack"
 >
-  <Specimen label="With notes & an external link">
-    <div dir="rtl">
-      <LinkList links={noted} aria-label="Related" />
-    </div>
+  <Specimen label="With notes & an external link" dir="rtl">
+    <LinkList links={noted} aria-label="Related" />
   </Specimen>
 </Example>
 

@@ -153,12 +153,12 @@
   layout="grid"
   --specimen-column-gap="calc(2 * var(--sui-space-6))"
 >
-  <Specimen label="Closed">
+  <Specimen label="Closed" dir="rtl">
     <Disclosure dir="rtl" summary="Skipped Repositories" hint="3 archived">
       <p class="copy">Archived repositories are left out of every sync</p>
     </Disclosure>
   </Specimen>
-  <Specimen label="Open">
+  <Specimen label="Open" dir="rtl">
     <Disclosure dir="rtl" summary="Skipped Repositories" hint="3 archived" open>
       <p class="copy">Archived repositories are left out of every sync</p>
     </Disclosure>

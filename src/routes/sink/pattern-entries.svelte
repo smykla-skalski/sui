@@ -139,7 +139,7 @@
   layout="grid"
   --example-max="28rem"
 >
-  <Specimen label="Right to left">
+  <Specimen label="Right to left" dir="rtl">
     <PatternEntries bind:value={mirrored} dir="rtl" aria-label="Branches to skip" />
   </Specimen>
 </Example>

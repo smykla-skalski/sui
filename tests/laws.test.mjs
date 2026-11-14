@@ -1972,6 +1972,21 @@ test('L-9 an invalid choice card keeps its empty dot neutral', () => {
   );
 });
 
+test('L-55 a right-to-left specimen mirrors its name with it, so the name heads its content', () => {
+  const pages = svelteFiles.filter((path) => path.startsWith('src/routes/sink/'));
+  let mirrored = 0;
+  for (const path of pages)
+    for (const [, open, body] of read(path).matchAll(/<Specimen\b([^>]*)>([\s\S]*?)<\/Specimen>/g))
+      if (/\bdir="rtl"/.test(open)) mirrored++;
+      else
+        assert.doesNotMatch(
+          body,
+          /\bdir="rtl"/,
+          `${path} names a right-to-left specimen from the left`
+        );
+  assert.ok(mirrored >= 5);
+});
+
 test('L-55 a choice card takes the field radius, not a surface card radius', () => {
   const cards = styles['src/lib/components/ChoiceCards.svelte'];
   assert.match(cards, /\.sui-choice-card \{[^}]*border-radius: var\(--sui-radius-control\);/);
