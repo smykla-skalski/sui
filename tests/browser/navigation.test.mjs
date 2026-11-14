@@ -2244,6 +2244,8 @@ suite('navigation', together, () => {
 
     test('a band with no ground keeps 8px over and under its plot, which starts on the title’s edge, and a tinted band the full room on every side', async () => {
       const page = await charts();
+      // A stacked stage lends its inset to a chart, so the page is set wide, where it lends none.
+      await resize(page, 1440);
       const read = await page.evaluate(async () => {
         const chart = /** @type {HTMLElement} */ (document.querySelector('#charts .sui-chart'));
         const scroll = /** @type {Element} */ (chart.querySelector('.plot-scroll'));
