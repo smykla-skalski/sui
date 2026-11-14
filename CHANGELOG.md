@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- AppShell: a phone bar keeps its title hidden while the page's own h1 is still below the screen, and a shell in a frame further down a page reads its own screen, so the bar never names the page over the heading that names it.
 - ListDetail: Back to an item keeps its detail where the reader left it while focus lands on its title, where the landing scrolled a title partly above the pane back into view.
 - ErrorState: a centred panel, a failed chart's, leads its title with the mark on one centred line, 8px before it, as every chart note and a table's failure do, where the mark stood alone over the title; a title too long to share the line drops under it.
 - Rail: the column draws its edge inside its 80px, so each tile is an even 64px and its label box an even height, and the glyph and its badge centre on whole pixels and draw sharp, where they stood on half pixels.

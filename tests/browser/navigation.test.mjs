@@ -736,6 +736,23 @@ suite('navigation', together, () => {
         const rest = await bar();
         assert.ok(Math.abs(rest.off) <= 1, `the place stands ${rest.off}px off the bar's middle`);
         assert.ok(rest.grid, 'the place stands off the pixel grid');
+        // A heading below the screen, as in a shell further down a page, has not gone under the bar.
+        const below = await page.evaluate(async () => {
+          const gap = document.createElement('div');
+          gap.style.blockSize = '200vh';
+          document.querySelector('main')?.prepend(gap);
+          await new Promise((done) => setTimeout(done, 400));
+          const title = getComputedStyle(
+            /** @type {HTMLElement} */ (document.querySelector('.sui-shell-title'))
+          ).opacity;
+          gap.remove();
+          return title;
+        });
+        assert.equal(
+          below,
+          '0',
+          'the bar names the page while its heading is still below the screen'
+        );
         await page.evaluate(() => scrollTo(0, 400));
         await page.waitForFunction(
           () =>

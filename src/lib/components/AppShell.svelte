@@ -205,10 +205,21 @@
       lift = line ? Math.round((holder.offsetHeight - line.offsetHeight) / 2) : 0;
     });
     sizes.observe(holder);
-    // A contained shell's pane starts under its bar, and bars that ride with the content cover nothing.
-    const seen = new IntersectionObserver(([entry]) => (headed = entry.isIntersecting), {
-      rootMargin: contained || flowing ? '0px' : `${-bar.offsetHeight}px 0px 0px 0px`
-    });
+    // Only a heading gone up under the bar hands the page's name over: one still below the
+    // screen, as in a shell further down the page, has not been read yet.
+    const seen = new IntersectionObserver(
+      ([entry]) =>
+        (headed =
+          entry.isIntersecting ||
+          entry.boundingClientRect.top >= (entry.rootBounds?.bottom ?? innerHeight)),
+      {
+        // The shell's own document, so a shell in a frame further down a page reads its own
+        // screen, not the top page's.
+        root: document,
+        // A contained shell's pane starts under its bar, and bars that ride with the content cover nothing.
+        rootMargin: contained || flowing ? '0px' : `${-bar.offsetHeight}px 0px 0px 0px`
+      }
+    );
     seen.observe(heading);
     return () => {
       sizes.disconnect();
