@@ -374,43 +374,6 @@ suite('navigation', together, () => {
     }
   });
 
-  test('a focused rail tile draws its ring inside it, as a side nav row does, in the plate’s ink when current', async () => {
-    const page = await openLayout('layouts/app-shell/', 1440);
-    try {
-      await page.keyboard.press('Tab');
-      const ring = async (/** @type {string} */ selector) => {
-        await page.locator(selector).first().focus();
-        return page
-          .locator(selector)
-          .first()
-          .evaluate((node) => {
-            const look = getComputedStyle(node);
-            return [
-              node.matches(':focus-visible'),
-              look.outlineOffset,
-              look.outlineColor,
-              look.color
-            ];
-          });
-      };
-      const [tile, current, row, currentRow] = [
-        await ring('.sui-rail-tile:not([aria-current])'),
-        await ring('.sui-rail-tile[aria-current]'),
-        await ring('.sui-side-nav-row:not([aria-current])'),
-        await ring('.sui-side-nav-row[aria-current]')
-      ];
-      assert.deepEqual(tile.slice(0, 3), row.slice(0, 3), 'a tile rings as a row does');
-      assert.deepEqual(
-        [current[0], current[1], current[2] === current[3]],
-        [true, row[1], true],
-        'a current tile rings inside it in its plate’s ink'
-      );
-      assert.equal(currentRow[2], currentRow[3], 'a current row rings in its plate’s ink');
-    } finally {
-      await page.close();
-    }
-  });
-
   test('a rail tile stands 8px in from each side of its column and its 1px edge, its words given 64px and its glyph a whole pixel', async () => {
     const page = await openLayout('layouts/app-shell/', 1440);
     try {

@@ -6,7 +6,6 @@
 - Every `DataTable` runs its rules 12px past its words, as a striped one runs its stripes, so its words keep the copy's edge and a first sort heading's ground has its 8px room (it sat flush), and a held column sizes for its 500 row headings, not 600
 - A `FactList` on a phone keeps each value beside its label in a box sized to its facts, where every value dropped under its label, and a fact row that holds a pill keeps its neighbours' pitch, the pill reaching into the row's padding on whole pixels (it stood 7px taller)
 - A chart legend's dot or diamond key is one icon wide, so its mark stands 8 to 10px from its label, as a line's end does (it stood up to 17px off)
-- Rail: a focused tile draws its ring inside it, as a side nav row does, so the sidebar's two columns draw one ring, and on the current plate the ring takes the plate's ink, as a current row's does.
 - DataTable and a chart's table: row headings name their rows at 500, a step over the values, and the column headings stay 600; a chart's table took the browser's 700 for both, so it now reads as one more DataTable (L-62).
 - EmptyState and ErrorState: the explanation wraps as every message's copy does (`text-wrap: pretty`), and balanced where a chart centres it, as its title is, read through `--sui-state-copy-wrap`, so a centred sentence no longer leaves its first word alone at a line's end.
 - Rail: the column is 81px, 80px of tiles and their room past its 1px edge, so a 64px tile stands 8px from the edge as from the column's start, where it stood 7px from the edge.
