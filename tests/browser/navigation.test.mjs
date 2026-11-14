@@ -2106,6 +2106,34 @@ suite('navigation', together, () => {
       }
     });
 
+    test('a chart that opens a section stands the sub-section gap under its copy, at every width', async () => {
+      for (const width of [1440, 390]) {
+        const page = await openLayout('charts/', width);
+        try {
+          const [gap, rhythm] = await page.evaluate(() => {
+            const chart = /** @type {HTMLElement} */ (
+              document.querySelector('.sui-section-body > .sui-chart:first-child')
+            );
+            const head = /** @type {HTMLElement} */ (
+              chart.closest('.sui-section')?.querySelector('.sui-section-head')
+            );
+            const probe = document.createElement('div');
+            probe.style.blockSize = 'var(--sui-rhythm-subsection-gap)';
+            chart.after(probe);
+            const rhythm = probe.getBoundingClientRect().height;
+            probe.remove();
+            return [
+              chart.getBoundingClientRect().top - head.getBoundingClientRect().bottom,
+              rhythm
+            ];
+          });
+          assert.equal(gap, rhythm, `${width}px`);
+        } finally {
+          await page.close();
+        }
+      }
+    });
+
     test('a waiting chart veils its plot’s box, round at its corners, and leaves the band’s room round it on the band’s ground', async () => {
       const page = await openLayout('charts/', 1440);
       try {

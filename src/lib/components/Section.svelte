@@ -122,6 +122,12 @@ its words on the title's edge.
     margin-block-start: var(--sui-local-section-gap, 0px);
   }
 
+  /* A titled block that opens the body stands the sub-section gap under the copy, so its title
+     never reads as a second line of this one's. */
+  .sui-section-head:has(+ .sui-section-body > :global(:is(.sui-section, .sui-chart):first-child)) {
+    margin-block-end: var(--sui-rhythm-subsection-gap);
+  }
+
   /* What a section inside this one reads: the sub-section gap and the sub-section title. */
   .sui-section-body {
     --sui-local-section-gap: var(--sui-rhythm-subsection-gap);
