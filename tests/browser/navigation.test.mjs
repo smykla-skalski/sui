@@ -2240,7 +2240,7 @@ suite('navigation', together, () => {
       }
     );
 
-    test('a band with no ground keeps 8px over and under its plot, and a tinted band the full room on every side', async () => {
+    test('a band with no ground keeps 8px over and under its plot, which starts on the title’s edge, and a tinted band the full room on every side', async () => {
       const page = await charts();
       const read = await page.evaluate(async () => {
         const chart = /** @type {HTMLElement} */ (document.querySelector('#charts .sui-chart'));
@@ -2256,7 +2256,7 @@ suite('navigation', together, () => {
         chart.style.removeProperty('--sui-chart-ground');
         return { bare, tinted };
       });
-      assert.deepEqual(read.bare, ['8px', '8px', '16px']);
+      assert.deepEqual(read.bare, ['8px', '8px', '0px']);
       assert.deepEqual(read.tinted, ['16px', '16px', '16px']);
     });
 
@@ -2485,15 +2485,18 @@ suite('navigation', together, () => {
       }
     });
 
-    test('a waiting chart veils its plot’s box, round at its corners, and leaves the band’s room round it on the band’s ground', async () => {
+    test('a waiting chart veils its plot’s box, round at its corners, and leaves the band’s room over it on the band’s ground', async () => {
       const page = await openLayout('charts/', 1440);
       try {
         await page.emulateMedia({ reducedMotion: 'reduce' });
         const band = page.locator('.plot-band:has(> .sui-chart-wait)').first();
         const shot = await band.screenshot({ scale: 'css' });
-        const pad = await band.evaluate((band) => parseFloat(getComputedStyle(band).paddingTop));
+        const [pad, side] = await band.evaluate((band) => {
+          const style = getComputedStyle(band);
+          return [parseFloat(style.paddingTop), parseFloat(style.paddingLeft)];
+        });
         const [room, plot, corner] = await page.evaluate(
-          async ({ url, pad }) => {
+          async ({ url, pad, side }) => {
             const image = new Image();
             image.src = url;
             await image.decode();
@@ -2509,10 +2512,10 @@ suite('navigation', together, () => {
             return [
               at(image.width / 2, pad / 2),
               at(image.width / 2, pad + (image.height - 2 * pad) / 8),
-              at(pad, pad)
+              at(side, pad)
             ];
           },
-          { url: `data:image/png;base64,${shot.toString('base64')}`, pad }
+          { url: `data:image/png;base64,${shot.toString('base64')}`, pad, side }
         );
         assert.ok(pad > 0, 'the band has no room round its plot');
         assert.notEqual(room, plot, 'the veil fills the band’s room round the plot');

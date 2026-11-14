@@ -388,11 +388,13 @@
     min-inline-size: 0;
   }
 
-  /* A band with no ground of its own draws no box, so room above and below the plot would only
-     read as a gap between the plot and its words: it keeps 8px there, and its legend and summary
-     stand under the plot by the chart's own gaps. */
+  /* A band with no ground of its own draws no box, so room round the plot would only read as a
+     gap: the plot and every state's box start on the title's edge, as the legend and the summary
+     do, and 8px stand over and under it, its legend and summary under it by the chart's own
+     gaps. */
   @container style(--sui-chart-ground: transparent) {
     .plot-band {
+      --sui-local-band-pad: var(--sui-local-chart-bleed);
       --sui-local-band-pad-block: var(--sui-space-2);
     }
   }
@@ -433,7 +435,7 @@
   /* While the data loads, the band keeps its place, size and shape, so nothing moves when the
      plot arrives, and the plot's own box inside it is the placeholder: it takes the placeholder
      veil, round at a control's corner, and the light that crosses every placeholder crosses it,
-     while the band's room round it stays on the band's ground. Three grid lines at the quarters
+     while the band's room over and under it stays on the band's ground. Three grid lines at the quarters
      of the plot stand under the light, so the wait reads as the chart to come, never a blank
      block, and they draw no mark a reader could take for data (L-64). Only the light moves, by
      transform, so the compositor runs it. */
