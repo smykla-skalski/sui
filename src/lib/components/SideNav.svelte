@@ -256,9 +256,7 @@ into a strip where each row is an icon over a one-line label in 68px of room, th
 over its short word `expandShort` there with its whole words in a tooltip, brings it back. A tooltip with the full name shows only
 where `short` replaces a label, a count rides past its glyph's top-end corner, and a short
 hairline marks where each group starts. A strip that stands alone keeps its `kicker` where the whole nav draws it, in the primary ink,
-over the head's hairline; beside a rail the rail's places name the place instead. A choice in
-the `foot`, such as a theme switch, sits on the current row's tint plate with the current
-row's glyph ink, so the column holds one accent plate. The `foot` is told when the
+over the head's hairline; beside a rail the rail's places name the place instead. The `foot` is told when the
 sidebar is the strip, so it can draw a glyph's width, as `ThemeSwitch` does with `iconOnly`. In the phone drawer a close button takes the head's end on the first line of its names, rows are 44px, and
 following a row closes the drawer.
 
@@ -774,14 +772,7 @@ following a row closes the drawer.
     }
   }
 
-  /* The column holds one accent plate, the current page's, so a choice at the foot, such as a
-     theme switch's, sits on the same tint plate in the current ink and glyph, as a current row
-     does. */
   .sui-side-nav-foot {
-    --sui-segment-thumb: var(--sui-sidebar-active-bg);
-    --sui-segment-thumb-ink: var(--sui-sidebar-active-ink);
-    --sui-segment-thumb-glyph: var(--sui-sidebar-active-glyph);
-
     border-block-start: var(--sui-stroke) solid var(--sui-sidebar-border);
     display: grid;
     gap: var(--sui-space-4);
