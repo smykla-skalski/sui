@@ -1936,6 +1936,21 @@ suite('lists', together, () => {
       assert.ok(first < last, 'the number moved to the end of "3 repositories differ"');
     });
 
+    test("a timeline's actor avatar is 24px, its initials at the 11px floor for words", async () => {
+      const page = await opened();
+      const faces = await page.evaluate(() =>
+        [...document.querySelectorAll('#timeline .sui-timeline-face .sui-avatar')].map((avatar) => {
+          const box = avatar.getBoundingClientRect();
+          return [box.width, box.height, parseFloat(getComputedStyle(avatar).fontSize)];
+        })
+      );
+      assert.ok(faces.length > 0, 'the page shows an actor');
+      for (const [width, height, letters] of faces) {
+        assert.deepEqual([width, height], [24, 24], 'the avatar is not 24px');
+        assert.ok(letters >= 11, `the initials are ${letters}px`);
+      }
+    });
+
     test("under a card's width a timeline drops its pill and action under the words, on their edge", async () => {
       const page = await opened();
       // A timeline lays out only the words near the screen.

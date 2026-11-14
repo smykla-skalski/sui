@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- A `Timeline` actor's avatar is 24px, with its initials at the 11px step, where it was 20px with 9px initials; its words stand past the wider seat and the list keeps its pitch.
 - The sink's Fact Line Narrow Width example sets its facts in the same ink and size as the others, in an 18rem column where each fact stays whole on a phone, and its two Facts lines stand 48px apart, so they never read as one line with a dot missing. A row of specimens takes `--specimen-column-gap` as a grid does.
 - A `Timeline` under a card's width (36rem) drops each pill and action under its words, on their edge, while each time keeps its column, so a 32rem list gives its words 344px where they had 232px and wrapped to four lines.
 - A focused `RelativeTime` stands its ring 1px off its words at each side, so in a sentence such as "Synced 42 minutes ago" the ring keeps inside the word space and no longer draws on the word before it; the ring stands 2px under the dots, and the hover veil reaches as far as the ring.

@@ -200,7 +200,7 @@ only and a `LoadMore` after it lands on the first new one. Page it in the order 
                   name={event.actor.name}
                   src={event.actor.src}
                   shape={event.actor.shape}
-                  size={20}
+                  size={24}
                   alt=""
                 /></span
               >
@@ -345,9 +345,9 @@ only and a `LoadMore` after it lands on the first new one. Page it in the order 
   }
 
   /* Where an event has an actor, every event's words stand where the actor's words do, past
-     the 20px avatar's seat, so the words keep one edge down the list. */
+     the 24px avatar's seat, so the words keep one edge down the list. */
   .sui-timeline:has(.sui-timeline-face) .sui-timeline-body {
-    grid-template-columns: var(--sui-space-5) minmax(0, 1fr);
+    grid-template-columns: var(--sui-space-6) minmax(0, 1fr);
   }
 
   .sui-timeline:has(.sui-timeline-face) .sui-timeline-body > .sui-timeline-words {
@@ -366,7 +366,7 @@ only and a `LoadMore` after it lands on the first new one. Page it in the order 
 
   /* Seats as tall as the first line's cap band: what stands in them centres on it and reaches
      above and below it evenly, without raising the row. The seat rounds to an even height so a
-     20px avatar centres to the pixel, and hands back the pixel that adds over an odd cap, so an
+     24px avatar centres to the pixel, and hands back the pixel that adds over an odd cap, so an
      event with an avatar keeps the list's pitch. */
   .sui-timeline-face,
   .sui-timeline-side {
@@ -512,7 +512,7 @@ only and a `LoadMore` after it lands on the first new one. Page it in the order 
     }
 
     .sui-timeline:has(.sui-timeline-face) .sui-timeline-side {
-      margin-inline-start: calc(var(--sui-space-5) + var(--sui-space-2));
+      margin-inline-start: calc(var(--sui-space-6) + var(--sui-space-2));
     }
   }
 
@@ -532,7 +532,7 @@ only and a `LoadMore` after it lands on the first new one. Page it in the order 
     /* Stacked, the seat is the event's column and holds only the avatar: each time stands over
        its words on their edge, so an event reads as one block. */
     .sui-timeline:has(.sui-timeline-face) > .sui-timeline-event {
-      grid-template-columns: var(--sui-space-5) minmax(0, 1fr);
+      grid-template-columns: var(--sui-space-6) minmax(0, 1fr);
     }
 
     .sui-timeline:has(.sui-timeline-face) :is(.sui-timeline-time, .sui-timeline-words) {
