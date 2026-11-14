@@ -788,6 +788,26 @@ suite('overlays', together, () => {
       }
     });
 
+    test('a focused time in a sentence stands its ring clear of the word before it', async () => {
+      const gaps = await page.evaluate(() =>
+        [...document.querySelectorAll('#relative-time .when > time.sui-relative-time')].map(
+          (time) => {
+            const before = /** @type {Text} */ (time.parentElement?.previousSibling);
+            const word = document.createRange();
+            word.setStart(before, 0);
+            word.setEnd(before, before.data.trimEnd().length);
+            const look = getComputedStyle(time);
+            const ring =
+              parseFloat(look.getPropertyValue('--sui-local-ring-offset')) +
+              parseFloat(look.getPropertyValue('--sui-focus-ring-width'));
+            return time.getBoundingClientRect().left - ring - word.getBoundingClientRect().right;
+          }
+        )
+      );
+      assert.ok(gaps.length > 0);
+      for (const gap of gaps) assert.ok(gap >= 1, `the ring stands ${gap}px past the word before`);
+    });
+
     // An English 12-hour clock writes 9:26, not 09:26.
     test('a whole instant pads its hour only where the language does', async () => {
       const whole = await page
