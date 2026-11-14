@@ -2245,7 +2245,7 @@ suite('lists', together, () => {
     });
 
     test(
-      "a striped table keeps the plain table's text edge, and its stripes reach past it",
+      "every table's rules and stripes reach 12px past its words, and a first sort heading's ground 8px",
       long,
       async () => {
         const page = await opened();
@@ -2260,9 +2260,12 @@ suite('lists', together, () => {
               );
               const box = cell.getBoundingClientRect();
               const stripe = /** @type {Element} */ (cell.parentElement).getBoundingClientRect();
+              const sort = table.querySelector('thead th:first-child > .sort');
+              const label = sort?.querySelector('span')?.getBoundingClientRect();
               return {
                 words: box.left + parseFloat(getComputedStyle(cell).paddingLeft),
-                stripe: stripe.left
+                stripe: stripe.left,
+                ground: sort && label ? label.left - sort.getBoundingClientRect().left : 8
               };
             })
           );
@@ -2270,7 +2273,13 @@ suite('lists', together, () => {
           Math.abs(striped.words - plain.words) < 0.5,
           `${striped.words} vs ${plain.words}`
         );
-        assert.ok(Math.abs(striped.words - striped.stripe - 12) < 0.5, 'the stripe hugs the words');
+        for (const table of [plain, striped]) {
+          assert.ok(Math.abs(table.words - table.stripe - 12) < 0.5, 'a row hugs its words');
+          assert.ok(
+            Math.abs(table.ground - 8) < 0.5,
+            `a sort ground ${table.ground}px before its words`
+          );
+        }
       }
     );
 

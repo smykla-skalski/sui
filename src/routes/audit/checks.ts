@@ -2018,10 +2018,10 @@ function specimens(root: Document): Finding[] {
       box.width > 1 &&
       box.height > 1 &&
       (box.left < edge.left - reach - 0.5 || box.right > edge.right + reach + 0.5);
-    // A striped table's stripes reach a row's inset past its words, as a list row's ground does
-    // (L-33), and its frame reaches with them.
+    // A table's rules and stripes reach a row's inset past its words, as a list row's ground
+    // does (L-33), and its frame reaches with them.
     const stripeReach = (element: Element) => {
-      const viewport = element.closest('.sui-data-table.striped > .viewport');
+      const viewport = element.closest('.sui-data-table > .viewport');
       return viewport ? -parseFloat(getComputedStyle(viewport).marginInlineStart) : 0;
     };
     // A stacked stage lends its inset to what a specimen shows (L-66), so a chart's band may

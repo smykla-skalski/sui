@@ -527,12 +527,19 @@ row in place of the hairlines, for a table wide enough that the eye can lose its
     align-content: start;
   }
 
+  /* The outer cells' inset reaches past the words, as a list row's ground does (L-33), so a
+     table's rules and stripes run 12px past its words, and its words keep the edge of the
+     copy around it. */
+  .sui-data-table > .viewport {
+    margin-inline: calc(-1 * var(--sui-space-3));
+  }
+
   :is(th, td):first-child {
-    padding-inline-start: 0;
+    padding-inline-start: var(--sui-space-3);
   }
 
   :is(th, td):last-child {
-    padding-inline-end: 0;
+    padding-inline-end: var(--sui-space-3);
   }
 
   /* A heading row holds a sort control as tall as a finger on touch, so every heading centres
@@ -558,7 +565,7 @@ row in place of the hairlines, for a table wide enough that the eye can lose its
   }
 
   .held thead th:first-child .sample {
-    font-weight: var(--sui-weight-semibold);
+    font-weight: var(--sui-weight-medium);
   }
 
   .numeric .sample {
@@ -603,18 +610,6 @@ row in place of the hairlines, for a table wide enough that the eye can lose its
   [data-align='end'] .sort {
     flex-direction: row-reverse;
     margin-inline-start: auto;
-  }
-
-  /* An outer heading meets the scroller's edge, which would cut a ground or ring reaching past
-     it (L-96), so there the button starts or ends with its words. */
-  .sui-data-table:not(.striped) th:first-child > .sort {
-    margin-inline-start: 0;
-    padding-inline-start: 0;
-  }
-
-  .sui-data-table:not(.striped) th:last-child > .sort {
-    margin-inline-end: 0;
-    padding-inline-end: 0;
   }
 
   .sort::before {
@@ -678,20 +673,6 @@ row in place of the hairlines, for a table wide enough that the eye can lose its
 
   .striped tbody tr:nth-child(even) {
     background: var(--sui-local-stripe);
-  }
-
-  /* The outer cells' inset reaches past the words, as a list row's ground does (L-33), so a
-     striped table's words keep a plain table's edge. */
-  .striped > .viewport {
-    margin-inline: calc(-1 * var(--sui-space-3));
-  }
-
-  .striped :is(th, td):first-child {
-    padding-inline-start: var(--sui-space-3);
-  }
-
-  .striped :is(th, td):last-child {
-    padding-inline-end: var(--sui-space-3);
   }
 
   td {
