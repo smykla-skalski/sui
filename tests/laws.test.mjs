@@ -429,6 +429,11 @@ test('L-59 a state panel pads 32px by 20px, 20px on a phone, its action a step u
     );
   }
   assert.match(
+    stripComments(styles['src/lib/components/EmptyState.svelte']),
+    /@media \(min-width: 48rem\) \{\s*\.sui-empty-state\.final \{\s*padding: var\(--sui-space-6\);\s*\}/,
+    'a final panel holds no room open, so it pads 24px all round, as a card does'
+  );
+  assert.match(
     stripComments(styles['src/lib/components/ErrorState.svelte']),
     /\.over \{[^}]*justify-content: space-between;/,
     "a failed refresh's retry ends its line, where a line's action stands"
@@ -451,6 +456,11 @@ test('L-59 a state panel pads 32px by 20px, 20px on a phone, its action a step u
     'an empty panel marks the room its content would fill with a dashed edge, firm enough to read as one'
   );
   assert.match(edge, /currentcolor 0 4px, transparent 4px 8px/, 'its dashes stand on whole pixels');
+  assert.match(
+    empty,
+    /\.sui-empty-state\.final \{[^}]*border-color: var\(--sui-border-control\);[^}]*\}\s*\.sui-empty-state\.final::before \{\s*display: none;/,
+    'a final panel, whose room nothing will fill, takes a solid edge of the same weight in place of the dashes'
+  );
   assert.match(
     edge,
     /--sui-local-r: var\(--sui-radius-control\);/,
@@ -2110,6 +2120,18 @@ test('L-39 a stop-quiet edge stays the danger hue on a dark ground', () => {
     styles['src/lib/components/Button.svelte'],
     /\[data-tone='stop-quiet'\] \{\s*border-color: color-mix\(\s*in srgb,\s*var\(--sui-danger\) var\(--sui-stop-quiet-edge-mix\),\s*var\(--sui-control-border\)\s*\);/
   );
+});
+
+test("L-85 the sidebar's theme thumb is a neutral plate, so the current page keeps the one accent", () => {
+  const sink = stripComments(read('src/routes/(sink)/+layout.svelte'));
+  assert.match(
+    sink,
+    /\.theme \{\s*--sui-segment-thumb: light-dark\(\s*var\(--sui-control-bg\),\s*color-mix\(in srgb, var\(--sui-text-primary\) 30%, var\(--sui-sidebar-bg\)\)\s*\);[^}]*--sui-segment-thumb-ink: var\(--sui-text-primary\);/,
+    "the sidebar's theme thumb wears the brand fill beside the current page's accent plate"
+  );
+  // The hover and press steps read tokens, so a neutral thumb never flashes the brand fill.
+  const control = stripComments(read('src/lib/components/SegmentedControl.svelte'));
+  assert.doesNotMatch(control, /--sui-brand-action-(hover|pressed)/);
 });
 
 test('L-85 the current row stands on a plate a light theme does not wash out', () => {

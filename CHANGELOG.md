@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+- The sink's folded strip names the Code Block page Code, so the strip keeps one pitch where the page's label wrapped to two lines (L-88); a browser test holds every kit page to one line there.
+- A `Timeline` draws a clock time in the mono face's 500, where it drew 400, so the muted time column reads as firmly as the words beside it and is no longer the page's faintest text.
+- A `compact` `Callout` draws its bare symbol at 18px, a full callout's glyph, where it drew 16px, so a whole-page strip names its kind at a glance beside a tiled callout under it (L-56).
+- `SegmentedControl` reads its thumb's hover and press grounds from `--sui-segment-thumb-hover` and `--sui-segment-thumb-pressed`, so a holder that sets a neutral thumb never sees it flash the brand fill; the sink's sidebar theme switch takes a raised neutral thumb, so the current page keeps the column's one accent (L-85).
+- A `LinkList`'s links and a link in a `Section`'s head actions rest with no underline, since they stand apart from any sentence (L-81); hover and a press still draw it, and forced colors keep it.
+- A collapsed `SideNav` on its own starts its kicker 12px under the strip's top, level with a rail's first place, where it stood 8px from the edge.
+- A `SideNav` whose rows run past its foot stands the foot's hairline, at rest, in the gap above the first row or heading that would not fit, so the cut never runs through words; the foot takes the room the rows give up above its controls.
 - A `FactLine` dot draws alike in both themes, near 5:1 on its ground: on a 1x screen it is square, where a 2px circle blurred the light dot to 3.3:1, and on dark it takes 70% of the muted ink, where it drew 6.8:1 and was the loudest mark on the line.
 - A focused `RelativeTime` stands its ring 2px inside its line's top, 3px over the figures where it stood 5px, so the ring no longer reads tall and thin around the words; the dots and the line around the time stay where they were.
 - The sink names a right-to-left specimen from its right edge, on the Link List, Timeline, Disclosure and Pattern Entries pages, so the name heads the mirrored content rather than standing a stage away from it. A specimen takes `dir`.
@@ -32,6 +39,8 @@
 - DataTable and a chart's table: row headings name their rows at 500, a step over the values, and the column headings stay 600; a chart's table took the browser's 700 for both, so it now reads as one more DataTable (L-62).
 - EmptyState and ErrorState: the explanation wraps as every message's copy does (`text-wrap: pretty`), and balanced where a chart centres it, as its title is, read through `--sui-state-copy-wrap`, so a centred sentence no longer leaves its first word alone at a line's end.
 - Rail: on its own, with no pages beside it, the column is 81px, 80px of tiles and their room past its 1px edge, so a 64px tile stands 8px from the edge as from the column's start, where it stood 7px from the edge.
+- Skeleton: `widths` sets each one-line row's bar to the length its loaded words will take, such as a header's description, never past the row.
+- EmptyState: `final` draws the panel's edge as a solid hairline, for room nothing will fill, such as a record that does not exist, where the dashed edge promises content to come; L-59 names it.
 - AppShell: a `rail` of the caller's own markup keeps the pages beside it, where only `Rail` drew them; a phone's bottom bar sticks to the foot of the view again; and the bar finds a page heading that the content brings in or renames after it opens.
 - Rail: with `bottomNav`, the drawer's pages keep one render site, so crossing the phone width no longer mounts the sidebar afresh. A badge past 99 draws "99+" so it stays in the column, as does a folded `SideNav` count; the names still say the whole number.
 - FactList: a flowing label breaks a word wider than its list instead of running past it.

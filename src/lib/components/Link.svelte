@@ -55,7 +55,7 @@ is `Button` with `href`, and the way back from a page is `BackLink`.
 
 - Semantics: a native `<a href>` named by its words, with the external note as its description.
 - Content: a few words that say where it goes, never "click here"; an external one adds a 12px arrow, its ink near the text's cap height, kept on the line of its last word.
-- States: rest (action ink at 500 over an underline at 70% of it), hover (a whole 2px underline and an ink a step toward the page's ink), focus (a 2px ring 2px off, its foot 4px further down and its sides 2px further out on a standalone link, so it clears the underline, the descenders and the first and last letters), pressed (a deeper ink) and visited, which looks like rest.
+- States: rest (action ink at 500 over an underline at 70% of it), hover (a whole 2px underline and an ink a step toward the page's ink), focus (a 2px ring 2px off, its foot 4px further down and its sides 2px further out on a standalone link, so it clears the underline, the descenders and the first and last letters), pressed (a deeper ink) and visited, which looks like rest; a link list's links and a section's head actions stand apart from any sentence, so they rest with no underline and hover draws it.
 - Keyboard: Tab reaches it and Enter follows it.
 - Pointer and touch: inside a sentence its target is the words' line, as WCAG 2.5.8 allows; `standalone` grows the hit area to 24px, and 44px on a phone or any touch screen.
 - Focus: following it moves focus as the browser's navigation does; nothing here moves it.
@@ -90,7 +90,10 @@ is `Button` with `href`, and the way back from a page is `BackLink`.
     inline-size: var(--sui-inline-snap);
     overflow-wrap: anywhere;
     text-decoration: underline;
-    text-decoration-color: color-mix(in srgb, currentColor 70%, transparent);
+    text-decoration-color: var(
+      --sui-local-link-rest-line,
+      color-mix(in srgb, currentColor 70%, transparent)
+    );
     text-decoration-thickness: var(--sui-stroke);
     text-underline-offset: 0.18em;
   }

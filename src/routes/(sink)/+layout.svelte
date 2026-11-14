@@ -138,11 +138,9 @@
       onnavigate={follow}
       head={deployed ? picker : undefined}
     >
-      {#snippet foot(folded: boolean)}<ThemeSwitch
-          system={false}
-          iconOnly={folded}
-          fill
-        />{/snippet}
+      {#snippet foot(folded: boolean)}<div class="theme">
+          <ThemeSwitch system={false} iconOnly={folded} fill />
+        </div>{/snippet}
     </SideNav>
   {/snippet}
 
@@ -152,6 +150,26 @@
 <ServiceWorkerStatus {worker} />
 
 <style>
+  /* The current page is the sidebar's one accent, so the theme's thumb is a raised neutral
+     plate in the primary ink and reads as a setting, under the place the reader is: the
+     control ground on light, and on dark 30% of the ink, so the choice still stands 2:1 off the track's well (L-85). */
+  .theme {
+    --sui-segment-thumb: light-dark(
+      var(--sui-control-bg),
+      color-mix(in srgb, var(--sui-text-primary) 30%, var(--sui-sidebar-bg))
+    );
+    --sui-segment-thumb-hover: light-dark(
+      color-mix(in srgb, var(--sui-text-primary) 4%, var(--sui-control-bg)),
+      color-mix(in srgb, var(--sui-text-primary) 34%, var(--sui-sidebar-bg))
+    );
+    --sui-segment-thumb-pressed: light-dark(
+      color-mix(in srgb, var(--sui-text-primary) 8%, var(--sui-control-bg)),
+      color-mix(in srgb, var(--sui-text-primary) 24%, var(--sui-sidebar-bg))
+    );
+    --sui-segment-thumb-ink: var(--sui-text-primary);
+    display: contents;
+  }
+
   .preview-picker {
     align-items: center;
     display: grid;

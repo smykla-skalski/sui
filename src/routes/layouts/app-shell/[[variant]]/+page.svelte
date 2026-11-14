@@ -3,6 +3,8 @@
   import { onMount } from 'svelte';
   import {
     AppShell,
+    DetailLayout,
+    FactList,
     ObjectList,
     ObjectRow,
     PageHeader,
@@ -11,6 +13,7 @@
     Section,
     SideNav,
     SkipLink,
+    type Fact,
     type NavSection,
     type PillTone,
     type RailItem
@@ -69,6 +72,13 @@
     { name: 'smykla-skalski/bosun', state: 'Not checked', tone: 'neutral' }
   ];
 
+  const workspace: Fact[] = [
+    { label: 'Members', value: '8' },
+    { label: 'Rulesets', value: '3' },
+    { label: 'Synced files', value: '14' },
+    { label: 'Plan', value: 'Team' }
+  ];
+
   const names = Object.fromEntries(
     sections.flatMap((group) => group.items).map((item) => [item.href, item.label])
   );
@@ -112,22 +122,33 @@
       description="Every repository in the workspace, held to the same labels, rulesets and files"
     />
     <div class="body">
-      <Section title="Health">
-        <p class="copy">
-          <Pill tone="success">Healthy</Pill>
-          <span class="sentence">Every repository synced 4&nbsp;minutes ago</span>
-        </p>
-      </Section>
-      <Section title="Repositories" count={repositories.length} id="repositories-title">
-        <ObjectList aria-labelledby="repositories-title">
-          {#each repositories as repository (repository.name)}
-            <ObjectRow href="#repositories">
-              {#snippet main()}<span class="name">{repository.name}</span>{/snippet}
-              {#snippet side()}<Pill tone={repository.tone}>{repository.state}</Pill>{/snippet}
-            </ObjectRow>
-          {/each}
-        </ObjectList>
-      </Section>
+      <!-- The overview is a detail pane about the place: its health and repositories lead, and
+           the place's properties stand beside them, as a check's details do. -->
+      <DetailLayout>
+        {#snippet main()}
+          <Section title="Health">
+            <p class="copy">
+              <Pill tone="success">Healthy</Pill>
+              <span class="sentence">Every repository synced 4&nbsp;minutes ago</span>
+            </p>
+          </Section>
+          <Section title="Repositories" count={repositories.length} id="repositories-title">
+            <ObjectList aria-labelledby="repositories-title">
+              {#each repositories as repository (repository.name)}
+                <ObjectRow href="#repositories">
+                  {#snippet main()}<span class="name">{repository.name}</span>{/snippet}
+                  {#snippet side()}<Pill tone={repository.tone}>{repository.state}</Pill>{/snippet}
+                </ObjectRow>
+              {/each}
+            </ObjectList>
+          </Section>
+        {/snippet}
+        {#snippet aside()}
+          <Section title="Workspace">
+            <FactList layout="rows" facts={workspace} />
+          </Section>
+        {/snippet}
+      </DetailLayout>
     </div>
   </main>
 </AppShell>
@@ -138,9 +159,8 @@
   }
 
   /* The header's words and the sections keep the column a detail pane keeps, a 72rem pane's,
-     centred in a wider pane, so the place's pages share one start edge. The rows fill that
-     column, as the header's words do, so a row's status ends on the header's end edge and stays
-     within a glance of its name. The band's ground and line still run to the pane's edges. */
+     centred in a wider pane, so the place's pages share one start edge and one main column. The
+     band's ground and line still run to the pane's edges. */
   main {
     --sui-local-head-inset: max(
       var(--sui-rhythm-pane-gutter),

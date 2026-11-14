@@ -96,7 +96,7 @@
 
 <Example
   title="Empty State"
-  note="A plain title, one explanation and a next step, with no decorative icon"
+  note="A plain title, one explanation and a next step, with no decorative icon. A dashed edge marks room content will fill, a solid one room nothing will"
   layout="grid"
   ground="canvas"
 >
@@ -117,6 +117,17 @@
         description="People you invite to this workspace appear here until they accept"
       >
         {#snippet action()}<Button tone="signal">Invite People</Button>{/snippet}
+      </EmptyState>
+    </Section>
+  </Specimen>
+  <Specimen label="Nothing to come">
+    <Section title="Invitation" level={4}>
+      <EmptyState
+        final
+        title="This Invitation No Longer Exists"
+        description="Someone withdrew it, or it expired before anyone accepted"
+      >
+        {#snippet action()}<Button tone="signal">Open Invitations</Button>{/snippet}
       </EmptyState>
     </Section>
   </Specimen>

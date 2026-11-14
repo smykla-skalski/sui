@@ -160,12 +160,13 @@
 {#snippet bar()}<span class="value-wait"></span>{/snippet}
 {#snippet shortBar()}<span class="value-wait short"></span>{/snippet}
 {#snippet requester()}<IdentityRow name="Bart Smykla" size={20} />{/snippet}
-{#snippet wait(rows: number, rowHeight: string)}
+{#snippet wait(rows: number, rowHeight: string, widths?: string[])}
   <Skeleton
     {rows}
     bars={false}
     ruled={false}
     {rowHeight}
+    {widths}
     patience={Infinity}
     label=""
     loadedLabel=""
@@ -257,17 +258,20 @@
   <main id="content" tabindex="-1">
     {#if view === 'loading'}
       <!-- The actions need no answer, so they stand where they will stay, and bars stand where
-           the description's lines and the facts' lines will: one of each where the description
-           fits a line, and two lines of description over the facts' one line where it wraps. -->
+           the description's lines and the facts' lines will, as long as those lines: one of each
+           where the description fits a line, and two lines of description over the facts' one
+           line where it wraps. -->
       <PageHeader title="Sync Check #4182" kicker={back} actions={waitingActions}>
         <!-- The status region is there from the first render with the state it has, a loading
              word, so the check's own state is read once it arrives. -->
         {#snippet status()}<Pill tone="neutral">Loading</Pill>{/snippet}
         {#snippet facts()}
-          <div class="from-ink one-line">{@render wait(2, '2.25rem')}</div>
+          <div class="from-ink one-line">
+            {@render wait(2, '2.25rem', ['25.3125rem', '18.6875rem'])}
+          </div>
           <div class="from-ink two-lines">
-            {@render wait(2, '1.375rem')}
-            <div class="fact-lines">{@render wait(1, '2.125rem')}</div>
+            {@render wait(2, '1.375rem', ['20rem', '6.875rem'])}
+            <div class="fact-lines">{@render wait(1, '2.125rem', ['18.6875rem'])}</div>
           </div>
         {/snippet}
       </PageHeader>
@@ -284,6 +288,7 @@
                     <Skeleton
                       rows={1}
                       ruled={false}
+                      side={false}
                       rowHeight="var(--notice-row)"
                       patience={Infinity}
                       label=""
@@ -297,6 +302,7 @@
                     <span class="press"></span>
                   </div>
                 </div>
+                <span class="press beside"></span>
               </div>
             </div>
             <Section title="Outcome">
@@ -307,8 +313,13 @@
                 {/each}
               </div>
             </Section>
-            <!-- The Load More line waits under the five rows as its words and its button. -->
+            <!-- The Load More line waits under the five rows as its words and its button. The
+                 sync page's link needs nothing the check brings, so it stands ready, as the
+                 closing disclosure does. -->
             <Section title="Repositories" count={null}>
+              {#snippet actions()}
+                <Link href="#repositories" standalone>Open sync page</Link>
+              {/snippet}
               <Skeleton
                 rows={PAGE}
                 bars={false}
@@ -349,9 +360,11 @@
     {:else if view === 'missing'}
       <PageHeader title="Sync Check #4182" kicker={back} />
       <!-- Nothing failed that a retry could fix, so the page says so in a neutral voice, once,
-           in the panel's title rather than in a status beside the header's too. -->
+           in the panel's title rather than in a status beside the header's too. The panel is
+           final: this check's content never comes, so its edge is solid. -->
       <div class="zones missing">
         <EmptyState
+          final
           title="This Check Does Not Exist"
           description="Someone deleted it, or the link points at a check that never ran"
         >
@@ -368,10 +381,11 @@
                names the data, so it never reads as the header's Check Again. -->
           <Callout compact>
             <!-- A history glyph says the data is old; a refresh glyph would read as a second
-                 Reload. The failure leads at a title's weight, so it reads before its reason. -->
+                 Reload. The failure leads at a title's weight, so it reads before its reason,
+                 and the data's age, what the reader weighs the page by, takes a step under it. -->
             {#snippet icon()}<Icon name="history" size="sm" />{/snippet}
             <span class="lead">The refresh failed</span>, so this page shows data from
-            <RelativeTime value={finished} />
+            <span class="age"><RelativeTime value={finished} /></span>
             {#snippet actions()}
               <Button loading={refreshing} onclick={refresh}>
                 {refreshing ? 'Reloading Data…' : 'Reload Data'}
@@ -418,6 +432,12 @@
      the check exists. */
   .missing {
     container-type: inline-size;
+  }
+
+  /* The panel is all the page holds, so its title reads as an alert's headline, a step over
+     the section titles a loaded check shows. */
+  .missing > :global(*) {
+    --sui-font-size-state-title: var(--sui-font-size-alert-title);
   }
 
   @container (min-width: 44rem) {
@@ -512,6 +532,17 @@
     display: none;
   }
 
+  /* Beside the words, the action's placeholder is the button's own box, centred on the tile's
+     band and its inset from the end, as the callout's button stands. */
+  .press.beside {
+    margin-block: calc(
+        var(--sui-space-3) + var(--sui-stroke) - var(--sui-space-4) +
+          (var(--sui-symbol-tile) - var(--sui-tier-quiet)) / 2
+      )
+      0;
+    margin-inline-end: calc(var(--sui-space-3) + var(--sui-stroke) - var(--sui-space-4));
+  }
+
   /* The action's placeholder ends where the callout's button will, its inset from the foot. */
   .press {
     background: var(--sui-placeholder);
@@ -549,6 +580,10 @@
     font-weight: var(--sui-weight-semibold);
   }
 
+  .age {
+    font-weight: var(--sui-weight-medium);
+  }
+
   /* The facts' line holds the time's 44px target, so it stands 24px of ink under the
      description; the facts end at their words, so the target's room under them is not kept. */
   .fact-lines {
@@ -573,7 +608,7 @@
 
   .more-press {
     block-size: var(--sui-control-height-compact);
-    inline-size: 6.125rem;
+    inline-size: 7.1875rem;
     margin-block: 0;
   }
 

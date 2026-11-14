@@ -40,7 +40,7 @@ so the list keeps a row's pitch; a note stands a copy gap and
 
 - Semantics: a `ul` with `role="list"`, so Safari keeps the list once its bullets are gone; each item is a native link, described by its note.
 - Content: a label per link, an optional one-line note that wraps when long, and whether it leaves the product.
-- States: none of its own; each `Link` draws its rest, hover, focus and pressed states, and an external one its arrow.
+- States: each `Link` draws its hover, focus and pressed states, and an external one its arrow; at rest a link draws no underline, since it stands in a list and never inside a sentence, so its ink and its place mark it (L-81).
 - Keyboard: Tab walks the links in order and Enter follows one.
 - Pointer and touch: every link is `standalone`, so its hit area grows to 24px, and 44px on a phone or a touch screen, and the links stand far enough apart that the areas never meet.
 - Focus: nothing here moves focus.
@@ -74,8 +74,12 @@ so the list keeps a row's pitch; a note stands a copy gap and
 {/if}
 
 <style>
+  /* Apart from any sentence, a link needs no line to tell it from the words around it, so the
+     line waits for hover or a press, and a list of links reads as a quiet list rather than a
+     block of underlines. Forced colors draw it still. */
   .sui-link-list {
     --sui-local-link-target: var(--sui-field-target-min);
+    --sui-local-link-rest-line: transparent;
     display: grid;
     font: var(--sui-weight-regular) var(--sui-font-size-body) / var(--sui-row-copy-leading)
       var(--sui-sans);

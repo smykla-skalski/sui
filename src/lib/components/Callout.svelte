@@ -26,7 +26,7 @@
     tone?: CalloutTone;
     /** The gold surface for an unsaved decision and the action that resolves it. */
     decision?: boolean;
-    /** One 40px line about the whole page, such as data shown stale: a bare 16px symbol and no title. */
+    /** One 40px line about the whole page, such as data shown stale: a bare 18px symbol and no title. */
     compact?: boolean;
     title?: string;
     /** The mark beside the words, when the words alone do not carry the weight. */
@@ -107,7 +107,7 @@ and every other action keeps the default tone.
 
 `compact` is a strip for a notice about the whole page, such as data shown stale, that must
 not push the page down as far as a message about the work does: no title, its symbol bare
-at 16px in the ink of its words, centred in a full tile's 2rem slot so its words start where
+at 18px in the ink of its words, centred in a full tile's 2rem slot so its words start where
 a full callout's do, and its band only as tall as its quiet-tier actions, so one line of it
 stands 40px tall.
 
@@ -364,8 +364,10 @@ and the unsaved ink, so no neutral block sits on a state (L-92).
     --sui-callout-indent: calc(var(--sui-space-8) + var(--sui-space-3));
   }
 
+  /* Bare of its tile, the glyph keeps a full callout's 18px, so a whole-page strip still names
+     its kind at a glance beside the tiled warning under it. */
   .compact .sui-callout-icon {
-    --sui-icon-base: inherit;
+    --sui-icon-base: var(--sui-icon-md);
     --sui-icon-sm: var(--sui-icon-base);
     --sui-icon-xs: var(--sui-icon-base);
     background: none;

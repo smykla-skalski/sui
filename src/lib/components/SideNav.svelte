@@ -18,6 +18,40 @@
     label?: string;
     items: NavItem[];
   };
+
+  /**
+   * Gives the foot room from the bottom of the rows, so its hairline cuts the list in a gap
+   * between rows at rest, never through a row's or a heading's words, and a heading never
+   * stands over the cut without a row under it. It runs from the server's markup while the
+   * page parses, so the first frame is fitted, and is written on the foot itself, so hydration
+   * keeps it. It reads only the nav it is given, as its own source is its whole script.
+   */
+  function fitFoot(nav: HTMLElement) {
+    const scroller = nav.querySelector<HTMLElement>('.sui-side-nav-tree');
+    const foot = nav.querySelector<HTMLElement>('.sui-side-nav-foot');
+    if (!scroller || !foot) return;
+    const full =
+      scroller.clientHeight + (parseFloat(foot.style.getPropertyValue('--sui-local-slack')) || 0);
+    const top = scroller.getBoundingClientRect().top - scroller.scrollTop;
+    let cut = full;
+    if (scroller.scrollHeight > full) {
+      const parts = [...scroller.querySelectorAll<HTMLElement>('.sui-side-nav-group, li')];
+      for (let index = 0; index < parts.length; index++) {
+        if (parts[index].getBoundingClientRect().bottom - top <= full) continue;
+        const lead = parts[index - 1]?.matches('.sui-side-nav-group')
+          ? parts[index - 1]
+          : parts[index];
+        cut = Math.min(full, lead.getBoundingClientRect().top - top);
+        break;
+      }
+    }
+    const slack = Math.max(0, Math.floor(full - cut));
+    if (slack) foot.style.setProperty('--sui-local-slack', `${slack}px`);
+    else foot.style.removeProperty('--sui-local-slack');
+  }
+
+  const fitScript =
+    `<script>(${fitFoot})(document.currentScript.previousElementSibling)</` + 'script>';
 </script>
 
 <script lang="ts">
@@ -106,6 +140,7 @@
   let tree = $state<HTMLElement | null>(null);
   let scroller = $state<HTMLElement | null>(null);
   let fold = $state<HTMLButtonElement | null>(null);
+  let nav = $state<HTMLElement | null>(null);
   let thumb = $state({ x: 0, y: 0, width: 0, height: 0 });
   let measured = $state(false);
   let gliding = $state(false);
@@ -225,6 +260,17 @@
     return () => observer.disconnect();
   });
 
+  $effect(() => {
+    void mode;
+    if (!scroller || !tree || !nav) return;
+    const fit = () => fitFoot(nav!);
+    untrack(fit);
+    const observer = new ResizeObserver(fit);
+    observer.observe(scroller);
+    observer.observe(tree);
+    return () => observer.disconnect();
+  });
+
   /* The fold control leaves when the shell grows too narrow to fold. If it held focus, the
      current page's row takes it, so focus never falls to the page. */
   $effect.pre(() => {
@@ -266,15 +312,16 @@ following a row closes the drawer.
 - Keyboard: Tab moves through the rows, then the fold or close control; Enter follows a row or presses the control.
 - Pointer and touch: rows are 34px on a desktop pointer and 44px in the drawer and the strip; the close and fold controls are 34px and 44px there, and nothing needs a gesture.
 - Focus: folding keeps focus on the control; a fold control that leaves as the shell narrows hands focus to the current row, and a row followed in the drawer closes it with focus returned to the menu button.
-- Responsive: the row list scrolls inside the column, its foot's hairline casting a soft shadow over the rows while more are below, and brings a new current row into view without scrolling the page, a long label wraps, the strip stacks each glyph over its short label, and the fold control shows only where the shell can fold.
+- Responsive: the row list scrolls inside the column, its foot's hairline casting a soft shadow over the rows while more are below and, at rest, standing in the gap above the first row or heading that would not fit, never through its words, and brings a new current row into view without scrolling the page, a long label wraps, the strip stacks each glyph over its short label, and the fold control shows only where the shell can fold.
 - Accessibility: a count is read with its words from `countLabel`, joined to the label by `countedName`, every ink holds 4.5:1 on its ground, the current ink stands 2:1 from the rest ink in lightness and the plate marks it too, so it is never hue alone (WCAG 1.4.1), and a heading names each group for heading navigation.
 - Localization: `label`, `closeLabel`, `collapseLabel`, `expandLabel`, `expandShort` and `countLabel` are props with English defaults; counts follow the page language, the plate is measured from the start edge and the fold glyphs mirror in a right-to-left page.
-- Performance: one resize observer measures the plate, which glides with a transform; it suits a sidebar of tens of rows, not thousands.
+- Performance: one resize observer measures the plate, which glides with a transform, and one fits the foot to the rows, only when their sizes change; it suits a sidebar of tens of rows, not thousands.
 - Analytics: `onnavigate(event, item)` reports every followed row; the shell's `oncollapsedchange` reports the fold.
 - Failure: a `current` that matches no row draws no plate, an empty section draws only its heading, and an empty `sections` leaves the title and its controls.
 -->
 
 <nav
+  bind:this={nav}
   {...rest}
   class={['sui-side-nav', className, { 'scroll-targets': scrollTargets }]}
   aria-label={label ?? pagesLabel(title)}
@@ -389,6 +436,9 @@ following a row closes the drawer.
     </div>
   {/if}
 </nav>
+<!-- The fit runs as the page parses, before the first paint; on a page drawn in the browser
+     the inserted script never runs and the resize observer fits the foot instead. -->
+{@html fitScript}
 
 <style>
   /* The row's one-line box, computed in the row's font and handed down, so a part in another
@@ -810,7 +860,7 @@ following a row closes the drawer.
     border-block-start: var(--sui-stroke) solid var(--sui-sidebar-border);
     display: grid;
     gap: var(--sui-space-4);
-    padding-block-start: var(--sui-space-4);
+    padding-block-start: calc(var(--sui-space-4) + var(--sui-local-slack, 0px));
     position: relative;
   }
 
@@ -872,14 +922,14 @@ following a row closes the drawer.
     }
 
     /* Alone, the strip keeps its kicker, the place's short name, in the primary ink, since it
-       is the strip's one name. The name, its hairline and the rows stand 8px apart, from 8px
-       under the strip's top, so naming the place costs the list 18px. Joined to a rail, the
-       rail's places name the place, and the head leaves (AppShell). */
+       is the strip's one name. The name, its hairline and the rows stand 8px apart, from 12px
+       under the strip's top, as a rail's first place does, so naming the place costs the list
+       22px. Joined to a rail, the rail's places name the place, and the head leaves (AppShell). */
     .sui-side-nav[data-collapsed] .sui-side-nav-head:has(.sui-side-nav-kicker) {
       display: var(--sui-local-strip-head, flex);
       flex: none;
       justify-content: center;
-      margin-block: calc(var(--sui-space-2) - var(--sui-local-strip-start, var(--sui-space-4)))
+      margin-block: calc(var(--sui-space-3) - var(--sui-local-strip-start, var(--sui-space-4)))
         calc(var(--sui-space-2) - var(--sui-space-4));
       padding-block-end: var(--sui-space-2);
     }
