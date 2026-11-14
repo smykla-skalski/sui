@@ -284,6 +284,14 @@ apart, and the action under the value.
     padding-block: 0;
   }
 
+  /* In a row the box is as tall as a value's words and the pill reaches into the row's
+     padding on its middle, as a face does, so the row keeps its neighbours' pitch. It stands
+     on the label's cap box, not its baseline, so the pill lands on whole pixels (L-95). */
+  .rows .sui-fact-list-value:has(> :global(:is(.sui-pill, .sui-chip))) {
+    align-self: start;
+    block-size: round(up, 1cap, 2px);
+  }
+
   /* A face beside a name stands taller than a value's words, so in a row the identity is as
      tall as its words and the face reaches into the row's padding, centred on the name, and a
      one-line row keeps its neighbours' pitch while a wrapped name or a handle still grows it. */
@@ -365,9 +373,11 @@ apart, and the action under the value.
       overflow-wrap: break-word;
     }
 
+    /* A plain 7rem floor, as the label's, so a list sized to its content counts it and keeps
+       each value beside its label. */
     .inline .sui-fact-list-value {
       flex: 1 1 0;
-      min-inline-size: min(100%, 7rem);
+      min-inline-size: 7rem;
     }
 
     /* A list that holds a target sets every line at the target's height, its words on the
@@ -434,9 +444,11 @@ apart, and the action under the value.
       overflow-wrap: break-word;
     }
 
+    /* A plain 7rem floor, as the label's, so a list sized to its content counts it and keeps
+       each value beside its label. */
     .inline .sui-fact-list-value {
       flex: 1 1 0;
-      min-inline-size: min(100%, 7rem);
+      min-inline-size: 7rem;
     }
 
     /* A list that holds a target sets every line at the target's height, its words on the

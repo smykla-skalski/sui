@@ -1353,6 +1353,25 @@ suite('lists', together, () => {
         assert.equal(spill, 0, 'a long one-word label paints past its column onto its value');
       }
     );
+    test(
+      'short facts in a box sized to them keep each value beside its label on a phone',
+      long,
+      async () => {
+        const page = await opened();
+        const list = page
+          .locator('#fact-list .sui-fact-list.inline')
+          .filter({ hasText: 'Not set' });
+        await list.scrollIntoViewIfNeeded();
+        const offsets = await list.evaluate((dl) =>
+          [...dl.children].map((fact) => {
+            const label = /** @type {Element} */ (fact.querySelector('dt')).getBoundingClientRect();
+            const value = /** @type {Element} */ (fact.querySelector('dd')).getBoundingClientRect();
+            return Math.round(value.top - label.top);
+          })
+        );
+        assert.deepEqual(offsets, [0, 0, 0], 'a value drops under its label');
+      }
+    );
   });
 
   suite('the tools menu', { concurrency: 1 }, () => {
@@ -2091,6 +2110,36 @@ suite('lists', together, () => {
           assert.ok(
             Math.abs(value.left - label.left) < 0.5,
             'a narrow value does not start under its label'
+          );
+        }
+      }
+    );
+
+    test(
+      'a row that holds a pill keeps its neighbours’ pitch, the pill on whole pixels',
+      long,
+      async () => {
+        const page = await opened();
+        const list = page.locator('#fact-list .sui-fact-list.rows').first();
+        await list.scrollIntoViewIfNeeded();
+        const rows = await list.evaluate((dl) =>
+          [...dl.children].slice(1, -1).map((row) => {
+            const pill = row.querySelector('.sui-pill')?.getBoundingClientRect();
+            return {
+              height: row.getBoundingClientRect().height,
+              pill: pill && Number.isInteger(pill.top) && Number.isInteger(pill.bottom),
+              lines: row.querySelector('dd')?.getClientRects().length
+            };
+          })
+        );
+        const plain = rows.filter((row) => row.pill === undefined).map((row) => row.height);
+        const pilled = rows.filter((row) => row.pill !== undefined);
+        assert.ok(pilled.length > 0, 'the rows hold no pill to test');
+        for (const row of pilled) {
+          assert.ok(row.pill, 'a pill stands on a fraction of a pixel');
+          assert.ok(
+            Math.abs(row.height - Math.min(...plain)) <= 1,
+            `a pill's row is ${row.height}px beside ${plain}px rows`
           );
         }
       }

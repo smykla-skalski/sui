@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- A `FactList` on a phone keeps each value beside its label in a box sized to its facts, where every value dropped under its label, and a fact row that holds a pill keeps its neighbours' pitch, the pill reaching into the row's padding on whole pixels (it stood 7px taller)
 - A chart legend's dot or diamond key is one icon wide, so its mark stands 8 to 10px from its label, as a line's end does (it stood up to 17px off)
 - Rail: a focused tile draws its ring inside it, as a side nav row does, so the sidebar's two columns draw one ring, and on the current plate the ring takes the plate's ink, as a current row's does.
 - DataTable and a chart's table: row headings name their rows at 500, a step over the values, and the column headings stay 600; a chart's table took the browser's 700 for both, so it now reads as one more DataTable (L-62).
